@@ -1,7 +1,4 @@
 <Solution>
-  <Folder Name="/AI/">
-    <Project Path="AI/EvilBrains.AI.OpenAI/EvilBrains.AI.OpenAI.csproj" />
-  </Folder>
   <Folder Name="/Api/">
     <Project Path="Api/EvilBrains.AI.Api/EvilBrains.AI.Api.csproj" />
   </Folder>
