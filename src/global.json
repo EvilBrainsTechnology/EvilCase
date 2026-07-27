@@ -1,0 +1,29 @@
+﻿{
+    "sdk": {
+        "version": "10.0.100",
+        "rollForward": "latestFeature"
+    },
+    "scriptShell": "pwsh",
+    "scripts": {
+        "build": "dotnet build --configuration Release -p:TreatWarningsAsErrors=true",
+        "test": "dotnet test --configuration Release",
+        "format": "dotnet format",
+        "format-check": "dotnet format --verify-no-changes",
+        "ci": "dotnet r format-check && dotnet r build && dotnet r test",
+
+        "add-migration": "dotnet ef migrations add (Read-Host 'Migration name') --project Data/EvilBrains.AI.Data.Migrations --configuration Release",
+        "remove-migration": "dotnet ef migrations remove --force --project Data/EvilBrains.AI.Data.Migrations --configuration Release",
+        "generate-sql-script": "dotnet ef migrations script 0 --idempotent --project Data/EvilBrains.AI.Data.Migrations --output database.sql --configuration Release",
+
+        "add-secret": "dotnet user-secrets set (Read-Host 'Secret name') (Read-Host 'Secret value') --project Api/EvilBrains.AI.Api",
+
+        "b": "dotnet r build",
+        "t": "dotnet r test",
+        "f": "dotnet r format",
+        "fc": "dotnet r format-check",
+        "am": "dotnet r add-migration",
+        "rm": "dotnet r remove-migration",
+        "gs": "dotnet r generate-sql-script",
+        "as": "dotnet r add-secret"
+    }
+}

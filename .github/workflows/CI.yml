@@ -1,0 +1,79 @@
+name: CI
+
+# Run the workflow on pushes and pull requests to the main branch
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  checks: write
+
+# Define the jobs for the workflow
+jobs:
+  lint-and-build-test:
+    name: Lint, Build, and Test Solution
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Setup .NET Core
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: src/global.json
+
+      # Restore tools
+      - name: Restore .NET tools
+        run: dotnet tool restore
+        working-directory: ./src
+
+      # Restore dependencies
+      - name: Restore .NET dependencies
+        run: dotnet restore
+        working-directory: ./src
+
+      # Lint the code
+      - name: Lint the code with dotnet-format
+        run: dotnet r format-check
+        working-directory: ./src
+
+      # Build the solution
+      - name: Build the solution
+        run: dotnet r build -- --no-restore
+        working-directory: ./src
+
+      # Test the solution
+      - name: Run tests
+        run: dotnet r test -- --no-build --logger "trx;LogFileName=test-results.trx"
+        working-directory: ./src
+
+      # Upload test results
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: Tests Results
+          path: "**/test-results.trx"
+          reporter: dotnet-trx
+
+      # Generate SQL script
+      - name: Generate SQL script
+        run: dotnet r generate-sql-script -- --no-build
+        working-directory: ./src
+      
+      # Generate SQL script
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SQL
+          path: src/database.sql

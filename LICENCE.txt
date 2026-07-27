@@ -1,0 +1,14 @@
+PROPRIETARY LICENSE
+Version 1.0 – 2025-02-01
+
+Copyright (c) 2025 Martin Volek.
+All Rights Reserved.
+
+This source code and its associated documentation files (the "Software") are the confidential and proprietary property of Martin Volek. Unauthorized copying, reproduction, modification, distribution, or public display of the Software, in whole or in part, is strictly prohibited without the express written permission of Martin Volek.
+
+The Software is provided solely for your personal, non-commercial use. You are not permitted to use, distribute, or create derivative works of the Software for any commercial purpose without first obtaining a separate commercial license from Martin Volek.
+
+Future Licensing Terms:
+Martin Volek reserves the right to modify the licensing terms of the Software in future releases. Should the Software be re-licensed or made available under an open source license, such changes will be clearly announced and documented. Until such time, the terms of this license remain in full force and effect.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL MARTIN VOLEK BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
