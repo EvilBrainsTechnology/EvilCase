@@ -1,0 +1,31 @@
+<Solution>
+  <Folder Name="/AI/">
+    <Project Path="AI/EvilBrains.AI.OpenAI/EvilBrains.AI.OpenAI.csproj" />
+  </Folder>
+  <Folder Name="/Api/">
+    <Project Path="Api/EvilBrains.AI.Api/EvilBrains.AI.Api.csproj" />
+  </Folder>
+  <Folder Name="/Common/">
+    <Project Path="Common/EvilBrains.AI.Auth/EvilBrains.AI.Auth.csproj" />
+    <Project Path="Common/EvilBrains.AI.Secrets/EvilBrains.AI.Secrets.csproj" />
+    <Project Path="Common/EvilBrains.Secrets/EvilBrains.Secrets.csproj" />
+  </Folder>
+  <Folder Name="/Data/">
+    <Project Path="Data/EvilBrains.AI.Data.Migrations/EvilBrains.AI.Data.Migrations.csproj" />
+    <Project Path="Data/EvilBrains.AI.Data/EvilBrains.AI.Data.csproj" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="Tests/EvilBrains.AI.Tests/EvilBrains.AI.Tests.csproj" />
+  </Folder>
+  <Folder Name="/Utils/">
+    <Project Path="Utils/EvilBrains.Collections/EvilBrains.Collections.csproj" />
+    <Project Path="Utils/EvilBrains.Cryptography/EvilBrains.Cryptography.csproj" />
+    <Project Path="Utils/EvilBrains.EntityFramework/EvilBrains.EntityFramework.csproj" />
+    <Project Path="Utils/EvilBrains.Logging.AspNetCore/EvilBrains.Logging.AspNetCore.csproj" />
+    <Project Path="Utils/EvilBrains.Logging.TypedValues/EvilBrains.Logging.TypedValues.csproj" />
+    <Project Path="Utils/EvilBrains.Logging/EvilBrains.Logging.csproj" />
+  </Folder>
+  <Folder Name="/Utils/Tests/">
+    <Project Path="Utils/Tests/EvilBrains.Utils.Tests/EvilBrains.Utils.Tests.csproj" />
+  </Folder>
+</Solution>
