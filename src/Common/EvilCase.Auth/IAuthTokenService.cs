@@ -1,6 +1,6 @@
-﻿using EvilCase.Data.Entities;
+﻿using EvilBrains.EvilCase.Data.Entities;
 
-namespace EvilCase.Auth;
+namespace EvilBrains.EvilCase.Auth;
 
 public interface IAuthTokenService
 {

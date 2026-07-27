@@ -2,11 +2,11 @@
 using System.Security.Claims;
 using System.Text;
 using EvilBrains.Collections.Factories;
-using EvilCase.Data.Entities;
+using EvilBrains.EvilCase.Data.Entities;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
-namespace EvilCase.Auth;
+namespace EvilBrains.EvilCase.Auth;
 
 internal sealed class AuthTokenService(IOptionsSnapshot<AuthSettings> options) : IAuthTokenService
 {

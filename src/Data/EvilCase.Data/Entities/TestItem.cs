@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace EvilCase.Data.Entities;
+namespace EvilBrains.EvilCase.Data.Entities;
 
 public record TestItem : IEntity
 {

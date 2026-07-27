@@ -1,12 +1,12 @@
 ﻿using EvilBrains.Cryptography;
-using EvilCase.Auth;
-using EvilCase.Data.DbContexts;
-using EvilCase.Data.Entities;
+using EvilBrains.EvilCase.Auth;
+using EvilBrains.EvilCase.Data.DbContexts;
+using EvilBrains.EvilCase.Data.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace EvilCase.Api.Controllers;
+namespace EvilBrains.EvilCase.Api.Controllers;
 
 #pragma warning disable RCS1060
 

@@ -1,4 +1,4 @@
-﻿namespace EvilCase.Data.Entities;
+﻿namespace EvilBrains.EvilCase.Data.Entities;
 
 public interface IEntity
 {

@@ -3,7 +3,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace EvilCase.Data.Migrations.Migrations;
+namespace EvilBrains.EvilCase.Data.Migrations.Migrations;
 
 /// <inheritdoc />
 public partial class TestItems : Migration

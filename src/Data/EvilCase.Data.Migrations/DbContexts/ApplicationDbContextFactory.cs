@@ -1,8 +1,8 @@
-using EvilCase.Data.DbContexts;
+using EvilBrains.EvilCase.Data.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
-namespace EvilCase.Data.Migrations.DbContexts;
+namespace EvilBrains.EvilCase.Data.Migrations.DbContexts;
 
 public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext>
 {

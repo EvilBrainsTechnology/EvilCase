@@ -1,6 +1,6 @@
-using EvilCase.Api;
-using EvilCase.Auth;
-using EvilCase.Secrets;
+using EvilBrains.EvilCase.Api;
+using EvilBrains.EvilCase.Auth;
+using EvilBrains.EvilCase.Secrets;
 using Scalar.AspNetCore;
 using Serilog;
 

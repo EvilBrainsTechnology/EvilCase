@@ -1,7 +1,7 @@
 ﻿using InfisicalConfiguration;
 using Microsoft.Extensions.Configuration;
 
-namespace EvilCase.Secrets;
+namespace EvilBrains.EvilCase.Secrets;
 
 public static class Bootstrap
 {

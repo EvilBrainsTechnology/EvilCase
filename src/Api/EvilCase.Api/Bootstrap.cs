@@ -1,7 +1,7 @@
-﻿using EvilCase.Auth;
-using EvilCase.Data;
+﻿using EvilBrains.EvilCase.Auth;
+using EvilBrains.EvilCase.Data;
 
-namespace EvilCase.Api;
+namespace EvilBrains.EvilCase.Api;
 
 public static class Bootstrap
 {

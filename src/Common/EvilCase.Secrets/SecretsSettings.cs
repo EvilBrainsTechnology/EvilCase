@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace EvilCase.Secrets;
+namespace EvilBrains.EvilCase.Secrets;
 
 internal sealed record SecretsSettings
 {

@@ -5,7 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 
-namespace EvilCase.Auth;
+namespace EvilBrains.EvilCase.Auth;
 
 public static class Bootstrap
 {

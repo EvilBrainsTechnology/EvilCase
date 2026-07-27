@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Microsoft.Extensions.Options;
 
-namespace EvilCase.Auth;
+namespace EvilBrains.EvilCase.Auth;
 
 internal sealed record AuthSettings
 {

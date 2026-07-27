@@ -1,9 +1,9 @@
-using EvilCase.Data.DbContexts;
+using EvilBrains.EvilCase.Data.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace EvilCase.Data;
+namespace EvilBrains.EvilCase.Data;
 
 public static class Bootstrap
 {

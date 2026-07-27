@@ -1,7 +1,7 @@
-using EvilCase.Data.Entities;
+using EvilBrains.EvilCase.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace EvilCase.Data.DbContexts;
+namespace EvilBrains.EvilCase.Data.DbContexts;
 
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : DbContext(options)
 {

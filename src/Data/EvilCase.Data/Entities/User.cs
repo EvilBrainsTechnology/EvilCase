@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 
-namespace EvilCase.Data.Entities;
+namespace EvilBrains.EvilCase.Data.Entities;
 
 [Index(nameof(Email), IsUnique = true)]
 public record User : IEntity

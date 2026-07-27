@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace EvilCase.Api.Controllers;
+namespace EvilBrains.EvilCase.Api.Controllers;
 
 [ApiController]
 [Route("configuration")]
