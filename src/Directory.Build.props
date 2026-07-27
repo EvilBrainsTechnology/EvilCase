@@ -1,5 +1,7 @@
 <Project>
   <PropertyGroup>
+    <AssemblyName Condition="!$(MSBuildProjectName.StartsWith('EvilBrains'))">EvilBrains.$(MSBuildProjectName)</AssemblyName>
+    <RootNamespace Condition="!$(MSBuildProjectName.StartsWith('EvilBrains'))">EvilBrains.$(MSBuildProjectName)</RootNamespace>
     <TargetFramework>net10.0</TargetFramework>
     <LangVersion>14</LangVersion>
     <Nullable>enable</Nullable>

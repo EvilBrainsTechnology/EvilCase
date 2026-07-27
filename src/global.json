@@ -11,11 +11,11 @@
         "format-check": "dotnet format --verify-no-changes",
         "ci": "dotnet r format-check && dotnet r build && dotnet r test",
 
-        "add-migration": "dotnet ef migrations add (Read-Host 'Migration name') --project Data/EvilBrains.AI.Data.Migrations --configuration Release",
-        "remove-migration": "dotnet ef migrations remove --force --project Data/EvilBrains.AI.Data.Migrations --configuration Release",
-        "generate-sql-script": "dotnet ef migrations script 0 --idempotent --project Data/EvilBrains.AI.Data.Migrations --output database.sql --configuration Release",
+        "add-migration": "dotnet ef migrations add (Read-Host 'Migration name') --project Data/EvilCase.Data.Migrations --configuration Release",
+        "remove-migration": "dotnet ef migrations remove --force --project Data/EvilCase.Data.Migrations --configuration Release",
+        "generate-sql-script": "dotnet ef migrations script 0 --idempotent --project Data/EvilCase.Data.Migrations --output database.sql --configuration Release",
 
-        "add-secret": "dotnet user-secrets set (Read-Host 'Secret name') (Read-Host 'Secret value') --project Api/EvilBrains.AI.Api",
+        "add-secret": "dotnet user-secrets set (Read-Host 'Secret name') (Read-Host 'Secret value') --project Api/EvilCase.Api",
 
         "b": "dotnet r build",
         "t": "dotnet r test",

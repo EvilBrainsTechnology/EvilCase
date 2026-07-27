@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <UserSecretsId>3654a906-0e80-49ff-b017-59f5e787a3c4</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <!-- Explicit reference to override the vulnerable transitive Microsoft.OpenApi 2.0.0 (GHSA-v5pm-xwqc-g5wc) -->
+    <PackageReference Include="Microsoft.OpenApi" />
+    <PackageReference Include="Scalar.AspNetCore" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Common\EvilCase.Auth\EvilCase.Auth.csproj" />
+    <ProjectReference Include="..\..\Common\EvilCase.Secrets\EvilCase.Secrets.csproj" />
+    <ProjectReference Include="..\..\Utils\EvilBrains.Collections\EvilBrains.Collections.csproj" />
+    <ProjectReference Include="..\..\Utils\EvilBrains.Cryptography\EvilBrains.Cryptography.csproj" />
+    <ProjectReference Include="..\..\Utils\EvilBrains.Logging.AspNetCore\EvilBrains.Logging.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\Utils\EvilBrains.Logging\EvilBrains.Logging.csproj" />
+  </ItemGroup>
+
+</Project>
