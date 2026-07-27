@@ -1,0 +1,42 @@
+version: 2
+updates:
+  # NuGet packages (central package management in src/Directory.Packages.props)
+  - package-ecosystem: "nuget"
+    directory: "/src"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    groups:
+      # Keep tightly coupled framework packages in a single PR
+      dotnet-framework:
+        patterns:
+          - "Microsoft.AspNetCore.*"
+          - "Microsoft.EntityFrameworkCore*"
+          - "Microsoft.Extensions.*"
+          - "Npgsql.EntityFrameworkCore.PostgreSQL"
+      test:
+        patterns:
+          - "Microsoft.NET.Test.Sdk"
+          - "NUnit*"
+          - "Moq"
+      serilog:
+        patterns:
+          - "Serilog*"
+      analyzers:
+        patterns:
+          - "Roslynator.*"
+          - "StyleCop.Analyzers"
+
+  # .NET SDK version in src/global.json
+  - package-ecosystem: "dotnet-sdk"
+    directory: "/src"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+
+  # GitHub Actions used in .github/workflows
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
