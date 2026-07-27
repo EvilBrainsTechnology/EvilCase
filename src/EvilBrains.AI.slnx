@@ -1,7 +1,4 @@
 <Solution>
-  <Folder Name="/AI/">
-    <Project Path="AI/EvilBrains.AI.OpenAI/EvilBrains.AI.OpenAI.csproj" />
-  </Folder>
   <Folder Name="/Api/">
     <Project Path="Api/EvilBrains.AI.Api/EvilBrains.AI.Api.csproj" />
   </Folder>
@@ -13,9 +10,6 @@
   <Folder Name="/Data/">
     <Project Path="Data/EvilBrains.AI.Data.Migrations/EvilBrains.AI.Data.Migrations.csproj" />
     <Project Path="Data/EvilBrains.AI.Data/EvilBrains.AI.Data.csproj" />
-  </Folder>
-  <Folder Name="/Tests/">
-    <Project Path="Tests/EvilBrains.AI.Tests/EvilBrains.AI.Tests.csproj" />
   </Folder>
   <Folder Name="/Utils/">
     <Project Path="Utils/EvilBrains.Collections/EvilBrains.Collections.csproj" />

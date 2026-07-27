@@ -13,7 +13,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\AI\EvilBrains.AI.OpenAI\EvilBrains.AI.OpenAI.csproj" />
     <ProjectReference Include="..\..\Common\EvilBrains.AI.Auth\EvilBrains.AI.Auth.csproj" />
     <ProjectReference Include="..\..\Common\EvilBrains.AI.Secrets\EvilBrains.AI.Secrets.csproj" />
     <ProjectReference Include="..\..\Utils\EvilBrains.Collections\EvilBrains.Collections.csproj" />
