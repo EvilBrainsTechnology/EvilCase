@@ -1,0 +1,27 @@
+<Solution>
+  <Folder Name="/Api/">
+    <Project Path="Api/EvilCase.Api/EvilCase.Api.csproj" />
+  </Folder>
+  <Folder Name="/Common/">
+    <Project Path="Common/EvilCase.Auth/EvilCase.Auth.csproj" />
+    <Project Path="Common/EvilCase.Secrets/EvilCase.Secrets.csproj" />
+  </Folder>
+  <Folder Name="/Data/">
+    <Project Path="Data/EvilCase.Data.Migrations/EvilCase.Data.Migrations.csproj" />
+    <Project Path="Data/EvilCase.Data/EvilCase.Data.csproj" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="Tests/EvilCase.Tests/EvilCase.Tests.csproj" />
+  </Folder>
+  <Folder Name="/Utils/">
+    <Project Path="Utils/EvilBrains.Collections/EvilBrains.Collections.csproj" />
+    <Project Path="Utils/EvilBrains.Cryptography/EvilBrains.Cryptography.csproj" />
+    <Project Path="Utils/EvilBrains.EntityFramework/EvilBrains.EntityFramework.csproj" />
+    <Project Path="Utils/EvilBrains.Logging.AspNetCore/EvilBrains.Logging.AspNetCore.csproj" />
+    <Project Path="Utils/EvilBrains.Logging.TypedValues/EvilBrains.Logging.TypedValues.csproj" />
+    <Project Path="Utils/EvilBrains.Logging/EvilBrains.Logging.csproj" />
+  </Folder>
+  <Folder Name="/Utils/Tests/">
+    <Project Path="Utils/Tests/EvilBrains.Utils.Tests/EvilBrains.Utils.Tests.csproj" />
+  </Folder>
+</Solution>
