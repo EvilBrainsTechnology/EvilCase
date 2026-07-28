@@ -9,7 +9,7 @@ using Npgsql;
 
 namespace EvilBrains.EvilCase.Api.Controllers;
 
-#pragma warning disable RCS1060
+#pragma warning disable RCS1060 // Declare each type in separate file
 
 [ApiController]
 [Route("auth")]
