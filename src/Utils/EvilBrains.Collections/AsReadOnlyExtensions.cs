@@ -17,7 +17,6 @@ public static class AsReadOnlyExtensions
         {
             IReadOnlyList<T> readOnlyList => readOnlyList,
             IList<T> list => list.AsReadOnly(),
-            IStableEnumerable<T> stableEnumerable => stableEnumerable.AsReadOnlyList(),
             _ => collection.ToList().AsReadOnly(),
         };
     }
