@@ -2,6 +2,7 @@ using EvilBrains.EvilCase.Data.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace EvilBrains.EvilCase.Data;
 
@@ -28,8 +29,12 @@ public static class Bootstrap
                 options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
 
                 // TODO add DB logging - options.AddDbLogging();
-                options.EnableSensitiveDataLogging();
-                options.EnableDetailedErrors();
+                var environment = serviceProvider.GetRequiredService<IHostEnvironment>();
+                if (environment.IsDevelopment())
+                {
+                    options.EnableSensitiveDataLogging();
+                    options.EnableDetailedErrors();
+                }
             });
 
         return services;
