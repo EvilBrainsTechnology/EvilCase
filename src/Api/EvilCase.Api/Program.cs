@@ -10,10 +10,10 @@ CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
 var builder = WebApplication
     .CreateBuilder(args);
 
+// The default appsettings.json/appsettings.{Environment}.json/user-secrets sources are
+// added by CreateBuilder in the correct precedence slot (before environment variables
+// and command-line arguments); only Infisical is appended so its secrets always win.
 builder.Configuration
-    .AddJsonFile("AppSettings.json", optional: false, reloadOnChange: true)
-    .AddJsonFile($"AppSettings.{builder.Environment.EnvironmentName}.json", optional: false, reloadOnChange: true)
-    .AddUserSecrets<Program>() // TODO only if development?
     .AddEvilCaseSecrets(builder.Configuration, "EvilBrains:EvilCase:Infisical");
 
 #pragma warning disable RCS0054
@@ -41,12 +41,12 @@ else
     app.UseHsts();
 }
 
+app.UseSerilogRequestLogging();
+
 app.UseHttpsRedirection();
 app.UseRouting();
 
 app.UseAuthorization();
-
-app.UseSerilogRequestLogging();
 
 app.MapControllers();
 app.Run();
