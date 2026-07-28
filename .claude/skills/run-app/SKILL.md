@@ -1,0 +1,32 @@
+---
+name: run-app
+description: Run the EvilCase API and Blazor frontend locally and verify the app works. Use for AI validation and testing of the running application.
+---
+
+# Run EvilCase
+
+All commands run from `src/`.
+
+## Prerequisites
+
+- Infisical client secret in user secrets (key `EvilBrains:EvilCase:Infisical:ClientSecret`, set via `dotnet r add-secret`) — the API fails at startup without it.
+- Trusted dev certificate: `dotnet dev-certs https --trust`.
+
+## Start
+
+Both servers must run simultaneously:
+
+- API: `dotnet r run-api` → `https://localhost:5000` (Scalar UI at `/scalar`, Development only)
+- Frontend: `dotnet r run-app` → `https://localhost:5001`
+
+In Claude Code, prefer the preview servers defined in `.claude/launch.json` (names `api` and `app`).
+
+## Verify
+
+- API round-trip: `curl.exe -sk -X POST https://localhost:5000/echo -H "Content-Type: application/json" -d '{"message":"ping"}'` → `{"message":"Echo: ping"}`
+- Frontend: open `https://localhost:5001`, type text, click Send → page shows `Echo: <text>`. First WebAssembly load takes a few seconds.
+- CORS error in the browser console means the API is not running or the origin does not match (the dev CORS policy allows `https://localhost:5001`).
+
+## Stop
+
+Ctrl+C in each terminal, or stop the preview servers.

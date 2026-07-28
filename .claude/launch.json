@@ -1,0 +1,19 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "api",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "src/Api/EvilCase.Api"],
+      "port": 5000,
+      "url": "https://localhost:5000"
+    },
+    {
+      "name": "app",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "src/App/EvilCase.App"],
+      "port": 5001,
+      "url": "https://localhost:5001"
+    }
+  ]
+}

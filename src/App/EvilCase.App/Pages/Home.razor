@@ -1,0 +1,24 @@
+@page "/"
+@using EvilBrains.EvilCase.Api.Client
+@inject IEchoApi EchoApi
+
+<h1>EvilCase</h1>
+
+<input @bind="message" placeholder="Type a message" />
+<button @onclick="SendAsync">Send</button>
+
+@if (response is not null)
+{
+    <p>@response</p>
+}
+
+@code {
+    private string message = string.Empty;
+    private string? response;
+
+    private async Task SendAsync()
+    {
+        var result = await EchoApi.EchoAsync(new EchoRequest { Message = message });
+        response = result.Message;
+    }
+}
