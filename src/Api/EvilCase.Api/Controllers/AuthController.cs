@@ -5,6 +5,7 @@ using EvilBrains.EvilCase.Data.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace EvilBrains.EvilCase.Api.Controllers;
 
@@ -25,7 +26,15 @@ public class AuthController(ApplicationDbContext dbContext) : Controller
         };
 
         await dbContext.Users.AddAsync(user);
-        await dbContext.SaveChangesAsync();
+
+        try
+        {
+            await dbContext.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
+        {
+            return this.Conflict("Email is already registered");
+        }
 
         return this.Created();
     }

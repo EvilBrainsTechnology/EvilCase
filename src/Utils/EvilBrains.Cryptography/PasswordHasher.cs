@@ -8,7 +8,9 @@ public static class PasswordHasher
 
     private const int KeySize = 32; // 256 bits
 
-    private const int Iterations = 100_000;
+    // OWASP recommendation for PBKDF2-HMAC-SHA256; Verify reads the iteration count
+    // from the stored hash, so existing hashes keep working after a change here.
+    private const int Iterations = 600_000;
 
     private const char SegmentDelimiter = ':';
 
