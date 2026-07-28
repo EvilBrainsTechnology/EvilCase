@@ -75,6 +75,8 @@ public static class NullIfEmptyExtensions
 
         // Wrapped in a stable enumerable because the open enumerator can be consumed
         // only once — a bare iterator over it would yield garbage on re-enumeration.
+        // Trade-off: the source enumerator must stay open for a possible later drain,
+        // so abandoning the result after a partial enumeration leaves it undisposed.
         return YieldOpenEnumerator(enumerator).AsStableEnumerable();
     }
 
