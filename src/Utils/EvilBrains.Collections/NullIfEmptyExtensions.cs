@@ -73,7 +73,9 @@ public static class NullIfEmptyExtensions
             return null;
         }
 
-        return YieldOpenEnumerator(enumerator);
+        // Wrapped in a stable enumerable because the open enumerator can be consumed
+        // only once — a bare iterator over it would yield garbage on re-enumeration.
+        return YieldOpenEnumerator(enumerator).AsStableEnumerable();
     }
 
     private static IEnumerable<T> YieldOpenEnumerator<T>(IEnumerator<T> enumerator)

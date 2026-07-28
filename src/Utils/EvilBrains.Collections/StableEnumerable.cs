@@ -2,7 +2,7 @@
 
 namespace EvilBrains.Collections;
 
-internal sealed class StableEnumerable<T>(IEnumerable<T> internalEnumerable) : IStableEnumerable<T>, IDisposable
+internal sealed class StableEnumerable<T>(IEnumerable<T> internalEnumerable) : IStableEnumerable<T>
 {
     private readonly IList<T> cache = [];
 
@@ -25,7 +25,7 @@ internal sealed class StableEnumerable<T>(IEnumerable<T> internalEnumerable) : I
             while (this.internalEnumerator.MoveNext())
                 this.cache.Add(this.internalEnumerator.Current);
 
-            this.DispoInternalEnumerator();
+            this.DisposeInternalEnumerator();
         }
 
         return this.cache.AsReadOnly();
@@ -33,14 +33,14 @@ internal sealed class StableEnumerable<T>(IEnumerable<T> internalEnumerable) : I
 
     public void Dispose()
     {
-        this.DispoInternalEnumerator();
+        this.DisposeInternalEnumerator();
     }
 
     private IEnumerator<T> GetEnumeratorInternal()
     {
         var index = -1;
 
-        while (this.internalEnumerator is not null)
+        while (true)
         {
             ++index;
 
@@ -48,19 +48,22 @@ internal sealed class StableEnumerable<T>(IEnumerable<T> internalEnumerable) : I
             {
                 yield return this.cache[index];
             }
-            else if (this.internalEnumerator.MoveNext())
+            else if (this.internalEnumerator is { } enumerator && enumerator.MoveNext())
             {
-                this.cache.Add(this.internalEnumerator.Current);
-                yield return this.internalEnumerator.Current;
+                this.cache.Add(enumerator.Current);
+                yield return enumerator.Current;
             }
             else
             {
-                this.DispoInternalEnumerator();
+                // The source may have been drained (and disposed) by another enumerator
+                // while this one was suspended; only the items already cached remain.
+                this.DisposeInternalEnumerator();
+                yield break;
             }
         }
     }
 
-    private void DispoInternalEnumerator()
+    private void DisposeInternalEnumerator()
     {
         if (this.internalEnumerator is null)
             return;

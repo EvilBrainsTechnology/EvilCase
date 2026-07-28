@@ -105,6 +105,32 @@ public class StableEnumerableTests
         mock.Verify(dummyService => dummyService.GetNumber(It.IsInRange(0, 4, Moq.Range.Inclusive)), Times.Exactly(5));
     }
 
+    [Test]
+    public void StableEnumerableInterleavedEnumeratorsTest()
+    {
+        var mock = new Mock<IGetNumberDummyService>();
+        mock.Setup(dummyService => dummyService.GetNumber(It.IsInRange(0, 4, Moq.Range.Inclusive))).Returns<int>(input => input);
+
+        var stableEnumerable = GetRange(mock.Object, 0, 5).AsStableEnumerable();
+
+        using var enumerator = stableEnumerable.GetEnumerator();
+        Assert.That(enumerator.MoveNext(), Is.True);
+
+        var drained = stableEnumerable.ToList();
+
+        var remaining = new List<int> { enumerator.Current };
+        while (enumerator.MoveNext())
+            remaining.Add(enumerator.Current);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(drained, Is.EqualTo(Enumerable.Range(0, 5)));
+            Assert.That(remaining, Is.EqualTo(Enumerable.Range(0, 5)));
+        }
+
+        mock.Verify(dummyService => dummyService.GetNumber(It.IsInRange(0, 4, Moq.Range.Inclusive)), Times.Exactly(5));
+    }
+
     private static IEnumerable<int> GetRange(IGetNumberDummyService dummyService, int start, int count)
     {
         for (var i = start; i < start + count; ++i)

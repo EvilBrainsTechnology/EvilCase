@@ -12,11 +12,11 @@ namespace EvilBrains.EvilCase.Api.Controllers;
 public class TestDatabaseController(ApplicationDbContext dbContext) : Controller
 {
     [HttpGet]
-    public async Task<IReadOnlyList<TestItem>> List()
+    public async Task<IReadOnlyList<TestItem>> List(CancellationToken token)
     {
         return await dbContext.TestItems
             .OrderByDescending(x => x.Created)
-            .AsReadOnlyListAsync();
+            .AsReadOnlyListAsync(token);
     }
 
     [HttpPost]

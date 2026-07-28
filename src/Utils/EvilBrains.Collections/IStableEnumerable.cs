@@ -1,6 +1,6 @@
 ﻿namespace EvilBrains.Collections;
 
-public interface IStableEnumerable<out T> : IEnumerable<T>
+public interface IStableEnumerable<out T> : IEnumerable<T>, IDisposable
 {
     public IReadOnlyList<T> AsReadOnlyList();
 }

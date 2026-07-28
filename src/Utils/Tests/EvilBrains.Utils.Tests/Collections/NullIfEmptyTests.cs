@@ -50,6 +50,26 @@ public class NullIfEmptyTests
         }
     }
 
+    [Test]
+    public void EnumerableNullIfEmptyRepeatedEnumerationTest()
+    {
+        var result = LazyRange(3).NullIfEmpty();
+
+        Assert.That(result, Is.Not.Null);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result, Is.EqualTo(Enumerable.Range(0, 3)));
+            Assert.That(result, Is.EqualTo(Enumerable.Range(0, 3)));
+        }
+    }
+
+    private static IEnumerable<int> LazyRange(int count)
+    {
+        for (var i = 0; i < count; i++)
+            yield return i;
+    }
+
     private static IEnumerable<int> FailAfter(int count)
     {
         for (var i = 0; i < count; i++)
