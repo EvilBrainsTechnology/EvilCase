@@ -89,11 +89,11 @@ dotnet_diagnostic.IDE0011.severity = none       # Add braces to 'if' statement
 dotnet_diagnostic.IDE0022.severity = none       # Use block body for method
 dotnet_diagnostic.IDE0046.severity = suggestion # 'if' statement can be simplified
 dotnet_diagnostic.IDE0051.severity = none       # Private member is unused
-dotnet_diagnostic.IDE0058.severity = none       # Missing XML comment for publicly visible type or member
+dotnet_diagnostic.IDE0058.severity = none       # Remove unnecessary expression value
 dotnet_diagnostic.IDE0059.severity = warning    # Unnecessary assignment of a value
-dotnet_diagnostic.IDE0060.severity = none       # Remove unused parameter 'collection' if it is not part of a shipped public API (replaced by RCS1163)
+dotnet_diagnostic.IDE0060.severity = none       # Remove unused parameter if it is not part of a shipped public API (replaced by RCS1163)
 
-dotnet_diagnostic.SYSLIB1045.severity = suggestion # Remove unused parameter 'collection' if it is not part of a shipped public API (replaced by RCS1163)
+dotnet_diagnostic.SYSLIB1045.severity = suggestion # Use GeneratedRegexAttribute
 
 ########################################################################################################################
 
@@ -117,7 +117,7 @@ dotnet_diagnostic.SA1633.severity = none        # The file header is missing or 
 
 roslynator_accessibility_modifiers = explicit # explicit|implicit, applicable to: rcs1018
 roslynator_accessor_braces_style = single_line_when_expression_is_on_single_line # multi_line|single_line_when_expression_is_on_single_line, default: multi_line, applicable to: rcs0020
-roslynator_array_creation_type_style = explicit|implicit|implicit_when_type_is_obvious # explicit|implicit|implicit_when_type_is_obvious, applicable to: rcs1014
+roslynator_array_creation_type_style = implicit_when_type_is_obvious # explicit|implicit|implicit_when_type_is_obvious, applicable to: rcs1014
 roslynator_arrow_token_new_line = after # after|before, applicable to: rcs0032
 roslynator_binary_operator_new_line = before # after|before, applicable to: rcs0027
 roslynator_blank_line_after_file_scoped_namespace_declaration = true # true|false, applicable to: rcs0060
