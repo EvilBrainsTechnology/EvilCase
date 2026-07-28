@@ -41,13 +41,32 @@ public class NullIfEmptyTests
             Assert.That(((IEnumerable<int>?)null).NullIfEmpty(), Is.Null);
             Assert.That(Enumerable.Empty<int>().NullIfEmpty(), Is.Null);
 
-#pragma warning disable CS8620 // remove this when fixed in Roslyn - https://github.com/dotnet/roslyn/issues/80024
             Assert.That(Enumerable.From(1, 2, 3).NullIfEmpty(), Is.EquivalentTo(Enumerable.From(1, 2, 3)));
-#pragma warning restore CS8620
 
             Assert.Throws<InvalidOperationException>(() => FailAfter(0).NullIfEmpty());
             Assert.DoesNotThrow(() => FailAfter(1).NullIfEmpty());
         }
+    }
+
+    [Test]
+    [Ignore("Fix this in the future")]
+    public void EnumerableNullIfEmptyRepeatedEnumerationTest()
+    {
+        var result = LazyRange(3).NullIfEmpty();
+
+        Assert.That(result, Is.Not.Null);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result, Is.EqualTo(Enumerable.Range(0, 3)));
+            Assert.That(result, Is.EqualTo(Enumerable.Range(0, 3)));
+        }
+    }
+
+    private static IEnumerable<int> LazyRange(int count)
+    {
+        for (var i = 0; i < count; i++)
+            yield return i;
     }
 
     private static IEnumerable<int> FailAfter(int count)

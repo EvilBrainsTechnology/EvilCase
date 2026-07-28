@@ -14,11 +14,11 @@ namespace EvilBrains.EvilCase.Api.Controllers;
 public class UserController(ApplicationDbContext dbContext) : Controller
 {
     [HttpGet]
-    public async Task<IReadOnlyList<User>> List()
+    public async Task<IReadOnlyList<User>> List(CancellationToken token)
     {
         return await dbContext.Users
             .OrderByDescending(x => x.Created)
-            .AsReadOnlyListAsync();
+            .AsReadOnlyListAsync(token);
     }
 
     [HttpPost]

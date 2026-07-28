@@ -29,13 +29,13 @@ public static class EnumerableExtensions
         public static IEnumerable<T> Sequence<T>(T start, T endInclusive)
             where T : INumber<T>
         {
-            return [.. Enumerable.Sequence(start, endInclusive, T.One)];
+            return Enumerable.Sequence(start, endInclusive, T.One);
         }
 
         public static IEnumerable<T> InfiniteSequence<T>(T start)
             where T : INumber<T>
         {
-            return [.. Enumerable.InfiniteSequence(start, T.One)];
+            return Enumerable.InfiniteSequence(start, T.One);
         }
     }
 }
