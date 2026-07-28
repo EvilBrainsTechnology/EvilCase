@@ -28,7 +28,6 @@ public static class Bootstrap
                 options.UseNpgsql(connectionString);
                 options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
 
-                // TODO add DB logging - options.AddDbLogging();
                 var environment = serviceProvider.GetRequiredService<IHostEnvironment>();
                 if (environment.IsDevelopment())
                 {
