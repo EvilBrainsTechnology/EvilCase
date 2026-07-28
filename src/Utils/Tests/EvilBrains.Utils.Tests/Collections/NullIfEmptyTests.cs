@@ -41,9 +41,7 @@ public class NullIfEmptyTests
             Assert.That(((IEnumerable<int>?)null).NullIfEmpty(), Is.Null);
             Assert.That(Enumerable.Empty<int>().NullIfEmpty(), Is.Null);
 
-#pragma warning disable CS8620 // remove this when fixed in Roslyn - https://github.com/dotnet/roslyn/issues/80024
             Assert.That(Enumerable.From(1, 2, 3).NullIfEmpty(), Is.EquivalentTo(Enumerable.From(1, 2, 3)));
-#pragma warning restore CS8620
 
             Assert.Throws<InvalidOperationException>(() => FailAfter(0).NullIfEmpty());
             Assert.DoesNotThrow(() => FailAfter(1).NullIfEmpty());
