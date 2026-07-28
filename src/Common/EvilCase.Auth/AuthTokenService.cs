@@ -8,7 +8,10 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace EvilBrains.EvilCase.Auth;
 
-internal sealed class AuthTokenService(IOptionsSnapshot<AuthSettings> options) : IAuthTokenService
+// IOptions (not IOptionsSnapshot) on purpose: JwtBearer validation parameters are baked
+// once at startup, so token generation must use the same startup snapshot — otherwise
+// a config reload would sign tokens the validation side rejects.
+internal sealed class AuthTokenService(IOptions<AuthSettings> options) : IAuthTokenService
 {
     private static readonly JwtSecurityTokenHandler JwtSecurityTokenHandler = new();
 
