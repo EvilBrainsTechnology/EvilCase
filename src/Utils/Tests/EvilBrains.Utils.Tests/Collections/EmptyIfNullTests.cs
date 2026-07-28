@@ -34,16 +34,16 @@ public class EmptyIfNullTests
     }
 
     [Test]
-    public void CollectionEmptyIfNullTest()
+    public void DictionaryEmptyIfNullTest()
     {
-        var emptyList = List.Empty<int>();
-        var list = List.From(1, 2, 3);
+        var emptyDictionary = ReadOnlyDictionary.Empty<int, string>();
+        var dictionary = new Dictionary<int, string> { [1] = "one" };
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(((List<int>?)null).EmptyIfNull(), Is.Empty);
-            Assert.That(emptyList.EmptyIfNull(), Is.SameAs(emptyList));
-            Assert.That(list.EmptyIfNull(), Is.SameAs(list));
+            Assert.That(((IReadOnlyDictionary<int, string>?)null).EmptyIfNull(), Is.Empty);
+            Assert.That(emptyDictionary.EmptyIfNull(), Is.SameAs(emptyDictionary));
+            Assert.That(dictionary.EmptyIfNull(), Is.SameAs(dictionary));
         }
     }
 
