@@ -2,8 +2,6 @@
 
 namespace EvilBrains.EntityFramework;
 
-#pragma warning disable SA1101 // TODO remove when style cop fixes .NET 10 problems
-
 public static class AsReadOnlyExtensions
 {
     extension<T>(IQueryable<T> collection)
@@ -34,5 +32,3 @@ public static class AsReadOnlyExtensions
         }
     }
 }
-
-#pragma warning restore SA1101

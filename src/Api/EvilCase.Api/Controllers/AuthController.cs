@@ -9,14 +9,14 @@ using Npgsql;
 
 namespace EvilBrains.EvilCase.Api.Controllers;
 
-#pragma warning disable RCS1060
+#pragma warning disable RCS1060 // Declare each type in separate file
 
 [ApiController]
 [Route("auth")]
 public class AuthController(ApplicationDbContext dbContext) : Controller
 {
     [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+    public async Task<IActionResult> Register([FromBody] RegisterRequest request, CancellationToken token)
     {
         var user = new User
         {
@@ -25,11 +25,11 @@ public class AuthController(ApplicationDbContext dbContext) : Controller
             Created = DateTime.UtcNow,
         };
 
-        await dbContext.Users.AddAsync(user);
+        await dbContext.Users.AddAsync(user, token);
 
         try
         {
-            await dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync(token);
         }
         catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
         {
@@ -42,9 +42,10 @@ public class AuthController(ApplicationDbContext dbContext) : Controller
     [HttpPost("login")]
     public async Task<IActionResult> Login(
         [FromServices] IAuthTokenService authTokenService,
-        [FromBody] LoginRequest request)
+        [FromBody] LoginRequest request,
+        CancellationToken token)
     {
-        var user = await dbContext.Users.SingleOrDefaultAsync(x => x.Email == request.Email);
+        var user = await dbContext.Users.SingleOrDefaultAsync(x => x.Email == request.Email, token);
         if (user is null)
         {
             PasswordHasher.FakeVerify();
@@ -54,11 +55,11 @@ public class AuthController(ApplicationDbContext dbContext) : Controller
         if (!PasswordHasher.Verify(request.Password, user.PasswordHash))
             return this.NotFound();
 
-        var token = authTokenService.GenerateToken(user);
+        var authToken = authTokenService.GenerateToken(user);
         var loginResponseModel = new LoginResponse
         {
             Email = user.Email,
-            Token = token,
+            Token = authToken,
         };
 
         return this.Ok(loginResponseModel);

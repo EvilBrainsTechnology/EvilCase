@@ -5,7 +5,6 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace EvilBrains.EvilCase.Data.Migrations.Migrations;
 
-/// <inheritdoc />
 public partial class Users : Migration
 {
     /// <inheritdoc />

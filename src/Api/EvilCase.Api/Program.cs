@@ -16,7 +16,7 @@ var builder = WebApplication
 builder.Configuration
     .AddEvilCaseSecrets(builder.Configuration, "EvilBrains:EvilCase:Infisical");
 
-#pragma warning disable RCS0054
+#pragma warning disable RCS0054 // Fix formatting of a call chain
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
@@ -49,4 +49,4 @@ app.UseRouting();
 app.UseAuthorization();
 
 app.MapControllers();
-app.Run();
+await app.RunAsync();
