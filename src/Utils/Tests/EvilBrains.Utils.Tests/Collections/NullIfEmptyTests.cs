@@ -41,7 +41,7 @@ public class NullIfEmptyTests
             Assert.That(((IEnumerable<int>?)null).NullIfEmpty(), Is.Null);
             Assert.That(Enumerable.Empty<int>().NullIfEmpty(), Is.Null);
 
-            Assert.That(Enumerable.From(1, 2, 3).NullIfEmpty(), Is.EquivalentTo(Enumerable.From(1, 2, 3)));
+            Assert.That(Enumerable.From(1, 2, 3).NullIfEmpty(), Is.EqualTo(Enumerable.From(1, 2, 3)));
 
             Assert.Throws<InvalidOperationException>(() => FailAfter(0).NullIfEmpty());
             Assert.DoesNotThrow(() => FailAfter(1).NullIfEmpty());

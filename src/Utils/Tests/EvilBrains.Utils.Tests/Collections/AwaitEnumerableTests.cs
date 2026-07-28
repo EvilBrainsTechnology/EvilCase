@@ -11,7 +11,7 @@ public class AwaitEnumerableTests
             .Select(this.Foo)
             .AsReadOnlyCollectionAsync();
 
-        Assert.That(values, Is.EquivalentTo(Enumerable.Range(2, 3)));
+        Assert.That(values, Is.EqualTo(Enumerable.Range(2, 3)));
     }
 
     [Test]
@@ -23,7 +23,7 @@ public class AwaitEnumerableTests
             .Select(x => 2 * x)
             .AsReadOnlyCollectionAsync();
 
-        Assert.That(values, Is.EquivalentTo(Enumerable.Range(2, 3).Select(x => 2 * x)));
+        Assert.That(values, Is.EqualTo(Enumerable.Range(2, 3).Select(x => 2 * x)));
     }
 
     private async Task<int> Foo(int number)
