@@ -1,6 +1,10 @@
 <Solution>
   <Folder Name="/Api/">
+    <Project Path="Api/EvilCase.Api.Client/EvilCase.Api.Client.csproj" />
     <Project Path="Api/EvilCase.Api/EvilCase.Api.csproj" />
+  </Folder>
+  <Folder Name="/App/">
+    <Project Path="App/EvilCase.App/EvilCase.App.csproj" />
   </Folder>
   <Folder Name="/Common/">
     <Project Path="Common/EvilCase.Auth/EvilCase.Auth.csproj" />

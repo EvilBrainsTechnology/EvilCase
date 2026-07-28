@@ -29,6 +29,13 @@ builder.Host.UseSerilog();
 
 builder.Services.ConfigureServices();
 
+builder.Services.AddCors(options => options.AddPolicy(
+    "App",
+    policy => policy
+        .WithOrigins("https://localhost:5001")
+        .AllowAnyHeader()
+        .AllowAnyMethod()));
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -45,6 +52,9 @@ app.UseSerilogRequestLogging();
 
 app.UseHttpsRedirection();
 app.UseRouting();
+
+if (app.Environment.IsDevelopment())
+    app.UseCors("App");
 
 app.UseAuthorization();
 

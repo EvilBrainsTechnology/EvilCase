@@ -17,6 +17,9 @@
 
         "add-secret": "dotnet user-secrets set (Read-Host 'Secret name') (Read-Host 'Secret value') --project Api/EvilCase.Api",
 
+        "run-api": "dotnet run --project Api/EvilCase.Api",
+        "run-app": "dotnet run --project App/EvilCase.App",
+
         "b": "dotnet r build",
         "t": "dotnet r test",
         "f": "dotnet r format",
