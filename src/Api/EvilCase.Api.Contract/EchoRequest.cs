@@ -1,4 +1,4 @@
-namespace EvilBrains.EvilCase.Api.Client;
+namespace EvilBrains.EvilCase.Api.Contract;
 
 public record EchoRequest
 {

@@ -1,0 +1,7 @@
+﻿<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="EvilCase" type="CompoundRunConfigurationType">
+    <toRun name="EvilCase.Api" type="LaunchSettings" />
+    <toRun name="EvilCase.App" type="LaunchSettings" />
+    <method v="2" />
+  </configuration>
+</component>

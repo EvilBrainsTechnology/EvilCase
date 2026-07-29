@@ -413,7 +413,7 @@ roslynator_blank_line_between_using_directives = never # never|separate_groups, 
 roslynator_block_braces_style = single_line_when_empty # multi_line|single_line_when_empty, default: multi_line, applicable to: rcs0021
 roslynator_body_style = expression # block|expression, applicable to: rcs1016
 roslynator_conditional_operator_condition_parentheses_style = omit_when_condition_is_single_token # include|omit|omit_when_condition_is_single_token, applicable to: rcs1051
-roslynator_conditional_operator_new_line = after # after|before, applicable to: rcs0028
+roslynator_conditional_operator_new_line = before # after|before, applicable to: rcs0028
 roslynator_configure_await = false # true|false, applicable to: rcs1090
 roslynator_doc_comment_summary_style = multi_line # multi_line|single_line, applicable to: rcs1253
 roslynator_empty_string_style = literal # field|literal, applicable to: rcs1078
@@ -574,9 +574,9 @@ dotnet_diagnostic.rcs1135.severity = error      # Declare enum member with zero 
 dotnet_diagnostic.rcs1136.severity = error      # Merge switch sections with equivalent content
 dotnet_diagnostic.rcs1138.severity = error      # Add summary to documentation comment
 dotnet_diagnostic.rcs1139.severity = error      # Add summary element to documentation comment
-dotnet_diagnostic.rcs1140.severity = error      # Add exception to documentation comment
-dotnet_diagnostic.rcs1141.severity = error      # Add 'param' element to documentation comment
-dotnet_diagnostic.rcs1142.severity = error      # Add 'typeparam' element to documentation comment
+dotnet_diagnostic.rcs1140.severity = suggestion # Add exception to documentation comment
+dotnet_diagnostic.rcs1141.severity = suggestion # Add 'param' element to documentation comment
+dotnet_diagnostic.rcs1142.severity = suggestion # Add 'typeparam' element to documentation comment
 dotnet_diagnostic.rcs1143.severity = error      # Simplify coalesce expression
 dotnet_diagnostic.rcs1145.severity = error      # Remove redundant 'as' operator
 dotnet_diagnostic.rcs1146.severity = error      # Use conditional access
@@ -1079,3 +1079,7 @@ roslynator_compiler_diagnostic_fix.cs8625.enabled = true
 roslynator_compiler_diagnostic_fix.cs8632.enabled = true
 roslynator_compiler_diagnostic_fix.cs8765.enabled = true
 roslynator_compiler_diagnostic_fix.cs8767.enabled = true
+
+# Generator tests compile C# fixture sources held in raw string literals; their line endings are irrelevant
+[Utils/Tests/EvilBrains.Utils.Tests/ApiClient/*.cs]
+dotnet_diagnostic.MA0136.severity = none

@@ -16,8 +16,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\EvilCase.Api.Client\EvilCase.Api.Client.csproj" />
+    <ProjectReference Include="..\EvilCase.Api.Contract\EvilCase.Api.Contract.csproj" />
     <ProjectReference Include="..\..\Common\EvilCase.Auth\EvilCase.Auth.csproj" />
+    <ProjectReference Include="..\..\Utils\EvilBrains.ApiClient\EvilBrains.ApiClient.csproj" />
+    <ProjectReference Include="..\..\Utils\EvilBrains.ApiClient.Generator\EvilBrains.ApiClient.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all" />
     <ProjectReference Include="..\..\Common\EvilCase.Secrets\EvilCase.Secrets.csproj" />
     <ProjectReference Include="..\..\Utils\EvilBrains.Collections\EvilBrains.Collections.csproj" />
     <ProjectReference Include="..\..\Utils\EvilBrains.Cryptography\EvilBrains.Cryptography.csproj" />

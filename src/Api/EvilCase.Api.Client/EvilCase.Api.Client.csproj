@@ -1,8 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <PackageReference Include="Refit" />
-    <PackageReference Include="Refit.HttpClientFactory" />
+    <PackageReference Include="Microsoft.Extensions.Http" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Controller sources are the generator input; there is no project dependency on EvilCase.Api. -->
+    <AdditionalFiles Include="..\EvilCase.Api\Controllers\**\*.cs" Link="Controllers\%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EvilCase.Api.Contract\EvilCase.Api.Contract.csproj" />
+    <ProjectReference Include="..\..\Utils\EvilBrains.ApiClient\EvilBrains.ApiClient.csproj" />
+    <ProjectReference Include="..\..\Utils\EvilBrains.ApiClient.Generator\EvilBrains.ApiClient.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all" />
   </ItemGroup>
 
 </Project>

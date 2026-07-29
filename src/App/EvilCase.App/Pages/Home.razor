@@ -1,11 +1,14 @@
 @page "/"
 @using EvilBrains.EvilCase.Api.Client
-@inject IEchoApi EchoApi
+@using EvilBrains.EvilCase.Api.Contract
+@inject IEchoClient EchoClient
+@inject IAuthClient AuthClient;
 
 <h1>EvilCase</h1>
 
 <input @bind="message" placeholder="Type a message" />
-<button @onclick="SendAsync">Send</button>
+<button @onclick="SendGetAsync">Send GET</button>
+<button @onclick="SendPostAsync">Send POST</button>
 
 @if (response is not null)
 {
@@ -16,9 +19,15 @@
     private string message = string.Empty;
     private string? response;
 
-    private async Task SendAsync()
+    private async Task SendGetAsync()
     {
-        var result = await EchoApi.EchoAsync(new EchoRequest { Message = message });
+        var result = await EchoClient.EchoGet(new EchoRequest { Message = message });
+        response = result.Message;
+    }
+
+    private async Task SendPostAsync()
+    {
+        var result = await EchoClient.EchoPost(new EchoRequest { Message = message });
         response = result.Message;
     }
 }

@@ -15,18 +15,26 @@ All code lives in `src/` (solution `EvilCase.slnx`).
 | Project | Purpose |
 | --- | --- |
 | `Api/EvilCase.Api` | ASP.NET Core API (controllers, OpenAPI + Scalar in dev) |
-| `Api/EvilCase.Api.Client` | Typed API client: Refit interfaces + shared request/response contracts |
+| `Api/EvilCase.Api.Client` | Typed API client: HTTP clients generated from API controllers |
+| `Api/EvilCase.Api.Contract` | Shared request/response contracts (DTOs only) |
 | `App/EvilCase.App` | Blazor WebAssembly standalone frontend |
 | `Common/EvilCase.Auth` | JWT bearer authentication |
 | `Common/EvilCase.Secrets` | Infisical configuration provider |
 | `Data/EvilCase.Data` | EF Core model + DbContext (PostgreSQL) |
 | `Data/EvilCase.Data.Migrations` | EF Core migrations |
 | `Tests/EvilCase.Tests` | Application tests (NUnit) |
-| `Utils/EvilBrains.*` | Shared libraries (collections, cryptography, logging, custom analyzers EB0001–EB0004) |
+| `Utils/EvilBrains.*` | Shared libraries (collections, cryptography, logging, custom analyzers EB0001–EB0004, API client generator + controller convention analyzers EB1001–EB1017) |
 
 ## API client pattern
 
-`EvilCase.Api.Client` is the single source of truth for API contracts. Controllers implement the Refit interfaces; MVC routes are derived from the Refit attributes by `RefitRoutingApplicationModelProvider` — controllers must not carry routing attributes. Interface-routed controller actions return `Task<T>`, not `IActionResult`. Consumers register clients via `Bootstrap.AddEvilCaseApiClient` from `EvilCase.Api.Client` (the call must stay in that assembly so the generated-client module initializer runs).
+API controllers are the single source of truth; DTOs live in `EvilCase.Api.Contract`. `EvilCase.Api.Client` has no dependency on `EvilCase.Api`: it includes the controller sources as `AdditionalFiles` and the `EvilBrains.ApiClient.Generator` source generator emits clients from them (in-memory, never committed). Controllers marked `[GenerateApiClient]` (from `EvilBrains.ApiClient`) produce a public `I{Name}Client` interface, an internal implementation and a DI registration; consumers register clients via `Bootstrap.AddEvilCaseApiClient` from `EvilCase.Api.Client`.
+
+Controller conventions, enforced by analyzers in the API project (EB1001–EB1005) and re-checked by the generator with exact file/line locations:
+
+- Every controller declares `[Route]` and every action exactly one HTTP method attribute with a route template (empty `""` allowed). Templates never start with `/` (controller and action templates are joined and the leading slash is implicit) and contain no `[controller]`/`[action]` tokens; literal segments are snake_case.
+- Every action parameter carries exactly one binding attribute (`[FromBody]`, `[FromQuery]`, `[FromRoute]`, `[FromHeader]`, `[FromServices]`, ...); `CancellationToken` carries none.
+
+Client generation rules (EB1010–EB1017, generator-only): actions return `Task`/`Task<T>`, parameter and return types must be resolvable in the client compilation (Contract or shared libs), `[FromServices]`/`[FromKeyedServices]` parameters are omitted from the client, a complex `[FromQuery]` DTO is expanded property-by-property into query parameters (camelCase keys, simple-typed properties only), `[FromForm]`/`IFormFile` are unsupported.
 
 ## Conventions
 

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <IsPackable>false</IsPackable>
@@ -9,6 +9,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Generator test compilations need ASP.NET Core attribute metadata. -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="Moq" />
     <PackageReference Include="NUnit" />
@@ -21,6 +27,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Utils\EvilBrains.Collections\EvilBrains.Collections.csproj" />
+    <ProjectReference Include="..\..\EvilBrains.ApiClient\EvilBrains.ApiClient.csproj" />
+    <ProjectReference Include="..\..\EvilBrains.ApiClient.Generator\EvilBrains.ApiClient.Generator.csproj" />
     <ProjectReference Include="..\..\EvilBrains.Logging.TypedValues\EvilBrains.Logging.TypedValues.csproj" />
   </ItemGroup>
 

@@ -7,7 +7,8 @@ Case-file management system. Proof-of-concept state: ASP.NET Core API + Blazor W
 All code lives in `src/` (solution `EvilCase.slnx`):
 
 - `Api/EvilCase.Api` — ASP.NET Core API
-- `Api/EvilCase.Api.Client` — typed API client (Refit interfaces + shared contracts)
+- `Api/EvilCase.Api.Client` — typed API client (generated from API controllers)
+- `Api/EvilCase.Api.Contract` — shared request/response contracts
 - `App/EvilCase.App` — Blazor WebAssembly frontend
 - `Common/` — auth (JWT), secrets (Infisical)
 - `Data/` — EF Core model + migrations (PostgreSQL)
@@ -43,4 +44,4 @@ dotnet r run-app   # frontend at https://localhost:5001
 
 ## Frontend–API communication
 
-The frontend calls the API through Refit-typed interfaces from `EvilCase.Api.Client`. Contracts and routes are shared: API controllers implement the same interfaces and MVC routes are derived from the Refit attributes, so client and server cannot drift. Development CORS on the API allows the frontend origin `https://localhost:5001`.
+The frontend calls the API through typed clients from `EvilCase.Api.Client`, generated at build time from the API controller sources by the `EvilBrains.ApiClient.Generator` source generator (the client project has no dependency on the API project). Controllers are the single source of truth and DTOs are shared via `EvilCase.Api.Contract`, so client and server cannot drift; controller conventions are enforced by analyzers. Development CORS on the API allows the frontend origin `https://localhost:5001`.

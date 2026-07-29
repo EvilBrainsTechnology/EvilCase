@@ -9,7 +9,7 @@ namespace EvilBrains.EvilCase.Api.Controllers;
 [DevelopmentOnly]
 public class ConfigurationController(IConfiguration configuration) : Controller
 {
-    [HttpGet]
+    [HttpGet("")]
     public IReadOnlyDictionary<string, string?> Configuration()
     {
         return configuration
