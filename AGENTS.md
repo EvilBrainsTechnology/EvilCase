@@ -40,7 +40,7 @@ Client generation rules (EB1010–EB1016, generator-only): actions return `void`
 
 `EvilCase.App` builds on [TabBlazor](https://github.com/TabBlazor/TabBlazor) (Blazor components over the Tabler CSS framework).
 
-- Packages: `TabBlazor`, `TabBlazor.QuickTable.EntityFramework`. Services registered with `AddTabBlazor()` in `Program.cs`; `@using TabBlazor` in `_Imports.razor`.
+- Package: `TabBlazor`. Services registered with `AddTabBlazor()` in `Program.cs`; `@using TabBlazor` in `_Imports.razor`. `TabBlazor.QuickTable.EntityFramework` belongs to the API project, not here — the frontend talks to the API, never to the database.
 - Tabler CSS is vendored at `wwwroot/lib/tabler/tabler.min.css` (Tabler core 1.4.0, matching the TabBlazor release). No CDN at build or runtime. Update by downloading the matching Tabler version.
 - Popper stays disabled: TabBlazor loads popper.js from a CDN on first use.
 - TabBlazor ships no icon set. Icons used by the app are declared as `TablerIcon` instances in `AppIcons.cs`.
