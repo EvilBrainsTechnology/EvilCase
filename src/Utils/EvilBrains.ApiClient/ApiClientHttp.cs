@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
@@ -27,7 +28,7 @@ public static class ApiClientHttp
     {
         using var response = await SendCoreAsync(client, method, url, body, query, headers, token);
 
-        return await response.Content.ReadFromJsonAsync<TResult>(JsonOptions, token) ?? throw new ApiException(response.StatusCode, responseBody: null);
+        return await response.Content.ReadFromJsonAsync<TResult>(JsonOptions, token) ?? throw MissingBody(response.StatusCode);
     }
 
     public static async Task<TResult?> SendNullableAsync<TResult>(
@@ -128,6 +129,9 @@ public static class ApiClientHttp
 
         throw new ApiException(response.StatusCode, body.Length == 0 ? null : body);
     }
+
+    private static ApiException MissingBody(HttpStatusCode statusCode) =>
+        new(statusCode, responseBody: null, string.Create(CultureInfo.InvariantCulture, $"API request succeeded with status code {(int)statusCode} ({statusCode}) but returned an empty response body."));
 
     private static string Format<T>(T value) => value switch
     {

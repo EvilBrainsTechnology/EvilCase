@@ -9,8 +9,8 @@ namespace EvilBrains.ApiClient;
 /// <summary>
 /// Thrown by generated API clients when the server responds with a non-success status code.
 /// </summary>
-public sealed class ApiException(HttpStatusCode statusCode, string? responseBody)
-    : Exception(string.Create(CultureInfo.InvariantCulture, $"API request failed with status code {(int)statusCode} ({statusCode})."))
+public sealed class ApiException(HttpStatusCode statusCode, string? responseBody, string? message = null)
+    : Exception(message ?? string.Create(CultureInfo.InvariantCulture, $"API request failed with status code {(int)statusCode} ({statusCode})."))
 {
     public HttpStatusCode StatusCode { get; } = statusCode;
 
