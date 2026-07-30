@@ -9,10 +9,13 @@
     --tblr-offcanvas-width: min(300px, 85vw);
 }
 
-/* Tabler positions the vertical navbar fixed; inside the offcanvas it has to stay in flow. */
+/* Tabler builds the vertical navbar as a fixed, self-scrolling sidebar. Inside the offcanvas it has to
+   stay in flow, and the scrolling belongs to the offcanvas body: overflow-y:scroll would otherwise draw
+   an empty scrollbar track next to the menu. */
 .offcanvas-nav .navbar {
     position: static;
     width: auto;
+    overflow: visible;
 }
 
 /* Touch targets below the lg breakpoint. */
