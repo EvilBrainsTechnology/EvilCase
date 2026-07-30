@@ -72,6 +72,12 @@ public class ApiClientGeneratorTests
 
             [HttpDelete("purge")]
             public void Purge() => throw null!;
+
+            [HttpGet("modern")]
+            public ValueTask<ItemResponse> Modern() => throw null!;
+
+            [HttpDelete("drop")]
+            public ValueTask Drop() => throw null!;
         }
         """;
 
@@ -316,6 +322,8 @@ public class ApiClientGeneratorTests
             Assert.That(ReturnTypeOf(client, "Info"), Is.EqualTo(taskOfResponse), "a synchronous action becomes asynchronous");
             Assert.That(ReturnTypeOf(client, "Legacy"), Is.EqualTo(task), "IActionResult carries no result");
             Assert.That(ReturnTypeOf(client, "Purge"), Is.EqualTo(task), "void carries no result");
+            Assert.That(ReturnTypeOf(client, "Modern"), Is.EqualTo(taskOfResponse), "ValueTask<T> unwraps to T");
+            Assert.That(ReturnTypeOf(client, "Drop"), Is.EqualTo(task), "ValueTask carries no result");
         }
     }
 

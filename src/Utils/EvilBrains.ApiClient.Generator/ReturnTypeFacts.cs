@@ -15,11 +15,13 @@ internal static class ReturnTypeFacts
     private static readonly ImmutableHashSet<string> ResultWrappers = ImmutableHashSet.Create(
         StringComparer.Ordinal,
         "Task",
+        "ValueTask",
         "ActionResult");
 
     private static readonly ImmutableHashSet<string> EmptyResults = ImmutableHashSet.Create(
         StringComparer.Ordinal,
         "Task",
+        "ValueTask",
         "ActionResult",
         "IActionResult");
 
