@@ -1,0 +1,50 @@
+@page "/echo"
+@using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.Echo
+@inject IEchoClient EchoClient
+
+<div class="page-header d-print-none">
+    <div class="container-xl">
+        <h2 class="page-title">Echo</h2>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        <Card>
+            <CardBody>
+                <div class="mb-3">
+                    <label class="form-label" for="echo-message">Zpráva</label>
+                    <input id="echo-message" class="form-control" @bind="this.message" />
+                </div>
+
+                <ButtonList>
+                    <Button BackgroundColor="TablerColor.Primary" OnClick="SendGetAsync">Odeslat GET</Button>
+                    <Button BackgroundColor="TablerColor.Primary" BackgroundColorType="ColorType.Outline" OnClick="SendPostAsync">Odeslat POST</Button>
+                </ButtonList>
+
+                @if (this.response is not null)
+                {
+                    <p class="mt-3 mb-0">@this.response</p>
+                }
+            </CardBody>
+        </Card>
+    </div>
+</div>
+
+@code {
+    private string message = string.Empty;
+    private string? response;
+
+    private async Task SendGetAsync()
+    {
+        var result = await this.EchoClient.EchoGet(new EchoRequest { Message = this.message });
+        this.response = result.Message;
+    }
+
+    private async Task SendPostAsync()
+    {
+        var result = await this.EchoClient.EchoPost(new EchoRequest { Message = this.message });
+        this.response = result.Message;
+    }
+}

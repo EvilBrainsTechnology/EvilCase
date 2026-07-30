@@ -1,4 +1,16 @@
-body {
-    font-family: system-ui, sans-serif;
-    margin: 2rem;
+/* Horizontal safe area, required because the viewport uses viewport-fit=cover. */
+.page-wrapper {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+}
+
+/* Touch targets below the lg breakpoint. */
+@media (max-width: 991.98px) {
+    .btn,
+    .dropdown-item,
+    .list-group-item-actions,
+    .navbar .navbar-nav .nav-link {
+        min-width: 44px;
+        min-height: 44px;
+    }
 }

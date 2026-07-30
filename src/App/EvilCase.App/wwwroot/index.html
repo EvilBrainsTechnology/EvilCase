@@ -1,17 +1,28 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="cs">
 
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>EvilCase</title>
     <base href="/" />
+    <link rel="stylesheet" href="lib/tabler/tabler.min.css" />
+    <link rel="stylesheet" href="_content/TabBlazor/css/tabblazor.min.css" />
     <link rel="stylesheet" href="css/app.css" />
 </head>
 
 <body>
-    <div id="app">Loading…</div>
+    <div id="app">
+        <div class="page page-center">
+            <div class="container container-tight py-4 text-center">
+                <div class="progress progress-sm">
+                    <div class="progress-bar progress-bar-indeterminate"></div>
+                </div>
+            </div>
+        </div>
+    </div>
     <script src="_framework/blazor.webassembly.js"></script>
+    <script src="_content/TabBlazor/js/tabblazor.js"></script>
 </body>
 
 </html>

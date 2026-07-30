@@ -1,0 +1,43 @@
+@* CollapseAt is offset by one breakpoint in TabBlazor: Md renders navbar-expand-lg, i.e. the 992px breakpoint. *@
+<Navbar Direction="NavbarDirection.Vertical" CollapseAt="PageBreakpoint.Md" IsExpanded="false" NavLinkMatch="NavLinkMatch.All">
+
+    <a class="navbar-brand navbar-brand-autodark" href="">EvilCase</a>
+
+    @* flex-grow-0 keeps the row from stretching in the vertical navbar's column layout. *@
+    <div class="navbar-nav flex-row flex-grow-0">
+        <ThemeSwitch />
+    </div>
+
+    <NavbarMenu>
+        <NavbarMenuItem Href="" Text="Přehled">
+            <MenuItemIcon>
+                <Icon CssClass="icon" IconType="AppIcons.LayoutDashboard" />
+            </MenuItemIcon>
+        </NavbarMenuItem>
+
+        <NavbarMenuItem Href="spisy" Text="Spisy">
+            <MenuItemIcon>
+                <Icon CssClass="icon" IconType="AppIcons.Folders" />
+            </MenuItemIcon>
+        </NavbarMenuItem>
+
+        <NavbarMenuItem Href="lhuty" Text="Lhůty">
+            <MenuItemIcon>
+                <Icon CssClass="icon" IconType="AppIcons.Clock" />
+            </MenuItemIcon>
+        </NavbarMenuItem>
+
+        <NavbarMenuItem Href="nastaveni" Text="Nastavení">
+            <MenuItemIcon>
+                <Icon CssClass="icon" IconType="AppIcons.Settings" />
+            </MenuItemIcon>
+        </NavbarMenuItem>
+
+        <NavbarMenuItem Href="echo" Text="Echo">
+            <MenuItemIcon>
+                <Icon CssClass="icon" IconType="AppIcons.ArrowsExchange" />
+            </MenuItemIcon>
+        </NavbarMenuItem>
+    </NavbarMenu>
+
+</Navbar>

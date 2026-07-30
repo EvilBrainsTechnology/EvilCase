@@ -36,10 +36,55 @@ Controller conventions, enforced by analyzers in the API project (EB1001–EB100
 
 Client generation rules (EB1010–EB1016, generator-only): actions return `void`, `T`, `Task`/`ValueTask` or `Task<T>`/`ValueTask<T>`, optionally wrapped in `ActionResult`/`ActionResult<T>`/`IActionResult` — the generated client method is always asynchronous and an untyped result becomes a `Task` without a value (non-success status codes throw `ApiException`). Parameter and return types must be resolvable in the client compilation (Contract or shared libs), `[FromServices]`/`[FromKeyedServices]` parameters are omitted from the client, a complex `[FromQuery]` DTO is expanded property-by-property into query parameters (camelCase keys, simple-typed properties only), `[FromForm]`/`IFormFile` are unsupported.
 
+## Frontend UI
+
+`EvilCase.App` builds on [TabBlazor](https://github.com/TabBlazor/TabBlazor) (Blazor components over the Tabler CSS framework).
+
+- Packages: `TabBlazor`, `TabBlazor.QuickTable.EntityFramework`. Services registered with `AddTabBlazor()` in `Program.cs`; `@using TabBlazor` in `_Imports.razor`.
+- Tabler CSS is vendored at `wwwroot/lib/tabler/tabler.min.css` (Tabler core 1.4.0, matching the TabBlazor release). No CDN at build or runtime. Update by downloading the matching Tabler version.
+- Popper stays disabled: TabBlazor loads popper.js from a CDN on first use.
+- TabBlazor ships no icon set. Icons used by the app are declared as `TablerIcon` instances in `AppIcons.cs`.
+- App shell: `Layout/MainLayout.razor` (Tabler `page` + `page-wrapper`) and `Layout/NavMenu.razor` (vertical `Navbar`). `Navbar.CollapseAt` is offset by one breakpoint — `PageBreakpoint.Md` renders `navbar-expand-lg`, i.e. the 992px breakpoint.
+- Dark/light switch goes through `TablerService.SetTheme`.
+
+## Responsive design
+
+Desktop is the primary channel. Mobile must be fully usable for reading and quick flows; for administrative flows it only must not break.
+
+- First-class on mobile: case list + search, case detail, deadlines, quick note.
+- Must not break on mobile: bulk operations, long edit forms, user management, configuration.
+
+Rules:
+
+- The desktop/mobile breakpoint is `lg` (992px). Use it consistently; do not mix `md` and `lg` across pages.
+- Data lists never scroll horizontally on mobile. Render both variants and switch them with CSS only — see `Pages/Home.razor` for the reference implementation:
+
+  ```razor
+  <div class="d-none d-lg-block">
+      <QuickTable Items="@items">...</QuickTable>
+  </div>
+
+  <div class="d-lg-none">
+      @foreach (var item in items) { <ItemCard Item="item" /> }
+  </div>
+  ```
+
+  Both variants render. At 25–50 rows per page the cost is negligible and it avoids JS interop and prerender flicker.
+- Never branch layout in C# by viewport. No JS interop for window width, no render branching on it: on Blazor Server every resize is a network roundtrip, prerendering does not know the viewport and flickers, and it does not work before Blazor boots.
+- Modals: always `class="modal-fullscreen-md-down"`.
+- Dates: native `<input type="date">`, no JS datepicker.
+- Keyboard: set `inputmode` and `type` per input kind (`numeric` for case numbers, `tel`, `email`).
+- Touch targets: at least 44px for interactive elements below `lg`.
+- Forms: action buttons (Save/Cancel) sticky at the bottom, not hidden below long content.
+- Safe area: `env(safe-area-inset-bottom)` on fixed bottom elements.
+- Tooltips are never the only carrier of information — touch has no hover.
+- No Bootstrap JS components; they collide with the Blazor renderer. Use TabBlazor equivalents (`IModalService`, `IOffcanvasService`). Where JS is unavoidable, wrap it in an `IJSObjectReference` cleaned up in `IAsyncDisposable`.
+- Custom CSS stays minimal and lives in `wwwroot/css/app.css`. Look for a Tabler utility class first. No inline styles.
+
 ## Conventions
 
 - Respond in the language of the user's message.
-- Everything committed to the repo is English only: code, comments, documentation, AI instructions, commit messages, merge request descriptions.
+- Everything committed to the repo is English only: code, comments, documentation, AI instructions, commit messages, merge request descriptions. Exception: user-facing UI strings are Czech.
 - All written texts (docs, AI instructions, READMEs): concise and factual. State what, not why. No filler.
 - Code style: clean, readable code sometimes beats 100% correctness and defensiveness.
 - Comments only when something is unexpected (e.g. a workaround). If code needs a comment, prefer rewriting the code to be more readable.

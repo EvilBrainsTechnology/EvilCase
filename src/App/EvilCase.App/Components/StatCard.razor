@@ -1,0 +1,25 @@
+<div class="card card-sm">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-auto">
+                <span class="avatar text-white @Color.GetColorClass("bg")">
+                    <Icon IconType="Glyph" Size="20" />
+                </span>
+            </div>
+            <div class="col">
+                <div class="font-weight-medium">@Value</div>
+                <div class="text-secondary">@Label</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required string Value { get; set; }
+
+    [Parameter, EditorRequired] public required string Label { get; set; }
+
+    [Parameter, EditorRequired] public required IIconType Glyph { get; set; }
+
+    [Parameter] public TablerColor Color { get; set; } = TablerColor.Primary;
+}

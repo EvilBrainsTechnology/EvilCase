@@ -1,0 +1,18 @@
+@using TabBlazor.Services
+@inject TablerService TablerService
+
+<button type="button" class="btn btn-icon btn-ghost-secondary" aria-label="@Label" @onclick="ToggleAsync">
+    <Icon IconType="@(this.isDark ? AppIcons.Sun : AppIcons.Moon)" Size="20" />
+</button>
+
+@code {
+    private bool isDark;
+
+    private string Label => this.isDark ? "Přepnout na světlý motiv" : "Přepnout na tmavý motiv";
+
+    private async Task ToggleAsync()
+    {
+        this.isDark = !this.isDark;
+        await this.TablerService.SetTheme(this.isDark);
+    }
+}
