@@ -43,9 +43,11 @@
 @code {
     @* Tabler draws the active indicator on the list item, which Blazor's NavLink cannot reach. *@
     private string ActiveClass(string href) =>
-        string.Equals(CurrentPath, href, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+        string.Equals(this.CurrentPath, href, StringComparison.OrdinalIgnoreCase)
+            || this.CurrentPath.StartsWith(href + "/", StringComparison.OrdinalIgnoreCase)
+            ? "active" : "";
 
-    private string CurrentPath => "/" + this.Navigation.ToBaseRelativePath(this.Navigation.Uri).Split('?')[0].TrimEnd('/');
+    private string CurrentPath => "/" + this.Navigation.ToBaseRelativePath(this.Navigation.Uri).Split('?', '#')[0].TrimEnd('/');
 
     protected override void OnInitialized() => this.Navigation.LocationChanged += this.OnLocationChanged;
 
