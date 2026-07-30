@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/Api/">
     <Project Path="Api/EvilCase.Api.Client/EvilCase.Api.Client.csproj" />
+    <Project Path="Api/EvilCase.Api.Contract/EvilCase.Api.Contract.csproj" />
     <Project Path="Api/EvilCase.Api/EvilCase.Api.csproj" />
   </Folder>
   <Folder Name="/App/">
@@ -19,6 +20,8 @@
   </Folder>
   <Folder Name="/Utils/">
     <Project Path="Utils/EvilBrains.Analyzers/EvilBrains.Analyzers.csproj" />
+    <Project Path="Utils/EvilBrains.ApiClient.Generator/EvilBrains.ApiClient.Generator.csproj" />
+    <Project Path="Utils/EvilBrains.ApiClient/EvilBrains.ApiClient.csproj" />
     <Project Path="Utils/EvilBrains.Collections/EvilBrains.Collections.csproj" />
     <Project Path="Utils/EvilBrains.Cryptography/EvilBrains.Cryptography.csproj" />
     <Project Path="Utils/EvilBrains.EntityFramework/EvilBrains.EntityFramework.csproj" />

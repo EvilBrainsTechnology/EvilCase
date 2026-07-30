@@ -7,8 +7,8 @@
     "scripts": {
         "build": "dotnet build --configuration Release -p:TreatWarningsAsErrors=true",
         "test": "dotnet test --configuration Release",
-        "format": "dotnet format",
-        "format-check": "dotnet format --verify-no-changes",
+        "format": "dotnet build Utils/EvilBrains.ApiClient.Generator/EvilBrains.ApiClient.Generator.csproj && dotnet format",
+        "format-check": "dotnet build Utils/EvilBrains.ApiClient.Generator/EvilBrains.ApiClient.Generator.csproj && dotnet format --verify-no-changes",
         "ci": "dotnet r format-check && dotnet r build && dotnet r test",
 
         "add-migration": "dotnet ef migrations add (Read-Host 'Migration name') --project Data/EvilCase.Data.Migrations --configuration Release",
