@@ -9,9 +9,16 @@
     --tblr-offcanvas-width: min(300px, 85vw);
 }
 
+/* Tabler positions the vertical navbar fixed; inside the offcanvas it has to stay in flow. */
+.offcanvas-nav .navbar {
+    position: static;
+    width: auto;
+}
+
 /* Touch targets below the lg breakpoint. */
 @media (max-width: 991.98px) {
     .btn,
+    .btn-close,
     .dropdown-item,
     .list-group-item-actions,
     .navbar-toggler,

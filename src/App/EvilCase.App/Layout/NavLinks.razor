@@ -1,43 +1,57 @@
+@implements IDisposable
+@inject NavigationManager Navigation
 @inject IOffcanvasService OffcanvasService
 
-@* Shared by the desktop sidebar and the mobile offcanvas. *@
+@* Shared by the desktop menu row and the mobile offcanvas. *@
 <ul class="navbar-nav">
-    <li class="nav-item">
-        <NavLink class="nav-link" href="" Match="NavLinkMatch.All" @onclick="Close">
+    <li class="nav-item @ActiveClass("/")">
+        <a class="nav-link" href="/" @onclick="Close">
             <span class="nav-link-icon"><Icon CssClass="icon" IconType="AppIcons.LayoutDashboard" /></span>
             <span class="nav-link-title">Přehled</span>
-        </NavLink>
+        </a>
     </li>
 
-    <li class="nav-item">
-        <NavLink class="nav-link" href="spisy" @onclick="Close">
+    <li class="nav-item @ActiveClass("/spisy")">
+        <a class="nav-link" href="/spisy" @onclick="Close">
             <span class="nav-link-icon"><Icon CssClass="icon" IconType="AppIcons.Folders" /></span>
             <span class="nav-link-title">Spisy</span>
-        </NavLink>
+        </a>
     </li>
 
-    <li class="nav-item">
-        <NavLink class="nav-link" href="lhuty" @onclick="Close">
+    <li class="nav-item @ActiveClass("/lhuty")">
+        <a class="nav-link" href="/lhuty" @onclick="Close">
             <span class="nav-link-icon"><Icon CssClass="icon" IconType="AppIcons.Clock" /></span>
             <span class="nav-link-title">Lhůty</span>
-        </NavLink>
+        </a>
     </li>
 
-    <li class="nav-item">
-        <NavLink class="nav-link" href="nastaveni" @onclick="Close">
+    <li class="nav-item @ActiveClass("/nastaveni")">
+        <a class="nav-link" href="/nastaveni" @onclick="Close">
             <span class="nav-link-icon"><Icon CssClass="icon" IconType="AppIcons.Settings" /></span>
             <span class="nav-link-title">Nastavení</span>
-        </NavLink>
+        </a>
     </li>
 
-    <li class="nav-item">
-        <NavLink class="nav-link" href="echo" @onclick="Close">
+    <li class="nav-item @ActiveClass("/echo")">
+        <a class="nav-link" href="/echo" @onclick="Close">
             <span class="nav-link-icon"><Icon CssClass="icon" IconType="AppIcons.ArrowsExchange" /></span>
             <span class="nav-link-title">Echo</span>
-        </NavLink>
+        </a>
     </li>
 </ul>
 
 @code {
+    @* Tabler draws the active indicator on the list item, which Blazor's NavLink cannot reach. *@
+    private string ActiveClass(string href) =>
+        string.Equals(CurrentPath, href, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+
+    private string CurrentPath => "/" + this.Navigation.ToBaseRelativePath(this.Navigation.Uri).Split('?')[0].TrimEnd('/');
+
+    protected override void OnInitialized() => this.Navigation.LocationChanged += this.OnLocationChanged;
+
+    public void Dispose() => this.Navigation.LocationChanged -= this.OnLocationChanged;
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e) => this.StateHasChanged();
+
     private void Close() => this.OffcanvasService.Close();
 }

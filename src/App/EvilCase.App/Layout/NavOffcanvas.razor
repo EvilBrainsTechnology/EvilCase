@@ -1,4 +1,6 @@
-@* The navbar wrapper is what Tabler scopes its nav-link styling to. *@
-<div class="navbar navbar-vertical p-0">
-    <NavLinks />
+@* navbar-expand (no breakpoint) is the only variant whose vertical styling is not gated behind a media query. *@
+<div class="navbar navbar-vertical navbar-expand p-0">
+    <div class="navbar-collapse">
+        <NavLinks />
+    </div>
 </div>
