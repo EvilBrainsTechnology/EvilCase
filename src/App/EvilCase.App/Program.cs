@@ -13,7 +13,14 @@ var apiBaseUrl = builder.Configuration["ApiBaseUrl"]
 
 builder.Services.AddEvilCaseApiClient(new Uri(apiBaseUrl));
 
-// Popper stays disabled: TabBlazor would load popper.js from a CDN on first use.
-builder.Services.AddTabBlazor();
+builder.Services.AddTabBlazor(
+    options =>
+    {
+        options.EnablePopper = true;
+        options.DefaultPositioning = Positioning.Absolute;
+
+        // Default points at unpkg; popper.js is vendored in wwwroot instead.
+        options.PopperScriptUrl = "lib/popper/popper.min.js";
+    });
 
 await builder.Build().RunAsync();

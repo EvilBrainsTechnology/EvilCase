@@ -42,7 +42,7 @@ Client generation rules (EB1010–EB1016, generator-only): actions return `void`
 
 - Package: `TabBlazor`. Services registered with `AddTabBlazor()` in `Program.cs`; `@using TabBlazor` in `_Imports.razor`. `TabBlazor.QuickTable.EntityFramework` belongs to the API project, not here — the frontend talks to the API, never to the database.
 - Tabler CSS is vendored at `wwwroot/lib/tabler/tabler.min.css` (Tabler core 1.4.0, matching the TabBlazor release). No CDN at build or runtime. Update by downloading the matching Tabler version.
-- Popper stays disabled: TabBlazor loads popper.js from a CDN on first use.
+- Popper is enabled (`DefaultPositioning = Absolute`), so dropdowns, tooltips and typeaheads flip away from viewport edges. popper.js 2.11.8 is vendored at `wwwroot/lib/popper/popper.min.js` and `TablerOptions.PopperScriptUrl` points there; the default would load it from unpkg.
 - TabBlazor ships no icon set. The generated Tabler set is vendored at `Icons/TablerIcons.cs` (marked `generated_code` in `.editorconfig`, so analyzers skip it). Use `TablerIcons.<Name>`; names keep the generator's snake_case (`TablerIcons.Layout_dashboard`).
 - App shell: `Layout/MainLayout.razor` (Tabler `page` + `page-wrapper`) and `Layout/NavMenu.razor` (vertical `Navbar`). `Navbar.CollapseAt` is offset by one breakpoint — `PageBreakpoint.Md` renders `navbar-expand-lg`, i.e. the 992px breakpoint.
 - Dark/light switch goes through `TablerService.SetTheme`.
