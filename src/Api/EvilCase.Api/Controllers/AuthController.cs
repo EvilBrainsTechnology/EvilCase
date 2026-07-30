@@ -14,7 +14,7 @@ namespace EvilBrains.EvilCase.Api.Controllers;
 [ApiController]
 [GenerateApiClient]
 [Route("auth")]
-public class AuthController(ApplicationDbContext dbContext) : Controller
+public class AuthController(ApplicationDbContext dbContext) : ControllerBase
 {
     [HttpPost("register")]
     [ProducesResponseType(StatusCodes.Status201Created)]
@@ -74,7 +74,9 @@ public class AuthController(ApplicationDbContext dbContext) : Controller
     [Authorize]
     public UserInfo UserInfo()
     {
-        var userInfo = new UserInfo { Email = this.User!.Identity!.Name! };
-        return userInfo;
+        var email = this.User.Identity?.Name
+            ?? throw new InvalidOperationException("Authenticated user is missing the name claim");
+
+        return new() { Email = email };
     }
 }

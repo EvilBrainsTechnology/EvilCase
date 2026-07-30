@@ -7,7 +7,7 @@ namespace EvilBrains.EvilCase.Api.Controllers;
 [ApiController]
 [Route("configuration")]
 [DevelopmentOnly]
-public class ConfigurationController(IConfiguration configuration) : Controller
+public class ConfigurationController(IConfiguration configuration) : ControllerBase
 {
     [HttpGet("")]
     public IReadOnlyDictionary<string, string?> Configuration()
