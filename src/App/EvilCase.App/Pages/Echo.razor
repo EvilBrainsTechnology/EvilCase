@@ -1,4 +1,5 @@
 @page "/echo"
+@using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Echo
 @inject IEchoClient EchoClient
@@ -36,15 +37,20 @@
     private string message = string.Empty;
     private string? response;
 
-    private async Task SendGetAsync()
-    {
-        var result = await this.EchoClient.EchoGet(new EchoRequest { Message = this.message });
-        this.response = result.Message;
-    }
+    private Task SendGetAsync() => this.SendAsync(this.EchoClient.EchoGet);
 
-    private async Task SendPostAsync()
+    private Task SendPostAsync() => this.SendAsync(this.EchoClient.EchoPost);
+
+    private async Task SendAsync(Func<EchoRequest, Task<EchoResponse>> send)
     {
-        var result = await this.EchoClient.EchoPost(new EchoRequest { Message = this.message });
-        this.response = result.Message;
+        try
+        {
+            var result = await send(new EchoRequest { Message = this.message });
+            this.response = result.Message;
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.response = exception.Message;
+        }
     }
 }
