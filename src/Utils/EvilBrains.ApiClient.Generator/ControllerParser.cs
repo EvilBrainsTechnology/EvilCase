@@ -21,6 +21,8 @@ internal static class ControllerParser
         ["HttpPut"] = "Put",
         ["HttpDelete"] = "Delete",
         ["HttpPatch"] = "Patch",
+        ["HttpHead"] = "Head",
+        ["HttpOptions"] = "Options",
     };
 
     private static readonly ImmutableHashSet<string> BindingAttributeNames = ImmutableHashSet.Create(
@@ -36,7 +38,7 @@ internal static class ControllerParser
     public static ClientModel? Parse(ClassDeclarationSyntax controller, SemanticModel semanticModel, string name, ImmutableArray<DiagnosticModel>.Builder diagnostics)
     {
         var routeAttribute = AttributeFacts.Find(controller.AttributeLists, RouteAttributeName);
-        var controllerRoute = routeAttribute is null ? null : AttributeFacts.GetStringArgument(routeAttribute);
+        var controllerRoute = routeAttribute is null ? null : AttributeFacts.GetTemplateArgument(routeAttribute, semanticModel);
         if (controllerRoute is null)
         {
             diagnostics.Add(ApiModelParser.Diagnostic(Diagnostics.MissingControllerRoute, controller.Identifier, controller.Identifier.Text));
@@ -77,7 +79,7 @@ internal static class ControllerParser
     private static ActionModel? ParseAction(MethodDeclarationSyntax method, SemanticModel semanticModel, string controllerRoute, ImmutableArray<DiagnosticModel>.Builder diagnostics)
     {
         var verbs = FindVerbs(method);
-        var template = verbs.Count == 1 ? AttributeFacts.GetStringArgument(verbs[0].Attribute) : null;
+        var template = verbs.Count == 1 ? AttributeFacts.GetTemplateArgument(verbs[0].Attribute, semanticModel) : null;
         if (template is null)
         {
             diagnostics.Add(ApiModelParser.Diagnostic(Diagnostics.MissingActionRoute, method.Identifier, method.Identifier.Text));

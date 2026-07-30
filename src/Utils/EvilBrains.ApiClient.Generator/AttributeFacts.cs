@@ -29,11 +29,14 @@ internal static class AttributeFacts
 
     public static bool Has(in SyntaxList<AttributeListSyntax> lists, string name) => Find(lists, name) is not null;
 
-    public static string? GetStringArgument(AttributeSyntax attribute)
+    public static string? GetTemplateArgument(AttributeSyntax attribute, SemanticModel semanticModel)
     {
-        var argument = attribute.ArgumentList?.Arguments.FirstOrDefault(x => x.NameEquals is null && x.NameColon is null);
+        var argument = attribute.ArgumentList?.Arguments.FirstOrDefault(x =>
+            x.NameEquals is null && (x.NameColon is null || string.Equals(x.NameColon.Name.Identifier.Text, "template", StringComparison.Ordinal)));
+        if (argument is null)
+            return null;
 
-        return argument?.Expression is LiteralExpressionSyntax { Token.Value: string value } ? value : null;
+        return semanticModel.GetConstantValue(argument.Expression).Value as string;
     }
 
     public static string? GetNameArgument(AttributeSyntax attribute)

@@ -187,6 +187,43 @@ public class ApiClientGeneratorTests
     }
 
     [Test]
+    public void ConstantAndNamedRouteTemplatesAreSupportedTest()
+    {
+        var (diagnostics, output) = GeneratorTestHost.Run(
+            """
+            using EvilBrains.ApiClient;
+            using FakeApi.Contract;
+            using Microsoft.AspNetCore.Mvc;
+
+            namespace FakeApi.Controllers;
+
+            [ApiController]
+            [GenerateApiClient]
+            [Route("items")]
+            public class ItemsController : ControllerBase
+            {
+                private const string SearchTemplate = "search";
+
+                [HttpGet(SearchTemplate)]
+                public Task<ItemResponse> Search() => throw null!;
+
+                [HttpHead(template: "ping")]
+                public Task Ping() => throw null!;
+            }
+            """,
+            DefaultContract);
+
+        var client = output.GetTypeByMetadataName("FakeApi.Client.IItemsClient");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(diagnostics, Is.Empty);
+            Assert.That(client!.GetMembers("Search"), Is.Not.Empty, "a constant template must resolve");
+            Assert.That(client.GetMembers("Ping"), Is.Not.Empty, "a named template argument and HttpHead must resolve");
+        }
+    }
+
+    [Test]
     public void UnmarkedControllerIsIgnoredTest()
     {
         var (diagnostics, output) = GeneratorTestHost.Run("""
