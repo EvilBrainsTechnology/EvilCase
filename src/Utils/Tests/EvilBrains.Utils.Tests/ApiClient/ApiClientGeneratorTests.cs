@@ -272,6 +272,15 @@ public class ApiClientGeneratorTests
             """);
 
     [Test]
+    public void CatchAllRoutePlaceholderIsReportedTest() =>
+        AssertDiagnostic(
+            "EB1003",
+            """
+            [HttpGet("{*path}")]
+            public Task<ItemResponse> GetItems() => throw null!;
+            """);
+
+    [Test]
     public void NonSnakeCaseRouteIsReportedTest() =>
         AssertDiagnostic(
             "EB1004",

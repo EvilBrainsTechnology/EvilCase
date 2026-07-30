@@ -19,7 +19,11 @@ internal static class RouteTemplate
     }
 
     public static bool HasForbiddenSyntax(string template) =>
-        template.StartsWith("/", StringComparison.Ordinal) || template.StartsWith("~", StringComparison.Ordinal) || template.IndexOf('[') >= 0;
+        template.StartsWith("/", StringComparison.Ordinal)
+            || template.StartsWith("~", StringComparison.Ordinal)
+            || template.IndexOf('[') >= 0
+            || template.IndexOf("{*", StringComparison.Ordinal) >= 0
+            || template.IndexOf("{}", StringComparison.Ordinal) >= 0;
 
     public static string? FindNonSnakeCaseSegment(string template)
     {

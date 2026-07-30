@@ -20,7 +20,7 @@ internal static class Diagnostics
         Descriptor("EB1002", "Missing action route", "Action '{0}' must have exactly one HTTP method attribute with a route template (empty template is allowed)");
 
     public static readonly DiagnosticDescriptor ForbiddenRouteSyntax =
-        Descriptor("EB1003", "Forbidden route syntax", "Route template '{0}' must not start with '/' or '~' and must not contain tokens");
+        Descriptor("EB1003", "Forbidden route syntax", "Route template '{0}' must not start with '/' or '~' and must not contain tokens, catch-all or empty placeholders");
 
     public static readonly DiagnosticDescriptor RouteSegmentNotSnakeCase =
         Descriptor("EB1004", "Route segment not snake_case", "Route segment '{1}' of template '{0}' must be snake_case");

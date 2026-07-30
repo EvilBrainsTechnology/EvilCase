@@ -86,6 +86,22 @@ public class ControllerRouteAnalyzerTests
     }
 
     [Test]
+    public async Task CatchAllRoutePlaceholderIsReportedTest()
+    {
+        var diagnostics = await AnalyzeAsync("""
+            [ApiController]
+            [Route("items")]
+            public class ItemsController : ControllerBase
+            {
+                [HttpGet("{*path}")]
+                public string GetItems() => "";
+            }
+            """);
+
+        AssertIds(diagnostics, "EB1003");
+    }
+
+    [Test]
     public async Task NonSnakeCaseRouteIsReportedTest()
     {
         var diagnostics = await AnalyzeAsync("""
