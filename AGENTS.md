@@ -36,6 +36,21 @@ Controller conventions, enforced by analyzers in the API project (EB1001–EB100
 
 Client generation rules (EB1010–EB1016, generator-only): actions return `void`, `T`, `Task`/`ValueTask` or `Task<T>`/`ValueTask<T>`, optionally wrapped in `ActionResult`/`ActionResult<T>`/`IActionResult` — the generated client method is always asynchronous and an untyped result becomes a `Task` without a value (non-success status codes throw `ApiException`). Parameter and return types must be resolvable in the client compilation (Contract or shared libs), `[FromServices]`/`[FromKeyedServices]` parameters are omitted from the client, a complex `[FromQuery]` DTO is expanded property-by-property into query parameters (camelCase keys, simple-typed properties only), `[FromForm]`/`IFormFile` are unsupported.
 
+## Logging
+
+API: Serilog is configured in `Program.cs` from the `Serilog` configuration section (console everywhere, Seq per environment). Log call sites go through `[LoggerMessage]` partial methods — CA1848 runs at error severity.
+
+Frontend: `EvilCase.App` uses Serilog as well, with the differences WebAssembly forces:
+
+- There is no host, so `builder.Host.UseSerilog()` does not exist. The logger is built in `Program.cs` and registered with `builder.Logging.ClearProviders()` + `AddSerilog` (from `Serilog.Extensions.Logging`, not `Serilog.AspNetCore`).
+- `Serilog.Settings.Configuration` is not used: it resolves sinks by assembly name through reflection, which breaks under WASM trimming. Levels are read from the `ClientLogging` section of `wwwroot/appsettings.json` — `MinimumLevel` for the browser console, `ServerMinimumLevel` for the events shipped to the API.
+- Browser console output goes through `Serilog.Sinks.BrowserConsole`, which uses real console levels instead of stdout.
+- `Logging/ApiLogSink` buffers events (500 max, then drops) and posts them to `POST /logs/client` every 2 seconds in batches of at most 100. A failed batch is dropped and the failure goes to Serilog's `SelfLog`; logging it normally would feed the sink that just failed. `System.Net.Http.HttpClient` events are excluded from the sink for the same reason — shipping a batch logs a request.
+- The sink is created before the host exists and receives the API client in `Start` after `builder.Build()`.
+- `LogsController` re-logs the entries under the `EvilBrains.EvilCase.App.Client` source context; the browser exception text arrives as a `ClientLogException` and timestamp, category and URL are attached as scope properties. The endpoint is anonymous (errors happen before login) and bounded by contract validation.
+
+Seq credentials stay on the server; the browser only ever talks to the API.
+
 ## Frontend UI
 
 `EvilCase.App` builds on [TabBlazor](https://github.com/TabBlazor/TabBlazor) (Blazor components over the Tabler CSS framework).
