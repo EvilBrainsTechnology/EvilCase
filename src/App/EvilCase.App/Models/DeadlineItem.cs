@@ -10,6 +10,7 @@ public sealed record DeadlineItem(string CaseNumber, string Title, DateOnly DueO
 
     public string DaysLeftText => this.DaysLeft switch
     {
+        < 0 => "po termínu",
         0 => "dnes",
         1 => "zítra",
         >= 2 and <= 4 => string.Create(CultureInfo.InvariantCulture, $"za {this.DaysLeft} dny"),
