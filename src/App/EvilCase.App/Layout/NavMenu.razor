@@ -1,43 +1,42 @@
-@* CollapseAt is offset by one breakpoint in TabBlazor: Md renders navbar-expand-lg, i.e. the 992px breakpoint. *@
-<Navbar Direction="NavbarDirection.Vertical" CollapseAt="PageBreakpoint.Md" IsExpanded="false" NavLinkMatch="NavLinkMatch.All">
+@inject IOffcanvasService OffcanvasService
 
-    <a class="navbar-brand navbar-brand-autodark" href="">EvilCase</a>
+<aside class="navbar navbar-vertical navbar-expand-lg d-none d-lg-flex">
+    <div class="container-fluid">
+        <a class="navbar-brand navbar-brand-autodark" href="">EvilCase</a>
 
-    @* flex-grow-0 keeps the row from stretching in the vertical navbar's column layout. *@
-    <div class="navbar-nav flex-row flex-grow-0">
-        <ThemeSwitch />
+        @* flex-grow-0 keeps the row from stretching in the vertical navbar's column layout. *@
+        <div class="navbar-nav flex-row flex-grow-0">
+            <ThemeSwitch />
+        </div>
+
+        <div class="navbar-collapse">
+            <NavLinks />
+        </div>
     </div>
+</aside>
 
-    <NavbarMenu>
-        <NavbarMenuItem Href="" Text="Přehled">
-            <MenuItemIcon>
-                <Icon CssClass="icon" IconType="TablerIcons.Layout_dashboard" />
-            </MenuItemIcon>
-        </NavbarMenuItem>
+<header class="navbar navbar-expand-lg d-lg-none">
+    <div class="container-fluid">
+        <button type="button" class="navbar-toggler" aria-label="Otevřít navigaci" @onclick="ShowNavigationAsync">
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
-        <NavbarMenuItem Href="spisy" Text="Spisy">
-            <MenuItemIcon>
-                <Icon CssClass="icon" IconType="TablerIcons.Folders" />
-            </MenuItemIcon>
-        </NavbarMenuItem>
+        <a class="navbar-brand navbar-brand-autodark" href="">EvilCase</a>
 
-        <NavbarMenuItem Href="lhuty" Text="Lhůty">
-            <MenuItemIcon>
-                <Icon CssClass="icon" IconType="TablerIcons.Clock" />
-            </MenuItemIcon>
-        </NavbarMenuItem>
+        <div class="navbar-nav flex-row">
+            <ThemeSwitch />
+        </div>
+    </div>
+</header>
 
-        <NavbarMenuItem Href="nastaveni" Text="Nastavení">
-            <MenuItemIcon>
-                <Icon CssClass="icon" IconType="TablerIcons.Settings" />
-            </MenuItemIcon>
-        </NavbarMenuItem>
-
-        <NavbarMenuItem Href="echo" Text="Echo">
-            <MenuItemIcon>
-                <Icon CssClass="icon" IconType="TablerIcons.Arrows_exchange" />
-            </MenuItemIcon>
-        </NavbarMenuItem>
-    </NavbarMenu>
-
-</Navbar>
+@code {
+    private Task ShowNavigationAsync() => this.OffcanvasService.ShowAsync(
+        "Navigace",
+        new RenderComponent<NavOffcanvas>(),
+        new OffcanvasOptions
+        {
+            WrapperCssClass = "offcanvas-nav",
+            CloseOnClickOutside = true,
+            CloseOnEsc = true,
+        });
+}

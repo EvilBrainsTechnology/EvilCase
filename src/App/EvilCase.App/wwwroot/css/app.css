@@ -4,11 +4,17 @@
     padding-right: env(safe-area-inset-right);
 }
 
+/* Narrower than the Tabler default so the backdrop stays tappable on a phone. */
+.offcanvas-nav {
+    --tblr-offcanvas-width: min(300px, 85vw);
+}
+
 /* Touch targets below the lg breakpoint. */
 @media (max-width: 991.98px) {
     .btn,
     .dropdown-item,
     .list-group-item-actions,
+    .navbar-toggler,
     .navbar .navbar-nav .nav-link {
         min-width: 44px;
         min-height: 44px;
