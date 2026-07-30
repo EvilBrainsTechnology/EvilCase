@@ -85,7 +85,7 @@ Rules:
 ## Conventions
 
 - Respond in the language of the user's message.
-- Everything committed to the repo is English only: code, comments, documentation, AI instructions, commit messages, merge request descriptions. Exception: user-facing UI strings are Czech.
+- Everything committed to the repo is English only: code, comments, documentation, AI instructions, commit messages, merge request descriptions, routes and URLs. Exception: user-facing UI strings are Czech.
 - All written texts (docs, AI instructions, READMEs): concise and factual. State what, not why. No filler.
 - Code style: clean, readable code sometimes beats 100% correctness and defensiveness.
 - Comments only when something is unexpected (e.g. a workaround). If code needs a comment, prefer rewriting the code to be more readable.
