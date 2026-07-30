@@ -1,3 +1,9 @@
+/* Tabler sizes .page against a full-height chain, which the Blazor root element breaks. Without a
+   definite height here, page-center has nothing to centre the boot loader in. */
+#app {
+    height: 100%;
+}
+
 /* Horizontal safe area, required because the viewport uses viewport-fit=cover. */
 .page-wrapper {
     padding-left: env(safe-area-inset-left);
