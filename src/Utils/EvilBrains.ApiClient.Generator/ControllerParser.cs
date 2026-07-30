@@ -171,7 +171,7 @@ internal static class ControllerParser
                 return null;
             }
 
-            return Model(symbol, syntax, ParameterKind.Token);
+            return Model(symbol, ParameterKind.Token);
         }
 
         if (bindings.Count != 1)
@@ -203,7 +203,7 @@ internal static class ControllerParser
 
         return binding switch
         {
-            "FromBody" => Model(symbol, syntax, ParameterKind.Body),
+            "FromBody" => Model(symbol, ParameterKind.Body),
             "FromRoute" => ParseRouteParameter(syntax, symbol, wireName, diagnostics),
             "FromHeader" => ParseSimpleParameter(syntax, symbol, ParameterKind.Header, wireName, diagnostics),
             "FromQuery" => ParseQueryParameter(syntax, symbol, wireName, diagnostics),
@@ -232,13 +232,13 @@ internal static class ControllerParser
             return null;
         }
 
-        return Model(symbol, syntax, kind, wireName);
+        return Model(symbol, kind, wireName);
     }
 
     private static ParameterModel? ParseQueryParameter(ParameterSyntax syntax, IParameterSymbol symbol, string wireName, ImmutableArray<DiagnosticModel>.Builder diagnostics)
     {
         if (TypeFacts.IsSimple(symbol.Type))
-            return Model(symbol, syntax, ParameterKind.Query, wireName);
+            return Model(symbol, ParameterKind.Query, wireName);
 
         var properties = ImmutableArray.CreateBuilder<QueryPropertyModel>();
 
@@ -254,7 +254,7 @@ internal static class ControllerParser
             properties.Add(new(property.Name, ToCamelCase(property.Name), TypeFacts.IsNullable(property.Type)));
         }
 
-        return Model(symbol, syntax, ParameterKind.QueryObject, wireName, new(properties.ToImmutable()));
+        return Model(symbol, ParameterKind.QueryObject, wireName, new(properties.ToImmutable()));
     }
 
     private static IEnumerable<IPropertySymbol> GetQueryProperties(ITypeSymbol type)
@@ -269,8 +269,8 @@ internal static class ControllerParser
         }
     }
 
-    private static ParameterModel Model(IParameterSymbol symbol, ParameterSyntax syntax, ParameterKind kind, string? wireName = null, in EquatableArray<QueryPropertyModel> queryProperties = default) =>
-        new(symbol.Name, TypeFacts.Display(symbol.Type), kind, wireName ?? symbol.Name, TypeFacts.IsNullable(symbol.Type), syntax.Default?.Value.ToString(), queryProperties);
+    private static ParameterModel Model(IParameterSymbol symbol, ParameterKind kind, string? wireName = null, in EquatableArray<QueryPropertyModel> queryProperties = default) =>
+        new(symbol.Name, TypeFacts.Display(symbol.Type), kind, wireName ?? symbol.Name, TypeFacts.IsNullable(symbol.Type), DefaultValueFacts.Format(symbol), queryProperties);
 
     private static bool ValidateTemplate(AttributeSyntax attribute, string template, ImmutableArray<DiagnosticModel>.Builder diagnostics)
     {

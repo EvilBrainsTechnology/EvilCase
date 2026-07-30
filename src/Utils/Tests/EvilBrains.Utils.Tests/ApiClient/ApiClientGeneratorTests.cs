@@ -132,6 +132,55 @@ public class ApiClientGeneratorTests
     }
 
     [Test]
+    public void EnumDefaultValueIsEmittedFromSymbolTest()
+    {
+        const string contract = """
+            namespace FakeApi.Contract;
+
+            public enum SortOrder
+            {
+                Ascending = 0,
+
+                Descending = 1,
+            }
+
+            public record ItemResponse
+            {
+                public required string Name { get; init; }
+            }
+            """;
+
+        var (diagnostics, output) = GeneratorTestHost.Run(
+            """
+            using EvilBrains.ApiClient;
+            using FakeApi.Contract;
+            using Microsoft.AspNetCore.Mvc;
+
+            namespace FakeApi.Controllers;
+
+            [ApiController]
+            [GenerateApiClient]
+            [Route("items")]
+            public class ItemsController : ControllerBase
+            {
+                [HttpGet("")]
+                public Task<ItemResponse> GetItems([FromQuery] SortOrder order = SortOrder.Descending) => throw null!;
+            }
+            """,
+            contract);
+
+        var client = output.GetTypeByMetadataName("FakeApi.Client.IItemsClient")!;
+        var order = ((IMethodSymbol)client.GetMembers("GetItems").Single()).Parameters.Single();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(diagnostics, Is.Empty);
+            Assert.That(output.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning), Is.Empty, "generated code must be warning-clean");
+            Assert.That(order.ExplicitDefaultValue, Is.EqualTo(1), "the enum default must survive the round-trip through the generator");
+        }
+    }
+
+    [Test]
     public void UnmarkedControllerIsIgnoredTest()
     {
         var (diagnostics, output) = GeneratorTestHost.Run("""
