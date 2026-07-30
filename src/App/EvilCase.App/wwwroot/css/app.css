@@ -9,6 +9,11 @@
     --tblr-offcanvas-width: min(300px, 85vw);
 }
 
+/* TabBlazor lets the tooltip shrink to its trigger's width, which wraps short labels. */
+.tooltip-content {
+    white-space: nowrap;
+}
+
 /* Tabler positions the vertical navbar fixed; inside the offcanvas it has to stay in flow. */
 .offcanvas-nav .navbar {
     position: static;
