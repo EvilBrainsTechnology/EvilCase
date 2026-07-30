@@ -7,6 +7,7 @@ namespace EvilBrains.ApiClient.Generator;
 
 /// <summary>
 /// Emits generated sources with fixed "\n" line endings so the output does not depend on the host platform.
+/// The HTTP mechanics live in EvilBrains.ApiClient.ApiClientHttp; each action becomes a single executor call.
 /// </summary>
 internal static class ClientEmitter
 {
@@ -78,100 +79,74 @@ internal static class ClientEmitter
 
     private static void EmitMethod(StringBuilder source, ActionModel action)
     {
-        var tokenParameter = action.Parameters.FirstOrDefault(x => x.Kind == ParameterKind.Token);
-        var token = tokenParameter is null ? "global::System.Threading.CancellationToken.None" : tokenParameter.Name;
-
-        source.Append("    public async ").Append(ReturnType(action)).Append(' ').Append(action.Name).Append('(').Append(Parameters(action)).Append(")\n    {\n");
-        EmitUrl(source, action);
-
-        source.Append("        using var __request = new global::System.Net.Http.HttpRequestMessage(global::System.Net.Http.HttpMethod.").Append(action.HttpMethod).Append(", __url);\n");
-        EmitHeaders(source, action);
+        source.Append("    public ").Append(ReturnType(action)).Append(' ').Append(action.Name).Append('(').Append(Parameters(action)).Append(") =>\n");
+        source.Append("        ").Append(Helpers).Append('.').Append(Executor(action)).Append('(');
+        source.Append("this.httpClient, global::System.Net.Http.HttpMethod.").Append(action.HttpMethod).Append(", ").Append(UrlExpression(action)).Append(", ").Append(TokenExpression(action));
 
         var body = action.Parameters.FirstOrDefault(x => x.Kind == ParameterKind.Body);
         if (body is not null)
-            source.Append("        __request.Content = global::System.Net.Http.Json.JsonContent.Create(").Append(body.Name).Append(", options: ").Append(Helpers).Append(".JsonOptions);\n");
+            source.Append(", body: ").Append(body.Name);
 
-        source.Append("        using var __response = await this.httpClient.SendAsync(__request, ").Append(token).Append(").ConfigureAwait(false);\n");
-        source.Append("        await ").Append(Helpers).Append(".EnsureSuccessAsync(__response, ").Append(token).Append(").ConfigureAwait(false);\n");
+        var query = QueryPairs(action);
+        if (query.Count > 0)
+            source.Append(", query: [").Append(string.Join(", ", query)).Append(']');
 
-        if (action.ResultType is not null)
-        {
-            var terminator = action.ResultIsNullable ? ";\n" : "\n            ?? throw new global::EvilBrains.ApiClient.ApiException(__response.StatusCode, null);\n";
-            source.Append("        return await global::System.Net.Http.Json.HttpContentJsonExtensions.ReadFromJsonAsync<").Append(action.ResultType).Append(">(");
-            source.Append("__response.Content, ").Append(Helpers).Append(".JsonOptions, ").Append(token).Append(").ConfigureAwait(false)").Append(terminator);
-        }
+        var headers = HeaderPairs(action);
+        if (headers.Count > 0)
+            source.Append(", headers: [").Append(string.Join(", ", headers)).Append(']');
 
-        source.Append("    }\n");
+        source.Append(");\n");
     }
 
-    private static void EmitHeaders(StringBuilder source, ActionModel action)
+    private static string Executor(ActionModel action)
     {
-        foreach (var header in action.Parameters.Where(x => x.Kind == ParameterKind.Header))
-        {
-            var line = $"__request.Headers.TryAddWithoutValidation(\"{header.WireName}\", {Helpers}.Format({header.Name}));";
-            if (header.IsNullable)
-            {
-                source.Append("        if (").Append(header.Name).Append(" is not null)\n            ").Append(line).Append('\n');
+        if (action.ResultType is null)
+            return "SendAsync";
 
-                continue;
-            }
+        var name = action.ResultIsNullable ? "SendNullableAsync" : "SendAsync";
 
-            source.Append("        ").Append(line).Append('\n');
-        }
+        return name + "<" + action.ResultType + ">";
     }
 
-    private static void EmitUrl(StringBuilder source, ActionModel action)
+    private static string TokenExpression(ActionModel action)
     {
-        source.Append("        var __url = ").Append(UrlExpression(action)).Append(";\n");
+        var token = action.Parameters.FirstOrDefault(x => x.Kind == ParameterKind.Token);
 
-        var queries = action.Parameters.Where(x => x.Kind is ParameterKind.Query or ParameterKind.QueryObject).ToList();
-        if (queries.Count == 0)
-            return;
+        return token is null ? "global::System.Threading.CancellationToken.None" : token.Name;
+    }
 
-        source.Append("        var __query = new global::System.Collections.Generic.List<string>();\n");
+    private static List<string> QueryPairs(ActionModel action)
+    {
+        var pairs = new List<string>();
 
-        foreach (var parameter in queries)
+        foreach (var parameter in action.Parameters)
         {
             if (parameter.Kind == ParameterKind.Query)
             {
-                EmitQueryAdd(source, parameter.WireName, parameter.Name, parameter.IsNullable ? parameter.Name + " is not null" : null);
+                pairs.Add($"(\"{parameter.WireName}\", {parameter.Name})");
 
                 continue;
             }
 
+            if (parameter.Kind != ParameterKind.QueryObject)
+                continue;
+
+            var access = parameter.IsNullable ? parameter.Name + "?." : parameter.Name + ".";
             foreach (var property in parameter.QueryProperties)
-            {
-                var expression = parameter.Name + "." + property.PropertyName;
-                EmitQueryAdd(source, property.WireName, expression, BuildGuard(parameter, property, expression));
-            }
+                pairs.Add($"(\"{property.WireName}\", {access}{property.PropertyName})");
         }
 
-        source.Append("        if (__query.Count > 0)\n            __url += \"?\" + string.Join(\"&\", __query);\n");
+        return pairs;
     }
 
-    private static void EmitQueryAdd(StringBuilder source, string wireName, string valueExpression, string? guard)
+    private static List<string> HeaderPairs(ActionModel action)
     {
-        var add = $"__query.Add(\"{wireName}=\" + global::System.Uri.EscapeDataString({Helpers}.Format({valueExpression})));";
-        if (guard is null)
-        {
-            source.Append("        ").Append(add).Append('\n');
+        var pairs = new List<string>();
 
-            return;
-        }
+        foreach (var parameter in action.Parameters.Where(x => x.Kind == ParameterKind.Header))
+            pairs.Add($"(\"{parameter.WireName}\", {parameter.Name})");
 
-        source.Append("        if (").Append(guard).Append(")\n            ").Append(add).Append('\n');
-    }
-
-    private static string? BuildGuard(ParameterModel parameter, QueryPropertyModel property, string expression)
-    {
-        var conditions = new List<string>();
-        if (parameter.IsNullable)
-            conditions.Add(parameter.Name + " is not null");
-
-        if (property.IsNullable)
-            conditions.Add(expression + " is not null");
-
-        return conditions.Count == 0 ? null : string.Join(" && ", conditions);
+        return pairs;
     }
 
     private static string UrlExpression(ActionModel action)
@@ -199,7 +174,7 @@ internal static class ClientEmitter
             var placeholder = route.Substring(start, end - start);
             var parameter = action.Parameters.First(x => x.Kind == ParameterKind.Route && string.Equals(x.WireName, placeholder, StringComparison.OrdinalIgnoreCase));
 
-            result.Append("{(global::System.Uri.EscapeDataString(").Append(Helpers).Append(".Format(").Append(parameter.Name).Append(")))}");
+            result.Append("{(").Append(Helpers).Append(".Route(").Append(parameter.Name).Append("))}");
             interpolated = true;
 
             var close = route.IndexOf('}', end);
