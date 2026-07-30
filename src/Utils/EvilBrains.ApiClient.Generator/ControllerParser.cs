@@ -261,11 +261,13 @@ internal static class ControllerParser
 
     private static IEnumerable<IPropertySymbol> GetQueryProperties(ITypeSymbol type)
     {
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+
         for (var current = type; current is not null && current.SpecialType != SpecialType.System_Object; current = current.BaseType)
         {
             foreach (var property in current.GetMembers().OfType<IPropertySymbol>())
             {
-                if (property is { IsStatic: false, IsIndexer: false, DeclaredAccessibility: Accessibility.Public, GetMethod: not null })
+                if (property is { IsStatic: false, IsIndexer: false, DeclaredAccessibility: Accessibility.Public, GetMethod: not null } && seen.Add(property.Name))
                     yield return property;
             }
         }

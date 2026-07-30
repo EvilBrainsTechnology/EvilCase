@@ -454,6 +454,57 @@ public class ApiClientGeneratorTests
     }
 
     [Test]
+    public void ShadowedQueryPropertyIsEmittedOnceTest()
+    {
+        const string contract = """
+            namespace FakeApi.Contract;
+
+            public class BaseQuery
+            {
+                public string? Name { get; init; }
+            }
+
+            public sealed class ItemQuery : BaseQuery
+            {
+                public new string? Name { get; init; }
+            }
+
+            public record ItemResponse
+            {
+                public required string Name { get; init; }
+            }
+            """;
+
+        var (diagnostics, output) = GeneratorTestHost.Run(
+            """
+            using EvilBrains.ApiClient;
+            using FakeApi.Contract;
+            using Microsoft.AspNetCore.Mvc;
+
+            namespace FakeApi.Controllers;
+
+            [ApiController]
+            [GenerateApiClient]
+            [Route("items")]
+            public class ItemsController : ControllerBase
+            {
+                [HttpGet("")]
+                public Task<ItemResponse> GetItems([FromQuery] ItemQuery query) => throw null!;
+            }
+            """,
+            contract);
+
+        var source = output.SyntaxTrees.Single(x => x.FilePath.EndsWith("ItemsClient.g.cs", StringComparison.Ordinal)).ToString();
+        var pairs = source.Split(["(\"name\""], StringSplitOptions.None).Length - 1;
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(diagnostics, Is.Empty);
+            Assert.That(pairs, Is.EqualTo(1), "a shadowed property must produce a single query pair");
+        }
+    }
+
+    [Test]
     public void DuplicateClientNameIsReportedTest()
     {
         var (diagnostics, _) = GeneratorTestHost.Run(DuplicateControllers);
