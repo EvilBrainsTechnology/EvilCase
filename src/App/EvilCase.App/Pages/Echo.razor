@@ -1,0 +1,56 @@
+@page "/echo"
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.Echo
+@inject IEchoClient EchoClient
+
+<div class="page-header d-print-none">
+    <div class="container-xl">
+        <h2 class="page-title">Echo</h2>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        <Card>
+            <CardBody>
+                <div class="mb-3">
+                    <label class="form-label" for="echo-message">Zpráva</label>
+                    <input id="echo-message" class="form-control" @bind="this.message" />
+                </div>
+
+                <ButtonList>
+                    <Button BackgroundColor="TablerColor.Primary" OnClick="SendGetAsync">Odeslat GET</Button>
+                    <Button BackgroundColor="TablerColor.Primary" BackgroundColorType="ColorType.Outline" OnClick="SendPostAsync">Odeslat POST</Button>
+                </ButtonList>
+
+                @if (this.response is not null)
+                {
+                    <p class="mt-3 mb-0">@this.response</p>
+                }
+            </CardBody>
+        </Card>
+    </div>
+</div>
+
+@code {
+    private string message = string.Empty;
+    private string? response;
+
+    private Task SendGetAsync() => this.SendAsync(this.EchoClient.EchoGet);
+
+    private Task SendPostAsync() => this.SendAsync(this.EchoClient.EchoPost);
+
+    private async Task SendAsync(Func<EchoRequest, Task<EchoResponse>> send)
+    {
+        try
+        {
+            var result = await send(new EchoRequest { Message = this.message });
+            this.response = result.Message;
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.response = exception.Message;
+        }
+    }
+}

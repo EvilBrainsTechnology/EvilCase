@@ -1,17 +1,36 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="cs">
 
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>EvilCase</title>
     <base href="/" />
+    <link rel="stylesheet" href="lib/tabler/tabler.min.css" />
+    <link rel="stylesheet" href="_content/TabBlazor/css/tabblazor.min.css" />
     <link rel="stylesheet" href="css/app.css" />
+    <!-- Blazor scoped styles; TabBlazor ships component CSS (tooltip, dropdown, datepicker) only through this bundle. -->
+    <link rel="stylesheet" href="EvilBrains.EvilCase.App.styles.css" />
 </head>
 
 <body>
-    <div id="app">Loading…</div>
+    <script>
+        // Apply the OS theme before Blazor boots so the loader matches; ThemeSwitch takes over from there.
+        if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+            document.body.setAttribute("data-bs-theme", "dark");
+        }
+    </script>
+    <div id="app">
+        <div class="page page-center">
+            <div class="container container-tight py-4 text-center">
+                <div class="progress progress-sm">
+                    <div class="progress-bar progress-bar-indeterminate"></div>
+                </div>
+            </div>
+        </div>
+    </div>
     <script src="_framework/blazor.webassembly.js"></script>
+    <script src="_content/TabBlazor/js/tabblazor.js"></script>
 </body>
 
 </html>

@@ -1,0 +1,17 @@
+<div class="card mb-2">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start gap-2">
+            <div class="min-w-0">
+                <div class="text-secondary text-truncate">@Case.Number</div>
+                <div class="font-weight-medium text-truncate">@Case.Title</div>
+                <div class="text-secondary text-truncate">@Case.Client</div>
+            </div>
+            <Status BackgroundColor="Case.StatusColor" Lite="true">@Case.StatusText</Status>
+        </div>
+        <div class="text-secondary mt-2">Aktualizováno @Case.UpdatedOnText</div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required CaseSummary Case { get; set; }
+}

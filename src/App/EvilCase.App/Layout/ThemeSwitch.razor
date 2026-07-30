@@ -1,0 +1,33 @@
+@using Microsoft.JSInterop
+@using TabBlazor.Services
+@inject TablerService TablerService
+@inject IJSRuntime JSRuntime
+
+<button type="button" class="btn btn-icon btn-ghost-secondary" aria-label="@Label" @onclick="ToggleAsync">
+    <Icon IconType="@(this.isDark ? AppIcons.Sun : AppIcons.Moon)" Size="20" />
+</button>
+
+@code {
+    private bool isDark;
+
+    private string Label => this.isDark ? "Přepnout na světlý motiv" : "Přepnout na tmavý motiv";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        @* The inline script in index.html applied the OS theme before Blazor booted; sync the toggle to it. *@
+        await using var theme = await this.JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/theme.js");
+        this.isDark = await theme.InvokeAsync<bool>("isDarkTheme");
+        this.StateHasChanged();
+    }
+
+    private async Task ToggleAsync()
+    {
+        this.isDark = !this.isDark;
+        await this.TablerService.SetTheme(this.isDark);
+    }
+}

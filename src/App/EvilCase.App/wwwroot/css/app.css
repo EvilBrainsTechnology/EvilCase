@@ -1,4 +1,39 @@
-body {
-    font-family: system-ui, sans-serif;
-    margin: 2rem;
+/* Tabler sizes .page against a full-height chain, which the Blazor root element breaks. Without a
+   definite height here, page-center has nothing to centre the boot loader in. */
+#app {
+    height: 100%;
+}
+
+/* Horizontal safe area, required because the viewport uses viewport-fit=cover. */
+.page-wrapper {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+}
+
+/* Narrower than the Tabler default so the backdrop stays tappable on a phone. */
+.offcanvas-nav {
+    --tblr-offcanvas-width: min(300px, 85vw);
+}
+
+/* Tabler builds the vertical navbar as a fixed, self-scrolling sidebar with a border along its edge.
+   Inside the offcanvas it has to stay in flow, the scrolling belongs to the offcanvas body (overflow-y
+   scroll would draw an empty scrollbar track), and the panel already has its own edge. */
+.offcanvas-nav .navbar {
+    position: static;
+    width: auto;
+    overflow: visible;
+    box-shadow: none;
+}
+
+/* Touch targets below the lg breakpoint. */
+@media (max-width: 991.98px) {
+    .btn,
+    .btn-close,
+    .dropdown-item,
+    .list-group-item-actions,
+    .navbar-toggler,
+    .navbar .navbar-nav .nav-link {
+        min-width: 44px;
+        min-height: 44px;
+    }
 }
