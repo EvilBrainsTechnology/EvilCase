@@ -46,7 +46,7 @@ Client generation rules (EB1010–EB1016, generator-only): actions return `void`
 - TabBlazor ships no icon set. `Icons/AppIcons.cs` holds only the icons the app uses; add one when it is needed by copying its path data from the [Tabler icon set](https://tabler.io/icons) into a new `TablerIcon`. Do not vendor the whole generated set — it is 5665 icons the trimmer does not remove.
 - App shell: `Layout/MainLayout.razor` (Tabler `page` + `page-wrapper`) and `Layout/NavMenu.razor` — a single top bar holding the brand, the menu (from `lg` up) and the theme switch. Below `lg` the hamburger opens the navigation as an offcanvas via `IOffcanvasService`. Both render the same `Layout/NavLinks.razor`.
 - `NavLinks` sets `active` on the `li`, not through Blazor's `NavLink`: Tabler draws the active indicator on `.nav-item.active`, an underline in the horizontal menu and a left border in the offcanvas.
-- Dark/light switch goes through `TablerService.SetTheme`.
+- Dark/light switch goes through `TablerService.SetTheme`. The initial theme follows `prefers-color-scheme`: an inline script in `index.html` applies it before Blazor boots and `ThemeSwitch` reads it back via `wwwroot/js/theme.js`.
 
 ## Responsive design
 
