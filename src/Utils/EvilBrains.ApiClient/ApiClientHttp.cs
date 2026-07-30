@@ -13,7 +13,7 @@ public static class ApiClientHttp
 {
     private const int ErrorBodyMaxLength = 4096;
 
-    public static JsonSerializerOptions JsonOptions { get; } = new(JsonSerializerDefaults.Web);
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
     public static string Route<T>(T value) => Uri.EscapeDataString(Format(value));
 
