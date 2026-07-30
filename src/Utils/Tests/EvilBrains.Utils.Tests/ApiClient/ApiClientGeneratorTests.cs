@@ -46,6 +46,35 @@ public class ApiClientGeneratorTests
         }
         """;
 
+    private const string ReturnShapesController = """
+        using EvilBrains.ApiClient;
+        using FakeApi.Contract;
+        using Microsoft.AspNetCore.Mvc;
+
+        namespace FakeApi.Controllers;
+
+        [ApiController]
+        [GenerateApiClient]
+        [Route("shapes")]
+        public class ShapesController : ControllerBase
+        {
+            [HttpPost("create")]
+            public Task<ActionResult> Create([FromBody] ItemRequest request) => throw null!;
+
+            [HttpGet("find")]
+            public Task<ActionResult<ItemResponse>> Find([FromQuery] string name) => throw null!;
+
+            [HttpGet("info")]
+            public ItemResponse Info() => throw null!;
+
+            [HttpGet("legacy")]
+            public IActionResult Legacy() => throw null!;
+
+            [HttpDelete("purge")]
+            public void Purge() => throw null!;
+        }
+        """;
+
     private const string DuplicateControllers = """
         using EvilBrains.ApiClient;
         using Microsoft.AspNetCore.Mvc;
@@ -212,18 +241,39 @@ public class ApiClientGeneratorTests
             """);
 
     [Test]
-    public void NonTaskReturnTypeIsReportedTest() =>
+    public void ReturnTypeWrappersAreUnwrappedTest()
+    {
+        var (diagnostics, output) = GeneratorTestHost.Run(ReturnShapesController, DefaultContract);
+
+        const string task = "System.Threading.Tasks.Task";
+        const string taskOfResponse = "System.Threading.Tasks.Task<FakeApi.Contract.ItemResponse>";
+        var client = output.GetTypeByMetadataName("FakeApi.Client.IShapesClient")!;
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(diagnostics, Is.Empty);
+            Assert.That(output.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning), Is.Empty, "generated code must be warning-clean");
+            Assert.That(ReturnTypeOf(client, "Create"), Is.EqualTo(task), "Task<ActionResult> carries no result");
+            Assert.That(ReturnTypeOf(client, "Find"), Is.EqualTo(taskOfResponse), "Task<ActionResult<T>> unwraps to T");
+            Assert.That(ReturnTypeOf(client, "Info"), Is.EqualTo(taskOfResponse), "a synchronous action becomes asynchronous");
+            Assert.That(ReturnTypeOf(client, "Legacy"), Is.EqualTo(task), "IActionResult carries no result");
+            Assert.That(ReturnTypeOf(client, "Purge"), Is.EqualTo(task), "void carries no result");
+        }
+    }
+
+    [Test]
+    public void UnresolvableReturnTypeIsReportedTest() =>
         AssertDiagnostic(
-            "EB1010",
+            "EB1014",
             """
             [HttpGet("")]
-            public string GetItems() => throw null!;
+            public Task<ActionResult<ServerOnlyResponse>> GetItems() => throw null!;
             """);
 
     [Test]
     public void UnmatchedRoutePlaceholderIsReportedTest() =>
         AssertDiagnostic(
-            "EB1011",
+            "EB1010",
             """
             [HttpGet("{itemId}")]
             public Task<ItemResponse> GetItem() => throw null!;
@@ -232,7 +282,7 @@ public class ApiClientGeneratorTests
     [Test]
     public void RouteParameterWithoutPlaceholderIsReportedTest() =>
         AssertDiagnostic(
-            "EB1011",
+            "EB1010",
             """
             [HttpGet("")]
             public Task<ItemResponse> GetItem([FromRoute] Guid id) => throw null!;
@@ -241,7 +291,7 @@ public class ApiClientGeneratorTests
     [Test]
     public void MultipleBodyParametersAreReportedTest() =>
         AssertDiagnostic(
-            "EB1012",
+            "EB1011",
             """
             [HttpPost("")]
             public Task Create([FromBody] ItemRequest first, [FromBody] ItemRequest second) => throw null!;
@@ -250,7 +300,7 @@ public class ApiClientGeneratorTests
     [Test]
     public void FromFormParameterIsReportedTest() =>
         AssertDiagnostic(
-            "EB1013",
+            "EB1012",
             """
             [HttpPost("")]
             public Task Create([FromForm] string name) => throw null!;
@@ -259,7 +309,7 @@ public class ApiClientGeneratorTests
     [Test]
     public void NullableRouteParameterIsReportedTest() =>
         AssertDiagnostic(
-            "EB1014",
+            "EB1013",
             """
             [HttpGet("{id}")]
             public Task<ItemResponse> GetItem([FromRoute] int? id) => throw null!;
@@ -268,7 +318,7 @@ public class ApiClientGeneratorTests
     [Test]
     public void TypeNotVisibleToClientIsReportedTest() =>
         AssertDiagnostic(
-            "EB1015",
+            "EB1014",
             """
             [HttpPost("")]
             public Task Create([FromBody] ServerOnlyRequest request) => throw null!;
@@ -292,7 +342,7 @@ public class ApiClientGeneratorTests
             """;
 
         AssertDiagnostic(
-            "EB1016",
+            "EB1015",
             """
             [HttpGet("")]
             public Task<ItemResponse> GetItems([FromQuery] ComplexQuery query) => throw null!;
@@ -305,8 +355,11 @@ public class ApiClientGeneratorTests
     {
         var (diagnostics, _) = GeneratorTestHost.Run(DuplicateControllers);
 
-        Assert.That(diagnostics.Select(x => x.Id), Does.Contain("EB1017"));
+        Assert.That(diagnostics.Select(x => x.Id), Does.Contain("EB1016"));
     }
+
+    private static string ReturnTypeOf(INamedTypeSymbol client, string method) =>
+        ((IMethodSymbol)client.GetMembers(method).Single()).ReturnType.ToDisplayString();
 
     private static void AssertDiagnostic(string id, string action, string? contract = null) =>
         AssertDiagnosticInController(id, action, "items", contract);

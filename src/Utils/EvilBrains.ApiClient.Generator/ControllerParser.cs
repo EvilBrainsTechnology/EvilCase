@@ -14,10 +14,6 @@ internal static class ControllerParser
 
     private const string NonActionAttributeName = "NonAction";
 
-    private const string TaskTypeName = "System.Threading.Tasks.Task";
-
-    private const string TaskOfTTypeName = "System.Threading.Tasks.Task<TResult>";
-
     private static readonly Dictionary<string, string> HttpMethodAttributes = new(StringComparer.Ordinal)
     {
         ["HttpGet"] = "Get",
@@ -95,7 +91,7 @@ internal static class ControllerParser
         if (semanticModel.GetDeclaredSymbol(method) is not IMethodSymbol symbol)
             return null;
 
-        var result = ParseResult(method, symbol, diagnostics);
+        var result = ParseResult(method, semanticModel, diagnostics);
         if (result is null)
             return null;
 
@@ -110,33 +106,21 @@ internal static class ControllerParser
         return new(symbol.Name, verbs[0].Method, route, result.Value.Type, result.Value.IsNullable, new(parameters.Value));
     }
 
-    private static (string? Type, bool IsNullable)? ParseResult(MethodDeclarationSyntax method, IMethodSymbol symbol, ImmutableArray<DiagnosticModel>.Builder diagnostics)
+    private static (string? Type, bool IsNullable)? ParseResult(MethodDeclarationSyntax method, SemanticModel semanticModel, ImmutableArray<DiagnosticModel>.Builder diagnostics)
     {
-        var returnType = symbol.ReturnType;
-        if (TypeFacts.ContainsError(returnType))
+        var resultType = ReturnTypeFacts.Peel(method.ReturnType);
+        if (resultType is null)
+            return (null, false);
+
+        var type = semanticModel.GetTypeInfo(resultType).Type;
+        if (type is null || TypeFacts.ContainsError(type))
         {
-            diagnostics.Add(ApiModelParser.Diagnostic(Diagnostics.TypeNotVisibleToClient, method.ReturnType, method.ReturnType.ToString()));
+            diagnostics.Add(ApiModelParser.Diagnostic(Diagnostics.TypeNotVisibleToClient, resultType, resultType.ToString()));
 
             return null;
         }
 
-        if (returnType is INamedTypeSymbol named)
-        {
-            var definition = named.OriginalDefinition.ToDisplayString();
-            if (string.Equals(definition, TaskTypeName, StringComparison.Ordinal))
-                return (null, false);
-
-            if (string.Equals(definition, TaskOfTTypeName, StringComparison.Ordinal))
-            {
-                var resultType = named.TypeArguments[0];
-
-                return (TypeFacts.Display(resultType), TypeFacts.IsNullable(resultType));
-            }
-        }
-
-        diagnostics.Add(ApiModelParser.Diagnostic(Diagnostics.UnsupportedReturnType, method.Identifier, symbol.Name));
-
-        return null;
+        return (TypeFacts.Display(type), TypeFacts.IsNullable(type));
     }
 
     private static ImmutableArray<ParameterModel>? ParseParameters(MethodDeclarationSyntax method, IMethodSymbol symbol, ImmutableArray<DiagnosticModel>.Builder diagnostics)

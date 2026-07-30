@@ -30,29 +30,26 @@ internal static class Diagnostics
 
     // EB1010+ are reported by the source generator only; analyzer release tracking (RS2000) covers DiagnosticAnalyzer rules.
 #pragma warning disable RS2000
-    public static readonly DiagnosticDescriptor UnsupportedReturnType =
-        Descriptor("EB1010", "Unsupported return type", "Action '{0}' must return Task or Task<T>");
-
     public static readonly DiagnosticDescriptor UnmatchedRoutePlaceholder =
-        Descriptor("EB1011", "Unmatched route placeholder", "Route placeholder and [FromRoute] parameters of action '{0}' must match ('{1}' has no counterpart)");
+        Descriptor("EB1010", "Unmatched route placeholder", "Route placeholder and [FromRoute] parameters of action '{0}' must match ('{1}' has no counterpart)");
 
     public static readonly DiagnosticDescriptor DuplicateSpecialParameter =
-        Descriptor("EB1012", "Duplicate body or CancellationToken parameter", "Action '{0}' has multiple [FromBody] or CancellationToken parameters");
+        Descriptor("EB1011", "Duplicate body or CancellationToken parameter", "Action '{0}' has multiple [FromBody] or CancellationToken parameters");
 
     public static readonly DiagnosticDescriptor UnsupportedParameter =
-        Descriptor("EB1013", "Unsupported parameter", "Parameter '{0}' is not supported for client generation");
+        Descriptor("EB1012", "Unsupported parameter", "Parameter '{0}' is not supported for client generation");
 
     public static readonly DiagnosticDescriptor ParameterNotSimple =
-        Descriptor("EB1014", "Parameter type not simple", "Parameter '{0}' must be a simple type (route parameters also non-nullable)");
+        Descriptor("EB1013", "Parameter type not simple", "Parameter '{0}' must be a simple type (route parameters also non-nullable)");
 
     public static readonly DiagnosticDescriptor TypeNotVisibleToClient =
-        Descriptor("EB1015", "Type not visible to the client", "Type '{0}' is not resolvable in the client compilation; move it to the shared contract assembly");
+        Descriptor("EB1014", "Type not visible to the client", "Type '{0}' is not resolvable in the client compilation; move it to the shared contract assembly");
 
     public static readonly DiagnosticDescriptor QueryPropertyNotSimple =
-        Descriptor("EB1016", "Query property not simple", "Property '{0}' of [FromQuery] parameter type '{1}' must be a simple type");
+        Descriptor("EB1015", "Query property not simple", "Property '{0}' of [FromQuery] parameter type '{1}' must be a simple type");
 
     public static readonly DiagnosticDescriptor DuplicateClientName =
-        Descriptor("EB1017", "Duplicate client name", "Client name '{0}' is generated from multiple controllers");
+        Descriptor("EB1016", "Duplicate client name", "Client name '{0}' is generated from multiple controllers");
 #pragma warning restore RS2000
 
     private static readonly Dictionary<string, DiagnosticDescriptor> Descriptors = CreateDescriptorIndex();
@@ -73,7 +70,6 @@ internal static class Diagnostics
             ForbiddenRouteSyntax,
             RouteSegmentNotSnakeCase,
             MissingBindingAttribute,
-            UnsupportedReturnType,
             UnmatchedRoutePlaceholder,
             DuplicateSpecialParameter,
             UnsupportedParameter,
