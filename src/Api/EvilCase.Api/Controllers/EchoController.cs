@@ -1,5 +1,5 @@
 using EvilBrains.ApiClient;
-using EvilBrains.EvilCase.Api.Contract;
+using EvilBrains.EvilCase.Api.Contract.Echo;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EvilBrains.EvilCase.Api.Controllers;

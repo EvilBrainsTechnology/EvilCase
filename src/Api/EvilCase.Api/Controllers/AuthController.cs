@@ -1,4 +1,6 @@
-﻿using EvilBrains.Cryptography;
+﻿using EvilBrains.ApiClient;
+using EvilBrains.Cryptography;
+using EvilBrains.EvilCase.Api.Contract.User;
 using EvilBrains.EvilCase.Auth;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
@@ -9,14 +11,15 @@ using Npgsql;
 
 namespace EvilBrains.EvilCase.Api.Controllers;
 
-#pragma warning disable RCS1060 // Declare each type in separate file
-
 [ApiController]
+[GenerateApiClient]
 [Route("auth")]
 public class AuthController(ApplicationDbContext dbContext) : Controller
 {
     [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] RegisterRequest request, CancellationToken token)
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult> Register([FromBody] RegisterRequest request, CancellationToken token)
     {
         var user = new User
         {
@@ -40,7 +43,9 @@ public class AuthController(ApplicationDbContext dbContext) : Controller
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login(
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<LoginResponse>> Login(
         [FromServices] IAuthTokenService authTokenService,
         [FromBody] LoginRequest request,
         CancellationToken token)
@@ -73,31 +78,3 @@ public class AuthController(ApplicationDbContext dbContext) : Controller
         return userInfo;
     }
 }
-
-public record RegisterRequest
-{
-    public required string Email { get; init; }
-
-    public required string Password { get; init; }
-}
-
-public record LoginRequest
-{
-    public required string Email { get; init; }
-
-    public required string Password { get; init; }
-}
-
-public record LoginResponse
-{
-    public required string Email { get; init; }
-
-    public required string Token { get; init; }
-}
-
-public record UserInfo
-{
-    public required string Email { get; init; }
-}
-
-#pragma warning restore RCS1060
