@@ -5,6 +5,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="DotNetEnv" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
     <!-- Explicit reference to override the vulnerable transitive Microsoft.OpenApi 2.0.0 (GHSA-v5pm-xwqc-g5wc) -->
     <PackageReference Include="Microsoft.OpenApi" />
@@ -16,7 +17,6 @@
     <ProjectReference Include="..\..\Common\EvilCase.Auth\EvilCase.Auth.csproj" />
     <ProjectReference Include="..\..\Utils\EvilBrains.ApiClient\EvilBrains.ApiClient.csproj" />
     <ProjectReference Include="..\..\Utils\EvilBrains.ApiClient.Generator\EvilBrains.ApiClient.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all" />
-    <ProjectReference Include="..\..\Utils\EvilBrains.Secrets.Env\EvilBrains.Secrets.Env.csproj" />
     <ProjectReference Include="..\..\Utils\EvilBrains.Collections\EvilBrains.Collections.csproj" />
     <ProjectReference Include="..\..\Utils\EvilBrains.Cryptography\EvilBrains.Cryptography.csproj" />
     <ProjectReference Include="..\..\Utils\EvilBrains.Logging.AspNetCore\EvilBrains.Logging.AspNetCore.csproj" />
