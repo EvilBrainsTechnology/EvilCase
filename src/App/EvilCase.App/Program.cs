@@ -18,7 +18,7 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 var apiBaseUrl = builder.Configuration["ApiBaseUrl"]
     ?? throw new InvalidOperationException("ApiBaseUrl configuration is missing");
 
-var loggingOptions = ClientLoggingOptions.Read(builder.Configuration);
+var loggingOptions = builder.Configuration.GetSection(ClientLoggingOptions.SectionName).Get<ClientLoggingOptions>() ?? new();
 var apiLogSink = new ApiLogSink();
 
 SelfLog.Enable(message => Console.Error.WriteLine(message));
