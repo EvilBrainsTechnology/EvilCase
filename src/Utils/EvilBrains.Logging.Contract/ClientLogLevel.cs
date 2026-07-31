@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace EvilBrains.EvilCase.Api.Contract.Logs;
+namespace EvilBrains.Logging.Contract;
 
 [JsonConverter(typeof(JsonStringEnumConverter<ClientLogLevel>))]
 public enum ClientLogLevel

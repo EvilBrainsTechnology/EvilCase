@@ -1,4 +1,4 @@
-using EvilBrains.EvilCase.Api.Contract.Logs;
+using EvilBrains.Logging.Contract;
 
 namespace EvilBrains.EvilCase.Api.Logging;
 

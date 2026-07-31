@@ -1,5 +1,5 @@
-using EvilBrains.EvilCase.Api.Contract.Logs;
 using EvilBrains.EvilCase.Api.Logging;
+using EvilBrains.Logging.Contract;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;

@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace EvilBrains.EvilCase.Api.Contract.Logs;
+namespace EvilBrains.Logging.Contract;
 
 public record ClientLogEntry
 {

@@ -1,4 +1,4 @@
-using EvilBrains.EvilCase.Api.Contract.Logs;
+using EvilBrains.Logging.Contract;
 using Serilog.Core;
 using Serilog.Events;
 using Serilog.Parsing;

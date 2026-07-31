@@ -2,7 +2,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using EvilBrains.ApiClient;
 using EvilBrains.EvilCase.Api.Client;
-using EvilBrains.EvilCase.Api.Contract.Logs;
+using EvilBrains.Logging.Contract;
 using Microsoft.AspNetCore.Components;
 using Serilog.Core;
 using Serilog.Debugging;
