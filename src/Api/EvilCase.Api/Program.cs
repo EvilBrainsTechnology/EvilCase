@@ -1,8 +1,10 @@
 using EvilBrains.EvilCase.Api;
+using EvilBrains.EvilCase.Api.HealthChecks;
 using EvilBrains.EvilCase.Auth;
 using EvilBrains.Logging.AspNetCore;
 using EvilBrains.Logging.Contract;
 using EvilBrains.Secrets.Env;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Scalar.AspNetCore;
 using Serilog;
 
@@ -51,7 +53,7 @@ else
     app.UseHsts();
 }
 
-app.UseRequestLogging("/logs/client");
+app.UseRequestLogging("/logs/client", "/health");
 
 app.UseHttpsRedirection();
 app.UseRouting();
@@ -62,4 +64,17 @@ if (app.Environment.IsDevelopment())
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Liveness runs no check: the process answering is the signal. A database check here would restart
+// every instance at once on a brief outage.
+app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false });
+
+app.MapHealthChecks(
+    "/health/ready",
+    new HealthCheckOptions
+    {
+        Predicate = check => check.Tags.Contains(HealthCheckTags.Ready),
+        ResponseWriter = HealthCheckResponseWriter.WriteAsync,
+    });
+
 await app.RunAsync();

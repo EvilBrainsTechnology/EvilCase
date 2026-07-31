@@ -1,5 +1,7 @@
-﻿using EvilBrains.EvilCase.Auth;
+﻿using EvilBrains.EvilCase.Api.HealthChecks;
+using EvilBrains.EvilCase.Auth;
 using EvilBrains.EvilCase.Data;
+using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.Logging.AspNetCore;
 
 namespace EvilBrains.EvilCase.Api;
@@ -26,6 +28,10 @@ public static class Bootstrap
 
         services.AddEvilCaseData();
         services.AddEvilCaseAuth();
+
+        services
+            .AddHealthChecks()
+            .AddDbContextCheck<ApplicationDbContext>("database", tags: [HealthCheckTags.Ready]);
 
         return services;
     }
