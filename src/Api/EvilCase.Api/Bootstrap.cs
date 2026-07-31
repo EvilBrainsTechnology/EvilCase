@@ -18,18 +18,34 @@ public static class Bootstrap
     private const string ClientSourceContext = "EvilBrains.EvilCase.App.Client";
 
     // A RequestDelegate rather than a minimal API handler: the catch-all segment only exists to give
-    // this fallback a literal prefix, and binding it would leave an unused parameter behind.
-    private static readonly RequestDelegate NotFound = static context =>
+    // this fallback a literal prefix, and binding it would leave an unused parameter behind. The body is
+    // written through the problem details service so an unknown path answers in the same shape as every
+    // other API error rather than with nothing at all.
+    private static readonly RequestDelegate NotFound = static async context =>
     {
         context.Response.StatusCode = StatusCodes.Status404NotFound;
 
-        return Task.CompletedTask;
+        var problemDetails = context.RequestServices.GetRequiredService<IProblemDetailsService>();
+
+        _ = await problemDetails.TryWriteAsync(new()
+        {
+            HttpContext = context,
+            ProblemDetails =
+            {
+                Status = StatusCodes.Status404NotFound,
+                Title = "Not Found",
+                Detail = "No API endpoint matches the requested path.",
+            },
+        });
     };
 
     public static IServiceCollection ConfigureServices(this IServiceCollection services)
     {
         // The controllers live in this library rather than in the host, so the part is added explicitly.
         services.AddControllers().AddApplicationPart(typeof(Bootstrap).Assembly);
+
+        // Backs the 404 fallback below; [ApiController] builds its own responses through ProblemDetailsFactory.
+        services.AddProblemDetails();
 
         services.AddOpenApi(options =>
         {
