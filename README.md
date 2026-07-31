@@ -26,11 +26,12 @@ AI agent instructions: [AGENTS.md](AGENTS.md).
 
 ### Secrets
 
-Local secrets live in `src/Api/EvilCase.Api/.env`, which is not committed.
+Secrets come from environment variables in every environment. In Development they are loaded from `src/Api/EvilCase.Api/.env`, which is not committed.
 
 - Copy `src/Api/EvilCase.Api/.env.example` to `src/Api/EvilCase.Api/.env` and fill in the values.
 - Keys use the environment variable separator: `A__B` maps to the configuration key `A:B`.
-- The file is read in the Development environment only and wins over `appsettings*.json`. Every other environment supplies the same keys as environment variables.
+- The file is read in the Development environment only, and only fills in what is not already set — an environment variable you export yourself wins over it.
+- Deployed environments set the same keys as real environment variables and no file is involved.
 
 ### Build and run
 

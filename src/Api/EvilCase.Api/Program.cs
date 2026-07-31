@@ -1,9 +1,9 @@
+using DotNetEnv;
 using EvilBrains.EvilCase.Api;
 using EvilBrains.EvilCase.Api.HealthChecks;
 using EvilBrains.EvilCase.Auth;
 using EvilBrains.Logging.AspNetCore;
 using EvilBrains.Logging.Contract;
-using EvilBrains.Secrets.Env;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Scalar.AspNetCore;
@@ -12,13 +12,16 @@ using Serilog;
 CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
 CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
 
+// Local development secrets are put into the process environment, so from here on every environment
+// reads them through the same AddEnvironmentVariables provider. This has to run before CreateBuilder,
+// which is where that provider snapshots the environment. NoClobber leaves a real environment
+// variable in place, TraversePath walks up from bin/ to the project directory (dotnet run keeps the
+// caller's working directory, so the file cannot be found relative to it).
+if (string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"), Environments.Development, StringComparison.OrdinalIgnoreCase))
+    Env.Load(Path.Combine(AppContext.BaseDirectory, ".env"), LoadOptions.NoClobber().TraversePath());
+
 var builder = WebApplication
     .CreateBuilder(args);
-
-// Local development secrets. Other environments take them from environment variables,
-// which CreateBuilder already reads.
-if (builder.Environment.IsDevelopment())
-    builder.Configuration.AddEnvFile();
 
 #pragma warning disable RCS0054 // Fix formatting of a call chain
 Log.Logger = new LoggerConfiguration()

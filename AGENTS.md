@@ -22,15 +22,22 @@ All code lives in `src/` (solution `EvilCase.slnx`).
 | `Data/EvilCase.Data` | EF Core model + DbContext (PostgreSQL) |
 | `Data/EvilCase.Data.Migrations` | EF Core migrations |
 | `Tests/EvilCase.Tests` | Application tests (NUnit) |
-| `Utils/EvilBrains.Secrets.Env` | `.env` file configuration provider |
 | `Utils/EvilBrains.Secrets.Infisical` | Infisical configuration provider (kept, not wired up) |
 | `Utils/EvilBrains.*` | Shared libraries (collections, cryptography, logging for the wire contract, ASP.NET Core and WebAssembly, custom analyzers EB0001–EB0004, API client generator + controller convention analyzers EB1001–EB1016) |
 
 ## Secrets
 
-In Development the API reads `src/Api/EvilCase.Api/.env` (gitignored, `AddEnvFile` from `EvilBrains.Secrets.Env`); `.env.example` documents the keys. It is the last configuration source, so it wins over `appsettings*.json`. Every other environment takes the same keys from environment variables, which `CreateBuilder` reads by default — hence the double underscore separator in the file (`A__B` → `A:B`).
+Every environment reads secrets from environment variables through the `AddEnvironmentVariables` provider `CreateBuilder` registers. Development additionally loads `src/Api/EvilCase.Api/.env` (gitignored, `.env.example` documents the keys) into the process environment, so there is one configuration path everywhere and the file only decides where the values come from — hence the double underscore separator (`A__B` → `A:B`).
 
-`EvilBrains.Secrets.Infisical` still holds the Infisical provider, but nothing calls it.
+`DotNetEnv` does the loading, in `Program.cs`, with three constraints:
+
+- It runs **before** `CreateBuilder`. That call is where `AddEnvironmentVariables` snapshots the process environment; anything set afterwards is invisible to configuration.
+- `NoClobber()` — an environment variable that is already set wins over the file, matching how `.env` behaves everywhere else. This is why a `.env` cannot silently override what a container or CI job passes in.
+- `TraversePath()` — the file is searched for upwards from `AppContext.BaseDirectory`, because `dotnet run` keeps the caller's working directory and it therefore cannot be found relative to it.
+
+Because the check runs before the builder exists, `builder.Environment.IsDevelopment()` is unavailable and `ASPNETCORE_ENVIRONMENT` is read directly. Consequence: `dotnet run --environment X` does not affect it, only the variable does.
+
+`EvilBrains.Secrets.Infisical` still holds the Infisical provider, but nothing calls it and `appsettings.json` no longer has the section it binds, so it needs that section back before it can be used.
 
 ## API client pattern
 
