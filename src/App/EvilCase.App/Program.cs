@@ -25,15 +25,14 @@ SelfLog.Enable(message => Console.Error.WriteLine(message));
 
 #pragma warning disable RCS0054 // Fix formatting of a call chain
 
-// HttpClient logs every request, including the one shipping the batch: the filter keeps the sink from feeding
-// itself, and the level override below keeps the browser console out of upload noise.
+// Shipping a batch is itself an HTTP request, so without this filter the sink would feed itself.
 Action<LoggerConfiguration> shipToApi = shipped => shipped
     .Filter.ByExcluding(Matching.FromSource("System.Net.Http.HttpClient"))
     .WriteTo.Sink(apiLogSink, loggingOptions.ServerMinimumLevel);
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Is(loggingOptions.MinimumLevel)
-    .MinimumLevel.Override("System.Net.Http.HttpClient", LogEventLevel.Warning)
+    .MinimumLevel.Override($"System.Net.Http.HttpClient.{nameof(ILogsClient)}", LogEventLevel.Warning)
     .Enrich.FromLogContext()
     .WriteTo.BrowserConsole(formatProvider: CultureInfo.InvariantCulture)
     .WriteTo.Logger(shipToApi)
