@@ -1,4 +1,4 @@
-namespace EvilBrains.EvilCase.Api.Logging;
+namespace EvilBrains.Logging.AspNetCore;
 
 /// <summary>
 /// Carries a browser-side exception; the client cannot send an exception object, only its rendered text.

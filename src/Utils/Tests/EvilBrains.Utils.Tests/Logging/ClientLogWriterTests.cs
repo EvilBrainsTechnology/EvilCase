@@ -1,13 +1,15 @@
-using EvilBrains.EvilCase.Api.Logging;
+using EvilBrains.Logging.AspNetCore;
 using EvilBrains.Logging.Contract;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
 
-namespace EvilBrains.EvilCase.Tests.Logging;
+namespace EvilBrains.Utils.Tests.Logging;
 
 public class ClientLogWriterTests
 {
+    private const string SourceContext = "Test.Client";
+
     private CollectingSink sink = null!;
 
     private ClientLogWriter writer = null!;
@@ -18,7 +20,7 @@ public class ClientLogWriterTests
         this.sink = new CollectingSink();
 
         var logger = new LoggerConfiguration().MinimumLevel.Verbose().WriteTo.Sink(this.sink).CreateLogger();
-        this.writer = new ClientLogWriter(logger);
+        this.writer = new ClientLogWriter(logger, SourceContext);
     }
 
     [Test]
@@ -55,7 +57,7 @@ public class ClientLogWriterTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(Value(logEvent, "RequestId"), Is.Null);
-            Assert.That(Value(logEvent, "SourceContext"), Is.EqualTo("EvilBrains.EvilCase.App.Client"));
+            Assert.That(Value(logEvent, "SourceContext"), Is.EqualTo(SourceContext));
         }
     }
 

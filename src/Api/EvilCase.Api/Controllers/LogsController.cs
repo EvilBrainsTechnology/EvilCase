@@ -1,5 +1,5 @@
 using EvilBrains.ApiClient;
-using EvilBrains.EvilCase.Api.Logging;
+using EvilBrains.Logging.AspNetCore;
 using EvilBrains.Logging.Contract;
 using Microsoft.AspNetCore.Mvc;
 

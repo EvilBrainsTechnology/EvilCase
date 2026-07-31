@@ -2,7 +2,7 @@ using System.Collections.Frozen;
 using EvilBrains.Logging.Contract;
 using Serilog.Core;
 
-namespace EvilBrains.EvilCase.Api.Logging;
+namespace EvilBrains.Logging.AspNetCore;
 
 /// <summary>
 /// Property names owned by the server. A browser log entry must never shadow them, because

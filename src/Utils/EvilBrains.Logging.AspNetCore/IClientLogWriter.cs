@@ -1,6 +1,6 @@
 using EvilBrains.Logging.Contract;
 
-namespace EvilBrains.EvilCase.Api.Logging;
+namespace EvilBrains.Logging.AspNetCore;
 
 public interface IClientLogWriter
 {

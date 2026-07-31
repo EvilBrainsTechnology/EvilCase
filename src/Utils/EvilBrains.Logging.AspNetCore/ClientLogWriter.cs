@@ -3,7 +3,7 @@ using Serilog.Core;
 using Serilog.Events;
 using Serilog.Parsing;
 
-namespace EvilBrains.EvilCase.Api.Logging;
+namespace EvilBrains.Logging.AspNetCore;
 
 /// <summary>
 /// Rebuilds a Serilog event from an untrusted browser log entry. The parsed message template is the
@@ -13,8 +13,6 @@ namespace EvilBrains.EvilCase.Api.Logging;
 /// </summary>
 internal sealed class ClientLogWriter : IClientLogWriter
 {
-    private const string ClientSourceContext = "EvilBrains.EvilCase.App.Client";
-
     private const int MaxAlignmentWidth = 64;
 
     private static readonly MessageTemplateParser Parser = new();
@@ -23,11 +21,12 @@ internal sealed class ClientLogWriter : IClientLogWriter
 
     private readonly Serilog.ILogger logger;
 
-    public ClientLogWriter(Serilog.ILogger logger)
+    public ClientLogWriter(Serilog.ILogger logger, string sourceContext)
     {
         ArgumentNullException.ThrowIfNull(logger);
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourceContext);
 
-        this.logger = logger.ForContext(Constants.SourceContextPropertyName, ClientSourceContext);
+        this.logger = logger.ForContext(Constants.SourceContextPropertyName, sourceContext);
     }
 
     public void Write(ClientLogEntry entry)

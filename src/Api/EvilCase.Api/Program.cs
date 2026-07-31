@@ -1,5 +1,4 @@
 using EvilBrains.EvilCase.Api;
-using EvilBrains.EvilCase.Api.Logging;
 using EvilBrains.EvilCase.Auth;
 using EvilBrains.EvilCase.Secrets;
 using EvilBrains.Logging.AspNetCore;
@@ -51,8 +50,7 @@ else
     app.UseHsts();
 }
 
-app.UseRequestContextLogging();
-app.UseSerilogRequestLogging(options => options.GetLevel = RequestLogging.GetLevel);
+app.UseRequestLogging("/logs/client");
 
 app.UseHttpsRedirection();
 app.UseRouting();
