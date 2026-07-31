@@ -10,15 +10,14 @@ public class ClientLogWriterTests
 {
     private CollectingSink sink = null!;
 
-    private IClientLogWriter writer = null!;
+    private ClientLogWriter writer = null!;
 
     [SetUp]
     public void SetUp()
     {
-        this.sink = new();
+        this.sink = new CollectingSink();
 
         var logger = new LoggerConfiguration().MinimumLevel.Verbose().WriteTo.Sink(this.sink).CreateLogger();
-
         this.writer = new ClientLogWriter(logger);
     }
 
