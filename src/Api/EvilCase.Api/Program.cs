@@ -5,6 +5,7 @@ using EvilBrains.Logging.AspNetCore;
 using EvilBrains.Logging.Contract;
 using EvilBrains.Secrets.Env;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Scalar.AspNetCore;
 using Serilog;
 
@@ -80,6 +81,9 @@ app.MapHealthChecks(
     {
         Predicate = check => check.Tags.Contains(HealthCheckTags.Ready),
         ResponseWriter = HealthCheckResponseWriter.WriteAsync,
+
+        // Degraded is 200 by default, which would keep an instance in rotation on a partial failure.
+        ResultStatusCodes = { [HealthStatus.Degraded] = StatusCodes.Status503ServiceUnavailable },
     })
     .AllowAnonymous();
 
