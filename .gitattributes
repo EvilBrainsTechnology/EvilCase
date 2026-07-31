@@ -1,0 +1,25 @@
+# Line endings are LF everywhere, matching end_of_line = lf in src/.editorconfig.
+# Without this, core.autocrlf = true checks files out as CRLF and dotnet format reports ENDOFLINE on every file.
+* text=auto eol=lf
+
+# Binary files, never converted
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.pdf binary
+*.zip binary
+*.gz binary
+*.7z binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.otf binary
+*.dll binary
+*.exe binary
+*.pdb binary
+*.snk binary
+*.pfx binary
