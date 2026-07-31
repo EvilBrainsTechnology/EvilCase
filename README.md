@@ -10,7 +10,7 @@ All code lives in `src/` (solution `EvilCase.slnx`):
 - `Api/EvilCase.Api.Client` — typed API client (generated from API controllers)
 - `Api/EvilCase.Api.Contract` — shared request/response contracts
 - `App/EvilCase.App` — Blazor WebAssembly frontend
-- `Common/` — auth (JWT), secrets (Infisical)
+- `Common/` — auth (JWT)
 - `Data/` — EF Core model + migrations (PostgreSQL)
 - `Tests/` — application tests
 - `Utils/` — shared `EvilBrains.*` libraries and analyzers
@@ -24,13 +24,13 @@ AI agent instructions: [AGENTS.md](AGENTS.md).
 - .NET SDK per `src/global.json`
 - Trusted dev certificate: `dotnet dev-certs https --trust`
 
-### Secrets Access
+### Secrets
 
-Secrets are saved in [Infisical](https://infisical.com/)  here: https://infisical.vdolek.cz/.
+Local secrets live in `src/Api/EvilCase.Api/.env`, which is not committed.
 
-- Obtain your own client secret in Infisical [here](https://infisical.vdolek.cz/organization/identities/1fee778e-ad7f-450a-b927-0f9e49c3d022).
-- Add this secret as `EvilBrains:EvilCase:Infisical:ClientSecret` configuration to your local secrets.
-  - You can use `dotnet r add-secret` command.
+- Copy `src/Api/EvilCase.Api/.env.example` to `src/Api/EvilCase.Api/.env` and fill in the values.
+- Keys use the environment variable separator: `A__B` maps to the configuration key `A:B`.
+- The file is read in the Development environment only and wins over `appsettings*.json`. Every other environment supplies the same keys as environment variables.
 
 ### Build and run
 

@@ -9,7 +9,7 @@ All commands run from `src/`.
 
 ## Prerequisites
 
-- Infisical client secret in user secrets (key `EvilBrains:EvilCase:Infisical:ClientSecret`, set via `dotnet r add-secret`) — the API fails at startup without it.
+- `Api/EvilCase.Api/.env` with the connection string and JWT key (copy from `.env.example`) — the API fails without them.
 - Trusted dev certificate: `dotnet dev-certs https --trust`.
 
 ## Start
@@ -23,7 +23,7 @@ In Claude Code, prefer the preview servers defined in `.claude/launch.json` (nam
 
 ## Verify
 
-- API round-trip: `curl.exe -sk -X POST https://localhost:5000/echo -H "Content-Type: application/json" -d '{"message":"ping"}'` → `{"message":"Echo: ping"}`
+- API round-trip: `curl.exe -sk -X POST https://localhost:5000/echo/post -H "Content-Type: application/json" -d '{"message":"ping"}'` → `{"message":"Echo: ping"}`
 - Frontend: open `https://localhost:5001`, type text, click Send → page shows `Echo: <text>`. First WebAssembly load takes a few seconds.
 - CORS error in the browser console means the API is not running or the origin does not match (the dev CORS policy allows `https://localhost:5001`).
 
