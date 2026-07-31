@@ -7,7 +7,9 @@ namespace EvilBrains.Logging.WebAssembly;
 /// </summary>
 internal sealed record ClientLoggingOptions
 {
-    public LogEventLevel MinimumLevel { get; init; } = LogEventLevel.Information;
+    // Settable, not init: the configuration binding source generator assigns after construction and
+    // silently skips init-only properties, which would leave the defaults in place.
+    public LogEventLevel MinimumLevel { get; set; } = LogEventLevel.Information;
 
-    public LogEventLevel ServerMinimumLevel { get; init; } = LogEventLevel.Warning;
+    public LogEventLevel ServerMinimumLevel { get; set; } = LogEventLevel.Warning;
 }
