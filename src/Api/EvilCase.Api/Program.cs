@@ -53,9 +53,13 @@ else
     app.UseHsts();
 }
 
-app.UseRequestLogging("/logs/client", "/health");
+app.UseRequestLogging("/logs/client", HealthCheckPaths.Prefix);
 
-app.UseHttpsRedirection();
+// Probes usually arrive over plain HTTP; a redirect carries no body and counts as a failed probe.
+app.UseWhen(
+    context => !context.Request.Path.StartsWithSegments(HealthCheckPaths.Prefix, StringComparison.OrdinalIgnoreCase),
+    branch => branch.UseHttpsRedirection());
+
 app.UseRouting();
 
 if (app.Environment.IsDevelopment())
@@ -67,10 +71,10 @@ app.MapControllers();
 
 // Liveness runs no check: the process answering is the signal. A database check here would restart
 // every instance at once on a brief outage.
-app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false });
+app.MapHealthChecks(HealthCheckPaths.Live, new HealthCheckOptions { Predicate = _ => false });
 
 app.MapHealthChecks(
-    "/health/ready",
+    HealthCheckPaths.Ready,
     new HealthCheckOptions
     {
         Predicate = check => check.Tags.Contains(HealthCheckTags.Ready),

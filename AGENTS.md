@@ -82,7 +82,7 @@ Two anonymous endpoints, mapped with `MapHealthChecks` in `Program.cs` rather th
 - `GET /health/live` runs no check (`Predicate = _ => false`) and answers `Healthy` as plain text. A dependency check here would restart every instance at once on a brief database outage.
 - `GET /health/ready` runs the checks tagged `HealthCheckTags.Ready` — today `AddDbContextCheck<ApplicationDbContext>` (`CanConnectAsync`) — and writes names and statuses as JSON. `HealthCheckResponseWriter` keeps descriptions, exception text and check data out of the response because the endpoint is anonymous. Default status codes apply: 200 healthy, 503 unhealthy.
 
-`/health` is a quiet path of `UseRequestLogging`, so probes leave no log unless they fail.
+`/health` is a quiet path of `UseRequestLogging`, so probes leave no log unless they fail. It is also excluded from `UseHttpsRedirection` — orchestrators send probes over plain HTTP by default and a redirect carries no body, so it counts as a failed probe.
 
 ## Frontend UI
 
