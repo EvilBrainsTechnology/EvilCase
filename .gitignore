@@ -1,7 +1,3 @@
 # Local Claude Code state
 .claude/worktrees/
 .claude/settings.local.json
-
-# Local secrets. Also ignored in src/, but the file is searched for upwards from the API output
-# directory, so a .env anywhere above it is picked up and must never be committed.
-.env
