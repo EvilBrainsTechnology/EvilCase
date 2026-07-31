@@ -9,7 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.TestHost" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="NUnit" />
     <PackageReference Include="NUnit.Analyzers">
@@ -22,6 +22,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Api\EvilCase.Api.Client\EvilCase.Api.Client.csproj" />
     <ProjectReference Include="..\..\Api\EvilCase.Api\EvilCase.Api.csproj" />
+    <ProjectReference Include="..\..\EvilCase.Host\EvilCase.Host.csproj" />
   </ItemGroup>
 
 </Project>
