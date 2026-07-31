@@ -29,6 +29,7 @@
     <Project Path="Utils/EvilBrains.Logging.TypedValues/EvilBrains.Logging.TypedValues.csproj" />
     <Project Path="Utils/EvilBrains.Logging.WebAssembly/EvilBrains.Logging.WebAssembly.csproj" />
     <Project Path="Utils/EvilBrains.Logging/EvilBrains.Logging.csproj" />
+    <Project Path="Utils/EvilBrains.Secrets.Env/EvilBrains.Secrets.Env.csproj" />
     <Project Path="Utils/EvilBrains.Secrets.Infisical/EvilBrains.Secrets.Infisical.csproj" />
   </Folder>
   <Folder Name="/Utils/Tests/">
