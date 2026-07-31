@@ -67,6 +67,10 @@ internal sealed partial class ClientHttpLogger(ILogger<ClientHttpLogger> logger,
     private static string? Header(HttpRequestMessage request, string name) =>
         request.Headers.TryGetValues(name, out var values) ? values.FirstOrDefault() : null;
 
+    /// <summary>
+    /// A suffix match, not an equality one: the app may be served from a sub-path, which the base address
+    /// carries into the resolved URI. The leading slash of the quiet path keeps the match on a segment boundary.
+    /// </summary>
     private bool IsQuiet(HttpRequestMessage request) =>
-        string.Equals(request.RequestUri?.AbsolutePath, quietPath, StringComparison.OrdinalIgnoreCase);
+        request.RequestUri?.AbsolutePath.EndsWith(quietPath, StringComparison.OrdinalIgnoreCase) == true;
 }

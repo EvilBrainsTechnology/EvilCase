@@ -402,6 +402,32 @@ public class ApiClientGeneratorTests
             "items");
 
     [Test]
+    public void GeneratedRouteIsRelativeToTheBaseAddressTest()
+    {
+        var (diagnostics, output) = GeneratorTestHost.Run(ValidController, DefaultContract);
+
+        var source = output.SyntaxTrees.Single(x => x.FilePath.EndsWith("ItemsClient.g.cs", StringComparison.Ordinal)).ToString();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(diagnostics, Is.Empty);
+            Assert.That(source, Does.Contain("\"api/items/search\""), "the route must stay relative so a sub-path base address survives");
+            Assert.That(source, Does.Contain("$\"api/items/{("), "an interpolated route must stay relative too");
+            Assert.That(source, Does.Not.Contain("\"/api/items"), "a leading slash would resolve against the origin and drop the sub-path");
+        }
+    }
+
+    [Test]
+    public void EmptyActionTemplateKeepsTheControllerRouteTest()
+    {
+        var (_, output) = GeneratorTestHost.Run(ValidController, DefaultContract);
+
+        var source = output.SyntaxTrees.Single(x => x.FilePath.EndsWith("ItemsClient.g.cs", StringComparison.Ordinal)).ToString();
+
+        Assert.That(source, Does.Contain("\"api/items\""), "an empty action template must leave the controller route alone");
+    }
+
+    [Test]
     public void MissingBindingAttributeIsReportedTest() =>
         AssertDiagnostic(
             "EB1005",
