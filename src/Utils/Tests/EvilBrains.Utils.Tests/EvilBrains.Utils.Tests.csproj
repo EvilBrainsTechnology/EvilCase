@@ -31,7 +31,6 @@
     <ProjectReference Include="..\..\EvilBrains.ApiClient.Generator\EvilBrains.ApiClient.Generator.csproj" />
     <ProjectReference Include="..\..\EvilBrains.Logging.AspNetCore\EvilBrains.Logging.AspNetCore.csproj" />
     <ProjectReference Include="..\..\EvilBrains.Logging.Contract\EvilBrains.Logging.Contract.csproj" />
-    <ProjectReference Include="..\..\EvilBrains.Logging.TypedValues\EvilBrains.Logging.TypedValues.csproj" />
   </ItemGroup>
 
 </Project>

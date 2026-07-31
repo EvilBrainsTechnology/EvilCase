@@ -25,7 +25,7 @@ internal static class RouteTemplate
             || template.IndexOf("{*", StringComparison.Ordinal) >= 0
             || template.IndexOf("{}", StringComparison.Ordinal) >= 0;
 
-    public static string? FindNonSnakeCaseSegment(string template)
+    public static string? FindNonKebabCaseSegment(string template)
     {
         foreach (var segment in template.Split('/'))
         {
@@ -34,7 +34,7 @@ internal static class RouteTemplate
 
             foreach (var character in segment)
             {
-                if (character is not ((>= 'a' and <= 'z') or (>= '0' and <= '9') or '_'))
+                if (character is not ((>= 'a' and <= 'z') or (>= '0' and <= '9') or '-'))
                     return segment;
             }
         }

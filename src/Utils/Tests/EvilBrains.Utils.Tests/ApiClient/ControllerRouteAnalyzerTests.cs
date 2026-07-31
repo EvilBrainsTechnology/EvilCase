@@ -14,7 +14,7 @@ public class ControllerRouteAnalyzerTests
             [Route("items")]
             public class ItemsController : ControllerBase
             {
-                [HttpGet("item_list/{id}")]
+                [HttpGet("item-list/{id}")]
                 public string GetItems([FromRoute] string id) => id;
             }
             """);
@@ -102,14 +102,14 @@ public class ControllerRouteAnalyzerTests
     }
 
     [Test]
-    public async Task NonSnakeCaseRouteIsReportedTest()
+    public async Task NonKebabCaseRouteIsReportedTest()
     {
         var diagnostics = await AnalyzeAsync("""
             [ApiController]
             [Route("items")]
             public class ItemsController : ControllerBase
             {
-                [HttpGet("Item-List")]
+                [HttpGet("Item_List")]
                 public string GetItems() => "";
             }
             """);

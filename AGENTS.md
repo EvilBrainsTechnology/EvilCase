@@ -45,7 +45,7 @@ API controllers are the single source of truth; DTOs live in `EvilCase.Api.Contr
 
 Controller conventions, enforced by analyzers in the API project (EB1001–EB1005) and re-checked by the generator with exact file/line locations:
 
-- Every controller declares `[Route]` and every action exactly one HTTP method attribute with a route template (empty `""` allowed). Templates never start with `/` (controller and action templates are joined and the leading slash is implicit) and contain no `[controller]`/`[action]` tokens; literal segments are snake_case.
+- Every controller declares `[Route]` and every action exactly one HTTP method attribute with a route template (empty `""` allowed). Templates never start with `/` (controller and action templates are joined and the leading slash is implicit) and contain no `[controller]`/`[action]` tokens; literal segments are kebab-case.
 - Every action parameter carries exactly one binding attribute (`[FromBody]`, `[FromQuery]`, `[FromRoute]`, `[FromHeader]`, `[FromServices]`, ...); `CancellationToken` carries none.
 
 Client generation rules (EB1010–EB1016, generator-only): actions return `void`, `T`, `Task`/`ValueTask` or `Task<T>`/`ValueTask<T>`, optionally wrapped in `ActionResult`/`ActionResult<T>`/`IActionResult` — the generated client method is always asynchronous and an untyped result becomes a `Task` without a value (non-success status codes throw `ApiException`). Parameter and return types must be resolvable in the client compilation (Contract or shared libs), `[FromServices]`/`[FromKeyedServices]` parameters are omitted from the client, a complex `[FromQuery]` DTO is expanded property-by-property into query parameters (camelCase keys, simple-typed properties only), `[FromForm]`/`IFormFile` are unsupported.
@@ -142,6 +142,7 @@ Rules:
 - Respond in the language of the user's message.
 - Everything committed to the repo is English only: code, comments, documentation, AI instructions, commit messages, merge request descriptions, routes and URLs. Exception: user-facing UI strings are Czech.
 - All written texts (docs, AI instructions, READMEs): concise and factual. State what, not why. No filler.
+- Commit messages and merge request descriptions open with a TL;DR: one or two sentences saying what changed, before any detail.
 - Code style: clean, readable code sometimes beats 100% correctness and defensiveness.
 - Every class resolved from DI is `internal sealed` and is consumed through an interface; when the consumer is public (a controller, a public extension method) the interface is public and the implementation stays internal. Exceptions are types the framework instantiates by concrete type or that have no service role: controllers, `DelegatingHandler` subclasses, middleware, exceptions, DTO and options records, static helpers.
 - Comments only when something is unexpected (e.g. a workaround). If code needs a comment, prefer rewriting the code to be more readable.
