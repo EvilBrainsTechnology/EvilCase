@@ -6,7 +6,7 @@ Skills follow the same pattern: the canonical skill is `.claude/skills/<name>/SK
 
 ## Project overview
 
-EvilCase is a case-file management system: users create case files that evolve over time with comments, attachments and AI-assisted documents. Current state is a proof-of-concept skeleton: ASP.NET Core API + Blazor WebAssembly frontend with one echo round-trip. .NET 10, PostgreSQL, secrets via Infisical.
+EvilCase is a case-file management system: users create case files that evolve over time with comments, attachments and AI-assisted documents. Current state is a proof-of-concept skeleton: ASP.NET Core API + Blazor WebAssembly frontend with one echo round-trip. .NET 10, PostgreSQL, secrets in a local `.env` file.
 
 ## Solution map
 
@@ -19,11 +19,18 @@ All code lives in `src/` (solution `EvilCase.slnx`).
 | `Api/EvilCase.Api.Contract` | Shared request/response contracts (DTOs only) |
 | `App/EvilCase.App` | Blazor WebAssembly standalone frontend |
 | `Common/EvilCase.Auth` | JWT bearer authentication |
-| `Common/EvilCase.Secrets` | Infisical configuration provider |
 | `Data/EvilCase.Data` | EF Core model + DbContext (PostgreSQL) |
 | `Data/EvilCase.Data.Migrations` | EF Core migrations |
 | `Tests/EvilCase.Tests` | Application tests (NUnit) |
+| `Utils/EvilBrains.Secrets.Env` | `.env` file configuration provider |
+| `Utils/EvilBrains.Secrets.Infisical` | Infisical configuration provider (kept, not wired up) |
 | `Utils/EvilBrains.*` | Shared libraries (collections, cryptography, logging for the wire contract, ASP.NET Core and WebAssembly, custom analyzers EB0001–EB0004, API client generator + controller convention analyzers EB1001–EB1016) |
+
+## Secrets
+
+In Development the API reads `src/Api/EvilCase.Api/.env` (gitignored, `AddEnvFile` from `EvilBrains.Secrets.Env`); `.env.example` documents the keys. It is the last configuration source, so it wins over `appsettings*.json`. Every other environment takes the same keys from environment variables, which `CreateBuilder` reads by default — hence the double underscore separator in the file (`A__B` → `A:B`).
+
+`EvilBrains.Secrets.Infisical` still holds the Infisical provider, but nothing calls it.
 
 ## API client pattern
 
@@ -138,4 +145,3 @@ Run everything from `src/`:
 - `dotnet r run-api` — run API at `https://localhost:5000` (Scalar UI at `/scalar` in dev)
 - `dotnet r run-app` — run frontend at `https://localhost:5001`
 - `dotnet r add-migration` / `remove-migration` / `generate-sql-script` — EF migrations
-- `dotnet r add-secret` — set a user secret for the API

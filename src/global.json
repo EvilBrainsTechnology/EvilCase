@@ -15,8 +15,6 @@
         "remove-migration": "dotnet ef migrations remove --force --project Data/EvilCase.Data.Migrations --configuration Release",
         "generate-sql-script": "dotnet ef migrations script 0 --idempotent --project Data/EvilCase.Data.Migrations --output database.sql --configuration Release",
 
-        "add-secret": "dotnet user-secrets set (Read-Host 'Secret name') (Read-Host 'Secret value') --project Api/EvilCase.Api",
-
         "run-api": "dotnet run --project Api/EvilCase.Api",
         "run-app": "dotnet run --project App/EvilCase.App",
 
@@ -26,7 +24,6 @@
         "fc": "dotnet r format-check",
         "am": "dotnet r add-migration",
         "rm": "dotnet r remove-migration",
-        "gs": "dotnet r generate-sql-script",
-        "as": "dotnet r add-secret"
+        "gs": "dotnet r generate-sql-script"
     }
 }
