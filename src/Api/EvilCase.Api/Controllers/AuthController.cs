@@ -5,6 +5,7 @@ using EvilBrains.EvilCase.Auth;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
@@ -13,7 +14,7 @@ namespace EvilBrains.EvilCase.Api.Controllers;
 
 [ApiController]
 [GenerateApiClient]
-[Route("auth")]
+[Route("api/auth")]
 public class AuthController(ApplicationDbContext dbContext) : ControllerBase
 {
     [HttpPost("register")]

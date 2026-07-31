@@ -7,7 +7,7 @@ namespace EvilBrains.EvilCase.Api.Controllers;
 
 [ApiController]
 [GenerateApiClient]
-[Route("logs")]
+[Route("api/logs")]
 public class LogsController(IClientLogWriter writer) : ControllerBase
 {
     // Kestrel would otherwise accept 30 MB before model validation gets to reject the batch.

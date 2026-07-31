@@ -4,9 +4,6 @@ using EvilBrains.EvilCase.Api.HealthChecks;
 using EvilBrains.EvilCase.Auth;
 using EvilBrains.Logging.AspNetCore;
 using EvilBrains.Logging.Contract;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Scalar.AspNetCore;
 using Serilog;
 
 CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
@@ -38,56 +35,32 @@ builder.Host.UseSerilog(Log.Logger);
 
 builder.Services.ConfigureServices();
 
-builder.Services.AddCors(options => options.AddPolicy(
-    "App",
-    policy => policy
-        .WithOrigins("https://localhost:5001")
-        .AllowAnyHeader()
-        .AllowAnyMethod()));
-
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-    app.MapScalarApiReference();
-}
-else
-{
+if (!app.Environment.IsDevelopment())
     app.UseHsts();
-}
 
-app.UseRequestLogging("/logs/client", HealthCheckPaths.Prefix);
+// Only the API is logged: the frontend, its assets and the health probes would otherwise bury it.
+// The log upload is the exception inside it — logging it would be shipped by the next upload.
+app.UseRequestLogging(loggedPaths: ["/api"], quietPaths: ["/api/logs/client"]);
 
 // Probes usually arrive over plain HTTP; a redirect carries no body and counts as a failed probe.
 app.UseWhen(
     context => !context.Request.Path.StartsWithSegments(HealthCheckPaths.Prefix, StringComparison.OrdinalIgnoreCase),
     branch => branch.UseHttpsRedirection());
 
-app.UseRouting();
+app.UseBlazorFrameworkFiles();
+app.UseStaticFiles();
 
-if (app.Environment.IsDevelopment())
-    app.UseCors("App");
+app.UseRouting();
 
 app.UseAuthorization();
 
-app.MapControllers();
+app.MapEvilCaseApi();
 
-// Liveness runs no check: the process answering is the signal. A database check here would restart
-// every instance at once on a brief outage.
-app.MapHealthChecks(HealthCheckPaths.Live, new HealthCheckOptions { Predicate = _ => false })
-    .AllowAnonymous();
+if (app.Environment.IsDevelopment())
+    app.MapEvilCaseApiReference();
 
-app.MapHealthChecks(
-    HealthCheckPaths.Ready,
-    new HealthCheckOptions
-    {
-        Predicate = check => check.Tags.Contains(HealthCheckTags.Ready),
-        ResponseWriter = HealthCheckResponseWriter.WriteAsync,
-
-        // Degraded is 200 by default, which would keep an instance in rotation on a partial failure.
-        ResultStatusCodes = { [HealthStatus.Degraded] = StatusCodes.Status503ServiceUnavailable },
-    })
-    .AllowAnonymous();
+app.MapFallbackToFile("index.html");
 
 await app.RunAsync();

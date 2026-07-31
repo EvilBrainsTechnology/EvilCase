@@ -1,6 +1,6 @@
 namespace EvilBrains.EvilCase.Api.HealthChecks;
 
-internal static class HealthCheckPaths
+public static class HealthCheckPaths
 {
     public const string Prefix = "/health";
 

@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <PackageReference Include="DotNetEnv" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Api\EvilCase.Api\EvilCase.Api.csproj" />
+    <ProjectReference Include="..\App\EvilCase.App\EvilCase.App.csproj" />
+    <ProjectReference Include="..\Common\EvilCase.Auth\EvilCase.Auth.csproj" />
+    <ProjectReference Include="..\Utils\EvilBrains.Logging.AspNetCore\EvilBrains.Logging.AspNetCore.csproj" />
+    <ProjectReference Include="..\Utils\EvilBrains.Logging.Contract\EvilBrains.Logging.Contract.csproj" />
+  </ItemGroup>
+
+</Project>

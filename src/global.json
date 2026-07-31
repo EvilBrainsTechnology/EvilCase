@@ -15,8 +15,7 @@
         "remove-migration": "dotnet ef migrations remove --force --project Data/EvilCase.Data.Migrations --configuration Release",
         "generate-sql-script": "dotnet ef migrations script 0 --idempotent --project Data/EvilCase.Data.Migrations --output database.sql --configuration Release",
 
-        "run-api": "dotnet run --project Api/EvilCase.Api",
-        "run-app": "dotnet run --project App/EvilCase.App",
+        "run": "dotnet run --project EvilCase.Host",
 
         "b": "dotnet r build",
         "t": "dotnet r test",

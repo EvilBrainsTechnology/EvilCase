@@ -10,6 +10,7 @@
   <Folder Name="/Common/">
     <Project Path="Common/EvilCase.Auth/EvilCase.Auth.csproj" />
   </Folder>
+  <Project Path="EvilCase.Host/EvilCase.Host.csproj" />
   <Folder Name="/Data/">
     <Project Path="Data/EvilCase.Data.Migrations/EvilCase.Data.Migrations.csproj" />
     <Project Path="Data/EvilCase.Data/EvilCase.Data.csproj" />

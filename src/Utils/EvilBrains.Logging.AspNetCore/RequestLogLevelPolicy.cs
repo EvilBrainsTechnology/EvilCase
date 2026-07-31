@@ -4,24 +4,30 @@ using Serilog.Events;
 namespace EvilBrains.Logging.AspNetCore;
 
 /// <summary>
-/// Serilog's default request logging levels, except that successful CORS preflights and successful
-/// requests to the quiet paths are demoted below the configured minimum, so they leave no log.
+/// Serilog's default request logging levels, narrowed to the logged paths: anything outside them —
+/// a static asset, the frontend itself, a health probe — is demoted below the configured minimum and
+/// leaves no log, and so is a request to a quiet path inside them, or a CORS preflight. Server errors
+/// are logged wherever they happen.
 /// </summary>
-internal sealed class RequestLogLevelPolicy(params string[] quietPaths)
+internal sealed class RequestLogLevelPolicy(IReadOnlyList<string> loggedPaths, IReadOnlyList<string> quietPaths)
 {
-    private readonly PathString[] quietPaths = [.. quietPaths.Select(x => new PathString(x))];
+    private readonly PathString[] logged = [.. loggedPaths.Select(x => new PathString(x))];
+
+    private readonly PathString[] quiet = [.. quietPaths.Select(x => new PathString(x))];
 
     public LogEventLevel GetLevel(HttpContext context, double _, Exception? exception)
     {
         if (exception is not null || context.Response.StatusCode > 499)
             return LogEventLevel.Error;
 
-        if (context.Response.StatusCode < 400 && this.IsNoise(context.Request))
-            return LogEventLevel.Verbose;
-
-        return LogEventLevel.Information;
+        return this.IsLogged(context.Request) ? LogEventLevel.Information : LogEventLevel.Verbose;
     }
 
-    private bool IsNoise(HttpRequest request) =>
-        HttpMethods.IsOptions(request.Method) || this.quietPaths.Any(x => request.Path.StartsWithSegments(x, StringComparison.OrdinalIgnoreCase));
+    private bool IsLogged(HttpRequest request) =>
+        !HttpMethods.IsOptions(request.Method)
+            && StartsWithAny(request.Path, this.logged)
+            && !StartsWithAny(request.Path, this.quiet);
+
+    private static bool StartsWithAny(PathString path, PathString[] prefixes) =>
+        Array.Exists(prefixes, x => path.StartsWithSegments(x, StringComparison.OrdinalIgnoreCase));
 }
