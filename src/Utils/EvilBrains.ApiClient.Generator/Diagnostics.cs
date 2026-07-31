@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis;
 namespace EvilBrains.ApiClient.Generator;
 
 /// <summary>
-/// EB1001-EB1005 are convention rules enforced by analyzers in the API project (and re-checked by the generator);
+/// EB1001-EB1006 are convention rules enforced by analyzers in the API project (and re-checked by the generator);
 /// EB1010+ are client-feasibility rules reported only by the generator.
 /// </summary>
 internal static class Diagnostics
@@ -27,6 +27,9 @@ internal static class Diagnostics
 
     public static readonly DiagnosticDescriptor MissingBindingAttribute =
         Descriptor("EB1005", "Missing binding attribute", "Parameter '{0}' must have exactly one binding attribute or be a CancellationToken");
+
+    public static readonly DiagnosticDescriptor MissingApiRoutePrefix =
+        Descriptor("EB1006", "Missing API route prefix", "Controller route template '{0}' must open with the '" + RouteTemplate.ApiPrefix + "' segment; it is what separates the API from everything else the host serves");
 
     // EB1010+ are reported by the source generator only; analyzer release tracking (RS2000) covers DiagnosticAnalyzer rules.
 #pragma warning disable RS2000
@@ -70,6 +73,7 @@ internal static class Diagnostics
             ForbiddenRouteSyntax,
             RouteSegmentNotKebabCase,
             MissingBindingAttribute,
+            MissingApiRoutePrefix,
             UnmatchedRoutePlaceholder,
             DuplicateSpecialParameter,
             UnsupportedParameter,

@@ -63,7 +63,7 @@ public class ActionParameterBindingAnalyzerTests
         namespace FakeApi;
 
         [ApiController]
-        [Route("items")]
+        [Route("api/items")]
         public class ItemsController : ControllerBase
         {
         {{action}}

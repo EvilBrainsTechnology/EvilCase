@@ -12,3 +12,4 @@ EB1002 | EvilBrains.ApiClient | Error | Action must have exactly one HTTP method
 EB1003 | EvilBrains.ApiClient | Error | Route template must not start with '/' or '~' and must not contain tokens, catch-all or empty placeholders
 EB1004 | EvilBrains.ApiClient | Error | Route literal segments must be kebab-case
 EB1005 | EvilBrains.ApiClient | Error | Action parameter must have exactly one binding attribute or be a CancellationToken
+EB1006 | EvilBrains.ApiClient | Error | Controller route template must open with the 'api' segment

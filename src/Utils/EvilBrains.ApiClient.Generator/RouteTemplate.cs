@@ -5,6 +5,8 @@ namespace EvilBrains.ApiClient.Generator;
 
 internal static class RouteTemplate
 {
+    public const string ApiPrefix = "api";
+
     public static string Combine(string controllerTemplate, string actionTemplate)
     {
         var controller = controllerTemplate.Trim('/');
@@ -16,6 +18,14 @@ internal static class RouteTemplate
             return "/" + controller;
 
         return "/" + controller + "/" + action;
+    }
+
+    public static bool HasApiPrefix(string template)
+    {
+        var separator = template.IndexOf('/');
+        var first = separator < 0 ? template : template.Substring(0, separator);
+
+        return string.Equals(first, ApiPrefix, StringComparison.Ordinal);
     }
 
     public static bool HasForbiddenSyntax(string template) =>
