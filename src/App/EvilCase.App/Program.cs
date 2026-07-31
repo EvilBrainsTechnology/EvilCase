@@ -10,14 +10,12 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-var apiBaseUrl = builder.Configuration["ApiBaseUrl"]
-    ?? throw new InvalidOperationException("ApiBaseUrl configuration is missing");
+builder.AddClientLogging("ClientLogging", "evilcase.machine-id", "/api/logs/client");
 
-builder.AddClientLogging("ClientLogging", "evilcase.machine-id", "/logs/client");
-
+// The app is served by the API host, so the API is same-origin.
 builder.Services.AddSingleton<IClientLogUploader, ApiLogUploader>();
 builder.Services.AddEvilCaseApiClient(
-    new Uri(apiBaseUrl),
+    new Uri(builder.HostEnvironment.BaseAddress),
     client => client.AddRequestContextHeaders().AddRequestLogging());
 
 builder.Services.AddTabBlazor(

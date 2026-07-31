@@ -5,17 +5,31 @@ namespace EvilBrains.ApiClient.Generator;
 
 internal static class RouteTemplate
 {
+    public const string ApiPrefix = "api";
+
+    /// <summary>
+    /// The combined route stays relative: the client resolves it against the base address, and a
+    /// leading slash would resolve against the origin and drop the sub-path the app is served from.
+    /// </summary>
     public static string Combine(string controllerTemplate, string actionTemplate)
     {
         var controller = controllerTemplate.Trim('/');
         var action = actionTemplate.Trim('/');
         if (controller.Length == 0)
-            return "/" + action;
+            return action;
 
         if (action.Length == 0)
-            return "/" + controller;
+            return controller;
 
-        return "/" + controller + "/" + action;
+        return controller + "/" + action;
+    }
+
+    public static bool HasApiPrefix(string template)
+    {
+        var separator = template.IndexOf('/');
+        var first = separator < 0 ? template : template.Substring(0, separator);
+
+        return string.Equals(first, ApiPrefix, StringComparison.Ordinal);
     }
 
     public static bool HasForbiddenSyntax(string template) =>

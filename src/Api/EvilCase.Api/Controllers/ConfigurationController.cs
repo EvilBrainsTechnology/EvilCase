@@ -1,11 +1,12 @@
 ﻿using EvilBrains.Collections;
 using EvilBrains.EvilCase.Api.ActionFilters;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 
 namespace EvilBrains.EvilCase.Api.Controllers;
 
 [ApiController]
-[Route("configuration")]
+[Route("api/configuration")]
 [DevelopmentOnly]
 public class ConfigurationController(IConfiguration configuration) : ControllerBase
 {

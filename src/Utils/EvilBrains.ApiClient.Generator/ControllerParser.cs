@@ -49,6 +49,13 @@ internal static class ControllerParser
         if (!ValidateTemplate(routeAttribute!, controllerRoute, diagnostics))
             return null;
 
+        if (!RouteTemplate.HasApiPrefix(controllerRoute))
+        {
+            diagnostics.Add(ApiModelParser.Diagnostic(Diagnostics.MissingApiRoutePrefix, routeAttribute!, controllerRoute));
+
+            return null;
+        }
+
         var actions = ImmutableArray.CreateBuilder<ActionModel>();
         var valid = true;
 

@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 
 namespace EvilBrains.Utils.Tests.ApiClient;
 
@@ -29,7 +29,7 @@ public class ApiClientGeneratorTests
 
         [ApiController]
         [GenerateApiClient]
-        [Route("items")]
+        [Route("api/items")]
         public class ItemsController : ControllerBase
         {
             [HttpGet("{id}")]
@@ -55,7 +55,7 @@ public class ApiClientGeneratorTests
 
         [ApiController]
         [GenerateApiClient]
-        [Route("shapes")]
+        [Route("api/shapes")]
         public class ShapesController : ControllerBase
         {
             [HttpPost("create")]
@@ -89,7 +89,7 @@ public class ApiClientGeneratorTests
         {
             [ApiController]
             [GenerateApiClient]
-            [Route("items")]
+            [Route("api/items")]
             public class ItemsController : ControllerBase
             {
                 [HttpGet("")]
@@ -101,7 +101,7 @@ public class ApiClientGeneratorTests
         {
             [ApiController]
             [GenerateApiClient]
-            [Route("nested-items")]
+            [Route("api/nested-items")]
             public class ItemsController : ControllerBase
             {
                 [HttpGet("")]
@@ -118,7 +118,7 @@ public class ApiClientGeneratorTests
 
         [ApiController]
         [GenerateApiClient]
-        [Route("items")]
+        [Route("api/items")]
         public class ItemsController : ControllerBase
         {
             [HttpGet("")]
@@ -127,7 +127,7 @@ public class ApiClientGeneratorTests
 
         [ApiController]
         [GenerateApiClient]
-        [Route("logs")]
+        [Route("api/logs")]
         public class LogsController : ControllerBase
         {
             [HttpPost("client")]
@@ -225,7 +225,7 @@ public class ApiClientGeneratorTests
 
             [ApiController]
             [GenerateApiClient]
-            [Route("items")]
+            [Route("api/items")]
             public class ItemsController : ControllerBase
             {
                 [HttpGet("")]
@@ -258,7 +258,7 @@ public class ApiClientGeneratorTests
 
             [ApiController]
             [GenerateApiClient]
-            [Route("items")]
+            [Route("api/items")]
             public class ItemsController : ControllerBase
             {
                 private const string SearchTemplate = "search";
@@ -291,7 +291,7 @@ public class ApiClientGeneratorTests
             namespace FakeApi.Controllers;
 
             [ApiController]
-            [Route("items")]
+            [Route("api/items")]
             public class ItemsController : ControllerBase
             {
                 [HttpGet("")]
@@ -390,6 +390,42 @@ public class ApiClientGeneratorTests
             [HttpGet("items_list")]
             public Task<ItemResponse> GetItems() => throw null!;
             """);
+
+    [Test]
+    public void ControllerRouteWithoutApiPrefixIsReportedTest() =>
+        AssertDiagnosticInController(
+            "EB1006",
+            """
+            [HttpGet("")]
+            public Task<ItemResponse> GetItems() => throw null!;
+            """,
+            "items");
+
+    [Test]
+    public void GeneratedRouteIsRelativeToTheBaseAddressTest()
+    {
+        var (diagnostics, output) = GeneratorTestHost.Run(ValidController, DefaultContract);
+
+        var source = output.SyntaxTrees.Single(x => x.FilePath.EndsWith("ItemsClient.g.cs", StringComparison.Ordinal)).ToString();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(diagnostics, Is.Empty);
+            Assert.That(source, Does.Contain("\"api/items/search\""), "the route must stay relative so a sub-path base address survives");
+            Assert.That(source, Does.Contain("$\"api/items/{("), "an interpolated route must stay relative too");
+            Assert.That(source, Does.Not.Contain("\"/api/items"), "a leading slash would resolve against the origin and drop the sub-path");
+        }
+    }
+
+    [Test]
+    public void EmptyActionTemplateKeepsTheControllerRouteTest()
+    {
+        var (_, output) = GeneratorTestHost.Run(ValidController, DefaultContract);
+
+        var source = output.SyntaxTrees.Single(x => x.FilePath.EndsWith("ItemsClient.g.cs", StringComparison.Ordinal)).ToString();
+
+        Assert.That(source, Does.Contain("\"api/items\""), "an empty action template must leave the controller route alone");
+    }
 
     [Test]
     public void MissingBindingAttributeIsReportedTest() =>
@@ -544,7 +580,7 @@ public class ApiClientGeneratorTests
 
             [ApiController]
             [GenerateApiClient]
-            [Route("items")]
+            [Route("api/items")]
             public class ItemsController : ControllerBase
             {
                 [HttpGet("")]
@@ -575,7 +611,7 @@ public class ApiClientGeneratorTests
         ((IMethodSymbol)client.GetMembers(method).Single()).ReturnType.ToDisplayString();
 
     private static void AssertDiagnostic(string id, string action, string? contract = null) =>
-        AssertDiagnosticInController(id, action, "items", contract);
+        AssertDiagnosticInController(id, action, "api/items", contract);
 
     private static void AssertDiagnosticInController(string id, string action, string? route, string? contract = null)
     {

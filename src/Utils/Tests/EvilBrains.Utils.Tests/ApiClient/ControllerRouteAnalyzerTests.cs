@@ -11,7 +11,7 @@ public class ControllerRouteAnalyzerTests
     {
         var diagnostics = await AnalyzeAsync("""
             [ApiController]
-            [Route("items")]
+            [Route("api/items")]
             public class ItemsController : ControllerBase
             {
                 [HttpGet("item-list/{id}")]
@@ -42,7 +42,7 @@ public class ControllerRouteAnalyzerTests
     {
         var diagnostics = await AnalyzeAsync("""
             [ApiController]
-            [Route("items")]
+            [Route("api/items")]
             public class ItemsController : ControllerBase
             {
                 [HttpGet]
@@ -90,7 +90,7 @@ public class ControllerRouteAnalyzerTests
     {
         var diagnostics = await AnalyzeAsync("""
             [ApiController]
-            [Route("items")]
+            [Route("api/items")]
             public class ItemsController : ControllerBase
             {
                 [HttpGet("{*path}")]
@@ -106,7 +106,7 @@ public class ControllerRouteAnalyzerTests
     {
         var diagnostics = await AnalyzeAsync("""
             [ApiController]
-            [Route("items")]
+            [Route("api/items")]
             public class ItemsController : ControllerBase
             {
                 [HttpGet("Item_List")]
@@ -115,6 +115,54 @@ public class ControllerRouteAnalyzerTests
             """);
 
         AssertIds(diagnostics, "EB1004");
+    }
+
+    [Test]
+    public async Task ControllerRouteWithoutApiPrefixIsReportedTest()
+    {
+        var diagnostics = await AnalyzeAsync("""
+            [ApiController]
+            [Route("items")]
+            public class ItemsController : ControllerBase
+            {
+                [HttpGet("")]
+                public string GetItems() => "";
+            }
+            """);
+
+        AssertIds(diagnostics, "EB1006");
+    }
+
+    [Test]
+    public async Task ControllerRouteWithApiLookalikeSegmentIsReportedTest()
+    {
+        var diagnostics = await AnalyzeAsync("""
+            [ApiController]
+            [Route("apiary/items")]
+            public class ItemsController : ControllerBase
+            {
+                [HttpGet("")]
+                public string GetItems() => "";
+            }
+            """);
+
+        AssertIds(diagnostics, "EB1006");
+    }
+
+    [Test]
+    public async Task ApiPrefixIsNotRequiredOnActionTemplatesTest()
+    {
+        var diagnostics = await AnalyzeAsync("""
+            [ApiController]
+            [Route("api")]
+            public class ItemsController : ControllerBase
+            {
+                [HttpGet("items")]
+                public string GetItems() => "";
+            }
+            """);
+
+        Assert.That(diagnostics, Is.Empty);
     }
 
     [Test]

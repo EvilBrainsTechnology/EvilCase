@@ -1,12 +1,13 @@
 using EvilBrains.ApiClient;
 using EvilBrains.EvilCase.Api.Contract.Echo;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace EvilBrains.EvilCase.Api.Controllers;
 
 [ApiController]
 [GenerateApiClient]
-[Route("echo")]
+[Route("api/echo")]
 public class EchoController(ILogger<EchoController> logger) : ControllerBase
 {
     [HttpGet("get")]

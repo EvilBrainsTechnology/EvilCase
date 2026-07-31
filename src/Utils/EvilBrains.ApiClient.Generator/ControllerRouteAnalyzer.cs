@@ -6,8 +6,9 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace EvilBrains.ApiClient.Generator;
 
 /// <summary>
-/// Enforces route conventions on [ApiController] classes: [Route] is mandatory on the controller,
-/// each action carries exactly one HTTP method attribute with a template, and templates are relative kebab-case.
+/// Enforces route conventions on [ApiController] classes: [Route] is mandatory on the controller and opens
+/// with the api segment, each action carries exactly one HTTP method attribute with a template, and templates
+/// are relative kebab-case.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class ControllerRouteAnalyzer : DiagnosticAnalyzer
@@ -17,7 +18,8 @@ public sealed class ControllerRouteAnalyzer : DiagnosticAnalyzer
             Diagnostics.MissingControllerRoute,
             Diagnostics.MissingActionRoute,
             Diagnostics.ForbiddenRouteSyntax,
-            Diagnostics.RouteSegmentNotKebabCase);
+            Diagnostics.RouteSegmentNotKebabCase,
+            Diagnostics.MissingApiRoutePrefix);
 
     public override void Initialize(AnalysisContext context)
     {
@@ -49,7 +51,12 @@ public sealed class ControllerRouteAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        ValidateTemplate(context, MvcFacts.GetLocation(route!, type), template);
+        var location = MvcFacts.GetLocation(route!, type);
+        if (!ValidateTemplate(context, location, template))
+            return;
+
+        if (!RouteTemplate.HasApiPrefix(template))
+            context.ReportDiagnostic(Diagnostic.Create(Diagnostics.MissingApiRoutePrefix, location, template));
     }
 
     private static void AnalyzeActionRoute(in SymbolAnalysisContext context, IMethodSymbol method)
@@ -66,17 +73,21 @@ public sealed class ControllerRouteAnalyzer : DiagnosticAnalyzer
         ValidateTemplate(context, MvcFacts.GetLocation(verbs[0], method), template);
     }
 
-    private static void ValidateTemplate(in SymbolAnalysisContext context, Location location, string template)
+    private static bool ValidateTemplate(in SymbolAnalysisContext context, Location location, string template)
     {
         if (RouteTemplate.HasForbiddenSyntax(template))
         {
             context.ReportDiagnostic(Diagnostic.Create(Diagnostics.ForbiddenRouteSyntax, location, template));
 
-            return;
+            return false;
         }
 
         var segment = RouteTemplate.FindNonKebabCaseSegment(template);
-        if (segment is not null)
-            context.ReportDiagnostic(Diagnostic.Create(Diagnostics.RouteSegmentNotKebabCase, location, template, segment));
+        if (segment is null)
+            return true;
+
+        context.ReportDiagnostic(Diagnostic.Create(Diagnostics.RouteSegmentNotKebabCase, location, template, segment));
+
+        return false;
     }
 }

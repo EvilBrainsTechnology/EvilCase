@@ -10,9 +10,7 @@ nupkg/
 
 # Rider
 .idea
-
-# Local secrets
-.env
+.run
 
 # User-specific files
 *.suo
