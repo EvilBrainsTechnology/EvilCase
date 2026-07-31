@@ -1,10 +1,14 @@
 ﻿using EvilBrains.EvilCase.Auth;
 using EvilBrains.EvilCase.Data;
+using EvilBrains.Logging.AspNetCore;
 
 namespace EvilBrains.EvilCase.Api;
 
 public static class Bootstrap
 {
+    // The name browser logs are recorded under; it identifies the deployment, not the library.
+    private const string ClientSourceContext = "EvilBrains.EvilCase.App.Client";
+
     public static IServiceCollection ConfigureServices(this IServiceCollection services)
     {
         services.AddControllers();
@@ -17,6 +21,8 @@ public static class Bootstrap
                 return Task.CompletedTask;
             });
         });
+
+        services.AddClientLogWriter(ClientSourceContext);
 
         services.AddEvilCaseData();
         services.AddEvilCaseAuth();

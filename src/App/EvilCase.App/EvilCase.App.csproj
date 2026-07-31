@@ -8,6 +8,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Api\EvilCase.Api.Client\EvilCase.Api.Client.csproj" />
+    <ProjectReference Include="..\..\Utils\EvilBrains.Logging.Contract\EvilBrains.Logging.Contract.csproj" />
+    <ProjectReference Include="..\..\Utils\EvilBrains.Logging.WebAssembly\EvilBrains.Logging.WebAssembly.csproj" />
   </ItemGroup>
 
 </Project>

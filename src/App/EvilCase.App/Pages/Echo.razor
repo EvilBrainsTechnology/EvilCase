@@ -3,6 +3,7 @@
 @using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Echo
 @inject IEchoClient EchoClient
+@inject ILogger<Echo> Logger
 
 <div class="page-header d-print-none">
     <div class="container-xl">
@@ -50,6 +51,7 @@
         }
         catch (Exception exception) when (exception is ApiException or HttpRequestException)
         {
+            this.Logger.LogWarning(exception, "Echo request failed");
             this.response = exception.Message;
         }
     }

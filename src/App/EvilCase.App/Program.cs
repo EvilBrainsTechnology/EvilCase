@@ -1,5 +1,7 @@
 using EvilBrains.EvilCase.Api.Client;
 using EvilBrains.EvilCase.App;
+using EvilBrains.EvilCase.App.Logging;
+using EvilBrains.Logging.WebAssembly;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using TabBlazor;
@@ -11,7 +13,12 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 var apiBaseUrl = builder.Configuration["ApiBaseUrl"]
     ?? throw new InvalidOperationException("ApiBaseUrl configuration is missing");
 
-builder.Services.AddEvilCaseApiClient(new Uri(apiBaseUrl));
+builder.AddClientLogging("ClientLogging", "evilcase.machine-id", "/logs/client");
+
+builder.Services.AddSingleton<IClientLogUploader, ApiLogUploader>();
+builder.Services.AddEvilCaseApiClient(
+    new Uri(apiBaseUrl),
+    client => client.AddRequestContextHeaders().AddRequestLogging());
 
 builder.Services.AddTabBlazor(
     options =>
@@ -23,4 +30,7 @@ builder.Services.AddTabBlazor(
         options.PopperScriptUrl = "lib/popper/popper.min.js";
     });
 
-await builder.Build().RunAsync();
+var host = builder.Build();
+host.StartClientLogging();
+
+await host.RunAsync();

@@ -110,6 +110,65 @@ public class ApiClientGeneratorTests
         }
         """;
 
+    private const string TwoControllers = """
+        using EvilBrains.ApiClient;
+        using Microsoft.AspNetCore.Mvc;
+
+        namespace FakeApi.Controllers;
+
+        [ApiController]
+        [GenerateApiClient]
+        [Route("items")]
+        public class ItemsController : ControllerBase
+        {
+            [HttpGet("")]
+            public Task<string> GetItems() => throw null!;
+        }
+
+        [ApiController]
+        [GenerateApiClient]
+        [Route("logs")]
+        public class LogsController : ControllerBase
+        {
+            [HttpPost("client")]
+            public void Write() => throw null!;
+        }
+        """;
+
+    private const string RegistrationConsumer = """
+        using FakeApi.Client;
+        using Microsoft.Extensions.DependencyInjection;
+
+        namespace FakeApi.Consumer;
+
+        internal sealed class TestHandler : DelegatingHandler;
+
+        internal static class Registration
+        {
+            public static void Add(IServiceCollection services)
+            {
+                services.AddGeneratedApiClients(client => client.BaseAddress = new Uri("https://localhost"));
+
+                services.AddGeneratedApiClients(
+                    client => client.BaseAddress = new Uri("https://localhost"),
+                    client => client.AddHttpMessageHandler<TestHandler>());
+            }
+        }
+        """;
+
+    [Test]
+    public void RegistrationAcceptsClientConfigurationTest()
+    {
+        var (diagnostics, output) = GeneratorTestHost.Run(TwoControllers, RegistrationConsumer);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(diagnostics, Is.Empty);
+            Assert.That(output.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning), Is.Empty, "generated code must be warning-clean");
+            Assert.That(output.GetTypeByMetadataName("FakeApi.Consumer.Registration"), Is.Not.Null);
+        }
+    }
+
     [Test]
     public void ValidControllerGeneratesCompilableClientTest()
     {

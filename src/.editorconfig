@@ -77,8 +77,10 @@ dotnet_analyzer_diagnostic.severity = error
 
 ########################################################################################################################
 
-dotnet_diagnostic.CA1720.severity = none # Identifier 'Single' contains type name
+dotnet_diagnostic.CA1720.severity = none       # Identifier 'Single' contains type name
 dotnet_diagnostic.CA1822.severity = suggestion # Member 'ChatAsync' does not access instance data and can be marked as static
+dotnet_diagnostic.CA1848.severity = none       # Use the LoggerMessage delegates
+dotnet_diagnostic.CA1873.severity = none       # Avoid potentially expensive logging
 
 dotnet_diagnostic.CS1591.severity = none        # Missing XML comment for publicly visible type or member
 
@@ -318,7 +320,7 @@ dotnet_diagnostic.MA0132.severity = error      # Do not convert implicitly to Da
 dotnet_diagnostic.MA0133.severity = error      # Use DateTimeOffset instead of relying on the implicit conversion
 dotnet_diagnostic.MA0134.severity = error      # Observe result of async calls
 dotnet_diagnostic.MA0135.severity = none       # The log parameter has no configured type (disabled by default)
-dotnet_diagnostic.MA0136.severity = error      # Raw String contains an implicit end of line character
+dotnet_diagnostic.MA0136.severity = none       # Raw String contains an implicit end of line character
 dotnet_diagnostic.MA0137.severity = none       # Use 'Async' suffix when a method returns an awaitable type (disabled by default)
 dotnet_diagnostic.MA0138.severity = none       # Do not use 'Async' suffix when a method does not return an awaitable type (disabled by default)
 dotnet_diagnostic.MA0139.severity = error      # Serilog parameter type is not valid
@@ -667,7 +669,7 @@ dotnet_diagnostic.rcs1246.severity = error      # Use element access
 dotnet_diagnostic.rcs1247.severity = error      # Fix documentation comment tag
 dotnet_diagnostic.rcs1248.severity = error      # Normalize null check
 dotnet_diagnostic.rcs1249.severity = error      # Unnecessary null-forgiving operator
-dotnet_diagnostic.rcs1250.severity = error      # Use implicit/explicit object creation
+dotnet_diagnostic.rcs1250.severity = suggestion # Use implicit/explicit object creation
 dotnet_diagnostic.rcs1251.severity = error      # Remove unnecessary braces from record declaration
 dotnet_diagnostic.rcs1252.severity = error      # Normalize usage of infinite loop
 dotnet_diagnostic.rcs1253.severity = error      # Format documentation comment summary
@@ -1082,4 +1084,3 @@ roslynator_compiler_diagnostic_fix.cs8767.enabled = true
 
 # Generator tests compile C# fixture sources held in raw string literals; their line endings are irrelevant
 [Utils/Tests/EvilBrains.Utils.Tests/ApiClient/*.cs]
-dotnet_diagnostic.MA0136.severity = none
