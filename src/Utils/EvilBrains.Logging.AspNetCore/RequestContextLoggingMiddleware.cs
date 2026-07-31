@@ -7,7 +7,7 @@ namespace EvilBrains.Logging.AspNetCore;
 /// Puts the request, correlation and session identifiers of the incoming request into the Serilog
 /// log context, so every event written while the request runs carries them.
 /// </summary>
-public sealed class RequestContextLoggingMiddleware(RequestDelegate next)
+internal sealed class RequestContextLoggingMiddleware(RequestDelegate next)
 {
     public async Task Invoke(HttpContext context)
     {
@@ -18,6 +18,7 @@ public sealed class RequestContextLoggingMiddleware(RequestDelegate next)
         using (LogContext.PushProperty(RequestContextPropertyNames.RequestId, requestId))
         using (Push(context, RequestContextHeaderNames.CorrelationId, RequestContextPropertyNames.CorrelationId))
         using (Push(context, RequestContextHeaderNames.SessionId, RequestContextPropertyNames.SessionId))
+        using (Push(context, RequestContextHeaderNames.MachineId, RequestContextPropertyNames.MachineId))
             await next(context);
     }
 

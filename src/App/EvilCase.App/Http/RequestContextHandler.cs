@@ -3,7 +3,7 @@ namespace EvilBrains.EvilCase.App.Http;
 /// <summary>
 /// Stamps every API request with identifiers the server puts into its log context.
 /// </summary>
-internal sealed class RequestContextHandler(ClientSessionId session) : DelegatingHandler
+internal sealed class RequestContextHandler(IClientIdentity identity) : DelegatingHandler
 {
     protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
@@ -13,7 +13,8 @@ internal sealed class RequestContextHandler(ClientSessionId session) : Delegatin
 
         request.Headers.TryAddWithoutValidation(ApiRequestHeaderNames.RequestId, requestId);
         request.Headers.TryAddWithoutValidation(ApiRequestHeaderNames.CorrelationId, requestId);
-        request.Headers.TryAddWithoutValidation(ApiRequestHeaderNames.SessionId, session.Value);
+        request.Headers.TryAddWithoutValidation(ApiRequestHeaderNames.SessionId, identity.SessionId);
+        request.Headers.TryAddWithoutValidation(ApiRequestHeaderNames.MachineId, identity.MachineId);
 
         return base.SendAsync(request, cancellationToken);
     }

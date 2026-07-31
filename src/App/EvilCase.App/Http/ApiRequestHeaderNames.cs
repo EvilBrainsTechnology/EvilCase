@@ -7,4 +7,6 @@ internal static class ApiRequestHeaderNames
     public const string CorrelationId = "X-Correlation-Id";
 
     public const string SessionId = "X-Session-Id";
+
+    public const string MachineId = "X-Machine-Id";
 }

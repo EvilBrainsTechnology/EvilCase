@@ -16,6 +16,7 @@ internal static class ReservedLogPropertyNames
         RequestContextPropertyNames.RequestId,
         RequestContextPropertyNames.CorrelationId,
         RequestContextPropertyNames.SessionId,
+        RequestContextPropertyNames.MachineId,
         "Application",
         "Environment",
         "MachineName",

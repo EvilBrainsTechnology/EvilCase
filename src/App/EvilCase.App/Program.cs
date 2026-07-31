@@ -42,7 +42,7 @@ Log.Logger = new LoggerConfiguration()
 builder.Logging.ClearProviders();
 builder.Logging.AddSerilog(Log.Logger, dispose: true);
 
-builder.Services.AddSingleton<ClientSessionId>();
+builder.Services.AddSingleton<IClientIdentity, ClientIdentity>();
 builder.Services.AddTransient<RequestContextHandler>();
 builder.Services.AddEvilCaseApiClient(new Uri(apiBaseUrl), client => client.AddHttpMessageHandler<RequestContextHandler>());
 
