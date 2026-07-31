@@ -77,7 +77,7 @@ Seq credentials stay on the server; the browser only ever talks to the API.
 
 ## Health checks
 
-Two anonymous endpoints, mapped with `MapHealthChecks` in `Program.cs` rather than through a controller — they carry no client contract, so they stay out of OpenAPI, out of the generated API client and out of the EB1001–EB1005 controller conventions.
+Two anonymous endpoints, mapped with `MapHealthChecks` in `Program.cs` rather than through a controller — they carry no client contract, so they stay out of OpenAPI, out of the generated API client and out of the EB1001–EB1005 controller conventions. Both carry `AllowAnonymous`: nothing requires authentication today, but an authorization fallback policy would otherwise turn every probe into a `401` and take all instances out of rotation.
 
 - `GET /health/live` runs no check (`Predicate = _ => false`) and answers `Healthy` as plain text. A dependency check here would restart every instance at once on a brief database outage.
 - `GET /health/ready` runs the checks tagged `HealthCheckTags.Ready` — today `AddDbContextCheck<ApplicationDbContext>` (`CanConnectAsync`) — and writes names and statuses as JSON. `HealthCheckResponseWriter` keeps descriptions, exception text and check data out of the response because the endpoint is anonymous. Default status codes apply: 200 healthy, 503 unhealthy.

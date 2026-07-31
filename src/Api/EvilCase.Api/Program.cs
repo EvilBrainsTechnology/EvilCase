@@ -71,7 +71,8 @@ app.MapControllers();
 
 // Liveness runs no check: the process answering is the signal. A database check here would restart
 // every instance at once on a brief outage.
-app.MapHealthChecks(HealthCheckPaths.Live, new HealthCheckOptions { Predicate = _ => false });
+app.MapHealthChecks(HealthCheckPaths.Live, new HealthCheckOptions { Predicate = _ => false })
+    .AllowAnonymous();
 
 app.MapHealthChecks(
     HealthCheckPaths.Ready,
@@ -79,6 +80,7 @@ app.MapHealthChecks(
     {
         Predicate = check => check.Tags.Contains(HealthCheckTags.Ready),
         ResponseWriter = HealthCheckResponseWriter.WriteAsync,
-    });
+    })
+    .AllowAnonymous();
 
 await app.RunAsync();
