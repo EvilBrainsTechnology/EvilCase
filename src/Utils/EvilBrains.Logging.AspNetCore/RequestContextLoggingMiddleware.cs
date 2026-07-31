@@ -1,3 +1,4 @@
+using EvilBrains.Logging.Contract;
 using Microsoft.AspNetCore.Http;
 using Serilog.Context;
 

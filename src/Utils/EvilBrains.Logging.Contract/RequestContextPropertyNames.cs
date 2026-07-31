@@ -1,4 +1,4 @@
-namespace EvilBrains.Logging.AspNetCore;
+namespace EvilBrains.Logging.Contract;
 
 public static class RequestContextPropertyNames
 {

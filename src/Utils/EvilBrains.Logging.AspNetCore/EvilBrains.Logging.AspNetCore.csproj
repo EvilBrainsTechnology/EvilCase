@@ -5,4 +5,8 @@
     <PackageReference Include="Serilog.Extensions.Hosting" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\EvilBrains.Logging.Contract\EvilBrains.Logging.Contract.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -1,5 +1,5 @@
 using System.Collections.Frozen;
-using EvilBrains.Logging.AspNetCore;
+using EvilBrains.Logging.Contract;
 using Serilog.Core;
 
 namespace EvilBrains.EvilCase.Api.Logging;

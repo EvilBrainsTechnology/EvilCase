@@ -26,6 +26,7 @@
     <Project Path="Utils/EvilBrains.Cryptography/EvilBrains.Cryptography.csproj" />
     <Project Path="Utils/EvilBrains.EntityFramework/EvilBrains.EntityFramework.csproj" />
     <Project Path="Utils/EvilBrains.Logging.AspNetCore/EvilBrains.Logging.AspNetCore.csproj" />
+    <Project Path="Utils/EvilBrains.Logging.Contract/EvilBrains.Logging.Contract.csproj" />
     <Project Path="Utils/EvilBrains.Logging.TypedValues/EvilBrains.Logging.TypedValues.csproj" />
     <Project Path="Utils/EvilBrains.Logging/EvilBrains.Logging.csproj" />
   </Folder>

@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Api\EvilCase.Api.Client\EvilCase.Api.Client.csproj" />
+    <ProjectReference Include="..\..\Utils\EvilBrains.Logging.Contract\EvilBrains.Logging.Contract.csproj" />
   </ItemGroup>
 
 </Project>

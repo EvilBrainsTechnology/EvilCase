@@ -1,3 +1,5 @@
+using EvilBrains.Logging.Contract;
+
 namespace EvilBrains.EvilCase.App.Http;
 
 /// <summary>
@@ -11,10 +13,10 @@ internal sealed class RequestContextHandler(IClientIdentity identity) : Delegati
 
         var requestId = Guid.NewGuid().ToString("D", CultureInfo.InvariantCulture);
 
-        request.Headers.TryAddWithoutValidation(ApiRequestHeaderNames.RequestId, requestId);
-        request.Headers.TryAddWithoutValidation(ApiRequestHeaderNames.CorrelationId, requestId);
-        request.Headers.TryAddWithoutValidation(ApiRequestHeaderNames.SessionId, identity.SessionId);
-        request.Headers.TryAddWithoutValidation(ApiRequestHeaderNames.MachineId, identity.MachineId);
+        request.Headers.TryAddWithoutValidation(RequestContextHeaderNames.RequestId, requestId);
+        request.Headers.TryAddWithoutValidation(RequestContextHeaderNames.CorrelationId, requestId);
+        request.Headers.TryAddWithoutValidation(RequestContextHeaderNames.SessionId, identity.SessionId);
+        request.Headers.TryAddWithoutValidation(RequestContextHeaderNames.MachineId, identity.MachineId);
 
         return base.SendAsync(request, cancellationToken);
     }
