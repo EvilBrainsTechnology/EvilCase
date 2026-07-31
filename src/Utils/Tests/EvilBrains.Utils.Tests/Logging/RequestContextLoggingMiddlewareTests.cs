@@ -1,9 +1,11 @@
 using EvilBrains.Logging.AspNetCore;
 using EvilBrains.Logging.Contract;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
+using Serilog.Extensions.Logging;
 
 namespace EvilBrains.Utils.Tests.Logging;
 
@@ -30,6 +32,34 @@ public class RequestContextLoggingMiddlewareTests
                 Assert.That(Value(logEvent, RequestContextPropertyNames.MachineId), Is.EqualTo(machineId));
             }
         }
+    }
+
+    /// <summary>
+    /// ASP.NET Core opens a scope per request whose RequestId is the TraceIdentifier. It reaches the
+    /// event before the log context does, so the caller's identifier has to overwrite it.
+    /// </summary>
+    [Test]
+    public async Task HostingScopeDoesNotShadowTheRequestIdOfTheCaller()
+    {
+        var context = Request();
+        context.TraceIdentifier = "0HN7TRACE:00000001";
+        var requestId = Set(context, RequestContextHeaderNames.RequestId);
+
+        var sink = new CollectingSink();
+        using var factory = new SerilogLoggerFactory(Logger(sink));
+        var logger = factory.CreateLogger("Test");
+
+        var middleware = new RequestContextLoggingMiddleware(_ =>
+        {
+            using (logger.BeginScope(new Dictionary<string, object> { ["RequestId"] = context.TraceIdentifier }))
+                logger.LogInformation("Inside the hosting scope");
+
+            return Task.CompletedTask;
+        });
+
+        await middleware.Invoke(context);
+
+        Assert.That(Value(sink.Events.Single(), RequestContextPropertyNames.RequestId), Is.EqualTo(requestId));
     }
 
     [Test]
@@ -94,7 +124,7 @@ public class RequestContextLoggingMiddlewareTests
         return id;
     }
 
-    private static ILogger Logger(CollectingSink sink) =>
+    private static Logger Logger(CollectingSink sink) =>
         new LoggerConfiguration().MinimumLevel.Verbose().Enrich.FromLogContext().WriteTo.Sink(sink).CreateLogger();
 
     private static async Task<IReadOnlyList<LogEvent>> LogDuringRequestAsync(HttpContext context, params string[] messages)

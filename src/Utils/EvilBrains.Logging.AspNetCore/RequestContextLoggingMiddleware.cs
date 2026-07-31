@@ -1,12 +1,13 @@
 using EvilBrains.Logging.Contract;
 using Microsoft.AspNetCore.Http;
 using Serilog.Context;
+using Serilog.Events;
 
 namespace EvilBrains.Logging.AspNetCore;
 
 /// <summary>
-/// Puts the request, correlation and session identifiers of the incoming request into the Serilog
-/// log context, so every event written while the request runs carries them.
+/// Puts the request, correlation, session and machine identifiers of the incoming request into the
+/// Serilog log context, so every event written while the request runs carries them.
 /// </summary>
 internal sealed class RequestContextLoggingMiddleware(RequestDelegate next)
 {
@@ -14,23 +15,26 @@ internal sealed class RequestContextLoggingMiddleware(RequestDelegate next)
     {
         ArgumentNullException.ThrowIfNull(context);
 
+        // Falling back to the trace identifier keeps events of an unidentified caller groupable.
         var requestId = ReadId(context, RequestContextHeaderNames.RequestId) ?? context.TraceIdentifier;
 
-        using (LogContext.PushProperty(RequestContextPropertyNames.RequestId, requestId))
-        using (Push(context, RequestContextHeaderNames.CorrelationId, RequestContextPropertyNames.CorrelationId))
-        using (Push(context, RequestContextHeaderNames.SessionId, RequestContextPropertyNames.SessionId))
-        using (Push(context, RequestContextHeaderNames.MachineId, RequestContextPropertyNames.MachineId))
+        var properties = new List<LogEventProperty> { new(RequestContextPropertyNames.RequestId, new ScalarValue(requestId)) };
+
+        Add(properties, context, RequestContextHeaderNames.CorrelationId, RequestContextPropertyNames.CorrelationId);
+        Add(properties, context, RequestContextHeaderNames.SessionId, RequestContextPropertyNames.SessionId);
+        Add(properties, context, RequestContextHeaderNames.MachineId, RequestContextPropertyNames.MachineId);
+
+        using (LogContext.Push(new RequestContextEnricher(properties)))
             await next(context);
     }
 
     /// <summary>
     /// A caller that sends no identifier gets no property; an "unknown" placeholder would only pollute queries.
     /// </summary>
-    private static IDisposable Push(HttpContext context, string headerName, string propertyName)
+    private static void Add(List<LogEventProperty> properties, HttpContext context, string headerName, string propertyName)
     {
-        var id = ReadId(context, headerName);
-
-        return id is null ? LogContext.Push() : LogContext.PushProperty(propertyName, id);
+        if (ReadId(context, headerName) is { } id)
+            properties.Add(new(propertyName, new ScalarValue(id)));
     }
 
     /// <summary>
