@@ -97,6 +97,8 @@ dotnet_diagnostic.IDE0060.severity = none       # Remove unused parameter if it 
 
 dotnet_diagnostic.SYSLIB1045.severity = suggestion # Use GeneratedRegexAttribute
 
+dotnet_diagnostic.JSON002.severity = none       # Probable JSON string detected
+
 ########################################################################################################################
 
 # Member qualification with 'this.' (replaces StyleCop SA1101)
