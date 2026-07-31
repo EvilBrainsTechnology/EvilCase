@@ -1,8 +1,8 @@
 using EvilBrains.EvilCase.Api;
 using EvilBrains.EvilCase.Auth;
-using EvilBrains.EvilCase.Secrets;
 using EvilBrains.Logging.AspNetCore;
 using EvilBrains.Logging.Contract;
+using EvilBrains.Secrets.Infisical;
 using Scalar.AspNetCore;
 using Serilog;
 
@@ -16,7 +16,7 @@ var builder = WebApplication
 // added by CreateBuilder in the correct precedence slot (before environment variables
 // and command-line arguments); only Infisical is appended so its secrets always win.
 builder.Configuration
-    .AddEvilCaseSecrets(builder.Configuration, "EvilBrains:EvilCase:Infisical");
+    .AddInfisicalSecrets(builder.Configuration, "EvilBrains:EvilCase:Infisical");
 
 #pragma warning disable RCS0054 // Fix formatting of a call chain
 Log.Logger = new LoggerConfiguration()

@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace EvilBrains.EvilCase.Secrets;
+namespace EvilBrains.Secrets.Infisical;
 
-internal sealed record SecretsSettings
+internal sealed record InfisicalSettings
 {
     [Required]
     public required string Url { get; init; }

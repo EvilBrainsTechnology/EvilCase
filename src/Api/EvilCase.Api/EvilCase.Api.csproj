@@ -20,7 +20,7 @@
     <ProjectReference Include="..\..\Common\EvilCase.Auth\EvilCase.Auth.csproj" />
     <ProjectReference Include="..\..\Utils\EvilBrains.ApiClient\EvilBrains.ApiClient.csproj" />
     <ProjectReference Include="..\..\Utils\EvilBrains.ApiClient.Generator\EvilBrains.ApiClient.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all" />
-    <ProjectReference Include="..\..\Common\EvilCase.Secrets\EvilCase.Secrets.csproj" />
+    <ProjectReference Include="..\..\Utils\EvilBrains.Secrets.Infisical\EvilBrains.Secrets.Infisical.csproj" />
     <ProjectReference Include="..\..\Utils\EvilBrains.Collections\EvilBrains.Collections.csproj" />
     <ProjectReference Include="..\..\Utils\EvilBrains.Cryptography\EvilBrains.Cryptography.csproj" />
     <ProjectReference Include="..\..\Utils\EvilBrains.Logging.AspNetCore\EvilBrains.Logging.AspNetCore.csproj" />

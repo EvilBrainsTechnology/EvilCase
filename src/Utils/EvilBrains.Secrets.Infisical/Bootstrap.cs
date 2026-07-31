@@ -1,15 +1,15 @@
 ﻿using InfisicalConfiguration;
 using Microsoft.Extensions.Configuration;
 
-namespace EvilBrains.EvilCase.Secrets;
+namespace EvilBrains.Secrets.Infisical;
 
 public static class Bootstrap
 {
-    public static IConfigurationBuilder AddEvilCaseSecrets(this IConfigurationBuilder builder, ConfigurationManager configuration, string settingsPath)
+    public static IConfigurationBuilder AddInfisicalSecrets(this IConfigurationBuilder builder, ConfigurationManager configuration, string settingsPath)
     {
         var settings = configuration
             .GetRequiredSection(settingsPath)
-            .Get<SecretsSettings>(options => options.ErrorOnUnknownConfiguration = true)
+            .Get<InfisicalSettings>(options => options.ErrorOnUnknownConfiguration = true)
             ?? throw new InvalidOperationException($"Missing {settingsPath} configuration settings");
 
         builder.AddInfisical(
