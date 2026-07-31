@@ -39,8 +39,11 @@ internal sealed class ClientLogWriter : IClientLogWriter
 
         var (template, properties) = Bind(Sanitize(entry.MessageTemplate, ClientLogEntry.MessageTemplateMaxLength), entry.Properties);
 
-        // Set on the event, so it wins over the server's own enricher.
+        // Set on the event, so they win over the server's own enrichers and log context.
         properties.Add(new(AppSource.PropertyName, new ScalarValue(AppSource.Client)));
+
+        AddIdentifier(properties, RequestContextPropertyNames.RequestId, entry.RequestId);
+        AddIdentifier(properties, RequestContextPropertyNames.CorrelationId, entry.CorrelationId);
 
         properties.Add(new("ClientTimestamp", new ScalarValue(entry.Timestamp)));
 
@@ -90,6 +93,16 @@ internal sealed class ClientLogWriter : IClientLogWriter
         }
 
         return (template, properties);
+    }
+
+    /// <summary>
+    /// The browser tells which request an entry belongs to; it is reformatted rather than trusted, and
+    /// an unparseable value leaves the identifier of the upload in place.
+    /// </summary>
+    private static void AddIdentifier(List<LogEventProperty> properties, string name, string? value)
+    {
+        if (Guid.TryParse(value, out var id))
+            properties.Add(new(name, new ScalarValue(id.ToString("D", CultureInfo.InvariantCulture))));
     }
 
     /// <summary>

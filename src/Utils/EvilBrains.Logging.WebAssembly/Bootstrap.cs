@@ -6,29 +6,24 @@ using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 using Serilog;
 using Serilog.Debugging;
-using Serilog.Events;
-using Serilog.Filters;
 
 namespace EvilBrains.Logging.WebAssembly;
 
 public static class Bootstrap
 {
-    private const string HttpClientSource = "System.Net.Http.HttpClient";
-
     private static ClientLogSink? sink;
 
     /// <summary>
     /// Logs to the browser console and buffers events for the server. The application supplies an
     /// <see cref="IClientLogUploader"/> and calls <see cref="StartClientLogging"/> once the host is built.
-    /// The upload client name is the name of the typed client interface that ships the batches; a
-    /// successful upload of its own is dropped, otherwise every upload would log four more events and
-    /// each of those would be shipped by the next one.
+    /// The upload path is the endpoint the batches go to; a successful request to it is not logged,
+    /// because the next upload would ship that log and log again.
     /// </summary>
     public static WebAssemblyHostBuilder AddClientLogging(
         this WebAssemblyHostBuilder builder,
         string settingsPath,
         string machineIdStorageKey,
-        string? uploadClientName = null)
+        string uploadPath)
     {
         ArgumentNullException.ThrowIfNull(builder);
 
@@ -38,13 +33,8 @@ public static class Bootstrap
 
         SelfLog.Enable(message => Console.Error.WriteLine(message));
 
-        var configuration = new LoggerConfiguration();
-
-        if (uploadClientName is not null)
-            configuration.Filter.ByExcluding(SuccessfulUpload($"{HttpClientSource}.{uploadClientName}"));
-
 #pragma warning disable RCS0054 // Fix formatting of a call chain
-        Log.Logger = configuration
+        Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Is(options.MinimumLevel)
             .Enrich.FromLogContext()
             .WriteTo.BrowserConsole(formatProvider: CultureInfo.InvariantCulture)
@@ -56,6 +46,8 @@ public static class Bootstrap
         builder.Logging.AddSerilog(Log.Logger, dispose: true);
 
         builder.Services.AddRequestContext(machineIdStorageKey);
+        builder.Services.AddSingleton(
+            provider => new ClientHttpLogger(provider.GetRequiredService<ILogger<ClientHttpLogger>>(), uploadPath));
 
         return builder;
     }
@@ -80,18 +72,6 @@ public static class Bootstrap
         sink.Start(host.Services.GetRequiredService<IClientLogUploader>(), host.Services.GetRequiredService<NavigationManager>());
 
         return host;
-    }
-
-    /// <summary>
-    /// Shipping a batch is itself an HTTP request. Dropping the successful ones is what keeps the sink
-    /// from feeding itself; a failed upload is worth knowing about and settles on its own, because the
-    /// batch that could not be sent is dropped rather than retried.
-    /// </summary>
-    private static Func<LogEvent, bool> SuccessfulUpload(string source)
-    {
-        var isUpload = Matching.FromSource(source);
-
-        return logEvent => logEvent.Exception is null && isUpload(logEvent);
     }
 
     private static Action<LoggerConfiguration> ShipToServer(ClientLoggingOptions options) =>

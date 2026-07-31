@@ -72,6 +72,22 @@ public class ClientLogWriterTests
     }
 
     [Test]
+    public void EntryIdentifiersWinOverTheUpload()
+    {
+        var requestId = Guid.NewGuid().ToString("D", CultureInfo.InvariantCulture);
+
+        this.writer.Write(Entry("Belongs to a request", properties: null) with { RequestId = requestId, CorrelationId = "not a guid" });
+
+        var logEvent = this.sink.Single();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(Value(logEvent, "RequestId"), Is.EqualTo(requestId));
+            Assert.That(Value(logEvent, "CorrelationId"), Is.Null);
+        }
+    }
+
+    [Test]
     public void OverflowingAlignmentDoesNotThrow()
     {
         this.writer.Write(Entry("{Foo,-2147483648}", new Dictionary<string, string>(StringComparer.Ordinal) { ["Foo"] = "bar" }));

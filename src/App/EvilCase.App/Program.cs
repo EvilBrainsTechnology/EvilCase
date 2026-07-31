@@ -13,10 +13,12 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 var apiBaseUrl = builder.Configuration["ApiBaseUrl"]
     ?? throw new InvalidOperationException("ApiBaseUrl configuration is missing");
 
-builder.AddClientLogging("ClientLogging", "evilcase.machine-id", nameof(ILogsClient));
+builder.AddClientLogging("ClientLogging", "evilcase.machine-id", "/logs/client");
 
 builder.Services.AddSingleton<IClientLogUploader, ApiLogUploader>();
-builder.Services.AddEvilCaseApiClient(new Uri(apiBaseUrl), client => client.AddRequestContextHeaders());
+builder.Services.AddEvilCaseApiClient(
+    new Uri(apiBaseUrl),
+    client => client.AddRequestContextHeaders().AddRequestLogging());
 
 builder.Services.AddTabBlazor(
     options =>

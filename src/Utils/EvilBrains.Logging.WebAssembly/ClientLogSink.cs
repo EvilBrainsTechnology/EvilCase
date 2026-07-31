@@ -19,6 +19,13 @@ internal sealed class ClientLogSink : ILogEventSink
 
     private static readonly TimeSpan FlushInterval = TimeSpan.FromSeconds(1);
 
+    private static readonly string[] Lifted =
+    [
+        Constants.SourceContextPropertyName,
+        RequestContextPropertyNames.RequestId,
+        RequestContextPropertyNames.CorrelationId,
+    ];
+
     private readonly ConcurrentQueue<ClientLogEntry> queue = [];
 
     private NavigationManager? navigation;
@@ -63,8 +70,8 @@ internal sealed class ClientLogSink : ILogEventSink
             if (properties.Count == ClientLogEntry.MaxProperties)
                 break;
 
-            // Already shipped as Category.
-            if (string.Equals(name, Constants.SourceContextPropertyName, StringComparison.Ordinal))
+            // Shipped as fields of their own.
+            if (Lifted.Contains(name))
                 continue;
 
             properties.Add(name, Truncate(RenderValue(value), ClientLogEntry.PropertyValueMaxLength));
@@ -82,9 +89,9 @@ internal sealed class ClientLogSink : ILogEventSink
         _ => value.ToString(format: null, CultureInfo.InvariantCulture),
     };
 
-    private static string? SourceContext(LogEvent logEvent) =>
-        logEvent.Properties.TryGetValue(Constants.SourceContextPropertyName, out var value) && value is ScalarValue { Value: string source }
-            ? source
+    private static string? Text(LogEvent logEvent, string propertyName) =>
+        logEvent.Properties.TryGetValue(propertyName, out var value) && value is ScalarValue { Value: string text }
+            ? text
             : null;
 
     private async Task ShipAsync(IClientLogUploader uploader)
@@ -126,7 +133,9 @@ internal sealed class ClientLogSink : ILogEventSink
         // The template travels unrendered so the server can log the event with its properties intact.
         MessageTemplate = Truncate(logEvent.MessageTemplate.Text, ClientLogEntry.MessageTemplateMaxLength),
         Properties = ToProperties(logEvent),
-        Category = Truncate(SourceContext(logEvent), ClientLogEntry.CategoryMaxLength),
+        RequestId = Truncate(Text(logEvent, RequestContextPropertyNames.RequestId), ClientLogEntry.IdentifierMaxLength),
+        CorrelationId = Truncate(Text(logEvent, RequestContextPropertyNames.CorrelationId), ClientLogEntry.IdentifierMaxLength),
+        Category = Truncate(Text(logEvent, Constants.SourceContextPropertyName), ClientLogEntry.CategoryMaxLength),
         Exception = Truncate(logEvent.Exception?.ToString(), ClientLogEntry.ExceptionMaxLength),
         Url = Truncate(this.navigation?.Uri, ClientLogEntry.UrlMaxLength),
     };
