@@ -12,10 +12,6 @@ nupkg/
 .idea
 .run
 
-# Local secrets
-.env
-.env.backup
-
 # User-specific files
 *.suo
 *.user
