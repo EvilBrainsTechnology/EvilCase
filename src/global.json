@@ -17,6 +17,7 @@
 
         "run": "dotnet run --project EvilCase.Host",
 
+        "r": "dotnet r run",
         "b": "dotnet r build",
         "t": "dotnet r test",
         "f": "dotnet r format",
