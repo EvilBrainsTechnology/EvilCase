@@ -15,6 +15,13 @@ public static class Bootstrap
         return serviceCollection;
     }
 
+    public static IHealthChecksBuilder AddEvilCaseDataHealthChecks(this IHealthChecksBuilder builder, params string[] tags)
+    {
+        builder.AddDbContextCheck<ApplicationDbContext>("database", tags: tags);
+
+        return builder;
+    }
+
     private static IServiceCollection AddLocalDbContext<TContext>(this IServiceCollection services)
         where TContext : DbContext
     {

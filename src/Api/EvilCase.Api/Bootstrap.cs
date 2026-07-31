@@ -1,4 +1,5 @@
-﻿using EvilBrains.EvilCase.Auth;
+﻿using EvilBrains.EvilCase.Api.HealthChecks;
+using EvilBrains.EvilCase.Auth;
 using EvilBrains.EvilCase.Data;
 using EvilBrains.Logging.AspNetCore;
 
@@ -26,6 +27,10 @@ public static class Bootstrap
 
         services.AddEvilCaseData();
         services.AddEvilCaseAuth();
+
+        services
+            .AddHealthChecks()
+            .AddEvilCaseDataHealthChecks(HealthCheckTags.Ready);
 
         return services;
     }

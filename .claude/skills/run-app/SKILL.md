@@ -23,6 +23,7 @@ In Claude Code, prefer the preview servers defined in `.claude/launch.json` (nam
 
 ## Verify
 
+- Health: `curl.exe -sk https://localhost:5000/health/ready` → `{"status":"Healthy","checks":[{"name":"database","status":"Healthy"}]}`. `503` means the database is unreachable; `/health/live` answers even then.
 - API round-trip: `curl.exe -sk -X POST https://localhost:5000/echo/post -H "Content-Type: application/json" -d '{"message":"ping"}'` → `{"message":"Echo: ping"}`
 - Frontend: open `https://localhost:5001`, type text, click Send → page shows `Echo: <text>`. First WebAssembly load takes a few seconds.
 - CORS error in the browser console means the API is not running or the origin does not match (the dev CORS policy allows `https://localhost:5001`).

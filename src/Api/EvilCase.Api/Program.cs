@@ -1,8 +1,11 @@
 using EvilBrains.EvilCase.Api;
+using EvilBrains.EvilCase.Api.HealthChecks;
 using EvilBrains.EvilCase.Auth;
 using EvilBrains.Logging.AspNetCore;
 using EvilBrains.Logging.Contract;
 using EvilBrains.Secrets.Env;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Scalar.AspNetCore;
 using Serilog;
 
@@ -51,9 +54,13 @@ else
     app.UseHsts();
 }
 
-app.UseRequestLogging("/logs/client");
+app.UseRequestLogging("/logs/client", HealthCheckPaths.Prefix);
 
-app.UseHttpsRedirection();
+// Probes usually arrive over plain HTTP; a redirect carries no body and counts as a failed probe.
+app.UseWhen(
+    context => !context.Request.Path.StartsWithSegments(HealthCheckPaths.Prefix, StringComparison.OrdinalIgnoreCase),
+    branch => branch.UseHttpsRedirection());
+
 app.UseRouting();
 
 if (app.Environment.IsDevelopment())
@@ -62,4 +69,22 @@ if (app.Environment.IsDevelopment())
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Liveness runs no check: the process answering is the signal. A database check here would restart
+// every instance at once on a brief outage.
+app.MapHealthChecks(HealthCheckPaths.Live, new HealthCheckOptions { Predicate = _ => false })
+    .AllowAnonymous();
+
+app.MapHealthChecks(
+    HealthCheckPaths.Ready,
+    new HealthCheckOptions
+    {
+        Predicate = check => check.Tags.Contains(HealthCheckTags.Ready),
+        ResponseWriter = HealthCheckResponseWriter.WriteAsync,
+
+        // Degraded is 200 by default, which would keep an instance in rotation on a partial failure.
+        ResultStatusCodes = { [HealthStatus.Degraded] = StatusCodes.Status503ServiceUnavailable },
+    })
+    .AllowAnonymous();
+
 await app.RunAsync();
