@@ -10,10 +10,11 @@ namespace EvilBrains.EvilCase.Api.Controllers;
 [Route("logs")]
 public class LogsController(IClientLogWriter writer) : ControllerBase
 {
-    private const int MaxBatchSize = 4 * 1024 * 1024;
+    // Kestrel would otherwise accept 30 MB before model validation gets to reject the batch.
+    private const int MaxRequestBodyBytes = 4 * 1024 * 1024;
 
     [HttpPost("client")]
-    [RequestSizeLimit(MaxBatchSize)]
+    [RequestSizeLimit(MaxRequestBodyBytes)]
     public void WriteClientLogs([FromBody] ClientLogBatch batch)
     {
         foreach (var entry in batch.Entries)
