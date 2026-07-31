@@ -1,11 +1,13 @@
 using EvilBrains.EvilCase.Api.Client;
 using EvilBrains.EvilCase.App;
+using EvilBrains.EvilCase.App.Http;
 using EvilBrains.EvilCase.App.Logging;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Serilog;
 using Serilog.Debugging;
+using Serilog.Events;
 using Serilog.Filters;
 using TabBlazor;
 
@@ -23,13 +25,15 @@ SelfLog.Enable(message => Console.Error.WriteLine(message));
 
 #pragma warning disable RCS0054 // Fix formatting of a call chain
 
-// HttpClient logs every request, including the one shipping the batch; without the filter the sink feeds itself.
+// HttpClient logs every request, including the one shipping the batch: the filter keeps the sink from feeding
+// itself, and the level override below keeps the browser console out of upload noise.
 Action<LoggerConfiguration> shipToApi = shipped => shipped
     .Filter.ByExcluding(Matching.FromSource("System.Net.Http.HttpClient"))
     .WriteTo.Sink(apiLogSink, loggingOptions.ServerMinimumLevel);
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Is(loggingOptions.MinimumLevel)
+    .MinimumLevel.Override("System.Net.Http.HttpClient", LogEventLevel.Warning)
     .Enrich.FromLogContext()
     .WriteTo.BrowserConsole(formatProvider: CultureInfo.InvariantCulture)
     .WriteTo.Logger(shipToApi)
@@ -39,7 +43,9 @@ Log.Logger = new LoggerConfiguration()
 builder.Logging.ClearProviders();
 builder.Logging.AddSerilog(Log.Logger, dispose: true);
 
-builder.Services.AddEvilCaseApiClient(new Uri(apiBaseUrl));
+builder.Services.AddSingleton<ClientSessionId>();
+builder.Services.AddTransient<RequestContextHandler>();
+builder.Services.AddEvilCaseApiClient(new Uri(apiBaseUrl), client => client.AddHttpMessageHandler<RequestContextHandler>());
 
 builder.Services.AddTabBlazor(
     options =>

@@ -1,4 +1,5 @@
-﻿using EvilBrains.EvilCase.Auth;
+﻿using EvilBrains.EvilCase.Api.Logging;
+using EvilBrains.EvilCase.Auth;
 using EvilBrains.EvilCase.Data;
 
 namespace EvilBrains.EvilCase.Api;
@@ -17,6 +18,8 @@ public static class Bootstrap
                 return Task.CompletedTask;
             });
         });
+
+        services.AddSingleton<ClientLogWriter>();
 
         services.AddEvilCaseData();
         services.AddEvilCaseAuth();

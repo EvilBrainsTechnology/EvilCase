@@ -27,7 +27,7 @@ All code lives in `src/` (solution `EvilCase.slnx`).
 
 ## API client pattern
 
-API controllers are the single source of truth; DTOs live in `EvilCase.Api.Contract`. `EvilCase.Api.Client` has no dependency on `EvilCase.Api`: it includes the controller sources as `AdditionalFiles` and the `EvilBrains.ApiClient.Generator` source generator emits clients from them (in-memory, never committed). Controllers marked `[GenerateApiClient]` (from `EvilBrains.ApiClient`) produce a public `I{Name}Client` interface, an internal implementation and a DI registration; consumers register clients via `Bootstrap.AddEvilCaseApiClient` from `EvilCase.Api.Client`.
+API controllers are the single source of truth; DTOs live in `EvilCase.Api.Contract`. `EvilCase.Api.Client` has no dependency on `EvilCase.Api`: it includes the controller sources as `AdditionalFiles` and the `EvilBrains.ApiClient.Generator` source generator emits clients from them (in-memory, never committed). Controllers marked `[GenerateApiClient]` (from `EvilBrains.ApiClient`) produce a public `I{Name}Client` interface, an internal implementation and a DI registration; consumers register clients via `Bootstrap.AddEvilCaseApiClient` from `EvilCase.Api.Client`, which takes an optional `Action<IHttpClientBuilder>` so message handlers attach to the generated clients only.
 
 Controller conventions, enforced by analyzers in the API project (EB1001–EB1005) and re-checked by the generator with exact file/line locations:
 
@@ -45,9 +45,18 @@ Frontend: `EvilCase.App` uses Serilog as well, with the differences WebAssembly 
 - There is no host, so `builder.Host.UseSerilog()` does not exist. The logger is built in `Program.cs` and registered with `builder.Logging.ClearProviders()` + `AddSerilog` (from `Serilog.Extensions.Logging`, not `Serilog.AspNetCore`).
 - `Serilog.Settings.Configuration` is not used: it resolves sinks by assembly name through reflection, which breaks under WASM trimming. Levels are read from the `ClientLogging` section of `wwwroot/appsettings.json` — `MinimumLevel` for the browser console, `ServerMinimumLevel` for the events shipped to the API.
 - Browser console output goes through `Serilog.Sinks.BrowserConsole`, which uses real console levels instead of stdout.
-- `Logging/ApiLogSink` buffers events (500 max, then drops) and posts them to `POST /logs/client` every 2 seconds in batches of at most 100. A failed batch is dropped and the failure goes to Serilog's `SelfLog`; logging it normally would feed the sink that just failed. `System.Net.Http.HttpClient` events are excluded from the sink for the same reason — shipping a batch logs a request.
+- `Logging/ApiLogSink` buffers events (500 max, then drops) and posts them to `POST /logs/client` every second in batches of at most 100. Events keep their structure: the sink ships the unrendered message template plus at most 16 properties, values rendered to strings and capped at 512 characters. A failed batch is dropped and the failure goes to Serilog's `SelfLog`; logging it normally would feed the sink that just failed. `System.Net.Http.HttpClient` events are excluded from the sink for the same reason — shipping a batch logs a request — and the same source is capped at `Warning`, otherwise the upload noise would own the browser console.
 - The sink is created before the host exists and receives the API client in `Start` after `builder.Build()`.
-- `LogsController` re-logs the entries under the `EvilBrains.EvilCase.App.Client` source context; the browser exception text arrives as a `ClientLogException` and timestamp, category and URL are attached as scope properties. The endpoint is anonymous (errors happen before login) and bounded by contract validation.
+
+`Logging/ClientLogWriter` on the API rebuilds a Serilog `LogEvent` from the entry. The endpoint is anonymous, so the whole payload is hostile input:
+
+- The parsed template is the allow-list of property names — a property the template does not reference is dropped, and so is anything in `ReservedLogPropertyNames`. Properties carried on an event win over enrichers, so a client must not be able to name one.
+- `MessageTemplateParser.Parse` throws on alignments that overflow; the failure falls back to logging the raw text. An alignment wider than 64 stays unbound, because padding is only rendered for bound properties.
+- Control characters are stripped from the template, property values, category and URL — the plain text console sink is otherwise forgeable. The exception text keeps them.
+- The event timestamp is the server clock; the browser value is kept as `ClientTimestamp`. Browser clocks are arbitrary and would corrupt the Seq timeline.
+- The browser exception text arrives as a `ClientLogException`.
+
+Request context: `EvilCase.App` stamps every API request with `X-Request-Id` (fresh per request), `X-Correlation-Id` (same value) and `X-Session-Id` (one GUID per app load) through a `DelegatingHandler` attached to the generated clients. `EvilBrains.Logging.AspNetCore`'s `UseRequestContextLogging` validates the headers as GUIDs, re-formats them and pushes them into the Serilog `LogContext`, so every event of that request carries them; it must run before `UseSerilogRequestLogging` for the completion event to carry them too. A successful `POST /logs/client` is demoted to `Verbose` in `RequestLogging.GetLevel` and leaves no completion log. Note that entries in a batch inherit the identifiers of the upload, not of the browser request they describe — correlate browser and server through `SessionId` plus `ClientUrl` and `ClientTimestamp`.
 
 Seq credentials stay on the server; the browser only ever talks to the API.
 

@@ -1,6 +1,8 @@
 using EvilBrains.EvilCase.Api;
+using EvilBrains.EvilCase.Api.Logging;
 using EvilBrains.EvilCase.Auth;
 using EvilBrains.EvilCase.Secrets;
+using EvilBrains.Logging.AspNetCore;
 using Scalar.AspNetCore;
 using Serilog;
 
@@ -25,7 +27,8 @@ Log.Logger = new LoggerConfiguration()
 
 builder.AddEvilCaseAuth("EvilBrains:EvilCase:Auth");
 
-builder.Host.UseSerilog();
+// The logger is passed explicitly: the parameterless overload does not register Serilog.ILogger.
+builder.Host.UseSerilog(Log.Logger);
 
 builder.Services.ConfigureServices();
 
@@ -48,7 +51,8 @@ else
     app.UseHsts();
 }
 
-app.UseSerilogRequestLogging();
+app.UseRequestContextLogging();
+app.UseSerilogRequestLogging(options => options.GetLevel = RequestLogging.GetLevel);
 
 app.UseHttpsRedirection();
 app.UseRouting();

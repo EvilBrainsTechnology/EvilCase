@@ -21,6 +21,8 @@ internal static class ClientEmitter
 
     private const string ServicesType = "global::Microsoft.Extensions.DependencyInjection.IServiceCollection";
 
+    private const string BuilderType = "global::Microsoft.Extensions.DependencyInjection.IHttpClientBuilder";
+
     public static string EmitClient(string ns, ClientModel client)
     {
         var source = new StringBuilder();
@@ -63,13 +65,20 @@ internal static class ClientEmitter
         source.Append("internal static class ApiClientRegistrations\n{\n");
         source.Append("    public static ").Append(ServicesType).Append(" AddGeneratedApiClients(\n");
         source.Append("        this ").Append(ServicesType).Append(" services,\n");
-        source.Append("        global::System.Action<global::System.Net.Http.HttpClient> configure)\n    {\n");
+        source.Append("        global::System.Action<global::System.Net.Http.HttpClient> configure,\n");
+        source.Append("        global::System.Action<").Append(BuilderType).Append(">? configureClient = null)\n    {\n");
 
+        var declared = false;
         foreach (var client in model.Clients)
         {
-            source.Append("        global::Microsoft.Extensions.DependencyInjection.HttpClientFactoryServiceCollectionExtensions.AddHttpClient<");
+            source.Append("        ").Append(declared ? "" : BuilderType + " ").Append("builder = ");
+            source.Append("global::Microsoft.Extensions.DependencyInjection.HttpClientFactoryServiceCollectionExtensions.AddHttpClient<");
             source.Append("global::").Append(ns).Append(".I").Append(client.Name).Append("Client, ");
             source.Append("global::").Append(ns).Append('.').Append(client.Name).Append("Client>(services, configure);\n");
+
+            // Not configureClient?.Invoke(AddHttpClient(...)): the null-conditional would skip the registration.
+            source.Append("        configureClient?.Invoke(builder);\n");
+            declared = true;
         }
 
         source.Append("\n        return services;\n    }\n}\n");

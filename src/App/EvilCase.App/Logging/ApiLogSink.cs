@@ -19,7 +19,7 @@ internal sealed class ApiLogSink : ILogEventSink
 {
     private const int QueueCapacity = 500;
 
-    private static readonly TimeSpan FlushInterval = TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan FlushInterval = TimeSpan.FromSeconds(1);
 
     private readonly ConcurrentQueue<ClientLogEntry> queue = [];
 
@@ -54,6 +54,34 @@ internal sealed class ApiLogSink : ILogEventSink
         LogEventLevel.Error => ClientLogLevel.Error,
         LogEventLevel.Fatal => ClientLogLevel.Fatal,
         _ => ClientLogLevel.Information,
+    };
+
+    private static Dictionary<string, string>? ToProperties(LogEvent logEvent)
+    {
+        var properties = new Dictionary<string, string>(StringComparer.Ordinal);
+
+        foreach (var (name, value) in logEvent.Properties)
+        {
+            if (properties.Count == ClientLogEntry.MaxProperties)
+                break;
+
+            // Already shipped as Category.
+            if (string.Equals(name, Constants.SourceContextPropertyName, StringComparison.Ordinal))
+                continue;
+
+            properties.Add(name, Truncate(RenderValue(value), ClientLogEntry.PropertyValueMaxLength));
+        }
+
+        return properties.Count == 0 ? null : properties;
+    }
+
+    // ScalarValue.ToString() quotes strings, which would arrive at the API quoted twice.
+    private static string RenderValue(LogEventPropertyValue value) => value switch
+    {
+        ScalarValue { Value: null } => "null",
+        ScalarValue { Value: string text } => text,
+        ScalarValue { Value: var raw } => Convert.ToString(raw, CultureInfo.InvariantCulture) ?? "",
+        _ => value.ToString(format: null, CultureInfo.InvariantCulture),
     };
 
     private static string? SourceContext(LogEvent logEvent) =>
@@ -96,7 +124,10 @@ internal sealed class ApiLogSink : ILogEventSink
     {
         Timestamp = logEvent.Timestamp,
         Level = ToClientLevel(logEvent.Level),
-        Message = Truncate(logEvent.RenderMessage(CultureInfo.InvariantCulture), ClientLogEntry.MessageMaxLength),
+
+        // The template travels unrendered so the API can log the event with its properties intact.
+        MessageTemplate = Truncate(logEvent.MessageTemplate.Text, ClientLogEntry.MessageTemplateMaxLength),
+        Properties = ToProperties(logEvent),
         Category = Truncate(SourceContext(logEvent), ClientLogEntry.CategoryMaxLength),
         Exception = Truncate(logEvent.Exception?.ToString(), ClientLogEntry.ExceptionMaxLength),
         Url = Truncate(this.navigation?.Uri, ClientLogEntry.UrlMaxLength),

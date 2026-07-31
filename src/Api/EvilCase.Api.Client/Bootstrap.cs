@@ -4,8 +4,11 @@ namespace EvilBrains.EvilCase.Api.Client;
 
 public static class Bootstrap
 {
-    public static IServiceCollection AddEvilCaseApiClient(this IServiceCollection services, Uri baseAddress)
+    public static IServiceCollection AddEvilCaseApiClient(
+        this IServiceCollection services,
+        Uri baseAddress,
+        Action<IHttpClientBuilder>? configureClient = null)
     {
-        return services.AddGeneratedApiClients(client => client.BaseAddress = baseAddress);
+        return services.AddGeneratedApiClients(client => client.BaseAddress = baseAddress, configureClient);
     }
 }
