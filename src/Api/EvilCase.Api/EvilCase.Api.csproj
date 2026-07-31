@@ -1,9 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <PropertyGroup>
-    <UserSecretsId>3654a906-0e80-49ff-b017-59f5e787a3c4</UserSecretsId>
-  </PropertyGroup>
-
   <ItemGroup>
     <InternalsVisibleTo Include="EvilBrains.EvilCase.Tests" />
   </ItemGroup>
@@ -20,7 +16,7 @@
     <ProjectReference Include="..\..\Common\EvilCase.Auth\EvilCase.Auth.csproj" />
     <ProjectReference Include="..\..\Utils\EvilBrains.ApiClient\EvilBrains.ApiClient.csproj" />
     <ProjectReference Include="..\..\Utils\EvilBrains.ApiClient.Generator\EvilBrains.ApiClient.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all" />
-    <ProjectReference Include="..\..\Utils\EvilBrains.Secrets.Infisical\EvilBrains.Secrets.Infisical.csproj" />
+    <ProjectReference Include="..\..\Utils\EvilBrains.Secrets.Env\EvilBrains.Secrets.Env.csproj" />
     <ProjectReference Include="..\..\Utils\EvilBrains.Collections\EvilBrains.Collections.csproj" />
     <ProjectReference Include="..\..\Utils\EvilBrains.Cryptography\EvilBrains.Cryptography.csproj" />
     <ProjectReference Include="..\..\Utils\EvilBrains.Logging.AspNetCore\EvilBrains.Logging.AspNetCore.csproj" />
