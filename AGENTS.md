@@ -22,7 +22,7 @@ All code lives in `src/` (solution `EvilCase.slnx`).
 | `Common/EvilCase.Auth` | JWT bearer authentication |
 | `Data/EvilCase.Data` | EF Core model + DbContext (PostgreSQL) |
 | `Data/EvilCase.Data.Migrations` | EF Core migrations |
-| `Tests/EvilCase.Tests` | Application tests (NUnit) |
+| `Tests/EvilCase.Tests` | Application tests (NUnit), including the host's routing through `WebApplicationFactory` |
 | `Utils/EvilBrains.Secrets.Infisical` | Infisical configuration provider (kept, not wired up) |
 | `Utils/EvilBrains.*` | Shared libraries (collections, cryptography, logging for the wire contract, ASP.NET Core and WebAssembly, custom analyzers EB0001–EB0004, API client generator + controller convention analyzers EB1001–EB1016) |
 
@@ -30,7 +30,7 @@ All code lives in `src/` (solution `EvilCase.slnx`).
 
 One process serves everything. `EvilCase.Host` is the composition root: it references `EvilCase.Api` and `EvilCase.App`, owns `Program.cs`, the middleware pipeline and all configuration (`appsettings*.json`, `.env`, `launchSettings.json`). The dependency runs host → api, never api → app; the API layer knows nothing about the frontend.
 
-- `/api/**` is the API. Controller routes carry the prefix in their `[Route]` templates, because the client generator reads those templates from source and would not see a runtime routing convention. An unmatched `/api` path is a `404` from a fallback registered in `MapEvilCaseApi`, never the app's HTML — its literal segment gives it precedence over the catch-all `MapFallbackToFile("index.html")`.
+- `/api/**` is the API. Controller routes carry the prefix in their `[Route]` templates, because the client generator reads those templates from source and would not see a runtime routing convention; EB1006 enforces it. An unmatched `/api` path is a `404` in problem details shape from a fallback registered in `MapEvilCaseApi`, never the app's HTML — its literal segment gives it precedence over the catch-all `MapFallbackToFile("index.html")`. `Tests/EvilCase.Tests` pins that precedence through the real `Program.cs`.
 - Everything else returns `index.html`, so client-side routes survive a reload.
 - `/health/*`, `/scalar` and `/openapi/v1.json` sit outside `/api` and are mapped explicitly, so the fallback never reaches them.
 - The controllers live in a library, so `AddControllers().AddApplicationPart(...)` registers them explicitly rather than relying on application part discovery.
@@ -56,11 +56,13 @@ Because the check runs before the builder exists, `builder.Environment.IsDevelop
 
 API controllers are the single source of truth; DTOs live in `EvilCase.Api.Contract`. `EvilCase.Api.Client` has no dependency on `EvilCase.Api`: it includes the controller sources as `AdditionalFiles` and the `EvilBrains.ApiClient.Generator` source generator emits clients from them (in-memory, never committed). Controllers marked `[GenerateApiClient]` (from `EvilBrains.ApiClient`) produce a public `I{Name}Client` interface, an internal implementation and a DI registration; consumers register clients via `Bootstrap.AddEvilCaseApiClient` from `EvilCase.Api.Client`, which takes an optional `Action<IHttpClientBuilder>` so message handlers attach to the generated clients only.
 
-Controller conventions, enforced by analyzers in the API project (EB1001–EB1005) and re-checked by the generator with exact file/line locations:
+Controller conventions, enforced by analyzers in the API project (EB1001–EB1006) and re-checked by the generator with exact file/line locations:
 
-- Every controller declares `[Route]` and every action exactly one HTTP method attribute with a route template (empty `""` allowed). Templates never start with `/` (controller and action templates are joined and the leading slash is implicit) and contain no `[controller]`/`[action]` tokens; literal segments are kebab-case.
-- Controller templates open with the `api/` segment (`[Route("api/auth")]`), which is what separates the API from the frontend the host serves — see *Hosting*.
+- Every controller declares `[Route]` and every action exactly one HTTP method attribute with a route template (empty `""` allowed). Templates never start with `/` (controller and action templates are joined) and contain no `[controller]`/`[action]` tokens; literal segments are kebab-case.
+- Controller templates open with the `api/` segment (`[Route("api/auth")]`, EB1006), which is what separates the API from the frontend the host serves — see *Hosting*. Action templates are unaffected.
 - Every action parameter carries exactly one binding attribute (`[FromBody]`, `[FromQuery]`, `[FromRoute]`, `[FromHeader]`, `[FromServices]`, ...); `CancellationToken` carries none.
+
+The generated route is relative (`api/echo/post`, no leading slash) and the client resolves it against the base address, which `AddEvilCaseApiClient` normalises to end in `/`. That is what keeps the app working when it is served from a sub-path: a root-relative URI would resolve against the origin and drop it.
 
 Client generation rules (EB1010–EB1016, generator-only): actions return `void`, `T`, `Task`/`ValueTask` or `Task<T>`/`ValueTask<T>`, optionally wrapped in `ActionResult`/`ActionResult<T>`/`IActionResult` — the generated client method is always asynchronous and an untyped result becomes a `Task` without a value (non-success status codes throw `ApiException`). Parameter and return types must be resolvable in the client compilation (Contract or shared libs), `[FromServices]`/`[FromKeyedServices]` parameters are omitted from the client, a complex `[FromQuery]` DTO is expanded property-by-property into query parameters (camelCase keys, simple-typed properties only), `[FromForm]`/`IFormFile` are unsupported.
 
@@ -72,7 +74,7 @@ Every event carries `AppSource`, either `Client` or `Server`. The API enriches i
 
 API: Serilog is configured in `Program.cs` from the `Serilog` configuration section (console everywhere, Seq per environment) and handed to `UseSerilog(Log.Logger)` — the parameterless overload registers no `Serilog.ILogger`, which `AddClientLogWriter` needs. Log call sites go through `[LoggerMessage]` partial methods — CA1848 runs at error severity. `Bootstrap` passes the source context browser logs are recorded under, `Program.cs` calls `app.UseRequestLogging(loggedPaths: ["/api"], quietPaths: ["/api/logs/client"])`.
 
-Request logging is an allow-list, not a deny-list: the host serves the frontend, so a single page load pulls `index.html`, `/_framework/*`, `/_content/*` and the vendored CSS, and listing all of that as noise would rot with every asset added. Only paths under `loggedPaths` produce a completion event; everything else is demoted to `Verbose` and disappears below the configured minimum. Two carve-outs: `quietPaths` silences the log upload inside the API — logging it would be shipped by the next upload, which would log again — and a `5xx` or an unhandled exception is logged at `Error` wherever it happens, so a failure serving a static file is never swallowed. `OPTIONS` is never logged.
+Request logging is an allow-list, not a deny-list: the host serves the frontend, so a single page load pulls `index.html`, `/_framework/*`, `/_content/*` and the vendored CSS, and listing all of that as noise would rot with every asset added. Only paths under `loggedPaths` produce a completion event; everything else is demoted to `Verbose` and disappears below the configured minimum. Two carve-outs: `quietPaths` silences the *successful* log upload inside the API — logging it would be shipped by the next upload, which would log again — and a `5xx` or an unhandled exception is logged at `Error` wherever it happens, so a failure serving a static file is never swallowed. A quiet path answering `4xx` is logged at `Information`: a rejected batch is dropped rather than retried, so it settles instead of feeding itself, and a silently rejected upload would otherwise be invisible. `OPTIONS` is never logged.
 
 Frontend: `EvilCase.App` uses Serilog as well, with the differences WebAssembly forces:
 
