@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 using Serilog;
 using Serilog.Debugging;
+using Serilog.Events;
 
 namespace EvilBrains.Logging.WebAssembly;
 
@@ -33,11 +34,13 @@ public static class Bootstrap
 
         SelfLog.Enable(message => Console.Error.WriteLine(message));
 
+        // The pipeline lets through whatever either destination asks for; each one then restricts
+        // itself. Sharing a single threshold would silently cap the more verbose of the two.
 #pragma warning disable RCS0054 // Fix formatting of a call chain
         Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Is(options.MinimumLevel)
+            .MinimumLevel.Is(MoreVerbose(options.MinimumLevel, options.ServerMinimumLevel))
             .Enrich.FromLogContext()
-            .WriteTo.BrowserConsole(formatProvider: CultureInfo.InvariantCulture)
+            .WriteTo.BrowserConsole(restrictedToMinimumLevel: options.MinimumLevel, formatProvider: CultureInfo.InvariantCulture)
             .WriteTo.Logger(ShipToServer(options))
             .CreateLogger();
 #pragma warning restore RCS0054
@@ -73,6 +76,9 @@ public static class Bootstrap
 
         return host;
     }
+
+    // Verbose is the lowest LogEventLevel and Fatal the highest.
+    private static LogEventLevel MoreVerbose(LogEventLevel first, LogEventLevel second) => first < second ? first : second;
 
     private static Action<LoggerConfiguration> ShipToServer(ClientLoggingOptions options) =>
         shipped => shipped.WriteTo.Sink(sink!, options.ServerMinimumLevel);
