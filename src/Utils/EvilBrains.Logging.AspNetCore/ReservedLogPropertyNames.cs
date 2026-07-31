@@ -5,8 +5,10 @@ using Serilog.Core;
 namespace EvilBrains.Logging.AspNetCore;
 
 /// <summary>
-/// Property names owned by the server. A browser log entry must never shadow them, because
-/// properties carried on the event win over enrichers.
+/// Property names the server attaches to these events itself, through enrichers, the log context or
+/// this writer. A browser entry must never shadow them, because properties carried on an event win
+/// over enrichers. Names that only appear on other events — the request logging ones, for instance —
+/// are deliberately not listed: the browser logs its own HTTP calls and those carry the same names.
 /// </summary>
 internal static class ReservedLogPropertyNames
 {
@@ -21,15 +23,10 @@ internal static class ReservedLogPropertyNames
         "Environment",
         "MachineName",
         "ThreadId",
-        "EventId",
         "ClientTimestamp",
         "ClientCategory",
         "ClientUrl",
-        "ClientMessage",
-        "RequestMethod",
-        "RequestPath",
-        "StatusCode",
-        "Elapsed");
+        "ClientMessage");
 
     public static bool Contains(string name) => Names.Contains(name);
 }

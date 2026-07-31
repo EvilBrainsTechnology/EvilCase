@@ -20,8 +20,9 @@ public static class Bootstrap
     /// <summary>
     /// Logs to the browser console and buffers events for the server. The application supplies an
     /// <see cref="IClientLogUploader"/> and calls <see cref="StartClientLogging"/> once the host is built.
-    /// The upload client name is the name of the typed client interface that ships the batches; its own
-    /// request logs are silenced, otherwise every upload would log four more events to the console.
+    /// The upload client name is the name of the typed client interface that ships the batches; a
+    /// successful upload of its own is dropped, otherwise every upload would log four more events and
+    /// each of those would be shipped by the next one.
     /// </summary>
     public static WebAssemblyHostBuilder AddClientLogging(
         this WebAssemblyHostBuilder builder,
@@ -40,7 +41,7 @@ public static class Bootstrap
         var configuration = new LoggerConfiguration();
 
         if (uploadClientName is not null)
-            configuration.MinimumLevel.Override($"{HttpClientSource}.{uploadClientName}", LogEventLevel.Warning);
+            configuration.Filter.ByExcluding(SuccessfulUpload($"{HttpClientSource}.{uploadClientName}"));
 
 #pragma warning disable RCS0054 // Fix formatting of a call chain
         Log.Logger = configuration
@@ -81,13 +82,18 @@ public static class Bootstrap
         return host;
     }
 
-    private static Action<LoggerConfiguration> ShipToServer(ClientLoggingOptions options)
+    /// <summary>
+    /// Shipping a batch is itself an HTTP request. Dropping the successful ones is what keeps the sink
+    /// from feeding itself; a failed upload is worth knowing about and settles on its own, because the
+    /// batch that could not be sent is dropped rather than retried.
+    /// </summary>
+    private static Func<LogEvent, bool> SuccessfulUpload(string source)
     {
-        // Shipping a batch is itself an HTTP request, so without this filter the sink would feed itself.
-#pragma warning disable RCS0054 // Fix formatting of a call chain
-        return shipped => shipped
-            .Filter.ByExcluding(Matching.FromSource(HttpClientSource))
-            .WriteTo.Sink(sink!, options.ServerMinimumLevel);
-#pragma warning restore RCS0054
+        var isUpload = Matching.FromSource(source);
+
+        return logEvent => logEvent.Exception is null && isUpload(logEvent);
     }
+
+    private static Action<LoggerConfiguration> ShipToServer(ClientLoggingOptions options) =>
+        shipped => shipped.WriteTo.Sink(sink!, options.ServerMinimumLevel);
 }
