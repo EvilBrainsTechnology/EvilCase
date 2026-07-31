@@ -10,7 +10,7 @@ public class ClientLogWriterTests
 {
     private CollectingSink sink = null!;
 
-    private ClientLogWriter writer = null!;
+    private IClientLogWriter writer = null!;
 
     [SetUp]
     public void SetUp()
@@ -19,7 +19,7 @@ public class ClientLogWriterTests
 
         var logger = new LoggerConfiguration().MinimumLevel.Verbose().WriteTo.Sink(this.sink).CreateLogger();
 
-        this.writer = new(logger);
+        this.writer = new ClientLogWriter(logger);
     }
 
     [Test]

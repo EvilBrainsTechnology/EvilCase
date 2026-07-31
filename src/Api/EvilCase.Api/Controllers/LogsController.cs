@@ -8,7 +8,7 @@ namespace EvilBrains.EvilCase.Api.Controllers;
 [ApiController]
 [GenerateApiClient]
 [Route("logs")]
-public class LogsController(ClientLogWriter writer) : ControllerBase
+public class LogsController(IClientLogWriter writer) : ControllerBase
 {
     private const int MaxBatchSize = 4 * 1024 * 1024;
 

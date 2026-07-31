@@ -19,7 +19,7 @@ public static class Bootstrap
             });
         });
 
-        services.AddSingleton<ClientLogWriter>();
+        services.AddSingleton<IClientLogWriter, ClientLogWriter>();
 
         services.AddEvilCaseData();
         services.AddEvilCaseAuth();

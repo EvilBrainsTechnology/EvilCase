@@ -11,7 +11,7 @@ namespace EvilBrains.EvilCase.Api.Logging;
 /// anything the server owns. The event timestamp is the server clock, because browser clocks are
 /// arbitrary; the browser value is kept as ClientTimestamp.
 /// </summary>
-public sealed class ClientLogWriter
+internal sealed class ClientLogWriter : IClientLogWriter
 {
     private const string ClientSourceContext = "EvilBrains.EvilCase.App.Client";
 
