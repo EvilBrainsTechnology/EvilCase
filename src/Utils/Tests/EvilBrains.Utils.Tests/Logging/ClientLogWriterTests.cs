@@ -48,14 +48,20 @@ public class ClientLogWriterTests
     [Test]
     public void ReservedPropertyIsNotBound()
     {
-        var properties = new Dictionary<string, string>(StringComparer.Ordinal) { ["RequestId"] = "spoofed", ["SourceContext"] = "spoofed" };
+        var properties = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            [RequestContextPropertyNames.RequestId] = "spoofed",
+            ["RequestId"] = "spoofed",
+            ["SourceContext"] = "spoofed",
+        };
 
-        this.writer.Write(Entry("{RequestId} {SourceContext}", properties));
+        this.writer.Write(Entry($"{{{RequestContextPropertyNames.RequestId}}} {{RequestId}} {{SourceContext}}", properties));
 
         var logEvent = this.sink.Single();
 
         using (Assert.EnterMultipleScope())
         {
+            Assert.That(Value(logEvent, RequestContextPropertyNames.RequestId), Is.Null);
             Assert.That(Value(logEvent, "RequestId"), Is.Null);
             Assert.That(Value(logEvent, "SourceContext"), Is.EqualTo(SourceContext));
         }
@@ -82,8 +88,8 @@ public class ClientLogWriterTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(Value(logEvent, "RequestId"), Is.EqualTo(requestId));
-            Assert.That(Value(logEvent, "CorrelationId"), Is.Null);
+            Assert.That(Value(logEvent, RequestContextPropertyNames.RequestId), Is.EqualTo(requestId));
+            Assert.That(Value(logEvent, RequestContextPropertyNames.CorrelationId), Is.Null);
         }
     }
 

@@ -35,11 +35,12 @@ public class RequestContextLoggingMiddlewareTests
     }
 
     /// <summary>
-    /// ASP.NET Core opens a scope per request whose RequestId is the TraceIdentifier. It reaches the
-    /// event before the log context does, so the caller's identifier has to overwrite it.
+    /// ASP.NET Core opens a scope per request whose RequestId is the trace identifier, and a scope
+    /// property reaches the event ahead of the log context. The caller's identifiers sit next to it
+    /// under their own names instead of competing with it.
     /// </summary>
     [Test]
-    public async Task HostingScopeDoesNotShadowTheRequestIdOfTheCaller()
+    public async Task HostingScopeKeepsRequestIdAndLeavesTheCallerIdentifiersAlone()
     {
         var context = Request();
         context.TraceIdentifier = "0HN7TRACE:00000001";
@@ -59,7 +60,26 @@ public class RequestContextLoggingMiddlewareTests
 
         await middleware.Invoke(context);
 
-        Assert.That(Value(sink.Events.Single(), RequestContextPropertyNames.RequestId), Is.EqualTo(requestId));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(Value(sink.Events.Single(), RequestContextPropertyNames.RequestId), Is.EqualTo(requestId));
+            Assert.That(Value(sink.Events.Single(), "RequestId"), Is.EqualTo("0HN7TRACE:00000001"));
+        }
+    }
+
+    /// <summary>
+    /// The hosting scope only reaches what is logged through ILogger&lt;T&gt;; Serilog writes its own
+    /// request completion event outside it, and that one needs the trace identifier too.
+    /// </summary>
+    [Test]
+    public async Task TraceIdentifierIsOnEventsWrittenOutsideTheHostingScope()
+    {
+        var context = Request();
+        context.TraceIdentifier = "0HN7TRACE:00000002";
+
+        var logEvent = (await LogDuringRequestAsync(context, "Inside")).Single();
+
+        Assert.That(Value(logEvent, "RequestId"), Is.EqualTo("0HN7TRACE:00000002"));
     }
 
     [Test]
@@ -82,7 +102,7 @@ public class RequestContextLoggingMiddlewareTests
     }
 
     [Test]
-    public async Task RequestWithoutIdentifiersFallsBackToTheTraceIdentifier()
+    public async Task RequestWithoutIdentifiersCarriesTheTraceIdentifierOnly()
     {
         var context = Request();
         context.TraceIdentifier = "0HN7TRACE:00000001";
@@ -91,7 +111,8 @@ public class RequestContextLoggingMiddlewareTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(Value(logEvent, RequestContextPropertyNames.RequestId), Is.EqualTo("0HN7TRACE:00000001"));
+            Assert.That(Value(logEvent, "RequestId"), Is.EqualTo("0HN7TRACE:00000001"));
+            Assert.That(Value(logEvent, RequestContextPropertyNames.RequestId), Is.Null);
             Assert.That(Value(logEvent, RequestContextPropertyNames.CorrelationId), Is.Null);
             Assert.That(Value(logEvent, RequestContextPropertyNames.SessionId), Is.Null);
             Assert.That(Value(logEvent, RequestContextPropertyNames.MachineId), Is.Null);

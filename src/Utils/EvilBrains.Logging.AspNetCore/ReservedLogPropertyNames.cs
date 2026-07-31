@@ -9,6 +9,8 @@ namespace EvilBrains.Logging.AspNetCore;
 /// this writer. A browser entry must never shadow them, because properties carried on an event win
 /// over enrichers. Names that only appear on other events — the request logging ones, for instance —
 /// are deliberately not listed: the browser logs its own HTTP calls and those carry the same names.
+/// <c>RequestId</c> is listed even though the browser never sends it: on the server it holds the
+/// trace identifier of the upload request.
 /// </summary>
 internal static class ReservedLogPropertyNames
 {
@@ -20,6 +22,7 @@ internal static class ReservedLogPropertyNames
         RequestContextPropertyNames.CorrelationId,
         RequestContextPropertyNames.SessionId,
         RequestContextPropertyNames.MachineId,
+        "RequestId",
         "Application",
         "Environment",
         "MachineName",
