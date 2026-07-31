@@ -5,15 +5,15 @@
       "name": "api",
       "runtimeExecutable": "dotnet",
       "runtimeArgs": ["run", "--project", "src/Api/EvilCase.Api"],
-      "port": 6000,
-      "url": "https://localhost:6000"
+      "port": 5000,
+      "url": "https://localhost:5000"
     },
     {
       "name": "app",
       "runtimeExecutable": "dotnet",
       "runtimeArgs": ["run", "--project", "src/App/EvilCase.App"],
-      "port": 6001,
-      "url": "https://localhost:6001"
+      "port": 5001,
+      "url": "https://localhost:5001"
     }
   ]
 }
