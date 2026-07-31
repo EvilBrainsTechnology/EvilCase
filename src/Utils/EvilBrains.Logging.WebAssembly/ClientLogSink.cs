@@ -94,12 +94,26 @@ internal sealed class ClientLogSink : ILogEventSink
             ? text
             : null;
 
+    /// <summary>
+    /// Nothing observes this task, so an exception escaping the loop would stop the shipping for the
+    /// rest of the application's life without a trace. Anything an uploader was not supposed to throw
+    /// costs the current batch and nothing more.
+    /// </summary>
     private async Task ShipAsync(IClientLogUploader uploader)
     {
         using var timer = new PeriodicTimer(FlushInterval);
 
         while (await timer.WaitForNextTickAsync())
-            await this.FlushAsync(uploader);
+        {
+            try
+            {
+                await this.FlushAsync(uploader);
+            }
+            catch (Exception exception)
+            {
+                SelfLog.WriteLine("Shipping log entries to the server failed unexpectedly: {0}", exception);
+            }
+        }
     }
 
     private async Task FlushAsync(IClientLogUploader uploader)
