@@ -1,4 +1,5 @@
-﻿using EvilBrains.EvilCase.Auth;
+﻿using EvilBrains.EvilCase.Api.HealthChecks;
+using EvilBrains.EvilCase.Auth;
 using EvilBrains.EvilCase.Data;
 
 namespace EvilBrains.EvilCase.Api;
@@ -20,6 +21,7 @@ public static class Bootstrap
 
         services.AddEvilCaseData();
         services.AddEvilCaseAuth();
+        services.AddEvilCaseHealthChecks();
 
         return services;
     }

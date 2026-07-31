@@ -36,6 +36,35 @@ Controller conventions, enforced by analyzers in the API project (EB1001–EB100
 
 Client generation rules (EB1010–EB1016, generator-only): actions return `void`, `T`, `Task`/`ValueTask` or `Task<T>`/`ValueTask<T>`, optionally wrapped in `ActionResult`/`ActionResult<T>`/`IActionResult` — the generated client method is always asynchronous and an untyped result becomes a `Task` without a value (non-success status codes throw `ApiException`). Parameter and return types must be resolvable in the client compilation (Contract or shared libs), `[FromServices]`/`[FromKeyedServices]` parameters are omitted from the client, a complex `[FromQuery]` DTO is expanded property-by-property into query parameters (camelCase keys, simple-typed properties only), `[FromForm]`/`IFormFile` are unsupported.
 
+## Health checks
+
+Probe endpoints live in `Api/EvilCase.Api/HealthChecks`, registered from `Bootstrap.ConfigureServices` and mapped in `Program.cs`. They are minimal-API endpoints, so the controller conventions (EB1001–EB1005) do not apply and they stay out of the generated API client.
+
+- `GET /healthz/live` — liveness and startup. Runs only checks tagged `live`, currently the constant `self` check. It proves the process accepts connections and runs the pipeline, nothing more.
+- `GET /healthz/ready` — readiness. Runs every registered check: `self`, `ApplicationLifecycle` and `database` (`AddDbContextCheck<ApplicationDbContext>`).
+
+Rules:
+
+- Only `live` is an opt-in tag; every other check belongs to readiness. A new check without tags therefore lands in readiness automatically and cannot silently fall out of the gate.
+- Liveness never checks a dependency. A DB outage failing liveness would restart every pod on top of the outage and turn it into a restart loop; readiness is the signal for "dependency unavailable".
+- `ApplicationLifecycle` reports Unhealthy from `ApplicationStopping` on, so readiness drops to 503 on SIGTERM and the pod leaves the load balancer while in-flight requests drain.
+- Detailed JSON only in Development. A failed check's description is the raw exception message — host, port, database name. Other environments get the framework default: bare status text.
+- Probe requests are logged at `Verbose` (`HealthCheckBootstrap.GetRequestLogLevel`), otherwise they flood Console and Seq.
+
+Reference Kubernetes configuration:
+
+```yaml
+ports:
+  - name: http
+    containerPort: 8080    # ASPNETCORE_HTTP_PORTS default in the official .NET images
+
+startupProbe:   { httpGet: { path: /healthz/live,  port: http }, periodSeconds: 5,  failureThreshold: 30 }
+livenessProbe:  { httpGet: { path: /healthz/live,  port: http }, periodSeconds: 10, timeoutSeconds: 2, failureThreshold: 3 }
+readinessProbe: { httpGet: { path: /healthz/ready, port: http }, periodSeconds: 10, timeoutSeconds: 3, failureThreshold: 2 }
+```
+
+The port is named because there is no Dockerfile or manifest yet. The default `timeoutSeconds: 1` is too tight for a readiness check that opens a Postgres connection, and a startup probe makes `initialDelaySeconds` unnecessary. The endpoints are not isolated on a separate port yet — do that (second Kestrel endpoint plus `RequireHost`) when the deployment lands, and keep them out of the `Service`.
+
 ## Frontend UI
 
 `EvilCase.App` builds on [TabBlazor](https://github.com/TabBlazor/TabBlazor) (Blazor components over the Tabler CSS framework).

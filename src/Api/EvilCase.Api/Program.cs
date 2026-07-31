@@ -1,4 +1,5 @@
 using EvilBrains.EvilCase.Api;
+using EvilBrains.EvilCase.Api.HealthChecks;
 using EvilBrains.EvilCase.Auth;
 using EvilBrains.EvilCase.Secrets;
 using Scalar.AspNetCore;
@@ -48,7 +49,8 @@ else
     app.UseHsts();
 }
 
-app.UseSerilogRequestLogging();
+app.UseSerilogRequestLogging(options =>
+    options.GetLevel = (httpContext, _, exception) => HealthCheckBootstrap.GetRequestLogLevel(httpContext, exception));
 
 app.UseHttpsRedirection();
 app.UseRouting();
@@ -59,4 +61,6 @@ if (app.Environment.IsDevelopment())
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapEvilCaseHealthChecks();
+
 await app.RunAsync();
