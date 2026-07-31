@@ -23,7 +23,7 @@ All code lives in `src/` (solution `EvilCase.slnx`).
 | `Data/EvilCase.Data` | EF Core model + DbContext (PostgreSQL) |
 | `Data/EvilCase.Data.Migrations` | EF Core migrations |
 | `Tests/EvilCase.Tests` | Application tests (NUnit) |
-| `Utils/EvilBrains.*` | Shared libraries (collections, cryptography, logging, custom analyzers EB0001–EB0004, API client generator + controller convention analyzers EB1001–EB1016) |
+| `Utils/EvilBrains.*` | Shared libraries (collections, cryptography, logging for the wire contract, ASP.NET Core and WebAssembly, custom analyzers EB0001–EB0004, API client generator + controller convention analyzers EB1001–EB1016) |
 
 ## API client pattern
 
@@ -38,17 +38,20 @@ Client generation rules (EB1010–EB1016, generator-only): actions return `void`
 
 ## Logging
 
-API: Serilog is configured in `Program.cs` from the `Serilog` configuration section (console everywhere, Seq per environment). Log call sites go through `[LoggerMessage]` partial methods — CA1848 runs at error severity.
+The mechanics live in three Utils libraries; the apps only wire them up. `EvilBrains.Logging.Contract` holds the wire contract (client log DTOs, header and property names), `EvilBrains.Logging.AspNetCore` the server half, `EvilBrains.Logging.WebAssembly` the browser half.
+
+API: Serilog is configured in `Program.cs` from the `Serilog` configuration section (console everywhere, Seq per environment) and handed to `UseSerilog(Log.Logger)` — the parameterless overload registers no `Serilog.ILogger`, which `AddClientLogWriter` needs. Log call sites go through `[LoggerMessage]` partial methods — CA1848 runs at error severity. `Bootstrap` passes the source context browser logs are recorded under, `Program.cs` calls `app.UseRequestLogging("/logs/client")`.
 
 Frontend: `EvilCase.App` uses Serilog as well, with the differences WebAssembly forces:
 
-- There is no host, so `builder.Host.UseSerilog()` does not exist. The logger is built in `Program.cs` and registered with `builder.Logging.ClearProviders()` + `AddSerilog` (from `Serilog.Extensions.Logging`, not `Serilog.AspNetCore`).
-- `Serilog.Settings.Configuration` is not used: it resolves sinks by assembly name through reflection, which breaks under WASM trimming. Levels are bound from the `ClientLogging` section of `wwwroot/appsettings.json` — `MinimumLevel` for the browser console, `ServerMinimumLevel` for the events shipped to the API. The logger exists before the container does, so the section is bound directly with `Get<ClientLoggingOptions>()` instead of `IOptions<T>`; `EnableConfigurationBindingGenerator` keeps that binding trim-safe.
+- There is no host, so `builder.Host.UseSerilog()` does not exist. `AddClientLogging` builds the logger and registers it with `builder.Logging.ClearProviders()` + `AddSerilog` (from `Serilog.Extensions.Logging`, not `Serilog.AspNetCore`).
+- `Serilog.Settings.Configuration` is not used: it resolves sinks by assembly name through reflection, which breaks under WASM trimming. Levels are bound from the `ClientLogging` section of `wwwroot/appsettings.json` — `MinimumLevel` for the browser console, `ServerMinimumLevel` for the events shipped to the API. The logger exists before the container does, so the section is bound directly with `Get<ClientLoggingOptions>()` instead of `IOptions<T>`; `EnableConfigurationBindingGenerator` on the library keeps that binding trim-safe — the property belongs to the project holding the call site.
 - Browser console output goes through `Serilog.Sinks.BrowserConsole`, which uses real console levels instead of stdout.
-- `Logging/ApiLogSink` buffers events (500 max, then drops) and posts them to `POST /logs/client` every second in batches of at most 100. Events keep their structure: the sink ships the unrendered message template plus at most 16 properties, values rendered to strings and capped at 512 characters. A failed batch is dropped and the failure goes to Serilog's `SelfLog`; logging it normally would feed the sink that just failed. `System.Net.Http.HttpClient` events are excluded from the sink for the same reason — shipping a batch logs a request. Ordinary API calls do log to the browser console; only the log upload is silenced, through a `MinimumLevel.Override` on `System.Net.Http.HttpClient.ILogsClient` (a typed client logs under its interface name).
-- The sink is created before the host exists and receives the API client in `Start` after `builder.Build()`.
+- `ClientLogSink` buffers events (500 max, then drops) and posts them to `POST /logs/client` every second in batches of at most 100. Events keep their structure: the sink ships the unrendered message template plus at most 16 properties, values rendered to strings and capped at 512 characters. A failed batch is dropped and the failure goes to Serilog's `SelfLog`; logging it normally would feed the sink that just failed. `System.Net.Http.HttpClient` events are excluded from the sink for the same reason — shipping a batch logs a request. Ordinary API calls do log to the browser console; only the log upload is silenced, through a `MinimumLevel.Override` on the upload client's logger name (a typed client logs under its interface name).
+- The sink knows no API client: `EvilCase.App`'s `ApiLogUploader` implements `IClientLogUploader` over the generated `ILogsClient` and translates its transport failures into `ClientLogUploadException`, which is the only exception the sink swallows.
+- The sink is created before the host exists, so `host.StartClientLogging()` hands it the uploader after `builder.Build()`. Forgetting that call is silent: events buffer and are dropped at 500.
 
-`Logging/ClientLogWriter` on the API rebuilds a Serilog `LogEvent` from the entry. The endpoint is anonymous, so the whole payload is hostile input:
+`ClientLogWriter` on the API rebuilds a Serilog `LogEvent` from the entry. The endpoint is anonymous, so the whole payload is hostile input:
 
 - The parsed template is the allow-list of property names — a property the template does not reference is dropped, and so is anything in `ReservedLogPropertyNames`. Properties carried on an event win over enrichers, so a client must not be able to name one.
 - `MessageTemplateParser.Parse` throws on alignments that overflow; the failure falls back to logging the raw text. An alignment wider than 64 stays unbound, because padding is only rendered for bound properties.
@@ -56,7 +59,7 @@ Frontend: `EvilCase.App` uses Serilog as well, with the differences WebAssembly 
 - The event timestamp is the server clock; the browser value is kept as `ClientTimestamp`. Browser clocks are arbitrary and would corrupt the Seq timeline.
 - The browser exception text arrives as a `ClientLogException`.
 
-Request context: `EvilCase.App` stamps every API request with `X-Request-Id` (fresh per request), `X-Correlation-Id` (same value), `X-Session-Id` (one GUID per app load) and `X-Machine-Id` through a `DelegatingHandler` attached to the generated clients. The machine identifier lives in `localStorage` under `evilcase.machine-id` and survives reloads and browser restarts; `ClientIdentity` reads it through synchronous WebAssembly interop, which is what makes it available to the handler. `EvilBrains.Logging.AspNetCore`'s `UseRequestContextLogging` validates the headers as GUIDs, re-formats them and pushes them into the Serilog `LogContext`, so every event of that request carries them; it must run before `UseSerilogRequestLogging` for the completion event to carry them too. `RequestLogging.GetLevel` demotes successful log uploads and successful `OPTIONS` requests to `Verbose`, so neither leaves a completion log. Note that entries in a batch inherit the identifiers of the upload, not of the browser request they describe — correlate browser and server through `SessionId` plus `ClientUrl` and `ClientTimestamp`.
+Request context: `AddRequestContextHeaders()` on a generated client stamps every request with `X-Request-Id` (fresh per request), `X-Correlation-Id` (same value), `X-Session-Id` (one GUID per app load) and `X-Machine-Id`. The machine identifier lives in `localStorage` under `evilcase.machine-id` and survives reloads and browser restarts; `ClientIdentity` reads it through synchronous WebAssembly interop, which is what makes it available to the handler. On the server `UseRequestLogging` validates the headers as GUIDs, re-formats them and pushes them into the Serilog `LogContext`, so every event of that request carries them, and only then runs Serilog's request logging — that ordering is why the two are one call. Successful log uploads and successful `OPTIONS` requests are demoted to `Verbose`, so neither leaves a completion log. Note that entries in a batch inherit the identifiers of the upload, not of the browser request they describe — correlate browser and server through `SessionId` plus `ClientUrl` and `ClientTimestamp`.
 
 Seq credentials stay on the server; the browser only ever talks to the API.
 
