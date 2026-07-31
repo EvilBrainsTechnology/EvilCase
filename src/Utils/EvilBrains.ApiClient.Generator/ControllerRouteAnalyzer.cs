@@ -7,7 +7,7 @@ namespace EvilBrains.ApiClient.Generator;
 
 /// <summary>
 /// Enforces route conventions on [ApiController] classes: [Route] is mandatory on the controller,
-/// each action carries exactly one HTTP method attribute with a template, and templates are relative snake_case.
+/// each action carries exactly one HTTP method attribute with a template, and templates are relative kebab-case.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class ControllerRouteAnalyzer : DiagnosticAnalyzer
@@ -17,7 +17,7 @@ public sealed class ControllerRouteAnalyzer : DiagnosticAnalyzer
             Diagnostics.MissingControllerRoute,
             Diagnostics.MissingActionRoute,
             Diagnostics.ForbiddenRouteSyntax,
-            Diagnostics.RouteSegmentNotSnakeCase);
+            Diagnostics.RouteSegmentNotKebabCase);
 
     public override void Initialize(AnalysisContext context)
     {
@@ -75,8 +75,8 @@ public sealed class ControllerRouteAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        var segment = RouteTemplate.FindNonSnakeCaseSegment(template);
+        var segment = RouteTemplate.FindNonKebabCaseSegment(template);
         if (segment is not null)
-            context.ReportDiagnostic(Diagnostic.Create(Diagnostics.RouteSegmentNotSnakeCase, location, template, segment));
+            context.ReportDiagnostic(Diagnostic.Create(Diagnostics.RouteSegmentNotKebabCase, location, template, segment));
     }
 }

@@ -101,7 +101,7 @@ public class ApiClientGeneratorTests
         {
             [ApiController]
             [GenerateApiClient]
-            [Route("nested_items")]
+            [Route("nested-items")]
             public class ItemsController : ControllerBase
             {
                 [HttpGet("")]
@@ -383,11 +383,11 @@ public class ApiClientGeneratorTests
             """);
 
     [Test]
-    public void NonSnakeCaseRouteIsReportedTest() =>
+    public void NonKebabCaseRouteIsReportedTest() =>
         AssertDiagnostic(
             "EB1004",
             """
-            [HttpGet("items-list")]
+            [HttpGet("items_list")]
             public Task<ItemResponse> GetItems() => throw null!;
             """);
 

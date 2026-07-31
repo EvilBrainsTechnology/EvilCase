@@ -70,7 +70,7 @@ public class AuthController(ApplicationDbContext dbContext) : ControllerBase
         return this.Ok(loginResponseModel);
     }
 
-    [HttpGet("user_info")]
+    [HttpGet("user-info")]
     [Authorize]
     public UserInfo UserInfo()
     {

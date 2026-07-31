@@ -22,8 +22,8 @@ internal static class Diagnostics
     public static readonly DiagnosticDescriptor ForbiddenRouteSyntax =
         Descriptor("EB1003", "Forbidden route syntax", "Route template '{0}' must not start with '/' or '~' and must not contain tokens, catch-all or empty placeholders");
 
-    public static readonly DiagnosticDescriptor RouteSegmentNotSnakeCase =
-        Descriptor("EB1004", "Route segment not snake_case", "Route segment '{1}' of template '{0}' must be snake_case");
+    public static readonly DiagnosticDescriptor RouteSegmentNotKebabCase =
+        Descriptor("EB1004", "Route segment not kebab-case", "Route segment '{1}' of template '{0}' must be kebab-case");
 
     public static readonly DiagnosticDescriptor MissingBindingAttribute =
         Descriptor("EB1005", "Missing binding attribute", "Parameter '{0}' must have exactly one binding attribute or be a CancellationToken");
@@ -68,7 +68,7 @@ internal static class Diagnostics
             MissingControllerRoute,
             MissingActionRoute,
             ForbiddenRouteSyntax,
-            RouteSegmentNotSnakeCase,
+            RouteSegmentNotKebabCase,
             MissingBindingAttribute,
             UnmatchedRoutePlaceholder,
             DuplicateSpecialParameter,

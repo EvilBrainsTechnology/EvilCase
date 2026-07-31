@@ -285,10 +285,10 @@ internal static class ControllerParser
             return false;
         }
 
-        var segment = RouteTemplate.FindNonSnakeCaseSegment(template);
+        var segment = RouteTemplate.FindNonKebabCaseSegment(template);
         if (segment is not null)
         {
-            diagnostics.Add(ApiModelParser.Diagnostic(Diagnostics.RouteSegmentNotSnakeCase, attribute, template, segment));
+            diagnostics.Add(ApiModelParser.Diagnostic(Diagnostics.RouteSegmentNotKebabCase, attribute, template, segment));
 
             return false;
         }
