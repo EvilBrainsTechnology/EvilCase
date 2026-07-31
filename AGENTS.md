@@ -176,4 +176,6 @@ Run everything from `src/`:
 - `dotnet r format` / `dotnet r format-check` — format / verify formatting
 - `dotnet r ci` — format-check + build + test
 - `dotnet r run` — run everything at `https://localhost:5000` (Scalar UI at `/scalar` in dev)
+
+`launchSettings.json` holds a second profile, `claude`, identical except for port 5100 and no browser launch. `.claude/launch.json` runs it, so an agent-started instance and an IDE-started one can coexist. When changing that port, keep it off the browsers' unsafe-port list (6000, 6665–6669, 6697, ...) — the preview pane refuses to load those.
 - `dotnet r add-migration` / `remove-migration` / `generate-sql-script` — EF migrations

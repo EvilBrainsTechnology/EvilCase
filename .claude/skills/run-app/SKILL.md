@@ -16,7 +16,7 @@ All commands run from `src/`.
 
 One server serves everything: `dotnet r run` → `https://localhost:5000` (Scalar UI at `/scalar`, Development only).
 
-In Claude Code, prefer the preview server defined in `.claude/launch.json` (name `evilcase`).
+In Claude Code, prefer the preview server defined in `.claude/launch.json` (name `evilcase`). It runs the `claude` launch profile on `https://localhost:5100`, so it never collides with an instance started from the IDE on 5000 — use 5100 in every URL below.
 
 ## Verify
 
