@@ -142,6 +142,7 @@ Rules:
 - Respond in the language of the user's message.
 - Everything committed to the repo is English only: code, comments, documentation, AI instructions, commit messages, merge request descriptions, routes and URLs. Exception: user-facing UI strings are Czech.
 - All written texts (docs, AI instructions, READMEs): concise and factual. State what, not why. No filler.
+- Commit messages and merge request descriptions open with a TL;DR: one or two sentences saying what changed, before any detail.
 - Code style: clean, readable code sometimes beats 100% correctness and defensiveness.
 - Every class resolved from DI is `internal sealed` and is consumed through an interface; when the consumer is public (a controller, a public extension method) the interface is public and the implementation stays internal. Exceptions are types the framework instantiates by concrete type or that have no service role: controllers, `DelegatingHandler` subclasses, middleware, exceptions, DTO and options records, static helpers.
 - Comments only when something is unexpected (e.g. a workaround). If code needs a comment, prefer rewriting the code to be more readable.
