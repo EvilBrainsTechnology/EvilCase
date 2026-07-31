@@ -39,6 +39,9 @@ internal sealed class ClientLogWriter : IClientLogWriter
 
         var (template, properties) = Bind(Sanitize(entry.MessageTemplate, ClientLogEntry.MessageTemplateMaxLength), entry.Properties);
 
+        // Set on the event, so it wins over the server's own enricher.
+        properties.Add(new(AppSource.PropertyName, new ScalarValue(AppSource.Client)));
+
         properties.Add(new("ClientTimestamp", new ScalarValue(entry.Timestamp)));
 
         if (entry.Category is not null)

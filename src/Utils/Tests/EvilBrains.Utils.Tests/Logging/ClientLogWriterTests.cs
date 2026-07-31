@@ -62,6 +62,16 @@ public class ClientLogWriterTests
     }
 
     [Test]
+    public void AppSourceIsClientAndCannotBeSpoofed()
+    {
+        var properties = new Dictionary<string, string>(StringComparer.Ordinal) { [AppSource.PropertyName] = AppSource.Server };
+
+        this.writer.Write(Entry($"{{{AppSource.PropertyName}}}", properties));
+
+        Assert.That(Value(this.sink.Single(), AppSource.PropertyName), Is.EqualTo(AppSource.Client));
+    }
+
+    [Test]
     public void OverflowingAlignmentDoesNotThrow()
     {
         this.writer.Write(Entry("{Foo,-2147483648}", new Dictionary<string, string>(StringComparer.Ordinal) { ["Foo"] = "bar" }));

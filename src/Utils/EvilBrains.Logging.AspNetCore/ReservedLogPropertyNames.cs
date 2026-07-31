@@ -15,6 +15,7 @@ internal static class ReservedLogPropertyNames
     private static readonly FrozenSet<string> Names = FrozenSet.Create(
         StringComparer.Ordinal,
         Constants.SourceContextPropertyName,
+        AppSource.PropertyName,
         RequestContextPropertyNames.RequestId,
         RequestContextPropertyNames.CorrelationId,
         RequestContextPropertyNames.SessionId,

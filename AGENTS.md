@@ -40,6 +40,8 @@ Client generation rules (EB1010–EB1016, generator-only): actions return `void`
 
 The mechanics live in three Utils libraries; the apps only wire them up. `EvilBrains.Logging.Contract` holds the wire contract (client log DTOs, header and property names), `EvilBrains.Logging.AspNetCore` the server half, `EvilBrains.Logging.WebAssembly` the browser half.
 
+Every event carries `AppSource`, either `Client` or `Server`. The API enriches its own events with `Server`; `ClientLogWriter` puts `Client` on the events it rebuilds, which wins because properties on an event beat enrichers, and the name is reserved so a browser entry cannot claim to be a server one.
+
 API: Serilog is configured in `Program.cs` from the `Serilog` configuration section (console everywhere, Seq per environment) and handed to `UseSerilog(Log.Logger)` — the parameterless overload registers no `Serilog.ILogger`, which `AddClientLogWriter` needs. Log call sites go through `[LoggerMessage]` partial methods — CA1848 runs at error severity. `Bootstrap` passes the source context browser logs are recorded under, `Program.cs` calls `app.UseRequestLogging("/logs/client")`.
 
 Frontend: `EvilCase.App` uses Serilog as well, with the differences WebAssembly forces:

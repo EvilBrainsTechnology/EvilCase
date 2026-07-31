@@ -2,6 +2,7 @@ using EvilBrains.EvilCase.Api;
 using EvilBrains.EvilCase.Auth;
 using EvilBrains.EvilCase.Secrets;
 using EvilBrains.Logging.AspNetCore;
+using EvilBrains.Logging.Contract;
 using Scalar.AspNetCore;
 using Serilog;
 
@@ -21,6 +22,7 @@ builder.Configuration
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
+    .Enrich.WithProperty(AppSource.PropertyName, AppSource.Server)
     .CreateLogger();
 #pragma warning restore RCS0054
 
