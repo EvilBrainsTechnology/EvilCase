@@ -1,21 +1,19 @@
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
-using EvilBrains.ApiClient;
-using EvilBrains.EvilCase.Api.Client;
 using EvilBrains.Logging.Contract;
 using Microsoft.AspNetCore.Components;
 using Serilog.Core;
 using Serilog.Debugging;
 using Serilog.Events;
 
-namespace EvilBrains.EvilCase.App.Logging;
+namespace EvilBrains.Logging.WebAssembly;
 
 /// <summary>
-/// Buffers log events in the browser and ships them to the API in batches.
-/// The sink is created before the host exists, so the API client arrives later through <see cref="Start"/>;
+/// Buffers log events in the browser and ships them to the server in batches.
+/// The sink is created before the host exists, so the uploader arrives later through <see cref="Start"/>;
 /// events emitted until then are buffered.
 /// </summary>
-internal sealed class ApiLogSink : ILogEventSink
+internal sealed class ClientLogSink : ILogEventSink
 {
     private const int QueueCapacity = 500;
 
@@ -34,11 +32,11 @@ internal sealed class ApiLogSink : ILogEventSink
         this.queue.Enqueue(this.ToEntry(logEvent));
     }
 
-    public void Start(ILogsClient client, NavigationManager navigationManager)
+    public void Start(IClientLogUploader uploader, NavigationManager navigationManager)
     {
         this.navigation = navigationManager;
 
-        _ = this.ShipAsync(client);
+        _ = this.ShipAsync(uploader);
     }
 
     [return: NotNullIfNotNull(nameof(value))]
@@ -75,7 +73,7 @@ internal sealed class ApiLogSink : ILogEventSink
         return properties.Count == 0 ? null : properties;
     }
 
-    // ScalarValue.ToString() quotes strings, which would arrive at the API quoted twice.
+    // ScalarValue.ToString() quotes strings, which would arrive at the server quoted twice.
     private static string RenderValue(LogEventPropertyValue value) => value switch
     {
         ScalarValue { Value: null } => "null",
@@ -89,15 +87,15 @@ internal sealed class ApiLogSink : ILogEventSink
             ? source
             : null;
 
-    private async Task ShipAsync(ILogsClient client)
+    private async Task ShipAsync(IClientLogUploader uploader)
     {
         using var timer = new PeriodicTimer(FlushInterval);
 
         while (await timer.WaitForNextTickAsync())
-            await this.FlushAsync(client);
+            await this.FlushAsync(uploader);
     }
 
-    private async Task FlushAsync(ILogsClient client)
+    private async Task FlushAsync(IClientLogUploader uploader)
     {
         while (!this.queue.IsEmpty)
         {
@@ -107,13 +105,13 @@ internal sealed class ApiLogSink : ILogEventSink
 
             try
             {
-                await client.WriteClientLogs(new ClientLogBatch { Entries = entries });
+                await uploader.UploadAsync(new ClientLogBatch { Entries = entries });
             }
-            catch (Exception exception) when (exception is ApiException or HttpRequestException or TaskCanceledException)
+            catch (ClientLogUploadException exception)
             {
                 // The batch is dropped and the rest waits for the next tick. Logging the failure through Serilog
                 // would feed the sink that just failed, so it goes to Serilog's own diagnostic channel.
-                SelfLog.WriteLine("Shipping {0} log entries to the API failed: {1}", entries.Count, exception);
+                SelfLog.WriteLine("Shipping {0} log entries to the server failed: {1}", entries.Count, exception.InnerException ?? exception);
 
                 return;
             }
@@ -125,7 +123,7 @@ internal sealed class ApiLogSink : ILogEventSink
         Timestamp = logEvent.Timestamp,
         Level = ToClientLevel(logEvent.Level),
 
-        // The template travels unrendered so the API can log the event with its properties intact.
+        // The template travels unrendered so the server can log the event with its properties intact.
         MessageTemplate = Truncate(logEvent.MessageTemplate.Text, ClientLogEntry.MessageTemplateMaxLength),
         Properties = ToProperties(logEvent),
         Category = Truncate(SourceContext(logEvent), ClientLogEntry.CategoryMaxLength),

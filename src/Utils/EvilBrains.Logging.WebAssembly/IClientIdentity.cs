@@ -1,4 +1,4 @@
-namespace EvilBrains.EvilCase.App.Http;
+namespace EvilBrains.Logging.WebAssembly;
 
 internal interface IClientIdentity
 {

@@ -1,14 +1,12 @@
 using Serilog.Events;
 
-namespace EvilBrains.EvilCase.App.Logging;
+namespace EvilBrains.Logging.WebAssembly;
 
 /// <summary>
-/// Minimum levels for the browser console and for the events shipped to the API.
+/// Minimum levels for the browser console and for the events shipped to the server.
 /// </summary>
 internal sealed record ClientLoggingOptions
 {
-    public const string SectionName = "ClientLogging";
-
     public LogEventLevel MinimumLevel { get; init; } = LogEventLevel.Information;
 
     public LogEventLevel ServerMinimumLevel { get; init; } = LogEventLevel.Warning;

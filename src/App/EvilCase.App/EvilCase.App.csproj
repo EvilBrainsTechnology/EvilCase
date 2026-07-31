@@ -1,23 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
 
-  <PropertyGroup>
-    <!-- Binds configuration without reflection, which the trimmer would break. -->
-    <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
-  </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" />
-    <PackageReference Include="Serilog" />
-    <PackageReference Include="Serilog.Extensions.Logging" />
-    <PackageReference Include="Serilog.Sinks.BrowserConsole" />
     <PackageReference Include="TabBlazor" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Api\EvilCase.Api.Client\EvilCase.Api.Client.csproj" />
     <ProjectReference Include="..\..\Utils\EvilBrains.Logging.Contract\EvilBrains.Logging.Contract.csproj" />
+    <ProjectReference Include="..\..\Utils\EvilBrains.Logging.WebAssembly\EvilBrains.Logging.WebAssembly.csproj" />
   </ItemGroup>
 
 </Project>

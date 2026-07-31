@@ -1,9 +1,9 @@
 using EvilBrains.Logging.Contract;
 
-namespace EvilBrains.EvilCase.App.Http;
+namespace EvilBrains.Logging.WebAssembly;
 
 /// <summary>
-/// Stamps every API request with identifiers the server puts into its log context.
+/// Stamps every request with identifiers the server puts into its log context.
 /// </summary>
 internal sealed class RequestContextHandler(IClientIdentity identity) : DelegatingHandler
 {

@@ -1,14 +1,9 @@
 using EvilBrains.EvilCase.Api.Client;
 using EvilBrains.EvilCase.App;
-using EvilBrains.EvilCase.App.Http;
 using EvilBrains.EvilCase.App.Logging;
-using Microsoft.AspNetCore.Components;
+using EvilBrains.Logging.WebAssembly;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using Serilog;
-using Serilog.Debugging;
-using Serilog.Events;
-using Serilog.Filters;
 using TabBlazor;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -18,33 +13,10 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 var apiBaseUrl = builder.Configuration["ApiBaseUrl"]
     ?? throw new InvalidOperationException("ApiBaseUrl configuration is missing");
 
-var loggingOptions = builder.Configuration.GetSection(ClientLoggingOptions.SectionName).Get<ClientLoggingOptions>() ?? new();
-var apiLogSink = new ApiLogSink();
+builder.AddClientLogging("ClientLogging", "evilcase.machine-id", nameof(ILogsClient));
 
-SelfLog.Enable(message => Console.Error.WriteLine(message));
-
-#pragma warning disable RCS0054 // Fix formatting of a call chain
-
-// Shipping a batch is itself an HTTP request, so without this filter the sink would feed itself.
-Action<LoggerConfiguration> shipToApi = shipped => shipped
-    .Filter.ByExcluding(Matching.FromSource("System.Net.Http.HttpClient"))
-    .WriteTo.Sink(apiLogSink, loggingOptions.ServerMinimumLevel);
-
-Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Is(loggingOptions.MinimumLevel)
-    .MinimumLevel.Override($"System.Net.Http.HttpClient.{nameof(ILogsClient)}", LogEventLevel.Warning)
-    .Enrich.FromLogContext()
-    .WriteTo.BrowserConsole(formatProvider: CultureInfo.InvariantCulture)
-    .WriteTo.Logger(shipToApi)
-    .CreateLogger();
-#pragma warning restore RCS0054
-
-builder.Logging.ClearProviders();
-builder.Logging.AddSerilog(Log.Logger, dispose: true);
-
-builder.Services.AddSingleton<IClientIdentity, ClientIdentity>();
-builder.Services.AddTransient<RequestContextHandler>();
-builder.Services.AddEvilCaseApiClient(new Uri(apiBaseUrl), client => client.AddHttpMessageHandler<RequestContextHandler>());
+builder.Services.AddSingleton<IClientLogUploader, ApiLogUploader>();
+builder.Services.AddEvilCaseApiClient(new Uri(apiBaseUrl), client => client.AddRequestContextHeaders());
 
 builder.Services.AddTabBlazor(
     options =>
@@ -57,7 +29,6 @@ builder.Services.AddTabBlazor(
     });
 
 var host = builder.Build();
-
-apiLogSink.Start(host.Services.GetRequiredService<ILogsClient>(), host.Services.GetRequiredService<NavigationManager>());
+host.StartClientLogging();
 
 await host.RunAsync();
