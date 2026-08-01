@@ -40,8 +40,10 @@ internal sealed class PageUnloadFlusher(IJSRuntime jsRuntime, ClientLogSink sink
 
             await this.module.InvokeVoidAsync("register", uploadUrl, this.reference);
         }
-        catch (JSException exception)
+        catch (Exception exception)
         {
+            // Broad on purpose: nothing observes the task, so anything narrower would surface as an
+            // unobserved task exception instead of this line.
             SelfLog.WriteLine("Flushing log entries on page unload is unavailable: {0}", exception);
         }
     }
