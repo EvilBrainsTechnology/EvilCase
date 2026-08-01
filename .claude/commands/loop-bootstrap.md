@@ -4,7 +4,10 @@ description: One-off setup of the EvilCase product loop — checks, labels, mile
 
 # Bootstrap the EvilCase product loop
 
-Run once. Idempotent: skip whatever already exists, never duplicate.
+Run once, and safe to run again: every step below lists what exists before it creates anything and
+creates only what is missing. None of the `gh` create commands is idempotent on its own — a label
+that exists is an error, a milestone or an issue with the same title is a duplicate — so the listing
+is the mechanism, not a precaution.
 
 ## 1. Check the environment
 
@@ -14,25 +17,37 @@ Report each as OK or blocked, and stop at the first blocker rather than guessing
 - `dotnet tool restore` from `src/`, then `dotnet r build`.
 - `docker compose -f deploy/docker-compose.dev.yml up -d --wait` from the repository root brings up
   PostgreSQL on the connection string `.env.example` already carries.
-- `src/EvilCase.Host/.env` exists and carries `Auth__Seed__*` — without the seeded administrator
-  there is no way into the application, and the visual proof below is impossible.
-- `dotnet r run` reaches `/health/ready` as `Healthy`, and the seeded administrator can sign in at
-  `https://localhost:5100` (see `.claude/skills/run-app`).
+- `src/EvilCase.Host/.env` exists and carries `EvilBrains__EvilCase__Auth__Seed__Email` and
+  `__Password` — without the seeded administrator there is no way into the application, and the
+  visual proof below is impossible.
+- The `evilcase` preview server (`.claude/launch.json`, `https://localhost:5000` — see
+  `.claude/skills/run-app`) reaches `/health/ready` as `Healthy`, and the seeded administrator can
+  sign in. An instance already running from the IDE holds that port and has to be stopped first.
 - A screenshot of a signed-in screen can be taken. If no browser tooling is available, say so — the
   definition of done in `.claude/commands/loop-step.md` depends on it.
 
 ## 2. Labels
 
-`gh label create` for: `loop` (work done by the loop), `needs-decision` (waiting on the owner),
-`decided`, `blocked`, `epic`, and one per area: `area/domain`, `area/api`, `area/ui`,
-`area/import`, `area/search`, `area/docs`.
+`gh label list` first, then `gh label create` for whichever of these is missing.
+
+State: `loop` (work done by the loop), `needs-decision` (waiting on the owner), `decided`, `blocked`.
+
+Area, one per milestone topic so every issue below has one: `area/domain`, `area/ui`, `area/import`,
+`area/timeline`, `area/deadlines`, `area/search`, `area/templates`, `area/users`. Two more are
+cross-cutting rather than a milestone: `area/api` and `area/docs`.
 
 ## 3. Milestones
+
+`gh api repos/{owner}/{repo}/milestones` first, then create whichever titles are missing — GitHub
+accepts a duplicate title without complaint.
 
 M0 Domain core, M1 Case UI, M2 Acts UI, M3 Import, M4 Timeline, M5 Deadlines, M6 Search,
 M7 Templates, M8 Ownership and users — as described in `docs/product/vision.md`.
 
 ## 4. Seed the backlog
+
+`gh issue list --state all --limit 200` first; a slice whose issue already exists is skipped, and
+nothing here is ever opened twice.
 
 One issue per slice below, in this order, each on its milestone, each labelled `loop` and its area.
 Body: what the slice ships, what "done" looks like in the UI, and what it deliberately leaves out.

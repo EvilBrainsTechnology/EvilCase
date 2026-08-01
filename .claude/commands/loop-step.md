@@ -16,13 +16,22 @@ Focus: $ARGUMENTS
 
 ## 1. Apply answered decisions
 
-List `gh issue list --label needs-decision --state open` and read the comments of each. Any comment
-authored by the repository owner is the answer, even if it is one word or picks no listed option.
+List `gh issue list --label needs-decision --state open` and read the comments of each. **Any
+comment on an open decision issue is the owner's answer**, even if it is one word or picks no listed
+option.
 
-For each answered decision: append a `## Decision` comment stating what was chosen and what follows
-from it, label it `decided`, close it, and remove `blocked` from every issue that references it. If
-the decision changes the vision, `docs/product/vision.md` is updated in the next pull request, in
-the same commit as the code it governs.
+That rule holds only because of this one, which must not be relaxed: **the loop never comments on a
+decision issue while it is open.** `gh` is authenticated as the owner's own account, so a comment
+the loop writes is indistinguishable from an answer and the next iteration would read its own text
+as a decision. Everything the loop has to say about the question goes in the issue body at the time
+it opens it. Needing to add something later means editing the body (`gh issue edit`), never
+commenting.
+
+For each answered decision: state what was chosen and what follows from it in a `## Decision`
+comment — the one comment the loop is allowed, because it posts it and closes the issue in the same
+step — then label it `decided`, close it, and remove `blocked` from every issue that references it.
+If the decision changes the vision, `docs/product/vision.md` is updated in the next pull request,
+in the same commit as the code it governs; a decision that governs no code updates it on its own.
 
 Unanswered decisions stay open. Do not re-ask them and do not answer them yourself.
 
@@ -91,21 +100,40 @@ All four hold before the pull request exists:
 
 - `dotnet r ci` green, run from `src/`.
 - New tests covering what the slice adds, not only that it builds.
-- Visual proof: start PostgreSQL
-  (`docker compose -f deploy/docker-compose.dev.yml up -d --wait` from the repository root), start
-  the `evilcase` preview server (`.claude/launch.json`, port 5100 — see `.claude/skills/run-app`),
-  sign in as the seeded administrator, then screenshot every changed screen at 1440×900 and at
-  390×844 and attach both to the pull request.
+- Visual proof, as described below.
 - Documentation updated in the same commit: `AGENTS.md` for cross-cutting rules, the README next
   to the code for implementation detail.
 
 A red gate is fixed, never worked around. Analyzers are not suppressed to pass. If the slice cannot
 meet the gate, shrink the slice.
 
+### Visual proof
+
+Start PostgreSQL (`docker compose -f deploy/docker-compose.dev.yml up -d --wait` from the repository
+root), start the `evilcase` preview server (`.claude/launch.json` — see `.claude/skills/run-app`),
+sign in as the seeded administrator, and screenshot every changed screen at 1440×900 and at 390×844,
+the two sides of the `lg` breakpoint.
+
+`gh` cannot upload an image — GitHub's own attachment upload exists only in the web interface — so
+the screenshots reach the pull request as committed files:
+
+- Save them as `docs/screenshots/<issue>/<screen>-<width>.png` and commit them with the slice.
+- Embed them in the pull request body by raw URL pinned to that commit, which resolves before the
+  branch is merged and after it is deleted:
+  `https://raw.githubusercontent.com/EvilBrainsTechnology/EvilCase/<sha>/docs/screenshots/...`
+- A slice that replaces a screen deletes the screenshots it supersedes in the same pull request, so
+  the directory stays the current state of the application rather than its history.
+
+Everything in them is synthetic, by the standing rule below.
+
 ## 6. Pull request
 
 `gh pr create`, TL;DR on the first line, then what changed, the screenshots, and `Closes #<issue>`.
-Never merge. Never push to `master`. Merging is the owner's.
+
+Then stop. **The loop never merges the pull request and never pushes to `master`** — not its own,
+not after a green CI run, not because the iteration would otherwise look unfinished. `AGENTS.md`
+makes that binding for every agent; the loop is the one most likely to be tempted, because it runs
+unattended and merging is the only thing standing between it and the next slice. It waits instead.
 
 ## 7. Report
 
