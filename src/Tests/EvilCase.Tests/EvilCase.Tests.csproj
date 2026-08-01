@@ -22,6 +22,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Api\EvilCase.Api.Client\EvilCase.Api.Client.csproj" />
     <ProjectReference Include="..\..\Api\EvilCase.Api\EvilCase.Api.csproj" />
+    <ProjectReference Include="..\..\Common\EvilCase.Import\EvilCase.Import.csproj" />
     <ProjectReference Include="..\..\EvilCase.Host\EvilCase.Host.csproj" />
   </ItemGroup>
 

@@ -26,6 +26,7 @@ All code lives in `src/` (solution `EvilCase.slnx`).
 | `Api/EvilCase.Api.Contract` | Shared request/response contracts (DTOs only) |
 | `App/EvilCase.App` | Blazor WebAssembly frontend |
 | `Common/EvilCase.Auth` | Authentication: JWT bearer, sign-in, refresh token sessions, lockout, seeding |
+| `Common/EvilCase.Import` | Importing case folder trees: pure functions over content and names, no I/O of its own |
 | `Data/EvilCase.Data` | EF Core model + DbContext (PostgreSQL) |
 | `Data/EvilCase.Data.Migrations` | EF Core migrations |
 | `Tests/EvilCase.Tests` | Application tests (NUnit), including the host's routing through `WebApplicationFactory` |

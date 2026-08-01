@@ -77,7 +77,12 @@ Existing case files live as folder trees on disk. The importer reads this conven
 | sub-folder | sub-case |
 | ` (uzavřeno)` suffix on a folder | the sub-case is closed |
 | `.zfo` | data-box envelope of the neighbouring act |
-| `99 - ...` | generated summaries, not acts |
+| `99 - ...` | generated summaries, ignored entirely — not an act, not a file asset |
+
+**What a file is comes from its bytes, not from its name.** A `.pdf` that is really a Word document is
+a Word document, and an extension is never trusted. The names above carry structure — which folder,
+which act, which attachment — and the content carries format. How much of that structure stays with
+the names is still open; a folder has no bytes, and a final decision and its attachment are both PDFs.
 
 The importer is a pure parser over the tree plus an execution step. It never writes to the source.
 
