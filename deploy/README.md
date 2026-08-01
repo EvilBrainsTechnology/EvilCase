@@ -33,7 +33,9 @@ The provenance statement is stored on GitHub, not in the registry. Verify with `
 
 The database is not part of the stack — `EVILCASE_CONNECTION_STRING` points at an existing PostgreSQL. The schema is migrated on startup unless `EvilBrains__EvilCase__Database__MigrateOnStartup=false` is added to the service environment; where more than one instance starts at once, roll it out separately from the idempotent `database.sql` artifact CI publishes.
 
-The service is published over plain HTTP for a reverse proxy that terminates TLS, so it sets `BehindReverseProxy=true` and `HttpsRedirection=false`.
+The service is published over plain HTTP for a reverse proxy that terminates TLS, so it sets `BehindReverseProxy=true` and `HttpsRedirection=false`. The port is published on `127.0.0.1` only (`EVILCASE_PORT` picks the host port): the service trusts one hop of `X-Forwarded-For` and `X-Forwarded-Proto`, so a caller reaching it past the proxy would dictate its own address and scheme.
+
+Seq is driven by `EVILCASE_SEQ_URL` alone — an empty one logs to the console only.
 
 ```
 cp .env.example .env   # then fill in the connection string and the JWT key

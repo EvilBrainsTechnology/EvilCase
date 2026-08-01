@@ -43,7 +43,11 @@ One process serves everything. `EvilCase.Host` is the composition root: it owns 
 - `EvilCase.Api` is `Microsoft.NET.Sdk` + `FrameworkReference Microsoft.AspNetCore.App`, so it has none of the Web SDK's implicit usings — import ASP.NET Core namespaces per file.
 - Same-origin: no CORS anywhere. The frontend takes its API base address from `builder.HostEnvironment.BaseAddress`.
 
-Two keys under `EvilBrains:EvilCase:Hosting` adapt the pipeline to what sits in front of it: `BehindReverseProxy` (default `false`) calls `UseForwardedHeaders` first, with `KnownIPNetworks` and `KnownProxies` cleared; `HttpsRedirection` (default `true`) turns `UseHttpsRedirection` off where something in front already redirects. `/health/*` is excluded from redirection either way.
+Two keys under `EvilBrains:EvilCase:Hosting` adapt the pipeline to what sits in front of it: `BehindReverseProxy` (default `false`) calls `UseForwardedHeaders` first, with `KnownIPNetworks` and `KnownProxies` cleared and `ForwardLimit = 1`; `HttpsRedirection` (default `true`) turns `UseHttpsRedirection` off where something in front already redirects. `/health/*` is excluded from redirection either way. With no known proxy to check against, the single hop is the whole defence — a deployment that turns `BehindReverseProxy` on must not be reachable except through that proxy.
+
+Baseline security headers, the content security policy among them, are written by `SecurityHeadersMiddleware`; `/scalar` is excluded, because the Scalar UI loads its bundle from a CDN. The policy has to name the hash of every inline script of `index.html`, which `SecurityHeadersTests` pins.
+
+`/api/auth/*` and the client log upload are rate limited per caller address (10 and 120 requests per minute); nothing else is, health probes above all. `UseRateLimiter` sits after `UseForwardedHeaders`, so a partition is the caller rather than the proxy.
 
 ## Secrets
 
@@ -89,8 +93,10 @@ Controller shape (route templates, HTTP method attributes, kebab-case segments, 
 Rules that hold outside those libraries:
 
 - Every event carries `AppSource`, either `Client` or `Server`. The name is reserved: a browser entry cannot claim to be a server one.
-- Request logging is an allow-list: `app.UseRequestLogging(loggedPaths: ["/api"], quietPaths: ["/api/logs/client"])`. Anything outside `loggedPaths` leaves no completion log unless it fails. Do not turn it into a deny-list — the host also serves the frontend and all its assets.
-- Seq is configured from `EvilBrains:EvilCase:Logging:Seq` (`Enabled`, `ServerUrl`, `ApiKey`), not from the `Serilog` section, which only holds the console sink. An environment naming no server logs to the console only.
+- Request logging is an allow-list: `app.UseRequestLogging(loggedPaths: ["/api"], quietPaths: [ClientLogRoute.Path])`. Anything outside `loggedPaths` leaves no completion log unless it fails. Do not turn it into a deny-list — the host also serves the frontend and all its assets.
+- The upload route is `ClientLogRoute` in `EvilCase.Api.Contract`, and the controller, the host's quiet path and the browser sink all take it from there. Naming it again anywhere breaks both feedback-loop guards silently.
+- Seq is configured from `EvilBrains:EvilCase:Logging:Seq` (`ServerUrl`, `ApiKey`), not from the `Serilog` section, which only holds the console sink. The server URL is the only switch: an environment naming none logs to the console only.
+- The `Environment` property is enriched from `builder.Environment.EnvironmentName`, never from an `appsettings.*.json` of its own.
 - `host.StartClientLogging()` must be called after `builder.Build()` in `EvilCase.App`. Forgetting it is silent: browser events buffer and are dropped.
 - Seq credentials stay on the server; the browser only ever talks to the API.
 
