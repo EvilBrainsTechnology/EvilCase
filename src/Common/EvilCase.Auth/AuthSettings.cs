@@ -69,13 +69,29 @@ internal sealed record AuthSettings
         public required TimeSpan Duration { get; init; }
     }
 
+    /// <summary>
+    /// Blank counts as unset, the way <c>UserSeeder</c> already reads it. An environment that names no
+    /// seed still passes the key along — a compose file interpolating <c>${VAR:-}</c> hands over an empty
+    /// string, not nothing at all — and the validation below would otherwise refuse to start over a
+    /// deployment that simply seeds no account.
+    /// </summary>
     internal sealed record SeedSettings
     {
         [EmailAddress]
         [StringLength(256)]
-        public string? Email { get; init; }
+        public string? Email
+        {
+            get;
+            init => field = Unset(value);
+        }
 
         [StringLength(128, MinimumLength = 12)]
-        public string? Password { get; init; }
+        public string? Password
+        {
+            get;
+            init => field = Unset(value);
+        }
+
+        private static string? Unset(string? value) => string.IsNullOrWhiteSpace(value) ? null : value;
     }
 }
