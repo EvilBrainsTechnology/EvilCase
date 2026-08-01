@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using EvilBrains.Logging.Contract;
 using Serilog.Core;
 using Serilog.Events;
@@ -53,7 +54,9 @@ internal sealed class ClientLogWriter : IClientLogWriter
         if (entry.Url is not null)
             properties.Add(new("ClientUrl", new ScalarValue(Sanitize(entry.Url, ClientLogEntry.UrlMaxLength))));
 
-        var exception = entry.Exception is null ? null : new ClientLogException(entry.Exception);
+        var exception = entry.Exception is null
+            ? null
+            : new ClientLogException(Sanitize(entry.Exception, ClientLogEntry.ExceptionMaxLength));
 
         this.logger.Write(new LogEvent(DateTimeOffset.Now, level, exception, template, properties));
     }
@@ -107,10 +110,16 @@ internal sealed class ClientLogWriter : IClientLogWriter
 
     /// <summary>
     /// Control characters are stripped so a browser cannot forge lines in the plain text console sink.
+    /// The value is nullable because the payload is JSON: a null inside the property dictionary passes
+    /// model validation, which covers properties and never dictionary values.
     /// </summary>
-    private static string Sanitize(string value, int maxLength)
+    [return: NotNullIfNotNull(nameof(value))]
+    private static string? Sanitize(string? value, int maxLength)
     {
-        var text = value.Length <= maxLength ? value : value[..maxLength];
+        if (value is null)
+            return null;
+
+        var text = ClientLogText.Truncate(value, maxLength);
 
         return text.Any(char.IsControl) ? string.Concat(text.Where(x => !char.IsControl(x))) : text;
     }

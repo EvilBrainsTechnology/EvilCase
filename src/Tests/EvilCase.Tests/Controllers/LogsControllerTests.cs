@@ -17,6 +17,20 @@ public class LogsControllerTests
         Assert.That(writer.Entries.Select(x => x.MessageTemplate), Is.EqualTo(["first", "second"]));
     }
 
+    /// <summary>
+    /// The endpoint is anonymous and model validation covers properties, never collection elements.
+    /// </summary>
+    [Test]
+    public void NullEntryIsSkipped()
+    {
+        var writer = new CollectingWriter();
+        var controller = new LogsController(writer);
+
+        controller.WriteClientLogs(new ClientLogBatch { Entries = [null!, Entry("second")] });
+
+        Assert.That(writer.Entries.Select(x => x.MessageTemplate), Is.EqualTo(["second"]));
+    }
+
     private static ClientLogEntry Entry(string messageTemplate) => new()
     {
         Timestamp = DateTimeOffset.Now,

@@ -14,7 +14,7 @@ namespace EvilBrains.EvilCase.Api.Controllers;
 
 [ApiController]
 [GenerateApiClient]
-[Route("api/auth")]
+[Route(AuthRoute.Template)]
 public class AuthController(ApplicationDbContext dbContext) : ControllerBase
 {
     [HttpPost("register")]

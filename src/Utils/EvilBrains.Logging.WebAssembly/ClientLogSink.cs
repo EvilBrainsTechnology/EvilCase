@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Diagnostics.CodeAnalysis;
 using EvilBrains.Logging.Contract;
 using Microsoft.AspNetCore.Components;
 using Serilog.Core;
@@ -46,9 +45,21 @@ internal sealed class ClientLogSink : ILogEventSink
         _ = this.ShipAsync(uploader);
     }
 
-    [return: NotNullIfNotNull(nameof(value))]
-    private static string? Truncate(string? value, int maxLength) =>
-        value is null || value.Length <= maxLength ? value : value[..maxLength];
+    /// <summary>
+    /// Takes the next batch out of the buffer. Public for the unload flush, which cannot await an upload
+    /// and ships the batch itself.
+    /// </summary>
+    public ClientLogBatch? Drain()
+    {
+        if (this.queue.IsEmpty)
+            return null;
+
+        var entries = new List<ClientLogEntry>(ClientLogBatch.MaxEntries);
+        while (entries.Count < ClientLogBatch.MaxEntries && this.queue.TryDequeue(out var entry))
+            entries.Add(entry);
+
+        return entries.Count == 0 ? null : new ClientLogBatch { Entries = entries };
+    }
 
     private static ClientLogLevel ToClientLevel(LogEventLevel level) => level switch
     {
@@ -74,7 +85,7 @@ internal sealed class ClientLogSink : ILogEventSink
             if (Lifted.Contains(name))
                 continue;
 
-            properties.Add(name, Truncate(RenderValue(value), ClientLogEntry.PropertyValueMaxLength));
+            properties.Add(name, ClientLogText.Truncate(RenderValue(value), ClientLogEntry.PropertyValueMaxLength));
         }
 
         return properties.Count == 0 ? null : properties;
@@ -118,21 +129,17 @@ internal sealed class ClientLogSink : ILogEventSink
 
     private async Task FlushAsync(IClientLogUploader uploader)
     {
-        while (!this.queue.IsEmpty)
+        while (this.Drain() is { } batch)
         {
-            var entries = new List<ClientLogEntry>(ClientLogBatch.MaxEntries);
-            while (entries.Count < ClientLogBatch.MaxEntries && this.queue.TryDequeue(out var entry))
-                entries.Add(entry);
-
             try
             {
-                await uploader.UploadAsync(new ClientLogBatch { Entries = entries });
+                await uploader.UploadAsync(batch);
             }
             catch (ClientLogUploadException exception)
             {
                 // The batch is dropped and the rest waits for the next tick. Logging the failure through Serilog
                 // would feed the sink that just failed, so it goes to Serilog's own diagnostic channel.
-                SelfLog.WriteLine("Shipping {0} log entries to the server failed: {1}", entries.Count, exception.InnerException ?? exception);
+                SelfLog.WriteLine("Shipping {0} log entries to the server failed: {1}", batch.Entries.Count, exception.InnerException ?? exception);
 
                 return;
             }
@@ -145,12 +152,12 @@ internal sealed class ClientLogSink : ILogEventSink
         Level = ToClientLevel(logEvent.Level),
 
         // The template travels unrendered so the server can log the event with its properties intact.
-        MessageTemplate = Truncate(logEvent.MessageTemplate.Text, ClientLogEntry.MessageTemplateMaxLength),
+        MessageTemplate = ClientLogText.Truncate(logEvent.MessageTemplate.Text, ClientLogEntry.MessageTemplateMaxLength),
         Properties = ToProperties(logEvent),
-        RequestId = Truncate(Text(logEvent, RequestContextPropertyNames.RequestId), ClientLogEntry.IdentifierMaxLength),
-        CorrelationId = Truncate(Text(logEvent, RequestContextPropertyNames.CorrelationId), ClientLogEntry.IdentifierMaxLength),
-        Category = Truncate(Text(logEvent, Constants.SourceContextPropertyName), ClientLogEntry.CategoryMaxLength),
-        Exception = Truncate(logEvent.Exception?.ToString(), ClientLogEntry.ExceptionMaxLength),
-        Url = Truncate(this.navigation?.Uri, ClientLogEntry.UrlMaxLength),
+        RequestId = ClientLogText.Truncate(Text(logEvent, RequestContextPropertyNames.RequestId), ClientLogEntry.IdentifierMaxLength),
+        CorrelationId = ClientLogText.Truncate(Text(logEvent, RequestContextPropertyNames.CorrelationId), ClientLogEntry.IdentifierMaxLength),
+        Category = ClientLogText.Truncate(Text(logEvent, Constants.SourceContextPropertyName), ClientLogEntry.CategoryMaxLength),
+        Exception = ClientLogText.Truncate(logEvent.Exception?.ToString(), ClientLogEntry.ExceptionMaxLength),
+        Url = ClientLogText.Truncate(this.navigation?.Uri, ClientLogEntry.UrlMaxLength),
     };
 }

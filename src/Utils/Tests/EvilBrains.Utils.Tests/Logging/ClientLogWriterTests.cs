@@ -123,6 +123,50 @@ public class ClientLogWriterTests
         Assert.That(Value(this.sink.Single(), "Foo"), Is.EqualTo("first[ERR] forged"));
     }
 
+    /// <summary>
+    /// Model validation covers properties, never dictionary values: a null arrives here as one.
+    /// </summary>
+    [Test]
+    public void NullPropertyValueIsBoundAsNull()
+    {
+        this.writer.Write(Entry("{Foo}", new Dictionary<string, string>(StringComparer.Ordinal) { ["Foo"] = null! }));
+
+        var logEvent = this.sink.Single();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(logEvent.Properties.ContainsKey("Foo"), Is.True);
+            Assert.That(logEvent.RenderMessage(CultureInfo.InvariantCulture), Is.EqualTo("null"));
+        }
+    }
+
+    [Test]
+    public void ControlCharactersAreStrippedFromTheExceptionText()
+    {
+        this.writer.Write(Entry("Something failed", properties: null) with { Exception = "boom\n[FTL] forged" });
+
+        Assert.That(this.sink.Single().Exception?.Message, Is.EqualTo("boom[FTL] forged"));
+    }
+
+    /// <summary>
+    /// A cut between a high and a low surrogate leaves a lone surrogate no UTF-16 consumer accepts.
+    /// </summary>
+    [Test]
+    public void TruncationKeepsSurrogatePairsIntact()
+    {
+        var value = new string('a', ClientLogEntry.PropertyValueMaxLength - 1) + "😀";
+
+        this.writer.Write(Entry("{Foo}", new Dictionary<string, string>(StringComparer.Ordinal) { ["Foo"] = value }));
+
+        var bound = Value(this.sink.Single(), "Foo") ?? "";
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(bound, Has.Length.EqualTo(ClientLogEntry.PropertyValueMaxLength - 1));
+            Assert.That(bound.Any(char.IsSurrogate), Is.False);
+        }
+    }
+
     [Test]
     public void PropertyCountIsClamped()
     {

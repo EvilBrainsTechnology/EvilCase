@@ -1,0 +1,43 @@
+# Deployment
+
+The application runs as a single container image published to `ghcr.io/evilbrainstechnology/evilcase`.
+
+## Image
+
+Built from the repository root `Dockerfile`; the build context is the root and the solution lives in `src/`. `.dockerignore` excludes everything outside `src/` except `LICENSE.txt`.
+
+- `sdk:10.0` restores and publishes `EvilCase.Host`. The Blazor WebAssembly bundle comes with it, there is no separate frontend step.
+- `aspnet:10.0-alpine` runs it as the image's non-root user on port 8080. Entry point `EvilBrains.EvilCase.Host.dll` — `src/Directory.Build.props` renames the assembly.
+- `HEALTHCHECK` calls `/health/live` through `curl`.
+
+## Registry tags
+
+`.github/workflows/Docker.yml` calls `CI.yml` as a reusable workflow and only builds if it passes, so nothing is published from a commit that fails lint, build or tests.
+
+| Trigger | Tags |
+| --- | --- |
+| Push to `master` | `edge`, `master-<sha>` |
+| Published release `v1.2.3` | `1.2.3`, `1.2`, `1`, `latest` |
+| Published prerelease | the version only, never `latest` |
+| Manual run from another branch | the branch name |
+
+The manual-run rule exists so such a run matches at least one tag: an empty tag list pushes nothing and leaves the provenance attestation without a digest to sign.
+
+The release tag also becomes the assembly version, through the `VERSION` build argument; `SOURCE_REVISION` carries the commit. Anything else builds as `0.0.0`. No MinVer or GitVersion — `.git` is not in the build context.
+
+The provenance statement is stored on GitHub, not in the registry. Verify with `gh attestation verify oci://ghcr.io/evilbrainstechnology/evilcase --repo <owner>/<repo>`.
+
+## Compose stack
+
+`docker-compose.yml` runs the application; `.env` next to it (gitignored, `.env.example` documents the keys) holds the variables.
+
+The database is not part of the stack — `EVILCASE_CONNECTION_STRING` points at an existing PostgreSQL. The schema is migrated on startup unless `EvilBrains__EvilCase__Database__MigrateOnStartup=false` is added to the service environment; where more than one instance starts at once, roll it out separately from the idempotent `database.sql` artifact CI publishes.
+
+The service is published over plain HTTP for a reverse proxy that terminates TLS, so it sets `BehindReverseProxy=true` and `HttpsRedirection=false`. The port is published on `127.0.0.1` only (`EVILCASE_PORT` picks the host port): the service trusts one hop of `X-Forwarded-For` and `X-Forwarded-Proto`, so a caller reaching it past the proxy would dictate its own address and scheme.
+
+Seq is driven by `EVILCASE_SEQ_URL` alone — an empty one logs to the console only.
+
+```
+cp .env.example .env   # then fill in the connection string and the JWT key
+docker compose up -d
+```

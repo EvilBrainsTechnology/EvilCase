@@ -1,58 +1,54 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace EvilBrains.EvilCase.Auth;
 
 public static class Bootstrap
 {
-    private static string? settingsPath;
-
     public static WebApplicationBuilder AddEvilCaseAuth(this WebApplicationBuilder builder, string authSettingsPath)
     {
-        settingsPath = authSettingsPath;
+        ArgumentNullException.ThrowIfNull(builder);
 
-        var settings = builder.Configuration
-            .GetRequiredSection(authSettingsPath)
-            .Get<AuthSettings>(options => options.ErrorOnUnknownConfiguration = true)
-            ?? throw new InvalidOperationException($"Missing {authSettingsPath} configuration settings");
+        builder.Services
+            .AddOptions<AuthSettings>()
+            .BindConfiguration(authSettingsPath, options => options.ErrorOnUnknownConfiguration = true)
+            .ValidateOnStart();
+
+        builder.Services.AddSingleton<IValidateOptions<AuthSettings>, AuthSettingsValidator>();
+
+        builder.Services.AddScoped<IAuthTokenService, AuthTokenService>();
 
         builder.Services
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer(options =>
+            .AddJwtBearer();
+
+        // Configured through the options pipeline rather than from a second binding of the section, so
+        // the validated settings are the only ones the scheme can be built from.
+        builder.Services
+            .AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
+            .Configure<IOptions<AuthSettings>>((options, authSettings) =>
             {
-                var key = Encoding.UTF8.GetBytes(settings.Jwt.Key);
+                var jwt = authSettings.Value.Jwt;
 
                 options.TokenValidationParameters.ValidateIssuer = true;
                 options.TokenValidationParameters.ValidateAudience = true;
                 options.TokenValidationParameters.ValidateLifetime = true;
                 options.TokenValidationParameters.ValidateIssuerSigningKey = true;
-                options.TokenValidationParameters.ValidIssuer = settings.Jwt.Issuer;
-                options.TokenValidationParameters.ValidAudience = settings.Jwt.Audience;
-                options.TokenValidationParameters.IssuerSigningKey = new SymmetricSecurityKey(key);
+                options.TokenValidationParameters.ValidIssuer = jwt.Issuer;
+                options.TokenValidationParameters.ValidAudience = jwt.Audience;
+                options.TokenValidationParameters.IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Key));
                 options.TokenValidationParameters.ClockSkew = TimeSpan.Zero;
+
+                // Tokens are signed with HS256; without this a caller could pick the algorithm.
+                options.TokenValidationParameters.ValidAlgorithms = [SecurityAlgorithms.HmacSha256];
             });
 
         builder.Services.AddAuthorization();
 
         return builder;
-    }
-
-    public static IServiceCollection AddEvilCaseAuth(this IServiceCollection serviceCollection)
-    {
-        if (settingsPath is null)
-            throw new InvalidOperationException("EvilCaseAuth was not configured. Call AddEvilCaseAuth on WebApplicationBuilder at startup.");
-
-        serviceCollection.AddOptions<AuthSettings>()
-            .BindConfiguration(settingsPath)
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
-
-        serviceCollection.AddScoped<IAuthTokenService, AuthTokenService>();
-
-        return serviceCollection;
     }
 }

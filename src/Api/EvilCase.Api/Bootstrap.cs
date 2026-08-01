@@ -1,5 +1,4 @@
 using EvilBrains.EvilCase.Api.HealthChecks;
-using EvilBrains.EvilCase.Auth;
 using EvilBrains.EvilCase.Data;
 using EvilBrains.Logging.AspNetCore;
 using Microsoft.AspNetCore.Builder;
@@ -59,7 +58,6 @@ public static class Bootstrap
         services.AddClientLogWriter(ClientSourceContext);
 
         services.AddEvilCaseData();
-        services.AddEvilCaseAuth();
 
         services
             .AddHealthChecks()

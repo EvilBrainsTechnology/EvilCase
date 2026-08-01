@@ -4,27 +4,24 @@ Case-file management system. Proof-of-concept state: ASP.NET Core API + Blazor W
 
 > **Proprietary — all rights reserved.** This repository is public to read, not to use. No right to run, copy, modify or distribute the software is granted; see [LICENSE.txt](LICENSE.txt) and ask before you use anything.
 
-## Repository structure
+## Stack
 
-All code lives in `src/` (solution `EvilCase.slnx`):
+.NET 10, PostgreSQL, Serilog. The frontend is Blazor WebAssembly on [TabBlazor](https://github.com/TabBlazor/TabBlazor) over the [Tabler](https://tabler.io) CSS framework, vendored — no CDN.
 
-- `EvilCase.Host` — the single web host: serves the API and the frontend
-- `Api/EvilCase.Api` — ASP.NET Core API (library, not runnable on its own)
-- `Api/EvilCase.Api.Client` — typed API client (generated from API controllers)
-- `Api/EvilCase.Api.Contract` — shared request/response contracts
-- `App/EvilCase.App` — Blazor WebAssembly frontend
-- `Common/` — auth (JWT)
-- `Data/` — EF Core model + migrations (PostgreSQL)
-- `Tests/` — application tests
-- `Utils/` — shared `EvilBrains.*` libraries and analyzers
+One process serves everything: `/api/*` goes to the API, every other path returns the WebAssembly app.
 
-AI agent instructions: [AGENTS.md](AGENTS.md).
+## Repository layout
 
-## Local Development
+All code lives in `src/` (solution `EvilCase.slnx`): `EvilCase.Host` is the only runnable project, `Api/` holds the API, its shared contracts and the generated client, `App/` the frontend, `Data/` the EF Core model and migrations, `Common/` and `Utils/` the shared libraries.
+
+Full project map and all conventions: [AGENTS.md](AGENTS.md). Deployment: [deploy/README.md](deploy/README.md).
+
+## Local development
 
 ### Prerequisites
 
 - .NET SDK per `src/global.json`
+- A reachable PostgreSQL. The host migrates the database on startup and does not retry, so an unreachable server stops it. Set `EvilBrains__EvilCase__Database__MigrateOnStartup=false` to start without one.
 - Trusted dev certificate: `dotnet dev-certs https --trust`
 
 ### Secrets
@@ -41,12 +38,22 @@ Secrets come from environment variables in every environment. In Development the
 From `src/`:
 
 ```
+dotnet tool restore          # once per clone: `r` is a local tool
 dotnet r build
-dotnet r run     # everything at https://localhost:5000 (Scalar UI at /scalar)
+dotnet r run                 # https://localhost:5000 (Scalar UI at /scalar)
 ```
 
-One process serves both: `/api/*` goes to the API, everything else returns the WebAssembly app.
+### Tests
+
+```
+dotnet r test                # tests only
+dotnet r ci                  # format-check + build + test, what CI runs
+```
+
+### Logging
+
+`appsettings.Development.json` ships logs to the Seq server at `https://seq.vdolek.cz`. The server URL is the only switch: set `EvilBrains__EvilCase__Logging__Seq__ServerUrl=` (empty) in your `.env` to log to the console only, or point it elsewhere.
 
 ## Frontend–API communication
 
-The frontend calls the API through typed clients from `EvilCase.Api.Client`, generated at build time from the API controller sources by the `EvilBrains.ApiClient.Generator` source generator (the client project has no dependency on the API project). Controllers are the single source of truth and DTOs are shared via `EvilCase.Api.Contract`, so client and server cannot drift; controller conventions are enforced by analyzers. The app is served by the API host, so calls are same-origin and no CORS is involved.
+Typed clients in `EvilCase.Api.Client` are generated at build time from the API controller sources by a source generator, so client and server cannot drift. Controllers are the single source of truth, DTOs are shared through `EvilCase.Api.Contract`, and controller conventions are enforced by analyzers at error severity. The app is served by the API host, so calls are same-origin and no CORS is involved.

@@ -4,6 +4,12 @@ Single source of truth for AI agent instructions in this repository. Other agent
 
 Skills follow the same pattern: the canonical skill is `.claude/skills/<name>/SKILL.md`; `.cursor/skills/` and `.codex/skills/` hold pointer skills with identical frontmatter (the description drives auto-activation) and a one-line body pointing to the canonical file. Never duplicate skill content.
 
+Implementation detail lives in a README next to the code it describes, so it changes in the same commit as the code:
+
+- `src/Utils/EvilBrains.Logging.AspNetCore/README.md` — server-side logging
+- `src/Utils/EvilBrains.Logging.WebAssembly/README.md` — browser-side logging
+- `deploy/README.md` — image, registry tags and the compose stack
+
 ## Project overview
 
 EvilCase is a case-file management system: users create case files that evolve over time with comments, attachments and AI-assisted documents. Current state is a proof-of-concept skeleton: ASP.NET Core API + Blazor WebAssembly frontend with one echo round-trip, served by a single host. .NET 10, PostgreSQL, secrets in a local `.env` file.
@@ -24,137 +30,86 @@ All code lives in `src/` (solution `EvilCase.slnx`).
 | `Data/EvilCase.Data.Migrations` | EF Core migrations |
 | `Tests/EvilCase.Tests` | Application tests (NUnit), including the host's routing through `WebApplicationFactory` |
 | `Utils/EvilBrains.Secrets.Infisical` | Infisical configuration provider (kept, not wired up) |
-| `Utils/EvilBrains.*` | Shared libraries (collections, cryptography, logging for the wire contract, ASP.NET Core and WebAssembly, custom analyzers EB0001–EB0004, API client generator + controller convention analyzers EB1001–EB1016) |
+| `Utils/EvilBrains.*` | Shared libraries: collections, cryptography, EF Core helpers, logging (`Logging.Contract`, `Logging.AspNetCore`, `Logging.WebAssembly`), API client attributes, the API client source generator and the custom analyzers |
 
 ## Hosting
 
-One process serves everything. `EvilCase.Host` is the composition root: it references `EvilCase.Api` and `EvilCase.App`, owns `Program.cs`, the middleware pipeline and all configuration (`appsettings*.json`, `.env`, `launchSettings.json`). The dependency runs host → api, never api → app; the API layer knows nothing about the frontend.
+One process serves everything. `EvilCase.Host` is the composition root: it owns `Program.cs`, the middleware pipeline and all configuration (`appsettings*.json`, `.env`, `launchSettings.json`). The dependency runs host → api, never api → app.
 
-- `/api/**` is the API. Controller routes carry the prefix in their `[Route]` templates, because the client generator reads those templates from source and would not see a runtime routing convention; EB1006 enforces it. An unmatched `/api` path is a `404` in problem details shape from a fallback registered in `MapEvilCaseApi`, never the app's HTML — its literal segment gives it precedence over the catch-all `MapFallbackToFile("index.html")`. `Tests/EvilCase.Tests` pins that precedence through the real `Program.cs`.
-- Everything else returns `index.html`, so client-side routes survive a reload.
-- `/health/*`, `/scalar` and `/openapi/v1.json` sit outside `/api` and are mapped explicitly, so the fallback never reaches them.
-- The controllers live in a library, so `AddControllers().AddApplicationPart(...)` registers them explicitly rather than relying on application part discovery.
-- `EvilCase.Api` is `Microsoft.NET.Sdk` + `FrameworkReference Microsoft.AspNetCore.App`, so it has none of the Web SDK's implicit usings — ASP.NET Core namespaces are imported per file.
-- Same-origin: no CORS anywhere, and the frontend takes its API base address from `builder.HostEnvironment.BaseAddress`.
-- Request logging covers `/api` only — see *Logging*.
+- `/api/**` is the API. Controller `[Route]` templates carry the prefix themselves — the client generator reads them from source and would not see a runtime routing convention — and an analyzer enforces it.
+- An unmatched `/api` path is a `404` in problem details shape, from a fallback registered in `MapEvilCaseApi`, never the app's HTML: its literal segment gives it precedence over the catch-all `MapFallbackToFile("index.html")`. `Tests/EvilCase.Tests` pins that precedence through the real `Program.cs`.
+- Everything else returns `index.html`, so client-side routes survive a reload. `/health/*`, `/scalar` and `/openapi/v1.json` are mapped explicitly and the fallback never reaches them.
+- Controllers live in a library, so `AddControllers().AddApplicationPart(...)` registers them explicitly.
+- `EvilCase.Api` is `Microsoft.NET.Sdk` + `FrameworkReference Microsoft.AspNetCore.App`, so it has none of the Web SDK's implicit usings — import ASP.NET Core namespaces per file.
+- Same-origin: no CORS anywhere. The frontend takes its API base address from `builder.HostEnvironment.BaseAddress`.
 
-Two keys under `EvilBrains:EvilCase:Hosting` adapt the pipeline to what sits in front of it:
+Two keys under `EvilBrains:EvilCase:Hosting` adapt the pipeline to what sits in front of it: `BehindReverseProxy` (default `false`) calls `UseForwardedHeaders` first, with `KnownIPNetworks` and `KnownProxies` cleared and `ForwardLimit = 1`; `HttpsRedirection` (default `true`) turns `UseHttpsRedirection` off where something in front already redirects. `/health/*` is excluded from redirection either way. With no known proxy to check against, the single hop is the whole defence — a deployment that turns `BehindReverseProxy` on must not be reachable except through that proxy.
 
-- `BehindReverseProxy` (default `false`) calls `UseForwardedHeaders` as the first middleware, for `X-Forwarded-For` and `X-Forwarded-Proto`. `KnownIPNetworks` and `KnownProxies` are cleared: the proxy is another container, so its address is neither loopback nor known in advance. Behind a TLS terminating proxy every request otherwise looks like plain HTTP from the proxy's own address.
-- `HttpsRedirection` (default `true`) turns the redirection off where something in front already redirects. Leaving it on in a container that serves plain HTTP is not a loop but noise: `UseHttpsRedirection` finds no HTTPS port, logs `Failed to determine the https port for redirect` and passes the request through. Only an explicit `ASPNETCORE_HTTPS_PORT` makes it redirect, and then a request without `X-Forwarded-Proto: https` bounces back to the proxy.
+Baseline security headers, the content security policy among them, are written by `SecurityHeadersMiddleware`; `/scalar` is excluded, because the Scalar UI loads its bundle from a CDN. The policy has to name the hash of every inline script of `index.html`, which `SecurityHeadersTests` pins.
 
-## Docker
-
-The image is built from the repository root `Dockerfile` (build context is the root; the solution lives in `src/`). Multi-stage: `sdk:10.0` restores, then publishes `EvilCase.Host` — the Blazor WASM bundle comes with it, no separate step. `aspnet:10.0-alpine` runs it as the image's non-root user on port 8080, entry point `EvilBrains.EvilCase.Host.dll` (`Directory.Build.props` renames the assembly). `curl` is installed for the `HEALTHCHECK` against `/health/live`, which the runtime image otherwise cannot make.
-
-The Alpine image sets `DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=true` and carries no ICU, which turns every culture aware comparison ordinal without an error anywhere — wrong for Czech data. `icu-data-full` and `icu-libs` are installed and the variable set back to `false`; a missing ICU then fails the start instead of being silent. That is 50 MB of the image, and the Debian base would be another 110 MB on top.
-
-`LICENSE.txt` is copied into `/app` and the workflow sets `org.opencontainers.image.licenses` explicitly — the image is published to a public registry and travels without the repository, and `docker/metadata-action` derives that label from GitHub's license classification, which is `other` and therefore empty. It is the one path outside `src/` that `.dockerignore` lets into the build context.
-
-The restore inputs are not enumerated in `COPY` lines. A throwaway `projects` stage copies `src/` and deletes everything that is not a project file, and the build stage copies that result in. The stage reruns on every source change, but its output only changes when a project file does, and BuildKit derives the cache key of a `COPY --from` from the copied content — so the restore layer stays cached and a new project needs no edit here.
-
-`.github/workflows/Docker.yml` publishes to `ghcr.io/evilbrainstechnology/evilcase`. It calls `CI.yml` as a reusable workflow first and only builds if that job passes, so nothing is published from a commit that fails lint, build or tests — and a release, which `CI.yml` has no trigger for, is covered too. `CI.yml` therefore triggers on pull requests only; the master path reaches it through this workflow.
-
-- Push to `master` → `edge` and `master-<sha>`.
-- Published GitHub Release with tag `v1.2.3` → `1.2.3`, `1.2`, `1` and `latest` (a prerelease tag never becomes `latest`).
-- Manual run from another branch → the branch name. Without it that run matches no tag rule at all, and an empty tag list pushes nothing and leaves the provenance attestation without a digest to sign.
-- The release tag also becomes the assembly version, through the `VERSION` build argument (`SOURCE_REVISION` carries the commit); anything else builds as `0.0.0`. No MinVer or GitVersion — `.git` is not in the build context.
-
-`deploy/docker-compose.yml` runs the application, and `deploy/.env` (gitignored, `.env.example` documents the keys) holds its variables. The database is not part of the stack — `EVILCASE_CONNECTION_STRING` points at an existing one. The service is published over plain HTTP for a reverse proxy that terminates TLS, so it sets `BehindReverseProxy` and turns `HttpsRedirection` off. Its `healthcheck` replaces the image's liveness probe with `/health/ready`: no restart policy acts on health here, so the container status is worth spending on the probe that covers the database too.
+`/api/auth/*` and the client log upload are rate limited per caller address (10 and 120 requests per minute); nothing else is, health probes above all. `UseRateLimiter` sits after `UseForwardedHeaders`, so a partition is the caller rather than the proxy.
 
 ## Secrets
 
-Every environment reads secrets from environment variables through the `AddEnvironmentVariables` provider `CreateBuilder` registers. Development additionally loads `src/EvilCase.Host/.env` (gitignored, `.env.example` documents the keys) into the process environment, so there is one configuration path everywhere and the file only decides where the values come from — hence the double underscore separator (`A__B` → `A:B`).
+Every environment reads secrets from environment variables. Development additionally loads `src/EvilCase.Host/.env` (gitignored, `.env.example` documents the keys) into the process environment, so there is one configuration path everywhere — hence the double underscore separator (`A__B` → `A:B`).
 
-`DotNetEnv` does the loading, in `Program.cs`, with three constraints:
+`DotNetEnv` does the loading, in `Program.cs`, with three constraints that must not be changed:
 
 - It runs **before** `CreateBuilder`. That call is where `AddEnvironmentVariables` snapshots the process environment; anything set afterwards is invisible to configuration.
-- `NoClobber()` — an environment variable that is already set wins over the file, matching how `.env` behaves everywhere else. This is why a `.env` cannot silently override what a container or CI job passes in.
-- `TraversePath()` — the file is searched for upwards from `AppContext.BaseDirectory`, because `dotnet run` keeps the caller's working directory and it therefore cannot be found relative to it.
+- `NoClobber()` — an environment variable that is already set wins over the file, so a `.env` cannot override what a container or CI job passes in.
+- `TraversePath()` — the file is searched for upwards from `AppContext.BaseDirectory`, because `dotnet run` keeps the caller's working directory.
 
-Because the check runs before the builder exists, `builder.Environment.IsDevelopment()` is unavailable and `ASPNETCORE_ENVIRONMENT` is read directly. Consequence: `dotnet run --environment X` does not affect it, only the variable does.
+Because the check runs before the builder exists, `ASPNETCORE_ENVIRONMENT` is read directly rather than through `builder.Environment`. Consequence: `dotnet run --environment X` does not affect it, only the variable does.
 
-`EvilBrains.Secrets.Infisical` still holds the Infisical provider, but nothing calls it and `appsettings.json` no longer has the section it binds, so it needs that section back before it can be used.
+`EvilBrains.Secrets.Infisical` still holds the Infisical provider, but nothing calls it and `appsettings.json` has no section for it.
 
 ## Database migrations
 
-`Program.cs` awaits `MigrateEvilCaseDatabaseAsync` between `builder.Build()` and the middleware pipeline, so the schema is current before the first request and a failure stops the application instead of serving against a schema the build does not expect. `DatabaseMigrator` asks EF for the pending migrations, logs their names and applies them; with none pending it logs and returns. A database that does not exist yet is created. A database server that is not reachable stops the start — that is the intended behaviour, there is no retry.
+`Program.cs` awaits `MigrateEvilCaseDatabaseAsync` between `builder.Build()` and the middleware pipeline. A database that does not exist is created; an unreachable server stops the start, and there is no retry. `EvilBrains:EvilCase:Database:MigrateOnStartup` turns it off (default `true`) — do that where the schema is rolled out separately, or where several instances start at once, because nothing serialises concurrent migrators. `Tests/EvilCase.Tests` sets it to `false`.
 
-A failure is logged at `Fatal` and the logger flushed before it is rethrown: the process ends immediately afterwards, so a batching sink would otherwise never ship the one event explaining why.
-
-`EvilBrains:EvilCase:Database:MigrateOnStartup` turns it off (`true` in `appsettings.json`, and the code default when the key is absent). Turn it off where the schema is rolled out separately, or where several instances start at once — nothing serialises concurrent migrators. `Tests/EvilCase.Tests` sets it to `false`: the test host registers the DbContext but never opens a connection.
-
-Migrations live in `EvilCase.Data.Migrations`, which references `EvilCase.Data` and therefore cannot be referenced back. `UseEvilCaseMigrations` (in `EvilCase.Data`) names the assembly as a string, EF loads it at runtime, and `EvilCase.Host` carries it into its output through an otherwise unused project reference. Both the runtime registration and `ApplicationDbContextFactory` call that one extension: it also sets the `_MigrationsHistory` table name, and a mismatch there would send EF to the default `__EFMigrationsHistory`, find it empty and re-apply every migration.
-
-## API client pattern
-
-API controllers are the single source of truth; DTOs live in `EvilCase.Api.Contract`. `EvilCase.Api.Client` has no dependency on `EvilCase.Api`: it includes the controller sources as `AdditionalFiles` and the `EvilBrains.ApiClient.Generator` source generator emits clients from them (in-memory, never committed). Controllers marked `[GenerateApiClient]` (from `EvilBrains.ApiClient`) produce a public `I{Name}Client` interface, an internal implementation and a DI registration; consumers register clients via `Bootstrap.AddEvilCaseApiClient` from `EvilCase.Api.Client`, which takes an optional `Action<IHttpClientBuilder>` so message handlers attach to the generated clients only.
-
-Controller conventions, enforced by analyzers in the API project (EB1001–EB1006) and re-checked by the generator with exact file/line locations:
-
-- Every controller declares `[Route]` and every action exactly one HTTP method attribute with a route template (empty `""` allowed). Templates never start with `/` (controller and action templates are joined) and contain no `[controller]`/`[action]` tokens; literal segments are kebab-case.
-- Controller templates open with the `api/` segment (`[Route("api/auth")]`, EB1006), which is what separates the API from the frontend the host serves — see *Hosting*. Action templates are unaffected.
-- Every action parameter carries exactly one binding attribute (`[FromBody]`, `[FromQuery]`, `[FromRoute]`, `[FromHeader]`, `[FromServices]`, ...); `CancellationToken` carries none.
-
-The generated route is relative (`api/echo/post`, no leading slash) and the client resolves it against the base address, which `AddEvilCaseApiClient` normalises to end in `/`. That is what keeps the app working when it is served from a sub-path: a root-relative URI would resolve against the origin and drop it.
-
-Client generation rules (EB1010–EB1016, generator-only): actions return `void`, `T`, `Task`/`ValueTask` or `Task<T>`/`ValueTask<T>`, optionally wrapped in `ActionResult`/`ActionResult<T>`/`IActionResult` — the generated client method is always asynchronous and an untyped result becomes a `Task` without a value (non-success status codes throw `ApiException`). Parameter and return types must be resolvable in the client compilation (Contract or shared libs), `[FromServices]`/`[FromKeyedServices]` parameters are omitted from the client, a complex `[FromQuery]` DTO is expanded property-by-property into query parameters (camelCase keys, simple-typed properties only), `[FromForm]`/`IFormFile` are unsupported.
-
-## Logging
-
-The mechanics live in three Utils libraries; the apps only wire them up. `EvilBrains.Logging.Contract` holds the wire contract (client log DTOs, header and property names), `EvilBrains.Logging.AspNetCore` the server half, `EvilBrains.Logging.WebAssembly` the browser half.
-
-Every event carries `AppSource`, either `Client` or `Server`. The API enriches its own events with `Server`; `ClientLogWriter` puts `Client` on the events it rebuilds, which wins because properties on an event beat enrichers, and the name is reserved so a browser entry cannot claim to be a server one.
-
-API: Serilog is configured in `Program.cs` from the `Serilog` configuration section (console and Seq in every environment) and handed to `UseSerilog(Log.Logger)` — the parameterless overload registers no `Serilog.ILogger`, which `AddClientLogWriter` needs. Log call sites call `ILogger` directly with a constant message template; CA1848 is off and `[LoggerMessage]` is not used. `Bootstrap` passes the source context browser logs are recorded under, `Program.cs` calls `app.UseRequestLogging(loggedPaths: ["/api"], quietPaths: ["/api/logs/client"])` and flushes the logger after `RunAsync` — that overload does not take ownership of it, so nothing else does.
-
-Seq is not part of the `Serilog` section: it is added in `Program.cs` from `EvilBrains:EvilCase:Logging:Seq` (`Enabled`, `ServerUrl`, `ApiKey`), which the Serilog configuration could not express because it has no way to leave a sink out. Every environment names its own server and none is configured by default, so an environment that names none logs to the console only: `appsettings.Development.json` holds the development server, `deploy/docker-compose.yml` passes `EVILCASE_SEQ_URL` (empty by default) and `EVILCASE_SEQ_API_KEY` in, and the test host configures neither. `Enabled` turns the sink off where a URL is configured. The API key comes from `.env` in development; an empty one ships anonymously. Environment files otherwise only carry the `Environment` property and, in development, a more verbose `EvilBrains` level.
-
-Request logging is an allow-list, not a deny-list: the host serves the frontend, so a single page load pulls `index.html`, `/_framework/*`, `/_content/*` and the vendored CSS, and listing all of that as noise would rot with every asset added. Only paths under `loggedPaths` produce a completion event; everything else is demoted to `Verbose` and disappears below the configured minimum. Two carve-outs: `quietPaths` silences the *successful* log upload inside the API — logging it would be shipped by the next upload, which would log again — and a `5xx` or an unhandled exception is logged at `Error` wherever it happens, so a failure serving a static file is never swallowed. A quiet path answering `4xx` is logged at `Information`: a rejected batch is dropped rather than retried, so it settles instead of feeding itself, and a silently rejected upload would otherwise be invisible. `OPTIONS` is never logged.
-
-Frontend: `EvilCase.App` uses Serilog as well, with the differences WebAssembly forces:
-
-- There is no host, so `builder.Host.UseSerilog()` does not exist. `AddClientLogging` builds the logger and registers it with `builder.Logging.ClearProviders()` + `AddSerilog` (from `Serilog.Extensions.Logging`, not `Serilog.AspNetCore`).
-- `Serilog.Settings.Configuration` is not used: it resolves sinks by assembly name through reflection, which breaks under WASM trimming. Levels are bound from the `ClientLogging` section of `wwwroot/appsettings.json` — `MinimumLevel` for the browser console, `ServerMinimumLevel` for the events shipped to the API. The two are independent: the pipeline threshold is the more verbose of them and each destination restricts itself, so either one can be the looser. The logger exists before the container does, so the section is bound directly with `Get<ClientLoggingOptions>()` instead of `IOptions<T>`; `EnableConfigurationBindingGenerator` on the library keeps that binding trim-safe — the property belongs to the project holding the call site. The bound properties are `get; set;`: the generated binder assigns after construction and silently skips `init`-only properties, which leaves the defaults in place with no error anywhere.
-- Browser console output goes through `Serilog.Sinks.BrowserConsole`, which uses real console levels instead of stdout.
-- `ClientLogSink` buffers events (500 max, then drops) and posts them to `POST /api/logs/client` every second in batches of at most 100. Events keep their structure: the sink ships the unrendered message template plus at most 16 properties, values rendered to strings and capped at 512 characters. A failed batch is dropped and the failure goes to Serilog's `SelfLog`; logging it normally would feed the sink that just failed.
-- `AddRequestLogging()` replaces the factory's own HTTP logging (`RemoveAllLoggers()` + an `IHttpClientLogger`), because its four events per request use a template that cannot be changed and carry none of the request identifiers. `ClientHttpLogger` writes one event per request, `HTTP {HttpMethod} {RequestPath} responded {StatusCode} in {Elapsed} ms`, with `RequestId` and `CorrelationId` read back from the headers the handler stamped. A successful request to the upload path is not logged at all: the next upload would ship that log and log again. A failed one is, and it settles because a batch that fails is dropped rather than retried.
-- The sink knows no API client: `EvilCase.App`'s `ApiLogUploader` implements `IClientLogUploader` over the generated `ILogsClient` and translates its transport failures into `ClientLogUploadException`, which is the only exception the sink swallows.
-- The sink is created before the host exists, so `host.StartClientLogging()` hands it the uploader after `builder.Build()`. Forgetting that call is silent: events buffer and are dropped at 500.
-
-`ClientLogWriter` on the API rebuilds a Serilog `LogEvent` from the entry. The endpoint is anonymous, so the whole payload is hostile input:
-
-- The parsed template is the allow-list of property names — a property the template does not reference is dropped, and so is anything in `ReservedLogPropertyNames`. Properties carried on an event win over enrichers, so a client must not be able to name one.
-- `MessageTemplateParser.Parse` throws on alignments that overflow; the failure falls back to logging the raw text. An alignment wider than 64 stays unbound, because padding is only rendered for bound properties.
-- Control characters are stripped from the template, property values, category and URL — the plain text console sink is otherwise forgeable. The exception text keeps them.
-- The event timestamp is the server clock; the browser value is kept as `ClientTimestamp`. Browser clocks are arbitrary and would corrupt the Seq timeline.
-- The browser exception text arrives as a `ClientLogException`.
-
-Request context: `AddRequestContextHeaders()` on a generated client stamps every request with `X-Request-Id` (fresh per request), `X-Correlation-Id` (same value), `X-Session-Id` (one GUID per app load) and `X-Machine-Id`. The machine identifier lives in `localStorage` under `evilcase.machine-id` and survives reloads and browser restarts; `ClientIdentity` reads it through synchronous WebAssembly interop, which is what makes it available to the handler. On the server `UseRequestLogging` validates the headers as GUIDs, re-formats them and pushes them into the Serilog `LogContext`, so every event of that request carries them, and only then runs Serilog's request logging — that ordering is why the two are one call. They land under `XRequestId`, `XCorrelationId`, `XSessionId` and `XMachineId` — the prefix keeps them together when a log store sorts properties by name, and keeps them clear of `RequestId`, which ASP.NET Core owns: it opens a scope per request whose `RequestId` is the `TraceIdentifier`, and a scope property reaches the event ahead of the log context, so a shared name would leave everything logged through `ILogger<T>` carrying the connection-local identifier while Serilog's own completion event carried the caller's. The middleware pushes the trace identifier under `RequestId` as well, because that scope does not reach Serilog's completion event. Requests outside `/api` — health probes among them — leave no completion log at all unless they fail.
-
-An entry written while an API call was in flight carries that call's `RequestId` and `CorrelationId`, which the writer validates and puts on the event, so the browser side of a request and its server side share an identifier. Entries written outside a call — a component logging before or after `await` — have none and inherit the identifiers of the upload that carried them; correlate those through `SessionId` and `MachineId` plus `ClientUrl` and `ClientTimestamp`.
-
-Seq credentials stay on the server; the browser only ever talks to the API.
+Migrations live in `EvilCase.Data.Migrations`, which references `EvilCase.Data` and cannot be referenced back. `UseEvilCaseMigrations` (in `EvilCase.Data`) names the assembly as a string and sets the `_MigrationsHistory` table name; EF loads the assembly at runtime and `EvilCase.Host` carries it into its output through an otherwise unused project reference. Both the runtime registration and `ApplicationDbContextFactory` must call that one extension — a mismatched history table makes EF re-apply every migration.
 
 ## Health checks
 
-Two anonymous endpoints, mapped with `MapHealthChecks` in `MapEvilCaseApi` rather than through a controller — they carry no client contract, so they stay out of OpenAPI, out of the generated API client and out of the EB1001–EB1005 controller conventions. Both carry `AllowAnonymous`: nothing requires authentication today, but an authorization fallback policy would otherwise turn every probe into a `401` and take all instances out of rotation.
+Two anonymous endpoints, mapped with `MapHealthChecks` in `MapEvilCaseApi` rather than through a controller: they carry no client contract, so they stay out of OpenAPI, out of the generated API client and out of the controller conventions. Keep `AllowAnonymous` on both — an authorization fallback policy would otherwise turn every probe into a `401`.
 
-- `GET /health/live` runs no check (`Predicate = _ => false`) and answers `Healthy` as plain text. A dependency check here would restart every instance at once on a brief database outage.
-- `GET /health/ready` runs the checks tagged `HealthCheckTags.Ready` and writes names and statuses as JSON. Each layer registers its own checks — `EvilCase.Data` contributes `AddEvilCaseDataHealthChecks`, today a single `AddDbContextCheck<ApplicationDbContext>` (`CanConnectAsync`) named `database` — and the API only decides which tags a probe runs. `HealthCheckResponseWriter` keeps descriptions, exception text and check data out of the response because the endpoint is anonymous. Status codes: 200 healthy, 503 unhealthy and 503 degraded — the last one overrides the default 200, which would keep an instance in rotation on a partial failure.
+- `GET /health/live` runs no check (`Predicate = _ => false`) and answers `Healthy` as plain text. Never add a dependency check here.
+- `GET /health/ready` runs the checks tagged `HealthCheckTags.Ready` and writes names and statuses as JSON: 200 healthy, 503 unhealthy, 503 degraded. Each layer registers its own checks — `EvilCase.Data` contributes `AddEvilCaseDataHealthChecks`, today a single `database` check.
 
-`/health` sits outside the logged paths of `UseRequestLogging`, so probes leave no log unless they fail. It is also excluded from `UseHttpsRedirection` — orchestrators send probes over plain HTTP by default and a redirect carries no body, so it counts as a failed probe.
+`HealthCheckResponseWriter` keeps descriptions, exception text and check data out of the response, because the endpoint is anonymous.
+
+## API client pattern
+
+API controllers are the single source of truth; DTOs live in `EvilCase.Api.Contract`. `EvilCase.Api.Client` has no dependency on `EvilCase.Api`: it includes the controller sources as `AdditionalFiles` and the `EvilBrains.ApiClient.Generator` source generator emits clients from them, in memory, never committed. A controller marked `[GenerateApiClient]` produces a public `I{Name}Client` interface, an internal implementation and a DI registration. Consumers register clients via `Bootstrap.AddEvilCaseApiClient`, which takes an optional `Action<IHttpClientBuilder>` so message handlers attach to the generated clients only.
+
+Generated routes are relative (`api/echo/post`, no leading slash) and resolve against the base address, which `AddEvilCaseApiClient` normalises to end in `/`. That is what keeps the app working when it is served from a sub-path.
+
+Controller shape (route templates, HTTP method attributes, kebab-case segments, the `api/` prefix, parameter binding) and client feasibility (return types, parameter types, type visibility to the client compilation) are enforced at error severity with exact file and line locations — see *Conventions*. Read the diagnostic rather than working around it. `[FromForm]` and `IFormFile` are not supported.
+
+## Logging
+
+`EvilBrains.Logging.Contract` holds the wire contract (client log DTOs, header and property names); the server and browser halves are documented in their own READMEs, linked at the top of this file. Read those before changing anything in the logging pipeline.
+
+Rules that hold outside those libraries:
+
+- Every event carries `AppSource`, either `Client` or `Server`. The name is reserved: a browser entry cannot claim to be a server one.
+- Request logging is an allow-list: `app.UseRequestLogging(loggedPaths: ["/api"], quietPaths: [ClientLogRoute.Path])`. Anything outside `loggedPaths` leaves no completion log unless it fails. Do not turn it into a deny-list — the host also serves the frontend and all its assets.
+- The upload route is `ClientLogRoute` in `EvilCase.Api.Contract`, and the controller, the host's quiet path and the browser sink all take it from there. Naming it again anywhere breaks both feedback-loop guards silently.
+- Seq is configured from `EvilBrains:EvilCase:Logging:Seq` (`ServerUrl`, `ApiKey`), not from the `Serilog` section, which only holds the console sink. The server URL is the only switch: an environment naming none logs to the console only.
+- The `Environment` property is enriched from `builder.Environment.EnvironmentName`, never from an `appsettings.*.json` of its own.
+- `host.StartClientLogging()` must be called after `builder.Build()` in `EvilCase.App`. Forgetting it is silent: browser events buffer and are dropped.
+- Seq credentials stay on the server; the browser only ever talks to the API.
+
+Log call sites call `ILogger` directly with a constant message template. CA1848 is off and `[LoggerMessage]` is not used.
 
 ## Frontend UI
 
 `EvilCase.App` builds on [TabBlazor](https://github.com/TabBlazor/TabBlazor) (Blazor components over the Tabler CSS framework).
 
-- Package: `TabBlazor`. Services registered with `AddTabBlazor()` in `Program.cs`; `@using TabBlazor` in `_Imports.razor`. `index.html` must link `EvilBrains.EvilCase.App.styles.css` — several TabBlazor components (tooltip, dropdown, datepicker, popover, range slider) ship their CSS as Blazor scoped styles and silently render unstyled without it. The host emits a bundle of its own next to it (`EvilBrains.EvilCase.Host.styles.css`); the app's is the one to link. `TabBlazor.QuickTable.EntityFramework` belongs to the API project, not here — the frontend talks to the API, never to the database.
-- Tabler CSS is vendored at `wwwroot/lib/tabler/tabler.min.css` (Tabler core 1.4.0, matching the TabBlazor release). No CDN at build or runtime. Update by downloading the matching Tabler version.
-- Popper is enabled (`DefaultPositioning = Absolute`), so dropdowns, tooltips and typeaheads flip away from viewport edges. popper.js 2.11.8 is vendored at `wwwroot/lib/popper/popper.min.js` and `TablerOptions.PopperScriptUrl` points there; the default would load it from unpkg.
-- TabBlazor ships no icon set. `Icons/AppIcons.cs` holds only the icons the app uses; add one when it is needed by copying its path data from the [Tabler icon set](https://tabler.io/icons) into a new `TablerIcon`. Do not vendor the whole generated set — it is 5665 icons the trimmer does not remove.
-- App shell: `Layout/MainLayout.razor` (Tabler `page` + `page-wrapper`) and `Layout/NavMenu.razor` — a single top bar holding the brand, the menu (from `lg` up) and the theme switch. Below `lg` the hamburger opens the navigation as an offcanvas via `IOffcanvasService`. Both render the same `Layout/NavLinks.razor`.
-- `NavLinks` sets `active` on the `li`, not through Blazor's `NavLink`: Tabler draws the active indicator on `.nav-item.active`, an underline in the horizontal menu and a left border in the offcanvas.
+- Services registered with `AddTabBlazor()` in `Program.cs`; `@using TabBlazor` in `_Imports.razor`. `index.html` must link `EvilBrains.EvilCase.App.styles.css` — several TabBlazor components (tooltip, dropdown, datepicker, popover, range slider) ship their CSS as Blazor scoped styles and silently render unstyled without it. The host emits a bundle of its own next to it; the app's is the one to link.
+- Tabler CSS is vendored at `wwwroot/lib/tabler/tabler.min.css` (Tabler 1.4.0, matching the TabBlazor release) and popper.js 2.11.8 at `wwwroot/lib/popper/popper.min.js`, which `TablerOptions.PopperScriptUrl` points at. No CDN at build or runtime. Update by downloading the matching version.
+- TabBlazor ships no icon set. `Icons/AppIcons.cs` holds only the icons the app uses; add one by copying its path data from the [Tabler icon set](https://tabler.io/icons) into a new `TablerIcon`. Do not vendor the whole generated set — the trimmer does not remove it.
+- App shell: `Layout/MainLayout.razor` (Tabler `page` + `page-wrapper`) and `Layout/NavMenu.razor` — a single top bar holding the brand, the menu (from `lg` up) and the theme switch. Below `lg` the hamburger opens the navigation as an offcanvas via `IOffcanvasService`. Both render the same `Layout/NavLinks.razor`, which sets `active` on the `li` rather than through Blazor's `NavLink`: Tabler draws the indicator on `.nav-item.active`.
 - Dark/light switch goes through `TablerService.SetTheme`. The initial theme follows `prefers-color-scheme`: an inline script in `index.html` applies it before Blazor boots and `ThemeSwitch` reads it back via `wwwroot/js/theme.js`.
 
 ## Responsive design
@@ -179,9 +134,9 @@ Rules:
   </div>
   ```
 
-  Both variants render. At 25–50 rows per page the cost is negligible and it avoids JS interop and prerender flicker.
-- Never branch layout in C# by viewport. No JS interop for window width, no render branching on it: on Blazor Server every resize is a network roundtrip, prerendering does not know the viewport and flickers, and it does not work before Blazor boots.
-- Modals: always `class="modal-fullscreen-md-down"`.
+  Both variants render; at 25–50 rows per page the cost is negligible.
+- Never branch layout in C# by viewport. No JS interop for window width, no render branching on it.
+- Modals: always `class="modal-fullscreen-lg-down"`, matching the `lg` breakpoint above.
 - Dates: native `<input type="date">`, no JS datepicker.
 - Keyboard: set `inputmode` and `type` per input kind (`numeric` for case numbers, `tel`, `email`).
 - Touch targets: at least 44px for interactive elements below `lg`.
@@ -200,20 +155,20 @@ Rules:
 - Code style: clean, readable code sometimes beats 100% correctness and defensiveness.
 - Every class resolved from DI is `internal sealed` and is consumed through an interface; when the consumer is public (a controller, a public extension method) the interface is public and the implementation stays internal. Exceptions are types the framework instantiates by concrete type or that have no service role: controllers, `DelegatingHandler` subclasses, middleware, exceptions, DTO and options records, static helpers.
 - Comments only when something is unexpected (e.g. a workaround). If code needs a comment, prefer rewriting the code to be more readable.
-- Analyzers run at error severity (Meziantou, Roslynator, custom EvilBrains). Fix findings, do not suppress without reason.
+- Analyzers run at error severity (Meziantou, Roslynator, custom EvilBrains). Fix findings, do not suppress without reason. The custom rules are `EB0001`–`EB0004` (style), `EB1001`–`EB1006` (controller conventions, reported by analyzers in the API project and re-checked by the client generator) and `EB1010`–`EB1016` (client generation feasibility, reported by the generator only).
 - Package versions belong only in `src/Directory.Packages.props` (Central Package Management).
 - Namespaces/assemblies are auto-prefixed to `EvilBrains.*` by `src/Directory.Build.props`.
 - One type per file.
 
 ## Commands
 
-Run everything from `src/`:
+Run everything from `src/`. `r` is a local tool, so `dotnet tool restore` is required once per clone.
 
 - `dotnet r build` — build solution (Release, warnings as errors)
 - `dotnet r test` — run tests
 - `dotnet r format` / `dotnet r format-check` — format / verify formatting
 - `dotnet r ci` — format-check + build + test
-- `dotnet r run` — run everything at `https://localhost:5000` (Scalar UI at `/scalar` in dev)
+- `dotnet r run` — run everything at `https://localhost:5000` (Scalar UI at `/scalar` in dev); requires a reachable PostgreSQL
+- `dotnet r add-migration` / `remove-migration` / `generate-sql-script` — EF migrations
 
 `launchSettings.json` holds a second profile, `claude`, identical except for port 5100 and no browser launch. `.claude/launch.json` runs it, so an agent-started instance and an IDE-started one can coexist. When changing that port, keep it off the browsers' unsafe-port list (6000, 6665–6669, 6697, ...) — the preview pane refuses to load those.
-- `dotnet r add-migration` / `remove-migration` / `generate-sql-script` — EF migrations

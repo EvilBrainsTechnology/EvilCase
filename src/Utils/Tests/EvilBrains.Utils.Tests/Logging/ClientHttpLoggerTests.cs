@@ -20,6 +20,18 @@ public class ClientHttpLoggerTests
     public void SuccessfulUploadOfClientLogsIsNotLoggedUnderASubPath() =>
         Assert.That(LoggedPaths("https://localhost/evilcase/api/logs/client"), Is.Empty);
 
+    /// <summary>
+    /// A rejected batch is dropped rather than retried, so logging it settles; staying quiet would leave
+    /// an upload the server refuses invisible on both sides.
+    /// </summary>
+    [Test]
+    public void RejectedUploadOfClientLogsIsLogged()
+    {
+        string[] expected = ["/api/logs/client"];
+
+        Assert.That(LoggedPaths("https://localhost/api/logs/client", HttpStatusCode.BadRequest), Is.EqualTo(expected));
+    }
+
     [Test]
     public void AnyOtherRequestIsLogged()
     {
@@ -51,12 +63,12 @@ public class ClientHttpLoggerTests
         Assert.That(logger.Paths, Has.Count.EqualTo(1));
     }
 
-    private static List<string> LoggedPaths(string url)
+    private static List<string> LoggedPaths(string url, HttpStatusCode statusCode = HttpStatusCode.OK)
     {
         var logger = new CollectingLogger();
         var subject = new ClientHttpLogger(logger, UploadPath);
         using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(url));
-        using var response = new HttpResponseMessage(HttpStatusCode.OK);
+        using var response = new HttpResponseMessage(statusCode);
 
         subject.LogRequestStop(context: null, request, response, TimeSpan.Zero);
 

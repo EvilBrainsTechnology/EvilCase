@@ -8,7 +8,7 @@ namespace EvilBrains.Logging.WebAssembly;
 /// Replaces the four events the HTTP client factory logs per request with one, carrying the
 /// identifiers the request was stamped with, so a browser call and its server side share a RequestId.
 /// A successful upload of the log batch is not logged at all: it would be shipped by the next upload,
-/// which would log again. A failed one is, and it settles because a batch that fails is dropped.
+/// which would log again. A rejected or failed one is, and it settles because a batch that fails is dropped.
 /// </summary>
 internal sealed class ClientHttpLogger(ILogger<ClientHttpLogger> logger, string quietPath) : IHttpClientLogger
 {
@@ -19,7 +19,7 @@ internal sealed class ClientHttpLogger(ILogger<ClientHttpLogger> logger, string 
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(response);
 
-        if (this.IsQuiet(request))
+        if (response.IsSuccessStatusCode && this.IsQuiet(request))
             return;
 
         var method = request.Method.Method;
