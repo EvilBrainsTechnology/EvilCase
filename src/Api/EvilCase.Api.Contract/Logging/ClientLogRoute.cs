@@ -10,7 +10,7 @@ public static class ClientLogRoute
     /// <summary>
     /// The controller route template. Relative, as the client generator requires.
     /// </summary>
-    public const string Template = "api/logs/client";
+    public const string Template = "api/logs";
 
     /// <summary>
     /// The same route as a request path, for <c>PathString</c> comparisons.
