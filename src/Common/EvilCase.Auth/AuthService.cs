@@ -49,27 +49,34 @@ internal sealed class AuthService(
         return LoginResult.Succeeded(session);
     }
 
-    public async Task<AuthSession?> RefreshAsync(string refreshToken, ClientInfo client, CancellationToken cancellationToken)
+    public async Task<RefreshResult> RefreshAsync(string refreshToken, ClientInfo client, CancellationToken cancellationToken)
     {
         var now = timeProvider.GetUtcNow().UtcDateTime;
         var stored = await refreshTokenStore.FindAsync(RefreshTokenValue.Hash(refreshToken), cancellationToken);
 
         if (stored is null)
-            return null;
+            return RefreshResult.Failed(RefreshStatus.Rejected);
 
         if (stored.RevokedAt is { } revokedAt)
             return await this.HandleReplayAsync(stored, revokedAt, now, cancellationToken);
 
         if (stored.Expires <= now || stored.SessionExpires <= now)
-            return null;
+            return RefreshResult.Failed(RefreshStatus.Rejected);
 
         var user = await userStore.FindByIdAsync(stored.UserId, cancellationToken);
         if (user is null || user.LockoutEnd > now)
-            return null;
+            return RefreshResult.Failed(RefreshStatus.Rejected);
 
-        await refreshTokenStore.RevokeAsync(stored.Id, now, cancellationToken);
+        // Revoking is what settles a race rather than the read above it: two callers presenting the same
+        // token both find it live, and only the one whose update still finds it unrevoked may spend it.
+        // Without this the loser would be handed a second live token in the same chain, and a stolen
+        // cookie racing the browser would never be seen as the replay it is.
+        if (!await refreshTokenStore.RevokeAsync(stored.Id, now, cancellationToken))
+            return RefreshResult.Failed(RefreshStatus.Raced);
 
-        return await this.IssueAsync(user, stored.SessionId, stored.SessionExpires, client, now, cancellationToken);
+        var session = await this.IssueAsync(user, stored.SessionId, stored.SessionExpires, client, now, cancellationToken);
+
+        return RefreshResult.Succeeded(session);
     }
 
     public async Task SignOutAsync(string refreshToken, CancellationToken cancellationToken)
@@ -127,10 +134,10 @@ internal sealed class AuthService(
         return LoginResult.Failed(lockedOut ? LoginStatus.LockedOut : LoginStatus.InvalidCredentials);
     }
 
-    private async Task<AuthSession?> HandleReplayAsync(RefreshToken stored, DateTime revokedAt, DateTime now, CancellationToken cancellationToken)
+    private async Task<RefreshResult> HandleReplayAsync(RefreshToken stored, DateTime revokedAt, DateTime now, CancellationToken cancellationToken)
     {
         if (now - revokedAt <= ReplayGracePeriod)
-            return null;
+            return RefreshResult.Failed(RefreshStatus.Raced);
 
         logger.LogWarning(
             "A refresh token of session {SessionId} was replayed {Age} after it was revoked; the session is being ended",
@@ -139,7 +146,7 @@ internal sealed class AuthService(
 
         await refreshTokenStore.RevokeSessionAsync(stored.SessionId, now, cancellationToken);
 
-        return null;
+        return RefreshResult.Failed(RefreshStatus.Rejected);
     }
 
     private async Task<AuthSession> IssueAsync(

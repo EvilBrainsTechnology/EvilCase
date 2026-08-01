@@ -9,9 +9,10 @@ internal interface IRefreshTokenStore
     public Task<RefreshToken?> FindAsync(string tokenHash, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Marks one token as consumed. Rotation and nothing else calls this.
+    /// Marks one token as consumed. Rotation and nothing else calls this. False where the token was
+    /// already spent, which is how two callers presenting the same one are told apart.
     /// </summary>
-    public Task RevokeAsync(long id, DateTime now, CancellationToken cancellationToken);
+    public Task<bool> RevokeAsync(long id, DateTime now, CancellationToken cancellationToken);
 
     /// <summary>
     /// Ends one rotation chain: a sign-out, or a replayed token taking its session down.

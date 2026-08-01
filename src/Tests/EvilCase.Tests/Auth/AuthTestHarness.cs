@@ -93,6 +93,9 @@ internal sealed class AuthTestHarness
     public Task<LoginResult> LoginAsync(string password) =>
         this.Service.LoginAsync(Email, password, ClientInfo.Unknown, CancellationToken.None);
 
-    public Task<AuthSession?> RefreshAsync(string refreshToken) =>
+    public async Task<AuthSession?> RefreshAsync(string refreshToken) =>
+        (await this.RefreshResultAsync(refreshToken)).Session;
+
+    public Task<RefreshResult> RefreshResultAsync(string refreshToken) =>
         this.Service.RefreshAsync(refreshToken, ClientInfo.Unknown, CancellationToken.None);
 }

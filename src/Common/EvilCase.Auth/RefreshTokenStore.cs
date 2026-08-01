@@ -15,16 +15,16 @@ internal sealed class RefreshTokenStore(ApplicationDbContext dbContext) : IRefre
     public async Task<RefreshToken?> FindAsync(string tokenHash, CancellationToken cancellationToken) =>
         await dbContext.RefreshTokens.SingleOrDefaultAsync(token => token.TokenHash == tokenHash, cancellationToken);
 
-    public async Task RevokeAsync(long id, DateTime now, CancellationToken cancellationToken)
-    {
-        _ = await dbContext.RefreshTokens
+    // The RevokedAt filter is the whole of the concurrency control: the statement is atomic, so of two
+    // callers spending the same token exactly one sees a row change.
+    public async Task<bool> RevokeAsync(long id, DateTime now, CancellationToken cancellationToken) =>
+        await dbContext.RefreshTokens
             .Where(token => token.Id == id && token.RevokedAt == null)
             .ExecuteUpdateAsync(
                 setters => setters
                     .SetProperty(token => token.RevokedAt, now)
                     .SetProperty(token => token.LastUsed, now),
-                cancellationToken);
-    }
+                cancellationToken) > 0;
 
     public async Task RevokeSessionAsync(Guid sessionId, DateTime now, CancellationToken cancellationToken)
     {

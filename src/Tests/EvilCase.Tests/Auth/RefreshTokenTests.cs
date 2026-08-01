@@ -1,3 +1,5 @@
+using EvilBrains.EvilCase.Auth;
+
 namespace EvilBrains.EvilCase.Tests.Auth;
 
 /// <summary>
@@ -71,7 +73,8 @@ public class RefreshTokenTests
 
     /// <summary>
     /// Two tabs presenting the same cookie at once is a race, not a theft. The loser is refused, but the
-    /// session survives — the cookie already holds the replacement, so its next attempt succeeds.
+    /// session survives — the cookie already holds the replacement, so its next attempt succeeds. The
+    /// status says so, because the endpoint above has to leave that cookie alone.
     /// </summary>
     [Test]
     public async Task AReplayInsideTheGraceWindowLeavesTheSessionAlone()
@@ -79,13 +82,41 @@ public class RefreshTokenTests
         var first = await this.harness.SignInAsync();
         var second = await this.harness.RefreshAsync(first.RefreshToken);
 
-        var raced = await this.harness.RefreshAsync(first.RefreshToken);
+        var raced = await this.harness.RefreshResultAsync(first.RefreshToken);
         var afterwards = await this.harness.RefreshAsync(second!.RefreshToken);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(raced, Is.Null);
+            Assert.That(raced.Session, Is.Null);
+            Assert.That(raced.Status, Is.EqualTo(RefreshStatus.Raced));
             Assert.That(afterwards, Is.Not.Null);
+        }
+    }
+
+    /// <summary>
+    /// The read that finds a token live and the write that spends it are two statements, so two callers
+    /// can both pass the first. The write is what settles it: the loser gets nothing, rather than a
+    /// second live token in a chain that is supposed to hold exactly one.
+    /// </summary>
+    [Test]
+    public async Task OnlyOneOfTwoCallersRacingForTheSameTokenSpendsIt()
+    {
+        var session = await this.harness.SignInAsync();
+
+        this.harness.RefreshTokens.PauseBeforeRevoking();
+
+        var first = this.harness.RefreshResultAsync(session.RefreshToken);
+        var second = this.harness.RefreshResultAsync(session.RefreshToken);
+
+        this.harness.RefreshTokens.Resume();
+
+        var results = await Task.WhenAll(first, second);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(results.Count(result => result.Session is not null), Is.EqualTo(1));
+            Assert.That(results.Select(result => result.Status), Does.Contain(RefreshStatus.Raced));
+            Assert.That(this.harness.RefreshTokens.All.Where(token => token.RevokedAt is null), Has.Exactly(1).Items);
         }
     }
 

@@ -154,8 +154,14 @@ public class RefreshCookieTests
         }
     }
 
+    /// <summary>
+    /// A token the browser has only just replaced is two tabs racing, and the response must not touch the
+    /// cookie: it holds the winner's replacement, and a delete matches by name alone — it would take that
+    /// replacement with it and sign every tab out, which is the one thing the grace window exists to
+    /// prevent.
+    /// </summary>
     [Test]
-    public async Task ASpentRefreshTokenIsRefusedAndTheCookieGoesWithIt()
+    public async Task ASpentRefreshTokenIsRefusedButLeavesTheReplacementCookieAlone()
     {
         using var signIn = await this.SignInAsync(Password);
         var first = ValueOf(RefreshCookieOf(signIn));
@@ -168,7 +174,23 @@ public class RefreshCookieTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(replayed.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
-            Assert.That(ValueOf(RefreshCookieOf(replayed)), Is.Empty);
+            Assert.That(replayed.Headers.Contains("Set-Cookie"), Is.False);
+        }
+    }
+
+    /// <summary>
+    /// A token that was never issued is not a race; leaving it in place would only make the browser send
+    /// it again on every navigation.
+    /// </summary>
+    [Test]
+    public async Task AnUnknownRefreshTokenIsRefusedAndTheCookieGoesWithIt()
+    {
+        using var response = await this.RefreshAsync("this-was-never-issued");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+            Assert.That(ValueOf(RefreshCookieOf(response)), Is.Empty);
         }
     }
 

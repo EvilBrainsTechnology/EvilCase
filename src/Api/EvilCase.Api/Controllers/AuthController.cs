@@ -51,15 +51,18 @@ public class AuthController(IAuthService authService) : ControllerBase
     {
         var refreshToken = this.Request.Cookies[RefreshCookie.Name];
 
-        var session = refreshToken is { Length: > 0 }
+        var result = refreshToken is { Length: > 0 }
             ? await authService.RefreshAsync(refreshToken, this.DescribeClient(), token)
-            : null;
+            : RefreshResult.Failed(RefreshStatus.Rejected);
 
-        if (session is null)
+        if (result.Session is not { } session)
         {
-            // Whatever it was, it is not usable; leaving it in place would only make the browser send
-            // it again on every navigation.
-            this.ClearRefreshCookie();
+            // Whatever it was, it is not usable; leaving it in place would only make the browser send it
+            // again on every navigation. The one exception is a token another tab of this same browser
+            // spent moments ago: the cookie now holds that tab's replacement, and deleting it here would
+            // end the session that tab just renewed.
+            if (result.Status != RefreshStatus.Raced)
+                this.ClearRefreshCookie();
 
             return this.Problem(statusCode: StatusCodes.Status401Unauthorized, title: "Invalid refresh token");
         }
