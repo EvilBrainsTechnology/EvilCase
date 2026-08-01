@@ -16,19 +16,28 @@ internal sealed class ClientIdentity(IJSRuntime jsRuntime, string machineIdStora
 
     /// <summary>
     /// WebAssembly allows synchronous interop, which is what makes the identifier available to the
-    /// handler; a runtime without it falls back to an identifier for this load only.
+    /// handler; a runtime without it falls back to an identifier for this load only. So does storage
+    /// that throws instead of storing — private browsing quotas, a cross-site frame, blocked cookies —
+    /// because this runs in a singleton constructor before the application renders anything.
     /// </summary>
     private static string ReadOrCreateMachineId(IJSInProcessRuntime? runtime, string storageKey)
     {
         if (runtime is null)
             return NewId();
 
-        if (Guid.TryParse(runtime.Invoke<string?>("localStorage.getItem", storageKey), out var stored))
-            return stored.ToString("D", CultureInfo.InvariantCulture);
+        try
+        {
+            if (Guid.TryParse(runtime.Invoke<string?>("localStorage.getItem", storageKey), out var stored))
+                return stored.ToString("D", CultureInfo.InvariantCulture);
 
-        var created = NewId();
-        runtime.InvokeVoid("localStorage.setItem", storageKey, created);
+            var created = NewId();
+            runtime.InvokeVoid("localStorage.setItem", storageKey, created);
 
-        return created;
+            return created;
+        }
+        catch (JSException)
+        {
+            return NewId();
+        }
     }
 }
