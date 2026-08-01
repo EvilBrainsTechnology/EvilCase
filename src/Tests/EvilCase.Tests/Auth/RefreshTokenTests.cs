@@ -21,11 +21,11 @@ public class RefreshTokenTests
     [Test]
     public async Task RefreshingIssuesANewTokenAndSpendsTheOld()
     {
-        var first = await this.harness.SignInAsync();
+        var first = await this.harness.SignIn();
 
         this.harness.Time.Advance(TimeSpan.FromMinutes(20));
 
-        var second = await this.harness.RefreshAsync(first.RefreshToken);
+        var second = await this.harness.Refresh(first.RefreshToken);
 
         using (Assert.EnterMultipleScope())
         {
@@ -43,9 +43,9 @@ public class RefreshTokenTests
     [Test]
     public async Task RotationStaysInsideTheSameSession()
     {
-        var first = await this.harness.SignInAsync();
+        var first = await this.harness.SignIn();
 
-        _ = await this.harness.RefreshAsync(first.RefreshToken);
+        _ = await this.harness.Refresh(first.RefreshToken);
 
         Assert.That(this.harness.RefreshTokens.All.Select(token => token.AuthSessionId).Distinct(), Has.Exactly(1).Items);
     }
@@ -53,13 +53,13 @@ public class RefreshTokenTests
     [Test]
     public async Task AReplayedTokenEndsTheWholeSession()
     {
-        var first = await this.harness.SignInAsync();
-        var second = await this.harness.RefreshAsync(first.RefreshToken);
+        var first = await this.harness.SignIn();
+        var second = await this.harness.Refresh(first.RefreshToken);
 
         this.harness.Time.Advance(PastTheGracePeriod);
 
-        var replayed = await this.harness.RefreshAsync(first.RefreshToken);
-        var afterwards = await this.harness.RefreshAsync(second!.RefreshToken);
+        var replayed = await this.harness.Refresh(first.RefreshToken);
+        var afterwards = await this.harness.Refresh(second!.RefreshToken);
 
         using (Assert.EnterMultipleScope())
         {
@@ -79,11 +79,11 @@ public class RefreshTokenTests
     [Test]
     public async Task AReplayInsideTheGraceWindowLeavesTheSessionAlone()
     {
-        var first = await this.harness.SignInAsync();
-        var second = await this.harness.RefreshAsync(first.RefreshToken);
+        var first = await this.harness.SignIn();
+        var second = await this.harness.Refresh(first.RefreshToken);
 
-        var raced = await this.harness.RefreshResultAsync(first.RefreshToken);
-        var afterwards = await this.harness.RefreshAsync(second!.RefreshToken);
+        var raced = await this.harness.RefreshOutcome(first.RefreshToken);
+        var afterwards = await this.harness.Refresh(second!.RefreshToken);
 
         using (Assert.EnterMultipleScope())
         {
@@ -101,12 +101,12 @@ public class RefreshTokenTests
     [Test]
     public async Task OnlyOneOfTwoCallersRacingForTheSameTokenSpendsIt()
     {
-        var session = await this.harness.SignInAsync();
+        var session = await this.harness.SignIn();
 
         this.harness.RefreshTokens.PauseBeforeRevoking();
 
-        var first = this.harness.RefreshResultAsync(session.RefreshToken);
-        var second = this.harness.RefreshResultAsync(session.RefreshToken);
+        var first = this.harness.RefreshOutcome(session.RefreshToken);
+        var second = this.harness.RefreshOutcome(session.RefreshToken);
 
         this.harness.RefreshTokens.Resume();
 
@@ -123,11 +123,11 @@ public class RefreshTokenTests
     [Test]
     public async Task AnExpiredTokenIsRefused()
     {
-        var session = await this.harness.SignInAsync();
+        var session = await this.harness.SignIn();
 
         this.harness.Time.Advance(this.harness.Settings.RefreshToken.Expiration + TimeSpan.FromMinutes(1));
 
-        Assert.That(await this.harness.RefreshAsync(session.RefreshToken), Is.Null);
+        Assert.That(await this.harness.Refresh(session.RefreshToken), Is.Null);
     }
 
     /// <summary>
@@ -139,16 +139,16 @@ public class RefreshTokenTests
     {
         var lifetime = this.harness.Settings.RefreshToken.Expiration;
 
-        var session = await this.harness.SignInAsync();
+        var session = await this.harness.SignIn();
         var ceiling = this.harness.RefreshTokens.All[0].SessionExpires;
 
         // Renewed just before each token would have run out, twice, which is how a browser that is used
         // every day walks a session towards its ceiling.
         this.harness.Time.Advance(lifetime - TimeSpan.FromDays(1));
-        var renewed = await this.harness.RefreshAsync(session.RefreshToken);
+        var renewed = await this.harness.Refresh(session.RefreshToken);
 
         this.harness.Time.Advance(lifetime - TimeSpan.FromDays(1));
-        var again = await this.harness.RefreshAsync(renewed!.RefreshToken);
+        var again = await this.harness.Refresh(renewed!.RefreshToken);
 
         using (Assert.EnterMultipleScope())
         {
@@ -161,37 +161,37 @@ public class RefreshTokenTests
     [Test]
     public async Task SigningOutEndsTheChainTheTokenBelongsTo()
     {
-        var first = await this.harness.SignInAsync();
-        var second = await this.harness.RefreshAsync(first.RefreshToken);
+        var first = await this.harness.SignIn();
+        var second = await this.harness.Refresh(first.RefreshToken);
 
-        await this.harness.Service.SignOutAsync(second!.RefreshToken, CancellationToken.None);
+        await this.harness.Service.SignOut(second!.RefreshToken, CancellationToken.None);
 
-        Assert.That(await this.harness.RefreshAsync(second.RefreshToken), Is.Null);
+        Assert.That(await this.harness.Refresh(second.RefreshToken), Is.Null);
     }
 
     [Test]
     public async Task SigningOutEverywhereEndsEverySession()
     {
-        var phone = await this.harness.SignInAsync();
-        var laptop = await this.harness.SignInAsync();
+        var phone = await this.harness.SignIn();
+        var laptop = await this.harness.SignIn();
 
-        await this.harness.Service.SignOutEverywhereAsync(this.harness.User.Id, CancellationToken.None);
+        await this.harness.Service.SignOutEverywhere(this.harness.User.Id, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(await this.harness.RefreshAsync(phone.RefreshToken), Is.Null);
-            Assert.That(await this.harness.RefreshAsync(laptop.RefreshToken), Is.Null);
+            Assert.That(await this.harness.Refresh(phone.RefreshToken), Is.Null);
+            Assert.That(await this.harness.Refresh(laptop.RefreshToken), Is.Null);
         }
     }
 
     [Test]
     public async Task TheSessionListHasOneEntryPerBrowserRatherThanPerRenewal()
     {
-        var phone = await this.harness.SignInAsync();
-        _ = await this.harness.SignInAsync();
-        _ = await this.harness.RefreshAsync(phone.RefreshToken);
+        var phone = await this.harness.SignIn();
+        _ = await this.harness.SignIn();
+        _ = await this.harness.Refresh(phone.RefreshToken);
 
-        var sessions = await this.harness.Service.GetSessionsAsync(this.harness.User.Id, CancellationToken.None);
+        var sessions = await this.harness.Service.GetSessions(this.harness.User.Id, CancellationToken.None);
 
         Assert.That(sessions, Has.Exactly(2).Items);
     }
@@ -204,13 +204,13 @@ public class RefreshTokenTests
     public async Task ASessionIsDatedFromTheSignInAndFromItsLastRenewal()
     {
         var signedInAt = this.harness.Time.UtcNow;
-        var session = await this.harness.SignInAsync();
+        var session = await this.harness.SignIn();
 
         this.harness.Time.Advance(TimeSpan.FromDays(3));
         var renewedAt = this.harness.Time.UtcNow;
-        _ = await this.harness.RefreshAsync(session.RefreshToken);
+        _ = await this.harness.Refresh(session.RefreshToken);
 
-        var listed = (await this.harness.Service.GetSessionsAsync(this.harness.User.Id, CancellationToken.None)).Single();
+        var listed = (await this.harness.Service.GetSessions(this.harness.User.Id, CancellationToken.None)).Single();
 
         using (Assert.EnterMultipleScope())
         {
@@ -222,20 +222,20 @@ public class RefreshTokenTests
     [Test]
     public async Task ALockedOutAccountCannotRenew()
     {
-        var session = await this.harness.SignInAsync();
+        var session = await this.harness.SignIn();
 
         for (var attempt = 0; attempt < AuthTestHarness.MaxFailedAttempts; attempt++)
-            _ = await this.harness.LoginAsync("not-the-password");
+            _ = await this.harness.Login("not-the-password");
 
-        Assert.That(await this.harness.RefreshAsync(session.RefreshToken), Is.Null);
+        Assert.That(await this.harness.Refresh(session.RefreshToken), Is.Null);
     }
 
     [Test]
     public async Task AnUnknownTokenIsRefusedWithoutTouchingAnything()
     {
-        _ = await this.harness.SignInAsync();
+        _ = await this.harness.SignIn();
 
-        var result = await this.harness.RefreshAsync("this-was-never-issued");
+        var result = await this.harness.Refresh("this-was-never-issued");
 
         using (Assert.EnterMultipleScope())
         {

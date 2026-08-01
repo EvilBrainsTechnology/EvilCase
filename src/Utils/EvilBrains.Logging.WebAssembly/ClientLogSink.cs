@@ -42,7 +42,7 @@ internal sealed class ClientLogSink : ILogEventSink
     {
         this.navigation = navigationManager;
 
-        _ = this.ShipAsync(uploader);
+        _ = this.Ship(uploader);
     }
 
     /// <summary>
@@ -110,7 +110,7 @@ internal sealed class ClientLogSink : ILogEventSink
     /// rest of the application's life without a trace. Anything an uploader was not supposed to throw
     /// costs the current batch and nothing more.
     /// </summary>
-    private async Task ShipAsync(IClientLogUploader uploader)
+    private async Task Ship(IClientLogUploader uploader)
     {
         using var timer = new PeriodicTimer(FlushInterval);
 
@@ -118,7 +118,7 @@ internal sealed class ClientLogSink : ILogEventSink
         {
             try
             {
-                await this.FlushAsync(uploader);
+                await this.Flush(uploader);
             }
             catch (Exception exception)
             {
@@ -127,13 +127,13 @@ internal sealed class ClientLogSink : ILogEventSink
         }
     }
 
-    private async Task FlushAsync(IClientLogUploader uploader)
+    private async Task Flush(IClientLogUploader uploader)
     {
         while (this.Drain() is { } batch)
         {
             try
             {
-                await uploader.UploadAsync(batch);
+                await uploader.Upload(batch);
             }
             catch (ClientLogUploadException exception)
             {

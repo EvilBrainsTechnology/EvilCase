@@ -23,7 +23,7 @@ public class AuthController(IAuthService authService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status423Locked)]
     public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request, CancellationToken token)
     {
-        var result = await authService.LoginAsync(request.Email, request.Password, this.DescribeClient(), token);
+        var result = await authService.Login(request.Email, request.Password, this.DescribeClient(), token);
 
         if (result.Session is not { } session)
         {
@@ -52,7 +52,7 @@ public class AuthController(IAuthService authService) : ControllerBase
         var refreshToken = this.Request.Cookies[RefreshCookie.Name];
 
         var result = refreshToken is { Length: > 0 }
-            ? await authService.RefreshAsync(refreshToken, this.DescribeClient(), token)
+            ? await authService.Refresh(refreshToken, this.DescribeClient(), token)
             : RefreshResult.Failed(RefreshStatus.Rejected);
 
         if (result.Session is not { } session)
@@ -82,7 +82,7 @@ public class AuthController(IAuthService authService) : ControllerBase
         var refreshToken = this.Request.Cookies[RefreshCookie.Name];
 
         if (refreshToken is { Length: > 0 })
-            await authService.SignOutAsync(refreshToken, token);
+            await authService.SignOut(refreshToken, token);
 
         this.ClearRefreshCookie();
 
@@ -94,7 +94,7 @@ public class AuthController(IAuthService authService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<ActionResult> LogoutAll(CancellationToken token)
     {
-        await authService.SignOutEverywhereAsync(this.UserId(), token);
+        await authService.SignOutEverywhere(this.UserId(), token);
 
         this.ClearRefreshCookie();
 
@@ -106,7 +106,7 @@ public class AuthController(IAuthService authService) : ControllerBase
     public async Task<ActionResult<IReadOnlyList<SessionInfo>>> Sessions(CancellationToken token)
     {
         var current = this.CurrentAuthSessionId();
-        var sessions = await authService.GetSessionsAsync(this.UserId(), token);
+        var sessions = await authService.GetSessions(this.UserId(), token);
 
         return this.Ok(sessions.Select(session => Describe(session, current)).ToList());
     }

@@ -20,7 +20,7 @@ public class RequestContextLoggingMiddlewareTests
         var sessionId = Set(context, RequestContextHeaderNames.SessionId);
         var machineId = Set(context, RequestContextHeaderNames.MachineId);
 
-        var events = await LogDuringRequestAsync(context, "First", "Second");
+        var events = await LogDuringRequest(context, "First", "Second");
 
         using (Assert.EnterMultipleScope())
         {
@@ -77,7 +77,7 @@ public class RequestContextLoggingMiddlewareTests
         var context = Request();
         context.TraceIdentifier = "0HN7TRACE:00000002";
 
-        var logEvent = (await LogDuringRequestAsync(context, "Inside")).Single();
+        var logEvent = (await LogDuringRequest(context, "Inside")).Single();
 
         Assert.That(Value(logEvent, "RequestId"), Is.EqualTo("0HN7TRACE:00000002"));
     }
@@ -89,7 +89,7 @@ public class RequestContextLoggingMiddlewareTests
         Set(context, RequestContextHeaderNames.RequestId);
         Set(context, RequestContextHeaderNames.SessionId);
 
-        await LogDuringRequestAsync(context, "Inside");
+        await LogDuringRequest(context, "Inside");
 
         var sink = new CollectingSink();
         Logger(sink).Information("Outside");
@@ -107,7 +107,7 @@ public class RequestContextLoggingMiddlewareTests
         var context = Request();
         context.TraceIdentifier = "0HN7TRACE:00000001";
 
-        var logEvent = (await LogDuringRequestAsync(context, "Inside")).Single();
+        var logEvent = (await LogDuringRequest(context, "Inside")).Single();
 
         using (Assert.EnterMultipleScope())
         {
@@ -126,7 +126,7 @@ public class RequestContextLoggingMiddlewareTests
         context.Request.Headers[RequestContextHeaderNames.SessionId] = "not a guid";
         context.Request.Headers[RequestContextHeaderNames.MachineId] = new string[] { Guid.NewGuid().ToString(), Guid.NewGuid().ToString() };
 
-        var logEvent = (await LogDuringRequestAsync(context, "Inside")).Single();
+        var logEvent = (await LogDuringRequest(context, "Inside")).Single();
 
         using (Assert.EnterMultipleScope())
         {
@@ -148,7 +148,7 @@ public class RequestContextLoggingMiddlewareTests
     private static Logger Logger(CollectingSink sink) =>
         new LoggerConfiguration().MinimumLevel.Verbose().Enrich.FromLogContext().WriteTo.Sink(sink).CreateLogger();
 
-    private static async Task<IReadOnlyList<LogEvent>> LogDuringRequestAsync(HttpContext context, params string[] messages)
+    private static async Task<IReadOnlyList<LogEvent>> LogDuringRequest(HttpContext context, params string[] messages)
     {
         var sink = new CollectingSink();
         var logger = Logger(sink);

@@ -33,7 +33,7 @@ internal sealed class AuthTokenHandler(IAccessTokenStore tokens, IServiceProvide
         var contentType = request.Content?.Headers.ContentType;
 
         if (this.IsExpiring())
-            _ = await this.Session().RenewAsync(cancellationToken);
+            _ = await this.Session().Renew(cancellationToken);
 
         this.Authorize(request);
 
@@ -43,7 +43,7 @@ internal sealed class AuthTokenHandler(IAccessTokenStore tokens, IServiceProvide
         if (response.StatusCode != HttpStatusCode.Unauthorized || tokens.Current is null)
             return response;
 
-        if (!await this.Session().RenewAsync(cancellationToken))
+        if (!await this.Session().Renew(cancellationToken))
             return response;
 
         response.Dispose();

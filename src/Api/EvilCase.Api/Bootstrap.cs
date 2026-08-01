@@ -80,7 +80,7 @@ public static class Bootstrap
             new HealthCheckOptions
             {
                 Predicate = check => check.Tags.Contains(HealthCheckTags.Ready),
-                ResponseWriter = HealthCheckResponseWriter.WriteAsync,
+                ResponseWriter = HealthCheckResponseWriter.Write,
 
                 // Degraded is 200 by default, which would keep an instance in rotation on a partial failure.
                 ResultStatusCodes = { [HealthStatus.Degraded] = StatusCodes.Status503ServiceUnavailable },

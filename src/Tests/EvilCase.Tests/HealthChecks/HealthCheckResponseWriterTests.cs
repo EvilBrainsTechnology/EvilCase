@@ -14,7 +14,7 @@ public class HealthCheckResponseWriterTests
             ("database", Entry(HealthStatus.Healthy)),
             ("queue", Entry(HealthStatus.Degraded)));
 
-        var json = await WriteAsync(report);
+        var json = await Write(report);
 
         Assert.That(
             json,
@@ -31,7 +31,7 @@ public class HealthCheckResponseWriterTests
             new InvalidOperationException("password authentication failed for user evilcase"),
             new Dictionary<string, object>(StringComparer.Ordinal) { ["connectionString"] = "Host=db.internal;Password=hunter2" });
 
-        var json = await WriteAsync(Report(("database", entry)));
+        var json = await Write(Report(("database", entry)));
 
         Assert.That(json, Is.EqualTo("""{"status":"Unhealthy","checks":[{"name":"database","status":"Unhealthy"}]}"""));
     }
@@ -42,13 +42,13 @@ public class HealthCheckResponseWriterTests
     private static HealthReport Report(params (string Name, HealthReportEntry Entry)[] entries) =>
         new(entries.ToDictionary(x => x.Name, x => x.Entry, StringComparer.Ordinal), TimeSpan.FromSeconds(1));
 
-    private static async Task<string> WriteAsync(HealthReport report)
+    private static async Task<string> Write(HealthReport report)
     {
         var context = new DefaultHttpContext();
         await using var body = new MemoryStream();
         context.Response.Body = body;
 
-        await HealthCheckResponseWriter.WriteAsync(context, report);
+        await HealthCheckResponseWriter.Write(context, report);
 
         return Encoding.UTF8.GetString(body.ToArray());
     }

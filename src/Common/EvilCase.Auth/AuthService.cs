@@ -20,10 +20,10 @@ internal sealed class AuthService(
     /// </summary>
     private static readonly TimeSpan ReplayGracePeriod = TimeSpan.FromSeconds(30);
 
-    public async Task<LoginResult> LoginAsync(string email, string password, ClientInfo client, CancellationToken cancellationToken)
+    public async Task<LoginResult> Login(string email, string password, ClientInfo client, CancellationToken cancellationToken)
     {
         var now = timeProvider.GetUtcNow().UtcDateTime;
-        var user = await userStore.FindByEmailAsync(EmailNormalizer.Normalize(email), cancellationToken);
+        var user = await userStore.FindByEmail(EmailNormalizer.Normalize(email), cancellationToken);
 
         if (user is null)
         {
@@ -37,33 +37,33 @@ internal sealed class AuthService(
             return LoginResult.Failed(LoginStatus.LockedOut);
 
         if (!PasswordHasher.Verify(password, user.PasswordHash))
-            return await this.RecordFailureAsync(user, now, cancellationToken);
+            return await this.RecordFailure(user, now, cancellationToken);
 
-        await userStore.RecordSuccessfulLoginAsync(user.Id, now, cancellationToken);
+        await userStore.RecordSuccessfulLogin(user.Id, now, cancellationToken);
 
         var sessionExpires = now.Add(options.Value.RefreshToken.SessionExpiration);
-        var session = await this.IssueAsync(user, Guid.NewGuid(), sessionExpires, client, now, cancellationToken);
+        var session = await this.Issue(user, Guid.NewGuid(), sessionExpires, client, now, cancellationToken);
 
         logger.LogInformation("User {UserId} signed in", user.Id);
 
         return LoginResult.Succeeded(session);
     }
 
-    public async Task<RefreshResult> RefreshAsync(string refreshToken, ClientInfo client, CancellationToken cancellationToken)
+    public async Task<RefreshResult> Refresh(string refreshToken, ClientInfo client, CancellationToken cancellationToken)
     {
         var now = timeProvider.GetUtcNow().UtcDateTime;
-        var stored = await refreshTokenStore.FindAsync(RefreshTokenValue.Hash(refreshToken), cancellationToken);
+        var stored = await refreshTokenStore.Find(RefreshTokenValue.Hash(refreshToken), cancellationToken);
 
         if (stored is null)
             return RefreshResult.Failed(RefreshStatus.Rejected);
 
         if (stored.RevokedAt is { } revokedAt)
-            return await this.HandleReplayAsync(stored, revokedAt, now, cancellationToken);
+            return await this.HandleReplay(stored, revokedAt, now, cancellationToken);
 
         if (stored.Expires <= now || stored.SessionExpires <= now)
             return RefreshResult.Failed(RefreshStatus.Rejected);
 
-        var user = await userStore.FindByIdAsync(stored.UserId, cancellationToken);
+        var user = await userStore.FindById(stored.UserId, cancellationToken);
         if (user is null || user.LockoutEnd > now)
             return RefreshResult.Failed(RefreshStatus.Rejected);
 
@@ -71,33 +71,33 @@ internal sealed class AuthService(
         // token both find it live, and only the one whose update still finds it unrevoked may spend it.
         // Without this the loser would be handed a second live token in the same chain, and a stolen
         // cookie racing the browser would never be seen as the replay it is.
-        if (!await refreshTokenStore.RevokeAsync(stored.Id, now, cancellationToken))
+        if (!await refreshTokenStore.Revoke(stored.Id, now, cancellationToken))
             return RefreshResult.Failed(RefreshStatus.Raced);
 
-        var session = await this.IssueAsync(user, stored.AuthSessionId, stored.SessionExpires, client, now, cancellationToken);
+        var session = await this.Issue(user, stored.AuthSessionId, stored.SessionExpires, client, now, cancellationToken);
 
         return RefreshResult.Succeeded(session);
     }
 
-    public async Task SignOutAsync(string refreshToken, CancellationToken cancellationToken)
+    public async Task SignOut(string refreshToken, CancellationToken cancellationToken)
     {
-        var stored = await refreshTokenStore.FindAsync(RefreshTokenValue.Hash(refreshToken), cancellationToken);
+        var stored = await refreshTokenStore.Find(RefreshTokenValue.Hash(refreshToken), cancellationToken);
 
         if (stored is not null)
-            await refreshTokenStore.RevokeSessionAsync(stored.AuthSessionId, timeProvider.GetUtcNow().UtcDateTime, cancellationToken);
+            await refreshTokenStore.RevokeSession(stored.AuthSessionId, timeProvider.GetUtcNow().UtcDateTime, cancellationToken);
     }
 
-    public async Task SignOutEverywhereAsync(long userId, CancellationToken cancellationToken)
+    public async Task SignOutEverywhere(long userId, CancellationToken cancellationToken)
     {
-        await refreshTokenStore.RevokeAllAsync(userId, timeProvider.GetUtcNow().UtcDateTime, cancellationToken);
+        await refreshTokenStore.RevokeAll(userId, timeProvider.GetUtcNow().UtcDateTime, cancellationToken);
 
         logger.LogInformation("Every session of user {UserId} was revoked", userId);
     }
 
-    public async Task<IReadOnlyList<UserSession>> GetSessionsAsync(long userId, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<UserSession>> GetSessions(long userId, CancellationToken cancellationToken)
     {
-        var tokens = await refreshTokenStore.GetActiveAsync(userId, timeProvider.GetUtcNow().UtcDateTime, cancellationToken);
-        var starts = await refreshTokenStore.GetSessionStartsAsync(userId, cancellationToken);
+        var tokens = await refreshTokenStore.GetActive(userId, timeProvider.GetUtcNow().UtcDateTime, cancellationToken);
+        var starts = await refreshTokenStore.GetSessionStarts(userId, cancellationToken);
 
         return
         [
@@ -117,7 +117,7 @@ internal sealed class AuthService(
         ];
     }
 
-    private async Task<LoginResult> RecordFailureAsync(User user, DateTime now, CancellationToken cancellationToken)
+    private async Task<LoginResult> RecordFailure(User user, DateTime now, CancellationToken cancellationToken)
     {
         var lockout = options.Value.Lockout;
         var attempts = user.FailedLoginAttempts + 1;
@@ -125,7 +125,7 @@ internal sealed class AuthService(
 
         // The counter starts over together with the lockout: past that point the lockout is what limits
         // guessing, and a counter left at its ceiling would lock the account again on the first miss.
-        await userStore.RecordFailedLoginAsync(
+        await userStore.RecordFailedLogin(
             user.Id,
             lockedOut ? 0 : attempts,
             lockedOut ? now.Add(lockout.Duration) : null,
@@ -138,7 +138,7 @@ internal sealed class AuthService(
         return LoginResult.Failed(lockedOut ? LoginStatus.LockedOut : LoginStatus.InvalidCredentials);
     }
 
-    private async Task<RefreshResult> HandleReplayAsync(RefreshToken stored, DateTime revokedAt, DateTime now, CancellationToken cancellationToken)
+    private async Task<RefreshResult> HandleReplay(RefreshToken stored, DateTime revokedAt, DateTime now, CancellationToken cancellationToken)
     {
         if (now - revokedAt <= ReplayGracePeriod)
             return RefreshResult.Failed(RefreshStatus.Raced);
@@ -148,12 +148,12 @@ internal sealed class AuthService(
             stored.AuthSessionId,
             now - revokedAt);
 
-        await refreshTokenStore.RevokeSessionAsync(stored.AuthSessionId, now, cancellationToken);
+        await refreshTokenStore.RevokeSession(stored.AuthSessionId, now, cancellationToken);
 
         return RefreshResult.Failed(RefreshStatus.Rejected);
     }
 
-    private async Task<AuthSession> IssueAsync(
+    private async Task<AuthSession> Issue(
         User user,
         Guid authSessionId,
         DateTime sessionExpires,
@@ -168,7 +168,7 @@ internal sealed class AuthService(
         if (expires > sessionExpires)
             expires = sessionExpires;
 
-        await refreshTokenStore.AddAsync(
+        await refreshTokenStore.Add(
             new RefreshToken
             {
                 UserId = user.Id,

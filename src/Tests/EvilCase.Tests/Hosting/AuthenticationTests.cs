@@ -35,7 +35,7 @@ public class AuthenticationTests
     [Test]
     public async Task UserInfoRejectsACallerWithoutAToken()
     {
-        using var response = await this.GetUserInfoAsync(token: null);
+        using var response = await this.GetUserInfo(token: null);
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
     }
@@ -43,7 +43,7 @@ public class AuthenticationTests
     [Test]
     public async Task UserInfoAnswersTheCallerNamedByTheToken()
     {
-        using var response = await this.GetUserInfoAsync(TestTokens.TokenFrom(this.host));
+        using var response = await this.GetUserInfo(TestTokens.TokenFrom(this.host));
 
         var body = await response.Content.ReadFromJsonAsync<UserInfo>();
 
@@ -64,12 +64,12 @@ public class AuthenticationTests
     {
         await using var foreignHost = new EvilCaseHost(jwtKey: new string('x', 64));
 
-        using var response = await this.GetUserInfoAsync(TestTokens.TokenFrom(foreignHost));
+        using var response = await this.GetUserInfo(TestTokens.TokenFrom(foreignHost));
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
     }
 
-    private async Task<HttpResponseMessage> GetUserInfoAsync(string? token)
+    private async Task<HttpResponseMessage> GetUserInfo(string? token)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, new Uri(UserInfoPath, UriKind.Relative));
 

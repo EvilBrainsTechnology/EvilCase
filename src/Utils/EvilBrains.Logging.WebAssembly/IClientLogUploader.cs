@@ -8,5 +8,5 @@ namespace EvilBrains.Logging.WebAssembly;
 /// </summary>
 public interface IClientLogUploader
 {
-    public Task UploadAsync(ClientLogBatch batch);
+    public Task Upload(ClientLogBatch batch);
 }

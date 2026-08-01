@@ -22,29 +22,29 @@ internal sealed class FakeUserStore : IUserStore
 
     public User Get(long id) => this.users.Single(user => user.Id == id);
 
-    public Task<User?> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken) =>
+    public Task<User?> FindByEmail(string normalizedEmail, CancellationToken cancellationToken) =>
         Task.FromResult(this.users.Find(user => string.Equals(user.Email, normalizedEmail, StringComparison.Ordinal)));
 
-    public Task<User?> FindByIdAsync(long id, CancellationToken cancellationToken) =>
+    public Task<User?> FindById(long id, CancellationToken cancellationToken) =>
         Task.FromResult(this.users.Find(user => user.Id == id));
 
-    public Task RecordFailedLoginAsync(long id, int failedAttempts, DateTime? lockoutEnd, DateTime now, CancellationToken cancellationToken)
+    public Task RecordFailedLogin(long id, int failedAttempts, DateTime? lockoutEnd, DateTime now, CancellationToken cancellationToken)
     {
         this.Replace(id, user => user with { FailedLoginAttempts = failedAttempts, LockoutEnd = lockoutEnd, Updated = now });
 
         return Task.CompletedTask;
     }
 
-    public Task RecordSuccessfulLoginAsync(long id, DateTime now, CancellationToken cancellationToken)
+    public Task RecordSuccessfulLogin(long id, DateTime now, CancellationToken cancellationToken)
     {
         this.Replace(id, user => user with { FailedLoginAttempts = 0, LockoutEnd = null, Updated = now });
 
         return Task.CompletedTask;
     }
 
-    public Task<bool> AnyAsync(CancellationToken cancellationToken) => Task.FromResult(this.users.Count > 0);
+    public Task<bool> Any(CancellationToken cancellationToken) => Task.FromResult(this.users.Count > 0);
 
-    public Task AddAsync(User user, CancellationToken cancellationToken)
+    public Task Add(User user, CancellationToken cancellationToken)
     {
         _ = this.Seed(user);
 

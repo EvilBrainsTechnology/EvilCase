@@ -12,7 +12,7 @@ internal sealed class UserSeeder(
     TimeProvider timeProvider,
     ILogger<UserSeeder> logger) : IUserSeeder
 {
-    public async Task SeedAsync(CancellationToken cancellationToken)
+    public async Task Seed(CancellationToken cancellationToken)
     {
         var seed = options.Value.Seed;
 
@@ -21,7 +21,7 @@ internal sealed class UserSeeder(
 
         // Any user at all, not just this e-mail: the seed exists to make an empty deployment reachable,
         // and once someone can sign in it must not quietly reinstate an account that was removed.
-        if (await userStore.AnyAsync(cancellationToken))
+        if (await userStore.Any(cancellationToken))
             return;
 
         var user = new User
@@ -32,7 +32,7 @@ internal sealed class UserSeeder(
             Created = timeProvider.GetUtcNow().UtcDateTime,
         };
 
-        await userStore.AddAsync(user, cancellationToken);
+        await userStore.Add(user, cancellationToken);
 
         logger.LogInformation("No user existed, so the configured administrator {Email} was created", user.Email);
     }

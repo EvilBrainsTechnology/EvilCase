@@ -21,7 +21,7 @@ public class UserSeederTests
     {
         var store = new FakeUserStore();
 
-        await Seed(store, SeedEmail, SeedPassword).SeedAsync(CancellationToken.None);
+        await Seeder(store, SeedEmail, SeedPassword).Seed(CancellationToken.None);
 
         var user = store.Get(1);
 
@@ -46,9 +46,9 @@ public class UserSeederTests
             Created = DateTime.UtcNow,
         });
 
-        await Seed(store, SeedEmail, SeedPassword).SeedAsync(CancellationToken.None);
+        await Seeder(store, SeedEmail, SeedPassword).Seed(CancellationToken.None);
 
-        Assert.That(await store.AnyAsync(CancellationToken.None) && store.Get(1).Role == UserRole.User, Is.True);
+        Assert.That(await store.Any(CancellationToken.None) && store.Get(1).Role == UserRole.User, Is.True);
     }
 
     [Test]
@@ -56,9 +56,9 @@ public class UserSeederTests
     {
         var store = new FakeUserStore();
 
-        await Seed(store, email: null, password: null).SeedAsync(CancellationToken.None);
+        await Seeder(store, email: null, password: null).Seed(CancellationToken.None);
 
-        Assert.That(await store.AnyAsync(CancellationToken.None), Is.False);
+        Assert.That(await store.Any(CancellationToken.None), Is.False);
     }
 
     /// <summary>
@@ -69,12 +69,12 @@ public class UserSeederTests
     {
         var store = new FakeUserStore();
 
-        await Seed(store, SeedEmail, password: null).SeedAsync(CancellationToken.None);
+        await Seeder(store, SeedEmail, password: null).Seed(CancellationToken.None);
 
-        Assert.That(await store.AnyAsync(CancellationToken.None), Is.False);
+        Assert.That(await store.Any(CancellationToken.None), Is.False);
     }
 
-    private static UserSeeder Seed(FakeUserStore store, string? email, string? password)
+    private static UserSeeder Seeder(FakeUserStore store, string? email, string? password)
     {
         var settings = AuthTestHarness.CreateSettings() with { Seed = new() { Email = email, Password = password } };
 

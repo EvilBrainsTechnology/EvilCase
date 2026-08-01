@@ -2,7 +2,7 @@
 
 <header class="navbar navbar-expand-lg d-print-none">
     <div class="container-xl">
-        <button type="button" class="navbar-toggler" aria-label="Otevřít navigaci" @onclick="ShowNavigationAsync">
+        <button type="button" class="navbar-toggler" aria-label="Otevřít navigaci" @onclick="ShowNavigation">
             <span class="navbar-toggler-icon"></span>
         </button>
 
@@ -27,7 +27,7 @@
 </header>
 
 @code {
-    private Task ShowNavigationAsync() => this.OffcanvasService.ShowAsync(
+    private Task ShowNavigation() => this.OffcanvasService.ShowAsync(
         "Navigace",
         new RenderComponent<NavOffcanvas>(),
         new OffcanvasOptions

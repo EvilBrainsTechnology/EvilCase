@@ -8,13 +8,13 @@ namespace EvilBrains.EvilCase.Auth;
 // with NoTracking and the entities are init-only records, so there is nothing to mutate anyway.
 internal sealed class UserStore(ApplicationDbContext dbContext) : IUserStore
 {
-    public async Task<User?> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken) =>
+    public async Task<User?> FindByEmail(string normalizedEmail, CancellationToken cancellationToken) =>
         await dbContext.Users.SingleOrDefaultAsync(user => user.Email == normalizedEmail, cancellationToken);
 
-    public async Task<User?> FindByIdAsync(long id, CancellationToken cancellationToken) =>
+    public async Task<User?> FindById(long id, CancellationToken cancellationToken) =>
         await dbContext.Users.SingleOrDefaultAsync(user => user.Id == id, cancellationToken);
 
-    public async Task RecordFailedLoginAsync(long id, int failedAttempts, DateTime? lockoutEnd, DateTime now, CancellationToken cancellationToken)
+    public async Task RecordFailedLogin(long id, int failedAttempts, DateTime? lockoutEnd, DateTime now, CancellationToken cancellationToken)
     {
         _ = await dbContext.Users
             .Where(user => user.Id == id)
@@ -26,7 +26,7 @@ internal sealed class UserStore(ApplicationDbContext dbContext) : IUserStore
                 cancellationToken);
     }
 
-    public async Task RecordSuccessfulLoginAsync(long id, DateTime now, CancellationToken cancellationToken)
+    public async Task RecordSuccessfulLogin(long id, DateTime now, CancellationToken cancellationToken)
     {
         _ = await dbContext.Users
             .Where(user => user.Id == id)
@@ -38,10 +38,10 @@ internal sealed class UserStore(ApplicationDbContext dbContext) : IUserStore
                 cancellationToken);
     }
 
-    public async Task<bool> AnyAsync(CancellationToken cancellationToken) =>
+    public async Task<bool> Any(CancellationToken cancellationToken) =>
         await dbContext.Users.AnyAsync(cancellationToken);
 
-    public async Task AddAsync(User user, CancellationToken cancellationToken)
+    public async Task Add(User user, CancellationToken cancellationToken)
     {
         await dbContext.Users.AddAsync(user, cancellationToken);
         _ = await dbContext.SaveChangesAsync(cancellationToken);

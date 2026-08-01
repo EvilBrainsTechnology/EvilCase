@@ -81,7 +81,7 @@ public static class Bootstrap
 
         sink.Start(host.Services.GetRequiredService<IClientLogUploader>(), host.Services.GetRequiredService<NavigationManager>());
 
-        _ = host.Services.GetRequiredService<IPageUnloadFlusher>().StartAsync();
+        _ = host.Services.GetRequiredService<IPageUnloadFlusher>().Start();
 
         return host;
     }

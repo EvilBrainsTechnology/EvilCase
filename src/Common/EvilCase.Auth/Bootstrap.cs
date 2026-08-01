@@ -80,12 +80,12 @@ public static class Bootstrap
     /// Creates the configured administrator where the database holds no user at all. Runs after the
     /// migrations and before anything is served, so an empty deployment is reachable on first start.
     /// </summary>
-    public static async Task SeedEvilCaseUserAsync(this IHost host, CancellationToken cancellationToken = default)
+    public static async Task SeedEvilCaseUser(this IHost host, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(host);
 
         await using var scope = host.Services.CreateAsyncScope();
 
-        await scope.ServiceProvider.GetRequiredService<IUserSeeder>().SeedAsync(cancellationToken);
+        await scope.ServiceProvider.GetRequiredService<IUserSeeder>().Seed(cancellationToken);
     }
 }

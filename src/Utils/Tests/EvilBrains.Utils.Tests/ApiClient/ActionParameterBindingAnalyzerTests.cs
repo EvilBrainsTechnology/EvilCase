@@ -9,7 +9,7 @@ public class ActionParameterBindingAnalyzerTests
     [Test]
     public async Task CompliantActionHasNoDiagnosticsTest()
     {
-        var diagnostics = await AnalyzeAsync("""
+        var diagnostics = await Analyze("""
             [HttpGet("")]
             public string GetItems([FromQuery] string filter, [FromHeader(Name = "X-Tenant")] string? tenant, CancellationToken token) => filter;
             """);
@@ -20,7 +20,7 @@ public class ActionParameterBindingAnalyzerTests
     [Test]
     public async Task ParameterWithoutBindingAttributeIsReportedTest()
     {
-        var diagnostics = await AnalyzeAsync("""
+        var diagnostics = await Analyze("""
             [HttpGet("")]
             public string GetItems(string filter) => filter;
             """);
@@ -31,7 +31,7 @@ public class ActionParameterBindingAnalyzerTests
     [Test]
     public async Task ParameterWithMultipleBindingAttributesIsReportedTest()
     {
-        var diagnostics = await AnalyzeAsync("""
+        var diagnostics = await Analyze("""
             [HttpGet("")]
             public string GetItems([FromQuery] [FromHeader] string filter) => filter;
             """);
@@ -42,7 +42,7 @@ public class ActionParameterBindingAnalyzerTests
     [Test]
     public async Task CancellationTokenWithBindingAttributeIsReportedTest()
     {
-        var diagnostics = await AnalyzeAsync("""
+        var diagnostics = await Analyze("""
             [HttpGet("")]
             public string GetItems([FromQuery] CancellationToken token) => "";
             """);
@@ -53,8 +53,8 @@ public class ActionParameterBindingAnalyzerTests
     private static void AssertIds(in ImmutableArray<Diagnostic> diagnostics, params string[] expected) =>
         Assert.That(diagnostics.Select(x => x.Id), Is.EqualTo(expected));
 
-    private static Task<ImmutableArray<Diagnostic>> AnalyzeAsync(string action) =>
-        AnalyzerTestHost.AnalyzeAsync(new ActionParameterBindingAnalyzer(), Fixture(action));
+    private static Task<ImmutableArray<Diagnostic>> Analyze(string action) =>
+        AnalyzerTestHost.Analyze(new ActionParameterBindingAnalyzer(), Fixture(action));
 
     private static string Fixture(string action) => $$"""
         using System.Threading;

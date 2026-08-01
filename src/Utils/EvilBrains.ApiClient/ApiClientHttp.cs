@@ -17,7 +17,7 @@ public static class ApiClientHttp
 
     public static string Route<T>(T value) => Uri.EscapeDataString(Format(value));
 
-    public static async Task<TResult> SendAsync<TResult>(
+    public static async Task<TResult> Send<TResult>(
         HttpClient client,
         HttpMethod method,
         string url,
@@ -26,12 +26,12 @@ public static class ApiClientHttp
         (string Name, object? Value)[]? query = null,
         (string Name, object? Value)[]? headers = null)
     {
-        using var response = await SendCoreAsync(client, method, url, body, query, headers, token);
+        using var response = await SendCore(client, method, url, body, query, headers, token);
 
         return await response.Content.ReadFromJsonAsync<TResult>(JsonOptions, token) ?? throw MissingBody(response.StatusCode);
     }
 
-    public static async Task<TResult?> SendNullableAsync<TResult>(
+    public static async Task<TResult?> SendNullable<TResult>(
         HttpClient client,
         HttpMethod method,
         string url,
@@ -40,12 +40,12 @@ public static class ApiClientHttp
         (string Name, object? Value)[]? query = null,
         (string Name, object? Value)[]? headers = null)
     {
-        using var response = await SendCoreAsync(client, method, url, body, query, headers, token);
+        using var response = await SendCore(client, method, url, body, query, headers, token);
 
         return await response.Content.ReadFromJsonAsync<TResult>(JsonOptions, token);
     }
 
-    public static async Task SendAsync(
+    public static async Task Send(
         HttpClient client,
         HttpMethod method,
         string url,
@@ -54,10 +54,10 @@ public static class ApiClientHttp
         (string Name, object? Value)[]? query = null,
         (string Name, object? Value)[]? headers = null)
     {
-        using var response = await SendCoreAsync(client, method, url, body, query, headers, token);
+        using var response = await SendCore(client, method, url, body, query, headers, token);
     }
 
-    private static async Task<HttpResponseMessage> SendCoreAsync(
+    private static async Task<HttpResponseMessage> SendCore(
         HttpClient client,
         HttpMethod method,
         string url,
@@ -74,7 +74,7 @@ public static class ApiClientHttp
         var response = await client.SendAsync(request, token);
         try
         {
-            await EnsureSuccessAsync(response, token);
+            await EnsureSuccess(response, token);
         }
         catch
         {
@@ -118,7 +118,7 @@ public static class ApiClientHttp
         }
     }
 
-    private static async Task EnsureSuccessAsync(HttpResponseMessage response, CancellationToken token)
+    private static async Task EnsureSuccess(HttpResponseMessage response, CancellationToken token)
     {
         if (response.IsSuccessStatusCode)
             return;

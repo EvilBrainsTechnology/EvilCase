@@ -30,11 +30,11 @@ internal sealed class EvilCaseAuthenticationStateProvider(
 
     private bool restored;
 
-    public override Task<AuthenticationState> GetAuthenticationStateAsync() => this.state ??= this.RestoreAsync();
+    public override Task<AuthenticationState> GetAuthenticationStateAsync() => this.state ??= this.Restore();
 
     public void Dispose() => this.renewal.Dispose();
 
-    public async Task<SignInOutcome> SignInAsync(string email, string password, CancellationToken cancellationToken)
+    public async Task<SignInOutcome> SignIn(string email, string password, CancellationToken cancellationToken)
     {
         try
         {
@@ -63,7 +63,7 @@ internal sealed class EvilCaseAuthenticationStateProvider(
         }
     }
 
-    public async Task SignOutAsync(bool everywhere, CancellationToken cancellationToken)
+    public async Task SignOut(bool everywhere, CancellationToken cancellationToken)
     {
         try
         {
@@ -83,7 +83,7 @@ internal sealed class EvilCaseAuthenticationStateProvider(
         this.Publish();
     }
 
-    public async Task<bool> RenewAsync(CancellationToken cancellationToken)
+    public async Task<bool> Renew(CancellationToken cancellationToken)
     {
         await this.renewal.WaitAsync(cancellationToken);
 
@@ -137,9 +137,9 @@ internal sealed class EvilCaseAuthenticationStateProvider(
     /// The first thing the application asks for after a page load. The access token went with the tab,
     /// but the refresh cookie did not, so the session is picked up again before anything renders.
     /// </summary>
-    private async Task<AuthenticationState> RestoreAsync()
+    private async Task<AuthenticationState> Restore()
     {
-        _ = await this.RenewAsync(CancellationToken.None);
+        _ = await this.Renew(CancellationToken.None);
 
         this.restored = true;
 

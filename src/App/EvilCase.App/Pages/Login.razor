@@ -17,7 +17,7 @@
         <div class="card-body">
             <h1 class="h2 text-center mb-4">Přihlaste se</h1>
 
-            <EditForm Model="this.model" OnValidSubmit="SignInAsync">
+            <EditForm Model="this.model" OnValidSubmit="SignIn">
                 <DataAnnotationsValidator />
 
                 <div class="mb-3">
@@ -71,14 +71,14 @@
 
     private bool busy;
 
-    private async Task SignInAsync()
+    private async Task SignIn()
     {
         this.busy = true;
         this.error = null;
 
         try
         {
-            var outcome = await this.Session.SignInAsync(this.model.Email, this.model.Password, CancellationToken.None);
+            var outcome = await this.Session.SignIn(this.model.Email, this.model.Password, CancellationToken.None);
 
             if (outcome == SignInOutcome.Success)
             {

@@ -17,8 +17,8 @@
 
             <div class="dropdown-menu dropdown-menu-end show">
                 <span class="dropdown-header text-truncate d-xl-none">@authenticationState.User.Identity?.Name</span>
-                <button type="button" class="dropdown-item" @onclick="() => SignOutAsync(everywhere: false)">Odhlásit se</button>
-                <button type="button" class="dropdown-item" @onclick="() => SignOutAsync(everywhere: true)">Odhlásit všechna zařízení</button>
+                <button type="button" class="dropdown-item" @onclick="() => SignOut(everywhere: false)">Odhlásit se</button>
+                <button type="button" class="dropdown-item" @onclick="() => SignOut(everywhere: true)">Odhlásit všechna zařízení</button>
             </div>
         }
     </div>
@@ -31,11 +31,11 @@
 
     private void Close() => this.open = false;
 
-    private async Task SignOutAsync(bool everywhere)
+    private async Task SignOut(bool everywhere)
     {
         this.open = false;
 
-        await this.Session.SignOutAsync(everywhere, CancellationToken.None);
+        await this.Session.SignOut(everywhere, CancellationToken.None);
 
         // The layout bounces to the sign-in page on the state change anyway; going there explicitly
         // keeps the page they were on out of the returnUrl.

@@ -129,7 +129,7 @@ if (app.Configuration.GetValue("EvilBrains:EvilCase:Database:MigrateOnStartup", 
 {
     try
     {
-        await app.MigrateEvilCaseDatabaseAsync();
+        await app.MigrateEvilCaseDatabase();
     }
     catch (Exception exception)
     {
@@ -144,7 +144,7 @@ if (app.Configuration.GetValue("EvilBrains:EvilCase:Database:MigrateOnStartup", 
 
 // After the migrations and before anything is served: registration is closed, so a fresh deployment
 // would otherwise have no way in. Does nothing once any user exists.
-await app.SeedEvilCaseUserAsync();
+await app.SeedEvilCaseUser();
 
 // Behind a TLS terminating proxy every request arrives over plain HTTP and from the proxy's address.
 // The forwarded headers restore the caller's scheme and address for the pipeline below.

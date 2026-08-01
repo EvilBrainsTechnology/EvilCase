@@ -83,19 +83,19 @@ internal sealed class AuthTestHarness
             },
         };
 
-    public async Task<AuthSession> SignInAsync()
+    public async Task<AuthSession> SignIn()
     {
-        var result = await this.Service.LoginAsync(Email, Password, ClientInfo.Unknown, CancellationToken.None);
+        var result = await this.Service.Login(Email, Password, ClientInfo.Unknown, CancellationToken.None);
 
         return result.Session ?? throw new InvalidOperationException("The harness could not sign in");
     }
 
-    public Task<LoginResult> LoginAsync(string password) =>
-        this.Service.LoginAsync(Email, password, ClientInfo.Unknown, CancellationToken.None);
+    public Task<LoginResult> Login(string password) =>
+        this.Service.Login(Email, password, ClientInfo.Unknown, CancellationToken.None);
 
-    public async Task<AuthSession?> RefreshAsync(string refreshToken) =>
-        (await this.RefreshResultAsync(refreshToken)).Session;
+    public async Task<AuthSession?> Refresh(string refreshToken) =>
+        (await this.RefreshOutcome(refreshToken)).Session;
 
-    public Task<RefreshResult> RefreshResultAsync(string refreshToken) =>
-        this.Service.RefreshAsync(refreshToken, ClientInfo.Unknown, CancellationToken.None);
+    public Task<RefreshResult> RefreshOutcome(string refreshToken) =>
+        this.Service.Refresh(refreshToken, ClientInfo.Unknown, CancellationToken.None);
 }

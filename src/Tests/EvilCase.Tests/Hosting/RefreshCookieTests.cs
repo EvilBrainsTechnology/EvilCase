@@ -66,7 +66,7 @@ public class RefreshCookieTests
     [Test]
     public async Task SigningInReturnsAnAccessTokenInTheBodyAndTheRefreshTokenOnlyInTheCookie()
     {
-        using var response = await this.SignInAsync(Password);
+        using var response = await this.SignIn(Password);
 
         var body = await response.Content.ReadFromJsonAsync<LoginResponse>();
         var cookie = RefreshCookieOf(response);
@@ -90,7 +90,7 @@ public class RefreshCookieTests
     [Test]
     public async Task TheCookieCarriesTheHostPrefix()
     {
-        using var response = await this.SignInAsync(Password);
+        using var response = await this.SignIn(Password);
 
         Assert.That(RefreshCookieOf(response), Does.StartWith("__Host-"));
     }
@@ -98,7 +98,7 @@ public class RefreshCookieTests
     [Test]
     public async Task WrongCredentialsAreUnauthorizedAndSetNoCookie()
     {
-        using var response = await this.SignInAsync("not-the-password");
+        using var response = await this.SignIn("not-the-password");
 
         using (Assert.EnterMultipleScope())
         {
@@ -110,10 +110,10 @@ public class RefreshCookieTests
     [Test]
     public async Task RenewingSwapsTheCookieForAnother()
     {
-        using var signIn = await this.SignInAsync(Password);
+        using var signIn = await this.SignIn(Password);
         var first = ValueOf(RefreshCookieOf(signIn));
 
-        using var refresh = await this.RefreshAsync(first);
+        using var refresh = await this.Refresh(first);
         var second = ValueOf(RefreshCookieOf(refresh));
 
         using (Assert.EnterMultipleScope())
@@ -127,7 +127,7 @@ public class RefreshCookieTests
     [Test]
     public async Task RenewingWithoutACookieIsRefused()
     {
-        using var response = await this.PostAsync(AuthRoute.RefreshPath, cookie: null);
+        using var response = await this.Post(AuthRoute.RefreshPath, cookie: null);
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
     }
@@ -139,10 +139,10 @@ public class RefreshCookieTests
     [Test]
     public async Task SigningOutClearsTheCookie()
     {
-        using var signIn = await this.SignInAsync(Password);
+        using var signIn = await this.SignIn(Password);
         var issued = ValueOf(RefreshCookieOf(signIn));
 
-        using var signOut = await this.PostAsync(AuthRoute.LogoutPath, issued);
+        using var signOut = await this.Post(AuthRoute.LogoutPath, issued);
 
         var cleared = RefreshCookieOf(signOut);
 
@@ -163,13 +163,13 @@ public class RefreshCookieTests
     [Test]
     public async Task ASpentRefreshTokenIsRefusedButLeavesTheReplacementCookieAlone()
     {
-        using var signIn = await this.SignInAsync(Password);
+        using var signIn = await this.SignIn(Password);
         var first = ValueOf(RefreshCookieOf(signIn));
 
-        using var renewed = await this.RefreshAsync(first);
+        using var renewed = await this.Refresh(first);
         _ = renewed.StatusCode;
 
-        using var replayed = await this.RefreshAsync(first);
+        using var replayed = await this.Refresh(first);
 
         using (Assert.EnterMultipleScope())
         {
@@ -185,7 +185,7 @@ public class RefreshCookieTests
     [Test]
     public async Task AnUnknownRefreshTokenIsRefusedAndTheCookieGoesWithIt()
     {
-        using var response = await this.RefreshAsync("this-was-never-issued");
+        using var response = await this.Refresh("this-was-never-issued");
 
         using (Assert.EnterMultipleScope())
         {
@@ -202,14 +202,14 @@ public class RefreshCookieTests
     private static string ValueOf(string setCookie) =>
         setCookie[(setCookie.IndexOf('=', StringComparison.Ordinal) + 1)..setCookie.IndexOf(';', StringComparison.Ordinal)];
 
-    private Task<HttpResponseMessage> SignInAsync(string password) =>
+    private Task<HttpResponseMessage> SignIn(string password) =>
         this.client.PostAsJsonAsync(
             new Uri(AuthRoute.LoginPath, UriKind.Relative),
             new LoginRequest { Email = Email, Password = password });
 
-    private Task<HttpResponseMessage> RefreshAsync(string cookie) => this.PostAsync(AuthRoute.RefreshPath, cookie);
+    private Task<HttpResponseMessage> Refresh(string cookie) => this.Post(AuthRoute.RefreshPath, cookie);
 
-    private async Task<HttpResponseMessage> PostAsync(string path, string? cookie)
+    private async Task<HttpResponseMessage> Post(string path, string? cookie)
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(path, UriKind.Relative));
 

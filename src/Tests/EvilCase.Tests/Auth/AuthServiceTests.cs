@@ -18,7 +18,7 @@ public class AuthServiceTests
     [Test]
     public async Task SigningInReturnsBothTokensAndTheUsersRole()
     {
-        var result = await this.harness.LoginAsync(AuthTestHarness.Password);
+        var result = await this.harness.Login(AuthTestHarness.Password);
 
         using (Assert.EnterMultipleScope())
         {
@@ -37,7 +37,7 @@ public class AuthServiceTests
     [Test]
     public async Task TheRefreshTokenIsNeverStoredAsGiven()
     {
-        var session = await this.harness.SignInAsync();
+        var session = await this.harness.SignIn();
 
         Assert.That(
             this.harness.RefreshTokens.All.Select(token => token.TokenHash),
@@ -47,7 +47,7 @@ public class AuthServiceTests
     [Test]
     public async Task TheEmailIsMatchedRegardlessOfCaseAndSurroundingSpace()
     {
-        var result = await this.harness.Service.LoginAsync(
+        var result = await this.harness.Service.Login(
             "  USER@EvilCase.TEST ",
             AuthTestHarness.Password,
             ClientInfo.Unknown,
@@ -59,13 +59,13 @@ public class AuthServiceTests
     [Test]
     public async Task AnUnknownEmailIsRejectedTheSameWayAWrongPasswordIs()
     {
-        var unknown = await this.harness.Service.LoginAsync(
+        var unknown = await this.harness.Service.Login(
             "nobody@evilcase.test",
             AuthTestHarness.Password,
             ClientInfo.Unknown,
             CancellationToken.None);
 
-        var wrong = await this.harness.LoginAsync(WrongPassword);
+        var wrong = await this.harness.Login(WrongPassword);
 
         using (Assert.EnterMultipleScope())
         {
@@ -77,11 +77,11 @@ public class AuthServiceTests
     [Test]
     public async Task AFailedAttemptCountsAndASuccessfulOneClearsTheCount()
     {
-        _ = await this.harness.LoginAsync(WrongPassword);
+        _ = await this.harness.Login(WrongPassword);
 
         var afterFailure = this.harness.Users.Get(this.harness.User.Id).FailedLoginAttempts;
 
-        _ = await this.harness.LoginAsync(AuthTestHarness.Password);
+        _ = await this.harness.Login(AuthTestHarness.Password);
 
         using (Assert.EnterMultipleScope())
         {
@@ -96,9 +96,9 @@ public class AuthServiceTests
         var statuses = new List<LoginStatus>();
 
         for (var attempt = 0; attempt < AuthTestHarness.MaxFailedAttempts; attempt++)
-            statuses.Add((await this.harness.LoginAsync(WrongPassword)).Status);
+            statuses.Add((await this.harness.Login(WrongPassword)).Status);
 
-        var withTheRightPassword = await this.harness.LoginAsync(AuthTestHarness.Password);
+        var withTheRightPassword = await this.harness.Login(AuthTestHarness.Password);
 
         using (Assert.EnterMultipleScope())
         {
@@ -112,11 +112,11 @@ public class AuthServiceTests
     public async Task TheLockoutElapsesOnItsOwn()
     {
         for (var attempt = 0; attempt < AuthTestHarness.MaxFailedAttempts; attempt++)
-            _ = await this.harness.LoginAsync(WrongPassword);
+            _ = await this.harness.Login(WrongPassword);
 
         this.harness.Time.Advance(this.harness.Settings.Lockout.Duration + TimeSpan.FromSeconds(1));
 
-        var result = await this.harness.LoginAsync(AuthTestHarness.Password);
+        var result = await this.harness.Login(AuthTestHarness.Password);
 
         Assert.That(result.Status, Is.EqualTo(LoginStatus.Success));
     }
@@ -129,11 +129,11 @@ public class AuthServiceTests
     public async Task OneMissAfterAnElapsedLockoutDoesNotLockAgain()
     {
         for (var attempt = 0; attempt < AuthTestHarness.MaxFailedAttempts; attempt++)
-            _ = await this.harness.LoginAsync(WrongPassword);
+            _ = await this.harness.Login(WrongPassword);
 
         this.harness.Time.Advance(this.harness.Settings.Lockout.Duration + TimeSpan.FromSeconds(1));
 
-        var result = await this.harness.LoginAsync(WrongPassword);
+        var result = await this.harness.Login(WrongPassword);
 
         Assert.That(result.Status, Is.EqualTo(LoginStatus.InvalidCredentials));
     }

@@ -110,9 +110,9 @@ internal static class ClientEmitter
     private static string Executor(ActionModel action)
     {
         if (action.ResultType is null)
-            return "SendAsync";
+            return "Send";
 
-        var name = action.ResultIsNullable ? "SendNullableAsync" : "SendAsync";
+        var name = action.ResultIsNullable ? "SendNullable" : "Send";
 
         return name + "<" + action.ResultType + ">";
     }

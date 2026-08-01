@@ -5,5 +5,5 @@ internal interface IPageUnloadFlusher
     /// <summary>
     /// Hooks the page unload event. Nothing awaits the result.
     /// </summary>
-    public Task StartAsync();
+    public Task Start();
 }

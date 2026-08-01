@@ -10,7 +10,7 @@ namespace EvilBrains.EvilCase.App.Logging;
 /// </summary>
 internal sealed class ApiLogUploader(ILogsClient client) : IClientLogUploader
 {
-    public async Task UploadAsync(ClientLogBatch batch)
+    public async Task Upload(ClientLogBatch batch)
     {
         try
         {

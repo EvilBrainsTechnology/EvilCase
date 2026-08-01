@@ -75,7 +75,7 @@ public class RateLimitingTests
 
         for (var i = 0; i < PastTheLimit; i++)
         {
-            using var response = await this.PostBatchAsync();
+            using var response = await this.PostBatch();
 
             statusCodes.Add(response.StatusCode);
             retryAfter ??= response.Headers.RetryAfter?.ToString();
@@ -139,7 +139,7 @@ public class RateLimitingTests
         }
     }
 
-    private Task<HttpResponseMessage> PostBatchAsync() =>
+    private Task<HttpResponseMessage> PostBatch() =>
         this.client.PostAsJsonAsync(
             new Uri(ClientLogRoute.Path, UriKind.Relative),
             new ClientLogBatch { Entries = [] });
