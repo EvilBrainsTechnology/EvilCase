@@ -1,8 +1,8 @@
-﻿using EvilBrains.EvilCase.Data.Entities;
+using EvilBrains.EvilCase.Data.Entities;
 
 namespace EvilBrains.EvilCase.Auth;
 
-public interface IAuthTokenService
+internal interface IAuthTokenService
 {
-    public string GenerateToken(User user);
+    public AccessToken Generate(User user, Guid sessionId);
 }

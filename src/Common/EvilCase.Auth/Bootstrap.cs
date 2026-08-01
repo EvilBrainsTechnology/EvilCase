@@ -1,7 +1,11 @@
 using System.Text;
+using EvilBrains.EvilCase.Api.Contract.User;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -20,7 +24,13 @@ public static class Bootstrap
 
         builder.Services.AddSingleton<IValidateOptions<AuthSettings>, AuthSettingsValidator>();
 
+        builder.Services.TryAddSingleton(TimeProvider.System);
+
+        builder.Services.AddScoped<IAuthService, AuthService>();
         builder.Services.AddScoped<IAuthTokenService, AuthTokenService>();
+        builder.Services.AddScoped<IUserStore, UserStore>();
+        builder.Services.AddScoped<IRefreshTokenStore, RefreshTokenStore>();
+        builder.Services.AddScoped<IUserSeeder, UserSeeder>();
 
         builder.Services
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -34,6 +44,10 @@ public static class Bootstrap
             {
                 var jwt = authSettings.Value.Jwt;
 
+                // Claims stay as the token wrote them. Mapped, "sub" and "role" would arrive under
+                // WS-Federation URIs and everything reading them would have to name those instead.
+                options.MapInboundClaims = false;
+
                 options.TokenValidationParameters.ValidateIssuer = true;
                 options.TokenValidationParameters.ValidateAudience = true;
                 options.TokenValidationParameters.ValidateLifetime = true;
@@ -43,12 +57,35 @@ public static class Bootstrap
                 options.TokenValidationParameters.IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Key));
                 options.TokenValidationParameters.ClockSkew = TimeSpan.Zero;
 
+                // Without these the principal has no name and no roles at all, because mapping is off.
+                options.TokenValidationParameters.NameClaimType = AuthClaims.Email;
+                options.TokenValidationParameters.RoleClaimType = AuthClaims.Role;
+
                 // Tokens are signed with HS256; without this a caller could pick the algorithm.
                 options.TokenValidationParameters.ValidAlgorithms = [SecurityAlgorithms.HmacSha256];
             });
 
-        builder.Services.AddAuthorization();
+        // Default deny. An endpoint that carries no authorization attribute now requires an authenticated
+        // caller, and everything meant to stay open — the health probes, the sign-in endpoints, the
+        // frontend itself — says so with [AllowAnonymous]. Adding an endpoint and forgetting to protect
+        // it fails closed rather than open.
+        builder.Services
+            .AddAuthorizationBuilder()
+            .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
 
         return builder;
+    }
+
+    /// <summary>
+    /// Creates the configured administrator where the database holds no user at all. Runs after the
+    /// migrations and before anything is served, so an empty deployment is reachable on first start.
+    /// </summary>
+    public static async Task SeedEvilCaseUserAsync(this IHost host, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(host);
+
+        await using var scope = host.Services.CreateAsyncScope();
+
+        await scope.ServiceProvider.GetRequiredService<IUserSeeder>().SeedAsync(cancellationToken);
     }
 }

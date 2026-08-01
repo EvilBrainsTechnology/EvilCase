@@ -25,6 +25,22 @@
     box-shadow: none;
 }
 
+/* The user menu toggles itself; nothing here should look like a form control. */
+.user-menu-toggle {
+    border: 0;
+    background: transparent;
+}
+
+/* Catches the click that closes the user menu. Tabler's dropdown relies on Bootstrap's JavaScript for
+   this, which does not survive the Blazor renderer. */
+.dropdown-backdrop {
+    position: fixed;
+    inset: 0;
+
+    /* One below Tabler's --tblr-dropdown-zindex, so the menu itself stays clickable. */
+    z-index: 999;
+}
+
 /* Touch targets below the lg breakpoint. */
 @media (max-width: 991.98px) {
     .btn,

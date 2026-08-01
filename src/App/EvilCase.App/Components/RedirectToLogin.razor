@@ -1,0 +1,21 @@
+@inject NavigationManager Navigation
+
+@code {
+    /// <summary>
+    /// Where the sign-in page sends the user back to. Read by <c>Login</c>, written only here.
+    /// </summary>
+    public const string ReturnUrlParameter = "returnUrl";
+
+    protected override void OnInitialized()
+    {
+        var target = this.Navigation.ToBaseRelativePath(this.Navigation.Uri);
+
+        // Replaces the entry rather than adding one: without it the back button walks into the page
+        // that just bounced the user and straight back here.
+        this.Navigation.NavigateTo(
+            target.Length == 0 ? LoginPath : $"{LoginPath}?{ReturnUrlParameter}={Uri.EscapeDataString("/" + target)}",
+            replace: true);
+    }
+
+    private const string LoginPath = "login";
+}

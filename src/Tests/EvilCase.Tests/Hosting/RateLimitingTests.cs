@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using EvilBrains.EvilCase.Api.Contract.Logging;
+using EvilBrains.EvilCase.Api.Contract.User;
 using EvilBrains.Logging.Contract;
 
 namespace EvilBrains.EvilCase.Tests.Hosting;
@@ -26,6 +27,12 @@ public class RateLimitingTests
     /// The permit limit the host configures for the auth path, which is low enough to be spent exactly.
     /// </summary>
     private const int AuthPermitLimit = 10;
+
+    /// <summary>
+    /// Sign-in has a partition of its own, and a tighter one: it is the only anonymous endpoint where
+    /// guessing pays off, and the account lockout only guards one account at a time.
+    /// </summary>
+    private const int LoginPermitLimit = 5;
 
     private EvilCaseHost host = null!;
 
@@ -102,6 +109,33 @@ public class RateLimitingTests
         {
             Assert.That(statusCodes.Take(AuthPermitLimit), Is.All.EqualTo(HttpStatusCode.Unauthorized));
             Assert.That(statusCodes[^1], Is.EqualTo(HttpStatusCode.TooManyRequests));
+        }
+    }
+
+    /// <summary>
+    /// Its own partition, so spending it must not cost the rest of the auth endpoints their permits and
+    /// must not be paid for by them either.
+    /// </summary>
+    [Test]
+    public async Task SignInIsLimitedSeparatelyAndSooner()
+    {
+        var statusCodes = new List<HttpStatusCode>();
+
+        for (var i = 0; i < LoginPermitLimit + 1; i++)
+        {
+            using var response = await this.client.PostAsync(new Uri(AuthRoute.LoginPath, UriKind.Relative), content: null);
+
+            statusCodes.Add(response.StatusCode);
+        }
+
+        // Bodyless, so anything that got through is a binding failure rather than a rejected limit.
+        using var afterwards = await this.client.PostAsync(new Uri(AuthRoute.RefreshPath, UriKind.Relative), content: null);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(statusCodes.Take(LoginPermitLimit), Is.All.EqualTo(HttpStatusCode.UnsupportedMediaType));
+            Assert.That(statusCodes[^1], Is.EqualTo(HttpStatusCode.TooManyRequests));
+            Assert.That(afterwards.StatusCode, Is.Not.EqualTo(HttpStatusCode.TooManyRequests));
         }
     }
 

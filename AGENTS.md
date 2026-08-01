@@ -25,7 +25,7 @@ All code lives in `src/` (solution `EvilCase.slnx`).
 | `Api/EvilCase.Api.Client` | Typed API client: HTTP clients generated from API controllers |
 | `Api/EvilCase.Api.Contract` | Shared request/response contracts (DTOs only) |
 | `App/EvilCase.App` | Blazor WebAssembly frontend |
-| `Common/EvilCase.Auth` | JWT bearer authentication |
+| `Common/EvilCase.Auth` | Authentication: JWT bearer, sign-in, refresh token sessions, lockout, seeding |
 | `Data/EvilCase.Data` | EF Core model + DbContext (PostgreSQL) |
 | `Data/EvilCase.Data.Migrations` | EF Core migrations |
 | `Tests/EvilCase.Tests` | Application tests (NUnit), including the host's routing through `WebApplicationFactory` |
@@ -47,7 +47,23 @@ Two keys under `EvilBrains:EvilCase:Hosting` adapt the pipeline to what sits in 
 
 Baseline security headers, the content security policy among them, are written by `SecurityHeadersMiddleware`; `/scalar` is excluded, because the Scalar UI loads its bundle from a CDN. The policy has to name the hash of every inline script of `index.html`, which `SecurityHeadersTests` pins.
 
-`/api/auth/*` and the client log upload are rate limited per caller address (10 and 120 requests per minute); nothing else is, health probes above all. `UseRateLimiter` sits after `UseForwardedHeaders`, so a partition is the caller rather than the proxy.
+The anonymous entry points are rate limited per caller address, each in its own partition: `/api/auth/login` 5 per minute, `/api/auth/refresh` 60, the rest of `/api/auth/*` 10, the client log upload 120. Nothing else is limited, health probes above all. `UseRateLimiter` sits after `UseForwardedHeaders`, so a partition is the caller rather than the proxy, and ahead of `UseAuthentication`, so a rejected caller still spends permits.
+
+## Authentication
+
+Access token in memory, refresh token in a cookie. `EvilCase.Auth` holds all of it behind `IAuthService`; the controller only turns results into status codes and moves the cookie in and out.
+
+- **Access token** — HS256 JWT, 15 minutes, returned in the response body and kept in the browser's memory only. Claims: `sub` (id), `unique_name` (e-mail, the name claim), `role`, `sid` (the session), `jti`. `MapInboundClaims` is off, so those are also the types on the principal; `AuthClaims` in `EvilCase.Api.Contract` names them for both halves.
+- **Refresh token** — 32 bytes of randomness in `__Host-evilcase-refresh`: `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/`. Only its SHA-256 is stored. `SameSite=Strict` plus same-origin-only is the whole CSRF defence; there is no antiforgery token.
+- **Rotation** — every refresh spends the token and issues another inside the same `SessionId`. A token presented after it was revoked is a replay and ends that whole chain. Inside a 30-second grace window it is instead read as two tabs racing and only refused, because the browser's cookie already holds the replacement.
+- **Lifetimes** — a refresh token is good for 14 days, a rotation chain for 30 from sign-in whatever it does in between. Both under `EvilBrains:EvilCase:Auth:RefreshToken`.
+- **Lockout** — 5 consecutive failures lock an account for 15 minutes (`Auth:Lockout`). The counter starts over with the lockout. Sign-in answers `401` for bad credentials and `423` for a lockout; the client branches on the status code and never on a message.
+- **Seeding** — registration is closed and there is no register endpoint. `Auth:Seed` (e-mail and password) creates the first administrator at startup, only while the table holds no user at all. It never overwrites.
+- **Default deny** — `AddEvilCaseAuth` sets an authorization fallback policy, so an endpoint with no attribute needs an authenticated caller. What stays open says so with `[AllowAnonymous]`: both `/health/*`, the API 404 fallback, `MapFallbackToFile("index.html")`, `/scalar` and `/openapi/v1.json`, `LogsController` (the frontend logs from the sign-in page too) and the sign-in, refresh and sign-out endpoints. `Tests/EvilCase.Tests/Hosting/AuthorizationFallbackTests` pins the list.
+
+In the browser (`EvilCase.App/Auth`): `AccessTokenStore` holds the token in memory, `EvilCaseAuthenticationStateProvider` is both the state provider and `IAuthSession`, and `AuthTokenHandler` attaches the bearer, renews a minute before expiry and retries once after a `401`. Its first `GetAuthenticationStateAsync` calls refresh, which is what signs the user back in after a reload. The handler resolves `IAuthSession` on use rather than in its constructor — the renewal goes through a generated client that has the handler in its own chain.
+
+The application is closed by default on the client too, and `MainLayout` is what does it: everything it lays out sits inside an `AuthorizeView`, so a new page is protected without doing anything. Escaping that means choosing another layout, which only `Pages/Login.razor` does (`LoginLayout`).
 
 ## Secrets
 

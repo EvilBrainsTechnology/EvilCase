@@ -88,16 +88,19 @@ public static class Bootstrap
             .AllowAnonymous();
 
         // An unknown API path is a 404, never the host's index.html. The literal segment gives this
-        // fallback precedence over the catch-all one serving the frontend.
-        endpoints.MapFallback("/api/{**path}", NotFound);
+        // fallback precedence over the catch-all one serving the frontend. Anonymous, or the default
+        // deny policy would answer an unknown path with 401 and tell a caller nothing at all.
+        endpoints.MapFallback("/api/{**path}", NotFound).AllowAnonymous();
 
         return endpoints;
     }
 
     public static IEndpointRouteBuilder MapEvilCaseApiReference(this IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapOpenApi();
-        endpoints.MapScalarApiReference();
+        // Development only, and the default deny policy would otherwise put the reference behind a token
+        // the reference itself is the way to obtain.
+        endpoints.MapOpenApi().AllowAnonymous();
+        endpoints.MapScalarApiReference().AllowAnonymous();
 
         return endpoints;
     }

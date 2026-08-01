@@ -1,0 +1,113 @@
+@page "/login"
+@layout LoginLayout
+@inject IAuthSession Session
+@inject NavigationManager Navigation
+
+<PageTitle>Přihlášení – EvilCase</PageTitle>
+
+<div class="container container-tight py-4">
+    <div class="text-center mb-4">
+        <span class="navbar-brand navbar-brand-autodark">
+            <Icon IconType="AppIcons.Scale" Size="36" CssClass="me-2" TextColor="TablerColor.Primary" />
+            EvilCase
+        </span>
+    </div>
+
+    <div class="card card-md">
+        <div class="card-body">
+            <h1 class="h2 text-center mb-4">Přihlaste se</h1>
+
+            <EditForm Model="this.model" OnValidSubmit="SignInAsync">
+                <DataAnnotationsValidator />
+
+                <div class="mb-3">
+                    <label class="form-label" for="login-email">E-mail</label>
+                    <InputText id="login-email" class="form-control" type="email" inputmode="email"
+                               autocomplete="username" autofocus @bind-Value="this.model.Email" />
+                    <ValidationMessage For="() => this.model.Email" class="invalid-feedback d-block" />
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label" for="login-password">Heslo</label>
+                    <InputText id="login-password" class="form-control" type="password"
+                               autocomplete="current-password" @bind-Value="this.model.Password" />
+                    <ValidationMessage For="() => this.model.Password" class="invalid-feedback d-block" />
+                </div>
+
+                @if (this.error is not null)
+                {
+                    <div class="alert alert-danger mt-3" role="alert">@this.error</div>
+                }
+
+                <div class="form-footer">
+                    <button type="submit" class="btn btn-primary w-100" disabled="@this.busy">
+                        @if (this.busy)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                        }
+                        Přihlásit se
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+
+    <p class="text-secondary text-center mt-3">
+        Účty zakládá správce. Pokud se nemůžete přihlásit, obraťte se na něj.
+    </p>
+</div>
+
+@code {
+    /// <summary>
+    /// Where the user was heading when they were bounced here. Written by <c>RedirectToLogin</c>.
+    /// </summary>
+    [Parameter]
+    [SupplyParameterFromQuery(Name = RedirectToLogin.ReturnUrlParameter)]
+    public string? ReturnUrl { get; set; }
+
+    private readonly SignInModel model = new();
+
+    private string? error;
+
+    private bool busy;
+
+    private async Task SignInAsync()
+    {
+        this.busy = true;
+        this.error = null;
+
+        try
+        {
+            var outcome = await this.Session.SignInAsync(this.model.Email, this.model.Password, CancellationToken.None);
+
+            if (outcome == SignInOutcome.Success)
+            {
+                // Forced to a relative path: a returnUrl from the address bar must not be able to send
+                // the user somewhere else entirely after they hand over their password.
+                this.Navigation.NavigateTo(this.SafeReturnUrl(), replace: true);
+
+                return;
+            }
+
+            this.error = Describe(outcome);
+        }
+        finally
+        {
+            this.busy = false;
+        }
+    }
+
+    private static string Describe(SignInOutcome outcome) => outcome switch
+    {
+        SignInOutcome.LockedOut => "Účet je dočasně zablokován po několika neúspěšných pokusech. Zkuste to za chvíli znovu.",
+        SignInOutcome.TooManyAttempts => "Příliš mnoho pokusů o přihlášení. Zkuste to za chvíli znovu.",
+        SignInOutcome.Unreachable => "Server je nedostupný. Zkontrolujte připojení a zkuste to znovu.",
+        _ => "Nesprávný e-mail nebo heslo.",
+    };
+
+    // A single leading slash and no second one: "//evil.example" is a protocol-relative absolute URL.
+    private string SafeReturnUrl() =>
+        this.ReturnUrl is { } target && target.StartsWith('/') && !target.StartsWith("//", StringComparison.Ordinal)
+            ? target
+            : "/";
+}
