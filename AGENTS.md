@@ -45,7 +45,9 @@ Two keys under `EvilBrains:EvilCase:Hosting` adapt the pipeline to what sits in 
 
 ## Docker
 
-The image is built from the repository root `Dockerfile` (build context is the root; the solution lives in `src/`). Multi-stage: `sdk:10.0` restores, then publishes `EvilCase.Host` — the Blazor WASM bundle comes with it, no separate step. `aspnet:10.0` runs it as the image's non-root user on port 8080, entry point `EvilBrains.EvilCase.Host.dll` (`Directory.Build.props` renames the assembly). `curl` is installed for the `HEALTHCHECK` against `/health/live`, which the runtime image otherwise cannot make.
+The image is built from the repository root `Dockerfile` (build context is the root; the solution lives in `src/`). Multi-stage: `sdk:10.0` restores, then publishes `EvilCase.Host` — the Blazor WASM bundle comes with it, no separate step. `aspnet:10.0-alpine` runs it as the image's non-root user on port 8080, entry point `EvilBrains.EvilCase.Host.dll` (`Directory.Build.props` renames the assembly). `curl` is installed for the `HEALTHCHECK` against `/health/live`, which the runtime image otherwise cannot make.
+
+The Alpine image sets `DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=true` and carries no ICU, which turns every culture aware comparison ordinal without an error anywhere — wrong for Czech data. `icu-data-full` and `icu-libs` are installed and the variable set back to `false`; a missing ICU then fails the start instead of being silent. That is 50 MB of the image, and the Debian base would be another 110 MB on top.
 
 The restore inputs are not enumerated in `COPY` lines. A throwaway `projects` stage copies `src/` and deletes everything that is not a project file, and the build stage copies that result in. The stage reruns on every source change, but its output only changes when a project file does, and BuildKit derives the cache key of a `COPY --from` from the copied content — so the restore layer stays cached and a new project needs no edit here.
 

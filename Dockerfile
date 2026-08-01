@@ -31,13 +31,13 @@ RUN dotnet publish src/EvilCase.Host/EvilCase.Host.csproj \
         -p:Version=${VERSION} \
         -p:SourceRevisionId=${SOURCE_REVISION}
 
-FROM mcr.microsoft.com/dotnet/aspnet:${DOTNET_VERSION} AS final
+FROM mcr.microsoft.com/dotnet/aspnet:${DOTNET_VERSION}-alpine AS final
 
-# The runtime image ships no HTTP client, and both HEALTHCHECK and compose's depends_on run inside
-# the container.
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends curl \
-    && rm -rf /var/lib/apt/lists/*
+# curl: the runtime image ships no HTTP client, and both HEALTHCHECK and compose's depends_on run
+# inside the container. ICU: the Alpine image turns globalization off and carries no ICU, which
+# silently makes every culture aware comparison ordinal — wrong for Czech data.
+RUN apk add --no-cache curl icu-data-full icu-libs
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
 
 WORKDIR /app
 COPY --from=build /app .
