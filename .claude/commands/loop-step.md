@@ -129,7 +129,11 @@ Everything in them is synthetic, by the standing rule below.
 ## 6. Pull request
 
 `gh pr create`, TL;DR on the first line, then what changed, the screenshots, and `Closes #<issue>`.
-Never merge. Never push to `master`. Merging is the owner's.
+
+Then stop. **The loop never merges the pull request and never pushes to `master`** — not its own,
+not after a green CI run, not because the iteration would otherwise look unfinished. `AGENTS.md`
+makes that binding for every agent; the loop is the one most likely to be tempted, because it runs
+unattended and merging is the only thing standing between it and the next slice. It waits instead.
 
 ## 7. Report
 

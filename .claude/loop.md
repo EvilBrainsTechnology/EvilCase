@@ -15,6 +15,9 @@ Order, every round:
    `gh` runs as the owner, so the loop would be answering itself.
 4. Build and ship at most one pull request, against the definition of done in `loop-step.md`.
 
+**Never merge it, and never push to `master`.** Opening the pull request is where the round ends,
+whatever CI says and however long the branch has been waiting. Merging is the owner's alone.
+
 Then stop and report. One round is one iteration; the next round is the next wake-up, not a
 continuation of this one.
 
