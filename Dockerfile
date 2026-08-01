@@ -2,32 +2,22 @@
 
 ARG DOTNET_VERSION=10.0
 
+# Everything the restore reads and nothing else. This stage reruns on every source change, but as
+# long as no project file changed its output is byte for byte the same, and the cache key of the
+# COPY below is computed from that output — which is what keeps the restore cached.
+FROM mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION} AS projects
+COPY src/ /projects/
+RUN find /projects -type f \
+        ! -name '*.csproj' \
+        ! -name 'Directory.*.props' \
+        ! -name 'global.json' \
+        -delete \
+    && find /projects -depth -type d -empty -delete
+
 FROM mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION} AS build
 WORKDIR /source
 
-# Restore from the project files alone, so the layer survives every change that touches neither a
-# csproj nor a package version. A new project needs a line here or the restore below fails.
-COPY src/global.json src/Directory.Build.props src/Directory.Packages.props ./src/
-COPY src/EvilCase.Host/EvilCase.Host.csproj ./src/EvilCase.Host/
-COPY src/Api/EvilCase.Api/EvilCase.Api.csproj ./src/Api/EvilCase.Api/
-COPY src/Api/EvilCase.Api.Client/EvilCase.Api.Client.csproj ./src/Api/EvilCase.Api.Client/
-COPY src/Api/EvilCase.Api.Contract/EvilCase.Api.Contract.csproj ./src/Api/EvilCase.Api.Contract/
-COPY src/App/EvilCase.App/EvilCase.App.csproj ./src/App/EvilCase.App/
-COPY src/Common/EvilCase.Auth/EvilCase.Auth.csproj ./src/Common/EvilCase.Auth/
-COPY src/Data/EvilCase.Data/EvilCase.Data.csproj ./src/Data/EvilCase.Data/
-COPY src/Data/EvilCase.Data.Migrations/EvilCase.Data.Migrations.csproj ./src/Data/EvilCase.Data.Migrations/
-COPY src/Utils/EvilBrains.Analyzers/EvilBrains.Analyzers.csproj ./src/Utils/EvilBrains.Analyzers/
-COPY src/Utils/EvilBrains.ApiClient/EvilBrains.ApiClient.csproj ./src/Utils/EvilBrains.ApiClient/
-COPY src/Utils/EvilBrains.ApiClient.Generator/EvilBrains.ApiClient.Generator.csproj ./src/Utils/EvilBrains.ApiClient.Generator/
-COPY src/Utils/EvilBrains.Collections/EvilBrains.Collections.csproj ./src/Utils/EvilBrains.Collections/
-COPY src/Utils/EvilBrains.Cryptography/EvilBrains.Cryptography.csproj ./src/Utils/EvilBrains.Cryptography/
-COPY src/Utils/EvilBrains.EntityFramework/EvilBrains.EntityFramework.csproj ./src/Utils/EvilBrains.EntityFramework/
-COPY src/Utils/EvilBrains.Logging/EvilBrains.Logging.csproj ./src/Utils/EvilBrains.Logging/
-COPY src/Utils/EvilBrains.Logging.AspNetCore/EvilBrains.Logging.AspNetCore.csproj ./src/Utils/EvilBrains.Logging.AspNetCore/
-COPY src/Utils/EvilBrains.Logging.Contract/EvilBrains.Logging.Contract.csproj ./src/Utils/EvilBrains.Logging.Contract/
-COPY src/Utils/EvilBrains.Logging.WebAssembly/EvilBrains.Logging.WebAssembly.csproj ./src/Utils/EvilBrains.Logging.WebAssembly/
-COPY src/Utils/EvilBrains.Secrets.Infisical/EvilBrains.Secrets.Infisical.csproj ./src/Utils/EvilBrains.Secrets.Infisical/
-
+COPY --from=projects /projects ./src/
 RUN dotnet restore src/EvilCase.Host/EvilCase.Host.csproj
 
 COPY src/ ./src/
