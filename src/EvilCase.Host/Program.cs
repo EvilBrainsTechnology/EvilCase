@@ -5,6 +5,7 @@ using EvilBrains.EvilCase.Auth;
 using EvilBrains.EvilCase.Data;
 using EvilBrains.Logging.AspNetCore;
 using EvilBrains.Logging.Contract;
+using Microsoft.AspNetCore.HttpOverrides;
 using Serilog;
 
 CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
@@ -28,6 +29,16 @@ Log.Logger = new LoggerConfiguration()
     .Enrich.WithProperty(AppSource.PropertyName, AppSource.Server)
     .CreateLogger();
 #pragma warning restore RCS0054
+
+builder.Services.Configure<ForwardedHeadersOptions>(
+    options =>
+    {
+        options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+
+        // The proxy is another container, so its address is neither loopback nor known in advance.
+        options.KnownIPNetworks.Clear();
+        options.KnownProxies.Clear();
+    });
 
 builder.AddEvilCaseAuth("EvilBrains:EvilCase:Auth");
 
@@ -57,6 +68,11 @@ if (app.Configuration.GetValue("EvilBrains:EvilCase:Database:MigrateOnStartup", 
     }
 }
 
+// Behind a TLS terminating proxy every request arrives over plain HTTP and from the proxy's address.
+// The forwarded headers restore the caller's scheme and address for the pipeline below.
+if (app.Configuration.GetValue("EvilBrains:EvilCase:Hosting:BehindReverseProxy", defaultValue: false))
+    app.UseForwardedHeaders();
+
 if (!app.Environment.IsDevelopment())
     app.UseHsts();
 
@@ -64,10 +80,14 @@ if (!app.Environment.IsDevelopment())
 // The log upload is the exception inside it — logging it would be shipped by the next upload.
 app.UseRequestLogging(loggedPaths: ["/api"], quietPaths: ["/api/logs/client"]);
 
-// Probes usually arrive over plain HTTP; a redirect carries no body and counts as a failed probe.
-app.UseWhen(
-    context => !context.Request.Path.StartsWithSegments(HealthCheckPaths.Prefix, StringComparison.OrdinalIgnoreCase),
-    branch => branch.UseHttpsRedirection());
+// Turned off where something in front already redirects, or where nothing terminates TLS at all.
+if (app.Configuration.GetValue("EvilBrains:EvilCase:Hosting:HttpsRedirection", defaultValue: true))
+{
+    // Probes usually arrive over plain HTTP; a redirect carries no body and counts as a failed probe.
+    app.UseWhen(
+        context => !context.Request.Path.StartsWithSegments(HealthCheckPaths.Prefix, StringComparison.OrdinalIgnoreCase),
+        branch => branch.UseHttpsRedirection());
+}
 
 app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();

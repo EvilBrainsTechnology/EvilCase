@@ -16,7 +16,15 @@ internal sealed class EvilCaseHost : WebApplicationFactory<Program>
 
     private const string MigrateOnStartupVariable = "EvilBrains__EvilCase__Database__MigrateOnStartup";
 
-    public EvilCaseHost()
+    private const string BehindReverseProxyVariable = "EvilBrains__EvilCase__Hosting__BehindReverseProxy";
+
+    private const string HttpsRedirectionVariable = "EvilBrains__EvilCase__Hosting__HttpsRedirection";
+
+    private const string HttpsPortVariable = "ASPNETCORE_HTTPS_PORT";
+
+    // httpsPort: UseHttpsRedirection needs a target port; without one it logs and lets the request
+    // through, so a test that wants to see a redirect has to name it.
+    public EvilCaseHost(bool behindReverseProxy = false, bool httpsRedirection = true, int? httpsPort = null)
     {
         // The environment is not Development, so the host does not go looking for a developer's .env.
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
@@ -26,6 +34,12 @@ internal sealed class EvilCaseHost : WebApplicationFactory<Program>
         Environment.SetEnvironmentVariable(ConnectionStringVariable, "Host=localhost;Database=evilcase-tests");
         Environment.SetEnvironmentVariable(MigrateOnStartupVariable, "false");
         Environment.SetEnvironmentVariable(JwtKeyVariable, new string('k', 64));
+
+        // These reach the host through the process environment, which outlives the instance that set it,
+        // so every one of them is written on every construction rather than only when it differs.
+        Environment.SetEnvironmentVariable(BehindReverseProxyVariable, behindReverseProxy ? "true" : "false");
+        Environment.SetEnvironmentVariable(HttpsRedirectionVariable, httpsRedirection ? "true" : "false");
+        Environment.SetEnvironmentVariable(HttpsPortVariable, httpsPort?.ToString(CultureInfo.InvariantCulture));
     }
 
     /// <summary>

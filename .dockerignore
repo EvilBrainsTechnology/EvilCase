@@ -1,0 +1,11 @@
+# Everything outside src/ is excluded, and inside it the secret patterns are the ones .gitignore uses:
+# a file git refuses to commit must not reach the build context either, where mode=max layer caching
+# would carry it into the shared Actions cache.
+*
+!src
+
+**/bin
+**/obj
+**/.env*
+**/.vs
+**/.idea

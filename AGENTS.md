@@ -38,6 +38,28 @@ One process serves everything. `EvilCase.Host` is the composition root: it refer
 - Same-origin: no CORS anywhere, and the frontend takes its API base address from `builder.HostEnvironment.BaseAddress`.
 - Request logging covers `/api` only — see *Logging*.
 
+Two keys under `EvilBrains:EvilCase:Hosting` adapt the pipeline to what sits in front of it:
+
+- `BehindReverseProxy` (default `false`) calls `UseForwardedHeaders` as the first middleware, for `X-Forwarded-For` and `X-Forwarded-Proto`. `KnownIPNetworks` and `KnownProxies` are cleared: the proxy is another container, so its address is neither loopback nor known in advance. Behind a TLS terminating proxy every request otherwise looks like plain HTTP from the proxy's own address.
+- `HttpsRedirection` (default `true`) turns the redirection off where something in front already redirects. Leaving it on in a container that serves plain HTTP is not a loop but noise: `UseHttpsRedirection` finds no HTTPS port, logs `Failed to determine the https port for redirect` and passes the request through. Only an explicit `ASPNETCORE_HTTPS_PORT` makes it redirect, and then a request without `X-Forwarded-Proto: https` bounces back to the proxy.
+
+## Docker
+
+The image is built from the repository root `Dockerfile` (build context is the root; the solution lives in `src/`). Multi-stage: `sdk:10.0` restores, then publishes `EvilCase.Host` — the Blazor WASM bundle comes with it, no separate step. `aspnet:10.0-alpine` runs it as the image's non-root user on port 8080, entry point `EvilBrains.EvilCase.Host.dll` (`Directory.Build.props` renames the assembly). `curl` is installed for the `HEALTHCHECK` against `/health/live`, which the runtime image otherwise cannot make.
+
+The Alpine image sets `DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=true` and carries no ICU, which turns every culture aware comparison ordinal without an error anywhere — wrong for Czech data. `icu-data-full` and `icu-libs` are installed and the variable set back to `false`; a missing ICU then fails the start instead of being silent. That is 50 MB of the image, and the Debian base would be another 110 MB on top.
+
+The restore inputs are not enumerated in `COPY` lines. A throwaway `projects` stage copies `src/` and deletes everything that is not a project file, and the build stage copies that result in. The stage reruns on every source change, but its output only changes when a project file does, and BuildKit derives the cache key of a `COPY --from` from the copied content — so the restore layer stays cached and a new project needs no edit here.
+
+`.github/workflows/Docker.yml` publishes to `ghcr.io/evilbrainstechnology/evilcase`. It calls `CI.yml` as a reusable workflow first and only builds if that job passes, so nothing is published from a commit that fails lint, build or tests — and a release, which `CI.yml` has no trigger for, is covered too. `CI.yml` therefore triggers on pull requests only; the master path reaches it through this workflow.
+
+- Push to `master` → `edge` and `master-<sha>`.
+- Published GitHub Release with tag `v1.2.3` → `1.2.3`, `1.2`, `1` and `latest` (a prerelease tag never becomes `latest`).
+- Manual run from another branch → the branch name. Without it that run matches no tag rule at all, and an empty tag list pushes nothing and leaves the provenance attestation without a digest to sign.
+- The release tag also becomes the assembly version, through the `VERSION` build argument (`SOURCE_REVISION` carries the commit); anything else builds as `0.0.0`. No MinVer or GitVersion — `.git` is not in the build context.
+
+`deploy/docker-compose.yml` runs the application, and `deploy/.env` (gitignored, `.env.example` documents the keys) holds its variables. The database is not part of the stack — `EVILCASE_CONNECTION_STRING` points at an existing one. The service is published over plain HTTP for a reverse proxy that terminates TLS, so it sets `BehindReverseProxy` and turns `HttpsRedirection` off.
+
 ## Secrets
 
 Every environment reads secrets from environment variables through the `AddEnvironmentVariables` provider `CreateBuilder` registers. Development additionally loads `src/EvilCase.Host/.env` (gitignored, `.env.example` documents the keys) into the process environment, so there is one configuration path everywhere and the file only decides where the values come from — hence the double underscore separator (`A__B` → `A:B`).

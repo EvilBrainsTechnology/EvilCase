@@ -1,13 +1,12 @@
 name: CI
 
-# Run the workflow on pushes and pull requests to the main branch
+# Run the workflow on pull requests to the main branch. The master and release paths call it from
+# Docker.yml instead, so the image is only published from a commit that passed this workflow.
 on:
-  push:
-    branches:
-      - master
   pull_request:
     branches:
       - master
+  workflow_call:
   workflow_dispatch:
 
 permissions:
