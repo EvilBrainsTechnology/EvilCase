@@ -22,6 +22,11 @@ public class RateLimitingTests
     /// </summary>
     private const int WithinTheLimit = 100;
 
+    /// <summary>
+    /// The permit limit the host configures for the auth path, which is low enough to be spent exactly.
+    /// </summary>
+    private const int AuthPermitLimit = 10;
+
     private EvilCaseHost host = null!;
 
     private HttpClient client = null!;
@@ -74,6 +79,29 @@ public class RateLimitingTests
             Assert.That(statusCodes.Take(WithinTheLimit), Is.All.EqualTo(HttpStatusCode.OK));
             Assert.That(statusCodes, Does.Contain(HttpStatusCode.TooManyRequests));
             Assert.That(retryAfter, Is.Not.Null);
+        }
+    }
+
+    /// <summary>
+    /// The limiter sits ahead of the authentication middleware, so a rejected caller pays for its attempts
+    /// too — which is the point, the expensive one is login and it is anonymous.
+    /// </summary>
+    [Test]
+    public async Task AuthEndpointsAreLimited()
+    {
+        var statusCodes = new List<HttpStatusCode>();
+
+        for (var i = 0; i < AuthPermitLimit + 1; i++)
+        {
+            using var response = await this.client.GetAsync(new Uri("/api/auth/user-info", UriKind.Relative));
+
+            statusCodes.Add(response.StatusCode);
+        }
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(statusCodes.Take(AuthPermitLimit), Is.All.EqualTo(HttpStatusCode.Unauthorized));
+            Assert.That(statusCodes[^1], Is.EqualTo(HttpStatusCode.TooManyRequests));
         }
     }
 
