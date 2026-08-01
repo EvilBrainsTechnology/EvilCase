@@ -52,6 +52,14 @@ Because the check runs before the builder exists, `builder.Environment.IsDevelop
 
 `EvilBrains.Secrets.Infisical` still holds the Infisical provider, but nothing calls it and `appsettings.json` no longer has the section it binds, so it needs that section back before it can be used.
 
+## Database migrations
+
+`Program.cs` awaits `MigrateEvilCaseDatabaseAsync` between `builder.Build()` and the middleware pipeline, so the schema is current before the first request and a failure stops the application instead of serving against a schema the build does not expect. `DatabaseMigrator` asks EF for the pending migrations, logs their names and applies them; with none pending it logs and returns. A database that does not exist yet is created.
+
+`EvilBrains:EvilCase:Database:MigrateOnStartup` turns it off (`true` in `appsettings.json`, and the code default when the key is absent). Turn it off where the schema is rolled out separately, or where several instances start at once — nothing serialises concurrent migrators. `Tests/EvilCase.Tests` sets it to `false`: the test host registers the DbContext but never opens a connection.
+
+Migrations live in `EvilCase.Data.Migrations`, which references `EvilCase.Data` and therefore cannot be referenced back. `UseEvilCaseMigrations` (in `EvilCase.Data`) names the assembly as a string, EF loads it at runtime, and `EvilCase.Host` carries it into its output through an otherwise unused project reference. Both the runtime registration and `ApplicationDbContextFactory` call that one extension: it also sets the `_MigrationsHistory` table name, and a mismatch there would send EF to the default `__EFMigrationsHistory`, find it empty and re-apply every migration.
+
 ## API client pattern
 
 API controllers are the single source of truth; DTOs live in `EvilCase.Api.Contract`. `EvilCase.Api.Client` has no dependency on `EvilCase.Api`: it includes the controller sources as `AdditionalFiles` and the `EvilBrains.ApiClient.Generator` source generator emits clients from them (in-memory, never committed). Controllers marked `[GenerateApiClient]` (from `EvilBrains.ApiClient`) produce a public `I{Name}Client` interface, an internal implementation and a DI registration; consumers register clients via `Bootstrap.AddEvilCaseApiClient` from `EvilCase.Api.Client`, which takes an optional `Action<IHttpClientBuilder>` so message handlers attach to the generated clients only.

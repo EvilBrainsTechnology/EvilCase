@@ -2,6 +2,7 @@ using DotNetEnv;
 using EvilBrains.EvilCase.Api;
 using EvilBrains.EvilCase.Api.HealthChecks;
 using EvilBrains.EvilCase.Auth;
+using EvilBrains.EvilCase.Data;
 using EvilBrains.Logging.AspNetCore;
 using EvilBrains.Logging.Contract;
 using Serilog;
@@ -36,6 +37,11 @@ builder.Host.UseSerilog(Log.Logger);
 builder.Services.ConfigureServices();
 
 var app = builder.Build();
+
+// Before anything is served: the build and the schema it queries have to match. Turn it off where the
+// schema is rolled out separately, or where more than one instance starts at once.
+if (app.Configuration.GetValue("EvilBrains:EvilCase:Database:MigrateOnStartup", defaultValue: true))
+    await app.MigrateEvilCaseDatabaseAsync();
 
 if (!app.Environment.IsDevelopment())
     app.UseHsts();

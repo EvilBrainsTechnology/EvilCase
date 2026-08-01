@@ -14,13 +14,17 @@ internal sealed class EvilCaseHost : WebApplicationFactory<Program>
 
     private const string JwtKeyVariable = "EvilBrains__EvilCase__Auth__Jwt__Key";
 
+    private const string MigrateOnStartupVariable = "EvilBrains__EvilCase__Database__MigrateOnStartup";
+
     public EvilCaseHost()
     {
         // The environment is not Development, so the host does not go looking for a developer's .env.
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
 
-        // Nothing here opens a connection: the DbContext is registered, never used.
+        // Nothing here opens a connection: the DbContext is registered, never used, and startup migration
+        // — the one thing that would reach for the database before a request arrives — is turned off.
         Environment.SetEnvironmentVariable(ConnectionStringVariable, "Host=localhost;Database=evilcase-tests");
+        Environment.SetEnvironmentVariable(MigrateOnStartupVariable, "false");
         Environment.SetEnvironmentVariable(JwtKeyVariable, new string('k', 64));
     }
 

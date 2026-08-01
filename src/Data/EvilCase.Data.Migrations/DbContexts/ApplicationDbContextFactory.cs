@@ -10,12 +10,7 @@ public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<Applicati
     {
         var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
 
-        optionsBuilder.UseNpgsql(
-            x =>
-            {
-                x.MigrationsHistoryTable("_MigrationsHistory");
-                x.MigrationsAssembly(this.GetType().Assembly.GetName().Name);
-            });
+        optionsBuilder.UseNpgsql(npgsql => npgsql.UseEvilCaseMigrations());
 
         var dbContext = new ApplicationDbContext(optionsBuilder.Options);
         return dbContext;

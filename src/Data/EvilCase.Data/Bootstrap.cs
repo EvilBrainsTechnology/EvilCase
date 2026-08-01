@@ -11,6 +11,7 @@ public static class Bootstrap
     public static IServiceCollection AddEvilCaseData(this IServiceCollection serviceCollection)
     {
         serviceCollection.AddLocalDbContext<ApplicationDbContext>();
+        serviceCollection.AddScoped<IDatabaseMigrator, DatabaseMigrator>();
 
         return serviceCollection;
     }
@@ -20,6 +21,20 @@ public static class Bootstrap
         builder.AddDbContextCheck<ApplicationDbContext>("database", tags: tags);
 
         return builder;
+    }
+
+    /// <summary>
+    /// Applies the migrations the database is missing. Awaited before the host starts serving, so a
+    /// request never reaches a schema the build does not expect; a failure here stops the application.
+    /// </summary>
+    public static async Task MigrateEvilCaseDatabaseAsync(this IHost host, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(host);
+
+        await using var scope = host.Services.CreateAsyncScope();
+
+        var migrator = scope.ServiceProvider.GetRequiredService<IDatabaseMigrator>();
+        await migrator.MigrateAsync(cancellationToken);
     }
 
     private static IServiceCollection AddLocalDbContext<TContext>(this IServiceCollection services)
@@ -32,7 +47,7 @@ public static class Bootstrap
                 var connectionStringSection = configuration.GetRequiredSection("EvilBrains:EvilCase:ConnectionString");
                 var connectionString = connectionStringSection.Value ?? throw new InvalidOperationException("Connection string not found");
 
-                options.UseNpgsql(connectionString);
+                options.UseNpgsql(connectionString, npgsql => npgsql.UseEvilCaseMigrations());
                 options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
 
                 var environment = serviceProvider.GetRequiredService<IHostEnvironment>();
