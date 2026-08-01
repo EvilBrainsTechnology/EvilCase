@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace EvilBrains.EvilCase.Data;
 
-internal sealed partial class DatabaseMigrator(ApplicationDbContext dbContext, ILogger<DatabaseMigrator> logger) : IDatabaseMigrator
+internal sealed class DatabaseMigrator(ApplicationDbContext dbContext, ILogger<DatabaseMigrator> logger) : IDatabaseMigrator
 {
     public async Task MigrateAsync(CancellationToken cancellationToken = default)
     {
@@ -12,23 +12,17 @@ internal sealed partial class DatabaseMigrator(ApplicationDbContext dbContext, I
 
         if (pendingMigrations.Count == 0)
         {
-            DatabaseUpToDate(logger);
+            logger.LogInformation("Database schema is up to date");
             return;
         }
 
-        ApplyingMigrations(logger, pendingMigrations.Count, string.Join(", ", pendingMigrations));
+        logger.LogInformation(
+            "Applying {PendingMigrationCount} pending database migrations: {PendingMigrations}",
+            pendingMigrations.Count,
+            string.Join(", ", pendingMigrations));
 
         await dbContext.Database.MigrateAsync(cancellationToken);
 
-        MigrationsApplied(logger, pendingMigrations.Count);
+        logger.LogInformation("Applied {PendingMigrationCount} database migrations", pendingMigrations.Count);
     }
-
-    [LoggerMessage(Level = LogLevel.Information, Message = "Database schema is up to date")]
-    private static partial void DatabaseUpToDate(ILogger logger);
-
-    [LoggerMessage(Level = LogLevel.Information, Message = "Applying {PendingMigrationCount} pending database migrations: {PendingMigrations}")]
-    private static partial void ApplyingMigrations(ILogger logger, int pendingMigrationCount, string pendingMigrations);
-
-    [LoggerMessage(Level = LogLevel.Information, Message = "Applied {PendingMigrationCount} database migrations")]
-    private static partial void MigrationsApplied(ILogger logger, int pendingMigrationCount);
 }
