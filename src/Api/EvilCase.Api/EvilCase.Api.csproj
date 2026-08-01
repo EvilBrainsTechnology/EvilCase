@@ -21,7 +21,6 @@
     <ProjectReference Include="..\..\Utils\EvilBrains.Cryptography\EvilBrains.Cryptography.csproj" />
     <ProjectReference Include="..\..\Utils\EvilBrains.Logging.AspNetCore\EvilBrains.Logging.AspNetCore.csproj" />
     <ProjectReference Include="..\..\Utils\EvilBrains.Logging.Contract\EvilBrains.Logging.Contract.csproj" />
-    <ProjectReference Include="..\..\Utils\EvilBrains.Logging\EvilBrains.Logging.csproj" />
   </ItemGroup>
 
 </Project>
