@@ -1,0 +1,94 @@
+PROPRIETARY SOFTWARE - ALL RIGHTS RESERVED
+Version 2.0 - 2026-08-01
+
+Copyright (c) 2025-2026 Martin Volek. All rights reserved.
+
+These terms cover the source code, documentation, build outputs and container
+images of the EvilCase project (the "Software"), wherever they are published.
+
+
+1. NO LICENSE IS GRANTED
+
+No right to use the Software is granted to anyone by these terms. Without
+limiting that, you may not:
+
+  a) run, execute, host or deploy the Software, in whole or in part;
+  b) copy, reproduce or store the Software beyond what section 2 permits;
+  c) modify the Software or create derivative works from it;
+  d) distribute, publish, sublicense, sell, rent or otherwise make the Software
+     available to any third party;
+  e) use the Software, or any part of it, to train, fine-tune, evaluate or
+     benchmark machine learning models;
+  f) use the Software for any purpose, commercial or non-commercial.
+
+Any of the above requires the prior written consent of the copyright holder,
+given specifically and in advance. Consent for one purpose, person or period
+does not extend to any other, and may be withdrawn at any time.
+
+
+2. WHAT IS PERMITTED WITHOUT CONSENT
+
+You may read the Software where it is published, and make a local copy for the
+sole purpose of reading it. No other right follows from that copy.
+
+
+3. PUBLIC AVAILABILITY IS NOT PERMISSION
+
+The Software is published in public repositories and registries for the
+convenience of the copyright holder and of those he has authorized. That it is
+publicly reachable - on GitHub, on a container registry, or anywhere else - is
+not an offer, a license or a waiver of any right, and no permission may be
+inferred from it.
+
+
+4. THIRD-PARTY COMPONENTS
+
+The Software incorporates and depends on third-party components under their own
+licenses. Those licenses govern those components; these terms apply only to the
+original work of the copyright holder. Third-party notices are retained in the
+files they belong to.
+
+
+5. CONTRIBUTIONS
+
+By submitting a contribution - a pull request, patch, or any other material -
+you grant the copyright holder an exclusive, worldwide, perpetual, irrevocable,
+royalty-free license to that contribution, including the right to sublicense it
+and to publish it under any terms, and you confirm that you are entitled to
+grant it.
+
+
+6. TERMINATION
+
+Any consent granted under section 1 terminates automatically on breach of these
+terms, and may otherwise be withdrawn by the copyright holder at any time. On
+termination you must stop using the Software and destroy every copy of it in
+your possession.
+
+
+7. FUTURE TERMS
+
+The copyright holder may publish the Software under different terms at any time.
+Until such a change is published in this file, these terms apply in full. Nothing
+here creates any expectation that different terms will follow.
+
+
+8. NO WARRANTY, NO LIABILITY
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+9. GOVERNING LAW
+
+These terms are governed by the law of the Czech Republic, and the courts of the
+Czech Republic have exclusive jurisdiction over any dispute arising from them.
+
+
+10. PERMISSION REQUESTS
+
+Martin Volek, martin@vdolek.cz

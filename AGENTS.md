@@ -49,6 +49,8 @@ The image is built from the repository root `Dockerfile` (build context is the r
 
 The Alpine image sets `DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=true` and carries no ICU, which turns every culture aware comparison ordinal without an error anywhere — wrong for Czech data. `icu-data-full` and `icu-libs` are installed and the variable set back to `false`; a missing ICU then fails the start instead of being silent. That is 50 MB of the image, and the Debian base would be another 110 MB on top.
 
+`LICENSE.txt` is copied into `/app` and the workflow sets `org.opencontainers.image.licenses` explicitly — the image is published to a public registry and travels without the repository, and `docker/metadata-action` derives that label from GitHub's license classification, which is `other` and therefore empty. It is the one path outside `src/` that `.dockerignore` lets into the build context.
+
 The restore inputs are not enumerated in `COPY` lines. A throwaway `projects` stage copies `src/` and deletes everything that is not a project file, and the build stage copies that result in. The stage reruns on every source change, but its output only changes when a project file does, and BuildKit derives the cache key of a `COPY --from` from the copied content — so the restore layer stays cached and a new project needs no edit here.
 
 `.github/workflows/Docker.yml` publishes to `ghcr.io/evilbrainstechnology/evilcase`. It calls `CI.yml` as a reusable workflow first and only builds if that job passes, so nothing is published from a commit that fails lint, build or tests — and a release, which `CI.yml` has no trigger for, is covered too. `CI.yml` therefore triggers on pull requests only; the master path reaches it through this workflow.
