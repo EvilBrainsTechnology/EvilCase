@@ -140,9 +140,11 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 
 // The Scalar UI loads its bundle from a CDN and configures it with an inline script, so the policy would
-// break it; it is mapped in Development only.
+// break it. The carve-out holds only where Scalar is actually mapped — everywhere else the path falls
+// through to the frontend and must carry the headers like any other page.
 app.UseWhen(
-    context => !context.Request.Path.StartsWithSegments(apiReferencePath, StringComparison.OrdinalIgnoreCase),
+    context => !app.Environment.IsDevelopment()
+        || !context.Request.Path.StartsWithSegments(apiReferencePath, StringComparison.OrdinalIgnoreCase),
     branch => branch.UseMiddleware<SecurityHeadersMiddleware>());
 
 // Only the API is logged: the frontend, its assets and the health probes would otherwise bury it.
