@@ -20,6 +20,8 @@ happened, what is running, what has to be done next.
   on the aggregates and user management. Build the first as it goes; leave the second.
 - Consequence: every aggregate root carries its owner from its first migration, there is no global
   mutable state, and no query assumes a single user. Roles, invitations and billing are not built.
+- The column is therefore M0 work and every milestone after it, while M8 is the enforcement: until
+  then a single user owns everything, and nothing filters by owner because nothing has to.
 
 ## Domain model
 
@@ -31,6 +33,10 @@ imported folder trees a sub-folder is a sub-case.
 one submission, decision, notice or call. It has an ordinal within its case, a direction
 (outgoing/incoming), a title, dates (drafted, sent, delivered, received), the file number
 (*číslo jednací*) of whoever issued it, a summary, and links to file assets.
+
+The summary lives here and nowhere else. It is not on the file asset: an asset is shared by every
+link that points at it, while a summary is about what was said in one act. An attachment that came
+from another act is read through the summary of that act, which its link already references.
 
 **File asset** — a stored blob, content-addressed by hash. Never duplicated: the same PDF used as
 an attachment in six sub-cases is one asset with six links. Each link carries a role — `Source`
@@ -79,7 +85,7 @@ In order, from what hurts most when working a real case:
 
 1. One timeline of the whole case including all sub-cases.
 2. Deadlines: derived from delivery receipts, watched across every case.
-3. Fulltext over document content, plus a summary per document (manual now, AI later).
+3. Fulltext over document content, plus the act summary above it (manual now, AI later).
 4. Generating a submission from a `.docx` template pre-filled from the case.
 
 Both entry paths ship early: importing an existing folder tree, and creating cases and acts by hand.
@@ -94,9 +100,9 @@ Both entry paths ship early: importing an existing folder tree, and creating cas
 | M3 | Import | convention parser, dry-run preview, execution with dedupe |
 | M4 | Timeline | merged read model and its UI |
 | M5 | Deadlines | derivation from delivery, cross-case "what is due" |
-| M6 | Search | text extraction, fulltext UI, manual summary field |
+| M6 | Search | text extraction, fulltext UI, the act summary editable by hand |
 | M7 | Templates | template model, generated submission |
-| M8 | Ownership and users | owner enforced on every aggregate, user management, the tenancy seam |
+| M8 | Ownership and users | ownership enforced in every query and endpoint, user management, the tenancy seam |
 
 Sign-in, sessions and default-deny authorization are already in place and are not a milestone.
 Every screen and endpoint added from M0 on is authenticated.
