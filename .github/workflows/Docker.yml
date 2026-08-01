@@ -97,10 +97,14 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # Attach a signed provenance statement to the pushed image
+      # Attach a signed provenance statement to the pushed image. It is not written to the registry:
+      # an OCI registry has no way to attach one artifact to another, so the statement would land as
+      # a package version of its own tagged sha256-<digest of the image it describes>, one per push.
+      # Stored on GitHub instead, `gh attestation verify oci://<image> --repo <owner/repo>` resolves
+      # the digest from the registry and looks the statement up there.
       - name: Attest build provenance
         uses: actions/attest-build-provenance@v2
         with:
           subject-name: ${{ env.IMAGE }}
           subject-digest: ${{ steps.build.outputs.digest }}
-          push-to-registry: true
+          push-to-registry: false
