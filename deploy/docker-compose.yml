@@ -14,6 +14,11 @@ services:
       # The proxy owns the redirect. Kestrel serves plain HTTP here, so the middleware could not
       # resolve a target port anyway and would only log a warning per request.
       EvilBrains__EvilCase__Hosting__HttpsRedirection: "false"
+      # No environment has a Seq server configured by default; an empty URL leaves the sink out, same as
+      # Enabled=false.
+      EvilBrains__EvilCase__Logging__Seq__Enabled: ${EVILCASE_SEQ_ENABLED:-false}
+      EvilBrains__EvilCase__Logging__Seq__ServerUrl: ${EVILCASE_SEQ_URL:-}
+      EvilBrains__EvilCase__Logging__Seq__ApiKey: ${EVILCASE_SEQ_API_KEY:-}
     logging:
       driver: json-file
       options:

@@ -1,4 +1,5 @@
 using DotNetEnv;
+using EvilBrains.Collections;
 using EvilBrains.EvilCase.Api;
 using EvilBrains.EvilCase.Api.HealthChecks;
 using EvilBrains.EvilCase.Auth;
@@ -23,12 +24,22 @@ var builder = WebApplication
     .CreateBuilder(args);
 
 #pragma warning disable RCS0054 // Fix formatting of a call chain
-Log.Logger = new LoggerConfiguration()
+var loggerConfiguration = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
-    .Enrich.WithProperty(AppSource.PropertyName, AppSource.Server)
-    .CreateLogger();
+    .Enrich.WithProperty(AppSource.PropertyName, AppSource.Server);
 #pragma warning restore RCS0054
+
+// Seq is wired here rather than through the Serilog section, which has no way to leave a sink out. Every
+// environment names its own server and one that names none does not log to Seq at all; Enabled turns it
+// off where a URL is configured.
+var seq = builder.Configuration.GetSection("EvilBrains:EvilCase:Logging:Seq");
+var seqServerUrl = seq["ServerUrl"].NullIfEmpty();
+
+if (seq.GetValue("Enabled", defaultValue: true) && seqServerUrl is not null)
+    loggerConfiguration.WriteTo.Seq(seqServerUrl, apiKey: seq["ApiKey"].NullIfEmpty(), formatProvider: CultureInfo.InvariantCulture);
+
+Log.Logger = loggerConfiguration.CreateLogger();
 
 builder.Services.Configure<ForwardedHeadersOptions>(
     options =>
