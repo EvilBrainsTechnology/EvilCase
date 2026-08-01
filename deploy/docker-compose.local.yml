@@ -1,0 +1,31 @@
+# Overlay for running the published image locally: adds the database and drops everything the
+# reverse proxy would otherwise provide.
+#   docker compose -f docker-compose.yml -f docker-compose.local.yml up
+
+services:
+  app:
+    environment:
+      EvilBrains__EvilCase__ConnectionString: Host=db;Port=5432;Database=evilcase;Username=evilcase;Password=evilcase
+      EvilBrains__EvilCase__Hosting__BehindReverseProxy: "false"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    # Pinned: postgres:18 moves PGDATA, which would leave the volume below empty.
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: evilcase
+      POSTGRES_USER: evilcase
+      POSTGRES_PASSWORD: evilcase
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U evilcase -d evilcase"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  db-data:

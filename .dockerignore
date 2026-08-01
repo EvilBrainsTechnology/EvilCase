@@ -1,0 +1,11 @@
+# Everything is excluded and only the build inputs are added back, so a local secret can never reach
+# the build context.
+*
+!src
+
+**/bin
+**/obj
+**/.env
+**/.env.backup
+**/.vs
+**/.idea

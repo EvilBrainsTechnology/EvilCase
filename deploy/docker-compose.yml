@@ -1,0 +1,22 @@
+name: evilcase
+
+services:
+  app:
+    image: ghcr.io/evilbrainstechnology/evilcase:${EVILCASE_TAG:-latest}
+    restart: unless-stopped
+    ports:
+      - "${EVILCASE_PORT:-8080}:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      # Not required: docker-compose.local.yml overrides it, and interpolation runs before the merge.
+      EvilBrains__EvilCase__ConnectionString: ${EVILCASE_CONNECTION_STRING:-}
+      EvilBrains__EvilCase__Auth__Jwt__Key: ${EVILCASE_JWT_KEY:?}
+      EvilBrains__EvilCase__Hosting__BehindReverseProxy: "true"
+      # The proxy owns the redirect. Kestrel serves plain HTTP here, so the middleware could not
+      # resolve a target port anyway and would only log a warning per request.
+      EvilBrains__EvilCase__Hosting__HttpsRedirection: "false"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
