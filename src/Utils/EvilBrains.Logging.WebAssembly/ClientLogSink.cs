@@ -52,6 +52,9 @@ internal sealed class ClientLogSink : ILogEventSink
     /// </summary>
     public ClientLogBatch? Drain()
     {
+        if (this.queue.IsEmpty)
+            return null;
+
         var entries = new List<ClientLogEntry>(ClientLogBatch.MaxEntries);
         while (entries.Count < ClientLogBatch.MaxEntries && this.queue.TryDequeue(out var entry))
             entries.Add(entry);
