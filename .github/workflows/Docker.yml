@@ -97,8 +97,11 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # Attach a signed provenance statement to the pushed image
+      # Attach a signed provenance statement to the pushed image. Attestations are a paid feature
+      # while the repository is private, and the action fails rather than skipping, so the step is
+      # gated on visibility instead of removed.
       - name: Attest build provenance
+        if: ${{ !github.event.repository.private }}
         uses: actions/attest-build-provenance@v2
         with:
           subject-name: ${{ env.IMAGE }}
