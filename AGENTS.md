@@ -51,7 +51,7 @@ The Alpine image sets `DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=true` and carries n
 
 The restore inputs are not enumerated in `COPY` lines. A throwaway `projects` stage copies `src/` and deletes everything that is not a project file, and the build stage copies that result in. The stage reruns on every source change, but its output only changes when a project file does, and BuildKit derives the cache key of a `COPY --from` from the copied content — so the restore layer stays cached and a new project needs no edit here.
 
-`.github/workflows/Docker.yml` publishes to `ghcr.io/evilbrainstechnology/evilcase`:
+`.github/workflows/Docker.yml` publishes to `ghcr.io/evilbrainstechnology/evilcase`. It calls `CI.yml` as a reusable workflow first and only builds if that job passes, so nothing is published from a commit that fails lint, build or tests — and a release, which `CI.yml` has no trigger for, is covered too. `CI.yml` therefore triggers on pull requests only; the master path reaches it through this workflow.
 
 - Push to `master` → `edge` and `master-<sha>`.
 - Published GitHub Release with tag `v1.2.3` → `1.2.3`, `1.2`, `1` and `latest` (a prerelease tag never becomes `latest`).

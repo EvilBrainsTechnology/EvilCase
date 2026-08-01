@@ -16,6 +16,9 @@ permissions:
   # Required by actions/attest-build-provenance
   attestations: write
   id-token: write
+  # Required by the CI workflow this one calls: a called workflow cannot hold more than its caller
+  actions: read
+  checks: write
 
 concurrency:
   group: docker-${{ github.ref }}
@@ -25,8 +28,15 @@ env:
   IMAGE: ghcr.io/evilbrainstechnology/evilcase
 
 jobs:
+  # Lint, build and test. Called rather than duplicated, so master and release runs go through the same
+  # steps a pull request does — and a release, which CI.yml is not triggered by, is covered as well.
+  ci:
+    name: CI
+    uses: ./.github/workflows/CI.yml
+
   build-and-push:
     name: Build and Push Image
+    needs: ci
     runs-on: ubuntu-latest
 
     steps:
