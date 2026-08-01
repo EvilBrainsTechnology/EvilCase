@@ -72,17 +72,24 @@ Existing case files live as folder trees on disk. The importer reads this conven
 | Pattern | Meaning |
 | --- | --- |
 | `NN - Title.ext` | act number `NN` of the enclosing case |
-| `NNa - Attachment N - Title.ext` | attachment of act `NN` |
-| same stem as `.docx` and `.pdf` | one act: source and final |
-| sub-folder | sub-case |
-| ` (uzavřeno)` suffix on a folder | the sub-case is closed |
-| `.zfo` | data-box envelope of the neighbouring act |
+| `NNa - ... .ext` | a letter after the ordinal: an attachment of act `NN` |
+| several files, one ordinal | one act, however many files carry the number |
+| sub-folder | sub-case, to any depth |
+| ` (uzavřeno)` suffix on a folder | the sub-case is closed; the title is the name without it |
 | `99 - ...` | generated summaries, ignored entirely — not an act, not a file asset |
+| anything else | reported as unreadable, never skipped silently |
 
-**What a file is comes from its bytes, not from its name.** A `.pdf` that is really a Word document is
-a Word document, and an extension is never trusted. The names above carry structure — which folder,
-which act, which attachment — and the content carries format. How much of that structure stays with
-the names is still open; a folder has no bytes, and a final decision and its attachment are both PDFs.
+**Names carry structure, bytes carry format.** Which folder, which act, which attachment is written in
+the name. What a file *is* comes from its content — a `.pdf` that is really a Word document is a Word
+document, and an extension is never trusted.
+
+The only words the convention needs are the closed-folder suffix, matched ignoring case and diacritics.
+The attachment marker is the **letter in the ordinal**, not the word after the dash: `05a` is an
+attachment of act five whether the word that follows reads *Příloha*, *Attachment* or anything else,
+because that word is title text the parser never matches on.
+
+A role beyond "attachment or not" — source, final, delivery receipt, envelope — is not decided here. A
+final decision and its attachment are both PDFs, so neither the name nor the bytes settle it alone.
 
 The importer is a pure parser over the tree plus an execution step. It never writes to the source.
 
