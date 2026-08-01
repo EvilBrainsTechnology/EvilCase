@@ -2,6 +2,8 @@
 
 Case-file management system. Proof-of-concept state: ASP.NET Core API + Blazor WebAssembly frontend with a single echo round-trip.
 
+> **Proprietary — all rights reserved.** This repository is public to read, not to use. No right to run, copy, modify or distribute the software is granted; see [LICENSE.txt](LICENSE.txt) and ask before you use anything.
+
 ## Repository structure
 
 All code lives in `src/` (solution `EvilCase.slnx`):

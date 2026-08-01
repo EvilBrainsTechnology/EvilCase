@@ -46,6 +46,9 @@ ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
 WORKDIR /app
 COPY --from=build /app .
 
+# The image is published to a public registry and travels without the repository around it
+COPY LICENSE.txt .
+
 USER $APP_UID
 EXPOSE 8080
 

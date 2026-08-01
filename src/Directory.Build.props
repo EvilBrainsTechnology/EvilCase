@@ -10,6 +10,9 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
     <WarningsAsErrors>Nullable</WarningsAsErrors>
+    <Company>Martin Volek</Company>
+    <Authors>Martin Volek</Authors>
+    <Copyright>Copyright (c) 2025-2026 Martin Volek. All rights reserved.</Copyright>
   </PropertyGroup>
 
   <ItemGroup>

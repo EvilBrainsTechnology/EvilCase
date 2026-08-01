@@ -3,6 +3,7 @@
 # would carry it into the shared Actions cache.
 *
 !src
+!LICENSE.txt
 
 **/bin
 **/obj
