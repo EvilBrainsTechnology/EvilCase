@@ -8,11 +8,17 @@ public record SessionInfo
 {
     public required Guid SessionId { get; init; }
 
+    /// <summary>
+    /// When the user signed in, not when the chain last rotated.
+    /// </summary>
     public required DateTime Created { get; init; }
 
     public required DateTime Expires { get; init; }
 
-    public DateTime? LastUsed { get; init; }
+    /// <summary>
+    /// When this session last renewed, which for one that never has is the sign-in itself.
+    /// </summary>
+    public required DateTime LastUsed { get; init; }
 
     public string? IpAddress { get; init; }
 

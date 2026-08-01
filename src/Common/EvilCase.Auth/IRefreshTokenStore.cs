@@ -28,4 +28,10 @@ internal interface IRefreshTokenStore
     /// The newest token of every chain that is still usable — one row per live session.
     /// </summary>
     public Task<IReadOnlyList<RefreshToken>> GetActiveAsync(long userId, DateTime now, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// When each of a user's chains began, keyed by session. Its oldest row is the sign-in; the live one
+    /// only knows when it was last renewed, because rotation writes a new row every time.
+    /// </summary>
+    public Task<IReadOnlyDictionary<Guid, DateTime>> GetSessionStartsAsync(long userId, CancellationToken cancellationToken);
 }

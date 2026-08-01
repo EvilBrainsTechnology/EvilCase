@@ -47,4 +47,11 @@ internal sealed class RefreshTokenStore(ApplicationDbContext dbContext) : IRefre
             .Where(token => token.UserId == userId && token.RevokedAt == null && token.Expires > now && token.SessionExpires > now)
             .OrderByDescending(token => token.Created)
             .ToListAsync(cancellationToken);
+
+    public async Task<IReadOnlyDictionary<Guid, DateTime>> GetSessionStartsAsync(long userId, CancellationToken cancellationToken) =>
+        await dbContext.RefreshTokens
+            .Where(token => token.UserId == userId)
+            .GroupBy(token => token.SessionId)
+            .Select(chain => new { SessionId = chain.Key, Started = chain.Min(token => token.Created) })
+            .ToDictionaryAsync(chain => chain.SessionId, chain => chain.Started, cancellationToken);
 }

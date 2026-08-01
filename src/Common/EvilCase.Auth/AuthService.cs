@@ -97,6 +97,7 @@ internal sealed class AuthService(
     public async Task<IReadOnlyList<UserSession>> GetSessionsAsync(long userId, CancellationToken cancellationToken)
     {
         var tokens = await refreshTokenStore.GetActiveAsync(userId, timeProvider.GetUtcNow().UtcDateTime, cancellationToken);
+        var starts = await refreshTokenStore.GetSessionStartsAsync(userId, cancellationToken);
 
         return
         [
@@ -104,9 +105,12 @@ internal sealed class AuthService(
                 token => new UserSession
                 {
                     SessionId = token.SessionId,
-                    Created = token.Created,
+                    Created = starts[token.SessionId],
+
+                    // The live token was issued the last time this session renewed, and every row behind
+                    // it carries its own use as the LastUsed rotation stamped on it when it was spent.
+                    LastUsed = token.Created,
                     Expires = token.SessionExpires,
-                    LastUsed = token.LastUsed,
                     IpAddress = token.CreatedByIp,
                     UserAgent = token.UserAgent,
                 }),

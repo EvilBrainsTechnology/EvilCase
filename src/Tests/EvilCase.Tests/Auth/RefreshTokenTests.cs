@@ -196,6 +196,29 @@ public class RefreshTokenTests
         Assert.That(sessions, Has.Exactly(2).Items);
     }
 
+    /// <summary>
+    /// The list is there so a user can spot a device that is not theirs, which needs the two moments the
+    /// live token cannot supply on its own: rotation replaces the row, so it knows only the last renewal.
+    /// </summary>
+    [Test]
+    public async Task ASessionIsDatedFromTheSignInAndFromItsLastRenewal()
+    {
+        var signedInAt = this.harness.Time.UtcNow;
+        var session = await this.harness.SignInAsync();
+
+        this.harness.Time.Advance(TimeSpan.FromDays(3));
+        var renewedAt = this.harness.Time.UtcNow;
+        _ = await this.harness.RefreshAsync(session.RefreshToken);
+
+        var listed = (await this.harness.Service.GetSessionsAsync(this.harness.User.Id, CancellationToken.None)).Single();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(listed.Created, Is.EqualTo(signedInAt));
+            Assert.That(listed.LastUsed, Is.EqualTo(renewedAt));
+        }
+    }
+
     [Test]
     public async Task ALockedOutAccountCannotRenew()
     {
