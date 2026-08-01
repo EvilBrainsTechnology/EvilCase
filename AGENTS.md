@@ -189,4 +189,6 @@ Run everything from `src/`. `r` is a local tool, so `dotnet tool restore` is req
 - `dotnet r run` — run everything at `https://localhost:5000` (Scalar UI at `/scalar` in dev); requires a reachable PostgreSQL
 - `dotnet r add-migration` / `remove-migration` / `generate-sql-script` — EF migrations
 
+The database is the one prerequisite that is not in the solution. From the repository root, `docker compose -f deploy/docker-compose.dev.yml up -d --wait` starts a throwaway PostgreSQL on the connection string `.env.example` already carries; `deploy/README.md` documents it. Running the application also needs the seeded administrator (`Auth__Seed__*`), because there is no other way in. The `run-app` skill has the whole sequence, including how to verify a run.
+
 `launchSettings.json` holds a second profile, `claude`, identical except for port 5100 and no browser launch. `.claude/launch.json` runs it, so an agent-started instance and an IDE-started one can coexist. When changing that port, keep it off the browsers' unsafe-port list (6000, 6665–6669, 6697, ...) — the preview pane refuses to load those.

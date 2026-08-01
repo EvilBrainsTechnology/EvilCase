@@ -1,0 +1,21 @@
+name: evilcase-dev
+
+# Throwaway PostgreSQL for local development. Matches the connection string in
+# src/EvilCase.Host/.env.example, so a fresh clone needs no other setup. Not part of the deployed
+# stack — see docker-compose.yml for that.
+services:
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: evilcase
+    # No volume: `down` wipes the data and the next start migrates and seeds an empty database again.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d evilcase"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
