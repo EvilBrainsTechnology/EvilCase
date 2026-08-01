@@ -37,9 +37,9 @@ RUN dotnet publish EvilCase.Host/EvilCase.Host.csproj \
 
 FROM mcr.microsoft.com/dotnet/aspnet:${DOTNET_VERSION}-alpine AS final
 
-# curl: the runtime image ships no HTTP client, and both HEALTHCHECK and compose's depends_on run
-# inside the container. ICU: the Alpine image turns globalization off and carries no ICU, which
-# silently makes every culture aware comparison ordinal — wrong for Czech data.
+# curl: the runtime image ships no HTTP client and HEALTHCHECK runs inside the container. ICU: the
+# Alpine image turns globalization off and carries no ICU, which silently makes every culture aware
+# comparison ordinal — wrong for Czech data.
 RUN apk add --no-cache curl icu-data-full icu-libs
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
 
