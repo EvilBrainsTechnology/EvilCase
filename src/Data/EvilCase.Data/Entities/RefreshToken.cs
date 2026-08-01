@@ -5,10 +5,10 @@ namespace EvilBrains.EvilCase.Data.Entities;
 
 /// <summary>
 /// One issued refresh token. Rotation writes a new row and revokes the old one, so a row is also the
-/// audit trail of a session: the chain sharing a <see cref="SessionId"/> is one browser.
+/// audit trail of a session: the chain sharing a <see cref="AuthSessionId"/> is one browser.
 /// </summary>
 [Index(nameof(TokenHash), IsUnique = true)]
-[Index(nameof(SessionId))]
+[Index(nameof(AuthSessionId))]
 public record RefreshToken : IEntity
 {
     [Key]
@@ -20,7 +20,7 @@ public record RefreshToken : IEntity
     /// Shared by every token of one rotation chain. Revoking a session, and revoking a chain after a
     /// replayed token, both work on this rather than on the individual rows.
     /// </summary>
-    public required Guid SessionId { get; init; }
+    public required Guid AuthSessionId { get; init; }
 
     /// <summary>
     /// SHA-256 of the token, hex. The token is 256 bits of randomness, so a password KDF would only cost

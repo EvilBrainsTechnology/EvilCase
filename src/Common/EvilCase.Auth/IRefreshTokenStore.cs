@@ -17,7 +17,7 @@ internal interface IRefreshTokenStore
     /// <summary>
     /// Ends one rotation chain: a sign-out, or a replayed token taking its session down.
     /// </summary>
-    public Task RevokeSessionAsync(Guid sessionId, DateTime now, CancellationToken cancellationToken);
+    public Task RevokeSessionAsync(Guid authSessionId, DateTime now, CancellationToken cancellationToken);
 
     /// <summary>
     /// Ends every session of one user.

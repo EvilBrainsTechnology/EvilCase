@@ -26,10 +26,10 @@ internal sealed class RefreshTokenStore(ApplicationDbContext dbContext) : IRefre
                     .SetProperty(token => token.LastUsed, now),
                 cancellationToken) > 0;
 
-    public async Task RevokeSessionAsync(Guid sessionId, DateTime now, CancellationToken cancellationToken)
+    public async Task RevokeSessionAsync(Guid authSessionId, DateTime now, CancellationToken cancellationToken)
     {
         _ = await dbContext.RefreshTokens
-            .Where(token => token.SessionId == sessionId && token.RevokedAt == null)
+            .Where(token => token.AuthSessionId == authSessionId && token.RevokedAt == null)
             .ExecuteUpdateAsync(setters => setters.SetProperty(token => token.RevokedAt, now), cancellationToken);
     }
 
@@ -51,7 +51,7 @@ internal sealed class RefreshTokenStore(ApplicationDbContext dbContext) : IRefre
     public async Task<IReadOnlyDictionary<Guid, DateTime>> GetSessionStartsAsync(long userId, CancellationToken cancellationToken) =>
         await dbContext.RefreshTokens
             .Where(token => token.UserId == userId)
-            .GroupBy(token => token.SessionId)
-            .Select(chain => new { SessionId = chain.Key, Started = chain.Min(token => token.Created) })
-            .ToDictionaryAsync(chain => chain.SessionId, chain => chain.Started, cancellationToken);
+            .GroupBy(token => token.AuthSessionId)
+            .Select(chain => new { AuthSessionId = chain.Key, Started = chain.Min(token => token.Created) })
+            .ToDictionaryAsync(chain => chain.AuthSessionId, chain => chain.Started, cancellationToken);
 }

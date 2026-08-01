@@ -74,7 +74,7 @@ internal sealed class AuthService(
         if (!await refreshTokenStore.RevokeAsync(stored.Id, now, cancellationToken))
             return RefreshResult.Failed(RefreshStatus.Raced);
 
-        var session = await this.IssueAsync(user, stored.SessionId, stored.SessionExpires, client, now, cancellationToken);
+        var session = await this.IssueAsync(user, stored.AuthSessionId, stored.SessionExpires, client, now, cancellationToken);
 
         return RefreshResult.Succeeded(session);
     }
@@ -84,7 +84,7 @@ internal sealed class AuthService(
         var stored = await refreshTokenStore.FindAsync(RefreshTokenValue.Hash(refreshToken), cancellationToken);
 
         if (stored is not null)
-            await refreshTokenStore.RevokeSessionAsync(stored.SessionId, timeProvider.GetUtcNow().UtcDateTime, cancellationToken);
+            await refreshTokenStore.RevokeSessionAsync(stored.AuthSessionId, timeProvider.GetUtcNow().UtcDateTime, cancellationToken);
     }
 
     public async Task SignOutEverywhereAsync(long userId, CancellationToken cancellationToken)
@@ -104,8 +104,8 @@ internal sealed class AuthService(
             .. tokens.Select(
                 token => new UserSession
                 {
-                    SessionId = token.SessionId,
-                    Created = starts[token.SessionId],
+                    AuthSessionId = token.AuthSessionId,
+                    Created = starts[token.AuthSessionId],
 
                     // The live token was issued the last time this session renewed, and every row behind
                     // it carries its own use as the LastUsed rotation stamped on it when it was spent.
@@ -144,18 +144,18 @@ internal sealed class AuthService(
             return RefreshResult.Failed(RefreshStatus.Raced);
 
         logger.LogWarning(
-            "A refresh token of session {SessionId} was replayed {Age} after it was revoked; the session is being ended",
-            stored.SessionId,
+            "A refresh token of session {AuthSessionId} was replayed {Age} after it was revoked; the session is being ended",
+            stored.AuthSessionId,
             now - revokedAt);
 
-        await refreshTokenStore.RevokeSessionAsync(stored.SessionId, now, cancellationToken);
+        await refreshTokenStore.RevokeSessionAsync(stored.AuthSessionId, now, cancellationToken);
 
         return RefreshResult.Failed(RefreshStatus.Rejected);
     }
 
     private async Task<AuthSession> IssueAsync(
         User user,
-        Guid sessionId,
+        Guid authSessionId,
         DateTime sessionExpires,
         ClientInfo client,
         DateTime now,
@@ -172,7 +172,7 @@ internal sealed class AuthService(
             new RefreshToken
             {
                 UserId = user.Id,
-                SessionId = sessionId,
+                AuthSessionId = authSessionId,
                 TokenHash = RefreshTokenValue.Hash(value),
                 Created = now,
                 Expires = expires,
@@ -182,7 +182,7 @@ internal sealed class AuthService(
             },
             cancellationToken);
 
-        var accessToken = authTokenService.Generate(user, sessionId);
+        var accessToken = authTokenService.Generate(user, authSessionId);
 
         return new()
         {

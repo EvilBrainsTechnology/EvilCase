@@ -6,7 +6,7 @@ namespace EvilBrains.EvilCase.Api.Contract.User;
 /// </summary>
 public record SessionInfo
 {
-    public required Guid SessionId { get; init; }
+    public required Guid AuthSessionId { get; init; }
 
     /// <summary>
     /// When the user signed in, not when the chain last rotated.

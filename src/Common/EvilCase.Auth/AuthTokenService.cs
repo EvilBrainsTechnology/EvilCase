@@ -14,7 +14,7 @@ internal sealed class AuthTokenService(IOptions<AuthSettings> options, TimeProvi
 {
     private static readonly JsonWebTokenHandler TokenHandler = new();
 
-    public AccessToken Generate(User user, Guid sessionId)
+    public AccessToken Generate(User user, Guid authSessionId)
     {
         ArgumentNullException.ThrowIfNull(user);
 
@@ -36,7 +36,7 @@ internal sealed class AuthTokenService(IOptions<AuthSettings> options, TimeProvi
                 [AuthClaims.Subject] = user.Id.ToString(CultureInfo.InvariantCulture),
                 [AuthClaims.Email] = user.Email,
                 [AuthClaims.Role] = user.Role.ToString(),
-                [AuthClaims.SessionId] = sessionId.ToString("N", CultureInfo.InvariantCulture),
+                [AuthClaims.AuthSessionId] = authSessionId.ToString("N", CultureInfo.InvariantCulture),
                 [JwtRegisteredClaimNames.Jti] = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture),
             },
         };

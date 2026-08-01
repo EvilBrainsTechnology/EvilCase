@@ -11,7 +11,7 @@ namespace EvilBrains.EvilCase.Tests.Auth;
 /// </summary>
 public class AuthTokenServiceTests
 {
-    private static readonly Guid SessionId = Guid.Parse("0f9b8a7c-6d5e-4f3a-2b1c-0d9e8f7a6b5c", CultureInfo.InvariantCulture);
+    private static readonly Guid AuthSessionId = Guid.Parse("0f9b8a7c-6d5e-4f3a-2b1c-0d9e8f7a6b5c", CultureInfo.InvariantCulture);
 
     [Test]
     public void TheTokenNamesTheUserTheirRoleAndTheirSession()
@@ -21,14 +21,14 @@ public class AuthTokenServiceTests
 
         var service = new AuthTokenService(Options.Create(settings), harness.Time);
 
-        var token = new JsonWebTokenHandler().ReadJsonWebToken(service.Generate(harness.User, SessionId).Value);
+        var token = new JsonWebTokenHandler().ReadJsonWebToken(service.Generate(harness.User, AuthSessionId).Value);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(token.GetClaim(AuthClaims.Subject).Value, Is.EqualTo(harness.User.Id.ToString(CultureInfo.InvariantCulture)));
             Assert.That(token.GetClaim(AuthClaims.Email).Value, Is.EqualTo(harness.User.Email));
             Assert.That(token.GetClaim(AuthClaims.Role).Value, Is.EqualTo(nameof(UserRole.Admin)));
-            Assert.That(token.GetClaim(AuthClaims.SessionId).Value, Is.EqualTo(SessionId.ToString("N", CultureInfo.InvariantCulture)));
+            Assert.That(token.GetClaim(AuthClaims.AuthSessionId).Value, Is.EqualTo(AuthSessionId.ToString("N", CultureInfo.InvariantCulture)));
             Assert.That(token.Issuer, Is.EqualTo(settings.Jwt.Issuer));
             Assert.That(token.Audiences, Does.Contain(settings.Jwt.Audience));
         }
@@ -43,8 +43,8 @@ public class AuthTokenServiceTests
         var harness = new AuthTestHarness();
         var service = new AuthTokenService(Options.Create(harness.Settings), harness.Time);
 
-        var first = new JsonWebTokenHandler().ReadJsonWebToken(service.Generate(harness.User, SessionId).Value);
-        var second = new JsonWebTokenHandler().ReadJsonWebToken(service.Generate(harness.User, SessionId).Value);
+        var first = new JsonWebTokenHandler().ReadJsonWebToken(service.Generate(harness.User, AuthSessionId).Value);
+        var second = new JsonWebTokenHandler().ReadJsonWebToken(service.Generate(harness.User, AuthSessionId).Value);
 
         Assert.That(first.Id, Is.Not.EqualTo(second.Id));
     }
@@ -55,7 +55,7 @@ public class AuthTokenServiceTests
         var harness = new AuthTestHarness();
         var service = new AuthTokenService(Options.Create(harness.Settings), harness.Time);
 
-        var generated = service.Generate(harness.User, SessionId);
+        var generated = service.Generate(harness.User, AuthSessionId);
         var token = new JsonWebTokenHandler().ReadJsonWebToken(generated.Value);
 
         using (Assert.EnterMultipleScope())

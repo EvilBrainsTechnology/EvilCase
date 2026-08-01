@@ -45,9 +45,9 @@ internal sealed class FakeRefreshTokenStore : IRefreshTokenStore
         return this.Revoke(token => token.Id == id, now, alsoUsed: true) > 0;
     }
 
-    public Task RevokeSessionAsync(Guid sessionId, DateTime now, CancellationToken cancellationToken)
+    public Task RevokeSessionAsync(Guid authSessionId, DateTime now, CancellationToken cancellationToken)
     {
-        _ = this.Revoke(token => token.SessionId == sessionId, now, alsoUsed: false);
+        _ = this.Revoke(token => token.AuthSessionId == authSessionId, now, alsoUsed: false);
 
         return Task.CompletedTask;
     }
@@ -67,7 +67,7 @@ internal sealed class FakeRefreshTokenStore : IRefreshTokenStore
         Task.FromResult<IReadOnlyDictionary<Guid, DateTime>>(
             this.tokens
                 .Where(token => token.UserId == userId)
-                .GroupBy(token => token.SessionId)
+                .GroupBy(token => token.AuthSessionId)
                 .ToDictionary(chain => chain.Key, chain => chain.Min(token => token.Created)));
 
     private int Revoke(Func<RefreshToken, bool> match, in DateTime now, bool alsoUsed)

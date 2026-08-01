@@ -105,7 +105,7 @@ public class AuthController(IAuthService authService) : ControllerBase
     [Authorize]
     public async Task<ActionResult<IReadOnlyList<SessionInfo>>> Sessions(CancellationToken token)
     {
-        var current = this.CurrentSessionId();
+        var current = this.CurrentAuthSessionId();
         var sessions = await authService.GetSessionsAsync(this.UserId(), token);
 
         return this.Ok(sessions.Select(session => Describe(session, current)).ToList());
@@ -133,13 +133,13 @@ public class AuthController(IAuthService authService) : ControllerBase
     private static SessionInfo Describe(UserSession session, Guid? current) =>
         new()
         {
-            SessionId = session.SessionId,
+            AuthSessionId = session.AuthSessionId,
             Created = session.Created,
             Expires = session.Expires,
             LastUsed = session.LastUsed,
             IpAddress = session.IpAddress,
             UserAgent = session.UserAgent,
-            IsCurrent = current == session.SessionId,
+            IsCurrent = current == session.AuthSessionId,
         };
 
     private long UserId() =>
@@ -150,8 +150,8 @@ public class AuthController(IAuthService authService) : ControllerBase
     private UserRole Role() =>
         Enum.TryParse<UserRole>(this.User.FindFirstValue(AuthClaims.Role), out var role) ? role : UserRole.User;
 
-    private Guid? CurrentSessionId() =>
-        Guid.TryParseExact(this.User.FindFirstValue(AuthClaims.SessionId), "N", out var sessionId) ? sessionId : null;
+    private Guid? CurrentAuthSessionId() =>
+        Guid.TryParseExact(this.User.FindFirstValue(AuthClaims.AuthSessionId), "N", out var authSessionId) ? authSessionId : null;
 
     private ClientInfo DescribeClient()
     {

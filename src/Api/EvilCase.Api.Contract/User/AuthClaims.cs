@@ -22,7 +22,9 @@ public static class AuthClaims
     public const string Role = "role";
 
     /// <summary>
-    /// The refresh token chain this access token was issued from.
+    /// The refresh token chain this access token was issued from. Named apart from the browser session
+    /// the logging pipeline carries as <c>XSessionId</c> — a log event can hold both, and a bare
+    /// <c>SessionId</c> next to it would say nothing about which one it is.
     /// </summary>
-    public const string SessionId = "sid";
+    public const string AuthSessionId = "sid";
 }

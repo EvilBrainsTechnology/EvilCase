@@ -5,7 +5,7 @@ namespace EvilBrains.EvilCase.Auth;
 /// </summary>
 public sealed record UserSession
 {
-    public required Guid SessionId { get; init; }
+    public required Guid AuthSessionId { get; init; }
 
     /// <summary>
     /// When the user signed in, not when the chain last rotated.

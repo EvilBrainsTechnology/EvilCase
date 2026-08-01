@@ -33,6 +33,9 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
+                    b.Property<Guid>("AuthSessionId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
 
@@ -52,9 +55,6 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.Property<DateTime>("SessionExpires")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("SessionId")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("TokenHash")
                         .IsRequired()
                         .HasMaxLength(64)
@@ -69,7 +69,7 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SessionId");
+                    b.HasIndex("AuthSessionId");
 
                     b.HasIndex("TokenHash")
                         .IsUnique();

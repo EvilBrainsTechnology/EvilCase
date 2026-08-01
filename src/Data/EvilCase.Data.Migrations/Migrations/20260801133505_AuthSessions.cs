@@ -118,7 +118,7 @@ public partial class AuthSessions : Migration
                 Id = table.Column<long>(type: "bigint", nullable: false)
                     .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                 UserId = table.Column<long>(type: "bigint", nullable: false),
-                SessionId = table.Column<Guid>(type: "uuid", nullable: false),
+                AuthSessionId = table.Column<Guid>(type: "uuid", nullable: false),
                 TokenHash = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
                 Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                 Expires = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -140,9 +140,9 @@ public partial class AuthSessions : Migration
             });
 
         migrationBuilder.CreateIndex(
-            name: "IX_RefreshTokens_SessionId",
+            name: "IX_RefreshTokens_AuthSessionId",
             table: "RefreshTokens",
-            column: "SessionId");
+            column: "AuthSessionId");
 
         migrationBuilder.CreateIndex(
             name: "IX_RefreshTokens_TokenHash",

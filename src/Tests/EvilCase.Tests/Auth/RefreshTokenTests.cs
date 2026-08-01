@@ -47,7 +47,7 @@ public class RefreshTokenTests
 
         _ = await this.harness.RefreshAsync(first.RefreshToken);
 
-        Assert.That(this.harness.RefreshTokens.All.Select(token => token.SessionId).Distinct(), Has.Exactly(1).Items);
+        Assert.That(this.harness.RefreshTokens.All.Select(token => token.AuthSessionId).Distinct(), Has.Exactly(1).Items);
     }
 
     [Test]
