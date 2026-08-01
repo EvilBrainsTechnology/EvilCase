@@ -2,6 +2,7 @@ using DotNetEnv;
 using EvilBrains.EvilCase.Api;
 using EvilBrains.EvilCase.Api.HealthChecks;
 using EvilBrains.EvilCase.Auth;
+using EvilBrains.EvilCase.Data;
 using EvilBrains.Logging.AspNetCore;
 using EvilBrains.Logging.Contract;
 using Serilog;
@@ -37,6 +38,25 @@ builder.Services.ConfigureServices();
 
 var app = builder.Build();
 
+// Before anything is served: the build and the schema it queries have to match. Turn it off where the
+// schema is rolled out separately, or where more than one instance starts at once.
+if (app.Configuration.GetValue("EvilBrains:EvilCase:Database:MigrateOnStartup", defaultValue: true))
+{
+    try
+    {
+        await app.MigrateEvilCaseDatabaseAsync();
+    }
+    catch (Exception exception)
+    {
+        // The application is about to die and the sinks that batch would never ship this, so it is
+        // logged and flushed here. Rethrown: a schema the build does not expect must not be served.
+        Log.Fatal(exception, "Database migration failed, the application will not start");
+        await Log.CloseAndFlushAsync();
+
+        throw;
+    }
+}
+
 if (!app.Environment.IsDevelopment())
     app.UseHsts();
 
@@ -64,3 +84,6 @@ if (app.Environment.IsDevelopment())
 app.MapFallbackToFile("index.html");
 
 await app.RunAsync();
+
+// UseSerilog was handed a logger it does not own, so nothing else flushes it on a normal shutdown.
+await Log.CloseAndFlushAsync();

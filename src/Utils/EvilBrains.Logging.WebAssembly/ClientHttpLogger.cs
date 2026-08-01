@@ -10,7 +10,7 @@ namespace EvilBrains.Logging.WebAssembly;
 /// A successful upload of the log batch is not logged at all: it would be shipped by the next upload,
 /// which would log again. A failed one is, and it settles because a batch that fails is dropped.
 /// </summary>
-internal sealed partial class ClientHttpLogger(ILogger<ClientHttpLogger> logger, string quietPath) : IHttpClientLogger
+internal sealed class ClientHttpLogger(ILogger<ClientHttpLogger> logger, string quietPath) : IHttpClientLogger
 {
     public object? LogRequestStart(HttpRequestMessage request) => null;
 
@@ -29,7 +29,12 @@ internal sealed partial class ClientHttpLogger(ILogger<ClientHttpLogger> logger,
 
         using var scope = logger.BeginScope(Identifiers(request));
 
-        RequestCompleted(logger, method, path, statusCode, milliseconds);
+        logger.LogInformation(
+            "HTTP {HttpMethod} {RequestPath} responded {StatusCode} in {Elapsed} ms",
+            method,
+            path,
+            statusCode,
+            milliseconds);
     }
 
     public void LogRequestFailed(object? context, HttpRequestMessage request, HttpResponseMessage? response, Exception exception, TimeSpan elapsed)
@@ -42,14 +47,13 @@ internal sealed partial class ClientHttpLogger(ILogger<ClientHttpLogger> logger,
 
         using var scope = logger.BeginScope(Identifiers(request));
 
-        RequestFailed(logger, exception, method, path, milliseconds);
+        logger.LogWarning(
+            exception,
+            "HTTP {HttpMethod} {RequestPath} failed after {Elapsed} ms",
+            method,
+            path,
+            milliseconds);
     }
-
-    [LoggerMessage(Level = LogLevel.Information, Message = "HTTP {HttpMethod} {RequestPath} responded {StatusCode} in {Elapsed} ms")]
-    private static partial void RequestCompleted(ILogger logger, string httpMethod, string requestPath, int statusCode, double elapsed);
-
-    [LoggerMessage(Level = LogLevel.Warning, Message = "HTTP {HttpMethod} {RequestPath} failed after {Elapsed} ms")]
-    private static partial void RequestFailed(ILogger logger, Exception exception, string httpMethod, string requestPath, double elapsed);
 
     /// <summary>
     /// The identifiers ride in a scope rather than in the message: they are for correlating, not for reading.
