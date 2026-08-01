@@ -46,9 +46,29 @@ internal sealed class ClientLogSink : ILogEventSink
         _ = this.ShipAsync(uploader);
     }
 
+    /// <summary>
+    /// Takes the next batch out of the buffer. Public for the unload flush, which cannot await an upload
+    /// and ships the batch itself.
+    /// </summary>
+    public ClientLogBatch? Drain()
+    {
+        var entries = new List<ClientLogEntry>(ClientLogBatch.MaxEntries);
+        while (entries.Count < ClientLogBatch.MaxEntries && this.queue.TryDequeue(out var entry))
+            entries.Add(entry);
+
+        return entries.Count == 0 ? null : new ClientLogBatch { Entries = entries };
+    }
+
     [return: NotNullIfNotNull(nameof(value))]
-    private static string? Truncate(string? value, int maxLength) =>
-        value is null || value.Length <= maxLength ? value : value[..maxLength];
+    private static string? Truncate(string? value, int maxLength)
+    {
+        if (value is null || value.Length <= maxLength)
+            return value;
+
+        // Cutting between a high and a low surrogate leaves a lone surrogate, which the JSON writer rejects
+        // with an exception the uploader does not translate — the whole dequeued batch would be lost.
+        return value[..(char.IsHighSurrogate(value[maxLength - 1]) ? maxLength - 1 : maxLength)];
+    }
 
     private static ClientLogLevel ToClientLevel(LogEventLevel level) => level switch
     {
@@ -118,21 +138,17 @@ internal sealed class ClientLogSink : ILogEventSink
 
     private async Task FlushAsync(IClientLogUploader uploader)
     {
-        while (!this.queue.IsEmpty)
+        while (this.Drain() is { } batch)
         {
-            var entries = new List<ClientLogEntry>(ClientLogBatch.MaxEntries);
-            while (entries.Count < ClientLogBatch.MaxEntries && this.queue.TryDequeue(out var entry))
-                entries.Add(entry);
-
             try
             {
-                await uploader.UploadAsync(new ClientLogBatch { Entries = entries });
+                await uploader.UploadAsync(batch);
             }
             catch (ClientLogUploadException exception)
             {
                 // The batch is dropped and the rest waits for the next tick. Logging the failure through Serilog
                 // would feed the sink that just failed, so it goes to Serilog's own diagnostic channel.
-                SelfLog.WriteLine("Shipping {0} log entries to the server failed: {1}", entries.Count, exception.InnerException ?? exception);
+                SelfLog.WriteLine("Shipping {0} log entries to the server failed: {1}", batch.Entries.Count, exception.InnerException ?? exception);
 
                 return;
             }

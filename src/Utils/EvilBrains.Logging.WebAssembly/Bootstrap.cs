@@ -52,6 +52,13 @@ public static class Bootstrap
         builder.Services.AddSingleton(
             provider => new ClientHttpLogger(provider.GetRequiredService<ILogger<ClientHttpLogger>>(), uploadPath));
 
+        // The route stays relative: the app may be served from a sub-path, which the base address carries.
+        builder.Services.AddSingleton<IPageUnloadFlusher>(
+            provider => new PageUnloadFlusher(
+                provider.GetRequiredService<IJSRuntime>(),
+                sink,
+                provider.GetRequiredService<NavigationManager>().ToAbsoluteUri(uploadPath.TrimStart('/')).ToString()));
+
         return builder;
     }
 
@@ -73,6 +80,8 @@ public static class Bootstrap
             throw new InvalidOperationException("Client logging was not configured. Call AddClientLogging on WebAssemblyHostBuilder at startup.");
 
         sink.Start(host.Services.GetRequiredService<IClientLogUploader>(), host.Services.GetRequiredService<NavigationManager>());
+
+        _ = host.Services.GetRequiredService<IPageUnloadFlusher>().StartAsync();
 
         return host;
     }
