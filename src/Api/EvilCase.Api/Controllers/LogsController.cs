@@ -18,6 +18,10 @@ public class LogsController(IClientLogWriter writer) : ControllerBase
     public void WriteClientLogs([FromBody] ClientLogBatch batch)
     {
         foreach (var entry in batch.Entries)
-            writer.Write(entry);
+        {
+            // A null element passes validation, which covers properties and never collection elements.
+            if (entry is not null)
+                writer.Write(entry);
+        }
     }
 }
