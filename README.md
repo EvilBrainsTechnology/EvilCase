@@ -47,7 +47,7 @@ dotnet r build
 dotnet r run                 # https://localhost:5000 (Scalar UI at /scalar)
 ```
 
-Registration is closed, so signing in needs the administrator seeded from `Auth__Seed__Email` and `Auth__Seed__Password` — set both before the first start against an empty database.
+Registration is closed, so signing in needs the administrator seeded from `EvilBrains__EvilCase__Auth__Seed__Email` and `EvilBrains__EvilCase__Auth__Seed__Password` — set both before the first start against an empty database.
 
 ### Tests
 

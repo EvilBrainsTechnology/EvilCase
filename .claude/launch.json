@@ -5,8 +5,8 @@
       "name": "evilcase",
       "runtimeExecutable": "dotnet",
       "runtimeArgs": ["run", "--project", "src/EvilCase.Host", "--launch-profile", "claude"],
-      "port": 5100,
-      "url": "https://localhost:5100"
+      "port": 5000,
+      "url": "https://localhost:5000"
     }
   ]
 }
