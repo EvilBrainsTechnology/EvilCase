@@ -3,6 +3,7 @@ using DotNetEnv;
 using EvilBrains.Collections;
 using EvilBrains.EvilCase.Api;
 using EvilBrains.EvilCase.Api.Contract.Logging;
+using EvilBrains.EvilCase.Api.Contract.User;
 using EvilBrains.EvilCase.Api.HealthChecks;
 using EvilBrains.EvilCase.Auth;
 using EvilBrains.EvilCase.Data;
@@ -60,8 +61,6 @@ builder.Services.Configure<ForwardedHeadersOptions>(
         options.ForwardLimit = 1;
     });
 
-const string authPathPrefix = "/api/auth";
-
 const string apiReferencePath = "/scalar";
 
 // Well above a person signing in and retrying, far below what it takes to keep the container busy.
@@ -81,7 +80,7 @@ builder.Services.AddRateLimiter(
         options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(
             context =>
             {
-                if (context.Request.Path.StartsWithSegments(authPathPrefix, StringComparison.OrdinalIgnoreCase))
+                if (context.Request.Path.StartsWithSegments(AuthRoute.Path, StringComparison.OrdinalIgnoreCase))
                     return RateLimitPartition.GetFixedWindowLimiter("auth|" + ClientAddress(context), _ => authWindow);
 
                 if (context.Request.Path.StartsWithSegments(ClientLogRoute.Path, StringComparison.OrdinalIgnoreCase))
