@@ -15,16 +15,20 @@ RUN find /projects -type f \
     && find /projects -depth -type d -empty -delete
 
 FROM mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION} AS build
-WORKDIR /source
 
-COPY --from=projects /projects ./src/
-RUN dotnet restore src/EvilCase.Host/EvilCase.Host.csproj
+# The SDK is resolved from the working directory, not from the project, so this has to be the directory
+# holding global.json — otherwise the pin is silently ignored and the image builds on whatever SDK the
+# base image happens to carry.
+WORKDIR /source/src
 
-COPY src/ ./src/
+COPY --from=projects /projects ./
+RUN dotnet restore EvilCase.Host/EvilCase.Host.csproj
+
+COPY src/ ./
 
 ARG VERSION=0.0.0
 ARG SOURCE_REVISION=
-RUN dotnet publish src/EvilCase.Host/EvilCase.Host.csproj \
+RUN dotnet publish EvilCase.Host/EvilCase.Host.csproj \
         --configuration Release \
         --no-restore \
         --output /app \
