@@ -15,12 +15,13 @@ internal sealed class AuthTokenHandler(IAccessTokenStore tokens, IServiceProvide
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        // Renewal goes through these, so renewing on their behalf would call this handler again.
-        if (IsAuthEndpoint(request))
-        {
-            // The refresh token is a cookie and fetch only sends one when it is asked to.
+        // The refresh token is a cookie and fetch only sends one when it is asked to.
+        if (IsUnder(request, AuthRoute.Path))
             request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
 
+        // Renewal goes through these, so renewing on their behalf would call this handler again.
+        if (IsAnonymousAuthEndpoint(request))
+        {
             this.Authorize(request);
 
             return await base.SendAsync(request, cancellationToken);
@@ -54,8 +55,24 @@ internal sealed class AuthTokenHandler(IAccessTokenStore tokens, IServiceProvide
         return await base.SendAsync(retry, cancellationToken);
     }
 
-    private static bool IsAuthEndpoint(HttpRequestMessage request) =>
-        request.RequestUri?.AbsolutePath.StartsWith(AuthRoute.Path, StringComparison.OrdinalIgnoreCase) == true;
+    /// <summary>
+    /// The three endpoints under <c>/api/auth</c> that carry <c>[AllowAnonymous]</c>: signing in has no
+    /// session to renew yet, renewal is this handler's own way out of an expired token, and signing out
+    /// is about to throw the session away. Everything else under that prefix is <c>[Authorize]</c> and
+    /// needs the bearer kept alive like any other endpoint — <c>logout-all</c> above all, whose failure
+    /// leaves every other device signed in.
+    /// </summary>
+    private static bool IsAnonymousAuthEndpoint(HttpRequestMessage request) =>
+        IsUnder(request, AuthRoute.LoginPath)
+            || IsUnder(request, AuthRoute.RefreshPath)
+            || IsUnder(request, AuthRoute.LogoutPath);
+
+    // By segment rather than by characters, the way the host partitions the same paths: a plain prefix
+    // would swallow a future /api/authors too, and silently stop renewing for all of it.
+    private static bool IsUnder(HttpRequestMessage request, string path) =>
+        request.RequestUri?.AbsolutePath is { } absolute
+            && absolute.StartsWith(path, StringComparison.OrdinalIgnoreCase)
+            && (absolute.Length == path.Length || absolute[path.Length] == '/');
 
     private static HttpRequestMessage Clone(HttpRequestMessage request, byte[]? body, MediaTypeHeaderValue? contentType)
     {
@@ -63,6 +80,11 @@ internal sealed class AuthTokenHandler(IAccessTokenStore tokens, IServiceProvide
 
         foreach (var header in request.Headers)
             _ = clone.Headers.TryAddWithoutValidation(header.Key, header.Value);
+
+        // Where the browser request options live, the fetch credentials among them: without them the
+        // retry would leave the refresh cookie behind and ignore the one coming back.
+        foreach (var option in (IDictionary<string, object?>)request.Options)
+            clone.Options.Set(new HttpRequestOptionsKey<object?>(option.Key), option.Value);
 
         if (body is not null)
         {

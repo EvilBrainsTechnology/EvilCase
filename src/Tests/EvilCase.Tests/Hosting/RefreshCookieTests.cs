@@ -142,7 +142,7 @@ public class RefreshCookieTests
         using var signIn = await this.SignInAsync(Password);
         var issued = ValueOf(RefreshCookieOf(signIn));
 
-        using var signOut = await this.PostAsync(AuthRoute.Path + "/logout", issued);
+        using var signOut = await this.PostAsync(AuthRoute.LogoutPath, issued);
 
         var cleared = RefreshCookieOf(signOut);
 

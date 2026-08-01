@@ -26,4 +26,10 @@ public static class AuthRoute
     /// Token renewal. Limited far more loosely — every open tab of every signed-in user hits it.
     /// </summary>
     public const string RefreshPath = Path + "/refresh";
+
+    /// <summary>
+    /// Signing this one browser out. Anonymous like the two above, because an access token that has run
+    /// out must not be what stops someone from leaving.
+    /// </summary>
+    public const string LogoutPath = Path + "/logout";
 }
