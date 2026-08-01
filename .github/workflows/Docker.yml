@@ -68,6 +68,9 @@ jobs:
             type=semver,pattern={{major}}
             type=raw,value=edge,enable=${{ github.ref == 'refs/heads/master' }}
             type=sha,prefix=master-,enable=${{ github.ref == 'refs/heads/master' }}
+            # A manual run from another branch matches none of the above, and an empty tag list would
+            # push nothing and leave the attestation without a digest.
+            type=ref,event=branch,enable=${{ github.ref != 'refs/heads/master' }}
 
       # The release tag is the assembly version; anything else is unversioned
       - name: Resolve assembly version

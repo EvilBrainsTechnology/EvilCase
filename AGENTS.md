@@ -55,6 +55,7 @@ The restore inputs are not enumerated in `COPY` lines. A throwaway `projects` st
 
 - Push to `master` → `edge` and `master-<sha>`.
 - Published GitHub Release with tag `v1.2.3` → `1.2.3`, `1.2`, `1` and `latest` (a prerelease tag never becomes `latest`).
+- Manual run from another branch → the branch name. Without it that run matches no tag rule at all, and an empty tag list pushes nothing and leaves the provenance attestation without a digest to sign.
 - The release tag also becomes the assembly version, through the `VERSION` build argument (`SOURCE_REVISION` carries the commit); anything else builds as `0.0.0`. No MinVer or GitVersion — `.git` is not in the build context.
 
 `deploy/docker-compose.yml` runs the application, and `deploy/.env` (gitignored, `.env.example` documents the keys) holds its variables. The database is not part of the stack — `EVILCASE_CONNECTION_STRING` points at an existing one. The service is published over plain HTTP for a reverse proxy that terminates TLS, so it sets `BehindReverseProxy` and turns `HttpsRedirection` off.
