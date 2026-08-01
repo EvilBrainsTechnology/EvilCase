@@ -35,7 +35,24 @@ in the same commit as the code it governs; a decision that governs no code updat
 
 Unanswered decisions stay open. Do not re-ask them and do not answer them yourself.
 
-## 2. Pick the work
+## 2. Clear review feedback first
+
+`gh pr list --author @me --state open --json number,title`. For each, read the reviews and
+comments (`gh pr view <n> --json reviews,comments` and
+`gh api repos/{owner}/{repo}/pulls/<n>/comments`) and find anything from the owner that
+arrived after the branch's last commit.
+
+Review feedback outranks new work: an open pull request holds up every slice that depends on it.
+
+- A requested change → check the branch out, fix it, meet the whole definition of done again,
+  push, and reply in the thread saying what changed and in which commit.
+- A question → answer in the thread, no code.
+- A product decision in disguise → open a decision issue, link it from the thread, leave the
+  pull request open.
+
+Take new work only when no open pull request carries unanswered feedback.
+
+## 3. Pick the work
 
 Take the single highest-value open issue that is neither `blocked` nor `needs-decision`, preferring
 the lowest open milestone. Honour the focus argument if one was given.
@@ -44,7 +61,7 @@ the lowest open milestone. Honour the focus argument if one was given.
 - Every open issue blocked → do not idle and do not guess. Post one chat message re-surfacing the
   open questions with their issue links, and stop the iteration.
 
-## 3. Ask before building — generously
+## 4. Ask before building — generously
 
 The owner wants to be consulted often. Before writing code, list every product, domain or UX branch
 in this slice that has more than one reasonable answer, and ask about each one. Technical choices
@@ -79,7 +96,7 @@ so it is answerable from a phone with one word.
 Then label the dependent issue `blocked`, link the decision, and carry on with whatever is not
 blocked by it — a smaller part of the slice, or the next issue. A question never stops the loop.
 
-## 4. Build one thin vertical slice
+## 5. Build one thin vertical slice
 
 One pull request goes from database to UI and leaves the app usable. Small enough to review on a
 phone. Branch `loop/<issue>-<slug>` off `master`, and commit in logical units as the work proceeds,
@@ -94,7 +111,7 @@ page sits inside `MainLayout`, therefore protected. Adding `[AllowAnonymous]` an
 a page outside `MainLayout`, is a decision issue, never a silent choice. Every new aggregate root
 carries its owner from its first migration.
 
-## 5. Definition of done
+## 6. Definition of done
 
 All four hold before the pull request exists:
 
@@ -126,7 +143,7 @@ the screenshots reach the pull request as committed files:
 
 Everything in them is synthetic, by the standing rule below.
 
-## 6. Pull request
+## 7. Pull request
 
 `gh pr create`, TL;DR on the first line, then what changed, the screenshots, and `Closes #<issue>`.
 
@@ -135,9 +152,10 @@ not after a green CI run, not because the iteration would otherwise look unfinis
 makes that binding for every agent; the loop is the one most likely to be tempted, because it runs
 unattended and merging is the only thing standing between it and the next slice. It waits instead.
 
-## 7. Report
+## 8. Report
 
-One short chat message: what shipped and its pull request link, what now waits on the owner with
+One short chat message: what shipped and its pull request link, every pull request this iteration
+updated in answer to review feedback and what changed in it, what now waits on the owner with
 decision links, what comes next. Then the iteration is over.
 
 ## Standing rules
