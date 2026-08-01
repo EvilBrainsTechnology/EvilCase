@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Diagnostics.CodeAnalysis;
 using EvilBrains.Logging.Contract;
 using Microsoft.AspNetCore.Components;
 using Serilog.Core;
@@ -62,17 +61,6 @@ internal sealed class ClientLogSink : ILogEventSink
         return entries.Count == 0 ? null : new ClientLogBatch { Entries = entries };
     }
 
-    [return: NotNullIfNotNull(nameof(value))]
-    private static string? Truncate(string? value, int maxLength)
-    {
-        if (value is null || value.Length <= maxLength)
-            return value;
-
-        // Cutting between a high and a low surrogate leaves a lone surrogate, which the JSON writer rejects
-        // with an exception the uploader does not translate — the whole dequeued batch would be lost.
-        return value[..(char.IsHighSurrogate(value[maxLength - 1]) ? maxLength - 1 : maxLength)];
-    }
-
     private static ClientLogLevel ToClientLevel(LogEventLevel level) => level switch
     {
         LogEventLevel.Verbose => ClientLogLevel.Verbose,
@@ -97,7 +85,7 @@ internal sealed class ClientLogSink : ILogEventSink
             if (Lifted.Contains(name))
                 continue;
 
-            properties.Add(name, Truncate(RenderValue(value), ClientLogEntry.PropertyValueMaxLength));
+            properties.Add(name, ClientLogText.Truncate(RenderValue(value), ClientLogEntry.PropertyValueMaxLength));
         }
 
         return properties.Count == 0 ? null : properties;
@@ -164,12 +152,12 @@ internal sealed class ClientLogSink : ILogEventSink
         Level = ToClientLevel(logEvent.Level),
 
         // The template travels unrendered so the server can log the event with its properties intact.
-        MessageTemplate = Truncate(logEvent.MessageTemplate.Text, ClientLogEntry.MessageTemplateMaxLength),
+        MessageTemplate = ClientLogText.Truncate(logEvent.MessageTemplate.Text, ClientLogEntry.MessageTemplateMaxLength),
         Properties = ToProperties(logEvent),
-        RequestId = Truncate(Text(logEvent, RequestContextPropertyNames.RequestId), ClientLogEntry.IdentifierMaxLength),
-        CorrelationId = Truncate(Text(logEvent, RequestContextPropertyNames.CorrelationId), ClientLogEntry.IdentifierMaxLength),
-        Category = Truncate(Text(logEvent, Constants.SourceContextPropertyName), ClientLogEntry.CategoryMaxLength),
-        Exception = Truncate(logEvent.Exception?.ToString(), ClientLogEntry.ExceptionMaxLength),
-        Url = Truncate(this.navigation?.Uri, ClientLogEntry.UrlMaxLength),
+        RequestId = ClientLogText.Truncate(Text(logEvent, RequestContextPropertyNames.RequestId), ClientLogEntry.IdentifierMaxLength),
+        CorrelationId = ClientLogText.Truncate(Text(logEvent, RequestContextPropertyNames.CorrelationId), ClientLogEntry.IdentifierMaxLength),
+        Category = ClientLogText.Truncate(Text(logEvent, Constants.SourceContextPropertyName), ClientLogEntry.CategoryMaxLength),
+        Exception = ClientLogText.Truncate(logEvent.Exception?.ToString(), ClientLogEntry.ExceptionMaxLength),
+        Url = ClientLogText.Truncate(this.navigation?.Uri, ClientLogEntry.UrlMaxLength),
     };
 }

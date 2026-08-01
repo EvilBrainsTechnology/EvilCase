@@ -119,16 +119,10 @@ internal sealed class ClientLogWriter : IClientLogWriter
         if (value is null)
             return null;
 
-        var text = Truncate(value, maxLength);
+        var text = ClientLogText.Truncate(value, maxLength);
 
         return text.Any(char.IsControl) ? string.Concat(text.Where(x => !char.IsControl(x))) : text;
     }
-
-    /// <summary>
-    /// Cutting between a high and a low surrogate leaves a lone surrogate, which no UTF-16 consumer accepts.
-    /// </summary>
-    private static string Truncate(string value, int maxLength) =>
-        value.Length <= maxLength ? value : value[..(char.IsHighSurrogate(value[maxLength - 1]) ? maxLength - 1 : maxLength)];
 
     private static LogEventLevel ToLogEventLevel(ClientLogLevel level) => level switch
     {
