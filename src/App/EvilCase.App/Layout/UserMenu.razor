@@ -2,7 +2,7 @@
 @inject NavigationManager Navigation
 
 <AuthorizeView Context="authenticationState">
-    <div class="nav-item dropdown">
+    <div class="nav-item dropdown user-menu">
         <button type="button" class="nav-link d-flex lh-1 p-0 px-2 user-menu-toggle"
                 aria-label="Otevřít uživatelské menu" aria-expanded="@this.open" @onclick="Toggle">
             <Icon IconType="AppIcons.User" Size="24" />
