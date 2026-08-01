@@ -57,11 +57,7 @@ The restore inputs are not enumerated in `COPY` lines. A throwaway `projects` st
 - Published GitHub Release with tag `v1.2.3` → `1.2.3`, `1.2`, `1` and `latest` (a prerelease tag never becomes `latest`).
 - The release tag also becomes the assembly version, through the `VERSION` build argument (`SOURCE_REVISION` carries the commit); anything else builds as `0.0.0`. No MinVer or GitVersion — `.git` is not in the build context.
 
-`deploy/` holds the compose files, and `deploy/.env` (gitignored, `.env.example` documents the keys) their variables. `docker-compose.yml` runs the application alone behind a reverse proxy that terminates TLS; `docker-compose.local.yml` overlays it with a PostgreSQL service and plain HTTP:
-
-```bash
-docker compose -f docker-compose.yml -f docker-compose.local.yml up
-```
+`deploy/docker-compose.yml` runs the application, and `deploy/.env` (gitignored, `.env.example` documents the keys) holds its variables. The database is not part of the stack — `EVILCASE_CONNECTION_STRING` points at an existing one. The service is published over plain HTTP for a reverse proxy that terminates TLS, so it sets `BehindReverseProxy` and turns `HttpsRedirection` off.
 
 ## Secrets
 

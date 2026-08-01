@@ -8,8 +8,7 @@ services:
       - "${EVILCASE_PORT:-8080}:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: Production
-      # Not required: docker-compose.local.yml overrides it, and interpolation runs before the merge.
-      EvilBrains__EvilCase__ConnectionString: ${EVILCASE_CONNECTION_STRING:-}
+      EvilBrains__EvilCase__ConnectionString: ${EVILCASE_CONNECTION_STRING:?}
       EvilBrains__EvilCase__Auth__Jwt__Key: ${EVILCASE_JWT_KEY:?}
       EvilBrains__EvilCase__Hosting__BehindReverseProxy: "true"
       # The proxy owns the redirect. Kestrel serves plain HTTP here, so the middleware could not
