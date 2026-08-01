@@ -8,6 +8,7 @@
   <ItemGroup>
     <PackageReference Include="DotNetEnv" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" />
+    <PackageReference Include="Serilog.Sinks.Seq" />
   </ItemGroup>
 
   <ItemGroup>
@@ -18,6 +19,7 @@
     <!-- Not used from code: the reference is what puts the migrations assembly next to the host, where
          EF loads it by the name UseEvilCaseMigrations configures. -->
     <ProjectReference Include="..\Data\EvilCase.Data.Migrations\EvilCase.Data.Migrations.csproj" />
+    <ProjectReference Include="..\Utils\EvilBrains.Collections\EvilBrains.Collections.csproj" />
     <ProjectReference Include="..\Utils\EvilBrains.Logging.AspNetCore\EvilBrains.Logging.AspNetCore.csproj" />
     <ProjectReference Include="..\Utils\EvilBrains.Logging.Contract\EvilBrains.Logging.Contract.csproj" />
   </ItemGroup>
