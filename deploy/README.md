@@ -41,3 +41,13 @@ Seq is driven by `EVILCASE_SEQ_URL` alone — an empty one logs to the console o
 cp .env.example .env   # then fill in the connection string and the JWT key
 docker compose up -d
 ```
+
+## Local development database
+
+`docker-compose.dev.yml` is a separate stack (project name `evilcase-dev`) that runs PostgreSQL only, on `127.0.0.1:5432` with the credentials `.env.example` of the host already points at. It is for development, never for a deployment: the password is a constant and there is no volume, so `down` wipes the data and the next start migrates and seeds an empty database again.
+
+```
+docker compose -f deploy/docker-compose.dev.yml up -d --wait
+```
+
+`--wait` returns once the health check passes, so the host cannot start ahead of it.

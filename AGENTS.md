@@ -169,6 +169,7 @@ Rules:
 - Everything committed to the repo is English only: code, comments, documentation, AI instructions, commit messages, merge request descriptions, routes and URLs. Exception: user-facing UI strings are Czech.
 - All written texts (docs, AI instructions, READMEs): concise and factual. State what, not why. No filler.
 - Commit messages and merge request descriptions open with a TL;DR: one or two sentences saying what changed, before any detail.
+- Commit during the work, not once at the end: every logical unit that stands on its own is its own commit, so a branch reads as a sequence of steps rather than one lump. That holds for agents too — do not wait for the whole task to be finished before the first commit.
 - Code style: clean, readable code sometimes beats 100% correctness and defensiveness.
 - **No `Async` suffix on method names.** `IAuthService.Refresh`, not `RefreshAsync` — the return type already says it. Two exceptions: a genuine sync/async pair on the same surface, where the suffix is what tells them apart (`AsReadOnlyCollection` / `AsReadOnlyCollectionAsync` in `EvilBrains.Collections`), and members whose name is not ours to choose — `DelegatingHandler.SendAsync`, `IAsyncDisposable.DisposeAsync`, `ComponentBase.OnAfterRenderAsync` and the like.
 - Every class resolved from DI is `internal sealed` and is consumed through an interface; when the consumer is public (a controller, a public extension method) the interface is public and the implementation stays internal. Exceptions are types the framework instantiates by concrete type or that have no service role: controllers, `DelegatingHandler` subclasses, middleware, exceptions, DTO and options records, static helpers.
@@ -188,5 +189,7 @@ Run everything from `src/`. `r` is a local tool, so `dotnet tool restore` is req
 - `dotnet r ci` — format-check + build + test
 - `dotnet r run` — run everything at `https://localhost:5000` (Scalar UI at `/scalar` in dev); requires a reachable PostgreSQL
 - `dotnet r add-migration` / `remove-migration` / `generate-sql-script` — EF migrations
+
+The database is the one prerequisite that is not in the solution. From the repository root, `docker compose -f deploy/docker-compose.dev.yml up -d --wait` starts a throwaway PostgreSQL on the connection string `.env.example` already carries; `deploy/README.md` documents it. Running the application also needs the seeded administrator (`Auth__Seed__*`), because there is no other way in. The `run-app` skill has the whole sequence, including how to verify a run.
 
 `launchSettings.json` holds a second profile, `claude`, identical except for port 5100 and no browser launch. `.claude/launch.json` runs it, so an agent-started instance and an IDE-started one can coexist. When changing that port, keep it off the browsers' unsafe-port list (6000, 6665–6669, 6697, ...) — the preview pane refuses to load those.

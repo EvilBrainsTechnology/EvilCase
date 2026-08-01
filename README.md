@@ -21,7 +21,11 @@ Full project map and all conventions: [AGENTS.md](AGENTS.md). Deployment: [deplo
 ### Prerequisites
 
 - .NET SDK per `src/global.json`
-- A reachable PostgreSQL. The host migrates the database on startup and does not retry, so an unreachable server stops it. Set `EvilBrains__EvilCase__Database__MigrateOnStartup=false` to start without one.
+- A reachable PostgreSQL. The host migrates the database on startup and does not retry, so an unreachable server stops it. Set `EvilBrains__EvilCase__Database__MigrateOnStartup=false` to start without one. A throwaway one, matching the connection string in `.env.example`:
+
+  ```
+  docker compose -f deploy/docker-compose.dev.yml up -d --wait
+  ```
 - Trusted dev certificate: `dotnet dev-certs https --trust`
 
 ### Secrets
@@ -42,6 +46,8 @@ dotnet tool restore          # once per clone: `r` is a local tool
 dotnet r build
 dotnet r run                 # https://localhost:5000 (Scalar UI at /scalar)
 ```
+
+Registration is closed, so signing in needs the administrator seeded from `Auth__Seed__Email` and `Auth__Seed__Password` — set both before the first start against an empty database.
 
 ### Tests
 
