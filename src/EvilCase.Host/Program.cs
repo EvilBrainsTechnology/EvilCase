@@ -92,8 +92,9 @@ builder.Services.AddRateLimiter(
 
         options.OnRejected = (context, _) =>
         {
+            // Rounded up: truncation would answer a sub-second remainder with "Retry-After: 0".
             if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
-                context.HttpContext.Response.Headers.RetryAfter = ((int)retryAfter.TotalSeconds).ToString(CultureInfo.InvariantCulture);
+                context.HttpContext.Response.Headers.RetryAfter = ((int)Math.Ceiling(retryAfter.TotalSeconds)).ToString(CultureInfo.InvariantCulture);
 
             return ValueTask.CompletedTask;
         };
