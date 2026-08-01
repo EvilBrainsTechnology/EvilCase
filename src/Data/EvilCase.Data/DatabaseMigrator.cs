@@ -6,7 +6,7 @@ namespace EvilBrains.EvilCase.Data;
 
 internal sealed class DatabaseMigrator(ApplicationDbContext dbContext, ILogger<DatabaseMigrator> logger) : IDatabaseMigrator
 {
-    public async Task MigrateAsync(CancellationToken cancellationToken = default)
+    public async Task Migrate(CancellationToken cancellationToken = default)
     {
         var pendingMigrations = (await dbContext.Database.GetPendingMigrationsAsync(cancellationToken)).ToList();
 

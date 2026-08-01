@@ -9,7 +9,7 @@ public class ControllerRouteAnalyzerTests
     [Test]
     public async Task CompliantControllerHasNoDiagnosticsTest()
     {
-        var diagnostics = await AnalyzeAsync("""
+        var diagnostics = await Analyze("""
             [ApiController]
             [Route("api/items")]
             public class ItemsController : ControllerBase
@@ -25,7 +25,7 @@ public class ControllerRouteAnalyzerTests
     [Test]
     public async Task MissingControllerRouteIsReportedTest()
     {
-        var diagnostics = await AnalyzeAsync("""
+        var diagnostics = await Analyze("""
             [ApiController]
             public class ItemsController : ControllerBase
             {
@@ -40,7 +40,7 @@ public class ControllerRouteAnalyzerTests
     [Test]
     public async Task MissingActionRouteIsReportedTest()
     {
-        var diagnostics = await AnalyzeAsync("""
+        var diagnostics = await Analyze("""
             [ApiController]
             [Route("api/items")]
             public class ItemsController : ControllerBase
@@ -56,7 +56,7 @@ public class ControllerRouteAnalyzerTests
     [Test]
     public async Task LeadingSlashRouteIsReportedTest()
     {
-        var diagnostics = await AnalyzeAsync("""
+        var diagnostics = await Analyze("""
             [ApiController]
             [Route("/items")]
             public class ItemsController : ControllerBase
@@ -72,7 +72,7 @@ public class ControllerRouteAnalyzerTests
     [Test]
     public async Task RouteTokenIsReportedTest()
     {
-        var diagnostics = await AnalyzeAsync("""
+        var diagnostics = await Analyze("""
             [ApiController]
             [Route("[controller]")]
             public class ItemsController : ControllerBase
@@ -88,7 +88,7 @@ public class ControllerRouteAnalyzerTests
     [Test]
     public async Task CatchAllRoutePlaceholderIsReportedTest()
     {
-        var diagnostics = await AnalyzeAsync("""
+        var diagnostics = await Analyze("""
             [ApiController]
             [Route("api/items")]
             public class ItemsController : ControllerBase
@@ -104,7 +104,7 @@ public class ControllerRouteAnalyzerTests
     [Test]
     public async Task NonKebabCaseRouteIsReportedTest()
     {
-        var diagnostics = await AnalyzeAsync("""
+        var diagnostics = await Analyze("""
             [ApiController]
             [Route("api/items")]
             public class ItemsController : ControllerBase
@@ -120,7 +120,7 @@ public class ControllerRouteAnalyzerTests
     [Test]
     public async Task ControllerRouteWithoutApiPrefixIsReportedTest()
     {
-        var diagnostics = await AnalyzeAsync("""
+        var diagnostics = await Analyze("""
             [ApiController]
             [Route("items")]
             public class ItemsController : ControllerBase
@@ -136,7 +136,7 @@ public class ControllerRouteAnalyzerTests
     [Test]
     public async Task ControllerRouteWithApiLookalikeSegmentIsReportedTest()
     {
-        var diagnostics = await AnalyzeAsync("""
+        var diagnostics = await Analyze("""
             [ApiController]
             [Route("apiary/items")]
             public class ItemsController : ControllerBase
@@ -152,7 +152,7 @@ public class ControllerRouteAnalyzerTests
     [Test]
     public async Task ApiPrefixIsNotRequiredOnActionTemplatesTest()
     {
-        var diagnostics = await AnalyzeAsync("""
+        var diagnostics = await Analyze("""
             [ApiController]
             [Route("api")]
             public class ItemsController : ControllerBase
@@ -168,7 +168,7 @@ public class ControllerRouteAnalyzerTests
     [Test]
     public async Task ControllerWithoutApiControllerAttributeIsIgnoredTest()
     {
-        var diagnostics = await AnalyzeAsync("""
+        var diagnostics = await Analyze("""
             public class HelperController : ControllerBase
             {
                 public string GetItems(string filter) => filter;
@@ -181,8 +181,8 @@ public class ControllerRouteAnalyzerTests
     private static void AssertIds(in ImmutableArray<Diagnostic> diagnostics, params string[] expected) =>
         Assert.That(diagnostics.Select(x => x.Id), Is.EqualTo(expected));
 
-    private static Task<ImmutableArray<Diagnostic>> AnalyzeAsync(string controller) =>
-        AnalyzerTestHost.AnalyzeAsync(new ControllerRouteAnalyzer(), Fixture(controller));
+    private static Task<ImmutableArray<Diagnostic>> Analyze(string controller) =>
+        AnalyzerTestHost.Analyze(new ControllerRouteAnalyzer(), Fixture(controller));
 
     private static string Fixture(string controller) => $$"""
         using Microsoft.AspNetCore.Mvc;

@@ -2,23 +2,17 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using EvilBrains.EvilCase.Api.Contract.User;
-using EvilBrains.EvilCase.Auth;
-using EvilBrains.EvilCase.Data.Entities;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace EvilBrains.EvilCase.Tests.Hosting;
 
 /// <summary>
-/// The only authenticated endpoint the application has. Tokens are minted through the service the login
-/// endpoint uses, so a signing configuration that drifts apart from the one the bearer scheme validates
-/// against fails here rather than only in a browser. Nothing below reaches the database: the endpoint
-/// answers from the claims principal alone.
+/// What the bearer scheme makes of a token the application itself signed. Nothing below reaches the
+/// database: the endpoint answers from the claims principal alone, which is also what pins the claim
+/// names — inbound mapping is off, so a rename would silently empty the principal.
 /// </summary>
 public class AuthenticationTests
 {
     private const string UserInfoPath = "/api/auth/user-info";
-
-    private const string Email = "user@evilcase.test";
 
     private EvilCaseHost host = null!;
 
@@ -41,7 +35,7 @@ public class AuthenticationTests
     [Test]
     public async Task UserInfoRejectsACallerWithoutAToken()
     {
-        using var response = await this.GetUserInfoAsync(token: null);
+        using var response = await this.GetUserInfo(token: null);
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
     }
@@ -49,14 +43,15 @@ public class AuthenticationTests
     [Test]
     public async Task UserInfoAnswersTheCallerNamedByTheToken()
     {
-        using var response = await this.GetUserInfoAsync(TokenFrom(this.host));
+        using var response = await this.GetUserInfo(TestTokens.TokenFrom(this.host));
 
         var body = await response.Content.ReadFromJsonAsync<UserInfo>();
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-            Assert.That(body?.Email, Is.EqualTo(Email));
+            Assert.That(body?.Email, Is.EqualTo(TestTokens.Email));
+            Assert.That(body?.Role, Is.EqualTo(UserRole.Admin));
         }
     }
 
@@ -69,21 +64,12 @@ public class AuthenticationTests
     {
         await using var foreignHost = new EvilCaseHost(jwtKey: new string('x', 64));
 
-        using var response = await this.GetUserInfoAsync(TokenFrom(foreignHost));
+        using var response = await this.GetUserInfo(TestTokens.TokenFrom(foreignHost));
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
     }
 
-    private static string TokenFrom(EvilCaseHost host)
-    {
-        using var scope = host.Services.CreateScope();
-
-        var user = new User { Email = Email, PasswordHash = "not-verified-here", Created = DateTime.UtcNow };
-
-        return scope.ServiceProvider.GetRequiredService<IAuthTokenService>().GenerateToken(user);
-    }
-
-    private async Task<HttpResponseMessage> GetUserInfoAsync(string? token)
+    private async Task<HttpResponseMessage> GetUserInfo(string? token)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, new Uri(UserInfoPath, UriKind.Relative));
 

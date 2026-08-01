@@ -9,7 +9,7 @@ namespace EvilBrains.EvilCase.Api.HealthChecks;
 /// </summary>
 internal static class HealthCheckResponseWriter
 {
-    public static Task WriteAsync(HttpContext context, HealthReport report)
+    public static Task Write(HttpContext context, HealthReport report)
     {
         var response = new
         {

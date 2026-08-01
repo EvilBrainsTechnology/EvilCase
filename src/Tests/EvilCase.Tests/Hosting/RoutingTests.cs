@@ -59,9 +59,15 @@ public class RoutingTests
     [Test]
     public async Task ControllerActionIsReachedUnderTheApiPrefix()
     {
-        using var response = await this.client.PostAsJsonAsync(
-            new Uri("/api/echo/post", UriKind.Relative),
-            new EchoRequest { Message = "ping" });
+        // Authorization is default deny, so an ordinary endpoint needs a token before routing to it
+        // proves anything: without one the answer would be 401 whether the route matched or not.
+        using var request = new HttpRequestMessage(HttpMethod.Post, new Uri("/api/echo/post", UriKind.Relative))
+        {
+            Content = JsonContent.Create(new EchoRequest { Message = "ping" }),
+            Headers = { Authorization = TestTokens.BearerFrom(this.host) },
+        };
+
+        using var response = await this.client.SendAsync(request);
 
         var body = await response.Content.ReadFromJsonAsync<EchoResponse>();
 

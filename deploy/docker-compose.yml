@@ -12,6 +12,10 @@ services:
       ASPNETCORE_ENVIRONMENT: Production
       EvilBrains__EvilCase__ConnectionString: ${EVILCASE_CONNECTION_STRING:?}
       EvilBrains__EvilCase__Auth__Jwt__Key: ${EVILCASE_JWT_KEY:?}
+      # Registration is closed, so an empty database gets its first administrator from here. Optional:
+      # unset means no account is created, and an existing user means none is created either way.
+      EvilBrains__EvilCase__Auth__Seed__Email: ${EVILCASE_SEED_EMAIL:-}
+      EvilBrains__EvilCase__Auth__Seed__Password: ${EVILCASE_SEED_PASSWORD:-}
       EvilBrains__EvilCase__Hosting__BehindReverseProxy: "true"
       # The proxy owns the redirect. Kestrel serves plain HTTP here, so the middleware could not
       # resolve a target port anyway and would only log a warning per request.

@@ -21,8 +21,8 @@
                 </div>
 
                 <ButtonList>
-                    <Button BackgroundColor="TablerColor.Primary" OnClick="SendGetAsync">Odeslat GET</Button>
-                    <Button BackgroundColor="TablerColor.Primary" BackgroundColorType="ColorType.Outline" OnClick="SendPostAsync">Odeslat POST</Button>
+                    <Button BackgroundColor="TablerColor.Primary" OnClick="SendGet">Odeslat GET</Button>
+                    <Button BackgroundColor="TablerColor.Primary" BackgroundColorType="ColorType.Outline" OnClick="SendPost">Odeslat POST</Button>
                 </ButtonList>
 
                 @if (this.response is not null)
@@ -38,11 +38,11 @@
     private string message = string.Empty;
     private string? response;
 
-    private Task SendGetAsync() => this.SendAsync(this.EchoClient.EchoGet);
+    private Task SendGet() => this.Send(this.EchoClient.EchoGet);
 
-    private Task SendPostAsync() => this.SendAsync(this.EchoClient.EchoPost);
+    private Task SendPost() => this.Send(this.EchoClient.EchoPost);
 
-    private async Task SendAsync(Func<EchoRequest, Task<EchoResponse>> send)
+    private async Task Send(Func<EchoRequest, Task<EchoResponse>> send)
     {
         try
         {

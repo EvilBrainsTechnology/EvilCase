@@ -31,7 +31,7 @@ internal sealed class PageUnloadFlusher(IJSRuntime jsRuntime, ClientLogSink sink
     /// <summary>
     /// Nothing awaits this, so a browser that refuses the module costs the unload flush and nothing more.
     /// </summary>
-    public async Task StartAsync()
+    public async Task Start()
     {
         try
         {

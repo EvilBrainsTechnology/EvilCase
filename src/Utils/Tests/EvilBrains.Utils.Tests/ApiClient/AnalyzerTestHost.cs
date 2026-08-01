@@ -6,7 +6,7 @@ namespace EvilBrains.Utils.Tests.ApiClient;
 
 internal static class AnalyzerTestHost
 {
-    public static async Task<ImmutableArray<Diagnostic>> AnalyzeAsync(DiagnosticAnalyzer analyzer, string source)
+    public static async Task<ImmutableArray<Diagnostic>> Analyze(DiagnosticAnalyzer analyzer, string source)
     {
         var compilation = TestCompilation.Create("FakeApi", source);
         var errors = compilation.GetDiagnostics().Where(x => x.Severity == DiagnosticSeverity.Error).ToList();

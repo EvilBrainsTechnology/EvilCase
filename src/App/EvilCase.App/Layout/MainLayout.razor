@@ -4,10 +4,23 @@
 <ToastContainer />
 <OffcanvasContainer />
 
-<div class="page">
-    <NavMenu />
+@* The application's default deny. Anything laid out by MainLayout is behind this, so a new page is
+   protected without doing anything; escaping it means deliberately choosing another layout, the way
+   the sign-in page does. The server enforces the same by way of its authorization fallback policy. *@
+<AuthorizeView>
+    <Authorized>
+        <div class="page">
+            <NavMenu />
 
-    <div class="page-wrapper">
-        @Body
-    </div>
-</div>
+            <div class="page-wrapper">
+                @Body
+            </div>
+        </div>
+    </Authorized>
+    <NotAuthorized>
+        <RedirectToLogin />
+    </NotAuthorized>
+    <Authorizing>
+        <LoadingPage />
+    </Authorizing>
+</AuthorizeView>

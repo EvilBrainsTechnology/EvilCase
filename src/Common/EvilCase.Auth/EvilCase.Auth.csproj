@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
@@ -7,12 +7,17 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <InternalsVisibleTo Include="EvilBrains.EvilCase.Tests" />
+    </ItemGroup>
+
+    <ItemGroup>
       <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\Api\EvilCase.Api.Contract\EvilCase.Api.Contract.csproj" />
       <ProjectReference Include="..\..\Data\EvilCase.Data\EvilCase.Data.csproj" />
-      <ProjectReference Include="..\..\Utils\EvilBrains.Collections\EvilBrains.Collections.csproj" />
+      <ProjectReference Include="..\..\Utils\EvilBrains.Cryptography\EvilBrains.Cryptography.csproj" />
     </ItemGroup>
 
 </Project>

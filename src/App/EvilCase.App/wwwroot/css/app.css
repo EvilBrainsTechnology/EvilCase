@@ -25,6 +25,39 @@
     box-shadow: none;
 }
 
+/* The user menu toggles itself; nothing here should look like a form control. */
+.user-menu-toggle {
+    border: 0;
+    background: transparent;
+}
+
+/* Bootstrap gives .dropdown-menu its offsets only once its JavaScript has marked the element with
+   data-bs-popper, and that JavaScript does not survive the Blazor renderer. Left to itself the menu keeps
+   its static position and hangs off the top right corner of the header, half of it outside the viewport.
+   Placed by hand instead: under the toggle, flush with its right edge, and never wider than the screen. */
+.user-menu {
+    position: relative;
+}
+
+.user-menu .dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: auto;
+    max-width: calc(100vw - 2rem);
+    margin-top: 0.5rem;
+}
+
+/* Catches the click that closes the user menu. Tabler's dropdown relies on Bootstrap's JavaScript for
+   this, which does not survive the Blazor renderer. */
+.dropdown-backdrop {
+    position: fixed;
+    inset: 0;
+
+    /* One below Tabler's --tblr-dropdown-zindex, so the menu itself stays clickable. */
+    z-index: 999;
+}
+
 /* Touch targets below the lg breakpoint. */
 @media (max-width: 991.98px) {
     .btn,

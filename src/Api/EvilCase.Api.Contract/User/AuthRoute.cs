@@ -16,4 +16,20 @@ public static class AuthRoute
     /// The same route as a request path, for <c>PathString</c> comparisons.
     /// </summary>
     public const string Path = "/" + Template;
+
+    /// <summary>
+    /// Sign-in. Limited harder than the rest: it is the only anonymous endpoint where guessing pays off.
+    /// </summary>
+    public const string LoginPath = Path + "/login";
+
+    /// <summary>
+    /// Token renewal. Limited far more loosely — every open tab of every signed-in user hits it.
+    /// </summary>
+    public const string RefreshPath = Path + "/refresh";
+
+    /// <summary>
+    /// Signing this one browser out. Anonymous like the two above, because an access token that has run
+    /// out must not be what stops someone from leaving.
+    /// </summary>
+    public const string LogoutPath = Path + "/logout";
 }

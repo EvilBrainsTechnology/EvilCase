@@ -2,6 +2,7 @@ using EvilBrains.ApiClient;
 using EvilBrains.EvilCase.Api.Contract.Logging;
 using EvilBrains.Logging.AspNetCore;
 using EvilBrains.Logging.Contract;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EvilBrains.EvilCase.Api.Controllers;
@@ -10,6 +11,7 @@ namespace EvilBrains.EvilCase.Api.Controllers;
 // both silence this exact path, and one constant is what keeps the three from drifting apart.
 [ApiController]
 [GenerateApiClient]
+[AllowAnonymous]
 [Route(ClientLogRoute.Template)]
 public class LogsController(IClientLogWriter writer) : ControllerBase
 {

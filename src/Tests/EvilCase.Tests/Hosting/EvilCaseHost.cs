@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EvilBrains.EvilCase.Tests.Hosting;
 
@@ -15,7 +17,8 @@ internal sealed class EvilCaseHost(
     bool behindReverseProxy = false,
     bool httpsRedirection = true,
     int? httpsPort = null,
-    string? jwtKey = null) : WebApplicationFactory<Program>
+    string? jwtKey = null,
+    Action<IServiceCollection>? configureServices = null) : WebApplicationFactory<Program>
 {
     /// <summary>
     /// Long enough to pass the signing key validation, so every test that is not about the key gets a host
@@ -52,5 +55,10 @@ internal sealed class EvilCaseHost(
                 ["EvilBrains:EvilCase:Hosting:HttpsRedirection"] = httpsRedirection ? "true" : "false",
                 ["HTTPS_PORT"] = httpsPort?.ToString(CultureInfo.InvariantCulture),
             }));
+
+        // Runs after the application's own registrations, so a test that wants to reach an endpoint which
+        // does touch the database swaps the two stores that do.
+        if (configureServices is not null)
+            builder.ConfigureTestServices(configureServices);
     }
 }

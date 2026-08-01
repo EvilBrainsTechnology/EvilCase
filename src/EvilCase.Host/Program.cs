@@ -63,15 +63,23 @@ builder.Services.Configure<ForwardedHeadersOptions>(
 
 const string apiReferencePath = "/scalar";
 
-// Well above a person signing in and retrying, far below what it takes to keep the container busy.
+// A person signing in, mistyping and retrying, and nothing like enough to walk a password list. The
+// account lockout is the other half of this: one limits an address, the other an account.
+var loginWindow = new FixedWindowRateLimiterOptions { PermitLimit = 5, Window = TimeSpan.FromMinutes(1) };
+
+// Every open tab of every signed-in person behind one address renews here, and a renewal costs a lookup.
+var refreshWindow = new FixedWindowRateLimiterOptions { PermitLimit = 60, Window = TimeSpan.FromMinutes(1) };
+
+// What is left under /api/auth: signing out and reading one's own sessions.
 var authWindow = new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(1) };
 
 // The browser sink uploads at most once per second, so this is a couple of tabs on the same address.
 var clientLogWindow = new FixedWindowRateLimiterOptions { PermitLimit = 120, Window = TimeSpan.FromMinutes(1) };
 
-// The two anonymous entry points a single caller can make expensive: login pays 600k PBKDF2 iterations
-// per request, an unknown e-mail included, and the log upload accepts 4 MB batches whose successful
-// requests are deliberately not logged. Nothing else is limited, health probes among them.
+// The anonymous entry points a single caller can make expensive: login pays 600k PBKDF2 iterations per
+// request, an unknown e-mail included, refresh is reachable without a token at all, and the log upload
+// accepts 4 MB batches whose successful requests are deliberately not logged. Nothing else is limited,
+// health probes among them.
 builder.Services.AddRateLimiter(
     options =>
     {
@@ -80,6 +88,13 @@ builder.Services.AddRateLimiter(
         options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(
             context =>
             {
+                // Before the prefix below, which would otherwise swallow both.
+                if (context.Request.Path.StartsWithSegments(AuthRoute.LoginPath, StringComparison.OrdinalIgnoreCase))
+                    return RateLimitPartition.GetFixedWindowLimiter("login|" + ClientAddress(context), _ => loginWindow);
+
+                if (context.Request.Path.StartsWithSegments(AuthRoute.RefreshPath, StringComparison.OrdinalIgnoreCase))
+                    return RateLimitPartition.GetFixedWindowLimiter("refresh|" + ClientAddress(context), _ => refreshWindow);
+
                 if (context.Request.Path.StartsWithSegments(AuthRoute.Path, StringComparison.OrdinalIgnoreCase))
                     return RateLimitPartition.GetFixedWindowLimiter("auth|" + ClientAddress(context), _ => authWindow);
 
@@ -114,7 +129,7 @@ if (app.Configuration.GetValue("EvilBrains:EvilCase:Database:MigrateOnStartup", 
 {
     try
     {
-        await app.MigrateEvilCaseDatabaseAsync();
+        await app.MigrateEvilCaseDatabase();
     }
     catch (Exception exception)
     {
@@ -126,6 +141,10 @@ if (app.Configuration.GetValue("EvilBrains:EvilCase:Database:MigrateOnStartup", 
         throw;
     }
 }
+
+// After the migrations and before anything is served: registration is closed, so a fresh deployment
+// would otherwise have no way in. Does nothing once any user exists.
+await app.SeedEvilCaseUser();
 
 // Behind a TLS terminating proxy every request arrives over plain HTTP and from the proxy's address.
 // The forwarded headers restore the caller's scheme and address for the pipeline below.
@@ -179,7 +198,8 @@ app.MapEvilCaseApi();
 if (app.Environment.IsDevelopment())
     app.MapEvilCaseApiReference();
 
-app.MapFallbackToFile("index.html");
+// Anonymous, or the default deny policy would put the sign-in page itself behind a sign-in.
+app.MapFallbackToFile("index.html").AllowAnonymous();
 
 await app.RunAsync();
 

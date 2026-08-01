@@ -36,7 +36,7 @@ internal sealed class SecurityHeadersMiddleware(RequestDelegate next)
         return Task.CompletedTask;
     };
 
-    public Task InvokeAsync(HttpContext context)
+    public Task Invoke(HttpContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
 
