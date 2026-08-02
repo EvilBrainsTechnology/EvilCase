@@ -44,9 +44,11 @@ an attachment in six sub-cases is one asset with six links. Each link carries a 
 (a data-box .zfo) — and, where the asset originates from another act, a reference to that act, so
 an attachment reads as "the appellate decision of 15 March" rather than as an opaque file.
 
-**Party** — an authority, an official or a person. Reused across cases; carries address and
-data-box id. An act references the party that issued it and the party it is addressed to. A party
-accumulates history across all cases.
+**Party** — an authority, an official or a person. The three kinds are flat: an official carries no
+link to the authority it acts for, and its name is what says where it works. Reused across cases;
+carries a data-box id and an address, the address held as one free-text block and printed back as a
+block, never split into town and postcode. An act references the party that issued it and the party
+it is addressed to. A party accumulates history across all cases.
 
 **Case reference** — a file mark (*spisová značka*). A case has one internal mark plus N external
 marks, each bound to the party that assigned it, because every authority in the chain assigns its

@@ -9,6 +9,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     public DbSet<RefreshToken> RefreshTokens => this.Set<RefreshToken>();
 
+    public DbSet<Party> Parties => this.Set<Party>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
@@ -19,6 +21,11 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         // enum must not silently promote every row.
         modelBuilder.Entity<User>()
             .Property(user => user.Role)
+            .HasConversion<string>()
+            .HasMaxLength(32);
+
+        modelBuilder.Entity<Party>()
+            .Property(party => party.Kind)
             .HasConversion<string>()
             .HasMaxLength(32);
     }
