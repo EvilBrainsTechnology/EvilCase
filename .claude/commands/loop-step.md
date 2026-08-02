@@ -174,6 +174,11 @@ loop takes it. Anything the owner has to answer is a decision issue, linked from
 a question in the chat that the loop then waits on — a round that ends waiting is a round that ended
 early. The owner reads the report to know what happened, not to unblock anything.
 
+The round is over when the report is written. **The turn is over when the next round is scheduled** —
+check the recurring schedule is still there and name its cadence in the report, per *Keeping the
+product loop running* in `AGENTS.md`. That check belongs to every turn, including one that
+interrupted a round to ask about something else entirely; a loop that stops does so silently.
+
 ## Standing rules
 
 - Real case folders on the owner's disk are read-only reference. Never write there, never copy a

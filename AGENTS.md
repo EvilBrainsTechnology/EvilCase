@@ -176,6 +176,19 @@ Rules:
 - No Bootstrap JS components; they collide with the Blazor renderer. Use TabBlazor equivalents (`IModalService`, `IOffcanvasService`). Where JS is unavoidable, wrap it in an `IJSObjectReference` cleaned up in `IAsyncDisposable`.
 - Custom CSS stays minimal and lives in `wwwroot/css/app.css`. Look for a Tabler utility class first. No inline styles.
 
+## Keeping the product loop running
+
+The loop (`.claude/loop.md`, `.claude/commands/loop-step.md`) runs unattended, and the way it fails is by stopping without saying so. Its clock is therefore a **recurring schedule**, never a one-shot wake-up.
+
+A one-shot wake-up has to be re-armed at the end of every turn, and *any* message from the owner in between is a turn. One such turn that ends without re-arming ends the loop silently: a stopped loop reports nothing, and nothing anywhere records that it was ever running. That is not hypothetical — it is how the loop died the first time, between a round and an unrelated question about pull requests.
+
+- **Create the schedule once, recurring**, and let it fire. In Claude Code that is `CronCreate` with `recurring: true`; a Routine is the durable equivalent. A one-shot wake-up is for a single deferred check, never for the loop.
+- **Every turn ends by confirming the schedule is still there** — including a turn that had nothing to do with the loop, and above all one that interrupted a round. `CronList` and the Routine listing are the check; an empty answer while the loop is meant to be running means recreate it before the turn ends. This is a rule about turns, not rounds: the round ends when the report is written, the turn ends when the next round is scheduled.
+- **Know what the schedule does not survive.** A `CronCreate` job lives in the session only — it dies with the container and expires after seven days. A Routine survives both and needs a permission the agent must not grant itself; a loop that can only have the weaker one says so once rather than pretending to be durable.
+- **State the cadence in the report.** A loop that has quietly stopped should be visible in the chat, not only in the absence of anything happening.
+
+The loop ends when the owner says so, or by the one genuine stop above — nothing buildable, said once. Both are stated out loud. A loop that stops any other way is a bug.
+
 ## Stacked pull requests
 
 A slice that needs something not yet on `master` branches off the branch carrying it rather than off `master`, and its pull request targets that branch. Two or more such pull requests are linked as a **stack** on GitHub, so the chain is one object with an order rather than a set of pull requests that happen to point at each other.
