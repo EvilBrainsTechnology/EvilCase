@@ -1,0 +1,40 @@
+@using EvilBrains.EvilCase.Api.Contract.Cases
+
+@* The mobile half of the case list. Its desktop counterpart is the table in Pages/Cases.razor; both
+   render and CSS picks one, per the responsive rules in AGENTS.md. *@
+<div class="card mb-2">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start gap-2">
+            <div class="min-w-0">
+                <div class="font-weight-medium">@Case.Title</div>
+                @if (!string.IsNullOrWhiteSpace(Case.Subject))
+                {
+                    <div class="text-secondary">@Case.Subject</div>
+                }
+            </div>
+            <Status BackgroundColor="CaseStatusDisplay.Color(Case.Status)" Lite="true">@CaseStatusDisplay.Text(Case.Status)</Status>
+        </div>
+
+        @if (Case.Tags.Count > 0)
+        {
+            <div class="mt-2">
+                @foreach (var tag in Case.Tags)
+                {
+                    <span class="badge bg-secondary-lt me-1">@tag</span>
+                }
+            </div>
+        }
+
+        <div class="text-secondary mt-2">
+            @CaseListFormat.Changed(Case)
+            @if (Case.SubCaseCount > 0)
+            {
+                <span> &middot; @CaseListFormat.SubCases(Case.SubCaseCount)</span>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required CaseListItem Case { get; set; }
+}

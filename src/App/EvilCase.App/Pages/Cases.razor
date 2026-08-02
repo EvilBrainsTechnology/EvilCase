@@ -1,3 +1,177 @@
 @page "/cases"
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.Cases
+@implements IDisposable
+@inject ICasesClient CasesClient
+@inject ILogger<Cases> Logger
 
-<PlaceholderPage Title="Spisy" />
+<div class="page-header d-print-none">
+    <div class="container-xl">
+        <h2 class="page-title">Spisy</h2>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        <div class="card">
+            <div class="card-body border-bottom py-3">
+                <div class="row g-2">
+                    <div class="col-12 col-lg">
+                        <div class="input-icon">
+                            <span class="input-icon-addon">
+                                <Icon CssClass="icon" IconType="AppIcons.Search" />
+                            </span>
+                            <input type="search" class="form-control" aria-label="Hledat ve spisech"
+                                   placeholder="Hledat v názvu a předmětu"
+                                   value="@this.search" @oninput="this.OnSearchInput" />
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-lg-auto">
+                        <select class="form-select" aria-label="Stav spisu"
+                                @bind="this.status" @bind:after="this.Reload">
+                            <option value="">Všechny stavy</option>
+                            @foreach (var value in Statuses)
+                            {
+                                <option value="@value">@CaseStatusDisplay.Text(value)</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            @if (this.failure is not null)
+            {
+                <div class="empty">
+                    <p class="empty-title">Spisy se nepodařilo načíst</p>
+                    <p class="empty-subtitle text-secondary">@this.failure</p>
+                </div>
+            }
+            else if (this.items is null)
+            {
+                <div class="card-body text-center text-secondary">
+                    <div class="spinner-border" role="status"></div>
+                </div>
+            }
+            else if (this.items.Count == 0)
+            {
+                <div class="empty">
+                    <p class="empty-title">Žádné spisy</p>
+                    <p class="empty-subtitle text-secondary">
+                        @(this.IsNarrowed ? "Zkuste jiné hledání nebo jiný stav." : "Zatím tu není žádný spis.")
+                    </p>
+                </div>
+            }
+            else
+            {
+                @* Table from lg up, cards below it: both render and CSS picks one, never C#. *@
+                <div class="d-none d-lg-block">
+                    <QuickTable Items="this.items.AsQueryable()" Class="card-table table-vcenter">
+                        <PropertyColumn Property="@(item => item.Title)" Title="Název" />
+                        <PropertyColumn Property="@(item => item.Subject)" Title="Předmět" />
+                        <TemplateColumn Title="Štítky" Context="item">
+                            @foreach (var tag in item.Tags)
+                            {
+                                <span class="badge bg-secondary-lt me-1">@tag</span>
+                            }
+                        </TemplateColumn>
+                        <TemplateColumn Title="Podspisy" Context="item">
+                            @(item.SubCaseCount > 0 ? item.SubCaseCount.ToString(CultureInfo.InvariantCulture) : "")
+                        </TemplateColumn>
+                        <TemplateColumn Title="Změněno" Context="item">
+                            @CaseListFormat.ChangedOn(item)
+                        </TemplateColumn>
+                        <TemplateColumn Title="Stav" Context="item">
+                            <Status BackgroundColor="CaseStatusDisplay.Color(item.Status)" Lite="true">@CaseStatusDisplay.Text(item.Status)</Status>
+                        </TemplateColumn>
+                    </QuickTable>
+                </div>
+
+                <div class="card-body d-lg-none">
+                    @foreach (var item in this.items)
+                    {
+                        <CaseListCard Case="item" />
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    /// <summary>
+    /// Long enough that typing a word is one request rather than one per letter, short enough that the
+    /// list still follows the keyboard.
+    /// </summary>
+    private static readonly TimeSpan SearchDelay = TimeSpan.FromMilliseconds(300);
+
+    private static readonly CaseStatus[] Statuses = Enum.GetValues<CaseStatus>();
+
+    private IReadOnlyList<CaseListItem>? items;
+    private string search = "";
+    private CaseStatus? status;
+    private string? failure;
+    private CancellationTokenSource? pending;
+
+    private bool IsNarrowed => !string.IsNullOrWhiteSpace(this.search) || this.status is not null;
+
+    protected override Task OnInitializedAsync() => this.Load(debounce: false);
+
+    public void Dispose()
+    {
+        this.pending?.Cancel();
+        this.pending?.Dispose();
+    }
+
+    private Task OnSearchInput(ChangeEventArgs args)
+    {
+        this.search = args.Value as string ?? "";
+
+        return this.Load(debounce: true);
+    }
+
+    private Task Reload() => this.Load(debounce: false);
+
+    /// <summary>
+    /// One request at a time: starting another cancels the one before it, which is both what debounces
+    /// the keyboard and what keeps a slow answer to an old term from overwriting a fast answer to the
+    /// current one.
+    /// </summary>
+    private async Task Load(bool debounce)
+    {
+        this.pending?.Cancel();
+        this.pending?.Dispose();
+
+        var current = new CancellationTokenSource();
+        this.pending = current;
+
+        var request = new CaseListRequest
+        {
+            Search = string.IsNullOrWhiteSpace(this.search) ? null : this.search,
+            Status = this.status,
+        };
+
+        try
+        {
+            if (debounce)
+                await Task.Delay(SearchDelay, current.Token);
+
+            var response = await this.CasesClient.ListCases(request, current.Token);
+
+            this.items = response.Items;
+            this.failure = null;
+        }
+        catch (OperationCanceledException)
+        {
+            // Superseded by a newer term; whatever it would have shown is already out of date.
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Loading the case list failed");
+
+            this.items = [];
+            this.failure = exception.Message;
+        }
+    }
+}
