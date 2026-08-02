@@ -1,4 +1,5 @@
 using EvilBrains.EvilCase.Data.DbContexts;
+using EvilBrains.EvilCase.Data.Timeline;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,6 +13,7 @@ public static class Bootstrap
     {
         serviceCollection.AddLocalDbContext<ApplicationDbContext>();
         serviceCollection.AddScoped<IDatabaseMigrator, DatabaseMigrator>();
+        serviceCollection.AddScoped<ITimelineReader, TimelineReader>();
 
         return serviceCollection;
     }
