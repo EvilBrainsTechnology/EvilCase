@@ -79,6 +79,70 @@ public class ApplicationDbModelTests
         }
     }
 
+    [Test]
+    public void TheInternalMarkIsAColumnOnTheCase()
+    {
+        using var context = new ApplicationDbContextFactory().CreateDbContext([]);
+
+        var @case = context.Model.FindEntityType(typeof(Case));
+
+        Assert.That(@case, Is.Not.Null);
+
+        var mark = @case.FindProperty(nameof(Case.InternalCaseReference));
+        var unique = @case.GetIndexes().SingleOrDefault(index => index.IsUnique);
+        string[] expected = [nameof(Case.OwnerId), nameof(Case.InternalCaseReference)];
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(mark, Is.Not.Null, "a case always has exactly one of its own, so it is a column and not a row");
+            Assert.That(mark?.IsNullable, Is.False, "it is generated with the case and never absent");
+            Assert.That(unique?.Properties.Select(property => property.Name), Is.EqualTo(expected), "and a generated series must not repeat within one owner");
+        }
+    }
+
+    [Test]
+    public void EveryExternalMarkNamesWhoAssignedIt()
+    {
+        using var context = new ApplicationDbContextFactory().CreateDbContext([]);
+
+        var reference = context.Model.FindEntityType(typeof(CaseReference));
+
+        Assert.That(reference, Is.Not.Null);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(
+                reference.FindProperty(nameof(CaseReference.AssignedByPartyId))?.IsNullable,
+                Is.False,
+                "a mark nobody assigned is the case's own, and that one lives on the case");
+
+            Assert.That(
+                reference.GetIndexes().Any(index => index.GetFilter() is not null),
+                Is.False,
+                "nothing here is conditional any more — this table is external marks and only those");
+        }
+    }
+
+    [Test]
+    public void AMarkNeverTakesAPartyDownWithIt()
+    {
+        using var context = new ApplicationDbContextFactory().CreateDbContext([]);
+
+        var reference = context.Model.FindEntityType(typeof(CaseReference));
+
+        Assert.That(reference, Is.Not.Null);
+
+        var toParty = reference.GetForeignKeys().SingleOrDefault(key => key.PrincipalEntityType.ClrType == typeof(Party));
+        var toCase = reference.GetForeignKeys().SingleOrDefault(key => key.PrincipalEntityType.ClrType == typeof(Case));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(toParty?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Restrict), "a party accumulates history across cases and outlives any one mark naming it");
+            Assert.That(toCase?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Cascade), "a mark has no meaning without its case");
+            Assert.That(reference.GetProperties().Any(property => string.Equals(property.Name, "OwnerId", StringComparison.Ordinal)), Is.False, "only aggregate roots carry an owner, and a mark is not one");
+        }
+    }
+
     private static bool IsIndexed(IReadOnlyEntityType entityType, string propertyName) =>
         entityType.GetIndexes().Any(index => index.Properties.Any(property => string.Equals(property.Name, propertyName, StringComparison.Ordinal)));
 }

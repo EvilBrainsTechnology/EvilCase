@@ -9,6 +9,7 @@ namespace EvilBrains.EvilCase.Data.Entities;
 /// the same shape as what it hangs under, to any depth.
 /// </summary>
 [Index(nameof(OwnerId))]
+[Index(nameof(OwnerId), nameof(InternalCaseReference), IsUnique = true)]
 [Index(nameof(ParentCaseId))]
 public record Case : IEntity
 {
@@ -25,6 +26,9 @@ public record Case : IEntity
     /// Null on a root case.
     /// </summary>
     public long? ParentCaseId { get; init; }
+
+    [MaxLength(64)]
+    public required string InternalCaseReference { get; init; }
 
     [MaxLength(256)]
     public required string Title { get; init; }
