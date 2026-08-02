@@ -79,6 +79,14 @@ The application is closed by default on the client too, and `MainLayout` is what
 - **A file mark belongs to the proceeding, a file number to the document.** `CaseReference` holds the *spisová značka* of a case; the *číslo jednací* of one document belongs to the act it arrived with. Every authority in the chain assigns its own mark, so a case carries several at once and none of them is its identity.
 - **The case's own mark is a column; everyone else's is a row.** `Case.InternalCaseReference` is required, generated on creation and unique per owner — a case always has exactly one, so it is not a row that could be missing or duplicated. `CaseReference` holds only marks assigned by somebody else, and `AssignedByPartyId` is therefore required.
 
+## Ownership
+
+Every aggregate root carries an `OwnerId` from its first migration. Nothing filters by it yet — until M8 a single user owns everything — and the seam that will is already in place.
+
+- **`IOwnerContext` is the one place ownership is resolved.** `EvilCase.Data` declares it; `PrincipalOwnerContext` in `EvilCase.Api` implements it by reading the access token's `sub` claim, and is the only code in the application that reads that claim for this purpose. A query needing the owner takes `IOwnerContext`, never an `ownerId` parameter threaded down from a controller and never `HttpContext` of its own.
+- **Null is a real answer.** A health probe, the sign-in endpoint and a migration at startup all reach the resolver with no authenticated caller. `RequireOwnerId()` is for code that has no sensible behaviour without one — a query that would otherwise return another owner's rows, or silently none, is a bug either way.
+- **This is where a tenant goes.** When the vision's multi-tenant horizon becomes real, an owner becomes a tenant and this interface is what changes, rather than every query in the application. That is the whole reason it exists before there is anything to filter.
+
 ## Secrets
 
 Every environment reads secrets from environment variables. Development additionally loads `src/EvilCase.Host/.env` (gitignored, `.env.example` documents the keys) into the process environment, so there is one configuration path everywhere — hence the double underscore separator (`A__B` → `A:B`).
