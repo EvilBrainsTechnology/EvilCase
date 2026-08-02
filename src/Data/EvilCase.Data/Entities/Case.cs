@@ -53,4 +53,7 @@ public record Case : IEntity
     public ICollection<CaseReference> References { get; init; } = [];
 
     public ICollection<Act> Acts { get; init; } = [];
+
+    /// <inheritdoc cref="References"/>
+    public ICollection<Comment> Comments { get; init; } = [];
 }

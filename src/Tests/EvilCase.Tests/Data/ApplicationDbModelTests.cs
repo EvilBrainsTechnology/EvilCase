@@ -3,6 +3,7 @@ using EvilBrains.EvilCase.Data.Migrations.DbContexts;
 using EvilBrains.EvilCase.Domain.Files;
 using EvilBrains.EvilCase.Domain.Parties;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace EvilBrains.EvilCase.Tests.Data;
@@ -328,6 +329,43 @@ public class ApplicationDbModelTests
             Assert.That(names, Does.Contain(nameof(ActFileRole.Other)), "a file that is none of the named roles has nowhere to go");
             Assert.That(role.GetMaxLength(), Is.GreaterThanOrEqualTo(names.Max(name => name.Length)), "a role is stored by name, so one longer than the column fails on write");
         }
+    }
+
+    [Test]
+    public void ANoteHangsOnACaseOrAnActAndTheDatabaseHoldsThat()
+    {
+        using var context = new ApplicationDbContextFactory().CreateDbContext([]);
+
+        // The read-optimized model drops check constraints; only the design-time one carries them.
+        var comment = context.GetService<IDesignTimeModel>().Model.FindEntityType(typeof(Comment));
+
+        Assert.That(comment, Is.Not.Null);
+
+        var check = comment.GetCheckConstraints().SingleOrDefault();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(check, Is.Not.Null, "the rule is in the database, not only in the code that writes a note");
+            Assert.That(check?.Sql, Does.Contain("<>"), "exactly one parent — never both, never neither");
+            Assert.That(comment.FindProperty(nameof(Comment.CaseId))?.IsNullable, Is.True);
+            Assert.That(comment.FindProperty(nameof(Comment.ActId))?.IsNullable, Is.True);
+            Assert.That(comment.FindProperty(nameof(Comment.Body))?.GetMaxLength(), Is.Null, "a note is as long as it needs to be");
+        }
+    }
+
+    [Test]
+    public void ANoteGoesWithWhateverItHangsOn()
+    {
+        using var context = new ApplicationDbContextFactory().CreateDbContext([]);
+
+        var comment = context.Model.FindEntityType(typeof(Comment));
+
+        Assert.That(comment, Is.Not.Null);
+
+        Assert.That(
+            comment.GetForeignKeys().All(key => key.DeleteBehavior == DeleteBehavior.Cascade),
+            Is.True,
+            "a note has no meaning without its case, its act or its author");
     }
 
     private static bool Uses(IReadOnlyForeignKey foreignKey, string propertyName) =>

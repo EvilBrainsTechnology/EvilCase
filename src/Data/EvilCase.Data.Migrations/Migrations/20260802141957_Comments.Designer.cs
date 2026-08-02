@@ -3,6 +3,7 @@ using System;
 using EvilBrains.EvilCase.Data.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EvilBrains.EvilCase.Data.Migrations.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260802141957_Comments")]
+    partial class Comments
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -142,11 +145,6 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("InternalCaseReference")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
-
                     b.Property<long>("OwnerId")
                         .HasColumnType("bigint");
 
@@ -176,44 +174,7 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
 
                     b.HasIndex("ParentCaseId");
 
-                    b.HasIndex("OwnerId", "InternalCaseReference")
-                        .IsUnique();
-
                     b.ToTable("Cases");
-                });
-
-            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.CaseReference", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<long>("AssignedByPartyId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("CaseId")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Value")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("character varying(128)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AssignedByPartyId");
-
-                    b.HasIndex("Value");
-
-                    b.HasIndex("CaseId", "Value")
-                        .IsUnique();
-
-                    b.ToTable("CaseReferences");
                 });
 
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.CaseTag", b =>
@@ -463,18 +424,18 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Act", b =>
                 {
                     b.HasOne("EvilBrains.EvilCase.Data.Entities.Party", "AddressedTo")
-                        .WithMany("AddressedActs")
+                        .WithMany()
                         .HasForeignKey("AddressedToPartyId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("EvilBrains.EvilCase.Data.Entities.Case", "Case")
-                        .WithMany("Acts")
+                        .WithMany()
                         .HasForeignKey("CaseId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("EvilBrains.EvilCase.Data.Entities.Party", "IssuedBy")
-                        .WithMany("IssuedActs")
+                        .WithMany()
                         .HasForeignKey("IssuedByPartyId")
                         .OnDelete(DeleteBehavior.Restrict);
 
@@ -488,19 +449,19 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.ActFileLink", b =>
                 {
                     b.HasOne("EvilBrains.EvilCase.Data.Entities.Act", "Act")
-                        .WithMany("Files")
+                        .WithMany()
                         .HasForeignKey("ActId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("EvilBrains.EvilCase.Data.Entities.FileAsset", "FileAsset")
-                        .WithMany("Links")
+                        .WithMany()
                         .HasForeignKey("FileAssetId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("EvilBrains.EvilCase.Data.Entities.Act", "OriginatingAct")
-                        .WithMany("AttachmentsTakenFromIt")
+                        .WithMany()
                         .HasForeignKey("OriginatingActId")
                         .OnDelete(DeleteBehavior.Restrict);
 
@@ -527,25 +488,6 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.Navigation("Owner");
 
                     b.Navigation("Parent");
-                });
-
-            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.CaseReference", b =>
-                {
-                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Party", "AssignedBy")
-                        .WithMany("AssignedCaseReferences")
-                        .HasForeignKey("AssignedByPartyId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Case", "Case")
-                        .WithMany("References")
-                        .HasForeignKey("CaseId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("AssignedBy");
-
-                    b.Navigation("Case");
                 });
 
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.CaseTag", b =>
@@ -617,36 +559,11 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Act", b =>
-                {
-                    b.Navigation("AttachmentsTakenFromIt");
-
-                    b.Navigation("Files");
-                });
-
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Case", b =>
                 {
-                    b.Navigation("Acts");
-
                     b.Navigation("Children");
 
-                    b.Navigation("References");
-
                     b.Navigation("Tags");
-                });
-
-            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.FileAsset", b =>
-                {
-                    b.Navigation("Links");
-                });
-
-            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Party", b =>
-                {
-                    b.Navigation("AddressedActs");
-
-                    b.Navigation("AssignedCaseReferences");
-
-                    b.Navigation("IssuedActs");
                 });
 #pragma warning restore 612, 618
         }
