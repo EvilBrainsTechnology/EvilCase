@@ -19,6 +19,10 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     public DbSet<Act> Acts => this.Set<Act>();
 
+    public DbSet<FileAsset> FileAssets => this.Set<FileAsset>();
+
+    public DbSet<ActFileLink> ActFileLinks => this.Set<ActFileLink>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
@@ -28,11 +32,12 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         ConfigureEnums(modelBuilder);
         ConfigureCases(modelBuilder);
         ConfigureActs(modelBuilder);
+        ConfigureFiles(modelBuilder);
     }
 
     /// <summary>
-    /// As a name rather than as the enum's number: an operator reads the column, and renumbering the
-    /// enum must not silently promote every row.
+    /// As a name rather than as the enum's number: an operator reads the column, and renumbering must
+    /// not silently rewrite every row.
     /// </summary>
     private static void ConfigureEnums(ModelBuilder modelBuilder)
     {
@@ -53,6 +58,11 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
         modelBuilder.Entity<Act>()
             .Property(act => act.Direction)
+            .HasConversion<string>()
+            .HasMaxLength(32);
+
+        modelBuilder.Entity<ActFileLink>()
+            .Property(link => link.Role)
             .HasConversion<string>()
             .HasMaxLength(32);
     }
@@ -101,6 +111,31 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasOne(act => act.AddressedTo)
             .WithMany(party => party.AddressedActs)
             .HasForeignKey(act => act.AddressedToPartyId)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
+
+    private static void ConfigureFiles(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<ActFileLink>()
+            .HasOne(link => link.Act)
+            .WithMany(act => act.Files)
+            .HasForeignKey(link => link.ActId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // The link goes with its act. The asset does not: it is shared, so it outlives any one link and
+        // is only removable once nothing points at it.
+        modelBuilder.Entity<ActFileLink>()
+            .HasOne(link => link.FileAsset)
+            .WithMany(asset => asset.Links)
+            .HasForeignKey(link => link.FileAssetId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Restrict rather than cascade: deleting the act an attachment came from must not silently take
+        // another act's link with it, which a second cascade path into this table would do.
+        modelBuilder.Entity<ActFileLink>()
+            .HasOne(link => link.OriginatingAct)
+            .WithMany(act => act.AttachmentsTakenFromIt)
+            .HasForeignKey(link => link.OriginatingActId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }
