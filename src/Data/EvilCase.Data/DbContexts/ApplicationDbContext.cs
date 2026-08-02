@@ -17,6 +17,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     public DbSet<CaseReference> CaseReferences => this.Set<CaseReference>();
 
+    public DbSet<Act> Acts => this.Set<Act>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
@@ -53,6 +55,25 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasOne(reference => reference.AssignedBy)
             .WithMany()
             .HasForeignKey(reference => reference.AssignedByPartyId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Act>()
+            .Property(act => act.Direction)
+            .HasConversion<string>()
+            .HasMaxLength(32);
+
+        // A party accumulates history across cases, so it outlives any one act naming it. Both ends are
+        // configured explicitly because two foreign keys to the same table cannot be inferred.
+        modelBuilder.Entity<Act>()
+            .HasOne(act => act.IssuedBy)
+            .WithMany()
+            .HasForeignKey(act => act.IssuedByPartyId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Act>()
+            .HasOne(act => act.AddressedTo)
+            .WithMany()
+            .HasForeignKey(act => act.AddressedToPartyId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

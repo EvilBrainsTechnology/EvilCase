@@ -80,6 +80,7 @@ public class ApplicationDbModelTests
     }
 
     [Test]
+<<<<<<< HEAD
     public void TheInternalMarkIsAColumnOnTheCase()
     {
         using var context = new ApplicationDbContextFactory().CreateDbContext([]);
@@ -97,6 +98,48 @@ public class ApplicationDbModelTests
             Assert.That(mark, Is.Not.Null, "a case always has exactly one of its own, so it is a column and not a row");
             Assert.That(mark?.IsNullable, Is.False, "it is generated with the case and never absent");
             Assert.That(unique?.Properties.Select(property => property.Name), Is.EqualTo(expected), "and a generated series must not repeat within one owner");
+        }
+    }
+
+    [Test]
+    public void TwoActsMayShareOneOrdinal()
+    {
+        using var context = new ApplicationDbContextFactory().CreateDbContext([]);
+
+        var act = context.Model.FindEntityType(typeof(Act));
+
+        Assert.That(act, Is.Not.Null);
+
+        var overOrdinal = act.GetIndexes().Where(index => index.Properties.Any(property => string.Equals(property.Name, nameof(Act.Ordinal), StringComparison.Ordinal)));
+
+        Assert.That(
+            overOrdinal.Any(index => index.IsUnique),
+            Is.False,
+            "a real case file has two unrelated submissions filed under one number, so the ordinal orders acts and does not identify them");
+    }
+
+    [Test]
+    public void ActDatesAreCalendarDatesRatherThanInstants()
+    {
+        using var context = new ApplicationDbContextFactory().CreateDbContext([]);
+
+        var act = context.Model.FindEntityType(typeof(Act));
+
+        Assert.That(act, Is.Not.Null);
+
+        string[] dates = [nameof(Act.Drafted), nameof(Act.Sent), nameof(Act.Delivered), nameof(Act.Received)];
+
+        using (Assert.EnterMultipleScope())
+        {
+            foreach (var name in dates)
+            {
+                var property = act.FindProperty(name);
+
+                Assert.That(property?.ClrType, Is.EqualTo(typeof(DateOnly?)), $"{name} starts a statutory period, and the hour never enters that arithmetic");
+                Assert.That(property?.IsNullable, Is.True, $"{name} does not apply to every direction");
+            }
+
+            Assert.That(act.FindProperty(nameof(Act.Summary))?.GetMaxLength(), Is.Null, "the summary is long-form and lives on the act alone");
         }
     }
 
@@ -140,6 +183,26 @@ public class ApplicationDbModelTests
             Assert.That(toParty?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Restrict), "a party accumulates history across cases and outlives any one mark naming it");
             Assert.That(toCase?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Cascade), "a mark has no meaning without its case");
             Assert.That(reference.GetProperties().Any(property => string.Equals(property.Name, "OwnerId", StringComparison.Ordinal)), Is.False, "only aggregate roots carry an owner, and a mark is not one");
+        }
+    }
+
+    [Test]
+    public void AnActNeverTakesAPartyDownWithIt()
+    {
+        using var context = new ApplicationDbContextFactory().CreateDbContext([]);
+
+        var act = context.Model.FindEntityType(typeof(Act));
+
+        Assert.That(act, Is.Not.Null);
+
+        var toParties = act.GetForeignKeys().Where(key => key.PrincipalEntityType.ClrType == typeof(Party)).ToList();
+        var toCase = act.GetForeignKeys().SingleOrDefault(key => key.PrincipalEntityType.ClrType == typeof(Case));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(toParties, Has.Count.EqualTo(2), "an act references who issued it and who it was addressed to");
+            Assert.That(toParties.TrueForAll(key => key.DeleteBehavior == DeleteBehavior.Restrict), Is.True, "a party outlives any one act naming it");
+            Assert.That(toCase?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Cascade), "an act has no meaning without its case");
         }
     }
 
