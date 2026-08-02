@@ -35,14 +35,20 @@ in the same commit as the code it governs; a decision that governs no code updat
 
 Unanswered decisions stay open. Do not re-ask them and do not answer them yourself.
 
-## 2. Clear review feedback first
+## 2. Get what is open merged, before opening anything new
 
 `gh pr list --author @me --state open --json number,title`. For each, read the reviews and
 comments (`gh pr view <n> --json reviews,comments` and
 `gh api repos/{owner}/{repo}/pulls/<n>/comments`) and find anything from the owner that
 arrived after the branch's last commit.
 
-Review feedback outranks new work: an open pull request holds up every slice that depends on it.
+**This is the round's first job and usually its whole job.** The measure of the loop is what reaches
+`master`, not how many branches it has open. An unmerged pull request holds up every slice above it,
+goes stale against a moving base, and costs the owner more to review the longer it waits — so a round
+that answers three review threads and rebases two branches has done more than one that opens a fourth
+pull request.
+
+Every comment gets a response in the same round it is found. Nothing is deferred to "next time".
 
 - A requested change → check the branch out, fix it, meet the whole definition of done again,
   push, and reply in the thread saying what changed and in which commit.
@@ -50,12 +56,23 @@ Review feedback outranks new work: an open pull request holds up every slice tha
 - A product decision in disguise → open a decision issue, link it from the thread, leave the
   pull request open.
 
-Take new work only when no open pull request carries unanswered feedback.
+Then clear what stands between the rest and a merge, in this order: a red CI run, a merge conflict or
+a stale base (rebase it), a pull request whose description no longer matches its diff. A branch that
+is green, current and answered is ready for the owner, and saying so in the report is what gets it
+merged.
+
+Take new work only when every open pull request is in that state.
 
 ## 3. Pick the work
 
 Take the single highest-value open issue that is neither `blocked` nor `needs-decision`, preferring
 the lowest open milestone. Honour the focus argument if one was given.
+
+**Between two candidates, take the one that lands on `master` on its own.** A slice that needs an
+unmerged branch adds a layer to something already waiting; a slice that does not is one the owner can
+merge on its own the day it is opened. Depth is only worth it when the work genuinely cannot exist
+otherwise — see *Stacked pull requests* in `AGENTS.md`. If every remaining candidate would deepen a
+stack, say so in the report rather than deepening it by default.
 
 - Backlog empty → derive the next thin vertical slice from the vision, open an issue for it, take it.
 - Every open issue blocked → do not idle and do not guess. Post one chat message re-surfacing the
