@@ -85,6 +85,14 @@ public class AuthorizationFallbackTests
     }
 
     [Test]
+    public async Task ListingCasesNeedsAToken()
+    {
+        using var response = await this.client.GetAsync(new Uri("/api/cases/list", UriKind.Relative));
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+    }
+
+    [Test]
     public async Task ReadingOnesOwnUserStillNeedsAToken()
     {
         using var response = await this.client.GetAsync(new Uri(AuthRoute.Path + "/user-info", UriKind.Relative));
