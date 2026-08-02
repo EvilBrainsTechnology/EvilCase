@@ -66,6 +66,17 @@ In the browser (`EvilCase.App/Auth`): `AccessTokenStore` holds the token in memo
 
 The application is closed by default on the client too, and `MainLayout` is what does it: everything it lays out sits inside an `AuthorizeView`, so a new page is protected without doing anything. Escaping that means choosing another layout, which only `Pages/Login.razor` does (`LoginLayout`).
 
+## Domain model
+
+`docs/product/vision.md` is what the model is built towards and names the concepts; this section holds only what the code does differently or what a new entity has to repeat.
+
+- **`Case`, and `@case` where it collides** — the domain's word is the code's word, so the type is `Case`, not a synonym invented to dodge a keyword. CA1716 flags identifiers matching a reserved word and is therefore set to `suggestion` in `src/.editorconfig`, the one rule deliberately below error. Where `case` would be a variable or lambda parameter, prefix it: `.Property(@case => @case.Status)`.
+- **Every aggregate root carries `OwnerId` from its first migration**, with a foreign key to `Users` and an index. Nothing filters on it until M8 — until then a single user owns everything — and that is exactly why it has to be there from the start rather than be a data migration later.
+- **Nesting is a self-reference.** `ParentCaseId` is null on a root case and a sub-case has the same shape to any depth. Deleting a case cascades to its sub-tree; nothing deletes one yet.
+- **`CaseTree`** (in `EvilCase.Data/Cases`) walks a loaded graph — descendants, ancestors, depth — and `CanNestUnder` is the only thing standing between the tree and a cycle. Every walk carries a visited set, so a graph that got a cycle anyway stops rather than hangs. It is pure over the navigation properties and says nothing about how the graph was loaded; a merged timeline over a whole sub-tree (M4) fetches it in one query instead of walking navigations.
+- **Enums are stored as names**, `HasConversion<string>()` with an explicit length, as `UserRole` already is: an operator reads the column, and renumbering must not silently rewrite every row.
+- **Tags are rows, not an array column** — free text, stored as typed, unique per case. The set of tags already in use is then an indexed query rather than a scan.
+
 ## Secrets
 
 Every environment reads secrets from environment variables. Development additionally loads `src/EvilCase.Host/.env` (gitignored, `.env.example` documents the keys) into the process environment, so there is one configuration path everywhere — hence the double underscore separator (`A__B` → `A:B`).

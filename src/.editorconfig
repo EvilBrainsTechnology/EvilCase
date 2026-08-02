@@ -78,6 +78,7 @@ dotnet_analyzer_diagnostic.severity = error
 ########################################################################################################################
 
 dotnet_diagnostic.CA1308.severity = none       # Normalize strings to uppercase
+dotnet_diagnostic.CA1716.severity = suggestion # Identifier conflicts with a reserved language keyword (Case, prefixed with @ where it collides)
 dotnet_diagnostic.CA1720.severity = none       # Identifier 'Single' contains type name
 dotnet_diagnostic.CA1822.severity = suggestion # Member 'ChatAsync' does not access instance data and can be marked as static
 dotnet_diagnostic.CA1848.severity = none       # Use the LoggerMessage delegates

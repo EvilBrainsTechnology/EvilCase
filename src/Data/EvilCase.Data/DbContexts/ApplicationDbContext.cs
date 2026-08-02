@@ -11,6 +11,10 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     public DbSet<Party> Parties => this.Set<Party>();
 
+    public DbSet<Case> Cases => this.Set<Case>();
+
+    public DbSet<CaseTag> CaseTags => this.Set<CaseTag>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
@@ -28,5 +32,18 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .Property(party => party.Kind)
             .HasConversion<string>()
             .HasMaxLength(32);
+
+        modelBuilder.Entity<Case>()
+            .Property(@case => @case.Status)
+            .HasConversion<string>()
+            .HasMaxLength(32);
+
+        // A sub-case has no meaning without what it hangs under, so the sub-tree goes with its root.
+        // Nothing deletes a case yet; the rule is here so that whatever does later cannot orphan one.
+        modelBuilder.Entity<Case>()
+            .HasMany(@case => @case.Children)
+            .WithOne(@case => @case.Parent)
+            .HasForeignKey(@case => @case.ParentCaseId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
