@@ -176,6 +176,27 @@ Rules:
 - No Bootstrap JS components; they collide with the Blazor renderer. Use TabBlazor equivalents (`IModalService`, `IOffcanvasService`). Where JS is unavoidable, wrap it in an `IJSObjectReference` cleaned up in `IAsyncDisposable`.
 - Custom CSS stays minimal and lives in `wwwroot/css/app.css`. Look for a Tabler utility class first. No inline styles.
 
+## Stacked pull requests
+
+A slice that needs something not yet on `master` branches off the branch carrying it rather than off `master`, and its pull request targets that branch. Two or more such pull requests are linked as a **stack** on GitHub, so the chain is one object with an order rather than a set of pull requests that happen to point at each other.
+
+- **The base branch is the whole mechanism.** Each pull request's base must be the head of the one below it, bottom to top, the bottom on `master`. A diff then shows only what its own layer adds, which is the point of splitting the work.
+- **Link the chain as soon as it is a chain.** A stack needs at least two pull requests; a slice that stands on its own opens an ordinary pull request against `master` and nothing more.
+- **`gh stack` is the local tool** (`gh extension install github/gh-stack`) and is what to use on a workstation. In Claude Code on the web neither it nor `gh` is installed, and the egress policy blocks `github.com`, so use the REST API with `$GH_TOKEN` — `api.github.com` is reachable:
+
+  | Call | What it does |
+  | --- | --- |
+  | `GET /repos/{owner}/{repo}/stacks` | The repository's stacks, newest first |
+  | `GET /repos/{owner}/{repo}/stacks/{number}` | One stack |
+  | `POST /repos/{owner}/{repo}/stacks` `{"pull_requests":[bottom,…,top]}` | Creates one; at least two numbers, and each base must match the previous head |
+  | `POST /repos/{owner}/{repo}/stacks/{number}/add` `{"pull_requests":[…]}` | Appends to the top — the delta only, never the whole list |
+  | `POST /repos/{owner}/{repo}/stacks/{number}/unstack` | **Dissolves the stack.** No body, no confirmation, and it answers `204` to a probe as readily as to an intention. Never call it to find out whether it exists. |
+
+  A pull request carries its membership as a `stack` object (`number`, `size`, `position`), which is how to check a chain is linked without listing every stack.
+
+- **A merge moves the floor.** When the bottom of a stack merges, GitHub retargets the one above it onto the merged base and the rest need rebasing onto the new `master`. That is work for whoever owns the branches, not a reason to touch the merge.
+- **An agent never merges a stack**, and merging the bottom of one is still merging. The rule in *Conventions* holds without exception here.
+
 ## Conventions
 
 - Respond in the language of the user's message.
