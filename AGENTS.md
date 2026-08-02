@@ -100,6 +100,8 @@ Because the check runs before the builder exists, `ASPNETCORE_ENVIRONMENT` is re
 
 `Program.cs` awaits `MigrateEvilCaseDatabaseAsync` between `builder.Build()` and the middleware pipeline. A database that does not exist is created; an unreachable server stops the start, and there is no retry. `EvilBrains:EvilCase:Database:MigrateOnStartup` turns it off (default `true`) — do that where the schema is rolled out separately, or where several instances start at once, because nothing serialises concurrent migrators. `Tests/EvilCase.Tests` sets it to `false`.
 
+**`dotnet ef migrations add` builds without `TreatWarningsAsErrors`**, unlike `dotnet r build`. A warning-level diagnostic in code written just before the migration — a `CS1574` cref that does not resolve, say — passes there, and the assembly it produces is then up to date, so later incremental builds skip recompiling it and never report the error. Run `dotnet build --no-incremental` (or `dotnet r ci` after touching the file again) once after adding a migration; a green `dotnet r build` straight afterwards proves nothing about the project the migration was generated from.
+
 Migrations live in `EvilCase.Data.Migrations`, which references `EvilCase.Data` and cannot be referenced back. `UseEvilCaseMigrations` (in `EvilCase.Data`) names the assembly as a string and sets the `_MigrationsHistory` table name; EF loads the assembly at runtime and `EvilCase.Host` carries it into its output through an otherwise unused project reference. Both the runtime registration and `ApplicationDbContextFactory` must call that one extension — a mismatched history table makes EF re-apply every migration.
 
 ## Health checks

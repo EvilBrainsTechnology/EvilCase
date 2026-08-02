@@ -32,7 +32,7 @@ public record Act : IEntity
 
     /// <summary>
     /// The <em>číslo jednací</em> of whoever issued this one document. The mark of the whole proceeding
-    /// is a <see cref="CaseReference"/> instead.
+    /// is a <c>CaseReference</c> instead.
     /// </summary>
     [MaxLength(128)]
     public string? FileNumber { get; init; }
