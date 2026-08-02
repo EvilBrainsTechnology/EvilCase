@@ -9,6 +9,7 @@ namespace EvilBrains.EvilCase.Data.Entities;
 /// the same shape as what it hangs under, to any depth.
 /// </summary>
 [Index(nameof(OwnerId))]
+[Index(nameof(OwnerId), nameof(InternalReference), IsUnique = true)]
 [Index(nameof(ParentCaseId))]
 public record Case : IEntity
 {
@@ -25,6 +26,14 @@ public record Case : IEntity
     /// Null on a root case.
     /// </summary>
     public long? ParentCaseId { get; init; }
+
+    /// <summary>
+    /// The case's own file mark, generated when the case is created and never typed. Exactly one, which
+    /// is why it is a column here rather than a row somewhere else: a case without it cannot exist.
+    /// Marks assigned by anyone else are <see cref="CaseReference"/> rows.
+    /// </summary>
+    [MaxLength(64)]
+    public required string InternalReference { get; init; }
 
     [MaxLength(256)]
     public required string Title { get; init; }

@@ -77,7 +77,7 @@ The application is closed by default on the client too, and `MainLayout` is what
 - **Enums are stored as names**, `HasConversion<string>()` with an explicit length, as `UserRole` already is: an operator reads the column, and renumbering must not silently rewrite every row.
 - **Tags are rows, not an array column** — free text, stored as typed, unique per case. The set of tags already in use is then an indexed query rather than a scan.
 - **A file mark belongs to the proceeding, a file number to the document.** `CaseReference` holds the *spisová značka* of a case; the *číslo jednací* of one document belongs to the act it arrived with. Every authority in the chain assigns its own mark, so a case carries several at once and none of them is its identity.
-- **Absence carries meaning where a flag would drift.** A `CaseReference` with no `AssignedByPartyId` is the case's internal mark, and a filtered unique index (`... WHERE "AssignedByPartyId" IS NULL`) is what allows only one. Prefer that to a boolean column that can disagree with the data next to it.
+- **The case's own mark is a column; everyone else's is a row.** `Case.InternalReference` is required, generated on creation and unique per owner — a case always has exactly one, so it is not a row that could be missing or duplicated. `CaseReference` holds only marks assigned by somebody else, and `AssignedByPartyId` is therefore required.
 
 ## Secrets
 

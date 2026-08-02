@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EvilBrains.EvilCase.Data.Migrations.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260802122453_CaseReferences")]
+    [Migration("20260802163222_CaseReferences")]
     partial class CaseReferences
     {
         /// <inheritdoc />
@@ -35,6 +35,11 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("InternalReference")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
 
                     b.Property<long>("OwnerId")
                         .HasColumnType("bigint");
@@ -65,6 +70,9 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
 
                     b.HasIndex("ParentCaseId");
 
+                    b.HasIndex("OwnerId", "InternalReference")
+                        .IsUnique();
+
                     b.ToTable("Cases");
                 });
 
@@ -76,7 +84,7 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<long?>("AssignedByPartyId")
+                    b.Property<long>("AssignedByPartyId")
                         .HasColumnType("bigint");
 
                     b.Property<long>("CaseId")
@@ -93,11 +101,6 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AssignedByPartyId");
-
-                    b.HasIndex("CaseId")
-                        .IsUnique()
-                        .HasDatabaseName("IX_CaseReferences_CaseId_Internal")
-                        .HasFilter("\"AssignedByPartyId\" IS NULL");
 
                     b.HasIndex("Value");
 
@@ -297,7 +300,8 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.HasOne("EvilBrains.EvilCase.Data.Entities.Party", "AssignedBy")
                         .WithMany()
                         .HasForeignKey("AssignedByPartyId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("EvilBrains.EvilCase.Data.Entities.Case", "Case")
                         .WithMany()

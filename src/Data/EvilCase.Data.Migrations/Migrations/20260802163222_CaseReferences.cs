@@ -10,8 +10,8 @@ public partial class CaseReferences : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
+        AddInternalReference(migrationBuilder);
         CreateCaseReferences(migrationBuilder);
-        CreateCaseReferenceIndexes(migrationBuilder);
     }
 
     /// <inheritdoc />
@@ -19,6 +19,33 @@ public partial class CaseReferences : Migration
     {
         migrationBuilder.DropTable(
             name: "CaseReferences");
+
+        migrationBuilder.DropIndex(
+            name: "IX_Cases_OwnerId_InternalReference",
+            table: "Cases");
+
+        migrationBuilder.DropColumn(
+            name: "InternalReference",
+            table: "Cases");
+    }
+
+    private static void AddInternalReference(MigrationBuilder migrationBuilder)
+    {
+        // The default is for rows that predate the column. Nothing creates a case yet, so in practice it
+        // applies to none — and once #84 generates the mark, every new case arrives with a real one.
+        migrationBuilder.AddColumn<string>(
+            name: "InternalReference",
+            table: "Cases",
+            type: "character varying(64)",
+            maxLength: 64,
+            nullable: false,
+            defaultValue: "");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_Cases_OwnerId_InternalReference",
+            table: "Cases",
+            columns: ["OwnerId", "InternalReference"],
+            unique: true);
     }
 
     private static void CreateCaseReferences(MigrationBuilder migrationBuilder)
@@ -31,7 +58,7 @@ public partial class CaseReferences : Migration
                     .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                 CaseId = table.Column<long>(type: "bigint", nullable: false),
                 Value = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
-                AssignedByPartyId = table.Column<long>(type: "bigint", nullable: true),
+                AssignedByPartyId = table.Column<long>(type: "bigint", nullable: false),
                 Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
             },
             constraints: table =>
@@ -50,22 +77,11 @@ public partial class CaseReferences : Migration
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Restrict);
             });
-    }
 
-    private static void CreateCaseReferenceIndexes(MigrationBuilder migrationBuilder)
-    {
         migrationBuilder.CreateIndex(
             name: "IX_CaseReferences_AssignedByPartyId",
             table: "CaseReferences",
             column: "AssignedByPartyId");
-
-        // At most one mark per case with no assigning authority: the case's own internal mark.
-        migrationBuilder.CreateIndex(
-            name: "IX_CaseReferences_CaseId_Internal",
-            table: "CaseReferences",
-            column: "CaseId",
-            unique: true,
-            filter: "\"AssignedByPartyId\" IS NULL");
 
         migrationBuilder.CreateIndex(
             name: "IX_CaseReferences_CaseId_Value",

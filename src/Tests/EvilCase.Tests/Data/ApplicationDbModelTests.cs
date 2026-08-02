@@ -80,7 +80,28 @@ public class ApplicationDbModelTests
     }
 
     [Test]
-    public void ACaseHasAtMostOneInternalMarkAndAnyNumberOfExternalOnes()
+    public void TheInternalMarkIsAColumnOnTheCase()
+    {
+        using var context = new ApplicationDbContextFactory().CreateDbContext([]);
+
+        var @case = context.Model.FindEntityType(typeof(Case));
+
+        Assert.That(@case, Is.Not.Null);
+
+        var mark = @case.FindProperty(nameof(Case.InternalReference));
+        var unique = @case.GetIndexes().SingleOrDefault(index => index.IsUnique);
+        string[] expected = [nameof(Case.OwnerId), nameof(Case.InternalReference)];
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(mark, Is.Not.Null, "a case always has exactly one of its own, so it is a column and not a row");
+            Assert.That(mark?.IsNullable, Is.False, "it is generated with the case and never absent");
+            Assert.That(unique?.Properties.Select(property => property.Name), Is.EqualTo(expected), "and a generated series must not repeat within one owner");
+        }
+    }
+
+    [Test]
+    public void EveryExternalMarkNamesWhoAssignedIt()
     {
         using var context = new ApplicationDbContextFactory().CreateDbContext([]);
 
@@ -88,16 +109,17 @@ public class ApplicationDbModelTests
 
         Assert.That(reference, Is.Not.Null);
 
-        var filtered = reference.GetIndexes().Where(index => index.GetFilter() is not null);
-
-        var internalMark = filtered.SingleOrDefault(index => IsOver(index, nameof(CaseReference.CaseId)));
-
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(internalMark, Is.Not.Null, "the internal mark is the row with no assigning party");
-            Assert.That(internalMark?.IsUnique, Is.True, "and a case cannot have two of them");
-            Assert.That(internalMark?.GetFilter(), Does.Contain("IS NULL"), "external marks are unconstrained in number");
-            Assert.That(reference.FindProperty(nameof(CaseReference.AssignedByPartyId))?.IsNullable, Is.True, "null is what makes a mark internal");
+            Assert.That(
+                reference.FindProperty(nameof(CaseReference.AssignedByPartyId))?.IsNullable,
+                Is.False,
+                "a mark nobody assigned is the case's own, and that one lives on the case");
+
+            Assert.That(
+                reference.GetIndexes().Any(index => index.GetFilter() is not null),
+                Is.False,
+                "nothing here is conditional any more — this table is external marks and only those");
         }
     }
 
@@ -120,9 +142,6 @@ public class ApplicationDbModelTests
             Assert.That(reference.GetProperties().Any(property => string.Equals(property.Name, "OwnerId", StringComparison.Ordinal)), Is.False, "only aggregate roots carry an owner, and a mark is not one");
         }
     }
-
-    private static bool IsOver(IReadOnlyIndex index, string propertyName) =>
-        index.Properties.Count == 1 && string.Equals(index.Properties[0].Name, propertyName, StringComparison.Ordinal);
 
     private static bool IsIndexed(IReadOnlyEntityType entityType, string propertyName) =>
         entityType.GetIndexes().Any(index => index.Properties.Any(property => string.Equals(property.Name, propertyName, StringComparison.Ordinal)));
