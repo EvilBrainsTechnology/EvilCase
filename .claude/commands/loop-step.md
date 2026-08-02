@@ -99,8 +99,13 @@ blocked by it — a smaller part of the slice, or the next issue. A question nev
 ## 5. Build one thin vertical slice
 
 One pull request goes from database to UI and leaves the app usable. Small enough to review on a
-phone. Branch `loop/<issue>-<slug>` off `master`, and commit in logical units as the work proceeds,
-so the branch reads as a sequence of steps rather than one lump.
+phone. Branch `loop/<issue>-<slug>`, and commit in logical units as the work proceeds, so the branch
+reads as a sequence of steps rather than one lump.
+
+Off `master` when the slice needs nothing that is still open. When it builds on an unmerged branch,
+branch off that one instead and target it — see *Stacked pull requests* in `AGENTS.md`, which is
+binding. Never wait for a merge that is the owner's to make; stacking is how the loop keeps moving
+without one.
 
 `AGENTS.md` is binding, without exception — the API client generator, the controller conventions,
 the analyzers at error severity, `internal sealed` behind interfaces, no `Async` suffix, the
@@ -146,6 +151,12 @@ Everything in them is synthetic, by the standing rule below.
 ## 7. Pull request
 
 `gh pr create`, TL;DR on the first line, then what changed, the screenshots, and `Closes #<issue>`.
+Against `master`, or against the branch this one was built on.
+
+If it is the second pull request of a chain, link the chain as a stack on GitHub in the same step —
+the base branches alone leave the order implicit and every reviewer to work it out. `AGENTS.md` has
+the calls, including the one that dissolves a stack and must never be used to find out whether one
+exists.
 
 Then stop. **The loop never merges the pull request and never pushes to `master`** — not its own,
 not after a green CI run, not because the iteration would otherwise look unfinished. `AGENTS.md`
