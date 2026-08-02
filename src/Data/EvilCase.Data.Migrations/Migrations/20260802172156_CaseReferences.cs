@@ -10,7 +10,7 @@ public partial class CaseReferences : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        AddInternalReference(migrationBuilder);
+        AddInternalCaseReference(migrationBuilder);
         CreateCaseReferences(migrationBuilder);
     }
 
@@ -21,20 +21,20 @@ public partial class CaseReferences : Migration
             name: "CaseReferences");
 
         migrationBuilder.DropIndex(
-            name: "IX_Cases_OwnerId_InternalReference",
+            name: "IX_Cases_OwnerId_InternalCaseReference",
             table: "Cases");
 
         migrationBuilder.DropColumn(
-            name: "InternalReference",
+            name: "InternalCaseReference",
             table: "Cases");
     }
 
-    private static void AddInternalReference(MigrationBuilder migrationBuilder)
+    private static void AddInternalCaseReference(MigrationBuilder migrationBuilder)
     {
         // The default is for rows that predate the column. Nothing creates a case yet, so in practice it
         // applies to none — and once #84 generates the mark, every new case arrives with a real one.
         migrationBuilder.AddColumn<string>(
-            name: "InternalReference",
+            name: "InternalCaseReference",
             table: "Cases",
             type: "character varying(64)",
             maxLength: 64,
@@ -42,9 +42,9 @@ public partial class CaseReferences : Migration
             defaultValue: "");
 
         migrationBuilder.CreateIndex(
-            name: "IX_Cases_OwnerId_InternalReference",
+            name: "IX_Cases_OwnerId_InternalCaseReference",
             table: "Cases",
-            columns: ["OwnerId", "InternalReference"],
+            columns: ["OwnerId", "InternalCaseReference"],
             unique: true);
     }
 

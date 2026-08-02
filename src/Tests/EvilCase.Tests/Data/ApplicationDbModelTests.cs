@@ -88,9 +88,9 @@ public class ApplicationDbModelTests
 
         Assert.That(@case, Is.Not.Null);
 
-        var mark = @case.FindProperty(nameof(Case.InternalReference));
+        var mark = @case.FindProperty(nameof(Case.InternalCaseReference));
         var unique = @case.GetIndexes().SingleOrDefault(index => index.IsUnique);
-        string[] expected = [nameof(Case.OwnerId), nameof(Case.InternalReference)];
+        string[] expected = [nameof(Case.OwnerId), nameof(Case.InternalCaseReference)];
 
         using (Assert.EnterMultipleScope())
         {

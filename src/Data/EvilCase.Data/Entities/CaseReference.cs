@@ -6,7 +6,7 @@ namespace EvilBrains.EvilCase.Data.Entities;
 /// <summary>
 /// A file mark (<em>spisová značka</em>) that somebody else gave this case. Every authority in the chain
 /// assigns its own, so a case carries as many of these as there are authorities in it — and none of them
-/// is the case's own mark, which is <see cref="Case.InternalReference"/>.
+/// is the case's own mark, which is <see cref="Case.InternalCaseReference"/>.
 /// </summary>
 /// <remarks>
 /// This is the mark of the <em>proceeding</em>. The file number (<em>číslo jednací</em>) of a single

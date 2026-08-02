@@ -33,7 +33,7 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("InternalReference")
+                    b.Property<string>("InternalCaseReference")
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
@@ -67,7 +67,7 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
 
                     b.HasIndex("ParentCaseId");
 
-                    b.HasIndex("OwnerId", "InternalReference")
+                    b.HasIndex("OwnerId", "InternalCaseReference")
                         .IsUnique();
 
                     b.ToTable("Cases");
