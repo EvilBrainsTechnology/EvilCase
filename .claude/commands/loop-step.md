@@ -168,7 +168,8 @@ Everything in them is synthetic, by the standing rule below.
 ## 7. Pull request
 
 `gh pr create`, TL;DR on the first line, then what changed, the screenshots, and `Closes #<issue>`.
-Against `master`, or against the branch this one was built on.
+Against `master`, or against the branch this one was built on. Then `subscribe_pr_activity` on it, so
+its comments and CI arrive in the session rather than waiting for a round.
 
 If it is the second pull request of a chain, link the chain as a stack on GitHub in the same step —
 the base branches alone leave the order implicit and every reviewer to work it out. `AGENTS.md` has
