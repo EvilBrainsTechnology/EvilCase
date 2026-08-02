@@ -22,6 +22,28 @@ All commands run from `src/`, except the database one, which takes a path from t
   Without a database, `EvilBrains__EvilCase__Database__MigrateOnStartup=false` starts the host anyway, but `/health/ready` answers `503` and anything touching data fails. Sign-in is one of those things, so nothing behind the login page can be verified that way.
 - Trusted dev certificate: `dotnet dev-certs https --trust`.
 
+### Claude Code on the web
+
+`.claude/hooks/session-start.sh` does all of the above and runs automatically at session start, so a
+web session needs no manual setup — `dotnet r build`, `dotnet r test` and `dotnet r run` work straight
+away. It only runs where `CLAUDE_CODE_REMOTE` is `true`; a local machine is left alone.
+
+Two things differ from the list above, because the container has no .NET SDK and the egress policy
+blocks `builds.dotnet.microsoft.com`:
+
+- The SDK is copied out of `mcr.microsoft.com/dotnet/sdk:10.0` onto the host filesystem, which is the
+  only reachable source. Docker is used for that one copy and for nothing afterwards. `pwsh` is not in
+  that layout and comes from NuGet instead — `global.json` sets it as `scriptShell`, so every
+  `dotnet r` script needs it.
+- PostgreSQL is the container's own 16, started with `service postgresql start`, rather than the 18 in
+  `deploy/docker-compose.dev.yml`. Credentials, port and database name are the same, so the connection
+  string in `.env.example` is unchanged.
+
+The generated `.env` seeds `admin@evilcase.local` / `DevPassword123!`. Those credentials are throwaway
+and local to the container.
+
+`.claude/launch.json` runs the app on the host, so it works once the hook has run.
+
 ## Start
 
 One server serves everything: `dotnet r run` → `https://localhost:5000` (Scalar UI at `/scalar`, Development only).
