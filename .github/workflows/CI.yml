@@ -1,11 +1,11 @@
 name: CI
 
-# Run the workflow on pull requests to the main branch. The master and release paths call it from
+# Run the workflow on every pull request, whatever it targets. Filtering to master would leave every
+# layer of a stacked pull request unchecked, since those target the branch below them - four of them
+# had never been built when this filter was removed. The master and release paths call it from
 # Docker.yml instead, so the image is only published from a commit that passed this workflow.
 on:
   pull_request:
-    branches:
-      - master
   workflow_call:
   workflow_dispatch:
 
