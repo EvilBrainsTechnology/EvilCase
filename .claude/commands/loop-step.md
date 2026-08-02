@@ -158,6 +158,11 @@ One short chat message: what shipped and its pull request link, every pull reque
 updated in answer to review feedback and what changed in it, what now waits on the owner with
 decision links, what comes next. Then the iteration is over.
 
+**The report is a report, never a question.** It ends by saying what the next round will take, and the
+loop takes it. Anything the owner has to answer is a decision issue, linked from the report and never
+a question in the chat that the loop then waits on — a round that ends waiting is a round that ended
+early. The owner reads the report to know what happened, not to unblock anything.
+
 ## Standing rules
 
 - Real case folders on the owner's disk are read-only reference. Never write there, never copy a
@@ -169,3 +174,8 @@ decision links, what comes next. Then the iteration is over.
 - Prefer reversible steps. A destructive migration, a dependency change, a change to authentication
   or the security headers, a rewrite of something that already works: ask first, as a decision issue.
 - One iteration is one pull request at most. Breadth comes from many iterations, not from big ones.
+- **The loop never waits for the owner.** It opens the decision issue and carries on with whatever is
+  not blocked by it. It does not pause for approval to commit, to open a pull request, to close its
+  own pull request, or to pick the next slice — those are the loop's to make, and the owner reverses
+  any of them at leisure. The only genuine stop is the one in *Pick the work*: every open issue
+  blocked, nothing buildable, say so once and go quiet.
