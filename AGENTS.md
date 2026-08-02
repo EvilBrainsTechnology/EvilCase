@@ -76,6 +76,8 @@ The application is closed by default on the client too, and `MainLayout` is what
 - **`CaseTree`** (in `EvilCase.Data/Cases`) walks a loaded graph — descendants, ancestors, depth — and `CanNestUnder` is the only thing standing between the tree and a cycle. Every walk carries a visited set, so a graph that got a cycle anyway stops rather than hangs. It is pure over the navigation properties and says nothing about how the graph was loaded; a merged timeline over a whole sub-tree (M4) fetches it in one query instead of walking navigations.
 - **Enums are stored as names**, `HasConversion<string>()` with an explicit length, as `UserRole` already is: an operator reads the column, and renumbering must not silently rewrite every row.
 - **Tags are rows, not an array column** — free text, stored as typed, unique per case. The set of tags already in use is then an indexed query rather than a scan.
+- **A file mark belongs to the proceeding, a file number to the document.** `CaseReference` holds the *spisová značka* of a case; the *číslo jednací* of one document belongs to the act it arrived with. Every authority in the chain assigns its own mark, so a case carries several at once and none of them is its identity.
+- **Absence carries meaning where a flag would drift.** A `CaseReference` with no `AssignedByPartyId` is the case's internal mark, and a filtered unique index (`... WHERE "AssignedByPartyId" IS NULL`) is what allows only one. Prefer that to a boolean column that can disagree with the data next to it.
 
 ## Secrets
 

@@ -15,6 +15,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     public DbSet<CaseTag> CaseTags => this.Set<CaseTag>();
 
+    public DbSet<CaseReference> CaseReferences => this.Set<CaseReference>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
@@ -45,5 +47,20 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .WithOne(@case => @case.Parent)
             .HasForeignKey(@case => @case.ParentCaseId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // At most one internal mark per case — the row with no assigning authority. A filtered unique
+        // index rather than a flag, so there is nothing that can disagree with the column itself.
+        modelBuilder.Entity<CaseReference>()
+            .HasIndex(reference => reference.CaseId)
+            .HasFilter(@"""AssignedByPartyId"" IS NULL")
+            .IsUnique()
+            .HasDatabaseName("IX_CaseReferences_CaseId_Internal");
+
+        // A party accumulates history across cases, so it outlives any one mark that names it.
+        modelBuilder.Entity<CaseReference>()
+            .HasOne(reference => reference.AssignedBy)
+            .WithMany()
+            .HasForeignKey(reference => reference.AssignedByPartyId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

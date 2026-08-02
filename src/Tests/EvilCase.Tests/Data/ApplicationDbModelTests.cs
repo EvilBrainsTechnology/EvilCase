@@ -79,6 +79,51 @@ public class ApplicationDbModelTests
         }
     }
 
+    [Test]
+    public void ACaseHasAtMostOneInternalMarkAndAnyNumberOfExternalOnes()
+    {
+        using var context = new ApplicationDbContextFactory().CreateDbContext([]);
+
+        var reference = context.Model.FindEntityType(typeof(CaseReference));
+
+        Assert.That(reference, Is.Not.Null);
+
+        var filtered = reference.GetIndexes().Where(index => index.GetFilter() is not null);
+
+        var internalMark = filtered.SingleOrDefault(index => IsOver(index, nameof(CaseReference.CaseId)));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(internalMark, Is.Not.Null, "the internal mark is the row with no assigning party");
+            Assert.That(internalMark?.IsUnique, Is.True, "and a case cannot have two of them");
+            Assert.That(internalMark?.GetFilter(), Does.Contain("IS NULL"), "external marks are unconstrained in number");
+            Assert.That(reference.FindProperty(nameof(CaseReference.AssignedByPartyId))?.IsNullable, Is.True, "null is what makes a mark internal");
+        }
+    }
+
+    [Test]
+    public void AMarkNeverTakesAPartyDownWithIt()
+    {
+        using var context = new ApplicationDbContextFactory().CreateDbContext([]);
+
+        var reference = context.Model.FindEntityType(typeof(CaseReference));
+
+        Assert.That(reference, Is.Not.Null);
+
+        var toParty = reference.GetForeignKeys().SingleOrDefault(key => key.PrincipalEntityType.ClrType == typeof(Party));
+        var toCase = reference.GetForeignKeys().SingleOrDefault(key => key.PrincipalEntityType.ClrType == typeof(Case));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(toParty?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Restrict), "a party accumulates history across cases and outlives any one mark naming it");
+            Assert.That(toCase?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Cascade), "a mark has no meaning without its case");
+            Assert.That(reference.GetProperties().Any(property => string.Equals(property.Name, "OwnerId", StringComparison.Ordinal)), Is.False, "only aggregate roots carry an owner, and a mark is not one");
+        }
+    }
+
+    private static bool IsOver(IReadOnlyIndex index, string propertyName) =>
+        index.Properties.Count == 1 && string.Equals(index.Properties[0].Name, propertyName, StringComparison.Ordinal);
+
     private static bool IsIndexed(IReadOnlyEntityType entityType, string propertyName) =>
         entityType.GetIndexes().Any(index => index.Properties.Any(property => string.Equals(property.Name, propertyName, StringComparison.Ordinal)));
 }
