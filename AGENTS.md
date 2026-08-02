@@ -81,6 +81,8 @@ The application is closed by default on the client too, and `MainLayout` is what
 - **An act's ordinal orders it, it does not identify it.** Deliberately not unique within a case: a real case file has two unrelated submissions filed under one number (`test-data/case-01-speeding.md`). Nothing may key on `(CaseId, Ordinal)`.
 - **A date that a period runs from is a `DateOnly`.** An act's drafted, sent, delivered and received are calendar dates mapped to `date`, never `timestamptz` — a statutory deadline (M5) is counted in days and the hour never enters that arithmetic. Timestamps like `Created` stay `DateTime`.
 - **A party outlives what names it.** Every foreign key from a case, a mark or an act to `Parties` is `DeleteBehavior.Restrict`, because a party accumulates history across all cases; the owning case cascades instead.
+- **A file asset is bytes; everything else is on the link.** `FileAsset` carries the content hash, the size and the media type — no file name and no role. The same bytes are the final decision under the act that issued them and an attachment under every act citing them, under a different name each time, so `ActFileLink` holds the role, the name and the act the asset originated from.
+- **Deduplication stops at the owner.** `FileAssets` is unique on `(OwnerId, ContentHash)`, never on the hash alone: one row shared between owners would make one owner's delete another owner's problem, and M8 has enough to enforce already.
 
 ## Secrets
 
