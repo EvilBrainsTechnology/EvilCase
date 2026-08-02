@@ -67,7 +67,15 @@
             {
                 @* Table from lg up, cards below it: both render and CSS picks one, never C#. *@
                 <div class="d-none d-lg-block">
+                    @* QuickTable takes its default sort from the first column, so the column the API
+                       already ordered by has to be that one, or the table would silently re-sort the
+                       answer it was given. *@
                     <QuickTable Items="this.items.AsQueryable()" Class="card-table table-vcenter">
+                        <TemplateColumn Title="Změněno" Context="item"
+                                        SortBy="@(GridSort<CaseListItem>.ByAscending(item => item.Updated ?? item.Created))"
+                                        IsDefaultSort="SortDirection.Descending">
+                            @CaseListFormat.ChangedOn(item)
+                        </TemplateColumn>
                         <PropertyColumn Property="@(item => item.Title)" Title="Název" />
                         <PropertyColumn Property="@(item => item.Subject)" Title="Předmět" />
                         <TemplateColumn Title="Štítky" Context="item">
@@ -79,10 +87,7 @@
                         <TemplateColumn Title="Podspisy" Context="item">
                             @(item.SubCaseCount > 0 ? item.SubCaseCount.ToString(CultureInfo.InvariantCulture) : "")
                         </TemplateColumn>
-                        <TemplateColumn Title="Změněno" Context="item">
-                            @CaseListFormat.ChangedOn(item)
-                        </TemplateColumn>
-                        <TemplateColumn Title="Stav" Context="item">
+                        <TemplateColumn Title="Stav" Context="item" Class="text-nowrap">
                             <Status BackgroundColor="CaseStatusDisplay.Color(item.Status)" Lite="true">@CaseStatusDisplay.Text(item.Status)</Status>
                         </TemplateColumn>
                     </QuickTable>

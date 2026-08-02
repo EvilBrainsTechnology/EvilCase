@@ -12,7 +12,10 @@
                     <div class="text-secondary">@Case.Subject</div>
                 }
             </div>
-            <Status BackgroundColor="CaseStatusDisplay.Color(Case.Status)" Lite="true">@CaseStatusDisplay.Text(Case.Status)</Status>
+            @* Without this the flex row squeezes the pill and breaks a two-word status across three lines. *@
+            <div class="flex-shrink-0 text-nowrap">
+                <Status BackgroundColor="CaseStatusDisplay.Color(Case.Status)" Lite="true">@CaseStatusDisplay.Text(Case.Status)</Status>
+            </div>
         </div>
 
         @if (Case.Tags.Count > 0)
