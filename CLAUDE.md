@@ -18,6 +18,7 @@ All code lives in `src/` (solution `EvilCase.slnx`).
 | `Business/EvilCase.Business` | Business logic: the rules, the queries that answer a screen, the services the API calls |
 | `Business/EvilCase.Domain` | The shared kernel: the enums an entity and a wire DTO both name. No dependencies at all |
 | `Common/EvilCase.Auth` | Authentication: JWT bearer, sign-in, refresh token sessions, lockout, seeding |
+| `Common/EvilCase.Files` | Where a file asset's bytes live, behind `IFileStore` |
 | `Data/EvilCase.Data` | EF Core model + DbContext (PostgreSQL) — schema, nothing else |
 | `Data/EvilCase.Data.Migrations` | EF Core migrations |
 | `Tests/EvilCase.Tests` | Application tests (NUnit), including the host's routing through `WebApplicationFactory` |
@@ -37,6 +38,7 @@ Each file below loads only when its area is touched. Read the one that covers wh
 | `src/Business/CLAUDE.md` | The layers and what each may reference, the `IOwnerContext` seam |
 | `src/Data/CLAUDE.md` | Entities and domain model rules, `OwnerId`, list queries, migrations |
 | `src/Common/EvilCase.Auth/CLAUDE.md` | Tokens, rotation, lockout, seeding, default-deny authorization, the browser half |
+| `src/Common/EvilCase.Files/CLAUDE.md` | Content addressing, the on-disk layout, atomic writes |
 | `docs/product/vision.md` | What the product is being built into, the domain concepts, the milestones |
 | `.claude/skills/run-app/SKILL.md` | Running the app locally or in a web session, and verifying it |
 | `.claude/skills/product-loop/SKILL.md` | Operating the unattended product loop; `.claude/loop.md` is its entry point |

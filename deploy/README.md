@@ -37,6 +37,8 @@ The service is published over plain HTTP for a reverse proxy that terminates TLS
 
 Seq is driven by `EVILCASE_SEQ_URL` alone — an empty one logs to the console only.
 
+**Documents live in the `files` volume, and the database alone is no longer a complete backup.** The service writes file assets under `EvilBrains__EvilCase__Files__RootPath` (`/var/lib/evilcase/files` in the stack), laid out as `<first two hex characters of the SHA-256>/<hash>`. The database holds only the metadata pointing at them: restore one without the other and every document is a broken link. Back the volume up with the database, and restore them together.
+
 ```
 cp .env.example .env   # then fill in the connection string and the JWT key
 docker compose up -d

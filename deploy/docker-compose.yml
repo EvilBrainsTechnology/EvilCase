@@ -23,8 +23,16 @@ services:
       # No environment has a Seq server configured by default; an empty URL leaves the sink out.
       EvilBrains__EvilCase__Logging__Seq__ServerUrl: ${EVILCASE_SEQ_URL:-}
       EvilBrains__EvilCase__Logging__Seq__ApiKey: ${EVILCASE_SEQ_API_KEY:-}
+      # Inside the volume below. Documents live here and nowhere else, so from this point the database
+      # alone is no longer a complete backup.
+      EvilBrains__EvilCase__Files__RootPath: /var/lib/evilcase/files
+    volumes:
+      - files:/var/lib/evilcase/files
     logging:
       driver: json-file
       options:
         max-size: "10m"
         max-file: "3"
+
+volumes:
+  files:

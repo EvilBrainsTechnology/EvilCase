@@ -7,6 +7,7 @@ using EvilBrains.EvilCase.Api.Contract.User;
 using EvilBrains.EvilCase.Api.HealthChecks;
 using EvilBrains.EvilCase.Auth;
 using EvilBrains.EvilCase.Data;
+using EvilBrains.EvilCase.Files;
 using EvilBrains.EvilCase.Host;
 using EvilBrains.Logging.AspNetCore;
 using EvilBrains.Logging.Contract;
@@ -115,6 +116,8 @@ builder.Services.AddRateLimiter(
     });
 
 builder.AddEvilCaseAuth("EvilBrains:EvilCase:Auth");
+
+builder.Services.AddEvilCaseFiles("EvilBrains:EvilCase:Files");
 
 // The logger is passed explicitly: the parameterless overload does not register Serilog.ILogger.
 builder.Host.UseSerilog(Log.Logger);

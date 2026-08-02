@@ -24,6 +24,7 @@
     <ProjectReference Include="..\..\Api\EvilCase.Api\EvilCase.Api.csproj" />
     <ProjectReference Include="..\..\Business\EvilCase.Business\EvilCase.Business.csproj" />
     <ProjectReference Include="..\..\Business\EvilCase.Domain\EvilCase.Domain.csproj" />
+    <ProjectReference Include="..\..\Common\EvilCase.Files\EvilCase.Files.csproj" />
     <ProjectReference Include="..\..\EvilCase.Host\EvilCase.Host.csproj" />
   </ItemGroup>
 

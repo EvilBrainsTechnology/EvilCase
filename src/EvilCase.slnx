@@ -13,6 +13,7 @@
   </Folder>
   <Folder Name="/Common/">
     <Project Path="Common/EvilCase.Auth/EvilCase.Auth.csproj" />
+    <Project Path="Common/EvilCase.Files/EvilCase.Files.csproj" />
   </Folder>
   <Project Path="EvilCase.Host/EvilCase.Host.csproj" />
   <Folder Name="/Data/">
