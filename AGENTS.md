@@ -83,6 +83,7 @@ The application is closed by default on the client too, and `MainLayout` is what
 - **A party outlives what names it.** Every foreign key from a case, a mark or an act to `Parties` is `DeleteBehavior.Restrict`, because a party accumulates history across all cases; the owning case cascades instead.
 - **A file asset is bytes; everything else is on the link.** `FileAsset` carries the content hash, the size and the media type — no file name and no role. The same bytes are the final decision under the act that issued them and an attachment under every act citing them, under a different name each time, so `ActFileLink` holds the role, the name and the act the asset originated from.
 - **Deduplication stops at the owner.** `FileAssets` is unique on `(OwnerId, ContentHash)`, never on the hash alone: one row shared between owners would make one owner's delete another owner's problem, and M8 has enough to enforce already.
+- **A note hangs on a case or an act, and the database says so.** `Comments` is one table with two nullable parents and a check constraint, `("CaseId" IS NULL) <> ("ActId" IS NULL)`. One table rather than two because the merged timeline (M4) reads every note of a case and all its descendants at once. Check constraints live only in the design-time model — a test reading them needs `context.GetService<IDesignTimeModel>().Model`, not `context.Model`.
 
 ## Secrets
 
