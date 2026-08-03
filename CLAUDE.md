@@ -38,6 +38,8 @@ Each file below loads only when its area is touched. Read the one that covers wh
 | `.claude/skills/run-app/SKILL.md` | Running the app locally or in a web session, and verifying it |
 | `.claude/skills/product-loop/SKILL.md` | Operating the unattended product loop; `.claude/loop.md` is its entry point |
 
+A new project that carries rules of its own gets a `CLAUDE.md` next to it and a row in the table above, in the pull request that adds the project.
+
 Implementation detail lives in a README next to the code it describes, so it changes in the same commit as the code: `src/Utils/EvilBrains.Logging.AspNetCore/README.md` (server-side logging), `src/Utils/EvilBrains.Logging.WebAssembly/README.md` (browser-side logging), `deploy/README.md` (image, registry tags, the compose stack).
 
 ## Conventions
