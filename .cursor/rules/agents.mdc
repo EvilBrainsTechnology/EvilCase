@@ -1,6 +1,0 @@
----
-description: Repository agent instructions
-alwaysApply: true
----
-
-Follow the instructions in [AGENTS.md](mdc:AGENTS.md) at the repository root.
