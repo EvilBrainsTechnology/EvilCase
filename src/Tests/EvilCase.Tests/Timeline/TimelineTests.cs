@@ -128,6 +128,9 @@ public class TimelineTests
     {
         Id = id,
         OwnerId = 1,
+
+        // Required since the mark moved onto the case itself; the timeline never reads it.
+        InternalCaseReference = $"EC-{id.ToString(CultureInfo.InvariantCulture)}",
         Title = title,
         Status = CaseStatus.Active,
         Created = Midnight,
