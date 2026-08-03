@@ -35,10 +35,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         ConfigureFiles(modelBuilder);
     }
 
-    /// <summary>
-    /// As a name rather than as the enum's number: an operator reads the column, and renumbering must
-    /// not silently rewrite every row.
-    /// </summary>
     private static void ConfigureEnums(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<User>()
@@ -122,16 +118,14 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasForeignKey(link => link.ActId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // The link goes with its act. The asset does not: it is shared, so it outlives any one link and
-        // is only removable once nothing points at it.
+        // The asset is shared, so it outlives any one link.
         modelBuilder.Entity<ActFileLink>()
             .HasOne(link => link.FileAsset)
             .WithMany(asset => asset.Links)
             .HasForeignKey(link => link.FileAssetId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // Restrict rather than cascade: deleting the act an attachment came from must not silently take
-        // another act's link with it, which a second cascade path into this table would do.
+        // A second cascade path into this table would take another act's link with it.
         modelBuilder.Entity<ActFileLink>()
             .HasOne(link => link.OriginatingAct)
             .WithMany(act => act.AttachmentsTakenFromIt)

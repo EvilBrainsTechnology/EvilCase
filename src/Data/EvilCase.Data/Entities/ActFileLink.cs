@@ -22,16 +22,13 @@ public record ActFileLink : IEntity
     public required ActFileRole Role { get; init; }
 
     /// <summary>
-    /// The name this file carries here, which is not a property of the bytes — the same asset is
-    /// "Rozhodnutí" under the act that issued it and "Příloha 2" under the act citing it.
+    /// The name this file carries here, which is not a property of the bytes.
     /// </summary>
     [MaxLength(256)]
     public required string FileName { get; init; }
 
     /// <summary>
-    /// Where this asset came from, when it came from another act. This is what turns an attachment
-    /// whose name is a bare date into "the appellate decision of 15 March": the name says nothing and
-    /// the originating act says everything.
+    /// Where this asset came from, when it came from another act.
     /// </summary>
     public long? OriginatingActId { get; init; }
 
