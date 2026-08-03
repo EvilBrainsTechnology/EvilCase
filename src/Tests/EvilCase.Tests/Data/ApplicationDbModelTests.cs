@@ -247,7 +247,7 @@ public class ApplicationDbModelTests
             .Select(navigation => $"{navigation.DeclaringEntityType.ShortName()}.{navigation.Name}")
             .ToList();
 
-        Assert.That(eager, Is.Empty, "an AutoInclude turns one read of the case list into a read of everything under it");
+        Assert.That(eager, Is.Empty, "auto-include is off, and an AutoInclude() would turn one read of the case list into a read of everything under it");
     }
 
     private static bool IsIndexed(IReadOnlyEntityType entityType, string propertyName) =>

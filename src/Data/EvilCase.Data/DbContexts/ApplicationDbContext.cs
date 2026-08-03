@@ -28,8 +28,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         ConfigureEnums(modelBuilder);
         ConfigureCases(modelBuilder);
         ConfigureActs(modelBuilder);
-
-        DisableEagerLoading(modelBuilder);
     }
 
     /// <summary>
@@ -104,20 +102,5 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .WithMany(party => party.AddressedActs)
             .HasForeignKey(act => act.AddressedToPartyId)
             .OnDelete(DeleteBehavior.Restrict);
-    }
-
-    /// <summary>
-    /// Nothing in this model is fetched because it happens to be a navigation. A query that wants a
-    /// related collection says so with <c>Include</c>, and one that does not gets one query.
-    /// </summary>
-    /// <remarks>
-    /// Auto-include is already off by default, so this changes nothing today — it exists so that a
-    /// later <c>AutoInclude()</c> cannot quietly turn one read of the case list into a read of every
-    /// act under it. <c>ApplicationDbModelTests</c> pins it.
-    /// </remarks>
-    private static void DisableEagerLoading(ModelBuilder modelBuilder)
-    {
-        foreach (var navigation in modelBuilder.Model.GetEntityTypes().SelectMany(entityType => entityType.GetNavigations()))
-            navigation.SetIsEagerLoaded(eagerLoaded: false);
     }
 }
