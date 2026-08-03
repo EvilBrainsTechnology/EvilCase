@@ -562,7 +562,7 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Comment", b =>
                 {
                     b.HasOne("EvilBrains.EvilCase.Data.Entities.Act", "Act")
-                        .WithMany()
+                        .WithMany("Comments")
                         .HasForeignKey("ActId")
                         .OnDelete(DeleteBehavior.Cascade);
 
@@ -573,7 +573,7 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                         .IsRequired();
 
                     b.HasOne("EvilBrains.EvilCase.Data.Entities.Case", "Case")
-                        .WithMany()
+                        .WithMany("Comments")
                         .HasForeignKey("CaseId")
                         .OnDelete(DeleteBehavior.Cascade);
 
@@ -621,6 +621,8 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                 {
                     b.Navigation("AttachmentsTakenFromIt");
 
+                    b.Navigation("Comments");
+
                     b.Navigation("Files");
                 });
 
@@ -629,6 +631,8 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.Navigation("Acts");
 
                     b.Navigation("Children");
+
+                    b.Navigation("Comments");
 
                     b.Navigation("References");
 
