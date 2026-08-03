@@ -50,15 +50,23 @@ public static class CaseListQuery
     }
 
     /// <summary>
-    /// Narrows to one status. No status is every status, closed cases among them (#100).
+    /// Narrows to what the filter names. <see cref="CaseStatusFilter.Open"/> is everything not closed
+    /// and is what a request that says nothing gets (#100); only <see cref="CaseStatusFilter.All"/>
+    /// brings the archive back.
     /// </summary>
-    public static IQueryable<Case> WithStatus(this IQueryable<Case> cases, CaseStatus? status)
+    public static IQueryable<Case> WithStatus(this IQueryable<Case> cases, CaseStatusFilter filter)
     {
         ArgumentNullException.ThrowIfNull(cases);
 
-        return status is { } value
-            ? cases.Where(@case => @case.Status == value)
-            : cases;
+        return filter switch
+        {
+            CaseStatusFilter.Open => cases.Where(@case => @case.Status != CaseStatus.Closed),
+            CaseStatusFilter.All => cases,
+            CaseStatusFilter.Active => cases.Where(@case => @case.Status == CaseStatus.Active),
+            CaseStatusFilter.WaitingOnAuthority => cases.Where(@case => @case.Status == CaseStatus.WaitingOnAuthority),
+            CaseStatusFilter.Closed => cases.Where(@case => @case.Status == CaseStatus.Closed),
+            _ => throw new ArgumentOutOfRangeException(nameof(filter), filter, "Unknown case status filter."),
+        };
     }
 
     /// <summary>

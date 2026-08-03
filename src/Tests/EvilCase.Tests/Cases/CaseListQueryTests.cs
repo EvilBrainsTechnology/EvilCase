@@ -73,15 +73,23 @@ public class CaseListQueryTests
         }
     }
 
+    /// <summary>
+    /// The default is the one worth pinning: a request that names no filter must not quietly show the
+    /// archive (#100), and only <c>All</c> may leave the query untouched.
+    /// </summary>
     [Test]
-    public void AStatusNarrowsToItAndNoStatusNarrowsNothing()
+    public void OpenIsEverythingNotClosedAndOnlyAllNarrowsNothing()
     {
         var unfiltered = this.context.Cases.ToQueryString();
-        var closed = this.context.Cases.WithStatus(CaseStatus.Closed).ToQueryString();
+        var open = this.context.Cases.WithStatus(CaseStatusFilter.Open).ToQueryString();
+        var closed = this.context.Cases.WithStatus(CaseStatusFilter.Closed).ToQueryString();
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(this.context.Cases.WithStatus(null).ToQueryString(), Is.EqualTo(unfiltered), "no status is every status, closed cases among them");
+            Assert.That(new CaseListRequest().Status, Is.EqualTo(CaseStatusFilter.Open), "a request that says nothing gets the open cases");
+            Assert.That(this.context.Cases.WithStatus(CaseStatusFilter.All).ToQueryString(), Is.EqualTo(unfiltered));
+            Assert.That(open, Does.Contain("<>"), "open is everything not closed, so a status added later is open without a code change");
+            Assert.That(open, Does.Contain(nameof(CaseStatus.Closed)));
             Assert.That(closed, Does.Contain("\"Status\""));
             Assert.That(closed, Does.Contain(nameof(CaseStatus.Closed)), "the status is stored as its name, so the parameter carries the name too");
         }

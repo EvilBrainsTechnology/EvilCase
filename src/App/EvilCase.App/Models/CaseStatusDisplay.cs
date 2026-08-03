@@ -17,6 +17,20 @@ public static class CaseStatusDisplay
         _ => "",
     };
 
+    /// <summary>
+    /// The filter's own wording. <c>Open</c> and <c>All</c> are not statuses and have no colour; the
+    /// rest read the same as the status they name.
+    /// </summary>
+    public static string FilterText(CaseStatusFilter filter) => filter switch
+    {
+        CaseStatusFilter.Open => "Otevřené",
+        CaseStatusFilter.All => "Všechny stavy",
+        CaseStatusFilter.Active => Text(CaseStatus.Active),
+        CaseStatusFilter.WaitingOnAuthority => Text(CaseStatus.WaitingOnAuthority),
+        CaseStatusFilter.Closed => Text(CaseStatus.Closed),
+        _ => "",
+    };
+
     public static TablerColor Color(CaseStatus status) => status switch
     {
         CaseStatus.Active => TablerColor.Green,

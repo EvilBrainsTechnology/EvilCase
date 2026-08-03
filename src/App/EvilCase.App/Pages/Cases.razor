@@ -29,12 +29,13 @@
                     </div>
 
                     <div class="col-12 col-lg-auto">
+                        @* No empty option: the filter is always set to something, so a case that is
+                           present but not shown can be explained by reading the control (#100). *@
                         <select class="form-select" aria-label="Stav spisu"
                                 @bind="this.status" @bind:after="this.Reload">
-                            <option value="">Všechny stavy</option>
-                            @foreach (var value in Statuses)
+                            @foreach (var value in Filters)
                             {
-                                <option value="@value">@CaseStatusDisplay.Text(value)</option>
+                                <option value="@value">@CaseStatusDisplay.FilterText(value)</option>
                             }
                         </select>
                     </div>
@@ -59,7 +60,7 @@
                 <div class="empty">
                     <p class="empty-title">Žádné spisy</p>
                     <p class="empty-subtitle text-secondary">
-                        @(this.IsNarrowed ? "Zkuste jiné hledání nebo jiný stav." : "Zatím tu není žádný spis.")
+                        @(this.IsNarrowed ? "Zkuste jiné hledání nebo jiný stav — uzavřené spisy se ve výchozím nastavení nezobrazují." : "Zatím tu není žádný spis.")
                     </p>
                 </div>
             }
@@ -111,15 +112,15 @@
     /// </summary>
     private static readonly TimeSpan SearchDelay = TimeSpan.FromMilliseconds(300);
 
-    private static readonly CaseStatus[] Statuses = Enum.GetValues<CaseStatus>();
+    private static readonly CaseStatusFilter[] Filters = Enum.GetValues<CaseStatusFilter>();
 
     private IReadOnlyList<CaseListItem>? items;
     private string search = "";
-    private CaseStatus? status;
+    private CaseStatusFilter status = CaseStatusFilter.Open;
     private string? failure;
     private CancellationTokenSource? pending;
 
-    private bool IsNarrowed => !string.IsNullOrWhiteSpace(this.search) || this.status is not null;
+    private bool IsNarrowed => !string.IsNullOrWhiteSpace(this.search) || this.status != CaseStatusFilter.All;
 
     protected override Task OnInitializedAsync() => this.Load(debounce: false);
 

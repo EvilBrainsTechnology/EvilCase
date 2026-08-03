@@ -11,14 +11,14 @@ public class CasesControllerTests
     {
         var reader = new RecordingCaseReader();
         var controller = new CasesController(reader);
-        var request = new CaseListRequest { Search = "odvolání", Status = CaseStatus.WaitingOnAuthority };
+        var request = new CaseListRequest { Search = "odvolání", Status = CaseStatusFilter.WaitingOnAuthority };
 
         _ = await controller.ListCases(request, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(reader.Request?.Search, Is.EqualTo("odvolání"));
-            Assert.That(reader.Request?.Status, Is.EqualTo(CaseStatus.WaitingOnAuthority));
+            Assert.That(reader.Request?.Status, Is.EqualTo(CaseStatusFilter.WaitingOnAuthority));
         }
     }
 

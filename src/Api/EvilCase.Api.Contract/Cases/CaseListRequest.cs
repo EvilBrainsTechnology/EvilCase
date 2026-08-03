@@ -1,7 +1,7 @@
 namespace EvilBrains.EvilCase.Api.Contract.Cases;
 
 /// <summary>
-/// What narrows the case list. Both are absent by default, and absent means no narrowing at all.
+/// What narrows the case list.
 /// </summary>
 public sealed record CaseListRequest
 {
@@ -10,5 +10,9 @@ public sealed record CaseListRequest
     /// </summary>
     public string? Search { get; init; }
 
-    public CaseStatus? Status { get; init; }
+    /// <summary>
+    /// Defaults to <see cref="CaseStatusFilter.Open"/> — a request that says nothing gets the open
+    /// cases, not every case (#100).
+    /// </summary>
+    public CaseStatusFilter Status { get; init; } = CaseStatusFilter.Open;
 }
