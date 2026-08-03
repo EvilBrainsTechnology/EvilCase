@@ -3,8 +3,7 @@ using System.Text.Json.Serialization;
 namespace EvilBrains.EvilCase.Api.Contract.Files;
 
 /// <summary>
-/// What one file is to one act. The role is on the link and never on the asset: the same bytes are the
-/// final decision in the act that issued it and an attachment in the five acts that cite it.
+/// What one file is to one act. The role is on the link, never on the asset.
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter<ActFileRole>))]
 public enum ActFileRole
@@ -22,14 +21,12 @@ public enum ActFileRole
     Attachment = 2,
 
     /// <summary>
-    /// A <em>doručenka</em>. It arrives as its own file, named after the message it acknowledges rather
-    /// than after the act.
+    /// A <em>doručenka</em>.
     /// </summary>
     DeliveryReceipt = 3,
 
     /// <summary>
-    /// A data-box envelope, a `.zfo`. The same envelope is sometimes an act's own and an attachment of
-    /// another act quoting it.
+    /// A data-box envelope, a `.zfo`.
     /// </summary>
     Envelope = 4,
 }
