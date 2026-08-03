@@ -37,7 +37,7 @@ public sealed class CommentHygieneAnalyzer : DiagnosticAnalyzer
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true);
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(BeginWithSpace, PrecededByBlankLine, NotFollowedByBlankLine);
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [BeginWithSpace, PrecededByBlankLine, NotFollowedByBlankLine];
 
     public override void Initialize(AnalysisContext context)
     {

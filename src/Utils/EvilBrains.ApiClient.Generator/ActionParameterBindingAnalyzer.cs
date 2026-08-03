@@ -13,7 +13,7 @@ namespace EvilBrains.ApiClient.Generator;
 public sealed class ActionParameterBindingAnalyzer : DiagnosticAnalyzer
 {
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
-        ImmutableArray.Create(Diagnostics.MissingBindingAttribute);
+        [Diagnostics.MissingBindingAttribute];
 
     public override void Initialize(AnalysisContext context)
     {
