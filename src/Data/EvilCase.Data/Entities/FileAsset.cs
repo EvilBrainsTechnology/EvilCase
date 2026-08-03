@@ -45,9 +45,5 @@ public record FileAsset : IEntity
 
     public User? Owner { get; init; }
 
-    /// <summary>
-    /// Every link pointing at this asset. An asset is shared, so this is what says whether anything
-    /// still needs it. Never loaded unless a query asks.
-    /// </summary>
     public ICollection<ActFileLink> Links { get; init; } = [];
 }

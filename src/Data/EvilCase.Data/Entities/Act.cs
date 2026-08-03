@@ -73,14 +73,7 @@ public record Act : IEntity
 
     public Party? AddressedTo { get; init; }
 
-    /// <summary>
-    /// The links this act owns. Never loaded unless a query asks — auto-include is switched off for the
-    /// whole model in <c>ApplicationDbContext</c>.
-    /// </summary>
     public ICollection<ActFileLink> Files { get; init; } = [];
 
-    /// <summary>
-    /// Links on other acts that name this one as where the attachment came from.
-    /// </summary>
     public ICollection<ActFileLink> AttachmentsTakenFromIt { get; init; } = [];
 }
