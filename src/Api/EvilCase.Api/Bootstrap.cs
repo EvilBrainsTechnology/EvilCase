@@ -64,9 +64,7 @@ public static class Bootstrap
         services.AddHttpContextAccessor();
         services.AddScoped<IOwnerContext, PrincipalOwnerContext>();
 
-        services
-            .AddHealthChecks()
-            .AddEvilCaseBusinessHealthChecks(HealthCheckTags.Ready);
+        services.AddHealthChecks();
 
         return services;
     }

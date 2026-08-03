@@ -9,6 +9,7 @@
   </Folder>
   <Folder Name="/Business/">
     <Project Path="Business/EvilCase.Business/EvilCase.Business.csproj" />
+    <Project Path="Business/EvilCase.Domain/EvilCase.Domain.csproj" />
   </Folder>
   <Folder Name="/Common/">
     <Project Path="Common/EvilCase.Auth/EvilCase.Auth.csproj" />
@@ -17,9 +18,6 @@
   <Folder Name="/Data/">
     <Project Path="Data/EvilCase.Data.Migrations/EvilCase.Data.Migrations.csproj" />
     <Project Path="Data/EvilCase.Data/EvilCase.Data.csproj" />
-  </Folder>
-  <Folder Name="/Domain/">
-    <Project Path="Domain/EvilCase.Domain/EvilCase.Domain.csproj" />
   </Folder>
   <Folder Name="/Tests/">
     <Project Path="Tests/EvilCase.Tests/EvilCase.Tests.csproj" />

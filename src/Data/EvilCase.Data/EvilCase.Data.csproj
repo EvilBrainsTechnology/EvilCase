@@ -8,7 +8,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Domain\EvilCase.Domain\EvilCase.Domain.csproj" />
+    <ProjectReference Include="..\..\Business\EvilCase.Domain\EvilCase.Domain.csproj" />
     <ProjectReference Include="..\..\Utils\EvilBrains.EntityFramework\EvilBrains.EntityFramework.csproj" />
   </ItemGroup>
 
