@@ -59,7 +59,7 @@ jobs:
       # Derive the image tags: semver plus latest from a release, edge from master
       - name: Compute image metadata
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ${{ env.IMAGE }}
           tags: |
