@@ -46,6 +46,10 @@ blocks `builds.dotnet.microsoft.com`:
 The generated `.env` seeds `admin@evilcase.local` / `DevPassword123!`. Those credentials are throwaway
 and local to the container.
 
+The hook writes `src/EvilCase.Host/.env` into the main checkout only, so a git worktree has none and
+the host will not start there. Copy that file into the worktree's `src/EvilCase.Host/`, or run the
+app from the main checkout and keep the worktree for the code.
+
 `.claude/launch.json` runs the app on the host, so it works once the hook has run.
 
 ## Start
@@ -58,16 +62,16 @@ In Claude Code, start it through the preview server defined in `.claude/launch.j
 
 The application is closed by default: every endpoint except health, sign-in and the client log upload needs a bearer token, and every page except `/login` needs a signed-in user.
 
-- Health: `curl.exe -sk https://localhost:5000/health/ready` → `{"status":"Healthy","checks":[{"name":"database","status":"Healthy"}]}`. `503` means the database is unreachable; `/health/live` answers even then.
+- Health: `curl -sk https://localhost:5000/health/ready` → `{"status":"Healthy","checks":[{"name":"database","status":"Healthy"}]}`. `503` means the database is unreachable; `/health/live` answers even then.
 - Sign in with the seeded administrator and keep the access token:
 
   ```bash
-  curl.exe -sk -X POST https://localhost:5000/api/auth/login -H "Content-Type: application/json" -d '{"email":"<seed email>","password":"<seed password>"}'
+  curl -sk -X POST https://localhost:5000/api/auth/login -H "Content-Type: application/json" -d '{"email":"<seed email>","password":"<seed password>"}'
   ```
 
   → `{"accessToken":"...","expiresAt":"...","email":"...","role":"Administrator"}`. `401` is bad credentials, `423` a lockout (5 failures, 15 minutes).
-- API round-trip: `curl.exe -sk -X POST https://localhost:5000/api/echo/post -H "Content-Type: application/json" -H "Authorization: Bearer <accessToken>" -d '{"message":"ping"}'` → `{"message":"Echo: ping"}`. Without the header it is `401`, which is the fallback policy working, not a failure.
-- Unknown API path: `curl.exe -sk -o /dev/null -w "%{http_code}" https://localhost:5000/api/nope` → `404`, never the app's HTML.
+- API round-trip: `curl -sk -X POST https://localhost:5000/api/echo/post -H "Content-Type: application/json" -H "Authorization: Bearer <accessToken>" -d '{"message":"ping"}'` → `{"message":"Echo: ping"}`. Without the header it is `401`, which is the fallback policy working, not a failure.
+- Unknown API path: `curl -sk -o /dev/null -w "%{http_code}" https://localhost:5000/api/nope` → `404`, never the app's HTML.
 - Frontend: open `https://localhost:5000`, which redirects to `/login`; sign in with the seeded administrator, then open `/echo`, type text and click Send → page shows `Echo: <text>`. First WebAssembly load takes a few seconds.
 
 ## Stop

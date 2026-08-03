@@ -1,6 +1,6 @@
 ---
 name: product-loop
-description: Run one round of the EvilCase product loop — apply answered decisions, clear open pull requests, ship thin vertical slices, report. Use for every round of /loop, and whenever the loop's schedule, its decision issues, its GitHub access or its stacked pull requests are in question.
+description: Run one round of the EvilCase product loop — apply answered decisions, clear open pull requests, ship thin vertical slices, report. Use for every round started from `.claude/loop.md`, the loop's entry point in this repository, and whenever the loop's schedule, its decision issues, its GitHub access or its stacked pull requests are in question. Unrelated to the global `loop` skill, which only repeats a prompt on an interval.
 ---
 
 # EvilCase product loop
@@ -13,12 +13,14 @@ Read at the start of every round, before anything else: `docs/product/vision.md`
 
 ## GitHub without `gh`
 
-**`gh` is not installed in this container and `github.com` is blocked by the egress policy.** `api.github.com` is reachable, `$GH_TOKEN` is in the environment, and `git` works against `origin`. Everything below is a `curl`; a round must never depend on a tool it might not have, including `mcp__github__*` — a Routine carries no connector grants unless the session that created it held them, so a fired round can wake with no MCP tools at all.
+**`gh` is not installed in this container.** `github.com` and `api.github.com` are both reachable, `$GH_TOKEN` is in the environment, and `git` works against `origin`; `docs.github.com` is the one the egress policy refuses, so the API is used from what is written here rather than from its documentation. Everything below is a `curl`; a round must never depend on a tool it might not have, including `mcp__github__*` — a Routine carries no connector grants unless the session that created it held them, so a fired round can wake with no MCP tools at all.
 
 ```bash
 GH=https://api.github.com/repos/EvilBrainsTechnology/EvilCase
 curl -s -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "$GH/issues?state=open&per_page=100"
 ```
+
+**Inside a worktree a pipeline is refused** — `curl … | python3 …` comes back as too complex to verify that it stays inside the worktree, and every subagent that writes to the repository has one. Write the calls into a script in the scratchpad directory and run `bash script.sh`. Read the responses with `python3`, not `jq`.
 
 | Need | Call |
 | --- | --- |
@@ -38,7 +40,9 @@ curl -s -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+
 | CI state of a branch head | `GET $GH/commits/{sha}/check-runs` |
 | Labels and milestones | `GET $GH/labels`, `POST $GH/labels`, `GET $GH/milestones`, `POST $GH/milestones` |
 
-**Identity is ambiguous, and `GET /user` is the wrong way to resolve it.** That endpoint answers `vdolek` for `$GH_TOKEN`, but every pull request, issue and comment written with the same token is attributed to `claude[bot]`. Measured, not assumed. So: identify the loop's own writing by the author of the written object — `user.login == "claude[bot]"` — and never by what `/user` says.
+**Author does not say which pull requests are the loop's — the branch does.** `GET /user` answers `vdolek` for `$GH_TOKEN`, and the open pull requests are split between `vdolek` and `claude[bot]` because the older ones were opened through `gh` while it still existed. **A pull request is the loop's when its head branch is `loop/*` or `claude/*`**; scoping by author instead skips most of what is open.
+
+Author is still the right test for one thing: everything written from here on is attributed to `claude[bot]`, so `user.login == "claude[bot]"` is how a comment the loop wrote is told apart from an answer to it. Measured, not assumed — and never taken from `/user`.
 
 ## 0. Work runs in subagents, not in the main thread
 
@@ -55,7 +59,7 @@ A subagent finishes what it was given: writes the code, runs `dotnet r ci`, comm
 Three things stay with the main thread, because a subagent cannot do them:
 
 - **Talking to the owner.** A subagent has no one to ask, so a question it hits becomes a decision issue and the round carries on.
-- **The schedule.** `list_triggers` and `create_trigger` are not reachable from a subagent.
+- **The schedule.** The owner's turn ends in the main thread, so that is where the Routine is checked and armed. A subagent does not assume `list_triggers` or `create_trigger` is reachable from it.
 - **Merging**, when the owner has asked for it by name — and never otherwise.
 
 ### Independent work runs in parallel, each in its own worktree
@@ -63,6 +67,8 @@ Three things stay with the main thread, because a subagent cannot do them:
 Review comments on three pull requests are three tasks that do not touch each other, and so are two unrelated issues. Spawn them together rather than one after another.
 
 **Every subagent that writes to the repository gets `isolation: "worktree"`.** They otherwise share one checkout, and a `git checkout` in one destroys what another is holding — the failure is silent and looks like work that was never done. A read-only subagent does not need one. Two tasks that would edit the same file are not independent and do not go out together whatever the isolation says.
+
+The root `CLAUDE.md` that loads automatically is the parent checkout's copy, not the worktree's, so a task whose branch edits it re-reads it from the worktree. A worktree also has no `src/EvilCase.Host/.env` — see `.claude/skills/run-app/SKILL.md`.
 
 The main thread relays what came back; a subagent's report is not shown to the owner.
 
@@ -90,7 +96,7 @@ Unanswered decisions stay open.
 
 ## 2. Get what is open merged, before opening anything new
 
-For each open pull request the loop authored, read the reviews and both kinds of comment, and find everything from the owner that has not been answered.
+For each open pull request on a `loop/*` or `claude/*` branch, read the reviews and both kinds of comment, and find everything from the owner that has not been answered.
 
 **Not "what is new since the last round" — what is unanswered.** A round that filters by timestamp misses anything written while an earlier round was still running, and from then on the comment is always older than the cutoff, so every later round misses it too. The age of a comment proves nothing either: a rebase rewrites every commit date on the branch, so *arrived after the last commit* stops meaning anything the moment the branch is rebased.
 
@@ -115,6 +121,8 @@ Take new work only when every open pull request is green, current and answered.
 Take the single highest-value open issue that is neither `blocked` nor `needs-decision`, preferring the lowest open milestone. Honour the focus argument if one was given.
 
 **Between two candidates, take the one that lands on `master` on its own.** A slice that needs an unmerged branch adds a layer to something already waiting. Depth is only worth it when the work genuinely cannot exist otherwise — see *Stacked pull requests* below. If every remaining candidate would deepen a stack, say so in the report rather than deepening it by default.
+
+**The two preferences compose in that order: landing on `master` alone first, the milestone second.** An issue with no milestone is ranked on its value like any other and is not deferred for lacking one — a small fix that lands on `master` alone (#128, #129, #133) outranks a milestone issue that would deepen a stack.
 
 - Backlog empty → derive the next thin vertical slice from the vision, open an issue for it, take it.
 - Every open issue blocked → do not idle and do not guess. Post one chat message re-surfacing the open questions with their issue links, and stop the round.
@@ -156,7 +164,7 @@ One pull request goes from database to UI and leaves the app usable. Small enoug
 
 Off `master` when the slice needs nothing that is still open. When it builds on an unmerged branch, branch off that one instead and target it.
 
-The `CLAUDE.md` files are binding, without exception — the API client generator, the controller conventions, the analyzers at error severity, `internal sealed` behind interfaces, no `Async` suffix, the responsive rules, English in the repository and Czech in the UI strings.
+The `CLAUDE.md` files are binding, without exception. Read the one that owns the area being changed; the root file's table says which that is.
 
 Authentication already ships and is default-deny. Every new endpoint is authenticated and every new page sits inside `MainLayout`, therefore protected. Adding `[AllowAnonymous]` anywhere, or placing a page outside `MainLayout`, is a decision issue, never a silent choice. Every new aggregate root carries its owner from its first migration.
 
@@ -166,7 +174,7 @@ All four hold before the pull request exists:
 
 - `dotnet r ci` green, run from `src/`.
 - New tests covering what the slice adds, not only that it builds.
-- Visual proof, as described below.
+- Visual proof, as described below — unless the slice changes no screen, in which case there is none and the pull request body says so in one line.
 - Documentation updated in the same commit: the `CLAUDE.md` that owns the area for a cross-cutting rule, the README next to the code for implementation detail.
 
 A red gate is fixed, never worked around. Analyzers are not suppressed to pass. If the slice cannot meet the gate, shrink the slice.
@@ -175,14 +183,16 @@ A red gate is fixed, never worked around. Analyzers are not suppressed to pass. 
 
 Start PostgreSQL and the `evilcase` preview server as `.claude/skills/run-app/SKILL.md` describes, sign in as the seeded administrator, and screenshot every changed screen at 1440×900 and at 390×844, the two sides of the `lg` breakpoint.
 
-There is no way to upload an image to GitHub outside the web interface, so the screenshots reach the pull request as committed files. **`docs/screenshots/` does not exist yet — the first slice that needs it creates it.**
+**Playwright takes them.** The module is at `/opt/node22/lib/node_modules/playwright` and its browsers at `/opt/pw-browsers`, which `PLAYWRIGHT_BROWSERS_PATH` already points to. Drive it from an `.mjs` script that imports the absolute path — `import playwright from '/opt/node22/lib/node_modules/playwright/index.js'` — because a bare `'playwright'` resolves from neither the repository nor a worktree. **Never run `playwright install`**; the browsers are on disk and the download is blocked.
+
+There is no way to upload an image to GitHub outside the web interface, so the screenshots reach the pull request as committed files. **`docs/screenshots/` is not on `master` yet — #102 creates it, and until that merges the first slice to commit into it creates it again.**
 
 - Save them as `docs/screenshots/<issue>/<screen>-<width>.png` and commit them with the slice.
 - Embed them in the pull request body by raw URL pinned to that commit, which resolves before the branch is merged and after it is deleted: `https://raw.githubusercontent.com/EvilBrainsTechnology/EvilCase/<sha>/docs/screenshots/...`
 - A slice that replaces a screen deletes the screenshots it supersedes in the same pull request, so the directory stays the current state of the application rather than its history.
 - **A rebase orphans the pinned commit and every one of those URLs starts answering `404`.** Re-point them to the new head in the same step as the force-push, never later: a broken image shows up only when somebody opens the pull request.
 - **Check a raw URL with `curl -o /dev/null -w '%{http_code}'` and no `Authorization` header.** `$GH_TOKEN` is an app token and `raw.githubusercontent.com` answers `404` to it whatever the file, so a check that sends it condemns every screenshot in the repository at once. That the URL resolves is the whole question; how GitHub renders the image is not, and is never worth a test comment in somebody's pull request.
-- **A write can come back with the URL wrapped in a backtick** — ``![alt](`url`)``, which renders as literal text. Read the response body back after every write, and where that happened embed it as `<img src="url" alt="...">` instead. Editing the markdown again adds another backtick. #102 carries one such image.
+- **A write can come back with the URL wrapped in a backtick** — ``![alt](`url`)``, which renders as literal text. Read the response body back after every write, and where that happened embed it as `<img src="url" alt="...">` instead. Editing the markdown again adds another backtick. #102 hit it once and carries that image as an `<img>`.
 
 Everything in the screenshots is synthetic, by the standing rule below.
 
@@ -199,6 +209,8 @@ Then stop. The root `CLAUDE.md` forbids an agent to merge on its own initiative 
 One short chat message covering the whole round: everything that shipped with its pull request link, every pull request updated in answer to review feedback or rebased onto a moving base and what changed in it, what now waits on the owner with decision links, what comes next. A round that did several things reports several — length follows the work, but each line stays one line.
 
 **The report is a report, never a question.** It ends by saying what the next round will take, and the loop takes it. Anything the owner has to answer is a decision issue, linked from the report and never a question in the chat that the loop then waits on. The owner reads the report to know what happened, not to unblock anything.
+
+**The report is in Czech**, like every other message to the owner — a fired round has no user message to infer the language from. Everything committed and every GitHub write stays English, by the root `CLAUDE.md`.
 
 **Times are Prague time**, in the report and in every other message to the owner. The container runs UTC, so convert — `TZ=Europe/Prague date`.
 
@@ -236,6 +248,8 @@ A slice that needs something not yet on `master` branches off the branch carryin
   | `POST $GH/stacks/{number}/unstack` | **Dissolves the stack.** No body, no confirmation, and it answers `204` to a probe as readily as to an intention. Never call it to find out whether it exists. |
 
   A pull request carries its membership as a `stack` object (`number`, `size`, `position`), which is how to check a chain is linked without listing every stack.
+
+- **A stack keeps its merged and closed members.** The API offers no removal short of `unstack`, so stack 104 still listing merged #86 and closed #97 is how stacks behave, not a defect to clean up.
 
 - **A merge moves the floor.** When the bottom of a stack merges, GitHub retargets the one above it onto the merged base and the rest need rebasing onto the new `master`. That is work for whoever owns the branches, not a reason to touch the merge.
 - **An agent does not decide a stack is ready**, and merging the bottom of one is still merging.

@@ -20,7 +20,7 @@ happened, what is running, what has to be done next.
   on the aggregates and user management. Build the first as it goes; leave the second.
 - Consequence: every aggregate root carries its owner from its first migration, there is no global
   mutable state, and no query assumes a single user. Roles, invitations and billing are not built.
-- The column is therefore M0 work and every milestone after it, while M8 is the enforcement: until
+- The owner column is therefore M0 work and every milestone after it, while M8 is the enforcement: until
   then a single user owns everything, and nothing filters by owner because nothing has to.
 
 ## Domain model
