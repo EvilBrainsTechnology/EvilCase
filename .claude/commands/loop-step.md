@@ -183,6 +183,15 @@ the screenshots reach the pull request as committed files:
 - **A rebase orphans the pinned commit and every one of those URLs starts answering `404`.**
   Re-point them to the new head in the same step as the force-push, never later: a broken image in a
   pull request body shows up only when somebody opens it, so nothing else in the round catches it.
+- **Check a raw URL with `curl -o /dev/null -w '%{http_code}'` and no `Authorization` header.**
+  `$GH_TOKEN` is an app token and `raw.githubusercontent.com` answers `404` to it whatever the file,
+  so a check that sends it condemns every screenshot in the repository at once. That the URL resolves
+  is the whole question; how GitHub renders the image is not, and is never worth a test comment in
+  somebody's pull request.
+- **A write can come back with the URL wrapped in a backtick** — `![alt](`` `url` ``)`, which renders
+  as literal text. Read the response body back after every write, and where that happened embed it as
+  `<img src="url" alt="...">` instead. Editing the markdown again adds another backtick. #102 carries
+  one such image.
 
 Everything in them is synthetic, by the standing rule below.
 
