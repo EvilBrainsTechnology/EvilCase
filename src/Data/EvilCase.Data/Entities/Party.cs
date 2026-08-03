@@ -49,4 +49,10 @@ public record Party : IEntity
     public DateTime? Updated { get; init; }
 
     public User? Owner { get; init; }
+
+    public ICollection<CaseReference> AssignedCaseReferences { get; init; } = [];
+
+    public ICollection<Act> IssuedActs { get; init; } = [];
+
+    public ICollection<Act> AddressedActs { get; init; } = [];
 }

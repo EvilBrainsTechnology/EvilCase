@@ -78,6 +78,9 @@ The application is closed by default on the client too, and `MainLayout` is what
 - **Tags are rows, not an array column** — free text, stored as typed, unique per case. The set of tags already in use is then an indexed query rather than a scan.
 - **A file mark belongs to the proceeding, a file number to the document.** `CaseReference` holds the *spisová značka* of a case; the *číslo jednací* of one document belongs to the act it arrived with. Every authority in the chain assigns its own mark, so a case carries several at once and none of them is its identity.
 - **The case's own mark is a column; everyone else's is a row.** `Case.InternalCaseReference` is required, generated on creation and unique per owner — a case always has exactly one, so it is not a row that could be missing or duplicated. `CaseReference` holds only marks assigned by somebody else, and `AssignedByPartyId` is therefore required.
+- **An act's ordinal orders it, it does not identify it.** Deliberately not unique within a case: a real case file has two unrelated submissions filed under one number (`test-data/case-01-speeding.md`). Nothing may key on `(CaseId, Ordinal)`.
+- **A date that a period runs from is a `DateOnly`.** An act's drafted, sent, delivered and received are calendar dates mapped to `date`, never `timestamptz` — a statutory deadline (M5) is counted in days and the hour never enters that arithmetic. Timestamps like `Created` stay `DateTime`.
+- **A party outlives what names it.** Every foreign key from a case, a mark or an act to `Parties` is `DeleteBehavior.Restrict`, because a party accumulates history across all cases; the owning case cascades instead.
 
 ## Secrets
 
@@ -96,6 +99,8 @@ Because the check runs before the builder exists, `ASPNETCORE_ENVIRONMENT` is re
 ## Database migrations
 
 `Program.cs` awaits `MigrateEvilCaseDatabaseAsync` between `builder.Build()` and the middleware pipeline. A database that does not exist is created; an unreachable server stops the start, and there is no retry. `EvilBrains:EvilCase:Database:MigrateOnStartup` turns it off (default `true`) — do that where the schema is rolled out separately, or where several instances start at once, because nothing serialises concurrent migrators. `Tests/EvilCase.Tests` sets it to `false`.
+
+**`dotnet ef migrations add` builds without `TreatWarningsAsErrors`**, unlike `dotnet r build`. A warning-level diagnostic in code written just before the migration — a `CS1574` cref that does not resolve, say — passes there, and the assembly it produces is then up to date, so later incremental builds skip recompiling it and never report the error. Run `dotnet build --no-incremental` (or `dotnet r ci` after touching the file again) once after adding a migration; a green `dotnet r build` straight afterwards proves nothing about the project the migration was generated from.
 
 Migrations live in `EvilCase.Data.Migrations`, which references `EvilCase.Data` and cannot be referenced back. `UseEvilCaseMigrations` (in `EvilCase.Data`) names the assembly as a string and sets the `_MigrationsHistory` table name; EF loads the assembly at runtime and `EvilCase.Host` carries it into its output through an otherwise unused project reference. Both the runtime registration and `ApplicationDbContextFactory` must call that one extension — a mismatched history table makes EF re-apply every migration.
 

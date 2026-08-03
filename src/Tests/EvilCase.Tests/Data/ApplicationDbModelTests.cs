@@ -101,6 +101,48 @@ public class ApplicationDbModelTests
     }
 
     [Test]
+    public void TwoActsMayShareOneOrdinal()
+    {
+        using var context = new ApplicationDbContextFactory().CreateDbContext([]);
+
+        var act = context.Model.FindEntityType(typeof(Act));
+
+        Assert.That(act, Is.Not.Null);
+
+        var overOrdinal = act.GetIndexes().Where(index => index.Properties.Any(property => string.Equals(property.Name, nameof(Act.Ordinal), StringComparison.Ordinal)));
+
+        Assert.That(
+            overOrdinal.Any(index => index.IsUnique),
+            Is.False,
+            "a real case file has two unrelated submissions filed under one number, so the ordinal orders acts and does not identify them");
+    }
+
+    [Test]
+    public void ActDatesAreCalendarDatesRatherThanInstants()
+    {
+        using var context = new ApplicationDbContextFactory().CreateDbContext([]);
+
+        var act = context.Model.FindEntityType(typeof(Act));
+
+        Assert.That(act, Is.Not.Null);
+
+        string[] dates = [nameof(Act.Drafted), nameof(Act.Sent), nameof(Act.Delivered), nameof(Act.Received)];
+
+        using (Assert.EnterMultipleScope())
+        {
+            foreach (var name in dates)
+            {
+                var property = act.FindProperty(name);
+
+                Assert.That(property?.ClrType, Is.EqualTo(typeof(DateOnly?)), $"{name} starts a statutory period, and the hour never enters that arithmetic");
+                Assert.That(property?.IsNullable, Is.True, $"{name} does not apply to every direction");
+            }
+
+            Assert.That(act.FindProperty(nameof(Act.Summary))?.GetMaxLength(), Is.Null, "the summary is long-form and lives on the act alone");
+        }
+    }
+
+    [Test]
     public void EveryExternalMarkNamesWhoAssignedIt()
     {
         using var context = new ApplicationDbContextFactory().CreateDbContext([]);
@@ -141,6 +183,71 @@ public class ApplicationDbModelTests
             Assert.That(toCase?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Cascade), "a mark has no meaning without its case");
             Assert.That(reference.GetProperties().Any(property => string.Equals(property.Name, "OwnerId", StringComparison.Ordinal)), Is.False, "only aggregate roots carry an owner, and a mark is not one");
         }
+    }
+
+    [Test]
+    public void AnActNeverTakesAPartyDownWithIt()
+    {
+        using var context = new ApplicationDbContextFactory().CreateDbContext([]);
+
+        var act = context.Model.FindEntityType(typeof(Act));
+
+        Assert.That(act, Is.Not.Null);
+
+        var toParties = act.GetForeignKeys().Where(key => key.PrincipalEntityType.ClrType == typeof(Party)).ToList();
+        var toCase = act.GetForeignKeys().SingleOrDefault(key => key.PrincipalEntityType.ClrType == typeof(Case));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(toParties, Has.Count.EqualTo(2), "an act references who issued it and who it was addressed to");
+            Assert.That(toParties.TrueForAll(key => key.DeleteBehavior == DeleteBehavior.Restrict), Is.True, "a party outlives any one act naming it");
+            Assert.That(toCase?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Cascade), "an act has no meaning without its case");
+        }
+    }
+
+    /// <summary>
+    /// From review on #86: a one-to-many is reachable from both ends, so the principal carries a
+    /// collection rather than the dependent carrying the only reference. Without it a party's history
+    /// across cases can be reached only by querying the dependent table by hand.
+    /// </summary>
+    [Test]
+    public void EveryOneToManyIsNavigableFromBothEnds()
+    {
+        using var context = new ApplicationDbContextFactory().CreateDbContext([]);
+
+        var oneToMany = context.Model.GetEntityTypes()
+            .SelectMany(entityType => entityType.GetForeignKeys())
+            .Where(key => !key.IsUnique && key.DependentToPrincipal is not null && key.PrincipalEntityType.ClrType != typeof(User))
+            .ToList();
+
+        Assert.That(oneToMany, Is.Not.Empty);
+
+        using (Assert.EnterMultipleScope())
+        {
+            foreach (var key in oneToMany)
+            {
+                var name = $"{key.DeclaringEntityType.ShortName()}.{key.DependentToPrincipal?.Name}";
+
+                Assert.That(key.PrincipalToDependent, Is.Not.Null, $"{name} points at {key.PrincipalEntityType.ShortName()} and nothing points back");
+            }
+        }
+    }
+
+    /// <summary>
+    /// From the same review: a navigation is followed because a query asked, never because it exists.
+    /// </summary>
+    [Test]
+    public void NothingIsEagerLoaded()
+    {
+        using var context = new ApplicationDbContextFactory().CreateDbContext([]);
+
+        var eager = context.Model.GetEntityTypes()
+            .SelectMany(entityType => entityType.GetNavigations())
+            .Where(navigation => navigation.IsEagerLoaded)
+            .Select(navigation => $"{navigation.DeclaringEntityType.ShortName()}.{navigation.Name}")
+            .ToList();
+
+        Assert.That(eager, Is.Empty, "auto-include is off, and an AutoInclude() would turn one read of the case list into a read of everything under it");
     }
 
     private static bool IsIndexed(IReadOnlyEntityType entityType, string propertyName) =>

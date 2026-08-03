@@ -49,4 +49,8 @@ public record Case : IEntity
     public ICollection<Case> Children { get; init; } = [];
 
     public ICollection<CaseTag> Tags { get; init; } = [];
+
+    public ICollection<CaseReference> References { get; init; } = [];
+
+    public ICollection<Act> Acts { get; init; } = [];
 }
