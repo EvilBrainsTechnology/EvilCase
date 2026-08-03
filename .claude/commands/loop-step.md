@@ -195,8 +195,9 @@ exists.
 
 Then stop. **The loop never merges the pull request and never pushes to `master`** — not its own,
 not after a green CI run, not because the iteration would otherwise look unfinished. `AGENTS.md`
-makes that binding for every agent; the loop is the one most likely to be tempted, because it runs
-unattended and merging is the only thing standing between it and the next slice. It waits instead.
+lets an agent merge what the owner asked for by name — a round asks itself, which that exception
+excludes. The loop is the one most likely to be tempted, because it runs unattended and merging is
+the only thing standing between it and the next slice. It waits instead.
 
 ## 8. Report
 
