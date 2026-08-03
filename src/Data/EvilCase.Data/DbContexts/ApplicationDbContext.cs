@@ -138,9 +138,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     private static void ConfigureComments(ModelBuilder modelBuilder)
     {
-        // A note hangs on a case or on an act, never on both and never on neither. In the database
-        // rather than in the code that writes it, because the timeline will read this table from
-        // several directions and every one of them assumes it.
+        // In the database rather than in the writing code: the timeline reads this table from several
+        // directions and every one of them assumes it.
         modelBuilder.Entity<Comment>()
             .ToTable(table => table.HasCheckConstraint(
                 "CK_Comments_OnACaseOrAnAct",

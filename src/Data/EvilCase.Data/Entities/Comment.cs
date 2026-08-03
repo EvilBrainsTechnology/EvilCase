@@ -4,14 +4,9 @@ using Microsoft.EntityFrameworkCore;
 namespace EvilBrains.EvilCase.Data.Entities;
 
 /// <summary>
-/// A free note on a case or on an act — the running log of the case.
+/// A free note on a case or on an act. Exactly one of <see cref="CaseId"/> and <see cref="ActId"/>
+/// is set, held by a check constraint.
 /// </summary>
-/// <remarks>
-/// One table rather than two, because the merged timeline (M4) reads every note of a case and all its
-/// descendants at once and would otherwise union two shapes. Exactly one of <see cref="CaseId"/> and
-/// <see cref="ActId"/> is set, and a check constraint is what holds that rather than a convention
-/// nobody can see.
-/// </remarks>
 [Index(nameof(CaseId))]
 [Index(nameof(ActId))]
 [Index(nameof(AuthorUserId))]
@@ -40,7 +35,7 @@ public record Comment : IEntity
     public required DateTime Created { get; init; }
 
     /// <summary>
-    /// Set once a note has been edited. Whether the UI offers editing at all is a separate question.
+    /// Set once a note has been edited.
     /// </summary>
     public DateTime? Updated { get; init; }
 
