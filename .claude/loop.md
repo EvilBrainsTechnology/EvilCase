@@ -23,7 +23,9 @@ Order, every round:
    small pull requests rather than one, and never one big one.
 
 **Never merge it, and never push to `master`.** Opening the pull request is as far as the loop takes
-it, whatever CI says and however long the branch has been waiting. Merging is the owner's alone.
+it, whatever CI says and however long the branch has been waiting. `AGENTS.md` lets an agent merge
+what the owner asked for by name; a round is the loop's own initiative, which is exactly what that
+exception excludes.
 
 The round ends when nothing is left that it can move — not when the first thing is finished. Then
 report all of it at once. The next round is the next wake-up, an hour later, not a continuation of
