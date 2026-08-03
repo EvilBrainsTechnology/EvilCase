@@ -1,5 +1,6 @@
 using EvilBrains.EvilCase.Api.Contract.User;
 using EvilBrains.EvilCase.Auth;
+using EvilBrains.EvilCase.Domain.Users;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 

@@ -117,4 +117,18 @@ public class RoutingTests
 
         Assert.That(response.StatusCode, Is.Not.EqualTo(HttpStatusCode.NotFound));
     }
+
+    /// <summary>
+    /// Every link of the registration chain forwards to the one below it, and nothing fails to compile
+    /// when one of them stops.
+    /// </summary>
+    [Test]
+    public async Task TheReadyProbeRunsTheDatabaseCheck()
+    {
+        using var response = await this.client.GetAsync(new Uri("/health/ready", UriKind.Relative));
+
+        var body = await response.Content.ReadAsStringAsync();
+
+        Assert.That(body, Does.Contain("\"database\""));
+    }
 }

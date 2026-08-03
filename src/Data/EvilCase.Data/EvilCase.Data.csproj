@@ -8,9 +8,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Only for UserRole: the role is part of the wire contract, so the entity and the client must not
-         each carry their own copy of the values. The contract project is DTOs and has no dependencies. -->
-    <ProjectReference Include="..\..\Api\EvilCase.Api.Contract\EvilCase.Api.Contract.csproj" />
+    <ProjectReference Include="..\..\Business\EvilCase.Domain\EvilCase.Domain.csproj" />
     <ProjectReference Include="..\..\Utils\EvilBrains.EntityFramework\EvilBrains.EntityFramework.csproj" />
   </ItemGroup>
 

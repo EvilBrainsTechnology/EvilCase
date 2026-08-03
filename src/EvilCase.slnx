@@ -7,6 +7,10 @@
   <Folder Name="/App/">
     <Project Path="App/EvilCase.App/EvilCase.App.csproj" />
   </Folder>
+  <Folder Name="/Business/">
+    <Project Path="Business/EvilCase.Business/EvilCase.Business.csproj" />
+    <Project Path="Business/EvilCase.Domain/EvilCase.Domain.csproj" />
+  </Folder>
   <Folder Name="/Common/">
     <Project Path="Common/EvilCase.Auth/EvilCase.Auth.csproj" />
   </Folder>

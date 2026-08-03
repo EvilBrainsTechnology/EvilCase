@@ -121,6 +121,8 @@ builder.Host.UseSerilog(Log.Logger);
 
 builder.Services.ConfigureServices();
 
+builder.Services.AddHealthChecks().AddEvilCaseApiHealthChecks(HealthCheckTags.Ready);
+
 var app = builder.Build();
 
 // Before anything is served: the build and the schema it queries have to match. Turn it off where the

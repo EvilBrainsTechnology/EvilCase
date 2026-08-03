@@ -2,6 +2,7 @@ using System.Security.Claims;
 using EvilBrains.ApiClient;
 using EvilBrains.EvilCase.Api.Contract.User;
 using EvilBrains.EvilCase.Auth;
+using EvilBrains.EvilCase.Domain.Users;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

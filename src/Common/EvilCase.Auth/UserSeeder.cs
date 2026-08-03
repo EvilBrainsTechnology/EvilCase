@@ -1,6 +1,6 @@
 using EvilBrains.Cryptography;
-using EvilBrains.EvilCase.Api.Contract.User;
 using EvilBrains.EvilCase.Data.Entities;
+using EvilBrains.EvilCase.Domain.Users;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 

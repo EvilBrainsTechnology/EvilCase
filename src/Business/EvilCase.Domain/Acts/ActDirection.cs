@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace EvilBrains.EvilCase.Api.Contract.Acts;
+namespace EvilBrains.EvilCase.Domain.Acts;
 
 /// <summary>
 /// Which way an act travelled, from the case owner's point of view. Serialized by name rather than by

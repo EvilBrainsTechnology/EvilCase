@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace EvilBrains.EvilCase.Api.Contract.Parties;
+namespace EvilBrains.EvilCase.Domain.Parties;
 
 /// <summary>
 /// The three kinds from <c>docs/product/vision.md</c>. Flat: an official carries no link to the

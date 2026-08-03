@@ -15,14 +15,16 @@ All code lives in `src/` (solution `EvilCase.slnx`).
 | `Api/EvilCase.Api.Client` | Typed API client: HTTP clients generated from API controllers |
 | `Api/EvilCase.Api.Contract` | Shared request/response contracts (DTOs only) |
 | `App/EvilCase.App` | Blazor WebAssembly frontend |
+| `Business/EvilCase.Business` | Business logic: the rules, the queries that answer a screen, the services the API calls |
+| `Business/EvilCase.Domain` | The shared kernel: the enums an entity and a wire DTO both name. No dependencies at all |
 | `Common/EvilCase.Auth` | Authentication: JWT bearer, sign-in, refresh token sessions, lockout, seeding |
-| `Data/EvilCase.Data` | EF Core model + DbContext (PostgreSQL) |
+| `Data/EvilCase.Data` | EF Core model + DbContext (PostgreSQL) — schema, nothing else |
 | `Data/EvilCase.Data.Migrations` | EF Core migrations |
 | `Tests/EvilCase.Tests` | Application tests (NUnit), including the host's routing through `WebApplicationFactory` |
 | `Utils/EvilBrains.*` | Shared libraries: collections, cryptography, EF Core helpers, logging (`Logging.Contract`, `Logging.AspNetCore`, `Logging.WebAssembly`), API client attributes, the API client source generator, the custom analyzers and an unwired Infisical configuration provider |
 | `Utils/Tests/EvilBrains.Utils.Tests` | Tests for the shared libraries |
 
-One process serves everything: `/api/**` is the API, every other path returns the frontend. The dependency runs host → api → auth → data, and host → app → api client → contract. Never api → app.
+One process serves everything: `/api/**` is the API, every other path returns the frontend. The dependency runs host → api → business → data, and host → app → api client → contract. Never api → app, and never api → data — `src/Business/CLAUDE.md` holds the whole layering and the test that pins it.
 
 ## Where the rest of the instructions live
 
@@ -32,7 +34,8 @@ Each file below loads only when its area is touched. Read the one that covers wh
 | --- | --- |
 | `src/Api/CLAUDE.md` | Hosting and the middleware pipeline (`src/EvilCase.Host/CLAUDE.md` points here), controller conventions, the generated API client and its `EB1001`–`EB1016` diagnostics, health checks, security headers, rate limits, secrets, logging |
 | `src/App/CLAUDE.md` | TabBlazor and Tabler, icons, the app shell and theme, responsive design |
-| `src/Data/CLAUDE.md` | Entities and domain model rules, `OwnerId` and the `IOwnerContext` seam, migrations |
+| `src/Business/CLAUDE.md` | The layers and what each may reference, the `IOwnerContext` seam |
+| `src/Data/CLAUDE.md` | Entities and domain model rules, `OwnerId`, list queries, migrations |
 | `src/Common/EvilCase.Auth/CLAUDE.md` | Tokens, rotation, lockout, seeding, default-deny authorization, the browser half |
 | `docs/product/vision.md` | What the product is being built into, the domain concepts, the milestones |
 | `.claude/skills/run-app/SKILL.md` | Running the app locally or in a web session, and verifying it |

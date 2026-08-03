@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using EvilBrains.EvilCase.Api.Contract.Acts;
+using EvilBrains.EvilCase.Domain.Acts;
 using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Data.Entities;

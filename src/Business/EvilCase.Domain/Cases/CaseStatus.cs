@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace EvilBrains.EvilCase.Api.Contract.Cases;
+namespace EvilBrains.EvilCase.Domain.Cases;
 
 /// <summary>
 /// The closed set from <c>docs/product/vision.md</c>. Serialized by name rather than by number, so the

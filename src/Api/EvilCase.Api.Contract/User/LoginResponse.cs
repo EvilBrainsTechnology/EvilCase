@@ -1,3 +1,5 @@
+using EvilBrains.EvilCase.Domain.Users;
+
 namespace EvilBrains.EvilCase.Api.Contract.User;
 
 /// <summary>

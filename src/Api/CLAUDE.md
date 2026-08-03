@@ -34,7 +34,7 @@ Controller shape (route templates, HTTP method attributes, kebab-case segments, 
 Two anonymous endpoints, mapped with `MapHealthChecks` in `MapEvilCaseApi` rather than through a controller: they carry no client contract, so they stay out of OpenAPI, out of the generated API client and out of the controller conventions. Keep `AllowAnonymous` on both — the authorization fallback policy would otherwise turn every probe into a `401`.
 
 - `GET /health/live` runs no check (`Predicate = _ => false`) and answers `Healthy` as plain text. Never add a dependency check here.
-- `GET /health/ready` runs the checks tagged `HealthCheckTags.Ready` and writes names and statuses as JSON: 200 healthy, 503 unhealthy, 503 degraded. Each layer registers its own checks — `EvilCase.Data` contributes `AddEvilCaseDataHealthChecks`, today a single `database` check.
+- `GET /health/ready` runs the checks tagged `HealthCheckTags.Ready` and writes names and statuses as JSON: 200 healthy, 503 unhealthy, 503 degraded. `Program.cs` fills it with `AddHealthChecks().AddEvilCaseApiHealthChecks(HealthCheckTags.Ready)`, the top of the per-layer chain `src/Business/CLAUDE.md` describes; the tag is public because the host names it.
 
 `HealthCheckResponseWriter` keeps descriptions, exception text and check data out of the response, because the endpoint is anonymous.
 

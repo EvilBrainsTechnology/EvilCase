@@ -1,6 +1,6 @@
 # Data and the domain model
 
-`docs/product/vision.md` names the concepts and is what the model is built towards. This file holds only what the code does differently and what a new entity has to repeat. `Tests/EvilCase.Tests/Data/ApplicationDbModelTests` pins several of the rules below against the built model.
+`docs/product/vision.md` names the concepts and is what the model is built towards. This file holds only what the code does differently and what a new entity has to repeat. `Tests/EvilCase.Tests/Data/ApplicationDbModelTests` pins several of the rules below against the built model. What the layer may reference, and where `IOwnerContext` lives, is in `src/Business/CLAUDE.md`.
 
 ## Domain model
 
@@ -15,12 +15,6 @@
 - **An act's ordinal orders it, it does not identify it.** Deliberately not unique within a case: a real case file has two unrelated submissions filed under one number (`test-data/case-01-speeding.md`). Nothing may key on `(CaseId, Ordinal)`.
 - **A date that a period runs from is a `DateOnly`.** An act's drafted, sent, delivered and received are calendar dates mapped to `date`, never `timestamptz` — a statutory deadline (M5) is counted in days and the hour never enters that arithmetic. Timestamps like `Created` stay `DateTime`.
 - **A party outlives what names it.** Every foreign key from a case, a mark or an act to `Parties` is `DeleteBehavior.Restrict`, because a party accumulates history across all cases; the owning case cascades instead.
-
-## Ownership
-
-- **`IOwnerContext` is the one place ownership is resolved.** `EvilCase.Data` declares it; `PrincipalOwnerContext` in `EvilCase.Api` implements it by reading the access token's `sub` claim, and is the only code in the application that reads that claim for this purpose. A query needing the owner takes `IOwnerContext`, never an `ownerId` parameter threaded down from a controller and never `HttpContext` of its own.
-- **`OwnerId` throws, `OwnerIdOrDefault` does not.** Code that has no sensible behaviour without an owner takes the first: a query that would otherwise return another owner's rows, or silently none, is a bug either way. The second is for the callers where absence is normal — a health probe, the sign-in endpoint, a migration at startup.
-- **This is where a tenant goes.** When the vision's multi-tenant horizon becomes real, an owner becomes a tenant and this interface is what changes, rather than every query in the application.
 
 ## Migrations
 

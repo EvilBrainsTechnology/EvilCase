@@ -1,7 +1,7 @@
 using System.Net.Http.Headers;
-using EvilBrains.EvilCase.Api.Contract.User;
 using EvilBrains.EvilCase.Auth;
 using EvilBrains.EvilCase.Data.Entities;
+using EvilBrains.EvilCase.Domain.Users;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EvilBrains.EvilCase.Tests.Hosting;
