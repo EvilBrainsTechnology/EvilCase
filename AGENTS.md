@@ -84,7 +84,7 @@ The application is closed by default on the client too, and `MainLayout` is what
 Every aggregate root carries an `OwnerId` from its first migration. Nothing filters by it yet — until M8 a single user owns everything — and the seam that will is already in place.
 
 - **`IOwnerContext` is the one place ownership is resolved.** `EvilCase.Data` declares it; `PrincipalOwnerContext` in `EvilCase.Api` implements it by reading the access token's `sub` claim, and is the only code in the application that reads that claim for this purpose. A query needing the owner takes `IOwnerContext`, never an `ownerId` parameter threaded down from a controller and never `HttpContext` of its own.
-- **Null is a real answer.** A health probe, the sign-in endpoint and a migration at startup all reach the resolver with no authenticated caller. `RequireOwnerId()` is for code that has no sensible behaviour without one — a query that would otherwise return another owner's rows, or silently none, is a bug either way.
+- **`OwnerId` throws, `OwnerIdOrDefault` does not.** Code that has no sensible behaviour without an owner takes the first: a query that would otherwise return another owner's rows, or silently none, is a bug either way. The second is for the callers where absence is normal — a health probe, the sign-in endpoint, a migration at startup.
 - **This is where a tenant goes.** When the vision's multi-tenant horizon becomes real, an owner becomes a tenant and this interface is what changes, rather than every query in the application. That is the whole reason it exists before there is anything to filter.
 
 ## Secrets

@@ -5,10 +5,6 @@ using Microsoft.AspNetCore.Http;
 
 namespace EvilBrains.EvilCase.Tests.Auth;
 
-/// <summary>
-/// The seam M8 filters through. What matters is that ownership is resolved here and nowhere else, so
-/// these pin the reading of the claim rather than any query built on it.
-/// </summary>
 public class PrincipalOwnerContextTests
 {
     [Test]
@@ -19,7 +15,7 @@ public class PrincipalOwnerContextTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(context.OwnerId, Is.EqualTo(42));
-            Assert.That(context.RequireOwnerId(), Is.EqualTo(42));
+            Assert.That(context.OwnerIdOrDefault, Is.EqualTo(42));
         }
     }
 
@@ -31,8 +27,8 @@ public class PrincipalOwnerContextTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(anonymous.OwnerId, Is.Null, "a health probe and the sign-in endpoint both reach here");
-            Assert.That(noRequest.OwnerId, Is.Null, "so does a migration at startup, with no request at all");
+            Assert.That(anonymous.OwnerIdOrDefault, Is.Null, "a health probe and the sign-in endpoint both reach here");
+            Assert.That(noRequest.OwnerIdOrDefault, Is.Null, "so does a migration at startup, with no request at all");
         }
     }
 
@@ -44,8 +40,8 @@ public class PrincipalOwnerContextTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(nonsense.OwnerId, Is.Null, "the pipeline has already decided the request may proceed; this only answers whose it is");
-            Assert.That(negative.OwnerId, Is.Null, "no identifier is negative, so a sign is a malformed token rather than a user");
+            Assert.That(nonsense.OwnerIdOrDefault, Is.Null);
+            Assert.That(negative.OwnerIdOrDefault, Is.Null, "no identifier is negative, so a sign is a malformed token rather than a user");
         }
     }
 
@@ -54,10 +50,7 @@ public class PrincipalOwnerContextTests
     {
         var anonymous = NewContext();
 
-        Assert.That(
-            anonymous.RequireOwnerId,
-            Throws.InvalidOperationException,
-            "a query that would otherwise return another owner's rows, or none at all, is a bug either way");
+        Assert.That(() => anonymous.OwnerId, Throws.InvalidOperationException);
     }
 
     [Test]
@@ -65,7 +58,7 @@ public class PrincipalOwnerContextTests
     {
         var context = NewContext((AuthClaims.Subject, "7"));
 
-        Assert.That(context.OwnerId, Is.EqualTo(7), "named from AuthClaims, so the token and the reader cannot drift apart");
+        Assert.That(context.OwnerId, Is.EqualTo(7), "so the token and the reader cannot drift apart");
     }
 
     private static PrincipalOwnerContext NewContext(params (string Type, string Value)[] claims)
