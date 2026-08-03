@@ -42,8 +42,19 @@ Unanswered decisions stay open. Do not re-ask them and do not answer them yourse
 
 `gh pr list --author @me --state open --json number,title`. For each, read the reviews and
 comments (`gh pr view <n> --json reviews,comments` and
-`gh api repos/{owner}/{repo}/pulls/<n>/comments`) and find anything from the owner that
-arrived after the branch's last commit.
+`gh api repos/{owner}/{repo}/pulls/<n>/comments`) and find everything from the owner that has not
+been answered.
+
+**Not "what is new since the last round" — what is unanswered.** Those are different questions and
+the difference is how a comment gets lost: a round that filters by timestamp misses anything written
+while an earlier round was still running, and from then on the comment is always older than the
+cutoff, so every later round misses it too. It is also why the age of a comment proves nothing about
+whether it was handled — a rebase rewrites every commit date on the branch, so *arrived after the
+last commit* stops meaning anything the moment the branch is rebased.
+
+The test is the thread, not the clock: a review thread with no reply from the loop is outstanding,
+however old it looks. Read the bodies. A count of comments is not a check, and treating one as a
+check is how #86 waited eleven hours.
 
 **This is the round's first job and usually its whole job.** The measure of the loop is what reaches
 `master`, not how many branches it has open. An unmerged pull request holds up every slice above it,
