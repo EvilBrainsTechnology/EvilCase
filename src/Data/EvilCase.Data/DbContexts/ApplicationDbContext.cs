@@ -138,8 +138,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     private static void ConfigureComments(ModelBuilder modelBuilder)
     {
-        // In the database rather than in the writing code: the timeline reads this table from several
-        // directions and every one of them assumes it.
         modelBuilder.Entity<Comment>()
             .ToTable(table => table.HasCheckConstraint(
                 "CK_Comments_OnACaseOrAnAct",
