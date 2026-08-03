@@ -80,7 +80,6 @@ public class ApplicationDbModelTests
     }
 
     [Test]
-<<<<<<< HEAD
     public void TheInternalMarkIsAColumnOnTheCase()
     {
         using var context = new ApplicationDbContextFactory().CreateDbContext([]);
