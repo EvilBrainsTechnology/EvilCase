@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 namespace EvilBrains.EvilCase.Tests.Files;
 
 /// <summary>
-/// Runs against a real directory under the system temporary path, created per test and removed after.
+/// Runs against a real directory under the system temporary path.
 /// A store whose whole job is what ends up on disk is not worth testing against a fake filesystem.
 /// </summary>
 public class LocalFileStoreTests
@@ -73,7 +73,7 @@ public class LocalFileStoreTests
 
         var expected = Path.Combine(this.root, stored.ContentHash[..2], stored.ContentHash);
 
-        Assert.That(File.Exists(expected), Is.True, "a flat directory of every blob an owner ever stored is one nobody wants to list");
+        Assert.That(File.Exists(expected), Is.True);
     }
 
     [Test]
@@ -86,7 +86,7 @@ public class LocalFileStoreTests
 
         var pending = Directory.GetFiles(this.root, ".pending-*", SearchOption.AllDirectories);
 
-        Assert.That(pending, Is.Empty, "a hash promises exact bytes, so a half-written file must never sit under one");
+        Assert.That(pending, Is.Empty);
     }
 
     [Test]

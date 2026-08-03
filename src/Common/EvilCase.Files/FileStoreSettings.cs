@@ -5,8 +5,7 @@ namespace EvilBrains.EvilCase.Files;
 internal sealed record FileStoreSettings
 {
     /// <summary>
-    /// Where blobs are kept. A relative path is resolved against the content root, so the default works
-    /// from a clone; a deployment points this at a mounted volume.
+    /// Where blobs are kept. A relative path is resolved against the content root.
     /// </summary>
     [Required]
     [MinLength(1)]

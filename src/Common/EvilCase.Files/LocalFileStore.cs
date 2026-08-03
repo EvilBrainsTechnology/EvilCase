@@ -5,12 +5,9 @@ using Microsoft.Extensions.Options;
 namespace EvilBrains.EvilCase.Files;
 
 /// <summary>
-/// Blobs on local disk at <c>&lt;root&gt;/&lt;first two hex characters&gt;/&lt;hash&gt;</c>.
+/// Blobs on local disk at <c>&lt;root&gt;/&lt;first two hex characters&gt;/&lt;hash&gt;</c>, so no
+/// single directory holds every blob.
 /// </summary>
-/// <remarks>
-/// The two-character directory is not decoration: one real case file is around three hundred documents,
-/// and a flat directory holding every blob an owner ever stored is one nobody wants to list.
-/// </remarks>
 internal sealed class LocalFileStore : IFileStore
 {
     private readonly string root;
@@ -29,8 +26,7 @@ internal sealed class LocalFileStore : IFileStore
 
         _ = Directory.CreateDirectory(this.root);
 
-        // Written under a name nothing reads, then moved into place: a hash is a promise about the bytes
-        // behind it, and a reader must never meet a half-written file keeping that promise badly.
+        // Moved into place rather than written in place, so a reader never meets a half-written file.
         var pending = Path.Combine(this.root, $".pending-{Guid.NewGuid():N}");
 
         try
@@ -43,8 +39,7 @@ internal sealed class LocalFileStore : IFileStore
             if (File.Exists(destination))
                 return new(hash, size, AlreadyPresent: true);
 
-            // Two callers storing identical content race here; the loser finds the file already in place,
-            // and both are right about what is stored.
+            // Two callers storing identical content race here; the loser finds the file in place.
             try
             {
                 File.Move(pending, destination);
@@ -95,8 +90,7 @@ internal sealed class LocalFileStore : IFileStore
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(contentHash);
 
-        // Rejected rather than sanitised: everything reaching here came from hashing content, so a value
-        // that is not a hash means a caller lost track of what it was holding.
+        // Everything reaching here came from hashing content, so a non-hash is a caller's bug.
         if (contentHash.Length != 64 || !contentHash.All(char.IsAsciiHexDigitLower))
             throw new ArgumentException("A content hash is 64 lower-case hex characters.", nameof(contentHash));
 
