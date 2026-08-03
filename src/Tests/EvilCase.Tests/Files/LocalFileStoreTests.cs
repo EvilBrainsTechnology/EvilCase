@@ -8,7 +8,6 @@ namespace EvilBrains.EvilCase.Tests.Files;
 
 /// <summary>
 /// Runs against a real directory under the system temporary path.
-/// A store whose whole job is what ends up on disk is not worth testing against a fake filesystem.
 /// </summary>
 public class LocalFileStoreTests
 {
