@@ -17,6 +17,36 @@ work — `gh issue list --state open --limit 100 --json number,title,labels,mile
 
 Focus: $ARGUMENTS
 
+## 0. The round runs in a subagent
+
+The Routine fires into a long-lived session, so a round run inline fills that session with build
+logs, diffs and API output until it compacts — and a compaction loses exactly the detail a later
+round needs. **The main thread therefore delegates the whole round** and keeps only the report:
+one `Agent` call, `subagent_type` `general-purpose`, `run_in_background: false`, told to follow this
+file as its specification. The subagent's report is not shown to the owner, so the main thread
+relays it verbatim.
+
+The session is what stays: `subscribe_pr_activity` subscriptions belong to it, and so does the
+conversation the owner reads. That is why the round is delegated rather than moved to a fresh
+session per firing.
+
+What the main thread still does itself, because the subagent cannot: relay the report, answer the
+owner, and confirm the schedule per §8.
+
+### The subagent starts blank, so the repository is the only memory
+
+A subagent knows what is in the repository and on GitHub and nothing else. **Anything that has to
+survive the round is written there before the round ends** — never left in the chat, and never left
+in the head of whichever agent noticed it:
+
+- A finding that needs doing → an issue.
+- The state of a pull request that its diff does not show — why it was closed, what it waits on,
+  what was tried and abandoned → a comment on that pull request.
+- A rule the loop has to follow → `AGENTS.md`, or this file.
+
+A report in the chat is for the owner to read, not a place to keep state. If the next round would
+have to be told something, it is not written down yet.
+
 ## 1. Apply answered decisions
 
 List `gh issue list --label needs-decision --state open` and read the comments of each. **Any
