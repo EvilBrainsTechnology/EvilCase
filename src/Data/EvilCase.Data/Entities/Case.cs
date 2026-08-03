@@ -54,6 +54,5 @@ public record Case : IEntity
 
     public ICollection<Act> Acts { get; init; } = [];
 
-    /// <inheritdoc cref="References"/>
     public ICollection<Comment> Comments { get; init; } = [];
 }

@@ -77,6 +77,5 @@ public record Act : IEntity
 
     public ICollection<ActFileLink> AttachmentsTakenFromIt { get; init; } = [];
 
-    /// <inheritdoc cref="Files"/>
     public ICollection<Comment> Comments { get; init; } = [];
 }
