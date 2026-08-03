@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EvilBrains.EvilCase.Data.Migrations.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260803013743_FileAssets")]
-    partial class FileAssets
+    [Migration("20260803233913_Acts")]
+    partial class Acts
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -91,47 +91,6 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.HasIndex("IssuedByPartyId");
 
                     b.ToTable("Acts");
-                });
-
-            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.ActFileLink", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<long>("ActId")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<long>("FileAssetId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("FileName")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<long?>("OriginatingActId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ActId");
-
-                    b.HasIndex("FileAssetId");
-
-                    b.HasIndex("OriginatingActId");
-
-                    b.ToTable("ActFileLinks");
                 });
 
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Case", b =>
@@ -243,42 +202,6 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                         .IsUnique();
 
                     b.ToTable("CaseTags");
-                });
-
-            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.FileAsset", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<string>("ContentHash")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("MediaType")
-                        .HasMaxLength(128)
-                        .HasColumnType("character varying(128)");
-
-                    b.Property<long>("OwnerId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("SizeBytes")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OwnerId");
-
-                    b.HasIndex("OwnerId", "ContentHash")
-                        .IsUnique();
-
-                    b.ToTable("FileAssets");
                 });
 
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Party", b =>
@@ -425,18 +348,18 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Act", b =>
                 {
                     b.HasOne("EvilBrains.EvilCase.Data.Entities.Party", "AddressedTo")
-                        .WithMany()
+                        .WithMany("AddressedActs")
                         .HasForeignKey("AddressedToPartyId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("EvilBrains.EvilCase.Data.Entities.Case", "Case")
-                        .WithMany()
+                        .WithMany("Acts")
                         .HasForeignKey("CaseId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("EvilBrains.EvilCase.Data.Entities.Party", "IssuedBy")
-                        .WithMany()
+                        .WithMany("IssuedActs")
                         .HasForeignKey("IssuedByPartyId")
                         .OnDelete(DeleteBehavior.Restrict);
 
@@ -445,32 +368,6 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.Navigation("Case");
 
                     b.Navigation("IssuedBy");
-                });
-
-            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.ActFileLink", b =>
-                {
-                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Act", "Act")
-                        .WithMany()
-                        .HasForeignKey("ActId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("EvilBrains.EvilCase.Data.Entities.FileAsset", "FileAsset")
-                        .WithMany()
-                        .HasForeignKey("FileAssetId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Act", "OriginatingAct")
-                        .WithMany()
-                        .HasForeignKey("OriginatingActId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("Act");
-
-                    b.Navigation("FileAsset");
-
-                    b.Navigation("OriginatingAct");
                 });
 
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Case", b =>
@@ -494,13 +391,13 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.CaseReference", b =>
                 {
                     b.HasOne("EvilBrains.EvilCase.Data.Entities.Party", "AssignedBy")
-                        .WithMany()
+                        .WithMany("AssignedCaseReferences")
                         .HasForeignKey("AssignedByPartyId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("EvilBrains.EvilCase.Data.Entities.Case", "Case")
-                        .WithMany()
+                        .WithMany("References")
                         .HasForeignKey("CaseId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -519,17 +416,6 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                         .IsRequired();
 
                     b.Navigation("Case");
-                });
-
-            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.FileAsset", b =>
-                {
-                    b.HasOne("EvilBrains.EvilCase.Data.Entities.User", "Owner")
-                        .WithMany()
-                        .HasForeignKey("OwnerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Owner");
                 });
 
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Party", b =>
@@ -556,9 +442,22 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
 
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Case", b =>
                 {
+                    b.Navigation("Acts");
+
                     b.Navigation("Children");
 
+                    b.Navigation("References");
+
                     b.Navigation("Tags");
+                });
+
+            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Party", b =>
+                {
+                    b.Navigation("AddressedActs");
+
+                    b.Navigation("AssignedCaseReferences");
+
+                    b.Navigation("IssuedActs");
                 });
 #pragma warning restore 612, 618
         }
