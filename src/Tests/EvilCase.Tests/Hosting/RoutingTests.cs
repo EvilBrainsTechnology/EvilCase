@@ -119,8 +119,8 @@ public class RoutingTests
     }
 
     /// <summary>
-    /// The check is registered by the host and the endpoint mapped by the API, so nothing in either
-    /// project fails to compile when the registration goes missing.
+    /// Every link of the registration chain forwards to the one below it, and nothing fails to compile
+    /// when one of them stops.
     /// </summary>
     [Test]
     public async Task TheReadyProbeRunsTheDatabaseCheck()

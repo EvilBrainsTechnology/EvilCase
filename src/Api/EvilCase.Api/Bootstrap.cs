@@ -64,9 +64,14 @@ public static class Bootstrap
         services.AddHttpContextAccessor();
         services.AddScoped<IOwnerContext, PrincipalOwnerContext>();
 
-        services.AddHealthChecks();
-
         return services;
+    }
+
+    public static IHealthChecksBuilder AddEvilCaseApiHealthChecks(this IHealthChecksBuilder builder, params string[] tags)
+    {
+        builder.AddEvilCaseBusinessHealthChecks(tags);
+
+        return builder;
     }
 
     public static IEndpointRouteBuilder MapEvilCaseApi(this IEndpointRouteBuilder endpoints)

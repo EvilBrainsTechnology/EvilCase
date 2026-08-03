@@ -11,4 +11,11 @@ public static class Bootstrap
 
         return services;
     }
+
+    public static IHealthChecksBuilder AddEvilCaseBusinessHealthChecks(this IHealthChecksBuilder builder, params string[] tags)
+    {
+        builder.AddEvilCaseDataHealthChecks(tags);
+
+        return builder;
+    }
 }

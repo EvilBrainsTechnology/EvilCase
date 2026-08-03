@@ -121,7 +121,7 @@ builder.Host.UseSerilog(Log.Logger);
 
 builder.Services.ConfigureServices();
 
-builder.Services.AddHealthChecks().AddEvilCaseDataHealthChecks(HealthCheckTags.Ready);
+builder.Services.AddHealthChecks().AddEvilCaseApiHealthChecks(HealthCheckTags.Ready);
 
 var app = builder.Build();
 
