@@ -10,7 +10,7 @@ All commands run from `src/`, except the database one, which takes a path from t
 ## Prerequisites
 
 - `dotnet tool restore` — `r` is a local tool; without it every command below fails with `Cannot find command r`.
-- `EvilCase.Host/.env` (copy from `.env.example`). The host fails to start without the connection string and a JWT key of at least 32 characters. Fill in `EvilBrains__EvilCase__Auth__Seed__Email` and `EvilBrains__EvilCase__Auth__Seed__Password` too — registration is closed, so an empty database has no way in otherwise.
+- `EvilCase.Host/.env` (copy from `.env.example`). The host fails to start without the connection string and a JWT key of at least 32 characters. Fill in `EvilBrains__EvilCase__Auth__Seed__Email` and `EvilBrains__EvilCase__Auth__Seed__Password` too — the seeded administrator is the only way into an empty database (`src/Common/EvilCase.Auth/CLAUDE.md`).
 - A reachable PostgreSQL. The host migrates the database on startup and does not retry, so an unreachable server stops it before it serves anything. Start a throwaway one, from the repository root:
 
   ```bash
@@ -28,12 +28,16 @@ All commands run from `src/`, except the database one, which takes a path from t
 web session needs no manual setup — `dotnet r build`, `dotnet r test` and `dotnet r run` work straight
 away. It only runs where `CLAUDE_CODE_REMOTE` is `true`; a local machine is left alone.
 
+The hook restates what lives elsewhere — the SDK version pinned in `src/global.json` and its
+`scriptShell`, the connection string and the seed and JWT keys of `.env.example`, the PostgreSQL
+version and the `src/` layout. A change to any of those is a change to the hook, in the same commit.
+
 Two things differ from the list above, because the container has no .NET SDK and the egress policy
 blocks `builds.dotnet.microsoft.com`:
 
 - The SDK is copied out of `mcr.microsoft.com/dotnet/sdk:10.0` onto the host filesystem, which is the
   only reachable source. Docker is used for that one copy and for nothing afterwards. `pwsh` is not in
-  that layout and comes from NuGet instead — `global.json` sets it as `scriptShell`, so every
+  that layout and comes from NuGet instead — `src/global.json` sets it as `scriptShell`, so every
   `dotnet r` script needs it.
 - PostgreSQL is the container's own 16, started with `service postgresql start`, rather than the 18 in
   `deploy/docker-compose.dev.yml`. Credentials, port and database name are the same, so the connection
@@ -48,7 +52,7 @@ and local to the container.
 
 One server serves everything: `dotnet r run` → `https://localhost:5000` (Scalar UI at `/scalar`, Development only).
 
-In Claude Code, start it through the preview server defined in `.claude/launch.json` (name `evilcase`) rather than from a shell. It runs the `claude` launch profile, which differs from `https` only in launching no browser — same port, so an instance already running from the IDE has to be stopped first.
+In Claude Code, start it through the preview server defined in `.claude/launch.json` (name `evilcase`) rather than from a shell. It runs the `claude` launch profile in `launchSettings.json`, which differs from `https` only in launching no browser. Both serve `https://localhost:5000`, so there is one address in every command, README and skill — and the two cannot run at once: stop the IDE instance before an agent starts one, or the second gets a port collision. When changing that port, keep it off the browsers' unsafe-port list (6000, 6665–6669, 6697, ...); the preview pane refuses to load those.
 
 ## Verify
 
