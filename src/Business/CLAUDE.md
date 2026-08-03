@@ -8,7 +8,7 @@ EvilCase.App  →  EvilCase.Api.Client  →  (HTTP)  →  EvilCase.Api  →  Evi
                                                   EvilCase.Api.Contract → EvilCase.Domain ←──────┘
 ```
 
-- **`EvilCase.Domain` references nothing**, not even the contract. It holds the vocabulary two layers have to agree on — `CaseStatus`, `ActDirection`, `PartyKind`, `UserRole` — and is small enough to ship to the browser through the contract.
+- **`EvilCase.Domain` references nothing**, not even the contract. It holds the vocabulary two layers have to agree on — `CaseStatus`, `ActDirection`, `ActFileRole`, `PartyKind`, `UserRole` — and is small enough to ship to the browser through the contract.
 - **`EvilCase.Data` is schema.** Entities, the `DbContext`, its configuration and the migrations. No rule, no projection into a wire DTO, and no reference to `EvilCase.Api.Contract` — that reference is what let the list query in an earlier draft select straight into `CaseListItem`.
 - **`EvilCase.Business` owns the rules and the queries**, including the composable `IQueryable` steps: what a root case is, what "open" means, how a search term is escaped. It references EF Core, and a query composes and materialises in one place rather than being handed half-built to a caller.
 - **A business service returns the contract DTO.** No second set of result models and no mapping layer: the projection stays a single SQL statement and the controller is a line long. The cost is deliberate — a change to the wire shape reaches into `EvilCase.Business`.

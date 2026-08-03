@@ -1,9 +1,10 @@
 using System.Text.Json.Serialization;
 
-namespace EvilBrains.EvilCase.Api.Contract.Files;
+namespace EvilBrains.EvilCase.Domain.Files;
 
 /// <summary>
-/// What one file is to one act. The role is on the link, never on the asset.
+/// What one file is to one act. The role is on the link, never on the asset. Serialized by name rather
+/// than by number, so the wire format survives a reordering and the stored column stays readable.
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter<ActFileRole>))]
 public enum ActFileRole
