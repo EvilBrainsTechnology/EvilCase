@@ -215,7 +215,6 @@ public class ApplicationDbModelTests
     {
         using var context = new ApplicationDbContextFactory().CreateDbContext([]);
 
-        // The owner foreign key is deliberately one-way; #86 asks whether it should join the rule.
         var oneToMany = context.Model.GetEntityTypes()
             .SelectMany(entityType => entityType.GetForeignKeys())
             .Where(key => !key.IsUnique && key.DependentToPrincipal is not null && key.PrincipalEntityType.ClrType != typeof(User))

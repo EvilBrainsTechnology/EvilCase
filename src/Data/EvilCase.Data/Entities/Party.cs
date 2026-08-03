@@ -50,16 +50,9 @@ public record Party : IEntity
 
     public User? Owner { get; init; }
 
-    /// <summary>
-    /// What names this party, from the party's side. A party accumulates history across every case, and
-    /// this is how that history is reachable at all. Never loaded unless a query asks — auto-include is
-    /// switched off for the whole model in <c>ApplicationDbContext</c>.
-    /// </summary>
     public ICollection<CaseReference> AssignedCaseReferences { get; init; } = [];
 
-    /// <inheritdoc cref="AssignedCaseReferences"/>
     public ICollection<Act> IssuedActs { get; init; } = [];
 
-    /// <inheritdoc cref="AssignedCaseReferences"/>
     public ICollection<Act> AddressedActs { get; init; } = [];
 }
