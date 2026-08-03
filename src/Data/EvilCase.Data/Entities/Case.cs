@@ -49,4 +49,13 @@ public record Case : IEntity
     public ICollection<Case> Children { get; init; } = [];
 
     public ICollection<CaseTag> Tags { get; init; } = [];
+
+    /// <summary>
+    /// The other side of every one-to-many the case is the principal of. Never loaded unless a query
+    /// asks: auto-include is switched off for the whole model in <c>ApplicationDbContext</c>.
+    /// </summary>
+    public ICollection<CaseReference> References { get; init; } = [];
+
+    /// <inheritdoc cref="References"/>
+    public ICollection<Act> Acts { get; init; } = [];
 }
