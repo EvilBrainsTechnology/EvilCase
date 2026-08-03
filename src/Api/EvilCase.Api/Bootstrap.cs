@@ -60,7 +60,7 @@ public static class Bootstrap
 
         services.AddEvilCaseData();
 
-        // The one place ownership is resolved. Scoped: it answers for the request being served.
+        // Scoped: it answers for the request being served.
         services.AddHttpContextAccessor();
         services.AddScoped<IOwnerContext, PrincipalOwnerContext>();
 
