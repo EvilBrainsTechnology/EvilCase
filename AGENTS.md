@@ -82,6 +82,14 @@ The application is closed by default on the client too, and `MainLayout` is what
 - **A date that a period runs from is a `DateOnly`.** An act's drafted, sent, delivered and received are calendar dates mapped to `date`, never `timestamptz` — a statutory deadline (M5) is counted in days and the hour never enters that arithmetic. Timestamps like `Created` stay `DateTime`.
 - **A party outlives what names it.** Every foreign key from a case, a mark or an act to `Parties` is `DeleteBehavior.Restrict`, because a party accumulates history across all cases; the owning case cascades instead.
 
+## Ownership
+
+Every aggregate root carries an `OwnerId` from its first migration. Nothing filters by it yet — until M8 a single user owns everything — and the seam that will is already in place.
+
+- **`IOwnerContext` is the one place ownership is resolved.** `EvilCase.Data` declares it; `PrincipalOwnerContext` in `EvilCase.Api` implements it by reading the access token's `sub` claim, and is the only code in the application that reads that claim for this purpose. A query needing the owner takes `IOwnerContext`, never an `ownerId` parameter threaded down from a controller and never `HttpContext` of its own.
+- **`OwnerId` throws, `OwnerIdOrDefault` does not.** Code that has no sensible behaviour without an owner takes the first: a query that would otherwise return another owner's rows, or silently none, is a bug either way. The second is for the callers where absence is normal — a health probe, the sign-in endpoint, a migration at startup.
+- **This is where a tenant goes.** When the vision's multi-tenant horizon becomes real, an owner becomes a tenant and this interface is what changes, rather than every query in the application. That is the whole reason it exists before there is anything to filter.
+
 ## Secrets
 
 Every environment reads secrets from environment variables. Development additionally loads `src/EvilCase.Host/.env` (gitignored, `.env.example` documents the keys) into the process environment, so there is one configuration path everywhere — hence the double underscore separator (`A__B` → `A:B`).

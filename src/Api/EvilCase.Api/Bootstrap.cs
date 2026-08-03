@@ -1,3 +1,4 @@
+using EvilBrains.EvilCase.Api.Auth;
 using EvilBrains.EvilCase.Api.HealthChecks;
 using EvilBrains.EvilCase.Data;
 using EvilBrains.Logging.AspNetCore;
@@ -58,6 +59,10 @@ public static class Bootstrap
         services.AddClientLogWriter(ClientSourceContext);
 
         services.AddEvilCaseData();
+
+        // Scoped: it answers for the request being served.
+        services.AddHttpContextAccessor();
+        services.AddScoped<IOwnerContext, PrincipalOwnerContext>();
 
         services
             .AddHealthChecks()
