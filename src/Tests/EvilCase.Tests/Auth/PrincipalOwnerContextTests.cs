@@ -41,7 +41,7 @@ public class PrincipalOwnerContextTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(nonsense.OwnerIdOrDefault, Is.Null);
-            Assert.That(negative.OwnerIdOrDefault, Is.Null, "no identifier is negative, so a sign is a malformed token rather than a user");
+            Assert.That(negative.OwnerIdOrDefault, Is.Null);
         }
     }
 
