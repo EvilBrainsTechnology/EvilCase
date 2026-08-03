@@ -71,7 +71,8 @@ Every comment gets a response in the same round it is found. Nothing is deferred
   pull request open.
 
 Then clear what stands between the rest and a merge, in this order: a red CI run, a merge conflict or
-a stale base (rebase it), a pull request whose description no longer matches its diff. A branch that
+a stale base (rebase it), a pull request whose description no longer matches its diff or whose
+screenshot URLs an earlier rebase has orphaned. A branch that
 is green, current and answered is ready for the owner, and saying so in the report is what gets it
 merged.
 
@@ -179,6 +180,9 @@ the screenshots reach the pull request as committed files:
   `https://raw.githubusercontent.com/EvilBrainsTechnology/EvilCase/<sha>/docs/screenshots/...`
 - A slice that replaces a screen deletes the screenshots it supersedes in the same pull request, so
   the directory stays the current state of the application rather than its history.
+- **A rebase orphans the pinned commit and every one of those URLs starts answering `404`.**
+  Re-point them to the new head in the same step as the force-push, never later: a broken image in a
+  pull request body shows up only when somebody opens it, so nothing else in the round catches it.
 
 Everything in them is synthetic, by the standing rule below.
 
