@@ -30,7 +30,7 @@ Each file below loads only when its area is touched. Read the one that covers wh
 
 | File | Covers |
 | --- | --- |
-| `src/Api/CLAUDE.md` | Hosting and the middleware pipeline, controller conventions, the generated API client and its `EB1001`–`EB1016` diagnostics, health checks, security headers, rate limits, secrets, logging |
+| `src/Api/CLAUDE.md` | Hosting and the middleware pipeline (`src/EvilCase.Host/CLAUDE.md` points here), controller conventions, the generated API client and its `EB1001`–`EB1016` diagnostics, health checks, security headers, rate limits, secrets, logging |
 | `src/App/CLAUDE.md` | TabBlazor and Tabler, icons, the app shell and theme, responsive design |
 | `src/Data/CLAUDE.md` | Entities and domain model rules, `OwnerId` and the `IOwnerContext` seam, migrations |
 | `src/Common/EvilCase.Auth/CLAUDE.md` | Tokens, rotation, lockout, seeding, default-deny authorization, the browser half |
