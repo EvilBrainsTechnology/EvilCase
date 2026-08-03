@@ -30,4 +30,9 @@ public enum ActFileRole
     /// A data-box envelope, a `.zfo`.
     /// </summary>
     Envelope = 4,
+
+    /// <summary>
+    /// Filed under the act without one of the roles above — a note, a scan, a photograph.
+    /// </summary>
+    Other = 5,
 }

@@ -1,5 +1,6 @@
 using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Data.Migrations.DbContexts;
+using EvilBrains.EvilCase.Domain.Files;
 using EvilBrains.EvilCase.Domain.Parties;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -308,6 +309,24 @@ public class ApplicationDbModelTests
             Assert.That(toAsset?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Restrict), "an asset is shared, so it goes only once nothing points at it");
             Assert.That(owning?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Cascade), "a link has no meaning without its own act");
             Assert.That(originating?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Restrict), "deleting the act an attachment came from must not take another act's link with it");
+        }
+    }
+
+    [Test]
+    public void EveryFileRoleFitsTheColumnItIsStoredIn()
+    {
+        using var context = new ApplicationDbContextFactory().CreateDbContext([]);
+
+        var role = context.Model.FindEntityType(typeof(ActFileLink))?.FindProperty(nameof(ActFileLink.Role));
+
+        Assert.That(role, Is.Not.Null);
+
+        var names = Enum.GetNames<ActFileRole>();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(names, Does.Contain(nameof(ActFileRole.Other)), "a file that is none of the named roles has nowhere to go");
+            Assert.That(role.GetMaxLength(), Is.GreaterThanOrEqualTo(names.Max(name => name.Length)), "a role is stored by name, so one longer than the column fails on write");
         }
     }
 
