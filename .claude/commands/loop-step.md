@@ -6,8 +6,11 @@ argument-hint: [optional focus — an issue number or an area]
 # EvilCase product loop — one iteration
 
 Move EvilCase from its proof-of-concept skeleton toward `docs/product/vision.md`, one reviewable
-slice at a time. This command is exactly one iteration: finish it and report. Never ask for
-permission to continue.
+slice at a time. Never ask for permission to continue.
+
+The round fires once an hour, so it is not one unit of work — it runs until nothing is tractable and
+then reports everything it did. Sections 2 to 7 are a cycle, not a list: clear everything §2 finds,
+then take a slice, and when it is open come back to §3 for the next one while the round has room.
 
 Read every iteration, before anything else: `docs/product/vision.md`, `AGENTS.md`, and the open
 work — `gh issue list --state open --limit 100 --json number,title,labels,milestone`.
@@ -77,6 +80,9 @@ stack, say so in the report rather than deepening it by default.
 - Backlog empty → derive the next thin vertical slice from the vision, open an issue for it, take it.
 - Every open issue blocked → do not idle and do not guess. Post one chat message re-surfacing the
   open questions with their issue links, and stop the iteration.
+
+Once a slice is open, come back here for the next one — unless the queue rule in *Standing rules* says
+the round is done opening things.
 
 ## 4. Ask before building — generously
 
@@ -183,9 +189,10 @@ unattended and merging is the only thing standing between it and the next slice.
 
 ## 8. Report
 
-One short chat message: what shipped and its pull request link, every pull request this iteration
-updated in answer to review feedback and what changed in it, what now waits on the owner with
-decision links, what comes next. Then the iteration is over.
+One short chat message covering the whole round: everything that shipped with its pull request link,
+every pull request updated in answer to review feedback or rebased onto a moving base and what
+changed in it, what now waits on the owner with decision links, what comes next. A round that did
+several things reports several — length follows the work, but each line stays one line.
 
 **The report is a report, never a question.** It ends by saying what the next round will take, and the
 loop takes it. Anything the owner has to answer is a decision issue, linked from the report and never
@@ -207,7 +214,17 @@ interrupted a round to ask about something else entirely; a loop that stops does
   done for tokens.
 - Prefer reversible steps. A destructive migration, a dependency change, a change to authentication
   or the security headers, a rewrite of something that already works: ask first, as a decision issue.
-- One iteration is one pull request at most. Breadth comes from many iterations, not from big ones.
+- **A round is bounded by the work, not by a count.** It fires once an hour, so it keeps going while
+  something is tractable rather than stopping at the first finished thing. Clearing what is already
+  open — comments, red checks, stale bases — is unbounded: do all of it. Then take slices one after
+  another for as long as the round has room.
+- **Each pull request stays one thin slice.** Doing more per round means several small pull requests,
+  never one big one; the reason they are small is that they are reviewed on a phone, and an hourly
+  cadence does not change that.
+- **Do not grow a queue the owner cannot get through.** With six or more pull requests already
+  waiting, spend the round on those and open nothing new — at that point the review queue is the
+  bottleneck and adding to it makes the loop look busy while `master` stands still. Say so in the
+  report instead.
 - **The loop never waits for the owner.** It opens the decision issue and carries on with whatever is
   not blocked by it. It does not pause for approval to commit, to open a pull request, to close its
   own pull request, or to pick the next slice — those are the loop's to make, and the owner reverses

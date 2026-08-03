@@ -18,13 +18,16 @@ Order, every round:
    that lands on `master` on its own over one that adds a layer to something already waiting.
 4. Open a decision issue for every product question in it, and never comment on one that is open —
    `gh` runs as the owner, so the loop would be answering itself.
-5. Build and ship at most one pull request, against the definition of done in `loop-step.md`.
+5. Build and ship the slice, against the definition of done in `loop-step.md` — then go back to 3 for
+   the next one. The round fires once an hour and runs until nothing is tractable, so it is several
+   small pull requests rather than one, and never one big one.
 
-**Never merge it, and never push to `master`.** Opening the pull request is where the round ends,
-whatever CI says and however long the branch has been waiting. Merging is the owner's alone.
+**Never merge it, and never push to `master`.** Opening the pull request is as far as the loop takes
+it, whatever CI says and however long the branch has been waiting. Merging is the owner's alone.
 
-Then stop and report. One round is one iteration; the next round is the next wake-up, not a
-continuation of this one.
+The round ends when nothing is left that it can move — not when the first thing is finished. Then
+report all of it at once. The next round is the next wake-up, an hour later, not a continuation of
+this one.
 
 If every open issue is blocked on a decision, do nothing this round except re-surface the open
 questions with their issue links. If that is still true on the round after it, say so once and
