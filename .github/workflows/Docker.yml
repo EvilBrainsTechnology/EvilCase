@@ -108,7 +108,7 @@ jobs:
       # Stored on GitHub instead, `gh attestation verify oci://<image> --repo <owner/repo>` resolves
       # the digest from the registry and looks the statement up there.
       - name: Attest build provenance
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v4
         with:
           subject-name: ${{ env.IMAGE }}
           subject-digest: ${{ steps.build.outputs.digest }}
