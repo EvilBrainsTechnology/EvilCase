@@ -22,7 +22,7 @@ public sealed class UsingDirectiveOrderAnalyzer : DiagnosticAnalyzer
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true);
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Ordered);
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Ordered];
 
     public override void Initialize(AnalysisContext context)
     {

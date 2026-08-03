@@ -49,7 +49,7 @@ internal readonly struct EquatableArray<T>(ImmutableArray<T> values) : IEquatabl
         return hash;
     }
 
-    public IEnumerator<T> GetEnumerator() => ((IEnumerable<T>)(this.values.IsDefault ? ImmutableArray<T>.Empty : this.values)).GetEnumerator();
+    public IEnumerator<T> GetEnumerator() => ((IEnumerable<T>)(this.values.IsDefault ? [] : this.values)).GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
 }
