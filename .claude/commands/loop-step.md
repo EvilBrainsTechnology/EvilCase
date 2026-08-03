@@ -17,21 +17,39 @@ work — `gh issue list --state open --limit 100 --json number,title,labels,mile
 
 Focus: $ARGUMENTS
 
-## 0. The round runs in a subagent
+## 0. Work runs in subagents, not in the main thread
 
-The Routine fires into a long-lived session, so a round run inline fills that session with build
-logs, diffs and API output until it compacts — and a compaction loses exactly the detail a later
-round needs. **The main thread therefore delegates the whole round** and keeps only the report:
-one `Agent` call, `subagent_type` `general-purpose`, `run_in_background: false`, told to follow this
-file as its specification. The subagent's report is not shown to the owner, so the main thread
-relays it verbatim.
+Everything the session does to this repository fills its context with build logs, diffs and API
+output until it compacts — and a compaction loses exactly the detail a later round needs. **So the
+main thread delegates the work and keeps only the report.** That covers a round of the loop, but
+not only a round: answering review comments on a pull request, taking an issue, an investigation the
+owner asked for, all of it. The main thread is left with three jobs — decide what to hand out, talk
+to the owner, and keep the schedule per §8.
+
+Delegating is not free, so the exception is size rather than kind: reading one file, checking one
+pull request's state, a one-line edit the owner just asked for. If spawning costs more than doing,
+do it.
 
 The session is what stays: `subscribe_pr_activity` subscriptions belong to it, and so does the
-conversation the owner reads. That is why the round is delegated rather than moved to a fresh
-session per firing.
+conversation the owner reads. That is why work is delegated rather than moved to a fresh session.
 
-What the main thread still does itself, because the subagent cannot: relay the report, answer the
-owner, and confirm the schedule per §8.
+### Independent work runs in parallel, each in its own worktree
+
+Review comments on three pull requests are three tasks that do not touch each other, and so are two
+unrelated issues. Spawn them together rather than one after another.
+
+**Every subagent that writes to the repository gets `isolation: "worktree"`.** They otherwise share
+one checkout, and a `git checkout` in one destroys what another is holding — the failure is silent
+and looks like work that was never done. A read-only subagent does not need one. Two tasks that
+would edit the same file are not independent and do not go out together whatever the isolation says.
+
+The main thread relays what came back; a subagent's report is not shown to the owner.
+
+### A pull request is not a workbench
+
+A comment, a description or a branch that the owner reads is a deliverable, not scratch space.
+Verify with the tools — `curl`, `git`, a build — never by writing a trial into a pull request and
+looking at what happened. Anything written to one is written for a person.
 
 ### The subagent starts blank, so the repository is the only memory
 

@@ -7,8 +7,8 @@ Run **one** iteration of the EvilCase product loop, following `.claude/commands/
 exactly — read it at the start of the round, it is the specification and this file is only the
 entry point.
 
-The round itself runs in a subagent with a clean context (§0 there). The main thread reads these two
-files, spawns it, relays its report and confirms the schedule.
+The round itself runs in a subagent with a clean context, as all work does (§0 there). The main
+thread reads these two files, spawns it, relays its report and confirms the schedule.
 
 Order, every round:
 
