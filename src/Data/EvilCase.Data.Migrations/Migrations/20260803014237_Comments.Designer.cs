@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EvilBrains.EvilCase.Data.Migrations.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260802141957_Comments")]
+    [Migration("20260803014237_Comments")]
     partial class Comments
     {
         /// <inheritdoc />
@@ -145,6 +145,11 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("InternalCaseReference")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
                     b.Property<long>("OwnerId")
                         .HasColumnType("bigint");
 
@@ -174,7 +179,44 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
 
                     b.HasIndex("ParentCaseId");
 
+                    b.HasIndex("OwnerId", "InternalCaseReference")
+                        .IsUnique();
+
                     b.ToTable("Cases");
+                });
+
+            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.CaseReference", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("AssignedByPartyId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("CaseId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssignedByPartyId");
+
+                    b.HasIndex("Value");
+
+                    b.HasIndex("CaseId", "Value")
+                        .IsUnique();
+
+                    b.ToTable("CaseReferences");
                 });
 
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.CaseTag", b =>
@@ -488,6 +530,25 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.Navigation("Owner");
 
                     b.Navigation("Parent");
+                });
+
+            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.CaseReference", b =>
+                {
+                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Party", "AssignedBy")
+                        .WithMany()
+                        .HasForeignKey("AssignedByPartyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Case", "Case")
+                        .WithMany()
+                        .HasForeignKey("CaseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AssignedBy");
+
+                    b.Navigation("Case");
                 });
 
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.CaseTag", b =>
