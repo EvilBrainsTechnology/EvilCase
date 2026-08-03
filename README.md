@@ -1,6 +1,6 @@
 # EvilCase
 
-Case-file management system. Proof-of-concept state: ASP.NET Core API + Blazor WebAssembly frontend with a single echo round-trip.
+A case-file system for administrative and legal proceedings: a case nests into sub-cases to any depth and accumulates acts, parties, file marks, tags and comments. Built so far — the domain model in PostgreSQL, authentication, and a Blazor WebAssembly frontend whose case screens are still placeholders.
 
 > **Proprietary — all rights reserved.** This repository is public to read, not to use. No right to run, copy, modify or distribute the software is granted; see [LICENSE.txt](LICENSE.txt) and ask before you use anything.
 
@@ -14,7 +14,7 @@ One process serves everything: `/api/*` goes to the API, every other path return
 
 All code lives in `src/` (solution `EvilCase.slnx`): `EvilCase.Host` is the only runnable project, `Api/` holds the API, its shared contracts and the generated client, `App/` the frontend, `Data/` the EF Core model and migrations, `Common/` and `Utils/` the shared libraries.
 
-Full project map and all conventions: [AGENTS.md](AGENTS.md). Deployment: [deploy/README.md](deploy/README.md).
+Full project map and all conventions: [CLAUDE.md](CLAUDE.md), plus a `CLAUDE.md` in each area it points at. Deployment: [deploy/README.md](deploy/README.md).
 
 ## Local development
 
