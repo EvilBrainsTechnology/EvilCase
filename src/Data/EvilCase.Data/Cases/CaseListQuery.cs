@@ -5,24 +5,17 @@ using Microsoft.EntityFrameworkCore;
 namespace EvilBrains.EvilCase.Data.Cases;
 
 /// <summary>
-/// Shapes the case list, one composable step per rule, so what the list is can be read in one place and
-/// pinned by a test without a server.
+/// Shapes the case list, one composable step per rule.
 /// </summary>
-/// <remarks>
-/// Every step stays an <see cref="IQueryable{T}"/>: the filtering runs in PostgreSQL rather than over a
-/// list the application fetched first, and the projection is what decides which columns are read at all.
-/// </remarks>
 public static class CaseListQuery
 {
     /// <summary>
-    /// The character that turns a wildcard back into a literal, so a search for <c>50%</c> does not match
-    /// everything.
+    /// Turns a wildcard in the search term back into a literal.
     /// </summary>
     private const string Escape = "\\";
 
     /// <summary>
-    /// Cases with no parent. The list shows proceedings, not every node in them — a sub-case is reached
-    /// through its parent (#99).
+    /// Cases with no parent.
     /// </summary>
     public static IQueryable<Case> Roots(this IQueryable<Case> cases)
     {
@@ -32,8 +25,7 @@ public static class CaseListQuery
     }
 
     /// <summary>
-    /// Narrows to what matches <paramref name="search"/> anywhere in the title or the subject, ignoring
-    /// case but not diacritics (#101). A blank term narrows nothing.
+    /// Matches the title or the subject, ignoring case but not diacritics. A blank term narrows nothing.
     /// </summary>
     public static IQueryable<Case> MatchingSearch(this IQueryable<Case> cases, string? search)
     {
@@ -49,11 +41,6 @@ public static class CaseListQuery
                 || (@case.Subject != null && EF.Functions.ILike(@case.Subject, pattern, Escape)));
     }
 
-    /// <summary>
-    /// Narrows to what the filter names. <see cref="CaseStatusFilter.Open"/> is everything not closed
-    /// and is what a request that says nothing gets (#100); only <see cref="CaseStatusFilter.All"/>
-    /// brings the archive back.
-    /// </summary>
     public static IQueryable<Case> WithStatus(this IQueryable<Case> cases, CaseStatusFilter filter)
     {
         ArgumentNullException.ThrowIfNull(cases);
@@ -70,8 +57,7 @@ public static class CaseListQuery
     }
 
     /// <summary>
-    /// Most recently touched first, which is the order the work is in. The identifier breaks the tie, so
-    /// two cases changed in the same instant do not swap places between two calls.
+    /// Most recently touched first, the identifier breaking the tie so the order is total.
     /// </summary>
     public static IQueryable<Case> InListOrder(this IQueryable<Case> cases)
     {
@@ -83,8 +69,7 @@ public static class CaseListQuery
     }
 
     /// <summary>
-    /// Reads only what a row shows. The tags come with it as one query rather than one per row, and the
-    /// sub-case count as a count rather than as the children themselves.
+    /// Reads only what a row shows, in one query.
     /// </summary>
     public static IQueryable<CaseListItem> AsListItems(this IQueryable<Case> cases)
     {

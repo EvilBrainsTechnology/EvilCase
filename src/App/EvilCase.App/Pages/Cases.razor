@@ -29,8 +29,6 @@
                     </div>
 
                     <div class="col-12 col-lg-auto">
-                        @* No empty option: the filter is always set to something, so a case that is
-                           present but not shown can be explained by reading the control (#100). *@
                         <select class="form-select" aria-label="Stav spisu"
                                 @bind="this.status" @bind:after="this.Reload">
                             @foreach (var value in Filters)
@@ -66,11 +64,8 @@
             }
             else
             {
-                @* Table from lg up, cards below it: both render and CSS picks one, never C#. *@
                 <div class="d-none d-lg-block">
-                    @* QuickTable takes its default sort from the first column, so the column the API
-                       already ordered by has to be that one, or the table would silently re-sort the
-                       answer it was given. *@
+                    @* QuickTable sorts by its first column, so that has to be the one the API ordered by. *@
                     <QuickTable Items="this.items.AsQueryable()" Class="card-table table-vcenter">
                         <TemplateColumn Title="Změněno" Context="item"
                                         SortBy="@(GridSort<CaseListItem>.ByAscending(item => item.Updated ?? item.Created))"
@@ -106,10 +101,6 @@
 </div>
 
 @code {
-    /// <summary>
-    /// Long enough that typing a word is one request rather than one per letter, short enough that the
-    /// list still follows the keyboard.
-    /// </summary>
     private static readonly TimeSpan SearchDelay = TimeSpan.FromMilliseconds(300);
 
     private static readonly CaseStatusFilter[] Filters = Enum.GetValues<CaseStatusFilter>();
@@ -140,9 +131,7 @@
     private Task Reload() => this.Load(debounce: false);
 
     /// <summary>
-    /// One request at a time: starting another cancels the one before it, which is both what debounces
-    /// the keyboard and what keeps a slow answer to an old term from overwriting a fast answer to the
-    /// current one.
+    /// One request at a time: starting another cancels the one before it.
     /// </summary>
     private async Task Load(bool debounce)
     {
@@ -170,7 +159,7 @@
         }
         catch (OperationCanceledException)
         {
-            // Superseded by a newer term; whatever it would have shown is already out of date.
+            // Superseded by a newer request.
         }
         catch (Exception exception) when (exception is ApiException or HttpRequestException)
         {
