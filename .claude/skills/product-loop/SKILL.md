@@ -42,11 +42,21 @@ curl -s -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+
 
 ## 0. Work runs in subagents, not in the main thread
 
-Everything the session does to this repository fills its context with build logs, diffs and API output until it compacts, and a compaction loses exactly the detail a later round needs. **The main thread delegates the work and keeps only the report.** That covers a round, and also answering review comments, taking an issue, and an investigation the owner asked for. The main thread has three jobs: decide what to hand out, talk to the owner, keep the schedule.
+Everything the session does to this repository fills its context with build logs, diffs and API output until it compacts, and a compaction loses exactly the detail a later round needs. **The main thread delegates the work and keeps only the report.** That covers a round, and also answering review comments, taking an issue, and an investigation the owner asked for.
 
 Delegating is not free, so the exception is size rather than kind: reading one file, checking one pull request's state, a one-line edit the owner just asked for. If spawning costs more than doing, do it.
 
 The session is what stays — `subscribe_pr_activity` subscriptions belong to it, and so does the conversation the owner reads. That is why work is delegated rather than moved to a fresh session.
+
+### A task is delegated whole
+
+A subagent finishes what it was given: writes the code, runs `dotnet r ci`, commits in logical units, pushes the branch, opens the pull request, subscribes to it, replies in the review threads it answered, files the issues its findings deserve. It does not hand a finished branch back for someone else to publish. A task split at the last step costs the main thread the whole context it was delegated to avoid, and the half that comes back is the half that needs the detail.
+
+Three things stay with the main thread, because a subagent cannot do them:
+
+- **Talking to the owner.** A subagent has no one to ask, so a question it hits becomes a decision issue and the round carries on.
+- **The schedule.** `list_triggers` and `create_trigger` are not reachable from a subagent.
+- **Merging**, when the owner has asked for it by name — and never otherwise.
 
 ### Independent work runs in parallel, each in its own worktree
 
