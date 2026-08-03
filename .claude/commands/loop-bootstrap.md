@@ -9,7 +9,7 @@ creates only what is missing. None of the create calls is idempotent on its own 
 exists is an error, a milestone or an issue with the same title is a duplicate — so the listing is
 the mechanism, not a precaution.
 
-`gh` is not installed and `github.com` is blocked; `api.github.com` is reachable with `$GH_TOKEN`.
+`gh` is not installed; `api.github.com` is reachable with `$GH_TOKEN`.
 Every call below is a `curl`, as described in `.claude/skills/product-loop/SKILL.md`:
 
 ```bash
@@ -32,8 +32,9 @@ Report each as OK or blocked, and stop at the first blocker rather than guessing
   `.claude/skills/run-app/SKILL.md`) reaches `/health/ready` as `Healthy`, and the seeded
   administrator can sign in. An instance already running from the IDE holds that port and has to be
   stopped first.
-- A screenshot of a signed-in screen can be taken. If no browser tooling is available, say so — the
-  definition of done in `.claude/skills/product-loop/SKILL.md` depends on it.
+- A screenshot of a signed-in screen can be taken with Playwright, as
+  `.claude/skills/product-loop/SKILL.md` describes under *Visual proof*. Report it blocked if the
+  browsers are missing; the definition of done there depends on it.
 
 ## 2. Labels
 
@@ -93,4 +94,4 @@ seeded administrator · the seam for later multi-tenancy.
 ## 5. Report
 
 Print the milestone and issue numbers created, and the first slice the loop will take. Do not start
-building — that is `/loop`.
+building — that is a round, started from `.claude/loop.md`.
