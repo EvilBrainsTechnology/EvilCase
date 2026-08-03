@@ -1,6 +1,6 @@
-using EvilBrains.EvilCase.Api.Contract.Parties;
 using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Data.Migrations.DbContexts;
+using EvilBrains.EvilCase.Domain.Parties;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 

@@ -1,4 +1,4 @@
-namespace EvilBrains.EvilCase.Data;
+namespace EvilBrains.EvilCase.Business;
 
 /// <summary>
 /// Who owns what the current request is about. The one place ownership is resolved.

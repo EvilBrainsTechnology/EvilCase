@@ -1,6 +1,6 @@
-using EvilBrains.EvilCase.Api.Contract.Cases;
-using EvilBrains.EvilCase.Data.Cases;
+using EvilBrains.EvilCase.Business.Cases;
 using EvilBrains.EvilCase.Data.Entities;
+using EvilBrains.EvilCase.Domain.Cases;
 
 namespace EvilBrains.EvilCase.Tests.Cases;
 

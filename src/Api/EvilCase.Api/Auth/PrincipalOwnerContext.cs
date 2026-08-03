@@ -1,6 +1,6 @@
 using System.Security.Claims;
 using EvilBrains.EvilCase.Api.Contract.User;
-using EvilBrains.EvilCase.Data;
+using EvilBrains.EvilCase.Business;
 using Microsoft.AspNetCore.Http;
 
 namespace EvilBrains.EvilCase.Api.Auth;

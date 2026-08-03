@@ -4,6 +4,7 @@ using System.Threading.RateLimiting;
 using EvilBrains.Cryptography;
 using EvilBrains.EvilCase.Api.Contract.User;
 using EvilBrains.EvilCase.Auth;
+using EvilBrains.EvilCase.Domain.Users;
 using EvilBrains.EvilCase.Tests.Auth;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.RateLimiting;

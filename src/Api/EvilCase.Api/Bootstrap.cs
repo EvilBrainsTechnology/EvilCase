@@ -1,6 +1,6 @@
 using EvilBrains.EvilCase.Api.Auth;
 using EvilBrains.EvilCase.Api.HealthChecks;
-using EvilBrains.EvilCase.Data;
+using EvilBrains.EvilCase.Business;
 using EvilBrains.Logging.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -58,7 +58,7 @@ public static class Bootstrap
 
         services.AddClientLogWriter(ClientSourceContext);
 
-        services.AddEvilCaseData();
+        services.AddEvilCaseBusiness();
 
         // Scoped: it answers for the request being served.
         services.AddHttpContextAccessor();
@@ -66,7 +66,7 @@ public static class Bootstrap
 
         services
             .AddHealthChecks()
-            .AddEvilCaseDataHealthChecks(HealthCheckTags.Ready);
+            .AddEvilCaseBusinessHealthChecks(HealthCheckTags.Ready);
 
         return services;
     }

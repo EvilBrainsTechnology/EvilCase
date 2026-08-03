@@ -1,16 +1,11 @@
 using EvilBrains.EvilCase.Data.Entities;
 
-namespace EvilBrains.EvilCase.Data.Cases;
+namespace EvilBrains.EvilCase.Business.Cases;
 
 /// <summary>
 /// Walks a loaded case graph. Pure over the navigation properties, so it says nothing about how the
 /// graph was loaded — a merged timeline over a whole sub-tree (M4) will fetch it in one query instead.
 /// </summary>
-/// <remarks>
-/// Every walk carries a visited set. <see cref="CanNestUnder"/> is what keeps a cycle out of the data in
-/// the first place, but a walk that hangs on a graph that got one anyway is a far worse failure than a
-/// walk that stops.
-/// </remarks>
 public static class CaseTree
 {
     /// <summary>

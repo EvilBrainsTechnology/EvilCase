@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace EvilBrains.EvilCase.Api.Contract.User;
+namespace EvilBrains.EvilCase.Domain.Users;
 
 /// <summary>
 /// The user entity, the role claim and the client all name these values. Serialized by name rather than

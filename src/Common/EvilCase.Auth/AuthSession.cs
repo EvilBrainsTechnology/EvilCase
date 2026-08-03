@@ -1,4 +1,4 @@
-using EvilBrains.EvilCase.Api.Contract.User;
+using EvilBrains.EvilCase.Domain.Users;
 
 namespace EvilBrains.EvilCase.Auth;
 
