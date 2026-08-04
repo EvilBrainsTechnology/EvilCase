@@ -9,11 +9,6 @@ public partial class FileReferences : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        // A file asset now needs a primary act and a name of its own, and neither can be derived from a
-        // link: decision #164 drops what the reshape cannot carry, and here that is the row.
-        migrationBuilder.Sql("""DELETE FROM "ActFileLinks";""");
-        migrationBuilder.Sql("""DELETE FROM "FileAssets";""");
-
         DropTheRoleAndTheOriginatingAct(migrationBuilder);
         RenameLinksToReferences(migrationBuilder);
         AddThePrimaryActAndTheOriginalName(migrationBuilder);
@@ -22,6 +17,7 @@ public partial class FileReferences : Migration
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
+        // Down brings the columns back empty: nothing stores a role or an originating act after Up.
         DropThePrimaryActAndTheOriginalName(migrationBuilder);
         RenameReferencesToLinks(migrationBuilder);
         RestoreTheRoleAndTheOriginatingAct(migrationBuilder);
@@ -172,8 +168,7 @@ public partial class FileReferences : Migration
             table: "ActFileLinks",
             type: "character varying(32)",
             maxLength: 32,
-            nullable: false,
-            defaultValue: "");
+            nullable: false);
 
         migrationBuilder.AddColumn<long>(
             name: "OriginatingActId",
