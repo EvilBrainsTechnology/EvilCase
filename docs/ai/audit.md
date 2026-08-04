@@ -33,8 +33,8 @@ Constraints:
 One row per rule. Class: **binding** (a rule to keep), **fact** (describes the app or the
 environment, not conduct), **duplicate** (stated elsewhere too), **dead** (state, history, or no
 longer true). Disposition names the target file, or says why the rule is deleted. `writing`,
-`code`, `github`, `instructions`, `api`, `app`, `business`, `data`, `auth` are files under
-`.claude/rules/`.
+`agents`, `code`, `github`, `instructions`, `api`, `app`, `business`, `data`, `auth` are files
+under `.claude/rules/`.
 
 ### CLAUDE.md (root, 80 lines)
 
@@ -199,11 +199,11 @@ longer true). Disposition names the target file, or says why the rule is deleted
 | S6 | REST endpoint reference table | fact | moved to `.claude/skills/product-loop/github-api.md` |
 | S7 | The loop's pull requests are the `loop/*` and `claude/*` branches, not an author | binding | replaced: Phase 5 — the loop tends **every** open pull request |
 | S8 | The loop's own comments are recognised by author `claude[bot]`, measured not assumed | binding | stays |
-| S9 | Work runs in subagents; the main thread delegates and keeps the report | binding | stays |
-| S10 | A task is delegated whole, through to the published pull request | binding | stays |
+| S9 | Work runs in subagents; the main thread delegates and keeps the report | binding | `agents`, widened to every session; the size-not-kind exception restored |
+| S10 | A task is delegated whole, through to the published pull request | binding | `agents`, widened to every session |
 | S11 | Owner communication and the schedule stay in the main thread | binding | stays (the merge clause is replaced by `github`) |
-| S12 | Independent tasks run in parallel; every writing subagent gets a worktree | binding | stays |
-| S13 | Worktree caveats: parent's root instructions, no `.env` | fact | one line; `.env` half owned by run-app skill |
+| S12 | Independent tasks run in parallel; every writing subagent gets a worktree | binding | `agents` |
+| S13 | Worktree caveats: parent's root instructions, no `.env` | fact | `agents`; `.env` half owned by run-app skill |
 | S14 | A pull request is not a workbench; verify with tools | binding | stays |
 | S15 | The repository is the only memory: findings → issues, PR state → PR comments, rules → instruction files | binding | stays |
 | S16 | Answered decisions: `## Decision` comment, label `decided`, close, unblock referencing issues; vision updated with the code it governs, alone when it governs none | binding | stays |
@@ -278,6 +278,7 @@ longer true). Disposition names the target file, or says why the rule is deleted
 | N6 | Merge only with the owner's `APPROVED` review, green CI and no conflicts; squash; delete the branch | `github` |
 | N7 | Never approve your own PR; never bypass the review gate (no admin merge, no force push to `master`) | `github` |
 | N8 | A chat response ends with a TL;DR of what waits on the user (review, decision) | `writing` |
+| N9 | Delegation to subagents — whole tasks, in parallel — binds every session, not only the loop | `agents` |
 
 ## 3. Target structure
 
@@ -287,6 +288,7 @@ CLAUDE.md                      map: what the app is, solution table, commands, p
   writing.md                   style of every produced text (Phase 3)
   instructions.md              how instructions change; the length ratchet (Phase 4)
   github.md                    branches, commits, PR lifecycle, merge protocol, privacy (Phase 5)
+  agents.md                    delegation to subagents — whole tasks, in parallel
   code.md        paths: src/** — C# conventions
   api.md         paths: src/Api/**, src/EvilCase.Host/**
   app.md         paths: src/App/**

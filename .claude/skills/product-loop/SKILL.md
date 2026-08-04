@@ -18,12 +18,9 @@ worktree refuses shell pipelines: write the calls into a scratchpad script and p
 
 ## Subagents
 
-The main thread delegates the work, keeps only the report, and holds three things itself:
-talking to the owner, the schedule, and merging. A task is delegated whole — code,
-`dotnet r ci`, commits, push, pull request, subscription, review replies. Independent tasks go
-out in parallel, and every subagent that writes to the repository gets `isolation: "worktree"`;
-a worktree sees the parent checkout's rule files and has no `.env` (run-app skill). A pull
-request is never a workbench: verify with tools, not trial edits.
+Delegation follows `.claude/rules/agents.md`. The round's main thread holds three things
+itself: talking to the owner, the schedule, and merging. A pull request is never a workbench:
+verify with tools, not trial edits.
 
 A subagent starts blank: the repository is the only memory. Before the round ends, a finding
 becomes an issue, off-diff pull request state a comment on it, a new loop rule an instruction file.
