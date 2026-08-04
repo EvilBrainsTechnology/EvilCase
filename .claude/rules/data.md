@@ -23,8 +23,9 @@ rules below against the built model.
 - A date a period runs from is `DateOnly` mapped to `date`; timestamps stay `DateTime`.
 - Foreign keys to `Parties` are `DeleteBehavior.Restrict`; the owning case cascades instead.
 - A file asset hangs on its primary act and carries the original name; another act reaches it
-  through an `ActFileReference` carrying its own. No role anywhere, and both cascade from the
-  act. `FileAssets` is unique on `(OwnerId, ContentHash)`, never on the hash alone.
+  through an `ActFileReference` carrying its own. No role anywhere. Deleting an act deletes the
+  assets filed under it and the references it made; deleting an asset deletes every reference
+  to it. `FileAssets` is unique on `(OwnerId, ContentHash)`, never on the hash alone.
 - A comment hangs on a case XOR an act: one table, two nullable parents, a check constraint.
   Tests read check constraints from `IDesignTimeModel`, not `context.Model`.
 
