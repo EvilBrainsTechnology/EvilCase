@@ -25,10 +25,15 @@
 - A pull request's title and description always match its current diff; update them with every
   change to its content.
 - No attribution footer and no session link in a GitHub write: the `claude[bot]` author says it.
-- The loop tends every open pull request: work review comments in, reply to them, rebase onto
-  the target branch on a conflict, keep CI green.
+- The loop tends every open pull request `claude[bot]` opened: work review comments in, reply
+  to them, rebase onto the target branch on a conflict, keep CI green.
+- Another author's pull request is reviewed only when it carries `request-code-review`, and
+  never merged (below). Without that label it is not the loop's business at all.
 - The owner is whoever `CODEOWNERS` names.
-- The agent merges; the owner only approves. Dependent pull requests merge in dependency
+- The agent merges what `claude[bot]` opened, and nothing else; the owner only approves. Any
+  other author's pull request stays theirs to merge, however green, approved or reviewed it is.
+  Read the author, never remember it: a round wakes with no memory of what it opened. A review
+  says what it found and stops there. Dependent pull requests merge in dependency
   order: after each merge, rebase what conflicts and wait for green CI before the next.
 - Merge only a pull request GitHub reports mergeable (`mergeable_state: clean`): the
   repository's configured merge requirements — reviews, checks, conflicts — are the gate.
