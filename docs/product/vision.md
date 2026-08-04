@@ -28,11 +28,11 @@ A case nests under another case to any depth; a sub-case has the same shape. Del
 deletes its sub-tree.
 
 **Act** (*úkon*) — the unit of work inside a case: one submission, decision, notice or call. It
-has a direction (outgoing/incoming), a title, one calendar date, the file number (*číslo
-jednací*) of whoever issued it, an editable summary, and links to file assets. Acts have no
-ordinal: every act list is ordered by the act date, with the record's creation time as the
-fallback. The summary lives on the act and nowhere else — an attachment that came from another
-act is read through the summary of that act.
+has a direction (outgoing/incoming), a title, one calendar date, a filing number of its own
+(*číslo jednací*, per Numbering), the issuer's number where a document arrived with one, an
+editable summary, and links to file assets. Acts have no ordinal: every act list is ordered by
+the act date, with the record's creation time as the fallback. The summary lives on the act and
+nowhere else — an attachment that came from another act is read through the summary of that act.
 
 **File asset** — a stored blob, content-addressed by hash and deduplicated per owner: the same
 PDF attached in five sub-cases is one asset with five links. Each link carries a role —
@@ -46,9 +46,9 @@ data-box id and a free-text address printed back as a block. Picked or created i
 a case, act or mark names one, and managed in a standalone agenda that shows where each party
 appears. A party can be deleted only while nothing references it.
 
-**Case reference** — a file mark (*spisová značka*). A case has one internal mark plus N
-external marks, each bound to the party that assigned it, because every authority in the chain
-assigns its own.
+**Case reference** — a file mark (*spisová značka*). A case carries its internal mark (per
+Numbering) plus N external marks, each bound to the party that assigned it, because every
+authority in the chain assigns its own.
 
 **Comment** — a free note on a case or an act. The running log of the file.
 
@@ -56,6 +56,24 @@ assigns its own.
 tags are free text.
 
 Everything the user enters can be edited and deleted; a destructive operation confirms first.
+
+## Numbering
+
+The application issues its own file marks and filing numbers; anything assigned by somebody
+else stays free text. Both patterns are application-wide configuration, stored in the database
+and edited on a settings screen — the first piece of it.
+
+- Case mark: every case and sub-case takes the next mark from one series, default
+  `EC-{year}{month}{day}-{seq}` → `EC-20260804-001`.
+- Filing number: every act takes one on creation, default
+  `{case-reference}-{year}{month}{day}-{seq}` → `EC-20260804-001-20260805-002`.
+- `{seq}` counts within the period the pattern names — daily with `{day}`, yearly with `{year}`
+  alone, and per case besides for the filing number — zero-padded to three digits so the
+  numbers sort. A number once issued is never reused, and a pattern change never rewrites one.
+- Generated values are editable, with per-owner uniqueness always enforced — an old file
+  entered by hand keeps its historical mark.
+- Search matches marks and filing numbers, prefix included; an exact match jumps straight to
+  the case or act.
 
 ## Sample data
 
@@ -71,14 +89,14 @@ In order, from what hurts most when working a real case:
 
 1. The whole case in one place — the tree, the acts, the documents — instead of a folder tree.
 2. Entering a new act with its documents in under a minute.
-3. Finding a case fast; search ignores diacritics.
+3. Finding a case or an act fast, by text or by mark; search ignores diacritics.
 
 ## Milestones
 
 | # | Milestone | Ships |
 | --- | --- | --- |
-| M1 | Act date and sample data | act model trimmed to one date and no ordinal, every act list ordered by date; the seed switch loading the speeding case |
-| M2 | Case UI | case detail with the sub-case tree and comments; create, edit and delete; references, status and tags; diacritics-insensitive search |
+| M1 | Act date and sample data | act model trimmed to one date and no ordinal, every act list ordered by date; numbering with the default patterns; the seed switch loading the speeding case |
+| M2 | Case UI | case detail with the sub-case tree and comments; create, edit and delete; references, status and tags; the settings screen with the numbering patterns; diacritics-insensitive search |
 | M3 | Acts and files | act list in the case detail; act page with summary, files and comments; add, edit and delete an act; upload and download |
 | M4 | Parties | the standalone agenda; inline pick-or-create everywhere a party is named |
 
