@@ -1,4 +1,4 @@
-using EvilBrains.EvilCase.Api.Contract.Cases;
+using EvilBrains.EvilCase.Domain.Cases;
 using TabBlazor;
 
 namespace EvilBrains.EvilCase.App.Models;

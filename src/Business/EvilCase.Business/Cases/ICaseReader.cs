@@ -1,6 +1,6 @@
 using EvilBrains.EvilCase.Api.Contract.Cases;
 
-namespace EvilBrains.EvilCase.Data.Cases;
+namespace EvilBrains.EvilCase.Business.Cases;
 
 /// <summary>
 /// Reads cases for the screens that show them.

@@ -2,7 +2,7 @@ using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Data.DbContexts;
 using Microsoft.EntityFrameworkCore;
 
-namespace EvilBrains.EvilCase.Data.Cases;
+namespace EvilBrains.EvilCase.Business.Cases;
 
 internal sealed class CaseReader(ApplicationDbContext context) : ICaseReader
 {

@@ -1,6 +1,6 @@
 using EvilBrains.ApiClient;
 using EvilBrains.EvilCase.Api.Contract.Cases;
-using EvilBrains.EvilCase.Data.Cases;
+using EvilBrains.EvilCase.Business.Cases;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EvilBrains.EvilCase.Api.Controllers;

@@ -1,4 +1,3 @@
-using EvilBrains.EvilCase.Data.Cases;
 using EvilBrains.EvilCase.Data.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -13,7 +12,6 @@ public static class Bootstrap
     {
         serviceCollection.AddLocalDbContext<ApplicationDbContext>();
         serviceCollection.AddScoped<IDatabaseMigrator, DatabaseMigrator>();
-        serviceCollection.AddScoped<ICaseReader, CaseReader>();
 
         return serviceCollection;
     }
