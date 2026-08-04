@@ -98,15 +98,13 @@ Re-subscribe (`subscribe_pr_activity`) to the open pull requests at session star
 unsubscribe on merge or close. The loop ends only when the owner says so or by the §3 stop,
 both said out loud.
 
-## Stacks
-
-A slice needing an unmerged branch targets it; two or more such pull requests are linked as a
-stack (calls in `github-api.md`). A stack is a cost: prefer slices that land on `master`,
-shorten a chain from the bottom, never extend one when the work can exist without it. When the
-bottom merges, GitHub retargets the next; rebase what conflicts onto the new `master`.
-
 ## Standing rules
 
 - On a usage limit, wait for the reset and resume; never trade the definition of done for tokens.
-- With two or more open pull requests, open nothing new and spend the round on those; the one
+- Up to five pull requests open at once, each landing on `master` on its own. A slice that
+  cannot exist without another's unmerged branch is not started — it waits for that branch to
+  merge, and the round takes something independent instead.
+- Stacking only where the owner asks for it: GitHub refuses to merge a stacked pull request
+  through the API, and dissolving the stack costs a rebase and a fresh approval.
+- At the cap, or with nothing independent left, spend the round on what is open; the one
   exception is what the owner explicitly asked for.
