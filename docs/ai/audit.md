@@ -193,7 +193,7 @@ longer true). Disposition names the target file, or says why the rule is deleted
 | --- | --- | --- | --- |
 | S1 | Never ask permission to continue | binding | stays |
 | S2 | A round runs until nothing is tractable, then reports everything once | binding | stays |
-| S3 | Read vision, root instructions and the open work at round start | binding | stays |
+| S3 | Read vision, root instructions and the open work at round start | binding | stays as vision + open work; the rule files load themselves |
 | S4 | GitHub via `curl` + `$GH_TOKEN`; no `gh`; never depend on MCP tools in a round | binding | stays |
 | S5 | Worktrees refuse pipelines: write scripts to the scratchpad; parse with `python3` | binding | stays (condensed) |
 | S6 | REST endpoint reference table | fact | moved to `.claude/skills/product-loop/github-api.md` |
@@ -286,10 +286,10 @@ CLAUDE.md                      map: what the app is, solution table, commands, p
   writing.md                   style of every produced text (Phase 3)
   instructions.md              how instructions change; the length ratchet (Phase 4)
   github.md                    branches, commits, PR lifecycle, merge protocol, privacy (Phase 5)
-  code.md        paths: src/** C# conventions
+  code.md        paths: src/** — C# conventions
   api.md         paths: src/Api/**, src/EvilCase.Host/**
   app.md         paths: src/App/**
-  business.md    paths: src/Business/**
+  business.md    paths: src/Api/**, src/Business/**, src/Data/** — the layering governs all three
   data.md        paths: src/Data/**
   auth.md        paths: src/Common/EvilCase.Auth/**
 .claude/skills/product-loop/SKILL.md     the loop, tightened
@@ -309,7 +309,7 @@ Counted as physical lines (`wc -l`). Scope — the four always-or-automatically 
 `CLAUDE.md`, `src/**/CLAUDE.md`, `.claude/rules/**/*.md`, `.claude/skills/*/SKILL.md`.
 Skill reference files, `docs/**` and READMEs are out of scope by design: they load on demand.
 
-Today the scoped files hold 637 lines. The refactored estimate is ~560.
+Before the refactor the scoped files held 637 lines; after it they hold 510.
 
 | Limit | Value |
 | --- | --- |
