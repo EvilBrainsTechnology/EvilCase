@@ -19,8 +19,7 @@ worktree refuses shell pipelines: write the calls into a scratchpad script and p
 ## Subagents
 
 Delegation follows `.claude/rules/agents.md`. The round's main thread holds three things
-itself: talking to the owner, the schedule, and merging. A pull request is never a workbench:
-verify with tools, not trial edits.
+itself: talking to the owner, the schedule, and merging.
 
 A subagent starts blank: the repository is the only memory. Before the round ends, a finding
 becomes an issue, off-diff pull request state a comment on it, a new loop rule an instruction file.
@@ -66,22 +65,19 @@ issue `blocked`, carry on with the rest; technical choices under the rules are m
 
 ## 5. Build one thin vertical slice
 
-One pull request goes from database to UI, leaves the app usable and stays reviewable on a
-phone. Branch `loop/<issue>-<slug>`, commits in logical units. Branch off `master`; only when
-the slice cannot exist without an unmerged branch, branch off that one and target it (see
-Stacks).
+One pull request goes from database to UI and leaves the app usable. Branch
+`loop/<issue>-<slug>`, off `master`; only when the slice cannot exist without an unmerged
+branch, branch off that one and target it (see Stacks).
 
 ## 6. Definition of done
 
-All four before the pull request exists: `dotnet r ci` green from `src/`; new tests covering
-what the slice adds; visual proof per `visual-proof.md` next to this file, or one line in the
-pull request body saying no screen changed; documentation updated in the same commit. A red
-gate is fixed, never worked around; a slice that cannot pass shrinks.
+The pre-pull-request gate in `.claude/rules/github.md`, whole; a slice that cannot pass it
+shrinks.
 
 ## 7. Pull request
 
-Body: what changed, the screenshots, `Closes #<issue>`. Then `subscribe_pr_activity` on it. A
-second layer of a chain links the stack in the same step.
+Body: what changed, the screenshots, `Closes #<issue>`. A second layer of a chain links the
+stack in the same step.
 
 ## 8. Report
 
@@ -97,9 +93,9 @@ its jobs do not survive this environment. A session that starts while the loop s
 checks `list_triggers` and creates the Routine if missing; every turn ends confirming it is
 still there. Repair a wrong Routine with `update_trigger`; delete only a duplicate, or the loop
 the owner has ended; a denied Routine tool is a question for the owner, never worked around.
-Watch pull requests with `subscribe_pr_activity`: subscribe on opening, re-subscribe at session
-start, unsubscribe on merge or close. The loop ends only when the owner says so or by the §3
-stop, both said out loud.
+Re-subscribe (`subscribe_pr_activity`) to the open pull requests at session start and
+unsubscribe on merge or close. The loop ends only when the owner says so or by the §3 stop,
+both said out loud.
 
 ## Stacks
 
@@ -111,7 +107,5 @@ bottom merges, GitHub retargets the next; rebase what conflicts onto the new `ma
 ## Standing rules
 
 - On a usage limit, wait for the reset and resume; never trade the definition of done for tokens.
-- Prefer reversible steps: a destructive migration, a dependency change, a change to
-  authentication or security headers, a rewrite of something working — decision issue first.
 - With two or more open pull requests, open nothing new and spend the round on those; the one
   exception is what the owner explicitly asked for.

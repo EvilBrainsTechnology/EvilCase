@@ -21,3 +21,6 @@ paths:
   is not used.
 - Package versions live only in `src/Directory.Packages.props`.
 - Namespaces and assemblies are auto-prefixed `EvilBrains.*` by `src/Directory.Build.props`.
+- A destructive migration, a dependency change, a change to authentication or the security
+  headers, a rewrite of something that works: the owner decides first — asked in the chat, or
+  as a decision issue in the loop.
