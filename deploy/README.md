@@ -27,13 +27,20 @@ The release tag also becomes the assembly version, through the `VERSION` build a
 
 The provenance statement is stored on GitHub, not in the registry. Verify with `gh attestation verify oci://ghcr.io/evilbrainstechnology/evilcase --repo <owner>/<repo>`.
 
+## Hosting keys
+
+Two keys under `EvilBrains:EvilCase:Hosting` adapt the pipeline to what sits in front of it:
+
+- `BehindReverseProxy` (default `false`) calls `UseForwardedHeaders` first, with `KnownIPNetworks` and `KnownProxies` cleared and `ForwardLimit = 1`. The single trusted hop is the whole defence: a deployment that turns it on must not be reachable except through that proxy.
+- `HttpsRedirection` (default `true`) turns `UseHttpsRedirection` off where something in front already redirects. `/health/*` is excluded from redirection either way.
+
 ## Compose stack
 
 `docker-compose.yml` runs the application; `.env` next to it (gitignored, `.env.example` documents the keys) holds the variables.
 
 The database is not part of the stack — `EVILCASE_CONNECTION_STRING` points at an existing PostgreSQL. The schema is migrated on startup unless `EvilBrains__EvilCase__Database__MigrateOnStartup=false` is added to the service environment; where more than one instance starts at once, roll it out separately from the idempotent `database.sql` artifact CI publishes.
 
-The service is published over plain HTTP for a reverse proxy that terminates TLS, so it sets `BehindReverseProxy=true` and `HttpsRedirection=false`. The port is published on `127.0.0.1` only (`EVILCASE_PORT` picks the host port): the service trusts one hop of `X-Forwarded-For` and `X-Forwarded-Proto`, so a caller reaching it past the proxy would dictate its own address and scheme.
+The service is published over plain HTTP for a reverse proxy that terminates TLS, so it sets `BehindReverseProxy=true` and `HttpsRedirection=false`; the port is published on `127.0.0.1` only (`EVILCASE_PORT` picks the host port), keeping the service unreachable except through the proxy.
 
 Seq is driven by `EVILCASE_SEQ_URL` alone — an empty one logs to the console only.
 

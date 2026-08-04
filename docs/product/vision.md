@@ -16,7 +16,7 @@ happened, what is running, what has to be done next.
 - Now: single user, own case files. Optimise for speed of working a real case.
 - Later, possibly: multi-tenant SaaS for law firms.
 - Sign-in already ships — seeded administrator, closed registration, refresh-token sessions,
-  default-deny authorization (`src/Common/EvilCase.Auth/CLAUDE.md`). What tenancy still needs is ownership
+  default-deny authorization (`.claude/rules/auth.md`). What tenancy still needs is ownership
   on the aggregates and user management. Build the first as it goes; leave the second.
 - Consequence: every aggregate root carries its owner from its first migration, there is no global
   mutable state, and no query assumes a single user. Roles, invitations and billing are not built.

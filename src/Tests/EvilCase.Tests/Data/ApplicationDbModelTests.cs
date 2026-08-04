@@ -10,8 +10,8 @@ namespace EvilBrains.EvilCase.Tests.Data;
 
 /// <summary>
 /// Builds the model without touching a server — the design-time factory names no connection string,
-/// and nothing here opens one. What it pins are the conventions in the domain model section of
-/// <c>src/Data/CLAUDE.md</c>, which a new entity is otherwise free to forget silently.
+/// and nothing here opens one. What it pins are the conventions in
+/// <c>.claude/rules/data.md</c>, which a new entity is otherwise free to forget silently.
 /// </summary>
 public class ApplicationDbModelTests
 {

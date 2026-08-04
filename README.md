@@ -14,7 +14,7 @@ One process serves everything: `/api/*` goes to the API, every other path return
 
 All code lives in `src/` (solution `EvilCase.slnx`): `EvilCase.Host` is the only runnable project, `Api/` holds the API, its shared contracts and the generated client, `App/` the frontend, `Data/` the EF Core model and migrations, `Common/` and `Utils/` the shared libraries.
 
-Full project map and all conventions: [CLAUDE.md](CLAUDE.md), plus a `CLAUDE.md` in each area it points at. Deployment: [deploy/README.md](deploy/README.md).
+Full project map: [CLAUDE.md](CLAUDE.md); conventions: `.claude/rules/`. Deployment: [deploy/README.md](deploy/README.md).
 
 ## Local development
 
