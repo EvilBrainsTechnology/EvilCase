@@ -49,6 +49,27 @@ cp .env.example .env   # then fill in the connection string and the JWT key
 docker compose up -d
 ```
 
+## Local application stack
+
+`docker-compose.local.yml` (project name `evilcase-local`) is the deployed stack's development
+twin: it builds the image from the repository instead of pulling it, and runs its own PostgreSQL
+next to it. `dotnet r run-docker` from `src/` is the whole command — no `.env`, no dev
+certificate, no database of one's own.
+
+```
+docker compose -f deploy/docker-compose.local.yml up --build
+```
+
+The application answers on `http://localhost:8080` (`EVILCASE_PORT` picks another host port) and
+seeds `admin@evilcase.local` / `DevPassword123!`. It runs as `Development`, so Scalar is mapped
+at `/scalar` and the Seq URL of `appsettings.Development.json` is cleared — a local run must not
+ship logs to a real server. Plain HTTP with nothing in front, so `HttpsRedirection` is off and
+`BehindReverseProxy` stays at its default.
+
+The database publishes no port: the application reaches it over the compose network, and
+publishing would collide with the development stack below. Like it, it is throwaway — constant
+credentials, no volume, `down` wipes the data.
+
 ## Local development database
 
 `docker-compose.dev.yml` is a separate stack (project name `evilcase-dev`) that runs PostgreSQL only, on `127.0.0.1:5432` with the credentials `.env.example` of the host already points at. It is for development, never for a deployment: the password is a constant and there is no volume, so `down` wipes the data and the next start migrates and seeds an empty database again.

@@ -41,6 +41,11 @@ not start there: copy the file into the worktree, or run the app from the main c
 
 ## Start
 
+`dotnet r run-docker` needs none of the prerequisites above except Docker: it builds the image
+from the repository and runs it with its own PostgreSQL at `http://localhost:8080`, seeding
+`admin@evilcase.local` / `DevPassword123!`. Everything below verifies it the same way, over
+plain HTTP; `deploy/README.md` has the stack.
+
 `dotnet r run` → `https://localhost:5000` (Scalar UI at `/scalar`, Development only). In Claude
 Code, start the preview server `evilcase` from `.claude/launch.json` instead of a shell; it
 serves the same address, and only one instance can hold the port — stop an IDE instance first.
@@ -61,4 +66,6 @@ Keep the port off the browsers' unsafe-port list (6000, 6665–6669, 6697, …).
 ## Stop
 
 Ctrl+C, or stop the preview server. The database keeps running;
-`docker compose -f deploy/docker-compose.dev.yml down` removes it along with its data.
+`docker compose -f deploy/docker-compose.dev.yml down` removes it along with its data. The
+Docker stack stops the same way and is removed with
+`docker compose -f deploy/docker-compose.local.yml down`.
