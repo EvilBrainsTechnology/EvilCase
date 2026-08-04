@@ -16,8 +16,8 @@ for product questions and continue with what is not blocked → ship thin vertic
 
 Constraints:
 
-- Never pushes to `master`; today never merges (the refactor replaces this with an
-  approval-gated merge protocol — see §Phase 5 rows).
+- Never pushes to `master`; merges only what the owner has approved, by the protocol in
+  `github` (before the refactor it never merged at all — see the §Phase 5 rows).
 - Definition of done: `dotnet r ci` green, new tests, visual proof screenshots, docs updated in
   the same commit. A red gate is fixed, never suppressed; a slice that cannot meet it shrinks.
 - With two or more open pull requests it opens nothing new (exception: owner-requested work).
@@ -303,7 +303,7 @@ The six `src/**/CLAUDE.md` files are deleted; their rules live in the path-scope
 which load when a matching file is read. `docs/**` and `README.md` files are unlimited and hold
 what is needed only occasionally; instructions reference them.
 
-## 4. Length limits (proposal)
+## 4. Length limits
 
 Counted as physical lines (`wc -l`). Scope — every location Claude Code loads as instructions:
 `**/CLAUDE.md` (any directory), `.claude/CLAUDE.md`, `.claude/rules/**/*.md`,
@@ -319,6 +319,6 @@ Before the refactor the scoped files held 637 lines; after it they hold 516.
 | Sum over all scoped files | 650 lines |
 
 The binding case for 120 is the product-loop skill; every other file lands well under it. Both
-limits are a ratchet once approved: lowering is allowed, raising is not. When a change would
-exceed a limit, shorten elsewhere. CI enforces both from one configuration file
-(`.claude/instruction-limits.json`, Phase 6).
+limits are a ratchet: lowering is allowed, raising is not. When a change would exceed a limit,
+shorten elsewhere. CI enforces both from one configuration file
+(`.claude/instruction-limits.json`).
