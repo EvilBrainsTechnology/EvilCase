@@ -10,7 +10,7 @@
             <div class="d-flex align-items-center gap-1 py-1">
                 @if (node.Children.Count > 0)
                 {
-                    <button type="button" class="btn btn-icon btn-ghost-secondary case-tree-toggle"
+                    <button type="button" class="case-tree-toggle"
                             aria-expanded="@expanded"
                             aria-label="@(expanded ? "Sbalit podspisy" : "Rozbalit podspisy")"
                             @onclick="() => Toggle.InvokeAsync(node.Id)">
@@ -25,14 +25,16 @@
                 @if (node.Id == CurrentId)
                 {
                     <span class="d-flex align-items-center gap-2 min-w-0 flex-fill font-weight-medium">
-                        <span class="badge bg-secondary-lt flex-shrink-0">@node.CaseNumber</span>
+                        @* Below lg the title needs every pixel; the number is on the case the row opens. *@
+                        <span class="badge bg-secondary-lt flex-shrink-0 d-none d-lg-inline-block">@node.CaseNumber</span>
                         <span class="text-truncate">@node.Title</span>
                     </span>
                 }
                 else
                 {
                     <a class="d-flex align-items-center gap-2 min-w-0 flex-fill text-reset" href="/cases/@node.Id">
-                        <span class="badge bg-secondary-lt flex-shrink-0">@node.CaseNumber</span>
+                        @* Below lg the title needs every pixel; the number is on the case the row opens. *@
+                        <span class="badge bg-secondary-lt flex-shrink-0 d-none d-lg-inline-block">@node.CaseNumber</span>
                         <span class="text-truncate">@node.Title</span>
                     </a>
                 }

@@ -82,8 +82,14 @@
                                     </dd>
                                 }
 
-                                <dt class="col-5 col-lg-4">Změněno</dt>
-                                <dd class="col-7 col-lg-8 mb-0">@CaseDetailFormat.Changed(this.detail)</dd>
+                                <dt class="col-5 col-lg-4">Založeno</dt>
+                                <dd class="col-7 col-lg-8 @(this.detail.Updated is null ? "mb-0" : "")">@CaseDetailFormat.Moment(this.detail.Created)</dd>
+
+                                @if (this.detail.Updated is { } updated)
+                                {
+                                    <dt class="col-5 col-lg-4">Změněno</dt>
+                                    <dd class="col-7 col-lg-8 mb-0">@CaseDetailFormat.Moment(updated)</dd>
+                                }
                             </dl>
                         </div>
                     </div>
