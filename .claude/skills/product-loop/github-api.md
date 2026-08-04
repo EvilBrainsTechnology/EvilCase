@@ -20,8 +20,9 @@ curl -s -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+
 | Create an issue | `POST $GH/issues` `{"title":"…","body":"…","labels":["…"],"milestone":<id>}` |
 | Edit an issue body, labels or state | `PATCH $GH/issues/{n}` `{"body":"…"}` / `{"state":"closed","state_reason":"completed"}` |
 | Add or remove one label | `POST $GH/issues/{n}/labels` `{"labels":["blocked"]}` / `DELETE $GH/issues/{n}/labels/blocked` |
-| Create a pull request | `POST $GH/pulls` `{"title":"…","head":"loop/12-slug","base":"master","body":"…"}` |
+| Create a pull request | `POST $GH/pulls` `{"title":"…","head":"loop/12-slug","base":"master","body":"…","draft":true}` |
 | Edit a pull request title or body | `PATCH $GH/pulls/{n}` `{"title":"…","body":"…"}` |
+| Mark it ready for review | `mcp__github__update_pull_request` `{"draft":false}` — `PATCH` answers `200` and ignores `draft`, and this session's GraphQL serves only pinned review operations |
 | CI state of a branch head | `GET $GH/commits/{sha}/check-runs` |
 | Labels and milestones | `GET $GH/labels`, `POST $GH/labels`, `GET $GH/milestones`, `POST $GH/milestones` |
 
@@ -38,3 +39,7 @@ curl -s -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+
 A pull request carries its membership as a `stack` object (`number`, `size`, `position`) — check
 there, not by listing stacks. A stack keeps its merged and closed members; that is behaviour,
 not a defect to clean up.
+
+Merging a stacked pull request answers `403 Merging stacked PRs via this endpoint is not
+supported`, and the asynchronous endpoint it names is not served here. `unstack` first, then
+merge the bottom and rebase what was above it onto `master`.

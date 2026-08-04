@@ -7,6 +7,9 @@
 - Before a pull request exists: `dotnet r ci` green from `src/`, new tests covering what
   changed, visual proof of every changed screen (`.claude/skills/product-loop/visual-proof.md`),
   documentation updated in the same commit. A red gate is fixed, never worked around.
+- A pull request opens as a draft and leaves draft only once the code review in
+  `.claude/rules/agents.md` has run and its findings are worked in. Clearing the flag is the
+  second `mcp__github__*` exception beside the merge — REST ignores `draft`, GraphQL is blocked.
 - Subscribe (`subscribe_pr_activity`) to every pull request you open.
 - A pull request is never a workbench: verify with tools, not with trial edits in it.
 - Every git and GitHub interaction — commits, pull requests, comments, reviews, issues — is
