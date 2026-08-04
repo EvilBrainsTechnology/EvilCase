@@ -39,7 +39,7 @@ The round's first job and usually its whole job; take new work only when every o
 request is merged, or green and answered.
 
 - Merge what meets the gate in `.claude/rules/github.md` — mergeable by the repository's
-  rules, into `master` only: squash, delete the branch, rebase what conflicts, wait for green
+  rules, into `master` only: squash, rebase what conflicts, wait for green
   CI, then the next that meets the gate.
 - Outstanding means a review thread with no `claude[bot]` reply; never filter by timestamp or
   count — read the threads. Every comment is answered in the round that finds it: a requested

@@ -12,7 +12,6 @@ curl -s -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+
 | Open pull requests | `GET $GH/pulls?state=open&per_page=100` |
 | One pull request, with `mergeable_state` | `GET $GH/pulls/{n}` |
 | Merge a pull request | `PUT $GH/pulls/{n}/merge` `{"merge_method":"squash"}` |
-| Delete a branch | `DELETE $GH/git/refs/heads/{branch}` |
 | Conversation comments | `GET $GH/issues/{n}/comments?per_page=100` |
 | Inline review comments | `GET $GH/pulls/{n}/comments?per_page=100` |
 | Reviews | `GET $GH/pulls/{n}/reviews?per_page=100` |
