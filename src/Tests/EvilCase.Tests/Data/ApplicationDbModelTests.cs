@@ -83,7 +83,7 @@ public class ApplicationDbModelTests
 
     /// <summary>
     /// The vocabulary of <c>docs/product/vision.md</c>, held against the storage names rather than the
-    /// CLR ones — renaming a property back would otherwise carry every <c>nameof</c> with it unnoticed.
+    /// CLR ones — a <c>HasColumnName</c> back to the old name would otherwise go unnoticed.
     /// </summary>
     [Test]
     public void EveryIdentifierIsStoredUnderTheNameTheVisionGivesIt()
@@ -96,9 +96,9 @@ public class ApplicationDbModelTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(@case?.FindProperty("CaseNumber"), Is.Not.Null, "the case's own mark is CaseNumber");
-            Assert.That(act?.FindProperty("ExternalActNumber"), Is.Not.Null, "the number the issuing authority gave an act is ExternalActNumber");
-            Assert.That(external?.GetTableName(), Is.EqualTo("ExternalCaseNumbers"), "a mark somebody else assigned is an ExternalCaseNumber row");
+            Assert.That(ColumnsOf(@case), Has.Member("CaseNumber"), "the case's own mark is stored in a column named CaseNumber");
+            Assert.That(ColumnsOf(act), Has.Member("ExternalActNumber"), "the number the issuing authority gave an act is stored in a column named ExternalActNumber");
+            Assert.That(external?.GetTableName(), Is.EqualTo("ExternalCaseNumbers"), "a mark somebody else assigned is a row of the ExternalCaseNumbers table");
         }
     }
 
@@ -388,6 +388,9 @@ public class ApplicationDbModelTests
             Is.True,
             "a note has no meaning without its case, its act or its author");
     }
+
+    private static List<string> ColumnsOf(IReadOnlyEntityType? entityType) =>
+        entityType?.GetProperties().Select(property => property.GetColumnName()).ToList() ?? [];
 
     private static bool Uses(IReadOnlyForeignKey foreignKey, string propertyName) =>
         foreignKey.Properties.Any(property => string.Equals(property.Name, propertyName, StringComparison.Ordinal));
