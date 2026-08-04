@@ -35,6 +35,10 @@ public static class CaseDetailQuery
     /// identifiers it came through and stops on one it has already been to, so a chain that closes a cycle
     /// ends without the walk bounding how deep a case may nest. Only identifiers travel the recursion —
     /// the rows are read once at the end, and a case both walks reach is read once.
+    /// <para>
+    /// The 1024 ceiling backs that guard up rather than bounding a case: no case file nests anywhere near
+    /// it, so reaching it means the guard itself is wrong and the walk stops instead of running away.
+    /// </para>
     /// </summary>
     public static IQueryable<Case> AroundCase(this DbSet<Case> cases, long id)
     {
@@ -48,7 +52,7 @@ public static class CaseDetailQuery
                  SELECT parent."Id", parent."ParentCaseId", child."Walked" || parent."Id"
                  FROM "Cases" AS parent
                  INNER JOIN "Ancestry" AS child ON child."ParentCaseId" = parent."Id"
-                 WHERE NOT parent."Id" = ANY (child."Walked")
+                 WHERE NOT parent."Id" = ANY (child."Walked") AND cardinality(child."Walked") < 1024
              ),
              "SubTree" AS (
                  SELECT "Id", "ParentCaseId", ARRAY["Id"] AS "Walked" FROM "Cases" WHERE "Id" = {id}
@@ -56,7 +60,7 @@ public static class CaseDetailQuery
                  SELECT child."Id", child."ParentCaseId", parent."Walked" || child."Id"
                  FROM "Cases" AS child
                  INNER JOIN "SubTree" AS parent ON child."ParentCaseId" = parent."Id"
-                 WHERE NOT child."Id" = ANY (parent."Walked")
+                 WHERE NOT child."Id" = ANY (parent."Walked") AND cardinality(parent."Walked") < 1024
              )
              SELECT "Cases".* FROM "Cases"
              INNER JOIN (

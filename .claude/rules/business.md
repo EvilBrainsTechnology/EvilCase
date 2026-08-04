@@ -28,8 +28,9 @@ App → Api.Client → (HTTP) → Api → Business → Data
 - `Tests/EvilCase.Tests/Architecture/LayerTests` pins every arrow.
 - A pure rule is a static class with no `DbContext` in sight, tested without one.
 - Recursion has no LINQ: a tree read is a recursive CTE through `FromSql`, each branch ending on a
-  row it has already walked rather than at a depth. It travels the wire flat, parents first — a
-  nested one would inherit a JSON serializer's depth (`CaseDetailQuery`, `CaseGraph`).
+  row it has already walked rather than at a depth, a ceiling far above any real tree behind that.
+  Only identifiers travel it; the rows are read once at the end. It travels the wire flat, parents
+  first — a nested one would inherit a JSON serializer's depth (`CaseDetailQuery`, `CaseGraph`).
 
 ## List queries
 

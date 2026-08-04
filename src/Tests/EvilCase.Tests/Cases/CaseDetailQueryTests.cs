@@ -59,14 +59,20 @@ public class CaseDetailQueryTests
     }
 
     /// <summary>
-    /// Whatever bounds the walk, it is not how deep a case nests.
+    /// Whatever bounds the walk, it is not how deep a case nests. The ceiling catches the guard above
+    /// being wrong and sits far past anything a case file reaches, so it never truncates a real tree.
     /// </summary>
     [Test]
-    public void NoDistanceBoundsHowDeepTheTreeWalkGoes()
+    public void ACeilingBacksUpTheGuardWithoutBoundingHowDeepACaseNests()
     {
         var sql = this.context.Cases.AroundCase(42).ToQueryString();
 
-        Assert.That(sql, Does.Not.Contain("\"Distance\""), "a distance would truncate a chain instead of walking it");
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(sql, Does.Not.Contain("\"Distance\""), "a distance would truncate a chain instead of walking it");
+            Assert.That(sql, Does.Contain("cardinality(child.\"Walked\") < 1024"), "nothing else would catch the walk up running away");
+            Assert.That(sql, Does.Contain("cardinality(parent.\"Walked\") < 1024"), "nor the walk down");
+        }
     }
 
     /// <summary>
