@@ -13,7 +13,8 @@ rules below against the built model.
 - Every aggregate root carries `OwnerId` from its first migration, with a foreign key and an
   index.
 - A sub-case is a self-reference (`ParentCaseId`); deleting a case cascades to its sub-tree.
-- Tree walks (`CaseTree`) stay pure over navigation properties and carry a visited set.
+- Tree walks stay pure and carry a visited set: `CaseTree` over navigation properties, `CaseGraph`
+  over the parent identifier a flat read returns.
 - Enums are stored as names: `HasConversion<string>()` with an explicit length.
 - Tags are rows — typed, unique per case — never an array column.
 - `Case.CaseNumber` is required and unique per owner; every external mark is an

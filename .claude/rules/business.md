@@ -34,6 +34,8 @@ App → Api.Client → (HTTP) → Api → Business → Data
   end. The projection selects straight into the contract DTO.
 - A search term is text, not a pattern: escape `%` and `_` and name the escape character in the
   `ILIKE`. Case folding belongs to `ILIKE`, never to `ToLower()`.
+- Recursion has no LINQ: a tree read is a recursive CTE through `FromSql`, bounded by a distance,
+  and the nesting is built from its flat rows in memory — `CaseDetailQuery`, `CaseGraph`.
 - Test the SQL through `ToQueryString()`, no server needed; see `CaseListQueryTests`.
 
 ## Ownership
