@@ -25,9 +25,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      # Enforce the AI instruction length limits from .claude/instruction-limits.json
+      # Enforce the AI instruction length limits from .claude/instruction-limits.json; the base
+      # branch is fetched so the report can show the difference a pull request makes
       - name: Check instruction length limits
-        run: python3 .github/scripts/check-instruction-limits.py
+        run: |
+          if [ -n "$GITHUB_BASE_REF" ]; then git fetch --quiet --depth=1 origin "$GITHUB_BASE_REF"; fi
+          python3 .github/scripts/check-instruction-limits.py
 
       # Setup .NET Core
       - name: Setup .NET
