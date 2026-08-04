@@ -70,10 +70,10 @@ public class MigrationsTests
 
     private static void Rename(Dictionary<string, HashSet<string>> tables, RenameTableOperation operation)
     {
-        var newName = operation.NewName ?? operation.Name;
+        if (operation.NewName is null || !tables.Remove(operation.Name, out var columns))
+            return;
 
-        tables[newName] = tables[operation.Name];
-        tables.Remove(operation.Name);
+        tables[operation.NewName] = columns;
     }
 
     private static void Rename(HashSet<string> columns, RenameColumnOperation operation)
