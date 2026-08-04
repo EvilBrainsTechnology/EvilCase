@@ -33,7 +33,8 @@ public static class CaseDetailQuery
     /// The case, every ancestor up to its root and its whole sub-tree. Recursion is what LINQ cannot
     /// express, so the walk is a recursive CTE and the rest composes over it. Each branch carries the
     /// identifiers it came through and stops on one it has already been to, so a chain that closes a cycle
-    /// ends without the walk bounding how deep a case may nest.
+    /// ends without the walk bounding how deep a case may nest. Only identifiers travel the recursion —
+    /// the rows are read once at the end, and a case both walks reach is read once.
     /// </summary>
     public static IQueryable<Case> AroundCase(this DbSet<Case> cases, long id)
     {
@@ -42,24 +43,27 @@ public static class CaseDetailQuery
         return cases.FromSql(
             $"""
              WITH RECURSIVE "Ancestry" AS (
-                 SELECT *, 0 AS "Depth", ARRAY["Id"] AS "Walked" FROM "Cases" WHERE "Id" = {id}
+                 SELECT "Id", "ParentCaseId", ARRAY["Id"] AS "Walked" FROM "Cases" WHERE "Id" = {id}
                  UNION ALL
-                 SELECT parent.*, child."Depth" + 1, child."Walked" || parent."Id"
+                 SELECT parent."Id", parent."ParentCaseId", child."Walked" || parent."Id"
                  FROM "Cases" AS parent
                  INNER JOIN "Ancestry" AS child ON child."ParentCaseId" = parent."Id"
                  WHERE NOT parent."Id" = ANY (child."Walked")
              ),
              "SubTree" AS (
-                 SELECT *, 0 AS "Depth", ARRAY["Id"] AS "Walked" FROM "Cases" WHERE "Id" = {id}
+                 SELECT "Id", "ParentCaseId", ARRAY["Id"] AS "Walked" FROM "Cases" WHERE "Id" = {id}
                  UNION ALL
-                 SELECT child.*, parent."Depth" + 1, parent."Walked" || child."Id"
+                 SELECT child."Id", child."ParentCaseId", parent."Walked" || child."Id"
                  FROM "Cases" AS child
                  INNER JOIN "SubTree" AS parent ON child."ParentCaseId" = parent."Id"
                  WHERE NOT child."Id" = ANY (parent."Walked")
              )
-             SELECT * FROM "Ancestry"
-             UNION ALL
-             SELECT * FROM "SubTree" WHERE "Depth" > 0
+             SELECT "Cases".* FROM "Cases"
+             INNER JOIN (
+                 SELECT "Id" FROM "Ancestry"
+                 UNION
+                 SELECT "Id" FROM "SubTree"
+             ) AS "Walk" ON "Walk"."Id" = "Cases"."Id"
              """);
     }
 

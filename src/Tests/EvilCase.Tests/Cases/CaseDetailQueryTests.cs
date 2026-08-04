@@ -10,6 +10,8 @@ namespace EvilBrains.EvilCase.Tests.Cases;
 /// </summary>
 public class CaseDetailQueryTests
 {
+    private static readonly string[] TreeRowColumns = ["CaseNumber", "Id", "ParentCaseId", "Status", "Title"];
+
     private ApplicationDbContext context = null!;
 
     [SetUp]
@@ -67,6 +69,10 @@ public class CaseDetailQueryTests
         Assert.That(sql, Does.Not.Contain("\"Distance\""), "a distance would truncate a chain instead of walking it");
     }
 
+    /// <summary>
+    /// The outer column list is the whole of what a tree row carries, so the columns it names are the
+    /// assertion — asking it not to contain a column it could never name proves nothing.
+    /// </summary>
     [Test]
     public void TheTreeProjectionReadsOnlyWhatARowShows()
     {
@@ -74,12 +80,26 @@ public class CaseDetailQueryTests
 
         var projection = sql[..sql.IndexOf("FROM (", StringComparison.Ordinal)];
 
+        Assert.That(
+            Names(projection),
+            Is.EqualTo(TreeRowColumns),
+            "a tree row shows the case, where it hangs and its status — no subject, no dates");
+    }
+
+    /// <summary>
+    /// Every column of every walked case would otherwise travel every step of the recursion, and a case
+    /// both walks reach would arrive twice.
+    /// </summary>
+    [Test]
+    public void OnlyIdentifiersTravelTheTreeWalk()
+    {
+        var sql = this.context.Cases.AroundCase(42).ToQueryString();
+
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(projection, Does.Contain("\"CaseNumber\""));
-            Assert.That(projection, Does.Contain("\"ParentCaseId\""), "the nesting is built from it");
-            Assert.That(projection, Does.Not.Contain("\"Subject\""), "a tree row shows no subject");
-            Assert.That(projection, Does.Not.Contain("\"Created\""), "nor when the case was opened");
+            Assert.That(sql, Does.Not.Contain("SELECT *"), "the walk carries identifiers, not rows");
+            Assert.That(sql, Does.Contain("SELECT \"Cases\".* FROM \"Cases\""), "the rows are read once, after the walk");
+            Assert.That(sql, Does.Contain("\"Walk\".\"Id\" = \"Cases\".\"Id\""), "and read by the identifiers the walk collected");
         }
     }
 
@@ -120,5 +140,20 @@ public class CaseDetailQueryTests
             Assert.That(sql, Does.Contain("\"Email\""));
             Assert.That(sql, Does.Not.Contain("\"ActId\""), "a case comment says nothing about acts");
         }
+    }
+
+    /// <summary>
+    /// Every quoted identifier the SQL names, once each and in order.
+    /// </summary>
+    private static List<string> Names(string sql)
+    {
+        var names = new HashSet<string>(StringComparer.Ordinal);
+        var parts = sql.Split('"');
+
+        // What sits between a pair of quotes lands on an odd index.
+        for (var index = 1; index < parts.Length; index += 2)
+            _ = names.Add(parts[index]);
+
+        return [.. names.Order(StringComparer.Ordinal)];
     }
 }
