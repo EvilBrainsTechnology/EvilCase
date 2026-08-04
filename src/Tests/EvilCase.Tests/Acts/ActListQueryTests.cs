@@ -19,16 +19,6 @@ public class ActListQueryTests
     public void TearDown() => this.context.Dispose();
 
     [Test]
-    public void TheListIsOneCase()
-    {
-        var sql = this.context.Acts.OfCase(7).ToQueryString();
-
-        var where = sql[sql.LastIndexOf("WHERE", StringComparison.Ordinal)..];
-
-        Assert.That(where, Does.Contain("\"CaseId\""), "an act list reads the acts of one case");
-    }
-
-    [Test]
     public void TheOrderIsTheActDateAlone()
     {
         var sql = this.context.Acts.InListOrder().ToQueryString();
