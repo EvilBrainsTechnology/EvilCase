@@ -36,11 +36,13 @@ function Test-Instruction([string] $Path) {
 }
 
 function Measure-WorkingTree {
+    # Tracked files plus new ones git would accept, so a rule file written but not yet committed
+    # counts, and .git, bin and obj are never walked.
+    $paths = git -c core.quotePath=false ls-files --cached --others --exclude-standard
     $counted = [ordered] @{}
-    foreach ($file in Get-ChildItem -Recurse -File -Force) {
-        $path = [IO.Path]::GetRelativePath($root, $file.FullName).Replace('\', '/')
-        if (Test-Instruction $path) {
-            $counted[$path] = @(Get-Content -LiteralPath $file.FullName).Count
+    foreach ($path in $paths | Sort-Object -Unique) {
+        if ((Test-Instruction $path) -and (Test-Path -LiteralPath $path -PathType Leaf)) {
+            $counted[$path] = @(Get-Content -LiteralPath $path).Count
         }
     }
     return [pscustomobject] @{ Counts = $counted }
@@ -56,7 +58,7 @@ function Measure-Baseline {
         $label = 'previous commit'
     }
 
-    $paths = git ls-tree -r --name-only $ref 2>$null
+    $paths = git -c core.quotePath=false ls-tree -r --name-only $ref 2>$null
     if ($LASTEXITCODE -ne 0) { return $null }
 
     $counted = [ordered] @{}
@@ -89,7 +91,7 @@ $base = Measure-Baseline
 $delta = ''
 if ($base) {
     $baseTotal = ($base.Counts.Values | Measure-Object -Sum).Sum
-    if ($total -ne $baseTotal) { $delta = " ($('{0:+#;-#}' -f ($total - $baseTotal)) vs $($base.Label))" }
+    if ($total -ne $baseTotal) { $delta = " ($('{0:+#;-#;0}' -f ($total - $baseTotal)) vs $($base.Label))" }
 }
 
 Write-Output "$($counts.Count) instruction files, $total/$totalLimit lines$delta, per-file limit $perFileLimit"
@@ -106,7 +108,7 @@ if ($env:GITHUB_STEP_SUMMARY) {
         $over = if ($entry.Value -gt $perFileLimit) { " — **$($entry.Value - $perFileLimit) over**" } else { '' }
         if ($base) {
             $diff = $entry.Value - $(if ($base.Counts.Contains($entry.Key)) { $base.Counts[$entry.Key] } else { 0 })
-            $rows += "| ``$($entry.Key)`` | $($entry.Value)$over | $(if ($diff) { '{0:+#;-#}' -f $diff }) |"
+            $rows += "| ``$($entry.Key)`` | $($entry.Value)$over | $(if ($diff) { '{0:+#;-#;0}' -f $diff }) |"
         }
         else {
             $rows += "| ``$($entry.Key)`` | $($entry.Value)$over |"
@@ -115,7 +117,7 @@ if ($env:GITHUB_STEP_SUMMARY) {
 
     if ($base) {
         foreach ($path in $base.Counts.Keys | Where-Object { -not $counts.Contains($_) } | Sort-Object) {
-            $rows += "| ``$path`` | removed | $('{0:+#;-#}' -f (-$base.Counts[$path])) |"
+            $rows += "| ``$path`` | removed | $('{0:+#;-#;0}' -f (-$base.Counts[$path])) |"
         }
     }
 
