@@ -25,15 +25,17 @@ základ vynechává, je dole v non-goals a přijde později, po krocích.
 ## Doménový model
 
 Názvy v kódu jsou anglické: spis = `Case`, úkon = `Act`, soubor = `FileAsset`, strana =
-`Party`, spisová značka = `CaseReference`, komentář = `Comment`.
+`Party`, komentář = `Comment`; spisová značka = `CaseNumber`, číslo jednací = `ActNumber`,
+cizí, přidělené někým jiným, jsou `ExternalCaseNumber` a `ExternalActNumber`.
 
 **Spis** — kořen řízení. Nese vlastníka, status, tagy, strany, spisové značky a komentáře.
 Spis se vnořuje pod jiný spis do libovolné hloubky; podspis má stejný tvar. Smazání spisu maže
 celý jeho podstrom.
 
 **Úkon** — jednotka práce ve spisu: jedno podání, rozhodnutí, vyrozumění nebo výzva. Má směr
-(odchozí/příchozí), název, jedno kalendářní datum, vlastní číslo jednací (viz Číslování), číslo
-vydavatele tam, kde s dokumentem přišlo, editovatelné shrnutí a vazby na soubory. Úkon nemá
+(odchozí/příchozí), název, jedno kalendářní datum, vlastní číslo jednací (`ActNumber`, viz
+Číslování), číslo vydavatele (`ExternalActNumber`) tam, kde s dokumentem přišlo, editovatelné
+shrnutí a vazby na soubory. Úkon nemá
 pořadové číslo: každý seznam úkonů se řadí podle data úkonu, s časem vytvoření záznamu jako
 fallbackem. Shrnutí žije na úkonu a nikde jinde — příloha převzatá z jiného úkonu se čte přes
 shrnutí toho úkonu.
@@ -49,8 +51,9 @@ schránky a adresu jako jeden volný text tištěný po blocích. Vybírá se ne
 všude, kde ji spis, úkon nebo značka jmenuje, a spravuje se v samostatné agendě, která ukazuje,
 kde všude figuruje. Smazat jde jen strana, na kterou nic neodkazuje.
 
-**Spisová značka** — spis nese svou interní značku (viz Číslování) plus N cizích značek, každou
-svázanou se stranou, která ji přidělila — každý úřad v řetězu přiděluje svou.
+**Spisová značka** — spis nese svou interní značku (`CaseNumber`, viz Číslování) plus N cizích
+značek (`ExternalCaseNumber`), každou svázanou se stranou, která ji přidělila — každý úřad
+v řetězu přiděluje svou.
 
 **Komentář** — volná poznámka ke spisu nebo úkonu. Průběžný deník spisu.
 
@@ -68,7 +71,7 @@ obrazovce Nastavení — její první kus.
 - Spisová značka: každý spis i podspis bere další číslo z jedné řady, default
   `EC-{year}{month}{day}-{seq}` → `EC-20260804-001`.
 - Číslo jednací: každý úkon při vytvoření, default
-  `{case-reference}-{year}{month}{day}-{seq}` → `EC-20260804-001-20260805-002`.
+  `{case-number}-{year}{month}{day}-{seq}` → `EC-20260804-001-20260805-002`.
 - `{seq}` počítá v rámci období, které vzor jmenuje — s `{day}` denně, jen s `{year}` ročně,
   u čísla jednacího navíc v rámci spisu — a doplňuje se nulami na tři cifry, aby se čísla
   řadila. Jednou vydané číslo se nikdy nepoužije znovu a změna vzoru žádné nepřepisuje.
@@ -97,7 +100,7 @@ V pořadí podle toho, co při práci s reálným spisem bolí nejvíc:
 
 | # | Milník | Dodá |
 | --- | --- | --- |
-| M1 | Datum úkonu a vzorová data | model úkonu ořezaný na jedno datum bez pořadového čísla, každý seznam úkonů řazený datem; číslování s výchozími vzory; seed přepínač nahrávající vzorový spis |
+| M1 | Datum úkonu a vzorová data | model úkonu ořezaný na jedno datum bez pořadového čísla, každý seznam úkonů řazený datem; přejmenování identifikátorů v kódu na `CaseNumber`, `ActNumber`, `ExternalCaseNumber` a `ExternalActNumber`; číslování s výchozími vzory; seed přepínač nahrávající vzorový spis |
 | M2 | UI spisu | detail spisu se stromem podspisů a komentáři; založení, editace a smazání; značky, status a tagy; obrazovka Nastavení se vzory číslování; hledání bez ohledu na diakritiku |
 | M3 | Úkony a soubory | seznam úkonů v detailu spisu; stránka úkonu se shrnutím, soubory a komentáři; přidání, editace a smazání úkonu; upload a download |
 | M4 | Strany | samostatná agenda; inline výběr nebo založení všude, kde se strana jmenuje |
