@@ -102,7 +102,7 @@ For each open pull request on a `loop/*` or `claude/*` branch, read the reviews 
 
 The test is the thread, not the clock: a review thread with no reply from `claude[bot]` is outstanding, however old it looks. Read the bodies. A count of comments is not a check, and treating one as a check is how #86 waited eleven hours.
 
-**This is the round's first job and usually its whole job.** The measure of the loop is what reaches `master`, not how many branches it has open. An unmerged pull request holds up every slice above it, goes stale against a moving base, and costs the owner more the longer it waits — so a round that answers three review threads and rebases two branches has done more than one that opens a fourth pull request.
+**This is the round's first job and usually its whole job.** The measure of the loop is what reaches `master`, not how many branches it has open. An unmerged pull request holds up every slice above it, goes stale against a moving base, and costs the owner more the longer it waits — so a round that answers three review threads and rebases two branches has done more than one that opens one more pull request.
 
 Every comment gets a response in the same round it is found. Nothing is deferred.
 
@@ -263,5 +263,5 @@ A slice that needs something not yet on `master` branches off the branch carryin
 - Prefer reversible steps. A destructive migration, a dependency change, a change to authentication or the security headers, a rewrite of something that already works: ask first, as a decision issue.
 - **A round is bounded by the work, not by a count.** Clearing what is already open — comments, red checks, stale bases — is unbounded: do all of it. Then take slices one after another for as long as the round has room.
 - **Each pull request stays one thin slice.** Doing more per round means several small pull requests, never one big one; they are small because they are reviewed on a phone.
-- **Do not grow a queue the owner cannot get through.** With six or more pull requests already waiting, spend the round on those and open nothing new. Say so in the report instead.
+- **Do not grow a queue the owner cannot get through.** With two or more pull requests already waiting, spend the round on those and open nothing new. Say so in the report instead. The one exception is a change the owner explicitly asked for: it gets its pull request whatever the count. A slice the loop picked itself under §3 is not that.
 - **The loop never waits for the owner.** It opens the decision issue and carries on with whatever is not blocked by it. It does not pause for approval to commit, to open a pull request, to close its own pull request, or to pick the next slice — those are the loop's to make, and the owner reverses any of them at leisure. The only genuine stop is the one in §3.
