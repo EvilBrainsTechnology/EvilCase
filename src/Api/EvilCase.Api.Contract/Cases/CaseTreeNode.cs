@@ -3,17 +3,18 @@ using EvilBrains.EvilCase.Domain.Cases;
 namespace EvilBrains.EvilCase.Api.Contract.Cases;
 
 /// <summary>
-/// A sub-case carrying its own sub-tree, to any depth.
+/// One sub-case, carrying the case it hangs under. The sub-tree travels flat: a nested one would inherit
+/// whatever depth a JSON serializer allows, and a case nests to any depth.
 /// </summary>
 public sealed record CaseTreeNode
 {
     public required long Id { get; init; }
+
+    public required long ParentId { get; init; }
 
     public required string CaseNumber { get; init; }
 
     public required string Title { get; init; }
 
     public required CaseStatus Status { get; init; }
-
-    public required IReadOnlyList<CaseTreeNode> Children { get; init; }
 }

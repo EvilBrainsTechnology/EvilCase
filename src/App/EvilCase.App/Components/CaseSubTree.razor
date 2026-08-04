@@ -1,14 +1,15 @@
-@using EvilBrains.EvilCase.Api.Contract.Cases
+@using EvilBrains.EvilCase.App.Models
 
 @* Renders itself for every generation, so the tree goes as deep as the data does. *@
 <ul class="case-tree">
-    @foreach (var node in Nodes)
+    @foreach (var branch in Branches)
     {
-        var expanded = node.Children.Count > 0 && !Collapsed.Contains(node.Id);
+        var node = branch.Node;
+        var expanded = branch.Children.Count > 0 && !Collapsed.Contains(node.Id);
 
         <li>
             <div class="d-flex align-items-center gap-1 py-1">
-                @if (node.Children.Count > 0)
+                @if (branch.Children.Count > 0)
                 {
                     @* aria-expanded is spelled out: Blazor drops a false bool attribute and empties a true one. *@
                     <button type="button" class="case-tree-toggle"
@@ -47,14 +48,14 @@
 
             @if (expanded)
             {
-                <CaseSubTree Nodes="node.Children" Collapsed="Collapsed" Toggle="Toggle" CurrentId="CurrentId" />
+                <CaseSubTree Branches="branch.Children" Collapsed="Collapsed" Toggle="Toggle" CurrentId="CurrentId" />
             }
         </li>
     }
 </ul>
 
 @code {
-    [Parameter, EditorRequired] public required IReadOnlyList<CaseTreeNode> Nodes { get; set; }
+    [Parameter, EditorRequired] public required IReadOnlyList<CaseTreeBranch> Branches { get; set; }
 
     /// <summary>
     /// Identifiers whose sub-cases are folded away; everything else reads open.

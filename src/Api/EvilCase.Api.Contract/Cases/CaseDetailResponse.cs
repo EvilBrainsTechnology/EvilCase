@@ -26,7 +26,7 @@ public sealed record CaseDetailResponse
     public IReadOnlyList<CaseAncestor> Ancestors { get; init; } = [];
 
     /// <summary>
-    /// Direct sub-cases, each carrying its own sub-tree.
+    /// The whole sub-tree, flat: a node always follows the one it hangs under, siblings by case number.
     /// </summary>
     public IReadOnlyList<CaseTreeNode> SubCases { get; init; } = [];
 

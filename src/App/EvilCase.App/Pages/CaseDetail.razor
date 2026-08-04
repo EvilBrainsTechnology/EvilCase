@@ -114,7 +114,7 @@
                         else
                         {
                             <div class="card-body">
-                                <CaseSubTree Nodes="this.root" Collapsed="this.collapsed" Toggle="this.ToggleNode" CurrentId="this.detail.Id" />
+                                <CaseSubTree Branches="this.root" Collapsed="this.collapsed" Toggle="this.ToggleNode" CurrentId="this.detail.Id" />
                             </div>
                         }
                     </div>
@@ -177,7 +177,7 @@
 
     private CaseDetailResponse? detail;
     private List<CaseComment> comments = [];
-    private IReadOnlyList<CaseTreeNode> root = [];
+    private IReadOnlyList<CaseTreeBranch> root = [];
     private string? failure;
     private bool missing;
     private string commentBody = "";
@@ -227,7 +227,7 @@
 
             this.detail = response;
             this.comments = [.. response.Comments];
-            this.root = [Root(response)];
+            this.root = [CaseTreeBranch.Nest(Root(response), response.SubCases)];
         }
         catch (OperationCanceledException)
         {
@@ -289,7 +289,8 @@
             return;
         }
 
-        foreach (var id in Foldable(this.root))
+        // Everything some sub-case hangs under is what can be folded, the case itself included.
+        foreach (var id in this.detail!.SubCases.Select(node => node.ParentId).Distinct())
             _ = this.collapsed.Add(id);
     }
 
@@ -299,23 +300,9 @@
     private static CaseTreeNode Root(CaseDetailResponse detail) => new()
     {
         Id = detail.Id,
+        ParentId = 0,
         CaseNumber = detail.CaseNumber,
         Title = detail.Title,
         Status = detail.Status,
-        Children = detail.SubCases,
     };
-
-    private static IEnumerable<long> Foldable(IReadOnlyList<CaseTreeNode> nodes)
-    {
-        foreach (var node in nodes)
-        {
-            if (node.Children.Count == 0)
-                continue;
-
-            yield return node.Id;
-
-            foreach (var id in Foldable(node.Children))
-                yield return id;
-        }
-    }
 }

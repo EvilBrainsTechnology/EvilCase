@@ -34,20 +34,39 @@ public class CaseGraphTests
     }
 
     [Test]
-    public void TheSubTreeNestsToAnyDepth()
+    public void TheSubTreeReadsToAnyDepthEachNodeAfterTheOneItHangsUnder()
     {
         var subCases = CaseGraph.SubCases(Line, 1);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(subCases.Select(node => node.Id), Is.EqualTo(new long[] { 2 }));
-            Assert.That(subCases[0].Children.Select(node => node.Id), Is.EqualTo(new long[] { 3, 5 }), "siblings order by case number");
-            Assert.That(subCases[0].Children[0].Children.Select(node => node.Id), Is.EqualTo(new long[] { 4 }));
+            Assert.That(subCases.Select(node => node.Id), Is.EqualTo(new long[] { 2, 3, 4, 5 }), "a node follows the one it hangs under");
+            Assert.That(subCases.Select(node => node.ParentId), Is.EqualTo(new long[] { 1, 2, 3, 2 }), "a node carries the case it hangs under");
         }
     }
 
+    /// <summary>
+    /// The identifiers run against the case numbers, so a walk that kept the order it was handed fails.
+    /// The query has no ORDER BY: rows arrive in whatever order the server gives.
+    /// </summary>
     [Test]
-    public void ALeafCarriesNoChildrenAndNoOtherRootLeaksIn()
+    public void SiblingsReadInCaseNumberOrderWhateverOrderTheRowsArriveIn()
+    {
+        CaseGraphNode[] unordered =
+        [
+            Node(1, parent: null, "EC-001"),
+            Node(2, parent: 1, "EC-900"),
+            Node(3, parent: 1, "EC-100"),
+            Node(4, parent: 1, "EC-500"),
+        ];
+
+        var subCases = CaseGraph.SubCases(unordered, 1);
+
+        Assert.That(subCases.Select(node => node.CaseNumber), Is.EqualTo(["EC-100", "EC-500", "EC-900"]), "siblings order by case number");
+    }
+
+    [Test]
+    public void ALeafCarriesNoSubCasesAndNoOtherRootLeaksIn()
     {
         using (Assert.EnterMultipleScope())
         {
@@ -70,21 +89,26 @@ public class CaseGraphTests
     }
 
     /// <summary>
-    /// Nothing can create a cycle today; the walk survives one anyway rather than running forever.
+    /// What the CTE returns for a cycle read from 2, where 1 hangs under 2, 2 under 3 and 3 under 1: the
+    /// walk goes up and down separately, so every case of the cycle arrives from both directions.
+    /// <see cref="CaseWalkDatabaseTests"/> reads these rows off a server.
     /// </summary>
     [Test]
-    public void ACycleEndsTheWalkInsteadOfRunningForever()
+    public void ACaseArrivingFromBothDirectionsIsReadOnce()
     {
         CaseGraphNode[] cycle =
         [
+            Node(2, parent: 3, "EC-002"),
+            Node(3, parent: 1, "EC-003"),
             Node(1, parent: 2, "EC-001"),
-            Node(2, parent: 1, "EC-002"),
+            Node(1, parent: 2, "EC-001"),
+            Node(3, parent: 1, "EC-003"),
         ];
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(CaseGraph.Ancestors(cycle, 1).Select(ancestor => ancestor.Id), Is.EqualTo(new long[] { 2 }));
-            Assert.That(CaseGraph.SubCases(cycle, 1)[0].Children, Is.Empty);
+            Assert.That(CaseGraph.Ancestors(cycle, 2).Select(ancestor => ancestor.Id), Is.EqualTo(new long[] { 1, 3 }), "a repeated row is read once");
+            Assert.That(CaseGraph.SubCases(cycle, 2).Select(node => node.Id), Is.EqualTo(new long[] { 1, 3 }), "the walk ends on a case it has already read");
         }
     }
 

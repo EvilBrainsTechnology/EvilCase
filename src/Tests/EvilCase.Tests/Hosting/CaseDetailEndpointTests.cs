@@ -14,23 +14,16 @@ namespace EvilBrains.EvilCase.Tests.Hosting;
 /// </summary>
 public class CaseDetailEndpointTests
 {
+    /// <summary>
+    /// Past every JSON serializer's default depth: MVC writes at 32 and the generated client reads at 64,
+    /// which a nested sub-tree would have run into long before a case ran out of generations.
+    /// </summary>
+    private const int Generations = 200;
+
     private static readonly CaseDetailResponse Detail = FakeCases.Detail(7, "Přestupek") with
     {
         Ancestors = [new CaseAncestor { Id = 1, CaseNumber = "EC-001", Title = "Kořen" }],
-        SubCases =
-        [
-            new CaseTreeNode
-            {
-                Id = 8,
-                CaseNumber = "EC-008",
-                Title = "Podspis",
-                Status = CaseStatus.WaitingOnAuthority,
-                Children =
-                [
-                    new CaseTreeNode { Id = 9, CaseNumber = "EC-009", Title = "Vnuk", Status = CaseStatus.Closed, Children = [] },
-                ],
-            },
-        ],
+        SubCases = Chain(7, Generations),
         Comments = [FakeCases.Comment(3, "první zápis")],
     };
 
@@ -71,8 +64,26 @@ public class CaseDetailEndpointTests
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
             Assert.That(body?.Title, Is.EqualTo("Přestupek"));
             Assert.That(body?.Ancestors.Select(ancestor => ancestor.Id), Is.EqualTo(new long[] { 1 }));
-            Assert.That(body?.SubCases[0].Children[0].Id, Is.EqualTo(9), "the tree nests to any depth on the wire");
+            Assert.That(body?.SubCases[1].ParentId, Is.EqualTo(body?.SubCases[0].Id), "a node carries the case it hangs under");
             Assert.That(body?.Comments[0].Body, Is.EqualTo("první zápis"));
+        }
+    }
+
+    /// <summary>
+    /// The sub-tree travels flat, so no serializer's depth stands between a case and its generations.
+    /// </summary>
+    [Test]
+    public async Task ASubTreeDeeperThanAnySerializerAllowsSurvivesTheWire()
+    {
+        using var response = await this.Send(HttpMethod.Get, "/api/cases/7");
+
+        var body = await response.Content.ReadFromJsonAsync<CaseDetailResponse>();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK), "a depth the serializer refuses would answer 500");
+            Assert.That(body?.SubCases, Has.Count.EqualTo(Generations));
+            Assert.That(body?.SubCases[^1].Title, Is.EqualTo("Podspis 200"), "the deepest generation arrives whole");
         }
     }
 
@@ -127,6 +138,20 @@ public class CaseDetailEndpointTests
             Assert.That(response.Content.Headers.ContentType?.MediaType, Is.EqualTo("application/problem+json"));
         }
     }
+
+    /// <summary>
+    /// One sub-case per generation, each hanging under the one before it.
+    /// </summary>
+    private static IReadOnlyList<CaseTreeNode> Chain(long parentId, int generations) =>
+        [.. Enumerable.Range(1, generations).Select(generation => new CaseTreeNode
+        {
+            Id = parentId + generation,
+            ParentId = parentId + generation - 1,
+            CaseNumber = string.Create(CultureInfo.InvariantCulture, $"EC-{generation:D3}"),
+            Title = string.Create(CultureInfo.InvariantCulture, $"Podspis {generation}"),
+            Status = CaseStatus.WaitingOnAuthority,
+        }),
+        ];
 
     private async Task<HttpResponseMessage> Send(HttpMethod method, string path, object? body = null)
     {

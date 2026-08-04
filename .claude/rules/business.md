@@ -27,6 +27,11 @@ App → Api.Client → (HTTP) → Api → Business → Data
 - `EvilCase.Auth` is a closed module behind `IAuthService`, exempt from the layering.
 - `Tests/EvilCase.Tests/Architecture/LayerTests` pins every arrow.
 - A pure rule is a static class with no `DbContext` in sight, tested without one.
+- Recursion has no LINQ: a tree read is a recursive CTE through `FromSql`, each branch ending on a
+  row it has already walked rather than at a depth. It travels the wire flat, parents first — a
+  nested one would inherit a JSON serializer's depth (`CaseDetailQuery`, `CaseGraph`).
+- `ToQueryString()` parses no SQL: a query written by hand is also run against a server —
+  `CaseWalkDatabaseTests`, ignored where none answers.
 
 ## List queries
 
@@ -34,8 +39,6 @@ App → Api.Client → (HTTP) → Api → Business → Data
   end. The projection selects straight into the contract DTO.
 - A search term is text, not a pattern: escape `%` and `_` and name the escape character in the
   `ILIKE`. Case folding belongs to `ILIKE`, never to `ToLower()`.
-- Recursion has no LINQ: a tree read is a recursive CTE through `FromSql`, bounded by a distance,
-  and the nesting is built from its flat rows in memory — `CaseDetailQuery`, `CaseGraph`.
 - Test the SQL through `ToQueryString()`, no server needed; see `CaseListQueryTests`.
 
 ## Ownership

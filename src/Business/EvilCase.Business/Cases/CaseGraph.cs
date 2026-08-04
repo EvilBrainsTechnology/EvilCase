@@ -4,8 +4,8 @@ namespace EvilBrains.EvilCase.Business.Cases;
 
 /// <summary>
 /// Turns the flat rows of a tree walk into what the detail shows. Pure over
-/// <see cref="CaseGraphNode.ParentCaseId"/> and carrying a visited set, so a chain that closes a cycle
-/// ends instead of running forever.
+/// <see cref="CaseGraphNode.ParentCaseId"/>: a case reached both ways arrives twice, so both walks read one
+/// row per identifier and carry a visited set.
 /// </summary>
 public static class CaseGraph
 {
@@ -16,7 +16,7 @@ public static class CaseGraph
     {
         ArgumentNullException.ThrowIfNull(nodes);
 
-        var byId = nodes.ToDictionary(node => node.Id);
+        var byId = ById(nodes);
         HashSet<long> visited = [id];
         var ancestors = new List<CaseAncestor>();
 
@@ -34,47 +34,63 @@ public static class CaseGraph
     }
 
     /// <summary>
-    /// The sub-cases of <paramref name="id"/> nested to any depth, siblings ordered by case number.
+    /// The sub-cases of <paramref name="id"/> to any depth, flat and each after the one it hangs under,
+    /// siblings by case number. The walk is iterative, so depth costs no stack.
     /// </summary>
     public static IReadOnlyList<CaseTreeNode> SubCases(IReadOnlyList<CaseGraphNode> nodes, long id)
     {
         ArgumentNullException.ThrowIfNull(nodes);
 
-        var byParent = nodes
+        var byParent = ById(nodes).Values
             .Where(node => node.ParentCaseId is not null)
             .GroupBy(node => node.ParentCaseId!.Value)
             .ToDictionary(group => group.Key, group => group.OrderBy(node => node.CaseNumber, StringComparer.Ordinal).ToList());
 
         HashSet<long> visited = [id];
+        var subCases = new List<CaseTreeNode>();
+        var pending = new Stack<CaseGraphNode>();
 
-        return Children(byParent, id, visited);
-    }
+        Push(pending, byParent, id);
 
-    private static List<CaseTreeNode> Children(
-        Dictionary<long, List<CaseGraphNode>> byParent,
-        long parentId,
-        HashSet<long> visited)
-    {
-        if (!byParent.TryGetValue(parentId, out var children))
-            return [];
-
-        var nodes = new List<CaseTreeNode>(children.Count);
-
-        foreach (var child in children)
+        while (pending.TryPop(out var node))
         {
-            if (!visited.Add(child.Id))
+            if (!visited.Add(node.Id))
                 continue;
 
-            nodes.Add(new CaseTreeNode
+            subCases.Add(new CaseTreeNode
             {
-                Id = child.Id,
-                CaseNumber = child.CaseNumber,
-                Title = child.Title,
-                Status = child.Status,
-                Children = Children(byParent, child.Id, visited),
+                Id = node.Id,
+                ParentId = node.ParentCaseId!.Value,
+                CaseNumber = node.CaseNumber,
+                Title = node.Title,
+                Status = node.Status,
             });
+
+            Push(pending, byParent, node.Id);
         }
 
-        return nodes;
+        return subCases;
+    }
+
+    /// <summary>
+    /// Reversed, so the stack hands the children back in case-number order.
+    /// </summary>
+    private static void Push(Stack<CaseGraphNode> pending, Dictionary<long, List<CaseGraphNode>> byParent, long parentId)
+    {
+        if (!byParent.TryGetValue(parentId, out var children))
+            return;
+
+        for (var index = children.Count - 1; index >= 0; index--)
+            pending.Push(children[index]);
+    }
+
+    private static Dictionary<long, CaseGraphNode> ById(IReadOnlyList<CaseGraphNode> nodes)
+    {
+        var byId = new Dictionary<long, CaseGraphNode>(nodes.Count);
+
+        foreach (var node in nodes)
+            byId[node.Id] = node;
+
+        return byId;
     }
 }

@@ -41,14 +41,30 @@ public class CaseDetailQueryTests
     }
 
     /// <summary>
-    /// A parent chain that closed a cycle would otherwise never stop.
+    /// A parent chain that closed a cycle would otherwise never stop. Nothing here proves it does — only
+    /// <see cref="CaseWalkDatabaseTests"/>, against a server, does.
     /// </summary>
     [Test]
-    public void TheTreeWalkIsBoundedByADistance()
+    public void EachBranchOfTheTreeWalkStopsOnACaseItHasAlreadyWalked()
     {
         var sql = this.context.Cases.AroundCase(42).ToQueryString();
 
-        Assert.That(sql, Does.Contain("\"Distance\""));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(sql, Does.Contain("NOT parent.\"Id\" = ANY (child.\"Walked\")"), "the walk up stops on a case it has already been to");
+            Assert.That(sql, Does.Contain("NOT child.\"Id\" = ANY (parent.\"Walked\")"), "and so does the walk down");
+        }
+    }
+
+    /// <summary>
+    /// Whatever bounds the walk, it is not how deep a case nests.
+    /// </summary>
+    [Test]
+    public void NoDistanceBoundsHowDeepTheTreeWalkGoes()
+    {
+        var sql = this.context.Cases.AroundCase(42).ToQueryString();
+
+        Assert.That(sql, Does.Not.Contain("\"Distance\""), "a distance would truncate a chain instead of walking it");
     }
 
     [Test]
@@ -56,11 +72,14 @@ public class CaseDetailQueryTests
     {
         var sql = this.context.Cases.AroundCase(42).AsGraphNodes().ToQueryString();
 
+        var projection = sql[..sql.IndexOf("FROM (", StringComparison.Ordinal)];
+
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(sql, Does.Contain("\"CaseNumber\""));
-            Assert.That(sql, Does.Contain("\"ParentCaseId\""), "the nesting is built from it");
-            Assert.That(sql, Does.Not.Contain("\"Subject\""), "a tree row shows no subject");
+            Assert.That(projection, Does.Contain("\"CaseNumber\""));
+            Assert.That(projection, Does.Contain("\"ParentCaseId\""), "the nesting is built from it");
+            Assert.That(projection, Does.Not.Contain("\"Subject\""), "a tree row shows no subject");
+            Assert.That(projection, Does.Not.Contain("\"Created\""), "nor when the case was opened");
         }
     }
 

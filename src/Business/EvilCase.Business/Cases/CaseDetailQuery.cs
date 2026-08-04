@@ -9,11 +9,6 @@ namespace EvilBrains.EvilCase.Business.Cases;
 /// </summary>
 public static class CaseDetailQuery
 {
-    /// <summary>
-    /// Where a parent chain closes a cycle the recursion would never end; nesting never comes near this.
-    /// </summary>
-    private const int MaxDistance = 64;
-
     public static IQueryable<Case> WithId(this IQueryable<Case> cases, long id)
     {
         ArgumentNullException.ThrowIfNull(cases);
@@ -23,7 +18,9 @@ public static class CaseDetailQuery
 
     /// <summary>
     /// The case, every ancestor up to its root and its whole sub-tree. Recursion is what LINQ cannot
-    /// express, so the walk is a recursive CTE and the rest composes over it.
+    /// express, so the walk is a recursive CTE and the rest composes over it. Each branch carries the
+    /// identifiers it came through and stops on one it has already been to, so a chain that closes a cycle
+    /// ends without the walk bounding how deep a case may nest.
     /// </summary>
     public static IQueryable<Case> AroundCase(this DbSet<Case> cases, long id)
     {
@@ -32,24 +29,24 @@ public static class CaseDetailQuery
         return cases.FromSql(
             $"""
              WITH RECURSIVE "Ancestry" AS (
-                 SELECT *, 0 AS "Distance" FROM "Cases" WHERE "Id" = {id}
+                 SELECT *, 0 AS "Depth", ARRAY["Id"] AS "Walked" FROM "Cases" WHERE "Id" = {id}
                  UNION ALL
-                 SELECT parent.*, child."Distance" + 1
+                 SELECT parent.*, child."Depth" + 1, child."Walked" || parent."Id"
                  FROM "Cases" AS parent
                  INNER JOIN "Ancestry" AS child ON child."ParentCaseId" = parent."Id"
-                 WHERE child."Distance" < {MaxDistance}
+                 WHERE NOT parent."Id" = ANY (child."Walked")
              ),
              "SubTree" AS (
-                 SELECT *, 0 AS "Distance" FROM "Cases" WHERE "Id" = {id}
+                 SELECT *, 0 AS "Depth", ARRAY["Id"] AS "Walked" FROM "Cases" WHERE "Id" = {id}
                  UNION ALL
-                 SELECT child.*, parent."Distance" + 1
+                 SELECT child.*, parent."Depth" + 1, parent."Walked" || child."Id"
                  FROM "Cases" AS child
                  INNER JOIN "SubTree" AS parent ON child."ParentCaseId" = parent."Id"
-                 WHERE parent."Distance" < {MaxDistance}
+                 WHERE NOT child."Id" = ANY (parent."Walked")
              )
              SELECT * FROM "Ancestry"
              UNION ALL
-             SELECT * FROM "SubTree" WHERE "Distance" > 0
+             SELECT * FROM "SubTree" WHERE "Depth" > 0
              """);
     }
 
