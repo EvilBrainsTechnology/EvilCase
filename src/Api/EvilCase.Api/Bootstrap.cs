@@ -58,7 +58,7 @@ public static class Bootstrap
 
         services.AddClientLogWriter(ClientSourceContext);
 
-        services.AddEvilCaseBusiness();
+        services.AddEvilCaseBusiness("EvilBrains:EvilCase:Cases");
 
         // Scoped: it answers for the request being served.
         services.AddHttpContextAccessor();
