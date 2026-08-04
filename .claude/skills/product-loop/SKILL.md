@@ -18,8 +18,9 @@ worktree refuses shell pipelines: write the calls into a scratchpad script and p
 
 ## Subagents
 
-Delegation follows `.claude/rules/agents.md`. The round's main thread holds three things
-itself: talking to the owner, the schedule, and merging.
+Delegation follows `.claude/rules/agents.md`; a round clears its dead delegations before it
+reads anything else. The round's main thread holds three things itself: talking to the owner,
+the schedule, and merging.
 
 A subagent starts blank: the repository is the only memory. Before the round ends, a finding
 becomes an issue, off-diff pull request state a comment on it, a new loop rule an instruction file.
