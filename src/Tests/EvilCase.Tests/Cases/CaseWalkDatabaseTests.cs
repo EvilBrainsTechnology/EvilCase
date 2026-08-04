@@ -19,6 +19,13 @@ public class CaseWalkDatabaseTests
     /// </summary>
     private const int ChainLength = 200;
 
+    private static readonly string[] Cycle = ["EC-CYCLE-1", "EC-CYCLE-2", "EC-CYCLE-3"];
+
+    /// <summary>
+    /// The cycle read from EC-CYCLE-2, which is the one case the walk starts from and stops on.
+    /// </summary>
+    private static readonly string[] RestOfTheCycle = ["EC-CYCLE-1", "EC-CYCLE-3"];
+
     private ApplicationDbContext? context;
 
     private long owner;
@@ -93,18 +100,35 @@ public class CaseWalkDatabaseTests
     }
 
     /// <summary>
-    /// Nothing can write a cycle today; the walk survives one rather than running forever.
+    /// Nothing can write a cycle today; the walk survives one rather than running forever. Reading EC-CYCLE-2,
+    /// which hangs under EC-CYCLE-3, which hangs under EC-CYCLE-1, which hangs under EC-CYCLE-2 again.
     /// </summary>
     [Test]
-    public async Task ACycleEndsTheWalkAndStillBuildsAGraph()
+    public async Task ACycleEndsTheWalkOnTheCaseItStartedFrom()
     {
         var nodes = await this.Walk(this.cycled);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(nodes, Is.Not.Empty, "the walk ends instead of running forever");
-            Assert.That(CaseGraph.Ancestors(nodes, this.cycled), Is.Not.Empty, "a repeated row does not stop the graph being built");
-            Assert.That(CaseGraph.SubCases(nodes, this.cycled), Is.Not.Empty, "a repeated row does not stop the graph being built");
+            Assert.That(
+                nodes.Count(node => node.Id == this.cycled),
+                Is.EqualTo(1),
+                "each branch stops on the case it started from, so that case is never its own ancestor or sub-case");
+
+            Assert.That(
+                nodes.Select(node => node.CaseNumber).Distinct(),
+                Is.EquivalentTo(Cycle),
+                "the walk reaches every case of the cycle and no other");
+
+            Assert.That(
+                CaseGraph.Ancestors(nodes, this.cycled).Select(ancestor => ancestor.CaseNumber),
+                Is.EqualTo(RestOfTheCycle),
+                "the path up reads root first and ends where it began");
+
+            Assert.That(
+                CaseGraph.SubCases(nodes, this.cycled).Select(node => node.CaseNumber),
+                Is.EqualTo(RestOfTheCycle),
+                "the walk down reads each case once, after the one it hangs under");
         }
     }
 
