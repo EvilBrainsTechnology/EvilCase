@@ -9,5 +9,11 @@
 - Independent tasks go out in parallel.
 - Every subagent that writes to the repository gets `isolation: "worktree"`; a worktree sees
   the parent checkout's rule files and has no `.env` (run-app skill).
+- A delegated task commits and pushes every unit as it finishes it — what never reaches the
+  remote dies with the agent.
+- Silence is not progress. Check every running delegation: no write in its worktree for twenty
+  minutes is the signal, `TaskStop` answering `no task found` the proof. Remove a dead agent's
+  worktree and its local branch — a stale worktree holds the branch checked out and the
+  relaunch fails on it — and delegate the task again from whatever reached the remote.
 - The exception is size, not kind: where spawning costs more than doing — one file to read, a
   one-line edit — do it directly.
