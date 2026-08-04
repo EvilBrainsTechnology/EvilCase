@@ -33,14 +33,14 @@ public class ActListQueryTests
     {
         var sql = this.context.Acts.InListOrder().ToQueryString();
 
-        var order = sql[sql.LastIndexOf("ORDER BY", StringComparison.Ordinal)..];
+        var order = sql[sql.LastIndexOf("ORDER BY", StringComparison.Ordinal)..].Trim();
+        var keys = order["ORDER BY".Length..].Split(',').Select(key => key.Trim()).ToList();
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(order, Does.Contain("\"Date\""), "act lists are ordered by the act date");
-            Assert.That(order, Does.Not.Contain("DESC"), "a case file reads oldest first");
-            Assert.That(order.Split(','), Has.Length.EqualTo(2), "the date orders, and only the identifier breaks its ties");
-            Assert.That(order, Does.Contain("\"Id\""), "the identifier breaks the tie so the order is total");
+            Assert.That(keys, Has.Count.EqualTo(2), "the date orders, and only the identifier breaks its ties");
+            Assert.That(keys[0], Does.Contain("\"Date\"").And.Not.Contain("DESC"), "act lists are ordered by the act date, oldest first");
+            Assert.That(keys[1], Does.Contain("\"Id\"").And.Not.Contain("DESC"), "the identifier breaks the tie so the order is total");
         }
     }
 }
