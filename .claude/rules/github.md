@@ -11,8 +11,9 @@
 - The owner is whoever `CODEOWNERS` names.
 - The agent merges; the owner only approves. Dependent pull requests merge in dependency
   order: after each merge, rebase what conflicts and wait for green CI before the next.
-- Merge only a pull request that GitHub reports mergeable — the repository's configured merge
-  requirements (reviews, checks, conflicts) are the gate. Squash-merge, then delete the branch.
+- Merge only a pull request GitHub reports mergeable (`mergeable_state: clean`): the
+  repository's configured merge requirements — reviews, checks, conflicts — are the gate.
+  Squash-merge, then delete the branch.
 - Merge only into `master`: a pull request targeting another branch is a stacked layer and
   merges only after GitHub retargets it to `master`.
 - Never approve your own pull request and never bypass the merge requirements: no auto-merge,
