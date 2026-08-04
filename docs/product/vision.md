@@ -24,9 +24,10 @@ základ vynechává, je dole v non-goals a přijde později, po krocích.
 
 ## Doménový model
 
-Názvy v kódu jsou anglické: spis = `Case`, úkon = `Act`, soubor = `FileAsset`, strana =
-`Party`, komentář = `Comment`; spisová značka = `CaseNumber`, číslo jednací = `ActNumber`,
-cizí, přidělené někým jiným, jsou `ExternalCaseNumber` a `ExternalActNumber`.
+Názvy v kódu jsou anglické: spis = `Case`, úkon = `Act`, soubor = `FileAsset`, odkaz na soubor
+z jiného úkonu = `ActFileReference`, strana = `Party`, komentář = `Comment`; spisová značka =
+`CaseNumber`, číslo jednací = `ActNumber`, cizí, přidělené někým jiným, jsou
+`ExternalCaseNumber` a `ExternalActNumber`.
 
 **Spis** — kořen řízení. Nese vlastníka, status, tagy, strany, spisové značky a komentáře.
 Spis se vnořuje pod jiný spis do libovolné hloubky; podspis má stejný tvar. Smazání spisu maže

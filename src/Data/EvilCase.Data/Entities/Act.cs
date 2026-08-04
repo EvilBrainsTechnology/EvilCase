@@ -39,7 +39,7 @@ public record Act : IEntity
 
     /// <summary>
     /// What was said in this act. Unbounded, and it lives here and nowhere else — a file asset is
-    /// shared by every link that points at it, while a summary is about one act.
+    /// shared by every reference that points at it, while a summary is about one act.
     /// </summary>
     public string? Summary { get; init; }
 
@@ -57,9 +57,12 @@ public record Act : IEntity
 
     public Party? AddressedTo { get; init; }
 
-    public ICollection<ActFileLink> Files { get; init; } = [];
+    /// <summary>
+    /// The files this act is the primary act of.
+    /// </summary>
+    public ICollection<FileAsset> Files { get; init; } = [];
 
-    public ICollection<ActFileLink> AttachmentsTakenFromIt { get; init; } = [];
+    public ICollection<ActFileReference> FileReferences { get; init; } = [];
 
     public ICollection<Comment> Comments { get; init; } = [];
 }

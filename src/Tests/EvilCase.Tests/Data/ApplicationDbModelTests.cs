@@ -2,7 +2,6 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Data.Migrations.DbContexts;
-using EvilBrains.EvilCase.Domain.Files;
 using EvilBrains.EvilCase.Domain.Parties;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -288,23 +287,88 @@ public class ApplicationDbModelTests
     }
 
     [Test]
-    public void OneAssetCarriesManyLinksAndTheRoleIsOnTheLink()
+    public void AFileBelongsToItsPrimaryActAndKeepsTheNameItArrivedWith()
     {
         using var context = new ApplicationDbContextFactory().CreateDbContext([]);
 
-        IReadOnlyEntityType?[] mapped = [context.Model.FindEntityType(typeof(FileAsset)), context.Model.FindEntityType(typeof(ActFileLink))];
+        var asset = context.Model.FindEntityType(typeof(FileAsset));
 
-        Assert.That(mapped, Has.None.Null, "both the asset and the link are mapped");
-
-        var assetColumns = mapped[0]!.GetProperties().Select(property => property.Name).ToList();
-        var link = mapped[1]!;
+        Assert.That(asset, Is.Not.Null);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(assetColumns, Does.Not.Contain("Role").And.Not.Contains("FileName"), "the same bytes are a decision under one act and an attachment under five others");
-            Assert.That(link.FindProperty(nameof(ActFileLink.Role)), Is.Not.Null, "so both live on the link");
-            Assert.That(link.FindProperty(nameof(ActFileLink.FileName)), Is.Not.Null);
-            Assert.That(link.FindProperty(nameof(ActFileLink.OriginatingActId))?.IsNullable, Is.True, "an attachment named after a bare date is only readable through the act it came from");
+            Assert.That(asset.FindProperty(nameof(FileAsset.ActId))?.IsNullable, Is.False, "a file with no primary act hangs off nothing, and its summary is what explains it");
+            Assert.That(asset.FindProperty(nameof(FileAsset.FileName))?.IsNullable, Is.False, "the original name lives with the bytes, not with whoever borrows them");
+            Assert.That(IsIndexed(asset, nameof(FileAsset.ActId)), Is.True, "an act reads its own files through this index");
+        }
+    }
+
+    [Test]
+    public void AReferenceOverridesTheOriginalNameWithOneOfItsOwn()
+    {
+        using var context = new ApplicationDbContextFactory().CreateDbContext([]);
+
+        IReadOnlyEntityType?[] mapped = [context.Model.FindEntityType(typeof(FileAsset)), context.Model.FindEntityType(typeof(ActFileReference))];
+
+        Assert.That(mapped, Has.None.Null, "both the asset and the reference are mapped");
+
+        var asset = mapped[0]!;
+        var reference = mapped[1]!;
+
+        var own = reference.FindProperty(nameof(ActFileReference.FileName));
+        var original = asset.FindProperty(nameof(FileAsset.FileName));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(own?.IsNullable, Is.False, "a reference names the file where it is read, so it never falls back to the original");
+            Assert.That(original?.GetMaxLength(), Is.EqualTo(256), "an unbounded name column is a name nobody sized");
+            Assert.That(own?.GetMaxLength(), Is.EqualTo(256), "either name can stand in for the other, so neither column is the shorter one");
+            Assert.That(asset.FindNavigation(nameof(FileAsset.References))?.IsCollection, Is.True, "the same PDF filed under five acts is one asset and four references");
+        }
+    }
+
+    [Test]
+    public void AReferenceIsReadFromTheActAndFromTheAsset()
+    {
+        using var context = new ApplicationDbContextFactory().CreateDbContext([]);
+
+        var reference = context.Model.FindEntityType(typeof(ActFileReference));
+
+        Assert.That(reference, Is.Not.Null);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(reference.FindProperty(nameof(ActFileReference.ActId))?.IsNullable, Is.False, "a reference is one act reaching one asset, and it carries both");
+            Assert.That(reference.FindProperty(nameof(ActFileReference.FileAssetId))?.IsNullable, Is.False, "a reference is one act reaching one asset, and it carries both");
+            Assert.That(IsIndexed(reference, nameof(ActFileReference.ActId)), Is.True, "an act reads the files it borrows through this index");
+            Assert.That(IsIndexed(reference, nameof(ActFileReference.FileAssetId)), Is.True, "and which acts reference one asset is a lookup, never a table scan");
+        }
+    }
+
+    /// <summary>
+    /// The three behaviours together are what refuses the delete: the asset goes with its primary act,
+    /// an act's own references go with it, and an asset another act still holds aborts the whole delete.
+    /// Flip the last one to <c>Cascade</c> and deleting one act silently takes the file from every other.
+    /// </summary>
+    [Test]
+    public void AnActThatOwnsAFileAnotherActReferencesCannotBeDeleted()
+    {
+        using var context = new ApplicationDbContextFactory().CreateDbContext([]);
+
+        var asset = context.Model.FindEntityType(typeof(FileAsset));
+        var reference = context.Model.FindEntityType(typeof(ActFileReference));
+
+        Assert.That(new[] { asset, reference }, Has.None.Null, "both the asset and the reference are mapped");
+
+        var assetToAct = ForeignKeyTo<Act>(asset!);
+        var referenceToAct = ForeignKeyTo<Act>(reference!);
+        var referenceToAsset = ForeignKeyTo<FileAsset>(reference!);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(assetToAct?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Cascade), "the bytes go with the act they were filed under");
+            Assert.That(referenceToAct?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Cascade), "a reference has no meaning without the act that made it, and dropping it destroys nothing shared");
+            Assert.That(referenceToAsset?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Restrict), "an asset another act still references would otherwise be taken from it by a delete in a fifth sub-case");
         }
     }
 
@@ -326,43 +390,23 @@ public class ApplicationDbModelTests
             "sharing a row between owners would make one owner's delete another owner's problem");
     }
 
+    /// <summary>
+    /// A file is what it is called, never what it is for.
+    /// </summary>
     [Test]
-    public void AnAssetOutlivesEveryLinkThatPointsAtIt()
+    public void NothingAboutAFileIsARole()
     {
         using var context = new ApplicationDbContextFactory().CreateDbContext([]);
 
-        var link = context.Model.FindEntityType(typeof(ActFileLink));
-
-        Assert.That(link, Is.Not.Null);
-
-        var toAsset = link.GetForeignKeys().SingleOrDefault(key => key.PrincipalEntityType.ClrType == typeof(FileAsset));
-        var toActs = link.GetForeignKeys().Where(key => key.PrincipalEntityType.ClrType == typeof(Act)).ToList();
-        var owning = toActs.Find(key => Uses(key, nameof(ActFileLink.ActId)));
-        var originating = toActs.Find(key => Uses(key, nameof(ActFileLink.OriginatingActId)));
+        Type[] fileTypes = [typeof(FileAsset), typeof(ActFileReference)];
+        var columns = fileTypes.SelectMany(type => ColumnsOf(context.Model.FindEntityType(type))).ToList();
+        var kernel = typeof(PartyKind).Assembly.GetTypes().Select(type => type.Name).ToList();
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(toAsset?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Restrict), "an asset is shared, so it goes only once nothing points at it");
-            Assert.That(owning?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Cascade), "a link has no meaning without its own act");
-            Assert.That(originating?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Restrict), "deleting the act an attachment came from must not take another act's link with it");
-        }
-    }
-
-    [Test]
-    public void EveryFileRoleFitsTheColumnItIsStoredIn()
-    {
-        using var context = new ApplicationDbContextFactory().CreateDbContext([]);
-
-        var role = context.Model.FindEntityType(typeof(ActFileLink))?.FindProperty(nameof(ActFileLink.Role));
-
-        Assert.That(role, Is.Not.Null);
-
-        var names = Enum.GetNames<ActFileRole>();
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(names, Does.Contain(nameof(ActFileRole.Other)), "a file that is none of the named roles has nowhere to go");
-            Assert.That(role.GetMaxLength(), Is.GreaterThanOrEqualTo(names.Max(name => name.Length)), "a role is stored by name, so one longer than the column fails on write");
+            Assert.That(columns, Is.Not.Empty, "the file tables are mapped at all, or this test passes vacuously");
+            Assert.That(Naming(columns, "Role"), Is.Empty, "a role column is back on a file");
+            Assert.That(Naming(kernel, "FileRole"), Is.Empty, "a file role enum is back in the shared kernel");
         }
     }
 
@@ -406,8 +450,11 @@ public class ApplicationDbModelTests
     private static List<string> ColumnsOf(IReadOnlyEntityType? entityType) =>
         entityType?.GetProperties().Select(property => property.GetColumnName()).ToList() ?? [];
 
-    private static bool Uses(IReadOnlyForeignKey foreignKey, string propertyName) =>
-        foreignKey.Properties.Any(property => string.Equals(property.Name, propertyName, StringComparison.Ordinal));
+    private static List<string> Naming(IEnumerable<string> names, string word) =>
+        [.. names.Where(name => name.Contains(word, StringComparison.OrdinalIgnoreCase))];
+
+    private static IReadOnlyForeignKey? ForeignKeyTo<TPrincipal>(IReadOnlyEntityType entityType) =>
+        entityType.GetForeignKeys().SingleOrDefault(key => key.PrincipalEntityType.ClrType == typeof(TPrincipal));
 
     private static bool IsIndexed(IReadOnlyEntityType entityType, string propertyName) =>
         entityType.GetIndexes().Any(index => index.Properties.Any(property => string.Equals(property.Name, propertyName, StringComparison.Ordinal)));

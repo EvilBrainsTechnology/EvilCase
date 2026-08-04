@@ -21,7 +21,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     public DbSet<FileAsset> FileAssets => this.Set<FileAsset>();
 
-    public DbSet<ActFileLink> ActFileLinks => this.Set<ActFileLink>();
+    public DbSet<ActFileReference> ActFileReferences => this.Set<ActFileReference>();
 
     public DbSet<Comment> Comments => this.Set<Comment>();
 
@@ -57,11 +57,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
         modelBuilder.Entity<Act>()
             .Property(act => act.Direction)
-            .HasConversion<string>()
-            .HasMaxLength(32);
-
-        modelBuilder.Entity<ActFileLink>()
-            .Property(link => link.Role)
             .HasConversion<string>()
             .HasMaxLength(32);
     }
@@ -115,24 +110,24 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     private static void ConfigureFiles(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<ActFileLink>()
-            .HasOne(link => link.Act)
+        // The bytes belong to the act they were filed under, so they go with it.
+        modelBuilder.Entity<FileAsset>()
+            .HasOne(asset => asset.Act)
             .WithMany(act => act.Files)
-            .HasForeignKey(link => link.ActId)
+            .HasForeignKey(asset => asset.ActId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // The asset is shared, so it outlives any one link.
-        modelBuilder.Entity<ActFileLink>()
-            .HasOne(link => link.FileAsset)
-            .WithMany(asset => asset.Links)
-            .HasForeignKey(link => link.FileAssetId)
-            .OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<ActFileReference>()
+            .HasOne(reference => reference.Act)
+            .WithMany(act => act.FileReferences)
+            .HasForeignKey(reference => reference.ActId)
+            .OnDelete(DeleteBehavior.Cascade);
 
-        // A second cascade path into this table would take another act's link with it.
-        modelBuilder.Entity<ActFileLink>()
-            .HasOne(link => link.OriginatingAct)
-            .WithMany(act => act.AttachmentsTakenFromIt)
-            .HasForeignKey(link => link.OriginatingActId)
+        // An asset another act still reaches cannot go, and it aborts the delete of the act that owns it.
+        modelBuilder.Entity<ActFileReference>()
+            .HasOne(reference => reference.FileAsset)
+            .WithMany(asset => asset.References)
+            .HasForeignKey(reference => reference.FileAssetId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 
