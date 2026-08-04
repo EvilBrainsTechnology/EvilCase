@@ -2,7 +2,8 @@
 
 - Never push to `master`. All work goes through a pull request from a branch.
 - Commit during the work: every logical unit that stands on its own is its own commit.
-- Commits and pull requests are authored as `claude[bot]`.
+- Every git and GitHub interaction — commits, pull requests, comments, reviews, issues,
+  merges — is authored as `claude[bot]`.
 - A pull request's title and description always match its current diff; update them with every
   change to its content.
 - The loop tends every open pull request: work review comments in, reply to them, rebase onto

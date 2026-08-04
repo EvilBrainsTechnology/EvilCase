@@ -271,7 +271,7 @@ longer true). Disposition names the target file, or says why the rule is deleted
 | # | Rule | Disposition |
 | --- | --- | --- |
 | N1 | All work through pull requests from branches; never push to `master` | `github` |
-| N2 | Commits and pull requests are authored as `claude[bot]` | `github` |
+| N2 | Every git and GitHub interaction is authored as `claude[bot]` | `github` |
 | N3 | PR title and description always match the current diff; update on every content change | `github` |
 | N4 | The loop tends every open pull request: review comments, replies, rebases, green CI | `github` + loop skill |
 | N5 | The agent merges, the owner only approves; merge order and inter-merge rebasing are the agent's | `github` |
