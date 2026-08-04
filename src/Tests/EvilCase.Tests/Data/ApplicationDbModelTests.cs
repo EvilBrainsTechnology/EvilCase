@@ -371,8 +371,7 @@ public class ApplicationDbModelTests
     }
 
     /// <summary>
-    /// The roles are gone from the model and from the shared kernel alike (#149); a file is what it is
-    /// called, never what it is for.
+    /// A file is what it is called, never what it is for.
     /// </summary>
     [Test]
     public void NothingAboutAFileIsARole()
