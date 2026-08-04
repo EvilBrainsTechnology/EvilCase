@@ -7,9 +7,8 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations;
 public partial class ActDate : Migration
 {
     /// <summary>
-    /// What the rows that already exist get, so the column can be <c>NOT NULL</c> — Postgres writes it as
-    /// <c>-infinity</c>, which sorts before every real act date. Decision #164 chose to drop the four
-    /// dates outright rather than coalesce them; the sample seed puts real content back.
+    /// What the acts that already exist get, so the column can be <c>NOT NULL</c> — Postgres writes it as
+    /// <c>-infinity</c>, which sorts before every real act date until someone fills it in.
     /// </summary>
     private static readonly DateOnly Backfill = DateOnly.MinValue;
 
