@@ -5,8 +5,8 @@ description: Run EvilCase locally — one host serving the API and the Blazor fr
 
 # Run EvilCase
 
-All commands run from `src/`, except the database one, which takes a path from the repository
-root.
+All commands run from `src/`, except the `docker compose` ones, which take a path from the
+repository root.
 
 ## Prerequisites
 
@@ -42,9 +42,10 @@ not start there: copy the file into the worktree, or run the app from the main c
 ## Start
 
 `dotnet r run` verifies a change; `dotnet r run-docker` verifies the image. Take the second one
-only for what the first cannot do: the deployed shape, or a checkout with no `.env` and no dev
+only for what the first cannot do: the published image, or a checkout with no `.env` and no dev
 certificate — a worktree. It costs an image build per change; its own port and its own database
-mean it can run next to the other one.
+mean it can run next to the other one. It runs the image as `Development`, so it proves the
+image, never the deployed configuration.
 
 `dotnet r run` → `https://localhost:5000` (Scalar UI at `/scalar`, Development only). In Claude
 Code, start the preview server `evilcase` from `.claude/launch.json` instead of a shell; it
@@ -52,8 +53,9 @@ serves the same address, and only one instance can hold the port — stop an IDE
 Keep the port off the browsers' unsafe-port list (6000, 6665–6669, 6697, …).
 
 `dotnet r run-docker` → `http://localhost:8080`, with its own PostgreSQL and the administrator
-`admin@evilcase.local` / `DevPassword123!`; none of the prerequisites above apply. Verify it the
-same way, over plain HTTP. `deploy/README.md` has the stack.
+`admin@evilcase.local` / `DevPassword123!`; of the prerequisites above only `dotnet tool
+restore` applies, and Docker. Verify it the same way, over plain HTTP. `deploy/README.md` has
+the stack.
 
 ## Verify
 

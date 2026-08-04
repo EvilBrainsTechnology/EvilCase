@@ -60,11 +60,14 @@ certificate, no database of one's own.
 docker compose -f deploy/docker-compose.local.yml up --build
 ```
 
-The application answers on `http://localhost:8080` (`EVILCASE_PORT` picks another host port) and
-seeds `admin@evilcase.local` / `DevPassword123!`. It runs as `Development`, so Scalar is mapped
-at `/scalar` and the Seq URL of `appsettings.Development.json` is cleared — a local run must not
-ship logs to a real server. Plain HTTP with nothing in front, so `HttpsRedirection` is off and
+The application answers on `http://localhost:8080` (`EVILCASE_PORT` picks another host port, and
+`deploy/.env` of the stack above is read here too) and seeds `admin@evilcase.local` /
+`DevPassword123!`. Plain HTTP with nothing in front, so `HttpsRedirection` is off and
 `BehindReverseProxy` stays at its default.
+
+The image is the deployed one, the configuration is not: it runs as `Development`, which maps
+Scalar at `/scalar` and lets EF Core log sensitive data. The Seq URL of
+`appsettings.Development.json` is cleared, so a local run ships no logs to a real server.
 
 The database publishes no port: the application reaches it over the compose network, and
 publishing would collide with the development stack below. Like it, it is throwaway — constant

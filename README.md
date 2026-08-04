@@ -51,7 +51,7 @@ Registration is closed, so signing in needs the administrator seeded from `EvilB
 
 ### Everything in Docker
 
-`dotnet r run-docker` builds the image from this repository and runs it with its own PostgreSQL at `http://localhost:8080`, seeding `admin@evilcase.local` / `DevPassword123!`. None of the prerequisites above apply — no `.env`, no certificate, no database of one's own. Details in [deploy/README.md](deploy/README.md).
+`dotnet r run-docker` builds the image from this repository and runs it with its own PostgreSQL at `http://localhost:8080`, seeding `admin@evilcase.local` / `DevPassword123!`. Of the prerequisites above only the SDK is needed, plus Docker — no `.env`, no certificate, no database of one's own. Details in [deploy/README.md](deploy/README.md).
 
 ### Tests
 
