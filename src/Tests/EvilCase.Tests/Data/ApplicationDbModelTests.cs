@@ -1,5 +1,6 @@
 using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Data.Migrations.DbContexts;
+using EvilBrains.EvilCase.Domain.Files;
 using EvilBrains.EvilCase.Domain.Parties;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -249,6 +250,88 @@ public class ApplicationDbModelTests
 
         Assert.That(eager, Is.Empty, "auto-include is off, and an AutoInclude() would turn one read of the case list into a read of everything under it");
     }
+
+    [Test]
+    public void OneAssetCarriesManyLinksAndTheRoleIsOnTheLink()
+    {
+        using var context = new ApplicationDbContextFactory().CreateDbContext([]);
+
+        IReadOnlyEntityType?[] mapped = [context.Model.FindEntityType(typeof(FileAsset)), context.Model.FindEntityType(typeof(ActFileLink))];
+
+        Assert.That(mapped, Has.None.Null, "both the asset and the link are mapped");
+
+        var assetColumns = mapped[0]!.GetProperties().Select(property => property.Name).ToList();
+        var link = mapped[1]!;
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(assetColumns, Does.Not.Contain("Role").And.Not.Contains("FileName"), "the same bytes are a decision under one act and an attachment under five others");
+            Assert.That(link.FindProperty(nameof(ActFileLink.Role)), Is.Not.Null, "so both live on the link");
+            Assert.That(link.FindProperty(nameof(ActFileLink.FileName)), Is.Not.Null);
+            Assert.That(link.FindProperty(nameof(ActFileLink.OriginatingActId))?.IsNullable, Is.True, "an attachment named after a bare date is only readable through the act it came from");
+        }
+    }
+
+    [Test]
+    public void DeduplicationStopsAtTheOwner()
+    {
+        using var context = new ApplicationDbContextFactory().CreateDbContext([]);
+
+        var asset = context.Model.FindEntityType(typeof(FileAsset));
+
+        Assert.That(asset, Is.Not.Null);
+
+        var unique = asset.GetIndexes().SingleOrDefault(index => index.IsUnique);
+        string[] expected = [nameof(FileAsset.OwnerId), nameof(FileAsset.ContentHash)];
+
+        Assert.That(
+            unique?.Properties.Select(property => property.Name),
+            Is.EqualTo(expected),
+            "sharing a row between owners would make one owner's delete another owner's problem");
+    }
+
+    [Test]
+    public void AnAssetOutlivesEveryLinkThatPointsAtIt()
+    {
+        using var context = new ApplicationDbContextFactory().CreateDbContext([]);
+
+        var link = context.Model.FindEntityType(typeof(ActFileLink));
+
+        Assert.That(link, Is.Not.Null);
+
+        var toAsset = link.GetForeignKeys().SingleOrDefault(key => key.PrincipalEntityType.ClrType == typeof(FileAsset));
+        var toActs = link.GetForeignKeys().Where(key => key.PrincipalEntityType.ClrType == typeof(Act)).ToList();
+        var owning = toActs.Find(key => Uses(key, nameof(ActFileLink.ActId)));
+        var originating = toActs.Find(key => Uses(key, nameof(ActFileLink.OriginatingActId)));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(toAsset?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Restrict), "an asset is shared, so it goes only once nothing points at it");
+            Assert.That(owning?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Cascade), "a link has no meaning without its own act");
+            Assert.That(originating?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Restrict), "deleting the act an attachment came from must not take another act's link with it");
+        }
+    }
+
+    [Test]
+    public void EveryFileRoleFitsTheColumnItIsStoredIn()
+    {
+        using var context = new ApplicationDbContextFactory().CreateDbContext([]);
+
+        var role = context.Model.FindEntityType(typeof(ActFileLink))?.FindProperty(nameof(ActFileLink.Role));
+
+        Assert.That(role, Is.Not.Null);
+
+        var names = Enum.GetNames<ActFileRole>();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(names, Does.Contain(nameof(ActFileRole.Other)), "a file that is none of the named roles has nowhere to go");
+            Assert.That(role.GetMaxLength(), Is.GreaterThanOrEqualTo(names.Max(name => name.Length)), "a role is stored by name, so one longer than the column fails on write");
+        }
+    }
+
+    private static bool Uses(IReadOnlyForeignKey foreignKey, string propertyName) =>
+        foreignKey.Properties.Any(property => string.Equals(property.Name, propertyName, StringComparison.Ordinal));
 
     private static bool IsIndexed(IReadOnlyEntityType entityType, string propertyName) =>
         entityType.GetIndexes().Any(index => index.Properties.Any(property => string.Equals(property.Name, propertyName, StringComparison.Ordinal)));

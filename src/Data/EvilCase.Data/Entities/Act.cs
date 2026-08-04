@@ -72,4 +72,8 @@ public record Act : IEntity
     public Party? IssuedBy { get; init; }
 
     public Party? AddressedTo { get; init; }
+
+    public ICollection<ActFileLink> Files { get; init; } = [];
+
+    public ICollection<ActFileLink> AttachmentsTakenFromIt { get; init; } = [];
 }
