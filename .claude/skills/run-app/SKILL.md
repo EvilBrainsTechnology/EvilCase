@@ -41,15 +41,19 @@ not start there: copy the file into the worktree, or run the app from the main c
 
 ## Start
 
-`dotnet r run-docker` needs none of the prerequisites above except Docker: it builds the image
-from the repository and runs it with its own PostgreSQL at `http://localhost:8080`, seeding
-`admin@evilcase.local` / `DevPassword123!`. Everything below verifies it the same way, over
-plain HTTP; `deploy/README.md` has the stack.
+`dotnet r run` verifies a change; `dotnet r run-docker` verifies the image. Take the second one
+only for what the first cannot do: the deployed shape, or a checkout with no `.env` and no dev
+certificate — a worktree. It costs an image build per change; its own port and its own database
+mean it can run next to the other one.
 
 `dotnet r run` → `https://localhost:5000` (Scalar UI at `/scalar`, Development only). In Claude
 Code, start the preview server `evilcase` from `.claude/launch.json` instead of a shell; it
 serves the same address, and only one instance can hold the port — stop an IDE instance first.
 Keep the port off the browsers' unsafe-port list (6000, 6665–6669, 6697, …).
+
+`dotnet r run-docker` → `http://localhost:8080`, with its own PostgreSQL and the administrator
+`admin@evilcase.local` / `DevPassword123!`; none of the prerequisites above apply. Verify it the
+same way, over plain HTTP. `deploy/README.md` has the stack.
 
 ## Verify
 
