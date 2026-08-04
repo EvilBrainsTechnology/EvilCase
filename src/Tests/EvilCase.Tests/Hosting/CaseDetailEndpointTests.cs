@@ -127,6 +127,33 @@ public class CaseDetailEndpointTests
         }
     }
 
+    /// <summary>
+    /// The column is unbounded; what reaches it, and every later read of the case with it, is not.
+    /// </summary>
+    [Test]
+    public async Task ACommentLongerThanTheApiAcceptsIsRefusedBeforeItReachesTheWriter()
+    {
+        var body = new string('x', AddCaseCommentRequest.BodyMaxLength + 1);
+
+        using var response = await this.Send(HttpMethod.Post, "/api/cases/7/comments", new AddCaseCommentRequest { Body = body });
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+            Assert.That(response.Content.Headers.ContentType?.MediaType, Is.EqualTo("application/problem+json"));
+        }
+    }
+
+    [Test]
+    public async Task ACommentOfExactlyWhatTheApiAcceptsGoesThrough()
+    {
+        var body = new string('x', AddCaseCommentRequest.BodyMaxLength);
+
+        using var response = await this.Send(HttpMethod.Post, "/api/cases/7/comments", new AddCaseCommentRequest { Body = body });
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK), "the bound is generous, not a trap on the edge");
+    }
+
     [Test]
     public async Task AnEmptyCommentIsRefusedBeforeItReachesTheWriter()
     {

@@ -17,6 +17,19 @@ public static class CaseDetailQuery
     }
 
     /// <summary>
+    /// The caller's own cases. Reads do not narrow to these until M8; a write never reaches outside them.
+    /// </summary>
+    public static IQueryable<Case> OwnedBy(this IQueryable<Case> cases, IOwnerContext owner)
+    {
+        ArgumentNullException.ThrowIfNull(cases);
+        ArgumentNullException.ThrowIfNull(owner);
+
+        var ownerId = owner.OwnerId;
+
+        return cases.Where(@case => @case.OwnerId == ownerId);
+    }
+
+    /// <summary>
     /// The case, every ancestor up to its root and its whole sub-tree. Recursion is what LINQ cannot
     /// express, so the walk is a recursive CTE and the rest composes over it. Each branch carries the
     /// identifiers it came through and stops on one it has already been to, so a chain that closes a cycle

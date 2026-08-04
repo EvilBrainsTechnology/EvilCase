@@ -12,21 +12,20 @@ namespace EvilBrains.EvilCase.Tests.Cases;
 /// </summary>
 internal static class TestDatabase
 {
-    private const string Database = "evilcase-tests-walk";
-
     /// <summary>
-    /// Overrides the server, never the database — the name is appended here.
+    /// Overrides the server, never the database — the name is built here.
     /// </summary>
     private const string ServerVariable = "EVILCASE_TESTS_POSTGRES";
 
     private const string DefaultServer = "Host=localhost;Port=5432;Username=postgres;Password=postgres";
 
     /// <summary>
-    /// Null where no server answers — CI runs without one, and the caller ignores its tests.
+    /// Null where no server answers — CI runs without one, and the caller ignores its tests. Each fixture
+    /// names its own database, so two of them never share one.
     /// </summary>
-    public static ApplicationDbContext? Create()
+    public static ApplicationDbContext? Create(string name)
     {
-        var context = Context();
+        var context = Context(name);
 
         try
         {
@@ -43,11 +42,11 @@ internal static class TestDatabase
         }
     }
 
-    private static ApplicationDbContext Context()
+    private static ApplicationDbContext Context(string name)
     {
         var server = Environment.GetEnvironmentVariable(ServerVariable) ?? DefaultServer;
 
-        var builder = new NpgsqlConnectionStringBuilder(server) { Database = Database };
+        var builder = new NpgsqlConnectionStringBuilder(server) { Database = "evilcase-tests-" + name };
 
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseNpgsql(builder.ConnectionString, npgsql => npgsql.UseEvilCaseMigrations())

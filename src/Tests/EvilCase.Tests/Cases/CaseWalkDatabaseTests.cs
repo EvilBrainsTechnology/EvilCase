@@ -30,7 +30,7 @@ public class CaseWalkDatabaseTests
     [OneTimeSetUp]
     public async Task SetUp()
     {
-        this.context = TestDatabase.Create();
+        this.context = TestDatabase.Create("walk");
 
         if (this.context is null)
             return;

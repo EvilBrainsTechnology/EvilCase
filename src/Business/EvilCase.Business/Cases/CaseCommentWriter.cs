@@ -11,7 +11,16 @@ internal sealed class CaseCommentWriter(ApplicationDbContext context, IOwnerCont
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        if (!await context.Cases.WithId(caseId).AnyAsync(cancellationToken))
+        var now = time.GetUtcNow().UtcDateTime;
+
+        // One statement scopes the write to the caller's own case, says whether there is one, and moves
+        // the case up the list.
+        var written = await context.Cases
+            .WithId(caseId)
+            .OwnedBy(owner)
+            .ExecuteUpdateAsync(set => set.SetProperty(@case => @case.Updated, now), cancellationToken);
+
+        if (written == 0)
             return null;
 
         var comment = new Comment
@@ -19,7 +28,7 @@ internal sealed class CaseCommentWriter(ApplicationDbContext context, IOwnerCont
             CaseId = caseId,
             Body = request.Body.Trim(),
             AuthorUserId = owner.OwnerId,
-            Created = time.GetUtcNow().UtcDateTime,
+            Created = now,
         };
 
         _ = context.Comments.Add(comment);
