@@ -10,6 +10,10 @@
 - A pull request opens as a draft and leaves draft only once the code review in
   `.claude/rules/agents.md` has run and its findings are worked in. Clearing the flag is the
   second `mcp__github__*` exception beside the merge — REST ignores `draft`, GraphQL is blocked.
+- A pull request wears the state GitHub does not show: `in-review` from the moment it opens
+  until the review cycle ends, `blocked` while a decision issue it names is unanswered. Each
+  comes off in the step that ends the state, never in a later round. Whether it waits on an
+  approval, on CI or on a conflict, GitHub says already — no label repeats that.
 - Subscribe (`subscribe_pr_activity`) to every pull request you open.
 - A pull request is never a workbench: verify with tools, not with trial edits in it.
 - Every git and GitHub interaction — commits, pull requests, comments, reviews, issues — is
