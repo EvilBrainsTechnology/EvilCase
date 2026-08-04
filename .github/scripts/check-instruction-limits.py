@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Enforces .claude/instruction-limits.json: fails naming every file over the per-file limit,
 and the sum over the total limit, each with how far over it is. In GitHub Actions it reports
-the counts as a step-summary table; on a pull request also the difference against the base
-branch (counted from the fetched base tree with the current config)."""
+the counts as a step-summary table, with the difference against the pull request's base branch
+or, outside one, against the previous commit (counted with the current config)."""
 import glob
 import json
 import os
@@ -24,17 +24,17 @@ def count(root):
 
 
 def count_base():
-    """The delta is decoration: any failure here means no delta, never a failed check."""
+    """Counts what a pull request's base branch holds, or the previous commit outside one.
+    The delta is decoration: any failure here means no delta, never a failed check."""
     base_ref = os.environ.get("GITHUB_BASE_REF")
-    if not base_ref:
-        return None, None
+    ref, label = (f"origin/{base_ref}", base_ref) if base_ref else ("HEAD^", "previous commit")
     try:
-        archive = subprocess.run(["git", "archive", f"origin/{base_ref}"], capture_output=True)
+        archive = subprocess.run(["git", "archive", ref], capture_output=True)
         if archive.returncode != 0:
             return None, None
         with tempfile.TemporaryDirectory() as tree:
             subprocess.run(["tar", "-x", "-C", tree], input=archive.stdout, check=True)
-            return count(tree), base_ref
+            return count(tree), label
     except (OSError, subprocess.SubprocessError, UnicodeDecodeError):
         return None, None
 
@@ -57,7 +57,7 @@ if total > total_limit:
     failures.append(f"instruction files in total: {total} lines, {total - total_limit} over the total limit of {total_limit}")
 
 base, base_ref = count_base()
-delta = f" ({total - sum(base.values()):+d} vs {base_ref})" if base is not None else ""
+delta = f" ({total - sum(base.values()):+d} vs {base_ref})" if base and total != sum(base.values()) else ""
 print(f"{len(counts)} instruction files, {total}/{total_limit} lines{delta}, per-file limit {per_file_limit}")
 for failure in failures:
     print(f"::error::{failure}")

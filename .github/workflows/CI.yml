@@ -31,6 +31,8 @@ jobs:
         run: |
           if [ -n "$GITHUB_BASE_REF" ]; then
             git fetch --quiet --depth=1 origin "+refs/heads/$GITHUB_BASE_REF:refs/remotes/origin/$GITHUB_BASE_REF" || true
+          else
+            git fetch --quiet --deepen=1 || true
           fi
           python3 .github/scripts/check-instruction-limits.py
 
