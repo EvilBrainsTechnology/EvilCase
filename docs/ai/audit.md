@@ -42,11 +42,11 @@ longer true). Disposition names the target file, or says why the rule is deleted
 | --- | --- | --- | --- |
 | C1 | Project description, solution map table | fact | stays (trimmed) |
 | C2 | Dependency direction: host → api → business → data, never api → app, never api → data | binding | one line stays; detail in `business` |
-| C3 | Table of per-area instruction files, read the one you touch | fact | replaced by `.claude/rules/` path scoping |
+| C3 | Table of per-area instruction files, read the one you touch, do not restate its rules elsewhere | fact | replaced by `.claude/rules/` path scoping; the do-not-restate clause moves to `instructions` |
 | C4 | A new project with rules of its own gets its own instruction file | binding | `instructions` |
 | C5 | Implementation detail lives in a README next to the code | binding | `instructions` |
 | C6 | Respond in the language of the user's message | binding | `writing` |
-| C7 | Everything committed is English; UI strings are Czech | binding | `writing` |
+| C7 | Everything committed is English; UI strings are Czech | binding | `writing`, widened to every GitHub write (the loop skill's clause) |
 | C8 | Written texts concise and factual; state what, not why; no filler | binding | superseded by `writing` (Phase 3) |
 | C9 | Commits and PR descriptions open with a TL;DR | binding | `writing` |
 | C10 | Commit during the work, one logical unit per commit | binding | `github` |
@@ -141,7 +141,7 @@ longer true). Disposition names the target file, or says why the rule is deleted
 | # | Rule | Class | Disposition |
 | --- | --- | --- | --- |
 | D1 | The type is `Case`; `@case` where the keyword collides; CA1716 at `suggestion` | binding | `data` |
-| D2 | Every aggregate root carries `OwnerId` from its first migration, FK + index | binding | `data` (also stated in vision and loop skill — those copies drop) |
+| D2 | Every aggregate root carries `OwnerId` from its first migration, FK + index | binding | `data`; the loop-skill copy drops, vision keeps it as product context |
 | D3 | Nesting is a self-reference; deleting a case cascades to its sub-tree | fact | `data` (one line) |
 | D4 | Tree walks are pure over navigations and carry a visited set | binding | `data` (one line) |
 | D5 | Enums stored as names, `HasConversion<string>()` with explicit length | binding | `data` |
@@ -206,18 +206,18 @@ longer true). Disposition names the target file, or says why the rule is deleted
 | S13 | Worktree caveats: parent's root instructions, no `.env` | fact | one line; `.env` half owned by run-app skill |
 | S14 | A pull request is not a workbench; verify with tools | binding | stays |
 | S15 | The repository is the only memory: findings → issues, PR state → PR comments, rules → instruction files | binding | stays |
-| S16 | Answered decisions: `## Decision` comment, label `decided`, close, unblock referencing issues; vision updated with the code it governs | binding | stays |
+| S16 | Answered decisions: `## Decision` comment, label `decided`, close, unblock referencing issues; vision updated with the code it governs, alone when it governs none | binding | stays |
 | S17 | Outstanding = a thread with no `claude[bot]` reply; never filter by timestamp or count | binding | stays (anecdote dropped) |
 | S18 | Clear every open pull request before taking new work; every comment answered in the round it is found | binding | stays |
 | S19 | A loop pull request needs explicit approval; `mergeable_state: blocked` is the protection rule | binding | replaced by the merge protocol in `github` |
-| S20 | Pick the highest-value unblocked issue; lands-on-`master` first, lowest milestone second | binding | stays |
+| S20 | Pick the highest-value unblocked issue; lands-on-`master` first, lowest milestone second; no milestone defers nothing; honour a focus argument | binding | stays |
 | S21 | Empty backlog → derive the next slice from the vision, open its issue, take it | binding | stays |
 | S22 | Everything blocked → one chat message re-surfacing the questions, stop the round | binding | stays |
 | S23 | Ask generously: every product/domain/UX branch gets a decision issue plus a short chat question; issue format defined | binding | stays (format condensed) |
 | S24 | Technical choices covered by instructions are made silently | binding | stays |
 | S25 | One thin vertical slice per PR; branch `loop/<issue>-<slug>`; base = `master` or the branch it builds on | binding | stays |
 | S26 | The `CLAUDE.md` files are binding, without exception | fact | deleted: instructions bind by definition |
-| S27 | Every new endpoint authenticated, every new page in `MainLayout`; `[AllowAnonymous]` is a decision issue | duplicate (U5, U6) | deleted: `auth`/`app` own it |
+| S27 | Every new endpoint authenticated, every new page in `MainLayout`; `[AllowAnonymous]` is a decision issue | duplicate (U5, U6) | `auth` owns default deny; `api` and `app` each carry their half at the point of use |
 | S28 | Every new aggregate root carries its owner from the first migration | duplicate (D2) | deleted: `data` owns it |
 | S29 | Definition of done: `dotnet r ci`, new tests, visual proof, docs in the same commit | binding | stays |
 | S30 | A red gate is fixed, never worked around; shrink the slice if it cannot pass | binding | stays |
@@ -228,7 +228,7 @@ longer true). Disposition names the target file, or says why the rule is deleted
 | S35 | GitHub sometimes wraps a written URL in backticks; read the body back, fall back to `<img>` (#102 history) | binding | moved to `visual-proof.md` (history dropped) |
 | S36 | Superseded screenshots deleted in the same PR | binding | moved to `visual-proof.md` |
 | S37 | PR body: TL;DR, what changed, screenshots, `Closes #`; then `subscribe_pr_activity` | binding | stays (TL;DR clause deferred to `writing`) |
-| S38 | Schedule: an hourly session-bound Routine, never `CronCreate`; arm at session start; repair in place; every turn ends confirming it; cadence named in the report | binding | stays (condensed, anecdotes dropped) |
+| S38 | Schedule: an hourly session-bound Routine, never `CronCreate`; arm at session start; repair in place, delete only a duplicate or the ended loop; a denied Routine tool is the owner's question; every turn ends confirming it; cadence named in the report | binding | stays (condensed, anecdotes dropped) |
 | S39 | Watch pull requests via `subscribe_pr_activity`; re-subscribe at session start; unsubscribe on close | binding | stays |
 | S40 | Stop after opening the PR; a round is the agent's own initiative, so the merge exception never applies | binding | replaced by the merge protocol in `github` |
 | S41 | Report: one Czech message, Prague times, everything the round did, what waits, what is next; never a question | binding | stays |
@@ -305,11 +305,13 @@ what is needed only occasionally; instructions reference them.
 
 ## 4. Length limits (proposal)
 
-Counted as physical lines (`wc -l`). Scope — the four always-or-automatically loaded groups:
-`CLAUDE.md`, `src/**/CLAUDE.md`, `.claude/rules/**/*.md`, `.claude/skills/*/SKILL.md`.
-Skill reference files, `docs/**` and READMEs are out of scope by design: they load on demand.
+Counted as physical lines (`wc -l`). Scope — every location Claude Code loads as instructions:
+`**/CLAUDE.md` (any directory), `.claude/CLAUDE.md`, `.claude/rules/**/*.md`,
+`.claude/skills/**/SKILL.md`. Skill reference files, `docs/**` and READMEs are out of scope by
+design: they load on demand. `@path` imports would load uncounted lines, so instruction files
+use none (`.claude/rules/instructions.md`).
 
-Before the refactor the scoped files held 637 lines; after it they hold 510.
+Before the refactor the scoped files held 637 lines; after it they hold 516.
 
 | Limit | Value |
 | --- | --- |

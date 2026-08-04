@@ -11,11 +11,10 @@ tractable, then reports everything once. Read the vision and the open work (§1,
 
 ## GitHub access
 
-`gh` is not installed. Use `curl` with `$GH_TOKEN` against
-`https://api.github.com/repos/EvilBrainsTechnology/EvilCase`, never `mcp__github__*` tools — a
-fired round can wake without them; endpoints in `github-api.md` next to this file. A worktree
-refuses shell pipelines: write the calls into a scratchpad script and parse with `python3`. The
-loop's own comments are recognised by author `claude[bot]` — measured, never assumed.
+`gh` is not installed. Use `curl` with `$GH_TOKEN` (base URL and endpoints in `github-api.md`
+next to this file), never `mcp__github__*` tools — a fired round can wake without them. A
+worktree refuses shell pipelines: write the calls into a scratchpad script and parse with
+`python3`. The loop's own comments are recognised by author `claude[bot]` — measured, never assumed.
 
 ## Subagents
 
@@ -26,16 +25,16 @@ out in parallel, and every subagent that writes to the repository gets `isolatio
 a worktree sees the parent checkout's rule files and has no `.env` (run-app skill). A pull
 request is never a workbench: verify with tools, not trial edits.
 
-A subagent starts blank, so the repository is the only memory. Before the round ends, a finding
-becomes an issue, off-diff pull request state a comment on it, and a rule the loop must follow
-lands in the instruction files.
+A subagent starts blank: the repository is the only memory. Before the round ends, a finding
+becomes an issue, off-diff pull request state a comment on it, a new loop rule an instruction file.
 
 ## 1. Apply answered decisions
 
 An answer is any comment on an open `needs-decision` issue whose author is not `claude[bot]`.
 For each: state what was chosen in a `## Decision` comment, label `decided`, close, and remove
 `blocked` from every issue referencing it. A decision that changes the vision updates it in the
-same commit as the code it governs. Never answer or re-ask an open decision.
+same commit as the code it governs, or on its own when it governs none. Never answer or re-ask
+an open decision.
 
 ## 2. Tend every open pull request
 
@@ -43,8 +42,8 @@ The round's first job and usually its whole job; take new work only when every o
 request is merged, or green, current and answered.
 
 - Merge what meets the gate in `.claude/rules/github.md` — owner-approved, green CI, no
-  conflicts: squash, delete the branch, rebase the remaining branches, wait for green CI, merge
-  the next.
+  conflicts: squash, delete the branch, rebase the remaining branches, wait for green CI, then
+  the next that meets the gate.
 - Outstanding means a review thread with no `claude[bot]` reply; never filter by timestamp or
   count — read the threads. Every comment is answered in the round that finds it: a requested
   change fixed to the full definition of done and answered with the commit, a question answered
@@ -55,18 +54,18 @@ request is merged, or green, current and answered.
 ## 3. Pick the work
 
 Take the highest-value open issue that is neither `blocked` nor `needs-decision`: landing on
-`master` alone first, the lowest milestone second. Empty backlog → derive the next slice from
-the vision, open its issue, take it. Everything blocked → one chat message re-surfacing the
-open questions, stop the round. After a slice is open, come back here while the round has room.
+`master` alone first, the lowest milestone second — no milestone defers nothing — honouring a
+focus argument when one was given. Empty backlog → derive the next slice from the vision, open
+its issue, take it. Everything blocked → one chat message re-surfacing the open questions, stop
+the round. After a slice is open, come back here while the round has room.
 
 ## 4. Ask before building — generously
 
-Every product, domain or UX branch with more than one reasonable answer gets both, before any
-code: a decision issue — title `[DECISION] <question>`, label `needs-decision`, the blocked
-issue's milestone, body with context, options with costs, a recommendation, `Blocks #<issue>` —
-and the same question in the chat, a numbered choice answerable with one word. Label the
-dependent issue `blocked` and carry on with what is not. Technical choices covered by the rules
-are made silently.
+Every product, domain or UX branch with more than one reasonable answer gets both before any
+code: a decision issue — `[DECISION] <question>`, label `needs-decision`, the blocked issue's
+milestone, body with context, options with costs, a recommendation, `Blocks #<issue>` — and the
+same question in the chat, a numbered choice answerable with one word. Label the dependent
+issue `blocked`, carry on with the rest; technical choices under the rules are made silently.
 
 ## 5. Build one thin vertical slice
 
@@ -99,10 +98,11 @@ must answer is a decision issue. The turn ends only after the schedule is confir
 The loop's clock is an hourly session-bound Routine (`create_trigger`), never `CronCreate` —
 its jobs do not survive this environment. A session that starts while the loop should run
 checks `list_triggers` and creates the Routine if missing; every turn ends confirming it is
-still there. Repair a wrong Routine with `update_trigger`; delete one only when the owner ends
-the loop. Watch pull requests with `subscribe_pr_activity`: subscribe on opening, re-subscribe
-at session start, unsubscribe on merge or close. The loop ends only when the owner says so or
-by the §3 stop, both said out loud.
+still there. Repair a wrong Routine with `update_trigger`; delete only a duplicate, or the loop
+the owner has ended; a denied Routine tool is a question for the owner, never worked around.
+Watch pull requests with `subscribe_pr_activity`: subscribe on opening, re-subscribe at session
+start, unsubscribe on merge or close. The loop ends only when the owner says so or by the §3
+stop, both said out loud.
 
 ## Stacks
 

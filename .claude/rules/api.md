@@ -23,6 +23,8 @@ frontend's `index.html`. An unmatched `/api` path answers a problem-details `404
   and before `UseAuthentication`.
 - Health endpoints are mapped anonymously outside the controllers; `/health/live` never runs a
   dependency check; health responses never carry descriptions or exception detail.
+- The authorization fallback policy makes every endpoint require authentication; adding
+  `[AllowAnonymous]` anywhere is an owner decision (`.claude/rules/auth.md`).
 
 ## API client
 

@@ -6,7 +6,8 @@
 - A pull request's title and description always match its current diff; update them with every
   change to its content.
 - The loop tends every open pull request: work review comments in, reply to them, rebase onto
-  `master` on a conflict or a stale base, keep CI green.
+  the target branch on a conflict or a stale base, keep CI green.
+- The owner is whoever `CODEOWNERS` names.
 - The agent merges; the owner only approves. Merge order across dependent pull requests is the
   agent's: merge in dependency order, rebase the remaining branches after each merge, and wait
   for green CI before the next.
