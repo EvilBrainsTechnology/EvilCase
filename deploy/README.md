@@ -75,11 +75,11 @@ Scalar at `/scalar` and lets EF Core log sensitive data. The Seq URL of
 
 The database publishes no port: the application reaches it over the compose network, and
 publishing would collide with the development stack below. Like it, it is throwaway — constant
-credentials, no volume, `down` wipes the data.
+credentials, and its data directory is a `tmpfs`, so it lives in RAM and dies with the container.
 
 ## Local development database
 
-`docker-compose.dev.yml` is a separate stack (project name `evilcase-dev`) that runs PostgreSQL only, on `127.0.0.1:5432` with the credentials `.env.example` of the host already points at. It is for development, never for a deployment: the password is a constant and there is no volume, so `down` wipes the data and the next start migrates and seeds an empty database again.
+`docker-compose.dev.yml` is a separate stack (project name `evilcase-dev`) that runs PostgreSQL only, on `127.0.0.1:5432` with the credentials `.env.example` of the host already points at. It is for development, never for a deployment: the password is a constant and the data directory is a `tmpfs`, so the data lives in RAM, `down` wipes it and the next start migrates and seeds an empty database again.
 
 ```
 docker compose -f deploy/docker-compose.dev.yml up -d --wait
