@@ -10,7 +10,7 @@ exists is an error, a milestone or an issue with the same title is a duplicate â
 the mechanism, not a precaution.
 
 `gh` is not installed; `api.github.com` is reachable with `$GH_TOKEN`.
-Every call below is a `curl`, as described in `.claude/skills/product-loop/SKILL.md`:
+Every call below is a `curl`, as described in `.claude/skills/product-loop/github-api.md`:
 
 ```bash
 GH=https://api.github.com/repos/EvilBrainsTechnology/EvilCase
@@ -33,8 +33,8 @@ Report each as OK or blocked, and stop at the first blocker rather than guessing
   administrator can sign in. An instance already running from the IDE holds that port and has to be
   stopped first.
 - A screenshot of a signed-in screen can be taken with Playwright, as
-  `.claude/skills/product-loop/SKILL.md` describes under *Visual proof*. Report it blocked if the
-  browsers are missing; the definition of done there depends on it.
+  `.claude/skills/product-loop/visual-proof.md` describes. Report it blocked if the browsers are
+  missing; the definition of done depends on it.
 
 ## 2. Labels
 

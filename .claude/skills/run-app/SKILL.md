@@ -5,75 +5,60 @@ description: Run EvilCase locally — one host serving the API and the Blazor fr
 
 # Run EvilCase
 
-All commands run from `src/`, except the database one, which takes a path from the repository root.
+All commands run from `src/`, except the database one, which takes a path from the repository
+root.
 
 ## Prerequisites
 
-- `dotnet tool restore` — `r` is a local tool; without it every command below fails with `Cannot find command r`.
-- `EvilCase.Host/.env` (copy from `.env.example`). The host fails to start without the connection string and a JWT key of at least 32 characters. Fill in `EvilBrains__EvilCase__Auth__Seed__Email` and `EvilBrains__EvilCase__Auth__Seed__Password` too — the seeded administrator is the only way into an empty database (`src/Common/EvilCase.Auth/CLAUDE.md`).
-- A reachable PostgreSQL. The host migrates the database on startup and does not retry, so an unreachable server stops it before it serves anything. Start a throwaway one, from the repository root:
+- `dotnet tool restore` — `r` is a local tool.
+- `EvilCase.Host/.env` copied from `.env.example`, with the connection string, a JWT key of at
+  least 32 characters, and `EvilBrains__EvilCase__Auth__Seed__Email` and `__Password` — the
+  seeded administrator is the only way into an empty database.
+- A reachable PostgreSQL — the host migrates on startup and does not retry. A throwaway one,
+  from the repository root, idempotent, matching the connection string in `.env.example`:
 
   ```bash
   docker compose -f deploy/docker-compose.dev.yml up -d --wait
   ```
 
-  It listens on `127.0.0.1:5432` with `postgres`/`postgres`/`evilcase`, which is exactly the connection string in `.env.example`. `--wait` returns only once the health check passes, so the host cannot start ahead of it. The command is idempotent: it starts a stopped container and returns immediately for a running one.
-
-  Without a database, `EvilBrains__EvilCase__Database__MigrateOnStartup=false` starts the host anyway, but `/health/ready` answers `503` and anything touching data fails. Sign-in is one of those things, so nothing behind the login page can be verified that way.
+  Without a database, `EvilBrains__EvilCase__Database__MigrateOnStartup=false` starts the host,
+  but `/health/ready` answers `503` and sign-in fails, so nothing behind the login page can be
+  verified.
 - Trusted dev certificate: `dotnet dev-certs https --trust`.
 
 ### Claude Code on the web
 
-`.claude/hooks/session-start.sh` does all of the above and runs automatically at session start, so a
-web session needs no manual setup — `dotnet r build`, `dotnet r test` and `dotnet r run` work straight
-away. It only runs where `CLAUDE_CODE_REMOTE` is `true`; a local machine is left alone.
+`.claude/hooks/session-start.sh` does all of the above at session start, only where
+`CLAUDE_CODE_REMOTE` is `true`: it copies the SDK out of `mcr.microsoft.com/dotnet/sdk:10.0`
+(the SDK installers are egress-blocked), installs `pwsh` from NuGet (`src/global.json` names it
+as `scriptShell`), starts the container's own PostgreSQL, and writes a `.env` with throwaway
+credentials (`admin@evilcase.local` / `DevPassword123!`). The hook restates the SDK version, the
+connection string, the seed and JWT keys and the `src/` layout — a change to any of those is a
+change to the hook, in the same commit.
 
-The hook restates what lives elsewhere — the SDK version pinned in `src/global.json` and its
-`scriptShell`, the connection string and the seed and JWT keys of `.env.example`, the PostgreSQL
-version and the `src/` layout. A change to any of those is a change to the hook, in the same commit.
-
-Two things differ from the list above, because the container has no .NET SDK and the egress policy
-blocks `builds.dotnet.microsoft.com`:
-
-- The SDK is copied out of `mcr.microsoft.com/dotnet/sdk:10.0` onto the host filesystem, which is the
-  only reachable source. Docker is used for that one copy and for nothing afterwards. `pwsh` is not in
-  that layout and comes from NuGet instead — `src/global.json` sets it as `scriptShell`, so every
-  `dotnet r` script needs it.
-- PostgreSQL is the container's own 16, started with `service postgresql start`, rather than the 18 in
-  `deploy/docker-compose.dev.yml`. Credentials, port and database name are the same, so the connection
-  string in `.env.example` is unchanged.
-
-The generated `.env` seeds `admin@evilcase.local` / `DevPassword123!`. Those credentials are throwaway
-and local to the container.
-
-The hook writes `src/EvilCase.Host/.env` into the main checkout only, so a git worktree has none and
-the host will not start there. Copy that file into the worktree's `src/EvilCase.Host/`, or run the
-app from the main checkout and keep the worktree for the code.
-
-`.claude/launch.json` runs the app on the host, so it works once the hook has run.
+The hook writes `.env` into the main checkout only, so a worktree has none and the host will
+not start there: copy the file into the worktree, or run the app from the main checkout.
 
 ## Start
 
-One server serves everything: `dotnet r run` → `https://localhost:5000` (Scalar UI at `/scalar`, Development only).
-
-In Claude Code, start it through the preview server defined in `.claude/launch.json` (name `evilcase`) rather than from a shell. It runs the `claude` launch profile in `launchSettings.json`, which differs from `https` only in launching no browser. Both serve `https://localhost:5000`, so there is one address in every command, README and skill — and the two cannot run at once: stop the IDE instance before an agent starts one, or the second gets a port collision. When changing that port, keep it off the browsers' unsafe-port list (6000, 6665–6669, 6697, ...); the preview pane refuses to load those.
+`dotnet r run` → `https://localhost:5000` (Scalar UI at `/scalar`, Development only). In Claude
+Code, start the preview server `evilcase` from `.claude/launch.json` instead of a shell; it
+serves the same address, and only one instance can hold the port — stop an IDE instance first.
+Keep the port off the browsers' unsafe-port list (6000, 6665–6669, 6697, …).
 
 ## Verify
 
-The application is closed by default: every endpoint except health, sign-in and the client log upload needs a bearer token, and every page except `/login` needs a signed-in user.
-
-- Health: `curl -sk https://localhost:5000/health/ready` → `{"status":"Healthy","checks":[{"name":"database","status":"Healthy"}]}`. `503` means the database is unreachable; `/health/live` answers even then.
-- Sign in with the seeded administrator and keep the access token:
-
-  ```bash
-  curl -sk -X POST https://localhost:5000/api/auth/login -H "Content-Type: application/json" -d '{"email":"<seed email>","password":"<seed password>"}'
-  ```
-
-  → `{"accessToken":"...","expiresAt":"...","email":"...","role":"Administrator"}`. `401` is bad credentials, `423` a lockout (5 failures, 15 minutes).
-- API round-trip: `curl -sk -X POST https://localhost:5000/api/echo/post -H "Content-Type: application/json" -H "Authorization: Bearer <accessToken>" -d '{"message":"ping"}'` → `{"message":"Echo: ping"}`. Without the header it is `401`, which is the fallback policy working, not a failure.
-- Unknown API path: `curl -sk -o /dev/null -w "%{http_code}" https://localhost:5000/api/nope` → `404`, never the app's HTML.
-- Frontend: open `https://localhost:5000`, which redirects to `/login`; sign in with the seeded administrator, then open `/echo`, type text and click Send → page shows `Echo: <text>`. First WebAssembly load takes a few seconds.
+- `curl -sk https://localhost:5000/health/ready` → `Healthy` with the `database` check; `503`
+  means the database is unreachable, `/health/live` answers even then.
+- Sign in: `POST /api/auth/login` with `{"email":…,"password":…}` (the seed values) →
+  `accessToken`; `401` is bad credentials, `423` a lockout (5 failures, 15 minutes).
+- API round-trip: `POST /api/echo/post` with the bearer → `Echo: …`; without the header `401`,
+  which is the fallback policy working.
+- `GET /api/nope` → `404`, never the app's HTML.
+- Frontend: `https://localhost:5000` redirects to `/login`; sign in, open `/echo`, send a text.
+  The first WebAssembly load takes a few seconds.
 
 ## Stop
 
-Ctrl+C in the terminal, or stop the preview server. The database keeps running; `docker compose -f deploy/docker-compose.dev.yml down` removes it along with its data.
+Ctrl+C, or stop the preview server. The database keeps running;
+`docker compose -f deploy/docker-compose.dev.yml down` removes it along with its data.
