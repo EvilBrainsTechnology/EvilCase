@@ -28,6 +28,9 @@ App → Api.Client → (HTTP) → Api → Business → Data
 - `Tests/EvilCase.Tests/Architecture/LayerTests` pins every arrow.
 - A pure rule is a static class with no `DbContext` in sight, tested without one.
 - Only one layer of a case's relations is ever read; nothing walks past it.
+- Every number the application issues comes from `INumberIssuer`, and a `{seq}` is taken with the
+  single upsert in `NumberSequenceSql` — a read followed by a write hands two callers the same
+  number.
 
 ## List queries
 
