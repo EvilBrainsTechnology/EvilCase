@@ -36,7 +36,7 @@ an open decision.
 ## 2. Tend every open pull request
 
 The round's first job and usually its whole job; take new work only when every open pull
-request is merged, or green, current and answered.
+request is merged, or green and answered.
 
 - Merge what meets the gate in `.claude/rules/github.md` — mergeable by the repository's
   rules, into `master` only: squash, delete the branch, rebase what conflicts, wait for green
@@ -106,7 +106,7 @@ stop, both said out loud.
 A slice needing an unmerged branch targets it; two or more such pull requests are linked as a
 stack (calls in `github-api.md`). A stack is a cost: prefer slices that land on `master`,
 shorten a chain from the bottom, never extend one when the work can exist without it. When the
-bottom merges, GitHub retargets the next; rebase the rest onto the new `master`.
+bottom merges, GitHub retargets the next; rebase what conflicts onto the new `master`.
 
 ## Standing rules
 
