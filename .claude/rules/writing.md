@@ -14,5 +14,7 @@ chat messages.
 - Commit messages and pull request descriptions open with a one- or two-sentence TL;DR; the rest
   only where it adds information.
 - A reply to a review comment says what changed, or why not. Nothing more.
+- A chat response ends with a short TL;DR of what waits on the user — a pull request review, an
+  open decision; when nothing does, it ends without one.
 - Chat responses follow the language of the user's message. Everything committed and every
   GitHub write is English; user-facing UI strings are Czech.

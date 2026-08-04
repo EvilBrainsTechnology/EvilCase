@@ -277,6 +277,7 @@ longer true). Disposition names the target file, or says why the rule is deleted
 | N5 | The agent merges, the owner only approves; merge order and inter-merge rebasing are the agent's | `github` |
 | N6 | Merge only with the owner's `APPROVED` review, green CI and no conflicts; squash; delete the branch | `github` |
 | N7 | Never approve your own PR; never bypass the review gate (no admin merge, no force push to `master`) | `github` |
+| N8 | A chat response ends with a TL;DR of what waits on the user (review, decision) | `writing` |
 
 ## 3. Target structure
 
