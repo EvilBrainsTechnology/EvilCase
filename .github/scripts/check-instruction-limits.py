@@ -9,6 +9,10 @@ with open(".claude/instruction-limits.json", encoding="utf-8") as config:
     limits = json.load(config)
 
 files = sorted({path for pattern in limits["globs"] for path in glob.glob(pattern, recursive=True)})
+if not files:
+    print("::error::no instruction files matched the configured globs — run from the repository root")
+    sys.exit(1)
+
 per_file_limit = limits["maxLinesPerFile"]
 total_limit = limits["maxLinesTotal"]
 
