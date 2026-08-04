@@ -20,7 +20,7 @@ public class NumberSequenceSqlTests
             Assert.That(sql, Does.Contain("INSERT INTO \"NumberSequences\""));
             Assert.That(sql, Does.Contain("ON CONFLICT (\"OwnerId\", \"Scope\")"), "the unique index is what turns the race into a wait");
             Assert.That(sql, Does.Contain("DO UPDATE SET \"LastValue\" = \"NumberSequences\".\"LastValue\" + 1"), "the value is raised from what the row holds, never from what the caller read");
-            Assert.That(sql, Does.Contain("RETURNING \"LastValue\""), "the statement that raises the counter is the one that says what it took");
+            Assert.That(sql, Does.Contain("RETURNING \"LastValue\" AS \"Value\""), "the statement that raises the counter is the one that says what it took, under the name a scalar query reads");
         }
     }
 

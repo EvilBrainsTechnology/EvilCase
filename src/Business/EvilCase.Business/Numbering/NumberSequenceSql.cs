@@ -11,13 +11,10 @@ public static class NumberSequenceSql
     /// Parameters: the owner, then the scope. Returns the value taken.
     /// </summary>
     public const string TakeNext = """
-        WITH "taken" AS (
-            INSERT INTO "NumberSequences" ("OwnerId", "Scope", "LastValue")
-            VALUES ({0}, {1}, 1)
-            ON CONFLICT ("OwnerId", "Scope")
-            DO UPDATE SET "LastValue" = "NumberSequences"."LastValue" + 1
-            RETURNING "LastValue"
-        )
-        SELECT "LastValue" AS "Value" FROM "taken"
+        INSERT INTO "NumberSequences" ("OwnerId", "Scope", "LastValue")
+        VALUES ({0}, {1}, 1)
+        ON CONFLICT ("OwnerId", "Scope")
+        DO UPDATE SET "LastValue" = "NumberSequences"."LastValue" + 1
+        RETURNING "LastValue" AS "Value"
         """;
 }
