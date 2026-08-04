@@ -23,6 +23,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     public DbSet<ActFileLink> ActFileLinks => this.Set<ActFileLink>();
 
+    public DbSet<Comment> Comments => this.Set<Comment>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
@@ -33,6 +35,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         ConfigureCases(modelBuilder);
         ConfigureActs(modelBuilder);
         ConfigureFiles(modelBuilder);
+        ConfigureComments(modelBuilder);
     }
 
     private static void ConfigureEnums(ModelBuilder modelBuilder)
@@ -131,5 +134,32 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .WithMany(act => act.AttachmentsTakenFromIt)
             .HasForeignKey(link => link.OriginatingActId)
             .OnDelete(DeleteBehavior.Restrict);
+    }
+
+    private static void ConfigureComments(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Comment>()
+            .ToTable(table => table.HasCheckConstraint(
+                "CK_Comments_OnACaseOrAnAct",
+                @"(""CaseId"" IS NULL) <> (""ActId"" IS NULL)"));
+
+        modelBuilder.Entity<Comment>()
+            .HasOne(comment => comment.Case)
+            .WithMany(@case => @case.Comments)
+            .HasForeignKey(comment => comment.CaseId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Comment>()
+            .HasOne(comment => comment.Act)
+            .WithMany(act => act.Comments)
+            .HasForeignKey(comment => comment.ActId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // A user's notes go with the user, as their cases and parties already do.
+        modelBuilder.Entity<Comment>()
+            .HasOne(comment => comment.Author)
+            .WithMany()
+            .HasForeignKey(comment => comment.AuthorUserId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

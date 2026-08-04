@@ -53,4 +53,6 @@ public record Case : IEntity
     public ICollection<CaseReference> References { get; init; } = [];
 
     public ICollection<Act> Acts { get; init; } = [];
+
+    public ICollection<Comment> Comments { get; init; } = [];
 }
