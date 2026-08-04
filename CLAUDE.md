@@ -51,7 +51,8 @@ clone.
 - `dotnet r ai-check` — verify the AI instruction length limits
 - `dotnet r ci` — ai-check + format-check + build + test
 - `dotnet r run` — run everything at `https://localhost:5000` (Scalar UI at `/scalar` in dev); requires a reachable PostgreSQL
+- `dotnet r run-docker` — the same, in Docker with its own PostgreSQL, for a person trying the application out; running and verifying it is `dotnet r run`
 - `dotnet r add-migration` / `remove-migration` / `generate-sql-script` — EF migrations
 
-A reachable PostgreSQL and a seeded administrator are the two prerequisites that are not in the
-solution; `.claude/skills/run-app/SKILL.md` has the whole sequence.
+A reachable PostgreSQL and a seeded administrator are the two prerequisites `dotnet r run` needs
+and the solution does not carry; `.claude/skills/run-app/SKILL.md` has the whole sequence.

@@ -13,7 +13,11 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: evilcase
-    # No volume: `down` wipes the data and the next start migrates and seeds an empty database again.
+    # The data directory lives in RAM, so `down` wipes it and the next start migrates and seeds an
+    # empty database again. The image declares /var/lib/postgresql a volume, so without a mount of
+    # our own every run would leave an anonymous one behind; PGDATA sits inside it.
+    tmpfs:
+      - /var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d evilcase"]
       interval: 2s

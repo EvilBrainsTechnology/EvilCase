@@ -49,9 +49,37 @@ cp .env.example .env   # then fill in the connection string and the JWT key
 docker compose up -d
 ```
 
+## Local application stack
+
+`docker-compose.local.yml` (project name `evilcase-local`) is the deployed stack's development
+twin: it builds the image from the repository instead of pulling it, and runs its own PostgreSQL
+next to it. `dotnet r run-docker` from `src/` is the whole command — no `.env`, no dev
+certificate, no database of one's own.
+
+It is there for a person who wants the application running without setting anything up. Verifying
+a change is `dotnet r run` and the run-app skill, which says nothing of this stack on purpose: one
+address, one database and one image build per change are not what a validation needs.
+
+```
+docker compose -f deploy/docker-compose.local.yml up --build
+```
+
+The application answers on `http://localhost:8080` (`EVILCASE_PORT` picks another host port, and
+`deploy/.env` of the stack above is read here too) and seeds `admin@evilcase.local` /
+`DevPassword123!`. Plain HTTP with nothing in front, so `HttpsRedirection` is off and
+`BehindReverseProxy` stays at its default.
+
+The image is the deployed one, the configuration is not: it runs as `Development`, which maps
+Scalar at `/scalar` and lets EF Core log sensitive data. The Seq URL of
+`appsettings.Development.json` is cleared, so a local run ships no logs to a real server.
+
+The database publishes no port: the application reaches it over the compose network, and
+publishing would collide with the development stack below. Like it, it is throwaway — constant
+credentials, and its data directory is a `tmpfs`, so it lives in RAM and dies with the container.
+
 ## Local development database
 
-`docker-compose.dev.yml` is a separate stack (project name `evilcase-dev`) that runs PostgreSQL only, on `127.0.0.1:5432` with the credentials `.env.example` of the host already points at. It is for development, never for a deployment: the password is a constant and there is no volume, so `down` wipes the data and the next start migrates and seeds an empty database again.
+`docker-compose.dev.yml` is a separate stack (project name `evilcase-dev`) that runs PostgreSQL only, on `127.0.0.1:5432` with the credentials `.env.example` of the host already points at. It is for development, never for a deployment: the password is a constant and the data directory is a `tmpfs`, so the data lives in RAM, `down` wipes it and the next start migrates and seeds an empty database again.
 
 ```
 docker compose -f deploy/docker-compose.dev.yml up -d --wait

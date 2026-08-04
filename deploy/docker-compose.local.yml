@@ -1,0 +1,46 @@
+name: evilcase-local
+
+# The whole application in Docker, built from this repository, with its own PostgreSQL next to it.
+# For development only: the credentials are constants and there is no volume, so `down` wipes the
+# data and the next start migrates and seeds an empty database again. See docker-compose.yml for
+# the deployed stack.
+services:
+  app:
+    build:
+      context: ..
+    ports:
+      - "127.0.0.1:${EVILCASE_PORT:-8080}:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      EvilBrains__EvilCase__ConnectionString: Host=postgres;Port=5432;Database=evilcase;Username=postgres;Password=postgres
+      EvilBrains__EvilCase__Auth__Jwt__Key: local-development-key-not-a-secret-0000
+      EvilBrains__EvilCase__Auth__Seed__Email: admin@evilcase.local
+      EvilBrains__EvilCase__Auth__Seed__Password: DevPassword123!
+      # Kestrel serves plain HTTP here and nothing terminates TLS in front, so the middleware could
+      # not resolve a target port anyway and would only log a warning per request.
+      EvilBrains__EvilCase__Hosting__HttpsRedirection: "false"
+      # appsettings.Development.json names a real Seq server; an empty URL leaves the sink out.
+      EvilBrains__EvilCase__Logging__Seq__ServerUrl: ""
+    # The host migrates on startup and does not retry.
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: evilcase
+    # No published port: the application reaches it over the compose network, and publishing would
+    # collide with docker-compose.dev.yml on 5432.
+    #
+    # The data directory lives in RAM. The image declares /var/lib/postgresql a volume, so without
+    # a mount of our own every run would leave an anonymous one behind; PGDATA sits inside it.
+    tmpfs:
+      - /var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d evilcase"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
