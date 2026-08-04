@@ -5,8 +5,8 @@ description: Run EvilCase locally — one host serving the API and the Blazor fr
 
 # Run EvilCase
 
-All commands run from `src/`, except the `docker compose` ones, which take a path from the
-repository root.
+All commands run from `src/`, except the database one, which takes a path from the repository
+root.
 
 ## Prerequisites
 
@@ -41,30 +41,12 @@ not start there: copy the file into the worktree, or run the app from the main c
 
 ## Start
 
-`dotnet r run` verifies a change; take `dotnet r run-docker` only to verify the image itself. It
-runs the image as `Development`, so it proves the image, never the deployed configuration, and
-it costs an image build per change.
-
-One machine runs one application, and both ways hardcode their address, so parallel agents take
-turns rather than a port each. `dotnet r run` at least fails on the taken port; the Docker stack
-is named `evilcase-local` whatever the checkout, so a second one takes the first's containers
-over and serves its own build on the same `http://localhost:8080` — silently, and the screenshot
-is then of another worktree's code. Verify against the address of what this session started, and
-stop it before handing the machine on.
-
 `dotnet r run` → `https://localhost:5000` (Scalar UI at `/scalar`, Development only). In Claude
 Code, start the preview server `evilcase` from `.claude/launch.json` instead of a shell; it
 serves the same address, and only one instance can hold the port — stop an IDE instance first.
 Keep the port off the browsers' unsafe-port list (6000, 6665–6669, 6697, …).
 
-`dotnet r run-docker` → `http://localhost:8080`, with its own PostgreSQL and the administrator
-`admin@evilcase.local` / `DevPassword123!`; of the prerequisites above only `dotnet tool
-restore` applies, and Docker. In Claude Code, open the browser pane at that URL — the preview
-server of `.claude/launch.json` serves the other one. `deploy/README.md` has the stack.
-
 ## Verify
-
-Against the Docker stack, read `http://localhost:8080` for every `https://localhost:5000` below.
 
 - `curl -sk https://localhost:5000/health/ready` → `Healthy` with the `database` check; `503`
   means the database is unreachable, `/health/live` answers even then.
@@ -79,6 +61,4 @@ Against the Docker stack, read `http://localhost:8080` for every `https://localh
 ## Stop
 
 Ctrl+C, or stop the preview server. The database keeps running;
-`docker compose -f deploy/docker-compose.dev.yml down` removes it along with its data. The
-Docker stack stops the same way and is removed with
-`docker compose -f deploy/docker-compose.local.yml down`.
+`docker compose -f deploy/docker-compose.dev.yml down` removes it along with its data.
