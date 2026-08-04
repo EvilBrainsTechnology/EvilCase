@@ -1,4 +1,5 @@
 using EvilBrains.EvilCase.Data.Entities;
+using EvilBrains.EvilCase.Domain.Numbering;
 using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Data.DbContexts;
@@ -25,6 +26,10 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     public DbSet<Comment> Comments => this.Set<Comment>();
 
+    public DbSet<NumberingSettings> NumberingSettings => this.Set<NumberingSettings>();
+
+    public DbSet<NumberSequence> NumberSequences => this.Set<NumberSequence>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
@@ -36,6 +41,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         ConfigureActs(modelBuilder);
         ConfigureFiles(modelBuilder);
         ConfigureComments(modelBuilder);
+        ConfigureNumbering(modelBuilder);
     }
 
     private static void ConfigureEnums(ModelBuilder modelBuilder)
@@ -156,5 +162,16 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .WithMany()
             .HasForeignKey(comment => comment.AuthorUserId)
             .OnDelete(DeleteBehavior.Cascade);
+    }
+
+    private static void ConfigureNumbering(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<NumberingSettings>()
+            .HasData(new NumberingSettings
+            {
+                Id = Entities.NumberingSettings.SingletonId,
+                CaseNumberPattern = NumberingDefaults.CaseNumberPattern,
+                ActNumberPattern = NumberingDefaults.ActNumberPattern,
+            });
     }
 }

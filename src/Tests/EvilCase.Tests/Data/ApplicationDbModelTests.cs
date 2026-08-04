@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Data.Migrations.DbContexts;
+using EvilBrains.EvilCase.Domain.Numbering;
 using EvilBrains.EvilCase.Domain.Parties;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -121,6 +122,64 @@ public class ApplicationDbModelTests
             Assert.That(mark, Is.Not.Null, "a case always has exactly one of its own, so it is a column and not a row");
             Assert.That(mark?.IsNullable, Is.False, "it is generated with the case and never absent");
             Assert.That(unique?.Properties.Select(property => property.Name), Is.EqualTo(expected), "and a generated series must not repeat within one owner");
+        }
+    }
+
+    [Test]
+    public void AnActCarriesItsOwnNumberAndTheOneItsIssuerGaveIt()
+    {
+        using var context = new ApplicationDbContextFactory().CreateDbContext([]);
+
+        var act = context.Model.FindEntityType(typeof(Act));
+
+        Assert.That(act, Is.Not.Null);
+
+        string[] expected = [nameof(Act.CaseId), nameof(Act.ActNumber)];
+        var unique = act.GetIndexes().SingleOrDefault(index => index.IsUnique);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(act.FindProperty(nameof(Act.ActNumber))?.IsNullable, Is.False, "an act is issued its own number when it is created, and it is never absent");
+            Assert.That(act.FindProperty(nameof(Act.ExternalActNumber))?.IsNullable, Is.True, "the issuer's number is free text and most acts have none");
+            Assert.That(unique?.Properties.Select(property => property.Name), Is.EqualTo(expected), "a generated series must not repeat within one case, whatever a hand-typed number says");
+        }
+    }
+
+    [Test]
+    public void ASeriesIsOneRowPerOwnerAndScope()
+    {
+        using var context = new ApplicationDbContextFactory().CreateDbContext([]);
+
+        var sequence = context.Model.FindEntityType(typeof(NumberSequence));
+
+        Assert.That(sequence, Is.Not.Null);
+
+        string[] expected = [nameof(NumberSequence.OwnerId), nameof(NumberSequence.Scope)];
+        var unique = sequence.GetIndexes().SingleOrDefault(index => index.IsUnique);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(unique?.Properties.Select(property => property.Name), Is.EqualTo(expected), "the upsert that advances a series conflicts on this index, and without it two callers take the same value");
+            Assert.That(sequence.FindProperty(nameof(NumberSequence.OwnerId))?.IsNullable, Is.False, "one owner's numbering never counts another's");
+        }
+    }
+
+    [Test]
+    public void ThePatternsAreOneApplicationWideRowSeededWithTheDefaults()
+    {
+        using var context = new ApplicationDbContextFactory().CreateDbContext([]);
+
+        var settings = context.GetService<IDesignTimeModel>().Model.FindEntityType(typeof(NumberingSettings));
+
+        Assert.That(settings, Is.Not.Null);
+
+        var seeded = settings.GetSeedData().SingleOrDefault();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(seeded?[nameof(NumberingSettings.Id)], Is.EqualTo(NumberingSettings.SingletonId), "the patterns are one row for the whole application");
+            Assert.That(seeded?[nameof(NumberingSettings.CaseNumberPattern)], Is.EqualTo(NumberingDefaults.CaseNumberPattern), "an empty database issues case numbers without anybody configuring one");
+            Assert.That(seeded?[nameof(NumberingSettings.ActNumberPattern)], Is.EqualTo(NumberingDefaults.ActNumberPattern), "and act numbers too");
         }
     }
 

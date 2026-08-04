@@ -15,8 +15,11 @@ paths:
   owner's cases, `CaseId < RelatedCaseId`; deleting a case takes its relations and nothing else.
 - Enums are stored as names: `HasConversion<string>()` with an explicit length.
 - Tags are rows — typed, unique per case — never an array column.
-- `Case.CaseNumber` is required and unique per owner; every external mark is an
-  `ExternalCaseNumber` row with a required assigning party.
+- `Case.CaseNumber` is required and unique per owner, `Act.ActNumber` required and unique
+  within its case; every external mark is an `ExternalCaseNumber` row with a required assigning
+  party.
+- The patterns both are issued from are one seeded `NumberingSettings` row for the whole
+  application; a series counts in a `NumberSequences` row unique on `(OwnerId, Scope)`.
 - An act carries one required `Date` and no ordinal; acts are read ordered by it alone, and
   `(CaseId, Date)` is the index that serves both.
 - A date a period runs from is `DateOnly` mapped to `date`; timestamps stay `DateTime`.

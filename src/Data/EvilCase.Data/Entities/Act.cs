@@ -9,6 +9,7 @@ namespace EvilBrains.EvilCase.Data.Entities;
 /// or call.
 /// </summary>
 [Index(nameof(CaseId), nameof(Date))]
+[Index(nameof(CaseId), nameof(ActNumber), IsUnique = true)]
 [Index(nameof(IssuedByPartyId))]
 [Index(nameof(AddressedToPartyId))]
 [Index(nameof(ExternalActNumber))]
@@ -23,6 +24,13 @@ public record Act : IEntity
 
     [MaxLength(256)]
     public required string Title { get; init; }
+
+    /// <summary>
+    /// The act's own <em>číslo jednací</em>, issued from the act number pattern when the act is created
+    /// and overwritable afterwards.
+    /// </summary>
+    [MaxLength(128)]
+    public required string ActNumber { get; init; }
 
     /// <summary>
     /// The <em>číslo jednací</em> of whoever issued this one document. The mark of the whole proceeding
