@@ -4,9 +4,20 @@ Screenshot every changed screen at 1440×900 and 390×844 — the two sides of t
 signed in as the seeded administrator, with the app started per the run-app skill. Everything in
 a screenshot is synthetic data.
 
-- Playwright is at `/opt/node22/lib/node_modules/playwright`, its browsers at `/opt/pw-browsers`
-  (`PLAYWRIGHT_BROWSERS_PATH` points there). Drive it from an `.mjs` script importing the
-  absolute path — a bare `'playwright'` resolves from neither the repository nor a worktree.
+- `screenshots.mjs` next to this file takes them: one browser, one sign-in per width, every
+  screen in one pass, and a non-zero exit when a page threw — a component that fails to render
+  draws an empty card, not an error, so a screenshot alone would look fine.
+
+  ```bash
+  PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers /opt/node22/bin/node \
+    .claude/skills/product-loop/screenshots.mjs docs/screenshots/153 targets.json
+  ```
+
+  `targets.json` is a list of `{ name, path, file, wait?, steps?, fullPage? }`; a step is
+  `{ click?, fill?: [selector, value], wait? }`. `EVILCASE_URL`, `EVILCASE_EMAIL` and
+  `EVILCASE_PASSWORD` override the defaults. Extend the script when a screen needs something it
+  cannot express; do not write a second one.
+- Playwright is at `/opt/node22/lib/node_modules/playwright`, its browsers at `/opt/pw-browsers`.
   Never run `playwright install`; the download is blocked.
 - Save as `docs/screenshots/<issue>/<screen>-<width>.png` and commit with the slice. A slice
   that replaces a screen deletes the screenshots it supersedes, so the directory stays the
