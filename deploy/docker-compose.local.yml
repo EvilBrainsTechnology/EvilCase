@@ -1,15 +1,18 @@
-name: evilcase-local
-
 # The whole application in Docker, built from this repository, with its own PostgreSQL next to it.
-# For development only: the credentials are constants and there is no volume, so `down` wipes the
-# data and the next start migrates and seeds an empty database again. See docker-compose.yml for
-# the deployed stack.
+# For development only: the credentials are constants and the data lives in RAM. See
+# docker-compose.yml for the deployed stack.
+#
+# No project name: `Local-Stack.ps1` derives one per checkout, so worktrees never share containers.
+# Start it through that script — a bare `docker compose up` here takes the directory name and two
+# checkouts would collide on it.
 services:
   app:
     build:
       context: ..
+    # Host port 0 lets Docker pick a free one, which is what keeps parallel checkouts apart;
+    # `Local-Stack.ps1` prints the resolved address. Set EVILCASE_PORT to pin it.
     ports:
-      - "127.0.0.1:${EVILCASE_PORT:-8080}:8080"
+      - "127.0.0.1:${EVILCASE_PORT:-0}:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       EvilBrains__EvilCase__ConnectionString: Host=postgres;Port=5432;Database=evilcase;Username=postgres;Password=postgres
@@ -32,8 +35,8 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: evilcase
-    # No published port: the application reaches it over the compose network, and publishing would
-    # collide with docker-compose.dev.yml on 5432.
+    # No published port: the application reaches it over the compose network, and publishing one
+    # would put every checkout's stack back on the same address.
     #
     # The data directory lives in RAM. The image declares /var/lib/postgresql a volume, so without
     # a mount of our own every run would leave an anonymous one behind; PGDATA sits inside it.

@@ -18,13 +18,19 @@ Full project map: [CLAUDE.md](CLAUDE.md); conventions: `.claude/rules/`. Deploym
 
 ## Local development
 
+### The whole application in Docker
+
+`dotnet r run-docker` from `src/` builds the image from this repository, runs it with its own PostgreSQL and prints the address it took; `dotnet r stop-docker` removes it again. Docker is all it needs — no `.env`, no certificate, no database of one's own — and every checkout gets its own port and compose project, so worktrees run side by side. Details in [deploy/README.md](deploy/README.md).
+
+Every start rebuilds the image, which costs about a minute. Running from the SDK is the shorter loop, and the only way to attach a debugger:
+
 ### Prerequisites
 
 - .NET SDK per `src/global.json`
-- A reachable PostgreSQL. The host migrates the database on startup and does not retry, so an unreachable server stops it. Set `EvilBrains__EvilCase__Database__MigrateOnStartup=false` to start without one. A throwaway one, matching the connection string in `.env.example`:
+- A reachable PostgreSQL. The host migrates the database on startup and does not retry, so an unreachable server stops it. Set `EvilBrains__EvilCase__Database__MigrateOnStartup=false` to start without one. A throwaway one, matching the connection string in `.env.example`, its data in RAM:
 
   ```
-  docker compose -f deploy/docker-compose.dev.yml up -d --wait
+  docker run -d --name evilcase-db -p 127.0.0.1:5432:5432 --tmpfs /var/lib/postgresql -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=evilcase postgres:18-alpine
   ```
 - Trusted dev certificate: `dotnet dev-certs https --trust`
 
@@ -48,10 +54,6 @@ dotnet r run                 # https://localhost:5000 (Scalar UI at /scalar)
 ```
 
 Registration is closed, so signing in needs the administrator seeded from `EvilBrains__EvilCase__Auth__Seed__Email` and `EvilBrains__EvilCase__Auth__Seed__Password` — set both before the first start against an empty database.
-
-### Everything in Docker
-
-`dotnet r run-docker` builds the image from this repository and runs it with its own PostgreSQL at `http://localhost:8080`, seeding `admin@evilcase.local` / `DevPassword123!`. Of the prerequisites above only the SDK is needed, plus Docker — no `.env`, no certificate, no database of one's own. Details in [deploy/README.md](deploy/README.md).
 
 ### Tests
 

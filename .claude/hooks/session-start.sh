@@ -72,8 +72,9 @@ if ! command -v pwsh >/dev/null 2>&1; then
 fi
 
 # --- PostgreSQL -----------------------------------------------------------------------------
-# The image ships PostgreSQL 16, so deploy/docker-compose.dev.yml (PostgreSQL 18) is not needed.
-# Credentials and database name still match the connection string in .env.example.
+# The image ships PostgreSQL 16, so no container of our own is needed — and the egress policy does
+# not cover Docker Hub anyway. Credentials and database name match the connection string in
+# .env.example, which is why `dotnet r run` is the way to run the application here.
 if pg_isready -h 127.0.0.1 -q 2>/dev/null; then
     log "PostgreSQL already running"
 else

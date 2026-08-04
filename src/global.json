@@ -17,7 +17,8 @@
         "generate-sql-script": "dotnet ef migrations script 0 --idempotent --project Data/EvilCase.Data.Migrations --output database.sql --configuration Release",
 
         "run": "dotnet run --project EvilCase.Host",
-        "run-docker": "docker compose -f ../deploy/docker-compose.local.yml up --build",
+        "run-docker": "../deploy/Local-Stack.ps1",
+        "stop-docker": "../deploy/Local-Stack.ps1 -Stop",
 
         "r": "dotnet r run",
         "rd": "dotnet r run-docker",

@@ -50,9 +50,9 @@ clone.
 - `dotnet r format` / `dotnet r format-check` — format / verify formatting
 - `dotnet r ai-check` — verify the AI instruction length limits
 - `dotnet r ci` — ai-check + format-check + build + test
-- `dotnet r run` — run everything at `https://localhost:5000` (Scalar UI at `/scalar` in dev); requires a reachable PostgreSQL
-- `dotnet r run-docker` — the same, in Docker with its own PostgreSQL, for a person trying the application out; running and verifying it is `dotnet r run`
+- `dotnet r run-docker` / `stop-docker` — run everything in Docker with its own PostgreSQL, on a port of this checkout's own; how the application is run and verified
+- `dotnet r run` — run from the SDK at `https://localhost:5000` (Scalar UI at `/scalar` in dev), the shorter loop and the debugger's way in; requires a reachable PostgreSQL, a `.env` and a dev certificate
 - `dotnet r add-migration` / `remove-migration` / `generate-sql-script` — EF migrations
 
-A reachable PostgreSQL and a seeded administrator are the two prerequisites `dotnet r run` needs
-and the solution does not carry; `.claude/skills/run-app/SKILL.md` has the whole sequence.
+Docker is all `dotnet r run-docker` needs; what the other one does,
+`.claude/skills/run-app/SKILL.md` has in full.

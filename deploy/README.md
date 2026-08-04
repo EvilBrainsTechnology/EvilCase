@@ -51,38 +51,40 @@ docker compose up -d
 
 ## Local application stack
 
-`docker-compose.local.yml` (project name `evilcase-local`) is the deployed stack's development
-twin: it builds the image from the repository instead of pulling it, and runs its own PostgreSQL
-next to it. `dotnet r run-docker` from `src/` is the whole command — no `.env`, no dev
-certificate, no database of one's own.
-
-It is there for a person who wants the application running without setting anything up. Verifying
-a change is `dotnet r run` and the run-app skill, which says nothing of this stack on purpose: one
-address, one database and one image build per change are not what a validation needs.
+`docker-compose.local.yml` is the deployed stack's development twin: it builds the image from the
+repository instead of pulling it, and runs its own PostgreSQL next to it. It is how the
+application is run and verified locally, by a person and by an agent alike.
 
 ```
-docker compose -f deploy/docker-compose.local.yml up --build
+dotnet r run-docker    # from src/; dotnet r stop-docker removes it again
 ```
 
-The application answers on `http://localhost:8080` (`EVILCASE_PORT` picks another host port, and
-`deploy/.env` of the stack above is read here too) and seeds `admin@evilcase.local` /
-`DevPassword123!`. Plain HTTP with nothing in front, so `HttpsRedirection` is off and
-`BehindReverseProxy` stays at its default.
+`Local-Stack.ps1` behind those two is what makes it safe to run more than once: the compose
+project name is a digest of the checkout's path and the host port is whatever Docker had free, so
+worktrees never share containers, an image or an address. The script prints the address; nothing
+else knows it. `EVILCASE_PORT` pins the port where a stable one is wanted — `deploy/.env` of the
+stack above is read here too, so a port set for the deployment reaches this stack as well.
+
+Every start rebuilds the image, about a minute, and what runs is therefore the working tree. The
+seeded administrator is `admin@evilcase.local` / `DevPassword123!`. Plain HTTP with nothing in
+front, so `HttpsRedirection` is off and `BehindReverseProxy` stays at its default.
 
 The image is the deployed one, the configuration is not: it runs as `Development`, which maps
 Scalar at `/scalar` and lets EF Core log sensitive data. The Seq URL of
 `appsettings.Development.json` is cleared, so a local run ships no logs to a real server.
 
-The database publishes no port: the application reaches it over the compose network, and
-publishing would collide with the development stack below. Like it, it is throwaway — constant
-credentials, and its data directory is a `tmpfs`, so it lives in RAM and dies with the container.
+The database publishes no port at all — the application reaches it over the compose network — and
+its data directory is a `tmpfs`, so it lives in RAM and dies with the container.
 
 ## Local development database
 
-`docker-compose.dev.yml` is a separate stack (project name `evilcase-dev`) that runs PostgreSQL only, on `127.0.0.1:5432` with the credentials `.env.example` of the host already points at. It is for development, never for a deployment: the password is a constant and the data directory is a `tmpfs`, so the data lives in RAM, `down` wipes it and the next start migrates and seeds an empty database again.
+Running the host from the SDK is the shorter loop and the only way to attach a debugger; it needs
+a PostgreSQL of its own. One container, throwaway, matching the connection string in
+`src/EvilCase.Host/.env.example`:
 
 ```
-docker compose -f deploy/docker-compose.dev.yml up -d --wait
+docker run -d --name evilcase-db -p 127.0.0.1:5432:5432 --tmpfs /var/lib/postgresql -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=evilcase postgres:18-alpine
 ```
 
-`--wait` returns once the health check passes, so the host cannot start ahead of it.
+Never for a deployment: the password is a constant and the data is in RAM, so `docker rm -f
+evilcase-db` wipes it and the next start migrates and seeds an empty database again.
