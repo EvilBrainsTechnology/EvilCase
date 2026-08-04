@@ -28,8 +28,11 @@
 - The loop tends every open pull request: work review comments in, reply to them, rebase onto
   the target branch on a conflict, keep CI green.
 - The owner is whoever `CODEOWNERS` names.
-- The agent merges; the owner only approves. Dependent pull requests merge in dependency
-  order: after each merge, rebase what conflicts and wait for green CI before the next.
+- The agent merges what it opened itself, and nothing else; the owner only approves. A pull
+  request somebody else authored stays theirs to merge, however green and approved it is —
+  review it, say what you found, and leave the button alone. Dependent pull requests merge in
+  dependency order: after each merge, rebase what conflicts and wait for green CI before the
+  next.
 - Merge only a pull request GitHub reports mergeable (`mergeable_state: clean`): the
   repository's configured merge requirements — reviews, checks, conflicts — are the gate.
   Squash-merge.
