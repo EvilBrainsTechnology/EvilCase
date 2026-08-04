@@ -1,3 +1,5 @@
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Data.Migrations.DbContexts;
 using EvilBrains.EvilCase.Domain.Files;
@@ -140,11 +142,22 @@ public class ApplicationDbModelTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(date?.ClrType, Is.EqualTo(typeof(DateOnly)), "the act date is a calendar date, and the hour never enters the period arithmetic it starts");
-            Assert.That(date?.IsNullable, Is.False, "an act cannot be saved without its date");
+            Assert.That(typeof(Act).GetProperty(nameof(Act.Date))?.GetCustomAttribute<RequiredMemberAttribute>(), Is.Not.Null, "an act cannot be constructed without its date");
             Assert.That(others.Select(property => property.Name), Is.Empty, "the act date is the only date an act carries");
             Assert.That(act.FindProperty("Ordinal"), Is.Null, "an act is ordered by its date alone, so it carries no ordering number");
-            Assert.That(act.FindProperty(nameof(Act.Summary))?.GetMaxLength(), Is.Null, "the summary is long-form and lives on the act alone");
         }
+    }
+
+    [Test]
+    public void TheActSummaryIsAsLongAsItNeedsToBe()
+    {
+        using var context = new ApplicationDbContextFactory().CreateDbContext([]);
+
+        var act = context.Model.FindEntityType(typeof(Act));
+
+        Assert.That(act, Is.Not.Null);
+
+        Assert.That(act.FindProperty(nameof(Act.Summary))?.GetMaxLength(), Is.Null, "the summary is long-form and lives on the act alone");
     }
 
     [Test]
