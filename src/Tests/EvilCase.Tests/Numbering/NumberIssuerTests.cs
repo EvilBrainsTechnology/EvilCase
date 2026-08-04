@@ -95,9 +95,9 @@ public class NumberIssuerTests
     [Test]
     public async Task AnActOfAHandNumberedCaseIsWrittenUnderThatNumber()
     {
-        var number = await this.Issuer().IssueActNumber(caseId: 7, "1 As 42/2019-16");
+        var number = await this.Issuer().IssueActNumber(caseId: 7, "OLD-2019/16");
 
-        Assert.That(number, Is.EqualTo("1 As 42/2019-16-20260804-001"), "the case's own number is used whether it was issued here or typed in");
+        Assert.That(number, Is.EqualTo("OLD-2019/16-20260804-001"), "the case's own number is used whether it was issued here or typed in");
     }
 
     [Test]
