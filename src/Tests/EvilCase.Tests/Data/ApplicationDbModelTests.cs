@@ -124,7 +124,7 @@ public class ApplicationDbModelTests
     }
 
     [Test]
-    public void TwoActsMayShareOneOrdinal()
+    public void AnActCarriesOneMandatoryDateAndNoOrderingNumber()
     {
         using var context = new ApplicationDbContextFactory().CreateDbContext([]);
 
@@ -132,36 +132,37 @@ public class ApplicationDbModelTests
 
         Assert.That(act, Is.Not.Null);
 
-        var overOrdinal = act.GetIndexes().Where(index => index.Properties.Any(property => string.Equals(property.Name, nameof(Act.Ordinal), StringComparison.Ordinal)));
-
-        Assert.That(
-            overOrdinal.Any(index => index.IsUnique),
-            Is.False,
-            "a real case file has two unrelated submissions filed under one number, so the ordinal orders acts and does not identify them");
-    }
-
-    [Test]
-    public void ActDatesAreCalendarDatesRatherThanInstants()
-    {
-        using var context = new ApplicationDbContextFactory().CreateDbContext([]);
-
-        var act = context.Model.FindEntityType(typeof(Act));
-
-        Assert.That(act, Is.Not.Null);
-
-        string[] dates = [nameof(Act.Drafted), nameof(Act.Sent), nameof(Act.Delivered), nameof(Act.Received)];
+        var date = act.FindProperty(nameof(Act.Date));
+        var others = act.GetProperties()
+            .Where(property => (Nullable.GetUnderlyingType(property.ClrType) ?? property.ClrType) == typeof(DateOnly)
+                && !string.Equals(property.Name, nameof(Act.Date), StringComparison.Ordinal));
 
         using (Assert.EnterMultipleScope())
         {
-            foreach (var name in dates)
-            {
-                var property = act.FindProperty(name);
-
-                Assert.That(property?.ClrType, Is.EqualTo(typeof(DateOnly?)), $"{name} starts a statutory period, and the hour never enters that arithmetic");
-                Assert.That(property?.IsNullable, Is.True, $"{name} does not apply to every direction");
-            }
-
+            Assert.That(date?.ClrType, Is.EqualTo(typeof(DateOnly)), "the act date is a calendar date, and the hour never enters the period arithmetic it starts");
+            Assert.That(date?.IsNullable, Is.False, "an act cannot be saved without its date");
+            Assert.That(others.Select(property => property.Name), Is.Empty, "the act date is the only date an act carries");
+            Assert.That(act.FindProperty("Ordinal"), Is.Null, "an act is ordered by its date alone, so it carries no ordering number");
             Assert.That(act.FindProperty(nameof(Act.Summary))?.GetMaxLength(), Is.Null, "the summary is long-form and lives on the act alone");
+        }
+    }
+
+    [Test]
+    public void ActsAreIndexedForOrderingByDateWithinACase()
+    {
+        using var context = new ApplicationDbContextFactory().CreateDbContext([]);
+
+        var act = context.Model.FindEntityType(typeof(Act));
+
+        Assert.That(act, Is.Not.Null);
+
+        string[] expected = [nameof(Act.CaseId), nameof(Act.Date)];
+        var byDate = act.GetIndexes().SingleOrDefault(index => index.Properties.Select(property => property.Name).SequenceEqual(expected, StringComparer.Ordinal));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(byDate, Is.Not.Null, "an act list reads one case ordered by the act date, and (CaseId, Date) is what serves it");
+            Assert.That(byDate?.IsUnique, Is.False, "two acts of one case share a date whenever they were filed on the same day");
         }
     }
 
