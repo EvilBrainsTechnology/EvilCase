@@ -96,6 +96,25 @@ public class CaseCommentWriterTests
         Assert.That(await this.Updated(fresh), Is.EqualTo(Written), "a comment bumps the case's Updated");
     }
 
+    /// <summary>
+    /// The bump and the comment are one write. A NUL byte is a body PostgreSQL refuses, so the insert
+    /// fails after the bump has run — which is the failure the pair has to survive.
+    /// </summary>
+    [Test]
+    public async Task ACommentThatNeverLandsLeavesTheCaseWhereItWas()
+    {
+        var fresh = await this.SeedCase(this.owner.OwnerId, "EC-MINE-003");
+
+        Assert.That(
+            async () => await this.Writer().Add(fresh, new AddCaseCommentRequest { Body = "a\0b" }),
+            Throws.Exception,
+            "the write fails rather than storing half of itself");
+
+        this.context!.ChangeTracker.Clear();
+
+        Assert.That(await this.Updated(fresh), Is.Null, "a case moves up the list only with the comment that moved it");
+    }
+
     [Test]
     public async Task ARefusedWriteLeavesTheCaseWhereItWas()
     {

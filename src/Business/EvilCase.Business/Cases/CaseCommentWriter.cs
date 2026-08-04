@@ -13,6 +13,10 @@ internal sealed class CaseCommentWriter(ApplicationDbContext context, IOwnerCont
 
         var now = time.GetUtcNow().UtcDateTime;
 
+        // The bump runs before the comment exists, so the two share a transaction: a case never moves up
+        // the list without the comment that moved it.
+        await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+
         // One statement scopes the write to the caller's own case, says whether there is one, and moves
         // the case up the list.
         var written = await context.Cases
@@ -33,6 +37,8 @@ internal sealed class CaseCommentWriter(ApplicationDbContext context, IOwnerCont
 
         _ = context.Comments.Add(comment);
         _ = await context.SaveChangesAsync(cancellationToken);
+
+        await transaction.CommitAsync(cancellationToken);
 
         // Read back through the same projection the thread is read with, so both say the same thing.
         return await context.Comments
