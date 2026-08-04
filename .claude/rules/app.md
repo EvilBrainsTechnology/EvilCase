@@ -16,7 +16,7 @@ paths:
 - Navigation marks the active item by setting `active` on the `li` — Tabler draws the indicator
   on `.nav-item.active`, not on Blazor's `NavLink`.
 - Theme goes through `TablerService.SetTheme`; the initial theme comes from an inline script in
-  `index.html`, whose hash the CSP names.
+  `index.html`, so changing it changes the CSP — `.claude/rules/api.md`.
 - A new page goes inside `MainLayout`, which authenticates it; placing a page outside it is an
   owner decision.
 - `host.StartClientLogging()` stays after `builder.Build()` — without it browser events buffer

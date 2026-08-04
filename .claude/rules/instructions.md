@@ -6,7 +6,7 @@ How the AI instruction files themselves change.
 - Change instructions during ordinary work, and only when future work would otherwise be wrong
   or ambiguous. Information that does not change the agent's behaviour stays out.
 - Prefer rewording or replacing an existing rule; a new paragraph is the last resort. A rule
-  is stated in one file only.
+  is stated in one file only; another file points at it rather than restating it.
 - An instruction change follows `.claude/rules/writing.md` like any other text.
 - Cross-cutting rules live in `.claude/rules/`, path-scoped where they cover one area; a new
   area gets a rule file there. Implementation detail lives in a README next to the code and
