@@ -50,7 +50,7 @@ public record Party : IEntity
 
     public User? Owner { get; init; }
 
-    public ICollection<CaseReference> AssignedCaseReferences { get; init; } = [];
+    public ICollection<ExternalCaseNumber> AssignedExternalCaseNumbers { get; init; } = [];
 
     public ICollection<Act> IssuedActs { get; init; } = [];
 

@@ -9,7 +9,7 @@ namespace EvilBrains.EvilCase.Data.Entities;
 /// the same shape as what it hangs under, to any depth.
 /// </summary>
 [Index(nameof(OwnerId))]
-[Index(nameof(OwnerId), nameof(InternalCaseReference), IsUnique = true)]
+[Index(nameof(OwnerId), nameof(CaseNumber), IsUnique = true)]
 [Index(nameof(ParentCaseId))]
 public record Case : IEntity
 {
@@ -28,7 +28,7 @@ public record Case : IEntity
     public long? ParentCaseId { get; init; }
 
     [MaxLength(64)]
-    public required string InternalCaseReference { get; init; }
+    public required string CaseNumber { get; init; }
 
     [MaxLength(256)]
     public required string Title { get; init; }
@@ -50,7 +50,7 @@ public record Case : IEntity
 
     public ICollection<CaseTag> Tags { get; init; } = [];
 
-    public ICollection<CaseReference> References { get; init; } = [];
+    public ICollection<ExternalCaseNumber> ExternalCaseNumbers { get; init; } = [];
 
     public ICollection<Act> Acts { get; init; } = [];
 

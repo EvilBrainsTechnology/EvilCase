@@ -126,7 +126,7 @@ public class CaseTreeTests
         var @case = new Case
         {
             OwnerId = 1,
-            InternalCaseReference = $"EC20260801-{title.GetHashCode(StringComparison.Ordinal):X8}",
+            CaseNumber = $"EC20260801-{title.GetHashCode(StringComparison.Ordinal):X8}",
             Title = title,
             Status = CaseStatus.Active,
             Created = Created,

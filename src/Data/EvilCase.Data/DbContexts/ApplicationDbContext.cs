@@ -15,7 +15,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     public DbSet<CaseTag> CaseTags => this.Set<CaseTag>();
 
-    public DbSet<CaseReference> CaseReferences => this.Set<CaseReference>();
+    public DbSet<ExternalCaseNumber> ExternalCaseNumbers => this.Set<ExternalCaseNumber>();
 
     public DbSet<Act> Acts => this.Set<Act>();
 
@@ -76,17 +76,17 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasForeignKey(@case => @case.ParentCaseId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        modelBuilder.Entity<CaseReference>()
-            .HasOne(reference => reference.Case)
-            .WithMany(@case => @case.References)
-            .HasForeignKey(reference => reference.CaseId)
+        modelBuilder.Entity<ExternalCaseNumber>()
+            .HasOne(number => number.Case)
+            .WithMany(@case => @case.ExternalCaseNumbers)
+            .HasForeignKey(number => number.CaseId)
             .OnDelete(DeleteBehavior.Cascade);
 
         // A party accumulates history across cases, so it outlives any one mark that names it.
-        modelBuilder.Entity<CaseReference>()
-            .HasOne(reference => reference.AssignedBy)
-            .WithMany(party => party.AssignedCaseReferences)
-            .HasForeignKey(reference => reference.AssignedByPartyId)
+        modelBuilder.Entity<ExternalCaseNumber>()
+            .HasOne(number => number.AssignedBy)
+            .WithMany(party => party.AssignedExternalCaseNumbers)
+            .HasForeignKey(number => number.AssignedByPartyId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 

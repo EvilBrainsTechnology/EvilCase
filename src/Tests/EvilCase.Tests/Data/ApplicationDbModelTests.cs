@@ -81,8 +81,29 @@ public class ApplicationDbModelTests
         }
     }
 
+    /// <summary>
+    /// The vocabulary of <c>docs/product/vision.md</c>, held against the storage names rather than the
+    /// CLR ones — renaming a property back would otherwise carry every <c>nameof</c> with it unnoticed.
+    /// </summary>
     [Test]
-    public void TheInternalMarkIsAColumnOnTheCase()
+    public void EveryIdentifierIsStoredUnderTheNameTheVisionGivesIt()
+    {
+        using var context = new ApplicationDbContextFactory().CreateDbContext([]);
+
+        var @case = context.Model.FindEntityType(typeof(Case));
+        var act = context.Model.FindEntityType(typeof(Act));
+        var external = context.Model.FindEntityType(typeof(ExternalCaseNumber));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(@case?.FindProperty("CaseNumber"), Is.Not.Null, "the case's own mark is CaseNumber");
+            Assert.That(act?.FindProperty("ExternalActNumber"), Is.Not.Null, "the number the issuing authority gave an act is ExternalActNumber");
+            Assert.That(external?.GetTableName(), Is.EqualTo("ExternalCaseNumbers"), "a mark somebody else assigned is an ExternalCaseNumber row");
+        }
+    }
+
+    [Test]
+    public void TheCasesOwnNumberIsAColumnOnTheCase()
     {
         using var context = new ApplicationDbContextFactory().CreateDbContext([]);
 
@@ -90,9 +111,9 @@ public class ApplicationDbModelTests
 
         Assert.That(@case, Is.Not.Null);
 
-        var mark = @case.FindProperty(nameof(Case.InternalCaseReference));
+        var mark = @case.FindProperty(nameof(Case.CaseNumber));
         var unique = @case.GetIndexes().SingleOrDefault(index => index.IsUnique);
-        string[] expected = [nameof(Case.OwnerId), nameof(Case.InternalCaseReference)];
+        string[] expected = [nameof(Case.OwnerId), nameof(Case.CaseNumber)];
 
         using (Assert.EnterMultipleScope())
         {
@@ -149,19 +170,19 @@ public class ApplicationDbModelTests
     {
         using var context = new ApplicationDbContextFactory().CreateDbContext([]);
 
-        var reference = context.Model.FindEntityType(typeof(CaseReference));
+        var external = context.Model.FindEntityType(typeof(ExternalCaseNumber));
 
-        Assert.That(reference, Is.Not.Null);
+        Assert.That(external, Is.Not.Null);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(
-                reference.FindProperty(nameof(CaseReference.AssignedByPartyId))?.IsNullable,
+                external.FindProperty(nameof(ExternalCaseNumber.AssignedByPartyId))?.IsNullable,
                 Is.False,
                 "a mark nobody assigned is the case's own, and that one lives on the case");
 
             Assert.That(
-                reference.GetIndexes().Any(index => index.GetFilter() is not null),
+                external.GetIndexes().Any(index => index.GetFilter() is not null),
                 Is.False,
                 "nothing here is conditional any more — this table is external marks and only those");
         }
@@ -172,18 +193,18 @@ public class ApplicationDbModelTests
     {
         using var context = new ApplicationDbContextFactory().CreateDbContext([]);
 
-        var reference = context.Model.FindEntityType(typeof(CaseReference));
+        var external = context.Model.FindEntityType(typeof(ExternalCaseNumber));
 
-        Assert.That(reference, Is.Not.Null);
+        Assert.That(external, Is.Not.Null);
 
-        var toParty = reference.GetForeignKeys().SingleOrDefault(key => key.PrincipalEntityType.ClrType == typeof(Party));
-        var toCase = reference.GetForeignKeys().SingleOrDefault(key => key.PrincipalEntityType.ClrType == typeof(Case));
+        var toParty = external.GetForeignKeys().SingleOrDefault(key => key.PrincipalEntityType.ClrType == typeof(Party));
+        var toCase = external.GetForeignKeys().SingleOrDefault(key => key.PrincipalEntityType.ClrType == typeof(Case));
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(toParty?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Restrict), "a party accumulates history across cases and outlives any one mark naming it");
             Assert.That(toCase?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Cascade), "a mark has no meaning without its case");
-            Assert.That(reference.GetProperties().Any(property => string.Equals(property.Name, "OwnerId", StringComparison.Ordinal)), Is.False, "only aggregate roots carry an owner, and a mark is not one");
+            Assert.That(external.GetProperties().Any(property => string.Equals(property.Name, "OwnerId", StringComparison.Ordinal)), Is.False, "only aggregate roots carry an owner, and a mark is not one");
         }
     }
 

@@ -62,5 +62,23 @@ public class MigrationsTests
             tables[dropColumn.Table].Remove(dropColumn.Name);
         else if (operation is DropTableOperation dropTable)
             tables.Remove(dropTable.Name);
+        else if (operation is RenameTableOperation renameTable)
+            Rename(tables, renameTable);
+        else if (operation is RenameColumnOperation renameColumn)
+            Rename(tables[renameColumn.Table], renameColumn);
+    }
+
+    private static void Rename(Dictionary<string, HashSet<string>> tables, RenameTableOperation operation)
+    {
+        var newName = operation.NewName ?? operation.Name;
+
+        tables[newName] = tables[operation.Name];
+        tables.Remove(operation.Name);
+    }
+
+    private static void Rename(HashSet<string> columns, RenameColumnOperation operation)
+    {
+        columns.Remove(operation.Name);
+        columns.Add(operation.NewName);
     }
 }
