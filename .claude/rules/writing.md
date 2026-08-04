@@ -17,4 +17,4 @@ chat messages.
 - A chat response ends with a short TL;DR of what waits on the user — a pull request review, an
   open decision; when nothing does, it ends without one.
 - Chat responses follow the language of the user's message. Everything committed and every
-  GitHub write is English; user-facing UI strings are Czech.
+  GitHub write is English; user-facing UI strings and `docs/product/vision.md` are Czech.

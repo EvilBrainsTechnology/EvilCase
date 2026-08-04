@@ -1,116 +1,118 @@
-# Product vision
+# Produktová vize
 
-Source of truth for what EvilCase is being built into. The product loop reads this file at the
-start of every round, and the bootstrap derives labels, milestones and the backlog from it.
-Roadmap and open questions live in GitHub Issues, not here.
+Zdroj pravdy o tom, co se z EvilCase staví. Produktový loop čte tento soubor na začátku každého
+kola a bootstrap z něj odvozuje labely, milníky a backlog. Roadmapa a otevřené otázky žijí
+v GitHub Issues, ne tady.
 
-## What EvilCase is
+## Co je EvilCase
 
-A case-file system for administrative and legal proceedings. A case grows over time: acts are
-added, documents arrive and are sent, sub-proceedings branch off. The product keeps that whole
-tree in one place and answers, at any moment, what happened and what is in the file.
+Systém pro vedení spisů správních a soudních řízení. Spis v čase roste: přibývají úkony,
+dokumenty přicházejí a odcházejí, větví se podřízená řízení. Aplikace drží celý ten strom na
+jednom místě a v každém okamžiku odpoví, co se stalo a co ve spisu je.
 
-The current target is a **first usable base**: one person keeps a real case file by hand —
-every case, act, document, party and note lives in the application instead of a folder tree.
-Deliberately small; what the base leaves out is a non-goal below and comes later, step by step.
+Současný cíl je **první použitelný základ**: jeden člověk vede reálný spis rukou — každý spis,
+úkon, dokument, strana i poznámka žije v aplikaci místo ve složce na disku. Záměrně malý; co
+základ vynechává, je dole v non-goals a přijde později, po krocích.
 
-## Horizon
+## Horizont
 
-- Now: a single user, own case files, manual entry. Optimise for speed of working a real case.
-- Later, possibly: multi-tenant SaaS for law firms. Sign-in, sessions and default-deny
-  authorization already ship; every aggregate root carries its owner from its first migration
-  (`.claude/rules/data.md`); nothing else of tenancy is built.
+- Teď: jeden uživatel, vlastní spisy, ruční zadávání. Optimalizuje se rychlost práce s reálným
+  spisem.
+- Později možná: multi-tenant SaaS pro advokátní kanceláře. Přihlášení, sessions a default-deny
+  autorizace už stojí; každý agregát nese vlastníka od první migrace (`.claude/rules/data.md`);
+  nic dalšího z tenancy se nestaví.
 
-## Domain model
+## Doménový model
 
-**Case** — root of a proceeding. Carries owner, status, tags, parties, file marks and comments.
-A case nests under another case to any depth; a sub-case has the same shape. Deleting a case
-deletes its sub-tree.
+Názvy v kódu jsou anglické: spis = `Case`, úkon = `Act`, soubor = `FileAsset`, strana =
+`Party`, spisová značka = `CaseReference`, komentář = `Comment`.
 
-**Act** (*úkon*) — the unit of work inside a case: one submission, decision, notice or call. It
-has a direction (outgoing/incoming), a title, one calendar date, a filing number of its own
-(*číslo jednací*, per Numbering), the issuer's number where a document arrived with one, an
-editable summary, and links to file assets. Acts have no ordinal: every act list is ordered by
-the act date, with the record's creation time as the fallback. The summary lives on the act and
-nowhere else — an attachment that came from another act is read through the summary of that act.
+**Spis** — kořen řízení. Nese vlastníka, status, tagy, strany, spisové značky a komentáře.
+Spis se vnořuje pod jiný spis do libovolné hloubky; podspis má stejný tvar. Smazání spisu maže
+celý jeho podstrom.
 
-**File asset** — a stored blob, content-addressed by hash and deduplicated per owner: the same
-PDF attached in five sub-cases is one asset with five links. Each link carries a role —
-`Source` (the .docx), `Final` (the .pdf), `Attachment`, `DeliveryReceipt`, `Envelope`, `Other`
-— a display name and, where the asset originates from another act, a reference to that act.
-Files upload and download in the browser. Removing a file from an act removes the link; bytes
-with no remaining link go with it.
+**Úkon** — jednotka práce ve spisu: jedno podání, rozhodnutí, vyrozumění nebo výzva. Má směr
+(odchozí/příchozí), název, jedno kalendářní datum, vlastní číslo jednací (viz Číslování), číslo
+vydavatele tam, kde s dokumentem přišlo, editovatelné shrnutí a vazby na soubory. Úkon nemá
+pořadové číslo: každý seznam úkonů se řadí podle data úkonu, s časem vytvoření záznamu jako
+fallbackem. Shrnutí žije na úkonu a nikde jinde — příloha převzatá z jiného úkonu se čte přes
+shrnutí toho úkonu.
 
-**Party** — an authority, an official or a person; flat, reused across cases; carries a
-data-box id and a free-text address printed back as a block. Picked or created inline wherever
-a case, act or mark names one, and managed in a standalone agenda that shows where each party
-appears. A party can be deleted only while nothing references it.
+**Soubor** — uložený blob, adresovaný obsahem (hash) a deduplikovaný per vlastník: totéž PDF
+přiložené v pěti podspisech je jeden soubor s pěti vazbami. Každá vazba nese roli — `Source`
+(.docx), `Final` (.pdf), `Attachment`, `DeliveryReceipt`, `Envelope`, `Other` — zobrazované
+jméno a tam, kde soubor pochází z jiného úkonu, odkaz na něj. Soubory se nahrávají i stahují
+v prohlížeči. Odebrání souboru od úkonu ruší vazbu; bajty bez poslední vazby odcházejí s ní.
 
-**Case reference** — a file mark (*spisová značka*). A case carries its internal mark (per
-Numbering) plus N external marks, each bound to the party that assigned it, because every
-authority in the chain assigns its own.
+**Strana** — úřad, úřední osoba nebo člověk; plochá, sdílená napříč spisy; nese id datové
+schránky a adresu jako jeden volný text tištěný po blocích. Vybírá se nebo zakládá inline
+všude, kde ji spis, úkon nebo značka jmenuje, a spravuje se v samostatné agendě, která ukazuje,
+kde všude figuruje. Smazat jde jen strana, na kterou nic neodkazuje.
 
-**Comment** — a free note on a case or an act. The running log of the file.
+**Spisová značka** — spis nese svou interní značku (viz Číslování) plus N cizích značek, každou
+svázanou se stranou, která ji přidělila — každý úřad v řetězu přiděluje svou.
 
-**Status and tags** — status is a small closed set (`Active`, `WaitingOnAuthority`, `Closed`);
-tags are free text.
+**Komentář** — volná poznámka ke spisu nebo úkonu. Průběžný deník spisu.
 
-Everything the user enters can be edited and deleted; a destructive operation confirms first.
+**Status a tagy** — status je malá uzavřená množina (`Active`, `WaitingOnAuthority`,
+`Closed`); tagy jsou volný text.
 
-## Numbering
+Vše, co uživatel zadá, jde editovat i smazat; destruktivní operace se napřed potvrzuje.
 
-The application issues its own file marks and filing numbers; anything assigned by somebody
-else stays free text. Both patterns are application-wide configuration, stored in the database
-and edited on a settings screen — the first piece of it.
+## Číslování
 
-- Case mark: every case and sub-case takes the next mark from one series, default
+Aplikace vydává vlastní spisové značky a čísla jednací; cokoli přidělené někým jiným zůstává
+volný text. Oba vzory jsou celoaplikační konfigurace uložená v databázi a editovaná na
+obrazovce Nastavení — její první kus.
+
+- Spisová značka: každý spis i podspis bere další číslo z jedné řady, default
   `EC-{year}{month}{day}-{seq}` → `EC-20260804-001`.
-- Filing number: every act takes one on creation, default
+- Číslo jednací: každý úkon při vytvoření, default
   `{case-reference}-{year}{month}{day}-{seq}` → `EC-20260804-001-20260805-002`.
-- `{seq}` counts within the period the pattern names — daily with `{day}`, yearly with `{year}`
-  alone, and per case besides for the filing number — zero-padded to three digits so the
-  numbers sort. A number once issued is never reused, and a pattern change never rewrites one.
-- Generated values are editable, with per-owner uniqueness always enforced — an old file
-  entered by hand keeps its historical mark.
-- Search matches marks and filing numbers, prefix included; an exact match jumps straight to
-  the case or act.
+- `{seq}` počítá v rámci období, které vzor jmenuje — s `{day}` denně, jen s `{year}` ročně,
+  u čísla jednacího navíc v rámci spisu — a doplňuje se nulami na tři cifry, aby se čísla
+  řadila. Jednou vydané číslo se nikdy nepoužije znovu a změna vzoru žádné nepřepisuje.
+- Vygenerované hodnoty jdou přepsat, unikátnost per vlastník hlídá databáze vždy — ručně
+  zavedený starý spis si nechá svou historickou značku.
+- Hledání matchuje značky i čísla jednací včetně prefixu; přesná shoda skočí rovnou na spis
+  nebo úkon.
 
-## Sample data
+## Vzorová data
 
-`EvilBrains__EvilCase__Database__SeedSampleData` (default `false`) seeds the database at
-startup, in any environment, only while it holds no case. The data is the pseudonymised
-speeding case from `test-data/case-01-speeding.md`, whole: the sub-case lines, parties, marks,
-acts with synthetic PDF bytes, comments — so every screen is built and verified against a real
-file's depth, including one document shared by several sub-cases.
+`EvilBrains__EvilCase__Database__SeedSampleData` (default `false`) naplní databázi při startu,
+v jakémkoli prostředí, jen dokud neobsahuje žádný spis. Data jsou pseudonymizovaný spis
+o překročení rychlosti z `test-data/case-01-speeding.md`, celý: linie podspisů, strany, značky,
+úkony se syntetickými PDF, komentáře — každá obrazovka se tak staví a ověřuje nad hloubkou
+reálného spisu, včetně dokumentu sdíleného několika podspisy.
 
-## Priorities
+## Priority
 
-In order, from what hurts most when working a real case:
+V pořadí podle toho, co při práci s reálným spisem bolí nejvíc:
 
-1. The whole case in one place — the tree, the acts, the documents — instead of a folder tree.
-2. Entering a new act with its documents in under a minute.
-3. Finding a case or an act fast, by text or by mark; search ignores diacritics.
+1. Celý spis na jednom místě — strom, úkony, dokumenty — místo složky na disku.
+2. Zavedení nového úkonu s jeho dokumenty pod minutu.
+3. Rychlé nalezení spisu i úkonu, textem i značkou; hledání ignoruje diakritiku.
 
-## Milestones
+## Milníky
 
-| # | Milestone | Ships |
+| # | Milník | Dodá |
 | --- | --- | --- |
-| M1 | Act date and sample data | act model trimmed to one date and no ordinal, every act list ordered by date; numbering with the default patterns; the seed switch loading the speeding case |
-| M2 | Case UI | case detail with the sub-case tree and comments; create, edit and delete; references, status and tags; the settings screen with the numbering patterns; diacritics-insensitive search |
-| M3 | Acts and files | act list in the case detail; act page with summary, files and comments; add, edit and delete an act; upload and download |
-| M4 | Parties | the standalone agenda; inline pick-or-create everywhere a party is named |
+| M1 | Datum úkonu a vzorová data | model úkonu ořezaný na jedno datum bez pořadového čísla, každý seznam úkonů řazený datem; číslování s výchozími vzory; seed přepínač nahrávající vzorový spis |
+| M2 | UI spisu | detail spisu se stromem podspisů a komentáři; založení, editace a smazání; značky, status a tagy; obrazovka Nastavení se vzory číslování; hledání bez ohledu na diakritiku |
+| M3 | Úkony a soubory | seznam úkonů v detailu spisu; stránka úkonu se shrnutím, soubory a komentáři; přidání, editace a smazání úkonu; upload a download |
+| M4 | Strany | samostatná agenda; inline výběr nebo založení všude, kde se strana jmenuje |
 
-The base is done when a real case file can be kept by hand end to end.
+Základ je hotový, když jde reálný spis vést rukou od začátku do konce.
 
-## Non-goals for now
+## Non-goals pro teď
 
-Deadlines, timeline, folder import (test data enters ad hoc or through the seed), text
-extraction and fulltext, .docx templates and generated submissions, data-box (ISDS)
-integration, e-mail intake, AI summaries, multi-tenancy, roles, invitations, billing, user
-management beyond the seeded administrator. The model leaves room for each; none is built.
+Lhůty, timeline, import složek (testovací data vstupují ad hoc nebo seedem), extrakce textu a
+fulltext, .docx šablony a generovaná podání, datové schránky (ISDS), e-mail, AI shrnutí,
+multi-tenancy, role, pozvánky, billing, správa uživatelů nad rámec seedovaného administrátora.
+Model všem nechává místo; nic z toho se nestaví.
 
-## Privacy
+## Soukromí
 
-The repository is public. `.claude/rules/github.md` keeps real case content out of every write;
-test fixtures are synthetic or pseudonymised (`test-data/README.md`). Real case folders on disk
-are read-only reference material.
+Repozitář je veřejný. `.claude/rules/github.md` drží reálný obsah spisů mimo každý zápis;
+testovací fixtures jsou syntetické nebo pseudonymizované (`test-data/README.md`). Reálné složky
+spisů na disku jsou jen ke čtení.
