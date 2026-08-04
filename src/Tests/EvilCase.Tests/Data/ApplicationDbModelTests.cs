@@ -326,10 +326,29 @@ public class ApplicationDbModelTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(own?.IsNullable, Is.False, "a reference names the file where it is read, so it never falls back to the original");
-            Assert.That(own?.GetMaxLength(), Is.EqualTo(original?.GetMaxLength()), "either name can stand in for the other, so neither column is the shorter one");
+            Assert.That(original?.GetMaxLength(), Is.EqualTo(256), "an unbounded name column is a name nobody sized");
+            Assert.That(own?.GetMaxLength(), Is.EqualTo(256), "either name can stand in for the other, so neither column is the shorter one");
             Assert.That(asset.FindNavigation(nameof(FileAsset.References))?.IsCollection, Is.True, "the same PDF filed under five acts is one asset and four references");
             Assert.That(toAsset?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Cascade), "a reference to bytes that are gone points at nothing");
             Assert.That(toAct?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Cascade), "and a reference has no meaning without the act that made it");
+        }
+    }
+
+    [Test]
+    public void AReferenceIsReadFromTheActAndFromTheAsset()
+    {
+        using var context = new ApplicationDbContextFactory().CreateDbContext([]);
+
+        var reference = context.Model.FindEntityType(typeof(ActFileReference));
+
+        Assert.That(reference, Is.Not.Null);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(reference.FindProperty(nameof(ActFileReference.ActId))?.IsNullable, Is.False, "a reference is one act reaching one asset, and it carries both");
+            Assert.That(reference.FindProperty(nameof(ActFileReference.FileAssetId))?.IsNullable, Is.False, "a reference is one act reaching one asset, and it carries both");
+            Assert.That(IsIndexed(reference, nameof(ActFileReference.ActId)), Is.True, "an act reads the files it borrows through this index");
+            Assert.That(IsIndexed(reference, nameof(ActFileReference.FileAssetId)), Is.True, "and which acts reference one asset is a lookup, never a table scan");
         }
     }
 
