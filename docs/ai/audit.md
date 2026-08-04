@@ -314,7 +314,7 @@ Counted as physical lines (`wc -l`). Scope — every location Claude Code loads 
 design: they load on demand. `@path` imports would load uncounted lines, so instruction files
 use none (`.claude/rules/instructions.md`).
 
-Before the refactor the scoped files held 637 lines; after it they hold 516.
+Before the refactor the scoped files held 637 lines; the CI check reports the current total.
 
 | Limit | Value |
 | --- | --- |
