@@ -25,6 +25,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
 
+      # Enforce the AI instruction length limits from .claude/instruction-limits.json
+      - name: Check instruction length limits
+        run: python3 .github/scripts/check-instruction-limits.py
+
       # Setup .NET Core
       - name: Setup .NET
         uses: actions/setup-dotnet@v6
