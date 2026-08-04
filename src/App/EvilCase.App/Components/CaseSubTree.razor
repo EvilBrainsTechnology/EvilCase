@@ -11,7 +11,8 @@
                 @if (node.Children.Count > 0)
                 {
                     <button type="button" class="case-tree-toggle"
-                            aria-expanded="@expanded"
+                            @* Spelled out: Blazor drops a false bool attribute and empties a true one. *@
+                            aria-expanded="@(expanded ? "true" : "false")"
                             aria-label="@(expanded ? "Sbalit podspisy" : "Rozbalit podspisy")"
                             @onclick="() => Toggle.InvokeAsync(node.Id)">
                         <Icon CssClass="icon" IconType="@(expanded ? AppIcons.ChevronDown : AppIcons.ChevronRight)" />
