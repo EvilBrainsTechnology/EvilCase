@@ -14,5 +14,6 @@ How the AI instruction files themselves change.
 - Information needed only occasionally belongs in `docs/**` or a README, referenced from the
   rules; those files have no length limit.
 - The length limits in `.claude/instruction-limits.json` are permanent and CI-enforced. When a
-  change would exceed one, shorten elsewhere; lowering a limit is allowed, raising is not.
+  change would exceed one, shorten elsewhere. The agent may lower a limit, never raise one; a
+  raise is the owner's decision, asked for as a decision issue.
 - No `@path` imports in instruction files — imported lines dodge the limits.

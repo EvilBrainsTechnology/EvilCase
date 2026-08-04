@@ -319,6 +319,6 @@ Before the refactor the scoped files held 637 lines; after it they hold 516.
 | Sum over all scoped files | 650 lines |
 
 The binding case for 120 is the product-loop skill; every other file lands well under it. Both
-limits are a ratchet: lowering is allowed, raising is not. When a change would exceed a limit,
-shorten elsewhere. CI enforces both from one configuration file
-(`.claude/instruction-limits.json`).
+limits are a ratchet for the agent: it may lower them, a raise only the owner decides, asked
+for as a decision issue. When a change would exceed a limit, shorten elsewhere. CI enforces
+both from one configuration file (`.claude/instruction-limits.json`).
