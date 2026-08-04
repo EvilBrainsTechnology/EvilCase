@@ -16,8 +16,8 @@ rules below against the built model.
 - Tree walks (`CaseTree`) stay pure over navigation properties and carry a visited set.
 - Enums are stored as names: `HasConversion<string>()` with an explicit length.
 - Tags are rows — typed, unique per case — never an array column.
-- The case's own file mark is a required column, unique per owner; every external mark is a
-  `CaseReference` row with a required assigning party.
+- `Case.CaseNumber` is required and unique per owner; every external mark is an
+  `ExternalCaseNumber` row with a required assigning party.
 - An act's ordinal orders it, it does not identify it: never key on `(CaseId, Ordinal)`.
 - A date a period runs from is `DateOnly` mapped to `date`; timestamps stay `DateTime`.
 - Foreign keys to `Parties` are `DeleteBehavior.Restrict`; the owning case cascades instead.
@@ -33,5 +33,7 @@ rules below against the built model.
 - Never re-add a migration over its committed snapshot entry — it comes out empty. Remove it
   first (`dotnet r remove-migration`), add it again, hand-format the result, and verify with
   `dotnet r generate-sql-script`; `MigrationsTests` replays every `Up`.
+- A rename is scaffolded as a drop and a create: rewrite it by hand as `RenameColumn`,
+  `RenameTable` and `RenameIndex`, and rename a foreign key through `Sql` — nothing models it.
 - The runtime registration and `ApplicationDbContextFactory` both call `UseEvilCaseMigrations` —
   a mismatched history table re-applies every migration.

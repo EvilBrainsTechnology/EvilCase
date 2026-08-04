@@ -37,7 +37,7 @@
                                     IsDefaultSort="SortDirection.Descending" Context="caseSummary">
                         @caseSummary.UpdatedOnText
                     </TemplateColumn>
-                    <PropertyColumn Property="@(c => c.Number)" Title="Značka" />
+                    <PropertyColumn Property="@(c => c.CaseNumber)" Title="Spisová značka" />
                     <PropertyColumn Property="@(c => c.Title)" Title="Předmět" />
                     <PropertyColumn Property="@(c => c.Client)" Title="Klient" />
                     <TemplateColumn Title="Stav" Context="caseSummary">

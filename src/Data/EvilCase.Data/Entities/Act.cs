@@ -11,7 +11,7 @@ namespace EvilBrains.EvilCase.Data.Entities;
 [Index(nameof(CaseId))]
 [Index(nameof(IssuedByPartyId))]
 [Index(nameof(AddressedToPartyId))]
-[Index(nameof(FileNumber))]
+[Index(nameof(ExternalActNumber))]
 public record Act : IEntity
 {
     [Key]
@@ -32,10 +32,10 @@ public record Act : IEntity
 
     /// <summary>
     /// The <em>číslo jednací</em> of whoever issued this one document. The mark of the whole proceeding
-    /// is a <c>CaseReference</c> instead.
+    /// is an <c>ExternalCaseNumber</c> instead.
     /// </summary>
     [MaxLength(128)]
-    public string? FileNumber { get; init; }
+    public string? ExternalActNumber { get; init; }
 
     /// <summary>
     /// Calendar dates, not instants — a delivery date starts a statutory period (M5) and the hour it
