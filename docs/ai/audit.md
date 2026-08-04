@@ -231,7 +231,7 @@ longer true). Disposition names the target file, or says why the rule is deleted
 | S38 | Schedule: an hourly session-bound Routine, never `CronCreate`; arm at session start; repair in place, delete only a duplicate or the ended loop; a denied Routine tool is the owner's question; every turn ends confirming it; cadence named in the report | binding | stays (condensed, anecdotes dropped) |
 | S39 | Watch pull requests via `subscribe_pr_activity`; re-subscribe at session start; unsubscribe on close | binding | stays |
 | S40 | Stop after opening the PR; a round is the agent's own initiative, so the merge exception never applies | binding | replaced by the merge protocol in `github` |
-| S41 | Report: one Czech message, Prague times, everything the round did, what waits, what is next; never a question | binding | stays |
+| S41 | Report: one short Czech message, Prague times, everything the round did one line each, what waits, what is next; never a question | binding | stays |
 | S42 | The loop ends only when the owner says so or by the §3 stop | binding | stays |
 | S43 | Stacks: base = the head below; prefer landing on `master`; shorten from the bottom; a stack is a cost | binding | stays (condensed) |
 | S44 | Stack REST API; `unstack` destroys without confirmation; merged members stay listed | fact | moved to `github-api.md` |

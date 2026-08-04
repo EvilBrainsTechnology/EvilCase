@@ -88,10 +88,10 @@ second layer of a chain links the stack in the same step.
 
 ## 8. Report
 
-One Czech chat message for the whole round, Prague times (`TZ=Europe/Prague date`): what
+One short Czech chat message for the whole round, Prague times (`TZ=Europe/Prague date`): what
 shipped and merged with links, what was updated and why, what waits on which decision, what
-comes next, and the schedule's cadence. The report is never a question — anything the owner
-must answer is a decision issue. The turn ends only after the schedule is confirmed.
+comes next, the schedule's cadence — one line each. The report is never a question — anything
+the owner must answer is a decision issue. The turn ends only after the schedule is confirmed.
 
 ## The schedule
 
