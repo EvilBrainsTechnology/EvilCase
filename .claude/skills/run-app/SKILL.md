@@ -31,8 +31,9 @@ root.
 `.claude/hooks/session-start.sh` does all of the above at session start, only where
 `CLAUDE_CODE_REMOTE` is `true`: it copies the SDK out of `mcr.microsoft.com/dotnet/sdk:10.0`
 (the SDK installers are egress-blocked), installs `pwsh` from NuGet (`src/global.json` names it
-as `scriptShell`), starts the container's own PostgreSQL, and writes a `.env` with throwaway
-credentials (`admin@evilcase.local` / `DevPassword123!`). The hook restates the SDK version, the
+as `scriptShell`), starts the container's own PostgreSQL, writes a `.env` with throwaway
+credentials (`admin@evilcase.local` / `DevPassword123!`), and pins the repository's commit
+identity to `claude[bot]` — worktrees share it. The hook restates the SDK version, the
 connection string, the seed and JWT keys and the `src/` layout — a change to any of those is a
 change to the hook, in the same commit.
 

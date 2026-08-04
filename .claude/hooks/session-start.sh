@@ -109,6 +109,14 @@ EvilBrains__EvilCase__Logging__Seq__ApiKey=
 ENV
 fi
 
+# --- Commit identity ------------------------------------------------------------------------
+# The container's global config authors commits as the user account `claude`, while everything
+# written through $GH_TOKEN — and every squash commit GitHub writes — is `claude[bot]`. Pinning
+# the repository's identity to the app leaves one author on every branch and on master alike.
+log "authoring commits as claude[bot]"
+git -C "$REPO" config user.name 'claude[bot]'
+git -C "$REPO" config user.email '209825114+claude[bot]@users.noreply.github.com'
+
 # --- Restore --------------------------------------------------------------------------------
 cd "$REPO/src"
 log "restoring tools and packages"
