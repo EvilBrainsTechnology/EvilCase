@@ -33,18 +33,17 @@ Spis se vnořuje pod jiný spis do libovolné hloubky; podspis má stejný tvar.
 celý jeho podstrom.
 
 **Úkon** — jednotka práce ve spisu: jedno podání, rozhodnutí, vyrozumění nebo výzva. Má směr
-(odchozí/příchozí), název, jedno kalendářní datum, vlastní číslo jednací (`ActNumber`, viz
-Číslování), číslo vydavatele (`ExternalActNumber`) tam, kde s dokumentem přišlo, editovatelné
-shrnutí a vazby na soubory. Úkon nemá
-pořadové číslo: každý seznam úkonů se řadí podle data úkonu, s časem vytvoření záznamu jako
-fallbackem. Shrnutí žije na úkonu a nikde jinde — příloha převzatá z jiného úkonu se čte přes
-shrnutí toho úkonu.
+(odchozí/příchozí), název, jedno povinné kalendářní datum, vlastní číslo jednací (`ActNumber`,
+viz Číslování), číslo vydavatele (`ExternalActNumber`) tam, kde s dokumentem přišlo,
+editovatelné shrnutí a soubory. Úkon nemá pořadové číslo: každý seznam úkonů se řadí podle
+data úkonu; datum a čas založení záznamu jsou jen metadata. Shrnutí žije na úkonu a nikde
+jinde — příloha převzatá z jiného úkonu se čte přes shrnutí toho úkonu.
 
-**Soubor** — uložený blob, adresovaný obsahem (hash) a deduplikovaný per vlastník: totéž PDF
-přiložené v pěti podspisech je jeden soubor s pěti vazbami. Každá vazba nese roli — `Source`
-(.docx), `Final` (.pdf), `Attachment`, `DeliveryReceipt`, `Envelope`, `Other` — zobrazované
-jméno a tam, kde soubor pochází z jiného úkonu, odkaz na něj. Soubory se nahrávají i stahují
-v prohlížeči. Odebrání souboru od úkonu ruší vazbu; bajty bez poslední vazby odcházejí s ní.
+**Soubor** — příloha úkonu, sám za sebe, bez rolí. Soubor patří svému primárnímu úkonu a nese
+svůj původní název; odkazovat na něj mohou i další úkony — třeba jako na svou přílohu — a
+každá taková vazba má vlastní název, který původní přetěžuje. Totéž PDF přiložené v pěti
+podspisech je tak jeden soubor a odkazy. Soubory se nahrávají i stahují v prohlížeči, hromadný
+upload přetažením (drag and drop) včetně.
 
 **Strana** — úřad, úřední osoba nebo člověk; plochá, sdílená napříč spisy; nese id datové
 schránky a adresu jako jeden volný text tištěný po blocích. Vybírá se nebo zakládá inline
@@ -100,9 +99,9 @@ V pořadí podle toho, co při práci s reálným spisem bolí nejvíc:
 
 | # | Milník | Dodá |
 | --- | --- | --- |
-| M1 | Datum úkonu a vzorová data | model úkonu ořezaný na jedno datum bez pořadového čísla, každý seznam úkonů řazený datem; přejmenování identifikátorů v kódu na `CaseNumber`, `ActNumber`, `ExternalCaseNumber` a `ExternalActNumber`; číslování s výchozími vzory; seed přepínač nahrávající vzorový spis |
+| M1 | Model a vzorová data | model úkonu ořezaný na jedno povinné datum bez pořadového čísla, seznamy úkonů řazené datem; zjednodušený model souboru (primární úkon, pojmenované odkazy, bez rolí); přejmenování identifikátorů v kódu na `CaseNumber`, `ActNumber`, `ExternalCaseNumber` a `ExternalActNumber`; číslování s výchozími vzory; seed přepínač nahrávající vzorový spis |
 | M2 | UI spisu | detail spisu se stromem podspisů a komentáři; založení, editace a smazání; značky, status a tagy; obrazovka Nastavení se vzory číslování; hledání bez ohledu na diakritiku |
-| M3 | Úkony a soubory | seznam úkonů v detailu spisu; stránka úkonu se shrnutím, soubory a komentáři; přidání, editace a smazání úkonu; upload a download |
+| M3 | Úkony a soubory | seznam úkonů v detailu spisu; stránka úkonu se shrnutím, soubory a komentáři; přidání, editace a smazání úkonu; upload včetně hromadného přetažením, a download |
 | M4 | Strany | samostatná agenda; inline výběr nebo založení všude, kde se strana jmenuje |
 
 Základ je hotový, když jde reálný spis vést rukou od začátku do konce.
