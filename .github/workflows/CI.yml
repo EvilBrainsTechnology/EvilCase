@@ -34,7 +34,7 @@ jobs:
           else
             git fetch --quiet --deepen=1 || true
           fi
-          python3 .github/scripts/check-instruction-limits.py
+          pwsh -NoProfile -File .github/scripts/Check-InstructionLimits.ps1
 
       # Setup .NET Core
       - name: Setup .NET
