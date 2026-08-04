@@ -1,0 +1,315 @@
+@page "/cases/{Id:long}"
+@using System.Net
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.Cases
+@implements IDisposable
+@inject ICasesClient CasesClient
+@inject ILogger<CaseDetail> Logger
+
+<div class="page-header d-print-none">
+    <div class="container-xl">
+        @if (this.detail is null)
+        {
+            <h2 class="page-title">Spis</h2>
+        }
+        else
+        {
+            <ol class="breadcrumb" aria-label="Cesta ke spisu">
+                <li class="breadcrumb-item"><a href="/cases">Spisy</a></li>
+                @foreach (var ancestor in this.detail.Ancestors)
+                {
+                    <li class="breadcrumb-item"><a href="/cases/@ancestor.Id">@ancestor.Title</a></li>
+                }
+                <li class="breadcrumb-item active" aria-current="page">@this.detail.CaseNumber</li>
+            </ol>
+
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <h2 class="page-title mb-0">@this.detail.Title</h2>
+                <Status BackgroundColor="CaseStatusDisplay.Color(this.detail.Status)" Lite="true">@CaseStatusDisplay.Text(this.detail.Status)</Status>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        @if (this.failure is not null)
+        {
+            <div class="card">
+                <div class="empty">
+                    <p class="empty-title">@(this.missing ? "Spis nenalezen" : "Spis se nepodařilo načíst")</p>
+                    <p class="empty-subtitle text-secondary">@this.failure</p>
+                    <div class="empty-action"><a class="btn btn-primary" href="/cases">Zpět na spisy</a></div>
+                </div>
+            </div>
+        }
+        else if (this.detail is null)
+        {
+            <div class="card">
+                <div class="card-body text-center text-secondary">
+                    <div class="spinner-border" role="status"></div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="row row-cards">
+                <div class="col-12 col-lg-7">
+                    <div class="card">
+                        <div class="card-body">
+                            <dl class="row mb-0">
+                                <dt class="col-5 col-lg-4">Spisová značka</dt>
+                                <dd class="col-7 col-lg-8">@this.detail.CaseNumber</dd>
+
+                                <dt class="col-5 col-lg-4">Stav</dt>
+                                <dd class="col-7 col-lg-8">@CaseStatusDisplay.Text(this.detail.Status)</dd>
+
+                                @if (!string.IsNullOrWhiteSpace(this.detail.Subject))
+                                {
+                                    <dt class="col-5 col-lg-4">Předmět</dt>
+                                    <dd class="col-7 col-lg-8">@this.detail.Subject</dd>
+                                }
+
+                                @if (this.detail.Tags.Count > 0)
+                                {
+                                    <dt class="col-5 col-lg-4">Štítky</dt>
+                                    <dd class="col-7 col-lg-8">
+                                        @foreach (var tag in this.detail.Tags)
+                                        {
+                                            <span class="badge bg-secondary-lt me-1">@tag</span>
+                                        }
+                                    </dd>
+                                }
+
+                                <dt class="col-5 col-lg-4">Změněno</dt>
+                                <dd class="col-7 col-lg-8 mb-0">@CaseDetailFormat.Changed(this.detail)</dd>
+                            </dl>
+                        </div>
+                    </div>
+
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h3 class="card-title">Podspisy</h3>
+                            @if (this.detail.SubCases.Count > 0)
+                            {
+                                <div class="card-actions">
+                                    <button type="button" class="btn btn-sm" @onclick="this.ToggleAll">
+                                        @(this.collapsed.Count == 0 ? "Sbalit vše" : "Rozbalit vše")
+                                    </button>
+                                </div>
+                            }
+                        </div>
+
+                        @if (this.detail.SubCases.Count == 0)
+                        {
+                            <div class="card-body text-secondary">Spis nemá žádné podspisy.</div>
+                        }
+                        else
+                        {
+                            <div class="card-body">
+                                <CaseSubTree Nodes="this.root" Collapsed="this.collapsed" Toggle="this.ToggleNode" CurrentId="this.detail.Id" />
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="col-12 col-lg-5">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Komentáře</h3>
+                        </div>
+
+                        <div class="card-body border-bottom">
+                            <label class="form-label" for="comment-body">Nový komentář</label>
+                            <textarea id="comment-body" class="form-control mb-2" rows="3"
+                                      placeholder="Zápis do deníku spisu" disabled="@this.saving"
+                                      @bind="this.commentBody" @bind:event="oninput"></textarea>
+
+                            @if (this.commentFailure is not null)
+                            {
+                                <div class="text-danger mb-2">@this.commentFailure</div>
+                            }
+
+                            <button type="button" class="btn btn-primary"
+                                    disabled="@(this.saving || string.IsNullOrWhiteSpace(this.commentBody))"
+                                    @onclick="this.AddComment">
+                                Přidat komentář
+                            </button>
+                        </div>
+
+                        @if (this.comments.Count == 0)
+                        {
+                            <div class="card-body text-secondary">Zatím žádné komentáře.</div>
+                        }
+                        else
+                        {
+                            <div class="list-group list-group-flush">
+                                @foreach (var comment in this.comments)
+                                {
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between gap-2 text-secondary">
+                                            <span class="text-truncate">@comment.AuthorEmail</span>
+                                            <span class="flex-shrink-0 text-nowrap">@CaseDetailFormat.Moment(comment.Created)</span>
+                                        </div>
+                                        <div class="comment-body mt-1">@comment.Body</div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public long Id { get; set; }
+
+    private readonly HashSet<long> collapsed = [];
+
+    private CaseDetailResponse? detail;
+    private List<CaseComment> comments = [];
+    private IReadOnlyList<CaseTreeNode> root = [];
+    private string? failure;
+    private bool missing;
+    private string commentBody = "";
+    private string? commentFailure;
+    private bool saving;
+    private long loaded;
+    private CancellationTokenSource? pending;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (this.loaded == this.Id)
+            return;
+
+        await this.Load();
+    }
+
+    public void Dispose()
+    {
+        this.pending?.Cancel();
+        this.pending?.Dispose();
+    }
+
+    /// <summary>
+    /// One request at a time: navigating into a sub-case cancels the one before it.
+    /// </summary>
+    private async Task Load()
+    {
+        this.pending?.Cancel();
+        this.pending?.Dispose();
+
+        var current = new CancellationTokenSource();
+        this.pending = current;
+
+        this.loaded = this.Id;
+        this.detail = null;
+        this.failure = null;
+        this.missing = false;
+        this.comments = [];
+        this.root = [];
+        this.commentBody = "";
+        this.commentFailure = null;
+        this.collapsed.Clear();
+
+        try
+        {
+            var response = await this.CasesClient.GetCase(this.Id, current.Token);
+
+            this.detail = response;
+            this.comments = [.. response.Comments];
+            this.root = [Root(response)];
+        }
+        catch (OperationCanceledException)
+        {
+            // Superseded by a newer request.
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+        {
+            this.missing = true;
+            this.failure = "Spis neexistuje nebo byl smazán.";
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Loading the case detail failed");
+
+            this.failure = exception.Message;
+        }
+    }
+
+    private async Task AddComment()
+    {
+        if (this.saving || string.IsNullOrWhiteSpace(this.commentBody))
+            return;
+
+        this.saving = true;
+        this.commentFailure = null;
+
+        try
+        {
+            var request = new AddCaseCommentRequest { Body = this.commentBody };
+            var added = await this.CasesClient.AddCaseComment(this.Id, request, CancellationToken.None);
+
+            this.comments.Insert(0, added);
+            this.commentBody = "";
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Adding a case comment failed");
+
+            this.commentFailure = exception.Message;
+        }
+        finally
+        {
+            this.saving = false;
+        }
+    }
+
+    private void ToggleNode(long id)
+    {
+        if (!this.collapsed.Remove(id))
+            _ = this.collapsed.Add(id);
+    }
+
+    private void ToggleAll()
+    {
+        if (this.collapsed.Count > 0)
+        {
+            this.collapsed.Clear();
+
+            return;
+        }
+
+        foreach (var id in Foldable(this.root))
+            _ = this.collapsed.Add(id);
+    }
+
+    /// <summary>
+    /// The case itself heads the tree, so the shape reads as one from its root down.
+    /// </summary>
+    private static CaseTreeNode Root(CaseDetailResponse detail) => new()
+    {
+        Id = detail.Id,
+        CaseNumber = detail.CaseNumber,
+        Title = detail.Title,
+        Status = detail.Status,
+        Children = detail.SubCases,
+    };
+
+    private static IEnumerable<long> Foldable(IReadOnlyList<CaseTreeNode> nodes)
+    {
+        foreach (var node in nodes)
+        {
+            if (node.Children.Count == 0)
+                continue;
+
+            yield return node.Id;
+
+            foreach (var id in Foldable(node.Children))
+                yield return id;
+        }
+    }
+}

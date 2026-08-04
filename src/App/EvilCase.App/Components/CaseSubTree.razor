@@ -1,0 +1,67 @@
+@using EvilBrains.EvilCase.Api.Contract.Cases
+
+@* Renders itself for every generation, so the tree goes as deep as the data does. *@
+<ul class="case-tree">
+    @foreach (var node in Nodes)
+    {
+        var expanded = node.Children.Count > 0 && !Collapsed.Contains(node.Id);
+
+        <li>
+            <div class="d-flex align-items-center gap-1 py-1">
+                @if (node.Children.Count > 0)
+                {
+                    <button type="button" class="btn btn-icon btn-ghost-secondary case-tree-toggle"
+                            aria-expanded="@expanded"
+                            aria-label="@(expanded ? "Sbalit podspisy" : "Rozbalit podspisy")"
+                            @onclick="() => Toggle.InvokeAsync(node.Id)">
+                        <Icon CssClass="icon" IconType="@(expanded ? AppIcons.ChevronDown : AppIcons.ChevronRight)" />
+                    </button>
+                }
+                else
+                {
+                    <span class="case-tree-spacer"></span>
+                }
+
+                @if (node.Id == CurrentId)
+                {
+                    <span class="d-flex align-items-center gap-2 min-w-0 flex-fill font-weight-medium">
+                        <span class="badge bg-secondary-lt flex-shrink-0">@node.CaseNumber</span>
+                        <span class="text-truncate">@node.Title</span>
+                    </span>
+                }
+                else
+                {
+                    <a class="d-flex align-items-center gap-2 min-w-0 flex-fill text-reset" href="/cases/@node.Id">
+                        <span class="badge bg-secondary-lt flex-shrink-0">@node.CaseNumber</span>
+                        <span class="text-truncate">@node.Title</span>
+                    </a>
+                }
+
+                <span class="flex-shrink-0 text-nowrap">
+                    <Status BackgroundColor="CaseStatusDisplay.Color(node.Status)" Lite="true">@CaseStatusDisplay.Text(node.Status)</Status>
+                </span>
+            </div>
+
+            @if (expanded)
+            {
+                <CaseSubTree Nodes="node.Children" Collapsed="Collapsed" Toggle="Toggle" CurrentId="CurrentId" />
+            }
+        </li>
+    }
+</ul>
+
+@code {
+    [Parameter, EditorRequired] public required IReadOnlyList<CaseTreeNode> Nodes { get; set; }
+
+    /// <summary>
+    /// Identifiers whose sub-cases are folded away; everything else reads open.
+    /// </summary>
+    [Parameter, EditorRequired] public required IReadOnlySet<long> Collapsed { get; set; }
+
+    /// <summary>
+    /// The case the page is showing, rendered as the tree's root rather than as a link to itself.
+    /// </summary>
+    [Parameter] public long CurrentId { get; set; }
+
+    [Parameter] public EventCallback<long> Toggle { get; set; }
+}

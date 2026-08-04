@@ -72,7 +72,9 @@
                                         IsDefaultSort="SortDirection.Descending">
                             @CaseListFormat.ChangedOn(item)
                         </TemplateColumn>
-                        <PropertyColumn Property="@(item => item.Title)" Title="Název" />
+                        <TemplateColumn Title="Název" Context="item">
+                            <a href="/cases/@item.Id">@item.Title</a>
+                        </TemplateColumn>
                         <PropertyColumn Property="@(item => item.Subject)" Title="Předmět" />
                         <TemplateColumn Title="Štítky" Context="item">
                             @foreach (var tag in item.Tags)
