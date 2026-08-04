@@ -37,7 +37,8 @@ are cross-cutting rather than a milestone.
 ## 3. Milestones
 
 `GET $GH/milestones?state=all` first, then `POST $GH/milestones` `{"title":"…"}` for whichever
-titles are missing. The vision's milestones, in its order.
+titles are missing. The vision's milestones, in its order. Close every open milestone the
+vision does not name — a superseded plan must not steer the loop's lowest-milestone ranking.
 
 ## 4. Seed the backlog
 

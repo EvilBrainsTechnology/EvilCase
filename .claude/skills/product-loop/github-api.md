@@ -25,6 +25,7 @@ curl -s -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+
 | Edit a pull request title or body | `PATCH $GH/pulls/{n}` `{"title":"…","body":"…"}` |
 | CI state of a branch head | `GET $GH/commits/{sha}/check-runs` |
 | Labels and milestones | `GET $GH/labels`, `POST $GH/labels`, `GET $GH/milestones`, `POST $GH/milestones` |
+| Close a milestone | `PATCH $GH/milestones/{n}` `{"state":"closed"}` |
 
 ## Stacks
 
