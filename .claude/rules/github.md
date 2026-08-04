@@ -2,6 +2,8 @@
 
 - Never push to `master`. All work goes through a pull request from a branch.
 - Commit during the work: every logical unit that stands on its own is its own commit.
+- A pull request carries one topic and stays small enough to review on a phone; when it grows,
+  split it rather than let it run.
 - Every git and GitHub interaction — commits, pull requests, comments, reviews, issues — is
   authored as `claude[bot]`: GitHub writes go through `curl` with `$GH_TOKEN`, never through
   the `mcp__github__*` tools, which write as the owner. The merge is the one exception: this

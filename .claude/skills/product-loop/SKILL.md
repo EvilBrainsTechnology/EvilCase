@@ -66,10 +66,9 @@ issue `blocked`, carry on with the rest; technical choices under the rules are m
 
 ## 5. Build one thin vertical slice
 
-One pull request goes from database to UI, leaves the app usable and stays reviewable on a
-phone. Branch `loop/<issue>-<slug>`, commits in logical units. Branch off `master`; only when
-the slice cannot exist without an unmerged branch, branch off that one and target it (see
-Stacks).
+One pull request goes from database to UI and leaves the app usable. Branch
+`loop/<issue>-<slug>`, off `master`; only when the slice cannot exist without an unmerged
+branch, branch off that one and target it (see Stacks).
 
 ## 6. Definition of done
 
