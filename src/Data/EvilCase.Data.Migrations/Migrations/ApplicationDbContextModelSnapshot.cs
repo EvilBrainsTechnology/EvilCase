@@ -484,7 +484,7 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.HasOne("EvilBrains.EvilCase.Data.Entities.FileAsset", "FileAsset")
                         .WithMany("References")
                         .HasForeignKey("FileAssetId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Act");

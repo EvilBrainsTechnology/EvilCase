@@ -295,13 +295,10 @@ public class ApplicationDbModelTests
 
         Assert.That(asset, Is.Not.Null);
 
-        var primaryAct = asset.GetForeignKeys().SingleOrDefault(key => key.PrincipalEntityType.ClrType == typeof(Act));
-
         using (Assert.EnterMultipleScope())
         {
             Assert.That(asset.FindProperty(nameof(FileAsset.ActId))?.IsNullable, Is.False, "a file with no primary act hangs off nothing, and its summary is what explains it");
             Assert.That(asset.FindProperty(nameof(FileAsset.FileName))?.IsNullable, Is.False, "the original name lives with the bytes, not with whoever borrows them");
-            Assert.That(primaryAct?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Cascade), "the bytes go with the act they were filed under");
             Assert.That(IsIndexed(asset, nameof(FileAsset.ActId)), Is.True, "an act reads its own files through this index");
         }
     }
@@ -320,8 +317,6 @@ public class ApplicationDbModelTests
 
         var own = reference.FindProperty(nameof(ActFileReference.FileName));
         var original = asset.FindProperty(nameof(FileAsset.FileName));
-        var toAsset = reference.GetForeignKeys().SingleOrDefault(key => key.PrincipalEntityType.ClrType == typeof(FileAsset));
-        var toAct = reference.GetForeignKeys().SingleOrDefault(key => key.PrincipalEntityType.ClrType == typeof(Act));
 
         using (Assert.EnterMultipleScope())
         {
@@ -329,8 +324,6 @@ public class ApplicationDbModelTests
             Assert.That(original?.GetMaxLength(), Is.EqualTo(256), "an unbounded name column is a name nobody sized");
             Assert.That(own?.GetMaxLength(), Is.EqualTo(256), "either name can stand in for the other, so neither column is the shorter one");
             Assert.That(asset.FindNavigation(nameof(FileAsset.References))?.IsCollection, Is.True, "the same PDF filed under five acts is one asset and four references");
-            Assert.That(toAsset?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Cascade), "a reference to bytes that are gone points at nothing");
-            Assert.That(toAct?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Cascade), "and a reference has no meaning without the act that made it");
         }
     }
 
@@ -349,6 +342,33 @@ public class ApplicationDbModelTests
             Assert.That(reference.FindProperty(nameof(ActFileReference.FileAssetId))?.IsNullable, Is.False, "a reference is one act reaching one asset, and it carries both");
             Assert.That(IsIndexed(reference, nameof(ActFileReference.ActId)), Is.True, "an act reads the files it borrows through this index");
             Assert.That(IsIndexed(reference, nameof(ActFileReference.FileAssetId)), Is.True, "and which acts reference one asset is a lookup, never a table scan");
+        }
+    }
+
+    /// <summary>
+    /// The three behaviours together are what refuses the delete: the asset goes with its primary act,
+    /// an act's own references go with it, and an asset another act still holds aborts the whole delete.
+    /// Flip the last one to <c>Cascade</c> and deleting one act silently takes the file from every other.
+    /// </summary>
+    [Test]
+    public void AnActThatOwnsAFileAnotherActReferencesCannotBeDeleted()
+    {
+        using var context = new ApplicationDbContextFactory().CreateDbContext([]);
+
+        var asset = context.Model.FindEntityType(typeof(FileAsset));
+        var reference = context.Model.FindEntityType(typeof(ActFileReference));
+
+        Assert.That(new[] { asset, reference }, Has.None.Null, "both the asset and the reference are mapped");
+
+        var assetToAct = ForeignKeyTo<Act>(asset!);
+        var referenceToAct = ForeignKeyTo<Act>(reference!);
+        var referenceToAsset = ForeignKeyTo<FileAsset>(reference!);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(assetToAct?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Cascade), "the bytes go with the act they were filed under");
+            Assert.That(referenceToAct?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Cascade), "a reference has no meaning without the act that made it, and dropping it destroys nothing shared");
+            Assert.That(referenceToAsset?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Restrict), "an asset another act still references would otherwise be taken from it by a delete in a fifth sub-case");
         }
     }
 
@@ -432,6 +452,9 @@ public class ApplicationDbModelTests
 
     private static List<string> Naming(IEnumerable<string> names, string word) =>
         [.. names.Where(name => name.Contains(word, StringComparison.OrdinalIgnoreCase))];
+
+    private static IReadOnlyForeignKey? ForeignKeyTo<TPrincipal>(IReadOnlyEntityType entityType) =>
+        entityType.GetForeignKeys().SingleOrDefault(key => key.PrincipalEntityType.ClrType == typeof(TPrincipal));
 
     private static bool IsIndexed(IReadOnlyEntityType entityType, string propertyName) =>
         entityType.GetIndexes().Any(index => index.Properties.Any(property => string.Equals(property.Name, propertyName, StringComparison.Ordinal)));

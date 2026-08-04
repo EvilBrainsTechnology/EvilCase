@@ -123,12 +123,12 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasForeignKey(reference => reference.ActId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // A reference to bytes that are gone points at nothing.
+        // An asset another act still reaches cannot go, and it aborts the delete of the act that owns it.
         modelBuilder.Entity<ActFileReference>()
             .HasOne(reference => reference.FileAsset)
             .WithMany(asset => asset.References)
             .HasForeignKey(reference => reference.FileAssetId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
     }
 
     private static void ConfigureComments(ModelBuilder modelBuilder)

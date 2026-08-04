@@ -39,11 +39,6 @@ public partial class FileReferences : Migration
                 name: column,
                 table: "ActFileLinks");
         }
-
-        // The asset no longer outlives what points at it, so this one is re-added as a cascade.
-        migrationBuilder.DropForeignKey(
-            name: "FK_ActFileLinks_FileAssets_FileAssetId",
-            table: "ActFileLinks");
     }
 
     private static void RenameLinksToReferences(MigrationBuilder migrationBuilder)
@@ -67,16 +62,11 @@ public partial class FileReferences : Migration
         }
 
         // A foreign key has no index to rename, and EF models no rename for it.
-        migrationBuilder.Sql(
-            """ALTER TABLE "ActFileReferences" RENAME CONSTRAINT "FK_ActFileLinks_Acts_ActId" TO "FK_ActFileReferences_Acts_ActId";""");
-
-        migrationBuilder.AddForeignKey(
-            name: "FK_ActFileReferences_FileAssets_FileAssetId",
-            table: "ActFileReferences",
-            column: "FileAssetId",
-            principalTable: "FileAssets",
-            principalColumn: "Id",
-            onDelete: ReferentialAction.Cascade);
+        foreach (var suffix in new[] { "Acts_ActId", "FileAssets_FileAssetId" })
+        {
+            migrationBuilder.Sql(
+                $"""ALTER TABLE "ActFileReferences" RENAME CONSTRAINT "FK_ActFileLinks_{suffix}" TO "FK_ActFileReferences_{suffix}";""");
+        }
     }
 
     private static void AddThePrimaryActAndTheOriginalName(MigrationBuilder migrationBuilder)
@@ -128,10 +118,6 @@ public partial class FileReferences : Migration
 
     private static void RenameReferencesToLinks(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.DropForeignKey(
-            name: "FK_ActFileReferences_FileAssets_FileAssetId",
-            table: "ActFileReferences");
-
         migrationBuilder.RenameTable(
             name: "ActFileReferences",
             newName: "ActFileLinks");
@@ -149,16 +135,11 @@ public partial class FileReferences : Migration
                 table: "ActFileLinks");
         }
 
-        migrationBuilder.Sql(
-            """ALTER TABLE "ActFileLinks" RENAME CONSTRAINT "FK_ActFileReferences_Acts_ActId" TO "FK_ActFileLinks_Acts_ActId";""");
-
-        migrationBuilder.AddForeignKey(
-            name: "FK_ActFileLinks_FileAssets_FileAssetId",
-            table: "ActFileLinks",
-            column: "FileAssetId",
-            principalTable: "FileAssets",
-            principalColumn: "Id",
-            onDelete: ReferentialAction.Restrict);
+        foreach (var suffix in new[] { "Acts_ActId", "FileAssets_FileAssetId" })
+        {
+            migrationBuilder.Sql(
+                $"""ALTER TABLE "ActFileLinks" RENAME CONSTRAINT "FK_ActFileReferences_{suffix}" TO "FK_ActFileLinks_{suffix}";""");
+        }
     }
 
     private static void RestoreTheRoleAndTheOriginatingAct(MigrationBuilder migrationBuilder)
