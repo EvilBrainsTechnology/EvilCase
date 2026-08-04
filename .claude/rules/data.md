@@ -16,9 +16,8 @@ rules below against the built model.
 - Tree walks (`CaseTree`) stay pure over navigation properties and carry a visited set.
 - Enums are stored as names: `HasConversion<string>()` with an explicit length.
 - Tags are rows — typed, unique per case — never an array column.
-- The vision's vocabulary is the storage vocabulary: `Case.CaseNumber`, `Act.ExternalActNumber`,
-  the `ExternalCaseNumbers` table. `CaseNumber` is a required column, unique per owner; every
-  external mark is an `ExternalCaseNumber` row with a required assigning party.
+- `Case.CaseNumber` is required and unique per owner; every external mark is an
+  `ExternalCaseNumber` row with a required assigning party.
 - An act's ordinal orders it, it does not identify it: never key on `(CaseId, Ordinal)`.
 - A date a period runs from is `DateOnly` mapped to `date`; timestamps stay `DateTime`.
 - Foreign keys to `Parties` are `DeleteBehavior.Restrict`; the owning case cascades instead.
