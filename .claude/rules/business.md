@@ -30,8 +30,9 @@ App → Api.Client → (HTTP) → Api → Business → Data
 - Recursion has no LINQ: a tree read is a recursive CTE through `FromSql`, each branch ending on a
   row it has already walked rather than at a depth. It travels the wire flat, parents first — a
   nested one would inherit a JSON serializer's depth (`CaseDetailQuery`, `CaseGraph`).
-- `ToQueryString()` parses no SQL: a query written by hand is also run against a server —
-  `CaseWalkDatabaseTests`, ignored where none answers.
+- `ToQueryString()` parses no SQL, so a query written by hand also runs against a server: CI has a
+  `postgres` service and `EVILCASE_TESTS_POSTGRES` names it. A test needing one takes its database
+  from `TestDatabase` and skips where none answers — `CaseWalkDatabaseTests`.
 
 ## List queries
 

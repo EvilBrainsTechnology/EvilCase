@@ -106,8 +106,8 @@ public class CaseCommentWriterTests
         Assert.That(await this.Updated(this.theirs), Is.EqualTo(before), "another owner's case does not move either");
     }
 
-    private ICaseCommentWriter Writer() =>
-        new CaseCommentWriter(this.context!, this.owner, new TestTimeProvider(Written));
+    private CaseCommentWriter Writer() =>
+        new(this.context!, this.owner, new TestTimeProvider(Written));
 
     private async Task<DateTime?> Updated(long caseId) => await this.context!.Cases
         .Where(@case => @case.Id == caseId)

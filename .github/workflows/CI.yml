@@ -20,6 +20,26 @@ jobs:
     name: Lint, Build, and Test Solution
     runs-on: ubuntu-latest
 
+    # A query written by hand only reaches a parser against a server: ToQueryString does not parse SQL.
+    # Same image as deploy/docker-compose.dev.yml, so a developer's database and this one behave alike.
+    # The tests that use it name their own databases and drop them again.
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 30
+
+    env:
+      EVILCASE_TESTS_POSTGRES: "Host=localhost;Port=5432;Username=postgres;Password=postgres"
+
     steps:
       # Checkout the repository
       - name: Checkout repository

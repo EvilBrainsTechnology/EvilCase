@@ -1,3 +1,4 @@
+using System.Net.Sockets;
 using EvilBrains.EvilCase.Data;
 using EvilBrains.EvilCase.Data.DbContexts;
 using Microsoft.EntityFrameworkCore;
@@ -34,7 +35,7 @@ internal static class TestDatabase
 
             return context;
         }
-        catch (Exception exception) when (exception is NpgsqlException or InvalidOperationException)
+        catch (Exception exception) when (exception is NpgsqlException or SocketException or TimeoutException or InvalidOperationException)
         {
             context.Dispose();
 
