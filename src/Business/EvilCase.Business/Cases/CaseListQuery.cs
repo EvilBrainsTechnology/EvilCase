@@ -1,8 +1,9 @@
 using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Data.Entities;
+using EvilBrains.EvilCase.Domain.Cases;
 using Microsoft.EntityFrameworkCore;
 
-namespace EvilBrains.EvilCase.Data.Cases;
+namespace EvilBrains.EvilCase.Business.Cases;
 
 /// <summary>
 /// Shapes the case list, one composable step per rule.

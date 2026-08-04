@@ -19,6 +19,16 @@ EvilCase.App  →  EvilCase.Api.Client  →  (HTTP)  →  EvilCase.Api  →  Evi
 
 Where a rule is pure — a walk over a loaded case graph, an act's date fallback, the shape of a generated file mark — it is a static class in `EvilCase.Business` with no `DbContext` in sight, and it is tested without one.
 
+## Reading a list
+
+A screen that lists something reads it through one composed query, `CaseListQuery` (in `EvilCase.Business/Cases`) being the first of them. The shape holds for the act list, the timeline and the what-is-due view that follow.
+
+- **One `IQueryable` step per rule**, each an extension on `IQueryable<TEntity>`: the roots, the search term, the status, the order, the projection. Composed by a reader (`ICaseReader`) that does nothing else, so what the list *is* reads top to bottom in one place, and each rule is pinned on its own by a test.
+- **Nothing materialises early.** A step that returns a list rather than a queryable moves the filtering into the application and the paging out of reach. `ToListAsync` is called once, by the reader, at the end.
+- **The projection is the column list.** Selecting the entity and shaping afterwards reads every column of every row and one query per row for the collections; projecting straight into the contract DTO reads what a row shows and nothing else.
+- **A search term is text, not a pattern.** `%` and `_` in what the user typed are escaped and the escape character is named in the `ILIKE`, or a case titled *sleva 50%* is found by typing `%` — and so is every other case. Case folding belongs to `ILIKE`, never to a `ToLower()` that no index can use.
+- **Tested without a server.** The design-time context factory names no connection string and `ToQueryString()` opens none, so what the SQL contains is a unit test — see `Tests/EvilCase.Tests/Cases/CaseListQueryTests`.
+
 ## Ownership
 
 - **`IOwnerContext` is the one place ownership is resolved.** `EvilCase.Business` declares it; `PrincipalOwnerContext` in `EvilCase.Api` implements it by reading the access token's `sub` claim, and is the only code in the application that reads that claim for this purpose. A query needing the owner takes `IOwnerContext`, never an `ownerId` parameter threaded down from a controller and never `HttpContext` of its own.

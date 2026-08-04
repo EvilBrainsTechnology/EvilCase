@@ -1,6 +1,7 @@
 using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Controllers;
-using EvilBrains.EvilCase.Data.Cases;
+using EvilBrains.EvilCase.Business.Cases;
+using EvilBrains.EvilCase.Domain.Cases;
 
 namespace EvilBrains.EvilCase.Tests.Controllers;
 

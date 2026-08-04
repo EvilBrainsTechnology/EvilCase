@@ -1,3 +1,5 @@
+using EvilBrains.EvilCase.Domain.Cases;
+
 namespace EvilBrains.EvilCase.Api.Contract.Cases;
 
 public sealed record CaseListItem

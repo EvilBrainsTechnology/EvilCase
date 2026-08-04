@@ -1,3 +1,4 @@
+using EvilBrains.EvilCase.Business.Cases;
 using EvilBrains.EvilCase.Data;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -8,6 +9,8 @@ public static class Bootstrap
     public static IServiceCollection AddEvilCaseBusiness(this IServiceCollection services)
     {
         services.AddEvilCaseData();
+
+        services.AddScoped<ICaseReader, CaseReader>();
 
         return services;
     }

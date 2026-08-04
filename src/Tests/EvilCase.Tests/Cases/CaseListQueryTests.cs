@@ -1,7 +1,8 @@
 using EvilBrains.EvilCase.Api.Contract.Cases;
-using EvilBrains.EvilCase.Data.Cases;
+using EvilBrains.EvilCase.Business.Cases;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Migrations.DbContexts;
+using EvilBrains.EvilCase.Domain.Cases;
 using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Tests.Cases;
