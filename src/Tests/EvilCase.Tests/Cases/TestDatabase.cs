@@ -1,4 +1,3 @@
-using System.Net.Sockets;
 using EvilBrains.EvilCase.Data;
 using EvilBrains.EvilCase.Data.DbContexts;
 using Microsoft.EntityFrameworkCore;
@@ -18,35 +17,29 @@ internal static class TestDatabase
     /// </summary>
     private const string ServerVariable = "EVILCASE_TESTS_POSTGRES";
 
-    private const string DefaultServer = "Host=localhost;Port=5432;Username=postgres;Password=postgres";
-
     /// <summary>
-    /// Null where no server answers — CI runs without one, and the caller ignores its tests. Each fixture
-    /// names its own database, so two of them never share one.
+    /// Null only where <see cref="ServerVariable"/> names no server, which is the caller's cue to ignore
+    /// its tests. Where it names one, every failure reaching a server is thrown: a refused connection, a
+    /// wrong port or a migration that will not apply is a red run, never a silently emptied one. Each
+    /// fixture names its own database, so two of them never share one.
     /// </summary>
     public static ApplicationDbContext? Create(string name)
     {
-        var context = Context(name);
+        var server = Environment.GetEnvironmentVariable(ServerVariable);
 
-        try
-        {
-            context.Database.EnsureDeleted();
-            context.Database.Migrate();
-
-            return context;
-        }
-        catch (Exception exception) when (exception is NpgsqlException or SocketException or TimeoutException or InvalidOperationException)
-        {
-            context.Dispose();
-
+        if (string.IsNullOrWhiteSpace(server))
             return null;
-        }
+
+        var context = Context(server, name);
+
+        context.Database.EnsureDeleted();
+        context.Database.Migrate();
+
+        return context;
     }
 
-    private static ApplicationDbContext Context(string name)
+    private static ApplicationDbContext Context(string server, string name)
     {
-        var server = Environment.GetEnvironmentVariable(ServerVariable) ?? DefaultServer;
-
         var builder = new NpgsqlConnectionStringBuilder(server) { Database = "evilcase-tests-" + name };
 
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()

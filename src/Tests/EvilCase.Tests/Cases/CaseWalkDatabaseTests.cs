@@ -54,7 +54,7 @@ public class CaseWalkDatabaseTests
     public void RequireDatabase()
     {
         if (this.context is null)
-            Assert.Ignore("no PostgreSQL answered on EVILCASE_TESTS_POSTGRES, so the walk cannot be run against a server");
+            Assert.Ignore("EVILCASE_TESTS_POSTGRES names no server, so the walk cannot be run against one");
     }
 
     /// <summary>

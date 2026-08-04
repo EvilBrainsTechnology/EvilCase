@@ -11,7 +11,7 @@ namespace EvilBrains.EvilCase.Tests.Cases;
 
 /// <summary>
 /// The one write the case detail carries, against a server: it reaches for a case, so nothing without one
-/// would see which cases it is allowed to reach. Ignored where no PostgreSQL answers.
+/// would see which cases it is allowed to reach. Ignored where <c>EVILCASE_TESTS_POSTGRES</c> names none.
 /// </summary>
 public class CaseCommentWriterTests
 {
@@ -56,7 +56,7 @@ public class CaseCommentWriterTests
     public void RequireDatabase()
     {
         if (this.context is null)
-            Assert.Ignore("no PostgreSQL answered on EVILCASE_TESTS_POSTGRES, so a write cannot be run against a server");
+            Assert.Ignore("EVILCASE_TESTS_POSTGRES names no server, so a write cannot be run against one");
     }
 
     [Test]
