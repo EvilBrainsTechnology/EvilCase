@@ -10,6 +10,9 @@ public sealed record CaseTreeNode
 {
     public required long Id { get; init; }
 
+    /// <summary>
+    /// A top-level node names the case being read, which is not itself in <c>SubCases</c>.
+    /// </summary>
     public required long ParentId { get; init; }
 
     public required string CaseNumber { get; init; }
