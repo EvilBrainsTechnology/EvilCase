@@ -8,6 +8,8 @@ Serilog is configured in the host's `Program.cs` and handed to `UseSerilog(Log.L
 
 Server events are enriched with `AppSource = Server`.
 
+In EvilCase, Seq is configured from `EvilBrains:EvilCase:Logging:Seq` (`ServerUrl`, `ApiKey`), never from the `Serilog` section, which holds only the console sink; an empty server URL logs to the console only, and Seq credentials stay on the server. The `Environment` property is enriched from `builder.Environment.EnvironmentName`, never from an `appsettings.*.json` of its own.
+
 - `services.AddClientLogWriter(clientSourceContext)` — registers `IClientLogWriter`. The source context names the deployment the browser logs are recorded under, not the library.
 - `app.UseRequestLogging(loggedPaths, quietPaths)` — request context logging followed by Serilog's request logging, in that order, so the completion event carries the identifiers.
 
@@ -25,7 +27,7 @@ Server events are enriched with `AppSource = Server`.
 
 `Verbose` falls below the configured minimum, so those requests leave no completion log at all. An allow-list rather than a deny-list: the host also serves the frontend, `/_framework/*`, `/_content/*` and vendored CSS.
 
-The quiet path is the client log upload endpoint. Logging a successful upload would ship that log in the next upload, which would log again. A rejected upload (`4xx`) is logged, because a failed batch is dropped rather than retried, so it settles.
+The quiet path is the client log upload endpoint. Logging a successful upload would ship that log in the next upload, which would log again. A rejected upload (`4xx`) is logged, because a failed batch is dropped rather than retried, so it settles. The route is `ClientLogRoute` in `EvilCase.Api.Contract` — the controller, the host's quiet path and the browser sink all take it from there; naming it again anywhere silently breaks both feedback-loop guards.
 
 ## Request context
 
