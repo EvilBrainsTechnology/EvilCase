@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Enforces .claude/instruction-limits.json: fails naming every file over the per-file limit,
 and the sum over the total limit, each with how far over it is. In GitHub Actions it also
-reports the counts as a step-summary table and a one-line notice."""
+reports the counts as a step-summary table."""
 import glob
 import json
 import os
@@ -39,7 +39,6 @@ for failure in failures:
 
 summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
 if summary_path:
-    print(f"::notice::AI instructions: {report}")
     with open(summary_path, "a", encoding="utf-8") as summary:
         summary.write(f"### AI instructions: {total}/{total_limit} lines\n\n")
         summary.write(f"| File | Lines / {per_file_limit} |\n| --- | ---: |\n")
