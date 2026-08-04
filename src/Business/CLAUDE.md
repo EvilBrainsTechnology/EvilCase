@@ -29,6 +29,11 @@ A screen that lists something reads it through one composed query, `CaseListQuer
 - **A search term is text, not a pattern.** `%` and `_` in what the user typed are escaped and the escape character is named in the `ILIKE`, or a case titled *sleva 50%* is found by typing `%` — and so is every other case. Case folding belongs to `ILIKE`, never to a `ToLower()` that no index can use.
 - **Tested without a server.** The design-time context factory names no connection string and `ToQueryString()` opens none, so what the SQL contains is a unit test — see `Tests/EvilCase.Tests/Cases/CaseListQueryTests`.
 
+## The merged timeline
+
+- **Three queries whatever the depth.** `ITimelineReader` finds a sub-tree with one recursive CTE (`WITH RECURSIVE`, raw SQL — EF has no recursive query), then reads acts and comments once each. A query per level is what makes a deep case file slow in exactly the view that exists to flatten it. `CaseTimeline` does the merging and is pure, so the ordering is tested without a database.
+- **An act happens when it moved in its own direction.** Outgoing: sent, falling back to drafted, delivered, received. Incoming: received, falling back to delivered, sent, drafted. An act carrying none of them has no date and sorts last rather than being dropped — a document with no date is still in the file.
+
 ## Ownership
 
 - **`IOwnerContext` is the one place ownership is resolved.** `EvilCase.Business` declares it; `PrincipalOwnerContext` in `EvilCase.Api` implements it by reading the access token's `sub` claim, and is the only code in the application that reads that claim for this purpose. A query needing the owner takes `IOwnerContext`, never an `ownerId` parameter threaded down from a controller and never `HttpContext` of its own.

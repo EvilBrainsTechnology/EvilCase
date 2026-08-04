@@ -1,4 +1,5 @@
 using EvilBrains.EvilCase.Business.Cases;
+using EvilBrains.EvilCase.Business.Timeline;
 using EvilBrains.EvilCase.Data;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -11,6 +12,7 @@ public static class Bootstrap
         services.AddEvilCaseData();
 
         services.AddScoped<ICaseReader, CaseReader>();
+        services.AddScoped<ITimelineReader, TimelineReader>();
 
         return services;
     }
