@@ -10,8 +10,8 @@
             <div class="d-flex align-items-center gap-1 py-1">
                 @if (node.Children.Count > 0)
                 {
+                    @* aria-expanded is spelled out: Blazor drops a false bool attribute and empties a true one. *@
                     <button type="button" class="case-tree-toggle"
-                            @* Spelled out: Blazor drops a false bool attribute and empties a true one. *@
                             aria-expanded="@(expanded ? "true" : "false")"
                             aria-label="@(expanded ? "Sbalit podspisy" : "Rozbalit podspisy")"
                             @onclick="() => Toggle.InvokeAsync(node.Id)">
