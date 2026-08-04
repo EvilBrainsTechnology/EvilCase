@@ -1,0 +1,41 @@
+@using EvilBrains.EvilCase.Api.Contract.Cases
+
+<div class="card mb-2">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start gap-2">
+            <div class="min-w-0">
+                <div class="font-weight-medium">@Case.Title</div>
+                @if (!string.IsNullOrWhiteSpace(Case.Subject))
+                {
+                    <div class="text-secondary">@Case.Subject</div>
+                }
+            </div>
+            @* Without this the flex row breaks a two-word status across three lines. *@
+            <div class="flex-shrink-0 text-nowrap">
+                <Status BackgroundColor="CaseStatusDisplay.Color(Case.Status)" Lite="true">@CaseStatusDisplay.Text(Case.Status)</Status>
+            </div>
+        </div>
+
+        @if (Case.Tags.Count > 0)
+        {
+            <div class="mt-2">
+                @foreach (var tag in Case.Tags)
+                {
+                    <span class="badge bg-secondary-lt me-1">@tag</span>
+                }
+            </div>
+        }
+
+        <div class="text-secondary mt-2">
+            @CaseListFormat.Changed(Case)
+            @if (Case.SubCaseCount > 0)
+            {
+                <span> &middot; @CaseListFormat.SubCases(Case.SubCaseCount)</span>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required CaseListItem Case { get; set; }
+}

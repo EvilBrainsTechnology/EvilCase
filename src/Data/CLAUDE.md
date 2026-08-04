@@ -19,6 +19,16 @@
 - **Deduplication stops at the owner.** `FileAssets` is unique on `(OwnerId, ContentHash)`, never on the hash alone: one row shared between owners would make one owner's delete another owner's problem, and M8 has enough to enforce already.
 - **A note hangs on a case or an act, and the database says so.** `Comments` is one table with two nullable parents and a check constraint, `("CaseId" IS NULL) <> ("ActId" IS NULL)`. One table rather than two because the merged timeline (M4) reads every note of a case and all its descendants at once. Check constraints live only in the design-time model — a test reading them needs `context.GetService<IDesignTimeModel>().Model`, not `context.Model`.
 
+## Reading a list
+
+A screen that lists something reads it through one composed query, `CaseListQuery` (in `EvilCase.Data/Cases`) being the first of them. The shape holds for the act list, the timeline and the what-is-due view that follow.
+
+- **One `IQueryable` step per rule**, each an extension on `IQueryable<TEntity>`: the roots, the search term, the status, the order, the projection. Composed by a reader (`ICaseReader`) that does nothing else, so what the list *is* reads top to bottom in one place, and each rule is pinned on its own by a test.
+- **Nothing materialises early.** A step that returns a list rather than a queryable moves the filtering into the application and the paging out of reach. `ToListAsync` is called once, by the reader, at the end.
+- **The projection is the column list.** Selecting the entity and shaping afterwards reads every column of every row and one query per row for the collections; projecting straight into the contract DTO reads what a row shows and nothing else.
+- **A search term is text, not a pattern.** `%` and `_` in what the user typed are escaped and the escape character is named in the `ILIKE`, or a case titled *sleva 50%* is found by typing `%` — and so is every other case. Case folding belongs to `ILIKE`, never to a `ToLower()` that no index can use.
+- **Tested without a server.** The design-time context factory names no connection string and `ToQueryString()` opens none, so what the SQL contains is a unit test — see `Tests/EvilCase.Tests/Cases/CaseListQueryTests`.
+
 ## Migrations
 
 `Program.cs` awaits `MigrateEvilCaseDatabaseAsync` between `builder.Build()` and the middleware pipeline. A database that does not exist is created; an unreachable server stops the start, and there is no retry. `EvilBrains:EvilCase:Database:MigrateOnStartup` turns it off (default `true`) — do that where the schema is rolled out separately, or where several instances start at once, because nothing serialises concurrent migrators. `Tests/EvilCase.Tests` sets it to `false`.
