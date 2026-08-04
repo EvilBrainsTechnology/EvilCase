@@ -8,4 +8,9 @@ namespace EvilBrains.EvilCase.Business.Cases;
 public interface ICaseReader
 {
     public Task<IReadOnlyList<CaseListItem>> List(CaseListRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Null when no such case exists.
+    /// </summary>
+    public Task<CaseDetailResponse?> Detail(long id, CancellationToken cancellationToken = default);
 }

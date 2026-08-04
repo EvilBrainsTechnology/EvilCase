@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Echo;
 using EvilBrains.EvilCase.Api.Contract.Logging;
 using EvilBrains.EvilCase.Api.Contract.User;
@@ -90,6 +91,21 @@ public class AuthorizationFallbackTests
         using var response = await this.client.GetAsync(new Uri("/api/cases/list", UriKind.Relative));
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+    }
+
+    [Test]
+    public async Task ReadingOneCaseAndWritingItsCommentsNeedATokenToo()
+    {
+        using var detail = await this.client.GetAsync(new Uri("/api/cases/1", UriKind.Relative));
+        using var comment = await this.client.PostAsJsonAsync(
+            new Uri("/api/cases/1/comments", UriKind.Relative),
+            new AddCaseCommentRequest { Body = "poznámka" });
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(detail.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+            Assert.That(comment.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+        }
     }
 
     [Test]

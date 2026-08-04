@@ -18,4 +18,33 @@ internal sealed class CaseReader(ApplicationDbContext context) : ICaseReader
             .AsListItems()
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<CaseDetailResponse?> Detail(long id, CancellationToken cancellationToken = default)
+    {
+        var detail = await context.Cases
+            .WithId(id)
+            .AsDetails()
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (detail is null)
+            return null;
+
+        var graph = await context.Cases
+            .AroundCase(id)
+            .AsGraphNodes()
+            .ToListAsync(cancellationToken);
+
+        var comments = await context.Comments
+            .OnCase(id)
+            .InDiaryOrder()
+            .AsCaseComments()
+            .ToListAsync(cancellationToken);
+
+        return detail with
+        {
+            Ancestors = CaseGraph.Ancestors(graph, id),
+            SubCases = CaseGraph.SubCases(graph, id),
+            Comments = comments,
+        };
+    }
 }
