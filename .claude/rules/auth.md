@@ -1,6 +1,7 @@
 ---
 paths:
   - "src/Common/EvilCase.Auth/**"
+  - "src/App/EvilCase.App/Auth/**"
 ---
 
 # Authentication

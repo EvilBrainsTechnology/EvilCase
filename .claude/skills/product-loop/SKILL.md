@@ -38,15 +38,15 @@ an open decision.
 The round's first job and usually its whole job; take new work only when every open pull
 request is merged, or green, current and answered.
 
-- Merge what meets the gate in `.claude/rules/github.md` — owner-approved, green CI, no
-  conflicts: squash, delete the branch, rebase the remaining branches, wait for green CI, then
-  the next that meets the gate.
+- Merge what meets the gate in `.claude/rules/github.md` — mergeable by the repository's
+  rules, into `master` only: squash, delete the branch, rebase what conflicts, wait for green
+  CI, then the next that meets the gate.
 - Outstanding means a review thread with no `claude[bot]` reply; never filter by timestamp or
   count — read the threads. Every comment is answered in the round that finds it: a requested
   change fixed to the full definition of done and answered with the commit, a question answered
   in the thread, a product decision turned into a decision issue linked from the thread.
-- Then clear the rest: red CI, a conflict or a stale base (rebase onto the target), a title or
-  description that no longer matches the diff.
+- Then clear the rest: red CI, a conflict (rebase onto the target), a title or description
+  that no longer matches the diff.
 
 ## 3. Pick the work
 
