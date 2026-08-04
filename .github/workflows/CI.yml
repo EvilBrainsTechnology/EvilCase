@@ -29,7 +29,9 @@ jobs:
       # branch is fetched so the report can show the difference a pull request makes
       - name: Check instruction length limits
         run: |
-          if [ -n "$GITHUB_BASE_REF" ]; then git fetch --quiet --depth=1 origin "$GITHUB_BASE_REF"; fi
+          if [ -n "$GITHUB_BASE_REF" ]; then
+            git fetch --quiet --depth=1 origin "+refs/heads/$GITHUB_BASE_REF:refs/remotes/origin/$GITHUB_BASE_REF" || true
+          fi
           python3 .github/scripts/check-instruction-limits.py
 
       # Setup .NET Core

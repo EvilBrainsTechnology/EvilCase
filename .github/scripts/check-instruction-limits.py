@@ -24,15 +24,19 @@ def count(root):
 
 
 def count_base():
+    """The delta is decoration: any failure here means no delta, never a failed check."""
     base_ref = os.environ.get("GITHUB_BASE_REF")
     if not base_ref:
         return None, None
-    archive = subprocess.run(["git", "archive", f"origin/{base_ref}"], capture_output=True)
-    if archive.returncode != 0:
+    try:
+        archive = subprocess.run(["git", "archive", f"origin/{base_ref}"], capture_output=True)
+        if archive.returncode != 0:
+            return None, None
+        with tempfile.TemporaryDirectory() as tree:
+            subprocess.run(["tar", "-x", "-C", tree], input=archive.stdout, check=True)
+            return count(tree), base_ref
+    except (OSError, subprocess.SubprocessError, UnicodeDecodeError):
         return None, None
-    with tempfile.TemporaryDirectory() as tree:
-        subprocess.run(["tar", "-x", "-C", tree], input=archive.stdout, check=True)
-        return count(tree), base_ref
 
 
 counts = count(".")
