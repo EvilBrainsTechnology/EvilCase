@@ -11,7 +11,8 @@ internal sealed class NumberIssuer(
 
     public async Task<string> IssueCaseNumber(CancellationToken cancellationToken = default)
     {
-        var pattern = Usable((await settings.Read(cancellationToken)).CaseNumberPattern, NumberPatternKind.CaseNumber);
+        var patterns = await settings.Read(cancellationToken);
+        var pattern = Usable(patterns.CaseNumberPattern, NumberPatternKind.CaseNumber);
         var today = this.Today();
 
         return await this.Issue(pattern, today, $"case:{NumberPattern.PeriodKey(pattern, today)}", caseNumber: null, cancellationToken);
@@ -19,7 +20,8 @@ internal sealed class NumberIssuer(
 
     public async Task<string> IssueActNumber(long caseId, string caseNumber, CancellationToken cancellationToken = default)
     {
-        var pattern = Usable((await settings.Read(cancellationToken)).ActNumberPattern, NumberPatternKind.ActNumber);
+        var patterns = await settings.Read(cancellationToken);
+        var pattern = Usable(patterns.ActNumberPattern, NumberPatternKind.ActNumber);
         var today = this.Today();
         var scope = string.Create(CultureInfo.InvariantCulture, $"act:{caseId}:{NumberPattern.PeriodKey(pattern, today)}");
 
