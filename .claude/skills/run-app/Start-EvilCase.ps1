@@ -128,10 +128,16 @@ if ($Stop) {
         catch { $kept += "$($stateFile.FullName) kept: $($_.Exception.Message)" }
     }
 
-    # With the last run goes what is left of the checkout's directory, the build logs included.
-    if ((Test-Path -LiteralPath $stateDirectory) -and
-        -not (Get-ChildItem -LiteralPath $stateDirectory -Filter '*.json')) {
-        Remove-Item -LiteralPath $stateDirectory -Recurse -Force
+    # With the last run goes what is left of the checkout's directory, the build logs included —
+    # never while one of them is being written: that run has no state file yet, and taking the
+    # directory from under it kills a start that is only building.
+    if (Test-Path -LiteralPath $stateDirectory) {
+        $building = @(Get-ChildItem -LiteralPath $stateDirectory -File | Where-Object {
+                $_.Name -match '^build-(\d{1,9})\.log$' -and
+                (Get-Process -Id ([int] $Matches[1]) -ErrorAction SilentlyContinue) })
+        if (-not $building -and -not (Get-ChildItem -LiteralPath $stateDirectory -Filter '*.json')) {
+            Remove-Item -LiteralPath $stateDirectory -Recurse -Force
+        }
     }
     if ($kept) { throw ($kept -join [Environment]::NewLine) }
     return
@@ -143,6 +149,7 @@ New-Item -ItemType Directory -Path $stateDirectory -Force | Out-Null
 # and Kestrel, so the pid to record is not the one holding the port. Parallel starts share the
 # checkout's obj/ and bin/, so they take turns — bounded, or a wedged build stalls the checkout.
 $buildLog = Join-Path $stateDirectory "build-$PID.log"
+New-Item -ItemType File -Path $buildLog -Force | Out-Null # the run's mark until it has a state file
 $buildLock = [System.Threading.Mutex]::new($false, "evilcase-build-$checkout")
 $held = $false
 try { $held = $buildLock.WaitOne([timespan]::FromMinutes(10)) }
