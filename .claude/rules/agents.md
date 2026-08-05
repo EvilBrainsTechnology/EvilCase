@@ -14,6 +14,9 @@
   costs several round trips to guess at.
 - Every subagent that writes to the repository gets `isolation: "worktree"`; a worktree sees
   the parent checkout's rule files and has no `.env` (run-app skill).
+- Once a branch is delegated, the main checkout leaves it: worktrees share one `.git`, so the
+  agent's commits move the ref under a working tree still holding the old files, and what looks
+  like uncommitted work is the delegated work inverted. Committing it reverts the agent.
 - A delegated task commits and pushes every unit as it finishes it — what never reaches the
   remote dies with the agent.
 - Silence is not progress. Check every running delegation: no write in its worktree for twenty
