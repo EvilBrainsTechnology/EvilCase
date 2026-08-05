@@ -83,39 +83,41 @@ if ($Stop) {
     }
     if (-not $states) { Write-Warning "no run$(if ($Port) { " on port $Port" }) recorded in $stateDirectory" }
 
-    $stuck = @()
+    # One run per iteration, each inside its own try: a state file a SIGKILL truncated mid-write, or
+    # a run that will not go down, costs only itself — the rest of the checkout still stops.
+    $kept = @()
     foreach ($stateFile in $states) {
-        $state = Get-Content -LiteralPath $stateFile.FullName -Raw | ConvertFrom-Json
-        $done = @()
+        try {
+            $state = Get-Content -LiteralPath $stateFile.FullName -Raw | ConvertFrom-Json
+            $done = @()
 
-        # By pid, and only while it is still the command line this run started: a pid is recycled,
-        # and a state file left behind by a crash has had an unrelated process killed by now.
-        $process = Get-Process -Id $state.Pid -ErrorAction SilentlyContinue
-        if ($process -and $process.CommandLine -eq $state.CommandLine) {
-            Stop-Process -InputObject $process -Force
-            $done += "killed host $($state.Pid)"
+            # By pid, and only while it is still the command line this run started: a pid is recycled,
+            # and a state file left behind by a crash has had an unrelated process killed by now.
+            $process = Get-Process -Id $state.Pid -ErrorAction SilentlyContinue
+            if ($process -and $process.CommandLine -eq $state.CommandLine) {
+                Stop-Process -InputObject $process -Force
+                $done += "killed host $($state.Pid)"
+            }
+            elseif ($process) { $done += "left pid $($state.Pid) alone, it is not this run's host" }
+            else { $done += "host $($state.Pid) was gone" }
+
+            # Only then the database: dropping it under a host still serving takes the schema away
+            # from it, and removing the state file leaves nothing naming either.
+            $deadline = [datetime]::UtcNow.AddSeconds(30)
+            while ((Test-Port $state.Port) -and [datetime]::UtcNow -lt $deadline) { Start-Sleep -Seconds 1 }
+            if (Test-Port $state.Port) { throw "$($state.Url) still answers, so $($state.Database) stays" }
+
+            if (Test-Database $state.Database) {
+                # --force: the connection outlives the process by a moment and a plain dropdb fails on it.
+                Invoke-Postgres 'dropdb' @('--force', $state.Database) | Out-Null
+                $done += "dropped $($state.Database)"
+            }
+            else { $done += "$($state.Database) was gone" }
+
+            Remove-Item -LiteralPath $stateFile.FullName, $state.Log, $state.ErrorLog -Force -ErrorAction SilentlyContinue
+            Write-Output "$($state.Url): $($done -join ', ')"
         }
-        elseif ($process) { $done += "left pid $($state.Pid) alone, it is not this run's host" }
-        else { $done += "host $($state.Pid) was gone" }
-
-        # Only then the database: dropping it under a host still serving takes the schema away
-        # from it, and removing the state file leaves nothing naming either.
-        $deadline = [datetime]::UtcNow.AddSeconds(30)
-        while ((Test-Port $state.Port) -and [datetime]::UtcNow -lt $deadline) { Start-Sleep -Seconds 1 }
-        if (Test-Port $state.Port) {
-            $stuck += "$($state.Url) still answers — kept $($state.Database) and $($stateFile.FullName)"
-            continue
-        }
-
-        if (Test-Database $state.Database) {
-            # --force: the connection outlives the process by a moment and a plain dropdb fails on it.
-            Invoke-Postgres 'dropdb' @('--force', $state.Database) | Out-Null
-            $done += "dropped $($state.Database)"
-        }
-        else { $done += "$($state.Database) was gone" }
-
-        Remove-Item -LiteralPath $stateFile.FullName, $state.Log, $state.ErrorLog -Force -ErrorAction SilentlyContinue
-        Write-Output "$($state.Url): $($done -join ', ')"
+        catch { $kept += "$($stateFile.FullName) kept: $($_.Exception.Message)" }
     }
 
     # With the last run goes what is left of the checkout's directory, the build log included.
@@ -123,7 +125,7 @@ if ($Stop) {
         -not (Get-ChildItem -LiteralPath $stateDirectory -Filter '*.json')) {
         Remove-Item -LiteralPath $stateDirectory -Recurse -Force
     }
-    if ($stuck) { throw ($stuck -join [Environment]::NewLine) }
+    if ($kept) { throw ($kept -join [Environment]::NewLine) }
     return
 }
 
