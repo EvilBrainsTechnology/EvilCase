@@ -45,7 +45,8 @@ public class CaseReaderTests
         {
             Assert.That(sql, Does.Contain("%odvolání%"), "the reader runs the request's search");
             Assert.That(sql, Does.Contain(nameof(CaseStatus.Closed)), "the reader runs the request's status, open by default");
-            Assert.That(sql, Does.Contain("ORDER BY"), "the list has an order");
+            Assert.That(sql, Does.Contain("ORDER BY COALESCE("), "the list's own order leads, ahead of the tag join's");
+            Assert.That(sql, Does.Contain("\"Id\" DESC"), "the identifier breaks the tie");
             Assert.That(sql, Does.Contain("\"CaseTags\""), "a row carries its tags");
         }
     }

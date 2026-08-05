@@ -14,7 +14,7 @@ internal sealed class CaseReader(ApplicationDbContext context) : ICaseReader
     }
 
     /// <summary>
-    /// Every step the list is made of, so a test reads the SQL the reader really runs.
+    /// Internal so a test reads the SQL the reader really runs.
     /// </summary>
     internal static IQueryable<CaseListItem> Compose(ApplicationDbContext context, CaseListRequest request) => context.Cases
         .MatchingSearch(request.Search)
