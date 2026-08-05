@@ -18,7 +18,8 @@
 - What runs together runs in one call: `add`, `commit` and `push` for one unit; the GitHub
   writes of one step in one script at the end of that step, never carried into a later one.
 - Every subagent that writes to the repository gets `isolation: "worktree"`; a worktree sees
-  the parent checkout's rule files and has no `.env` (run-app skill).
+  the parent checkout's rule files and has no `.env` (run-app skill). Its scratch files go in
+  its own directory under the session scratchpad, named for the agent, never the shared root.
 - The main checkout never holds a delegated branch, `--ignore-other-worktrees` included: its
   working tree then reads as uncommitted changes that revert the agent's commits.
 - A delegated task commits and pushes every unit as it finishes it — what never reaches the
