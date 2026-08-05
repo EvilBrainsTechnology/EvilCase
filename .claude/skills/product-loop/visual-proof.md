@@ -10,7 +10,7 @@ a screenshot is synthetic data.
 
   ```bash
   PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers /opt/node22/bin/node \
-    .claude/skills/product-loop/screenshots.mjs docs/screenshots/153 targets.json
+    .claude/skills/product-loop/screenshots.mjs /tmp/shots/192 targets.json
   ```
 
   `targets.json` is a list of `{ name, path, file, wait?, steps?, fullPage? }`; a step is
@@ -19,13 +19,48 @@ a screenshot is synthetic data.
   cannot express; do not write a second one.
 - Playwright is at `/opt/node22/lib/node_modules/playwright`, its browsers at `/opt/pw-browsers`.
   Never run `playwright install`; the download is blocked.
-- Save as `docs/screenshots/<issue>/<screen>-<width>.png` and commit with the slice. A slice
-  that replaces a screen deletes the screenshots it supersedes, so the directory stays the
-  current state of the application.
-- Embed in the pull request body by raw URL pinned to the commit:
-  `https://raw.githubusercontent.com/EvilBrainsTechnology/EvilCase/<sha>/docs/screenshots/…`
-- A rebase orphans the pinned commit and every URL starts answering `404`: re-point them in the
-  same step as the force-push, never later.
+
+## Where the images live
+
+Never in the slice's diff — on `master` a screenshot has no reader. They live on `doc/images`,
+an orphan branch sharing no history with `master`, one directory per pull request:
+`pull-request/<number>/<screen>-<width>.png`. The branch is append-only and never force-pushed,
+so its commits stay reachable however the feature branch is rebased or deleted.
+
+Embed by raw URL pinned to the commit, never by branch name — a branch-name URL renders whatever
+the path holds today, and a pull request has to keep showing what was reviewed:
+
+```
+https://raw.githubusercontent.com/EvilBrainsTechnology/EvilCase/<sha>/pull-request/<number>/<screen>-<width>.png
+```
+
+## The order
+
+The number the images are filed under does not exist until the pull request does, so the body is
+written twice.
+
+1. Push the branch and open the pull request as a draft, body without images.
+2. Take the screenshots into a directory outside the checkout.
+3. Commit them onto `doc/images` and push. Plumbing, so nothing is checked out and the
+   worktree keeps its own working tree and index:
+
+   ```bash
+   git fetch origin doc/images
+   export GIT_INDEX_FILE=$(mktemp -u)          # scratch index; the checkout's own is untouched
+   git read-tree origin/doc/images
+   git update-index --add --cacheinfo \
+     "100644,$(git hash-object -w /tmp/shots/192/case-list-1440.png),pull-request/192/case-list-1440.png"
+   sha=$(git commit-tree "$(git write-tree)" -p origin/doc/images -m "Images for #192")
+   git push origin "$sha:refs/heads/doc/images"
+   unset GIT_INDEX_FILE
+   ```
+
+4. `PATCH` the body with the images, each pinned to `$sha`.
+5. Read the body back and check every URL.
+
+A round that supersedes a screen pushes the new file beside the old one and re-points the body;
+nothing on `doc/images` is overwritten or deleted.
+
 - Check a raw URL with `curl -o /dev/null -w '%{http_code}'` and **no** `Authorization` header —
   `raw.githubusercontent.com` answers `404` to `$GH_TOKEN` whatever the file.
 - GitHub sometimes writes a URL back wrapped in a backtick, which renders as literal text. Read
