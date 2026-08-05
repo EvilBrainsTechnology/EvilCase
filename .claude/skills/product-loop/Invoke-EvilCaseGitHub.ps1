@@ -91,8 +91,7 @@ if ($target.Scheme -ne 'https' -or $target.Host -ne 'api.github.com') {
     throw "$uri is not https://api.github.com — the token goes to GitHub alone"
 }
 
-# 100 is the API's maximum, so a list is one call where it was four, and the page cap below covers
-# what a query that large still cannot hold.
+# 100 is the API's maximum: `issues?state=open` is one call, not a walk 30 at a time.
 if ($Method -eq 'GET' -and $uri -notmatch '[?&]per_page=') {
     $uri += "$(if ($uri.Contains('?')) { '&' } else { '?' })per_page=100"
 }
