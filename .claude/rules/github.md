@@ -8,8 +8,7 @@
   visual proof taken of every changed screen (`.claude/skills/product-loop/visual-proof.md`),
   documentation updated in the same commit. A red gate is fixed, never worked around.
 - A pull request opens as a draft and leaves draft only once the code review in
-  `.claude/rules/agents.md` has run and its findings are worked in. Clearing the flag is the
-  second `mcp__github__*` exception beside the merge — REST ignores `draft`, GraphQL is blocked.
+  `.claude/rules/agents.md` has run and its findings are worked in.
 - A pull request wears the state GitHub does not show: `in-review` from the moment it opens
   until the review cycle ends, `blocked` while a decision issue it names is unanswered. Each
   comes off in the step that ends the state, never in a later round. What no label carries — a
@@ -21,9 +20,10 @@
 - Every git and GitHub interaction — commits, pull requests, comments, reviews, issues — is
   authored as `claude[bot]`: GitHub writes go through
   `.claude/skills/product-loop/Invoke-EvilCaseGitHub.ps1` (endpoints in `github-api.md` beside
-  it), never through the `mcp__github__*` tools, which write as the owner. The merge is the one
-  exception: this environment refuses the script's merge into a protected branch, so it goes
-  through `mcp__github__merge_pull_request` and is recorded under the owner's account.
+  it), never through the `mcp__github__*` tools, which write as the owner. Two writes are the
+  exception and are recorded under the owner's account: the merge, which this environment
+  refuses through the script into a protected branch (`mcp__github__merge_pull_request`), and
+  clearing the draft flag, which REST ignores (`mcp__github__update_pull_request`).
 - A pull request's title and description always match its current diff; update them with every
   change to its content.
 - No attribution footer and no session link in a GitHub write: the `claude[bot]` author says it.

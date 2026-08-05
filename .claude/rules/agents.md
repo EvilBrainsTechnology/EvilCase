@@ -17,6 +17,8 @@
   `Glob`, `Read` or `Grep` answers.
 - What runs together runs in one call: `add`, `commit` and `push` for one unit; the GitHub
   writes of one step in one script at the end of that step, never carried into a later one.
+  More than one call, or anything parsing what one answered, is a scratchpad script rather than
+  a shell pipeline — a worktree refuses the command that would expand the token.
 - Every subagent that writes to the repository gets `isolation: "worktree"`; a worktree sees
   the parent checkout's rule files and has no `.env` (run-app skill). Its scratch files go in
   its own directory under the session scratchpad, named for the agent, never the shared root.
