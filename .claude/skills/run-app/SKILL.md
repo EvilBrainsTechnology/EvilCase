@@ -38,28 +38,42 @@ connection string, the seed and JWT keys and the `src/` layout — a change to a
 change to the hook, in the same commit.
 
 The hook writes `.env` into the main checkout only, so a worktree has none and the host will
-not start there: copy the file into the worktree, or run the app from the main checkout.
+not start there until the file is copied into it.
 
 ## Start
 
 `dotnet r run` → `https://localhost:5000` (Scalar UI at `/scalar`, Development only). In Claude
 Code, start the preview server `evilcase` from `.claude/launch.json` instead of a shell; it
 serves the same address, and only one instance can hold the port — stop an IDE instance first.
-Keep the port off the browsers' unsafe-port list (6000, 6665–6669, 6697, …).
+A port picked by hand stays off the browsers' unsafe-port list (6000, 6665–6669, 6697, …).
+
+Subagents run side by side, so 5000 and the `evilcase` database belong to whoever took them
+first. `Start-EvilCase.ps1` next to this file gives a run its own of both, prints the URL and
+documents itself in its header; it supplies no JWT key or seed, so a worktree still needs `.env`.
+Point the screenshot script at the printed URL with `EVILCASE_URL`.
+
+```
+pwsh .claude/skills/run-app/Start-EvilCase.ps1                    # → https://localhost:41449
+pwsh .claude/skills/run-app/Start-EvilCase.ps1 -Stop -Port 41449
+```
 
 ## Verify
 
-- `curl -sk https://localhost:5000/health/ready` → `Healthy` with the `database` check; `503`
-  means the database is unreachable, `/health/live` answers even then.
+Against the URL the run printed — `$url` below, `https://localhost:5000` for `dotnet r run`.
+
+- `curl -sk $url/health/ready` → `Healthy` with the `database` check; `503` means the database
+  is unreachable, `/health/live` answers even then.
 - Sign in: `POST /api/auth/login` with `{"email":…,"password":…}` (the seed values) →
   `accessToken`; `401` is bad credentials, `423` a lockout (5 failures, 15 minutes).
 - API round-trip: `POST /api/echo/post` with the bearer → `Echo: …`; without the header `401`,
   which is the fallback policy working.
 - `GET /api/nope` → `404`, never the app's HTML.
-- Frontend: `https://localhost:5000` redirects to `/login`; sign in, open `/echo`, send a text.
-  The first WebAssembly load takes a few seconds.
+- Frontend: `$url` redirects to `/login`; sign in, open `/echo`, send a text. The first
+  WebAssembly load takes a few seconds.
 
 ## Stop
 
-Ctrl+C, or stop the preview server. The database keeps running;
-`docker compose -f deploy/docker-compose.dev.yml down` removes it along with its data.
+`Start-EvilCase.ps1 -Stop -Port <port>`, on the port the start printed — the header has the rest.
+`dotnet r run` stops with Ctrl+C or by stopping the preview server, and leaves the `evilcase`
+database running: `docker compose -f deploy/docker-compose.dev.yml down` removes it along with
+its data.
