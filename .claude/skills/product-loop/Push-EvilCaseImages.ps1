@@ -24,7 +24,8 @@
     A -Branch the remote does not have is refused, never created: the ruleset keeps doc/images from
     being deleted, so a name that is not there is a typo, and pushing to it would put the body's
     URLs on a branch nothing protects. -Create writes the parentless commit a genuinely new branch
-    starts from.
+    starts from, and is refused in turn when the remote already has the branch — that is the same
+    typo one flag further on.
 
     Fails, without retrying, on: a -Path holding no *.png, a -PullRequest below 1, a directory that
     is not an EvilCase checkout, and a push rejected for anything but the branch having moved.
@@ -97,6 +98,10 @@ try {
         $parent = if ($listed) { ($listed -split '\s+', 2)[0] } else { $null }
         if (-not $parent -and -not $Create) {
             throw "$Remote has no $Branch — a typo, or a branch to start with -Create"
+        }
+        # First attempt only: a rival creating the branch during a retry is the race the loop is for.
+        if ($parent -and $Create -and $attempt -eq 1) {
+            throw "$Remote already has $Branch — -Create starts one it does not have"
         }
         # Listed before fetched, never after: a tip that lands in between is fetched with the one
         # named here among its ancestors, and read-tree has an object either way.
