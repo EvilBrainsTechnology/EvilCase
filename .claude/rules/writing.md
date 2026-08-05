@@ -1,20 +1,19 @@
 # Writing
 
-Applies to every text produced: documentation, READMEs, AI instructions, code comments, commit
-messages, pull request titles and descriptions, pull request comments and replies, issue bodies,
-chat messages.
+Applies to every text produced: documentation, AI instructions, code comments, commit messages,
+pull requests, comments, issues, chat.
 
-- Brevity over completeness: a shorter text covering 90 % beats a long one covering 100 %.
-- State what holds, not why. Add a reason only where the text misleads without it.
-- No filler: no recaps of what was already said, no lead-in sentences, no sections for effect,
-  no narrating a diff in words.
-- Comment code only where the code cannot say it, in one or two lines; no `<remarks>` essays,
-  no copied `<inheritdoc/>`. Rationale goes in the commit message or the pull request, never in
-  code.
-- Commit messages and pull request descriptions open with a one- or two-sentence TL;DR; the rest
-  only where it adds information.
-- A reply to a review comment says what changed, or why not. Nothing more.
-- A chat response ends with a short TL;DR of what waits on the user — a pull request review, an
-  open decision; when nothing does, it ends without one.
-- Chat responses follow the language of the user's message. Everything committed and every
-  GitHub write is English; user-facing UI strings and `docs/product/vision.md` are Czech.
+- Say it in the fewest words that still hold. A short text covering 90 % beats a long one.
+- Write plain declarative sentences. No metaphors, no aphorisms, no rhetorical structure.
+- State what holds, not why. Give a reason only where the text misleads without it.
+- No filler: no recaps, no lead-in sentences, no narrating a diff in words.
+- Report a verification by its result, not its protocol. Green is green.
+- Never write about mutation-testing a test, about how many rounds something took, or about
+  what was removed and why.
+- No tables of evidence, no pasted SQL, no pasted tool output.
+- Limits: pull request description 1500 characters, comment three sentences, issue body 800
+  characters.
+- Comment code in one or two lines, only where the code cannot say it. Rationale goes in the
+  commit message.
+- Everything committed and every GitHub write is English. UI strings and
+  `docs/product/vision.md` are Czech. Chat follows the user's language.
