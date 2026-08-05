@@ -45,7 +45,31 @@ not start there: copy the file into the worktree, or run the app from the main c
 `dotnet r run` → `https://localhost:5000` (Scalar UI at `/scalar`, Development only). In Claude
 Code, start the preview server `evilcase` from `.claude/launch.json` instead of a shell; it
 serves the same address, and only one instance can hold the port — stop an IDE instance first.
-Keep the port off the browsers' unsafe-port list (6000, 6665–6669, 6697, …).
+
+Subagents run side by side, so 5000 and the `evilcase` database belong to whoever took them
+first. Anything running from a worktree takes its own of both and cleans up after itself:
+
+```bash
+export PGPASSWORD=postgres
+port=$(python3 -c "import socket;s=socket.socket();s.bind(('127.0.0.1',0));print(s.getsockname()[1]);s.close()")
+db=evilcase_$port
+createdb -h localhost -U postgres "$db"
+EvilBrains__EvilCase__ConnectionString="Host=localhost;Port=5432;Database=$db;Username=postgres;Password=postgres" \
+  dotnet r run -- --urls "https://localhost:$port" &
+pid=$!
+# … verify, screenshot …
+kill $pid; dropdb --force -h localhost -U postgres "$db"
+```
+
+`--urls` is the only thing that moves the port: `applicationUrl` in `launchSettings.json` wins
+over `ASPNETCORE_URLS`, so setting that variable silently binds 5000 anyway. An ephemeral port is
+above the browsers' unsafe-port list (6000, 6665–6669, 6697, …) by construction. Point the
+screenshot script at it with `EVILCASE_URL`, and give the database tests their own with
+`EVILCASE_TESTS_POSTGRES`.
+
+Stop the host by the pid you started it with. `pkill -f EvilCase.Host` also matches the shell
+running it, because the pattern is in its own command line — it kills the session instead. And
+`dropdb` needs `--force`: the connection outlives the process by a moment.
 
 ## Verify
 
