@@ -59,6 +59,3 @@ until the pull request does, so the body is written twice.
 5. Read the body back. GitHub sometimes writes a URL back wrapped in a backtick, which renders
    as literal text; where it happened, embed as `<img src="…" alt="…">` — editing the markdown
    again adds another backtick.
-
-A second round of the same targets writes the same paths, and the body pinned to the earlier
-commit goes on showing what it showed: a raw URL resolves against the commit it names.
