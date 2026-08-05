@@ -81,18 +81,20 @@ internal static class NumberPattern
     }
 
     /// <summary>
-    /// The sequence is padded to three digits so numbers of one series sort as text.
+    /// The sequence is padded to three digits so numbers of one series sort as text. The case number is
+    /// written last: it is the operator's to type, so it may carry pattern text of its own, and no other
+    /// placeholder occurs inside <c>{case-number}</c> for an earlier pass to break.
     /// </summary>
     public static string Format(string pattern, in DateOnly date, int sequence, string? caseNumber = null)
     {
         ArgumentNullException.ThrowIfNull(pattern);
 
         return pattern
-            .Replace(CaseNumber, caseNumber ?? "", StringComparison.Ordinal)
             .Replace(Year, date.ToString("yyyy", CultureInfo.InvariantCulture), StringComparison.Ordinal)
             .Replace(Month, date.ToString("MM", CultureInfo.InvariantCulture), StringComparison.Ordinal)
             .Replace(Day, date.ToString("dd", CultureInfo.InvariantCulture), StringComparison.Ordinal)
-            .Replace(Sequence, sequence.ToString("D3", CultureInfo.InvariantCulture), StringComparison.Ordinal);
+            .Replace(Sequence, sequence.ToString("D3", CultureInfo.InvariantCulture), StringComparison.Ordinal)
+            .Replace(CaseNumber, caseNumber ?? "", StringComparison.Ordinal);
     }
 
     private static bool Names(string pattern, string placeholder) => pattern.Contains(placeholder, StringComparison.Ordinal);

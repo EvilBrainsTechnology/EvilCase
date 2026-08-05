@@ -37,11 +37,10 @@ public class NumberPatternTests
         {
             Assert.That(issued, Is.EqualTo(expected));
             Assert.That(issued, Is.Ordered.Using<string>(StringComparer.Ordinal), "the padding is what makes the first thousand of a series sort as text");
-            Assert.That(NumberPattern.Format("{seq}", Date, 1000), Is.EqualTo("1000"), "the thousandth number of a series grows rather than wrapping");
             Assert.That(
-                StringComparer.Ordinal.Compare(NumberPattern.Format("{seq}", Date, 1000), "999"),
-                Is.LessThan(0),
-                "and sorts in front of the one before it, which a yearly series reaches routinely — docs/product/vision.md says so");
+                NumberPattern.Format("{seq}", Date, 1000),
+                Is.EqualTo("1000"),
+                "nothing caps the count, so the thousandth number grows a digit and sorts in front of the one before it — docs/product/vision.md says so");
         }
     }
 
@@ -146,6 +145,39 @@ public class NumberPatternTests
                 NumberPattern.Validate(new string('X', actBudget + 1) + "{case-number}{seq}", NumberPatternKind.ActNumber),
                 Is.EqualTo(NumberPatternError.TooLongForItsColumn),
                 "an act number carries a whole case number, so it runs out of its own column that much sooner");
+        }
+    }
+
+    /// <summary>
+    /// A case number is the operator's to type, so it can hold pattern text of its own; an act number
+    /// writes it out as it stands rather than reading it as a pattern.
+    /// </summary>
+    [Test]
+    public void AHandTypedCaseNumberIsWrittenOutRatherThanFormattedAgain()
+    {
+        var written = NumberPattern.Format("{case-number}-{year}{month}{day}-{seq}", new DateOnly(2026, 8, 5), 1, "SP-{day}/2026");
+
+        Assert.That(written, Is.EqualTo("SP-{day}/2026-20260805-001"), "the case number goes in last, so no later placeholder pass runs over it");
+    }
+
+    /// <summary>
+    /// What <see cref="NumberPatternError.TooLongForItsColumn"/> measures is what the pattern writes,
+    /// for a case number of the widest kind there is: one made of placeholders, filling its own column.
+    /// </summary>
+    [Test]
+    public void TheColumnBoundHoldsForACaseNumberMadeOfPlaceholders()
+    {
+        const string pattern = "{case-number}{seq}";
+        var caseNumber = string.Concat(Enumerable.Repeat("{seq}", 12)) + new string('X', Case.CaseNumberLength - (12 * "{seq}".Length));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(caseNumber, Has.Length.EqualTo(Case.CaseNumberLength));
+            Assert.That(NumberPattern.Validate(pattern, NumberPatternKind.ActNumber), Is.Null);
+            Assert.That(
+                NumberPattern.Format(pattern, DateOnly.MaxValue, int.MaxValue, caseNumber),
+                Has.Length.LessThanOrEqualTo(Act.ActNumberLength),
+                "a pattern the validation let through fits its column whatever the case number says");
         }
     }
 
