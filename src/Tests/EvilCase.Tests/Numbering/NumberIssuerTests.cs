@@ -111,11 +111,11 @@ public class NumberIssuerTests
     [Test]
     public async Task WinterKeepsTheSameDayAsUtcAnHourLonger()
     {
-        this.time = new TestTimeProvider(new DateTime(2026, 1, 4, 23, 30, 0, DateTimeKind.Utc));
+        this.time = new TestTimeProvider(new DateTime(2026, 1, 4, 22, 30, 0, DateTimeKind.Utc));
 
         var number = await this.Issuer().IssueCaseNumber();
 
-        Assert.That(number, Is.EqualTo("EC-20260105-001"), "the offset is the one in force on the day, not a fixed two hours");
+        Assert.That(number, Is.EqualTo("EC-20260104-001"), "the offset is the one in force on the day, not the summer's two hours");
     }
 
     [Test]
