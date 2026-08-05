@@ -1,3 +1,4 @@
+using System.Net.Sockets;
 using EvilBrains.EvilCase.Data;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
@@ -8,8 +9,8 @@ using Npgsql;
 namespace EvilBrains.EvilCase.Tests.Numbering;
 
 /// <summary>
-/// A migrated PostgreSQL database of this fixture's own, dropped again on disposal. What one
-/// statement does under two callers is the guarantee, so nothing short of a server proves it. Set
+/// A migrated PostgreSQL database of one test's own, dropped again on disposal. What one statement
+/// does under two callers is the guarantee, so nothing short of a server proves it. Set
 /// <c>EVILCASE_TESTS_POSTGRES</c> to a server connection string to test against another server; a
 /// server named there and not answering fails, so CI's green says these ran. Without the variable an
 /// unreachable server ignores the test instead, never silently passes it.
@@ -26,7 +27,8 @@ internal sealed class NumberingDatabase : IAsyncDisposable
     }
 
     /// <summary>
-    /// Creates the database, migrates it and puts <paramref name="owners"/> users in it.
+    /// Creates the database, migrates it and puts <paramref name="owners"/> users in it. A failure
+    /// anywhere in that drops what it already made, so a broken setup leaves no database behind.
     /// </summary>
     public static async Task<NumberingDatabase> Create(int owners = 1)
     {
@@ -34,28 +36,21 @@ internal sealed class NumberingDatabase : IAsyncDisposable
         var name = "evilcase_tests_" + Guid.NewGuid().ToString("N");
         var database = new NumberingDatabase(new NpgsqlConnectionStringBuilder(configured ?? DefaultServer) { Database = name }.ConnectionString);
 
-        await using var context = database.Context();
+        var created = false;
         try
         {
-            await context.Database.MigrateAsync();
+            await database.Fill(owners);
+            created = true;
         }
         catch (NpgsqlException exception) when (configured is null)
         {
             Assert.Ignore($"no PostgreSQL to test the series against, set EVILCASE_TESTS_POSTGRES: {exception.Message}");
         }
-
-        for (var index = 0; index < owners; index++)
+        finally
         {
-            context.Users.Add(new User
-            {
-                Email = string.Create(CultureInfo.InvariantCulture, $"owner{index}@example.test"),
-                PasswordHash = "x",
-                Role = UserRole.User,
-                Created = DateTime.UtcNow,
-            });
+            if (!created)
+                await database.DisposeAsync();
         }
-
-        await context.SaveChangesAsync();
 
         return database;
     }
@@ -85,6 +80,35 @@ internal sealed class NumberingDatabase : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         await using var context = this.Context();
-        await context.Database.EnsureDeletedAsync();
+
+        try
+        {
+            await context.Database.EnsureDeletedAsync();
+        }
+        catch (Exception exception) when (exception.GetBaseException() is SocketException)
+        {
+            // A server that never answered holds no database of ours; a server that refuses the drop
+            // says so as a PostgresException and is left to fail.
+        }
+    }
+
+    private async Task Fill(int owners)
+    {
+        await using var context = this.Context();
+
+        await context.Database.MigrateAsync();
+
+        for (var index = 0; index < owners; index++)
+        {
+            context.Users.Add(new User
+            {
+                Email = string.Create(CultureInfo.InvariantCulture, $"owner{index}@example.test"),
+                PasswordHash = "x",
+                Role = UserRole.User,
+                Created = DateTime.UtcNow,
+            });
+        }
+
+        await context.SaveChangesAsync();
     }
 }

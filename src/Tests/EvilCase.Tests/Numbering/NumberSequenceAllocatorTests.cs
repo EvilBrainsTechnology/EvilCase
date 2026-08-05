@@ -12,24 +12,31 @@ public class NumberSequenceAllocatorTests
 {
     private const int Callers = 20;
 
-    private NumberingDatabase database = null!;
+    private NumberingDatabase? database;
 
     private long ownerId;
+
+    private NumberingDatabase Database => this.database!;
 
     [SetUp]
     public async Task SetUp()
     {
         this.database = await NumberingDatabase.Create(owners: 2);
-        this.ownerId = await this.database.OwnerId();
+        this.ownerId = await this.Database.OwnerId();
     }
 
+    // Without a server SetUp ignores the test and leaves nothing here to drop.
     [TearDown]
-    public async Task TearDown() => await this.database.DisposeAsync();
+    public async Task TearDown()
+    {
+        if (this.database is not null)
+            await this.database.DisposeAsync();
+    }
 
     [Test]
     public async Task ASeriesCountsFromOneAndKeepsGoing()
     {
-        await using var context = this.database.Context();
+        await using var context = this.Database.Context();
         var allocator = this.Allocator(context);
 
         int[] taken = [await allocator.Next("case:20260805"), await allocator.Next("case:20260805"), await allocator.Next("case:20260805")];
@@ -41,7 +48,7 @@ public class NumberSequenceAllocatorTests
     [Test]
     public async Task EveryScopeCountsOnItsOwn()
     {
-        await using var context = this.database.Context();
+        await using var context = this.Database.Context();
         var allocator = this.Allocator(context);
 
         using (Assert.EnterMultipleScope())
@@ -55,10 +62,10 @@ public class NumberSequenceAllocatorTests
     [Test]
     public async Task OneOwnerNeverCountsInAnothersSeries()
     {
-        var other = await this.database.OwnerId(index: 1);
+        var other = await this.Database.OwnerId(index: 1);
 
-        await using var mine = this.database.Context();
-        await using var theirs = this.database.Context();
+        await using var mine = this.Database.Context();
+        await using var theirs = this.Database.Context();
 
         var first = await this.Allocator(mine).Next("case:20260805");
         var second = await new NumberSequenceAllocator(theirs, new FixedOwnerContext(other)).Next("case:20260805");
@@ -78,8 +85,8 @@ public class NumberSequenceAllocatorTests
     [Test]
     public async Task ACallerWaitsForTheOneHoldingTheRowAndTakesTheValueAfterIt()
     {
-        await using var holder = this.database.Context();
-        await using var waiter = this.database.Context();
+        await using var holder = this.Database.Context();
+        await using var waiter = this.Database.Context();
 
         Assert.That(await this.Allocator(holder).Next("case:20260805"), Is.EqualTo(1));
 
@@ -103,7 +110,7 @@ public class NumberSequenceAllocatorTests
     [Test]
     public async Task AValueTakenInsideATransactionThatRollsBackGoesBackWithIt()
     {
-        await using var context = this.database.Context();
+        await using var context = this.Database.Context();
         var allocator = this.Allocator(context);
 
         await using (var transaction = await context.Database.BeginTransactionAsync())
@@ -118,7 +125,7 @@ public class NumberSequenceAllocatorTests
     [Test]
     public async Task EveryOneOfManyCallersAtOnceTakesAValueOfItsOwn()
     {
-        var contexts = Enumerable.Range(0, Callers).Select(_ => this.database.Context()).ToList();
+        var contexts = Enumerable.Range(0, Callers).Select(_ => this.Database.Context()).ToList();
 
         try
         {
@@ -139,7 +146,7 @@ public class NumberSequenceAllocatorTests
 
     private async Task<int> Rows()
     {
-        await using var context = this.database.Context();
+        await using var context = this.Database.Context();
 
         return await context.NumberSequences.CountAsync();
     }

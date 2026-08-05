@@ -10,13 +10,20 @@ namespace EvilBrains.EvilCase.Tests.Numbering;
 /// </summary>
 public class NumberingSettingsReaderTests
 {
-    private NumberingDatabase database = null!;
+    private NumberingDatabase? database;
+
+    private NumberingDatabase Database => this.database!;
 
     [SetUp]
     public async Task SetUp() => this.database = await NumberingDatabase.Create();
 
+    // Without a server SetUp ignores the test and leaves nothing here to drop.
     [TearDown]
-    public async Task TearDown() => await this.database.DisposeAsync();
+    public async Task TearDown()
+    {
+        if (this.database is not null)
+            await this.database.DisposeAsync();
+    }
 
     [Test]
     public async Task TheSeededRowIsWhatTheApplicationIssuesFrom()
@@ -61,7 +68,7 @@ public class NumberingSettingsReaderTests
     [Test]
     public async Task ASecondRowIsRefusedRatherThanChosenBetween()
     {
-        await using (var context = this.database.Context())
+        await using (var context = this.Database.Context())
         {
             context.NumberingSettings.Add(new NumberingSettings { CaseNumberPattern = "X-{seq}", ActNumberPattern = "Y-{seq}" });
             await context.SaveChangesAsync();
@@ -72,14 +79,14 @@ public class NumberingSettingsReaderTests
 
     private async Task<NumberingPatterns> Read()
     {
-        await using var context = this.database.Context();
+        await using var context = this.Database.Context();
 
         return await new NumberingSettingsReader(context).Read();
     }
 
     private async Task Save(string caseNumberPattern, string actNumberPattern)
     {
-        await using var context = this.database.Context();
+        await using var context = this.Database.Context();
 
         await context.NumberingSettings.ExecuteUpdateAsync(settings => settings
             .SetProperty(row => row.CaseNumberPattern, caseNumberPattern)
@@ -88,7 +95,7 @@ public class NumberingSettingsReaderTests
 
     private async Task DeleteTheRow()
     {
-        await using var context = this.database.Context();
+        await using var context = this.Database.Context();
 
         await context.NumberingSettings.ExecuteDeleteAsync();
     }
