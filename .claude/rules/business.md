@@ -29,14 +29,14 @@ App → Api.Client → (HTTP) → Api → Business → Data
 - A pure rule is a static class with no `DbContext` in sight, tested without one.
 - Only one layer of a case's relations is ever read; nothing walks past it.
 - Every number the application issues comes from `INumberIssuer`, which hands it to the create it
-  wraps: no counter, the next `{seq}` is the one after the highest the column already holds, so
-  two callers can build the same number and the create runs again under the one after it. The day
-  a number carries is the day it was issued on, read through `TimeProvider.GetLocalNow()` — the
-  zone is the deployment's, never a constant in the code.
-- A pattern is read back through `NumberPattern.Series`: the date and the case number are literal
-  text by then, so only what the pattern in force would write today counts towards the maximum,
-  whoever typed it. `NumberPattern.Validate` is the only list of what a pattern may say — it
-  stays in Business and a screen that edits one asks the API for its verdict.
+  wraps: no counter, the next `{seq}` is the one after the highest the column already holds. Two
+  callers can build the same number, so the create runs again under the one after it and must
+  repeat nothing a second run would double — a file written, a message sent, its own successful
+  `SaveChanges`. The day a number carries is the day it was issued on, read through
+  `TimeProvider.GetLocalNow()`; the zone is the deployment's, never a constant in the code.
+- A pattern is read back through `NumberPattern.Series`: only what the pattern in force would
+  write today counts, whoever typed it. `NumberPattern.Validate` is the only list of what a
+  pattern may say; it stays in Business and a screen editing one asks the API for its verdict.
 
 ## List queries
 

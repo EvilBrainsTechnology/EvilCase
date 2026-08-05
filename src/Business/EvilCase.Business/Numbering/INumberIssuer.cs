@@ -8,7 +8,8 @@ namespace EvilBrains.EvilCase.Business.Numbering;
 /// A number is the one after the highest already stored, so two callers at once can build the same one
 /// and the unique index refuses the second. <c>create</c> is therefore called again under the number
 /// after it: it builds and saves its own row, and a refused attempt's rows are detached before the
-/// next one runs.
+/// next one runs. It must repeat nothing a second run would double — a file written, a message sent,
+/// a <c>SaveChanges</c> of its own that succeeded.
 /// </remarks>
 public interface INumberIssuer
 {

@@ -19,8 +19,7 @@ paths:
   within its case; every external mark is an `ExternalCaseNumber` row with a required assigning
   party.
 - The patterns both are issued from are one `NumberingSettings` row for the whole application,
-  inserted by its migration and the operator's from then on. Nothing counts the series: the two
-  unique indexes are what keeps a number from being issued twice.
+  inserted by its migration and the operator's from then on.
 - An act carries one required `Date` and no ordinal; acts are read ordered by it alone, and
   `(CaseId, Date)` is the index that serves both.
 - A date a period runs from is `DateOnly` mapped to `date`; timestamps stay `DateTime`.

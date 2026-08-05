@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
 
     # The tests that need a server ignore themselves without one, so this is what keeps them running
-    # at all. Same image as deploy/docker-compose.dev.yml, so a developer's database and this one
+    # at all. Same image as both compose files in deploy/, so a developer's database and this one
     # behave alike; the tests that use it name their own databases and drop them again.
     services:
       postgres:
