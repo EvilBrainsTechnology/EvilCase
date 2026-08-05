@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore.Migrations;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
@@ -64,17 +63,16 @@ public partial class CaseRelations : Migration
             name: "CaseRelations",
             columns: table => new
             {
-                Id = table.Column<long>(type: "bigint", nullable: false)
-                    .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                 CaseId = table.Column<long>(type: "bigint", nullable: false),
                 RelatedCaseId = table.Column<long>(type: "bigint", nullable: false),
             },
             constraints: table =>
             {
-                table.PrimaryKey("PK_CaseRelations", x => x.Id);
+                // The pair is the key, so it is one row whichever end asks.
+                table.PrimaryKey("PK_CaseRelations", x => new { x.CaseId, x.RelatedCaseId });
 
-                // The pair is stored once, lower identifier first; with the unique index below, that is
-                // what refuses the mirror row and the row relating a case to itself.
+                // The pair is stored once, lower identifier first; that is what refuses the mirror row
+                // and the row relating a case to itself.
                 table.CheckConstraint("CK_CaseRelations_Ordered", "\"CaseId\" < \"RelatedCaseId\"");
 
                 table.ForeignKey(
@@ -91,12 +89,7 @@ public partial class CaseRelations : Migration
                     onDelete: ReferentialAction.Cascade);
             });
 
-        migrationBuilder.CreateIndex(
-            name: "IX_CaseRelations_CaseId_RelatedCaseId",
-            table: "CaseRelations",
-            columns: ["CaseId", "RelatedCaseId"],
-            unique: true);
-
+        // The key already leads with CaseId; the other end needs its own.
         migrationBuilder.CreateIndex(
             name: "IX_CaseRelations_RelatedCaseId",
             table: "CaseRelations",

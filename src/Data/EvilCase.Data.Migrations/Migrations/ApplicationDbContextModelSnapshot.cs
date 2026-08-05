@@ -157,24 +157,15 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
 
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.CaseRelation", b =>
                 {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
                     b.Property<long>("CaseId")
                         .HasColumnType("bigint");
 
                     b.Property<long>("RelatedCaseId")
                         .HasColumnType("bigint");
 
-                    b.HasKey("Id");
+                    b.HasKey("CaseId", "RelatedCaseId");
 
                     b.HasIndex("RelatedCaseId");
-
-                    b.HasIndex("CaseId", "RelatedCaseId")
-                        .IsUnique();
 
                     b.ToTable("CaseRelations", t =>
                         {

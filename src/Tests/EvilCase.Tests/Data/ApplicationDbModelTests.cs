@@ -152,9 +152,8 @@ public class ApplicationDbModelTests
         Assert.That(new[] { designTime, relation }, Has.None.Null, "the relation is mapped");
 
         var check = designTime!.GetCheckConstraints().SingleOrDefault();
-        var unique = relation!.GetIndexes().SingleOrDefault(index => index.IsUnique);
+        var key = relation!.FindPrimaryKey();
         string[] pair = [nameof(CaseRelation.CaseId), nameof(CaseRelation.RelatedCaseId)];
-        string[] bare = ["Id", .. pair];
 
         using (Assert.EnterMultipleScope())
         {
@@ -162,9 +161,9 @@ public class ApplicationDbModelTests
                 check?.Sql?.Replace(" ", "", StringComparison.Ordinal),
                 Is.AnyOf(@"""CaseId""<""RelatedCaseId""", @"""RelatedCaseId"">""CaseId"""),
                 "the pair is stored in one order, which is also what refuses a case related to itself");
-            Assert.That(unique?.Properties.Select(property => property.Name), Is.EqualTo(pair), "one pair is one row, whichever end asks");
+            Assert.That(key?.Properties.Select(property => property.Name), Is.EqualTo(pair), "the pair is the key, so one pair is one row whichever end asks");
             Assert.That(IsIndexed(relation, nameof(CaseRelation.RelatedCaseId)), Is.True, "a relation is read from either end, so both columns are indexed");
-            Assert.That(ColumnsOf(relation), Is.EquivalentTo(bare), "the row is bare — it carries the pair and nothing else");
+            Assert.That(ColumnsOf(relation), Is.EquivalentTo(pair), "the row is bare — it carries the pair and nothing else, not even an identity of its own");
             Assert.That(relation.GetNavigations(), Is.Empty, "the two ends are the same kind of end, so a read names both columns rather than following one of them");
         }
     }
