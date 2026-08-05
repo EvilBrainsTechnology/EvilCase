@@ -10,7 +10,7 @@ a screenshot is synthetic data.
 
   ```bash
   PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers /opt/node22/bin/node \
-    .claude/skills/product-loop/screenshots.mjs /tmp/shots/192 targets.json
+    .claude/skills/product-loop/screenshots.mjs /tmp/shots/<number> targets.json
   ```
 
   `targets.json` is a list of `{ name, path, file, wait?, steps?, fullPage? }`; a step is
@@ -34,7 +34,7 @@ the path holds today, and a pull request has to keep showing what was reviewed:
 https://raw.githubusercontent.com/EvilBrainsTechnology/EvilCase/<sha>/pull-request/<number>/<screen>-<width>.png
 ```
 
-A URL pinned to a commit outside `doc/images` — one of the feature branch — dies with the next
+A URL pinned to a commit outside `doc/images` — one on the feature branch — dies with the next
 rebase: re-point it in the same step as the force-push, never later.
 
 ## The order
@@ -46,26 +46,15 @@ until the pull request does, so the body is written twice.
 1. Take the screenshots into a directory outside the checkout. A non-zero exit ends it here —
    fix the screen, open nothing.
 2. Push the branch and open the pull request as a draft, body without images.
-3. Commit the files onto `doc/images` under the number it got and push. Plumbing, so nothing is
-   checked out and the worktree keeps its own working tree and index:
+3. Put the files on `doc/images` under the number it got, with `Push-EvilCaseImages.ps1` next to
+   this file; it prints the commit sha the body pins to. Its header has the rest: the checkout's
+   index stays untouched, a path already on the branch is replaced, and a rejected push or a
+   missing branch is the script's own to recover from.
 
    ```bash
-   git fetch origin doc/images
-   export GIT_INDEX_FILE=$(mktemp -u)          # scratch index; the checkout's own is untouched
-   git read-tree origin/doc/images
-   for f in /tmp/shots/192/*.png; do
-     git update-index --add --cacheinfo \
-       "100644,$(git hash-object -w "$f"),pull-request/192/$(basename "$f")"
-   done
-   sha=$(git commit-tree "$(git write-tree)" -p origin/doc/images -m "Images for #192")
-   git push origin "$sha:refs/heads/doc/images"
-   unset GIT_INDEX_FILE
+   sha=$(pwsh .claude/skills/product-loop/Push-EvilCaseImages.ps1 \
+     -PullRequest <number> -Path /tmp/shots/<number>)
    ```
-
-   `rejected … non-fast-forward` means another round pushed first, and git's hint to `git pull`
-   is wrong here — nothing of `doc/images` is checked out, and the `--force` that follows it is
-   what the ruleset refuses. Run the block again from `git fetch`: it re-parents the same files
-   on the new tip and keeps both rounds'.
 4. `PATCH` the body with the images, each pinned to `$sha`, then check every URL with
    `curl -o /dev/null -w '%{http_code}'` and **no** `Authorization` header —
    `raw.githubusercontent.com` answers `404` to `$GH_TOKEN` whatever the file.
@@ -73,11 +62,5 @@ until the pull request does, so the body is written twice.
    as literal text; where it happened, embed as `<img src="…" alt="…">` — editing the markdown
    again adds another backtick.
 
-`update-index` replaces a path it already holds, without a word, and `screenshots.mjs` names the
-files from `targets.json` — so a second round of the same targets supersedes them at the same
-path. A body pinned to the earlier commit goes on showing what it showed: a raw URL resolves
-against the commit it names.
-
-Should `doc/images` ever be gone — `fatal: couldn't find remote ref doc/images` — the block
-above rebuilds it: drop the `fetch`, the `read-tree` and `-p`, and `commit-tree` writes the
-parentless commit the branch starts from. The old pinned URLs do not come back with it.
+A second round of the same targets writes the same paths, and the body pinned to the earlier
+commit goes on showing what it showed: a raw URL resolves against the commit it names.
