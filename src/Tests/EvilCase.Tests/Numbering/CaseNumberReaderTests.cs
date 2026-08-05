@@ -1,3 +1,4 @@
+using EvilBrains.EvilCase.Business.Cases;
 using EvilBrains.EvilCase.Business.Numbering;
 using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Domain.Cases;
@@ -41,7 +42,7 @@ public class CaseNumberReaderTests
     [Test]
     public void ACaseThatIsNotThereIsRefusedRatherThanNumberedUnderNothing()
     {
-        Assert.That(async () => await this.Read(caseId: 404), Throws.InstanceOf<InvalidOperationException>());
+        Assert.That(async () => await this.Read(caseId: 404), Throws.InstanceOf<CaseNotFoundException>(), "a missing case is its own failure, not the broken query an InvalidOperationException would say it is");
     }
 
     [Test]
@@ -49,7 +50,7 @@ public class CaseNumberReaderTests
     {
         var theirs = await this.WriteCase("EC-20260804-001", await this.Database.OwnerId(index: 1));
 
-        Assert.That(async () => await this.Read(theirs), Throws.InstanceOf<InvalidOperationException>(), "a number is written under a case of the caller's own, never under one they cannot see");
+        Assert.That(async () => await this.Read(theirs), Throws.InstanceOf<CaseNotFoundException>(), "a number is written under a case of the caller's own, never under one they cannot see");
     }
 
     private async Task<string> Read(long caseId)

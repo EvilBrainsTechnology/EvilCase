@@ -1,3 +1,4 @@
+using EvilBrains.EvilCase.Business.Cases;
 using EvilBrains.EvilCase.Business.Numbering;
 using EvilBrains.EvilCase.Tests.Auth;
 
@@ -143,7 +144,7 @@ public class NumberIssuerTests
     {
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(async () => await this.Issuer().IssueActNumber(caseId: 404), Throws.InstanceOf<InvalidOperationException>());
+            Assert.That(async () => await this.Issuer().IssueActNumber(caseId: 404), Throws.InstanceOf<CaseNotFoundException>(), "the caller answers a missing case with a 404, so it must not arrive as the same failure a broken pattern does");
             Assert.That(this.sequences.Scopes, Is.Empty, "a case the number cannot be written under burns no number either");
         }
     }
@@ -153,7 +154,10 @@ public class NumberIssuerTests
     {
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(async () => await this.Issuer(caseNumberPattern: "EC-{year}").IssueCaseNumber(), Throws.InstanceOf<InvalidOperationException>(), "without {seq} every case would take the same number");
+            Assert.That(
+                async () => await this.Issuer(caseNumberPattern: "EC-{year}").IssueCaseNumber(),
+                Throws.InstanceOf<InvalidOperationException>().And.Not.InstanceOf<CaseNotFoundException>(),
+                "without {seq} every case would take the same number, which is not a case anybody is missing");
             Assert.That(async () => await this.Issuer(caseNumberPattern: "EC-{day}-{seq}").IssueCaseNumber(), Throws.InstanceOf<InvalidOperationException>(), "the fifth of September would take the numbers of the fifth of August");
             Assert.That(this.sequences.Scopes, Is.Empty, "a pattern that cannot work burns no number either");
         }

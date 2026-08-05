@@ -1,3 +1,4 @@
+using EvilBrains.EvilCase.Business.Cases;
 using EvilBrains.EvilCase.Data.DbContexts;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,6 +13,6 @@ internal sealed class CaseNumberReader(ApplicationDbContext context, IOwnerConte
             .Select(@case => @case.CaseNumber)
             .SingleOrDefaultAsync(cancellationToken);
 
-        return number ?? throw new InvalidOperationException(string.Create(CultureInfo.InvariantCulture, $"there is no case {caseId} to number an act under"));
+        return number ?? throw CaseNotFoundException.For(caseId);
     }
 }

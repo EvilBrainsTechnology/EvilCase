@@ -1,3 +1,4 @@
+using EvilBrains.EvilCase.Business.Cases;
 using EvilBrains.EvilCase.Business.Numbering;
 
 namespace EvilBrains.EvilCase.Tests.Numbering;
@@ -11,5 +12,5 @@ internal sealed class FakeCaseNumberReader(params (long CaseId, string CaseNumbe
     public Task<string> Read(long caseId, CancellationToken cancellationToken = default) =>
         Array.Find(cases, entry => entry.CaseId == caseId) is { CaseNumber: { } number }
             ? Task.FromResult(number)
-            : throw new InvalidOperationException(string.Create(CultureInfo.InvariantCulture, $"there is no case {caseId} to number an act under"));
+            : throw CaseNotFoundException.For(caseId);
 }
