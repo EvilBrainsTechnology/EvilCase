@@ -10,8 +10,9 @@ namespace EvilBrains.EvilCase.Tests.Numbering;
 /// <summary>
 /// A migrated PostgreSQL database of this fixture's own, dropped again on disposal. What one
 /// statement does under two callers is the guarantee, so nothing short of a server proves it. Set
-/// <c>EVILCASE_TESTS_POSTGRES</c> to a server connection string to test against another server;
-/// without a reachable one the tests are ignored, never silently passed.
+/// <c>EVILCASE_TESTS_POSTGRES</c> to a server connection string to test against another server; a
+/// server named there and not answering fails, so CI's green says these ran. Without the variable an
+/// unreachable server ignores the test instead, never silently passes it.
 /// </summary>
 internal sealed class NumberingDatabase : IAsyncDisposable
 {
@@ -29,16 +30,16 @@ internal sealed class NumberingDatabase : IAsyncDisposable
     /// </summary>
     public static async Task<NumberingDatabase> Create(int owners = 1)
     {
-        var server = Environment.GetEnvironmentVariable("EVILCASE_TESTS_POSTGRES") ?? DefaultServer;
+        var configured = Environment.GetEnvironmentVariable("EVILCASE_TESTS_POSTGRES");
         var name = "evilcase_tests_" + Guid.NewGuid().ToString("N");
-        var database = new NumberingDatabase(new NpgsqlConnectionStringBuilder(server) { Database = name }.ConnectionString);
+        var database = new NumberingDatabase(new NpgsqlConnectionStringBuilder(configured ?? DefaultServer) { Database = name }.ConnectionString);
 
         await using var context = database.Context();
         try
         {
             await context.Database.MigrateAsync();
         }
-        catch (NpgsqlException exception)
+        catch (NpgsqlException exception) when (configured is null)
         {
             Assert.Ignore($"no PostgreSQL to test the series against, set EVILCASE_TESTS_POSTGRES: {exception.Message}");
         }
