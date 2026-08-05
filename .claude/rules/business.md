@@ -27,6 +27,7 @@ App → Api.Client → (HTTP) → Api → Business → Data
 - `EvilCase.Auth` is a closed module behind `IAuthService`, exempt from the layering.
 - `Tests/EvilCase.Tests/Architecture/LayerTests` pins every arrow.
 - A pure rule is a static class with no `DbContext` in sight, tested without one.
+- Only one layer of a case's relations is ever read; nothing walks past it.
 
 ## List queries
 
