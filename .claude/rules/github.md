@@ -3,7 +3,8 @@
 - Never push to `master`. Work goes through a pull request from a branch.
 - Commit every logical unit that stands on its own.
 - One topic per pull request, small enough to review on a phone. Split it rather than let it grow.
-- Read and write GitHub through `gh`. Where `gh` is missing, use `curl` with `$GH_TOKEN`.
+- Read and write GitHub through `gh`, and nothing else. A session without it is broken, not a
+  case for working around — `.claude/hooks/session-start.sh` installs it.
 - End every GitHub write with the footer `— 🤖 Claude Code` on its own last line. A comment
   without it is the owner's and is waiting for an answer.
 - While working, run only what the change needs: `dotnet r build`, and tests filtered to the

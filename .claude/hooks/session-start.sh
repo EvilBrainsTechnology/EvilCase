@@ -73,8 +73,8 @@ fi
 
 # --- GitHub CLI -----------------------------------------------------------------------------
 # .claude/rules/github.md reads and writes GitHub through gh, which the container does not ship.
-# It authenticates from $GH_TOKEN, so no login step. A failure here is not fatal: the rule falls
-# back to curl.
+# It authenticates from $GH_TOKEN, so no login step. There is no fallback: a worktree-isolated
+# subagent cannot run a command that expands $GH_TOKEN, so a session without gh cannot work.
 install_gh() {
     local version=2.97.0
     local archive="gh_${version}_linux_amd64"
@@ -91,10 +91,10 @@ install_gh() {
 
 if command -v gh >/dev/null 2>&1; then
     log "gh $(gh --version | head -n 1 | cut -d' ' -f3) already installed"
-elif install_gh; then
-    log "gh $(gh --version | head -n 1 | cut -d' ' -f3) installed"
 else
-    log "gh could not be installed — GitHub calls fall back to curl with \$GH_TOKEN"
+    log "installing gh"
+    install_gh
+    log "gh $(gh --version | head -n 1 | cut -d' ' -f3) installed"
 fi
 
 # --- PostgreSQL -----------------------------------------------------------------------------
