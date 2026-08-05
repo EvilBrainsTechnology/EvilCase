@@ -77,18 +77,18 @@ function Invoke-GitChecked([string[]] $GitArguments) {
     return $result.Output
 }
 
-# A scratch index, so the checkout's own is never read or written. FETCH_HEAD rather than a
-# remote-tracking ref: a fetch of one branch is not obliged to write one.
+# A scratch index, so the checkout's own is never read or written. The tip comes from ls-remote,
+# never from FETCH_HEAD: any fetch of another branch in this checkout overwrites that file, and the
+# commit would be parented on whatever that one asked for.
 $indexFile = [System.IO.Path]::Combine([System.IO.Path]::GetTempPath(), "evilcase-images-$PID.index")
 $env:GIT_INDEX_FILE = $indexFile
 try {
     for ($attempt = 1; ; $attempt++) {
-        $fetch = Invoke-Git @('fetch', $Remote, $Branch)
-        $parent = $null
-        if ($fetch.ExitCode -eq 0) { $parent = Invoke-GitChecked @('rev-parse', 'FETCH_HEAD') }
-        elseif ($fetch.Error -notmatch "couldn't find remote ref") {
-            throw "git fetch $Remote $Branch failed: $($fetch.Error)"
-        }
+        $listed = Invoke-GitChecked @('ls-remote', $Remote, "refs/heads/$Branch")
+        $parent = if ($listed) { ($listed -split '\s+', 2)[0] } else { $null }
+        # Listed before fetched, never after: a tip that lands in between is fetched with the one
+        # named here among its ancestors, and read-tree has an object either way.
+        if ($parent) { Invoke-GitChecked @('fetch', $Remote, $Branch) | Out-Null }
 
         Remove-Item -LiteralPath $indexFile -Force -ErrorAction SilentlyContinue
         if ($parent) { Invoke-GitChecked @('read-tree', $parent) | Out-Null }
