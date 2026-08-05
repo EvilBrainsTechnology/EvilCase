@@ -14,11 +14,12 @@
     silently — a body pinned to the earlier commit goes on showing what it showed, because a raw
     URL resolves against the commit it names.
 
-    A rejected push means another round pushed first — `rejected … non-fast-forward` when the new
-    tip was already advertised, `cannot lock ref … is at … but expected …` when it landed while
-    this push was in flight. Either way the script re-fetches and re-parents the same files on the
-    new tip, up to -Attempts times: git's hint to `git pull` is wrong here, and the `--force`
-    behind it is what the branch's ruleset refuses.
+    A rejected push means another round pushed first, and the wording says when. Already
+    advertised: `! [rejected] … (fetch first)` for a tip this checkout has no object for,
+    `(non-fast-forward)` when it has one — worktrees of a checkout share its object store. Landed
+    while this push was in flight: `cannot lock ref … is at … but expected …`. All three re-fetch
+    and re-parent the same files on the new tip, up to -Attempts times: git's hint to `git pull`
+    is wrong here, and the `--force` behind it is what the branch's ruleset refuses.
 
     A -Branch the remote does not have is refused, never created: the ruleset keeps doc/images from
     being deleted, so a name that is not there is a typo, and pushing to it would put the body's
@@ -115,11 +116,9 @@ try {
             Write-Output $sha
             return
         }
-        # The branch moved, and which wording says so depends on when: `non-fast-forward` when the
-        # push already saw the new tip advertised, `cannot lock ref … is at … but expected …` when
-        # it moved after the advertisement. Anything else — the ruleset declining a force among it —
-        # is not a race and is never retried.
-        if ($push.Error -notmatch 'non-fast-forward|fetch first|stale info|cannot lock ref') {
+        # The branch moved; the header has the three wordings. Anything else — the ruleset declining
+        # a force among it — is not a race and is never retried.
+        if ($push.Error -notmatch 'fetch first|non-fast-forward|cannot lock ref') {
             throw "git push $sha to $Branch failed: $($push.Error)"
         }
         if ($attempt -ge $Attempts) { throw "$Branch moved under all $Attempts attempts: $($push.Error)" }
