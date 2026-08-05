@@ -10,9 +10,9 @@ paths:
 one rule per test, the reason in its assertion. Read them before changing an entity. Below is
 what neither says.
 
-- The domain's word is the code's word: the type is `Case`, with `@case` where the keyword
+- The domain's word wins over a language keyword: the type is `Case`, with `@case` where it
   collides.
-- A date a period runs from is `DateOnly` mapped to `date`; timestamps stay `DateTime`.
+- A calendar date is `DateOnly` mapped to `date`; a moment in time stays `DateTime`.
 - A test reads check constraints from `IDesignTimeModel`; `context.Model` has dropped them.
 
 ## Migrations

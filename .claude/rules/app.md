@@ -14,8 +14,8 @@ paths:
 
 ## Responsive
 
-Desktop is primary. Mobile is first-class for the case list, case detail, deadlines and quick
-notes; administrative flows only must not break.
+Desktop is primary. Every screen a user works in daily is first-class on mobile; the rest only
+must not break.
 
 - One breakpoint: `lg` (992 px), never mixed with `md`. Modals: `modal-fullscreen-lg-down`.
 - Data lists never scroll horizontally on mobile: render a table and a card variant and switch

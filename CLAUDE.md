@@ -1,9 +1,7 @@
 # EvilCase
 
-A case-file system for administrative and legal proceedings: a case accumulates acts, parties,
-file marks, tags and comments, and relates to any number of other cases. Built so far — the
-domain model in PostgreSQL, authentication, and a Blazor WebAssembly frontend that ships the
-case list. `docs/product/vision.md` is what the rest is built towards.
+A case-file system for administrative and legal proceedings; `docs/product/vision.md` is the
+product it is built towards.
 
 .NET 10, PostgreSQL, secrets from environment variables. `src/global.json` pins the SDK version
 and `.claude/hooks/session-start.sh` hardcodes its image tag — a bump changes both, in the same
@@ -26,7 +24,7 @@ All code lives in `src/` (solution `EvilCase.slnx`).
 | `Data/EvilCase.Data` | EF Core model + DbContext (PostgreSQL) — schema, nothing else |
 | `Data/EvilCase.Data.Migrations` | EF Core migrations |
 | `Tests/EvilCase.Tests` | Application tests (NUnit), including the host's routing through `WebApplicationFactory` |
-| `Utils/EvilBrains.*` | Shared libraries: collections, cryptography, EF Core helpers, logging (`Logging.Contract`, `Logging.AspNetCore`, `Logging.WebAssembly`), API client attributes, the API client source generator, the custom analyzers and an unwired Infisical configuration provider |
+| `Utils/EvilBrains.*` | Shared libraries: collections, cryptography, EF Core helpers, logging, the API client source generator and the custom analyzers |
 | `Utils/Tests/EvilBrains.Utils.Tests` | Tests for the shared libraries |
 
 One process serves everything: `/api/**` is the API, every other path returns the frontend. The
