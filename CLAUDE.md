@@ -5,7 +5,9 @@ file marks, tags and comments, and relates to any number of other cases. Built s
 domain model in PostgreSQL, authentication, and a Blazor WebAssembly frontend that ships the
 case list; `docs/product/vision.md` is what the rest is built towards.
 
-.NET 10, PostgreSQL, secrets from environment variables.
+.NET 10, PostgreSQL, secrets from environment variables. `src/global.json` pins the SDK version
+and `.claude/hooks/session-start.sh` hardcodes its image tag — a bump changes both, in the same
+commit.
 
 ## Solution map
 
@@ -54,8 +56,8 @@ clone.
   --filter FullyQualifiedName~<type>` — seconds against the gate's minutes, most of them
   formatting that a failing test cannot change.
 - `dotnet r run` — run everything at `https://localhost:5000` (Scalar UI at `/scalar` in dev); requires a reachable PostgreSQL
-- `dotnet r run-docker` — the same, in Docker with its own PostgreSQL, for a person trying the application out; running and verifying it is `dotnet r run`
+- `dotnet r run-docker` — the same, in Docker with its own PostgreSQL, for a person trying the application out
 - `dotnet r add-migration` / `remove-migration` / `generate-sql-script` — EF migrations
 
 A reachable PostgreSQL and a seeded administrator are the two prerequisites `dotnet r run` needs
-and the solution does not carry; `.claude/skills/run-app/SKILL.md` has the whole sequence.
+and the solution does not carry; `README.md` has both.

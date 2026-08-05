@@ -57,8 +57,8 @@ next to it. `dotnet r run-docker` from `src/` is the whole command — no `.env`
 certificate, no database of one's own.
 
 It is there for a person who wants the application running without setting anything up. Verifying
-a change is `dotnet r run` and the run-app skill, which says nothing of this stack on purpose: one
-address, one database and one image build per change are not what a validation needs.
+a change is the run-app skill, which says nothing of this stack on purpose: one address, one
+database and one image build per change are not what a validation needs.
 
 ```
 docker compose -f deploy/docker-compose.local.yml up --build
