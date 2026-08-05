@@ -7,6 +7,9 @@
 - A delegated implementation is followed by a code review from a fresh subagent; whoever
   delegated it works the relevant findings in before it reports and before the merge. An
   approval arriving while that review runs changes nothing — the merge waits for it.
+- A review reads the check run GitHub already made on the head commit instead of running the
+  gate again; it runs the gate itself when that commit has none — a branch without a pull
+  request has none — or when a claim needs the run's own output.
 - Independent tasks go out in parallel, and they share one machine: a subagent takes its own
   port and its own database rather than the defaults, and drops them afterwards (run-app skill).
 - Search and read with `Grep`, `Glob` and `Read`; the shell is for commands that do something,
