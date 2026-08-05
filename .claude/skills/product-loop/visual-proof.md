@@ -24,8 +24,8 @@ a screenshot is synthetic data.
 
 Never in the slice's diff — on `master` a screenshot has no reader. They live on `doc/images`,
 an orphan branch sharing no history with `master`, one directory per pull request:
-`pull-request/<number>/<screen>-<width>.png`. The branch is append-only and never force-pushed,
-so its commits stay reachable however the feature branch is rebased or deleted.
+`pull-request/<number>/<screen>-<width>.png`. A ruleset on `refs/heads/doc/images` refuses
+deletion and non-fast-forward pushes, so what is pushed there stays reachable.
 
 Embed by raw URL pinned to the commit, never by branch name — a branch-name URL renders whatever
 the path holds today, and a pull request has to keep showing what was reviewed:
@@ -34,35 +34,49 @@ the path holds today, and a pull request has to keep showing what was reviewed:
 https://raw.githubusercontent.com/EvilBrainsTechnology/EvilCase/<sha>/pull-request/<number>/<screen>-<width>.png
 ```
 
+A URL pinned to a commit outside `doc/images` — one of the feature branch — dies with the next
+rebase: re-point it in the same step as the force-push, never later.
+
 ## The order
 
-The number the images are filed under does not exist until the pull request does, so the body is
-written twice.
+The screenshots come first: `screenshots.mjs` exiting non-zero is what stops a broken screen
+becoming a pull request. Only filing and embedding them need the number, which does not exist
+until the pull request does, so the body is written twice.
 
-1. Push the branch and open the pull request as a draft, body without images.
-2. Take the screenshots into a directory outside the checkout.
-3. Commit them onto `doc/images` and push. Plumbing, so nothing is checked out and the
-   worktree keeps its own working tree and index:
+1. Take the screenshots into a directory outside the checkout. A non-zero exit ends it here —
+   fix the screen, open nothing.
+2. Push the branch and open the pull request as a draft, body without images.
+3. Commit the files onto `doc/images` under the number it got and push. Plumbing, so nothing is
+   checked out and the worktree keeps its own working tree and index:
 
    ```bash
    git fetch origin doc/images
    export GIT_INDEX_FILE=$(mktemp -u)          # scratch index; the checkout's own is untouched
    git read-tree origin/doc/images
-   git update-index --add --cacheinfo \
-     "100644,$(git hash-object -w /tmp/shots/192/case-list-1440.png),pull-request/192/case-list-1440.png"
+   for f in /tmp/shots/192/*.png; do
+     git update-index --add --cacheinfo \
+       "100644,$(git hash-object -w "$f"),pull-request/192/$(basename "$f")"
+   done
    sha=$(git commit-tree "$(git write-tree)" -p origin/doc/images -m "Images for #192")
    git push origin "$sha:refs/heads/doc/images"
    unset GIT_INDEX_FILE
    ```
 
-4. `PATCH` the body with the images, each pinned to `$sha`.
-5. Read the body back and check every URL.
+   `rejected … non-fast-forward` means another round pushed first. Git's hint — pull, or force —
+   is wrong here, and the ruleset refuses the force anyway: run the block again from
+   `git fetch`, which re-parents the same files on the new tip and keeps both rounds'.
+4. `PATCH` the body with the images, each pinned to `$sha`, then check every URL with
+   `curl -o /dev/null -w '%{http_code}'` and **no** `Authorization` header —
+   `raw.githubusercontent.com` answers `404` to `$GH_TOKEN` whatever the file.
+5. Read the body back. GitHub sometimes writes a URL back wrapped in a backtick, which renders
+   as literal text; where it happened, embed as `<img src="…" alt="…">` — editing the markdown
+   again adds another backtick.
 
-A round that supersedes a screen pushes the new file beside the old one and re-points the body;
-nothing on `doc/images` is overwritten or deleted.
+`update-index` replaces a path it already holds, without a word, and `screenshots.mjs` names the
+files from `targets.json` — so a second round of the same targets supersedes them at the same
+path. A body pinned to the earlier commit goes on showing what it showed: a raw URL resolves
+against the commit it names.
 
-- Check a raw URL with `curl -o /dev/null -w '%{http_code}'` and **no** `Authorization` header —
-  `raw.githubusercontent.com` answers `404` to `$GH_TOKEN` whatever the file.
-- GitHub sometimes writes a URL back wrapped in a backtick, which renders as literal text. Read
-  the body back after every write; where it happened, embed as `<img src="…" alt="…">` — editing
-  the markdown again adds another backtick.
+Should `doc/images` ever be gone — `fatal: couldn't find remote ref doc/images` — the block
+above rebuilds it: drop the `fetch`, the `read-tree` and `-p`, and `commit-tree` writes the
+parentless commit the branch starts from. The old pinned URLs do not come back with it.
