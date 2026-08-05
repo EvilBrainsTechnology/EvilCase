@@ -243,23 +243,40 @@ public class NumberIssuerTests
 
     /// <summary>
     /// A create writes more than the numbered row — a tag, a party, a second case — and a unique index
-    /// of its own that refuses one is not the number being taken.
+    /// of its own that refuses one is not the number being taken. Neither is a refusal naming no index
+    /// at all: what the retry is about is the one index the number is issued under.
     /// </summary>
     [Test]
     public void ADuplicateThatIsNotTheNumberIsNotRetried()
     {
-        var attempts = 0;
+        var another = 0;
+        var unnamed = 0;
 
-        Assert.That(
-            async () => await this.Issuer().IssueCaseNumber<string>((_, _) =>
-            {
-                attempts++;
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(
+                async () => await this.Issuer().IssueCaseNumber<string>((_, _) =>
+                {
+                    another++;
 
-                throw Refused("IX_CaseTags_CaseId_Value");
-            }),
-            Throws.InstanceOf<PostgresException>());
+                    throw Refused("IX_CaseTags_CaseId_Value");
+                }),
+                Throws.InstanceOf<PostgresException>());
+            Assert.That(
+                async () => await this.Issuer().IssueCaseNumber<string>((_, _) =>
+                {
+                    unnamed++;
 
-        Assert.That(attempts, Is.EqualTo(1), "trying it again under 24 further numbers answers a duplicate the number has nothing to do with");
+                    throw Refused(index: null);
+                }),
+                Throws.InstanceOf<PostgresException>());
+        }
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(another, Is.EqualTo(1), "trying it again under 24 further numbers answers a duplicate the number has nothing to do with");
+            Assert.That(unnamed, Is.EqualTo(1), "and a refusal that names no index is not the number's either");
+        }
     }
 
     [Test]
@@ -295,7 +312,7 @@ public class NumberIssuerTests
             "a number no pattern budgeted for is refused rather than written");
     }
 
-    private static PostgresException Refused(string index) =>
+    private static PostgresException Refused(string? index) =>
         new("duplicate key value violates unique constraint", "ERROR", "ERROR", PostgresErrorCodes.UniqueViolation, constraintName: index);
 
     private Task<string> IssueCaseNumber(NumberIssuer issuer) =>
