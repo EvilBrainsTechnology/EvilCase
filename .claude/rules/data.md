@@ -5,17 +5,14 @@ paths:
 
 # Data
 
-`docs/product/vision.md` names the domain concepts; `ApplicationDbModelTests` pins most of the
-rules below against the built model.
+`docs/product/vision.md` names the domain concepts; `ApplicationDbModelTests` pins most of these.
 
 - The domain's word is the code's word: the type is `Case`, with `@case` where the keyword
   collides — CA1716 sits at `suggestion` for this, the one rule below error.
 - Every aggregate root carries `OwnerId` from its first migration, with a foreign key and an
   index.
-- Cases form no hierarchy. A relation between two of them is a `CaseRelation` row, symmetric and
-  bare — no note, no kind, no direction — unique per unordered pair, and never self-referencing.
-- Only the one layer of a case's relations is ever read; nothing walks past it. Deleting a case
-  takes its relations and leaves every case it related to untouched.
+- Cases form no hierarchy. A relation is one bare `CaseRelation` row, unique per pair of one
+  owner's cases, `CaseId < RelatedCaseId`; deleting a case takes its relations and nothing else.
 - Enums are stored as names: `HasConversion<string>()` with an explicit length.
 - Tags are rows — typed, unique per case — never an array column.
 - `Case.CaseNumber` is required and unique per owner; every external mark is an
