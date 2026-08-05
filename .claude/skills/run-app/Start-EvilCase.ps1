@@ -175,7 +175,7 @@ try { $held = $buildLock.WaitOne([timespan]::FromMinutes(10)) }
 catch [System.Threading.AbandonedMutexException] { $held = $true }
 if (-not $held) {
     $buildLock.Dispose()
-    throw 'another run of this checkout has been building for 10 minutes'
+    throw 'waited 10 minutes for the other runs of this checkout to finish building'
 }
 try {
     $build = Start-Process -FilePath 'dotnet' -ArgumentList @('r', 'build') -WorkingDirectory (Join-Path $root 'src') `
