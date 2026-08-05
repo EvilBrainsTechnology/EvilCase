@@ -20,10 +20,11 @@ internal sealed class NumberSeries
     private readonly Regex expression;
 
     /// <summary>
-    /// The literal runs on each side of the sequence, with anything at all standing between two runs of
-    /// one side — the case number an act number carries is whatever its case was called when the act
-    /// was numbered. The two anchors are <c>\A</c> and <c>\z</c>: <c>$</c> would read a number with a
-    /// newline on the end as one the pattern had written.
+    /// The literal runs on each side of the sequence, with anything at all — a newline included, which
+    /// is what <see cref="RegexOptions.Singleline"/> is for — standing between two runs of one side: the
+    /// case number an act number carries is whatever its case was called when the act was numbered. The
+    /// two anchors are <c>\A</c> and <c>\z</c>: <c>$</c> would read a number with a newline on the end
+    /// as one the pattern had written.
     /// </summary>
     public NumberSeries(IReadOnlyList<string> before, int width, IReadOnlyList<string> after)
     {
@@ -33,7 +34,7 @@ internal sealed class NumberSeries
         this.Prefix = before[0];
         this.expression = new Regex(
             string.Create(CultureInfo.InvariantCulture, $@"\A{Runs(before)}(?<seq>\d{{{width},}}){Runs(after)}\z"),
-            RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture,
+            RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture | RegexOptions.Singleline,
             Timeout);
     }
 

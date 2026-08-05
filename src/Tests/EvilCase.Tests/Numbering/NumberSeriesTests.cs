@@ -84,6 +84,19 @@ public class NumberSeriesTests
     }
 
     /// <summary>
+    /// A case number is a column the operator types into, control characters and all. The number the
+    /// pattern wrote under it is one of its case's series like any other — read as anything but that,
+    /// the case would number its next act over the top of the one before.
+    /// </summary>
+    [Test]
+    public void ACaseNumberCarryingANewlineIsStillItsCasesSeries()
+    {
+        var series = NumberPattern.Series(NumberingDefaults.ActNumberPattern, Date);
+
+        Assert.That(series.Highest(["A\nB-20260804-047"]), Is.EqualTo(47), "a case number is whatever was typed, and the series reads across all of it");
+    }
+
+    /// <summary>
     /// <c>$</c> matches at the end of the string or before a trailing newline, so it would count a
     /// number the pattern could not have written; <c>\z</c> is the end and nothing else.
     /// </summary>
