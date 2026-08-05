@@ -77,6 +77,8 @@ public partial class Numbering : Migration
                 table.PrimaryKey("PK_NumberingSettings", x => x.Id);
             });
 
+        // Seeded once, and the operator's from then on: the model does not carry the row, so no later
+        // migration writes the defaults back over what the Settings screen saved.
         migrationBuilder.InsertData(
             table: "NumberingSettings",
             columns: ["Id", "ActNumberPattern", "CaseNumberPattern"],

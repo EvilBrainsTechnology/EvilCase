@@ -2,7 +2,6 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Data.Migrations.DbContexts;
-using EvilBrains.EvilCase.Domain.Numbering;
 using EvilBrains.EvilCase.Domain.Parties;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -164,8 +163,12 @@ public class ApplicationDbModelTests
         }
     }
 
+    /// <summary>
+    /// The migration inserts the row once and the operator owns it afterwards; what the row holds in a
+    /// migrated database is <c>NumberingSettingsReaderTests</c>.
+    /// </summary>
     [Test]
-    public void ThePatternsAreOneApplicationWideRowSeededWithTheDefaults()
+    public void ThePatternsAreARowTheOperatorOwnsRatherThanOneTheModelHolds()
     {
         using var context = new ApplicationDbContextFactory().CreateDbContext([]);
 
@@ -173,14 +176,7 @@ public class ApplicationDbModelTests
 
         Assert.That(settings, Is.Not.Null);
 
-        var seeded = settings.GetSeedData().SingleOrDefault();
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(seeded?[nameof(NumberingSettings.Id)], Is.EqualTo(NumberingSettings.SingletonId), "the patterns are one row for the whole application");
-            Assert.That(seeded?[nameof(NumberingSettings.CaseNumberPattern)], Is.EqualTo(NumberingDefaults.CaseNumberPattern), "an empty database issues case numbers without anybody configuring one");
-            Assert.That(seeded?[nameof(NumberingSettings.ActNumberPattern)], Is.EqualTo(NumberingDefaults.ActNumberPattern), "and act numbers too");
-        }
+        Assert.That(settings.GetSeedData(), Is.Empty, "a row the model seeds is scaffolded as an UpdateData into every later migration, over whatever the Settings screen saved");
     }
 
     [Test]

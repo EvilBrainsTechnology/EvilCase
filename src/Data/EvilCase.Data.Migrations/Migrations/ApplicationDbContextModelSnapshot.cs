@@ -363,14 +363,6 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("NumberingSettings");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1L,
-                            ActNumberPattern = "{case-number}-{year}{month}{day}-{seq}",
-                            CaseNumberPattern = "EC-{year}{month}{day}-{seq}"
-                        });
                 });
 
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Party", b =>
