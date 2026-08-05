@@ -61,6 +61,10 @@ if (-not (Test-Path -LiteralPath (Join-Path $root 'src'))) { throw "$root is not
 $images = @(Get-ChildItem -LiteralPath $Path -File -Filter '*.png' | Sort-Object -Property Name)
 if (-not $images) { throw "no *.png in $Path" }
 
+# Missing credentials are a failure, never a question: git asks on /dev/tty, which a redirected
+# stdin does not close, and a tool call with no one at the keyboard hangs on it.
+$env:GIT_TERMINAL_PROMPT = '0'
+
 # stderr is kept rather than shown: the push writes its rejection there, and which rejection it is
 # decides between a retry and an error.
 function Invoke-Git([string[]] $GitArguments) {
