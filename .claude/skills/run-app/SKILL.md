@@ -54,8 +54,8 @@ its comments the traps it steps around. Point the screenshot script at that URL 
 `EVILCASE_URL`.
 
 ```
-pwsh .claude/skills/run-app/Start-EvilCase.ps1        # → https://localhost:41449
-pwsh .claude/skills/run-app/Start-EvilCase.ps1 -Stop
+pwsh .claude/skills/run-app/Start-EvilCase.ps1                    # → https://localhost:41449
+pwsh .claude/skills/run-app/Start-EvilCase.ps1 -Stop -Port 41449
 ```
 
 ## Verify
@@ -74,7 +74,7 @@ Against the URL the run printed — `$url` below, `https://localhost:5000` for `
 
 ## Stop
 
-`Start-EvilCase.ps1 -Stop` takes down the host, its database and its logs — a start that failed
-included; it stops every run of the checkout, `-Port` one of them. `dotnet r run` stops with
-Ctrl+C or by stopping the preview server, and leaves the `evilcase` database running:
-`docker compose -f deploy/docker-compose.dev.yml down` removes it along with its data.
+`Start-EvilCase.ps1 -Stop -Port <port>`, on the port the start printed — the header has the rest.
+`dotnet r run` stops with Ctrl+C or by stopping the preview server, and leaves the `evilcase`
+database running: `docker compose -f deploy/docker-compose.dev.yml down` removes it along with
+its data.

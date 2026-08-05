@@ -3,12 +3,14 @@
     Runs the host on a port and a database of its own, so parallel agents cannot take each
     other's; any number of runs share one checkout. Prints the URL, and nothing else, on stdout.
 
-        ./.claude/skills/run-app/Start-EvilCase.ps1               # prints https://localhost:<port>
-        ./.claude/skills/run-app/Start-EvilCase.ps1 -Stop         # every run of this checkout
+        ./.claude/skills/run-app/Start-EvilCase.ps1                    # prints https://localhost:<port>
         ./.claude/skills/run-app/Start-EvilCase.ps1 -Stop -Port 41449
+        ./.claude/skills/run-app/Start-EvilCase.ps1 -Stop -All         # every run of this checkout
 
-    -Stop kills the host, drops the database and removes the run's files. A start that failed
-    needs it too: whatever it got as far as creating is still there, and it says so.
+    -Stop kills the host, drops the database and removes the run's files. It takes -Port, the port
+    the start printed — the runs beside it belong to other agents. -All is for the checkout, not
+    for one's own run. A start that failed needs -Stop too: whatever it got as far as creating is
+    still there, and it says so.
 
     -PostgresHost, -PostgresPort, -PostgresUser and -PostgresPassword reach a server other than
     localhost:5432 as postgres/postgres. -ReadyTimeoutSeconds bounds the wait for /health/ready.
@@ -17,10 +19,10 @@
     with the build's in build.log beside them — outside the checkout, which may be a worktree
     that is removed while the host it started is still running.
 #>
-[CmdletBinding(DefaultParameterSetName = 'Start')]
 param(
-    [Parameter(ParameterSetName = 'Stop', Mandatory = $true)] [switch] $Stop,
-    [Parameter(ParameterSetName = 'Stop')] [int] $Port,
+    [switch] $Stop,
+    [switch] $All,
+    [int] $Port,
     [string] $PostgresHost = 'localhost',
     [int] $PostgresPort = 5432,
     [string] $PostgresUser = 'postgres',
@@ -30,6 +32,12 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+
+# Refused, never prompted for: a missing mandatory parameter reads stdin, and a tool call with no
+# one at the keyboard hangs on it.
+if ($Stop -and -not ([bool] $Port -xor [bool] $All)) { throw '-Stop takes either -Port <port> or -All' }
+if (-not $Stop -and ($Port -or $All)) { throw '-Port and -All belong to -Stop' }
+
 if (Test-Path 'variable:PSNativeCommandUseErrorActionPreference') {
     $PSNativeCommandUseErrorActionPreference = $false
 }
@@ -79,7 +87,7 @@ if ($Stop) {
     $states = @()
     if (Test-Path -LiteralPath $stateDirectory) {
         $states = @(Get-ChildItem -LiteralPath $stateDirectory -Filter '*.json' |
-                Where-Object { -not $Port -or $_.BaseName -eq [string] $Port })
+                Where-Object { $All -or $_.BaseName -eq [string] $Port })
     }
     if (-not $states) { Write-Warning "no run$(if ($Port) { " on port $Port" }) recorded in $stateDirectory" }
 
