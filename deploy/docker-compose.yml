@@ -10,6 +10,8 @@ services:
       - "127.0.0.1:${EVILCASE_PORT:-8080}:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: Production
+      # The zone the day in an issued number is read in.
+      TZ: ${EVILCASE_TZ:-Europe/Prague}
       EvilBrains__EvilCase__ConnectionString: ${EVILCASE_CONNECTION_STRING:?}
       EvilBrains__EvilCase__Auth__Jwt__Key: ${EVILCASE_JWT_KEY:?}
       # Registration is closed, so an empty database gets its first administrator from here. Optional:

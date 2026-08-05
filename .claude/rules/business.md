@@ -30,7 +30,8 @@ App → Api.Client → (HTTP) → Api → Business → Data
 - Only one layer of a case's relations is ever read; nothing walks past it.
 - Every number the application issues comes from `INumberIssuer`, and a `{seq}` is taken with the
   single upsert in `NumberSequenceSql` — a read followed by a write hands two callers the same
-  number. The day a number carries is Prague's, and it is the day it was issued on.
+  number. The day a number carries is the day it was issued on, read through
+  `TimeProvider.GetLocalNow()` — the zone is the deployment's, never a constant in the code.
 - `NumberPattern.Validate` is the only list of what a pattern may say; it stays in Business and a
   screen that edits one asks the API for its verdict rather than growing a second list.
 

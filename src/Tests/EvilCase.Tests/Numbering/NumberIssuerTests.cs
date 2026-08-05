@@ -5,6 +5,10 @@ namespace EvilBrains.EvilCase.Tests.Numbering;
 
 public class NumberIssuerTests
 {
+    private static readonly TimeZoneInfo Prague = TimeZoneInfo.FindSystemTimeZoneById("Europe/Prague");
+
+    private static readonly TimeZoneInfo NewYork = TimeZoneInfo.FindSystemTimeZoneById("America/New_York");
+
     private FakeNumberSequenceAllocator sequences = null!;
 
     private TestTimeProvider time = null!;
@@ -93,29 +97,34 @@ public class NumberIssuerTests
     }
 
     [Test]
-    public async Task TheDayIsPraguesAndNotUtcs()
+    public async Task OneInstantIsTwoDaysInTwoZones()
     {
-        this.time = new TestTimeProvider(new DateTime(2026, 8, 4, 22, 30, 0, DateTimeKind.Utc));
+        var instant = new DateTime(2026, 8, 4, 22, 30, 0, DateTimeKind.Utc);
 
-        var number = await this.Issuer().IssueCaseNumber();
+        this.time = new TestTimeProvider(instant, Prague);
+        var east = await this.Issuer().IssueCaseNumber();
 
-        string[] expected = ["case:20260805"];
+        this.time = new TestTimeProvider(instant, NewYork);
+        var west = await this.Issuer().IssueCaseNumber();
+
+        string[] expected = ["case:20260805", "case:20260804"];
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(number, Is.EqualTo("EC-20260805-001"), "half past midnight in Prague is already the fifth, whatever UTC still says");
-            Assert.That(this.sequences.Scopes, Is.EqualTo(expected), "the series counts within a Prague day");
+            Assert.That(east, Is.EqualTo("EC-20260805-001"), "half past midnight in Prague is already the fifth, whatever UTC still says");
+            Assert.That(west, Is.EqualTo("EC-20260804-001"), "the same instant is still the fourth an afternoon west of it");
+            Assert.That(this.sequences.Scopes, Is.EqualTo(expected), "the series counts within a day of the zone the application runs in");
         }
     }
 
     [Test]
-    public async Task WinterKeepsTheSameDayAsUtcAnHourLonger()
+    public async Task TheOffsetIsTheOneInForceOnTheDay()
     {
-        this.time = new TestTimeProvider(new DateTime(2026, 1, 4, 22, 30, 0, DateTimeKind.Utc));
+        this.time = new TestTimeProvider(new DateTime(2026, 1, 4, 22, 30, 0, DateTimeKind.Utc), Prague);
 
         var number = await this.Issuer().IssueCaseNumber();
 
-        Assert.That(number, Is.EqualTo("EC-20260104-001"), "the offset is the one in force on the day, not the summer's two hours");
+        Assert.That(number, Is.EqualTo("EC-20260104-001"), "a zone keeps its own summer time rules, and January is not the summer's two hours");
     }
 
     [Test]
