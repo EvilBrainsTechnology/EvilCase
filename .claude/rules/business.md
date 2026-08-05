@@ -31,6 +31,8 @@ App → Api.Client → (HTTP) → Api → Business → Data
 - Every number the application issues comes from `INumberIssuer`, and a `{seq}` is taken with the
   single upsert in `NumberSequenceSql` — a read followed by a write hands two callers the same
   number. The day a number carries is Prague's, and it is the day it was issued on.
+- `NumberPattern.Validate` is the only list of what a pattern may say; a screen that edits one
+  calls it rather than growing a second.
 
 ## List queries
 

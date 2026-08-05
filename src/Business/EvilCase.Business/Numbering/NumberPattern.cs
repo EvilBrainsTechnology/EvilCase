@@ -4,7 +4,7 @@ namespace EvilBrains.EvilCase.Business.Numbering;
 /// The pattern language behind an issued number: <c>{year}</c>, <c>{month}</c>, <c>{day}</c>,
 /// <c>{seq}</c> and, for an act number, <c>{case-number}</c>. Anything else is written out as it stands.
 /// </summary>
-public static class NumberPattern
+internal static class NumberPattern
 {
     private const string Year = "{year}";
 
@@ -16,11 +16,30 @@ public static class NumberPattern
 
     private const string CaseNumber = "{case-number}";
 
-    public static bool NamesSequence(string pattern)
+    private static readonly string[] Placeholders = [Year, Month, Day, Sequence, CaseNumber];
+
+    /// <summary>
+    /// Null for a pattern that can be used. The Settings screen calls this before it saves; the issuer
+    /// calls it before it writes, because a pattern that got past the screen would reissue silently.
+    /// </summary>
+    public static NumberPatternError? Validate(string pattern)
     {
         ArgumentNullException.ThrowIfNull(pattern);
 
-        return pattern.Contains(Sequence, StringComparison.Ordinal);
+        var rest = Placeholders.Aggregate(pattern, (text, placeholder) => text.Replace(placeholder, "", StringComparison.Ordinal));
+        if (rest.Contains('{', StringComparison.Ordinal) || rest.Contains('}', StringComparison.Ordinal))
+            return NumberPatternError.UnknownPlaceholder;
+
+        if (!pattern.Contains(Sequence, StringComparison.Ordinal))
+            return NumberPatternError.NoSequence;
+
+        if (Names(pattern, Day) && !(Names(pattern, Month) && Names(pattern, Year)))
+            return NumberPatternError.RepeatingPeriod;
+
+        if (Names(pattern, Month) && !Names(pattern, Year))
+            return NumberPatternError.RepeatingPeriod;
+
+        return null;
     }
 
     /// <summary>
@@ -32,13 +51,13 @@ public static class NumberPattern
     {
         ArgumentNullException.ThrowIfNull(pattern);
 
-        if (pattern.Contains(Day, StringComparison.Ordinal))
+        if (Names(pattern, Day))
             return date.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
 
-        if (pattern.Contains(Month, StringComparison.Ordinal))
+        if (Names(pattern, Month))
             return date.ToString("yyyyMM", CultureInfo.InvariantCulture);
 
-        if (pattern.Contains(Year, StringComparison.Ordinal))
+        if (Names(pattern, Year))
             return date.ToString("yyyy", CultureInfo.InvariantCulture);
 
         return "";
@@ -58,4 +77,6 @@ public static class NumberPattern
             .Replace(Day, date.ToString("dd", CultureInfo.InvariantCulture), StringComparison.Ordinal)
             .Replace(Sequence, sequence.ToString("D3", CultureInfo.InvariantCulture), StringComparison.Ordinal);
     }
+
+    private static bool Names(string pattern, string placeholder) => pattern.Contains(placeholder, StringComparison.Ordinal);
 }

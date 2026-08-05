@@ -5,7 +5,7 @@ namespace EvilBrains.EvilCase.Business.Numbering;
 /// the row the upsert touches, and each takes a value of its own; reading the counter and writing it
 /// back would hand both the same one.
 /// </summary>
-public static class NumberSequenceSql
+internal static class NumberSequenceSql
 {
     /// <summary>
     /// Parameters: the owner, then the scope. Returns the value taken.

@@ -69,10 +69,57 @@ public class NumberPatternTests
     {
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(NumberPattern.NamesSequence("EC-{year}"), Is.False);
-            Assert.That(NumberPattern.NamesSequence("EC-{year}-{seq}"), Is.True);
-            Assert.That(NumberPattern.Format("EC/{unknown}/{seq}", Date, 7), Is.EqualTo("EC/{unknown}/007"), "an unknown placeholder is text, not an error");
+            Assert.That(NumberPattern.Format("EC/{unknown}/{seq}", Date, 7), Is.EqualTo("EC/{unknown}/007"), "formatting writes an unknown placeholder out; refusing it is validation's job");
             Assert.That(NumberPattern.Format("{case-number}/{seq}", Date, 7), Is.EqualTo("/007"), "a case pattern naming the case number has none to write");
+        }
+    }
+
+    [Test]
+    public void TheDefaultsAreUsable()
+    {
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(NumberPattern.Validate(NumberingDefaults.CaseNumberPattern), Is.Null);
+            Assert.That(NumberPattern.Validate(NumberingDefaults.ActNumberPattern), Is.Null);
+        }
+    }
+
+    [Test]
+    public void APatternThePlaceholdersDoNotCoverIsRefused()
+    {
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(NumberPattern.Validate("EC-{quarter}-{seq}"), Is.EqualTo(NumberPatternError.UnknownPlaceholder));
+            Assert.That(NumberPattern.Validate("EC-{year}-{seq"), Is.EqualTo(NumberPatternError.UnknownPlaceholder), "a brace with no partner is as unusable as an unknown name");
+            Assert.That(NumberPattern.Validate("EC-{year}{month}{day}/{case-number}-{seq}"), Is.Null, "all five names are known");
+        }
+    }
+
+    [Test]
+    public void APatternWithoutTheSequenceIsRefused()
+    {
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(NumberPattern.Validate("EC-{year}"), Is.EqualTo(NumberPatternError.NoSequence), "without {seq} every case gets the same number");
+            Assert.That(NumberPattern.Validate("EC-{year}-{seq}"), Is.Null);
+        }
+    }
+
+    /// <summary>
+    /// The series counts within the finest part the pattern names, so a pattern that writes that part
+    /// without the coarser ones repeats itself: <c>EC-{day}-{seq}</c> issued <c>EC-05-001</c> on the
+    /// fifth of August and again on the fifth of September.
+    /// </summary>
+    [Test]
+    public void APatternThatWouldWriteOneNumberTwiceIsRefused()
+    {
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(NumberPattern.Validate("EC-{day}-{seq}"), Is.EqualTo(NumberPatternError.RepeatingPeriod));
+            Assert.That(NumberPattern.Validate("EC-{month}-{seq}"), Is.EqualTo(NumberPatternError.RepeatingPeriod));
+            Assert.That(NumberPattern.Validate("EC-{month}{day}-{seq}"), Is.EqualTo(NumberPatternError.RepeatingPeriod), "the year is missing whichever finer part is named");
+            Assert.That(NumberPattern.Validate("EC-{year}{month}-{seq}"), Is.Null, "a month written under its year counts monthly and stays distinct");
+            Assert.That(NumberPattern.Validate("EC-{seq}"), Is.Null, "one series forever writes each number once");
         }
     }
 }

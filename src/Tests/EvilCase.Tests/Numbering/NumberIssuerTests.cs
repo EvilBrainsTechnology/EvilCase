@@ -127,14 +127,13 @@ public class NumberIssuerTests
     }
 
     [Test]
-    public async Task APatternNamingNoSequenceTakesNothingFromTheSeries()
+    public void APatternThatCannotWorkIsRefusedRatherThanIssuedFrom()
     {
-        var number = await this.Issuer(caseNumberPattern: "EC-{year}").IssueCaseNumber();
-
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(number, Is.EqualTo("EC-2026"));
-            Assert.That(this.sequences.Scopes, Is.Empty, "a pattern that counts nothing burns no number");
+            Assert.That(async () => await this.Issuer(caseNumberPattern: "EC-{year}").IssueCaseNumber(), Throws.InstanceOf<InvalidOperationException>(), "without {seq} every case would take the same number");
+            Assert.That(async () => await this.Issuer(caseNumberPattern: "EC-{day}-{seq}").IssueCaseNumber(), Throws.InstanceOf<InvalidOperationException>(), "the fifth of September would take the numbers of the fifth of August");
+            Assert.That(this.sequences.Scopes, Is.Empty, "a pattern that cannot work burns no number either");
         }
     }
 
