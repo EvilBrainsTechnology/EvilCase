@@ -39,8 +39,9 @@ FROM mcr.microsoft.com/dotnet/aspnet:${DOTNET_VERSION}-alpine AS final
 
 # curl: the runtime image ships no HTTP client and HEALTHCHECK runs inside the container. ICU: the
 # Alpine image turns globalization off and carries no ICU, which silently makes every culture aware
-# comparison ordinal — wrong for Czech data.
-RUN apk add --no-cache curl icu-data-full icu-libs
+# comparison ordinal — wrong for Czech data. tzdata: the image carries no /usr/share/zoneinfo, so
+# Europe/Prague — the day every issued number carries — resolves nowhere but here.
+RUN apk add --no-cache curl icu-data-full icu-libs tzdata
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
 
 WORKDIR /app
