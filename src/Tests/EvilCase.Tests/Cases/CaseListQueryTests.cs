@@ -21,14 +21,6 @@ public class CaseListQueryTests
     public void TearDown() => this.context.Dispose();
 
     [Test]
-    public void TheListIsRootsOnly()
-    {
-        var sql = this.context.Cases.Roots().ToQueryString();
-
-        Assert.That(sql, Does.Contain("\"ParentCaseId\" IS NULL"));
-    }
-
-    [Test]
     public void SearchMatchesTheTitleAndTheSubjectWithoutRegardToCase()
     {
         var sql = this.context.Cases.MatchingSearch("odvolání").ToQueryString();
@@ -99,14 +91,15 @@ public class CaseListQueryTests
     }
 
     [Test]
-    public void TheProjectionReadsTheTagsAndCountsTheSubCasesInTheSameQuery()
+    public void TheProjectionReadsTheTagsInTheSameQueryAndCountsNothing()
     {
         var sql = this.context.Cases.AsListItems().ToQueryString();
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(sql, Does.Contain("count(*)").IgnoreCase);
             Assert.That(sql, Does.Contain("\"CaseTags\""));
+            Assert.That(sql, Does.Not.Contain("count(").IgnoreCase, "a row of the list stands for one case and counts nothing under it");
+            Assert.That(sql, Does.Not.Contain("\"CaseRelations\""), "the list says nothing about relations");
             Assert.That(sql, Does.Not.Contain("\"OwnerId\""));
         }
     }

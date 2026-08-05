@@ -17,9 +17,4 @@ public sealed record CaseListItem
     public required DateTime Created { get; init; }
 
     public DateTime? Updated { get; init; }
-
-    /// <summary>
-    /// Direct children only.
-    /// </summary>
-    public required int SubCaseCount { get; init; }
 }

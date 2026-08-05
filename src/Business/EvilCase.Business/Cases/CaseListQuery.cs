@@ -16,16 +16,6 @@ public static class CaseListQuery
     private const string Escape = "\\";
 
     /// <summary>
-    /// Cases with no parent.
-    /// </summary>
-    public static IQueryable<Case> Roots(this IQueryable<Case> cases)
-    {
-        ArgumentNullException.ThrowIfNull(cases);
-
-        return cases.Where(@case => @case.ParentCaseId == null);
-    }
-
-    /// <summary>
     /// Matches the title or the subject, ignoring case but not diacritics. A blank term narrows nothing.
     /// </summary>
     public static IQueryable<Case> MatchingSearch(this IQueryable<Case> cases, string? search)
@@ -85,7 +75,6 @@ public static class CaseListQuery
             Tags = @case.Tags.OrderBy(tag => tag.Value).Select(tag => tag.Value).ToList(),
             Created = @case.Created,
             Updated = @case.Updated,
-            SubCaseCount = @case.Children.Count,
         });
     }
 

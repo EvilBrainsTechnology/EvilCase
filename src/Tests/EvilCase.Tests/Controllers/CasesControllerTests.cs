@@ -41,7 +41,6 @@ public class CasesControllerTests
         Status = CaseStatus.Active,
         Tags = [],
         Created = DateTime.UtcNow,
-        SubCaseCount = 0,
     };
 
     private sealed class RecordingCaseReader : ICaseReader
