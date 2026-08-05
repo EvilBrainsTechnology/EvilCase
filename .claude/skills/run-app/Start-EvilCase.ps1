@@ -34,14 +34,14 @@ if (Test-Path 'variable:PSNativeCommandUseErrorActionPreference') {
     $PSNativeCommandUseErrorActionPreference = $false
 }
 
-# From the script's own location, never the caller's directory, which need not be in a checkout
-# at all — one that was created a database before failing on the missing src/.
+# From the script's own location, never the caller's directory: run from another repository, the
+# git root is that one, and a start gets as far as creating a database before missing src/.
 $root = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..' '..' '..')).Path
 if (-not (Test-Path -LiteralPath (Join-Path $root 'src'))) { throw "$root is not an EvilCase checkout" }
 
-$checkout = [Convert]::ToHexString(
-    [System.Security.Cryptography.SHA256]::HashData([Text.Encoding]::UTF8.GetBytes($root))).Substring(0, 8)
-$stateDirectory = Join-Path $HOME '.evilcase-runs' "$(Split-Path -Path $root -Leaf)-$($checkout.ToLowerInvariant())"
+$checkout = [Convert]::ToHexString([System.Security.Cryptography.SHA256]::HashData(
+        [Text.Encoding]::UTF8.GetBytes($root))).Substring(0, 8).ToLowerInvariant()
+$stateDirectory = Join-Path $HOME '.evilcase-runs' "$(Split-Path -Path $root -Leaf)-$checkout"
 $env:PGPASSWORD = $PostgresPassword
 
 function Invoke-Postgres([string] $Tool, [string[]] $ToolArguments) {
@@ -178,7 +178,7 @@ try {
         -WorkingDirectory (Split-Path -Path $assembly -Parent) `
         -RedirectStandardOutput $log -RedirectStandardError $errorLog -PassThru
 
-    @{
+    [ordered] @{
         Pid = $hostProcess.Id
         CommandLine = $hostProcess.CommandLine
         Port = $port
