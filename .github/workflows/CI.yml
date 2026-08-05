@@ -21,19 +21,24 @@ jobs:
     runs-on: ubuntu-latest
 
     # The tests that need a server ignore themselves without one, so this is what keeps them running
-    # at all; EVILCASE_TESTS_POSTGRES points them at it and each fixture creates a database of its own.
+    # at all. Same image as deploy/docker-compose.dev.yml, so a developer's database and this one
+    # behave alike; the tests that use it name their own databases and drop them again.
     services:
       postgres:
-        image: postgres:18
+        image: postgres:18-alpine
         env:
+          POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
         ports:
           - 5432:5432
         options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 30
+
+    env:
+      EVILCASE_TESTS_POSTGRES: "Host=localhost;Port=5432;Username=postgres;Password=postgres"
 
     steps:
       # Checkout the repository
@@ -81,8 +86,6 @@ jobs:
       - name: Run tests
         run: dotnet r test -- --no-build --logger "trx;LogFileName=test-results.trx"
         working-directory: ./src
-        env:
-          EVILCASE_TESTS_POSTGRES: Host=localhost;Port=5432;Username=postgres;Password=postgres
 
       # Upload test results
       - name: Test Report
