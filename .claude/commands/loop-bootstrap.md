@@ -19,7 +19,8 @@ Calls go through `.claude/skills/product-loop/Invoke-EvilCaseGitHub.ps1`; every 
 
 Report each as OK or blocked, and stop at the first blocker rather than guessing:
 
-- The script answers for `issues?state=open` — the token reaches the repository.
+- The script answers for `/repos/EvilBrainsTechnology/EvilCase -Select full_name` — one call, and
+  the token reaches the repository.
 - `dotnet tool restore` and `dotnet r ci` from `src/` pass.
 - The app runs and the seeded administrator signs in — `.claude/skills/run-app/SKILL.md`.
 - A screenshot of a signed-in screen can be taken — `.claude/skills/product-loop/visual-proof.md`.

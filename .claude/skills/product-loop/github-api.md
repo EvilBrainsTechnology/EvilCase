@@ -6,11 +6,21 @@ A row below is what the script beside this file takes; its header has the parame
 ./.claude/skills/product-loop/Invoke-EvilCaseGitHub.ps1 <path> [-Method …] [-Json … | -JsonFile …] [-MarkdownFile …] [-Select …]
 ```
 
+`<path>` is relative to the repository; one starting with `/` reaches outside it, to
+api.github.com (`/rate_limit`, `/repos/{owner}/{repo}`), and nowhere else — the token rides on
+every call. The method is `GET`, and `POST` as soon as a body is given, so a row below carrying
+`-Json`, `-JsonFile` or `-MarkdownFile` and no `-Method` is a `POST`. A GET is followed through
+its pages at 100 per page, which is why no row names `per_page`. `-Select` prints one
+tab-separated column per name, one line per element of an array.
+
+A worktree refuses a pipeline in a shell command: more than one call, or anything parsing a
+response, goes into a scratchpad script that calls this one.
+
 | Need | Call |
 | --- | --- |
 | Open issues | `issues?state=open` — **includes pull requests**; drop every element with a `pull_request` key |
 | Issues by label | `issues?state=open&labels=needs-decision` |
-| The loop's backlog, with priorities | `issues?state=open&labels=loop` — every element carries `issue_field_values`; the entry whose `issue_field_name` is `Priority` holds `single_select_option.name` (`Urgent`, `High`, `Medium`, `Low`). Plain REST returns it, no preview header |
+| The loop's backlog, with priorities | `issues?state=open&labels=loop -Select number,issue_field_values.issue_field_name=Priority.single_select_option.name,milestone.number,labels` — the priority column is `Urgent`, `High`, `Medium`, `Low` or empty. Plain REST returns it, no preview header |
 | Open pull requests | `pulls?state=open` |
 | One pull request, with `mergeable_state` | `pulls/{n} -Select number,mergeable_state` |
 | Merge a pull request | `pulls/{n}/merge -Method PUT -Json '{"merge_method":"squash"}'` |
