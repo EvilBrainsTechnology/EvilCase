@@ -121,14 +121,24 @@ public class NumberIssuerTests
         }
     }
 
+    /// <summary>
+    /// One hour on either side of midnight in Prague, in January. The summer's two hours would put the
+    /// earlier one on the fifth already, and UTC would leave the later one on the fourth.
+    /// </summary>
     [Test]
     public async Task TheOffsetIsTheOneInForceOnTheDay()
     {
         this.time = new TestTimeProvider(new DateTime(2026, 1, 4, 22, 30, 0, DateTimeKind.Utc), Prague);
+        var beforeMidnight = await this.Issuer().IssueCaseNumber();
 
-        var number = await this.Issuer().IssueCaseNumber();
+        this.time = new TestTimeProvider(new DateTime(2026, 1, 4, 23, 30, 0, DateTimeKind.Utc), Prague);
+        var afterMidnight = await this.Issuer().IssueCaseNumber();
 
-        Assert.That(number, Is.EqualTo("EC-20260104-001"), "a zone keeps its own summer time rules, and January is not the summer's two hours");
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(beforeMidnight, Is.EqualTo("EC-20260104-001"), "a zone keeps its own summer time rules, and January is not the summer's two hours");
+            Assert.That(afterMidnight, Is.EqualTo("EC-20260105-001"), "an hour is still an hour in winter, and the zone is the one the application runs in rather than UTC");
+        }
     }
 
     [Test]
