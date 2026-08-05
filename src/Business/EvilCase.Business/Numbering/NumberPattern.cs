@@ -62,6 +62,9 @@ internal static partial class NumberPattern
         if (kind is not NumberPatternKind.ActNumber && Names(pattern, CaseNumber))
             return NumberPatternError.CaseNumberOutsideAnActPattern;
 
+        if (RunsIntoTheSequence(pattern, sequences[0]))
+            return NumberPatternError.CaseNumberBesideTheSequence;
+
         if (Names(pattern, Day) && !(Names(pattern, Month) && Names(pattern, Year)))
             return NumberPatternError.RepeatingPeriod;
 
@@ -132,6 +135,25 @@ internal static partial class NumberPattern
         [.. text.Split(CaseNumber, StringSplitOptions.None).Select(part => Literal(part, date))];
 
     private static bool Names(string pattern, string placeholder) => pattern.Contains(placeholder, StringComparison.Ordinal);
+
+    /// <summary>
+    /// The case number is read back as anything at all, so what tells it apart from the sequence beside
+    /// it is the text between the two. A date part writes digits, so a separator of nothing but digits
+    /// is no separator at all: the two runs of digits meet and neither end can be found again.
+    /// </summary>
+    private static bool RunsIntoTheSequence(string pattern, Match token)
+    {
+        var head = pattern[..token.Index];
+        var tail = pattern[(token.Index + token.Length)..];
+
+        var before = head.LastIndexOf(CaseNumber, StringComparison.Ordinal);
+        var after = tail.IndexOf(CaseNumber, StringComparison.Ordinal);
+
+        return (before >= 0 && Digits(head[(before + CaseNumber.Length)..]))
+            || (after >= 0 && Digits(tail[..after]));
+    }
+
+    private static bool Digits(string between) => Literal(between, WidestDate).All(char.IsAsciiDigit);
 
     private static int Column(NumberPatternKind kind) =>
         kind is NumberPatternKind.ActNumber ? Act.ActNumberLength : Case.CaseNumberLength;

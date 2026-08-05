@@ -82,7 +82,9 @@ obrazovce Nastavení — její první kus.
   své číslo uvolní a připadne dalšímu.
 - Vzor, který by v nejširším případě nevešel do svého sloupce, se neuloží; ve vzoru čísla
   jednacího zabere nejvíc celá spisová značka, ne `{seq}`. Dvě `{seq}` v jednom vzoru se
-  neuloží také — z výsledného čísla už nejde přečíst, kde jedna končí a druhá začíná.
+  neuloží také — z výsledného čísla už nejde přečíst, kde jedna končí a druhá začíná. Stejně
+  dopadne `{case-number}` a `{seq}` jen s ciframi mezi sebou: značka může být cokoli, takže je
+  mezi ně potřeba znak, který cifra není.
 - Datum ve značce je den vydání v časové zóně, ve které aplikace běží (v Dockeru `TZ`, default
   `Europe/Prague`); zpětně datovaný úkon se nepřečísluje.
 - Vygenerované hodnoty jdou přepsat; databáze hlídá, že spisová značka je unikátní v rámci

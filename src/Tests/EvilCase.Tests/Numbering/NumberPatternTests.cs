@@ -73,6 +73,31 @@ public class NumberPatternTests
         }
     }
 
+    /// <summary>
+    /// The second shape nothing can read back. A case number is read as anything at all — an act keeps
+    /// the number its case was called by — so what says where it ends is the text in front of the
+    /// <c>{seq}</c>, and a date part writes digits like the sequence does: <c>{case-number}{seq}</c>
+    /// writes <c>EC-20261000</c> for case <c>EC-2026</c>, which is case <c>EC-2</c> at 0261000 just as
+    /// well.
+    /// </summary>
+    [Test]
+    public void ACaseNumberWithNothingButDigitsBetweenItAndTheSequenceIsRefused()
+    {
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(NumberPattern.Validate("{case-number}{seq}", NumberPatternKind.ActNumber), Is.EqualTo(NumberPatternError.CaseNumberBesideTheSequence));
+            Assert.That(NumberPattern.Validate("A{case-number}{seq}/x", NumberPatternKind.ActNumber), Is.EqualTo(NumberPatternError.CaseNumberBesideTheSequence), "text at the edges of the pattern says nothing about where the two meet");
+            Assert.That(NumberPattern.Validate("{seq}{case-number}", NumberPatternKind.ActNumber), Is.EqualTo(NumberPatternError.CaseNumberBesideTheSequence), "and a sequence in front of it runs into a case number opening with digits");
+            Assert.That(
+                NumberPattern.Validate("{case-number}{year}{month}{day}{seq}", NumberPatternKind.ActNumber),
+                Is.EqualTo(NumberPatternError.CaseNumberBesideTheSequence),
+                "a date part is digits by the time the number is read back, so it separates nothing");
+            Assert.That(NumberPattern.Validate("{case-number}-{seq}", NumberPatternKind.ActNumber), Is.Null, "one character that is not a digit is what fixes the end of the case number");
+            Assert.That(NumberPattern.Validate("{seq}/{case-number}", NumberPatternKind.ActNumber), Is.Null);
+            Assert.That(NumberPattern.Validate("{case-number}{year}-{seq}", NumberPatternKind.ActNumber), Is.Null, "and it can stand anywhere between the two");
+        }
+    }
+
     [Test]
     public void WhatThePatternDoesNotNameIsWrittenOutAsItStands()
     {
@@ -137,7 +162,7 @@ public class NumberPatternTests
     public void APatternThatWouldNotFitTheColumnItIsStoredInIsRefused()
     {
         var caseBudget = Case.CaseNumberLength - "2147483647".Length;
-        var actBudget = Act.ActNumberLength - "2147483647".Length - Case.CaseNumberLength;
+        var actBudget = Act.ActNumberLength - "2147483647".Length - Case.CaseNumberLength - "-".Length;
 
         using (Assert.EnterMultipleScope())
         {
@@ -146,9 +171,9 @@ public class NumberPatternTests
                 NumberPattern.Validate(new string('X', caseBudget + 1) + "{seq}", NumberPatternKind.CaseNumber),
                 Is.EqualTo(NumberPatternError.TooLongForItsColumn),
                 "a pattern that overflows its column fails on the insert");
-            Assert.That(NumberPattern.Validate(new string('X', actBudget) + "{case-number}{seq}", NumberPatternKind.ActNumber), Is.Null);
+            Assert.That(NumberPattern.Validate(new string('X', actBudget) + "{case-number}-{seq}", NumberPatternKind.ActNumber), Is.Null);
             Assert.That(
-                NumberPattern.Validate(new string('X', actBudget + 1) + "{case-number}{seq}", NumberPatternKind.ActNumber),
+                NumberPattern.Validate(new string('X', actBudget + 1) + "{case-number}-{seq}", NumberPatternKind.ActNumber),
                 Is.EqualTo(NumberPatternError.TooLongForItsColumn),
                 "an act number carries a whole case number, so it runs out of its own column that much sooner");
             Assert.That(
@@ -177,7 +202,7 @@ public class NumberPatternTests
     [Test]
     public void TheColumnBoundHoldsForACaseNumberMadeOfPlaceholders()
     {
-        const string pattern = "{case-number}{seq}";
+        const string pattern = "{case-number}-{seq}";
         var caseNumber = string.Concat(Enumerable.Repeat("{seq}", 12)) + new string('X', Case.CaseNumberLength - (12 * "{seq}".Length));
 
         using (Assert.EnterMultipleScope())

@@ -157,9 +157,10 @@ public class NumberSeriesTests
     }
 
     /// <summary>
-    /// A <c>{seq}</c> of no fixed width next to other digits is what #206 left open. The digits beside
-    /// it are the day's, written out before the series is built, so both ends of the sequence are
-    /// fixed and there is nothing left to be greedy about.
+    /// A <c>{seq}</c> of no fixed width next to other digits is what #206 left open. Where those digits
+    /// are the day's they are written out before the series is built, so both ends of the sequence are
+    /// fixed and there is nothing left to be greedy about; where they are a case number's, nothing
+    /// fixes either end and <c>Validate</c> refuses the pattern instead.
     /// </summary>
     [Test]
     public void DigitsRightBesideTheSequenceStillReadBackExactly()

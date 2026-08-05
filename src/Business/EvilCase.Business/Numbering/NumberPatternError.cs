@@ -44,4 +44,11 @@ internal enum NumberPatternError
     /// <c>{seq:…}</c> naming something that is not a positive number of digits.
     /// </summary>
     SequenceWidth = 6,
+
+    /// <summary>
+    /// Nothing but digits between the <c>{case-number}</c> and the <c>{seq}</c>. A case number is read
+    /// back as anything at all, so <c>EC-20261000</c> is case <c>EC-2026</c> at 1000 and case
+    /// <c>EC-2</c> at 0261000 alike, and no reading tells the two apart.
+    /// </summary>
+    CaseNumberBesideTheSequence = 7,
 }
