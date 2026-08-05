@@ -158,8 +158,10 @@ public class ApplicationDbModelTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(check?.Sql, Does.Contain("<"), "the lower identifier comes first, which is also what refuses a case related to itself");
-            Assert.That(check?.Sql, Does.Not.Contain("<="), "a case is never related to itself");
+            Assert.That(
+                check?.Sql?.Replace(" ", "", StringComparison.Ordinal),
+                Is.AnyOf(@"""CaseId""<""RelatedCaseId""", @"""RelatedCaseId"">""CaseId"""),
+                "the pair is stored in one order, which is also what refuses a case related to itself");
             Assert.That(unique?.Properties.Select(property => property.Name), Is.EqualTo(pair), "one pair is one row, whichever end asks");
             Assert.That(IsIndexed(relation, nameof(CaseRelation.RelatedCaseId)), Is.True, "a relation is read from either end, so both columns are indexed");
             Assert.That(ColumnsOf(relation), Is.EquivalentTo(bare), "the row is bare — it carries the pair and nothing else");
