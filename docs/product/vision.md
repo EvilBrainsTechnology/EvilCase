@@ -7,7 +7,7 @@ v GitHub Issues, ne tady.
 ## Co je EvilCase
 
 Systém pro vedení spisů správních a soudních řízení. Spis v čase roste: přibývají úkony,
-dokumenty přicházejí a odcházejí, vedle sebe běží související řízení. Aplikace drží to všechno
+dokumenty přicházejí a odcházejí, vedle sebe běží související řízení. Aplikace to všechno drží
 na jednom místě a v každém okamžiku odpoví, co se stalo a co ve spisu je.
 
 Současný cíl je **první použitelný základ**: jeden člověk vede reálný spis rukou — každý spis,
@@ -31,7 +31,7 @@ přidělené někým jiným, jsou `ExternalCaseNumber` a `ExternalActNumber`.
 
 **Spis** — jedno řízení. Nese vlastníka, status, tagy, strany, spisové značky a komentáře.
 Spisy jsou si rovné: spis souvisí s N dalšími spisy, vazba je symetrická a holá — bez poznámky,
-bez druhu, bez směru. Vidí a nastavuje se vždy jen jedna vrstva: detail spisu ukazuje spisy,
+bez druhu, bez směru. Zobrazuje a nastavuje se vždy jen přímá vazba: detail spisu ukazuje spisy,
 s nimiž souvisí, a nic za nimi. Smazání spisu bere jeho vazby s sebou; spisy, s nimiž souvisel,
 zůstávají.
 
@@ -42,7 +42,7 @@ u příchozího i číslo vydavatele (`ExternalActNumber`), shrnutí a soubory. 
 primárního úkonu.
 
 **Soubor** — příloha úkonu. Patří svému primárnímu úkonu a nese svůj původní název; odkazovat
-na něj mohou i další úkony a každá taková vazba má vlastní název, který původní přetěžuje.
+na něj mohou i další úkony a každý takový odkaz má vlastní název, který původní přetěžuje.
 Totéž PDF přiložené v pěti souvisejících spisech je jeden soubor a čtyři odkazy. Soubory se
 nahrávají i stahují v prohlížeči, včetně hromadného uploadu přetažením.
 
@@ -83,16 +83,17 @@ obrazovce Nastavení — její první kus.
 ## Vzorová data
 
 `EvilBrains__EvilCase__Database__SeedSampleData` (default `false`) naplní databázi při startu,
-v jakémkoli prostředí, jen dokud neobsahuje žádný spis. Data jsou pseudonymizovaný spis
-o překročení rychlosti z `test-data/case-01-speeding.md`, celý: linie vzájemně souvisejících
+v jakémkoli prostředí, jen dokud neobsahuje žádný spis. Data jsou pseudonymizovaný případ
+o překročení rychlosti z `test-data/case-01-speeding.md`, celý: několik vzájemně souvisejících
 spisů, strany, značky, úkony se syntetickými PDF, komentáře — každá obrazovka se tak staví
-a ověřuje nad rozsahem reálného spisu, včetně dokumentu sdíleného několika spisy.
+a ověřuje nad rozsahem reálného případu, včetně dokumentu sdíleného několika spisy.
 
 ## Priority
 
 V pořadí podle toho, co při práci s reálným spisem bolí nejvíc:
 
-1. Celý spis na jednom místě — související spisy, úkony, dokumenty — místo složky na disku.
+1. Všechno k případu na jednom místě — spis, spisy s ním související, úkony a dokumenty — místo
+   složky na disku.
 2. Zavedení nového úkonu s jeho dokumenty pod minutu.
 3. Rychlé nalezení spisu i úkonu, textem i značkou; hledání ignoruje diakritiku.
 
@@ -100,8 +101,8 @@ V pořadí podle toho, co při práci s reálným spisem bolí nejvíc:
 
 | # | Milník | Dodá |
 | --- | --- | --- |
-| M1 | Model a vzorová data | model úkonu ořezaný na jedno povinné datum bez pořadového čísla, seznamy úkonů řazené datem; zjednodušený model souboru (primární úkon, pojmenované odkazy, bez rolí); přejmenování identifikátorů v kódu na `CaseNumber`, `ActNumber`, `ExternalCaseNumber` a `ExternalActNumber`; číslování s výchozími vzory; seed přepínač nahrávající vzorový spis |
-| M2 | UI spisu | detail spisu se souvisejícími spisy a komentáři; založení, editace a smazání spisu, včetně navázání a odebrání souvisejícího; značky, status a tagy; obrazovka Nastavení se vzory číslování; hledání bez ohledu na diakritiku |
+| M1 | Model a vzorová data | model úkonu ořezaný na jedno povinné datum bez pořadového čísla, seznamy úkonů řazené datem; zjednodušený model souboru (primární úkon, pojmenované odkazy, bez rolí); přejmenování identifikátorů v kódu na `CaseNumber`, `ActNumber`, `ExternalCaseNumber` a `ExternalActNumber`; číslování s výchozími vzory; seed přepínač nahrávající vzorová data |
+| M2 | UI spisu | detail spisu se souvisejícími spisy a komentáři; založení, editace a smazání spisu, včetně přidání a odebrání vazby; značky, status a tagy; obrazovka Nastavení se vzory číslování; hledání bez ohledu na diakritiku |
 | M3 | Úkony a soubory | seznam úkonů v detailu spisu; stránka úkonu se shrnutím, soubory a komentáři; přidání, editace a smazání úkonu; upload včetně hromadného přetažením a download |
 | M4 | Strany | samostatná agenda; inline výběr nebo založení všude, kde se strana jmenuje |
 
