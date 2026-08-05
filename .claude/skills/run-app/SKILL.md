@@ -38,7 +38,7 @@ connection string, the seed and JWT keys and the `src/` layout — a change to a
 change to the hook, in the same commit.
 
 The hook writes `.env` into the main checkout only, so a worktree has none and the host will
-not start there: copy the file into the worktree, or run the app from the main checkout.
+not start there until the file is copied into it.
 
 ## Start
 
@@ -48,10 +48,11 @@ serves the same address, and only one instance can hold the port — stop an IDE
 A port picked by hand stays off the browsers' unsafe-port list (6000, 6665–6669, 6697, …).
 
 Subagents run side by side, so 5000 and the `evilcase` database belong to whoever took them
-first. `Start-EvilCase.ps1` next to this file gives a run its own of both and prints the URL;
-its header holds the parameters, where the logs go and what a failed start leaves behind, and
-its comments the traps it steps around. Point the screenshot script at that URL with
-`EVILCASE_URL`.
+first. `Start-EvilCase.ps1` next to this file gives a run its own of both and prints the URL. It
+takes the connection string from its own parameters, but not the JWT key or the seed, so a
+worktree still needs the `.env` copied into it. Its header holds the parameters, where the logs
+go and what a failed start leaves behind, and its comments the traps it steps around. Point the
+screenshot script at the printed URL with `EVILCASE_URL`.
 
 ```
 pwsh .claude/skills/run-app/Start-EvilCase.ps1                    # → https://localhost:41449
