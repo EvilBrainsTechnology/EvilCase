@@ -13,6 +13,11 @@ namespace EvilBrains.EvilCase.Data.Entities;
 [Index(nameof(ParentCaseId))]
 public record Case : IEntity
 {
+    /// <summary>
+    /// The column a case number is stored in, and the bound a pattern issuing one has to write within.
+    /// </summary>
+    public const int CaseNumberLength = 64;
+
     [Key]
     public long Id { get; init; }
 
@@ -27,7 +32,7 @@ public record Case : IEntity
     /// </summary>
     public long? ParentCaseId { get; init; }
 
-    [MaxLength(64)]
+    [MaxLength(CaseNumberLength)]
     public required string CaseNumber { get; init; }
 
     [MaxLength(256)]

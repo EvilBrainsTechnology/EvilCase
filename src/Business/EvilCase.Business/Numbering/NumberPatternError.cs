@@ -7,8 +7,7 @@ namespace EvilBrains.EvilCase.Business.Numbering;
 internal enum NumberPatternError
 {
     /// <summary>
-    /// A <c>{…}</c> the application does not know, or a brace with no partner. <c>{case-number}</c> is
-    /// one of those in a case pattern, which has no case to write there.
+    /// A <c>{…}</c> the application does not know, or a brace with no partner.
     /// </summary>
     UnknownPlaceholder = 0,
 
@@ -22,4 +21,17 @@ internal enum NumberPatternError
     /// day but writes only the day of the month, so next month it writes the same numbers again.
     /// </summary>
     RepeatingPeriod = 2,
+
+    /// <summary>
+    /// <c>{case-number}</c> in a case pattern: a placeholder the application knows, in the one field
+    /// that has no case number to write there.
+    /// </summary>
+    CaseNumberOutsideAnActPattern = 3,
+
+    /// <summary>
+    /// The number it writes at its widest — a series counted to <see cref="int.MaxValue"/>, and a
+    /// case number filling its own column — does not fit the column it is stored in. Storing one is a
+    /// failed insert with the <c>{seq}</c> already taken.
+    /// </summary>
+    TooLongForItsColumn = 4,
 }

@@ -1,4 +1,5 @@
 using EvilBrains.EvilCase.Business.Numbering;
+using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Domain.Numbering;
 
 namespace EvilBrains.EvilCase.Tests.Numbering;
@@ -100,7 +101,10 @@ public class NumberPatternTests
     {
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(NumberPattern.Validate("{case-number}EC-{seq}", NumberPatternKind.CaseNumber), Is.EqualTo(NumberPatternError.UnknownPlaceholder), "a case pattern has no case to write there, and Format would drop it silently");
+            Assert.That(
+                NumberPattern.Validate("{case-number}EC-{seq}", NumberPatternKind.CaseNumber),
+                Is.EqualTo(NumberPatternError.CaseNumberOutsideAnActPattern),
+                "a placeholder in the wrong field is not one the application does not know, and the screen says something else about each");
             Assert.That(NumberPattern.Format("{case-number}EC-{seq}", Date, 1), Is.EqualTo("EC-001"), "what the refusal is about");
             Assert.That(NumberPattern.Validate("{case-number}EC-{seq}", NumberPatternKind.ActNumber), Is.Null);
         }
@@ -113,6 +117,31 @@ public class NumberPatternTests
         {
             Assert.That(NumberPattern.Validate("EC-{year}", NumberPatternKind.CaseNumber), Is.EqualTo(NumberPatternError.NoSequence), "without {seq} every case gets the same number");
             Assert.That(NumberPattern.Validate("EC-{year}-{seq}", NumberPatternKind.CaseNumber), Is.Null);
+        }
+    }
+
+    /// <summary>
+    /// The widest a pattern ever writes is what has to fit: a series counted to <c>int.MaxValue</c> is
+    /// ten digits, and <c>{case-number}</c> can be a case number filling its own column.
+    /// </summary>
+    [Test]
+    public void APatternThatWouldNotFitTheColumnItIsStoredInIsRefused()
+    {
+        var caseBudget = Case.CaseNumberLength - "2147483647".Length;
+        var actBudget = Act.ActNumberLength - "2147483647".Length - Case.CaseNumberLength;
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(NumberPattern.Validate(new string('X', caseBudget) + "{seq}", NumberPatternKind.CaseNumber), Is.Null);
+            Assert.That(
+                NumberPattern.Validate(new string('X', caseBudget + 1) + "{seq}", NumberPatternKind.CaseNumber),
+                Is.EqualTo(NumberPatternError.TooLongForItsColumn),
+                "a pattern that overflows its column fails on the insert, with the {seq} it took already gone");
+            Assert.That(NumberPattern.Validate(new string('X', actBudget) + "{case-number}{seq}", NumberPatternKind.ActNumber), Is.Null);
+            Assert.That(
+                NumberPattern.Validate(new string('X', actBudget + 1) + "{case-number}{seq}", NumberPatternKind.ActNumber),
+                Is.EqualTo(NumberPatternError.TooLongForItsColumn),
+                "an act number carries a whole case number, so it runs out of its own column that much sooner");
         }
     }
 

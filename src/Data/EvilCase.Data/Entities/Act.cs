@@ -15,6 +15,11 @@ namespace EvilBrains.EvilCase.Data.Entities;
 [Index(nameof(ExternalActNumber))]
 public record Act : IEntity
 {
+    /// <summary>
+    /// The column an act number is stored in, and the bound a pattern issuing one has to write within.
+    /// </summary>
+    public const int ActNumberLength = 128;
+
     [Key]
     public long Id { get; init; }
 
@@ -29,7 +34,7 @@ public record Act : IEntity
     /// The act's own <em>číslo jednací</em>, issued from the act number pattern when the act is created
     /// and overwritable afterwards.
     /// </summary>
-    [MaxLength(128)]
+    [MaxLength(ActNumberLength)]
     public required string ActNumber { get; init; }
 
     /// <summary>

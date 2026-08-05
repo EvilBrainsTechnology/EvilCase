@@ -1,3 +1,5 @@
+using EvilBrains.EvilCase.Data.Entities;
+
 namespace EvilBrains.EvilCase.Business.Numbering;
 
 /// <summary>
@@ -16,24 +18,33 @@ internal static class NumberPattern
 
     private const string CaseNumber = "{case-number}";
 
-    private static readonly string[] CasePlaceholders = [Year, Month, Day, Sequence];
+    private static readonly string[] Placeholders = [Year, Month, Day, Sequence, CaseNumber];
 
-    private static readonly string[] ActPlaceholders = [Year, Month, Day, Sequence, CaseNumber];
+    /// <summary>
+    /// The widest a placeholder ever writes: the last date <see cref="DateOnly"/> holds, and a series
+    /// that has counted to <see cref="int.MaxValue"/>.
+    /// </summary>
+    private static readonly DateOnly WidestDate = DateOnly.MaxValue;
+
+    private static readonly string WidestCaseNumber = new('9', Case.CaseNumberLength);
 
     /// <summary>
     /// Null for a pattern that can be used. The issuer calls it before it writes, and the API answers a
-    /// screen that edits a pattern with it — a pattern that got past the screen would reissue silently.
+    /// screen that edits a pattern with it — a pattern that got past the screen would reissue silently,
+    /// or fail on the insert with its <c>{seq}</c> already burned.
     /// </summary>
     public static NumberPatternError? Validate(string pattern, NumberPatternKind kind)
     {
         ArgumentNullException.ThrowIfNull(pattern);
 
-        var known = kind is NumberPatternKind.ActNumber ? ActPlaceholders : CasePlaceholders;
-        var rest = known.Aggregate(pattern, (text, placeholder) => text.Replace(placeholder, "", StringComparison.Ordinal));
+        var rest = Placeholders.Aggregate(pattern, (text, placeholder) => text.Replace(placeholder, "", StringComparison.Ordinal));
         if (rest.Contains('{', StringComparison.Ordinal) || rest.Contains('}', StringComparison.Ordinal))
             return NumberPatternError.UnknownPlaceholder;
 
-        if (!pattern.Contains(Sequence, StringComparison.Ordinal))
+        if (kind is not NumberPatternKind.ActNumber && Names(pattern, CaseNumber))
+            return NumberPatternError.CaseNumberOutsideAnActPattern;
+
+        if (!Names(pattern, Sequence))
             return NumberPatternError.NoSequence;
 
         if (Names(pattern, Day) && !(Names(pattern, Month) && Names(pattern, Year)))
@@ -41,6 +52,9 @@ internal static class NumberPattern
 
         if (Names(pattern, Month) && !Names(pattern, Year))
             return NumberPatternError.RepeatingPeriod;
+
+        if (Widest(pattern, kind) > Column(kind))
+            return NumberPatternError.TooLongForItsColumn;
 
         return null;
     }
@@ -82,4 +96,10 @@ internal static class NumberPattern
     }
 
     private static bool Names(string pattern, string placeholder) => pattern.Contains(placeholder, StringComparison.Ordinal);
+
+    private static int Column(NumberPatternKind kind) =>
+        kind is NumberPatternKind.ActNumber ? Act.ActNumberLength : Case.CaseNumberLength;
+
+    private static int Widest(string pattern, NumberPatternKind kind) =>
+        Format(pattern, WidestDate, int.MaxValue, kind is NumberPatternKind.ActNumber ? WidestCaseNumber : null).Length;
 }
