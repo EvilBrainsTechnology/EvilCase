@@ -1,16 +1,26 @@
 #!/usr/bin/env pwsh
 <#
     Runs the host on a port and a database of its own, so parallel agents cannot take each
-    other's. Prints the URL; -Stop kills the host and drops the database again.
+    other's; any number of runs share one checkout. Prints the URL, and nothing else, on stdout.
 
-        ./.claude/skills/run-app/Start-EvilCase.ps1            # prints https://localhost:<port>
-        ./.claude/skills/run-app/Start-EvilCase.ps1 -Stop
+        ./.claude/skills/run-app/Start-EvilCase.ps1               # prints https://localhost:<port>
+        ./.claude/skills/run-app/Start-EvilCase.ps1 -Stop         # every run of this checkout
+        ./.claude/skills/run-app/Start-EvilCase.ps1 -Stop -Port 41449
 
-    The state lives in .evilcase-run.json at the repository root, so -Stop needs no arguments.
+    -Stop kills the host, drops the database and removes the run's files. A start that failed
+    needs it too: whatever it got as far as creating is still there, and it says so.
+
+    -PostgresHost, -PostgresPort, -PostgresUser and -PostgresPassword reach a server other than
+    localhost:5432 as postgres/postgres. -ReadyTimeoutSeconds bounds the wait for /health/ready.
+
+    A run's state and the host's output live in ~/.evilcase-runs/<checkout>/<port>.{json,log,err},
+    with the build's in build.log beside them — outside the checkout, which may be a worktree
+    that is removed while the host it started is still running.
 #>
-[CmdletBinding()]
+[CmdletBinding(DefaultParameterSetName = 'Start')]
 param(
-    [switch] $Stop,
+    [Parameter(ParameterSetName = 'Stop', Mandatory = $true)] [switch] $Stop,
+    [Parameter(ParameterSetName = 'Stop')] [int] $Port,
     [string] $PostgresHost = 'localhost',
     [int] $PostgresPort = 5432,
     [string] $PostgresUser = 'postgres',
@@ -24,76 +34,179 @@ if (Test-Path 'variable:PSNativeCommandUseErrorActionPreference') {
     $PSNativeCommandUseErrorActionPreference = $false
 }
 
-$root = git rev-parse --show-toplevel
-if ($LASTEXITCODE -ne 0) { throw 'not inside a git repository' }
-Set-Location -LiteralPath $root
-$stateFile = Join-Path $root '.evilcase-run.json'
+# From the script's own location, never the caller's directory, which need not be in a checkout
+# at all — one that was created a database before failing on the missing src/.
+$root = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..' '..' '..')).Path
+if (-not (Test-Path -LiteralPath (Join-Path $root 'src'))) { throw "$root is not an EvilCase checkout" }
+
+$checkout = [Convert]::ToHexString(
+    [System.Security.Cryptography.SHA256]::HashData([Text.Encoding]::UTF8.GetBytes($root))).Substring(0, 8)
+$stateDirectory = Join-Path $HOME '.evilcase-runs' "$(Split-Path -Path $root -Leaf)-$($checkout.ToLowerInvariant())"
 $env:PGPASSWORD = $PostgresPassword
 
 function Invoke-Postgres([string] $Tool, [string[]] $ToolArguments) {
-    & $Tool -h $PostgresHost -p $PostgresPort -U $PostgresUser @ToolArguments
+    $output = & $Tool -h $PostgresHost -p $PostgresPort -U $PostgresUser @ToolArguments
     if ($LASTEXITCODE -ne 0) { throw "$Tool failed with exit code $LASTEXITCODE" }
+    return $output
+}
+
+function Test-Database([string] $Name) {
+    return @(Invoke-Postgres 'psql' @('-d', 'postgres', '-Atc', "select 1 from pg_database where datname = '$Name'")) -contains '1'
+}
+
+# A refused connection is the only proof the host let go of the port.
+function Test-Port([int] $Number) {
+    $client = [System.Net.Sockets.TcpClient]::new()
+    try { return $client.ConnectAsync([System.Net.IPAddress]::Loopback, $Number).Wait(1000) }
+    catch { return $false }
+    finally { $client.Dispose() }
+}
+
+# stderr: stdout carries the URL.
+function Write-Diagnostics([string[]] $Paths) {
+    foreach ($path in $Paths | Where-Object { Test-Path -LiteralPath $_ }) {
+        $tail = @(Get-Content -LiteralPath $path -Tail 20)
+        if ($tail) { [Console]::Error.WriteLine("$path`n$($tail -join [Environment]::NewLine)") }
+    }
 }
 
 if ($Stop) {
-    if (-not (Test-Path -LiteralPath $stateFile)) { throw "nothing to stop: $stateFile is not there" }
-    $state = Get-Content -LiteralPath $stateFile -Raw | ConvertFrom-Json
+    $states = @()
+    if (Test-Path -LiteralPath $stateDirectory) {
+        $states = @(Get-ChildItem -LiteralPath $stateDirectory -Filter '*.json' |
+                Where-Object { -not $Port -or $_.BaseName -eq [string] $Port })
+    }
+    if (-not $states) {
+        Write-Warning "no run recorded in $stateDirectory"
+        return
+    }
 
-    # By pid: `pkill -f EvilCase.Host` also matches the shell that started it and kills the session.
-    Stop-Process -Id $state.Pid -ErrorAction SilentlyContinue
-    Start-Sleep -Seconds 2
+    $stuck = @()
+    foreach ($stateFile in $states) {
+        $state = Get-Content -LiteralPath $stateFile.FullName -Raw | ConvertFrom-Json
+        $done = @()
 
-    # --force: the connection outlives the process by a moment and a plain dropdb fails on it.
-    Invoke-Postgres 'dropdb' @('--force', '--if-exists', $state.Database)
-    # -Force: a leading dot makes it hidden to PowerShell, which then refuses to remove it.
-    Remove-Item -LiteralPath $stateFile -Force
-    Write-Output "stopped $($state.Url), dropped $($state.Database)"
+        # By pid, and only while it is still the command line this run started: a pid is recycled,
+        # and a state file left behind by a crash has had an unrelated process killed by now.
+        $process = Get-Process -Id $state.Pid -ErrorAction SilentlyContinue
+        if ($process -and $process.CommandLine -eq $state.CommandLine) {
+            Stop-Process -InputObject $process -Force
+            $done += "killed host $($state.Pid)"
+        }
+        elseif ($process) { $done += "left pid $($state.Pid) alone, it is not this run's host" }
+        else { $done += "host $($state.Pid) was gone" }
+
+        # Only then the database: dropping it under a host still serving takes the schema away
+        # from it, and removing the state file leaves nothing naming either.
+        $deadline = [datetime]::UtcNow.AddSeconds(30)
+        while ((Test-Port $state.Port) -and [datetime]::UtcNow -lt $deadline) { Start-Sleep -Seconds 1 }
+        if (Test-Port $state.Port) {
+            $stuck += "$($state.Url) still answers — kept $($state.Database) and $($stateFile.FullName)"
+            continue
+        }
+
+        if (Test-Database $state.Database) {
+            # --force: the connection outlives the process by a moment and a plain dropdb fails on it.
+            Invoke-Postgres 'dropdb' @('--force', $state.Database) | Out-Null
+            $done += "dropped $($state.Database)"
+        }
+        else { $done += "$($state.Database) was gone" }
+
+        Remove-Item -LiteralPath $stateFile.FullName, $state.Log, $state.ErrorLog -Force -ErrorAction SilentlyContinue
+        Write-Output "$($state.Url): $($done -join ', ')"
+    }
+
+    if (-not (Get-ChildItem -LiteralPath $stateDirectory -Filter '*.json')) {
+        Remove-Item -LiteralPath $stateDirectory -Recurse -Force
+    }
+    if ($stuck) { throw ($stuck -join [Environment]::NewLine) }
     return
 }
 
-if (Test-Path -LiteralPath $stateFile) {
-    throw "a run is already recorded in $stateFile — stop it first"
+New-Item -ItemType Directory -Path $stateDirectory -Force | Out-Null
+
+# Built once and started from the assembly: `dotnet r run` puts five launchers between the caller
+# and Kestrel, so the pid to record is not the one holding the port. Parallel starts share the
+# checkout's obj/ and bin/, so they take turns.
+$buildLog = Join-Path $stateDirectory 'build.log'
+$buildLock = [System.Threading.Mutex]::new($false, "evilcase-build-$checkout")
+try { $buildLock.WaitOne() | Out-Null } catch [System.Threading.AbandonedMutexException] { }
+try {
+    $build = Start-Process -FilePath 'dotnet' -ArgumentList @('r', 'build') -WorkingDirectory (Join-Path $root 'src') `
+        -RedirectStandardOutput $buildLog -RedirectStandardError "$buildLog.err" -PassThru -Wait
+}
+finally {
+    $buildLock.ReleaseMutex()
+    $buildLock.Dispose()
+}
+if ($build.ExitCode -ne 0) {
+    Write-Diagnostics @($buildLog, "$buildLog.err")
+    throw "dotnet r build failed with exit code $($build.ExitCode) — see $buildLog"
 }
 
-# Port 0 binds whatever is free; an ephemeral one is above the browsers' unsafe-port list by
-# construction. The window between closing it and Kestrel binding is the price of asking the OS.
-$listener = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Loopback, 0)
-$listener.Start()
-$port = $listener.LocalEndpoint.Port
-$listener.Stop()
+$assembly = Join-Path $root 'src/EvilCase.Host/bin/Release/net10.0/EvilBrains.EvilCase.Host.dll'
+if (-not (Test-Path -LiteralPath $assembly)) { throw "the build produced no $assembly" }
+
+# Port 0 binds whatever is free; the window between closing it and Kestrel binding is the price of
+# asking the OS. The unsafe ports are the ones a browser refuses to open, ephemeral or not.
+$unsafePorts = @(1719, 1720, 1723, 2049, 3659, 4045, 5060, 5061, 6000, 6566, 6665, 6666, 6667, 6668, 6669, 6697, 10080)
+do {
+    $listener = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Loopback, 0)
+    $listener.Start()
+    $port = $listener.LocalEndpoint.Port
+    $listener.Stop()
+    $stateFile = Join-Path $stateDirectory "$port.json"
+} while ($unsafePorts -contains $port -or (Test-Path -LiteralPath $stateFile))
 
 $database = "evilcase_$port"
 $url = "https://localhost:$port"
-Invoke-Postgres 'createdb' @($database)
+$log = Join-Path $stateDirectory "$port.log"
+$errorLog = Join-Path $stateDirectory "$port.err"
 
+$env:ASPNETCORE_ENVIRONMENT = 'Development'
 $env:EvilBrains__EvilCase__ConnectionString =
 "Host=$PostgresHost;Port=$PostgresPort;Database=$database;Username=$PostgresUser;Password=$PostgresPassword"
 
-# --urls, not ASPNETCORE_URLS: applicationUrl in launchSettings.json wins over the variable and
-# the host binds 5000 anyway.
-$log = Join-Path $root '.evilcase-run.log'
-$host_ = Start-Process -FilePath 'dotnet' `
-    -ArgumentList @('r', 'run', '--', '--urls', $url) `
-    -WorkingDirectory (Join-Path $root 'src') `
-    -RedirectStandardOutput $log -RedirectStandardError "$log.err" -PassThru
+Invoke-Postgres 'createdb' @($database) | Out-Null
+$hostProcess = $null
+try {
+    $hostProcess = Start-Process -FilePath 'dotnet' -ArgumentList @($assembly, '--urls', $url) `
+        -WorkingDirectory (Split-Path -Path $assembly -Parent) `
+        -RedirectStandardOutput $log -RedirectStandardError $errorLog -PassThru
 
-@{ Pid = $host_.Id; Port = $port; Database = $database; Url = $url; Log = $log } |
-    ConvertTo-Json | Set-Content -LiteralPath $stateFile
+    @{
+        Pid = $hostProcess.Id
+        CommandLine = $hostProcess.CommandLine
+        Port = $port
+        Database = $database
+        Url = $url
+        Log = $log
+        ErrorLog = $errorLog
+    } | ConvertTo-Json | Set-Content -LiteralPath $stateFile
+}
+catch {
+    # Until the state file is written nothing names the database, and -Stop would never find it.
+    if ($hostProcess) { Stop-Process -InputObject $hostProcess -Force -ErrorAction SilentlyContinue }
+    Invoke-Postgres 'dropdb' @('--force', '--if-exists', $database) | Out-Null
+    throw
+}
 
+$stopCommand = "$PSCommandPath -Stop -Port $port"
 $deadline = [datetime]::UtcNow.AddSeconds($ReadyTimeoutSeconds)
 while ([datetime]::UtcNow -lt $deadline) {
-    if ($host_.HasExited) {
-        Get-Content -LiteralPath $log -Tail 20 | Write-Output
-        throw "the host exited with code $($host_.ExitCode) — see $log"
+    if ($hostProcess.HasExited) {
+        Write-Diagnostics @($log, $errorLog)
+        throw "the host exited with code $($hostProcess.ExitCode) — $database is still there: $stopCommand"
     }
     try {
-        $ready = Invoke-RestMethod -Uri "$url/health/ready" -SkipCertificateCheck -TimeoutSec 5
-        if ($ready.status -eq 'Healthy') {
+        if ((Invoke-RestMethod -Uri "$url/health/ready" -SkipCertificateCheck -TimeoutSec 5).status -eq 'Healthy') {
             Write-Output $url
             return
         }
     }
-    catch { Start-Sleep -Seconds 2 }
+    catch { }
+    Start-Sleep -Seconds 2
 }
 
-throw "the host did not answer $url/health/ready within $ReadyTimeoutSeconds s — see $log"
+Write-Diagnostics @($log, $errorLog)
+throw "the host did not answer $url/health/ready within $ReadyTimeoutSeconds s — it and $database are still there: $stopCommand"
