@@ -83,19 +83,25 @@ public class IssuedNumberReaderTests
         Assert.That(await this.HighestCaseNumber("A_C-{year}-{seq}"), Is.EqualTo(8));
     }
 
+    /// <summary>
+    /// A case number is unique within its owner and no further, so two owners can hold the same one and
+    /// write act numbers of the same text under it. The case is what tells the two series apart.
+    /// </summary>
     [Test]
-    public async Task AnActCountsWithinItsOwnCase()
+    public async Task AnActCountsWithinItsOwnCaseRatherThanEveryCaseOfThatNumber()
     {
         var mine = await this.WriteCase("EC-20260804-001");
-        var theirs = await this.WriteCase("EC-20260804-002");
+        var another = await this.WriteCase("EC-20260804-002");
+        var theirs = await this.WriteCase("EC-20260804-001", await this.Database.OwnerId(index: 1));
 
         await this.WriteAct(mine, "EC-20260804-001-20260804-005");
-        await this.WriteAct(theirs, "EC-20260804-002-20260804-900");
+        await this.WriteAct(another, "EC-20260804-002-20260804-800");
+        await this.WriteAct(theirs, "EC-20260804-001-20260804-900");
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(await this.HighestActNumber(mine, "EC-20260804-001"), Is.EqualTo(5));
-            Assert.That(await this.HighestActNumber(theirs, "EC-20260804-002"), Is.EqualTo(900), "another case counts on its own");
+            Assert.That(await this.HighestActNumber(mine, "EC-20260804-001"), Is.EqualTo(5), "another owner's case of the same number is another case");
+            Assert.That(await this.HighestActNumber(another, "EC-20260804-002"), Is.EqualTo(800), "and so is a case of the caller's own carrying another number");
         }
     }
 
