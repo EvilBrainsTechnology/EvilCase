@@ -96,7 +96,7 @@ try {
         $listed = Invoke-GitChecked @('ls-remote', $Remote, "refs/heads/$Branch")
         $parent = if ($listed) { ($listed -split '\s+', 2)[0] } else { $null }
         if (-not $parent -and -not $Create) {
-            throw "$Remote has no $Branch. A typo names a branch no ruleset covers; -Create writes the parentless commit a new one starts from"
+            throw "$Remote has no $Branch — a typo, or a branch to start with -Create"
         }
         # Listed before fetched, never after: a tip that lands in between is fetched with the one
         # named here among its ancestors, and read-tree has an object either way.
