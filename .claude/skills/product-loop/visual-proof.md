@@ -5,6 +5,7 @@ the seeded administrator, with the app started per the run-app skill. All data i
 
 - `screenshots.mjs` next to this file takes them and exits non-zero when a page threw. A
   component that fails to render draws an empty card, so a screenshot alone would look fine.
+  `EVILCASE_WIDTHS=1440,390` adds the mobile side where a change is about responsive layout.
 
   ```bash
   PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers /opt/node22/bin/node \
