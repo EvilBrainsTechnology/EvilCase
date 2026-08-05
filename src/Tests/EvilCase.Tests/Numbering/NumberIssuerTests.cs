@@ -279,6 +279,22 @@ public class NumberIssuerTests
         Assert.That(attempts, Is.EqualTo(1), "only a number somebody else took is worth trying again");
     }
 
+    /// <summary>
+    /// A mark somebody typed in counts towards the maximum, so the series can stand at the last number
+    /// an int holds. Unchecked the next one is negative, and a pattern is measured against its column
+    /// for a series counted to <c>int.MaxValue</c> and no further.
+    /// </summary>
+    [Test]
+    public void ASeriesAtTheCeilingIsRefusedRatherThanCountedPast()
+    {
+        this.issued.KeepCaseNumber("EC-20260804-2147483647");
+
+        Assert.That(
+            async () => await this.IssueCaseNumber(this.Issuer()),
+            Throws.InstanceOf<InvalidOperationException>().And.Not.InstanceOf<CaseNotFoundException>(),
+            "a number no pattern budgeted for is refused rather than written");
+    }
+
     private static PostgresException Refused(string index) =>
         new("duplicate key value violates unique constraint", "ERROR", "ERROR", PostgresErrorCodes.UniqueViolation, constraintName: index);
 

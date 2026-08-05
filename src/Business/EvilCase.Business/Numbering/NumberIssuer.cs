@@ -77,7 +77,7 @@ internal sealed class NumberIssuer(
 
         for (var attempt = 1; ; attempt++)
         {
-            var number = NumberPattern.Format(pattern, today, await highest(cancellationToken) + 1, caseNumber);
+            var number = NumberPattern.Format(pattern, today, Next(await highest(cancellationToken), pattern), caseNumber);
 
             try
             {
@@ -89,6 +89,13 @@ internal sealed class NumberIssuer(
             }
         }
     }
+
+    // A pattern is validated against what a series counted to int.MaxValue writes, so the number after
+    // that one is wider than its column was measured for — and unchecked it would be a negative one.
+    private static int Next(int highest, string pattern) =>
+        highest == int.MaxValue
+            ? throw new InvalidOperationException($"the series of '{pattern}' has reached {int.MaxValue}, which is as far as a series counts")
+            : highest + 1;
 
     // The zone is the one the application runs in, so a case opened at half past midnight is not
     // numbered yesterday.
