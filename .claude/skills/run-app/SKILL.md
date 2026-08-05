@@ -7,7 +7,7 @@ description: Run EvilCase locally — one host serving the API and the Blazor fr
 
 `Start-EvilCase.ps1` next to this file is how a validation runs the app: agents run side by side,
 so every run takes a port and a database of its own. `dotnet r run` and the `evilcase` preview
-server (`.claude/launch.json`) are the person's way, both on the fixed 5000.
+server (`.claude/launch.json`) share the fixed 5000, so they belong to whoever took it first.
 
 ## Prerequisites
 
@@ -17,7 +17,7 @@ server (`.claude/launch.json`) are the person's way, both on the fixed 5000.
   beside it reach another server. `README.md` has a throwaway one.
 - `src/EvilCase.Host/.env` with a JWT key of at least 32 characters and
   `EvilBrains__EvilCase__Auth__Seed__Email` and `__Password` — the seeded administrator is the
-  only way into an empty database. The script passes the connection string, nothing else.
+  only way into an empty database. The script supplies no JWT key and no seed.
 
 In Claude Code on the web `.claude/hooks/session-start.sh` does all of it at session start: the
 SDK, `pwsh`, PostgreSQL, a `.env` seeding `admin@evilcase.local` / `DevPassword123!`, and the
@@ -39,9 +39,6 @@ pwsh .claude/skills/run-app/Start-EvilCase.ps1                    # → https://
 pwsh .claude/skills/run-app/Start-EvilCase.ps1 -Stop -Port 41449
 ```
 
-`-Stop` kills the host, drops the database and removes the run's files, and names what it did; a
-start that failed needs it too. `-Stop -All` takes every run of this checkout.
-
 ## Verify
 
 `$url` is what the start printed — the run is Development, so Scalar is at `$url/scalar`, and
@@ -49,8 +46,8 @@ start that failed needs it too. `-Stop -All` takes every run of this checkout.
 
 - `curl -sk $url/health/ready` → `Healthy` with the `database` check; `503` is an unreachable
   database, and `/health/live` answers even then.
-- `POST /api/auth/login` with `{"email":…,"password":…}` → `accessToken`; `401` is bad
-  credentials, `423` a lockout (5 failures, 15 minutes).
+- `POST /api/auth/login` with `{"email":…,"password":…}`, the seed values from `.env` →
+  `accessToken`; `401` is bad credentials, `423` a lockout (5 failures, 15 minutes).
 - `POST /api/echo/post` with the bearer and `{"message":…}` → `Echo: …`, without it `401`.
 - `GET /api/nope` → `404`, never the app's HTML.
 - `$url` redirects to `/login`; sign in, open `/echo`, send a text. The first WebAssembly load
