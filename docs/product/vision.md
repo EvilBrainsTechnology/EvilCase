@@ -78,7 +78,8 @@ obrazovce Nastavení — její první kus.
   `999`. Řada počítá nad tím, co se uložilo: číslo vzaté v transakci, která se vrátí zpět,
   připadne dalšímu v řadě. Uložené číslo už žádné druhé nedostane a změna vzoru žádné
   nepřepisuje.
-- Vzor, který by ani při nejširším `{seq}` nevešel do svého sloupce, se neuloží.
+- Vzor, který by v nejširším případě nevešel do svého sloupce, se neuloží; ve vzoru čísla
+  jednacího zabere nejvíc celá spisová značka, ne `{seq}`.
 - Datum ve značce je den vydání v časové zóně, ve které aplikace běží (v Dockeru `TZ`, default
   `Europe/Prague`); zpětně datovaný úkon se nepřečísluje.
 - Vygenerované hodnoty jdou přepsat; databáze hlídá, že spisová značka je unikátní v rámci

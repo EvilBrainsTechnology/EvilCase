@@ -19,8 +19,7 @@ paths:
   within its case; every external mark is an `ExternalCaseNumber` row with a required assigning
   party.
 - The patterns both are issued from are one `NumberingSettings` row for the whole application,
-  inserted by its migration and never seeded with `HasData` — a row the model holds is
-  scaffolded as an `UpdateData` over whatever the operator saved. A series counts in a
+  inserted by its migration and the operator's from then on. A series counts in a
   `NumberSequences` row unique on `(OwnerId, Scope)`.
 - An act carries one required `Date` and no ordinal; acts are read ordered by it alone, and
   `(CaseId, Date)` is the index that serves both.
@@ -38,6 +37,9 @@ paths:
 - `dotnet ef migrations add` builds without `TreatWarningsAsErrors`: run
   `dotnet build --no-incremental` (or `dotnet r ci` after touching the file again) once after
   adding a migration; a green incremental build straight afterwards proves nothing.
+- A row the operator owns from then on is inserted by its migration, never `HasData`: a row the
+  model holds is scaffolded into every later migration as an `UpdateData` over whatever was
+  saved over it, with a `Down` writing the old value back.
 - Never re-add a migration over its committed snapshot entry — it comes out empty. Remove it
   first (`dotnet r remove-migration`), add it again, hand-format the result, and verify with
   `dotnet r generate-sql-script`; `MigrationsTests` replays every `Up`.

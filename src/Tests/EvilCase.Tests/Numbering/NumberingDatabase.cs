@@ -106,9 +106,10 @@ internal sealed class NumberingDatabase : IAsyncDisposable
     }
 
     /// <summary>
-    /// Drops whatever the setup managed to make. A server that never answered, or one that answered and
-    /// refused the credentials, holds no database of ours, and must not replace the failure that got us
-    /// here — the <c>Assert.Ignore</c> above all — with one of its own.
+    /// Drops whatever the setup managed to make, best effort: the failure that got us here — the
+    /// <c>Assert.Ignore</c> above all — is the one worth reporting, and a server that never answered or
+    /// refused the credentials holds no database of ours anyway. A drop the server does refuse leaves an
+    /// <c>evilcase_tests_*</c> database behind, and says so.
     /// </summary>
     private async Task Drop()
     {
@@ -116,9 +117,11 @@ internal sealed class NumberingDatabase : IAsyncDisposable
         {
             await this.DisposeAsync();
         }
-        catch (NpgsqlException)
+        catch (NpgsqlException exception)
         {
-            // Nothing was made, so there is nothing to drop.
+            var name = new NpgsqlConnectionStringBuilder(this.connectionString).Database;
+
+            await TestContext.Out.WriteLineAsync($"leaving the database {name} behind: {exception.Message}");
         }
     }
 

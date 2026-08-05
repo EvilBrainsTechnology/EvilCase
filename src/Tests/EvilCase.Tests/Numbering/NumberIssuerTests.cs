@@ -38,7 +38,7 @@ public class NumberIssuerTests
         {
             Assert.That(first, Is.EqualTo("EC-20260804-001"));
             Assert.That(second, Is.EqualTo("EC-20260804-002"), "a number once issued is never issued again");
-            Assert.That(this.sequences.Scopes, Is.EqualTo(expected), "sub-case and case take from one series");
+            Assert.That(this.sequences.Scopes, Is.EqualTo(expected), "every case takes from the one series its pattern names");
         }
     }
 
