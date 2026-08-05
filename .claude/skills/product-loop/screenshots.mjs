@@ -1,7 +1,7 @@
 // Screenshots for visual proof: one browser, one sign-in per width, every screen in one pass.
 // Exits non-zero if a page threw — a screenshot of a broken screen is worse than none.
 //
-//   node .claude/skills/product-loop/screenshots.mjs /tmp/shots/192 targets.json
+//   node .claude/skills/product-loop/screenshots.mjs /tmp/shots/<number> targets.json
 //
 // targets.json is a list of { name, path, file, wait?, steps?, fullPage? }; each step is
 // { click?, fill?: [selector, value], wait? }. The width is appended to file: case-list-1440.png.
