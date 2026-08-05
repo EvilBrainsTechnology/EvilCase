@@ -199,10 +199,13 @@ try {
     } | ConvertTo-Json | Set-Content -LiteralPath $stateFile
 }
 catch {
-    # Until the state file is written nothing names the database, and -Stop would never find it.
+    # Until the state file is written nothing names the database, and -Stop would never find it. The
+    # cleanup is therefore reported, never thrown: its failure would replace the error that caused it.
+    $failure = $_
     if ($hostProcess) { Stop-Process -InputObject $hostProcess -Force -ErrorAction SilentlyContinue }
-    Invoke-Postgres 'dropdb' @('--force', '--if-exists', $database) | Out-Null
-    throw
+    try { Invoke-Postgres 'dropdb' @('--force', '--if-exists', $database) | Out-Null }
+    catch { [Console]::Error.WriteLine("$database is left behind, nothing else names it: $($_.Exception.Message)") }
+    throw $failure
 }
 
 $stopCommand = "$PSCommandPath -Stop -Port $port"
