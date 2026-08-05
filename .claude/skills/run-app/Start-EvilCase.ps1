@@ -15,9 +15,9 @@
     -PostgresHost, -PostgresPort, -PostgresUser and -PostgresPassword reach a server other than
     localhost:5432 as postgres/postgres. -ReadyTimeoutSeconds bounds the wait for /health/ready.
 
-    A run's state and the host's output live in ~/.evilcase-runs/<checkout>/<port>.{json,log,err},
-    with the build's in build.log beside them — outside the checkout, which may be a worktree
-    that is removed while the host it started is still running.
+    A run's state and the host's output live in ~/.evilcase-runs/<leaf>-<hash of the checkout's
+    path>/<port>.{json,log,err}, the build's in build-<pid>.log beside them — outside the checkout,
+    which may be a worktree that is removed while the host it started is still running.
 #>
 param(
     [switch] $Stop,
@@ -128,7 +128,7 @@ if ($Stop) {
         catch { $kept += "$($stateFile.FullName) kept: $($_.Exception.Message)" }
     }
 
-    # With the last run goes what is left of the checkout's directory, the build log included.
+    # With the last run goes what is left of the checkout's directory, the build logs included.
     if ((Test-Path -LiteralPath $stateDirectory) -and
         -not (Get-ChildItem -LiteralPath $stateDirectory -Filter '*.json')) {
         Remove-Item -LiteralPath $stateDirectory -Recurse -Force
@@ -141,10 +141,16 @@ New-Item -ItemType Directory -Path $stateDirectory -Force | Out-Null
 
 # Built once and started from the assembly: `dotnet r run` puts five launchers between the caller
 # and Kestrel, so the pid to record is not the one holding the port. Parallel starts share the
-# checkout's obj/ and bin/, so they take turns.
-$buildLog = Join-Path $stateDirectory 'build.log'
+# checkout's obj/ and bin/, so they take turns — bounded, or a wedged build stalls the checkout.
+$buildLog = Join-Path $stateDirectory "build-$PID.log"
 $buildLock = [System.Threading.Mutex]::new($false, "evilcase-build-$checkout")
-try { $buildLock.WaitOne() | Out-Null } catch [System.Threading.AbandonedMutexException] { }
+$held = $false
+try { $held = $buildLock.WaitOne([timespan]::FromMinutes(10)) }
+catch [System.Threading.AbandonedMutexException] { $held = $true }
+if (-not $held) {
+    $buildLock.Dispose()
+    throw 'another run of this checkout has been building for 10 minutes'
+}
 try {
     $build = Start-Process -FilePath 'dotnet' -ArgumentList @('r', 'build') -WorkingDirectory (Join-Path $root 'src') `
         -RedirectStandardOutput $buildLog -RedirectStandardError "$buildLog.err" -PassThru -Wait
@@ -172,7 +178,9 @@ do {
     $stateFile = Join-Path $stateDirectory "$port.json"
 } while ($unsafePorts -contains $port -or (Test-Path -LiteralPath $stateFile))
 
-$database = "evilcase_$port"
+# Keyed by checkout as well as port: an orphan from another checkout would otherwise collide with
+# this one's createdb, and the failure names neither of them.
+$database = "evilcase_${checkout}_$port"
 $url = "https://localhost:$port"
 $log = Join-Path $stateDirectory "$port.log"
 $errorLog = Join-Path $stateDirectory "$port.err"
