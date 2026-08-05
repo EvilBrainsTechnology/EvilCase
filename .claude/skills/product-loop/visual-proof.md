@@ -10,7 +10,7 @@ a screenshot is synthetic data.
 
   ```bash
   PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers /opt/node22/bin/node \
-    .claude/skills/product-loop/screenshots.mjs /tmp/shots/<number> targets.json
+    .claude/skills/product-loop/screenshots.mjs /tmp/shots/<issue> targets.json
   ```
 
   `targets.json` is a list of `{ name, path, file, wait?, steps?, fullPage? }`; a step is
@@ -43,15 +43,15 @@ The screenshots come first: `screenshots.mjs` exiting non-zero is what stops a b
 becoming a pull request. Only filing and embedding them need the number, which does not exist
 until the pull request does, so the body is written twice.
 
-1. Take the screenshots into a directory outside the checkout. A non-zero exit ends it here —
-   fix the screen, open nothing.
+1. Take the screenshots into `/tmp/shots/<issue>`, outside the checkout and named by the number
+   that exists now. A non-zero exit ends it here — fix the screen, open nothing.
 2. Push the branch and open the pull request as a draft, body without images.
 3. Put the files on `doc/images` under the number it got, with `Push-EvilCaseImages.ps1` next to
    this file; it prints the commit sha the body pins to. Its header has the rest.
 
    ```bash
    sha=$(pwsh .claude/skills/product-loop/Push-EvilCaseImages.ps1 \
-     -PullRequest <number> -Path /tmp/shots/<number>)
+     -PullRequest <number> -Path /tmp/shots/<issue>)
    ```
 4. `PATCH` the body with the images, each pinned to `$sha`, then check every URL with
    `curl -o /dev/null -w '%{http_code}'` and **no** `Authorization` header —
