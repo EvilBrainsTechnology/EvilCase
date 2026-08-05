@@ -51,7 +51,9 @@ public class SeqServerUrlTests
 
     /// <summary>
     /// The Serilog section is the other way in: Program.cs switches only on the server URL above, so a
-    /// sink configured here would ship regardless of it.
+    /// sink configured there would ship regardless of it. `WriteTo` is one of several shapes that reach
+    /// the sink — `AuditTo` and a sub-logger's nested arrays do too — so the whole file is scanned for
+    /// what they share: a `Name` naming the sink.
     /// </summary>
     [TestCaseSource(nameof(ShippedSettingsFiles))]
     public void NoSettingsFileConfiguresASeqSink(string fileName)
@@ -60,11 +62,16 @@ public class SeqServerUrlTests
             .AddJsonFile(Path.Combine(AppContext.BaseDirectory, fileName))
             .Build();
 
-        var sinks = configuration.GetSection("Serilog:WriteTo").GetChildren().Select(sink => sink["Name"]);
+        // The key is matched case-insensitively, because a lowercase "name" binds just as well; the
+        // value case-sensitively, because Serilog resolves the sink method by its exact name.
+        var seqSinks = configuration.AsEnumerable()
+            .Where(entry => entry.Key.EndsWith(":Name", StringComparison.OrdinalIgnoreCase)
+                && string.Equals(entry.Value, "Seq", StringComparison.Ordinal))
+            .Select(entry => entry.Key);
 
         Assert.That(
-            sinks,
-            Does.Not.Contain("Seq"),
-            $"{fileName} must configure no Seq sink, which the server URL switch does not reach");
+            seqSinks,
+            Is.Empty,
+            $"{fileName} must configure no Seq sink anywhere, which the server URL switch does not reach");
     }
 }
