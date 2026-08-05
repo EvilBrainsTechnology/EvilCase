@@ -74,7 +74,9 @@ obrazovce Nastavení — její první kus.
   `{case-number}-{year}{month}{day}-{seq}` → `EC-20260804-001-20260805-002`.
 - `{seq}` počítá v rámci období, které vzor jmenuje — s `{day}` denně, jen s `{year}` ročně,
   u čísla jednacího navíc v rámci spisu — a doplňuje se nulami na tři cifry, aby se čísla
-  řadila. Jednou vydané číslo se nikdy nepoužije znovu a změna vzoru žádné nepřepisuje.
+  řadila. Řada počítá nad tím, co se uložilo: číslo vzaté v transakci, která se vrátí zpět,
+  připadne dalšímu v řadě. Uložené číslo už žádné druhé nedostane a změna vzoru žádné
+  nepřepisuje.
 - Datum ve značce je den vydání v pražském čase; zpětně datovaný úkon se nepřečísluje.
 - Vygenerované hodnoty jdou přepsat; databáze hlídá, že spisová značka je unikátní v rámci
   vlastníka a číslo jednací v rámci svého spisu — ručně zavedený starý spis si nechá svou

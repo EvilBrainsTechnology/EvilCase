@@ -11,7 +11,7 @@ internal sealed class NumberIssuer(
 
     public async Task<string> IssueCaseNumber(CancellationToken cancellationToken = default)
     {
-        var pattern = Usable((await settings.Read(cancellationToken)).CaseNumberPattern);
+        var pattern = Usable((await settings.Read(cancellationToken)).CaseNumberPattern, NumberPatternKind.CaseNumber);
         var today = this.Today();
 
         return await this.Issue(pattern, today, $"case:{NumberPattern.PeriodKey(pattern, today)}", caseNumber: null, cancellationToken);
@@ -19,15 +19,15 @@ internal sealed class NumberIssuer(
 
     public async Task<string> IssueActNumber(long caseId, string caseNumber, CancellationToken cancellationToken = default)
     {
-        var pattern = Usable((await settings.Read(cancellationToken)).ActNumberPattern);
+        var pattern = Usable((await settings.Read(cancellationToken)).ActNumberPattern, NumberPatternKind.ActNumber);
         var today = this.Today();
         var scope = string.Create(CultureInfo.InvariantCulture, $"act:{caseId}:{NumberPattern.PeriodKey(pattern, today)}");
 
         return await this.Issue(pattern, today, scope, caseNumber, cancellationToken);
     }
 
-    private static string Usable(string pattern) =>
-        NumberPattern.Validate(pattern) is { } error
+    private static string Usable(string pattern, NumberPatternKind kind) =>
+        NumberPattern.Validate(pattern, kind) is { } error
             ? throw new InvalidOperationException($"the numbering pattern '{pattern}' is refused as {error}")
             : pattern;
 

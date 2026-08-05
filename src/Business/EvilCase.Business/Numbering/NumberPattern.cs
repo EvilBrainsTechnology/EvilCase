@@ -16,17 +16,20 @@ internal static class NumberPattern
 
     private const string CaseNumber = "{case-number}";
 
-    private static readonly string[] Placeholders = [Year, Month, Day, Sequence, CaseNumber];
+    private static readonly string[] CasePlaceholders = [Year, Month, Day, Sequence];
+
+    private static readonly string[] ActPlaceholders = [Year, Month, Day, Sequence, CaseNumber];
 
     /// <summary>
     /// Null for a pattern that can be used. The issuer calls it before it writes, and the API answers a
     /// screen that edits a pattern with it — a pattern that got past the screen would reissue silently.
     /// </summary>
-    public static NumberPatternError? Validate(string pattern)
+    public static NumberPatternError? Validate(string pattern, NumberPatternKind kind)
     {
         ArgumentNullException.ThrowIfNull(pattern);
 
-        var rest = Placeholders.Aggregate(pattern, (text, placeholder) => text.Replace(placeholder, "", StringComparison.Ordinal));
+        var known = kind is NumberPatternKind.ActNumber ? ActPlaceholders : CasePlaceholders;
+        var rest = known.Aggregate(pattern, (text, placeholder) => text.Replace(placeholder, "", StringComparison.Ordinal));
         if (rest.Contains('{', StringComparison.Ordinal) || rest.Contains('}', StringComparison.Ordinal))
             return NumberPatternError.UnknownPlaceholder;
 

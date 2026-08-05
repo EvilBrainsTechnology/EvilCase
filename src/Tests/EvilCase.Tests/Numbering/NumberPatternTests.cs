@@ -79,8 +79,8 @@ public class NumberPatternTests
     {
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(NumberPattern.Validate(NumberingDefaults.CaseNumberPattern), Is.Null);
-            Assert.That(NumberPattern.Validate(NumberingDefaults.ActNumberPattern), Is.Null);
+            Assert.That(NumberPattern.Validate(NumberingDefaults.CaseNumberPattern, NumberPatternKind.CaseNumber), Is.Null);
+            Assert.That(NumberPattern.Validate(NumberingDefaults.ActNumberPattern, NumberPatternKind.ActNumber), Is.Null);
         }
     }
 
@@ -89,9 +89,20 @@ public class NumberPatternTests
     {
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(NumberPattern.Validate("EC-{quarter}-{seq}"), Is.EqualTo(NumberPatternError.UnknownPlaceholder));
-            Assert.That(NumberPattern.Validate("EC-{year}-{seq"), Is.EqualTo(NumberPatternError.UnknownPlaceholder), "a brace with no partner is as unusable as an unknown name");
-            Assert.That(NumberPattern.Validate("EC-{year}{month}{day}/{case-number}-{seq}"), Is.Null, "all five names are known");
+            Assert.That(NumberPattern.Validate("EC-{quarter}-{seq}", NumberPatternKind.CaseNumber), Is.EqualTo(NumberPatternError.UnknownPlaceholder));
+            Assert.That(NumberPattern.Validate("EC-{year}-{seq", NumberPatternKind.CaseNumber), Is.EqualTo(NumberPatternError.UnknownPlaceholder), "a brace with no partner is as unusable as an unknown name");
+            Assert.That(NumberPattern.Validate("EC-{year}{month}{day}/{case-number}-{seq}", NumberPatternKind.ActNumber), Is.Null, "all five names are known");
+        }
+    }
+
+    [Test]
+    public void OnlyAnActPatternMayNameTheCaseNumber()
+    {
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(NumberPattern.Validate("{case-number}EC-{seq}", NumberPatternKind.CaseNumber), Is.EqualTo(NumberPatternError.UnknownPlaceholder), "a case pattern has no case to write there, and Format would drop it silently");
+            Assert.That(NumberPattern.Format("{case-number}EC-{seq}", Date, 1), Is.EqualTo("EC-001"), "what the refusal is about");
+            Assert.That(NumberPattern.Validate("{case-number}EC-{seq}", NumberPatternKind.ActNumber), Is.Null);
         }
     }
 
@@ -100,8 +111,8 @@ public class NumberPatternTests
     {
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(NumberPattern.Validate("EC-{year}"), Is.EqualTo(NumberPatternError.NoSequence), "without {seq} every case gets the same number");
-            Assert.That(NumberPattern.Validate("EC-{year}-{seq}"), Is.Null);
+            Assert.That(NumberPattern.Validate("EC-{year}", NumberPatternKind.CaseNumber), Is.EqualTo(NumberPatternError.NoSequence), "without {seq} every case gets the same number");
+            Assert.That(NumberPattern.Validate("EC-{year}-{seq}", NumberPatternKind.CaseNumber), Is.Null);
         }
     }
 
@@ -115,11 +126,11 @@ public class NumberPatternTests
     {
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(NumberPattern.Validate("EC-{day}-{seq}"), Is.EqualTo(NumberPatternError.RepeatingPeriod));
-            Assert.That(NumberPattern.Validate("EC-{month}-{seq}"), Is.EqualTo(NumberPatternError.RepeatingPeriod));
-            Assert.That(NumberPattern.Validate("EC-{month}{day}-{seq}"), Is.EqualTo(NumberPatternError.RepeatingPeriod), "the year is missing whichever finer part is named");
-            Assert.That(NumberPattern.Validate("EC-{year}{month}-{seq}"), Is.Null, "a month written under its year counts monthly and stays distinct");
-            Assert.That(NumberPattern.Validate("EC-{seq}"), Is.Null, "one series forever writes each number once");
+            Assert.That(NumberPattern.Validate("EC-{day}-{seq}", NumberPatternKind.CaseNumber), Is.EqualTo(NumberPatternError.RepeatingPeriod));
+            Assert.That(NumberPattern.Validate("EC-{month}-{seq}", NumberPatternKind.CaseNumber), Is.EqualTo(NumberPatternError.RepeatingPeriod));
+            Assert.That(NumberPattern.Validate("EC-{month}{day}-{seq}", NumberPatternKind.CaseNumber), Is.EqualTo(NumberPatternError.RepeatingPeriod), "the year is missing whichever finer part is named");
+            Assert.That(NumberPattern.Validate("EC-{year}{month}-{seq}", NumberPatternKind.CaseNumber), Is.Null, "a month written under its year counts monthly and stays distinct");
+            Assert.That(NumberPattern.Validate("EC-{seq}", NumberPatternKind.CaseNumber), Is.Null, "one series forever writes each number once");
         }
     }
 }

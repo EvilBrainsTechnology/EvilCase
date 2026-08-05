@@ -7,7 +7,8 @@ namespace EvilBrains.EvilCase.Business.Numbering;
 internal enum NumberPatternError
 {
     /// <summary>
-    /// A <c>{…}</c> the application does not know, or a brace with no partner.
+    /// A <c>{…}</c> the application does not know, or a brace with no partner. <c>{case-number}</c> is
+    /// one of those in a case pattern, which has no case to write there.
     /// </summary>
     UnknownPlaceholder = 0,
 
