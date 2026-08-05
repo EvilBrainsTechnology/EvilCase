@@ -1,7 +1,8 @@
 namespace EvilBrains.EvilCase.Business.Numbering;
 
 /// <summary>
-/// Why a pattern cannot be used. The Settings screen turns each of these into its own sentence.
+/// Why a pattern cannot be used. The screen that edits one gets it through the API and turns each of
+/// these into its own sentence.
 /// </summary>
 internal enum NumberPatternError
 {

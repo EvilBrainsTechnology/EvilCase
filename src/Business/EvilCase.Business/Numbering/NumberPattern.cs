@@ -19,8 +19,8 @@ internal static class NumberPattern
     private static readonly string[] Placeholders = [Year, Month, Day, Sequence, CaseNumber];
 
     /// <summary>
-    /// Null for a pattern that can be used. The Settings screen calls this before it saves; the issuer
-    /// calls it before it writes, because a pattern that got past the screen would reissue silently.
+    /// Null for a pattern that can be used. The issuer calls it before it writes, and the API answers a
+    /// screen that edits a pattern with it — a pattern that got past the screen would reissue silently.
     /// </summary>
     public static NumberPatternError? Validate(string pattern)
     {
