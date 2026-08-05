@@ -16,7 +16,8 @@
   made, the screenshot where a screen changed, `Closes #<n>`, the footer. At most 1500 characters.
 - A pull request that changes a screen carries a screenshot;
   `.claude/skills/product-loop/visual-proof.md` is how they are taken and filed.
-- A reply to a review comment is at most three sentences: what changed, or why not.
+- A comment is at most three sentences; a reply to a review one says what changed, or why not.
+- An issue body is at most 800 characters.
 - Title and description always match the current diff.
 - Never merge. The owner merges. Rebase onto `master` on a conflict, keep CI green, and answer
   every review comment in the round that finds it.

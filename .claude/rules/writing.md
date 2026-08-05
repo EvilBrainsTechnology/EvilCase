@@ -11,8 +11,6 @@ pull requests, comments, issues, chat.
 - Never write about mutation-testing a test, about how many rounds something took, or about
   what was removed and why.
 - No tables of evidence, no pasted SQL, no pasted tool output.
-- Limits: pull request description 1500 characters, comment three sentences, issue body 800
-  characters.
 - Comment code in one or two lines, only where the code cannot say it. Rationale goes in the
   commit message.
 - Everything committed and every GitHub write is English. UI strings and

@@ -2,6 +2,7 @@
 paths:
   - "src/Common/EvilCase.Auth/**"
   - "src/App/EvilCase.App/Auth/**"
+  - "src/Api/**"
 ---
 
 # Authentication

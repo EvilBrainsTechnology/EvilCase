@@ -21,6 +21,10 @@ public class LayerTests
 
     private static readonly Assembly Contract = typeof(Api.Contract.Echo.EchoRequest).Assembly;
 
+    private static readonly Assembly Client = typeof(Api.Client.Bootstrap).Assembly;
+
+    private static readonly Assembly App = typeof(App.Icons.AppIcons).Assembly;
+
     [Test]
     public void TheApiReachesTheDatabaseThroughBusiness()
     {
@@ -60,6 +64,31 @@ public class LayerTests
         {
             Assert.That(References(Contract, Data), Is.False, "the contract ships to the browser");
             Assert.That(References(Contract, Business), Is.False, "the contract ships to the browser");
+            Assert.That(References(Contract, Domain), "a wire DTO and an entity name a status with the same enum");
+        }
+    }
+
+    [Test]
+    public void TheFrontendReachesTheApiOverHttp()
+    {
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(References(App, Client), "the frontend calls the API through the generated client");
+            Assert.That(References(App, Api), Is.False, "the browser is handed a wire contract, never the API itself");
+            Assert.That(References(App, Business), Is.False, "the frontend renders and collects input, it never decides");
+            Assert.That(References(App, Data), Is.False, "the schema never ships to the browser");
+        }
+    }
+
+    [Test]
+    public void TheGeneratedClientKnowsNothingButTheContract()
+    {
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(References(Client, Contract), "a generated call takes and returns the shared DTOs");
+            Assert.That(References(Client, Api), Is.False, "the client compiles the controller sources rather than referencing them");
+            Assert.That(References(Client, Business), Is.False, "the client is HTTP and nothing else");
+            Assert.That(References(Client, Data), Is.False, "the client is HTTP and nothing else");
         }
     }
 

@@ -21,10 +21,15 @@ The backlog is the open issues labelled `loop`. Among those neither `blocked` no
 ones carrying none — the lowest milestone breaking a tie, honouring a focus argument when one was
 given. Empty backlog: derive the next slice from the vision and open its issue.
 
-Take two or three that do not touch the same files and delegate them in parallel, each a whole
-task in its own worktree. One slice is one pull request from database to UI that leaves the app
-usable, on `loop/<issue>-<slug>` off `master`. A slice that needs another's unmerged branch is
-not started.
+Take two or three and delegate them in parallel, each a whole task in its own worktree. One slice
+is one pull request from database to UI that leaves the app usable, on `loop/<issue>-<slug>` off
+`master`.
+
+Two slices never touch the same files, and every open pull request counts, not only the ones this
+round started — `gh pr diff --name-only` on each open pull request is what a candidate is checked
+against. A migration collides with every other migration, whatever it changes. A slice that needs
+another's unmerged branch is not started. Where nothing left clears this, the round starts
+nothing and tends what is open.
 
 ## 2. Decide, do not ask
 
