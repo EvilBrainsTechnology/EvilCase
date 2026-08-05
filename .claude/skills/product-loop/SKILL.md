@@ -23,7 +23,7 @@ reads anything else. The round's main thread holds three things itself: talking 
 the schedule, and merging.
 
 A subagent starts blank: the repository is the only memory. Before the round ends, a finding
-becomes an issue, off-diff pull request state a comment on it, a new loop rule an instruction file.
+becomes an issue and a new loop rule an instruction file.
 
 ## 1. Apply answered decisions
 
