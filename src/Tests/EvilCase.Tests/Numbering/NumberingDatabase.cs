@@ -1,4 +1,3 @@
-using System.Net.Sockets;
 using EvilBrains.EvilCase.Data;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
@@ -53,7 +52,7 @@ internal sealed class NumberingDatabase : IAsyncDisposable
         finally
         {
             if (!created)
-                await database.DisposeAsync();
+                await database.Drop();
         }
 
         return database;
@@ -95,15 +94,7 @@ internal sealed class NumberingDatabase : IAsyncDisposable
     {
         await using var context = this.Context();
 
-        try
-        {
-            await context.Database.EnsureDeletedAsync();
-        }
-        catch (Exception exception) when (exception.GetBaseException() is SocketException)
-        {
-            // A server that never answered holds no database of ours; a server that refuses the drop
-            // says so as a PostgresException and is left to fail.
-        }
+        await context.Database.EnsureDeletedAsync();
     }
 
     private static string Before(DbContext context, string migration)
@@ -112,6 +103,23 @@ internal sealed class NumberingDatabase : IAsyncDisposable
         var index = ids.FindIndex(id => id.EndsWith("_" + migration, StringComparison.Ordinal));
 
         return index > 0 ? ids[index - 1] : throw new ArgumentException($"no migration named {migration} has one in front of it", nameof(migration));
+    }
+
+    /// <summary>
+    /// Drops whatever the setup managed to make. A server that never answered, or one that answered and
+    /// refused the credentials, holds no database of ours, and must not replace the failure that got us
+    /// here — the <c>Assert.Ignore</c> above all — with one of its own.
+    /// </summary>
+    private async Task Drop()
+    {
+        try
+        {
+            await this.DisposeAsync();
+        }
+        catch (NpgsqlException)
+        {
+            // Nothing was made, so there is nothing to drop.
+        }
     }
 
     private async Task Fill(int owners, string? stopBefore)
