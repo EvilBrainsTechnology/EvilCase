@@ -4,8 +4,8 @@
 - Commit during the work: every logical unit that stands on its own is its own commit.
 - A pull request carries one topic and stays small enough to review on a phone; when it grows,
   split it rather than let it run.
-- Before a pull request exists: `dotnet r ci` green from `src/`, new tests covering what
-  changed, visual proof of every changed screen (`.claude/skills/product-loop/visual-proof.md`),
+- Before a pull request exists: `dotnet r ci` green from `src/`, new tests covering what changed,
+  visual proof taken of every changed screen (`.claude/skills/product-loop/visual-proof.md`),
   documentation updated in the same commit. A red gate is fixed, never worked around.
 - A pull request opens as a draft and leaves draft only once the code review in
   `.claude/rules/agents.md` has run and its findings are worked in. Clearing the flag is the
