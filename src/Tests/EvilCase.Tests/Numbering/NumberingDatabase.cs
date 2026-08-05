@@ -111,7 +111,7 @@ internal sealed class NumberingDatabase : IAsyncDisposable
         var ids = context.GetService<IMigrationsAssembly>().Migrations.Keys.ToList();
         var index = ids.FindIndex(id => id.EndsWith("_" + migration, StringComparison.Ordinal));
 
-        return index > 0 ? ids[index - 1] : throw new ArgumentException($"no migration follows one named {migration}", nameof(migration));
+        return index > 0 ? ids[index - 1] : throw new ArgumentException($"no migration named {migration} has one in front of it", nameof(migration));
     }
 
     private async Task Fill(int owners, string? stopBefore)
