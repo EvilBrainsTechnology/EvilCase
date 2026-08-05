@@ -50,7 +50,7 @@ until the pull request does, so the body is written twice.
    this file; it prints the commit sha the body pins to. Its header has the rest.
 
    ```bash
-   sha=$(pwsh .claude/skills/product-loop/Push-EvilCaseImages.ps1 \
+   sha=$(./.claude/skills/product-loop/Push-EvilCaseImages.ps1 \
      -PullRequest <number> -Path /tmp/shots/<issue>)
    ```
 4. `PATCH` the body with the images, each pinned to `$sha`, then check every URL with
