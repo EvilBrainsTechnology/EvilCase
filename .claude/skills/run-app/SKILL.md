@@ -48,11 +48,9 @@ serves the same address, and only one instance can hold the port — stop an IDE
 A port picked by hand stays off the browsers' unsafe-port list (6000, 6665–6669, 6697, …).
 
 Subagents run side by side, so 5000 and the `evilcase` database belong to whoever took them
-first. `Start-EvilCase.ps1` next to this file gives a run its own of both and prints the URL. It
-takes the connection string from its own parameters, but not the JWT key or the seed, so a
-worktree still needs the `.env` copied into it. Its header holds the parameters, where the logs
-go and what a failed start leaves behind, and its comments the traps it steps around. Point the
-screenshot script at the printed URL with `EVILCASE_URL`.
+first. `Start-EvilCase.ps1` next to this file gives a run its own of both, prints the URL and
+documents itself in its header; it supplies no JWT key or seed, so a worktree still needs `.env`.
+Point the screenshot script at the printed URL with `EVILCASE_URL`.
 
 ```
 pwsh .claude/skills/run-app/Start-EvilCase.ps1                    # → https://localhost:41449
