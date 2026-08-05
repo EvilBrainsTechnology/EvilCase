@@ -18,9 +18,12 @@
     tip was already advertised, `cannot lock ref … is at … but expected …` when it landed while
     this push was in flight. Either way the script re-fetches and re-parents the same files on the
     new tip, up to -Attempts times: git's hint to `git pull` is wrong here, and the `--force`
-    behind it is what the branch's ruleset refuses. A branch that is gone — `couldn't find remote
-    ref` — is written as the parentless commit it starts from, and the URLs pinned to the old one
-    do not come back with it.
+    behind it is what the branch's ruleset refuses.
+
+    A -Branch the remote does not have is refused, never created: the ruleset keeps doc/images from
+    being deleted, so a name that is not there is a typo, and pushing to it would put the body's
+    URLs on a branch nothing protects. -Create writes the parentless commit a genuinely new branch
+    starts from.
 
     Fails, without retrying, on: a -Path holding no *.png, a -PullRequest below 1, a directory that
     is not an EvilCase checkout, and a push rejected for anything but the branch having moved.
@@ -31,7 +34,8 @@ param(
     [string] $Remote = 'origin',
     [string] $Branch = 'doc/images',
     [int] $Attempts = 5,
-    [string] $Message
+    [string] $Message,
+    [switch] $Create
 )
 
 Set-StrictMode -Version Latest
@@ -86,6 +90,9 @@ try {
     for ($attempt = 1; ; $attempt++) {
         $listed = Invoke-GitChecked @('ls-remote', $Remote, "refs/heads/$Branch")
         $parent = if ($listed) { ($listed -split '\s+', 2)[0] } else { $null }
+        if (-not $parent -and -not $Create) {
+            throw "$Remote has no $Branch. A typo names a branch no ruleset covers; -Create writes the parentless commit a new one starts from"
+        }
         # Listed before fetched, never after: a tip that lands in between is fetched with the one
         # named here among its ancestors, and read-tree has an object either way.
         if ($parent) { Invoke-GitChecked @('fetch', $Remote, $Branch) | Out-Null }

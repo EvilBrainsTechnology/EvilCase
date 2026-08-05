@@ -47,9 +47,7 @@ until the pull request does, so the body is written twice.
    fix the screen, open nothing.
 2. Push the branch and open the pull request as a draft, body without images.
 3. Put the files on `doc/images` under the number it got, with `Push-EvilCaseImages.ps1` next to
-   this file; it prints the commit sha the body pins to. Its header has the rest: the checkout's
-   index stays untouched, a path already on the branch is replaced, and a rejected push or a
-   missing branch is the script's own to recover from.
+   this file; it prints the commit sha the body pins to. Its header has the rest.
 
    ```bash
    sha=$(pwsh .claude/skills/product-loop/Push-EvilCaseImages.ps1 \
