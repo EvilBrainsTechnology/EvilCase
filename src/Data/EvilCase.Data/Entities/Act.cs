@@ -20,6 +20,11 @@ public record Act : IEntity
     /// </summary>
     public const int ActNumberLength = 128;
 
+    /// <summary>
+    /// The unique index that refuses an act number already taken, and nothing else the create writes.
+    /// </summary>
+    public const string ActNumberIndex = "IX_Acts_CaseId_ActNumber";
+
     [Key]
     public long Id { get; init; }
 

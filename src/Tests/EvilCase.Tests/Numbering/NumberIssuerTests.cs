@@ -1,5 +1,6 @@
 using EvilBrains.EvilCase.Business.Cases;
 using EvilBrains.EvilCase.Business.Numbering;
+using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Tests.Auth;
 using Npgsql;
 
@@ -207,7 +208,7 @@ public class NumberIssuerTests
                 // The caller that read the same maximum committed first; the row is there now.
                 this.issued.KeepCaseNumber(issuedNumber);
 
-                throw new PostgresException("duplicate key value violates unique constraint", "ERROR", "ERROR", PostgresErrorCodes.UniqueViolation);
+                throw Refused(Case.CaseNumberIndex);
             }
 
             return Task.FromResult(this.issued.KeepCaseNumber(issuedNumber));
@@ -232,12 +233,33 @@ public class NumberIssuerTests
             {
                 attempts++;
 
-                throw new PostgresException("duplicate key value violates unique constraint", "ERROR", "ERROR", PostgresErrorCodes.UniqueViolation);
+                throw Refused(Case.CaseNumberIndex);
             }),
             Throws.InstanceOf<PostgresException>(),
             "a database refusing a number it does not already hold is not something to retry forever");
 
         Assert.That(attempts, Is.EqualTo(25), "the bound covers a burst of callers taking the numbers in front of one another");
+    }
+
+    /// <summary>
+    /// A create writes more than the numbered row — a tag, a party, a second case — and a unique index
+    /// of its own that refuses one is not the number being taken.
+    /// </summary>
+    [Test]
+    public void ADuplicateThatIsNotTheNumberIsNotRetried()
+    {
+        var attempts = 0;
+
+        Assert.That(
+            async () => await this.Issuer().IssueCaseNumber<string>((_, _) =>
+            {
+                attempts++;
+
+                throw Refused("IX_CaseTags_CaseId_Value");
+            }),
+            Throws.InstanceOf<PostgresException>());
+
+        Assert.That(attempts, Is.EqualTo(1), "trying it again under 24 further numbers answers a duplicate the number has nothing to do with");
     }
 
     [Test]
@@ -256,6 +278,9 @@ public class NumberIssuerTests
 
         Assert.That(attempts, Is.EqualTo(1), "only a number somebody else took is worth trying again");
     }
+
+    private static PostgresException Refused(string index) =>
+        new("duplicate key value violates unique constraint", "ERROR", "ERROR", PostgresErrorCodes.UniqueViolation, constraintName: index);
 
     private Task<string> IssueCaseNumber(NumberIssuer issuer) =>
         issuer.IssueCaseNumber((number, _) => Task.FromResult(this.issued.KeepCaseNumber(number)));

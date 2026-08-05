@@ -121,6 +121,7 @@ public class ApplicationDbModelTests
             Assert.That(mark, Is.Not.Null, "a case always has exactly one of its own, so it is a column and not a row");
             Assert.That(mark?.IsNullable, Is.False, "it is generated with the case and never absent");
             Assert.That(unique?.Properties.Select(property => property.Name), Is.EqualTo(expected), "and a generated series must not repeat within one owner");
+            Assert.That(unique?.GetDatabaseName(), Is.EqualTo(Case.CaseNumberIndex), "the issuer retries the number this index refuses and nothing else the create writes");
         }
     }
 
@@ -141,6 +142,7 @@ public class ApplicationDbModelTests
             Assert.That(act.FindProperty(nameof(Act.ActNumber))?.IsNullable, Is.False, "an act is issued its own number when it is created, and it is never absent");
             Assert.That(act.FindProperty(nameof(Act.ExternalActNumber))?.IsNullable, Is.True, "the issuer's number is free text and most acts have none");
             Assert.That(unique?.Properties.Select(property => property.Name), Is.EqualTo(expected), "a generated series must not repeat within one case, whatever a hand-typed number says");
+            Assert.That(unique?.GetDatabaseName(), Is.EqualTo(Act.ActNumberIndex), "the issuer retries the number this index refuses and nothing else the create writes");
         }
     }
 

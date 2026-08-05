@@ -18,6 +18,11 @@ public record Case : IEntity
     /// </summary>
     public const int CaseNumberLength = 64;
 
+    /// <summary>
+    /// The unique index that refuses a case number already taken, and nothing else the create writes.
+    /// </summary>
+    public const string CaseNumberIndex = "IX_Cases_OwnerId_CaseNumber";
+
     [Key]
     public long Id { get; init; }
 

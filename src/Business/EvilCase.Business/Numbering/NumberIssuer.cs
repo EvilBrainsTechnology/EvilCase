@@ -1,3 +1,4 @@
+using EvilBrains.EvilCase.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
@@ -24,7 +25,7 @@ internal sealed class NumberIssuer(
         var today = this.Today();
         var series = NumberPattern.Series(pattern, today);
 
-        return await Issue(pattern, today, caseNumber: null, token => issued.HighestCaseNumber(series, token), create, cancellationToken);
+        return await Issue(pattern, today, caseNumber: null, Case.CaseNumberIndex, token => issued.HighestCaseNumber(series, token), create, cancellationToken);
     }
 
     public async Task<T> IssueActNumber<T>(long caseId, Func<string, CancellationToken, Task<T>> create, CancellationToken cancellationToken = default)
@@ -35,7 +36,7 @@ internal sealed class NumberIssuer(
         var today = this.Today();
         var series = NumberPattern.Series(pattern, today, caseNumber);
 
-        return await Issue(pattern, today, caseNumber, token => issued.HighestActNumber(caseId, series, token), create, cancellationToken);
+        return await Issue(pattern, today, caseNumber, Act.ActNumberIndex, token => issued.HighestActNumber(caseId, series, token), create, cancellationToken);
     }
 
     private static string Usable(string pattern, NumberPatternKind kind) =>
@@ -54,10 +55,12 @@ internal sealed class NumberIssuer(
         }
     }
 
-    private static bool IsTaken(Exception? exception) => exception switch
+    // The create writes more than the numbered row, and a unique index of its own that refuses one is
+    // not the number being taken: retrying it would run the create 25 times over.
+    private static bool IsTaken(Exception? exception, string index) => exception switch
     {
-        PostgresException { SqlState: PostgresErrorCodes.UniqueViolation } => true,
-        DbUpdateException => IsTaken(exception.InnerException),
+        PostgresException { SqlState: PostgresErrorCodes.UniqueViolation } violation => string.Equals(violation.ConstraintName, index, StringComparison.Ordinal),
+        DbUpdateException => IsTaken(exception.InnerException, index),
         _ => false,
     };
 
@@ -65,6 +68,7 @@ internal sealed class NumberIssuer(
         string pattern,
         DateOnly today,
         string? caseNumber,
+        string index,
         Func<CancellationToken, Task<int>> highest,
         Func<string, CancellationToken, Task<T>> create,
         CancellationToken cancellationToken)
@@ -79,7 +83,7 @@ internal sealed class NumberIssuer(
             {
                 return await create(number, cancellationToken);
             }
-            catch (Exception exception) when (attempt < Attempts && IsTaken(exception))
+            catch (Exception exception) when (attempt < Attempts && IsTaken(exception, index))
             {
                 Forget(exception);
             }
