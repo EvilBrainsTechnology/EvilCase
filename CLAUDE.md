@@ -1,7 +1,7 @@
 # EvilCase
 
-A case-file system for administrative and legal proceedings: a case relates to any number of
-other cases and accumulates acts, parties, file marks, tags and comments. Built so far — the
+A case-file system for administrative and legal proceedings: a case accumulates acts, parties,
+file marks, tags and comments, and relates to any number of other cases. Built so far — the
 domain model in PostgreSQL, authentication, and a Blazor WebAssembly frontend that ships the
 case list; `docs/product/vision.md` is what the rest is built towards.
 
