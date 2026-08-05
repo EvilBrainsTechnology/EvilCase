@@ -86,7 +86,7 @@ function Write-Diagnostics([string[]] $Paths) {
 if ($Stop) {
     $states = @()
     if (Test-Path -LiteralPath $stateDirectory) {
-        $states = @(Get-ChildItem -LiteralPath $stateDirectory -Filter '*.json' |
+        $states = @(Get-ChildItem -LiteralPath $stateDirectory -File -Filter '*.json' |
                 Where-Object { $All -or $_.BaseName -eq [string] $Port })
     }
     if (-not $states) { Write-Warning "no run$(if ($Port) { " on port $Port" }) recorded in $stateDirectory" }
@@ -149,7 +149,7 @@ if ($Stop) {
         $building = @(Get-ChildItem -LiteralPath $stateDirectory -File | Where-Object {
                 $_.Name -match '^build-(\d{1,9})\.log$' -and
                 (Get-Process -Id ([int] $Matches[1]) -ErrorAction SilentlyContinue) })
-        if (-not $building -and -not (Get-ChildItem -LiteralPath $stateDirectory -Filter '*.json')) {
+        if (-not $building -and -not (Get-ChildItem -LiteralPath $stateDirectory -File -Filter '*.json')) {
             Remove-Item -LiteralPath $stateDirectory -Recurse -Force
         }
     }
