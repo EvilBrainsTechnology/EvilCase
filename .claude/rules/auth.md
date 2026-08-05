@@ -20,7 +20,6 @@ controller only maps results to status codes and moves the cookie in and out.
 - Default deny: the authorization fallback policy makes every unattributed endpoint require
   authentication. The `[AllowAnonymous]` list is pinned by `AuthorizationFallbackTests`;
   extending it is an owner decision.
-- In the browser, only `login`, `refresh` and `logout` skip token renewal; the `[Authorize]`
-  endpoints under `/api/auth` renew like any other. Everything under `/api/auth` is sent with
-  credentials, the 401 retry included. `AuthTokenHandler` resolves `IAuthSession` on use, not in
-  its constructor.
+- In the browser, only `login`, `refresh` and `logout` skip token renewal. Everything under
+  `/api/auth` is sent with credentials, the 401 retry included. `AuthTokenHandler` resolves
+  `IAuthSession` on use, not in its constructor.

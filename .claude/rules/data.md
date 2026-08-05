@@ -30,9 +30,9 @@ paths:
 
 ## Migrations
 
-- `dotnet ef migrations add` builds without `TreatWarningsAsErrors`: run
-  `dotnet build --no-incremental` (or `dotnet r ci` after touching the file again) once after
-  adding a migration; a green incremental build straight afterwards proves nothing.
+- `dotnet ef migrations add` builds without `TreatWarningsAsErrors`. Run
+  `dotnet build --no-incremental` once after adding a migration; a green incremental build
+  straight afterwards proves nothing.
 - Never re-add a migration over its committed snapshot entry — it comes out empty. Remove it
   first (`dotnet r remove-migration`), add it again, hand-format the result, and verify with
   `dotnet r generate-sql-script`; `MigrationsTests` replays every `Up`.

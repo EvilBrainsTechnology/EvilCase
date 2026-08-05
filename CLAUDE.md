@@ -3,7 +3,7 @@
 A case-file system for administrative and legal proceedings: a case accumulates acts, parties,
 file marks, tags and comments, and relates to any number of other cases. Built so far — the
 domain model in PostgreSQL, authentication, and a Blazor WebAssembly frontend that ships the
-case list; `docs/product/vision.md` is what the rest is built towards.
+case list. `docs/product/vision.md` is what the rest is built towards.
 
 .NET 10, PostgreSQL, secrets from environment variables. `src/global.json` pins the SDK version
 and `.claude/hooks/session-start.sh` hardcodes its image tag — a bump changes both, in the same
@@ -36,11 +36,8 @@ dependency runs host → api → business → data, and host → app → api cli
 ## Where the instructions live
 
 The rules are in `.claude/rules/` and load themselves — always, or when a file in their area is
-read. Detail needed only occasionally sits next to what it describes and is referenced from the
-rules: `docs/product/vision.md` (the product, the domain concepts, the milestones),
-`deploy/README.md` (image, registry tags, compose stack), the two logging READMEs under
-`src/Utils/`, `.claude/skills/run-app/SKILL.md` (running and verifying the app) and
-`.claude/skills/product-loop/SKILL.md` (the unattended loop, entry point `.claude/loop.md`).
+read. Detail sits next to what it describes: `docs/product/vision.md`, `deploy/README.md`, the
+two logging READMEs under `src/Utils/`, and the `run-app` and `product-loop` skills.
 
 ## Commands
 
@@ -51,10 +48,9 @@ clone.
 - `dotnet r test` — run tests
 - `dotnet r format` / `dotnet r format-check` — format / verify formatting
 - `dotnet r ai-check` — verify the AI instruction length limits
-- `dotnet r ci` — ai-check + format-check + build + test; the gate before a pull request, run
-  once, never the inner loop. Iterate on `dotnet r build` and `dotnet r test -- --no-build
-  --filter FullyQualifiedName~<type>` — seconds against the gate's minutes, most of them
-  formatting that a failing test cannot change.
+- `dotnet r ci` — ai-check + format-check + build + test. Run it once, immediately before opening
+  a pull request, never in the inner loop. Iterate on `dotnet r build` and `dotnet r test --
+  --no-build --filter FullyQualifiedName~<type>` — seconds against the gate's minutes.
 - `dotnet r run` — run everything at `https://localhost:5000` (Scalar UI at `/scalar` in dev); requires a reachable PostgreSQL
 - `dotnet r run-docker` — the same, in Docker with its own PostgreSQL, for a person trying the application out
 - `dotnet r add-migration` / `remove-migration` / `generate-sql-script` — EF migrations

@@ -5,9 +5,9 @@ paths:
 
 # Code
 
-- Clean, readable code sometimes beats 100 % correctness and defensiveness.
+- Clean, readable code beats exhaustive defensiveness.
 - No `Async` suffix. Exceptions: a genuine sync/async pair on one surface, and names not ours to
-  choose (`SendAsync`, `DisposeAsync`, `OnAfterRenderAsync` and the like).
+  choose (`SendAsync`, `DisposeAsync`, `OnAfterRenderAsync`).
 - Every class resolved from DI is `internal sealed` and consumed through an interface; a public
   consumer gets a public interface with an internal implementation. Exceptions: types the
   framework instantiates by concrete type or with no service role — controllers,
@@ -21,6 +21,5 @@ paths:
   is not used.
 - Package versions live only in `src/Directory.Packages.props`.
 - Namespaces and assemblies are auto-prefixed `EvilBrains.*` by `src/Directory.Build.props`.
-- A destructive migration, a dependency change, a change to authentication or the security
-  headers, a rewrite of something that works: the owner decides first — asked in the chat, or
-  as a decision issue in the loop.
+- The owner decides first on a destructive migration, a dependency change, a change to
+  authentication or the security headers, and a rewrite of something that works.
