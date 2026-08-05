@@ -44,3 +44,5 @@ App → Api.Client → (HTTP) → Api → Business → Data
   access token's `sub` claim.
 - `OwnerId` throws; `OwnerIdOrDefault` is for callers where absence is normal — a health probe,
   sign-in, a startup migration. A future tenant lands in this seam.
+- Nothing in the schema keeps a `CaseRelation` inside one owner: the write resolves both ends
+  through `IOwnerContext`, and the read and the delete are owner-scoped too.

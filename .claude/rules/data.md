@@ -11,8 +11,8 @@ paths:
   collides — CA1716 sits at `suggestion` for this, the one rule below error.
 - Every aggregate root carries `OwnerId` from its first migration, with a foreign key and an
   index.
-- Cases form no hierarchy. A relation is one bare `CaseRelation` row, unique per pair of one
-  owner's cases, `CaseId < RelatedCaseId`; deleting a case takes its relations and nothing else.
+- Cases form no hierarchy. A relation is one bare `CaseRelation` row — no owner column — unique
+  per pair, `CaseId < RelatedCaseId`; deleting a case takes its relations and nothing else.
 - Enums are stored as names: `HasConversion<string>()` with an explicit length.
 - Tags are rows — typed, unique per case — never an array column.
 - `Case.CaseNumber` is required and unique per owner; every external mark is an
