@@ -75,8 +75,10 @@ obrazovce Nastavení — její první kus.
 - `{seq}` počítá v rámci období, které vzor jmenuje — s `{day}` denně, jen s `{year}` ročně,
   u čísla jednacího navíc v rámci spisu — a doplňuje se nulami na tři cifry, aby se čísla
   řadila. Jednou vydané číslo se nikdy nepoužije znovu a změna vzoru žádné nepřepisuje.
-- Vygenerované hodnoty jdou přepsat, unikátnost per vlastník hlídá databáze vždy — ručně
-  zavedený starý spis si nechá svou historickou značku.
+- Datum ve značce je den vydání v pražském čase; zpětně datovaný úkon se nepřečísluje.
+- Vygenerované hodnoty jdou přepsat; databáze hlídá, že spisová značka je unikátní v rámci
+  vlastníka a číslo jednací v rámci svého spisu — ručně zavedený starý spis si nechá svou
+  historickou značku.
 - Hledání matchuje značky i čísla jednací včetně prefixu; přesná shoda skočí rovnou na spis
   nebo úkon.
 
