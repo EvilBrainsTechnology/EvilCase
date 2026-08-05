@@ -11,10 +11,10 @@ tractable, then reports everything once. Read the vision and the open work (§1,
 
 ## GitHub access
 
-`gh` is not installed. Use `curl` with `$GH_TOKEN` (base URL and endpoints in `github-api.md`
-next to this file), never `mcp__github__*` tools — a fired round can wake without them. A
-worktree refuses shell pipelines: write the calls into a scratchpad script and parse with
-`python3`. The loop's own comments are recognised by author `claude[bot]` — measured, never assumed.
+`gh` is not installed, and the `mcp__github__*` tools write as the owner and can be missing when a
+round wakes. Every GitHub call goes through `Invoke-EvilCaseGitHub.ps1` next to this file — a
+worktree's own command expanding `$GH_TOKEN` is refused — with the endpoints in `github-api.md`.
+The loop's own comments are recognised by author `claude[bot]` — measured, never assumed.
 
 ## Subagents
 

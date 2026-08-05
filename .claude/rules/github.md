@@ -19,9 +19,9 @@
 - Subscribe (`subscribe_pr_activity`) to every pull request you open.
 - A pull request is never a workbench: verify with tools, not with trial edits in it.
 - Every git and GitHub interaction — commits, pull requests, comments, reviews, issues — is
-  authored as `claude[bot]`: GitHub writes go through `curl` with `$GH_TOKEN` (endpoints in
-  `.claude/skills/product-loop/github-api.md`), never through the `mcp__github__*` tools,
-  which write as the owner. The merge is the one exception: this environment refuses a
+  authored as `claude[bot]`: GitHub writes go through
+  `.claude/skills/product-loop/Invoke-EvilCaseGitHub.ps1`, never through the `mcp__github__*`
+  tools, which write as the owner. The merge is the one exception: this environment refuses a
   `$GH_TOKEN` merge into a protected branch, so it goes through
   `mcp__github__merge_pull_request` and is recorded under the owner's account.
 - A pull request's title and description always match its current diff; update them with every
