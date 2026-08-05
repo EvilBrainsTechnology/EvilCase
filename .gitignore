@@ -6,3 +6,8 @@
 # host output directory, so a .env anywhere above it is picked up and must never be committed.
 .env*
 !.env.example
+
+# Local isolated run (.claude/skills/run-app/Start-EvilCase.ps1)
+.evilcase-run.json
+.evilcase-run.log
+.evilcase-run.log.err
