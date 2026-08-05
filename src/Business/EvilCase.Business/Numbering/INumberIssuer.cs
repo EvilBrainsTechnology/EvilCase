@@ -13,5 +13,5 @@ public interface INumberIssuer
     /// one was issued here or typed in by hand. It carries the day it is issued on, so an act entered
     /// today for something that happened in July is numbered today; backdating it renumbers nothing.
     /// </summary>
-    public Task<string> IssueActNumber(long caseId, string caseNumber, CancellationToken cancellationToken = default);
+    public Task<string> IssueActNumber(long caseId, CancellationToken cancellationToken = default);
 }

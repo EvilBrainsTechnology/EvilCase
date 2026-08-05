@@ -11,12 +11,15 @@ public class NumberIssuerTests
 
     private FakeNumberSequenceAllocator sequences = null!;
 
+    private FakeCaseNumberReader cases = null!;
+
     private TestTimeProvider time = null!;
 
     [SetUp]
     public void SetUp()
     {
         this.sequences = new FakeNumberSequenceAllocator();
+        this.cases = new FakeCaseNumberReader((1, "EC-20260804-001"), (2, "EC-20260804-002"), (7, "OLD-2019/16"));
         this.time = new TestTimeProvider(new DateTime(2026, 8, 4, 9, 0, 0, DateTimeKind.Utc));
     }
 
@@ -81,9 +84,9 @@ public class NumberIssuerTests
     {
         var issuer = this.Issuer();
 
-        var first = await issuer.IssueActNumber(caseId: 1, "EC-20260804-001");
-        var second = await issuer.IssueActNumber(caseId: 1, "EC-20260804-001");
-        var elsewhere = await issuer.IssueActNumber(caseId: 2, "EC-20260804-002");
+        var first = await issuer.IssueActNumber(caseId: 1);
+        var second = await issuer.IssueActNumber(caseId: 1);
+        var elsewhere = await issuer.IssueActNumber(caseId: 2);
 
         string[] expected = ["act:1:20260804", "act:1:20260804", "act:2:20260804"];
 
@@ -130,9 +133,19 @@ public class NumberIssuerTests
     [Test]
     public async Task AnActOfAHandNumberedCaseIsWrittenUnderThatNumber()
     {
-        var number = await this.Issuer().IssueActNumber(caseId: 7, "OLD-2019/16");
+        var number = await this.Issuer().IssueActNumber(caseId: 7);
 
-        Assert.That(number, Is.EqualTo("OLD-2019/16-20260804-001"), "the case's own number is used whether it was issued here or typed in");
+        Assert.That(number, Is.EqualTo("OLD-2019/16-20260804-001"), "the case's own number is read from the case, whether it was issued here or typed in");
+    }
+
+    [Test]
+    public void AnActOfACaseThatIsNotThereIsRefused()
+    {
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(async () => await this.Issuer().IssueActNumber(caseId: 404), Throws.InstanceOf<InvalidOperationException>());
+            Assert.That(this.sequences.Scopes, Is.Empty, "a case the number cannot be written under burns no number either");
+        }
     }
 
     [Test]
@@ -147,5 +160,5 @@ public class NumberIssuerTests
     }
 
     private NumberIssuer Issuer(string? caseNumberPattern = null) =>
-        new(new FakeNumberingSettingsReader(caseNumberPattern), this.sequences, this.time);
+        new(new FakeNumberingSettingsReader(caseNumberPattern), this.sequences, this.cases, this.time);
 }

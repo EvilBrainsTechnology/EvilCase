@@ -3,6 +3,7 @@ namespace EvilBrains.EvilCase.Business.Numbering;
 internal sealed class NumberIssuer(
     INumberingSettingsReader settings,
     INumberSequenceAllocator sequences,
+    ICaseNumberReader cases,
     TimeProvider time) : INumberIssuer
 {
     public async Task<string> IssueCaseNumber(CancellationToken cancellationToken = default)
@@ -14,10 +15,11 @@ internal sealed class NumberIssuer(
         return await this.Issue(pattern, today, $"case:{NumberPattern.PeriodKey(pattern, today)}", caseNumber: null, cancellationToken);
     }
 
-    public async Task<string> IssueActNumber(long caseId, string caseNumber, CancellationToken cancellationToken = default)
+    public async Task<string> IssueActNumber(long caseId, CancellationToken cancellationToken = default)
     {
         var patterns = await settings.Read(cancellationToken);
         var pattern = Usable(patterns.ActNumberPattern, NumberPatternKind.ActNumber);
+        var caseNumber = await cases.Read(caseId, cancellationToken);
         var today = this.Today();
         var scope = string.Create(CultureInfo.InvariantCulture, $"act:{caseId}:{NumberPattern.PeriodKey(pattern, today)}");
 
