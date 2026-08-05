@@ -50,10 +50,12 @@ request is merged, or green and answered.
 
 ## 3. Pick the work
 
-Take the highest-value open issue that is neither `blocked` nor `needs-decision`: landing on
-`master` alone first, the lowest milestone second — no milestone defers nothing — honouring a
-focus argument when one was given. Empty backlog → derive the next slice from the vision, open
-its issue, take it. Everything blocked → one chat message re-surfacing the open questions, stop
+The backlog is the open issues labelled `loop`; anything else in the repository belongs to
+somebody else and the loop leaves it alone. Among those neither `blocked` nor `needs-decision`
+that land on `master` alone, take the highest `Priority` field — `Urgent`, `High`, `Medium`,
+`Low`, then the ones carrying none — the lowest milestone breaking a tie, no milestone deferring
+nothing, honouring a focus argument when one was given. Empty backlog → derive the next slice
+from the vision, open its issue, take it. Everything blocked → one chat message re-surfacing the open questions, stop
 the round. After a slice is open, come back here while the round has room.
 
 ## 4. Ask before building — generously
