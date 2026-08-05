@@ -45,8 +45,7 @@ One issue per slice the vision's milestones name, in that order, each on its mil
 labelled `loop` plus its area. Body: what the slice ships, what "done" looks like in the UI, and
 what it deliberately leaves out.
 
-`issues?state=open` first (drop every element with a `pull_request` key);
-skip a slice that is already open. A closed issue is history and never holds back a slice the
+`issues?state=open -Where '!pull_request'` first; skip a slice that is already open. A closed issue is history and never holds back a slice the
 current vision asks for.
 
 Do not open decision issues here — those come from the round that picks the slice up.
