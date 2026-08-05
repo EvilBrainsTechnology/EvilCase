@@ -26,8 +26,13 @@
     `issue_field_values.issue_field_name=Priority.single_select_option.name` is that field's value.
     A column is one line whatever the data holds: a missing value is empty, an object or an array
     is compact JSON — `[]` and `[{…}]` included — and a string's backslashes, newlines and tabs
-    come out as \\, \n and \t. A GET is followed through its `Link: rel="next"` pages; only then is
-    the response reformatted, as the joined array.
+    come out as \\, \n and \t.
+
+    A GET asks for 100 per page unless the path names its own `per_page`, and is followed through
+    its `Link: rel="next"` pages, at most 20 of them; a 21st fails rather than walk a server that
+    keeps advertising one. The pages are then the joined array, an array however many elements they
+    hold between them. Every call gives up after 30 s — long enough for any page here, short enough
+    that a stalled server fails the round instead of hanging it.
 
     A non-2xx puts the status and the response on stderr and fails. Two of them are retried instead,
     up to -Attempts times, waiting what `Retry-After` says or 2, 4, 8 … seconds: a 429 or a secondary
@@ -78,6 +83,12 @@ $uri = if ($Path -match '^https?://') { $Path }
 elseif ($Path.StartsWith('/')) { "https://api.github.com$Path" }
 else { "https://api.github.com/repos/$Repository/$Path" }
 
+# 100 is the API's maximum, so a list is one call where it was four, and the page cap below covers
+# what a query that large still cannot hold.
+if ($Method -eq 'GET' -and $uri -notmatch '[?&]per_page=') {
+    $uri += "$(if ($uri.Contains('?')) { '&' } else { '?' })per_page=100"
+}
+
 $headers = @{
     Authorization = "Bearer $token"
     Accept = 'application/vnd.github+json'
@@ -99,6 +110,7 @@ function Invoke-Call([string] $CallUri) {
             Method = $Method
             Headers = $headers
             SkipHttpErrorCheck = $true
+            TimeoutSec = 30
         }
         if ($Json) {
             $arguments.Body = [Text.Encoding]::UTF8.GetBytes($Json)
@@ -124,11 +136,16 @@ function Invoke-Call([string] $CallUri) {
 # Pages are followed on GET alone: no write endpoint paginates, and following one would repeat it.
 # Only the `next` link's query is followed — its path names the repository by numeric id, which this
 # environment's proxy refuses — so the path stays the one that answered the first page.
+$maximumPages = 20
 $pages = @(Invoke-Call $uri)
 if ($Method -eq 'GET') {
     while ($true) {
         $link = Get-Header $pages[-1] 'Link'
         if (-not ($link -and $link -match '<([^>]+)>\s*;\s*rel="next"')) { break }
+        # The server decides how long `next` goes on; the cap is what makes it stop.
+        if ($pages.Count -ge $maximumPages) {
+            throw "$uri still had a next page after $maximumPages; narrow it, or ask for a page at a time"
+        }
         $pages += Invoke-Call ($uri.Split('?')[0] + ([uri] $Matches[1]).Query)
     }
 }
@@ -142,7 +159,8 @@ if ($pages.Count -eq 1 -and -not $Select) {
 # for; a single object stays itself.
 $data = @($pages | Where-Object { $_.Content } | ForEach-Object { $_.Content | ConvertFrom-Json })
 if (-not $Select) {
-    Write-Output ($data | ConvertTo-Json -Depth 100)
+    # -InputObject, so pages holding one element between them still print as an array.
+    Write-Output (ConvertTo-Json -InputObject $data -Depth 100)
     return
 }
 
