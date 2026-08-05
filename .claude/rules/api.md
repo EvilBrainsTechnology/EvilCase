@@ -33,7 +33,7 @@ Controllers are the single source of truth; DTOs live in `EvilCase.Api.Contract`
 controller. Generated routes are relative; `AddEvilCaseApiClient` normalises the base address.
 
 The `EB1xxx` diagnostics are the controller and client spec: read the diagnostic, never work
-around it. `[FromForm]` and `IFormFile` are not supported.
+around it.
 
 ## Secrets and logging
 

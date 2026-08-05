@@ -15,7 +15,7 @@ paths:
   framework instantiates by concrete type or with no service role — controllers,
   `DelegatingHandler` subclasses, middleware, exceptions, DTO and options records, static
   helpers.
-- One type per file. `MA0048` only checks the first one, so a second type slips past the build.
+- One type per file.
 - Fix an analyzer finding; never suppress one to get a build green. `src/.editorconfig` sets
   every severity and says why.
 - A test's assertion message names the broken rule, in a clause.
