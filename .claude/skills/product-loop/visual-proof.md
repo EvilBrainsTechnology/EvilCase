@@ -62,9 +62,10 @@ until the pull request does, so the body is written twice.
    unset GIT_INDEX_FILE
    ```
 
-   `rejected … non-fast-forward` means another round pushed first. Git's hint — pull, or force —
-   is wrong here, and the ruleset refuses the force anyway: run the block again from
-   `git fetch`, which re-parents the same files on the new tip and keeps both rounds'.
+   `rejected … non-fast-forward` means another round pushed first, and git's hint to `git pull`
+   is wrong here — nothing of `doc/images` is checked out, and the `--force` that follows it is
+   what the ruleset refuses. Run the block again from `git fetch`: it re-parents the same files
+   on the new tip and keeps both rounds'.
 4. `PATCH` the body with the images, each pinned to `$sha`, then check every URL with
    `curl -o /dev/null -w '%{http_code}'` and **no** `Authorization` header —
    `raw.githubusercontent.com` answers `404` to `$GH_TOKEN` whatever the file.
