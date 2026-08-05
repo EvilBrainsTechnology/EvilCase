@@ -10,7 +10,7 @@ a screenshot is synthetic data.
 
   ```bash
   PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers /opt/node22/bin/node \
-    .claude/skills/product-loop/screenshots.mjs docs/screenshots/153 targets.json
+    .claude/skills/product-loop/screenshots.mjs /tmp/shots/<issue> targets.json
   ```
 
   `targets.json` is a list of `{ name, path, file, wait?, steps?, fullPage? }`; a step is
@@ -19,15 +19,40 @@ a screenshot is synthetic data.
   cannot express; do not write a second one.
 - Playwright is at `/opt/node22/lib/node_modules/playwright`, its browsers at `/opt/pw-browsers`.
   Never run `playwright install`; the download is blocked.
-- Save as `docs/screenshots/<issue>/<screen>-<width>.png` and commit with the slice. A slice
-  that replaces a screen deletes the screenshots it supersedes, so the directory stays the
-  current state of the application.
-- Embed in the pull request body by raw URL pinned to the commit:
-  `https://raw.githubusercontent.com/EvilBrainsTechnology/EvilCase/<sha>/docs/screenshots/…`
-- A rebase orphans the pinned commit and every URL starts answering `404`: re-point them in the
-  same step as the force-push, never later.
-- Check a raw URL with `curl -o /dev/null -w '%{http_code}'` and **no** `Authorization` header —
-  `raw.githubusercontent.com` answers `404` to `$GH_TOKEN` whatever the file.
-- GitHub sometimes writes a URL back wrapped in a backtick, which renders as literal text. Read
-  the body back after every write; where it happened, embed as `<img src="…" alt="…">` — editing
-  the markdown again adds another backtick.
+
+## Where the images live
+
+Never in the slice's diff — on `master` a screenshot has no reader. They live on `doc/images`,
+an orphan branch sharing no history with `master`, one directory per pull request:
+`pull-request/<number>/<screen>-<width>.png`. A ruleset on `refs/heads/doc/images` refuses
+deletion and non-fast-forward pushes, so what is pushed there stays reachable.
+
+Embed by raw URL pinned to the commit, never by branch name — a branch-name URL renders whatever
+the path holds today, and a pull request has to keep showing what was reviewed:
+
+```
+https://raw.githubusercontent.com/EvilBrainsTechnology/EvilCase/<sha>/pull-request/<number>/<screen>-<width>.png
+```
+
+## The order
+
+The screenshots come first: `screenshots.mjs` exiting non-zero is what stops a broken screen
+becoming a pull request. Only filing and embedding them need the number, which does not exist
+until the pull request does, so the body is written twice.
+
+1. Take the screenshots into `/tmp/shots/<issue>`, outside the checkout and named by the number
+   that exists now. A non-zero exit ends it here — fix the screen, open nothing.
+2. Push the branch and open the pull request as a draft, body without images.
+3. Put the files on `doc/images` under the number it got, with `Push-EvilCaseImages.ps1` next to
+   this file; it prints the commit sha the body pins to. Its header has the rest.
+
+   ```bash
+   sha=$(./.claude/skills/product-loop/Push-EvilCaseImages.ps1 \
+     -PullRequest <number> -Path /tmp/shots/<issue>)
+   ```
+4. `PATCH` the body with the images, each pinned to `$sha`, then check every URL with
+   `curl -o /dev/null -w '%{http_code}'` and **no** `Authorization` header —
+   `raw.githubusercontent.com` answers `404` to `$GH_TOKEN` whatever the file.
+5. Read the body back. GitHub sometimes writes a URL back wrapped in a backtick, which renders
+   as literal text; where it happened, embed as `<img src="…" alt="…">` — editing the markdown
+   again adds another backtick.
