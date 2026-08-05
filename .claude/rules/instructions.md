@@ -2,7 +2,12 @@
 
 How the AI instruction files themselves change.
 
-- Instructions describe invariants: no state, no progress, no history, no changelog.
+- Instructions describe invariants: no state, no progress, no history, no changelog, and no
+  scripts. One command, a call of a script, a template or a diagram may be fenced; steps that
+  run — control flow, failure handling, state to clean up — are a pwsh script next to the
+  instruction that calls it, with `param()`, `Set-StrictMode`, `$ErrorActionPreference`,
+  approved verbs, stdout for the result and stderr for the rest, and a header stating
+  parameters and failure modes. The instruction keeps the call and why, not the plumbing.
 - Change instructions during ordinary work, and only when future work would otherwise be wrong
   or ambiguous. Information that does not change the agent's behaviour stays out.
 - Prefer rewording or replacing an existing rule; a new paragraph is the last resort. A rule
