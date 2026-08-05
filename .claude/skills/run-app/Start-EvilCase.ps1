@@ -95,9 +95,9 @@ if ($Stop) {
     # a run that will not go down, costs only itself — the rest of the checkout still stops.
     $kept = @()
     foreach ($stateFile in $states) {
+        $done = @()
         try {
             $state = Get-Content -LiteralPath $stateFile.FullName -Raw | ConvertFrom-Json
-            $done = @()
 
             # By pid, and only while it is still the command line this run started: a pid is recycled,
             # and a state file left behind by a crash has had an unrelated process killed by now.
@@ -125,11 +125,21 @@ if ($Stop) {
                 $done += "dropped $($state.Database)"
             }
             else { $done += "$($state.Database) was gone" }
+        }
+        catch {
+            $kept += "$($stateFile.FullName) kept: $($_.Exception.Message)"
+            continue
+        }
 
-            Remove-Item -LiteralPath $stateFile.FullName, $state.Log, $state.ErrorLog -Force -ErrorAction SilentlyContinue
+        # Its own try: the run is down and its database dropped, so a failure from here on leaves
+        # files to delete, never a database to hunt for — and must not be reported as one.
+        try {
+            $logs = @($state.PSObject.Properties |
+                    Where-Object { $_.Name -in @('Log', 'ErrorLog') -and $_.Value } | ForEach-Object { $_.Value })
+            Remove-Item -LiteralPath (@($stateFile.FullName) + $logs) -Force -ErrorAction SilentlyContinue
             Write-Output "$($state.Url): $($done -join ', ')"
         }
-        catch { $kept += "$($stateFile.FullName) kept: $($_.Exception.Message)" }
+        catch { $kept += "$($stateFile.FullName): $($done -join ', '), its files stay: $($_.Exception.Message)" }
     }
 
     # With the last run goes what is left of the checkout's directory, the build logs included —
