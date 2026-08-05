@@ -13,9 +13,10 @@
 - Independent tasks go out in parallel, and they share one machine: a subagent takes its own
   port and its own database rather than the defaults, and drops them afterwards (run-app skill).
 - Search and read with `Grep`, `Glob` and `Read`; the shell is for commands that do something,
-  never for looking — no `ls`, `cat`, `head`, `find` or `grep` pipeline. What always runs
-  together runs in one call: `add`, `commit` and `push`; a task's GitHub writes in one script at
-  its end. Every call costs a round trip whatever it does.
+  never for looking at a file — no `ls`, `cat`, `head`, `tail`, `wc`, `find` or `grep` where
+  `Glob`, `Read` or `Grep` answers.
+- What runs together runs in one call: `add`, `commit` and `push` for one unit; the GitHub
+  writes of one step in one script at the end of that step, never carried into a later one.
 - Every subagent that writes to the repository gets `isolation: "worktree"`; a worktree sees
   the parent checkout's rule files and has no `.env` (run-app skill).
 - The main checkout never holds a delegated branch, `--ignore-other-worktrees` included: its
