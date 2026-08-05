@@ -101,6 +101,21 @@ public class NumberSequenceAllocatorTests
     }
 
     [Test]
+    public async Task AValueTakenInsideATransactionThatRollsBackGoesBackWithIt()
+    {
+        await using var context = this.database.Context();
+        var allocator = this.Allocator(context);
+
+        await using (var transaction = await context.Database.BeginTransactionAsync())
+        {
+            Assert.That(await allocator.Next("case:20260805"), Is.EqualTo(1));
+            await transaction.RollbackAsync();
+        }
+
+        Assert.That(await allocator.Next("case:20260805"), Is.EqualTo(1), "the series counts up, but it counts up over what was committed");
+    }
+
+    [Test]
     public async Task EveryOneOfManyCallersAtOnceTakesAValueOfItsOwn()
     {
         var contexts = Enumerable.Range(0, Callers).Select(_ => this.database.Context()).ToList();

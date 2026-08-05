@@ -71,7 +71,6 @@ public partial class Numbering : Migration
                     .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                 CaseNumberPattern = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
                 ActNumberPattern = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
-                Updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
             },
             constraints: table =>
             {
@@ -80,8 +79,8 @@ public partial class Numbering : Migration
 
         migrationBuilder.InsertData(
             table: "NumberingSettings",
-            columns: ["Id", "ActNumberPattern", "CaseNumberPattern", "Updated"],
-            values: [1L, "{case-number}-{year}{month}{day}-{seq}", "EC-{year}{month}{day}-{seq}", null]);
+            columns: ["Id", "ActNumberPattern", "CaseNumberPattern"],
+            values: [1L, "{case-number}-{year}{month}{day}-{seq}", "EC-{year}{month}{day}-{seq}"]);
     }
 
     private static void CreateTheSeries(MigrationBuilder migrationBuilder)

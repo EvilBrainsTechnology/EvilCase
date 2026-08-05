@@ -21,6 +21,4 @@ public record NumberingSettings : IEntity
 
     [MaxLength(128)]
     public required string ActNumberPattern { get; init; }
-
-    public DateTime? Updated { get; init; }
 }

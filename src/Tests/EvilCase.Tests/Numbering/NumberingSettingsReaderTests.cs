@@ -70,7 +70,7 @@ public class NumberingSettingsReaderTests
         Assert.That(async () => await this.Read(), Throws.InstanceOf<InvalidOperationException>(), "the settings are one row, so a second one is a broken database rather than a newer one to prefer");
     }
 
-    private async Task<NumberingSettings> Read()
+    private async Task<NumberingPatterns> Read()
     {
         await using var context = this.database.Context();
 

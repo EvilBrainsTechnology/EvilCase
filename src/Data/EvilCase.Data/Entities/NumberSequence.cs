@@ -4,8 +4,9 @@ using Microsoft.EntityFrameworkCore;
 namespace EvilBrains.EvilCase.Data.Entities;
 
 /// <summary>
-/// The counter behind one <c>{seq}</c>: the last value handed out in one series. A series never goes
-/// backwards, so a number is issued once and never again.
+/// The counter behind one <c>{seq}</c>: the last value handed out in one series. It only counts up, so
+/// two callers never take one value; a value taken inside a transaction that rolls back goes back with
+/// it and the next caller takes it.
 /// </summary>
 [Index(nameof(OwnerId), nameof(Scope), IsUnique = true)]
 public record NumberSequence : IEntity
