@@ -33,8 +33,6 @@ public partial class Numbering : Migration
             table: "Acts");
     }
 
-    // Nothing creates an act yet, so the column lands empty and the unique index holds from the first
-    // act ever written.
     private static void AddTheActNumber(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.AddColumn<string>(
@@ -44,6 +42,17 @@ public partial class Numbering : Migration
             maxLength: 128,
             nullable: false,
             defaultValue: "");
+
+        // Every act already written gets a number of its own, or the unique index below refuses the
+        // second act of a case on the empty default. The act's own key is what makes it distinct, and
+        // no issued number carries one.
+        migrationBuilder.Sql(
+            """
+            UPDATE "Acts" AS a
+            SET "ActNumber" = c."CaseNumber" || '-' || a."Id"
+            FROM "Cases" AS c
+            WHERE c."Id" = a."CaseId";
+            """);
 
         migrationBuilder.CreateIndex(
             name: "IX_Acts_CaseId_ActNumber",
