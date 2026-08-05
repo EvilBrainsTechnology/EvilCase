@@ -89,8 +89,8 @@ if ($Stop) {
         $states = @(Get-ChildItem -LiteralPath $stateDirectory -File -Filter '*.json' |
                 Where-Object { $All -or $_.BaseName -eq [string] $Port })
     }
-    # A -Port naming no run is a typo, and its run is still up: reporting success would hide that.
-    # -All over a checkout with nothing running is not.
+    # A -Port naming no run is a typo, and the run the caller meant is still up: success would hide
+    # that. -All over a checkout that has nothing running is not a typo.
     if (-not $states) {
         if ($Port) { throw "no run on port $Port recorded in $stateDirectory" }
         Write-Warning "no run recorded in $stateDirectory"
