@@ -8,9 +8,9 @@
         ./.claude/skills/run-app/Start-EvilCase.ps1 -Stop -All         # every run of this checkout
 
     -Stop kills the host, drops the database and removes the run's files. It takes -Port, the port
-    the start printed — the runs beside it belong to other agents. -All is for the checkout, not
-    for one's own run. A start that failed needs -Stop too: whatever it got as far as creating is
-    still there, and it says so.
+    the start printed — the runs beside it belong to other agents, and a -Port naming none of them
+    fails. -All is for the checkout, not for one's own run. A start that failed needs -Stop too:
+    whatever it got as far as creating is still there, and it says so.
 
     -PostgresHost, -PostgresPort, -PostgresUser and -PostgresPassword reach a server other than
     localhost:5432 as postgres/postgres. -ReadyTimeoutSeconds bounds the wait for /health/ready.
@@ -89,7 +89,12 @@ if ($Stop) {
         $states = @(Get-ChildItem -LiteralPath $stateDirectory -File -Filter '*.json' |
                 Where-Object { $All -or $_.BaseName -eq [string] $Port })
     }
-    if (-not $states) { Write-Warning "no run$(if ($Port) { " on port $Port" }) recorded in $stateDirectory" }
+    # A -Port naming no run is a typo, and its run is still up: reporting success would hide that.
+    # -All over a checkout with nothing running is not.
+    if (-not $states) {
+        if ($Port) { throw "no run on port $Port recorded in $stateDirectory" }
+        Write-Warning "no run recorded in $stateDirectory"
+    }
 
     # One run per iteration, each inside its own try: a state file a SIGKILL truncated mid-write, or
     # a run that will not go down, costs only itself — the rest of the checkout still stops.
