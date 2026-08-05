@@ -10,8 +10,9 @@
         ./.claude/skills/product-loop/Invoke-EvilCaseGitHub.ps1 issues/12 -Method PATCH -Json '{"state":"closed"}'
 
     -Path is relative to the repository (`pulls/12`); one starting with / is relative to
-    api.github.com and a full URL stands as it is. -Method defaults to GET, or to POST when a body
-    is given.
+    api.github.com and so reaches outside the repository (`/rate_limit`), and a full URL stands as
+    it is — `https://api.github.com/…` alone, because the bearer token rides on it. -Method
+    defaults to GET, or to POST when a body is given.
 
     The body is JSON, from -Json on the command line or -JsonFile for what does not fit on one.
     -MarkdownFile fills the `body` property from a file of plain markdown — a comment, a reply or a
@@ -82,6 +83,13 @@ $Method = $Method.ToUpperInvariant()
 $uri = if ($Path -match '^https?://') { $Path }
 elseif ($Path.StartsWith('/')) { "https://api.github.com$Path" }
 else { "https://api.github.com/repos/$Repository/$Path" }
+
+# Every call carries the token, so no other host is ever called: a full URL naming one would hand
+# it over, plain http included.
+$target = [uri] $uri
+if ($target.Scheme -ne 'https' -or $target.Host -ne 'api.github.com') {
+    throw "$uri is not https://api.github.com — the token goes to GitHub alone"
+}
 
 # 100 is the API's maximum, so a list is one call where it was four, and the page cap below covers
 # what a query that large still cannot hold.
