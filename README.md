@@ -62,7 +62,7 @@ dotnet r ci                  # format-check + build + test, what CI runs
 
 ### Logging
 
-`appsettings.Development.json` ships logs to the Seq server at `https://seq.vdolek.cz`. The server URL is the only switch: set `EvilBrains__EvilCase__Logging__Seq__ServerUrl=` (empty) in your `.env` to log to the console only, or point it elsewhere.
+A clone logs to the console and ships nothing anywhere. The server URL is the only switch: set `EvilBrains__EvilCase__Logging__Seq__ServerUrl` in your `.env` to ship to a Seq server of your own, and `EvilBrains__EvilCase__Logging__Seq__ApiKey` where that server requires one.
 
 ## Frontend–API communication
 

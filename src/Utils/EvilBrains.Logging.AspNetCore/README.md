@@ -8,7 +8,7 @@ Serilog is configured in the host's `Program.cs` and handed to `UseSerilog(Log.L
 
 Server events are enriched with `AppSource = Server`.
 
-In EvilCase, Seq is configured from `EvilBrains:EvilCase:Logging:Seq` (`ServerUrl`, `ApiKey`), never from the `Serilog` section, which holds only the console sink; an empty server URL logs to the console only, and Seq credentials stay on the server. The `Environment` property is enriched from `builder.Environment.EnvironmentName`, never from an `appsettings.*.json` of its own.
+In EvilCase, Seq is configured from `EvilBrains:EvilCase:Logging:Seq` (`ServerUrl`, `ApiKey`), never from the `Serilog` section, which holds only the console sink; an empty server URL logs to the console only, and Seq credentials stay on the server. No `appsettings.*.json` names a server: a URL reaches the application from the environment alone, which `SeqServerUrlTests` pins. The `Environment` property is enriched from `builder.Environment.EnvironmentName`, never from an `appsettings.*.json` of its own.
 
 - `services.AddClientLogWriter(clientSourceContext)` — registers `IClientLogWriter`. The source context names the deployment the browser logs are recorded under, not the library.
 - `app.UseRequestLogging(loggedPaths, quietPaths)` — request context logging followed by Serilog's request logging, in that order, so the completion event carries the identifiers.

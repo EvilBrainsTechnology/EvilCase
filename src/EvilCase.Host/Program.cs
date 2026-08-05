@@ -36,8 +36,8 @@ var loggerConfiguration = new LoggerConfiguration()
 #pragma warning restore RCS0054
 
 // Seq is wired here rather than through the Serilog section, which has no way to leave a sink out. The
-// server URL is the only switch: every environment names its own server and one that names none logs to
-// the console only.
+// server URL is the only switch, and no environment ships one: without a server named from outside the
+// repository, logs go to the console only.
 var seq = builder.Configuration.GetSection("EvilBrains:EvilCase:Logging:Seq");
 var seqServerUrl = seq["ServerUrl"].NullIfEmpty();
 
