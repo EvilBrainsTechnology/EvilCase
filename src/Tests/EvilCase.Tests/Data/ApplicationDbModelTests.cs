@@ -125,6 +125,76 @@ public class ApplicationDbModelTests
     }
 
     [Test]
+    public void ACaseHangsUnderNothing()
+    {
+        using var context = new ApplicationDbContextFactory().CreateDbContext([]);
+
+        var @case = context.Model.FindEntityType(typeof(Case));
+
+        Assert.That(@case, Is.Not.Null);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(@case.FindProperty("ParentCaseId"), Is.Null, "a case relates to another case, and neither of them is above the other");
+            Assert.That(@case.GetForeignKeys().Any(key => key.PrincipalEntityType.ClrType == typeof(Case)), Is.False, "a self-reference is a hierarchy, whatever it is called");
+        }
+    }
+
+    [Test]
+    public void ARelationIsOneRowPerOrderedPairOfDistinctCases()
+    {
+        using var context = new ApplicationDbContextFactory().CreateDbContext([]);
+
+        // The read-optimized model drops check constraints; only the design-time one carries them.
+        var designTime = context.GetService<IDesignTimeModel>().Model.FindEntityType(typeof(CaseRelation));
+        var relation = context.Model.FindEntityType(typeof(CaseRelation));
+
+        Assert.That(new[] { designTime, relation }, Has.None.Null, "the relation is mapped");
+
+        var check = designTime!.GetCheckConstraints().SingleOrDefault();
+        var unique = relation!.GetIndexes().SingleOrDefault(index => index.IsUnique);
+        string[] pair = [nameof(CaseRelation.CaseId), nameof(CaseRelation.RelatedCaseId)];
+        string[] bare = ["Id", .. pair];
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(check?.Sql, Does.Contain("<"), "the lower identifier comes first, which is also what refuses a case related to itself");
+            Assert.That(check?.Sql, Does.Not.Contain("<="), "a case is never related to itself");
+            Assert.That(unique?.Properties.Select(property => property.Name), Is.EqualTo(pair), "one pair is one row, whichever end asks");
+            Assert.That(IsIndexed(relation, nameof(CaseRelation.RelatedCaseId)), Is.True, "a relation is read from either end, so both columns are indexed");
+            Assert.That(ColumnsOf(relation), Is.EquivalentTo(bare), "the row is bare — it carries the pair and nothing else");
+            Assert.That(relation.GetNavigations(), Is.Empty, "the two ends are the same kind of end, so a read names both columns rather than following one of them");
+        }
+    }
+
+    /// <summary>
+    /// The two cascades are what makes the delete symmetric: the relation goes from whichever end is
+    /// deleted, and neither of them reaches the case at the other end.
+    /// </summary>
+    [Test]
+    public void DeletingACaseTakesItsRelationsAndLeavesTheCasesItRelatedTo()
+    {
+        using var context = new ApplicationDbContextFactory().CreateDbContext([]);
+
+        var relation = context.Model.FindEntityType(typeof(CaseRelation));
+
+        Assert.That(relation, Is.Not.Null);
+
+        var toCases = relation.GetForeignKeys().Where(key => key.PrincipalEntityType.ClrType == typeof(Case)).ToList();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(toCases, Has.Count.EqualTo(2), "a relation names both ends");
+            Assert.That(toCases.TrueForAll(key => key.DeleteBehavior == DeleteBehavior.Cascade), Is.True, "a relation has no meaning without either of its cases");
+            Assert.That(
+                context.Model.GetEntityTypes().Any(entityType => entityType.ClrType == typeof(Case)
+                    && entityType.GetForeignKeys().Any(key => key.PrincipalEntityType.ClrType == typeof(Case))),
+                Is.False,
+                "nothing cascades from one case to another, so a delete stops at the relation");
+        }
+    }
+
+    [Test]
     public void AnActCarriesOneMandatoryDateAndNoOrderingNumber()
     {
         using var context = new ApplicationDbContextFactory().CreateDbContext([]);
@@ -368,7 +438,7 @@ public class ApplicationDbModelTests
         {
             Assert.That(assetToAct?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Cascade), "the bytes go with the act they were filed under");
             Assert.That(referenceToAct?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Cascade), "a reference has no meaning without the act that made it, and dropping it destroys nothing shared");
-            Assert.That(referenceToAsset?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Restrict), "an asset another act still references would otherwise be taken from it by a delete in a fifth sub-case");
+            Assert.That(referenceToAsset?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Restrict), "an asset another act still references would otherwise be taken from it by a delete in a fifth case");
         }
     }
 

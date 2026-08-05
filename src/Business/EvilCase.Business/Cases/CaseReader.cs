@@ -11,7 +11,6 @@ internal sealed class CaseReader(ApplicationDbContext context) : ICaseReader
         ArgumentNullException.ThrowIfNull(request);
 
         return await context.Cases
-            .Roots()
             .MatchingSearch(request.Search)
             .WithStatus(request.Status)
             .InListOrder()

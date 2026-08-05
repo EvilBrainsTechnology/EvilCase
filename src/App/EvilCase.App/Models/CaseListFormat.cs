@@ -25,11 +25,4 @@ public static class CaseListFormat
 
         return $"{(item.Updated is null ? "Založeno" : "Změněno")} {ChangedOn(item)}";
     }
-
-    public static string SubCases(int count) => count switch
-    {
-        1 => "1 podspis",
-        2 or 3 or 4 => $"{count.ToString(CultureInfo.InvariantCulture)} podspisy",
-        _ => $"{count.ToString(CultureInfo.InvariantCulture)} podspisů",
-    };
 }

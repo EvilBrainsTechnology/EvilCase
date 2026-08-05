@@ -13,6 +13,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     public DbSet<Case> Cases => this.Set<Case>();
 
+    public DbSet<CaseRelation> CaseRelations => this.Set<CaseRelation>();
+
     public DbSet<CaseTag> CaseTags => this.Set<CaseTag>();
 
     public DbSet<ExternalCaseNumber> ExternalCaseNumbers => this.Set<ExternalCaseNumber>();
@@ -63,12 +65,25 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     private static void ConfigureCases(ModelBuilder modelBuilder)
     {
-        // A sub-case has no meaning without what it hangs under, so the sub-tree goes with its root.
-        // Nothing deletes a case yet; the rule is here so that whatever does later cannot orphan one.
-        modelBuilder.Entity<Case>()
-            .HasMany(@case => @case.Children)
-            .WithOne(@case => @case.Parent)
-            .HasForeignKey(@case => @case.ParentCaseId)
+        // The pair is stored once, so the check is what keeps a second row for the other direction — and
+        // a row relating a case to itself — out of the table.
+        modelBuilder.Entity<CaseRelation>()
+            .ToTable(table => table.HasCheckConstraint(
+                "CK_CaseRelations_Ordered",
+                @"""CaseId"" < ""RelatedCaseId"""));
+
+        // A relation has no meaning without either end, and it is all a delete takes: the case at the
+        // other end is a case of its own and stays.
+        modelBuilder.Entity<CaseRelation>()
+            .HasOne<Case>()
+            .WithMany()
+            .HasForeignKey(relation => relation.CaseId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<CaseRelation>()
+            .HasOne<Case>()
+            .WithMany()
+            .HasForeignKey(relation => relation.RelatedCaseId)
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<ExternalCaseNumber>()

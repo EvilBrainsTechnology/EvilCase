@@ -5,12 +5,11 @@ using Microsoft.EntityFrameworkCore;
 namespace EvilBrains.EvilCase.Data.Entities;
 
 /// <summary>
-/// Root of a proceeding. Nesting is the self-reference on <see cref="ParentCaseId"/>: a sub-case has
-/// the same shape as what it hangs under, to any depth.
+/// A proceeding. Cases form no hierarchy: what would have been a sub-case is a case of its own, tied to
+/// this one by a <see cref="CaseRelation"/> row.
 /// </summary>
 [Index(nameof(OwnerId))]
 [Index(nameof(OwnerId), nameof(CaseNumber), IsUnique = true)]
-[Index(nameof(ParentCaseId))]
 public record Case : IEntity
 {
     [Key]
@@ -21,11 +20,6 @@ public record Case : IEntity
     /// user owns everything, and from M8 on every query and endpoint is scoped by this column.
     /// </summary>
     public required long OwnerId { get; init; }
-
-    /// <summary>
-    /// Null on a root case.
-    /// </summary>
-    public long? ParentCaseId { get; init; }
 
     [MaxLength(64)]
     public required string CaseNumber { get; init; }
@@ -43,10 +37,6 @@ public record Case : IEntity
     public DateTime? Updated { get; init; }
 
     public User? Owner { get; init; }
-
-    public Case? Parent { get; init; }
-
-    public ICollection<Case> Children { get; init; } = [];
 
     public ICollection<CaseTag> Tags { get; init; } = [];
 

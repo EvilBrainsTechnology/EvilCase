@@ -20,12 +20,19 @@ public class CaseListQueryTests
     [TearDown]
     public void TearDown() => this.context.Dispose();
 
+    /// <summary>
+    /// Related cases are cases, and the list shows every one of them — no row stands for a set of others.
+    /// </summary>
     [Test]
-    public void TheListIsRootsOnly()
+    public void OnlyTheSearchAndTheStatusNarrowTheList()
     {
-        var sql = this.context.Cases.Roots().ToQueryString();
+        var sql = this.context.Cases
+            .MatchingSearch(search: null)
+            .WithStatus(CaseStatusFilter.All)
+            .InListOrder()
+            .ToQueryString();
 
-        Assert.That(sql, Does.Contain("\"ParentCaseId\" IS NULL"));
+        Assert.That(sql, Does.Not.Contain("WHERE"), "nothing else hides a case from the list");
     }
 
     [Test]
@@ -99,14 +106,15 @@ public class CaseListQueryTests
     }
 
     [Test]
-    public void TheProjectionReadsTheTagsAndCountsTheSubCasesInTheSameQuery()
+    public void TheProjectionReadsTheTagsInTheSameQueryAndCountsNothing()
     {
         var sql = this.context.Cases.AsListItems().ToQueryString();
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(sql, Does.Contain("count(*)").IgnoreCase);
             Assert.That(sql, Does.Contain("\"CaseTags\""));
+            Assert.That(sql, Does.Not.Contain("count(").IgnoreCase, "a row of the list stands for one case and counts nothing under it");
+            Assert.That(sql, Does.Not.Contain("\"CaseRelations\""), "the list says nothing about relations");
             Assert.That(sql, Does.Not.Contain("\"OwnerId\""));
         }
     }
