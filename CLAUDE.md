@@ -1,9 +1,9 @@
 # EvilCase
 
-A case-file system for administrative and legal proceedings: a case nests into sub-cases to any
-depth and accumulates acts, parties, file marks, tags and comments. Built so far — the domain
-model in PostgreSQL, authentication, and a Blazor WebAssembly frontend that ships the case list;
-`docs/product/vision.md` is what the rest is built towards.
+A case-file system for administrative and legal proceedings: a case relates to any number of
+other cases and accumulates acts, parties, file marks, tags and comments. Built so far — the
+domain model in PostgreSQL, authentication, and a Blazor WebAssembly frontend that ships the
+case list; `docs/product/vision.md` is what the rest is built towards.
 
 .NET 10, PostgreSQL, secrets from environment variables.
 

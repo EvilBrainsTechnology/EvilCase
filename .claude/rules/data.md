@@ -12,8 +12,10 @@ rules below against the built model.
   collides — CA1716 sits at `suggestion` for this, the one rule below error.
 - Every aggregate root carries `OwnerId` from its first migration, with a foreign key and an
   index.
-- A sub-case is a self-reference (`ParentCaseId`); deleting a case cascades to its sub-tree.
-- Tree walks (`CaseTree`) stay pure over navigation properties and carry a visited set.
+- Cases form no hierarchy. A relation between two of them is a `CaseRelation` row, symmetric and
+  bare — no note, no kind, no direction — unique per unordered pair, and never self-referencing.
+- Only the one layer of a case's relations is ever read; nothing walks past it. Deleting a case
+  takes its relations and leaves every case it related to untouched.
 - Enums are stored as names: `HasConversion<string>()` with an explicit length.
 - Tags are rows — typed, unique per case — never an array column.
 - `Case.CaseNumber` is required and unique per owner; every external mark is an
