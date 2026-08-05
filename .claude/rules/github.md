@@ -13,7 +13,10 @@
 - A pull request wears the state GitHub does not show: `in-review` from the moment it opens
   until the review cycle ends, `blocked` while a decision issue it names is unanswered. Each
   comes off in the step that ends the state, never in a later round. Whether it waits on an
-  approval, on CI or on a conflict, GitHub says already — no label repeats that.
+  approval, on CI or on a conflict, GitHub says already — no label and no comment repeats that.
+- A label carries the standing state, a comment the moment it changes: a code review started,
+  its findings worked in, something found wrong, a return to draft. Two sentences at most, what
+  happened and what follows.
 - Subscribe (`subscribe_pr_activity`) to every pull request you open.
 - A pull request is never a workbench: verify with tools, not with trial edits in it.
 - Every git and GitHub interaction — commits, pull requests, comments, reviews, issues — is
