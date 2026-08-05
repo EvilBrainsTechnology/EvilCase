@@ -54,11 +54,16 @@ function Test-Database([string] $Name) {
     return @(Invoke-Postgres 'psql' @('-d', 'postgres', '-Atc', "select 1 from pg_database where datname = '$Name'")) -contains '1'
 }
 
-# A refused connection is the only proof the host let go of the port.
+# A refused connection is the only proof the host let go of the port: one that hangs, on a backlog
+# nobody is accepting from, is a port still held. WaitAny, because Wait rethrows the refusal.
 function Test-Port([int] $Number) {
     $client = [System.Net.Sockets.TcpClient]::new()
-    try { return $client.ConnectAsync([System.Net.IPAddress]::Loopback, $Number).Wait(1000) }
-    catch { return $false }
+    try {
+        $connect = $client.ConnectAsync([System.Net.IPAddress]::Loopback, $Number)
+        if ([System.Threading.Tasks.Task]::WaitAny(@($connect), 1000) -lt 0) { return $true }
+        return -not ($connect.Exception -and ($connect.Exception.InnerExceptions | Where-Object {
+                    $_ -is [System.Net.Sockets.SocketException] -and $_.SocketErrorCode -eq 'ConnectionRefused' }))
+    }
     finally { $client.Dispose() }
 }
 
@@ -76,10 +81,7 @@ if ($Stop) {
         $states = @(Get-ChildItem -LiteralPath $stateDirectory -Filter '*.json' |
                 Where-Object { -not $Port -or $_.BaseName -eq [string] $Port })
     }
-    if (-not $states) {
-        Write-Warning "no run recorded in $stateDirectory"
-        return
-    }
+    if (-not $states) { Write-Warning "no run$(if ($Port) { " on port $Port" }) recorded in $stateDirectory" }
 
     $stuck = @()
     foreach ($stateFile in $states) {
@@ -116,7 +118,9 @@ if ($Stop) {
         Write-Output "$($state.Url): $($done -join ', ')"
     }
 
-    if (-not (Get-ChildItem -LiteralPath $stateDirectory -Filter '*.json')) {
+    # With the last run goes what is left of the checkout's directory, the build log included.
+    if ((Test-Path -LiteralPath $stateDirectory) -and
+        -not (Get-ChildItem -LiteralPath $stateDirectory -Filter '*.json')) {
         Remove-Item -LiteralPath $stateDirectory -Recurse -Force
     }
     if ($stuck) { throw ($stuck -join [Environment]::NewLine) }
