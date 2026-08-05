@@ -19,8 +19,6 @@ services:
       # Kestrel serves plain HTTP here and nothing terminates TLS in front, so the middleware could
       # not resolve a target port anyway and would only log a warning per request.
       EvilBrains__EvilCase__Hosting__HttpsRedirection: "false"
-      # appsettings.Development.json names a real Seq server; an empty URL leaves the sink out.
-      EvilBrains__EvilCase__Logging__Seq__ServerUrl: ""
     # The host migrates on startup and does not retry.
     depends_on:
       postgres:

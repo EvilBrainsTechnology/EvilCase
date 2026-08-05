@@ -70,8 +70,7 @@ The application answers on `http://localhost:8080` (`EVILCASE_PORT` picks anothe
 `BehindReverseProxy` stays at its default.
 
 The image is the deployed one, the configuration is not: it runs as `Development`, which maps
-Scalar at `/scalar` and lets EF Core log sensitive data. The Seq URL of
-`appsettings.Development.json` is cleared, so a local run ships no logs to a real server.
+Scalar at `/scalar` and lets EF Core log sensitive data.
 
 The database publishes no port: the application reaches it over the compose network, and
 publishing would collide with the development stack below. Like it, it is throwaway — constant
