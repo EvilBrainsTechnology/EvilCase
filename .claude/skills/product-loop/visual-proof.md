@@ -34,9 +34,6 @@ the path holds today, and a pull request has to keep showing what was reviewed:
 https://raw.githubusercontent.com/EvilBrainsTechnology/EvilCase/<sha>/pull-request/<number>/<screen>-<width>.png
 ```
 
-A URL pinned to a commit outside `doc/images` — one on the feature branch — dies with the next
-rebase: re-point it in the same step as the force-push, never later.
-
 ## The order
 
 The screenshots come first: `screenshots.mjs` exiting non-zero is what stops a broken screen
