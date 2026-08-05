@@ -5,8 +5,7 @@ using Microsoft.EntityFrameworkCore;
 namespace EvilBrains.EvilCase.Data.Entities;
 
 /// <summary>
-/// A proceeding. Cases form no hierarchy: what would have been a sub-case is a case of its own, tied to
-/// this one by a <see cref="CaseRelation"/> row.
+/// A proceeding. Related cases are <see cref="CaseRelation"/> rows.
 /// </summary>
 [Index(nameof(OwnerId))]
 [Index(nameof(OwnerId), nameof(CaseNumber), IsUnique = true)]

@@ -22,7 +22,7 @@ public class CaseReaderTests
     public void TearDown() => this.context.Dispose();
 
     /// <summary>
-    /// Related cases are cases, and the list shows every one of them — no row stands for a set of others.
+    /// Related cases are cases, and the list shows every one of them.
     /// </summary>
     [Test]
     public void OnlyTheSearchAndTheStatusNarrowTheList()
