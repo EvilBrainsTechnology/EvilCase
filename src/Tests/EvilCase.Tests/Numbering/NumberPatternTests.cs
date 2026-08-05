@@ -22,7 +22,7 @@ public class NumberPatternTests
     }
 
     [Test]
-    public void TheSequenceIsPaddedToThreeDigitsSoNumbersSort()
+    public void TheSequenceIsPaddedToThreeDigitsAndTheThousandthGrowsOutOfTheSort()
     {
         string[] issued =
         [
@@ -36,8 +36,12 @@ public class NumberPatternTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(issued, Is.EqualTo(expected));
-            Assert.That(issued, Is.Ordered.Using<string>(StringComparer.Ordinal), "the padding is what makes one series sort as text");
+            Assert.That(issued, Is.Ordered.Using<string>(StringComparer.Ordinal), "the padding is what makes the first thousand of a series sort as text");
             Assert.That(NumberPattern.Format("{seq}", Date, 1000), Is.EqualTo("1000"), "the thousandth number of a series grows rather than wrapping");
+            Assert.That(
+                StringComparer.Ordinal.Compare(NumberPattern.Format("{seq}", Date, 1000), "999"),
+                Is.LessThan(0),
+                "and sorts in front of the one before it, which a yearly series reaches routinely — docs/product/vision.md says so");
         }
     }
 

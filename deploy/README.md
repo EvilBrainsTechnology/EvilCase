@@ -44,7 +44,7 @@ The service is published over plain HTTP for a reverse proxy that terminates TLS
 
 Seq is driven by `EVILCASE_SEQ_URL` alone — an empty one logs to the console only.
 
-`EVILCASE_TZ` sets the container's `TZ`, the zone the day in an issued case or act number is read in; the image defaults to `Europe/Prague`.
+`EVILCASE_TZ` sets the container's `TZ`, the zone the day in an issued case or act number is read in; the image defaults to `Europe/Prague`. It also sets the offset the browser log events forwarded to the server are timestamped with.
 
 ```
 cp .env.example .env   # then fill in the connection string and the JWT key

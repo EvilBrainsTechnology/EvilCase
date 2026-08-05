@@ -74,9 +74,11 @@ obrazovce Nastavení — její první kus.
   `{case-number}-{year}{month}{day}-{seq}` → `EC-20260804-001-20260805-002`.
 - `{seq}` počítá v rámci období, které vzor jmenuje — s `{day}` denně, jen s `{year}` ročně,
   u čísla jednacího navíc v rámci spisu — a doplňuje se nulami na tři cifry, aby se čísla
-  řadila. Řada počítá nad tím, co se uložilo: číslo vzaté v transakci, která se vrátí zpět,
+  řadila. Nad 999 roste na čtyři cifry a textové řazení se v té řadě rozpadne: `1000` je před
+  `999`. Řada počítá nad tím, co se uložilo: číslo vzaté v transakci, která se vrátí zpět,
   připadne dalšímu v řadě. Uložené číslo už žádné druhé nedostane a změna vzoru žádné
   nepřepisuje.
+- Vzor, který by ani při nejširším `{seq}` nevešel do svého sloupce, se neuloží.
 - Datum ve značce je den vydání v časové zóně, ve které aplikace běží (v Dockeru `TZ`, default
   `Europe/Prague`); zpětně datovaný úkon se nepřečísluje.
 - Vygenerované hodnoty jdou přepsat; databáze hlídá, že spisová značka je unikátní v rámci
