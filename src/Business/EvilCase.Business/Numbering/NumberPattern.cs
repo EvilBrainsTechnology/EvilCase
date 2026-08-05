@@ -84,25 +84,26 @@ internal static partial class NumberPattern
 
         var value = sequence;
 
-        return Literal(SequenceToken.Replace(pattern, token => Pad(value, token)), date, caseNumber);
+        return Literal(SequenceToken.Replace(pattern, token => Pad(value, token)), date)
+            .Replace(CaseNumber, caseNumber ?? "", StringComparison.Ordinal);
     }
 
     /// <summary>
     /// The same pattern read the other way round: what one series of numbers already stored looks like,
-    /// for the day and the case number a number is being issued under. Every part but the sequence is
-    /// literal text by then, so a number's sequence starts and ends at a fixed distance from its edges.
-    /// The pattern is <see cref="Validate">validated</see> first — this reads the one <c>{seq}</c>.
+    /// for the day a number is being issued on. The date is literal text by then, so a number's
+    /// sequence starts and ends at a fixed distance from its edges; the case number is not, because a
+    /// case renamed since leaves its acts numbered under what it was called then. The pattern is
+    /// <see cref="Validate">validated</see> first — this reads the one <c>{seq}</c>.
     /// </summary>
-    public static NumberSeries Series(string pattern, in DateOnly date, string? caseNumber = null)
+    public static NumberSeries Series(string pattern, in DateOnly date)
     {
         ArgumentNullException.ThrowIfNull(pattern);
 
         var token = SequenceToken.Match(pattern);
         var width = Width(token) ?? DefaultWidth;
-        var before = Literal(pattern[..token.Index], date, caseNumber);
-        var after = Literal(pattern[(token.Index + token.Length)..], date, caseNumber);
+        var day = date;
 
-        return new NumberSeries(before, width, after);
+        return new NumberSeries(Runs(pattern[..token.Index], day), width, Runs(pattern[(token.Index + token.Length)..], day));
     }
 
     [GeneratedRegex(@"\{seq(?::(?<width>[^{}]*))?\}", RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture, matchTimeoutMilliseconds: 1000)]
@@ -122,11 +123,13 @@ internal static partial class NumberPattern
     private static string Pad(int sequence, Match token) =>
         sequence.ToString(string.Create(CultureInfo.InvariantCulture, $"D{Width(token) ?? DefaultWidth}"), CultureInfo.InvariantCulture);
 
-    private static string Literal(string text, in DateOnly date, string? caseNumber) => text
+    private static string Literal(string text, in DateOnly date) => text
         .Replace(Year, date.ToString("yyyy", CultureInfo.InvariantCulture), StringComparison.Ordinal)
         .Replace(Month, date.ToString("MM", CultureInfo.InvariantCulture), StringComparison.Ordinal)
-        .Replace(Day, date.ToString("dd", CultureInfo.InvariantCulture), StringComparison.Ordinal)
-        .Replace(CaseNumber, caseNumber ?? "", StringComparison.Ordinal);
+        .Replace(Day, date.ToString("dd", CultureInfo.InvariantCulture), StringComparison.Ordinal);
+
+    private static IReadOnlyList<string> Runs(string text, DateOnly date) =>
+        [.. text.Split(CaseNumber, StringSplitOptions.None).Select(part => Literal(part, date))];
 
     private static bool Names(string pattern, string placeholder) => pattern.Contains(placeholder, StringComparison.Ordinal);
 

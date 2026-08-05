@@ -16,8 +16,10 @@ public interface INumberIssuer
 
     /// <summary>
     /// The act's number, counted within its case and written under the case's own number, whether that
-    /// one was issued here or typed in by hand. It carries the day it is issued on, so an act entered
-    /// today for something that happened in July is numbered today; backdating it renumbers nothing.
+    /// one was issued here or typed in by hand. A case renamed since is still one series: the acts of
+    /// it keep the number they were issued under, and the next one counts on. It carries the day it is
+    /// issued on, so an act entered today for something that happened in July is numbered today;
+    /// backdating it renumbers nothing.
     /// A case the caller does not own is <see cref="Cases.CaseNotFoundException"/>.
     /// </summary>
     public Task<T> IssueActNumber<T>(long caseId, Func<string, CancellationToken, Task<T>> create, CancellationToken cancellationToken = default);

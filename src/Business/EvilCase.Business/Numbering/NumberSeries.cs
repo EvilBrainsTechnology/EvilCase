@@ -3,9 +3,9 @@ using System.Text.RegularExpressions;
 namespace EvilBrains.EvilCase.Business.Numbering;
 
 /// <summary>
-/// One series of issued numbers as it can be read back out of the column it was written into: the text
-/// every number of it starts with, and the sequence sitting between that and a fixed tail. A number of
-/// another period, another case or another shape is simply not one of these.
+/// One series of issued numbers as it can be read back out of the column it was written into: the
+/// sequence, and the text standing on either side of it. A number of another period or another shape is
+/// simply not one of these.
 /// </summary>
 internal sealed class NumberSeries
 {
@@ -19,18 +19,28 @@ internal sealed class NumberSeries
 
     private readonly Regex expression;
 
-    public NumberSeries(string prefix, int width, string suffix)
+    /// <summary>
+    /// The literal runs on each side of the sequence, with anything at all standing between two runs of
+    /// one side — the case number an act number carries is whatever its case was called when the act
+    /// was numbered. The two anchors are <c>\A</c> and <c>\z</c>: <c>$</c> would read a number with a
+    /// newline on the end as one the pattern had written.
+    /// </summary>
+    public NumberSeries(IReadOnlyList<string> before, int width, IReadOnlyList<string> after)
     {
-        this.Prefix = prefix;
+        ArgumentNullException.ThrowIfNull(before);
+        ArgumentNullException.ThrowIfNull(after);
+
+        this.Prefix = before[0];
         this.expression = new Regex(
-            string.Create(CultureInfo.InvariantCulture, $@"^{Regex.Escape(prefix)}(?<seq>\d{{{width},}}){Regex.Escape(suffix)}$"),
+            string.Create(CultureInfo.InvariantCulture, $@"\A{Runs(before)}(?<seq>\d{{{width},}}){Runs(after)}\z"),
             RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture,
             Timeout);
     }
 
     /// <summary>
     /// What every number of this series begins with, so a query reads the rows that can belong to it
-    /// rather than every number the owner holds. Empty for a pattern opening with its <c>{seq}</c>.
+    /// rather than every number the owner holds. Empty for a pattern opening with its <c>{seq}</c> or
+    /// with its <c>{case-number}</c>.
     /// </summary>
     public string Prefix { get; }
 
@@ -52,6 +62,8 @@ internal sealed class NumberSeries
 
         return numbers.Aggregate(0, (highest, number) => Math.Max(highest, this.Sequence(number)));
     }
+
+    private static string Runs(IReadOnlyList<string> runs) => string.Join(".*", runs.Select(Regex.Escape));
 
     private static string Escaped(string prefix) => prefix
         .Replace(LikeEscape, LikeEscape + LikeEscape, StringComparison.Ordinal)

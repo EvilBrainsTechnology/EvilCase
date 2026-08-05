@@ -88,6 +88,9 @@ obrazovce Nastavení — její první kus.
 - Vygenerované hodnoty jdou přepsat; databáze hlídá, že spisová značka je unikátní v rámci
   vlastníka a číslo jednací v rámci svého spisu — ručně zavedený starý spis si nechá svou
   historickou značku. Změna vzoru žádné uložené číslo nepřepisuje.
+- Přepsaná spisová značka už vydaná čísla jednací nepřečísluje ani řadu nezačíná znovu: řada
+  patří spisu, ne značce v ní. Další úkon pokračuje v počítání, jen je napsaný pod novou
+  značkou — jeden spis tak může nést čísla jednací dvojí podoby.
 - Hledání matchuje značky i čísla jednací včetně prefixu; přesná shoda skočí rovnou na spis
   nebo úkon.
 

@@ -3,6 +3,7 @@ using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Domain.Acts;
 using EvilBrains.EvilCase.Domain.Cases;
 using EvilBrains.EvilCase.Domain.Numbering;
+using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Tests.Numbering;
 
@@ -100,9 +101,25 @@ public class IssuedNumberReaderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(await this.HighestActNumber(mine, "EC-20260804-001"), Is.EqualTo(5), "another owner's case of the same number is another case");
-            Assert.That(await this.HighestActNumber(another, "EC-20260804-002"), Is.EqualTo(800), "and so is a case of the caller's own carrying another number");
+            Assert.That(await this.HighestActNumber(mine), Is.EqualTo(5), "another owner's case of the same number is another case");
+            Assert.That(await this.HighestActNumber(another), Is.EqualTo(800), "and so is a case of the caller's own carrying another number");
         }
+    }
+
+    /// <summary>
+    /// A generated case number is the operator's to overwrite, and nothing rewrites the acts already
+    /// numbered under it. The series is the case's, so it counts on from what those acts hold rather
+    /// than starting again under the new text.
+    /// </summary>
+    [Test]
+    public async Task ARenamedCaseKeepsTheSeriesItsActsWereWrittenUnder()
+    {
+        var renamed = await this.WriteCase("EC-20260804-001");
+
+        await this.WriteAct(renamed, "EC-20260804-001-20260804-047");
+        await this.Rename(renamed, "SP-99/2026");
+
+        Assert.That(await this.HighestActNumber(renamed), Is.EqualTo(47), "renaming a case is not a second series of act numbers under one case");
     }
 
     private async Task<int> HighestCaseNumber(string pattern = NumberingDefaults.CaseNumberPattern)
@@ -113,12 +130,21 @@ public class IssuedNumberReaderTests
             .HighestCaseNumber(NumberPattern.Series(pattern, Date));
     }
 
-    private async Task<int> HighestActNumber(long caseId, string caseNumber)
+    private async Task<int> HighestActNumber(long caseId)
     {
         await using var context = this.Database.Context();
 
         return await new IssuedNumberReader(context, new FixedOwnerContext(this.ownerId))
-            .HighestActNumber(caseId, NumberPattern.Series(NumberingDefaults.ActNumberPattern, Date, caseNumber));
+            .HighestActNumber(caseId, NumberPattern.Series(NumberingDefaults.ActNumberPattern, Date));
+    }
+
+    private async Task Rename(long caseId, string caseNumber)
+    {
+        await using var context = this.Database.Context();
+
+        await context.Cases
+            .Where(@case => @case.Id == caseId)
+            .ExecuteUpdateAsync(update => update.SetProperty(@case => @case.CaseNumber, caseNumber));
     }
 
     private async Task<long> WriteCase(string caseNumber, long? ownerId = null)

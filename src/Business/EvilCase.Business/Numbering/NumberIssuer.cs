@@ -34,7 +34,7 @@ internal sealed class NumberIssuer(
         var pattern = Usable(patterns.ActNumberPattern, NumberPatternKind.ActNumber);
         var caseNumber = await cases.Read(caseId, cancellationToken);
         var today = this.Today();
-        var series = NumberPattern.Series(pattern, today, caseNumber);
+        var series = NumberPattern.Series(pattern, today);
 
         return await Issue(pattern, today, caseNumber, Act.ActNumberIndex, token => issued.HighestActNumber(caseId, series, token), create, cancellationToken);
     }

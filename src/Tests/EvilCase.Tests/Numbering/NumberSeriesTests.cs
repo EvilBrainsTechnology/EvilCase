@@ -4,9 +4,9 @@ using EvilBrains.EvilCase.Domain.Numbering;
 namespace EvilBrains.EvilCase.Tests.Numbering;
 
 /// <summary>
-/// The pattern read the other way round. Everything but the <c>{seq}</c> is literal text by the time a
-/// series is built — the day is the day the number is being issued on, the case number is the one the
-/// act hangs under — so the sequence begins and ends a fixed distance from the number's two edges.
+/// The pattern read the other way round. The day is literal text by the time a series is built — the
+/// day the number is being issued on — so the sequence begins and ends a fixed distance from the
+/// number's two edges. The case number an act carries is not: its case is what the series is scoped by.
 /// </summary>
 public class NumberSeriesTests
 {
@@ -39,7 +39,7 @@ public class NumberSeriesTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(NumberPattern.Series("A_C-{year}-{seq}", Date).LikePrefix, Is.EqualTo(@"A\_C-2026-%"));
-            Assert.That(NumberPattern.Series(NumberingDefaults.ActNumberPattern, Date, @"100%\ok").LikePrefix, Is.EqualTo(@"100\%\\ok-20260804-%"));
+            Assert.That(NumberPattern.Series(@"100%\ok-{year}{month}{day}/{case-number}-{seq}", Date).LikePrefix, Is.EqualTo(@"100\%\\ok-20260804/%"), "and the prefix stops where the case number starts");
         }
     }
 
@@ -52,16 +52,52 @@ public class NumberSeriesTests
     }
 
     [Test]
-    public void AnotherPeriodAndAnotherCaseAreAnotherSeries()
+    public void AnotherPeriodIsAnotherSeries()
     {
         var today = NumberPattern.Series(NumberingDefaults.CaseNumberPattern, Date);
-        var mine = NumberPattern.Series(NumberingDefaults.ActNumberPattern, Date, "EC-20260804-001");
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(today.Highest(["EC-20260805-007"]), Is.Zero, "the day is written into the number, so another day's is not one of these");
-            Assert.That(mine.Highest(["EC-20260804-002-20260804-007"]), Is.Zero, "and so is the case number an act hangs under");
-            Assert.That(mine.Highest(["EC-20260804-001-20260804-007"]), Is.EqualTo(7));
+            Assert.That(today.Highest(["EC-20260804-007"]), Is.EqualTo(7));
+        }
+    }
+
+    /// <summary>
+    /// A generated case number can be overwritten, and the acts numbered before that keep the text they
+    /// were written under. An act series is scoped by the case, so the number inside an act's own is
+    /// whatever its case was called at the time.
+    /// </summary>
+    [Test]
+    public void AnActStaysInItsSeriesWhenItsCaseIsRenumbered()
+    {
+        var series = NumberPattern.Series(NumberingDefaults.ActNumberPattern, Date);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(series.Prefix, Is.Empty, "a pattern opening with its case number has no prefix to read by");
+            Assert.That(
+                series.Highest(["EC-20260804-001-20260804-047", "SP-99/2026-20260804-002"]),
+                Is.EqualTo(47),
+                "one case is one series, whatever number its acts were written under");
+        }
+    }
+
+    /// <summary>
+    /// <c>$</c> matches at the end of the string or before a trailing newline, so it would count a
+    /// number the pattern could not have written; <c>\z</c> is the end and nothing else.
+    /// </summary>
+    [Test]
+    public void ATailTheSeriesDoesNotEndWithIsNotOfIt()
+    {
+        var series = NumberPattern.Series(NumberingDefaults.CaseNumberPattern, Date);
+        var suffixed = NumberPattern.Series("{seq}/2026", Date);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(series.Highest(["EC-20260804-050\n"]), Is.Zero, "a newline on the end is not something the pattern writes");
+            Assert.That(suffixed.Highest(["12345/2026x"]), Is.Zero, "and neither is anything past the tail the pattern ends with");
+            Assert.That(suffixed.Highest(["12345/2026"]), Is.EqualTo(12345));
         }
     }
 
@@ -87,9 +123,11 @@ public class NumberSeriesTests
     /// <summary>
     /// Changing a pattern rewrites nothing, so numbers of the pattern before it stay in the column. It
     /// is the day's own text that decides, not the shape: <c>EC-{day}{month}{year}-{seq}</c> writes
-    /// eight digits like the pattern in force, and no date at all writes today's. What the pattern in
-    /// force could have written today is counted, whichever pattern wrote it, so a pattern change costs
-    /// a skipped number and never a repeated one.
+    /// eight digits like the pattern in force, and the 133 401 dates that do render as another date's
+    /// <c>{year}{month}{day}</c> all need one of the two years between 0101 and 1231, so no pair this
+    /// application could issue under collides. What the pattern in force could have written today is
+    /// counted, whichever pattern wrote it, so a pattern change costs a skipped number, never a
+    /// repeated one.
     /// </summary>
     [Test]
     public void ANumberOfTheOlderPatternCountsExactlyWhereTheNewOneCouldHaveWrittenIt()

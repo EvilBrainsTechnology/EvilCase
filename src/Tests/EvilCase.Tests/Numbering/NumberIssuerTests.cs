@@ -105,14 +105,14 @@ public class NumberIssuerTests
         var second = await this.IssueActNumber(issuer, caseId: 1);
         var elsewhere = await this.IssueActNumber(issuer, caseId: 2);
 
-        string[] expected = ["1:EC-20260804-001-20260804-", "1:EC-20260804-001-20260804-", "2:EC-20260804-002-20260804-"];
+        string[] expected = ["1:", "1:", "2:"];
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(first, Is.EqualTo("EC-20260804-001-20260804-001"));
             Assert.That(second, Is.EqualTo("EC-20260804-001-20260804-002"));
             Assert.That(elsewhere, Is.EqualTo("EC-20260804-002-20260804-001"), "another case counts from its own start");
-            Assert.That(this.issued.Series, Is.EqualTo(expected));
+            Assert.That(this.issued.Series, Is.EqualTo(expected), "the case is what an act series is read by, and a case number the act carries is whatever it was called then");
         }
     }
 
