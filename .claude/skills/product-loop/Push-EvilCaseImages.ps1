@@ -3,7 +3,7 @@
     Puts a pull request's screenshots on the doc/images orphan branch under pull-request/<number>/,
     and prints the commit sha, and nothing else, on stdout — the body pins its raw URLs to it.
 
-        ./.claude/skills/product-loop/Push-EvilCaseImages.ps1 -PullRequest 192 -Path /tmp/shots/192
+        ./.claude/skills/product-loop/Push-EvilCaseImages.ps1 -PullRequest <number> -Path /tmp/shots/<number>
 
     -PullRequest is the number GitHub handed out and -Path the directory screenshots.mjs wrote;
     every *.png directly in it goes up under its own name. -Remote, -Branch and -Attempts have
