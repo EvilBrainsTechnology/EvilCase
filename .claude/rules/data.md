@@ -18,8 +18,10 @@ paths:
 - `Case.CaseNumber` is required and unique per owner, `Act.ActNumber` required and unique
   within its case; every external mark is an `ExternalCaseNumber` row with a required assigning
   party.
-- The patterns both are issued from are one seeded `NumberingSettings` row for the whole
-  application; a series counts in a `NumberSequences` row unique on `(OwnerId, Scope)`.
+- The patterns both are issued from are one `NumberingSettings` row for the whole application,
+  inserted by its migration and never seeded with `HasData` — a row the model holds is
+  scaffolded as an `UpdateData` over whatever the operator saved. A series counts in a
+  `NumberSequences` row unique on `(OwnerId, Scope)`.
 - An act carries one required `Date` and no ordinal; acts are read ordered by it alone, and
   `(CaseId, Date)` is the index that serves both.
 - A date a period runs from is `DateOnly` mapped to `date`; timestamps stay `DateTime`.
