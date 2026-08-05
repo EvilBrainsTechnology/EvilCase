@@ -11,10 +11,16 @@ public class CaseNumberReaderTests
 {
     private NumberingDatabase? database;
 
+    private long ownerId;
+
     private NumberingDatabase Database => this.database!;
 
     [SetUp]
-    public async Task SetUp() => this.database = await NumberingDatabase.Create();
+    public async Task SetUp()
+    {
+        this.database = await NumberingDatabase.Create(owners: 2);
+        this.ownerId = await this.Database.OwnerId();
+    }
 
     // Without a server SetUp ignores the test and leaves nothing here to drop.
     [TearDown]
@@ -38,20 +44,28 @@ public class CaseNumberReaderTests
         Assert.That(async () => await this.Read(caseId: 404), Throws.InstanceOf<InvalidOperationException>());
     }
 
+    [Test]
+    public async Task AnotherOwnersCaseIsAsGoodAsNoCase()
+    {
+        var theirs = await this.WriteCase("EC-20260804-001", await this.Database.OwnerId(index: 1));
+
+        Assert.That(async () => await this.Read(theirs), Throws.InstanceOf<InvalidOperationException>(), "a number is written under a case of the caller's own, never under one they cannot see");
+    }
+
     private async Task<string> Read(long caseId)
     {
         await using var context = this.Database.Context();
 
-        return await new CaseNumberReader(context).Read(caseId);
+        return await new CaseNumberReader(context, new FixedOwnerContext(this.ownerId)).Read(caseId);
     }
 
-    private async Task<long> WriteCase(string caseNumber)
+    private async Task<long> WriteCase(string caseNumber, long? ownerId = null)
     {
         await using var context = this.Database.Context();
 
         var written = new Case
         {
-            OwnerId = await this.Database.OwnerId(),
+            OwnerId = ownerId ?? this.ownerId,
             CaseNumber = caseNumber,
             Title = "a case to hang an act on",
             Status = CaseStatus.Active,

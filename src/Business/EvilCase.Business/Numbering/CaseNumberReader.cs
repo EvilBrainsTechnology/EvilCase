@@ -3,12 +3,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Business.Numbering;
 
-internal sealed class CaseNumberReader(ApplicationDbContext context) : ICaseNumberReader
+internal sealed class CaseNumberReader(ApplicationDbContext context, IOwnerContext owner) : ICaseNumberReader
 {
     public async Task<string> Read(long caseId, CancellationToken cancellationToken = default)
     {
         var number = await context.Cases
-            .Where(@case => @case.Id == caseId)
+            .Where(@case => @case.Id == caseId && @case.OwnerId == owner.OwnerId)
             .Select(@case => @case.CaseNumber)
             .SingleOrDefaultAsync(cancellationToken);
 
