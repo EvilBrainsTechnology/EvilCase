@@ -101,7 +101,7 @@ V pořadí podle toho, co při práci s reálným spisem bolí nejvíc:
 
 | # | Milník | Dodá |
 | --- | --- | --- |
-| M1 | Model a vzorová data | model úkonu ořezaný na jedno povinné datum bez pořadového čísla, seznamy úkonů řazené datem; zjednodušený model souboru (primární úkon, pojmenované odkazy, bez rolí); přejmenování identifikátorů v kódu na `CaseNumber`, `ActNumber`, `ExternalCaseNumber` a `ExternalActNumber`; číslování s výchozími vzory; seed přepínač nahrávající vzorová data |
+| M1 | Model a vzorová data | hierarchie spisů nahrazená vazbou mezi spisy; model úkonu ořezaný na jedno povinné datum bez pořadového čísla, seznamy úkonů řazené datem; zjednodušený model souboru (primární úkon, pojmenované odkazy, bez rolí); přejmenování identifikátorů v kódu na `CaseNumber`, `ActNumber`, `ExternalCaseNumber` a `ExternalActNumber`; číslování s výchozími vzory; seed přepínač nahrávající vzorová data |
 | M2 | UI spisu | detail spisu se souvisejícími spisy a komentáři; založení, editace a smazání spisu, včetně přidání a odebrání vazby; značky, status a tagy; obrazovka Nastavení se vzory číslování; hledání bez ohledu na diakritiku |
 | M3 | Úkony a soubory | seznam úkonů v detailu spisu; stránka úkonu se shrnutím, soubory a komentáři; přidání, editace a smazání úkonu; upload včetně hromadného přetažením a download |
 | M4 | Strany | samostatná agenda; inline výběr nebo založení všude, kde se strana jmenuje |
