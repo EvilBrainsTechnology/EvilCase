@@ -30,7 +30,7 @@ App → Api.Client → (HTTP) → Api → Business → Data
 - Only one layer of a case's relations is ever read; nothing walks past it.
 - Every number the application issues comes from `INumberIssuer`, and a `{seq}` is taken with the
   single upsert in `NumberSequenceSql` — a read followed by a write hands two callers the same
-  number.
+  number. The day a number carries is Prague's, and it is the day it was issued on.
 
 ## List queries
 

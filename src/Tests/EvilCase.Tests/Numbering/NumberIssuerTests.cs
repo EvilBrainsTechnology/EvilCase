@@ -93,6 +93,32 @@ public class NumberIssuerTests
     }
 
     [Test]
+    public async Task TheDayIsPraguesAndNotUtcs()
+    {
+        this.time = new TestTimeProvider(new DateTime(2026, 8, 4, 22, 30, 0, DateTimeKind.Utc));
+
+        var number = await this.Issuer().IssueCaseNumber();
+
+        string[] expected = ["case:20260805"];
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(number, Is.EqualTo("EC-20260805-001"), "half past midnight in Prague is already the fifth, whatever UTC still says");
+            Assert.That(this.sequences.Scopes, Is.EqualTo(expected), "the series counts within a Prague day");
+        }
+    }
+
+    [Test]
+    public async Task WinterKeepsTheSameDayAsUtcAnHourLonger()
+    {
+        this.time = new TestTimeProvider(new DateTime(2026, 1, 4, 23, 30, 0, DateTimeKind.Utc));
+
+        var number = await this.Issuer().IssueCaseNumber();
+
+        Assert.That(number, Is.EqualTo("EC-20260105-001"), "the offset is the one in force on the day, not a fixed two hours");
+    }
+
+    [Test]
     public async Task AnActOfAHandNumberedCaseIsWrittenUnderThatNumber()
     {
         var number = await this.Issuer().IssueActNumber(caseId: 7, "OLD-2019/16");

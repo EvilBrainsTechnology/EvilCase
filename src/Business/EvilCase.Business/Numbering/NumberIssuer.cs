@@ -5,10 +5,17 @@ internal sealed class NumberIssuer(
     INumberSequenceAllocator sequences,
     TimeProvider time) : INumberIssuer
 {
+    // The day a number carries is the day whoever issues it is living in, so a case opened at half past
+    // midnight in Prague is not numbered yesterday.
+    private static readonly TimeZoneInfo IssuingTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Prague");
+
+    private DateOnly Today() =>
+        DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(time.GetUtcNow().UtcDateTime, IssuingTimeZone));
+
     public async Task<string> IssueCaseNumber(CancellationToken cancellationToken = default)
     {
         var pattern = (await settings.Read(cancellationToken)).CaseNumberPattern;
-        var today = DateOnly.FromDateTime(time.GetUtcNow().UtcDateTime);
+        var today = this.Today();
 
         return await this.Issue(pattern, today, $"case:{NumberPattern.PeriodKey(pattern, today)}", caseNumber: null, cancellationToken);
     }
@@ -16,7 +23,7 @@ internal sealed class NumberIssuer(
     public async Task<string> IssueActNumber(long caseId, string caseNumber, CancellationToken cancellationToken = default)
     {
         var pattern = (await settings.Read(cancellationToken)).ActNumberPattern;
-        var today = DateOnly.FromDateTime(time.GetUtcNow().UtcDateTime);
+        var today = this.Today();
         var scope = string.Create(CultureInfo.InvariantCulture, $"act:{caseId}:{NumberPattern.PeriodKey(pattern, today)}");
 
         return await this.Issue(pattern, today, scope, caseNumber, cancellationToken);
