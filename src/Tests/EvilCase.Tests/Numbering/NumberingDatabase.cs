@@ -4,6 +4,8 @@ using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Domain.Users;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql;
 
 namespace EvilBrains.EvilCase.Tests.Numbering;
@@ -29,8 +31,10 @@ internal sealed class NumberingDatabase : IAsyncDisposable
     /// <summary>
     /// Creates the database, migrates it and puts <paramref name="owners"/> users in it. A failure
     /// anywhere in that drops what it already made, so a broken setup leaves no database behind.
+    /// Naming <paramref name="stopBefore"/> stops the migrations in front of it, so a test can write
+    /// the rows that one has to cope with; <see cref="Migrate"/> then runs it.
     /// </summary>
-    public static async Task<NumberingDatabase> Create(int owners = 1)
+    public static async Task<NumberingDatabase> Create(int owners = 1, string? stopBefore = null)
     {
         var configured = Environment.GetEnvironmentVariable("EVILCASE_TESTS_POSTGRES");
         var name = "evilcase_tests_" + Guid.NewGuid().ToString("N");
@@ -39,7 +43,7 @@ internal sealed class NumberingDatabase : IAsyncDisposable
         var created = false;
         try
         {
-            await database.Fill(owners);
+            await database.Fill(owners, stopBefore);
             created = true;
         }
         catch (NpgsqlException exception) when (configured is null)
@@ -68,6 +72,16 @@ internal sealed class NumberingDatabase : IAsyncDisposable
         return new ApplicationDbContext(options);
     }
 
+    /// <summary>
+    /// Runs whatever migrations are still outstanding.
+    /// </summary>
+    public async Task Migrate()
+    {
+        await using var context = this.Context();
+
+        await context.Database.MigrateAsync();
+    }
+
     public async Task<long> OwnerId(int index = 0)
     {
         await using var context = this.Context();
@@ -92,11 +106,22 @@ internal sealed class NumberingDatabase : IAsyncDisposable
         }
     }
 
-    private async Task Fill(int owners)
+    private static string Before(DbContext context, string migration)
+    {
+        var ids = context.GetService<IMigrationsAssembly>().Migrations.Keys.ToList();
+        var index = ids.FindIndex(id => id.EndsWith("_" + migration, StringComparison.Ordinal));
+
+        return index > 0 ? ids[index - 1] : throw new ArgumentException($"no migration follows one named {migration}", nameof(migration));
+    }
+
+    private async Task Fill(int owners, string? stopBefore)
     {
         await using var context = this.Context();
 
-        await context.Database.MigrateAsync();
+        if (stopBefore is null)
+            await context.Database.MigrateAsync();
+        else
+            await context.GetService<IMigrator>().MigrateAsync(Before(context, stopBefore));
 
         for (var index = 0; index < owners; index++)
         {
