@@ -31,7 +31,8 @@ What it cannot see:
   end. The projection selects straight into the contract DTO.
 - A search term is text, not a pattern: escape `%` and `_` and name the escape character in the
   `ILIKE`. Case folding belongs to `ILIKE`, never to `ToLower()`.
-- Test the SQL through `ToQueryString()`, no server needed; see `CaseListQueryTests`.
+- Test the SQL through `ToQueryString()`, no server needed. `CaseReaderTests` pins what a reader
+  really runs; `CaseListQueryTests` pins one step.
 
 ## Ownership
 

@@ -6,8 +6,6 @@
   finds, in the same run. There is no second round.
 - What the reviewer is unsure about goes into the pull request description as one sentence for
   the owner, not into another round.
-- A review reads the check run GitHub already made on the head commit; it runs the gate itself
-  only when that commit has none.
 - Independent tasks run in parallel and share one machine: a subagent takes its own port and its
   own database rather than the defaults, and drops them afterwards (run-app skill).
 - Every subagent that writes to the repository gets `isolation: "worktree"`. A worktree has no

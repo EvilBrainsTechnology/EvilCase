@@ -32,8 +32,8 @@ Controllers are the single source of truth; DTOs live in `EvilCase.Api.Contract`
 `AdditionalFiles` and the source generator emits a client for every `[GenerateApiClient]`
 controller. Generated routes are relative; `AddEvilCaseApiClient` normalises the base address.
 
-`EB1001`–`EB1016` are the controller and client spec: read the diagnostic, never work around it.
-`[FromForm]` and `IFormFile` are not supported.
+The `EB1xxx` diagnostics are the controller and client spec: read the diagnostic, never work
+around it. `[FromForm]` and `IFormFile` are not supported.
 
 ## Secrets and logging
 

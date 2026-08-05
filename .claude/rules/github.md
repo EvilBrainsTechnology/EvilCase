@@ -14,6 +14,8 @@
 - Open the pull request ready for review, never as a draft.
 - Body: one or two sentences of TL;DR, bullets of what changed, the assumption where one was
   made, the screenshot where a screen changed, `Closes #<n>`, the footer. At most 1500 characters.
+- A pull request that changes a screen carries a screenshot;
+  `.claude/skills/product-loop/visual-proof.md` is how they are taken and filed.
 - A reply to a review comment is at most three sentences: what changed, or why not.
 - Title and description always match the current diff.
 - Never merge. The owner merges. Rebase onto `master` on a conflict, keep CI green, and answer
