@@ -9,6 +9,7 @@ curl -s -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+
 | --- | --- |
 | Open issues | `GET $GH/issues?state=open&per_page=100` — **includes pull requests**; drop every element with a `pull_request` key |
 | Issues by label | `GET $GH/issues?state=open&labels=needs-decision` |
+| The loop's backlog, with priorities | `GET $GH/issues?state=open&labels=loop&per_page=100` — every element carries `issue_field_values`; the entry whose `issue_field_name` is `Priority` holds `single_select_option.name` (`Urgent`, `High`, `Medium`, `Low`). Plain REST returns it, no preview header |
 | Open pull requests | `GET $GH/pulls?state=open&per_page=100` |
 | One pull request, with `mergeable_state` | `GET $GH/pulls/{n}` |
 | Merge a pull request | `PUT $GH/pulls/{n}/merge` `{"merge_method":"squash"}` |
