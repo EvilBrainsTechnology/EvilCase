@@ -18,7 +18,7 @@ public static class Bootstrap
         services.AddScoped<INumberIssuer, NumberIssuer>();
         services.AddScoped<ICaseNumberReader, CaseNumberReader>();
         services.AddScoped<INumberingSettingsReader, NumberingSettingsReader>();
-        services.AddScoped<INumberSequenceAllocator, NumberSequenceAllocator>();
+        services.AddScoped<IIssuedNumberReader, IssuedNumberReader>();
 
         return services;
     }

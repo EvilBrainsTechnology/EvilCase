@@ -21,50 +21,55 @@ public class NumberPatternTests
         }
     }
 
+    /// <summary>
+    /// The width is a minimum, so a series past it keeps counting. Sorting as text holds up to the
+    /// width and no further, which is what the operator is choosing when they widen it.
+    /// </summary>
     [Test]
-    public void TheSequenceIsPaddedToThreeDigitsAndTheThousandthGrowsOutOfTheSort()
+    public void TheSequenceIsPaddedToTheWidthThePatternNamesAndKeepsCountingPastIt()
     {
-        string[] issued =
-        [
-            NumberPattern.Format("{seq}", Date, 1),
-            NumberPattern.Format("{seq}", Date, 42),
-            NumberPattern.Format("{seq}", Date, 999),
-        ];
+        string[] narrow = [NumberPattern.Format("{seq}", Date, 1), NumberPattern.Format("{seq}", Date, 999), NumberPattern.Format("{seq}", Date, 1000)];
+        string[] wide = [NumberPattern.Format("{seq:6}", Date, 1), NumberPattern.Format("{seq:6}", Date, 999999), NumberPattern.Format("{seq:6}", Date, 1000000)];
 
-        string[] expected = ["001", "042", "999"];
+        string[] expectedNarrow = ["001", "999", "1000"];
+        string[] expectedWide = ["000001", "999999", "1000000"];
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(issued, Is.EqualTo(expected));
-            Assert.That(issued, Is.Ordered.Using<string>(StringComparer.Ordinal), "the padding is what makes the first thousand of a series sort as text");
-            Assert.That(
-                NumberPattern.Format("{seq}", Date, 1000),
-                Is.EqualTo("1000"),
-                "nothing caps the count, so the thousandth number grows a digit and sorts in front of the one before it — docs/product/vision.md says so");
+            Assert.That(narrow, Is.EqualTo(expectedNarrow), "a {seq} naming no width is three digits");
+            Assert.That(wide, Is.EqualTo(expectedWide), "{seq:6} is six, and the millionth number grows rather than being capped or cut");
+            Assert.That(narrow.Take(2), Is.Ordered.Using<string>(StringComparer.Ordinal), "the padding is what makes a series sort as text as far as its width goes");
+            Assert.That(wide.Take(2), Is.Ordered.Using<string>(StringComparer.Ordinal));
         }
     }
 
     [Test]
-    public void ASeriesCountsWithinTheFinestPeriodThePatternNames()
+    public void AWidthThatIsNotAPositiveNumberOfDigitsIsRefused()
     {
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(NumberPattern.PeriodKey("EC-{year}{month}{day}-{seq}", Date), Is.EqualTo("20260804"), "a pattern naming the day counts daily");
-            Assert.That(NumberPattern.PeriodKey("EC-{year}{month}-{seq}", Date), Is.EqualTo("202608"), "one naming the month counts monthly");
-            Assert.That(NumberPattern.PeriodKey("EC-{year}/{seq}", Date), Is.EqualTo("2026"), "one naming only the year counts yearly");
-            Assert.That(NumberPattern.PeriodKey("EC-{seq}", Date), Is.Empty, "one naming no date part counts on and on");
+            Assert.That(NumberPattern.Validate("EC-{seq:6}", NumberPatternKind.CaseNumber), Is.Null);
+            Assert.That(NumberPattern.Validate("EC-{seq:0}", NumberPatternKind.CaseNumber), Is.EqualTo(NumberPatternError.SequenceWidth), "no digits at all is not a width");
+            Assert.That(NumberPattern.Validate("EC-{seq:-2}", NumberPatternKind.CaseNumber), Is.EqualTo(NumberPatternError.SequenceWidth));
+            Assert.That(NumberPattern.Validate("EC-{seq:six}", NumberPatternKind.CaseNumber), Is.EqualTo(NumberPatternError.SequenceWidth));
+            Assert.That(NumberPattern.Validate("EC-{seq:}", NumberPatternKind.CaseNumber), Is.EqualTo(NumberPatternError.SequenceWidth));
+            Assert.That(NumberPattern.Validate("EC-{seq:600}", NumberPatternKind.CaseNumber), Is.EqualTo(NumberPatternError.TooLongForItsColumn));
+            Assert.That(NumberPattern.Validate("EC-{seq:2000000000}", NumberPatternKind.CaseNumber), Is.EqualTo(NumberPatternError.TooLongForItsColumn), "a width no column could hold is measured against the column, never written out to find out");
         }
     }
 
+    /// <summary>
+    /// Two of them and the digits of one run into the digits of the other: <c>{seq}{seq}</c> writes
+    /// <c>12341234</c> for 1234, which reads back as 12341 and 234 just as well.
+    /// </summary>
     [Test]
-    public void TwoDaysOfOneYearAreTwoSeriesAndTwoMonthsOfOneYearAreNot()
+    public void MoreThanOneSequenceIsRefusedBecauseNothingCanReadItBack()
     {
-        var later = new DateOnly(2026, 8, 5);
-
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(NumberPattern.PeriodKey("{year}{month}{day}{seq}", later), Is.Not.EqualTo(NumberPattern.PeriodKey("{year}{month}{day}{seq}", Date)));
-            Assert.That(NumberPattern.PeriodKey("{year}{seq}", later), Is.EqualTo(NumberPattern.PeriodKey("{year}{seq}", Date)), "a yearly pattern keeps counting across days");
+            Assert.That(NumberPattern.Validate("EC-{seq}-{seq}", NumberPatternKind.CaseNumber), Is.EqualTo(NumberPatternError.RepeatedSequence));
+            Assert.That(NumberPattern.Validate("EC-{seq}-{seq:6}", NumberPatternKind.CaseNumber), Is.EqualTo(NumberPatternError.RepeatedSequence), "two widths do not tell them apart either");
+            Assert.That(NumberPattern.Validate("EC-{seq}", NumberPatternKind.CaseNumber), Is.Null);
         }
     }
 
@@ -125,7 +130,8 @@ public class NumberPatternTests
 
     /// <summary>
     /// The widest a pattern ever writes is what has to fit: a series counted to <c>int.MaxValue</c> is
-    /// ten digits, and <c>{case-number}</c> can be a case number filling its own column.
+    /// ten digits — or the width, where that is wider — and <c>{case-number}</c> can be a case number
+    /// filling its own column.
     /// </summary>
     [Test]
     public void APatternThatWouldNotFitTheColumnItIsStoredInIsRefused()
@@ -139,12 +145,16 @@ public class NumberPatternTests
             Assert.That(
                 NumberPattern.Validate(new string('X', caseBudget + 1) + "{seq}", NumberPatternKind.CaseNumber),
                 Is.EqualTo(NumberPatternError.TooLongForItsColumn),
-                "a pattern that overflows its column fails on the insert, with the {seq} it took already gone");
+                "a pattern that overflows its column fails on the insert");
             Assert.That(NumberPattern.Validate(new string('X', actBudget) + "{case-number}{seq}", NumberPatternKind.ActNumber), Is.Null);
             Assert.That(
                 NumberPattern.Validate(new string('X', actBudget + 1) + "{case-number}{seq}", NumberPatternKind.ActNumber),
                 Is.EqualTo(NumberPatternError.TooLongForItsColumn),
                 "an act number carries a whole case number, so it runs out of its own column that much sooner");
+            Assert.That(
+                NumberPattern.Validate(new string('X', caseBudget) + "{seq:20}", NumberPatternKind.CaseNumber),
+                Is.EqualTo(NumberPatternError.TooLongForItsColumn),
+                "a width wider than the ten digits an int reaches is what the pattern is measured by");
         }
     }
 

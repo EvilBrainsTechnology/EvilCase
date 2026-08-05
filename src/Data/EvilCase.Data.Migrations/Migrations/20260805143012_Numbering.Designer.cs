@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EvilBrains.EvilCase.Data.Migrations.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260804222557_Numbering")]
+    [Migration("20260805143012_Numbering")]
     partial class Numbering
     {
         /// <inheritdoc />
@@ -318,33 +318,6 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.ToTable("FileAssets");
                 });
 
-            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.NumberSequence", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<int>("LastValue")
-                        .HasColumnType("integer");
-
-                    b.Property<long>("OwnerId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Scope")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("character varying(128)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OwnerId", "Scope")
-                        .IsUnique();
-
-                    b.ToTable("NumberSequences");
-                });
-
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.NumberingSettings", b =>
                 {
                     b.Property<long>("Id")
@@ -641,17 +614,6 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                         .IsRequired();
 
                     b.Navigation("Act");
-
-                    b.Navigation("Owner");
-                });
-
-            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.NumberSequence", b =>
-                {
-                    b.HasOne("EvilBrains.EvilCase.Data.Entities.User", "Owner")
-                        .WithMany()
-                        .HasForeignKey("OwnerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
 
                     b.Navigation("Owner");
                 });

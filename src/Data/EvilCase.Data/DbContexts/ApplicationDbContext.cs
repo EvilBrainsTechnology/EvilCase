@@ -27,8 +27,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     public DbSet<NumberingSettings> NumberingSettings => this.Set<NumberingSettings>();
 
-    public DbSet<NumberSequence> NumberSequences => this.Set<NumberSequence>();
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);

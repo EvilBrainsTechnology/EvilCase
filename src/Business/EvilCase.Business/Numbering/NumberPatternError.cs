@@ -30,8 +30,18 @@ internal enum NumberPatternError
 
     /// <summary>
     /// The number it writes at its widest — a series counted to <see cref="int.MaxValue"/>, and a
-    /// case number filling its own column — does not fit the column it is stored in. Storing one is a
-    /// failed insert with the <c>{seq}</c> already taken.
+    /// case number filling its own column — does not fit the column it is stored in.
     /// </summary>
     TooLongForItsColumn = 4,
+
+    /// <summary>
+    /// More than one <c>{seq}</c>. Each is a run of digits of no fixed length, so the two run into one
+    /// another and reading the number back cannot say where either ends.
+    /// </summary>
+    RepeatedSequence = 5,
+
+    /// <summary>
+    /// <c>{seq:…}</c> naming something that is not a positive number of digits.
+    /// </summary>
+    SequenceWidth = 6,
 }

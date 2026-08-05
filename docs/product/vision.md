@@ -73,18 +73,21 @@ obrazovce Nastavení — její první kus.
 - Číslo jednací: každý úkon při vytvoření, default
   `{case-number}-{year}{month}{day}-{seq}` → `EC-20260804-001-20260805-002`.
 - `{seq}` počítá v rámci období, které vzor jmenuje — s `{day}` denně, jen s `{year}` ročně,
-  u čísla jednacího navíc v rámci spisu — a doplňuje se nulami na tři cifry, aby se čísla
-  řadila. Nad 999 roste na čtyři cifry a textové řazení se v té řadě rozpadne: `1000` je před
-  `999`. Řada počítá nad tím, co se uložilo: číslo vzaté v transakci, která se vrátí zpět,
-  připadne dalšímu v řadě. Uložené číslo už žádné druhé nedostane a změna vzoru žádné
-  nepřepisuje.
+  u čísla jednacího navíc v rámci spisu. Šířku si vzor určuje sám: `{seq}` jsou tři cifry,
+  `{seq:6}` šest. Je to minimum, ne strop — `{seq:6}` píše `000001` a milionté číslo `1000000`.
+  Textové řazení řady tedy platí po šířku, kterou vzor zvolil, a dál ne; roční řada chce širší
+  `{seq}` než denní.
+- Další číslo je o jedna vyšší než nejvyšší, které v řadě už je uložené. Počítá se do něj
+  všechno, co má tvar, jaký aktuální vzor dnes píše — i značka zadaná ručně. Smazaný spis tak
+  své číslo uvolní a připadne dalšímu.
 - Vzor, který by v nejširším případě nevešel do svého sloupce, se neuloží; ve vzoru čísla
-  jednacího zabere nejvíc celá spisová značka, ne `{seq}`.
+  jednacího zabere nejvíc celá spisová značka, ne `{seq}`. Dvě `{seq}` v jednom vzoru se
+  neuloží také — z výsledného čísla už nejde přečíst, kde jedna končí a druhá začíná.
 - Datum ve značce je den vydání v časové zóně, ve které aplikace běží (v Dockeru `TZ`, default
   `Europe/Prague`); zpětně datovaný úkon se nepřečísluje.
 - Vygenerované hodnoty jdou přepsat; databáze hlídá, že spisová značka je unikátní v rámci
   vlastníka a číslo jednací v rámci svého spisu — ručně zavedený starý spis si nechá svou
-  historickou značku.
+  historickou značku. Změna vzoru žádné uložené číslo nepřepisuje.
 - Hledání matchuje značky i čísla jednací včetně prefixu; přesná shoda skočí rovnou na spis
   nebo úkon.
 

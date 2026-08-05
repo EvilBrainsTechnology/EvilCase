@@ -1,12 +1,14 @@
+using System.Text.RegularExpressions;
 using EvilBrains.EvilCase.Data.Entities;
 
 namespace EvilBrains.EvilCase.Business.Numbering;
 
 /// <summary>
 /// The pattern language behind an issued number: <c>{year}</c>, <c>{month}</c>, <c>{day}</c>,
-/// <c>{seq}</c> and, for an act number, <c>{case-number}</c>. Anything else is written out as it stands.
+/// <c>{seq}</c> — <c>{seq:6}</c> for a width of its own — and, for an act number,
+/// <c>{case-number}</c>. Anything else is written out as it stands.
 /// </summary>
-internal static class NumberPattern
+internal static partial class NumberPattern
 {
     private const string Year = "{year}";
 
@@ -14,15 +16,19 @@ internal static class NumberPattern
 
     private const string Day = "{day}";
 
-    private const string Sequence = "{seq}";
-
     private const string CaseNumber = "{case-number}";
 
-    private static readonly string[] Placeholders = [Year, Month, Day, Sequence, CaseNumber];
+    /// <summary>
+    /// What a <c>{seq}</c> naming no width of its own is padded to. The width is a minimum: a series
+    /// past it keeps counting rather than being capped, and sorts as text up to it and no further.
+    /// </summary>
+    private const int DefaultWidth = 3;
+
+    private static readonly string[] Placeholders = [Year, Month, Day, CaseNumber];
 
     /// <summary>
     /// The widest a placeholder ever writes: the last date <see cref="DateOnly"/> holds, and a series
-    /// that has counted to <see cref="int.MaxValue"/>.
+    /// that has counted to <see cref="int.MaxValue"/> — ten digits, or the width if that is wider.
     /// </summary>
     private static readonly DateOnly WidestDate = DateOnly.MaxValue;
 
@@ -31,21 +37,30 @@ internal static class NumberPattern
     /// <summary>
     /// Null for a pattern that can be used. The issuer calls it before it writes, and the API answers a
     /// screen that edits a pattern with it — a pattern that got past the screen would reissue silently,
-    /// or fail on the insert with its <c>{seq}</c> already burned.
+    /// or fail on the insert.
     /// </summary>
     public static NumberPatternError? Validate(string pattern, NumberPatternKind kind)
     {
         ArgumentNullException.ThrowIfNull(pattern);
 
-        var rest = Placeholders.Aggregate(pattern, (text, placeholder) => text.Replace(placeholder, "", StringComparison.Ordinal));
+        var rest = Placeholders.Aggregate(SequenceToken.Replace(pattern, ""), (text, placeholder) => text.Replace(placeholder, "", StringComparison.Ordinal));
         if (rest.Contains('{', StringComparison.Ordinal) || rest.Contains('}', StringComparison.Ordinal))
             return NumberPatternError.UnknownPlaceholder;
 
+        var sequences = SequenceToken.Matches(pattern);
+        if (sequences.Count == 0)
+            return NumberPatternError.NoSequence;
+
+        // Two of them and the digits of one run into the digits of the other, so no reading of the
+        // number tells them apart again.
+        if (sequences.Count > 1)
+            return NumberPatternError.RepeatedSequence;
+
+        if (Width(sequences[0]) is not { } width)
+            return NumberPatternError.SequenceWidth;
+
         if (kind is not NumberPatternKind.ActNumber && Names(pattern, CaseNumber))
             return NumberPatternError.CaseNumberOutsideAnActPattern;
-
-        if (!Names(pattern, Sequence))
-            return NumberPatternError.NoSequence;
 
         if (Names(pattern, Day) && !(Names(pattern, Month) && Names(pattern, Year)))
             return NumberPatternError.RepeatingPeriod;
@@ -53,49 +68,65 @@ internal static class NumberPattern
         if (Names(pattern, Month) && !Names(pattern, Year))
             return NumberPatternError.RepeatingPeriod;
 
-        if (Widest(pattern, kind) > Column(kind))
+        if (width > Column(kind) || Widest(pattern, kind) > Column(kind))
             return NumberPatternError.TooLongForItsColumn;
 
         return null;
     }
 
     /// <summary>
-    /// The period one series counts within, as the finest date part the pattern names: a day with
-    /// <c>{day}</c>, a month with <c>{month}</c>, a year with <c>{year}</c>, and all of time without any
-    /// of them.
-    /// </summary>
-    public static string PeriodKey(string pattern, in DateOnly date)
-    {
-        ArgumentNullException.ThrowIfNull(pattern);
-
-        if (Names(pattern, Day))
-            return date.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
-
-        if (Names(pattern, Month))
-            return date.ToString("yyyyMM", CultureInfo.InvariantCulture);
-
-        if (Names(pattern, Year))
-            return date.ToString("yyyy", CultureInfo.InvariantCulture);
-
-        return "";
-    }
-
-    /// <summary>
-    /// The sequence is padded to three digits so numbers of one series sort as text. The case number is
-    /// written last: it is the operator's to type, so it may carry pattern text of its own, and no other
-    /// placeholder occurs inside <c>{case-number}</c> for an earlier pass to break.
+    /// The case number is written last: it is the operator's to type, so it may carry pattern text of
+    /// its own, and no other placeholder occurs inside <c>{case-number}</c> for an earlier pass to break.
     /// </summary>
     public static string Format(string pattern, in DateOnly date, int sequence, string? caseNumber = null)
     {
         ArgumentNullException.ThrowIfNull(pattern);
 
-        return pattern
-            .Replace(Year, date.ToString("yyyy", CultureInfo.InvariantCulture), StringComparison.Ordinal)
-            .Replace(Month, date.ToString("MM", CultureInfo.InvariantCulture), StringComparison.Ordinal)
-            .Replace(Day, date.ToString("dd", CultureInfo.InvariantCulture), StringComparison.Ordinal)
-            .Replace(Sequence, sequence.ToString("D3", CultureInfo.InvariantCulture), StringComparison.Ordinal)
-            .Replace(CaseNumber, caseNumber ?? "", StringComparison.Ordinal);
+        var value = sequence;
+
+        return Literal(SequenceToken.Replace(pattern, token => Pad(value, token)), date, caseNumber);
     }
+
+    /// <summary>
+    /// The same pattern read the other way round: what one series of numbers already stored looks like,
+    /// for the day and the case number a number is being issued under. Every part but the sequence is
+    /// literal text by then, so a number's sequence starts and ends at a fixed distance from its edges.
+    /// The pattern is <see cref="Validate">validated</see> first — this reads the one <c>{seq}</c>.
+    /// </summary>
+    public static NumberSeries Series(string pattern, in DateOnly date, string? caseNumber = null)
+    {
+        ArgumentNullException.ThrowIfNull(pattern);
+
+        var token = SequenceToken.Match(pattern);
+        var width = Width(token) ?? DefaultWidth;
+        var before = Literal(pattern[..token.Index], date, caseNumber);
+        var after = Literal(pattern[(token.Index + token.Length)..], date, caseNumber);
+
+        return new NumberSeries(before, width, after);
+    }
+
+    [GeneratedRegex(@"\{seq(?::(?<width>[^{}]*))?\}", RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture, matchTimeoutMilliseconds: 1000)]
+    private static partial Regex SequenceToken { get; }
+
+    /// <summary>
+    /// The width the token names, <see cref="DefaultWidth"/> for one naming none, and null for one
+    /// naming something that is not a positive number.
+    /// </summary>
+    private static int? Width(Match token) => token.Groups["width"] switch
+    {
+        { Success: false } => DefaultWidth,
+        { ValueSpan: var named } when int.TryParse(named, NumberStyles.None, CultureInfo.InvariantCulture, out var width) && width > 0 => width,
+        _ => null,
+    };
+
+    private static string Pad(int sequence, Match token) =>
+        sequence.ToString(string.Create(CultureInfo.InvariantCulture, $"D{Width(token) ?? DefaultWidth}"), CultureInfo.InvariantCulture);
+
+    private static string Literal(string text, in DateOnly date, string? caseNumber) => text
+        .Replace(Year, date.ToString("yyyy", CultureInfo.InvariantCulture), StringComparison.Ordinal)
+        .Replace(Month, date.ToString("MM", CultureInfo.InvariantCulture), StringComparison.Ordinal)
+        .Replace(Day, date.ToString("dd", CultureInfo.InvariantCulture), StringComparison.Ordinal)
+        .Replace(CaseNumber, caseNumber ?? "", StringComparison.Ordinal);
 
     private static bool Names(string pattern, string placeholder) => pattern.Contains(placeholder, StringComparison.Ordinal);
 

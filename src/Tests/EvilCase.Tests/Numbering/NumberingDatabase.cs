@@ -10,8 +10,8 @@ using Npgsql;
 namespace EvilBrains.EvilCase.Tests.Numbering;
 
 /// <summary>
-/// A migrated PostgreSQL database of one test's own, dropped again on disposal. What one statement
-/// does under two callers is the guarantee, so nothing short of a server proves it. Set
+/// A migrated PostgreSQL database of one test's own, dropped again on disposal. What a unique index
+/// does to two callers is the guarantee, so nothing short of a server proves it. Set
 /// <c>EVILCASE_TESTS_POSTGRES</c> to a server connection string to test against another server; a
 /// server named there and not answering fails, so CI's green says these ran. Without the variable an
 /// unreachable server ignores the test instead, never silently passes it.

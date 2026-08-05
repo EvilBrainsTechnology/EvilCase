@@ -12,7 +12,6 @@ public partial class Numbering : Migration
     {
         AddTheActNumber(migrationBuilder);
         CreateThePatterns(migrationBuilder);
-        CreateTheSeries(migrationBuilder);
     }
 
     /// <inheritdoc />
@@ -20,9 +19,6 @@ public partial class Numbering : Migration
     {
         migrationBuilder.DropTable(
             name: "NumberingSettings");
-
-        migrationBuilder.DropTable(
-            name: "NumberSequences");
 
         migrationBuilder.DropIndex(
             name: "IX_Acts_CaseId_ActNumber",
@@ -77,42 +73,11 @@ public partial class Numbering : Migration
                 table.PrimaryKey("PK_NumberingSettings", x => x.Id);
             });
 
-        // Seeded once, and the operator's from then on: the model does not carry the row, so no later
+        // Inserted once, and the operator's from then on: the model does not carry the row, so no later
         // migration writes the defaults back over what the Settings screen saved.
         migrationBuilder.InsertData(
             table: "NumberingSettings",
             columns: ["Id", "ActNumberPattern", "CaseNumberPattern"],
             values: [1L, "{case-number}-{year}{month}{day}-{seq}", "EC-{year}{month}{day}-{seq}"]);
-    }
-
-    private static void CreateTheSeries(MigrationBuilder migrationBuilder)
-    {
-        migrationBuilder.CreateTable(
-            name: "NumberSequences",
-            columns: table => new
-            {
-                Id = table.Column<long>(type: "bigint", nullable: false)
-                    .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                OwnerId = table.Column<long>(type: "bigint", nullable: false),
-                Scope = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
-                LastValue = table.Column<int>(type: "integer", nullable: false),
-            },
-            constraints: table =>
-            {
-                table.PrimaryKey("PK_NumberSequences", x => x.Id);
-                table.ForeignKey(
-                    name: "FK_NumberSequences_Users_OwnerId",
-                    column: x => x.OwnerId,
-                    principalTable: "Users",
-                    principalColumn: "Id",
-                    onDelete: ReferentialAction.Cascade);
-            });
-
-        // The upsert that advances a series names these columns, so this index is what makes it atomic.
-        migrationBuilder.CreateIndex(
-            name: "IX_NumberSequences_OwnerId_Scope",
-            table: "NumberSequences",
-            columns: ["OwnerId", "Scope"],
-            unique: true);
     }
 }

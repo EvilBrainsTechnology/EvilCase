@@ -144,25 +144,6 @@ public class ApplicationDbModelTests
         }
     }
 
-    [Test]
-    public void ASeriesIsOneRowPerOwnerAndScope()
-    {
-        using var context = new ApplicationDbContextFactory().CreateDbContext([]);
-
-        var sequence = context.Model.FindEntityType(typeof(NumberSequence));
-
-        Assert.That(sequence, Is.Not.Null);
-
-        string[] expected = [nameof(NumberSequence.OwnerId), nameof(NumberSequence.Scope)];
-        var unique = sequence.GetIndexes().SingleOrDefault(index => index.IsUnique);
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(unique?.Properties.Select(property => property.Name), Is.EqualTo(expected), "the upsert that advances a series conflicts on this index, and without it two callers take the same value");
-            Assert.That(sequence.FindProperty(nameof(NumberSequence.OwnerId))?.IsNullable, Is.False, "one owner's numbering never counts another's");
-        }
-    }
-
     /// <summary>
     /// The migration inserts the row once and the operator owns it afterwards; what the row holds in a
     /// migrated database is <c>NumberingSettingsReaderTests</c>.
