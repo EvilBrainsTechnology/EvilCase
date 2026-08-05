@@ -87,9 +87,8 @@ function Invoke-GitChecked([string[]] $GitArguments) {
     return $result.Output
 }
 
-# A scratch index, so the checkout's own is never read or written. The tip comes from ls-remote,
-# never from FETCH_HEAD: any fetch of another branch in this checkout overwrites that file, and the
-# commit would be parented on whatever that one asked for.
+# A scratch index, so the checkout's own is never read or written. The tip comes from ls-remote and
+# the fetch writes no FETCH_HEAD: both files are one per checkout, shared by every worktree of it.
 $indexFile = [System.IO.Path]::Combine([System.IO.Path]::GetTempPath(), "evilcase-images-$PID.index")
 $env:GIT_INDEX_FILE = $indexFile
 try {
@@ -105,7 +104,7 @@ try {
         }
         # Listed before fetched, never after: a tip that lands in between is fetched with the one
         # named here among its ancestors, and read-tree has an object either way.
-        if ($parent) { Invoke-GitChecked @('fetch', $Remote, $Branch) | Out-Null }
+        if ($parent) { Invoke-GitChecked @('fetch', '--no-write-fetch-head', $Remote, $Branch) | Out-Null }
 
         Remove-Item -LiteralPath $indexFile -Force -ErrorAction SilentlyContinue
         if ($parent) { Invoke-GitChecked @('read-tree', $parent) | Out-Null }
