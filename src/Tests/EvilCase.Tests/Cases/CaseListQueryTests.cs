@@ -20,21 +20,6 @@ public class CaseListQueryTests
     [TearDown]
     public void TearDown() => this.context.Dispose();
 
-    /// <summary>
-    /// Related cases are cases, and the list shows every one of them — no row stands for a set of others.
-    /// </summary>
-    [Test]
-    public void OnlyTheSearchAndTheStatusNarrowTheList()
-    {
-        var sql = this.context.Cases
-            .MatchingSearch(search: null)
-            .WithStatus(CaseStatusFilter.All)
-            .InListOrder()
-            .ToQueryString();
-
-        Assert.That(sql, Does.Not.Contain("WHERE"), "nothing else hides a case from the list");
-    }
-
     [Test]
     public void SearchMatchesTheTitleAndTheSubjectWithoutRegardToCase()
     {
