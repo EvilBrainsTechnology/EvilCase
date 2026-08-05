@@ -102,7 +102,8 @@ if ($Stop) {
             # By pid, and only while it is still the command line this run started: a pid is recycled,
             # and a state file left behind by a crash has had an unrelated process killed by now.
             $process = Get-Process -Id $state.Pid -ErrorAction SilentlyContinue
-            if ($process -and $process.CommandLine -eq $state.CommandLine) {
+            $killed = $process -and $process.CommandLine -eq $state.CommandLine
+            if ($killed) {
                 Stop-Process -InputObject $process -Force
                 $done += "killed host $($state.Pid)"
             }
@@ -110,10 +111,13 @@ if ($Stop) {
             else { $done += "host $($state.Pid) was gone" }
 
             # Only then the database: dropping it under a host still serving takes the schema away
-            # from it, and removing the state file leaves nothing naming either.
-            $deadline = [datetime]::UtcNow.AddSeconds(30)
-            while ((Test-Port $state.Port) -and [datetime]::UtcNow -lt $deadline) { Start-Sleep -Seconds 1 }
-            if (Test-Port $state.Port) { throw "$($state.Url) still answers, so $($state.Database) stays" }
+            # from it, and removing the state file leaves nothing naming either. Only after a kill:
+            # whatever else holds the port is not this run and would never let go of it.
+            if ($killed) {
+                $deadline = [datetime]::UtcNow.AddSeconds(30)
+                while ((Test-Port $state.Port) -and [datetime]::UtcNow -lt $deadline) { Start-Sleep -Seconds 1 }
+                if (Test-Port $state.Port) { throw "$($state.Url) still answers, so $($state.Database) stays" }
+            }
 
             if (Test-Database $state.Database) {
                 # --force: the connection outlives the process by a moment and a plain dropdb fails on it.
