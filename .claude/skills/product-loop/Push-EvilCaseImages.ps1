@@ -1,6 +1,6 @@
 #!/usr/bin/env pwsh
 <#
-    Puts a pull request's screenshots on the doc/images orphan branch under pull-request/<number>/,
+    Puts a pull request's screenshots on the docs/images orphan branch under pull-request/<number>/,
     and prints the commit sha, and nothing else, on stdout — the body pins its raw URLs to it.
 
         ./.claude/skills/product-loop/Push-EvilCaseImages.ps1 -PullRequest <number> -Path /tmp/shots/<issue>
@@ -21,7 +21,7 @@
     and re-parent the same files on the new tip, up to -Attempts times: git's hint to `git pull`
     is wrong here, and the `--force` behind it is what the branch's ruleset refuses.
 
-    A -Branch the remote does not have is refused, never created: the ruleset keeps doc/images from
+    A -Branch the remote does not have is refused, never created: the ruleset keeps docs/images from
     being deleted, so a name that is not there is a typo, and pushing to it would put the body's
     URLs on a branch nothing protects. -Create writes the parentless commit a genuinely new branch
     starts from, and is refused in turn when the remote already has the branch — that is the same
@@ -34,7 +34,7 @@ param(
     [int] $PullRequest,
     [string] $Path,
     [string] $Remote = 'origin',
-    [string] $Branch = 'doc/images',
+    [string] $Branch = 'docs/images',
     [int] $Attempts = 5,
     [string] $Message,
     [switch] $Create

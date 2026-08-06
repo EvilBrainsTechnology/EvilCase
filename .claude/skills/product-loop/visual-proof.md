@@ -17,7 +17,7 @@ the seeded administrator, with the app started per the run-app skill. All data i
 - Playwright is at `/opt/node22/lib/node_modules/playwright`, its browsers at `/opt/pw-browsers`.
   Never run `playwright install`.
 
-The images never enter the slice's diff. They live on `doc/images`, an orphan branch, under
+The images never enter the slice's diff. They live on `docs/images`, an orphan branch, under
 `pull-request/<number>/`, filed in this order:
 
 1. Take the screenshots into `/tmp/shots/<issue>`. A non-zero exit ends it — fix the screen.
