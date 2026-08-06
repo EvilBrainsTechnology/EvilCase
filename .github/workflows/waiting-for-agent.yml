@@ -25,6 +25,7 @@ jobs:
             const payload = context.payload;
             if (payload.issue && !payload.issue.pull_request) return;
             const pr = payload.pull_request ?? payload.issue;
+            if (pr.state !== 'open') return;
             const source = payload.comment ?? payload.review;
             const author = source.user.login;
             const body = source.body ?? '';
@@ -40,7 +41,7 @@ jobs:
             if (names.includes('agent-done')) {
               await github.rest.issues.removeLabel({
                 ...repo, issue_number: pr.number, name: 'agent-done',
-              });
+              }).catch(() => {});
             }
             await github.rest.issues.addLabels({
               ...repo, issue_number: pr.number, labels: ['waiting-for-agent'],

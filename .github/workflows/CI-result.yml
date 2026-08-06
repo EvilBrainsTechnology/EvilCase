@@ -29,12 +29,13 @@ jobs:
               state: 'open',
             });
             for (const pr of prs.data) {
+              if (run.head_sha !== pr.head.sha) continue;
               const labels = pr.labels.map((label) => label.name);
               if (failed) {
                 if (labels.includes('agent-done')) {
                   await github.rest.issues.removeLabel({
                     ...repo, issue_number: pr.number, name: 'agent-done',
-                  });
+                  }).catch(() => {});
                   await github.rest.issues.addLabels({
                     ...repo, issue_number: pr.number, labels: ['waiting-for-agent'],
                   });
@@ -49,6 +50,6 @@ jobs:
               } else if (labels.includes('ci-failed')) {
                 await github.rest.issues.removeLabel({
                   ...repo, issue_number: pr.number, name: 'ci-failed',
-                });
+                }).catch(() => {});
               }
             }
