@@ -9,8 +9,9 @@
 - Commit every logical unit that stands on its own, `add` and `commit` in one call; push once,
   at the end of the work.
 - A change in behaviour carries a test. Documentation changes in the same commit as the code.
-- A pull request is one topic, opened ready for review; the body format is in
-  `.claude/agents/coder.md`.
+- A pull request is one topic, opened ready for review. Body: one or two sentences of TL;DR,
+  bullets of what changed, the assumption where one was made, the screenshot where a screen
+  changed, `Closes #<n>`. At most 1500 characters. Title and description match the diff.
 - The gate is CI on GitHub. Nobody runs a local gate before a pull request; a red check —
   label `ci-failed` — is handled in the round that sees it.
 - A pull request carries exactly one of `agent-in-progress` (an agent is working on it) and

@@ -20,8 +20,6 @@ plan.
 The pull request:
 
 - Small enough to review on a phone; split it rather than let it grow.
-- Body: one or two sentences of TL;DR, bullets of what changed, the assumption where one was
-  made, the screenshot where a screen changed, `Closes #<n>`. At most 1500 characters.
-- The description is yours; title and description match the diff.
+- The description is yours.
 - Label `agent-in-progress` on open.
 - Subscribe (`subscribe_pr_activity`).
