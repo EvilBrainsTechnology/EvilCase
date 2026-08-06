@@ -35,7 +35,7 @@ sentence. Open a `[DECISION] <question>` issue, labelled `needs-decision` with `
 only where being wrong is expensive to undo: the database schema, the domain model, security.
 Label the dependent issue `blocked` and take something else.
 
-An answer is any comment on an open `needs-decision` issue that carries no agent footer. Apply
+An answer is any comment on an open `needs-decision` issue that is not the agent's. Apply
 it: say what was chosen, label `decided`, close it, and unblock what referenced it. A decision
 that changes the vision updates it in the same commit as the code it governs.
 

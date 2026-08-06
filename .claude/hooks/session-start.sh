@@ -138,8 +138,8 @@ fi
 # --- Commit identity ------------------------------------------------------------------------
 # The container's global config authors commits as the user account `claude`. Pinning the
 # repository's identity to the app leaves one commit author on every branch and on master alike.
-# Comments and pull requests are a separate matter: gh writes them as the owner, and the footer
-# in .claude/rules/github.md is what marks them as the agent's.
+# Comments and pull requests are a separate matter: .claude/rules/github.md is what marks them
+# as the agent's.
 log "authoring commits as claude[bot]"
 git -C "$REPO" config user.name 'claude[bot]'
 git -C "$REPO" config user.email '209825114+claude[bot]@users.noreply.github.com'
