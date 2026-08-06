@@ -24,11 +24,11 @@ pull request from database to UI that leaves the app usable, on `loop/<issue>-<s
 `master`. The workflow runs in the background; tend the open pull requests meanwhile and take
 its returned results into the report — the details stay inside the workflow.
 
-Two slices never touch the same files, and every open pull request counts, not only the ones this
-round started — a candidate is checked against the changed files of every open pull request. A
-migration collides with every other migration, whatever it changes. A slice that needs another's
-unmerged branch is not started. Where nothing left clears this, the round starts nothing and
-tends what is open.
+Two slices never touch the same files, and every open pull request counts — a candidate is
+checked against the changed files of every open pull request. A migration collides with every
+other migration. An issue whose `loop/<issue>-…` branch already exists, locally or on the
+remote, is already taken. A slice that needs another's unmerged branch is not started. Where
+nothing clears this, the round starts nothing and tends what is open.
 
 A workflow with no worktree write for twenty minutes is dead: `TaskStop`. After a dead or
 failed slice, remove its worktrees and local branches before any retry; a second failure in a
