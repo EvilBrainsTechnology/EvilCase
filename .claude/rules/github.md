@@ -3,7 +3,8 @@
 - Never push to `master`. Work goes through a pull request from a branch.
 - Commit every logical unit that stands on its own.
 - One topic per pull request, small enough to review on a phone. Split it rather than let it grow.
-- Read and write GitHub through `gh`.
+- Read GitHub through `gh` or the GitHub MCP tools. Write GitHub only through `gh api` (REST) —
+  not `gh pr`/`gh issue` subcommands, not the GitHub MCP write tools.
 - End every GitHub write with the footer `— 🤖 Claude Code` on its own last line. A comment
   without it is the owner's and is waiting for an answer.
 - While working, run only what the change needs: `dotnet r build`, and tests filtered to the
