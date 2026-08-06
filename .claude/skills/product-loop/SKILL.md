@@ -62,10 +62,10 @@ that changes the vision updates it in the same commit as the code it governs.
 ## Between rounds
 
 A `subscribe_pr_activity` notification is handled when it arrives, never left for the next
-round. Triage the comments: a question gets its reply directly; anything needing code sets
-`agent-in-progress` and starts one Workflow (`.claude/skills/product-loop/pr-work.js`,
-`args: [{pr, branch, instructions, full}]`); `full` — rework, migration, new entity, a change
-across layers, security — adds the architect and the reviewer around the coder.
+round. Triage the comments: a question gets its reply and the switch to `agent-done`; anything
+needing code sets `agent-in-progress` and starts one Workflow
+(`.claude/skills/product-loop/pr-work.js`, `args: [{pr, branch, instructions, full}]`); `full`
+— rework, migration, new entity, cross-layer, security — adds the architect and the reviewer.
 
 ## 4. Report
 

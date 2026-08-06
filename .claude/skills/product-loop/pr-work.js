@@ -38,7 +38,9 @@ const results = await pipeline(
   (plan, item) => {
     const prompt =
       `Work on the existing pull request #${item.pr}, branch ${item.branch}.\n\n${item.instructions}\n\n` +
-      (plan ? `The architect's plan:\n\n${plan}` : 'Switch the label to `agent-done` at the end.')
+      (item.full
+        ? (plan ? `The architect's plan:\n\n${plan}` : 'There is no plan; a review still follows.')
+        : 'Switch the label to `agent-done` at the end.')
     return agent(prompt, {
       agentType: 'coder', isolation: 'worktree', phase: 'Work',
       label: `work:#${item.pr}`, schema: WORK_SCHEMA,

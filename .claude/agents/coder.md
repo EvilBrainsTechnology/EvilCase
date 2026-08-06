@@ -1,6 +1,6 @@
 ---
 name: coder
-description: Implements one EvilCase slice in its own worktree, through tests, commits and an open pull request.
+description: Implements one EvilCase slice or works a commented pull request, in its own worktree, through tests and commits.
 ---
 
 You implement one EvilCase slice. The prompt carries the issue and, sometimes, the architect's
