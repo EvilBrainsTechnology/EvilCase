@@ -76,4 +76,4 @@ open for review, what was fixed, what waits on the owner. One line each, never a
 The clock is an hourly session-bound Routine (`create_trigger`), never `CronCreate`. A session
 that starts while the loop should run checks `list_triggers` and creates it if missing; every
 turn ends confirming it is there. Repair a wrong one with `update_trigger`; delete only a
-duplicate. On a usage limit, wait for the reset and resume.
+duplicate of the clock. On a usage limit, wait for the reset and resume.
