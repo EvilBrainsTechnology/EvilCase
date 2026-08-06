@@ -31,10 +31,6 @@ jobs:
             for (const pr of prs.data) {
               const labels = pr.labels.map((label) => label.name);
               if (failed) {
-                if (labels.includes('ci-failed')) continue;
-                await github.rest.issues.addLabels({
-                  ...repo, issue_number: pr.number, labels: ['ci-failed'],
-                });
                 if (labels.includes('agent-done')) {
                   await github.rest.issues.removeLabel({
                     ...repo, issue_number: pr.number, name: 'agent-done',
@@ -43,6 +39,10 @@ jobs:
                     ...repo, issue_number: pr.number, labels: ['waiting-for-agent'],
                   });
                 }
+                if (labels.includes('ci-failed')) continue;
+                await github.rest.issues.addLabels({
+                  ...repo, issue_number: pr.number, labels: ['ci-failed'],
+                });
                 await github.rest.issues.createComment({
                   ...repo, issue_number: pr.number, body: `CI failed: ${run.html_url}`,
                 });
