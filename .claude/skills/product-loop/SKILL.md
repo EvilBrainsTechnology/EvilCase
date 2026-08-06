@@ -8,9 +8,7 @@ description: Run one round of the EvilCase product loop — start independent sl
 Move EvilCase toward `docs/product/vision.md`, one reviewable slice at a time. Never ask
 permission to continue and never wait for the owner.
 
-## 1. Start the work
-
-Do this before anything else in the round.
+## 1. Start the work, before anything else in the round
 
 The backlog is the open issues labelled `loop`, neither `blocked` nor `needs-decision`: highest
 `Priority` (`Urgent`, `High`, `Medium`, `Low`, then none), the lowest milestone breaking a tie,
@@ -30,9 +28,10 @@ other migration. An issue whose `loop/<issue>-…` branch already exists, locall
 remote, is already taken. A slice that needs another's unmerged branch is not started. Where
 nothing clears this, the round starts nothing and tends what is open.
 
-A workflow still running fifty minutes after it started is dead: `TaskStop`, and its worktrees and
-local branches go before any retry — the same after a failed run. A slice failing twice in a
-row labels its issue `blocked` with a comment saying why.
+Starting a workflow also creates a one-shot trigger fifty minutes out; a workflow that trigger
+finds still running is dead: `TaskStop`, and its worktrees and local branches go before any
+retry — the same after a failed run. A slice failing twice in a row labels its issue `blocked`
+with a comment saying why.
 
 ## 2. Decide, do not ask
 
