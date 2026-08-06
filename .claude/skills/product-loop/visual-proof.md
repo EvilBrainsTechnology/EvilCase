@@ -3,8 +3,7 @@
 Only a pull request that changes a screen carries screenshots. One width, 1440×900, signed in as
 the seeded administrator, with the app started per the run-app skill. All data is synthetic.
 
-- `screenshots.mjs` next to this file takes them and exits non-zero when a page threw. A
-  component that fails to render draws an empty card, so a screenshot alone would look fine.
+- `screenshots.mjs` next to this file takes them and exits non-zero when a page threw.
   `EVILCASE_WIDTHS=1440,390` adds the mobile side where a change is about responsive layout.
 
   ```bash
@@ -16,10 +15,10 @@ the seeded administrator, with the app started per the run-app skill. All data i
   `{ click?, fill?: [selector, value], wait? }`. `EVILCASE_URL`, `EVILCASE_EMAIL` and
   `EVILCASE_PASSWORD` override the defaults. Extend the script rather than write a second one.
 - Playwright is at `/opt/node22/lib/node_modules/playwright`, its browsers at `/opt/pw-browsers`.
-  Never run `playwright install`; the download is blocked.
+  Never run `playwright install`.
 
 The images never enter the slice's diff. They live on `doc/images`, an orphan branch, under
-`pull-request/<number>/`. The number exists only once the pull request does, so:
+`pull-request/<number>/`, filed in this order:
 
 1. Take the screenshots into `/tmp/shots/<issue>`. A non-zero exit ends it — fix the screen.
 2. Open the pull request, body without images.

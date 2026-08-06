@@ -9,12 +9,9 @@ Move EvilCase toward `docs/product/vision.md`, one reviewable slice at a time. N
 permission to continue and never wait for the owner. Delegation follows
 `.claude/rules/agents.md`; GitHub follows `.claude/rules/github.md`.
 
-The loop never changes `.claude/**` and never merges. A rule that is missing or wrong becomes an
-issue for the owner.
-
 ## 1. Start the work
 
-Do this first, so the machine is busy while the round does everything else.
+Do this before anything else in the round.
 
 The backlog is the open issues labelled `loop`. Among those neither `blocked` nor
 `needs-decision`, take the highest `Priority` field — `Urgent`, `High`, `Medium`, `Low`, then the

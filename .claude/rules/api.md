@@ -10,11 +10,10 @@ paths:
 every other path returns the frontend's `index.html`.
 
 - Same-origin only. No CORS anywhere.
-- Security headers including the CSP come from `SecurityHeadersMiddleware`. The CSP names the
-  hash of every inline script in `index.html`, so changing one changes the policy.
-- Rate limiting covers the anonymous auth endpoints and the client log upload, nothing else —
-  health probes above all. `UseRateLimiter` stays after `UseForwardedHeaders` and before
-  `UseAuthentication`.
+- Security headers including the CSP come from `SecurityHeadersMiddleware`. Changing an inline
+  script in `index.html` changes the CSP, which names its hash.
+- Rate limiting covers the anonymous auth endpoints and the client log upload, nothing else.
+  `UseRateLimiter` stays after `UseForwardedHeaders` and before `UseAuthentication`.
 - A health response never carries a description or exception detail, and `/health/live` never
   runs a dependency check.
 - `EvilBrains:EvilCase:Hosting` adapts the pipeline to whatever sits in front of it; semantics in

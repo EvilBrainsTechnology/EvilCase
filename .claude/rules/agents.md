@@ -6,13 +6,12 @@
   finds, in the same run. There is no second round.
 - What the reviewer is unsure about goes into the pull request description as one sentence for
   the owner, not into another round.
-- Independent tasks run in parallel and share one machine: a subagent takes its own port and its
-  own database rather than the defaults, and drops them afterwards (run-app skill).
+- Independent tasks run in parallel. A subagent takes its own port and its own database rather
+  than the defaults, and drops them afterwards (run-app skill).
 - Every subagent that writes to the repository gets `isolation: "worktree"`. A worktree has no
   `.env` (run-app skill); scratch files go under the session scratchpad in the agent's own
   directory.
-- The main checkout never holds a delegated branch, `--ignore-other-worktrees` included: its
-  working tree then reads as uncommitted changes that revert the agent's commits.
+- The main checkout never holds a delegated branch, `--ignore-other-worktrees` included.
 - Search with `Grep`, `Glob` and `Read`. The shell is for commands that change something — never
   `ls`, `cat`, `head`, `tail`, `wc`, `find` or `grep`.
 - What runs together runs in one call: `add`, `commit` and `push` for one unit.
