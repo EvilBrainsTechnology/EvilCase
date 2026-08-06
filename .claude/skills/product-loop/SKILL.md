@@ -30,7 +30,7 @@ other migration. An issue whose `loop/<issue>-…` branch already exists, locall
 remote, is already taken. A slice that needs another's unmerged branch is not started. Where
 nothing clears this, the round starts nothing and tends what is open.
 
-A workflow with no worktree write for twenty minutes is dead: `TaskStop`. After a dead or
+A workflow still running when the next round starts is dead: `TaskStop`. After a dead or
 failed slice, remove its worktrees and local branches before any retry; a second failure in a
 row labels the issue `blocked` with a comment saying why.
 
