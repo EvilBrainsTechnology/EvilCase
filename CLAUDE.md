@@ -46,9 +46,9 @@ clone.
 - `dotnet r test` — run tests
 - `dotnet r format` / `dotnet r format-check` — format / verify formatting
 - `dotnet r ai-check` — verify the AI instruction length limits
-- `dotnet r ci` — ai-check + format-check + build + test. Run it once, immediately before opening
-  a pull request, never in the inner loop. Iterate on `dotnet r build` and `dotnet r test --
-  --no-build --filter FullyQualifiedName~<type>` — seconds against the gate's minutes.
+- `dotnet r ci` — the four above in one command, for CI. A pull request runs them one at a time
+  (`.claude/rules/github.md`). Iterate on `dotnet r build` and `dotnet r test -- --no-build
+  --filter FullyQualifiedName~<type>`.
 - `dotnet r run` — run everything at `https://localhost:5000` (Scalar UI at `/scalar` in dev); requires a reachable PostgreSQL
 - `dotnet r run-docker` — the same, in Docker with its own PostgreSQL, for a person trying the application out
 - `dotnet r add-migration` / `remove-migration` / `generate-sql-script` — EF migrations

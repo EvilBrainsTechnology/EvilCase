@@ -8,8 +8,9 @@
   without it is the owner's and is waiting for an answer.
 - While working, run only what the change needs: `dotnet r build`, and tests filtered to the
   types you touched.
-- Immediately before opening the pull request, run `dotnet r ci` from `src/` exactly once and get
-  it green. Nobody runs it again — not the reviewer, not a later round.
+- Before opening the pull request, run the gate from `src/` one step at a time: `dotnet r
+  ai-check`, `dotnet r build`, `dotnet r test`, `dotnet r format-check`. After a fix, resume at
+  the step that failed. Nobody runs it again — not the reviewer, not a later round.
 - A change in behaviour carries a test. Documentation changes in the same commit as the code.
 - Open the pull request ready for review, never as a draft.
 - Body: one or two sentences of TL;DR, bullets of what changed, the assumption where one was
