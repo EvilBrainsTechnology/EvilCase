@@ -19,8 +19,8 @@ základ vynechává, je dole v non-goals a přijde později, po krocích.
 - Teď: jeden uživatel, vlastní spisy, ruční zadávání. Optimalizuje se rychlost práce s reálným
   spisem.
 - Později možná: multi-tenant SaaS pro advokátní kanceláře. Přihlášení, sessions a default-deny
-  autorizace už stojí; každý agregát nese vlastníka od první migrace (`.claude/rules/data.md`);
-  nic dalšího z tenancy se nestaví.
+  autorizace už stojí; entita, kterou uživatel vlastní přímo, nese `OwnerId` od migrace, která ji
+  zakládá; nic dalšího z tenancy se nestaví.
 
 ## Doménový model
 

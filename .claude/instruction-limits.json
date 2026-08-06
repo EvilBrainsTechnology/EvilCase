@@ -1,10 +1,8 @@
 {
-  "maxLinesPerFile": 120,
-  "maxLinesTotal": 650,
+  "maxLinesPerFile": 80,
+  "maxLinesTotal": 520,
   "globs": [
     "**/CLAUDE.md",
-    ".claude/CLAUDE.md",
-    ".claude/rules/**/*.md",
-    ".claude/skills/**/SKILL.md"
+    ".claude/**/*.md"
   ]
 }

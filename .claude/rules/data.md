@@ -5,38 +5,20 @@ paths:
 
 # Data
 
-`docs/product/vision.md` names the domain concepts; `ApplicationDbModelTests` pins most of these.
+`EvilCase.Data` is schema only. Read `docs/product/vision.md` and `ApplicationDbModelTests` before
+changing an entity; below is what neither says.
 
-- The domain's word is the code's word: the type is `Case`, with `@case` where the keyword
-  collides — CA1716 sits at `suggestion` for this, the one rule below error.
-- Every aggregate root carries `OwnerId` from its first migration, with a foreign key and an
-  index.
-- Cases form no hierarchy. A relation is one bare `CaseRelation` row — no owner column, no `Id`,
-  keyed on the pair, `CaseId < RelatedCaseId`; deleting a case takes its relations and nothing else.
-- Enums are stored as names: `HasConversion<string>()` with an explicit length.
-- Tags are rows — typed, unique per case — never an array column.
-- `Case.CaseNumber` is required and unique per owner; every external mark is an
-  `ExternalCaseNumber` row with a required assigning party.
-- An act carries one required `Date` and no ordinal; acts are read ordered by it alone, and
-  `(CaseId, Date)` is the index that serves both.
-- A date a period runs from is `DateOnly` mapped to `date`; timestamps stay `DateTime`.
-- Foreign keys to `Parties` are `DeleteBehavior.Restrict`; the owning case cascades instead.
-- A file asset hangs on its primary act and carries the original name; another act reaches it
-  through an `ActFileReference` carrying its own. No role anywhere. Deleting an act takes the
-  assets filed under it and the references it made, and an asset another act still references
-  refuses it. `FileAssets` is unique on `(OwnerId, ContentHash)`, never on the hash alone.
-- A comment hangs on a case XOR an act: one table, two nullable parents, a check constraint.
-  Tests read check constraints from `IDesignTimeModel`, not `context.Model`.
+- The domain's word wins over a language keyword: the type is `Case`, with `@case` where it
+  collides.
+- A calendar date is `DateOnly` mapped to `date`; a moment in time stays `DateTime`.
+- A test reads check constraints from `IDesignTimeModel`; `context.Model` has dropped them.
 
 ## Migrations
 
-- `dotnet ef migrations add` builds without `TreatWarningsAsErrors`: run
-  `dotnet build --no-incremental` (or `dotnet r ci` after touching the file again) once after
-  adding a migration; a green incremental build straight afterwards proves nothing.
-- Never re-add a migration over its committed snapshot entry — it comes out empty. Remove it
-  first (`dotnet r remove-migration`), add it again, hand-format the result, and verify with
-  `dotnet r generate-sql-script`; `MigrationsTests` replays every `Up`.
-- A rename is scaffolded as a drop and a create: rewrite it by hand as `RenameColumn`,
-  `RenameTable` and `RenameIndex`, and rename a foreign key through `Sql` — nothing models it.
-- The runtime registration and `ApplicationDbContextFactory` both call `UseEvilCaseMigrations` —
-  a mismatched history table re-applies every migration.
+- Run `dotnet build --no-incremental` once after adding a migration.
+- Never re-add a migration over its committed snapshot entry. Remove it first
+  (`dotnet r remove-migration`), add it again, hand-format the result, and verify with
+  `dotnet r generate-sql-script`.
+- Rewrite a scaffolded rename by hand as `RenameColumn`, `RenameTable` and `RenameIndex`; rename
+  a foreign key through `Sql`.
+- The runtime registration and `ApplicationDbContextFactory` both call `UseEvilCaseMigrations`.

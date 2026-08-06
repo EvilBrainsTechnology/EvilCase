@@ -5,6 +5,8 @@
 //
 // targets.json is a list of { name, path, file, wait?, steps?, fullPage? }; each step is
 // { click?, fill?: [selector, value], wait? }. The width is appended to file: case-list-1440.png.
+// EVILCASE_WIDTHS takes a comma-separated list; 1440 alone is the default, 390 adds the mobile
+// side of the lg breakpoint.
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs';
 import { readFile, mkdir } from 'node:fs/promises';
 
@@ -15,7 +17,15 @@ if (!outDir || !targetsPath) {
 }
 
 const targets = JSON.parse(await readFile(targetsPath, 'utf8'));
-const widths = [[1440, 900], [390, 844]];
+const heights = { 1440: 900, 390: 844 };
+const widths = (process.env.EVILCASE_WIDTHS ?? '1440').split(',').map(value => {
+    const width = Number(value.trim());
+    if (!heights[width]) {
+        console.error(`unknown width ${value.trim()}; known widths: ${Object.keys(heights).join(', ')}`);
+        process.exit(2);
+    }
+    return [width, heights[width]];
+});
 const origin = process.env.EVILCASE_URL ?? 'https://localhost:5000';
 const email = process.env.EVILCASE_EMAIL ?? 'admin@evilcase.local';
 const password = process.env.EVILCASE_PASSWORD ?? 'DevPassword123!';
