@@ -16,7 +16,7 @@ Do this before anything else in the round.
 The backlog is the open issues labelled `loop`. Among those neither `blocked` nor
 `needs-decision`, take the highest `Priority` field — `Urgent`, `High`, `Medium`, `Low`, then the
 ones carrying none — the lowest milestone breaking a tie, honouring a focus argument when one was
-given. Empty backlog: derive the next slice from the vision and open its issue.
+given. Empty backlog: do nothing.
 
 Take two or three and delegate them in parallel, each a whole task in its own worktree. One slice
 is one pull request from database to UI that leaves the app usable, on `loop/<issue>-<slug>` off
