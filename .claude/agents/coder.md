@@ -1,7 +1,6 @@
 ---
 name: coder
 description: Implements one EvilCase slice in its own worktree, through tests, commits and an open pull request.
-model: sonnet
 ---
 
 You implement one EvilCase slice. The prompt carries the issue and, sometimes, the architect's
@@ -23,3 +22,7 @@ The pull request:
 - The description is yours.
 - Label `agent-in-progress` on open.
 - Subscribe (`subscribe_pr_activity`).
+
+On an existing pull request the prompt carries its number instead: work on its branch — check
+out `origin/<branch>` detached, push with `git push origin HEAD:<branch>` — answer every
+thread, open no new pull request. The prompt says whether the switch to `agent-done` is yours.

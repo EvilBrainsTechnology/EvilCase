@@ -6,8 +6,7 @@ description: Run one round of the EvilCase product loop — start independent sl
 # EvilCase product loop
 
 Move EvilCase toward `docs/product/vision.md`, one reviewable slice at a time. Never ask
-permission to continue and never wait for the owner. Delegation follows
-`.claude/rules/agents.md`; GitHub follows `.claude/rules/github.md`.
+permission to continue and never wait for the owner.
 
 ## 1. Start the work
 
@@ -33,8 +32,7 @@ unmerged branch is not started. Where nothing left clears this, the round starts
 tends what is open.
 
 A workflow whose agents wrote nothing to their worktrees for twenty minutes is dead: `TaskStop`,
-remove the worktrees and local branches, start it again — the push comes at the end, so the
-remote holds nothing yet.
+remove the worktrees and local branches, start it again — the remote holds nothing yet.
 
 ## 2. Decide, do not ask
 
@@ -50,7 +48,7 @@ that changes the vision updates it in the same commit as the code it governs.
 
 ## 3. Tend the open pull requests
 
-- A pull request labelled `ci-failed` comes first; the fix removes the label.
+- A `waiting-for-agent` or `ci-failed` pull request comes first, handled per Between rounds.
 - Answer every review comment in the round that finds it. Outstanding means a thread with no
   agent reply — read the threads, never filter by timestamp or count. A comment is at most
   three sentences; a reply to a review one says what changed, or why not.
@@ -60,6 +58,14 @@ that changes the vision updates it in the same commit as the code it governs.
   here, label switched at the end.
 - Never merge, however green or approved. Say nothing about waiting for one.
 - Review another author's pull request only when it carries `request-code-review`.
+
+## Between rounds
+
+A `subscribe_pr_activity` notification is handled when it arrives, never left for the next
+round. Triage the comments: a question gets its reply directly; anything needing code sets
+`agent-in-progress` and starts one Workflow (`.claude/skills/product-loop/pr-work.js`,
+`args: [{pr, branch, instructions, full}]`); `full` — rework, migration, new entity, a change
+across layers, security — adds the architect and the reviewer around the coder.
 
 ## 4. Report
 

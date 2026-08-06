@@ -12,11 +12,12 @@
 - A pull request is one topic, opened ready for review. Body: one or two sentences of TL;DR,
   bullets of what changed, the assumption where one was made, the screenshot where a screen
   changed, `Closes #<n>`. At most 1500 characters. Title and description match the diff.
-- The gate is CI on GitHub. Nobody runs a local gate before a pull request; a red check —
-  label `ci-failed` — is handled in the round that sees it.
-- A pull request carries exactly one of `agent-in-progress` (an agent is working on it) and
-  `agent-done` (waiting for the owner). Starting work on one switches the label, finishing
-  switches it back.
+- The gate is CI on GitHub. Nobody runs a local gate before a pull request.
+- A pull request carries exactly one state label — `agent-in-progress` (an agent works on it),
+  `agent-done` (waiting for the owner), `waiting-for-agent` (waiting for an agent) — and
+  setting one removes the rest. Starting work switches to `agent-in-progress` before the work,
+  not with the push; finishing switches to `agent-done`. `ci-failed` sits beside the state as a
+  flag: a red CI run adds it, a green one removes it.
 - Never merge. The owner merges.
 - The repository is public. No real case content, names, file marks or personal data anywhere.
   Real case folders on the owner's disk are read-only reference.
