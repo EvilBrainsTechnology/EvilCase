@@ -12,10 +12,9 @@ permission to continue and never wait for the owner.
 
 Do this before anything else in the round.
 
-The backlog is the open issues labelled `loop`. Among those neither `blocked` nor
-`needs-decision`, take the highest `Priority` field — `Urgent`, `High`, `Medium`, `Low`, then the
-ones carrying none — the lowest milestone breaking a tie, honouring a focus argument when one was
-given. Empty backlog: do nothing.
+The backlog is the open issues labelled `loop`, neither `blocked` nor `needs-decision`: highest
+`Priority` (`Urgent`, `High`, `Medium`, `Low`, then none), the lowest milestone breaking a tie,
+honouring a focus argument. Empty backlog: do nothing.
 
 Take two or three and start one Workflow:
 `scriptPath: .claude/skills/product-loop/slice-pipeline.js`,
@@ -31,8 +30,9 @@ migration collides with every other migration, whatever it changes. A slice that
 unmerged branch is not started. Where nothing left clears this, the round starts nothing and
 tends what is open.
 
-A workflow whose agents wrote nothing to their worktrees for twenty minutes is dead: `TaskStop`,
-remove the worktrees and local branches, start it again — the remote holds nothing yet.
+A workflow with no worktree write for twenty minutes is dead: `TaskStop`. After a dead or
+failed slice, remove its worktrees and local branches before any retry; a second failure in a
+row labels the issue `blocked` with a comment saying why.
 
 ## 2. Decide, do not ask
 
@@ -54,8 +54,8 @@ that changes the vision updates it in the same commit as the code it governs.
   three sentences; a reply to a review one says what changed, or why not.
 - Rebase onto `master` on a conflict; correct a title or description that no longer matches the
   diff.
-- A pull request labelled `agent-in-progress` with no running workflow gets its review finished
-  here, label switched at the end.
+- A pull request labelled `agent-in-progress` with no running workflow is taken over: finish
+  the work and the threads, switch the label at the end.
 - Never merge, however green or approved. Say nothing about waiting for one.
 - Review another author's pull request only when it carries `request-code-review`.
 
