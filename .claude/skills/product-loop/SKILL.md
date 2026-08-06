@@ -23,8 +23,7 @@ is one pull request from database to UI that leaves the app usable, on `loop/<is
 `master`.
 
 Two slices never touch the same files, and every open pull request counts, not only the ones this
-round started — `gh pr diff --name-only` on each open pull request is what a candidate is checked
-against. A migration collides with every other migration, whatever it changes. A slice that needs
+round started — a candidate is checked against the changed files of every open pull request. A migration collides with every other migration, whatever it changes. A slice that needs
 another's unmerged branch is not started. Where nothing left clears this, the round starts
 nothing and tends what is open.
 
