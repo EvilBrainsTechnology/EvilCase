@@ -18,9 +18,13 @@ The backlog is the open issues labelled `loop`. Among those neither `blocked` no
 ones carrying none — the lowest milestone breaking a tie, honouring a focus argument when one was
 given. Empty backlog: do nothing.
 
-Take two or three and delegate them in parallel, each a whole task in its own worktree. One slice
-is one pull request from database to UI that leaves the app usable, on `loop/<issue>-<slug>` off
-`master`.
+Take two or three and start one Workflow:
+`scriptPath: .claude/skills/product-loop/slice-pipeline.js`,
+`args: [{issue, slug, title, body, plan}, …]`. `plan` is true for a slice with a migration, a
+new entity, a change across layers or a touch on security; false otherwise. One slice is one
+pull request from database to UI that leaves the app usable, on `loop/<issue>-<slug>` off
+`master`. The workflow runs in the background; tend the open pull requests meanwhile and take
+its returned results into the report — the details stay inside the workflow.
 
 Two slices never touch the same files, and every open pull request counts, not only the ones this
 round started — a candidate is checked against the changed files of every open pull request. A
@@ -28,12 +32,17 @@ migration collides with every other migration, whatever it changes. A slice that
 unmerged branch is not started. Where nothing left clears this, the round starts nothing and
 tends what is open.
 
+A workflow whose agents wrote nothing to their worktrees for twenty minutes is dead: `TaskStop`,
+remove the worktrees and local branches, start it again — the push comes at the end, so the
+remote holds nothing yet.
+
 ## 2. Decide, do not ask
 
 Choose the reasonable answer yourself and state it in the pull request description as one
 sentence. Open a `[DECISION] <question>` issue, labelled `needs-decision` with `Blocks #<issue>`,
-only where being wrong is expensive to undo: the database schema, the domain model, security.
-Label the dependent issue `blocked` and take something else.
+only where being wrong is expensive to undo: the database schema, the domain model, security. An
+issue body is at most 800 characters. Label the dependent issue `blocked` and take something
+else.
 
 An answer is any comment on an open `needs-decision` issue that is not the agent's. Apply
 it: say what was chosen, label `decided`, close it, and unblock what referenced it. A decision
@@ -41,11 +50,14 @@ that changes the vision updates it in the same commit as the code it governs.
 
 ## 3. Tend the open pull requests
 
+- A pull request labelled `ci-failed` comes first; the fix removes the label.
 - Answer every review comment in the round that finds it. Outstanding means a thread with no
-  agent reply — read the threads, never filter by timestamp or count.
-- Rebase onto `master` on a conflict; fix red CI; correct a title or description that no longer
-  matches the diff.
+  agent reply — read the threads, never filter by timestamp or count. A comment is at most
+  three sentences; a reply to a review one says what changed, or why not.
+- Rebase onto `master` on a conflict; correct a title or description that no longer matches the
+  diff.
 - Never merge, however green or approved. Say nothing about waiting for one.
+- Review another author's pull request only when it carries `request-code-review`.
 
 ## 4. Report
 
