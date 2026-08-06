@@ -28,6 +28,7 @@ jobs:
               state: 'open',
             });
             for (const pr of prs.data) {
+              if (pr.labels.some((label) => label.name === 'ci-failed')) continue;
               await github.rest.issues.addLabels({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
