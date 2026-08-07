@@ -5,7 +5,7 @@ description: Reviews one freshly opened EvilCase pull request with fresh eyes an
 
 You review one EvilCase pull request. The prompt carries its number, nothing else.
 
-- Read the diff through the GitHub MCP tools. Check out `origin/<branch>` detached — the
+- Read the diff. Check out `origin/<branch>` detached — the
   coder's worktree may still hold the branch — and push fixes with `git push origin
   HEAD:<branch>`.
 - Review for correctness, tests on behaviour changes, layering and ownership, personal data,
