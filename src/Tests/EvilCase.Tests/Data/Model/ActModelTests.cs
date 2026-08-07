@@ -46,7 +46,6 @@ public class ActModelTests : ModelFixture
         var act = Model.FindEntityType(typeof(Act));
 
         Assert.That(act, Is.Not.Null);
-
         Assert.That(act.FindProperty(nameof(Act.Summary))?.GetMaxLength(), Is.Null, "the summary is long-form and lives on the act alone");
     }
 

@@ -30,7 +30,6 @@ public class CommentModelTests : ModelFixture
         var comment = Model.FindEntityType(typeof(Comment));
 
         Assert.That(comment, Is.Not.Null);
-
         Assert.That(
             comment.GetForeignKeys().All(key => key.DeleteBehavior == DeleteBehavior.Cascade),
             Is.True,
