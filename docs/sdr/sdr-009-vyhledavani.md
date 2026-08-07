@@ -43,5 +43,5 @@ Hledací pole na dashboardu a v seznamu spisů; debounce, hledá se od 2 znaků.
 
 ## Dopady
 
-Dnešní ILIKE hledání v `CaseListQuery` nahrazuje `SearchText`. Fold diakritiky má test
-(SDR-015).
+Dnešní ILIKE hledání v `CaseListQuery` zaniká; nahrazuje ho `SearchText`. Fold diakritiky má
+test (SDR-015).

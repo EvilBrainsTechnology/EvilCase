@@ -37,7 +37,7 @@ Tvary API a klienta pro nové agendy. Z velké části dnešní stav, který pla
 
 ## Rozhodnutí
 
-- Úkony v API: ploché `/api/acts` / vnořené pod spis. Platí vnořené — kopírují URL aplikace.
+- Úkony v API: ploché `/api/acts` / vnořené pod spis. Platí vnořené pod spis.
 - Komentáře a soubory: vlastní ploché zdroje / pod vlastníkem. Platí pod vlastníkem.
 
 ## Dopady

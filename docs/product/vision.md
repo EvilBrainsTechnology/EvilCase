@@ -70,8 +70,9 @@ unikátnost hlídá databáze. Pravidla a souběh drží [SDR-003](../sdr/sdr-00
 URL nesou UUID: `/cases`, `/cases/{id}`, `/cases/{id}/act/{actId}`, `/contacts`, `/login`
 ([SDR-011](../sdr/sdr-011-navigace-a-vzhled.md)). Dashboard `/` stojí nad reálnými daty
 ([SDR-010](../sdr/sdr-010-dashboard.md)). Hledání ignoruje diakritiku, pokrývá názvy, popisy
-a čísla; přesná shoda čísla skočí rovnou na spis nebo úkon
-([SDR-009](../sdr/sdr-009-vyhledavani.md)). Vzhled zůstává: Tabler + TabBlazor.
+i čísla včetně externích; přesná shoda vlastního čísla skočí rovnou na spis nebo úkon,
+externího jen při jediné shodě ([SDR-009](../sdr/sdr-009-vyhledavani.md)). Vzhled zůstává:
+Tabler + TabBlazor.
 
 ## Vzorová data
 
