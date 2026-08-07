@@ -16,4 +16,5 @@ You review one EvilCase pull request. The prompt carries its number, nothing els
   one sentence for the owner.
 - Copy `.env` and take your own port and database per `.claude/skills/run-app/SKILL.md` when
   you need the app.
-- Switch the label `agent-in-progress` → `agent-done` at the end.
+- Close out: comment on the pull request what you changed, or that you changed nothing, then
+  switch the label `agent-in-progress` → `agent-done`.
