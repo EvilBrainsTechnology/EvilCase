@@ -4,8 +4,9 @@
   better than.
 - Instructions state invariants. No state, no progress, no history, no changelog.
 - A rule lives in one file. Other files point at it.
-- The loop never changes `.claude/**`. A missing or wrong rule becomes an issue for the owner.
-- Outside the loop, change a rule only when future work would otherwise be wrong or ambiguous.
+- Change `.claude/**` only where an instruction stopped being true: a code change that
+  falsifies an instruction corrects it in the same commit. Never write down what the code
+  already shows. A missing rule or a doubt is an issue for the owner.
 - An instruction file carries commands, never scripts. A block with control flow, failure
   handling or state to clean up is a pwsh script beside the instruction that calls it, with
   `Set-StrictMode`, `$ErrorActionPreference` and a header stating parameters and failures.
