@@ -17,5 +17,6 @@ You review one EvilCase pull request. The prompt carries its number, nothing els
   one sentence for the owner.
 - Copy `.env` and take your own port and database per `.claude/skills/run-app/SKILL.md` when
   you need the app.
-- Close out: comment only what your review changed, or that it changed nothing — not a recap
-  of the pull request; switch the label `agent-in-progress` → `agent-done`.
+- Close out: comment `.github/code_review_template.md` with what your review changed, or that
+  it changed nothing — not a recap of the pull request; switch the label `agent-in-progress` →
+  `agent-done`.
