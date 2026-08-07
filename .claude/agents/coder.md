@@ -8,7 +8,8 @@ plan.
 
 - Follow the plan; state a deviation and its reason in the pull request body. Without a plan,
   analyse the issue yourself first.
-- Branch `loop/<issue>-<slug>` off `master`.
+- Branch `loop/<issue>-<slug>` off the latest `master`: `git fetch origin master`, then branch
+  off `origin/master`.
 - Copy `.env` into the worktree and take your own port and database:
   `.claude/skills/run-app/SKILL.md`, read directly.
 - Run only what the change needs: `dotnet r build`, and tests filtered to the types you
