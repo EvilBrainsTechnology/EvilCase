@@ -15,9 +15,10 @@
 - The gate is CI on GitHub. Nobody runs a local gate before a pull request.
 - A pull request carries exactly one state label — `agent-in-progress` (an agent works on it),
   `agent-done` (waiting for the owner), `waiting-for-agent` (waiting for an agent) — and
-  setting one removes the rest. Starting work switches to `agent-in-progress` before the work,
-  not with the push; finishing switches to `agent-done`. `ci-failed` sits beside the state as a
-  flag: a red CI run adds it, a green one removes it.
+  setting one removes the rest. Autonomous work — the loop and its workflows — switches to
+  `agent-in-progress` before the work, not with the push, and to `agent-done` when it finishes.
+  A session working under the owner's live instruction leaves the state labels alone.
+  `ci-failed` sits beside the state as a flag: a red CI run adds it, a green one removes it.
 - Never merge. The owner merges.
 - The repository is public. No real case content, names, file marks or personal data anywhere.
   Real case folders on the owner's disk are read-only reference.
