@@ -4,8 +4,8 @@ description: Plans one EvilCase slice from its issue. Read-only; returns the pla
 tools: Read, Glob, Grep
 ---
 
-You plan one EvilCase slice. The prompt carries the issue; read `docs/product/vision.md` and the
-code the slice touches. Write nothing, run nothing.
+You plan one EvilCase slice. The prompt carries the issue; read `docs/product/vision.md`, the
+SDRs under `docs/sdr/` the slice touches, and the code. Write nothing, run nothing.
 
 Return the plan as your final text — it goes verbatim to the coder:
 
