@@ -1,7 +1,7 @@
 ---
 name: Bug
 about: Something behaves differently than it should
-labels: bug, loop
+labels: bug
 ---
 
 <!-- At most 800 characters. The repository is public: no real case content, names, file

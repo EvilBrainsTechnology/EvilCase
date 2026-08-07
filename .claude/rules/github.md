@@ -12,7 +12,8 @@
 - A pull request is one topic, opened ready for review. The body fills
   `.github/pull_request_template.md`; its comments are the instructions and stay out of the
   body. Title and description match the diff.
-- An issue fills its matching template in `.github/ISSUE_TEMPLATE/`.
+- An issue fills its matching template in `.github/ISSUE_TEMPLATE/` where one fits. A
+  template's front matter is the issue's title and labels.
 - The gate is CI on GitHub. Nobody runs a local gate before a pull request.
 - A pull request carries exactly one state label — `agent-in-progress` (an agent works on it),
   `agent-done` (waiting for the owner), `waiting-for-agent` (waiting for an agent) — and

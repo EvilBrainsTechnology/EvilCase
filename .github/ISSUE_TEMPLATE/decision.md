@@ -5,7 +5,7 @@ title: "[DECISION] "
 labels: needs-decision
 ---
 
-<!-- At most 800 characters. `Blocks #<n>` for every issue waiting on the answer. -->
+<!-- At most 800 characters. -->
 
 ## Question
 
@@ -13,3 +13,6 @@ labels: needs-decision
 -
 
 ## Recommendation
+
+<!-- One line per issue waiting on the answer; remove where there is none. -->
+Blocks #
