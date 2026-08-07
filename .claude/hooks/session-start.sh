@@ -71,32 +71,6 @@ if ! command -v pwsh >/dev/null 2>&1; then
     dotnet tool install --global PowerShell >/dev/null
 fi
 
-# --- GitHub CLI -----------------------------------------------------------------------------
-# .claude/rules/github.md reads and writes GitHub through gh, which the container does not ship.
-# It authenticates from $GH_TOKEN, so no login step. There is no fallback: a worktree-isolated
-# subagent cannot run a command that expands $GH_TOKEN, so a session without gh cannot work.
-install_gh() {
-    local version=2.97.0
-    local archive="gh_${version}_linux_amd64"
-    local temp
-    temp=$(mktemp -d) || return 1
-
-    curl -fsSL --max-time 120 \
-        "https://github.com/cli/cli/releases/download/v${version}/${archive}.tar.gz" \
-        -o "$temp/gh.tar.gz" || { rm -rf "$temp"; return 1; }
-    tar -xzf "$temp/gh.tar.gz" -C "$temp" || { rm -rf "$temp"; return 1; }
-    install -m 755 "$temp/$archive/bin/gh" /usr/local/bin/gh || { rm -rf "$temp"; return 1; }
-    rm -rf "$temp"
-}
-
-if command -v gh >/dev/null 2>&1; then
-    log "gh $(gh --version | head -n 1 | cut -d' ' -f3) already installed"
-else
-    log "installing gh"
-    install_gh
-    log "gh $(gh --version | head -n 1 | cut -d' ' -f3) installed"
-fi
-
 # --- PostgreSQL -----------------------------------------------------------------------------
 # The image ships PostgreSQL 16, so deploy/docker-compose.dev.yml (PostgreSQL 18) is not needed.
 # Credentials and database name still match the connection string in .env.example.
@@ -134,15 +108,6 @@ EvilBrains__EvilCase__Auth__Seed__Password=DevPassword123!
 EvilBrains__EvilCase__Logging__Seq__ApiKey=
 ENV
 fi
-
-# --- Commit identity ------------------------------------------------------------------------
-# The container's global config authors commits as the user account `claude`. Pinning the
-# repository's identity to the app leaves one commit author on every branch and on master alike.
-# Comments and pull requests are a separate matter: .claude/rules/github.md is what marks them
-# as the agent's.
-log "authoring commits as claude[bot]"
-git -C "$REPO" config user.name 'claude[bot]'
-git -C "$REPO" config user.email '209825114+claude[bot]@users.noreply.github.com'
 
 # --- Restore --------------------------------------------------------------------------------
 cd "$REPO/src"
