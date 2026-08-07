@@ -8,6 +8,9 @@ export const meta = {
   ],
 }
 
+// args may arrive as a JSON string.
+const slices = typeof args === 'string' ? JSON.parse(args) : args
+
 const PR_SCHEMA = {
   type: 'object',
   properties: {
@@ -28,15 +31,14 @@ const REVIEW_SCHEMA = {
 }
 
 const results = await pipeline(
-  args,
-  (slice) => {
-    if (!slice.plan) return null
-    return agent(
-      `Plan the slice for issue #${slice.issue} "${slice.title}" (branch loop/${slice.issue}-${slice.slug}).\n\n${slice.body}`,
-      { agentType: 'architect', phase: 'Plan', label: `plan:#${slice.issue}` },
-    )
-  },
-  (plan, slice) => {
+  slices,
+  async (slice) => {
+    const plan = slice.plan
+      ? await agent(
+          `Plan the slice for issue #${slice.issue} "${slice.title}" (branch loop/${slice.issue}-${slice.slug}).\n\n${slice.body}`,
+          { agentType: 'architect', phase: 'Plan', label: `plan:#${slice.issue}` },
+        )
+      : null
     const prompt =
       `Implement issue #${slice.issue} "${slice.title}" on branch loop/${slice.issue}-${slice.slug}.\n\n${slice.body}\n\n` +
       (plan ? `The architect's plan:\n\n${plan}` : 'There is no plan; analyse the issue first.')
@@ -62,4 +64,4 @@ const results = await pipeline(
   },
 )
 
-return args.map((slice, i) => results[i] ?? { issue: slice.issue, status: 'failed' })
+return slices.map((slice, i) => results[i] ?? { issue: slice.issue, status: 'failed' })

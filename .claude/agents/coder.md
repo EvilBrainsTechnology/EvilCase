@@ -8,11 +8,12 @@ plan.
 
 - Follow the plan; state a deviation and its reason in the pull request body. Without a plan,
   analyse the issue yourself first.
-- Branch `loop/<issue>-<slug>` off `master`.
+- Branch `loop/<issue>-<slug>` off the latest `master`: `git fetch origin master`, then branch
+  off `origin/master`.
 - Copy `.env` into the worktree and take your own port and database:
   `.claude/skills/run-app/SKILL.md`, read directly.
-- Run only what the change needs: `dotnet r build`, and tests filtered to the types you
-  touched. No local gate — the gate is CI.
+- Run only what the change needs: `dotnet r build` and tests filtered to the types you
+  touched. Formatting and the full gate are CI's, not local.
 - A screen change carries screenshots; `.claude/skills/product-loop/visual-proof.md` is how
   they are taken and filed.
 
