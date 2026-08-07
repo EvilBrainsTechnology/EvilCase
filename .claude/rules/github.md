@@ -9,9 +9,11 @@
 - Commit every logical unit that stands on its own, `add` and `commit` in one call; push once,
   at the end of the work.
 - A change in behaviour carries a test. Documentation changes in the same commit as the code.
-- A pull request is one topic, opened ready for review. Body: one or two sentences of TL;DR,
-  bullets of what changed, the assumption where one was made, the screenshot where a screen
-  changed, `Closes #<n>`. At most 1500 characters. Title and description match the diff.
+- A pull request is one topic, opened ready for review. The body fills
+  `.github/pull_request_template.md`; its comments are the instructions and stay out of the
+  body. Title and description match the diff.
+- An issue opened for the backlog fills its template in `.github/ISSUE_TEMPLATE/`. A
+  `[DECISION]` issue follows the product-loop skill instead.
 - The gate is CI on GitHub. Nobody runs a local gate before a pull request.
 - A pull request carries exactly one state label — `agent-in-progress` (an agent works on it),
   `agent-done` (waiting for the owner), `waiting-for-agent` (waiting for an agent) — and
