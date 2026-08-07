@@ -36,10 +36,9 @@ with a comment saying why.
 ## 2. Decide, do not ask
 
 Choose the reasonable answer yourself and state it in the pull request description as one
-sentence. Open a `[DECISION] <question>` issue, labelled `needs-decision` with `Blocks #<issue>`,
-only where being wrong is expensive to undo: the database schema, the domain model, security. An
-issue body is at most 800 characters. Label the dependent issue `blocked` and take something
-else.
+sentence. Open a decision issue, filling `.github/ISSUE_TEMPLATE/decision.md`, only where being
+wrong is expensive to undo: the database schema, the domain model, security. Label the
+dependent issue `blocked` and take something else.
 
 An answer is any comment on an open `needs-decision` issue that is not the agent's. Apply
 it: say what was chosen, label `decided`, close it, and unblock what referenced it. A decision
