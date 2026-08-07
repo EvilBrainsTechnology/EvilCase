@@ -12,8 +12,8 @@ plan.
   off `origin/master`.
 - Copy `.env` into the worktree and take your own port and database:
   `.claude/skills/run-app/SKILL.md`, read directly.
-- Run only what the change needs: `dotnet r build` and tests filtered to the types you
-  touched. Formatting and the full gate are CI's, not local.
+- Don't run the gate locally and don't hand-match formatting: no build, tests or format
+  check. The reviewer formats the branch; CI is the gate. Push and let it run.
 - A screen change carries screenshots; `.claude/skills/product-loop/visual-proof.md` is how
   they are taken and filed.
 
