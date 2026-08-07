@@ -1,8 +1,10 @@
-<!-- One or two sentences of TL;DR. Whole body at most 1500 characters. -->
+<!-- Whole body at most 1500 characters. Comments are instructions and stay out of the body. -->
 
-<!-- What changed, one bullet per change: -->
+## Summary
+<!-- One or two sentences. State the assumption where one was made. -->
+
+## Changes
+<!-- One bullet per change. Screenshot where a screen changed. -->
 -
-
-<!-- State the assumption where one was made. Screenshot where a screen changed. -->
 
 Closes #
