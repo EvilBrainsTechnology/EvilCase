@@ -7,4 +7,6 @@
 <!-- One bullet per change. Screenshot where a screen changed. -->
 -
 
+<!-- Add "## Risks" where the change carries one. -->
+
 Closes #

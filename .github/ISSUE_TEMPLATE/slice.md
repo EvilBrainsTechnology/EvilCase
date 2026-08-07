@@ -10,5 +10,5 @@ marks or personal data. -->
 ## Goal
 <!-- What to build. -->
 
-## Done when
+## Definition of done
 -
