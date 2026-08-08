@@ -18,6 +18,10 @@ Dashboard stojí nad reálnými daty tenantu:
 - naposledy změněné spisy,
 - hledací pole (SDR-013).
 
+Naposledy změněné spisy řadí vlastní `Updated` spisu; zápis úkonu, komentáře nebo souboru ho
+nemění — ta aktivita se ukazuje v dlaždici posledních úkonů. Seznamové dlaždice ukazují
+nejvýše 5 položek.
+
 Žádné lhůty. Prázdný tenant vede na založení prvního spisu.
 
 ## Rozhodnutí

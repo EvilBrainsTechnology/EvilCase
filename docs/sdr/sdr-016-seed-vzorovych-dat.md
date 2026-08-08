@@ -18,8 +18,8 @@ SDR-005.
   přemapovaný na nový model: pod-spisy jako podřízené spisy hlavního spisu, strany jako
   kontakty, externí značky s vazbou na kontakt, který je přidělil, úkony se směrem,
   odesílatelem a příjemcem, komentáře.
-- Soubory jsou jednoduché syntetické TXT generované při seedu. Žádná PDF, žádné binárky
-  v repozitáři.
+- Soubory jsou jednoduché syntetické TXT generované při seedu a zapsané úložištěm SDR-011,
+  jehož jádro od M2 existuje. Žádná PDF, žádné binárky v repozitáři.
 - Seeder je C# kód s daty zapsanými v kódu; markdown se neparsuje.
 - Pull request, který mění model, mění seeder ve stejném pull requestu.
 

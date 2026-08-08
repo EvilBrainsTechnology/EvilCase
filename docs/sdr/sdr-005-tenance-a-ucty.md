@@ -33,6 +33,8 @@ Data nesmí utéct mezi tenanty; únik je kritická chyba.
   `ITenantContext`, který nahrazuje `IOwnerContext`.
 - Access token nese tenant claim; `ITenantContext` ho čte z principalu.
 - `SaveChanges` kontroluje, že každý zapisovaný řádek patří tenantu z kontextu.
+- Seed běží pod explicitním tenant scope; kontrola v `SaveChanges` porovnává proti tenantu
+  dodanému seederem, ne proti principalu požadavku.
 - Unikátní indexy tenantových entit jsou kompozitní s `TenantId`.
 - Konvenční test hlídá, že žádná tenantová entita filtr nepostrádá (SDR-002).
 
@@ -40,7 +42,8 @@ Data nesmí utéct mezi tenanty; únik je kritická chyba.
 
 Beze změny: JWT access token v paměti, rotující refresh token v `__Host-` cookie,
 `PasswordHasher` (PBKDF2), pravidla v `.claude/rules/auth.md`. Jediné rozšíření je tenant
-claim v access tokenu.
+claim v access tokenu. Tenant claim se odvozuje z řádku uživatele při každém vydání tokenu,
+včetně refresh.
 
 ## Rozhodnutí
 

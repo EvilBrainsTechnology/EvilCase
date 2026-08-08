@@ -34,12 +34,13 @@ Natvrdo, bez konfigurace:
 ### Souběh
 
 Generátor čte MAX pořadí dne a vkládá; souběh chytá unikátní index a insert se opakuje
-s dalším pořadím.
+s dalším pořadím. MAX se počítá parsováním čísel odpovídajících formátu; ručně přepsané
+neodpovídající hodnoty se do pořadí nepočítají.
 
 ### Implementace
 
-Skládání, parsování a validace čísla je čistá doménová logika — statická třída bez
-`DbContext`, testovaná bez databáze (SDR-002).
+Skládání, parsování a validace čísla je čistá doménová logika bez `DbContext`, testovaná
+bez databáze (SDR-002).
 
 ## Rozhodnutí
 
@@ -51,5 +52,5 @@ Skládání, parsování a validace čísla je čistá doménová logika — sta
 
 ## Dopady
 
-Konfigurace vzorů v databázi a obrazovka Nastavení zanikají (SDR-015). Přesná shoda čísla
-naviguje rovnou na entitu (SDR-013).
+Placeholder stránka Nastavení zaniká (SDR-015). Přesná shoda čísla naviguje rovnou na
+entitu (SDR-013).

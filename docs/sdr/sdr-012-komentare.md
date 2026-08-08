@@ -15,7 +15,8 @@ Komentáře spisů a úkonů.
 - Autor je `CreatedBy`. Editovat a smazat komentář smí jen autor; vynucuje to business
   vrstva.
 - UI: chronologický seznam na detailu spisu a úkonu, přidání inline, mazání s potvrzením.
-- Autor se zobrazuje jen u komentářů; jinde v UI `CreatedBy` nefiguruje.
+- Autor se zobrazuje jen u komentářů, e-mailem uživatele — User jiné jméno nemá; jinde v UI
+  `CreatedBy` nefiguruje.
 
 ## Rozhodnutí
 

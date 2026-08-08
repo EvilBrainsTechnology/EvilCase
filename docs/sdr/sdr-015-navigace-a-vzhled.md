@@ -19,10 +19,12 @@ URL nesou UUID entit, nikdy jejich čísla:
 | --- | --- |
 | `/` | dashboard (SDR-014) |
 | `/cases` | seznam spisů |
+| `/cases/new` | založení spisu |
 | `/cases/{id}` | detail spisu |
-| `/cases/{id}/edit` | založení a editace spisu |
+| `/cases/{id}/edit` | editace spisu |
+| `/cases/{id}/act/new` | založení úkonu |
 | `/cases/{id}/act/{actId}` | detail úkonu |
-| `/cases/{id}/act/{actId}/edit` | založení a editace úkonu |
+| `/cases/{id}/act/{actId}/edit` | editace úkonu |
 | `/contacts` | kontakty |
 | `/contacts/{id}` | detail kontaktu |
 | `/login` | přihlášení |
@@ -32,11 +34,14 @@ URL nesou UUID entit, nikdy jejich čísla:
 - `/deadlines` — lhůty jsou non-goal.
 - `/echo` včetně `EchoController` a jeho kontraktu.
 - `/settings` — číslování je natvrdo (SDR-007).
+- Widget lhůt na dashboardu včetně jeho vzorových dat; zbytek dnešního dashboardu žije do
+  přepisu v M7 (SDR-014).
 
 ### Menu a vzhled
 
 Menu nese dashboard, spisy a kontakty. Vzhled zůstává současný: Tabler + TabBlazor,
-responsivita podle `.claude/rules/app.md`. Každá stránka žije v `MainLayout`.
+responsivita podle `.claude/rules/app.md`. Každá stránka žije v `MainLayout`. Každý seznam
+má prázdný stav (vzor `.empty`); kde jde záznam založit, nese výzvu k založení.
 
 ## Rozhodnutí
 

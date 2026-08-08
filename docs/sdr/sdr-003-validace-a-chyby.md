@@ -35,6 +35,8 @@ Cizí tenant nikdy nevrací 403 — existence cizích dat nesmí uniknout.
 ### Frontend
 
 - Formulář ukazuje chyby polí u polí, chybu požadavku nad formulářem.
+- Mimo formulář: 401 po neúspěšném tichém refreshi přesměruje na `/login`, 404 vykreslí
+  stav nenalezeno, selhání sítě ukáže toast.
 - Destruktivní operace se potvrzuje dialogem; kaskádové smazání jmenuje, co bere s sebou.
 
 ## Rozhodnutí

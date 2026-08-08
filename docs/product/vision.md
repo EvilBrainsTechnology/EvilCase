@@ -37,8 +37,9 @@ volitelný rodič, libovolná hloubka, UI ukazuje jen ploché seznamy. Bez tagů
 ([SDR-008](../sdr/sdr-008-spisy.md))
 
 **Úkon** — jednotka práce ve spisu: jedno podání, rozhodnutí, vyrozumění nebo výzva. Má směr
-(příchozí/odchozí), povinného odesílatele a nepovinného příjemce, explicitní datum, N externích
-čísel jednacích, popis, komentáře a soubory. Seznamy úkonů se řadí výhradně podle data úkonu.
+(příchozí/odchozí), povinného odesílatele a nepovinného příjemce, explicitní datum, název,
+N externích čísel jednacích, popis, komentáře a soubory. Seznamy úkonů se řadí podle data
+úkonu vzestupně; shodná data řadí `Created`.
 ([SDR-009](../sdr/sdr-009-ukony.md))
 
 **Kontakt** — úřad, úřední osoba nebo člověk; plochý, sdílený napříč spisy; nese id datové
@@ -96,10 +97,10 @@ V pořadí podle toho, co při práci s reálným spisem bolí nejvíc:
 | # | Milník | Dodá | Řídí |
 | --- | --- | --- | --- |
 | M1 | Úklid | smazání stránek a API mimo vizi: `/deadlines`, `/echo` s kontrolerem a kontraktem, `/settings` | SDR-015 |
-| M2 | Datový model a seed | nové entity, tenance, interceptory, číslování, jedna Init migrace, rename Party → Contact, seed účtů i vzorových dat | SDR-005, 006, 007, 010, 016 |
-| M3 | Spisy | seznam, detail a editace spisu; hierarchie, externí značky, komentáře spisů, kaskádové mazání | SDR-008, 012 |
-| M4 | Úkony | detail a editace úkonu; směr, kontakty, externí čísla, komentáře úkonů | SDR-009, 012 |
-| M5 | Soubory | úložiště, upload včetně hromadného přetažením, download, mazání | SDR-011 |
+| M2 | Datový model a seed | nové entity, tenance, interceptory, číslování, jedna Init migrace, rename Party → Contact, jádro souborového úložiště, seed účtů i vzorových dat | SDR-005, 006, 007, 010, 011, 016 |
+| M3 | Spisy | seznam, detail a editace spisu; hierarchie, externí značky, komentáře spisů, kaskádové mazání | SDR-008, 010, 012 |
+| M4 | Úkony | detail a editace úkonu; směr, kontakty, externí čísla, komentáře úkonů | SDR-009, 010, 012 |
+| M5 | Soubory | UI souborů: upload včetně hromadného přetažením, download, mazání | SDR-011 |
 | M6 | Kontakty | agenda kontaktů s výskyty, inline výběr, defaultní kontakt v UI | SDR-010 |
 | M7 | Dashboard a hledání | dashboard nad reálnými daty, fulltext s navigací přesnou shodou | SDR-013, 014 |
 

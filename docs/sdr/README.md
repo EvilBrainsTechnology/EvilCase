@@ -29,8 +29,8 @@ Základ 005–007 (tenance, model, číslování), agendy 008–012, aplikace 01
 | [007](sdr-007-cislovani.md) | Číslování | M2 |
 | [008](sdr-008-spisy.md) | Spisy | M3 |
 | [009](sdr-009-ukony.md) | Úkony | M4 |
-| [010](sdr-010-kontakty.md) | Kontakty | M2, M6 |
-| [011](sdr-011-soubory.md) | Soubory | M5 |
+| [010](sdr-010-kontakty.md) | Kontakty | M2, M3, M4, M6 |
+| [011](sdr-011-soubory.md) | Soubory | M2, M5 |
 | [012](sdr-012-komentare.md) | Komentáře | M3, M4 |
 | [013](sdr-013-vyhledavani.md) | Vyhledávání | M7 |
 | [014](sdr-014-dashboard.md) | Dashboard | M7 |

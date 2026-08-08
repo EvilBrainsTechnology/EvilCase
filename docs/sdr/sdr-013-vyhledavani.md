@@ -20,7 +20,9 @@ diakritiku a velikost písmen.
 ### Technika
 
 - Spis i úkon nesou normalizovaný sloupec `SearchText`: hledaná pole složená dohromady,
-  lowercase, diakritika odstraněná v .NET. Plní ho každý zápis entity.
+  lowercase, diakritika odstraněná v .NET. Přepočítává ho každý zápis, který ho ovlivňuje —
+  i přidání, editace nebo smazání externího čísla a ruční přepis čísla, ne jen editace
+  vlastního řádku entity.
 - Dotaz se normalizuje stejně a hledá se `LIKE '%…%'`.
 - Jeden endpoint vrací spisy i úkony dohromady.
 
@@ -32,7 +34,9 @@ diakritiku a velikost písmen.
 
 ### UI
 
-Hledací pole na dashboardu a v seznamu spisů; debounce, hledá se od 2 znaků.
+Hledací pole na dashboardu a v seznamu spisů; debounce, hledá se od 2 znaků. Kombinované
+výsledky — spisy i úkony — se ukazují v rozbalovacím seznamu pod polem, nejvýše 10 položek.
+Navigace přesnou shodou se spouští jen Enterem nebo výběrem položky, nikdy během psaní.
 
 ## Rozhodnutí
 

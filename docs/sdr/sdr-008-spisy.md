@@ -17,6 +17,9 @@ soubory SDR-011, komentáře SDR-012.
 Case: `ParentCaseId?`, `CaseNumber`, explicitní datum (`DateOnly`), název, popis, stav
 `Active` / `WaitingOnAuthority` / `Closed`. Bez tagů.
 
+Stav je jen štítek: na nic se neváže, spis ve stavu `Closed` jde editovat a přijímá úkony,
+soubory i komentáře jako každý jiný. Nový spis vzniká jako `Active`.
+
 ### Hierarchie
 
 - Rodič je volitelný, hloubka libovolná. Cyklus je zakázaný; hlídá ho zápis v business
@@ -31,9 +34,11 @@ kontakt, který značku přidělil. Hodnota je unikátní per spis. Spravují se
 
 ### Stránky
 
-- `/cases` — seznam spisů: číslo, název, stav, datum; hledání (SDR-013).
+- `/cases` — seznam spisů: číslo, název, stav, datum; hledání (SDR-013). Řadí se podle data
+  spisu sestupně, shodná data řadí `Created`; bez stránkování.
+- `/cases/new` — založení.
 - `/cases/{id}` — detail: údaje, značky, podřízené spisy, úkony, soubory, komentáře.
-- `/cases/{id}/edit` — založení a editace.
+- `/cases/{id}/edit` — editace.
 
 ### Mazání
 
@@ -45,6 +50,7 @@ kaskáda bere. Podřízené spisy přežijí bez rodiče.
 - Podřízené spisy při smazání rodiče: kaskáda / osiření. Platí osiření — rodič se vynuluje.
 - Hierarchie v UI: strom / ploché seznamy. Platí ploché seznamy.
 - Datum spisu: datum založení záznamu / explicitní pole. Platí explicitní pole.
+- Stav spisu: řídí chování / jen štítek. Platí jen štítek.
 
 ## Dopady
 

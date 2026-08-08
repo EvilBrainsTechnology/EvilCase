@@ -29,14 +29,17 @@ kontakt, který číslo přidělil. Tabulka, ne sloupec; hodnota unikátní per 
 
 ### Stránky a řazení
 
+- `/cases/{id}/act/new` — založení.
 - `/cases/{id}/act/{actId}` — detail: údaje, externí čísla, soubory, komentáře.
-- `/cases/{id}/act/{actId}/edit` — založení a editace.
-- Seznam úkonů žije v detailu spisu a řadí se výhradně podle data úkonu.
+- `/cases/{id}/act/{actId}/edit` — editace.
+- Seznam úkonů žije v detailu spisu a řadí se podle data úkonu vzestupně; shodná data řadí
+  `Created`.
 
 ## Rozhodnutí
 
 - Odesílatel: zamčený na defaultní kontakt / volně změnitelný. Platí volně změnitelný.
-- Řazení: datum + pořadové číslo / jen datum. Platí jen datum úkonu.
+- Řazení: datum + pořadové číslo / jen datum. Viditelné řazení je datum úkonu; shodná data
+  řadí deterministicky `Created`.
 - Externí číslo: jeden sloupec / N řádků s kontaktem. Platí N řádků s kontaktem.
 
 ## Dopady

@@ -38,6 +38,8 @@ Account → Tenant → User (SDR-005). Tenantová data:
   `TimeProvider`.
 - Tenantové entity nesou `TenantId` a `CreatedBy` (SDR-005).
 - Datum spisu a úkonu je `DateOnly` (`.claude/rules/data.md`).
+- Délky řetězců: název 256, popis 4000, název kontaktu 256, adresa 1024, id datové
+  schránky 16, hodnota externího čísla 128.
 
 ### Matice mazání
 
@@ -62,6 +64,8 @@ Nasazená data se zahodí — databázi dropne owner ručně.
 - Vazby spisů: symetrická relace / rodičovská hierarchie. Platí rodič.
 - Tagy: zůstávají / zanikají. Zanikají.
 - Migrace: řetěz na stávajících 12 / reset. Platí reset jednou `Init` migrací.
+- Optimistická konkurence: token / bez tokenu. Platí zatím bez tokenu — poslední zápis
+  vyhrává.
 
 ## Dopady
 
