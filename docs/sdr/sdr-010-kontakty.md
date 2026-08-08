@@ -1,9 +1,9 @@
-# SDR-006 — Kontakty
+# SDR-010 — Kontakty
 
 - **Stav:** platí
 - **Milníky:** M2, M6
-- **Související SDR:** [004](sdr-004-spisy.md), [005](sdr-005-ukony.md),
-  [014](sdr-014-validace-a-chyby.md)
+- **Související SDR:** [003](sdr-003-validace-a-chyby.md), [008](sdr-008-spisy.md),
+  [009](sdr-009-ukony.md)
 
 ## Rozsah
 
@@ -15,13 +15,13 @@ Entita kontaktu, defaultní kontakt uživatele, inline výběr a agenda kontakt�
 
 Contact — přejmenovaná Party, `Kind` zůstává (`Authority` / `Official` / `Person`): název,
 id datové schránky, adresa jako jeden volný text tištěný po blocích. Rename entity vzniká
-v M2 (SDR-002); agenda přichází v M6.
+v M2 (SDR-006); agenda přichází v M6.
 
 ### Defaultní kontakt
 
 Vzniká automaticky při založení uživatele s názvem z jeho e-mailu; ukazuje na něj
 `User.DefaultContactId`. Jde přejmenovat, smazat nejde. Předvyplňuje se jako odesílatel
-odchozích a příjemce příchozích úkonů (SDR-005).
+odchozích a příjemce příchozích úkonů (SDR-009).
 
 ### Výběr a založení
 
@@ -36,7 +36,7 @@ nebo založit nový bez opuštění formuláře.
 
 ### Mazání
 
-Smazat jde jen kontakt, na který nic neodkazuje; jinak 409 (SDR-014). Defaultní kontakt
+Smazat jde jen kontakt, na který nic neodkazuje; jinak 409 (SDR-003). Defaultní kontakt
 smazat nejde.
 
 ## Rozhodnutí
@@ -48,4 +48,4 @@ smazat nejde.
 
 ## Dopady
 
-Rename Party → Contact prochází kódem, kontraktem i UI (SDR-002, SDR-013).
+Rename Party → Contact prochází kódem, kontraktem i UI (SDR-004, SDR-006).

@@ -1,9 +1,9 @@
-# SDR-007 — Soubory
+# SDR-011 — Soubory
 
 - **Stav:** platí
 - **Milníky:** M5
-- **Související SDR:** [002](sdr-002-domenovy-model.md), [015](sdr-015-testovani.md),
-  [016](sdr-016-logovani-a-observabilita.md)
+- **Související SDR:** [001](sdr-001-logovani-a-observabilita.md), [002](sdr-002-testovani.md),
+  [006](sdr-006-domenovy-model.md)
 
 ## Rozsah
 
@@ -45,5 +45,5 @@ prosté, s potvrzením.
 
 ## Dopady
 
-`ActFileReference` zaniká (SDR-002). Úložiště se testuje na temp adresáři (SDR-015). Zápis
-a smazání blobu se loguje, obsah nikdy (SDR-016).
+`ActFileReference` zaniká (SDR-006). Úložiště se testuje na temp adresáři (SDR-002). Zápis
+a smazání blobu se loguje, obsah nikdy (SDR-001).

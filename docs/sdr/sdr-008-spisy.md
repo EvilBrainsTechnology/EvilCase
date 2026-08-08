@@ -1,14 +1,14 @@
-# SDR-004 — Spisy
+# SDR-008 — Spisy
 
 - **Stav:** platí
 - **Milníky:** M3
-- **Související SDR:** [002](sdr-002-domenovy-model.md), [003](sdr-003-cislovani.md),
-  [006](sdr-006-kontakty.md), [008](sdr-008-komentare.md)
+- **Související SDR:** [006](sdr-006-domenovy-model.md), [007](sdr-007-cislovani.md),
+  [010](sdr-010-kontakty.md), [012](sdr-012-komentare.md)
 
 ## Rozsah
 
-Entita spisu, hierarchie, externí značky, stránky spisů a mazání. Číslování patří SDR-003,
-soubory SDR-007, komentáře SDR-008.
+Entita spisu, hierarchie, externí značky, stránky spisů a mazání. Číslování patří SDR-007,
+soubory SDR-011, komentáře SDR-012.
 
 ## Popis
 
@@ -31,7 +31,7 @@ kontakt, který značku přidělil. Hodnota je unikátní per spis. Spravují se
 
 ### Stránky
 
-- `/cases` — seznam spisů: číslo, název, stav, datum; hledání (SDR-009).
+- `/cases` — seznam spisů: číslo, název, stav, datum; hledání (SDR-013).
 - `/cases/{id}` — detail: údaje, značky, podřízené spisy, úkony, soubory, komentáře.
 - `/cases/{id}/edit` — založení a editace.
 
@@ -48,5 +48,5 @@ kaskáda bere. Podřízené spisy přežijí bez rodiče.
 
 ## Dopady
 
-`CaseRelation` a `CaseTag` zanikají (SDR-002). Značky vyžadují kontakt (SDR-006). Přesná
-shoda značky naviguje (SDR-009).
+`CaseRelation` a `CaseTag` zanikají (SDR-006). Značky vyžadují kontakt (SDR-010). Přesná
+shoda značky naviguje (SDR-013).

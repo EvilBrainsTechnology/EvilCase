@@ -1,26 +1,26 @@
-# SDR-005 — Úkony
+# SDR-009 — Úkony
 
 - **Stav:** platí
 - **Milníky:** M4
-- **Související SDR:** [003](sdr-003-cislovani.md), [004](sdr-004-spisy.md),
-  [006](sdr-006-kontakty.md), [008](sdr-008-komentare.md)
+- **Související SDR:** [007](sdr-007-cislovani.md), [008](sdr-008-spisy.md),
+  [010](sdr-010-kontakty.md), [012](sdr-012-komentare.md)
 
 ## Rozsah
 
 Entita úkonu, směr a kontakty, externí čísla jednací, stránky a řazení. Soubory patří
-SDR-007, komentáře SDR-008.
+SDR-011, komentáře SDR-012.
 
 ## Popis
 
 ### Entita
 
-Act: `CaseId`, `ActNumber` (SDR-003), název, explicitní datum (`DateOnly`), popis, směr
+Act: `CaseId`, `ActNumber` (SDR-007), název, explicitní datum (`DateOnly`), popis, směr
 `Incoming` / `Outgoing`. Odesílatel je povinný kontakt, příjemce nepovinný kontakt.
 
 ### Předvyplnění
 
 Odchozí úkon předvyplní odesílatele defaultním kontaktem uživatele, příchozí příjemce
-(SDR-006). Obojí jde před uložením volně změnit.
+(SDR-010). Obojí jde před uložením volně změnit.
 
 ### Externí čísla jednací
 
@@ -41,5 +41,5 @@ kontakt, který číslo přidělil. Tabulka, ne sloupec; hodnota unikátní per 
 
 ## Dopady
 
-Sloupec `Act.ExternalActNumber` zaniká (SDR-002). Přesná shoda externího čísla naviguje jen
-při jednoznačnosti (SDR-009).
+Sloupec `Act.ExternalActNumber` zaniká (SDR-006). Přesná shoda externího čísla naviguje jen
+při jednoznačnosti (SDR-013).

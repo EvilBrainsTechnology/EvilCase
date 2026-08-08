@@ -1,8 +1,8 @@
-# SDR-014 — Validace a chyby
+# SDR-003 — Validace a chyby
 
 - **Stav:** platí
 - **Milníky:** průřez
-- **Související SDR:** [001](sdr-001-tenance-a-ucty.md), [013](sdr-013-api-konvence.md)
+- **Související SDR:** [004](sdr-004-api-konvence.md), [005](sdr-005-tenance-a-ucty.md)
 
 ## Rozsah
 
@@ -44,4 +44,4 @@ Cizí tenant nikdy nevrací 403 — existence cizích dat nesmí uniknout.
 
 ## Dopady
 
-Platí pro každý endpoint z SDR-013 a každý formulář agend SDR-004 až 010.
+Platí pro každý endpoint z SDR-004 a každý formulář agend SDR-008 až 014.

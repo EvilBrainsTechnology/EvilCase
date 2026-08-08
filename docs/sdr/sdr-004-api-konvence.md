@@ -1,9 +1,9 @@
-# SDR-013 — API konvence
+# SDR-004 — API konvence
 
 - **Stav:** platí
 - **Milníky:** průřez
-- **Související SDR:** [001](sdr-001-tenance-a-ucty.md), [011](sdr-011-navigace-a-vzhled.md),
-  [014](sdr-014-validace-a-chyby.md)
+- **Související SDR:** [003](sdr-003-validace-a-chyby.md), [005](sdr-005-tenance-a-ucty.md),
+  [015](sdr-015-navigace-a-vzhled.md)
 
 ## Rozsah
 
@@ -33,7 +33,7 @@ Tvary API a klienta pro nové agendy. Z velké části dnešní stav, který pla
 
 - Id v routách je `Guid`.
 - Tenanta dodává `ITenantContext`; endpoint ani dotaz nikdy neberou id tenanta parametrem
-  (SDR-001).
+  (SDR-005).
 
 ## Rozhodnutí
 
@@ -42,5 +42,5 @@ Tvary API a klienta pro nové agendy. Z velké části dnešní stav, který pla
 
 ## Dopady
 
-`EchoController`, jeho kontrakt a klient zanikají v M1 (SDR-011). Chybové odpovědi drží
-SDR-014.
+`EchoController`, jeho kontrakt a klient zanikají v M1 (SDR-015). Chybové odpovědi drží
+SDR-003.

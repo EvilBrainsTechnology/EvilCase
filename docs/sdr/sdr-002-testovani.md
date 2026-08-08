@@ -1,9 +1,9 @@
-# SDR-015 — Testování
+# SDR-002 — Testování
 
 - **Stav:** platí
 - **Milníky:** průřez
-- **Související SDR:** [001](sdr-001-tenance-a-ucty.md), [003](sdr-003-cislovani.md),
-  [007](sdr-007-soubory.md), [009](sdr-009-vyhledavani.md), [012](sdr-012-seed-vzorovych-dat.md)
+- **Související SDR:** [005](sdr-005-tenance-a-ucty.md), [007](sdr-007-cislovani.md),
+  [011](sdr-011-soubory.md), [013](sdr-013-vyhledavani.md), [016](sdr-016-seed-vzorovych-dat.md)
 
 ## Rozsah
 
@@ -22,12 +22,12 @@ Vrstvy testů a povinné testy nových oblastí.
 ### Nové povinnosti
 
 - Konvenční test izolace tenantů: každá tenantová entita má query filter a `TenantId`
-  v unikátních indexech (SDR-001).
+  v unikátních indexech (SDR-005).
 - Testy číslování: formát, pořadí per den, přetečení, zpětné datování, ruční přepis
-  (SDR-003).
-- Souborové úložiště na temp adresáři: zápis, atomicita, smazání blobu (SDR-007).
-- Fold diakritiky a plnění `SearchText` (SDR-009).
-- Smoke test seedu: seed proběhne a založí spis se stromem (SDR-012).
+  (SDR-007).
+- Souborové úložiště na temp adresáři: zápis, atomicita, smazání blobu (SDR-011).
+- Fold diakritiky a plnění `SearchText` (SDR-013).
+- Smoke test seedu: seed proběhne a založí spis se stromem (SDR-016).
 
 ## Rozhodnutí
 
@@ -36,4 +36,4 @@ Vrstvy testů a povinné testy nových oblastí.
 ## Dopady
 
 Testy `CaseRelation`, `CaseTag` a `PrincipalOwnerContext` zanikají se svými typy v M2
-(SDR-002).
+(SDR-006).

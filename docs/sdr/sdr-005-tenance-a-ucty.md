@@ -1,14 +1,14 @@
-# SDR-001 — Tenance a účty
+# SDR-005 — Tenance a účty
 
 - **Stav:** platí
 - **Milníky:** M2
-- **Související SDR:** [002](sdr-002-domenovy-model.md), [013](sdr-013-api-konvence.md),
-  [015](sdr-015-testovani.md)
+- **Související SDR:** [002](sdr-002-testovani.md), [004](sdr-004-api-konvence.md),
+  [006](sdr-006-domenovy-model.md)
 
 ## Rozsah
 
 Účty, tenanti, uživatelé, izolace dat mezi tenanty a rozšíření autentizace o tenanta.
-Doménové entity popisuje SDR-002.
+Doménové entity popisuje SDR-006.
 
 ## Popis
 
@@ -17,7 +17,7 @@ Doménové entity popisuje SDR-002.
 - **Account** — id a název. Zastřešuje N tenantů.
 - **Tenant** — id, název, `AccountId`. Hranice izolace dat.
 - **User** — patří právě jednomu tenantu (`User.TenantId`). Dnešní sloupce (e-mail, hash
-  hesla, role, lockout) zůstávají; přibývá `TenantId` a `DefaultContactId` (SDR-006).
+  hesla, role, lockout) zůstávají; přibývá `TenantId` a `DefaultContactId` (SDR-010).
 
 Každá tenantová entita nese `TenantId` a `CreatedBy` (id uživatele, který ji založil).
 
@@ -34,7 +34,7 @@ Data nesmí utéct mezi tenanty; únik je kritická chyba.
 - Access token nese tenant claim; `ITenantContext` ho čte z principalu.
 - `SaveChanges` kontroluje, že každý zapisovaný řádek patří tenantu z kontextu.
 - Unikátní indexy tenantových entit jsou kompozitní s `TenantId`.
-- Konvenční test hlídá, že žádná tenantová entita filtr nepostrádá (SDR-015).
+- Konvenční test hlídá, že žádná tenantová entita filtr nepostrádá (SDR-002).
 
 ### Autentizace
 
@@ -53,5 +53,5 @@ claim v access tokenu.
 ## Dopady
 
 - `IOwnerContext` a `PrincipalOwnerContext` zanikají; nahrazuje je `ITenantContext`.
-- Sloupce `OwnerId` zanikají; nahrazuje je `TenantId` + `CreatedBy` (SDR-002).
+- Sloupce `OwnerId` zanikají; nahrazuje je `TenantId` + `CreatedBy` (SDR-006).
 - `.claude/rules/business.md` (Ownership) se mění s kódem M2.

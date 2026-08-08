@@ -1,9 +1,9 @@
-# SDR-009 — Vyhledávání
+# SDR-013 — Vyhledávání
 
 - **Stav:** platí
 - **Milníky:** M7
-- **Související SDR:** [003](sdr-003-cislovani.md), [004](sdr-004-spisy.md),
-  [005](sdr-005-ukony.md), [015](sdr-015-testovani.md)
+- **Související SDR:** [002](sdr-002-testovani.md), [007](sdr-007-cislovani.md),
+  [008](sdr-008-spisy.md), [009](sdr-009-ukony.md)
 
 ## Rozsah
 
@@ -44,4 +44,4 @@ Hledací pole na dashboardu a v seznamu spisů; debounce, hledá se od 2 znaků.
 ## Dopady
 
 Dnešní ILIKE hledání v `CaseListQuery` zaniká; nahrazuje ho `SearchText`. Fold diakritiky má
-test (SDR-015).
+test (SDR-002).

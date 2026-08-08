@@ -1,9 +1,9 @@
-# SDR-010 — Dashboard
+# SDR-014 — Dashboard
 
 - **Stav:** platí
 - **Milníky:** M7
-- **Související SDR:** [004](sdr-004-spisy.md), [005](sdr-005-ukony.md),
-  [009](sdr-009-vyhledavani.md)
+- **Související SDR:** [008](sdr-008-spisy.md), [009](sdr-009-ukony.md),
+  [013](sdr-013-vyhledavani.md)
 
 ## Rozsah
 
@@ -16,7 +16,7 @@ Dashboard stojí nad reálnými daty tenantu:
 - dlaždice počtů spisů podle stavu,
 - poslední úkony podle data úkonu, s odkazem do detailu,
 - naposledy změněné spisy,
-- hledací pole (SDR-009).
+- hledací pole (SDR-013).
 
 Žádné lhůty. Prázdný tenant vede na založení prvního spisu.
 

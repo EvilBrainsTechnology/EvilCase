@@ -1,9 +1,9 @@
-# SDR-011 — Navigace a vzhled
+# SDR-015 — Navigace a vzhled
 
 - **Stav:** platí
 - **Milníky:** M1
-- **Související SDR:** [003](sdr-003-cislovani.md), [009](sdr-009-vyhledavani.md),
-  [010](sdr-010-dashboard.md)
+- **Související SDR:** [007](sdr-007-cislovani.md), [013](sdr-013-vyhledavani.md),
+  [014](sdr-014-dashboard.md)
 
 ## Rozsah
 
@@ -17,7 +17,7 @@ URL nesou UUID entit, nikdy jejich čísla:
 
 | Routa | Obsah |
 | --- | --- |
-| `/` | dashboard (SDR-010) |
+| `/` | dashboard (SDR-014) |
 | `/cases` | seznam spisů |
 | `/cases/{id}` | detail spisu |
 | `/cases/{id}/edit` | založení a editace spisu |
@@ -31,7 +31,7 @@ URL nesou UUID entit, nikdy jejich čísla:
 
 - `/deadlines` — lhůty jsou non-goal.
 - `/echo` včetně `EchoController` a jeho kontraktu.
-- `/settings` — číslování je natvrdo (SDR-003).
+- `/settings` — číslování je natvrdo (SDR-007).
 
 ### Menu a vzhled
 
@@ -46,4 +46,4 @@ responsivita podle `.claude/rules/app.md`. Každá stránka žije v `MainLayout`
 ## Dopady
 
 M1 maže rušené stránky, `EchoController`, jeho kontrakt a klienta. Dashboard se přepisuje
-v M7 (SDR-010).
+v M7 (SDR-014).

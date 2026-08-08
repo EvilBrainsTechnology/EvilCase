@@ -1,9 +1,9 @@
-# SDR-008 — Komentáře
+# SDR-012 — Komentáře
 
 - **Stav:** platí
 - **Milníky:** M3, M4
-- **Související SDR:** [002](sdr-002-domenovy-model.md), [004](sdr-004-spisy.md),
-  [005](sdr-005-ukony.md)
+- **Související SDR:** [006](sdr-006-domenovy-model.md), [008](sdr-008-spisy.md),
+  [009](sdr-009-ukony.md)
 
 ## Rozsah
 
@@ -25,4 +25,4 @@ Komentáře spisů a úkonů.
 ## Dopady
 
 Komentáře spisů přicházejí s M3, komentáře úkonů s M4. Smazání spisu a úkonu bere komentáře
-kaskádou (SDR-002).
+kaskádou (SDR-006).

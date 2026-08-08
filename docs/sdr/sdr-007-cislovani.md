@@ -1,14 +1,14 @@
-# SDR-003 — Číslování
+# SDR-007 — Číslování
 
 - **Stav:** platí
 - **Milníky:** M2
-- **Související SDR:** [004](sdr-004-spisy.md), [005](sdr-005-ukony.md),
-  [009](sdr-009-vyhledavani.md)
+- **Související SDR:** [008](sdr-008-spisy.md), [009](sdr-009-ukony.md),
+  [013](sdr-013-vyhledavani.md)
 
 ## Rozsah
 
 Interní spisové značky (`CaseNumber`) a čísla jednací (`ActNumber`). Externí čísla jsou
-volný text a patří SDR-004 a SDR-005.
+volný text a patří SDR-008 a SDR-009.
 
 ## Popis
 
@@ -39,17 +39,17 @@ s dalším pořadím.
 ### Implementace
 
 Skládání, parsování a validace čísla je čistá doménová logika — statická třída bez
-`DbContext`, testovaná bez databáze (SDR-015).
+`DbContext`, testovaná bez databáze (SDR-002).
 
 ## Rozhodnutí
 
 - Vzory: konfigurovatelné v Nastavení / natvrdo. Platí natvrdo; obrazovka Nastavení zaniká
-  (SDR-011).
+  (SDR-015).
 - Souběh: DB sekvence per den / MAX + insert s retry. Platí MAX + insert s retry na unique
   violation.
 - Změna data entity: číslo se přegenerovává / nemění. Číslo se nemění.
 
 ## Dopady
 
-Konfigurace vzorů v databázi a obrazovka Nastavení zanikají (SDR-011). Přesná shoda čísla
-naviguje rovnou na entitu (SDR-009).
+Konfigurace vzorů v databázi a obrazovka Nastavení zanikají (SDR-015). Přesná shoda čísla
+naviguje rovnou na entitu (SDR-013).

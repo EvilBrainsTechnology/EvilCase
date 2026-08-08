@@ -1,14 +1,14 @@
-# SDR-012 — Seed vzorových dat
+# SDR-016 — Seed vzorových dat
 
 - **Stav:** platí
 - **Milníky:** M2
-- **Související SDR:** [002](sdr-002-domenovy-model.md), [015](sdr-015-testovani.md),
-  [016](sdr-016-logovani-a-observabilita.md)
+- **Související SDR:** [001](sdr-001-logovani-a-observabilita.md), [002](sdr-002-testovani.md),
+  [006](sdr-006-domenovy-model.md)
 
 ## Rozsah
 
 Seed vzorových dat pro vývoj a ruční ověření aplikace. Seed účtů a administrátora patří
-SDR-001.
+SDR-005.
 
 ## Popis
 
@@ -32,5 +32,5 @@ SDR-001.
 
 ## Dopady
 
-Smoke test seedu (SDR-015). Seed loguje začátek, výsledek a počty (SDR-016). Dnešní záměr
+Smoke test seedu (SDR-002). Seed loguje začátek, výsledek a počty (SDR-001). Dnešní záměr
 generovat SQL z `test-data/` zaniká; `test-data/README.md` se opraví, až se seeder napíše.

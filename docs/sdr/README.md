@@ -13,26 +13,26 @@ ve stejném pull requestu.
 
 ## Pořadí čtení
 
-Základ 001–003 (tenance, model, číslování), agendy 004–008, aplikace 009–012; průřezová
-013–016 platí pro každou změnu ve své oblasti.
+Základ 005–007 (tenance, model, číslování), agendy 008–012, aplikace 013–016; průřezová
+001–004 platí pro každou změnu ve své oblasti.
 
 ## Mapa SDR ↔ milník
 
 | SDR | Téma | Milníky |
 | --- | --- | --- |
-| [001](sdr-001-tenance-a-ucty.md) | Tenance a účty | M2 |
-| [002](sdr-002-domenovy-model.md) | Doménový model | M2 |
-| [003](sdr-003-cislovani.md) | Číslování | M2 |
-| [004](sdr-004-spisy.md) | Spisy | M3 |
-| [005](sdr-005-ukony.md) | Úkony | M4 |
-| [006](sdr-006-kontakty.md) | Kontakty | M2, M6 |
-| [007](sdr-007-soubory.md) | Soubory | M5 |
-| [008](sdr-008-komentare.md) | Komentáře | M3, M4 |
-| [009](sdr-009-vyhledavani.md) | Vyhledávání | M7 |
-| [010](sdr-010-dashboard.md) | Dashboard | M7 |
-| [011](sdr-011-navigace-a-vzhled.md) | Navigace a vzhled | M1 |
-| [012](sdr-012-seed-vzorovych-dat.md) | Seed vzorových dat | M2 |
-| [013](sdr-013-api-konvence.md) | API konvence | průřez |
-| [014](sdr-014-validace-a-chyby.md) | Validace a chyby | průřez |
-| [015](sdr-015-testovani.md) | Testování | průřez |
-| [016](sdr-016-logovani-a-observabilita.md) | Logování a observabilita | průřez |
+| [001](sdr-001-logovani-a-observabilita.md) | Logování a observabilita | průřez |
+| [002](sdr-002-testovani.md) | Testování | průřez |
+| [003](sdr-003-validace-a-chyby.md) | Validace a chyby | průřez |
+| [004](sdr-004-api-konvence.md) | API konvence | průřez |
+| [005](sdr-005-tenance-a-ucty.md) | Tenance a účty | M2 |
+| [006](sdr-006-domenovy-model.md) | Doménový model | M2 |
+| [007](sdr-007-cislovani.md) | Číslování | M2 |
+| [008](sdr-008-spisy.md) | Spisy | M3 |
+| [009](sdr-009-ukony.md) | Úkony | M4 |
+| [010](sdr-010-kontakty.md) | Kontakty | M2, M6 |
+| [011](sdr-011-soubory.md) | Soubory | M5 |
+| [012](sdr-012-komentare.md) | Komentáře | M3, M4 |
+| [013](sdr-013-vyhledavani.md) | Vyhledávání | M7 |
+| [014](sdr-014-dashboard.md) | Dashboard | M7 |
+| [015](sdr-015-navigace-a-vzhled.md) | Navigace a vzhled | M1 |
+| [016](sdr-016-seed-vzorovych-dat.md) | Seed vzorových dat | M2 |
