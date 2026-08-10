@@ -24,6 +24,7 @@ soubory i komentáře jako každý jiný. Nový spis vzniká jako `Active`.
 
 - Rodič je volitelný, hloubka libovolná. Cyklus je zakázaný; hlídá ho zápis v business
   vrstvě.
+- Podřízený spis se zakládá z detailu rodiče; rodič jde nastavit i v editaci spisu.
 - UI zobrazuje jen ploché seznamy: detail spisu ukazuje odkaz na rodiče a seznam přímých
   podřízených spisů. Žádný strom.
 

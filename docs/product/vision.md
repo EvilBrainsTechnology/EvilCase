@@ -100,7 +100,7 @@ V pořadí podle toho, co při práci s reálným spisem bolí nejvíc:
 | M1 | Úklid | smazání stránek a API mimo vizi: `/deadlines`, `/echo` s kontrolerem a kontraktem, `/settings` | SDR-015 |
 | M2 | Datový model a seed | nové entity, tenance, interceptory, číslování, jedna Init migrace, rename Party → Contact, jádro souborového úložiště, seed účtů i vzorových dat | SDR-005, 006, 007, 010, 011, 016 |
 | M3 | Spisy | seznam, založení, detail a editace spisu; hierarchie, externí značky, komentáře spisů, kaskádové mazání | SDR-008, 010, 012 |
-| M4 | Úkony | založení, detail a editace úkonu; směr, kontakty, externí čísla, komentáře úkonů | SDR-009, 010, 012 |
+| M4 | Úkony | založení, detail, editace a mazání úkonu; směr, kontakty, externí čísla, komentáře úkonů | SDR-009, 010, 012 |
 | M5 | Soubory | UI souborů: upload včetně hromadného přetažením, download, mazání | SDR-011 |
 | M6 | Kontakty | agenda kontaktů s výskyty, defaultní kontakt v UI | SDR-010 |
 | M7 | Dashboard a hledání | dashboard nad reálnými daty, fulltext s navigací přesnou shodou | SDR-013, 014 |
