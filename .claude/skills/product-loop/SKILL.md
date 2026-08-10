@@ -10,28 +10,28 @@ permission to continue and never wait for the owner.
 
 ## 1. Start the work, before anything else in the round
 
-The backlog is the open issues labelled `loop`, neither `blocked` nor `needs-decision`: highest
-`Priority` (`Urgent`, `High`, `Medium`, `Low`, then none), the lowest milestone breaking a tie,
-honouring a focus argument. Empty backlog: do nothing.
+A round begins with `TaskList`, before the backlog is read. A running workflow is dead when its
+task transcript file's mtime is over 15 minutes old or the task is over 3 hours old; one still
+writing runs on. A dead workflow gets `TaskStop`; a dead or failed run loses worktrees, local
+branches and the remote `loop/<issue>-…` branch that no open pull request references. A round
+removes `agent-in-progress` from any `loop` issue with no running workflow and no open pull
+request for it. A failed run comments its issue; two such comments in a row label it `blocked`.
 
-Take two or three and start one Workflow:
-`scriptPath: .claude/skills/product-loop/slice-pipeline.js`,
-`args: [{issue, slug, title, body, plan}, …]`. `plan` is true for a slice with a migration, a
-new entity, a change across layers or a touch on security; false otherwise. One slice is one
-pull request from database to UI that leaves the app usable, on `loop/<issue>-<slug>` off
-`master`. The workflow runs in the background; tend the open pull requests meanwhile and take
-its returned results into the report — the details stay inside the workflow.
+The backlog is the open issues labelled `loop` and none of `agent-in-progress` (taken),
+`blocked` or `needs-decision`: highest `Priority` (`Urgent`, `High`, `Medium`, `Low`, then none),
+the lowest milestone breaking a tie, honouring a focus argument. Empty backlog: do nothing.
+
+Take two or three and label each `agent-in-progress` before starting one Workflow
+(`.claude/skills/product-loop/slice-pipeline.js`, `args: [{issue, slug, title, body, plan}, …]`).
+`plan` is true for a slice with a migration, a new entity, a cross-layer change or a security
+touch; false otherwise. One slice is one pull request from database to UI leaving the app
+usable, on `loop/<issue>-<slug>` off `master`. The workflow runs in the background; tend open
+pull requests meanwhile and take its results into the report — details stay inside the workflow.
 
 Two slices never touch the same files, and every open pull request counts — a candidate is
 checked against the changed files of every open pull request. A migration collides with every
-other migration. An issue whose `loop/<issue>-…` branch already exists, locally or on the
-remote, is already taken. A slice that needs another's unmerged branch is not started. Where
-nothing clears this, the round starts nothing and tends what is open.
-
-Starting a workflow also creates a one-shot trigger fifty minutes out; a workflow that trigger
-finds still running is dead: `TaskStop`, and its worktrees and local branches go before any
-retry — the same after a failed run. A slice failing twice in a row labels its issue `blocked`
-with a comment saying why.
+other migration. A slice that needs another's unmerged branch is not started. Where nothing
+clears this, the round starts nothing and tends what is open.
 
 ## 2. Decide, do not ask
 
@@ -40,9 +40,11 @@ sentence. Open a decision issue, filling `.github/ISSUE_TEMPLATE/decision.md`, o
 wrong is expensive to undo: the database schema, the domain model, security. Label the
 dependent issue `blocked` and take something else.
 
-An answer is any comment on an open `needs-decision` issue that is not the agent's. Apply
-it: say what was chosen, label `decided`, close it, and unblock what referenced it. A decision
-that changes the vision updates it in the same commit as the code it governs.
+An answer is a comment from the owner, `vdolek`, on an open `needs-decision` issue. Apply it:
+say what was chosen, label `decided`, close it, and unblock what referenced it. A decision that
+changes the vision or a governing SDR updates it in the same commit as the code it governs.
+A round removes `blocked` from an issue whose blockers, read from the `Blocked by #` line in
+its body, have all merged or closed.
 
 ## 3. Tend the open pull requests
 
@@ -50,10 +52,10 @@ that changes the vision updates it in the same commit as the code it governs.
 - Answer every review comment in the round that finds it. Outstanding means a thread with no
   agent reply — read the threads, never filter by timestamp or count. A comment is at most
   three sentences; a reply to a review one says what changed, or why not.
-- Rebase onto `master` on a conflict; correct a title or description that no longer matches the
-  diff.
-- A pull request labelled `agent-in-progress` with no running workflow is taken over: finish
-  the work and the threads, switch the label at the end.
+- A conflict gets its rebase onto `master` through a `pr-work.js` Workflow, never in the main
+  thread; correct a title or description that no longer matches the diff.
+- A pull request labelled `agent-in-progress` with no running workflow is taken over through
+  a `pr-work.js` Workflow: finish the work and the threads, switch the label at the end.
 - Never merge, however green or approved. Say nothing about waiting for one.
 - Review another author's pull request only when it carries `request-code-review`.
 

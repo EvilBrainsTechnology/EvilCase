@@ -13,5 +13,5 @@ pull requests, comments, issues, chat.
 - No tables of evidence, no pasted SQL, no pasted tool output.
 - Comment code in one or two lines, only where the code cannot say it. Rationale goes in the
   commit message.
-- Everything committed and every GitHub write is English. UI strings and
-  `docs/product/vision.md` are Czech. Chat follows the user's language.
+- Everything committed and every GitHub write is English. UI strings,
+  `docs/product/vision.md` and `docs/sdr/**` are Czech. Chat follows the user's language.

@@ -3,7 +3,7 @@
 Only a pull request that changes a screen carries screenshots. One width, 1440×900, signed in as
 the seeded administrator, with the app started per the run-app skill. All data is synthetic.
 
-- `screenshots.mjs` next to this file takes them and exits non-zero when a page threw.
+- `.claude/skills/product-loop/screenshots.mjs` takes them and exits non-zero when a page threw.
   `EVILCASE_WIDTHS=1440,390` adds the mobile side where a change is about responsive layout.
 
   ```bash
