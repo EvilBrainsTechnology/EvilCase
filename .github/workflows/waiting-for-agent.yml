@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Switch the state label
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const payload = context.payload;
