@@ -19,7 +19,8 @@ request for it. A failed run comments its issue; two such comments in a row labe
 
 The backlog is the open issues labelled `loop` and none of `agent-in-progress` (taken),
 `blocked` or `needs-decision`: highest `Priority` (`Urgent`, `High`, `Medium`, `Low`, then none),
-the lowest milestone breaking a tie, honouring a focus argument. Empty backlog: do nothing.
+the lowest milestone breaking a tie, honouring a focus argument. No `loop` issue open at all:
+bootstrap the backlog per `docs/loop/backlog-bootstrap.md`. Empty otherwise: start nothing.
 
 Take two or three and label each `agent-in-progress` before starting one Workflow
 (`.claude/skills/product-loop/slice-pipeline.js`, `args: [{issue, slug, title, body, plan}, …]`).
@@ -43,8 +44,7 @@ dependent issue `blocked` and take something else.
 An answer is a comment from the owner, `vdolek`, on an open `needs-decision` issue. Apply it:
 say what was chosen, label `decided`, close it, and unblock what referenced it. A decision that
 changes the vision or a governing SDR updates it in the same commit as the code it governs.
-A round removes `blocked` from an issue whose blockers, read from the `Blocked by #` line in
-its body, have all merged or closed.
+A round removes `blocked` from an issue whose `Blocked by #` issues have all merged or closed.
 
 ## 3. Tend the open pull requests
 
