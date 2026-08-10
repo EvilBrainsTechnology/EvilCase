@@ -36,7 +36,7 @@ Account → Tenant → User (SDR-005). Tenantová data:
 - Id je UUIDv7, generované v aplikaci (`Guid.CreateVersion7()`).
 - Každá entita nese `Created` a `Updated`; plní je jeden `SaveChangesInterceptor` nad
   `TimeProvider`.
-- Tenantové entity nesou `TenantId` a `CreatedBy` (SDR-005).
+- Tenantové entity nesou `TenantId` a `UserId` (SDR-005).
 - Datum spisu a úkonu je `DateOnly` (`.claude/rules/data.md`).
 - Délky řetězců: název 256, popis 4000, název kontaktu 256, adresa 1024, id datové
   schránky 16, hodnota externího čísla 128.
@@ -56,8 +56,8 @@ Každé smazání se v UI potvrzuje (SDR-003).
 ### Reset schématu
 
 Dnešních 12 migrací se maže i se snapshotem; nové schéma zakládá jedna migrace `Init`. Init
-zakládá i rozšíření `unaccent`, jeho IMMUTABLE obálku a GIN fulltextové indexy vyhledávání
-(SDR-013) — M7 migraci nepotřebuje. Nasazená data se zahodí — databázi dropne owner ručně.
+zakládá i rozšíření `unaccent` a `pg_trgm`, IMMUTABLE obálku `unaccent`, GIN fulltextové
+indexy a GIN trigram indexy vyhledávání (SDR-013) — M7 migraci nepotřebuje. Nasazená data se zahodí — databázi dropne owner ručně.
 
 ## Rozhodnutí
 

@@ -12,11 +12,11 @@ Komentáře spisů a úkonů.
 ## Popis
 
 - Comment patří právě jednomu spisu XOR úkonu (check constraint). Tělo je neomezený text.
-- Autor je `CreatedBy`. Editovat a smazat komentář smí jen autor; vynucuje to business
+- Autor je `UserId`. Editovat a smazat komentář smí jen autor; vynucuje to business
   vrstva.
 - UI: chronologický seznam na detailu spisu a úkonu, přidání inline, mazání s potvrzením.
 - Autor se zobrazuje jen u komentářů, e-mailem uživatele — User jiné jméno nemá; jinde v UI
-  `CreatedBy` nefiguruje.
+  `UserId` nefiguruje.
 
 ## Rozhodnutí
 

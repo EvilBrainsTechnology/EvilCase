@@ -19,7 +19,8 @@ Doménové entity popisuje SDR-006.
 - **User** — patří právě jednomu tenantu (`User.TenantId`). Dnešní sloupce (e-mail, hash
   hesla, role, lockout) zůstávají; přibývá `TenantId` a `DefaultContactId` (SDR-010).
 
-Každá tenantová entita nese `TenantId` a `CreatedBy` (id uživatele, který ji založil).
+Každá tenantová entita nese `TenantId` a `UserId` — entita patří uživateli. Viditelná je
+v celém tenantu.
 
 Account, Tenant a první administrátor vznikají jen seedem při startu
 (`EvilBrains__EvilCase__Auth__Seed__*`, jen do prázdné tabulky uživatelů). Žádné UI pro
@@ -56,5 +57,5 @@ včetně refresh.
 ## Dopady
 
 - `IOwnerContext` a `PrincipalOwnerContext` zanikají; nahrazuje je `ITenantContext`.
-- Sloupce `OwnerId` zanikají; nahrazuje je `TenantId` + `CreatedBy` (SDR-006).
+- Sloupce `OwnerId` zanikají; nahrazuje je `TenantId` + `UserId` (SDR-006).
 - `.claude/rules/business.md` (Ownership) se mění s kódem M2.

@@ -28,7 +28,7 @@ other migration. An issue whose `loop/<issue>-…` branch already exists, locall
 remote, is already taken. A slice that needs another's unmerged branch is not started. Where
 nothing clears this, the round starts nothing and tends what is open.
 
-Starting a workflow also creates a one-shot trigger fifty minutes out — a hundred for a slice
+Starting a workflow also creates a one-shot trigger 50 minutes out — 100 for a slice
 with `plan`; a workflow that trigger finds still running is dead: `TaskStop`, and its worktrees
 and local branches go before any retry — the same after a failed run. A slice failing twice in
 a row labels its issue `blocked` with a comment saying why.
