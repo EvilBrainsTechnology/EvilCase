@@ -3,7 +3,7 @@
 - **Stav:** platí
 - **Milníky:** M2
 - **Související SDR:** [005](sdr-005-tenance-a-ucty.md), [008](sdr-008-spisy.md) až
-  [012](sdr-012-komentare.md), [016](sdr-016-seed-vzorovych-dat.md)
+  [012](sdr-012-komentare.md), [013](sdr-013-vyhledavani.md), [016](sdr-016-seed-vzorovych-dat.md)
 
 ## Rozsah
 
@@ -55,8 +55,9 @@ Každé smazání se v UI potvrzuje (SDR-003).
 
 ### Reset schématu
 
-Dnešních 12 migrací se maže i se snapshotem; nové schéma zakládá jedna migrace `Init`.
-Nasazená data se zahodí — databázi dropne owner ručně.
+Dnešních 12 migrací se maže i se snapshotem; nové schéma zakládá jedna migrace `Init`. Init
+zakládá i rozšíření `unaccent`, jeho IMMUTABLE obálku a GIN fulltextové indexy vyhledávání
+(SDR-013) — M7 migraci nepotřebuje. Nasazená data se zahodí — databázi dropne owner ručně.
 
 ## Rozhodnutí
 

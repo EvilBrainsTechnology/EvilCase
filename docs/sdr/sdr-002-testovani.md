@@ -26,7 +26,7 @@ Vrstvy testů a povinné testy nových oblastí.
 - Testy číslování: formát, pořadí per den, přetečení, zpětné datování, ruční přepis
   (SDR-007).
 - Souborové úložiště na temp adresáři: zápis, atomicita, smazání blobu (SDR-011).
-- Fold diakritiky a plnění `SearchText` (SDR-013).
+- Fold diakritiky ve vyhledávání (SDR-013).
 - Smoke test seedu: seed proběhne a založí spis se stromem (SDR-016).
 
 ## Rozhodnutí

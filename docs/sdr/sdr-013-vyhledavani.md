@@ -2,8 +2,8 @@
 
 - **Stav:** platí
 - **Milníky:** M7
-- **Související SDR:** [002](sdr-002-testovani.md), [007](sdr-007-cislovani.md),
-  [008](sdr-008-spisy.md), [009](sdr-009-ukony.md)
+- **Související SDR:** [002](sdr-002-testovani.md), [006](sdr-006-domenovy-model.md),
+  [007](sdr-007-cislovani.md), [008](sdr-008-spisy.md), [009](sdr-009-ukony.md)
 
 ## Rozsah
 
@@ -19,12 +19,16 @@ diakritiku a velikost písmen.
 
 ### Technika
 
-- Spis i úkon nesou normalizovaný sloupec `SearchText`: hledaná pole složená dohromady,
-  lowercase, diakritika odstraněná v .NET. Přepočítává ho každý zápis, který ho ovlivňuje —
-  i přidání, editace nebo smazání externího čísla a ruční přepis čísla, ne jen editace
-  vlastního řádku entity.
-- Dotaz se normalizuje stejně a hledá se `LIKE '%…%'`.
-- Jeden endpoint vrací spisy i úkony dohromady.
+- Název a popis spisu i úkonu hledá PostgreSQL fulltext bez ohledu na diakritiku: `tsvector`
+  s konfigurací `simple` a `unaccent`, přes GIN expression indexy nad stávajícími sloupci.
+  Žádný uložený ani generovaný sloupec.
+- `unaccent` není IMMUTABLE; indexy volají IMMUTABLE obálku. Rozšíření, obálku i indexy
+  zakládá migrace `Init` (SDR-006) — M7 migraci nepotřebuje.
+- Dotaz je prefixová `tsquery`.
+- `CaseNumber`, `ActNumber` a hodnoty externích čísel hledá zvlášť ILIKE contains nad
+  vlastními sloupci — tabulky jsou malé, bez indexu.
+- Jeden endpoint kombinuje obě větve; vrací spisy i úkony dohromady.
+- Dotazy jdou přes fulltextové funkce Npgsql / EF Core, bez raw SQL.
 
 ### Navigace přesnou shodou
 
@@ -40,12 +44,12 @@ Navigace přesnou shodou se spouští jen Enterem nebo výběrem položky, nikdy
 
 ## Rozhodnutí
 
-- Technika: PostgreSQL tsvector / normalizovaný sloupec + LIKE. Platí sloupec + LIKE.
-- Fold diakritiky: `unaccent` v databázi / .NET. Platí .NET — jedna implementace pro zápis
-  i dotaz.
+- Technika: normalizovaný uložený sloupec + LIKE / fulltext nad stávajícími sloupci. Uložený
+  sloupec owner zamítl; platí fulltext.
+- Fold diakritiky: .NET / `unaccent` v databázi. Platí `unaccent`.
 - Výsledky: oddělené endpointy per entita / jeden endpoint. Platí jeden endpoint.
 
 ## Dopady
 
-Dnešní ILIKE hledání v `CaseListQuery` zaniká; nahrazuje ho `SearchText`. Fold diakritiky má
-test (SDR-002).
+Dnešní ILIKE hledání v `CaseListQuery` zaniká; nahrazuje ho vyhledávací endpoint. Fold
+diakritiky má test (SDR-002).
