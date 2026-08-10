@@ -30,7 +30,8 @@ kontakt, který číslo přidělil. Tabulka, ne sloupec; hodnota unikátní per 
 ### Stránky a řazení
 
 - `/cases/{id}/act/new` — založení.
-- `/cases/{id}/act/{actId}` — detail: údaje, externí čísla, soubory, komentáře.
+- `/cases/{id}/act/{actId}` — detail: údaje, externí čísla, komentáře; sekce souborů přibývá
+  v M5 (SDR-011).
 - `/cases/{id}/act/{actId}/edit` — editace.
 - Seznam úkonů žije v detailu spisu a řadí se podle data úkonu vzestupně; shodná data řadí
   `Created`.

@@ -35,4 +35,5 @@ a naposledy změněné spisy z výpisu spisů, poslední úkony z tenantového v
 
 ## Dopady
 
-Hard-coded `SampleData` dnešní úvodní stránky zaniká v M7.
+Hard-coded `SampleData` dnešní úvodní stránky zaniká v M7. Tenantový výpis `/api/acts`
+(SDR-004) vzniká v M7 s dashboardem — nic dřívějšího ho nepotřebuje.
