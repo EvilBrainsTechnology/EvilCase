@@ -7,8 +7,8 @@
 
 ## Rozsah
 
-Entita úkonu, směr a kontakty, externí čísla jednací, stránky a řazení. Soubory patří
-SDR-011, komentáře SDR-012.
+Entita úkonu, směr a kontakty, externí čísla jednací, stránky, řazení a mazání. Soubory
+patří SDR-011, komentáře SDR-012.
 
 ## Popis
 
@@ -30,10 +30,16 @@ kontakt, který číslo přidělil. Tabulka, ne sloupec; hodnota unikátní per 
 ### Stránky a řazení
 
 - `/cases/{id}/act/new` — založení.
-- `/cases/{id}/act/{actId}` — detail: údaje, externí čísla, soubory, komentáře.
+- `/cases/{id}/act/{actId}` — detail: údaje, externí čísla, komentáře; sekce souborů přibývá
+  v M5 (SDR-011).
 - `/cases/{id}/act/{actId}/edit` — editace.
 - Seznam úkonů žije v detailu spisu a řadí se podle data úkonu vzestupně; shodná data řadí
   `Created`.
+
+### Mazání
+
+Smazání úkonu bere kaskádou komentáře, externí čísla jednací a soubory (SDR-006); potvrzení
+jmenuje, co kaskáda bere.
 
 ## Rozhodnutí
 

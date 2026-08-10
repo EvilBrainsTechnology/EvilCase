@@ -35,7 +35,7 @@ Inline založení vyžaduje název a `Kind`; ostatní pole jsou nepovinná.
 
 - `/contacts` — přehled kontaktů s hledacím polem (název, id datové schránky).
 - `/contacts/{id}` — detail s výskyty: spisy přes značky, úkony přes odesílatele, příjemce
-  a externí čísla.
+  a externí čísla; editace a smazání kontaktu.
 
 Přehled i výskyty jsou bez stránkování.
 

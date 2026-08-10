@@ -1,7 +1,8 @@
 # Produktová vize
 
 Zdroj pravdy o tom, co se z EvilCase staví. Produktový loop čte tento soubor na začátku každého
-kola a bootstrap z něj odvozuje labely, milníky a backlog. Závazný detail návrhu žije v SDR pod
+kola; labely, milníky a backlog z něj jednorázově zakládá skill `bootstrap-backlog`. Závazný
+detail návrhu žije v SDR pod
 [`docs/sdr/`](../sdr/README.md); každý milník jmenuje SDR, která ho řídí. Roadmapa a otevřené
 otázky žijí v GitHub Issues, ne tady.
 
@@ -99,7 +100,7 @@ V pořadí podle toho, co při práci s reálným spisem bolí nejvíc:
 | M1 | Úklid | smazání stránek a API mimo vizi: `/deadlines`, `/echo` s kontrolerem a kontraktem, `/settings` | SDR-015 |
 | M2 | Datový model a seed | nové entity, tenance, interceptory, číslování, jedna Init migrace, rename Party → Contact, jádro souborového úložiště, seed účtů i vzorových dat | SDR-005, 006, 007, 010, 011, 016 |
 | M3 | Spisy | seznam, založení, detail a editace spisu; hierarchie, externí značky, komentáře spisů, kaskádové mazání | SDR-008, 010, 012 |
-| M4 | Úkony | založení, detail a editace úkonu; směr, kontakty, externí čísla, komentáře úkonů | SDR-009, 010, 012 |
+| M4 | Úkony | založení, detail, editace a mazání úkonu; směr, kontakty, externí čísla, komentáře úkonů | SDR-009, 010, 012 |
 | M5 | Soubory | UI souborů: upload včetně hromadného přetažením, download, mazání | SDR-011 |
 | M6 | Kontakty | agenda kontaktů s výskyty, defaultní kontakt v UI | SDR-010 |
 | M7 | Dashboard a hledání | dashboard nad reálnými daty, fulltext s navigací přesnou shodou | SDR-013, 014 |

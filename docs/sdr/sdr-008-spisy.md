@@ -24,6 +24,7 @@ soubory i komentáře jako každý jiný. Nový spis vzniká jako `Active`.
 
 - Rodič je volitelný, hloubka libovolná. Cyklus je zakázaný; hlídá ho zápis v business
   vrstvě.
+- Podřízený spis se zakládá z detailu rodiče; rodič jde nastavit i v editaci spisu.
 - UI zobrazuje jen ploché seznamy: detail spisu ukazuje odkaz na rodiče a seznam přímých
   podřízených spisů. Žádný strom.
 
@@ -34,10 +35,11 @@ kontakt, který značku přidělil. Hodnota je unikátní per spis. Spravují se
 
 ### Stránky
 
-- `/cases` — seznam spisů: číslo, název, stav, datum; hledání (SDR-013). Řadí se podle data
-  spisu sestupně, shodná data řadí `Created`; bez stránkování.
+- `/cases` — seznam spisů: číslo, název, stav, datum. Řadí se podle data spisu sestupně,
+  shodná data řadí `Created`; bez stránkování. Hledací pole přichází až v M7 (SDR-013).
 - `/cases/new` — založení.
-- `/cases/{id}` — detail: údaje, značky, podřízené spisy, úkony, soubory, komentáře.
+- `/cases/{id}` — detail: údaje, značky, podřízené spisy, komentáře; sekce úkonů přibývá
+  v M4 (SDR-009), sekce souborů v M5 (SDR-011).
 - `/cases/{id}/edit` — editace.
 
 ### Mazání
