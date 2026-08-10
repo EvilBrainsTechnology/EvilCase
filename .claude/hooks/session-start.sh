@@ -1,6 +1,7 @@
 #!/bin/bash
 # Prepares a Claude Code on the web container for building, testing and running EvilCase:
-# .NET SDK, PostgreSQL, EvilCase.Host/.env, a dev certificate and a warm restore.
+# .NET SDK, PostgreSQL, EvilCase.Host/.env, a dev certificate and a warm restore; verifies
+# gh auth and the screenshot toolchain first.
 # Idempotent — every step is skipped when it is already done.
 set -euo pipefail
 
@@ -14,6 +15,17 @@ readonly DOTNET_ROOT_DIR=/usr/share/dotnet
 readonly SDK_IMAGE=mcr.microsoft.com/dotnet/sdk:10.0
 
 log() { echo "[session-start] $*"; }
+
+# --- Loop prerequisites ---------------------------------------------------------------------
+# The loop needs gh and the screenshot toolchain (docs/loop/visual-proof.md); a broken one
+# fails the session start, not a slice later.
+require() { [ -e "$1" ] || { log "ERROR: $1 is missing — $2"; exit 1; }; }
+
+gh auth status >/dev/null 2>&1 \
+    || { log "ERROR: gh is not authenticated — the loop cannot reach GitHub"; exit 1; }
+require /opt/node22/bin/node "screenshots need Node 22"
+require /opt/node22/lib/node_modules/playwright "screenshots need Playwright"
+require /opt/pw-browsers "screenshots need the Playwright browsers"
 
 # --- .NET SDK -------------------------------------------------------------------------------
 # The egress policy blocks builds.dotnet.microsoft.com, so dotnet-install.sh cannot reach the

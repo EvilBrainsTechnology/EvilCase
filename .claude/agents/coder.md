@@ -27,5 +27,6 @@ The pull request:
 - Subscribe (`subscribe_pr_activity`).
 
 On an existing pull request the prompt carries its number instead: work on its branch — check
-out `origin/<branch>` detached, push with `git push origin HEAD:<branch>` — answer every
-thread, open no new pull request. The prompt says whether the switch to `agent-done` is yours.
+out `origin/<branch>` detached, push with `git push origin HEAD:<branch>`, adding
+`--force-with-lease` when the task is a rebase — answer every thread, open no new pull
+request. The prompt says whether the switch to `agent-done` is yours.
