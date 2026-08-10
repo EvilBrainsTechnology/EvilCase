@@ -1,8 +1,8 @@
 # Produktová vize
 
 Zdroj pravdy o tom, co se z EvilCase staví. Produktový loop čte tento soubor na začátku každého
-kola a bootstrap ([docs/loop/backlog-bootstrap.md](../loop/backlog-bootstrap.md)) z něj odvozuje
-labely, milníky a backlog. Závazný detail návrhu žije v SDR pod
+kola; labely, milníky a backlog z něj jednorázově zakládá skill `bootstrap-backlog`. Závazný
+detail návrhu žije v SDR pod
 [`docs/sdr/`](../sdr/README.md); každý milník jmenuje SDR, která ho řídí. Roadmapa a otevřené
 otázky žijí v GitHub Issues, ne tady.
 

@@ -19,8 +19,7 @@ request for it. A failed run comments its issue; two such comments in a row labe
 
 The backlog is the open issues labelled `loop` and none of `agent-in-progress` (taken),
 `blocked` or `needs-decision`: highest `Priority` (`Urgent`, `High`, `Medium`, `Low`, then none),
-the lowest milestone breaking a tie, honouring a focus argument. No `loop` issue open at all:
-bootstrap the backlog per `docs/loop/backlog-bootstrap.md`. Empty otherwise: start nothing.
+the lowest milestone breaking a tie, honouring a focus argument. Empty backlog: do nothing.
 
 Take two or three and label each `agent-in-progress` before starting one Workflow
 (`.claude/skills/product-loop/slice-pipeline.js`, `args: [{issue, slug, title, body, plan}, …]`).
