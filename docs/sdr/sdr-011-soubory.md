@@ -52,4 +52,6 @@ a `X-Content-Type-Options: nosniff`. Smazání je prosté, s potvrzením.
 ## Dopady
 
 `ActFileReference` zaniká (SDR-006). Úložiště se testuje na temp adresáři (SDR-002). Zápis
-a smazání blobu se loguje, obsah nikdy (SDR-001).
+a smazání blobu se loguje, obsah nikdy (SDR-001). Nasazený kontejner nese `RootPath` na
+trvalém svazku; `deploy/docker-compose.yml` a `deploy/README.md` se mění s jádrem úložiště
+v M2.
