@@ -13,25 +13,25 @@ permission to continue and never wait for the owner.
 A round begins with `TaskList`, before the backlog is read. A running workflow is dead when its
 task transcript file's mtime is over 15 minutes old or the task is over 3 hours old; one still
 writing runs on. A dead workflow gets `TaskStop`; a dead or failed run loses worktrees, local
-branches and, when no open pull request references it, the remote `loop/<issue>-…` branch
-before any retry. A failed run comments its issue; two such comments in a row label it `blocked`.
+branches and the remote `loop/<issue>-…` branch that no open pull request references. A round
+removes `agent-in-progress` from any `loop` issue with no running workflow and no open pull
+request for it. A failed run comments its issue; two such comments in a row label it `blocked`.
 
-The backlog is the open issues labelled `loop`, neither `blocked` nor `needs-decision`: highest
-`Priority` (`Urgent`, `High`, `Medium`, `Low`, then none), the lowest milestone breaking a tie,
-honouring a focus argument. Empty backlog: do nothing.
+The backlog is the open issues labelled `loop` and none of `agent-in-progress` (taken),
+`blocked` or `needs-decision`: highest `Priority` (`Urgent`, `High`, `Medium`, `Low`, then none),
+the lowest milestone breaking a tie, honouring a focus argument. Empty backlog: do nothing.
 
-Take two or three and start one Workflow (`.claude/skills/product-loop/slice-pipeline.js`,
-`args: [{issue, slug, title, body, plan}, …]`). `plan` is true for a slice with a migration, a
-new entity, a change across layers or a touch on security; false otherwise. One slice is one
-pull request from database to UI that leaves the app usable, on `loop/<issue>-<slug>` off
-`master`. The workflow runs in the background; tend the open pull requests meanwhile and take
-its returned results into the report — the details stay inside the workflow.
+Take two or three and label each `agent-in-progress` before starting one Workflow
+(`.claude/skills/product-loop/slice-pipeline.js`, `args: [{issue, slug, title, body, plan}, …]`).
+`plan` is true for a slice with a migration, a new entity, a cross-layer change or a security
+touch; false otherwise. One slice is one pull request from database to UI leaving the app
+usable, on `loop/<issue>-<slug>` off `master`. The workflow runs in the background; tend open
+pull requests meanwhile and take its results into the report — details stay inside the workflow.
 
 Two slices never touch the same files, and every open pull request counts — a candidate is
 checked against the changed files of every open pull request. A migration collides with every
-other migration. An issue whose `loop/<issue>-…` branch already exists, locally or on the
-remote, is already taken. A slice that needs another's unmerged branch is not started. Where
-nothing clears this, the round starts nothing and tends what is open.
+other migration. A slice that needs another's unmerged branch is not started. Where nothing
+clears this, the round starts nothing and tends what is open.
 
 ## 2. Decide, do not ask
 
