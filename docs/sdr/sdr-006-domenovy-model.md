@@ -71,4 +71,6 @@ zakládá i rozšíření `unaccent`, jeho IMMUTABLE obálku a GIN fulltextové 
 ## Dopady
 
 Modelové testy v `Tests/Data/Model/` se přepisují na nový model (SDR-002). Seed vzorových
-dat sleduje model (SDR-016). Schéma M2 je jeden nedělitelný slice — migrace kolidují.
+dat sleduje model (SDR-016). Jeden nedělitelný slice je jen samotný reset schématu — starý
+model s migracemi ven, nové entity s `Init` dovnitř, spolu s kódem a testy, které to rozbije;
+číslování, jádro souborového úložiště a vzorový seed jsou samostatné slices M2.

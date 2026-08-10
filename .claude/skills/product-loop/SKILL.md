@@ -28,10 +28,10 @@ other migration. An issue whose `loop/<issue>-…` branch already exists, locall
 remote, is already taken. A slice that needs another's unmerged branch is not started. Where
 nothing clears this, the round starts nothing and tends what is open.
 
-Starting a workflow also creates a one-shot trigger fifty minutes out; a workflow that trigger
-finds still running is dead: `TaskStop`, and its worktrees and local branches go before any
-retry — the same after a failed run. A slice failing twice in a row labels its issue `blocked`
-with a comment saying why.
+Starting a workflow also creates a one-shot trigger fifty minutes out — a hundred for a slice
+with `plan`; a workflow that trigger finds still running is dead: `TaskStop`, and its worktrees
+and local branches go before any retry — the same after a failed run. A slice failing twice in
+a row labels its issue `blocked` with a comment saying why.
 
 ## 2. Decide, do not ask
 
@@ -42,7 +42,9 @@ dependent issue `blocked` and take something else.
 
 An answer is any comment on an open `needs-decision` issue that is not the agent's. Apply
 it: say what was chosen, label `decided`, close it, and unblock what referenced it. A decision
-that changes the vision updates it in the same commit as the code it governs.
+that changes the vision or a governing SDR updates it in the same commit as the code it governs.
+A round removes `blocked` from an issue whose blocking pull request has merged or whose
+blocking issue is closed.
 
 ## 3. Tend the open pull requests
 
@@ -50,8 +52,8 @@ that changes the vision updates it in the same commit as the code it governs.
 - Answer every review comment in the round that finds it. Outstanding means a thread with no
   agent reply — read the threads, never filter by timestamp or count. A comment is at most
   three sentences; a reply to a review one says what changed, or why not.
-- Rebase onto `master` on a conflict; correct a title or description that no longer matches the
-  diff.
+- A conflict gets its rebase onto `master` through a `pr-work.js` Workflow, never in the main
+  thread; correct a title or description that no longer matches the diff.
 - A pull request labelled `agent-in-progress` with no running workflow is taken over: finish
   the work and the threads, switch the label at the end.
 - Never merge, however green or approved. Say nothing about waiting for one.

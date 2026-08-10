@@ -8,14 +8,16 @@ plan.
 
 - Follow the plan; state a deviation and its reason in the pull request body. Without a plan,
   analyse the issue yourself first.
+- Read the governing SDRs under `docs/sdr/` the issue names; code that falsifies an SDR
+  changes it in the same pull request.
 - Branch `loop/<issue>-<slug>` off the latest `master`: `git fetch origin master`, then branch
   off `origin/master`.
 - Copy `.env` into the worktree and take your own port and database:
   `.claude/skills/run-app/SKILL.md`, read directly.
 - Don't run the gate locally and don't hand-match formatting: no build, tests or format
   check. The reviewer formats the branch; CI is the gate. Push and let it run.
-- A screen change carries screenshots; `.claude/skills/product-loop/visual-proof.md` is how
-  they are taken and filed.
+- A screen change carries screenshots; `docs/loop/visual-proof.md` is how they are taken and
+  filed.
 
 The pull request:
 
