@@ -3,7 +3,7 @@
 - **Stav:** platí
 - **Milníky:** M2
 - **Související SDR:** [001](sdr-001-logovani-a-observabilita.md), [002](sdr-002-testovani.md),
-  [006](sdr-006-domenovy-model.md)
+  [006](sdr-006-domenovy-model.md), [011](sdr-011-soubory.md)
 
 ## Rozsah
 

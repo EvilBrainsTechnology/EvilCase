@@ -3,7 +3,7 @@
 - **Stav:** platí
 - **Milníky:** M2
 - **Související SDR:** [008](sdr-008-spisy.md), [009](sdr-009-ukony.md),
-  [013](sdr-013-vyhledavani.md)
+  [013](sdr-013-vyhledavani.md), [015](sdr-015-navigace-a-vzhled.md)
 
 ## Rozsah
 

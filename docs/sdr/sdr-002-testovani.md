@@ -36,4 +36,4 @@ Vrstvy testů a povinné testy nových oblastí.
 ## Dopady
 
 Testy `CaseRelation`, `CaseTag` a `PrincipalOwnerContext` zanikají se svými typy v M2
-(SDR-006).
+(SDR-005, SDR-006).

@@ -57,7 +57,8 @@ Každé smazání se v UI potvrzuje (SDR-003).
 
 Dnešních 12 migrací se maže i se snapshotem; nové schéma zakládá jedna migrace `Init`. Init
 zakládá i rozšíření `unaccent` a `pg_trgm`, IMMUTABLE obálku `unaccent`, GIN fulltextové
-indexy a GIN trigram indexy vyhledávání (SDR-013) — M7 migraci nepotřebuje. Nasazená data se zahodí — databázi dropne owner ručně.
+indexy a GIN trigram indexy vyhledávání (SDR-013) — M7 migraci nepotřebuje. Nasazená data se
+zahodí — databázi dropne owner ručně.
 
 ## Rozhodnutí
 

@@ -45,8 +45,8 @@ Navigace přesnou shodou se spouští jen Enterem nebo výběrem položky, nikdy
 
 ## Rozhodnutí
 
-- Technika: normalizovaný uložený sloupec + LIKE / fulltext nad stávajícími sloupci. Uložený
-  sloupec owner zamítl; platí fulltext.
+- Technika: normalizovaný uložený sloupec + LIKE / fulltext nad stávajícími sloupci. Platí
+  fulltext nad stávajícími sloupci.
 - Fold diakritiky: .NET / `unaccent` v databázi. Platí `unaccent`.
 - Výsledky: oddělené endpointy per entita / jeden endpoint. Platí jeden endpoint.
 

@@ -46,4 +46,4 @@ Cizí tenant nikdy nevrací 403 — existence cizích dat nesmí uniknout.
 
 ## Dopady
 
-Platí pro každý endpoint z SDR-004 a každý formulář agend SDR-008 až 014.
+Platí pro každý endpoint z SDR-004 a každý formulář agend SDR-008 až 012.
