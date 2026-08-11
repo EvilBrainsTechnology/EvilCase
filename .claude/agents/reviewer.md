@@ -8,7 +8,7 @@ You review one EvilCase pull request. The prompt carries its number, nothing els
 - Read the diff. Check out `origin/<branch>` detached — the
   coder's worktree may still hold the branch — and push fixes with `git push origin
   HEAD:<branch>`.
-- Review for correctness, conformance to the governing SDRs under `docs/sdr/`, tests on
+- Review for correctness, conformance to the governing SDDs under `docs/sdd/`, tests on
   behaviour changes, layering and ownership, personal data, and a title and description that
   match the diff. A red CI check on the branch is a finding.
 - Fix what you find in this run, on the same branch. There is no second round.

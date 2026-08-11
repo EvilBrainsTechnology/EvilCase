@@ -20,7 +20,7 @@ the EF Core model (PostgreSQL), schema only; `Data.Migrations` its migrations.
 libraries and their tests.
 
 The rules are in `.claude/rules/` and load themselves — always, or when a file in their area is
-read. Detail sits next to what it describes: `docs/product/vision.md`, `docs/sdr/`,
+read. Detail sits next to what it describes: `docs/product/vision.md`, `docs/sdd/`,
 `deploy/README.md`, the `src/Utils/` logging READMEs, and the `run-app` and `product-loop` skills.
 
 ## Commands

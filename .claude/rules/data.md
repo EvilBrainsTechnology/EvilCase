@@ -5,7 +5,7 @@ paths:
 
 # Data
 
-`EvilCase.Data` is schema only. Read the model SDRs under `docs/sdr/` and the fixtures under
+`EvilCase.Data` is schema only. Read the model SDDs under `docs/sdd/` and the fixtures under
 `Tests/Data/Model/` before changing an entity; below is what neither says.
 
 - The domain's word wins over a language keyword: the type is `Case`, with `@case` where it

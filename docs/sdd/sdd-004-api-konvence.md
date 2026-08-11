@@ -1,9 +1,9 @@
-# SDR-004 — API konvence
+# SDD-004 — API konvence
 
 - **Stav:** platí
 - **Milníky:** průřez
-- **Související SDR:** [003](sdr-003-validace-a-chyby.md), [005](sdr-005-tenance-a-ucty.md),
-  [015](sdr-015-navigace-a-vzhled.md)
+- **Související SDD:** [003](sdd-003-validace-a-chyby.md), [005](sdd-005-tenance-a-ucty.md),
+  [015](sdd-015-navigace-a-vzhled.md)
 
 ## Rozsah
 
@@ -32,17 +32,17 @@ Tvary API a klienta pro nové agendy. Z velké části dnešní stav, který pla
 
 - Id v routách je `Guid`.
 - Tenanta dodává `ITenantContext`; endpoint ani dotaz nikdy neberou id tenanta parametrem
-  (SDR-005).
+  (SDD-005).
 
 ## Rozhodnutí
 
 - Úkony v API: ploché `/api/acts` / vnořené pod spis. Platí vnořené pod spis; ploché
-  `/api/acts` je jen tenantový výpis pro dashboard (SDR-014).
+  `/api/acts` je jen tenantový výpis pro dashboard (SDD-014).
 - Dashboard: vlastní endpoint / skládání z API entit. Platí skládání z API entit; žádný
   dashboardový endpoint není.
 - Komentáře a soubory: vlastní ploché zdroje / pod vlastníkem. Platí pod vlastníkem.
 
 ## Dopady
 
-`EchoController`, jeho kontrakt a klient zanikají v M1 (SDR-015). Chybové odpovědi drží
-SDR-003.
+`EchoController`, jeho kontrakt a klient zanikají v M1 (SDD-015). Chybové odpovědi drží
+SDD-003.
