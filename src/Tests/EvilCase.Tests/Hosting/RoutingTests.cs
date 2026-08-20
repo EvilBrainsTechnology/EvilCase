@@ -1,6 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
-using EvilBrains.EvilCase.Api.Contract.Echo;
+using EvilBrains.EvilCase.Api.Contract.Cases;
+using EvilBrains.EvilCase.Business.Cases;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EvilBrains.EvilCase.Tests.Hosting;
 
@@ -18,7 +20,7 @@ public class RoutingTests
     [OneTimeSetUp]
     public void SetUp()
     {
-        this.host = new EvilCaseHost();
+        this.host = new EvilCaseHost(configureServices: services => services.AddSingleton<ICaseReader>(new StubCaseReader()));
         this.client = this.host.CreateClient();
     }
 
@@ -61,20 +63,16 @@ public class RoutingTests
     {
         // Authorization is default deny, so an ordinary endpoint needs a token before routing to it
         // proves anything: without one the answer would be 401 whether the route matched or not.
-        using var request = new HttpRequestMessage(HttpMethod.Post, new Uri("/api/echo/post", UriKind.Relative))
-        {
-            Content = JsonContent.Create(new EchoRequest { Message = "ping" }),
-            Headers = { Authorization = TestTokens.BearerFrom(this.host) },
-        };
+        using var request = new HttpRequestMessage(HttpMethod.Get, new Uri("/api/cases/list", UriKind.Relative)) { Headers = { Authorization = TestTokens.BearerFrom(this.host) } };
 
         using var response = await this.client.SendAsync(request);
 
-        var body = await response.Content.ReadFromJsonAsync<EchoResponse>();
+        var body = await response.Content.ReadFromJsonAsync<CaseListResponse>();
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-            Assert.That(body?.Message, Is.EqualTo("Echo: ping"));
+            Assert.That(body?.Items.Select(item => item.Title), Is.EqualTo([StubCaseReader.Title]));
         }
     }
 
