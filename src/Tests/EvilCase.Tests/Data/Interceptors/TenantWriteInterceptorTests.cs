@@ -3,12 +3,14 @@ using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Data.Interceptors;
 using EvilBrains.EvilCase.Data.Migrations.DbContexts;
 using EvilBrains.EvilCase.Domain.Contacts;
+using EvilBrains.EvilCase.Domain.Tenancy;
 using EvilBrains.EvilCase.Domain.Users;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace EvilBrains.EvilCase.Tests.Data.Interceptors;
 
-public class TenantWriteGuardTests
+public class TenantWriteInterceptorTests
 {
     private static readonly Guid TenantA = Guid.CreateVersion7();
 
@@ -35,7 +37,9 @@ public class TenantWriteGuardTests
         this.context.Entry(modified).State = EntityState.Modified;
         this.context.Entry(deleted).State = EntityState.Deleted;
 
-        Assert.That(() => TenantWriteGuard.Verify(this.context.ChangeTracker, TenantA), Throws.Nothing);
+        var interceptor = new TenantWriteInterceptor(new FixedTenantContext(TenantA));
+
+        Assert.That(() => Save(interceptor, this.context), Throws.Nothing);
     }
 
     [Test]
@@ -43,18 +47,12 @@ public class TenantWriteGuardTests
     {
         this.context.Add(NewContact(TenantB));
 
+        var interceptor = new TenantWriteInterceptor(new FixedTenantContext(TenantA));
+
         Assert.That(
-            () => TenantWriteGuard.Verify(this.context.ChangeTracker, TenantA),
+            () => Save(interceptor, this.context),
             Throws.InvalidOperationException,
-            "a write across tenants is the leak the filter cannot see");
-    }
-
-    [Test]
-    public void NoTenantWritesNothing()
-    {
-        this.context.Add(NewContact(TenantA));
-
-        Assert.That(() => TenantWriteGuard.Verify(this.context.ChangeTracker, tenantId: null), Throws.InvalidOperationException);
+            "a write must not carry another tenant's rows");
     }
 
     [Test]
@@ -68,11 +66,34 @@ public class TenantWriteGuardTests
             Role = UserRole.User,
         });
 
+        var interceptor = new TenantWriteInterceptor(new NoTenantContext());
+
         Assert.That(
-            () => TenantWriteGuard.Verify(this.context.ChangeTracker, tenantId: null),
+            () => Save(interceptor, this.context),
             Throws.Nothing,
-            "sign-in writes a user before any tenant is known");
+            "signing in writes before a tenant is known");
     }
 
+    private static void Save(TenantWriteInterceptor interceptor, DbContext dbContext) =>
+        interceptor.SavingChanges(new DbContextEventData(null!, null!, dbContext), default);
+
     private static Contact NewContact(in Guid tenant) => new() { TenantId = tenant, UserId = UserId, Kind = ContactKind.Person, Name = "test" };
+
+    private sealed class FixedTenantContext(Guid tenantId) : ITenantContext
+    {
+        public Guid TenantId => tenantId;
+
+        public Guid? TenantIdOrDefault => tenantId;
+
+        public IDisposable Enter(Guid tenantId) => throw new NotSupportedException();
+    }
+
+    private sealed class NoTenantContext : ITenantContext
+    {
+        public Guid TenantId => throw new InvalidOperationException("The request has no tenant.");
+
+        public Guid? TenantIdOrDefault => null;
+
+        public IDisposable Enter(Guid tenantId) => throw new NotSupportedException();
+    }
 }

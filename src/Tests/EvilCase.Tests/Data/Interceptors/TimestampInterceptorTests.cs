@@ -3,11 +3,13 @@ using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Data.Interceptors;
 using EvilBrains.EvilCase.Data.Migrations.DbContexts;
 using EvilBrains.EvilCase.Domain.Contacts;
+using EvilBrains.EvilCase.Tests.Auth;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace EvilBrains.EvilCase.Tests.Data.Interceptors;
 
-public class EntityTimestampsTests
+public class TimestampInterceptorTests
 {
     private static readonly Guid Tenant = Guid.CreateVersion7();
 
@@ -31,7 +33,7 @@ public class EntityTimestampsTests
         var contact = NewContact();
         this.context.Add(contact);
 
-        EntityTimestamps.Apply(this.context.ChangeTracker, Now);
+        Save(this.context, Now);
 
         var entry = this.context.Entry(contact);
 
@@ -48,11 +50,11 @@ public class EntityTimestampsTests
         var contact = NewContact();
         this.context.Add(contact);
 
-        EntityTimestamps.Apply(this.context.ChangeTracker, Now);
+        Save(this.context, Now);
 
         this.context.Entry(contact).State = EntityState.Modified;
 
-        EntityTimestamps.Apply(this.context.ChangeTracker, Later);
+        Save(this.context, Later);
 
         var entry = this.context.Entry(contact);
 
@@ -61,6 +63,13 @@ public class EntityTimestampsTests
             Assert.That(entry.Property(nameof(IEntity.Created)).CurrentValue, Is.EqualTo(Now), "the stamps are the interceptor's alone");
             Assert.That(entry.Property(nameof(IEntity.Updated)).CurrentValue, Is.EqualTo(Later), "the stamps are the interceptor's alone");
         }
+    }
+
+    private static void Save(ApplicationDbContext dbContext, in DateTime now)
+    {
+        var interceptor = new TimestampInterceptor(new TestTimeProvider(now));
+
+        interceptor.SavingChanges(new DbContextEventData(null!, null!, dbContext), default);
     }
 
     private static Contact NewContact() => new() { TenantId = Tenant, UserId = User, Kind = ContactKind.Person, Name = "test" };
