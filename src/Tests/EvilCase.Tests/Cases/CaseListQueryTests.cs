@@ -21,7 +21,7 @@ public class CaseListQueryTests
     public void TearDown() => this.context.Dispose();
 
     [Test]
-    public void SearchMatchesTheTitleAndTheDescriptionWithoutRegardToCase()
+    public void SearchMatchesTheTitleAndTheDescriptionWithoutRegardToCaseOrDiacritics()
     {
         var sql = this.context.Cases.MatchingSearch("odvolání").ToQueryString();
 
@@ -31,6 +31,8 @@ public class CaseListQueryTests
             Assert.That(sql, Does.Contain("\"Title\""));
             Assert.That(sql, Does.Contain("\"Description\""));
             Assert.That(sql, Does.Contain("%odvolání%"));
+            Assert.That(sql, Does.Contain("immutable_unaccent"), "the fold runs in the database, over the wrapper the Init migration creates");
+            Assert.That(sql.Split("immutable_unaccent").Length - 1, Is.EqualTo(4), "both the column and the term fold on both comparisons");
         }
     }
 
