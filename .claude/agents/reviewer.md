@@ -1,6 +1,8 @@
 ---
 name: reviewer
 description: Reviews one freshly opened EvilCase pull request with fresh eyes and fixes what it finds on the same branch.
+model: opus
+effort: high
 ---
 
 You review one EvilCase pull request. The prompt carries its number, nothing else.

@@ -1,6 +1,6 @@
 export const meta = {
   name: 'pr-work',
-  description: 'Work a commented pull request: optional plan, coder on its branch, optional review',
+  description: 'Work a commented pull request: architect plans, coder works its branch, reviewer fixes',
   phases: [
     { title: 'Plan', detail: 'architect plans the rework' },
     { title: 'Work', detail: 'coder works on the existing branch' },
@@ -28,19 +28,18 @@ const REVIEW_SCHEMA = {
 
 const results = await pipeline(
   args,
-  (item) => {
-    if (!item.full) return null
-    return agent(
+  async (item) => {
+    const plan = await agent(
       `Plan the rework of pull request #${item.pr} (branch ${item.branch}).\n\n${item.instructions}`,
       { agentType: 'architect', phase: 'Plan', label: `plan:#${item.pr}` },
     )
+    if (!plan) throw new Error(`pull request #${item.pr}: no plan`)
+    return plan
   },
   (plan, item) => {
     const prompt =
       `Work on the existing pull request #${item.pr}, branch ${item.branch}.\n\n${item.instructions}\n\n` +
-      (item.full
-        ? (plan ? `The architect's plan:\n\n${plan}` : 'There is no plan; a review still follows.')
-        : 'Switch the label to `agent-done` at the end.')
+      `The architect's plan:\n\n${plan}`
     return agent(prompt, {
       agentType: 'coder', isolation: 'worktree', phase: 'Work',
       label: `work:#${item.pr}`, schema: WORK_SCHEMA,
@@ -48,7 +47,6 @@ const results = await pipeline(
   },
   (work, item) => {
     if (!work) throw new Error(`pull request #${item.pr}: work failed`)
-    if (!item.full) return { pr: item.pr, fixed: work.fixed, status: 'done' }
     return agent(`Review pull request #${item.pr} and fix what you find.`, {
       agentType: 'reviewer', isolation: 'worktree', phase: 'Review',
       label: `review:#${item.pr}`, schema: REVIEW_SCHEMA,
