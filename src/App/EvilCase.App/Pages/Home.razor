@@ -54,26 +54,6 @@
             </div>
         </div>
 
-        <div class="card mt-3">
-            <div class="card-header">
-                <h3 class="card-title">Nadcházející lhůty</h3>
-            </div>
-            <div class="list-group list-group-flush">
-                @foreach (var deadline in SampleData.UpcomingDeadlines)
-                {
-                    <div class="list-group-item">
-                        <div class="d-flex justify-content-between align-items-center gap-2">
-                            <div class="min-w-0">
-                                <div class="font-weight-medium text-truncate">@deadline.Title</div>
-                                <div class="text-secondary text-truncate">@deadline.CaseNumber &middot; @deadline.DueOnText</div>
-                            </div>
-                            <Badge BackgroundColor="deadline.DaysLeftColor">@deadline.DaysLeftText</Badge>
-                        </div>
-                    </div>
-                }
-            </div>
-        </div>
-
     </div>
 </div>
 

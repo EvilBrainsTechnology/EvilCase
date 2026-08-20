@@ -1,9 +1,11 @@
 using System.Net;
 using System.Net.Http.Json;
-using EvilBrains.EvilCase.Api.Contract.Echo;
+using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Logging;
 using EvilBrains.EvilCase.Api.Contract.User;
+using EvilBrains.EvilCase.Business.Cases;
 using EvilBrains.Logging.Contract;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EvilBrains.EvilCase.Tests.Hosting;
 
@@ -22,7 +24,7 @@ public class AuthorizationFallbackTests
     [OneTimeSetUp]
     public void SetUp()
     {
-        this.host = new EvilCaseHost();
+        this.host = new EvilCaseHost(configureServices: services => services.AddSingleton<ICaseReader>(new StubCaseReader()));
         this.client = this.host.CreateClient();
     }
 
@@ -36,7 +38,7 @@ public class AuthorizationFallbackTests
     [Test]
     public async Task AnEndpointThatSaysNothingRequiresAToken()
     {
-        using var response = await this.client.GetAsync(new Uri("/api/echo/get?message=ping", UriKind.Relative));
+        using var response = await this.client.GetAsync(new Uri("/api/cases/list", UriKind.Relative));
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
     }
@@ -85,14 +87,6 @@ public class AuthorizationFallbackTests
     }
 
     [Test]
-    public async Task ListingCasesNeedsAToken()
-    {
-        using var response = await this.client.GetAsync(new Uri("/api/cases/list", UriKind.Relative));
-
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
-    }
-
-    [Test]
     public async Task ReadingOnesOwnUserStillNeedsAToken()
     {
         using var response = await this.client.GetAsync(new Uri(AuthRoute.Path + "/user-info", UriKind.Relative));
@@ -129,18 +123,18 @@ public class AuthorizationFallbackTests
     [Test]
     public async Task ATokenIsEnoughToReachAnOrdinaryEndpoint()
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, new Uri("/api/echo/get?message=ping", UriKind.Relative));
+        using var request = new HttpRequestMessage(HttpMethod.Get, new Uri("/api/cases/list", UriKind.Relative));
 
         request.Headers.Authorization = TestTokens.BearerFrom(this.host);
 
         using var response = await this.client.SendAsync(request);
 
-        var body = await response.Content.ReadFromJsonAsync<EchoResponse>();
+        var body = await response.Content.ReadFromJsonAsync<CaseListResponse>();
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-            Assert.That(body?.Message, Is.EqualTo("Echo: ping"));
+            Assert.That(body?.Items.Select(item => item.Title), Is.EqualTo([StubCaseReader.Title]));
         }
     }
 }
