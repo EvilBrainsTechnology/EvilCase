@@ -28,6 +28,7 @@
     <Project Path="Utils/EvilBrains.ApiClient/EvilBrains.ApiClient.csproj" />
     <Project Path="Utils/EvilBrains.Collections/EvilBrains.Collections.csproj" />
     <Project Path="Utils/EvilBrains.Cryptography/EvilBrains.Cryptography.csproj" />
+    <Project Path="Utils/EvilBrains.Dispose/EvilBrains.Dispose.csproj" />
     <Project Path="Utils/EvilBrains.EntityFramework/EvilBrains.EntityFramework.csproj" />
     <Project Path="Utils/EvilBrains.Logging.AspNetCore/EvilBrains.Logging.AspNetCore.csproj" />
     <Project Path="Utils/EvilBrains.Logging.Contract/EvilBrains.Logging.Contract.csproj" />

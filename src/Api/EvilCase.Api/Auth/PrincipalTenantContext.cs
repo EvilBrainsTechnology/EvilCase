@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using EvilBrains.Dispose;
 using EvilBrains.EvilCase.Api.Contract.User;
 using EvilBrains.EvilCase.Domain.Tenancy;
 using Microsoft.AspNetCore.Http;
@@ -30,6 +31,6 @@ internal sealed class PrincipalTenantContext(IHttpContextAccessor httpContextAcc
         var previous = this.entered;
         this.entered = tenantId;
 
-        return new TenantScope(() => this.entered = previous);
+        return new ActionDisposableScope(() => this.entered = previous);
     }
 }
