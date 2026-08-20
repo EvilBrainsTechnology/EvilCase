@@ -26,10 +26,14 @@ public class AuthTokenServiceTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(token.GetClaim(AuthClaims.Subject).Value, Is.EqualTo(harness.User.Id.ToString(CultureInfo.InvariantCulture)));
+            Assert.That(token.GetClaim(AuthClaims.Subject).Value, Is.EqualTo(harness.User.Id.ToString("D", CultureInfo.InvariantCulture)));
             Assert.That(token.GetClaim(AuthClaims.Email).Value, Is.EqualTo(harness.User.Email));
             Assert.That(token.GetClaim(AuthClaims.Role).Value, Is.EqualTo(nameof(UserRole.Admin)));
             Assert.That(token.GetClaim(AuthClaims.AuthSessionId).Value, Is.EqualTo(AuthSessionId.ToString("N", CultureInfo.InvariantCulture)));
+            Assert.That(
+                token.GetClaim(AuthClaims.Tenant).Value,
+                Is.EqualTo(harness.User.TenantId.ToString("D", CultureInfo.InvariantCulture)),
+                "a request cannot find its tenant without this claim");
             Assert.That(token.Issuer, Is.EqualTo(settings.Jwt.Issuer));
             Assert.That(token.Audiences, Does.Contain(settings.Jwt.Audience));
         }

@@ -11,31 +11,35 @@ internal sealed class FakeUserStore : IUserStore
 {
     private readonly List<User> users = [];
 
+    public Account? Account { get; private set; }
+
+    public Tenant? Tenant { get; private set; }
+
+    public Contact? DefaultContact { get; private set; }
+
     public User Seed(User user)
     {
-        var stored = user with { Id = this.users.Count + 1 };
+        this.users.Add(user);
 
-        this.users.Add(stored);
-
-        return stored;
+        return user;
     }
 
-    public User Get(long id) => this.users.Single(user => user.Id == id);
+    public User Get(Guid id) => this.users.Single(user => user.Id == id);
 
     public Task<User?> FindByEmail(string normalizedEmail, CancellationToken cancellationToken) =>
         Task.FromResult(this.users.Find(user => string.Equals(user.Email, normalizedEmail, StringComparison.Ordinal)));
 
-    public Task<User?> FindById(long id, CancellationToken cancellationToken) =>
+    public Task<User?> FindById(Guid id, CancellationToken cancellationToken) =>
         Task.FromResult(this.users.Find(user => user.Id == id));
 
-    public Task RecordFailedLogin(long id, int failedAttempts, DateTime? lockoutEnd, DateTime now, CancellationToken cancellationToken)
+    public Task RecordFailedLogin(Guid id, int failedAttempts, DateTime? lockoutEnd, DateTime now, CancellationToken cancellationToken)
     {
         this.Replace(id, user => user with { FailedLoginAttempts = failedAttempts, LockoutEnd = lockoutEnd, Updated = now });
 
         return Task.CompletedTask;
     }
 
-    public Task RecordSuccessfulLogin(long id, DateTime now, CancellationToken cancellationToken)
+    public Task RecordSuccessfulLogin(Guid id, DateTime now, CancellationToken cancellationToken)
     {
         this.Replace(id, user => user with { FailedLoginAttempts = 0, LockoutEnd = null, Updated = now });
 
@@ -44,14 +48,18 @@ internal sealed class FakeUserStore : IUserStore
 
     public Task<bool> Any(CancellationToken cancellationToken) => Task.FromResult(this.users.Count > 0);
 
-    public Task Add(User user, CancellationToken cancellationToken)
+    public Task CreateAccount(Account account, Tenant tenant, User user, Contact defaultContact, CancellationToken cancellationToken)
     {
-        _ = this.Seed(user);
+        this.Account = account;
+        this.Tenant = tenant;
+        this.DefaultContact = defaultContact;
+
+        _ = this.Seed(user with { DefaultContactId = defaultContact.Id });
 
         return Task.CompletedTask;
     }
 
-    private void Replace(long id, Func<User, User> update)
+    private void Replace(Guid id, Func<User, User> update)
     {
         var index = this.users.FindIndex(user => user.Id == id);
 

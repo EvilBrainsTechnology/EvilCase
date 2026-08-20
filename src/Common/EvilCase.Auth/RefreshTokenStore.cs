@@ -17,7 +17,7 @@ internal sealed class RefreshTokenStore(ApplicationDbContext dbContext) : IRefre
 
     // The RevokedAt filter is the whole of the concurrency control: the statement is atomic, so of two
     // callers spending the same token exactly one sees a row change.
-    public async Task<bool> Revoke(long id, DateTime now, CancellationToken cancellationToken) =>
+    public async Task<bool> Revoke(Guid id, DateTime now, CancellationToken cancellationToken) =>
         await dbContext.RefreshTokens
             .Where(token => token.Id == id && token.RevokedAt == null)
             .ExecuteUpdateAsync(
@@ -33,7 +33,7 @@ internal sealed class RefreshTokenStore(ApplicationDbContext dbContext) : IRefre
             .ExecuteUpdateAsync(setters => setters.SetProperty(token => token.RevokedAt, now), cancellationToken);
     }
 
-    public async Task RevokeAll(long userId, DateTime now, CancellationToken cancellationToken)
+    public async Task RevokeAll(Guid userId, DateTime now, CancellationToken cancellationToken)
     {
         _ = await dbContext.RefreshTokens
             .Where(token => token.UserId == userId && token.RevokedAt == null)
@@ -42,13 +42,13 @@ internal sealed class RefreshTokenStore(ApplicationDbContext dbContext) : IRefre
 
     // Rotation revokes as it goes, so at most one row per chain is left unrevoked and the filter alone
     // gives one row per live session.
-    public async Task<IReadOnlyList<RefreshToken>> GetActive(long userId, DateTime now, CancellationToken cancellationToken) =>
+    public async Task<IReadOnlyList<RefreshToken>> GetActive(Guid userId, DateTime now, CancellationToken cancellationToken) =>
         await dbContext.RefreshTokens
             .Where(token => token.UserId == userId && token.RevokedAt == null && token.Expires > now && token.SessionExpires > now)
             .OrderByDescending(token => token.Created)
             .ToListAsync(cancellationToken);
 
-    public async Task<IReadOnlyDictionary<Guid, DateTime>> GetSessionStarts(long userId, CancellationToken cancellationToken) =>
+    public async Task<IReadOnlyDictionary<Guid, DateTime>> GetSessionStarts(Guid userId, CancellationToken cancellationToken) =>
         await dbContext.RefreshTokens
             .Where(token => token.UserId == userId)
             .GroupBy(token => token.AuthSessionId)

@@ -35,10 +35,10 @@ public class RefreshCookieTests
 
         _ = users.Seed(new()
         {
+            TenantId = Guid.CreateVersion7(),
             Email = Email,
             PasswordHash = PasswordHasher.Hash(Password),
             Role = UserRole.User,
-            Created = DateTime.UtcNow,
         });
 
         // The two types that would reach for the database; everything else is the real host. The rate

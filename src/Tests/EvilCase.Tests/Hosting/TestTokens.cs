@@ -26,11 +26,11 @@ internal static class TestTokens
 
         var user = new User
         {
-            Id = 1,
+            Id = Guid.CreateVersion7(),
+            TenantId = Guid.CreateVersion7(),
             Email = email,
             PasswordHash = "not-verified-here",
             Role = UserRole.Admin,
-            Created = DateTime.UtcNow,
         };
 
         return scope.ServiceProvider.GetRequiredService<IAuthTokenService>().Generate(user, Guid.NewGuid()).Value;

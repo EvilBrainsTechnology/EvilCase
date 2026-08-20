@@ -23,13 +23,25 @@ public class UserSeederTests
 
         await Seeder(store, SeedEmail, SeedPassword).Seed(CancellationToken.None);
 
-        var user = store.Get(1);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(store.Account, Is.Not.Null);
+            Assert.That(store.Tenant, Is.Not.Null);
+            Assert.That(store.DefaultContact, Is.Not.Null);
+        }
+
+        var user = store.Get(store.DefaultContact!.UserId);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(user.Email, Is.EqualTo("admin@evilcase.test"), "the seed goes through the same normalisation as a sign-in");
             Assert.That(user.Role, Is.EqualTo(UserRole.Admin));
             Assert.That(PasswordHasher.Verify(SeedPassword, user.PasswordHash), Is.True);
+            Assert.That(user.TenantId, Is.EqualTo(store.Tenant!.Id));
+            Assert.That(store.Tenant!.AccountId, Is.EqualTo(store.Account!.Id));
+            Assert.That(store.DefaultContact!.TenantId, Is.EqualTo(user.TenantId));
+            Assert.That(store.DefaultContact!.UserId, Is.EqualTo(user.Id));
+            Assert.That(user.DefaultContactId, Is.EqualTo(store.DefaultContact!.Id), "a user without a default contact has nothing to prefill an act with");
         }
     }
 
@@ -40,15 +52,15 @@ public class UserSeederTests
 
         _ = store.Seed(new()
         {
+            TenantId = Guid.CreateVersion7(),
             Email = "someone@evilcase.test",
             PasswordHash = "unused",
             Role = UserRole.User,
-            Created = DateTime.UtcNow,
         });
 
         await Seeder(store, SeedEmail, SeedPassword).Seed(CancellationToken.None);
 
-        Assert.That(await store.Any(CancellationToken.None) && store.Get(1).Role == UserRole.User, Is.True);
+        Assert.That(store.Account, Is.Null);
     }
 
     [Test]
@@ -78,10 +90,6 @@ public class UserSeederTests
     {
         var settings = AuthTestHarness.CreateSettings() with { Seed = new() { Email = email, Password = password } };
 
-        return new UserSeeder(
-            store,
-            Options.Create(settings),
-            new TestTimeProvider(new(2026, 8, 1, 12, 0, 0, DateTimeKind.Utc)),
-            NullLogger<UserSeeder>.Instance);
+        return new UserSeeder(store, Options.Create(settings), NullLogger<UserSeeder>.Instance);
     }
 }

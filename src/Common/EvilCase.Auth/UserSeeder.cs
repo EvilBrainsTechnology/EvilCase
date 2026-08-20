@@ -1,5 +1,6 @@
 using EvilBrains.Cryptography;
 using EvilBrains.EvilCase.Data.Entities;
+using EvilBrains.EvilCase.Domain.Contacts;
 using EvilBrains.EvilCase.Domain.Users;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -9,7 +10,6 @@ namespace EvilBrains.EvilCase.Auth;
 internal sealed class UserSeeder(
     IUserStore userStore,
     IOptions<AuthSettings> options,
-    TimeProvider timeProvider,
     ILogger<UserSeeder> logger) : IUserSeeder
 {
     public async Task Seed(CancellationToken cancellationToken)
@@ -24,16 +24,29 @@ internal sealed class UserSeeder(
         if (await userStore.Any(cancellationToken))
             return;
 
+        var normalizedEmail = EmailNormalizer.Normalize(email);
+
+        var account = new Account { Name = normalizedEmail };
+        var tenant = new Tenant { AccountId = account.Id, Name = normalizedEmail };
+
         var user = new User
         {
-            Email = EmailNormalizer.Normalize(email),
+            TenantId = tenant.Id,
+            Email = normalizedEmail,
             PasswordHash = PasswordHasher.Hash(password),
             Role = UserRole.Admin,
-            Created = timeProvider.GetUtcNow().UtcDateTime,
         };
 
-        await userStore.Add(user, cancellationToken);
+        var defaultContact = new Contact
+        {
+            TenantId = tenant.Id,
+            UserId = user.Id,
+            Kind = ContactKind.Person,
+            Name = normalizedEmail,
+        };
 
-        logger.LogInformation("No user existed, so the configured administrator {Email} was created", user.Email);
+        await userStore.CreateAccount(account, tenant, user, defaultContact, cancellationToken);
+
+        logger.LogInformation("No user existed, so the configured administrator {Email} was created in tenant {TenantId}", user.Email, tenant.Id);
     }
 }

@@ -19,6 +19,8 @@ internal sealed class AuthTestHarness
 
     public const int MaxFailedAttempts = 5;
 
+    public static readonly Guid Tenant = Guid.CreateVersion7();
+
     /// <summary>
     /// Hashed once: PBKDF2 is deliberately slow and every test would otherwise pay for it again.
     /// </summary>
@@ -34,10 +36,10 @@ internal sealed class AuthTestHarness
         this.User = this.Users.Seed(
             new()
             {
+                TenantId = Tenant,
                 Email = Email,
                 PasswordHash = PasswordHash,
                 Role = UserRole.Admin,
-                Created = Start,
             });
 
         this.Service = new AuthService(
