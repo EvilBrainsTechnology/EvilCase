@@ -23,21 +23,30 @@ internal sealed class RefreshTokenStore(IDbContextAccessor accessor) : IRefreshT
             .ExecuteUpdateAsync(
                 setters => setters
                     .SetProperty(token => token.RevokedAt, now)
-                    .SetProperty(token => token.LastUsed, now),
+                    .SetProperty(token => token.LastUsed, now)
+                    .SetProperty(token => token.Updated, now),
                 cancellationToken) > 0;
 
     public async Task RevokeSession(Guid authSessionId, DateTime now, CancellationToken cancellationToken)
     {
         _ = await accessor.Current.Set<RefreshToken>()
             .Where(token => token.AuthSessionId == authSessionId && token.RevokedAt == null)
-            .ExecuteUpdateAsync(setters => setters.SetProperty(token => token.RevokedAt, now), cancellationToken);
+            .ExecuteUpdateAsync(
+                setters => setters
+                    .SetProperty(token => token.RevokedAt, now)
+                    .SetProperty(token => token.Updated, now),
+                cancellationToken);
     }
 
     public async Task RevokeAll(Guid userId, DateTime now, CancellationToken cancellationToken)
     {
         _ = await accessor.Current.Set<RefreshToken>()
             .Where(token => token.UserId == userId && token.RevokedAt == null)
-            .ExecuteUpdateAsync(setters => setters.SetProperty(token => token.RevokedAt, now), cancellationToken);
+            .ExecuteUpdateAsync(
+                setters => setters
+                    .SetProperty(token => token.RevokedAt, now)
+                    .SetProperty(token => token.Updated, now),
+                cancellationToken);
     }
 
     // Rotation revokes as it goes, so at most one row per chain is left unrevoked and the filter alone
