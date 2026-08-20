@@ -11,8 +11,8 @@ namespace EvilBrains.EvilCase.Data.Entities;
 [Index(nameof(TenantId))]
 [Index(nameof(TenantId), nameof(ActNumber), IsUnique = true)]
 [Index(nameof(CaseId), nameof(Date))]
-[Index(nameof(SenderContactId))]
-[Index(nameof(RecipientContactId))]
+[Index(nameof(IssuedByContactId))]
+[Index(nameof(AddressedToContactId))]
 public record Act : ITenantEntity
 {
     [Key]
@@ -38,12 +38,11 @@ public record Act : ITenantEntity
     /// </summary>
     public required DateOnly Date { get; init; }
 
-    [MaxLength(4000)]
     public string? Description { get; init; }
 
-    public required Guid SenderContactId { get; init; }
+    public required Guid IssuedByContactId { get; init; }
 
-    public Guid? RecipientContactId { get; init; }
+    public Guid? AddressedToContactId { get; init; }
 
     public DateTime Created { get; init; }
 
@@ -51,9 +50,9 @@ public record Act : ITenantEntity
 
     public Case? Case { get; init; }
 
-    public Contact? Sender { get; init; }
+    public Contact? IssuedByContact { get; init; }
 
-    public Contact? Recipient { get; init; }
+    public Contact? AddressedToContact { get; init; }
 
     public ICollection<ExternalActNumber> ExternalActNumbers { get; init; } = [];
 

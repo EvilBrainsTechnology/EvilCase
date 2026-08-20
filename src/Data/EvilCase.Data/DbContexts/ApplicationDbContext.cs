@@ -4,15 +4,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Data.DbContexts;
 
-public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, ITenantContext tenantContext)
-    : DbContext(options)
+public class ApplicationDbContext : DbContext
 {
-    /// <summary>
-    /// The tenant every query filter compares against; null matches no row.
-    /// </summary>
-    public Guid? TenantId => this.TenantContext.TenantIdOrDefault;
+    private readonly ITenantContext tenantContext;
 
-    private ITenantContext TenantContext { get; } = tenantContext;
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, ITenantContext tenantContext)
+        : base(options)
+    {
+        this.tenantContext = tenantContext;
+    }
 
     public DbSet<Account> Accounts => this.Set<Account>();
 
@@ -42,15 +42,19 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
         base.OnModelCreating(modelBuilder);
 
+        modelBuilder
+            .HasDbFunction(typeof(DatabaseFunctions).GetMethod(nameof(DatabaseFunctions.Unaccent), [typeof(string)])!)
+            .HasName("immutable_unaccent");
+
         ConfigureExtensions(modelBuilder);
         ConfigureEntities(modelBuilder);
-        ConfigureEnums(modelBuilder);
         this.ConfigureTenancy(modelBuilder);
         ConfigureAccounts(modelBuilder);
         ConfigureCases(modelBuilder);
         ConfigureActs(modelBuilder);
         ConfigureFiles(modelBuilder);
         ConfigureComments(modelBuilder);
+        ConfigureEnums(modelBuilder);
     }
 
     private static void ConfigureExtensions(ModelBuilder modelBuilder)
@@ -79,38 +83,34 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         }
     }
 
+    // Every enum is stored as its name, in a column as wide as the longest name that enum has.
     private static void ConfigureEnums(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<User>()
-            .Property(user => user.Role)
-            .HasConversion<string>()
-            .HasMaxLength(32);
+        var properties = modelBuilder.Model
+            .GetEntityTypes()
+            .SelectMany(entityType => entityType.GetDeclaredProperties());
 
-        modelBuilder.Entity<Contact>()
-            .Property(contact => contact.Kind)
-            .HasConversion<string>()
-            .HasMaxLength(32);
+        foreach (var property in properties)
+        {
+            var enumType = Nullable.GetUnderlyingType(property.ClrType) ?? property.ClrType;
 
-        modelBuilder.Entity<Case>()
-            .Property(@case => @case.Status)
-            .HasConversion<string>()
-            .HasMaxLength(32);
+            if (!enumType.IsEnum)
+                continue;
 
-        modelBuilder.Entity<Act>()
-            .Property(act => act.Direction)
-            .HasConversion<string>()
-            .HasMaxLength(32);
+            property.SetProviderClrType(typeof(string));
+            property.SetMaxLength(Enum.GetNames(enumType).Max(name => name.Length));
+        }
     }
 
     private void ConfigureTenancy(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Contact>().HasQueryFilter(contact => contact.TenantId == this.TenantId);
-        modelBuilder.Entity<Case>().HasQueryFilter(@case => @case.TenantId == this.TenantId);
-        modelBuilder.Entity<ExternalCaseNumber>().HasQueryFilter(number => number.TenantId == this.TenantId);
-        modelBuilder.Entity<Act>().HasQueryFilter(act => act.TenantId == this.TenantId);
-        modelBuilder.Entity<ExternalActNumber>().HasQueryFilter(number => number.TenantId == this.TenantId);
-        modelBuilder.Entity<FileAsset>().HasQueryFilter(file => file.TenantId == this.TenantId);
-        modelBuilder.Entity<Comment>().HasQueryFilter(comment => comment.TenantId == this.TenantId);
+        modelBuilder.Entity<Contact>().HasQueryFilter(contact => contact.TenantId == this.tenantContext.TenantIdOrDefault);
+        modelBuilder.Entity<Case>().HasQueryFilter(@case => @case.TenantId == this.tenantContext.TenantIdOrDefault);
+        modelBuilder.Entity<ExternalCaseNumber>().HasQueryFilter(number => number.TenantId == this.tenantContext.TenantIdOrDefault);
+        modelBuilder.Entity<Act>().HasQueryFilter(act => act.TenantId == this.tenantContext.TenantIdOrDefault);
+        modelBuilder.Entity<ExternalActNumber>().HasQueryFilter(number => number.TenantId == this.tenantContext.TenantIdOrDefault);
+        modelBuilder.Entity<FileAsset>().HasQueryFilter(file => file.TenantId == this.tenantContext.TenantIdOrDefault);
+        modelBuilder.Entity<Comment>().HasQueryFilter(comment => comment.TenantId == this.tenantContext.TenantIdOrDefault);
 
         var tenantEntityTypes = modelBuilder.Model.GetEntityTypes()
             .Where(type => typeof(ITenantEntity).IsAssignableFrom(type.ClrType))
@@ -192,15 +192,15 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         // A contact accumulates history across cases, so it outlives any one act naming it. Both ends
         // are configured explicitly because two foreign keys to the same table cannot be inferred.
         modelBuilder.Entity<Act>()
-            .HasOne(act => act.Sender)
-            .WithMany(contact => contact.SentActs)
-            .HasForeignKey(act => act.SenderContactId)
+            .HasOne(act => act.IssuedByContact)
+            .WithMany(contact => contact.IssuedActs)
+            .HasForeignKey(act => act.IssuedByContactId)
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Act>()
-            .HasOne(act => act.Recipient)
-            .WithMany(contact => contact.ReceivedActs)
-            .HasForeignKey(act => act.RecipientContactId)
+            .HasOne(act => act.AddressedToContact)
+            .WithMany(contact => contact.AddressedActs)
+            .HasForeignKey(act => act.AddressedToContactId)
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<ExternalActNumber>()

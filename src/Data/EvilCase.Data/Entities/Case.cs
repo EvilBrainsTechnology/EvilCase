@@ -30,7 +30,6 @@ public record Case : ITenantEntity
     [MaxLength(256)]
     public required string Title { get; init; }
 
-    [MaxLength(4000)]
     public string? Description { get; init; }
 
     public required CaseStatus Status { get; init; }

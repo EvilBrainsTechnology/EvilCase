@@ -37,6 +37,15 @@ public class CaseModelTests : ModelFixture
     }
 
     [Test]
+    public void TheCaseDescriptionIsAsLongAsItNeedsToBe()
+    {
+        var @case = Model.FindEntityType(typeof(Case));
+
+        Assert.That(@case, Is.Not.Null);
+        Assert.That(@case.FindProperty(nameof(Case.Description))?.GetMaxLength(), Is.Null, "a case description is free text and carries no cap");
+    }
+
+    [Test]
     public void ACaseHangsUnderAnOptionalParent()
     {
         var @case = Model.FindEntityType(typeof(Case));

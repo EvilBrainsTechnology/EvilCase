@@ -38,8 +38,8 @@ Account → Tenant → User (SDD-006). Tenantová data:
   `TimeProvider`.
 - Tenantové entity nesou `TenantId` a `UserId` (SDD-006).
 - Datum spisu a úkonu je `DateOnly` (`.claude/rules/data.md`).
-- Délky řetězců: název 256, popis 4000, název kontaktu 256, adresa 1024, id datové
-  schránky 16, hodnota externího čísla 128.
+- Délky řetězců: název 256, název kontaktu 256, adresa 1024, id datové schránky 16, hodnota
+  externího čísla 128. Popis spisu i úkonu je bez omezení.
 
 ### Matice mazání
 

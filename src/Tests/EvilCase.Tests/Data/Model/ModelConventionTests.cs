@@ -21,9 +21,11 @@ public class ModelConventionTests : ModelFixture
             foreach (var property in enumProperties)
             {
                 var name = $"{property.DeclaringType.ShortName()}.{property.Name}";
+                var longest = Enum.GetNames(Nullable.GetUnderlyingType(property.ClrType) ?? property.ClrType).Max(value => value.Length);
 
                 Assert.That(property.GetProviderClrType(), Is.EqualTo(typeof(string)), $"{name} is stored by number, so renumbering the enum would silently rewrite every row");
                 Assert.That(property.GetColumnType(), Does.StartWith("character varying"), $"{name} is stored as unbounded text rather than a bounded column");
+                Assert.That(property.GetMaxLength(), Is.EqualTo(longest), $"{name} is not as wide as its longest value and no wider");
             }
         }
     }

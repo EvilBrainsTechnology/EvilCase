@@ -50,7 +50,7 @@ public record Contact : ITenantEntity
 
     public ICollection<ExternalActNumber> AssignedExternalActNumbers { get; init; } = [];
 
-    public ICollection<Act> SentActs { get; init; } = [];
+    public ICollection<Act> IssuedActs { get; init; } = [];
 
-    public ICollection<Act> ReceivedActs { get; init; } = [];
+    public ICollection<Act> AddressedActs { get; init; } = [];
 }

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 namespace EvilBrains.EvilCase.Data.Entities;
 
 /// <summary>
-/// Covers N tenants. Created by the seed at startup and nowhere else (SDD-006).
+/// Covers N tenants.
 /// </summary>
 public record Account : IEntity
 {

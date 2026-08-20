@@ -46,12 +46,12 @@ public class ActModelTests : ModelFixture
     }
 
     [Test]
-    public void TheActDescriptionIsBounded()
+    public void TheActDescriptionIsAsLongAsItNeedsToBe()
     {
         var act = Model.FindEntityType(typeof(Act));
 
         Assert.That(act, Is.Not.Null);
-        Assert.That(act.FindProperty(nameof(Act.Description))?.GetMaxLength(), Is.EqualTo(4000), "the description is bounded like every other free text on an act");
+        Assert.That(act.FindProperty(nameof(Act.Description))?.GetMaxLength(), Is.Null, "an act description is free text and carries no cap");
     }
 
     [Test]
