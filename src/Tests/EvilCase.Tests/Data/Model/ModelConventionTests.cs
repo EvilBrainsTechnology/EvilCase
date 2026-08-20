@@ -1,5 +1,6 @@
 using EvilBrains.EvilCase.Data.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace EvilBrains.EvilCase.Tests.Data.Model;
 
@@ -66,5 +67,26 @@ public class ModelConventionTests : ModelFixture
             .ToList();
 
         Assert.That(eager, Is.Empty, "auto-include is off, and an AutoInclude() would turn one read of the case list into a read of everything under it");
+    }
+
+    [Test]
+    public void EveryIdentifierIsAUuidTheApplicationGenerates()
+    {
+        var entities = Model.GetEntityTypes()
+            .Where(entityType => typeof(IEntity).IsAssignableFrom(entityType.ClrType))
+            .ToList();
+
+        Assert.That(entities, Is.Not.Empty);
+
+        using (Assert.EnterMultipleScope())
+        {
+            foreach (var entityType in entities)
+            {
+                var id = entityType.FindProperty(nameof(IEntity.Id));
+
+                Assert.That(id?.ClrType, Is.EqualTo(typeof(Guid)), $"{entityType.ShortName()}: a database-generated key would leave a new row without an identifier until it is saved");
+                Assert.That(id?.ValueGenerated, Is.EqualTo(ValueGenerated.Never), $"{entityType.ShortName()}: a database-generated key would leave a new row without an identifier until it is saved");
+            }
+        }
     }
 }

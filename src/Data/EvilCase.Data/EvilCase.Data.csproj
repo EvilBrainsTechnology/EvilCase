@@ -12,4 +12,8 @@
     <ProjectReference Include="..\..\Utils\EvilBrains.EntityFramework\EvilBrains.EntityFramework.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="EvilBrains.EvilCase.Tests" />
+  </ItemGroup>
+
 </Project>

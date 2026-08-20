@@ -20,6 +20,7 @@ public class CommentModelTests : ModelFixture
             Assert.That(check?.Sql, Does.Contain("<>"), "exactly one parent — never both, never neither");
             Assert.That(comment.FindProperty(nameof(Comment.CaseId))?.IsNullable, Is.True);
             Assert.That(comment.FindProperty(nameof(Comment.ActId))?.IsNullable, Is.True);
+            Assert.That(comment.FindProperty(nameof(Comment.UserId))?.IsNullable, Is.False);
             Assert.That(comment.FindProperty(nameof(Comment.Body))?.GetMaxLength(), Is.Null, "a note is as long as it needs to be");
         }
     }
@@ -30,9 +31,16 @@ public class CommentModelTests : ModelFixture
         var comment = Model.FindEntityType(typeof(Comment));
 
         Assert.That(comment, Is.Not.Null);
-        Assert.That(
-            comment.GetForeignKeys().All(key => key.DeleteBehavior == DeleteBehavior.Cascade),
-            Is.True,
-            "a note has no meaning without its case, its act or its author");
+
+        var toCase = ForeignKeyTo<Case>(comment);
+        var toAct = ForeignKeyTo<Act>(comment);
+        var toUser = ForeignKeyTo<User>(comment);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(toCase?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Cascade));
+            Assert.That(toAct?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Cascade));
+            Assert.That(toUser?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Restrict), "a note dies with its case or its act; the author outlives it");
+        }
     }
 }

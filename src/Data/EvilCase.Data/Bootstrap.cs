@@ -1,7 +1,9 @@
 using EvilBrains.EvilCase.Data.DbContexts;
+using EvilBrains.EvilCase.Data.Interceptors;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 
 namespace EvilBrains.EvilCase.Data;
@@ -10,6 +12,10 @@ public static class Bootstrap
 {
     public static IServiceCollection AddEvilCaseData(this IServiceCollection serviceCollection)
     {
+        serviceCollection.TryAddSingleton(TimeProvider.System);
+        serviceCollection.AddScoped<TimestampInterceptor>();
+        serviceCollection.AddScoped<TenantWriteInterceptor>();
+
         serviceCollection.AddLocalDbContext<ApplicationDbContext>();
         serviceCollection.AddScoped<IDatabaseMigrator, DatabaseMigrator>();
 
@@ -49,6 +55,9 @@ public static class Bootstrap
 
                 options.UseNpgsql(connectionString, npgsql => npgsql.UseEvilCaseMigrations());
                 options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+                options.AddInterceptors(
+                    serviceProvider.GetRequiredService<TimestampInterceptor>(),
+                    serviceProvider.GetRequiredService<TenantWriteInterceptor>());
 
                 var environment = serviceProvider.GetRequiredService<IHostEnvironment>();
                 if (environment.IsDevelopment())

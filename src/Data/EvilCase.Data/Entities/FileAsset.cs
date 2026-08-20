@@ -4,23 +4,26 @@ using Microsoft.EntityFrameworkCore;
 namespace EvilBrains.EvilCase.Data.Entities;
 
 /// <summary>
-/// Stored bytes under the act they were filed with, carrying the name they arrived under. Every other
-/// act reaches them through an <see cref="ActFileReference"/>.
+/// Stored bytes belonging to exactly one case or one act, XOR held by a check constraint (SDD-012).
 /// </summary>
-[Index(nameof(OwnerId), nameof(ContentHash), IsUnique = true)]
-[Index(nameof(OwnerId))]
+[Index(nameof(TenantId))]
+[Index(nameof(CaseId))]
 [Index(nameof(ActId))]
-public record FileAsset : IEntity
+public record FileAsset : ITenantEntity
 {
     [Key]
-    public long Id { get; init; }
+    public Guid Id { get; init; } = Guid.CreateVersion7();
 
-    public required long OwnerId { get; init; }
+    public required Guid TenantId { get; init; }
 
-    public required long ActId { get; init; }
+    public required Guid UserId { get; init; }
+
+    public Guid? CaseId { get; init; }
+
+    public Guid? ActId { get; init; }
 
     /// <summary>
-    /// The original name, which a reference overrides with its own.
+    /// The name it arrived under.
     /// </summary>
     [MaxLength(256)]
     public required string FileName { get; init; }
@@ -39,11 +42,11 @@ public record FileAsset : IEntity
     [MaxLength(128)]
     public string? MediaType { get; init; }
 
-    public required DateTime Created { get; init; }
+    public DateTime Created { get; init; }
 
-    public User? Owner { get; init; }
+    public DateTime? Updated { get; init; }
+
+    public Case? Case { get; init; }
 
     public Act? Act { get; init; }
-
-    public ICollection<ActFileReference> References { get; init; } = [];
 }

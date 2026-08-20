@@ -15,8 +15,13 @@ public class ActModelTests : ModelFixture
     public void EveryIdentifierIsStoredUnderTheNameTheVisionGivesIt()
     {
         var act = Model.FindEntityType(typeof(Act));
+        var columns = ColumnsOf(act);
 
-        Assert.That(ColumnsOf(act), Has.Member("ExternalActNumber"), "the number the issuing authority gave an act is stored in a column named ExternalActNumber");
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(columns, Has.Member("ActNumber"), "the act's own mark is stored in a column named ActNumber");
+            Assert.That(columns, Does.Not.Contain("ExternalActNumber"), "the number the issuing authority gave an act is a table now");
+        }
     }
 
     [Test]
@@ -41,12 +46,12 @@ public class ActModelTests : ModelFixture
     }
 
     [Test]
-    public void TheActSummaryIsAsLongAsItNeedsToBe()
+    public void TheActDescriptionIsBounded()
     {
         var act = Model.FindEntityType(typeof(Act));
 
         Assert.That(act, Is.Not.Null);
-        Assert.That(act.FindProperty(nameof(Act.Summary))?.GetMaxLength(), Is.Null, "the summary is long-form and lives on the act alone");
+        Assert.That(act.FindProperty(nameof(Act.Description))?.GetMaxLength(), Is.EqualTo(4000), "the description is bounded like every other free text on an act");
     }
 
     [Test]
@@ -67,19 +72,19 @@ public class ActModelTests : ModelFixture
     }
 
     [Test]
-    public void AnActNeverTakesAPartyDownWithIt()
+    public void AnActNeverTakesAContactDownWithIt()
     {
         var act = Model.FindEntityType(typeof(Act));
 
         Assert.That(act, Is.Not.Null);
 
-        var toParties = act.GetForeignKeys().Where(key => key.PrincipalEntityType.ClrType == typeof(Party)).ToList();
+        var toContacts = act.GetForeignKeys().Where(key => key.PrincipalEntityType.ClrType == typeof(Contact)).ToList();
         var toCase = act.GetForeignKeys().SingleOrDefault(key => key.PrincipalEntityType.ClrType == typeof(Case));
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(toParties, Has.Count.EqualTo(2), "an act references who issued it and who it was addressed to");
-            Assert.That(toParties.TrueForAll(key => key.DeleteBehavior == DeleteBehavior.Restrict), Is.True, "a party outlives any one act naming it");
+            Assert.That(toContacts, Has.Count.EqualTo(2), "an act references its sender and its recipient");
+            Assert.That(toContacts.TrueForAll(key => key.DeleteBehavior == DeleteBehavior.Restrict), Is.True, "a contact outlives any one act naming it");
             Assert.That(toCase?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Cascade), "an act has no meaning without its case");
         }
     }

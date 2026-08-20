@@ -1,6 +1,10 @@
-﻿namespace EvilBrains.EvilCase.Data.Entities;
+namespace EvilBrains.EvilCase.Data.Entities;
 
 public interface IEntity
 {
-    public long Id { get; }
+    public Guid Id { get; }
+
+    public DateTime Created { get; }
+
+    public DateTime? Updated { get; }
 }

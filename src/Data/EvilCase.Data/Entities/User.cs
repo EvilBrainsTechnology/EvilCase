@@ -5,10 +5,14 @@ using Microsoft.EntityFrameworkCore;
 namespace EvilBrains.EvilCase.Data.Entities;
 
 [Index(nameof(Email), IsUnique = true)]
+[Index(nameof(TenantId))]
+[Index(nameof(DefaultContactId))]
 public record User : IEntity
 {
     [Key]
-    public long Id { get; init; }
+    public Guid Id { get; init; } = Guid.CreateVersion7();
+
+    public required Guid TenantId { get; init; }
 
     /// <summary>
     /// Stored normalised — trimmed and lower-cased — so the unique index is what makes e-mails
@@ -23,7 +27,13 @@ public record User : IEntity
 
     public required UserRole Role { get; init; }
 
-    public required DateTime Created { get; init; }
+    /// <summary>
+    /// The contact this user prefills an act with. Nullable because the pair is written in two steps —
+    /// see <c>UserStore.CreateAccount</c>.
+    /// </summary>
+    public Guid? DefaultContactId { get; init; }
+
+    public DateTime Created { get; init; }
 
     public DateTime? Updated { get; init; }
 
