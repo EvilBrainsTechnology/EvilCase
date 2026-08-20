@@ -8,17 +8,15 @@ namespace EvilBrains.EvilCase.Tests.Auth;
 /// </summary>
 internal sealed class StubTenantContext : ITenantContext
 {
-    private Guid? entered;
-
     public Guid TenantId => this.TenantIdOrDefault ?? throw new InvalidOperationException("The request has no tenant.");
 
-    public Guid? TenantIdOrDefault => this.entered;
+    public Guid? TenantIdOrDefault { get; private set; }
 
     public IDisposable Enter(Guid tenantId)
     {
-        var previous = this.entered;
-        this.entered = tenantId;
+        var previous = this.TenantIdOrDefault;
+        this.TenantIdOrDefault = tenantId;
 
-        return new ActionDisposableScope(() => this.entered = previous);
+        return new ActionDisposableScope(() => this.TenantIdOrDefault = previous);
     }
 }

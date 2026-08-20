@@ -4,15 +4,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Data.DbContexts;
 
-public class ApplicationDbContext : DbContext
+public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, ITenantContext tenantContext) : DbContext(options)
 {
-    private readonly ITenantContext tenantContext;
-
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, ITenantContext tenantContext)
-        : base(options)
-    {
-        this.tenantContext = tenantContext;
-    }
+    private readonly ITenantContext tenantContext = tenantContext;
 
     public DbSet<Account> Accounts => this.Set<Account>();
 
@@ -75,10 +69,6 @@ public class ApplicationDbContext : DbContext
 
             modelBuilder.Entity(entityType.ClrType)
                 .Property(nameof(IEntity.Created))
-                .UsePropertyAccessMode(PropertyAccessMode.Field);
-
-            modelBuilder.Entity(entityType.ClrType)
-                .Property(nameof(IEntity.Updated))
                 .UsePropertyAccessMode(PropertyAccessMode.Field);
         }
     }

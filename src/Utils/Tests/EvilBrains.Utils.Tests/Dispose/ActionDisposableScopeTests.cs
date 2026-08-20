@@ -10,9 +10,7 @@ public sealed class ActionDisposableScopeTests
         var calls = 0;
 
         using (new ActionDisposableScope(() => calls++))
-        {
             Assert.That(calls, Is.Zero);
-        }
 
         Assert.That(calls, Is.EqualTo(1), "the scope runs its action when it ends");
     }
