@@ -1,14 +1,14 @@
-# SDD-007 — Číslování
+# SDD-008 — Číslování
 
 - **Stav:** platí
 - **Milníky:** M2
-- **Související SDD:** [008](sdd-008-spisy.md), [009](sdd-009-ukony.md),
-  [013](sdd-013-vyhledavani.md), [015](sdd-015-navigace-a-vzhled.md)
+- **Související SDD:** [009](sdd-009-spisy.md), [010](sdd-010-ukony.md),
+  [014](sdd-014-vyhledavani.md), [016](sdd-016-navigace-a-vzhled.md)
 
 ## Rozsah
 
 Interní spisové značky (`CaseNumber`) a čísla jednací (`ActNumber`). Externí čísla jsou
-volný text a patří SDD-008 a SDD-009.
+volný text a patří SDD-009 a SDD-010.
 
 ## Popis
 
@@ -40,17 +40,17 @@ neodpovídající hodnoty se do pořadí nepočítají.
 ### Implementace
 
 Skládání, parsování a validace čísla je čistá doménová logika bez `DbContext`, testovaná
-bez databáze (SDD-002).
+bez databáze (SDD-003).
 
 ## Rozhodnutí
 
 - Vzory: konfigurovatelné v Nastavení / natvrdo. Platí natvrdo; obrazovka Nastavení zaniká
-  (SDD-015).
+  (SDD-016).
 - Souběh: DB sekvence per den / MAX + insert s retry. Platí MAX + insert s retry na unique
   violation.
 - Změna data entity: číslo se přegenerovává / nemění. Číslo se nemění.
 
 ## Dopady
 
-Placeholder stránka Nastavení zaniká (SDD-015). Přesná shoda čísla naviguje rovnou na
-entitu (SDD-013).
+Placeholder stránka Nastavení zaniká (SDD-016). Přesná shoda čísla naviguje rovnou na
+entitu (SDD-014).

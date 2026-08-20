@@ -22,7 +22,7 @@ základ vynechává, je dole v non-goals a přijde později, po krocích.
   s reálným spisem.
 - Tenance není rezervovaný sloupec, ale vynucený model: Account zastřešuje N tenantů, každá
   tenantová entita nese `TenantId` a izolaci vynucují query filtry
-  ([SDD-005](../sdd/sdd-005-tenance-a-ucty.md)). Účty vznikají jen seedem; registrace, pozvánky
+  ([SDD-006](../sdd/sdd-006-tenance-a-ucty.md)). Účty vznikají jen seedem; registrace, pozvánky
   a více uživatelů v tenantu přijdou později.
 
 ## Doménový model
@@ -30,34 +30,34 @@ základ vynechává, je dole v non-goals a přijde později, po krocích.
 Názvy v kódu jsou anglické: spis = `Case`, úkon = `Act`, soubor = `FileAsset`, kontakt =
 `Contact`, komentář = `Comment`; spisová značka = `CaseNumber`, číslo jednací = `ActNumber`,
 cizí, přidělené někým jiným, jsou `ExternalCaseNumber` a `ExternalActNumber`. Mapu drží
-[SDD-006](../sdd/sdd-006-domenovy-model.md).
+[SDD-007](../sdd/sdd-007-domenovy-model.md).
 
 **Spis** — jedno řízení. Nese explicitní datum, název, popis, status (`Active`,
 `WaitingOnAuthority`, `Closed`), externí značky, komentáře a soubory. Spisy tvoří hierarchii:
 volitelný rodič, libovolná hloubka, UI ukazuje jen ploché seznamy. Bez tagů.
-([SDD-008](../sdd/sdd-008-spisy.md))
+([SDD-009](../sdd/sdd-009-spisy.md))
 
 **Úkon** — jednotka práce ve spisu: jedno podání, rozhodnutí, vyrozumění nebo výzva. Má směr
 (příchozí/odchozí), povinného odesílatele a nepovinného příjemce, explicitní datum, název,
 N externích čísel jednacích, popis, komentáře a soubory. Seznamy úkonů se řadí podle data
 úkonu vzestupně; shodná data řadí `Created`.
-([SDD-009](../sdd/sdd-009-ukony.md))
+([SDD-010](../sdd/sdd-010-ukony.md))
 
 **Kontakt** — úřad, úřední osoba nebo člověk; plochý, sdílený napříč spisy; nese id datové
 schránky a adresu jako jeden volný text. Vybírá se nebo zakládá inline všude, kde ho spis, úkon
 nebo číslo jmenuje, a spravuje se v agendě, která ukazuje, kde všude figuruje. Každý uživatel
 má automatický defaultní kontakt. Smazat jde jen kontakt, na který nic neodkazuje.
-([SDD-010](../sdd/sdd-010-kontakty.md))
+([SDD-011](../sdd/sdd-011-kontakty.md))
 
 **Soubor** — patří právě jednomu spisu nebo úkonu; žádné odkazy mezi soubory a jinými
 entitami. Bajty leží na disku, databáze nese metadata. Upload i download v prohlížeči, včetně
-hromadného přetažením. ([SDD-011](../sdd/sdd-011-soubory.md))
+hromadného přetažením. ([SDD-012](../sdd/sdd-012-soubory.md))
 
 **Externí čísla** — spis nese N cizích značek, úkon N cizích čísel jednacích; každé je svázané
 s kontaktem, který ho přidělil — každý úřad v řetězu přiděluje své.
 
 **Komentář** — volná poznámka ke spisu nebo úkonu, průběžný deník. Edituje a maže jen autor.
-([SDD-012](../sdd/sdd-012-komentare.md))
+([SDD-013](../sdd/sdd-013-komentare.md))
 
 Vše, co uživatel zadá, jde editovat i smazat; destruktivní operace se napřed potvrzuje.
 
@@ -65,15 +65,15 @@ Vše, co uživatel zadá, jde editovat i smazat; destruktivní operace se napře
 
 Aplikace vydává vlastní čísla natvrdo, bez konfigurace: spis `EC/20260807-001`, úkon
 `EC/20260807-001/20260812-001`; pořadí počítá den z data entity. Ruční přepis je možný,
-unikátnost hlídá databáze. Pravidla a souběh drží [SDD-007](../sdd/sdd-007-cislovani.md).
+unikátnost hlídá databáze. Pravidla a souběh drží [SDD-008](../sdd/sdd-008-cislovani.md).
 
 ## Aplikace
 
 URL nesou UUID: `/cases`, `/cases/{id}`, `/cases/{id}/act/{actId}`, `/contacts`, `/login`
-([SDD-015](../sdd/sdd-015-navigace-a-vzhled.md)). Dashboard `/` stojí nad reálnými daty
-([SDD-014](../sdd/sdd-014-dashboard.md)). Hledání ignoruje diakritiku, pokrývá názvy, popisy
+([SDD-016](../sdd/sdd-016-navigace-a-vzhled.md)). Dashboard `/` stojí nad reálnými daty
+([SDD-015](../sdd/sdd-015-dashboard.md)). Hledání ignoruje diakritiku, pokrývá názvy, popisy
 i čísla včetně externích; přesná shoda vlastního čísla skočí rovnou na spis nebo úkon,
-externího jen při jediné shodě ([SDD-013](../sdd/sdd-013-vyhledavani.md)). Vzhled zůstává:
+externího jen při jediné shodě ([SDD-014](../sdd/sdd-014-vyhledavani.md)). Vzhled zůstává:
 Tabler + TabBlazor.
 
 ## Vzorová data
@@ -82,7 +82,7 @@ Tabler + TabBlazor.
 v jakémkoli prostředí, jen dokud tenant nemá žádný spis. Data jsou pseudonymizovaný případ
 o překročení rychlosti z `test-data/case-01-speeding.md`: strom spisů, kontakty, značky, úkony
 se syntetickými TXT soubory, komentáře — každá obrazovka se staví a ověřuje nad rozsahem
-reálného případu. ([SDD-016](../sdd/sdd-016-seed-vzorovych-dat.md))
+reálného případu. ([SDD-017](../sdd/sdd-017-seed-vzorovych-dat.md))
 
 ## Priority
 
@@ -97,15 +97,15 @@ V pořadí podle toho, co při práci s reálným spisem bolí nejvíc:
 
 | # | Milník | Dodá | Řídí |
 | --- | --- | --- | --- |
-| M1 | Úklid | smazání stránek a API mimo vizi: `/deadlines`, `/echo` s kontrolerem a kontraktem, `/settings` | SDD-015 |
-| M2 | Datový model a seed | nové entity, tenance, interceptory, číslování, jedna Init migrace, rename Party → Contact, jádro souborového úložiště, seed účtů i vzorových dat | SDD-005, 006, 007, 010, 011, 016 |
-| M3 | Spisy | seznam, založení, detail a editace spisu; hierarchie, externí značky, komentáře spisů, kaskádové mazání | SDD-008, 010, 012 |
-| M4 | Úkony | založení, detail, editace a mazání úkonu; směr, kontakty, externí čísla, komentáře úkonů | SDD-009, 010, 012 |
-| M5 | Soubory | UI souborů: upload včetně hromadného přetažením, download, mazání | SDD-011 |
-| M6 | Kontakty | agenda kontaktů s výskyty, defaultní kontakt v UI | SDD-010 |
-| M7 | Dashboard a hledání | dashboard nad reálnými daty, fulltext s navigací přesnou shodou | SDD-013, 014 |
+| M1 | Úklid | smazání stránek a API mimo vizi: `/deadlines`, `/echo` s kontrolerem a kontraktem, `/settings` | SDD-016 |
+| M2 | Datový model a seed | nové entity, tenance, interceptory, číslování, jedna Init migrace, rename Party → Contact, jádro souborového úložiště, seed účtů i vzorových dat | SDD-006, 007, 008, 011, 012, 017 |
+| M3 | Spisy | seznam, založení, detail a editace spisu; hierarchie, externí značky, komentáře spisů, kaskádové mazání | SDD-009, 011, 013 |
+| M4 | Úkony | založení, detail, editace a mazání úkonu; směr, kontakty, externí čísla, komentáře úkonů | SDD-010, 011, 013 |
+| M5 | Soubory | UI souborů: upload včetně hromadného přetažením, download, mazání | SDD-012 |
+| M6 | Kontakty | agenda kontaktů s výskyty, defaultní kontakt v UI | SDD-011 |
+| M7 | Dashboard a hledání | dashboard nad reálnými daty, fulltext s navigací přesnou shodou | SDD-014, 015 |
 
-Průřezová SDD-001 až 004 platí pro každý milník. Základ je hotový, když jde reálný spis vést
+Průřezová SDD-001 až 005 platí pro každý milník. Základ je hotový, když jde reálný spis vést
 rukou od začátku do konce.
 
 ## Non-goals pro teď

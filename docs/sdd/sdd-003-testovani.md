@@ -1,9 +1,9 @@
-# SDD-002 — Testování
+# SDD-003 — Testování
 
 - **Stav:** platí
 - **Milníky:** průřez
-- **Související SDD:** [005](sdd-005-tenance-a-ucty.md), [007](sdd-007-cislovani.md),
-  [011](sdd-011-soubory.md), [013](sdd-013-vyhledavani.md), [016](sdd-016-seed-vzorovych-dat.md)
+- **Související SDD:** [006](sdd-006-tenance-a-ucty.md), [008](sdd-008-cislovani.md),
+  [012](sdd-012-soubory.md), [014](sdd-014-vyhledavani.md), [017](sdd-017-seed-vzorovych-dat.md)
 
 ## Rozsah
 
@@ -22,12 +22,12 @@ Vrstvy testů a povinné testy nových oblastí.
 ### Nové povinnosti
 
 - Konvenční test izolace tenantů: každá tenantová entita má query filter a `TenantId`
-  v unikátních indexech (SDD-005).
+  v unikátních indexech (SDD-006).
 - Testy číslování: formát, pořadí per den, přetečení, zpětné datování, ruční přepis
-  (SDD-007).
-- Souborové úložiště na temp adresáři: zápis, atomicita, smazání blobu (SDD-011).
-- Fold diakritiky ve vyhledávání (SDD-013).
-- Smoke test seedu: seed proběhne a založí spis se stromem (SDD-016).
+  (SDD-008).
+- Souborové úložiště na temp adresáři: zápis, atomicita, smazání blobu (SDD-012).
+- Fold diakritiky ve vyhledávání (SDD-014).
+- Smoke test seedu: seed proběhne a založí spis se stromem (SDD-017).
 
 ## Rozhodnutí
 
@@ -36,4 +36,4 @@ Vrstvy testů a povinné testy nových oblastí.
 ## Dopady
 
 Testy `CaseRelation`, `CaseTag` a `PrincipalOwnerContext` zanikají se svými typy v M2
-(SDD-005, SDD-006).
+(SDD-006, SDD-007).

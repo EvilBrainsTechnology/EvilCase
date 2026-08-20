@@ -1,8 +1,8 @@
-# SDD-003 — Validace a chyby
+# SDD-004 — Validace a chyby
 
 - **Stav:** platí
 - **Milníky:** průřez
-- **Související SDD:** [004](sdd-004-api-konvence.md), [005](sdd-005-tenance-a-ucty.md)
+- **Související SDD:** [005](sdd-005-api-konvence.md), [006](sdd-006-tenance-a-ucty.md)
 
 ## Rozsah
 
@@ -46,4 +46,4 @@ Cizí tenant nikdy nevrací 403 — existence cizích dat nesmí uniknout.
 
 ## Dopady
 
-Platí pro každý endpoint z SDD-004 a každý formulář agend SDD-008 až 012.
+Platí pro každý endpoint z SDD-005 a každý formulář agend SDD-009 až 013.

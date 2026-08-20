@@ -1,9 +1,9 @@
-# SDD-014 — Dashboard
+# SDD-015 — Dashboard
 
 - **Stav:** platí
 - **Milníky:** M7
-- **Související SDD:** [004](sdd-004-api-konvence.md), [008](sdd-008-spisy.md),
-  [009](sdd-009-ukony.md), [013](sdd-013-vyhledavani.md)
+- **Související SDD:** [005](sdd-005-api-konvence.md), [009](sdd-009-spisy.md),
+  [010](sdd-010-ukony.md), [014](sdd-014-vyhledavani.md)
 
 ## Rozsah
 
@@ -16,13 +16,13 @@ Dashboard stojí nad reálnými daty tenantu:
 - dlaždice počtů spisů podle stavu,
 - poslední úkony podle data úkonu, s odkazem do detailu,
 - naposledy změněné spisy,
-- hledací pole (SDD-013).
+- hledací pole (SDD-014).
 
 Naposledy změněné spisy řadí vlastní `Updated` spisu; zápis úkonu, komentáře nebo souboru ho
 nemění — ta aktivita se ukazuje v dlaždici posledních úkonů. Seznamové dlaždice ukazují
 nejvýše 5 položek.
 
-Dashboard nemá vlastní API; skládá se na klientu z API entit (SDD-004): dlaždice počtů
+Dashboard nemá vlastní API; skládá se na klientu z API entit (SDD-005): dlaždice počtů
 a naposledy změněné spisy z výpisu spisů, poslední úkony z tenantového výpisu `/api/acts`.
 
 Žádné lhůty. Prázdný tenant vede na založení prvního spisu.
@@ -36,4 +36,4 @@ a naposledy změněné spisy z výpisu spisů, poslední úkony z tenantového v
 ## Dopady
 
 Hard-coded `SampleData` dnešní úvodní stránky zaniká v M7. Tenantový výpis `/api/acts`
-(SDD-004) vzniká v M7 s dashboardem — nic dřívějšího ho nepotřebuje.
+(SDD-005) vzniká v M7 s dashboardem — nic dřívějšího ho nepotřebuje.
