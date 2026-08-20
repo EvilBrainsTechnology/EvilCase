@@ -1,9 +1,8 @@
 using EvilBrains.EvilCase.Data.DbContexts;
-using EvilBrains.EvilCase.Data.Sessions;
 
 namespace EvilBrains.EvilCase.Tests.Data;
 
-internal sealed class FixedDbContextAccessor(ApplicationDbContext context) : IApplicationDbContextAccessor
+internal sealed class FixedDbContextAccessor(ApplicationDbContext context) : IDbContextAccessor
 {
     public ApplicationDbContext Current => context;
 }

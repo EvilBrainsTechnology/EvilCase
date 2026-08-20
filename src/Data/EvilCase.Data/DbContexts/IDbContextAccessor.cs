@@ -1,8 +1,6 @@
-using EvilBrains.EvilCase.Data.DbContexts;
+namespace EvilBrains.EvilCase.Data.DbContexts;
 
-namespace EvilBrains.EvilCase.Data.Sessions;
-
-public interface IApplicationDbContextAccessor
+public interface IDbContextAccessor
 {
     /// <summary>
     /// The context of the current DI scope, created on first use.

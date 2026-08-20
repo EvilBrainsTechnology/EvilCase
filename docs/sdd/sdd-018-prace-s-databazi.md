@@ -7,38 +7,30 @@
 
 ## Rozsah
 
-Jak aplikace čte a zapisuje: session, životnost `DbContext`, transakce a interceptory. Schéma
-drží SDD-007, izolaci tenantů SDD-006.
+Jak aplikace čte a zapisuje: přístup ke kontextu, jeho životnost, transakce a interceptory.
+Schéma drží SDD-007, izolaci tenantů SDD-006.
 
 ## Popis
 
-### Session
+### Přístup ke kontextu
 
-- Aplikace pracuje s `IApplicationDbSession`, ne s `ApplicationDbContext`. Rozhraní i jeho
-  implementace žijí v `EvilCase.Data`.
-- Session umí čtení (`Query<TEntity>()`), zápis (`Add`, `SaveChanges`) a transakci
-  (`BeginTransaction`). Nic jiného aplikace nad databází nedělá.
-- `Query<TEntity>()` vrací `IQueryable` pod query filtry; dotaz se skládá z kroků v `Business`.
-
-### Životnost DbContextu
-
-- `IApplicationDbContextAccessor` vrací v `Current` `ApplicationDbContext` aktuálního DI scope.
-  Vzniká až při prvním použití.
+- Aplikace čte a zapisuje přes `IDbContextAccessor.Current`; nic jiného mezi ní a
+  `ApplicationDbContext` nestojí.
+- `Current` vrací `ApplicationDbContext` aktuálního DI scope. Vzniká až při prvním použití.
 - `ApplicationDbContext` umírá s DI scope. Mezi scopy — tedy mezi požadavky — neuniká nikdy.
 - Kdo potřebuje vlastní scope (seed, úloha na pozadí), zakládá ho sám a dostane vlastní kontext.
 
 ### Transakce
 
-- Transakci otevírá vrstva nad session: ta, která zakládá DI scope. Jednotlivý zápis transakci
-  neotevírá a `SaveChanges` volá sám za sebe.
-- Zápisy, které musí platit společně, běží v jedné transakci nad jednou session — účet, tenant,
-  administrátor a jeho defaultní kontakt při seedu (SDD-006).
+- Transakci otevírá vrstva nad kontextem: ta, která zakládá DI scope. Jednotlivý zápis
+  transakci neotevírá a `SaveChanges` volá sám za sebe.
+- Zápisy, které musí platit společně, běží v jedné transakci nad jedním kontextem.
 
 ### Interceptory
 
 - `TimestampInterceptor` plní `Created` a `Updated` nad `TimeProvider`.
-- `TenantWriteInterceptor` ověřuje při každém `SaveChanges`, že každý zapisovaný řádek tenantové
-  entity nese tenanta z `ITenantContext` (SDD-006).
+- `TenantWriteInterceptor` doplní tenanta z `ITenantContext` nové tenantové entitě, která ho
+  nemá, a odmítne zápis entity, jejíž tenant se s kontextem neshoduje (SDD-006).
 - `ExecuteUpdate` a `ExecuteDelete` jdou mimo interceptory: co jinak plní interceptor, nastavuje
   takový zápis sám.
 
@@ -49,10 +41,10 @@ a běží ve vlastním scope dřív, než se obslouží první požadavek.
 
 ## Rozhodnutí
 
-- Přístup k datům: `DbContext` přímo ve službách / session nad accessorem. Platí session.
+- Přístup k datům: `DbContext` přímo ve službách / accessor nad DI scope. Platí accessor.
 - Životnost `DbContext`: ruční správa / scoped z DI. Platí scoped z DI.
 - Transakce: uvnitř každého zápisu / o úroveň výš. Platí o úroveň výš.
-- Repository per entita: ano / ne. Ne — `Query<TEntity>()` a skládané kroky dotazu stačí.
+- Repository per entita: ano / ne. Ne — `Set<TEntity>()` přes accessor stačí.
 
 ## Dopady
 

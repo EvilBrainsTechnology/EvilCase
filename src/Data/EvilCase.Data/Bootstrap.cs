@@ -1,6 +1,5 @@
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Interceptors;
-using EvilBrains.EvilCase.Data.Sessions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,8 +18,7 @@ public static class Bootstrap
 
         serviceCollection.AddLocalDbContext<ApplicationDbContext>();
         serviceCollection.AddScoped<IDatabaseMigrator, DatabaseMigrator>();
-        serviceCollection.AddScoped<IApplicationDbContextAccessor, ApplicationDbContextAccessor>();
-        serviceCollection.AddScoped<IApplicationDbSession, ApplicationDbSession>();
+        serviceCollection.AddScoped<IDbContextAccessor, DbContextAccessor>();
 
         return serviceCollection;
     }

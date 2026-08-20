@@ -1,23 +1,23 @@
 using EvilBrains.EvilCase.Api.Contract.Cases;
+using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
-using EvilBrains.EvilCase.Data.Sessions;
 using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Business.Cases;
 
-internal sealed class CaseReader(IApplicationDbSession session) : ICaseReader
+internal sealed class CaseReader(IDbContextAccessor accessor) : ICaseReader
 {
     public async Task<IReadOnlyList<CaseListItem>> List(CaseListRequest request, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        return await Compose(session, request).ToListAsync(cancellationToken);
+        return await Compose(accessor, request).ToListAsync(cancellationToken);
     }
 
     /// <summary>
     /// Internal so a test reads the SQL the reader really runs.
     /// </summary>
-    internal static IQueryable<CaseListItem> Compose(IApplicationDbSession session, CaseListRequest request) => session.Query<Case>()
+    internal static IQueryable<CaseListItem> Compose(IDbContextAccessor accessor, CaseListRequest request) => accessor.Current.Set<Case>()
         .MatchingSearch(request.Search)
         .WithStatus(request.Status)
         .InListOrder()
