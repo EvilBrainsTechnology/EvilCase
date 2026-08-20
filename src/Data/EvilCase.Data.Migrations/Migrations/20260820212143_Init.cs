@@ -15,15 +15,15 @@ public partial class Init : Migration
 
         CreateAccounts(migrationBuilder);
         CreateTenants(migrationBuilder);
-        CreateActs(migrationBuilder);
-        CreateCases(migrationBuilder);
-        CreateComments(migrationBuilder);
         CreateContacts(migrationBuilder);
         CreateUsers(migrationBuilder);
-        CreateExternalActNumbers(migrationBuilder);
-        CreateExternalCaseNumbers(migrationBuilder);
-        CreateFileAssets(migrationBuilder);
+        CreateCases(migrationBuilder);
         CreateRefreshTokens(migrationBuilder);
+        CreateActs(migrationBuilder);
+        CreateExternalCaseNumbers(migrationBuilder);
+        CreateComments(migrationBuilder);
+        CreateExternalActNumbers(migrationBuilder);
+        CreateFileAssets(migrationBuilder);
 
         CreateActIndexes(migrationBuilder);
         CreateCaseIndexes(migrationBuilder);
@@ -36,18 +36,12 @@ public partial class Init : Migration
         CreateTenantIndexes(migrationBuilder);
         CreateUserIndexes(migrationBuilder);
 
-        AddDeferredForeignKeys(migrationBuilder);
-
         CreateSearchIndexes(migrationBuilder);
     }
 
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.DropForeignKey(
-            name: "FK_Users_Contacts_DefaultContactId",
-            table: "Users");
-
         migrationBuilder.DropTable(
             name: "Comments");
 
@@ -70,10 +64,10 @@ public partial class Init : Migration
             name: "Cases");
 
         migrationBuilder.DropTable(
-            name: "Contacts");
+            name: "Users");
 
         migrationBuilder.DropTable(
-            name: "Users");
+            name: "Contacts");
 
         migrationBuilder.DropTable(
             name: "Tenants");
@@ -125,114 +119,6 @@ public partial class Init : Migration
             });
     }
 
-    private static void CreateActs(MigrationBuilder migrationBuilder)
-    {
-        migrationBuilder.CreateTable(
-            name: "Acts",
-            columns: table => new
-            {
-                Id = table.Column<Guid>(type: "uuid", nullable: false),
-                TenantId = table.Column<Guid>(type: "uuid", nullable: false),
-                UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                CaseId = table.Column<Guid>(type: "uuid", nullable: false),
-                ActNumber = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
-                Direction = table.Column<string>(type: "character varying(8)", maxLength: 8, nullable: false),
-                Title = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                Date = table.Column<DateOnly>(type: "date", nullable: false),
-                Description = table.Column<string>(type: "text", nullable: true),
-                IssuedByContactId = table.Column<Guid>(type: "uuid", nullable: false),
-                AddressedToContactId = table.Column<Guid>(type: "uuid", nullable: true),
-                Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                Updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-            },
-            constraints: table =>
-            {
-                table.PrimaryKey("PK_Acts", x => x.Id);
-                table.ForeignKey(
-                    name: "FK_Acts_Tenants_TenantId",
-                    column: x => x.TenantId,
-                    principalTable: "Tenants",
-                    principalColumn: "Id",
-                    onDelete: ReferentialAction.Restrict);
-            });
-    }
-
-    private static void CreateCases(MigrationBuilder migrationBuilder)
-    {
-        migrationBuilder.CreateTable(
-            name: "Cases",
-            columns: table => new
-            {
-                Id = table.Column<Guid>(type: "uuid", nullable: false),
-                TenantId = table.Column<Guid>(type: "uuid", nullable: false),
-                UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                ParentCaseId = table.Column<Guid>(type: "uuid", nullable: true),
-                CaseNumber = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                Date = table.Column<DateOnly>(type: "date", nullable: false),
-                Title = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                Description = table.Column<string>(type: "text", nullable: true),
-                Status = table.Column<string>(type: "character varying(18)", maxLength: 18, nullable: false),
-                Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                Updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-            },
-            constraints: table =>
-            {
-                table.PrimaryKey("PK_Cases", x => x.Id);
-                table.ForeignKey(
-                    name: "FK_Cases_Cases_ParentCaseId",
-                    column: x => x.ParentCaseId,
-                    principalTable: "Cases",
-                    principalColumn: "Id",
-                    onDelete: ReferentialAction.SetNull);
-                table.ForeignKey(
-                    name: "FK_Cases_Tenants_TenantId",
-                    column: x => x.TenantId,
-                    principalTable: "Tenants",
-                    principalColumn: "Id",
-                    onDelete: ReferentialAction.Restrict);
-            });
-    }
-
-    private static void CreateComments(MigrationBuilder migrationBuilder)
-    {
-        migrationBuilder.CreateTable(
-            name: "Comments",
-            columns: table => new
-            {
-                Id = table.Column<Guid>(type: "uuid", nullable: false),
-                TenantId = table.Column<Guid>(type: "uuid", nullable: false),
-                UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                CaseId = table.Column<Guid>(type: "uuid", nullable: true),
-                ActId = table.Column<Guid>(type: "uuid", nullable: true),
-                Body = table.Column<string>(type: "text", nullable: false),
-                Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                Updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-            },
-            constraints: table =>
-            {
-                table.PrimaryKey("PK_Comments", x => x.Id);
-                table.CheckConstraint("CK_Comments_OnACaseOrAnAct", "(\"CaseId\" IS NULL) <> (\"ActId\" IS NULL)");
-                table.ForeignKey(
-                    name: "FK_Comments_Acts_ActId",
-                    column: x => x.ActId,
-                    principalTable: "Acts",
-                    principalColumn: "Id",
-                    onDelete: ReferentialAction.Cascade);
-                table.ForeignKey(
-                    name: "FK_Comments_Cases_CaseId",
-                    column: x => x.CaseId,
-                    principalTable: "Cases",
-                    principalColumn: "Id",
-                    onDelete: ReferentialAction.Cascade);
-                table.ForeignKey(
-                    name: "FK_Comments_Tenants_TenantId",
-                    column: x => x.TenantId,
-                    principalTable: "Tenants",
-                    principalColumn: "Id",
-                    onDelete: ReferentialAction.Restrict);
-            });
-    }
-
     private static void CreateContacts(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.CreateTable(
@@ -241,7 +127,6 @@ public partial class Init : Migration
             {
                 Id = table.Column<Guid>(type: "uuid", nullable: false),
                 TenantId = table.Column<Guid>(type: "uuid", nullable: false),
-                UserId = table.Column<Guid>(type: "uuid", nullable: false),
                 Kind = table.Column<string>(type: "character varying(9)", maxLength: 9, nullable: false),
                 Name = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
                 Address = table.Column<string>(type: "character varying(1024)", maxLength: 1024, nullable: true),
@@ -296,44 +181,128 @@ public partial class Init : Migration
             });
     }
 
-    private static void CreateExternalActNumbers(MigrationBuilder migrationBuilder)
+    private static void CreateCases(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.CreateTable(
-            name: "ExternalActNumbers",
+            name: "Cases",
             columns: table => new
             {
                 Id = table.Column<Guid>(type: "uuid", nullable: false),
                 TenantId = table.Column<Guid>(type: "uuid", nullable: false),
                 UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                ActId = table.Column<Guid>(type: "uuid", nullable: false),
-                Value = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
-                AssignedByContactId = table.Column<Guid>(type: "uuid", nullable: false),
+                ParentCaseId = table.Column<Guid>(type: "uuid", nullable: true),
+                CaseNumber = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                Date = table.Column<DateOnly>(type: "date", nullable: false),
+                Title = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                Description = table.Column<string>(type: "text", nullable: true),
+                Status = table.Column<string>(type: "character varying(18)", maxLength: 18, nullable: false),
                 Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                 Updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
             },
             constraints: table =>
             {
-                table.PrimaryKey("PK_ExternalActNumbers", x => x.Id);
+                table.PrimaryKey("PK_Cases", x => x.Id);
                 table.ForeignKey(
-                    name: "FK_ExternalActNumbers_Acts_ActId",
-                    column: x => x.ActId,
-                    principalTable: "Acts",
+                    name: "FK_Cases_Cases_ParentCaseId",
+                    column: x => x.ParentCaseId,
+                    principalTable: "Cases",
                     principalColumn: "Id",
-                    onDelete: ReferentialAction.Cascade);
+                    onDelete: ReferentialAction.SetNull);
                 table.ForeignKey(
-                    name: "FK_ExternalActNumbers_Contacts_AssignedByContactId",
-                    column: x => x.AssignedByContactId,
-                    principalTable: "Contacts",
-                    principalColumn: "Id",
-                    onDelete: ReferentialAction.Restrict);
-                table.ForeignKey(
-                    name: "FK_ExternalActNumbers_Tenants_TenantId",
+                    name: "FK_Cases_Tenants_TenantId",
                     column: x => x.TenantId,
                     principalTable: "Tenants",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Restrict);
                 table.ForeignKey(
-                    name: "FK_ExternalActNumbers_Users_UserId",
+                    name: "FK_Cases_Users_UserId",
+                    column: x => x.UserId,
+                    principalTable: "Users",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Restrict);
+            });
+    }
+
+    private static void CreateRefreshTokens(MigrationBuilder migrationBuilder)
+    {
+        migrationBuilder.CreateTable(
+            name: "RefreshTokens",
+            columns: table => new
+            {
+                Id = table.Column<Guid>(type: "uuid", nullable: false),
+                UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                AuthSessionId = table.Column<Guid>(type: "uuid", nullable: false),
+                TokenHash = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                Updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                Expires = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                SessionExpires = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                LastUsed = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                RevokedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                CreatedByIp = table.Column<string>(type: "character varying(45)", maxLength: 45, nullable: true),
+                UserAgent = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+            },
+            constraints: table =>
+            {
+                table.PrimaryKey("PK_RefreshTokens", x => x.Id);
+                table.ForeignKey(
+                    name: "FK_RefreshTokens_Users_UserId",
+                    column: x => x.UserId,
+                    principalTable: "Users",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+            });
+    }
+
+    private static void CreateActs(MigrationBuilder migrationBuilder)
+    {
+        migrationBuilder.CreateTable(
+            name: "Acts",
+            columns: table => new
+            {
+                Id = table.Column<Guid>(type: "uuid", nullable: false),
+                TenantId = table.Column<Guid>(type: "uuid", nullable: false),
+                UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                CaseId = table.Column<Guid>(type: "uuid", nullable: false),
+                ActNumber = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                Direction = table.Column<string>(type: "character varying(8)", maxLength: 8, nullable: false),
+                Title = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                Date = table.Column<DateOnly>(type: "date", nullable: false),
+                Description = table.Column<string>(type: "text", nullable: true),
+                IssuedByContactId = table.Column<Guid>(type: "uuid", nullable: false),
+                AddressedToContactId = table.Column<Guid>(type: "uuid", nullable: true),
+                Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                Updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+            },
+            constraints: table =>
+            {
+                table.PrimaryKey("PK_Acts", x => x.Id);
+                table.ForeignKey(
+                    name: "FK_Acts_Cases_CaseId",
+                    column: x => x.CaseId,
+                    principalTable: "Cases",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+                table.ForeignKey(
+                    name: "FK_Acts_Contacts_AddressedToContactId",
+                    column: x => x.AddressedToContactId,
+                    principalTable: "Contacts",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Restrict);
+                table.ForeignKey(
+                    name: "FK_Acts_Contacts_IssuedByContactId",
+                    column: x => x.IssuedByContactId,
+                    principalTable: "Contacts",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Restrict);
+                table.ForeignKey(
+                    name: "FK_Acts_Tenants_TenantId",
+                    column: x => x.TenantId,
+                    principalTable: "Tenants",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Restrict);
+                table.ForeignKey(
+                    name: "FK_Acts_Users_UserId",
                     column: x => x.UserId,
                     principalTable: "Users",
                     principalColumn: "Id",
@@ -379,6 +348,97 @@ public partial class Init : Migration
                     onDelete: ReferentialAction.Restrict);
                 table.ForeignKey(
                     name: "FK_ExternalCaseNumbers_Users_UserId",
+                    column: x => x.UserId,
+                    principalTable: "Users",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Restrict);
+            });
+    }
+
+    private static void CreateComments(MigrationBuilder migrationBuilder)
+    {
+        migrationBuilder.CreateTable(
+            name: "Comments",
+            columns: table => new
+            {
+                Id = table.Column<Guid>(type: "uuid", nullable: false),
+                TenantId = table.Column<Guid>(type: "uuid", nullable: false),
+                UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                CaseId = table.Column<Guid>(type: "uuid", nullable: true),
+                ActId = table.Column<Guid>(type: "uuid", nullable: true),
+                Body = table.Column<string>(type: "text", nullable: false),
+                Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                Updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+            },
+            constraints: table =>
+            {
+                table.PrimaryKey("PK_Comments", x => x.Id);
+                table.CheckConstraint("CK_Comments_OnACaseOrAnAct", "(\"CaseId\" IS NULL) <> (\"ActId\" IS NULL)");
+                table.ForeignKey(
+                    name: "FK_Comments_Acts_ActId",
+                    column: x => x.ActId,
+                    principalTable: "Acts",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+                table.ForeignKey(
+                    name: "FK_Comments_Cases_CaseId",
+                    column: x => x.CaseId,
+                    principalTable: "Cases",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+                table.ForeignKey(
+                    name: "FK_Comments_Tenants_TenantId",
+                    column: x => x.TenantId,
+                    principalTable: "Tenants",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Restrict);
+                table.ForeignKey(
+                    name: "FK_Comments_Users_UserId",
+                    column: x => x.UserId,
+                    principalTable: "Users",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Restrict);
+            });
+    }
+
+    private static void CreateExternalActNumbers(MigrationBuilder migrationBuilder)
+    {
+        migrationBuilder.CreateTable(
+            name: "ExternalActNumbers",
+            columns: table => new
+            {
+                Id = table.Column<Guid>(type: "uuid", nullable: false),
+                TenantId = table.Column<Guid>(type: "uuid", nullable: false),
+                UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                ActId = table.Column<Guid>(type: "uuid", nullable: false),
+                Value = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                AssignedByContactId = table.Column<Guid>(type: "uuid", nullable: false),
+                Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                Updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+            },
+            constraints: table =>
+            {
+                table.PrimaryKey("PK_ExternalActNumbers", x => x.Id);
+                table.ForeignKey(
+                    name: "FK_ExternalActNumbers_Acts_ActId",
+                    column: x => x.ActId,
+                    principalTable: "Acts",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+                table.ForeignKey(
+                    name: "FK_ExternalActNumbers_Contacts_AssignedByContactId",
+                    column: x => x.AssignedByContactId,
+                    principalTable: "Contacts",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Restrict);
+                table.ForeignKey(
+                    name: "FK_ExternalActNumbers_Tenants_TenantId",
+                    column: x => x.TenantId,
+                    principalTable: "Tenants",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Restrict);
+                table.ForeignKey(
+                    name: "FK_ExternalActNumbers_Users_UserId",
                     column: x => x.UserId,
                     principalTable: "Users",
                     principalColumn: "Id",
@@ -435,37 +495,6 @@ public partial class Init : Migration
             });
     }
 
-    private static void CreateRefreshTokens(MigrationBuilder migrationBuilder)
-    {
-        migrationBuilder.CreateTable(
-            name: "RefreshTokens",
-            columns: table => new
-            {
-                Id = table.Column<Guid>(type: "uuid", nullable: false),
-                UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                AuthSessionId = table.Column<Guid>(type: "uuid", nullable: false),
-                TokenHash = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                Updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                Expires = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                SessionExpires = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                LastUsed = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                RevokedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                CreatedByIp = table.Column<string>(type: "character varying(45)", maxLength: 45, nullable: true),
-                UserAgent = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
-            },
-            constraints: table =>
-            {
-                table.PrimaryKey("PK_RefreshTokens", x => x.Id);
-                table.ForeignKey(
-                    name: "FK_RefreshTokens_Users_UserId",
-                    column: x => x.UserId,
-                    principalTable: "Users",
-                    principalColumn: "Id",
-                    onDelete: ReferentialAction.Cascade);
-            });
-    }
-
     private static void CreateActIndexes(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.CreateIndex(
@@ -482,11 +511,6 @@ public partial class Init : Migration
             name: "IX_Acts_IssuedByContactId",
             table: "Acts",
             column: "IssuedByContactId");
-
-        migrationBuilder.CreateIndex(
-            name: "IX_Acts_TenantId",
-            table: "Acts",
-            column: "TenantId");
 
         migrationBuilder.CreateIndex(
             name: "IX_Acts_TenantId_ActNumber",
@@ -506,11 +530,6 @@ public partial class Init : Migration
             name: "IX_Cases_ParentCaseId",
             table: "Cases",
             column: "ParentCaseId");
-
-        migrationBuilder.CreateIndex(
-            name: "IX_Cases_TenantId",
-            table: "Cases",
-            column: "TenantId");
 
         migrationBuilder.CreateIndex(
             name: "IX_Cases_TenantId_CaseNumber",
@@ -555,19 +574,9 @@ public partial class Init : Migration
     private static void CreateContactIndexes(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.CreateIndex(
-            name: "IX_Contacts_TenantId",
-            table: "Contacts",
-            column: "TenantId");
-
-        migrationBuilder.CreateIndex(
             name: "IX_Contacts_TenantId_DataBoxId",
             table: "Contacts",
             columns: ["TenantId", "DataBoxId"]);
-
-        migrationBuilder.CreateIndex(
-            name: "IX_Contacts_UserId",
-            table: "Contacts",
-            column: "UserId");
     }
 
     private static void CreateExternalActNumberIndexes(MigrationBuilder migrationBuilder)
@@ -581,11 +590,6 @@ public partial class Init : Migration
             name: "IX_ExternalActNumbers_AssignedByContactId",
             table: "ExternalActNumbers",
             column: "AssignedByContactId");
-
-        migrationBuilder.CreateIndex(
-            name: "IX_ExternalActNumbers_TenantId",
-            table: "ExternalActNumbers",
-            column: "TenantId");
 
         migrationBuilder.CreateIndex(
             name: "IX_ExternalActNumbers_TenantId_ActId_Value",
@@ -610,11 +614,6 @@ public partial class Init : Migration
             name: "IX_ExternalCaseNumbers_CaseId",
             table: "ExternalCaseNumbers",
             column: "CaseId");
-
-        migrationBuilder.CreateIndex(
-            name: "IX_ExternalCaseNumbers_TenantId",
-            table: "ExternalCaseNumbers",
-            column: "TenantId");
 
         migrationBuilder.CreateIndex(
             name: "IX_ExternalCaseNumbers_TenantId_CaseId_Value",
@@ -695,65 +694,6 @@ public partial class Init : Migration
             name: "IX_Users_TenantId",
             table: "Users",
             column: "TenantId");
-    }
-
-    private static void AddDeferredForeignKeys(MigrationBuilder migrationBuilder)
-    {
-        migrationBuilder.AddForeignKey(
-            name: "FK_Acts_Cases_CaseId",
-            table: "Acts",
-            column: "CaseId",
-            principalTable: "Cases",
-            principalColumn: "Id",
-            onDelete: ReferentialAction.Cascade);
-
-        migrationBuilder.AddForeignKey(
-            name: "FK_Acts_Contacts_AddressedToContactId",
-            table: "Acts",
-            column: "AddressedToContactId",
-            principalTable: "Contacts",
-            principalColumn: "Id",
-            onDelete: ReferentialAction.Restrict);
-
-        migrationBuilder.AddForeignKey(
-            name: "FK_Acts_Contacts_IssuedByContactId",
-            table: "Acts",
-            column: "IssuedByContactId",
-            principalTable: "Contacts",
-            principalColumn: "Id",
-            onDelete: ReferentialAction.Restrict);
-
-        migrationBuilder.AddForeignKey(
-            name: "FK_Acts_Users_UserId",
-            table: "Acts",
-            column: "UserId",
-            principalTable: "Users",
-            principalColumn: "Id",
-            onDelete: ReferentialAction.Restrict);
-
-        migrationBuilder.AddForeignKey(
-            name: "FK_Cases_Users_UserId",
-            table: "Cases",
-            column: "UserId",
-            principalTable: "Users",
-            principalColumn: "Id",
-            onDelete: ReferentialAction.Restrict);
-
-        migrationBuilder.AddForeignKey(
-            name: "FK_Comments_Users_UserId",
-            table: "Comments",
-            column: "UserId",
-            principalTable: "Users",
-            principalColumn: "Id",
-            onDelete: ReferentialAction.Restrict);
-
-        migrationBuilder.AddForeignKey(
-            name: "FK_Contacts_Users_UserId",
-            table: "Contacts",
-            column: "UserId",
-            principalTable: "Users",
-            principalColumn: "Id",
-            onDelete: ReferentialAction.Restrict);
     }
 
     private static void CreateSearchIndexes(MigrationBuilder migrationBuilder)

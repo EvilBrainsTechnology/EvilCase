@@ -98,8 +98,6 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
 
                     b.HasIndex("IssuedByContactId");
 
-                    b.HasIndex("TenantId");
-
                     b.HasIndex("UserId");
 
                     b.HasIndex("CaseId", "Date");
@@ -154,8 +152,6 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ParentCaseId");
-
-                    b.HasIndex("TenantId");
 
                     b.HasIndex("UserId");
 
@@ -242,14 +238,7 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.Property<DateTime?>("Updated")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("TenantId");
-
-                    b.HasIndex("UserId");
 
                     b.HasIndex("TenantId", "DataBoxId");
 
@@ -289,8 +278,6 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.HasIndex("ActId");
 
                     b.HasIndex("AssignedByContactId");
-
-                    b.HasIndex("TenantId");
 
                     b.HasIndex("UserId");
 
@@ -333,8 +320,6 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.HasIndex("AssignedByContactId");
 
                     b.HasIndex("CaseId");
-
-                    b.HasIndex("TenantId");
 
                     b.HasIndex("UserId");
 
@@ -624,12 +609,6 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.HasOne("EvilBrains.EvilCase.Data.Entities.Tenant", null)
                         .WithMany()
                         .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("EvilBrains.EvilCase.Data.Entities.User", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
