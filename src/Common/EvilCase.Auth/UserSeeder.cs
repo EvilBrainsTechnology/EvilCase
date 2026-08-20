@@ -1,6 +1,8 @@
 using EvilBrains.Cryptography;
 using EvilBrains.EvilCase.Data.Entities;
+using EvilBrains.EvilCase.Data.Sessions;
 using EvilBrains.EvilCase.Domain.Contacts;
+using EvilBrains.EvilCase.Domain.Tenancy;
 using EvilBrains.EvilCase.Domain.Users;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -8,7 +10,9 @@ using Microsoft.Extensions.Options;
 namespace EvilBrains.EvilCase.Auth;
 
 internal sealed class UserSeeder(
+    IApplicationDbSession session,
     IUserStore userStore,
+    ITenantContext tenantContext,
     IOptions<AuthSettings> options,
     ILogger<UserSeeder> logger) : IUserSeeder
 {
@@ -29,6 +33,13 @@ internal sealed class UserSeeder(
         var account = new Account { Name = normalizedEmail };
         var tenant = new Tenant { AccountId = account.Id, Name = normalizedEmail };
 
+        session.Add(account);
+        session.Add(tenant);
+        await session.SaveChanges(cancellationToken);
+
+        using var scope = tenantContext.Enter(tenant.Id);
+
+        // The two tables point at each other, so the user goes in without its contact and gets it in step three.
         var user = new User
         {
             TenantId = tenant.Id,
@@ -37,7 +48,9 @@ internal sealed class UserSeeder(
             Role = UserRole.Admin,
         };
 
-        var defaultContact = new Contact
+        await userStore.Add(user, cancellationToken);
+
+        var contact = new Contact
         {
             TenantId = tenant.Id,
             UserId = user.Id,
@@ -45,7 +58,10 @@ internal sealed class UserSeeder(
             Name = normalizedEmail,
         };
 
-        await userStore.CreateAccount(account, tenant, user, defaultContact, cancellationToken);
+        session.Add(contact);
+        await session.SaveChanges(cancellationToken);
+
+        await userStore.SetDefaultContact(user.Id, contact.Id, cancellationToken);
 
         logger.LogInformation("No user existed, so the configured administrator {Email} was created in tenant {TenantId}", user.Email, tenant.Id);
     }

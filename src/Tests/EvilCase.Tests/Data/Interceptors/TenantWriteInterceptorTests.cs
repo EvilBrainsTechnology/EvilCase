@@ -3,8 +3,8 @@ using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Data.Interceptors;
 using EvilBrains.EvilCase.Data.Migrations.DbContexts;
 using EvilBrains.EvilCase.Domain.Contacts;
-using EvilBrains.EvilCase.Domain.Tenancy;
 using EvilBrains.EvilCase.Domain.Users;
+using EvilBrains.EvilCase.Tests.Auth;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
@@ -37,7 +37,9 @@ public class TenantWriteInterceptorTests
         this.context.Entry(modified).State = EntityState.Modified;
         this.context.Entry(deleted).State = EntityState.Deleted;
 
-        var interceptor = new TenantWriteInterceptor(new FixedTenantContext(TenantA));
+        var tenantContext = new StubTenantContext();
+        using var scope = tenantContext.Enter(TenantA);
+        var interceptor = new TenantWriteInterceptor(tenantContext);
 
         Assert.That(() => Save(interceptor, this.context), Throws.Nothing);
     }
@@ -47,7 +49,9 @@ public class TenantWriteInterceptorTests
     {
         this.context.Add(NewContact(TenantB));
 
-        var interceptor = new TenantWriteInterceptor(new FixedTenantContext(TenantA));
+        var tenantContext = new StubTenantContext();
+        using var scope = tenantContext.Enter(TenantA);
+        var interceptor = new TenantWriteInterceptor(tenantContext);
 
         Assert.That(
             () => Save(interceptor, this.context),
@@ -66,7 +70,7 @@ public class TenantWriteInterceptorTests
             Role = UserRole.User,
         });
 
-        var interceptor = new TenantWriteInterceptor(new NoTenantContext());
+        var interceptor = new TenantWriteInterceptor(new StubTenantContext());
 
         Assert.That(
             () => Save(interceptor, this.context),
@@ -78,22 +82,4 @@ public class TenantWriteInterceptorTests
         interceptor.SavingChanges(new DbContextEventData(null!, null!, dbContext), default);
 
     private static Contact NewContact(in Guid tenant) => new() { TenantId = tenant, UserId = UserId, Kind = ContactKind.Person, Name = "test" };
-
-    private sealed class FixedTenantContext(Guid tenantId) : ITenantContext
-    {
-        public Guid TenantId => tenantId;
-
-        public Guid? TenantIdOrDefault => tenantId;
-
-        public IDisposable Enter(Guid tenantId) => throw new NotSupportedException();
-    }
-
-    private sealed class NoTenantContext : ITenantContext
-    {
-        public Guid TenantId => throw new InvalidOperationException("The request has no tenant.");
-
-        public Guid? TenantIdOrDefault => null;
-
-        public IDisposable Enter(Guid tenantId) => throw new NotSupportedException();
-    }
 }

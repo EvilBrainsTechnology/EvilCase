@@ -13,8 +13,8 @@ ve stejném pull requestu.
 
 ## Pořadí čtení
 
-Architektura 001 jako první. Průřezová 002–005 platí pro každou změnu ve své oblasti; základ
-006–008 (tenance, model, číslování), agendy 009–013, aplikace 014–017.
+Architektura 001 jako první. Průřezová 002–005 a 018 platí pro každou změnu ve své oblasti;
+základ 006–008 (tenance, model, číslování), agendy 009–013, aplikace 014–017.
 
 ## Mapa SDD ↔ milník
 
@@ -37,3 +37,4 @@ Architektura 001 jako první. Průřezová 002–005 platí pro každou změnu v
 | [015](sdd-015-dashboard.md) | Dashboard | M7 |
 | [016](sdd-016-navigace-a-vzhled.md) | Navigace a vzhled | M1 |
 | [017](sdd-017-seed-vzorovych-dat.md) | Seed vzorových dat | M2 |
+| [018](sdd-018-prace-s-databazi.md) | Práce s databází | průřez |

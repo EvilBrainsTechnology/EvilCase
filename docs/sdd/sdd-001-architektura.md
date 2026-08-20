@@ -4,7 +4,7 @@
 - **Milníky:** průřez
 - **Související SDD:** [002](sdd-002-logovani-a-observabilita.md),
   [003](sdd-003-testovani.md), [005](sdd-005-api-konvence.md),
-  [006](sdd-006-tenance-a-ucty.md), [012](sdd-012-soubory.md)
+  [006](sdd-006-tenance-a-ucty.md), [012](sdd-012-soubory.md), [018](sdd-018-prace-s-databazi.md)
 
 ## Rozsah
 
@@ -41,7 +41,7 @@ Kód žije v `src/`, řešení `EvilCase.slnx`:
 | `App/EvilCase.App` | Blazor WebAssembly frontend |
 | `Business/EvilCase.Business` | business logika |
 | `Business/EvilCase.Domain` | doménové jádro bez závislostí |
-| `Data/EvilCase.Data` | EF Core model, jen schéma |
+| `Data/EvilCase.Data` | EF Core model a přístup k databázi (SDD-018) |
 | `Data/EvilCase.Data.Migrations` | migrace |
 | `Common/EvilCase.Auth` | autentizace; uzavřený modul za `IAuthService` |
 | `Tests/EvilCase.Tests` | testy aplikace (SDD-003) |

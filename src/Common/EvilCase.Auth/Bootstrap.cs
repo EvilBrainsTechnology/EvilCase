@@ -1,5 +1,6 @@
 using System.Text;
 using EvilBrains.EvilCase.Api.Contract.User;
+using EvilBrains.EvilCase.Data.Sessions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -79,6 +80,8 @@ public static class Bootstrap
     /// <summary>
     /// Creates the configured administrator where the database holds no user at all. Runs after the
     /// migrations and before anything is served, so an empty deployment is reachable on first start.
+    /// Account, tenant, administrator and default contact are one transaction, opened here rather than
+    /// inside any of the writes.
     /// </summary>
     public static async Task SeedEvilCaseUser(this IHost host, CancellationToken cancellationToken = default)
     {
@@ -86,6 +89,11 @@ public static class Bootstrap
 
         await using var scope = host.Services.CreateAsyncScope();
 
+        var session = scope.ServiceProvider.GetRequiredService<IApplicationDbSession>();
+        await using var transaction = await session.BeginTransaction(cancellationToken);
+
         await scope.ServiceProvider.GetRequiredService<IUserSeeder>().Seed(cancellationToken);
+
+        await transaction.CommitAsync(cancellationToken);
     }
 }

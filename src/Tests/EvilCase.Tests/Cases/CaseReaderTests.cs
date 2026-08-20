@@ -2,7 +2,9 @@ using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Business.Cases;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Migrations.DbContexts;
+using EvilBrains.EvilCase.Data.Sessions;
 using EvilBrains.EvilCase.Domain.Cases;
+using EvilBrains.EvilCase.Tests.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Tests.Cases;
@@ -15,8 +17,14 @@ public class CaseReaderTests
 {
     private ApplicationDbContext context = null!;
 
+    private IApplicationDbSession session = null!;
+
     [SetUp]
-    public void SetUp() => this.context = new ApplicationDbContextFactory().CreateDbContext([]);
+    public void SetUp()
+    {
+        this.context = new ApplicationDbContextFactory().CreateDbContext([]);
+        this.session = new ApplicationDbSession(new FixedDbContextAccessor(this.context));
+    }
 
     [TearDown]
     public void TearDown() => this.context.Dispose();
@@ -24,7 +32,7 @@ public class CaseReaderTests
     [Test]
     public void TheTenantIsTheOnlyThingThatNarrowsAnUnfilteredList()
     {
-        var sql = CaseReader.Compose(this.context, new CaseListRequest { Status = CaseStatusFilter.All }).ToQueryString();
+        var sql = CaseReader.Compose(this.session, new CaseListRequest { Status = CaseStatusFilter.All }).ToQueryString();
 
         using (Assert.EnterMultipleScope())
         {
@@ -38,7 +46,7 @@ public class CaseReaderTests
     [Test]
     public void TheReaderRunsTheSearchAndTheStatusTheRequestAsksFor()
     {
-        var sql = CaseReader.Compose(this.context, new CaseListRequest { Search = "odvolání" }).ToQueryString();
+        var sql = CaseReader.Compose(this.session, new CaseListRequest { Search = "odvolání" }).ToQueryString();
 
         using (Assert.EnterMultipleScope())
         {

@@ -1,23 +1,28 @@
-using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
-using EvilBrains.EvilCase.Domain.Tenancy;
+using EvilBrains.EvilCase.Data.Sessions;
 using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Auth;
 
-// Updates go through ExecuteUpdate rather than through the change tracker: the context is registered
-// with NoTracking and the entities are init-only records, so there is nothing to mutate anyway.
-internal sealed class UserStore(ApplicationDbContext dbContext, ITenantContext tenantContext) : IUserStore
+// Updates go through ExecuteUpdate rather than through the change tracker: the session queries with
+// NoTracking and the entities are init-only records, so there is nothing to mutate anyway.
+internal sealed class UserStore(IApplicationDbSession session, TimeProvider timeProvider) : IUserStore
 {
-    public async Task<User?> FindByEmail(string normalizedEmail, CancellationToken cancellationToken) =>
-        await dbContext.Users.SingleOrDefaultAsync(user => user.Email == normalizedEmail, cancellationToken);
+    public async Task<User?> FindByEmail(string email, CancellationToken cancellationToken)
+    {
+        var normalized = EmailNormalizer.Normalize(email);
+
+        return await session.Query<User>().SingleOrDefaultAsync(user => user.Email == normalized, cancellationToken);
+    }
 
     public async Task<User?> FindById(Guid id, CancellationToken cancellationToken) =>
-        await dbContext.Users.SingleOrDefaultAsync(user => user.Id == id, cancellationToken);
+        await session.Query<User>().SingleOrDefaultAsync(user => user.Id == id, cancellationToken);
 
-    public async Task RecordFailedLogin(Guid id, int failedAttempts, DateTime? lockoutEnd, DateTime now, CancellationToken cancellationToken)
+    public async Task RecordFailedLogin(Guid id, int failedAttempts, DateTime? lockoutEnd, CancellationToken cancellationToken)
     {
-        _ = await dbContext.Users
+        var now = timeProvider.GetUtcNow().UtcDateTime;
+
+        _ = await session.Query<User>()
             .Where(user => user.Id == id)
             .ExecuteUpdateAsync(
                 setters => setters
@@ -27,9 +32,11 @@ internal sealed class UserStore(ApplicationDbContext dbContext, ITenantContext t
                 cancellationToken);
     }
 
-    public async Task RecordSuccessfulLogin(Guid id, DateTime now, CancellationToken cancellationToken)
+    public async Task RecordSuccessfulLogin(Guid id, CancellationToken cancellationToken)
     {
-        _ = await dbContext.Users
+        var now = timeProvider.GetUtcNow().UtcDateTime;
+
+        _ = await session.Query<User>()
             .Where(user => user.Id == id)
             .ExecuteUpdateAsync(
                 setters => setters
@@ -40,27 +47,24 @@ internal sealed class UserStore(ApplicationDbContext dbContext, ITenantContext t
     }
 
     public async Task<bool> Any(CancellationToken cancellationToken) =>
-        await dbContext.Users.AnyAsync(cancellationToken);
+        await session.Query<User>().AnyAsync(cancellationToken);
 
-    public async Task CreateAccount(Account account, Tenant tenant, User user, Contact defaultContact, CancellationToken cancellationToken)
+    public async Task Add(User user, CancellationToken cancellationToken)
     {
-        using var scope = tenantContext.Enter(tenant.Id);
-        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        session.Add(user);
+        await session.SaveChanges(cancellationToken);
+    }
 
-        await dbContext.Accounts.AddAsync(account, cancellationToken);
-        await dbContext.Tenants.AddAsync(tenant, cancellationToken);
-        await dbContext.Users.AddAsync(user, cancellationToken);
-        _ = await dbContext.SaveChangesAsync(cancellationToken);
+    public async Task SetDefaultContact(Guid userId, Guid contactId, CancellationToken cancellationToken)
+    {
+        var now = timeProvider.GetUtcNow().UtcDateTime;
 
-        // The contact points at the user and the user back at the contact, so the pair cannot be inserted
-        // in one statement; the column is filled once both rows exist.
-        await dbContext.Contacts.AddAsync(defaultContact, cancellationToken);
-        _ = await dbContext.SaveChangesAsync(cancellationToken);
-
-        _ = await dbContext.Users
-            .Where(row => row.Id == user.Id)
-            .ExecuteUpdateAsync(setters => setters.SetProperty(row => row.DefaultContactId, defaultContact.Id), cancellationToken);
-
-        await transaction.CommitAsync(cancellationToken);
+        _ = await session.Query<User>()
+            .Where(user => user.Id == userId)
+            .ExecuteUpdateAsync(
+                setters => setters
+                    .SetProperty(user => user.DefaultContactId, contactId)
+                    .SetProperty(user => user.Updated, now),
+                cancellationToken);
     }
 }

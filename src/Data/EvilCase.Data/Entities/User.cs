@@ -29,7 +29,7 @@ public record User : IEntity
 
     /// <summary>
     /// The contact this user prefills an act with. Nullable because the pair is written in two steps —
-    /// see <c>UserStore.CreateAccount</c>.
+    /// see <c>UserSeeder.Seed</c>.
     /// </summary>
     public Guid? DefaultContactId { get; init; }
 
