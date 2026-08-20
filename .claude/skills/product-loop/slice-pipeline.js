@@ -33,15 +33,14 @@ const REVIEW_SCHEMA = {
 const results = await pipeline(
   slices,
   async (slice) => {
-    const plan = slice.plan
-      ? await agent(
-          `Plan the slice for issue #${slice.issue} "${slice.title}" (branch loop/${slice.issue}-${slice.slug}).\n\n${slice.body}`,
-          { agentType: 'architect', phase: 'Plan', label: `plan:#${slice.issue}` },
-        )
-      : null
+    const plan = await agent(
+      `Plan the slice for issue #${slice.issue} "${slice.title}" (branch loop/${slice.issue}-${slice.slug}).\n\n${slice.body}`,
+      { agentType: 'architect', phase: 'Plan', label: `plan:#${slice.issue}` },
+    )
+    if (!plan) throw new Error(`slice #${slice.issue}: no plan`)
     const prompt =
       `Implement issue #${slice.issue} "${slice.title}" on branch loop/${slice.issue}-${slice.slug}.\n\n${slice.body}\n\n` +
-      (plan ? `The architect's plan:\n\n${plan}` : 'There is no plan; analyse the issue first.')
+      `The architect's plan:\n\n${plan}`
     return agent(prompt, {
       agentType: 'coder', isolation: 'worktree', phase: 'Implement',
       label: `code:#${slice.issue}`, schema: PR_SCHEMA,

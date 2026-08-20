@@ -22,11 +22,10 @@ The backlog is the open issues labelled `loop` and none of `agent-in-progress` (
 the lowest milestone breaking a tie, honouring a focus argument. Empty backlog: do nothing.
 
 Take two or three and label each `agent-in-progress` before starting one Workflow
-(`.claude/skills/product-loop/slice-pipeline.js`, `args: [{issue, slug, title, body, plan}, …]`).
-`plan` is true for a slice with a migration, a new entity, a cross-layer change or a security
-touch; false otherwise. One slice is one pull request from database to UI leaving the app
-usable, on `loop/<issue>-<slug>` off `master`. The workflow runs in the background; tend open
-pull requests meanwhile and take its results into the report — details stay inside the workflow.
+(`.claude/skills/product-loop/slice-pipeline.js`, `args: [{issue, slug, title, body}, …]`). One
+slice is one pull request from database to UI leaving the app usable, on `loop/<issue>-<slug>`
+off `master`. The workflow runs in the background; tend open pull requests meanwhile and take
+its results into the report — details stay inside the workflow.
 
 Two slices never touch the same files, and every open pull request counts — a candidate is
 checked against the changed files of every open pull request. A migration collides with every
@@ -63,8 +62,7 @@ A round removes `blocked` from an issue whose `Blocked by #` issues have all mer
 A `subscribe_pr_activity` notification is handled when it arrives, never left for the next
 round. Triage the comments: a question gets its reply and the switch to `agent-done`; anything
 needing code sets `agent-in-progress` and starts one Workflow
-(`.claude/skills/product-loop/pr-work.js`, `args: [{pr, branch, instructions, full}]`); `full`
-— rework, migration, new entity, cross-layer, security — adds the architect and the reviewer.
+(`.claude/skills/product-loop/pr-work.js`, `args: [{pr, branch, instructions}]`).
 
 ## 4. Report
 

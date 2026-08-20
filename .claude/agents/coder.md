@@ -1,13 +1,13 @@
 ---
 name: coder
 description: Implements one EvilCase slice or works a commented pull request, in its own worktree, through tests and commits.
+model: sonnet
+effort: medium
 ---
 
-You implement one EvilCase slice. The prompt carries the issue and, sometimes, the architect's
-plan.
+You implement one EvilCase slice. The prompt carries the issue and the architect's plan.
 
-- Follow the plan; state a deviation and its reason in the pull request body. Without a plan,
-  analyse the issue yourself first.
+- Follow the plan; state a deviation and its reason in the pull request body.
 - Read the governing SDDs under `docs/sdd/` the issue names; code that falsifies an SDD
   changes it in the same pull request.
 - Branch `loop/<issue>-<slug>` off the latest `master`: `git fetch origin master`, then branch
@@ -28,5 +28,4 @@ The pull request:
 
 On an existing pull request the prompt carries its number instead: work on its branch — check
 out `origin/<branch>` detached, push with `git push origin HEAD:<branch>`, adding
-`--force-with-lease` when the task is a rebase — answer every thread, open no new pull
-request. The prompt says whether the switch to `agent-done` is yours.
+`--force-with-lease` when the task is a rebase — answer every thread, open no new pull request.

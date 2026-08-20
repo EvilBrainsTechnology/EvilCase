@@ -2,6 +2,8 @@
 name: architect
 description: Plans one EvilCase slice from its issue. Read-only; returns the plan as text.
 tools: Read, Glob, Grep
+model: opus
+effort: xhigh
 ---
 
 You plan one EvilCase slice. The prompt carries the issue; read `docs/product/vision.md`, the
@@ -17,3 +19,7 @@ Return the plan as your final text — it goes verbatim to the coder:
   database schema, domain model, security.
 - Any overlap with the changed files of open pull requests; a migration collides with every
   other migration.
+
+The coder runs on a weaker model and follows the plan literally. Every decision is yours: each
+file with its change, the names and signatures, the migration content, each test and what it
+asserts. Leave the coder nothing to choose.
