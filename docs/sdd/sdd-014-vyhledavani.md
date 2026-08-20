@@ -1,9 +1,9 @@
-# SDD-013 — Vyhledávání
+# SDD-014 — Vyhledávání
 
 - **Stav:** platí
 - **Milníky:** M7
-- **Související SDD:** [002](sdd-002-testovani.md), [006](sdd-006-domenovy-model.md),
-  [007](sdd-007-cislovani.md), [008](sdd-008-spisy.md), [009](sdd-009-ukony.md)
+- **Související SDD:** [003](sdd-003-testovani.md), [007](sdd-007-domenovy-model.md),
+  [008](sdd-008-cislovani.md), [009](sdd-009-spisy.md), [010](sdd-010-ukony.md)
 
 ## Rozsah
 
@@ -23,11 +23,11 @@ diakritiku a velikost písmen.
   písmen: `tsvector` s konfigurací `simple` (tokeny převádí na malá písmena) a `unaccent`,
   přes GIN expression indexy nad stávajícími sloupci. Žádný uložený ani generovaný sloupec.
 - `unaccent` není IMMUTABLE; indexy volají IMMUTABLE obálku. Rozšíření, obálku i indexy
-  zakládá migrace `Init` (SDD-006) — M7 migraci nepotřebuje.
+  zakládá migrace `Init` (SDD-007) — M7 migraci nepotřebuje.
 - Dotaz je prefixová `tsquery`.
 - `CaseNumber`, `ActNumber` a hodnoty externích čísel hledá zvlášť ILIKE contains nad
   vlastními sloupci; ILIKE nerozlišuje velikost písmen. Dotazy jdou po indexu: rozšíření
-  `pg_trgm` a GIN trigram indexy nad těmito sloupci, obojí zakládá `Init` (SDD-006).
+  `pg_trgm` a GIN trigram indexy nad těmito sloupci, obojí zakládá `Init` (SDD-007).
 - Jeden endpoint kombinuje obě větve; vrací spisy i úkony dohromady.
 - Dotazy jdou přes fulltextové funkce Npgsql / EF Core, bez raw SQL.
 
@@ -53,4 +53,4 @@ Navigace přesnou shodou se spouští jen Enterem nebo výběrem položky, nikdy
 ## Dopady
 
 Dnešní ILIKE hledání v `CaseListQuery` zaniká; nahrazuje ho vyhledávací endpoint. Fold
-diakritiky má test (SDD-002).
+diakritiky má test (SDD-003).

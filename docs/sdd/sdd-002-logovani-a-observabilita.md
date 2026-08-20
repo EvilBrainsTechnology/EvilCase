@@ -1,9 +1,9 @@
-# SDD-001 — Logování a observabilita
+# SDD-002 — Logování a observabilita
 
 - **Stav:** platí
 - **Milníky:** průřez
-- **Související SDD:** [007](sdd-007-cislovani.md), [011](sdd-011-soubory.md),
-  [016](sdd-016-seed-vzorovych-dat.md)
+- **Související SDD:** [008](sdd-008-cislovani.md), [012](sdd-012-soubory.md),
+  [017](sdd-017-seed-vzorovych-dat.md)
 
 ## Rozsah
 
@@ -19,9 +19,9 @@ logging s allow-listem, health checks — vše podle READMEs pod `src/Utils/` a
 
 ### Nové featury logují
 
-- Přidělení čísla: přidělené `CaseNumber` / `ActNumber` a id entity (SDD-007).
-- Souborové úložiště: zápis a smazání blobu s id, velikostí a výsledkem (SDD-011).
-- Seed vzorových dat: začátek, výsledek a počty založených entit (SDD-016).
+- Přidělení čísla: přidělené `CaseNumber` / `ActNumber` a id entity (SDD-008).
+- Souborové úložiště: zápis a smazání blobu s id, velikostí a výsledkem (SDD-012).
+- Seed vzorových dat: začátek, výsledek a počty založených entit (SDD-017).
 
 ### Nikdy
 

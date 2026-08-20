@@ -14,7 +14,7 @@ left alone; only what is missing is created.
   Deliverables are checked against the code, never against closed issues.
 - One issue is one slice: a pull request from database to UI that leaves the app usable,
   small enough to review on a phone. The split follows the milestone's deliverables and its
-  SDDs; where an SDD names the slices, that split wins — SDD-006 names the four of M2.
+  SDDs; where an SDD names the slices, that split wins — SDD-007 names the four of M2.
 - Each issue fills `.github/ISSUE_TEMPLATE/slice.md`, carries its milestone and the `loop`
   label, and names its governing SDDs in the body. `Priority` stays unset; the milestone
   orders the backlog.

@@ -1,14 +1,14 @@
-# SDD-005 — Tenance a účty
+# SDD-006 — Tenance a účty
 
 - **Stav:** platí
 - **Milníky:** M2
-- **Související SDD:** [002](sdd-002-testovani.md), [004](sdd-004-api-konvence.md),
-  [006](sdd-006-domenovy-model.md)
+- **Související SDD:** [003](sdd-003-testovani.md), [005](sdd-005-api-konvence.md),
+  [007](sdd-007-domenovy-model.md)
 
 ## Rozsah
 
 Účty, tenanti, uživatelé, izolace dat mezi tenanty a rozšíření autentizace o tenanta.
-Doménové entity popisuje SDD-006.
+Doménové entity popisuje SDD-007.
 
 ## Popis
 
@@ -17,7 +17,7 @@ Doménové entity popisuje SDD-006.
 - **Account** — id a název. Zastřešuje N tenantů.
 - **Tenant** — id, název, `AccountId`. Hranice izolace dat.
 - **User** — patří právě jednomu tenantu (`User.TenantId`). Dnešní sloupce (e-mail, hash
-  hesla, role, lockout) zůstávají; přibývá `TenantId` a `DefaultContactId` (SDD-010).
+  hesla, role, lockout) zůstávají; přibývá `TenantId` a `DefaultContactId` (SDD-011).
 
 Každá tenantová entita nese `TenantId` a `UserId` — entita patří uživateli. Viditelná je
 v celém tenantu.
@@ -37,7 +37,7 @@ Data nesmí utéct mezi tenanty; únik je kritická chyba.
 - Seed běží pod explicitním tenant scope; kontrola v `SaveChanges` porovnává proti tenantu
   dodanému seederem, ne proti principalu požadavku.
 - Unikátní indexy tenantových entit jsou kompozitní s `TenantId`.
-- Konvenční test hlídá, že žádná tenantová entita filtr nepostrádá (SDD-002).
+- Konvenční test hlídá, že žádná tenantová entita filtr nepostrádá (SDD-003).
 
 ### Autentizace
 
@@ -57,5 +57,5 @@ včetně refresh.
 ## Dopady
 
 - `IOwnerContext` a `PrincipalOwnerContext` zanikají; nahrazuje je `ITenantContext`.
-- Sloupce `OwnerId` zanikají; nahrazuje je `TenantId` + `UserId` (SDD-006).
+- Sloupce `OwnerId` zanikají; nahrazuje je `TenantId` + `UserId` (SDD-007).
 - `.claude/rules/business.md` (Ownership) se mění s kódem M2.

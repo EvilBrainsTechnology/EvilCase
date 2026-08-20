@@ -1,14 +1,14 @@
-# SDD-016 — Seed vzorových dat
+# SDD-017 — Seed vzorových dat
 
 - **Stav:** platí
 - **Milníky:** M2
-- **Související SDD:** [001](sdd-001-logovani-a-observabilita.md), [002](sdd-002-testovani.md),
-  [006](sdd-006-domenovy-model.md), [011](sdd-011-soubory.md)
+- **Související SDD:** [002](sdd-002-logovani-a-observabilita.md), [003](sdd-003-testovani.md),
+  [007](sdd-007-domenovy-model.md), [012](sdd-012-soubory.md)
 
 ## Rozsah
 
 Seed vzorových dat pro vývoj a ruční ověření aplikace. Seed účtů a administrátora patří
-SDD-005.
+SDD-006.
 
 ## Popis
 
@@ -18,7 +18,7 @@ SDD-005.
   přemapovaný na nový model: pod-spisy jako podřízené spisy hlavního spisu, strany jako
   kontakty, externí značky s vazbou na kontakt, který je přidělil, úkony se směrem,
   odesílatelem a příjemcem, komentáře.
-- Soubory jsou jednoduché syntetické TXT generované při seedu a zapsané úložištěm SDD-011,
+- Soubory jsou jednoduché syntetické TXT generované při seedu a zapsané úložištěm SDD-012,
   jehož jádro od M2 existuje. Žádná PDF, žádné binárky v repozitáři.
 - Seeder je C# kód s daty zapsanými v kódu; markdown se neparsuje.
 - Pull request, který mění model, mění seeder ve stejném pull requestu.
@@ -32,5 +32,5 @@ SDD-005.
 
 ## Dopady
 
-Smoke test seedu (SDD-002). Seed loguje začátek, výsledek a počty (SDD-001). Dnešní záměr
+Smoke test seedu (SDD-003). Seed loguje začátek, výsledek a počty (SDD-002). Dnešní záměr
 generovat SQL z `test-data/` zaniká; `test-data/README.md` se opraví, až se seeder napíše.

@@ -13,26 +13,27 @@ ve stejném pull requestu.
 
 ## Pořadí čtení
 
-Základ 005–007 (tenance, model, číslování), agendy 008–012, aplikace 013–016; průřezová
-001–004 platí pro každou změnu ve své oblasti.
+Architektura 001 jako první. Průřezová 002–005 platí pro každou změnu ve své oblasti; základ
+006–008 (tenance, model, číslování), agendy 009–013, aplikace 014–017.
 
 ## Mapa SDD ↔ milník
 
 | SDD | Téma | Milníky |
 | --- | --- | --- |
-| [001](sdd-001-logovani-a-observabilita.md) | Logování a observabilita | průřez |
-| [002](sdd-002-testovani.md) | Testování | průřez |
-| [003](sdd-003-validace-a-chyby.md) | Validace a chyby | průřez |
-| [004](sdd-004-api-konvence.md) | API konvence | průřez |
-| [005](sdd-005-tenance-a-ucty.md) | Tenance a účty | M2 |
-| [006](sdd-006-domenovy-model.md) | Doménový model | M2 |
-| [007](sdd-007-cislovani.md) | Číslování | M2 |
-| [008](sdd-008-spisy.md) | Spisy | M3 |
-| [009](sdd-009-ukony.md) | Úkony | M4 |
-| [010](sdd-010-kontakty.md) | Kontakty | M2, M3, M4, M6 |
-| [011](sdd-011-soubory.md) | Soubory | M2, M5 |
-| [012](sdd-012-komentare.md) | Komentáře | M3, M4 |
-| [013](sdd-013-vyhledavani.md) | Vyhledávání | M7 |
-| [014](sdd-014-dashboard.md) | Dashboard | M7 |
-| [015](sdd-015-navigace-a-vzhled.md) | Navigace a vzhled | M1 |
-| [016](sdd-016-seed-vzorovych-dat.md) | Seed vzorových dat | M2 |
+| [001](sdd-001-architektura.md) | Architektura | průřez |
+| [002](sdd-002-logovani-a-observabilita.md) | Logování a observabilita | průřez |
+| [003](sdd-003-testovani.md) | Testování | průřez |
+| [004](sdd-004-validace-a-chyby.md) | Validace a chyby | průřez |
+| [005](sdd-005-api-konvence.md) | API konvence | průřez |
+| [006](sdd-006-tenance-a-ucty.md) | Tenance a účty | M2 |
+| [007](sdd-007-domenovy-model.md) | Doménový model | M2 |
+| [008](sdd-008-cislovani.md) | Číslování | M2 |
+| [009](sdd-009-spisy.md) | Spisy | M3 |
+| [010](sdd-010-ukony.md) | Úkony | M4 |
+| [011](sdd-011-kontakty.md) | Kontakty | M2, M3, M4, M6 |
+| [012](sdd-012-soubory.md) | Soubory | M2, M5 |
+| [013](sdd-013-komentare.md) | Komentáře | M3, M4 |
+| [014](sdd-014-vyhledavani.md) | Vyhledávání | M7 |
+| [015](sdd-015-dashboard.md) | Dashboard | M7 |
+| [016](sdd-016-navigace-a-vzhled.md) | Navigace a vzhled | M1 |
+| [017](sdd-017-seed-vzorovych-dat.md) | Seed vzorových dat | M2 |

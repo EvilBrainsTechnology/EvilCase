@@ -1,9 +1,9 @@
-# SDD-011 — Soubory
+# SDD-012 — Soubory
 
 - **Stav:** platí
 - **Milníky:** M2, M5
-- **Související SDD:** [001](sdd-001-logovani-a-observabilita.md), [002](sdd-002-testovani.md),
-  [006](sdd-006-domenovy-model.md), [016](sdd-016-seed-vzorovych-dat.md)
+- **Související SDD:** [002](sdd-002-logovani-a-observabilita.md), [003](sdd-003-testovani.md),
+  [007](sdd-007-domenovy-model.md), [017](sdd-017-seed-vzorovych-dat.md)
 
 ## Rozsah
 
@@ -27,7 +27,7 @@ spisech jsou dva soubory.
 - Blob se zapisuje před commitem databázové transakce; osiřelý blob po neúspěšné transakci
   se toleruje, bez automatického úklidu.
 - Jádro úložiště — konfigurace rootu, zápis a smazání blobu — vzniká v M2, seed zapisuje TXT
-  soubory (SDD-016); M5 dodává jen UI.
+  soubory (SDD-017); M5 dodává jen UI.
 
 ### Pravidla
 
@@ -51,7 +51,7 @@ a `X-Content-Type-Options: nosniff`. Smazání je prosté, s potvrzením.
 
 ## Dopady
 
-`ActFileReference` zaniká (SDD-006). Úložiště se testuje na temp adresáři (SDD-002). Zápis
-a smazání blobu se loguje, obsah nikdy (SDD-001). Nasazený kontejner nese `RootPath` na
+`ActFileReference` zaniká (SDD-007). Úložiště se testuje na temp adresáři (SDD-003). Zápis
+a smazání blobu se loguje, obsah nikdy (SDD-002). Nasazený kontejner nese `RootPath` na
 trvalém svazku; `deploy/docker-compose.yml` a `deploy/README.md` se mění s jádrem úložiště
 v M2.
