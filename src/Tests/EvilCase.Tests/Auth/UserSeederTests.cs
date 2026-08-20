@@ -110,6 +110,17 @@ public class UserSeederTests
         Assert.That(await store.Any(CancellationToken.None), Is.False);
     }
 
+    /// <summary>
+    /// The transaction the host opens around the seed hangs on this, so a host with nothing to seed
+    /// starts without reaching the database at all.
+    /// </summary>
+    [TestCase(SeedEmail, SeedPassword, ExpectedResult = true)]
+    [TestCase(SeedEmail, null, ExpectedResult = false)]
+    [TestCase(null, SeedPassword, ExpectedResult = false)]
+    [TestCase(null, null, ExpectedResult = false)]
+    public bool OnlyBothHalvesOfTheSeedCountAsConfigured(string? email, string? password) =>
+        Seeder(new FakeDbSession(), new FakeUserStore(), email, password).IsConfigured;
+
     private static UserSeeder Seeder(FakeDbSession session, FakeUserStore store, string? email, string? password)
     {
         var settings = AuthTestHarness.CreateSettings() with { Seed = new() { Email = email, Password = password } };

@@ -16,6 +16,8 @@ internal sealed class UserSeeder(
     IOptions<AuthSettings> options,
     ILogger<UserSeeder> logger) : IUserSeeder
 {
+    public bool IsConfigured => options.Value.Seed is { Email.Length: > 0, Password.Length: > 0 };
+
     public async Task Seed(CancellationToken cancellationToken)
     {
         var seed = options.Value.Seed;

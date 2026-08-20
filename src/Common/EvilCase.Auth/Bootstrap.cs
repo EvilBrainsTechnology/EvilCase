@@ -89,10 +89,17 @@ public static class Bootstrap
 
         await using var scope = host.Services.CreateAsyncScope();
 
+        var seeder = scope.ServiceProvider.GetRequiredService<IUserSeeder>();
+
+        // A deployment that names no seed never reaches the database, so a host with nothing to seed
+        // starts without a connection.
+        if (!seeder.IsConfigured)
+            return;
+
         var session = scope.ServiceProvider.GetRequiredService<IApplicationDbSession>();
         await using var transaction = await session.BeginTransaction(cancellationToken);
 
-        await scope.ServiceProvider.GetRequiredService<IUserSeeder>().Seed(cancellationToken);
+        await seeder.Seed(cancellationToken);
 
         await transaction.CommitAsync(cancellationToken);
     }
