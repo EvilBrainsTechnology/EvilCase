@@ -1,13 +1,13 @@
-# SDR-015 — Navigace a vzhled
+# SDD-015 — Navigace a vzhled
 
 - **Stav:** platí
 - **Milníky:** M1
-- **Související SDR:** [007](sdr-007-cislovani.md), [013](sdr-013-vyhledavani.md),
-  [014](sdr-014-dashboard.md)
+- **Související SDD:** [007](sdd-007-cislovani.md), [013](sdd-013-vyhledavani.md),
+  [014](sdd-014-dashboard.md)
 
 ## Rozsah
 
-Routy aplikace, rušené stránky, menu a vzhled. Obsah stránek drží SDR jednotlivých agend.
+Routy aplikace, rušené stránky, menu a vzhled. Obsah stránek drží SDD jednotlivých agend.
 
 ## Popis
 
@@ -17,7 +17,7 @@ URL nesou UUID entit, nikdy jejich čísla:
 
 | Routa | Obsah |
 | --- | --- |
-| `/` | dashboard (SDR-014) |
+| `/` | dashboard (SDD-014) |
 | `/cases` | seznam spisů |
 | `/cases/new` | založení spisu |
 | `/cases/{id}` | detail spisu |
@@ -33,9 +33,9 @@ URL nesou UUID entit, nikdy jejich čísla:
 
 - `/deadlines` — lhůty jsou non-goal.
 - `/echo` včetně `EchoController` a jeho kontraktu.
-- `/settings` — číslování je natvrdo (SDR-007).
+- `/settings` — číslování je natvrdo (SDD-007).
 - Widget lhůt na dashboardu včetně jeho vzorových dat; zbytek dnešního dashboardu žije do
-  přepisu v M7 (SDR-014).
+  přepisu v M7 (SDD-014).
 
 ### Menu a vzhled
 
@@ -53,4 +53,4 @@ má prázdný stav (vzor `.empty`); kde jde záznam založit, nese výzvu k zalo
 M1 maže rušené stránky, `EchoController`, jeho kontrakt a klienta. Sekce Verify
 v `.claude/skills/run-app/SKILL.md` sonduje `POST /api/echo/post` a stránku `/echo`; M1 je
 nahrazuje autentizovaným `GET /api/cases/list` a stránkou `/cases` ve stejném commitu.
-Dashboard se přepisuje v M7 (SDR-014).
+Dashboard se přepisuje v M7 (SDD-014).

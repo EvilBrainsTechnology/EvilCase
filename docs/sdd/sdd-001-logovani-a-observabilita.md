@@ -1,9 +1,9 @@
-# SDR-001 — Logování a observabilita
+# SDD-001 — Logování a observabilita
 
 - **Stav:** platí
 - **Milníky:** průřez
-- **Související SDR:** [007](sdr-007-cislovani.md), [011](sdr-011-soubory.md),
-  [016](sdr-016-seed-vzorovych-dat.md)
+- **Související SDD:** [007](sdd-007-cislovani.md), [011](sdd-011-soubory.md),
+  [016](sdd-016-seed-vzorovych-dat.md)
 
 ## Rozsah
 
@@ -19,9 +19,9 @@ logging s allow-listem, health checks — vše podle READMEs pod `src/Utils/` a
 
 ### Nové featury logují
 
-- Přidělení čísla: přidělené `CaseNumber` / `ActNumber` a id entity (SDR-007).
-- Souborové úložiště: zápis a smazání blobu s id, velikostí a výsledkem (SDR-011).
-- Seed vzorových dat: začátek, výsledek a počty založených entit (SDR-016).
+- Přidělení čísla: přidělené `CaseNumber` / `ActNumber` a id entity (SDD-007).
+- Souborové úložiště: zápis a smazání blobu s id, velikostí a výsledkem (SDD-011).
+- Seed vzorových dat: začátek, výsledek a počty založených entit (SDD-016).
 
 ### Nikdy
 

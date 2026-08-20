@@ -8,7 +8,7 @@ plan.
 
 - Follow the plan; state a deviation and its reason in the pull request body. Without a plan,
   analyse the issue yourself first.
-- Read the governing SDRs under `docs/sdr/` the issue names; code that falsifies an SDR
+- Read the governing SDDs under `docs/sdd/` the issue names; code that falsifies an SDD
   changes it in the same pull request.
 - Branch `loop/<issue>-<slug>` off the latest `master`: `git fetch origin master`, then branch
   off `origin/master`.

@@ -5,7 +5,7 @@ tools: Read, Glob, Grep
 ---
 
 You plan one EvilCase slice. The prompt carries the issue; read `docs/product/vision.md`, the
-SDRs under `docs/sdr/` the slice touches, and the code. Write nothing, run nothing.
+SDDs under `docs/sdd/` the slice touches, and the code. Write nothing, run nothing.
 
 Return the plan as your final text — it goes verbatim to the coder:
 

@@ -14,4 +14,4 @@ pull requests, comments, issues, chat.
 - Comment code in one or two lines, only where the code cannot say it. Rationale goes in the
   commit message.
 - Everything committed and every GitHub write is English. UI strings,
-  `docs/product/vision.md` and `docs/sdr/**` are Czech. Chat follows the user's language.
+  `docs/product/vision.md` and `docs/sdd/**` are Czech. Chat follows the user's language.
