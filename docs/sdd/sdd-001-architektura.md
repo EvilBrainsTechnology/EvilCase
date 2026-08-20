@@ -25,8 +25,8 @@ metadata (SDD-012). Mimo databázi server stav nedrží: přihlášení nese JWT
 v paměti prohlížeče a rotující refresh token v `__Host-` cookie, celé za `IAuthService`
 (`.claude/rules/auth.md`).
 
-Nasazení je jeden kontejnerový image s PostgreSQL vedle sebe v compose stacku
-(`deploy/README.md`).
+Nasazení je jeden kontejnerový image v compose stacku. Databáze do stacku nepatří;
+connection string míří na existující PostgreSQL (`deploy/README.md`).
 
 ### Projekty
 
@@ -44,18 +44,21 @@ Kód žije v `src/`, řešení `EvilCase.slnx`:
 | `Data/EvilCase.Data` | EF Core model, jen schéma |
 | `Data/EvilCase.Data.Migrations` | migrace |
 | `Common/EvilCase.Auth` | autentizace; uzavřený modul za `IAuthService` |
+| `Tests/EvilCase.Tests` | testy aplikace (SDD-003) |
 | `Utils/EvilBrains.*` | sdílené knihovny nezávislé na EvilCase |
 
 ### Vrstvy
 
 ```
+Host → Api, App, Auth, Data, Data.Migrations
 App → Api.Client → (HTTP) → Api → Business → Data
-                             ↓        ↓        ↓
-                       Api.Contract → Domain ←─┘
+Api → Auth → Data ← Data.Migrations
+Api.Client, Api, Business, Auth → Api.Contract
+Api, Business, Auth, Data, Api.Contract → Domain
 ```
 
-- Šipka je závislost; jiná neexistuje. Každou pinuje `Tests/Architecture/LayerTests`
-  (SDD-003).
+- Šipka je závislost; jiná neexistuje. Host je kompoziční root a skládá zbytek.
+- Zakázané směry a nosné šipky drží `Tests/Architecture/LayerTests` (SDD-003).
 - Frontend renderuje a sbírá vstup; rozhoduje server.
 - Kontrolery jsou jediný zdroj pravdy API: kontrakt žije v `Api.Contract`, klient se
   generuje ze zdrojů kontrolerů a shodu vynucují diagnostiky `EB1xxx`.
@@ -69,7 +72,7 @@ App → Api.Client → (HTTP) → Api → Business → Data
 
 .NET 10 — SDK pinuje `src/global.json`. ASP.NET Core, EF Core nad PostgreSQL, Blazor
 WebAssembly s TabBlazor nad Tabler CSS, NUnit. Logování jde přes `EvilBrains.Logging.*` na
-serveru i ve WebAssembly a končí v Seq (SDD-002).
+serveru i ve WebAssembly; Seq je volitelný a zapíná ho URL z prostředí (SDD-002).
 
 ### Konfigurace
 
