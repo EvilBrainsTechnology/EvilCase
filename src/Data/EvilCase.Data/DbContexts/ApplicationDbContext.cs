@@ -36,10 +36,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder
-            .HasDbFunction(typeof(DatabaseFunctions).GetMethod(nameof(DatabaseFunctions.Unaccent), [typeof(string)])!)
-            .HasName("immutable_unaccent");
-
+        ConfigureDbFunctions(modelBuilder);
         ConfigureExtensions(modelBuilder);
         ConfigureEntities(modelBuilder);
         this.ConfigureTenancy(modelBuilder);
@@ -49,6 +46,13 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         ConfigureFiles(modelBuilder);
         ConfigureComments(modelBuilder);
         ConfigureEnums(modelBuilder);
+    }
+
+    private static void ConfigureDbFunctions(ModelBuilder modelBuilder)
+    {
+        modelBuilder
+            .HasDbFunction(typeof(DatabaseFunctions).GetMethod(nameof(DatabaseFunctions.Unaccent), [typeof(string)])!)
+            .HasName("immutable_unaccent");
     }
 
     private static void ConfigureExtensions(ModelBuilder modelBuilder)
@@ -64,13 +68,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .ToList();
 
         foreach (var entityType in entityTypes)
-        {
             modelBuilder.Entity(entityType.ClrType).Property(nameof(IEntity.Id)).ValueGeneratedNever();
-
-            modelBuilder.Entity(entityType.ClrType)
-                .Property(nameof(IEntity.Created))
-                .UsePropertyAccessMode(PropertyAccessMode.Field);
-        }
     }
 
     // Every enum is stored as its name, in a column as wide as the longest name that enum has.
@@ -108,16 +106,23 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
         foreach (var entityType in tenantEntityTypes)
         {
-            var entity = modelBuilder.Entity(entityType.ClrType);
-
-            entity.HasOne(typeof(Tenant))
+            modelBuilder.Entity(entityType.ClrType)
+                .HasOne(typeof(Tenant))
                 .WithMany()
                 .HasForeignKey(nameof(ITenantEntity.TenantId))
                 .OnDelete(DeleteBehavior.Restrict);
+        }
 
-            entity.HasOne(typeof(User))
+        var userOwnedEntityTypes = modelBuilder.Model.GetEntityTypes()
+            .Where(type => typeof(IUserOwnedEntity).IsAssignableFrom(type.ClrType))
+            .ToList();
+
+        foreach (var entityType in userOwnedEntityTypes)
+        {
+            modelBuilder.Entity(entityType.ClrType)
+                .HasOne(typeof(User))
                 .WithMany()
-                .HasForeignKey(nameof(ITenantEntity.UserId))
+                .HasForeignKey(nameof(IUserOwnedEntity.UserId))
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

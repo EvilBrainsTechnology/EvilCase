@@ -1,6 +1,5 @@
 using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Domain.Contacts;
-using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Tests.Data.Model;
 
@@ -29,14 +28,14 @@ public class ContactModelTests : ModelFixture
     }
 
     [Test]
-    public void AContactIsSharedAcrossTheTenant()
+    public void AContactBelongsToTheTenantNotToAUser()
     {
         var contact = Model.FindEntityType(typeof(Contact));
 
         Assert.That(contact, Is.Not.Null);
 
-        var toUser = ForeignKeyTo<User>(contact);
+        var columns = ColumnsOf(contact);
 
-        Assert.That(toUser?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Restrict), "a contact outlives the user who typed it in");
+        Assert.That(columns, Does.Not.Contain("UserId"), "a contact belongs to the tenant, not to a user");
     }
 }

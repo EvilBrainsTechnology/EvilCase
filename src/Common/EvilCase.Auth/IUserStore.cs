@@ -28,6 +28,4 @@ internal interface IUserStore
     public Task<bool> Any(CancellationToken cancellationToken);
 
     public Task Add(User user, CancellationToken cancellationToken);
-
-    public Task SetDefaultContact(Guid userId, Guid contactId, CancellationToken cancellationToken);
 }

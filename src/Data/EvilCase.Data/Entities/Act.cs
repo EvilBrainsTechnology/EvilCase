@@ -8,12 +8,11 @@ namespace EvilBrains.EvilCase.Data.Entities;
 /// The unit of work inside a case, and the thing the user thinks in: one submission, decision, notice
 /// or call.
 /// </summary>
-[Index(nameof(TenantId))]
 [Index(nameof(TenantId), nameof(ActNumber), IsUnique = true)]
 [Index(nameof(CaseId), nameof(Date))]
 [Index(nameof(IssuedByContactId))]
 [Index(nameof(AddressedToContactId))]
-public record Act : ITenantEntity
+public record Act : IUserOwnedEntity
 {
     [Key]
     public Guid Id { get; init; } = Guid.CreateVersion7();

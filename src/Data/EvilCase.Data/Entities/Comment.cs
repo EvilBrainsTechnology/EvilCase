@@ -10,7 +10,7 @@ namespace EvilBrains.EvilCase.Data.Entities;
 [Index(nameof(TenantId))]
 [Index(nameof(CaseId))]
 [Index(nameof(ActId))]
-public record Comment : ITenantEntity
+public record Comment : IUserOwnedEntity
 {
     [Key]
     public Guid Id { get; init; } = Guid.CreateVersion7();

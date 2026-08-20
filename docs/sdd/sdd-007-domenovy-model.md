@@ -36,10 +36,8 @@ Account → Tenant → User (SDD-006). Tenantová data:
 - Id je UUIDv7, generované v aplikaci (`Guid.CreateVersion7()`).
 - Každá entita nese `Created` a `Updated`; plní je jeden `SaveChangesInterceptor` nad
   `TimeProvider`.
-- Tenantové entity nesou `TenantId` a `UserId` (SDD-006).
+- Tenantové entity nesou `TenantId` a vlastníka `UserId`; kontakt vlastníka nemá (SDD-006).
 - Datum spisu a úkonu je `DateOnly` (`.claude/rules/data.md`).
-- Délky řetězců: název 256, název kontaktu 256, adresa 1024, id datové schránky 16, hodnota
-  externího čísla 128. Popis spisu i úkonu je bez omezení.
 
 ### Matice mazání
 

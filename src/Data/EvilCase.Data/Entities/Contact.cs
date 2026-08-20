@@ -8,7 +8,6 @@ namespace EvilBrains.EvilCase.Data.Entities;
 /// An authority, an official or a person. Shared across the tenant rather than owned by whoever typed it
 /// in, so a contact accumulates history across every case it appears in.
 /// </summary>
-[Index(nameof(TenantId))]
 [Index(nameof(TenantId), nameof(DataBoxId))]
 public record Contact : ITenantEntity
 {
@@ -16,8 +15,6 @@ public record Contact : ITenantEntity
     public Guid Id { get; init; } = Guid.CreateVersion7();
 
     public required Guid TenantId { get; init; }
-
-    public required Guid UserId { get; init; }
 
     public required ContactKind Kind { get; init; }
 

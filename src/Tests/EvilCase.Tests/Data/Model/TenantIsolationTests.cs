@@ -6,7 +6,7 @@ namespace EvilBrains.EvilCase.Tests.Data.Model;
 public class TenantIsolationTests : ModelFixture
 {
     [Test]
-    public void EveryTenantEntityCarriesItsTenantAndItsUser()
+    public void EveryTenantEntityCarriesItsTenant()
     {
         var tenantEntities = TenantEntities();
 
@@ -17,14 +17,42 @@ public class TenantIsolationTests : ModelFixture
             foreach (var entityType in tenantEntities)
             {
                 var tenantId = entityType.FindProperty("TenantId");
-                var userId = entityType.FindProperty("UserId");
 
                 Assert.That(tenantId, Is.Not.Null, $"{entityType.ShortName()}: a row without a tenant is invisible to every filter");
                 Assert.That(tenantId?.IsNullable, Is.False, $"{entityType.ShortName()}: a row without a tenant is invisible to every filter");
-                Assert.That(userId, Is.Not.Null, $"{entityType.ShortName()}: a row without a tenant is invisible to every filter");
-                Assert.That(userId?.IsNullable, Is.False, $"{entityType.ShortName()}: a row without a tenant is invisible to every filter");
             }
         }
+    }
+
+    [Test]
+    public void EveryUserOwnedEntityCarriesItsUser()
+    {
+        var userOwnedEntities = Model.GetEntityTypes().Where(type => typeof(IUserOwnedEntity).IsAssignableFrom(type.ClrType)).ToList();
+
+        Assert.That(userOwnedEntities, Is.Not.Empty);
+
+        using (Assert.EnterMultipleScope())
+        {
+            foreach (var entityType in userOwnedEntities)
+            {
+                var userId = entityType.FindProperty("UserId");
+
+                Assert.That(userId, Is.Not.Null, $"{entityType.ShortName()}: a user-owned row without its user cannot say who wrote it");
+                Assert.That(userId?.IsNullable, Is.False, $"{entityType.ShortName()}: a user-owned row without its user cannot say who wrote it");
+            }
+        }
+    }
+
+    [Test]
+    public void AContactCarriesNoUser()
+    {
+        var contact = Model.FindEntityType(typeof(Contact));
+
+        Assert.That(contact, Is.Not.Null);
+
+        var isUserOwned = typeof(IUserOwnedEntity).IsAssignableFrom(contact.ClrType);
+
+        Assert.That(isUserOwned, Is.False, "a contact is shared across the tenant rather than owned by whoever typed it in");
     }
 
     [Test]

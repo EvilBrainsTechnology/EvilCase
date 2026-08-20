@@ -7,11 +7,10 @@ namespace EvilBrains.EvilCase.Data.Entities;
 /// <summary>
 /// A proceeding. An optional parent gives it its place in a hierarchy (SDD-009).
 /// </summary>
-[Index(nameof(TenantId))]
 [Index(nameof(TenantId), nameof(CaseNumber), IsUnique = true)]
 [Index(nameof(TenantId), nameof(Date))]
 [Index(nameof(ParentCaseId))]
-public record Case : ITenantEntity
+public record Case : IUserOwnedEntity
 {
     [Key]
     public Guid Id { get; init; } = Guid.CreateVersion7();

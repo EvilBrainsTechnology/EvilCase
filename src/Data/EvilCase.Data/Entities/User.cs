@@ -28,8 +28,7 @@ public record User : IEntity
     public required UserRole Role { get; init; }
 
     /// <summary>
-    /// The contact this user prefills an act with. Nullable because the pair is written in two steps —
-    /// see <c>UserSeeder.Seed</c>.
+    /// The contact this user prefills an act with.
     /// </summary>
     public Guid? DefaultContactId { get; init; }
 

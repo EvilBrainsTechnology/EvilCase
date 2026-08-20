@@ -6,10 +6,9 @@ namespace EvilBrains.EvilCase.Data.Entities;
 /// <summary>
 /// The reference number (<em>číslo jednací</em>) somebody else gave one act.
 /// </summary>
-[Index(nameof(TenantId))]
 [Index(nameof(TenantId), nameof(ActId), nameof(Value), IsUnique = true)]
 [Index(nameof(AssignedByContactId))]
-public record ExternalActNumber : ITenantEntity
+public record ExternalActNumber : IUserOwnedEntity
 {
     [Key]
     public Guid Id { get; init; } = Guid.CreateVersion7();

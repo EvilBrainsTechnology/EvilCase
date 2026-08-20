@@ -19,8 +19,8 @@ Doménové entity popisuje SDD-007.
 - **User** — patří právě jednomu tenantu (`User.TenantId`). Dnešní sloupce (e-mail, hash
   hesla, role, lockout) zůstávají; přibývá `TenantId` a `DefaultContactId` (SDD-011).
 
-Každá tenantová entita nese `TenantId` a `UserId` — entita patří uživateli. Viditelná je
-v celém tenantu.
+Každá tenantová entita nese `TenantId`. Vlastníka `UserId` nese každá kromě kontaktu; kontakt
+patří tenantu (SDD-011). Viditelná je v celém tenantu.
 
 Account, Tenant a první administrátor vznikají jen seedem při startu
 (`EvilBrains__EvilCase__Auth__Seed__*`, jen do prázdné tabulky uživatelů). Žádné UI pro
@@ -33,7 +33,8 @@ Data nesmí utéct mezi tenanty; únik je kritická chyba.
 - Každá tenantová entita má EF global query filter na `TenantId`; tenant dodává
   `ITenantContext`, který nahrazuje `IOwnerContext`.
 - Access token nese tenant claim; `ITenantContext` ho čte z principalu.
-- `SaveChanges` kontroluje, že každý zapisovaný řádek patří tenantu z kontextu.
+- `SaveChanges` doplní `TenantId` nové tenantové entitě z kontextu a zápis do cizího tenanta
+  odmítne.
 - Seed běží pod explicitním tenant scope; kontrola v `SaveChanges` porovnává proti tenantu
   dodanému seederem, ne proti principalu požadavku.
 - Unikátní indexy tenantových entit jsou kompozitní s `TenantId`.

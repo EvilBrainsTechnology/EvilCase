@@ -8,10 +8,9 @@ namespace EvilBrains.EvilCase.Data.Entities;
 /// assigns its own, so a case carries as many of these as there are authorities in it — and none of them
 /// is the case's own mark, which is <see cref="Case.CaseNumber"/>.
 /// </summary>
-[Index(nameof(TenantId))]
 [Index(nameof(TenantId), nameof(CaseId), nameof(Value), IsUnique = true)]
 [Index(nameof(AssignedByContactId))]
-public record ExternalCaseNumber : ITenantEntity
+public record ExternalCaseNumber : IUserOwnedEntity
 {
     [Key]
     public Guid Id { get; init; } = Guid.CreateVersion7();

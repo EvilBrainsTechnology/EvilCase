@@ -20,6 +20,8 @@ internal sealed class FakeUserStore : IUserStore
 
     public User Get(Guid id) => this.users.Single(user => user.Id == id);
 
+    public User Single() => this.users.Single();
+
     public Task<User?> FindByEmail(string email, CancellationToken cancellationToken)
     {
         var normalized = EmailNormalizer.Normalize(email);
@@ -49,13 +51,6 @@ internal sealed class FakeUserStore : IUserStore
     public Task Add(User user, CancellationToken cancellationToken)
     {
         this.users.Add(user);
-
-        return Task.CompletedTask;
-    }
-
-    public Task SetDefaultContact(Guid userId, Guid contactId, CancellationToken cancellationToken)
-    {
-        this.Replace(userId, user => user with { DefaultContactId = contactId });
 
         return Task.CompletedTask;
     }
