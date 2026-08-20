@@ -44,7 +44,7 @@ bez databáze (SDD-003).
 
 ## Rozhodnutí
 
-- Vzory: konfigurovatelné v Nastavení / natvrdo. Platí natvrdo; obrazovka Nastavení zaniká
+- Vzory: konfigurovatelné v Nastavení / natvrdo. Platí natvrdo; obrazovka Nastavení není
   (SDD-016).
 - Souběh: DB sekvence per den / MAX + insert s retry. Platí MAX + insert s retry na unique
   violation.
@@ -52,5 +52,4 @@ bez databáze (SDD-003).
 
 ## Dopady
 
-Placeholder stránka Nastavení zaniká (SDD-016). Přesná shoda čísla naviguje rovnou na
-entitu (SDD-014).
+Přesná shoda čísla naviguje rovnou na entitu (SDD-014).

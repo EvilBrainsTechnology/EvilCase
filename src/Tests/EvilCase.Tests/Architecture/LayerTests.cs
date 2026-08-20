@@ -19,7 +19,7 @@ public class LayerTests
 
     private static readonly Assembly Domain = typeof(CaseStatus).Assembly;
 
-    private static readonly Assembly Contract = typeof(Api.Contract.Echo.EchoRequest).Assembly;
+    private static readonly Assembly Contract = typeof(Api.Contract.Cases.CaseListRequest).Assembly;
 
     private static readonly Assembly Client = typeof(Api.Client.Bootstrap).Assembly;
 

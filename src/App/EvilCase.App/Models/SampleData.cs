@@ -14,13 +14,5 @@ public static class SampleData
         new("15 C 77/2025", "Náhrada škody", "Statek Podolí s.r.o.", CaseStatus.Closed, Today.AddDays(-24)),
     ];
 
-    public static IReadOnlyList<DeadlineItem> UpcomingDeadlines { get; } =
-    [
-        new("12 C 148/2026", "Vyjádření k žalobě", Today.AddDays(2)),
-        new("8 Cm 42/2026", "Doplnění důkazních návrhů", Today.AddDays(5)),
-        new("3 Nc 511/2026", "Odvolací lhůta", Today.AddDays(11)),
-        new("21 T 9/2026", "Hlavní líčení", Today.AddDays(18)),
-    ];
-
     private static DateOnly Today => DateOnly.FromDateTime(DateTime.Today);
 }

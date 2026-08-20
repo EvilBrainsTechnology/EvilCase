@@ -50,7 +50,6 @@ má prázdný stav (vzor `.empty`); kde jde záznam založit, nese výzvu k zalo
 
 ## Dopady
 
-M1 maže rušené stránky, `EchoController`, jeho kontrakt a klienta. Sekce Verify
-v `.claude/skills/run-app/SKILL.md` sonduje `POST /api/echo/post` a stránku `/echo`; M1 je
-nahrazuje autentizovaným `GET /api/cases/list` a stránkou `/cases` ve stejném commitu.
-Dashboard se přepisuje v M7 (SDD-015).
+Rušené stránky, `EchoController`, jeho kontrakt ani klient v repozitáři nejsou. Sekce Verify
+v `.claude/skills/run-app/SKILL.md` sonduje autentizovaný `GET /api/cases/list` a stránku
+`/cases`. Dashboard se přepisuje v M7 (SDD-015).
