@@ -13,8 +13,6 @@ public class TimestampInterceptorTests
 {
     private static readonly Guid Tenant = Guid.CreateVersion7();
 
-    private static readonly Guid User = Guid.CreateVersion7();
-
     private static readonly DateTime Now = new(2026, 8, 1, 12, 0, 0, DateTimeKind.Utc);
 
     private static readonly DateTime Later = new(2026, 8, 1, 13, 0, 0, DateTimeKind.Utc);
@@ -72,5 +70,5 @@ public class TimestampInterceptorTests
         interceptor.SavingChanges(new DbContextEventData(null!, null!, dbContext), default);
     }
 
-    private static Contact NewContact() => new() { TenantId = Tenant, UserId = User, Kind = ContactKind.Person, Name = "test" };
+    private static Contact NewContact() => new() { TenantId = Tenant, Kind = ContactKind.Person, Name = "test" };
 }

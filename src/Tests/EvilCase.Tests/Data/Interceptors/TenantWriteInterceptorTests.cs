@@ -16,8 +16,6 @@ public class TenantWriteInterceptorTests
 
     private static readonly Guid TenantB = Guid.CreateVersion7();
 
-    private static readonly Guid UserId = Guid.CreateVersion7();
-
     private ApplicationDbContext context = null!;
 
     [SetUp]
@@ -27,7 +25,22 @@ public class TenantWriteInterceptorTests
     public void TearDown() => this.context.Dispose();
 
     [Test]
-    public void ARowOfTheContextsTenantPassesEveryState()
+    public void TheWriteStampsTheTenantOnARowCreatedWithoutOne()
+    {
+        var contact = NewContact(default);
+        this.context.Add(contact);
+
+        var tenantContext = new StubTenantContext();
+        using var scope = tenantContext.Enter(TenantA);
+        var interceptor = new TenantWriteInterceptor(tenantContext);
+
+        Save(interceptor, this.context);
+
+        Assert.That(this.context.Entry(contact).Property(nameof(Contact.TenantId)).CurrentValue, Is.EqualTo(TenantA), "a new tenant row takes the tenant of the write, so no creation has to set it");
+    }
+
+    [Test]
+    public void TheWriteKeepsATenantSetExplicitlyWhereItMatches()
     {
         var added = NewContact(TenantA);
         var modified = NewContact(TenantA);
@@ -41,11 +54,12 @@ public class TenantWriteInterceptorTests
         using var scope = tenantContext.Enter(TenantA);
         var interceptor = new TenantWriteInterceptor(tenantContext);
 
-        Assert.That(() => Save(interceptor, this.context), Throws.Nothing);
+        Assert.That(() => Save(interceptor, this.context), Throws.Nothing, "an explicit tenant that matches the write stands");
+        Assert.That(this.context.Entry(added).Property(nameof(Contact.TenantId)).CurrentValue, Is.EqualTo(TenantA));
     }
 
     [Test]
-    public void ARowOfAnotherTenantIsRefused()
+    public void ARowCreatedUnderAnotherTenantNeverReachesTheDatabase()
     {
         this.context.Add(NewContact(TenantB));
 
@@ -56,11 +70,11 @@ public class TenantWriteInterceptorTests
         Assert.That(
             () => Save(interceptor, this.context),
             Throws.InvalidOperationException,
-            "a write must not carry another tenant's rows");
+            "a row of another tenant is refused, not silently restamped");
     }
 
     [Test]
-    public void AnUntenantedRowIsNotChecked()
+    public void AWriteWithoutATenantRowNeedsNoTenant()
     {
         this.context.Add(new User
         {
@@ -75,11 +89,11 @@ public class TenantWriteInterceptorTests
         Assert.That(
             () => Save(interceptor, this.context),
             Throws.Nothing,
-            "signing in writes before a tenant is known");
+            "signing in writes without a tenant");
     }
 
     private static void Save(TenantWriteInterceptor interceptor, DbContext dbContext) =>
         interceptor.SavingChanges(new DbContextEventData(null!, null!, dbContext), default);
 
-    private static Contact NewContact(in Guid tenant) => new() { TenantId = tenant, UserId = UserId, Kind = ContactKind.Person, Name = "test" };
+    private static Contact NewContact(in Guid tenant) => new() { TenantId = tenant, Kind = ContactKind.Person, Name = "test" };
 }

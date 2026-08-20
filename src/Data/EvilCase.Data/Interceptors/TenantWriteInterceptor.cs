@@ -5,11 +5,17 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace EvilBrains.EvilCase.Data.Interceptors;
 
+/// <summary>
+/// Fills a new tenant row's <c>TenantId</c> from <see cref="ITenantContext"/>. Refuses a row that
+/// already carries another tenant's id.
+/// </summary>
 internal sealed class TenantWriteInterceptor(ITenantContext tenantContext) : SaveChangesInterceptor
 {
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {
-        this.Verify(eventData.Context);
+        ArgumentNullException.ThrowIfNull(eventData);
+
+        this.Apply(eventData.Context);
 
         return base.SavingChanges(eventData, result);
     }
@@ -19,34 +25,39 @@ internal sealed class TenantWriteInterceptor(ITenantContext tenantContext) : Sav
         InterceptionResult<int> result,
         CancellationToken cancellationToken = default)
     {
-        this.Verify(eventData.Context);
+        ArgumentNullException.ThrowIfNull(eventData);
+
+        this.Apply(eventData.Context);
 
         return base.SavingChangesAsync(eventData, result, cancellationToken);
     }
 
-    // The tenant is read only once a tenant row is actually being written: signing in writes a refresh
-    // token, and that carries no tenant at all.
-    private void Verify(DbContext? context)
+    private void Apply(DbContext? context)
     {
-        if (context is null)
-            return;
-
-        var entries = context.ChangeTracker
-            .Entries<ITenantEntity>()
-            .Where(entry => entry.State is EntityState.Added or EntityState.Modified or EntityState.Deleted)
+        var entries = context?.ChangeTracker.Entries()
+            .Where(entry => entry.Entity is ITenantEntity && entry.State is EntityState.Added or EntityState.Modified or EntityState.Deleted)
             .ToList();
 
-        if (entries.Count == 0)
+        // The tenant is read only where the write touches a tenant row, so signing in still writes.
+        if (entries is not { Count: > 0 })
             return;
 
         var tenantId = tenantContext.TenantId;
 
         foreach (var entry in entries)
         {
-            if (entry.Entity.TenantId != tenantId)
+            var property = entry.Property(nameof(ITenantEntity.TenantId));
+
+            if (entry.State == EntityState.Added && (Guid)property.CurrentValue! == Guid.Empty)
+            {
+                property.CurrentValue = tenantId;
+                continue;
+            }
+
+            if ((Guid)property.CurrentValue! != tenantId)
             {
                 throw new InvalidOperationException(
-                    $"A {entry.Metadata.ShortName()} of tenant {entry.Entity.TenantId} was written outside that tenant.");
+                    $"{entry.Metadata.DisplayName()} is written under tenant {tenantId} but carries {property.CurrentValue}");
             }
         }
     }
