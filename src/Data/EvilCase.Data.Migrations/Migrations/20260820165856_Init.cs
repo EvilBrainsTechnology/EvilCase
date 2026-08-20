@@ -136,12 +136,12 @@ public partial class Init : Migration
                 UserId = table.Column<Guid>(type: "uuid", nullable: false),
                 CaseId = table.Column<Guid>(type: "uuid", nullable: false),
                 ActNumber = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
-                Direction = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
+                Direction = table.Column<string>(type: "character varying(8)", maxLength: 8, nullable: false),
                 Title = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
                 Date = table.Column<DateOnly>(type: "date", nullable: false),
-                Description = table.Column<string>(type: "character varying(4000)", maxLength: 4000, nullable: true),
-                SenderContactId = table.Column<Guid>(type: "uuid", nullable: false),
-                RecipientContactId = table.Column<Guid>(type: "uuid", nullable: true),
+                Description = table.Column<string>(type: "text", nullable: true),
+                IssuedByContactId = table.Column<Guid>(type: "uuid", nullable: false),
+                AddressedToContactId = table.Column<Guid>(type: "uuid", nullable: true),
                 Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                 Updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
             },
@@ -170,8 +170,8 @@ public partial class Init : Migration
                 CaseNumber = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
                 Date = table.Column<DateOnly>(type: "date", nullable: false),
                 Title = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                Description = table.Column<string>(type: "character varying(4000)", maxLength: 4000, nullable: true),
-                Status = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
+                Description = table.Column<string>(type: "text", nullable: true),
+                Status = table.Column<string>(type: "character varying(18)", maxLength: 18, nullable: false),
                 Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                 Updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
             },
@@ -242,7 +242,7 @@ public partial class Init : Migration
                 Id = table.Column<Guid>(type: "uuid", nullable: false),
                 TenantId = table.Column<Guid>(type: "uuid", nullable: false),
                 UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                Kind = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
+                Kind = table.Column<string>(type: "character varying(9)", maxLength: 9, nullable: false),
                 Name = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
                 Address = table.Column<string>(type: "character varying(1024)", maxLength: 1024, nullable: true),
                 DataBoxId = table.Column<string>(type: "character varying(16)", maxLength: 16, nullable: true),
@@ -271,7 +271,7 @@ public partial class Init : Migration
                 TenantId = table.Column<Guid>(type: "uuid", nullable: false),
                 Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
                 PasswordHash = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                Role = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
+                Role = table.Column<string>(type: "character varying(5)", maxLength: 5, nullable: false),
                 DefaultContactId = table.Column<Guid>(type: "uuid", nullable: true),
                 Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                 Updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -474,14 +474,14 @@ public partial class Init : Migration
             columns: ["CaseId", "Date"]);
 
         migrationBuilder.CreateIndex(
-            name: "IX_Acts_RecipientContactId",
+            name: "IX_Acts_AddressedToContactId",
             table: "Acts",
-            column: "RecipientContactId");
+            column: "AddressedToContactId");
 
         migrationBuilder.CreateIndex(
-            name: "IX_Acts_SenderContactId",
+            name: "IX_Acts_IssuedByContactId",
             table: "Acts",
-            column: "SenderContactId");
+            column: "IssuedByContactId");
 
         migrationBuilder.CreateIndex(
             name: "IX_Acts_TenantId",
@@ -708,17 +708,17 @@ public partial class Init : Migration
             onDelete: ReferentialAction.Cascade);
 
         migrationBuilder.AddForeignKey(
-            name: "FK_Acts_Contacts_RecipientContactId",
+            name: "FK_Acts_Contacts_AddressedToContactId",
             table: "Acts",
-            column: "RecipientContactId",
+            column: "AddressedToContactId",
             principalTable: "Contacts",
             principalColumn: "Id",
             onDelete: ReferentialAction.Restrict);
 
         migrationBuilder.AddForeignKey(
-            name: "FK_Acts_Contacts_SenderContactId",
+            name: "FK_Acts_Contacts_IssuedByContactId",
             table: "Acts",
-            column: "SenderContactId",
+            column: "IssuedByContactId",
             principalTable: "Contacts",
             principalColumn: "Id",
             onDelete: ReferentialAction.Restrict);

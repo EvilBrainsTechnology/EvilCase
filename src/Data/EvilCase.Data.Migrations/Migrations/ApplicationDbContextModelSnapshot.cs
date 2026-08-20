@@ -55,6 +55,9 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("character varying(128)");
 
+                    b.Property<Guid?>("AddressedToContactId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("CaseId")
                         .HasColumnType("uuid");
 
@@ -65,18 +68,14 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                         .HasColumnType("date");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(4000)
-                        .HasColumnType("character varying(4000)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Direction")
                         .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)");
 
-                    b.Property<Guid?>("RecipientContactId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("SenderContactId")
+                    b.Property<Guid>("IssuedByContactId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("TenantId")
@@ -95,9 +94,9 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("RecipientContactId");
+                    b.HasIndex("AddressedToContactId");
 
-                    b.HasIndex("SenderContactId");
+                    b.HasIndex("IssuedByContactId");
 
                     b.HasIndex("TenantId");
 
@@ -128,16 +127,15 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                         .HasColumnType("date");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(4000)
-                        .HasColumnType("character varying(4000)");
+                        .HasColumnType("text");
 
                     b.Property<Guid?>("ParentCaseId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
+                        .HasMaxLength(18)
+                        .HasColumnType("character varying(18)");
 
                     b.Property<Guid>("TenantId")
                         .HasColumnType("uuid");
@@ -230,8 +228,8 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
 
                     b.Property<string>("Kind")
                         .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
+                        .HasMaxLength(9)
+                        .HasColumnType("character varying(9)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -511,8 +509,8 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
 
                     b.Property<string>("Role")
                         .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
+                        .HasMaxLength(5)
+                        .HasColumnType("character varying(5)");
 
                     b.Property<Guid>("TenantId")
                         .HasColumnType("uuid");
@@ -534,20 +532,20 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
 
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Act", b =>
                 {
+                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Contact", "AddressedToContact")
+                        .WithMany("AddressedActs")
+                        .HasForeignKey("AddressedToContactId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("EvilBrains.EvilCase.Data.Entities.Case", "Case")
                         .WithMany("Acts")
                         .HasForeignKey("CaseId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Contact", "Recipient")
-                        .WithMany("ReceivedActs")
-                        .HasForeignKey("RecipientContactId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Contact", "Sender")
-                        .WithMany("SentActs")
-                        .HasForeignKey("SenderContactId")
+                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Contact", "IssuedByContact")
+                        .WithMany("IssuedActs")
+                        .HasForeignKey("IssuedByContactId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -563,11 +561,11 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.Navigation("AddressedToContact");
+
                     b.Navigation("Case");
 
-                    b.Navigation("Recipient");
-
-                    b.Navigation("Sender");
+                    b.Navigation("IssuedByContact");
                 });
 
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Case", b =>
@@ -785,13 +783,13 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
 
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Contact", b =>
                 {
+                    b.Navigation("AddressedActs");
+
                     b.Navigation("AssignedExternalActNumbers");
 
                     b.Navigation("AssignedExternalCaseNumbers");
 
-                    b.Navigation("ReceivedActs");
-
-                    b.Navigation("SentActs");
+                    b.Navigation("IssuedActs");
                 });
 #pragma warning restore 612, 618
         }
