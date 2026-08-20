@@ -21,18 +21,17 @@ public class CaseReaderTests
     [TearDown]
     public void TearDown() => this.context.Dispose();
 
-    /// <summary>
-    /// Related cases are cases, and the list shows every one of them.
-    /// </summary>
     [Test]
-    public void OnlyTheSearchAndTheStatusNarrowTheList()
+    public void TheTenantIsTheOnlyThingThatNarrowsAnUnfilteredList()
     {
         var sql = CaseReader.Compose(this.context, new CaseListRequest { Status = CaseStatusFilter.All }).ToQueryString();
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(sql, Does.Not.Contain("WHERE"), "nothing but the search and the status hides a case from the list");
-            Assert.That(sql, Does.Not.Contain("\"CaseRelations\""), "a related case is a row of the list like any other");
+            Assert.That(sql, Does.Contain("\"TenantId\""));
+            Assert.That(sql, Does.Not.Contain("ILIKE"), "the blank search narrows nothing");
+            Assert.That(sql, Does.Not.Contain(" AND "), "the tenant filter is the only condition — All narrows nothing further");
+            Assert.That(sql, Does.Not.Contain("\"CaseRelations\""));
         }
     }
 
@@ -45,9 +44,8 @@ public class CaseReaderTests
         {
             Assert.That(sql, Does.Contain("%odvolání%"), "the reader runs the request's search");
             Assert.That(sql, Does.Contain(nameof(CaseStatus.Closed)), "the reader runs the request's status, open by default");
-            Assert.That(sql, Does.Contain("ORDER BY COALESCE("), "the list's own order leads, ahead of the tag join's");
+            Assert.That(sql, Does.Contain("ORDER BY COALESCE("), "the list's own order leads");
             Assert.That(sql, Does.Contain("\"Id\" DESC"), "the identifier breaks the tie");
-            Assert.That(sql, Does.Contain("\"CaseTags\""), "a row carries its tags");
         }
     }
 }

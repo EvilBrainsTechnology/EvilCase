@@ -5,9 +5,9 @@
         <div class="d-flex justify-content-between align-items-start gap-2">
             <div class="min-w-0">
                 <div class="font-weight-medium">@Case.Title</div>
-                @if (!string.IsNullOrWhiteSpace(Case.Subject))
+                @if (!string.IsNullOrWhiteSpace(Case.Description))
                 {
-                    <div class="text-secondary">@Case.Subject</div>
+                    <div class="text-secondary">@Case.Description</div>
                 }
             </div>
             @* Without this the flex row breaks a two-word status across three lines. *@
@@ -15,16 +15,6 @@
                 <Status BackgroundColor="CaseStatusDisplay.Color(Case.Status)" Lite="true">@CaseStatusDisplay.Text(Case.Status)</Status>
             </div>
         </div>
-
-        @if (Case.Tags.Count > 0)
-        {
-            <div class="mt-2">
-                @foreach (var tag in Case.Tags)
-                {
-                    <span class="badge bg-secondary-lt me-1">@tag</span>
-                }
-            </div>
-        }
 
         <div class="text-secondary mt-2">
             @CaseListFormat.Changed(Case)

@@ -21,7 +21,7 @@ public class CaseListQueryTests
     public void TearDown() => this.context.Dispose();
 
     [Test]
-    public void SearchMatchesTheTitleAndTheSubjectWithoutRegardToCase()
+    public void SearchMatchesTheTitleAndTheDescriptionWithoutRegardToCase()
     {
         var sql = this.context.Cases.MatchingSearch("odvolání").ToQueryString();
 
@@ -29,7 +29,7 @@ public class CaseListQueryTests
         {
             Assert.That(sql, Does.Contain("ILIKE"));
             Assert.That(sql, Does.Contain("\"Title\""));
-            Assert.That(sql, Does.Contain("\"Subject\""));
+            Assert.That(sql, Does.Contain("\"Description\""));
             Assert.That(sql, Does.Contain("%odvolání%"));
         }
     }
@@ -91,15 +91,15 @@ public class CaseListQueryTests
     }
 
     [Test]
-    public void TheProjectionReadsTheTagsInTheSameQueryAndCountsNothing()
+    public void TheProjectionReadsOneRowPerCaseInsideTheTenant()
     {
         var sql = this.context.Cases.AsListItems().ToQueryString();
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(sql, Does.Contain("\"CaseTags\""));
+            Assert.That(sql, Does.Contain("\"TenantId\""));
+            Assert.That(sql, Does.Not.Contain("\"CaseTags\""));
             Assert.That(sql, Does.Not.Contain("count(").IgnoreCase, "a row of the list stands for one case and counts nothing under it");
-            Assert.That(sql, Does.Not.Contain("\"CaseRelations\""), "the list says nothing about relations");
             Assert.That(sql, Does.Not.Contain("\"OwnerId\""));
         }
     }

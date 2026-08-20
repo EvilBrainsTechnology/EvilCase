@@ -27,4 +27,9 @@ public static class AuthClaims
     /// <c>SessionId</c> next to it would say nothing about which one it is.
     /// </summary>
     public const string AuthSessionId = "sid";
+
+    /// <summary>
+    /// The tenant the user's data lives in. Read from the user's row at every issue, refresh included.
+    /// </summary>
+    public const string Tenant = "tenant";
 }

@@ -16,7 +16,8 @@ public static class CaseListQuery
     private const string Escape = "\\";
 
     /// <summary>
-    /// Matches the title or the subject, ignoring case but not diacritics. A blank term narrows nothing.
+    /// Matches the title or the description, ignoring case but not diacritics. A blank term narrows
+    /// nothing.
     /// </summary>
     public static IQueryable<Case> MatchingSearch(this IQueryable<Case> cases, string? search)
     {
@@ -29,7 +30,7 @@ public static class CaseListQuery
 
         return cases.Where(@case =>
             EF.Functions.ILike(@case.Title, pattern, Escape)
-                || (@case.Subject != null && EF.Functions.ILike(@case.Subject, pattern, Escape)));
+                || (@case.Description != null && EF.Functions.ILike(@case.Description, pattern, Escape)));
     }
 
     public static IQueryable<Case> WithStatus(this IQueryable<Case> cases, CaseStatusFilter filter)
@@ -70,9 +71,8 @@ public static class CaseListQuery
         {
             Id = @case.Id,
             Title = @case.Title,
-            Subject = @case.Subject,
+            Description = @case.Description,
             Status = @case.Status,
-            Tags = @case.Tags.OrderBy(tag => tag.Value).Select(tag => tag.Value).ToList(),
             Created = @case.Created,
             Updated = @case.Updated,
         });
