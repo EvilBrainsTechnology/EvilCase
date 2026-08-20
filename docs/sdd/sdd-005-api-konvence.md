@@ -44,5 +44,5 @@ Tvary API a klienta pro nové agendy. Z velké části dnešní stav, který pla
 
 ## Dopady
 
-`EchoController`, jeho kontrakt a klient zanikají v M1 (SDD-016). Chybové odpovědi drží
+`EchoController`, jeho kontrakt ani klient neexistují (SDD-016). Chybové odpovědi drží
 SDD-004.
