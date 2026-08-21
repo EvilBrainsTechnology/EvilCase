@@ -39,5 +39,5 @@ sequence are exactly the real ones. Nothing about the structure was simplified.
 ## Turning it into SQL
 
 Not written yet. The intended path is a script that reads these files and emits inserts for `Cases`,
-`CaseTags`, `Parties` and — once they exist — acts, file assets and comments. The tables the model has
-today are only a part of what a case file needs, which is the point of writing this down first.
+`Acts`, `Contacts`, the external numbers, file assets and comments. The tables the model has today are
+only a part of what a case file needs, which is the point of writing this down first.
