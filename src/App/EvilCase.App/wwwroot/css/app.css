@@ -83,3 +83,8 @@
         background: var(--tblr-card-bg);
     }
 }
+
+/* Free-text descriptions keep the line breaks the user typed. */
+.text-pre-wrap {
+    white-space: pre-wrap;
+}
