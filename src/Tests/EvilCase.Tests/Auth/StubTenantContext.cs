@@ -12,8 +12,6 @@ internal sealed class StubTenantContext : ITenantContext
 
     public Guid? TenantIdOrDefault { get; private set; }
 
-    public Guid UserId { get; set; }
-
     /// <summary>
     /// Every tenant <see cref="Enter"/> was called with, in order.
     /// </summary>

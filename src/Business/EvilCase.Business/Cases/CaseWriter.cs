@@ -4,7 +4,7 @@ using EvilBrains.EvilCase.Data;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Domain.Cases;
-using EvilBrains.EvilCase.Domain.Tenancy;
+using EvilBrains.EvilCase.Domain.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -13,7 +13,7 @@ namespace EvilBrains.EvilCase.Business.Cases;
 internal sealed class CaseWriter(
     IDbSession session,
     ICaseNumberIssuer numbers,
-    ITenantContext tenant,
+    IUserContext userContext,
     ILogger<CaseWriter> logger) : ICaseWriter
 {
     /// <summary>
@@ -29,7 +29,7 @@ internal sealed class CaseWriter(
         for (var attempt = 1; ; attempt++)
         {
             var caseNumber = await numbers.NextCaseNumber(request.Date, cancellationToken);
-            var @case = Build(request, caseNumber, tenant);
+            var @case = Build(request, caseNumber, userContext);
 
             session.Current.Cases.Add(@case);
 
@@ -56,9 +56,9 @@ internal sealed class CaseWriter(
     /// Internal so a test builds the row without a database. A new case is Active and hangs under nothing.
     /// TenantId is left for the interceptor to stamp, as the sample seeder leaves it (SDD-018).
     /// </summary>
-    internal static Case Build(CreateCaseRequest request, string caseNumber, ITenantContext tenant) => new()
+    internal static Case Build(CreateCaseRequest request, string caseNumber, IUserContext userContext) => new()
     {
-        UserId = tenant.UserId,
+        UserId = userContext.UserId,
         CaseNumber = caseNumber,
         Title = request.Title,
         Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description,

@@ -4,6 +4,7 @@ using EvilBrains.EvilCase.Business.Numbering;
 using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Domain.Cases;
 using EvilBrains.EvilCase.Domain.Tenancy;
+using EvilBrains.EvilCase.Tests.Auth;
 using EvilBrains.EvilCase.Tests.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -18,7 +19,7 @@ public class CaseWriterTests
     {
         var request = new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "Přestupek", Description = null };
 
-        var @case = CaseWriter.Build(request, "EC/20260821-001", new FakeTenantContext());
+        var @case = CaseWriter.Build(request, "EC/20260821-001", new StubUserContext { UserId = Guid.CreateVersion7() });
 
         using (Assert.EnterMultipleScope())
         {
@@ -35,11 +36,12 @@ public class CaseWriterTests
     {
         var blank = new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "Přestupek", Description = "   " };
         var withText = blank with { Description = "text" };
+        var userContext = new StubUserContext { UserId = Guid.CreateVersion7() };
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(CaseWriter.Build(blank, "EC/20260821-001", new FakeTenantContext()).Description, Is.Null);
-            Assert.That(CaseWriter.Build(withText, "EC/20260821-001", new FakeTenantContext()).Description, Is.EqualTo("text"));
+            Assert.That(CaseWriter.Build(blank, "EC/20260821-001", userContext).Description, Is.Null);
+            Assert.That(CaseWriter.Build(withText, "EC/20260821-001", userContext).Description, Is.EqualTo("text"));
         }
     }
 
@@ -53,7 +55,7 @@ public class CaseWriterTests
             new PostgresException("duplicate key", "ERROR", "ERROR", PostgresErrorCodes.UniqueViolation));
 
         var numbers = new QueuedCaseNumberIssuer(["EC/20260821-001", "EC/20260821-002"]);
-        var writer = new CaseWriter(new FixedDbSession(context), numbers, tenant, NullLogger<CaseWriter>.Instance);
+        var writer = new CaseWriter(new FixedDbSession(context), numbers, new StubUserContext { UserId = Guid.CreateVersion7() }, NullLogger<CaseWriter>.Instance);
 
         var created = await writer.Create(new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "Přestupek" });
 
@@ -73,7 +75,7 @@ public class CaseWriterTests
         context.FailNextSave = new DbUpdateException("the row is gone");
 
         var numbers = new QueuedCaseNumberIssuer(["EC/20260821-001"]);
-        var writer = new CaseWriter(new FixedDbSession(context), numbers, tenant, NullLogger<CaseWriter>.Instance);
+        var writer = new CaseWriter(new FixedDbSession(context), numbers, new StubUserContext { UserId = Guid.CreateVersion7() }, NullLogger<CaseWriter>.Instance);
 
         Assert.That(
             async () => await writer.Create(new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "Přestupek" }),
@@ -93,8 +95,6 @@ public class CaseWriterTests
         public Guid TenantId { get; } = Guid.CreateVersion7();
 
         public Guid? TenantIdOrDefault => this.TenantId;
-
-        public Guid UserId { get; } = Guid.CreateVersion7();
 
         public IDisposable Enter(Guid tenantId) => throw new NotSupportedException();
     }
