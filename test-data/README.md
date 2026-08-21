@@ -36,8 +36,8 @@ sequence are exactly the real ones. Nothing about the structure was simplified.
 | `Krajský soud ve Vzorově` | the administrative court |
 | `MUVZ/2025/…`, `KUVZ …/2025`, `10 A 1/2025` | file numbers and marks |
 
-## Turning it into SQL
+## In the application
 
-Not written yet. The intended path is a script that reads these files and emits inserts for `Cases`,
-`Acts`, `Contacts`, the external numbers, file assets and comments. The tables the model has today are
-only a part of what a case file needs, which is the point of writing this down first.
+`src/Business/EvilCase.Business/Seeding/SampleData.cs` is this case transcribed into C#, and
+`SampleDataSeeder` writes it (SDD-017). Nothing parses these files: the transcription is by hand, and a
+change here is followed by hand. Sub-case acts are invented — this file records only their counts.
