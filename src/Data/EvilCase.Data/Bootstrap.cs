@@ -18,7 +18,7 @@ public static class Bootstrap
 
         serviceCollection.AddLocalDbContext<ApplicationDbContext>();
         serviceCollection.AddScoped<IDatabaseMigrator, DatabaseMigrator>();
-        serviceCollection.AddScoped<IDbContextAccessor, DbContextAccessor>();
+        serviceCollection.AddScoped<IDbSession, DbSession>();
 
         return serviceCollection;
     }

@@ -14,11 +14,13 @@ Schéma drží SDD-007, izolaci tenantů SDD-006.
 
 ### Přístup ke kontextu
 
-- Aplikace čte a zapisuje přes `IDbContextAccessor.Current`; nic jiného mezi ní a
+- Aplikace čte a zapisuje přes `IDbSession.Current`; nic jiného mezi ní a
   `ApplicationDbContext` nestojí.
 - `Current` vrací `ApplicationDbContext` aktuálního DI scope. Vzniká až při prvním použití.
 - `ApplicationDbContext` umírá s DI scope. Mezi scopy — tedy mezi požadavky — neuniká nikdy.
 - Kdo potřebuje vlastní scope (seed, úloha na pozadí), zakládá ho sám a dostane vlastní kontext.
+- Čte i zapisuje se přes typovaný `DbSet` entity (`dbSession.Current.Users`); `Set<TEntity>()`
+  ani `Add` nad kontextem se nepoužívají.
 
 ### Transakce
 
@@ -44,7 +46,7 @@ a běží ve vlastním scope dřív, než se obslouží první požadavek.
 - Přístup k datům: `DbContext` přímo ve službách / accessor nad DI scope. Platí accessor.
 - Životnost `DbContext`: ruční správa / scoped z DI. Platí scoped z DI.
 - Transakce: uvnitř každého zápisu / o úroveň výš. Platí o úroveň výš.
-- Repository per entita: ano / ne. Ne — `Set<TEntity>()` přes accessor stačí.
+- Repository per entita: ano / ne. Ne — typovaný `DbSet` na `IDbSession.Current` stačí.
 
 ## Dopady
 

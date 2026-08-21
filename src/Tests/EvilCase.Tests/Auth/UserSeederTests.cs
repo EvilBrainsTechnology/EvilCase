@@ -133,6 +133,6 @@ public class UserSeederTests
     {
         var settings = AuthTestHarness.CreateSettings() with { Seed = new() { Email = email, Password = password } };
 
-        return new UserSeeder(new FixedDbContextAccessor(context), store, tenantContext, Options.Create(settings), NullLogger<UserSeeder>.Instance);
+        return new UserSeeder(new FixedDbSession(context), store, tenantContext, Options.Create(settings), NullLogger<UserSeeder>.Instance);
     }
 }

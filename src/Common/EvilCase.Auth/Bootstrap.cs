@@ -95,8 +95,8 @@ public static class Bootstrap
         if (!seeder.IsConfigured)
             return;
 
-        var accessor = scope.ServiceProvider.GetRequiredService<IDbContextAccessor>();
-        await using var transaction = await accessor.Current.Database.BeginTransactionAsync(cancellationToken);
+        var dbSession = scope.ServiceProvider.GetRequiredService<IDbSession>();
+        await using var transaction = await dbSession.Current.Database.BeginTransactionAsync(cancellationToken);
 
         await seeder.Seed(cancellationToken);
 
