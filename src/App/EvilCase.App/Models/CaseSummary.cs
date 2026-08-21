@@ -5,7 +5,7 @@ namespace EvilBrains.EvilCase.App.Models;
 
 public sealed record CaseSummary(string CaseNumber, string Title, string Client, CaseStatus Status, DateOnly UpdatedOn)
 {
-    public string UpdatedOnText => this.UpdatedOn.ToString("d. M. yyyy", CultureInfo.InvariantCulture);
+    public string UpdatedOnText => DateDisplay.Text(this.UpdatedOn);
 
     public string StatusText => CaseStatusDisplay.Text(this.Status);
 
