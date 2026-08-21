@@ -1,4 +1,5 @@
 using EvilBrains.EvilCase.Business.Cases;
+using EvilBrains.EvilCase.Business.Numbering;
 using EvilBrains.EvilCase.Data;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -11,6 +12,8 @@ public static class Bootstrap
         services.AddEvilCaseData();
 
         services.AddScoped<ICaseReader, CaseReader>();
+        services.AddScoped<ICaseNumberIssuer, CaseNumberIssuer>();
+        services.AddScoped<IActNumberIssuer, ActNumberIssuer>();
 
         return services;
     }

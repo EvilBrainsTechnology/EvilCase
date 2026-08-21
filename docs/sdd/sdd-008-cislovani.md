@@ -33,9 +33,10 @@ Natvrdo, bez konfigurace:
 
 ### Souběh
 
-Generátor čte MAX pořadí dne a vkládá; souběh chytá unikátní index a insert se opakuje
-s dalším pořadím. MAX se počítá parsováním čísel odpovídajících formátu; ručně přepsané
-neodpovídající hodnoty se do pořadí nepočítají.
+Generátor jen vydává číslo: přečte nejvyšší číslo dne v daném rozsahu a složí další pořadí.
+Ukládá volající. Souběžné uložení dvou entit téhož dne skončí porušením unikátního indexu;
+ošetření kolize přijde s vrstvou, která spis a úkon zakládá (M3, M4). Do pořadí se počítají jen
+čísla s prefixem formátu; ručně přepsaná hodnota mimo formát prefix nemá.
 
 ### Implementace
 
@@ -46,8 +47,8 @@ bez databáze (SDD-003).
 
 - Vzory: konfigurovatelné v Nastavení / natvrdo. Platí natvrdo; obrazovka Nastavení není
   (SDD-016).
-- Souběh: DB sekvence per den / MAX + insert s retry. Platí MAX + insert s retry na unique
-  violation.
+- Souběh: DB sekvence per den / MAX + insert s retry. Platí MAX + insert; retry drží zapisovatel
+  (M3, M4).
 - Změna data entity: číslo se přegenerovává / nemění. Číslo se nemění.
 
 ## Dopady

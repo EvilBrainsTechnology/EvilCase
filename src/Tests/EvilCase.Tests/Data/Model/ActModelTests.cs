@@ -87,4 +87,14 @@ public class ActModelTests : ModelFixture
             Assert.That(toCase?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Cascade), "an act has no meaning without its case");
         }
     }
+
+    [Test]
+    public void TheActsOwnNumberIsUniqueWithinTheTenant()
+    {
+        var act = Model.FindEntityType(typeof(Act));
+        var unique = act?.GetIndexes().SingleOrDefault(index => index.IsUnique);
+        string[] expected = [nameof(Act.TenantId), nameof(Act.ActNumber)];
+
+        Assert.That(unique?.Properties.Select(property => property.Name), Is.EqualTo(expected), "a generated series must not repeat within one tenant");
+    }
 }
