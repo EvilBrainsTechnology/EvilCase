@@ -2,8 +2,9 @@ name: evilcase-local
 
 # The whole application in Docker, built from this repository, with its own PostgreSQL next to it.
 # For development only: the credentials are constants and there is no volume, so `down` wipes the
-# data and the next start migrates and seeds an empty database again. See docker-compose.yml for
-# the deployed stack.
+# data and the next start migrates and seeds an empty database again. The file storage root is fixed
+# in the image and gets no volume either, so the file bytes go the same way. See docker-compose.yml
+# for the deployed stack.
 services:
   app:
     build:
@@ -19,8 +20,7 @@ services:
       # Kestrel serves plain HTTP here and nothing terminates TLS in front, so the middleware could
       # not resolve a target port anyway and would only log a warning per request.
       EvilBrains__EvilCase__Hosting__HttpsRedirection: "false"
-    # The host migrates on startup and does not retry. The storage root is fixed in the image; throwaway
-    # like the database next to it: no volume, so the files die with the container.
+    # The host migrates on startup and does not retry.
     depends_on:
       postgres:
         condition: service_healthy
