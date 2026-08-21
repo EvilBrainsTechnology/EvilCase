@@ -64,11 +64,21 @@ public class ContactListQueryTests
     {
         var sql = this.context.Contacts.InListOrder().ToQueryString();
 
+        Assert.That(sql, Does.Contain("ORDER BY c.\"Name\", c.\"Id\""), "the identifier only breaks a tie on the name");
+    }
+
+    [Test]
+    public void TheProjectionReadsWhatARowShows()
+    {
+        var sql = this.context.Contacts.AsListItems().ToQueryString();
+
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(sql, Does.Contain("ORDER BY"));
             Assert.That(sql, Does.Contain("\"Name\""));
-            Assert.That(sql, Does.Contain("\"Id\""));
+            Assert.That(sql, Does.Contain("\"Kind\""));
+            Assert.That(sql, Does.Contain("\"DataBoxId\""));
+            Assert.That(sql, Does.Contain("\"Address\""));
+            Assert.That(sql, Does.Not.Contain("\"Created\""), "a row of the list shows no timestamp");
         }
     }
 
