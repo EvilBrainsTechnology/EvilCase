@@ -29,7 +29,7 @@ public class TimestampInterceptorTests
     public void AnInsertGetsItsCreatedStampAndNoChangeStamp()
     {
         var contact = NewContact();
-        this.context.Add(contact);
+        this.context.Contacts.Add(contact);
 
         Save(this.context, Now);
 
@@ -46,7 +46,7 @@ public class TimestampInterceptorTests
     public void AChangeGetsTheChangeStampAndKeepsItsCreated()
     {
         var contact = NewContact();
-        this.context.Add(contact);
+        this.context.Contacts.Add(contact);
 
         Save(this.context, Now);
 

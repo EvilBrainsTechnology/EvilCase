@@ -10,7 +10,7 @@ using Microsoft.Extensions.Options;
 namespace EvilBrains.EvilCase.Auth;
 
 internal sealed class UserSeeder(
-    IDbContextAccessor accessor,
+    IDbSession dbSession,
     IUserStore userStore,
     ITenantContext tenantContext,
     IOptions<AuthSettings> options,
@@ -35,9 +35,9 @@ internal sealed class UserSeeder(
         var account = new Account { Name = normalizedEmail };
         var tenant = new Tenant { AccountId = account.Id, Name = normalizedEmail };
 
-        accessor.Current.Add(account);
-        accessor.Current.Add(tenant);
-        await accessor.Current.SaveChangesAsync(cancellationToken);
+        dbSession.Current.Accounts.Add(account);
+        dbSession.Current.Tenants.Add(tenant);
+        await dbSession.Current.SaveChangesAsync(cancellationToken);
 
         using var scope = tenantContext.Enter(tenant.Id);
 
@@ -48,7 +48,7 @@ internal sealed class UserSeeder(
             Name = normalizedEmail,
         };
 
-        accessor.Current.Add(contact);
+        dbSession.Current.Contacts.Add(contact);
 
         var user = new User
         {

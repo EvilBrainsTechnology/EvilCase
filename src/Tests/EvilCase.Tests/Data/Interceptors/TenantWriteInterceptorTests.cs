@@ -28,7 +28,7 @@ public class TenantWriteInterceptorTests
     public void TheWriteStampsTheTenantOnARowCreatedWithoutOne()
     {
         var contact = NewContact(default);
-        this.context.Add(contact);
+        this.context.Contacts.Add(contact);
 
         var tenantContext = new StubTenantContext();
         using var scope = tenantContext.Enter(TenantA);
@@ -46,7 +46,7 @@ public class TenantWriteInterceptorTests
         var modified = NewContact(TenantA);
         var deleted = NewContact(TenantA);
 
-        this.context.AddRange(added, modified, deleted);
+        this.context.Contacts.AddRange(added, modified, deleted);
         this.context.Entry(modified).State = EntityState.Modified;
         this.context.Entry(deleted).State = EntityState.Deleted;
 
@@ -61,7 +61,7 @@ public class TenantWriteInterceptorTests
     [Test]
     public void ARowCreatedUnderAnotherTenantNeverReachesTheDatabase()
     {
-        this.context.Add(NewContact(TenantB));
+        this.context.Contacts.Add(NewContact(TenantB));
 
         var tenantContext = new StubTenantContext();
         using var scope = tenantContext.Enter(TenantA);
@@ -76,7 +76,7 @@ public class TenantWriteInterceptorTests
     [Test]
     public void AWriteWithoutATenantRowNeedsNoTenant()
     {
-        this.context.Add(new User
+        this.context.Users.Add(new User
         {
             TenantId = TenantA,
             Email = "user@evilcase.test",
