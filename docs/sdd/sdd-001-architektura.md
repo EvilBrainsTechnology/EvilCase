@@ -41,16 +41,17 @@ Kód žije v `src/`, řešení `EvilCase.slnx`:
 | `App/EvilCase.App` | Blazor WebAssembly frontend |
 | `Business/EvilCase.Business` | business logika |
 | `Business/EvilCase.Domain` | doménové jádro bez závislostí |
-| `Data/EvilCase.Data` | EF Core model, přístup k databázi (SDD-018) a úložiště blobů |
+| `Data/EvilCase.Data` | EF Core model, přístup k databázi (SDD-018) |
 | `Data/EvilCase.Data.Migrations` | migrace |
 | `Common/EvilCase.Auth` | autentizace; uzavřený modul za `IAuthService` |
+| `Common/EvilCase.Files` | souborové úložiště; uzavřený modul za `IFileBlobStore` |
 | `Tests/EvilCase.Tests` | testy aplikace (SDD-003) |
 | `Utils/EvilBrains.*` | sdílené knihovny nezávislé na EvilCase |
 
 ### Vrstvy
 
 ```
-Host → Api, App, Auth, Data, Data.Migrations
+Host → Api, App, Auth, Files, Data, Data.Migrations
 App → Api.Client → (HTTP) → Api → Business → Data
 Api → Auth → Data ← Data.Migrations
 Api.Client, Api, Business, Auth → Api.Contract
@@ -66,7 +67,8 @@ Api, Business, Auth, Data, Api.Contract → Domain
   přímo. Žádná mapovací vrstva.
 - Čisté doménové pravidlo je statická třída v `Domain` bez `DbContext`, testovaná bez
   databáze (SDD-003).
-- `EvilCase.Auth` stojí mimo vrstvení; dovnitř vede jen `IAuthService`.
+- `EvilCase.Auth` a `EvilCase.Files` stojí mimo vrstvení; dovnitř vede jen `IAuthService`, resp.
+  `IFileBlobStore`.
 
 ### Technologie
 

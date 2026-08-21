@@ -1,5 +1,4 @@
 using EvilBrains.EvilCase.Data.DbContexts;
-using EvilBrains.EvilCase.Data.Files;
 using EvilBrains.EvilCase.Data.Interceptors;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -20,9 +19,6 @@ public static class Bootstrap
         serviceCollection.AddLocalDbContext<ApplicationDbContext>();
         serviceCollection.AddScoped<IDatabaseMigrator, DatabaseMigrator>();
         serviceCollection.AddScoped<IDbSession, DbSession>();
-
-        serviceCollection.AddSingleton(BuildFileStorageSettings);
-        serviceCollection.AddSingleton<IFileBlobStore, FileBlobStore>();
 
         return serviceCollection;
     }
@@ -46,17 +42,6 @@ public static class Bootstrap
 
         var migrator = scope.ServiceProvider.GetRequiredService<IDatabaseMigrator>();
         await migrator.Migrate(cancellationToken);
-    }
-
-    private static FileStorageSettings BuildFileStorageSettings(IServiceProvider serviceProvider)
-    {
-        var configuration = serviceProvider.GetRequiredService<IConfiguration>();
-        var rootPath = configuration["EvilBrains:EvilCase:Files:RootPath"];
-
-        if (string.IsNullOrWhiteSpace(rootPath))
-            throw new InvalidOperationException("File storage root path not found");
-
-        return new FileStorageSettings(rootPath);
     }
 
     private static IServiceCollection AddLocalDbContext<TContext>(this IServiceCollection services)

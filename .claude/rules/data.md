@@ -5,9 +5,9 @@ paths:
 
 # Data
 
-`EvilCase.Data` holds the schema, the way to reach the database (SDD-018) and the file blob
-store. Read the model SDDs under `docs/sdd/` and the fixtures under `Tests/Data/Model/` before
-changing an entity; below is what neither says.
+`EvilCase.Data` holds the schema and the way to reach the database (SDD-018). Read the model
+SDDs under `docs/sdd/` and the fixtures under `Tests/Data/Model/` before changing an entity;
+below is what neither says.
 
 - The domain's word wins over a language keyword: the type is `Case`, with `@case` where it
   collides.

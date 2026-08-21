@@ -14,7 +14,8 @@ project: one process serves `/api/**` and returns the frontend on every other pa
 `Api/EvilCase.Api` is the API as a library, `Api.Client` the typed client generated from the
 controllers, `Api.Contract` the shared DTOs. `App/EvilCase.App` is the Blazor WebAssembly
 frontend. `Business/EvilCase.Business` holds the business logic, `Business/EvilCase.Domain` the
-dependency-free shared kernel, `Common/EvilCase.Auth` authentication. `Data/EvilCase.Data` is
+dependency-free shared kernel, `Common/EvilCase.Auth` authentication, `Common/EvilCase.Files`
+file storage on disk. `Data/EvilCase.Data` is
 the EF Core model (PostgreSQL) and the way to the database; `Data.Migrations` its migrations.
 `Tests/EvilCase.Tests` holds the application tests (NUnit), `Utils/EvilBrains.*` the shared
 libraries and their tests.
