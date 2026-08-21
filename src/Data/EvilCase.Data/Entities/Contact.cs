@@ -14,7 +14,7 @@ public record Contact : ITenantEntity
     [Key]
     public Guid Id { get; init; } = Guid.CreateVersion7();
 
-    public required Guid TenantId { get; init; }
+    public Guid TenantId { get; init; }
 
     public required ContactKind Kind { get; init; }
 

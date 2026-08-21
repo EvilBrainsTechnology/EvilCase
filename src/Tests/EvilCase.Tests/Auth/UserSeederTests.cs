@@ -39,7 +39,7 @@ public class UserSeederTests
             Assert.That(PasswordHasher.Verify(SeedPassword, user.PasswordHash), Is.True);
             Assert.That(user.TenantId, Is.EqualTo(tenant.Id));
             Assert.That(tenant.AccountId, Is.EqualTo(account.Id));
-            Assert.That(contact.TenantId, Is.EqualTo(user.TenantId));
+            Assert.That(contact.Name, Is.EqualTo(user.Email));
             Assert.That(user.DefaultContactId, Is.EqualTo(contact.Id), "the seeded administrator gets a default contact in the same write");
         }
     }
@@ -62,7 +62,8 @@ public class UserSeederTests
             Assert.That(context.Added<Account>(), Has.Exactly(1).Items);
             Assert.That(context.Added<Tenant>(), Has.Exactly(1).Items);
             Assert.That(context.Added<Contact>(), Has.Exactly(1).Items);
-            Assert.That(contact.TenantId, Is.EqualTo(tenant.Id), "the default contact belongs to the tenant the seed created");
+            Assert.That(user.TenantId, Is.EqualTo(tenant.Id), "the administrator belongs to the tenant the seed created");
+            Assert.That(tenantContext.Entered, Is.EqualTo([tenant.Id]), "the contact is written under the tenant the seed created, which is what stamps it");
             Assert.That(user.DefaultContactId, Is.EqualTo(contact.Id), "the user points at the contact the seed made for it");
         }
     }

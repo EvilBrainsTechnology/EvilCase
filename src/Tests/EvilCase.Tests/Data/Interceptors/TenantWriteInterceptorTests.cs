@@ -27,7 +27,7 @@ public class TenantWriteInterceptorTests
     [Test]
     public void TheWriteStampsTheTenantOnARowCreatedWithoutOne()
     {
-        var contact = NewContact(default);
+        var contact = new Contact { Kind = ContactKind.Person, Name = "test" };
         this.context.Contacts.Add(contact);
 
         var tenantContext = new StubTenantContext();

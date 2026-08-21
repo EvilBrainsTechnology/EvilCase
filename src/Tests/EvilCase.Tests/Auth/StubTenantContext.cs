@@ -12,10 +12,16 @@ internal sealed class StubTenantContext : ITenantContext
 
     public Guid? TenantIdOrDefault { get; private set; }
 
+    /// <summary>
+    /// Every tenant <see cref="Enter"/> was called with, in order.
+    /// </summary>
+    public List<Guid> Entered { get; } = [];
+
     public IDisposable Enter(Guid tenantId)
     {
         var previous = this.TenantIdOrDefault;
         this.TenantIdOrDefault = tenantId;
+        this.Entered.Add(tenantId);
 
         return new ActionDisposableScope(() => this.TenantIdOrDefault = previous);
     }

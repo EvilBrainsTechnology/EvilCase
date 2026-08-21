@@ -43,7 +43,6 @@ internal sealed class UserSeeder(
 
         var contact = new Contact
         {
-            TenantId = tenant.Id,
             Kind = ContactKind.Person,
             Name = normalizedEmail,
         };

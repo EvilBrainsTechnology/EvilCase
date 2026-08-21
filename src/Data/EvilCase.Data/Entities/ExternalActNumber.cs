@@ -13,7 +13,7 @@ public record ExternalActNumber : IUserOwnedEntity
     [Key]
     public Guid Id { get; init; } = Guid.CreateVersion7();
 
-    public required Guid TenantId { get; init; }
+    public Guid TenantId { get; init; }
 
     public required Guid UserId { get; init; }
 
