@@ -19,9 +19,8 @@ services:
       # Kestrel serves plain HTTP here and nothing terminates TLS in front, so the middleware could
       # not resolve a target port anyway and would only log a warning per request.
       EvilBrains__EvilCase__Hosting__HttpsRedirection: "false"
-      # Throwaway like the database next to it: no volume, so the files die with the container.
-      EvilBrains__EvilCase__Files__RootPath: /var/lib/evilcase/files
-    # The host migrates on startup and does not retry.
+    # The host migrates on startup and does not retry. The storage root is fixed in the image; throwaway
+    # like the database next to it: no volume, so the files die with the container.
     depends_on:
       postgres:
         condition: service_healthy

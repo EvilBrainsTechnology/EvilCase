@@ -14,9 +14,10 @@ server share the fixed 5000 and belong to whoever took it first.
 - `dotnet tool restore` from `src/`; `dotnet dev-certs https`.
 - PostgreSQL on `localhost:5432` as `postgres`/`postgres`; `-PostgresHost` and the parameters
   beside it reach another server. `README.md` has a throwaway one.
-- `src/EvilCase.Host/.env` with a JWT key of at least 32 characters and
+- `src/EvilCase.Host/.env` with a JWT key of at least 32 characters,
   `EvilBrains__EvilCase__Auth__Seed__Email` and `__Password` — the seeded administrator is the
-  only way into an empty database. The script supplies neither.
+  only way into an empty database — and `EvilBrains__EvilCase__Files__RootPath`, a writable
+  directory the host will not start without. The script supplies none of them.
 
 In Claude Code on the web `.claude/hooks/session-start.sh` does all of it at session start and
 restates the connection string, the seed and the JWT keys; a change to any of them changes the

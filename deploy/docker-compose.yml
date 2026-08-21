@@ -23,9 +23,8 @@ services:
       # No environment has a Seq server configured by default; an empty URL leaves the sink out.
       EvilBrains__EvilCase__Logging__Seq__ServerUrl: ${EVILCASE_SEQ_URL:-}
       EvilBrains__EvilCase__Logging__Seq__ApiKey: ${EVILCASE_SEQ_API_KEY:-}
-      # The bytes of uploaded files; the volume below is mounted here.
-      EvilBrains__EvilCase__Files__RootPath: /var/lib/evilcase/files
     volumes:
+      # File bytes. The path is fixed in the image; only the volume is the deployment's business.
       - files:/var/lib/evilcase/files
     logging:
       driver: json-file

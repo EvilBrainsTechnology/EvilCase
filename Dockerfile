@@ -49,8 +49,9 @@ COPY --from=build /app .
 # The image is published to a public registry and travels without the repository around it
 COPY LICENSE.txt .
 
-# The bytes of uploaded files. Created here and owned by the application user, so a named volume
-# mounted over it inherits that ownership and the non-root user can write to it.
+# The storage root belongs to the image, not to the deployment: a compose file only mounts a volume on
+# it. Created before USER so the app user owns it and a fresh named volume inherits that ownership.
+ENV EvilBrains__EvilCase__Files__RootPath=/var/lib/evilcase/files
 RUN mkdir -p /var/lib/evilcase/files && chown "$APP_UID:$APP_UID" /var/lib/evilcase/files
 
 USER $APP_UID
