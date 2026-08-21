@@ -149,7 +149,8 @@
             "Upravit kontakt",
             new RenderComponent<ContactEditModal>()
                 .Set(component => component.Contact, this.contact)
-                .Set(component => component.OnSaved, EventCallback.Factory.Create(this, this.Load)));
+                .Set(component => component.OnSaved, EventCallback.Factory.Create(this, this.Load)),
+            FullscreenBelowLarge());
     }
 
     private async Task Delete()
@@ -161,6 +162,9 @@
             "Smazat kontakt",
             new RenderComponent<ContactDeleteModal>()
                 .Set(component => component.Contact, this.contact)
-                .Set(component => component.OnDeleted, EventCallback.Factory.Create(this, () => this.Navigation.NavigateTo("/contacts"))));
+                .Set(component => component.OnDeleted, EventCallback.Factory.Create(this, () => this.Navigation.NavigateTo("/contacts"))),
+            FullscreenBelowLarge());
     }
+
+    private static ModalOptions FullscreenBelowLarge() => new() { Fullscreen = ModalFullscreen.BelowLarge };
 }

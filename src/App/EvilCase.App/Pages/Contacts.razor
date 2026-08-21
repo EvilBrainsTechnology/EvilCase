@@ -53,7 +53,9 @@
                 <div class="d-none d-lg-block">
                     @* QuickTable sorts by its first column, so that has to be the one the API ordered by. *@
                     <QuickTable Items="this.items.AsQueryable()" Class="card-table table-vcenter">
-                        <PropertyColumn Property="@(item => item.Name)" Title="Název" />
+                        <TemplateColumn Title="Název" Context="item" SortBy="@(GridSort<ContactListItem>.ByAscending(contact => contact.Name))">
+                            <a href="/contacts/@item.Id">@item.Name</a>
+                        </TemplateColumn>
                         <TemplateColumn Title="Typ" Context="item" Class="text-nowrap">
                             @ContactKindDisplay.Text(item.Kind)
                         </TemplateColumn>
