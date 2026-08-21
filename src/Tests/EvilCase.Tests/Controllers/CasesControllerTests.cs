@@ -13,9 +13,20 @@ public class CasesControllerTests
         var reader = new RecordingCaseReader { Items = [Item("EC/20260821-002", "druhý"), Item("EC/20260821-001", "první")] };
         var controller = new CasesController(reader, new RecordingCaseWriter());
 
-        var response = await controller.ListCases(CancellationToken.None);
+        var response = await controller.ListCases(new CaseListRequest(), CancellationToken.None);
 
         Assert.That(response.Items.Select(item => item.Title), Is.EqualTo(["druhý", "první"]), "the controller does not re-order what the reader gave it");
+    }
+
+    [Test]
+    public async Task TheSearchTermReachesTheReaderUntouched()
+    {
+        var reader = new RecordingCaseReader();
+        var controller = new CasesController(reader, new RecordingCaseWriter());
+
+        await controller.ListCases(new CaseListRequest { Search = "odvolání" }, CancellationToken.None);
+
+        Assert.That(reader.Request?.Search, Is.EqualTo("odvolání"), "the controller decides nothing about the term");
     }
 
     [Test]
@@ -62,8 +73,14 @@ public class CasesControllerTests
     {
         public IReadOnlyList<CaseListItem> Items { get; init; } = [];
 
-        public Task<IReadOnlyList<CaseListItem>> List(CancellationToken cancellationToken = default) =>
-            Task.FromResult(this.Items);
+        public CaseListRequest? Request { get; private set; }
+
+        public Task<IReadOnlyList<CaseListItem>> List(CaseListRequest request, CancellationToken cancellationToken = default)
+        {
+            this.Request = request;
+
+            return Task.FromResult(this.Items);
+        }
     }
 
     private sealed class RecordingCaseWriter : ICaseWriter

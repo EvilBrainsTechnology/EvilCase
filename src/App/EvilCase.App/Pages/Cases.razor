@@ -2,6 +2,7 @@
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Cases
+@implements IDisposable
 @inject ICasesClient CasesClient
 @inject ILogger<Cases> Logger
 
@@ -21,6 +22,16 @@
 <div class="page-body">
     <div class="container-xl">
         <div class="card">
+            <div class="card-body border-bottom py-3">
+                <div class="input-icon">
+                    <span class="input-icon-addon">
+                        <Icon CssClass="icon" IconType="AppIcons.Search" />
+                    </span>
+                    <input type="search" class="form-control" aria-label="Hledat ve spisech"
+                           placeholder="Hledat v názvu a popisu"
+                           value="@this.search" @oninput="this.OnSearchInput" />
+                </div>
+            </div>
             @if (this.failure is not null)
             {
                 <div class="empty">
@@ -38,7 +49,7 @@
             {
                 <div class="empty">
                     <p class="empty-title">Zatím tu není žádný spis</p>
-                    <p class="empty-subtitle text-secondary">Založte první spis a všechno k případu bude na jednom místě.</p>
+                    <p class="empty-subtitle text-secondary">@(string.IsNullOrWhiteSpace(this.search) ? "Zatím tu není žádný spis." : "Zkuste jiné hledání.")</p>
                     <div class="empty-action">
                         <a href="/cases/new" class="btn btn-primary">Založit spis</a>
                     </div>
@@ -66,7 +77,7 @@
                                     <td class="text-nowrap">
                                         <Status BackgroundColor="CaseStatusDisplay.Color(item.Status)" Lite="true">@CaseStatusDisplay.Text(item.Status)</Status>
                                     </td>
-                                    <td class="text-nowrap">@CaseListFormat.Date(item.Date)</td>
+                                    <td class="text-nowrap">@DateDisplay.Text(item.Date)</td>
                                 </tr>
                             }
                         </tbody>
@@ -85,17 +96,57 @@
 </div>
 
 @code {
-    private IReadOnlyList<CaseListItem>? items;
-    private string? failure;
+    private static readonly TimeSpan SearchDelay = TimeSpan.FromMilliseconds(300);
 
-    protected override async Task OnInitializedAsync()
+    private IReadOnlyList<CaseListItem>? items;
+    private string search = "";
+    private string? failure;
+    private CancellationTokenSource? pending;
+
+    protected override Task OnInitializedAsync() => this.Load(debounce: false);
+
+    public void Dispose()
     {
+        this.pending?.Cancel();
+        this.pending?.Dispose();
+    }
+
+    private Task OnSearchInput(ChangeEventArgs args)
+    {
+        this.search = args.Value as string ?? "";
+
+        return this.Load(debounce: true);
+    }
+
+    /// <summary>
+    /// One request at a time: starting another cancels the one before it.
+    /// </summary>
+    private async Task Load(bool debounce)
+    {
+        this.pending?.Cancel();
+        this.pending?.Dispose();
+
+        var current = new CancellationTokenSource();
+        this.pending = current;
+
+        var request = new CaseListRequest
+        {
+            Search = string.IsNullOrWhiteSpace(this.search) ? null : this.search,
+        };
+
         try
         {
-            var response = await this.CasesClient.ListCases(CancellationToken.None);
+            if (debounce)
+                await Task.Delay(SearchDelay, current.Token);
+
+            var response = await this.CasesClient.ListCases(request, current.Token);
 
             this.items = response.Items;
             this.failure = null;
+        }
+        catch (OperationCanceledException)
+        {
+            // Superseded by a newer request.
         }
         catch (Exception exception) when (exception is ApiException or HttpRequestException)
         {

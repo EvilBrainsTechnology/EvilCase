@@ -6,13 +6,18 @@ namespace EvilBrains.EvilCase.Business.Cases;
 
 internal sealed class CaseReader(IDbSession session) : ICaseReader
 {
-    public async Task<IReadOnlyList<CaseListItem>> List(CancellationToken cancellationToken = default) =>
-        await Compose(session.Current).ToListAsync(cancellationToken);
+    public async Task<IReadOnlyList<CaseListItem>> List(CaseListRequest request, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        return await Compose(session.Current, request.Search).ToListAsync(cancellationToken);
+    }
 
     /// <summary>
     /// Internal so a test reads the SQL the reader really runs.
     /// </summary>
-    internal static IQueryable<CaseListItem> Compose(ApplicationDbContext context) => context.Cases
+    internal static IQueryable<CaseListItem> Compose(ApplicationDbContext context, string? search = null) => context.Cases
+        .MatchingSearch(search)
         .InListOrder()
         .AsListItems();
 }

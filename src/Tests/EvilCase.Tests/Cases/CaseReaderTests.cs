@@ -31,6 +31,7 @@ public class CaseReaderTests
             Assert.That(sql, Does.Not.Contain("\"Status\" ="), "nothing but the tenant hides a case from the list");
             Assert.That(sql, Does.Not.Contain("LIMIT"), "the list is not paged");
             Assert.That(sql, Does.Not.Contain("OFFSET"), "the list is not paged");
+            Assert.That(sql, Does.Not.Contain("ILIKE"), "a blank search narrows nothing");
         }
     }
 }

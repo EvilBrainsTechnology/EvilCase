@@ -11,9 +11,9 @@ namespace EvilBrains.EvilCase.Api.Controllers;
 public class CasesController(ICaseReader cases, ICaseWriter writer) : ControllerBase
 {
     [HttpGet("list")]
-    public async Task<CaseListResponse> ListCases(CancellationToken cancellationToken)
+    public async Task<CaseListResponse> ListCases([FromQuery] CaseListRequest request, CancellationToken cancellationToken)
     {
-        var items = await cases.List(cancellationToken);
+        var items = await cases.List(request, cancellationToken);
 
         return new CaseListResponse { Items = items };
     }
