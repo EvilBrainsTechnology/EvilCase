@@ -23,17 +23,15 @@ public static class ActNumberQuery
     }
 
     /// <summary>
-    /// The highest number of the narrowed set, as one row. Length decides first, so a sequence that grew a
-    /// digit outranks a three-digit one.
+    /// Highest number first. Length decides first, so a sequence that grew a digit outranks a
+    /// three-digit one. The caller takes the row it wants.
     /// </summary>
-    public static IQueryable<string> HighestNumber(this IQueryable<Act> acts)
+    public static IQueryable<Act> OrderByNumberDescending(this IQueryable<Act> acts)
     {
         ArgumentNullException.ThrowIfNull(acts);
 
         return acts
-            .Select(act => act.ActNumber)
-            .OrderByDescending(number => number.Length)
-            .ThenByDescending(number => number)
-            .Take(1);
+            .OrderByDescending(act => act.ActNumber.Length)
+            .ThenByDescending(act => act.ActNumber);
     }
 }

@@ -34,18 +34,17 @@ public class CaseNumberQueryTests
     }
 
     [Test]
-    public void TheHighestNumberIsTheOneRowTheDatabasePicks()
+    public void TheCaseNumberOrderIsDescendingAndTheStepTakesNoRow()
     {
-        var sql = this.context.Cases.HighestNumber().ToQueryString();
+        var sql = this.context.Cases.OrderByNumberDescending().ToQueryString();
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(sql, Does.Contain("ORDER BY"));
             Assert.That(sql, Does.Contain("DESC"));
-            Assert.That(sql, Does.Contain("LIMIT"));
             Assert.That(sql, Does.Contain("length").IgnoreCase);
             Assert.That(sql, Does.Contain("\"CaseNumber\""));
-            Assert.That(sql, Does.Not.Contain("\"Title\""), "the projection reads only the number, nothing else of the case");
+            Assert.That(sql, Does.Not.Contain("LIMIT"), "the step orders and stops, the caller takes the row");
         }
     }
 }

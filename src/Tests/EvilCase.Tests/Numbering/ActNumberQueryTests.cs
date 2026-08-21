@@ -46,17 +46,17 @@ public class ActNumberQueryTests
     }
 
     [Test]
-    public void TheHighestNumberIsTheOneRowTheDatabasePicks()
+    public void TheActNumberOrderIsDescendingAndTheStepTakesNoRow()
     {
-        var sql = this.context.Acts.HighestNumber().ToQueryString();
+        var sql = this.context.Acts.OrderByNumberDescending().ToQueryString();
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(sql, Does.Contain("ORDER BY"));
             Assert.That(sql, Does.Contain("DESC"));
-            Assert.That(sql, Does.Contain("LIMIT"));
             Assert.That(sql, Does.Contain("length").IgnoreCase);
             Assert.That(sql, Does.Contain("\"ActNumber\""));
+            Assert.That(sql, Does.Not.Contain("LIMIT"), "the step orders and stops, the caller takes the row");
         }
     }
 }

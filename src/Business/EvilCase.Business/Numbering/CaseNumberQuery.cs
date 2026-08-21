@@ -23,17 +23,15 @@ public static class CaseNumberQuery
     }
 
     /// <summary>
-    /// The highest number of the narrowed set, as one row. Length decides first, so a sequence that grew a
-    /// digit outranks a three-digit one.
+    /// Highest number first. Length decides first, so a sequence that grew a digit outranks a
+    /// three-digit one. The caller takes the row it wants.
     /// </summary>
-    public static IQueryable<string> HighestNumber(this IQueryable<Case> cases)
+    public static IQueryable<Case> OrderByNumberDescending(this IQueryable<Case> cases)
     {
         ArgumentNullException.ThrowIfNull(cases);
 
         return cases
-            .Select(@case => @case.CaseNumber)
-            .OrderByDescending(number => number.Length)
-            .ThenByDescending(number => number)
-            .Take(1);
+            .OrderByDescending(@case => @case.CaseNumber.Length)
+            .ThenByDescending(@case => @case.CaseNumber);
     }
 }
