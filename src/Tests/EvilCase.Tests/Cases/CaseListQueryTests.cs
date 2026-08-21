@@ -127,4 +127,22 @@ public class CaseListQueryTests
             Assert.That(sql, Does.Contain("ORDER BY"), "the list keeps its order under both filters");
         }
     }
+
+    [Test]
+    public void TheListStaysInsideTheTenantAndPagesNothing()
+    {
+        var sql = this.context.Cases
+            .MatchingSearch(search: null)
+            .WithStatus(CaseStatusFilter.All)
+            .InListOrder()
+            .AsListItems()
+            .ToQueryString();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(sql, Does.Contain("\"TenantId\""), "every read is inside a tenant");
+            Assert.That(sql, Does.Not.Contain("LIMIT"), "the list is not paged");
+            Assert.That(sql, Does.Not.Contain("OFFSET"), "the list is not paged");
+        }
+    }
 }
