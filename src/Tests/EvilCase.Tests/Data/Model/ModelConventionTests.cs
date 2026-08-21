@@ -52,15 +52,19 @@ public class ModelConventionTests : ModelFixture
 
     /// <summary>
     /// From review on #86: a one-to-many is reachable from both ends, so the principal carries a
-    /// collection rather than the dependent carrying the only reference. Without it a party's history
-    /// across cases can be reached only by querying the dependent table by hand.
+    /// collection rather than the dependent carrying the only reference. Without it a contact's history
+    /// across cases can be reached only by querying the dependent table by hand. A <see cref="User"/> at
+    /// either end is outside this: neither the rows it owns nor its default contact are read from there.
     /// </summary>
     [Test]
     public void EveryOneToManyIsNavigableFromBothEnds()
     {
         var oneToMany = Model.GetEntityTypes()
             .SelectMany(entityType => entityType.GetForeignKeys())
-            .Where(key => !key.IsUnique && key.DependentToPrincipal is not null && key.PrincipalEntityType.ClrType != typeof(User))
+            .Where(key => !key.IsUnique)
+            .Where(key => key.DependentToPrincipal is not null)
+            .Where(key => key.PrincipalEntityType.ClrType != typeof(User))
+            .Where(key => key.DeclaringEntityType.ClrType != typeof(User))
             .ToList();
 
         Assert.That(oneToMany, Is.Not.Empty);

@@ -61,7 +61,7 @@ public class UserSeederTests
         {
             Assert.That(context.Added<Account>(), Has.Exactly(1).Items);
             Assert.That(context.Added<Tenant>(), Has.Exactly(1).Items);
-            Assert.That(store.SingleContact().TenantId, Is.EqualTo(tenant.Id), "the default contact belongs to the tenant the seed created");
+            Assert.That(contact.TenantId, Is.EqualTo(Guid.Empty), "the seed names no tenant on the contact; the write is what stamps it");
             Assert.That(user.TenantId, Is.EqualTo(tenant.Id), "the administrator belongs to the tenant the seed created");
             Assert.That(tenantContext.Entered, Is.EqualTo([tenant.Id]), "the contact is written under the tenant the seed created, which is what stamps it");
             Assert.That(user.DefaultContactId, Is.EqualTo(contact.Id), "the user points at the contact the seed made for it");
