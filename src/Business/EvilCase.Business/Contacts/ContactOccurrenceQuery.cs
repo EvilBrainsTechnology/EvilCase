@@ -1,0 +1,88 @@
+using EvilBrains.EvilCase.Api.Contract.Contacts;
+using EvilBrains.EvilCase.Data.Entities;
+using EvilBrains.EvilCase.Domain.Contacts;
+
+namespace EvilBrains.EvilCase.Business.Contacts;
+
+/// <summary>
+/// Shapes each of the four places a contact can be named, one query per place. The reader merges and
+/// orders the act sources; the case source is ordered here since it is read alone.
+/// </summary>
+internal static class ContactOccurrenceQuery
+{
+    public static IQueryable<ContactCaseOccurrence> AsCaseOccurrences(this IQueryable<ExternalCaseNumber> numbers, Guid contactId)
+    {
+        ArgumentNullException.ThrowIfNull(numbers);
+
+        return numbers
+            .Where(number => number.AssignedByContactId == contactId)
+            .OrderByDescending(number => number.Case!.Date)
+            .ThenBy(number => number.Case!.CaseNumber)
+            .ThenBy(number => number.Value)
+            .Select(number => new ContactCaseOccurrence
+            {
+                CaseId = number.CaseId,
+                CaseNumber = number.Case!.CaseNumber,
+                CaseTitle = number.Case!.Title,
+                CaseDate = number.Case!.Date,
+                ExternalNumber = number.Value,
+            });
+    }
+
+    public static IQueryable<ContactActOccurrence> AsIssuedByOccurrences(this IQueryable<Act> acts, Guid contactId)
+    {
+        ArgumentNullException.ThrowIfNull(acts);
+
+        return acts
+            .Where(act => act.IssuedByContactId == contactId)
+            .Select(act => new ContactActOccurrence
+            {
+                ActId = act.Id,
+                ActNumber = act.ActNumber,
+                ActTitle = act.Title,
+                ActDate = act.Date,
+                CaseId = act.CaseId,
+                CaseNumber = act.Case!.CaseNumber,
+                Role = ContactActRole.IssuedBy,
+                ExternalNumber = null,
+            });
+    }
+
+    public static IQueryable<ContactActOccurrence> AsAddressedToOccurrences(this IQueryable<Act> acts, Guid contactId)
+    {
+        ArgumentNullException.ThrowIfNull(acts);
+
+        return acts
+            .Where(act => act.AddressedToContactId == contactId)
+            .Select(act => new ContactActOccurrence
+            {
+                ActId = act.Id,
+                ActNumber = act.ActNumber,
+                ActTitle = act.Title,
+                ActDate = act.Date,
+                CaseId = act.CaseId,
+                CaseNumber = act.Case!.CaseNumber,
+                Role = ContactActRole.AddressedTo,
+                ExternalNumber = null,
+            });
+    }
+
+    public static IQueryable<ContactActOccurrence> AsNumberIssuerOccurrences(this IQueryable<ExternalActNumber> numbers, Guid contactId)
+    {
+        ArgumentNullException.ThrowIfNull(numbers);
+
+        return numbers
+            .Where(number => number.AssignedByContactId == contactId)
+            .Select(number => new ContactActOccurrence
+            {
+                ActId = number.ActId,
+                ActNumber = number.Act!.ActNumber,
+                ActTitle = number.Act!.Title,
+                ActDate = number.Act!.Date,
+                CaseId = number.Act!.CaseId,
+                CaseNumber = number.Act!.Case!.CaseNumber,
+                Role = ContactActRole.NumberIssuer,
+                ExternalNumber = number.Value,
+            });
+    }
+}

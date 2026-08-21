@@ -1,0 +1,30 @@
+using EvilBrains.EvilCase.Api.Contract.Contacts;
+using EvilBrains.EvilCase.Data.Entities;
+
+namespace EvilBrains.EvilCase.Business.Contacts;
+
+/// <summary>
+/// Shapes the contact detail header.
+/// </summary>
+internal static class ContactDetailQuery
+{
+    /// <summary>
+    /// Reads only the contact's own columns. <see cref="ContactDetail.IsDefault"/>, <see cref="ContactDetail.Cases"/>
+    /// and <see cref="ContactDetail.Acts"/> are filled separately, with `with`.
+    /// </summary>
+    public static IQueryable<ContactDetail> AsDetail(this IQueryable<Contact> contacts, Guid id)
+    {
+        ArgumentNullException.ThrowIfNull(contacts);
+
+        return contacts
+            .Where(contact => contact.Id == id)
+            .Select(contact => new ContactDetail
+            {
+                Id = contact.Id,
+                Name = contact.Name,
+                Kind = contact.Kind,
+                DataBoxId = contact.DataBoxId,
+                Address = contact.Address,
+            });
+    }
+}

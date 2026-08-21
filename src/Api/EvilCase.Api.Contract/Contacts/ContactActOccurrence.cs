@@ -1,0 +1,22 @@
+using EvilBrains.EvilCase.Domain.Contacts;
+
+namespace EvilBrains.EvilCase.Api.Contract.Contacts;
+
+public sealed record ContactActOccurrence
+{
+    public required Guid ActId { get; init; }
+
+    public required string ActNumber { get; init; }
+
+    public required string ActTitle { get; init; }
+
+    public required DateOnly ActDate { get; init; }
+
+    public required Guid CaseId { get; init; }
+
+    public required string CaseNumber { get; init; }
+
+    public required ContactActRole Role { get; init; }
+
+    public string? ExternalNumber { get; init; }
+}
