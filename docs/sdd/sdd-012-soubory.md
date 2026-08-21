@@ -19,12 +19,15 @@ spisech jsou dva soubory.
 
 ### Úložiště
 
-- Bajty leží pod `{root}/{tenantId}/{aa}/{bb}/{fileAssetId}`; `aa` jsou poslední dva hex znaky
-  UUIDv7 souboru, `bb` dva před nimi — přední část v7 je timestamp a nerozprostřela by se.
+- Bajty leží pod `{root}/{tenantId}/{aa}/{bb}/{fileAssetId}{přípona}`; `aa` jsou poslední dva hex
+  znaky UUIDv7 souboru, `bb` dva před nimi — přední část v7 je timestamp a nerozprostřela by se.
+- Příponu dává název z uploadu — úsek za poslední tečkou, jen ASCII písmena a číslice, nejvýš 10
+  znaků, jinak žádná přípona; blob i tak identifikuje `fileAssetId`, ne název.
 - Relativní cesta se vrací ze zápisu a ukládá do `FileAsset.StoragePath`; každé pozdější čtení
   i smazání jde přes ni, takže změna schématu rozložení nezneviditelní staré bloby.
 - `EvilBrains__EvilCase__Files__RootPath` se váže přes options s validací při startu; nenastavený
-  root shodí start hostitele, ne až první upload.
+  root shodí start hostitele, ne až první upload. Relativní root se vyhodnocuje proti adresáři
+  aplikace; vývoj ho nastavuje v `appsettings.Development.json`, ne v `.env`.
 - Databáze nese jen metadata: název, velikost, `MediaType`, SHA-256 hash, cestu k blobu.
 - Zápis je atomický: dočasný soubor, pak rename.
 - Blob zaniká se záznamem.

@@ -115,7 +115,7 @@ builder.Services.AddRateLimiter(
         };
     });
 
-builder.AddEvilCaseAuth("EvilBrains:EvilCase:Auth");
+builder.Services.AddEvilCaseAuth("EvilBrains:EvilCase:Auth");
 builder.Services.AddEvilCaseFiles("EvilBrains:EvilCase:Files");
 
 // The logger is passed explicitly: the parameterless overload does not register Serilog.ILogger.

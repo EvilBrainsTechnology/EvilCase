@@ -24,7 +24,6 @@ services:
       EvilBrains__EvilCase__Logging__Seq__ServerUrl: ${EVILCASE_SEQ_URL:-}
       EvilBrains__EvilCase__Logging__Seq__ApiKey: ${EVILCASE_SEQ_API_KEY:-}
     volumes:
-      # File bytes. The path is fixed in the image; only the volume is the deployment's business.
       - files:/var/lib/evilcase/files
     logging:
       driver: json-file

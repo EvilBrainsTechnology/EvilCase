@@ -14,14 +14,14 @@ server share the fixed 5000 and belong to whoever took it first.
 - `dotnet tool restore` from `src/`; `dotnet dev-certs https`.
 - PostgreSQL on `localhost:5432` as `postgres`/`postgres`; `-PostgresHost` and the parameters
   beside it reach another server. `README.md` has a throwaway one.
-- `src/EvilCase.Host/.env` with a JWT key of at least 32 characters,
+- `src/EvilCase.Host/.env` with a JWT key of at least 32 characters and
   `EvilBrains__EvilCase__Auth__Seed__Email` and `__Password` — the seeded administrator is the
-  only way into an empty database — and `EvilBrains__EvilCase__Files__RootPath`, a directory the
-  process may write to, created on the first upload. The script supplies none of them.
+  only way into an empty database. The script supplies neither. The file storage root comes from
+  `appsettings.Development.json`, not `.env`.
 
 In Claude Code on the web `.claude/hooks/session-start.sh` does all of it at session start and
-restates the connection string, the seed, the JWT keys and the file storage root; a change to any
-of them changes the hook in the same commit. The `.env` lands in the main checkout only, and a worktree copies it:
+restates the connection string, the seed and the JWT keys; a change to any of them changes the
+hook in the same commit. The `.env` lands in the main checkout only, and a worktree copies it:
 
 ```bash
 cp "$(git rev-parse --path-format=absolute --git-common-dir)/../src/EvilCase.Host/.env" src/EvilCase.Host/.env

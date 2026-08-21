@@ -3,7 +3,6 @@ using EvilBrains.EvilCase.Api.Contract.User;
 using EvilBrains.EvilCase.Data.DbContexts;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
@@ -14,32 +13,30 @@ namespace EvilBrains.EvilCase.Auth;
 
 public static class Bootstrap
 {
-    public static WebApplicationBuilder AddEvilCaseAuth(this WebApplicationBuilder builder, string authSettingsPath)
+    public static IServiceCollection AddEvilCaseAuth(this IServiceCollection services, string authSettingsPath)
     {
-        ArgumentNullException.ThrowIfNull(builder);
-
-        builder.Services
+        services
             .AddOptions<AuthSettings>()
             .BindConfiguration(authSettingsPath, options => options.ErrorOnUnknownConfiguration = true)
             .ValidateOnStart();
 
-        builder.Services.AddSingleton<IValidateOptions<AuthSettings>, AuthSettingsValidator>();
+        services.AddSingleton<IValidateOptions<AuthSettings>, AuthSettingsValidator>();
 
-        builder.Services.TryAddSingleton(TimeProvider.System);
+        services.TryAddSingleton(TimeProvider.System);
 
-        builder.Services.AddScoped<IAuthService, AuthService>();
-        builder.Services.AddScoped<IAuthTokenService, AuthTokenService>();
-        builder.Services.AddScoped<IUserStore, UserStore>();
-        builder.Services.AddScoped<IRefreshTokenStore, RefreshTokenStore>();
-        builder.Services.AddScoped<IUserSeeder, UserSeeder>();
+        services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IAuthTokenService, AuthTokenService>();
+        services.AddScoped<IUserStore, UserStore>();
+        services.AddScoped<IRefreshTokenStore, RefreshTokenStore>();
+        services.AddScoped<IUserSeeder, UserSeeder>();
 
-        builder.Services
+        services
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer();
 
         // Configured through the options pipeline rather than from a second binding of the section, so
         // the validated settings are the only ones the scheme can be built from.
-        builder.Services
+        services
             .AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
             .Configure<IOptions<AuthSettings>>((options, authSettings) =>
             {
@@ -70,11 +67,11 @@ public static class Bootstrap
         // caller, and everything meant to stay open — the health probes, the sign-in endpoints, the
         // frontend itself — says so with [AllowAnonymous]. Adding an endpoint and forgetting to protect
         // it fails closed rather than open.
-        builder.Services
+        services
             .AddAuthorizationBuilder()
             .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
 
-        return builder;
+        return services;
     }
 
     /// <summary>
