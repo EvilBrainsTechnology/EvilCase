@@ -9,7 +9,10 @@ internal sealed class FileBlobStore(IOptions<FileSettings> settings, ILogger<Fil
     private const int BufferSize = 80 * 1024;
 
     // A relative root resolves against the application directory, not the process working directory.
-    private readonly string rootFullPath = Path.GetFullPath(settings.Value.RootPath, AppContext.BaseDirectory) + Path.DirectorySeparatorChar;
+    // Exactly one trailing separator, whatever the configured root ended with: the containment check
+    // below compares this as a prefix, and a root written with a trailing slash would match nothing.
+    private readonly string rootFullPath =
+        Path.TrimEndingDirectorySeparator(Path.GetFullPath(settings.Value.RootPath, AppContext.BaseDirectory)) + Path.DirectorySeparatorChar;
 
     public async Task<FileBlobInfo> Write(Guid tenantId, Guid fileAssetId, Stream content, CancellationToken cancellationToken = default)
     {
