@@ -83,3 +83,8 @@
         background: var(--tblr-card-bg);
     }
 }
+
+/* An address is one free-text block, printed as it was written. */
+.address-block {
+    white-space: pre-line;
+}

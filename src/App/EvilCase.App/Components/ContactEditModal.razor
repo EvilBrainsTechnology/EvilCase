@@ -1,0 +1,111 @@
+@using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.Contacts
+@using EvilBrains.EvilCase.Domain.Contacts
+@using EvilBrains.ApiClient
+@using TabBlazor.Services
+@inject IContactsClient ContactsClient
+@inject IModalService ModalService
+@inject ILogger<ContactEditModal> Logger
+
+<EditForm Model="this.model" OnValidSubmit="this.Save">
+    <DataAnnotationsValidator />
+
+    <div class="mb-3">
+        <label class="form-label" for="contact-edit-name">Název</label>
+        <InputText id="contact-edit-name" class="form-control" @bind-Value="this.model.Name" />
+        <ValidationMessage For="() => this.model.Name" class="invalid-feedback d-block" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label" for="contact-edit-kind">Typ</label>
+        <InputSelect id="contact-edit-kind" class="form-select" @bind-Value="this.model.Kind">
+            @foreach (var kind in Enum.GetValues<ContactKind>())
+            {
+                <option value="@kind">@ContactKindDisplay.Text(kind)</option>
+            }
+        </InputSelect>
+        <ValidationMessage For="() => this.model.Kind" class="invalid-feedback d-block" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label" for="contact-edit-databox">ID datové schránky</label>
+        <InputText id="contact-edit-databox" class="form-control" @bind-Value="this.model.DataBoxId" />
+        <ValidationMessage For="() => this.model.DataBoxId" class="invalid-feedback d-block" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label" for="contact-edit-address">Adresa</label>
+        <InputTextArea id="contact-edit-address" class="form-control" rows="4" @bind-Value="this.model.Address" />
+        <ValidationMessage For="() => this.model.Address" class="invalid-feedback d-block" />
+    </div>
+
+    @if (this.error is not null)
+    {
+        <div class="alert alert-danger" role="alert">@this.error</div>
+    }
+
+    <div class="d-flex justify-content-end gap-2 mt-3">
+        <button type="button" class="btn" @onclick="() => this.ModalService.Close()">Zrušit</button>
+        <button type="submit" class="btn btn-primary" disabled="@this.busy">
+            @if (this.busy)
+            {
+                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+            }
+            Uložit
+        </button>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter, EditorRequired]
+    public required ContactDetail Contact { get; set; }
+
+    [Parameter]
+    public EventCallback OnSaved { get; set; }
+
+    private readonly ContactEditModel model = new();
+
+    private string? error;
+
+    private bool busy;
+
+    protected override void OnInitialized()
+    {
+        this.model.Name = this.Contact.Name;
+        this.model.Kind = this.Contact.Kind;
+        this.model.DataBoxId = this.Contact.DataBoxId;
+        this.model.Address = this.Contact.Address;
+    }
+
+    private async Task Save()
+    {
+        this.busy = true;
+        this.error = null;
+
+        try
+        {
+            var request = new ContactEditRequest
+            {
+                Name = this.model.Name.Trim(),
+                Kind = this.model.Kind,
+                DataBoxId = this.model.DataBoxId,
+                Address = this.model.Address,
+            };
+
+            await this.ContactsClient.EditContact(this.Contact.Id, request, CancellationToken.None);
+
+            this.ModalService.Close();
+            await this.OnSaved.InvokeAsync();
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Editing the contact failed");
+
+            this.error = exception.Message;
+        }
+        finally
+        {
+            this.busy = false;
+        }
+    }
+}

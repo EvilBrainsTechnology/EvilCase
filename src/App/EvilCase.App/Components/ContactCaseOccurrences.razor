@@ -1,0 +1,59 @@
+@using EvilBrains.EvilCase.Api.Contract.Contacts
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Spisy</h3>
+    </div>
+
+    @if (Items.Count == 0)
+    {
+        <div class="empty">
+            <p class="empty-title">Kontakt nefiguruje v žádném spisu.</p>
+        </div>
+    }
+    else
+    {
+        <div class="d-none d-lg-block">
+            <table class="table card-table table-vcenter">
+                <thead>
+                    <tr>
+                        <th>Datum</th>
+                        <th>Spis</th>
+                        <th>Název</th>
+                        <th>Značka</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Items)
+                    {
+                        <tr>
+                            <td class="text-nowrap">@DateDisplay.Text(item.CaseDate)</td>
+                            <td class="text-nowrap"><a href="/cases/@item.CaseId">@item.CaseNumber</a></td>
+                            <td>@item.CaseTitle</td>
+                            <td>@item.ExternalNumber</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card-body d-lg-none">
+            @foreach (var item in Items)
+            {
+                <div class="card mb-2">
+                    <div class="card-body">
+                        <div class="font-weight-medium">@item.CaseTitle</div>
+                        <div><a href="/cases/@item.CaseId">@item.CaseNumber</a></div>
+                        <div class="text-secondary">Značka: @item.ExternalNumber</div>
+                        <div class="text-secondary">@DateDisplay.Text(item.CaseDate)</div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public required IReadOnlyList<ContactCaseOccurrence> Items { get; set; }
+}

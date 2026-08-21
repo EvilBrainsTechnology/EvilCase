@@ -1,0 +1,166 @@
+@page "/contacts/{Id:guid}"
+@using System.Net
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.Contacts
+@using EvilBrains.EvilCase.Domain.Contacts
+@using TabBlazor.Services
+@inject IContactsClient ContactsClient
+@inject IModalService ModalService
+@inject NavigationManager Navigation
+@inject ILogger<Contact> Logger
+
+<PageTitle>@(this.contact is null ? "Kontakt" : this.contact.Name) – EvilCase</PageTitle>
+
+<div class="page-header d-print-none">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <div class="page-pretitle"><a href="/contacts">Kontakty</a></div>
+                <h2 class="page-title">
+                    @(this.contact?.Name)
+                    @if (this.contact is { IsDefault: true })
+                    {
+                        <span class="badge bg-blue-lt ms-2">Výchozí kontakt</span>
+                    }
+                </h2>
+            </div>
+            @if (this.contact is not null)
+            {
+                <div class="col-auto ms-auto d-print-none">
+                    <button type="button" class="btn btn-primary" @onclick="this.Edit">Upravit</button>
+                    @if (!this.contact.IsDefault)
+                    {
+                        <button type="button" class="btn btn-danger ms-2" @onclick="this.Delete">Smazat</button>
+                    }
+                    else
+                    {
+                        <span class="text-secondary ms-2">Výchozí kontakt nelze smazat.</span>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        @if (this.notFound)
+        {
+            <div class="empty">
+                <p class="empty-title">Kontakt nenalezen</p>
+            </div>
+        }
+        else if (this.failure is not null)
+        {
+            <div class="empty">
+                <p class="empty-title">Kontakt se nepodařilo načíst</p>
+                <p class="empty-subtitle text-secondary">@this.failure</p>
+            </div>
+        }
+        else if (this.contact is null)
+        {
+            <div class="text-center text-secondary">
+                <div class="spinner-border" role="status"></div>
+            </div>
+        }
+        else
+        {
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3 class="card-title">Údaje</h3>
+                </div>
+                <div class="card-body">
+                    <div class="datagrid">
+                        <div class="datagrid-item">
+                            <div class="datagrid-title">Typ</div>
+                            <div class="datagrid-content">@ContactKindDisplay.Text(this.contact.Kind)</div>
+                        </div>
+                        <div class="datagrid-item">
+                            <div class="datagrid-title">ID datové schránky</div>
+                            <div class="datagrid-content">@(this.contact.DataBoxId ?? "—")</div>
+                        </div>
+                        <div class="datagrid-item">
+                            <div class="datagrid-title">Adresa</div>
+                            <div class="datagrid-content">
+                                @if (string.IsNullOrWhiteSpace(this.contact.Address))
+                                {
+                                    @:—
+                                }
+                                else
+                                {
+                                    <div class="address-block">@this.contact.Address</div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <ContactCaseOccurrences Items="this.contact.Cases" />
+            </div>
+
+            <ContactActOccurrences Items="this.contact.Acts" />
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public Guid Id { get; set; }
+
+    private ContactDetail? contact;
+
+    private bool notFound;
+
+    private string? failure;
+
+    protected override Task OnParametersSetAsync() => this.Load();
+
+    private async Task Load()
+    {
+        this.contact = null;
+        this.notFound = false;
+        this.failure = null;
+
+        try
+        {
+            this.contact = await this.ContactsClient.GetContact(this.Id, CancellationToken.None);
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+        {
+            this.notFound = true;
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Loading the contact detail failed");
+
+            this.failure = exception.Message;
+        }
+    }
+
+    private async Task Edit()
+    {
+        if (this.contact is null)
+            return;
+
+        await this.ModalService.ShowAsync(
+            "Upravit kontakt",
+            new RenderComponent<ContactEditModal>()
+                .Set(component => component.Contact, this.contact)
+                .Set(component => component.OnSaved, EventCallback.Factory.Create(this, this.Load)));
+    }
+
+    private async Task Delete()
+    {
+        if (this.contact is null)
+            return;
+
+        await this.ModalService.ShowAsync(
+            "Smazat kontakt",
+            new RenderComponent<ContactDeleteModal>()
+                .Set(component => component.Contact, this.contact)
+                .Set(component => component.OnDeleted, EventCallback.Factory.Create(this, () => this.Navigation.NavigateTo("/contacts"))));
+    }
+}
