@@ -45,7 +45,7 @@ public class RefreshTokenTests
     {
         var first = await this.harness.SignIn();
 
-        _ = await this.harness.Refresh(first.RefreshToken);
+        await this.harness.Refresh(first.RefreshToken);
 
         Assert.That(this.harness.RefreshTokens.All.Select(token => token.AuthSessionId).Distinct(), Has.Exactly(1).Items);
     }
@@ -188,8 +188,8 @@ public class RefreshTokenTests
     public async Task TheSessionListHasOneEntryPerBrowserRatherThanPerRenewal()
     {
         var phone = await this.harness.SignIn();
-        _ = await this.harness.SignIn();
-        _ = await this.harness.Refresh(phone.RefreshToken);
+        await this.harness.SignIn();
+        await this.harness.Refresh(phone.RefreshToken);
 
         var sessions = await this.harness.Service.GetSessions(this.harness.User.Id, CancellationToken.None);
 
@@ -208,7 +208,7 @@ public class RefreshTokenTests
 
         this.harness.Time.Advance(TimeSpan.FromDays(3));
         var renewedAt = this.harness.Time.UtcNow;
-        _ = await this.harness.Refresh(session.RefreshToken);
+        await this.harness.Refresh(session.RefreshToken);
 
         var listed = (await this.harness.Service.GetSessions(this.harness.User.Id, CancellationToken.None)).Single();
 
@@ -225,7 +225,7 @@ public class RefreshTokenTests
         var session = await this.harness.SignIn();
 
         for (var attempt = 0; attempt < AuthTestHarness.MaxFailedAttempts; attempt++)
-            _ = await this.harness.Login("not-the-password");
+            await this.harness.Login("not-the-password");
 
         Assert.That(await this.harness.Refresh(session.RefreshToken), Is.Null);
     }
@@ -233,7 +233,7 @@ public class RefreshTokenTests
     [Test]
     public async Task AnUnknownTokenIsRefusedWithoutTouchingAnything()
     {
-        _ = await this.harness.SignIn();
+        await this.harness.SignIn();
 
         var result = await this.harness.Refresh("this-was-never-issued");
 

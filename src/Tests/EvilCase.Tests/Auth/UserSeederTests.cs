@@ -75,7 +75,7 @@ public class UserSeederTests
         var tenantContext = new StubTenantContext();
         var context = FakeApplicationDbContext.Create(tenantContext);
 
-        _ = store.Seed(new()
+        store.Seed(new()
         {
             TenantId = Guid.CreateVersion7(),
             Email = "someone@evilcase.test",

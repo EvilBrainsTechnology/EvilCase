@@ -44,14 +44,14 @@ internal sealed class FakeRefreshTokenStore : IRefreshTokenStore
 
     public Task RevokeSession(Guid authSessionId, DateTime now, CancellationToken cancellationToken)
     {
-        _ = this.RevokeMatching(token => token.AuthSessionId == authSessionId, now, alsoUsed: false);
+        this.RevokeMatching(token => token.AuthSessionId == authSessionId, now, alsoUsed: false);
 
         return Task.CompletedTask;
     }
 
     public Task RevokeAll(Guid userId, DateTime now, CancellationToken cancellationToken)
     {
-        _ = this.RevokeMatching(token => token.UserId == userId, now, alsoUsed: false);
+        this.RevokeMatching(token => token.UserId == userId, now, alsoUsed: false);
 
         return Task.CompletedTask;
     }

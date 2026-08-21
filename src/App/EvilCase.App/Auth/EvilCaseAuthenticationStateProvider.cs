@@ -113,7 +113,7 @@ internal sealed class EvilCaseAuthenticationStateProvider(
         }
         finally
         {
-            _ = this.renewal.Release();
+            this.renewal.Release();
         }
     }
 
@@ -139,7 +139,7 @@ internal sealed class EvilCaseAuthenticationStateProvider(
     /// </summary>
     private async Task<AuthenticationState> Restore()
     {
-        _ = await this.Renew(CancellationToken.None);
+        await this.Renew(CancellationToken.None);
 
         this.restored = true;
 

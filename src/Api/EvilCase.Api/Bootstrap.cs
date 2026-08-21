@@ -28,7 +28,7 @@ public static class Bootstrap
 
         var problemDetails = context.RequestServices.GetRequiredService<IProblemDetailsService>();
 
-        _ = await problemDetails.TryWriteAsync(new()
+        await problemDetails.TryWriteAsync(new()
         {
             HttpContext = context,
             ProblemDetails =

@@ -14,7 +14,7 @@ public class CasesControllerTests
         var controller = new CasesController(reader);
         var request = new CaseListRequest { Search = "odvolání", Status = CaseStatusFilter.WaitingOnAuthority };
 
-        _ = await controller.ListCases(request, CancellationToken.None);
+        await controller.ListCases(request, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
