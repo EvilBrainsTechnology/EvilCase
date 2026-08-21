@@ -8,7 +8,9 @@ namespace EvilBrains.EvilCase.Business.Numbering;
 /// </summary>
 public interface ICaseNumberIssuer
 {
-    /// <summary>The day's next free case number.</summary>
+    /// <summary>
+    /// The day's next free case number.
+    /// </summary>
     public Task<string> NextCaseNumber(DateOnly date, CancellationToken cancellationToken = default);
 
     /// <summary>

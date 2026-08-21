@@ -13,7 +13,7 @@ public class ActNumberIssuerTests
     [Test]
     public async Task ARaceOnTheNumberTakesTheNextSequenceAndSavesAgain()
     {
-        using var context = ConflictingDbContext.Create(NumberConflict.ActNumberIndex, conflicts: 1);
+        await using var context = ConflictingDbContext.Create(NumberConflict.ActNumberIndex, conflicts: 1);
         var act = new Act
         {
             UserId = Guid.CreateVersion7(),

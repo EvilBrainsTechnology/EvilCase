@@ -13,7 +13,7 @@ public class CaseNumberIssuerTests
     [Test]
     public async Task ARaceOnTheNumberTakesTheNextSequenceAndSavesAgain()
     {
-        using var context = ConflictingDbContext.Create(NumberConflict.CaseNumberIndex, conflicts: 1);
+        await using var context = ConflictingDbContext.Create(NumberConflict.CaseNumberIndex, conflicts: 1);
         var @case = new Case { UserId = Guid.CreateVersion7(), CaseNumber = "EC/20260807-001", Date = Day, Title = "test", Status = CaseStatus.Active };
         context.Cases.Add(@case);
         var issuer = new CaseNumberIssuer(new FixedDbSession(context));

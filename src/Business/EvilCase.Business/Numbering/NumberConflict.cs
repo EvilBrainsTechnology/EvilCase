@@ -8,7 +8,9 @@ namespace EvilBrains.EvilCase.Business.Numbering;
 /// </summary>
 internal static class NumberConflict
 {
-    /// <summary>The unique index a raced case number breaks.</summary>
+    /// <summary>
+    /// The unique index a raced case number breaks.
+    /// </summary>
     public const string CaseNumberIndex = "IX_Cases_TenantId_CaseNumber";
 
     public const string ActNumberIndex = "IX_Acts_TenantId_ActNumber";
@@ -19,5 +21,5 @@ internal static class NumberConflict
 
     private static bool IsConflictOn(DbUpdateException exception, string index) =>
         exception.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation } postgres
-        && string.Equals(postgres.ConstraintName, index, StringComparison.Ordinal);
+            && string.Equals(postgres.ConstraintName, index, StringComparison.Ordinal);
 }

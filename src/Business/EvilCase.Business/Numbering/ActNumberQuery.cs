@@ -8,8 +8,10 @@ public static class ActNumberQuery
 {
     private const string Escape = "\\";
 
-    /// <summary>The acts whose own number belongs to the case number and the day.</summary>
-    public static IQueryable<Act> WithNumberOfDay(this IQueryable<Act> acts, string caseNumber, DateOnly date)
+    /// <summary>
+    /// The acts whose own number belongs to the case number and the day.
+    /// </summary>
+    public static IQueryable<Act> WithNumberOfDay(this IQueryable<Act> acts, string caseNumber, in DateOnly date)
     {
         ArgumentNullException.ThrowIfNull(acts);
 

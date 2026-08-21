@@ -39,9 +39,9 @@ public class NumberQueryTests
     [Test]
     public void TheDayComesFromTheNumberAndNotTheCaseDate()
     {
-        var sql = this.context.Cases.WithNumberOfDay(Day).ToQueryString();
+        var filter = WhereClauseOf(this.context.Cases.WithNumberOfDay(Day).ToQueryString());
 
-        Assert.That(sql, Does.Not.Contain("\"Date\""), "the day of the mark and the date of the case are not the same thing");
+        Assert.That(filter, Does.Not.Contain("\"Date\""), "the day of the mark and the date of the case are not the same thing");
     }
 
     [Test]
@@ -52,9 +52,13 @@ public class NumberQueryTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(sql, Does.Contain("EC/20260807-001/20260812-%"));
-            Assert.That(sql, Does.Not.Contain("\"CaseId\""), "a re-issued case number must not make two cases share a sequence");
+            Assert.That(WhereClauseOf(sql), Does.Not.Contain("\"CaseId\""), "a re-issued case number must not make two cases share a sequence");
         }
     }
+
+    // The SELECT list of a full entity always lists every column, including Date or CaseId; only the WHERE
+    // clause says what the query actually filters by.
+    private static string WhereClauseOf(string sql) => sql[sql.IndexOf("WHERE", StringComparison.Ordinal)..];
 
     [Test]
     public void AWildcardInAHandWrittenCaseNumberIsALiteral()

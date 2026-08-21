@@ -1,5 +1,3 @@
-using System.Globalization;
-
 namespace EvilBrains.EvilCase.Domain.Numbering;
 
 /// <summary>
@@ -13,12 +11,14 @@ internal static class NumberTail
 
     private const int DateLength = 8;
 
-    public static string DayPrefix(DateOnly date) => $"{date.ToString(DateFormat, CultureInfo.InvariantCulture)}-";
+    public static string DayPrefix(in DateOnly date) => $"{date.ToString(DateFormat, CultureInfo.InvariantCulture)}-";
 
-    public static string Compose(DateOnly date, int sequence) =>
+    public static string Compose(in DateOnly date, int sequence) =>
         DayPrefix(date) + sequence.ToString($"D{SequenceDigits}", CultureInfo.InvariantCulture);
 
-    /// <summary>The day and the sequence of "yyyyMMdd-nnn", or null where the text is not exactly that.</summary>
+    /// <summary>
+    /// The day and the sequence of "yyyyMMdd-nnn", or null where the text is not exactly that.
+    /// </summary>
     public static (DateOnly Date, int Sequence)? Parse(string tail)
     {
         if (tail.Length < DateLength + 1 + SequenceDigits || tail[DateLength] != '-')

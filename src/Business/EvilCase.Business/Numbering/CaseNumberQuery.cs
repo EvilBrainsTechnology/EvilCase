@@ -6,8 +6,10 @@ namespace EvilBrains.EvilCase.Business.Numbering;
 
 public static class CaseNumberQuery
 {
-    /// <summary>The cases whose own number belongs to the day, whatever date the case itself carries.</summary>
-    public static IQueryable<Case> WithNumberOfDay(this IQueryable<Case> cases, DateOnly date)
+    /// <summary>
+    /// The cases whose own number belongs to the day, whatever date the case itself carries.
+    /// </summary>
+    public static IQueryable<Case> WithNumberOfDay(this IQueryable<Case> cases, in DateOnly date)
     {
         ArgumentNullException.ThrowIfNull(cases);
 
