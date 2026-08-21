@@ -1,4 +1,5 @@
 using EvilBrains.EvilCase.Api.Contract.Cases;
+using EvilBrains.EvilCase.Data;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Domain.Cases;
@@ -12,11 +13,6 @@ namespace EvilBrains.EvilCase.Business.Cases;
 public static class CaseListQuery
 {
     /// <summary>
-    /// Turns a wildcard in the search term back into a literal.
-    /// </summary>
-    private const string Escape = "\\";
-
-    /// <summary>
     /// Matches the title or the description, ignoring case and diacritics. A blank term narrows nothing.
     /// </summary>
     public static IQueryable<Case> MatchingSearch(this IQueryable<Case> cases, string? search)
@@ -26,12 +22,12 @@ public static class CaseListQuery
         if (string.IsNullOrWhiteSpace(search))
             return cases;
 
-        var pattern = $"%{EscapeWildcards(search.Trim())}%";
+        var pattern = $"%{search.Trim().EscapeLikeWildcards()}%";
 
         return cases.Where(@case =>
-            EF.Functions.ILike(DatabaseFunctions.Unaccent(@case.Title), DatabaseFunctions.Unaccent(pattern), Escape)
+            EF.Functions.ILike(DatabaseFunctions.Unaccent(@case.Title), DatabaseFunctions.Unaccent(pattern), LikeExtensions.LikeEscape)
                 || (@case.Description != null
-                    && EF.Functions.ILike(DatabaseFunctions.Unaccent(@case.Description), DatabaseFunctions.Unaccent(pattern), Escape)));
+                    && EF.Functions.ILike(DatabaseFunctions.Unaccent(@case.Description), DatabaseFunctions.Unaccent(pattern), LikeExtensions.LikeEscape)));
     }
 
     public static IQueryable<Case> WithStatus(this IQueryable<Case> cases, CaseStatusFilter filter)
@@ -78,9 +74,4 @@ public static class CaseListQuery
             Updated = @case.Updated,
         });
     }
-
-    private static string EscapeWildcards(string term) => term
-        .Replace(Escape, Escape + Escape, StringComparison.Ordinal)
-        .Replace("%", Escape + "%", StringComparison.Ordinal)
-        .Replace("_", Escape + "_", StringComparison.Ordinal);
 }
