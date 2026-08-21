@@ -29,6 +29,22 @@ public class FileModelTests : ModelFixture
     }
 
     [Test]
+    public void TheStoredPathIsWhatFindsTheBytes()
+    {
+        var asset = Model.FindEntityType(typeof(FileAsset));
+
+        Assert.That(asset, Is.Not.Null);
+
+        var storagePath = asset!.FindProperty(nameof(FileAsset.StoragePath));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(storagePath?.IsNullable, Is.False, "recomposing the path would lose every blob written under an older layout");
+            Assert.That(storagePath?.GetMaxLength(), Is.EqualTo(256));
+        }
+    }
+
+    [Test]
     public void AFileGoesWithWhateverItHangsOn()
     {
         var asset = Model.FindEntityType(typeof(FileAsset));

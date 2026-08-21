@@ -16,7 +16,8 @@ server share the fixed 5000 and belong to whoever took it first.
   beside it reach another server. `README.md` has a throwaway one.
 - `src/EvilCase.Host/.env` with a JWT key of at least 32 characters and
   `EvilBrains__EvilCase__Auth__Seed__Email` and `__Password` — the seeded administrator is the
-  only way into an empty database. The script supplies neither.
+  only way into an empty database. The script supplies neither. The file storage root comes from
+  `appsettings.Development.json`, not `.env`.
 
 In Claude Code on the web `.claude/hooks/session-start.sh` does all of it at session start and
 restates the connection string, the seed and the JWT keys; a change to any of them changes the

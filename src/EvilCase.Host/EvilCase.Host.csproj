@@ -15,6 +15,7 @@
     <ProjectReference Include="..\Api\EvilCase.Api\EvilCase.Api.csproj" />
     <ProjectReference Include="..\App\EvilCase.App\EvilCase.App.csproj" />
     <ProjectReference Include="..\Common\EvilCase.Auth\EvilCase.Auth.csproj" />
+    <ProjectReference Include="..\Common\EvilCase.Files\EvilCase.Files.csproj" />
     <ProjectReference Include="..\Data\EvilCase.Data\EvilCase.Data.csproj" />
     <!-- Not used from code: the reference is what puts the migrations assembly next to the host, where
          EF loads it by the name UseEvilCaseMigrations configures. -->

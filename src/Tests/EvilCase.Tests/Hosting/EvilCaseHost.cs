@@ -18,6 +18,7 @@ internal sealed class EvilCaseHost(
     bool httpsRedirection = true,
     int? httpsPort = null,
     string? jwtKey = null,
+    string? filesRootPath = null,
     Action<IServiceCollection>? configureServices = null) : WebApplicationFactory<Program>
 {
     /// <summary>
@@ -25,6 +26,12 @@ internal sealed class EvilCaseHost(
     /// that starts.
     /// </summary>
     private static readonly string ValidJwtKey = new('k', 64);
+
+    /// <summary>
+    /// A directory every test that is not about the file storage root gets a host that starts with.
+    /// Nothing creates it; the host never touches it at startup.
+    /// </summary>
+    private static readonly string ValidFilesRootPath = Path.Combine(Path.GetTempPath(), "evilcase-tests-files");
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -51,6 +58,7 @@ internal sealed class EvilCaseHost(
                 ["EvilBrains:EvilCase:ConnectionString"] = "Host=localhost;Database=evilcase-tests",
                 ["EvilBrains:EvilCase:Database:MigrateOnStartup"] = "false",
                 ["EvilBrains:EvilCase:Auth:Jwt:Key"] = jwtKey switch { null => ValidJwtKey, "" => null, _ => jwtKey },
+                ["EvilBrains:EvilCase:Files:RootPath"] = filesRootPath switch { null => ValidFilesRootPath, "" => null, _ => filesRootPath },
                 ["EvilBrains:EvilCase:Hosting:BehindReverseProxy"] = behindReverseProxy ? "true" : "false",
                 ["EvilBrains:EvilCase:Hosting:HttpsRedirection"] = httpsRedirection ? "true" : "false",
                 ["HTTPS_PORT"] = httpsPort?.ToString(CultureInfo.InvariantCulture),

@@ -25,6 +25,8 @@ public class LayerTests
 
     private static readonly Assembly App = typeof(App.Icons.AppIcons).Assembly;
 
+    private static readonly Assembly Files = typeof(EvilCase.Files.Bootstrap).Assembly;
+
     [Test]
     public void TheApiReachesTheDatabaseThroughBusiness()
     {
@@ -89,6 +91,18 @@ public class LayerTests
             Assert.That(References(Client, Api), Is.False, "the client compiles the controller sources rather than referencing them");
             Assert.That(References(Client, Business), Is.False, "the client is HTTP and nothing else");
             Assert.That(References(Client, Data), Is.False, "the client is HTTP and nothing else");
+        }
+    }
+
+    [Test]
+    public void TheFileStoreKnowsNothingButBytes()
+    {
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(References(Files, Data), Is.False, "the blob store is a closed module behind IFileBlobStore");
+            Assert.That(References(Files, Business), Is.False, "the blob store is a closed module behind IFileBlobStore");
+            Assert.That(References(Files, Contract), Is.False, "the blob store is a closed module behind IFileBlobStore");
+            Assert.That(References(Files, Api), Is.False, "the blob store is a closed module behind IFileBlobStore");
         }
     }
 

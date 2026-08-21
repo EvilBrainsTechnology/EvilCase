@@ -9,6 +9,7 @@ Built from the repository root `Dockerfile`; the build context is the root and t
 - `sdk:10.0` restores and publishes `EvilCase.Host`. The Blazor WebAssembly bundle comes with it, there is no separate frontend step.
 - `aspnet:10.0-alpine` runs it as the image's non-root user on port 8080. Entry point `EvilBrains.EvilCase.Host.dll` — `src/Directory.Build.props` renames the assembly.
 - `HEALTHCHECK` calls `/health/live` through `curl`.
+- The storage root for uploaded files, `/var/lib/evilcase/files`, is created for the image's user and is fixed there.
 
 ## Registry tags
 
@@ -43,6 +44,8 @@ The database is not part of the stack — `EVILCASE_CONNECTION_STRING` points at
 The service is published over plain HTTP for a reverse proxy that terminates TLS, so it sets `BehindReverseProxy=true` and `HttpsRedirection=false`; the port is published on `127.0.0.1` only (`EVILCASE_PORT` picks the host port), keeping the service unreachable except through the proxy.
 
 Seq is driven by `EVILCASE_SEQ_URL` alone — an empty one logs to the console only.
+
+File bytes live on the `files` named volume, mounted at `/var/lib/evilcase/files`; the path is fixed in the image, and nothing in `.env` configures it. Without the mount, the files die with the container.
 
 ```
 cp .env.example .env   # then fill in the connection string and the JWT key
