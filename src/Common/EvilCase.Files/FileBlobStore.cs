@@ -19,7 +19,11 @@ internal sealed class FileBlobStore(IOptions<FileSettings> settings, ILogger<Fil
     {
         var storagePath = FileBlobPath.For(tenantId, fileAssetId, fileName);
         var fullPath = this.FullPath(storagePath);
-        var temporaryPath = fullPath + ".tmp";
+
+        // A stored blob may itself be named "{fileAssetId}.tmp" — the kept extension allows it — so the
+        // temporary file carries a suffix no stored name can have; otherwise a write for the same asset
+        // would truncate that blob and a failure would delete it.
+        var temporaryPath = fullPath + ".~tmp";
 
         Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
 

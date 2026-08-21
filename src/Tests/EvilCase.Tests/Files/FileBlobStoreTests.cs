@@ -154,6 +154,19 @@ public class FileBlobStoreTests
     }
 
     [Test]
+    public async Task AWriteLeavesABlobNamedLikeATemporaryFileAlone()
+    {
+        var stored = "abc"u8.ToArray();
+        var info = await this.store.Write(this.tenantId, this.fileAssetId, "protokol.tmp", new MemoryStream(stored));
+        var path = Path.Combine(this.root, info.StoragePath);
+
+        var failing = new FailingStream("ab"u8.ToArray());
+        await Assert.ThatAsync(() => this.store.Write(this.tenantId, this.fileAssetId, "protokol", failing), Throws.InstanceOf<IOException>());
+
+        Assert.That(File.Exists(path) ? await File.ReadAllBytesAsync(path) : [], Is.EqualTo(stored), "a temporary file must never take the name a stored blob can have");
+    }
+
+    [Test]
     public async Task TheDeleteFollowsTheStoredPath()
     {
         var info = await this.store.Write(this.tenantId, this.fileAssetId, "protokol.pdf", new MemoryStream("abc"u8.ToArray()));
