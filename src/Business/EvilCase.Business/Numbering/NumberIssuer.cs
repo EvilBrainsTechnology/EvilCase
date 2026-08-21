@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Business.Numbering;
 
-internal sealed class NumberIssuer(ApplicationDbContext context) : INumberIssuer
+internal sealed class NumberIssuer(IDbSession dbSession) : INumberIssuer
 {
     /// <summary>
     /// A taken number is a race with another writer, and the next read of the day already sees it.
@@ -20,9 +20,11 @@ internal sealed class NumberIssuer(ApplicationDbContext context) : INumberIssuer
 
         while (true)
         {
+            var context = dbSession.Current;
             var taken = await context.Cases.CaseNumbersOfDay(date).ToListAsync(cancellationToken);
             var @case = create(CaseNumberFormat.Compose(date, CaseNumberFormat.NextSequence(date, taken)));
 
+            var tracked = Tracked(context);
             context.Cases.Add(@case);
 
             try
@@ -33,7 +35,7 @@ internal sealed class NumberIssuer(ApplicationDbContext context) : INumberIssuer
             }
             catch (DbUpdateException exception) when (attempt < Attempts && NumberConflict.IsTakenNumber(exception, nameof(Case.CaseNumber)))
             {
-                context.Entry(@case).State = EntityState.Detached;
+                DetachAddedSince(context, tracked);
                 attempt++;
             }
         }
@@ -48,9 +50,11 @@ internal sealed class NumberIssuer(ApplicationDbContext context) : INumberIssuer
 
         while (true)
         {
+            var context = dbSession.Current;
             var taken = await context.Acts.ActNumbersOfCase(@case.Id).ToListAsync(cancellationToken);
             var act = create(ActNumberFormat.Compose(@case.CaseNumber, date, ActNumberFormat.NextSequence(date, taken)));
 
+            var tracked = Tracked(context);
             context.Acts.Add(act);
 
             try
@@ -61,15 +65,27 @@ internal sealed class NumberIssuer(ApplicationDbContext context) : INumberIssuer
             }
             catch (DbUpdateException exception) when (attempt < Attempts && NumberConflict.IsTakenNumber(exception, nameof(Act.ActNumber)))
             {
-                context.Entry(act).State = EntityState.Detached;
+                DetachAddedSince(context, tracked);
                 attempt++;
             }
         }
     }
 
     public async Task<bool> IsCaseNumberFree(string number, Guid? excluding = null, CancellationToken cancellationToken = default) =>
-        !await context.Cases.WithCaseNumber(number, excluding).AnyAsync(cancellationToken);
+        !await dbSession.Current.Cases.WithCaseNumber(number, excluding).AnyAsync(cancellationToken);
 
     public async Task<bool> IsActNumberFree(string number, Guid? excluding = null, CancellationToken cancellationToken = default) =>
-        !await context.Acts.WithActNumber(number, excluding).AnyAsync(cancellationToken);
+        !await dbSession.Current.Acts.WithActNumber(number, excluding).AnyAsync(cancellationToken);
+
+    private static HashSet<object> Tracked(ApplicationDbContext context) =>
+        context.ChangeTracker.Entries().Select(entry => entry.Entity).ToHashSet(ReferenceEqualityComparer.Instance);
+
+    // The factory may build a graph, and the add pulls all of it in; a retry takes back everything that attempt added.
+    private static void DetachAddedSince(ApplicationDbContext context, HashSet<object> tracked)
+    {
+        var added = context.ChangeTracker.Entries().Where(entry => !tracked.Contains(entry.Entity)).ToList();
+
+        foreach (var entry in added)
+            entry.State = EntityState.Detached;
+    }
 }
