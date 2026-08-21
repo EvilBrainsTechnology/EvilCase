@@ -1,6 +1,8 @@
+using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Business.Cases;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Migrations.DbContexts;
+using EvilBrains.EvilCase.Domain.Cases;
 using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Tests.Cases;
@@ -86,6 +88,43 @@ public class CaseListQueryTests
             Assert.That(sql, Does.Contain("\"Date\""));
             Assert.That(sql, Does.Not.Contain("\"Description\""), "a row of the list never carries the case's text");
             Assert.That(sql, Does.Not.Contain("count(").IgnoreCase, "a row of the list stands for one case and counts nothing under it");
+        }
+    }
+
+    [Test]
+    public void OpenIsEverythingNotClosedAndOnlyAllNarrowsNothing()
+    {
+        var unfiltered = this.context.Cases.ToQueryString();
+        var open = this.context.Cases.WithStatus(CaseStatusFilter.Open).ToQueryString();
+        var closed = this.context.Cases.WithStatus(CaseStatusFilter.Closed).ToQueryString();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(new CaseListRequest().Status, Is.EqualTo(CaseStatusFilter.Open), "the list opens on everything that is not closed");
+            Assert.That(this.context.Cases.WithStatus(CaseStatusFilter.All).ToQueryString(), Is.EqualTo(unfiltered), "only All narrows nothing");
+            Assert.That(open, Does.Contain("<>"), "open is everything not closed");
+            Assert.That(open, Does.Contain(nameof(CaseStatus.Closed)));
+            Assert.That(closed, Does.Contain("\"Status\""));
+            Assert.That(closed, Does.Contain(nameof(CaseStatus.Closed)), "the status is stored as its name");
+        }
+    }
+
+    [Test]
+    public void TheSearchAndTheStatusNarrowTheSameQuery()
+    {
+        var sql = this.context.Cases
+            .MatchingSearch("odvolání")
+            .WithStatus(CaseStatusFilter.Closed)
+            .InListOrder()
+            .AsListItems()
+            .ToQueryString();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(sql, Does.Contain("%odvolání%"), "the search narrows the list");
+            Assert.That(sql, Does.Contain(nameof(CaseStatus.Closed)), "the status narrows the list");
+            Assert.That(sql, Does.Contain("AND"), "the two narrow together, not one instead of the other");
+            Assert.That(sql, Does.Contain("ORDER BY"), "the list keeps its order under both filters");
         }
     }
 }

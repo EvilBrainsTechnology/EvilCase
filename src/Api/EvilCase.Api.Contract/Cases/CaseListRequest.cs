@@ -6,4 +6,6 @@ public sealed record CaseListRequest
     /// Matched against the title and the description.
     /// </summary>
     public string? Search { get; init; }
+
+    public CaseStatusFilter Status { get; init; } = CaseStatusFilter.Open;
 }

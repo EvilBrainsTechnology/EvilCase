@@ -2,6 +2,7 @@ using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Data;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
+using EvilBrains.EvilCase.Domain.Cases;
 using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Business.Cases;
@@ -27,6 +28,21 @@ public static class CaseListQuery
             EF.Functions.ILike(DatabaseFunctions.Unaccent(@case.Title), DatabaseFunctions.Unaccent(pattern), LikeExtensions.LikeEscape)
                 || (@case.Description != null
                     && EF.Functions.ILike(DatabaseFunctions.Unaccent(@case.Description), DatabaseFunctions.Unaccent(pattern), LikeExtensions.LikeEscape)));
+    }
+
+    public static IQueryable<Case> WithStatus(this IQueryable<Case> cases, CaseStatusFilter filter)
+    {
+        ArgumentNullException.ThrowIfNull(cases);
+
+        return filter switch
+        {
+            CaseStatusFilter.Open => cases.Where(@case => @case.Status != CaseStatus.Closed),
+            CaseStatusFilter.All => cases,
+            CaseStatusFilter.Active => cases.Where(@case => @case.Status == CaseStatus.Active),
+            CaseStatusFilter.WaitingOnAuthority => cases.Where(@case => @case.Status == CaseStatus.WaitingOnAuthority),
+            CaseStatusFilter.Closed => cases.Where(@case => @case.Status == CaseStatus.Closed),
+            _ => throw new ArgumentOutOfRangeException(nameof(filter), filter, "Unknown case status filter."),
+        };
     }
 
     /// <summary>

@@ -23,13 +23,26 @@
     <div class="container-xl">
         <div class="card">
             <div class="card-body border-bottom py-3">
-                <div class="input-icon">
-                    <span class="input-icon-addon">
-                        <Icon CssClass="icon" IconType="AppIcons.Search" />
-                    </span>
-                    <input type="search" class="form-control" aria-label="Hledat ve spisech"
-                           placeholder="Hledat v názvu a popisu"
-                           value="@this.search" @oninput="this.OnSearchInput" />
+                <div class="row g-2">
+                    <div class="col-12 col-lg">
+                        <div class="input-icon">
+                            <span class="input-icon-addon">
+                                <Icon CssClass="icon" IconType="AppIcons.Search" />
+                            </span>
+                            <input type="search" class="form-control" aria-label="Hledat ve spisech"
+                                   placeholder="Hledat v názvu a popisu"
+                                   value="@this.search" @oninput="this.OnSearchInput" />
+                        </div>
+                    </div>
+                    <div class="col-12 col-lg-auto">
+                        <select class="form-select" aria-label="Stav spisu"
+                                @bind="this.status" @bind:after="this.Reload">
+                            @foreach (var value in Filters)
+                            {
+                                <option value="@value">@CaseStatusDisplay.FilterText(value)</option>
+                            }
+                        </select>
+                    </div>
                 </div>
             </div>
             @if (this.failure is not null)
@@ -49,7 +62,7 @@
             {
                 <div class="empty">
                     <p class="empty-title">Žádné spisy</p>
-                    <p class="empty-subtitle text-secondary">@(string.IsNullOrWhiteSpace(this.search) ? "Zatím tu není žádný spis." : "Zkuste jiné hledání.")</p>
+                    <p class="empty-subtitle text-secondary">@(!string.IsNullOrWhiteSpace(this.search) || this.status != CaseStatusFilter.All ? "Zkuste jiné hledání nebo jiný stav — uzavřené spisy se ve výchozím nastavení nezobrazují." : "Zatím tu není žádný spis.")</p>
                     <div class="empty-action">
                         <a href="/cases/new" class="btn btn-primary">Založit spis</a>
                     </div>
@@ -98,8 +111,11 @@
 @code {
     private static readonly TimeSpan SearchDelay = TimeSpan.FromMilliseconds(300);
 
+    private static readonly CaseStatusFilter[] Filters = Enum.GetValues<CaseStatusFilter>();
+
     private IReadOnlyList<CaseListItem>? items;
     private string search = "";
+    private CaseStatusFilter status = CaseStatusFilter.Open;
     private string? failure;
     private CancellationTokenSource? pending;
 
@@ -118,6 +134,8 @@
         return this.Load(debounce: true);
     }
 
+    private Task Reload() => this.Load(debounce: false);
+
     /// <summary>
     /// One request at a time: starting another cancels the one before it.
     /// </summary>
@@ -132,6 +150,7 @@
         var request = new CaseListRequest
         {
             Search = string.IsNullOrWhiteSpace(this.search) ? null : this.search,
+            Status = this.status,
         };
 
         try
