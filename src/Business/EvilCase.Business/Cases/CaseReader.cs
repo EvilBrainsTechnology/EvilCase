@@ -10,14 +10,11 @@ internal sealed class CaseReader(IDbSession session) : ICaseReader
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        return await Compose(session.Current, request.Search).ToListAsync(cancellationToken);
+        return await session.Current.Cases
+            .MatchingSearch(request.Search)
+            .WithStatus(request.Status)
+            .InListOrder()
+            .AsListItems()
+            .ToListAsync(cancellationToken);
     }
-
-    /// <summary>
-    /// Internal so a test reads the SQL the reader really runs.
-    /// </summary>
-    internal static IQueryable<CaseListItem> Compose(ApplicationDbContext context, string? search = null) => context.Cases
-        .MatchingSearch(search)
-        .InListOrder()
-        .AsListItems();
 }
