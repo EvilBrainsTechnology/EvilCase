@@ -1,6 +1,6 @@
 namespace EvilBrains.EvilCase.Business.Numbering;
 
-public interface ICaseNumberIssuer
+internal interface ICaseNumberIssuer
 {
     /// <summary>
     /// The next free case number of the day. The caller saves the case; a collision with a number issued at

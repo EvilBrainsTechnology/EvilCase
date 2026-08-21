@@ -2,7 +2,7 @@ using EvilBrains.EvilCase.Data.Entities;
 
 namespace EvilBrains.EvilCase.Business.Numbering;
 
-public interface IActNumberIssuer
+internal interface IActNumberIssuer
 {
     /// <summary>
     /// The next free act number of the day inside the case. The caller saves the act; a collision with a

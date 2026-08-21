@@ -33,6 +33,7 @@ public class ActNumberQueryTests
             Assert.That(sql, Does.Contain("EC/20260807-001/20260812-%"));
             Assert.That(sql, Does.Contain("LIKE"));
             Assert.That(sql, Does.Contain("ESCAPE"));
+            Assert.That(sql, Does.Contain("\"TenantId\""), "every read is inside a tenant");
         }
     }
 
