@@ -138,6 +138,17 @@ public class FileBlobStoreTests
     }
 
     [Test]
+    public async Task ARootWrittenWithATrailingSeparatorStillTakesBlobs()
+    {
+        var settings = new FileSettings { RootPath = this.root + Path.DirectorySeparatorChar };
+        var trailing = new FileBlobStore(Options.Create(settings), NullLogger<FileBlobStore>.Instance);
+
+        var info = await trailing.Write(this.tenantId, this.fileAssetId, new MemoryStream("abc"u8.ToArray()));
+
+        Assert.That(File.Exists(Path.Combine(this.root, info.StoragePath)), Is.True, "a separator the operator typed must not make every path leave the root");
+    }
+
+    [Test]
     public async Task APathLeavingTheRootIsRefused()
     {
         await Assert.ThatAsync(() => this.store.Delete("../outside"), Throws.ArgumentException, "a path read back from the database must not reach outside the root");

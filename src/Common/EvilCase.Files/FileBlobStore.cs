@@ -8,7 +8,10 @@ internal sealed class FileBlobStore(IOptions<FileSettings> settings, ILogger<Fil
 {
     private const int BufferSize = 80 * 1024;
 
-    private readonly string rootFullPath = Path.GetFullPath(settings.Value.RootPath) + Path.DirectorySeparatorChar;
+    // Exactly one trailing separator, whatever the configured root ended with: the containment check
+    // below compares this as a prefix, and a root written with a trailing slash would match nothing.
+    private readonly string rootFullPath =
+        Path.TrimEndingDirectorySeparator(Path.GetFullPath(settings.Value.RootPath)) + Path.DirectorySeparatorChar;
 
     public async Task<FileBlobInfo> Write(Guid tenantId, Guid fileAssetId, Stream content, CancellationToken cancellationToken = default)
     {
