@@ -10,7 +10,7 @@ public class CasesControllerTests
     [Test]
     public async Task TheItemsAreReturnedInTheOrderTheReaderGaveThem()
     {
-        var reader = new RecordingCaseReader { Items = [Item("2/2026", "druhý"), Item("1/2026", "první")] };
+        var reader = new RecordingCaseReader { Items = [Item("EC/20260821-002", "druhý"), Item("EC/20260821-001", "první")] };
         var controller = new CasesController(reader, new RecordingCaseWriter());
 
         var response = await controller.ListCases(CancellationToken.None);
@@ -38,7 +38,7 @@ public class CasesControllerTests
     [Test]
     public async Task TheCreatedCaseIsWhatTheWriterReturned()
     {
-        var created = Item("1/2026", "Nový spis");
+        var created = Item("EC/20260821-001", "Nový spis");
         var writer = new RecordingCaseWriter { Created = created };
         var controller = new CasesController(new RecordingCaseReader(), writer);
 
@@ -70,7 +70,7 @@ public class CasesControllerTests
     {
         public CreateCaseRequest? Request { get; private set; }
 
-        public CaseListItem Created { get; init; } = Item("1/2026", "Spis");
+        public CaseListItem Created { get; init; } = Item("EC/20260821-001", "Spis");
 
         public Task<CaseListItem> Create(CreateCaseRequest request, CancellationToken cancellationToken = default)
         {

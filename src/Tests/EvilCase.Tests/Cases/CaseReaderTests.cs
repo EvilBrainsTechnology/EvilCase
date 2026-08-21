@@ -27,6 +27,7 @@ public class CaseReaderTests
         {
             Assert.That(sql, Does.Contain("\"Date\" DESC"));
             Assert.That(sql, Does.Contain("\"CaseNumber\""));
+            Assert.That(sql, Does.Contain("\"TenantId\""), "every read is inside a tenant");
             Assert.That(sql, Does.Not.Contain("\"Status\" ="), "nothing but the tenant hides a case from the list");
             Assert.That(sql, Does.Not.Contain("LIMIT"), "the list is not paged");
             Assert.That(sql, Does.Not.Contain("OFFSET"), "the list is not paged");
