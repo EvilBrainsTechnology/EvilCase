@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using EvilBrains.EvilCase.Business.Numbering;
 using EvilBrains.EvilCase.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -85,6 +86,20 @@ public class ActModelTests : ModelFixture
             Assert.That(toContacts, Has.Count.EqualTo(2), "an act references its sender and its recipient");
             Assert.That(toContacts.TrueForAll(key => key.DeleteBehavior == DeleteBehavior.Restrict), Is.True, "a contact outlives any one act naming it");
             Assert.That(toCase?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Cascade), "an act has no meaning without its case");
+        }
+    }
+
+    [Test]
+    public void TheActsOwnNumberIsUniqueUnderTheNameTheRetryLooksFor()
+    {
+        var act = Model.FindEntityType(typeof(Act));
+        var unique = act?.GetIndexes().SingleOrDefault(index => index.IsUnique);
+        string[] expected = [nameof(Act.TenantId), nameof(Act.ActNumber)];
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(unique?.Properties.Select(property => property.Name), Is.EqualTo(expected), "a generated series must not repeat within one tenant");
+            Assert.That(unique?.GetDatabaseName(), Is.EqualTo(NumberConflict.ActNumberIndex), "and the retry recognises the race by that index name");
         }
     }
 }

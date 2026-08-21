@@ -1,3 +1,4 @@
+using EvilBrains.EvilCase.Business.Numbering;
 using EvilBrains.EvilCase.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -33,6 +34,7 @@ public class CaseModelTests : ModelFixture
             Assert.That(mark, Is.Not.Null, "a case always has exactly one of its own, so it is a column and not a row");
             Assert.That(mark?.IsNullable, Is.False, "it is generated with the case and never absent");
             Assert.That(unique?.Properties.Select(property => property.Name), Is.EqualTo(expected), "and a generated series must not repeat within one tenant");
+            Assert.That(unique?.GetDatabaseName(), Is.EqualTo(NumberConflict.CaseNumberIndex), "and the retry recognises the race by that index name");
         }
     }
 

@@ -24,7 +24,7 @@ public record Act : IUserOwnedEntity
     public required Guid CaseId { get; init; }
 
     [MaxLength(128)]
-    public required string ActNumber { get; init; }
+    public required string ActNumber { get; set; }
 
     public required ActDirection Direction { get; init; }
 

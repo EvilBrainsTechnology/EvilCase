@@ -4,16 +4,20 @@ using Npgsql;
 namespace EvilBrains.EvilCase.Business.Numbering;
 
 /// <summary>
-/// Tells the race for a number from every other failed write.
+/// Tells a race for a number apart from every other failed write.
 /// </summary>
 internal static class NumberConflict
 {
-    public static bool IsTakenNumber(DbUpdateException exception, string column) =>
-        exception.InnerException is PostgresException violation
-            && IsTakenNumber(violation.SqlState, violation.ConstraintName, column);
+    /// <summary>The unique index a raced case number breaks.</summary>
+    public const string CaseNumberIndex = "IX_Cases_TenantId_CaseNumber";
 
-    // The unique index of a number column is the one whose name ends with the column.
-    public static bool IsTakenNumber(string? sqlState, string? constraintName, string column) =>
-        string.Equals(sqlState, PostgresErrorCodes.UniqueViolation, StringComparison.Ordinal)
-            && constraintName?.EndsWith(column, StringComparison.Ordinal) == true;
+    public const string ActNumberIndex = "IX_Acts_TenantId_ActNumber";
+
+    public static bool IsCaseNumberConflict(DbUpdateException exception) => IsConflictOn(exception, CaseNumberIndex);
+
+    public static bool IsActNumberConflict(DbUpdateException exception) => IsConflictOn(exception, ActNumberIndex);
+
+    private static bool IsConflictOn(DbUpdateException exception, string index) =>
+        exception.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation } postgres
+        && string.Equals(postgres.ConstraintName, index, StringComparison.Ordinal);
 }

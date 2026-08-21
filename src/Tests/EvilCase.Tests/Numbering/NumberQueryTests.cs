@@ -10,6 +10,10 @@ namespace EvilBrains.EvilCase.Tests.Numbering;
 /// </summary>
 public class NumberQueryTests
 {
+    private static readonly DateOnly Day = new(2026, 8, 7);
+
+    private static readonly DateOnly ActDay = new(2026, 8, 12);
+
     private ApplicationDbContext context = null!;
 
     [SetUp]
@@ -19,69 +23,48 @@ public class NumberQueryTests
     public void TearDown() => this.context.Dispose();
 
     [Test]
-    public void TheDaysCaseNumbersAreFoundByTheDayPrefix()
+    public void TheDaysCaseNumbersAreReadByTheirPrefix()
     {
-        var sql = this.context.Cases.CaseNumbersOfDay(new DateOnly(2026, 8, 7)).ToQueryString();
+        var sql = this.context.Cases.WithNumberOfDay(Day).ToQueryString();
 
         using (Assert.EnterMultipleScope())
         {
+            Assert.That(sql, Does.Contain("\"CaseNumber\""));
             Assert.That(sql, Does.Contain("LIKE"));
-            Assert.That(sql, Does.Contain("\"CaseNumber\""));
             Assert.That(sql, Does.Contain("EC/20260807-%"));
+            Assert.That(sql, Does.Contain("\"TenantId\""), "every read is inside a tenant");
         }
     }
 
     [Test]
-    public void TheCasesActNumbersAreFoundByTheCaseAlone()
+    public void TheDayComesFromTheNumberAndNotTheCaseDate()
     {
-        var sql = this.context.Acts.ActNumbersOfCase(Guid.CreateVersion7()).ToQueryString();
+        var sql = this.context.Cases.WithNumberOfDay(Day).ToQueryString();
+
+        Assert.That(sql, Does.Not.Contain("\"Date\""), "the day of the mark and the date of the case are not the same thing");
+    }
+
+    [Test]
+    public void AnActsDayIsReadByTheCaseNumberAndTheDay()
+    {
+        var sql = this.context.Acts.WithNumberOfDay("EC/20260807-001", ActDay).ToQueryString();
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(sql, Does.Contain("\"CaseId\""));
-            Assert.That(sql, Does.Contain("\"ActNumber\""));
-            Assert.That(sql, Does.Not.Contain("LIKE"), "the day is counted in memory, so a rewritten case number keeps counting");
+            Assert.That(sql, Does.Contain("EC/20260807-001/20260812-%"));
+            Assert.That(sql, Does.Not.Contain("\"CaseId\""), "a re-issued case number must not make two cases share a sequence");
         }
     }
 
     [Test]
-    public void AnExistingCaseNumberIsFound()
+    public void AWildcardInAHandWrittenCaseNumberIsALiteral()
     {
-        var sql = this.context.Cases.WithCaseNumber("EC/20260807-001", excluding: null).ToQueryString();
+        var sql = this.context.Acts.WithNumberOfDay("spis 100%_a", ActDay).ToQueryString();
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(sql, Does.Contain("\"CaseNumber\""));
-            Assert.That(sql, Does.Contain("EC/20260807-001"));
-            Assert.That(sql, Does.Not.Contain("<>"));
-        }
-    }
-
-    [Test]
-    public void TheCaseBeingEditedIsLeftOut()
-    {
-        var sql = this.context.Cases.WithCaseNumber("EC/20260807-001", excluding: Guid.CreateVersion7()).ToQueryString();
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(sql, Does.Contain("\"Id\""));
-            Assert.That(sql, Does.Contain("<>"));
-        }
-    }
-
-    [Test]
-    public void AnExistingActNumberIsFoundAndTheActBeingEditedIsLeftOut()
-    {
-        var found = this.context.Acts.WithActNumber("EC/20260807-001/20260812-001", excluding: null).ToQueryString();
-        var excluding = this.context.Acts.WithActNumber("EC/20260807-001/20260812-001", excluding: Guid.CreateVersion7()).ToQueryString();
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(found, Does.Contain("\"ActNumber\""));
-            Assert.That(found, Does.Contain("EC/20260807-001/20260812-001"));
-            Assert.That(found, Does.Not.Contain("<>"));
-            Assert.That(excluding, Does.Contain("\"Id\""));
-            Assert.That(excluding, Does.Contain("<>"));
+            Assert.That(sql, Does.Contain("ESCAPE"));
+            Assert.That(sql, Does.Contain(@"spis 100\%\_a"));
         }
     }
 }
