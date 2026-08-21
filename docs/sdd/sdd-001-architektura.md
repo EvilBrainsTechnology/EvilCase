@@ -41,7 +41,7 @@ Kód žije v `src/`, řešení `EvilCase.slnx`:
 | `App/EvilCase.App` | Blazor WebAssembly frontend |
 | `Business/EvilCase.Business` | business logika |
 | `Business/EvilCase.Domain` | doménové jádro bez závislostí |
-| `Data/EvilCase.Data` | EF Core model a přístup k databázi (SDD-018) |
+| `Data/EvilCase.Data` | EF Core model, přístup k databázi (SDD-018) a úložiště blobů |
 | `Data/EvilCase.Data.Migrations` | migrace |
 | `Common/EvilCase.Auth` | autentizace; uzavřený modul za `IAuthService` |
 | `Tests/EvilCase.Tests` | testy aplikace (SDD-003) |
