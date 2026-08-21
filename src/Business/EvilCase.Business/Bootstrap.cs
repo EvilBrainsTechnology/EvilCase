@@ -1,4 +1,5 @@
 using EvilBrains.EvilCase.Business.Cases;
+using EvilBrains.EvilCase.Business.Contacts;
 using EvilBrains.EvilCase.Business.Numbering;
 using EvilBrains.EvilCase.Business.Seeding;
 using EvilBrains.EvilCase.Data;
@@ -18,6 +19,7 @@ public static class Bootstrap
         services.AddEvilCaseData();
 
         services.AddScoped<ICaseReader, CaseReader>();
+        services.AddScoped<IContactReader, ContactReader>();
         services.AddScoped<ISampleDataSeeder, SampleDataSeeder>();
         services.AddScoped<ICaseNumberIssuer, CaseNumberIssuer>();
         services.AddScoped<IActNumberIssuer, ActNumberIssuer>();
