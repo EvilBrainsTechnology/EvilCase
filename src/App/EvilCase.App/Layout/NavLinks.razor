@@ -17,6 +17,13 @@
             <span class="nav-link-title">Spisy</span>
         </a>
     </li>
+
+    <li class="nav-item @ActiveClass("/contacts")">
+        <a class="nav-link" href="/contacts" @onclick="Close">
+            <span class="nav-link-icon"><Icon CssClass="icon" IconType="AppIcons.Users" /></span>
+            <span class="nav-link-title">Kontakty</span>
+        </a>
+    </li>
 </ul>
 
 @code {

@@ -1,0 +1,137 @@
+@page "/contacts"
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.Contacts
+@implements IDisposable
+@inject IContactsClient ContactsClient
+@inject ILogger<Contacts> Logger
+
+<div class="page-header d-print-none">
+    <div class="container-xl">
+        <h2 class="page-title">Kontakty</h2>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        <div class="card">
+            <div class="card-body border-bottom py-3">
+                <div class="input-icon">
+                    <span class="input-icon-addon">
+                        <Icon CssClass="icon" IconType="AppIcons.Search" />
+                    </span>
+                    <input type="search" class="form-control" aria-label="Hledat v kontaktech"
+                           placeholder="Hledat v názvu a ID datové schránky"
+                           value="@this.search" @oninput="this.OnSearchInput" />
+                </div>
+            </div>
+
+            @if (this.failure is not null)
+            {
+                <div class="empty">
+                    <p class="empty-title">Kontakty se nepodařilo načíst</p>
+                    <p class="empty-subtitle text-secondary">@this.failure</p>
+                </div>
+            }
+            else if (this.items is null)
+            {
+                <div class="card-body text-center text-secondary">
+                    <div class="spinner-border" role="status"></div>
+                </div>
+            }
+            else if (this.items.Count == 0)
+            {
+                <div class="empty">
+                    <p class="empty-title">Žádné kontakty</p>
+                    <p class="empty-subtitle text-secondary">
+                        @(string.IsNullOrWhiteSpace(this.search) ? "Zatím tu není žádný kontakt." : "Zkuste jiné hledání.")
+                    </p>
+                </div>
+            }
+            else
+            {
+                <div class="d-none d-lg-block">
+                    @* QuickTable sorts by its first column, so that has to be the one the API ordered by. *@
+                    <QuickTable Items="this.items.AsQueryable()" Class="card-table table-vcenter">
+                        <PropertyColumn Property="@(item => item.Name)" Title="Název" />
+                        <TemplateColumn Title="Typ" Context="item" Class="text-nowrap">
+                            @ContactKindDisplay.Text(item.Kind)
+                        </TemplateColumn>
+                        <PropertyColumn Property="@(item => item.DataBoxId)" Title="Datová schránka" />
+                        <PropertyColumn Property="@(item => item.Address)" Title="Adresa" />
+                    </QuickTable>
+                </div>
+
+                <div class="card-body d-lg-none">
+                    @foreach (var item in this.items)
+                    {
+                        <ContactListCard Contact="item" />
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private static readonly TimeSpan SearchDelay = TimeSpan.FromMilliseconds(300);
+
+    private IReadOnlyList<ContactListItem>? items;
+    private string search = "";
+    private string? failure;
+    private CancellationTokenSource? pending;
+
+    protected override Task OnInitializedAsync() => this.Load(debounce: false);
+
+    public void Dispose()
+    {
+        this.pending?.Cancel();
+        this.pending?.Dispose();
+    }
+
+    private Task OnSearchInput(ChangeEventArgs args)
+    {
+        this.search = args.Value as string ?? "";
+
+        return this.Load(debounce: true);
+    }
+
+    /// <summary>
+    /// One request at a time: starting another cancels the one before it.
+    /// </summary>
+    private async Task Load(bool debounce)
+    {
+        this.pending?.Cancel();
+        this.pending?.Dispose();
+
+        var current = new CancellationTokenSource();
+        this.pending = current;
+
+        var request = new ContactListRequest
+        {
+            Search = string.IsNullOrWhiteSpace(this.search) ? null : this.search,
+        };
+
+        try
+        {
+            if (debounce)
+                await Task.Delay(SearchDelay, current.Token);
+
+            var response = await this.ContactsClient.ListContacts(request, current.Token);
+
+            this.items = response.Items;
+            this.failure = null;
+        }
+        catch (OperationCanceledException)
+        {
+            // Superseded by a newer request.
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Loading the contact list failed");
+
+            this.items = [];
+            this.failure = exception.Message;
+        }
+    }
+}
