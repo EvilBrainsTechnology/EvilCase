@@ -21,7 +21,7 @@ public record Case : IUserOwnedEntity
     public Guid? ParentCaseId { get; init; }
 
     [MaxLength(64)]
-    public required string CaseNumber { get; set; }
+    public required string CaseNumber { get; init; }
 
     public required DateOnly Date { get; init; }
 
