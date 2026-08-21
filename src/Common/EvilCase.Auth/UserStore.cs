@@ -22,7 +22,7 @@ internal sealed class UserStore(IDbSession dbSession, TimeProvider timeProvider)
     {
         var now = timeProvider.GetUtcNow().UtcDateTime;
 
-        _ = await dbSession.Current.Users
+        await dbSession.Current.Users
             .Where(user => user.Id == id)
             .ExecuteUpdateAsync(
                 setters => setters
@@ -36,7 +36,7 @@ internal sealed class UserStore(IDbSession dbSession, TimeProvider timeProvider)
     {
         var now = timeProvider.GetUtcNow().UtcDateTime;
 
-        _ = await dbSession.Current.Users
+        await dbSession.Current.Users
             .Where(user => user.Id == id)
             .ExecuteUpdateAsync(
                 setters => setters

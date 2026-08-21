@@ -30,7 +30,7 @@ internal sealed class RefreshTokenStore(IDbSession dbSession) : IRefreshTokenSto
 
     public async Task RevokeSession(Guid authSessionId, DateTime now, CancellationToken cancellationToken)
     {
-        _ = await dbSession.Current.RefreshTokens
+        await dbSession.Current.RefreshTokens
             .Where(token => token.AuthSessionId == authSessionId)
             .Where(token => token.RevokedAt == null)
             .ExecuteUpdateAsync(
@@ -42,7 +42,7 @@ internal sealed class RefreshTokenStore(IDbSession dbSession) : IRefreshTokenSto
 
     public async Task RevokeAll(Guid userId, DateTime now, CancellationToken cancellationToken)
     {
-        _ = await dbSession.Current.RefreshTokens
+        await dbSession.Current.RefreshTokens
             .Where(token => token.UserId == userId)
             .Where(token => token.RevokedAt == null)
             .ExecuteUpdateAsync(
