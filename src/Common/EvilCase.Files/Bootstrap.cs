@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 
 namespace EvilBrains.EvilCase.Files;
 
@@ -12,9 +11,8 @@ public static class Bootstrap
         services
             .AddOptions<FileSettings>()
             .BindConfiguration(fileSettingsPath, options => options.ErrorOnUnknownConfiguration = true)
+            .ValidateDataAnnotations()
             .ValidateOnStart();
-
-        services.AddSingleton<IValidateOptions<FileSettings>, FileSettingsValidator>();
 
         // Singleton: the store holds a root path and nothing else.
         services.AddSingleton<IFileBlobStore, FileBlobStore>();
