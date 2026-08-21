@@ -19,6 +19,7 @@
   `agent-in-progress` before the work, not with the push, and to `agent-done` when it finishes.
   A session working under the owner's live instruction leaves the state labels alone.
   `ci-failed` sits beside the state as a flag: a red CI run adds it, a green one removes it.
-- Never merge. The owner merges.
+  Closing an issue removes `agent-in-progress` and adds `agent-done`.
+- Never merge and never resolve a review conversation. The owner does both.
 - The repository is public. No real case content, names, file marks or personal data anywhere.
   Real case folders on the owner's disk are read-only reference.
