@@ -66,7 +66,11 @@ public class FileBlobStoreTests
 
         await Assert.ThatAsync(() => this.store.Write(this.tenantId, this.fileAssetId, failing), Throws.InstanceOf<IOException>());
 
-        Assert.That(File.Exists(this.BlobPath()), Is.False, "a failed write must not leave a blob at the final path");
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(File.Exists(this.BlobPath()), Is.False, "a failed write must not leave a blob at the final path");
+            Assert.That(Directory.GetFiles(this.TenantDirectory()), Is.Empty, "a failed write must leave no temporary file behind");
+        }
     }
 
     [Test]
@@ -112,9 +116,7 @@ public class FileBlobStoreTests
         Assert.That(deleted, Is.False, "deleting a missing blob must return false");
     }
 
-    private string BlobPath() =>
-        Path.Combine(
-            this.root,
-            this.tenantId.ToString("D", CultureInfo.InvariantCulture),
-            this.fileAssetId.ToString("D", CultureInfo.InvariantCulture));
+    private string TenantDirectory() => Path.Combine(this.root, this.tenantId.ToString("D", CultureInfo.InvariantCulture));
+
+    private string BlobPath() => Path.Combine(this.TenantDirectory(), this.fileAssetId.ToString("D", CultureInfo.InvariantCulture));
 }
