@@ -2,8 +2,9 @@ name: evilcase-local
 
 # The whole application in Docker, built from this repository, with its own PostgreSQL next to it.
 # For development only: the credentials are constants and there is no volume, so `down` wipes the
-# data and the next start migrates and seeds an empty database again. See docker-compose.yml for
-# the deployed stack.
+# data and the next start migrates and seeds an empty database again. The file storage root is fixed
+# in the image and gets no volume either, so the file bytes go the same way. See docker-compose.yml
+# for the deployed stack.
 services:
   app:
     build:

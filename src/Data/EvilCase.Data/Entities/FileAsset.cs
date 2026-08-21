@@ -42,6 +42,9 @@ public record FileAsset : IUserOwnedEntity
     [MaxLength(128)]
     public string? MediaType { get; init; }
 
+    [MaxLength(256)]
+    public required string StoragePath { get; init; }
+
     public DateTime Created { get; init; }
 
     public DateTime? Updated { get; init; }
