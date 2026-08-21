@@ -1,6 +1,7 @@
 using EvilBrains.EvilCase.Api.Auth;
 using EvilBrains.EvilCase.Api.HealthChecks;
 using EvilBrains.EvilCase.Business;
+using EvilBrains.EvilCase.Domain.Tenancy;
 using EvilBrains.Logging.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -27,7 +28,7 @@ public static class Bootstrap
 
         var problemDetails = context.RequestServices.GetRequiredService<IProblemDetailsService>();
 
-        _ = await problemDetails.TryWriteAsync(new()
+        await problemDetails.TryWriteAsync(new()
         {
             HttpContext = context,
             ProblemDetails =
@@ -62,7 +63,7 @@ public static class Bootstrap
 
         // Scoped: it answers for the request being served.
         services.AddHttpContextAccessor();
-        services.AddScoped<IOwnerContext, PrincipalOwnerContext>();
+        services.AddScoped<ITenantContext, PrincipalTenantContext>();
 
         return services;
     }

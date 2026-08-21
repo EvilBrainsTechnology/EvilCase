@@ -23,7 +23,7 @@ internal sealed class AuthService(
     public async Task<LoginResult> Login(string email, string password, ClientInfo client, CancellationToken cancellationToken)
     {
         var now = timeProvider.GetUtcNow().UtcDateTime;
-        var user = await userStore.FindByEmail(EmailNormalizer.Normalize(email), cancellationToken);
+        var user = await userStore.FindByEmail(email, cancellationToken);
 
         if (user is null)
         {
@@ -39,7 +39,7 @@ internal sealed class AuthService(
         if (!PasswordHasher.Verify(password, user.PasswordHash))
             return await this.RecordFailure(user, now, cancellationToken);
 
-        await userStore.RecordSuccessfulLogin(user.Id, now, cancellationToken);
+        await userStore.RecordSuccessfulLogin(user.Id, cancellationToken);
 
         var sessionExpires = now.Add(options.Value.RefreshToken.SessionExpiration);
         var session = await this.Issue(user, Guid.NewGuid(), sessionExpires, client, now, cancellationToken);
@@ -87,14 +87,14 @@ internal sealed class AuthService(
             await refreshTokenStore.RevokeSession(stored.AuthSessionId, timeProvider.GetUtcNow().UtcDateTime, cancellationToken);
     }
 
-    public async Task SignOutEverywhere(long userId, CancellationToken cancellationToken)
+    public async Task SignOutEverywhere(Guid userId, CancellationToken cancellationToken)
     {
         await refreshTokenStore.RevokeAll(userId, timeProvider.GetUtcNow().UtcDateTime, cancellationToken);
 
         logger.LogInformation("Every session of user {UserId} was revoked", userId);
     }
 
-    public async Task<IReadOnlyList<UserSession>> GetSessions(long userId, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<UserSession>> GetSessions(Guid userId, CancellationToken cancellationToken)
     {
         var tokens = await refreshTokenStore.GetActive(userId, timeProvider.GetUtcNow().UtcDateTime, cancellationToken);
         var starts = await refreshTokenStore.GetSessionStarts(userId, cancellationToken);
@@ -129,7 +129,6 @@ internal sealed class AuthService(
             user.Id,
             lockedOut ? 0 : attempts,
             lockedOut ? now.Add(lockout.Duration) : null,
-            now,
             cancellationToken);
 
         if (lockedOut)

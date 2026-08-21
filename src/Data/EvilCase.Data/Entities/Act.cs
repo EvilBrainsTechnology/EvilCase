@@ -8,16 +8,23 @@ namespace EvilBrains.EvilCase.Data.Entities;
 /// The unit of work inside a case, and the thing the user thinks in: one submission, decision, notice
 /// or call.
 /// </summary>
-[Index(nameof(CaseId), nameof(Date))]
-[Index(nameof(IssuedByPartyId))]
-[Index(nameof(AddressedToPartyId))]
-[Index(nameof(ExternalActNumber))]
-public record Act : IEntity
+[Index(nameof(TenantId), nameof(ActNumber), IsUnique = true)]
+[Index(nameof(CaseId))]
+[Index(nameof(IssuedByContactId))]
+[Index(nameof(AddressedToContactId))]
+public record Act : IUserOwnedEntity
 {
     [Key]
-    public long Id { get; init; }
+    public Guid Id { get; init; } = Guid.CreateVersion7();
 
-    public required long CaseId { get; init; }
+    public Guid TenantId { get; init; }
+
+    public required Guid UserId { get; init; }
+
+    public required Guid CaseId { get; init; }
+
+    [MaxLength(128)]
+    public required string ActNumber { get; init; }
 
     public required ActDirection Direction { get; init; }
 
@@ -25,44 +32,30 @@ public record Act : IEntity
     public required string Title { get; init; }
 
     /// <summary>
-    /// The <em>číslo jednací</em> of whoever issued this one document. The mark of the whole proceeding
-    /// is an <c>ExternalCaseNumber</c> instead.
-    /// </summary>
-    [MaxLength(128)]
-    public string? ExternalActNumber { get; init; }
-
-    /// <summary>
     /// When the act happened, and the only thing act lists sort by. A calendar date, not an instant —
     /// it starts a statutory period (M5) and the hour never enters that arithmetic.
     /// </summary>
     public required DateOnly Date { get; init; }
 
-    /// <summary>
-    /// What was said in this act. Unbounded, and it lives here and nowhere else — a file asset is
-    /// shared by every reference that points at it, while a summary is about one act.
-    /// </summary>
-    public string? Summary { get; init; }
+    public string? Description { get; init; }
 
-    public long? IssuedByPartyId { get; init; }
+    public required Guid IssuedByContactId { get; init; }
 
-    public long? AddressedToPartyId { get; init; }
+    public Guid? AddressedToContactId { get; init; }
 
-    public required DateTime Created { get; init; }
+    public DateTime Created { get; init; }
 
     public DateTime? Updated { get; init; }
 
     public Case? Case { get; init; }
 
-    public Party? IssuedBy { get; init; }
+    public Contact? IssuedByContact { get; init; }
 
-    public Party? AddressedTo { get; init; }
+    public Contact? AddressedToContact { get; init; }
 
-    /// <summary>
-    /// The files this act is the primary act of.
-    /// </summary>
-    public ICollection<FileAsset> Files { get; init; } = [];
-
-    public ICollection<ActFileReference> FileReferences { get; init; } = [];
+    public ICollection<ExternalActNumber> ExternalActNumbers { get; init; } = [];
 
     public ICollection<Comment> Comments { get; init; } = [];
+
+    public ICollection<FileAsset> Files { get; init; } = [];
 }

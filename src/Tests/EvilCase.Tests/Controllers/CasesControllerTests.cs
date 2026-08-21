@@ -14,7 +14,7 @@ public class CasesControllerTests
         var controller = new CasesController(reader);
         var request = new CaseListRequest { Search = "odvolání", Status = CaseStatusFilter.WaitingOnAuthority };
 
-        _ = await controller.ListCases(request, CancellationToken.None);
+        await controller.ListCases(request, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -26,7 +26,7 @@ public class CasesControllerTests
     [Test]
     public async Task TheItemsAreReturnedInTheOrderTheReaderGaveThem()
     {
-        var reader = new RecordingCaseReader { Items = [Item(2, "druhý"), Item(1, "první")] };
+        var reader = new RecordingCaseReader { Items = [Item(Guid.CreateVersion7(), "druhý"), Item(Guid.CreateVersion7(), "první")] };
         var controller = new CasesController(reader);
 
         var response = await controller.ListCases(new CaseListRequest(), CancellationToken.None);
@@ -34,12 +34,11 @@ public class CasesControllerTests
         Assert.That(response.Items.Select(item => item.Title), Is.EqualTo(["druhý", "první"]));
     }
 
-    private static CaseListItem Item(long id, string title) => new()
+    private static CaseListItem Item(in Guid id, string title) => new()
     {
         Id = id,
         Title = title,
         Status = CaseStatus.Active,
-        Tags = [],
         Created = DateTime.UtcNow,
     };
 

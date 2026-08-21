@@ -1,5 +1,8 @@
 using EvilBrains.Cryptography;
+using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
+using EvilBrains.EvilCase.Domain.Contacts;
+using EvilBrains.EvilCase.Domain.Tenancy;
 using EvilBrains.EvilCase.Domain.Users;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -7,11 +10,14 @@ using Microsoft.Extensions.Options;
 namespace EvilBrains.EvilCase.Auth;
 
 internal sealed class UserSeeder(
+    IDbSession dbSession,
     IUserStore userStore,
+    ITenantContext tenantContext,
     IOptions<AuthSettings> options,
-    TimeProvider timeProvider,
     ILogger<UserSeeder> logger) : IUserSeeder
 {
+    public bool IsConfigured => options.Value.Seed is { Email.Length: > 0, Password.Length: > 0 };
+
     public async Task Seed(CancellationToken cancellationToken)
     {
         var seed = options.Value.Seed;
@@ -24,16 +30,34 @@ internal sealed class UserSeeder(
         if (await userStore.Any(cancellationToken))
             return;
 
-        var user = new User
+        var normalizedEmail = EmailNormalizer.Normalize(email);
+
+        var account = new Account { Name = normalizedEmail };
+        var tenant = new Tenant { AccountId = account.Id, Name = normalizedEmail };
+
+        dbSession.Current.Accounts.Add(account);
+        dbSession.Current.Tenants.Add(tenant);
+        await dbSession.Current.SaveChangesAsync(cancellationToken);
+
+        using var scope = tenantContext.Enter(tenant.Id);
+
+        var contact = new Contact
         {
-            Email = EmailNormalizer.Normalize(email),
-            PasswordHash = PasswordHasher.Hash(password),
-            Role = UserRole.Admin,
-            Created = timeProvider.GetUtcNow().UtcDateTime,
+            Kind = ContactKind.Person,
+            Name = normalizedEmail,
         };
 
-        await userStore.Add(user, cancellationToken);
+        var user = new User
+        {
+            TenantId = tenant.Id,
+            Email = normalizedEmail,
+            PasswordHash = PasswordHasher.Hash(password),
+            Role = UserRole.Admin,
+            DefaultContactId = contact.Id,
+        };
 
-        logger.LogInformation("No user existed, so the configured administrator {Email} was created", user.Email);
+        await userStore.Add(user, contact, cancellationToken);
+
+        logger.LogInformation("No user existed, so the configured administrator {Email} was created in tenant {TenantId}", user.Email, tenant.Id);
     }
 }

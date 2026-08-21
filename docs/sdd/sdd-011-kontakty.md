@@ -19,10 +19,10 @@ v M2 (SDD-007); agenda přichází v M6.
 
 ### Defaultní kontakt
 
-Vzniká automaticky při založení uživatele s názvem z jeho e-mailu; ukazuje na něj
-`User.DefaultContactId`. Jde přejmenovat, smazat nejde. Předvyplňuje se jako odesílatel
-odchozích a příjemce příchozích úkonů (SDD-010). Přepojení `User.DefaultContactId` na jiný
-kontakt se zatím nepodporuje.
+Vzniká spolu s uživatelem v jednom zápisu, s názvem z jeho e-mailu; `User.DefaultContactId`
+je povinný. Jde přejmenovat, smazat nejde. Předvyplňuje se jako odesílatel odchozích a příjemce
+příchozích úkonů (SDD-010). Přepojení `User.DefaultContactId` na jiný kontakt se zatím
+nepodporuje.
 
 ### Výběr a založení
 
@@ -49,6 +49,7 @@ smazat nejde.
 - `Kind`: zaniká / zůstává. Zůstává.
 - Defaultní kontakt: obyčejný kontakt / chráněný před smazáním a přejmenovatelný. Platí
   chráněný a přejmenovatelný.
+- Defaultní kontakt uživatele: nepovinný / povinný. Platí povinný — uživatel bez něj nevznikne.
 - Mazání odkazovaného kontaktu: přepojení referencí / zákaz. Platí zákaz.
 
 ## Dopady

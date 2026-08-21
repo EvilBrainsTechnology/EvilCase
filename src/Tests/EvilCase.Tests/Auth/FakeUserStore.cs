@@ -11,47 +11,56 @@ internal sealed class FakeUserStore : IUserStore
 {
     private readonly List<User> users = [];
 
+    private readonly List<Contact> contacts = [];
+
+    public Contact SingleContact() => this.contacts.Single();
+
     public User Seed(User user)
     {
-        var stored = user with { Id = this.users.Count + 1 };
+        this.users.Add(user);
 
-        this.users.Add(stored);
-
-        return stored;
+        return user;
     }
 
-    public User Get(long id) => this.users.Single(user => user.Id == id);
+    public User Get(Guid id) => this.users.Single(user => user.Id == id);
 
-    public Task<User?> FindByEmail(string normalizedEmail, CancellationToken cancellationToken) =>
-        Task.FromResult(this.users.Find(user => string.Equals(user.Email, normalizedEmail, StringComparison.Ordinal)));
+    public User Single() => this.users.Single();
 
-    public Task<User?> FindById(long id, CancellationToken cancellationToken) =>
+    public Task<User?> FindByEmail(string email, CancellationToken cancellationToken)
+    {
+        var normalized = EmailNormalizer.Normalize(email);
+
+        return Task.FromResult(this.users.Find(user => string.Equals(user.Email, normalized, StringComparison.Ordinal)));
+    }
+
+    public Task<User?> FindById(Guid id, CancellationToken cancellationToken) =>
         Task.FromResult(this.users.Find(user => user.Id == id));
 
-    public Task RecordFailedLogin(long id, int failedAttempts, DateTime? lockoutEnd, DateTime now, CancellationToken cancellationToken)
+    public Task RecordFailedLogin(Guid id, int failedAttempts, DateTime? lockoutEnd, CancellationToken cancellationToken)
     {
-        this.Replace(id, user => user with { FailedLoginAttempts = failedAttempts, LockoutEnd = lockoutEnd, Updated = now });
+        this.Replace(id, user => user with { FailedLoginAttempts = failedAttempts, LockoutEnd = lockoutEnd });
 
         return Task.CompletedTask;
     }
 
-    public Task RecordSuccessfulLogin(long id, DateTime now, CancellationToken cancellationToken)
+    public Task RecordSuccessfulLogin(Guid id, CancellationToken cancellationToken)
     {
-        this.Replace(id, user => user with { FailedLoginAttempts = 0, LockoutEnd = null, Updated = now });
+        this.Replace(id, user => user with { FailedLoginAttempts = 0, LockoutEnd = null });
 
         return Task.CompletedTask;
     }
 
     public Task<bool> Any(CancellationToken cancellationToken) => Task.FromResult(this.users.Count > 0);
 
-    public Task Add(User user, CancellationToken cancellationToken)
+    public Task Add(User user, Contact defaultContact, CancellationToken cancellationToken)
     {
-        _ = this.Seed(user);
+        this.users.Add(user);
+        this.contacts.Add(defaultContact);
 
         return Task.CompletedTask;
     }
 
-    private void Replace(long id, Func<User, User> update)
+    private void Replace(Guid id, Func<User, User> update)
     {
         var index = this.users.FindIndex(user => user.Id == id);
 

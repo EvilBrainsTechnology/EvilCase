@@ -21,7 +21,7 @@ public class CaseListQueryTests
     public void TearDown() => this.context.Dispose();
 
     [Test]
-    public void SearchMatchesTheTitleAndTheSubjectWithoutRegardToCase()
+    public void SearchMatchesTheTitleAndTheDescriptionWithoutRegardToCaseOrDiacritics()
     {
         var sql = this.context.Cases.MatchingSearch("odvolání").ToQueryString();
 
@@ -29,8 +29,10 @@ public class CaseListQueryTests
         {
             Assert.That(sql, Does.Contain("ILIKE"));
             Assert.That(sql, Does.Contain("\"Title\""));
-            Assert.That(sql, Does.Contain("\"Subject\""));
+            Assert.That(sql, Does.Contain("\"Description\""));
             Assert.That(sql, Does.Contain("%odvolání%"));
+            Assert.That(sql, Does.Contain("immutable_unaccent"), "the fold runs in the database, over the wrapper the Init migration creates");
+            Assert.That(sql.Split("immutable_unaccent").Length - 1, Is.EqualTo(4), "both the column and the term fold on both comparisons");
         }
     }
 
@@ -91,16 +93,29 @@ public class CaseListQueryTests
     }
 
     [Test]
-    public void TheProjectionReadsTheTagsInTheSameQueryAndCountsNothing()
+    public void TheProjectionReadsOneRowPerCaseInsideTheTenant()
     {
         var sql = this.context.Cases.AsListItems().ToQueryString();
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(sql, Does.Contain("\"CaseTags\""));
+            Assert.That(sql, Does.Contain("\"TenantId\""));
+            Assert.That(sql, Does.Not.Contain("\"CaseTags\""));
             Assert.That(sql, Does.Not.Contain("count(").IgnoreCase, "a row of the list stands for one case and counts nothing under it");
-            Assert.That(sql, Does.Not.Contain("\"CaseRelations\""), "the list says nothing about relations");
             Assert.That(sql, Does.Not.Contain("\"OwnerId\""));
+        }
+    }
+
+    [Test]
+    public void AnUnfilteredListIsNarrowedByTheTenantAlone()
+    {
+        var sql = this.context.Cases.MatchingSearch(search: null).WithStatus(CaseStatusFilter.All).InListOrder().AsListItems().ToQueryString();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(sql, Does.Contain("\"TenantId\""), "every read is inside a tenant");
+            Assert.That(sql, Does.Not.Contain("ILIKE"), "a blank search narrows nothing");
+            Assert.That(sql, Does.Not.Contain(" AND "), "All narrows nothing further");
         }
     }
 }

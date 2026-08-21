@@ -1,29 +1,32 @@
 using EvilBrains.EvilCase.Data.Entities;
+using EvilBrains.EvilCase.Domain.Tenancy;
 using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Data.DbContexts;
 
-public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : DbContext(options)
+public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, ITenantContext tenantContext) : DbContext(options)
 {
+    private readonly ITenantContext tenantContext = tenantContext;
+
+    public DbSet<Account> Accounts => this.Set<Account>();
+
+    public DbSet<Tenant> Tenants => this.Set<Tenant>();
+
     public DbSet<User> Users => this.Set<User>();
 
     public DbSet<RefreshToken> RefreshTokens => this.Set<RefreshToken>();
 
-    public DbSet<Party> Parties => this.Set<Party>();
+    public DbSet<Contact> Contacts => this.Set<Contact>();
 
     public DbSet<Case> Cases => this.Set<Case>();
-
-    public DbSet<CaseRelation> CaseRelations => this.Set<CaseRelation>();
-
-    public DbSet<CaseTag> CaseTags => this.Set<CaseTag>();
 
     public DbSet<ExternalCaseNumber> ExternalCaseNumbers => this.Set<ExternalCaseNumber>();
 
     public DbSet<Act> Acts => this.Set<Act>();
 
-    public DbSet<FileAsset> FileAssets => this.Set<FileAsset>();
+    public DbSet<ExternalActNumber> ExternalActNumbers => this.Set<ExternalActNumber>();
 
-    public DbSet<ActFileReference> ActFileReferences => this.Set<ActFileReference>();
+    public DbSet<FileAsset> FileAssets => this.Set<FileAsset>();
 
     public DbSet<Comment> Comments => this.Set<Comment>();
 
@@ -33,58 +36,131 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
         base.OnModelCreating(modelBuilder);
 
-        ConfigureEnums(modelBuilder);
+        ConfigureDbFunctions(modelBuilder);
+        ConfigureExtensions(modelBuilder);
+        ConfigureEntities(modelBuilder);
+        this.ConfigureTenancy(modelBuilder);
+        ConfigureAccounts(modelBuilder);
         ConfigureCases(modelBuilder);
         ConfigureActs(modelBuilder);
         ConfigureFiles(modelBuilder);
         ConfigureComments(modelBuilder);
+        ConfigureEnums(modelBuilder);
     }
 
+    private static void ConfigureDbFunctions(ModelBuilder modelBuilder)
+    {
+        modelBuilder
+            .HasDbFunction(typeof(DatabaseFunctions).GetMethod(nameof(DatabaseFunctions.Unaccent), [typeof(string)])!)
+            .HasName("immutable_unaccent");
+    }
+
+    private static void ConfigureExtensions(ModelBuilder modelBuilder)
+    {
+        modelBuilder.HasPostgresExtension("unaccent");
+        modelBuilder.HasPostgresExtension("pg_trgm");
+    }
+
+    private static void ConfigureEntities(ModelBuilder modelBuilder)
+    {
+        var entityTypes = modelBuilder.Model.GetEntityTypes()
+            .Where(type => typeof(IEntity).IsAssignableFrom(type.ClrType))
+            .ToList();
+
+        foreach (var entityType in entityTypes)
+            modelBuilder.Entity(entityType.ClrType).Property(nameof(IEntity.Id)).ValueGeneratedNever();
+    }
+
+    // Every enum is stored as its name, in a column as wide as the longest name that enum has.
     private static void ConfigureEnums(ModelBuilder modelBuilder)
     {
+        var properties = modelBuilder.Model
+            .GetEntityTypes()
+            .SelectMany(entityType => entityType.GetDeclaredProperties());
+
+        foreach (var property in properties)
+        {
+            var enumType = Nullable.GetUnderlyingType(property.ClrType) ?? property.ClrType;
+
+            if (!enumType.IsEnum)
+                continue;
+
+            property.SetProviderClrType(typeof(string));
+            property.SetMaxLength(Enum.GetNames(enumType).Max(name => name.Length));
+        }
+    }
+
+    private void ConfigureTenancy(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Contact>().HasQueryFilter(contact => contact.TenantId == this.tenantContext.TenantIdOrDefault);
+        modelBuilder.Entity<Case>().HasQueryFilter(@case => @case.TenantId == this.tenantContext.TenantIdOrDefault);
+        modelBuilder.Entity<ExternalCaseNumber>().HasQueryFilter(number => number.TenantId == this.tenantContext.TenantIdOrDefault);
+        modelBuilder.Entity<Act>().HasQueryFilter(act => act.TenantId == this.tenantContext.TenantIdOrDefault);
+        modelBuilder.Entity<ExternalActNumber>().HasQueryFilter(number => number.TenantId == this.tenantContext.TenantIdOrDefault);
+        modelBuilder.Entity<FileAsset>().HasQueryFilter(file => file.TenantId == this.tenantContext.TenantIdOrDefault);
+        modelBuilder.Entity<Comment>().HasQueryFilter(comment => comment.TenantId == this.tenantContext.TenantIdOrDefault);
+
+        var tenantEntityTypes = modelBuilder.Model.GetEntityTypes()
+            .Where(type => typeof(ITenantEntity).IsAssignableFrom(type.ClrType))
+            .ToList();
+
+        foreach (var entityType in tenantEntityTypes)
+        {
+            modelBuilder.Entity(entityType.ClrType)
+                .HasOne(typeof(Tenant))
+                .WithMany()
+                .HasForeignKey(nameof(ITenantEntity.TenantId))
+                .OnDelete(DeleteBehavior.Restrict);
+        }
+
+        var userOwnedEntityTypes = modelBuilder.Model.GetEntityTypes()
+            .Where(type => typeof(IUserOwnedEntity).IsAssignableFrom(type.ClrType))
+            .ToList();
+
+        foreach (var entityType in userOwnedEntityTypes)
+        {
+            modelBuilder.Entity(entityType.ClrType)
+                .HasOne(typeof(User))
+                .WithMany()
+                .HasForeignKey(nameof(IUserOwnedEntity.UserId))
+                .OnDelete(DeleteBehavior.Restrict);
+        }
+    }
+
+    private static void ConfigureAccounts(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Tenant>()
+            .HasOne(typeof(Account))
+            .WithMany()
+            .HasForeignKey(nameof(Tenant.AccountId))
+            .OnDelete(DeleteBehavior.Cascade);
+
         modelBuilder.Entity<User>()
-            .Property(user => user.Role)
-            .HasConversion<string>()
-            .HasMaxLength(32);
+            .HasOne(typeof(Tenant))
+            .WithMany()
+            .HasForeignKey(nameof(User.TenantId))
+            .OnDelete(DeleteBehavior.Restrict);
 
-        modelBuilder.Entity<Party>()
-            .Property(party => party.Kind)
-            .HasConversion<string>()
-            .HasMaxLength(32);
+        modelBuilder.Entity<User>()
+            .HasOne(user => user.DefaultContact)
+            .WithMany()
+            .HasForeignKey(user => user.DefaultContactId)
+            .OnDelete(DeleteBehavior.Restrict);
 
-        modelBuilder.Entity<Case>()
-            .Property(@case => @case.Status)
-            .HasConversion<string>()
-            .HasMaxLength(32);
-
-        modelBuilder.Entity<Act>()
-            .Property(act => act.Direction)
-            .HasConversion<string>()
-            .HasMaxLength(32);
+        modelBuilder.Entity<RefreshToken>()
+            .HasOne(token => token.User)
+            .WithMany()
+            .HasForeignKey(token => token.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 
     private static void ConfigureCases(ModelBuilder modelBuilder)
     {
-        // The pair is stored once, so the check is what keeps a second row for the other direction — and
-        // a row relating a case to itself — out of the table.
-        modelBuilder.Entity<CaseRelation>()
-            .ToTable(table => table.HasCheckConstraint(
-                "CK_CaseRelations_Ordered",
-                @"""CaseId"" < ""RelatedCaseId"""));
-
-        // A relation has no meaning without either end, and it is all a delete takes: the case at the
-        // other end is a case of its own and stays.
-        modelBuilder.Entity<CaseRelation>()
-            .HasOne<Case>()
-            .WithMany()
-            .HasForeignKey(relation => relation.CaseId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        modelBuilder.Entity<CaseRelation>()
-            .HasOne<Case>()
-            .WithMany()
-            .HasForeignKey(relation => relation.RelatedCaseId)
-            .OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<Case>()
+            .HasOne(@case => @case.ParentCase)
+            .WithMany(@case => @case.ChildCases)
+            .HasForeignKey(@case => @case.ParentCaseId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         modelBuilder.Entity<ExternalCaseNumber>()
             .HasOne(number => number.Case)
@@ -92,11 +168,11 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasForeignKey(number => number.CaseId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // A party accumulates history across cases, so it outlives any one mark that names it.
+        // A contact accumulates history across cases, so it outlives any one mark that names it.
         modelBuilder.Entity<ExternalCaseNumber>()
             .HasOne(number => number.AssignedBy)
-            .WithMany(party => party.AssignedExternalCaseNumbers)
-            .HasForeignKey(number => number.AssignedByPartyId)
+            .WithMany(contact => contact.AssignedExternalCaseNumbers)
+            .HasForeignKey(number => number.AssignedByContactId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 
@@ -108,42 +184,51 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasForeignKey(act => act.CaseId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // A party accumulates history across cases, so it outlives any one act naming it. Both ends are
-        // configured explicitly because two foreign keys to the same table cannot be inferred.
+        // A contact accumulates history across cases, so it outlives any one act naming it. Both ends
+        // are configured explicitly because two foreign keys to the same table cannot be inferred.
         modelBuilder.Entity<Act>()
-            .HasOne(act => act.IssuedBy)
-            .WithMany(party => party.IssuedActs)
-            .HasForeignKey(act => act.IssuedByPartyId)
+            .HasOne(act => act.IssuedByContact)
+            .WithMany(contact => contact.IssuedActs)
+            .HasForeignKey(act => act.IssuedByContactId)
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Act>()
-            .HasOne(act => act.AddressedTo)
-            .WithMany(party => party.AddressedActs)
-            .HasForeignKey(act => act.AddressedToPartyId)
+            .HasOne(act => act.AddressedToContact)
+            .WithMany(contact => contact.AddressedActs)
+            .HasForeignKey(act => act.AddressedToContactId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<ExternalActNumber>()
+            .HasOne(number => number.Act)
+            .WithMany(act => act.ExternalActNumbers)
+            .HasForeignKey(number => number.ActId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ExternalActNumber>()
+            .HasOne(number => number.AssignedBy)
+            .WithMany(contact => contact.AssignedExternalActNumbers)
+            .HasForeignKey(number => number.AssignedByContactId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 
     private static void ConfigureFiles(ModelBuilder modelBuilder)
     {
-        // The bytes belong to the act they were filed under, so they go with it.
+        modelBuilder.Entity<FileAsset>()
+            .ToTable(table => table.HasCheckConstraint(
+                "CK_FileAssets_OnACaseOrAnAct",
+                @"(""CaseId"" IS NULL) <> (""ActId"" IS NULL)"));
+
+        modelBuilder.Entity<FileAsset>()
+            .HasOne(asset => asset.Case)
+            .WithMany(@case => @case.Files)
+            .HasForeignKey(asset => asset.CaseId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         modelBuilder.Entity<FileAsset>()
             .HasOne(asset => asset.Act)
             .WithMany(act => act.Files)
             .HasForeignKey(asset => asset.ActId)
             .OnDelete(DeleteBehavior.Cascade);
-
-        modelBuilder.Entity<ActFileReference>()
-            .HasOne(reference => reference.Act)
-            .WithMany(act => act.FileReferences)
-            .HasForeignKey(reference => reference.ActId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        // An asset another act still reaches cannot go, and it aborts the delete of the act that owns it.
-        modelBuilder.Entity<ActFileReference>()
-            .HasOne(reference => reference.FileAsset)
-            .WithMany(asset => asset.References)
-            .HasForeignKey(reference => reference.FileAssetId)
-            .OnDelete(DeleteBehavior.Restrict);
     }
 
     private static void ConfigureComments(ModelBuilder modelBuilder)
@@ -163,13 +248,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasOne(comment => comment.Act)
             .WithMany(act => act.Comments)
             .HasForeignKey(comment => comment.ActId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        // A user's notes go with the user, as their cases and parties already do.
-        modelBuilder.Entity<Comment>()
-            .HasOne(comment => comment.Author)
-            .WithMany()
-            .HasForeignKey(comment => comment.AuthorUserId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

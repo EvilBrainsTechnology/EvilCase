@@ -12,9 +12,9 @@ namespace EvilBrains.EvilCase.Data.Entities;
 public record RefreshToken : IEntity
 {
     [Key]
-    public long Id { get; init; }
+    public Guid Id { get; init; } = Guid.CreateVersion7();
 
-    public required long UserId { get; init; }
+    public required Guid UserId { get; init; }
 
     /// <summary>
     /// Shared by every token of one rotation chain. Revoking a session, and revoking a chain after a
@@ -29,7 +29,9 @@ public record RefreshToken : IEntity
     [MaxLength(64)]
     public required string TokenHash { get; init; }
 
-    public required DateTime Created { get; init; }
+    public DateTime Created { get; init; }
+
+    public DateTime? Updated { get; init; }
 
     /// <summary>
     /// When this token stops being accepted. Rotation moves it forward.

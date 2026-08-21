@@ -23,7 +23,7 @@
                                 <Icon CssClass="icon" IconType="AppIcons.Search" />
                             </span>
                             <input type="search" class="form-control" aria-label="Hledat ve spisech"
-                                   placeholder="Hledat v názvu a předmětu"
+                                   placeholder="Hledat v názvu a popisu"
                                    value="@this.search" @oninput="this.OnSearchInput" />
                         </div>
                     </div>
@@ -73,13 +73,7 @@
                             @CaseListFormat.ChangedOn(item)
                         </TemplateColumn>
                         <PropertyColumn Property="@(item => item.Title)" Title="Název" />
-                        <PropertyColumn Property="@(item => item.Subject)" Title="Předmět" />
-                        <TemplateColumn Title="Štítky" Context="item">
-                            @foreach (var tag in item.Tags)
-                            {
-                                <span class="badge bg-secondary-lt me-1">@tag</span>
-                            }
-                        </TemplateColumn>
+                        <PropertyColumn Property="@(item => item.Description)" Title="Popis" />
                         <TemplateColumn Title="Stav" Context="item" Class="text-nowrap">
                             <Status BackgroundColor="CaseStatusDisplay.Color(item.Status)" Lite="true">@CaseStatusDisplay.Text(item.Status)</Status>
                         </TemplateColumn>

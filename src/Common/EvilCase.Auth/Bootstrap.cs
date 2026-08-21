@@ -1,5 +1,6 @@
 using System.Text;
 using EvilBrains.EvilCase.Api.Contract.User;
+using EvilBrains.EvilCase.Data.DbContexts;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -77,8 +78,9 @@ public static class Bootstrap
     }
 
     /// <summary>
-    /// Creates the configured administrator where the database holds no user at all. Runs after the
-    /// migrations and before anything is served, so an empty deployment is reachable on first start.
+    /// Creates the account, the tenant, the configured administrator and the administrator's default
+    /// contact where the database holds no user at all. Runs after the migrations and before anything
+    /// is served, so an empty deployment is reachable on first start.
     /// </summary>
     public static async Task SeedEvilCaseUser(this IHost host, CancellationToken cancellationToken = default)
     {
@@ -86,6 +88,18 @@ public static class Bootstrap
 
         await using var scope = host.Services.CreateAsyncScope();
 
-        await scope.ServiceProvider.GetRequiredService<IUserSeeder>().Seed(cancellationToken);
+        var seeder = scope.ServiceProvider.GetRequiredService<IUserSeeder>();
+
+        // A deployment that names no seed never reaches the database, so a host with nothing to seed
+        // starts without a connection.
+        if (!seeder.IsConfigured)
+            return;
+
+        var dbSession = scope.ServiceProvider.GetRequiredService<IDbSession>();
+        await using var transaction = await dbSession.Current.Database.BeginTransactionAsync(cancellationToken);
+
+        await seeder.Seed(cancellationToken);
+
+        await transaction.CommitAsync(cancellationToken);
     }
 }

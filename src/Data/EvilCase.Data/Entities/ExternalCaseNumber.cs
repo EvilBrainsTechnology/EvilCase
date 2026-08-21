@@ -8,19 +8,18 @@ namespace EvilBrains.EvilCase.Data.Entities;
 /// assigns its own, so a case carries as many of these as there are authorities in it — and none of them
 /// is the case's own mark, which is <see cref="Case.CaseNumber"/>.
 /// </summary>
-/// <remarks>
-/// This is the mark of the <em>proceeding</em>. The reference number (<em>číslo jednací</em>) of a
-/// single document belongs to the act that document arrived with, not here.
-/// </remarks>
-[Index(nameof(CaseId), nameof(Value), IsUnique = true)]
-[Index(nameof(Value))]
-[Index(nameof(AssignedByPartyId))]
-public record ExternalCaseNumber : IEntity
+[Index(nameof(TenantId), nameof(CaseId), nameof(Value), IsUnique = true)]
+[Index(nameof(AssignedByContactId))]
+public record ExternalCaseNumber : IUserOwnedEntity
 {
     [Key]
-    public long Id { get; init; }
+    public Guid Id { get; init; } = Guid.CreateVersion7();
 
-    public required long CaseId { get; init; }
+    public Guid TenantId { get; init; }
+
+    public required Guid UserId { get; init; }
+
+    public required Guid CaseId { get; init; }
 
     /// <summary>
     /// The mark as whoever assigned it writes it, spacing and all — it is quoted back to them.
@@ -32,11 +31,13 @@ public record ExternalCaseNumber : IEntity
     /// Who assigned it. Required: a mark nobody assigned is the case's own, and that one is a column on
     /// the case rather than a row here.
     /// </summary>
-    public required long AssignedByPartyId { get; init; }
+    public required Guid AssignedByContactId { get; init; }
 
-    public required DateTime Created { get; init; }
+    public DateTime Created { get; init; }
+
+    public DateTime? Updated { get; init; }
 
     public Case? Case { get; init; }
 
-    public Party? AssignedBy { get; init; }
+    public Contact? AssignedBy { get; init; }
 }

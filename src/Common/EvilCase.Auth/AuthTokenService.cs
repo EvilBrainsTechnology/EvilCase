@@ -33,10 +33,11 @@ internal sealed class AuthTokenService(IOptions<AuthSettings> options, TimeProvi
             SigningCredentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256),
             Claims = new Dictionary<string, object>(StringComparer.Ordinal)
             {
-                [AuthClaims.Subject] = user.Id.ToString(CultureInfo.InvariantCulture),
+                [AuthClaims.Subject] = user.Id.ToString("D", CultureInfo.InvariantCulture),
                 [AuthClaims.Email] = user.Email,
                 [AuthClaims.Role] = user.Role.ToString(),
                 [AuthClaims.AuthSessionId] = authSessionId.ToString("N", CultureInfo.InvariantCulture),
+                [AuthClaims.Tenant] = user.TenantId.ToString("D", CultureInfo.InvariantCulture),
                 [JwtRegisteredClaimNames.Jti] = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture),
             },
         };

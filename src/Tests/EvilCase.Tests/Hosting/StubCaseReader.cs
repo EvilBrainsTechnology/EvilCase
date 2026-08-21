@@ -17,10 +17,9 @@ internal sealed class StubCaseReader : ICaseReader
         [
             new CaseListItem
             {
-                Id = 1,
+                Id = Guid.CreateVersion7(),
                 Title = Title,
                 Status = CaseStatus.Active,
-                Tags = [],
                 Created = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
             },
         ]);

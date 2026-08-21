@@ -77,11 +77,11 @@ public class AuthServiceTests
     [Test]
     public async Task AFailedAttemptCountsAndASuccessfulOneClearsTheCount()
     {
-        _ = await this.harness.Login(WrongPassword);
+        await this.harness.Login(WrongPassword);
 
         var afterFailure = this.harness.Users.Get(this.harness.User.Id).FailedLoginAttempts;
 
-        _ = await this.harness.Login(AuthTestHarness.Password);
+        await this.harness.Login(AuthTestHarness.Password);
 
         using (Assert.EnterMultipleScope())
         {
@@ -112,7 +112,7 @@ public class AuthServiceTests
     public async Task TheLockoutElapsesOnItsOwn()
     {
         for (var attempt = 0; attempt < AuthTestHarness.MaxFailedAttempts; attempt++)
-            _ = await this.harness.Login(WrongPassword);
+            await this.harness.Login(WrongPassword);
 
         this.harness.Time.Advance(this.harness.Settings.Lockout.Duration + TimeSpan.FromSeconds(1));
 
@@ -129,7 +129,7 @@ public class AuthServiceTests
     public async Task OneMissAfterAnElapsedLockoutDoesNotLockAgain()
     {
         for (var attempt = 0; attempt < AuthTestHarness.MaxFailedAttempts; attempt++)
-            _ = await this.harness.Login(WrongPassword);
+            await this.harness.Login(WrongPassword);
 
         this.harness.Time.Advance(this.harness.Settings.Lockout.Duration + TimeSpan.FromSeconds(1));
 

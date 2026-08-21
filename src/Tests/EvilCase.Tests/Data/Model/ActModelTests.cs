@@ -15,8 +15,13 @@ public class ActModelTests : ModelFixture
     public void EveryIdentifierIsStoredUnderTheNameTheVisionGivesIt()
     {
         var act = Model.FindEntityType(typeof(Act));
+        var columns = ColumnsOf(act);
 
-        Assert.That(ColumnsOf(act), Has.Member("ExternalActNumber"), "the number the issuing authority gave an act is stored in a column named ExternalActNumber");
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(columns, Has.Member("ActNumber"), "the act's own mark is stored in a column named ActNumber");
+            Assert.That(columns, Does.Not.Contain("ExternalActNumber"), "the number the issuing authority gave an act is a table now");
+        }
     }
 
     [Test]
@@ -41,45 +46,44 @@ public class ActModelTests : ModelFixture
     }
 
     [Test]
-    public void TheActSummaryIsAsLongAsItNeedsToBe()
+    public void TheActDescriptionIsAsLongAsItNeedsToBe()
     {
         var act = Model.FindEntityType(typeof(Act));
 
         Assert.That(act, Is.Not.Null);
-        Assert.That(act.FindProperty(nameof(Act.Summary))?.GetMaxLength(), Is.Null, "the summary is long-form and lives on the act alone");
+        Assert.That(act.FindProperty(nameof(Act.Description))?.GetMaxLength(), Is.Null, "an act description is free text and carries no cap");
     }
 
     [Test]
-    public void ActsAreIndexedForOrderingByDateWithinACase()
+    public void AnActIsIndexedByItsCaseAndNotByItsDate()
     {
         var act = Model.FindEntityType(typeof(Act));
 
         Assert.That(act, Is.Not.Null);
 
-        string[] expected = [nameof(Act.CaseId), nameof(Act.Date)];
-        var byDate = act.GetIndexes().SingleOrDefault(index => index.Properties.Select(property => property.Name).SequenceEqual(expected, StringComparer.Ordinal));
+        var byCase = act.GetIndexes().SingleOrDefault(index => index.Properties.Select(property => property.Name).SequenceEqual([nameof(Act.CaseId)], StringComparer.Ordinal));
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(byDate, Is.Not.Null, "an act list reads one case ordered by the act date, and (CaseId, Date) is what serves it");
-            Assert.That(byDate?.IsUnique, Is.False, "two acts of one case share a date whenever they were filed on the same day");
+            Assert.That(byCase, Is.Not.Null, "deleting a case reads its acts by CaseId");
+            Assert.That(IsIndexed(act, nameof(Act.Date)), Is.False, "no read filters or orders acts by their date yet");
         }
     }
 
     [Test]
-    public void AnActNeverTakesAPartyDownWithIt()
+    public void AnActNeverTakesAContactDownWithIt()
     {
         var act = Model.FindEntityType(typeof(Act));
 
         Assert.That(act, Is.Not.Null);
 
-        var toParties = act.GetForeignKeys().Where(key => key.PrincipalEntityType.ClrType == typeof(Party)).ToList();
+        var toContacts = act.GetForeignKeys().Where(key => key.PrincipalEntityType.ClrType == typeof(Contact)).ToList();
         var toCase = act.GetForeignKeys().SingleOrDefault(key => key.PrincipalEntityType.ClrType == typeof(Case));
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(toParties, Has.Count.EqualTo(2), "an act references who issued it and who it was addressed to");
-            Assert.That(toParties.TrueForAll(key => key.DeleteBehavior == DeleteBehavior.Restrict), Is.True, "a party outlives any one act naming it");
+            Assert.That(toContacts, Has.Count.EqualTo(2), "an act references its sender and its recipient");
+            Assert.That(toContacts.TrueForAll(key => key.DeleteBehavior == DeleteBehavior.Restrict), Is.True, "a contact outlives any one act naming it");
             Assert.That(toCase?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Cascade), "an act has no meaning without its case");
         }
     }

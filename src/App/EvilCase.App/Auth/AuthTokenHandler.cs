@@ -33,7 +33,7 @@ internal sealed class AuthTokenHandler(IAccessTokenStore tokens, IServiceProvide
         var contentType = request.Content?.Headers.ContentType;
 
         if (this.IsExpiring())
-            _ = await this.Session().Renew(cancellationToken);
+            await this.Session().Renew(cancellationToken);
 
         this.Authorize(request);
 
@@ -79,7 +79,7 @@ internal sealed class AuthTokenHandler(IAccessTokenStore tokens, IServiceProvide
         var clone = new HttpRequestMessage(request.Method, request.RequestUri);
 
         foreach (var header in request.Headers)
-            _ = clone.Headers.TryAddWithoutValidation(header.Key, header.Value);
+            clone.Headers.TryAddWithoutValidation(header.Key, header.Value);
 
         // Where the browser request options live, the fetch credentials among them: without them the
         // retry would leave the refresh cookie behind and ignore the one coming back.

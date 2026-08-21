@@ -36,6 +36,35 @@ public class MigrationsTests
         }
     }
 
+    [Test]
+    public void TheMigrationsCreateEveryIndexTheModelMaps()
+    {
+        using var context = new ApplicationDbContextFactory().CreateDbContext([]);
+
+        var created = context.GetService<IMigrationsAssembly>().Migrations
+            .Select(entry => context.GetService<IMigrationsAssembly>().CreateMigration(entry.Value, context.GetService<IDatabaseProvider>().Name))
+            .SelectMany(migration => migration.UpOperations)
+            .OfType<CreateIndexOperation>()
+            .Select(operation => operation.Name)
+            .ToList();
+
+        var mapped = context.Model.GetRelationalModel().Tables.SelectMany(table => table.Indexes).Select(index => index.Name).ToList();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(mapped, Is.Not.Empty, "the model maps indexes at all, or this test passes vacuously");
+            Assert.That(created, Is.EquivalentTo(mapped), "the migrations and the model disagree about indexes");
+        }
+    }
+
+    [Test]
+    public void TheSnapshotAgreesWithTheModel()
+    {
+        using var context = new ApplicationDbContextFactory().CreateDbContext([]);
+
+        Assert.That(context.Database.HasPendingModelChanges(), Is.False, "the migration and its snapshot are behind the model, so a fresh database is not the one the model maps");
+    }
+
     private static Dictionary<string, HashSet<string>> Replay(DbContext context)
     {
         var assembly = context.GetService<IMigrationsAssembly>();

@@ -8,21 +8,27 @@ namespace EvilBrains.EvilCase.Auth;
 /// </summary>
 internal interface IUserStore
 {
-    public Task<User?> FindByEmail(string normalizedEmail, CancellationToken cancellationToken);
+    /// <summary>
+    /// Takes the e-mail as the caller has it; the store is what normalises.
+    /// </summary>
+    public Task<User?> FindByEmail(string email, CancellationToken cancellationToken);
 
-    public Task<User?> FindById(long id, CancellationToken cancellationToken);
+    public Task<User?> FindById(Guid id, CancellationToken cancellationToken);
 
     /// <summary>
     /// Records a failed sign-in; a non-null <paramref name="lockoutEnd"/> locks the account.
     /// </summary>
-    public Task RecordFailedLogin(long id, int failedAttempts, DateTime? lockoutEnd, DateTime now, CancellationToken cancellationToken);
+    public Task RecordFailedLogin(Guid id, int failedAttempts, DateTime? lockoutEnd, CancellationToken cancellationToken);
 
     /// <summary>
     /// Clears the failure counter and any lockout.
     /// </summary>
-    public Task RecordSuccessfulLogin(long id, DateTime now, CancellationToken cancellationToken);
+    public Task RecordSuccessfulLogin(Guid id, CancellationToken cancellationToken);
 
     public Task<bool> Any(CancellationToken cancellationToken);
 
-    public Task Add(User user, CancellationToken cancellationToken);
+    /// <summary>
+    /// Writes the user and its default contact in one save. A user without a default contact cannot exist.
+    /// </summary>
+    public Task Add(User user, Contact defaultContact, CancellationToken cancellationToken);
 }

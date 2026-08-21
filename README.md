@@ -1,6 +1,6 @@
 # EvilCase
 
-A case-file system for administrative and legal proceedings: a case accumulates acts, parties, file marks, tags and comments, and relates to any number of other cases. Built so far — the domain model in PostgreSQL, authentication, and a Blazor WebAssembly frontend that ships the case list.
+A case-file system for administrative and legal proceedings: a case accumulates acts, contacts, file marks, files and comments, and hangs under an optional parent case. Built so far — the domain model in PostgreSQL, authentication, and a Blazor WebAssembly frontend that ships the case list.
 
 > **Proprietary — all rights reserved.** This repository is public to read, not to use. No right to run, copy, modify or distribute the software is granted; see [LICENSE.txt](LICENSE.txt) and ask before you use anything.
 
@@ -47,7 +47,7 @@ dotnet r build
 dotnet r run                 # https://localhost:5000 (Scalar UI at /scalar)
 ```
 
-Registration is closed, so signing in needs the administrator seeded from `EvilBrains__EvilCase__Auth__Seed__Email` and `EvilBrains__EvilCase__Auth__Seed__Password` — set both before the first start against an empty database.
+Registration is closed, so signing in needs the administrator seeded from `EvilBrains__EvilCase__Auth__Seed__Email` and `EvilBrains__EvilCase__Auth__Seed__Password` — set both before the first start against an empty database. The seed also creates the account, the tenant and the administrator's default contact.
 
 ### Everything in Docker
 

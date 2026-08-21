@@ -20,7 +20,7 @@ public interface IAuthService
     /// </summary>
     public Task SignOut(string refreshToken, CancellationToken cancellationToken);
 
-    public Task SignOutEverywhere(long userId, CancellationToken cancellationToken);
+    public Task SignOutEverywhere(Guid userId, CancellationToken cancellationToken);
 
-    public Task<IReadOnlyList<UserSession>> GetSessions(long userId, CancellationToken cancellationToken);
+    public Task<IReadOnlyList<UserSession>> GetSessions(Guid userId, CancellationToken cancellationToken);
 }

@@ -143,8 +143,8 @@ public class AuthController(IAuthService authService) : ControllerBase
             IsCurrent = current == session.AuthSessionId,
         };
 
-    private long UserId() =>
-        long.TryParse(this.User.FindFirstValue(AuthClaims.Subject), CultureInfo.InvariantCulture, out var id)
+    private Guid UserId() =>
+        Guid.TryParse(this.User.FindFirstValue(AuthClaims.Subject), CultureInfo.InvariantCulture, out var id)
             ? id
             : throw new InvalidOperationException("Authenticated user is missing the subject claim");
 

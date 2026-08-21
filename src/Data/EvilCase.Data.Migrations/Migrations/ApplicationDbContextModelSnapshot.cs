@@ -17,47 +17,22 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.10")
+                .HasAnnotation("ProductVersion", "10.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
+            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "pg_trgm");
+            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "unaccent");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Act", b =>
+            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Account", b =>
                 {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<long?>("AddressedToPartyId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("CaseId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateOnly>("Date")
-                        .HasColumnType("date");
-
-                    b.Property<string>("Direction")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
-
-                    b.Property<string>("ExternalActNumber")
-                        .HasMaxLength(128)
-                        .HasColumnType("character varying(128)");
-
-                    b.Property<long?>("IssuedByPartyId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Summary")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Title")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
@@ -67,55 +42,76 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AddressedToPartyId");
-
-                    b.HasIndex("ExternalActNumber");
-
-                    b.HasIndex("IssuedByPartyId");
-
-                    b.HasIndex("CaseId", "Date");
-
-                    b.ToTable("Acts");
+                    b.ToTable("Accounts");
                 });
 
-            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.ActFileReference", b =>
+            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Act", b =>
                 {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                    b.Property<string>("ActNumber")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
 
-                    b.Property<long>("ActId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid?>("AddressedToContactId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CaseId")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<long>("FileAssetId")
-                        .HasColumnType("bigint");
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
 
-                    b.Property<string>("FileName")
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Direction")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)");
+
+                    b.Property<Guid>("IssuedByContactId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
+                    b.Property<DateTime?>("Updated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("ActId");
+                    b.HasIndex("AddressedToContactId");
 
-                    b.HasIndex("FileAssetId");
+                    b.HasIndex("CaseId");
 
-                    b.ToTable("ActFileReferences");
+                    b.HasIndex("IssuedByContactId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("TenantId", "ActNumber")
+                        .IsUnique();
+
+                    b.ToTable("Acts");
                 });
 
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Case", b =>
                 {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("CaseNumber")
                         .IsRequired()
@@ -125,17 +121,22 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<long>("OwnerId")
-                        .HasColumnType("bigint");
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("ParentCaseId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
+                        .HasMaxLength(18)
+                        .HasColumnType("character varying(18)");
 
-                    b.Property<string>("Subject")
-                        .HasMaxLength(4000)
-                        .HasColumnType("character varying(4000)");
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -145,94 +146,57 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.Property<DateTime?>("Updated")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("OwnerId");
+                    b.HasIndex("ParentCaseId");
 
-                    b.HasIndex("OwnerId", "CaseNumber")
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("TenantId", "CaseNumber")
                         .IsUnique();
 
                     b.ToTable("Cases");
                 });
 
-            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.CaseRelation", b =>
-                {
-                    b.Property<long>("CaseId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("RelatedCaseId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("CaseId", "RelatedCaseId");
-
-                    b.HasIndex("RelatedCaseId");
-
-                    b.ToTable("CaseRelations", t =>
-                        {
-                            t.HasCheckConstraint("CK_CaseRelations_Ordered", "\"CaseId\" < \"RelatedCaseId\"");
-                        });
-                });
-
-            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.CaseTag", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<long>("CaseId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Value")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Value");
-
-                    b.HasIndex("CaseId", "Value")
-                        .IsUnique();
-
-                    b.ToTable("CaseTags");
-                });
-
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Comment", b =>
                 {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<long?>("ActId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("AuthorUserId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid?>("ActId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Body")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<long?>("CaseId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid?>("CaseId")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTime?>("Updated")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ActId");
 
-                    b.HasIndex("AuthorUserId");
-
                     b.HasIndex("CaseId");
+
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Comments", t =>
                         {
@@ -240,22 +204,67 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                         });
                 });
 
-            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.ExternalCaseNumber", b =>
+            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Contact", b =>
                 {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<long>("AssignedByPartyId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("CaseId")
-                        .HasColumnType("bigint");
+                    b.Property<string>("Address")
+                        .HasMaxLength(1024)
+                        .HasColumnType("character varying(1024)");
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DataBoxId")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(9)
+                        .HasColumnType("character varying(9)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("Updated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("Contacts");
+                });
+
+            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.ExternalActNumber", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ActId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AssignedByContactId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("Updated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Value")
                         .IsRequired()
@@ -264,11 +273,55 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AssignedByPartyId");
+                    b.HasIndex("ActId");
 
-                    b.HasIndex("Value");
+                    b.HasIndex("AssignedByContactId");
 
-                    b.HasIndex("CaseId", "Value")
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("TenantId", "ActId", "Value")
+                        .IsUnique();
+
+                    b.ToTable("ExternalActNumbers");
+                });
+
+            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.ExternalCaseNumber", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AssignedByContactId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CaseId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("Updated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssignedByContactId");
+
+                    b.HasIndex("CaseId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("TenantId", "CaseId", "Value")
                         .IsUnique();
 
                     b.ToTable("ExternalCaseNumbers");
@@ -276,14 +329,14 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
 
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.FileAsset", b =>
                 {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                    b.Property<Guid?>("ActId")
+                        .HasColumnType("uuid");
 
-                    b.Property<long>("ActId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid?>("CaseId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("ContentHash")
                         .IsRequired()
@@ -302,75 +355,38 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("character varying(128)");
 
-                    b.Property<long>("OwnerId")
-                        .HasColumnType("bigint");
-
                     b.Property<long>("SizeBytes")
                         .HasColumnType("bigint");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("Updated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ActId");
 
-                    b.HasIndex("OwnerId");
+                    b.HasIndex("CaseId");
 
-                    b.HasIndex("OwnerId", "ContentHash")
-                        .IsUnique();
+                    b.HasIndex("TenantId");
 
-                    b.ToTable("FileAssets");
-                });
+                    b.HasIndex("UserId");
 
-            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Party", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<string>("Address")
-                        .HasMaxLength(1024)
-                        .HasColumnType("character varying(1024)");
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("DataBoxId")
-                        .HasMaxLength(16)
-                        .HasColumnType("character varying(16)");
-
-                    b.Property<string>("Kind")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<long>("OwnerId")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime?>("Updated")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DataBoxId");
-
-                    b.HasIndex("OwnerId");
-
-                    b.ToTable("Parties");
+                    b.ToTable("FileAssets", t =>
+                        {
+                            t.HasCheckConstraint("CK_FileAssets_OnACaseOrAnAct", "(\"CaseId\" IS NULL) <> (\"ActId\" IS NULL)");
+                        });
                 });
 
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.RefreshToken", b =>
                 {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("AuthSessionId")
                         .HasColumnType("uuid");
@@ -399,12 +415,15 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
+                    b.Property<DateTime?>("Updated")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("UserAgent")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -418,16 +437,42 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.ToTable("RefreshTokens");
                 });
 
-            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.User", b =>
+            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Tenant", b =>
                 {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime?>("Updated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.ToTable("Tenants");
+                });
+
+            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.User", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("DefaultContactId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -447,25 +492,32 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
 
                     b.Property<string>("Role")
                         .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
+                        .HasMaxLength(5)
+                        .HasColumnType("character varying(5)");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime?>("Updated")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("DefaultContactId");
+
                     b.HasIndex("Email")
                         .IsUnique();
+
+                    b.HasIndex("TenantId");
 
                     b.ToTable("Users");
                 });
 
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Act", b =>
                 {
-                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Party", "AddressedTo")
+                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Contact", "AddressedToContact")
                         .WithMany("AddressedActs")
-                        .HasForeignKey("AddressedToPartyId")
+                        .HasForeignKey("AddressedToContactId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("EvilBrains.EvilCase.Data.Entities.Case", "Case")
@@ -474,72 +526,51 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Party", "IssuedBy")
+                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Contact", "IssuedByContact")
                         .WithMany("IssuedActs")
-                        .HasForeignKey("IssuedByPartyId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("AddressedTo");
-
-                    b.Navigation("Case");
-
-                    b.Navigation("IssuedBy");
-                });
-
-            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.ActFileReference", b =>
-                {
-                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Act", "Act")
-                        .WithMany("FileReferences")
-                        .HasForeignKey("ActId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("EvilBrains.EvilCase.Data.Entities.FileAsset", "FileAsset")
-                        .WithMany("References")
-                        .HasForeignKey("FileAssetId")
+                        .HasForeignKey("IssuedByContactId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Act");
+                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
-                    b.Navigation("FileAsset");
+                    b.HasOne("EvilBrains.EvilCase.Data.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AddressedToContact");
+
+                    b.Navigation("Case");
+
+                    b.Navigation("IssuedByContact");
                 });
 
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Case", b =>
                 {
-                    b.HasOne("EvilBrains.EvilCase.Data.Entities.User", "Owner")
+                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Case", "ParentCase")
+                        .WithMany("ChildCases")
+                        .HasForeignKey("ParentCaseId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Tenant", null)
                         .WithMany()
-                        .HasForeignKey("OwnerId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Owner");
-                });
-
-            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.CaseRelation", b =>
-                {
-                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Case", null)
+                    b.HasOne("EvilBrains.EvilCase.Data.Entities.User", null)
                         .WithMany()
-                        .HasForeignKey("CaseId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Case", null)
-                        .WithMany()
-                        .HasForeignKey("RelatedCaseId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.CaseTag", b =>
-                {
-                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Case", "Case")
-                        .WithMany("Tags")
-                        .HasForeignKey("CaseId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Case");
+                    b.Navigation("ParentCase");
                 });
 
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Comment", b =>
@@ -549,29 +580,73 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                         .HasForeignKey("ActId")
                         .OnDelete(DeleteBehavior.Cascade);
 
-                    b.HasOne("EvilBrains.EvilCase.Data.Entities.User", "Author")
-                        .WithMany()
-                        .HasForeignKey("AuthorUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("EvilBrains.EvilCase.Data.Entities.Case", "Case")
                         .WithMany("Comments")
                         .HasForeignKey("CaseId")
                         .OnDelete(DeleteBehavior.Cascade);
 
-                    b.Navigation("Act");
+                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
-                    b.Navigation("Author");
+                    b.HasOne("EvilBrains.EvilCase.Data.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Act");
 
                     b.Navigation("Case");
                 });
 
+            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Contact", b =>
+                {
+                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.ExternalActNumber", b =>
+                {
+                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Act", "Act")
+                        .WithMany("ExternalActNumbers")
+                        .HasForeignKey("ActId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Contact", "AssignedBy")
+                        .WithMany("AssignedExternalActNumbers")
+                        .HasForeignKey("AssignedByContactId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("EvilBrains.EvilCase.Data.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Act");
+
+                    b.Navigation("AssignedBy");
+                });
+
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.ExternalCaseNumber", b =>
                 {
-                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Party", "AssignedBy")
+                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Contact", "AssignedBy")
                         .WithMany("AssignedExternalCaseNumbers")
-                        .HasForeignKey("AssignedByPartyId")
+                        .HasForeignKey("AssignedByContactId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -579,6 +654,18 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                         .WithMany("ExternalCaseNumbers")
                         .HasForeignKey("CaseId")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("EvilBrains.EvilCase.Data.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("AssignedBy");
@@ -591,29 +678,28 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.HasOne("EvilBrains.EvilCase.Data.Entities.Act", "Act")
                         .WithMany("Files")
                         .HasForeignKey("ActId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Case", "Case")
+                        .WithMany("Files")
+                        .HasForeignKey("CaseId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("EvilBrains.EvilCase.Data.Entities.User", "Owner")
+                    b.HasOne("EvilBrains.EvilCase.Data.Entities.User", null)
                         .WithMany()
-                        .HasForeignKey("OwnerId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Act");
 
-                    b.Navigation("Owner");
-                });
-
-            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Party", b =>
-                {
-                    b.HasOne("EvilBrains.EvilCase.Data.Entities.User", "Owner")
-                        .WithMany()
-                        .HasForeignKey("OwnerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Owner");
+                    b.Navigation("Case");
                 });
 
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.RefreshToken", b =>
@@ -627,11 +713,37 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Tenant", b =>
+                {
+                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Account", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.User", b =>
+                {
+                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Contact", "DefaultContact")
+                        .WithMany()
+                        .HasForeignKey("DefaultContactId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("DefaultContact");
+                });
+
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Act", b =>
                 {
                     b.Navigation("Comments");
 
-                    b.Navigation("FileReferences");
+                    b.Navigation("ExternalActNumbers");
 
                     b.Navigation("Files");
                 });
@@ -640,21 +752,20 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                 {
                     b.Navigation("Acts");
 
+                    b.Navigation("ChildCases");
+
                     b.Navigation("Comments");
 
                     b.Navigation("ExternalCaseNumbers");
 
-                    b.Navigation("Tags");
+                    b.Navigation("Files");
                 });
 
-            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.FileAsset", b =>
-                {
-                    b.Navigation("References");
-                });
-
-            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Party", b =>
+            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Contact", b =>
                 {
                     b.Navigation("AddressedActs");
+
+                    b.Navigation("AssignedExternalActNumbers");
 
                     b.Navigation("AssignedExternalCaseNumbers");
 

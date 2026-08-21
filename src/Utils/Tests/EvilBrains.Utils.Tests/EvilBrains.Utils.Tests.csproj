@@ -29,6 +29,7 @@
     <ProjectReference Include="..\..\..\Utils\EvilBrains.Collections\EvilBrains.Collections.csproj" />
     <ProjectReference Include="..\..\EvilBrains.ApiClient\EvilBrains.ApiClient.csproj" />
     <ProjectReference Include="..\..\EvilBrains.Cryptography\EvilBrains.Cryptography.csproj" />
+    <ProjectReference Include="..\..\EvilBrains.Dispose\EvilBrains.Dispose.csproj" />
     <ProjectReference Include="..\..\EvilBrains.ApiClient.Generator\EvilBrains.ApiClient.Generator.csproj" />
     <ProjectReference Include="..\..\EvilBrains.Logging.AspNetCore\EvilBrains.Logging.AspNetCore.csproj" />
     <ProjectReference Include="..\..\EvilBrains.Logging.Contract\EvilBrains.Logging.Contract.csproj" />

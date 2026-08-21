@@ -33,12 +33,13 @@ public class RefreshCookieTests
     {
         var users = new FakeUserStore();
 
-        _ = users.Seed(new()
+        users.Seed(new()
         {
+            TenantId = Guid.CreateVersion7(),
             Email = Email,
             PasswordHash = PasswordHasher.Hash(Password),
             Role = UserRole.User,
-            Created = DateTime.UtcNow,
+            DefaultContactId = Guid.CreateVersion7(),
         });
 
         // The two types that would reach for the database; everything else is the real host. The rate
@@ -168,7 +169,7 @@ public class RefreshCookieTests
         var first = ValueOf(RefreshCookieOf(signIn));
 
         using var renewed = await this.Refresh(first);
-        _ = renewed.StatusCode;
+        Assert.That(renewed.StatusCode, Is.EqualTo(HttpStatusCode.OK), "the tab that renewed first must be the one holding the live token");
 
         using var replayed = await this.Refresh(first);
 

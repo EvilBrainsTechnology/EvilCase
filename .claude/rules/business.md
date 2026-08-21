@@ -26,8 +26,9 @@ What it cannot see:
 - One `IQueryable` extension step per rule, composed by a reader; `ToListAsync` once, at the
   end. The projection selects straight into the contract DTO.
 
-## Ownership
+## Tenancy
 
-`IOwnerContext` is the only place ownership is resolved; a query takes it, never an `ownerId`
-parameter or `HttpContext`. Where the schema cannot keep a row inside one owner, the write is
-what enforces it, and the read and the delete are owner-scoped too.
+`ITenantContext` is the only place the tenant is resolved; a query takes it, never a `tenantId`
+parameter or `HttpContext`. Every tenant entity implements `ITenantEntity`, carries a query filter
+on `TenantId` and leads its unique indexes with it; `SaveChanges` refuses a row of another tenant.
+Work outside a request names its tenant with `Enter`.

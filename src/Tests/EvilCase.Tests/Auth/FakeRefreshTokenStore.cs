@@ -26,7 +26,7 @@ internal sealed class FakeRefreshTokenStore : IRefreshTokenStore
     public Task Add(RefreshToken refreshToken, CancellationToken cancellationToken)
     {
         lock (this.writes)
-            this.tokens.Add(refreshToken with { Id = this.tokens.Count + 1 });
+            this.tokens.Add(refreshToken);
 
         return Task.CompletedTask;
     }
@@ -34,7 +34,7 @@ internal sealed class FakeRefreshTokenStore : IRefreshTokenStore
     public Task<RefreshToken?> Find(string tokenHash, CancellationToken cancellationToken) =>
         Task.FromResult(this.tokens.Find(token => string.Equals(token.TokenHash, tokenHash, StringComparison.Ordinal)));
 
-    public async Task<bool> Revoke(long id, DateTime now, CancellationToken cancellationToken)
+    public async Task<bool> Revoke(Guid id, DateTime now, CancellationToken cancellationToken)
     {
         if (this.gate is { } paused)
             await paused.Task;
@@ -44,23 +44,23 @@ internal sealed class FakeRefreshTokenStore : IRefreshTokenStore
 
     public Task RevokeSession(Guid authSessionId, DateTime now, CancellationToken cancellationToken)
     {
-        _ = this.RevokeMatching(token => token.AuthSessionId == authSessionId, now, alsoUsed: false);
+        this.RevokeMatching(token => token.AuthSessionId == authSessionId, now, alsoUsed: false);
 
         return Task.CompletedTask;
     }
 
-    public Task RevokeAll(long userId, DateTime now, CancellationToken cancellationToken)
+    public Task RevokeAll(Guid userId, DateTime now, CancellationToken cancellationToken)
     {
-        _ = this.RevokeMatching(token => token.UserId == userId, now, alsoUsed: false);
+        this.RevokeMatching(token => token.UserId == userId, now, alsoUsed: false);
 
         return Task.CompletedTask;
     }
 
-    public Task<IReadOnlyList<RefreshToken>> GetActive(long userId, DateTime now, CancellationToken cancellationToken) =>
+    public Task<IReadOnlyList<RefreshToken>> GetActive(Guid userId, DateTime now, CancellationToken cancellationToken) =>
         Task.FromResult<IReadOnlyList<RefreshToken>>(
             [.. this.tokens.Where(token => token.UserId == userId && token.RevokedAt is null && token.Expires > now && token.SessionExpires > now)]);
 
-    public Task<IReadOnlyDictionary<Guid, DateTime>> GetSessionStarts(long userId, CancellationToken cancellationToken) =>
+    public Task<IReadOnlyDictionary<Guid, DateTime>> GetSessionStarts(Guid userId, CancellationToken cancellationToken) =>
         Task.FromResult<IReadOnlyDictionary<Guid, DateTime>>(
             this.tokens
                 .Where(token => token.UserId == userId)
