@@ -44,6 +44,8 @@ The service is published over plain HTTP for a reverse proxy that terminates TLS
 
 Seq is driven by `EVILCASE_SEQ_URL` alone — an empty one logs to the console only.
 
+The file bytes live on the `files` named volume. `EvilBrains__EvilCase__Files__RootPath` points at `/var/lib/evilcase/files` inside the container; the image creates that directory owned by the application user, so a fresh volume inherits the ownership. Without the mount, the files die with the container.
+
 ```
 cp .env.example .env   # then fill in the connection string and the JWT key
 docker compose up -d

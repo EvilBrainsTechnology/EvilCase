@@ -49,6 +49,10 @@ COPY --from=build /app .
 # The image is published to a public registry and travels without the repository around it
 COPY LICENSE.txt .
 
+# The bytes of uploaded files. Created here and owned by the application user, so a named volume
+# mounted over it inherits that ownership and the non-root user can write to it.
+RUN mkdir -p /var/lib/evilcase/files && chown "$APP_UID:$APP_UID" /var/lib/evilcase/files
+
 USER $APP_UID
 EXPOSE 8080
 

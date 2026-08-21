@@ -116,6 +116,8 @@ EvilBrains__EvilCase__Auth__Seed__Email=admin@evilcase.local
 EvilBrains__EvilCase__Auth__Seed__Password=DevPassword123!
 
 EvilBrains__EvilCase__Logging__Seq__ApiKey=
+
+EvilBrains__EvilCase__Files__RootPath=/tmp/evilcase-files
 ENV
 fi
 
