@@ -35,7 +35,8 @@ internal sealed class TenantWriteInterceptor(ITenantContext tenantContext) : Sav
     private void Apply(DbContext? context)
     {
         var entries = context?.ChangeTracker.Entries()
-            .Where(entry => entry.Entity is ITenantEntity && entry.State is EntityState.Added or EntityState.Modified or EntityState.Deleted)
+            .Where(entry => entry.Entity is ITenantEntity)
+            .Where(entry => entry.State is EntityState.Added or EntityState.Modified or EntityState.Deleted)
             .ToList();
 
         // The tenant is read only where the write touches a tenant row, so signing in still writes.
