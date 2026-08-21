@@ -22,6 +22,7 @@ SDD-006.
   jehož jádro od M2 existuje. Žádná PDF, žádné binárky v repozitáři.
 - Seeder je C# kód s daty zapsanými v kódu; markdown se neparsuje.
 - Pull request, který mění model, mění seeder ve stejném pull requestu.
+- Úkony pod-spisů jsou syntetické — zdroj u nich drží jen počty.
 
 ## Rozhodnutí
 
@@ -32,5 +33,6 @@ SDD-006.
 
 ## Dopady
 
-Smoke test seedu (SDD-003). Seed loguje začátek, výsledek a počty (SDD-002). Dnešní záměr
-generovat SQL z `test-data/` zaniká; `test-data/README.md` se opraví, až se seeder napíše.
+Smoke test seedu (SDD-003). Seed loguje začátek, výsledek a počty (SDD-002). Seeder žije v
+EvilCase.Business/Seeding a běží po seedu administrátora v jedné transakci; test-data/README.md
+na něj ukazuje.

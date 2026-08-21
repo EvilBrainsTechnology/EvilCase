@@ -51,7 +51,7 @@ Kód žije v `src/`, řešení `EvilCase.slnx`:
 ### Vrstvy
 
 ```
-Host → Api, App, Auth, Files, Data, Data.Migrations
+Host → Api, App, Business, Auth, Files, Data, Data.Migrations
 App → Api.Client → (HTTP) → Api → Business → Data
 Api → Auth → Data ← Data.Migrations
 Api.Client, Api, Business, Auth → Api.Contract

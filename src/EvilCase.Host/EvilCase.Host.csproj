@@ -14,6 +14,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Api\EvilCase.Api\EvilCase.Api.csproj" />
     <ProjectReference Include="..\App\EvilCase.App\EvilCase.App.csproj" />
+    <ProjectReference Include="..\Business\EvilCase.Business\EvilCase.Business.csproj" />
     <ProjectReference Include="..\Common\EvilCase.Auth\EvilCase.Auth.csproj" />
     <ProjectReference Include="..\Common\EvilCase.Files\EvilCase.Files.csproj" />
     <ProjectReference Include="..\Data\EvilCase.Data\EvilCase.Data.csproj" />

@@ -49,6 +49,8 @@ dotnet r run                 # https://localhost:5000 (Scalar UI at /scalar)
 
 Registration is closed, so signing in needs the administrator seeded from `EvilBrains__EvilCase__Auth__Seed__Email` and `EvilBrains__EvilCase__Auth__Seed__Password` — set both before the first start against an empty database. The seed also creates the account, the tenant and the administrator's default contact.
 
+`EvilBrains__EvilCase__Database__SeedSampleData=true` fills a tenant that holds no case with the pseudonymised sample case from `test-data/case-01-speeding.md`; Development has it on.
+
 ### Everything in Docker
 
 `dotnet r run-docker` builds the image from this repository and runs it with its own PostgreSQL at `http://localhost:8080`, seeding `admin@evilcase.local` / `DevPassword123!`. Of the prerequisites above only the SDK is needed, plus Docker — no `.env`, no certificate, no database of one's own. Details in [deploy/README.md](deploy/README.md).
