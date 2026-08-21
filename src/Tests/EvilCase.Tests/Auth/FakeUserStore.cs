@@ -11,6 +11,10 @@ internal sealed class FakeUserStore : IUserStore
 {
     private readonly List<User> users = [];
 
+    private readonly List<Contact> contacts = [];
+
+    public Contact SingleContact() => this.contacts.Single();
+
     public User Seed(User user)
     {
         this.users.Add(user);
@@ -48,9 +52,10 @@ internal sealed class FakeUserStore : IUserStore
 
     public Task<bool> Any(CancellationToken cancellationToken) => Task.FromResult(this.users.Count > 0);
 
-    public Task Add(User user, CancellationToken cancellationToken)
+    public Task Add(User user, Contact defaultContact, CancellationToken cancellationToken)
     {
         this.users.Add(user);
+        this.contacts.Add(defaultContact);
 
         return Task.CompletedTask;
     }

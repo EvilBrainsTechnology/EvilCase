@@ -57,6 +57,14 @@ public class MigrationsTests
         }
     }
 
+    [Test]
+    public void TheSnapshotAgreesWithTheModel()
+    {
+        using var context = new ApplicationDbContextFactory().CreateDbContext([]);
+
+        Assert.That(context.Database.HasPendingModelChanges(), Is.False, "the migration and its snapshot are behind the model, so a fresh database is not the one the model maps");
+    }
+
     private static Dictionary<string, HashSet<string>> Replay(DbContext context)
     {
         var assembly = context.GetService<IMigrationsAssembly>();

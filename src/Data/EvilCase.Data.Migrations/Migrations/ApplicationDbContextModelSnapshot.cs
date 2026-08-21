@@ -471,7 +471,7 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid?>("DefaultContactId")
+                    b.Property<Guid>("DefaultContactId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Email")
@@ -724,16 +724,19 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
 
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.User", b =>
                 {
-                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Contact", null)
+                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Contact", "DefaultContact")
                         .WithMany()
                         .HasForeignKey("DefaultContactId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("EvilBrains.EvilCase.Data.Entities.Tenant", null)
                         .WithMany()
                         .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("DefaultContact");
                 });
 
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Act", b =>

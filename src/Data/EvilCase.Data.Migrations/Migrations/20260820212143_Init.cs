@@ -157,7 +157,7 @@ public partial class Init : Migration
                 Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
                 PasswordHash = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
                 Role = table.Column<string>(type: "character varying(5)", maxLength: 5, nullable: false),
-                DefaultContactId = table.Column<Guid>(type: "uuid", nullable: true),
+                DefaultContactId = table.Column<Guid>(type: "uuid", nullable: false),
                 Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                 Updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                 FailedLoginAttempts = table.Column<int>(type: "integer", nullable: false),

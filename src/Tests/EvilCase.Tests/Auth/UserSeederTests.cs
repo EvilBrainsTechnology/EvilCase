@@ -29,7 +29,7 @@ public class UserSeederTests
 
         var account = context.Added<Account>().Single();
         var tenant = context.Added<Tenant>().Single();
-        var contact = context.Added<Contact>().Single();
+        var contact = store.SingleContact();
         var user = store.Single();
 
         using (Assert.EnterMultipleScope())
@@ -54,14 +54,14 @@ public class UserSeederTests
         await Seeder(context, tenantContext, store, SeedEmail, SeedPassword).Seed(CancellationToken.None);
 
         var tenant = context.Added<Tenant>().Single();
-        var contact = context.Added<Contact>().Single();
+        var contact = store.SingleContact();
         var user = store.Single();
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(context.Added<Account>(), Has.Exactly(1).Items);
             Assert.That(context.Added<Tenant>(), Has.Exactly(1).Items);
-            Assert.That(context.Added<Contact>(), Has.Exactly(1).Items);
+            Assert.That(store.SingleContact().TenantId, Is.EqualTo(tenant.Id), "the default contact belongs to the tenant the seed created");
             Assert.That(user.TenantId, Is.EqualTo(tenant.Id), "the administrator belongs to the tenant the seed created");
             Assert.That(tenantContext.Entered, Is.EqualTo([tenant.Id]), "the contact is written under the tenant the seed created, which is what stamps it");
             Assert.That(user.DefaultContactId, Is.EqualTo(contact.Id), "the user points at the contact the seed made for it");
@@ -81,6 +81,7 @@ public class UserSeederTests
             Email = "someone@evilcase.test",
             PasswordHash = "unused",
             Role = UserRole.User,
+            DefaultContactId = Guid.CreateVersion7(),
         });
 
         await Seeder(context, tenantContext, store, SeedEmail, SeedPassword).Seed(CancellationToken.None);

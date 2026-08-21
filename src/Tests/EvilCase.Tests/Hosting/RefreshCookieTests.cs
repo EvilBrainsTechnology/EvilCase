@@ -39,6 +39,7 @@ public class RefreshCookieTests
             Email = Email,
             PasswordHash = PasswordHasher.Hash(Password),
             Role = UserRole.User,
+            DefaultContactId = Guid.CreateVersion7(),
         });
 
         // The two types that would reach for the database; everything else is the real host. The rate

@@ -40,6 +40,7 @@ internal sealed class AuthTestHarness
                 Email = Email,
                 PasswordHash = PasswordHash,
                 Role = UserRole.Admin,
+                DefaultContactId = Guid.CreateVersion7(),
             });
 
         this.Service = new AuthService(

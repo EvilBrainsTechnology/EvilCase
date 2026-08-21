@@ -47,8 +47,6 @@ internal sealed class UserSeeder(
             Name = normalizedEmail,
         };
 
-        dbSession.Current.Contacts.Add(contact);
-
         var user = new User
         {
             TenantId = tenant.Id,
@@ -58,8 +56,7 @@ internal sealed class UserSeeder(
             DefaultContactId = contact.Id,
         };
 
-        // The store's own write saves the contact tracked above together with the user.
-        await userStore.Add(user, cancellationToken);
+        await userStore.Add(user, contact, cancellationToken);
 
         logger.LogInformation("No user existed, so the configured administrator {Email} was created in tenant {TenantId}", user.Email, tenant.Id);
     }

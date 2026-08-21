@@ -142,9 +142,9 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<User>()
-            .HasOne(typeof(Contact))
+            .HasOne(user => user.DefaultContact)
             .WithMany()
-            .HasForeignKey(nameof(User.DefaultContactId))
+            .HasForeignKey(user => user.DefaultContactId)
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<RefreshToken>()

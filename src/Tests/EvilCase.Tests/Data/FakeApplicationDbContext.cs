@@ -23,5 +23,12 @@ internal sealed class FakeApplicationDbContext(DbContextOptions<ApplicationDbCon
 
     public IEnumerable<TEntity> Added<TEntity>() where TEntity : class => this.ChangeTracker.Entries<TEntity>().Select(entry => entry.Entity);
 
-    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) => Task.FromResult(0);
+    public int Saves { get; private set; }
+
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        this.Saves++;
+
+        return Task.FromResult(0);
+    }
 }

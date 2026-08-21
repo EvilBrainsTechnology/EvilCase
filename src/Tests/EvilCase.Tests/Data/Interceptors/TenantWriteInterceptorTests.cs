@@ -82,6 +82,7 @@ public class TenantWriteInterceptorTests
             Email = "user@evilcase.test",
             PasswordHash = "hash",
             Role = UserRole.User,
+            DefaultContactId = Guid.CreateVersion7(),
         });
 
         var interceptor = new TenantWriteInterceptor(new StubTenantContext());

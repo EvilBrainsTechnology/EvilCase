@@ -31,6 +31,7 @@ internal static class TestTokens
             Email = email,
             PasswordHash = "not-verified-here",
             Role = UserRole.Admin,
+            DefaultContactId = Guid.CreateVersion7(),
         };
 
         return scope.ServiceProvider.GetRequiredService<IAuthTokenService>().Generate(user, Guid.NewGuid()).Value;
