@@ -151,8 +151,7 @@ public class CasesControllerTests
 
         var result = await controller.UpdateCase(writer, Guid.CreateVersion7(), UpdateRequest(), CancellationToken.None);
 
-        var obj = (ObjectResult)result!;
-        var problem = obj.Value as ValidationProblemDetails;
+        var problem = (result as ObjectResult)?.Value as ValidationProblemDetails;
 
         using (Assert.EnterMultipleScope())
         {

@@ -17,11 +17,11 @@
         <div class="empty-action"><a class="btn btn-primary" href="/cases">Zpět na spisy</a></div>
     </div>
 }
-else if (this.failure is not null && this.model is null)
+else if (this.loadFailed)
 {
     <div class="empty">
         <p class="empty-title">Spis se nepodařilo načíst</p>
-        <p class="empty-subtitle text-secondary">@this.failure</p>
+        <p class="empty-subtitle text-secondary">Zkuste to prosím znovu.</p>
     </div>
 }
 else if (this.model is null)
@@ -84,9 +84,9 @@ else
                             </InputSelect>
                         </div>
 
-                        @if (this.failure is not null)
+                        @if (this.saveFailure is not null)
                         {
-                            <div class="alert alert-danger" role="alert">@this.failure</div>
+                            <div class="alert alert-danger" role="alert">@this.saveFailure</div>
                         }
                     </div>
 
@@ -115,7 +115,8 @@ else
     private string? caseNumber;
     private bool notFound;
     private bool busy;
-    private string? failure;
+    private bool loadFailed;
+    private string? saveFailure;
     private string? numberError;
 
     protected override async Task OnParametersSetAsync()
@@ -123,7 +124,8 @@ else
         this.model = null;
         this.caseNumber = null;
         this.notFound = false;
-        this.failure = null;
+        this.loadFailed = false;
+        this.saveFailure = null;
         this.numberError = null;
 
         try
@@ -141,14 +143,14 @@ else
         {
             this.Logger.LogWarning(exception, "Loading case {CaseId} failed", this.Id);
 
-            this.failure = exception.Message;
+            this.loadFailed = true;
         }
     }
 
     private async Task Save()
     {
         this.busy = true;
-        this.failure = null;
+        this.saveFailure = null;
         this.numberError = null;
 
         try
@@ -172,7 +174,7 @@ else
         {
             this.Logger.LogWarning(exception, "Saving case {CaseId} failed", this.Id);
 
-            this.failure = "Spis se nepodařilo uložit. Zkuste to znovu.";
+            this.saveFailure = "Spis se nepodařilo uložit. Zkuste to znovu.";
         }
         finally
         {

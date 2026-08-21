@@ -15,11 +15,11 @@
         <div class="empty-action"><a class="btn btn-primary" href="/cases">Zpět na spisy</a></div>
     </div>
 }
-else if (this.failure is not null)
+else if (this.failed)
 {
     <div class="empty">
         <p class="empty-title">Spis se nepodařilo načíst</p>
-        <p class="empty-subtitle text-secondary">@this.failure</p>
+        <p class="empty-subtitle text-secondary">Zkuste to prosím znovu.</p>
     </div>
 }
 else if (this.detail is null)
@@ -83,13 +83,13 @@ else
 
     private CaseDetail? detail;
     private bool notFound;
-    private string? failure;
+    private bool failed;
 
     protected override async Task OnParametersSetAsync()
     {
         this.detail = null;
         this.notFound = false;
-        this.failure = null;
+        this.failed = false;
 
         try
         {
@@ -103,7 +103,7 @@ else
         {
             this.Logger.LogWarning(exception, "Loading case {CaseId} failed", this.Id);
 
-            this.failure = exception.Message;
+            this.failed = true;
         }
     }
 }

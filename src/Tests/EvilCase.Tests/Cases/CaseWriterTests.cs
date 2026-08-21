@@ -82,6 +82,78 @@ public class CaseWriterTests
             Throws.InstanceOf<DbUpdateException>());
     }
 
+    [Test]
+    public async Task AMalformedNumberStopsTheEditBeforeTheCaseIsRead()
+    {
+        await using var context = FakeApplicationDbContext.Create(new FakeTenantContext());
+        var writer = new CaseWriter(
+            new FixedDbSession(context),
+            new QueuedCaseNumberIssuer([]),
+            new StubUserContext { UserId = Guid.CreateVersion7() },
+            NullLogger<CaseWriter>.Instance);
+
+        var status = await writer.Update(Guid.CreateVersion7(), UpdateRequest() with { CaseNumber = "20260821-001" });
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(status, Is.EqualTo(CaseUpdateStatus.InvalidNumber), "a number outside the format is refused");
+            Assert.That(context.Saves, Is.Zero, "a refused edit writes nothing");
+        }
+    }
+
+    [Test]
+    public void AnEditKeepsWhatTheFormDoesNotCarry()
+    {
+        var @case = Filed();
+
+        var updated = CaseWriter.Apply(@case, UpdateRequest(), "EC/20260821-002");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(updated.Id, Is.EqualTo(@case.Id));
+            Assert.That(updated.UserId, Is.EqualTo(@case.UserId), "the edit does not take the case over");
+            Assert.That(updated.TenantId, Is.EqualTo(@case.TenantId));
+            Assert.That(updated.Created, Is.EqualTo(@case.Created), "the edit does not refile the case");
+            Assert.That(updated.ParentCaseId, Is.EqualTo(@case.ParentCaseId), "the parent is not edited here");
+            Assert.That(updated.CaseNumber, Is.EqualTo("EC/20260821-002"));
+            Assert.That(updated.Status, Is.EqualTo(CaseStatus.Closed));
+        }
+    }
+
+    [Test]
+    public void AnEditTrimsWhatWasTypedAndFilesABlankDescriptionAsNothing()
+    {
+        var request = UpdateRequest() with { Title = "  Přestupek  ", Description = "  popis  " };
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(CaseWriter.Apply(Filed(), request, "EC/20260821-001").Title, Is.EqualTo("Přestupek"));
+            Assert.That(CaseWriter.Apply(Filed(), request, "EC/20260821-001").Description, Is.EqualTo("popis"));
+            Assert.That(CaseWriter.Apply(Filed(), request with { Description = "   " }, "EC/20260821-001").Description, Is.Null);
+        }
+    }
+
+    private static Case Filed() => new()
+    {
+        TenantId = Guid.CreateVersion7(),
+        UserId = Guid.CreateVersion7(),
+        ParentCaseId = Guid.CreateVersion7(),
+        CaseNumber = "EC/20260821-001",
+        Date = new DateOnly(2026, 8, 21),
+        Title = "Přestupek",
+        Status = CaseStatus.Active,
+        Created = new DateTime(2026, 8, 21, 6, 0, 0, DateTimeKind.Utc),
+    };
+
+    private static UpdateCaseRequest UpdateRequest() => new()
+    {
+        CaseNumber = "EC/20260821-002",
+        Date = new DateOnly(2026, 8, 22),
+        Title = "Přestupek",
+        Description = null,
+        Status = CaseStatus.Closed,
+    };
+
     private sealed class QueuedCaseNumberIssuer(IReadOnlyList<string> caseNumbers) : ICaseNumberIssuer
     {
         private int issued;
