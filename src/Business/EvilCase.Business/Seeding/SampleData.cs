@@ -209,7 +209,7 @@ internal static class SampleData
             Title = "Žádost o informace — Vzorov 5, pokyny pověřené úřední osobě",
             Status = CaseStatus.Closed,
             Date = new DateOnly(2025, 6, 11),
-            CounterpartyKey = "officer",
+            CounterpartyKey = "first-instance",
             Description = "Žádost o pokyny udělené pověřené úřední osobě.",
         },
         new()
@@ -269,7 +269,7 @@ internal static class SampleData
             Title = "Oznámení přestupku starosty",
             Status = CaseStatus.WaitingOnAuthority,
             Date = new DateOnly(2025, 9, 20),
-            CounterpartyKey = "mayor",
+            CounterpartyKey = "first-instance",
             Description = "Oznámení přestupku starosty a navazující přezkum.",
             Comments = ["Přestupkové řízení proti starostovi běží samostatně."],
         },
