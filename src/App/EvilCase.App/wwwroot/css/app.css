@@ -72,3 +72,14 @@
         min-height: 44px;
     }
 }
+
+/* Below lg the form's actions stay in reach without scrolling past the whole form. */
+@media (max-width: 991.98px) {
+    .form-actions-sticky {
+        position: sticky;
+        bottom: 0;
+        z-index: 1;
+        padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+        background: var(--tblr-card-bg);
+    }
+}

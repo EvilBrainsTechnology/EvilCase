@@ -46,14 +46,16 @@ public static class CaseListQuery
     }
 
     /// <summary>
-    /// Most recently touched first, the identifier breaking the tie so the order is total.
+    /// Newest by the case's own date; equal dates fall back to when the row was written, and the
+    /// UUIDv7 identifier makes the order total.
     /// </summary>
     public static IQueryable<Case> InListOrder(this IQueryable<Case> cases)
     {
         ArgumentNullException.ThrowIfNull(cases);
 
         return cases
-            .OrderByDescending(@case => @case.Updated ?? @case.Created)
+            .OrderByDescending(@case => @case.Date)
+            .ThenByDescending(@case => @case.Created)
             .ThenByDescending(@case => @case.Id);
     }
 
@@ -67,11 +69,10 @@ public static class CaseListQuery
         return cases.Select(@case => new CaseListItem
         {
             Id = @case.Id,
+            CaseNumber = @case.CaseNumber,
             Title = @case.Title,
-            Description = @case.Description,
+            Date = @case.Date,
             Status = @case.Status,
-            Created = @case.Created,
-            Updated = @case.Updated,
         });
     }
 }

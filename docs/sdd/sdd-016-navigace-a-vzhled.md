@@ -51,5 +51,5 @@ má prázdný stav (vzor `.empty`); kde jde záznam založit, nese výzvu k zalo
 ## Dopady
 
 Rušené stránky, `EchoController`, jeho kontrakt ani klient v repozitáři nejsou. Sekce Verify
-v `.claude/skills/run-app/SKILL.md` sonduje autentizovaný `GET /api/cases/list` a stránku
+v `.claude/skills/run-app/SKILL.md` sonduje autentizovaný `GET /api/cases` a stránku
 `/cases`. Dashboard se přepisuje v M7 (SDD-015).

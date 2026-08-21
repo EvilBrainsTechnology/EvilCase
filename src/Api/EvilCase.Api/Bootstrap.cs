@@ -2,6 +2,7 @@ using EvilBrains.EvilCase.Api.Auth;
 using EvilBrains.EvilCase.Api.HealthChecks;
 using EvilBrains.EvilCase.Business;
 using EvilBrains.EvilCase.Domain.Tenancy;
+using EvilBrains.EvilCase.Domain.Users;
 using EvilBrains.Logging.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -64,6 +65,7 @@ public static class Bootstrap
         // Scoped: it answers for the request being served.
         services.AddHttpContextAccessor();
         services.AddScoped<ITenantContext, PrincipalTenantContext>();
+        services.AddScoped<IUserContext, PrincipalUserContext>();
 
         return services;
     }

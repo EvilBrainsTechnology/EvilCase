@@ -1,0 +1,97 @@
+@page "/cases/new"
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.Cases
+@inject ICasesClient CasesClient
+@inject NavigationManager Navigation
+@inject ILogger<NewCase> Logger
+
+<div class="page-header d-print-none">
+    <div class="container-xl">
+        <h2 class="page-title">Nový spis</h2>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        <div class="card">
+            <EditForm Model="this.model" OnValidSubmit="Submit">
+                <DataAnnotationsValidator />
+
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label" for="case-date">Datum spisu</label>
+                        <InputDate id="case-date" class="form-control" @bind-Value="this.model.Date" />
+                        <ValidationMessage For="() => this.model.Date" class="invalid-feedback d-block" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="case-title">Název</label>
+                        <InputText id="case-title" class="form-control" autofocus @bind-Value="this.model.Title" />
+                        <ValidationMessage For="() => this.model.Title" class="invalid-feedback d-block" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="case-description">Popis</label>
+                        <InputTextArea id="case-description" class="form-control" rows="5" @bind-Value="this.model.Description" />
+                        <ValidationMessage For="() => this.model.Description" class="invalid-feedback d-block" />
+                    </div>
+
+                    @if (this.error is not null)
+                    {
+                        <div class="alert alert-danger mb-0" role="alert">@this.error</div>
+                    }
+                </div>
+
+                <div class="card-footer form-actions-sticky d-flex justify-content-end gap-2">
+                    <a href="/cases" class="btn">Zrušit</a>
+                    <button id="case-submit" type="submit" class="btn btn-primary" disabled="@this.busy">
+                        @if (this.busy)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                        }
+                        Založit spis
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    private readonly NewCaseModel model = new() { Date = DateOnly.FromDateTime(DateTime.Now) };
+
+    private string? error;
+
+    private bool busy;
+
+    private async Task Submit()
+    {
+        this.busy = true;
+        this.error = null;
+
+        try
+        {
+            var request = new CreateCaseRequest
+            {
+                Date = this.model.Date,
+                Title = this.model.Title,
+                Description = this.model.Description,
+            };
+
+            _ = await this.CasesClient.CreateCase(request, CancellationToken.None);
+
+            this.Navigation.NavigateTo("/cases");
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Filing a new case failed");
+
+            this.error = "Spis se nepodařilo založit. Zkontrolujte zadané údaje a zkuste to znovu.";
+        }
+        finally
+        {
+            this.busy = false;
+        }
+    }
+}

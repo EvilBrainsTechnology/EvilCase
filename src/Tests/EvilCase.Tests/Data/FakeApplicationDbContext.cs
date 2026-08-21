@@ -25,10 +25,20 @@ internal sealed class FakeApplicationDbContext(DbContextOptions<ApplicationDbCon
 
     public int Saves { get; private set; }
 
+    /// <summary>
+    /// Thrown by the next save, once, so a test can drive what a writer does with a failed write.
+    /// </summary>
+    public Exception? FailNextSave { get; set; }
+
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         this.Saves++;
 
-        return Task.FromResult(0);
+        if (this.FailNextSave is not { } failure)
+            return Task.FromResult(0);
+
+        this.FailNextSave = null;
+
+        return Task.FromException<int>(failure);
     }
 }

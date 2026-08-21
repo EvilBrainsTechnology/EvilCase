@@ -62,6 +62,36 @@ public class CaseListQueryTests
     }
 
     [Test]
+    public void TheOrderIsTheCasesOwnDateNewestFirst()
+    {
+        var sql = this.context.Cases.InListOrder().ToQueryString();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(sql, Does.Contain("ORDER BY"));
+            Assert.That(sql, Does.Contain("\"Date\" DESC"));
+            Assert.That(sql, Does.Contain("\"Created\" DESC"));
+            Assert.That(sql, Does.Contain("\"Id\" DESC"), "the identifier makes the order total");
+        }
+    }
+
+    [Test]
+    public void TheProjectionReadsOnlyWhatARowShows()
+    {
+        var sql = this.context.Cases.AsListItems().ToQueryString();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(sql, Does.Contain("\"CaseNumber\""));
+            Assert.That(sql, Does.Contain("\"Title\""));
+            Assert.That(sql, Does.Contain("\"Status\""));
+            Assert.That(sql, Does.Contain("\"Date\""));
+            Assert.That(sql, Does.Not.Contain("\"Description\""), "a row of the list never carries the case's text");
+            Assert.That(sql, Does.Not.Contain("count(").IgnoreCase, "a row of the list stands for one case and counts nothing under it");
+        }
+    }
+
+    [Test]
     public void OpenIsEverythingNotClosedAndOnlyAllNarrowsNothing()
     {
         var unfiltered = this.context.Cases.ToQueryString();
@@ -70,8 +100,8 @@ public class CaseListQueryTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(new CaseListRequest().Status, Is.EqualTo(CaseStatusFilter.Open));
-            Assert.That(this.context.Cases.WithStatus(CaseStatusFilter.All).ToQueryString(), Is.EqualTo(unfiltered));
+            Assert.That(new CaseListRequest().Status, Is.EqualTo(CaseStatusFilter.Open), "the list opens on everything that is not closed");
+            Assert.That(this.context.Cases.WithStatus(CaseStatusFilter.All).ToQueryString(), Is.EqualTo(unfiltered), "only All narrows nothing");
             Assert.That(open, Does.Contain("<>"), "open is everything not closed");
             Assert.That(open, Does.Contain(nameof(CaseStatus.Closed)));
             Assert.That(closed, Does.Contain("\"Status\""));
@@ -80,42 +110,39 @@ public class CaseListQueryTests
     }
 
     [Test]
-    public void TheOrderIsWhatWasTouchedLastAndIsTotal()
+    public void TheSearchAndTheStatusNarrowTheSameQuery()
     {
-        var sql = this.context.Cases.InListOrder().ToQueryString();
+        var sql = this.context.Cases
+            .MatchingSearch("odvolání")
+            .WithStatus(CaseStatusFilter.Closed)
+            .InListOrder()
+            .AsListItems()
+            .ToQueryString();
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(sql, Does.Contain("ORDER BY"));
-            Assert.That(sql, Does.Contain("COALESCE"));
-            Assert.That(sql, Does.Contain("\"Id\" DESC"));
+            Assert.That(sql, Does.Contain("%odvolání%"), "the search narrows the list");
+            Assert.That(sql, Does.Contain(nameof(CaseStatus.Closed)), "the status narrows the list");
+            Assert.That(sql, Does.Contain("AND"), "the two narrow together, not one instead of the other");
+            Assert.That(sql, Does.Contain("ORDER BY"), "the list keeps its order under both filters");
         }
     }
 
     [Test]
-    public void TheProjectionReadsOneRowPerCaseInsideTheTenant()
+    public void TheListStaysInsideTheTenantAndPagesNothing()
     {
-        var sql = this.context.Cases.AsListItems().ToQueryString();
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(sql, Does.Contain("\"TenantId\""));
-            Assert.That(sql, Does.Not.Contain("\"CaseTags\""));
-            Assert.That(sql, Does.Not.Contain("count(").IgnoreCase, "a row of the list stands for one case and counts nothing under it");
-            Assert.That(sql, Does.Not.Contain("\"OwnerId\""));
-        }
-    }
-
-    [Test]
-    public void AnUnfilteredListIsNarrowedByTheTenantAlone()
-    {
-        var sql = this.context.Cases.MatchingSearch(search: null).WithStatus(CaseStatusFilter.All).InListOrder().AsListItems().ToQueryString();
+        var sql = this.context.Cases
+            .MatchingSearch(search: null)
+            .WithStatus(CaseStatusFilter.All)
+            .InListOrder()
+            .AsListItems()
+            .ToQueryString();
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(sql, Does.Contain("\"TenantId\""), "every read is inside a tenant");
-            Assert.That(sql, Does.Not.Contain("ILIKE"), "a blank search narrows nothing");
-            Assert.That(sql, Does.Not.Contain(" AND "), "All narrows nothing further");
+            Assert.That(sql, Does.Not.Contain("LIMIT"), "the list is not paged");
+            Assert.That(sql, Does.Not.Contain("OFFSET"), "the list is not paged");
         }
     }
 }

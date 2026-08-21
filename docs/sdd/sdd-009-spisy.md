@@ -36,7 +36,9 @@ kontakt, který značku přidělil. Hodnota je unikátní per spis. Spravují se
 ### Stránky
 
 - `/cases` — seznam spisů: číslo, název, stav, datum. Řadí se podle data spisu sestupně,
-  shodná data řadí `Created`; bez stránkování. Hledací pole přichází až v M7 (SDD-014).
+  shodná data řadí `Created`; bez stránkování. Hledací pole hledá v názvu a popisu bez ohledu na
+  diakritiku a filtr stavu s výchozí hodnotou Otevřené; fulltext přes čísla a úkony přidává M7
+  (SDD-014).
 - `/cases/new` — založení.
 - `/cases/{id}` — detail: údaje, značky, podřízené spisy, komentáře; sekce úkonů přibývá
   v M4 (SDD-010), sekce souborů v M5 (SDD-012).
