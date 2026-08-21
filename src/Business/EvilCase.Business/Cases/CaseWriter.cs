@@ -46,7 +46,7 @@ internal sealed class CaseWriter(
                 continue;
             }
 
-            logger.LogInformation("Filed a new case. (caseId: {CaseId}, caseNumber: {CaseNumber})", @case.Id, @case.CaseNumber);
+            logger.LogInformation("Case {CaseId} was filed under {CaseNumber}", @case.Id, @case.CaseNumber);
 
             return Describe(@case);
         }
