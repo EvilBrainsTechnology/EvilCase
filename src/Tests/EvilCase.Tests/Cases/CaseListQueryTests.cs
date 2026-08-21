@@ -105,4 +105,17 @@ public class CaseListQueryTests
             Assert.That(sql, Does.Not.Contain("\"OwnerId\""));
         }
     }
+
+    [Test]
+    public void AnUnfilteredListIsNarrowedByTheTenantAlone()
+    {
+        var sql = this.context.Cases.MatchingSearch(search: null).WithStatus(CaseStatusFilter.All).InListOrder().AsListItems().ToQueryString();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(sql, Does.Contain("\"TenantId\""), "every read is inside a tenant");
+            Assert.That(sql, Does.Not.Contain("ILIKE"), "a blank search narrows nothing");
+            Assert.That(sql, Does.Not.Contain(" AND "), "All narrows nothing further");
+        }
+    }
 }

@@ -498,9 +498,9 @@ public partial class Init : Migration
     private static void CreateActIndexes(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.CreateIndex(
-            name: "IX_Acts_CaseId_Date",
+            name: "IX_Acts_CaseId",
             table: "Acts",
-            columns: ["CaseId", "Date"]);
+            column: "CaseId");
 
         migrationBuilder.CreateIndex(
             name: "IX_Acts_AddressedToContactId",
@@ -538,11 +538,6 @@ public partial class Init : Migration
             unique: true);
 
         migrationBuilder.CreateIndex(
-            name: "IX_Cases_TenantId_Date",
-            table: "Cases",
-            columns: ["TenantId", "Date"]);
-
-        migrationBuilder.CreateIndex(
             name: "IX_Cases_UserId",
             table: "Cases",
             column: "UserId");
@@ -574,9 +569,9 @@ public partial class Init : Migration
     private static void CreateContactIndexes(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.CreateIndex(
-            name: "IX_Contacts_TenantId_DataBoxId",
+            name: "IX_Contacts_TenantId",
             table: "Contacts",
-            columns: ["TenantId", "DataBoxId"]);
+            column: "TenantId");
     }
 
     private static void CreateExternalActNumberIndexes(MigrationBuilder migrationBuilder)

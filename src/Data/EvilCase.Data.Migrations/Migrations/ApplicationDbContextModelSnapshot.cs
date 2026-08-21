@@ -96,11 +96,11 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
 
                     b.HasIndex("AddressedToContactId");
 
+                    b.HasIndex("CaseId");
+
                     b.HasIndex("IssuedByContactId");
 
                     b.HasIndex("UserId");
-
-                    b.HasIndex("CaseId", "Date");
 
                     b.HasIndex("TenantId", "ActNumber")
                         .IsUnique();
@@ -157,8 +157,6 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
 
                     b.HasIndex("TenantId", "CaseNumber")
                         .IsUnique();
-
-                    b.HasIndex("TenantId", "Date");
 
                     b.ToTable("Cases");
                 });
@@ -240,7 +238,7 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("TenantId", "DataBoxId");
+                    b.HasIndex("TenantId");
 
                     b.ToTable("Contacts");
                 });

@@ -8,7 +8,7 @@ namespace EvilBrains.EvilCase.Data.Entities;
 /// An authority, an official or a person. Shared across the tenant rather than owned by whoever typed it
 /// in, so a contact accumulates history across every case it appears in.
 /// </summary>
-[Index(nameof(TenantId), nameof(DataBoxId))]
+[Index(nameof(TenantId))]
 public record Contact : ITenantEntity
 {
     [Key]
@@ -33,8 +33,7 @@ public record Contact : ITenantEntity
     public string? Address { get; init; }
 
     /// <summary>
-    /// The ISDS identifier, seven characters today. Indexed because it is the one thing about a contact
-    /// that is unambiguous enough to look one up by.
+    /// The ISDS identifier, seven characters today.
     /// </summary>
     [MaxLength(16)]
     public string? DataBoxId { get; init; }

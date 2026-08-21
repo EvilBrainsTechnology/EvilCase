@@ -9,7 +9,7 @@ namespace EvilBrains.EvilCase.Data.Entities;
 /// or call.
 /// </summary>
 [Index(nameof(TenantId), nameof(ActNumber), IsUnique = true)]
-[Index(nameof(CaseId), nameof(Date))]
+[Index(nameof(CaseId))]
 [Index(nameof(IssuedByContactId))]
 [Index(nameof(AddressedToContactId))]
 public record Act : IUserOwnedEntity

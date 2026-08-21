@@ -8,7 +8,6 @@ namespace EvilBrains.EvilCase.Data.Entities;
 /// A proceeding. An optional parent gives it its place in a hierarchy (SDD-009).
 /// </summary>
 [Index(nameof(TenantId), nameof(CaseNumber), IsUnique = true)]
-[Index(nameof(TenantId), nameof(Date))]
 [Index(nameof(ParentCaseId))]
 public record Case : IUserOwnedEntity
 {

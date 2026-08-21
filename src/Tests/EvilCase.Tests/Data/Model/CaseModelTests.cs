@@ -46,6 +46,18 @@ public class CaseModelTests : ModelFixture
     }
 
     [Test]
+    public void NothingIsIndexedByTheCaseDate()
+    {
+        var @case = Model.FindEntityType(typeof(Case));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(@case, Is.Not.Null);
+            Assert.That(IsIndexed(@case!, nameof(Case.Date)), Is.False, "no read filters or orders cases by their date, so the index would only cost writes");
+        }
+    }
+
+    [Test]
     public void ACaseHangsUnderAnOptionalParent()
     {
         var @case = Model.FindEntityType(typeof(Case));

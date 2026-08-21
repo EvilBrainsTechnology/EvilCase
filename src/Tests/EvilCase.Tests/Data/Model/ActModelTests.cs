@@ -55,19 +55,18 @@ public class ActModelTests : ModelFixture
     }
 
     [Test]
-    public void ActsAreIndexedForOrderingByDateWithinACase()
+    public void AnActIsIndexedByItsCaseAndNotByItsDate()
     {
         var act = Model.FindEntityType(typeof(Act));
 
         Assert.That(act, Is.Not.Null);
 
-        string[] expected = [nameof(Act.CaseId), nameof(Act.Date)];
-        var byDate = act.GetIndexes().SingleOrDefault(index => index.Properties.Select(property => property.Name).SequenceEqual(expected, StringComparer.Ordinal));
+        var byCase = act.GetIndexes().SingleOrDefault(index => index.Properties.Select(property => property.Name).SequenceEqual([nameof(Act.CaseId)], StringComparer.Ordinal));
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(byDate, Is.Not.Null, "an act list reads one case ordered by the act date, and (CaseId, Date) is what serves it");
-            Assert.That(byDate?.IsUnique, Is.False, "two acts of one case share a date whenever they were filed on the same day");
+            Assert.That(byCase, Is.Not.Null, "deleting a case reads its acts by CaseId");
+            Assert.That(IsIndexed(act, nameof(Act.Date)), Is.False, "no read filters or orders acts by their date yet");
         }
     }
 

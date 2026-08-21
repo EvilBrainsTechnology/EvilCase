@@ -20,10 +20,8 @@ public class ContactModelTests : ModelFixture
             Assert.That(columns, Has.Member(nameof(Contact.Address)), "the address is one free-text block");
             Assert.That(columns, Does.Not.Contain("Town").And.Not.Contains("PostCode"), "and is never split into parts");
             Assert.That(contact.FindProperty(nameof(Contact.Kind))?.ClrType, Is.EqualTo(typeof(ContactKind)));
-            Assert.That(IsIndexed(contact, nameof(Contact.DataBoxId)), Is.True, "looking a contact up by data box is the one unambiguous lookup");
-
-            var dataBoxIndex = contact.GetIndexes().SingleOrDefault(index => index.Properties.Select(property => property.Name).SequenceEqual([nameof(Contact.TenantId), nameof(Contact.DataBoxId)], StringComparer.Ordinal));
-            Assert.That(dataBoxIndex, Is.Not.Null, "the data box lookup stays inside the tenant");
+            Assert.That(IsIndexed(contact, nameof(Contact.DataBoxId)), Is.False, "nothing looks a contact up by data box yet, and the index is not what makes one unique");
+            Assert.That(IsIndexed(contact, nameof(Contact.TenantId)), Is.True, "the tenant filter is on every contact read");
         }
     }
 
