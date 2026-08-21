@@ -33,9 +33,12 @@ Natvrdo, bez konfigurace:
 
 ### Souběh
 
-Generátor čte MAX pořadí dne a vkládá; souběh chytá unikátní index a insert se opakuje
-s dalším pořadím. MAX se počítá parsováním čísel odpovídajících formátu; ručně přepsané
-neodpovídající hodnoty se do pořadí nepočítají.
+Vydavatel čísla přečte čísla dne podle jejich prefixu a složí další pořadí. Entitu vytváří
+a ukládá volající přes `Save` vydavatele: při unique violation na indexu čísla se složí další
+pořadí téhož dne a insert se opakuje, nejvýš pětkrát. MAX se počítá parsováním čísel
+odpovídajících formátu; ručně přepsané neodpovídající hodnoty se do pořadí nepočítají a ručně
+přepsané číslo se nikdy nepřečísluje. Pořadí úkonu se počítá per spisová značka a den, ne per
+`CaseId`, aby znovuvydaná značka nezacyklila retry.
 
 ### Implementace
 
