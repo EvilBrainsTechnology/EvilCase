@@ -10,7 +10,7 @@ namespace EvilBrains.EvilCase.Api.Controllers;
 [Route("api/cases")]
 public class CasesController(ICaseReader cases, ICaseWriter writer) : ControllerBase
 {
-    [HttpGet("list")]
+    [HttpGet("")]
     public async Task<CaseListResponse> ListCases([FromQuery] CaseListRequest request, CancellationToken cancellationToken)
     {
         var items = await cases.List(request, cancellationToken);

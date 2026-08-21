@@ -46,7 +46,7 @@ pwsh .claude/skills/run-app/Start-EvilCase.ps1 -Stop -Port 41449
   database, and `/health/live` answers even then.
 - `POST /api/auth/login` with the seed values from `.env` → `accessToken`; `401` is bad
   credentials, `423` a lockout (5 failures, 15 minutes).
-- `GET /api/cases/list` with the bearer → `{"items":[]}` until cases exist, without it `401`.
+- `GET /api/cases` with the bearer → `{"items":[]}` until cases exist, without it `401`.
 - `GET /api/nope` → `404`, never the app's HTML.
 - `$url` redirects to `/login`; sign in, open `/cases`. The first WebAssembly load takes a few
   seconds.

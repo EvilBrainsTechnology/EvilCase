@@ -38,7 +38,7 @@ public class AuthorizationFallbackTests
     [Test]
     public async Task AnEndpointThatSaysNothingRequiresAToken()
     {
-        using var response = await this.client.GetAsync(new Uri("/api/cases/list", UriKind.Relative));
+        using var response = await this.client.GetAsync(new Uri("/api/cases", UriKind.Relative));
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
     }
@@ -133,7 +133,7 @@ public class AuthorizationFallbackTests
     [Test]
     public async Task ATokenIsEnoughToReachAnOrdinaryEndpoint()
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, new Uri("/api/cases/list", UriKind.Relative));
+        using var request = new HttpRequestMessage(HttpMethod.Get, new Uri("/api/cases", UriKind.Relative));
 
         request.Headers.Authorization = TestTokens.BearerFrom(this.host);
 

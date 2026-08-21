@@ -63,7 +63,7 @@ public class RoutingTests
     {
         // Authorization is default deny, so an ordinary endpoint needs a token before routing to it
         // proves anything: without one the answer would be 401 whether the route matched or not.
-        using var request = new HttpRequestMessage(HttpMethod.Get, new Uri("/api/cases/list", UriKind.Relative)) { Headers = { Authorization = TestTokens.BearerFrom(this.host) } };
+        using var request = new HttpRequestMessage(HttpMethod.Get, new Uri("/api/cases", UriKind.Relative)) { Headers = { Authorization = TestTokens.BearerFrom(this.host) } };
 
         using var response = await this.client.SendAsync(request);
 
