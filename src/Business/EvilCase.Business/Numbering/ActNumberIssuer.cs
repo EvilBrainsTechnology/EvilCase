@@ -16,8 +16,6 @@ internal sealed class ActNumberIssuer(IDbSession dbSession) : IActNumberIssuer
             .HighestNumber()
             .FirstOrDefaultAsync(cancellationToken);
 
-        var sequence = (ActNumberFormat.ParseOrDefault(highest)?.Sequence ?? 0) + 1;
-
-        return ActNumberFormat.Compose(@case.CaseNumber, date, sequence);
+        return ActNumberFormat.Next(@case.CaseNumber, date, highest);
     }
 }

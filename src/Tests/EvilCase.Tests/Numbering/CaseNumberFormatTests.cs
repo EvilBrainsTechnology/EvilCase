@@ -27,6 +27,25 @@ public class CaseNumberFormatTests
     }
 
     [Test]
+    public void NextFollowsTheDaysHighest()
+    {
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(CaseNumberFormat.Next(Day, highest: null), Is.EqualTo("EC/20260807-001"), "a day without a number of its own starts at 001");
+            Assert.That(CaseNumberFormat.Next(Day, "EC/20260807-004"), Is.EqualTo("EC/20260807-005"), "the next number is one past the day's highest");
+            Assert.That(CaseNumberFormat.Next(Day, "EC/20260807-999"), Is.EqualTo("EC/20260807-1000"), "the sequence grows a digit rather than wrapping");
+            Assert.That(CaseNumberFormat.Next(Day, "spis 7/2026"), Is.EqualTo("EC/20260807-001"), "a value outside the format counts into no sequence");
+        }
+    }
+
+    [Test]
+    public void ABackDatedCaseTakesTheNextFreeSequenceOfItsOwnDay() =>
+        Assert.That(
+            CaseNumberFormat.Next(new DateOnly(2026, 1, 2), "EC/20260102-002"),
+            Is.EqualTo("EC/20260102-003"),
+            "the sequence follows the day in the number, not the day the case is entered");
+
+    [Test]
     public void ParseReadsBackWhatComposeWrote() =>
         Assert.That(CaseNumberFormat.Parse("EC/20260807-042"), Is.EqualTo(new CaseNumberParts(Day, 42)), "parse is the inverse of compose");
 

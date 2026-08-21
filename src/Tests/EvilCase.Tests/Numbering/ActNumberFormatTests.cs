@@ -32,6 +32,25 @@ public class ActNumberFormatTests
     }
 
     [Test]
+    public void NextFollowsTheDaysHighestInsideTheCase()
+    {
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(ActNumberFormat.Next(CaseNumber, ActDay, highest: null), Is.EqualTo("EC/20260807-001/20260812-001"), "a day without an act of its own starts at 001");
+            Assert.That(ActNumberFormat.Next(CaseNumber, ActDay, "EC/20260807-001/20260812-007"), Is.EqualTo("EC/20260807-001/20260812-008"), "the next number is one past the day's highest");
+            Assert.That(ActNumberFormat.Next(CaseNumber, ActDay, "EC/20260807-001/20260812-999"), Is.EqualTo("EC/20260807-001/20260812-1000"), "the sequence grows a digit rather than wrapping");
+            Assert.That(ActNumberFormat.Next(CaseNumber, ActDay, "spis 7/2026"), Is.EqualTo("EC/20260807-001/20260812-001"), "a value outside the format counts into no sequence");
+        }
+    }
+
+    [Test]
+    public void ABackDatedActTakesTheNextFreeSequenceOfItsOwnDay() =>
+        Assert.That(
+            ActNumberFormat.Next(CaseNumber, new DateOnly(2026, 8, 8), "EC/20260807-001/20260808-002"),
+            Is.EqualTo("EC/20260807-001/20260808-003"),
+            "the sequence follows the day in the number, not the day the act is entered");
+
+    [Test]
     public void ParseReadsBackWhatComposeWrote() =>
         Assert.That(
             ActNumberFormat.Parse("EC/20260807-001/20260812-042"),

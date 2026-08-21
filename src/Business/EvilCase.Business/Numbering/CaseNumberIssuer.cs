@@ -13,8 +13,6 @@ internal sealed class CaseNumberIssuer(IDbSession dbSession) : ICaseNumberIssuer
             .HighestNumber()
             .FirstOrDefaultAsync(cancellationToken);
 
-        var sequence = (CaseNumberFormat.ParseOrDefault(highest)?.Sequence ?? 0) + 1;
-
-        return CaseNumberFormat.Compose(date, sequence);
+        return CaseNumberFormat.Next(date, highest);
     }
 }

@@ -11,6 +11,13 @@ public static class ActNumberFormat
         $"{caseNumber}/{NumberTail.Compose(date, sequence)}";
 
     /// <summary>
+    /// The number that follows the day's highest inside the case. A day without one of its own starts at 001,
+    /// and so does a highest that stands outside the format.
+    /// </summary>
+    public static string Next(string caseNumber, in DateOnly date, string? highest) =>
+        Compose(caseNumber, date, (ParseOrDefault(highest)?.Sequence ?? 0) + 1);
+
+    /// <summary>
     /// Throws <see cref="FormatException"/> where the value is not an act number.
     /// </summary>
     public static ActNumberParts Parse(string value) =>
