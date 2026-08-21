@@ -1,6 +1,8 @@
+using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Business.Contacts;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Migrations.DbContexts;
+using EvilBrains.EvilCase.Domain.Contacts;
 using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Tests.Contacts;
@@ -39,5 +41,24 @@ public class ContactWriterTests
         var sql = ContactWriter.ReferencesTo(this.context, Guid.CreateVersion7()).ToQueryString();
 
         Assert.That(sql, Does.Contain("\"TenantId\""), "a query filter is what keeps another tenant's rows out");
+    }
+
+    [Test]
+    public void ABlankDataBoxIdOrAddressIsFiledAsNothing()
+    {
+        var blank = new ContactEditRequest { Name = "  Krajský soud  ", Kind = ContactKind.Authority, DataBoxId = "   ", Address = "\n " };
+        var filled = blank with { DataBoxId = " ksvz456 ", Address = " Soudní 3 " };
+
+        var (name, _, blankDataBoxId, blankAddress) = ContactWriter.Normalized(blank);
+        var (_, _, dataBoxId, address) = ContactWriter.Normalized(filled);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(name, Is.EqualTo("Krajský soud"), "a name is stored without its surrounding space");
+            Assert.That(blankDataBoxId, Is.Null);
+            Assert.That(blankAddress, Is.Null);
+            Assert.That(dataBoxId, Is.EqualTo("ksvz456"));
+            Assert.That(address, Is.EqualTo("Soudní 3"));
+        }
     }
 }
