@@ -42,6 +42,13 @@ public record FileAsset : IUserOwnedEntity
     [MaxLength(128)]
     public string? MediaType { get; init; }
 
+    /// <summary>
+    /// Where the bytes are, relative to the storage root. Stored rather than recomposed, so a later
+    /// layout scheme still finds the blobs written under this one (SDD-012).
+    /// </summary>
+    [MaxLength(256)]
+    public required string StoragePath { get; init; }
+
     public DateTime Created { get; init; }
 
     public DateTime? Updated { get; init; }

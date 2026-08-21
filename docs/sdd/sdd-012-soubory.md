@@ -19,13 +19,18 @@ spisech jsou dva soubory.
 
 ### Úložiště
 
-- Bajty leží na souborovém systému pod `{root}/{tenantId}/{fileAssetId}`; root dává
-  `EvilBrains__EvilCase__Files__RootPath`.
-- Databáze nese jen metadata: název, velikost, `MediaType`, SHA-256 hash.
+- Bajty leží pod `{root}/{tenantId}/{aa}/{bb}/{fileAssetId}`; `aa` jsou poslední dva hex znaky
+  UUIDv7 souboru, `bb` dva před nimi — přední část v7 je timestamp a nerozprostřela by se.
+- Relativní cesta se vrací ze zápisu a ukládá do `FileAsset.StoragePath`; každé pozdější čtení
+  i smazání jde přes ni, takže změna schématu rozložení nezneviditelní staré bloby.
+- `EvilBrains__EvilCase__Files__RootPath` se váže přes options s validací při startu; nenastavený
+  root shodí start hostitele, ne až první upload.
+- Databáze nese jen metadata: název, velikost, `MediaType`, SHA-256 hash, cestu k blobu.
 - Zápis je atomický: dočasný soubor, pak rename.
 - Blob zaniká se záznamem.
 - Blob se zapisuje před commitem databázové transakce; osiřelý blob po neúspěšné transakci
   se toleruje, bez automatického úklidu.
+- Kód úložiště žije v `Common/EvilCase.Files` (SDD-001); `EvilCase.Data` nese jen metadata.
 - Jádro úložiště — konfigurace rootu, zápis a smazání blobu — vzniká v M2, seed zapisuje TXT
   soubory (SDD-017); M5 dodává jen UI.
 
@@ -52,6 +57,5 @@ a `X-Content-Type-Options: nosniff`. Smazání je prosté, s potvrzením.
 ## Dopady
 
 `ActFileReference` zaniká (SDD-007). Úložiště se testuje na temp adresáři (SDD-003). Zápis
-a smazání blobu se loguje, obsah nikdy (SDD-002). Nasazený kontejner nese `RootPath` na
-trvalém svazku; `deploy/docker-compose.yml` a `deploy/README.md` se mění s jádrem úložiště
-v M2.
+a smazání blobu se loguje, obsah nikdy (SDD-002). V nasazeném image je root pevně
+`/var/lib/evilcase/files`; `deploy/docker-compose.yml` na něj jen připojí svazek.
