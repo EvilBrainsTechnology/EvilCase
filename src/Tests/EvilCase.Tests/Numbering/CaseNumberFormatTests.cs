@@ -12,7 +12,7 @@ public class CaseNumberFormatTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(CaseNumberFormat.Compose(Day, 1), Is.EqualTo("EC/20260807-001"), "a case number is EC, the day and a three-digit sequence");
-            Assert.That(CaseNumberFormat.DayPrefix(Day), Is.EqualTo("EC/20260807-"), "the day prefix stops right before the sequence");
+            Assert.That(CaseNumberFormat.Prefix(Day), Is.EqualTo("EC/20260807-"), "the day prefix stops right before the sequence");
         }
     }
 
@@ -56,16 +56,4 @@ public class CaseNumberFormatTests
             Assert.That(CaseNumberFormat.ParseOrDefault("EC/20260807-001"), Is.Not.Null, "a well-formed number does not return null");
         }
     }
-
-    [Test]
-    public void TheNextSequenceSkipsWhatDoesNotFitTheFormatOrTheDay()
-    {
-        string[] numbers = ["EC/20260807-001", "EC/20260807-003", "spis 7/2026", "EC/20260808-009"];
-
-        Assert.That(CaseNumberFormat.NextSequence(Day, numbers), Is.EqualTo(4), "the next sequence is one past the day's highest, ignoring other days and hand-written values");
-    }
-
-    [Test]
-    public void AnEmptyDayStartsAtOne() =>
-        Assert.That(CaseNumberFormat.NextSequence(Day, []), Is.EqualTo(1), "the first number of a day is sequence one");
 }

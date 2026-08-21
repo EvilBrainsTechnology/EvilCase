@@ -5,11 +5,11 @@ namespace EvilBrains.EvilCase.Domain.Numbering;
 /// </summary>
 public static class CaseNumberFormat
 {
-    private const string Prefix = "EC/";
+    private const string CasePrefix = "EC/";
 
-    public static string DayPrefix(in DateOnly date) => Prefix + NumberTail.DayPrefix(date);
+    public static string Prefix(in DateOnly date) => CasePrefix + NumberTail.Prefix(date);
 
-    public static string Compose(in DateOnly date, int sequence) => Prefix + NumberTail.Compose(date, sequence);
+    public static string Compose(in DateOnly date, int sequence) => CasePrefix + NumberTail.Compose(date, sequence);
 
     /// <summary>
     /// Throws <see cref="FormatException"/> where the value is not a case number.
@@ -22,21 +22,9 @@ public static class CaseNumberFormat
     /// </summary>
     public static CaseNumberParts? ParseOrDefault(string? value)
     {
-        if (value?.StartsWith(Prefix, StringComparison.Ordinal) != true)
+        if (value?.StartsWith(CasePrefix, StringComparison.Ordinal) != true)
             return null;
 
-        return NumberTail.Parse(value[Prefix.Length..]) is { } tail ? new CaseNumberParts(tail.Date, tail.Sequence) : null;
+        return NumberTail.ParseOrDefault(value[CasePrefix.Length..]) is { } tail ? new CaseNumberParts(tail.Date, tail.Sequence) : null;
     }
-
-    /// <summary>
-    /// The day's next free sequence. A value outside the format, or of another day, does not count.
-    /// </summary>
-    public static int NextSequence(DateOnly date, IEnumerable<string> numbers) => numbers
-        .Select(ParseOrDefault)
-        .OfType<CaseNumberParts>()
-        .Where(parts => parts.Date == date)
-        .Select(parts => parts.Sequence)
-        .DefaultIfEmpty(0)
-        .Max()
-        + 1;
 }

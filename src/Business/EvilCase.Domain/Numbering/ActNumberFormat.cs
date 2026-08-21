@@ -5,7 +5,7 @@ namespace EvilBrains.EvilCase.Domain.Numbering;
 /// </summary>
 public static class ActNumberFormat
 {
-    public static string DayPrefix(string caseNumber, in DateOnly date) => $"{caseNumber}/{NumberTail.DayPrefix(date)}";
+    public static string Prefix(string caseNumber, in DateOnly date) => $"{caseNumber}/{NumberTail.Prefix(date)}";
 
     public static string Compose(string caseNumber, in DateOnly date, int sequence) =>
         $"{caseNumber}/{NumberTail.Compose(date, sequence)}";
@@ -27,20 +27,8 @@ public static class ActNumberFormat
         if (value is null || separator <= 0)
             return null;
 
-        return NumberTail.Parse(value[(separator + 1)..]) is { } tail
+        return NumberTail.ParseOrDefault(value[(separator + 1)..]) is { } tail
             ? new ActNumberParts(value[..separator], tail.Date, tail.Sequence)
             : null;
     }
-
-    /// <summary>
-    /// The day's next free sequence under this case number. A value outside the format does not count.
-    /// </summary>
-    public static int NextSequence(string caseNumber, DateOnly date, IEnumerable<string> numbers) => numbers
-        .Select(ParseOrDefault)
-        .OfType<ActNumberParts>()
-        .Where(parts => string.Equals(parts.CaseNumber, caseNumber, StringComparison.Ordinal) && parts.Date == date)
-        .Select(parts => parts.Sequence)
-        .DefaultIfEmpty(0)
-        .Max()
-        + 1;
 }

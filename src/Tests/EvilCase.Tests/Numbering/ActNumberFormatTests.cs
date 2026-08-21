@@ -14,7 +14,7 @@ public class ActNumberFormatTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(ActNumberFormat.Compose(CaseNumber, ActDay, 1), Is.EqualTo("EC/20260807-001/20260812-001"), "an act number is the case number, the day and a three-digit sequence");
-            Assert.That(ActNumberFormat.DayPrefix(CaseNumber, ActDay), Is.EqualTo("EC/20260807-001/20260812-"), "the day prefix stops right before the sequence");
+            Assert.That(ActNumberFormat.Prefix(CaseNumber, ActDay), Is.EqualTo("EC/20260807-001/20260812-"), "the day prefix stops right before the sequence");
         }
     }
 
@@ -66,24 +66,6 @@ public class ActNumberFormatTests
     }
 
     [Test]
-    public void TheNextSequenceSkipsWhatDoesNotFitTheFormatOrTheDay()
-    {
-        string[] numbers =
-        [
-            "EC/20260807-001/20260812-001",
-            "EC/20260807-001/20260812-003",
-            "spis 7/2026",
-            "EC/20260807-001/20260813-009",
-        ];
-
-        Assert.That(ActNumberFormat.NextSequence(CaseNumber, ActDay, numbers), Is.EqualTo(4), "the next sequence is one past the day's highest, ignoring other days and hand-written values");
-    }
-
-    [Test]
-    public void AnEmptyDayStartsAtOne() =>
-        Assert.That(ActNumberFormat.NextSequence(CaseNumber, ActDay, []), Is.EqualTo(1), "the first number of a day is sequence one");
-
-    [Test]
     public void TheCaseNumberIsWhateverStandsBeforeTheDay() =>
         Assert.That(
             ActNumberFormat.Parse("EC/20260807-001/20260812-001"),
@@ -100,21 +82,5 @@ public class ActNumberFormatTests
             Assert.That(composed, Is.EqualTo("spis 7/2026/20260812-001"), "a hand-written case number still prefixes its act numbers");
             Assert.That(ActNumberFormat.Parse(composed).CaseNumber, Is.EqualTo("spis 7/2026"), "the hand-written case number parses back out");
         }
-    }
-
-    [Test]
-    public void TheNextSequenceCountsOnlyThisCasesDay()
-    {
-        string[] numbers =
-        [
-            "EC/20260807-001/20260812-002",
-            "EC/20260807-002/20260812-009",
-            "EC/20260807-001/20260813-005",
-        ];
-
-        Assert.That(
-            ActNumberFormat.NextSequence("EC/20260807-001", ActDay, numbers),
-            Is.EqualTo(3),
-            "the sequence is scoped by the case number and the day, not just the day");
     }
 }
