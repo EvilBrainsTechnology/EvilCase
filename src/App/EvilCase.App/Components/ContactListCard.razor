@@ -1,0 +1,28 @@
+@using EvilBrains.EvilCase.Api.Contract.Contacts
+
+<div class="card mb-2">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start gap-2">
+            <div class="min-w-0">
+                <div class="font-weight-medium">@Contact.Name</div>
+                @if (!string.IsNullOrWhiteSpace(Contact.Address))
+                {
+                    <div class="text-secondary">@Contact.Address</div>
+                }
+            </div>
+            @* Without this the flex row breaks a two-word kind across three lines. *@
+            <div class="flex-shrink-0 text-nowrap">
+                <span class="badge bg-secondary-lt">@ContactKindDisplay.Text(Contact.Kind)</span>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Contact.DataBoxId))
+        {
+            <div class="text-secondary mt-2">Datová schránka: @Contact.DataBoxId</div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public required ContactListItem Contact { get; set; }
+}
