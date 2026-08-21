@@ -38,7 +38,7 @@ public class NumberTailTests
     {
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(NumberTail.ParseOrDefault(null), Is.Null);
+            Assert.That(NumberTail.ParseOrDefault(tail: null), Is.Null);
             Assert.That(NumberTail.ParseOrDefault(""), Is.Null);
             Assert.That(NumberTail.ParseOrDefault("   "), Is.Null);
             Assert.That(NumberTail.ParseOrDefault("20260807-abc"), Is.Null);

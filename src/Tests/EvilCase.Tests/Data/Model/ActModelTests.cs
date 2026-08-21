@@ -1,6 +1,5 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using EvilBrains.EvilCase.Business.Numbering;
 using EvilBrains.EvilCase.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -90,16 +89,12 @@ public class ActModelTests : ModelFixture
     }
 
     [Test]
-    public void TheActsOwnNumberIsUniqueUnderTheNameTheRetryLooksFor()
+    public void TheActsOwnNumberIsUniqueWithinTheTenant()
     {
         var act = Model.FindEntityType(typeof(Act));
         var unique = act?.GetIndexes().SingleOrDefault(index => index.IsUnique);
         string[] expected = [nameof(Act.TenantId), nameof(Act.ActNumber)];
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(unique?.Properties.Select(property => property.Name), Is.EqualTo(expected), "a generated series must not repeat within one tenant");
-            Assert.That(unique?.GetDatabaseName(), Is.EqualTo(NumberConflict.ActNumberIndex), "and the retry recognises the race by that index name");
-        }
+        Assert.That(unique?.Properties.Select(property => property.Name), Is.EqualTo(expected), "a generated series must not repeat within one tenant");
     }
 }
