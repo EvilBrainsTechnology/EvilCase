@@ -26,6 +26,11 @@ internal sealed class PrincipalTenantContext(IHttpContextAccessor httpContextAcc
         }
     }
 
+    public Guid UserId =>
+        Guid.TryParse(httpContextAccessor.HttpContext?.User.FindFirstValue(AuthClaims.Subject), CultureInfo.InvariantCulture, out var userId)
+            ? userId
+            : throw new InvalidOperationException("The request has no user.");
+
     public IDisposable Enter(Guid tenantId)
     {
         var previous = this.entered;

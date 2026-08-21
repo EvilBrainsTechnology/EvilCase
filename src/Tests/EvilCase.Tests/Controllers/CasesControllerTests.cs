@@ -8,51 +8,75 @@ namespace EvilBrains.EvilCase.Tests.Controllers;
 public class CasesControllerTests
 {
     [Test]
-    public async Task TheRequestReachesTheReaderUntouched()
+    public async Task TheItemsAreReturnedInTheOrderTheReaderGaveThem()
     {
-        var reader = new RecordingCaseReader();
-        var controller = new CasesController(reader);
-        var request = new CaseListRequest { Search = "odvolání", Status = CaseStatusFilter.WaitingOnAuthority };
+        var reader = new RecordingCaseReader { Items = [Item("2/2026", "druhý"), Item("1/2026", "první")] };
+        var controller = new CasesController(reader, new RecordingCaseWriter());
 
-        await controller.ListCases(request, CancellationToken.None);
+        var response = await controller.ListCases(CancellationToken.None);
+
+        Assert.That(response.Items.Select(item => item.Title), Is.EqualTo(["druhý", "první"]), "the controller does not re-order what the reader gave it");
+    }
+
+    [Test]
+    public async Task TheRequestReachesTheWriterUntouched()
+    {
+        var writer = new RecordingCaseWriter();
+        var controller = new CasesController(new RecordingCaseReader(), writer);
+        var request = new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "Přestupek", Description = "Popis" };
+
+        await controller.CreateCase(request, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(reader.Request?.Search, Is.EqualTo("odvolání"));
-            Assert.That(reader.Request?.Status, Is.EqualTo(CaseStatusFilter.WaitingOnAuthority));
+            Assert.That(writer.Request?.Date, Is.EqualTo(request.Date));
+            Assert.That(writer.Request?.Title, Is.EqualTo(request.Title));
+            Assert.That(writer.Request?.Description, Is.EqualTo(request.Description));
         }
     }
 
     [Test]
-    public async Task TheItemsAreReturnedInTheOrderTheReaderGaveThem()
+    public async Task TheCreatedCaseIsWhatTheWriterReturned()
     {
-        var reader = new RecordingCaseReader { Items = [Item(Guid.CreateVersion7(), "druhý"), Item(Guid.CreateVersion7(), "první")] };
-        var controller = new CasesController(reader);
+        var created = Item("1/2026", "Nový spis");
+        var writer = new RecordingCaseWriter { Created = created };
+        var controller = new CasesController(new RecordingCaseReader(), writer);
 
-        var response = await controller.ListCases(new CaseListRequest(), CancellationToken.None);
+        var response = await controller.CreateCase(
+            new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "Nový spis" },
+            CancellationToken.None);
 
-        Assert.That(response.Items.Select(item => item.Title), Is.EqualTo(["druhý", "první"]));
+        Assert.That(response, Is.SameAs(created));
     }
 
-    private static CaseListItem Item(in Guid id, string title) => new()
+    private static CaseListItem Item(string caseNumber, string title) => new()
     {
-        Id = id,
+        Id = Guid.CreateVersion7(),
+        CaseNumber = caseNumber,
         Title = title,
+        Date = new DateOnly(2026, 8, 21),
         Status = CaseStatus.Active,
-        Created = DateTime.UtcNow,
     };
 
     private sealed class RecordingCaseReader : ICaseReader
     {
-        public CaseListRequest? Request { get; private set; }
-
         public IReadOnlyList<CaseListItem> Items { get; init; } = [];
 
-        public Task<IReadOnlyList<CaseListItem>> List(CaseListRequest request, CancellationToken cancellationToken = default)
+        public Task<IReadOnlyList<CaseListItem>> List(CancellationToken cancellationToken = default) =>
+            Task.FromResult(this.Items);
+    }
+
+    private sealed class RecordingCaseWriter : ICaseWriter
+    {
+        public CreateCaseRequest? Request { get; private set; }
+
+        public CaseListItem Created { get; init; } = Item("1/2026", "Spis");
+
+        public Task<CaseListItem> Create(CreateCaseRequest request, CancellationToken cancellationToken = default)
         {
             this.Request = request;
 
-            return Task.FromResult(this.Items);
+            return Task.FromResult(this.Created);
         }
     }
 }

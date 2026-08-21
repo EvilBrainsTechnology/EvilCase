@@ -18,6 +18,7 @@ public static class Bootstrap
         services.AddEvilCaseData();
 
         services.AddScoped<ICaseReader, CaseReader>();
+        services.AddScoped<ICaseWriter, CaseWriter>();
         services.AddScoped<ISampleDataSeeder, SampleDataSeeder>();
         services.AddScoped<ICaseNumberIssuer, CaseNumberIssuer>();
         services.AddScoped<IActNumberIssuer, ActNumberIssuer>();

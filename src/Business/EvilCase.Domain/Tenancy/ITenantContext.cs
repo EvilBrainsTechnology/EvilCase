@@ -16,6 +16,11 @@ public interface ITenantContext
     public Guid? TenantIdOrDefault { get; }
 
     /// <summary>
+    /// The signed-in user who owns whatever the current work writes. Throws when there is none.
+    /// </summary>
+    public Guid UserId { get; }
+
+    /// <summary>
     /// Names the tenant for work that runs outside a request. Restores the previous tenant on dispose.
     /// </summary>
     public IDisposable Enter(Guid tenantId);

@@ -44,6 +44,16 @@ public class AuthorizationFallbackTests
     }
 
     [Test]
+    public async Task FilingACaseNeedsAToken()
+    {
+        using var response = await this.client.PostAsJsonAsync(
+            new Uri("/api/cases", UriKind.Relative),
+            new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "Spis" });
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+    }
+
+    [Test]
     public async Task HealthProbesStayAnonymous()
     {
         using var live = await this.client.GetAsync(new Uri("/health/live", UriKind.Relative));

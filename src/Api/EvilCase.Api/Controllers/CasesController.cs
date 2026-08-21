@@ -8,13 +8,17 @@ namespace EvilBrains.EvilCase.Api.Controllers;
 [ApiController]
 [GenerateApiClient]
 [Route("api/cases")]
-public class CasesController(ICaseReader cases) : ControllerBase
+public class CasesController(ICaseReader cases, ICaseWriter writer) : ControllerBase
 {
     [HttpGet("list")]
-    public async Task<CaseListResponse> ListCases([FromQuery] CaseListRequest request, CancellationToken cancellationToken)
+    public async Task<CaseListResponse> ListCases(CancellationToken cancellationToken)
     {
-        var items = await cases.List(request, cancellationToken);
+        var items = await cases.List(cancellationToken);
 
         return new CaseListResponse { Items = items };
     }
+
+    [HttpPost("")]
+    public Task<CaseListItem> CreateCase([FromBody] CreateCaseRequest request, CancellationToken cancellationToken) =>
+        writer.Create(request, cancellationToken);
 }

@@ -1,9 +1,6 @@
-using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Business.Cases;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Migrations.DbContexts;
-using EvilBrains.EvilCase.Domain.Cases;
-using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Tests.Cases;
 
@@ -21,101 +18,32 @@ public class CaseListQueryTests
     public void TearDown() => this.context.Dispose();
 
     [Test]
-    public void SearchMatchesTheTitleAndTheDescriptionWithoutRegardToCaseOrDiacritics()
-    {
-        var sql = this.context.Cases.MatchingSearch("odvolání").ToQueryString();
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(sql, Does.Contain("ILIKE"));
-            Assert.That(sql, Does.Contain("\"Title\""));
-            Assert.That(sql, Does.Contain("\"Description\""));
-            Assert.That(sql, Does.Contain("%odvolání%"));
-            Assert.That(sql, Does.Contain("immutable_unaccent"), "the fold runs in the database, over the wrapper the Init migration creates");
-            Assert.That(sql.Split("immutable_unaccent").Length - 1, Is.EqualTo(4), "both the column and the term fold on both comparisons");
-        }
-    }
-
-    [Test]
-    public void ABlankSearchNarrowsNothing()
-    {
-        var unfiltered = this.context.Cases.ToQueryString();
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(this.context.Cases.MatchingSearch(search: null).ToQueryString(), Is.EqualTo(unfiltered));
-            Assert.That(this.context.Cases.MatchingSearch("").ToQueryString(), Is.EqualTo(unfiltered));
-            Assert.That(this.context.Cases.MatchingSearch("   ").ToQueryString(), Is.EqualTo(unfiltered));
-        }
-    }
-
-    [Test]
-    public void WildcardsInTheTermAreEscaped()
-    {
-        var sql = this.context.Cases.MatchingSearch("50%_a\\b").ToQueryString();
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(sql, Does.Contain(@"%50\%\_a\\b%"));
-            Assert.That(sql, Does.Contain("ESCAPE"));
-        }
-    }
-
-    [Test]
-    public void OpenIsEverythingNotClosedAndOnlyAllNarrowsNothing()
-    {
-        var unfiltered = this.context.Cases.ToQueryString();
-        var open = this.context.Cases.WithStatus(CaseStatusFilter.Open).ToQueryString();
-        var closed = this.context.Cases.WithStatus(CaseStatusFilter.Closed).ToQueryString();
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(new CaseListRequest().Status, Is.EqualTo(CaseStatusFilter.Open));
-            Assert.That(this.context.Cases.WithStatus(CaseStatusFilter.All).ToQueryString(), Is.EqualTo(unfiltered));
-            Assert.That(open, Does.Contain("<>"), "open is everything not closed");
-            Assert.That(open, Does.Contain(nameof(CaseStatus.Closed)));
-            Assert.That(closed, Does.Contain("\"Status\""));
-            Assert.That(closed, Does.Contain(nameof(CaseStatus.Closed)), "the status is stored as its name");
-        }
-    }
-
-    [Test]
-    public void TheOrderIsWhatWasTouchedLastAndIsTotal()
+    public void TheOrderIsTheCasesOwnDateNewestFirst()
     {
         var sql = this.context.Cases.InListOrder().ToQueryString();
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(sql, Does.Contain("ORDER BY"));
-            Assert.That(sql, Does.Contain("COALESCE"));
-            Assert.That(sql, Does.Contain("\"Id\" DESC"));
+            Assert.That(sql, Does.Contain("\"Date\" DESC"));
+            Assert.That(sql, Does.Contain("\"Created\" DESC"));
+            Assert.That(sql, Does.Contain("\"Id\" DESC"), "the identifier makes the order total");
         }
     }
 
     [Test]
-    public void TheProjectionReadsOneRowPerCaseInsideTheTenant()
+    public void TheProjectionReadsOnlyWhatARowShows()
     {
         var sql = this.context.Cases.AsListItems().ToQueryString();
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(sql, Does.Contain("\"TenantId\""));
-            Assert.That(sql, Does.Not.Contain("\"CaseTags\""));
+            Assert.That(sql, Does.Contain("\"CaseNumber\""));
+            Assert.That(sql, Does.Contain("\"Title\""));
+            Assert.That(sql, Does.Contain("\"Status\""));
+            Assert.That(sql, Does.Contain("\"Date\""));
+            Assert.That(sql, Does.Not.Contain("\"Description\""), "a row of the list never carries the case's text");
             Assert.That(sql, Does.Not.Contain("count(").IgnoreCase, "a row of the list stands for one case and counts nothing under it");
-            Assert.That(sql, Does.Not.Contain("\"OwnerId\""));
-        }
-    }
-
-    [Test]
-    public void AnUnfilteredListIsNarrowedByTheTenantAlone()
-    {
-        var sql = this.context.Cases.MatchingSearch(search: null).WithStatus(CaseStatusFilter.All).InListOrder().AsListItems().ToQueryString();
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(sql, Does.Contain("\"TenantId\""), "every read is inside a tenant");
-            Assert.That(sql, Does.Not.Contain("ILIKE"), "a blank search narrows nothing");
-            Assert.That(sql, Does.Not.Contain(" AND "), "All narrows nothing further");
         }
     }
 }

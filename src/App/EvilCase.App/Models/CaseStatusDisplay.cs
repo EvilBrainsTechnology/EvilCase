@@ -1,4 +1,3 @@
-using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Domain.Cases;
 using TabBlazor;
 
@@ -11,16 +10,6 @@ public static class CaseStatusDisplay
         CaseStatus.Active => "Aktivní",
         CaseStatus.WaitingOnAuthority => "Čeká na úřad",
         CaseStatus.Closed => "Uzavřený",
-        _ => "",
-    };
-
-    public static string FilterText(CaseStatusFilter filter) => filter switch
-    {
-        CaseStatusFilter.Open => "Otevřené",
-        CaseStatusFilter.All => "Všechny stavy",
-        CaseStatusFilter.Active => Text(CaseStatus.Active),
-        CaseStatusFilter.WaitingOnAuthority => Text(CaseStatus.WaitingOnAuthority),
-        CaseStatusFilter.Closed => Text(CaseStatus.Closed),
         _ => "",
     };
 
