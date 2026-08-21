@@ -36,7 +36,7 @@ public class AccountModelTests : ModelFixture
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(user.FindProperty(nameof(User.DefaultContactId))?.IsNullable, Is.True, "the user is written before the contact that points back at it");
+            Assert.That(user.FindProperty(nameof(User.DefaultContactId))?.IsNullable, Is.True, "a user need not have a contact to prefill an act with");
             Assert.That(toContact?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Restrict));
         }
     }
