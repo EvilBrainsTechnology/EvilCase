@@ -30,8 +30,11 @@ public class CaseWriterTests
         var blank = new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "Přestupek", Description = "   " };
         var withText = blank with { Description = "text" };
 
-        Assert.That(CaseWriter.Build(blank, "1/2026", new FakeTenantContext()).Description, Is.Null);
-        Assert.That(CaseWriter.Build(withText, "1/2026", new FakeTenantContext()).Description, Is.EqualTo("text"));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(CaseWriter.Build(blank, "1/2026", new FakeTenantContext()).Description, Is.Null);
+            Assert.That(CaseWriter.Build(withText, "1/2026", new FakeTenantContext()).Description, Is.EqualTo("text"));
+        }
     }
 
     private sealed class FakeTenantContext : ITenantContext
