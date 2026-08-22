@@ -48,10 +48,6 @@ internal sealed class CaseWriter(
         }
     }
 
-    /// <summary>
-    /// Internal so a test builds the row without a database. A new case is Active and hangs under nothing.
-    /// TenantId and UserId are left for the interceptor to stamp, as the sample seeder leaves them (SDD-018).
-    /// </summary>
     internal static Case Build(CreateCaseRequest request, string caseNumber)
     {
         return new()
