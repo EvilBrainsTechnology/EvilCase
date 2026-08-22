@@ -24,8 +24,8 @@ Schéma drží SDD-007, izolaci tenantů SDD-006.
 
 ### Transakce
 
-- Transakci otevírá `IDbSession.BeginTransaction` ten, kdo drží celou jednotku práce.
-  Jednotlivý zápis transakci neotevírá a `SaveChanges` volá sám za sebe.
+- Transakci otevírá ten, kdo drží celou jednotku práce. Jednotlivý zápis transakci neotevírá
+  a `SaveChanges` volá sám za sebe.
 - Zápisy, které musí platit společně, běží v jedné transakci nad jedním kontextem.
 - Seed vzorových dat je celá jednotka práce: transakci i scope `IUserContext` si otevírá sám
   (SDD-017).

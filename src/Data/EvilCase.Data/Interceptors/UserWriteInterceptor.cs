@@ -40,48 +40,31 @@ internal sealed class UserWriteInterceptor(IUserContext userContext) : SaveChang
         if (entries is not { Count: > 0 })
             return;
 
-        foreach (var entry in entries)
-        {
-            this.ApplyTenant(entry);
-
-            if (entry.Entity is IUserOwnedEntity)
-                this.ApplyUser(entry);
-        }
-    }
-
-    private void ApplyTenant(EntityEntry entry)
-    {
-        var property = entry.Property(nameof(ITenantEntity.TenantId));
         var tenantId = userContext.TenantId;
 
-        if (entry.State == EntityState.Added && (Guid)property.CurrentValue! == Guid.Empty)
+        foreach (var entry in entries)
         {
-            property.CurrentValue = tenantId;
-            return;
-        }
+            Stamp(entry, nameof(ITenantEntity.TenantId), tenantId, "tenant");
 
-        if ((Guid)property.CurrentValue! != tenantId)
-        {
-            throw new InvalidOperationException(
-                $"{entry.Metadata.DisplayName()} is written under tenant {tenantId} but carries {property.CurrentValue}");
+            if (entry.Entity is IUserOwnedEntity)
+                Stamp(entry, nameof(IUserOwnedEntity.UserId), userContext.UserId, "user");
         }
     }
 
-    private void ApplyUser(EntityEntry entry)
+    private static void Stamp(EntityEntry entry, string propertyName, in Guid id, string owner)
     {
-        var property = entry.Property(nameof(IUserOwnedEntity.UserId));
-        var userId = userContext.UserId;
+        var property = entry.Property(propertyName);
 
         if (entry.State == EntityState.Added && (Guid)property.CurrentValue! == Guid.Empty)
         {
-            property.CurrentValue = userId;
+            property.CurrentValue = id;
             return;
         }
 
-        if ((Guid)property.CurrentValue! != userId)
+        if ((Guid)property.CurrentValue! != id)
         {
             throw new InvalidOperationException(
-                $"{entry.Metadata.DisplayName()} is written by user {userId} but carries {property.CurrentValue}");
+                $"{entry.Metadata.DisplayName()} is written under {owner} {id} but carries {property.CurrentValue}");
         }
     }
 }

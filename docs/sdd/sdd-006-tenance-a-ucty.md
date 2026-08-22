@@ -37,10 +37,9 @@ Data nesmí utéct mezi tenanty; únik je kritická chyba.
 - `SaveChanges` doplní `TenantId` nové tenantové entitě z kontextu a zápis do cizího tenanta
   odmítne.
 - `SaveChanges` doplní `UserId` nové uživatelské entitě z `IUserContext` a zápis, změnu i
-  smazání řádky jiného uživatele odmítne. Seed při startu vstupuje do `IUserContext.Enter`
-  vlastním tenantem a uživatelem, takže zápis prochází stejnou kontrolou jako požadavek.
-- Seed běží pod explicitním scope `IUserContext.Enter(tenantId, userId)`; mimo požadavek se
-  tenant a uživatel nastavují jen společně.
+  smazání řádku jiného uživatele odmítne.
+- Seed běží pod explicitním scope `IUserContext`, takže prochází stejnou kontrolou jako
+  požadavek; mimo požadavek se tenant a uživatel nastavují jen společně.
 - Unikátní indexy tenantových entit jsou kompozitní s `TenantId`.
 - Konvenční test hlídá, že žádná tenantová entita filtr nepostrádá (SDD-003).
 
@@ -58,9 +57,9 @@ včetně refresh.
 - Vynucení izolace: jen ruční scope v dotazech / query filtry + kontrola zápisu. Platí query
   filtry a kontrola v `SaveChanges`.
 - Vznik účtů: registrace v UI / jen seed. Platí jen seed.
-- Plnění UserId: volající / interceptor. Platí interceptor; jen prázdnou hodnotu na nové řadě.
-- Zápis cizí řádky uvnitř tenantu: povolený / odmítnutý. Platí odmítnutý — řádka jiného
-  uživatele je v tenantu vidět, ale zapsat, změnit ani smazat ji nelze.
+- Plnění UserId: volající / interceptor. Platí interceptor; jen prázdnou hodnotu na novém řádku.
+- Zápis cizího řádku uvnitř tenantu: povolený / odmítnutý. Platí odmítnutý — řádek jiného
+  uživatele je v tenantu vidět, ale zapsat, změnit ani smazat ho nelze.
 
 ## Dopady
 
