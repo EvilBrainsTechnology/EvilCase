@@ -17,8 +17,12 @@ internal sealed class SampleDataSeeder(
     IUserContext userContext,
     ILogger<SampleDataSeeder> logger) : ISampleDataSeeder
 {
-    public async Task Seed(Guid tenantId, Guid userId, CancellationToken cancellationToken)
+    public async Task Seed(Guid userId, CancellationToken cancellationToken)
     {
+        var user = await dbSession.Current.Users.FindAsync([userId], cancellationToken)
+            ?? throw new InvalidOperationException($"User {userId} does not exist.");
+        var tenantId = user.TenantId;
+
         logger.LogInformation("Sample data seed started for tenant {TenantId}", tenantId);
 
         using var userScope = userContext.Enter(tenantId, userId);

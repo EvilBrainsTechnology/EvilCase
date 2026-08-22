@@ -1,6 +1,7 @@
 using EvilBrains.EvilCase.Business.Seeding;
 using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Domain.Contacts;
+using EvilBrains.EvilCase.Domain.Users;
 using EvilBrains.EvilCase.Tests.Auth;
 using EvilBrains.EvilCase.Tests.Data;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -182,6 +183,16 @@ public class SampleDataSeederTests
         var blobs = new FakeFileBlobStore();
         var session = new FixedDbSession(context);
 
+        context.Users.Add(new User
+        {
+            Id = UserId,
+            TenantId = TenantId,
+            Email = "user@evilcase.test",
+            PasswordHash = "hash",
+            Role = UserRole.User,
+            DefaultContactId = Guid.CreateVersion7(),
+        });
+
         var seeder = new SampleDataSeeder(
             session,
             new FakeCaseNumberIssuer(),
@@ -190,7 +201,7 @@ public class SampleDataSeederTests
             userContext,
             NullLogger<SampleDataSeeder>.Instance);
 
-        await seeder.Seed(TenantId, UserId, CancellationToken.None);
+        await seeder.Seed(UserId, CancellationToken.None);
 
         return (context, blobs, userContext, session);
     }
