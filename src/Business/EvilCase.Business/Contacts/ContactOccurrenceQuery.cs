@@ -12,8 +12,6 @@ internal static class ContactOccurrenceQuery
 {
     public static IQueryable<ContactCaseOccurrence> AsCaseOccurrences(this IQueryable<ExternalCaseNumber> numbers, Guid contactId)
     {
-        ArgumentNullException.ThrowIfNull(numbers);
-
         return numbers
             .Where(number => number.AssignedByContactId == contactId)
             .OrderByDescending(number => number.Case!.Date)
@@ -31,8 +29,6 @@ internal static class ContactOccurrenceQuery
 
     public static IQueryable<ContactActOccurrence> AsIssuedByOccurrences(this IQueryable<Act> acts, Guid contactId)
     {
-        ArgumentNullException.ThrowIfNull(acts);
-
         return acts
             .Where(act => act.IssuedByContactId == contactId)
             .Select(act => new ContactActOccurrence
@@ -50,8 +46,6 @@ internal static class ContactOccurrenceQuery
 
     public static IQueryable<ContactActOccurrence> AsAddressedToOccurrences(this IQueryable<Act> acts, Guid contactId)
     {
-        ArgumentNullException.ThrowIfNull(acts);
-
         return acts
             .Where(act => act.AddressedToContactId == contactId)
             .Select(act => new ContactActOccurrence
@@ -69,8 +63,6 @@ internal static class ContactOccurrenceQuery
 
     public static IQueryable<ContactActOccurrence> AsNumberIssuerOccurrences(this IQueryable<ExternalActNumber> numbers, Guid contactId)
     {
-        ArgumentNullException.ThrowIfNull(numbers);
-
         return numbers
             .Where(number => number.AssignedByContactId == contactId)
             .Select(number => new ContactActOccurrence

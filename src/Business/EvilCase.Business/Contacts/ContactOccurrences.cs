@@ -13,10 +13,6 @@ internal static class ContactOccurrences
         IEnumerable<ContactActOccurrence> addressedTo,
         IEnumerable<ContactActOccurrence> numberIssuer)
     {
-        ArgumentNullException.ThrowIfNull(issuedBy);
-        ArgumentNullException.ThrowIfNull(addressedTo);
-        ArgumentNullException.ThrowIfNull(numberIssuer);
-
         return
         [
             .. issuedBy.Concat(addressedTo).Concat(numberIssuer)

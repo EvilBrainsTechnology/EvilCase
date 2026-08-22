@@ -11,8 +11,6 @@ internal sealed class ContactWriter(IDbSession session, TimeProvider timeProvide
     // entity would save nothing. The statement sets Updated itself (SDD-018).
     public async Task<ContactUpdateOutcome> Update(Guid id, ContactEditRequest request, CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(request);
-
         var (name, kind, dataBoxId, address) = Normalized(request);
         var now = timeProvider.GetUtcNow().UtcDateTime;
 
@@ -53,17 +51,24 @@ internal sealed class ContactWriter(IDbSession session, TimeProvider timeProvide
     /// <summary>
     /// Every row that names the contact, as one query. Internal so a test reads the SQL the delete really runs.
     /// </summary>
-    internal static IQueryable<Guid> ReferencesTo(ApplicationDbContext context, Guid contactId) =>
-        context.ExternalCaseNumbers.Where(number => number.AssignedByContactId == contactId).Select(number => number.Id)
+    internal static IQueryable<Guid> ReferencesTo(ApplicationDbContext context, Guid contactId)
+    {
+        return context.ExternalCaseNumbers.Where(number => number.AssignedByContactId == contactId).Select(number => number.Id)
             .Concat(context.Acts.Where(act => act.IssuedByContactId == contactId).Select(act => act.Id))
             .Concat(context.Acts.Where(act => act.AddressedToContactId == contactId).Select(act => act.Id))
             .Concat(context.ExternalActNumbers.Where(number => number.AssignedByContactId == contactId).Select(number => number.Id));
+    }
 
     /// <summary>
     /// What the edit writes. A field left blank is filed as nothing rather than as an empty string.
     /// </summary>
-    internal static (string Name, ContactKind Kind, string? DataBoxId, string? Address) Normalized(ContactEditRequest request) =>
-        (request.Name.Trim(), request.Kind, Trimmed(request.DataBoxId), Trimmed(request.Address));
+    internal static (string Name, ContactKind Kind, string? DataBoxId, string? Address) Normalized(ContactEditRequest request)
+    {
+        return (request.Name.Trim(), request.Kind, Trimmed(request.DataBoxId), Trimmed(request.Address));
+    }
 
-    private static string? Trimmed(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    private static string? Trimmed(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
 }

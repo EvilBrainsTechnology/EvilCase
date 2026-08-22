@@ -55,14 +55,17 @@ public class ContactOccurrenceOrderTests
         }
     }
 
-    private static ContactActOccurrence Occurrence(in DateOnly date, string number, Guid? actId = null, ContactActRole role = ContactActRole.IssuedBy) => new()
+    private static ContactActOccurrence Occurrence(in DateOnly date, string number, Guid? actId = null, ContactActRole role = ContactActRole.IssuedBy)
     {
-        ActId = actId ?? Guid.CreateVersion7(),
-        ActNumber = number,
-        ActTitle = "Úkon",
-        ActDate = date,
-        CaseId = Guid.CreateVersion7(),
-        CaseNumber = "EC/2024",
-        Role = role,
-    };
+        return new()
+        {
+            ActId = actId ?? Guid.CreateVersion7(),
+            ActNumber = number,
+            ActTitle = "Úkon",
+            ActDate = date,
+            CaseId = Guid.CreateVersion7(),
+            CaseNumber = "EC/2024",
+            Role = role,
+        };
+    }
 }

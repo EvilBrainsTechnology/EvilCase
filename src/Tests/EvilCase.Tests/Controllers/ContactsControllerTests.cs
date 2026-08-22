@@ -154,11 +154,20 @@ public class ContactsControllerTests
         return (ProblemDetails)objectResult.Value!;
     }
 
-    private static ContactListItem Item(string name) => new() { Id = Guid.CreateVersion7(), Kind = ContactKind.Authority, Name = name };
+    private static ContactListItem Item(string name)
+    {
+        return new() { Id = Guid.CreateVersion7(), Kind = ContactKind.Authority, Name = name };
+    }
 
-    private static ContactDetail BuildDetail(in Guid id) => new() { Id = id, Kind = ContactKind.Authority, Name = "Kontakt" };
+    private static ContactDetail BuildDetail(in Guid id)
+    {
+        return new() { Id = id, Kind = ContactKind.Authority, Name = "Kontakt" };
+    }
 
-    private static ContactEditRequest Edit() => new() { Name = "Kontakt", Kind = ContactKind.Authority };
+    private static ContactEditRequest Edit()
+    {
+        return new() { Name = "Kontakt", Kind = ContactKind.Authority };
+    }
 
     private sealed class RecordingContactReader : IContactReader
     {
@@ -203,6 +212,9 @@ public class ContactsControllerTests
             return Task.FromResult(this.UpdateOutcome);
         }
 
-        public Task<ContactDeleteOutcome> Delete(Guid id, CancellationToken cancellationToken = default) => Task.FromResult(this.DeleteOutcome);
+        public Task<ContactDeleteOutcome> Delete(Guid id, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(this.DeleteOutcome);
+        }
     }
 }

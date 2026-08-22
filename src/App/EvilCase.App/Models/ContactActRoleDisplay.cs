@@ -4,11 +4,14 @@ namespace EvilBrains.EvilCase.App.Models;
 
 public static class ContactActRoleDisplay
 {
-    public static string Text(ContactActRole role) => role switch
+    public static string Text(ContactActRole role)
     {
-        ContactActRole.IssuedBy => "Vydal",
-        ContactActRole.AddressedTo => "Adresát",
-        ContactActRole.NumberIssuer => "Přidělil číslo jednací",
-        _ => "",
-    };
+        return role switch
+        {
+            ContactActRole.IssuedBy => "Vydal",
+            ContactActRole.AddressedTo => "Adresát",
+            ContactActRole.NumberIssuer => "Přidělil číslo jednací",
+            _ => "",
+        };
+    }
 }

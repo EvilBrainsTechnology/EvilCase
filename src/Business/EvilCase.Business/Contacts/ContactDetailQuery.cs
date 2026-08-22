@@ -14,8 +14,6 @@ internal static class ContactDetailQuery
     /// </summary>
     public static IQueryable<ContactDetail> AsDetail(this IQueryable<Contact> contacts, Guid id)
     {
-        ArgumentNullException.ThrowIfNull(contacts);
-
         return contacts
             .Where(contact => contact.Id == id)
             .Select(contact => new ContactDetail

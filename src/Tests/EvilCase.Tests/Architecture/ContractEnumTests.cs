@@ -28,15 +28,18 @@ public class ContractEnumTests
         }
     }
 
-    private static IReadOnlyList<Type> WireEnums() =>
-    [
-        .. typeof(Api.Contract.Cases.CaseListItem).Assembly
-            .GetExportedTypes()
-            .SelectMany(type => type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
-            .SelectMany(property => Unwrap(property.PropertyType))
-            .Where(type => type.IsEnum)
-            .Distinct(),
-    ];
+    private static IReadOnlyList<Type> WireEnums()
+    {
+        return
+        [
+            .. typeof(Api.Contract.Cases.CaseListItem).Assembly
+                .GetExportedTypes()
+                .SelectMany(type => type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+                .SelectMany(property => Unwrap(property.PropertyType))
+                .Where(type => type.IsEnum)
+                .Distinct(),
+        ];
+    }
 
     private static IEnumerable<Type> Unwrap(Type type)
     {
