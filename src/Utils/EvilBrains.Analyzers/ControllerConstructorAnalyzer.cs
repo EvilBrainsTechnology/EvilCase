@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -12,8 +11,6 @@ namespace EvilBrains.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class ControllerConstructorAnalyzer : DiagnosticAnalyzer
 {
-    private const string ControllerBaseTypeName = "Microsoft.AspNetCore.Mvc.ControllerBase";
-
     private static readonly DiagnosticDescriptor NoConstructorDependencies = new(
         "EB0007",
         "Controller must not take constructor dependencies",
@@ -35,7 +32,7 @@ public sealed class ControllerConstructorAnalyzer : DiagnosticAnalyzer
     {
         var type = (INamedTypeSymbol)context.Symbol;
 
-        if (!IsController(type))
+        if (!MvcFacts.IsApiController(type))
             return;
 
         foreach (var constructor in type.InstanceConstructors.Where(x => !x.IsImplicitlyDeclared))
@@ -43,16 +40,5 @@ public sealed class ControllerConstructorAnalyzer : DiagnosticAnalyzer
             foreach (var parameter in constructor.Parameters)
                 context.ReportDiagnostic(Diagnostic.Create(NoConstructorDependencies, parameter.Locations[0], type.Name, parameter.Name));
         }
-    }
-
-    private static bool IsController(INamedTypeSymbol type)
-    {
-        for (var current = type.BaseType; current is not null; current = current.BaseType)
-        {
-            if (string.Equals(current.ToDisplayString(), ControllerBaseTypeName, StringComparison.Ordinal))
-                return true;
-        }
-
-        return false;
     }
 }
