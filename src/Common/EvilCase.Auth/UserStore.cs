@@ -4,8 +4,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Auth;
 
-// The login writes go through ExecuteUpdate rather than the change tracker: reading the row first
-// would be a second round trip. Updated comes from the database trigger (SDD-018).
 internal sealed class UserStore(IDbSession dbSession) : IUserStore
 {
     public async Task<User?> FindByEmail(string email, CancellationToken cancellationToken)
