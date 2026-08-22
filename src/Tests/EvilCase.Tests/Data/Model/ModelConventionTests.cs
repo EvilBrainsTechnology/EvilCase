@@ -7,11 +7,16 @@ namespace EvilBrains.EvilCase.Tests.Data.Model;
 
 public class ModelConventionTests : ModelFixture
 {
+    /// <summary>
+    /// EB0009 flags a <c>Set&lt;TEntity&gt;()</c> call site; an entity with no typed <c>DbSet</c> at all
+    /// leaves none to flag.
+    /// </summary>
     [Test]
     public void EveryEntityIsReachedThroughItsOwnDbSet()
     {
         var sets = typeof(ApplicationDbContext).GetProperties()
-            .Where(property => property.PropertyType.IsGenericType && property.PropertyType.GetGenericTypeDefinition() == typeof(DbSet<>))
+            .Where(property => property.PropertyType.IsGenericType)
+            .Where(property => property.PropertyType.GetGenericTypeDefinition() == typeof(DbSet<>))
             .Select(property => property.PropertyType.GetGenericArguments()[0])
             .ToList();
 

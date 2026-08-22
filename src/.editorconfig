@@ -190,9 +190,12 @@ dotnet_diagnostic.EB0001.severity = warning    # Single-line comment should begi
 dotnet_diagnostic.EB0002.severity = warning    # Single-line comment should be preceded by a blank line (SA1515)
 dotnet_diagnostic.EB0003.severity = warning    # Single-line comment should not be followed by a blank line (SA1512)
 dotnet_diagnostic.EB0004.severity = error      # Using directives should be ordered (SA1208/SA1210)
+dotnet_diagnostic.EB0005.severity = error      # ArgumentNullException.ThrowIfNull guards a non-nullable parameter
 dotnet_diagnostic.EB0006.severity = error      # Member should have a block body
 dotnet_diagnostic.EB0007.severity = error      # Controller must not take constructor dependencies
 dotnet_diagnostic.EB0008.severity = error      # Action parameter out of order
+dotnet_diagnostic.EB0009.severity = error      # Entity is reached through Set<TEntity>() instead of its typed DbSet
+dotnet_diagnostic.EB0010.severity = error      # Where predicate joins conditions with '&&'
 
 ########################################################################################################################
 
@@ -227,7 +230,7 @@ dotnet_diagnostic.MA0025.severity = error      # Implement the functionality ins
 dotnet_diagnostic.MA0026.severity = warning    # Fix TODO comment
 dotnet_diagnostic.MA0027.severity = error      # Prefer rethrowing an exception implicitly
 dotnet_diagnostic.MA0028.severity = error      # Optimize StringBuilder usage
-dotnet_diagnostic.MA0029.severity = none       # Combine LINQ methods (project convention: consecutive Where, not &&)
+dotnet_diagnostic.MA0029.severity = none       # Combine LINQ methods (it would combine consecutive Where into &&, which EB0010 forbids)
 dotnet_diagnostic.MA0030.severity = error      # Remove useless OrderBy call
 dotnet_diagnostic.MA0031.severity = error      # Optimize Enumerable.Count() usage
 dotnet_diagnostic.MA0032.severity = none       # Use an overload with a CancellationToken argument, even when no token is available in scope (disabled by default)
@@ -574,7 +577,7 @@ dotnet_diagnostic.rcs1107.severity = error      # Remove redundant 'ToCharArray'
 dotnet_diagnostic.rcs1108.severity = error      # Add 'static' modifier to all partial class declarations
 dotnet_diagnostic.rcs1110.severity = error      # Declare type inside namespace
 dotnet_diagnostic.rcs1111.severity = error      # Add braces to switch section with multiple statements
-dotnet_diagnostic.rcs1112.severity = none       # Combine 'Enumerable.Where' method chain
+dotnet_diagnostic.rcs1112.severity = none       # Combine 'Enumerable.Where' method chain (EB0010 owns the form)
 dotnet_diagnostic.rcs1113.severity = error      # Use 'string.IsNullOrEmpty' method
 dotnet_diagnostic.rcs1114.severity = error      # Remove redundant delegate creation
 dotnet_diagnostic.rcs1118.severity = error      # Mark local variable as const
