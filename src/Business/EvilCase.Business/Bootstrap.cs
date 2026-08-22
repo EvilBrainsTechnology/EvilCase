@@ -20,6 +20,7 @@ public static class Bootstrap
         services.AddScoped<ICaseReader, CaseReader>();
         services.AddScoped<ICaseWriter, CaseWriter>();
         services.AddScoped<IContactReader, ContactReader>();
+        services.AddScoped<IContactWriter, ContactWriter>();
         services.AddScoped<ISampleDataSeeder, SampleDataSeeder>();
         services.AddScoped<ICaseNumberIssuer, CaseNumberIssuer>();
         services.AddScoped<IActNumberIssuer, ActNumberIssuer>();
