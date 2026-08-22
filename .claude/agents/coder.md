@@ -25,6 +25,8 @@ The pull request:
 - The description is yours.
 - Label `agent-in-progress` on open.
 - Subscribe (`subscribe_pr_activity`).
+- Fast lane: no plan before you, no reviewer after. Format with `dotnet r format`, match the
+  description to the diff, answer every thread, switch the label to `agent-done` at the end.
 
 On an existing pull request the prompt carries its number instead: work on its branch — check
 out `origin/<branch>` detached, push with `git push origin HEAD:<branch>`, adding
