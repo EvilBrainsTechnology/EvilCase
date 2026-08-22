@@ -40,6 +40,26 @@ public class DbSetAccessAnalyzerTests
     }
 
     [Test]
+    public async Task SetOnADerivedContextIsReportedTest()
+    {
+        var diagnostics = await Analyze("""
+            public class ApplicationContext : DbContext
+            {
+            }
+
+            public class Reader
+            {
+                public DbSet<Entity> Read(ApplicationContext context)
+                {
+                    return context.Set<Entity>();
+                }
+            }
+            """);
+
+        Assert.That(diagnostics.Select(x => x.Id), Is.EqualTo(["EB0009"]), "a derived context does not exempt the caller from the typed DbSet");
+    }
+
+    [Test]
     public async Task SetInsideTheContextHasNoDiagnosticsTest()
     {
         var diagnostics = await Analyze("""

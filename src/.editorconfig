@@ -195,7 +195,7 @@ dotnet_diagnostic.EB0006.severity = error      # Member should have a block body
 dotnet_diagnostic.EB0007.severity = error      # Controller must not take constructor dependencies
 dotnet_diagnostic.EB0008.severity = error      # Action parameter out of order
 dotnet_diagnostic.EB0009.severity = error      # Entity is reached through Set<TEntity>() instead of its typed DbSet
-dotnet_diagnostic.EB0010.severity = error      # Where predicate joins conditions with '&&' (MA0029/rcs1112 would combine them back)
+dotnet_diagnostic.EB0010.severity = error      # Where predicate joins conditions with '&&'
 
 ########################################################################################################################
 

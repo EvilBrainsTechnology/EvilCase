@@ -133,6 +133,19 @@ public class WhereConjunctionAnalyzerTests
     }
 
     [Test]
+    public async Task IndexedPredicateHasNoDiagnosticsTest()
+    {
+        var diagnostics = await Analyze("""
+            public IEnumerable<int> Filter(IEnumerable<int> numbers)
+            {
+                return numbers.Where((number, index) => number > 1 && index < 5);
+            }
+            """);
+
+        Assert.That(diagnostics, Is.Empty, "an indexed predicate cannot be split: the second Where would count a different index");
+    }
+
+    [Test]
     public async Task BlockBodiedPredicateHasNoDiagnosticsTest()
     {
         var diagnostics = await Analyze("""
