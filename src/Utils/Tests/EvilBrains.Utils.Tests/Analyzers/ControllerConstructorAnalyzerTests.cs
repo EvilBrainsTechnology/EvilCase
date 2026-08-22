@@ -107,7 +107,7 @@ public class ControllerConstructorAnalyzerTests
             }
             """);
 
-        Assert.That(diagnostics, Is.Empty, "a controller is a type marked [ApiController], the definition the client generator uses");
+        Assert.That(diagnostics, Is.Empty, "a controller is a type marked [ApiController]");
     }
 
     [Test]
