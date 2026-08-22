@@ -51,7 +51,8 @@ public class LayerTests
     [Test]
     public void TheDomainDependsOnNothingOfOurs()
     {
-        var ours = Domain.GetReferencedAssemblies()
+        var ours = Domain
+            .GetReferencedAssemblies()
             .Where(reference => reference.Name?.StartsWith("EvilBrains.", StringComparison.Ordinal) == true)
             .Select(reference => reference.Name)
             .ToList();

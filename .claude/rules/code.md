@@ -22,6 +22,7 @@ paths:
 - A convention is configured over the whole model, never property by property.
 - Required beats nullable; a property is nullable only where the domain allows its absence.
 - A member carries a block body; an arrow body only for a property or indexer on one line.
+- A call chain over more than one line starts every call on its own line, the first one included.
 - Never a static method that takes what the instance already holds.
 - Resolve a service into a local, then call it; never chain off `GetRequiredService<T>()`.
 - Fix an analyzer finding; never suppress one to get a build green.

@@ -81,7 +81,8 @@ public static class Bootstrap
 
         // Liveness runs no check: the process answering is the signal. A database check here would
         // restart every instance at once on a brief outage.
-        endpoints.MapHealthChecks(HealthCheckPaths.Live, new HealthCheckOptions { Predicate = _ => false })
+        endpoints
+            .MapHealthChecks(HealthCheckPaths.Live, new HealthCheckOptions { Predicate = _ => false })
             .AllowAnonymous();
 
         endpoints.MapHealthChecks(

@@ -41,7 +41,9 @@ public class MigrationsTests
     {
         using var context = new ApplicationDbContextFactory().CreateDbContext([]);
 
-        var created = context.GetService<IMigrationsAssembly>().Migrations
+        var created = context
+            .GetService<IMigrationsAssembly>()
+            .Migrations
             .Select(entry => context.GetService<IMigrationsAssembly>().CreateMigration(entry.Value, context.GetService<IDatabaseProvider>().Name))
             .SelectMany(migration => migration.UpOperations)
             .OfType<CreateIndexOperation>()

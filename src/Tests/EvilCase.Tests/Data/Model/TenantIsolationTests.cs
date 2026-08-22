@@ -99,7 +99,8 @@ public class TenantIsolationTests : ModelFixture
     [Test]
     public void TheOnlyRowsOutsideATenantAreAccountsTenantsUsersAndTheirTokens()
     {
-        var untenanted = Model.GetEntityTypes()
+        var untenanted = Model
+            .GetEntityTypes()
             .Where(entityType => !typeof(ITenantEntity).IsAssignableFrom(entityType.ClrType))
             .Select(entityType => entityType.ShortName())
             .ToList();
