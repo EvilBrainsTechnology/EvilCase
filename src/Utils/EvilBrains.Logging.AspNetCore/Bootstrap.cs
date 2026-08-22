@@ -7,11 +7,7 @@ public static class Bootstrap
     /// <summary>
     /// Requires Serilog.ILogger in the container, which is what <c>UseSerilog(Log.Logger)</c> registers.
     /// </summary>
-    public static IServiceCollection AddClientLogWriter(this IServiceCollection services, string clientSourceContext)
-    {
-        ArgumentNullException.ThrowIfNull(services);
-
-        return services.AddSingleton<IClientLogWriter>(
+    public static IServiceCollection AddClientLogWriter(this IServiceCollection services, string clientSourceContext) =>
+        services.AddSingleton<IClientLogWriter>(
             provider => new ClientLogWriter(provider.GetRequiredService<Serilog.ILogger>(), clientSourceContext));
-    }
 }

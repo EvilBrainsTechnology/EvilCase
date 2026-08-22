@@ -19,8 +19,6 @@ internal sealed class RequestContextLoggingMiddleware(RequestDelegate next)
 
     public async Task Invoke(HttpContext context)
     {
-        ArgumentNullException.ThrowIfNull(context);
-
         using (LogContext.PushProperty(TraceIdentifierPropertyName, context.TraceIdentifier))
         using (Push(context, RequestContextHeaderNames.RequestId, RequestContextPropertyNames.RequestId))
         using (Push(context, RequestContextHeaderNames.CorrelationId, RequestContextPropertyNames.CorrelationId))

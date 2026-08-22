@@ -16,8 +16,6 @@ internal sealed class AuthTokenService(IOptions<AuthSettings> options, TimeProvi
 
     public AccessToken Generate(User user, Guid authSessionId)
     {
-        ArgumentNullException.ThrowIfNull(user);
-
         var jwt = options.Value.Jwt;
         var now = timeProvider.GetUtcNow().UtcDateTime;
         var expires = now.Add(jwt.AccessTokenExpiration);

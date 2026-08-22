@@ -9,8 +9,6 @@ internal sealed class RequestContextHandler(IClientIdentity identity) : Delegati
 {
     protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(request);
-
         var requestId = Guid.NewGuid().ToString("D", CultureInfo.InvariantCulture);
 
         request.Headers.TryAddWithoutValidation(RequestContextHeaderNames.RequestId, requestId);

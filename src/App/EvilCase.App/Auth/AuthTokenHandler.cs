@@ -13,8 +13,6 @@ internal sealed class AuthTokenHandler(IAccessTokenStore tokens, IServiceProvide
 {
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(request);
-
         // The refresh token is a cookie and fetch only sends one when it is asked to.
         if (IsUnder(request, AuthRoute.Path))
             request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);

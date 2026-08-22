@@ -7,12 +7,7 @@ public sealed class ActionDisposableScope : IDisposable
 {
     private Action? dispose;
 
-    public ActionDisposableScope(Action dispose)
-    {
-        ArgumentNullException.ThrowIfNull(dispose);
-
-        this.dispose = dispose;
-    }
+    public ActionDisposableScope(Action dispose) => this.dispose = dispose;
 
     public void Dispose()
     {

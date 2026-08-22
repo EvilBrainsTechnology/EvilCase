@@ -7,6 +7,7 @@ paths:
 
 - Prefer clean, readable code to exhaustive correctness: no null check on what cannot be null, no
   `try`/`catch` that only rethrows, no argument validation inside an internal method.
+- `ArgumentNullException.ThrowIfNull` guards a nullable parameter, never a non-nullable one.
 - No `Async` suffix. Exceptions: a genuine sync/async pair on one surface, and names not ours to
   choose (`SendAsync`, `DisposeAsync`, `OnAfterRenderAsync`).
 - Every class resolved from DI is `internal sealed` and consumed through an interface; a public

@@ -20,8 +20,6 @@ internal static class TestTokens
 
     public static string TokenFrom(EvilCaseHost host, string email = Email)
     {
-        ArgumentNullException.ThrowIfNull(host);
-
         using var scope = host.Services.CreateScope();
 
         var user = new User

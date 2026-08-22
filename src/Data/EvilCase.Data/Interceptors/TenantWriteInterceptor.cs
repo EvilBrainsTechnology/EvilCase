@@ -13,8 +13,6 @@ internal sealed class TenantWriteInterceptor(ITenantContext tenantContext) : Sav
 {
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {
-        ArgumentNullException.ThrowIfNull(eventData);
-
         this.Apply(eventData.Context);
 
         return base.SavingChanges(eventData, result);
@@ -25,8 +23,6 @@ internal sealed class TenantWriteInterceptor(ITenantContext tenantContext) : Sav
         InterceptionResult<int> result,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(eventData);
-
         this.Apply(eventData.Context);
 
         return base.SavingChangesAsync(eventData, result, cancellationToken);
