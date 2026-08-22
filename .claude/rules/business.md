@@ -21,11 +21,12 @@ What it cannot see:
 - `EvilCase.Auth` is a closed module behind `IAuthService`, exempt from the layering.
 - A pure rule is a static class with no `DbContext` in sight, tested without one.
 
-## List queries
+## Queries
 
 - One `IQueryable` extension step per rule, composed by a reader; a step returns `IQueryable`
   and ends at the ordering.
 - The reader projects straight into the contract DTO and calls `ToListAsync` once, at the end.
+- A read that yields one row is one step that returns the row, not an `IQueryable`.
 
 ## Tenancy
 
