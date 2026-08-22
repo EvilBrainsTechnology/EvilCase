@@ -17,6 +17,12 @@ public class TenantWriteInterceptorTests
 
     private static readonly Guid TenantB = Guid.CreateVersion7();
 
+    private static readonly Guid UserA = Guid.CreateVersion7();
+
+    private static readonly Guid UserB = Guid.CreateVersion7();
+
+    private static readonly DateTime Moment = new(2026, 8, 21, 0, 0, 0, DateTimeKind.Utc);
+
     private ApplicationDbContext context = null!;
 
     [SetUp]
@@ -39,7 +45,7 @@ public class TenantWriteInterceptorTests
 
         var tenantContext = new StubTenantContext();
         using var scope = tenantContext.Enter(TenantA);
-        var interceptor = new TenantWriteInterceptor(tenantContext, new StubUserContext());
+        var interceptor = new TenantWriteInterceptor(tenantContext, new StubUserContext { UserId = UserA });
 
         Save(interceptor, this.context);
 
@@ -59,7 +65,7 @@ public class TenantWriteInterceptorTests
 
         var tenantContext = new StubTenantContext();
         using var scope = tenantContext.Enter(TenantA);
-        var interceptor = new TenantWriteInterceptor(tenantContext, new StubUserContext());
+        var interceptor = new TenantWriteInterceptor(tenantContext, new StubUserContext { UserId = UserA });
 
         Assert.That(() => Save(interceptor, this.context), Throws.Nothing, "an explicit tenant that matches the write stands");
         Assert.That(this.context.Entry(added).Property(nameof(Contact.TenantId)).CurrentValue, Is.EqualTo(TenantA));
@@ -72,7 +78,7 @@ public class TenantWriteInterceptorTests
 
         var tenantContext = new StubTenantContext();
         using var scope = tenantContext.Enter(TenantA);
-        var interceptor = new TenantWriteInterceptor(tenantContext, new StubUserContext());
+        var interceptor = new TenantWriteInterceptor(tenantContext, new StubUserContext { UserId = UserA });
 
         Assert.That(
             () => Save(interceptor, this.context),
@@ -92,81 +98,83 @@ public class TenantWriteInterceptorTests
             DefaultContactId = Guid.CreateVersion7(),
         });
 
-        var interceptor = new TenantWriteInterceptor(new StubTenantContext(), new StubUserContext());
+        this.context.RefreshTokens.Add(new RefreshToken
+        {
+            UserId = Guid.CreateVersion7(),
+            AuthSessionId = Guid.CreateVersion7(),
+            TokenHash = "hash",
+            Expires = Moment.AddDays(1),
+            SessionExpires = Moment.AddDays(30),
+        });
+
+        var interceptor = new TenantWriteInterceptor(new StubTenantContext(), new AnonymousUserContext());
 
         Assert.That(
             () => Save(interceptor, this.context),
             Throws.Nothing,
-            "signing in writes without a tenant");
+            "signing in writes without a tenant or a signed-in user");
     }
 
     [Test]
-    public void AnAddedRowGetsTheCallersUser()
+    public void TheWriteStampsTheUserOnARowCreatedWithoutOne()
     {
-        var userId = Guid.CreateVersion7();
-        var @case = NewCase(TenantA);
+        var @case = NewCase(TenantA, Guid.Empty);
         this.context.Cases.Add(@case);
 
         var tenantContext = new StubTenantContext();
         using var tenantScope = tenantContext.Enter(TenantA);
-        var userContext = new StubUserContext();
-        using var userScope = userContext.Enter(userId);
-        var interceptor = new TenantWriteInterceptor(tenantContext, userContext);
+        var interceptor = new TenantWriteInterceptor(tenantContext, new StubUserContext { UserId = UserA });
 
         Save(interceptor, this.context);
 
-        Assert.That(this.context.Entry(@case).Property(nameof(Case.UserId)).CurrentValue, Is.EqualTo(userId), "a new row belongs to the user who created it");
+        Assert.That(this.context.Entry(@case).Property(nameof(Case.UserId)).CurrentValue, Is.EqualTo(UserA), "a new user-owned row takes the user of the write, so no creation has to set it");
     }
 
     [Test]
-    public void AnAddedRowMayCarryTheCallersUser()
+    public void ARowCreatedWithNoSignedInUserNeverReachesTheDatabase()
     {
-        var userId = Guid.CreateVersion7();
-        var @case = NewCase(TenantA, userId);
-        this.context.Cases.Add(@case);
+        this.context.Cases.Add(NewCase(TenantA, Guid.Empty));
 
         var tenantContext = new StubTenantContext();
         using var tenantScope = tenantContext.Enter(TenantA);
-        var userContext = new StubUserContext();
-        using var userScope = userContext.Enter(userId);
-        var interceptor = new TenantWriteInterceptor(tenantContext, userContext);
-
-        Assert.That(() => Save(interceptor, this.context), Throws.Nothing, "an explicit user matching the caller is not a conflict");
-        Assert.That(this.context.Entry(@case).Property(nameof(Case.UserId)).CurrentValue, Is.EqualTo(userId));
-    }
-
-    [Test]
-    public void AnAddedRowCarryingAnotherUserIsRefused()
-    {
-        var userId = Guid.CreateVersion7();
-        var @case = NewCase(TenantA, Guid.CreateVersion7());
-        this.context.Cases.Add(@case);
-
-        var tenantContext = new StubTenantContext();
-        using var tenantScope = tenantContext.Enter(TenantA);
-        var userContext = new StubUserContext();
-        using var userScope = userContext.Enter(userId);
-        var interceptor = new TenantWriteInterceptor(tenantContext, userContext);
+        var interceptor = new TenantWriteInterceptor(tenantContext, new AnonymousUserContext());
 
         Assert.That(
             () => Save(interceptor, this.context),
             Throws.InvalidOperationException,
-            "a row naming another user never reaches the database");
+            "a user-owned row with nobody signed in is refused rather than written with an empty owner");
     }
 
     [Test]
-    public void AnAddedRowWithNoSignedInUserIsRefused()
+    public void ARowWrittenUnderAnotherUserNeverReachesTheDatabase()
     {
-        this.context.Cases.Add(NewCase(TenantA));
+        var @case = NewCase(TenantA, UserB);
+        this.context.Cases.Add(@case);
+        this.context.Entry(@case).State = EntityState.Modified;
 
         var tenantContext = new StubTenantContext();
         using var tenantScope = tenantContext.Enter(TenantA);
-        var interceptor = new TenantWriteInterceptor(tenantContext, new StubUserContext());
+        var interceptor = new TenantWriteInterceptor(tenantContext, new StubUserContext { UserId = UserA });
 
         Assert.That(
             () => Save(interceptor, this.context),
             Throws.InvalidOperationException,
-            "a user-owned row nobody owns never reaches the database");
+            "a row of another user is refused, not silently restamped");
+    }
+
+    [Test]
+    public void TheStartupSeedWritesTheRowsItOwnsWithNoSignedInUser()
+    {
+        this.context.Cases.Add(NewCase(TenantA, UserB));
+
+        var tenantContext = new StubTenantContext();
+        using var tenantScope = tenantContext.Enter(TenantA);
+        var interceptor = new TenantWriteInterceptor(tenantContext, new AnonymousUserContext());
+
+        var @case = this.context.ChangeTracker.Entries<Case>().Single().Entity;
+
+        Assert.That(() => Save(interceptor, this.context), Throws.Nothing, "the startup seed owns the rows it writes without a request behind it");
+        Assert.That(this.context.Entry(@case).Property(nameof(Case.UserId)).CurrentValue, Is.EqualTo(UserB));
     }
 
     private static void Save(TenantWriteInterceptor interceptor, DbContext dbContext)
@@ -179,12 +187,12 @@ public class TenantWriteInterceptorTests
         return new() { TenantId = tenant, Kind = ContactKind.Person, Name = "test" };
     }
 
-    private static Case NewCase(in Guid tenant, in Guid userId = default)
+    private static Case NewCase(in Guid tenant, in Guid user)
     {
         return new()
         {
             TenantId = tenant,
-            UserId = userId,
+            UserId = user,
             CaseNumber = "EC/20260821-001",
             Date = new DateOnly(2026, 8, 21),
             Title = "test",

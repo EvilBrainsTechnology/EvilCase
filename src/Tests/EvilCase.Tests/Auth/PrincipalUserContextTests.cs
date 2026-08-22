@@ -47,19 +47,6 @@ public class PrincipalUserContextTests
         }
     }
 
-    [Test]
-    public void EnteringAUserOverridesThePrincipalAndRestoresOnDispose()
-    {
-        var userA = Guid.CreateVersion7();
-        var userB = Guid.CreateVersion7();
-        var context = NewContext((AuthClaims.Subject, userA.ToString("D", CultureInfo.InvariantCulture)));
-
-        using (context.Enter(userB))
-            Assert.That(context.UserId, Is.EqualTo(userB));
-
-        Assert.That(context.UserId, Is.EqualTo(userA), "the seeder names its user and the request keeps its own");
-    }
-
     private static PrincipalUserContext NewContext(params (string Type, string Value)[] claims)
     {
         var identity = new ClaimsIdentity(claims.Select(claim => new Claim(claim.Type, claim.Value)));

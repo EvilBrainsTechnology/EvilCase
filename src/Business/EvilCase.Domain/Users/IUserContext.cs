@@ -11,12 +11,7 @@ public interface IUserContext
     public Guid UserId { get; }
 
     /// <summary>
-    /// Null for a health probe, the sign-in endpoint or a migration at startup.
+    /// Null for a health probe, the sign-in endpoint or a seed at startup.
     /// </summary>
     public Guid? UserIdOrDefault { get; }
-
-    /// <summary>
-    /// Names the user for work that runs outside a request. Restores the previous user on dispose.
-    /// </summary>
-    public IDisposable Enter(Guid userId);
 }

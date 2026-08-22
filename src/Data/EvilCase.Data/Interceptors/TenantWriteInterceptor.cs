@@ -2,6 +2,7 @@ using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Domain.Tenancy;
 using EvilBrains.EvilCase.Domain.Users;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace EvilBrains.EvilCase.Data.Interceptors;
@@ -32,12 +33,6 @@ internal sealed class TenantWriteInterceptor(ITenantContext tenantContext, IUser
 
     private void Apply(DbContext? context)
     {
-        this.ApplyTenant(context);
-        this.ApplyUser(context);
-    }
-
-    private void ApplyTenant(DbContext? context)
-    {
         var entries = context?.ChangeTracker.Entries()
             .Where(entry => entry.Entity is ITenantEntity)
             .Where(entry => entry.State is EntityState.Added or EntityState.Modified or EntityState.Deleted)
@@ -51,52 +46,47 @@ internal sealed class TenantWriteInterceptor(ITenantContext tenantContext, IUser
 
         foreach (var entry in entries)
         {
-            var property = entry.Property(nameof(ITenantEntity.TenantId));
-
-            if (entry.State == EntityState.Added && (Guid)property.CurrentValue! == Guid.Empty)
-            {
-                property.CurrentValue = tenantId;
-                continue;
-            }
-
-            if ((Guid)property.CurrentValue! != tenantId)
-            {
-                throw new InvalidOperationException(
-                    $"{entry.Metadata.DisplayName()} is written under tenant {tenantId} but carries {property.CurrentValue}");
-            }
+            ApplyTenant(entry, tenantId);
+            this.ApplyUser(entry);
         }
     }
 
-    // Stamped on Added only: an update keeps whatever user the row already belongs to, as a row is
-    // visible to the whole tenant.
-    private void ApplyUser(DbContext? context)
+    private static void ApplyTenant(EntityEntry entry, in Guid tenantId)
     {
-        var entries = context?.ChangeTracker.Entries()
-            .Where(entry => entry.Entity is IUserOwnedEntity)
-            .Where(entry => entry.State == EntityState.Added)
-            .ToList();
+        var property = entry.Property(nameof(ITenantEntity.TenantId));
 
-        // The user is read only where the write adds a user-owned row, so signing in still writes.
-        if (entries is not { Count: > 0 })
+        if (entry.State == EntityState.Added && (Guid)property.CurrentValue! == Guid.Empty)
+        {
+            property.CurrentValue = tenantId;
+            return;
+        }
+
+        if ((Guid)property.CurrentValue! != tenantId)
+        {
+            throw new InvalidOperationException(
+                $"{entry.Metadata.DisplayName()} is written under tenant {tenantId} but carries {property.CurrentValue}");
+        }
+    }
+
+    private void ApplyUser(EntityEntry entry)
+    {
+        if (entry.Entity is not IUserOwnedEntity)
             return;
 
-        var userId = userContext.UserId;
+        var property = entry.Property(nameof(IUserOwnedEntity.UserId));
 
-        foreach (var entry in entries)
+        if (entry.State == EntityState.Added && (Guid)property.CurrentValue! == Guid.Empty)
         {
-            var property = entry.Property(nameof(IUserOwnedEntity.UserId));
+            property.CurrentValue = userContext.UserId;
+            return;
+        }
 
-            if ((Guid)property.CurrentValue! == Guid.Empty)
-            {
-                property.CurrentValue = userId;
-                continue;
-            }
-
-            if ((Guid)property.CurrentValue! != userId)
-            {
-                throw new InvalidOperationException(
-                    $"{entry.Metadata.DisplayName()} is written by user {userId} but carries {property.CurrentValue}");
-            }
+        // The startup seed writes rows it owns with no request behind it, so the owner is checked only
+        // where a signed-in user exists.
+        if (userContext.UserIdOrDefault is { } userId && (Guid)property.CurrentValue! != userId)
+        {
+            throw new InvalidOperationException(
+                $"{entry.Metadata.DisplayName()} is written by user {userId} but carries {property.CurrentValue}");
         }
     }
 }

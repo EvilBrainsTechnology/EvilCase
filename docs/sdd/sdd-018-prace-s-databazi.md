@@ -32,7 +32,9 @@ Schéma drží SDD-007, izolaci tenantů SDD-006.
 
 - `TimestampInterceptor` plní `Created` a `Updated` nad `TimeProvider`.
 - `TenantWriteInterceptor` doplní tenanta z `ITenantContext` nové tenantové entitě, která ho
-  nemá, a odmítne zápis entity, jejíž tenant se s kontextem neshoduje (SDD-006).
+  nemá, a odmítne zápis entity, jejíž tenant se s kontextem neshoduje (SDD-006). Stejně doplní
+  `UserId` z `IUserContext` nové entitě `IUserOwnedEntity`; zápis bez přihlášeného uživatele,
+  který `UserId` nenese, skončí chybou a zápis pod jiným uživatelem je odmítnut.
 - `ExecuteUpdate` a `ExecuteDelete` jdou mimo interceptory: co jinak plní interceptor, nastavuje
   takový zápis sám.
 
