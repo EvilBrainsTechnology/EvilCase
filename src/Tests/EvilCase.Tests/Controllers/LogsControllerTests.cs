@@ -10,9 +10,9 @@ public class LogsControllerTests
     public void EveryEntryIsForwardedToTheWriter()
     {
         var writer = new CollectingWriter();
-        var controller = new LogsController(writer);
+        var controller = new LogsController();
 
-        controller.WriteClientLogs(new ClientLogBatch { Entries = [Entry("first"), Entry("second")] });
+        controller.WriteClientLogs(writer, new ClientLogBatch { Entries = [Entry("first"), Entry("second")] });
 
         Assert.That(writer.Entries.Select(x => x.MessageTemplate), Is.EqualTo(["first", "second"]));
     }
@@ -24,9 +24,9 @@ public class LogsControllerTests
     public void NullEntryIsSkipped()
     {
         var writer = new CollectingWriter();
-        var controller = new LogsController(writer);
+        var controller = new LogsController();
 
-        controller.WriteClientLogs(new ClientLogBatch { Entries = [null!, Entry("second")] });
+        controller.WriteClientLogs(writer, new ClientLogBatch { Entries = [null!, Entry("second")] });
 
         Assert.That(writer.Entries.Select(x => x.MessageTemplate), Is.EqualTo(["second"]));
     }

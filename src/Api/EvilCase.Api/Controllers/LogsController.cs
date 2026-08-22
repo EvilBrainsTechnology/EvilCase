@@ -13,14 +13,14 @@ namespace EvilBrains.EvilCase.Api.Controllers;
 [GenerateApiClient]
 [AllowAnonymous]
 [Route(ClientLogRoute.Template)]
-public class LogsController(IClientLogWriter writer) : ControllerBase
+public class LogsController : ControllerBase
 {
     // Kestrel would otherwise accept 30 MB before model validation gets to reject the batch.
     private const int MaxRequestBodyBytes = 4 * 1024 * 1024;
 
     [HttpPost("")]
     [RequestSizeLimit(MaxRequestBodyBytes)]
-    public void WriteClientLogs([FromBody] ClientLogBatch batch)
+    public void WriteClientLogs([FromServices] IClientLogWriter writer, [FromBody] ClientLogBatch batch)
     {
         foreach (var entry in batch.Entries)
         {

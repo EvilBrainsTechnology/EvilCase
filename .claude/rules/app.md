@@ -21,9 +21,8 @@ must not break.
 - Data lists never scroll horizontally on mobile: render a table and a card variant and switch
   by CSS only (`d-none d-lg-block` / `d-lg-none`); `Pages/Home.razor` is the reference. Never
   branch layout in C# or JS by viewport.
-- Touch targets ≥ 44 px below `lg`. Form action buttons sticky at the bottom.
-  `env(safe-area-inset-bottom)` on fixed bottom elements. A tooltip is never the only carrier of
-  information.
+- Touch targets ≥ 44 px below `lg`. Form action buttons sticky at the bottom,
+  `env(safe-area-inset-bottom)` on fixed bottom elements. A tooltip never carries information alone.
 - No Bootstrap JS — use the TabBlazor services (`IModalService`, `IOffcanvasService`);
   unavoidable JS goes through an `IJSObjectReference` disposed in `IAsyncDisposable`.
 - Custom CSS stays minimal, in `wwwroot/css/app.css`. Look for a Tabler utility class first; no

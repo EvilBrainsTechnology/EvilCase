@@ -4,8 +4,7 @@ A case-file system for administrative and legal proceedings; `docs/product/visio
 product it is built towards.
 
 .NET 10, PostgreSQL, secrets from environment variables. `src/global.json` pins the SDK version
-and `.claude/hooks/session-start.sh` hardcodes its image tag — a bump changes both, in the same
-commit.
+and `.claude/hooks/session-start.sh` hardcodes its image tag — a bump changes both in one commit.
 
 ## Solution map
 
