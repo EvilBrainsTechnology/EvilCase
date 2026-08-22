@@ -67,5 +67,4 @@ a běží ve vlastním scope dřív, než se obslouží první požadavek.
 
 `ApplicationDbContext` přestává být závislostí služeb v `Business` a `Auth`. SDD-001 jmenuje
 `EvilCase.Data` jako model i přístup k databázi; `.claude/rules/data.md` nese invariant.
-`TimestampInterceptor` zaniká, `EvilCase.Data` už neregistruje `TimeProvider`, `EvilCase.Auth`
-v `ExecuteUpdate` `Updated` nenastavuje.
+Čas drží databáze: `TimeProvider` patří `EvilCase.Auth`, ne `EvilCase.Data`.

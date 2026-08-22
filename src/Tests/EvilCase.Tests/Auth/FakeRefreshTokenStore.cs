@@ -95,7 +95,7 @@ internal sealed class FakeRefreshTokenStore(TimeProvider timeProvider) : IRefres
             {
                 if (this.tokens[i].RevokedAt is null && match(this.tokens[i]))
                 {
-                    this.tokens[i] = this.tokens[i] with { RevokedAt = now, LastUsed = alsoUsed ? now : this.tokens[i].LastUsed, Updated = now };
+                    this.tokens[i] = this.tokens[i] with { RevokedAt = now, LastUsed = alsoUsed ? now : this.tokens[i].LastUsed };
                     revoked++;
                 }
             }

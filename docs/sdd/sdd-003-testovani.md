@@ -34,8 +34,8 @@ Vrstvy testů a povinné testy nových oblastí.
 ## Rozhodnutí
 
 - Testy úložiště: mock souborového systému / temp adresář. Platí temp adresář.
-- Testy razítek: fake kontext / reálná databáze. Platí reálná databáze; CI ji staví jako service
-  container.
+- Testy razítek: fake kontext / reálná databáze. Platí reálná databáze — razítko píší hodiny
+  databáze, ne aplikace.
 
 ## Dopady
 

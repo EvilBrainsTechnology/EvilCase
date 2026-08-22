@@ -62,8 +62,7 @@ dotnet r test                # tests only
 dotnet r ci                  # format-check + build + test, what CI runs
 ```
 
-The suite needs a reachable PostgreSQL for the database-stamp tests; the server started above
-serves, and `EVILCASE_TEST_POSTGRES` points them at another one.
+The database-stamp tests need a reachable PostgreSQL — the throwaway one from the prerequisites serves. `EVILCASE_TEST_POSTGRES` points them at another server; they name their own database on it.
 
 ### Logging
 

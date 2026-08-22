@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using EvilBrains.EvilCase.Data;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
@@ -15,8 +17,13 @@ public class DatabaseTimestampTests
 {
     private const string DefaultConnectionString = "Host=localhost;Port=5432;Username=postgres;Password=postgres";
 
+    // Named after this checkout: parallel checkouts share one server, and the setup below drops the
+    // database it is about to build (.claude/rules/agents.md).
+    private static readonly string DatabaseName =
+        $"evilcase_tests_timestamps_{Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(AppContext.BaseDirectory)))[..8].ToLowerInvariant()}";
+
     private static readonly string ConnectionString =
-        (Environment.GetEnvironmentVariable("EVILCASE_TEST_POSTGRES") ?? DefaultConnectionString) + ";Database=evilcase-tests-timestamps";
+        $"{Environment.GetEnvironmentVariable("EVILCASE_TEST_POSTGRES") ?? DefaultConnectionString};Database={DatabaseName}";
 
     [OneTimeSetUp]
     public async Task OneTimeSetUp()
