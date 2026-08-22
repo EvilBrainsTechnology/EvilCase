@@ -15,7 +15,8 @@ public class ModelConventionTests : ModelFixture
     public void EveryEntityIsReachedThroughItsOwnDbSet()
     {
         var sets = typeof(ApplicationDbContext).GetProperties()
-            .Where(property => property.PropertyType.IsGenericType && property.PropertyType.GetGenericTypeDefinition() == typeof(DbSet<>))
+            .Where(property => property.PropertyType.IsGenericType)
+            .Where(property => property.PropertyType.GetGenericTypeDefinition() == typeof(DbSet<>))
             .Select(property => property.PropertyType.GetGenericArguments()[0])
             .ToList();
 
