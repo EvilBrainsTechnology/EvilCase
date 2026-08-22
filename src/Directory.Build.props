@@ -41,7 +41,7 @@
     </PackageReference>
   </ItemGroup>
 
-  <ItemGroup Condition="'$(MSBuildProjectName)' != 'EvilBrains.Analyzers' And '$(MSBuildProjectName)' != 'EvilBrains.Utils.Tests'">
+  <ItemGroup Condition="'$(MSBuildProjectName)' != 'EvilBrains.Analyzers'">
     <ProjectReference Include="$(MSBuildThisFileDirectory)Utils\EvilBrains.Analyzers\EvilBrains.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="$(ReferenceAnalyzersAssembly)" PrivateAssets="all" />
   </ItemGroup>
 </Project>

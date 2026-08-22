@@ -36,8 +36,11 @@ public class ControllerConstructorAnalyzerTests
             }
             """);
 
-        Assert.That(diagnostics.Select(x => x.Id), Is.EqualTo(["EB0007"]), "a controller must not take constructor dependencies");
-        Assert.That(diagnostics.Single().GetMessage(CultureInfo.InvariantCulture), Does.Contain("thing"), "a controller must not take constructor dependencies");
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(diagnostics.Select(x => x.Id), Is.EqualTo(["EB0007"]), "a controller must not take constructor dependencies");
+            Assert.That(diagnostics.Single().GetMessage(CultureInfo.InvariantCulture), Does.Contain("thing"), "the message names the constructor parameter");
+        }
     }
 
     [Test]
@@ -94,19 +97,24 @@ public class ControllerConstructorAnalyzerTests
         Assert.That(diagnostics, Is.Empty, "the rule follows ControllerBase, not the type name");
     }
 
-    private static Task<ImmutableArray<Diagnostic>> Analyze(string type) =>
-        AnalyzerTestHost.Analyze(new ControllerConstructorAnalyzer(), Fixture(type));
+    private static Task<ImmutableArray<Diagnostic>> Analyze(string type)
+    {
+        return AnalyzerTestHost.Analyze(new ControllerConstructorAnalyzer(), Fixture(type));
+    }
 
-    private static string Fixture(string type) => $$"""
-        using Microsoft.AspNetCore.Mvc;
+    private static string Fixture(string type)
+    {
+        return $$"""
+            using Microsoft.AspNetCore.Mvc;
 
-        namespace FakeApi;
+            namespace FakeApi;
 
-        public interface IThing
-        {
-            string Name { get; }
-        }
+            public interface IThing
+            {
+                string Name { get; }
+            }
 
-        {{type}}
-        """;
+            {{type}}
+            """;
+    }
 }
