@@ -4,8 +4,9 @@
     <div class="card-body">
         <div class="d-flex justify-content-between align-items-start gap-2">
             <div class="min-w-0">
-                <div class="text-secondary">@Case.CaseNumber</div>
-                <div class="font-weight-medium"><a href="@($"/cases/{Case.Id}")" class="text-reset">@Case.Title</a></div>
+                @* Stretched so the whole card opens the case: a line of text is no touch target. *@
+                <div class="text-secondary"><a href="@($"/cases/{Case.Id}")" class="text-reset stretched-link">@Case.CaseNumber</a></div>
+                <div class="font-weight-medium">@Case.Title</div>
             </div>
             @* Without this the flex row breaks a two-word status across three lines. *@
             <div class="flex-shrink-0 text-nowrap">

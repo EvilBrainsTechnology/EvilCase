@@ -15,8 +15,4 @@ public sealed record CaseDetail
     public string? Description { get; init; }
 
     public required CaseStatus Status { get; init; }
-
-    public required DateTime Created { get; init; }
-
-    public DateTime? Updated { get; init; }
 }

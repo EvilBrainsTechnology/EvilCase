@@ -18,8 +18,6 @@ public static class CaseDetailQuery
             Title = @case.Title,
             Description = @case.Description,
             Status = @case.Status,
-            Created = @case.Created,
-            Updated = @case.Updated,
         });
     }
 }

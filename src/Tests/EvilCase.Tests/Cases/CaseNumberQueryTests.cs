@@ -35,6 +35,7 @@ public class CaseNumberQueryTests
             Assert.That(sql, Does.Contain("EC/20260807-001"));
             Assert.That(sql, Does.Contain("<>"), "the case being edited keeps its own number");
             Assert.That(sql, Does.Contain("\"Id\""));
+            Assert.That(sql, Does.Contain("\"TenantId\" ="), "a number is unique within the tenant, not across tenants");
         }
     }
 }

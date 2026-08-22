@@ -36,20 +36,22 @@ public class CaseDetailQueryTests
             Assert.That(sql, Does.Contain("\"Title\""));
             Assert.That(sql, Does.Contain("\"Description\""));
             Assert.That(sql, Does.Contain("\"Status\""));
+            Assert.That(sql, Does.Not.Contain("\"Created\""), "the detail shows no timestamp");
+            Assert.That(sql, Does.Not.Contain("\"Updated\""), "the detail shows no timestamp");
             Assert.That(sql, Does.Not.Contain("count(").IgnoreCase, "the detail counts nothing under the case");
             Assert.That(sql, Does.Not.Contain("JOIN").IgnoreCase, "the detail reads the case row and nothing else");
         }
     }
 
     [Test]
-    public void TheDetailIsOneRowPickedByItsId()
+    public void TheDetailIsOneRowPickedByItsIdWithinTheTenant()
     {
         var sql = CaseReader.Compose(this.context.Cases, Guid.Empty).ToQueryString();
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(sql, Does.Contain("\"Id\""));
-            Assert.That(sql, Does.Contain("WHERE"));
+            Assert.That(sql, Does.Contain("\"Id\" = @id"), "the detail is picked by the id from the route");
+            Assert.That(sql, Does.Contain("\"TenantId\" ="), "an id of another tenant names no case");
         }
     }
 }
