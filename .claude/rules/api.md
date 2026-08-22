@@ -23,9 +23,8 @@ every other path returns the frontend's `index.html`.
 
 Controllers are the single source of truth and DTOs live in `EvilCase.Api.Contract`; the client
 is generated from the controller sources. The `EB1xxx` diagnostics are the spec for both: read
-the diagnostic, never work around it.
-
-Controllers have no constructor; an action takes each dependency as a `[FromServices]` parameter.
+the diagnostic, never work around it. A controller has no constructor; an action takes each
+dependency as a `[FromServices]` parameter.
 
 ## Secrets and logging
 
