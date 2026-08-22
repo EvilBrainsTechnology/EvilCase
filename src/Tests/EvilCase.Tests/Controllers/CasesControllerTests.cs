@@ -188,7 +188,7 @@ public class CasesControllerTests
         };
     }
 
-    private static CaseDetail Detail(Guid id, string caseNumber, string title)
+    private static CaseDetail Detail(in Guid id, string caseNumber, string title)
     {
         return new()
         {

@@ -85,12 +85,10 @@ public class CaseWriterTests
     [Test]
     public async Task AMalformedNumberStopsTheEditBeforeTheCaseIsRead()
     {
-        await using var context = FakeApplicationDbContext.Create(new FakeTenantContext());
-        var writer = new CaseWriter(
-            new FixedDbSession(context),
-            new QueuedCaseNumberIssuer([]),
-            new StubUserContext { UserId = Guid.CreateVersion7() },
-            NullLogger<CaseWriter>.Instance);
+        var userContext = new StubUserContext();
+        using var entered = userContext.Enter(Guid.CreateVersion7(), Guid.CreateVersion7());
+        await using var context = FakeApplicationDbContext.Create(userContext);
+        var writer = new CaseWriter(new FixedDbSession(context), new QueuedCaseNumberIssuer([]), NullLogger<CaseWriter>.Instance);
 
         var status = await writer.Update(Guid.CreateVersion7(), UpdateRequest() with { CaseNumber = "20260821-001" });
 

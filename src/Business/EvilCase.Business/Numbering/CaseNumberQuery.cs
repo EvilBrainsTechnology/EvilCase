@@ -14,7 +14,9 @@ public static class CaseNumberQuery
     /// </summary>
     public static IQueryable<Case> WithNumberTakenFrom(this IQueryable<Case> cases, string caseNumber, Guid exceptId)
     {
-        return cases.Where(@case => @case.CaseNumber == caseNumber && @case.Id != exceptId);
+        return cases
+            .Where(@case => @case.CaseNumber == caseNumber)
+            .Where(@case => @case.Id != exceptId);
     }
 
     /// <summary>

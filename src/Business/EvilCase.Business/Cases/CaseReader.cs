@@ -1,6 +1,5 @@
 using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Data.DbContexts;
-using EvilBrains.EvilCase.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Business.Cases;
@@ -19,11 +18,17 @@ internal sealed class CaseReader(IDbSession session) : ICaseReader
 
     public async Task<CaseDetail?> Detail(Guid id, CancellationToken cancellationToken = default)
     {
-        return await Compose(session.Current.Cases, id).FirstOrDefaultAsync(cancellationToken);
-    }
-
-    internal static IQueryable<CaseDetail> Compose(IQueryable<Case> cases, Guid id)
-    {
-        return cases.Where(@case => @case.Id == id).AsDetails();
+        return await session.Current.Cases
+            .Where(@case => @case.Id == id)
+            .Select(@case => new CaseDetail
+            {
+                Id = @case.Id,
+                CaseNumber = @case.CaseNumber,
+                Date = @case.Date,
+                Title = @case.Title,
+                Description = @case.Description,
+                Status = @case.Status,
+            })
+            .FirstOrDefaultAsync(cancellationToken);
     }
 }
