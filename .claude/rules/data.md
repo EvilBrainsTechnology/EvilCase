@@ -5,8 +5,9 @@ paths:
 
 # Data
 
-Read the model SDDs under `docs/sdd/` (SDD-018 first) and the fixtures under `Tests/Data/Model/`
-before changing an entity; below is what neither says.
+`EvilCase.Data` holds the schema and the way to reach the database (SDD-018). Read the model
+SDDs under `docs/sdd/` and the fixtures under `Tests/Data/Model/` before changing an entity;
+below is what neither says.
 
 - The domain's word wins over a language keyword: the type is `Case`, with `@case` where it
   collides.
@@ -15,8 +16,6 @@ before changing an entity; below is what neither says.
 - A test reads check constraints from `IDesignTimeModel`; `context.Model` has dropped them.
 - The application reads and writes through `IDbSession.Current`, always through the entity's
   typed `DbSet`; a `DbContext` never leaves its DI scope.
-- The write interceptor fills `TenantId` and `UserId` on an added row and refuses a row naming
-  another tenant or user; a caller assigns neither.
 
 ## Migrations
 
