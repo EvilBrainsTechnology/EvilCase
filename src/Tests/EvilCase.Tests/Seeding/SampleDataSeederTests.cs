@@ -13,10 +13,14 @@ namespace EvilBrains.EvilCase.Tests.Seeding;
 /// </summary>
 public class SampleDataSeederTests
 {
+    private static readonly Guid TenantId = Guid.CreateVersion7();
+
+    private static readonly Guid UserId = Guid.CreateVersion7();
+
     [Test]
     public async Task TheSeedFillsTheTenantWithTheWholeCaseTree()
     {
-        var (context, _, _) = await Run();
+        var (context, _, _, _) = await Run();
 
         var cases = context.Added<Case>().ToList();
         var caseIds = cases.Select(@case => @case.Id).ToHashSet();
@@ -37,7 +41,7 @@ public class SampleDataSeederTests
     [Test]
     public async Task EveryActBelongsToASeededCaseAndNamesItsSender()
     {
-        var (context, _, _) = await Run();
+        var (context, _, _, _) = await Run();
 
         var caseIds = context.Added<Case>().Select(@case => @case.Id).ToHashSet();
         var contactIds = context.Added<Contact>().Select(contact => contact.Id).ToHashSet();
@@ -56,7 +60,7 @@ public class SampleDataSeederTests
     [Test]
     public async Task TheActsOfEveryCaseRunInDateOrder()
     {
-        var (context, _, _) = await Run();
+        var (context, _, _, _) = await Run();
 
         var groups = context.Added<Act>()
             .GroupBy(act => act.CaseId)
@@ -69,7 +73,7 @@ public class SampleDataSeederTests
     [Test]
     public async Task EveryFileHasABlobAndExactlyOneOwner()
     {
-        var (context, blobs, _) = await Run();
+        var (context, blobs, _, _) = await Run();
 
         var assets = context.Added<FileAsset>().ToList();
 
@@ -90,7 +94,7 @@ public class SampleDataSeederTests
     [Test]
     public async Task ExternalNumbersNameTheContactThatAssignedThem()
     {
-        var (context, _, _) = await Run();
+        var (context, _, _, _) = await Run();
 
         var contactIds = context.Added<Contact>().Select(contact => contact.Id).ToHashSet();
         var caseNumbers = context.Added<ExternalCaseNumber>().ToList();
@@ -112,7 +116,7 @@ public class SampleDataSeederTests
     [Test]
     public async Task TheSeededContactsAreTheOnesTheCaseNames()
     {
-        var (context, _, _) = await Run();
+        var (context, _, _, _) = await Run();
 
         var contacts = context.Added<Contact>().ToList();
 
@@ -128,25 +132,22 @@ public class SampleDataSeederTests
     }
 
     [Test]
-    public async Task EveryOwnedRowBelongsToTheSeedingUser()
+    public async Task NoSeededRowNamesItsOwner()
     {
-        var (context, _, userId) = await Run();
+        var (context, _, _, _) = await Run();
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(context.Added<Case>().All(@case => @case.UserId == userId), Is.True, "every seeded case belongs to the seeding user");
-            Assert.That(context.Added<Act>().All(act => act.UserId == userId), Is.True, "every seeded act belongs to the seeding user");
-            Assert.That(context.Added<Comment>().All(comment => comment.UserId == userId), Is.True, "every seeded comment belongs to the seeding user");
-            Assert.That(context.Added<FileAsset>().All(asset => asset.UserId == userId), Is.True, "every seeded file belongs to the seeding user");
-            Assert.That(context.Added<ExternalCaseNumber>().All(number => number.UserId == userId), Is.True, "every seeded case number belongs to the seeding user");
-            Assert.That(context.Added<ExternalActNumber>().All(number => number.UserId == userId), Is.True, "every seeded act number belongs to the seeding user");
+            Assert.That(context.Added<Case>().TrueForAll(@case => @case.UserId == Guid.Empty), Is.True, "the seed names no user; the write is what stamps it");
+            Assert.That(context.Added<Act>().TrueForAll(act => act.UserId == Guid.Empty), Is.True, "the seed names no user; the write is what stamps it");
+            Assert.That(context.Added<Comment>().TrueForAll(comment => comment.UserId == Guid.Empty), Is.True, "the seed names no user; the write is what stamps it");
         }
     }
 
     [Test]
     public async Task EveryCommentHangsOnACaseOrAnAct()
     {
-        var (context, _, _) = await Run();
+        var (context, _, _, _) = await Run();
 
         var comments = context.Added<Comment>().ToList();
 
@@ -158,27 +159,35 @@ public class SampleDataSeederTests
         }
     }
 
-    private static async Task<(FakeApplicationDbContext Context, FakeFileBlobStore Blobs, Guid UserId)> Run()
+    [Test]
+    public async Task TheSeedEntersItsUserAndCommitsItsOwnTransaction()
     {
-        var tenantContext = new StubTenantContext();
-        var tenantId = Guid.CreateVersion7();
-        var userId = Guid.CreateVersion7();
+        var (_, _, userContext, session) = await Run();
 
-        using var scope = tenantContext.Enter(tenantId);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(userContext.Entered, Is.EqualTo([(TenantId, UserId)]), "the seed names its tenant and its user together, never one alone");
+            Assert.That(session.Transaction!.Committed, Is.True, "the seed commits the transaction it opened");
+        }
+    }
 
-        var context = FakeApplicationDbContext.Create(tenantContext);
+    private static async Task<(FakeApplicationDbContext Context, FakeFileBlobStore Blobs, StubUserContext UserContext, FixedDbSession Session)> Run()
+    {
+        var userContext = new StubUserContext();
+        var context = FakeApplicationDbContext.Create(userContext);
         var blobs = new FakeFileBlobStore();
+        var session = new FixedDbSession(context);
 
         var seeder = new SampleDataSeeder(
-            new FixedDbSession(context),
-            tenantContext,
+            session,
             new FakeCaseNumberIssuer(),
             new FakeActNumberIssuer(),
             blobs,
+            userContext,
             NullLogger<SampleDataSeeder>.Instance);
 
-        await seeder.Seed(userId, CancellationToken.None);
+        await seeder.Seed(TenantId, UserId, CancellationToken.None);
 
-        return (context, blobs, userId);
+        return (context, blobs, userContext, session);
     }
 }

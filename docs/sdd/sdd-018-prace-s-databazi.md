@@ -24,17 +24,17 @@ Schéma drží SDD-007, izolaci tenantů SDD-006.
 
 ### Transakce
 
-- Transakci otevírá vrstva nad kontextem: ta, která zakládá DI scope. Jednotlivý zápis
-  transakci neotevírá a `SaveChanges` volá sám za sebe.
+- Transakci otevírá `IDbSession.BeginTransaction` ten, kdo drží celou jednotku práce.
+  Jednotlivý zápis transakci neotevírá a `SaveChanges` volá sám za sebe.
 - Zápisy, které musí platit společně, běží v jedné transakci nad jedním kontextem.
+- Seed vzorových dat je celá jednotka práce: transakci i scope `IUserContext` si otevírá sám
+  (SDD-017).
 
 ### Interceptory
 
 - `TimestampInterceptor` plní `Created` a `Updated` nad `TimeProvider`.
-- `TenantWriteInterceptor` doplní tenanta z `ITenantContext` nové tenantové entitě, která ho
-  nemá, a odmítne zápis entity, jejíž tenant se s kontextem neshoduje (SDD-006). Stejně doplní
-  `UserId` z `IUserContext` nové entitě `IUserOwnedEntity`; zápis bez přihlášeného uživatele,
-  který `UserId` nenese, skončí chybou a zápis pod jiným uživatelem je odmítnut.
+- `UserWriteInterceptor` doplní tenanta a uživatele z `IUserContext` a odmítne zápis entity,
+  jejíž tenant se s kontextem neshoduje (SDD-006).
 - `ExecuteUpdate` a `ExecuteDelete` jdou mimo interceptory: co jinak plní interceptor, nastavuje
   takový zápis sám.
 
@@ -48,6 +48,7 @@ a běží ve vlastním scope dřív, než se obslouží první požadavek.
 - Přístup k datům: `DbContext` přímo ve službách / accessor nad DI scope. Platí accessor.
 - Životnost `DbContext`: ruční správa / scoped z DI. Platí scoped z DI.
 - Transakce: uvnitř každého zápisu / o úroveň výš. Platí o úroveň výš.
+- Transakce seedu: volající / seed sám. Platí seed sám.
 - Repository per entita: ano / ne. Ne — typovaný `DbSet` na `IDbSession.Current` stačí.
 
 ## Dopady
