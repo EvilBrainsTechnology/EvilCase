@@ -3,17 +3,15 @@ namespace EvilBrains.Dispose;
 /// <summary>
 /// Runs one action when the scope ends. Disposing again runs nothing.
 /// </summary>
-public sealed class ActionDisposableScope : IDisposable
+public sealed class ActionDisposableScope(Action dispose) : IDisposable
 {
-    private Action? dispose;
-
-    public ActionDisposableScope(Action dispose) => this.dispose = dispose;
+    private Action? pending = dispose;
 
     public void Dispose()
     {
-        var action = this.dispose;
+        var action = this.pending;
 
-        this.dispose = null;
+        this.pending = null;
         action?.Invoke();
     }
 }
