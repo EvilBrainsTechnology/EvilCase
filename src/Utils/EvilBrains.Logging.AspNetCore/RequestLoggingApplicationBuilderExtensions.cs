@@ -16,8 +16,6 @@ public static class RequestLoggingApplicationBuilderExtensions
         IReadOnlyList<string> loggedPaths,
         IReadOnlyList<string> quietPaths)
     {
-        ArgumentNullException.ThrowIfNull(app);
-
         var policy = new RequestLogLevelPolicy(loggedPaths, quietPaths);
 
         app.UseRequestContextLogging();

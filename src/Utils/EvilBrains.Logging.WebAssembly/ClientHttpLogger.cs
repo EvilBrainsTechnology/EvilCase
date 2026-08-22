@@ -16,9 +16,6 @@ internal sealed class ClientHttpLogger(ILogger<ClientHttpLogger> logger, string 
 
     public void LogRequestStop(object? context, HttpRequestMessage request, HttpResponseMessage response, TimeSpan elapsed)
     {
-        ArgumentNullException.ThrowIfNull(request);
-        ArgumentNullException.ThrowIfNull(response);
-
         if (response.IsSuccessStatusCode && this.IsQuiet(request))
             return;
 
@@ -39,8 +36,6 @@ internal sealed class ClientHttpLogger(ILogger<ClientHttpLogger> logger, string 
 
     public void LogRequestFailed(object? context, HttpRequestMessage request, HttpResponseMessage? response, Exception exception, TimeSpan elapsed)
     {
-        ArgumentNullException.ThrowIfNull(request);
-
         var method = request.Method.Method;
         var path = Path(request);
         var milliseconds = Milliseconds(elapsed);

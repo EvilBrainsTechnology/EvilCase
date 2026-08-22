@@ -14,9 +14,6 @@ public static class ActNumberQuery
     /// </summary>
     public static IQueryable<Act> OfCaseWithNumberPrefix(this IQueryable<Act> acts, Guid caseId, string prefix)
     {
-        ArgumentNullException.ThrowIfNull(acts);
-        ArgumentNullException.ThrowIfNull(prefix);
-
         var pattern = prefix.EscapeLikeWildcards() + "%";
 
         return acts.Where(act => act.CaseId == caseId && EF.Functions.Like(act.ActNumber, pattern, LikeExtensions.LikeEscape));
@@ -26,12 +23,7 @@ public static class ActNumberQuery
     /// Highest number first. Length decides first, so a sequence that grew a digit outranks a
     /// three-digit one. The caller takes the row it wants.
     /// </summary>
-    public static IQueryable<Act> OrderByNumberDescending(this IQueryable<Act> acts)
-    {
-        ArgumentNullException.ThrowIfNull(acts);
-
-        return acts
-            .OrderByDescending(act => act.ActNumber.Length)
-            .ThenByDescending(act => act.ActNumber);
-    }
+    public static IQueryable<Act> OrderByNumberDescending(this IQueryable<Act> acts) => acts
+        .OrderByDescending(act => act.ActNumber.Length)
+        .ThenByDescending(act => act.ActNumber);
 }

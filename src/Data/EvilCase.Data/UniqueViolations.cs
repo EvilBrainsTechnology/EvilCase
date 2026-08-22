@@ -8,10 +8,6 @@ namespace EvilBrains.EvilCase.Data;
 /// </summary>
 public static class UniqueViolations
 {
-    public static bool IsUniqueViolation(this DbUpdateException exception)
-    {
-        ArgumentNullException.ThrowIfNull(exception);
-
-        return exception.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation };
-    }
+    public static bool IsUniqueViolation(this DbUpdateException exception) =>
+        exception.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation };
 }

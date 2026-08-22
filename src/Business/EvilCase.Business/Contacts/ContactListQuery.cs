@@ -16,8 +16,6 @@ public static class ContactListQuery
     /// </summary>
     public static IQueryable<Contact> MatchingSearch(this IQueryable<Contact> contacts, string? search)
     {
-        ArgumentNullException.ThrowIfNull(contacts);
-
         if (string.IsNullOrWhiteSpace(search))
             return contacts;
 
@@ -32,29 +30,19 @@ public static class ContactListQuery
     /// <summary>
     /// By name, the identifier breaking the tie so the order is total.
     /// </summary>
-    public static IQueryable<Contact> InListOrder(this IQueryable<Contact> contacts)
-    {
-        ArgumentNullException.ThrowIfNull(contacts);
-
-        return contacts
-            .OrderBy(contact => contact.Name)
-            .ThenBy(contact => contact.Id);
-    }
+    public static IQueryable<Contact> InListOrder(this IQueryable<Contact> contacts) => contacts
+        .OrderBy(contact => contact.Name)
+        .ThenBy(contact => contact.Id);
 
     /// <summary>
     /// Reads only what a row shows, in one query.
     /// </summary>
-    public static IQueryable<ContactListItem> AsListItems(this IQueryable<Contact> contacts)
+    public static IQueryable<ContactListItem> AsListItems(this IQueryable<Contact> contacts) => contacts.Select(contact => new ContactListItem
     {
-        ArgumentNullException.ThrowIfNull(contacts);
-
-        return contacts.Select(contact => new ContactListItem
-        {
-            Id = contact.Id,
-            Kind = contact.Kind,
-            Name = contact.Name,
-            DataBoxId = contact.DataBoxId,
-            Address = contact.Address,
-        });
-    }
+        Id = contact.Id,
+        Kind = contact.Kind,
+        Name = contact.Name,
+        DataBoxId = contact.DataBoxId,
+        Address = contact.Address,
+    });
 }

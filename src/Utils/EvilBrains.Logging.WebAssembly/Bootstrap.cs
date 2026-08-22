@@ -26,8 +26,6 @@ public static class Bootstrap
         string machineIdStorageKey,
         string uploadPath)
     {
-        ArgumentNullException.ThrowIfNull(builder);
-
         var options = builder.Configuration.GetSection(settingsPath).Get<ClientLoggingOptions>() ?? new ClientLoggingOptions();
 
         sink = new ClientLogSink();
@@ -64,8 +62,6 @@ public static class Bootstrap
 
     public static IServiceCollection AddRequestContext(this IServiceCollection services, string machineIdStorageKey)
     {
-        ArgumentNullException.ThrowIfNull(services);
-
         services.AddSingleton<IClientIdentity>(
             provider => new ClientIdentity(provider.GetRequiredService<IJSRuntime>(), machineIdStorageKey));
 
@@ -74,8 +70,6 @@ public static class Bootstrap
 
     public static WebAssemblyHost StartClientLogging(this WebAssemblyHost host)
     {
-        ArgumentNullException.ThrowIfNull(host);
-
         if (sink is null)
             throw new InvalidOperationException("Client logging was not configured. Call AddClientLogging on WebAssemblyHostBuilder at startup.");
 

@@ -35,8 +35,6 @@ internal sealed class EvilCaseHost(
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        ArgumentNullException.ThrowIfNull(builder);
-
         // The environment is not Development, so the host does not go looking for a developer's .env.
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
         builder.UseEnvironment("Testing");

@@ -9,8 +9,6 @@ internal sealed class ActNumberIssuer(IDbSession dbSession) : IActNumberIssuer
 {
     public async Task<string> NextActNumber(Case @case, DateOnly date, CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(@case);
-
         var highest = await dbSession.Current.Acts
             .OfCaseWithNumberPrefix(@case.Id, ActNumberFormat.Prefix(@case.CaseNumber, date))
             .OrderByNumberDescending()

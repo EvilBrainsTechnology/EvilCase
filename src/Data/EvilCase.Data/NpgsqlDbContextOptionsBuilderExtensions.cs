@@ -16,8 +16,6 @@ public static class NpgsqlDbContextOptionsBuilderExtensions
     /// </summary>
     public static NpgsqlDbContextOptionsBuilder UseEvilCaseMigrations(this NpgsqlDbContextOptionsBuilder builder)
     {
-        ArgumentNullException.ThrowIfNull(builder);
-
         builder.MigrationsAssembly(MigrationsAssemblyName);
         builder.MigrationsHistoryTable(MigrationsHistoryTableName);
 

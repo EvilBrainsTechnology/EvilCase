@@ -24,7 +24,6 @@ internal sealed class ClientLogWriter : IClientLogWriter
 
     public ClientLogWriter(Serilog.ILogger logger, string sourceContext)
     {
-        ArgumentNullException.ThrowIfNull(logger);
         ArgumentException.ThrowIfNullOrWhiteSpace(sourceContext);
 
         this.logger = logger.ForContext(Constants.SourceContextPropertyName, sourceContext);
@@ -32,8 +31,6 @@ internal sealed class ClientLogWriter : IClientLogWriter
 
     public void Write(ClientLogEntry entry)
     {
-        ArgumentNullException.ThrowIfNull(entry);
-
         var level = ToLogEventLevel(entry.Level);
         if (!this.logger.IsEnabled(level))
             return;

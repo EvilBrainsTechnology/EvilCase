@@ -38,8 +38,6 @@ internal sealed class SecurityHeadersMiddleware(RequestDelegate next)
 
     public Task Invoke(HttpContext context)
     {
-        ArgumentNullException.ThrowIfNull(context);
-
         // Written when the response starts rather than here: the exception handler clears the response
         // before it writes the problem details, which would drop headers set on the way in.
         context.Response.OnStarting(WriteHeaders, context.Response);

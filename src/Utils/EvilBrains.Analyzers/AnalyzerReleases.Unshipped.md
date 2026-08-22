@@ -9,3 +9,4 @@ EB0001 | EvilBrains.Style | Warning | Single-line comment should begin with a sp
 EB0002 | EvilBrains.Style | Warning | Single-line comment should be preceded by a blank line
 EB0003 | EvilBrains.Style | Warning | Single-line comment should not be followed by a blank line
 EB0004 | EvilBrains.Style | Warning | Using directives should be ordered
+EB0005 | EvilBrains.Usage | Warning | ArgumentNullException.ThrowIfNull guards a non-nullable parameter

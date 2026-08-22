@@ -8,10 +8,6 @@ public static class RequestContextLoggingApplicationBuilderExtensions
     /// Must run before the Serilog request logging middleware so the request completion event
     /// carries the identifiers as well.
     /// </summary>
-    public static IApplicationBuilder UseRequestContextLogging(this IApplicationBuilder app)
-    {
-        ArgumentNullException.ThrowIfNull(app);
-
-        return app.UseMiddleware<RequestContextLoggingMiddleware>();
-    }
+    public static IApplicationBuilder UseRequestContextLogging(this IApplicationBuilder app) =>
+        app.UseMiddleware<RequestContextLoggingMiddleware>();
 }

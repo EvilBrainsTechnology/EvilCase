@@ -24,8 +24,6 @@ internal sealed class CaseWriter(
 
     public async Task<CaseListItem> Create(CreateCaseRequest request, CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(request);
-
         for (var attempt = 1; ; attempt++)
         {
             var caseNumber = await numbers.NextCaseNumber(request.Date, cancellationToken);

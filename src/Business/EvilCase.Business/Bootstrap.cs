@@ -41,8 +41,6 @@ public static class Bootstrap
     /// </summary>
     public static async Task SeedEvilCaseSampleData(this IHost host, CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(host);
-
         await using var scope = host.Services.CreateAsyncScope();
 
         var dbSession = scope.ServiceProvider.GetRequiredService<IDbSession>();

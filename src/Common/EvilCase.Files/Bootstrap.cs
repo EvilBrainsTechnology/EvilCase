@@ -6,8 +6,6 @@ public static class Bootstrap
 {
     public static IServiceCollection AddEvilCaseFiles(this IServiceCollection services, string fileSettingsPath)
     {
-        ArgumentNullException.ThrowIfNull(services);
-
         services
             .AddOptions<FileSettings>()
             .BindConfiguration(fileSettingsPath, options => options.ErrorOnUnknownConfiguration = true)
