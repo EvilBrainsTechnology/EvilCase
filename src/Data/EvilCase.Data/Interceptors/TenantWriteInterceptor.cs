@@ -67,8 +67,8 @@ internal sealed class TenantWriteInterceptor(ITenantContext tenantContext, IUser
         }
     }
 
-    // Stamped on Added only: an update keeps whatever user the row already belongs to. A write with no
-    // user in the context leaves whatever the caller set untouched.
+    // Stamped on Added only: an update keeps whatever user the row already belongs to, as a row is
+    // visible to the whole tenant.
     private void ApplyUser(DbContext? context)
     {
         var entries = context?.ChangeTracker.Entries()
@@ -76,11 +76,11 @@ internal sealed class TenantWriteInterceptor(ITenantContext tenantContext, IUser
             .Where(entry => entry.State == EntityState.Added)
             .ToList();
 
+        // The user is read only where the write adds a user-owned row, so signing in still writes.
         if (entries is not { Count: > 0 })
             return;
 
-        if (userContext.UserIdOrDefault is not { } userId)
-            return;
+        var userId = userContext.UserId;
 
         foreach (var entry in entries)
         {

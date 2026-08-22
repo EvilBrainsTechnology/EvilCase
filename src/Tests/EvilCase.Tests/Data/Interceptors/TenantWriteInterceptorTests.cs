@@ -155,18 +155,18 @@ public class TenantWriteInterceptorTests
     }
 
     [Test]
-    public void AWriteWithNoSignedInUserKeepsTheUserItCarries()
+    public void AnAddedRowWithNoSignedInUserIsRefused()
     {
-        var carriedUserId = Guid.CreateVersion7();
-        var @case = NewCase(TenantA, carriedUserId);
-        this.context.Cases.Add(@case);
+        this.context.Cases.Add(NewCase(TenantA));
 
         var tenantContext = new StubTenantContext();
         using var tenantScope = tenantContext.Enter(TenantA);
         var interceptor = new TenantWriteInterceptor(tenantContext, new StubUserContext());
 
-        Assert.That(() => Save(interceptor, this.context), Throws.Nothing, "a write with no user in the context is not refused");
-        Assert.That(this.context.Entry(@case).Property(nameof(Case.UserId)).CurrentValue, Is.EqualTo(carriedUserId));
+        Assert.That(
+            () => Save(interceptor, this.context),
+            Throws.InvalidOperationException,
+            "a user-owned row nobody owns never reaches the database");
     }
 
     private static void Save(TenantWriteInterceptor interceptor, DbContext dbContext)
