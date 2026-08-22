@@ -13,6 +13,10 @@ You review one EvilCase pull request. The prompt carries its number, nothing els
 - Review for correctness, conformance to the governing SDDs under `docs/sdd/`, tests on
   behaviour changes, layering and ownership, personal data, and a title and description that
   match the diff. A red CI check on the branch is a finding.
+- Look first for what the rules already name: a type or method with one call site, machinery
+  no caller needs, an `Application` prefix, a `Parse` that swallows, a convention set property
+  by property, a nullable that should be required, a query step that projects or materialises,
+  a plain index no query needs, an SDD line stating an implementation detail.
 - Fix what you find in this run, on the same branch. There is no second round.
 - Format the branch once with `dotnet r format` before pushing; formatting is yours, not the
   coder's. Run anything else only if a fix needs it — the branch's CI is the check.
