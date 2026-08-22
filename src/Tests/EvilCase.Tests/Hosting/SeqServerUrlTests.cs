@@ -61,8 +61,8 @@ public class SeqServerUrlTests
         // The key is matched case-insensitively, because a lowercase "name" binds just as well; the
         // value case-sensitively, because Serilog resolves the sink method by its exact name.
         var seqSinks = configuration.AsEnumerable()
-            .Where(entry => entry.Key.EndsWith(":Name", StringComparison.OrdinalIgnoreCase)
-                && string.Equals(entry.Value, "Seq", StringComparison.Ordinal))
+            .Where(entry => entry.Key.EndsWith(":Name", StringComparison.OrdinalIgnoreCase))
+            .Where(entry => string.Equals(entry.Value, "Seq", StringComparison.Ordinal))
             .Select(entry => entry.Key);
 
         Assert.That(

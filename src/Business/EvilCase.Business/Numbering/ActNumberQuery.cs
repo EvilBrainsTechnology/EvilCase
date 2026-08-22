@@ -16,7 +16,9 @@ public static class ActNumberQuery
     {
         var pattern = prefix.EscapeLikeWildcards() + "%";
 
-        return acts.Where(act => act.CaseId == caseId && EF.Functions.Like(act.ActNumber, pattern, LikeExtensions.LikeEscape));
+        return acts
+            .Where(act => act.CaseId == caseId)
+            .Where(act => EF.Functions.Like(act.ActNumber, pattern, LikeExtensions.LikeEscape));
     }
 
     /// <summary>

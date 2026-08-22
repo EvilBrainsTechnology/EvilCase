@@ -66,8 +66,13 @@ internal sealed class FakeRefreshTokenStore : IRefreshTokenStore
 
     public Task<IReadOnlyList<RefreshToken>> GetActive(Guid userId, DateTime now, CancellationToken cancellationToken)
     {
-        return Task.FromResult<IReadOnlyList<RefreshToken>>(
-            [.. this.tokens.Where(token => token.UserId == userId && token.RevokedAt is null && token.Expires > now && token.SessionExpires > now)]);
+        var active = this.tokens
+            .Where(token => token.UserId == userId)
+            .Where(token => token.RevokedAt is null)
+            .Where(token => token.Expires > now)
+            .Where(token => token.SessionExpires > now);
+
+        return Task.FromResult<IReadOnlyList<RefreshToken>>([.. active]);
     }
 
     public Task<IReadOnlyDictionary<Guid, DateTime>> GetSessionStarts(Guid userId, CancellationToken cancellationToken)

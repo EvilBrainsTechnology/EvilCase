@@ -33,8 +33,8 @@ public class ActModelTests : ModelFixture
 
         var date = act.FindProperty(nameof(Act.Date));
         var others = act.GetProperties()
-            .Where(property => (Nullable.GetUnderlyingType(property.ClrType) ?? property.ClrType) == typeof(DateOnly)
-                && !string.Equals(property.Name, nameof(Act.Date), StringComparison.Ordinal));
+            .Where(property => (Nullable.GetUnderlyingType(property.ClrType) ?? property.ClrType) == typeof(DateOnly))
+            .Where(property => !string.Equals(property.Name, nameof(Act.Date), StringComparison.Ordinal));
 
         using (Assert.EnterMultipleScope())
         {

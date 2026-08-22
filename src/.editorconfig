@@ -195,6 +195,7 @@ dotnet_diagnostic.EB0006.severity = error      # Member should have a block body
 dotnet_diagnostic.EB0007.severity = error      # Controller must not take constructor dependencies
 dotnet_diagnostic.EB0008.severity = error      # Action parameter out of order
 dotnet_diagnostic.EB0009.severity = error      # Entity is reached through Set<TEntity>() instead of its typed DbSet
+dotnet_diagnostic.EB0010.severity = error      # Where predicate joins conditions with '&&' (MA0029/rcs1112 would combine them back)
 
 ########################################################################################################################
 
@@ -576,7 +577,7 @@ dotnet_diagnostic.rcs1107.severity = error      # Remove redundant 'ToCharArray'
 dotnet_diagnostic.rcs1108.severity = error      # Add 'static' modifier to all partial class declarations
 dotnet_diagnostic.rcs1110.severity = error      # Declare type inside namespace
 dotnet_diagnostic.rcs1111.severity = error      # Add braces to switch section with multiple statements
-dotnet_diagnostic.rcs1112.severity = none       # Combine 'Enumerable.Where' method chain
+dotnet_diagnostic.rcs1112.severity = none       # Combine 'Enumerable.Where' method chain (EB0010 owns the form)
 dotnet_diagnostic.rcs1113.severity = error      # Use 'string.IsNullOrEmpty' method
 dotnet_diagnostic.rcs1114.severity = error      # Remove redundant delegate creation
 dotnet_diagnostic.rcs1118.severity = error      # Mark local variable as const
