@@ -15,7 +15,7 @@ internal sealed class ContactWriter(IDbSession session, IUserContext userContext
         var now = timeProvider.GetUtcNow().UtcDateTime;
 
         var rows = await session.Current.Contacts
-            .Where(contact => contact.Id == id)
+            .WithId(id)
             .ExecuteUpdateAsync(
                 setters => setters
                     .SetProperty(contact => contact.Name, normalized.Name)
@@ -32,14 +32,14 @@ internal sealed class ContactWriter(IDbSession session, IUserContext userContext
     {
         var context = session.Current;
 
-        var contact = await context.Contacts.Where(contact => contact.Id == id).SingleOrDefaultAsync(cancellationToken);
+        var contact = await context.Contacts.WithId(id).SingleOrDefaultAsync(cancellationToken);
         if (contact is null)
             return ContactDeleteOutcome.NotFound;
 
         if (await context.Users.WithDefaultContact(userContext, id).AnyAsync(cancellationToken))
             return ContactDeleteOutcome.DefaultContact;
 
-        if (await session.Current.IsContactReferenced(id, cancellationToken))
+        if (await context.Contacts.WithId(id).Referenced().AnyAsync(cancellationToken))
             return ContactDeleteOutcome.Referenced;
 
         context.Contacts.Remove(contact);
