@@ -82,4 +82,14 @@
         padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
         background: var(--tblr-card-bg);
     }
+
+    /* Inside a modal the surface behind the actions is the modal's, not a card's. */
+    .modal .form-actions-sticky {
+        background: var(--tblr-modal-bg);
+    }
+}
+
+/* An address is one free-text block, printed as it was written. */
+.address-block {
+    white-space: pre-line;
 }

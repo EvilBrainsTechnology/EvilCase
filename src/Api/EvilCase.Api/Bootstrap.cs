@@ -43,7 +43,9 @@ public static class Bootstrap
     public static IServiceCollection ConfigureServices(this IServiceCollection services)
     {
         // The controllers live in this library rather than in the host, so the part is added explicitly.
-        services.AddControllers().AddApplicationPart(typeof(Bootstrap).Assembly);
+        services
+            .AddControllers()
+            .AddApplicationPart(typeof(Bootstrap).Assembly);
 
         // Backs the 404 fallback below; [ApiController] builds its own responses through ProblemDetailsFactory.
         services.AddProblemDetails();
@@ -81,25 +83,29 @@ public static class Bootstrap
 
         // Liveness runs no check: the process answering is the signal. A database check here would
         // restart every instance at once on a brief outage.
-        endpoints.MapHealthChecks(HealthCheckPaths.Live, new HealthCheckOptions { Predicate = _ => false })
+        endpoints
+            .MapHealthChecks(HealthCheckPaths.Live, new HealthCheckOptions { Predicate = _ => false })
             .AllowAnonymous();
 
-        endpoints.MapHealthChecks(
-            HealthCheckPaths.Ready,
-            new HealthCheckOptions
-            {
-                Predicate = check => check.Tags.Contains(HealthCheckTags.Ready),
-                ResponseWriter = HealthCheckResponseWriter.Write,
+        endpoints
+            .MapHealthChecks(
+                HealthCheckPaths.Ready,
+                new HealthCheckOptions
+                {
+                    Predicate = check => check.Tags.Contains(HealthCheckTags.Ready),
+                    ResponseWriter = HealthCheckResponseWriter.Write,
 
-                // Degraded is 200 by default, which would keep an instance in rotation on a partial failure.
-                ResultStatusCodes = { [HealthStatus.Degraded] = StatusCodes.Status503ServiceUnavailable },
-            })
+                    // Degraded is 200 by default, which would keep an instance in rotation on a partial failure.
+                    ResultStatusCodes = { [HealthStatus.Degraded] = StatusCodes.Status503ServiceUnavailable },
+                })
             .AllowAnonymous();
 
         // An unknown API path is a 404, never the host's index.html. The literal segment gives this
         // fallback precedence over the catch-all one serving the frontend. Anonymous, or the default
         // deny policy would answer an unknown path with 401 and tell a caller nothing at all.
-        endpoints.MapFallback("/api/{**path}", NotFound).AllowAnonymous();
+        endpoints
+            .MapFallback("/api/{**path}", NotFound)
+            .AllowAnonymous();
 
         return endpoints;
     }
@@ -108,8 +114,13 @@ public static class Bootstrap
     {
         // Development only, and the default deny policy would otherwise put the reference behind a token
         // the reference itself is the way to obtain.
-        endpoints.MapOpenApi().AllowAnonymous();
-        endpoints.MapScalarApiReference().AllowAnonymous();
+        endpoints
+            .MapOpenApi()
+            .AllowAnonymous();
+
+        endpoints
+            .MapScalarApiReference()
+            .AllowAnonymous();
 
         return endpoints;
     }

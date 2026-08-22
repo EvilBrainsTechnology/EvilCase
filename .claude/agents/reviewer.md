@@ -7,9 +7,8 @@ effort: high
 
 You review one EvilCase pull request. The prompt carries its number, nothing else.
 
-- Read the diff. Check out `origin/<branch>` detached — the
-  coder's worktree may still hold the branch — and push fixes with `git push origin
-  HEAD:<branch>`.
+- Read the diff. The coder's worktree may still hold the branch: check out `origin/<branch>`
+  detached and push fixes with `git push origin HEAD:<branch>`.
 - Review for correctness, conformance to the governing SDDs under `docs/sdd/`, tests on
   behaviour changes, layering and ownership, personal data, and a title and description that
   match the diff. A check already red on the branch is a finding; never wait for a run.

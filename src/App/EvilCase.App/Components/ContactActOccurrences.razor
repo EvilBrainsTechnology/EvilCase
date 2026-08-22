@@ -1,0 +1,68 @@
+@using EvilBrains.EvilCase.Api.Contract.Contacts
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Úkony</h3>
+    </div>
+
+    @if (Items.Count == 0)
+    {
+        <div class="empty">
+            <p class="empty-title">Kontakt nefiguruje v žádném úkonu.</p>
+        </div>
+    }
+    else
+    {
+        <div class="d-none d-lg-block">
+            <table class="table card-table table-vcenter">
+                <thead>
+                    <tr>
+                        <th>Datum</th>
+                        <th>Číslo jednací</th>
+                        <th>Název</th>
+                        <th>Role</th>
+                        <th>Spis</th>
+                        <th>Externí číslo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Items)
+                    {
+                        <tr>
+                            <td class="text-nowrap">@DateDisplay.Text(item.ActDate)</td>
+                            <td class="text-nowrap">@item.ActNumber</td>
+                            <td>@item.ActTitle</td>
+                            <td class="text-nowrap">@ContactActRoleDisplay.Text(item.Role)</td>
+                            <td class="text-nowrap"><a href="/cases/@item.CaseId">@item.CaseNumber</a></td>
+                            <td>@item.ExternalNumber</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card-body d-lg-none">
+            @foreach (var item in Items)
+            {
+                <div class="card mb-2">
+                    <div class="card-body">
+                        <div class="font-weight-medium">@item.ActTitle</div>
+                        <div class="text-secondary">@item.ActNumber</div>
+                        <div class="text-secondary">@ContactActRoleDisplay.Text(item.Role)</div>
+                        <div><a href="/cases/@item.CaseId">@item.CaseNumber</a></div>
+                        @if (!string.IsNullOrWhiteSpace(item.ExternalNumber))
+                        {
+                            <div class="text-secondary">Externí číslo: @item.ExternalNumber</div>
+                        }
+                        <div class="text-secondary">@DateDisplay.Text(item.ActDate)</div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public required IReadOnlyList<ContactActOccurrence> Items { get; set; }
+}
