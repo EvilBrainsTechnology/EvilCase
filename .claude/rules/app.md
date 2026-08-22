@@ -7,8 +7,7 @@ paths:
 
 `EvilCase.App` is Blazor WebAssembly on TabBlazor, components over the Tabler CSS framework.
 
-- `Icons/AppIcons.cs` holds only the icons the app uses, copied from the Tabler icon set. Never
-  vendor the whole set.
+- `Icons/AppIcons.cs` holds only the icons the app uses, copied from Tabler; never the whole set.
 - A new page goes inside `MainLayout`, which authenticates it. Placing one outside is an owner
   decision.
 

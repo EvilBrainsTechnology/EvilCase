@@ -16,8 +16,7 @@ You implement one EvilCase slice. The prompt carries the issue and the architect
   `.claude/skills/run-app/SKILL.md`, read directly.
 - No build and no tests locally; CI is the gate and you never wait for it. Run `dotnet r format`
   once, immediately before the final push.
-- A screen change carries screenshots; `docs/loop/visual-proof.md` is how they are taken and
-  filed.
+- A screen change carries screenshots, taken and filed per `docs/loop/visual-proof.md`.
 
 The pull request:
 
