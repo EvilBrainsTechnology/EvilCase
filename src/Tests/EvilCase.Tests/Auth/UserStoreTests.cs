@@ -11,8 +11,8 @@ public class UserStoreTests
     [Test]
     public async Task AUserAndItsDefaultContactGoInOneWrite()
     {
-        var tenantContext = new StubTenantContext();
-        var context = FakeApplicationDbContext.Create(tenantContext);
+        var userContext = new StubUserContext();
+        var context = FakeApplicationDbContext.Create(userContext);
         var tenantId = Guid.CreateVersion7();
 
         var contact = new Contact { TenantId = tenantId, Kind = ContactKind.Person, Name = "admin@evilcase.test" };

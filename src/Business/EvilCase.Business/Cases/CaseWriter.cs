@@ -48,6 +48,10 @@ internal sealed class CaseWriter(
         }
     }
 
+    /// <summary>
+    /// <c>TenantId</c> and <c>UserId</c> are left unset here, the way the sample seeder leaves them
+    /// (SDD-018): the write stamps both from <c>IUserContext</c>.
+    /// </summary>
     internal static Case Build(CreateCaseRequest request, string caseNumber)
     {
         return new()

@@ -37,6 +37,7 @@ Account → Tenant → User (SDD-006). Tenantová data:
 - Každá entita nese `Created` a `Updated`; plní je jeden `SaveChangesInterceptor` nad
   `TimeProvider`.
 - Tenantové entity nesou `TenantId` a vlastníka `UserId`; kontakt vlastníka nemá (SDD-006).
+  Obě hodnoty na nový řádek doplní zápis z `IUserContext`.
 - Datum spisu a úkonu je `DateOnly` (`.claude/rules/data.md`).
 
 ### Matice mazání

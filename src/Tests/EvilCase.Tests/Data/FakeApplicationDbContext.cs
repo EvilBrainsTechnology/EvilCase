@@ -1,6 +1,6 @@
 using EvilBrains.EvilCase.Data;
 using EvilBrains.EvilCase.Data.DbContexts;
-using EvilBrains.EvilCase.Domain.Tenancy;
+using EvilBrains.EvilCase.Domain.Users;
 using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Tests.Data;
@@ -10,15 +10,15 @@ namespace EvilBrains.EvilCase.Tests.Data;
 /// leaves every entry tracked instead of sending it to a server, so a test reads what was added straight
 /// off the change tracker.
 /// </summary>
-internal sealed class FakeApplicationDbContext(DbContextOptions<ApplicationDbContext> options, ITenantContext tenantContext)
-    : ApplicationDbContext(options, tenantContext)
+internal sealed class FakeApplicationDbContext(DbContextOptions<ApplicationDbContext> options, IUserContext userContext)
+    : ApplicationDbContext(options, userContext)
 {
-    public static FakeApplicationDbContext Create(ITenantContext tenantContext)
+    public static FakeApplicationDbContext Create(IUserContext userContext)
     {
         var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
         optionsBuilder.UseNpgsql(npgsql => npgsql.UseEvilCaseMigrations());
 
-        return new FakeApplicationDbContext(optionsBuilder.Options, tenantContext);
+        return new FakeApplicationDbContext(optionsBuilder.Options, userContext);
     }
 
     public IEnumerable<TEntity> Added<TEntity>() where TEntity : class

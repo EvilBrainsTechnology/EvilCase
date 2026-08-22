@@ -14,7 +14,7 @@ public static class Bootstrap
     {
         serviceCollection.TryAddSingleton(TimeProvider.System);
         serviceCollection.AddScoped<TimestampInterceptor>();
-        serviceCollection.AddScoped<TenantWriteInterceptor>();
+        serviceCollection.AddScoped<UserWriteInterceptor>();
 
         serviceCollection.AddLocalDbContext<ApplicationDbContext>();
         serviceCollection.AddScoped<IDatabaseMigrator, DatabaseMigrator>();
@@ -56,7 +56,7 @@ public static class Bootstrap
                 options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
                 options.AddInterceptors(
                     serviceProvider.GetRequiredService<TimestampInterceptor>(),
-                    serviceProvider.GetRequiredService<TenantWriteInterceptor>());
+                    serviceProvider.GetRequiredService<UserWriteInterceptor>());
 
                 var environment = serviceProvider.GetRequiredService<IHostEnvironment>();
                 if (environment.IsDevelopment())

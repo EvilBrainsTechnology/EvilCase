@@ -1,12 +1,12 @@
 using EvilBrains.EvilCase.Data.Entities;
-using EvilBrains.EvilCase.Domain.Tenancy;
+using EvilBrains.EvilCase.Domain.Users;
 using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Data.DbContexts;
 
-public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, ITenantContext tenantContext) : DbContext(options)
+public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, IUserContext userContext) : DbContext(options)
 {
-    private readonly ITenantContext tenantContext = tenantContext;
+    private readonly IUserContext userContext = userContext;
 
     public DbSet<Account> Accounts => this.Set<Account>();
 
@@ -90,13 +90,13 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     private void ConfigureTenancy(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Contact>().HasQueryFilter(contact => contact.TenantId == this.tenantContext.TenantIdOrDefault);
-        modelBuilder.Entity<Case>().HasQueryFilter(@case => @case.TenantId == this.tenantContext.TenantIdOrDefault);
-        modelBuilder.Entity<ExternalCaseNumber>().HasQueryFilter(number => number.TenantId == this.tenantContext.TenantIdOrDefault);
-        modelBuilder.Entity<Act>().HasQueryFilter(act => act.TenantId == this.tenantContext.TenantIdOrDefault);
-        modelBuilder.Entity<ExternalActNumber>().HasQueryFilter(number => number.TenantId == this.tenantContext.TenantIdOrDefault);
-        modelBuilder.Entity<FileAsset>().HasQueryFilter(file => file.TenantId == this.tenantContext.TenantIdOrDefault);
-        modelBuilder.Entity<Comment>().HasQueryFilter(comment => comment.TenantId == this.tenantContext.TenantIdOrDefault);
+        modelBuilder.Entity<Contact>().HasQueryFilter(contact => contact.TenantId == this.userContext.TenantIdOrDefault);
+        modelBuilder.Entity<Case>().HasQueryFilter(@case => @case.TenantId == this.userContext.TenantIdOrDefault);
+        modelBuilder.Entity<ExternalCaseNumber>().HasQueryFilter(number => number.TenantId == this.userContext.TenantIdOrDefault);
+        modelBuilder.Entity<Act>().HasQueryFilter(act => act.TenantId == this.userContext.TenantIdOrDefault);
+        modelBuilder.Entity<ExternalActNumber>().HasQueryFilter(number => number.TenantId == this.userContext.TenantIdOrDefault);
+        modelBuilder.Entity<FileAsset>().HasQueryFilter(file => file.TenantId == this.userContext.TenantIdOrDefault);
+        modelBuilder.Entity<Comment>().HasQueryFilter(comment => comment.TenantId == this.userContext.TenantIdOrDefault);
 
         var tenantEntityTypes = modelBuilder.Model.GetEntityTypes()
             .Where(type => typeof(ITenantEntity).IsAssignableFrom(type.ClrType))

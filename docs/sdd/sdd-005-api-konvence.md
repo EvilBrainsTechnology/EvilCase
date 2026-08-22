@@ -31,7 +31,7 @@ Tvary API a klienta pro nové agendy. Z velké části dnešní stav, který pla
 | Hledání | `/api/search?query=` |
 
 - Id v routách je `Guid`.
-- Tenanta dodává `ITenantContext`; endpoint ani dotaz nikdy neberou id tenanta parametrem
+- Tenanta i uživatele dodává `IUserContext`; endpoint ani dotaz nikdy neberou id tenanta parametrem
   (SDD-006).
 
 ## Rozhodnutí

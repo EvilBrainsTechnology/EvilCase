@@ -29,9 +29,7 @@ What it cannot see:
 
 ## Tenancy
 
-`ITenantContext` is the only place the tenant is resolved; a query takes it, never a `tenantId`
+`IUserContext` is the only place tenant and user resolve; a query takes it, never a `tenantId`
 parameter or `HttpContext`. Every tenant entity implements `ITenantEntity`, carries a query filter
-on `TenantId` and leads its unique indexes with it; `SaveChanges` refuses a row of another tenant.
-A tenant entity a user owns implements `IUserOwnedEntity`; `SaveChanges` fills its `UserId` from
-`IUserContext`, so a writer never sets it. Work outside a request names its tenant with `Enter`
-and sets `UserId` itself.
+on `TenantId` and leads its unique indexes with it; `SaveChanges` refuses another tenant's row and
+fills a user-owned row's `UserId` from it. Work outside a request enters both ids at once.

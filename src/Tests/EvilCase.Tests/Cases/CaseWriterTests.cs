@@ -3,7 +3,7 @@ using EvilBrains.EvilCase.Business.Cases;
 using EvilBrains.EvilCase.Business.Numbering;
 using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Domain.Cases;
-using EvilBrains.EvilCase.Domain.Tenancy;
+using EvilBrains.EvilCase.Tests.Auth;
 using EvilBrains.EvilCase.Tests.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -46,8 +46,9 @@ public class CaseWriterTests
     [Test]
     public async Task ANumberTakenWhileTheCaseIsFiledIsIssuedAgain()
     {
-        var tenant = new FakeTenantContext();
-        await using var context = FakeApplicationDbContext.Create(tenant);
+        var userContext = new StubUserContext();
+        using var entered = userContext.Enter(Guid.CreateVersion7(), Guid.CreateVersion7());
+        await using var context = FakeApplicationDbContext.Create(userContext);
         context.FailNextSave = new DbUpdateException(
             "duplicate key",
             new PostgresException("duplicate key", "ERROR", "ERROR", PostgresErrorCodes.UniqueViolation));
@@ -68,8 +69,9 @@ public class CaseWriterTests
     [Test]
     public void AFailureThatIsNotATakenNumberReachesTheCaller()
     {
-        var tenant = new FakeTenantContext();
-        using var context = FakeApplicationDbContext.Create(tenant);
+        var userContext = new StubUserContext();
+        using var entered = userContext.Enter(Guid.CreateVersion7(), Guid.CreateVersion7());
+        using var context = FakeApplicationDbContext.Create(userContext);
         context.FailNextSave = new DbUpdateException("the row is gone");
 
         var numbers = new QueuedCaseNumberIssuer(["EC/20260821-001"]);
@@ -87,18 +89,6 @@ public class CaseWriterTests
         public Task<string> NextCaseNumber(DateOnly date, CancellationToken cancellationToken = default)
         {
             return Task.FromResult(caseNumbers[this.issued++]);
-        }
-    }
-
-    private sealed class FakeTenantContext : ITenantContext
-    {
-        public Guid TenantId { get; } = Guid.CreateVersion7();
-
-        public Guid? TenantIdOrDefault => this.TenantId;
-
-        public IDisposable Enter(Guid tenantId)
-        {
-            throw new NotSupportedException();
         }
     }
 }

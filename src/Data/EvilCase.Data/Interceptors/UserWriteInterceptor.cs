@@ -1,5 +1,4 @@
 using EvilBrains.EvilCase.Data.Entities;
-using EvilBrains.EvilCase.Domain.Tenancy;
 using EvilBrains.EvilCase.Domain.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -8,11 +7,10 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 namespace EvilBrains.EvilCase.Data.Interceptors;
 
 /// <summary>
-/// Fills a new tenant row's <c>TenantId</c> from <see cref="ITenantContext"/> and a new user-owned row's
-/// <c>UserId</c> from <see cref="IUserContext"/>. Refuses a row that already carries another tenant's or
-/// another user's id.
+/// Fills a new row's <c>TenantId</c> and <c>UserId</c> from <see cref="IUserContext"/>. A row of another
+/// tenant is refused; a row of another user in the same tenant is not, the tenant sees all of them.
 /// </summary>
-internal sealed class TenantWriteInterceptor(ITenantContext tenantContext, IUserContext userContext) : SaveChangesInterceptor
+internal sealed class UserWriteInterceptor(IUserContext userContext) : SaveChangesInterceptor
 {
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {
@@ -38,22 +36,23 @@ internal sealed class TenantWriteInterceptor(ITenantContext tenantContext, IUser
             .Where(entry => entry.State is EntityState.Added or EntityState.Modified or EntityState.Deleted)
             .ToList();
 
-        // The tenant is read only where the write touches a tenant row, so signing in still writes.
+        // The context is read only where the write touches a tenant row, so signing in still writes.
         if (entries is not { Count: > 0 })
             return;
 
-        var tenantId = tenantContext.TenantId;
-
         foreach (var entry in entries)
         {
-            ApplyTenant(entry, tenantId);
-            this.ApplyUser(entry);
+            this.ApplyTenant(entry);
+
+            if (entry.Entity is IUserOwnedEntity)
+                this.ApplyUser(entry);
         }
     }
 
-    private static void ApplyTenant(EntityEntry entry, in Guid tenantId)
+    private void ApplyTenant(EntityEntry entry)
     {
         var property = entry.Property(nameof(ITenantEntity.TenantId));
+        var tenantId = userContext.TenantId;
 
         if (entry.State == EntityState.Added && (Guid)property.CurrentValue! == Guid.Empty)
         {
@@ -70,23 +69,12 @@ internal sealed class TenantWriteInterceptor(ITenantContext tenantContext, IUser
 
     private void ApplyUser(EntityEntry entry)
     {
-        if (entry.Entity is not IUserOwnedEntity)
+        if (entry.State != EntityState.Added)
             return;
 
         var property = entry.Property(nameof(IUserOwnedEntity.UserId));
 
-        if (entry.State == EntityState.Added && (Guid)property.CurrentValue! == Guid.Empty)
-        {
+        if ((Guid)property.CurrentValue! == Guid.Empty)
             property.CurrentValue = userContext.UserId;
-            return;
-        }
-
-        // The startup seed writes rows it owns with no request behind it, so the owner is checked only
-        // where a signed-in user exists.
-        if (userContext.UserIdOrDefault is { } userId && (Guid)property.CurrentValue! != userId)
-        {
-            throw new InvalidOperationException(
-                $"{entry.Metadata.DisplayName()} is written by user {userId} but carries {property.CurrentValue}");
-        }
     }
 }

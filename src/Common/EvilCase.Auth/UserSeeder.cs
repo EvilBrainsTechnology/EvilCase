@@ -2,7 +2,6 @@ using EvilBrains.Cryptography;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Domain.Contacts;
-using EvilBrains.EvilCase.Domain.Tenancy;
 using EvilBrains.EvilCase.Domain.Users;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -12,7 +11,7 @@ namespace EvilBrains.EvilCase.Auth;
 internal sealed class UserSeeder(
     IDbSession dbSession,
     IUserStore userStore,
-    ITenantContext tenantContext,
+    IUserContext userContext,
     IOptions<AuthSettings> options,
     ILogger<UserSeeder> logger) : IUserSeeder
 {
@@ -39,8 +38,6 @@ internal sealed class UserSeeder(
         dbSession.Current.Tenants.Add(tenant);
         await dbSession.Current.SaveChangesAsync(cancellationToken);
 
-        using var scope = tenantContext.Enter(tenant.Id);
-
         var contact = new Contact
         {
             Kind = ContactKind.Person,
@@ -55,6 +52,8 @@ internal sealed class UserSeeder(
             Role = UserRole.Admin,
             DefaultContactId = contact.Id,
         };
+
+        using var scope = userContext.Enter(tenant.Id, user.Id);
 
         await userStore.Add(user, contact, cancellationToken);
 

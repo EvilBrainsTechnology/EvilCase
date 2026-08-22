@@ -30,15 +30,13 @@ správu účtů, žádná registrace.
 
 Data nesmí utéct mezi tenanty; únik je kritická chyba.
 
-- Každá tenantová entita má EF global query filter na `TenantId`; tenant dodává
-  `ITenantContext`, který nahrazuje `IOwnerContext`.
-- Access token nese tenant claim; `ITenantContext` ho čte z principalu.
-- `SaveChanges` doplní novému řádku `TenantId` z `ITenantContext` a `UserId` z `IUserContext` a
-  odmítne řádek, který nese cizího tenanta nebo cizího uživatele. Bez uživatele v kontextu
-  vznikne uživatelský řádek, jen když vlastníka nese sám; přihlášení a rotace tokenu píší jen
-  `RefreshToken`, který vlastníka nenese.
-- Seed běží pod explicitním tenant scope a vlastníka svých řádků nastavuje sám; kontrola v
-  `SaveChanges` porovnává proti tenantu ze scope, ne proti principalu požadavku.
+- Každá tenantová entita má EF global query filter na `TenantId`; tenant i uživatele dodává
+  `IUserContext`.
+- Access token nese tenant claim i subject claim; `IUserContext` je čte z principalu.
+- `SaveChanges` doplní `TenantId` nové tenantové entitě a `UserId` nové uživatelské entitě z
+  kontextu a zápis do cizího tenanta odmítne.
+- Seed běží pod explicitním scope `IUserContext.Enter(tenantId, userId)`; mimo požadavek se
+  tenant a uživatel nastavují jen společně.
 - Unikátní indexy tenantových entit jsou kompozitní s `TenantId`.
 - Konvenční test hlídá, že žádná tenantová entita filtr nepostrádá (SDD-003).
 
@@ -56,10 +54,11 @@ včetně refresh.
 - Vynucení izolace: jen ruční scope v dotazech / query filtry + kontrola zápisu. Platí query
   filtry a kontrola v `SaveChanges`.
 - Vznik účtů: registrace v UI / jen seed. Platí jen seed.
-- Plnění UserId: volající / interceptor. Platí interceptor; explicitní cizí hodnota je odmítnuta.
+- Plnění UserId: volající / interceptor. Platí interceptor; jen prázdnou hodnotu na nové řadě,
+  cizí uživatel v tenantu je legitimní.
 
 ## Dopady
 
-- `IOwnerContext` a `PrincipalOwnerContext` zanikají; nahrazuje je `ITenantContext`.
+- `IOwnerContext` a `PrincipalOwnerContext` zanikají; nahrazuje je `IUserContext`.
 - Sloupce `OwnerId` zanikají; nahrazuje je `TenantId` + `UserId` (SDD-007).
 - `.claude/rules/business.md` (Ownership) se mění s kódem M2.
