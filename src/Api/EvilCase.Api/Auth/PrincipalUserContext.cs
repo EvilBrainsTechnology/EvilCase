@@ -23,14 +23,16 @@ internal sealed class PrincipalUserContext(IHttpContextAccessor httpContextAcces
         }
     }
 
-    public Guid UserId
+    public Guid UserId => this.UserIdOrDefault ?? throw new InvalidOperationException("The request has no signed-in user.");
+
+    public Guid? UserIdOrDefault
     {
         get
         {
             if (this.entered is { } scoped)
                 return scoped.UserId;
 
-            return this.Claim(AuthClaims.Subject) ?? throw new InvalidOperationException("The request has no signed-in user.");
+            return this.Claim(AuthClaims.Subject);
         }
     }
 

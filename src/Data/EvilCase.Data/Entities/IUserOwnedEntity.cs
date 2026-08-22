@@ -1,9 +1,7 @@
 namespace EvilBrains.EvilCase.Data.Entities;
 
 /// <summary>
-/// A tenant entity that also belongs to the user who created it. A <see cref="Contact"/> is the one
-/// tenant entity outside this: shared across the tenant, owned by nobody. <see cref="UserId"/> is
-/// filled by the write from <c>IUserContext</c>, the way <c>TenantId</c> is.
+/// A tenant entity that also belongs to the user who created it.
 /// </summary>
 public interface IUserOwnedEntity : ITenantEntity
 {

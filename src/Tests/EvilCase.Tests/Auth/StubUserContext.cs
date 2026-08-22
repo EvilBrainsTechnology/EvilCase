@@ -14,7 +14,9 @@ internal sealed class StubUserContext : IUserContext
 
     public Guid? TenantIdOrDefault => this.entered?.TenantId;
 
-    public Guid UserId => this.entered?.UserId ?? throw new InvalidOperationException("The request has no signed-in user.");
+    public Guid UserId => this.UserIdOrDefault ?? throw new InvalidOperationException("The request has no signed-in user.");
+
+    public Guid? UserIdOrDefault => this.entered?.UserId;
 
     /// <summary>
     /// Every pair <see cref="Enter"/> was called with, in order.

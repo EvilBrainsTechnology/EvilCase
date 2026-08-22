@@ -34,7 +34,11 @@ public class PrincipalUserContextTests
         var userId = Guid.CreateVersion7();
         var context = NewContext((AuthClaims.Subject, userId.ToString("D", CultureInfo.InvariantCulture)));
 
-        Assert.That(context.UserId, Is.EqualTo(userId), "so the token and the reader cannot drift apart");
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(context.UserId, Is.EqualTo(userId), "so the token and the reader cannot drift apart");
+            Assert.That(context.UserIdOrDefault, Is.EqualTo(userId));
+        }
     }
 
     [Test]
@@ -42,7 +46,11 @@ public class PrincipalUserContextTests
     {
         var context = NewContext(("sub", "not-a-guid"));
 
-        Assert.That(() => context.UserId, Throws.InvalidOperationException);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(() => context.UserId, Throws.InvalidOperationException);
+            Assert.That(context.UserIdOrDefault, Is.Null);
+        }
     }
 
     [Test]
@@ -57,6 +65,8 @@ public class PrincipalUserContextTests
             Assert.That(noRequest.TenantIdOrDefault, Is.Null, "so does a migration at startup, with no request at all");
             Assert.That(() => anonymous.UserId, Throws.InvalidOperationException);
             Assert.That(() => noRequest.UserId, Throws.InvalidOperationException);
+            Assert.That(anonymous.UserIdOrDefault, Is.Null);
+            Assert.That(noRequest.UserIdOrDefault, Is.Null);
         }
     }
 

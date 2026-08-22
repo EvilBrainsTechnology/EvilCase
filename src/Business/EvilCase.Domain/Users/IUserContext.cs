@@ -21,6 +21,11 @@ public interface IUserContext
     public Guid UserId { get; }
 
     /// <summary>
+    /// Null for a health probe, the sign-in endpoint or a migration at startup.
+    /// </summary>
+    public Guid? UserIdOrDefault { get; }
+
+    /// <summary>
     /// Names the tenant and the user for work that runs outside a request, both at once and never one
     /// alone. Restores the previous pair on dispose.
     /// </summary>

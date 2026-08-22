@@ -8,7 +8,7 @@ namespace EvilBrains.EvilCase.Data.Interceptors;
 
 /// <summary>
 /// Fills a new row's <c>TenantId</c> and <c>UserId</c> from <see cref="IUserContext"/>. A row of another
-/// tenant is refused; a row of another user in the same tenant is not, the tenant sees all of them.
+/// tenant, or a row of another user within the same tenant, is refused on write, change or deletion.
 /// </summary>
 internal sealed class UserWriteInterceptor(IUserContext userContext) : SaveChangesInterceptor
 {
@@ -69,12 +69,19 @@ internal sealed class UserWriteInterceptor(IUserContext userContext) : SaveChang
 
     private void ApplyUser(EntityEntry entry)
     {
-        if (entry.State != EntityState.Added)
-            return;
-
         var property = entry.Property(nameof(IUserOwnedEntity.UserId));
+        var userId = userContext.UserId;
 
-        if ((Guid)property.CurrentValue! == Guid.Empty)
-            property.CurrentValue = userContext.UserId;
+        if (entry.State == EntityState.Added && (Guid)property.CurrentValue! == Guid.Empty)
+        {
+            property.CurrentValue = userId;
+            return;
+        }
+
+        if ((Guid)property.CurrentValue! != userId)
+        {
+            throw new InvalidOperationException(
+                $"{entry.Metadata.DisplayName()} is written by user {userId} but carries {property.CurrentValue}");
+        }
     }
 }

@@ -91,17 +91,22 @@ public class UserWriteInterceptorTests
     }
 
     [Test]
-    public void TheWriteKeepsAUserSetExplicitly()
+    public void TheWriteKeepsAUserSetExplicitlyWhereItMatches()
     {
-        var @case = NewCase(UserB);
-        this.context.Cases.Add(@case);
+        var added = NewCase(UserA, TenantA);
+        var modified = NewCase(UserA, TenantA);
+        var deleted = NewCase(UserA, TenantA);
+
+        this.context.Cases.AddRange(added, modified, deleted);
+        this.context.Entry(modified).State = EntityState.Modified;
+        this.context.Entry(deleted).State = EntityState.Deleted;
 
         var userContext = new StubUserContext();
         using var scope = userContext.Enter(TenantA, UserA);
         var interceptor = new UserWriteInterceptor(userContext);
 
-        Assert.That(() => Save(interceptor, this.context), Throws.Nothing, "a row that names its user is not restamped; inside a tenant another user's row is legitimate");
-        Assert.That(this.context.Entry(@case).Property(nameof(Case.UserId)).CurrentValue, Is.EqualTo(UserB));
+        Assert.That(() => Save(interceptor, this.context), Throws.Nothing, "an explicit user that matches the write stands");
+        Assert.That(this.context.Entry(added).Property(nameof(Case.UserId)).CurrentValue, Is.EqualTo(UserA));
     }
 
     [Test]
@@ -117,6 +122,55 @@ public class UserWriteInterceptorTests
             () => Save(interceptor, this.context),
             Throws.InvalidOperationException,
             "a row of another tenant is refused, not silently restamped");
+    }
+
+    [Test]
+    public void ARowCreatedUnderAnotherUserNeverReachesTheDatabase()
+    {
+        this.context.Cases.Add(NewCase(UserB, TenantA));
+
+        var userContext = new StubUserContext();
+        using var scope = userContext.Enter(TenantA, UserA);
+        var interceptor = new UserWriteInterceptor(userContext);
+
+        Assert.That(
+            () => Save(interceptor, this.context),
+            Throws.InvalidOperationException,
+            "a row of another user is refused, not silently restamped");
+    }
+
+    [Test]
+    public void AnotherUsersRowIsRefusedWhenItChanges()
+    {
+        var @case = NewCase(UserB, TenantA);
+        this.context.Cases.Add(@case);
+        this.context.Entry(@case).State = EntityState.Modified;
+
+        var userContext = new StubUserContext();
+        using var scope = userContext.Enter(TenantA, UserA);
+        var interceptor = new UserWriteInterceptor(userContext);
+
+        Assert.That(
+            () => Save(interceptor, this.context),
+            Throws.InvalidOperationException,
+            "a row of another user in the tenant is visible but not editable");
+    }
+
+    [Test]
+    public void AnotherUsersRowIsRefusedWhenItIsDeleted()
+    {
+        var @case = NewCase(UserB, TenantA);
+        this.context.Cases.Add(@case);
+        this.context.Entry(@case).State = EntityState.Deleted;
+
+        var userContext = new StubUserContext();
+        using var scope = userContext.Enter(TenantA, UserA);
+        var interceptor = new UserWriteInterceptor(userContext);
+
+        Assert.That(
+            () => Save(interceptor, this.context),
+            Throws.InvalidOperationException,
+            "a row of another user in the tenant is visible but not deletable");
     }
 
     [Test]
@@ -158,10 +212,11 @@ public class UserWriteInterceptorTests
         return new() { TenantId = tenant, Kind = ContactKind.Person, Name = "test" };
     }
 
-    private static Case NewCase(in Guid userId = default)
+    private static Case NewCase(in Guid userId = default, in Guid tenantId = default)
     {
         return new()
         {
+            TenantId = tenantId,
             UserId = userId,
             CaseNumber = "EC/20260821-001",
             Date = new DateOnly(2026, 8, 21),

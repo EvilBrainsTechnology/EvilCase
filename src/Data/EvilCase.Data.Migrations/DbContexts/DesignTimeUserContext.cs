@@ -17,6 +17,8 @@ internal sealed class DesignTimeUserContext : IUserContext
 
     public Guid UserId => DesignTimeUser;
 
+    public Guid? UserIdOrDefault => DesignTimeUser;
+
     public IDisposable Enter(Guid tenantId, Guid userId)
     {
         throw new NotSupportedException("Design time runs no work inside a tenant.");
