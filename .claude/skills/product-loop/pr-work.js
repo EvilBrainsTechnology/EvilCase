@@ -1,6 +1,6 @@
 export const meta = {
   name: 'pr-work',
-  description: 'Work a commented pull request: architect plans, coder works its branch, reviewer fixes',
+  description: 'Work a commented pull request: architect plans, coder works its branch, reviewer fixes; a fast item is the coder alone',
   phases: [
     { title: 'Plan', detail: 'architect plans the rework' },
     { title: 'Work', detail: 'coder works on the existing branch' },
@@ -29,6 +29,8 @@ const REVIEW_SCHEMA = {
 const results = await pipeline(
   args,
   async (item) => {
+    // The fast lane has no plan; the work stage ignores it.
+    if (item.fast) return null
     const plan = await agent(
       `Plan the rework of pull request #${item.pr} (branch ${item.branch}).\n\n${item.instructions}`,
       { agentType: 'architect', phase: 'Plan', label: `plan:#${item.pr}` },
@@ -37,6 +39,16 @@ const results = await pipeline(
     return plan
   },
   (plan, item) => {
+    if (item.fast) {
+      return agent(
+        `Fast lane: you are the only agent on this change — no plan, no review.\n\n` +
+          `Work on the existing pull request #${item.pr}, branch ${item.branch}.\n\n${item.instructions}`,
+        {
+          agentType: 'coder', isolation: 'worktree', phase: 'Work',
+          label: `fast:#${item.pr}`, schema: WORK_SCHEMA, model: 'opus', effort: 'xhigh',
+        },
+      )
+    }
     const prompt =
       `Work on the existing pull request #${item.pr}, branch ${item.branch}.\n\n${item.instructions}\n\n` +
       `The architect's plan:\n\n${plan}`
@@ -47,6 +59,7 @@ const results = await pipeline(
   },
   (work, item) => {
     if (!work) throw new Error(`pull request #${item.pr}: work failed`)
+    if (item.fast) return { pr: item.pr, fixed: work.fixed, uncertainty: null, status: 'fast' }
     return agent(`Review pull request #${item.pr} and fix what you find.`, {
       agentType: 'reviewer', isolation: 'worktree', phase: 'Review',
       label: `review:#${item.pr}`, schema: REVIEW_SCHEMA,

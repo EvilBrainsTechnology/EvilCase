@@ -4,6 +4,7 @@
 - A slice runs the named agents from `.claude/agents/` through the slice-pipeline workflow:
   architect plans, coder implements through to the pull request, reviewer reviews and fixes.
   One review, no second round.
+- A small change — no behaviour change and no new test — takes the fast lane: the coder alone.
 - Every subagent that writes to the repository gets `isolation: "worktree"`. A worktree has no
   `.env` (run-app skill); scratch files go under the session scratchpad.
 - The main checkout never holds a delegated branch, `--ignore-other-worktrees` included.

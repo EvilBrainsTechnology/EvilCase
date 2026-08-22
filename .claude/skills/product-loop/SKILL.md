@@ -21,11 +21,13 @@ The backlog is the open issues labelled `loop` and none of `agent-in-progress` (
 `blocked` or `needs-decision`: highest `Priority` (`Urgent`, `High`, `Medium`, `Low`, then none),
 the lowest milestone breaking a tie, honouring a focus argument. Empty backlog: do nothing.
 
-Take two or three and label each `agent-in-progress` before starting one Workflow
-(`.claude/skills/product-loop/slice-pipeline.js`, `args: [{issue, slug, title, body}, …]`). One
-slice is one pull request from database to UI leaving the app usable, on `loop/<issue>-<slug>`
-off `master`. The workflow runs in the background; tend open pull requests meanwhile and take
-its results into the report — details stay inside the workflow.
+Take two or three and label each `agent-in-progress` before one Workflow
+(`.claude/skills/product-loop/slice-pipeline.js`, `args: [{issue, slug, title, body, fast}, …]`).
+One slice is one pull request from database to UI leaving the app usable, on `loop/<issue>-<slug>`
+off `master`. The workflow runs in the background; tend open pull requests meanwhile and take its
+results into the report — details stay inside the workflow. `fast: true` is the coder alone: no
+behaviour change, no new test — a rename, doc wording, a sweep an analyzer verifies. Schema,
+tenancy, security, an API contract, a screen, a test or a second project keep all three phases.
 
 Two slices never touch the same files, and every open pull request counts — a candidate is
 checked against the changed files of every open pull request. A migration collides with every
@@ -62,7 +64,7 @@ A round removes `blocked` from an issue whose `Blocked by #` issues have all mer
 A `subscribe_pr_activity` notification is handled when it arrives, never left for the next
 round. Triage the comments: a question gets its reply and the switch to `agent-done`; anything
 needing code sets `agent-in-progress` and starts one Workflow
-(`.claude/skills/product-loop/pr-work.js`, `args: [{pr, branch, instructions}]`).
+(`.claude/skills/product-loop/pr-work.js`, `args: [{pr, branch, instructions, fast}]`).
 
 ## 4. Report
 

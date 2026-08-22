@@ -1,6 +1,6 @@
 export const meta = {
   name: 'slice-pipeline',
-  description: 'Run EvilCase slices: architect plans, coder implements, reviewer fixes',
+  description: 'Run EvilCase slices: architect plans, coder implements, reviewer fixes; a fast slice is the coder alone',
   phases: [
     { title: 'Plan', detail: 'architect plans the slice' },
     { title: 'Implement', detail: 'coder implements through to the pull request' },
@@ -33,6 +33,17 @@ const REVIEW_SCHEMA = {
 const results = await pipeline(
   slices,
   async (slice) => {
+    // The fast lane skips the plan and raises the coder above its own model and effort.
+    if (slice.fast) {
+      return agent(
+        `Fast lane: you are the only agent on this change — no plan, no review.\n\n` +
+          `Implement issue #${slice.issue} "${slice.title}" on branch loop/${slice.issue}-${slice.slug}.\n\n${slice.body}`,
+        {
+          agentType: 'coder', isolation: 'worktree', phase: 'Implement',
+          label: `fast:#${slice.issue}`, schema: PR_SCHEMA, model: 'opus', effort: 'xhigh',
+        },
+      )
+    }
     const plan = await agent(
       `Plan the slice for issue #${slice.issue} "${slice.title}" (branch loop/${slice.issue}-${slice.slug}).\n\n${slice.body}`,
       { agentType: 'architect', phase: 'Plan', label: `plan:#${slice.issue}` },
@@ -48,6 +59,12 @@ const results = await pipeline(
   },
   (pr, slice) => {
     if (!pr) throw new Error(`slice #${slice.issue}: no pull request`)
+    if (slice.fast) {
+      return {
+        issue: slice.issue, pr: pr.pr, branch: pr.branch, summary: pr.summary,
+        fixed: null, uncertainty: null, status: 'fast',
+      }
+    }
     return agent(`Review pull request #${pr.pr} and fix what you find.`, {
       agentType: 'reviewer', isolation: 'worktree', phase: 'Review',
       label: `review:#${pr.pr}`, schema: REVIEW_SCHEMA,
