@@ -15,7 +15,7 @@ You implement one EvilCase slice. The prompt carries the issue and the architect
 - Copy `.env` into the worktree and take your own port and database:
   `.claude/skills/run-app/SKILL.md`, read directly.
 - Don't run the gate locally and don't hand-match formatting: no build, tests or format
-  check. The reviewer formats the branch; CI is the gate. Push and let it run.
+  check. Outside the fast lane the reviewer formats; CI is the gate. Push and let it run.
 - A screen change carries screenshots; `docs/loop/visual-proof.md` is how they are taken and
   filed.
 
@@ -26,7 +26,7 @@ The pull request:
 - Label `agent-in-progress` on open.
 - Subscribe (`subscribe_pr_activity`).
 - Fast lane: no plan before you, no reviewer after. Format with `dotnet r format`, match the
-  description to the diff, answer every thread, switch the label to `agent-done` at the end.
+  description to the diff, answer every thread, see CI green, switch the label to `agent-done`.
 
 On an existing pull request the prompt carries its number instead: work on its branch — check
 out `origin/<branch>` detached, push with `git push origin HEAD:<branch>`, adding
