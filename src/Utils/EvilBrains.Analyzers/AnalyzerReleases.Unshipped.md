@@ -12,3 +12,4 @@ EB0004 | EvilBrains.Style | Warning | Using directives should be ordered
 EB0005 | EvilBrains.Usage | Warning | ArgumentNullException.ThrowIfNull guards a non-nullable parameter
 EB0006 | EvilBrains.Style | Warning | Member should have a block body
 EB0007 | EvilBrains.Design | Warning | Controller must not take constructor dependencies
+EB0008 | EvilBrains.Design | Warning | Action parameters must run [FromServices], [FromRoute], [FromQuery], [FromBody], CancellationToken

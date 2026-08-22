@@ -22,7 +22,7 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status423Locked)]
-    public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request, [FromServices] IAuthService authService, CancellationToken token)
+    public async Task<ActionResult<LoginResponse>> Login([FromServices] IAuthService authService, [FromBody] LoginRequest request, CancellationToken token)
     {
         var result = await authService.Login(request.Email, request.Password, this.DescribeClient(), token);
 

@@ -14,7 +14,7 @@ public class ContactsControllerTests
         var controller = new ContactsController();
         var request = new ContactListRequest { Search = "úřad" };
 
-        await controller.ListContacts(request, reader, CancellationToken.None);
+        await controller.ListContacts(reader, request, CancellationToken.None);
 
         Assert.That(reader.Request?.Search, Is.EqualTo("úřad"));
     }
@@ -25,7 +25,7 @@ public class ContactsControllerTests
         var reader = new RecordingContactReader { Items = [Item("Krajský soud ve Vzorově"), Item("Česká advokátní komora")] };
         var controller = new ContactsController();
 
-        var response = await controller.ListContacts(new ContactListRequest(), reader, CancellationToken.None);
+        var response = await controller.ListContacts(reader, new ContactListRequest(), CancellationToken.None);
 
         Assert.That(response.Items.Select(item => item.Name), Is.EqualTo(["Krajský soud ve Vzorově", "Česká advokátní komora"]));
     }

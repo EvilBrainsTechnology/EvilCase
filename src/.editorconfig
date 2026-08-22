@@ -192,6 +192,7 @@ dotnet_diagnostic.EB0003.severity = warning    # Single-line comment should not 
 dotnet_diagnostic.EB0004.severity = error      # Using directives should be ordered (SA1208/SA1210)
 dotnet_diagnostic.EB0006.severity = error      # Member should have a block body
 dotnet_diagnostic.EB0007.severity = error      # Controller must not take constructor dependencies
+dotnet_diagnostic.EB0008.severity = error      # Action parameter out of order
 
 ########################################################################################################################
 

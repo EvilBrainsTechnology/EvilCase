@@ -12,7 +12,7 @@ public class LogsControllerTests
         var writer = new CollectingWriter();
         var controller = new LogsController();
 
-        controller.WriteClientLogs(new ClientLogBatch { Entries = [Entry("first"), Entry("second")] }, writer);
+        controller.WriteClientLogs(writer, new ClientLogBatch { Entries = [Entry("first"), Entry("second")] });
 
         Assert.That(writer.Entries.Select(x => x.MessageTemplate), Is.EqualTo(["first", "second"]));
     }
@@ -26,7 +26,7 @@ public class LogsControllerTests
         var writer = new CollectingWriter();
         var controller = new LogsController();
 
-        controller.WriteClientLogs(new ClientLogBatch { Entries = [null!, Entry("second")] }, writer);
+        controller.WriteClientLogs(writer, new ClientLogBatch { Entries = [null!, Entry("second")] });
 
         Assert.That(writer.Entries.Select(x => x.MessageTemplate), Is.EqualTo(["second"]));
     }

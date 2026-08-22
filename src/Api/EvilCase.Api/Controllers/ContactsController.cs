@@ -11,7 +11,7 @@ namespace EvilBrains.EvilCase.Api.Controllers;
 public class ContactsController : ControllerBase
 {
     [HttpGet("")]
-    public async Task<ContactListResponse> ListContacts([FromQuery] ContactListRequest request, [FromServices] IContactReader contacts, CancellationToken cancellationToken)
+    public async Task<ContactListResponse> ListContacts([FromServices] IContactReader contacts, [FromQuery] ContactListRequest request, CancellationToken cancellationToken)
     {
         var items = await contacts.List(request, cancellationToken);
 

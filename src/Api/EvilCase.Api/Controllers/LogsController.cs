@@ -20,7 +20,7 @@ public class LogsController : ControllerBase
 
     [HttpPost("")]
     [RequestSizeLimit(MaxRequestBodyBytes)]
-    public void WriteClientLogs([FromBody] ClientLogBatch batch, [FromServices] IClientLogWriter writer)
+    public void WriteClientLogs([FromServices] IClientLogWriter writer, [FromBody] ClientLogBatch batch)
     {
         foreach (var entry in batch.Entries)
         {

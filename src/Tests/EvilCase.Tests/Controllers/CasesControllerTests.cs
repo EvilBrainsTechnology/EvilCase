@@ -13,7 +13,7 @@ public class CasesControllerTests
         var reader = new RecordingCaseReader { Items = [Item("EC/20260821-002", "druhý"), Item("EC/20260821-001", "první")] };
         var controller = new CasesController();
 
-        var response = await controller.ListCases(new CaseListRequest(), reader, CancellationToken.None);
+        var response = await controller.ListCases(reader, new CaseListRequest(), CancellationToken.None);
 
         Assert.That(response.Items.Select(item => item.Title), Is.EqualTo(["druhý", "první"]), "the controller does not re-order what the reader gave it");
     }
@@ -24,7 +24,7 @@ public class CasesControllerTests
         var reader = new RecordingCaseReader();
         var controller = new CasesController();
 
-        await controller.ListCases(new CaseListRequest { Search = "odvolání", Status = CaseStatusFilter.WaitingOnAuthority }, reader, CancellationToken.None);
+        await controller.ListCases(reader, new CaseListRequest { Search = "odvolání", Status = CaseStatusFilter.WaitingOnAuthority }, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -40,7 +40,7 @@ public class CasesControllerTests
         var controller = new CasesController();
         var request = new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "Přestupek", Description = "Popis" };
 
-        await controller.CreateCase(request, writer, CancellationToken.None);
+        await controller.CreateCase(writer, request, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -58,8 +58,8 @@ public class CasesControllerTests
         var controller = new CasesController();
 
         var response = await controller.CreateCase(
-            new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "Nový spis" },
             writer,
+            new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "Nový spis" },
             CancellationToken.None);
 
         Assert.That(response, Is.SameAs(created));
