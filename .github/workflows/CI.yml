@@ -20,7 +20,7 @@ jobs:
     name: Lint, Build, and Test Solution
     runs-on: ubuntu-latest
 
-    # DatabaseTimestampTests needs a real server: the Created/Updated stamps are a trigger.
+    # The stamp tests need a real server: Created and Updated come from a trigger.
     services:
       postgres:
         image: postgres:18-alpine

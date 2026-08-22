@@ -1,7 +1,4 @@
-using EvilBrains.EvilCase.Data;
-using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
-using EvilBrains.EvilCase.Tests.Auth;
 using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Tests.Data;
@@ -13,16 +10,10 @@ namespace EvilBrains.EvilCase.Tests.Data;
 /// </summary>
 public class DatabaseTimestampTests
 {
-    [OneTimeSetUp]
-    public void OneTimeSetUp()
-    {
-        TestDatabase.CreateMigrated().Dispose();
-    }
-
     [Test]
     public async Task AnInsertTakesItsCreatedFromTheDatabase()
     {
-        await using var context = CreateContext();
+        await using var context = TestDatabase.CreateMigrated();
 
         var account = new Account { Name = "insert" };
         context.Accounts.Add(account);
@@ -40,7 +31,7 @@ public class DatabaseTimestampTests
     [Test]
     public async Task AWriteThatSetsTheStampsItselfIsIgnored()
     {
-        await using var context = CreateContext();
+        await using var context = TestDatabase.CreateMigrated();
 
         var account = new Account { Name = "ignored" };
         context.Accounts.Add(account);
@@ -61,7 +52,7 @@ public class DatabaseTimestampTests
     [Test]
     public async Task AnUpdateStampsUpdatedAndLeavesCreatedAlone()
     {
-        await using var context = CreateContext();
+        await using var context = TestDatabase.CreateMigrated();
 
         var account = new Account { Name = "before rename" };
         context.Accounts.Add(account);
@@ -72,7 +63,7 @@ public class DatabaseTimestampTests
         context.Entry(account).Property(nameof(Account.Name)).CurrentValue = "renamed";
         await context.SaveChangesAsync();
 
-        await using var reader = CreateContext();
+        await using var reader = TestDatabase.CreateMigrated();
         var persisted = await reader.Accounts.AsNoTracking().SingleAsync(a => a.Id == account.Id);
 
         using (Assert.EnterMultipleScope())
@@ -87,7 +78,7 @@ public class DatabaseTimestampTests
     [Test]
     public async Task AnExecuteUpdateIsStampedTheSameWay()
     {
-        await using var context = CreateContext();
+        await using var context = TestDatabase.CreateMigrated();
 
         var account = new Account { Name = "before execute update" };
         context.Accounts.Add(account);
@@ -99,7 +90,7 @@ public class DatabaseTimestampTests
             .Where(a => a.Id == account.Id)
             .ExecuteUpdateAsync(setters => setters.SetProperty(a => a.Name, "renamed"));
 
-        await using var reader = CreateContext();
+        await using var reader = TestDatabase.CreateMigrated();
         var persisted = await reader.Accounts.AsNoTracking().SingleAsync(a => a.Id == account.Id);
 
         using (Assert.EnterMultipleScope())
@@ -112,7 +103,7 @@ public class DatabaseTimestampTests
     [Test]
     public async Task EveryTableWithTheStampsCarriesTheTrigger()
     {
-        await using var context = CreateContext();
+        await using var context = TestDatabase.CreateMigrated();
 
         var stamped = context.Model.GetEntityTypes()
             .Where(entityType => typeof(IEntity).IsAssignableFrom(entityType.ClrType))
@@ -135,13 +126,5 @@ public class DatabaseTimestampTests
             Assert.That(stamped, Is.Not.Empty, "the model maps entities carrying the stamps at all, or this test passes vacuously");
             Assert.That(triggered, Is.SupersetOf(stamped), "a mapped table has no stamp_timestamps trigger, so its rows would be written with no Created");
         }
-    }
-
-    private static ApplicationDbContext CreateContext()
-    {
-        var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-        optionsBuilder.UseNpgsql(TestDatabase.ConnectionString, npgsql => npgsql.UseEvilCaseMigrations());
-
-        return new ApplicationDbContext(optionsBuilder.Options, new StubUserContext());
     }
 }

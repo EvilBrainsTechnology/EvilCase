@@ -59,8 +59,8 @@ a běží ve vlastním scope dřív, než se obslouží první požadavek.
 - Transakce seedu: volající / seed sám. Platí seed sám.
 - Repository per entita: ano / ne. Ne — typovaný `DbSet` na `IDbSession.Current` stačí.
 - Razítka: interceptor / trigger. Platí trigger.
-- Zdroj času triggeru: `now()` / `clock_timestamp()`. Platí `clock_timestamp()`, protože
-  `Created` rozhoduje pořadí a seed píše celý strom v jedné transakci.
+- Čas razítka: čas transakce / čas řádku. Platí čas řádku — `Created` rozhoduje pořadí a seed
+  píše celý strom v jedné transakci.
 - `Updated`: jen při skutečné změně / při každém UPDATE. Platí každý UPDATE.
 
 ## Dopady
