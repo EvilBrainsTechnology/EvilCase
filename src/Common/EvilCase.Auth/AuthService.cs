@@ -173,7 +173,6 @@ internal sealed class AuthService(
                 UserId = user.Id,
                 AuthSessionId = authSessionId,
                 TokenHash = RefreshTokenValue.Hash(value),
-                Created = now,
                 Expires = expires,
                 SessionExpires = sessionExpires,
                 CreatedByIp = client.IpAddress,

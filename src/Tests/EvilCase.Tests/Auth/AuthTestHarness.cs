@@ -31,6 +31,7 @@ internal sealed class AuthTestHarness
     public AuthTestHarness()
     {
         this.Time = new(Start);
+        this.RefreshTokens = new FakeRefreshTokenStore(this.Time);
         this.Settings = CreateSettings();
 
         this.User = this.Users.Seed(
@@ -54,7 +55,7 @@ internal sealed class AuthTestHarness
 
     public FakeUserStore Users { get; } = new();
 
-    public FakeRefreshTokenStore RefreshTokens { get; } = new();
+    public FakeRefreshTokenStore RefreshTokens { get; }
 
     public TestTimeProvider Time { get; }
 
