@@ -344,9 +344,9 @@ public class ApiClientGeneratorTests
         AssertDiagnostic(
             "EB1002",
             """
-        [HttpGet]
-        public Task<ItemResponse> GetItems() => throw null!;
-        """);
+            [HttpGet]
+            public Task<ItemResponse> GetItems() => throw null!;
+            """);
     }
 
     [Test]
@@ -355,10 +355,10 @@ public class ApiClientGeneratorTests
         AssertDiagnostic(
             "EB1002",
             """
-        [HttpGet("")]
-        [HttpPost("")]
-        public Task<ItemResponse> GetItems() => throw null!;
-        """);
+            [HttpGet("")]
+            [HttpPost("")]
+            public Task<ItemResponse> GetItems() => throw null!;
+            """);
     }
 
     [Test]
@@ -367,9 +367,9 @@ public class ApiClientGeneratorTests
         AssertDiagnostic(
             "EB1003",
             """
-        [HttpGet("/items")]
-        public Task<ItemResponse> GetItems() => throw null!;
-        """);
+            [HttpGet("/items")]
+            public Task<ItemResponse> GetItems() => throw null!;
+            """);
     }
 
     [Test]
@@ -378,9 +378,9 @@ public class ApiClientGeneratorTests
         AssertDiagnostic(
             "EB1003",
             """
-        [HttpGet("[action]")]
-        public Task<ItemResponse> GetItems() => throw null!;
-        """);
+            [HttpGet("[action]")]
+            public Task<ItemResponse> GetItems() => throw null!;
+            """);
     }
 
     [Test]
@@ -389,9 +389,9 @@ public class ApiClientGeneratorTests
         AssertDiagnostic(
             "EB1003",
             """
-        [HttpGet("{*path}")]
-        public Task<ItemResponse> GetItems() => throw null!;
-        """);
+            [HttpGet("{*path}")]
+            public Task<ItemResponse> GetItems() => throw null!;
+            """);
     }
 
     [Test]
@@ -400,9 +400,9 @@ public class ApiClientGeneratorTests
         AssertDiagnostic(
             "EB1004",
             """
-        [HttpGet("items_list")]
-        public Task<ItemResponse> GetItems() => throw null!;
-        """);
+            [HttpGet("items_list")]
+            public Task<ItemResponse> GetItems() => throw null!;
+            """);
     }
 
     [Test]
@@ -411,9 +411,9 @@ public class ApiClientGeneratorTests
         AssertDiagnosticInController(
             "EB1006",
             """
-        [HttpGet("")]
-        public Task<ItemResponse> GetItems() => throw null!;
-        """,
+            [HttpGet("")]
+            public Task<ItemResponse> GetItems() => throw null!;
+            """,
             "items");
     }
 
@@ -449,9 +449,9 @@ public class ApiClientGeneratorTests
         AssertDiagnostic(
             "EB1005",
             """
-        [HttpGet("")]
-        public Task<ItemResponse> GetItems(string filter) => throw null!;
-        """);
+            [HttpGet("")]
+            public Task<ItemResponse> GetItems(string filter) => throw null!;
+            """);
     }
 
     [Test]
@@ -483,9 +483,9 @@ public class ApiClientGeneratorTests
         AssertDiagnostic(
             "EB1014",
             """
-        [HttpGet("")]
-        public Task<ActionResult<ServerOnlyResponse>> GetItems() => throw null!;
-        """);
+            [HttpGet("")]
+            public Task<ActionResult<ServerOnlyResponse>> GetItems() => throw null!;
+            """);
     }
 
     [Test]
@@ -494,9 +494,9 @@ public class ApiClientGeneratorTests
         AssertDiagnostic(
             "EB1010",
             """
-        [HttpGet("{itemId}")]
-        public Task<ItemResponse> GetItem() => throw null!;
-        """);
+            [HttpGet("{itemId}")]
+            public Task<ItemResponse> GetItem() => throw null!;
+            """);
     }
 
     [Test]
@@ -505,9 +505,9 @@ public class ApiClientGeneratorTests
         AssertDiagnostic(
             "EB1010",
             """
-        [HttpGet("")]
-        public Task<ItemResponse> GetItem([FromRoute] Guid id) => throw null!;
-        """);
+            [HttpGet("")]
+            public Task<ItemResponse> GetItem([FromRoute] Guid id) => throw null!;
+            """);
     }
 
     [Test]
@@ -516,9 +516,9 @@ public class ApiClientGeneratorTests
         AssertDiagnostic(
             "EB1011",
             """
-        [HttpPost("")]
-        public Task Create([FromBody] ItemRequest first, [FromBody] ItemRequest second) => throw null!;
-        """);
+            [HttpPost("")]
+            public Task Create([FromBody] ItemRequest first, [FromBody] ItemRequest second) => throw null!;
+            """);
     }
 
     [Test]
@@ -527,9 +527,9 @@ public class ApiClientGeneratorTests
         AssertDiagnostic(
             "EB1012",
             """
-        [HttpPost("")]
-        public Task Create([FromForm] string name) => throw null!;
-        """);
+            [HttpPost("")]
+            public Task Create([FromForm] string name) => throw null!;
+            """);
     }
 
     [Test]
@@ -538,9 +538,9 @@ public class ApiClientGeneratorTests
         AssertDiagnostic(
             "EB1013",
             """
-        [HttpGet("{id}")]
-        public Task<ItemResponse> GetItem([FromRoute] int? id) => throw null!;
-        """);
+            [HttpGet("{id}")]
+            public Task<ItemResponse> GetItem([FromRoute] int? id) => throw null!;
+            """);
     }
 
     [Test]
@@ -549,9 +549,9 @@ public class ApiClientGeneratorTests
         AssertDiagnostic(
             "EB1014",
             """
-        [HttpPost("")]
-        public Task Create([FromBody] ServerOnlyRequest request) => throw null!;
-        """);
+            [HttpPost("")]
+            public Task Create([FromBody] ServerOnlyRequest request) => throw null!;
+            """);
     }
 
     [Test]

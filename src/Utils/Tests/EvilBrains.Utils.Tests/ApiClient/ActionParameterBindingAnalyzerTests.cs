@@ -63,17 +63,17 @@ public class ActionParameterBindingAnalyzerTests
     private static string Fixture(string action)
     {
         return $$"""
-        using System.Threading;
-        using Microsoft.AspNetCore.Mvc;
-        
-        namespace FakeApi;
-        
-        [ApiController]
-        [Route("api/items")]
-        public class ItemsController : ControllerBase
-        {
-        {{action}}
-        }
-        """;
+            using System.Threading;
+            using Microsoft.AspNetCore.Mvc;
+
+            namespace FakeApi;
+
+            [ApiController]
+            [Route("api/items")]
+            public class ItemsController : ControllerBase
+            {
+            {{action}}
+            }
+            """;
     }
 }

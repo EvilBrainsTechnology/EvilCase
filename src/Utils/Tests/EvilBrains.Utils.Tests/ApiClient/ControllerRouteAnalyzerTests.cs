@@ -191,11 +191,11 @@ public class ControllerRouteAnalyzerTests
     private static string Fixture(string controller)
     {
         return $$"""
-        using Microsoft.AspNetCore.Mvc;
-        
-        namespace FakeApi;
-        
-        {{controller}}
-        """;
+            using Microsoft.AspNetCore.Mvc;
+
+            namespace FakeApi;
+
+            {{controller}}
+            """;
     }
 }

@@ -16,14 +16,14 @@ internal sealed class StubCaseReader : ICaseReader
     {
         return Task.FromResult<IReadOnlyList<CaseListItem>>(
         [
-        new CaseListItem
-        {
-            Id = Guid.CreateVersion7(),
-            CaseNumber = "EC/20260821-001",
-            Title = Title,
-            Date = new DateOnly(2026, 1, 1),
-            Status = CaseStatus.Active,
-        },
+            new CaseListItem
+            {
+                Id = Guid.CreateVersion7(),
+                CaseNumber = "EC/20260821-001",
+                Title = Title,
+                Date = new DateOnly(2026, 1, 1),
+                Status = CaseStatus.Active,
+            },
         ]);
     }
 }

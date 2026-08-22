@@ -199,8 +199,8 @@ public class RefreshCookieTests
     private static string RefreshCookieOf(HttpResponseMessage response)
     {
         return response.Headers.TryGetValues("Set-Cookie", out var values)
-        ? values.Single(value => value.StartsWith(RefreshCookie.Name, StringComparison.Ordinal))
-        : throw new AssertionException("The response carries no Set-Cookie header");
+            ? values.Single(value => value.StartsWith(RefreshCookie.Name, StringComparison.Ordinal))
+            : throw new AssertionException("The response carries no Set-Cookie header");
     }
 
     private static string ValueOf(string setCookie)
