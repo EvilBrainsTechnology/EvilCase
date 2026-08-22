@@ -1,6 +1,7 @@
 using EvilBrains.EvilCase.Business.Contacts;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Migrations.DbContexts;
+using EvilBrains.EvilCase.Tests.Auth;
 using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Tests.Contacts;
@@ -27,7 +28,7 @@ public class ContactOccurrenceQueryTests
     [Test]
     public void TheCaseOccurrencesReachTheCaseThroughTheExternalNumber()
     {
-        var sql = this.context.ExternalCaseNumbers.AsCaseOccurrences(Guid.CreateVersion7()).ToQueryString();
+        var sql = this.context.ExternalCaseNumbers.AssignedByContact(Guid.CreateVersion7()).InCaseOccurrenceOrder().AsCaseOccurrences().ToQueryString();
 
         using (Assert.EnterMultipleScope())
         {
@@ -43,8 +44,8 @@ public class ContactOccurrenceQueryTests
     public void IssuedByAndAddressedToOccurrencesEachNarrowByTheirOwnColumn()
     {
         var id = Guid.CreateVersion7();
-        var issuedBy = this.context.Acts.AsIssuedByOccurrences(id).ToQueryString();
-        var addressedTo = this.context.Acts.AsAddressedToOccurrences(id).ToQueryString();
+        var issuedBy = this.context.Acts.IssuedByContact(id).AsIssuedByOccurrences().ToQueryString();
+        var addressedTo = this.context.Acts.AddressedToContact(id).AsAddressedToOccurrences().ToQueryString();
 
         using (Assert.EnterMultipleScope())
         {
@@ -58,7 +59,7 @@ public class ContactOccurrenceQueryTests
     [Test]
     public void TheIssuerOccurrenceCarriesTheNumberAndNamesItsCase()
     {
-        var sql = this.context.ExternalActNumbers.AsNumberIssuerOccurrences(Guid.CreateVersion7()).ToQueryString();
+        var sql = this.context.ExternalActNumbers.AssignedByContact(Guid.CreateVersion7()).AsNumberIssuerOccurrences().ToQueryString();
 
         using (Assert.EnterMultipleScope())
         {
@@ -76,16 +77,31 @@ public class ContactOccurrenceQueryTests
 
         var sources = new string[]
         {
-            this.context.ExternalCaseNumbers.AsCaseOccurrences(id).ToQueryString(),
-            this.context.Acts.AsIssuedByOccurrences(id).ToQueryString(),
-            this.context.Acts.AsAddressedToOccurrences(id).ToQueryString(),
-            this.context.ExternalActNumbers.AsNumberIssuerOccurrences(id).ToQueryString(),
+            this.context.ExternalCaseNumbers.AssignedByContact(id).AsCaseOccurrences().ToQueryString(),
+            this.context.Acts.IssuedByContact(id).AsIssuedByOccurrences().ToQueryString(),
+            this.context.Acts.AddressedToContact(id).AsAddressedToOccurrences().ToQueryString(),
+            this.context.ExternalActNumbers.AssignedByContact(id).AsNumberIssuerOccurrences().ToQueryString(),
         };
 
         using (Assert.EnterMultipleScope())
         {
             foreach (var sql in sources)
                 Assert.That(sql, Does.Contain("\"TenantId\""), "a query filter is what keeps another tenant's rows out");
+        }
+    }
+
+    [Test]
+    public void TheDefaultContactCheckNamesTheTenantItself()
+    {
+        var userContext = new StubUserContext();
+        using var _ = userContext.Enter(Guid.CreateVersion7(), Guid.CreateVersion7());
+
+        var sql = this.context.Users.WithDefaultContact(userContext, Guid.CreateVersion7()).ToQueryString();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(sql, Does.Contain("\"TenantId\""), "User carries no tenant query filter, so the read names the tenant in its own predicate");
+            Assert.That(sql, Does.Contain("\"DefaultContactId\""));
         }
     }
 }

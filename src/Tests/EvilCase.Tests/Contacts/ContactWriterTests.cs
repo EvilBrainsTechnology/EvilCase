@@ -29,7 +29,7 @@ public class ContactWriterTests
     [Test]
     public void TheReferenceCheckReachesEveryPlaceAContactCanBeNamed()
     {
-        var sql = ContactWriter.ReferencesTo(this.context, Guid.CreateVersion7()).ToQueryString();
+        var sql = this.context.ReferencingContact(Guid.CreateVersion7()).ToQueryString();
 
         using (Assert.EnterMultipleScope())
         {
@@ -44,7 +44,7 @@ public class ContactWriterTests
     [Test]
     public void TheReferenceCheckStaysInsideTheTenant()
     {
-        var sql = ContactWriter.ReferencesTo(this.context, Guid.CreateVersion7()).ToQueryString();
+        var sql = this.context.ReferencingContact(Guid.CreateVersion7()).ToQueryString();
 
         Assert.That(sql, Does.Contain("\"TenantId\""), "a query filter is what keeps another tenant's rows out");
     }

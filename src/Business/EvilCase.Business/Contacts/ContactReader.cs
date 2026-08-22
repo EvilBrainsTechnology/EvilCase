@@ -1,10 +1,11 @@
 using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Data.DbContexts;
+using EvilBrains.EvilCase.Domain.Users;
 using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Business.Contacts;
 
-internal sealed class ContactReader(IDbSession dbSession) : IContactReader
+internal sealed class ContactReader(IDbSession dbSession, IUserContext userContext) : IContactReader
 {
     public async Task<IReadOnlyList<ContactListItem>> List(ContactListRequest request, CancellationToken cancellationToken = default)
     {
@@ -25,11 +26,11 @@ internal sealed class ContactReader(IDbSession dbSession) : IContactReader
         if (contact is null)
             return null;
 
-        var isDefault = await context.Users.AnyAsync(user => user.DefaultContactId == id, cancellationToken);
-        var cases = await context.ExternalCaseNumbers.AsCaseOccurrences(id).ToListAsync(cancellationToken);
-        var issuedBy = await context.Acts.AsIssuedByOccurrences(id).ToListAsync(cancellationToken);
-        var addressedTo = await context.Acts.AsAddressedToOccurrences(id).ToListAsync(cancellationToken);
-        var numberIssuer = await context.ExternalActNumbers.AsNumberIssuerOccurrences(id).ToListAsync(cancellationToken);
+        var isDefault = await context.Users.WithDefaultContact(userContext, id).AnyAsync(cancellationToken);
+        var cases = await context.ExternalCaseNumbers.AssignedByContact(id).InCaseOccurrenceOrder().AsCaseOccurrences().ToListAsync(cancellationToken);
+        var issuedBy = await context.Acts.IssuedByContact(id).AsIssuedByOccurrences().ToListAsync(cancellationToken);
+        var addressedTo = await context.Acts.AddressedToContact(id).AsAddressedToOccurrences().ToListAsync(cancellationToken);
+        var numberIssuer = await context.ExternalActNumbers.AssignedByContact(id).AsNumberIssuerOccurrences().ToListAsync(cancellationToken);
 
         return contact with
         {

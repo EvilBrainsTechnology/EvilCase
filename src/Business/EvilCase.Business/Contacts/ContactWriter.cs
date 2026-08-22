@@ -1,11 +1,12 @@
 using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Domain.Contacts;
+using EvilBrains.EvilCase.Domain.Users;
 using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Business.Contacts;
 
-internal sealed class ContactWriter(IDbSession session, TimeProvider timeProvider) : IContactWriter
+internal sealed class ContactWriter(IDbSession session, IUserContext userContext, TimeProvider timeProvider) : IContactWriter
 {
     // The edit goes through ExecuteUpdate: the context reads NoTracking, so a change written onto the
     // entity would save nothing. The statement sets Updated itself (SDD-018).
@@ -36,27 +37,16 @@ internal sealed class ContactWriter(IDbSession session, TimeProvider timeProvide
         if (contact is null)
             return ContactDeleteOutcome.NotFound;
 
-        if (await context.Users.AnyAsync(user => user.DefaultContactId == id, cancellationToken))
+        if (await context.Users.WithDefaultContact(userContext, id).AnyAsync(cancellationToken))
             return ContactDeleteOutcome.DefaultContact;
 
-        if (await ReferencesTo(context, id).AnyAsync(cancellationToken))
+        if (await context.ReferencingContact(id).AnyAsync(cancellationToken))
             return ContactDeleteOutcome.Referenced;
 
         context.Contacts.Remove(contact);
         await context.SaveChangesAsync(cancellationToken);
 
         return ContactDeleteOutcome.Deleted;
-    }
-
-    /// <summary>
-    /// Every row that names the contact, as one query. Internal so a test reads the SQL the delete really runs.
-    /// </summary>
-    internal static IQueryable<Guid> ReferencesTo(ApplicationDbContext context, Guid contactId)
-    {
-        return context.ExternalCaseNumbers.Where(number => number.AssignedByContactId == contactId).Select(number => number.Id)
-            .Concat(context.Acts.Where(act => act.IssuedByContactId == contactId).Select(act => act.Id))
-            .Concat(context.Acts.Where(act => act.AddressedToContactId == contactId).Select(act => act.Id))
-            .Concat(context.ExternalActNumbers.Where(number => number.AssignedByContactId == contactId).Select(number => number.Id));
     }
 
     /// <summary>

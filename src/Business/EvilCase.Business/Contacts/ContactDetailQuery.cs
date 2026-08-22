@@ -1,5 +1,6 @@
 using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Data.Entities;
+using EvilBrains.EvilCase.Domain.Users;
 
 namespace EvilBrains.EvilCase.Business.Contacts;
 
@@ -24,5 +25,13 @@ internal static class ContactDetailQuery
                 DataBoxId = contact.DataBoxId,
                 Address = contact.Address,
             });
+    }
+
+    // User carries no tenant query filter, so this read names the tenant itself.
+    public static IQueryable<User> WithDefaultContact(this IQueryable<User> users, IUserContext userContext, Guid contactId)
+    {
+        return users
+            .Where(user => user.TenantId == userContext.TenantId)
+            .Where(user => user.DefaultContactId == contactId);
     }
 }
