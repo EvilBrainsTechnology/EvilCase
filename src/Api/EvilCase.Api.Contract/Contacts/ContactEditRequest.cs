@@ -5,15 +5,15 @@ namespace EvilBrains.EvilCase.Api.Contract.Contacts;
 
 public sealed record ContactEditRequest
 {
-    [Required(AllowEmptyStrings = false)]
-    [MaxLength(256)]
+    [Required]
+    [StringLength(256)]
     public required string Name { get; init; }
 
     public required ContactKind Kind { get; init; }
 
-    [MaxLength(16)]
+    [StringLength(16)]
     public string? DataBoxId { get; init; }
 
-    [MaxLength(1024)]
+    [StringLength(1024)]
     public string? Address { get; init; }
 }

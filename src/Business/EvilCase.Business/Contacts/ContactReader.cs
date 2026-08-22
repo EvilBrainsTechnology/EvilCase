@@ -22,7 +22,7 @@ internal sealed class ContactReader(IDbSession dbSession, IUserContext userConte
     {
         var context = dbSession.Current;
 
-        var contact = await context.Contacts.AsDetail(id).FirstOrDefaultAsync(cancellationToken);
+        var contact = await context.Contacts.WithId(id).AsDetail().FirstOrDefaultAsync(cancellationToken);
         if (contact is null)
             return null;
 
