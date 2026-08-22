@@ -48,7 +48,7 @@ public class RefreshCookieTests
         this.host = new EvilCaseHost(configureServices: services =>
         {
             services.AddSingleton<IUserStore>(users);
-            services.AddSingleton<IRefreshTokenStore>(new FakeRefreshTokenStore());
+            services.AddSingleton<IRefreshTokenStore>(new FakeRefreshTokenStore(TimeProvider.System));
 
             services.Configure<RateLimiterOptions>(
                 options => options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(

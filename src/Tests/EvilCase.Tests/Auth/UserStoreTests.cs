@@ -25,7 +25,7 @@ public class UserStoreTests
             DefaultContactId = contact.Id,
         };
 
-        await new UserStore(new FixedDbSession(context), new TestTimeProvider(DateTime.UtcNow)).Add(user, contact, CancellationToken.None);
+        await new UserStore(new FixedDbSession(context)).Add(user, contact, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {

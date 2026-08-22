@@ -62,6 +62,9 @@ dotnet r test                # tests only
 dotnet r ci                  # format-check + build + test, what CI runs
 ```
 
+The suite needs a reachable PostgreSQL for the database-stamp tests; the server started above
+serves, and `EVILCASE_TEST_POSTGRES` points them at another one.
+
 ### Logging
 
 A clone logs to the console and ships nothing anywhere. The server URL is the only switch: set `EvilBrains__EvilCase__Logging__Seq__ServerUrl` in your `.env` to ship to a Seq server of your own, and `EvilBrains__EvilCase__Logging__Seq__ApiKey` where that server requires one.

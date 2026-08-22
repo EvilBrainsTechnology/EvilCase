@@ -34,8 +34,7 @@ Account → Tenant → User (SDD-006). Tenantová data:
 ### Společné vlastnosti
 
 - Id je UUIDv7, generované v aplikaci (`Guid.CreateVersion7()`).
-- Každá entita nese `Created` a `Updated`; plní je jeden `SaveChangesInterceptor` nad
-  `TimeProvider`.
+- Každá entita nese `Created` a `Updated`; plní je trigger v databázi z jejích hodin (SDD-018).
 - Tenantové entity nesou `TenantId` a vlastníka `UserId`; kontakt vlastníka nemá (SDD-006).
   Obě hodnoty na nový řádek doplní zápis z `IUserContext`.
 - Datum spisu a úkonu je `DateOnly` (`.claude/rules/data.md`).

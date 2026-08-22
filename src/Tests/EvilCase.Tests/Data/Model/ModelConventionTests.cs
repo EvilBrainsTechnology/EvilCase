@@ -120,4 +120,36 @@ public class ModelConventionTests : ModelFixture
             }
         }
     }
+
+    /// <summary>
+    /// A trigger stamps both (SDD-018): the write sends neither and reads both back. Read off the
+    /// design-time model, which is the one that carries the save behaviours.
+    /// </summary>
+    [Test]
+    public void TheDatabaseOwnsEveryTimestamp()
+    {
+        var entities = DesignTimeModel.GetEntityTypes()
+            .Where(entityType => typeof(IEntity).IsAssignableFrom(entityType.ClrType))
+            .ToList();
+
+        Assert.That(entities, Is.Not.Empty);
+
+        using (Assert.EnterMultipleScope())
+        {
+            foreach (var entityType in entities)
+            {
+                var name = entityType.ShortName();
+                var created = entityType.FindProperty(nameof(IEntity.Created));
+                var updated = entityType.FindProperty(nameof(IEntity.Updated));
+
+                Assert.That(created?.ValueGenerated, Is.EqualTo(ValueGenerated.OnAdd), $"{name}.Created is not read back from the database, so a write could leave it wrong");
+                Assert.That(created?.GetBeforeSaveBehavior(), Is.EqualTo(PropertySaveBehavior.Ignore), $"{name}.Created is still sent by the write, so a write could leave it wrong");
+                Assert.That(created?.GetAfterSaveBehavior(), Is.EqualTo(PropertySaveBehavior.Ignore), $"{name}.Created is still sent by the write, so a write could leave it wrong");
+
+                Assert.That(updated?.ValueGenerated, Is.EqualTo(ValueGenerated.OnAddOrUpdate), $"{name}.Updated is not read back from the database, so a write could leave it wrong");
+                Assert.That(updated?.GetBeforeSaveBehavior(), Is.EqualTo(PropertySaveBehavior.Ignore), $"{name}.Updated is still sent by the write, so a write could leave it wrong");
+                Assert.That(updated?.GetAfterSaveBehavior(), Is.EqualTo(PropertySaveBehavior.Ignore), $"{name}.Updated is still sent by the write, so a write could leave it wrong");
+            }
+        }
+    }
 }

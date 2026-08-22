@@ -32,11 +32,19 @@ Schéma drží SDD-007, izolaci tenantů SDD-006.
 
 ### Interceptory
 
-- `TimestampInterceptor` plní `Created` a `Updated` nad `TimeProvider`.
 - `UserWriteInterceptor` doplní tenanta a uživatele z `IUserContext` a odmítne zápis, změnu i
   smazání entity, jejíž tenant nebo uživatel se s kontextem neshoduje (SDD-006).
 - `ExecuteUpdate` a `ExecuteDelete` jdou mimo interceptory: co jinak plní interceptor, nastavuje
-  takový zápis sám.
+  takový zápis sám. Razítek se to netýká — ty plní trigger i jim.
+
+### Razítka Created a Updated
+
+- `Created` a `Updated` plní trigger v databázi, ne zápis: vloženému řádku nastaví `Created`
+  a `Updated` nechá prázdné, změněnému nastaví `Updated` a `Created` nechá být. Obojí z hodin
+  databáze, v okamžiku řádku.
+- Trigger visí na každé tabulce, jejíž entita ta dvě pole nese; nová tabulka ho dostává
+  v migraci, která ji zakládá.
+- Model obě pole mapuje jako generovaná databází: zápis je neposílá a po uložení si je čte zpět.
 
 ### Migrace
 
@@ -50,8 +58,14 @@ a běží ve vlastním scope dřív, než se obslouží první požadavek.
 - Transakce: uvnitř každého zápisu / o úroveň výš. Platí o úroveň výš.
 - Transakce seedu: volající / seed sám. Platí seed sám.
 - Repository per entita: ano / ne. Ne — typovaný `DbSet` na `IDbSession.Current` stačí.
+- Razítka: interceptor / trigger. Platí trigger.
+- Zdroj času triggeru: `now()` / `clock_timestamp()`. Platí `clock_timestamp()`, protože
+  `Created` rozhoduje pořadí a seed píše celý strom v jedné transakci.
+- `Updated`: jen při skutečné změně / při každém UPDATE. Platí každý UPDATE.
 
 ## Dopady
 
 `ApplicationDbContext` přestává být závislostí služeb v `Business` a `Auth`. SDD-001 jmenuje
 `EvilCase.Data` jako model i přístup k databázi; `.claude/rules/data.md` nese invariant.
+`TimestampInterceptor` zaniká, `EvilCase.Data` už neregistruje `TimeProvider`, `EvilCase.Auth`
+v `ExecuteUpdate` `Updated` nenastavuje.

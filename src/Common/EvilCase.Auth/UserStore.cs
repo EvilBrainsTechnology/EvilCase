@@ -5,8 +5,8 @@ using Microsoft.EntityFrameworkCore;
 namespace EvilBrains.EvilCase.Auth;
 
 // The login writes go through ExecuteUpdate rather than the change tracker: reading the row first
-// would be a second round trip, so the statement sets Updated itself (SDD-018).
-internal sealed class UserStore(IDbSession dbSession, TimeProvider timeProvider) : IUserStore
+// would be a second round trip. Updated comes from the database trigger (SDD-018).
+internal sealed class UserStore(IDbSession dbSession) : IUserStore
 {
     public async Task<User?> FindByEmail(string email, CancellationToken cancellationToken)
     {
@@ -22,29 +22,23 @@ internal sealed class UserStore(IDbSession dbSession, TimeProvider timeProvider)
 
     public async Task RecordFailedLogin(Guid id, int failedAttempts, DateTime? lockoutEnd, CancellationToken cancellationToken)
     {
-        var now = timeProvider.GetUtcNow().UtcDateTime;
-
         await dbSession.Current.Users
             .Where(user => user.Id == id)
             .ExecuteUpdateAsync(
                 setters => setters
                     .SetProperty(user => user.FailedLoginAttempts, failedAttempts)
-                    .SetProperty(user => user.LockoutEnd, lockoutEnd)
-                    .SetProperty(user => user.Updated, now),
+                    .SetProperty(user => user.LockoutEnd, lockoutEnd),
                 cancellationToken);
     }
 
     public async Task RecordSuccessfulLogin(Guid id, CancellationToken cancellationToken)
     {
-        var now = timeProvider.GetUtcNow().UtcDateTime;
-
         await dbSession.Current.Users
             .Where(user => user.Id == id)
             .ExecuteUpdateAsync(
                 setters => setters
                     .SetProperty(user => user.FailedLoginAttempts, 0)
-                    .SetProperty(user => user.LockoutEnd, (DateTime?)null)
-                    .SetProperty(user => user.Updated, now),
+                    .SetProperty(user => user.LockoutEnd, (DateTime?)null),
                 cancellationToken);
     }
 
