@@ -46,7 +46,6 @@ internal sealed class UserSeeder(
 
         var user = new User
         {
-            TenantId = tenant.Id,
             Email = normalizedEmail,
             PasswordHash = PasswordHasher.Hash(password),
             Role = UserRole.Admin,

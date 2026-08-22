@@ -58,7 +58,7 @@ public class TenantIsolationTests : ModelFixture
     [Test]
     public void EveryTenantEntityIsFilteredByItsTenant()
     {
-        var tenantEntities = TenantEntities();
+        var tenantEntities = TenantScopedEntities();
 
         Assert.That(tenantEntities, Is.Not.Empty);
 
@@ -77,7 +77,7 @@ public class TenantIsolationTests : ModelFixture
     [Test]
     public void EveryUniqueIndexOfATenantEntityLeadsWithTheTenant()
     {
-        var tenantEntities = TenantEntities();
+        var tenantEntities = TenantScopedEntities();
 
         Assert.That(tenantEntities, Is.Not.Empty);
 
@@ -97,7 +97,7 @@ public class TenantIsolationTests : ModelFixture
     }
 
     [Test]
-    public void TheOnlyRowsOutsideATenantAreAccountsTenantsUsersAndTheirTokens()
+    public void TheOnlyRowsOutsideATenantAreAccountsTenantsAndTokens()
     {
         var untenanted = Model.GetEntityTypes()
             .Where(entityType => !typeof(ITenantEntity).IsAssignableFrom(entityType.ClrType))
@@ -106,12 +106,37 @@ public class TenantIsolationTests : ModelFixture
 
         Assert.That(
             untenanted,
-            Is.EquivalentTo(["Account", "Tenant", "User", "RefreshToken"]),
+            Is.EquivalentTo(["Account", "Tenant", "RefreshToken"]),
             "a new entity outside the tenant is a leak until someone says otherwise");
+    }
+
+    /// <summary>
+    /// A sign-in names an e-mail and no tenant, so the user is the one tenant row that is read before
+    /// its tenant is known.
+    /// </summary>
+    [Test]
+    public void AUserIsReachedByEmailAloneAcrossTheDeployment()
+    {
+        var user = Model.FindEntityType(typeof(User));
+
+        Assert.That(user, Is.Not.Null);
+
+        var email = user.GetIndexes().Single(index => index.IsUnique);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(user.GetDeclaredQueryFilters(), Is.Empty);
+            Assert.That(email.Properties.Select(property => property.Name), Is.EqualTo([nameof(User.Email)]));
+        }
     }
 
     private static List<IReadOnlyEntityType> TenantEntities()
     {
         return [.. Model.GetEntityTypes().Where(type => typeof(ITenantEntity).IsAssignableFrom(type.ClrType))];
+    }
+
+    private static List<IReadOnlyEntityType> TenantScopedEntities()
+    {
+        return [.. TenantEntities().Where(type => type.ClrType != typeof(User))];
     }
 }
