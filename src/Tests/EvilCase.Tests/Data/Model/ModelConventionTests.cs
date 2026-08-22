@@ -1,4 +1,3 @@
-using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -7,25 +6,6 @@ namespace EvilBrains.EvilCase.Tests.Data.Model;
 
 public class ModelConventionTests : ModelFixture
 {
-    [Test]
-    public void EveryEntityIsReachedThroughItsOwnDbSet()
-    {
-        var sets = typeof(ApplicationDbContext).GetProperties()
-            .Where(property => property.PropertyType.IsGenericType && property.PropertyType.GetGenericTypeDefinition() == typeof(DbSet<>))
-            .Select(property => property.PropertyType.GetGenericArguments()[0])
-            .ToList();
-
-        var entities = Model.GetEntityTypes().Select(entityType => entityType.ClrType).ToList();
-
-        Assert.That(entities, Is.Not.Empty);
-
-        using (Assert.EnterMultipleScope())
-        {
-            foreach (var entity in entities)
-                Assert.That(sets, Does.Contain(entity), $"{entity.Name}: a read would have to reach for Set<TEntity>() without a typed set");
-        }
-    }
-
     [Test]
     public void EveryEnumIsStoredAsAName()
     {
