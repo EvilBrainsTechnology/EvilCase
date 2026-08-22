@@ -16,27 +16,27 @@ public record Contact : ITenantEntity
 
     public Guid TenantId { get; init; }
 
-    public required ContactKind Kind { get; set; }
+    public required ContactKind Kind { get; init; }
 
     /// <summary>
     /// One field for every kind. A person is not split into given and family names, and an official's
     /// name is where the authority they act for is written.
     /// </summary>
     [MaxLength(256)]
-    public required string Name { get; set; }
+    public required string Name { get; init; }
 
     /// <summary>
     /// One free-text block, held as it appears on the document the contact sent, and printed back as a
     /// block. Nothing filters or sorts on any part of it.
     /// </summary>
     [MaxLength(1024)]
-    public string? Address { get; set; }
+    public string? Address { get; init; }
 
     /// <summary>
     /// The ISDS identifier, seven characters today.
     /// </summary>
     [MaxLength(16)]
-    public string? DataBoxId { get; set; }
+    public string? DataBoxId { get; init; }
 
     public DateTime Created { get; init; }
 
