@@ -1,6 +1,3 @@
-// The file is compiled into both analyzer assemblies, so its namespace matches neither project folder.
-#pragma warning disable IDE0130
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
