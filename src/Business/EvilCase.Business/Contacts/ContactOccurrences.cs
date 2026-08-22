@@ -1,4 +1,5 @@
 using EvilBrains.EvilCase.Api.Contract.Contacts;
+using EvilBrains.EvilCase.Domain.Numbering;
 
 namespace EvilBrains.EvilCase.Business.Contacts;
 
@@ -15,11 +16,23 @@ internal static class ContactOccurrences
     {
         return
         [
-            .. issuedBy.Concat(addressedTo).Concat(numberIssuer)
+            .. issuedBy
+                .Concat(addressedTo)
+                .Concat(numberIssuer)
                 .OrderByDescending(occurrence => occurrence.ActDate)
-                .ThenByDescending(occurrence => occurrence.ActNumber.Length)
+                .ThenByDescending(NumberOrder)
                 .ThenByDescending(occurrence => occurrence.ActNumber, StringComparer.Ordinal)
                 .ThenBy(occurrence => occurrence.Role),
         ];
+    }
+
+    // A number orders by what it says, not by how it reads: 1000 follows 999 instead of preceding 002.
+    // A number written by hand outside the format (SDD-008) says nothing and falls back to its text.
+    private static (DateOnly CaseDate, int CaseSequence, DateOnly ActDate, int ActSequence) NumberOrder(ContactActOccurrence occurrence)
+    {
+        var @case = CaseNumberFormat.ParseOrDefault(occurrence.CaseNumber);
+        var act = ActNumberFormat.ParseOrDefault(occurrence.ActNumber);
+
+        return (@case?.Date ?? DateOnly.MinValue, @case?.Sequence ?? 0, act?.Date ?? DateOnly.MinValue, act?.Sequence ?? 0);
     }
 }
