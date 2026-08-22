@@ -27,7 +27,9 @@ public class ContactListQueryTests
     [Test]
     public void SearchMatchesTheNameAndTheDataBoxIdWithoutRegardToCaseOrDiacritics()
     {
-        var sql = this.context.Contacts.MatchingSearch("úřad").ToQueryString();
+        var sql = this.context.Contacts
+            .MatchingSearch("úřad")
+            .ToQueryString();
 
         using (Assert.EnterMultipleScope())
         {
@@ -45,18 +47,32 @@ public class ContactListQueryTests
     {
         var unfiltered = this.context.Contacts.ToQueryString();
 
+        var byNull = this.context.Contacts
+            .MatchingSearch(search: null)
+            .ToQueryString();
+
+        var byEmpty = this.context.Contacts
+            .MatchingSearch("")
+            .ToQueryString();
+
+        var byBlank = this.context.Contacts
+            .MatchingSearch("   ")
+            .ToQueryString();
+
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(this.context.Contacts.MatchingSearch(search: null).ToQueryString(), Is.EqualTo(unfiltered));
-            Assert.That(this.context.Contacts.MatchingSearch("").ToQueryString(), Is.EqualTo(unfiltered));
-            Assert.That(this.context.Contacts.MatchingSearch("   ").ToQueryString(), Is.EqualTo(unfiltered));
+            Assert.That(byNull, Is.EqualTo(unfiltered));
+            Assert.That(byEmpty, Is.EqualTo(unfiltered));
+            Assert.That(byBlank, Is.EqualTo(unfiltered));
         }
     }
 
     [Test]
     public void WildcardsInTheTermAreEscaped()
     {
-        var sql = this.context.Contacts.MatchingSearch("50%_a\\b").ToQueryString();
+        var sql = this.context.Contacts
+            .MatchingSearch("50%_a\\b")
+            .ToQueryString();
 
         using (Assert.EnterMultipleScope())
         {
@@ -68,7 +84,9 @@ public class ContactListQueryTests
     [Test]
     public void TheOrderIsByNameAndIsTotal()
     {
-        var sql = this.context.Contacts.InListOrder().ToQueryString();
+        var sql = this.context.Contacts
+            .InListOrder()
+            .ToQueryString();
 
         Assert.That(sql, Does.Contain("ORDER BY c.\"Name\", c.\"Id\""), "the identifier only breaks a tie on the name");
     }
@@ -76,7 +94,9 @@ public class ContactListQueryTests
     [Test]
     public void TheProjectionReadsWhatARowShows()
     {
-        var sql = this.context.Contacts.AsListItems().ToQueryString();
+        var sql = this.context.Contacts
+            .AsListItems()
+            .ToQueryString();
 
         using (Assert.EnterMultipleScope())
         {
@@ -91,7 +111,11 @@ public class ContactListQueryTests
     [Test]
     public void TheListIsNarrowedByTheTenantAloneAndShowsEveryContact()
     {
-        var sql = this.context.Contacts.MatchingSearch(search: null).InListOrder().AsListItems().ToQueryString();
+        var sql = this.context.Contacts
+            .MatchingSearch(search: null)
+            .InListOrder()
+            .AsListItems()
+            .ToQueryString();
 
         using (Assert.EnterMultipleScope())
         {

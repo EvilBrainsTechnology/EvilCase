@@ -14,8 +14,7 @@ public class ModelConventionTests : ModelFixture
     [Test]
     public void EveryEntityIsReachedThroughItsOwnDbSet()
     {
-        var sets = typeof(ApplicationDbContext)
-            .GetProperties()
+        var sets = typeof(ApplicationDbContext).GetProperties()
             .Where(property => property.PropertyType.IsGenericType)
             .Where(property => property.PropertyType.GetGenericTypeDefinition() == typeof(DbSet<>))
             .Select(property => property.PropertyType.GetGenericArguments()[0])
@@ -35,8 +34,7 @@ public class ModelConventionTests : ModelFixture
     [Test]
     public void EveryEnumIsStoredAsAName()
     {
-        var enumProperties = Model
-            .GetEntityTypes()
+        var enumProperties = Model.GetEntityTypes()
             .SelectMany(entityType => entityType.GetProperties())
             .Where(property => (Nullable.GetUnderlyingType(property.ClrType) ?? property.ClrType).IsEnum)
             .ToList();
@@ -66,8 +64,7 @@ public class ModelConventionTests : ModelFixture
     [Test]
     public void EveryOneToManyIsNavigableFromBothEnds()
     {
-        var oneToMany = Model
-            .GetEntityTypes()
+        var oneToMany = Model.GetEntityTypes()
             .SelectMany(entityType => entityType.GetForeignKeys())
             .Where(key => !key.IsUnique)
             .Where(key => key.DependentToPrincipal is not null)
@@ -94,8 +91,7 @@ public class ModelConventionTests : ModelFixture
     [Test]
     public void NothingIsEagerLoaded()
     {
-        var eager = Model
-            .GetEntityTypes()
+        var eager = Model.GetEntityTypes()
             .SelectMany(entityType => entityType.GetNavigations())
             .Where(navigation => navigation.IsEagerLoaded)
             .Select(navigation => $"{navigation.DeclaringEntityType.ShortName()}.{navigation.Name}")
@@ -107,8 +103,7 @@ public class ModelConventionTests : ModelFixture
     [Test]
     public void EveryIdentifierIsAUuidTheApplicationGenerates()
     {
-        var entities = Model
-            .GetEntityTypes()
+        var entities = Model.GetEntityTypes()
             .Where(entityType => typeof(IEntity).IsAssignableFrom(entityType.ClrType))
             .ToList();
 

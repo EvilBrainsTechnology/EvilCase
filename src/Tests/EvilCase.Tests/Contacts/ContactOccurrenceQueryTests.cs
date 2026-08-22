@@ -28,7 +28,11 @@ public class ContactOccurrenceQueryTests
     [Test]
     public void TheCaseOccurrencesReachTheCaseThroughTheExternalNumber()
     {
-        var sql = this.context.ExternalCaseNumbers.AssignedByContact(Guid.CreateVersion7()).InCaseOccurrenceOrder().AsCaseOccurrences().ToQueryString();
+        var sql = this.context.ExternalCaseNumbers
+            .AssignedByContact(Guid.CreateVersion7())
+            .InCaseOccurrenceOrder()
+            .AsCaseOccurrences()
+            .ToQueryString();
 
         using (Assert.EnterMultipleScope())
         {
@@ -44,8 +48,15 @@ public class ContactOccurrenceQueryTests
     public void IssuedByAndAddressedToOccurrencesEachNarrowByTheirOwnColumn()
     {
         var id = Guid.CreateVersion7();
-        var issuedBy = this.context.Acts.IssuedByContact(id).AsIssuedByOccurrences().ToQueryString();
-        var addressedTo = this.context.Acts.AddressedToContact(id).AsAddressedToOccurrences().ToQueryString();
+        var issuedBy = this.context.Acts
+            .IssuedByContact(id)
+            .AsIssuedByOccurrences()
+            .ToQueryString();
+
+        var addressedTo = this.context.Acts
+            .AddressedToContact(id)
+            .AsAddressedToOccurrences()
+            .ToQueryString();
 
         using (Assert.EnterMultipleScope())
         {
@@ -59,7 +70,10 @@ public class ContactOccurrenceQueryTests
     [Test]
     public void TheIssuerOccurrenceCarriesTheNumberAndNamesItsCase()
     {
-        var sql = this.context.ExternalActNumbers.AssignedByContact(Guid.CreateVersion7()).AsNumberIssuerOccurrences().ToQueryString();
+        var sql = this.context.ExternalActNumbers
+            .AssignedByContact(Guid.CreateVersion7())
+            .AsNumberIssuerOccurrences()
+            .ToQueryString();
 
         using (Assert.EnterMultipleScope())
         {
@@ -75,13 +89,27 @@ public class ContactOccurrenceQueryTests
     {
         var id = Guid.CreateVersion7();
 
-        var sources = new string[]
-        {
-            this.context.ExternalCaseNumbers.AssignedByContact(id).AsCaseOccurrences().ToQueryString(),
-            this.context.Acts.IssuedByContact(id).AsIssuedByOccurrences().ToQueryString(),
-            this.context.Acts.AddressedToContact(id).AsAddressedToOccurrences().ToQueryString(),
-            this.context.ExternalActNumbers.AssignedByContact(id).AsNumberIssuerOccurrences().ToQueryString(),
-        };
+        var caseOccurrences = this.context.ExternalCaseNumbers
+            .AssignedByContact(id)
+            .AsCaseOccurrences()
+            .ToQueryString();
+
+        var issuedBy = this.context.Acts
+            .IssuedByContact(id)
+            .AsIssuedByOccurrences()
+            .ToQueryString();
+
+        var addressedTo = this.context.Acts
+            .AddressedToContact(id)
+            .AsAddressedToOccurrences()
+            .ToQueryString();
+
+        var numberIssuer = this.context.ExternalActNumbers
+            .AssignedByContact(id)
+            .AsNumberIssuerOccurrences()
+            .ToQueryString();
+
+        var sources = new string[] { caseOccurrences, issuedBy, addressedTo, numberIssuer };
 
         using (Assert.EnterMultipleScope())
         {
@@ -96,7 +124,9 @@ public class ContactOccurrenceQueryTests
         var userContext = new StubUserContext();
         using var _ = userContext.Enter(Guid.CreateVersion7(), Guid.CreateVersion7());
 
-        var sql = this.context.Users.WithDefaultContact(userContext, Guid.CreateVersion7()).ToQueryString();
+        var sql = this.context.Users
+            .WithDefaultContact(userContext, Guid.CreateVersion7())
+            .ToQueryString();
 
         using (Assert.EnterMultipleScope())
         {
