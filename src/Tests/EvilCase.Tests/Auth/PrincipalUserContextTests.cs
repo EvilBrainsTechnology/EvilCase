@@ -73,12 +73,10 @@ public class PrincipalUserContextTests
             (AuthClaims.Subject, userA.ToString("D", CultureInfo.InvariantCulture)));
 
         using (context.Enter(tenantB, userB))
+        using (Assert.EnterMultipleScope())
         {
-            using (Assert.EnterMultipleScope())
-            {
-                Assert.That(context.TenantId, Is.EqualTo(tenantB));
-                Assert.That(context.UserId, Is.EqualTo(userB));
-            }
+            Assert.That(context.TenantId, Is.EqualTo(tenantB));
+            Assert.That(context.UserId, Is.EqualTo(userB));
         }
 
         using (Assert.EnterMultipleScope())

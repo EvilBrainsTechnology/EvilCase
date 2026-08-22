@@ -158,7 +158,7 @@ public class UserWriteInterceptorTests
         return new() { TenantId = tenant, Kind = ContactKind.Person, Name = "test" };
     }
 
-    private static Case NewCase(Guid userId = default)
+    private static Case NewCase(in Guid userId = default)
     {
         return new()
         {

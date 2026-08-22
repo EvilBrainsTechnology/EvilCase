@@ -20,8 +20,7 @@ internal sealed class FakeDbContextTransaction : IDbContextTransaction
     }
 
     public void Rollback()
-    {
-    }
+    { }
 
     public Task RollbackAsync(CancellationToken cancellationToken = default)
     {
@@ -29,8 +28,7 @@ internal sealed class FakeDbContextTransaction : IDbContextTransaction
     }
 
     public void Dispose()
-    {
-    }
+    { }
 
     public ValueTask DisposeAsync()
     {

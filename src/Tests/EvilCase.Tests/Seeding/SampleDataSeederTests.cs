@@ -136,11 +136,15 @@ public class SampleDataSeederTests
     {
         var (context, _, _, _) = await Run();
 
+        var cases = context.Added<Case>().ToList();
+        var acts = context.Added<Act>().ToList();
+        var comments = context.Added<Comment>().ToList();
+
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(context.Added<Case>().TrueForAll(@case => @case.UserId == Guid.Empty), Is.True, "the seed names no user; the write is what stamps it");
-            Assert.That(context.Added<Act>().TrueForAll(act => act.UserId == Guid.Empty), Is.True, "the seed names no user; the write is what stamps it");
-            Assert.That(context.Added<Comment>().TrueForAll(comment => comment.UserId == Guid.Empty), Is.True, "the seed names no user; the write is what stamps it");
+            Assert.That(cases.TrueForAll(@case => @case.UserId == Guid.Empty), Is.True, "the seed names no user; the write is what stamps it");
+            Assert.That(acts.TrueForAll(act => act.UserId == Guid.Empty), Is.True, "the seed names no user; the write is what stamps it");
+            Assert.That(comments.TrueForAll(comment => comment.UserId == Guid.Empty), Is.True, "the seed names no user; the write is what stamps it");
         }
     }
 
