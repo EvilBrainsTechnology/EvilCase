@@ -116,7 +116,10 @@
 
     private string? failure;
 
-    protected override Task OnParametersSetAsync() => this.Load();
+    protected override Task OnParametersSetAsync()
+    {
+        return this.Load();
+    }
 
     private async Task Load()
     {
@@ -166,5 +169,8 @@
             FullscreenBelowLarge());
     }
 
-    private static ModalOptions FullscreenBelowLarge() => new() { Fullscreen = ModalFullscreen.BelowLarge };
+    private static ModalOptions FullscreenBelowLarge()
+    {
+        return new() { Fullscreen = ModalFullscreen.BelowLarge };
+    }
 }
