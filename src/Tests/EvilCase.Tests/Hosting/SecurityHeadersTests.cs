@@ -77,11 +77,15 @@ public class SecurityHeadersTests
         }
     }
 
-    private static string? Header(HttpResponseMessage response, string name) =>
-        response.Headers.TryGetValues(name, out var values) ? values.FirstOrDefault() : null;
+    private static string? Header(HttpResponseMessage response, string name)
+    {
+        return response.Headers.TryGetValues(name, out var values) ? values.FirstOrDefault() : null;
+    }
 
-    private static string Hash(string script) =>
-        "'sha256-" + Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(script))) + "'";
+    private static string Hash(string script)
+    {
+        return "'sha256-" + Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(script))) + "'";
+    }
 
     /// <summary>
     /// Scripts with a source carry attributes, so the bare opening tag is what separates the two kinds.

@@ -6,10 +6,12 @@ namespace EvilBrains.EvilCase.Business.Contacts;
 
 internal sealed class ContactReader(IDbSession dbSession) : IContactReader
 {
-    public async Task<IReadOnlyList<ContactListItem>> List(ContactListRequest request, CancellationToken cancellationToken = default) =>
-        await dbSession.Current.Contacts
+    public async Task<IReadOnlyList<ContactListItem>> List(ContactListRequest request, CancellationToken cancellationToken = default)
+    {
+        return await dbSession.Current.Contacts
             .MatchingSearch(request.Search)
             .InListOrder()
             .AsListItems()
             .ToListAsync(cancellationToken);
+    }
 }

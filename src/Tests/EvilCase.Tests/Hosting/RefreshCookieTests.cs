@@ -196,20 +196,29 @@ public class RefreshCookieTests
         }
     }
 
-    private static string RefreshCookieOf(HttpResponseMessage response) =>
-        response.Headers.TryGetValues("Set-Cookie", out var values)
-            ? values.Single(value => value.StartsWith(RefreshCookie.Name, StringComparison.Ordinal))
-            : throw new AssertionException("The response carries no Set-Cookie header");
+    private static string RefreshCookieOf(HttpResponseMessage response)
+    {
+        return response.Headers.TryGetValues("Set-Cookie", out var values)
+        ? values.Single(value => value.StartsWith(RefreshCookie.Name, StringComparison.Ordinal))
+        : throw new AssertionException("The response carries no Set-Cookie header");
+    }
 
-    private static string ValueOf(string setCookie) =>
-        setCookie[(setCookie.IndexOf('=', StringComparison.Ordinal) + 1)..setCookie.IndexOf(';', StringComparison.Ordinal)];
+    private static string ValueOf(string setCookie)
+    {
+        return setCookie[(setCookie.IndexOf('=', StringComparison.Ordinal) + 1)..setCookie.IndexOf(';', StringComparison.Ordinal)];
+    }
 
-    private Task<HttpResponseMessage> SignIn(string password) =>
-        this.client.PostAsJsonAsync(
+    private Task<HttpResponseMessage> SignIn(string password)
+    {
+        return this.client.PostAsJsonAsync(
             new Uri(AuthRoute.LoginPath, UriKind.Relative),
             new LoginRequest { Email = Email, Password = password });
+    }
 
-    private Task<HttpResponseMessage> Refresh(string cookie) => this.Post(AuthRoute.RefreshPath, cookie);
+    private Task<HttpResponseMessage> Refresh(string cookie)
+    {
+        return this.Post(AuthRoute.RefreshPath, cookie);
+    }
 
     private async Task<HttpResponseMessage> Post(string path, string? cookie)
     {

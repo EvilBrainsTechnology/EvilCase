@@ -195,23 +195,34 @@ public class ClientLogWriterTests
         }
     }
 
-    private static ClientLogEntry Entry(string messageTemplate, IReadOnlyDictionary<string, string>? properties) => new()
+    private static ClientLogEntry Entry(string messageTemplate, IReadOnlyDictionary<string, string>? properties)
     {
-        Timestamp = DateTimeOffset.Now,
-        Level = ClientLogLevel.Warning,
-        MessageTemplate = messageTemplate,
-        Properties = properties,
-    };
+        return new()
+        {
+            Timestamp = DateTimeOffset.Now,
+            Level = ClientLogLevel.Warning,
+            MessageTemplate = messageTemplate,
+            Properties = properties,
+        };
+    }
 
-    private static string? Value(LogEvent logEvent, string name) =>
-        logEvent.Properties.TryGetValue(name, out var value) && value is ScalarValue { Value: string text } ? text : null;
+    private static string? Value(LogEvent logEvent, string name)
+    {
+        return logEvent.Properties.TryGetValue(name, out var value) && value is ScalarValue { Value: string text } ? text : null;
+    }
 
     private sealed class CollectingSink : ILogEventSink
     {
         private readonly List<LogEvent> events = [];
 
-        public void Emit(LogEvent logEvent) => this.events.Add(logEvent);
+        public void Emit(LogEvent logEvent)
+        {
+            this.events.Add(logEvent);
+        }
 
-        public LogEvent Single() => this.events.Single();
+        public LogEvent Single()
+        {
+            return this.events.Single();
+        }
     }
 }

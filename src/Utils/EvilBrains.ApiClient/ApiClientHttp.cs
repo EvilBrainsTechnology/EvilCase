@@ -15,7 +15,10 @@ public static class ApiClientHttp
 
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
-    public static string Route<T>(T value) => Uri.EscapeDataString(Format(value));
+    public static string Route<T>(T value)
+    {
+        return Uri.EscapeDataString(Format(value));
+    }
 
     public static async Task<TResult> Send<TResult>(
         HttpClient client,
@@ -130,18 +133,23 @@ public static class ApiClientHttp
         throw new ApiException(response.StatusCode, body.Length == 0 ? null : body);
     }
 
-    private static ApiException MissingBody(HttpStatusCode statusCode) =>
-        new(statusCode, responseBody: null, string.Create(CultureInfo.InvariantCulture, $"API request succeeded with status code {(int)statusCode} ({statusCode}) but returned an empty response body."));
-
-    private static string Format<T>(T value) => value switch
+    private static ApiException MissingBody(HttpStatusCode statusCode)
     {
-        null => "",
-        string text => text,
-        DateTime dateTime => dateTime.ToString("O", CultureInfo.InvariantCulture),
-        DateTimeOffset dateTimeOffset => dateTimeOffset.ToString("O", CultureInfo.InvariantCulture),
-        DateOnly dateOnly => dateOnly.ToString("O", CultureInfo.InvariantCulture),
-        TimeOnly timeOnly => timeOnly.ToString("O", CultureInfo.InvariantCulture),
-        IFormattable formattable => formattable.ToString(format: null, CultureInfo.InvariantCulture),
-        _ => value.ToString() ?? "",
-    };
+        return new(statusCode, responseBody: null, string.Create(CultureInfo.InvariantCulture, $"API request succeeded with status code {(int)statusCode} ({statusCode}) but returned an empty response body."));
+    }
+
+    private static string Format<T>(T value)
+    {
+        return value switch
+        {
+            null => "",
+            string text => text,
+            DateTime dateTime => dateTime.ToString("O", CultureInfo.InvariantCulture),
+            DateTimeOffset dateTimeOffset => dateTimeOffset.ToString("O", CultureInfo.InvariantCulture),
+            DateOnly dateOnly => dateOnly.ToString("O", CultureInfo.InvariantCulture),
+            TimeOnly timeOnly => timeOnly.ToString("O", CultureInfo.InvariantCulture),
+            IFormattable formattable => formattable.ToString(format: null, CultureInfo.InvariantCulture),
+            _ => value.ToString() ?? "",
+        };
+    }
 }

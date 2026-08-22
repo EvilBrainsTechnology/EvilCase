@@ -11,8 +11,10 @@ public class RequestLogLevelPolicyTests
     private static readonly string[] QuietPaths = ["/api/logs/client"];
 
     [Test]
-    public void RequestUnderALoggedPathIsLogged() =>
+    public void RequestUnderALoggedPathIsLogged()
+    {
         Assert.That(Level("/api/echo/post"), Is.EqualTo(LogEventLevel.Information));
+    }
 
     [Test]
     public void RequestOutsideTheLoggedPathsLeavesNoLog()
@@ -26,26 +28,34 @@ public class RequestLogLevelPolicyTests
     }
 
     [Test]
-    public void PathMatchingIsOnSegmentBoundaries() =>
+    public void PathMatchingIsOnSegmentBoundaries()
+    {
         Assert.That(Level("/apiary/items"), Is.EqualTo(LogEventLevel.Verbose));
+    }
 
     [Test]
-    public void PreflightIsNeverLogged() =>
+    public void PreflightIsNeverLogged()
+    {
         Assert.That(Level("/api/echo/post", method: HttpMethods.Options), Is.EqualTo(LogEventLevel.Verbose));
+    }
 
     /// <summary>
     /// Logging a successful upload would ship that log with the next upload, which would log again.
     /// </summary>
     [Test]
-    public void SuccessfulUploadOfClientLogsLeavesNoLog() =>
+    public void SuccessfulUploadOfClientLogsLeavesNoLog()
+    {
         Assert.That(Level("/api/logs/client"), Is.EqualTo(LogEventLevel.Verbose));
+    }
 
     /// <summary>
     /// A rejected batch is dropped rather than retried, so logging it settles instead of feeding itself.
     /// </summary>
     [Test]
-    public void RejectedUploadOfClientLogsIsLogged() =>
+    public void RejectedUploadOfClientLogsIsLogged()
+    {
         Assert.That(Level("/api/logs/client", statusCode: StatusCodes.Status400BadRequest), Is.EqualTo(LogEventLevel.Information));
+    }
 
     [Test]
     public void ServerErrorIsLoggedWhereverItHappens()
@@ -58,8 +68,10 @@ public class RequestLogLevelPolicyTests
     }
 
     [Test]
-    public void UnhandledExceptionIsLoggedWhereverItHappens() =>
+    public void UnhandledExceptionIsLoggedWhereverItHappens()
+    {
         Assert.That(Level("/", exception: new InvalidOperationException()), Is.EqualTo(LogEventLevel.Error));
+    }
 
     private static LogEventLevel Level(
         string path,

@@ -27,13 +27,16 @@
 </header>
 
 @code {
-    private Task ShowNavigation() => this.OffcanvasService.ShowAsync(
-        "Navigace",
-        new RenderComponent<NavOffcanvas>(),
-        new OffcanvasOptions
-        {
-            WrapperCssClass = "offcanvas-nav",
-            CloseOnClickOutside = true,
-            CloseOnEsc = true,
-        });
+    private Task ShowNavigation()
+    {
+        return this.OffcanvasService.ShowAsync(
+            "Navigace",
+            new RenderComponent<NavOffcanvas>(),
+            new OffcanvasOptions
+            {
+                WrapperCssClass = "offcanvas-nav",
+                CloseOnClickOutside = true,
+                CloseOnEsc = true,
+            });
+    }
 }

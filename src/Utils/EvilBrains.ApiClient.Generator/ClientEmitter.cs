@@ -195,8 +195,10 @@ internal static class ClientEmitter
         return prefix + result + "\"";
     }
 
-    private static string ReturnType(ActionModel action) =>
-        action.ResultType is null ? TaskType : $"{TaskType}<{action.ResultType}>";
+    private static string ReturnType(ActionModel action)
+    {
+        return action.ResultType is null ? TaskType : $"{TaskType}<{action.ResultType}>";
+    }
 
     private static string Parameters(ActionModel action)
     {

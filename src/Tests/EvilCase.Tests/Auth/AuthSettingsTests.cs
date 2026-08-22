@@ -59,8 +59,10 @@ public class AuthSettingsTests
         }
     }
 
-    private static ValidateOptionsResult Validate(AuthSettings settings) =>
-        new AuthSettingsValidator().Validate(name: null, settings);
+    private static ValidateOptionsResult Validate(AuthSettings settings)
+    {
+        return new AuthSettingsValidator().Validate(name: null, settings);
+    }
 
     private static AuthSettings Bind(string seedEmail, string seedPassword)
     {

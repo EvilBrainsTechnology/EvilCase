@@ -36,11 +36,15 @@ public class HealthCheckResponseWriterTests
         Assert.That(json, Is.EqualTo("""{"status":"Unhealthy","checks":[{"name":"database","status":"Unhealthy"}]}"""));
     }
 
-    private static HealthReportEntry Entry(HealthStatus status) =>
-        new(status, description: null, TimeSpan.Zero, exception: null, data: null);
+    private static HealthReportEntry Entry(HealthStatus status)
+    {
+        return new(status, description: null, TimeSpan.Zero, exception: null, data: null);
+    }
 
-    private static HealthReport Report(params (string Name, HealthReportEntry Entry)[] entries) =>
-        new(entries.ToDictionary(x => x.Name, x => x.Entry, StringComparer.Ordinal), TimeSpan.FromSeconds(1));
+    private static HealthReport Report(params (string Name, HealthReportEntry Entry)[] entries)
+    {
+        return new(entries.ToDictionary(x => x.Name, x => x.Entry, StringComparer.Ordinal), TimeSpan.FromSeconds(1));
+    }
 
     private static async Task<string> Write(HealthReport report)
     {

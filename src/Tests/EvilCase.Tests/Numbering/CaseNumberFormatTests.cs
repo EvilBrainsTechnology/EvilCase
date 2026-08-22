@@ -39,15 +39,19 @@ public class CaseNumberFormatTests
     }
 
     [Test]
-    public void ABackDatedCaseTakesTheNextFreeSequenceOfItsOwnDay() =>
+    public void ABackDatedCaseTakesTheNextFreeSequenceOfItsOwnDay()
+    {
         Assert.That(
             CaseNumberFormat.Next(new DateOnly(2026, 1, 2), "EC/20260102-002"),
             Is.EqualTo("EC/20260102-003"),
             "the sequence follows the day in the number, not the day the case is entered");
+    }
 
     [Test]
-    public void ParseReadsBackWhatComposeWrote() =>
+    public void ParseReadsBackWhatComposeWrote()
+    {
         Assert.That(CaseNumberFormat.Parse("EC/20260807-042"), Is.EqualTo(new CaseNumberParts(Day, 42)), "parse is the inverse of compose");
+    }
 
     [Test]
     public void ParseThrowsOnAnythingElse()

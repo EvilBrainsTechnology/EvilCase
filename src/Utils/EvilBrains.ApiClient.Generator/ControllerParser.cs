@@ -280,8 +280,10 @@ internal static class ControllerParser
         }
     }
 
-    private static ParameterModel Model(IParameterSymbol symbol, ParameterKind kind, string? wireName = null, in EquatableArray<QueryPropertyModel> queryProperties = default) =>
-        new(symbol.Name, TypeFacts.Display(symbol.Type), kind, wireName ?? symbol.Name, TypeFacts.IsNullable(symbol.Type), DefaultValueFacts.Format(symbol), queryProperties);
+    private static ParameterModel Model(IParameterSymbol symbol, ParameterKind kind, string? wireName = null, in EquatableArray<QueryPropertyModel> queryProperties = default)
+    {
+        return new(symbol.Name, TypeFacts.Display(symbol.Type), kind, wireName ?? symbol.Name, TypeFacts.IsNullable(symbol.Type), DefaultValueFacts.Format(symbol), queryProperties);
+    }
 
     private static bool ValidateTemplate(AttributeSyntax attribute, string template, ImmutableArray<DiagnosticModel>.Builder diagnostics)
     {
@@ -358,6 +360,8 @@ internal static class ControllerParser
         return result;
     }
 
-    private static string ToCamelCase(string name) =>
-        name.Length == 0 ? name : char.ToLowerInvariant(name[0]) + name.Substring(1);
+    private static string ToCamelCase(string name)
+    {
+        return name.Length == 0 ? name : char.ToLowerInvariant(name[0]) + name.Substring(1);
+    }
 }

@@ -8,5 +8,8 @@ internal sealed class TestAdditionalText(string path, string text) : AdditionalT
 {
     public override string Path => path;
 
-    public override SourceText GetText(CancellationToken cancellationToken = default) => SourceText.From(text, Encoding.UTF8);
+    public override SourceText GetText(CancellationToken cancellationToken = default)
+    {
+        return SourceText.From(text, Encoding.UTF8);
+    }
 }

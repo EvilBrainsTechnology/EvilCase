@@ -81,7 +81,10 @@
     private string? failure;
     private CancellationTokenSource? pending;
 
-    protected override Task OnInitializedAsync() => this.Load(debounce: false);
+    protected override Task OnInitializedAsync()
+    {
+        return this.Load(debounce: false);
+    }
 
     public void Dispose()
     {

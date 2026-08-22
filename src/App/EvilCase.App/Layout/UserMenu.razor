@@ -27,9 +27,15 @@
 @code {
     private bool open;
 
-    private void Toggle() => this.open = !this.open;
+    private void Toggle()
+    {
+        this.open = !this.open;
+    }
 
-    private void Close() => this.open = false;
+    private void Close()
+    {
+        this.open = false;
+    }
 
     private async Task SignOut(bool everywhere)
     {

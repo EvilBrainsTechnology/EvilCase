@@ -19,10 +19,16 @@ public class TenantWriteInterceptorTests
     private ApplicationDbContext context = null!;
 
     [SetUp]
-    public void SetUp() => this.context = new ApplicationDbContextFactory().CreateDbContext([]);
+    public void SetUp()
+    {
+        this.context = new ApplicationDbContextFactory().CreateDbContext([]);
+    }
 
     [TearDown]
-    public void TearDown() => this.context.Dispose();
+    public void TearDown()
+    {
+        this.context.Dispose();
+    }
 
     [Test]
     public void TheWriteStampsTheTenantOnARowCreatedWithoutOne()
@@ -93,8 +99,13 @@ public class TenantWriteInterceptorTests
             "signing in writes without a tenant");
     }
 
-    private static void Save(TenantWriteInterceptor interceptor, DbContext dbContext) =>
+    private static void Save(TenantWriteInterceptor interceptor, DbContext dbContext)
+    {
         interceptor.SavingChanges(new DbContextEventData(null!, null!, dbContext), default);
+    }
 
-    private static Contact NewContact(in Guid tenant) => new() { TenantId = tenant, Kind = ContactKind.Person, Name = "test" };
+    private static Contact NewContact(in Guid tenant)
+    {
+        return new() { TenantId = tenant, Kind = ContactKind.Person, Name = "test" };
+    }
 }

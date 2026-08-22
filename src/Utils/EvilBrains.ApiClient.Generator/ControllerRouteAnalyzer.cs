@@ -13,13 +13,16 @@ namespace EvilBrains.ApiClient.Generator;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class ControllerRouteAnalyzer : DiagnosticAnalyzer
 {
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
-        ImmutableArray.Create(
-            Diagnostics.MissingControllerRoute,
-            Diagnostics.MissingActionRoute,
-            Diagnostics.ForbiddenRouteSyntax,
-            Diagnostics.RouteSegmentNotKebabCase,
-            Diagnostics.MissingApiRoutePrefix);
+    private static readonly ImmutableArray<DiagnosticDescriptor> Supported =
+    [
+        Diagnostics.MissingControllerRoute,
+        Diagnostics.MissingActionRoute,
+        Diagnostics.ForbiddenRouteSyntax,
+        Diagnostics.RouteSegmentNotKebabCase,
+        Diagnostics.MissingApiRoutePrefix,
+    ];
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => Supported;
 
     public override void Initialize(AnalysisContext context)
     {

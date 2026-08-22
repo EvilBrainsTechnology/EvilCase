@@ -19,17 +19,25 @@ public abstract class ModelFixture
     // The read-optimized model drops check constraints; only the design-time one carries them.
     protected static IReadOnlyModel DesignTimeModel => Models.DesignTime;
 
-    protected static List<string> ColumnsOf(IReadOnlyEntityType? entityType) =>
-        entityType?.GetProperties().Select(property => property.GetColumnName()).ToList() ?? [];
+    protected static List<string> ColumnsOf(IReadOnlyEntityType? entityType)
+    {
+        return entityType?.GetProperties().Select(property => property.GetColumnName()).ToList() ?? [];
+    }
 
-    protected static List<string> Naming(IEnumerable<string> names, string word) =>
-        [.. names.Where(name => name.Contains(word, StringComparison.OrdinalIgnoreCase))];
+    protected static List<string> Naming(IEnumerable<string> names, string word)
+    {
+        return [.. names.Where(name => name.Contains(word, StringComparison.OrdinalIgnoreCase))];
+    }
 
-    protected static IReadOnlyForeignKey? ForeignKeyTo<TPrincipal>(IReadOnlyEntityType entityType) =>
-        entityType.GetForeignKeys().SingleOrDefault(key => key.PrincipalEntityType.ClrType == typeof(TPrincipal));
+    protected static IReadOnlyForeignKey? ForeignKeyTo<TPrincipal>(IReadOnlyEntityType entityType)
+    {
+        return entityType.GetForeignKeys().SingleOrDefault(key => key.PrincipalEntityType.ClrType == typeof(TPrincipal));
+    }
 
-    protected static bool IsIndexed(IReadOnlyEntityType entityType, string propertyName) =>
-        entityType.GetIndexes().Any(index => index.Properties.Any(property => string.Equals(property.Name, propertyName, StringComparison.Ordinal)));
+    protected static bool IsIndexed(IReadOnlyEntityType entityType, string propertyName)
+    {
+        return entityType.GetIndexes().Any(index => index.Properties.Any(property => string.Equals(property.Name, propertyName, StringComparison.Ordinal)));
+    }
 
     private static (IReadOnlyModel, IReadOnlyModel) Build()
     {

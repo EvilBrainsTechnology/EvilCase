@@ -64,14 +64,17 @@ public class CasesControllerTests
         Assert.That(response, Is.SameAs(created));
     }
 
-    private static CaseListItem Item(string caseNumber, string title) => new()
+    private static CaseListItem Item(string caseNumber, string title)
     {
-        Id = Guid.CreateVersion7(),
-        CaseNumber = caseNumber,
-        Title = title,
-        Date = new DateOnly(2026, 8, 21),
-        Status = CaseStatus.Active,
-    };
+        return new()
+        {
+            Id = Guid.CreateVersion7(),
+            CaseNumber = caseNumber,
+            Title = title,
+            Date = new DateOnly(2026, 8, 21),
+            Status = CaseStatus.Active,
+        };
+    }
 
     private sealed class RecordingCaseReader : ICaseReader
     {

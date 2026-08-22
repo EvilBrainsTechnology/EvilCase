@@ -17,8 +17,10 @@ public class NumberTailTests
     }
 
     [Test]
-    public void ASequenceThatGrewADigitStillParses() =>
+    public void ASequenceThatGrewADigitStillParses()
+    {
         Assert.That(NumberTail.Parse("20260807-1000").Sequence, Is.EqualTo(1000), "a sequence past three digits still parses");
+    }
 
     [Test]
     public void ParseRefusesWhatIsNotATail()

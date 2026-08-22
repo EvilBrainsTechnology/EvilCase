@@ -106,7 +106,10 @@ public class LayerTests
         }
     }
 
-    private static bool References(Assembly assembly, Assembly referenced) => assembly
-        .GetReferencedAssemblies()
-        .Any(reference => string.Equals(reference.Name, referenced.GetName().Name, StringComparison.Ordinal));
+    private static bool References(Assembly assembly, Assembly referenced)
+    {
+        return assembly
+            .GetReferencedAssemblies()
+            .Any(reference => string.Equals(reference.Name, referenced.GetName().Name, StringComparison.Ordinal));
+    }
 }

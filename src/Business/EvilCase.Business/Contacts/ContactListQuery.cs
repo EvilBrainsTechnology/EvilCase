@@ -30,19 +30,25 @@ public static class ContactListQuery
     /// <summary>
     /// By name, the identifier breaking the tie so the order is total.
     /// </summary>
-    public static IQueryable<Contact> InListOrder(this IQueryable<Contact> contacts) => contacts
-        .OrderBy(contact => contact.Name)
-        .ThenBy(contact => contact.Id);
+    public static IQueryable<Contact> InListOrder(this IQueryable<Contact> contacts)
+    {
+        return contacts
+            .OrderBy(contact => contact.Name)
+            .ThenBy(contact => contact.Id);
+    }
 
     /// <summary>
     /// Reads only what a row shows, in one query.
     /// </summary>
-    public static IQueryable<ContactListItem> AsListItems(this IQueryable<Contact> contacts) => contacts.Select(contact => new ContactListItem
+    public static IQueryable<ContactListItem> AsListItems(this IQueryable<Contact> contacts)
     {
-        Id = contact.Id,
-        Kind = contact.Kind,
-        Name = contact.Name,
-        DataBoxId = contact.DataBoxId,
-        Address = contact.Address,
-    });
+        return contacts.Select(contact => new ContactListItem
+        {
+            Id = contact.Id,
+            Kind = contact.Kind,
+            Name = contact.Name,
+            DataBoxId = contact.DataBoxId,
+            Address = contact.Address,
+        });
+    }
 }

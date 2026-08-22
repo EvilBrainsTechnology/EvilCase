@@ -86,6 +86,8 @@ internal static class Diagnostics
         return descriptors.ToDictionary(x => x.Id, StringComparer.Ordinal);
     }
 
-    private static DiagnosticDescriptor Descriptor(string id, string title, string messageFormat) =>
-        new(id, title, messageFormat, Category, DiagnosticSeverity.Error, isEnabledByDefault: true);
+    private static DiagnosticDescriptor Descriptor(string id, string title, string messageFormat)
+    {
+        return new(id, title, messageFormat, Category, DiagnosticSeverity.Error, isEnabledByDefault: true);
+    }
 }

@@ -10,8 +10,7 @@ internal sealed class PrincipalTenantContext(IHttpContextAccessor httpContextAcc
 {
     private Guid? entered;
 
-    public Guid TenantId =>
-        this.TenantIdOrDefault ?? throw new InvalidOperationException("The request has no tenant.");
+    public Guid TenantId => this.TenantIdOrDefault ?? throw new InvalidOperationException("The request has no tenant.");
 
     public Guid? TenantIdOrDefault
     {

@@ -21,7 +21,10 @@ internal sealed class FakeApplicationDbContext(DbContextOptions<ApplicationDbCon
         return new FakeApplicationDbContext(optionsBuilder.Options, tenantContext);
     }
 
-    public IEnumerable<TEntity> Added<TEntity>() where TEntity : class => this.ChangeTracker.Entries<TEntity>().Select(entry => entry.Entity);
+    public IEnumerable<TEntity> Added<TEntity>() where TEntity : class
+    {
+        return this.ChangeTracker.Entries<TEntity>().Select(entry => entry.Entity);
+    }
 
     public int Saves { get; private set; }
 

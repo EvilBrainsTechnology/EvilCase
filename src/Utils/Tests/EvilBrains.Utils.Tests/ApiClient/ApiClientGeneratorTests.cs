@@ -333,73 +333,89 @@ public class ApiClientGeneratorTests
     }
 
     [Test]
-    public void MissingControllerRouteIsReportedTest() =>
+    public void MissingControllerRouteIsReportedTest()
+    {
         AssertDiagnosticInController("EB1001", "", route: null);
+    }
 
     [Test]
-    public void MissingActionRouteIsReportedTest() =>
+    public void MissingActionRouteIsReportedTest()
+    {
         AssertDiagnostic(
             "EB1002",
             """
-            [HttpGet]
-            public Task<ItemResponse> GetItems() => throw null!;
-            """);
+        [HttpGet]
+        public Task<ItemResponse> GetItems() => throw null!;
+        """);
+    }
 
     [Test]
-    public void MultipleHttpMethodAttributesAreReportedTest() =>
+    public void MultipleHttpMethodAttributesAreReportedTest()
+    {
         AssertDiagnostic(
             "EB1002",
             """
-            [HttpGet("")]
-            [HttpPost("")]
-            public Task<ItemResponse> GetItems() => throw null!;
-            """);
+        [HttpGet("")]
+        [HttpPost("")]
+        public Task<ItemResponse> GetItems() => throw null!;
+        """);
+    }
 
     [Test]
-    public void LeadingSlashRouteIsReportedTest() =>
+    public void LeadingSlashRouteIsReportedTest()
+    {
         AssertDiagnostic(
             "EB1003",
             """
-            [HttpGet("/items")]
-            public Task<ItemResponse> GetItems() => throw null!;
-            """);
+        [HttpGet("/items")]
+        public Task<ItemResponse> GetItems() => throw null!;
+        """);
+    }
 
     [Test]
-    public void RouteTokenIsReportedTest() =>
+    public void RouteTokenIsReportedTest()
+    {
         AssertDiagnostic(
             "EB1003",
             """
-            [HttpGet("[action]")]
-            public Task<ItemResponse> GetItems() => throw null!;
-            """);
+        [HttpGet("[action]")]
+        public Task<ItemResponse> GetItems() => throw null!;
+        """);
+    }
 
     [Test]
-    public void CatchAllRoutePlaceholderIsReportedTest() =>
+    public void CatchAllRoutePlaceholderIsReportedTest()
+    {
         AssertDiagnostic(
             "EB1003",
             """
-            [HttpGet("{*path}")]
-            public Task<ItemResponse> GetItems() => throw null!;
-            """);
+        [HttpGet("{*path}")]
+        public Task<ItemResponse> GetItems() => throw null!;
+        """);
+    }
 
     [Test]
-    public void NonKebabCaseRouteIsReportedTest() =>
+    public void NonKebabCaseRouteIsReportedTest()
+    {
         AssertDiagnostic(
             "EB1004",
             """
-            [HttpGet("items_list")]
-            public Task<ItemResponse> GetItems() => throw null!;
-            """);
+        [HttpGet("items_list")]
+        public Task<ItemResponse> GetItems() => throw null!;
+        """);
+    }
 
     [Test]
-    public void ControllerRouteWithoutApiPrefixIsReportedTest() =>
+    public void ControllerRouteWithoutApiPrefixIsReportedTest()
+    {
         AssertDiagnosticInController(
             "EB1006",
             """
-            [HttpGet("")]
-            public Task<ItemResponse> GetItems() => throw null!;
-            """,
+        [HttpGet("")]
+        public Task<ItemResponse> GetItems() => throw null!;
+        """,
             "items");
+    }
 
     [Test]
     public void GeneratedRouteIsRelativeToTheBaseAddressTest()
@@ -428,13 +444,15 @@ public class ApiClientGeneratorTests
     }
 
     [Test]
-    public void MissingBindingAttributeIsReportedTest() =>
+    public void MissingBindingAttributeIsReportedTest()
+    {
         AssertDiagnostic(
             "EB1005",
             """
-            [HttpGet("")]
-            public Task<ItemResponse> GetItems(string filter) => throw null!;
-            """);
+        [HttpGet("")]
+        public Task<ItemResponse> GetItems(string filter) => throw null!;
+        """);
+    }
 
     [Test]
     public void ReturnTypeWrappersAreUnwrappedTest()
@@ -460,67 +478,81 @@ public class ApiClientGeneratorTests
     }
 
     [Test]
-    public void UnresolvableReturnTypeIsReportedTest() =>
+    public void UnresolvableReturnTypeIsReportedTest()
+    {
         AssertDiagnostic(
             "EB1014",
             """
-            [HttpGet("")]
-            public Task<ActionResult<ServerOnlyResponse>> GetItems() => throw null!;
-            """);
+        [HttpGet("")]
+        public Task<ActionResult<ServerOnlyResponse>> GetItems() => throw null!;
+        """);
+    }
 
     [Test]
-    public void UnmatchedRoutePlaceholderIsReportedTest() =>
+    public void UnmatchedRoutePlaceholderIsReportedTest()
+    {
         AssertDiagnostic(
             "EB1010",
             """
-            [HttpGet("{itemId}")]
-            public Task<ItemResponse> GetItem() => throw null!;
-            """);
+        [HttpGet("{itemId}")]
+        public Task<ItemResponse> GetItem() => throw null!;
+        """);
+    }
 
     [Test]
-    public void RouteParameterWithoutPlaceholderIsReportedTest() =>
+    public void RouteParameterWithoutPlaceholderIsReportedTest()
+    {
         AssertDiagnostic(
             "EB1010",
             """
-            [HttpGet("")]
-            public Task<ItemResponse> GetItem([FromRoute] Guid id) => throw null!;
-            """);
+        [HttpGet("")]
+        public Task<ItemResponse> GetItem([FromRoute] Guid id) => throw null!;
+        """);
+    }
 
     [Test]
-    public void MultipleBodyParametersAreReportedTest() =>
+    public void MultipleBodyParametersAreReportedTest()
+    {
         AssertDiagnostic(
             "EB1011",
             """
-            [HttpPost("")]
-            public Task Create([FromBody] ItemRequest first, [FromBody] ItemRequest second) => throw null!;
-            """);
+        [HttpPost("")]
+        public Task Create([FromBody] ItemRequest first, [FromBody] ItemRequest second) => throw null!;
+        """);
+    }
 
     [Test]
-    public void FromFormParameterIsReportedTest() =>
+    public void FromFormParameterIsReportedTest()
+    {
         AssertDiagnostic(
             "EB1012",
             """
-            [HttpPost("")]
-            public Task Create([FromForm] string name) => throw null!;
-            """);
+        [HttpPost("")]
+        public Task Create([FromForm] string name) => throw null!;
+        """);
+    }
 
     [Test]
-    public void NullableRouteParameterIsReportedTest() =>
+    public void NullableRouteParameterIsReportedTest()
+    {
         AssertDiagnostic(
             "EB1013",
             """
-            [HttpGet("{id}")]
-            public Task<ItemResponse> GetItem([FromRoute] int? id) => throw null!;
-            """);
+        [HttpGet("{id}")]
+        public Task<ItemResponse> GetItem([FromRoute] int? id) => throw null!;
+        """);
+    }
 
     [Test]
-    public void TypeNotVisibleToClientIsReportedTest() =>
+    public void TypeNotVisibleToClientIsReportedTest()
+    {
         AssertDiagnostic(
             "EB1014",
             """
-            [HttpPost("")]
-            public Task Create([FromBody] ServerOnlyRequest request) => throw null!;
-            """);
+        [HttpPost("")]
+        public Task Create([FromBody] ServerOnlyRequest request) => throw null!;
+        """);
+    }
 
     [Test]
     public void ComplexQueryPropertyIsReportedTest()
@@ -607,11 +639,15 @@ public class ApiClientGeneratorTests
         Assert.That(diagnostics.Select(x => x.Id), Does.Contain("EB1016"));
     }
 
-    private static string ReturnTypeOf(INamedTypeSymbol client, string method) =>
-        ((IMethodSymbol)client.GetMembers(method).Single()).ReturnType.ToDisplayString();
+    private static string ReturnTypeOf(INamedTypeSymbol client, string method)
+    {
+        return ((IMethodSymbol)client.GetMembers(method).Single()).ReturnType.ToDisplayString();
+    }
 
-    private static void AssertDiagnostic(string id, string action, string? contract = null) =>
+    private static void AssertDiagnostic(string id, string action, string? contract = null)
+    {
         AssertDiagnosticInController(id, action, "api/items", contract);
+    }
 
     private static void AssertDiagnosticInController(string id, string action, string? route, string? contract = null)
     {

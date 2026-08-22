@@ -38,7 +38,10 @@ internal readonly struct EquatableArray<T>(ImmutableArray<T> values) : IEquatabl
         return true;
     }
 
-    public override bool Equals(object? obj) => obj is EquatableArray<T> other && this.Equals(other);
+    public override bool Equals(object? obj)
+    {
+        return obj is EquatableArray<T> other && this.Equals(other);
+    }
 
     public override int GetHashCode()
     {
@@ -49,7 +52,13 @@ internal readonly struct EquatableArray<T>(ImmutableArray<T> values) : IEquatabl
         return hash;
     }
 
-    public IEnumerator<T> GetEnumerator() => ((IEnumerable<T>)(this.values.IsDefault ? [] : this.values)).GetEnumerator();
+    public IEnumerator<T> GetEnumerator()
+    {
+        return ((IEnumerable<T>)(this.values.IsDefault ? [] : this.values)).GetEnumerator();
+    }
 
-    IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return this.GetEnumerator();
+    }
 }

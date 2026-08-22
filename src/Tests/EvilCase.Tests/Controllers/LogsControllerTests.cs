@@ -31,17 +31,23 @@ public class LogsControllerTests
         Assert.That(writer.Entries.Select(x => x.MessageTemplate), Is.EqualTo(["second"]));
     }
 
-    private static ClientLogEntry Entry(string messageTemplate) => new()
+    private static ClientLogEntry Entry(string messageTemplate)
     {
-        Timestamp = DateTimeOffset.Now,
-        Level = ClientLogLevel.Warning,
-        MessageTemplate = messageTemplate,
-    };
+        return new()
+        {
+            Timestamp = DateTimeOffset.Now,
+            Level = ClientLogLevel.Warning,
+            MessageTemplate = messageTemplate,
+        };
+    }
 
     private sealed class CollectingWriter : IClientLogWriter
     {
         public List<ClientLogEntry> Entries { get; } = [];
 
-        public void Write(ClientLogEntry entry) => this.Entries.Add(entry);
+        public void Write(ClientLogEntry entry)
+        {
+            this.Entries.Add(entry);
+        }
     }
 }

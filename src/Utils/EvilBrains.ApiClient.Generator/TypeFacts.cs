@@ -35,16 +35,30 @@ internal static class TypeFacts
         "System.TimeOnly",
         "System.TimeSpan");
 
-    public static string Display(ITypeSymbol type) => type.ToDisplayString(TypeFormat);
+    public static string Display(ITypeSymbol type)
+    {
+        return type.ToDisplayString(TypeFormat);
+    }
 
-    public static bool IsCancellationToken(ITypeSymbol type) =>
-        string.Equals(type.ToDisplayString(), "System.Threading.CancellationToken", StringComparison.Ordinal);
+    public static bool IsCancellationToken(ITypeSymbol type)
+    {
+        return string.Equals(type.ToDisplayString(), "System.Threading.CancellationToken", StringComparison.Ordinal);
+    }
 
-    public static bool IsNullable(ITypeSymbol type) => type.NullableAnnotation == NullableAnnotation.Annotated || IsNullableValue(type);
+    public static bool IsNullable(ITypeSymbol type)
+    {
+        return type.NullableAnnotation == NullableAnnotation.Annotated || IsNullableValue(type);
+    }
 
-    public static bool IsNullableValue(ITypeSymbol type) => type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
+    public static bool IsNullableValue(ITypeSymbol type)
+    {
+        return type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
+    }
 
-    public static ITypeSymbol Unwrap(ITypeSymbol type) => IsNullableValue(type) ? ((INamedTypeSymbol)type).TypeArguments[0] : type;
+    public static ITypeSymbol Unwrap(ITypeSymbol type)
+    {
+        return IsNullableValue(type) ? ((INamedTypeSymbol)type).TypeArguments[0] : type;
+    }
 
     public static bool ContainsError(ITypeSymbol type)
     {

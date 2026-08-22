@@ -60,17 +60,21 @@ internal sealed class AuthTokenHandler(IAccessTokenStore tokens, IServiceProvide
     /// needs the bearer kept alive like any other endpoint — <c>logout-all</c> above all, whose failure
     /// leaves every other device signed in.
     /// </summary>
-    private static bool IsAnonymousAuthEndpoint(HttpRequestMessage request) =>
-        IsUnder(request, AuthRoute.LoginPath)
+    private static bool IsAnonymousAuthEndpoint(HttpRequestMessage request)
+    {
+        return IsUnder(request, AuthRoute.LoginPath)
             || IsUnder(request, AuthRoute.RefreshPath)
             || IsUnder(request, AuthRoute.LogoutPath);
+    }
 
     // By segment rather than by characters, the way the host partitions the same paths: a plain prefix
     // would swallow a future /api/authors too, and silently stop renewing for all of it.
-    private static bool IsUnder(HttpRequestMessage request, string path) =>
-        request.RequestUri?.AbsolutePath is { } absolute
+    private static bool IsUnder(HttpRequestMessage request, string path)
+    {
+        return request.RequestUri?.AbsolutePath is { } absolute
             && absolute.StartsWith(path, StringComparison.OrdinalIgnoreCase)
             && (absolute.Length == path.Length || absolute[path.Length] == '/');
+    }
 
     private static HttpRequestMessage Clone(HttpRequestMessage request, byte[]? body, MediaTypeHeaderValue? contentType)
     {
@@ -95,11 +99,16 @@ internal sealed class AuthTokenHandler(IAccessTokenStore tokens, IServiceProvide
 
     // Resolved on use rather than taken in the constructor: the session renews through the generated
     // auth client, which is built with this handler in its chain, and asking for it up front is a cycle.
-    private IAuthSession Session() => services.GetRequiredService<IAuthSession>();
+    private IAuthSession Session()
+    {
+        return services.GetRequiredService<IAuthSession>();
+    }
 
-    private bool IsExpiring() =>
-        tokens.Current is { } current
+    private bool IsExpiring()
+    {
+        return tokens.Current is { } current
             && current.ExpiresAt - DateTime.UtcNow <= EvilCaseAuthenticationStateProvider.RenewAhead;
+    }
 
     private void Authorize(HttpRequestMessage request)
     {

@@ -58,11 +58,15 @@ internal static class ApiModelParser
         return new(rootNamespace, new(clients.ToImmutable()), new(diagnostics.ToImmutable()));
     }
 
-    public static DiagnosticModel Diagnostic(DiagnosticDescriptor descriptor, SyntaxNode node, params string[] arguments) =>
-        new(descriptor.Id, LocationModel.FromNode(node), new(ImmutableArray.Create(arguments)));
+    public static DiagnosticModel Diagnostic(DiagnosticDescriptor descriptor, SyntaxNode node, params string[] arguments)
+    {
+        return new(descriptor.Id, LocationModel.FromNode(node), new(ImmutableArray.Create(arguments)));
+    }
 
-    public static DiagnosticModel Diagnostic(DiagnosticDescriptor descriptor, in SyntaxToken token, params string[] arguments) =>
-        new(descriptor.Id, LocationModel.FromToken(token), new(ImmutableArray.Create(arguments)));
+    public static DiagnosticModel Diagnostic(DiagnosticDescriptor descriptor, in SyntaxToken token, params string[] arguments)
+    {
+        return new(descriptor.Id, LocationModel.FromToken(token), new(ImmutableArray.Create(arguments)));
+    }
 
     private static ImmutableArray<SyntaxTree> ParseTrees(ParseOptions parseOptions, in ImmutableArray<AdditionalText> texts, CancellationToken token)
     {

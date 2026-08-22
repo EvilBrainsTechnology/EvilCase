@@ -9,8 +9,13 @@ public sealed record LoginResult
     /// </summary>
     public AuthSession? Session { get; init; }
 
-    public static LoginResult Succeeded(AuthSession session) =>
-        new() { Status = LoginStatus.Success, Session = session };
+    public static LoginResult Succeeded(AuthSession session)
+    {
+        return new() { Status = LoginStatus.Success, Session = session };
+    }
 
-    public static LoginResult Failed(LoginStatus status) => new() { Status = status };
+    public static LoginResult Failed(LoginStatus status)
+    {
+        return new() { Status = status };
+    }
 }

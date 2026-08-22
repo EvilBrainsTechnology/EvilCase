@@ -14,8 +14,11 @@ public static class LikeExtensions
     /// Turns a wildcard inside a literal back into the character itself, so only the pattern the caller
     /// adds around it still matches many rows.
     /// </summary>
-    public static string EscapeLikeWildcards(this string value) => value
-        .Replace(LikeEscape, LikeEscape + LikeEscape, StringComparison.Ordinal)
-        .Replace("%", LikeEscape + "%", StringComparison.Ordinal)
-        .Replace("_", LikeEscape + "_", StringComparison.Ordinal);
+    public static string EscapeLikeWildcards(this string value)
+    {
+        return value
+            .Replace(LikeEscape, LikeEscape + LikeEscape, StringComparison.Ordinal)
+            .Replace("%", LikeEscape + "%", StringComparison.Ordinal)
+            .Replace("_", LikeEscape + "_", StringComparison.Ordinal);
+    }
 }

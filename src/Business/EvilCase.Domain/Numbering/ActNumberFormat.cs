@@ -5,23 +5,32 @@ namespace EvilBrains.EvilCase.Domain.Numbering;
 /// </summary>
 public static class ActNumberFormat
 {
-    public static string Prefix(string caseNumber, in DateOnly date) => $"{caseNumber}/{NumberTail.Prefix(date)}";
+    public static string Prefix(string caseNumber, in DateOnly date)
+    {
+        return $"{caseNumber}/{NumberTail.Prefix(date)}";
+    }
 
-    public static string Compose(string caseNumber, in DateOnly date, int sequence) =>
-        $"{caseNumber}/{NumberTail.Compose(date, sequence)}";
+    public static string Compose(string caseNumber, in DateOnly date, int sequence)
+    {
+        return $"{caseNumber}/{NumberTail.Compose(date, sequence)}";
+    }
 
     /// <summary>
     /// The number that follows the day's highest inside the case. A day without one of its own starts at 001,
     /// and so does a highest that stands outside the format.
     /// </summary>
-    public static string Next(string caseNumber, in DateOnly date, string? highest) =>
-        Compose(caseNumber, date, (ParseOrDefault(highest)?.Sequence ?? 0) + 1);
+    public static string Next(string caseNumber, in DateOnly date, string? highest)
+    {
+        return Compose(caseNumber, date, (ParseOrDefault(highest)?.Sequence ?? 0) + 1);
+    }
 
     /// <summary>
     /// Throws <see cref="FormatException"/> where the value is not an act number.
     /// </summary>
-    public static ActNumberParts Parse(string value) =>
-        ParseOrDefault(value) ?? throw new FormatException($"'{value}' is not an act number.");
+    public static ActNumberParts Parse(string value)
+    {
+        return ParseOrDefault(value) ?? throw new FormatException($"'{value}' is not an act number.");
+    }
 
     /// <summary>
     /// Null where the value is not an act number.

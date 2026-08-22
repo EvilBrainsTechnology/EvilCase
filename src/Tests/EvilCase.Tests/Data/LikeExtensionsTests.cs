@@ -5,12 +5,16 @@ namespace EvilBrains.EvilCase.Tests.Data;
 public class LikeExtensionsTests
 {
     [Test]
-    public void EveryWildcardBecomesALiteral() =>
+    public void EveryWildcardBecomesALiteral()
+    {
         Assert.That("50%_a\\b".EscapeLikeWildcards(), Is.EqualTo(@"50\%\_a\\b"), "a percent, an underscore and a backslash all escape");
+    }
 
     [Test]
-    public void TheEscapeItselfIsEscapedFirst() =>
+    public void TheEscapeItselfIsEscapedFirst()
+    {
         Assert.That("\\%".EscapeLikeWildcards(), Is.EqualTo(@"\\\%"), "the backslash escapes before the percent it precedes, so the percent is not swallowed");
+    }
 
     [Test]
     public void ATermWithoutAWildcardIsUntouched()

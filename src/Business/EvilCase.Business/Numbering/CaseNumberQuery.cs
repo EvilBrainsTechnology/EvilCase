@@ -23,7 +23,10 @@ public static class CaseNumberQuery
     /// Highest number first. Length decides first, so a sequence that grew a digit outranks a
     /// three-digit one. The caller takes the row it wants.
     /// </summary>
-    public static IQueryable<Case> OrderByNumberDescending(this IQueryable<Case> cases) => cases
-        .OrderByDescending(@case => @case.CaseNumber.Length)
-        .ThenByDescending(@case => @case.CaseNumber);
+    public static IQueryable<Case> OrderByNumberDescending(this IQueryable<Case> cases)
+    {
+        return cases
+            .OrderByDescending(@case => @case.CaseNumber.Length)
+            .ThenByDescending(@case => @case.CaseNumber);
+    }
 }

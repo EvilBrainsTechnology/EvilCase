@@ -17,11 +17,7 @@ public class SeqServerUrlTests
     /// The host's settings files travel to this assembly's output directory through the project
     /// reference, so what is asserted here is what a run actually reads.
     /// </summary>
-    private static IEnumerable<string> ShippedSettingsFiles =>
-        Directory.EnumerateFiles(AppContext.BaseDirectory, "appsettings*.json")
-            .Select(Path.GetFileName)
-            .OfType<string>()
-            .Order(StringComparer.Ordinal);
+    private static IEnumerable<string> ShippedSettingsFiles => Directory.EnumerateFiles(AppContext.BaseDirectory, "appsettings*.json").Select(Path.GetFileName).OfType<string>().Order(StringComparer.Ordinal);
 
     /// <summary>
     /// Without this the copy could stop happening and every case below would silently pass on an empty

@@ -13,7 +13,10 @@ internal sealed class FakeUserStore : IUserStore
 
     private readonly List<Contact> contacts = [];
 
-    public Contact SingleContact() => this.contacts.Single();
+    public Contact SingleContact()
+    {
+        return this.contacts.Single();
+    }
 
     public User Seed(User user)
     {
@@ -22,9 +25,15 @@ internal sealed class FakeUserStore : IUserStore
         return user;
     }
 
-    public User Get(Guid id) => this.users.Single(user => user.Id == id);
+    public User Get(Guid id)
+    {
+        return this.users.Single(user => user.Id == id);
+    }
 
-    public User Single() => this.users.Single();
+    public User Single()
+    {
+        return this.users.Single();
+    }
 
     public Task<User?> FindByEmail(string email, CancellationToken cancellationToken)
     {
@@ -33,8 +42,10 @@ internal sealed class FakeUserStore : IUserStore
         return Task.FromResult(this.users.Find(user => string.Equals(user.Email, normalized, StringComparison.Ordinal)));
     }
 
-    public Task<User?> FindById(Guid id, CancellationToken cancellationToken) =>
-        Task.FromResult(this.users.Find(user => user.Id == id));
+    public Task<User?> FindById(Guid id, CancellationToken cancellationToken)
+    {
+        return Task.FromResult(this.users.Find(user => user.Id == id));
+    }
 
     public Task RecordFailedLogin(Guid id, int failedAttempts, DateTime? lockoutEnd, CancellationToken cancellationToken)
     {
@@ -50,7 +61,10 @@ internal sealed class FakeUserStore : IUserStore
         return Task.CompletedTask;
     }
 
-    public Task<bool> Any(CancellationToken cancellationToken) => Task.FromResult(this.users.Count > 0);
+    public Task<bool> Any(CancellationToken cancellationToken)
+    {
+        return Task.FromResult(this.users.Count > 0);
+    }
 
     public Task Add(User user, Contact defaultContact, CancellationToken cancellationToken)
     {

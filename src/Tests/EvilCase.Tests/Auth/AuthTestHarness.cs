@@ -64,8 +64,9 @@ internal sealed class AuthTestHarness
 
     public IAuthService Service { get; }
 
-    public static AuthSettings CreateSettings() =>
-        new()
+    public static AuthSettings CreateSettings()
+    {
+        return new()
         {
             Jwt = new()
             {
@@ -85,6 +86,7 @@ internal sealed class AuthTestHarness
                 Duration = TimeSpan.FromMinutes(15),
             },
         };
+    }
 
     public async Task<AuthSession> SignIn()
     {
@@ -93,12 +95,18 @@ internal sealed class AuthTestHarness
         return result.Session ?? throw new InvalidOperationException("The harness could not sign in");
     }
 
-    public Task<LoginResult> Login(string password) =>
-        this.Service.Login(Email, password, ClientInfo.Unknown, CancellationToken.None);
+    public Task<LoginResult> Login(string password)
+    {
+        return this.Service.Login(Email, password, ClientInfo.Unknown, CancellationToken.None);
+    }
 
-    public async Task<AuthSession?> Refresh(string refreshToken) =>
-        (await this.RefreshOutcome(refreshToken)).Session;
+    public async Task<AuthSession?> Refresh(string refreshToken)
+    {
+        return (await this.RefreshOutcome(refreshToken)).Session;
+    }
 
-    public Task<RefreshResult> RefreshOutcome(string refreshToken) =>
-        this.Service.Refresh(refreshToken, ClientInfo.Unknown, CancellationToken.None);
+    public Task<RefreshResult> RefreshOutcome(string refreshToken)
+    {
+        return this.Service.Refresh(refreshToken, ClientInfo.Unknown, CancellationToken.None);
+    }
 }

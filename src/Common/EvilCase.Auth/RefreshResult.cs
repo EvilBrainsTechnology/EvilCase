@@ -9,8 +9,13 @@ public sealed record RefreshResult
     /// </summary>
     public AuthSession? Session { get; init; }
 
-    public static RefreshResult Succeeded(AuthSession session) =>
-        new() { Status = RefreshStatus.Success, Session = session };
+    public static RefreshResult Succeeded(AuthSession session)
+    {
+        return new() { Status = RefreshStatus.Success, Session = session };
+    }
 
-    public static RefreshResult Failed(RefreshStatus status) => new() { Status = status };
+    public static RefreshResult Failed(RefreshStatus status)
+    {
+        return new() { Status = status };
+    }
 }
