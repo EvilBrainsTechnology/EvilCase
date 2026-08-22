@@ -1,9 +1,8 @@
 using System.Collections.Immutable;
-using EvilBrains.Analyzers;
-using EvilBrains.Utils.Tests.ApiClient;
+using EvilBrains.ApiClient.Generator;
 using Microsoft.CodeAnalysis;
 
-namespace EvilBrains.Utils.Tests.Analyzers;
+namespace EvilBrains.Utils.Tests.ApiClient;
 
 public class ControllerConstructorAnalyzerTests
 {
@@ -38,7 +37,7 @@ public class ControllerConstructorAnalyzerTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(diagnostics.Select(x => x.Id), Is.EqualTo(["EB0007"]), "a controller must not take constructor dependencies");
+            Assert.That(diagnostics.Select(x => x.Id), Is.EqualTo(["EB1007"]), "a controller must not take constructor dependencies");
             Assert.That(diagnostics.Single().GetMessage(CultureInfo.InvariantCulture), Does.Contain("thing"), "the message names the constructor parameter");
         }
     }
@@ -60,7 +59,7 @@ public class ControllerConstructorAnalyzerTests
             }
             """);
 
-        Assert.That(diagnostics.Select(x => x.Id), Is.EqualTo(["EB0007"]), "a controller must not take constructor dependencies");
+        Assert.That(diagnostics.Select(x => x.Id), Is.EqualTo(["EB1007"]), "a controller must not take constructor dependencies");
     }
 
     [Test]
@@ -76,7 +75,7 @@ public class ControllerConstructorAnalyzerTests
             }
             """);
 
-        Assert.That(diagnostics.Select(x => x.Id), Is.EqualTo(["EB0007", "EB0007"]), "each constructor dependency is reported");
+        Assert.That(diagnostics.Select(x => x.Id), Is.EqualTo(["EB1007", "EB1007"]), "each constructor dependency is reported");
     }
 
     [Test]
@@ -94,7 +93,7 @@ public class ControllerConstructorAnalyzerTests
             }
             """);
 
-        Assert.That(diagnostics, Is.Empty, "the rule follows ControllerBase, not the type name");
+        Assert.That(diagnostics, Is.Empty, "the rule follows [ApiController], not the type name");
     }
 
     private static Task<ImmutableArray<Diagnostic>> Analyze(string type)

@@ -5,21 +5,19 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace EvilBrains.Analyzers;
+namespace EvilBrains.ApiClient.Generator;
 
 /// <summary>
-/// Orders a controller action's parameters: [FromServices], [FromRoute], [FromQuery], [FromBody],
-/// CancellationToken. [FromHeader] and [FromForm] rank with [FromQuery]. Requires every binding
-/// attribute written out explicitly.
+/// Orders an action's parameters: [FromServices], [FromRoute], [FromQuery], [FromBody], CancellationToken.
+/// [FromHeader] and [FromForm] rank with [FromQuery]; EB1005 is what requires the binding attribute itself.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class ActionParameterOrderAnalyzer : DiagnosticAnalyzer
 {
-    private const string ControllerBaseTypeName = "Microsoft.AspNetCore.Mvc.ControllerBase";
+    // A parameter without a binding attribute is a CancellationToken; EB1005 reports it when it is not.
+    private const int TokenRank = 4;
 
-    private const string NonActionAttributeName = "Microsoft.AspNetCore.Mvc.NonActionAttribute";
-
-    // The order an action declares its parameters in; equal ranks are free among themselves.
+    // Parameters of equal rank are free among themselves.
     private static readonly Dictionary<string, int> BindingRanks = new(StringComparer.Ordinal)
     {
         ["Microsoft.AspNetCore.Mvc.FromServicesAttribute"] = 0,
@@ -31,17 +29,7 @@ public sealed class ActionParameterOrderAnalyzer : DiagnosticAnalyzer
         ["Microsoft.AspNetCore.Mvc.FromBodyAttribute"] = 3,
     };
 
-    private const int TokenRank = 4;
-
-    private static readonly DiagnosticDescriptor ParameterOutOfOrder = new(
-        "EB0008",
-        "Action parameter out of order",
-        "Parameter '{0}' must come before '{1}': action parameters run [FromServices], [FromRoute], [FromQuery], [FromBody], CancellationToken",
-        "EvilBrains.Design",
-        DiagnosticSeverity.Warning,
-        isEnabledByDefault: true);
-
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [ParameterOutOfOrder];
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Diagnostics.ActionParameterOutOfOrder];
 
     public override void Initialize(AnalysisContext context)
     {
@@ -53,11 +41,10 @@ public sealed class ActionParameterOrderAnalyzer : DiagnosticAnalyzer
     private static void AnalyzeType(SymbolAnalysisContext context)
     {
         var type = (INamedTypeSymbol)context.Symbol;
-
-        if (!IsController(type))
+        if (!MvcFacts.IsApiController(type))
             return;
 
-        foreach (var method in type.GetMembers().OfType<IMethodSymbol>().Where(IsAction))
+        foreach (var method in type.GetMembers().OfType<IMethodSymbol>().Where(MvcFacts.IsAction))
             AnalyzeAction(context, method);
     }
 
@@ -72,7 +59,7 @@ public sealed class ActionParameterOrderAnalyzer : DiagnosticAnalyzer
             var rank = GetParameterRank(parameter);
             if (rank < highestRank)
             {
-                context.ReportDiagnostic(Diagnostic.Create(ParameterOutOfOrder, parameter.Locations[0], parameter.Name, highestName));
+                context.ReportDiagnostic(Diagnostic.Create(Diagnostics.ActionParameterOutOfOrder, parameter.Locations[0], parameter.Name, highestName));
 
                 return;
             }
@@ -92,24 +79,5 @@ public sealed class ActionParameterOrderAnalyzer : DiagnosticAnalyzer
         }
 
         return TokenRank;
-    }
-
-    private static bool IsController(INamedTypeSymbol type)
-    {
-        for (var current = type.BaseType; current is not null; current = current.BaseType)
-        {
-            if (string.Equals(current.ToDisplayString(), ControllerBaseTypeName, StringComparison.Ordinal))
-                return true;
-        }
-
-        return false;
-    }
-
-    private static bool IsAction(IMethodSymbol method)
-    {
-        if (method is not { MethodKind: MethodKind.Ordinary, DeclaredAccessibility: Accessibility.Public, IsStatic: false })
-            return false;
-
-        return !method.GetAttributes().Any(x => string.Equals(x.AttributeClass?.ToDisplayString(), NonActionAttributeName, StringComparison.Ordinal));
     }
 }

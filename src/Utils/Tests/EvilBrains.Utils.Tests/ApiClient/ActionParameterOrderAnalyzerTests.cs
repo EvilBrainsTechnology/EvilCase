@@ -1,9 +1,8 @@
 using System.Collections.Immutable;
-using EvilBrains.Analyzers;
-using EvilBrains.Utils.Tests.ApiClient;
+using EvilBrains.ApiClient.Generator;
 using Microsoft.CodeAnalysis;
 
-namespace EvilBrains.Utils.Tests.Analyzers;
+namespace EvilBrains.Utils.Tests.ApiClient;
 
 public class ActionParameterOrderAnalyzerTests
 {
@@ -81,7 +80,7 @@ public class ActionParameterOrderAnalyzerTests
 
     private static void AssertIds(in ImmutableArray<Diagnostic> diagnostics, string message)
     {
-        Assert.That(diagnostics.Select(x => x.Id), Is.EqualTo(["EB0008"]), message);
+        Assert.That(diagnostics.Select(x => x.Id), Is.EqualTo(["EB1008"]), message);
     }
 
     private static Task<ImmutableArray<Diagnostic>> Analyze(string action)

@@ -13,3 +13,5 @@ EB1003 | EvilBrains.ApiClient | Error | Route template must not start with '/' o
 EB1004 | EvilBrains.ApiClient | Error | Route literal segments must be kebab-case
 EB1005 | EvilBrains.ApiClient | Error | Action parameter must have exactly one binding attribute or be a CancellationToken
 EB1006 | EvilBrains.ApiClient | Error | Controller route template must open with the 'api' segment
+EB1007 | EvilBrains.ApiClient | Error | Controller must not take constructor dependencies
+EB1008 | EvilBrains.ApiClient | Error | Action parameters must run [FromServices], [FromRoute], [FromQuery], [FromBody], CancellationToken
