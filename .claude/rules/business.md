@@ -22,8 +22,9 @@ App → Api.Client → (HTTP) → Api → Business → Data
 
 ## List queries
 
-- One `IQueryable` extension step per rule, composed by a reader; `ToListAsync` once, at the
-  end. The projection selects straight into the contract DTO.
+- One `IQueryable` extension step per rule, composed by a reader; a step returns `IQueryable`
+  and ends at the ordering.
+- The reader projects straight into the contract DTO and calls `ToListAsync` once, at the end.
 
 ## Tenancy
 
