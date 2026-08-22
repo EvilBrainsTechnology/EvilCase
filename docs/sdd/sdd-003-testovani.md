@@ -29,7 +29,8 @@ Vrstvy testů a povinné testy nových oblastí.
 - Fold diakritiky ve vyhledávání (SDD-014).
 - Smoke test seedu: seed proběhne a založí spis se stromem (SDD-017).
 - Testy razítek nad reálnou PostgreSQL: hodnoty, které si zápis čte zpět, změna, která `Created`
-  nechá být, a pokrytí každé mapované tabulky triggerem (SDD-018).
+  nechá být, zápis mimo EF a pokrytí každé mapované tabulky triggerem; bez serveru selžou s tím,
+  co chybí, nepřeskakují se (SDD-018).
 
 ## Rozhodnutí
 

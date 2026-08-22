@@ -1,5 +1,3 @@
-using System.Security.Cryptography;
-using System.Text;
 using EvilBrains.EvilCase.Data;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
@@ -15,29 +13,10 @@ namespace EvilBrains.EvilCase.Tests.Data;
 /// </summary>
 public class DatabaseTimestampTests
 {
-    private const string DefaultConnectionString = "Host=localhost;Port=5432;Username=postgres;Password=postgres";
-
-    // Named after this checkout: parallel checkouts share one server, and the setup below drops the
-    // database it is about to build (.claude/rules/agents.md).
-    private static readonly string DatabaseName =
-        $"evilcase_tests_timestamps_{Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(AppContext.BaseDirectory)))[..8].ToLowerInvariant()}";
-
-    private static readonly string ConnectionString =
-        $"{Environment.GetEnvironmentVariable("EVILCASE_TEST_POSTGRES") ?? DefaultConnectionString};Database={DatabaseName}";
-
     [OneTimeSetUp]
-    public async Task OneTimeSetUp()
+    public void OneTimeSetUp()
     {
-        await using var context = CreateContext();
-        await context.Database.EnsureDeletedAsync();
-        await context.Database.MigrateAsync();
-    }
-
-    [OneTimeTearDown]
-    public async Task OneTimeTearDown()
-    {
-        await using var context = CreateContext();
-        await context.Database.EnsureDeletedAsync();
+        TestDatabase.CreateMigrated().Dispose();
     }
 
     [Test]
@@ -161,7 +140,7 @@ public class DatabaseTimestampTests
     private static ApplicationDbContext CreateContext()
     {
         var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-        optionsBuilder.UseNpgsql(ConnectionString, npgsql => npgsql.UseEvilCaseMigrations());
+        optionsBuilder.UseNpgsql(TestDatabase.ConnectionString, npgsql => npgsql.UseEvilCaseMigrations());
 
         return new ApplicationDbContext(optionsBuilder.Options, new StubUserContext());
     }

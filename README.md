@@ -21,7 +21,7 @@ Full project map: [CLAUDE.md](CLAUDE.md); conventions: `.claude/rules/`. Deploym
 ### Prerequisites
 
 - .NET SDK per `src/global.json`
-- A reachable PostgreSQL. The host migrates the database on startup and does not retry, so an unreachable server stops it. Set `EvilBrains__EvilCase__Database__MigrateOnStartup=false` to start without one. A throwaway one, matching the connection string in `.env.example`:
+- A reachable PostgreSQL, for running the app and for `dotnet r test`. The host migrates the database on startup and does not retry, so an unreachable server stops it. Set `EvilBrains__EvilCase__Database__MigrateOnStartup=false` to start without one. A throwaway one, matching the connection string in `.env.example`:
 
   ```
   docker compose -f deploy/docker-compose.dev.yml up -d --wait
@@ -57,12 +57,12 @@ Registration is closed, so signing in needs the administrator seeded from `EvilB
 
 ### Tests
 
+`dotnet r test` needs that PostgreSQL. The tests covering the `Created` and `Updated` stamps write real rows and read back what the database put there; without a server they fail and name what to start, they never skip. `EVILCASE_TEST_POSTGRES` points them at another server; either way they rebuild their own database from the migrations at every run.
+
 ```
 dotnet r test                # tests only
 dotnet r ci                  # format-check + build + test, what CI runs
 ```
-
-The database-stamp tests need a reachable PostgreSQL — the throwaway one from the prerequisites serves. `EVILCASE_TEST_POSTGRES` points them at another server; they name their own database on it.
 
 ### Logging
 
