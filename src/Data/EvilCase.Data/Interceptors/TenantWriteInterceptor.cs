@@ -68,7 +68,7 @@ internal sealed class TenantWriteInterceptor(ITenantContext tenantContext, IUser
     }
 
     // Stamped on Added only: an update keeps whatever user the row already belongs to. A write with no
-    // signed-in user, such as sign-in itself, leaves whatever the caller set untouched.
+    // user in the context leaves whatever the caller set untouched.
     private void ApplyUser(DbContext? context)
     {
         var entries = context?.ChangeTracker.Entries()
