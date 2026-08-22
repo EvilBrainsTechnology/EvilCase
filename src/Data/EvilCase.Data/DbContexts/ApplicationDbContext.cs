@@ -134,12 +134,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<User>()
-            .HasOne(typeof(Tenant))
-            .WithMany()
-            .HasForeignKey(nameof(User.TenantId))
-            .OnDelete(DeleteBehavior.Restrict);
-
-        modelBuilder.Entity<User>()
             .HasOne(user => user.DefaultContact)
             .WithMany()
             .HasForeignKey(user => user.DefaultContactId)
