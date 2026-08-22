@@ -6,29 +6,38 @@ namespace EvilBrains.EvilCase.App.Models;
 
 public static class CaseStatusDisplay
 {
-    public static string Text(CaseStatus status) => status switch
+    public static string Text(CaseStatus status)
     {
-        CaseStatus.Active => "Aktivní",
-        CaseStatus.WaitingOnAuthority => "Čeká na úřad",
-        CaseStatus.Closed => "Uzavřený",
-        _ => "",
-    };
+        return status switch
+        {
+            CaseStatus.Active => "Aktivní",
+            CaseStatus.WaitingOnAuthority => "Čeká na úřad",
+            CaseStatus.Closed => "Uzavřený",
+            _ => "",
+        };
+    }
 
-    public static string FilterText(CaseStatusFilter filter) => filter switch
+    public static string FilterText(CaseStatusFilter filter)
     {
-        CaseStatusFilter.Open => "Otevřené",
-        CaseStatusFilter.All => "Všechny stavy",
-        CaseStatusFilter.Active => Text(CaseStatus.Active),
-        CaseStatusFilter.WaitingOnAuthority => Text(CaseStatus.WaitingOnAuthority),
-        CaseStatusFilter.Closed => Text(CaseStatus.Closed),
-        _ => "",
-    };
+        return filter switch
+        {
+            CaseStatusFilter.Open => "Otevřené",
+            CaseStatusFilter.All => "Všechny stavy",
+            CaseStatusFilter.Active => Text(CaseStatus.Active),
+            CaseStatusFilter.WaitingOnAuthority => Text(CaseStatus.WaitingOnAuthority),
+            CaseStatusFilter.Closed => Text(CaseStatus.Closed),
+            _ => "",
+        };
+    }
 
-    public static TablerColor Color(CaseStatus status) => status switch
+    public static TablerColor Color(CaseStatus status)
     {
-        CaseStatus.Active => TablerColor.Green,
-        CaseStatus.WaitingOnAuthority => TablerColor.Yellow,
-        CaseStatus.Closed => TablerColor.Secondary,
-        _ => TablerColor.Default,
-    };
+        return status switch
+        {
+            CaseStatus.Active => TablerColor.Green,
+            CaseStatus.WaitingOnAuthority => TablerColor.Yellow,
+            CaseStatus.Closed => TablerColor.Secondary,
+            _ => TablerColor.Default,
+        };
+    }
 }

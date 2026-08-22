@@ -12,7 +12,10 @@ internal sealed class ClientIdentity(IJSRuntime jsRuntime, string machineIdStora
 
     public string SessionId { get; } = NewId();
 
-    private static string NewId() => Guid.NewGuid().ToString("D", CultureInfo.InvariantCulture);
+    private static string NewId()
+    {
+        return Guid.NewGuid().ToString("D", CultureInfo.InvariantCulture);
+    }
 
     /// <summary>
     /// WebAssembly allows synchronous interop, which is what makes the identifier available to the

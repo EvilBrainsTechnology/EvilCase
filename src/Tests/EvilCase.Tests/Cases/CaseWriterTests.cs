@@ -86,8 +86,10 @@ public class CaseWriterTests
     {
         private int issued;
 
-        public Task<string> NextCaseNumber(DateOnly date, CancellationToken cancellationToken = default) =>
-            Task.FromResult(caseNumbers[this.issued++]);
+        public Task<string> NextCaseNumber(DateOnly date, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(caseNumbers[this.issued++]);
+        }
     }
 
     private sealed class FakeTenantContext : ITenantContext
@@ -96,6 +98,9 @@ public class CaseWriterTests
 
         public Guid? TenantIdOrDefault => this.TenantId;
 
-        public IDisposable Enter(Guid tenantId) => throw new NotSupportedException();
+        public IDisposable Enter(Guid tenantId)
+        {
+            throw new NotSupportedException();
+        }
     }
 }

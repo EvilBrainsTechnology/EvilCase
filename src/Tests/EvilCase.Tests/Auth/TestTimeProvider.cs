@@ -10,7 +10,13 @@ internal sealed class TestTimeProvider(DateTime utcNow) : TimeProvider
 
     public DateTime UtcNow => this.now.UtcDateTime;
 
-    public override DateTimeOffset GetUtcNow() => this.now;
+    public override DateTimeOffset GetUtcNow()
+    {
+        return this.now;
+    }
 
-    public void Advance(in TimeSpan by) => this.now = this.now.Add(by);
+    public void Advance(in TimeSpan by)
+    {
+        this.now = this.now.Add(by);
+    }
 }

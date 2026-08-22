@@ -41,8 +41,10 @@ internal sealed class RequestContextLoggingMiddleware(RequestDelegate next)
     /// Headers are untrusted: only a single well-formed value is accepted, and the identifier is
     /// re-formatted rather than logged as received.
     /// </summary>
-    private static string? ReadId(HttpContext context, string headerName) =>
-        context.Request.Headers.TryGetValue(headerName, out var values) && values.Count == 1 && Guid.TryParse(values[0], out var id)
+    private static string? ReadId(HttpContext context, string headerName)
+    {
+        return context.Request.Headers.TryGetValue(headerName, out var values) && values.Count == 1 && Guid.TryParse(values[0], out var id)
             ? id.ToString("D", CultureInfo.InvariantCulture)
             : null;
+    }
 }

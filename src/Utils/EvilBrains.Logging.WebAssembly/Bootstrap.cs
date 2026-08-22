@@ -81,8 +81,13 @@ public static class Bootstrap
     }
 
     // Verbose is the lowest LogEventLevel and Fatal the highest.
-    private static LogEventLevel MoreVerbose(LogEventLevel first, LogEventLevel second) => first < second ? first : second;
+    private static LogEventLevel MoreVerbose(LogEventLevel first, LogEventLevel second)
+    {
+        return first < second ? first : second;
+    }
 
-    private static Action<LoggerConfiguration> ShipToServer(ClientLoggingOptions options) =>
-        shipped => shipped.WriteTo.Sink(sink!, options.ServerMinimumLevel);
+    private static Action<LoggerConfiguration> ShipToServer(ClientLoggingOptions options)
+    {
+        return shipped => shipped.WriteTo.Sink(sink!, options.ServerMinimumLevel);
+    }
 }

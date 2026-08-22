@@ -7,13 +7,25 @@ namespace EvilBrains.Collections.Factories;
 public static class ReadOnlyCollection
 #pragma warning restore CA1711
 {
-    public static ReadOnlyCollection<T> Empty<T>() => [];
+    public static ReadOnlyCollection<T> Empty<T>()
+    {
+        return [];
+    }
 
-    public static ReadOnlyCollection<T> Single<T>(T element) => [element];
+    public static ReadOnlyCollection<T> Single<T>(T element)
+    {
+        return [element];
+    }
 
-    public static ReadOnlyCollection<T> From<T>(params IEnumerable<T> elements) => [.. elements];
+    public static ReadOnlyCollection<T> From<T>(params IEnumerable<T> elements)
+    {
+        return [.. elements];
+    }
 
-    public static ReadOnlyCollection<T> Repeat<T>(T element, int count) => [.. Enumerable.Repeat(element, count)];
+    public static ReadOnlyCollection<T> Repeat<T>(T element, int count)
+    {
+        return [.. Enumerable.Repeat(element, count)];
+    }
 
     public static ReadOnlyCollection<T> Range<T>(T start, int count)
         where T : INumber<T>

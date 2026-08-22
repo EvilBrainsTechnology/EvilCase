@@ -20,10 +20,16 @@ public class TimestampInterceptorTests
     private ApplicationDbContext context = null!;
 
     [SetUp]
-    public void SetUp() => this.context = new ApplicationDbContextFactory().CreateDbContext([]);
+    public void SetUp()
+    {
+        this.context = new ApplicationDbContextFactory().CreateDbContext([]);
+    }
 
     [TearDown]
-    public void TearDown() => this.context.Dispose();
+    public void TearDown()
+    {
+        this.context.Dispose();
+    }
 
     [Test]
     public void AnInsertGetsItsCreatedStampAndNoChangeStamp()
@@ -70,5 +76,8 @@ public class TimestampInterceptorTests
         interceptor.SavingChanges(new DbContextEventData(null!, null!, dbContext), default);
     }
 
-    private static Contact NewContact() => new() { TenantId = Tenant, Kind = ContactKind.Person, Name = "test" };
+    private static Contact NewContact()
+    {
+        return new() { TenantId = Tenant, Kind = ContactKind.Person, Name = "test" };
+    }
 }

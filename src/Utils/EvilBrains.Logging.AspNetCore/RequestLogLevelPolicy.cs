@@ -24,11 +24,15 @@ internal sealed class RequestLogLevelPolicy(IReadOnlyList<string> loggedPaths, I
         return this.IsLogged(context.Request, context.Response.StatusCode) ? LogEventLevel.Information : LogEventLevel.Verbose;
     }
 
-    private bool IsLogged(HttpRequest request, int statusCode) =>
-        !HttpMethods.IsOptions(request.Method)
+    private bool IsLogged(HttpRequest request, int statusCode)
+    {
+        return !HttpMethods.IsOptions(request.Method)
             && StartsWithAny(request.Path, this.logged)
             && (statusCode >= 400 || !StartsWithAny(request.Path, this.quiet));
+    }
 
-    private static bool StartsWithAny(PathString path, PathString[] prefixes) =>
-        Array.Exists(prefixes, x => path.StartsWithSegments(x, StringComparison.OrdinalIgnoreCase));
+    private static bool StartsWithAny(PathString path, PathString[] prefixes)
+    {
+        return Array.Exists(prefixes, x => path.StartsWithSegments(x, StringComparison.OrdinalIgnoreCase));
+    }
 }

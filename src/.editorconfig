@@ -70,6 +70,14 @@ dotnet_sort_system_directives_first = true
 csharp_style_namespace_declarations = file_scoped
 dotnet_style_require_accessibility_modifiers = always
 
+# Expression bodies (EB0006)
+csharp_style_expression_bodied_methods = false
+csharp_style_expression_bodied_constructors = false
+csharp_style_expression_bodied_operators = false
+csharp_style_expression_bodied_local_functions = false
+csharp_style_expression_bodied_properties = when_on_single_line
+csharp_style_expression_bodied_indexers = when_on_single_line
+
 ########################################################################################################################
 
 # Analyzers
@@ -177,11 +185,12 @@ dotnet_naming_rule.types_and_members_are_pascal_case.severity = error
 
 ########################################################################################################################
 
-# EvilBrains.Analyzers (replace StyleCop comment hygiene and using ordering rules)
+# EvilBrains.Analyzers
 dotnet_diagnostic.EB0001.severity = warning    # Single-line comment should begin with a space (SA1005)
 dotnet_diagnostic.EB0002.severity = warning    # Single-line comment should be preceded by a blank line (SA1515)
 dotnet_diagnostic.EB0003.severity = warning    # Single-line comment should not be followed by a blank line (SA1512)
 dotnet_diagnostic.EB0004.severity = error      # Using directives should be ordered (SA1208/SA1210)
+dotnet_diagnostic.EB0006.severity = error      # Member should have a block body
 
 ########################################################################################################################
 
@@ -417,7 +426,7 @@ roslynator_blank_line_between_single_line_accessors = false # true|false, applic
 roslynator_blank_line_between_switch_sections = omit # include|omit|omit_after_block, applicable to: rcs0061
 roslynator_blank_line_between_using_directives = never # never|separate_groups, applicable to: rcs0015
 roslynator_block_braces_style = single_line_when_empty # multi_line|single_line_when_empty, default: multi_line, applicable to: rcs0021
-roslynator_body_style = expression # block|expression, applicable to: rcs1016
+roslynator_body_style = block # block|expression, applicable to: rcs1016
 roslynator_conditional_operator_condition_parentheses_style = omit_when_condition_is_single_token # include|omit|omit_when_condition_is_single_token, applicable to: rcs1051
 roslynator_conditional_operator_new_line = before # after|before, applicable to: rcs0028
 roslynator_configure_await = false # true|false, applicable to: rcs1090
@@ -505,7 +514,7 @@ dotnet_diagnostic.rcs1007.severity = none       # Add braces
 dotnet_diagnostic.rcs1013.severity = error      # Use predefined type
 dotnet_diagnostic.rcs1014.severity = error      # Use explicitly/implicitly typed array
 dotnet_diagnostic.rcs1015.severity = error      # Use nameof operator
-dotnet_diagnostic.rcs1016.severity = suggestion # Use block body or expression body
+dotnet_diagnostic.rcs1016.severity = none       # Use block body or expression body (EB0006)
 dotnet_diagnostic.rcs1018.severity = error      # Add/remove accessibility modifiers
 dotnet_diagnostic.rcs1019.severity = error      # Order modifiers
 dotnet_diagnostic.rcs1020.severity = error      # Simplify Nullable<T> to T?

@@ -110,6 +110,8 @@ public class TenantIsolationTests : ModelFixture
             "a new entity outside the tenant is a leak until someone says otherwise");
     }
 
-    private static List<IReadOnlyEntityType> TenantEntities() =>
-        [.. Model.GetEntityTypes().Where(type => typeof(ITenantEntity).IsAssignableFrom(type.ClrType))];
+    private static List<IReadOnlyEntityType> TenantEntities()
+    {
+        return [.. Model.GetEntityTypes().Where(type => typeof(ITenantEntity).IsAssignableFrom(type.ClrType))];
+    }
 }

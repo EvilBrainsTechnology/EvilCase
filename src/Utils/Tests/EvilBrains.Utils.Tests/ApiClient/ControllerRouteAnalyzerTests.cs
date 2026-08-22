@@ -178,17 +178,24 @@ public class ControllerRouteAnalyzerTests
         Assert.That(diagnostics, Is.Empty);
     }
 
-    private static void AssertIds(in ImmutableArray<Diagnostic> diagnostics, params string[] expected) =>
+    private static void AssertIds(in ImmutableArray<Diagnostic> diagnostics, params string[] expected)
+    {
         Assert.That(diagnostics.Select(x => x.Id), Is.EqualTo(expected));
+    }
 
-    private static Task<ImmutableArray<Diagnostic>> Analyze(string controller) =>
-        AnalyzerTestHost.Analyze(new ControllerRouteAnalyzer(), Fixture(controller));
+    private static Task<ImmutableArray<Diagnostic>> Analyze(string controller)
+    {
+        return AnalyzerTestHost.Analyze(new ControllerRouteAnalyzer(), Fixture(controller));
+    }
 
-    private static string Fixture(string controller) => $$"""
-        using Microsoft.AspNetCore.Mvc;
+    private static string Fixture(string controller)
+    {
+        return $$"""
+            using Microsoft.AspNetCore.Mvc;
 
-        namespace FakeApi;
+            namespace FakeApi;
 
-        {{controller}}
-        """;
+            {{controller}}
+            """;
+    }
 }

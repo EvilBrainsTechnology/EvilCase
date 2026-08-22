@@ -44,18 +44,22 @@ public class ActNumberFormatTests
     }
 
     [Test]
-    public void ABackDatedActTakesTheNextFreeSequenceOfItsOwnDay() =>
+    public void ABackDatedActTakesTheNextFreeSequenceOfItsOwnDay()
+    {
         Assert.That(
             ActNumberFormat.Next(CaseNumber, new DateOnly(2026, 8, 8), "EC/20260807-001/20260808-002"),
             Is.EqualTo("EC/20260807-001/20260808-003"),
             "the sequence follows the day in the number, not the day the act is entered");
+    }
 
     [Test]
-    public void ParseReadsBackWhatComposeWrote() =>
+    public void ParseReadsBackWhatComposeWrote()
+    {
         Assert.That(
             ActNumberFormat.Parse("EC/20260807-001/20260812-042"),
             Is.EqualTo(new ActNumberParts(CaseNumber, ActDay, 42)),
             "parse is the inverse of compose");
+    }
 
     [Test]
     public void ParseThrowsOnAnythingElse()
@@ -85,11 +89,13 @@ public class ActNumberFormatTests
     }
 
     [Test]
-    public void TheCaseNumberIsWhateverStandsBeforeTheDay() =>
+    public void TheCaseNumberIsWhateverStandsBeforeTheDay()
+    {
         Assert.That(
             ActNumberFormat.Parse("EC/20260807-001/20260812-001"),
             Is.EqualTo(new ActNumberParts("EC/20260807-001", ActDay, 1)),
             "the case number is everything before the act's own day and sequence");
+    }
 
     [Test]
     public void AHandWrittenCaseNumberStillCarriesItsActs()

@@ -28,18 +28,32 @@
 
 @code {
     @* Tabler draws the active indicator on the list item, which Blazor's NavLink cannot reach. *@
-    private string ActiveClass(string href) =>
-        string.Equals(this.CurrentPath, href, StringComparison.OrdinalIgnoreCase)
+    private string ActiveClass(string href)
+    {
+        return string.Equals(this.CurrentPath, href, StringComparison.OrdinalIgnoreCase)
             || this.CurrentPath.StartsWith(href + "/", StringComparison.OrdinalIgnoreCase)
             ? "active" : "";
+    }
 
     private string CurrentPath => "/" + this.Navigation.ToBaseRelativePath(this.Navigation.Uri).Split('?', '#')[0].TrimEnd('/');
 
-    protected override void OnInitialized() => this.Navigation.LocationChanged += this.OnLocationChanged;
+    protected override void OnInitialized()
+    {
+        this.Navigation.LocationChanged += this.OnLocationChanged;
+    }
 
-    public void Dispose() => this.Navigation.LocationChanged -= this.OnLocationChanged;
+    public void Dispose()
+    {
+        this.Navigation.LocationChanged -= this.OnLocationChanged;
+    }
 
-    private void OnLocationChanged(object? sender, LocationChangedEventArgs e) => this.StateHasChanged();
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        this.StateHasChanged();
+    }
 
-    private void Close() => this.OffcanvasService.Close();
+    private void Close()
+    {
+        this.OffcanvasService.Close();
+    }
 }

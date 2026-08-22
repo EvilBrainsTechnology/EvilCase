@@ -92,6 +92,9 @@ internal sealed record AuthSettings
             init => field = Unset(value);
         }
 
-        private static string? Unset(string? value) => string.IsNullOrWhiteSpace(value) ? null : value;
+        private static string? Unset(string? value)
+        {
+            return string.IsNullOrWhiteSpace(value) ? null : value;
+        }
     }
 }

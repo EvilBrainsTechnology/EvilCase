@@ -24,10 +24,15 @@ internal static class AttributeFacts
         return text.EndsWith(AttributeSuffix, StringComparison.Ordinal) ? text.Substring(0, text.Length - AttributeSuffix.Length) : text;
     }
 
-    public static AttributeSyntax? Find(in SyntaxList<AttributeListSyntax> lists, string name) =>
-        lists.SelectMany(x => x.Attributes).FirstOrDefault(x => string.Equals(GetName(x), name, StringComparison.Ordinal));
+    public static AttributeSyntax? Find(in SyntaxList<AttributeListSyntax> lists, string name)
+    {
+        return lists.SelectMany(x => x.Attributes).FirstOrDefault(x => string.Equals(GetName(x), name, StringComparison.Ordinal));
+    }
 
-    public static bool Has(in SyntaxList<AttributeListSyntax> lists, string name) => Find(lists, name) is not null;
+    public static bool Has(in SyntaxList<AttributeListSyntax> lists, string name)
+    {
+        return Find(lists, name) is not null;
+    }
 
     public static string? GetTemplateArgument(AttributeSyntax attribute, SemanticModel semanticModel)
     {

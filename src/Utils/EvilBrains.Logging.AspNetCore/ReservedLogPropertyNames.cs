@@ -32,5 +32,8 @@ internal static class ReservedLogPropertyNames
         "ClientUrl",
         "ClientMessage");
 
-    public static bool Contains(string name) => Names.Contains(name);
+    public static bool Contains(string name)
+    {
+        return Names.Contains(name);
+    }
 }

@@ -42,6 +42,8 @@ public sealed class ApiClientGenerator : IIncrementalGenerator
         });
     }
 
-    private static ApiModel Parse(Compilation compilation, ParseOptions parseOptions, in ImmutableArray<AdditionalText> texts, string? rootNamespace, CancellationToken token) =>
-        ApiModelParser.Parse(compilation, parseOptions, texts, rootNamespace ?? compilation.AssemblyName ?? "ApiClient", token);
+    private static ApiModel Parse(Compilation compilation, ParseOptions parseOptions, in ImmutableArray<AdditionalText> texts, string? rootNamespace, CancellationToken token)
+    {
+        return ApiModelParser.Parse(compilation, parseOptions, texts, rootNamespace ?? compilation.AssemblyName ?? "ApiClient", token);
+    }
 }

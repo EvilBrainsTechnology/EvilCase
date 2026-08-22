@@ -135,7 +135,10 @@ public class RequestContextLoggingMiddlewareTests
         }
     }
 
-    private static DefaultHttpContext Request() => new();
+    private static DefaultHttpContext Request()
+    {
+        return new();
+    }
 
     private static string Set(HttpContext context, string headerName)
     {
@@ -145,8 +148,10 @@ public class RequestContextLoggingMiddlewareTests
         return id;
     }
 
-    private static Logger Logger(CollectingSink sink) =>
-        new LoggerConfiguration().MinimumLevel.Verbose().Enrich.FromLogContext().WriteTo.Sink(sink).CreateLogger();
+    private static Logger Logger(CollectingSink sink)
+    {
+        return new LoggerConfiguration().MinimumLevel.Verbose().Enrich.FromLogContext().WriteTo.Sink(sink).CreateLogger();
+    }
 
     private static async Task<IReadOnlyList<LogEvent>> LogDuringRequest(HttpContext context, params string[] messages)
     {
@@ -168,13 +173,18 @@ public class RequestContextLoggingMiddlewareTests
         return sink.Events;
     }
 
-    private static string? Value(LogEvent logEvent, string name) =>
-        logEvent.Properties.TryGetValue(name, out var value) && value is ScalarValue { Value: string text } ? text : null;
+    private static string? Value(LogEvent logEvent, string name)
+    {
+        return logEvent.Properties.TryGetValue(name, out var value) && value is ScalarValue { Value: string text } ? text : null;
+    }
 
     private sealed class CollectingSink : ILogEventSink
     {
         public List<LogEvent> Events { get; } = [];
 
-        public void Emit(LogEvent logEvent) => this.Events.Add(logEvent);
+        public void Emit(LogEvent logEvent)
+        {
+            this.Events.Add(logEvent);
+        }
     }
 }

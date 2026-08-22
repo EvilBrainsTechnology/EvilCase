@@ -121,14 +121,17 @@ internal sealed class ClientLogWriter : IClientLogWriter
         return text.Any(char.IsControl) ? string.Concat(text.Where(x => !char.IsControl(x))) : text;
     }
 
-    private static LogEventLevel ToLogEventLevel(ClientLogLevel level) => level switch
+    private static LogEventLevel ToLogEventLevel(ClientLogLevel level)
     {
-        ClientLogLevel.Verbose => LogEventLevel.Verbose,
-        ClientLogLevel.Debug => LogEventLevel.Debug,
-        ClientLogLevel.Information => LogEventLevel.Information,
-        ClientLogLevel.Warning => LogEventLevel.Warning,
-        ClientLogLevel.Error => LogEventLevel.Error,
-        ClientLogLevel.Fatal => LogEventLevel.Fatal,
-        _ => LogEventLevel.Information,
-    };
+        return level switch
+        {
+            ClientLogLevel.Verbose => LogEventLevel.Verbose,
+            ClientLogLevel.Debug => LogEventLevel.Debug,
+            ClientLogLevel.Information => LogEventLevel.Information,
+            ClientLogLevel.Warning => LogEventLevel.Warning,
+            ClientLogLevel.Error => LogEventLevel.Error,
+            ClientLogLevel.Fatal => LogEventLevel.Fatal,
+            _ => LogEventLevel.Information,
+        };
+    }
 }

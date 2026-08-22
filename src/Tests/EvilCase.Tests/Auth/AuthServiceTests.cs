@@ -13,7 +13,10 @@ public class AuthServiceTests
     private AuthTestHarness harness = null!;
 
     [SetUp]
-    public void SetUp() => this.harness = new();
+    public void SetUp()
+    {
+        this.harness = new();
+    }
 
     [Test]
     public async Task SigningInReturnsBothTokensAndTheUsersRole()

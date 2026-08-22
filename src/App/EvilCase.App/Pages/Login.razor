@@ -97,17 +97,22 @@
         }
     }
 
-    private static string Describe(SignInOutcome outcome) => outcome switch
+    private static string Describe(SignInOutcome outcome)
     {
-        SignInOutcome.LockedOut => "Účet je dočasně zablokován po několika neúspěšných pokusech. Zkuste to za chvíli znovu.",
-        SignInOutcome.TooManyAttempts => "Příliš mnoho pokusů o přihlášení. Zkuste to za chvíli znovu.",
-        SignInOutcome.Unreachable => "Server je nedostupný. Zkontrolujte připojení a zkuste to znovu.",
-        _ => "Nesprávný e-mail nebo heslo.",
-    };
+        return outcome switch
+        {
+            SignInOutcome.LockedOut => "Účet je dočasně zablokován po několika neúspěšných pokusech. Zkuste to za chvíli znovu.",
+            SignInOutcome.TooManyAttempts => "Příliš mnoho pokusů o přihlášení. Zkuste to za chvíli znovu.",
+            SignInOutcome.Unreachable => "Server je nedostupný. Zkontrolujte připojení a zkuste to znovu.",
+            _ => "Nesprávný e-mail nebo heslo.",
+        };
+    }
 
     // A single leading slash and no second one: "//evil.example" is a protocol-relative absolute URL.
-    private string SafeReturnUrl() =>
-        this.ReturnUrl is { } target && target.StartsWith('/') && !target.StartsWith("//", StringComparison.Ordinal)
+    private string SafeReturnUrl()
+    {
+        return this.ReturnUrl is { } target && target.StartsWith('/') && !target.StartsWith("//", StringComparison.Ordinal)
             ? target
             : "/";
+    }
 }

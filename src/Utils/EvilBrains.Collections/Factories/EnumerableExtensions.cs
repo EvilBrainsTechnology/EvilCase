@@ -6,9 +6,15 @@ public static class EnumerableExtensions
 {
     extension(Enumerable)
     {
-        public static IEnumerable<T> Single<T>(T element) => [element];
+        public static IEnumerable<T> Single<T>(T element)
+        {
+            return [element];
+        }
 
-        public static IEnumerable<T> From<T>(params IEnumerable<T> elements) => elements;
+        public static IEnumerable<T> From<T>(params IEnumerable<T> elements)
+        {
+            return elements;
+        }
 
         public static IEnumerable<T> Range<T>(T start, int count)
             where T : INumber<T>

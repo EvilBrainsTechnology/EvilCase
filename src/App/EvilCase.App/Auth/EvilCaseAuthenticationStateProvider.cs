@@ -30,9 +30,15 @@ internal sealed class EvilCaseAuthenticationStateProvider(
 
     private bool restored;
 
-    public override Task<AuthenticationState> GetAuthenticationStateAsync() => this.state ??= this.Restore();
+    public override Task<AuthenticationState> GetAuthenticationStateAsync()
+    {
+        return this.state ??= this.Restore();
+    }
 
-    public void Dispose() => this.renewal.Dispose();
+    public void Dispose()
+    {
+        this.renewal.Dispose();
+    }
 
     public async Task<SignInOutcome> SignIn(string email, string password, CancellationToken cancellationToken)
     {
@@ -146,7 +152,8 @@ internal sealed class EvilCaseAuthenticationStateProvider(
         return Build(tokens.Current);
     }
 
-    private void Apply(LoginResponse response) =>
+    private void Apply(LoginResponse response)
+    {
         tokens.Set(new()
         {
             Token = response.AccessToken,
@@ -154,6 +161,7 @@ internal sealed class EvilCaseAuthenticationStateProvider(
             Email = response.Email,
             Role = response.Role,
         });
+    }
 
     private void Publish()
     {

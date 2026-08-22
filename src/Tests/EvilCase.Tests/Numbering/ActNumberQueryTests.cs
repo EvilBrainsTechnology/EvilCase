@@ -16,10 +16,16 @@ public class ActNumberQueryTests
     private ApplicationDbContext context = null!;
 
     [SetUp]
-    public void SetUp() => this.context = new ApplicationDbContextFactory().CreateDbContext([]);
+    public void SetUp()
+    {
+        this.context = new ApplicationDbContextFactory().CreateDbContext([]);
+    }
 
     [TearDown]
-    public void TearDown() => this.context.Dispose();
+    public void TearDown()
+    {
+        this.context.Dispose();
+    }
 
     [Test]
     public void TheDaysNumbersAreNarrowedByTheCaseAndThePrefix()

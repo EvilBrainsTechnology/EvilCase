@@ -13,6 +13,9 @@
     <Company>Martin Volek</Company>
     <Authors>Martin Volek</Authors>
     <Copyright>Copyright (c) 2025-2026 Martin Volek. All rights reserved.</Copyright>
+    <!-- The analyzer tests instantiate the analyzers; every other project only loads them. -->
+    <ReferenceAnalyzersAssembly Condition="'$(MSBuildProjectName)' == 'EvilBrains.Utils.Tests'">true</ReferenceAnalyzersAssembly>
+    <ReferenceAnalyzersAssembly Condition="'$(ReferenceAnalyzersAssembly)' == ''">false</ReferenceAnalyzersAssembly>
   </PropertyGroup>
 
   <ItemGroup>
@@ -39,6 +42,6 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(MSBuildProjectName)' != 'EvilBrains.Analyzers'">
-    <ProjectReference Include="$(MSBuildThisFileDirectory)Utils\EvilBrains.Analyzers\EvilBrains.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)Utils\EvilBrains.Analyzers\EvilBrains.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="$(ReferenceAnalyzersAssembly)" PrivateAssets="all" />
   </ItemGroup>
 </Project>

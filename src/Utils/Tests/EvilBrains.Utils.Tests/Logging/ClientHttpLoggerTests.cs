@@ -9,16 +9,20 @@ public class ClientHttpLoggerTests
     private const string UploadPath = "/api/logs/client";
 
     [Test]
-    public void SuccessfulUploadOfClientLogsIsNotLogged() =>
+    public void SuccessfulUploadOfClientLogsIsNotLogged()
+    {
         Assert.That(LoggedPaths("https://localhost/api/logs/client"), Is.Empty);
+    }
 
     /// <summary>
     /// The base address carries the sub-path the app is served from into every resolved request URI,
     /// so an equality match on the path would let the upload log itself and never settle.
     /// </summary>
     [Test]
-    public void SuccessfulUploadOfClientLogsIsNotLoggedUnderASubPath() =>
+    public void SuccessfulUploadOfClientLogsIsNotLoggedUnderASubPath()
+    {
         Assert.That(LoggedPaths("https://localhost/evilcase/api/logs/client"), Is.Empty);
+    }
 
     /// <summary>
     /// A rejected batch is dropped rather than retried, so logging it settles; staying quiet would leave
@@ -80,9 +84,15 @@ public class ClientHttpLoggerTests
         public List<string> Paths { get; } = [];
 
         public IDisposable BeginScope<TState>(TState state)
-            where TState : notnull => this;
+            where TState : notnull
+        {
+            return this;
+        }
 
-        public bool IsEnabled(LogLevel logLevel) => true;
+        public bool IsEnabled(LogLevel logLevel)
+        {
+            return true;
+        }
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {

@@ -28,34 +28,43 @@ public static class CaseListQuery
                     && EF.Functions.ILike(DatabaseFunctions.Unaccent(@case.Description), DatabaseFunctions.Unaccent(pattern), LikeExtensions.LikeEscape)));
     }
 
-    public static IQueryable<Case> WithStatus(this IQueryable<Case> cases, CaseStatusFilter filter) => filter switch
+    public static IQueryable<Case> WithStatus(this IQueryable<Case> cases, CaseStatusFilter filter)
     {
-        CaseStatusFilter.Open => cases.Where(@case => @case.Status != CaseStatus.Closed),
-        CaseStatusFilter.All => cases,
-        CaseStatusFilter.Active => cases.Where(@case => @case.Status == CaseStatus.Active),
-        CaseStatusFilter.WaitingOnAuthority => cases.Where(@case => @case.Status == CaseStatus.WaitingOnAuthority),
-        CaseStatusFilter.Closed => cases.Where(@case => @case.Status == CaseStatus.Closed),
-        _ => throw new ArgumentOutOfRangeException(nameof(filter), filter, "Unknown case status filter."),
-    };
+        return filter switch
+        {
+            CaseStatusFilter.Open => cases.Where(@case => @case.Status != CaseStatus.Closed),
+            CaseStatusFilter.All => cases,
+            CaseStatusFilter.Active => cases.Where(@case => @case.Status == CaseStatus.Active),
+            CaseStatusFilter.WaitingOnAuthority => cases.Where(@case => @case.Status == CaseStatus.WaitingOnAuthority),
+            CaseStatusFilter.Closed => cases.Where(@case => @case.Status == CaseStatus.Closed),
+            _ => throw new ArgumentOutOfRangeException(nameof(filter), filter, "Unknown case status filter."),
+        };
+    }
 
     /// <summary>
     /// Newest by the case's own date; equal dates fall back to when the row was written, and the
     /// UUIDv7 identifier makes the order total.
     /// </summary>
-    public static IQueryable<Case> InListOrder(this IQueryable<Case> cases) => cases
-        .OrderByDescending(@case => @case.Date)
-        .ThenByDescending(@case => @case.Created)
-        .ThenByDescending(@case => @case.Id);
+    public static IQueryable<Case> InListOrder(this IQueryable<Case> cases)
+    {
+        return cases
+            .OrderByDescending(@case => @case.Date)
+            .ThenByDescending(@case => @case.Created)
+            .ThenByDescending(@case => @case.Id);
+    }
 
     /// <summary>
     /// Reads only what a row shows, in one query.
     /// </summary>
-    public static IQueryable<CaseListItem> AsListItems(this IQueryable<Case> cases) => cases.Select(@case => new CaseListItem
+    public static IQueryable<CaseListItem> AsListItems(this IQueryable<Case> cases)
     {
-        Id = @case.Id,
-        CaseNumber = @case.CaseNumber,
-        Title = @case.Title,
-        Date = @case.Date,
-        Status = @case.Status,
-    });
+        return cases.Select(@case => new CaseListItem
+        {
+            Id = @case.Id,
+            CaseNumber = @case.CaseNumber,
+            Title = @case.Title,
+            Date = @case.Date,
+            Status = @case.Status,
+        });
+    }
 }

@@ -54,22 +54,28 @@ internal sealed class CaseWriter(
     /// Internal so a test builds the row without a database. A new case is Active and hangs under nothing.
     /// TenantId is left for the interceptor to stamp, as the sample seeder leaves it (SDD-018).
     /// </summary>
-    internal static Case Build(CreateCaseRequest request, string caseNumber, IUserContext userContext) => new()
+    internal static Case Build(CreateCaseRequest request, string caseNumber, IUserContext userContext)
     {
-        UserId = userContext.UserId,
-        CaseNumber = caseNumber,
-        Title = request.Title,
-        Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description,
-        Date = request.Date,
-        Status = CaseStatus.Active,
-    };
+        return new()
+        {
+            UserId = userContext.UserId,
+            CaseNumber = caseNumber,
+            Title = request.Title,
+            Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description,
+            Date = request.Date,
+            Status = CaseStatus.Active,
+        };
+    }
 
-    private static CaseListItem Describe(Case @case) => new()
+    private static CaseListItem Describe(Case @case)
     {
-        Id = @case.Id,
-        CaseNumber = @case.CaseNumber,
-        Title = @case.Title,
-        Date = @case.Date,
-        Status = @case.Status,
-    };
+        return new()
+        {
+            Id = @case.Id,
+            CaseNumber = @case.CaseNumber,
+            Title = @case.Title,
+            Date = @case.Date,
+            Status = @case.Status,
+        };
+    }
 }

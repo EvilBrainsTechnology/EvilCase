@@ -122,17 +122,20 @@ public class AuthController(IAuthService authService) : ControllerBase
         return new() { Email = email, Role = this.Role() };
     }
 
-    private static LoginResponse Describe(AuthSession session) =>
-        new()
+    private static LoginResponse Describe(AuthSession session)
+    {
+        return new()
         {
             AccessToken = session.AccessToken,
             ExpiresAt = session.AccessTokenExpires,
             Email = session.Email,
             Role = session.Role,
         };
+    }
 
-    private static SessionInfo Describe(UserSession session, Guid? current) =>
-        new()
+    private static SessionInfo Describe(UserSession session, Guid? current)
+    {
+        return new()
         {
             AuthSessionId = session.AuthSessionId,
             Created = session.Created,
@@ -142,17 +145,24 @@ public class AuthController(IAuthService authService) : ControllerBase
             UserAgent = session.UserAgent,
             IsCurrent = current == session.AuthSessionId,
         };
+    }
 
-    private Guid UserId() =>
-        Guid.TryParse(this.User.FindFirstValue(AuthClaims.Subject), CultureInfo.InvariantCulture, out var id)
+    private Guid UserId()
+    {
+        return Guid.TryParse(this.User.FindFirstValue(AuthClaims.Subject), CultureInfo.InvariantCulture, out var id)
             ? id
             : throw new InvalidOperationException("Authenticated user is missing the subject claim");
+    }
 
-    private UserRole Role() =>
-        Enum.TryParse<UserRole>(this.User.FindFirstValue(AuthClaims.Role), out var role) ? role : UserRole.User;
+    private UserRole Role()
+    {
+        return Enum.TryParse<UserRole>(this.User.FindFirstValue(AuthClaims.Role), out var role) ? role : UserRole.User;
+    }
 
-    private Guid? CurrentAuthSessionId() =>
-        Guid.TryParseExact(this.User.FindFirstValue(AuthClaims.AuthSessionId), "N", out var authSessionId) ? authSessionId : null;
+    private Guid? CurrentAuthSessionId()
+    {
+        return Guid.TryParseExact(this.User.FindFirstValue(AuthClaims.AuthSessionId), "N", out var authSessionId) ? authSessionId : null;
+    }
 
     private ClientInfo DescribeClient()
     {
@@ -170,16 +180,22 @@ public class AuthController(IAuthService authService) : ControllerBase
         };
     }
 
-    private void SetRefreshCookie(AuthSession session) =>
+    private void SetRefreshCookie(AuthSession session)
+    {
         this.Response.Cookies.Append(RefreshCookie.Name, session.RefreshToken, CookieOptions(session.RefreshTokenExpires));
+    }
 
-    private void ClearRefreshCookie() => this.Response.Cookies.Delete(RefreshCookie.Name, CookieOptions(expires: null));
+    private void ClearRefreshCookie()
+    {
+        this.Response.Cookies.Delete(RefreshCookie.Name, CookieOptions(expires: null));
+    }
 
     // Secure and the __Host- path are what the cookie's own name promises; HttpOnly keeps the token out
     // of reach of any script on the page, and Strict means no other site can make the browser send it.
     // Delete has to repeat all of it: a browser only drops a cookie whose attributes match.
-    private static CookieOptions CookieOptions(DateTime? expires) =>
-        new()
+    private static CookieOptions CookieOptions(DateTime? expires)
+    {
+        return new()
         {
             HttpOnly = true,
             Secure = true,
@@ -188,4 +204,5 @@ public class AuthController(IAuthService authService) : ControllerBase
             Expires = expires,
             IsEssential = true,
         };
+    }
 }

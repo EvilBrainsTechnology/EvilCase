@@ -16,6 +16,7 @@ paths:
   `DelegatingHandler` subclasses, middleware, exceptions, DTO and options records, static
   helpers.
 - One type per file.
+- A member carries a block body; an arrow body only for a property or indexer on one line.
 - Fix an analyzer finding; never suppress one to get a build green.
 - A test's assertion message names the broken rule, in a clause.
 - A namespace and an assembly carry the `EvilBrains.*` prefix, so a type sits under a longer

@@ -11,7 +11,10 @@ public class ClientLogSinkTests
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
     [Test]
-    public void EmptyBufferDrainsToNothing() => Assert.That(new ClientLogSink().Drain(), Is.Null);
+    public void EmptyBufferDrainsToNothing()
+    {
+        Assert.That(new ClientLogSink().Drain(), Is.Null);
+    }
 
     [Test]
     public void BufferedEventsDrainInBatches()
@@ -47,10 +50,13 @@ public class ClientLogSinkTests
         }
     }
 
-    private static LogEvent Event(string messageTemplate) => new(
-        DateTimeOffset.Now,
-        LogEventLevel.Warning,
-        exception: null,
-        new MessageTemplateParser().Parse(messageTemplate),
-        []);
+    private static LogEvent Event(string messageTemplate)
+    {
+        return new(
+            DateTimeOffset.Now,
+            LogEventLevel.Warning,
+            exception: null,
+            new MessageTemplateParser().Parse(messageTemplate),
+            []);
+    }
 }

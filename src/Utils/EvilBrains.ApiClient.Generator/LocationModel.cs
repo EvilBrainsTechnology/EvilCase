@@ -5,9 +5,15 @@ namespace EvilBrains.ApiClient.Generator;
 
 internal sealed record LocationModel(string FilePath, int SpanStart, int SpanLength, int StartLine, int StartCharacter, int EndLine, int EndCharacter)
 {
-    public static LocationModel FromNode(SyntaxNode node) => FromLocation(node.GetLocation());
+    public static LocationModel FromNode(SyntaxNode node)
+    {
+        return FromLocation(node.GetLocation());
+    }
 
-    public static LocationModel FromToken(in SyntaxToken token) => FromLocation(token.GetLocation());
+    public static LocationModel FromToken(in SyntaxToken token)
+    {
+        return FromLocation(token.GetLocation());
+    }
 
     private static LocationModel FromLocation(Location location)
     {
@@ -23,9 +29,11 @@ internal sealed record LocationModel(string FilePath, int SpanStart, int SpanLen
             lineSpan.EndLinePosition.Character);
     }
 
-    public Location ToLocation() =>
-        Location.Create(
+    public Location ToLocation()
+    {
+        return Location.Create(
             this.FilePath,
             new TextSpan(this.SpanStart, this.SpanLength),
             new LinePositionSpan(new LinePosition(this.StartLine, this.StartCharacter), new LinePosition(this.EndLine, this.EndCharacter)));
+    }
 }

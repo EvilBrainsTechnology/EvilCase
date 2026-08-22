@@ -19,6 +19,8 @@ public class CasesController(ICaseReader cases, ICaseWriter writer) : Controller
     }
 
     [HttpPost("")]
-    public Task<CaseListItem> CreateCase([FromBody] CreateCaseRequest request, CancellationToken cancellationToken) =>
-        writer.Create(request, cancellationToken);
+    public Task<CaseListItem> CreateCase([FromBody] CreateCaseRequest request, CancellationToken cancellationToken)
+    {
+        return writer.Create(request, cancellationToken);
+    }
 }

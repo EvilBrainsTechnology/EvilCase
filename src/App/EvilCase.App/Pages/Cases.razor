@@ -119,7 +119,10 @@
     private string? failure;
     private CancellationTokenSource? pending;
 
-    protected override Task OnInitializedAsync() => this.Load(debounce: false);
+    protected override Task OnInitializedAsync()
+    {
+        return this.Load(debounce: false);
+    }
 
     public void Dispose()
     {
@@ -134,7 +137,10 @@
         return this.Load(debounce: true);
     }
 
-    private Task Reload() => this.Load(debounce: false);
+    private Task Reload()
+    {
+        return this.Load(debounce: false);
+    }
 
     /// <summary>
     /// One request at a time: starting another cancels the one before it.

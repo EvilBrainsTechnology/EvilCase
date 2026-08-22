@@ -15,8 +15,10 @@ internal static class TestTokens
 {
     public const string Email = "user@evilcase.test";
 
-    public static AuthenticationHeaderValue BearerFrom(EvilCaseHost host, string email = Email) =>
-        new("Bearer", TokenFrom(host, email));
+    public static AuthenticationHeaderValue BearerFrom(EvilCaseHost host, string email = Email)
+    {
+        return new("Bearer", TokenFrom(host, email));
+    }
 
     public static string TokenFrom(EvilCaseHost host, string email = Email)
     {

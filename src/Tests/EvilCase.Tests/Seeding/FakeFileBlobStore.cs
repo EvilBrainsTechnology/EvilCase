@@ -22,5 +22,8 @@ internal sealed class FakeFileBlobStore : IFileBlobStore
         };
     }
 
-    public Task Delete(string storagePath, CancellationToken cancellationToken = default) => Task.CompletedTask;
+    public Task Delete(string storagePath, CancellationToken cancellationToken = default)
+    {
+        return Task.CompletedTask;
+    }
 }

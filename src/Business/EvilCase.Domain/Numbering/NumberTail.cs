@@ -11,16 +11,23 @@ public static class NumberTail
 
     private const int DateLength = 8;
 
-    public static string Prefix(in DateOnly date) => $"{date.ToString(DateFormat, CultureInfo.InvariantCulture)}-";
+    public static string Prefix(in DateOnly date)
+    {
+        return $"{date.ToString(DateFormat, CultureInfo.InvariantCulture)}-";
+    }
 
-    public static string Compose(in DateOnly date, int sequence) =>
-        Prefix(date) + sequence.ToString($"D{SequenceDigits}", CultureInfo.InvariantCulture);
+    public static string Compose(in DateOnly date, int sequence)
+    {
+        return Prefix(date) + sequence.ToString($"D{SequenceDigits}", CultureInfo.InvariantCulture);
+    }
 
     /// <summary>
     /// Throws <see cref="FormatException"/> where the value is not exactly "yyyyMMdd-nnn".
     /// </summary>
-    public static NumberTailParts Parse(string tail) =>
-        ParseOrDefault(tail) ?? throw new FormatException($"'{tail}' is not a number tail.");
+    public static NumberTailParts Parse(string tail)
+    {
+        return ParseOrDefault(tail) ?? throw new FormatException($"'{tail}' is not a number tail.");
+    }
 
     /// <summary>
     /// Null where the value is not exactly "yyyyMMdd-nnn".

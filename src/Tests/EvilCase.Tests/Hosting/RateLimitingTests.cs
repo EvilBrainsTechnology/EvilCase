@@ -139,8 +139,10 @@ public class RateLimitingTests
         }
     }
 
-    private Task<HttpResponseMessage> PostBatch() =>
-        this.client.PostAsJsonAsync(
+    private Task<HttpResponseMessage> PostBatch()
+    {
+        return this.client.PostAsJsonAsync(
             new Uri(ClientLogRoute.Path, UriKind.Relative),
             new ClientLogBatch { Entries = [] });
+    }
 }

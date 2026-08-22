@@ -6,5 +6,8 @@ namespace EvilBrains.EvilCase.Auth;
 /// </summary>
 internal static class EmailNormalizer
 {
-    public static string Normalize(string email) => email.Trim().ToLowerInvariant();
+    public static string Normalize(string email)
+    {
+        return email.Trim().ToLowerInvariant();
+    }
 }

@@ -28,7 +28,10 @@ internal static class MvcFacts
         "Microsoft.AspNetCore.Mvc.FromServicesAttribute",
         "Microsoft.Extensions.DependencyInjection.FromKeyedServicesAttribute");
 
-    public static bool IsApiController(INamedTypeSymbol type) => HasAttribute(type, ApiControllerAttributeName);
+    public static bool IsApiController(INamedTypeSymbol type)
+    {
+        return HasAttribute(type, ApiControllerAttributeName);
+    }
 
     public static bool IsAction(IMethodSymbol method)
     {
@@ -38,8 +41,10 @@ internal static class MvcFacts
         return !HasAttribute(method, NonActionAttributeName);
     }
 
-    public static AttributeData? FindRouteAttribute(INamedTypeSymbol type) =>
-        type.GetAttributes().FirstOrDefault(x => string.Equals(GetAttributeName(x), RouteAttributeName, StringComparison.Ordinal));
+    public static AttributeData? FindRouteAttribute(INamedTypeSymbol type)
+    {
+        return type.GetAttributes().FirstOrDefault(x => string.Equals(GetAttributeName(x), RouteAttributeName, StringComparison.Ordinal));
+    }
 
     public static bool IsHttpMethodAttribute(AttributeData attribute)
     {
@@ -59,14 +64,23 @@ internal static class MvcFacts
         return name is not null && BindingAttributeNames.Contains(name);
     }
 
-    public static string? GetTemplate(AttributeData attribute) =>
-        attribute.ConstructorArguments.Length > 0 ? attribute.ConstructorArguments[0].Value as string : null;
+    public static string? GetTemplate(AttributeData attribute)
+    {
+        return attribute.ConstructorArguments.Length > 0 ? attribute.ConstructorArguments[0].Value as string : null;
+    }
 
-    public static Location GetLocation(AttributeData attribute, ISymbol fallback) =>
-        attribute.ApplicationSyntaxReference?.GetSyntax().GetLocation() ?? fallback.Locations[0];
+    public static Location GetLocation(AttributeData attribute, ISymbol fallback)
+    {
+        return attribute.ApplicationSyntaxReference?.GetSyntax().GetLocation() ?? fallback.Locations[0];
+    }
 
-    private static string? GetAttributeName(AttributeData attribute) => attribute.AttributeClass?.ToDisplayString();
+    private static string? GetAttributeName(AttributeData attribute)
+    {
+        return attribute.AttributeClass?.ToDisplayString();
+    }
 
-    private static bool HasAttribute(ISymbol symbol, string name) =>
-        symbol.GetAttributes().Any(x => string.Equals(GetAttributeName(x), name, StringComparison.Ordinal));
+    private static bool HasAttribute(ISymbol symbol, string name)
+    {
+        return symbol.GetAttributes().Any(x => string.Equals(GetAttributeName(x), name, StringComparison.Ordinal));
+    }
 }

@@ -16,5 +16,8 @@ internal sealed class ClientLogException : Exception
         : base(message, innerException)
     { }
 
-    public override string ToString() => this.Message;
+    public override string ToString()
+    {
+        return this.Message;
+    }
 }

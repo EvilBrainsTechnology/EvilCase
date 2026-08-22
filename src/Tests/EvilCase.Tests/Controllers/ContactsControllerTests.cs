@@ -30,7 +30,10 @@ public class ContactsControllerTests
         Assert.That(response.Items.Select(item => item.Name), Is.EqualTo(["Krajský soud ve Vzorově", "Česká advokátní komora"]));
     }
 
-    private static ContactListItem Item(string name) => new() { Id = Guid.CreateVersion7(), Kind = ContactKind.Authority, Name = name };
+    private static ContactListItem Item(string name)
+    {
+        return new() { Id = Guid.CreateVersion7(), Kind = ContactKind.Authority, Name = name };
+    }
 
     private sealed class RecordingContactReader : IContactReader
     {

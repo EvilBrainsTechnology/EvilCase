@@ -12,7 +12,10 @@ namespace EvilBrains.Logging.WebAssembly;
 /// </summary>
 internal sealed class ClientHttpLogger(ILogger<ClientHttpLogger> logger, string quietPath) : IHttpClientLogger
 {
-    public object? LogRequestStart(HttpRequestMessage request) => null;
+    public object? LogRequestStart(HttpRequestMessage request)
+    {
+        return null;
+    }
 
     public void LogRequestStop(object? context, HttpRequestMessage request, HttpResponseMessage response, TimeSpan elapsed)
     {
@@ -53,23 +56,36 @@ internal sealed class ClientHttpLogger(ILogger<ClientHttpLogger> logger, string 
     /// <summary>
     /// The identifiers ride in a scope rather than in the message: they are for correlating, not for reading.
     /// </summary>
-    private static Dictionary<string, object?> Identifiers(HttpRequestMessage request) => new(StringComparer.Ordinal)
+    private static Dictionary<string, object?> Identifiers(HttpRequestMessage request)
     {
-        [RequestContextPropertyNames.RequestId] = Header(request, RequestContextHeaderNames.RequestId),
-        [RequestContextPropertyNames.CorrelationId] = Header(request, RequestContextHeaderNames.CorrelationId),
-    };
+        return new(StringComparer.Ordinal)
+        {
+            [RequestContextPropertyNames.RequestId] = Header(request, RequestContextHeaderNames.RequestId),
+            [RequestContextPropertyNames.CorrelationId] = Header(request, RequestContextHeaderNames.CorrelationId),
+        };
+    }
 
-    private static double Milliseconds(in TimeSpan elapsed) => Math.Round(elapsed.TotalMilliseconds, 1, MidpointRounding.AwayFromZero);
+    private static double Milliseconds(in TimeSpan elapsed)
+    {
+        return Math.Round(elapsed.TotalMilliseconds, 1, MidpointRounding.AwayFromZero);
+    }
 
-    private static string Path(HttpRequestMessage request) => request.RequestUri?.AbsolutePath ?? "";
+    private static string Path(HttpRequestMessage request)
+    {
+        return request.RequestUri?.AbsolutePath ?? "";
+    }
 
-    private static string? Header(HttpRequestMessage request, string name) =>
-        request.Headers.TryGetValues(name, out var values) ? values.FirstOrDefault() : null;
+    private static string? Header(HttpRequestMessage request, string name)
+    {
+        return request.Headers.TryGetValues(name, out var values) ? values.FirstOrDefault() : null;
+    }
 
     /// <summary>
     /// A suffix match, not an equality one: the app may be served from a sub-path, which the base address
     /// carries into the resolved URI. The leading slash of the quiet path keeps the match on a segment boundary.
     /// </summary>
-    private bool IsQuiet(HttpRequestMessage request) =>
-        request.RequestUri?.AbsolutePath.EndsWith(quietPath, StringComparison.OrdinalIgnoreCase) == true;
+    private bool IsQuiet(HttpRequestMessage request)
+    {
+        return request.RequestUri?.AbsolutePath.EndsWith(quietPath, StringComparison.OrdinalIgnoreCase) == true;
+    }
 }

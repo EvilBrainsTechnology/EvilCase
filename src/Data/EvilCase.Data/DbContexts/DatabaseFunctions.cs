@@ -9,6 +9,8 @@ public static class DatabaseFunctions
     /// <summary>
     /// Folds diacritics through the IMMUTABLE wrapper the <c>Init</c> migration creates (SDD-014).
     /// </summary>
-    public static string Unaccent(string value) =>
+    public static string Unaccent(string value)
+    {
         throw new NotSupportedException($"{nameof(Unaccent)} runs in the database and has no in-memory form.");
+    }
 }

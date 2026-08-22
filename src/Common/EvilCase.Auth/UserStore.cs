@@ -15,8 +15,10 @@ internal sealed class UserStore(IDbSession dbSession, TimeProvider timeProvider)
         return await dbSession.Current.Users.SingleOrDefaultAsync(user => user.Email == normalized, cancellationToken);
     }
 
-    public async Task<User?> FindById(Guid id, CancellationToken cancellationToken) =>
-        await dbSession.Current.Users.SingleOrDefaultAsync(user => user.Id == id, cancellationToken);
+    public async Task<User?> FindById(Guid id, CancellationToken cancellationToken)
+    {
+        return await dbSession.Current.Users.SingleOrDefaultAsync(user => user.Id == id, cancellationToken);
+    }
 
     public async Task RecordFailedLogin(Guid id, int failedAttempts, DateTime? lockoutEnd, CancellationToken cancellationToken)
     {
@@ -46,8 +48,10 @@ internal sealed class UserStore(IDbSession dbSession, TimeProvider timeProvider)
                 cancellationToken);
     }
 
-    public async Task<bool> Any(CancellationToken cancellationToken) =>
-        await dbSession.Current.Users.AnyAsync(cancellationToken);
+    public async Task<bool> Any(CancellationToken cancellationToken)
+    {
+        return await dbSession.Current.Users.AnyAsync(cancellationToken);
+    }
 
     public async Task Add(User user, Contact defaultContact, CancellationToken cancellationToken)
     {

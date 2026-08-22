@@ -50,23 +50,30 @@ public class ActionParameterBindingAnalyzerTests
         AssertIds(diagnostics, "EB1005");
     }
 
-    private static void AssertIds(in ImmutableArray<Diagnostic> diagnostics, params string[] expected) =>
+    private static void AssertIds(in ImmutableArray<Diagnostic> diagnostics, params string[] expected)
+    {
         Assert.That(diagnostics.Select(x => x.Id), Is.EqualTo(expected));
+    }
 
-    private static Task<ImmutableArray<Diagnostic>> Analyze(string action) =>
-        AnalyzerTestHost.Analyze(new ActionParameterBindingAnalyzer(), Fixture(action));
+    private static Task<ImmutableArray<Diagnostic>> Analyze(string action)
+    {
+        return AnalyzerTestHost.Analyze(new ActionParameterBindingAnalyzer(), Fixture(action));
+    }
 
-    private static string Fixture(string action) => $$"""
-        using System.Threading;
-        using Microsoft.AspNetCore.Mvc;
+    private static string Fixture(string action)
+    {
+        return $$"""
+            using System.Threading;
+            using Microsoft.AspNetCore.Mvc;
 
-        namespace FakeApi;
+            namespace FakeApi;
 
-        [ApiController]
-        [Route("api/items")]
-        public class ItemsController : ControllerBase
-        {
-        {{action}}
-        }
-        """;
+            [ApiController]
+            [Route("api/items")]
+            public class ItemsController : ControllerBase
+            {
+            {{action}}
+            }
+            """;
+    }
 }

@@ -13,8 +13,10 @@ public class HostingOptionsTests
 {
     private const string ForwardedProtoHeader = "X-Forwarded-Proto";
 
-    private static HttpClient CreateClient(EvilCaseHost host) =>
-        host.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+    private static HttpClient CreateClient(EvilCaseHost host)
+    {
+        return host.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
+    }
 
     private static async Task<HttpResponseMessage> GetAsync(HttpClient client, string? forwardedProto = null)
     {

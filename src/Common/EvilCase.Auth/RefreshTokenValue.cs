@@ -12,7 +12,13 @@ internal static class RefreshTokenValue
 {
     private const int SizeInBytes = 32;
 
-    public static string Create() => Base64Url.EncodeToString(RandomNumberGenerator.GetBytes(SizeInBytes));
+    public static string Create()
+    {
+        return Base64Url.EncodeToString(RandomNumberGenerator.GetBytes(SizeInBytes));
+    }
 
-    public static string Hash(string token) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(token)));
+    public static string Hash(string token)
+    {
+        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(token)));
+    }
 }

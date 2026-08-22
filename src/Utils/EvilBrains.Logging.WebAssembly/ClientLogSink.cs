@@ -61,16 +61,19 @@ internal sealed class ClientLogSink : ILogEventSink
         return entries.Count == 0 ? null : new ClientLogBatch { Entries = entries };
     }
 
-    private static ClientLogLevel ToClientLevel(LogEventLevel level) => level switch
+    private static ClientLogLevel ToClientLevel(LogEventLevel level)
     {
-        LogEventLevel.Verbose => ClientLogLevel.Verbose,
-        LogEventLevel.Debug => ClientLogLevel.Debug,
-        LogEventLevel.Information => ClientLogLevel.Information,
-        LogEventLevel.Warning => ClientLogLevel.Warning,
-        LogEventLevel.Error => ClientLogLevel.Error,
-        LogEventLevel.Fatal => ClientLogLevel.Fatal,
-        _ => ClientLogLevel.Information,
-    };
+        return level switch
+        {
+            LogEventLevel.Verbose => ClientLogLevel.Verbose,
+            LogEventLevel.Debug => ClientLogLevel.Debug,
+            LogEventLevel.Information => ClientLogLevel.Information,
+            LogEventLevel.Warning => ClientLogLevel.Warning,
+            LogEventLevel.Error => ClientLogLevel.Error,
+            LogEventLevel.Fatal => ClientLogLevel.Fatal,
+            _ => ClientLogLevel.Information,
+        };
+    }
 
     private static Dictionary<string, string>? ToProperties(LogEvent logEvent)
     {
@@ -92,18 +95,23 @@ internal sealed class ClientLogSink : ILogEventSink
     }
 
     // ScalarValue.ToString() quotes strings, which would arrive at the server quoted twice.
-    private static string RenderValue(LogEventPropertyValue value) => value switch
+    private static string RenderValue(LogEventPropertyValue value)
     {
-        ScalarValue { Value: null } => "null",
-        ScalarValue { Value: string text } => text,
-        ScalarValue { Value: var raw } => Convert.ToString(raw, CultureInfo.InvariantCulture) ?? "",
-        _ => value.ToString(format: null, CultureInfo.InvariantCulture),
-    };
+        return value switch
+        {
+            ScalarValue { Value: null } => "null",
+            ScalarValue { Value: string text } => text,
+            ScalarValue { Value: var raw } => Convert.ToString(raw, CultureInfo.InvariantCulture) ?? "",
+            _ => value.ToString(format: null, CultureInfo.InvariantCulture),
+        };
+    }
 
-    private static string? Text(LogEvent logEvent, string propertyName) =>
-        logEvent.Properties.TryGetValue(propertyName, out var value) && value is ScalarValue { Value: string text }
+    private static string? Text(LogEvent logEvent, string propertyName)
+    {
+        return logEvent.Properties.TryGetValue(propertyName, out var value) && value is ScalarValue { Value: string text }
             ? text
             : null;
+    }
 
     /// <summary>
     /// Nothing observes this task, so an exception escaping the loop would stop the shipping for the
@@ -146,18 +154,21 @@ internal sealed class ClientLogSink : ILogEventSink
         }
     }
 
-    private ClientLogEntry ToEntry(LogEvent logEvent) => new()
+    private ClientLogEntry ToEntry(LogEvent logEvent)
     {
-        Timestamp = logEvent.Timestamp,
-        Level = ToClientLevel(logEvent.Level),
+        return new()
+        {
+            Timestamp = logEvent.Timestamp,
+            Level = ToClientLevel(logEvent.Level),
 
-        // The template travels unrendered so the server can log the event with its properties intact.
-        MessageTemplate = ClientLogText.Truncate(logEvent.MessageTemplate.Text, ClientLogEntry.MessageTemplateMaxLength),
-        Properties = ToProperties(logEvent),
-        RequestId = ClientLogText.Truncate(Text(logEvent, RequestContextPropertyNames.RequestId), ClientLogEntry.IdentifierMaxLength),
-        CorrelationId = ClientLogText.Truncate(Text(logEvent, RequestContextPropertyNames.CorrelationId), ClientLogEntry.IdentifierMaxLength),
-        Category = ClientLogText.Truncate(Text(logEvent, Constants.SourceContextPropertyName), ClientLogEntry.CategoryMaxLength),
-        Exception = ClientLogText.Truncate(logEvent.Exception?.ToString(), ClientLogEntry.ExceptionMaxLength),
-        Url = ClientLogText.Truncate(this.navigation?.Uri, ClientLogEntry.UrlMaxLength),
-    };
+            // The template travels unrendered so the server can log the event with its properties intact.
+            MessageTemplate = ClientLogText.Truncate(logEvent.MessageTemplate.Text, ClientLogEntry.MessageTemplateMaxLength),
+            Properties = ToProperties(logEvent),
+            RequestId = ClientLogText.Truncate(Text(logEvent, RequestContextPropertyNames.RequestId), ClientLogEntry.IdentifierMaxLength),
+            CorrelationId = ClientLogText.Truncate(Text(logEvent, RequestContextPropertyNames.CorrelationId), ClientLogEntry.IdentifierMaxLength),
+            Category = ClientLogText.Truncate(Text(logEvent, Constants.SourceContextPropertyName), ClientLogEntry.CategoryMaxLength),
+            Exception = ClientLogText.Truncate(logEvent.Exception?.ToString(), ClientLogEntry.ExceptionMaxLength),
+            Url = ClientLogText.Truncate(this.navigation?.Uri, ClientLogEntry.UrlMaxLength),
+        };
+    }
 }
