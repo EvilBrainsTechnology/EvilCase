@@ -9,8 +9,6 @@ public static class CaseNumberQuery
     /// </summary>
     public static IQueryable<Case> WithNumberTakenFrom(this IQueryable<Case> cases, string caseNumber, Guid exceptId)
     {
-        ArgumentNullException.ThrowIfNull(cases);
-
         return cases.Where(@case => @case.CaseNumber == caseNumber && @case.Id != exceptId);
     }
 }

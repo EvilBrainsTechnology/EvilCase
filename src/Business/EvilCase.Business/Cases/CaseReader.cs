@@ -17,9 +17,13 @@ internal sealed class CaseReader(IDbSession session) : ICaseReader
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<CaseDetail?> Detail(Guid id, CancellationToken cancellationToken = default) =>
-        await Compose(session.Current.Cases, id).FirstOrDefaultAsync(cancellationToken);
+    public async Task<CaseDetail?> Detail(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await Compose(session.Current.Cases, id).FirstOrDefaultAsync(cancellationToken);
+    }
 
-    internal static IQueryable<CaseDetail> Compose(IQueryable<Case> cases, Guid id) =>
-        cases.Where(@case => @case.Id == id).AsDetails();
+    internal static IQueryable<CaseDetail> Compose(IQueryable<Case> cases, Guid id)
+    {
+        return cases.Where(@case => @case.Id == id).AsDetails();
+    }
 }

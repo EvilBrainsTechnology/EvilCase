@@ -28,8 +28,6 @@ internal sealed class CaseEditModel
 
     public static CaseEditModel From(CaseDetail @case)
     {
-        ArgumentNullException.ThrowIfNull(@case);
-
         return new()
         {
             CaseNumber = @case.CaseNumber,
@@ -40,12 +38,15 @@ internal sealed class CaseEditModel
         };
     }
 
-    public UpdateCaseRequest ToRequest() => new()
+    public UpdateCaseRequest ToRequest()
     {
-        CaseNumber = this.CaseNumber,
-        Date = this.Date!.Value,
-        Title = this.Title,
-        Description = this.Description,
-        Status = this.Status,
-    };
+        return new()
+        {
+            CaseNumber = this.CaseNumber,
+            Date = this.Date!.Value,
+            Title = this.Title,
+            Description = this.Description,
+            Status = this.Status,
+        };
+    }
 }

@@ -133,26 +133,32 @@ public class CaseWriterTests
         }
     }
 
-    private static Case Filed() => new()
+    private static Case Filed()
     {
-        TenantId = Guid.CreateVersion7(),
-        UserId = Guid.CreateVersion7(),
-        ParentCaseId = Guid.CreateVersion7(),
-        CaseNumber = "EC/20260821-001",
-        Date = new DateOnly(2026, 8, 21),
-        Title = "Přestupek",
-        Status = CaseStatus.Active,
-        Created = new DateTime(2026, 8, 21, 6, 0, 0, DateTimeKind.Utc),
-    };
+        return new()
+        {
+            TenantId = Guid.CreateVersion7(),
+            UserId = Guid.CreateVersion7(),
+            ParentCaseId = Guid.CreateVersion7(),
+            CaseNumber = "EC/20260821-001",
+            Date = new DateOnly(2026, 8, 21),
+            Title = "Přestupek",
+            Status = CaseStatus.Active,
+            Created = new DateTime(2026, 8, 21, 6, 0, 0, DateTimeKind.Utc),
+        };
+    }
 
-    private static UpdateCaseRequest UpdateRequest() => new()
+    private static UpdateCaseRequest UpdateRequest()
     {
-        CaseNumber = "EC/20260821-002",
-        Date = new DateOnly(2026, 8, 22),
-        Title = "Přestupek",
-        Description = null,
-        Status = CaseStatus.Closed,
-    };
+        return new()
+        {
+            CaseNumber = "EC/20260821-002",
+            Date = new DateOnly(2026, 8, 22),
+            Title = "Přestupek",
+            Description = null,
+            Status = CaseStatus.Closed,
+        };
+    }
 
     private sealed class QueuedCaseNumberIssuer(IReadOnlyList<string> caseNumbers) : ICaseNumberIssuer
     {

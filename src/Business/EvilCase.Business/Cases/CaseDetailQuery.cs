@@ -10,8 +10,6 @@ public static class CaseDetailQuery
     /// </summary>
     public static IQueryable<CaseDetail> AsDetails(this IQueryable<Case> cases)
     {
-        ArgumentNullException.ThrowIfNull(cases);
-
         return cases.Select(@case => new CaseDetail
         {
             Id = @case.Id,
