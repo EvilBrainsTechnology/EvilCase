@@ -1,6 +1,6 @@
 using System.Collections.Immutable;
 using System.Linq;
-using EvilBrains.Mvc;
+using EvilBrains.Analyzers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 

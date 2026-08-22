@@ -112,6 +112,31 @@ public class ActionParameterOrderAnalyzerTests
         Assert.That(diagnostics, Is.Empty, "a controller is a type marked [ApiController], the definition the client generator uses");
     }
 
+    [Test]
+    public async Task ApiControllerWithoutControllerBaseIsReportedTest()
+    {
+        var diagnostics = await AnalyzerTestHost.Analyze(
+            new ActionParameterOrderAnalyzer(),
+            """
+            using System.Threading;
+            using Microsoft.AspNetCore.Mvc;
+
+            namespace FakeApi;
+
+            [ApiController]
+            [Route("api/items")]
+            public class ItemsController
+            {
+                [HttpPost("")]
+                public string Create([FromBody] string body, [FromServices] IThing thing) => body;
+            }
+
+            public interface IThing { }
+            """);
+
+        AssertIds(diagnostics, "[ApiController] alone marks a controller");
+    }
+
     private static void AssertIds(in ImmutableArray<Diagnostic> diagnostics, string message)
     {
         Assert.That(diagnostics.Select(x => x.Id), Is.EqualTo(["EB0008"]), message);

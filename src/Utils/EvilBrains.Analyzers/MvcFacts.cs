@@ -3,13 +3,12 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 
-namespace EvilBrains.Mvc;
+namespace EvilBrains.Analyzers;
 
 /// <summary>
-/// The one definition of a controller and an action for every EvilBrains analyzer: a controller is a type
-/// marked [ApiController], an action is one of its public instance methods without [NonAction].
+/// The one definition of a controller and its actions, shared by both analyzer assemblies.
 /// </summary>
-internal static class MvcFacts
+public static class MvcFacts
 {
     private const string ApiControllerAttributeName = "Microsoft.AspNetCore.Mvc.ApiControllerAttribute";
 

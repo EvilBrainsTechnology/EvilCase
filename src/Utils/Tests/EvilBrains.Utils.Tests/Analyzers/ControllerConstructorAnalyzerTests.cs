@@ -110,6 +110,22 @@ public class ControllerConstructorAnalyzerTests
         Assert.That(diagnostics, Is.Empty, "a controller is a type marked [ApiController], the definition the client generator uses");
     }
 
+    [Test]
+    public async Task ApiControllerWithoutControllerBaseIsReportedTest()
+    {
+        var diagnostics = await Analyze("""
+            [ApiController]
+            [Route("api/items")]
+            public class ItemsController(IThing thing)
+            {
+                [HttpGet("")]
+                public string GetItems() => thing.Name;
+            }
+            """);
+
+        Assert.That(diagnostics.Select(x => x.Id), Is.EqualTo(["EB0007"]), "[ApiController] alone marks a controller");
+    }
+
     private static Task<ImmutableArray<Diagnostic>> Analyze(string type)
     {
         return AnalyzerTestHost.Analyze(new ControllerConstructorAnalyzer(), Fixture(type));
