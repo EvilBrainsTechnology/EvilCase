@@ -22,10 +22,10 @@ public class UserSeederTests
     public async Task AnEmptyDatabaseGetsTheConfiguredAdministrator()
     {
         var store = new FakeUserStore();
-        var tenantContext = new StubTenantContext();
-        var context = FakeApplicationDbContext.Create(tenantContext);
+        var userContext = new StubUserContext();
+        var context = FakeApplicationDbContext.Create(userContext);
 
-        await Seeder(context, tenantContext, store, SeedEmail, SeedPassword).Seed(CancellationToken.None);
+        await Seeder(context, userContext, store, SeedEmail, SeedPassword).Seed(CancellationToken.None);
 
         var account = context.Added<Account>().Single();
         var tenant = context.Added<Tenant>().Single();
@@ -48,10 +48,10 @@ public class UserSeederTests
     public async Task TheFirstAdministratorGetsAnAccountATenantAndADefaultContact()
     {
         var store = new FakeUserStore();
-        var tenantContext = new StubTenantContext();
-        var context = FakeApplicationDbContext.Create(tenantContext);
+        var userContext = new StubUserContext();
+        var context = FakeApplicationDbContext.Create(userContext);
 
-        await Seeder(context, tenantContext, store, SeedEmail, SeedPassword).Seed(CancellationToken.None);
+        await Seeder(context, userContext, store, SeedEmail, SeedPassword).Seed(CancellationToken.None);
 
         var tenant = context.Added<Tenant>().Single();
         var contact = store.SingleContact();
@@ -63,7 +63,7 @@ public class UserSeederTests
             Assert.That(context.Added<Tenant>(), Has.Exactly(1).Items);
             Assert.That(contact.TenantId, Is.EqualTo(Guid.Empty), "the seed names no tenant on the contact; the write is what stamps it");
             Assert.That(user.TenantId, Is.EqualTo(tenant.Id), "the administrator belongs to the tenant the seed created");
-            Assert.That(tenantContext.Entered, Is.EqualTo([tenant.Id]), "the contact is written under the tenant the seed created, which is what stamps it");
+            Assert.That(userContext.Entered, Is.EqualTo([(tenant.Id, user.Id)]), "the contact is written under the tenant and the user the seed created, which is what stamps them");
             Assert.That(user.DefaultContactId, Is.EqualTo(contact.Id), "the user points at the contact the seed made for it");
         }
     }
@@ -72,8 +72,8 @@ public class UserSeederTests
     public async Task NothingHappensOnceAnyUserExists()
     {
         var store = new FakeUserStore();
-        var tenantContext = new StubTenantContext();
-        var context = FakeApplicationDbContext.Create(tenantContext);
+        var userContext = new StubUserContext();
+        var context = FakeApplicationDbContext.Create(userContext);
 
         store.Seed(new()
         {
@@ -84,7 +84,7 @@ public class UserSeederTests
             DefaultContactId = Guid.CreateVersion7(),
         });
 
-        await Seeder(context, tenantContext, store, SeedEmail, SeedPassword).Seed(CancellationToken.None);
+        await Seeder(context, userContext, store, SeedEmail, SeedPassword).Seed(CancellationToken.None);
 
         Assert.That(context.Added<Account>(), Is.Empty);
     }
@@ -93,10 +93,10 @@ public class UserSeederTests
     public async Task AnEnvironmentThatNamesNoCredentialsGetsNoAccount()
     {
         var store = new FakeUserStore();
-        var tenantContext = new StubTenantContext();
-        var context = FakeApplicationDbContext.Create(tenantContext);
+        var userContext = new StubUserContext();
+        var context = FakeApplicationDbContext.Create(userContext);
 
-        await Seeder(context, tenantContext, store, email: null, password: null).Seed(CancellationToken.None);
+        await Seeder(context, userContext, store, email: null, password: null).Seed(CancellationToken.None);
 
         Assert.That(await store.Any(CancellationToken.None), Is.False);
     }
@@ -108,10 +108,10 @@ public class UserSeederTests
     public async Task AnEmailWithoutAPasswordCreatesNothing()
     {
         var store = new FakeUserStore();
-        var tenantContext = new StubTenantContext();
-        var context = FakeApplicationDbContext.Create(tenantContext);
+        var userContext = new StubUserContext();
+        var context = FakeApplicationDbContext.Create(userContext);
 
-        await Seeder(context, tenantContext, store, SeedEmail, password: null).Seed(CancellationToken.None);
+        await Seeder(context, userContext, store, SeedEmail, password: null).Seed(CancellationToken.None);
 
         Assert.That(await store.Any(CancellationToken.None), Is.False);
     }
@@ -126,15 +126,15 @@ public class UserSeederTests
     [TestCase(null, null, ExpectedResult = false)]
     public bool OnlyBothHalvesOfTheSeedCountAsConfigured(string? email, string? password)
     {
-        var tenantContext = new StubTenantContext();
+        var userContext = new StubUserContext();
 
-        return Seeder(FakeApplicationDbContext.Create(tenantContext), tenantContext, new FakeUserStore(), email, password).IsConfigured;
+        return Seeder(FakeApplicationDbContext.Create(userContext), userContext, new FakeUserStore(), email, password).IsConfigured;
     }
 
-    private static UserSeeder Seeder(FakeApplicationDbContext context, StubTenantContext tenantContext, FakeUserStore store, string? email, string? password)
+    private static UserSeeder Seeder(FakeApplicationDbContext context, StubUserContext userContext, FakeUserStore store, string? email, string? password)
     {
         var settings = AuthTestHarness.CreateSettings() with { Seed = new() { Email = email, Password = password } };
 
-        return new UserSeeder(new FixedDbSession(context), store, tenantContext, Options.Create(settings), NullLogger<UserSeeder>.Instance);
+        return new UserSeeder(new FixedDbSession(context), store, userContext, Options.Create(settings), NullLogger<UserSeeder>.Instance);
     }
 }

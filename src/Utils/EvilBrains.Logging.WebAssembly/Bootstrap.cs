@@ -52,10 +52,12 @@ public static class Bootstrap
 
         // The route stays relative: the app may be served from a sub-path, which the base address carries.
         builder.Services.AddSingleton<IPageUnloadFlusher>(
-            provider => new PageUnloadFlusher(
-                provider.GetRequiredService<IJSRuntime>(),
-                sink,
-                provider.GetRequiredService<NavigationManager>().ToAbsoluteUri(uploadPath.TrimStart('/')).ToString()));
+            provider =>
+            {
+                var navigation = provider.GetRequiredService<NavigationManager>();
+
+                return new PageUnloadFlusher(provider.GetRequiredService<IJSRuntime>(), sink, navigation.ToAbsoluteUri(uploadPath.TrimStart('/')).ToString());
+            });
 
         return builder;
     }
@@ -75,7 +77,8 @@ public static class Bootstrap
 
         sink.Start(host.Services.GetRequiredService<IClientLogUploader>(), host.Services.GetRequiredService<NavigationManager>());
 
-        _ = host.Services.GetRequiredService<IPageUnloadFlusher>().Start();
+        var flusher = host.Services.GetRequiredService<IPageUnloadFlusher>();
+        _ = flusher.Start();
 
         return host;
     }

@@ -20,7 +20,8 @@ Doménové entity popisuje SDD-007.
   hesla, role, lockout) zůstávají; přibývá `TenantId` a povinný `DefaultContactId` (SDD-011).
 
 Každá tenantová entita nese `TenantId`. Vlastníka `UserId` nese každá kromě kontaktu; kontakt
-patří tenantu (SDD-011). Viditelná je v celém tenantu.
+patří tenantu (SDD-011). Obojí plní zápis, ne volající. Viditelná je v celém tenantu, zapsat a
+změnit ji může jen její uživatel.
 
 Account, Tenant a první administrátor vznikají jen seedem při startu
 (`EvilBrains__EvilCase__Auth__Seed__*`, jen do prázdné tabulky uživatelů). Žádné UI pro
@@ -30,13 +31,16 @@ správu účtů, žádná registrace.
 
 Data nesmí utéct mezi tenanty; únik je kritická chyba.
 
-- Každá tenantová entita má EF global query filter na `TenantId`; tenant dodává
-  `ITenantContext`, který nahrazuje `IOwnerContext`.
-- Access token nese tenant claim; `ITenantContext` ho čte z principalu.
+- Každá tenantová entita má EF global query filter na `TenantId`; tenant i uživatele dodává
+  `IUserContext`.
+- Access token nese tenant claim i subject claim; `IUserContext` je čte z principalu.
 - `SaveChanges` doplní `TenantId` nové tenantové entitě z kontextu a zápis do cizího tenanta
   odmítne.
-- Seed běží pod explicitním tenant scope; kontrola v `SaveChanges` porovnává proti tenantu
-  dodanému seederem, ne proti principalu požadavku.
+- `SaveChanges` doplní `UserId` nové uživatelské entitě z `IUserContext` a zápis, změnu i
+  smazání řádky jiného uživatele odmítne. Seed při startu vstupuje do `IUserContext.Enter`
+  vlastním tenantem a uživatelem, takže zápis prochází stejnou kontrolou jako požadavek.
+- Seed běží pod explicitním scope `IUserContext.Enter(tenantId, userId)`; mimo požadavek se
+  tenant a uživatel nastavují jen společně.
 - Unikátní indexy tenantových entit jsou kompozitní s `TenantId`.
 - Konvenční test hlídá, že žádná tenantová entita filtr nepostrádá (SDD-003).
 
@@ -54,9 +58,12 @@ včetně refresh.
 - Vynucení izolace: jen ruční scope v dotazech / query filtry + kontrola zápisu. Platí query
   filtry a kontrola v `SaveChanges`.
 - Vznik účtů: registrace v UI / jen seed. Platí jen seed.
+- Plnění UserId: volající / interceptor. Platí interceptor; jen prázdnou hodnotu na nové řadě.
+- Zápis cizí řádky uvnitř tenantu: povolený / odmítnutý. Platí odmítnutý — řádka jiného
+  uživatele je v tenantu vidět, ale zapsat, změnit ani smazat ji nelze.
 
 ## Dopady
 
-- `IOwnerContext` a `PrincipalOwnerContext` zanikají; nahrazuje je `ITenantContext`.
+- `IOwnerContext` a `PrincipalOwnerContext` zanikají; nahrazuje je `IUserContext`.
 - Sloupce `OwnerId` zanikají; nahrazuje je `TenantId` + `UserId` (SDD-007).
 - `.claude/rules/business.md` (Ownership) se mění s kódem M2.

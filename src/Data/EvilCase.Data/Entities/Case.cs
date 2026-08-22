@@ -16,7 +16,7 @@ public record Case : IUserOwnedEntity
 
     public Guid TenantId { get; init; }
 
-    public required Guid UserId { get; init; }
+    public Guid UserId { get; init; }
 
     public Guid? ParentCaseId { get; init; }
 

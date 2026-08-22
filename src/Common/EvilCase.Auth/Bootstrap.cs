@@ -91,7 +91,7 @@ public static class Bootstrap
             return;
 
         var dbSession = scope.ServiceProvider.GetRequiredService<IDbSession>();
-        await using var transaction = await dbSession.Current.Database.BeginTransactionAsync(cancellationToken);
+        await using var transaction = await dbSession.BeginTransaction(cancellationToken);
 
         await seeder.Seed(cancellationToken);
 

@@ -4,7 +4,6 @@ using EvilBrains.EvilCase.Business.Numbering;
 using EvilBrains.EvilCase.Business.Seeding;
 using EvilBrains.EvilCase.Data;
 using EvilBrains.EvilCase.Data.DbContexts;
-using EvilBrains.EvilCase.Domain.Tenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -57,18 +56,19 @@ public static class Bootstrap
             return;
         }
 
-        using var tenantScope = scope.ServiceProvider.GetRequiredService<ITenantContext>().Enter(user.TenantId);
+        // The seed enters the tenant itself, so this guard names the tenant instead of leaning on the filter.
+        var seeded = await dbSession.Current.Cases
+            .IgnoreQueryFilters()
+            .AnyAsync(@case => @case.TenantId == user.TenantId, cancellationToken);
 
-        if (await dbSession.Current.Cases.AnyAsync(cancellationToken))
+        if (seeded)
         {
             logger.LogInformation("Sample data seed skipped, tenant {TenantId} already holds a case", user.TenantId);
             return;
         }
 
-        await using var transaction = await dbSession.Current.Database.BeginTransactionAsync(cancellationToken);
+        var seeder = scope.ServiceProvider.GetRequiredService<ISampleDataSeeder>();
 
-        await scope.ServiceProvider.GetRequiredService<ISampleDataSeeder>().Seed(user.TenantId, user.Id, cancellationToken);
-
-        await transaction.CommitAsync(cancellationToken);
+        await seeder.Seed(user.Id, cancellationToken);
     }
 }
