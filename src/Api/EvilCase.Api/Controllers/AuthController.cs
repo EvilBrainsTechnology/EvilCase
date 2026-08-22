@@ -12,7 +12,7 @@ namespace EvilBrains.EvilCase.Api.Controllers;
 [ApiController]
 [GenerateApiClient]
 [Route(AuthRoute.Template)]
-public class AuthController(IAuthService authService) : ControllerBase
+public class AuthController : ControllerBase
 {
     // The column behind it; a browser is free to send more than that.
     private const int UserAgentMaxLength = 256;
@@ -22,7 +22,7 @@ public class AuthController(IAuthService authService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status423Locked)]
-    public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request, CancellationToken token)
+    public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request, [FromServices] IAuthService authService, CancellationToken token)
     {
         var result = await authService.Login(request.Email, request.Password, this.DescribeClient(), token);
 
@@ -48,7 +48,7 @@ public class AuthController(IAuthService authService) : ControllerBase
     [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult<LoginResponse>> Refresh(CancellationToken token)
+    public async Task<ActionResult<LoginResponse>> Refresh([FromServices] IAuthService authService, CancellationToken token)
     {
         var refreshToken = this.Request.Cookies[RefreshCookie.Name];
 
@@ -76,7 +76,7 @@ public class AuthController(IAuthService authService) : ControllerBase
     [HttpPost("logout")]
     [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<ActionResult> Logout(CancellationToken token)
+    public async Task<ActionResult> Logout([FromServices] IAuthService authService, CancellationToken token)
     {
         // Anonymous on purpose: an expired access token must not stop someone from signing out, and the
         // cookie is the only thing this needs.
@@ -93,7 +93,7 @@ public class AuthController(IAuthService authService) : ControllerBase
     [HttpPost("logout-all")]
     [Authorize]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<ActionResult> LogoutAll(CancellationToken token)
+    public async Task<ActionResult> LogoutAll([FromServices] IAuthService authService, CancellationToken token)
     {
         await authService.SignOutEverywhere(this.UserId(), token);
 
@@ -104,7 +104,7 @@ public class AuthController(IAuthService authService) : ControllerBase
 
     [HttpGet("sessions")]
     [Authorize]
-    public async Task<ActionResult<IReadOnlyList<SessionInfo>>> Sessions(CancellationToken token)
+    public async Task<ActionResult<IReadOnlyList<SessionInfo>>> Sessions([FromServices] IAuthService authService, CancellationToken token)
     {
         var current = this.CurrentAuthSessionId();
         var sessions = await authService.GetSessions(this.UserId(), token);

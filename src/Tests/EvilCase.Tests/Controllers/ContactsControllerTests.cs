@@ -11,10 +11,10 @@ public class ContactsControllerTests
     public async Task TheRequestReachesTheReaderUntouched()
     {
         var reader = new RecordingContactReader();
-        var controller = new ContactsController(reader);
+        var controller = new ContactsController();
         var request = new ContactListRequest { Search = "úřad" };
 
-        await controller.ListContacts(request, CancellationToken.None);
+        await controller.ListContacts(request, reader, CancellationToken.None);
 
         Assert.That(reader.Request?.Search, Is.EqualTo("úřad"));
     }
@@ -23,9 +23,9 @@ public class ContactsControllerTests
     public async Task TheItemsAreReturnedInTheOrderTheReaderGaveThem()
     {
         var reader = new RecordingContactReader { Items = [Item("Krajský soud ve Vzorově"), Item("Česká advokátní komora")] };
-        var controller = new ContactsController(reader);
+        var controller = new ContactsController();
 
-        var response = await controller.ListContacts(new ContactListRequest(), CancellationToken.None);
+        var response = await controller.ListContacts(new ContactListRequest(), reader, CancellationToken.None);
 
         Assert.That(response.Items.Select(item => item.Name), Is.EqualTo(["Krajský soud ve Vzorově", "Česká advokátní komora"]));
     }

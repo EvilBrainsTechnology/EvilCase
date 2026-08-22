@@ -27,6 +27,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Utils\EvilBrains.Collections\EvilBrains.Collections.csproj" />
+    <!-- Analyzer and reference in one: the tests run the analyzers and also instantiate them. -->
+    <ProjectReference Include="..\..\EvilBrains.Analyzers\EvilBrains.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="true" />
     <ProjectReference Include="..\..\EvilBrains.ApiClient\EvilBrains.ApiClient.csproj" />
     <ProjectReference Include="..\..\EvilBrains.Cryptography\EvilBrains.Cryptography.csproj" />
     <ProjectReference Include="..\..\EvilBrains.Dispose\EvilBrains.Dispose.csproj" />

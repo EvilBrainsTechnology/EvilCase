@@ -25,6 +25,8 @@ Controllers are the single source of truth and DTOs live in `EvilCase.Api.Contra
 is generated from the controller sources. The `EB1xxx` diagnostics are the spec for both: read
 the diagnostic, never work around it.
 
+Controllers have no constructor; an action takes each dependency as a `[FromServices]` parameter.
+
 ## Secrets and logging
 
 Secrets come from environment variables in every environment; Development additionally loads

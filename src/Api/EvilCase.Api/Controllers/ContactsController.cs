@@ -8,10 +8,10 @@ namespace EvilBrains.EvilCase.Api.Controllers;
 [ApiController]
 [GenerateApiClient]
 [Route("api/contacts")]
-public class ContactsController(IContactReader contacts) : ControllerBase
+public class ContactsController : ControllerBase
 {
     [HttpGet("")]
-    public async Task<ContactListResponse> ListContacts([FromQuery] ContactListRequest request, CancellationToken cancellationToken)
+    public async Task<ContactListResponse> ListContacts([FromQuery] ContactListRequest request, [FromServices] IContactReader contacts, CancellationToken cancellationToken)
     {
         var items = await contacts.List(request, cancellationToken);
 
