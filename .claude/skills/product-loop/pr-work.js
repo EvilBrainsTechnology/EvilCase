@@ -29,8 +29,9 @@ const REVIEW_SCHEMA = {
 const results = await pipeline(
   args,
   async (item) => {
-    // The fast lane has no plan; the work stage ignores it.
-    if (item.fast) return null
+    // The fast lane has no plan; the work stage ignores it. Returning null here would
+    // drop the item and skip the work stage.
+    if (item.fast) return 'fast lane: no plan'
     const plan = await agent(
       `Plan the rework of pull request #${item.pr} (branch ${item.branch}).\n\n${item.instructions}`,
       { agentType: 'architect', phase: 'Plan', label: `plan:#${item.pr}` },
