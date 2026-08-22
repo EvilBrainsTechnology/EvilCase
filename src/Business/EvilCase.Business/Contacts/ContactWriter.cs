@@ -1,6 +1,5 @@
 using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Data.DbContexts;
-using EvilBrains.EvilCase.Domain.Contacts;
 using EvilBrains.EvilCase.Domain.Users;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,17 +11,17 @@ internal sealed class ContactWriter(IDbSession session, IUserContext userContext
     // entity would save nothing. The statement sets Updated itself (SDD-018).
     public async Task<ContactUpdateOutcome> Update(Guid id, ContactEditRequest request, CancellationToken cancellationToken = default)
     {
-        var (name, kind, dataBoxId, address) = Normalized(request);
+        var normalized = Normalize(request);
         var now = timeProvider.GetUtcNow().UtcDateTime;
 
         var rows = await session.Current.Contacts
-            .WithId(id)
+            .Where(contact => contact.Id == id)
             .ExecuteUpdateAsync(
                 setters => setters
-                    .SetProperty(contact => contact.Name, name)
-                    .SetProperty(contact => contact.Kind, kind)
-                    .SetProperty(contact => contact.DataBoxId, dataBoxId)
-                    .SetProperty(contact => contact.Address, address)
+                    .SetProperty(contact => contact.Name, normalized.Name)
+                    .SetProperty(contact => contact.Kind, normalized.Kind)
+                    .SetProperty(contact => contact.DataBoxId, normalized.DataBoxId)
+                    .SetProperty(contact => contact.Address, normalized.Address)
                     .SetProperty(contact => contact.Updated, now),
                 cancellationToken);
 
@@ -33,14 +32,14 @@ internal sealed class ContactWriter(IDbSession session, IUserContext userContext
     {
         var context = session.Current;
 
-        var contact = await context.Contacts.WithId(id).FirstOrDefaultAsync(cancellationToken);
+        var contact = await context.Contacts.Where(contact => contact.Id == id).SingleOrDefaultAsync(cancellationToken);
         if (contact is null)
             return ContactDeleteOutcome.NotFound;
 
         if (await context.Users.WithDefaultContact(userContext, id).AnyAsync(cancellationToken))
             return ContactDeleteOutcome.DefaultContact;
 
-        if (await context.ReferencingContact(id).AnyAsync(cancellationToken))
+        if (await session.Current.IsContactReferenced(id, cancellationToken))
             return ContactDeleteOutcome.Referenced;
 
         context.Contacts.Remove(contact);
@@ -49,12 +48,14 @@ internal sealed class ContactWriter(IDbSession session, IUserContext userContext
         return ContactDeleteOutcome.Deleted;
     }
 
-    /// <summary>
-    /// What the edit writes. A field left blank is filed as nothing rather than as an empty string.
-    /// </summary>
-    internal static (string Name, ContactKind Kind, string? DataBoxId, string? Address) Normalized(ContactEditRequest request)
+    internal static ContactEditRequest Normalize(ContactEditRequest request)
     {
-        return (request.Name.Trim(), request.Kind, Trimmed(request.DataBoxId), Trimmed(request.Address));
+        return request with
+        {
+            Name = request.Name.Trim(),
+            DataBoxId = Trimmed(request.DataBoxId),
+            Address = Trimmed(request.Address),
+        };
     }
 
     private static string? Trimmed(string? value)
