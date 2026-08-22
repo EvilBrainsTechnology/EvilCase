@@ -63,8 +63,7 @@ public class SampleDataSeederTests
     {
         var (context, _, _, _) = await Run();
 
-        var groups = context
-            .Added<Act>()
+        var groups = context.Added<Act>()
             .GroupBy(act => act.CaseId)
             .Select(group => group.Select(act => act.Date).ToList())
             .ToList();

@@ -7,8 +7,7 @@ public class AwaitEnumerableTests
     [Test]
     public async Task AwaitEnumerableTest()
     {
-        var values = await Enumerable
-            .Range(2, 3)
+        var values = await Enumerable.Range(2, 3)
             .Select(this.Foo)
             .AsReadOnlyCollectionAsync();
 
@@ -18,8 +17,7 @@ public class AwaitEnumerableTests
     [Test]
     public async Task AwaitAsyncEnumerableTest()
     {
-        var values = await Enumerable
-            .Range(2, 3)
+        var values = await Enumerable.Range(2, 3)
             .Select(this.Foo)
             .AsAsyncEnumerable()
             .Select(x => 2 * x)
