@@ -15,10 +15,13 @@ internal static class ContactOccurrenceQuery
         return numbers.Where(number => number.AssignedByContactId == contactId);
     }
 
+    // Length decides before the text, so a sequence that grew a digit follows the one below it
+    // instead of preceding it (SDD-008).
     public static IQueryable<ExternalCaseNumber> InCaseOccurrenceOrder(this IQueryable<ExternalCaseNumber> numbers)
     {
         return numbers
             .OrderByDescending(number => number.Case!.Date)
+            .ThenBy(number => number.Case!.CaseNumber.Length)
             .ThenBy(number => number.Case!.CaseNumber)
             .ThenBy(number => number.Value);
     }

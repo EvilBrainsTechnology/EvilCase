@@ -45,6 +45,17 @@ public class ContactOccurrenceQueryTests
     }
 
     [Test]
+    public void TheCaseOccurrenceOrderReadsTheNumbersLengthBeforeItsText()
+    {
+        var sql = this.context.ExternalCaseNumbers
+            .AssignedByContact(Guid.CreateVersion7())
+            .InCaseOccurrenceOrder()
+            .ToQueryString();
+
+        Assert.That(sql, Does.Contain("length(").IgnoreCase, "a sequence that grew a digit follows the one below it instead of preceding it");
+    }
+
+    [Test]
     public void IssuedByAndAddressedToOccurrencesEachNarrowByTheirOwnColumn()
     {
         var id = Guid.CreateVersion7();
