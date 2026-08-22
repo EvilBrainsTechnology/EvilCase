@@ -1,4 +1,5 @@
 using EvilBrains.EvilCase.Api.Contract.Contacts;
+using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,7 +18,7 @@ internal static class ContactDetailQuery
     public static Task<ContactDetail?> DetailOf(this IQueryable<Contact> contacts, Guid id, CancellationToken cancellationToken = default)
     {
         return contacts
-            .Where(contact => contact.Id == id)
+            .WithId(id)
             .Select(contact => new ContactDetail
             {
                 Id = contact.Id,

@@ -1,11 +1,10 @@
 using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Data.DbContexts;
-using EvilBrains.EvilCase.Domain.Users;
 using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Business.Contacts;
 
-internal sealed class ContactReader(IDbSession dbSession, IUserContext userContext) : IContactReader
+internal sealed class ContactReader(IDbSession dbSession) : IContactReader
 {
     public async Task<IReadOnlyList<ContactListItem>> List(ContactListRequest request, CancellationToken cancellationToken = default)
     {
@@ -27,7 +26,7 @@ internal sealed class ContactReader(IDbSession dbSession, IUserContext userConte
             return null;
 
         var isDefault = await context.Users
-            .WithDefaultContact(userContext, id)
+            .WithDefaultContact(id)
             .AnyAsync(cancellationToken);
 
         var cases = await context.ExternalCaseNumbers

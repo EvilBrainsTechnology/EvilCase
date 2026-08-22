@@ -1,28 +1,26 @@
+using EvilBrains.Collections;
 using EvilBrains.EvilCase.Api.Contract.Contacts;
+using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Data.DbContexts;
-using EvilBrains.EvilCase.Domain.Users;
 using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Business.Contacts;
 
-internal sealed class ContactWriter(IDbSession session, IUserContext userContext, TimeProvider timeProvider) : IContactWriter
+internal sealed class ContactWriter(IDbSession session, TimeProvider timeProvider) : IContactWriter
 {
-    // The edit goes through ExecuteUpdate: the context reads NoTracking, so a change written onto the
-    // entity would save nothing. The statement sets Updated itself (SDD-018).
     public async Task<ContactUpdateOutcome> Update(Guid id, ContactEditRequest request, CancellationToken cancellationToken = default)
     {
         var normalized = Normalize(request);
         var now = timeProvider.GetUtcNow().UtcDateTime;
 
         var rows = await session.Current.Contacts
-            .Where(contact => contact.Id == id)
+            .WithId(id)
             .ExecuteUpdateAsync(
                 setters => setters
                     .SetProperty(contact => contact.Name, normalized.Name)
                     .SetProperty(contact => contact.Kind, normalized.Kind)
                     .SetProperty(contact => contact.DataBoxId, normalized.DataBoxId)
-                    .SetProperty(contact => contact.Address, normalized.Address)
-                    .SetProperty(contact => contact.Updated, now),
+                    .SetProperty(contact => contact.Address, normalized.Address),
                 cancellationToken);
 
         return rows == 0 ? ContactUpdateOutcome.NotFound : ContactUpdateOutcome.Updated;
@@ -37,13 +35,13 @@ internal sealed class ContactWriter(IDbSession session, IUserContext userContext
             return ContactDeleteOutcome.NotFound;
 
         var isDefault = await context.Users
-            .WithDefaultContact(userContext, id)
+            .WithDefaultContact(id)
             .AnyAsync(cancellationToken);
         if (isDefault)
             return ContactDeleteOutcome.DefaultContact;
 
         var referenced = await context.Contacts
-            .Where(contact => contact.Id == id)
+            .WithId(id)
             .Referenced()
             .AnyAsync(cancellationToken);
         if (referenced)
@@ -60,13 +58,8 @@ internal sealed class ContactWriter(IDbSession session, IUserContext userContext
         return request with
         {
             Name = request.Name.Trim(),
-            DataBoxId = Trimmed(request.DataBoxId),
-            Address = Trimmed(request.Address),
+            DataBoxId = request.DataBoxId?.TrimEmptyToNull(),
+            Address = request.Address?.TrimEmptyToNull(),
         };
-    }
-
-    private static string? Trimmed(string? value)
-    {
-        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     }
 }

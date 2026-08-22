@@ -1,4 +1,5 @@
 using EvilBrains.EvilCase.Business.Contacts;
+using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Migrations.DbContexts;
 using Microsoft.EntityFrameworkCore;
@@ -29,7 +30,7 @@ public class ContactReferencesTests
     {
         var id = Guid.CreateVersion7();
         var sql = this.context.Contacts
-            .Where(contact => contact.Id == id)
+            .WithId(id)
             .Referenced()
             .ToQueryString();
 

@@ -1,3 +1,4 @@
+using EvilBrains.Collections;
 using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Domain.Numbering;
 
@@ -14,16 +15,14 @@ internal static class ContactOccurrences
         IEnumerable<ContactActOccurrence> addressedTo,
         IEnumerable<ContactActOccurrence> numberIssuer)
     {
-        return
-        [
-            .. issuedBy
-                .Concat(addressedTo)
-                .Concat(numberIssuer)
-                .OrderByDescending(occurrence => occurrence.ActDate)
-                .ThenByDescending(NumberOrder)
-                .ThenByDescending(occurrence => occurrence.ActNumber, StringComparer.Ordinal)
-                .ThenBy(occurrence => occurrence.Role),
-        ];
+        return issuedBy
+            .Concat(addressedTo)
+            .Concat(numberIssuer)
+            .OrderByDescending(occurrence => occurrence.ActDate)
+            .ThenByDescending(NumberOrder)
+            .ThenByDescending(occurrence => occurrence.ActNumber, StringComparer.Ordinal)
+            .ThenBy(occurrence => occurrence.Role)
+            .AsReadOnlyList();
     }
 
     // A number orders by what it says, not by how it reads: 1000 follows 999 instead of preceding 002.

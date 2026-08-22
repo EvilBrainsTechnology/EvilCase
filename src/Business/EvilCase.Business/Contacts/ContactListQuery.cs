@@ -19,11 +19,7 @@ public static class ContactListQuery
         if (string.IsNullOrWhiteSpace(search))
             return contacts;
 
-        var term = search
-            .Trim()
-            .EscapeLikeWildcards();
-
-        var pattern = $"%{term}%";
+        var pattern = $"%{search.Trim().EscapeLikeWildcards()}%";
 
         return contacts.Where(contact =>
             EF.Functions.ILike(DatabaseFunctions.Unaccent(contact.Name), DatabaseFunctions.Unaccent(pattern), LikeExtensions.LikeEscape)

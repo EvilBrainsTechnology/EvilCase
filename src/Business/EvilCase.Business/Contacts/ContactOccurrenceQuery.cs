@@ -5,8 +5,7 @@ using EvilBrains.EvilCase.Domain.Contacts;
 namespace EvilBrains.EvilCase.Business.Contacts;
 
 /// <summary>
-/// Shapes each of the four places a contact can be named, one query per place. The reader merges and
-/// orders the act sources; the case source is ordered here since it is read alone.
+/// Shapes each of the four places a contact can be named, one query per place.
 /// </summary>
 internal static class ContactOccurrenceQuery
 {
@@ -15,14 +14,12 @@ internal static class ContactOccurrenceQuery
         return numbers.Where(number => number.AssignedByContactId == contactId);
     }
 
-    // Length decides before the text, so a sequence that grew a digit follows the one below it
-    // instead of preceding it (SDD-008).
     public static IQueryable<ExternalCaseNumber> InCaseOccurrenceOrder(this IQueryable<ExternalCaseNumber> numbers)
     {
         return numbers
             .OrderByDescending(number => number.Case!.Date)
-            .ThenBy(number => number.Case!.CaseNumber.Length)
-            .ThenBy(number => number.Case!.CaseNumber)
+            .ThenByDescending(number => number.Case!.CaseNumber.Length)
+            .ThenByDescending(number => number.Case!.CaseNumber)
             .ThenBy(number => number.Value);
     }
 

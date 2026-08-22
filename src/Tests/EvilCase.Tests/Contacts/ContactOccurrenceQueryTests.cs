@@ -136,7 +136,7 @@ public class ContactOccurrenceQueryTests
         using var _ = userContext.Enter(Guid.CreateVersion7(), Guid.CreateVersion7());
 
         var sql = this.context.Users
-            .WithDefaultContact(userContext, Guid.CreateVersion7())
+            .WithDefaultContact(Guid.CreateVersion7())
             .ToQueryString();
 
         using (Assert.EnterMultipleScope())
