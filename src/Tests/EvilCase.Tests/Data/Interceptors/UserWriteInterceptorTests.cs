@@ -174,17 +174,38 @@ public class UserWriteInterceptorTests
     }
 
     [Test]
+    public void TheWriteStampsTheTenantOnAUserCreatedWithoutOne()
+    {
+        var user = NewUser();
+        this.context.Users.Add(user);
+
+        var userContext = new StubUserContext();
+        using var scope = userContext.Enter(TenantA, UserA);
+        var interceptor = new UserWriteInterceptor(userContext);
+
+        Save(interceptor, this.context);
+
+        Assert.That(this.context.Entry(user).Property(nameof(User.TenantId)).CurrentValue, Is.EqualTo(TenantA), "a user takes the tenant of the write, so the seed does not name it");
+    }
+
+    [Test]
+    public void AUserCreatedUnderAnotherTenantNeverReachesTheDatabase()
+    {
+        this.context.Users.Add(NewUser(TenantB));
+
+        var userContext = new StubUserContext();
+        using var scope = userContext.Enter(TenantA, UserA);
+        var interceptor = new UserWriteInterceptor(userContext);
+
+        Assert.That(
+            () => Save(interceptor, this.context),
+            Throws.InvalidOperationException,
+            "a user of another tenant is refused, not silently restamped");
+    }
+
+    [Test]
     public void AWriteWithoutATenantRowNeedsNoContext()
     {
-        this.context.Users.Add(new User
-        {
-            TenantId = TenantA,
-            Email = "user@evilcase.test",
-            PasswordHash = "hash",
-            Role = UserRole.User,
-            DefaultContactId = Guid.CreateVersion7(),
-        });
-
         this.context.RefreshTokens.Add(new RefreshToken
         {
             UserId = Guid.CreateVersion7(),
@@ -205,6 +226,18 @@ public class UserWriteInterceptorTests
     private static void Save(UserWriteInterceptor interceptor, DbContext dbContext)
     {
         interceptor.SavingChanges(new DbContextEventData(null!, null!, dbContext), default);
+    }
+
+    private static User NewUser(in Guid tenantId = default)
+    {
+        return new()
+        {
+            TenantId = tenantId,
+            Email = "user@evilcase.test",
+            PasswordHash = "hash",
+            Role = UserRole.User,
+            DefaultContactId = Guid.CreateVersion7(),
+        };
     }
 
     private static Contact NewContact(in Guid tenant)

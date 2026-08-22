@@ -16,8 +16,9 @@ Doménové entity popisuje SDD-007.
 
 - **Account** — id a název. Zastřešuje N tenantů.
 - **Tenant** — id, název, `AccountId`. Hranice izolace dat.
-- **User** — patří právě jednomu tenantu (`User.TenantId`). Dnešní sloupce (e-mail, hash
-  hesla, role, lockout) zůstávají; přibývá `TenantId` a povinný `DefaultContactId` (SDD-011).
+- **User** — tenantová entita, patří právě jednomu tenantu (`User.TenantId`). Dnešní sloupce
+  (e-mail, hash hesla, role, lockout) zůstávají; přibývá `TenantId` a povinný `DefaultContactId`
+  (SDD-011).
 
 Každá tenantová entita nese `TenantId`. Vlastníka `UserId` nese každá kromě kontaktu; kontakt
 patří tenantu (SDD-011). Obojí plní zápis, ne volající. Viditelná je v celém tenantu, zapsat a
@@ -32,7 +33,8 @@ správu účtů, žádná registrace.
 Data nesmí utéct mezi tenanty; únik je kritická chyba.
 
 - Každá tenantová entita má EF global query filter na `TenantId`; tenant i uživatele dodává
-  `IUserContext`.
+  `IUserContext`. Výjimka je uživatel: přihlášení ho najde podle e-mailu dřív, než je tenant
+  znám, takže filtr nemá.
 - Access token nese tenant claim i subject claim; `IUserContext` je čte z principalu.
 - `SaveChanges` doplní `TenantId` nové tenantové entitě z kontextu a zápis do cizího tenanta
   odmítne.
@@ -41,7 +43,8 @@ Data nesmí utéct mezi tenanty; únik je kritická chyba.
   vlastním tenantem a uživatelem, takže zápis prochází stejnou kontrolou jako požadavek.
 - Seed běží pod explicitním scope `IUserContext.Enter(tenantId, userId)`; mimo požadavek se
   tenant a uživatel nastavují jen společně.
-- Unikátní indexy tenantových entit jsou kompozitní s `TenantId`.
+- Unikátní indexy tenantových entit jsou kompozitní s `TenantId`; e-mail uživatele je unikátní
+  přes celé nasazení.
 - Konvenční test hlídá, že žádná tenantová entita filtr nepostrádá (SDD-003).
 
 ### Autentizace

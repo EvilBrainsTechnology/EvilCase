@@ -13,8 +13,8 @@
     <Company>Martin Volek</Company>
     <Authors>Martin Volek</Authors>
     <Copyright>Copyright (c) 2025-2026 Martin Volek. All rights reserved.</Copyright>
-    <!-- The analyzer tests instantiate the analyzers; every other project only loads them. -->
-    <ReferenceAnalyzersAssembly Condition="'$(MSBuildProjectName)' == 'EvilBrains.Utils.Tests'">true</ReferenceAnalyzersAssembly>
+    <!-- The generator's analyzers and the analyzer tests use the analyzer assembly's types; every other project only loads it. -->
+    <ReferenceAnalyzersAssembly Condition="'$(MSBuildProjectName)' == 'EvilBrains.Utils.Tests' or '$(MSBuildProjectName)' == 'EvilBrains.ApiClient.Generator'">true</ReferenceAnalyzersAssembly>
     <ReferenceAnalyzersAssembly Condition="'$(ReferenceAnalyzersAssembly)' == ''">false</ReferenceAnalyzersAssembly>
   </PropertyGroup>
 

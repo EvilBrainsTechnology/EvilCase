@@ -32,6 +32,7 @@ What it cannot see:
 
 `IUserContext` is the only place tenant and user resolve; a query takes it, never a `tenantId`
 parameter or `HttpContext`. Every tenant entity implements `ITenantEntity`, carries a query filter
-on `TenantId` and leads its unique indexes with it; `SaveChanges` refuses another tenant's row,
-fills a user-owned row's `UserId` from it and refuses another user's row. Work outside a request
-enters both ids at once.
+on `TenantId` and leads its unique indexes with it. The user is the one that carries neither: a
+sign-in reaches it by e-mail alone, unique across the deployment. `SaveChanges` refuses another
+tenant's row, fills a user-owned row's `UserId` from it and refuses another user's row. Work
+outside a request enters both ids at once.

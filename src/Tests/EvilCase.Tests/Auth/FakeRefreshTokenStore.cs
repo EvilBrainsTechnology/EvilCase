@@ -3,7 +3,7 @@ using EvilBrains.EvilCase.Data.Entities;
 
 namespace EvilBrains.EvilCase.Tests.Auth;
 
-internal sealed class FakeRefreshTokenStore : IRefreshTokenStore
+internal sealed class FakeRefreshTokenStore(TimeProvider timeProvider) : IRefreshTokenStore
 {
     private readonly List<RefreshToken> tokens = [];
 
@@ -31,8 +31,9 @@ internal sealed class FakeRefreshTokenStore : IRefreshTokenStore
 
     public Task Add(RefreshToken refreshToken, CancellationToken cancellationToken)
     {
+        // The database stamps Created (SDD-018); this stands in for that trigger.
         lock (this.writes)
-            this.tokens.Add(refreshToken);
+            this.tokens.Add(refreshToken with { Created = timeProvider.GetUtcNow().UtcDateTime });
 
         return Task.CompletedTask;
     }

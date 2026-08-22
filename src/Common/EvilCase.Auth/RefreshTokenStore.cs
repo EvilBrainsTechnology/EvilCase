@@ -27,8 +27,7 @@ internal sealed class RefreshTokenStore(IDbSession dbSession) : IRefreshTokenSto
             .ExecuteUpdateAsync(
                 setters => setters
                     .SetProperty(token => token.RevokedAt, now)
-                    .SetProperty(token => token.LastUsed, now)
-                    .SetProperty(token => token.Updated, now),
+                    .SetProperty(token => token.LastUsed, now),
                 cancellationToken) > 0;
     }
 
@@ -38,9 +37,7 @@ internal sealed class RefreshTokenStore(IDbSession dbSession) : IRefreshTokenSto
             .Where(token => token.AuthSessionId == authSessionId)
             .Where(token => token.RevokedAt == null)
             .ExecuteUpdateAsync(
-                setters => setters
-                    .SetProperty(token => token.RevokedAt, now)
-                    .SetProperty(token => token.Updated, now),
+                setters => setters.SetProperty(token => token.RevokedAt, now),
                 cancellationToken);
     }
 
@@ -50,9 +47,7 @@ internal sealed class RefreshTokenStore(IDbSession dbSession) : IRefreshTokenSto
             .Where(token => token.UserId == userId)
             .Where(token => token.RevokedAt == null)
             .ExecuteUpdateAsync(
-                setters => setters
-                    .SetProperty(token => token.RevokedAt, now)
-                    .SetProperty(token => token.Updated, now),
+                setters => setters.SetProperty(token => token.RevokedAt, now),
                 cancellationToken);
     }
 

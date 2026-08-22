@@ -1,6 +1,7 @@
 using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Domain.Users;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace EvilBrains.EvilCase.Data.DbContexts;
 
@@ -66,7 +67,20 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .ToList();
 
         foreach (var entityType in entityTypes)
-            modelBuilder.Entity(entityType.ClrType).Property(nameof(IEntity.Id)).ValueGeneratedNever();
+        {
+            var entity = modelBuilder.Entity(entityType.ClrType);
+
+            entity.Property(nameof(IEntity.Id)).ValueGeneratedNever();
+
+            // A trigger stamps both, so a write sends neither and reads back what the database wrote.
+            var created = entity.Property(nameof(IEntity.Created)).ValueGeneratedOnAdd().Metadata;
+            created.SetBeforeSaveBehavior(PropertySaveBehavior.Ignore);
+            created.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+
+            var updated = entity.Property(nameof(IEntity.Updated)).ValueGeneratedOnAddOrUpdate().Metadata;
+            updated.SetBeforeSaveBehavior(PropertySaveBehavior.Ignore);
+            updated.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+        }
     }
 
     // Every enum is stored as its name, in a column as wide as the longest name that enum has.
@@ -132,12 +146,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .WithMany()
             .HasForeignKey(nameof(Tenant.AccountId))
             .OnDelete(DeleteBehavior.Cascade);
-
-        modelBuilder.Entity<User>()
-            .HasOne(typeof(Tenant))
-            .WithMany()
-            .HasForeignKey(nameof(User.TenantId))
-            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<User>()
             .HasOne(user => user.DefaultContact)
