@@ -20,7 +20,7 @@ Doménové entity popisuje SDD-007.
   hesla, role, lockout) zůstávají; přibývá `TenantId` a povinný `DefaultContactId` (SDD-011).
 
 Každá tenantová entita nese `TenantId`. Vlastníka `UserId` nese každá kromě kontaktu; kontakt
-patří tenantu (SDD-011). Viditelná je v celém tenantu.
+patří tenantu (SDD-011). Obojí plní zápis, ne volající. Viditelná je v celém tenantu.
 
 Account, Tenant a první administrátor vznikají jen seedem při startu
 (`EvilBrains__EvilCase__Auth__Seed__*`, jen do prázdné tabulky uživatelů). Žádné UI pro
@@ -33,8 +33,9 @@ Data nesmí utéct mezi tenanty; únik je kritická chyba.
 - Každá tenantová entita má EF global query filter na `TenantId`; tenant dodává
   `ITenantContext`, který nahrazuje `IOwnerContext`.
 - Access token nese tenant claim; `ITenantContext` ho čte z principalu.
-- `SaveChanges` doplní `TenantId` nové tenantové entitě z kontextu a zápis do cizího tenanta
-  odmítne.
+- `SaveChanges` doplní novému řádku `TenantId` z `ITenantContext` a `UserId` z `IUserContext` a
+  odmítne řádek, který nese cizího tenanta nebo cizího uživatele. Zápis bez uživatele v kontextu
+  — přihlášení a rotace tokenu — si `UserId` nese sám.
 - Seed běží pod explicitním tenant scope; kontrola v `SaveChanges` porovnává proti tenantu
   dodanému seederem, ne proti principalu požadavku.
 - Unikátní indexy tenantových entit jsou kompozitní s `TenantId`.
@@ -54,6 +55,7 @@ včetně refresh.
 - Vynucení izolace: jen ruční scope v dotazech / query filtry + kontrola zápisu. Platí query
   filtry a kontrola v `SaveChanges`.
 - Vznik účtů: registrace v UI / jen seed. Platí jen seed.
+- Plnění UserId: volající / interceptor. Platí interceptor; explicitní cizí hodnota je odmítnuta.
 
 ## Dopady
 

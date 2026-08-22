@@ -15,6 +15,8 @@ below is what neither says.
 - A test reads check constraints from `IDesignTimeModel`; `context.Model` has dropped them.
 - The application reads and writes through `IDbSession.Current`, always through the entity's
   typed `DbSet`; a `DbContext` never leaves its DI scope.
+- The write interceptor fills `TenantId` and `UserId` on an added row and refuses a row naming
+  another tenant or user; a caller assigns neither.
 
 ## Migrations
 

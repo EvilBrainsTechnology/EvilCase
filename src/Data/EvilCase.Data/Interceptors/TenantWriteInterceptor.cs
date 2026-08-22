@@ -1,15 +1,17 @@
 using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Domain.Tenancy;
+using EvilBrains.EvilCase.Domain.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace EvilBrains.EvilCase.Data.Interceptors;
 
 /// <summary>
-/// Fills a new tenant row's <c>TenantId</c> from <see cref="ITenantContext"/>. Refuses a row that
-/// already carries another tenant's id.
+/// Fills a new tenant row's <c>TenantId</c> from <see cref="ITenantContext"/> and a new user-owned row's
+/// <c>UserId</c> from <see cref="IUserContext"/>. Refuses a row that already carries another tenant's or
+/// another user's id.
 /// </summary>
-internal sealed class TenantWriteInterceptor(ITenantContext tenantContext) : SaveChangesInterceptor
+internal sealed class TenantWriteInterceptor(ITenantContext tenantContext, IUserContext userContext) : SaveChangesInterceptor
 {
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {
@@ -29,6 +31,12 @@ internal sealed class TenantWriteInterceptor(ITenantContext tenantContext) : Sav
     }
 
     private void Apply(DbContext? context)
+    {
+        this.ApplyTenant(context);
+        this.ApplyUser(context);
+    }
+
+    private void ApplyTenant(DbContext? context)
     {
         var entries = context?.ChangeTracker.Entries()
             .Where(entry => entry.Entity is ITenantEntity)
@@ -55,6 +63,39 @@ internal sealed class TenantWriteInterceptor(ITenantContext tenantContext) : Sav
             {
                 throw new InvalidOperationException(
                     $"{entry.Metadata.DisplayName()} is written under tenant {tenantId} but carries {property.CurrentValue}");
+            }
+        }
+    }
+
+    // Stamped on Added only: an update keeps whatever user the row already belongs to. A write with no
+    // signed-in user, such as sign-in itself, leaves whatever the caller set untouched.
+    private void ApplyUser(DbContext? context)
+    {
+        var entries = context?.ChangeTracker.Entries()
+            .Where(entry => entry.Entity is IUserOwnedEntity)
+            .Where(entry => entry.State == EntityState.Added)
+            .ToList();
+
+        if (entries is not { Count: > 0 })
+            return;
+
+        if (userContext.UserIdOrDefault is not { } userId)
+            return;
+
+        foreach (var entry in entries)
+        {
+            var property = entry.Property(nameof(IUserOwnedEntity.UserId));
+
+            if ((Guid)property.CurrentValue! == Guid.Empty)
+            {
+                property.CurrentValue = userId;
+                continue;
+            }
+
+            if ((Guid)property.CurrentValue! != userId)
+            {
+                throw new InvalidOperationException(
+                    $"{entry.Metadata.DisplayName()} is written by user {userId} but carries {property.CurrentValue}");
             }
         }
     }
