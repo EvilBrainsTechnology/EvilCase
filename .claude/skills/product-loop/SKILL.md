@@ -48,7 +48,7 @@ A round removes `blocked` from an issue whose `Blocked by #` issues have all mer
 
 ## 3. Tend the open pull requests
 
-- A `waiting-for-agent` or `ci-failed` pull request comes first, handled per Between rounds.
+- A `waiting-for-agent` or `ci-failed` pull request on a free branch comes first (Between rounds).
 - Answer every review comment in the round that finds it. Outstanding means a thread with no
   agent reply — read the threads, never filter by timestamp or count. A comment is at most
   three sentences; a reply to a review one says what changed, or why not.
@@ -61,10 +61,11 @@ A round removes `blocked` from an issue whose `Blocked by #` issues have all mer
 
 ## Between rounds
 
-A `subscribe_pr_activity` notification is handled when it arrives, never left for the next
-round. Triage the comments: a question gets its reply and the switch to `agent-done`; anything
-needing code sets `agent-in-progress` and starts one Workflow
-(`.claude/skills/product-loop/pr-work.js`, `args: [{pr, branch, instructions, fast}]`).
+A `subscribe_pr_activity` notification is handled when it arrives, never left for the next round.
+Triage the comments: a question gets its reply and the switch to `agent-done`; anything needing
+code sets `agent-in-progress` and starts one Workflow (`.claude/skills/product-loop/pr-work.js`,
+`args: [{pr, branch, instructions, fast}]`). One workflow per branch: a red CI run flags
+`ci-failed`, sets `agent-in-progress` and starts one such Workflow once its branch is free.
 
 ## 4. Report
 
