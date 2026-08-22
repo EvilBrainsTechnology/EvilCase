@@ -10,3 +10,4 @@ EB0002 | EvilBrains.Style | Warning | Single-line comment should be preceded by 
 EB0003 | EvilBrains.Style | Warning | Single-line comment should not be followed by a blank line
 EB0004 | EvilBrains.Style | Warning | Using directives should be ordered
 EB0005 | EvilBrains.Usage | Warning | ArgumentNullException.ThrowIfNull guards a non-nullable parameter
+EB0006 | EvilBrains.Style | Warning | Member should have a block body
