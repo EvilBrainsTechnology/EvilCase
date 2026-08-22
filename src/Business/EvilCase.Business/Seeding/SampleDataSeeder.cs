@@ -3,6 +3,7 @@ using EvilBrains.EvilCase.Business.Numbering;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Domain.Acts;
+using EvilBrains.EvilCase.Domain.Tenancy;
 using EvilBrains.EvilCase.Files;
 using Microsoft.Extensions.Logging;
 
@@ -10,13 +11,16 @@ namespace EvilBrains.EvilCase.Business.Seeding;
 
 internal sealed class SampleDataSeeder(
     IDbSession dbSession,
+    ITenantContext tenantContext,
     ICaseNumberIssuer caseNumberIssuer,
     IActNumberIssuer actNumberIssuer,
     IFileBlobStore fileBlobStore,
     ILogger<SampleDataSeeder> logger) : ISampleDataSeeder
 {
-    public async Task Seed(Guid tenantId, CancellationToken cancellationToken)
+    public async Task Seed(Guid userId, CancellationToken cancellationToken)
     {
+        var tenantId = tenantContext.TenantId;
+
         logger.LogInformation("Sample data seed started for tenant {TenantId}", tenantId);
 
         var contactsByKey = await this.SeedContacts(cancellationToken);
@@ -24,7 +28,7 @@ internal sealed class SampleDataSeeder(
         var counters = new SeedCounters();
 
         foreach (var sampleCase in SampleData.Cases)
-            await this.SeedCase(tenantId, sampleCase, contactsByKey, casesByKey, counters, cancellationToken);
+            await this.SeedCase(tenantId, userId, sampleCase, contactsByKey, casesByKey, counters, cancellationToken);
 
         logger.LogInformation(
             "Sample data seeded into tenant {TenantId}: {ContactCount} contacts, {CaseCount} cases, {ActCount} acts, "
@@ -63,6 +67,7 @@ internal sealed class SampleDataSeeder(
 
     private async Task SeedCase(
         Guid tenantId,
+        Guid userId,
         SampleCase sampleCase,
         Dictionary<string, Contact> contactsByKey,
         Dictionary<string, Case> casesByKey,
@@ -73,6 +78,7 @@ internal sealed class SampleDataSeeder(
 
         var @case = new Case
         {
+            UserId = userId,
             ParentCaseId = sampleCase.ParentKey is null ? null : casesByKey[sampleCase.ParentKey].Id,
             CaseNumber = caseNumber,
             Date = sampleCase.Date,
@@ -89,6 +95,7 @@ internal sealed class SampleDataSeeder(
         {
             dbSession.Current.ExternalCaseNumbers.Add(new ExternalCaseNumber
             {
+                UserId = userId,
                 CaseId = @case.Id,
                 Value = externalNumber.Value,
                 AssignedByContactId = contactsByKey[externalNumber.AssignedByKey].Id,
@@ -99,7 +106,7 @@ internal sealed class SampleDataSeeder(
 
         foreach (var body in sampleCase.Comments)
         {
-            dbSession.Current.Comments.Add(new Comment { CaseId = @case.Id, Body = body });
+            dbSession.Current.Comments.Add(new Comment { UserId = userId, CaseId = @case.Id, Body = body });
             counters.CommentCount++;
         }
 
@@ -107,6 +114,7 @@ internal sealed class SampleDataSeeder(
         {
             await this.AddFile(
                 tenantId,
+                userId,
                 @case.Id,
                 actId: null,
                 caseNumber.Replace('/', '-') + ".txt",
@@ -123,11 +131,12 @@ internal sealed class SampleDataSeeder(
             : SubCaseActs(sampleCase);
 
         foreach (var sampleAct in sampleActs)
-            await this.SeedAct(tenantId, @case, sampleAct, contactsByKey, counters, cancellationToken);
+            await this.SeedAct(tenantId, userId, @case, sampleAct, contactsByKey, counters, cancellationToken);
     }
 
     private async Task SeedAct(
         Guid tenantId,
+        Guid userId,
         Case @case,
         SampleAct sampleAct,
         Dictionary<string, Contact> contactsByKey,
@@ -142,6 +151,7 @@ internal sealed class SampleDataSeeder(
 
         var act = new Act
         {
+            UserId = userId,
             CaseId = @case.Id,
             ActNumber = actNumber,
             Direction = sampleAct.Direction,
@@ -160,6 +170,7 @@ internal sealed class SampleDataSeeder(
         {
             dbSession.Current.ExternalActNumbers.Add(new ExternalActNumber
             {
+                UserId = userId,
                 ActId = act.Id,
                 Value = externalNumber.Value,
                 AssignedByContactId = contactsByKey[externalNumber.AssignedByKey].Id,
@@ -170,18 +181,18 @@ internal sealed class SampleDataSeeder(
 
         foreach (var body in sampleAct.Comments)
         {
-            dbSession.Current.Comments.Add(new Comment { ActId = act.Id, Body = body });
+            dbSession.Current.Comments.Add(new Comment { UserId = userId, ActId = act.Id, Body = body });
             counters.CommentCount++;
         }
 
-        await this.AddFile(tenantId, caseId: null, act.Id, actNumber.Replace('/', '-') + ".txt", FileBody(sampleAct.Title, "Číslo jednací", actNumber, sampleAct.Date), cancellationToken);
+        await this.AddFile(tenantId, userId, caseId: null, act.Id, actNumber.Replace('/', '-') + ".txt", FileBody(sampleAct.Title, "Číslo jednací", actNumber, sampleAct.Date), cancellationToken);
         counters.FileCount++;
 
         if (sampleAct.ExtraFileSuffix is not null)
         {
             var fileName = actNumber.Replace('/', '-') + "-" + sampleAct.ExtraFileSuffix + ".txt";
 
-            await this.AddFile(tenantId, caseId: null, act.Id, fileName, FileBody(sampleAct.Title, "Číslo jednací", actNumber, sampleAct.Date), cancellationToken);
+            await this.AddFile(tenantId, userId, caseId: null, act.Id, fileName, FileBody(sampleAct.Title, "Číslo jednací", actNumber, sampleAct.Date), cancellationToken);
             counters.FileCount++;
         }
 
@@ -216,7 +227,7 @@ internal sealed class SampleDataSeeder(
         ];
     }
 
-    private async Task AddFile(Guid tenantId, Guid? caseId, Guid? actId, string fileName, string content, CancellationToken cancellationToken)
+    private async Task AddFile(Guid tenantId, Guid userId, Guid? caseId, Guid? actId, string fileName, string content, CancellationToken cancellationToken)
     {
         var fileAssetId = Guid.CreateVersion7();
 
@@ -226,6 +237,7 @@ internal sealed class SampleDataSeeder(
         dbSession.Current.FileAssets.Add(new FileAsset
         {
             Id = fileAssetId,
+            UserId = userId,
             CaseId = caseId,
             ActId = actId,
             FileName = fileName,

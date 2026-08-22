@@ -5,7 +5,6 @@ using EvilBrains.EvilCase.Business.Seeding;
 using EvilBrains.EvilCase.Data;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Domain.Tenancy;
-using EvilBrains.EvilCase.Domain.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -59,7 +58,6 @@ public static class Bootstrap
         }
 
         using var tenantScope = scope.ServiceProvider.GetRequiredService<ITenantContext>().Enter(user.TenantId);
-        using var userScope = scope.ServiceProvider.GetRequiredService<IUserContext>().Enter(user.Id);
 
         if (await dbSession.Current.Cases.AnyAsync(cancellationToken))
         {
@@ -69,7 +67,7 @@ public static class Bootstrap
 
         await using var transaction = await dbSession.Current.Database.BeginTransactionAsync(cancellationToken);
 
-        await scope.ServiceProvider.GetRequiredService<ISampleDataSeeder>().Seed(user.TenantId, cancellationToken);
+        await scope.ServiceProvider.GetRequiredService<ISampleDataSeeder>().Seed(user.Id, cancellationToken);
 
         await transaction.CommitAsync(cancellationToken);
     }
