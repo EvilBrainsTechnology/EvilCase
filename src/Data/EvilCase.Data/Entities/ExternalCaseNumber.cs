@@ -17,7 +17,7 @@ public record ExternalCaseNumber : IUserOwnedEntity
 
     public Guid TenantId { get; init; }
 
-    public required Guid UserId { get; init; }
+    public Guid UserId { get; init; }
 
     public required Guid CaseId { get; init; }
 

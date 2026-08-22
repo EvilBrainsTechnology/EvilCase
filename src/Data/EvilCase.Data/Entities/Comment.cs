@@ -17,7 +17,7 @@ public record Comment : IUserOwnedEntity
 
     public Guid TenantId { get; init; }
 
-    public required Guid UserId { get; init; }
+    public Guid UserId { get; init; }
 
     /// <summary>
     /// Set when the note is on a case. Null when it is on an act.

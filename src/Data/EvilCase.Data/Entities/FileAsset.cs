@@ -16,7 +16,7 @@ public record FileAsset : IUserOwnedEntity
 
     public Guid TenantId { get; init; }
 
-    public required Guid UserId { get; init; }
+    public Guid UserId { get; init; }
 
     public Guid? CaseId { get; init; }
 

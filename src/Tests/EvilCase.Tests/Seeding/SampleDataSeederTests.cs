@@ -16,7 +16,7 @@ public class SampleDataSeederTests
     [Test]
     public async Task TheSeedFillsTheTenantWithTheWholeCaseTree()
     {
-        var (context, _, userId) = await Run();
+        var (context, _) = await Run();
 
         var cases = context.Added<Case>().ToList();
         var caseIds = cases.Select(@case => @case.Id).ToHashSet();
@@ -31,14 +31,13 @@ public class SampleDataSeederTests
             Assert.That(cases.Except(roots).All(@case => caseIds.Contains(@case.ParentCaseId!.Value)), Is.True, "every other case's parent is a seeded case");
             Assert.That(grandchildren, Is.EqualTo(1), "exactly one case's parent is itself a sub-case, giving the tree three levels");
             Assert.That(cases.TrueForAll(@case => !string.IsNullOrEmpty(@case.CaseNumber)), Is.True, "every case carries a number");
-            Assert.That(cases.TrueForAll(@case => @case.UserId == userId), Is.True, "every case belongs to the seeding user");
         }
     }
 
     [Test]
     public async Task EveryActBelongsToASeededCaseAndNamesItsSender()
     {
-        var (context, _, userId) = await Run();
+        var (context, _) = await Run();
 
         var caseIds = context.Added<Case>().Select(@case => @case.Id).ToHashSet();
         var contactIds = context.Added<Contact>().Select(contact => contact.Id).ToHashSet();
@@ -51,14 +50,13 @@ public class SampleDataSeederTests
             Assert.That(acts.TrueForAll(act => act.IssuedByContactId != Guid.Empty && contactIds.Contains(act.IssuedByContactId)), Is.True, "every act names a seeded issuer");
             Assert.That(acts.TrueForAll(act => act.AddressedToContactId is not null && act.AddressedToContactId != Guid.Empty && contactIds.Contains(act.AddressedToContactId.Value)), Is.True, "every act names a seeded recipient");
             Assert.That(acts.TrueForAll(act => !string.IsNullOrEmpty(act.ActNumber)), Is.True, "every act carries a number");
-            Assert.That(acts.TrueForAll(act => act.UserId == userId), Is.True, "every act belongs to the seeding user");
         }
     }
 
     [Test]
     public async Task TheActsOfEveryCaseRunInDateOrder()
     {
-        var (context, _, _) = await Run();
+        var (context, _) = await Run();
 
         var groups = context.Added<Act>()
             .GroupBy(act => act.CaseId)
@@ -71,7 +69,7 @@ public class SampleDataSeederTests
     [Test]
     public async Task EveryFileHasABlobAndExactlyOneOwner()
     {
-        var (context, blobs, _) = await Run();
+        var (context, blobs) = await Run();
 
         var assets = context.Added<FileAsset>().ToList();
 
@@ -92,7 +90,7 @@ public class SampleDataSeederTests
     [Test]
     public async Task ExternalNumbersNameTheContactThatAssignedThem()
     {
-        var (context, _, _) = await Run();
+        var (context, _) = await Run();
 
         var contactIds = context.Added<Contact>().Select(contact => contact.Id).ToHashSet();
         var caseNumbers = context.Added<ExternalCaseNumber>().ToList();
@@ -114,7 +112,7 @@ public class SampleDataSeederTests
     [Test]
     public async Task TheSeededContactsAreTheOnesTheCaseNames()
     {
-        var (context, _, _) = await Run();
+        var (context, _) = await Run();
 
         var contacts = context.Added<Contact>().ToList();
 
@@ -132,7 +130,7 @@ public class SampleDataSeederTests
     [Test]
     public async Task EveryCommentHangsOnACaseOrAnAct()
     {
-        var (context, _, userId) = await Run();
+        var (context, _) = await Run();
 
         var comments = context.Added<Comment>().ToList();
 
@@ -141,15 +139,13 @@ public class SampleDataSeederTests
             Assert.That(comments, Has.Count.EqualTo(6));
             Assert.That(comments.TrueForAll(comment => (comment.CaseId is null) != (comment.ActId is null)), Is.True, "every comment hangs on exactly one case or act");
             Assert.That(comments.TrueForAll(comment => !string.IsNullOrEmpty(comment.Body)), Is.True, "every comment carries a body");
-            Assert.That(comments.TrueForAll(comment => comment.UserId == userId), Is.True, "every comment belongs to the seeding user");
         }
     }
 
-    private static async Task<(FakeApplicationDbContext Context, FakeFileBlobStore Blobs, Guid UserId)> Run()
+    private static async Task<(FakeApplicationDbContext Context, FakeFileBlobStore Blobs)> Run()
     {
         var tenantContext = new StubTenantContext();
         var tenantId = Guid.CreateVersion7();
-        var userId = Guid.CreateVersion7();
 
         using var scope = tenantContext.Enter(tenantId);
 
@@ -163,8 +159,8 @@ public class SampleDataSeederTests
             blobs,
             NullLogger<SampleDataSeeder>.Instance);
 
-        await seeder.Seed(tenantId, userId, CancellationToken.None);
+        await seeder.Seed(tenantId, CancellationToken.None);
 
-        return (context, blobs, userId);
+        return (context, blobs);
     }
 }
