@@ -34,6 +34,8 @@ internal static class TestTokens
             DefaultContactId = Guid.CreateVersion7(),
         };
 
-        return scope.ServiceProvider.GetRequiredService<IAuthTokenService>().Generate(user, Guid.NewGuid()).Value;
+        var tokens = scope.ServiceProvider.GetRequiredService<IAuthTokenService>();
+
+        return tokens.Generate(user, Guid.NewGuid()).Value;
     }
 }
