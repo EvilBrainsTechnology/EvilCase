@@ -1,12 +1,16 @@
+// The file is compiled into both analyzer assemblies, so its namespace matches neither project folder.
+#pragma warning disable IDE0130
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 
-namespace EvilBrains.ApiClient.Generator;
+namespace EvilBrains.Mvc;
 
 /// <summary>
-/// Semantic MVC helpers for the analyzers, which run in the API project where ASP.NET types resolve.
+/// The one definition of a controller and an action for every EvilBrains analyzer: a controller is a type
+/// marked [ApiController], an action is one of its public instance methods without [NonAction].
 /// </summary>
 internal static class MvcFacts
 {

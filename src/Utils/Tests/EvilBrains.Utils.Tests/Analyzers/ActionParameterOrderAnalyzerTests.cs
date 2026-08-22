@@ -79,6 +79,39 @@ public class ActionParameterOrderAnalyzerTests
         Assert.That(diagnostics, Is.Empty, "parameters of the same rank are free among themselves");
     }
 
+    [Test]
+    public async Task NonActionMethodIsIgnoredTest()
+    {
+        var diagnostics = await Analyze(
+            """
+            [NonAction]
+            public string Create(CancellationToken token, [FromBody] string body) => body;
+            """);
+
+        Assert.That(diagnostics, Is.Empty, "[NonAction] takes the method out of the action set");
+    }
+
+    [Test]
+    public async Task ControllerBaseWithoutApiControllerAttributeIsIgnoredTest()
+    {
+        var diagnostics = await AnalyzerTestHost.Analyze(
+            new ActionParameterOrderAnalyzer(),
+            """
+            using System.Threading;
+            using Microsoft.AspNetCore.Mvc;
+
+            namespace FakeApi;
+
+            public class HelperController : ControllerBase
+            {
+                [HttpPost("")]
+                public string Create(CancellationToken token, [FromBody] string body) => body;
+            }
+            """);
+
+        Assert.That(diagnostics, Is.Empty, "a controller is a type marked [ApiController], the definition the client generator uses");
+    }
+
     private static void AssertIds(in ImmutableArray<Diagnostic> diagnostics, string message)
     {
         Assert.That(diagnostics.Select(x => x.Id), Is.EqualTo(["EB0008"]), message);

@@ -11,4 +11,9 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- An analyzer assembly loads without its project references, so the shared MVC facts are compiled in. -->
+    <Compile Include="..\Shared\MvcFacts.cs" Link="Shared\MvcFacts.cs" />
+  </ItemGroup>
+
 </Project>

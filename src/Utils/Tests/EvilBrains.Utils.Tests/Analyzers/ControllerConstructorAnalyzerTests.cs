@@ -94,7 +94,20 @@ public class ControllerConstructorAnalyzerTests
             }
             """);
 
-        Assert.That(diagnostics, Is.Empty, "the rule follows ControllerBase, not the type name");
+        Assert.That(diagnostics, Is.Empty, "the rule follows [ApiController], not the type name");
+    }
+
+    [Test]
+    public async Task ControllerBaseWithoutApiControllerAttributeIsIgnoredTest()
+    {
+        var diagnostics = await Analyze("""
+            public class HelperController(IThing thing) : ControllerBase
+            {
+                public string Name() => thing.Name;
+            }
+            """);
+
+        Assert.That(diagnostics, Is.Empty, "a controller is a type marked [ApiController], the definition the client generator uses");
     }
 
     private static Task<ImmutableArray<Diagnostic>> Analyze(string type)
