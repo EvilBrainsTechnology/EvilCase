@@ -22,15 +22,34 @@ internal sealed class ContactReader(IDbSession dbSession, IUserContext userConte
     {
         var context = dbSession.Current;
 
-        var contact = await context.Contacts.WithId(id).AsDetail().SingleOrDefaultAsync(cancellationToken);
+        var contact = await context.Contacts.DetailOf(id, cancellationToken);
         if (contact is null)
             return null;
 
-        var isDefault = await context.Users.WithDefaultContact(userContext, id).AnyAsync(cancellationToken);
-        var cases = await context.ExternalCaseNumbers.AssignedByContact(id).InCaseOccurrenceOrder().AsCaseOccurrences().ToListAsync(cancellationToken);
-        var issuedBy = await context.Acts.IssuedByContact(id).AsIssuedByOccurrences().ToListAsync(cancellationToken);
-        var addressedTo = await context.Acts.AddressedToContact(id).AsAddressedToOccurrences().ToListAsync(cancellationToken);
-        var numberIssuer = await context.ExternalActNumbers.AssignedByContact(id).AsNumberIssuerOccurrences().ToListAsync(cancellationToken);
+        var isDefault = await context.Users
+            .WithDefaultContact(userContext, id)
+            .AnyAsync(cancellationToken);
+
+        var cases = await context.ExternalCaseNumbers
+            .AssignedByContact(id)
+            .InCaseOccurrenceOrder()
+            .AsCaseOccurrences()
+            .ToListAsync(cancellationToken);
+
+        var issuedBy = await context.Acts
+            .IssuedByContact(id)
+            .AsIssuedByOccurrences()
+            .ToListAsync(cancellationToken);
+
+        var addressedTo = await context.Acts
+            .AddressedToContact(id)
+            .AsAddressedToOccurrences()
+            .ToListAsync(cancellationToken);
+
+        var numberIssuer = await context.ExternalActNumbers
+            .AssignedByContact(id)
+            .AsNumberIssuerOccurrences()
+            .ToListAsync(cancellationToken);
 
         return contact with
         {
