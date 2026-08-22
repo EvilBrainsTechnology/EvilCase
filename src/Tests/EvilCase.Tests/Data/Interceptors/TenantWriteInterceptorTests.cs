@@ -146,7 +146,22 @@ public class TenantWriteInterceptorTests
     }
 
     [Test]
-    public void ARowWrittenUnderAnotherUserNeverReachesTheDatabase()
+    public void ARowCreatedUnderAnotherUserNeverReachesTheDatabase()
+    {
+        this.context.Cases.Add(NewCase(TenantA, UserB));
+
+        var tenantContext = new StubTenantContext();
+        using var tenantScope = tenantContext.Enter(TenantA);
+        var interceptor = new TenantWriteInterceptor(tenantContext, new StubUserContext { UserId = UserA });
+
+        Assert.That(
+            () => Save(interceptor, this.context),
+            Throws.InvalidOperationException,
+            "a creation naming another user as the owner is refused, not silently restamped");
+    }
+
+    [Test]
+    public void ARowUpdatedUnderAnotherUserNeverReachesTheDatabase()
     {
         var @case = NewCase(TenantA, UserB);
         this.context.Cases.Add(@case);
@@ -159,7 +174,7 @@ public class TenantWriteInterceptorTests
         Assert.That(
             () => Save(interceptor, this.context),
             Throws.InvalidOperationException,
-            "a row of another user is refused, not silently restamped");
+            "an update to a row of another user is refused, not silently restamped");
     }
 
     [Test]

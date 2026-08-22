@@ -35,10 +35,10 @@ Data nesmí utéct mezi tenanty; únik je kritická chyba.
 - Access token nese tenant claim; `ITenantContext` ho čte z principalu.
 - `SaveChanges` doplní novému řádku `TenantId` z `ITenantContext` a `UserId` z `IUserContext` a
   odmítne řádek, který nese cizího tenanta nebo cizího uživatele. Bez uživatele v kontextu
-  uživatelský řádek nevznikne; přihlášení a rotace tokenu píší jen `RefreshToken`, který
-  vlastníka nenese.
-- Seed běží pod explicitním tenant scope i user scope; kontrola v `SaveChanges` porovnává proti
-  tenantu a uživateli dodanému seederem, ne proti principalu požadavku.
+  vznikne uživatelský řádek, jen když vlastníka nese sám; přihlášení a rotace tokenu píší jen
+  `RefreshToken`, který vlastníka nenese.
+- Seed běží pod explicitním tenant scope a vlastníka svých řádků nastavuje sám; kontrola v
+  `SaveChanges` porovnává proti tenantu ze scope, ne proti principalu požadavku.
 - Unikátní indexy tenantových entit jsou kompozitní s `TenantId`.
 - Konvenční test hlídá, že žádná tenantová entita filtr nepostrádá (SDD-003).
 
