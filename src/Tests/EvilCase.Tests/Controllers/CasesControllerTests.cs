@@ -80,7 +80,14 @@ public class CasesControllerTests
     public async Task TheDetailIsReturnedAsTheReaderGaveIt()
     {
         var id = Guid.CreateVersion7();
-        var detail = Detail(id, "EC/20260821-001", "Spis");
+        var detail = new CaseDetail
+        {
+            CaseNumber = "EC/20260821-001",
+            Title = "Spis",
+            Date = new DateOnly(2026, 8, 21),
+            Status = CaseStatus.Active,
+        };
+
         var reader = new RecordingCaseReader { Case = detail };
         var controller = new CasesController();
 
@@ -184,18 +191,6 @@ public class CasesControllerTests
             CaseNumber = "EC/20260821-001",
             Date = new DateOnly(2026, 8, 21),
             Title = "Přestupek",
-            Status = CaseStatus.Active,
-        };
-    }
-
-    private static CaseDetail Detail(in Guid id, string caseNumber, string title)
-    {
-        return new()
-        {
-            Id = id,
-            CaseNumber = caseNumber,
-            Title = title,
-            Date = new DateOnly(2026, 8, 21),
             Status = CaseStatus.Active,
         };
     }

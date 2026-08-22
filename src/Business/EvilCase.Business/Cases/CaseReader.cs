@@ -22,7 +22,6 @@ internal sealed class CaseReader(IDbSession session) : ICaseReader
             .Where(@case => @case.Id == id)
             .Select(@case => new CaseDetail
             {
-                Id = @case.Id,
                 CaseNumber = @case.CaseNumber,
                 Date = @case.Date,
                 Title = @case.Title,

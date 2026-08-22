@@ -4,8 +4,6 @@ namespace EvilBrains.EvilCase.Api.Contract.Cases;
 
 public sealed record CaseDetail
 {
-    public required Guid Id { get; init; }
-
     public required string CaseNumber { get; init; }
 
     public required DateOnly Date { get; init; }
