@@ -15,10 +15,6 @@ namespace EvilBrains.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class ActionParameterOrderAnalyzer : DiagnosticAnalyzer
 {
-    private const string ControllerBaseTypeName = "Microsoft.AspNetCore.Mvc.ControllerBase";
-
-    private const string NonActionAttributeName = "Microsoft.AspNetCore.Mvc.NonActionAttribute";
-
     // The order an action declares its parameters in; equal ranks are free among themselves.
     private static readonly Dictionary<string, int> BindingRanks = new(StringComparer.Ordinal)
     {
@@ -54,10 +50,10 @@ public sealed class ActionParameterOrderAnalyzer : DiagnosticAnalyzer
     {
         var type = (INamedTypeSymbol)context.Symbol;
 
-        if (!IsController(type))
+        if (!MvcFacts.IsApiController(type))
             return;
 
-        foreach (var method in type.GetMembers().OfType<IMethodSymbol>().Where(IsAction))
+        foreach (var method in type.GetMembers().OfType<IMethodSymbol>().Where(MvcFacts.IsAction))
             AnalyzeAction(context, method);
     }
 
@@ -92,24 +88,5 @@ public sealed class ActionParameterOrderAnalyzer : DiagnosticAnalyzer
         }
 
         return TokenRank;
-    }
-
-    private static bool IsController(INamedTypeSymbol type)
-    {
-        for (var current = type.BaseType; current is not null; current = current.BaseType)
-        {
-            if (string.Equals(current.ToDisplayString(), ControllerBaseTypeName, StringComparison.Ordinal))
-                return true;
-        }
-
-        return false;
-    }
-
-    private static bool IsAction(IMethodSymbol method)
-    {
-        if (method is not { MethodKind: MethodKind.Ordinary, DeclaredAccessibility: Accessibility.Public, IsStatic: false })
-            return false;
-
-        return !method.GetAttributes().Any(x => string.Equals(x.AttributeClass?.ToDisplayString(), NonActionAttributeName, StringComparison.Ordinal));
     }
 }

@@ -79,6 +79,48 @@ public class ActionParameterOrderAnalyzerTests
         Assert.That(diagnostics, Is.Empty, "parameters of the same rank are free among themselves");
     }
 
+    [Test]
+    public async Task NonActionMethodIsIgnoredTest()
+    {
+        var diagnostics = await Analyze(
+            """
+            [NonAction]
+            public string Create(CancellationToken token, [FromBody] string body) => body;
+            """);
+
+        Assert.That(diagnostics, Is.Empty, "[NonAction] takes the method out of the action set");
+    }
+
+    [Test]
+    public async Task ControllerBaseWithoutApiControllerAttributeIsIgnoredTest()
+    {
+        var diagnostics = await AnalyzeType("""
+            public class HelperController : ControllerBase
+            {
+                [HttpPost("")]
+                public string Create(CancellationToken token, [FromBody] string body) => body;
+            }
+            """);
+
+        Assert.That(diagnostics, Is.Empty, "a controller is a type marked [ApiController]");
+    }
+
+    [Test]
+    public async Task ApiControllerWithoutControllerBaseIsReportedTest()
+    {
+        var diagnostics = await AnalyzeType("""
+            [ApiController]
+            [Route("api/items")]
+            public class ItemsController
+            {
+                [HttpPost("")]
+                public string Create([FromBody] string body, [FromServices] IThing thing) => body;
+            }
+            """);
+
+        AssertIds(diagnostics, "[ApiController] alone marks a controller");
+    }
+
     private static void AssertIds(in ImmutableArray<Diagnostic> diagnostics, string message)
     {
         Assert.That(diagnostics.Select(x => x.Id), Is.EqualTo(["EB0008"]), message);
@@ -86,12 +128,22 @@ public class ActionParameterOrderAnalyzerTests
 
     private static Task<ImmutableArray<Diagnostic>> Analyze(string action)
     {
-        return AnalyzerTestHost.Analyze(new ActionParameterOrderAnalyzer(), Fixture(action));
+        return AnalyzeType(
+            $$"""
+            [ApiController]
+            [Route("api/items")]
+            public class ItemsController : ControllerBase
+            {
+            {{action}}
+            }
+            """);
     }
 
-    private static string Fixture(string action)
+    private static Task<ImmutableArray<Diagnostic>> AnalyzeType(string type)
     {
-        return $$"""
+        return AnalyzerTestHost.Analyze(
+            new ActionParameterOrderAnalyzer(),
+            $$"""
             using System;
             using System.Threading;
             using Microsoft.AspNetCore.Mvc;
@@ -100,12 +152,7 @@ public class ActionParameterOrderAnalyzerTests
 
             public interface IThing { }
 
-            [ApiController]
-            [Route("api/items")]
-            public class ItemsController : ControllerBase
-            {
-            {{action}}
-            }
-            """;
+            {{type}}
+            """);
     }
 }

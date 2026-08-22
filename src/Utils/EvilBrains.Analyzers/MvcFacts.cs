@@ -3,12 +3,12 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 
-namespace EvilBrains.ApiClient.Generator;
+namespace EvilBrains.Analyzers;
 
 /// <summary>
-/// Semantic MVC helpers for the analyzers, which run in the API project where ASP.NET types resolve.
+/// The one definition of a controller and its actions, shared by both analyzer assemblies.
 /// </summary>
-internal static class MvcFacts
+public static class MvcFacts
 {
     private const string ApiControllerAttributeName = "Microsoft.AspNetCore.Mvc.ApiControllerAttribute";
 
