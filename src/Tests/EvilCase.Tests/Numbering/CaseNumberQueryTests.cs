@@ -40,6 +40,21 @@ public class CaseNumberQueryTests
     }
 
     [Test]
+    public void ANumberIsTakenByAnyOtherCase()
+    {
+        var sql = this.context.Cases.WithNumberTakenFrom("EC/20260807-001", Guid.Empty).ToQueryString();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(sql, Does.Contain("\"CaseNumber\""));
+            Assert.That(sql, Does.Contain("EC/20260807-001"));
+            Assert.That(sql, Does.Contain("<>"), "the case being edited keeps its own number");
+            Assert.That(sql, Does.Contain("\"Id\""));
+            Assert.That(sql, Does.Contain("\"TenantId\" ="), "a number is unique within the tenant, not across tenants");
+        }
+    }
+
+    [Test]
     public void TheCaseNumberOrderIsDescendingAndTheStepTakesNoRow()
     {
         var sql = this.context.Cases.OrderByNumberDescending().ToQueryString();

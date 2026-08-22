@@ -8,4 +8,6 @@ namespace EvilBrains.EvilCase.Business.Cases;
 public interface ICaseWriter
 {
     public Task<CaseListItem> Create(CreateCaseRequest request, CancellationToken cancellationToken = default);
+
+    public Task<CaseUpdateStatus> Update(Guid id, UpdateCaseRequest request, CancellationToken cancellationToken = default);
 }

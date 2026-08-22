@@ -15,4 +15,19 @@ internal sealed class CaseReader(IDbSession session) : ICaseReader
             .AsListItems()
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<CaseDetail?> Detail(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await session.Current.Cases
+            .Where(@case => @case.Id == id)
+            .Select(@case => new CaseDetail
+            {
+                CaseNumber = @case.CaseNumber,
+                Date = @case.Date,
+                Title = @case.Title,
+                Description = @case.Description,
+                Status = @case.Status,
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+    }
 }

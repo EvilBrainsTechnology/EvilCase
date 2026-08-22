@@ -85,7 +85,7 @@
                             @foreach (var item in this.items)
                             {
                                 <tr>
-                                    <td class="text-nowrap">@item.CaseNumber</td>
+                                    <td class="text-nowrap"><a href="@($"/cases/{item.Id}")" class="text-reset">@item.CaseNumber</a></td>
                                     <td>@item.Title</td>
                                     <td class="text-nowrap">
                                         <Status BackgroundColor="CaseStatusDisplay.Color(item.Status)" Lite="true">@CaseStatusDisplay.Text(item.Status)</Status>

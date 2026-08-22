@@ -26,4 +26,9 @@ internal sealed class StubCaseReader : ICaseReader
             },
         ]);
     }
+
+    public Task<CaseDetail?> Detail(Guid id, CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult<CaseDetail?>(null);
+    }
 }

@@ -1,0 +1,109 @@
+@* Page suffix keeps the component apart from the CaseDetail contract. *@
+@page "/cases/{Id:guid}"
+@using System.Net
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.Cases
+@inject ICasesClient CasesClient
+@inject ILogger<CaseDetailPage> Logger
+
+@if (this.notFound)
+{
+    <div class="empty">
+        <p class="empty-title">Spis nenalezen</p>
+        <p class="empty-subtitle text-secondary">Spis neexistuje nebo byl smazán.</p>
+        <div class="empty-action"><a class="btn btn-primary" href="/cases">Zpět na spisy</a></div>
+    </div>
+}
+else if (this.failed)
+{
+    <div class="empty">
+        <p class="empty-title">Spis se nepodařilo načíst</p>
+        <p class="empty-subtitle text-secondary">Zkuste to prosím znovu.</p>
+    </div>
+}
+else if (this.detail is null)
+{
+    <div class="card-body text-center text-secondary">
+        <div class="spinner-border" role="status"></div>
+    </div>
+}
+else
+{
+    <div class="page-header d-print-none">
+        <div class="container-xl">
+            <div class="row g-2 align-items-center">
+                <div class="col">
+                    <div class="page-pretitle">@this.detail.CaseNumber</div>
+                    <h2 class="page-title">@this.detail.Title</h2>
+                </div>
+                <div class="col-auto ms-auto">
+                    <a class="btn btn-primary" href="@($"/cases/{this.Id}/edit")">Upravit</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-body">
+        <div class="container-xl">
+            <div class="card">
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-12 col-lg-3">Spisová značka</dt>
+                        <dd class="col-12 col-lg-9">@this.detail.CaseNumber</dd>
+
+                        <dt class="col-12 col-lg-3">Datum spisu</dt>
+                        <dd class="col-12 col-lg-9">@DateDisplay.Text(this.detail.Date)</dd>
+
+                        <dt class="col-12 col-lg-3">Stav</dt>
+                        <dd class="col-12 col-lg-9">
+                            <Status BackgroundColor="CaseStatusDisplay.Color(this.detail.Status)" Lite="true">@CaseStatusDisplay.Text(this.detail.Status)</Status>
+                        </dd>
+
+                        <dt class="col-12 col-lg-3">Popis</dt>
+                        <dd class="col-12 col-lg-9 mb-0">
+                            @if (string.IsNullOrWhiteSpace(this.detail.Description))
+                            {
+                                <span class="text-secondary">Bez popisu</span>
+                            }
+                            else
+                            {
+                                <div class="text-pre-wrap">@this.detail.Description</div>
+                            }
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private CaseDetail? detail;
+    private bool notFound;
+    private bool failed;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        this.detail = null;
+        this.notFound = false;
+        this.failed = false;
+
+        try
+        {
+            this.detail = await this.CasesClient.GetCase(this.Id, CancellationToken.None);
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+        {
+            this.notFound = true;
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Loading case {CaseId} failed", this.Id);
+
+            this.failed = true;
+        }
+    }
+}
