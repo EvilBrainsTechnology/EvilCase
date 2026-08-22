@@ -165,7 +165,7 @@ public class TenantWriteInterceptorTests
         using var tenantScope = tenantContext.Enter(TenantA);
         var interceptor = new TenantWriteInterceptor(tenantContext, new StubUserContext());
 
-        Assert.That(() => Save(interceptor, this.context), Throws.Nothing, "the sign-in path writes its session with no caller");
+        Assert.That(() => Save(interceptor, this.context), Throws.Nothing, "a write with no user in the context is not refused");
         Assert.That(this.context.Entry(@case).Property(nameof(Case.UserId)).CurrentValue, Is.EqualTo(carriedUserId));
     }
 
@@ -179,7 +179,7 @@ public class TenantWriteInterceptorTests
         return new() { TenantId = tenant, Kind = ContactKind.Person, Name = "test" };
     }
 
-    private static Case NewCase(in Guid tenant, Guid userId = default)
+    private static Case NewCase(in Guid tenant, in Guid userId = default)
     {
         return new()
         {
