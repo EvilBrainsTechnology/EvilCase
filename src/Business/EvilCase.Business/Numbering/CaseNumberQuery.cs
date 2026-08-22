@@ -5,10 +5,18 @@ using Microsoft.EntityFrameworkCore;
 namespace EvilBrains.EvilCase.Business.Numbering;
 
 /// <summary>
-/// Reads what the next case number of a day needs, one composable step per rule.
+/// Reads what a case number needs of the database, one composable step per rule.
 /// </summary>
 public static class CaseNumberQuery
 {
+    /// <summary>
+    /// The cases already carrying the number, the one being edited aside.
+    /// </summary>
+    public static IQueryable<Case> WithNumberTakenFrom(this IQueryable<Case> cases, string caseNumber, Guid exceptId)
+    {
+        return cases.Where(@case => @case.CaseNumber == caseNumber && @case.Id != exceptId);
+    }
+
     /// <summary>
     /// The day's own numbers. A hand-written value outside the format carries another prefix and drops out here.
     /// </summary>
