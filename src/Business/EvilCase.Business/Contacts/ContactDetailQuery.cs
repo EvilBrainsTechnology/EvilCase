@@ -15,7 +15,7 @@ internal static class ContactDetailQuery
     /// <see cref="ContactDetail.IsDefault"/>, <see cref="ContactDetail.Cases"/> and
     /// <see cref="ContactDetail.Acts"/> are filled separately, with <c>with</c>.
     /// </summary>
-    public static Task<ContactDetail?> DetailOf(this IQueryable<Contact> contacts, Guid id, CancellationToken cancellationToken = default)
+    public static Task<ContactDetail?> DetailOf(this IQueryable<Contact> contacts, Guid id, CancellationToken cancellationToken)
     {
         return contacts
             .WithId(id)

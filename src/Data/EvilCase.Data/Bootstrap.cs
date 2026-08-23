@@ -31,7 +31,7 @@ public static class Bootstrap
     /// Applies the migrations the database is missing. Awaited before the host starts serving, so a
     /// request never reaches a schema the build does not expect; a failure here stops the application.
     /// </summary>
-    public static async Task MigrateEvilCaseDatabase(this IHost host, CancellationToken cancellationToken = default)
+    public static async Task MigrateEvilCaseDatabase(this IHost host, CancellationToken cancellationToken)
     {
         await using var scope = host.Services.CreateAsyncScope();
 

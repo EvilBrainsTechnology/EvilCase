@@ -10,10 +10,10 @@ public interface IFileBlobStore
     /// <summary>
     /// Writes the bytes and returns where they landed. The write is atomic: a temporary file, then a rename.
     /// </summary>
-    public Task<FileBlobInfo> Write(Guid tenantId, Guid fileAssetId, Stream content, CancellationToken cancellationToken = default);
+    public Task<FileBlobInfo> Write(Guid tenantId, Guid fileAssetId, Stream content, CancellationToken cancellationToken);
 
     /// <summary>
     /// Removes the blob at the stored path. A path with no blob behind it is not an error.
     /// </summary>
-    public Task Delete(string storagePath, CancellationToken cancellationToken = default);
+    public Task Delete(string storagePath, CancellationToken cancellationToken);
 }

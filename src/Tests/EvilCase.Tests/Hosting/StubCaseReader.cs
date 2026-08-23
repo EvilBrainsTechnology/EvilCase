@@ -12,7 +12,7 @@ internal sealed class StubCaseReader : ICaseReader
 {
     public const string Title = "Přestupek — překročení rychlosti";
 
-    public Task<IReadOnlyList<CaseListItem>> List(CaseListRequest request, CancellationToken cancellationToken = default)
+    public Task<IReadOnlyList<CaseListItem>> List(CaseListRequest request, CancellationToken cancellationToken)
     {
         return Task.FromResult<IReadOnlyList<CaseListItem>>(
         [

@@ -1,4 +1,4 @@
-﻿namespace EvilBrains.Collections;
+namespace EvilBrains.Collections;
 
 public static class AsReadOnlyAsyncExtensions
 {
@@ -36,13 +36,13 @@ public static class AsReadOnlyAsyncExtensions
         return values.AsReadOnlyDictionary();
     }
 
-    public static async Task<IReadOnlyCollection<TSource>> AsReadOnlyCollectionAsync<TSource>(this IAsyncEnumerable<TSource> collection, CancellationToken token = default)
+    public static async Task<IReadOnlyCollection<TSource>> AsReadOnlyCollectionAsync<TSource>(this IAsyncEnumerable<TSource> collection, CancellationToken token)
     {
         var array = await collection.ToArrayAsync(token);
         return array.AsReadOnlyCollection();
     }
 
-    public static async Task<IReadOnlyDictionary<TKey, TSource>> AsReadOnlyDictionaryAsync<TSource, TKey>(this IAsyncEnumerable<TSource> collection, Func<TSource, TKey> keySelector, CancellationToken token = default)
+    public static async Task<IReadOnlyDictionary<TKey, TSource>> AsReadOnlyDictionaryAsync<TSource, TKey>(this IAsyncEnumerable<TSource> collection, Func<TSource, TKey> keySelector, CancellationToken token)
         where TKey : notnull
     {
         var array = await collection.ToDictionaryAsync(keySelector, cancellationToken: token);
@@ -53,21 +53,21 @@ public static class AsReadOnlyAsyncExtensions
         this IAsyncEnumerable<TSource> collection,
         Func<TSource, TKey> keySelector,
         Func<TSource, TValue> valueSelector,
-        CancellationToken token = default)
+        CancellationToken token)
         where TKey : notnull
     {
         var array = await collection.ToDictionaryAsync(keySelector, valueSelector, cancellationToken: token);
         return array.AsReadOnlyDictionary();
     }
 
-    public static async Task<IReadOnlyDictionary<TKey, TValue>> AsReadOnlyDictionaryAsync<TKey, TValue>(this IAsyncEnumerable<KeyValuePair<TKey, TValue>> pairCollection, CancellationToken token = default)
+    public static async Task<IReadOnlyDictionary<TKey, TValue>> AsReadOnlyDictionaryAsync<TKey, TValue>(this IAsyncEnumerable<KeyValuePair<TKey, TValue>> pairCollection, CancellationToken token)
         where TKey : notnull
     {
         var values = await pairCollection.ToArrayAsync(token);
         return values.AsReadOnlyDictionary();
     }
 
-    public static async Task<IReadOnlyDictionary<TKey, TValue>> AsReadOnlyDictionaryAsync<TKey, TValue>(this IAsyncEnumerable<(TKey Key, TValue Value)> pairs, CancellationToken token = default)
+    public static async Task<IReadOnlyDictionary<TKey, TValue>> AsReadOnlyDictionaryAsync<TKey, TValue>(this IAsyncEnumerable<(TKey Key, TValue Value)> pairs, CancellationToken token)
         where TKey : notnull
     {
         var values = await pairs.ToArrayAsync(token);

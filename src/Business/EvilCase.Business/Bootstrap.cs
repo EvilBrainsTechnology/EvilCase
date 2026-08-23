@@ -39,7 +39,7 @@ public static class Bootstrap
     /// Fills a tenant that holds no case with the sample case tree (SDD-017). Runs after the administrator
     /// seed, which is what creates the tenant and the user it hangs on.
     /// </summary>
-    public static async Task SeedEvilCaseSampleData(this IHost host, CancellationToken cancellationToken = default)
+    public static async Task SeedEvilCaseSampleData(this IHost host, CancellationToken cancellationToken)
     {
         await using var scope = host.Services.CreateAsyncScope();
 

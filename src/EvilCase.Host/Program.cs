@@ -134,7 +134,7 @@ if (app.Configuration.GetValue("EvilBrains:EvilCase:Database:MigrateOnStartup", 
 {
     try
     {
-        await app.MigrateEvilCaseDatabase();
+        await app.MigrateEvilCaseDatabase(CancellationToken.None);
     }
     catch (Exception exception)
     {
@@ -149,12 +149,12 @@ if (app.Configuration.GetValue("EvilBrains:EvilCase:Database:MigrateOnStartup", 
 
 // After the migrations and before anything is served: registration is closed, so a fresh deployment
 // would otherwise have no way in. Does nothing once any user exists.
-await app.SeedEvilCaseUser();
+await app.SeedEvilCaseUser(CancellationToken.None);
 
 // After the administrator, which is what creates the tenant this hangs on. Off by default, and it only
 // ever writes into a tenant that holds no case.
 if (app.Configuration.GetValue("EvilBrains:EvilCase:Database:SeedSampleData", defaultValue: false))
-    await app.SeedEvilCaseSampleData();
+    await app.SeedEvilCaseSampleData(CancellationToken.None);
 
 // Behind a TLS terminating proxy every request arrives over plain HTTP and from the proxy's address.
 // The forwarded headers restore the caller's scheme and address for the pipeline below.

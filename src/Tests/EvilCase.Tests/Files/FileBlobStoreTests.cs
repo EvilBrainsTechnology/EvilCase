@@ -35,7 +35,7 @@ public class FileBlobStoreTests
     {
         var content = "abc"u8.ToArray();
 
-        var info = await this.store.Write(this.tenantId, this.fileAssetId, new MemoryStream(content));
+        var info = await this.store.Write(this.tenantId, this.fileAssetId, new MemoryStream(content), CancellationToken.None);
         var path = Path.Combine(this.root, info.StoragePath);
 
         using (Assert.EnterMultipleScope())
@@ -48,7 +48,7 @@ public class FileBlobStoreTests
     [Test]
     public async Task TheBlobIsNamedByItsIdAlone()
     {
-        var info = await this.store.Write(this.tenantId, this.fileAssetId, new MemoryStream("abc"u8.ToArray()));
+        var info = await this.store.Write(this.tenantId, this.fileAssetId, new MemoryStream("abc"u8.ToArray()), CancellationToken.None);
 
         Assert.That(
             Path.GetFileName(info.StoragePath),
@@ -59,7 +59,7 @@ public class FileBlobStoreTests
     [Test]
     public async Task TheWriteReturnsAPathRelativeToTheRoot()
     {
-        var info = await this.store.Write(this.tenantId, this.fileAssetId, new MemoryStream("abc"u8.ToArray()));
+        var info = await this.store.Write(this.tenantId, this.fileAssetId, new MemoryStream("abc"u8.ToArray()), CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -71,7 +71,7 @@ public class FileBlobStoreTests
     [Test]
     public async Task TheBlobLandsUnderTwoDirectoryLevels()
     {
-        var info = await this.store.Write(this.tenantId, this.fileAssetId, new MemoryStream("abc"u8.ToArray()));
+        var info = await this.store.Write(this.tenantId, this.fileAssetId, new MemoryStream("abc"u8.ToArray()), CancellationToken.None);
         var path = Path.Combine(this.root, info.StoragePath);
 
         var directory = new DirectoryInfo(Path.GetDirectoryName(path)!);
@@ -89,7 +89,7 @@ public class FileBlobStoreTests
     {
         var content = "abc"u8.ToArray();
 
-        var info = await this.store.Write(this.tenantId, this.fileAssetId, new MemoryStream(content));
+        var info = await this.store.Write(this.tenantId, this.fileAssetId, new MemoryStream(content), CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -103,7 +103,7 @@ public class FileBlobStoreTests
     {
         var failing = new FailingStream("ab"u8.ToArray());
 
-        await Assert.ThatAsync(() => this.store.Write(this.tenantId, this.fileAssetId, failing), Throws.InstanceOf<IOException>());
+        await Assert.ThatAsync(() => this.store.Write(this.tenantId, this.fileAssetId, failing, CancellationToken.None), Throws.InstanceOf<IOException>());
 
         var storagePath = FileBlobPathFor(this.tenantId, this.fileAssetId);
         var directory = Path.GetDirectoryName(Path.Combine(this.root, storagePath));
@@ -119,10 +119,10 @@ public class FileBlobStoreTests
     public async Task AWriteAfterAFailedOneStillLands()
     {
         var failing = new FailingStream("ab"u8.ToArray());
-        await Assert.ThatAsync(() => this.store.Write(this.tenantId, this.fileAssetId, failing), Throws.InstanceOf<IOException>());
+        await Assert.ThatAsync(() => this.store.Write(this.tenantId, this.fileAssetId, failing, CancellationToken.None), Throws.InstanceOf<IOException>());
 
         var content = "abc"u8.ToArray();
-        var info = await this.store.Write(this.tenantId, this.fileAssetId, new MemoryStream(content));
+        var info = await this.store.Write(this.tenantId, this.fileAssetId, new MemoryStream(content), CancellationToken.None);
 
         var path = Path.Combine(this.root, info.StoragePath);
         var bytesOnDisk = await File.ReadAllBytesAsync(path);
@@ -138,20 +138,20 @@ public class FileBlobStoreTests
     [Test]
     public async Task TheDeleteFollowsTheStoredPath()
     {
-        var info = await this.store.Write(this.tenantId, this.fileAssetId, new MemoryStream("abc"u8.ToArray()));
+        var info = await this.store.Write(this.tenantId, this.fileAssetId, new MemoryStream("abc"u8.ToArray()), CancellationToken.None);
         var path = Path.Combine(this.root, info.StoragePath);
 
-        await this.store.Delete(info.StoragePath);
+        await this.store.Delete(info.StoragePath, CancellationToken.None);
 
         Assert.That(File.Exists(path), Is.False, "the blob must be gone from disk");
 
-        Assert.DoesNotThrowAsync(() => this.store.Delete(info.StoragePath), "deleting a missing blob must not throw");
+        Assert.DoesNotThrowAsync(() => this.store.Delete(info.StoragePath, CancellationToken.None), "deleting a missing blob must not throw");
     }
 
     [Test]
     public async Task APathLeavingTheRootIsRefused()
     {
-        await Assert.ThatAsync(() => this.store.Delete("../outside"), Throws.ArgumentException, "a path read back from the database must not reach outside the root");
+        await Assert.ThatAsync(() => this.store.Delete("../outside", CancellationToken.None), Throws.ArgumentException, "a path read back from the database must not reach outside the root");
     }
 
     [Test]
@@ -160,7 +160,7 @@ public class FileBlobStoreTests
         var settings = new FileSettings { RootPath = this.root + Path.DirectorySeparatorChar };
         var trailing = new FileBlobStore(Options.Create(settings), NullLogger<FileBlobStore>.Instance);
 
-        var info = await trailing.Write(this.tenantId, this.fileAssetId, new MemoryStream("abc"u8.ToArray()));
+        var info = await trailing.Write(this.tenantId, this.fileAssetId, new MemoryStream("abc"u8.ToArray()), CancellationToken.None);
 
         Assert.That(File.Exists(Path.Combine(this.root, info.StoragePath)), Is.True, "a separator the operator typed must not make every path leave the root");
     }
@@ -175,7 +175,7 @@ public class FileBlobStoreTests
         {
             var relative = new FileBlobStore(Options.Create(new FileSettings { RootPath = relativeRoot }), NullLogger<FileBlobStore>.Instance);
 
-            var info = await relative.Write(this.tenantId, this.fileAssetId, new MemoryStream("abc"u8.ToArray()));
+            var info = await relative.Write(this.tenantId, this.fileAssetId, new MemoryStream("abc"u8.ToArray()), CancellationToken.None);
 
             Assert.That(File.Exists(Path.Combine(fullRoot, info.StoragePath)), Is.True, "a relative root must resolve against the application directory, not the working directory");
         }

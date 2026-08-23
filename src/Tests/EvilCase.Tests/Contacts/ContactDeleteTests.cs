@@ -35,7 +35,7 @@ public class ContactDeleteTests
 
         var writer = new ContactWriter(new FixedDbSession(context));
 
-        var outcome = await writer.Delete(seeded.Contact.Id);
+        var outcome = await writer.Delete(seeded.Contact.Id, CancellationToken.None);
 
         Assert.That(
             outcome,

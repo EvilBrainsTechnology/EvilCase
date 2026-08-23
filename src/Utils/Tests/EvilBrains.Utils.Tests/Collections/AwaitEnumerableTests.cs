@@ -21,7 +21,7 @@ public class AwaitEnumerableTests
             .Select(this.Foo)
             .AsAsyncEnumerable()
             .Select(x => 2 * x)
-            .AsReadOnlyCollectionAsync();
+            .AsReadOnlyCollectionAsync(CancellationToken.None);
 
         Assert.That(values, Is.EqualTo(Enumerable.Range(2, 3).Select(x => 2 * x)));
     }
