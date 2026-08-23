@@ -103,7 +103,7 @@ internal sealed class EvilCaseAuthenticationStateProvider(
 
             return true;
         }
-        catch (Exception exception) when (exception is ApiException or HttpRequestException or TaskCanceledException)
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.Unauthorized)
         {
             var wasSignedIn = tokens.Current is not null;
 
@@ -111,9 +111,15 @@ internal sealed class EvilCaseAuthenticationStateProvider(
 
             if (wasSignedIn)
             {
-                logger.LogInformation(exception, "The session could not be renewed and was ended");
+                logger.LogInformation(exception, "The session was rejected and was ended");
                 this.Publish();
             }
+
+            return false;
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException or TaskCanceledException)
+        {
+            logger.LogWarning(exception, "The session could not be renewed");
 
             return false;
         }

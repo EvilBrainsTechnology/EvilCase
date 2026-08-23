@@ -17,7 +17,7 @@ internal interface IAuthSession
 
     /// <summary>
     /// Exchanges the refresh cookie for a new access token. Concurrent callers share one exchange.
-    /// False where there is no usable session left.
+    /// False where no access token came back; the session is only dropped where the server rejected it.
     /// </summary>
     public Task<bool> Renew(CancellationToken cancellationToken);
 }
