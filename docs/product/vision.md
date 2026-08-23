@@ -39,14 +39,12 @@ volitelný rodič, libovolná hloubka, UI ukazuje jen ploché seznamy. Bez tagů
 
 **Úkon** — jednotka práce ve spisu: jedno podání, rozhodnutí, vyrozumění nebo výzva. Má směr
 (příchozí/odchozí), povinného odesílatele a nepovinného příjemce, explicitní datum, název,
-N externích čísel jednacích, popis, komentáře a soubory. Seznamy úkonů se řadí podle data
-úkonu vzestupně; shodná data řadí `Created`.
+N externích čísel jednacích, popis, komentáře a soubory.
 ([SDD-010](../sdd/sdd-010-ukony.md))
 
 **Kontakt** — úřad, úřední osoba nebo člověk; plochý, sdílený napříč spisy; nese id datové
 schránky a adresu jako jeden volný text. Vybírá se nebo zakládá inline všude, kde ho spis, úkon
-nebo číslo jmenuje, a spravuje se v agendě, která ukazuje, kde všude figuruje. Každý uživatel
-má automatický defaultní kontakt. Smazat jde jen kontakt, na který nic neodkazuje.
+nebo číslo jmenuje, a spravuje se v agendě, která ukazuje, kde všude figuruje.
 ([SDD-011](../sdd/sdd-011-kontakty.md))
 
 **Soubor** — patří právě jednomu spisu nebo úkonu; žádné odkazy mezi soubory a jinými
@@ -63,26 +61,21 @@ Vše, co uživatel zadá, jde editovat i smazat; destruktivní operace se napře
 
 ## Číslování
 
-Aplikace vydává vlastní čísla natvrdo, bez konfigurace: spis `EC/20260807-001`, úkon
-`EC/20260807-001/20260812-001`; pořadí počítá den z data entity. Ruční přepis je možný,
-unikátnost hlídá databáze. Pravidla a souběh drží [SDD-008](../sdd/sdd-008-cislovani.md).
+Aplikace čísluje spisy a úkony sama, bez konfigurace; tvar čísel, ruční přepis i souběh drží
+[SDD-008](../sdd/sdd-008-cislovani.md).
 
 ## Aplikace
 
 URL nesou UUID: `/cases`, `/cases/{id}`, `/cases/{id}/act/{actId}`, `/contacts`, `/login`
 ([SDD-016](../sdd/sdd-016-navigace-a-vzhled.md)). Dashboard `/` stojí nad reálnými daty
-([SDD-015](../sdd/sdd-015-dashboard.md)). Hledání ignoruje diakritiku, pokrývá názvy, popisy
-i čísla včetně externích; přesná shoda vlastního čísla skočí rovnou na spis nebo úkon,
-externího jen při jediné shodě ([SDD-014](../sdd/sdd-014-vyhledavani.md)). Vzhled zůstává:
-Tabler + TabBlazor.
+([SDD-015](../sdd/sdd-015-dashboard.md)). Hledání pokrývá názvy, popisy i čísla a ignoruje
+diakritiku ([SDD-014](../sdd/sdd-014-vyhledavani.md)). Vzhled zůstává: Tabler + TabBlazor.
 
 ## Vzorová data
 
-`EvilBrains__EvilCase__Database__SeedSampleData` (default `false`) naplní databázi při startu,
-v jakémkoli prostředí, jen dokud tenant nemá žádný spis. Data jsou pseudonymizovaný případ
-o překročení rychlosti z `test-data/case-01-speeding.md`: strom spisů, kontakty, značky, úkony
-se syntetickými TXT soubory, komentáře — každá obrazovka se staví a ověřuje nad rozsahem
-reálného případu. ([SDD-017](../sdd/sdd-017-seed-vzorovych-dat.md))
+Zdrojem je pseudonymizovaný případ překročení rychlosti z `test-data/case-01-speeding.md`;
+kdy a jak ho seed plní, drží [SDD-017](../sdd/sdd-017-seed-vzorovych-dat.md). Každá
+obrazovka se staví a ověřuje nad rozsahem reálného případu.
 
 ## Priority
 
@@ -118,6 +111,5 @@ místo; nic z toho se nestaví.
 
 ## Soukromí
 
-Repozitář je veřejný. `.claude/rules/github.md` drží reálný obsah spisů mimo každý zápis;
-testovací fixtures jsou syntetické nebo pseudonymizované (`test-data/README.md`). Reálné složky
-spisů na disku jsou jen ke čtení.
+Repozitář je veřejný; `.claude/rules/github.md` drží reálný obsah spisů mimo každý zápis.
+Testovací fixtures jsou syntetické nebo pseudonymizované (`test-data/README.md`).

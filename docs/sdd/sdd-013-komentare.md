@@ -26,5 +26,4 @@ Komentáře spisů a úkonů.
 
 ## Dopady
 
-Komentáře spisů přicházejí s M3, komentáře úkonů s M4. Smazání spisu a úkonu bere komentáře
-kaskádou (SDD-007).
+Mazání spisu a úkonu drží matice v SDD-007.

@@ -1,8 +1,8 @@
 # SDD — návrhové dokumenty
 
 SDD (software design document) závazně popisuje jednu oblast návrhu EvilCase.
-`../product/vision.md` říká, co se staví; SDD říká jak. Kód, který SDD falzifikuje, ho mění
-ve stejném pull requestu.
+`../product/vision.md` říká, co se staví; SDD říká jak. Změny SDD řídí
+`.claude/rules/instructions.md`.
 
 ## Konvence
 

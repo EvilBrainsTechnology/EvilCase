@@ -18,7 +18,7 @@ SDD-012. `.claude/rules/` nese z tohoto návrhu invarianty pro práci s kódem.
 
 Jedna aplikace, jeden proces. `EvilCase.Host` obsluhuje `/api/**` jako REST API a na každé
 jiné cestě vrací `index.html` frontendu. Frontend je Blazor WebAssembly: běží v prohlížeči
-a se serverem mluví jen přes API, typovaným klientem. Vše je same-origin; CORS neexistuje.
+a se serverem mluví jen přes API, typovaným klientem (SDD-005).
 
 Stav drží PostgreSQL; bajty souborů leží na souborovém systému, databáze nese jejich
 metadata (SDD-012). Mimo databázi server stav nedrží: přihlášení nese JWT access token
@@ -61,10 +61,8 @@ Api, Business, Auth, Data, Api.Contract → Domain
 - Šipka je závislost; jiná neexistuje. Host je kompoziční root a skládá zbytek.
 - Zakázané směry a nosné šipky drží `Tests/Architecture/LayerTests` (SDD-003).
 - Frontend renderuje a sbírá vstup; rozhoduje server.
-- Kontrolery jsou jediný zdroj pravdy API: kontrakt žije v `Api.Contract`, klient se
-  generuje ze zdrojů kontrolerů a shodu vynucují diagnostiky `EB1xxx`.
-- Jedna sada modelů: business služba vrací kontraktní DTO a projekce dotazu do něj míří
-  přímo. Žádná mapovací vrstva.
+- Tvary API — jediný zdroj pravdy v kontrolerech, generovaný klient, jedna sada modelů —
+  drží SDD-005.
 - Čisté doménové pravidlo je statická třída v `Domain` bez `DbContext`, testovaná bez
   databáze (SDD-003).
 - `EvilCase.Auth` a `EvilCase.Files` stojí mimo vrstvení; dovnitř vede jen `IAuthService`, resp.
@@ -96,6 +94,5 @@ nenese žádný secret.
 
 ## Dopady
 
-Beze změny v kódu. `.claude/rules/api.md`, `app.md`, `business.md`, `data.md` a `auth.md`
-nesou z tohoto návrhu invarianty; změna, která návrh falzifikuje, mění SDD i pravidlo ve
-stejném commitu.
+`.claude/rules/api.md`, `app.md`, `business.md`, `data.md` a `auth.md` nesou z tohoto návrhu
+invarianty; změny SDD řídí `.claude/rules/instructions.md`.
