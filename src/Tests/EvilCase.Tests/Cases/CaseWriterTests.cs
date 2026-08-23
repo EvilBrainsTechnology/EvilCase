@@ -56,7 +56,7 @@ public class CaseWriterTests
         var numbers = new QueuedCaseNumberIssuer(["EC/20260821-001", "EC/20260821-002"]);
         var writer = new CaseWriter(new FixedDbSession(context), numbers, NullLogger<CaseWriter>.Instance);
 
-        var created = await writer.Create(new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "Přestupek" });
+        var created = await writer.Create(new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "Přestupek" }, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -78,7 +78,7 @@ public class CaseWriterTests
         var writer = new CaseWriter(new FixedDbSession(context), numbers, NullLogger<CaseWriter>.Instance);
 
         Assert.That(
-            async () => await writer.Create(new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "Přestupek" }),
+            async () => await writer.Create(new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "Přestupek" }, CancellationToken.None),
             Throws.InstanceOf<DbUpdateException>());
     }
 
@@ -86,7 +86,7 @@ public class CaseWriterTests
     {
         private int issued;
 
-        public Task<string> NextCaseNumber(DateOnly date, CancellationToken cancellationToken = default)
+        public Task<string> NextCaseNumber(DateOnly date, CancellationToken cancellationToken)
         {
             return Task.FromResult(caseNumbers[this.issued++]);
         }

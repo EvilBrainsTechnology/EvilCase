@@ -7,7 +7,7 @@ namespace EvilBrains.EvilCase.Business.Contacts;
 /// </summary>
 public interface IContactReader
 {
-    public Task<IReadOnlyList<ContactListItem>> List(ContactListRequest request, CancellationToken cancellationToken = default);
+    public Task<IReadOnlyList<ContactListItem>> List(ContactListRequest request, CancellationToken cancellationToken);
 
-    public Task<ContactDetail?> Detail(Guid id, CancellationToken cancellationToken = default);
+    public Task<ContactDetail?> Detail(Guid id, CancellationToken cancellationToken);
 }

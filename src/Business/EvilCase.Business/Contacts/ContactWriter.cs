@@ -9,7 +9,7 @@ namespace EvilBrains.EvilCase.Business.Contacts;
 
 internal sealed class ContactWriter(IDbSession dbSession) : IContactWriter
 {
-    public async Task<ContactUpdateOutcome> Update(Guid id, ContactEditRequest request, CancellationToken cancellationToken = default)
+    public async Task<ContactUpdateOutcome> Update(Guid id, ContactEditRequest request, CancellationToken cancellationToken)
     {
         var normalized = Normalize(request);
 
@@ -26,7 +26,7 @@ internal sealed class ContactWriter(IDbSession dbSession) : IContactWriter
         return rows == 0 ? ContactUpdateOutcome.NotFound : ContactUpdateOutcome.Updated;
     }
 
-    public async Task<ContactDeleteOutcome> Delete(Guid id, CancellationToken cancellationToken = default)
+    public async Task<ContactDeleteOutcome> Delete(Guid id, CancellationToken cancellationToken)
     {
         var context = dbSession.Current;
 

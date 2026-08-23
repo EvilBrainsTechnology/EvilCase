@@ -7,7 +7,7 @@ internal sealed class FakeActNumberIssuer : IActNumberIssuer
 {
     private int issued;
 
-    public Task<string> NextActNumber(Case @case, DateOnly date, CancellationToken cancellationToken = default)
+    public Task<string> NextActNumber(Case @case, DateOnly date, CancellationToken cancellationToken)
     {
         return Task.FromResult(@case.CaseNumber + "/" + date.ToString("yyyyMMdd", CultureInfo.InvariantCulture) + "-" + (++this.issued).ToString("000", CultureInfo.InvariantCulture));
     }

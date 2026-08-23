@@ -6,7 +6,7 @@ namespace EvilBrains.EvilCase.Business.Contacts;
 
 internal sealed class ContactReader(IDbSession dbSession) : IContactReader
 {
-    public async Task<IReadOnlyList<ContactListItem>> List(ContactListRequest request, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<ContactListItem>> List(ContactListRequest request, CancellationToken cancellationToken)
     {
         return await dbSession.Current.Contacts
             .MatchingSearch(request.Search)
@@ -17,7 +17,7 @@ internal sealed class ContactReader(IDbSession dbSession) : IContactReader
 
     // A detail is not a list query: the header, the default-contact flag and the three act sources
     // are separate reads, merged here.
-    public async Task<ContactDetail?> Detail(Guid id, CancellationToken cancellationToken = default)
+    public async Task<ContactDetail?> Detail(Guid id, CancellationToken cancellationToken)
     {
         var context = dbSession.Current;
 

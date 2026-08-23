@@ -12,5 +12,5 @@ public interface IDbSession
     /// <summary>
     /// Opens a transaction on the current context. The caller commits; disposing it uncommitted rolls back.
     /// </summary>
-    public Task<IDbContextTransaction> BeginTransaction(CancellationToken cancellationToken = default);
+    public Task<IDbContextTransaction> BeginTransaction(CancellationToken cancellationToken);
 }

@@ -20,7 +20,7 @@ internal sealed class CaseWriter(
     /// </summary>
     private const int Attempts = 5;
 
-    public async Task<CaseListItem> Create(CreateCaseRequest request, CancellationToken cancellationToken = default)
+    public async Task<CaseListItem> Create(CreateCaseRequest request, CancellationToken cancellationToken)
     {
         for (var attempt = 1; ; attempt++)
         {
