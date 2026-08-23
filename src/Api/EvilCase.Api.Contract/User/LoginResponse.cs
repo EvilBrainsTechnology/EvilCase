@@ -6,7 +6,7 @@ namespace EvilBrains.EvilCase.Api.Contract.User;
 /// What a sign-in or a refresh hands back. The refresh token is deliberately absent: it travels in a
 /// cookie the browser's scripts cannot read, and only ever there.
 /// </summary>
-public record LoginResponse
+public sealed record LoginResponse
 {
     public required string AccessToken { get; init; }
 

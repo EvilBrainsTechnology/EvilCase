@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EvilBrains.EvilCase.Api.Contract.User;
 
-public record LoginRequest
+public sealed record LoginRequest
 {
     // Length caps only: the credentials of an existing account are whatever they were registered with,
     // and an unbounded password would be handed to PBKDF2 by an anonymous caller.
