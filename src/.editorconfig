@@ -1102,3 +1102,7 @@ roslynator_compiler_diagnostic_fix.cs8767.enabled = true
 
 # Generator tests compile C# fixture sources held in raw string literals; their line endings are irrelevant
 [Utils/Tests/EvilBrains.Utils.Tests/ApiClient/*.cs]
+
+# The app has a named entry point: a second top-level Program would collide with the host's in the test project
+[App/EvilCase.App/Program.cs]
+csharp_style_prefer_top_level_statements = false
