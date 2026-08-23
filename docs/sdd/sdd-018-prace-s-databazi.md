@@ -2,12 +2,12 @@
 
 - **Stav:** platí
 - **Milníky:** průřez
-- **Související SDD:** [001](sdd-001-architektura.md), [003](sdd-003-testovani.md),
-  [006](sdd-006-tenance-a-ucty.md), [007](sdd-007-domenovy-model.md)
+- **Související SDD:** [003](sdd-003-testovani.md), [006](sdd-006-tenance-a-ucty.md),
+  [007](sdd-007-domenovy-model.md), [017](sdd-017-seed-vzorovych-dat.md)
 
 ## Rozsah
 
-Jak aplikace čte a zapisuje: přístup ke kontextu, jeho životnost, transakce a interceptory.
+Jak aplikace čte a zapisuje: přístup ke kontextu, transakce a interceptory.
 Schéma drží SDD-007, izolaci tenantů SDD-006.
 
 ## Popis
@@ -15,27 +15,22 @@ Schéma drží SDD-007, izolaci tenantů SDD-006.
 ### Přístup ke kontextu
 
 - Aplikace čte a zapisuje přes `IDbSession.Current`; nic jiného mezi ní a
-  `ApplicationDbContext` nestojí.
-- `Current` vrací `ApplicationDbContext` aktuálního DI scope. Vzniká až při prvním použití.
-- `ApplicationDbContext` umírá s DI scope. Mezi scopy — tedy mezi požadavky — neuniká nikdy.
-- Kdo potřebuje vlastní scope (seed, úloha na pozadí), zakládá ho sám a dostane vlastní kontext.
-- Čte i zapisuje se přes typovaný `DbSet` entity (`dbSession.Current.Users`); `Set<TEntity>()`
-  ani `Add` nad kontextem se nepoužívají.
+  `ApplicationDbContext` nestojí. Invarianty přístupu drží `.claude/rules/data.md`.
+- Kdo potřebuje vlastní scope (seed, úloha na pozadí), zakládá ho sám a dostane vlastní
+  kontext.
 
 ### Transakce
 
-- Transakci otevírá `IDbSession.BeginTransaction` ten, kdo drží celou jednotku práce.
-  Jednotlivý zápis transakci neotevírá a `SaveChanges` volá sám za sebe.
-- Zápisy, které musí platit společně, běží v jedné transakci nad jedním kontextem.
+- Transakci otevírá `IDbSession.BeginTransaction` ten, kdo drží celou jednotku práce;
+  jednotlivý zápis ji neotevírá.
 - Seed vzorových dat je celá jednotka práce: transakci i scope `IUserContext` si otevírá sám
   (SDD-017).
 
 ### Interceptory
 
-- `UserWriteInterceptor` doplní tenanta a uživatele z `IUserContext` a odmítne zápis, změnu i
-  smazání entity, jejíž tenant nebo uživatel se s kontextem neshoduje (SDD-006).
-- `ExecuteUpdate` a `ExecuteDelete` jdou mimo interceptory: co jinak plní interceptor, nastavuje
-  takový zápis sám. Razítek se to netýká — ty plní trigger i jim.
+- Zápis doplňuje a hlídá interceptor (SDD-006). `ExecuteUpdate` a `ExecuteDelete` jdou mimo
+  interceptory: co jinak plní interceptor, nastavuje takový zápis sám; razítka plní trigger
+  i jim.
 
 ### Razítka Created a Updated
 
@@ -65,6 +60,4 @@ a běží ve vlastním scope dřív, než se obslouží první požadavek.
 
 ## Dopady
 
-`ApplicationDbContext` přestává být závislostí služeb v `Business` a `Auth`. SDD-001 jmenuje
-`EvilCase.Data` jako model i přístup k databázi; `.claude/rules/data.md` nese invariant.
 Čas drží databáze: `TimeProvider` patří `EvilCase.Auth`, ne `EvilCase.Data`.

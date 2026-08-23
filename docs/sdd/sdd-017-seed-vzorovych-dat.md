@@ -33,6 +33,4 @@ SDD-006.
 
 ## Dopady
 
-Smoke test seedu (SDD-003). Seed loguje začátek, výsledek a počty (SDD-002). Seeder žije v
-EvilCase.Business/Seeding a běží po seedu administrátora, ve vlastní transakci a pod vlastním
-scope `IUserContext`; test-data/README.md na něj ukazuje.
+Smoke test seedu (SDD-003). Seed loguje začátek, výsledek a počty (SDD-002).

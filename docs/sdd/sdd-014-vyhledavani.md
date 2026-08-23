@@ -19,17 +19,11 @@ diakritiku a velikost písmen.
 
 ### Technika
 
-- Název a popis spisu i úkonu hledá PostgreSQL fulltext bez ohledu na diakritiku a velikost
-  písmen: `tsvector` s konfigurací `simple` (tokeny převádí na malá písmena) a `unaccent`,
-  přes GIN expression indexy nad stávajícími sloupci. Žádný uložený ani generovaný sloupec.
-- `unaccent` není IMMUTABLE; indexy volají IMMUTABLE obálku. Rozšíření, obálku i indexy
-  zakládá migrace `Init` (SDD-007) — M7 migraci nepotřebuje.
-- Dotaz je prefixová `tsquery`.
-- `CaseNumber`, `ActNumber` a hodnoty externích čísel hledá zvlášť ILIKE contains nad
-  vlastními sloupci; ILIKE nerozlišuje velikost písmen. Dotazy jdou po indexu: rozšíření
-  `pg_trgm` a GIN trigram indexy nad těmito sloupci, obojí zakládá `Init` (SDD-007).
+- Název a popis hledá databázový fulltext, čísla a externí čísla ILIKE contains; obě větve
+  bez ohledu na diakritiku a velikost písmen, po indexech, které schéma nese od `Init`
+  (SDD-007).
+- Dotaz je prefixový.
 - Jeden endpoint kombinuje obě větve; vrací spisy i úkony dohromady.
-- Dotazy jdou přes fulltextové funkce Npgsql / EF Core, bez raw SQL.
 
 ### Navigace přesnou shodou
 

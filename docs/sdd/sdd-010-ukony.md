@@ -38,8 +38,7 @@ kontakt, který číslo přidělil. Tabulka, ne sloupec; hodnota unikátní per 
 
 ### Mazání
 
-Smazání úkonu bere kaskádou komentáře, externí čísla jednací a soubory (SDD-007); potvrzení
-jmenuje, co kaskáda bere.
+Mazání řídí matice v SDD-007; potvrzení jmenuje, co kaskáda bere.
 
 ## Rozhodnutí
 

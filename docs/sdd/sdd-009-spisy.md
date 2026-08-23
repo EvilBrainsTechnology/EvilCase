@@ -46,8 +46,7 @@ kontakt, který značku přidělil. Hodnota je unikátní per spis. Spravují se
 
 ### Mazání
 
-Smazání spisu bere kaskádou úkony, komentáře, značky a soubory; potvrzení jmenuje, co
-kaskáda bere. Podřízené spisy přežijí bez rodiče.
+Mazání řídí matice v SDD-007; potvrzení jmenuje, co kaskáda bere.
 
 ## Rozhodnutí
 

@@ -7,7 +7,7 @@
 
 ## Rozsah
 
-Mapa entit, společné vlastnosti, co zaniká, matice mazání a reset migrací. Detaily
+Mapa entit, společné vlastnosti, co zaniká, matice mazání a migrace. Detaily
 jednotlivých entit drží SDD-009 až 012.
 
 ## Popis
@@ -51,25 +51,21 @@ Account → Tenant → User (SDD-006). Tenantová data:
 
 Každé smazání se v UI potvrzuje (SDD-004).
 
-### Reset schématu
+### Migrace
 
-Dnešních 12 migrací se maže i se snapshotem; nové schéma zakládá jedna migrace `Init`. Init
-zakládá i rozšíření `unaccent` a `pg_trgm`, IMMUTABLE obálku `unaccent`, GIN fulltextové
-indexy a GIN trigram indexy vyhledávání (SDD-014) — M7 migraci nepotřebuje. Nasazená data se
-zahodí — databázi dropne owner ručně.
+Schéma začíná migrací `Init`; řetěz migrací od ní jen roste a nikdy se nepřepisuje.
+Vyhledávací rozšíření a indexy (SDD-014) nese schéma od `Init` — M7 migraci nepotřebuje.
 
 ## Rozhodnutí
 
 - Id: `long` sekvence / UUIDv7. Platí UUIDv7 generované v aplikaci.
 - Vazby spisů: symetrická relace / rodičovská hierarchie. Platí rodič.
 - Tagy: zůstávají / zanikají. Zanikají.
-- Migrace: řetěz na stávajících 12 / reset. Platí reset jednou `Init` migrací.
+- Migrace: řetěz na starých 12 / reset. Platil reset; schéma začíná migrací `Init`.
 - Optimistická konkurence: token / bez tokenu. Platí zatím bez tokenu — poslední zápis
   vyhrává.
 
 ## Dopady
 
-Modelové testy v `Tests/Data/Model/` se přepisují na nový model (SDD-003). Seed vzorových
-dat sleduje model (SDD-017). Jeden nedělitelný slice je jen samotný reset schématu — starý
-model s migracemi ven, nové entity s `Init` dovnitř, spolu s kódem a testy, které to rozbije;
-číslování, jádro souborového úložiště a vzorový seed jsou samostatné slices M2.
+Modelové testy v `Tests/Data/Model/` sledují model (SDD-003). Seed vzorových dat sleduje
+model (SDD-017).

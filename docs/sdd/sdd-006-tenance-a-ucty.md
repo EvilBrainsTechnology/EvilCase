@@ -39,10 +39,9 @@ Data nesmí utéct mezi tenanty; únik je kritická chyba.
 - `SaveChanges` doplní `TenantId` nové tenantové entitě z kontextu a zápis do cizího tenanta
   odmítne.
 - `SaveChanges` doplní `UserId` nové uživatelské entitě z `IUserContext` a zápis, změnu i
-  smazání řádky jiného uživatele odmítne. Seed při startu vstupuje do `IUserContext.Enter`
-  vlastním tenantem a uživatelem, takže zápis prochází stejnou kontrolou jako požadavek.
-- Seed běží pod explicitním scope `IUserContext.Enter(tenantId, userId)`; mimo požadavek se
-  tenant a uživatel nastavují jen společně.
+  smazání řádky jiného uživatele odmítne.
+- Mimo požadavek (seed, úloha na pozadí) se tenant a uživatel vstupují jen společně a zápis
+  prochází stejnou kontrolou jako požadavek.
 - Unikátní indexy tenantových entit jsou kompozitní s `TenantId`; e-mail uživatele je unikátní
   přes celé nasazení.
 - Konvenční test hlídá, že žádná tenantová entita filtr nepostrádá (SDD-003).
