@@ -15,8 +15,11 @@ internal sealed class SearchDebouncer : IDisposable
     /// </summary>
     public async Task<CancellationToken?> Start(bool debounce)
     {
-        this.pending?.Cancel();
-        this.pending?.Dispose();
+        if (this.pending is not null)
+        {
+            await this.pending.CancelAsync();
+            this.pending.Dispose();
+        }
 
         var current = new CancellationTokenSource();
         this.pending = current;
