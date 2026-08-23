@@ -5,5 +5,5 @@ internal interface ISampleDataSeeder
     /// <summary>
     /// Writes the whole sample case tree for the given tenant.
     /// </summary>
-    public Task Seed(Guid userId, CancellationToken cancellationToken);
+    public Task SeedSampleData(Guid userId, CancellationToken cancellationToken);
 }

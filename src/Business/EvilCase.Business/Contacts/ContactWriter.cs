@@ -9,12 +9,12 @@ namespace EvilBrains.EvilCase.Business.Contacts;
 
 internal sealed class ContactWriter(IDbSession dbSession) : IContactWriter
 {
-    public async Task<ContactUpdateOutcome> Update(Guid id, ContactEditRequest request, CancellationToken cancellationToken)
+    public async Task<ContactUpdateOutcome> UpdateContact(Guid contactId, ContactEditRequest request, CancellationToken cancellationToken)
     {
         var normalized = Normalize(request);
 
         var rows = await dbSession.Current.Contacts
-            .WithId(id)
+            .WithId(contactId)
             .ExecuteUpdateAsync(
                 setters => setters
                     .SetProperty(contact => contact.Name, normalized.Name)
@@ -26,22 +26,22 @@ internal sealed class ContactWriter(IDbSession dbSession) : IContactWriter
         return rows == 0 ? ContactUpdateOutcome.NotFound : ContactUpdateOutcome.Updated;
     }
 
-    public async Task<ContactDeleteOutcome> Delete(Guid id, CancellationToken cancellationToken)
+    public async Task<ContactDeleteOutcome> DeleteContact(Guid contactId, CancellationToken cancellationToken)
     {
         var context = dbSession.Current;
 
-        var contact = await context.Contacts.SingleOrDefaultAsync(entity => entity.Id == id, cancellationToken);
+        var contact = await context.Contacts.SingleOrDefaultAsync(entity => entity.Id == contactId, cancellationToken);
         if (contact is null)
             return ContactDeleteOutcome.NotFound;
 
         var isDefault = await context.Users
-            .WithDefaultContact(id)
+            .WithDefaultContact(contactId)
             .AnyAsync(cancellationToken);
         if (isDefault)
             return ContactDeleteOutcome.DefaultContact;
 
         var referenced = await context.Contacts
-            .WithId(id)
+            .WithId(contactId)
             .Referenced()
             .AnyAsync(cancellationToken);
         if (referenced)
