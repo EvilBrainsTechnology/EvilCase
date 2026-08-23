@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Headers;
+using EvilBrains.EvilCase.Api.Contract.Logging;
 using EvilBrains.EvilCase.Api.Contract.User;
 using Microsoft.AspNetCore.Components.WebAssembly.Http;
 
@@ -17,8 +18,8 @@ internal sealed class AuthTokenHandler(IAccessTokenStore tokens, IServiceProvide
         if (IsUnder(request, AuthRoute.Path))
             request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
 
-        // Renewal goes through these, so renewing on their behalf would call this handler again.
-        if (IsAnonymousAuthEndpoint(request))
+        // Renewing on behalf of these comes back here, so they carry whatever token is at hand and no more.
+        if (IsExemptFromRenewal(request))
         {
             this.Authorize(request);
 
@@ -58,13 +59,15 @@ internal sealed class AuthTokenHandler(IAccessTokenStore tokens, IServiceProvide
     /// session to renew yet, renewal is this handler's own way out of an expired token, and signing out
     /// is about to throw the session away. Everything else under that prefix is <c>[Authorize]</c> and
     /// needs the bearer kept alive like any other endpoint — <c>logout-all</c> above all, whose failure
-    /// leaves every other device signed in.
+    /// leaves every other device signed in. The log upload is anonymous too, and a renewal that fails
+    /// logs: renewing for it would put the next batch in the queue that the batch after it renews for.
     /// </summary>
-    private static bool IsAnonymousAuthEndpoint(HttpRequestMessage request)
+    private static bool IsExemptFromRenewal(HttpRequestMessage request)
     {
         return IsUnder(request, AuthRoute.LoginPath)
             || IsUnder(request, AuthRoute.RefreshPath)
-            || IsUnder(request, AuthRoute.LogoutPath);
+            || IsUnder(request, AuthRoute.LogoutPath)
+            || IsUnder(request, ClientLogRoute.Path);
     }
 
     // By segment rather than by characters, the way the host partitions the same paths: a plain prefix

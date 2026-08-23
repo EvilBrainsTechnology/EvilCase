@@ -3,12 +3,10 @@ using EvilBrains.EvilCase.Api.Contract.User;
 
 namespace EvilBrains.EvilCase.Tests.Frontend;
 
-/// <summary>
-/// An <see cref="IAuthClient"/> whose only interesting call is <see cref="Refresh"/>; everything else
-/// is unreachable from the tests that use it.
-/// </summary>
 internal sealed class FakeAuthClient(Exception refreshFailure) : IAuthClient
 {
+    public int Refreshes { get; private set; }
+
     public Task<LoginResponse> Login(LoginRequest request, CancellationToken token)
     {
         throw new NotSupportedException();
@@ -16,6 +14,8 @@ internal sealed class FakeAuthClient(Exception refreshFailure) : IAuthClient
 
     public Task<LoginResponse> Refresh(CancellationToken token)
     {
+        this.Refreshes++;
+
         return Task.FromException<LoginResponse>(refreshFailure);
     }
 
