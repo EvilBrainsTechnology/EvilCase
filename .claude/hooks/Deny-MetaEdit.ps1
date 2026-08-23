@@ -36,9 +36,9 @@ try {
     if (Test-Path -LiteralPath (Join-Path $checkout '.claude/allow-meta-edits')) { exit 0 }
 
     [Console]::Error.WriteLine(
-        'Edits under .claude/** and docs/sdd/** are blocked. If the owner explicitly requested ' +
-        'this change, run `touch .claude/allow-meta-edits`, retry the edit, and delete the ' +
-        'flag afterwards. Otherwise open an issue for the owner instead of editing.')
+        'CLAUDE.md, .claude/**, docs/sdd/** and docs/product/vision.md are owner-only. If the owner ' +
+        'explicitly requested this change, run `touch .claude/allow-meta-edits`, retry the edit, and ' +
+        'delete the flag afterwards. Otherwise open an issue for the owner instead of editing.')
     exit 2
 }
 catch {
