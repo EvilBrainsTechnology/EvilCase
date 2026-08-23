@@ -101,7 +101,7 @@
         {
             this.Logger.LogWarning(exception, "Editing the contact failed");
 
-            this.error = exception.Message;
+            this.error = "Kontakt se nepodařilo uložit. Zkontrolujte zadané údaje a zkuste to znovu.";
         }
         finally
         {

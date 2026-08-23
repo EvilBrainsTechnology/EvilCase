@@ -136,7 +136,7 @@
             this.Logger.LogWarning(exception, "Loading the contact list failed");
 
             this.items = [];
-            this.failure = exception.Message;
+            this.failure = "Seznam kontaktů se nepodařilo načíst. Zkuste to za chvíli znovu.";
         }
     }
 }

@@ -178,7 +178,7 @@
             this.Logger.LogWarning(exception, "Loading the case list failed");
 
             this.items = [];
-            this.failure = exception.Message;
+            this.failure = "Seznam spisů se nepodařilo načíst. Zkuste to za chvíli znovu.";
         }
     }
 }
