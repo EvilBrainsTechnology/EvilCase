@@ -64,7 +64,7 @@
         {
             this.Logger.LogWarning(exception, "Deleting the contact failed");
 
-            this.error = exception.Message;
+            this.error = "Kontakt se nepodařilo smazat. Zkuste to za chvíli znovu.";
         }
         finally
         {
