@@ -121,15 +121,13 @@ internal sealed class AuthService(
     {
         var lockout = options.Value.Lockout;
 
-        // The counter starts over together with the lockout: past that point the lockout is what limits
-        // guessing, and a counter left at its ceiling would lock the account again on the first miss.
-        var recorded = await userStore.RecordFailedLogin(
+        var lockedUntil = await userStore.RecordFailedLogin(
             user.Id,
             lockout.MaxFailedAttempts,
             now.Add(lockout.Duration),
             cancellationToken);
 
-        var lockedOut = recorded?.LockoutEnd > now;
+        var lockedOut = lockedUntil > now;
 
         if (lockedOut)
             logger.LogWarning("User {UserId} was locked out after {Attempts} failed sign-in attempts", user.Id, lockout.MaxFailedAttempts);

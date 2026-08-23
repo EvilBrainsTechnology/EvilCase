@@ -18,10 +18,9 @@ internal sealed class UserStore(IDbSession dbSession) : IUserStore
         return await dbSession.Current.Users.SingleOrDefaultAsync(user => user.Id == id, cancellationToken);
     }
 
-    public async Task<User?> RecordFailedLogin(Guid id, int maxAttempts, DateTime lockoutEnd, CancellationToken cancellationToken)
+    public async Task<DateTime?> RecordFailedLogin(Guid id, int maxAttempts, DateTime lockoutEnd, CancellationToken cancellationToken)
     {
-        // Every setter reads the stored column, so the database counts and decides the lockout; two
-        // concurrent misses starting from the same read would otherwise write the same number twice.
+        // Every setter reads the stored column, never a number worked out from an earlier read.
         await dbSession.Current.Users
             .Where(user => user.Id == id)
             .ExecuteUpdateAsync(
@@ -34,10 +33,10 @@ internal sealed class UserStore(IDbSession dbSession) : IUserStore
                         user => user.FailedLoginAttempts + 1 >= maxAttempts ? lockoutEnd : user.LockoutEnd),
                 cancellationToken);
 
-        // Untracked: the update went round the change tracker, which still holds the row as it was read.
         return await dbSession.Current.Users
-            .AsNoTracking()
-            .SingleOrDefaultAsync(user => user.Id == id, cancellationToken);
+            .Where(user => user.Id == id)
+            .Select(user => user.LockoutEnd)
+            .SingleOrDefaultAsync(cancellationToken);
     }
 
     public async Task RecordSuccessfulLogin(Guid id, CancellationToken cancellationToken)

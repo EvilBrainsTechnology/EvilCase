@@ -47,7 +47,7 @@ internal sealed class FakeUserStore : IUserStore
         return Task.FromResult(this.users.Find(user => user.Id == id));
     }
 
-    public Task<User?> RecordFailedLogin(Guid id, int maxAttempts, DateTime lockoutEnd, CancellationToken cancellationToken)
+    public Task<DateTime?> RecordFailedLogin(Guid id, int maxAttempts, DateTime lockoutEnd, CancellationToken cancellationToken)
     {
         this.Replace(
             id,
@@ -55,7 +55,7 @@ internal sealed class FakeUserStore : IUserStore
                 ? user with { FailedLoginAttempts = 0, LockoutEnd = lockoutEnd }
                 : user with { FailedLoginAttempts = user.FailedLoginAttempts + 1 });
 
-        return Task.FromResult<User?>(this.Get(id));
+        return Task.FromResult(this.Get(id).LockoutEnd);
     }
 
     public Task RecordSuccessfulLogin(Guid id, CancellationToken cancellationToken)

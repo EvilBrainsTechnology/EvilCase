@@ -4,6 +4,7 @@ using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Domain.Contacts;
 using EvilBrains.EvilCase.Domain.Users;
 using EvilBrains.EvilCase.Tests.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Tests.Auth;
 
@@ -53,16 +54,16 @@ public class UserStoreTests
         var user = await Seed(context);
 
         await store.RecordFailedLogin(user.Id, MaxFailedAttempts, LockoutEnd, CancellationToken.None);
-        var recorded = await store.RecordFailedLogin(user.Id, MaxFailedAttempts, LockoutEnd, CancellationToken.None);
+        var lockout = await store.RecordFailedLogin(user.Id, MaxFailedAttempts, LockoutEnd, CancellationToken.None);
+        var stored = await context.Users.SingleAsync(candidate => candidate.Id == user.Id);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(recorded, Is.Not.Null, "the store returns the row it just wrote");
             Assert.That(
-                recorded!.FailedLoginAttempts,
+                stored.FailedLoginAttempts,
                 Is.EqualTo(2),
                 "the database counts the failures, so a second miss cannot write the first one's number again");
-            Assert.That(recorded.LockoutEnd, Is.Null, "a failure below the ceiling locks nothing");
+            Assert.That(lockout, Is.Null, "a failure below the ceiling locks nothing");
         }
     }
 
@@ -73,12 +74,13 @@ public class UserStoreTests
         var store = new UserStore(new FixedDbSession(context));
         var user = await Seed(context, MaxFailedAttempts - 1);
 
-        var recorded = await store.RecordFailedLogin(user.Id, MaxFailedAttempts, LockoutEnd, CancellationToken.None);
+        var lockout = await store.RecordFailedLogin(user.Id, MaxFailedAttempts, LockoutEnd, CancellationToken.None);
+        var stored = await context.Users.SingleAsync(candidate => candidate.Id == user.Id);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(recorded!.LockoutEnd, Is.EqualTo(LockoutEnd), "the attempt that reaches the ceiling is the one that locks the account");
-            Assert.That(recorded.FailedLoginAttempts, Is.Zero, "the counter starts over with the lockout, or the first miss after it elapsed would lock the account again");
+            Assert.That(lockout, Is.EqualTo(LockoutEnd), "the attempt that reaches the ceiling is the one that locks the account");
+            Assert.That(stored.FailedLoginAttempts, Is.Zero, "the counter starts over with the lockout, or the first miss after it elapsed would lock the account again");
         }
     }
 
@@ -89,9 +91,20 @@ public class UserStoreTests
         var store = new UserStore(new FixedDbSession(context));
         var user = await Seed(context, 0, EarlierLockoutEnd);
 
-        var recorded = await store.RecordFailedLogin(user.Id, MaxFailedAttempts, LockoutEnd, CancellationToken.None);
+        var lockout = await store.RecordFailedLogin(user.Id, MaxFailedAttempts, LockoutEnd, CancellationToken.None);
 
-        Assert.That(recorded!.LockoutEnd, Is.EqualTo(EarlierLockoutEnd), "only the attempt that reaches the ceiling moves the lockout");
+        Assert.That(lockout, Is.EqualTo(EarlierLockoutEnd), "only the attempt that reaches the ceiling moves the lockout");
+    }
+
+    [Test]
+    public async Task AFailureAgainstARowThatIsGoneLocksNothing()
+    {
+        await using var context = TestDatabase.CreateMigrated();
+        var store = new UserStore(new FixedDbSession(context));
+
+        var lockout = await store.RecordFailedLogin(Guid.CreateVersion7(), MaxFailedAttempts, LockoutEnd, CancellationToken.None);
+
+        Assert.That(lockout, Is.Null, "a user deleted between the read and the write is not locked out");
     }
 
     private static async Task<User> Seed(ApplicationDbContext context, int failedAttempts = 0, DateTime? lockoutEnd = null)
@@ -115,6 +128,9 @@ public class UserStoreTests
         context.Contacts.Add(contact);
         context.Users.Add(user);
         await context.SaveChangesAsync();
+
+        // The store writes through SQL, so a later read must not be answered from the tracked row.
+        context.ChangeTracker.Clear();
 
         return user;
     }
