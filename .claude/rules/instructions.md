@@ -4,9 +4,10 @@
   better than.
 - Instructions state invariants. No state, no progress, no history, no changelog.
 - A rule lives in one file. Other files point at it.
-- Change `.claude/**` only where an instruction stopped being true: a code change that
-  falsifies an instruction corrects it in the same commit. Never write down what the code
-  already shows. A missing rule or a doubt is an issue for the owner.
+- `CLAUDE.md`, `.claude/**`, `docs/sdd/**` and the vision change only on the owner's explicit
+  request; a hook blocks every other edit. The request runs `touch .claude/allow-meta-edits`,
+  edits, then deletes the flag. Code that falsifies an instruction or an SDD gets an issue
+  for the owner, never the edit. Never write down what the code already shows.
 - An instruction file carries commands, never scripts. A block with control flow, failure
   handling or state to clean up is a pwsh script beside the instruction that calls it, with
   `Set-StrictMode`, `$ErrorActionPreference` and a header stating parameters and failures.

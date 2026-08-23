@@ -1,6 +1,7 @@
 # Local Claude Code state
 .claude/worktrees/
 .claude/settings.local.json
+.claude/allow-meta-edits
 
 # Local secrets. Ignored from the repository root because the file is searched for upwards from the
 # host output directory, so a .env anywhere above it is picked up and must never be committed.

@@ -26,6 +26,11 @@ const REVIEW_SCHEMA = {
   required: ['fixed'],
 }
 
+const META =
+  '\n\nA hook blocks edits under .claude/** and docs/sdd/**. Only where an owner comment on ' +
+  'this pull request explicitly asks for such a change: run `touch .claude/allow-meta-edits`, ' +
+  'edit, then delete the flag. Otherwise open an issue for the owner instead.'
+
 const results = await pipeline(
   args,
   async (item) => {
@@ -43,7 +48,7 @@ const results = await pipeline(
     if (item.fast) {
       return agent(
         `Fast lane: you are the only agent on this change — no plan, no review.\n\n` +
-          `Work on the existing pull request #${item.pr}, branch ${item.branch}.\n\n${item.instructions}`,
+          `Work on the existing pull request #${item.pr}, branch ${item.branch}.\n\n${item.instructions}${META}`,
         {
           agentType: 'coder', isolation: 'worktree', phase: 'Work',
           label: `fast:#${item.pr}`, schema: WORK_SCHEMA, model: 'opus', effort: 'xhigh',
@@ -52,7 +57,7 @@ const results = await pipeline(
     }
     const prompt =
       `Work on the existing pull request #${item.pr}, branch ${item.branch}.\n\n${item.instructions}\n\n` +
-      `The architect's plan:\n\n${plan}`
+      `The architect's plan:\n\n${plan}${META}`
     return agent(prompt, {
       agentType: 'coder', isolation: 'worktree', phase: 'Work',
       label: `work:#${item.pr}`, schema: WORK_SCHEMA,
@@ -61,7 +66,7 @@ const results = await pipeline(
   (work, item) => {
     if (!work) throw new Error(`pull request #${item.pr}: work failed`)
     if (item.fast) return { pr: item.pr, fixed: work.fixed, uncertainty: null, status: 'fast' }
-    return agent(`Review pull request #${item.pr} and fix what you find.`, {
+    return agent(`Review pull request #${item.pr} and fix what you find.${META}`, {
       agentType: 'reviewer', isolation: 'worktree', phase: 'Review',
       label: `review:#${item.pr}`, schema: REVIEW_SCHEMA,
     }).then((review) => ({

@@ -5,34 +5,34 @@ description: Run one round of the EvilCase product loop — start independent sl
 
 # EvilCase product loop
 
-Move EvilCase toward `docs/product/vision.md`, one reviewable slice at a time. Never ask
-permission to continue and never wait for the owner.
+Move EvilCase toward `docs/product/vision.md`; never ask permission and never wait for the owner.
 
 ## 1. Start the work, before anything else in the round
 
 A round begins with `TaskList`, before the backlog is read. A running workflow is dead when its
-task transcript file's mtime is over 15 minutes old or the task is over 3 hours old; one still
-writing runs on. A dead workflow gets `TaskStop`; a dead or failed run loses worktrees, local
-branches and the remote `loop/<issue>-…` branch that no open pull request references. A round
-removes `agent-in-progress` from any `loop` issue with no running workflow and no open pull
-request for it. A failed run comments its issue; two such comments in a row label it `blocked`.
+task is over 3 hours old, or when every agent stopped writing:
+`find ~/.claude/projects "${TMPDIR:-/tmp}/claude" -path '*EvilCase*' -name '*.jsonl' -mmin -15
+2>/dev/null` prints nothing; a running agent appends to those transcripts. A dead workflow gets
+`TaskStop`. A dead or failed run loses its worktrees and local branches. A remote `loop/*`,
+`review/*` or `claude/*` branch goes only with no open pull request referencing it and its last
+commit over 3 hours old — merged and closed pull requests' branches included. A round removes
+`agent-in-progress` from any `loop` issue with no running workflow and no open pull request for
+it. A failed run comments its issue; two such comments in a row label it `blocked`.
 
 The backlog is the open issues labelled `loop` and none of `agent-in-progress` (taken),
 `blocked` or `needs-decision`: highest `Priority` (`Urgent`, `High`, `Medium`, `Low`, then none),
 the lowest milestone breaking a tie, honouring a focus argument. Empty backlog: do nothing.
 
-Take two or three and label each `agent-in-progress` before one Workflow
-(`.claude/skills/product-loop/slice-pipeline.js`, `args: [{issue, slug, title, body, fast}, …]`).
-One slice is one pull request from database to UI leaving the app usable, on `loop/<issue>-<slug>`
-off `master`. The workflow runs in the background; tend open pull requests meanwhile and take its
-results into the report — details stay inside the workflow. `fast: true` is the coder alone: no
-behaviour change, no new test — a rename, doc wording, a sweep an analyzer verifies. Schema,
+Take up to three non-overlapping candidates in backlog order, label each `agent-in-progress`,
+and start one Workflow (`.claude/skills/product-loop/slice-pipeline.js`,
+`args: [{issue, slug, title, body, fast}, …]`); it runs in the background — tend open pull
+requests meanwhile. A candidate overlaps when it touches a changed file of an open pull request
+or of another candidate, when it and one of those both carry a migration, or when it needs
+another's unmerged branch; where nothing clears, the round starts nothing and tends what is
+open. One slice is one pull request from database to UI leaving the app usable, small enough
+to review on a phone, on `loop/<issue>-<slug>` off `master`. `fast: true` is the coder alone:
+no behaviour change, no new test — a rename, doc wording, a sweep an analyzer verifies. Schema,
 tenancy, security, an API contract, a screen, a test or a second project keep all three phases.
-
-Two slices never touch the same files, and every open pull request counts — a candidate is
-checked against the changed files of every open pull request. A migration collides with every
-other migration. A slice that needs another's unmerged branch is not started. Where nothing
-clears this, the round starts nothing and tends what is open.
 
 ## 2. Decide, do not ask
 
@@ -43,17 +43,16 @@ dependent issue `blocked` and take something else.
 
 An answer is a comment from the owner, `vdolek`, on an open `needs-decision` issue. Apply it:
 say what was chosen, label `decided`, close it, and unblock what referenced it. A decision that
-changes the vision or a governing SDD updates it in the same commit as the code it governs.
-A round removes `blocked` from an issue whose `Blocked by #` issues have all merged or closed.
+changes the vision or a governing SDD is an owner request: `touch .claude/allow-meta-edits`,
+update it in the same commit as the code it governs, delete the flag. A round removes `blocked`
+from an issue whose `Blocked by #` issues have all merged or closed.
 
 ## 3. Tend the open pull requests
 
 - A `waiting-for-agent` or `ci-failed` pull request on a free branch comes first (Between rounds).
-- Answer every review comment in the round that finds it. Outstanding means a thread with no
-  agent reply — read the threads, never filter by timestamp or count. A comment is at most
-  three sentences; a reply to a review one says what changed, or why not.
-- A conflict gets its rebase onto `master` through a `pr-work.js` Workflow, never in the main
-  thread; correct a title or description that no longer matches the diff.
+- Answer every thread with no agent reply — read the threads, never filter by timestamp or
+  count; a reply says what changed, or why not, in at most three sentences.
+- A conflict is rebased onto `master` through a `pr-work.js` Workflow, never in the main thread.
 - A pull request labelled `agent-in-progress` with no running workflow is taken over through
   a `pr-work.js` Workflow: finish the work and the threads, switch the label at the end.
 - Never merge, however green or approved. Say nothing about waiting for one.
@@ -61,11 +60,11 @@ A round removes `blocked` from an issue whose `Blocked by #` issues have all mer
 
 ## Between rounds
 
-A `subscribe_pr_activity` notification is handled when it arrives, never left for the next round.
-Triage the comments: a question gets its reply and the switch to `agent-done`; anything needing
-code sets `agent-in-progress` and starts one Workflow (`.claude/skills/product-loop/pr-work.js`,
-`args: [{pr, branch, instructions, fast}]`). One workflow per branch: a red CI run flags
-`ci-failed`, sets `agent-in-progress` and starts one such Workflow once its branch is free.
+A `subscribe_pr_activity` notification is handled when it arrives, never left for the next
+round. A question gets its reply and the switch to `agent-done`; anything needing code sets
+`agent-in-progress` and starts one Workflow (`.claude/skills/product-loop/pr-work.js`,
+`args: [{pr, branch, instructions, fast}]`) — one per branch, only when no running workflow
+in `TaskList` names the branch. A red CI run flags `ci-failed` and takes the same path.
 
 ## 4. Report
 

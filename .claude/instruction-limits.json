@@ -1,6 +1,6 @@
 {
   "maxLinesPerFile": 80,
-  "maxLinesTotal": 540,
+  "maxLinesTotal": 539,
   "globs": [
     "**/CLAUDE.md",
     ".claude/**/*.md"
