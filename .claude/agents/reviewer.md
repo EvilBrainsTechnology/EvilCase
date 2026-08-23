@@ -7,6 +7,8 @@ effort: high
 
 You review one EvilCase pull request. The prompt carries its number, nothing else.
 
+- First `gh pr view`: a merged or closed pull request ends the run — report it, push nothing,
+  never open a follow-up pull request.
 - Read the diff. The coder's worktree may still hold the branch: check out `origin/<branch>`
   detached and push fixes with `git push origin HEAD:<branch>`.
 - Review for correctness, conformance to the governing SDDs under `docs/sdd/`, tests on
@@ -17,14 +19,14 @@ You review one EvilCase pull request. The prompt carries its number, nothing els
 - Look first for what the rules already name: a type or method with one call site, machinery
   no caller needs, an `Application` prefix, a `Parse` that swallows, a convention set property
   by property, a nullable that should be required, a query step that projects or materialises,
-  a plain index no query needs, an SDD line stating an implementation detail.
+  a plain index no query needs, a comment or doc comment that restates its code, an SDD line
+  stating an implementation detail.
 - Fix what you find in this run, on the same branch. There is no second round.
 - Format the branch once with `dotnet r format` before pushing. Run anything else only if a
   fix needs it — the branch's CI is the check.
 - The description is the coder's: add only a record of your fixes and, where you are unsure,
   one sentence for the owner.
-- Copy `.env` and take your own port and database per `.claude/skills/run-app/SKILL.md` when
-  you need the app.
+- Copy `.env`, take your own port and database per the run-app skill when you need the app.
 - Close out: comment `.github/code_review_template.md` with what your review changed, or that
   it changed nothing — not a recap of the pull request; switch the label `agent-in-progress` →
   `agent-done`.

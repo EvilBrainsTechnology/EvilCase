@@ -11,6 +11,10 @@ export const meta = {
 // args may arrive as a JSON string.
 const slices = typeof args === 'string' ? JSON.parse(args) : args
 
+const META =
+  '\n\nNever edit .claude/** or docs/sdd/** and never create .claude/allow-meta-edits; code ' +
+  'that falsifies an instruction or an SDD opens an issue for the owner instead.'
+
 const PR_SCHEMA = {
   type: 'object',
   properties: {
@@ -37,7 +41,7 @@ const results = await pipeline(
     if (slice.fast) {
       return agent(
         `Fast lane: you are the only agent on this change — no plan, no review.\n\n` +
-          `Implement issue #${slice.issue} "${slice.title}" on branch loop/${slice.issue}-${slice.slug}.\n\n${slice.body}`,
+          `Implement issue #${slice.issue} "${slice.title}" on branch loop/${slice.issue}-${slice.slug}.\n\n${slice.body}${META}`,
         {
           agentType: 'coder', isolation: 'worktree', phase: 'Implement',
           label: `fast:#${slice.issue}`, schema: PR_SCHEMA, model: 'opus', effort: 'xhigh',
@@ -51,7 +55,7 @@ const results = await pipeline(
     if (!plan) throw new Error(`slice #${slice.issue}: no plan`)
     const prompt =
       `Implement issue #${slice.issue} "${slice.title}" on branch loop/${slice.issue}-${slice.slug}.\n\n${slice.body}\n\n` +
-      `The architect's plan:\n\n${plan}`
+      `The architect's plan:\n\n${plan}${META}`
     return agent(prompt, {
       agentType: 'coder', isolation: 'worktree', phase: 'Implement',
       label: `code:#${slice.issue}`, schema: PR_SCHEMA,
@@ -65,7 +69,7 @@ const results = await pipeline(
         fixed: null, uncertainty: null, status: 'fast',
       }
     }
-    return agent(`Review pull request #${pr.pr} and fix what you find.`, {
+    return agent(`Review pull request #${pr.pr} and fix what you find.${META}`, {
       agentType: 'reviewer', isolation: 'worktree', phase: 'Review',
       label: `review:#${pr.pr}`, schema: REVIEW_SCHEMA,
     }).then((review) => ({

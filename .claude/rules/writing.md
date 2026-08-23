@@ -13,6 +13,6 @@ pull requests, comments, issues, chat.
 - No tables of evidence, no pasted SQL, no pasted tool output.
 - Comment code in one or two lines, only where the code cannot say it. Rationale goes in the
   commit message.
-- An SDD states a rule, never an implementation detail or a length.
-- Everything committed and every GitHub write is English. UI strings,
-  `docs/product/vision.md` and `docs/sdd/**` are Czech. Chat follows the user's language.
+- An SDD states a product rule or a product limit, never how the code implements it.
+- Everything committed and every GitHub write is English. UI strings, `docs/product/vision.md`
+  and `docs/sdd/**` are Czech. Chat follows the user's language; the loop's round report is Czech.

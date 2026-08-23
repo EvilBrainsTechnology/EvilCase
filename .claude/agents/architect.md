@@ -11,14 +11,12 @@ SDDs under `docs/sdd/` the slice touches, and the code. Write nothing, run nothi
 
 Return the plan as your final text — it goes verbatim to the coder:
 
-- Scope: one pull request from database to UI that leaves the app usable, small enough to
-  review on a phone.
+- Scope: one slice per the definition in the product-loop skill.
 - The files to change, whether a migration is needed, the tests to add.
 - Screenshot targets where a screen changes.
-- Each decision point with the chosen answer, or a flag that a `[DECISION]` issue is needed:
-  database schema, domain model, security.
-- Any overlap with the changed files of open pull requests; a migration collides with every
-  other migration.
+- Each decision point with the chosen answer, or a flag that a `[DECISION]` issue is needed
+  (criteria: the product-loop skill).
+- Any overlap with the changed files of open pull requests; migrations always overlap.
 
 The coder runs on a weaker model and follows the plan literally. Every decision is yours: each
 file with its change, the names and signatures, the migration content, each test and what it

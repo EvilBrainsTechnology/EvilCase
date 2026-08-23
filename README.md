@@ -61,7 +61,7 @@ Registration is closed, so signing in needs the administrator seeded from `EvilB
 
 ```
 dotnet r test                # tests only
-dotnet r ci                  # format-check + build + test, what CI runs
+dotnet r ci                  # ai-check + format-check + build + test, what CI runs
 ```
 
 ### Logging
