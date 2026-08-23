@@ -1,7 +1,9 @@
 using System.Security.Cryptography;
 using System.Text;
+using EvilBrains.EvilCase.Data;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Migrations.DbContexts;
+using EvilBrains.EvilCase.Domain.Users;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
@@ -27,6 +29,8 @@ internal static class TestDatabase
     private static readonly string DatabaseName =
         $"evilcase_tests_{Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(AppContext.BaseDirectory)))[..8].ToLowerInvariant()}";
 
+    private static readonly string ConnectionString = $"{Server};Database={DatabaseName}";
+
     private static bool prepared;
 
     /// <summary>
@@ -36,10 +40,34 @@ internal static class TestDatabase
     public static ApplicationDbContext CreateMigrated()
     {
         var context = new ApplicationDbContextFactory().CreateDbContext([]);
-        context.Database.SetConnectionString($"{Server};Database={DatabaseName}");
+        context.Database.SetConnectionString(ConnectionString);
 
+        Prepare(context);
+
+        return context;
+    }
+
+    /// <summary>
+    /// The same database under a caller's tenant and user, for a test that reads its rows back through the
+    /// query filters.
+    /// </summary>
+    public static ApplicationDbContext CreateMigrated(IUserContext userContext)
+    {
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseNpgsql(ConnectionString, npgsql => npgsql.UseEvilCaseMigrations())
+            .Options;
+
+        var context = new ApplicationDbContext(options, userContext);
+
+        Prepare(context);
+
+        return context;
+    }
+
+    private static void Prepare(ApplicationDbContext context)
+    {
         if (prepared)
-            return context;
+            return;
 
         using (var probe = new NpgsqlConnection($"{Server};Database=postgres"))
         {
@@ -56,7 +84,5 @@ internal static class TestDatabase
         context.Database.EnsureDeleted();
         context.Database.Migrate();
         prepared = true;
-
-        return context;
     }
 }
