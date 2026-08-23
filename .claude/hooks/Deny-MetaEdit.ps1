@@ -1,8 +1,8 @@
 #!/usr/bin/env pwsh
 <#
-    PreToolUse hook: denies Edit, MultiEdit, Write and NotebookEdit into .claude/**,
-    docs/sdd/**, docs/product/vision.md and any CLAUDE.md unless the target checkout holds
-    the flag file .claude/allow-meta-edits.
+    PreToolUse hook: within a git checkout, denies Edit, MultiEdit, Write and NotebookEdit into
+    .claude/**, docs/sdd/**, docs/product/vision.md and any CLAUDE.md unless that checkout holds
+    the flag file .claude/allow-meta-edits. A path outside any checkout is allowed.
     Reads the hook JSON on stdin. Exit 2 denies the call with the reason on stderr; exit 0
     allows it. Fails open: unparsable input or a tool call with no file path allows the call.
 #>
@@ -33,6 +33,7 @@ try {
 
     $checkout = "$prefix$mid"
     if (-not $checkout) { $checkout = '.' }
+    if (-not (Test-Path -LiteralPath (Join-Path $checkout '.git'))) { exit 0 }
     if (Test-Path -LiteralPath (Join-Path $checkout '.claude/allow-meta-edits')) { exit 0 }
 
     [Console]::Error.WriteLine(
