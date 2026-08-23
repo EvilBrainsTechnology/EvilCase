@@ -13,6 +13,9 @@ paths:
 - No `Async` suffix. Exceptions: a genuine sync/async pair on one surface, and names not ours to
   choose (`SendAsync`, `DisposeAsync`, `OnAfterRenderAsync`).
 - A name says the thing itself; no `Application` prefix outside the `ApplicationDbContext` types.
+- An identifier value names its entity: `caseId`, never bare `id`; `entityId` where generic.
+- A method name carries its entity: `ListCases`, `WriteFileBlob`. A static class already naming it
+  keeps the short name.
 - `Parse` throws on invalid input; `ParseOrDefault` returns the default.
 - Every class resolved from DI is `internal sealed` and consumed through an interface; a public
   consumer gets a public interface with an internal implementation. Exceptions: types the framework
