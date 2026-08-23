@@ -4,8 +4,8 @@
   better than.
 - Instructions state invariants. No state, no progress, no history, no changelog.
 - A rule lives in one file. Other files point at it.
-- `.claude/**` and `docs/sdd/**` change only on the owner's explicit request; a hook blocks
-  every other edit. Such a request first runs `touch .claude/allow-meta-edits` (untracked),
+- `CLAUDE.md`, `.claude/**`, `docs/sdd/**` and the vision change only on the owner's explicit
+  request; a hook blocks every other edit. The request runs `touch .claude/allow-meta-edits`,
   edits, then deletes the flag. Code that falsifies an instruction or an SDD gets an issue
   for the owner, never the edit. Never write down what the code already shows.
 - An instruction file carries commands, never scripts. A block with control flow, failure

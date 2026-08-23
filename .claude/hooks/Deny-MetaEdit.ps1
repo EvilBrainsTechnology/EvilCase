@@ -1,7 +1,8 @@
 #!/usr/bin/env pwsh
 <#
-    PreToolUse hook: denies Edit, MultiEdit, Write and NotebookEdit into .claude/** and
-    docs/sdd/** unless the target checkout holds the flag file .claude/allow-meta-edits.
+    PreToolUse hook: denies Edit, MultiEdit, Write and NotebookEdit into .claude/**,
+    docs/sdd/**, docs/product/vision.md and any CLAUDE.md unless the target checkout holds
+    the flag file .claude/allow-meta-edits.
     Reads the hook JSON on stdin. Exit 2 denies the call with the reason on stderr; exit 0
     allows it. Fails open: unparsable input or a tool call with no file path allows the call.
 #>
@@ -26,7 +27,8 @@ try {
         $prefix = $Matches['pre']
         $path = $Matches['rest']
     }
-    if ($path -notmatch '^(?<mid>.*?/)?(\.claude/|docs/sdd/)') { exit 0 }
+    $protected = '(\.claude/|docs/sdd/|docs/product/vision\.md$|CLAUDE\.md$)'
+    if ($path -notmatch "^(?<mid>.*?/)?$protected") { exit 0 }
     $mid = if ($Matches.ContainsKey('mid')) { $Matches['mid'] } else { '' }
 
     $checkout = "$prefix$mid"
