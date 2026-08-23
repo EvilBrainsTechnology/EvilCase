@@ -1,6 +1,7 @@
 using EvilBrains.Collections;
 using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Business.Entities;
+using EvilBrains.EvilCase.Data;
 using EvilBrains.EvilCase.Data.DbContexts;
 using Microsoft.EntityFrameworkCore;
 
@@ -48,7 +49,16 @@ internal sealed class ContactWriter(IDbSession session, TimeProvider timeProvide
             return ContactDeleteOutcome.Referenced;
 
         context.Contacts.Remove(contact);
-        await context.SaveChangesAsync(cancellationToken);
+
+        try
+        {
+            await context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException exception) when (exception.IsForeignKeyViolation())
+        {
+            // A reference written between the checks above and this save.
+            return ContactDeleteOutcome.Referenced;
+        }
 
         return ContactDeleteOutcome.Deleted;
     }
