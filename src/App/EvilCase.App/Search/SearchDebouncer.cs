@@ -11,18 +11,22 @@ internal sealed class SearchDebouncer : IDisposable
 
     /// <summary>
     /// Returns the token to run this search with, or <see langword="null"/> when a newer search
-    /// arrived while this one waited out the delay.
+    /// superseded this one before it got its turn.
     /// </summary>
     public async Task<CancellationToken?> Start(bool debounce)
     {
-        if (this.pending is not null)
-        {
-            await this.pending.CancelAsync();
-            this.pending.Dispose();
-        }
-
+        var previous = this.pending;
         var current = new CancellationTokenSource();
         this.pending = current;
+
+        if (previous is not null)
+        {
+            await previous.CancelAsync();
+            previous.Dispose();
+        }
+
+        if (!ReferenceEquals(this.pending, current))
+            return null;
 
         if (debounce)
         {
@@ -43,5 +47,6 @@ internal sealed class SearchDebouncer : IDisposable
     {
         this.pending?.Cancel();
         this.pending?.Dispose();
+        this.pending = null;
     }
 }
