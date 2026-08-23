@@ -12,8 +12,10 @@ export const meta = {
 const slices = typeof args === 'string' ? JSON.parse(args) : args
 
 const META =
-  '\n\nNever edit .claude/** or docs/sdd/** and never create .claude/allow-meta-edits; code ' +
-  'that falsifies an instruction or an SDD opens an issue for the owner instead.'
+  '\n\nNever edit .claude/** and never create .claude/allow-meta-edits. One exception: where ' +
+  'the plan or issue body carries an applied owner decision changing a governing SDD or the ' +
+  'vision, run `touch .claude/allow-meta-edits` in your worktree, make that edit, delete the ' +
+  'flag. Any other code that falsifies an instruction or an SDD opens an issue for the owner.'
 
 const PR_SCHEMA = {
   type: 'object',
