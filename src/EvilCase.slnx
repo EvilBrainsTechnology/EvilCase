@@ -34,7 +34,6 @@
     <Project Path="Utils/EvilBrains.Logging.AspNetCore/EvilBrains.Logging.AspNetCore.csproj" />
     <Project Path="Utils/EvilBrains.Logging.Contract/EvilBrains.Logging.Contract.csproj" />
     <Project Path="Utils/EvilBrains.Logging.WebAssembly/EvilBrains.Logging.WebAssembly.csproj" />
-    <Project Path="Utils/EvilBrains.Secrets.Infisical/EvilBrains.Secrets.Infisical.csproj" />
   </Folder>
   <Folder Name="/Utils/Tests/">
     <Project Path="Utils/Tests/EvilBrains.Utils.Tests/EvilBrains.Utils.Tests.csproj" />
