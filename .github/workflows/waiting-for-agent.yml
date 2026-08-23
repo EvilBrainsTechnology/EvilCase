@@ -43,6 +43,8 @@ jobs:
             if (isAgent(author, body)) return;
             if (payload.review && payload.review.state === 'approved' && !body) return;
             const repo = { owner: context.repo.owner, repo: context.repo.repo };
+            const { data: fresh } = await github.rest.issues.get({ ...repo, issue_number: pr.number });
+            if (fresh.state !== 'open') return;
             const { data: labels } = await github.rest.issues.listLabelsOnIssue({
               ...repo, issue_number: pr.number,
             });
