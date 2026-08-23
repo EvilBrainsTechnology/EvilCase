@@ -76,12 +76,11 @@
 </div>
 
 @code {
-    private static readonly TimeSpan SearchDelay = TimeSpan.FromMilliseconds(300);
+    private readonly SearchDebouncer debouncer = new();
 
     private IReadOnlyList<ContactListItem>? items;
     private string search = "";
     private string? failure;
-    private CancellationTokenSource? pending;
 
     protected override Task OnInitializedAsync()
     {
@@ -90,8 +89,7 @@
 
     public void Dispose()
     {
-        this.pending?.Cancel();
-        this.pending?.Dispose();
+        this.debouncer.Dispose();
     }
 
     private Task OnSearchInput(ChangeEventArgs args)
@@ -101,16 +99,11 @@
         return this.Load(debounce: true);
     }
 
-    /// <summary>
-    /// One request at a time: starting another cancels the one before it.
-    /// </summary>
     private async Task Load(bool debounce)
     {
-        this.pending?.Cancel();
-        this.pending?.Dispose();
-
-        var current = new CancellationTokenSource();
-        this.pending = current;
+        var token = await this.debouncer.Start(debounce);
+        if (token is null)
+            return;
 
         var request = new ContactListRequest
         {
@@ -119,10 +112,7 @@
 
         try
         {
-            if (debounce)
-                await Task.Delay(SearchDelay, current.Token);
-
-            var response = await this.ContactsClient.ListContacts(request, current.Token);
+            var response = await this.ContactsClient.ListContacts(request, token.Value);
 
             this.items = response.Items;
             this.failure = null;

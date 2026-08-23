@@ -109,15 +109,14 @@
 </div>
 
 @code {
-    private static readonly TimeSpan SearchDelay = TimeSpan.FromMilliseconds(300);
-
     private static readonly CaseStatusFilter[] Filters = Enum.GetValues<CaseStatusFilter>();
+
+    private readonly SearchDebouncer debouncer = new();
 
     private IReadOnlyList<CaseListItem>? items;
     private string search = "";
     private CaseStatusFilter status = CaseStatusFilter.Open;
     private string? failure;
-    private CancellationTokenSource? pending;
 
     protected override Task OnInitializedAsync()
     {
@@ -126,8 +125,7 @@
 
     public void Dispose()
     {
-        this.pending?.Cancel();
-        this.pending?.Dispose();
+        this.debouncer.Dispose();
     }
 
     private Task OnSearchInput(ChangeEventArgs args)
@@ -142,16 +140,11 @@
         return this.Load(debounce: false);
     }
 
-    /// <summary>
-    /// One request at a time: starting another cancels the one before it.
-    /// </summary>
     private async Task Load(bool debounce)
     {
-        this.pending?.Cancel();
-        this.pending?.Dispose();
-
-        var current = new CancellationTokenSource();
-        this.pending = current;
+        var token = await this.debouncer.Start(debounce);
+        if (token is null)
+            return;
 
         var request = new CaseListRequest
         {
@@ -161,10 +154,7 @@
 
         try
         {
-            if (debounce)
-                await Task.Delay(SearchDelay, current.Token);
-
-            var response = await this.CasesClient.ListCases(request, current.Token);
+            var response = await this.CasesClient.ListCases(request, token.Value);
 
             this.items = response.Items;
             this.failure = null;
