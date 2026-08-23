@@ -11,8 +11,7 @@ Move EvilCase toward `docs/product/vision.md`; never ask permission and never wa
 
 A round begins with `TaskList`, before the backlog is read. A running workflow is dead when its
 task is over 3 hours old, or when every agent stopped writing:
-`find ~/.claude/projects "${TMPDIR:-/tmp}/claude" -path '*EvilCase*' -name '*.jsonl' -mmin -15
-2>/dev/null` prints nothing; a running agent appends to those transcripts. A dead workflow gets
+`find ~/.claude/projects "${TMPDIR:-/tmp}/claude" -path '*EvilCase*' -name '*.jsonl' -mmin -15 2>/dev/null` prints nothing; a running agent appends to those transcripts. A dead workflow gets
 `TaskStop`. A dead or failed run loses its worktrees and local branches. A remote `loop/*`,
 `review/*` or `claude/*` branch goes only with no open pull request referencing it and its last
 commit over 3 hours old — merged and closed pull requests' branches included. A round removes
