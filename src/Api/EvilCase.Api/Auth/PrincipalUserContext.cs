@@ -48,6 +48,6 @@ internal sealed class PrincipalUserContext(IHttpContextAccessor httpContextAcces
     {
         var value = httpContextAccessor.HttpContext?.User.FindFirstValue(type);
 
-        return Guid.TryParse(value, CultureInfo.InvariantCulture, out var id) ? id : null;
+        return Guid.TryParse(value, CultureInfo.InvariantCulture, out var claimId) ? claimId : null;
     }
 }

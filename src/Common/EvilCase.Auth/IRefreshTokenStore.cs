@@ -4,15 +4,15 @@ namespace EvilBrains.EvilCase.Auth;
 
 internal interface IRefreshTokenStore
 {
-    public Task Add(RefreshToken refreshToken, CancellationToken cancellationToken);
+    public Task AddRefreshToken(RefreshToken refreshToken, CancellationToken cancellationToken);
 
-    public Task<RefreshToken?> Find(string tokenHash, CancellationToken cancellationToken);
+    public Task<RefreshToken?> FindRefreshToken(string tokenHash, CancellationToken cancellationToken);
 
     /// <summary>
     /// Marks one token as consumed. Rotation and nothing else calls this. False where the token was
     /// already spent, which is how two callers presenting the same one are told apart.
     /// </summary>
-    public Task<bool> Revoke(Guid id, DateTime now, CancellationToken cancellationToken);
+    public Task<bool> RevokeRefreshToken(Guid refreshTokenId, DateTime now, CancellationToken cancellationToken);
 
     /// <summary>
     /// Ends one rotation chain: a sign-out, or a replayed token taking its session down.
