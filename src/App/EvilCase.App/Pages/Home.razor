@@ -37,9 +37,9 @@
                                     IsDefaultSort="SortDirection.Descending" Context="caseSummary">
                         @caseSummary.UpdatedOnText
                     </TemplateColumn>
-                    <PropertyColumn Property="@(c => c.CaseNumber)" Title="Spisová značka" />
-                    <PropertyColumn Property="@(c => c.Title)" Title="Předmět" />
-                    <PropertyColumn Property="@(c => c.Client)" Title="Klient" />
+                    <PropertyColumn Property="@(caseSummary => caseSummary.CaseNumber)" Title="Spisová značka" />
+                    <PropertyColumn Property="@(caseSummary => caseSummary.Title)" Title="Předmět" />
+                    <PropertyColumn Property="@(caseSummary => caseSummary.Client)" Title="Klient" />
                     <TemplateColumn Title="Stav" Context="caseSummary">
                         <Status BackgroundColor="caseSummary.StatusColor" Lite="true">@caseSummary.StatusText</Status>
                     </TemplateColumn>
@@ -58,5 +58,5 @@
 </div>
 
 @code {
-    private static IQueryable<CaseSummary> Cases => SampleData.RecentCases.AsQueryable();
+    private static IQueryable<CaseSummary> Cases => PlaceholderData.RecentCases.AsQueryable();
 }

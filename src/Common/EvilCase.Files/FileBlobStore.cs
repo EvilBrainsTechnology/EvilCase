@@ -41,7 +41,20 @@ internal sealed class FileBlobStore(IOptions<FileSettings> settings, ILogger<Fil
         catch
         {
             // An upload that drops leaves the temp file behind, and nothing else ever removes it.
-            File.Delete(temporaryPath);
+            // A cleanup that fails must not replace the failure that got us here.
+            try
+            {
+                File.Delete(temporaryPath);
+            }
+            catch (IOException)
+            {
+                // Ignored.
+            }
+            catch (UnauthorizedAccessException)
+            {
+                // Ignored.
+            }
+
             throw;
         }
 

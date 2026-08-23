@@ -7,14 +7,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Business.Contacts;
 
-internal sealed class ContactWriter(IDbSession session, TimeProvider timeProvider) : IContactWriter
+internal sealed class ContactWriter(IDbSession dbSession) : IContactWriter
 {
     public async Task<ContactUpdateOutcome> Update(Guid id, ContactEditRequest request, CancellationToken cancellationToken = default)
     {
         var normalized = Normalize(request);
-        var now = timeProvider.GetUtcNow().UtcDateTime;
 
-        var rows = await session.Current.Contacts
+        var rows = await dbSession.Current.Contacts
             .WithId(id)
             .ExecuteUpdateAsync(
                 setters => setters
@@ -29,7 +28,7 @@ internal sealed class ContactWriter(IDbSession session, TimeProvider timeProvide
 
     public async Task<ContactDeleteOutcome> Delete(Guid id, CancellationToken cancellationToken = default)
     {
-        var context = session.Current;
+        var context = dbSession.Current;
 
         var contact = await context.Contacts.SingleOrDefaultAsync(entity => entity.Id == id, cancellationToken);
         if (contact is null)

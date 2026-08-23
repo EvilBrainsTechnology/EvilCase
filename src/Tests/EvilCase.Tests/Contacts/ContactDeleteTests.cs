@@ -33,7 +33,7 @@ public class ContactDeleteTests
         // The act lands between the delete's checks and its save, on another connection: the race, without timing.
         context.SavingChanges += (_, _) => WriteIssuedAct(userContext, seeded.Case, seeded.Contact.Id);
 
-        var writer = new ContactWriter(new FixedDbSession(context), TimeProvider.System);
+        var writer = new ContactWriter(new FixedDbSession(context));
 
         var outcome = await writer.Delete(seeded.Contact.Id);
 

@@ -19,8 +19,7 @@ public static class PasswordHasher
     {
         var salt = RandomNumberGenerator.GetBytes(SaltSize);
         var hash = Rfc2898DeriveBytes.Pbkdf2(password, salt, Iterations, HashAlgorithm, KeySize);
-        var finalHash = string.Join(SegmentDelimiter, Convert.ToHexString(hash), Convert.ToHexString(salt), Iterations, HashAlgorithm);
-        return finalHash;
+        return string.Join(SegmentDelimiter, Convert.ToHexString(hash), Convert.ToHexString(salt), Iterations, HashAlgorithm);
     }
 
     public static bool Verify(string password, string passwordHash)

@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 namespace EvilBrains.EvilCase.Business.Cases;
 
 internal sealed class CaseWriter(
-    IDbSession session,
+    IDbSession dbSession,
     ICaseNumberIssuer numbers,
     ILogger<CaseWriter> logger) : ICaseWriter
 {
@@ -27,15 +27,15 @@ internal sealed class CaseWriter(
             var caseNumber = await numbers.NextCaseNumber(request.Date, cancellationToken);
             var @case = Build(request, caseNumber);
 
-            session.Current.Cases.Add(@case);
+            dbSession.Current.Cases.Add(@case);
 
             try
             {
-                await session.Current.SaveChangesAsync(cancellationToken);
+                await dbSession.Current.SaveChangesAsync(cancellationToken);
             }
             catch (DbUpdateException exception) when (attempt < Attempts && exception.IsUniqueViolation())
             {
-                session.Current.Entry(@case).State = EntityState.Detached;
+                dbSession.Current.Entry(@case).State = EntityState.Detached;
 
                 logger.LogWarning("The case number {CaseNumber} was taken while the case was being filed", caseNumber);
 

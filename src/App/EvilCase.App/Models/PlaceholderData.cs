@@ -3,7 +3,7 @@ using EvilBrains.EvilCase.Domain.Cases;
 namespace EvilBrains.EvilCase.App.Models;
 
 // Hard-coded placeholder content for the dashboard skeleton; replaced once the API provides real data.
-public static class SampleData
+public static class PlaceholderData
 {
     public static IReadOnlyList<CaseSummary> RecentCases { get; } =
     [

@@ -44,7 +44,7 @@ public static class NumberTail
             return null;
 
         return string.Equals(Compose(date, sequence), tail, StringComparison.Ordinal)
-            ? new NumberTailParts { Date = date, Sequence = sequence }
+            ? new NumberTailParts(date, sequence)
             : null;
     }
 }

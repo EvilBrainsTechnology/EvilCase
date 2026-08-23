@@ -4,7 +4,7 @@ namespace EvilBrains.EvilCase.Api.Contract.User;
 /// One place the user is signed in. Shown so they can recognise a device that is not theirs; the way
 /// to act on it is to sign out everywhere.
 /// </summary>
-public record SessionInfo
+public sealed record SessionInfo
 {
     public required Guid AuthSessionId { get; init; }
 
