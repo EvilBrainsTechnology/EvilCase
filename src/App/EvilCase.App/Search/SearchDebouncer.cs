@@ -38,6 +38,10 @@ internal sealed class SearchDebouncer : IDisposable
             {
                 return null;
             }
+
+            // The delay can complete before a superseding call cancels it; its source is disposed then.
+            if (!ReferenceEquals(this.pending, current))
+                return null;
         }
 
         return current.Token;
