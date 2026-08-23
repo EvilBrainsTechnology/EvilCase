@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Business.Cases;
 
-internal sealed class CaseReader(IDbSession session) : ICaseReader
+internal sealed class CaseReader(IDbSession dbSession) : ICaseReader
 {
     public async Task<IReadOnlyList<CaseListItem>> List(CaseListRequest request, CancellationToken cancellationToken = default)
     {
-        return await session.Current.Cases
+        return await dbSession.Current.Cases
             .MatchingSearch(request.Search)
             .WithStatus(request.Status)
             .InListOrder()
