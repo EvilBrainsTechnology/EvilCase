@@ -1,7 +1,6 @@
 using System.Net;
 using EvilBrains.ApiClient;
 using EvilBrains.EvilCase.App.Auth;
-using EvilBrains.EvilCase.Domain.Users;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace EvilBrains.EvilCase.Tests.Frontend;
@@ -11,7 +10,7 @@ public class SessionRenewalTests
     [Test]
     public async Task AnUnreachableApiLeavesTheSessionAlone()
     {
-        var tokens = Expiring();
+        var tokens = ExpiringSession.Store();
 
         using var provider = Provider(tokens, new HttpRequestException("the network is down"));
 
@@ -27,7 +26,7 @@ public class SessionRenewalTests
     [Test]
     public async Task ARefusedRefreshTokenEndsTheSession()
     {
-        var tokens = Expiring();
+        var tokens = ExpiringSession.Store();
 
         using var provider = Provider(tokens, new ApiException(HttpStatusCode.Unauthorized, responseBody: null));
 
@@ -43,7 +42,7 @@ public class SessionRenewalTests
     [Test]
     public async Task AFailingServerLeavesTheSessionAlone()
     {
-        var tokens = Expiring();
+        var tokens = ExpiringSession.Store();
 
         using var provider = Provider(tokens, new ApiException(HttpStatusCode.InternalServerError, responseBody: null));
 
@@ -54,22 +53,6 @@ public class SessionRenewalTests
             Assert.That(renewed, Is.False);
             Assert.That(tokens.Current, Is.Not.Null, "only a refusal ends the session, not any other status");
         }
-    }
-
-    private static FakeAccessTokenStore Expiring()
-    {
-        var tokens = new FakeAccessTokenStore();
-
-        // Inside the renew-ahead window, so the renewal actually reaches the client.
-        tokens.Set(new()
-        {
-            Token = "access",
-            ExpiresAt = DateTime.UtcNow,
-            Email = "user@example.com",
-            Role = UserRole.User,
-        });
-
-        return tokens;
     }
 
     private static EvilCaseAuthenticationStateProvider Provider(IAccessTokenStore tokens, Exception refreshFailure)

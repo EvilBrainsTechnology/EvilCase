@@ -119,7 +119,6 @@ internal sealed class EvilCaseAuthenticationStateProvider(
         }
         catch (Exception exception) when (exception is ApiException or HttpRequestException or TaskCanceledException)
         {
-            // The server did not reject the session, so the tokens stay and the next request renews again.
             logger.LogWarning(exception, "The session could not be renewed");
 
             return false;
