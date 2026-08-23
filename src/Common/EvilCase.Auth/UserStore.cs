@@ -18,15 +18,25 @@ internal sealed class UserStore(IDbSession dbSession) : IUserStore
         return await dbSession.Current.Users.SingleOrDefaultAsync(user => user.Id == id, cancellationToken);
     }
 
-    public async Task RecordFailedLogin(Guid id, int failedAttempts, DateTime? lockoutEnd, CancellationToken cancellationToken)
+    public async Task<DateTime?> RecordFailedLogin(Guid id, int maxAttempts, DateTime lockoutEnd, CancellationToken cancellationToken)
     {
+        // Every setter reads the stored column, never a number worked out from an earlier read.
         await dbSession.Current.Users
             .Where(user => user.Id == id)
             .ExecuteUpdateAsync(
                 setters => setters
-                    .SetProperty(user => user.FailedLoginAttempts, failedAttempts)
-                    .SetProperty(user => user.LockoutEnd, lockoutEnd),
+                    .SetProperty(
+                        user => user.FailedLoginAttempts,
+                        user => user.FailedLoginAttempts + 1 >= maxAttempts ? 0 : user.FailedLoginAttempts + 1)
+                    .SetProperty(
+                        user => user.LockoutEnd,
+                        user => user.FailedLoginAttempts + 1 >= maxAttempts ? lockoutEnd : user.LockoutEnd),
                 cancellationToken);
+
+        return await dbSession.Current.Users
+            .Where(user => user.Id == id)
+            .Select(user => user.LockoutEnd)
+            .SingleOrDefaultAsync(cancellationToken);
     }
 
     public async Task RecordSuccessfulLogin(Guid id, CancellationToken cancellationToken)

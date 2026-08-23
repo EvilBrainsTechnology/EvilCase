@@ -16,9 +16,12 @@ internal interface IUserStore
     public Task<User?> FindById(Guid id, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Records a failed sign-in; a non-null <paramref name="lockoutEnd"/> locks the account.
+    /// Counts a failed sign-in in one statement: the attempt that reaches <paramref name="maxAttempts"/>
+    /// locks the account until <paramref name="lockoutEnd"/> and starts the counter over, so the first
+    /// miss after an elapsed lockout does not lock it again. Returns the lockout the row carries
+    /// afterwards, null where the row is gone.
     /// </summary>
-    public Task RecordFailedLogin(Guid id, int failedAttempts, DateTime? lockoutEnd, CancellationToken cancellationToken);
+    public Task<DateTime?> RecordFailedLogin(Guid id, int maxAttempts, DateTime lockoutEnd, CancellationToken cancellationToken);
 
     /// <summary>
     /// Clears the failure counter and any lockout.

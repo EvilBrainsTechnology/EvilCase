@@ -120,19 +120,17 @@ internal sealed class AuthService(
     private async Task<LoginResult> RecordFailure(User user, DateTime now, CancellationToken cancellationToken)
     {
         var lockout = options.Value.Lockout;
-        var attempts = user.FailedLoginAttempts + 1;
-        var lockedOut = attempts >= lockout.MaxFailedAttempts;
 
-        // The counter starts over together with the lockout: past that point the lockout is what limits
-        // guessing, and a counter left at its ceiling would lock the account again on the first miss.
-        await userStore.RecordFailedLogin(
+        var lockedUntil = await userStore.RecordFailedLogin(
             user.Id,
-            lockedOut ? 0 : attempts,
-            lockedOut ? now.Add(lockout.Duration) : null,
+            lockout.MaxFailedAttempts,
+            now.Add(lockout.Duration),
             cancellationToken);
 
+        var lockedOut = lockedUntil > now;
+
         if (lockedOut)
-            logger.LogWarning("User {UserId} was locked out after {Attempts} failed sign-in attempts", user.Id, attempts);
+            logger.LogWarning("User {UserId} was locked out after {Attempts} failed sign-in attempts", user.Id, lockout.MaxFailedAttempts);
 
         return LoginResult.Failed(lockedOut ? LoginStatus.LockedOut : LoginStatus.InvalidCredentials);
     }

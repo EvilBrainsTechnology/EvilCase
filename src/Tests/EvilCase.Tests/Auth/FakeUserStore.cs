@@ -47,11 +47,15 @@ internal sealed class FakeUserStore : IUserStore
         return Task.FromResult(this.users.Find(user => user.Id == id));
     }
 
-    public Task RecordFailedLogin(Guid id, int failedAttempts, DateTime? lockoutEnd, CancellationToken cancellationToken)
+    public Task<DateTime?> RecordFailedLogin(Guid id, int maxAttempts, DateTime lockoutEnd, CancellationToken cancellationToken)
     {
-        this.Replace(id, user => user with { FailedLoginAttempts = failedAttempts, LockoutEnd = lockoutEnd });
+        this.Replace(
+            id,
+            user => user.FailedLoginAttempts + 1 >= maxAttempts
+                ? user with { FailedLoginAttempts = 0, LockoutEnd = lockoutEnd }
+                : user with { FailedLoginAttempts = user.FailedLoginAttempts + 1 });
 
-        return Task.CompletedTask;
+        return Task.FromResult(this.Get(id).LockoutEnd);
     }
 
     public Task RecordSuccessfulLogin(Guid id, CancellationToken cancellationToken)
