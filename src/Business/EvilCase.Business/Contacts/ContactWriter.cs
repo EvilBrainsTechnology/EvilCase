@@ -48,9 +48,10 @@ internal sealed class ContactWriter(IDbSession session, TimeProvider timeProvide
         if (referenced)
             return ContactDeleteOutcome.Referenced;
 
+        context.Contacts.Remove(contact);
+
         try
         {
-            context.Contacts.Remove(contact);
             await context.SaveChangesAsync(cancellationToken);
         }
         catch (DbUpdateException exception) when (exception.IsForeignKeyViolation())

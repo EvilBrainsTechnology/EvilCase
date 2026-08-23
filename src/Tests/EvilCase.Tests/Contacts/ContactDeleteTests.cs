@@ -2,6 +2,8 @@ using EvilBrains.EvilCase.Business.Contacts;
 using EvilBrains.EvilCase.Data;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
+using EvilBrains.EvilCase.Domain.Acts;
+using EvilBrains.EvilCase.Domain.Cases;
 using EvilBrains.EvilCase.Domain.Contacts;
 using EvilBrains.EvilCase.Domain.Users;
 using EvilBrains.EvilCase.Tests.Auth;
@@ -12,28 +14,33 @@ using Npgsql;
 namespace EvilBrains.EvilCase.Tests.Contacts;
 
 /// <summary>
-/// The delete against a real PostgreSQL: only the server decides whether a foreign key still holds the row.
+/// The delete against a real PostgreSQL: a reference written once the checks have run is refused by the
+/// foreign key, which no fake decides.
 /// </summary>
 public class ContactDeleteTests
 {
     [Test]
-    public async Task AReferenceTheChecksCannotSeeIsAnsweredAsInUse()
+    public async Task AReferenceWrittenAfterTheChecksLeavesTheContactInUse()
     {
         var userContext = new StubUserContext();
         var tenantId = Guid.CreateVersion7();
-        using var entered = userContext.Enter(tenantId, Guid.CreateVersion7());
+        var userId = Guid.CreateVersion7();
+        using var entered = userContext.Enter(tenantId, userId);
 
         await using var context = TestDatabase.CreateMigrated(userContext);
-        var contact = await Seed(context, tenantId);
+        var seeded = await Seed(context, tenantId, userId);
+
+        // The act lands between the delete's checks and its save, on another connection: the race, without timing.
+        context.SavingChanges += (_, _) => WriteIssuedAct(userContext, seeded.Case, seeded.Contact.Id);
 
         var writer = new ContactWriter(new FixedDbSession(context), TimeProvider.System);
 
-        var outcome = await writer.Delete(contact.Id);
+        var outcome = await writer.Delete(seeded.Contact.Id);
 
         Assert.That(
             outcome,
             Is.EqualTo(ContactDeleteOutcome.Referenced),
-            "a reference the checks did not see leaves the contact in use rather than failing the request");
+            "a reference written after the checks leaves the contact in use rather than failing the request");
     }
 
     [Test]
@@ -41,12 +48,14 @@ public class ContactDeleteTests
     {
         var userContext = new StubUserContext();
         var tenantId = Guid.CreateVersion7();
-        using var entered = userContext.Enter(tenantId, Guid.CreateVersion7());
+        var userId = Guid.CreateVersion7();
+        using var entered = userContext.Enter(tenantId, userId);
 
         await using var context = TestDatabase.CreateMigrated(userContext);
-        var contact = await Seed(context, tenantId);
+        var seeded = await Seed(context, tenantId, userId);
+        WriteIssuedAct(userContext, seeded.Case, seeded.Contact.Id);
 
-        context.Contacts.Remove(contact);
+        context.Contacts.Remove(seeded.Contact);
 
         Assert.That(
             async () => await context.SaveChangesAsync(),
@@ -69,34 +78,65 @@ public class ContactDeleteTests
     }
 
     /// <summary>
-    /// A contact of the caller's tenant that a user of another tenant holds as its default: the tenant's
-    /// query filters hide that user, so the delete's checks pass and the foreign key is what refuses.
+    /// The contact the delete aims at, and the case an act can hang under. The user holds a second contact
+    /// as its default, so the delete's default-contact check passes.
     /// </summary>
-    private static async Task<Contact> Seed(ApplicationDbContext context, Guid tenantId)
+    private static async Task<(Contact Contact, Case Case)> Seed(ApplicationDbContext context, Guid tenantId, Guid userId)
     {
         var account = new Account { Name = "contact delete" };
-        context.Accounts.Add(account);
-        await context.SaveChangesAsync();
-
-        var tenant = new Tenant { Id = tenantId, AccountId = account.Id, Name = "owner" };
-        var otherTenant = new Tenant { AccountId = account.Id, Name = "other" };
-        context.Tenants.AddRange(tenant, otherTenant);
-        await context.SaveChangesAsync();
-
+        var tenant = new Tenant { Id = tenantId, AccountId = account.Id, Name = "tenant" };
         var contact = new Contact { TenantId = tenantId, Kind = ContactKind.Authority, Name = "Krajský soud" };
-        context.Contacts.Add(contact);
-        await context.SaveChangesAsync();
+        var defaultContact = new Contact { TenantId = tenantId, Kind = ContactKind.Person, Name = "default" };
 
-        context.Users.Add(new User
+        var user = new User
         {
-            TenantId = otherTenant.Id,
+            Id = userId,
+            TenantId = tenantId,
             Email = $"{Guid.CreateVersion7()}@example.com",
             PasswordHash = "hash",
             Role = UserRole.User,
-            DefaultContactId = contact.Id,
-        });
+            DefaultContactId = defaultContact.Id,
+        };
+
+        var @case = new Case
+        {
+            TenantId = tenantId,
+            UserId = userId,
+            CaseNumber = "EC/20260821-001",
+            Date = new DateOnly(2026, 8, 21),
+            Title = "Přestupek",
+            Status = CaseStatus.Active,
+        };
+
+        context.Accounts.Add(account);
+        context.Tenants.Add(tenant);
+        context.Contacts.AddRange(contact, defaultContact);
+        context.Users.Add(user);
+        context.Cases.Add(@case);
         await context.SaveChangesAsync();
 
-        return contact;
+        // The delete runs on rows the request did not write, so nothing the seed added stays tracked.
+        context.ChangeTracker.Clear();
+
+        return (contact, @case);
+    }
+
+    private static void WriteIssuedAct(IUserContext userContext, Case @case, Guid contactId)
+    {
+        using var context = TestDatabase.CreateMigrated(userContext);
+
+        context.Acts.Add(new Act
+        {
+            TenantId = @case.TenantId,
+            UserId = @case.UserId,
+            CaseId = @case.Id,
+            ActNumber = "EC/20260821-001/01",
+            Direction = ActDirection.Incoming,
+            Title = "Rozhodnutí",
+            Date = @case.Date,
+            IssuedByContactId = contactId,
+        });
+
+        context.SaveChanges();
     }
 }
