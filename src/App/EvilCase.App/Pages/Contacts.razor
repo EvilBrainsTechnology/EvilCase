@@ -76,57 +76,61 @@
 </div>
 
 @code {
-    private readonly SearchDebouncer debouncer = new();
+    private readonly SearchPipeline pipeline;
 
     private IReadOnlyList<ContactListItem>? items;
     private string search = "";
     private string? failure;
 
-    protected override Task OnInitializedAsync()
+    public Contacts()
     {
-        return this.Load(debounce: false);
+        this.pipeline = new SearchPipeline(this.Load, this.Failed);
     }
 
     public void Dispose()
     {
-        this.debouncer.Dispose();
+        this.pipeline.Dispose();
     }
 
-    private Task OnSearchInput(ChangeEventArgs args)
+    protected override void OnInitialized()
+    {
+        this.pipeline.Start(debounce: false);
+    }
+
+    private void OnSearchInput(ChangeEventArgs args)
     {
         this.search = args.Value as string ?? "";
 
-        return this.Load(debounce: true);
+        this.pipeline.Start(debounce: true);
     }
 
-    private async Task Load(bool debounce)
+    private async Task Load(CancellationToken token)
     {
-        var token = await this.debouncer.Start(debounce);
-        if (token is null)
-            return;
-
         var request = new ContactListRequest
         {
             Search = string.IsNullOrWhiteSpace(this.search) ? null : this.search,
         };
 
-        try
-        {
-            var response = await this.ContactsClient.ListContacts(request, token.Value);
+        var response = await this.ContactsClient.ListContacts(request, token);
 
+        await this.InvokeAsync(() =>
+        {
             this.items = response.Items;
             this.failure = null;
-        }
-        catch (OperationCanceledException)
-        {
-            // Superseded by a newer request.
-        }
-        catch (Exception exception) when (exception is ApiException or HttpRequestException)
-        {
-            this.Logger.LogWarning(exception, "Loading the contact list failed");
+            this.StateHasChanged();
+        });
+    }
 
+    private Task Failed(Exception exception)
+    {
+        var level = exception is ApiException or HttpRequestException ? LogLevel.Warning : LogLevel.Error;
+        this.Logger.Log(level, exception, "Loading the contact list failed");
+
+        return this.InvokeAsync(() =>
+        {
             this.items = [];
             this.failure = "Seznam kontaktů se nepodařilo načíst. Zkuste to za chvíli znovu.";
-        }
+            this.StateHasChanged();
+        });
     }
 }
