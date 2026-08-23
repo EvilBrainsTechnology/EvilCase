@@ -1,7 +1,9 @@
 using System.Net;
 using EvilBrains.ApiClient;
 using EvilBrains.EvilCase.Api.Contract.Logging;
+using EvilBrains.EvilCase.Api.Contract.User;
 using EvilBrains.EvilCase.App.Auth;
+using EvilBrains.EvilCase.Domain.Users;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -12,23 +14,35 @@ public class AuthTokenHandlerTests
     [Test]
     public async Task AnExpiringTokenIsRenewedBeforeTheRequest()
     {
-        var refreshes = await RefreshesFor("/api/cases");
+        var authClient = new FakeAuthClient(new LoginResponse
+        {
+            AccessToken = "renewed",
+            ExpiresAt = DateTime.UtcNow.AddMinutes(10),
+            Email = "user@example.com",
+            Role = UserRole.User,
+        });
 
-        Assert.That(refreshes, Is.EqualTo(1), "a request goes out with a token that has been renewed");
+        using var response = await Send(authClient, "/api/cases");
+
+        Assert.That(
+            response.RequestMessage?.Headers.Authorization?.Parameter,
+            Is.EqualTo("renewed"),
+            "a request goes out with a token that has been renewed");
     }
 
     [Test]
     public async Task AClientLogUploadNeverRenews()
     {
-        var refreshes = await RefreshesFor(ClientLogRoute.Path);
+        var authClient = new FakeAuthClient(new ApiException(HttpStatusCode.InternalServerError, responseBody: null));
 
-        Assert.That(refreshes, Is.Zero, "a renewal logs when it fails, and that log is what the next upload ships");
+        using var response = await Send(authClient, ClientLogRoute.Path);
+
+        Assert.That(authClient.Refreshes, Is.Zero, "a renewal logs when it fails, and that log is what the next upload ships");
     }
 
-    private static async Task<int> RefreshesFor(string path)
+    private static async Task<HttpResponseMessage> Send(FakeAuthClient authClient, string path)
     {
         var tokens = ExpiringSession.Store();
-        var authClient = new FakeAuthClient(new ApiException(HttpStatusCode.InternalServerError, responseBody: null));
 
         using var session = new EvilCaseAuthenticationStateProvider(tokens, authClient, NullLogger<EvilCaseAuthenticationStateProvider>.Instance);
         await using var services = new ServiceCollection()
@@ -38,8 +52,7 @@ public class AuthTokenHandlerTests
         using var handler = new AuthTokenHandler(tokens, services) { InnerHandler = new OkHandler() };
         using var invoker = new HttpMessageInvoker(handler, disposeHandler: false);
         using var request = new HttpRequestMessage(HttpMethod.Post, "https://localhost" + path);
-        using var response = await invoker.SendAsync(request, CancellationToken.None);
 
-        return authClient.Refreshes;
+        return await invoker.SendAsync(request, CancellationToken.None);
     }
 }

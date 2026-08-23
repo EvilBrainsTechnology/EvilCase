@@ -3,8 +3,22 @@ using EvilBrains.EvilCase.Api.Contract.User;
 
 namespace EvilBrains.EvilCase.Tests.Frontend;
 
-internal sealed class FakeAuthClient(Exception refreshFailure) : IAuthClient
+internal sealed class FakeAuthClient : IAuthClient
 {
+    private readonly LoginResponse? renewal;
+
+    private readonly Exception? refreshFailure;
+
+    public FakeAuthClient(LoginResponse renewal)
+    {
+        this.renewal = renewal;
+    }
+
+    public FakeAuthClient(Exception refreshFailure)
+    {
+        this.refreshFailure = refreshFailure;
+    }
+
     public int Refreshes { get; private set; }
 
     public Task<LoginResponse> Login(LoginRequest request, CancellationToken token)
@@ -16,7 +30,9 @@ internal sealed class FakeAuthClient(Exception refreshFailure) : IAuthClient
     {
         this.Refreshes++;
 
-        return Task.FromException<LoginResponse>(refreshFailure);
+        return this.refreshFailure is { } failure
+            ? Task.FromException<LoginResponse>(failure)
+            : Task.FromResult(this.renewal!);
     }
 
     public Task Logout(CancellationToken token)
