@@ -84,7 +84,7 @@
 
     protected override Task OnInitializedAsync()
     {
-        return this.Load(debounce: false);
+        return this.LoadContacts(debounce: false);
     }
 
     public void Dispose()
@@ -96,10 +96,10 @@
     {
         this.search = args.Value as string ?? "";
 
-        return this.Load(debounce: true);
+        return this.LoadContacts(debounce: true);
     }
 
-    private async Task Load(bool debounce)
+    private async Task LoadContacts(bool debounce)
     {
         var token = await this.debouncer.Start(debounce);
         if (token is null)

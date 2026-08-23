@@ -120,7 +120,7 @@
 
     protected override Task OnInitializedAsync()
     {
-        return this.Load(debounce: false);
+        return this.LoadCases(debounce: false);
     }
 
     public void Dispose()
@@ -132,15 +132,15 @@
     {
         this.search = args.Value as string ?? "";
 
-        return this.Load(debounce: true);
+        return this.LoadCases(debounce: true);
     }
 
     private Task Reload()
     {
-        return this.Load(debounce: false);
+        return this.LoadCases(debounce: false);
     }
 
-    private async Task Load(bool debounce)
+    private async Task LoadCases(bool debounce)
     {
         var token = await this.debouncer.Start(debounce);
         if (token is null)

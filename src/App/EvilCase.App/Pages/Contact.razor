@@ -28,10 +28,10 @@
             @if (this.contact is not null)
             {
                 <div class="col-auto ms-auto d-print-none">
-                    <button type="button" class="btn btn-primary" @onclick="this.Edit">Upravit</button>
+                    <button type="button" class="btn btn-primary" @onclick="this.EditContact">Upravit</button>
                     @if (!this.contact.IsDefault)
                     {
-                        <button type="button" class="btn btn-danger ms-2" @onclick="this.Delete">Smazat</button>
+                        <button type="button" class="btn btn-danger ms-2" @onclick="this.DeleteContact">Smazat</button>
                     }
                     else
                     {
@@ -118,10 +118,10 @@
 
     protected override Task OnParametersSetAsync()
     {
-        return this.Load();
+        return this.LoadContact();
     }
 
-    private async Task Load()
+    private async Task LoadContact()
     {
         this.contact = null;
         this.notFound = false;
@@ -143,7 +143,7 @@
         }
     }
 
-    private async Task Edit()
+    private async Task EditContact()
     {
         if (this.contact is null)
             return;
@@ -152,11 +152,11 @@
             "Upravit kontakt",
             new RenderComponent<ContactEditModal>()
                 .Set(component => component.Contact, this.contact)
-                .Set(component => component.OnSaved, EventCallback.Factory.Create(this, this.Load)),
+                .Set(component => component.OnSaved, EventCallback.Factory.Create(this, this.LoadContact)),
             FullscreenBelowLarge());
     }
 
-    private async Task Delete()
+    private async Task DeleteContact()
     {
         if (this.contact is null)
             return;

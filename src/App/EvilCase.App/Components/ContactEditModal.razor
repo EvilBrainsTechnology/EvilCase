@@ -7,7 +7,7 @@
 @inject IModalService ModalService
 @inject ILogger<ContactEditModal> Logger
 
-<EditForm Model="this.model" OnValidSubmit="this.Save">
+<EditForm Model="this.model" OnValidSubmit="this.SaveContact">
     <DataAnnotationsValidator />
 
     <div class="mb-3">
@@ -77,7 +77,7 @@
         this.model.Address = this.Contact.Address;
     }
 
-    private async Task Save()
+    private async Task SaveContact()
     {
         this.busy = true;
         this.error = null;

@@ -15,7 +15,7 @@
 <div class="page-body">
     <div class="container-xl">
         <div class="card">
-            <EditForm Model="this.model" OnValidSubmit="Submit">
+            <EditForm Model="this.model" OnValidSubmit="this.SubmitCase">
                 <DataAnnotationsValidator />
 
                 <div class="card-body">
@@ -65,7 +65,7 @@
 
     private bool busy;
 
-    private async Task Submit()
+    private async Task SubmitCase()
     {
         this.busy = true;
         this.error = null;
