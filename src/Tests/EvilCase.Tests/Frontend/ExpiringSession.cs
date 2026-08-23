@@ -12,7 +12,7 @@ internal static class ExpiringSession
     {
         var tokens = new AccessTokenStore();
 
-        tokens.Set(new()
+        tokens.SetAccessToken(new()
         {
             Token = "access",
             ExpiresAt = DateTime.UtcNow,

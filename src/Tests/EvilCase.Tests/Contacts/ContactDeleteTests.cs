@@ -28,14 +28,14 @@ public class ContactDeleteTests
         using var entered = userContext.Enter(tenantId, userId);
 
         await using var context = TestDatabase.CreateMigrated(userContext);
-        var seeded = await Seed(context, tenantId, userId);
+        var seeded = await SeedContactAndCase(context, tenantId, userId);
 
         // The act lands between the delete's checks and its save, on another connection: the race, without timing.
         context.SavingChanges += (_, _) => WriteIssuedAct(userContext, seeded.Case, seeded.Contact.Id);
 
         var writer = new ContactWriter(new FixedDbSession(context));
 
-        var outcome = await writer.Delete(seeded.Contact.Id, CancellationToken.None);
+        var outcome = await writer.DeleteContact(seeded.Contact.Id, CancellationToken.None);
 
         Assert.That(
             outcome,
@@ -52,7 +52,7 @@ public class ContactDeleteTests
         using var entered = userContext.Enter(tenantId, userId);
 
         await using var context = TestDatabase.CreateMigrated(userContext);
-        var seeded = await Seed(context, tenantId, userId);
+        var seeded = await SeedContactAndCase(context, tenantId, userId);
         WriteIssuedAct(userContext, seeded.Case, seeded.Contact.Id);
 
         context.Contacts.Remove(seeded.Contact);
@@ -81,7 +81,7 @@ public class ContactDeleteTests
     /// The contact the delete aims at, and the case an act can hang under. The user holds a second contact
     /// as its default, so the delete's default-contact check passes.
     /// </summary>
-    private static async Task<(Contact Contact, Case Case)> Seed(ApplicationDbContext context, Guid tenantId, Guid userId)
+    private static async Task<(Contact Contact, Case Case)> SeedContactAndCase(ApplicationDbContext context, Guid tenantId, Guid userId)
     {
         var account = new Account { Name = "contact delete" };
         var tenant = new Tenant { Id = tenantId, AccountId = account.Id, Name = "tenant" };

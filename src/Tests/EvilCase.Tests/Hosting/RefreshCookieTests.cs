@@ -33,7 +33,7 @@ public class RefreshCookieTests
     {
         var users = new FakeUserStore();
 
-        users.Seed(new()
+        users.SeedUser(new()
         {
             TenantId = Guid.CreateVersion7(),
             Email = Email,

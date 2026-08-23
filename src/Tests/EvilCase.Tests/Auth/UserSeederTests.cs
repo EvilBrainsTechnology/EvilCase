@@ -25,7 +25,7 @@ public class UserSeederTests
         var userContext = new StubUserContext();
         var context = FakeApplicationDbContext.Create(userContext);
 
-        await Seeder(context, userContext, store, SeedEmail, SeedPassword).Seed(CancellationToken.None);
+        await Seeder(context, userContext, store, SeedEmail, SeedPassword).SeedUser(CancellationToken.None);
 
         var account = context.Added<Account>().Single();
         var tenant = context.Added<Tenant>().Single();
@@ -50,7 +50,7 @@ public class UserSeederTests
         var userContext = new StubUserContext();
         var context = FakeApplicationDbContext.Create(userContext);
 
-        await Seeder(context, userContext, store, SeedEmail, SeedPassword).Seed(CancellationToken.None);
+        await Seeder(context, userContext, store, SeedEmail, SeedPassword).SeedUser(CancellationToken.None);
 
         var tenant = context.Added<Tenant>().Single();
         var contact = store.SingleContact();
@@ -74,7 +74,7 @@ public class UserSeederTests
         var userContext = new StubUserContext();
         var context = FakeApplicationDbContext.Create(userContext);
 
-        store.Seed(new()
+        store.SeedUser(new()
         {
             TenantId = Guid.CreateVersion7(),
             Email = "someone@evilcase.test",
@@ -83,7 +83,7 @@ public class UserSeederTests
             DefaultContactId = Guid.CreateVersion7(),
         });
 
-        await Seeder(context, userContext, store, SeedEmail, SeedPassword).Seed(CancellationToken.None);
+        await Seeder(context, userContext, store, SeedEmail, SeedPassword).SeedUser(CancellationToken.None);
 
         Assert.That(context.Added<Account>(), Is.Empty);
     }
@@ -95,7 +95,7 @@ public class UserSeederTests
         var userContext = new StubUserContext();
         var context = FakeApplicationDbContext.Create(userContext);
 
-        await Seeder(context, userContext, store, email: null, password: null).Seed(CancellationToken.None);
+        await Seeder(context, userContext, store, email: null, password: null).SeedUser(CancellationToken.None);
 
         Assert.That(await store.Any(CancellationToken.None), Is.False);
     }
@@ -110,7 +110,7 @@ public class UserSeederTests
         var userContext = new StubUserContext();
         var context = FakeApplicationDbContext.Create(userContext);
 
-        await Seeder(context, userContext, store, SeedEmail, password: null).Seed(CancellationToken.None);
+        await Seeder(context, userContext, store, SeedEmail, password: null).SeedUser(CancellationToken.None);
 
         Assert.That(await store.Any(CancellationToken.None), Is.False);
     }

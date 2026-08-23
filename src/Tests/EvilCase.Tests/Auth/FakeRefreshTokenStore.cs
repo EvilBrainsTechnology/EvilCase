@@ -29,7 +29,7 @@ internal sealed class FakeRefreshTokenStore(TimeProvider timeProvider) : IRefres
         this.gate?.SetResult();
     }
 
-    public Task Add(RefreshToken refreshToken, CancellationToken cancellationToken)
+    public Task AddRefreshToken(RefreshToken refreshToken, CancellationToken cancellationToken)
     {
         // The database stamps Created (SDD-018); this stands in for that trigger.
         lock (this.writes)
@@ -38,17 +38,17 @@ internal sealed class FakeRefreshTokenStore(TimeProvider timeProvider) : IRefres
         return Task.CompletedTask;
     }
 
-    public Task<RefreshToken?> Find(string tokenHash, CancellationToken cancellationToken)
+    public Task<RefreshToken?> FindRefreshToken(string tokenHash, CancellationToken cancellationToken)
     {
         return Task.FromResult(this.tokens.Find(token => string.Equals(token.TokenHash, tokenHash, StringComparison.Ordinal)));
     }
 
-    public async Task<bool> Revoke(Guid id, DateTime now, CancellationToken cancellationToken)
+    public async Task<bool> RevokeRefreshToken(Guid refreshTokenId, DateTime now, CancellationToken cancellationToken)
     {
         if (this.gate is { } paused)
             await paused.Task;
 
-        return this.RevokeMatching(token => token.Id == id, now, alsoUsed: true) > 0;
+        return this.RevokeMatching(token => token.Id == refreshTokenId, now, alsoUsed: true) > 0;
     }
 
     public Task RevokeSession(Guid authSessionId, DateTime now, CancellationToken cancellationToken)

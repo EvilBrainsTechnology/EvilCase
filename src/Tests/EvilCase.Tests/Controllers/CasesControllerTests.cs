@@ -83,7 +83,7 @@ public class CasesControllerTests
 
         public CaseListRequest? Request { get; private set; }
 
-        public Task<IReadOnlyList<CaseListItem>> List(CaseListRequest request, CancellationToken cancellationToken)
+        public Task<IReadOnlyList<CaseListItem>> ListCases(CaseListRequest request, CancellationToken cancellationToken)
         {
             this.Request = request;
 
@@ -97,7 +97,7 @@ public class CasesControllerTests
 
         public CaseListItem Created { get; init; } = Item("EC/20260821-001", "Spis");
 
-        public Task<CaseListItem> Create(CreateCaseRequest request, CancellationToken cancellationToken)
+        public Task<CaseListItem> CreateCase(CreateCaseRequest request, CancellationToken cancellationToken)
         {
             this.Request = request;
 

@@ -34,7 +34,7 @@ internal sealed class AuthTestHarness
         this.RefreshTokens = new FakeRefreshTokenStore(this.Time);
         this.Settings = CreateSettings();
 
-        this.User = this.Users.Seed(
+        this.User = this.Users.SeedUser(
             new()
             {
                 TenantId = Tenant,

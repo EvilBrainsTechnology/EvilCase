@@ -113,10 +113,10 @@ public class ModelConventionTests : ModelFixture
         {
             foreach (var entityType in entities)
             {
-                var id = entityType.FindProperty(nameof(IEntity.Id));
+                var idProperty = entityType.FindProperty(nameof(IEntity.Id));
 
-                Assert.That(id?.ClrType, Is.EqualTo(typeof(Guid)), $"{entityType.ShortName()}: a database-generated key would leave a new row without an identifier until it is saved");
-                Assert.That(id?.ValueGenerated, Is.EqualTo(ValueGenerated.Never), $"{entityType.ShortName()}: a database-generated key would leave a new row without an identifier until it is saved");
+                Assert.That(idProperty?.ClrType, Is.EqualTo(typeof(Guid)), $"{entityType.ShortName()}: a database-generated key would leave a new row without an identifier until it is saved");
+                Assert.That(idProperty?.ValueGenerated, Is.EqualTo(ValueGenerated.Never), $"{entityType.ShortName()}: a database-generated key would leave a new row without an identifier until it is saved");
             }
         }
     }

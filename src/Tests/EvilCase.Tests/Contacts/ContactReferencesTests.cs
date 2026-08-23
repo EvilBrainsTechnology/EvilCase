@@ -28,9 +28,9 @@ public class ContactReferencesTests
     [Test]
     public void TheGuardAsksAllFourPlacesInOneQuery()
     {
-        var id = Guid.CreateVersion7();
+        var contactId = Guid.CreateVersion7();
         var sql = this.context.Contacts
-            .WithId(id)
+            .WithId(contactId)
             .Referenced()
             .ToQueryString();
 

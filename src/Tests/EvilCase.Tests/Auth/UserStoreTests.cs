@@ -33,7 +33,7 @@ public class UserStoreTests
             DefaultContactId = contact.Id,
         };
 
-        await new UserStore(new FixedDbSession(context)).Add(user, contact, CancellationToken.None);
+        await new UserStore(new FixedDbSession(context)).AddUser(user, contact, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -51,7 +51,7 @@ public class UserStoreTests
     {
         await using var context = TestDatabase.CreateMigrated();
         var store = new UserStore(new FixedDbSession(context));
-        var user = await Seed(context);
+        var user = await SeedUser(context);
 
         await store.RecordFailedLogin(user.Id, MaxFailedAttempts, LockoutEnd, CancellationToken.None);
         var lockout = await store.RecordFailedLogin(user.Id, MaxFailedAttempts, LockoutEnd, CancellationToken.None);
@@ -72,7 +72,7 @@ public class UserStoreTests
     {
         await using var context = TestDatabase.CreateMigrated();
         var store = new UserStore(new FixedDbSession(context));
-        var user = await Seed(context, MaxFailedAttempts - 1);
+        var user = await SeedUser(context, MaxFailedAttempts - 1);
 
         var lockout = await store.RecordFailedLogin(user.Id, MaxFailedAttempts, LockoutEnd, CancellationToken.None);
         var stored = await context.Users.SingleAsync(candidate => candidate.Id == user.Id);
@@ -89,7 +89,7 @@ public class UserStoreTests
     {
         await using var context = TestDatabase.CreateMigrated();
         var store = new UserStore(new FixedDbSession(context));
-        var user = await Seed(context, 0, EarlierLockoutEnd);
+        var user = await SeedUser(context, 0, EarlierLockoutEnd);
 
         var lockout = await store.RecordFailedLogin(user.Id, MaxFailedAttempts, LockoutEnd, CancellationToken.None);
 
@@ -107,7 +107,7 @@ public class UserStoreTests
         Assert.That(lockout, Is.Null, "a user deleted between the read and the write is not locked out");
     }
 
-    private static async Task<User> Seed(ApplicationDbContext context, int failedAttempts = 0, DateTime? lockoutEnd = null)
+    private static async Task<User> SeedUser(ApplicationDbContext context, int failedAttempts = 0, DateTime? lockoutEnd = null)
     {
         var account = new Account { Name = "lockout" };
         var tenant = new Tenant { AccountId = account.Id, Name = "lockout" };
