@@ -6,6 +6,8 @@
     /// </summary>
     public const string ReturnUrlParameter = "returnUrl";
 
+    private const string LoginPath = "login";
+
     protected override void OnInitialized()
     {
         var target = this.Navigation.ToBaseRelativePath(this.Navigation.Uri);
@@ -16,6 +18,4 @@
             target.Length == 0 ? LoginPath : $"{LoginPath}?{ReturnUrlParameter}={Uri.EscapeDataString("/" + target)}",
             replace: true);
     }
-
-    private const string LoginPath = "login";
 }
