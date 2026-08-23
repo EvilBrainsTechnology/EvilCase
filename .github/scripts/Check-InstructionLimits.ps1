@@ -3,7 +3,7 @@
     Enforces .claude/instruction-limits.json: fails naming every file over the per-file limit,
     and the sum over the total limit, each with how far over it is. In GitHub Actions it also
     writes a step-summary table, against the pull request's base branch or, outside one, the
-    previous commit; counting that baseline can never fail the check.
+    previous commit; a limit already broken on that baseline only fails a change that grows past it.
 #>
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -78,25 +78,37 @@ if ($counts.Count -eq 0) {
 }
 
 $total = ($counts.Values | Measure-Object -Sum).Sum
-$failures = @(
-    $counts.GetEnumerator() | Where-Object { $_.Value -gt $perFileLimit } | ForEach-Object {
-        "$($_.Key): $($_.Value) lines, $($_.Value - $perFileLimit) over the per-file limit of $perFileLimit"
-    }
-)
-if ($total -gt $totalLimit) {
-    $failures += "instruction files in total: $total lines, $($total - $totalLimit) over the total limit of $totalLimit"
-}
 
 $base = Measure-Baseline
-$delta = ''
-if ($base) {
-    $baseTotal = ($base.Counts.Values | Measure-Object -Sum).Sum
-    if ($total -ne $baseTotal) { $delta = " ($('{0:+#;-#;0}' -f ($total - $baseTotal)) vs $($base.Label))" }
+$baseTotal = $null
+if ($base) { $baseTotal = ($base.Counts.Values | Measure-Object -Sum).Sum }
+
+# A limit already broken on the baseline blocks nothing until this change grows it further: an
+# over-limit file or total fails only above its baseline count and warns otherwise.
+$failures = @()
+$warnings = @()
+foreach ($entry in $counts.GetEnumerator() | Where-Object { $_.Value -gt $perFileLimit }) {
+    $message = "$($entry.Key): $($entry.Value) lines, $($entry.Value - $perFileLimit) over the per-file limit of $perFileLimit"
+    if ($base -and $base.Counts.Contains($entry.Key) -and $entry.Value -le $base.Counts[$entry.Key]) {
+        $warnings += "$message (not grown vs $($base.Label))"
+    }
+    else { $failures += $message }
 }
+if ($total -gt $totalLimit) {
+    $message = "instruction files in total: $total lines, $($total - $totalLimit) over the total limit of $totalLimit"
+    if ($null -ne $baseTotal -and $total -le $baseTotal) { $warnings += "$message (not grown vs $($base.Label))" }
+    else { $failures += $message }
+}
+
+$delta = ''
+if ($base -and $total -ne $baseTotal) { $delta = " ($('{0:+#;-#;0}' -f ($total - $baseTotal)) vs $($base.Label))" }
 
 Write-Output "$($counts.Count) instruction files, $total/$totalLimit lines$delta, per-file limit $perFileLimit"
 foreach ($failure in $failures) {
     Write-Output "::error::$failure"
+}
+foreach ($warning in $warnings) {
+    Write-Output "::warning::$warning"
 }
 
 if ($env:GITHUB_STEP_SUMMARY) {

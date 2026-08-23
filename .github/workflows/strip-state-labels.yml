@@ -1,0 +1,36 @@
+name: Strip state labels on close
+
+# A closed pull request or issue is in nobody's queue, so the state labels and the ci-failed
+# flag come off. pull_request_target only reads the payload and writes labels; nothing from
+# the head ref is checked out or executed.
+on:
+  pull_request_target:
+    types: [closed]
+  issues:
+    types: [closed]
+
+concurrency:
+  group: strip-state-labels-${{ github.event.pull_request.number || github.event.issue.number }}
+  cancel-in-progress: false
+
+permissions:
+  pull-requests: write
+  issues: write
+
+jobs:
+  strip:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Remove the state labels
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const target = context.payload.pull_request ?? context.payload.issue;
+            const state = ['agent-in-progress', 'agent-done', 'waiting-for-agent', 'ci-failed'];
+            const present = target.labels.map((label) => label.name).filter((name) => state.includes(name));
+            for (const name of present) {
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: target.number, name,
+              }).catch((error) => { if (error.status !== 404) throw error; });
+            }
