@@ -1,5 +1,3 @@
-using System.Security.Cryptography;
-using System.Text;
 using EvilBrains.EvilCase.Data;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Migrations.DbContexts;
@@ -10,39 +8,35 @@ using Testcontainers.PostgreSql;
 namespace EvilBrains.EvilCase.Tests.Data;
 
 /// <summary>
-/// The PostgreSQL the stamp tests write against: a container the tests start themselves, or the server
-/// EVILCASE_TEST_POSTGRES names. A test that skips itself hides a broken trigger, so a machine that can
-/// supply neither gets a failure that names what is missing.
+/// The PostgreSQL the stamp tests write against, in a container the tests start themselves. A test that
+/// skips itself hides a broken trigger, so a machine without Docker gets a failure that names what is
+/// missing.
 /// </summary>
 internal static class TestDatabase
 {
     private const string Missing =
-        "these tests write real rows and read back what the database stamped, so they need a server — "
-            + "Testcontainers starts one wherever Docker runs, or point EVILCASE_TEST_POSTGRES at a server "
-            + "of your own";
+        "these tests write real rows and read back what the database stamped, so they need Docker — "
+            + "Testcontainers starts the PostgreSQL they run against";
+
+    // One slug per run names both the container and the database, so runs side by side never meet.
+    private static readonly string Slug = Guid.NewGuid().ToString("N")[..8];
 
     private static readonly Lazy<string> ConnectionString = new(Connect);
 
-    // Named after this checkout: parallel checkouts share one server, and the first caller drops the
-    // database it is about to build (.claude/rules/agents.md).
-    private static readonly string DatabaseName =
-        $"evilcase_tests_{Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(AppContext.BaseDirectory)))[..8].ToLowerInvariant()}";
-
-    // Set only where this run started the container, so the teardown leaves a server of one's own alone.
+    // Set once the run has started the container, so a run that reached no database takes nothing down.
     private static PostgreSqlContainer? container;
 
-    private static bool prepared;
+    private static bool migrated;
 
     /// <summary>
-    /// A context over a database built from the migrations. The first caller in the process rebuilds it,
-    /// so no earlier run leaks into this one.
+    /// A context over a database built from the migrations.
     /// </summary>
     public static ApplicationDbContext CreateMigrated()
     {
         var context = new ApplicationDbContextFactory().CreateDbContext([]);
         context.Database.SetConnectionString(ConnectionString.Value);
 
-        Prepare(context);
+        Migrate(context);
 
         return context;
     }
@@ -59,13 +53,13 @@ internal static class TestDatabase
 
         var context = new ApplicationDbContext(options, userContext);
 
-        Prepare(context);
+        Migrate(context);
 
         return context;
     }
 
     /// <summary>
-    /// Removes the container this run started. A server EVILCASE_TEST_POSTGRES named is left alone.
+    /// Removes the container this run started.
     /// </summary>
     public static async Task Remove()
     {
@@ -75,41 +69,29 @@ internal static class TestDatabase
 
     private static string Connect()
     {
-        var server = Environment.GetEnvironmentVariable("EVILCASE_TEST_POSTGRES");
+        container = new PostgreSqlBuilder("postgres:18-alpine")
+            .WithName($"evilcase-test-db-{Slug}")
+            .WithDatabase($"evilcase_tests_{Slug}")
+            .Build();
 
-        if (string.IsNullOrEmpty(server))
+        try
         {
-            // A slug per run: two runs at once must not collide on the name.
-            var slug = Guid.NewGuid().ToString("N")[..8];
-
-            container = new PostgreSqlBuilder("postgres:18-alpine")
-                .WithName($"evilcase-test-db-{slug}")
-                .WithUsername("postgres")
-                .WithPassword("postgres")
-                .Build();
-
-            try
-            {
-                container.StartAsync().GetAwaiter().GetResult();
-            }
-            catch (Exception exception)
-            {
-                Assert.Fail($"{Missing}; the container did not start: {exception.Message}");
-            }
-
-            server = $"Host={container.Hostname};Port={container.GetMappedPublicPort(5432)};Username=postgres;Password=postgres";
+            container.StartAsync().GetAwaiter().GetResult();
+        }
+        catch (Exception exception)
+        {
+            Assert.Fail($"{Missing}; the container did not start: {exception.Message}");
         }
 
-        return $"{server};Database={DatabaseName}";
+        return container.GetConnectionString();
     }
 
-    private static void Prepare(ApplicationDbContext context)
+    private static void Migrate(ApplicationDbContext context)
     {
-        if (prepared)
+        if (migrated)
             return;
 
-        context.Database.EnsureDeleted();
         context.Database.Migrate();
-        prepared = true;
+        migrated = true;
     }
 }

@@ -21,7 +21,7 @@ Full project map: [CLAUDE.md](CLAUDE.md); conventions: `.claude/rules/`. Deploym
 ### Prerequisites
 
 - .NET SDK per `src/global.json`
-- Docker, for `dotnet r test`. The tests start their own PostgreSQL through Testcontainers, as a container named evilcase-test-db-<slug>, and take it down when the run ends. `EVILCASE_TEST_POSTGRES` points them at a server of your own instead, as `Host=…;Port=…;Username=…;Password=…` without a database.
+- Docker, for `dotnet r test`. The tests start their own PostgreSQL through Testcontainers, as a container named evilcase-test-db-<slug>, and take it down when the run ends.
 - A reachable PostgreSQL, for running the app. The host migrates the database on startup and does not retry, so an unreachable server stops it. Set `EvilBrains__EvilCase__Database__MigrateOnStartup=false` to start without one. A throwaway one, matching the connection string in `.env.example`:
 
   ```
@@ -58,7 +58,7 @@ Registration is closed, so signing in needs the administrator seeded from `EvilB
 
 ### Tests
 
-`dotnet r test` needs that PostgreSQL. The tests covering the `Created` and `Updated` stamps write real rows and read back what the database put there; without a server they fail and name what to start, they never skip. `EVILCASE_TEST_POSTGRES` points them at another server; either way they rebuild their own database from the migrations at every run.
+`dotnet r test` needs Docker, not the PostgreSQL above. The tests covering the `Created` and `Updated` stamps write real rows and read back what the database put there; without a container they fail and name what is missing, they never skip. Every run builds its own database from the migrations and takes it down again.
 
 ```
 dotnet r test                # tests only
