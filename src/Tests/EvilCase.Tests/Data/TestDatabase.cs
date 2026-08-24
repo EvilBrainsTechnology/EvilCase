@@ -79,8 +79,11 @@ internal static class TestDatabase
 
         if (string.IsNullOrEmpty(server))
         {
+            // A slug per run: two runs at once must not collide on the name.
+            var slug = Guid.NewGuid().ToString("N")[..8];
+
             container = new PostgreSqlBuilder("postgres:18-alpine")
-                .WithName("evilcase-test-db")
+                .WithName($"evilcase-test-db-{slug}")
                 .WithUsername("postgres")
                 .WithPassword("postgres")
                 .Build();
