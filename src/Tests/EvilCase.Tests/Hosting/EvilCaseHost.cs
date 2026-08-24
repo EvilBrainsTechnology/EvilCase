@@ -53,7 +53,9 @@ internal sealed class EvilCaseHost(
         builder.ConfigureAppConfiguration(configuration => configuration.AddInMemoryCollection(
             new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase)
             {
-                ["EvilBrains:EvilCase:ConnectionString"] = "Host=localhost;Database=evilcase-tests",
+                // 127.0.0.1 skips the ::1 attempt and Timeout=1 skips the default 15s wait: the
+                // readiness probe still really reaches for a database that is not there, fast.
+                ["EvilBrains:EvilCase:ConnectionString"] = "Host=127.0.0.1;Database=evilcase-tests;Timeout=1",
                 ["EvilBrains:EvilCase:Database:MigrateOnStartup"] = "false",
                 ["EvilBrains:EvilCase:Auth:Jwt:Key"] = jwtKey switch { null => ValidJwtKey, "" => null, _ => jwtKey },
                 ["EvilBrains:EvilCase:Files:RootPath"] = filesRootPath switch { null => ValidFilesRootPath, "" => null, _ => filesRootPath },
