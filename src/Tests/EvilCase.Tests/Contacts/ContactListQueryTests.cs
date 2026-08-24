@@ -1,128 +1,190 @@
+using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Business.Contacts;
-using EvilBrains.EvilCase.Data.DbContexts;
-using EvilBrains.EvilCase.Data.Migrations.DbContexts;
+using EvilBrains.EvilCase.Data.Entities;
+using EvilBrains.EvilCase.Domain.Contacts;
+using EvilBrains.EvilCase.Tests.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Tests.Contacts;
 
 /// <summary>
-/// Reads the SQL each step produces, without a server — <c>ToQueryString</c> opens no connection.
+/// The contact list rules on the rows a real PostgreSQL returns. Each test seeds a tenant of its own,
+/// so none cleans up after itself. Only what a result cannot show is read off the generated SQL.
 /// </summary>
 public class ContactListQueryTests
 {
-    private ApplicationDbContext context = null!;
+    private TestTenant tenant = null!;
 
     [SetUp]
-    public void SetUp()
+    public async Task SetUp()
     {
-        this.context = new ApplicationDbContextFactory().CreateDbContext([]);
+        this.tenant = await TestTenant.Create();
     }
 
     [TearDown]
-    public void TearDown()
+    public async Task TearDown()
     {
-        this.context.Dispose();
+        await this.tenant.DisposeAsync();
     }
 
     [Test]
-    public void SearchMatchesTheNameAndTheDataBoxIdWithoutRegardToCaseOrDiacritics()
+    public async Task TheSearchFoldsCaseAndDiacriticsOverTheNameAndTheDataBoxId()
     {
-        var sql = this.context.Contacts
-            .MatchingSearch("úřad")
-            .ToQueryString();
+        await this.tenant.AddContact("Městský úřad Beroun");
+        await this.tenant.AddContact("Jan Novák", ContactKind.Person, dataBoxId: "úřadxy");
+        await this.tenant.AddContact("Okresní soud", dataBoxId: "abcdefg");
 
+        var names = await this.Search("urad");
+
+        string[] expected = ["Městský úřad Beroun", "Jan Novák"];
+
+        Assert.That(names, Is.EquivalentTo(expected), "the search folds case and diacritics over both the name and the data box id");
+    }
+
+    [Test]
+    public async Task ABlankSearchReturnsEveryContactOfTheTenant()
+    {
+        await this.tenant.AddContact("Městský úřad");
+        await this.tenant.AddContact("Okresní soud");
+
+        var unset = await this.tenant.Context.Contacts.MatchingSearch(search: null).CountAsync();
+        var empty = await this.tenant.Context.Contacts.MatchingSearch("").CountAsync();
+        var blank = await this.tenant.Context.Contacts.MatchingSearch("   ").CountAsync();
+
+        // The tenant's user carries a default contact, which is a contact of the tenant like any other.
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(sql, Does.Contain("ILIKE"));
-            Assert.That(sql, Does.Contain("\"Name\""));
-            Assert.That(sql, Does.Contain("\"DataBoxId\""));
-            Assert.That(sql, Does.Contain("%úřad%"));
-            Assert.That(sql, Does.Contain("immutable_unaccent"), "the fold runs in the database, over the wrapper the Init migration creates");
-            Assert.That(sql.Split("immutable_unaccent").Length - 1, Is.EqualTo(4), "both the column and the term fold on both comparisons");
+            Assert.That(unset, Is.EqualTo(3), "a blank term narrows nothing");
+            Assert.That(empty, Is.EqualTo(3), "a blank term narrows nothing");
+            Assert.That(blank, Is.EqualTo(3), "a blank term narrows nothing");
         }
     }
 
     [Test]
-    public void ABlankSearchNarrowsNothing()
+    public async Task AWildcardInTheTermMatchesOnlyItself()
     {
-        var unfiltered = this.context.Contacts.ToQueryString();
+        await this.tenant.AddContact(@"Sleva 50%_a\b");
+        await this.tenant.AddContact("Sleva 50 ab");
 
-        var byNull = this.context.Contacts
-            .MatchingSearch(search: null)
-            .ToQueryString();
+        var names = await this.Search(@"50%_a\b");
 
-        var byEmpty = this.context.Contacts
-            .MatchingSearch("")
-            .ToQueryString();
+        string[] expected = [@"Sleva 50%_a\b"];
 
-        var byBlank = this.context.Contacts
-            .MatchingSearch("   ")
-            .ToQueryString();
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(byNull, Is.EqualTo(unfiltered));
-            Assert.That(byEmpty, Is.EqualTo(unfiltered));
-            Assert.That(byBlank, Is.EqualTo(unfiltered));
-        }
+        Assert.That(names, Is.EqualTo(expected), "a wildcard in the term matches only itself");
     }
 
     [Test]
-    public void WildcardsInTheTermAreEscaped()
+    public async Task TheOrderIsByNameWithTheIdentifierBreakingATie()
     {
-        var sql = this.context.Contacts
-            .MatchingSearch("50%_a\\b")
-            .ToQueryString();
+        await this.tenant.AddContact("Zeman");
+        await this.tenant.AddContact("Adam");
+        var firstNovak = await this.tenant.AddContact("Novák");
+        var secondNovak = await this.tenant.AddContact("Novák");
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(sql, Does.Contain(@"%50\%\_a\\b%"));
-            Assert.That(sql, Does.Contain("ESCAPE"));
-        }
-    }
-
-    [Test]
-    public void TheOrderIsByNameAndIsTotal()
-    {
-        var sql = this.context.Contacts
+        var names = await this.Seeded()
             .InListOrder()
-            .ToQueryString();
+            .Select(contact => contact.Name)
+            .ToListAsync();
 
-        Assert.That(sql, Does.Contain("ORDER BY c.\"Name\", c.\"Id\""), "the identifier only breaks a tie on the name");
+        var tiedIds = await this.Seeded()
+            .Where(contact => contact.Name == "Novák")
+            .InListOrder()
+            .Select(contact => contact.Id)
+            .ToListAsync();
+
+        string[] expectedNames = ["Adam", "Novák", "Novák", "Zeman"];
+
+        // The identifier is a UUIDv7, so the ascending order is the order the contacts were written in.
+        Guid[] expectedTied = [firstNovak.Id, secondNovak.Id];
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(names, Is.EqualTo(expectedNames), "the contact list is ordered by name");
+            Assert.That(tiedIds, Is.EqualTo(expectedTied), "the identifier only breaks a tie on the name");
+        }
     }
 
     [Test]
-    public void TheProjectionReadsWhatARowShows()
+    public async Task ARowCarriesTheKindTheNameTheDataBoxIdAndTheAddress()
     {
-        var sql = this.context.Contacts
+        var seeded = await this.tenant.AddContact(
+            "Městský úřad Beroun",
+            dataBoxId: "abcdefg",
+            address: "Husovo náměstí 68\n266 01 Beroun");
+
+        var row = await this.tenant.Context.Contacts
+            .Where(contact => contact.Id == seeded.Id)
+            .AsListItems()
+            .SingleAsync();
+
+        var expected = new ContactListItem
+        {
+            Id = seeded.Id,
+            Kind = ContactKind.Authority,
+            Name = "Městský úřad Beroun",
+            DataBoxId = "abcdefg",
+            Address = "Husovo náměstí 68\n266 01 Beroun",
+        };
+
+        Assert.That(row, Is.EqualTo(expected), "a row of the list shows the contact's kind, name, data box id and address");
+    }
+
+    [Test]
+    public async Task AContactOfAnotherTenantNeverComesBack()
+    {
+        var mine = await this.tenant.AddContact("Můj kontakt");
+
+        await using (var other = await TestTenant.Create())
+            await other.AddContact("Cizí kontakt");
+
+        var names = await this.tenant.Context.Contacts
+            .MatchingSearch(search: null)
+            .InListOrder()
+            .AsListItems()
+            .Select(item => item.Name)
+            .ToListAsync();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(names, Does.Contain(mine.Name), "the tenant query filter keeps the tenant's own rows");
+            Assert.That(names, Does.Not.Contain("Cizí kontakt"), "the tenant query filter is what keeps another tenant's rows out");
+        }
+    }
+
+    /// <summary>
+    /// What a returned row cannot show.
+    /// </summary>
+    [Test]
+    public void TheListReadsNoTimestampCountsNothingAndPagesNothing()
+    {
+        var sql = this.tenant.Context.Contacts
+            .MatchingSearch(search: null)
+            .InListOrder()
             .AsListItems()
             .ToQueryString();
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(sql, Does.Contain("\"Name\""));
-            Assert.That(sql, Does.Contain("\"Kind\""));
-            Assert.That(sql, Does.Contain("\"DataBoxId\""));
-            Assert.That(sql, Does.Contain("\"Address\""));
             Assert.That(sql, Does.Not.Contain("\"Created\""), "a row of the list shows no timestamp");
-        }
-    }
-
-    [Test]
-    public void TheListIsNarrowedByTheTenantAloneAndShowsEveryContact()
-    {
-        var sql = this.context.Contacts
-            .MatchingSearch(search: null)
-            .InListOrder()
-            .AsListItems()
-            .ToQueryString();
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(sql, Does.Contain("\"TenantId\""), "every read is inside a tenant");
-            Assert.That(sql, Does.Not.Contain("ILIKE"), "a blank search narrows nothing");
             Assert.That(sql, Does.Not.Contain("count(").IgnoreCase, "a row of the list stands for one contact and counts nothing under it");
             Assert.That(sql, Does.Not.Contain("LIMIT"), "the overview has no paging");
+            Assert.That(sql, Does.Not.Contain("OFFSET"), "the overview has no paging");
         }
+    }
+
+    /// <summary>
+    /// The tenant's contacts without the user's default one, which every seeded tenant carries.
+    /// </summary>
+    private IQueryable<Contact> Seeded()
+    {
+        return this.tenant.Context.Contacts.Where(contact => contact.Id != this.tenant.DefaultContact.Id);
+    }
+
+    private async Task<List<string>> Search(string term)
+    {
+        return await this.tenant.Context.Contacts
+            .MatchingSearch(term)
+            .Select(contact => contact.Name)
+            .ToListAsync();
     }
 }
