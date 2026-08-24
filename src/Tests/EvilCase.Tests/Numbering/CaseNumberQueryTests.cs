@@ -66,16 +66,18 @@ public class CaseNumberQueryTests
         await this.tenant.AddCase(Day, caseNumber: CaseNumberFormat.Compose(Day, 1000));
         await this.tenant.AddCase(Day, caseNumber: CaseNumberFormat.Compose(Day, 998));
 
-        var highest = await this.tenant.Context.Cases
+        var numbers = await this.tenant.Context.Cases
             .WithNumberPrefix(CaseNumberFormat.Prefix(Day))
             .OrderByNumberDescending()
             .Select(@case => @case.CaseNumber)
-            .FirstAsync();
+            .ToListAsync();
+
+        string[] expected = [CaseNumberFormat.Compose(Day, 1000), CaseNumberFormat.Compose(Day, 999), CaseNumberFormat.Compose(Day, 998)];
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(highest, Is.EqualTo(CaseNumberFormat.Compose(Day, 1000)), "a sequence that grew a digit outranks a three-digit one");
-            Assert.That(CaseNumberFormat.Next(Day, highest), Is.EqualTo(CaseNumberFormat.Compose(Day, 1001)), "the issuer takes the row the order puts first");
+            Assert.That(numbers, Is.EqualTo(expected), "a sequence that grew a digit outranks a three-digit one, and the step orders without taking a row");
+            Assert.That(CaseNumberFormat.Next(Day, numbers[0]), Is.EqualTo(CaseNumberFormat.Compose(Day, 1001)), "the issuer takes the row the order puts first");
         }
     }
 

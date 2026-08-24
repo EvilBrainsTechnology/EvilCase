@@ -32,13 +32,19 @@ public class ContactListQueryTests
     {
         await this.tenant.AddContact("Městský úřad Beroun");
         await this.tenant.AddContact("Jan Novák", ContactKind.Person, dataBoxId: "úřadxy");
+        await this.tenant.AddContact("MESTSKY URAD Kladno");
         await this.tenant.AddContact("Okresní soud", dataBoxId: "abcdefg");
 
-        var names = await this.Search("urad");
+        var byPlainTerm = await this.Search("urad");
+        var byAccentedTerm = await this.Search("Úřad");
 
-        string[] expected = ["Městský úřad Beroun", "Jan Novák"];
+        string[] expected = ["Městský úřad Beroun", "Jan Novák", "MESTSKY URAD Kladno"];
 
-        Assert.That(names, Is.EquivalentTo(expected), "the search folds case and diacritics over both the name and the data box id");
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(byPlainTerm, Is.EquivalentTo(expected), "the search folds case and diacritics over both the name and the data box id");
+            Assert.That(byAccentedTerm, Is.EquivalentTo(expected), "the term folds too, so an accented term reaches a row written without diacritics");
+        }
     }
 
     [Test]
@@ -76,10 +82,14 @@ public class ContactListQueryTests
     [Test]
     public async Task TheOrderIsByNameWithTheIdentifierBreakingATie()
     {
+        var contactIds = TestTenant.SortedEntityIds(2);
+
         await this.tenant.AddContact("Zeman");
         await this.tenant.AddContact("Adam");
-        var firstNovak = await this.tenant.AddContact("Novák");
-        var secondNovak = await this.tenant.AddContact("Novák");
+
+        // The higher identifier is written first, so the write order is not what the tie falls to.
+        var secondNovak = await this.tenant.AddContact("Novák", contactId: contactIds[1]);
+        var firstNovak = await this.tenant.AddContact("Novák", contactId: contactIds[0]);
 
         var names = await this.Seeded()
             .InListOrder()
@@ -93,8 +103,6 @@ public class ContactListQueryTests
             .ToListAsync();
 
         string[] expectedNames = ["Adam", "Novák", "Novák", "Zeman"];
-
-        // The identifier is a UUIDv7, so the ascending order is the order the contacts were written in.
         Guid[] expectedTied = [firstNovak.Id, secondNovak.Id];
 
         using (Assert.EnterMultipleScope())

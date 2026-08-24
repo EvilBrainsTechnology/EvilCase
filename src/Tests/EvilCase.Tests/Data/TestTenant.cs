@@ -20,6 +20,10 @@ internal sealed class TestTenant : IAsyncDisposable
 {
     private readonly IDisposable entered;
 
+    private readonly Guid tenantId;
+
+    private readonly Guid userId;
+
     // The day's next sequence, so a seeded number is the one SDD-008 gives that day.
     private readonly Dictionary<string, int> sequences = [];
 
@@ -27,16 +31,12 @@ internal sealed class TestTenant : IAsyncDisposable
     {
         this.entered = entered;
         this.Context = context;
-        this.TenantId = tenantId;
-        this.UserId = userId;
+        this.tenantId = tenantId;
+        this.userId = userId;
         this.DefaultContact = defaultContact;
     }
 
     public ApplicationDbContext Context { get; }
-
-    public Guid TenantId { get; }
-
-    public Guid UserId { get; }
 
     /// <summary>
     /// The contact the seeded user prefills an act with. A delete aimed at it answers
@@ -47,21 +47,21 @@ internal sealed class TestTenant : IAsyncDisposable
     public static async Task<TestTenant> Create()
     {
         var userContext = new StubUserContext();
-        var tenantId = Guid.CreateVersion7();
-        var userId = Guid.CreateVersion7();
-        var scope = userContext.Enter(tenantId, userId);
+        var seededTenantId = Guid.CreateVersion7();
+        var seededUserId = Guid.CreateVersion7();
+        var scope = userContext.Enter(seededTenantId, seededUserId);
         var context = TestDatabase.CreateMigrated(userContext);
 
         var account = new Account { Name = "tests" };
-        var defaultContact = new Contact { TenantId = tenantId, Kind = ContactKind.Person, Name = "default" };
+        var defaultContact = new Contact { TenantId = seededTenantId, Kind = ContactKind.Person, Name = "default" };
 
         context.Accounts.Add(account);
-        context.Tenants.Add(new Tenant { Id = tenantId, AccountId = account.Id, Name = "tenant" });
+        context.Tenants.Add(new Tenant { Id = seededTenantId, AccountId = account.Id, Name = "tenant" });
         context.Contacts.Add(defaultContact);
         context.Users.Add(new User
         {
-            Id = userId,
-            TenantId = tenantId,
+            Id = seededUserId,
+            TenantId = seededTenantId,
             Email = $"{Guid.CreateVersion7()}@example.com",
             PasswordHash = "hash",
             Role = UserRole.User,
@@ -70,18 +70,34 @@ internal sealed class TestTenant : IAsyncDisposable
 
         await context.SaveChangesAsync();
 
-        return new TestTenant(scope, context, tenantId, userId, defaultContact);
+        return new TestTenant(scope, context, seededTenantId, seededUserId, defaultContact);
+    }
+
+    /// <summary>
+    /// Identifiers in the order PostgreSQL sorts them, so a test can write them in another order and
+    /// leave the write order and the identifier order disagreeing.
+    /// </summary>
+    public static Guid[] SortedEntityIds(int count)
+    {
+        return
+        [
+            .. Enumerable.Range(0, count)
+                .Select(_ => Guid.CreateVersion7())
+                .OrderBy(entityId => entityId.ToString(), StringComparer.Ordinal),
+        ];
     }
 
     public async Task<Contact> AddContact(
         string name,
         ContactKind kind = ContactKind.Authority,
         string? dataBoxId = null,
-        string? address = null)
+        string? address = null,
+        Guid? contactId = null)
     {
         var contact = new Contact
         {
-            TenantId = this.TenantId,
+            Id = contactId ?? Guid.CreateVersion7(),
+            TenantId = this.tenantId,
             Kind = kind,
             Name = name,
             DataBoxId = dataBoxId,
@@ -99,12 +115,14 @@ internal sealed class TestTenant : IAsyncDisposable
         string title = "Případ",
         string? description = null,
         CaseStatus status = CaseStatus.Active,
-        string? caseNumber = null)
+        string? caseNumber = null,
+        Guid? caseId = null)
     {
         var @case = new Case
         {
-            TenantId = this.TenantId,
-            UserId = this.UserId,
+            Id = caseId ?? Guid.CreateVersion7(),
+            TenantId = this.tenantId,
+            UserId = this.userId,
             CaseNumber = caseNumber ?? CaseNumberFormat.Compose(date, this.NextSequence(CaseNumberFormat.Prefix(date))),
             Date = date,
             Title = title,
@@ -121,14 +139,16 @@ internal sealed class TestTenant : IAsyncDisposable
         string title = "Úkon",
         Contact? issuedBy = null,
         Contact? addressedTo = null,
-        string? actNumber = null)
+        string? actNumber = null,
+        Guid? actId = null)
     {
         var prefix = ActNumberFormat.Prefix(@case.CaseNumber, date);
 
         var act = new Act
         {
-            TenantId = this.TenantId,
-            UserId = this.UserId,
+            Id = actId ?? Guid.CreateVersion7(),
+            TenantId = this.tenantId,
+            UserId = this.userId,
             CaseId = @case.Id,
             ActNumber = actNumber ?? ActNumberFormat.Compose(@case.CaseNumber, date, this.NextSequence(prefix)),
             Direction = ActDirection.Incoming,
@@ -145,8 +165,8 @@ internal sealed class TestTenant : IAsyncDisposable
     {
         var number = new ExternalCaseNumber
         {
-            TenantId = this.TenantId,
-            UserId = this.UserId,
+            TenantId = this.tenantId,
+            UserId = this.userId,
             CaseId = @case.Id,
             Value = value,
             AssignedByContactId = assignedBy.Id,
@@ -159,8 +179,8 @@ internal sealed class TestTenant : IAsyncDisposable
     {
         var number = new ExternalActNumber
         {
-            TenantId = this.TenantId,
-            UserId = this.UserId,
+            TenantId = this.tenantId,
+            UserId = this.userId,
             ActId = act.Id,
             Value = value,
             AssignedByContactId = assignedBy.Id,

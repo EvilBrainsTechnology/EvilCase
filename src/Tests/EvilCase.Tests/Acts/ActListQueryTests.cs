@@ -44,13 +44,15 @@ public class ActListQueryTests
     {
         var @case = await this.tenant.AddCase(new DateOnly(2026, 8, 20));
         var sameDay = new DateOnly(2026, 8, 22);
-        var first = await this.tenant.AddAct(@case, sameDay, "Podání");
-        var second = await this.tenant.AddAct(@case, sameDay, "Výzva");
-        var third = await this.tenant.AddAct(@case, sameDay, "Rozhodnutí");
+        var actIds = TestTenant.SortedEntityIds(3);
+
+        // The write order and the identifier order disagree, so only the identifier can break the tie.
+        var third = await this.tenant.AddAct(@case, sameDay, "Podání", actId: actIds[2]);
+        var first = await this.tenant.AddAct(@case, sameDay, "Výzva", actId: actIds[0]);
+        var second = await this.tenant.AddAct(@case, sameDay, "Rozhodnutí", actId: actIds[1]);
 
         var ids = await this.tenant.Context.Acts.InListOrder().Select(act => act.Id).ToListAsync();
 
-        // The identifier is a UUIDv7, so the ascending order is the order the acts were written in.
         Guid[] expected = [first.Id, second.Id, third.Id];
 
         Assert.That(ids, Is.EqualTo(expected), "the identifier breaks the tie so the order is total");
@@ -61,14 +63,16 @@ public class ActListQueryTests
     {
         var @case = await this.tenant.AddCase(new DateOnly(2026, 8, 20));
         var sameDay = new DateOnly(2026, 8, 22);
+        var actIds = TestTenant.SortedEntityIds(3);
 
-        // A later act numbered below an earlier one: only the identifier can tell the two apart.
-        var first = await this.tenant.AddAct(@case, sameDay, "Podání", actNumber: $"{@case.CaseNumber}/20260822-009");
-        var second = await this.tenant.AddAct(@case, sameDay, "Výzva", actNumber: $"{@case.CaseNumber}/20260822-002");
+        // The identifiers, the act numbers, the titles and the write order all disagree.
+        var lowestNumber = await this.tenant.AddAct(@case, sameDay, "Rozhodnutí", actNumber: $"{@case.CaseNumber}/20260822-002", actId: actIds[2]);
+        var highestNumber = await this.tenant.AddAct(@case, sameDay, "Výzva", actNumber: $"{@case.CaseNumber}/20260822-009", actId: actIds[1]);
+        var middleNumber = await this.tenant.AddAct(@case, sameDay, "Podání", actNumber: $"{@case.CaseNumber}/20260822-005", actId: actIds[0]);
 
         var ids = await this.tenant.Context.Acts.InListOrder().Select(act => act.Id).ToListAsync();
 
-        Guid[] expected = [first.Id, second.Id];
+        Guid[] expected = [middleNumber.Id, highestNumber.Id, lowestNumber.Id];
 
         Assert.That(ids, Is.EqualTo(expected), "the date orders, and only the identifier breaks its ties");
     }

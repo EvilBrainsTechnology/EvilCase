@@ -33,13 +33,19 @@ public class CaseListQueryTests
     {
         await this.tenant.AddCase(Day, "Odvolání proti rozhodnutí");
         await this.tenant.AddCase(Day, "Přestupek", description: "Odvolání podáno v termínu");
+        await this.tenant.AddCase(Day, "ODVOLANI bez diakritiky");
         await this.tenant.AddCase(Day, "Nahlédnutí do spisu", description: "bez poznámky");
 
-        var titles = await this.tenant.Context.Cases.MatchingSearch("odvolani").Select(@case => @case.Title).ToListAsync();
+        var byPlainTerm = await this.Titles("odvolani");
+        var byAccentedTerm = await this.Titles("Odvolání");
 
-        string[] expected = ["Odvolání proti rozhodnutí", "Přestupek"];
+        string[] expected = ["Odvolání proti rozhodnutí", "Přestupek", "ODVOLANI bez diakritiky"];
 
-        Assert.That(titles, Is.EquivalentTo(expected), "the search folds case and diacritics over both the title and the description");
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(byPlainTerm, Is.EquivalentTo(expected), "the search folds case and diacritics over both the title and the description");
+            Assert.That(byAccentedTerm, Is.EquivalentTo(expected), "the term folds too, so an accented term reaches a row written without diacritics");
+        }
     }
 
     [Test]
@@ -66,7 +72,7 @@ public class CaseListQueryTests
         await this.tenant.AddCase(Day, @"Sleva 50%_a\b");
         await this.tenant.AddCase(Day, "Sleva 50 ab");
 
-        var titles = await this.tenant.Context.Cases.MatchingSearch(@"50%_a\b").Select(@case => @case.Title).ToListAsync();
+        var titles = await this.Titles(@"50%_a\b");
 
         string[] expected = [@"Sleva 50%_a\b"];
 
@@ -76,15 +82,18 @@ public class CaseListQueryTests
     [Test]
     public async Task TheOrderIsTheCasesOwnDateNewestFirstWithCreatedBreakingATie()
     {
+        var caseIds = TestTenant.SortedEntityIds(2);
         var older = await this.tenant.AddCase(new DateOnly(2026, 8, 20), "Starší datum");
-        var written = await this.tenant.AddCase(new DateOnly(2026, 8, 22), "Zapsáno dřív");
-        var writtenLater = await this.tenant.AddCase(new DateOnly(2026, 8, 22), "Zapsáno později");
 
-        var ids = await this.tenant.Context.Cases.InListOrder().Select(@case => @case.Id).ToListAsync();
+        // The tie falls to the row written later even where the identifier alone would put it last.
+        var written = await this.tenant.AddCase(new DateOnly(2026, 8, 22), "Zapsáno dřív", caseId: caseIds[1]);
+        var writtenLater = await this.tenant.AddCase(new DateOnly(2026, 8, 22), "Zapsáno později", caseId: caseIds[0]);
+
+        var ordered = await this.tenant.Context.Cases.InListOrder().Select(@case => @case.Id).ToListAsync();
 
         Guid[] expected = [writtenLater.Id, written.Id, older.Id];
 
-        Assert.That(ids, Is.EqualTo(expected), "the case's own date orders newest first and the write breaks a tie on it");
+        Assert.That(ordered, Is.EqualTo(expected), "the case's own date orders newest first and the write breaks a tie on it");
     }
 
     [Test]
@@ -203,6 +212,14 @@ public class CaseListQueryTests
         var sql = this.tenant.Context.Cases.InListOrder().ToQueryString();
 
         Assert.That(sql, Does.Contain("\"Id\" DESC"), "the identifier makes the order total");
+    }
+
+    private async Task<List<string>> Titles(string search)
+    {
+        return await this.tenant.Context.Cases
+            .MatchingSearch(search)
+            .Select(@case => @case.Title)
+            .ToListAsync();
     }
 
     private async Task<List<Guid>> IdsWithStatus(CaseStatusFilter filter)

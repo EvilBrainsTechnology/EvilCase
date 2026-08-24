@@ -82,22 +82,29 @@ public class ActNumberQueryTests
         await this.AddNumberedAct(1000);
         await this.AddNumberedAct(998);
 
-        var highest = await this.tenant.Context.Acts
+        var numbers = await this.tenant.Context.Acts
             .OfCaseWithNumberPrefix(this.ownCase.Id, ActNumberFormat.Prefix(this.ownCase.CaseNumber, ActDay))
             .OrderByNumberDescending()
             .Select(act => act.ActNumber)
-            .FirstAsync();
+            .ToListAsync();
+
+        string[] expected =
+        [
+            ActNumberFormat.Compose(this.ownCase.CaseNumber, ActDay, 1000),
+            ActNumberFormat.Compose(this.ownCase.CaseNumber, ActDay, 999),
+            ActNumberFormat.Compose(this.ownCase.CaseNumber, ActDay, 998),
+        ];
 
         var next = ActNumberFormat.Compose(this.ownCase.CaseNumber, ActDay, 1001);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(
-                highest,
-                Is.EqualTo(ActNumberFormat.Compose(this.ownCase.CaseNumber, ActDay, 1000)),
-                "a sequence that grew a digit outranks a three-digit one");
+                numbers,
+                Is.EqualTo(expected),
+                "a sequence that grew a digit outranks a three-digit one, and the step orders without taking a row");
             Assert.That(
-                ActNumberFormat.Next(this.ownCase.CaseNumber, ActDay, highest),
+                ActNumberFormat.Next(this.ownCase.CaseNumber, ActDay, numbers[0]),
                 Is.EqualTo(next),
                 "the issuer takes the row the order puts first");
         }
