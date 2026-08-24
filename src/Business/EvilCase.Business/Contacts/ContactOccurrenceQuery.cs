@@ -45,11 +45,6 @@ internal static class ContactOccurrenceQuery
         return acts.Where(act => act.AddressedToContactId == contactId);
     }
 
-    public static IQueryable<ExternalActNumber> AssignedByContact(this IQueryable<ExternalActNumber> numbers, Guid contactId)
-    {
-        return numbers.Where(number => number.AssignedByContactId == contactId);
-    }
-
     public static IQueryable<ContactActOccurrence> AsIssuedByOccurrences(this IQueryable<Act> acts)
     {
         return acts.Select(act => new ContactActOccurrence
@@ -77,21 +72,6 @@ internal static class ContactOccurrenceQuery
             CaseNumber = act.Case!.CaseNumber,
             Role = ContactActRole.AddressedTo,
             ExternalNumber = null,
-        });
-    }
-
-    public static IQueryable<ContactActOccurrence> AsNumberIssuerOccurrences(this IQueryable<ExternalActNumber> numbers)
-    {
-        return numbers.Select(number => new ContactActOccurrence
-        {
-            ActId = number.ActId,
-            ActNumber = number.Act!.ActNumber,
-            ActTitle = number.Act!.Title,
-            ActDate = number.Act!.Date,
-            CaseId = number.Act!.CaseId,
-            CaseNumber = number.Act!.Case!.CaseNumber,
-            Role = ContactActRole.NumberIssuer,
-            ExternalNumber = number.Value,
         });
     }
 }
