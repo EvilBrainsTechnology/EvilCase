@@ -149,8 +149,8 @@ public class AuthController : ControllerBase
 
     private Guid UserId()
     {
-        return Guid.TryParse(this.User.FindFirstValue(AuthClaims.Subject), CultureInfo.InvariantCulture, out var id)
-            ? id
+        return Guid.TryParse(this.User.FindFirstValue(AuthClaims.Subject), CultureInfo.InvariantCulture, out var userId)
+            ? userId
             : throw new InvalidOperationException("Authenticated user is missing the subject claim");
     }
 

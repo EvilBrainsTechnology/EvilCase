@@ -18,7 +18,7 @@ public class CaseWriterTests
     {
         var request = new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "Přestupek", Description = null };
 
-        var @case = CaseWriter.Build(request, "EC/20260821-001");
+        var @case = CaseWriter.BuildCase(request, "EC/20260821-001");
 
         using (Assert.EnterMultipleScope())
         {
@@ -38,8 +38,8 @@ public class CaseWriterTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(CaseWriter.Build(blank, "EC/20260821-001").Description, Is.Null);
-            Assert.That(CaseWriter.Build(withText, "EC/20260821-001").Description, Is.EqualTo("text"));
+            Assert.That(CaseWriter.BuildCase(blank, "EC/20260821-001").Description, Is.Null);
+            Assert.That(CaseWriter.BuildCase(withText, "EC/20260821-001").Description, Is.EqualTo("text"));
         }
     }
 
@@ -56,7 +56,7 @@ public class CaseWriterTests
         var numbers = new QueuedCaseNumberIssuer(["EC/20260821-001", "EC/20260821-002"]);
         var writer = new CaseWriter(new FixedDbSession(context), numbers, NullLogger<CaseWriter>.Instance);
 
-        var created = await writer.Create(new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "Přestupek" }, CancellationToken.None);
+        var created = await writer.CreateCase(new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "Přestupek" }, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -78,7 +78,7 @@ public class CaseWriterTests
         var writer = new CaseWriter(new FixedDbSession(context), numbers, NullLogger<CaseWriter>.Instance);
 
         Assert.That(
-            async () => await writer.Create(new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "Přestupek" }, CancellationToken.None),
+            async () => await writer.CreateCase(new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "Přestupek" }, CancellationToken.None),
             Throws.InstanceOf<DbUpdateException>());
     }
 

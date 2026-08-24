@@ -12,7 +12,7 @@ namespace EvilBrains.EvilCase.Tests.Data.Model;
 /// </summary>
 public abstract class ModelFixture
 {
-    private static readonly (IReadOnlyModel Runtime, IReadOnlyModel DesignTime) Models = Build();
+    private static readonly (IReadOnlyModel Runtime, IReadOnlyModel DesignTime) Models = BuildModels();
 
     protected static IReadOnlyModel Model => Models.Runtime;
 
@@ -39,7 +39,7 @@ public abstract class ModelFixture
         return entityType.GetIndexes().Any(index => index.Properties.Any(property => string.Equals(property.Name, propertyName, StringComparison.Ordinal)));
     }
 
-    private static (IReadOnlyModel, IReadOnlyModel) Build()
+    private static (IReadOnlyModel, IReadOnlyModel) BuildModels()
     {
         using var context = new ApplicationDbContextFactory().CreateDbContext([]);
         return (context.Model, context.GetService<IDesignTimeModel>().Model);

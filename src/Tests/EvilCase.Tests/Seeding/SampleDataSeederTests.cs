@@ -21,7 +21,7 @@ public class SampleDataSeederTests
     [Test]
     public async Task TheSeedFillsTheTenantWithTheWholeCaseTree()
     {
-        var (context, _, _, _) = await Run();
+        var (context, _, _, _) = await RunSampleDataSeeder();
 
         var cases = context.Added<Case>().ToList();
         var caseIds = cases.Select(@case => @case.Id).ToHashSet();
@@ -42,7 +42,7 @@ public class SampleDataSeederTests
     [Test]
     public async Task EveryActBelongsToASeededCaseAndNamesItsSender()
     {
-        var (context, _, _, _) = await Run();
+        var (context, _, _, _) = await RunSampleDataSeeder();
 
         var caseIds = context.Added<Case>().Select(@case => @case.Id).ToHashSet();
         var contactIds = context.Added<Contact>().Select(contact => contact.Id).ToHashSet();
@@ -61,7 +61,7 @@ public class SampleDataSeederTests
     [Test]
     public async Task TheActsOfEveryCaseRunInDateOrder()
     {
-        var (context, _, _, _) = await Run();
+        var (context, _, _, _) = await RunSampleDataSeeder();
 
         var groups = context.Added<Act>()
             .GroupBy(act => act.CaseId)
@@ -74,7 +74,7 @@ public class SampleDataSeederTests
     [Test]
     public async Task EveryFileHasABlobAndExactlyOneOwner()
     {
-        var (context, blobs, _, _) = await Run();
+        var (context, blobs, _, _) = await RunSampleDataSeeder();
 
         var assets = context.Added<FileAsset>().ToList();
 
@@ -95,7 +95,7 @@ public class SampleDataSeederTests
     [Test]
     public async Task ExternalNumbersNameTheContactThatAssignedThem()
     {
-        var (context, _, _, _) = await Run();
+        var (context, _, _, _) = await RunSampleDataSeeder();
 
         var contactIds = context.Added<Contact>().Select(contact => contact.Id).ToHashSet();
         var caseNumbers = context.Added<ExternalCaseNumber>().ToList();
@@ -117,7 +117,7 @@ public class SampleDataSeederTests
     [Test]
     public async Task TheSeededContactsAreTheOnesTheCaseNames()
     {
-        var (context, _, _, _) = await Run();
+        var (context, _, _, _) = await RunSampleDataSeeder();
 
         var contacts = context.Added<Contact>().ToList();
 
@@ -135,7 +135,7 @@ public class SampleDataSeederTests
     [Test]
     public async Task NoSeededRowNamesItsOwner()
     {
-        var (context, _, _, _) = await Run();
+        var (context, _, _, _) = await RunSampleDataSeeder();
 
         var cases = context.Added<Case>().ToList();
         var acts = context.Added<Act>().ToList();
@@ -152,7 +152,7 @@ public class SampleDataSeederTests
     [Test]
     public async Task EveryCommentHangsOnACaseOrAnAct()
     {
-        var (context, _, _, _) = await Run();
+        var (context, _, _, _) = await RunSampleDataSeeder();
 
         var comments = context.Added<Comment>().ToList();
 
@@ -167,7 +167,7 @@ public class SampleDataSeederTests
     [Test]
     public async Task TheSeedEntersItsUserAndCommitsItsOwnTransaction()
     {
-        var (_, _, userContext, session) = await Run();
+        var (_, _, userContext, session) = await RunSampleDataSeeder();
 
         using (Assert.EnterMultipleScope())
         {
@@ -176,7 +176,7 @@ public class SampleDataSeederTests
         }
     }
 
-    private static async Task<(FakeApplicationDbContext Context, FakeFileBlobStore Blobs, StubUserContext UserContext, FixedDbSession Session)> Run()
+    private static async Task<(FakeApplicationDbContext Context, FakeFileBlobStore Blobs, StubUserContext UserContext, FixedDbSession Session)> RunSampleDataSeeder()
     {
         var userContext = new StubUserContext();
         var context = FakeApplicationDbContext.Create(userContext);
@@ -201,7 +201,7 @@ public class SampleDataSeederTests
             userContext,
             NullLogger<SampleDataSeeder>.Instance);
 
-        await seeder.Seed(UserId, CancellationToken.None);
+        await seeder.SeedSampleData(UserId, CancellationToken.None);
 
         return (context, blobs, userContext, session);
     }

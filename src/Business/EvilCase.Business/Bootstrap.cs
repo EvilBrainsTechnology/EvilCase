@@ -70,6 +70,6 @@ public static class Bootstrap
 
         var seeder = scope.ServiceProvider.GetRequiredService<ISampleDataSeeder>();
 
-        await seeder.Seed(user.Id, cancellationToken);
+        await seeder.SeedSampleData(user.Id, cancellationToken);
     }
 }

@@ -17,7 +17,7 @@ internal sealed class UserSeeder(
 {
     public bool IsConfigured => options.Value.Seed is { Email.Length: > 0, Password.Length: > 0 };
 
-    public async Task Seed(CancellationToken cancellationToken)
+    public async Task SeedUser(CancellationToken cancellationToken)
     {
         var seed = options.Value.Seed;
 
@@ -54,7 +54,7 @@ internal sealed class UserSeeder(
 
         using var scope = userContext.Enter(tenant.Id, user.Id);
 
-        await userStore.Add(user, contact, cancellationToken);
+        await userStore.AddUser(user, contact, cancellationToken);
 
         logger.LogInformation("No user existed, so the configured administrator {Email} was created in tenant {TenantId}", user.Email, tenant.Id);
     }

@@ -7,5 +7,5 @@ namespace EvilBrains.EvilCase.Business.Cases;
 /// </summary>
 public interface ICaseReader
 {
-    public Task<IReadOnlyList<CaseListItem>> List(CaseListRequest request, CancellationToken cancellationToken);
+    public Task<IReadOnlyList<CaseListItem>> ListCases(CaseListRequest request, CancellationToken cancellationToken);
 }

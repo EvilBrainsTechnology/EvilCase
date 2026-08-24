@@ -58,14 +58,14 @@ public class ContactOccurrenceQueryTests
     [Test]
     public void IssuedByAndAddressedToOccurrencesEachNarrowByTheirOwnColumn()
     {
-        var id = Guid.CreateVersion7();
+        var contactId = Guid.CreateVersion7();
         var issuedBy = this.context.Acts
-            .IssuedByContact(id)
+            .IssuedByContact(contactId)
             .AsIssuedByOccurrences()
             .ToQueryString();
 
         var addressedTo = this.context.Acts
-            .AddressedToContact(id)
+            .AddressedToContact(contactId)
             .AsAddressedToOccurrences()
             .ToQueryString();
 
@@ -98,25 +98,25 @@ public class ContactOccurrenceQueryTests
     [Test]
     public void EveryOccurrenceQueryStaysInsideTheTenant()
     {
-        var id = Guid.CreateVersion7();
+        var contactId = Guid.CreateVersion7();
 
         var caseOccurrences = this.context.ExternalCaseNumbers
-            .AssignedByContact(id)
+            .AssignedByContact(contactId)
             .AsCaseOccurrences()
             .ToQueryString();
 
         var issuedBy = this.context.Acts
-            .IssuedByContact(id)
+            .IssuedByContact(contactId)
             .AsIssuedByOccurrences()
             .ToQueryString();
 
         var addressedTo = this.context.Acts
-            .AddressedToContact(id)
+            .AddressedToContact(contactId)
             .AsAddressedToOccurrences()
             .ToQueryString();
 
         var numberIssuer = this.context.ExternalActNumbers
-            .AssignedByContact(id)
+            .AssignedByContact(contactId)
             .AsNumberIssuerOccurrences()
             .ToQueryString();
 

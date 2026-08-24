@@ -17,7 +17,7 @@ internal sealed class SampleDataSeeder(
     IUserContext userContext,
     ILogger<SampleDataSeeder> logger) : ISampleDataSeeder
 {
-    public async Task Seed(Guid userId, CancellationToken cancellationToken)
+    public async Task SeedSampleData(Guid userId, CancellationToken cancellationToken)
     {
         var user = await dbSession.Current.Users.FindAsync([userId], cancellationToken)
             ?? throw new InvalidOperationException($"User {userId} does not exist.");
@@ -232,7 +232,7 @@ internal sealed class SampleDataSeeder(
         var fileAssetId = Guid.CreateVersion7();
 
         await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(content));
-        var blob = await fileBlobStore.Write(tenantId, fileAssetId, stream, cancellationToken);
+        var blob = await fileBlobStore.WriteFileBlob(tenantId, fileAssetId, stream, cancellationToken);
 
         dbSession.Current.FileAssets.Add(new FileAsset
         {

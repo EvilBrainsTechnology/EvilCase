@@ -9,9 +9,9 @@ internal static class FileBlobPath
     public static string For(in Guid tenantId, in Guid fileAssetId)
     {
         var tenant = tenantId.ToString("D", CultureInfo.InvariantCulture);
-        var id = fileAssetId.ToString("D", CultureInfo.InvariantCulture);
+        var fileAsset = fileAssetId.ToString("D", CultureInfo.InvariantCulture);
         var hex = fileAssetId.ToString("N", CultureInfo.InvariantCulture);
 
-        return $"{tenant}/{hex[^2..]}/{hex[^4..^2]}/{id}";
+        return $"{tenant}/{hex[^2..]}/{hex[^4..^2]}/{fileAsset}";
     }
 }

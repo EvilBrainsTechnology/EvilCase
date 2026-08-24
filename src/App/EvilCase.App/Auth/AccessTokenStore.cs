@@ -4,12 +4,12 @@ internal sealed class AccessTokenStore : IAccessTokenStore
 {
     public AccessTokenState? Current { get; private set; }
 
-    public void Set(AccessTokenState state)
+    public void SetAccessToken(AccessTokenState state)
     {
         this.Current = state;
     }
 
-    public void Clear()
+    public void ClearAccessToken()
     {
         this.Current = null;
     }

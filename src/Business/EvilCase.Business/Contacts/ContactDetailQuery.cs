@@ -15,10 +15,10 @@ internal static class ContactDetailQuery
     /// <see cref="ContactDetail.IsDefault"/>, <see cref="ContactDetail.Cases"/> and
     /// <see cref="ContactDetail.Acts"/> are filled separately, with <c>with</c>.
     /// </summary>
-    public static Task<ContactDetail?> DetailOf(this IQueryable<Contact> contacts, Guid id, CancellationToken cancellationToken)
+    public static Task<ContactDetail?> DetailOf(this IQueryable<Contact> contacts, Guid contactId, CancellationToken cancellationToken)
     {
         return contacts
-            .WithId(id)
+            .WithId(contactId)
             .Select(contact => new ContactDetail
             {
                 Id = contact.Id,

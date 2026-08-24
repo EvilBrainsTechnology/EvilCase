@@ -18,16 +18,16 @@ internal sealed class FakeUserStore : IUserStore
         return this.contacts.Single();
     }
 
-    public User Seed(User user)
+    public User SeedUser(User user)
     {
         this.users.Add(user);
 
         return user;
     }
 
-    public User Get(Guid id)
+    public User GetUser(Guid userId)
     {
-        return this.users.Single(user => user.Id == id);
+        return this.users.Single(user => user.Id == userId);
     }
 
     public User Single()
@@ -42,25 +42,25 @@ internal sealed class FakeUserStore : IUserStore
         return Task.FromResult(this.users.Find(user => string.Equals(user.Email, normalized, StringComparison.Ordinal)));
     }
 
-    public Task<User?> FindById(Guid id, CancellationToken cancellationToken)
+    public Task<User?> FindById(Guid userId, CancellationToken cancellationToken)
     {
-        return Task.FromResult(this.users.Find(user => user.Id == id));
+        return Task.FromResult(this.users.Find(user => user.Id == userId));
     }
 
-    public Task<DateTime?> RecordFailedLogin(Guid id, int maxAttempts, DateTime lockoutEnd, CancellationToken cancellationToken)
+    public Task<DateTime?> RecordFailedLogin(Guid userId, int maxAttempts, DateTime lockoutEnd, CancellationToken cancellationToken)
     {
         this.Replace(
-            id,
+            userId,
             user => user.FailedLoginAttempts + 1 >= maxAttempts
                 ? user with { FailedLoginAttempts = 0, LockoutEnd = lockoutEnd }
                 : user with { FailedLoginAttempts = user.FailedLoginAttempts + 1 });
 
-        return Task.FromResult(this.Get(id).LockoutEnd);
+        return Task.FromResult(this.GetUser(userId).LockoutEnd);
     }
 
-    public Task RecordSuccessfulLogin(Guid id, CancellationToken cancellationToken)
+    public Task RecordSuccessfulLogin(Guid userId, CancellationToken cancellationToken)
     {
-        this.Replace(id, user => user with { FailedLoginAttempts = 0, LockoutEnd = null });
+        this.Replace(userId, user => user with { FailedLoginAttempts = 0, LockoutEnd = null });
 
         return Task.CompletedTask;
     }
@@ -70,7 +70,7 @@ internal sealed class FakeUserStore : IUserStore
         return Task.FromResult(this.users.Count > 0);
     }
 
-    public Task Add(User user, Contact defaultContact, CancellationToken cancellationToken)
+    public Task AddUser(User user, Contact defaultContact, CancellationToken cancellationToken)
     {
         this.users.Add(user);
         this.contacts.Add(defaultContact);
@@ -78,9 +78,9 @@ internal sealed class FakeUserStore : IUserStore
         return Task.CompletedTask;
     }
 
-    private void Replace(Guid id, Func<User, User> update)
+    private void Replace(Guid userId, Func<User, User> update)
     {
-        var index = this.users.FindIndex(user => user.Id == id);
+        var index = this.users.FindIndex(user => user.Id == userId);
 
         this.users[index] = update(this.users[index]);
     }

@@ -4,7 +4,7 @@ internal interface IAccessTokenStore
 {
     public AccessTokenState? Current { get; }
 
-    public void Set(AccessTokenState state);
+    public void SetAccessToken(AccessTokenState state);
 
-    public void Clear();
+    public void ClearAccessToken();
 }

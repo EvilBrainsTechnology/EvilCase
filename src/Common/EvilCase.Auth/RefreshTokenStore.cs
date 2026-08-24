@@ -6,23 +6,23 @@ namespace EvilBrains.EvilCase.Auth;
 
 internal sealed class RefreshTokenStore(IDbSession dbSession) : IRefreshTokenStore
 {
-    public async Task Add(RefreshToken refreshToken, CancellationToken cancellationToken)
+    public async Task AddRefreshToken(RefreshToken refreshToken, CancellationToken cancellationToken)
     {
         dbSession.Current.RefreshTokens.Add(refreshToken);
         await dbSession.Current.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<RefreshToken?> Find(string tokenHash, CancellationToken cancellationToken)
+    public async Task<RefreshToken?> FindRefreshToken(string tokenHash, CancellationToken cancellationToken)
     {
         return await dbSession.Current.RefreshTokens.SingleOrDefaultAsync(token => token.TokenHash == tokenHash, cancellationToken);
     }
 
     // The RevokedAt filter is the whole of the concurrency control: the statement is atomic, so of two
     // callers spending the same token exactly one sees a row change.
-    public async Task<bool> Revoke(Guid id, DateTime now, CancellationToken cancellationToken)
+    public async Task<bool> RevokeRefreshToken(Guid refreshTokenId, DateTime now, CancellationToken cancellationToken)
     {
         return await dbSession.Current.RefreshTokens
-            .Where(token => token.Id == id)
+            .Where(token => token.Id == refreshTokenId)
             .Where(token => token.RevokedAt == null)
             .ExecuteUpdateAsync(
                 setters => setters

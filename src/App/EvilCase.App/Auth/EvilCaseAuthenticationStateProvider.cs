@@ -85,7 +85,7 @@ internal sealed class EvilCaseAuthenticationStateProvider(
             logger.LogWarning(exception, "Sign-out could not be completed on the server");
         }
 
-        tokens.Clear();
+        tokens.ClearAccessToken();
         this.Publish();
     }
 
@@ -107,7 +107,7 @@ internal sealed class EvilCaseAuthenticationStateProvider(
         {
             var wasSignedIn = tokens.Current is not null;
 
-            tokens.Clear();
+            tokens.ClearAccessToken();
 
             if (wasSignedIn)
             {
@@ -129,7 +129,7 @@ internal sealed class EvilCaseAuthenticationStateProvider(
         }
     }
 
-    private static AuthenticationState Build(AccessTokenState? token)
+    private static AuthenticationState BuildAuthenticationState(AccessTokenState? token)
     {
         if (token is null)
             return new(new ClaimsPrincipal(new ClaimsIdentity()));
@@ -155,12 +155,12 @@ internal sealed class EvilCaseAuthenticationStateProvider(
 
         this.restored = true;
 
-        return Build(tokens.Current);
+        return BuildAuthenticationState(tokens.Current);
     }
 
     private void Apply(LoginResponse response)
     {
-        tokens.Set(new()
+        tokens.SetAccessToken(new()
         {
             Token = response.AccessToken,
             ExpiresAt = response.ExpiresAt,
@@ -171,7 +171,7 @@ internal sealed class EvilCaseAuthenticationStateProvider(
 
     private void Publish()
     {
-        var next = Task.FromResult(Build(tokens.Current));
+        var next = Task.FromResult(BuildAuthenticationState(tokens.Current));
 
         this.state = next;
 

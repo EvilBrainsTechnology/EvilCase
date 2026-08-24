@@ -13,16 +13,16 @@ internal sealed class UserStore(IDbSession dbSession) : IUserStore
         return await dbSession.Current.Users.SingleOrDefaultAsync(user => user.Email == normalized, cancellationToken);
     }
 
-    public async Task<User?> FindById(Guid id, CancellationToken cancellationToken)
+    public async Task<User?> FindById(Guid userId, CancellationToken cancellationToken)
     {
-        return await dbSession.Current.Users.SingleOrDefaultAsync(user => user.Id == id, cancellationToken);
+        return await dbSession.Current.Users.SingleOrDefaultAsync(user => user.Id == userId, cancellationToken);
     }
 
-    public async Task<DateTime?> RecordFailedLogin(Guid id, int maxAttempts, DateTime lockoutEnd, CancellationToken cancellationToken)
+    public async Task<DateTime?> RecordFailedLogin(Guid userId, int maxAttempts, DateTime lockoutEnd, CancellationToken cancellationToken)
     {
         // Every setter reads the stored column, never a number worked out from an earlier read.
         await dbSession.Current.Users
-            .Where(user => user.Id == id)
+            .Where(user => user.Id == userId)
             .ExecuteUpdateAsync(
                 setters => setters
                     .SetProperty(
@@ -34,15 +34,15 @@ internal sealed class UserStore(IDbSession dbSession) : IUserStore
                 cancellationToken);
 
         return await dbSession.Current.Users
-            .Where(user => user.Id == id)
+            .Where(user => user.Id == userId)
             .Select(user => user.LockoutEnd)
             .SingleOrDefaultAsync(cancellationToken);
     }
 
-    public async Task RecordSuccessfulLogin(Guid id, CancellationToken cancellationToken)
+    public async Task RecordSuccessfulLogin(Guid userId, CancellationToken cancellationToken)
     {
         await dbSession.Current.Users
-            .Where(user => user.Id == id)
+            .Where(user => user.Id == userId)
             .ExecuteUpdateAsync(
                 setters => setters
                     .SetProperty(user => user.FailedLoginAttempts, 0)
@@ -55,7 +55,7 @@ internal sealed class UserStore(IDbSession dbSession) : IUserStore
         return await dbSession.Current.Users.AnyAsync(cancellationToken);
     }
 
-    public async Task Add(User user, Contact defaultContact, CancellationToken cancellationToken)
+    public async Task AddUser(User user, Contact defaultContact, CancellationToken cancellationToken)
     {
         // One save carries both rows; EF orders the contact before the user, which the user's key needs.
         dbSession.Current.Contacts.Add(defaultContact);

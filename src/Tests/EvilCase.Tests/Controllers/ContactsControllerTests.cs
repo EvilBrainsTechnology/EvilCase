@@ -34,13 +34,13 @@ public class ContactsControllerTests
     [Test]
     public async Task TheDetailIsAskedForTheIdInTheRoute()
     {
-        var id = Guid.CreateVersion7();
-        var reader = new RecordingContactReader { DetailResult = BuildDetail(id) };
+        var contactId = Guid.CreateVersion7();
+        var reader = new RecordingContactReader { DetailResult = BuildDetail(contactId) };
         var controller = new ContactsController();
 
-        await controller.GetContact(reader, id, CancellationToken.None);
+        await controller.GetContact(reader, contactId, CancellationToken.None);
 
-        Assert.That(reader.DetailId, Is.EqualTo(id));
+        Assert.That(reader.DetailId, Is.EqualTo(contactId));
     }
 
     [Test]
@@ -56,16 +56,16 @@ public class ContactsControllerTests
     [Test]
     public async Task AnEditReachesTheWriterWithTheRouteIdAndTheBody()
     {
-        var id = Guid.CreateVersion7();
+        var contactId = Guid.CreateVersion7();
         var writer = new RecordingContactWriter { UpdateOutcome = ContactUpdateOutcome.Updated };
         var controller = new ContactsController();
         var request = new ContactEditRequest { Name = "Nový název", Kind = ContactKind.Authority };
 
-        await controller.EditContact(writer, id, request, CancellationToken.None);
+        await controller.EditContact(writer, contactId, request, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(writer.UpdateId, Is.EqualTo(id));
+            Assert.That(writer.UpdateId, Is.EqualTo(contactId));
             Assert.That(writer.UpdateRequest, Is.SameAs(request));
         }
     }
@@ -159,9 +159,9 @@ public class ContactsControllerTests
         return new() { Id = Guid.CreateVersion7(), Kind = ContactKind.Authority, Name = name };
     }
 
-    private static ContactDetail BuildDetail(in Guid id)
+    private static ContactDetail BuildDetail(in Guid contactId)
     {
-        return new() { Id = id, Kind = ContactKind.Authority, Name = "Kontakt" };
+        return new() { Id = contactId, Kind = ContactKind.Authority, Name = "Kontakt" };
     }
 
     private static ContactEditRequest Edit()
@@ -179,16 +179,16 @@ public class ContactsControllerTests
 
         public ContactDetail? DetailResult { get; init; }
 
-        public Task<IReadOnlyList<ContactListItem>> List(ContactListRequest request, CancellationToken cancellationToken)
+        public Task<IReadOnlyList<ContactListItem>> ListContacts(ContactListRequest request, CancellationToken cancellationToken)
         {
             this.Request = request;
 
             return Task.FromResult(this.Items);
         }
 
-        public Task<ContactDetail?> Detail(Guid id, CancellationToken cancellationToken)
+        public Task<ContactDetail?> GetContactDetail(Guid contactId, CancellationToken cancellationToken)
         {
-            this.DetailId = id;
+            this.DetailId = contactId;
 
             return Task.FromResult(this.DetailResult);
         }
@@ -204,15 +204,15 @@ public class ContactsControllerTests
 
         public ContactDeleteOutcome DeleteOutcome { get; init; }
 
-        public Task<ContactUpdateOutcome> Update(Guid id, ContactEditRequest request, CancellationToken cancellationToken)
+        public Task<ContactUpdateOutcome> UpdateContact(Guid contactId, ContactEditRequest request, CancellationToken cancellationToken)
         {
-            this.UpdateId = id;
+            this.UpdateId = contactId;
             this.UpdateRequest = request;
 
             return Task.FromResult(this.UpdateOutcome);
         }
 
-        public Task<ContactDeleteOutcome> Delete(Guid id, CancellationToken cancellationToken)
+        public Task<ContactDeleteOutcome> DeleteContact(Guid contactId, CancellationToken cancellationToken)
         {
             return Task.FromResult(this.DeleteOutcome);
         }

@@ -42,7 +42,7 @@ internal sealed class AuthService(
         await userStore.RecordSuccessfulLogin(user.Id, cancellationToken);
 
         var sessionExpires = now.Add(options.Value.RefreshToken.SessionExpiration);
-        var session = await this.Issue(user, Guid.NewGuid(), sessionExpires, client, now, cancellationToken);
+        var session = await this.IssueSession(user, Guid.NewGuid(), sessionExpires, client, now, cancellationToken);
 
         logger.LogInformation("User {UserId} signed in", user.Id);
 
@@ -52,7 +52,7 @@ internal sealed class AuthService(
     public async Task<RefreshResult> Refresh(string refreshToken, ClientInfo client, CancellationToken cancellationToken)
     {
         var now = timeProvider.GetUtcNow().UtcDateTime;
-        var stored = await refreshTokenStore.Find(RefreshTokenValue.Hash(refreshToken), cancellationToken);
+        var stored = await refreshTokenStore.FindRefreshToken(RefreshTokenValue.Hash(refreshToken), cancellationToken);
 
         if (stored is null)
             return RefreshResult.Failed(RefreshStatus.Rejected);
@@ -71,17 +71,17 @@ internal sealed class AuthService(
         // token both find it live, and only the one whose update still finds it unrevoked may spend it.
         // Without this the loser would be handed a second live token in the same chain, and a stolen
         // cookie racing the browser would never be seen as the replay it is.
-        if (!await refreshTokenStore.Revoke(stored.Id, now, cancellationToken))
+        if (!await refreshTokenStore.RevokeRefreshToken(stored.Id, now, cancellationToken))
             return RefreshResult.Failed(RefreshStatus.Raced);
 
-        var session = await this.Issue(user, stored.AuthSessionId, stored.SessionExpires, client, now, cancellationToken);
+        var session = await this.IssueSession(user, stored.AuthSessionId, stored.SessionExpires, client, now, cancellationToken);
 
         return RefreshResult.Succeeded(session);
     }
 
     public async Task SignOut(string refreshToken, CancellationToken cancellationToken)
     {
-        var stored = await refreshTokenStore.Find(RefreshTokenValue.Hash(refreshToken), cancellationToken);
+        var stored = await refreshTokenStore.FindRefreshToken(RefreshTokenValue.Hash(refreshToken), cancellationToken);
 
         if (stored is not null)
             await refreshTokenStore.RevokeSession(stored.AuthSessionId, timeProvider.GetUtcNow().UtcDateTime, cancellationToken);
@@ -150,7 +150,7 @@ internal sealed class AuthService(
         return RefreshResult.Failed(RefreshStatus.Rejected);
     }
 
-    private async Task<AuthSession> Issue(
+    private async Task<AuthSession> IssueSession(
         User user,
         Guid authSessionId,
         DateTime sessionExpires,
@@ -165,7 +165,7 @@ internal sealed class AuthService(
         if (expires > sessionExpires)
             expires = sessionExpires;
 
-        await refreshTokenStore.Add(
+        await refreshTokenStore.AddRefreshToken(
             new RefreshToken
             {
                 UserId = user.Id,

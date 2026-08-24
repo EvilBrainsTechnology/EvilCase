@@ -14,7 +14,7 @@ internal sealed class FileBlobStore(IOptions<FileSettings> settings, ILogger<Fil
     private readonly string rootFullPath =
         Path.TrimEndingDirectorySeparator(Path.GetFullPath(settings.Value.RootPath, AppContext.BaseDirectory)) + Path.DirectorySeparatorChar;
 
-    public async Task<FileBlobInfo> Write(Guid tenantId, Guid fileAssetId, Stream content, CancellationToken cancellationToken)
+    public async Task<FileBlobInfo> WriteFileBlob(Guid tenantId, Guid fileAssetId, Stream content, CancellationToken cancellationToken)
     {
         var storagePath = FileBlobPath.For(tenantId, fileAssetId);
         var fullPath = this.FullPath(storagePath);
@@ -70,7 +70,7 @@ internal sealed class FileBlobStore(IOptions<FileSettings> settings, ILogger<Fil
         return info;
     }
 
-    public Task Delete(string storagePath, CancellationToken cancellationToken)
+    public Task DeleteFileBlob(string storagePath, CancellationToken cancellationToken)
     {
         var fullPath = this.FullPath(storagePath);
 

@@ -20,12 +20,12 @@ internal sealed class CaseWriter(
     /// </summary>
     private const int Attempts = 5;
 
-    public async Task<CaseListItem> Create(CreateCaseRequest request, CancellationToken cancellationToken)
+    public async Task<CaseListItem> CreateCase(CreateCaseRequest request, CancellationToken cancellationToken)
     {
         for (var attempt = 1; ; attempt++)
         {
             var caseNumber = await numbers.NextCaseNumber(request.Date, cancellationToken);
-            var @case = Build(request, caseNumber);
+            var @case = BuildCase(request, caseNumber);
 
             dbSession.Current.Cases.Add(@case);
 
@@ -52,7 +52,7 @@ internal sealed class CaseWriter(
     /// <c>TenantId</c> and <c>UserId</c> are left unset here, the way the sample seeder leaves them
     /// (SDD-018): the write stamps both from <c>IUserContext</c>.
     /// </summary>
-    internal static Case Build(CreateCaseRequest request, string caseNumber)
+    internal static Case BuildCase(CreateCaseRequest request, string caseNumber)
     {
         return new()
         {

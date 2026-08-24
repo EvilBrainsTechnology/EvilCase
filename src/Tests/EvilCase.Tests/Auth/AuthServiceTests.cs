@@ -82,14 +82,14 @@ public class AuthServiceTests
     {
         await this.harness.Login(WrongPassword);
 
-        var afterFailure = this.harness.Users.Get(this.harness.User.Id).FailedLoginAttempts;
+        var afterFailure = this.harness.Users.GetUser(this.harness.User.Id).FailedLoginAttempts;
 
         await this.harness.Login(AuthTestHarness.Password);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(afterFailure, Is.EqualTo(1));
-            Assert.That(this.harness.Users.Get(this.harness.User.Id).FailedLoginAttempts, Is.Zero);
+            Assert.That(this.harness.Users.GetUser(this.harness.User.Id).FailedLoginAttempts, Is.Zero);
         }
     }
 
