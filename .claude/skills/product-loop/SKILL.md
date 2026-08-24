@@ -22,10 +22,10 @@ The backlog is the open issues labelled `loop` and none of `agent-in-progress` (
 `blocked` or `needs-decision`: highest `Priority` (`Urgent`, `High`, `Medium`, `Low`, then none),
 the lowest milestone breaking a tie, honouring a focus argument. Empty backlog: do nothing.
 
-The round runs one slice at a time. An open pull request on a `loop/*` branch or a running
-slice workflow stops the start: the round tends what is open and starts nothing. A pull request
-on another branch was requested, not started here, and never stops it. Otherwise take the first
-candidate, label it `agent-in-progress`, and start one Workflow
+The round runs one slice at a time. An open pull request on a `loop/*` branch or a `loop` issue
+labelled `agent-in-progress` stops the start: the round tends what is open and starts nothing.
+A pull request on another branch was requested, not started here, and never stops it. Otherwise
+take the first candidate, label it `agent-in-progress`, and start one Workflow
 (`.claude/skills/product-loop/slice-pipeline.js`, `args: [{issue, slug, title, body, fast}]`);
 it runs in the background — tend open pull requests meanwhile. One slice is one pull request
 from database to UI leaving the app usable, small enough to review on a phone, on
