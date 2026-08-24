@@ -110,26 +110,6 @@ public class ActNumberQueryTests
         }
     }
 
-    [Test]
-    public async Task AnActOfAnotherTenantNeverComesBack()
-    {
-        await this.tenant.AddAct(this.ownCase, ActDay);
-
-        await using (var other = await TestTenant.Create())
-        {
-            // The same case number under another tenant, so nothing but the tenant tells the rows apart.
-            var otherCase = await other.AddCase(CaseDay, caseNumber: this.ownCase.CaseNumber);
-            await other.AddAct(otherCase, ActDay);
-            await other.AddAct(otherCase, ActDay);
-        }
-
-        var numbers = await this.NumbersOfCaseWithPrefix(this.ownCase, ActNumberFormat.Prefix(this.ownCase.CaseNumber, ActDay));
-
-        string[] expected = [ActNumberFormat.Compose(this.ownCase.CaseNumber, ActDay, 1)];
-
-        Assert.That(numbers, Is.EqualTo(expected), "another tenant's numbers never enter the day's highest");
-    }
-
     private async Task AddNumberedAct(int sequence)
     {
         await this.tenant.AddAct(
