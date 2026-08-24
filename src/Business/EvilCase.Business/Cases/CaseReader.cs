@@ -6,13 +6,13 @@ namespace EvilBrains.EvilCase.Business.Cases;
 
 internal sealed class CaseReader(IDbSession dbSession) : ICaseReader
 {
-    public async Task<IReadOnlyList<CaseListItem>> ListCases(CaseListRequest request, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<CaseListItem>> ListCases(CaseListRequest request, CancellationToken token)
     {
         return await dbSession.Current.Cases
             .MatchingSearch(request.Search)
             .WithStatus(request.Status)
             .InListOrder()
             .AsListItems()
-            .ToListAsync(cancellationToken);
+            .ToListAsync(token);
     }
 }

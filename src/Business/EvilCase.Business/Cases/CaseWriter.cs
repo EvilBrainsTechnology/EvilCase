@@ -20,18 +20,18 @@ internal sealed class CaseWriter(
     /// </summary>
     private const int Attempts = 5;
 
-    public async Task<CaseListItem> CreateCase(CreateCaseRequest request, CancellationToken cancellationToken)
+    public async Task<CaseListItem> CreateCase(CreateCaseRequest request, CancellationToken token)
     {
         for (var attempt = 1; ; attempt++)
         {
-            var caseNumber = await numbers.NextCaseNumber(request.Date, cancellationToken);
+            var caseNumber = await numbers.NextCaseNumber(request.Date, token);
             var @case = BuildCase(request, caseNumber);
 
             dbSession.Current.Cases.Add(@case);
 
             try
             {
-                await dbSession.Current.SaveChangesAsync(cancellationToken);
+                await dbSession.Current.SaveChangesAsync(token);
             }
             catch (DbUpdateException exception) when (attempt < Attempts && exception.IsUniqueViolation())
             {

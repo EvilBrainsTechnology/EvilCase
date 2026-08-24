@@ -17,25 +17,25 @@ internal sealed class SampleDataSeeder(
     IUserContext userContext,
     ILogger<SampleDataSeeder> logger) : ISampleDataSeeder
 {
-    public async Task SeedSampleData(Guid userId, CancellationToken cancellationToken)
+    public async Task SeedSampleData(Guid userId, CancellationToken token)
     {
-        var user = await dbSession.Current.Users.FindAsync([userId], cancellationToken)
+        var user = await dbSession.Current.Users.FindAsync([userId], token)
             ?? throw new InvalidOperationException($"User {userId} does not exist.");
         var tenantId = user.TenantId;
 
         logger.LogInformation("Sample data seed started for tenant {TenantId}", tenantId);
 
         using var userScope = userContext.Enter(tenantId, userId);
-        await using var transaction = await dbSession.BeginTransaction(cancellationToken);
+        await using var transaction = await dbSession.BeginTransaction(token);
 
-        var contactsByKey = await this.SeedContacts(cancellationToken);
+        var contactsByKey = await this.SeedContacts(token);
         var casesByKey = new Dictionary<string, Case>();
         var counters = new SeedCounters();
 
         foreach (var sampleCase in SampleData.Cases)
-            await this.SeedCase(tenantId, sampleCase, contactsByKey, casesByKey, counters, cancellationToken);
+            await this.SeedCase(tenantId, sampleCase, contactsByKey, casesByKey, counters, token);
 
-        await transaction.CommitAsync(cancellationToken);
+        await transaction.CommitAsync(token);
 
         logger.LogInformation(
             "Sample data seeded into tenant {TenantId}: {ContactCount} contacts, {CaseCount} cases, {ActCount} acts, "
@@ -49,7 +49,7 @@ internal sealed class SampleDataSeeder(
             counters.FileCount);
     }
 
-    private async Task<Dictionary<string, Contact>> SeedContacts(CancellationToken cancellationToken)
+    private async Task<Dictionary<string, Contact>> SeedContacts(CancellationToken token)
     {
         var contactsByKey = new Dictionary<string, Contact>();
 
@@ -67,7 +67,7 @@ internal sealed class SampleDataSeeder(
             dbSession.Current.Contacts.Add(contact);
         }
 
-        await dbSession.Current.SaveChangesAsync(cancellationToken);
+        await dbSession.Current.SaveChangesAsync(token);
 
         return contactsByKey;
     }
@@ -78,9 +78,9 @@ internal sealed class SampleDataSeeder(
         Dictionary<string, Contact> contactsByKey,
         Dictionary<string, Case> casesByKey,
         SeedCounters counters,
-        CancellationToken cancellationToken)
+        CancellationToken token)
     {
-        var caseNumber = await caseNumberIssuer.NextCaseNumber(sampleCase.Date, cancellationToken);
+        var caseNumber = await caseNumberIssuer.NextCaseNumber(sampleCase.Date, token);
 
         var @case = new Case
         {
@@ -94,7 +94,7 @@ internal sealed class SampleDataSeeder(
 
         casesByKey[sampleCase.Key] = @case;
         dbSession.Current.Cases.Add(@case);
-        await dbSession.Current.SaveChangesAsync(cancellationToken);
+        await dbSession.Current.SaveChangesAsync(token);
 
         foreach (var externalNumber in sampleCase.ExternalNumbers)
         {
@@ -122,19 +122,19 @@ internal sealed class SampleDataSeeder(
                 actId: null,
                 caseNumber.Replace('/', '-') + ".txt",
                 FileBody(sampleCase.Title, "Spisová značka", caseNumber, sampleCase.Date),
-                cancellationToken);
+                token);
 
             counters.FileCount++;
         }
 
-        await dbSession.Current.SaveChangesAsync(cancellationToken);
+        await dbSession.Current.SaveChangesAsync(token);
 
         var sampleActs = string.Equals(sampleCase.Key, SampleData.MainCaseKey, StringComparison.Ordinal)
             ? SampleData.MainCaseActs
             : SubCaseActs(sampleCase);
 
         foreach (var sampleAct in sampleActs)
-            await this.SeedAct(tenantId, @case, sampleAct, contactsByKey, counters, cancellationToken);
+            await this.SeedAct(tenantId, @case, sampleAct, contactsByKey, counters, token);
     }
 
     private async Task SeedAct(
@@ -143,9 +143,9 @@ internal sealed class SampleDataSeeder(
         SampleAct sampleAct,
         Dictionary<string, Contact> contactsByKey,
         SeedCounters counters,
-        CancellationToken cancellationToken)
+        CancellationToken token)
     {
-        var actNumber = await actNumberIssuer.NextActNumber(@case, sampleAct.Date, cancellationToken);
+        var actNumber = await actNumberIssuer.NextActNumber(@case, sampleAct.Date, token);
 
         var counterparty = contactsByKey[sampleAct.CounterpartyKey];
         var subject = contactsByKey[SampleData.SubjectKey];
@@ -164,7 +164,7 @@ internal sealed class SampleDataSeeder(
         };
 
         dbSession.Current.Acts.Add(act);
-        await dbSession.Current.SaveChangesAsync(cancellationToken);
+        await dbSession.Current.SaveChangesAsync(token);
         counters.ActCount++;
 
         foreach (var externalNumber in sampleAct.ExternalNumbers)
@@ -185,18 +185,18 @@ internal sealed class SampleDataSeeder(
             counters.CommentCount++;
         }
 
-        await this.AddFile(tenantId, caseId: null, act.Id, actNumber.Replace('/', '-') + ".txt", FileBody(sampleAct.Title, "Číslo jednací", actNumber, sampleAct.Date), cancellationToken);
+        await this.AddFile(tenantId, caseId: null, act.Id, actNumber.Replace('/', '-') + ".txt", FileBody(sampleAct.Title, "Číslo jednací", actNumber, sampleAct.Date), token);
         counters.FileCount++;
 
         if (sampleAct.ExtraFileSuffix is not null)
         {
             var fileName = actNumber.Replace('/', '-') + "-" + sampleAct.ExtraFileSuffix + ".txt";
 
-            await this.AddFile(tenantId, caseId: null, act.Id, fileName, FileBody(sampleAct.Title, "Číslo jednací", actNumber, sampleAct.Date), cancellationToken);
+            await this.AddFile(tenantId, caseId: null, act.Id, fileName, FileBody(sampleAct.Title, "Číslo jednací", actNumber, sampleAct.Date), token);
             counters.FileCount++;
         }
 
-        await dbSession.Current.SaveChangesAsync(cancellationToken);
+        await dbSession.Current.SaveChangesAsync(token);
     }
 
     /// <summary>
@@ -227,12 +227,12 @@ internal sealed class SampleDataSeeder(
         ];
     }
 
-    private async Task AddFile(Guid tenantId, Guid? caseId, Guid? actId, string fileName, string content, CancellationToken cancellationToken)
+    private async Task AddFile(Guid tenantId, Guid? caseId, Guid? actId, string fileName, string content, CancellationToken token)
     {
         var fileAssetId = Guid.CreateVersion7();
 
         await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(content));
-        var blob = await fileBlobStore.WriteFileBlob(tenantId, fileAssetId, stream, cancellationToken);
+        var blob = await fileBlobStore.WriteFileBlob(tenantId, fileAssetId, stream, token);
 
         dbSession.Current.FileAssets.Add(new FileAsset
         {

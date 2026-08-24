@@ -179,14 +179,14 @@ public class ContactsControllerTests
 
         public ContactDetail? DetailResult { get; init; }
 
-        public Task<IReadOnlyList<ContactListItem>> ListContacts(ContactListRequest request, CancellationToken cancellationToken)
+        public Task<IReadOnlyList<ContactListItem>> ListContacts(ContactListRequest request, CancellationToken token)
         {
             this.Request = request;
 
             return Task.FromResult(this.Items);
         }
 
-        public Task<ContactDetail?> GetContactDetail(Guid contactId, CancellationToken cancellationToken)
+        public Task<ContactDetail?> GetContactDetail(Guid contactId, CancellationToken token)
         {
             this.DetailId = contactId;
 
@@ -204,7 +204,7 @@ public class ContactsControllerTests
 
         public ContactDeleteOutcome DeleteOutcome { get; init; }
 
-        public Task<ContactUpdateOutcome> UpdateContact(Guid contactId, ContactEditRequest request, CancellationToken cancellationToken)
+        public Task<ContactUpdateOutcome> UpdateContact(Guid contactId, ContactEditRequest request, CancellationToken token)
         {
             this.UpdateId = contactId;
             this.UpdateRequest = request;
@@ -212,7 +212,7 @@ public class ContactsControllerTests
             return Task.FromResult(this.UpdateOutcome);
         }
 
-        public Task<ContactDeleteOutcome> DeleteContact(Guid contactId, CancellationToken cancellationToken)
+        public Task<ContactDeleteOutcome> DeleteContact(Guid contactId, CancellationToken token)
         {
             return Task.FromResult(this.DeleteOutcome);
         }

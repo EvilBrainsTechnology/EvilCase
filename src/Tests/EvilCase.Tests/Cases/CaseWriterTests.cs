@@ -86,7 +86,7 @@ public class CaseWriterTests
     {
         private int issued;
 
-        public Task<string> NextCaseNumber(DateOnly date, CancellationToken cancellationToken)
+        public Task<string> NextCaseNumber(DateOnly date, CancellationToken token)
         {
             return Task.FromResult(caseNumbers[this.issued++]);
         }

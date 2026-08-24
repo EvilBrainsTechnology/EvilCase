@@ -40,11 +40,11 @@ internal sealed class EvilCaseAuthenticationStateProvider(
         this.renewal.Dispose();
     }
 
-    public async Task<SignInOutcome> SignIn(string email, string password, CancellationToken cancellationToken)
+    public async Task<SignInOutcome> SignIn(string email, string password, CancellationToken token)
     {
         try
         {
-            var response = await authClient.Login(new() { Email = email, Password = password }, cancellationToken);
+            var response = await authClient.Login(new() { Email = email, Password = password }, token);
 
             this.Apply(response);
             this.Publish();
@@ -69,14 +69,14 @@ internal sealed class EvilCaseAuthenticationStateProvider(
         }
     }
 
-    public async Task SignOut(bool everywhere, CancellationToken cancellationToken)
+    public async Task SignOut(bool everywhere, CancellationToken token)
     {
         try
         {
             if (everywhere)
-                await authClient.LogoutAll(cancellationToken);
+                await authClient.LogoutAll(token);
             else
-                await authClient.Logout(cancellationToken);
+                await authClient.Logout(token);
         }
         catch (Exception exception) when (exception is ApiException or HttpRequestException or TaskCanceledException)
         {
@@ -89,9 +89,9 @@ internal sealed class EvilCaseAuthenticationStateProvider(
         this.Publish();
     }
 
-    public async Task<bool> Renew(CancellationToken cancellationToken)
+    public async Task<bool> Renew(CancellationToken token)
     {
-        await this.renewal.WaitAsync(cancellationToken);
+        await this.renewal.WaitAsync(token);
 
         try
         {
@@ -99,7 +99,7 @@ internal sealed class EvilCaseAuthenticationStateProvider(
             if (tokens.Current is { } current && current.ExpiresAt - DateTime.UtcNow > RenewAhead)
                 return true;
 
-            this.Apply(await authClient.Refresh(cancellationToken));
+            this.Apply(await authClient.Refresh(token));
 
             return true;
         }

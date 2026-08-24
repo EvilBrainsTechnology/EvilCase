@@ -7,13 +7,13 @@ namespace EvilBrains.EvilCase.Business.Numbering;
 
 internal sealed class ActNumberIssuer(IDbSession dbSession) : IActNumberIssuer
 {
-    public async Task<string> NextActNumber(Case @case, DateOnly date, CancellationToken cancellationToken)
+    public async Task<string> NextActNumber(Case @case, DateOnly date, CancellationToken token)
     {
         var highest = await dbSession.Current.Acts
             .OfCaseWithNumberPrefix(@case.Id, ActNumberFormat.Prefix(@case.CaseNumber, date))
             .OrderByNumberDescending()
             .Select(act => act.ActNumber)
-            .FirstOrDefaultAsync(cancellationToken);
+            .FirstOrDefaultAsync(token);
 
         return ActNumberFormat.Next(@case.CaseNumber, date, highest);
     }

@@ -15,7 +15,7 @@ internal static class ContactDetailQuery
     /// <see cref="ContactDetail.IsDefault"/>, <see cref="ContactDetail.Cases"/> and
     /// <see cref="ContactDetail.Acts"/> are filled separately, with <c>with</c>.
     /// </summary>
-    public static Task<ContactDetail?> DetailOf(this IQueryable<Contact> contacts, Guid contactId, CancellationToken cancellationToken)
+    public static Task<ContactDetail?> DetailOf(this IQueryable<Contact> contacts, Guid contactId, CancellationToken token)
     {
         return contacts
             .WithId(contactId)
@@ -27,6 +27,6 @@ internal static class ContactDetailQuery
                 DataBoxId = contact.DataBoxId,
                 Address = contact.Address,
             })
-            .SingleOrDefaultAsync(cancellationToken);
+            .SingleOrDefaultAsync(token);
     }
 }

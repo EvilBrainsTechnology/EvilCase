@@ -9,7 +9,7 @@ internal sealed class FixedDbSession(ApplicationDbContext context) : IDbSession
 
     public FakeDbContextTransaction? Transaction { get; private set; }
 
-    public Task<IDbContextTransaction> BeginTransaction(CancellationToken cancellationToken)
+    public Task<IDbContextTransaction> BeginTransaction(CancellationToken token)
     {
         this.Transaction = new FakeDbContextTransaction();
 

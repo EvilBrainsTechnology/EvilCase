@@ -6,13 +6,13 @@ namespace EvilBrains.EvilCase.Business.Numbering;
 
 internal sealed class CaseNumberIssuer(IDbSession dbSession) : ICaseNumberIssuer
 {
-    public async Task<string> NextCaseNumber(DateOnly date, CancellationToken cancellationToken)
+    public async Task<string> NextCaseNumber(DateOnly date, CancellationToken token)
     {
         var highest = await dbSession.Current.Cases
             .WithNumberPrefix(CaseNumberFormat.Prefix(date))
             .OrderByNumberDescending()
             .Select(@case => @case.CaseNumber)
-            .FirstOrDefaultAsync(cancellationToken);
+            .FirstOrDefaultAsync(token);
 
         return CaseNumberFormat.Next(date, highest);
     }

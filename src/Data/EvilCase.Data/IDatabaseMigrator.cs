@@ -5,5 +5,5 @@ namespace EvilBrains.EvilCase.Data;
 /// </summary>
 public interface IDatabaseMigrator
 {
-    public Task Migrate(CancellationToken cancellationToken);
+    public Task Migrate(CancellationToken token);
 }

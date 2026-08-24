@@ -9,7 +9,7 @@ namespace EvilBrains.EvilCase.Business.Contacts;
 
 internal sealed class ContactWriter(IDbSession dbSession) : IContactWriter
 {
-    public async Task<ContactUpdateOutcome> UpdateContact(Guid contactId, ContactEditRequest request, CancellationToken cancellationToken)
+    public async Task<ContactUpdateOutcome> UpdateContact(Guid contactId, ContactEditRequest request, CancellationToken token)
     {
         var normalized = Normalize(request);
 
@@ -21,29 +21,29 @@ internal sealed class ContactWriter(IDbSession dbSession) : IContactWriter
                     .SetProperty(contact => contact.Kind, normalized.Kind)
                     .SetProperty(contact => contact.DataBoxId, normalized.DataBoxId)
                     .SetProperty(contact => contact.Address, normalized.Address),
-                cancellationToken);
+                token);
 
         return rows == 0 ? ContactUpdateOutcome.NotFound : ContactUpdateOutcome.Updated;
     }
 
-    public async Task<ContactDeleteOutcome> DeleteContact(Guid contactId, CancellationToken cancellationToken)
+    public async Task<ContactDeleteOutcome> DeleteContact(Guid contactId, CancellationToken token)
     {
         var context = dbSession.Current;
 
-        var contact = await context.Contacts.SingleOrDefaultAsync(entity => entity.Id == contactId, cancellationToken);
+        var contact = await context.Contacts.SingleOrDefaultAsync(entity => entity.Id == contactId, token);
         if (contact is null)
             return ContactDeleteOutcome.NotFound;
 
         var isDefault = await context.Users
             .WithDefaultContact(contactId)
-            .AnyAsync(cancellationToken);
+            .AnyAsync(token);
         if (isDefault)
             return ContactDeleteOutcome.DefaultContact;
 
         var referenced = await context.Contacts
             .WithId(contactId)
             .Referenced()
-            .AnyAsync(cancellationToken);
+            .AnyAsync(token);
         if (referenced)
             return ContactDeleteOutcome.Referenced;
 
@@ -51,7 +51,7 @@ internal sealed class ContactWriter(IDbSession dbSession) : IContactWriter
 
         try
         {
-            await context.SaveChangesAsync(cancellationToken);
+            await context.SaveChangesAsync(token);
         }
         catch (DbUpdateException exception) when (exception.IsForeignKeyViolation())
         {
