@@ -1,6 +1,6 @@
 ---
 name: product-loop
-description: Run one round of the EvilCase product loop — start independent slices in parallel, tend the open pull requests, report. Use for every round started from `.claude/loop.md`, the loop's entry point in this repository, and whenever the loop's schedule or its decision issues are in question. Unrelated to the global `loop` skill.
+description: Run one round of the EvilCase product loop — start one slice, tend the open pull requests, report. Use for every round started from `.claude/loop.md`, the loop's entry point in this repository, and whenever the loop's schedule or its decision issues are in question. Unrelated to the global `loop` skill.
 ---
 
 # EvilCase product loop
@@ -22,16 +22,16 @@ The backlog is the open issues labelled `loop` and none of `agent-in-progress` (
 `blocked` or `needs-decision`: highest `Priority` (`Urgent`, `High`, `Medium`, `Low`, then none),
 the lowest milestone breaking a tie, honouring a focus argument. Empty backlog: do nothing.
 
-Take up to three non-overlapping candidates in backlog order, label each `agent-in-progress`,
-and start one Workflow (`.claude/skills/product-loop/slice-pipeline.js`,
-`args: [{issue, slug, title, body, fast}, …]`); it runs in the background — tend open pull
-requests meanwhile. A candidate overlaps when it touches a changed file of an open pull request
-or of another candidate, when it and one of those both carry a migration, or when it needs
-another's unmerged branch; where nothing clears, the round starts nothing and tends what is
-open. One slice is one pull request from database to UI leaving the app usable, small enough
-to review on a phone, on `loop/<issue>-<slug>` off `master`. `fast: true` is the coder alone:
-no behaviour change, no new test — a rename, doc wording, a sweep an analyzer verifies. Schema,
-tenancy, security, an API contract, a screen, a test or a second project keep all three phases.
+The round runs one slice at a time. An open pull request on a `loop/*` branch or a running
+slice workflow stops the start: the round tends what is open and starts nothing. A pull request
+on another branch was requested, not started here, and never stops it. Otherwise take the first
+candidate, label it `agent-in-progress`, and start one Workflow
+(`.claude/skills/product-loop/slice-pipeline.js`, `args: [{issue, slug, title, body, fast}]`);
+it runs in the background — tend open pull requests meanwhile. One slice is one pull request
+from database to UI leaving the app usable, small enough to review on a phone, on
+`loop/<issue>-<slug>` off `master`. `fast: true` is the coder alone: no behaviour change, no new
+test — a rename, doc wording, a sweep an analyzer verifies. Schema, tenancy, security, an API
+contract, a screen, a test or a second project keep all three phases.
 
 ## 2. Decide, do not ask
 
