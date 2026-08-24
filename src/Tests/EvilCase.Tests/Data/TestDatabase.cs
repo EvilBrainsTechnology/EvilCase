@@ -5,31 +5,29 @@ using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Migrations.DbContexts;
 using EvilBrains.EvilCase.Domain.Users;
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
+using Testcontainers.PostgreSql;
 
 namespace EvilBrains.EvilCase.Tests.Data;
 
 /// <summary>
-/// The PostgreSQL the stamp tests write against. A test that skips itself hides a broken trigger, so a
-/// clone without a server gets a failure that names what to start.
+/// The PostgreSQL the stamp tests write against: a container the tests start themselves, or the server
+/// EVILCASE_TEST_POSTGRES names. A test that skips itself hides a broken trigger, so a machine that can
+/// supply neither gets a failure that names what is missing.
 /// </summary>
 internal static class TestDatabase
 {
-    private const string DefaultServer = "Host=localhost;Port=5432;Username=postgres;Password=postgres";
-
     private const string Missing =
-        "these tests write real rows and read back what the database stamped, so they need PostgreSQL — start "
-            + "the throwaway one with `docker compose -f deploy/docker-compose.dev.yml up -d --wait` (README.md, "
-            + "Local development), or point EVILCASE_TEST_POSTGRES at another server";
+        "these tests write real rows and read back what the database stamped, so they need a server — "
+            + "Testcontainers starts one wherever Docker runs, or point EVILCASE_TEST_POSTGRES at a server "
+            + "of your own";
 
-    private static readonly string Server = Environment.GetEnvironmentVariable("EVILCASE_TEST_POSTGRES") ?? DefaultServer;
+    // Reuse leaves the container running between test runs, so only the first run pays for the start.
+    private static readonly Lazy<string> ConnectionString = new(Connect);
 
     // Named after this checkout: parallel checkouts share one server, and the first caller drops the
     // database it is about to build (.claude/rules/agents.md).
     private static readonly string DatabaseName =
         $"evilcase_tests_{Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(AppContext.BaseDirectory)))[..8].ToLowerInvariant()}";
-
-    private static readonly string ConnectionString = $"{Server};Database={DatabaseName}";
 
     private static bool prepared;
 
@@ -40,7 +38,7 @@ internal static class TestDatabase
     public static ApplicationDbContext CreateMigrated()
     {
         var context = new ApplicationDbContextFactory().CreateDbContext([]);
-        context.Database.SetConnectionString(ConnectionString);
+        context.Database.SetConnectionString(ConnectionString.Value);
 
         Prepare(context);
 
@@ -54,7 +52,7 @@ internal static class TestDatabase
     public static ApplicationDbContext CreateMigrated(IUserContext userContext)
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseNpgsql(ConnectionString, npgsql => npgsql.UseEvilCaseMigrations())
+            .UseNpgsql(ConnectionString.Value, npgsql => npgsql.UseEvilCaseMigrations())
             .Options;
 
         var context = new ApplicationDbContext(options, userContext);
@@ -64,22 +62,37 @@ internal static class TestDatabase
         return context;
     }
 
+    private static string Connect()
+    {
+        var server = Environment.GetEnvironmentVariable("EVILCASE_TEST_POSTGRES");
+
+        if (string.IsNullOrEmpty(server))
+        {
+            var container = new PostgreSqlBuilder("postgres:18-alpine")
+                .WithUsername("postgres")
+                .WithPassword("postgres")
+                .WithReuse(true)
+                .Build();
+
+            try
+            {
+                container.StartAsync().GetAwaiter().GetResult();
+            }
+            catch (Exception exception)
+            {
+                Assert.Fail($"{Missing}; the container did not start: {exception.Message}");
+            }
+
+            server = $"Host={container.Hostname};Port={container.GetMappedPublicPort(5432)};Username=postgres;Password=postgres";
+        }
+
+        return $"{server};Database={DatabaseName}";
+    }
+
     private static void Prepare(ApplicationDbContext context)
     {
         if (prepared)
             return;
-
-        using (var probe = new NpgsqlConnection($"{Server};Database=postgres"))
-        {
-            try
-            {
-                probe.Open();
-            }
-            catch (NpgsqlException exception) when (exception is not PostgresException)
-            {
-                Assert.Fail($"{Missing}; the server did not answer: {exception.Message}");
-            }
-        }
 
         context.Database.EnsureDeleted();
         context.Database.Migrate();

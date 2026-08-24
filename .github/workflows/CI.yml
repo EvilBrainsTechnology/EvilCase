@@ -20,20 +20,6 @@ jobs:
     name: Lint, Build, and Test Solution
     runs-on: ubuntu-latest
 
-    # The stamp tests need a real server: Created and Updated come from a trigger.
-    services:
-      postgres:
-        image: postgres:18-alpine
-        env:
-          POSTGRES_PASSWORD: postgres
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
       # Checkout the repository
       - name: Checkout repository
