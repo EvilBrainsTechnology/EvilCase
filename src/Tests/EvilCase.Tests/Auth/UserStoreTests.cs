@@ -55,7 +55,7 @@ public class UserStoreTests
 
         await store.RecordFailedLogin(user.Id, MaxFailedAttempts, LockoutEnd, CancellationToken.None);
         var lockout = await store.RecordFailedLogin(user.Id, MaxFailedAttempts, LockoutEnd, CancellationToken.None);
-        var stored = await context.Users.SingleAsync(candidate => candidate.Id == user.Id);
+        var stored = await context.Users.IgnoreQueryFilters().SingleAsync(candidate => candidate.Id == user.Id);
 
         using (Assert.EnterMultipleScope())
         {
@@ -75,7 +75,7 @@ public class UserStoreTests
         var user = await SeedUser(context, MaxFailedAttempts - 1);
 
         var lockout = await store.RecordFailedLogin(user.Id, MaxFailedAttempts, LockoutEnd, CancellationToken.None);
-        var stored = await context.Users.SingleAsync(candidate => candidate.Id == user.Id);
+        var stored = await context.Users.IgnoreQueryFilters().SingleAsync(candidate => candidate.Id == user.Id);
 
         using (Assert.EnterMultipleScope())
         {
@@ -105,6 +105,39 @@ public class UserStoreTests
         var lockout = await store.RecordFailedLogin(Guid.CreateVersion7(), MaxFailedAttempts, LockoutEnd, CancellationToken.None);
 
         Assert.That(lockout, Is.Null, "a user deleted between the read and the write is not locked out");
+    }
+
+    /// <summary>
+    /// Sign-in names an e-mail and no tenant, so it must still find the row a tenant query filter would
+    /// otherwise hide.
+    /// </summary>
+    [Test]
+    public async Task FindByEmailFindsTheUserWithNoTenantInContext()
+    {
+        var userContext = new StubUserContext();
+        await using var context = TestDatabase.CreateMigrated(userContext);
+        var store = new UserStore(new FixedDbSession(context));
+        var user = await SeedUser(context);
+
+        var found = await store.FindByEmail(user.Email, CancellationToken.None);
+
+        Assert.That(found?.Id, Is.EqualTo(user.Id), "sign-in must find the user before a tenant is known");
+    }
+
+    /// <summary>
+    /// The anonymous refresh endpoint calls this before a tenant is known.
+    /// </summary>
+    [Test]
+    public async Task FindByIdFindsTheUserWithNoTenantInContext()
+    {
+        var userContext = new StubUserContext();
+        await using var context = TestDatabase.CreateMigrated(userContext);
+        var store = new UserStore(new FixedDbSession(context));
+        var user = await SeedUser(context);
+
+        var found = await store.FindById(user.Id, CancellationToken.None);
+
+        Assert.That(found?.Id, Is.EqualTo(user.Id), "token refresh must find the user before a tenant is known");
     }
 
     private static async Task<User> SeedUser(ApplicationDbContext context, int failedAttempts = 0, DateTime? lockoutEnd = null)

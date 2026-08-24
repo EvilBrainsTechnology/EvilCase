@@ -119,7 +119,7 @@ public class ContactOccurrenceQueryTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(sql, Does.Contain("\"TenantId\""), "User carries no tenant query filter, so the read names the tenant in its own predicate");
+            Assert.That(sql, Does.Contain("\"TenantId\""), "the user's tenant query filter is what keeps another tenant's rows out");
             Assert.That(sql, Does.Contain("\"DefaultContactId\""));
         }
     }
