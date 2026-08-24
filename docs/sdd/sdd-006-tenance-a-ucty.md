@@ -32,9 +32,9 @@ správu účtů, žádná registrace.
 
 Data nesmí utéct mezi tenanty; únik je kritická chyba.
 
-- Každá tenantová entita má EF global query filter na `TenantId`; tenant i uživatele dodává
-  `IUserContext`. Výjimka je uživatel: přihlášení ho najde podle e-mailu dřív, než je tenant
-  znám, takže filtr nemá.
+- Každá tenantová entita včetně uživatele má EF global query filter na `TenantId`; tenant
+  i uživatele dodává `IUserContext`. Hledání, které tenanta ještě nezná — přihlášení, obnova
+  tokenu a oba seedy — filtr nepoužije.
 - Access token nese tenant claim i subject claim; `IUserContext` je čte z principalu.
 - `SaveChanges` doplní `TenantId` nové tenantové entitě z kontextu a zápis do cizího tenanta
   odmítne.
