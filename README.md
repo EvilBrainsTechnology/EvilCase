@@ -21,7 +21,7 @@ Full project map: [CLAUDE.md](CLAUDE.md); conventions: `.claude/rules/`. Deploym
 ### Prerequisites
 
 - .NET SDK per `src/global.json`
-- Docker, for `dotnet r test`. The tests start their own PostgreSQL through Testcontainers and leave the container running between runs. `EVILCASE_TEST_POSTGRES` points them at a server of your own instead, as `Host=…;Port=…;Username=…;Password=…` without a database.
+- Docker, for `dotnet r test`. The tests start their own PostgreSQL through Testcontainers, as the container evilcase-test-db, and take it down when the run ends. `EVILCASE_TEST_POSTGRES` points them at a server of your own instead, as `Host=…;Port=…;Username=…;Password=…` without a database.
 - A reachable PostgreSQL, for running the app. The host migrates the database on startup and does not retry, so an unreachable server stops it. Set `EvilBrains__EvilCase__Database__MigrateOnStartup=false` to start without one. A throwaway one, matching the connection string in `.env.example`:
 
   ```

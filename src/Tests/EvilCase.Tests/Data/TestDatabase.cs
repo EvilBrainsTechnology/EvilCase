@@ -21,13 +21,15 @@ internal static class TestDatabase
             + "Testcontainers starts one wherever Docker runs, or point EVILCASE_TEST_POSTGRES at a server "
             + "of your own";
 
-    // Reuse leaves the container running between test runs, so only the first run pays for the start.
     private static readonly Lazy<string> ConnectionString = new(Connect);
 
     // Named after this checkout: parallel checkouts share one server, and the first caller drops the
     // database it is about to build (.claude/rules/agents.md).
     private static readonly string DatabaseName =
         $"evilcase_tests_{Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(AppContext.BaseDirectory)))[..8].ToLowerInvariant()}";
+
+    // Set only where this run started the container, so the teardown leaves a server of one's own alone.
+    private static PostgreSqlContainer? container;
 
     private static bool prepared;
 
@@ -62,16 +64,25 @@ internal static class TestDatabase
         return context;
     }
 
+    /// <summary>
+    /// Removes the container this run started. A server EVILCASE_TEST_POSTGRES named is left alone.
+    /// </summary>
+    public static async Task Remove()
+    {
+        if (container is not null)
+            await container.DisposeAsync();
+    }
+
     private static string Connect()
     {
         var server = Environment.GetEnvironmentVariable("EVILCASE_TEST_POSTGRES");
 
         if (string.IsNullOrEmpty(server))
         {
-            var container = new PostgreSqlBuilder("postgres:18-alpine")
+            container = new PostgreSqlBuilder("postgres:18-alpine")
+                .WithName("evilcase-test-db")
                 .WithUsername("postgres")
                 .WithPassword("postgres")
-                .WithReuse(true)
                 .Build();
 
             try
