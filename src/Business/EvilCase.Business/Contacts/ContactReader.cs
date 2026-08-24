@@ -45,16 +45,11 @@ internal sealed class ContactReader(IDbSession dbSession) : IContactReader
             .AsAddressedToOccurrences()
             .ToListAsync(token);
 
-        var numberIssuer = await context.ExternalActNumbers
-            .AssignedByContact(contactId)
-            .AsNumberIssuerOccurrences()
-            .ToListAsync(token);
-
         return contact with
         {
             IsDefault = isDefault,
             Cases = cases,
-            Acts = ContactOccurrences.InDisplayOrder(issuedBy, addressedTo, numberIssuer),
+            Acts = ContactOccurrences.InDisplayOrder(issuedBy, addressedTo),
         };
     }
 }

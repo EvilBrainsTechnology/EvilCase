@@ -79,23 +79,6 @@ public class ContactOccurrenceQueryTests
     }
 
     [Test]
-    public void TheIssuerOccurrenceCarriesTheNumberAndNamesItsCase()
-    {
-        var sql = this.context.ExternalActNumbers
-            .AssignedByContact(Guid.CreateVersion7())
-            .AsNumberIssuerOccurrences()
-            .ToQueryString();
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(sql, Does.Contain("\"ExternalActNumbers\""));
-            Assert.That(sql, Does.Contain("\"Acts\""));
-            Assert.That(sql, Does.Contain("\"Cases\""));
-            Assert.That(sql, Does.Contain("\"Value\""));
-        }
-    }
-
-    [Test]
     public void EveryOccurrenceQueryStaysInsideTheTenant()
     {
         var contactId = Guid.CreateVersion7();
@@ -115,12 +98,7 @@ public class ContactOccurrenceQueryTests
             .AsAddressedToOccurrences()
             .ToQueryString();
 
-        var numberIssuer = this.context.ExternalActNumbers
-            .AssignedByContact(contactId)
-            .AsNumberIssuerOccurrences()
-            .ToQueryString();
-
-        var sources = new string[] { caseOccurrences, issuedBy, addressedTo, numberIssuer };
+        var sources = new string[] { caseOccurrences, issuedBy, addressedTo };
 
         using (Assert.EnterMultipleScope())
         {
