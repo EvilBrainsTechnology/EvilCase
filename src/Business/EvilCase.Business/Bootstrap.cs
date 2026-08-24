@@ -46,7 +46,9 @@ public static class Bootstrap
         var dbSession = scope.ServiceProvider.GetRequiredService<IDbSession>();
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<SampleDataSeeder>>();
 
+        // The sample-data seed runs before a tenant is known.
         var user = await dbSession.Current.Users
+            .IgnoreQueryFilters()
             .OrderBy(user => user.Created)
             .ThenBy(user => user.Id)
             .FirstOrDefaultAsync(token);

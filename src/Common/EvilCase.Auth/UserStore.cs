@@ -10,18 +10,26 @@ internal sealed class UserStore(IDbSession dbSession) : IUserStore
     {
         var normalized = EmailNormalizer.Normalize(email);
 
-        return await dbSession.Current.Users.SingleOrDefaultAsync(user => user.Email == normalized, token);
+        // Sign-in runs before a tenant is known.
+        return await dbSession.Current.Users
+            .IgnoreQueryFilters()
+            .SingleOrDefaultAsync(user => user.Email == normalized, token);
     }
 
     public async Task<User?> FindById(Guid userId, CancellationToken token)
     {
-        return await dbSession.Current.Users.SingleOrDefaultAsync(user => user.Id == userId, token);
+        // The anonymous refresh endpoint calls this before a tenant is known.
+        return await dbSession.Current.Users
+            .IgnoreQueryFilters()
+            .SingleOrDefaultAsync(user => user.Id == userId, token);
     }
 
     public async Task<DateTime?> RecordFailedLogin(Guid userId, int maxAttempts, DateTime lockoutEnd, CancellationToken token)
     {
+        // Sign-in runs before a tenant is known.
         // Every setter reads the stored column, never a number worked out from an earlier read.
         await dbSession.Current.Users
+            .IgnoreQueryFilters()
             .Where(user => user.Id == userId)
             .ExecuteUpdateAsync(
                 setters => setters
@@ -34,6 +42,7 @@ internal sealed class UserStore(IDbSession dbSession) : IUserStore
                 token);
 
         return await dbSession.Current.Users
+            .IgnoreQueryFilters()
             .Where(user => user.Id == userId)
             .Select(user => user.LockoutEnd)
             .SingleOrDefaultAsync(token);
@@ -41,7 +50,9 @@ internal sealed class UserStore(IDbSession dbSession) : IUserStore
 
     public async Task RecordSuccessfulLogin(Guid userId, CancellationToken token)
     {
+        // Sign-in runs before a tenant is known.
         await dbSession.Current.Users
+            .IgnoreQueryFilters()
             .Where(user => user.Id == userId)
             .ExecuteUpdateAsync(
                 setters => setters
@@ -52,7 +63,8 @@ internal sealed class UserStore(IDbSession dbSession) : IUserStore
 
     public async Task<bool> Any(CancellationToken token)
     {
-        return await dbSession.Current.Users.AnyAsync(token);
+        // The administrator seed at startup runs before a tenant is known.
+        return await dbSession.Current.Users.IgnoreQueryFilters().AnyAsync(token);
     }
 
     public async Task AddUser(User user, Contact defaultContact, CancellationToken token)

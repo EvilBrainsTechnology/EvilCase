@@ -58,7 +58,7 @@ public class TenantIsolationTests : ModelFixture
     [Test]
     public void EveryTenantEntityIsFilteredByItsTenant()
     {
-        var tenantEntities = TenantScopedEntities();
+        var tenantEntities = TenantEntities();
 
         Assert.That(tenantEntities, Is.Not.Empty);
 
@@ -111,8 +111,8 @@ public class TenantIsolationTests : ModelFixture
     }
 
     /// <summary>
-    /// A sign-in names an e-mail and no tenant, so the user is the one tenant row that is read before
-    /// its tenant is known.
+    /// A sign-in names an e-mail and no tenant, so the user's unique index cannot lead with the tenant
+    /// the way every other tenant entity's does.
     /// </summary>
     [Test]
     public void AUserIsReachedByEmailAloneAcrossTheDeployment()
@@ -123,11 +123,7 @@ public class TenantIsolationTests : ModelFixture
 
         var email = user.GetIndexes().Single(index => index.IsUnique);
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(user.GetDeclaredQueryFilters(), Is.Empty);
-            Assert.That(email.Properties.Select(property => property.Name), Is.EqualTo([nameof(User.Email)]));
-        }
+        Assert.That(email.Properties.Select(property => property.Name), Is.EqualTo([nameof(User.Email)]));
     }
 
     private static List<IReadOnlyEntityType> TenantEntities()

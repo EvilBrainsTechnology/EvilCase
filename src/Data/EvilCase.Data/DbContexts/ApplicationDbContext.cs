@@ -104,6 +104,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     private void ConfigureTenancy(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<User>().HasQueryFilter(user => user.TenantId == this.userContext.TenantIdOrDefault);
         modelBuilder.Entity<Contact>().HasQueryFilter(contact => contact.TenantId == this.userContext.TenantIdOrDefault);
         modelBuilder.Entity<Case>().HasQueryFilter(@case => @case.TenantId == this.userContext.TenantIdOrDefault);
         modelBuilder.Entity<ExternalCaseNumber>().HasQueryFilter(number => number.TenantId == this.userContext.TenantIdOrDefault);

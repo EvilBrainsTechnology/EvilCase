@@ -19,6 +19,8 @@ internal sealed class SampleDataSeeder(
 {
     public async Task SeedSampleData(Guid userId, CancellationToken token)
     {
+        // The caller already loaded this user in the same session, so this finds it in the change
+        // tracker rather than issuing a filtered query before the tenant below is entered.
         var user = await dbSession.Current.Users.FindAsync([userId], token)
             ?? throw new InvalidOperationException($"User {userId} does not exist.");
         var tenantId = user.TenantId;
