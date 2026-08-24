@@ -6,49 +6,49 @@ namespace EvilBrains.EvilCase.Business.Contacts;
 
 internal sealed class ContactReader(IDbSession dbSession) : IContactReader
 {
-    public async Task<IReadOnlyList<ContactListItem>> ListContacts(ContactListRequest request, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<ContactListItem>> ListContacts(ContactListRequest request, CancellationToken token)
     {
         return await dbSession.Current.Contacts
             .MatchingSearch(request.Search)
             .InListOrder()
             .AsListItems()
-            .ToListAsync(cancellationToken);
+            .ToListAsync(token);
     }
 
     // A detail is not a list query: the header, the default-contact flag and the three act sources
     // are separate reads, merged here.
-    public async Task<ContactDetail?> GetContactDetail(Guid contactId, CancellationToken cancellationToken)
+    public async Task<ContactDetail?> GetContactDetail(Guid contactId, CancellationToken token)
     {
         var context = dbSession.Current;
 
-        var contact = await context.Contacts.DetailOf(contactId, cancellationToken);
+        var contact = await context.Contacts.DetailOf(contactId, token);
         if (contact is null)
             return null;
 
         var isDefault = await context.Users
             .WithDefaultContact(contactId)
-            .AnyAsync(cancellationToken);
+            .AnyAsync(token);
 
         var cases = await context.ExternalCaseNumbers
             .AssignedByContact(contactId)
             .InCaseOccurrenceOrder()
             .AsCaseOccurrences()
-            .ToListAsync(cancellationToken);
+            .ToListAsync(token);
 
         var issuedBy = await context.Acts
             .IssuedByContact(contactId)
             .AsIssuedByOccurrences()
-            .ToListAsync(cancellationToken);
+            .ToListAsync(token);
 
         var addressedTo = await context.Acts
             .AddressedToContact(contactId)
             .AsAddressedToOccurrences()
-            .ToListAsync(cancellationToken);
+            .ToListAsync(token);
 
         var numberIssuer = await context.ExternalActNumbers
             .AssignedByContact(contactId)
             .AsNumberIssuerOccurrences()
-            .ToListAsync(cancellationToken);
+            .ToListAsync(token);
 
         return contact with
         {

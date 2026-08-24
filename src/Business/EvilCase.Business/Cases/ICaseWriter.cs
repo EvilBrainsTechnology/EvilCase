@@ -7,5 +7,5 @@ namespace EvilBrains.EvilCase.Business.Cases;
 /// </summary>
 public interface ICaseWriter
 {
-    public Task<CaseListItem> CreateCase(CreateCaseRequest request, CancellationToken cancellationToken);
+    public Task<CaseListItem> CreateCase(CreateCaseRequest request, CancellationToken token);
 }

@@ -7,7 +7,7 @@ namespace EvilBrains.EvilCase.Business.Contacts;
 /// </summary>
 public interface IContactWriter
 {
-    public Task<ContactUpdateOutcome> UpdateContact(Guid contactId, ContactEditRequest request, CancellationToken cancellationToken);
+    public Task<ContactUpdateOutcome> UpdateContact(Guid contactId, ContactEditRequest request, CancellationToken token);
 
-    public Task<ContactDeleteOutcome> DeleteContact(Guid contactId, CancellationToken cancellationToken);
+    public Task<ContactDeleteOutcome> DeleteContact(Guid contactId, CancellationToken token);
 }

@@ -17,7 +17,7 @@ internal sealed class UserSeeder(
 {
     public bool IsConfigured => options.Value.Seed is { Email.Length: > 0, Password.Length: > 0 };
 
-    public async Task SeedUser(CancellationToken cancellationToken)
+    public async Task SeedUser(CancellationToken token)
     {
         var seed = options.Value.Seed;
 
@@ -26,7 +26,7 @@ internal sealed class UserSeeder(
 
         // Any user at all, not just this e-mail: the seed exists to make an empty deployment reachable,
         // and once someone can sign in it must not quietly reinstate an account that was removed.
-        if (await userStore.Any(cancellationToken))
+        if (await userStore.Any(token))
             return;
 
         var normalizedEmail = EmailNormalizer.Normalize(email);
@@ -36,7 +36,7 @@ internal sealed class UserSeeder(
 
         dbSession.Current.Accounts.Add(account);
         dbSession.Current.Tenants.Add(tenant);
-        await dbSession.Current.SaveChangesAsync(cancellationToken);
+        await dbSession.Current.SaveChangesAsync(token);
 
         var contact = new Contact
         {
@@ -54,7 +54,7 @@ internal sealed class UserSeeder(
 
         using var scope = userContext.Enter(tenant.Id, user.Id);
 
-        await userStore.AddUser(user, contact, cancellationToken);
+        await userStore.AddUser(user, contact, token);
 
         logger.LogInformation("No user existed, so the configured administrator {Email} was created in tenant {TenantId}", user.Email, tenant.Id);
     }

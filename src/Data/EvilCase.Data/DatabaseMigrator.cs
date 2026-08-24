@@ -6,9 +6,9 @@ namespace EvilBrains.EvilCase.Data;
 
 internal sealed class DatabaseMigrator(ApplicationDbContext dbContext, ILogger<DatabaseMigrator> logger) : IDatabaseMigrator
 {
-    public async Task Migrate(CancellationToken cancellationToken)
+    public async Task Migrate(CancellationToken token)
     {
-        var pendingMigrations = (await dbContext.Database.GetPendingMigrationsAsync(cancellationToken)).ToList();
+        var pendingMigrations = (await dbContext.Database.GetPendingMigrationsAsync(token)).ToList();
 
         if (pendingMigrations.Count == 0)
         {
@@ -21,7 +21,7 @@ internal sealed class DatabaseMigrator(ApplicationDbContext dbContext, ILogger<D
             pendingMigrations.Count,
             string.Join(", ", pendingMigrations));
 
-        await dbContext.Database.MigrateAsync(cancellationToken);
+        await dbContext.Database.MigrateAsync(token);
 
         logger.LogInformation("Applied {PendingMigrationCount} database migrations", pendingMigrations.Count);
     }

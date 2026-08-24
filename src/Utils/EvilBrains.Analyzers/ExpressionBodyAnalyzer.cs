@@ -65,9 +65,9 @@ public sealed class ExpressionBodyAnalyzer : DiagnosticAnalyzer
         };
     }
 
-    private static bool IsOnOneLine(SyntaxNode node, CancellationToken cancellationToken)
+    private static bool IsOnOneLine(SyntaxNode node, CancellationToken token)
     {
-        var text = node.SyntaxTree.GetText(cancellationToken);
+        var text = node.SyntaxTree.GetText(token);
         var start = GetStartAfterAttributes(node);
 
         return text.Lines.GetLineFromPosition(start).LineNumber == text.Lines.GetLineFromPosition(node.Span.End).LineNumber;

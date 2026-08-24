@@ -79,7 +79,7 @@ public static class Bootstrap
     /// contact where the database holds no user at all. Runs after the migrations and before anything
     /// is served, so an empty deployment is reachable on first start.
     /// </summary>
-    public static async Task SeedEvilCaseUser(this IHost host, CancellationToken cancellationToken)
+    public static async Task SeedEvilCaseUser(this IHost host, CancellationToken token)
     {
         await using var scope = host.Services.CreateAsyncScope();
 
@@ -91,10 +91,10 @@ public static class Bootstrap
             return;
 
         var dbSession = scope.ServiceProvider.GetRequiredService<IDbSession>();
-        await using var transaction = await dbSession.BeginTransaction(cancellationToken);
+        await using var transaction = await dbSession.BeginTransaction(token);
 
-        await seeder.SeedUser(cancellationToken);
+        await seeder.SeedUser(token);
 
-        await transaction.CommitAsync(cancellationToken);
+        await transaction.CommitAsync(token);
     }
 }

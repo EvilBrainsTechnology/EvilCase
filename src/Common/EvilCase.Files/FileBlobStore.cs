@@ -14,7 +14,7 @@ internal sealed class FileBlobStore(IOptions<FileSettings> settings, ILogger<Fil
     private readonly string rootFullPath =
         Path.TrimEndingDirectorySeparator(Path.GetFullPath(settings.Value.RootPath, AppContext.BaseDirectory)) + Path.DirectorySeparatorChar;
 
-    public async Task<FileBlobInfo> WriteFileBlob(Guid tenantId, Guid fileAssetId, Stream content, CancellationToken cancellationToken)
+    public async Task<FileBlobInfo> WriteFileBlob(Guid tenantId, Guid fileAssetId, Stream content, CancellationToken token)
     {
         var storagePath = FileBlobPath.For(tenantId, fileAssetId);
         var fullPath = this.FullPath(storagePath);
@@ -32,7 +32,7 @@ internal sealed class FileBlobStore(IOptions<FileSettings> settings, ILogger<Fil
             await using (var target = new FileStream(temporaryPath, FileMode.Create, FileAccess.Write, FileShare.None, BufferSize, FileOptions.Asynchronous))
             {
                 await using var crypto = new CryptoStream(target, hasher, CryptoStreamMode.Write);
-                await content.CopyToAsync(crypto, cancellationToken);
+                await content.CopyToAsync(crypto, token);
             }
 
             // The rename is the commit: until it runs, no reader sees a blob.
@@ -70,7 +70,7 @@ internal sealed class FileBlobStore(IOptions<FileSettings> settings, ILogger<Fil
         return info;
     }
 
-    public Task DeleteFileBlob(string storagePath, CancellationToken cancellationToken)
+    public Task DeleteFileBlob(string storagePath, CancellationToken token)
     {
         var fullPath = this.FullPath(storagePath);
 

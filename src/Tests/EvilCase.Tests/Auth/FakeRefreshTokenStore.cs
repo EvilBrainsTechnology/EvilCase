@@ -29,7 +29,7 @@ internal sealed class FakeRefreshTokenStore(TimeProvider timeProvider) : IRefres
         this.gate?.SetResult();
     }
 
-    public Task AddRefreshToken(RefreshToken refreshToken, CancellationToken cancellationToken)
+    public Task AddRefreshToken(RefreshToken refreshToken, CancellationToken token)
     {
         // The database stamps Created (SDD-018); this stands in for that trigger.
         lock (this.writes)
@@ -38,12 +38,12 @@ internal sealed class FakeRefreshTokenStore(TimeProvider timeProvider) : IRefres
         return Task.CompletedTask;
     }
 
-    public Task<RefreshToken?> FindRefreshToken(string tokenHash, CancellationToken cancellationToken)
+    public Task<RefreshToken?> FindRefreshToken(string tokenHash, CancellationToken token)
     {
         return Task.FromResult(this.tokens.Find(token => string.Equals(token.TokenHash, tokenHash, StringComparison.Ordinal)));
     }
 
-    public async Task<bool> RevokeRefreshToken(Guid refreshTokenId, DateTime now, CancellationToken cancellationToken)
+    public async Task<bool> RevokeRefreshToken(Guid refreshTokenId, DateTime now, CancellationToken token)
     {
         if (this.gate is { } paused)
             await paused.Task;
@@ -51,21 +51,21 @@ internal sealed class FakeRefreshTokenStore(TimeProvider timeProvider) : IRefres
         return this.RevokeMatching(token => token.Id == refreshTokenId, now, alsoUsed: true) > 0;
     }
 
-    public Task RevokeSession(Guid authSessionId, DateTime now, CancellationToken cancellationToken)
+    public Task RevokeSession(Guid authSessionId, DateTime now, CancellationToken token)
     {
         this.RevokeMatching(token => token.AuthSessionId == authSessionId, now, alsoUsed: false);
 
         return Task.CompletedTask;
     }
 
-    public Task RevokeAll(Guid userId, DateTime now, CancellationToken cancellationToken)
+    public Task RevokeAll(Guid userId, DateTime now, CancellationToken token)
     {
         this.RevokeMatching(token => token.UserId == userId, now, alsoUsed: false);
 
         return Task.CompletedTask;
     }
 
-    public Task<IReadOnlyList<RefreshToken>> GetActive(Guid userId, DateTime now, CancellationToken cancellationToken)
+    public Task<IReadOnlyList<RefreshToken>> GetActive(Guid userId, DateTime now, CancellationToken token)
     {
         var active = this.tokens
             .Where(token => token.UserId == userId)
@@ -76,7 +76,7 @@ internal sealed class FakeRefreshTokenStore(TimeProvider timeProvider) : IRefres
         return Task.FromResult<IReadOnlyList<RefreshToken>>([.. active]);
     }
 
-    public Task<IReadOnlyDictionary<Guid, DateTime>> GetSessionStarts(Guid userId, CancellationToken cancellationToken)
+    public Task<IReadOnlyDictionary<Guid, DateTime>> GetSessionStarts(Guid userId, CancellationToken token)
     {
         return Task.FromResult<IReadOnlyDictionary<Guid, DateTime>>(
             this.tokens

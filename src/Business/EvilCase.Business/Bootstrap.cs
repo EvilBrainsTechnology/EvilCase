@@ -39,7 +39,7 @@ public static class Bootstrap
     /// Fills a tenant that holds no case with the sample case tree (SDD-017). Runs after the administrator
     /// seed, which is what creates the tenant and the user it hangs on.
     /// </summary>
-    public static async Task SeedEvilCaseSampleData(this IHost host, CancellationToken cancellationToken)
+    public static async Task SeedEvilCaseSampleData(this IHost host, CancellationToken token)
     {
         await using var scope = host.Services.CreateAsyncScope();
 
@@ -49,7 +49,7 @@ public static class Bootstrap
         var user = await dbSession.Current.Users
             .OrderBy(user => user.Created)
             .ThenBy(user => user.Id)
-            .FirstOrDefaultAsync(cancellationToken);
+            .FirstOrDefaultAsync(token);
 
         if (user is null)
         {
@@ -60,7 +60,7 @@ public static class Bootstrap
         // The seed enters the tenant itself, so this guard names the tenant instead of leaning on the filter.
         var seeded = await dbSession.Current.Cases
             .IgnoreQueryFilters()
-            .AnyAsync(@case => @case.TenantId == user.TenantId, cancellationToken);
+            .AnyAsync(@case => @case.TenantId == user.TenantId, token);
 
         if (seeded)
         {
@@ -70,6 +70,6 @@ public static class Bootstrap
 
         var seeder = scope.ServiceProvider.GetRequiredService<ISampleDataSeeder>();
 
-        await seeder.SeedSampleData(user.Id, cancellationToken);
+        await seeder.SeedSampleData(user.Id, token);
     }
 }
