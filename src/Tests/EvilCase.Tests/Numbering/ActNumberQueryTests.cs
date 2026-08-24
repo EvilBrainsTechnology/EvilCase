@@ -1,69 +1,141 @@
 using EvilBrains.EvilCase.Business.Numbering;
-using EvilBrains.EvilCase.Data.DbContexts;
-using EvilBrains.EvilCase.Data.Migrations.DbContexts;
+using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Domain.Numbering;
+using EvilBrains.EvilCase.Tests.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Tests.Numbering;
 
 /// <summary>
-/// Reads the SQL each step produces, without a server — <c>ToQueryString</c> opens no connection.
+/// What the next act number of a day inside a case reads, on the rows a real PostgreSQL returns. Each
+/// test seeds a tenant of its own, so none cleans up after itself.
 /// </summary>
 public class ActNumberQueryTests
 {
-    private static readonly Guid CaseId = Guid.Parse("0199f0a0-0000-7000-8000-000000000001", CultureInfo.InvariantCulture);
+    private static readonly DateOnly CaseDay = new(2026, 8, 7);
 
-    private ApplicationDbContext context = null!;
+    private static readonly DateOnly ActDay = new(2026, 8, 12);
+
+    private TestTenant tenant = null!;
+
+    private Case ownCase = null!;
 
     [SetUp]
-    public void SetUp()
+    public async Task SetUp()
     {
-        this.context = new ApplicationDbContextFactory().CreateDbContext([]);
+        this.tenant = await TestTenant.Create();
+        this.ownCase = await this.tenant.AddCase(CaseDay);
     }
 
     [TearDown]
-    public void TearDown()
+    public async Task TearDown()
     {
-        this.context.Dispose();
+        await this.tenant.DisposeAsync();
     }
 
     [Test]
-    public void TheDaysNumbersAreNarrowedByTheCaseAndThePrefix()
+    public async Task ThePrefixNarrowsToTheCasesOwnNumbersOfTheDay()
     {
-        var prefix = ActNumberFormat.Prefix("EC/20260807-001", new DateOnly(2026, 8, 12));
-        var sql = this.context.Acts.OfCaseWithNumberPrefix(CaseId, prefix).ToQueryString();
+        await this.tenant.AddAct(this.ownCase, ActDay);
+        await this.tenant.AddAct(this.ownCase, ActDay);
+        await this.tenant.AddAct(this.ownCase, new DateOnly(2026, 8, 13));
+        await this.tenant.AddAct(this.ownCase, ActDay, actNumber: $"{this.ownCase.CaseNumber}/2026-117");
+
+        var otherCase = await this.tenant.AddCase(CaseDay);
+        await this.tenant.AddAct(otherCase, ActDay);
+
+        var numbers = await this.NumbersOfCaseWithPrefix(this.ownCase, ActNumberFormat.Prefix(this.ownCase.CaseNumber, ActDay));
+
+        string[] expected =
+        [
+            ActNumberFormat.Compose(this.ownCase.CaseNumber, ActDay, 1),
+            ActNumberFormat.Compose(this.ownCase.CaseNumber, ActDay, 2),
+        ];
+
+        Assert.That(
+            numbers,
+            Is.EquivalentTo(expected),
+            "another day, another case and a hand-written value outside the format all drop out");
+    }
+
+    [Test]
+    public async Task AWildcardInAHandWrittenCaseNumberMatchesOnlyItself()
+    {
+        var written = await this.tenant.AddCase(CaseDay, caseNumber: @"EC/100%_1-a\b");
+
+        await this.tenant.AddAct(written, ActDay);
+
+        // The same case, carrying a number only the unescaped pattern would reach.
+        await this.tenant.AddAct(written, ActDay, actNumber: "EC/100ZZZ_1-ab/20260812-777");
+
+        var numbers = await this.NumbersOfCaseWithPrefix(written, ActNumberFormat.Prefix(written.CaseNumber, ActDay));
+
+        string[] expected = [ActNumberFormat.Compose(written.CaseNumber, ActDay, 1)];
+
+        Assert.That(numbers, Is.EqualTo(expected), "a wildcard in a hand-written case number matches only itself");
+    }
+
+    [Test]
+    public async Task ANumberThatGrewADigitComesFirst()
+    {
+        await this.AddNumberedAct(999);
+        await this.AddNumberedAct(1000);
+        await this.AddNumberedAct(998);
+
+        var highest = await this.tenant.Context.Acts
+            .OfCaseWithNumberPrefix(this.ownCase.Id, ActNumberFormat.Prefix(this.ownCase.CaseNumber, ActDay))
+            .OrderByNumberDescending()
+            .Select(act => act.ActNumber)
+            .FirstAsync();
+
+        var next = ActNumberFormat.Compose(this.ownCase.CaseNumber, ActDay, 1001);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(sql, Does.Contain("\"CaseId\""));
-            Assert.That(sql, Does.Contain("EC/20260807-001/20260812-%"));
-            Assert.That(sql, Does.Contain("LIKE"));
-            Assert.That(sql, Does.Contain("ESCAPE"));
-            Assert.That(sql, Does.Contain("\"TenantId\""), "every read is inside a tenant");
+            Assert.That(
+                highest,
+                Is.EqualTo(ActNumberFormat.Compose(this.ownCase.CaseNumber, ActDay, 1000)),
+                "a sequence that grew a digit outranks a three-digit one");
+            Assert.That(
+                ActNumberFormat.Next(this.ownCase.CaseNumber, ActDay, highest),
+                Is.EqualTo(next),
+                "the issuer takes the row the order puts first");
         }
     }
 
     [Test]
-    public void WildcardsInAHandWrittenCaseNumberAreEscaped()
+    public async Task AnActOfAnotherTenantNeverComesBack()
     {
-        var prefix = ActNumberFormat.Prefix("EC/100%_1", new DateOnly(2026, 8, 12));
-        var sql = this.context.Acts.OfCaseWithNumberPrefix(CaseId, prefix).ToQueryString();
+        await this.tenant.AddAct(this.ownCase, ActDay);
 
-        Assert.That(sql, Does.Contain(@"EC/100\%\_1/20260812-%"), "a wildcard in a hand-written case number matches only itself");
+        await using (var other = await TestTenant.Create())
+        {
+            // The same case number under another tenant, so nothing but the tenant tells the rows apart.
+            var otherCase = await other.AddCase(CaseDay, caseNumber: this.ownCase.CaseNumber);
+            await other.AddAct(otherCase, ActDay);
+            await other.AddAct(otherCase, ActDay);
+        }
+
+        var numbers = await this.NumbersOfCaseWithPrefix(this.ownCase, ActNumberFormat.Prefix(this.ownCase.CaseNumber, ActDay));
+
+        string[] expected = [ActNumberFormat.Compose(this.ownCase.CaseNumber, ActDay, 1)];
+
+        Assert.That(numbers, Is.EqualTo(expected), "another tenant's numbers never enter the day's highest");
     }
 
-    [Test]
-    public void TheActNumberOrderIsDescendingAndTheStepTakesNoRow()
+    private async Task AddNumberedAct(int sequence)
     {
-        var sql = this.context.Acts.OrderByNumberDescending().ToQueryString();
+        await this.tenant.AddAct(
+            this.ownCase,
+            ActDay,
+            actNumber: ActNumberFormat.Compose(this.ownCase.CaseNumber, ActDay, sequence));
+    }
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(sql, Does.Contain("ORDER BY"));
-            Assert.That(sql, Does.Contain("DESC"));
-            Assert.That(sql, Does.Contain("length").IgnoreCase);
-            Assert.That(sql, Does.Contain("\"ActNumber\""));
-            Assert.That(sql, Does.Not.Contain("LIMIT"), "the step orders and stops, the caller takes the row");
-        }
+    private async Task<List<string>> NumbersOfCaseWithPrefix(Case @case, string prefix)
+    {
+        return await this.tenant.Context.Acts
+            .OfCaseWithNumberPrefix(@case.Id, prefix)
+            .Select(act => act.ActNumber)
+            .ToListAsync();
     }
 }
