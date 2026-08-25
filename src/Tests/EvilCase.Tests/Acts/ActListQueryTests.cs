@@ -1,42 +1,98 @@
 using EvilBrains.EvilCase.Business.Acts;
-using EvilBrains.EvilCase.Data.DbContexts;
-using EvilBrains.EvilCase.Data.Migrations.DbContexts;
+using EvilBrains.EvilCase.Tests.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Tests.Acts;
 
 /// <summary>
-/// Reads the SQL each step produces, without a server — <c>ToQueryString</c> opens no connection.
+/// The act order on the rows a real PostgreSQL returns. Each test seeds a tenant of its own, so none
+/// cleans up after itself.
 /// </summary>
 public class ActListQueryTests
 {
-    private ApplicationDbContext context = null!;
+    private TestTenant tenant = null!;
 
     [SetUp]
-    public void SetUp()
+    public async Task SetUp()
     {
-        this.context = new ApplicationDbContextFactory().CreateDbContext([]);
+        this.tenant = await TestTenant.Create();
     }
 
     [TearDown]
-    public void TearDown()
+    public async Task TearDown()
     {
-        this.context.Dispose();
+        await this.tenant.DisposeAsync();
     }
 
     [Test]
-    public void TheOrderIsTheActDateAlone()
+    public async Task TheActDateOrdersOldestFirst()
     {
-        var sql = this.context.Acts.InListOrder().ToQueryString();
+        var @case = await this.tenant.AddCase(new DateOnly(2026, 8, 20));
+        var latest = await this.tenant.AddAct(@case, new DateOnly(2026, 8, 24), "Rozhodnutí");
+        var earliest = await this.tenant.AddAct(@case, new DateOnly(2026, 8, 20), "Podání");
+        var middle = await this.tenant.AddAct(@case, new DateOnly(2026, 8, 22), "Výzva");
 
-        var order = sql[sql.LastIndexOf("ORDER BY", StringComparison.Ordinal)..].Trim();
-        var keys = order["ORDER BY".Length..].Split(',').Select(key => key.Trim()).ToList();
+        var ids = await this.tenant.Context.Acts.InListOrder().Select(act => act.Id).ToListAsync();
 
-        using (Assert.EnterMultipleScope())
+        Guid[] expected = [earliest.Id, middle.Id, latest.Id];
+
+        Assert.That(ids, Is.EqualTo(expected), "act lists are ordered by the act date, oldest first");
+    }
+
+    [Test]
+    public async Task TheIdentifierBreaksATieOnTheDate()
+    {
+        var @case = await this.tenant.AddCase(new DateOnly(2026, 8, 20));
+        var sameDay = new DateOnly(2026, 8, 22);
+        var actIds = TestTenant.SortedEntityIds(3);
+
+        // The write order and the identifier order disagree, so only the identifier can break the tie.
+        var third = await this.tenant.AddAct(@case, sameDay, "Podání", actId: actIds[2]);
+        var first = await this.tenant.AddAct(@case, sameDay, "Výzva", actId: actIds[0]);
+        var second = await this.tenant.AddAct(@case, sameDay, "Rozhodnutí", actId: actIds[1]);
+
+        var ids = await this.tenant.Context.Acts.InListOrder().Select(act => act.Id).ToListAsync();
+
+        Guid[] expected = [first.Id, second.Id, third.Id];
+
+        Assert.That(ids, Is.EqualTo(expected), "the identifier breaks the tie so the order is total");
+    }
+
+    [Test]
+    public async Task NothingButTheDateAndTheIdentifierOrdersTheList()
+    {
+        var @case = await this.tenant.AddCase(new DateOnly(2026, 8, 20));
+        var sameDay = new DateOnly(2026, 8, 22);
+        var actIds = TestTenant.SortedEntityIds(3);
+
+        // The identifiers, the act numbers, the titles and the write order all disagree.
+        var lowestNumber = await this.tenant.AddAct(@case, sameDay, "Rozhodnutí", actNumber: $"{@case.CaseNumber}/20260822-002", actId: actIds[2]);
+        var highestNumber = await this.tenant.AddAct(@case, sameDay, "Výzva", actNumber: $"{@case.CaseNumber}/20260822-009", actId: actIds[1]);
+        var middleNumber = await this.tenant.AddAct(@case, sameDay, "Podání", actNumber: $"{@case.CaseNumber}/20260822-005", actId: actIds[0]);
+
+        var ids = await this.tenant.Context.Acts.InListOrder().Select(act => act.Id).ToListAsync();
+
+        Guid[] expected = [middleNumber.Id, highestNumber.Id, lowestNumber.Id];
+
+        Assert.That(ids, Is.EqualTo(expected), "the date orders, and only the identifier breaks its ties");
+    }
+
+    [Test]
+    public async Task AnActOfAnotherTenantNeverComesBack()
+    {
+        var @case = await this.tenant.AddCase(new DateOnly(2026, 8, 20));
+        var mine = await this.tenant.AddAct(@case, new DateOnly(2026, 8, 22), "Podání");
+
+        await using (var other = await TestTenant.Create())
         {
-            Assert.That(keys, Has.Count.EqualTo(2), "the date orders, and only the identifier breaks its ties");
-            Assert.That(keys[0], Does.Contain("\"Date\"").And.Not.Contain("DESC"), "act lists are ordered by the act date, oldest first");
-            Assert.That(keys[1], Does.Contain("\"Id\"").And.Not.Contain("DESC"), "the identifier breaks the tie so the order is total");
+            var otherCase = await other.AddCase(new DateOnly(2026, 8, 20));
+            await other.AddAct(otherCase, new DateOnly(2026, 8, 21), "Cizí úkon");
         }
+
+        var ids = await this.tenant.Context.Acts.InListOrder().Select(act => act.Id).ToListAsync();
+
+        Guid[] expected = [mine.Id];
+
+        Assert.That(ids, Is.EqualTo(expected), "the tenant query filter is what keeps another tenant's rows out");
     }
 }

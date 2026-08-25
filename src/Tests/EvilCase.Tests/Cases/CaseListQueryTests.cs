@@ -1,143 +1,192 @@
 using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Business.Cases;
-using EvilBrains.EvilCase.Data.DbContexts;
-using EvilBrains.EvilCase.Data.Migrations.DbContexts;
 using EvilBrains.EvilCase.Domain.Cases;
+using EvilBrains.EvilCase.Tests.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Tests.Cases;
 
 /// <summary>
-/// Reads the SQL each step produces, without a server — <c>ToQueryString</c> opens no connection.
+/// The list rules on the rows a real PostgreSQL returns. Each test seeds a tenant of its own, so none
+/// cleans up after itself. Only what a result cannot show is read off the generated SQL.
 /// </summary>
 public class CaseListQueryTests
 {
-    private ApplicationDbContext context = null!;
+    private static readonly DateOnly Day = new(2026, 8, 24);
+
+    private TestTenant tenant = null!;
 
     [SetUp]
-    public void SetUp()
+    public async Task SetUp()
     {
-        this.context = new ApplicationDbContextFactory().CreateDbContext([]);
+        this.tenant = await TestTenant.Create();
     }
 
     [TearDown]
-    public void TearDown()
+    public async Task TearDown()
     {
-        this.context.Dispose();
+        await this.tenant.DisposeAsync();
     }
 
     [Test]
-    public void SearchMatchesTheTitleAndTheDescriptionWithoutRegardToCaseOrDiacritics()
+    public async Task TheSearchFoldsCaseAndDiacriticsOverTheTitleAndTheDescription()
     {
-        var sql = this.context.Cases.MatchingSearch("odvolání").ToQueryString();
+        await this.tenant.AddCase(Day, "Odvolání proti rozhodnutí");
+        await this.tenant.AddCase(Day, "Přestupek", description: "Odvolání podáno v termínu");
+        await this.tenant.AddCase(Day, "ODVOLANI bez diakritiky");
+        await this.tenant.AddCase(Day, "Nahlédnutí do spisu", description: "bez poznámky");
+
+        var byPlainTerm = await this.Titles("odvolani");
+        var byAccentedTerm = await this.Titles("Odvolání");
+
+        string[] expected = ["Odvolání proti rozhodnutí", "Přestupek", "ODVOLANI bez diakritiky"];
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(sql, Does.Contain("ILIKE"));
-            Assert.That(sql, Does.Contain("\"Title\""));
-            Assert.That(sql, Does.Contain("\"Description\""));
-            Assert.That(sql, Does.Contain("%odvolání%"));
-            Assert.That(sql, Does.Contain("immutable_unaccent"), "the fold runs in the database, over the wrapper the Init migration creates");
-            Assert.That(sql.Split("immutable_unaccent").Length - 1, Is.EqualTo(4), "both the column and the term fold on both comparisons");
+            Assert.That(byPlainTerm, Is.EquivalentTo(expected), "the search folds case and diacritics over both the title and the description");
+            Assert.That(byAccentedTerm, Is.EquivalentTo(expected), "the term folds too, so an accented term reaches a row written without diacritics");
         }
     }
 
     [Test]
-    public void ABlankSearchNarrowsNothing()
+    public async Task ABlankSearchReturnsEveryCaseOfTheTenant()
     {
-        var unfiltered = this.context.Cases.ToQueryString();
+        await this.tenant.AddCase(Day, "Odvolání");
+        await this.tenant.AddCase(Day, "Přestupek");
+
+        var unset = await this.tenant.Context.Cases.MatchingSearch(search: null).CountAsync();
+        var empty = await this.tenant.Context.Cases.MatchingSearch("").CountAsync();
+        var blank = await this.tenant.Context.Cases.MatchingSearch("   ").CountAsync();
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(this.context.Cases.MatchingSearch(search: null).ToQueryString(), Is.EqualTo(unfiltered));
-            Assert.That(this.context.Cases.MatchingSearch("").ToQueryString(), Is.EqualTo(unfiltered));
-            Assert.That(this.context.Cases.MatchingSearch("   ").ToQueryString(), Is.EqualTo(unfiltered));
+            Assert.That(unset, Is.EqualTo(2), "a blank term narrows nothing");
+            Assert.That(empty, Is.EqualTo(2), "a blank term narrows nothing");
+            Assert.That(blank, Is.EqualTo(2), "a blank term narrows nothing");
         }
     }
 
     [Test]
-    public void WildcardsInTheTermAreEscaped()
+    public async Task AWildcardInTheTermMatchesOnlyItself()
     {
-        var sql = this.context.Cases.MatchingSearch("50%_a\\b").ToQueryString();
+        await this.tenant.AddCase(Day, @"Sleva 50%_a\b");
+        await this.tenant.AddCase(Day, "Sleva 50 ab");
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(sql, Does.Contain(@"%50\%\_a\\b%"));
-            Assert.That(sql, Does.Contain("ESCAPE"));
-        }
+        var titles = await this.Titles(@"50%_a\b");
+
+        string[] expected = [@"Sleva 50%_a\b"];
+
+        Assert.That(titles, Is.EqualTo(expected), "a wildcard in the term matches only itself");
     }
 
     [Test]
-    public void TheOrderIsTheCasesOwnDateNewestFirst()
+    public async Task TheOrderIsTheCasesOwnDateNewestFirstWithCreatedBreakingATie()
     {
-        var sql = this.context.Cases.InListOrder().ToQueryString();
+        var caseIds = TestTenant.SortedEntityIds(2);
+        var older = await this.tenant.AddCase(new DateOnly(2026, 8, 20), "Starší datum");
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(sql, Does.Contain("ORDER BY"));
-            Assert.That(sql, Does.Contain("\"Date\" DESC"));
-            Assert.That(sql, Does.Contain("\"Created\" DESC"));
-            Assert.That(sql, Does.Contain("\"Id\" DESC"), "the identifier makes the order total");
-        }
+        // The tie falls to the row written later even where the identifier alone would put it last.
+        var written = await this.tenant.AddCase(new DateOnly(2026, 8, 22), "Zapsáno dřív", caseId: caseIds[1]);
+        var writtenLater = await this.tenant.AddCase(new DateOnly(2026, 8, 22), "Zapsáno později", caseId: caseIds[0]);
+
+        var ordered = await this.tenant.Context.Cases.InListOrder().Select(@case => @case.Id).ToListAsync();
+
+        Guid[] expected = [writtenLater.Id, written.Id, older.Id];
+
+        Assert.That(ordered, Is.EqualTo(expected), "the case's own date orders newest first and the write breaks a tie on it");
     }
 
     [Test]
-    public void TheProjectionReadsOnlyWhatARowShows()
+    public async Task OpenIsEverythingNotClosedClosedIsOnlyTheClosedAndAllIsEverything()
     {
-        var sql = this.context.Cases.AsListItems().ToQueryString();
+        var active = await this.tenant.AddCase(Day, "Aktivní", status: CaseStatus.Active);
+        var waiting = await this.tenant.AddCase(Day, "Čeká na úřad", status: CaseStatus.WaitingOnAuthority);
+        var closed = await this.tenant.AddCase(Day, "Uzavřená", status: CaseStatus.Closed);
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(sql, Does.Contain("\"CaseNumber\""));
-            Assert.That(sql, Does.Contain("\"Title\""));
-            Assert.That(sql, Does.Contain("\"Status\""));
-            Assert.That(sql, Does.Contain("\"Date\""));
-            Assert.That(sql, Does.Not.Contain("\"Description\""), "a row of the list never carries the case's text");
-            Assert.That(sql, Does.Not.Contain("count(").IgnoreCase, "a row of the list stands for one case and counts nothing under it");
-        }
-    }
+        var open = await this.IdsWithStatus(CaseStatusFilter.Open);
+        var onlyClosed = await this.IdsWithStatus(CaseStatusFilter.Closed);
+        var all = await this.IdsWithStatus(CaseStatusFilter.All);
 
-    [Test]
-    public void OpenIsEverythingNotClosedAndOnlyAllNarrowsNothing()
-    {
-        var unfiltered = this.context.Cases.ToQueryString();
-        var open = this.context.Cases.WithStatus(CaseStatusFilter.Open).ToQueryString();
-        var closed = this.context.Cases.WithStatus(CaseStatusFilter.Closed).ToQueryString();
+        Guid[] expectedOpen = [active.Id, waiting.Id];
+        Guid[] expectedClosed = [closed.Id];
+        Guid[] expectedAll = [active.Id, waiting.Id, closed.Id];
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(new CaseListRequest().Status, Is.EqualTo(CaseStatusFilter.Open), "the list opens on everything that is not closed");
-            Assert.That(this.context.Cases.WithStatus(CaseStatusFilter.All).ToQueryString(), Is.EqualTo(unfiltered), "only All narrows nothing");
-            Assert.That(open, Does.Contain("<>"), "open is everything not closed");
-            Assert.That(open, Does.Contain(nameof(CaseStatus.Closed)));
-            Assert.That(closed, Does.Contain("\"Status\""));
-            Assert.That(closed, Does.Contain(nameof(CaseStatus.Closed)), "the status is stored as its name");
+            Assert.That(open, Is.EquivalentTo(expectedOpen), "open is everything not closed");
+            Assert.That(onlyClosed, Is.EquivalentTo(expectedClosed), "closed is only the closed ones");
+            Assert.That(all, Is.EquivalentTo(expectedAll), "all narrows nothing");
         }
     }
 
     [Test]
-    public void TheSearchAndTheStatusNarrowTheSameQuery()
+    public async Task TheSearchAndTheStatusNarrowTheSameQuery()
     {
-        var sql = this.context.Cases
-            .MatchingSearch("odvolání")
+        await this.tenant.AddCase(Day, "Odvolání živé", status: CaseStatus.Active);
+        var wanted = await this.tenant.AddCase(Day, "Odvolání uzavřené", status: CaseStatus.Closed);
+        await this.tenant.AddCase(Day, "Přestupek", status: CaseStatus.Closed);
+
+        var ids = await this.tenant.Context.Cases
+            .MatchingSearch("odvolani")
             .WithStatus(CaseStatusFilter.Closed)
             .InListOrder()
             .AsListItems()
-            .ToQueryString();
+            .Select(item => item.Id)
+            .ToListAsync();
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(sql, Does.Contain("%odvolání%"), "the search narrows the list");
-            Assert.That(sql, Does.Contain(nameof(CaseStatus.Closed)), "the status narrows the list");
-            Assert.That(sql, Does.Contain("AND"), "the two narrow together, not one instead of the other");
-            Assert.That(sql, Does.Contain("ORDER BY"), "the list keeps its order under both filters");
-        }
+        Guid[] expected = [wanted.Id];
+
+        Assert.That(ids, Is.EqualTo(expected), "the two narrow together, not one instead of the other");
     }
 
     [Test]
-    public void TheListStaysInsideTheTenantAndPagesNothing()
+    public async Task ARowCarriesTheCaseNumberTheTitleTheDateAndTheStatus()
     {
-        var sql = this.context.Cases
+        var seeded = await this.tenant.AddCase(new DateOnly(2026, 8, 21), "Přestupek", status: CaseStatus.WaitingOnAuthority);
+
+        var row = await this.tenant.Context.Cases.AsListItems().SingleAsync();
+
+        var expected = new CaseListItem
+        {
+            Id = seeded.Id,
+            CaseNumber = seeded.CaseNumber,
+            Title = "Přestupek",
+            Date = new DateOnly(2026, 8, 21),
+            Status = CaseStatus.WaitingOnAuthority,
+        };
+
+        Assert.That(row, Is.EqualTo(expected), "a row of the list shows the case's number, title, date and status");
+    }
+
+    [Test]
+    public async Task ACaseOfAnotherTenantNeverComesBack()
+    {
+        var mine = await this.tenant.AddCase(Day, "Moje věc");
+
+        await using (var other = await TestTenant.Create())
+            await other.AddCase(Day, "Cizí věc");
+
+        var ids = await this.tenant.Context.Cases
+            .MatchingSearch(search: null)
+            .WithStatus(CaseStatusFilter.All)
+            .InListOrder()
+            .AsListItems()
+            .Select(item => item.Id)
+            .ToListAsync();
+
+        Guid[] expected = [mine.Id];
+
+        Assert.That(ids, Is.EqualTo(expected), "the tenant query filter is what keeps another tenant's rows out");
+    }
+
+    /// <summary>
+    /// What a returned row cannot show.
+    /// </summary>
+    [Test]
+    public void TheListReadsNoDescriptionCountsNothingAndPagesNothing()
+    {
+        var sql = this.tenant.Context.Cases
             .MatchingSearch(search: null)
             .WithStatus(CaseStatusFilter.All)
             .InListOrder()
@@ -146,9 +195,35 @@ public class CaseListQueryTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(sql, Does.Contain("\"TenantId\""), "every read is inside a tenant");
+            Assert.That(sql, Does.Not.Contain("\"Description\""), "a row of the list never carries the case's text");
+            Assert.That(sql, Does.Not.Contain("count(").IgnoreCase, "a row of the list stands for one case and counts nothing under it");
             Assert.That(sql, Does.Not.Contain("LIMIT"), "the list is not paged");
             Assert.That(sql, Does.Not.Contain("OFFSET"), "the list is not paged");
         }
+    }
+
+    /// <summary>
+    /// The database stamps <c>Created</c> off the clock, so two rows never share it and no result reaches
+    /// the identifier behind it.
+    /// </summary>
+    [Test]
+    public void TheIdentifierMakesTheOrderTotal()
+    {
+        var sql = this.tenant.Context.Cases.InListOrder().ToQueryString();
+
+        Assert.That(sql, Does.Contain("\"Id\" DESC"), "the identifier makes the order total");
+    }
+
+    private async Task<List<string>> Titles(string search)
+    {
+        return await this.tenant.Context.Cases
+            .MatchingSearch(search)
+            .Select(@case => @case.Title)
+            .ToListAsync();
+    }
+
+    private async Task<List<Guid>> IdsWithStatus(CaseStatusFilter filter)
+    {
+        return await this.tenant.Context.Cases.WithStatus(filter).Select(@case => @case.Id).ToListAsync();
     }
 }
