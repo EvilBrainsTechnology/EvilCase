@@ -57,7 +57,11 @@ public class ActsControllerTests
 
         var result = await controller.CreateAct(writer, Guid.CreateVersion7(), Request(), CancellationToken.None);
 
-        Assert.That(result.Value, Is.SameAs(created));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.Result, Is.InstanceOf<OkObjectResult>());
+            Assert.That(((OkObjectResult)result.Result!).Value, Is.SameAs(created));
+        }
     }
 
     [Test]

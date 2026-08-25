@@ -99,7 +99,10 @@
 
     private string? failure;
 
-    protected override Task OnParametersSetAsync() => this.LoadActs();
+    protected override Task OnInitializedAsync()
+    {
+        return this.LoadActs();
+    }
 
     private async Task LoadActs()
     {
