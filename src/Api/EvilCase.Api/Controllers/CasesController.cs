@@ -68,6 +68,18 @@ public class CasesController : ControllerBase
         };
     }
 
+    [HttpDelete("{caseId:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> DeleteCase([FromServices] ICaseWriter writer, [FromRoute] Guid caseId, CancellationToken token)
+    {
+        var deleted = await writer.DeleteCase(caseId, token);
+
+        return deleted
+            ? this.NoContent()
+            : this.Problem(statusCode: StatusCodes.Status404NotFound, title: "Case not found");
+    }
+
     [HttpPost("{caseId:guid}/external-numbers")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

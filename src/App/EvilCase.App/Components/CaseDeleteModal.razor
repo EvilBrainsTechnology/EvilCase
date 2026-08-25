@@ -1,0 +1,75 @@
+@using System.Net
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.Cases
+@using TabBlazor.Services
+@inject ICasesClient CasesClient
+@inject IModalService ModalService
+@inject ILogger<CaseDeleteModal> Logger
+
+<p>Opravdu smazat spis <strong>@Case.CaseNumber</strong> — @Case.Title? Akci nelze vrátit zpět.</p>
+
+<p class="text-secondary">Se spisem zaniknou jeho úkony i s externími čísly jednacími, komentáře spisu i úkonů, externí značky spisu a soubory spisu i úkonů.</p>
+
+@if (Case.ChildCases.Count > 0)
+{
+    <p class="text-secondary">Podřízené spisy (@Case.ChildCases.Count) zůstanou zachovány a zůstanou bez nadřízeného spisu.</p>
+}
+
+@if (this.error is not null)
+{
+    <div class="alert alert-danger" role="alert">@this.error</div>
+}
+
+<div class="d-flex justify-content-end gap-2 mt-3">
+    <button type="button" class="btn" @onclick="() => this.ModalService.Close()">Zrušit</button>
+    <button id="case-delete-confirm" type="button" class="btn btn-danger" disabled="@this.busy" @onclick="this.DeleteCase">
+        @if (this.busy)
+        {
+            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+        }
+        Smazat
+    </button>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public required CaseDetail Case { get; set; }
+
+    [Parameter]
+    public EventCallback OnDeleted { get; set; }
+
+    private string? error;
+
+    private bool busy;
+
+    private async Task DeleteCase()
+    {
+        this.busy = true;
+        this.error = null;
+
+        try
+        {
+            await this.CasesClient.DeleteCase(this.Case.Id, CancellationToken.None);
+
+            this.ModalService.Close();
+            await this.OnDeleted.InvokeAsync();
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+        {
+            this.Logger.LogWarning(exception, "Deleting the case failed: it is already gone");
+
+            this.error = "Spis už neexistuje.";
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Deleting the case failed");
+
+            this.error = "Spis se nepodařilo smazat. Zkuste to za chvíli znovu.";
+        }
+        finally
+        {
+            this.busy = false;
+        }
+    }
+}

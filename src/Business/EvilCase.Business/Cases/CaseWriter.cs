@@ -7,6 +7,7 @@ using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Domain.Cases;
 using EvilBrains.EvilCase.Domain.Numbering;
+using EvilBrains.EvilCase.Files;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -15,6 +16,7 @@ namespace EvilBrains.EvilCase.Business.Cases;
 internal sealed class CaseWriter(
     IDbSession dbSession,
     ICaseNumberIssuer numbers,
+    IFileBlobStore fileBlobStore,
     ILogger<CaseWriter> logger) : ICaseWriter
 {
     /// <summary>
@@ -134,6 +136,34 @@ internal sealed class CaseWriter(
             Title = request.Title.Trim(),
             Description = request.Description?.TrimEmptyToNull(),
         };
+    }
+
+    public async Task<bool> DeleteCase(Guid caseId, CancellationToken token)
+    {
+        var context = dbSession.Current;
+
+        // Read before the delete: the rows are gone once it runs.
+        var storagePaths = await context.FileAssets
+            .OfCaseOrItsActs(caseId)
+            .Select(file => file.StoragePath)
+            .ToListAsync(token);
+
+        // The acts, comments, marks and files go with the row: the database's foreign keys carry the
+        // cascade, and a subordinate case is left with no parent (SDD-007).
+        var rows = await context.Cases
+            .WithId(caseId)
+            .ExecuteDeleteAsync(token);
+
+        if (rows == 0)
+            return false;
+
+        // After the commit: a blob orphaned by a failed delete is tolerated, a lost one is not (SDD-012).
+        foreach (var storagePath in storagePaths)
+            await fileBlobStore.DeleteFileBlob(storagePath, token);
+
+        logger.LogInformation("Case {CaseId} was deleted", caseId);
+
+        return true;
     }
 
     private static CaseListItem Describe(Case @case)

@@ -7,6 +7,8 @@ internal sealed class FakeFileBlobStore : IFileBlobStore
 {
     public Dictionary<Guid, string> Written { get; } = [];
 
+    public List<string> Deleted { get; } = [];
+
     public async Task<FileBlobInfo> WriteFileBlob(Guid tenantId, Guid fileAssetId, Stream content, CancellationToken token)
     {
         using var reader = new StreamReader(content, Encoding.UTF8);
@@ -24,6 +26,8 @@ internal sealed class FakeFileBlobStore : IFileBlobStore
 
     public Task DeleteFileBlob(string storagePath, CancellationToken token)
     {
+        this.Deleted.Add(storagePath);
+
         return Task.CompletedTask;
     }
 }

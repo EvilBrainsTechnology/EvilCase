@@ -251,10 +251,41 @@ internal sealed class TestTenant : IAsyncDisposable
         return await this.Save(this.Context.ExternalActNumbers, number);
     }
 
+    public Task<FileAsset> AddCaseFile(Case @case, string fileName = "dokument.pdf")
+    {
+        return this.AddFile(@case.Id, actId: null, fileName);
+    }
+
+    public Task<FileAsset> AddActFile(Act act, string fileName = "dokument.pdf")
+    {
+        return this.AddFile(caseId: null, act.Id, fileName);
+    }
+
     public async ValueTask DisposeAsync()
     {
         await this.Context.DisposeAsync();
         this.entered.Dispose();
+    }
+
+    private Task<FileAsset> AddFile(Guid? caseId, Guid? actId, string fileName)
+    {
+        var fileAssetId = Guid.CreateVersion7();
+
+        var file = new FileAsset
+        {
+            Id = fileAssetId,
+            TenantId = this.tenantId,
+            UserId = this.UserId,
+            CaseId = caseId,
+            ActId = actId,
+            FileName = fileName,
+            ContentHash = new string('a', 64),
+            SizeBytes = 1,
+            MediaType = "application/pdf",
+            StoragePath = $"{this.tenantId}/{fileAssetId}",
+        };
+
+        return this.Save(this.Context.FileAssets, file);
     }
 
     private int NextSequence(string prefix)
