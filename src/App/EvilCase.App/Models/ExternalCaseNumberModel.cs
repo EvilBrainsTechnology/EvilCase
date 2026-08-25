@@ -12,5 +12,6 @@ internal sealed class ExternalCaseNumberModel
     [StringLength(128, ErrorMessage = "Značka může mít nejvýše 128 znaků")]
     public string Value { get; set; } = "";
 
+    [Required(ErrorMessage = "Vyberte kontakt, který značku přidělil")]
     public ContactListItem? AssignedBy { get; set; }
 }

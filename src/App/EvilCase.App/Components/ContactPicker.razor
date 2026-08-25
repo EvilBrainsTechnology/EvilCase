@@ -67,16 +67,11 @@ else
         this.debouncer.Dispose();
     }
 
-    private Task OnSearchInput(ChangeEventArgs args)
+    private async Task OnSearchInput(ChangeEventArgs args)
     {
         this.search = args.Value as string ?? "";
 
-        return this.LoadMatches(debounce: true);
-    }
-
-    private async Task LoadMatches(bool debounce)
-    {
-        var token = await this.debouncer.Start(debounce);
+        var token = await this.debouncer.Start(debounce: true);
         if (token is null)
             return;
 
