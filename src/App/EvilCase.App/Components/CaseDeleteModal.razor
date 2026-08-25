@@ -23,7 +23,7 @@
 
 <div class="d-flex justify-content-end gap-2 mt-3">
     <button type="button" class="btn" @onclick="() => this.ModalService.Close()">Zrušit</button>
-    <button id="case-delete-confirm" type="button" class="btn btn-danger" disabled="@this.busy" @onclick="this.DeleteCase">
+    <button type="button" class="btn btn-danger" disabled="@this.busy" @onclick="this.DeleteCase">
         @if (this.busy)
         {
             <span class="spinner-border spinner-border-sm me-2" role="status"></span>

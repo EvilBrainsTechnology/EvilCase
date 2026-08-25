@@ -144,7 +144,7 @@ internal sealed class CaseWriter(
 
         // Read before the delete: the rows are gone once it runs.
         var storagePaths = await context.FileAssets
-            .OfCaseOrItsActs(caseId)
+            .Where(file => file.CaseId == caseId || file.Act!.CaseId == caseId)
             .Select(file => file.StoragePath)
             .ToListAsync(token);
 
