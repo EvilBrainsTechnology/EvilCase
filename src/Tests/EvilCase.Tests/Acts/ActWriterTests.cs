@@ -16,7 +16,7 @@ public class ActWriterTests
     [SetUp]
     public async Task SetUp()
     {
-        this.tenant = await TestTenant.Create();
+        this.tenant = await TestTenant.Create(asHost: true);
     }
 
     [TearDown]
@@ -78,7 +78,9 @@ public class ActWriterTests
 
         var writer = new ActWriter(new FixedDbSession(this.tenant.Context), new QueuedActNumberIssuer([taken, free]), NullLogger<ActWriter>.Instance);
 
-        var result = await writer.CreateAct(@case.Id, Request() with { Date = new DateOnly(2026, 8, 25) }, CancellationToken.None);
+        var request = Request() with { Date = new DateOnly(2026, 8, 25), IssuedByContactId = this.tenant.DefaultContact.Id };
+
+        var result = await writer.CreateAct(@case.Id, request, CancellationToken.None);
 
         var acts = await this.tenant.Context.Acts.OfCase(@case.Id).ToListAsync();
 
@@ -113,6 +115,34 @@ public class ActWriterTests
         var result = await writer.CreateAct(@case.Id, Request() with { IssuedByContactId = Guid.CreateVersion7() }, CancellationToken.None);
 
         Assert.That(result.Outcome, Is.EqualTo(ActCreateOutcome.ContactNotFound), "a sender the tenant does not hold never reaches the row");
+    }
+
+    [Test]
+    public async Task AnActNamingTheContactOfAnotherTenantIsRefused()
+    {
+        var @case = await this.tenant.AddCase(new DateOnly(2026, 8, 21));
+
+        Guid foreignContactId;
+        await using (var other = await TestTenant.Create())
+        {
+            var foreignContact = await other.AddContact("Cizí kontakt");
+            foreignContactId = foreignContact.Id;
+        }
+
+        // No number is queued: a contact of another tenant never reaches the insert.
+        var writer = new ActWriter(new FixedDbSession(this.tenant.Context), new QueuedActNumberIssuer([]), NullLogger<ActWriter>.Instance);
+
+        var asSender = await writer.CreateAct(@case.Id, Request() with { IssuedByContactId = foreignContactId }, CancellationToken.None);
+        var asRecipient = await writer.CreateAct(
+            @case.Id,
+            Request() with { IssuedByContactId = this.tenant.DefaultContact.Id, AddressedToContactId = foreignContactId },
+            CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(asSender.Outcome, Is.EqualTo(ActCreateOutcome.ContactNotFound), "an act never names a contact of another tenant");
+            Assert.That(asRecipient.Outcome, Is.EqualTo(ActCreateOutcome.ContactNotFound), "an act never names a contact of another tenant");
+        }
     }
 
     [Test]

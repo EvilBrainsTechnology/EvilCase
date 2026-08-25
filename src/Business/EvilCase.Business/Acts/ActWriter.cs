@@ -28,6 +28,24 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
         if (@case is null)
             return new ActCreateResult { Outcome = ActCreateOutcome.CaseNotFound };
 
+        // The foreign key alone would take a contact of another tenant; the filtered read is what refuses it.
+        var issuedByKnown = await context.Contacts
+            .WithId(request.IssuedByContactId)
+            .AnyAsync(token);
+
+        if (!issuedByKnown)
+            return new ActCreateResult { Outcome = ActCreateOutcome.ContactNotFound };
+
+        if (request.AddressedToContactId is { } addressedToContactId)
+        {
+            var addressedToKnown = await context.Contacts
+                .WithId(addressedToContactId)
+                .AnyAsync(token);
+
+            if (!addressedToKnown)
+                return new ActCreateResult { Outcome = ActCreateOutcome.ContactNotFound };
+        }
+
         for (var attempt = 1; ; attempt++)
         {
             var actNumber = await numbers.NextActNumber(@case, request.Date, token);
@@ -46,13 +64,6 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
                 logger.LogWarning("The act number {ActNumber} was taken while the act was being filed", actNumber);
 
                 continue;
-            }
-            catch (DbUpdateException exception) when (exception.IsForeignKeyViolation())
-            {
-                context.Entry(act).State = EntityState.Detached;
-
-                // A sender or recipient the tenant does not hold; the foreign key is what says so.
-                return new ActCreateResult { Outcome = ActCreateOutcome.ContactNotFound };
             }
 
             logger.LogInformation("Act {ActId} was filed in case {CaseId} under {ActNumber}", act.Id, caseId, act.ActNumber);
