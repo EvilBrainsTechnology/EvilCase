@@ -95,6 +95,10 @@
                 </div>
             </div>
 
+            <div class="mb-3">
+                <CaseExternalNumbersCard CaseId="this.CaseId" Items="this.caseDetail.ExternalNumbers" />
+            </div>
+
             <CaseChildrenCard Items="this.caseDetail.ChildCases" ParentCaseId="this.CaseId" />
         }
     </div>

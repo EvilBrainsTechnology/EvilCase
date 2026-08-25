@@ -20,6 +20,12 @@ public class ContactsController : ControllerBase
         return new ContactListResponse { Items = items };
     }
 
+    [HttpPost("")]
+    public Task<ContactListItem> CreateContact([FromServices] IContactWriter writer, [FromBody] ContactEditRequest request, CancellationToken token)
+    {
+        return writer.CreateContact(request, token);
+    }
+
     [HttpGet("{contactId:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

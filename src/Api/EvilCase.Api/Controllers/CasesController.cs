@@ -68,6 +68,51 @@ public class CasesController : ControllerBase
         };
     }
 
+    [HttpPost("{caseId:guid}/external-numbers")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult> AddExternalCaseNumber(
+        [FromServices] IExternalCaseNumberWriter writer,
+        [FromRoute] Guid caseId,
+        [FromBody] ExternalCaseNumberRequest request,
+        CancellationToken token)
+    {
+        var outcome = await writer.AddExternalCaseNumber(caseId, request, token);
+
+        return outcome switch
+        {
+            ExternalCaseNumberOutcome.Added => this.NoContent(),
+            ExternalCaseNumberOutcome.CaseNotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: "Case not found"),
+            ExternalCaseNumberOutcome.UnknownContact => this.Problem(
+                detail: "The contact that assigned the mark does not exist.",
+                statusCode: StatusCodes.Status409Conflict,
+                title: CaseProblems.UnknownContact),
+            ExternalCaseNumberOutcome.ValueTaken => this.Problem(
+                detail: "The case already carries the mark.",
+                statusCode: StatusCodes.Status409Conflict,
+                title: CaseProblems.ExternalNumberTaken),
+            _ => throw new UnreachableException(),
+        };
+    }
+
+    [HttpDelete("{caseId:guid}/external-numbers/{numberId:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> DeleteExternalCaseNumber(
+        [FromServices] IExternalCaseNumberWriter writer,
+        [FromRoute] Guid caseId,
+        [FromRoute] Guid numberId,
+        CancellationToken token)
+    {
+        var deleted = await writer.DeleteExternalCaseNumber(caseId, numberId, token);
+
+        return deleted
+            ? this.NoContent()
+            : this.Problem(statusCode: StatusCodes.Status404NotFound, title: "External case number not found");
+    }
+
     private ActionResult InvalidCaseNumberProblem()
     {
         this.ModelState.AddModelError(nameof(CaseEditRequest.CaseNumber), "The case number must read EC/yyyyMMdd-nnn.");
