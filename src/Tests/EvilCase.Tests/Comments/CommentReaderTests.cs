@@ -1,5 +1,6 @@
 using EvilBrains.EvilCase.Business.Comments;
 using EvilBrains.EvilCase.Tests.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Tests.Comments;
 
@@ -64,7 +65,7 @@ public class CommentReaderTests
     public async Task AnotherUsersNoteIsListedButNotAsTheSignedInUsers()
     {
         var @case = await this.tenant.AddCase(Day);
-        var other = await this.tenant.AddUser("kolega@example.com");
+        var other = await this.tenant.AddUser();
         var theirs = await this.tenant.AddCaseComment(@case, "Jejich", other.Id);
         var ours = await this.tenant.AddCaseComment(@case, "Naše");
 
@@ -74,7 +75,7 @@ public class CommentReaderTests
         {
             Assert.That(items.Select(item => item.Id), Is.EquivalentTo([theirs.Id, ours.Id]), "both notes come back");
             Assert.That(items.Single(item => item.Id == theirs.Id).IsAuthor, Is.False);
-            Assert.That(items.Single(item => item.Id == theirs.Id).AuthorEmail, Is.EqualTo("kolega@example.com"));
+            Assert.That(items.Single(item => item.Id == theirs.Id).AuthorEmail, Is.EqualTo(other.Email));
             Assert.That(items.Single(item => item.Id == ours.Id).IsAuthor, Is.True);
         }
     }
@@ -115,5 +116,31 @@ public class CommentReaderTests
         var items = await this.reader.ListCaseComments(@case.Id, CancellationToken.None);
 
         Assert.That(items, Is.Empty, "the tenant query filter is what turns another tenant's note into nothing");
+    }
+
+    /// <summary>
+    /// The database stamps <c>Created</c> off the clock, so two notes never share it and no result reaches
+    /// the identifier behind it.
+    /// </summary>
+    [Test]
+    public void TheIdentifierMakesTheDiaryOrderTotal()
+    {
+        var context = this.tenant.Context;
+
+        var sql = context.Comments
+            .OnCase(Guid.CreateVersion7())
+            .AsCommentItems(context.Users, this.tenant.UserId)
+            .InDiaryOrder()
+            .ToQueryString();
+
+        var orderBy = sql.LastIndexOf("ORDER BY", StringComparison.Ordinal);
+
+        Assert.That(orderBy, Is.GreaterThanOrEqualTo(0), "the diary order is the database's");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(sql[orderBy..], Does.Contain("\"Created\""), "the stamp reads oldest first");
+            Assert.That(sql[orderBy..], Does.Contain("\"Id\""), "the identifier makes the order total");
+        }
     }
 }

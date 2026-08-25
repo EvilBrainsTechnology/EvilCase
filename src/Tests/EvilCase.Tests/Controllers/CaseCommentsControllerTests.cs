@@ -102,14 +102,21 @@ public class CaseCommentsControllerTests
     }
 
     [Test]
-    public async Task DeletingANoteAnswersWithNoContent()
+    public async Task DeletingReachesTheWriterWithBothIds()
     {
+        var caseId = Guid.CreateVersion7();
+        var commentId = Guid.CreateVersion7();
         var writer = new RecordingCommentWriter { DeleteOutcome = CommentWriteOutcome.Written };
         var controller = new CaseCommentsController();
 
-        var result = await controller.DeleteCaseComment(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
+        var result = await controller.DeleteCaseComment(writer, caseId, commentId, CancellationToken.None);
 
-        Assert.That(result, Is.InstanceOf<NoContentResult>());
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(writer.DeleteCaseId, Is.EqualTo(caseId));
+            Assert.That(writer.DeleteCommentId, Is.EqualTo(commentId));
+            Assert.That(result, Is.InstanceOf<NoContentResult>());
+        }
     }
 
     [Test]
@@ -190,6 +197,10 @@ public class CaseCommentsControllerTests
 
         public CommentWriteOutcome UpdateOutcome { get; init; }
 
+        public Guid? DeleteCaseId { get; private set; }
+
+        public Guid? DeleteCommentId { get; private set; }
+
         public CommentWriteOutcome DeleteOutcome { get; init; }
 
         public Task<bool> AddCaseComment(Guid caseId, CommentEditRequest request, CancellationToken token)
@@ -211,6 +222,9 @@ public class CaseCommentsControllerTests
 
         public Task<CommentWriteOutcome> DeleteCaseComment(Guid caseId, Guid commentId, CancellationToken token)
         {
+            this.DeleteCaseId = caseId;
+            this.DeleteCommentId = commentId;
+
             return Task.FromResult(this.DeleteOutcome);
         }
     }

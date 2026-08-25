@@ -178,14 +178,15 @@ internal sealed class TestTenant : IAsyncDisposable
     }
 
     /// <summary>
-    /// A second user of the same tenant, for a test that needs another author.
+    /// A second user of the same tenant, for a test that needs another author. Its e-mail is unique
+    /// deployment-wide, so two tests seeding one never collide.
     /// </summary>
-    public async Task<User> AddUser(string email)
+    public async Task<User> AddUser()
     {
         var user = new User
         {
             TenantId = this.tenantId,
-            Email = email,
+            Email = $"{Guid.CreateVersion7()}@example.com",
             PasswordHash = "hash",
             Role = UserRole.User,
             DefaultContactId = this.DefaultContact.Id,
@@ -218,8 +219,6 @@ internal sealed class TestTenant : IAsyncDisposable
             ActId = act.Id,
             Body = body,
         };
-
-        using var scope = this.stubUserContext.Enter(this.tenantId, comment.UserId);
 
         return await this.Save(this.Context.Comments, comment);
     }

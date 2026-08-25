@@ -119,7 +119,7 @@ public class CommentWriterTests
     public async Task AnotherUsersNoteIsNotEdited()
     {
         var @case = await this.tenant.AddCase(Day);
-        var other = await this.tenant.AddUser("kolega@example.com");
+        var other = await this.tenant.AddUser();
         var comment = await this.tenant.AddCaseComment(@case, "Původní", other.Id);
 
         var outcome = await this.writer.UpdateCaseComment(@case.Id, comment.Id, new CommentEditRequest { Body = "Upravená" }, CancellationToken.None);
@@ -182,7 +182,7 @@ public class CommentWriterTests
     public async Task AnotherUsersNoteIsNotDeleted()
     {
         var @case = await this.tenant.AddCase(Day);
-        var other = await this.tenant.AddUser("kolega@example.com");
+        var other = await this.tenant.AddUser();
         var comment = await this.tenant.AddCaseComment(@case, "Poznámka", other.Id);
 
         var outcome = await this.writer.DeleteCaseComment(@case.Id, comment.Id, CancellationToken.None);
