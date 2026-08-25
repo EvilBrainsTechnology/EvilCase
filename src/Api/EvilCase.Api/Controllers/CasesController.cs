@@ -47,21 +47,21 @@ public class CasesController : ControllerBase
     {
         var outcome = await writer.UpdateCase(caseId, request, token);
 
-        switch (outcome)
+        return outcome switch
         {
-            case CaseUpdateOutcome.Updated:
-                return this.NoContent();
-            case CaseUpdateOutcome.NotFound:
-                return this.Problem(statusCode: StatusCodes.Status404NotFound, title: "Case not found");
-            case CaseUpdateOutcome.CaseNumberTaken:
-                return this.Problem(
-                    detail: "Another case already carries the number.", statusCode: StatusCodes.Status409Conflict, title: "Case number taken");
-            case CaseUpdateOutcome.InvalidCaseNumber:
-                this.ModelState.AddModelError(nameof(CaseEditRequest.CaseNumber), "The case number must read EC/yyyyMMdd-nnn.");
+            CaseUpdateOutcome.Updated => this.NoContent(),
+            CaseUpdateOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: "Case not found"),
+            CaseUpdateOutcome.CaseNumberTaken => this.Problem(
+                detail: "Another case already carries the number.", statusCode: StatusCodes.Status409Conflict, title: "Case number taken"),
+            CaseUpdateOutcome.InvalidCaseNumber => this.InvalidCaseNumberProblem(),
+            _ => throw new UnreachableException(),
+        };
+    }
 
-                return this.ValidationProblem();
-            default:
-                throw new UnreachableException();
-        }
+    private ActionResult InvalidCaseNumberProblem()
+    {
+        this.ModelState.AddModelError(nameof(CaseEditRequest.CaseNumber), "The case number must read EC/yyyyMMdd-nnn.");
+
+        return this.ValidationProblem();
     }
 }
