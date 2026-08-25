@@ -45,17 +45,17 @@ internal sealed class TestTenant : IAsyncDisposable
     public Contact DefaultContact { get; }
 
     /// <summary>
-    /// <paramref name="forWrites"/> wires the context the way the host wires it, so a service under test
+    /// <paramref name="asHost"/> wires the context the way the host wires it, so a service under test
     /// writes rows the interceptor stamps with the tenant and the user.
     /// </summary>
-    public static async Task<TestTenant> Create(bool forWrites = false)
+    public static async Task<TestTenant> Create(bool asHost = false)
     {
         var userContext = new StubUserContext();
         var seededTenantId = Guid.CreateVersion7();
         var seededUserId = Guid.CreateVersion7();
         var scope = userContext.Enter(seededTenantId, seededUserId);
-        var context = forWrites
-            ? TestDatabase.CreateMigratedForWrites(userContext)
+        var context = asHost
+            ? TestDatabase.CreateMigratedAsHost(userContext)
             : TestDatabase.CreateMigrated(userContext);
 
         var account = new Account { Name = "tests" };
