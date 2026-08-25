@@ -23,15 +23,14 @@ The backlog is the open issues labelled `loop` and none of `agent-in-progress` (
 the lowest milestone breaking a tie, honouring a focus argument. Empty backlog: do nothing.
 
 The round runs one slice at a time. An open pull request on a `loop/*` branch or a `loop` issue
-labelled `agent-in-progress` stops the start: the round tends what is open and starts nothing.
-A pull request on another branch was requested, not started here, and never stops it. Otherwise
-take the first candidate, label it `agent-in-progress`, and start one Workflow
-(`.claude/skills/product-loop/slice-pipeline.js`, `args: [{issue, slug, title, body, fast}]`);
-it runs in the background — tend open pull requests meanwhile. One slice is one pull request
-from database to UI leaving the app usable, small enough to review on a phone, on
-`loop/<issue>-<slug>` off `master`. `fast: true` is the coder alone: no behaviour change, no new
-test — a rename, doc wording, a sweep an analyzer verifies. Schema, tenancy, security, an API
-contract, a screen, a test or a second project keep all three phases.
+labelled `agent-in-progress` stops the start: the round tends what is open and starts nothing. A
+pull request on another branch never stops it. Otherwise take the first candidate, label it
+`agent-in-progress`, and start one Workflow (`.claude/skills/product-loop/slice-pipeline.js`,
+`args: [{issue, slug, title, body, fast}]`); it runs in the background — tend open pull requests
+meanwhile. One slice is one pull request from database to UI leaving the app usable, small enough
+to review on a phone, on `loop/<issue>-<slug>` off `master`. `fast: true` is the coder alone: no
+behaviour change, no new test — a rename, doc wording, a sweep an analyzer verifies. Schema,
+tenancy, security, an API contract, a screen, a test or a second project keep all three phases.
 
 ## 2. Decide, do not ask
 
@@ -59,11 +58,12 @@ from an issue whose `Blocked by #` issues have all merged or closed.
 
 ## Between rounds
 
-A `subscribe_pr_activity` notification is handled when it arrives, never left for the next
-round. A question gets its reply and the switch to `agent-done`; anything needing code sets
-`agent-in-progress` and starts one Workflow (`.claude/skills/product-loop/pr-work.js`,
-`args: [{pr, branch, instructions, fast}]`) — one per branch, only when no running workflow
-in `TaskList` names the branch. A red CI run flags `ci-failed` and takes the same path.
+A `subscribe_pr_activity` notification is handled when it arrives, never left for the next round.
+A merged pull request starts the next round at once. A question gets its reply and the switch to
+`agent-done`; anything needing code sets `agent-in-progress` and starts one Workflow
+(`.claude/skills/product-loop/pr-work.js`, `args: [{pr, branch, instructions, fast}]`) — one per
+branch, only when no running workflow in `TaskList` names the branch. A red CI run flags
+`ci-failed` and takes the same path.
 
 ## 4. Report
 
@@ -72,7 +72,7 @@ open for review, what was fixed, what waits on the owner. One line each, never a
 
 ## The schedule
 
-The clock is an hourly session-bound Routine (`create_trigger`), never `CronCreate`. A session
-that starts while the loop should run checks `list_triggers` and creates it if missing; every
-turn ends confirming it is there. Repair a wrong one with `update_trigger`; delete only a
+The clock is the fallback: an hourly session-bound Routine (`create_trigger`), never `CronCreate`.
+A session that starts while the loop should run checks `list_triggers` and creates it if missing;
+every turn ends confirming it is there. Repair a wrong one with `update_trigger`; delete only a
 duplicate of the clock. On a usage limit, wait for the reset and resume.
