@@ -1,0 +1,200 @@
+@page "/cases/{CaseId:guid}/edit"
+@using System.Net
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.Cases
+@using EvilBrains.EvilCase.Domain.Cases
+@inject ICasesClient CasesClient
+@inject NavigationManager Navigation
+@inject ILogger<EditCase> Logger
+
+<PageTitle>Upravit spis – EvilCase</PageTitle>
+
+<div class="page-header d-print-none">
+    <div class="container-xl">
+        <div class="page-pretitle"><a href="@($"/cases/{this.CaseId}")">Spis</a></div>
+        <h2 class="page-title">Upravit spis</h2>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        @if (this.notFound)
+        {
+            <div class="empty">
+                <p class="empty-title">Spis nenalezen</p>
+            </div>
+        }
+        else if (this.failure is not null)
+        {
+            <div class="empty">
+                <p class="empty-title">Spis se nepodařilo načíst</p>
+                <p class="empty-subtitle text-secondary">@this.failure</p>
+            </div>
+        }
+        else if (!this.loaded)
+        {
+            <div class="text-center text-secondary">
+                <div class="spinner-border" role="status"></div>
+            </div>
+        }
+        else
+        {
+            <div class="card">
+                <EditForm Model="this.model" OnValidSubmit="this.SubmitCase">
+                    <DataAnnotationsValidator />
+
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label" for="case-number">Spisová značka</label>
+                            <InputText id="case-number" class="form-control" @bind-Value="this.model.CaseNumber" />
+                            <div class="form-hint">Tvar EC/RRRRMMDD-NNN. Změna data spisu značku nemění.</div>
+                            <ValidationMessage For="() => this.model.CaseNumber" class="invalid-feedback d-block" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="case-date">Datum spisu</label>
+                            <InputDate id="case-date" class="form-control" @bind-Value="this.model.Date" />
+                            <ValidationMessage For="() => this.model.Date" class="invalid-feedback d-block" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="case-title">Název</label>
+                            <InputText id="case-title" class="form-control" @bind-Value="this.model.Title" />
+                            <ValidationMessage For="() => this.model.Title" class="invalid-feedback d-block" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="case-description">Popis</label>
+                            <InputTextArea id="case-description" class="form-control" rows="5" @bind-Value="this.model.Description" />
+                            <ValidationMessage For="() => this.model.Description" class="invalid-feedback d-block" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="case-status">Stav</label>
+                            <InputSelect id="case-status" class="form-select" @bind-Value="this.model.Status">
+                                @foreach (var status in Enum.GetValues<CaseStatus>())
+                                {
+                                    <option value="@status">@CaseStatusDisplay.Text(status)</option>
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="() => this.model.Status" class="invalid-feedback d-block" />
+                        </div>
+
+                        @if (this.error is not null)
+                        {
+                            <div class="alert alert-danger mb-0" role="alert">@this.error</div>
+                        }
+                    </div>
+
+                    <div class="card-footer form-actions-sticky d-flex justify-content-end gap-2">
+                        <a href="@($"/cases/{this.CaseId}")" class="btn">Zrušit</a>
+                        <button id="case-submit" type="submit" class="btn btn-primary" disabled="@this.busy">
+                            @if (this.busy)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                            }
+                            Uložit
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public Guid CaseId { get; set; }
+
+    private readonly CaseEditModel model = new();
+
+    private bool notFound;
+
+    private string? failure;
+
+    private string? error;
+
+    private bool busy;
+
+    private bool loaded;
+
+    protected override Task OnParametersSetAsync()
+    {
+        return this.LoadCase();
+    }
+
+    private async Task LoadCase()
+    {
+        this.notFound = false;
+        this.failure = null;
+        this.loaded = false;
+
+        try
+        {
+            var @case = await this.CasesClient.GetCase(this.CaseId, CancellationToken.None);
+
+            this.model.CaseNumber = @case.CaseNumber;
+            this.model.Date = @case.Date;
+            this.model.Title = @case.Title;
+            this.model.Description = @case.Description;
+            this.model.Status = @case.Status;
+
+            this.loaded = true;
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+        {
+            this.notFound = true;
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Loading the case for editing failed");
+
+            this.failure = "Spis se nepodařilo načíst. Zkuste to za chvíli znovu.";
+        }
+    }
+
+    private async Task SubmitCase()
+    {
+        this.busy = true;
+        this.error = null;
+
+        try
+        {
+            var request = new CaseEditRequest
+            {
+                CaseNumber = this.model.CaseNumber,
+                Date = this.model.Date,
+                Title = this.model.Title,
+                Description = this.model.Description,
+                Status = this.model.Status,
+            };
+
+            await this.CasesClient.EditCase(this.CaseId, request, CancellationToken.None);
+
+            this.Navigation.NavigateTo($"/cases/{this.CaseId}");
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
+        {
+            this.error = "Spisovou značku už nese jiný spis. Zvolte jinou.";
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.BadRequest)
+        {
+            this.error = "Spisová značka musí mít tvar EC/RRRRMMDD-NNN, například EC/20260807-001.";
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+        {
+            this.error = "Spis už neexistuje.";
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Editing the case failed");
+
+            this.error = "Spis se nepodařilo uložit. Zkontrolujte zadané údaje a zkuste to znovu.";
+        }
+        finally
+        {
+            this.busy = false;
+        }
+    }
+}

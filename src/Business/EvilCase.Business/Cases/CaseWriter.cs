@@ -1,9 +1,12 @@
+using EvilBrains.Collections;
 using EvilBrains.EvilCase.Api.Contract.Cases;
+using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Business.Numbering;
 using EvilBrains.EvilCase.Data;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Domain.Cases;
+using EvilBrains.EvilCase.Domain.Numbering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -61,6 +64,51 @@ internal sealed class CaseWriter(
             Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description,
             Date = request.Date,
             Status = CaseStatus.Active,
+        };
+    }
+
+    public async Task<CaseUpdateOutcome> UpdateCase(Guid caseId, CaseEditRequest request, CancellationToken token)
+    {
+        var edit = Normalize(request);
+
+        if (CaseNumberFormat.ParseOrDefault(edit.CaseNumber) is null)
+            return CaseUpdateOutcome.InvalidCaseNumber;
+
+        var context = dbSession.Current;
+
+        var taken = await context.Cases
+            .WithNumberHeldByAnother(edit.CaseNumber, caseId)
+            .AnyAsync(token);
+
+        if (taken)
+            return CaseUpdateOutcome.CaseNumberTaken;
+
+        var rows = await context.Cases
+            .WithId(caseId)
+            .ExecuteUpdateAsync(
+                setters => setters
+                    .SetProperty(@case => @case.CaseNumber, edit.CaseNumber)
+                    .SetProperty(@case => @case.Date, edit.Date)
+                    .SetProperty(@case => @case.Title, edit.Title)
+                    .SetProperty(@case => @case.Description, edit.Description)
+                    .SetProperty(@case => @case.Status, edit.Status),
+                token);
+
+        if (rows == 0)
+            return CaseUpdateOutcome.NotFound;
+
+        logger.LogInformation("Case {CaseId} was edited", caseId);
+
+        return CaseUpdateOutcome.Updated;
+    }
+
+    internal static CaseEditRequest Normalize(CaseEditRequest request)
+    {
+        return request with
+        {
+            CaseNumber = request.CaseNumber.Trim(),
+            Title = request.Title.Trim(),
+            Description = request.Description?.TrimEmptyToNull(),
         };
     }
 

@@ -1,0 +1,124 @@
+@page "/cases/{CaseId:guid}"
+@using System.Net
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.Cases
+@inject ICasesClient CasesClient
+@inject ILogger<Case> Logger
+
+<PageTitle>@(this.caseDetail is null ? "Spis" : this.caseDetail.CaseNumber) – EvilCase</PageTitle>
+
+<div class="page-header d-print-none">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <div class="page-pretitle"><a href="/cases">Spisy</a></div>
+                <h2 class="page-title">
+                    @(this.caseDetail?.Title)
+                    @if (this.caseDetail is not null)
+                    {
+                        <span class="ms-2">
+                            <Status BackgroundColor="CaseStatusDisplay.Color(this.caseDetail.Status)" Lite="true">@CaseStatusDisplay.Text(this.caseDetail.Status)</Status>
+                        </span>
+                    }
+                </h2>
+            </div>
+            @if (this.caseDetail is not null)
+            {
+                <div class="col-auto ms-auto d-print-none">
+                    <a id="case-edit" href="@($"/cases/{this.CaseId}/edit")" class="btn btn-primary">Upravit</a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        @if (this.notFound)
+        {
+            <div class="empty">
+                <p class="empty-title">Spis nenalezen</p>
+            </div>
+        }
+        else if (this.failure is not null)
+        {
+            <div class="empty">
+                <p class="empty-title">Spis se nepodařilo načíst</p>
+                <p class="empty-subtitle text-secondary">@this.failure</p>
+            </div>
+        }
+        else if (this.caseDetail is null)
+        {
+            <div class="text-center text-secondary">
+                <div class="spinner-border" role="status"></div>
+            </div>
+        }
+        else
+        {
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Údaje</h3>
+                </div>
+                <div class="card-body">
+                    <div class="datagrid">
+                        <div class="datagrid-item">
+                            <div class="datagrid-title">Spisová značka</div>
+                            <div class="datagrid-content">@this.caseDetail.CaseNumber</div>
+                        </div>
+                        <div class="datagrid-item">
+                            <div class="datagrid-title">Datum</div>
+                            <div class="datagrid-content">@DateDisplay.Text(this.caseDetail.Date)</div>
+                        </div>
+                        <div class="datagrid-item">
+                            <div class="datagrid-title">Stav</div>
+                            <div class="datagrid-content">@CaseStatusDisplay.Text(this.caseDetail.Status)</div>
+                        </div>
+                        <div class="datagrid-item">
+                            <div class="datagrid-title">Popis</div>
+                            <div class="datagrid-content">@(string.IsNullOrWhiteSpace(this.caseDetail.Description) ? "—" : this.caseDetail.Description)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public Guid CaseId { get; set; }
+
+    private CaseDetail? caseDetail;
+
+    private bool notFound;
+
+    private string? failure;
+
+    protected override Task OnParametersSetAsync()
+    {
+        return this.LoadCase();
+    }
+
+    private async Task LoadCase()
+    {
+        this.caseDetail = null;
+        this.notFound = false;
+        this.failure = null;
+
+        try
+        {
+            this.caseDetail = await this.CasesClient.GetCase(this.CaseId, CancellationToken.None);
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+        {
+            this.notFound = true;
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Loading the case detail failed");
+
+            this.failure = "Spis se nepodařilo načíst. Zkuste to za chvíli znovu.";
+        }
+    }
+}

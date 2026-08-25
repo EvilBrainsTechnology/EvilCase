@@ -2,6 +2,7 @@ using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Controllers;
 using EvilBrains.EvilCase.Business.Cases;
 using EvilBrains.EvilCase.Domain.Cases;
+using Microsoft.AspNetCore.Mvc;
 
 namespace EvilBrains.EvilCase.Tests.Controllers;
 
@@ -65,6 +66,142 @@ public class CasesControllerTests
         Assert.That(response, Is.SameAs(created));
     }
 
+    [Test]
+    public async Task TheDetailIsAskedForTheIdInTheRoute()
+    {
+        var caseId = Guid.CreateVersion7();
+        var reader = new RecordingCaseReader { DetailResult = Detail(caseId) };
+        var controller = new CasesController();
+
+        await controller.GetCase(reader, caseId, CancellationToken.None);
+
+        Assert.That(reader.DetailId, Is.EqualTo(caseId));
+    }
+
+    [Test]
+    public async Task AMissingCaseIsAProblemWithFourOhFour()
+    {
+        var controller = new CasesController();
+
+        var result = await controller.GetCase(new RecordingCaseReader { DetailResult = null }, Guid.CreateVersion7(), CancellationToken.None);
+
+        AssertProblem(result.Result, 404);
+    }
+
+    [Test]
+    public async Task AnEditReachesTheWriterWithTheRouteIdAndTheBody()
+    {
+        var caseId = Guid.CreateVersion7();
+        var writer = new RecordingCaseWriter { UpdateOutcome = CaseUpdateOutcome.Updated };
+        var controller = new CasesController();
+        var request = Edit();
+
+        await controller.EditCase(writer, caseId, request, CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(writer.UpdateId, Is.EqualTo(caseId));
+            Assert.That(writer.UpdateRequest, Is.SameAs(request), "the controller decides nothing about the edit");
+        }
+    }
+
+    [Test]
+    public async Task AnEditThatSucceedsAnswersWithNoContent()
+    {
+        var writer = new RecordingCaseWriter { UpdateOutcome = CaseUpdateOutcome.Updated };
+        var controller = new CasesController();
+
+        var result = await controller.EditCase(writer, Guid.CreateVersion7(), Edit(), CancellationToken.None);
+
+        Assert.That(result, Is.InstanceOf<NoContentResult>());
+    }
+
+    [Test]
+    public async Task EditingAMissingCaseIsAProblemWithFourOhFour()
+    {
+        var writer = new RecordingCaseWriter { UpdateOutcome = CaseUpdateOutcome.NotFound };
+        var controller = new CasesController();
+
+        var result = await controller.EditCase(writer, Guid.CreateVersion7(), Edit(), CancellationToken.None);
+
+        AssertProblem(result, 404);
+    }
+
+    [Test]
+    public async Task ACaseNumberOutsideTheFormatIsAFieldErrorOnTheNumber()
+    {
+        var writer = new RecordingCaseWriter { UpdateOutcome = CaseUpdateOutcome.InvalidCaseNumber };
+        var controller = new CasesController();
+
+        var result = await controller.EditCase(writer, Guid.CreateVersion7(), Edit(), CancellationToken.None);
+
+        Assert.That(result, Is.InstanceOf<ObjectResult>());
+        var problem = (ObjectResult)result;
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(problem.StatusCode, Is.EqualTo(400));
+            Assert.That(problem.Value, Is.InstanceOf<ValidationProblemDetails>());
+        }
+
+        var validation = (ValidationProblemDetails)problem.Value!;
+
+        Assert.That(
+            validation.Errors,
+            Does.ContainKey(nameof(CaseEditRequest.CaseNumber)),
+            "a hand-written number outside the format is reported on the field that carries it");
+    }
+
+    [Test]
+    public async Task ACaseNumberAnotherCaseHoldsIsAConflict()
+    {
+        var writer = new RecordingCaseWriter { UpdateOutcome = CaseUpdateOutcome.CaseNumberTaken };
+        var controller = new CasesController();
+
+        var result = await controller.EditCase(writer, Guid.CreateVersion7(), Edit(), CancellationToken.None);
+
+        var problem = AssertProblem(result, 409);
+
+        Assert.That(problem.Detail, Is.Not.Null, "a number another case holds is a conflict the user resolves");
+    }
+
+    private static ProblemDetails AssertProblem(IActionResult? result, in int statusCode)
+    {
+        Assert.That(result, Is.InstanceOf<ObjectResult>());
+        var objectResult = (ObjectResult)result!;
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(objectResult.StatusCode, Is.EqualTo(statusCode));
+            Assert.That(objectResult.Value, Is.InstanceOf<ProblemDetails>());
+        }
+
+        return (ProblemDetails)objectResult.Value!;
+    }
+
+    private static CaseDetail Detail(Guid caseId)
+    {
+        return new()
+        {
+            Id = caseId,
+            CaseNumber = "EC/20260821-001",
+            Date = new DateOnly(2026, 8, 21),
+            Title = "Přestupek",
+            Status = CaseStatus.Active,
+        };
+    }
+
+    private static CaseEditRequest Edit()
+    {
+        return new()
+        {
+            CaseNumber = "EC/20260821-001",
+            Date = new DateOnly(2026, 8, 21),
+            Title = "Přestupek",
+            Status = CaseStatus.Active,
+        };
+    }
+
     private static CaseListItem Item(string caseNumber, string title)
     {
         return new()
@@ -83,11 +220,22 @@ public class CasesControllerTests
 
         public CaseListRequest? Request { get; private set; }
 
+        public Guid? DetailId { get; private set; }
+
+        public CaseDetail? DetailResult { get; init; }
+
         public Task<IReadOnlyList<CaseListItem>> ListCases(CaseListRequest request, CancellationToken token)
         {
             this.Request = request;
 
             return Task.FromResult(this.Items);
+        }
+
+        public Task<CaseDetail?> GetCaseDetail(Guid caseId, CancellationToken token)
+        {
+            this.DetailId = caseId;
+
+            return Task.FromResult(this.DetailResult);
         }
     }
 
@@ -97,11 +245,25 @@ public class CasesControllerTests
 
         public CaseListItem Created { get; init; } = Item("EC/20260821-001", "Spis");
 
+        public Guid? UpdateId { get; private set; }
+
+        public CaseEditRequest? UpdateRequest { get; private set; }
+
+        public CaseUpdateOutcome UpdateOutcome { get; init; }
+
         public Task<CaseListItem> CreateCase(CreateCaseRequest request, CancellationToken token)
         {
             this.Request = request;
 
             return Task.FromResult(this.Created);
+        }
+
+        public Task<CaseUpdateOutcome> UpdateCase(Guid caseId, CaseEditRequest request, CancellationToken token)
+        {
+            this.UpdateId = caseId;
+            this.UpdateRequest = request;
+
+            return Task.FromResult(this.UpdateOutcome);
         }
     }
 }
