@@ -16,8 +16,6 @@ internal sealed class CaseReader(IDbSession dbSession) : ICaseReader
             .ToListAsync(token);
     }
 
-    // A detail is not a list query: the header with its parent and the direct subordinates are
-    // separate reads, merged here.
     public async Task<CaseDetail?> GetCaseDetail(Guid caseId, CancellationToken token)
     {
         var context = dbSession.Current;

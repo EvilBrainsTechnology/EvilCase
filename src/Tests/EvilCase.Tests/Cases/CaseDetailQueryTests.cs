@@ -106,17 +106,6 @@ public class CaseDetailQueryTests
     }
 
     [Test]
-    public async Task DetailOfLeavesTheSubordinateCasesToTheReader()
-    {
-        var root = await this.tenant.AddCase(Day, "Kořen");
-        _ = await this.tenant.AddCase(Day, "Podřízený", parentCaseId: root.Id);
-
-        var detail = await this.tenant.Context.Cases.DetailOf(root.Id, CancellationToken.None);
-
-        Assert.That(detail!.ChildCases, Is.Empty);
-    }
-
-    [Test]
     public async Task AnUnknownIdIsNoDetail()
     {
         var detail = await this.tenant.Context.Cases.DetailOf(Guid.CreateVersion7(), CancellationToken.None);

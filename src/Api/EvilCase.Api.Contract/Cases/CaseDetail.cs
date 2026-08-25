@@ -21,6 +21,8 @@ public sealed record CaseDetail
     /// </summary>
     public CaseListItem? ParentCase { get; init; }
 
-    // Not required: the EF projection sets only the header and the reader fills this with `with`.
+    /// <summary>
+    /// The cases that hang directly under this one; the detail shows one level, never a tree (SDD-009).
+    /// </summary>
     public IReadOnlyList<CaseListItem> ChildCases { get; init; } = [];
 }
