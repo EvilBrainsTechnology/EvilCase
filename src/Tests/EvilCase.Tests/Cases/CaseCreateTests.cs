@@ -24,7 +24,7 @@ public class CaseCreateTests
     [SetUp]
     public async Task SetUp()
     {
-        this.tenant = await TestTenant.Create();
+        this.tenant = await TestTenant.Create(forWrites: true);
         this.writer = new CaseWriter(new FixedDbSession(this.tenant.Context), new FakeCaseNumberIssuer(), NullLogger<CaseWriter>.Instance);
     }
 
@@ -44,8 +44,6 @@ public class CaseCreateTests
             CancellationToken.None);
 
         Assert.That(created, Is.Not.Null);
-
-        this.tenant.Context.ChangeTracker.Clear();
 
         var reloaded = await this.tenant.Context.Cases.SingleAsync(@case => @case.Id == created!.Id);
 
@@ -77,8 +75,6 @@ public class CaseCreateTests
             CancellationToken.None);
 
         Assert.That(created, Is.Not.Null);
-
-        this.tenant.Context.ChangeTracker.Clear();
 
         var reloaded = await this.tenant.Context.Cases.SingleAsync(@case => @case.Id == created!.Id);
 
