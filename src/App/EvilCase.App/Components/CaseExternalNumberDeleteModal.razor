@@ -1,0 +1,71 @@
+@using System.Net
+@using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.Cases
+@using EvilBrains.ApiClient
+@using TabBlazor.Services
+@inject ICasesClient CasesClient
+@inject IModalService ModalService
+@inject ILogger<CaseExternalNumberDeleteModal> Logger
+
+<p>Opravdu smazat značku <strong>@Number.Value</strong>? Akci nelze vrátit zpět.</p>
+
+@if (this.error is not null)
+{
+    <div class="alert alert-danger" role="alert">@this.error</div>
+}
+
+<div class="d-flex justify-content-end gap-2 mt-3">
+    <button type="button" class="btn" @onclick="() => this.ModalService.Close()">Zrušit</button>
+    <button type="button" class="btn btn-danger" disabled="@this.busy" @onclick="this.DeleteNumber">
+        @if (this.busy)
+        {
+            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+        }
+        Smazat
+    </button>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public required Guid CaseId { get; set; }
+
+    [Parameter, EditorRequired]
+    public required ExternalCaseNumberItem Number { get; set; }
+
+    [Parameter]
+    public EventCallback OnDeleted { get; set; }
+
+    private string? error;
+
+    private bool busy;
+
+    private async Task DeleteNumber()
+    {
+        this.busy = true;
+        this.error = null;
+
+        try
+        {
+            await this.CasesClient.DeleteExternalCaseNumber(this.CaseId, this.Number.Id, CancellationToken.None);
+
+            this.ModalService.Close();
+            await this.OnDeleted.InvokeAsync();
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+        {
+            this.Logger.LogWarning(exception, "Deleting the external case number failed: it is already gone");
+
+            this.error = "Značka už neexistuje.";
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Deleting the external case number failed");
+
+            this.error = "Značku se nepodařilo smazat. Zkuste to za chvíli znovu.";
+        }
+        finally
+        {
+            this.busy = false;
+        }
+    }
+}

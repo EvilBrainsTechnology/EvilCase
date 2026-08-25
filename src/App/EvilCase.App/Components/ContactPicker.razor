@@ -1,0 +1,132 @@
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.Contacts
+@using TabBlazor.Services
+@implements IDisposable
+@inject IContactsClient ContactsClient
+@inject IModalService ModalService
+@inject ILogger<ContactPicker> Logger
+
+@if (this.Selected is { } selected)
+{
+    <div class="input-group">
+        <input id="@this.InputId" class="form-control" value="@selected.Name" readonly aria-label="Vybraný kontakt" />
+        <button type="button" class="btn" @onclick="this.ClearSelection">Změnit</button>
+    </div>
+}
+else
+{
+    <div class="input-group">
+        <input id="@this.InputId" type="search" class="form-control" placeholder="Hledat podle názvu nebo ID datové schránky"
+               aria-label="Hledat kontakt" value="@this.search" @oninput="this.OnSearchInput" />
+        <button type="button" id="@($"{this.InputId}-new")" class="btn" @onclick="this.CreateContact">Nový kontakt</button>
+    </div>
+
+    @if (this.matches.Count > 0)
+    {
+        <div class="list-group mt-1">
+            @foreach (var match in this.matches)
+            {
+                <button type="button" class="list-group-item list-group-item-action" @onclick="() => this.Select(match)">
+                    @match.Name
+                    <span class="text-secondary ms-2">@ContactKindDisplay.Text(match.Kind)</span>
+                    @if (!string.IsNullOrWhiteSpace(match.DataBoxId))
+                    {
+                        <span class="text-secondary ms-2">@match.DataBoxId</span>
+                    }
+                </button>
+            }
+        </div>
+    }
+    else if (this.searched)
+    {
+        <div class="form-hint">Žádný kontakt neodpovídá. Založte nový.</div>
+    }
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public required string InputId { get; set; }
+
+    [Parameter]
+    public ContactListItem? Selected { get; set; }
+
+    [Parameter]
+    public EventCallback<ContactListItem?> SelectedChanged { get; set; }
+
+    private readonly SearchDebouncer debouncer = new();
+
+    private IReadOnlyList<ContactListItem> matches = [];
+
+    private string search = "";
+
+    private bool searched;
+
+    public void Dispose()
+    {
+        this.debouncer.Dispose();
+    }
+
+    private Task OnSearchInput(ChangeEventArgs args)
+    {
+        this.search = args.Value as string ?? "";
+
+        return this.LoadMatches(debounce: true);
+    }
+
+    private async Task LoadMatches(bool debounce)
+    {
+        var token = await this.debouncer.Start(debounce);
+        if (token is null)
+            return;
+
+        if (string.IsNullOrWhiteSpace(this.search))
+        {
+            this.matches = [];
+            this.searched = false;
+            return;
+        }
+
+        try
+        {
+            var response = await this.ContactsClient.ListContacts(new ContactListRequest { Search = this.search }, token.Value);
+
+            this.matches = [.. response.Items.Take(8)];
+            this.searched = true;
+        }
+        catch (OperationCanceledException)
+        {
+            // Superseded by a newer request.
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Loading the contact matches failed");
+
+            this.matches = [];
+            this.searched = true;
+        }
+    }
+
+    private async Task Select(ContactListItem contact)
+    {
+        this.matches = [];
+        this.search = "";
+        this.searched = false;
+
+        await this.SelectedChanged.InvokeAsync(contact);
+    }
+
+    private async Task ClearSelection()
+    {
+        await this.SelectedChanged.InvokeAsync(null);
+    }
+
+    private async Task CreateContact()
+    {
+        await this.ModalService.ShowAsync(
+            "Nový kontakt",
+            new RenderComponent<ContactCreateModal>()
+                .Set(component => component.OnCreated, EventCallback.Factory.Create<ContactListItem>(this, this.Select)),
+            new ModalOptions { Fullscreen = ModalFullscreen.BelowLarge });
+    }
+}

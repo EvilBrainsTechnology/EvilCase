@@ -111,6 +111,10 @@
                     </div>
                 </EditForm>
             </div>
+
+            <div class="mt-3">
+                <CaseExternalNumbersCard CaseId="this.CaseId" Items="this.externalNumbers" Editable="true" OnChanged="this.ReloadExternalNumbers" />
+            </div>
         }
     </div>
 </div>
@@ -122,6 +126,8 @@
     private readonly CaseEditModel model = new();
 
     private IReadOnlyList<CaseListItem> parentOptions = [];
+
+    private IReadOnlyList<ExternalCaseNumberItem> externalNumbers = [];
 
     private bool notFound;
 
@@ -154,6 +160,7 @@
             this.model.Description = @case.Description;
             this.model.Status = @case.Status;
             this.model.ParentCaseId = @case.ParentCase?.Id;
+            this.externalNumbers = @case.ExternalNumbers;
 
             var response = await this.CasesClient.ListCases(new CaseListRequest { Status = CaseStatusFilter.All }, CancellationToken.None);
 
@@ -217,6 +224,20 @@
         finally
         {
             this.busy = false;
+        }
+    }
+
+    private async Task ReloadExternalNumbers()
+    {
+        try
+        {
+            var @case = await this.CasesClient.GetCase(this.CaseId, CancellationToken.None);
+
+            this.externalNumbers = @case.ExternalNumbers;
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Reloading the external case numbers failed");
         }
     }
 }

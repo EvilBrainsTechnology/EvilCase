@@ -1,0 +1,180 @@
+@using System.Net
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.Cases
+@using TabBlazor.Services
+@inject ICasesClient CasesClient
+@inject IModalService ModalService
+@inject ILogger<CaseExternalNumbersCard> Logger
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Externí spisové značky</h3>
+    </div>
+
+    @if (this.Items.Count == 0)
+    {
+        <div class="empty">
+            <p class="empty-title">Žádné externí značky</p>
+        </div>
+    }
+    else
+    {
+        @* Table on desktop, cards on mobile: two renderings switched by CSS only. *@
+        <div class="d-none d-lg-block">
+            <table class="table card-table table-vcenter">
+                <thead>
+                    <tr>
+                        <th>Značka</th>
+                        <th>Přidělil</th>
+                        @if (this.Editable)
+                        {
+                            <th></th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in this.Items)
+                    {
+                        <tr>
+                            <td>@item.Value</td>
+                            <td><a href="/contacts/@item.AssignedByContactId">@item.AssignedByContactName</a></td>
+                            @if (this.Editable)
+                            {
+                                <td class="text-end">
+                                    <button type="button" class="btn btn-sm" @onclick="() => this.DeleteNumber(item)">Smazat</button>
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card-body d-lg-none">
+            @foreach (var item in this.Items)
+            {
+                <div class="mb-3 border-bottom pb-2">
+                    <div class="fw-bold">@item.Value</div>
+                    <div><a href="/contacts/@item.AssignedByContactId">@item.AssignedByContactName</a></div>
+                    @if (this.Editable)
+                    {
+                        <button type="button" class="btn btn-sm" @onclick="() => this.DeleteNumber(item)">Smazat</button>
+                    }
+                </div>
+            }
+        </div>
+    }
+
+    @if (this.Editable)
+    {
+        <div class="card-body border-top">
+            <EditForm Model="this.model" OnValidSubmit="this.AddNumber">
+                <DataAnnotationsValidator />
+
+                <div class="mb-3">
+                    <label class="form-label" for="external-number-value">Značka</label>
+                    <InputText id="external-number-value" class="form-control" @bind-Value="this.model.Value" />
+                    <ValidationMessage For="() => this.model.Value" class="invalid-feedback d-block" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Přidělil</label>
+                    <ContactPicker InputId="external-number-contact" @bind-Selected="this.model.AssignedBy" />
+                </div>
+
+                @if (this.error is not null)
+                {
+                    <div class="alert alert-danger" role="alert">@this.error</div>
+                }
+
+                <button id="external-number-add" type="submit" class="btn btn-primary" disabled="@this.busy">
+                    @if (this.busy)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                    }
+                    Přidat
+                </button>
+            </EditForm>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public required Guid CaseId { get; set; }
+
+    [Parameter, EditorRequired]
+    public required IReadOnlyList<ExternalCaseNumberItem> Items { get; set; }
+
+    /// <summary>
+    /// Adds and removals show only where the case is being edited (SDD-009).
+    /// </summary>
+    [Parameter]
+    public bool Editable { get; set; }
+
+    [Parameter]
+    public EventCallback OnChanged { get; set; }
+
+    private ExternalCaseNumberModel model = new();
+
+    private string? error;
+
+    private bool busy;
+
+    private async Task AddNumber()
+    {
+        this.busy = true;
+        this.error = null;
+
+        if (this.model.AssignedBy is null)
+        {
+            this.error = "Vyberte kontakt, který značku přidělil.";
+            this.busy = false;
+            return;
+        }
+
+        try
+        {
+            await this.CasesClient.AddExternalCaseNumber(
+                this.CaseId,
+                new ExternalCaseNumberRequest { Value = this.model.Value, AssignedByContactId = this.model.AssignedBy.Id },
+                CancellationToken.None);
+
+            this.model = new();
+
+            await this.OnChanged.InvokeAsync();
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
+        {
+            this.error = exception.ResponseBody?.Contains(CaseProblems.ExternalNumberTaken, StringComparison.Ordinal) == true
+                ? "Tuto značku už spis nese."
+                : "Vybraný kontakt už neexistuje.";
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+        {
+            this.error = "Spis už neexistuje.";
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Adding the external case number failed");
+
+            this.error = "Značku se nepodařilo přidat. Zkuste to znovu.";
+        }
+        finally
+        {
+            this.busy = false;
+        }
+    }
+
+    private async Task DeleteNumber(ExternalCaseNumberItem number)
+    {
+        await this.ModalService.ShowAsync(
+            "Smazat externí značku",
+            new RenderComponent<CaseExternalNumberDeleteModal>()
+                .Set(component => component.CaseId, this.CaseId)
+                .Set(component => component.Number, number)
+                .Set(component => component.OnDeleted, EventCallback.Factory.Create(this, () => this.OnChanged.InvokeAsync())),
+            new ModalOptions { Fullscreen = ModalFullscreen.BelowLarge });
+    }
+}

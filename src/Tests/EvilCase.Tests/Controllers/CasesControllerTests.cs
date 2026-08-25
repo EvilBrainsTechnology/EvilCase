@@ -199,6 +199,115 @@ public class CasesControllerTests
         Assert.That(problem.Title, Is.EqualTo("Invalid parent"), "the edit's two conflicts are told apart by the problem title");
     }
 
+    [Test]
+    public async Task AddingAMarkReachesTheWriterWithTheRouteIdAndTheBody()
+    {
+        var caseId = Guid.CreateVersion7();
+        var writer = new RecordingExternalCaseNumberWriter { AddOutcome = ExternalCaseNumberOutcome.Added };
+        var controller = new CasesController();
+        var request = Mark();
+
+        await controller.AddExternalCaseNumber(writer, caseId, request, CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(writer.AddCaseId, Is.EqualTo(caseId));
+            Assert.That(writer.AddRequest, Is.SameAs(request), "the controller decides nothing about the mark");
+        }
+    }
+
+    [Test]
+    public async Task AddingAMarkThatSucceedsAnswersWithNoContent()
+    {
+        var writer = new RecordingExternalCaseNumberWriter { AddOutcome = ExternalCaseNumberOutcome.Added };
+        var controller = new CasesController();
+
+        var result = await controller.AddExternalCaseNumber(writer, Guid.CreateVersion7(), Mark(), CancellationToken.None);
+
+        Assert.That(result, Is.InstanceOf<NoContentResult>());
+    }
+
+    [Test]
+    public async Task AddingAMarkToAMissingCaseIsAProblemWithFourOhFour()
+    {
+        var writer = new RecordingExternalCaseNumberWriter { AddOutcome = ExternalCaseNumberOutcome.CaseNotFound };
+        var controller = new CasesController();
+
+        var result = await controller.AddExternalCaseNumber(writer, Guid.CreateVersion7(), Mark(), CancellationToken.None);
+
+        AssertProblem(result, 404);
+    }
+
+    [Test]
+    public async Task AMarkTheCaseAlreadyCarriesIsAConflict()
+    {
+        var writer = new RecordingExternalCaseNumberWriter { AddOutcome = ExternalCaseNumberOutcome.ValueTaken };
+        var controller = new CasesController();
+
+        var result = await controller.AddExternalCaseNumber(writer, Guid.CreateVersion7(), Mark(), CancellationToken.None);
+
+        var problem = AssertProblem(result, 409);
+
+        Assert.That(problem.Title, Is.EqualTo(CaseProblems.ExternalNumberTaken), "the two conflicts of the add are told apart by the problem title");
+    }
+
+    [Test]
+    public async Task AMarkNamingAnUnknownContactIsAConflict()
+    {
+        var writer = new RecordingExternalCaseNumberWriter { AddOutcome = ExternalCaseNumberOutcome.UnknownContact };
+        var controller = new CasesController();
+
+        var result = await controller.AddExternalCaseNumber(writer, Guid.CreateVersion7(), Mark(), CancellationToken.None);
+
+        var problem = AssertProblem(result, 409);
+
+        Assert.That(problem.Title, Is.EqualTo(CaseProblems.UnknownContact));
+    }
+
+    [Test]
+    public async Task DeletingAMarkAnswersWithNoContent()
+    {
+        var writer = new RecordingExternalCaseNumberWriter { DeleteResult = true };
+        var controller = new CasesController();
+
+        var result = await controller.DeleteExternalCaseNumber(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
+
+        Assert.That(result, Is.InstanceOf<NoContentResult>());
+    }
+
+    [Test]
+    public async Task DeletingAMarkReachesTheWriterWithBothRouteIds()
+    {
+        var caseId = Guid.CreateVersion7();
+        var numberId = Guid.CreateVersion7();
+        var writer = new RecordingExternalCaseNumberWriter { DeleteResult = true };
+        var controller = new CasesController();
+
+        await controller.DeleteExternalCaseNumber(writer, caseId, numberId, CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(writer.DeleteCaseId, Is.EqualTo(caseId));
+            Assert.That(writer.DeleteNumberId, Is.EqualTo(numberId));
+        }
+    }
+
+    [Test]
+    public async Task DeletingAMissingMarkIsAProblemWithFourOhFour()
+    {
+        var writer = new RecordingExternalCaseNumberWriter { DeleteResult = false };
+        var controller = new CasesController();
+
+        var result = await controller.DeleteExternalCaseNumber(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
+
+        AssertProblem(result, 404);
+    }
+
+    private static ExternalCaseNumberRequest Mark()
+    {
+        return new() { Value = "VV41/2025/08464", AssignedByContactId = Guid.CreateVersion7() };
+    }
+
     private static ProblemDetails AssertProblem(IActionResult? result, in int statusCode)
     {
         Assert.That(result, Is.InstanceOf<ObjectResult>());
@@ -298,6 +407,37 @@ public class CasesControllerTests
             this.UpdateRequest = request;
 
             return Task.FromResult(this.UpdateOutcome);
+        }
+    }
+
+    private sealed class RecordingExternalCaseNumberWriter : IExternalCaseNumberWriter
+    {
+        public Guid? AddCaseId { get; private set; }
+
+        public ExternalCaseNumberRequest? AddRequest { get; private set; }
+
+        public ExternalCaseNumberOutcome AddOutcome { get; init; }
+
+        public Guid? DeleteCaseId { get; private set; }
+
+        public Guid? DeleteNumberId { get; private set; }
+
+        public bool DeleteResult { get; init; }
+
+        public Task<ExternalCaseNumberOutcome> AddExternalCaseNumber(Guid caseId, ExternalCaseNumberRequest request, CancellationToken token)
+        {
+            this.AddCaseId = caseId;
+            this.AddRequest = request;
+
+            return Task.FromResult(this.AddOutcome);
+        }
+
+        public Task<bool> DeleteExternalCaseNumber(Guid caseId, Guid numberId, CancellationToken token)
+        {
+            this.DeleteCaseId = caseId;
+            this.DeleteNumberId = numberId;
+
+            return Task.FromResult(this.DeleteResult);
         }
     }
 }

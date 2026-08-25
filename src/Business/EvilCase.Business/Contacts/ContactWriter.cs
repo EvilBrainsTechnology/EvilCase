@@ -3,12 +3,39 @@ using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Data;
 using EvilBrains.EvilCase.Data.DbContexts;
+using EvilBrains.EvilCase.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Business.Contacts;
 
 internal sealed class ContactWriter(IDbSession dbSession) : IContactWriter
 {
+    public async Task<ContactListItem> CreateContact(ContactEditRequest request, CancellationToken token)
+    {
+        var normalized = Normalize(request);
+
+        var contact = new Contact
+        {
+            Kind = normalized.Kind,
+            Name = normalized.Name,
+            DataBoxId = normalized.DataBoxId,
+            Address = normalized.Address,
+        };
+
+        dbSession.Current.Contacts.Add(contact);
+
+        await dbSession.Current.SaveChangesAsync(token);
+
+        return new ContactListItem
+        {
+            Id = contact.Id,
+            Kind = contact.Kind,
+            Name = contact.Name,
+            DataBoxId = contact.DataBoxId,
+            Address = contact.Address,
+        };
+    }
+
     public async Task<ContactUpdateOutcome> UpdateContact(Guid contactId, ContactEditRequest request, CancellationToken token)
     {
         var normalized = Normalize(request);

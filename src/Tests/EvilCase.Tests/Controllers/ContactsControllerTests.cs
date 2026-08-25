@@ -9,6 +9,30 @@ namespace EvilBrains.EvilCase.Tests.Controllers;
 public class ContactsControllerTests
 {
     [Test]
+    public async Task TheCreateRequestReachesTheWriterUntouched()
+    {
+        var writer = new RecordingContactWriter();
+        var controller = new ContactsController();
+        var request = new ContactEditRequest { Name = "Nový kontakt", Kind = ContactKind.Authority };
+
+        await controller.CreateContact(writer, request, CancellationToken.None);
+
+        Assert.That(writer.CreateRequest, Is.SameAs(request));
+    }
+
+    [Test]
+    public async Task TheCreatedContactIsWhatTheWriterReturned()
+    {
+        var created = Item("Nový kontakt");
+        var writer = new RecordingContactWriter { Created = created };
+        var controller = new ContactsController();
+
+        var result = await controller.CreateContact(writer, new ContactEditRequest { Name = "Nový kontakt", Kind = ContactKind.Authority }, CancellationToken.None);
+
+        Assert.That(result, Is.SameAs(created));
+    }
+
+    [Test]
     public async Task TheRequestReachesTheReaderUntouched()
     {
         var reader = new RecordingContactReader();
@@ -196,6 +220,10 @@ public class ContactsControllerTests
 
     private sealed class RecordingContactWriter : IContactWriter
     {
+        public ContactEditRequest? CreateRequest { get; private set; }
+
+        public ContactListItem Created { get; init; } = Item("Kontakt");
+
         public Guid? UpdateId { get; private set; }
 
         public ContactEditRequest? UpdateRequest { get; private set; }
@@ -203,6 +231,13 @@ public class ContactsControllerTests
         public ContactUpdateOutcome UpdateOutcome { get; init; }
 
         public ContactDeleteOutcome DeleteOutcome { get; init; }
+
+        public Task<ContactListItem> CreateContact(ContactEditRequest request, CancellationToken token)
+        {
+            this.CreateRequest = request;
+
+            return Task.FromResult(this.Created);
+        }
 
         public Task<ContactUpdateOutcome> UpdateContact(Guid contactId, ContactEditRequest request, CancellationToken token)
         {
