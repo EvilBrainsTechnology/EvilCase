@@ -93,3 +93,8 @@
 .address-block {
     white-space: pre-line;
 }
+
+/* A comment is one free-text block, shown as it was written. */
+.comment-body {
+    white-space: pre-line;
+}

@@ -20,23 +20,31 @@ internal sealed class TestTenant : IAsyncDisposable
 {
     private readonly IDisposable entered;
 
-    private readonly Guid tenantId;
+    private readonly StubUserContext stubUserContext;
 
-    private readonly Guid userId;
+    private readonly Guid tenantId;
 
     // The day's next sequence, so a seeded number is the one SDD-008 gives that day.
     private readonly Dictionary<string, int> sequences = [];
 
-    private TestTenant(IDisposable entered, ApplicationDbContext context, Guid tenantId, Guid userId, Contact defaultContact)
+    private TestTenant(IDisposable entered, StubUserContext stubUserContext, ApplicationDbContext context, Guid tenantId, Guid userId, Contact defaultContact)
     {
         this.entered = entered;
+        this.stubUserContext = stubUserContext;
         this.Context = context;
         this.tenantId = tenantId;
-        this.userId = userId;
+        this.UserId = userId;
         this.DefaultContact = defaultContact;
     }
 
     public ApplicationDbContext Context { get; }
+
+    /// <summary>
+    /// The seeded user's id, the one a write lands under absent another author.
+    /// </summary>
+    public Guid UserId { get; }
+
+    public IUserContext UserContext => this.stubUserContext;
 
     /// <summary>
     /// The contact the seeded user prefills an act with. A delete aimed at it answers
@@ -76,7 +84,7 @@ internal sealed class TestTenant : IAsyncDisposable
 
         await context.SaveChangesAsync();
 
-        return new TestTenant(scope, context, seededTenantId, seededUserId, defaultContact);
+        return new TestTenant(scope, userContext, context, seededTenantId, seededUserId, defaultContact);
     }
 
     /// <summary>
@@ -130,7 +138,7 @@ internal sealed class TestTenant : IAsyncDisposable
             ParentCaseId = parentCaseId,
             Id = caseId ?? Guid.CreateVersion7(),
             TenantId = this.tenantId,
-            UserId = this.userId,
+            UserId = this.UserId,
             CaseNumber = caseNumber ?? CaseNumberFormat.Compose(date, this.NextSequence(CaseNumberFormat.Prefix(date))),
             Date = date,
             Title = title,
@@ -156,7 +164,7 @@ internal sealed class TestTenant : IAsyncDisposable
         {
             Id = actId ?? Guid.CreateVersion7(),
             TenantId = this.tenantId,
-            UserId = this.userId,
+            UserId = this.UserId,
             CaseId = @case.Id,
             ActNumber = actNumber ?? ActNumberFormat.Compose(@case.CaseNumber, date, this.NextSequence(prefix)),
             Direction = ActDirection.Incoming,
@@ -169,12 +177,59 @@ internal sealed class TestTenant : IAsyncDisposable
         return await this.Save(this.Context.Acts, act);
     }
 
+    /// <summary>
+    /// A second user of the same tenant, for a test that needs another author.
+    /// </summary>
+    public async Task<User> AddUser(string email)
+    {
+        var user = new User
+        {
+            TenantId = this.tenantId,
+            Email = email,
+            PasswordHash = "hash",
+            Role = UserRole.User,
+            DefaultContactId = this.DefaultContact.Id,
+        };
+
+        return await this.Save(this.Context.Users, user);
+    }
+
+    public async Task<Comment> AddCaseComment(Case @case, string body, Guid? authorId = null)
+    {
+        var comment = new Comment
+        {
+            TenantId = this.tenantId,
+            UserId = authorId ?? this.UserId,
+            CaseId = @case.Id,
+            Body = body,
+        };
+
+        using var scope = this.stubUserContext.Enter(this.tenantId, comment.UserId);
+
+        return await this.Save(this.Context.Comments, comment);
+    }
+
+    public async Task<Comment> AddActComment(Act act, string body)
+    {
+        var comment = new Comment
+        {
+            TenantId = this.tenantId,
+            UserId = this.UserId,
+            ActId = act.Id,
+            Body = body,
+        };
+
+        using var scope = this.stubUserContext.Enter(this.tenantId, comment.UserId);
+
+        return await this.Save(this.Context.Comments, comment);
+    }
+
     public async Task<ExternalCaseNumber> AddExternalCaseNumber(Case @case, string value, Contact assignedBy)
     {
         var number = new ExternalCaseNumber
         {
             TenantId = this.tenantId,
-            UserId = this.userId,
+            UserId = this.UserId,
             CaseId = @case.Id,
             Value = value,
             AssignedByContactId = assignedBy.Id,
@@ -188,7 +243,7 @@ internal sealed class TestTenant : IAsyncDisposable
         var number = new ExternalActNumber
         {
             TenantId = this.tenantId,
-            UserId = this.userId,
+            UserId = this.UserId,
             ActId = act.Id,
             Value = value,
             AssignedByContactId = assignedBy.Id,
