@@ -21,59 +21,66 @@
                 <p class="empty-title">Nadřízený spis nenalezen</p>
             </div>
         }
+        else if (this.failure is not null)
+        {
+            <div class="empty">
+                <p class="empty-title">Nadřízený spis se nepodařilo načíst</p>
+                <p class="empty-subtitle text-secondary">@this.failure</p>
+            </div>
+        }
         else
         {
-        <div class="card">
-            <EditForm Model="this.model" OnValidSubmit="this.SubmitCase">
-                <DataAnnotationsValidator />
+            <div class="card">
+                <EditForm Model="this.model" OnValidSubmit="this.SubmitCase">
+                    <DataAnnotationsValidator />
 
-                <div class="card-body">
-                    @if (this.parentCase is not null)
-                    {
-                        <div class="mb-3">
-                            <div class="form-label">Nadřízený spis</div>
-                            <div class="form-control-plaintext">
-                                <a href="@($"/cases/{this.parentCase.Id}")">@this.parentCase.CaseNumber — @this.parentCase.Title</a>
-                            </div>
-                        </div>
-                    }
-
-                    <div class="mb-3">
-                        <label class="form-label" for="case-date">Datum spisu</label>
-                        <InputDate id="case-date" class="form-control" @bind-Value="this.model.Date" />
-                        <ValidationMessage For="() => this.model.Date" class="invalid-feedback d-block" />
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label" for="case-title">Název</label>
-                        <InputText id="case-title" class="form-control" autofocus @bind-Value="this.model.Title" />
-                        <ValidationMessage For="() => this.model.Title" class="invalid-feedback d-block" />
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label" for="case-description">Popis</label>
-                        <InputTextArea id="case-description" class="form-control" rows="5" @bind-Value="this.model.Description" />
-                        <ValidationMessage For="() => this.model.Description" class="invalid-feedback d-block" />
-                    </div>
-
-                    @if (this.error is not null)
-                    {
-                        <div class="alert alert-danger mb-0" role="alert">@this.error</div>
-                    }
-                </div>
-
-                <div class="card-footer form-actions-sticky d-flex justify-content-end gap-2">
-                    <a href="@(this.ParentCaseId is { } parentId ? $"/cases/{parentId}" : "/cases")" class="btn">Zrušit</a>
-                    <button id="case-submit" type="submit" class="btn btn-primary" disabled="@this.busy">
-                        @if (this.busy)
+                    <div class="card-body">
+                        @if (this.parentCase is not null)
                         {
-                            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                            <div class="mb-3">
+                                <div class="form-label">Nadřízený spis</div>
+                                <div class="form-control-plaintext">
+                                    <a href="@($"/cases/{this.parentCase.Id}")">@this.parentCase.CaseNumber — @this.parentCase.Title</a>
+                                </div>
+                            </div>
                         }
-                        Založit spis
-                    </button>
-                </div>
-            </EditForm>
-        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="case-date">Datum spisu</label>
+                            <InputDate id="case-date" class="form-control" @bind-Value="this.model.Date" />
+                            <ValidationMessage For="() => this.model.Date" class="invalid-feedback d-block" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="case-title">Název</label>
+                            <InputText id="case-title" class="form-control" autofocus @bind-Value="this.model.Title" />
+                            <ValidationMessage For="() => this.model.Title" class="invalid-feedback d-block" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="case-description">Popis</label>
+                            <InputTextArea id="case-description" class="form-control" rows="5" @bind-Value="this.model.Description" />
+                            <ValidationMessage For="() => this.model.Description" class="invalid-feedback d-block" />
+                        </div>
+
+                        @if (this.error is not null)
+                        {
+                            <div class="alert alert-danger mb-0" role="alert">@this.error</div>
+                        }
+                    </div>
+
+                    <div class="card-footer form-actions-sticky d-flex justify-content-end gap-2">
+                        <a href="@(this.ParentCaseId is { } parentId ? $"/cases/{parentId}" : "/cases")" class="btn">Zrušit</a>
+                        <button id="case-submit" type="submit" class="btn btn-primary" disabled="@this.busy">
+                            @if (this.busy)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                            }
+                            Založit spis
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
         }
     </div>
 </div>
@@ -89,6 +96,8 @@
 
     private bool parentNotFound;
 
+    private string? failure;
+
     private string? error;
 
     private bool busy;
@@ -97,6 +106,7 @@
     {
         this.parentCase = null;
         this.parentNotFound = false;
+        this.failure = null;
 
         if (this.ParentCaseId is not { } parentCaseId)
             return;
@@ -113,7 +123,7 @@
         {
             this.Logger.LogWarning(exception, "Loading the parent case failed");
 
-            this.parentNotFound = true;
+            this.failure = "Nadřízený spis se nepodařilo načíst. Zkuste to za chvíli znovu.";
         }
     }
 
