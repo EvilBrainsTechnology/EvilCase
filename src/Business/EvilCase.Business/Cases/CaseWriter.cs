@@ -102,9 +102,6 @@ internal sealed class CaseWriter(
         return CaseUpdateOutcome.Updated;
     }
 
-    /// <summary>
-    /// The date stays as the form sent it: moving a case does not re-issue its number (SDD-008).
-    /// </summary>
     internal static CaseEditRequest Normalize(CaseEditRequest request)
     {
         return request with
