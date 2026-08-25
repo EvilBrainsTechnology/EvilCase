@@ -60,10 +60,9 @@ internal static class TestDatabase
     }
 
     /// <summary>
-    /// The same database wired the way the host wires it: no tracking by default and the interceptor that
-    /// stamps the tenant and the user on a write.
+    /// The same database wired the way the host wires it.
     /// </summary>
-    public static ApplicationDbContext CreateMigratedForWrites(IUserContext userContext)
+    public static ApplicationDbContext CreateMigratedAsHost(IUserContext userContext)
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseNpgsql(ConnectionString.Value, npgsql => npgsql.UseEvilCaseMigrations())
