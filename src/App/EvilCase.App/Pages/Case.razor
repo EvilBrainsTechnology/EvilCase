@@ -3,7 +3,9 @@
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Cases
+@using EvilBrains.EvilCase.Api.Contract.Comments
 @inject ICasesClient CasesClient
+@inject ICaseCommentsClient CaseCommentsClient
 @inject ILogger<Case> Logger
 
 <PageTitle>@(this.caseDetail is null ? "Spis" : this.caseDetail.CaseNumber) – EvilCase</PageTitle>
@@ -100,6 +102,14 @@
             </div>
 
             <CaseChildrenCard Items="this.caseDetail.ChildCases" ParentCaseId="this.CaseId" />
+
+            <div class="mt-3">
+                <CommentsCard @key="this.CaseId"
+                              LoadComments="this.LoadComments"
+                              AddComment="this.AddComment"
+                              SaveComment="this.SaveComment"
+                              DeleteComment="this.DeleteComment" />
+            </div>
         }
     </div>
 </div>
@@ -139,5 +149,26 @@
 
             this.failure = "Spis se nepodařilo načíst. Zkuste to za chvíli znovu.";
         }
+    }
+
+    private async Task<IReadOnlyList<CommentItem>> LoadComments(CancellationToken token)
+    {
+        var response = await this.CaseCommentsClient.ListCaseComments(this.CaseId, token);
+        return response.Items;
+    }
+
+    private Task AddComment(CommentEditRequest request, CancellationToken token)
+    {
+        return this.CaseCommentsClient.AddCaseComment(this.CaseId, request, token);
+    }
+
+    private Task SaveComment(Guid commentId, CommentEditRequest request, CancellationToken token)
+    {
+        return this.CaseCommentsClient.EditCaseComment(this.CaseId, commentId, request, token);
+    }
+
+    private Task DeleteComment(Guid commentId, CancellationToken token)
+    {
+        return this.CaseCommentsClient.DeleteCaseComment(this.CaseId, commentId, token);
     }
 }

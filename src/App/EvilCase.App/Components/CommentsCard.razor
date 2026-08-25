@@ -1,0 +1,248 @@
+@using System.Net
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Contract.Comments
+@using TabBlazor.Services
+@inject IModalService ModalService
+@inject ILogger<CommentsCard> Logger
+
+<div id="comments-card" class="card">
+    <div class="card-header">
+        <h3 class="card-title">Komentáře</h3>
+    </div>
+
+    @if (this.loading)
+    {
+        <div class="card-body text-center text-secondary">
+            <div class="spinner-border" role="status"></div>
+        </div>
+    }
+    else if (this.listFailure is not null)
+    {
+        <div class="empty">
+            <p class="empty-title">Komentáře se nepodařilo načíst</p>
+            <p class="empty-subtitle text-secondary">@this.listFailure</p>
+        </div>
+    }
+    else if (this.items.Count == 0)
+    {
+        <div class="empty">
+            <p class="empty-title">Žádné komentáře</p>
+        </div>
+    }
+    else
+    {
+        <div class="card-body">
+            @foreach (var item in this.items)
+            {
+                <div class="comment-item border-bottom pb-3 mb-3">
+                    <div class="text-secondary small">
+                        @item.AuthorEmail · @MomentDisplay.Text(item.Created)@(item.Updated is null ? "" : $" · upraveno {MomentDisplay.Text(item.Updated.Value)}")
+                    </div>
+
+                    @if (this.editingCommentId == item.Id)
+                    {
+                        <EditForm Model="this.editModel" OnValidSubmit="this.SaveEditedComment">
+                            <DataAnnotationsValidator />
+
+                            <div class="mb-2">
+                                <InputTextArea id="comment-edit-body" class="form-control" rows="4" @bind-Value="this.editModel.Body" />
+                                <ValidationMessage For="() => this.editModel.Body" class="invalid-feedback d-block" />
+                            </div>
+
+                            @if (this.editError is not null)
+                            {
+                                <div class="alert alert-danger" role="alert">@this.editError</div>
+                            }
+
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary btn-sm" disabled="@this.busy">Uložit</button>
+                                <button type="button" class="btn btn-sm" @onclick="this.CancelEditing">Zrušit</button>
+                            </div>
+                        </EditForm>
+                    }
+                    else
+                    {
+                        <div class="comment-body">@item.Body</div>
+
+                        @if (item.IsAuthor)
+                        {
+                            <div class="d-flex gap-2 mt-2">
+                                <button type="button" class="btn btn-sm comment-edit" @onclick="() => this.StartEditing(item)">Upravit</button>
+                                <button type="button" class="btn btn-sm btn-danger comment-delete" @onclick="() => this.ConfirmDelete(item)">Smazat</button>
+                            </div>
+                        }
+                    }
+                </div>
+            }
+        </div>
+    }
+
+    <div class="card-body border-top">
+        <EditForm Model="this.newModel" OnValidSubmit="this.AddNewComment">
+            <DataAnnotationsValidator />
+
+            <div class="mb-3">
+                <label class="form-label" for="comment-new-body">Nový komentář</label>
+                <InputTextArea id="comment-new-body" class="form-control" rows="3" @bind-Value="this.newModel.Body" />
+                <ValidationMessage For="() => this.newModel.Body" class="invalid-feedback d-block" />
+            </div>
+
+            @if (this.addError is not null)
+            {
+                <div class="alert alert-danger" role="alert">@this.addError</div>
+            }
+
+            <button id="comment-add" type="submit" class="btn btn-primary" disabled="@this.busy">
+                @if (this.busy)
+                {
+                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                }
+                Přidat
+            </button>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public required Func<CancellationToken, Task<IReadOnlyList<CommentItem>>> LoadComments { get; set; }
+
+    [Parameter, EditorRequired]
+    public required Func<CommentEditRequest, CancellationToken, Task> AddComment { get; set; }
+
+    [Parameter, EditorRequired]
+    public required Func<Guid, CommentEditRequest, CancellationToken, Task> SaveComment { get; set; }
+
+    [Parameter, EditorRequired]
+    public required Func<Guid, CancellationToken, Task> DeleteComment { get; set; }
+
+    private readonly CommentEditModel newModel = new();
+
+    private readonly CommentEditModel editModel = new();
+
+    private IReadOnlyList<CommentItem> items = [];
+
+    private Guid? editingCommentId;
+
+    private bool loading = true;
+
+    private bool busy;
+
+    private string? listFailure;
+
+    private string? addError;
+
+    private string? editError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await this.ReloadComments();
+        this.loading = false;
+    }
+
+    private async Task ReloadComments()
+    {
+        this.listFailure = null;
+
+        try
+        {
+            this.items = await this.LoadComments(CancellationToken.None);
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Loading the comments failed");
+
+            this.items = [];
+            this.listFailure = "Komentáře se nepodařilo načíst. Zkuste to za chvíli znovu.";
+        }
+    }
+
+    private async Task AddNewComment()
+    {
+        this.busy = true;
+        this.addError = null;
+
+        try
+        {
+            await this.AddComment(new CommentEditRequest { Body = this.newModel.Body }, CancellationToken.None);
+
+            this.newModel.Body = "";
+
+            await this.ReloadComments();
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+        {
+            this.addError = "Komentář se nepodařilo přidat, záznam už neexistuje.";
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Adding the comment failed");
+
+            this.addError = "Komentář se nepodařilo přidat. Zkuste to znovu.";
+        }
+        finally
+        {
+            this.busy = false;
+        }
+    }
+
+    private void StartEditing(CommentItem comment)
+    {
+        this.editingCommentId = comment.Id;
+        this.editModel.Body = comment.Body;
+        this.editError = null;
+    }
+
+    private void CancelEditing()
+    {
+        this.editingCommentId = null;
+        this.editError = null;
+    }
+
+    private async Task SaveEditedComment()
+    {
+        if (this.editingCommentId is not { } commentId)
+            return;
+
+        this.busy = true;
+        this.editError = null;
+
+        try
+        {
+            await this.SaveComment(commentId, new CommentEditRequest { Body = this.editModel.Body }, CancellationToken.None);
+
+            this.editingCommentId = null;
+
+            await this.ReloadComments();
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.Forbidden)
+        {
+            this.editError = "Komentář smí upravit jen jeho autor.";
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+        {
+            this.editError = "Komentář už neexistuje.";
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Saving the comment failed");
+
+            this.editError = "Komentář se nepodařilo uložit. Zkuste to znovu.";
+        }
+        finally
+        {
+            this.busy = false;
+        }
+    }
+
+    private async Task ConfirmDelete(CommentItem comment)
+    {
+        await this.ModalService.ShowAsync(
+            "Smazat komentář",
+            new RenderComponent<CommentDeleteModal>()
+                .Set(component => component.Body, comment.Body)
+                .Set(component => component.DeleteComment, (CancellationToken token) => this.DeleteComment(comment.Id, token))
+                .Set(component => component.OnDeleted, EventCallback.Factory.Create(this, this.ReloadComments)),
+            new ModalOptions { Fullscreen = ModalFullscreen.BelowLarge });
+    }
+}
