@@ -99,6 +99,22 @@ public class CaseNumberQueryTests
         Assert.That(numbers, Is.EqualTo(expected), "the tenant query filter is what keeps another tenant's numbers out of the day's highest");
     }
 
+    [Test]
+    public async Task ANumberIsHeldOnlyByAnotherCase()
+    {
+        var first = await this.tenant.AddCase(Day, caseNumber: CaseNumberFormat.Compose(Day, 1));
+        var second = await this.tenant.AddCase(Day, caseNumber: CaseNumberFormat.Compose(Day, 2));
+
+        var byFirst = await this.tenant.Context.Cases.WithNumberHeldByAnother(first.CaseNumber, first.Id).ToListAsync();
+        var bySecond = await this.tenant.Context.Cases.WithNumberHeldByAnother(second.CaseNumber, first.Id).ToListAsync();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(byFirst, Is.Empty, "a case does not hold its own number against itself");
+            Assert.That(bySecond.Select(@case => @case.Id), Is.EqualTo([second.Id]));
+        }
+    }
+
     private async Task<List<string>> NumbersWithPrefix(string prefix)
     {
         return await this.tenant.Context.Cases

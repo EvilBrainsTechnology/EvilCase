@@ -15,4 +15,9 @@ internal sealed class CaseReader(IDbSession dbSession) : ICaseReader
             .AsListItems()
             .ToListAsync(token);
     }
+
+    public async Task<CaseDetail?> GetCaseDetail(Guid caseId, CancellationToken token)
+    {
+        return await dbSession.Current.Cases.DetailOf(caseId, token);
+    }
 }

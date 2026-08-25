@@ -29,4 +29,14 @@ public static class CaseNumberQuery
             .OrderByDescending(@case => @case.CaseNumber.Length)
             .ThenByDescending(@case => @case.CaseNumber);
     }
+
+    /// <summary>
+    /// Another case of the tenant already carrying the number. A case never takes its own number from itself.
+    /// </summary>
+    public static IQueryable<Case> WithNumberHeldByAnother(this IQueryable<Case> cases, string caseNumber, Guid caseId)
+    {
+        return cases
+            .Where(@case => @case.CaseNumber == caseNumber)
+            .Where(@case => @case.Id != caseId);
+    }
 }
