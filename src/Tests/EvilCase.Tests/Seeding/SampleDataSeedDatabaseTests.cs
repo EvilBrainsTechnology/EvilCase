@@ -21,7 +21,7 @@ public class SampleDataSeedDatabaseTests
     public async Task TheSeedFillsAFreshTenantOnARealDatabase()
     {
         var userContext = new StubUserContext();
-        await using var context = TestDatabase.CreateMigratedForWrites(userContext);
+        await using var context = TestDatabase.CreateMigratedAsHost(userContext);
 
         var tenantId = Guid.CreateVersion7();
         var userId = Guid.CreateVersion7();
@@ -39,38 +39,30 @@ public class SampleDataSeedDatabaseTests
 
         await seeder.SeedSampleData(tenantId, userId, CancellationToken.None);
 
-        List<Case> cases;
-        int actCount;
-        int contactCount;
-        int fileAssetCount;
-        int commentCount;
-        int externalCaseNumberCount;
-        int externalActNumberCount;
-
         using (userContext.Enter(tenantId, userId))
         {
-            cases = await context.Cases.ToListAsync();
-            actCount = await context.Acts.CountAsync();
-            contactCount = await context.Contacts.CountAsync();
-            fileAssetCount = await context.FileAssets.CountAsync();
-            commentCount = await context.Comments.CountAsync();
-            externalCaseNumberCount = await context.ExternalCaseNumbers.CountAsync();
-            externalActNumberCount = await context.ExternalActNumbers.CountAsync();
-        }
+            var cases = await context.Cases.ToListAsync();
+            var actCount = await context.Acts.CountAsync();
+            var contactCount = await context.Contacts.CountAsync();
+            var fileAssetCount = await context.FileAssets.CountAsync();
+            var commentCount = await context.Comments.CountAsync();
+            var externalCaseNumberCount = await context.ExternalCaseNumbers.CountAsync();
+            var externalActNumberCount = await context.ExternalActNumbers.CountAsync();
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(cases, Has.Count.EqualTo(17), "the seed writes the main case and its sixteen sub-cases into a real database");
-            Assert.That(cases.Count(@case => @case.ParentCaseId is null), Is.EqualTo(1), "exactly one case has no parent");
-            Assert.That(cases.Select(@case => @case.CaseNumber).Distinct().Count(), Is.EqualTo(17), "the issuer gives every seeded case its own number");
-            Assert.That(cases.TrueForAll(@case => @case.TenantId == tenantId), Is.True, "the write stamps the seeded tenant, which the seed itself never names");
-            Assert.That(cases.TrueForAll(@case => @case.UserId == userId), Is.True, "the write stamps the seeding user, which the seed itself never names");
-            Assert.That(actCount, Is.EqualTo(55), "23 main-case acts plus two on each of the sixteen sub-cases");
-            Assert.That(contactCount, Is.EqualTo(13), "the twelve sample contacts beside the user's default contact");
-            Assert.That(fileAssetCount, Is.EqualTo(57), "55 act files, one main-case file and one evidence bundle");
-            Assert.That(commentCount, Is.EqualTo(6));
-            Assert.That(externalCaseNumberCount, Is.GreaterThan(0));
-            Assert.That(externalActNumberCount, Is.GreaterThan(0));
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(cases, Has.Count.EqualTo(17), "the seed writes the main case and its sixteen sub-cases into a real database");
+                Assert.That(cases.Count(@case => @case.ParentCaseId is null), Is.EqualTo(1), "exactly one case has no parent");
+                Assert.That(cases.Select(@case => @case.CaseNumber).Distinct().Count(), Is.EqualTo(17), "the issuer gives every seeded case its own number");
+                Assert.That(cases.TrueForAll(@case => @case.TenantId == tenantId), Is.True, "the write stamps the seeded tenant, which the seed itself never names");
+                Assert.That(cases.TrueForAll(@case => @case.UserId == userId), Is.True, "the write stamps the seeding user, which the seed itself never names");
+                Assert.That(actCount, Is.EqualTo(55), "23 main-case acts plus two on each of the sixteen sub-cases");
+                Assert.That(contactCount, Is.EqualTo(13), "the twelve sample contacts beside the user's default contact");
+                Assert.That(fileAssetCount, Is.EqualTo(57), "55 act files, one main-case file and one evidence bundle");
+                Assert.That(commentCount, Is.EqualTo(6), "the six sample comments");
+                Assert.That(externalCaseNumberCount, Is.GreaterThan(0), "the main case carries external numbers");
+                Assert.That(externalActNumberCount, Is.GreaterThan(0), "acts carry external numbers");
+            }
         }
     }
 
