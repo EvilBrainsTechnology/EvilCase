@@ -5,6 +5,7 @@ using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Domain.Cases;
 using EvilBrains.EvilCase.Tests.Auth;
 using EvilBrains.EvilCase.Tests.Data;
+using EvilBrains.EvilCase.Tests.Seeding;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Npgsql;
@@ -54,7 +55,7 @@ public class CaseWriterTests
             new PostgresException("duplicate key", "ERROR", "ERROR", PostgresErrorCodes.UniqueViolation));
 
         var numbers = new QueuedCaseNumberIssuer(["EC/20260821-001", "EC/20260821-002"]);
-        var writer = new CaseWriter(new FixedDbSession(context), numbers, NullLogger<CaseWriter>.Instance);
+        var writer = new CaseWriter(new FixedDbSession(context), numbers, new FakeFileBlobStore(), NullLogger<CaseWriter>.Instance);
 
         var created = await writer.CreateCase(new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "Přestupek" }, CancellationToken.None);
 
@@ -75,7 +76,7 @@ public class CaseWriterTests
         context.FailNextSave = new DbUpdateException("the row is gone");
 
         var numbers = new QueuedCaseNumberIssuer(["EC/20260821-001"]);
-        var writer = new CaseWriter(new FixedDbSession(context), numbers, NullLogger<CaseWriter>.Instance);
+        var writer = new CaseWriter(new FixedDbSession(context), numbers, new FakeFileBlobStore(), NullLogger<CaseWriter>.Instance);
 
         Assert.That(
             async () => await writer.CreateCase(new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "Přestupek" }, CancellationToken.None),

@@ -25,7 +25,7 @@ public class CaseUpdateTests
     public async Task SetUp()
     {
         this.tenant = await TestTenant.Create();
-        this.writer = new CaseWriter(new FixedDbSession(this.tenant.Context), new FakeCaseNumberIssuer(), NullLogger<CaseWriter>.Instance);
+        this.writer = new CaseWriter(new FixedDbSession(this.tenant.Context), new FakeCaseNumberIssuer(), new FakeFileBlobStore(), NullLogger<CaseWriter>.Instance);
     }
 
     [TearDown]

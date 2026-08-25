@@ -200,6 +200,40 @@ public class CasesControllerTests
     }
 
     [Test]
+    public async Task DeletingACaseReachesTheWriterWithTheRouteId()
+    {
+        var caseId = Guid.CreateVersion7();
+        var writer = new RecordingCaseWriter { DeleteResult = true };
+        var controller = new CasesController();
+
+        await controller.DeleteCase(writer, caseId, CancellationToken.None);
+
+        Assert.That(writer.DeleteId, Is.EqualTo(caseId));
+    }
+
+    [Test]
+    public async Task DeletingACaseAnswersWithNoContent()
+    {
+        var writer = new RecordingCaseWriter { DeleteResult = true };
+        var controller = new CasesController();
+
+        var result = await controller.DeleteCase(writer, Guid.CreateVersion7(), CancellationToken.None);
+
+        Assert.That(result, Is.InstanceOf<NoContentResult>());
+    }
+
+    [Test]
+    public async Task DeletingAMissingCaseIsAProblemWithFourOhFour()
+    {
+        var writer = new RecordingCaseWriter { DeleteResult = false };
+        var controller = new CasesController();
+
+        var result = await controller.DeleteCase(writer, Guid.CreateVersion7(), CancellationToken.None);
+
+        AssertProblem(result, 404);
+    }
+
+    [Test]
     public async Task AddingAMarkReachesTheWriterWithTheRouteIdAndTheBody()
     {
         var caseId = Guid.CreateVersion7();
@@ -407,6 +441,17 @@ public class CasesControllerTests
             this.UpdateRequest = request;
 
             return Task.FromResult(this.UpdateOutcome);
+        }
+
+        public Guid? DeleteId { get; private set; }
+
+        public bool DeleteResult { get; init; }
+
+        public Task<bool> DeleteCase(Guid caseId, CancellationToken token)
+        {
+            this.DeleteId = caseId;
+
+            return Task.FromResult(this.DeleteResult);
         }
     }
 
