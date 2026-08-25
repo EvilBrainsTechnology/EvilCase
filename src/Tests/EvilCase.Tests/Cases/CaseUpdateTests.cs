@@ -96,6 +96,23 @@ public class CaseUpdateTests
     }
 
     [Test]
+    public async Task AHandWrittenNumberInTheFormatBecomesTheCasesOwn()
+    {
+        var seeded = await this.tenant.AddCase(Day, "Přestupek");
+        var request = Edit("  EC/20260101-042  ", Day, seeded.Title, description: null, CaseStatus.Active);
+
+        var outcome = await this.writer.UpdateCase(seeded.Id, request, CancellationToken.None);
+
+        var reloaded = await this.Reload(seeded.Id);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome, Is.EqualTo(CaseUpdateOutcome.Updated));
+            Assert.That(reloaded.CaseNumber, Is.EqualTo("EC/20260101-042"), "a hand-written number in the format replaces the issued one");
+        }
+    }
+
+    [Test]
     public async Task AHandWrittenNumberOutsideTheFormatIsRefused()
     {
         var seeded = await this.tenant.AddCase(Day, "Přestupek");
