@@ -56,6 +56,18 @@ public class ContactsControllerTests
     }
 
     [Test]
+    public async Task TheDefaultContactIsWhatTheReaderReturned()
+    {
+        var defaultContact = Item("Výchozí kontakt");
+        var reader = new RecordingContactReader { DefaultContact = defaultContact };
+        var controller = new ContactsController();
+
+        var result = await controller.GetDefaultContact(reader, CancellationToken.None);
+
+        Assert.That(result, Is.SameAs(defaultContact));
+    }
+
+    [Test]
     public async Task TheDetailIsAskedForTheIdInTheRoute()
     {
         var contactId = Guid.CreateVersion7();
@@ -203,6 +215,8 @@ public class ContactsControllerTests
 
         public ContactDetail? DetailResult { get; init; }
 
+        public ContactListItem DefaultContact { get; init; } = Item("Výchozí kontakt");
+
         public Task<IReadOnlyList<ContactListItem>> ListContacts(ContactListRequest request, CancellationToken token)
         {
             this.Request = request;
@@ -215,6 +229,11 @@ public class ContactsControllerTests
             this.DetailId = contactId;
 
             return Task.FromResult(this.DetailResult);
+        }
+
+        public Task<ContactListItem> GetDefaultContact(CancellationToken token)
+        {
+            return Task.FromResult(this.DefaultContact);
         }
     }
 

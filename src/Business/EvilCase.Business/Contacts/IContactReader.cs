@@ -10,4 +10,6 @@ public interface IContactReader
     public Task<IReadOnlyList<ContactListItem>> ListContacts(ContactListRequest request, CancellationToken token);
 
     public Task<ContactDetail?> GetContactDetail(Guid contactId, CancellationToken token);
+
+    public Task<ContactListItem> GetDefaultContact(CancellationToken token);
 }

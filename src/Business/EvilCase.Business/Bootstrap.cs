@@ -1,3 +1,4 @@
+using EvilBrains.EvilCase.Business.Acts;
 using EvilBrains.EvilCase.Business.Cases;
 using EvilBrains.EvilCase.Business.Comments;
 using EvilBrains.EvilCase.Business.Contacts;
@@ -20,6 +21,8 @@ public static class Bootstrap
 
         services.AddScoped<ICaseReader, CaseReader>();
         services.AddScoped<ICaseWriter, CaseWriter>();
+        services.AddScoped<IActReader, ActReader>();
+        services.AddScoped<IActWriter, ActWriter>();
         services.AddScoped<IExternalCaseNumberWriter, ExternalCaseNumberWriter>();
         services.AddScoped<ICommentReader, CommentReader>();
         services.AddScoped<ICommentWriter, CommentWriter>();

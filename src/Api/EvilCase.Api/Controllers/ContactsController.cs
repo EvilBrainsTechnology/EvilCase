@@ -26,6 +26,12 @@ public class ContactsController : ControllerBase
         return writer.CreateContact(request, token);
     }
 
+    [HttpGet("default")]
+    public Task<ContactListItem> GetDefaultContact([FromServices] IContactReader contacts, CancellationToken token)
+    {
+        return contacts.GetDefaultContact(token);
+    }
+
     [HttpGet("{contactId:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
