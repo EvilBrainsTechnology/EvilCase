@@ -9,4 +9,6 @@ public enum CaseUpdateOutcome
     InvalidCaseNumber = 2,
 
     CaseNumberTaken = 3,
+
+    InvalidParent = 4,
 }

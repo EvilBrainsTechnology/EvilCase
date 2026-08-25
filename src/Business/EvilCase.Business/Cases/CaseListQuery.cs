@@ -42,6 +42,15 @@ public static class CaseListQuery
     }
 
     /// <summary>
+    /// The direct subordinate cases of one case. The hierarchy is flat in the UI, so no read ever
+    /// walks deeper (SDD-009).
+    /// </summary>
+    public static IQueryable<Case> WithParent(this IQueryable<Case> cases, Guid parentCaseId)
+    {
+        return cases.Where(@case => @case.ParentCaseId == parentCaseId);
+    }
+
+    /// <summary>
     /// Newest by the case's own date; equal dates fall back to when the row was written, and the
     /// UUIDv7 identifier makes the order total.
     /// </summary>

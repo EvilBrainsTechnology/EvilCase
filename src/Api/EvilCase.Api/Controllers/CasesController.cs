@@ -12,6 +12,9 @@ namespace EvilBrains.EvilCase.Api.Controllers;
 [Route("api/cases")]
 public class CasesController : ControllerBase
 {
+    // The edit answers two conflicts with the same status code; the title is what tells them apart.
+    private const string InvalidParentTitle = "Invalid parent";
+
     [HttpGet("")]
     public async Task<CaseListResponse> ListCases([FromServices] ICaseReader cases, [FromQuery] CaseListRequest request, CancellationToken token)
     {
@@ -21,9 +24,15 @@ public class CasesController : ControllerBase
     }
 
     [HttpPost("")]
-    public Task<CaseListItem> CreateCase([FromServices] ICaseWriter writer, [FromBody] CreateCaseRequest request, CancellationToken token)
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<CaseListItem>> CreateCase([FromServices] ICaseWriter writer, [FromBody] CreateCaseRequest request, CancellationToken token)
     {
-        return writer.CreateCase(request, token);
+        var filed = await writer.CreateCase(request, token);
+
+        return filed is null
+            ? this.Problem(detail: "The parent case does not exist.", statusCode: StatusCodes.Status409Conflict, title: InvalidParentTitle)
+            : this.Ok(filed);
     }
 
     [HttpGet("{caseId:guid}")]
@@ -54,6 +63,10 @@ public class CasesController : ControllerBase
             CaseUpdateOutcome.CaseNumberTaken => this.Problem(
                 detail: "Another case already carries the number.", statusCode: StatusCodes.Status409Conflict, title: "Case number taken"),
             CaseUpdateOutcome.InvalidCaseNumber => this.InvalidCaseNumberProblem(),
+            CaseUpdateOutcome.InvalidParent => this.Problem(
+                detail: "The parent case must exist and must be neither the case itself nor one of its subordinates.",
+                statusCode: StatusCodes.Status409Conflict,
+                title: InvalidParentTitle),
             _ => throw new UnreachableException(),
         };
     }

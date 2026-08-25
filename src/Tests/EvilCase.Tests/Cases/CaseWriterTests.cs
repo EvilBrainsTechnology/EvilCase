@@ -60,7 +60,7 @@ public class CaseWriterTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(created.CaseNumber, Is.EqualTo("EC/20260821-002"), "the loser of the race files under the next free number");
+            Assert.That(created?.CaseNumber, Is.EqualTo("EC/20260821-002"), "the loser of the race files under the next free number");
             Assert.That(context.Saves, Is.EqualTo(2));
             Assert.That(context.Added<Case>().Count(), Is.EqualTo(1), "the row that lost the race is not written twice");
         }
@@ -80,6 +80,17 @@ public class CaseWriterTests
         Assert.That(
             async () => await writer.CreateCase(new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "Přestupek" }, CancellationToken.None),
             Throws.InstanceOf<DbUpdateException>());
+    }
+
+    [Test]
+    public void ANewCaseTakesTheParentTheRequestNames()
+    {
+        var parentCaseId = Guid.CreateVersion7();
+        var request = new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "Přestupek", ParentCaseId = parentCaseId };
+
+        var @case = CaseWriter.BuildCase(request, "EC/20260821-002");
+
+        Assert.That(@case.ParentCaseId, Is.EqualTo(parentCaseId));
     }
 
     private sealed class QueuedCaseNumberIssuer(IReadOnlyList<string> caseNumbers) : ICaseNumberIssuer

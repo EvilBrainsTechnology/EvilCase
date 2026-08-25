@@ -39,7 +39,7 @@ public class CasesControllerTests
     {
         var writer = new RecordingCaseWriter();
         var controller = new CasesController();
-        var request = new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "Přestupek", Description = "Popis" };
+        var request = new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "Přestupek", Description = "Popis", ParentCaseId = Guid.CreateVersion7() };
 
         await controller.CreateCase(writer, request, CancellationToken.None);
 
@@ -48,6 +48,7 @@ public class CasesControllerTests
             Assert.That(writer.Request?.Date, Is.EqualTo(request.Date));
             Assert.That(writer.Request?.Title, Is.EqualTo(request.Title));
             Assert.That(writer.Request?.Description, Is.EqualTo(request.Description));
+            Assert.That(writer.Request?.ParentCaseId, Is.EqualTo(request.ParentCaseId));
         }
     }
 
@@ -58,12 +59,32 @@ public class CasesControllerTests
         var writer = new RecordingCaseWriter { Created = created };
         var controller = new CasesController();
 
-        var response = await controller.CreateCase(
+        var result = await controller.CreateCase(
             writer,
             new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "Nový spis" },
             CancellationToken.None);
 
-        Assert.That(response, Is.SameAs(created));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.Result, Is.InstanceOf<OkObjectResult>());
+            Assert.That(((OkObjectResult)result.Result!).Value, Is.SameAs(created));
+        }
+    }
+
+    [Test]
+    public async Task FilingUnderAParentThatIsNoCaseIsAConflict()
+    {
+        var writer = new RecordingCaseWriter { Created = null };
+        var controller = new CasesController();
+
+        var result = await controller.CreateCase(
+            writer,
+            new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "Nový spis", ParentCaseId = Guid.CreateVersion7() },
+            CancellationToken.None);
+
+        var problem = AssertProblem(result.Result, 409);
+
+        Assert.That(problem.Detail, Is.Not.Null, "a parent that is no case of the tenant is a conflict the user resolves");
     }
 
     [Test]
@@ -165,6 +186,19 @@ public class CasesControllerTests
         Assert.That(problem.Detail, Is.Not.Null, "a number another case holds is a conflict the user resolves");
     }
 
+    [Test]
+    public async Task AParentThatWouldCloseALoopIsAConflict()
+    {
+        var writer = new RecordingCaseWriter { UpdateOutcome = CaseUpdateOutcome.InvalidParent };
+        var controller = new CasesController();
+
+        var result = await controller.EditCase(writer, Guid.CreateVersion7(), Edit(), CancellationToken.None);
+
+        var problem = AssertProblem(result, 409);
+
+        Assert.That(problem.Title, Is.EqualTo("Invalid parent"), "the edit's two conflicts are told apart by the problem title");
+    }
+
     private static ProblemDetails AssertProblem(IActionResult? result, in int statusCode)
     {
         Assert.That(result, Is.InstanceOf<ObjectResult>());
@@ -243,7 +277,7 @@ public class CasesControllerTests
     {
         public CreateCaseRequest? Request { get; private set; }
 
-        public CaseListItem Created { get; init; } = Item("EC/20260821-001", "Spis");
+        public CaseListItem? Created { get; init; } = Item("EC/20260821-001", "Spis");
 
         public Guid? UpdateId { get; private set; }
 
@@ -251,7 +285,7 @@ public class CasesControllerTests
 
         public CaseUpdateOutcome UpdateOutcome { get; init; }
 
-        public Task<CaseListItem> CreateCase(CreateCaseRequest request, CancellationToken token)
+        public Task<CaseListItem?> CreateCase(CreateCaseRequest request, CancellationToken token)
         {
             this.Request = request;
 

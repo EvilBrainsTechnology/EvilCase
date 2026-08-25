@@ -11,7 +11,8 @@ namespace EvilBrains.EvilCase.Business.Cases;
 internal static class CaseDetailQuery
 {
     /// <summary>
-    /// The one case, or null where the tenant has no such case.
+    /// The one case with its parent, or null where the tenant has no such case. <see cref="CaseDetail.ChildCases"/>
+    /// is filled separately, with <c>with</c>.
     /// </summary>
     public static Task<CaseDetail?> DetailOf(this IQueryable<Case> cases, Guid caseId, CancellationToken token)
     {
@@ -25,6 +26,16 @@ internal static class CaseDetailQuery
                 Title = @case.Title,
                 Description = @case.Description,
                 Status = @case.Status,
+                ParentCase = @case.ParentCase == null
+                    ? null
+                    : new CaseListItem
+                    {
+                        Id = @case.ParentCase.Id,
+                        CaseNumber = @case.ParentCase.CaseNumber,
+                        Title = @case.ParentCase.Title,
+                        Date = @case.ParentCase.Date,
+                        Status = @case.ParentCase.Status,
+                    },
             })
             .SingleOrDefaultAsync(token);
     }

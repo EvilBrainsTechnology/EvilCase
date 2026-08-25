@@ -191,10 +191,102 @@ public class CaseUpdateTests
         return await this.tenant.Context.Cases.SingleAsync(@case => @case.Id == caseId);
     }
 
-    private static CaseEditRequest Edit(string caseNumber, DateOnly date, string title, string? description, CaseStatus status)
+    [Test]
+    public async Task AnEditHangsTheCaseUnderAParent()
+    {
+        var parent = await this.tenant.AddCase(Day, "Rodič");
+        var seeded = await this.tenant.AddCase(Day, "Přestupek");
+        var request = Edit(seeded.CaseNumber, Day, seeded.Title, description: null, CaseStatus.Active, parentCaseId: parent.Id);
+
+        var outcome = await this.writer.UpdateCase(seeded.Id, request, CancellationToken.None);
+
+        var reloaded = await this.Reload(seeded.Id);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome, Is.EqualTo(CaseUpdateOutcome.Updated));
+            Assert.That(reloaded.ParentCaseId, Is.EqualTo(parent.Id));
+        }
+    }
+
+    [Test]
+    public async Task AnEditClearsTheParent()
+    {
+        var parent = await this.tenant.AddCase(Day, "Rodič");
+        var seeded = await this.tenant.AddCase(Day, "Přestupek", parentCaseId: parent.Id);
+        var request = Edit(seeded.CaseNumber, Day, seeded.Title, description: null, CaseStatus.Active, parentCaseId: null);
+
+        var outcome = await this.writer.UpdateCase(seeded.Id, request, CancellationToken.None);
+
+        var reloaded = await this.Reload(seeded.Id);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome, Is.EqualTo(CaseUpdateOutcome.Updated));
+            Assert.That(reloaded.ParentCaseId, Is.Null, "the parent is optional, so an edit takes it away as well as sets it");
+        }
+    }
+
+    [Test]
+    public async Task ACaseCannotBecomeItsOwnParent()
+    {
+        var seeded = await this.tenant.AddCase(Day, "Přestupek");
+        var request = Edit(seeded.CaseNumber, Day, seeded.Title, description: null, CaseStatus.Active, parentCaseId: seeded.Id);
+
+        var outcome = await this.writer.UpdateCase(seeded.Id, request, CancellationToken.None);
+
+        var reloaded = await this.Reload(seeded.Id);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome, Is.EqualTo(CaseUpdateOutcome.InvalidParent));
+            Assert.That(reloaded.ParentCaseId, Is.Null);
+        }
+    }
+
+    [Test]
+    public async Task ACaseCannotHangUnderItsOwnSubordinate()
+    {
+        var root = await this.tenant.AddCase(Day, "Kořen");
+        var child = await this.tenant.AddCase(Day, "Podřízený", parentCaseId: root.Id);
+        var grandchild = await this.tenant.AddCase(Day, "Vnuk", parentCaseId: child.Id);
+        var request = Edit(root.CaseNumber, Day, root.Title, description: null, CaseStatus.Active, parentCaseId: grandchild.Id);
+
+        var outcome = await this.writer.UpdateCase(root.Id, request, CancellationToken.None);
+
+        var reloaded = await this.Reload(root.Id);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome, Is.EqualTo(CaseUpdateOutcome.InvalidParent), "a cycle in the hierarchy is refused by the business layer");
+            Assert.That(reloaded.ParentCaseId, Is.Null);
+        }
+    }
+
+    [Test]
+    public async Task AParentOfAnotherTenantIsRefused()
+    {
+        await using var other = await TestTenant.Create();
+        var otherCase = await other.AddCase(Day, "Cizí spis");
+        var seeded = await this.tenant.AddCase(Day, "Přestupek");
+        var request = Edit(seeded.CaseNumber, Day, seeded.Title, description: null, CaseStatus.Active, parentCaseId: otherCase.Id);
+
+        var outcome = await this.writer.UpdateCase(seeded.Id, request, CancellationToken.None);
+
+        var reloaded = await this.Reload(seeded.Id);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome, Is.EqualTo(CaseUpdateOutcome.InvalidParent), "the tenant query filter is what keeps another tenant's case from becoming a parent");
+            Assert.That(reloaded.ParentCaseId, Is.Null);
+        }
+    }
+
+    private static CaseEditRequest Edit(string caseNumber, DateOnly date, string title, string? description, CaseStatus status, Guid? parentCaseId = null)
     {
         return new()
         {
+            ParentCaseId = parentCaseId,
             CaseNumber = caseNumber,
             Date = date,
             Title = title,

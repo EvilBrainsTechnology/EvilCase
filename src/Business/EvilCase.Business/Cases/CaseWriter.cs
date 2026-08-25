@@ -23,22 +23,34 @@ internal sealed class CaseWriter(
     /// </summary>
     private const int Attempts = 5;
 
-    public async Task<CaseListItem> CreateCase(CreateCaseRequest request, CancellationToken token)
+    public async Task<CaseListItem?> CreateCase(CreateCaseRequest request, CancellationToken token)
     {
+        var context = dbSession.Current;
+
+        if (request.ParentCaseId is { } parentCaseId)
+        {
+            var known = await context.Cases
+                .WithId(parentCaseId)
+                .AnyAsync(token);
+
+            if (!known)
+                return null;
+        }
+
         for (var attempt = 1; ; attempt++)
         {
             var caseNumber = await numbers.NextCaseNumber(request.Date, token);
             var @case = BuildCase(request, caseNumber);
 
-            dbSession.Current.Cases.Add(@case);
+            context.Cases.Add(@case);
 
             try
             {
-                await dbSession.Current.SaveChangesAsync(token);
+                await context.SaveChangesAsync(token);
             }
             catch (DbUpdateException exception) when (attempt < Attempts && exception.IsUniqueViolation())
             {
-                dbSession.Current.Entry(@case).State = EntityState.Detached;
+                context.Entry(@case).State = EntityState.Detached;
 
                 logger.LogWarning("The case number {CaseNumber} was taken while the case was being filed", caseNumber);
 
@@ -59,6 +71,7 @@ internal sealed class CaseWriter(
     {
         return new()
         {
+            ParentCaseId = request.ParentCaseId,
             CaseNumber = caseNumber,
             Title = request.Title,
             Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description,
@@ -83,11 +96,22 @@ internal sealed class CaseWriter(
         if (taken)
             return CaseUpdateOutcome.CaseNumberTaken;
 
+        if (edit.ParentCaseId is { } parentCaseId)
+        {
+            var parents = await context.Cases
+                .Select(@case => new { @case.Id, @case.ParentCaseId })
+                .ToDictionaryAsync(link => link.Id, link => link.ParentCaseId, token);
+
+            if (!parents.ContainsKey(parentCaseId) || CaseHierarchy.WouldFormCycle(parents, caseId, parentCaseId))
+                return CaseUpdateOutcome.InvalidParent;
+        }
+
         var rows = await context.Cases
             .WithId(caseId)
             .ExecuteUpdateAsync(
                 setters => setters
                     .SetProperty(@case => @case.CaseNumber, edit.CaseNumber)
+                    .SetProperty(@case => @case.ParentCaseId, edit.ParentCaseId)
                     .SetProperty(@case => @case.Date, edit.Date)
                     .SetProperty(@case => @case.Title, edit.Title)
                     .SetProperty(@case => @case.Description, edit.Description)

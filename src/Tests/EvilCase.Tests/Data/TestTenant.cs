@@ -116,10 +116,12 @@ internal sealed class TestTenant : IAsyncDisposable
         string? description = null,
         CaseStatus status = CaseStatus.Active,
         string? caseNumber = null,
-        Guid? caseId = null)
+        Guid? caseId = null,
+        Guid? parentCaseId = null)
     {
         var @case = new Case
         {
+            ParentCaseId = parentCaseId,
             Id = caseId ?? Guid.CreateVersion7(),
             TenantId = this.tenantId,
             UserId = this.userId,
