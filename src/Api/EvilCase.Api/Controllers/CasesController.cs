@@ -62,6 +62,6 @@ public class CasesController : ControllerBase
     {
         this.ModelState.AddModelError(nameof(CaseEditRequest.CaseNumber), "The case number must read EC/yyyyMMdd-nnn.");
 
-        return this.ValidationProblem();
+        return this.ValidationProblem(statusCode: StatusCodes.Status400BadRequest);
     }
 }
