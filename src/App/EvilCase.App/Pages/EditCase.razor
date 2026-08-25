@@ -116,9 +116,6 @@
 </div>
 
 @code {
-    // The edit answers two conflicts with the same status code; the title is what tells them apart.
-    private const string InvalidParentTitle = "Invalid parent";
-
     [Parameter]
     public Guid CaseId { get; set; }
 
@@ -199,7 +196,7 @@
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
         {
-            this.error = exception.ResponseBody?.Contains(InvalidParentTitle, StringComparison.Ordinal) == true
+            this.error = exception.ResponseBody?.Contains(CaseProblems.InvalidParent, StringComparison.Ordinal) == true
                 ? "Nadřízeným spisem nemůže být tento spis ani spis, který je mu podřízený."
                 : "Spisovou značku už nese jiný spis. Zvolte jinou.";
         }

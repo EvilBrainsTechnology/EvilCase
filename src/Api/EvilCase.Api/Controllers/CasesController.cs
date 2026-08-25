@@ -12,9 +12,6 @@ namespace EvilBrains.EvilCase.Api.Controllers;
 [Route("api/cases")]
 public class CasesController : ControllerBase
 {
-    // The edit answers two conflicts with the same status code; the title is what tells them apart.
-    private const string InvalidParentTitle = "Invalid parent";
-
     [HttpGet("")]
     public async Task<CaseListResponse> ListCases([FromServices] ICaseReader cases, [FromQuery] CaseListRequest request, CancellationToken token)
     {
@@ -31,7 +28,7 @@ public class CasesController : ControllerBase
         var filed = await writer.CreateCase(request, token);
 
         return filed is null
-            ? this.Problem(detail: "The parent case does not exist.", statusCode: StatusCodes.Status409Conflict, title: InvalidParentTitle)
+            ? this.Problem(detail: "The parent case does not exist.", statusCode: StatusCodes.Status409Conflict, title: CaseProblems.InvalidParent)
             : this.Ok(filed);
     }
 
@@ -66,7 +63,7 @@ public class CasesController : ControllerBase
             CaseUpdateOutcome.InvalidParent => this.Problem(
                 detail: "The parent case must exist and must be neither the case itself nor one of its subordinates.",
                 statusCode: StatusCodes.Status409Conflict,
-                title: InvalidParentTitle),
+                title: CaseProblems.InvalidParent),
             _ => throw new UnreachableException(),
         };
     }
