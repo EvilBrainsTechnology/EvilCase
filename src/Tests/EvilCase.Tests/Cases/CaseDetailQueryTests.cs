@@ -1,4 +1,3 @@
-using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Business.Cases;
 using EvilBrains.EvilCase.Domain.Cases;
 using EvilBrains.EvilCase.Tests.Data;
@@ -38,17 +37,72 @@ public class CaseDetailQueryTests
 
         var detail = await this.tenant.Context.Cases.DetailOf(@case.Id, CancellationToken.None);
 
-        var expected = new CaseDetail
-        {
-            Id = @case.Id,
-            CaseNumber = @case.CaseNumber,
-            Date = Day,
-            Title = "Přestupek",
-            Description = "Popis přestupku",
-            Status = CaseStatus.WaitingOnAuthority,
-        };
+        Assert.That(detail, Is.Not.Null);
 
-        Assert.That(detail, Is.EqualTo(expected), "the detail shows the case's number, date, title, description and status");
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(detail.Id, Is.EqualTo(@case.Id));
+            Assert.That(detail.CaseNumber, Is.EqualTo(@case.CaseNumber));
+            Assert.That(detail.Date, Is.EqualTo(Day));
+            Assert.That(detail.Title, Is.EqualTo("Přestupek"));
+            Assert.That(detail.Description, Is.EqualTo("Popis přestupku"));
+            Assert.That(detail.Status, Is.EqualTo(CaseStatus.WaitingOnAuthority));
+        }
+    }
+
+    [Test]
+    public async Task ACaseWithNoParentNamesNone()
+    {
+        var @case = await this.tenant.AddCase(Day);
+
+        var detail = await this.tenant.Context.Cases.DetailOf(@case.Id, CancellationToken.None);
+
+        Assert.That(detail!.ParentCase, Is.Null);
+    }
+
+    [Test]
+    public async Task TheDetailNamesTheParentCase()
+    {
+        var parent = await this.tenant.AddCase(Day, "Nadřízený");
+        var child = await this.tenant.AddCase(Day, "Podřízený", parentCaseId: parent.Id);
+
+        var detail = await this.tenant.Context.Cases.DetailOf(child.Id, CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(detail!.ParentCase!.Id, Is.EqualTo(parent.Id), "the detail links to the parent so the flat lists are enough to walk the hierarchy");
+            Assert.That(detail.ParentCase.CaseNumber, Is.EqualTo(parent.CaseNumber));
+            Assert.That(detail.ParentCase.Title, Is.EqualTo(parent.Title));
+        }
+    }
+
+    [Test]
+    public async Task TheDetailListsOnlyTheDirectSubordinateCases()
+    {
+        var root = await this.tenant.AddCase(Day, "Kořen");
+        var child = await this.tenant.AddCase(Day, "Podřízený", parentCaseId: root.Id);
+        _ = await this.tenant.AddCase(Day, "Vnuk", parentCaseId: child.Id);
+
+        var reader = new CaseReader(new FixedDbSession(this.tenant.Context));
+        var detail = await reader.GetCaseDetail(root.Id, CancellationToken.None);
+
+        Assert.That(detail!.ChildCases.Select(item => item.Id), Is.EqualTo([child.Id]), "the detail lists the direct subordinates and never a whole tree");
+    }
+
+    [Test]
+    public async Task TheSubordinateCasesComeNewestFirst()
+    {
+        var root = await this.tenant.AddCase(Day, "Kořen");
+        var older = await this.tenant.AddCase(Day.AddDays(-2), "Starší", parentCaseId: root.Id);
+        var newer = await this.tenant.AddCase(Day.AddDays(-1), "Novější", parentCaseId: root.Id);
+
+        var reader = new CaseReader(new FixedDbSession(this.tenant.Context));
+        var detail = await reader.GetCaseDetail(root.Id, CancellationToken.None);
+
+        Assert.That(
+            detail!.ChildCases.Select(item => item.Id),
+            Is.EqualTo([newer.Id, older.Id]),
+            "subordinate cases share the list order, newest by the case's own date first");
     }
 
     [Test]

@@ -15,4 +15,14 @@ public sealed record CaseDetail
     public string? Description { get; init; }
 
     public required CaseStatus Status { get; init; }
+
+    /// <summary>
+    /// The case this one hangs under, or null where it hangs under nothing (SDD-009).
+    /// </summary>
+    public CaseListItem? ParentCase { get; init; }
+
+    /// <summary>
+    /// The cases that hang directly under this one; the detail shows one level, never a tree (SDD-009).
+    /// </summary>
+    public IReadOnlyList<CaseListItem> ChildCases { get; init; } = [];
 }

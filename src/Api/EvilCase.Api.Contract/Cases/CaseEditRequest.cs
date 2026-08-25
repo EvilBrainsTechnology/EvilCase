@@ -6,6 +6,11 @@ namespace EvilBrains.EvilCase.Api.Contract.Cases;
 public sealed record CaseEditRequest
 {
     /// <summary>
+    /// The case the new one hangs under, null for a case of its own (SDD-009).
+    /// </summary>
+    public Guid? ParentCaseId { get; init; }
+
+    /// <summary>
     /// Hand-written over the issued one. The format and the tenant's uniqueness hold; the day inside it
     /// is not tied to <see cref="Date"/> (SDD-008).
     /// </summary>

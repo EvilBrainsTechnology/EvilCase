@@ -44,13 +44,19 @@ internal sealed class TestTenant : IAsyncDisposable
     /// </summary>
     public Contact DefaultContact { get; }
 
-    public static async Task<TestTenant> Create()
+    /// <summary>
+    /// <paramref name="asHost"/> wires the context the way the host wires it, so a service under test
+    /// writes rows the interceptor stamps with the tenant and the user.
+    /// </summary>
+    public static async Task<TestTenant> Create(bool asHost = false)
     {
         var userContext = new StubUserContext();
         var seededTenantId = Guid.CreateVersion7();
         var seededUserId = Guid.CreateVersion7();
         var scope = userContext.Enter(seededTenantId, seededUserId);
-        var context = TestDatabase.CreateMigrated(userContext);
+        var context = asHost
+            ? TestDatabase.CreateMigratedAsHost(userContext)
+            : TestDatabase.CreateMigrated(userContext);
 
         var account = new Account { Name = "tests" };
         var defaultContact = new Contact { TenantId = seededTenantId, Kind = ContactKind.Person, Name = "default" };
@@ -116,10 +122,12 @@ internal sealed class TestTenant : IAsyncDisposable
         string? description = null,
         CaseStatus status = CaseStatus.Active,
         string? caseNumber = null,
-        Guid? caseId = null)
+        Guid? caseId = null,
+        Guid? parentCaseId = null)
     {
         var @case = new Case
         {
+            ParentCaseId = parentCaseId,
             Id = caseId ?? Guid.CreateVersion7(),
             TenantId = this.tenantId,
             UserId = this.userId,

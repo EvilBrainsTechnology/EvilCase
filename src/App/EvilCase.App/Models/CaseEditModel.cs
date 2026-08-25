@@ -9,6 +9,8 @@ namespace EvilBrains.EvilCase.App.Models;
 /// </summary>
 internal sealed class CaseEditModel
 {
+    public Guid? ParentCaseId { get; set; }
+
     [Required(ErrorMessage = "Zadejte spisovou značku")]
     [StringLength(64, ErrorMessage = "Spisová značka může mít nejvýše 64 znaků")]
     public string CaseNumber { get; set; } = "";

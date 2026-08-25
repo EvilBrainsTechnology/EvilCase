@@ -1,4 +1,5 @@
 @page "/cases/new"
+@using System.Net
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Cases
@@ -8,62 +9,123 @@
 
 <div class="page-header d-print-none">
     <div class="container-xl">
-        <h2 class="page-title">Nový spis</h2>
+        <h2 class="page-title">@(this.ParentCaseId is null ? "Nový spis" : "Nový podřízený spis")</h2>
     </div>
 </div>
 
 <div class="page-body">
     <div class="container-xl">
-        <div class="card">
-            <EditForm Model="this.model" OnValidSubmit="this.SubmitCase">
-                <DataAnnotationsValidator />
+        @if (this.parentNotFound)
+        {
+            <div class="empty">
+                <p class="empty-title">Nadřízený spis nenalezen</p>
+            </div>
+        }
+        else if (this.failure is not null)
+        {
+            <div class="empty">
+                <p class="empty-title">Nadřízený spis se nepodařilo načíst</p>
+                <p class="empty-subtitle text-secondary">@this.failure</p>
+            </div>
+        }
+        else
+        {
+            <div class="card">
+                <EditForm Model="this.model" OnValidSubmit="this.SubmitCase">
+                    <DataAnnotationsValidator />
 
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label" for="case-date">Datum spisu</label>
-                        <InputDate id="case-date" class="form-control" @bind-Value="this.model.Date" />
-                        <ValidationMessage For="() => this.model.Date" class="invalid-feedback d-block" />
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label" for="case-title">Název</label>
-                        <InputText id="case-title" class="form-control" autofocus @bind-Value="this.model.Title" />
-                        <ValidationMessage For="() => this.model.Title" class="invalid-feedback d-block" />
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label" for="case-description">Popis</label>
-                        <InputTextArea id="case-description" class="form-control" rows="5" @bind-Value="this.model.Description" />
-                        <ValidationMessage For="() => this.model.Description" class="invalid-feedback d-block" />
-                    </div>
-
-                    @if (this.error is not null)
-                    {
-                        <div class="alert alert-danger mb-0" role="alert">@this.error</div>
-                    }
-                </div>
-
-                <div class="card-footer form-actions-sticky d-flex justify-content-end gap-2">
-                    <a href="/cases" class="btn">Zrušit</a>
-                    <button id="case-submit" type="submit" class="btn btn-primary" disabled="@this.busy">
-                        @if (this.busy)
+                    <div class="card-body">
+                        @if (this.parentCase is not null)
                         {
-                            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                            <div class="mb-3">
+                                <div class="form-label">Nadřízený spis</div>
+                                <div class="form-control-plaintext">
+                                    <a href="@($"/cases/{this.parentCase.Id}")">@this.parentCase.CaseNumber — @this.parentCase.Title</a>
+                                </div>
+                            </div>
                         }
-                        Založit spis
-                    </button>
-                </div>
-            </EditForm>
-        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="case-date">Datum spisu</label>
+                            <InputDate id="case-date" class="form-control" @bind-Value="this.model.Date" />
+                            <ValidationMessage For="() => this.model.Date" class="invalid-feedback d-block" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="case-title">Název</label>
+                            <InputText id="case-title" class="form-control" autofocus @bind-Value="this.model.Title" />
+                            <ValidationMessage For="() => this.model.Title" class="invalid-feedback d-block" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="case-description">Popis</label>
+                            <InputTextArea id="case-description" class="form-control" rows="5" @bind-Value="this.model.Description" />
+                            <ValidationMessage For="() => this.model.Description" class="invalid-feedback d-block" />
+                        </div>
+
+                        @if (this.error is not null)
+                        {
+                            <div class="alert alert-danger mb-0" role="alert">@this.error</div>
+                        }
+                    </div>
+
+                    <div class="card-footer form-actions-sticky d-flex justify-content-end gap-2">
+                        <a href="@(this.ParentCaseId is { } parentId ? $"/cases/{parentId}" : "/cases")" class="btn">Zrušit</a>
+                        <button id="case-submit" type="submit" class="btn btn-primary" disabled="@this.busy">
+                            @if (this.busy)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                            }
+                            Založit spis
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        }
     </div>
 </div>
 
 @code {
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "parent")]
+    public Guid? ParentCaseId { get; set; }
+
     private readonly NewCaseModel model = new() { Date = DateOnly.FromDateTime(DateTime.Now) };
+
+    private CaseDetail? parentCase;
+
+    private bool parentNotFound;
+
+    private string? failure;
 
     private string? error;
 
     private bool busy;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        this.parentCase = null;
+        this.parentNotFound = false;
+        this.failure = null;
+
+        if (this.ParentCaseId is not { } parentCaseId)
+            return;
+
+        try
+        {
+            this.parentCase = await this.CasesClient.GetCase(parentCaseId, CancellationToken.None);
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+        {
+            this.parentNotFound = true;
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Loading the parent case failed");
+
+            this.failure = "Nadřízený spis se nepodařilo načíst. Zkuste to za chvíli znovu.";
+        }
+    }
 
     private async Task SubmitCase()
     {
@@ -74,6 +136,7 @@
         {
             var request = new CreateCaseRequest
             {
+                ParentCaseId = this.ParentCaseId,
                 Date = this.model.Date,
                 Title = this.model.Title,
                 Description = this.model.Description,
@@ -81,7 +144,11 @@
 
             _ = await this.CasesClient.CreateCase(request, CancellationToken.None);
 
-            this.Navigation.NavigateTo("/cases");
+            this.Navigation.NavigateTo(this.ParentCaseId is { } parent ? $"/cases/{parent}" : "/cases");
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
+        {
+            this.error = "Nadřízený spis neexistuje.";
         }
         catch (Exception exception) when (exception is ApiException or HttpRequestException)
         {
