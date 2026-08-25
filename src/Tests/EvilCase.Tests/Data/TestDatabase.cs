@@ -1,5 +1,6 @@
 using EvilBrains.EvilCase.Data;
 using EvilBrains.EvilCase.Data.DbContexts;
+using EvilBrains.EvilCase.Data.Interceptors;
 using EvilBrains.EvilCase.Data.Migrations.DbContexts;
 using EvilBrains.EvilCase.Domain.Users;
 using Microsoft.EntityFrameworkCore;
@@ -49,6 +50,25 @@ internal static class TestDatabase
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseNpgsql(ConnectionString.Value, npgsql => npgsql.UseEvilCaseMigrations())
+            .Options;
+
+        var context = new ApplicationDbContext(options, userContext);
+
+        Migrate(context);
+
+        return context;
+    }
+
+    /// <summary>
+    /// The same database wired the way the host wires it: no tracking by default and the interceptor that
+    /// stamps the tenant and the user on a write.
+    /// </summary>
+    public static ApplicationDbContext CreateMigratedForWrites(IUserContext userContext)
+    {
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseNpgsql(ConnectionString.Value, npgsql => npgsql.UseEvilCaseMigrations())
+            .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking)
+            .AddInterceptors(new UserWriteInterceptor(userContext))
             .Options;
 
         var context = new ApplicationDbContext(options, userContext);
