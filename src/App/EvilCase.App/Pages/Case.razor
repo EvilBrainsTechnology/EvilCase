@@ -56,7 +56,7 @@
         }
         else
         {
-            <div class="card">
+            <div class="card mb-3">
                 <div class="card-header">
                     <h3 class="card-title">Údaje</h3>
                 </div>
@@ -75,12 +75,27 @@
                             <div class="datagrid-content">@CaseStatusDisplay.Text(this.caseDetail.Status)</div>
                         </div>
                         <div class="datagrid-item">
+                            <div class="datagrid-title">Nadřízený spis</div>
+                            <div class="datagrid-content">
+                                @if (this.caseDetail.ParentCase is { } parent)
+                                {
+                                    <a href="@($"/cases/{parent.Id}")">@parent.CaseNumber — @parent.Title</a>
+                                }
+                                else
+                                {
+                                    @:—
+                                }
+                            </div>
+                        </div>
+                        <div class="datagrid-item">
                             <div class="datagrid-title">Popis</div>
                             <div class="datagrid-content">@(string.IsNullOrWhiteSpace(this.caseDetail.Description) ? "—" : this.caseDetail.Description)</div>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <CaseChildrenCard Items="this.caseDetail.ChildCases" ParentCaseId="this.CaseId" />
         }
     </div>
 </div>

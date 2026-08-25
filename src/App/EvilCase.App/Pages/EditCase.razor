@@ -81,6 +81,18 @@
                             <ValidationMessage For="() => this.model.Status" class="invalid-feedback d-block" />
                         </div>
 
+                        <div class="mb-3">
+                            <label class="form-label" for="case-parent">Nadřízený spis</label>
+                            <InputSelect id="case-parent" class="form-select" @bind-Value="this.model.ParentCaseId">
+                                <option value="">— bez nadřízeného spisu —</option>
+                                @foreach (var option in this.parentOptions)
+                                {
+                                    <option value="@option.Id">@option.CaseNumber — @option.Title</option>
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="() => this.model.ParentCaseId" class="invalid-feedback d-block" />
+                        </div>
+
                         @if (this.error is not null)
                         {
                             <div class="alert alert-danger mb-0" role="alert">@this.error</div>
@@ -104,10 +116,15 @@
 </div>
 
 @code {
+    // The edit answers two conflicts with the same status code; the title is what tells them apart.
+    private const string InvalidParentTitle = "Invalid parent";
+
     [Parameter]
     public Guid CaseId { get; set; }
 
     private readonly CaseEditModel model = new();
+
+    private IReadOnlyList<CaseListItem> parentOptions = [];
 
     private bool notFound;
 
@@ -139,6 +156,11 @@
             this.model.Title = @case.Title;
             this.model.Description = @case.Description;
             this.model.Status = @case.Status;
+            this.model.ParentCaseId = @case.ParentCase?.Id;
+
+            var response = await this.CasesClient.ListCases(new CaseListRequest { Status = CaseStatusFilter.All }, CancellationToken.None);
+
+            this.parentOptions = [.. response.Items.Where(item => item.Id != this.CaseId)];
 
             this.loaded = true;
         }
@@ -163,6 +185,7 @@
         {
             var request = new CaseEditRequest
             {
+                ParentCaseId = this.model.ParentCaseId,
                 CaseNumber = this.model.CaseNumber,
                 Date = this.model.Date,
                 Title = this.model.Title,
@@ -176,7 +199,9 @@
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
         {
-            this.error = "Spisovou značku už nese jiný spis. Zvolte jinou.";
+            this.error = exception.ResponseBody?.Contains(InvalidParentTitle, StringComparison.Ordinal) == true
+                ? "Nadřízeným spisem nemůže být tento spis ani spis, který je mu podřízený."
+                : "Spisovou značku už nese jiný spis. Zvolte jinou.";
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.BadRequest)
         {
