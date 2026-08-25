@@ -7,7 +7,9 @@ public sealed record CreateActRequest
 {
     public required ActDirection Direction { get; init; }
 
-    /// <summary>The act's own date, not the moment the row is written; the act number is issued to it.</summary>
+    /// <summary>
+    /// The act's own date, not the moment the row is written; the act number is issued to it.
+    /// </summary>
     public required DateOnly Date { get; init; }
 
     [Required]

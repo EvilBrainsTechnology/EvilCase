@@ -15,7 +15,9 @@ internal static class DefaultContactQuery
         return users.Where(user => user.DefaultContactId == contactId);
     }
 
-    /// <summary>The user's default contact. Every user has one (SDD-011), so this never comes back empty.</summary>
+    /// <summary>
+    /// The user's default contact. Every user has one (SDD-011), so this never comes back empty.
+    /// </summary>
     public static Task<ContactListItem> DefaultContactOf(this IQueryable<User> users, Guid userId, CancellationToken token)
     {
         return users

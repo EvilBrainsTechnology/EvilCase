@@ -1,0 +1,143 @@
+@page "/cases/{CaseId:guid}/act/new"
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.Acts
+@using EvilBrains.EvilCase.Domain.Acts
+@inject IActsClient ActsClient
+@inject IContactsClient ContactsClient
+@inject NavigationManager Navigation
+@inject ILogger<NewAct> Logger
+
+<div class="page-header d-print-none">
+    <div class="container-xl">
+        <h2 class="page-title">Nový úkon</h2>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        <div class="card">
+            <EditForm Model="this.model" OnValidSubmit="this.SubmitAct">
+                <DataAnnotationsValidator />
+
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label" for="act-direction">Směr</label>
+                        <InputSelect id="act-direction" class="form-select" @bind-Value="this.model.Direction" @bind-Value:after="this.model.SwapContacts">
+                            @foreach (var direction in Enum.GetValues<ActDirection>())
+                            {
+                                <option value="@direction">@ActDirectionDisplay.Text(direction)</option>
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="() => this.model.Direction" class="invalid-feedback d-block" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="act-date">Datum úkonu</label>
+                        <InputDate id="act-date" class="form-control" @bind-Value="this.model.Date" />
+                        <ValidationMessage For="() => this.model.Date" class="invalid-feedback d-block" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="act-title">Název</label>
+                        <InputText id="act-title" class="form-control" autofocus @bind-Value="this.model.Title" />
+                        <ValidationMessage For="() => this.model.Title" class="invalid-feedback d-block" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="act-description">Popis</label>
+                        <InputTextArea id="act-description" class="form-control" rows="5" @bind-Value="this.model.Description" />
+                        <ValidationMessage For="() => this.model.Description" class="invalid-feedback d-block" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Odesílatel</label>
+                        <ContactPicker InputId="act-issued-by" @bind-Selected="this.model.IssuedByContact" />
+                        <ValidationMessage For="() => this.model.IssuedByContact" class="invalid-feedback d-block" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Příjemce</label>
+                        <ContactPicker InputId="act-addressed-to" @bind-Selected="this.model.AddressedToContact" />
+                        <ValidationMessage For="() => this.model.AddressedToContact" class="invalid-feedback d-block" />
+                    </div>
+
+                    @if (this.error is not null)
+                    {
+                        <div class="alert alert-danger mb-0" role="alert">@this.error</div>
+                    }
+                </div>
+
+                <div class="card-footer form-actions-sticky d-flex justify-content-end gap-2">
+                    <a href="/cases/@this.CaseId" class="btn">Zrušit</a>
+                    <button id="act-submit" type="submit" class="btn btn-primary" disabled="@this.busy">
+                        @if (this.busy)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                        }
+                        Založit úkon
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public Guid CaseId { get; set; }
+
+    private readonly NewActModel model = new() { Date = DateOnly.FromDateTime(DateTime.Now) };
+
+    private string? error;
+
+    private bool busy;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var contact = await this.ContactsClient.GetDefaultContact(CancellationToken.None);
+
+            // The direction starts incoming, so the default contact starts as the recipient; switching the direction swaps it over.
+            this.model.AddressedToContact = contact;
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Reading the default contact failed");
+        }
+    }
+
+    private async Task SubmitAct()
+    {
+        this.busy = true;
+        this.error = null;
+
+        try
+        {
+            var request = new CreateActRequest
+            {
+                Direction = this.model.Direction,
+                Date = this.model.Date,
+                Title = this.model.Title,
+                Description = this.model.Description,
+                IssuedByContactId = this.model.IssuedByContact!.Id,
+                AddressedToContactId = this.model.AddressedToContact?.Id,
+            };
+
+            _ = await this.ActsClient.CreateAct(this.CaseId, request, CancellationToken.None);
+
+            this.Navigation.NavigateTo($"/cases/{this.CaseId}");
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Filing a new act failed");
+
+            this.error = "Úkon se nepodařilo založit. Zkontrolujte zadané údaje a zkuste to znovu.";
+        }
+        finally
+        {
+            this.busy = false;
+        }
+    }
+}
