@@ -42,7 +42,7 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
 
         return new FileListItem
         {
-            Id = file.Id,
+            FileId = file.Id,
             FileName = file.FileName,
             SizeBytes = file.SizeBytes,
             Created = file.Created,

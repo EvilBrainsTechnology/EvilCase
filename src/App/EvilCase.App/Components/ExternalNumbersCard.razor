@@ -139,7 +139,7 @@
         try
         {
             await add(
-                new ExternalNumberRequest { Value = this.model.Value, AssignedByContactId = this.model.AssignedBy!.Id },
+                new ExternalNumberRequest { Value = this.model.Value, AssignedByContactId = this.model.AssignedBy!.ContactId },
                 CancellationToken.None);
 
             this.model = new();
@@ -178,7 +178,7 @@
             new RenderComponent<ExternalNumberDeleteModal>()
                 .Set(component => component.Text, this.Text)
                 .Set(component => component.Number, number)
-                .Set(component => component.DeleteNumber, (CancellationToken token) => delete(number.Id, token))
+                .Set(component => component.DeleteNumber, (CancellationToken token) => delete(number.NumberId, token))
                 .Set(component => component.OnDeleted, EventCallback.Factory.Create(this, () => this.OnChanged.InvokeAsync())),
             new ModalOptions { Fullscreen = ModalFullscreen.BelowLarge });
     }

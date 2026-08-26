@@ -1,4 +1,4 @@
-@page "/contacts/{Id:guid}"
+@page "/contacts/{ContactId:guid}"
 @using System.Net
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Client
@@ -108,7 +108,7 @@
 
 @code {
     [Parameter]
-    public Guid Id { get; set; }
+    public Guid ContactId { get; set; }
 
     private ContactDetail? contact;
 
@@ -129,7 +129,7 @@
 
         try
         {
-            this.contact = await this.ContactsClient.GetContact(this.Id, CancellationToken.None);
+            this.contact = await this.ContactsClient.GetContact(this.ContactId, CancellationToken.None);
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
         {

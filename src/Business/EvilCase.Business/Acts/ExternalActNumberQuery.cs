@@ -22,7 +22,7 @@ internal static class ExternalActNumberQuery
     {
         return numbers.Select(number => new ExternalNumberItem
         {
-            Id = number.Id,
+            NumberId = number.Id,
             Value = number.Value,
             AssignedByContactId = number.AssignedByContactId,
             AssignedByContactName = number.AssignedBy!.Name,

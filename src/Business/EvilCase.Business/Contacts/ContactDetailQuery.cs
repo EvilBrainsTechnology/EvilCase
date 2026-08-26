@@ -21,7 +21,7 @@ internal static class ContactDetailQuery
             .WithId(contactId)
             .Select(contact => new ContactDetail
             {
-                Id = contact.Id,
+                ContactId = contact.Id,
                 Name = contact.Name,
                 Kind = contact.Kind,
                 DataBoxId = contact.DataBoxId,

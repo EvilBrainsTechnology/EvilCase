@@ -6,7 +6,7 @@ namespace EvilBrains.EvilCase.Api.Contract.Acts;
 
 public sealed record ActDetail
 {
-    public required Guid Id { get; init; }
+    public required Guid ActId { get; init; }
 
     /// <summary>
     /// The case the act sits in; the screens build their links to it from here, not from the route.

@@ -4,7 +4,7 @@ namespace EvilBrains.EvilCase.Api.Contract.Cases;
 
 public sealed record CaseListItem
 {
-    public required Guid Id { get; init; }
+    public required Guid CaseId { get; init; }
 
     public required string CaseNumber { get; init; }
 

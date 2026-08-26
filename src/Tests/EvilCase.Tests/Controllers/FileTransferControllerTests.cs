@@ -66,7 +66,7 @@ public class FileTransferControllerTests
         {
             Assert.That(result.StatusCode, Is.EqualTo(201), "an upload answers 201, not 200");
             Assert.That(result.ActionName, Is.EqualTo(nameof(FileTransferController.DownloadFileContent)), "the Location names the download action of the new file");
-            Assert.That(result.RouteValues?["fileId"], Is.EqualTo(created.Id));
+            Assert.That(result.RouteValues?["fileId"], Is.EqualTo(created.FileId));
             Assert.That(result.Value, Is.SameAs(created));
         }
     }
@@ -140,7 +140,7 @@ public class FileTransferControllerTests
 
     private static FileListItem Item()
     {
-        return new() { Id = Guid.CreateVersion7(), FileName = "a.pdf", SizeBytes = 1, Created = DateTime.UtcNow };
+        return new() { FileId = Guid.CreateVersion7(), FileName = "a.pdf", SizeBytes = 1, Created = DateTime.UtcNow };
     }
 
     // The controller never reads the backing stream when the recording writer stands in, so the stream

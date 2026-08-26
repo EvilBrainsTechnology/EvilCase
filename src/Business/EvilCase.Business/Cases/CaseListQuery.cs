@@ -69,7 +69,7 @@ public static class CaseListQuery
     {
         return cases.Select(@case => new CaseListItem
         {
-            Id = @case.Id,
+            CaseId = @case.Id,
             CaseNumber = @case.CaseNumber,
             Title = @case.Title,
             Date = @case.Date,

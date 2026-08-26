@@ -174,7 +174,7 @@ public class CaseCommentsControllerTests
     {
         return new()
         {
-            Id = Guid.CreateVersion7(),
+            CommentId = Guid.CreateVersion7(),
             Body = body,
             AuthorEmail = "user@example.com",
             IsAuthor = true,

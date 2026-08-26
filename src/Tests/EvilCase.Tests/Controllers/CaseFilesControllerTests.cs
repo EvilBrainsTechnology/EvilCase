@@ -111,7 +111,7 @@ public class CaseFilesControllerTests
 
     private static FileListItem Item(string fileName)
     {
-        return new() { Id = Guid.CreateVersion7(), FileName = fileName, SizeBytes = 1, Created = DateTime.UtcNow };
+        return new() { FileId = Guid.CreateVersion7(), FileName = fileName, SizeBytes = 1, Created = DateTime.UtcNow };
     }
 
     private sealed class RecordingFileReader : IFileReader

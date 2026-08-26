@@ -59,7 +59,7 @@
                             <td class="text-nowrap">
                                 <Status BackgroundColor="ActDirectionDisplay.Color(item.Direction)" Lite="true">@ActDirectionDisplay.Text(item.Direction)</Status>
                             </td>
-                            <td><a href="@($"/cases/{this.CaseId}/act/{item.Id}")">@item.Title</a></td>
+                            <td><a href="@($"/cases/{this.CaseId}/act/{item.ActId}")">@item.Title</a></td>
                             <td>@item.IssuedByName</td>
                             <td>@item.AddressedToName</td>
                         </tr>
@@ -73,7 +73,7 @@
             {
                 <div class="card mb-2">
                     <div class="card-body">
-                        <div class="font-weight-medium"><a href="@($"/cases/{this.CaseId}/act/{item.Id}")">@item.Title</a></div>
+                        <div class="font-weight-medium"><a href="@($"/cases/{this.CaseId}/act/{item.ActId}")">@item.Title</a></div>
                         <div class="text-secondary">@item.ActNumber</div>
                         <div>
                             <Status BackgroundColor="ActDirectionDisplay.Color(item.Direction)" Lite="true">@ActDirectionDisplay.Text(item.Direction)</Status>

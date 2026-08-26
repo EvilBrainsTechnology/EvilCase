@@ -20,7 +20,7 @@ internal static class FileListQuery
     {
         return files.Select(file => new FileListItem
         {
-            Id = file.Id,
+            FileId = file.Id,
             FileName = file.FileName,
             SizeBytes = file.SizeBytes,
             Created = file.Created,

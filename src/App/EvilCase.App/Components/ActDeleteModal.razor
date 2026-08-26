@@ -45,7 +45,7 @@
 
         try
         {
-            await this.ActsClient.DeleteAct(this.Act.CaseId, this.Act.Id, CancellationToken.None);
+            await this.ActsClient.DeleteAct(this.Act.CaseId, this.Act.ActId, CancellationToken.None);
 
             this.ModalService.Close();
             await this.OnDeleted.InvokeAsync();

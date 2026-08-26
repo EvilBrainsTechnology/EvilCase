@@ -80,7 +80,7 @@
                             <td>@FileSizeDisplay.Text(file.SizeBytes)</td>
                             <td>@MomentDisplay.Text(file.Created)</td>
                             <td class="text-end">
-                                <button type="button" class="btn btn-sm" aria-label="Stáhnout soubor" disabled="@(this.downloadingId == file.Id)" @onclick="() => this.Download(file)">
+                                <button type="button" class="btn btn-sm" aria-label="Stáhnout soubor" disabled="@(this.downloadingFileId == file.FileId)" @onclick="() => this.Download(file)">
                                     <Icon IconType="AppIcons.Download" />
                                 </button>
                                 <button type="button" class="btn btn-sm btn-danger ms-2" aria-label="Smazat soubor" @onclick="() => this.ConfirmDelete(file)">
@@ -101,7 +101,7 @@
                         <div>@file.FileName</div>
                         <div class="text-secondary">@FileSizeDisplay.Text(file.SizeBytes) · @MomentDisplay.Text(file.Created)</div>
                         <div class="mt-2">
-                            <button type="button" class="btn btn-sm" aria-label="Stáhnout soubor" disabled="@(this.downloadingId == file.Id)" @onclick="() => this.Download(file)">
+                            <button type="button" class="btn btn-sm" aria-label="Stáhnout soubor" disabled="@(this.downloadingFileId == file.FileId)" @onclick="() => this.Download(file)">
                                 <Icon IconType="AppIcons.Download" />
                             </button>
                             <button type="button" class="btn btn-sm btn-danger ms-2" aria-label="Smazat soubor" @onclick="() => this.ConfirmDelete(file)">
@@ -144,7 +144,7 @@
 
     private string uploadName = "";
 
-    private Guid? downloadingId;
+    private Guid? downloadingFileId;
 
     private string? listFailure;
 
@@ -232,7 +232,7 @@
 
     private async Task Download(FileListItem file)
     {
-        this.downloadingId = file.Id;
+        this.downloadingFileId = file.FileId;
         this.error = null;
 
         try
@@ -247,7 +247,7 @@
         }
         finally
         {
-            this.downloadingId = null;
+            this.downloadingFileId = null;
         }
     }
 

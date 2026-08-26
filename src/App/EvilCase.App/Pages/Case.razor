@@ -89,7 +89,7 @@
                             <div class="datagrid-content">
                                 @if (this.caseDetail.ParentCase is { } parent)
                                 {
-                                    <a href="@($"/cases/{parent.Id}")">@parent.CaseNumber — @parent.Title</a>
+                                    <a href="@($"/cases/{parent.CaseId}")">@parent.CaseNumber — @parent.Title</a>
                                 }
                                 else
                                 {
@@ -183,13 +183,13 @@
 
     private async Task DownloadFile(FileListItem file, CancellationToken token)
     {
-        var content = await this.FileTransfer.DownloadFileContent(file.Id, token);
+        var content = await this.FileTransfer.DownloadFileContent(file.FileId, token);
         await this.Downloader.SaveFile(file.FileName, content, token);
     }
 
     private Task DeleteFile(FileListItem file, CancellationToken token)
     {
-        return this.CaseFilesClient.DeleteCaseFile(this.CaseId, file.Id, token);
+        return this.CaseFilesClient.DeleteCaseFile(this.CaseId, file.FileId, token);
     }
 
     private async Task<IReadOnlyList<CommentItem>> LoadComments(CancellationToken token)

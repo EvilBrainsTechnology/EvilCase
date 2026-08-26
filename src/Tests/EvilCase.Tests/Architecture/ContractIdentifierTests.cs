@@ -1,0 +1,22 @@
+using System.Reflection;
+
+namespace EvilBrains.EvilCase.Tests.Architecture;
+
+/// <summary>
+/// An identifier value names its entity, so no contract type carries a bare <c>Id</c>.
+/// </summary>
+public class ContractIdentifierTests
+{
+    [Test]
+    public void NoContractTypeCarriesABareId()
+    {
+        var offenders = typeof(Api.Contract.Cases.CaseListItem).Assembly
+            .GetExportedTypes()
+            .SelectMany(type => type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            .Where(property => string.Equals(property.Name, "Id", StringComparison.Ordinal))
+            .Select(property => $"{property.DeclaringType!.Name}.{property.Name}")
+            .ToList();
+
+        Assert.That(offenders, Is.Empty, "an identifier value on the contract names its entity, never a bare Id");
+    }
+}

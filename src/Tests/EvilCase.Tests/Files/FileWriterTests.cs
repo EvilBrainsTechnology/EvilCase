@@ -46,7 +46,7 @@ public class FileWriterTests
 
         Assert.That(result, Is.Not.Null);
 
-        var stored = await this.Reload(result!.Id);
+        var stored = await this.Reload(result!.FileId);
 
         using (Assert.EnterMultipleScope())
         {
@@ -89,14 +89,14 @@ public class FileWriterTests
     {
         var @case = await this.tenant.AddCase(Day);
         var uploaded = await this.writer.UploadCaseFile(@case.Id, Upload("a.txt"), CancellationToken.None);
-        var storagePath = (await this.Reload(uploaded!.Id)).StoragePath;
+        var storagePath = (await this.Reload(uploaded!.FileId)).StoragePath;
 
-        var outcome = await this.writer.DeleteCaseFile(@case.Id, uploaded.Id, CancellationToken.None);
+        var outcome = await this.writer.DeleteCaseFile(@case.Id, uploaded.FileId, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(outcome, Is.EqualTo(FileDeleteOutcome.Deleted));
-            Assert.That(await this.tenant.Context.FileAssets.AnyAsync(file => file.Id == uploaded.Id), Is.False, "a deleted file leaves no row");
+            Assert.That(await this.tenant.Context.FileAssets.AnyAsync(file => file.Id == uploaded.FileId), Is.False, "a deleted file leaves no row");
             Assert.That(this.blobs.Deleted, Does.Contain(storagePath), "a deleted file takes its blob with it");
         }
     }
@@ -108,12 +108,12 @@ public class FileWriterTests
         var caseB = await this.tenant.AddCase(Day);
         var uploaded = await this.writer.UploadCaseFile(caseA.Id, Upload("a.txt"), CancellationToken.None);
 
-        var outcome = await this.writer.DeleteCaseFile(caseB.Id, uploaded!.Id, CancellationToken.None);
+        var outcome = await this.writer.DeleteCaseFile(caseB.Id, uploaded!.FileId, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(outcome, Is.EqualTo(FileDeleteOutcome.NotFound), "a file of another case must not be found for delete");
-            Assert.That(await this.tenant.Context.FileAssets.AnyAsync(file => file.Id == uploaded.Id), Is.True, "the file must survive a delete naming the wrong case");
+            Assert.That(await this.tenant.Context.FileAssets.AnyAsync(file => file.Id == uploaded.FileId), Is.True, "the file must survive a delete naming the wrong case");
         }
     }
 

@@ -4,7 +4,7 @@ namespace EvilBrains.EvilCase.Api.Contract.Contacts;
 
 public sealed record ContactListItem
 {
-    public required Guid Id { get; init; }
+    public required Guid ContactId { get; init; }
 
     public required ContactKind Kind { get; init; }
 

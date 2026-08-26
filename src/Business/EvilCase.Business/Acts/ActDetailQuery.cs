@@ -21,7 +21,7 @@ internal static class ActDetailQuery
             .WithId(actId)
             .Select(act => new ActDetail
             {
-                Id = act.Id,
+                ActId = act.Id,
                 CaseId = act.CaseId,
                 CaseNumber = act.Case!.CaseNumber,
                 ActNumber = act.ActNumber,
@@ -31,7 +31,7 @@ internal static class ActDetailQuery
                 Description = act.Description,
                 IssuedByContact = new ContactListItem
                 {
-                    Id = act.IssuedByContact!.Id,
+                    ContactId = act.IssuedByContact!.Id,
                     Kind = act.IssuedByContact.Kind,
                     Name = act.IssuedByContact.Name,
                     DataBoxId = act.IssuedByContact.DataBoxId,
@@ -41,7 +41,7 @@ internal static class ActDetailQuery
                     ? null
                     : new ContactListItem
                     {
-                        Id = act.AddressedToContact.Id,
+                        ContactId = act.AddressedToContact.Id,
                         Kind = act.AddressedToContact.Kind,
                         Name = act.AddressedToContact.Name,
                         DataBoxId = act.AddressedToContact.DataBoxId,

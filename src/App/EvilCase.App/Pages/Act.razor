@@ -40,7 +40,7 @@
             @if (this.act is not null)
             {
                 <div class="col-auto ms-auto d-print-none">
-                    <a id="act-edit" href="@($"/cases/{this.act.CaseId}/act/{this.act.Id}/edit")" class="btn btn-primary">Upravit</a>
+                    <a id="act-edit" href="@($"/cases/{this.act.CaseId}/act/{this.act.ActId}/edit")" class="btn btn-primary">Upravit</a>
                     <button id="act-delete" type="button" class="btn btn-danger ms-2" @onclick="this.DeleteAct">Smazat</button>
                 </div>
             }
@@ -91,14 +91,14 @@
                         </div>
                         <div class="datagrid-item">
                             <div class="datagrid-title">Odesílatel</div>
-                            <div class="datagrid-content"><a href="/contacts/@this.act.IssuedByContact.Id">@this.act.IssuedByContact.Name</a></div>
+                            <div class="datagrid-content"><a href="/contacts/@this.act.IssuedByContact.ContactId">@this.act.IssuedByContact.Name</a></div>
                         </div>
                         <div class="datagrid-item">
                             <div class="datagrid-title">Příjemce</div>
                             <div class="datagrid-content">
                                 @if (this.act.AddressedToContact is { } recipient)
                                 {
-                                    <a href="/contacts/@recipient.Id">@recipient.Name</a>
+                                    <a href="/contacts/@recipient.ContactId">@recipient.Name</a>
                                 }
                                 else
                                 {

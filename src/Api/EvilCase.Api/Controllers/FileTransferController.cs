@@ -37,7 +37,7 @@ public class FileTransferController : ControllerBase
 
         return created is null
             ? this.Problem(statusCode: StatusCodes.Status404NotFound, title: "Case not found")
-            : this.CreatedAtAction(nameof(this.DownloadFileContent), new { fileId = created.Id }, created);
+            : this.CreatedAtAction(nameof(this.DownloadFileContent), new { fileId = created.FileId }, created);
     }
 
     [HttpGet("files/{fileId:guid}/content")]

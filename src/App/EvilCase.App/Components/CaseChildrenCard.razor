@@ -32,7 +32,7 @@
                     {
                         <tr>
                             <td class="text-nowrap">@item.CaseNumber</td>
-                            <td><a href="@($"/cases/{item.Id}")">@item.Title</a></td>
+                            <td><a href="@($"/cases/{item.CaseId}")">@item.Title</a></td>
                             <td class="text-nowrap">
                                 <Status BackgroundColor="CaseStatusDisplay.Color(item.Status)" Lite="true">@CaseStatusDisplay.Text(item.Status)</Status>
                             </td>

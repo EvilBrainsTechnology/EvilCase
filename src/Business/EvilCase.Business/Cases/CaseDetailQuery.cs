@@ -19,7 +19,7 @@ internal static class CaseDetailQuery
             .WithId(caseId)
             .Select(@case => new CaseDetail
             {
-                Id = @case.Id,
+                CaseId = @case.Id,
                 CaseNumber = @case.CaseNumber,
                 Date = @case.Date,
                 Title = @case.Title,
@@ -29,7 +29,7 @@ internal static class CaseDetailQuery
                     ? null
                     : new CaseListItem
                     {
-                        Id = @case.ParentCase.Id,
+                        CaseId = @case.ParentCase.Id,
                         CaseNumber = @case.ParentCase.CaseNumber,
                         Title = @case.ParentCase.Title,
                         Date = @case.ParentCase.Date,
