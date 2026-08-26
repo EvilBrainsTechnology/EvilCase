@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Business.Files;
 using Microsoft.AspNetCore.Http;
@@ -33,11 +34,14 @@ public class FileTransferController : ControllerBase
             Content = content,
         };
 
-        var created = await writer.UploadCaseFile(caseId, upload, token);
+        var result = await writer.UploadCaseFile(caseId, upload, token);
 
-        return created is null
-            ? this.Problem(statusCode: StatusCodes.Status404NotFound, title: "Case not found")
-            : this.CreatedAtAction(nameof(this.DownloadFileContent), new { fileId = created.FileId }, created);
+        return result.Outcome switch
+        {
+            UploadFileOutcome.Uploaded => this.CreatedAtAction(nameof(this.DownloadFileContent), new { fileId = result.File!.FileId }, result.File),
+            UploadFileOutcome.CaseNotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: "Case not found"),
+            _ => throw new UnreachableException(),
+        };
     }
 
     [HttpGet("files/{fileId:guid}/content")]

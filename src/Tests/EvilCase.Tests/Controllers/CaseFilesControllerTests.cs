@@ -141,9 +141,9 @@ public class CaseFilesControllerTests
 
         public FileDeleteOutcome DeleteOutcome { get; init; }
 
-        public Task<FileListItem?> UploadCaseFile(Guid caseId, FileUpload upload, CancellationToken token)
+        public Task<UploadFileResult> UploadCaseFile(Guid caseId, FileUpload upload, CancellationToken token)
         {
-            return Task.FromResult<FileListItem?>(null);
+            return Task.FromResult(new UploadFileResult { Outcome = UploadFileOutcome.CaseNotFound });
         }
 
         public Task<FileDeleteOutcome> DeleteCaseFile(Guid caseId, Guid fileId, CancellationToken token)

@@ -44,9 +44,13 @@ public class FileWriterTests
 
         var result = await this.writer.UploadCaseFile(@case.Id, Upload("smlouva.pdf", "application/pdf", "abc"), CancellationToken.None);
 
-        Assert.That(result, Is.Not.Null);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.Outcome, Is.EqualTo(UploadFileOutcome.Uploaded));
+            Assert.That(result.File, Is.Not.Null);
+        }
 
-        var stored = await this.Reload(result!.FileId);
+        var stored = await this.Reload(result.File!.FileId);
 
         using (Assert.EnterMultipleScope())
         {
@@ -78,7 +82,8 @@ public class FileWriterTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result, Is.Null, "an upload onto a case the tenant does not have must be refused");
+            Assert.That(result.Outcome, Is.EqualTo(UploadFileOutcome.CaseNotFound), "an upload naming a case the tenant does not have must be refused");
+            Assert.That(result.File, Is.Null);
             Assert.That(await this.tenant.Context.FileAssets.AnyAsync(), Is.False, "a refused upload must write no row");
             Assert.That(this.blobs.WrittenByPath, Is.Empty, "a refused upload must write no blob");
         }
@@ -89,14 +94,14 @@ public class FileWriterTests
     {
         var @case = await this.tenant.AddCase(Day);
         var uploaded = await this.writer.UploadCaseFile(@case.Id, Upload("a.txt"), CancellationToken.None);
-        var storagePath = (await this.Reload(uploaded!.FileId)).StoragePath;
+        var storagePath = (await this.Reload(uploaded.File!.FileId)).StoragePath;
 
-        var outcome = await this.writer.DeleteCaseFile(@case.Id, uploaded.FileId, CancellationToken.None);
+        var outcome = await this.writer.DeleteCaseFile(@case.Id, uploaded.File.FileId, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(outcome, Is.EqualTo(FileDeleteOutcome.Deleted));
-            Assert.That(await this.tenant.Context.FileAssets.AnyAsync(file => file.Id == uploaded.FileId), Is.False, "a deleted file leaves no row");
+            Assert.That(await this.tenant.Context.FileAssets.AnyAsync(file => file.Id == uploaded.File.FileId), Is.False, "a deleted file leaves no row");
             Assert.That(this.blobs.Deleted, Does.Contain(storagePath), "a deleted file takes its blob with it");
         }
     }
@@ -108,12 +113,12 @@ public class FileWriterTests
         var caseB = await this.tenant.AddCase(Day);
         var uploaded = await this.writer.UploadCaseFile(caseA.Id, Upload("a.txt"), CancellationToken.None);
 
-        var outcome = await this.writer.DeleteCaseFile(caseB.Id, uploaded!.FileId, CancellationToken.None);
+        var outcome = await this.writer.DeleteCaseFile(caseB.Id, uploaded.File!.FileId, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(outcome, Is.EqualTo(FileDeleteOutcome.NotFound), "a file of another case must not be found for delete");
-            Assert.That(await this.tenant.Context.FileAssets.AnyAsync(file => file.Id == uploaded.FileId), Is.True, "the file must survive a delete naming the wrong case");
+            Assert.That(await this.tenant.Context.FileAssets.AnyAsync(file => file.Id == uploaded.File.FileId), Is.True, "the file must survive a delete naming the wrong case");
         }
     }
 

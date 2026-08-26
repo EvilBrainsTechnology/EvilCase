@@ -11,13 +11,13 @@ namespace EvilBrains.EvilCase.Business.Files;
 
 internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore, IUserContext userContext, ILogger<FileWriter> logger) : IFileWriter
 {
-    public async Task<FileListItem?> UploadCaseFile(Guid caseId, FileUpload upload, CancellationToken token)
+    public async Task<UploadFileResult> UploadCaseFile(Guid caseId, FileUpload upload, CancellationToken token)
     {
         var context = dbSession.Current;
 
         var caseExists = await context.Cases.WithId(caseId).AnyAsync(token);
         if (!caseExists)
-            return null;
+            return new UploadFileResult { Outcome = UploadFileOutcome.CaseNotFound };
 
         var fileAssetId = Guid.CreateVersion7();
 
@@ -40,12 +40,16 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
 
         logger.LogInformation("File {FileAssetId} was stored on case {CaseId}, {SizeBytes} bytes", file.Id, caseId, file.SizeBytes);
 
-        return new FileListItem
+        return new UploadFileResult
         {
-            FileId = file.Id,
-            FileName = file.FileName,
-            SizeBytes = file.SizeBytes,
-            Created = file.Created,
+            Outcome = UploadFileOutcome.Uploaded,
+            File = new FileListItem
+            {
+                FileId = file.Id,
+                FileName = file.FileName,
+                SizeBytes = file.SizeBytes,
+                Created = file.Created,
+            },
         };
     }
 

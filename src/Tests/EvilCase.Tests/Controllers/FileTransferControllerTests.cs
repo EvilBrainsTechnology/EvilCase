@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Api.Controllers;
 using EvilBrains.EvilCase.Business.Files;
@@ -12,7 +13,7 @@ public class FileTransferControllerTests
     [Test]
     public async Task AnUploadOverTheLimitIsRefusedWithFourThirteen()
     {
-        var writer = new RecordingFileWriter();
+        var writer = new RecordingFileWriter { UploadResult = new UploadFileResult { Outcome = UploadFileOutcome.CaseNotFound } };
         var controller = new FileTransferController();
         var file = FormFile(FileLimits.MaxUploadBytes + 1);
 
@@ -25,7 +26,7 @@ public class FileTransferControllerTests
     [Test]
     public async Task AnUploadAtTheLimitReachesTheWriter()
     {
-        var writer = new RecordingFileWriter { Created = Item() };
+        var writer = new RecordingFileWriter { UploadResult = Uploaded(Item()) };
         var controller = new FileTransferController();
         var file = FormFile(FileLimits.MaxUploadBytes);
 
@@ -37,7 +38,7 @@ public class FileTransferControllerTests
     [Test]
     public async Task AnUploadKeepsOnlyTheNameItArrivedUnder()
     {
-        var writer = new RecordingFileWriter { Created = Item() };
+        var writer = new RecordingFileWriter { UploadResult = Uploaded(Item()) };
         var controller = new FileTransferController();
         var file = FormFile(1, fileName: "../../evil.txt");
 
@@ -54,7 +55,7 @@ public class FileTransferControllerTests
     public async Task AnUploadAnswersCreatedAtTheContentOfTheNewFile()
     {
         var created = Item();
-        var writer = new RecordingFileWriter { Created = created };
+        var writer = new RecordingFileWriter { UploadResult = Uploaded(created) };
         var controller = new FileTransferController();
 
         var response = await controller.UploadCaseFile(writer, Guid.CreateVersion7(), FormFile(1), CancellationToken.None);
@@ -74,12 +75,23 @@ public class FileTransferControllerTests
     [Test]
     public async Task AnUploadOntoAMissingCaseIsAProblemWithFourOhFour()
     {
-        var writer = new RecordingFileWriter { Created = null };
+        var writer = new RecordingFileWriter { UploadResult = new UploadFileResult { Outcome = UploadFileOutcome.CaseNotFound } };
         var controller = new FileTransferController();
 
         var response = await controller.UploadCaseFile(writer, Guid.CreateVersion7(), FormFile(1), CancellationToken.None);
 
         AssertProblem(response.Result, 404);
+    }
+
+    [Test]
+    public void AnUploadOutcomeTheEndpointDoesNotKnowThrows()
+    {
+        var writer = new RecordingFileWriter { UploadResult = new UploadFileResult { Outcome = (UploadFileOutcome)99 } };
+        var controller = new FileTransferController();
+
+        Assert.ThrowsAsync<UnreachableException>(
+            () => controller.UploadCaseFile(writer, Guid.CreateVersion7(), FormFile(1), CancellationToken.None),
+            "an outcome the endpoint does not name never turns into a status");
     }
 
     [Test]
@@ -143,6 +155,11 @@ public class FileTransferControllerTests
         return new() { FileId = Guid.CreateVersion7(), FileName = "a.pdf", SizeBytes = 1, Created = DateTime.UtcNow };
     }
 
+    private static UploadFileResult Uploaded(FileListItem file)
+    {
+        return new UploadFileResult { Outcome = UploadFileOutcome.Uploaded, File = file };
+    }
+
     // The controller never reads the backing stream when the recording writer stands in, so the stream
     // itself stays empty; only the reported Length matters.
     private static FormFile FormFile(long length, string fileName = "a.pdf")
@@ -171,14 +188,14 @@ public class FileTransferControllerTests
 
         public FileUpload? Upload { get; private set; }
 
-        public FileListItem? Created { get; init; }
+        public required UploadFileResult UploadResult { get; init; }
 
-        public Task<FileListItem?> UploadCaseFile(Guid caseId, FileUpload upload, CancellationToken token)
+        public Task<UploadFileResult> UploadCaseFile(Guid caseId, FileUpload upload, CancellationToken token)
         {
             this.Called = true;
             this.Upload = upload;
 
-            return Task.FromResult(this.Created);
+            return Task.FromResult(this.UploadResult);
         }
 
         public Task<FileDeleteOutcome> DeleteCaseFile(Guid caseId, Guid fileId, CancellationToken token)
