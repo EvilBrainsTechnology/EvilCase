@@ -155,7 +155,7 @@ public class ActDetailQueryTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(detail!.ExternalNumbers, Has.Count.EqualTo(1));
-            Assert.That(detail.ExternalNumbers[0].NumberId, Is.EqualTo(number.Id));
+            Assert.That(detail.ExternalNumbers[0].ExternalNumberId, Is.EqualTo(number.Id));
             Assert.That(detail.ExternalNumbers[0].Value, Is.EqualTo("1 T 45/2026"));
             Assert.That(detail.ExternalNumbers[0].AssignedByContactId, Is.EqualTo(contact.Id));
             Assert.That(detail.ExternalNumbers[0].AssignedByContactName, Is.EqualTo(contact.Name));

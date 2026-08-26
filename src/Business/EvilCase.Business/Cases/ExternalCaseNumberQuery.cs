@@ -22,7 +22,7 @@ internal static class ExternalCaseNumberQuery
     {
         return numbers.Select(number => new ExternalNumberItem
         {
-            NumberId = number.Id,
+            ExternalNumberId = number.Id,
             Value = number.Value,
             AssignedByContactId = number.AssignedByContactId,
             AssignedByContactName = number.AssignedBy!.Name,

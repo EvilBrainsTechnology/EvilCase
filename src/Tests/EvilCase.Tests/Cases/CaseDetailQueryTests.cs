@@ -120,7 +120,7 @@ public class CaseDetailQueryTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(item.NumberId, Is.EqualTo(number.Id));
+            Assert.That(item.ExternalNumberId, Is.EqualTo(number.Id));
             Assert.That(item.Value, Is.EqualTo("VV41/2025/08464"));
             Assert.That(item.AssignedByContactId, Is.EqualTo(contact.Id));
             Assert.That(item.AssignedByContactName, Is.EqualTo(contact.Name));

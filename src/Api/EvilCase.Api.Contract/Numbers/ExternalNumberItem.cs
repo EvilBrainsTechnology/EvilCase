@@ -2,7 +2,7 @@ namespace EvilBrains.EvilCase.Api.Contract.Numbers;
 
 public sealed record ExternalNumberItem
 {
-    public required Guid NumberId { get; init; }
+    public required Guid ExternalNumberId { get; init; }
 
     public required string Value { get; init; }
 
