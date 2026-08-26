@@ -6,8 +6,4 @@ namespace EvilBrains.EvilCase.Api.Contract.Cases;
 public static class CaseProblems
 {
     public const string InvalidParent = "Invalid parent";
-
-    public const string ExternalNumberTaken = "External number taken";
-
-    public const string UnknownContact = "Unknown contact";
 }

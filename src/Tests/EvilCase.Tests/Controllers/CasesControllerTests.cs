@@ -1,4 +1,5 @@
 using EvilBrains.EvilCase.Api.Contract.Cases;
+using EvilBrains.EvilCase.Api.Contract.Numbers;
 using EvilBrains.EvilCase.Api.Controllers;
 using EvilBrains.EvilCase.Business.Cases;
 using EvilBrains.EvilCase.Domain.Cases;
@@ -301,7 +302,7 @@ public class CasesControllerTests
 
         var problem = AssertProblem(result, 409);
 
-        Assert.That(problem.Title, Is.EqualTo(CaseProblems.ExternalNumberTaken), "the two conflicts of the add are told apart by the problem title");
+        Assert.That(problem.Title, Is.EqualTo(ExternalNumberProblems.Taken), "the two conflicts of the add are told apart by the problem title");
     }
 
     [Test]
@@ -314,7 +315,7 @@ public class CasesControllerTests
 
         var problem = AssertProblem(result, 409);
 
-        Assert.That(problem.Title, Is.EqualTo(CaseProblems.UnknownContact));
+        Assert.That(problem.Title, Is.EqualTo(ExternalNumberProblems.UnknownContact));
     }
 
     [Test]
@@ -356,7 +357,7 @@ public class CasesControllerTests
         AssertProblem(result, 404);
     }
 
-    private static ExternalCaseNumberRequest Mark()
+    private static ExternalNumberRequest Mark()
     {
         return new() { Value = "VV41/2025/08464", AssignedByContactId = Guid.CreateVersion7() };
     }
@@ -478,7 +479,7 @@ public class CasesControllerTests
     {
         public Guid? AddCaseId { get; private set; }
 
-        public ExternalCaseNumberRequest? AddRequest { get; private set; }
+        public ExternalNumberRequest? AddRequest { get; private set; }
 
         public ExternalCaseNumberOutcome AddOutcome { get; init; }
 
@@ -488,7 +489,7 @@ public class CasesControllerTests
 
         public bool DeleteResult { get; init; }
 
-        public Task<ExternalCaseNumberOutcome> AddExternalCaseNumber(Guid caseId, ExternalCaseNumberRequest request, CancellationToken token)
+        public Task<ExternalCaseNumberOutcome> AddExternalCaseNumber(Guid caseId, ExternalNumberRequest request, CancellationToken token)
         {
             this.AddCaseId = caseId;
             this.AddRequest = request;

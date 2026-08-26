@@ -1,4 +1,4 @@
-using EvilBrains.EvilCase.Api.Contract.Cases;
+using EvilBrains.EvilCase.Api.Contract.Numbers;
 using EvilBrains.EvilCase.Business.Cases;
 using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Tests.Data;
@@ -40,7 +40,7 @@ public class ExternalCaseNumberWriterTests
 
         var outcome = await this.writer.AddExternalCaseNumber(
             @case.Id,
-            new ExternalCaseNumberRequest { Value = "VV41/2025/08464", AssignedByContactId = contact.Id },
+            new ExternalNumberRequest { Value = "VV41/2025/08464", AssignedByContactId = contact.Id },
             CancellationToken.None);
 
         var reloaded = await this.Reload(@case.Id);
@@ -61,7 +61,7 @@ public class ExternalCaseNumberWriterTests
 
         await this.writer.AddExternalCaseNumber(
             @case.Id,
-            new ExternalCaseNumberRequest { Value = "  VV41/2025/08464  ", AssignedByContactId = contact.Id },
+            new ExternalNumberRequest { Value = "  VV41/2025/08464  ", AssignedByContactId = contact.Id },
             CancellationToken.None);
 
         var reloaded = await this.Reload(@case.Id);
@@ -78,7 +78,7 @@ public class ExternalCaseNumberWriterTests
 
         var outcome = await this.writer.AddExternalCaseNumber(
             @case.Id,
-            new ExternalCaseNumberRequest { Value = "VV41/2025/08464", AssignedByContactId = contact.Id },
+            new ExternalNumberRequest { Value = "VV41/2025/08464", AssignedByContactId = contact.Id },
             CancellationToken.None);
 
         var count = await this.tenant.Context.ExternalCaseNumbers.CountAsync(number => number.CaseId == @case.Id && number.Value == "VV41/2025/08464");
@@ -100,7 +100,7 @@ public class ExternalCaseNumberWriterTests
 
         var outcome = await this.writer.AddExternalCaseNumber(
             second.Id,
-            new ExternalCaseNumberRequest { Value = "VV41/2025/08464", AssignedByContactId = contact.Id },
+            new ExternalNumberRequest { Value = "VV41/2025/08464", AssignedByContactId = contact.Id },
             CancellationToken.None);
 
         Assert.That(outcome, Is.EqualTo(ExternalCaseNumberOutcome.Added), "uniqueness is per case, not per tenant");
@@ -113,7 +113,7 @@ public class ExternalCaseNumberWriterTests
 
         var outcome = await this.writer.AddExternalCaseNumber(
             Guid.CreateVersion7(),
-            new ExternalCaseNumberRequest { Value = "VV41/2025/08464", AssignedByContactId = contact.Id },
+            new ExternalNumberRequest { Value = "VV41/2025/08464", AssignedByContactId = contact.Id },
             CancellationToken.None);
 
         var any = await this.tenant.Context.ExternalCaseNumbers.AnyAsync();
@@ -134,7 +134,7 @@ public class ExternalCaseNumberWriterTests
 
         var outcome = await this.writer.AddExternalCaseNumber(
             otherCase.Id,
-            new ExternalCaseNumberRequest { Value = "VV41/2025/08464", AssignedByContactId = contact.Id },
+            new ExternalNumberRequest { Value = "VV41/2025/08464", AssignedByContactId = contact.Id },
             CancellationToken.None);
 
         Assert.That(outcome, Is.EqualTo(ExternalCaseNumberOutcome.CaseNotFound), "the tenant query filter is what turns another tenant's case into nothing");
@@ -147,7 +147,7 @@ public class ExternalCaseNumberWriterTests
 
         var outcome = await this.writer.AddExternalCaseNumber(
             @case.Id,
-            new ExternalCaseNumberRequest { Value = "VV41/2025/08464", AssignedByContactId = Guid.CreateVersion7() },
+            new ExternalNumberRequest { Value = "VV41/2025/08464", AssignedByContactId = Guid.CreateVersion7() },
             CancellationToken.None);
 
         var any = await this.tenant.Context.ExternalCaseNumbers.AnyAsync();
@@ -168,7 +168,7 @@ public class ExternalCaseNumberWriterTests
 
         var outcome = await this.writer.AddExternalCaseNumber(
             @case.Id,
-            new ExternalCaseNumberRequest { Value = "VV41/2025/08464", AssignedByContactId = otherContact.Id },
+            new ExternalNumberRequest { Value = "VV41/2025/08464", AssignedByContactId = otherContact.Id },
             CancellationToken.None);
 
         Assert.That(outcome, Is.EqualTo(ExternalCaseNumberOutcome.UnknownContact), "the tenant query filter is what turns another tenant's contact into nothing");

@@ -1,4 +1,4 @@
-using EvilBrains.EvilCase.Api.Contract.Cases;
+using EvilBrains.EvilCase.Api.Contract.Numbers;
 using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Data;
 using EvilBrains.EvilCase.Data.DbContexts;
@@ -10,7 +10,7 @@ namespace EvilBrains.EvilCase.Business.Cases;
 
 internal sealed class ExternalCaseNumberWriter(IDbSession dbSession, ILogger<ExternalCaseNumberWriter> logger) : IExternalCaseNumberWriter
 {
-    public async Task<ExternalCaseNumberOutcome> AddExternalCaseNumber(Guid caseId, ExternalCaseNumberRequest request, CancellationToken token)
+    public async Task<ExternalCaseNumberOutcome> AddExternalCaseNumber(Guid caseId, ExternalNumberRequest request, CancellationToken token)
     {
         var value = request.Value.Trim();
 

@@ -1,6 +1,6 @@
-namespace EvilBrains.EvilCase.Api.Contract.Cases;
+namespace EvilBrains.EvilCase.Api.Contract.Numbers;
 
-public sealed record ExternalCaseNumberItem
+public sealed record ExternalNumberItem
 {
     public required Guid Id { get; init; }
 
