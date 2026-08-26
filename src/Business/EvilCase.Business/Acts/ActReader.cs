@@ -15,8 +15,20 @@ internal sealed class ActReader(IDbSession dbSession) : IActReader
             .ToListAsync(token);
     }
 
-    public Task<ActDetail?> GetActDetail(Guid caseId, Guid actId, CancellationToken token)
+    public async Task<ActDetail?> GetActDetail(Guid caseId, Guid actId, CancellationToken token)
     {
-        return dbSession.Current.Acts.DetailOf(caseId, actId, token);
+        var context = dbSession.Current;
+
+        var act = await context.Acts.DetailOf(caseId, actId, token);
+        if (act is null)
+            return null;
+
+        var numbers = await context.ExternalActNumbers
+            .OfAct(actId)
+            .InAssignmentOrder()
+            .AsItems()
+            .ToListAsync(token);
+
+        return act with { ExternalNumbers = numbers };
     }
 }

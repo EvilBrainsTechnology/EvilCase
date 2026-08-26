@@ -1,3 +1,4 @@
+using EvilBrains.EvilCase.Api.Contract.Numbers;
 using EvilBrains.EvilCase.Domain.Cases;
 
 namespace EvilBrains.EvilCase.Api.Contract.Cases;
@@ -29,5 +30,5 @@ public sealed record CaseDetail
     /// <summary>
     /// The marks other authorities gave this case, in the order they accrued (SDD-009).
     /// </summary>
-    public IReadOnlyList<ExternalCaseNumberItem> ExternalNumbers { get; init; } = [];
+    public IReadOnlyList<ExternalNumberItem> ExternalNumbers { get; init; } = [];
 }

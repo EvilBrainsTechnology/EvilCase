@@ -1,4 +1,4 @@
-using EvilBrains.EvilCase.Api.Contract.Cases;
+using EvilBrains.EvilCase.Api.Contract.Numbers;
 using EvilBrains.EvilCase.Data.Entities;
 
 namespace EvilBrains.EvilCase.Business.Cases;
@@ -18,9 +18,9 @@ internal static class ExternalCaseNumberQuery
         return numbers.OrderBy(number => number.Created).ThenBy(number => number.Id);
     }
 
-    public static IQueryable<ExternalCaseNumberItem> AsItems(this IQueryable<ExternalCaseNumber> numbers)
+    public static IQueryable<ExternalNumberItem> AsItems(this IQueryable<ExternalCaseNumber> numbers)
     {
-        return numbers.Select(number => new ExternalCaseNumberItem
+        return numbers.Select(number => new ExternalNumberItem
         {
             Id = number.Id,
             Value = number.Value,

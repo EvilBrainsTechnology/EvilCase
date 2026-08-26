@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using EvilBrains.ApiClient;
 using EvilBrains.EvilCase.Api.Contract.Cases;
+using EvilBrains.EvilCase.Api.Contract.Numbers;
 using EvilBrains.EvilCase.Business.Cases;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -93,7 +94,7 @@ public class CasesController : ControllerBase
     public async Task<ActionResult> AddExternalCaseNumber(
         [FromServices] IExternalCaseNumberWriter writer,
         [FromRoute] Guid caseId,
-        [FromBody] ExternalCaseNumberRequest request,
+        [FromBody] ExternalNumberRequest request,
         CancellationToken token)
     {
         var outcome = await writer.AddExternalCaseNumber(caseId, request, token);
@@ -105,11 +106,11 @@ public class CasesController : ControllerBase
             ExternalCaseNumberOutcome.UnknownContact => this.Problem(
                 detail: "The contact that assigned the mark does not exist.",
                 statusCode: StatusCodes.Status409Conflict,
-                title: CaseProblems.UnknownContact),
+                title: ExternalNumberProblems.UnknownContact),
             ExternalCaseNumberOutcome.ValueTaken => this.Problem(
                 detail: "The case already carries the mark.",
                 statusCode: StatusCodes.Status409Conflict,
-                title: CaseProblems.ExternalNumberTaken),
+                title: ExternalNumberProblems.Taken),
             _ => throw new UnreachableException(),
         };
     }
