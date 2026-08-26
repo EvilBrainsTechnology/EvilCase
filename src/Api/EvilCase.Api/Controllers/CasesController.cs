@@ -79,11 +79,14 @@ public class CasesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeleteCase([FromServices] ICaseWriter writer, [FromRoute] Guid caseId, CancellationToken token)
     {
-        var deleted = await writer.DeleteCase(caseId, token);
+        var outcome = await writer.DeleteCase(caseId, token);
 
-        return deleted
-            ? this.NoContent()
-            : this.Problem(statusCode: StatusCodes.Status404NotFound, title: "Case not found");
+        return outcome switch
+        {
+            CaseDeleteOutcome.Deleted => this.NoContent(),
+            CaseDeleteOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: "Case not found"),
+            _ => throw new UnreachableException(),
+        };
     }
 
     [HttpPost("{caseId:guid}/external-numbers")]
@@ -124,11 +127,15 @@ public class CasesController : ControllerBase
         [FromRoute] Guid numberId,
         CancellationToken token)
     {
-        var deleted = await writer.DeleteExternalCaseNumber(caseId, numberId, token);
+        var outcome = await writer.DeleteExternalCaseNumber(caseId, numberId, token);
 
-        return deleted
-            ? this.NoContent()
-            : this.Problem(statusCode: StatusCodes.Status404NotFound, title: "External case number not found");
+        return outcome switch
+        {
+            ExternalCaseNumberDeleteOutcome.Deleted => this.NoContent(),
+            ExternalCaseNumberDeleteOutcome.NotFound => this.Problem(
+                statusCode: StatusCodes.Status404NotFound, title: "External case number not found"),
+            _ => throw new UnreachableException(),
+        };
     }
 
     private ActionResult InvalidCaseNumberProblem()

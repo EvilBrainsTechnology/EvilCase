@@ -9,8 +9,5 @@ public interface IExternalCaseNumberWriter
 {
     public Task<ExternalCaseNumberOutcome> AddExternalCaseNumber(Guid caseId, ExternalNumberRequest request, CancellationToken token);
 
-    /// <summary>
-    /// True where the mark was the case's and is now gone.
-    /// </summary>
-    public Task<bool> DeleteExternalCaseNumber(Guid caseId, Guid numberId, CancellationToken token);
+    public Task<ExternalCaseNumberDeleteOutcome> DeleteExternalCaseNumber(Guid caseId, Guid numberId, CancellationToken token);
 }

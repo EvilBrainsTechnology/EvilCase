@@ -56,9 +56,12 @@ public class ContactsController : ControllerBase
     {
         var outcome = await writer.UpdateContact(contactId, request, token);
 
-        return outcome == ContactUpdateOutcome.NotFound
-            ? this.Problem(statusCode: StatusCodes.Status404NotFound, title: "Contact not found")
-            : this.NoContent();
+        return outcome switch
+        {
+            ContactUpdateOutcome.Updated => this.NoContent(),
+            ContactUpdateOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: "Contact not found"),
+            _ => throw new UnreachableException(),
+        };
     }
 
     [HttpDelete("{contactId:guid}")]

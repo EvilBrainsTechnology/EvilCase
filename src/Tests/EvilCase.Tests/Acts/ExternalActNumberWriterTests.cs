@@ -227,7 +227,7 @@ public class ExternalActNumberWriterTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(deleted, Is.True);
+            Assert.That(deleted, Is.EqualTo(ExternalActNumberDeleteOutcome.Deleted));
             Assert.That(exists, Is.False);
         }
     }
@@ -247,7 +247,7 @@ public class ExternalActNumberWriterTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(deleted, Is.False);
+            Assert.That(deleted, Is.EqualTo(ExternalActNumberDeleteOutcome.NotFound));
             Assert.That(exists, Is.True);
         }
     }
@@ -267,7 +267,7 @@ public class ExternalActNumberWriterTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(deleted, Is.False);
+            Assert.That(deleted, Is.EqualTo(ExternalActNumberDeleteOutcome.NotFound));
             Assert.That(exists, Is.True);
         }
     }
@@ -280,7 +280,7 @@ public class ExternalActNumberWriterTests
 
         var deleted = await this.writer.DeleteExternalActNumber(@case.Id, act.Id, Guid.CreateVersion7(), CancellationToken.None);
 
-        Assert.That(deleted, Is.False);
+        Assert.That(deleted, Is.EqualTo(ExternalActNumberDeleteOutcome.NotFound));
     }
 
     [Test]
@@ -298,7 +298,7 @@ public class ExternalActNumberWriterTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(deleted, Is.False);
+            Assert.That(deleted, Is.EqualTo(ExternalActNumberDeleteOutcome.NotFound));
             Assert.That(exists, Is.True, "the other tenant still holds it");
         }
     }

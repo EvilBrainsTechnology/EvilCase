@@ -60,7 +60,7 @@ public class CaseDeleteTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result, Is.True);
+            Assert.That(result, Is.EqualTo(CaseDeleteOutcome.Deleted));
             Assert.That(caseExists, Is.False, "the cascade takes the case itself");
             Assert.That(actExists, Is.False, "the cascade takes the case's acts");
             Assert.That(commentsExist, Is.False, "the cascade takes the comments of the case and of its acts");
@@ -84,7 +84,7 @@ public class CaseDeleteTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result, Is.True);
+            Assert.That(result, Is.EqualTo(CaseDeleteOutcome.Deleted));
             Assert.That(reloadedChild, Is.Not.Null, "a subordinate case survives the delete of its parent");
             Assert.That(reloadedChild!.ParentCaseId, Is.Null, "the surviving subordinate case is left without a parent");
         }
@@ -129,7 +129,7 @@ public class CaseDeleteTests
     {
         var result = await this.writer.DeleteCase(Guid.CreateVersion7(), CancellationToken.None);
 
-        Assert.That(result, Is.False);
+        Assert.That(result, Is.EqualTo(CaseDeleteOutcome.NotFound));
     }
 
     [Test]
@@ -157,7 +157,7 @@ public class CaseDeleteTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result, Is.False, "the tenant query filter is what keeps another tenant's case out of a delete");
+            Assert.That(result, Is.EqualTo(CaseDeleteOutcome.NotFound), "the tenant query filter is what keeps another tenant's case out of a delete");
             Assert.That(otherCaseExists, Is.True);
         }
     }

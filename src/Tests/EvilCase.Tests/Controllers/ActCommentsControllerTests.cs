@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.Api.Contract.Comments;
 using EvilBrains.EvilCase.Api.Controllers;
@@ -68,6 +69,19 @@ public class ActCommentsControllerTests
         var problem = AssertProblem(result, 404);
 
         Assert.That(problem.Title, Is.EqualTo(ActProblems.ActNotFound), "the answer names the act, not the comment");
+    }
+
+    [Test]
+    public async Task AnAddOutcomeTheEndpointDoesNotKnowThrows()
+    {
+        var writer = new RecordingCommentWriter { AddOutcome = (CommentWriteOutcome)99 };
+        var controller = new ActCommentsController();
+
+        await Assert.ThatAsync(
+            () => controller.AddActComment(
+                writer, Guid.CreateVersion7(), Guid.CreateVersion7(), new CommentEditRequest { Body = "Poznámka" }, CancellationToken.None),
+            Throws.InstanceOf<UnreachableException>(),
+            "an outcome the endpoint does not name never turns into a status");
     }
 
     [Test]

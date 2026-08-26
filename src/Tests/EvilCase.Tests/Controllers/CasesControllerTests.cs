@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Numbers;
 using EvilBrains.EvilCase.Api.Controllers;
@@ -223,7 +224,7 @@ public class CasesControllerTests
     public async Task DeletingACaseReachesTheWriterWithTheRouteId()
     {
         var caseId = Guid.CreateVersion7();
-        var writer = new RecordingCaseWriter { DeleteResult = true };
+        var writer = new RecordingCaseWriter { DeleteOutcome = CaseDeleteOutcome.Deleted };
         var controller = new CasesController();
 
         await controller.DeleteCase(writer, caseId, CancellationToken.None);
@@ -234,7 +235,7 @@ public class CasesControllerTests
     [Test]
     public async Task DeletingACaseAnswersWithNoContent()
     {
-        var writer = new RecordingCaseWriter { DeleteResult = true };
+        var writer = new RecordingCaseWriter { DeleteOutcome = CaseDeleteOutcome.Deleted };
         var controller = new CasesController();
 
         var result = await controller.DeleteCase(writer, Guid.CreateVersion7(), CancellationToken.None);
@@ -245,12 +246,24 @@ public class CasesControllerTests
     [Test]
     public async Task DeletingAMissingCaseIsAProblemWithFourOhFour()
     {
-        var writer = new RecordingCaseWriter { DeleteResult = false };
+        var writer = new RecordingCaseWriter { DeleteOutcome = CaseDeleteOutcome.NotFound };
         var controller = new CasesController();
 
         var result = await controller.DeleteCase(writer, Guid.CreateVersion7(), CancellationToken.None);
 
         AssertProblem(result, 404);
+    }
+
+    [Test]
+    public async Task ADeleteOutcomeTheEndpointDoesNotKnowThrows()
+    {
+        var writer = new RecordingCaseWriter { DeleteOutcome = (CaseDeleteOutcome)99 };
+        var controller = new CasesController();
+
+        await Assert.ThatAsync(
+            () => controller.DeleteCase(writer, Guid.CreateVersion7(), CancellationToken.None),
+            Throws.InstanceOf<UnreachableException>(),
+            "an outcome the endpoint does not name never turns into a status");
     }
 
     [Test]
@@ -321,7 +334,7 @@ public class CasesControllerTests
     [Test]
     public async Task DeletingAMarkAnswersWithNoContent()
     {
-        var writer = new RecordingExternalCaseNumberWriter { DeleteResult = true };
+        var writer = new RecordingExternalCaseNumberWriter { DeleteOutcome = ExternalCaseNumberDeleteOutcome.Deleted };
         var controller = new CasesController();
 
         var result = await controller.DeleteExternalCaseNumber(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
@@ -334,7 +347,7 @@ public class CasesControllerTests
     {
         var caseId = Guid.CreateVersion7();
         var numberId = Guid.CreateVersion7();
-        var writer = new RecordingExternalCaseNumberWriter { DeleteResult = true };
+        var writer = new RecordingExternalCaseNumberWriter { DeleteOutcome = ExternalCaseNumberDeleteOutcome.Deleted };
         var controller = new CasesController();
 
         await controller.DeleteExternalCaseNumber(writer, caseId, numberId, CancellationToken.None);
@@ -349,12 +362,24 @@ public class CasesControllerTests
     [Test]
     public async Task DeletingAMissingMarkIsAProblemWithFourOhFour()
     {
-        var writer = new RecordingExternalCaseNumberWriter { DeleteResult = false };
+        var writer = new RecordingExternalCaseNumberWriter { DeleteOutcome = ExternalCaseNumberDeleteOutcome.NotFound };
         var controller = new CasesController();
 
         var result = await controller.DeleteExternalCaseNumber(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
 
         AssertProblem(result, 404);
+    }
+
+    [Test]
+    public async Task AMarkDeleteOutcomeTheEndpointDoesNotKnowThrows()
+    {
+        var writer = new RecordingExternalCaseNumberWriter { DeleteOutcome = (ExternalCaseNumberDeleteOutcome)99 };
+        var controller = new CasesController();
+
+        await Assert.ThatAsync(
+            () => controller.DeleteExternalCaseNumber(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None),
+            Throws.InstanceOf<UnreachableException>(),
+            "an outcome the endpoint does not name never turns into a status");
     }
 
     private static ExternalNumberRequest Mark()
@@ -465,13 +490,13 @@ public class CasesControllerTests
 
         public Guid? DeleteId { get; private set; }
 
-        public bool DeleteResult { get; init; }
+        public CaseDeleteOutcome DeleteOutcome { get; init; }
 
-        public Task<bool> DeleteCase(Guid caseId, CancellationToken token)
+        public Task<CaseDeleteOutcome> DeleteCase(Guid caseId, CancellationToken token)
         {
             this.DeleteId = caseId;
 
-            return Task.FromResult(this.DeleteResult);
+            return Task.FromResult(this.DeleteOutcome);
         }
     }
 
@@ -487,7 +512,7 @@ public class CasesControllerTests
 
         public Guid? DeleteNumberId { get; private set; }
 
-        public bool DeleteResult { get; init; }
+        public ExternalCaseNumberDeleteOutcome DeleteOutcome { get; init; }
 
         public Task<ExternalCaseNumberOutcome> AddExternalCaseNumber(Guid caseId, ExternalNumberRequest request, CancellationToken token)
         {
@@ -497,12 +522,12 @@ public class CasesControllerTests
             return Task.FromResult(this.AddOutcome);
         }
 
-        public Task<bool> DeleteExternalCaseNumber(Guid caseId, Guid numberId, CancellationToken token)
+        public Task<ExternalCaseNumberDeleteOutcome> DeleteExternalCaseNumber(Guid caseId, Guid numberId, CancellationToken token)
         {
             this.DeleteCaseId = caseId;
             this.DeleteNumberId = numberId;
 
-            return Task.FromResult(this.DeleteResult);
+            return Task.FromResult(this.DeleteOutcome);
         }
     }
 }

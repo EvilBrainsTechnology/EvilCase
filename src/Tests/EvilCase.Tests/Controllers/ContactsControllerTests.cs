@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Api.Controllers;
 using EvilBrains.EvilCase.Business.Contacts;
@@ -148,6 +149,18 @@ public class ContactsControllerTests
         var result = await controller.EditContact(writer, Guid.CreateVersion7(), Edit(), CancellationToken.None);
 
         Assert.That(result, Is.InstanceOf<NoContentResult>());
+    }
+
+    [Test]
+    public async Task AnEditOutcomeTheEndpointDoesNotKnowThrows()
+    {
+        var writer = new RecordingContactWriter { UpdateOutcome = (ContactUpdateOutcome)99 };
+        var controller = new ContactsController();
+
+        await Assert.ThatAsync(
+            () => controller.EditContact(writer, Guid.CreateVersion7(), Edit(), CancellationToken.None),
+            Throws.InstanceOf<UnreachableException>(),
+            "an outcome the endpoint does not name never turns into a status");
     }
 
     [Test]

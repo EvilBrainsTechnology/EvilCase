@@ -27,9 +27,13 @@ public class CaseCommentsController : ControllerBase
     {
         var outcome = await writer.AddCaseComment(caseId, request, token);
 
-        return outcome == CommentWriteOutcome.Written
-            ? this.NoContent()
-            : this.Problem(statusCode: StatusCodes.Status404NotFound, title: "Case not found");
+        return outcome switch
+        {
+            CommentWriteOutcome.Written => this.NoContent(),
+            CommentWriteOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: "Case not found"),
+            CommentWriteOutcome.NotAuthor => throw new UnreachableException(),
+            _ => throw new UnreachableException(),
+        };
     }
 
     [HttpPut("{commentId:guid}")]

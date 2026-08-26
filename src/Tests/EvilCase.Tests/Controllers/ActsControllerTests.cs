@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Api.Contract.Numbers;
@@ -326,7 +327,7 @@ public class ActsControllerTests
     [Test]
     public async Task DeletingANumberAnswersWithNoContent()
     {
-        var writer = new RecordingExternalActNumberWriter { DeleteResult = true };
+        var writer = new RecordingExternalActNumberWriter { DeleteOutcome = ExternalActNumberDeleteOutcome.Deleted };
         var controller = new ActsController();
 
         var result = await controller.DeleteExternalActNumber(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
@@ -340,7 +341,7 @@ public class ActsControllerTests
         var caseId = Guid.CreateVersion7();
         var actId = Guid.CreateVersion7();
         var numberId = Guid.CreateVersion7();
-        var writer = new RecordingExternalActNumberWriter { DeleteResult = true };
+        var writer = new RecordingExternalActNumberWriter { DeleteOutcome = ExternalActNumberDeleteOutcome.Deleted };
         var controller = new ActsController();
 
         await controller.DeleteExternalActNumber(writer, caseId, actId, numberId, CancellationToken.None);
@@ -356,12 +357,24 @@ public class ActsControllerTests
     [Test]
     public async Task DeletingAMissingNumberIsAProblemWithFourOhFour()
     {
-        var writer = new RecordingExternalActNumberWriter { DeleteResult = false };
+        var writer = new RecordingExternalActNumberWriter { DeleteOutcome = ExternalActNumberDeleteOutcome.NotFound };
         var controller = new ActsController();
 
         var result = await controller.DeleteExternalActNumber(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
 
         AssertProblem(result, 404);
+    }
+
+    [Test]
+    public async Task ANumberDeleteOutcomeTheEndpointDoesNotKnowThrows()
+    {
+        var writer = new RecordingExternalActNumberWriter { DeleteOutcome = (ExternalActNumberDeleteOutcome)99 };
+        var controller = new ActsController();
+
+        await Assert.ThatAsync(
+            () => controller.DeleteExternalActNumber(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None),
+            Throws.InstanceOf<UnreachableException>(),
+            "an outcome the endpoint does not name never turns into a status");
     }
 
     private static ExternalNumberRequest Number()
@@ -512,7 +525,7 @@ public class ActsControllerTests
 
         public Guid? DeleteNumberId { get; private set; }
 
-        public bool DeleteResult { get; init; }
+        public ExternalActNumberDeleteOutcome DeleteOutcome { get; init; }
 
         public Task<ExternalActNumberOutcome> AddExternalActNumber(Guid caseId, Guid actId, ExternalNumberRequest request, CancellationToken token)
         {
@@ -523,13 +536,13 @@ public class ActsControllerTests
             return Task.FromResult(this.AddOutcome);
         }
 
-        public Task<bool> DeleteExternalActNumber(Guid caseId, Guid actId, Guid numberId, CancellationToken token)
+        public Task<ExternalActNumberDeleteOutcome> DeleteExternalActNumber(Guid caseId, Guid actId, Guid numberId, CancellationToken token)
         {
             this.DeleteCaseId = caseId;
             this.DeleteActId = actId;
             this.DeleteNumberId = numberId;
 
-            return Task.FromResult(this.DeleteResult);
+            return Task.FromResult(this.DeleteOutcome);
         }
     }
 }

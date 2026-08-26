@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using EvilBrains.EvilCase.Api.Contract.Comments;
 using EvilBrains.EvilCase.Api.Controllers;
 using EvilBrains.EvilCase.Business.Comments;
@@ -59,6 +60,18 @@ public class CaseCommentsControllerTests
         var problem = AssertProblem(result, 404);
 
         Assert.That(problem.Title, Is.EqualTo("Case not found"), "the answer names the case, not the comment");
+    }
+
+    [Test]
+    public async Task AnAddOutcomeTheEndpointDoesNotKnowThrows()
+    {
+        var writer = new RecordingCommentWriter { AddOutcome = (CommentWriteOutcome)99 };
+        var controller = new CaseCommentsController();
+
+        await Assert.ThatAsync(
+            () => controller.AddCaseComment(writer, Guid.CreateVersion7(), new CommentEditRequest { Body = "Poznámka" }, CancellationToken.None),
+            Throws.InstanceOf<UnreachableException>(),
+            "an outcome the endpoint does not name never turns into a status");
     }
 
     [Test]
