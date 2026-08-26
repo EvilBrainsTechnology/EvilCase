@@ -207,19 +207,19 @@
             }
             catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.RequestEntityTooLarge)
             {
-                this.Logger.LogWarning(exception, "Uploading {FileName} failed: too large", file.Name);
+                this.Logger.LogWarning(exception, "Uploading a file failed: too large");
 
                 this.failures.Add($"{file.Name}: soubor je větší než {FileSizeDisplay.Text(FileLimits.MaxUploadBytes)}.");
             }
             catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
             {
-                this.Logger.LogWarning(exception, "Uploading {FileName} failed: case is gone", file.Name);
+                this.Logger.LogWarning(exception, "Uploading a file failed: the owner is gone");
 
                 this.failures.Add($"{file.Name}: spis už neexistuje.");
             }
-            catch (Exception exception) when (exception is ApiException or HttpRequestException or IOException)
+            catch (Exception exception) when (exception is ApiException or HttpRequestException or IOException or JSException)
             {
-                this.Logger.LogWarning(exception, "Uploading {FileName} failed", file.Name);
+                this.Logger.LogWarning(exception, "Uploading a file failed");
 
                 this.failures.Add($"{file.Name}: nahrání se nezdařilo.");
             }
@@ -241,7 +241,7 @@
         }
         catch (Exception exception) when (exception is ApiException or HttpRequestException or JSException)
         {
-            this.Logger.LogWarning(exception, "Downloading {FileName} failed", file.FileName);
+            this.Logger.LogWarning(exception, "Downloading file {FileId} failed", file.FileId);
 
             this.error = "Soubor se nepodařilo stáhnout. Zkuste to za chvíli znovu.";
         }
