@@ -1,3 +1,4 @@
+using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.Api.Contract.Comments;
 using EvilBrains.EvilCase.Api.Controllers;
 using EvilBrains.EvilCase.Business.Comments;
@@ -64,7 +65,9 @@ public class ActCommentsControllerTests
         var result = await controller.AddActComment(
             writer, Guid.CreateVersion7(), Guid.CreateVersion7(), new CommentEditRequest { Body = "Poznámka" }, CancellationToken.None);
 
-        AssertProblem(result, 404);
+        var problem = AssertProblem(result, 404);
+
+        Assert.That(problem.Title, Is.EqualTo(ActProblems.ActNotFound), "the answer names the act, not the comment");
     }
 
     [Test]

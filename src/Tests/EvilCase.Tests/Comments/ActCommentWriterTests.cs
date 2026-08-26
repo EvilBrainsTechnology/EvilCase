@@ -237,6 +237,25 @@ public class ActCommentWriterTests
     }
 
     [Test]
+    public async Task ANoteOfAnotherActIsNotDeletedUnderThisAct()
+    {
+        var @case = await this.tenant.AddCase(Day);
+        var right = await this.tenant.AddAct(@case, Day, "Správný");
+        var wrong = await this.tenant.AddAct(@case, Day, "Jiný");
+        var comment = await this.tenant.AddActComment(right, "Poznámka");
+
+        var outcome = await this.writer.DeleteActComment(@case.Id, wrong.Id, comment.Id, CancellationToken.None);
+
+        var exists = await this.tenant.Context.Comments.AsNoTracking().AnyAsync(c => c.Id == comment.Id);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome, Is.EqualTo(CommentWriteOutcome.NotFound));
+            Assert.That(exists, Is.True, "the note must hang on the act in the route");
+        }
+    }
+
+    [Test]
     public async Task ANoteOfAnotherTenantIsNotDeleted()
     {
         await using var other = await TestTenant.Create();

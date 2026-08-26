@@ -40,13 +40,10 @@ internal static class CommentListQuery
         return comments.Where(comment => comment.ActId == actId);
     }
 
-    /// <summary>
-    /// The act's notes, and only where the act hangs on that case.
-    /// </summary>
     public static IQueryable<Comment> OnActOfCase(this IQueryable<Comment> comments, Guid caseId, Guid actId)
     {
         return comments
-            .Where(comment => comment.ActId == actId)
+            .OnAct(actId)
             .Where(comment => comment.Act!.CaseId == caseId);
     }
 }
