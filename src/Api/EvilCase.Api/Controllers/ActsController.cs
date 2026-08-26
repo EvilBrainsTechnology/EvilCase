@@ -73,6 +73,21 @@ public class ActsController : ControllerBase
         };
     }
 
+    [HttpDelete("{actId:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> DeleteAct([FromServices] IActWriter writer, [FromRoute] Guid caseId, [FromRoute] Guid actId, CancellationToken token)
+    {
+        var outcome = await writer.DeleteAct(caseId, actId, token);
+
+        return outcome switch
+        {
+            ActDeleteOutcome.Deleted => this.NoContent(),
+            ActDeleteOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.ActNotFound),
+            _ => throw new UnreachableException(),
+        };
+    }
+
     [HttpPost("{actId:guid}/external-numbers")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

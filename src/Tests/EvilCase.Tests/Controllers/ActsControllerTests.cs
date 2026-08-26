@@ -256,6 +256,59 @@ public class ActsControllerTests
     }
 
     [Test]
+    public async Task ADeleteReachesTheWriterWithBothRouteIds()
+    {
+        var caseId = Guid.CreateVersion7();
+        var actId = Guid.CreateVersion7();
+        var writer = new RecordingActWriter { DeleteOutcome = ActDeleteOutcome.Deleted };
+        var controller = new ActsController();
+
+        await controller.DeleteAct(writer, caseId, actId, CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(writer.DeleteCaseId, Is.EqualTo(caseId));
+            Assert.That(writer.DeleteActId, Is.EqualTo(actId));
+        }
+    }
+
+    [Test]
+    public async Task ADeleteThatSucceedsAnswersWithNoContent()
+    {
+        var writer = new RecordingActWriter { DeleteOutcome = ActDeleteOutcome.Deleted };
+        var controller = new ActsController();
+
+        var result = await controller.DeleteAct(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
+
+        Assert.That(result, Is.InstanceOf<NoContentResult>());
+    }
+
+    [Test]
+    public async Task DeletingAMissingActIsAProblemWithFourOhFour()
+    {
+        var writer = new RecordingActWriter { DeleteOutcome = ActDeleteOutcome.NotFound };
+        var controller = new ActsController();
+
+        var result = await controller.DeleteAct(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
+
+        var problem = AssertProblem(result, 404);
+
+        Assert.That(problem.Title, Is.EqualTo(ActProblems.ActNotFound));
+    }
+
+    [Test]
+    public async Task AnActDeleteOutcomeTheEndpointDoesNotKnowThrows()
+    {
+        var writer = new RecordingActWriter { DeleteOutcome = (ActDeleteOutcome)99 };
+        var controller = new ActsController();
+
+        await Assert.ThatAsync(
+            () => controller.DeleteAct(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None),
+            Throws.InstanceOf<UnreachableException>(),
+            "an outcome the endpoint does not name never turns into a status");
+    }
+
+    [Test]
     public async Task AddingANumberReachesTheWriterWithBothRouteIdsAndTheBody()
     {
         var caseId = Guid.CreateVersion7();
@@ -487,9 +540,15 @@ public class ActsControllerTests
 
         public ActEditRequest? UpdateRequest { get; private set; }
 
+        public Guid? DeleteCaseId { get; private set; }
+
+        public Guid? DeleteActId { get; private set; }
+
         public ActCreateResult Result { get; init; } = new() { Outcome = ActCreateOutcome.Created, Act = Item("Podání") };
 
         public ActUpdateOutcome UpdateOutcome { get; init; }
+
+        public ActDeleteOutcome DeleteOutcome { get; init; }
 
         public Task<ActCreateResult> CreateAct(Guid caseId, CreateActRequest request, CancellationToken token)
         {
@@ -506,6 +565,14 @@ public class ActsControllerTests
             this.UpdateRequest = request;
 
             return Task.FromResult(this.UpdateOutcome);
+        }
+
+        public Task<ActDeleteOutcome> DeleteAct(Guid caseId, Guid actId, CancellationToken token)
+        {
+            this.DeleteCaseId = caseId;
+            this.DeleteActId = actId;
+
+            return Task.FromResult(this.DeleteOutcome);
         }
     }
 

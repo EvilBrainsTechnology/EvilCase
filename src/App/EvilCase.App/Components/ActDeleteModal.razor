@@ -1,0 +1,70 @@
+@using System.Net
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.Acts
+@using TabBlazor.Services
+@inject IActsClient ActsClient
+@inject IModalService ModalService
+@inject ILogger<ActDeleteModal> Logger
+
+<p>Opravdu smazat úkon <strong>@Act.ActNumber</strong> — @Act.Title? Akci nelze vrátit zpět.</p>
+
+<p class="text-secondary">S úkonem zaniknou jeho komentáře, externí čísla jednací a soubory.</p>
+
+@if (this.error is not null)
+{
+    <div class="alert alert-danger" role="alert">@this.error</div>
+}
+
+<div class="d-flex justify-content-end gap-2 mt-3">
+    <button type="button" class="btn" @onclick="() => this.ModalService.Close()">Zrušit</button>
+    <button type="button" class="btn btn-danger" disabled="@this.busy" @onclick="this.DeleteAct">
+        @if (this.busy)
+        {
+            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+        }
+        Smazat
+    </button>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public required ActDetail Act { get; set; }
+
+    [Parameter]
+    public EventCallback OnDeleted { get; set; }
+
+    private string? error;
+
+    private bool busy;
+
+    private async Task DeleteAct()
+    {
+        this.busy = true;
+        this.error = null;
+
+        try
+        {
+            await this.ActsClient.DeleteAct(this.Act.CaseId, this.Act.Id, CancellationToken.None);
+
+            this.ModalService.Close();
+            await this.OnDeleted.InvokeAsync();
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+        {
+            this.Logger.LogWarning(exception, "Deleting the act failed: it is already gone");
+
+            this.error = "Úkon už neexistuje.";
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Deleting the act failed");
+
+            this.error = "Úkon se nepodařilo smazat. Zkuste to za chvíli znovu.";
+        }
+        finally
+        {
+            this.busy = false;
+        }
+    }
+}

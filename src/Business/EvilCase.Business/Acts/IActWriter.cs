@@ -10,4 +10,6 @@ public interface IActWriter
     public Task<ActCreateResult> CreateAct(Guid caseId, CreateActRequest request, CancellationToken token);
 
     public Task<ActUpdateOutcome> UpdateAct(Guid caseId, Guid actId, ActEditRequest request, CancellationToken token);
+
+    public Task<ActDeleteOutcome> DeleteAct(Guid caseId, Guid actId, CancellationToken token);
 }

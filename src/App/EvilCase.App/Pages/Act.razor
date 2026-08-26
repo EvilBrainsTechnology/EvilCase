@@ -4,8 +4,11 @@
 @using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Acts
 @using EvilBrains.EvilCase.Api.Contract.Comments
+@using TabBlazor.Services
 @inject IActsClient ActsClient
 @inject IActCommentsClient ActCommentsClient
+@inject IModalService ModalService
+@inject NavigationManager Navigation
 @inject ILogger<Act> Logger
 
 <PageTitle>@(this.act is null ? "Úkon" : this.act.ActNumber) – EvilCase</PageTitle>
@@ -38,6 +41,7 @@
             {
                 <div class="col-auto ms-auto d-print-none">
                     <a id="act-edit" href="@($"/cases/{this.act.CaseId}/act/{this.act.Id}/edit")" class="btn btn-primary">Upravit</a>
+                    <button id="act-delete" type="button" class="btn btn-danger ms-2" @onclick="this.DeleteAct">Smazat</button>
                 </div>
             }
         </div>
@@ -182,5 +186,18 @@
     private Task DeleteComment(Guid commentId, CancellationToken token)
     {
         return this.ActCommentsClient.DeleteActComment(this.CaseId, this.ActId, commentId, token);
+    }
+
+    private async Task DeleteAct()
+    {
+        if (this.act is null)
+            return;
+
+        await this.ModalService.ShowAsync(
+            "Smazat úkon",
+            new RenderComponent<ActDeleteModal>()
+                .Set(component => component.Act, this.act)
+                .Set(component => component.OnDeleted, EventCallback.Factory.Create(this, () => this.Navigation.NavigateTo($"/cases/{this.CaseId}"))),
+            new ModalOptions { Fullscreen = ModalFullscreen.BelowLarge });
     }
 }
