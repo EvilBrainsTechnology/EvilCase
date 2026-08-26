@@ -10,6 +10,13 @@ internal static class FileListQuery
         return files.Where(file => file.CaseId == caseId);
     }
 
+    public static IQueryable<FileAsset> OfAct(this IQueryable<FileAsset> files, Guid caseId, Guid actId)
+    {
+        return files
+            .Where(file => file.ActId == actId)
+            .Where(file => file.Act!.CaseId == caseId);
+    }
+
     // Oldest first; the id breaks the tie two uploads in one transaction would leave.
     public static IQueryable<FileAsset> InUploadOrder(this IQueryable<FileAsset> files)
     {

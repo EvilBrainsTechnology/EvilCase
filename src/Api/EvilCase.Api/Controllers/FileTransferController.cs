@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Business.Files;
 using Microsoft.AspNetCore.Http;
@@ -7,8 +8,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace EvilBrains.EvilCase.Api.Controllers;
 
 /// <summary>
-/// The two file endpoints the client generator cannot express: a multipart upload and a byte stream. The
-/// frontend reaches both through its own transfer client.
+/// The upload and download endpoints the client generator cannot express: a multipart upload for a case
+/// and for an act, and a byte stream. The frontend reaches all three through its own transfer client.
 /// </summary>
 [ApiController]
 [Route("api")]
@@ -39,7 +40,38 @@ public class FileTransferController : ControllerBase
         return result.Outcome switch
         {
             UploadFileOutcome.Uploaded => this.CreatedAtAction(nameof(this.DownloadFileContent), new { fileId = result.File!.FileId }, result.File),
-            UploadFileOutcome.CaseNotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: "Case not found"),
+            UploadFileOutcome.OwnerNotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: "Case not found"),
+            _ => throw new UnreachableException(),
+        };
+    }
+
+    [HttpPost("cases/{caseId:guid}/acts/{actId:guid}/files")]
+    [RequestSizeLimit(FileLimits.MaxUploadRequestBytes)]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status413PayloadTooLarge)]
+    public async Task<ActionResult<FileListItem>> UploadActFile(
+        [FromServices] IFileWriter writer, [FromRoute] Guid caseId, [FromRoute] Guid actId, [FromForm] IFormFile file, CancellationToken token)
+    {
+        if (file.Length > FileLimits.MaxUploadBytes)
+            return this.Problem(detail: "The file exceeds the 100 MB upload limit.", statusCode: StatusCodes.Status413PayloadTooLarge, title: "File too large");
+
+        await using var content = file.OpenReadStream();
+
+        var upload = new FileUpload
+        {
+            // The browser may send a path; only the name is stored.
+            FileName = Path.GetFileName(file.FileName),
+            MediaType = file.ContentType,
+            Content = content,
+        };
+
+        var result = await writer.UploadActFile(caseId, actId, upload, token);
+
+        return result.Outcome switch
+        {
+            UploadFileOutcome.Uploaded => this.CreatedAtAction(nameof(this.DownloadFileContent), new { fileId = result.File!.FileId }, result.File),
+            UploadFileOutcome.OwnerNotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.ActNotFound),
             _ => throw new UnreachableException(),
         };
     }

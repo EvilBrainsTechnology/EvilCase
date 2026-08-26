@@ -64,4 +64,75 @@ public class FileListQueryTests
 
         Assert.That(items, Is.Null, "a tenant with no such case must get nothing rather than an empty list");
     }
+
+    [Test]
+    public async Task TheFilesOfAnActComeOldestFirst()
+    {
+        var @case = await this.tenant.AddCase(Day);
+        var act = await this.tenant.AddAct(@case, Day);
+
+        await this.tenant.AddActFile(act, "prvni.txt");
+        await this.tenant.AddActFile(act, "druhy.txt");
+        await this.tenant.AddActFile(act, "treti.txt");
+
+        var items = await this.reader.ListActFiles(@case.Id, act.Id, CancellationToken.None);
+
+        Assert.That(items!.Select(item => item.FileName), Is.EqualTo(["prvni.txt", "druhy.txt", "treti.txt"]), "the files of an act come back oldest first");
+    }
+
+    [Test]
+    public async Task ACaseFileIsNeverListedOnItsActAndBackAgain()
+    {
+        var @case = await this.tenant.AddCase(Day);
+        var act = await this.tenant.AddAct(@case, Day);
+
+        await this.tenant.AddCaseFile(@case, "spis.txt");
+        await this.tenant.AddActFile(act, "ukon.txt");
+
+        var actItems = await this.reader.ListActFiles(@case.Id, act.Id, CancellationToken.None);
+        var caseItems = await this.reader.ListCaseFiles(@case.Id, CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(actItems!.Select(item => item.FileName), Is.EqualTo(["ukon.txt"]), "the act's list never shows a file of its case");
+            Assert.That(caseItems!.Select(item => item.FileName), Is.EqualTo(["spis.txt"]), "the case's list never shows a file of its act");
+        }
+    }
+
+    [Test]
+    public async Task AFileOfAnotherActIsNotListed()
+    {
+        var @case = await this.tenant.AddCase(Day);
+        var actA = await this.tenant.AddAct(@case, Day);
+        var actB = await this.tenant.AddAct(@case, Day);
+
+        await this.tenant.AddActFile(actA, "a.txt");
+        await this.tenant.AddActFile(actB, "b.txt");
+
+        var items = await this.reader.ListActFiles(@case.Id, actA.Id, CancellationToken.None);
+
+        Assert.That(items!.Select(item => item.FileName), Is.EqualTo(["a.txt"]), "a file of another act must not be listed");
+    }
+
+    [Test]
+    public async Task ListingTheFilesOfAnActOfAnotherCaseAnswersWithNothing()
+    {
+        var caseA = await this.tenant.AddCase(Day);
+        var caseB = await this.tenant.AddCase(Day);
+        var act = await this.tenant.AddAct(caseA, Day);
+
+        var items = await this.reader.ListActFiles(caseB.Id, act.Id, CancellationToken.None);
+
+        Assert.That(items, Is.Null, "an act reached through the wrong case must get nothing");
+    }
+
+    [Test]
+    public async Task ListingTheFilesOfAMissingActAnswersWithNothing()
+    {
+        var @case = await this.tenant.AddCase(Day);
+
+        var items = await this.reader.ListActFiles(@case.Id, Guid.CreateVersion7(), CancellationToken.None);
+
+        Assert.That(items, Is.Null);
+    }
 }

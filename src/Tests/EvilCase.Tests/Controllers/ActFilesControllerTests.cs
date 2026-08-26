@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Api.Controllers;
 using EvilBrains.EvilCase.Business.Files;
@@ -6,27 +7,32 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace EvilBrains.EvilCase.Tests.Controllers;
 
-public class CaseFilesControllerTests
+public class ActFilesControllerTests
 {
     [Test]
-    public async Task TheListIsAskedForTheCaseInTheRoute()
+    public async Task TheListIsAskedForTheActInTheRoute()
     {
         var caseId = Guid.CreateVersion7();
+        var actId = Guid.CreateVersion7();
         var reader = new RecordingFileReader { ListResult = [] };
-        var controller = new CaseFilesController();
+        var controller = new ActFilesController();
 
-        await controller.ListCaseFiles(reader, caseId, CancellationToken.None);
+        await controller.ListActFiles(reader, caseId, actId, CancellationToken.None);
 
-        Assert.That(reader.ListCaseId, Is.EqualTo(caseId));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(reader.ListCaseId, Is.EqualTo(caseId));
+            Assert.That(reader.ListActId, Is.EqualTo(actId));
+        }
     }
 
     [Test]
     public async Task TheListedItemsComeBackInTheOrderTheReaderGaveThem()
     {
         var reader = new RecordingFileReader { ListResult = [Item("prvni.txt"), Item("druhy.txt")] };
-        var controller = new CaseFilesController();
+        var controller = new ActFilesController();
 
-        var response = await controller.ListCaseFiles(reader, Guid.CreateVersion7(), CancellationToken.None);
+        var response = await controller.ListActFiles(reader, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
 
         var body = (FileListResponse)((OkObjectResult)response.Result!).Value!;
 
@@ -34,29 +40,32 @@ public class CaseFilesControllerTests
     }
 
     [Test]
-    public async Task AListOnAMissingCaseIsAProblemWithFourOhFour()
+    public async Task AListOnAMissingActIsAProblemWithFourOhFour()
     {
         var reader = new RecordingFileReader { ListResult = null };
-        var controller = new CaseFilesController();
+        var controller = new ActFilesController();
 
-        var response = await controller.ListCaseFiles(reader, Guid.CreateVersion7(), CancellationToken.None);
+        var response = await controller.ListActFiles(reader, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
 
-        AssertProblem(response.Result, 404);
+        var problem = AssertProblem(response.Result, 404);
+        Assert.That(problem.Title, Is.EqualTo(ActProblems.ActNotFound));
     }
 
     [Test]
-    public async Task TheDeleteReachesTheWriterWithBothRouteIds()
+    public async Task TheDeleteReachesTheWriterWithEveryRouteId()
     {
         var caseId = Guid.CreateVersion7();
+        var actId = Guid.CreateVersion7();
         var fileId = Guid.CreateVersion7();
         var writer = new RecordingFileWriter { DeleteOutcome = FileDeleteOutcome.Deleted };
-        var controller = new CaseFilesController();
+        var controller = new ActFilesController();
 
-        await controller.DeleteCaseFile(writer, caseId, fileId, CancellationToken.None);
+        await controller.DeleteActFile(writer, caseId, actId, fileId, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(writer.DeleteCaseId, Is.EqualTo(caseId));
+            Assert.That(writer.DeleteActId, Is.EqualTo(actId));
             Assert.That(writer.DeleteFileId, Is.EqualTo(fileId));
         }
     }
@@ -65,9 +74,9 @@ public class CaseFilesControllerTests
     public async Task DeletingAFileAnswersWithNoContent()
     {
         var writer = new RecordingFileWriter { DeleteOutcome = FileDeleteOutcome.Deleted };
-        var controller = new CaseFilesController();
+        var controller = new ActFilesController();
 
-        var result = await controller.DeleteCaseFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
+        var result = await controller.DeleteActFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
 
         Assert.That(result, Is.InstanceOf<NoContentResult>());
     }
@@ -76,9 +85,9 @@ public class CaseFilesControllerTests
     public async Task DeletingAMissingFileIsAProblemWithFourOhFour()
     {
         var writer = new RecordingFileWriter { DeleteOutcome = FileDeleteOutcome.NotFound };
-        var controller = new CaseFilesController();
+        var controller = new ActFilesController();
 
-        var result = await controller.DeleteCaseFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
+        var result = await controller.DeleteActFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
 
         AssertProblem(result, 404);
     }
@@ -87,10 +96,10 @@ public class CaseFilesControllerTests
     public async Task ADeleteOutcomeTheEndpointDoesNotKnowThrows()
     {
         var writer = new RecordingFileWriter { DeleteOutcome = (FileDeleteOutcome)99 };
-        var controller = new CaseFilesController();
+        var controller = new ActFilesController();
 
         await Assert.ThatAsync(
-            () => controller.DeleteCaseFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None),
+            () => controller.DeleteActFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None),
             Throws.InstanceOf<UnreachableException>(),
             "an outcome the endpoint does not name never turns into a status");
     }

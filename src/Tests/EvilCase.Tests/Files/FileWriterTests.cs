@@ -82,7 +82,7 @@ public class FileWriterTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result.Outcome, Is.EqualTo(UploadFileOutcome.CaseNotFound), "an upload naming a case the tenant does not have must be refused");
+            Assert.That(result.Outcome, Is.EqualTo(UploadFileOutcome.OwnerNotFound), "an upload naming a case the tenant does not have must be refused");
             Assert.That(result.File, Is.Null);
             Assert.That(await this.tenant.Context.FileAssets.AnyAsync(), Is.False, "a refused upload must write no row");
             Assert.That(this.blobs.WrittenByPath, Is.Empty, "a refused upload must write no blob");
@@ -130,6 +130,114 @@ public class FileWriterTests
         var outcome = await this.writer.DeleteCaseFile(@case.Id, Guid.CreateVersion7(), CancellationToken.None);
 
         Assert.That(outcome, Is.EqualTo(FileDeleteOutcome.NotFound));
+    }
+
+    [Test]
+    public async Task AnUploadedFileHangsOnItsActAndOnNoCase()
+    {
+        var @case = await this.tenant.AddCase(Day);
+        var act = await this.tenant.AddAct(@case, Day);
+
+        var result = await this.writer.UploadActFile(@case.Id, act.Id, Upload("smlouva.pdf", "application/pdf", "abc"), CancellationToken.None);
+
+        var stored = await this.Reload(result.File!.FileId);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(stored.ActId, Is.EqualTo(act.Id), "an uploaded file hangs on the act it was uploaded to");
+            Assert.That(stored.CaseId, Is.Null, "a file uploaded to an act carries no case");
+            Assert.That(stored.FileName, Is.EqualTo("smlouva.pdf"));
+            Assert.That(stored.MediaType, Is.EqualTo("application/pdf"));
+            Assert.That(stored.ContentHash, Has.Length.EqualTo(64));
+            Assert.That(this.blobs.WrittenByPath[stored.StoragePath], Is.EqualTo("abc"));
+        }
+    }
+
+    [Test]
+    public async Task AnUploadOntoAMissingActIsRefused()
+    {
+        var @case = await this.tenant.AddCase(Day);
+
+        var result = await this.writer.UploadActFile(@case.Id, Guid.CreateVersion7(), Upload("a.txt"), CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.Outcome, Is.EqualTo(UploadFileOutcome.OwnerNotFound));
+            Assert.That(result.File, Is.Null);
+            Assert.That(await this.tenant.Context.FileAssets.AnyAsync(), Is.False);
+            Assert.That(this.blobs.WrittenByPath, Is.Empty);
+        }
+    }
+
+    [Test]
+    public async Task AnUploadOntoAnActOfAnotherCaseIsRefused()
+    {
+        var caseA = await this.tenant.AddCase(Day);
+        var caseB = await this.tenant.AddCase(Day);
+        var act = await this.tenant.AddAct(caseA, Day);
+
+        var result = await this.writer.UploadActFile(caseB.Id, act.Id, Upload("a.txt"), CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.Outcome, Is.EqualTo(UploadFileOutcome.OwnerNotFound), "an act reached through the wrong case must not take an upload");
+            Assert.That(await this.tenant.Context.FileAssets.AnyAsync(), Is.False, "an act reached through the wrong case must not take an upload");
+        }
+    }
+
+    [Test]
+    public async Task ADeletedActFileTakesItsBlobWithIt()
+    {
+        var @case = await this.tenant.AddCase(Day);
+        var act = await this.tenant.AddAct(@case, Day);
+        var uploaded = await this.writer.UploadActFile(@case.Id, act.Id, Upload("a.txt"), CancellationToken.None);
+        var storagePath = (await this.Reload(uploaded.File!.FileId)).StoragePath;
+
+        var outcome = await this.writer.DeleteActFile(@case.Id, act.Id, uploaded.File.FileId, CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome, Is.EqualTo(FileDeleteOutcome.Deleted));
+            Assert.That(await this.tenant.Context.FileAssets.AnyAsync(file => file.Id == uploaded.File.FileId), Is.False);
+            Assert.That(this.blobs.Deleted, Does.Contain(storagePath));
+        }
+    }
+
+    [Test]
+    public async Task AFileOfAnotherActIsNotDeleted()
+    {
+        var @case = await this.tenant.AddCase(Day);
+        var actA = await this.tenant.AddAct(@case, Day);
+        var actB = await this.tenant.AddAct(@case, Day);
+        var uploaded = await this.writer.UploadActFile(@case.Id, actA.Id, Upload("a.txt"), CancellationToken.None);
+
+        var outcome = await this.writer.DeleteActFile(@case.Id, actB.Id, uploaded.File!.FileId, CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome, Is.EqualTo(FileDeleteOutcome.NotFound));
+            Assert.That(await this.tenant.Context.FileAssets.AnyAsync(file => file.Id == uploaded.File.FileId), Is.True);
+        }
+    }
+
+    [Test]
+    public async Task ACaseFileAndAnActFileNeverDeleteEachOther()
+    {
+        var @case = await this.tenant.AddCase(Day);
+        var act = await this.tenant.AddAct(@case, Day);
+        var caseFile = await this.writer.UploadCaseFile(@case.Id, Upload("spis.txt"), CancellationToken.None);
+        var actFile = await this.writer.UploadActFile(@case.Id, act.Id, Upload("ukon.txt"), CancellationToken.None);
+
+        var actDeleteOutcome = await this.writer.DeleteActFile(@case.Id, act.Id, caseFile.File!.FileId, CancellationToken.None);
+        var caseDeleteOutcome = await this.writer.DeleteCaseFile(@case.Id, actFile.File!.FileId, CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(actDeleteOutcome, Is.EqualTo(FileDeleteOutcome.NotFound), "an act must not delete a file of its case");
+            Assert.That(await this.tenant.Context.FileAssets.AnyAsync(file => file.Id == caseFile.File.FileId), Is.True, "an act must not delete a file of its case");
+            Assert.That(caseDeleteOutcome, Is.EqualTo(FileDeleteOutcome.NotFound), "a case must not delete a file of its act");
+            Assert.That(await this.tenant.Context.FileAssets.AnyAsync(file => file.Id == actFile.File.FileId), Is.True, "a case must not delete a file of its act");
+        }
     }
 
     private static FileUpload Upload(string fileName, string mediaType = "text/plain", string content = "a")

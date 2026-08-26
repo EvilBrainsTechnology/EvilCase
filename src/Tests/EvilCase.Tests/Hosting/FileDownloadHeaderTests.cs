@@ -54,6 +54,11 @@ public class FileDownloadHeaderTests
             return Task.FromResult<IReadOnlyList<FileListItem>?>(null);
         }
 
+        public Task<IReadOnlyList<FileListItem>?> ListActFiles(Guid caseId, Guid actId, CancellationToken token)
+        {
+            return Task.FromResult<IReadOnlyList<FileListItem>?>(null);
+        }
+
         public Task<FileDownload?> OpenFileContent(Guid fileId, CancellationToken token)
         {
             return Task.FromResult<FileDownload?>(new FileDownload { FileName = FileName, MediaType = "application/pdf", Content = new MemoryStream("abc"u8.ToArray()) });

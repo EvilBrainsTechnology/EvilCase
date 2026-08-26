@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Api.Controllers;
 using EvilBrains.EvilCase.Business.Files;
@@ -13,14 +14,14 @@ public class FileTransferControllerTests
     [Test]
     public async Task AnUploadOverTheLimitIsRefusedWithFourThirteen()
     {
-        var writer = new RecordingFileWriter { UploadResult = new UploadFileResult { Outcome = UploadFileOutcome.CaseNotFound } };
+        var writer = new RecordingFileWriter { UploadResult = new UploadFileResult { Outcome = UploadFileOutcome.OwnerNotFound } };
         var controller = new FileTransferController();
         var file = FormFile(FileLimits.MaxUploadBytes + 1);
 
         var response = await controller.UploadCaseFile(writer, Guid.CreateVersion7(), file, CancellationToken.None);
 
         AssertProblem(response.Result, 413);
-        Assert.That(writer.Called, Is.False, "an upload over the limit must never reach the writer");
+        Assert.That(writer.UploadCalled, Is.False, "an upload over the limit must never reach the writer");
     }
 
     [Test]
@@ -32,7 +33,7 @@ public class FileTransferControllerTests
 
         await controller.UploadCaseFile(writer, Guid.CreateVersion7(), file, CancellationToken.None);
 
-        Assert.That(writer.Called, Is.True, "an upload at the limit must reach the writer");
+        Assert.That(writer.UploadCalled, Is.True, "an upload at the limit must reach the writer");
     }
 
     [Test]
@@ -75,7 +76,7 @@ public class FileTransferControllerTests
     [Test]
     public async Task AnUploadOntoAMissingCaseIsAProblemWithFourOhFour()
     {
-        var writer = new RecordingFileWriter { UploadResult = new UploadFileResult { Outcome = UploadFileOutcome.CaseNotFound } };
+        var writer = new RecordingFileWriter { UploadResult = new UploadFileResult { Outcome = UploadFileOutcome.OwnerNotFound } };
         var controller = new FileTransferController();
 
         var response = await controller.UploadCaseFile(writer, Guid.CreateVersion7(), FormFile(1), CancellationToken.None);
@@ -167,40 +168,89 @@ public class FileTransferControllerTests
         return new FormFile(new MemoryStream(), 0, length, "file", fileName) { Headers = new HeaderDictionary(), ContentType = "application/pdf" };
     }
 
-    private sealed class RecordingFileReader : IFileReader
+    [Test]
+    public async Task AnActUploadOverTheLimitIsRefusedWithFourThirteen()
     {
-        public FileDownload? Download { get; init; }
+        var writer = new RecordingFileWriter { UploadResult = new UploadFileResult { Outcome = UploadFileOutcome.OwnerNotFound } };
+        var controller = new FileTransferController();
+        var file = FormFile(FileLimits.MaxUploadBytes + 1);
 
-        public Task<IReadOnlyList<FileListItem>?> ListCaseFiles(Guid caseId, CancellationToken token)
-        {
-            return Task.FromResult<IReadOnlyList<FileListItem>?>(null);
-        }
+        var response = await controller.UploadActFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), file, CancellationToken.None);
 
-        public Task<FileDownload?> OpenFileContent(Guid fileId, CancellationToken token)
+        AssertProblem(response.Result, 413);
+        Assert.That(writer.UploadCalled, Is.False, "an upload over the limit must never reach the writer");
+    }
+
+    [Test]
+    public async Task AnActUploadReachesTheWriterWithBothRouteIds()
+    {
+        var caseId = Guid.CreateVersion7();
+        var actId = Guid.CreateVersion7();
+        var writer = new RecordingFileWriter { UploadResult = Uploaded(Item()) };
+        var controller = new FileTransferController();
+
+        await controller.UploadActFile(writer, caseId, actId, FormFile(1), CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
         {
-            return Task.FromResult(this.Download);
+            Assert.That(writer.UploadCaseId, Is.EqualTo(caseId));
+            Assert.That(writer.UploadActId, Is.EqualTo(actId));
         }
     }
 
-    private sealed class RecordingFileWriter : IFileWriter
+    [Test]
+    public async Task AnActUploadAnswersCreatedAtTheContentOfTheNewFile()
     {
-        public bool Called { get; private set; }
+        var created = Item();
+        var writer = new RecordingFileWriter { UploadResult = Uploaded(created) };
+        var controller = new FileTransferController();
 
-        public FileUpload? Upload { get; private set; }
+        var response = await controller.UploadActFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), FormFile(1), CancellationToken.None);
 
-        public required UploadFileResult UploadResult { get; init; }
+        Assert.That(response.Result, Is.InstanceOf<CreatedAtActionResult>());
+        var result = (CreatedAtActionResult)response.Result!;
 
-        public Task<UploadFileResult> UploadCaseFile(Guid caseId, FileUpload upload, CancellationToken token)
+        using (Assert.EnterMultipleScope())
         {
-            this.Called = true;
-            this.Upload = upload;
-
-            return Task.FromResult(this.UploadResult);
+            Assert.That(result.StatusCode, Is.EqualTo(201));
+            Assert.That(result.ActionName, Is.EqualTo(nameof(FileTransferController.DownloadFileContent)));
+            Assert.That(result.RouteValues?["fileId"], Is.EqualTo(created.FileId));
+            Assert.That(result.Value, Is.SameAs(created));
         }
+    }
 
-        public Task<FileDeleteOutcome> DeleteCaseFile(Guid caseId, Guid fileId, CancellationToken token)
-        {
-            return Task.FromResult(FileDeleteOutcome.NotFound);
-        }
+    [Test]
+    public async Task AnUploadOntoAMissingActIsAProblemWithFourOhFour()
+    {
+        var writer = new RecordingFileWriter { UploadResult = new UploadFileResult { Outcome = UploadFileOutcome.OwnerNotFound } };
+        var controller = new FileTransferController();
+
+        var response = await controller.UploadActFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), FormFile(1), CancellationToken.None);
+
+        var problem = AssertProblem(response.Result, 404);
+        Assert.That(problem.Title, Is.EqualTo(ActProblems.ActNotFound), "the act's 404 names the act, not the case");
+    }
+
+    [Test]
+    public void AnActUploadOutcomeTheEndpointDoesNotKnowThrows()
+    {
+        var writer = new RecordingFileWriter { UploadResult = new UploadFileResult { Outcome = (UploadFileOutcome)99 } };
+        var controller = new FileTransferController();
+
+        Assert.ThrowsAsync<UnreachableException>(
+            () => controller.UploadActFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), FormFile(1), CancellationToken.None),
+            "an outcome the endpoint does not name never turns into a status");
+    }
+
+    [Test]
+    public void TheActUploadDeclaresItsOwnRequestSizeLimit()
+    {
+        var method = typeof(FileTransferController).GetMethod(nameof(FileTransferController.UploadActFile))!;
+        var attribute = method.GetCustomAttributes(typeof(RequestSizeLimitAttribute), inherit: false).Single();
+
+        Assert.That(
+            ((IRequestSizeLimitMetadata)attribute).MaxRequestBodySize,
+            Is.EqualTo(FileLimits.MaxUploadRequestBytes),
+            "Kestrel's 30 MB default would cap the upload below the product limit");
     }
 }
