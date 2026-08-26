@@ -8,7 +8,12 @@ public sealed record ActDetail
     public required Guid Id { get; init; }
 
     /// <summary>
-    /// The number of the case the act sits in, for the link back to it.
+    /// The case the act sits in; the screens build their links to it from here, not from the route.
+    /// </summary>
+    public required Guid CaseId { get; init; }
+
+    /// <summary>
+    /// The number of the case the act sits in, read as the link text.
     /// </summary>
     public required string CaseNumber { get; init; }
 

@@ -22,6 +22,7 @@ internal static class ActDetailQuery
             .Select(act => new ActDetail
             {
                 Id = act.Id,
+                CaseId = act.CaseId,
                 CaseNumber = act.Case!.CaseNumber,
                 ActNumber = act.ActNumber,
                 Direction = act.Direction,

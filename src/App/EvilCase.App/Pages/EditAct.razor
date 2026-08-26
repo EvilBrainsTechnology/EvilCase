@@ -12,7 +12,16 @@
 
 <div class="page-header d-print-none">
     <div class="container-xl">
-        <div class="page-pretitle"><a href="@($"/cases/{this.CaseId}/act/{this.ActId}")">Úkon</a></div>
+        <div class="page-pretitle">
+            @if (this.act is not null)
+            {
+                <a href="@($"/cases/{this.act.CaseId}/act/{this.act.Id}")">Úkon</a>
+            }
+            else
+            {
+                @:Úkon
+            }
+        </div>
         <h2 class="page-title">Upravit úkon</h2>
     </div>
 </div>
@@ -32,7 +41,7 @@
                 <p class="empty-subtitle text-secondary">@this.failure</p>
             </div>
         }
-        else if (!this.loaded)
+        else if (this.act is null)
         {
             <div class="text-center text-secondary">
                 <div class="spinner-border" role="status"></div>
@@ -100,7 +109,7 @@
                     </div>
 
                     <div class="card-footer form-actions-sticky d-flex justify-content-end gap-2">
-                        <a href="@($"/cases/{this.CaseId}/act/{this.ActId}")" class="btn">Zrušit</a>
+                        <a href="@($"/cases/{this.act.CaseId}/act/{this.act.Id}")" class="btn">Zrušit</a>
                         <button id="act-submit" type="submit" class="btn btn-primary" disabled="@this.busy">
                             @if (this.busy)
                             {
@@ -132,7 +141,7 @@
 
     private bool busy;
 
-    private bool loaded;
+    private ActDetail? act;
 
     protected override Task OnParametersSetAsync()
     {
@@ -143,21 +152,21 @@
     {
         this.notFound = false;
         this.failure = null;
-        this.loaded = false;
+        this.act = null;
 
         try
         {
-            var act = await this.ActsClient.GetAct(this.CaseId, this.ActId, CancellationToken.None);
+            var detail = await this.ActsClient.GetAct(this.CaseId, this.ActId, CancellationToken.None);
 
-            this.model.ActNumber = act.ActNumber;
-            this.model.Direction = act.Direction;
-            this.model.Date = act.Date;
-            this.model.Title = act.Title;
-            this.model.Description = act.Description;
-            this.model.IssuedByContact = act.IssuedByContact;
-            this.model.AddressedToContact = act.AddressedToContact;
+            this.model.ActNumber = detail.ActNumber;
+            this.model.Direction = detail.Direction;
+            this.model.Date = detail.Date;
+            this.model.Title = detail.Title;
+            this.model.Description = detail.Description;
+            this.model.IssuedByContact = detail.IssuedByContact;
+            this.model.AddressedToContact = detail.AddressedToContact;
 
-            this.loaded = true;
+            this.act = detail;
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
         {
@@ -191,7 +200,7 @@
 
             await this.ActsClient.EditAct(this.CaseId, this.ActId, request, CancellationToken.None);
 
-            this.Navigation.NavigateTo($"/cases/{this.CaseId}/act/{this.ActId}");
+            this.Navigation.NavigateTo($"/cases/{this.act!.CaseId}/act/{this.act.Id}");
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
         {

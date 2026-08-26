@@ -56,7 +56,11 @@ public class ActDetailQueryTests
 
         var detail = await this.tenant.Context.Acts.DetailOf(@case.Id, act.Id, CancellationToken.None);
 
-        Assert.That(detail!.CaseNumber, Is.EqualTo(@case.CaseNumber), "the detail carries the case number so the screen links back to the case");
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(detail!.CaseId, Is.EqualTo(@case.Id), "the detail carries the case id the screens build their links from");
+            Assert.That(detail.CaseNumber, Is.EqualTo(@case.CaseNumber), "the detail carries the case number the link back to the case reads");
+        }
     }
 
     [Test]
