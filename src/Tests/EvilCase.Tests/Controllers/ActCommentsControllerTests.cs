@@ -41,7 +41,7 @@ public class ActCommentsControllerTests
     {
         var caseId = Guid.CreateVersion7();
         var actId = Guid.CreateVersion7();
-        var writer = new RecordingCommentWriter { AddResult = true };
+        var writer = new RecordingCommentWriter { AddOutcome = CommentWriteOutcome.Written };
         var controller = new ActCommentsController();
         var request = new CommentEditRequest { Body = "Poznámka" };
 
@@ -59,7 +59,7 @@ public class ActCommentsControllerTests
     [Test]
     public async Task AddingUnderAMissingActIsAProblemWithFourOhFour()
     {
-        var writer = new RecordingCommentWriter { AddResult = false };
+        var writer = new RecordingCommentWriter { AddOutcome = CommentWriteOutcome.NotFound };
         var controller = new ActCommentsController();
 
         var result = await controller.AddActComment(

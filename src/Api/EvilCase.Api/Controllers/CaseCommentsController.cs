@@ -25,9 +25,9 @@ public class CaseCommentsController : ControllerBase
     public async Task<ActionResult> AddCaseComment(
         [FromServices] ICommentWriter writer, [FromRoute] Guid caseId, [FromBody] CommentEditRequest request, CancellationToken token)
     {
-        var added = await writer.AddCaseComment(caseId, request, token);
+        var outcome = await writer.AddCaseComment(caseId, request, token);
 
-        return added
+        return outcome == CommentWriteOutcome.Written
             ? this.NoContent()
             : this.Problem(statusCode: StatusCodes.Status404NotFound, title: "Case not found");
     }

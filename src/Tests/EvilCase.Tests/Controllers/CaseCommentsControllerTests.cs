@@ -34,7 +34,7 @@ public class CaseCommentsControllerTests
     public async Task AddingReachesTheWriterWithTheRouteIdAndTheBody()
     {
         var caseId = Guid.CreateVersion7();
-        var writer = new RecordingCommentWriter { AddResult = true };
+        var writer = new RecordingCommentWriter { AddOutcome = CommentWriteOutcome.Written };
         var controller = new CaseCommentsController();
         var request = new CommentEditRequest { Body = "Poznámka" };
 
@@ -51,12 +51,14 @@ public class CaseCommentsControllerTests
     [Test]
     public async Task AddingToAMissingCaseIsAProblemWithFourOhFour()
     {
-        var writer = new RecordingCommentWriter { AddResult = false };
+        var writer = new RecordingCommentWriter { AddOutcome = CommentWriteOutcome.NotFound };
         var controller = new CaseCommentsController();
 
         var result = await controller.AddCaseComment(writer, Guid.CreateVersion7(), new CommentEditRequest { Body = "Poznámka" }, CancellationToken.None);
 
-        AssertProblem(result, 404);
+        var problem = AssertProblem(result, 404);
+
+        Assert.That(problem.Title, Is.EqualTo("Case not found"), "the answer names the case, not the comment");
     }
 
     [Test]

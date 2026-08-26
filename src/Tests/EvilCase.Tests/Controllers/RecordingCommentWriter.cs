@@ -11,7 +11,7 @@ internal sealed class RecordingCommentWriter : ICommentWriter
 
     public CommentEditRequest? AddRequest { get; private set; }
 
-    public bool AddResult { get; init; }
+    public CommentWriteOutcome AddOutcome { get; init; }
 
     public Guid? UpdateCaseId { get; private set; }
 
@@ -31,12 +31,12 @@ internal sealed class RecordingCommentWriter : ICommentWriter
 
     public CommentWriteOutcome DeleteOutcome { get; init; }
 
-    public Task<bool> AddCaseComment(Guid caseId, CommentEditRequest request, CancellationToken token)
+    public Task<CommentWriteOutcome> AddCaseComment(Guid caseId, CommentEditRequest request, CancellationToken token)
     {
         this.AddCaseId = caseId;
         this.AddRequest = request;
 
-        return Task.FromResult(this.AddResult);
+        return Task.FromResult(this.AddOutcome);
     }
 
     public Task<CommentWriteOutcome> UpdateCaseComment(Guid caseId, Guid commentId, CommentEditRequest request, CancellationToken token)
@@ -56,13 +56,13 @@ internal sealed class RecordingCommentWriter : ICommentWriter
         return Task.FromResult(this.DeleteOutcome);
     }
 
-    public Task<bool> AddActComment(Guid caseId, Guid actId, CommentEditRequest request, CancellationToken token)
+    public Task<CommentWriteOutcome> AddActComment(Guid caseId, Guid actId, CommentEditRequest request, CancellationToken token)
     {
         this.AddCaseId = caseId;
         this.AddActId = actId;
         this.AddRequest = request;
 
-        return Task.FromResult(this.AddResult);
+        return Task.FromResult(this.AddOutcome);
     }
 
     public Task<CommentWriteOutcome> UpdateActComment(Guid caseId, Guid actId, Guid commentId, CommentEditRequest request, CancellationToken token)

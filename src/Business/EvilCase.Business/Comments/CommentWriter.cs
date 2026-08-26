@@ -11,13 +11,13 @@ namespace EvilBrains.EvilCase.Business.Comments;
 
 internal sealed class CommentWriter(IDbSession dbSession, IUserContext userContext, ILogger<CommentWriter> logger) : ICommentWriter
 {
-    public async Task<bool> AddCaseComment(Guid caseId, CommentEditRequest request, CancellationToken token)
+    public async Task<CommentWriteOutcome> AddCaseComment(Guid caseId, CommentEditRequest request, CancellationToken token)
     {
         var context = dbSession.Current;
 
         var caseExists = await context.Cases.WithId(caseId).AnyAsync(token);
         if (!caseExists)
-            return false;
+            return CommentWriteOutcome.NotFound;
 
         var comment = new Comment { CaseId = caseId, Body = request.Body.Trim() };
 
@@ -27,7 +27,7 @@ internal sealed class CommentWriter(IDbSession dbSession, IUserContext userConte
 
         logger.LogInformation("Comment {CommentId} was written on case {CaseId}", comment.Id, caseId);
 
-        return true;
+        return CommentWriteOutcome.Written;
     }
 
     public async Task<CommentWriteOutcome> UpdateCaseComment(Guid caseId, Guid commentId, CommentEditRequest request, CancellationToken token)
@@ -70,13 +70,13 @@ internal sealed class CommentWriter(IDbSession dbSession, IUserContext userConte
         return CommentWriteOutcome.Written;
     }
 
-    public async Task<bool> AddActComment(Guid caseId, Guid actId, CommentEditRequest request, CancellationToken token)
+    public async Task<CommentWriteOutcome> AddActComment(Guid caseId, Guid actId, CommentEditRequest request, CancellationToken token)
     {
         var context = dbSession.Current;
 
         var actExists = await context.Acts.OfCase(caseId).WithId(actId).AnyAsync(token);
         if (!actExists)
-            return false;
+            return CommentWriteOutcome.NotFound;
 
         var comment = new Comment { ActId = actId, Body = request.Body.Trim() };
 
@@ -86,7 +86,7 @@ internal sealed class CommentWriter(IDbSession dbSession, IUserContext userConte
 
         logger.LogInformation("Comment {CommentId} was written on act {ActId}", comment.Id, actId);
 
-        return true;
+        return CommentWriteOutcome.Written;
     }
 
     public async Task<CommentWriteOutcome> UpdateActComment(Guid caseId, Guid actId, Guid commentId, CommentEditRequest request, CancellationToken token)

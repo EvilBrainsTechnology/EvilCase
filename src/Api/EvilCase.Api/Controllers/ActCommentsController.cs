@@ -27,9 +27,9 @@ public class ActCommentsController : ControllerBase
     public async Task<ActionResult> AddActComment(
         [FromServices] ICommentWriter writer, [FromRoute] Guid caseId, [FromRoute] Guid actId, [FromBody] CommentEditRequest request, CancellationToken token)
     {
-        var added = await writer.AddActComment(caseId, actId, request, token);
+        var outcome = await writer.AddActComment(caseId, actId, request, token);
 
-        return added
+        return outcome == CommentWriteOutcome.Written
             ? this.NoContent()
             : this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.ActNotFound);
     }
