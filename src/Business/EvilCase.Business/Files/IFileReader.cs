@@ -2,6 +2,9 @@ using EvilBrains.EvilCase.Api.Contract.Files;
 
 namespace EvilBrains.EvilCase.Business.Files;
 
+/// <summary>
+/// Reads the files a case carries and the bytes behind one.
+/// </summary>
 public interface IFileReader
 {
     /// <summary>
