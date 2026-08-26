@@ -137,37 +137,6 @@ public class FileTransferControllerTests
         AssertProblem(result, 404);
     }
 
-    private static ProblemDetails AssertProblem(IActionResult? result, in int statusCode)
-    {
-        Assert.That(result, Is.InstanceOf<ObjectResult>());
-        var objectResult = (ObjectResult)result!;
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(objectResult.StatusCode, Is.EqualTo(statusCode));
-            Assert.That(objectResult.Value, Is.InstanceOf<ProblemDetails>());
-        }
-
-        return (ProblemDetails)objectResult.Value!;
-    }
-
-    private static FileListItem Item()
-    {
-        return new() { FileId = Guid.CreateVersion7(), FileName = "a.pdf", SizeBytes = 1, Created = DateTime.UtcNow };
-    }
-
-    private static UploadFileResult Uploaded(FileListItem file)
-    {
-        return new UploadFileResult { Outcome = UploadFileOutcome.Uploaded, File = file };
-    }
-
-    // The controller never reads the backing stream when the recording writer stands in, so the stream
-    // itself stays empty; only the reported Length matters.
-    private static FormFile FormFile(long length, string fileName = "a.pdf")
-    {
-        return new FormFile(new MemoryStream(), 0, length, "file", fileName) { Headers = new HeaderDictionary(), ContentType = "application/pdf" };
-    }
-
     [Test]
     public async Task AnActUploadOverTheLimitIsRefusedWithFourThirteen()
     {
@@ -252,5 +221,36 @@ public class FileTransferControllerTests
             ((IRequestSizeLimitMetadata)attribute).MaxRequestBodySize,
             Is.EqualTo(FileLimits.MaxUploadRequestBytes),
             "Kestrel's 30 MB default would cap the upload below the product limit");
+    }
+
+    private static ProblemDetails AssertProblem(IActionResult? result, in int statusCode)
+    {
+        Assert.That(result, Is.InstanceOf<ObjectResult>());
+        var objectResult = (ObjectResult)result!;
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(objectResult.StatusCode, Is.EqualTo(statusCode));
+            Assert.That(objectResult.Value, Is.InstanceOf<ProblemDetails>());
+        }
+
+        return (ProblemDetails)objectResult.Value!;
+    }
+
+    private static FileListItem Item()
+    {
+        return new() { FileId = Guid.CreateVersion7(), FileName = "a.pdf", SizeBytes = 1, Created = DateTime.UtcNow };
+    }
+
+    private static UploadFileResult Uploaded(FileListItem file)
+    {
+        return new UploadFileResult { Outcome = UploadFileOutcome.Uploaded, File = file };
+    }
+
+    // The controller never reads the backing stream when the recording writer stands in, so the stream
+    // itself stays empty; only the reported Length matters.
+    private static FormFile FormFile(long length, string fileName = "a.pdf")
+    {
+        return new FormFile(new MemoryStream(), 0, length, "file", fileName) { Headers = new HeaderDictionary(), ContentType = "application/pdf" };
     }
 }

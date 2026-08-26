@@ -9,8 +9,6 @@ internal sealed class RecordingFileReader : IFileReader
 
     public Guid? ListActId { get; private set; }
 
-    public Guid? DownloadFileId { get; private set; }
-
     public IReadOnlyList<FileListItem>? ListResult { get; init; }
 
     public FileDownload? Download { get; init; }
@@ -32,8 +30,6 @@ internal sealed class RecordingFileReader : IFileReader
 
     public Task<FileDownload?> OpenFileContent(Guid fileId, CancellationToken token)
     {
-        this.DownloadFileId = fileId;
-
         return Task.FromResult(this.Download);
     }
 }
