@@ -25,11 +25,15 @@ public class CaseCommentsController : ControllerBase
     public async Task<ActionResult> AddCaseComment(
         [FromServices] ICommentWriter writer, [FromRoute] Guid caseId, [FromBody] CommentEditRequest request, CancellationToken token)
     {
-        var added = await writer.AddCaseComment(caseId, request, token);
+        var outcome = await writer.AddCaseComment(caseId, request, token);
 
-        return added
-            ? this.NoContent()
-            : this.Problem(statusCode: StatusCodes.Status404NotFound, title: "Case not found");
+        return outcome switch
+        {
+            CommentWriteOutcome.Written => this.NoContent(),
+            CommentWriteOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: "Case not found"),
+            CommentWriteOutcome.NotAuthor => throw new UnreachableException(),
+            _ => throw new UnreachableException(),
+        };
     }
 
     [HttpPut("{commentId:guid}")]
@@ -55,17 +59,5 @@ public class CaseCommentsController : ControllerBase
         var outcome = await writer.DeleteCaseComment(caseId, commentId, token);
 
         return this.Answer(outcome);
-    }
-
-    private ActionResult Answer(CommentWriteOutcome outcome)
-    {
-        return outcome switch
-        {
-            CommentWriteOutcome.Written => this.NoContent(),
-            CommentWriteOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: "Comment not found"),
-            CommentWriteOutcome.NotAuthor => this.Problem(
-                detail: "Only the author edits or deletes a comment.", statusCode: StatusCodes.Status403Forbidden, title: "Not the author"),
-            _ => throw new UnreachableException(),
-        };
     }
 }

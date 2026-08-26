@@ -9,8 +9,5 @@ public interface IExternalActNumberWriter
 {
     public Task<ExternalActNumberOutcome> AddExternalActNumber(Guid caseId, Guid actId, ExternalNumberRequest request, CancellationToken token);
 
-    /// <summary>
-    /// True where the number was the act's and is now gone.
-    /// </summary>
-    public Task<bool> DeleteExternalActNumber(Guid caseId, Guid actId, Guid numberId, CancellationToken token);
+    public Task<ExternalActNumberDeleteOutcome> DeleteExternalActNumber(Guid caseId, Guid actId, Guid numberId, CancellationToken token);
 }

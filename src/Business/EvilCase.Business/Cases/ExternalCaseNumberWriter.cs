@@ -49,13 +49,13 @@ internal sealed class ExternalCaseNumberWriter(IDbSession dbSession, ILogger<Ext
         return ExternalCaseNumberOutcome.Added;
     }
 
-    public async Task<bool> DeleteExternalCaseNumber(Guid caseId, Guid numberId, CancellationToken token)
+    public async Task<ExternalCaseNumberDeleteOutcome> DeleteExternalCaseNumber(Guid caseId, Guid numberId, CancellationToken token)
     {
         var rows = await dbSession.Current.ExternalCaseNumbers
             .OfCase(caseId)
             .WithId(numberId)
             .ExecuteDeleteAsync(token);
 
-        return rows > 0;
+        return rows == 0 ? ExternalCaseNumberDeleteOutcome.NotFound : ExternalCaseNumberDeleteOutcome.Deleted;
     }
 }

@@ -17,4 +17,15 @@ internal sealed class CommentReader(IDbSession dbSession, IUserContext userConte
             .InDiaryOrder()
             .ToListAsync(token);
     }
+
+    public async Task<IReadOnlyList<CommentItem>> ListActComments(Guid caseId, Guid actId, CancellationToken token)
+    {
+        var context = dbSession.Current;
+
+        return await context.Comments
+            .OnAct(caseId, actId)
+            .AsCommentItems(context.Users, userContext.UserId)
+            .InDiaryOrder()
+            .ToListAsync(token);
+    }
 }

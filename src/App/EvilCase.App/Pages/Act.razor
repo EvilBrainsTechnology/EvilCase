@@ -3,7 +3,9 @@
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Acts
+@using EvilBrains.EvilCase.Api.Contract.Comments
 @inject IActsClient ActsClient
+@inject IActCommentsClient ActCommentsClient
 @inject ILogger<Act> Logger
 
 <PageTitle>@(this.act is null ? "Úkon" : this.act.ActNumber) – EvilCase</PageTitle>
@@ -109,6 +111,14 @@
             </div>
 
             <ExternalNumbersCard Text="ExternalNumberText.ForAct" Items="this.act.ExternalNumbers" />
+
+            <div class="mt-3">
+                <CommentsCard @key="this.ActId"
+                              LoadComments="this.LoadComments"
+                              AddComment="this.AddComment"
+                              SaveComment="this.SaveComment"
+                              DeleteComment="this.DeleteComment" />
+            </div>
         }
     </div>
 </div>
@@ -151,5 +161,26 @@
 
             this.failure = "Úkon se nepodařilo načíst. Zkuste to za chvíli znovu.";
         }
+    }
+
+    private async Task<IReadOnlyList<CommentItem>> LoadComments(CancellationToken token)
+    {
+        var response = await this.ActCommentsClient.ListActComments(this.CaseId, this.ActId, token);
+        return response.Items;
+    }
+
+    private Task AddComment(CommentEditRequest request, CancellationToken token)
+    {
+        return this.ActCommentsClient.AddActComment(this.CaseId, this.ActId, request, token);
+    }
+
+    private Task SaveComment(Guid commentId, CommentEditRequest request, CancellationToken token)
+    {
+        return this.ActCommentsClient.EditActComment(this.CaseId, this.ActId, commentId, request, token);
+    }
+
+    private Task DeleteComment(Guid commentId, CancellationToken token)
+    {
+        return this.ActCommentsClient.DeleteActComment(this.CaseId, this.ActId, commentId, token);
     }
 }

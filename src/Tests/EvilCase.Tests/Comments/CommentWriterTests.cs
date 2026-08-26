@@ -37,13 +37,13 @@ public class CommentWriterTests
     {
         var @case = await this.tenant.AddCase(Day);
 
-        var added = await this.writer.AddCaseComment(@case.Id, new CommentEditRequest { Body = "Poznámka" }, CancellationToken.None);
+        var outcome = await this.writer.AddCaseComment(@case.Id, new CommentEditRequest { Body = "Poznámka" }, CancellationToken.None);
 
         var reloaded = await this.Reload(@case.Id);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(added, Is.True);
+            Assert.That(outcome, Is.EqualTo(CommentWriteOutcome.Written));
             Assert.That(reloaded.Body, Is.EqualTo("Poznámka"));
             Assert.That(reloaded.CaseId, Is.EqualTo(@case.Id));
             Assert.That(reloaded.ActId, Is.Null, "a case note carries no act");
@@ -67,13 +67,13 @@ public class CommentWriterTests
     [Test]
     public async Task AnUnknownCaseTakesNoNote()
     {
-        var added = await this.writer.AddCaseComment(Guid.CreateVersion7(), new CommentEditRequest { Body = "Poznámka" }, CancellationToken.None);
+        var outcome = await this.writer.AddCaseComment(Guid.CreateVersion7(), new CommentEditRequest { Body = "Poznámka" }, CancellationToken.None);
 
         var any = await this.tenant.Context.Comments.AsNoTracking().AnyAsync();
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(added, Is.False);
+            Assert.That(outcome, Is.EqualTo(CommentWriteOutcome.NotFound));
             Assert.That(any, Is.False, "nothing is written when the case does not exist");
         }
     }
@@ -84,14 +84,14 @@ public class CommentWriterTests
         await using var other = await TestTenant.Create();
         var otherCase = await other.AddCase(Day);
 
-        var added = await this.writer.AddCaseComment(otherCase.Id, new CommentEditRequest { Body = "Poznámka" }, CancellationToken.None);
+        var outcome = await this.writer.AddCaseComment(otherCase.Id, new CommentEditRequest { Body = "Poznámka" }, CancellationToken.None);
 
         var ownAny = await this.tenant.Context.Comments.AsNoTracking().AnyAsync();
         var otherAny = await other.Context.Comments.AsNoTracking().AnyAsync();
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(added, Is.False, "the tenant query filter is what turns another tenant's case into nothing");
+            Assert.That(outcome, Is.EqualTo(CommentWriteOutcome.NotFound), "the tenant query filter is what turns another tenant's case into nothing");
             Assert.That(ownAny, Is.False);
             Assert.That(otherAny, Is.False);
         }

@@ -107,7 +107,7 @@ public class CreateLocationTests
             throw new NotSupportedException();
         }
 
-        public Task<bool> DeleteCase(Guid caseId, CancellationToken token)
+        public Task<CaseDeleteOutcome> DeleteCase(Guid caseId, CancellationToken token)
         {
             throw new NotSupportedException();
         }

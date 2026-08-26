@@ -213,15 +213,17 @@ internal sealed class TestTenant : IAsyncDisposable
         return await this.Save(this.Context.Comments, comment);
     }
 
-    public async Task<Comment> AddActComment(Act act, string body)
+    public async Task<Comment> AddActComment(Act act, string body, Guid? authorId = null)
     {
         var comment = new Comment
         {
             TenantId = this.tenantId,
-            UserId = this.UserId,
+            UserId = authorId ?? this.UserId,
             ActId = act.Id,
             Body = body,
         };
+
+        using var scope = this.stubUserContext.Enter(this.tenantId, comment.UserId);
 
         return await this.Save(this.Context.Comments, comment);
     }

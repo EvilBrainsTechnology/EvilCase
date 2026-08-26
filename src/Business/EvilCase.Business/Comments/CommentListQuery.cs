@@ -10,6 +10,13 @@ internal static class CommentListQuery
         return comments.Where(comment => comment.CaseId == caseId);
     }
 
+    public static IQueryable<Comment> OnAct(this IQueryable<Comment> comments, Guid caseId, Guid actId)
+    {
+        return comments
+            .Where(comment => comment.ActId == actId)
+            .Where(comment => comment.Act!.CaseId == caseId);
+    }
+
     /// <summary>
     /// The join is what carries the e-mail — <see cref="Comment"/> has no <c>User</c> navigation.
     /// </summary>

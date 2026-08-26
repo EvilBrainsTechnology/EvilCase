@@ -49,19 +49,19 @@ internal sealed class ExternalActNumberWriter(IDbSession dbSession, ILogger<Exte
         return ExternalActNumberOutcome.Added;
     }
 
-    public async Task<bool> DeleteExternalActNumber(Guid caseId, Guid actId, Guid numberId, CancellationToken token)
+    public async Task<ExternalActNumberDeleteOutcome> DeleteExternalActNumber(Guid caseId, Guid actId, Guid numberId, CancellationToken token)
     {
         var context = dbSession.Current;
 
         var actExists = await context.Acts.OfCase(caseId).WithId(actId).AnyAsync(token);
         if (!actExists)
-            return false;
+            return ExternalActNumberDeleteOutcome.NotFound;
 
         var rows = await context.ExternalActNumbers
             .OfAct(actId)
             .WithId(numberId)
             .ExecuteDeleteAsync(token);
 
-        return rows > 0;
+        return rows == 0 ? ExternalActNumberDeleteOutcome.NotFound : ExternalActNumberDeleteOutcome.Deleted;
     }
 }

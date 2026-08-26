@@ -113,11 +113,15 @@ public class ActsController : ControllerBase
         [FromRoute] Guid numberId,
         CancellationToken token)
     {
-        var deleted = await writer.DeleteExternalActNumber(caseId, actId, numberId, token);
+        var outcome = await writer.DeleteExternalActNumber(caseId, actId, numberId, token);
 
-        return deleted
-            ? this.NoContent()
-            : this.Problem(statusCode: StatusCodes.Status404NotFound, title: "External act number not found");
+        return outcome switch
+        {
+            ExternalActNumberDeleteOutcome.Deleted => this.NoContent(),
+            ExternalActNumberDeleteOutcome.NotFound => this.Problem(
+                statusCode: StatusCodes.Status404NotFound, title: "External act number not found"),
+            _ => throw new UnreachableException(),
+        };
     }
 
     private ActionResult InvalidActNumberProblem()
