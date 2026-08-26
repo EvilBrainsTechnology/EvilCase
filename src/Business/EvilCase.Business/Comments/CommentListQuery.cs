@@ -34,4 +34,19 @@ internal static class CommentListQuery
     {
         return items.OrderBy(item => item.Created).ThenBy(item => item.Id);
     }
+
+    public static IQueryable<Comment> OnAct(this IQueryable<Comment> comments, Guid actId)
+    {
+        return comments.Where(comment => comment.ActId == actId);
+    }
+
+    /// <summary>
+    /// The act's notes, and only where the act hangs on that case.
+    /// </summary>
+    public static IQueryable<Comment> OnActOfCase(this IQueryable<Comment> comments, Guid caseId, Guid actId)
+    {
+        return comments
+            .Where(comment => comment.ActId == actId)
+            .Where(comment => comment.Act!.CaseId == caseId);
+    }
 }

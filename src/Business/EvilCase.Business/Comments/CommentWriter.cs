@@ -1,4 +1,5 @@
 using EvilBrains.EvilCase.Api.Contract.Comments;
+using EvilBrains.EvilCase.Business.Acts;
 using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
@@ -65,6 +66,75 @@ internal sealed class CommentWriter(IDbSession dbSession, IUserContext userConte
             return CommentWriteOutcome.NotFound;
 
         logger.LogInformation("Comment {CommentId} was removed from case {CaseId}", commentId, caseId);
+
+        return CommentWriteOutcome.Written;
+    }
+
+    public async Task<bool> AddActComment(Guid caseId, Guid actId, CommentEditRequest request, CancellationToken token)
+    {
+        var context = dbSession.Current;
+
+        var actExists = await context.Acts.OfCase(caseId).WithId(actId).AnyAsync(token);
+        if (!actExists)
+            return false;
+
+        var comment = new Comment { ActId = actId, Body = request.Body.Trim() };
+
+        context.Comments.Add(comment);
+
+        await context.SaveChangesAsync(token);
+
+        logger.LogInformation("Comment {CommentId} was written on act {ActId}", comment.Id, actId);
+
+        return true;
+    }
+
+    public async Task<CommentWriteOutcome> UpdateActComment(Guid caseId, Guid actId, Guid commentId, CommentEditRequest request, CancellationToken token)
+    {
+        var body = request.Body.Trim();
+        var userId = userContext.UserId;
+        var context = dbSession.Current;
+
+        var actExists = await context.Acts.OfCase(caseId).WithId(actId).AnyAsync(token);
+        if (!actExists)
+            return CommentWriteOutcome.NotFound;
+
+        var comments = context.Comments.OnAct(actId).WithId(commentId);
+
+        var outcome = await Authorize(comments, userId, token);
+        if (outcome != CommentWriteOutcome.Written)
+            return outcome;
+
+        var rows = await comments
+            .Where(comment => comment.UserId == userId)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(comment => comment.Body, body), token);
+
+        return rows == 0 ? CommentWriteOutcome.NotFound : CommentWriteOutcome.Written;
+    }
+
+    public async Task<CommentWriteOutcome> DeleteActComment(Guid caseId, Guid actId, Guid commentId, CancellationToken token)
+    {
+        var userId = userContext.UserId;
+        var context = dbSession.Current;
+
+        var actExists = await context.Acts.OfCase(caseId).WithId(actId).AnyAsync(token);
+        if (!actExists)
+            return CommentWriteOutcome.NotFound;
+
+        var comments = context.Comments.OnAct(actId).WithId(commentId);
+
+        var outcome = await Authorize(comments, userId, token);
+        if (outcome != CommentWriteOutcome.Written)
+            return outcome;
+
+        var rows = await comments
+            .Where(comment => comment.UserId == userId)
+            .ExecuteDeleteAsync(token);
+
+        if (rows == 0)
+            return CommentWriteOutcome.NotFound;
+
+        logger.LogInformation("Comment {CommentId} was removed from act {ActId}", commentId, actId);
 
         return CommentWriteOutcome.Written;
     }
