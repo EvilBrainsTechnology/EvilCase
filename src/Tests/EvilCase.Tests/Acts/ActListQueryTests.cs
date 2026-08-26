@@ -142,4 +142,24 @@ public class ActListQueryTests
 
         Assert.That(item.AddressedToName, Is.Null, "a recipient is optional and its absence is a null name, not a failed read");
     }
+
+    /// <summary>
+    /// The database stamps <c>Created</c> off the clock, so two acts never share it and no result reaches
+    /// the identifier behind it.
+    /// </summary>
+    [Test]
+    public void TheIdentifierMakesTheOrderTotal()
+    {
+        var sql = this.tenant.Context.Acts.InListOrder().ToQueryString();
+
+        var orderBy = sql.LastIndexOf("ORDER BY", StringComparison.Ordinal);
+
+        Assert.That(orderBy, Is.GreaterThanOrEqualTo(0), "the list order is the database's");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(sql[orderBy..], Does.Contain("\"Created\""), "the write moment breaks a tie on the date");
+            Assert.That(sql[orderBy..], Does.Contain("\"Id\""), "the identifier makes the order total");
+        }
+    }
 }
