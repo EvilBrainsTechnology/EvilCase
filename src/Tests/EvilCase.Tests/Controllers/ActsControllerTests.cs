@@ -59,8 +59,26 @@ public class ActsControllerTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result.Result, Is.InstanceOf<OkObjectResult>());
-            Assert.That(((OkObjectResult)result.Result!).Value, Is.SameAs(created));
+            Assert.That(result.Result, Is.InstanceOf<CreatedResult>());
+            Assert.That(((CreatedResult)result.Result!).Value, Is.SameAs(created));
+        }
+    }
+
+    [Test]
+    public async Task FilingAnActIsAnsweredWithTwoOhOneCreated()
+    {
+        var writer = new RecordingActWriter { Result = new ActCreateResult { Outcome = ActCreateOutcome.Created, Act = Item("Podání") } };
+        var controller = new ActsController();
+
+        var result = await controller.CreateAct(writer, Guid.CreateVersion7(), Request(), CancellationToken.None);
+
+        Assert.That(result.Result, Is.InstanceOf<CreatedResult>());
+        var created = (CreatedResult)result.Result!;
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(created.StatusCode, Is.EqualTo(201), "a POST that creates a row answers 201 Created");
+            Assert.That(created.Location, Is.Null, "no Location names a detail route the API does not serve yet");
         }
     }
 
