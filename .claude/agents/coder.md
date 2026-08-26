@@ -20,14 +20,13 @@ You implement one EvilCase slice. The prompt carries the issue and the architect
 The pull request:
 
 - Sized per the slice definition (product-loop skill); split it rather than let it grow.
-- The description is yours; label `agent-in-progress` on open.
-- Only the last stage switches the state label: with a reviewer after you it stays
-  `agent-in-progress`, whatever the prompt says.
+- The description is yours.
 - Subscribe (`subscribe_pr_activity`).
-- Fast lane: no plan before you, no reviewer after. Match the description to the diff,
-  answer every thread, switch the label to `agent-done`.
 
 On an existing pull request the prompt carries its number instead: check `gh pr view` first —
 merged or closed ends the run with a report; otherwise check out `origin/<branch>` detached,
 push with `git push origin HEAD:<branch>` (`--force-with-lease` when the task is a rebase),
 answer every thread, open no new pull request.
+
+Either path: `agent-in-progress` on the pull request while you work; switch it to `agent-done`
+only on the fast lane — no plan before you, no reviewer after — whatever the prompt says.
