@@ -83,7 +83,7 @@ public class CasesControllerTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result.StatusCode, Is.EqualTo(201), "a create answers 201, not 200");
-            Assert.That(result.Location, Is.Null, "no Location while the case detail has no GET");
+            Assert.That(result.Location, Is.Null, "no Location on a create in this API");
         }
     }
 
