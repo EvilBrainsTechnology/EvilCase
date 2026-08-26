@@ -99,25 +99,18 @@
 
     private string? failure;
 
-    protected override Task OnInitializedAsync()
-    {
-        return this.LoadActs();
-    }
-
-    private async Task LoadActs()
+    protected override async Task OnInitializedAsync()
     {
         try
         {
             var response = await this.ActsClient.ListActs(this.CaseId, CancellationToken.None);
 
             this.items = response.Items;
-            this.failure = null;
         }
         catch (Exception exception) when (exception is ApiException or HttpRequestException)
         {
             this.Logger.LogWarning(exception, "Loading the act list failed");
 
-            this.items = [];
             this.failure = "Seznam úkonů se nepodařilo načíst. Zkuste to za chvíli znovu.";
         }
     }
