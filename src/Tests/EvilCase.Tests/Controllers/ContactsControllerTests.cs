@@ -27,9 +27,29 @@ public class ContactsControllerTests
         var writer = new RecordingContactWriter { Created = created };
         var controller = new ContactsController();
 
-        var result = await controller.CreateContact(writer, new ContactEditRequest { Name = "Nový kontakt", Kind = ContactKind.Authority }, CancellationToken.None);
+        var response = await controller.CreateContact(writer, new ContactEditRequest { Name = "Nový kontakt", Kind = ContactKind.Authority }, CancellationToken.None);
 
-        Assert.That(result, Is.SameAs(created));
+        Assert.That((response.Result as CreatedResult)?.Value, Is.SameAs(created));
+    }
+
+    [Test]
+    public async Task AFiledContactAnswersWithCreatedAndNoLocation()
+    {
+        var controller = new ContactsController();
+
+        var response = await controller.CreateContact(
+            new RecordingContactWriter(),
+            new ContactEditRequest { Name = "Nový kontakt", Kind = ContactKind.Authority },
+            CancellationToken.None);
+
+        Assert.That(response.Result, Is.InstanceOf<CreatedResult>());
+        var result = (CreatedResult)response.Result!;
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.StatusCode, Is.EqualTo(201), "a create answers 201, not 200");
+            Assert.That(result.Location, Is.Null, "no Location on a create in this API");
+        }
     }
 
     [Test]

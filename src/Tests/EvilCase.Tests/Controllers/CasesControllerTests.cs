@@ -59,15 +59,31 @@ public class CasesControllerTests
         var writer = new RecordingCaseWriter { Created = created };
         var controller = new CasesController();
 
-        var result = await controller.CreateCase(
+        var response = await controller.CreateCase(
             writer,
             new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "Nový spis" },
             CancellationToken.None);
 
+        Assert.That((response.Result as CreatedResult)?.Value, Is.SameAs(created), "the created case travels back in the response body");
+    }
+
+    [Test]
+    public async Task AFiledCaseAnswersWithCreatedAndNoLocation()
+    {
+        var controller = new CasesController();
+
+        var response = await controller.CreateCase(
+            new RecordingCaseWriter(),
+            new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "Nový spis" },
+            CancellationToken.None);
+
+        Assert.That(response.Result, Is.InstanceOf<CreatedResult>());
+        var result = (CreatedResult)response.Result!;
+
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result.Result, Is.InstanceOf<OkObjectResult>());
-            Assert.That(((OkObjectResult)result.Result!).Value, Is.SameAs(created));
+            Assert.That(result.StatusCode, Is.EqualTo(201), "a create answers 201, not 200");
+            Assert.That(result.Location, Is.Null, "no Location while the case detail has no GET");
         }
     }
 

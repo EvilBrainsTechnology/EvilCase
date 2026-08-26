@@ -21,7 +21,7 @@ public class CasesController : ControllerBase
     }
 
     [HttpPost("")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<CaseListItem>> CreateCase([FromServices] ICaseWriter writer, [FromBody] CreateCaseRequest request, CancellationToken token)
     {
@@ -29,7 +29,7 @@ public class CasesController : ControllerBase
 
         return filed is null
             ? this.Problem(detail: "The parent case does not exist.", statusCode: StatusCodes.Status409Conflict, title: CaseProblems.InvalidParent)
-            : this.Ok(filed);
+            : this.Created((string?)null, filed);
     }
 
     [HttpGet("{caseId:guid}")]

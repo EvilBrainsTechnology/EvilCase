@@ -21,9 +21,12 @@ public class ContactsController : ControllerBase
     }
 
     [HttpPost("")]
-    public Task<ContactListItem> CreateContact([FromServices] IContactWriter writer, [FromBody] ContactEditRequest request, CancellationToken token)
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    public async Task<ActionResult<ContactListItem>> CreateContact([FromServices] IContactWriter writer, [FromBody] ContactEditRequest request, CancellationToken token)
     {
-        return writer.CreateContact(request, token);
+        var created = await writer.CreateContact(request, token);
+
+        return this.Created((string?)null, created);
     }
 
     [HttpGet("default")]
