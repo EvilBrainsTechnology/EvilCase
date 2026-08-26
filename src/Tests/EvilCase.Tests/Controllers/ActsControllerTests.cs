@@ -61,31 +61,30 @@ public class ActsControllerTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result.Result, Is.InstanceOf<CreatedResult>());
-            Assert.That(((CreatedResult)result.Result!).Value, Is.SameAs(created));
+            Assert.That(result.Result, Is.InstanceOf<CreatedAtActionResult>());
+            Assert.That(((CreatedAtActionResult)result.Result!).Value, Is.SameAs(created));
         }
     }
 
     [Test]
-    public async Task FilingAnActIsAnsweredWithTwoOhOneCreatedAndTheActsLocation()
+    public async Task AFiledActIsAnsweredWithCreatedAtItsDetailRoute()
     {
         var act = Item("Podání");
         var writer = new RecordingActWriter { Result = new ActCreateResult { Outcome = ActCreateOutcome.Created, Act = act } };
         var controller = new ActsController();
         var caseId = Guid.CreateVersion7();
 
-        var result = await controller.CreateAct(writer, caseId, Request(), CancellationToken.None);
+        var response = await controller.CreateAct(writer, caseId, Request(), CancellationToken.None);
 
-        Assert.That(result.Result, Is.InstanceOf<CreatedResult>());
-        var created = (CreatedResult)result.Result!;
+        Assert.That(response.Result, Is.InstanceOf<CreatedAtActionResult>());
+        var result = (CreatedAtActionResult)response.Result!;
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(created.StatusCode, Is.EqualTo(201), "a POST that creates a row answers 201 Created");
-            Assert.That(
-                created.Location,
-                Is.EqualTo($"/api/cases/{caseId}/acts/{act.Id}"),
-                "the Location names the act's own detail route");
+            Assert.That(result.StatusCode, Is.EqualTo(201), "a POST that creates a row answers 201 Created");
+            Assert.That(result.ActionName, Is.EqualTo(nameof(ActsController.GetAct)), "the Location names the detail action of the act");
+            Assert.That(result.RouteValues?["caseId"], Is.EqualTo(caseId), "the Location carries the case the act was filed into");
+            Assert.That(result.RouteValues?["actId"], Is.EqualTo(act.Id), "the Location carries the id of the act that was filed");
         }
     }
 

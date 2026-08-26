@@ -31,7 +31,7 @@ public class ActsController : ControllerBase
 
         return result.Outcome switch
         {
-            ActCreateOutcome.Created => this.Created($"/api/cases/{caseId}/acts/{result.Act!.Id}", result.Act),
+            ActCreateOutcome.Created => this.CreatedAtAction(nameof(this.GetAct), new { caseId, actId = result.Act!.Id }, result.Act),
             ActCreateOutcome.CaseNotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.CaseNotFound),
             ActCreateOutcome.ContactNotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.ContactNotFound),
             _ => throw new UnreachableException(),
