@@ -8,8 +8,5 @@ public sealed record FileListItem
 
     public required long SizeBytes { get; init; }
 
-    /// <summary>
-    /// When the file was uploaded.
-    /// </summary>
     public required DateTime Created { get; init; }
 }

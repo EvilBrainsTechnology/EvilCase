@@ -21,7 +21,7 @@
              @ondrop="() => this.dragging = false">
             <Icon CssClass="icon" IconType="AppIcons.Upload" />
             <div>Přetáhněte soubory sem nebo je vyberte.</div>
-            <div class="text-secondary">Nejvýše 100 MB na soubor.</div>
+            <div class="text-secondary">Nejvýše @(FileSizeDisplay.Text(FileLimits.MaxUploadBytes)) na soubor.</div>
             <InputFile multiple OnChange="this.OnFilesSelected" aria-label="Vybrat soubory" />
         </div>
 
@@ -41,7 +41,20 @@
         }
     </div>
 
-    @if (this.Files.Count == 0)
+    @if (this.loading)
+    {
+        <div class="card-body text-center text-secondary">
+            <div class="spinner-border" role="status"></div>
+        </div>
+    }
+    else if (this.listFailure is not null)
+    {
+        <div class="empty">
+            <p class="empty-title">Soubory se nepodařilo načíst</p>
+            <p class="empty-subtitle text-secondary">@this.listFailure</p>
+        </div>
+    }
+    else if (this.items.Count == 0)
     {
         <div class="empty">
             <p class="empty-title">Zatím tu není žádný soubor</p>
@@ -60,7 +73,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var file in this.Files)
+                    @foreach (var file in this.items)
                     {
                         <tr>
                             <td>@file.FileName</td>
@@ -70,7 +83,7 @@
                                 <button type="button" class="btn btn-sm" aria-label="Stáhnout soubor" disabled="@(this.downloadingId == file.Id)" @onclick="() => this.Download(file)">
                                     <Icon IconType="AppIcons.Download" />
                                 </button>
-                                <button type="button" class="btn btn-sm btn-danger ms-2" aria-label="Smazat soubor" @onclick="() => this.Delete(file)">
+                                <button type="button" class="btn btn-sm btn-danger ms-2" aria-label="Smazat soubor" @onclick="() => this.ConfirmDelete(file)">
                                     <Icon IconType="AppIcons.Trash" />
                                 </button>
                             </td>
@@ -81,7 +94,7 @@
         </div>
 
         <div class="d-lg-none">
-            @foreach (var file in this.Files)
+            @foreach (var file in this.items)
             {
                 <div class="card mb-2">
                     <div class="card-body">
@@ -91,7 +104,7 @@
                             <button type="button" class="btn btn-sm" aria-label="Stáhnout soubor" disabled="@(this.downloadingId == file.Id)" @onclick="() => this.Download(file)">
                                 <Icon IconType="AppIcons.Download" />
                             </button>
-                            <button type="button" class="btn btn-sm btn-danger ms-2" aria-label="Smazat soubor" @onclick="() => this.Delete(file)">
+                            <button type="button" class="btn btn-sm btn-danger ms-2" aria-label="Smazat soubor" @onclick="() => this.ConfirmDelete(file)">
                                 <Icon IconType="AppIcons.Trash" />
                             </button>
                         </div>
@@ -106,7 +119,7 @@
     private const int MaxBatchFiles = 100;
 
     [Parameter, EditorRequired]
-    public required IReadOnlyList<FileListItem> Files { get; set; }
+    public required Func<CancellationToken, Task<IReadOnlyList<FileListItem>>> LoadFiles { get; set; }
 
     [Parameter, EditorRequired]
     public required Func<IBrowserFile, CancellationToken, Task> UploadFile { get; set; }
@@ -117,15 +130,13 @@
     [Parameter, EditorRequired]
     public required Func<FileListItem, CancellationToken, Task> DeleteFile { get; set; }
 
-    /// <summary>
-    /// Invoked once after a batch and after a delete; the owner reloads its list.
-    /// </summary>
-    [Parameter]
-    public EventCallback FilesChanged { get; set; }
-
     private readonly List<string> failures = [];
 
+    private IReadOnlyList<FileListItem> items = [];
+
     private bool dragging;
+
+    private bool loading = true;
 
     private int uploadIndex;
 
@@ -135,7 +146,32 @@
 
     private Guid? downloadingId;
 
+    private string? listFailure;
+
     private string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await this.ReloadFiles();
+        this.loading = false;
+    }
+
+    private async Task ReloadFiles()
+    {
+        this.listFailure = null;
+
+        try
+        {
+            this.items = await this.LoadFiles(CancellationToken.None);
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Loading the files failed");
+
+            this.items = [];
+            this.listFailure = "Soubory se nepodařilo načíst. Zkuste to za chvíli znovu.";
+        }
+    }
 
     private async Task OnFilesSelected(InputFileChangeEventArgs args)
     {
@@ -161,7 +197,7 @@
 
             if (file.Size > FileLimits.MaxUploadBytes)
             {
-                this.failures.Add($"{file.Name}: soubor je větší než 100 MB.");
+                this.failures.Add($"{file.Name}: soubor je větší než {FileSizeDisplay.Text(FileLimits.MaxUploadBytes)}.");
                 continue;
             }
 
@@ -173,7 +209,7 @@
             {
                 this.Logger.LogWarning(exception, "Uploading {FileName} failed: too large", file.Name);
 
-                this.failures.Add($"{file.Name}: soubor je větší než 100 MB.");
+                this.failures.Add($"{file.Name}: soubor je větší než {FileSizeDisplay.Text(FileLimits.MaxUploadBytes)}.");
             }
             catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
             {
@@ -191,7 +227,7 @@
 
         this.uploadTotal = 0;
 
-        await this.FilesChanged.InvokeAsync();
+        await this.ReloadFiles();
     }
 
     private async Task Download(FileListItem file)
@@ -215,14 +251,14 @@
         }
     }
 
-    private async Task Delete(FileListItem file)
+    private async Task ConfirmDelete(FileListItem file)
     {
         await this.ModalService.ShowAsync(
             "Smazat soubor",
             new RenderComponent<FileDeleteModal>()
                 .Set(component => component.FileName, file.FileName)
-                .Set(component => component.Delete, (CancellationToken token) => this.DeleteFile(file, token))
-                .Set(component => component.OnDeleted, EventCallback.Factory.Create(this, () => this.FilesChanged.InvokeAsync())),
+                .Set(component => component.DeleteFile, (CancellationToken token) => this.DeleteFile(file, token))
+                .Set(component => component.OnDeleted, EventCallback.Factory.Create(this, this.ReloadFiles)),
             new ModalOptions { Fullscreen = ModalFullscreen.BelowLarge });
     }
 }

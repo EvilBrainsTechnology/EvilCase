@@ -27,7 +27,7 @@
     public required string FileName { get; set; }
 
     [Parameter, EditorRequired]
-    public required Func<CancellationToken, Task> Delete { get; set; }
+    public required Func<CancellationToken, Task> DeleteFile { get; set; }
 
     [Parameter]
     public EventCallback OnDeleted { get; set; }
@@ -43,7 +43,7 @@
 
         try
         {
-            await this.Delete(CancellationToken.None);
+            await this.DeleteFile(CancellationToken.None);
 
             this.ModalService.Close();
             await this.OnDeleted.InvokeAsync();

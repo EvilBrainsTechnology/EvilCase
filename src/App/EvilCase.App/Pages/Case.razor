@@ -125,11 +125,10 @@
 
             <div class="mt-3">
                 <FilesCard @key="this.CaseId"
-                           Files="this.files"
+                           LoadFiles="this.LoadFiles"
                            UploadFile="this.UploadFile"
                            DownloadFile="this.DownloadFile"
-                           DeleteFile="this.DeleteFile"
-                           FilesChanged="this.LoadFiles" />
+                           DeleteFile="this.DeleteFile" />
             </div>
         }
     </div>
@@ -144,8 +143,6 @@
     private bool notFound;
 
     private string? failure;
-
-    private IReadOnlyList<FileListItem> files = [];
 
     protected override Task OnParametersSetAsync()
     {
@@ -165,31 +162,18 @@
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
         {
             this.notFound = true;
-
-            return;
         }
         catch (Exception exception) when (exception is ApiException or HttpRequestException)
         {
             this.Logger.LogWarning(exception, "Loading the case detail failed");
 
             this.failure = "Spis se nepodařilo načíst. Zkuste to za chvíli znovu.";
-
-            return;
         }
-
-        await this.LoadFiles();
     }
 
-    private async Task LoadFiles()
+    private async Task<IReadOnlyList<FileListItem>> LoadFiles(CancellationToken token)
     {
-        try
-        {
-            this.files = (await this.CaseFilesClient.ListCaseFiles(this.CaseId, CancellationToken.None)).Items;
-        }
-        catch (Exception exception) when (exception is ApiException or HttpRequestException)
-        {
-            this.Logger.LogWarning(exception, "Loading the case files failed");
-        }
+        return (await this.CaseFilesClient.ListCaseFiles(this.CaseId, token)).Items;
     }
 
     private Task UploadFile(IBrowserFile file, CancellationToken token)
