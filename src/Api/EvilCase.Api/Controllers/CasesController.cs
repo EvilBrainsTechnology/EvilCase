@@ -25,11 +25,15 @@ public class CasesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<CaseListItem>> CreateCase([FromServices] ICaseWriter writer, [FromBody] CreateCaseRequest request, CancellationToken token)
     {
-        var filed = await writer.CreateCase(request, token);
+        var result = await writer.CreateCase(request, token);
 
-        return filed is null
-            ? this.Problem(detail: "The parent case does not exist.", statusCode: StatusCodes.Status409Conflict, title: CaseProblems.InvalidParent)
-            : this.Created((string?)null, filed);
+        return result.Outcome switch
+        {
+            CaseCreateOutcome.Created => this.CreatedAtAction(nameof(this.GetCase), new { caseId = result.Case!.Id }, result.Case),
+            CaseCreateOutcome.InvalidParent => this.Problem(
+                detail: "The parent case does not exist.", statusCode: StatusCodes.Status409Conflict, title: CaseProblems.InvalidParent),
+            _ => throw new UnreachableException(),
+        };
     }
 
     [HttpGet("{caseId:guid}")]
