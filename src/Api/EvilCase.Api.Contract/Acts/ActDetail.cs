@@ -7,8 +7,6 @@ public sealed record ActDetail
 {
     public required Guid Id { get; init; }
 
-    public required Guid CaseId { get; init; }
-
     /// <summary>
     /// The number of the case the act sits in, for the link back to it.
     /// </summary>

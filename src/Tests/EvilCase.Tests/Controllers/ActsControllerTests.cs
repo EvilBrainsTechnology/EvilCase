@@ -301,7 +301,6 @@ public class ActsControllerTests
         return new ActDetail
         {
             Id = Guid.CreateVersion7(),
-            CaseId = Guid.CreateVersion7(),
             CaseNumber = "EC/20260821-001",
             ActNumber = "EC/20260821-001/20260825-001",
             Direction = ActDirection.Incoming,
