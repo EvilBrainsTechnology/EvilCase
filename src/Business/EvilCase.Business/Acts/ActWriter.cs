@@ -6,12 +6,13 @@ using EvilBrains.EvilCase.Data;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Domain.Numbering;
+using EvilBrains.EvilCase.Files;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace EvilBrains.EvilCase.Business.Acts;
 
-internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, ILogger<ActWriter> logger) : IActWriter
+internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, IFileBlobStore fileBlobStore, ILogger<ActWriter> logger) : IActWriter
 {
     /// <summary>
     /// How many numbers one act may be issued. The generator reads the day's highest and the unique index
@@ -132,6 +133,35 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
         logger.LogInformation("Act {ActId} was edited", actId);
 
         return ActUpdateOutcome.Updated;
+    }
+
+    public async Task<ActDeleteOutcome> DeleteAct(Guid caseId, Guid actId, CancellationToken token)
+    {
+        var context = dbSession.Current;
+
+        // Read before the delete: the rows are gone once it runs.
+        var storagePaths = await context.FileAssets
+            .Where(file => file.ActId == actId)
+            .Select(file => file.StoragePath)
+            .ToListAsync(token);
+
+        // The comments, external numbers and files go with the row: the database's foreign keys carry
+        // the cascade (SDD-007).
+        var rows = await context.Acts
+            .OfCase(caseId)
+            .WithId(actId)
+            .ExecuteDeleteAsync(token);
+
+        if (rows == 0)
+            return ActDeleteOutcome.NotFound;
+
+        // After the commit: a blob orphaned by a failed delete is tolerated, a lost one is not (SDD-012).
+        foreach (var storagePath in storagePaths)
+            await fileBlobStore.DeleteFileBlob(storagePath, token);
+
+        logger.LogInformation("Act {ActId} was deleted", actId);
+
+        return ActDeleteOutcome.Deleted;
     }
 
     /// <summary>

@@ -28,7 +28,7 @@ public class ActUpdateTests
     public async Task SetUp()
     {
         this.tenant = await TestTenant.Create();
-        this.writer = new ActWriter(new FixedDbSession(this.tenant.Context), new FakeActNumberIssuer(), NullLogger<ActWriter>.Instance);
+        this.writer = new ActWriter(new FixedDbSession(this.tenant.Context), new FakeActNumberIssuer(), new FakeFileBlobStore(), NullLogger<ActWriter>.Instance);
     }
 
     [TearDown]

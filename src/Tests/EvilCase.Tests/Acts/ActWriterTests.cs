@@ -4,6 +4,7 @@ using EvilBrains.EvilCase.Business.Numbering;
 using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Domain.Acts;
 using EvilBrains.EvilCase.Tests.Data;
+using EvilBrains.EvilCase.Tests.Seeding;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -76,7 +77,7 @@ public class ActWriterTests
 
         await this.tenant.AddAct(@case, new DateOnly(2026, 8, 25), "Podání", actNumber: taken);
 
-        var writer = new ActWriter(new FixedDbSession(this.tenant.Context), new QueuedActNumberIssuer([taken, free]), NullLogger<ActWriter>.Instance);
+        var writer = new ActWriter(new FixedDbSession(this.tenant.Context), new QueuedActNumberIssuer([taken, free]), new FakeFileBlobStore(), NullLogger<ActWriter>.Instance);
 
         var request = Request() with { Date = new DateOnly(2026, 8, 25), IssuedByContactId = this.tenant.DefaultContact.Id };
 
@@ -95,7 +96,7 @@ public class ActWriterTests
     [Test]
     public async Task AnActInACaseThatIsNotThereIsRefused()
     {
-        var writer = new ActWriter(new FixedDbSession(this.tenant.Context), new QueuedActNumberIssuer([]), NullLogger<ActWriter>.Instance);
+        var writer = new ActWriter(new FixedDbSession(this.tenant.Context), new QueuedActNumberIssuer([]), new FakeFileBlobStore(), NullLogger<ActWriter>.Instance);
 
         var result = await writer.CreateAct(Guid.CreateVersion7(), Request(), CancellationToken.None);
 
@@ -110,7 +111,7 @@ public class ActWriterTests
     public async Task AnActNamingAContactThatIsNotThereIsRefused()
     {
         var @case = await this.tenant.AddCase(new DateOnly(2026, 8, 21));
-        var writer = new ActWriter(new FixedDbSession(this.tenant.Context), new QueuedActNumberIssuer(["EC/20260821-001/20260825-001"]), NullLogger<ActWriter>.Instance);
+        var writer = new ActWriter(new FixedDbSession(this.tenant.Context), new QueuedActNumberIssuer(["EC/20260821-001/20260825-001"]), new FakeFileBlobStore(), NullLogger<ActWriter>.Instance);
 
         var result = await writer.CreateAct(@case.Id, Request() with { IssuedByContactId = Guid.CreateVersion7() }, CancellationToken.None);
 
@@ -130,7 +131,7 @@ public class ActWriterTests
         }
 
         // No number is queued: a contact of another tenant never reaches the insert.
-        var writer = new ActWriter(new FixedDbSession(this.tenant.Context), new QueuedActNumberIssuer([]), NullLogger<ActWriter>.Instance);
+        var writer = new ActWriter(new FixedDbSession(this.tenant.Context), new QueuedActNumberIssuer([]), new FakeFileBlobStore(), NullLogger<ActWriter>.Instance);
 
         var asSender = await writer.CreateAct(@case.Id, Request() with { IssuedByContactId = foreignContactId }, CancellationToken.None);
         var asRecipient = await writer.CreateAct(
@@ -150,7 +151,7 @@ public class ActWriterTests
     {
         var @case = await this.tenant.AddCase(new DateOnly(2026, 8, 21));
         var addressedTo = await this.tenant.AddContact("Krajský soud ve Vzorově");
-        var writer = new ActWriter(new FixedDbSession(this.tenant.Context), new QueuedActNumberIssuer(["EC/20260821-001/20260825-001"]), NullLogger<ActWriter>.Instance);
+        var writer = new ActWriter(new FixedDbSession(this.tenant.Context), new QueuedActNumberIssuer(["EC/20260821-001/20260825-001"]), new FakeFileBlobStore(), NullLogger<ActWriter>.Instance);
 
         var request = Request() with { IssuedByContactId = this.tenant.DefaultContact.Id, AddressedToContactId = addressedTo.Id };
 
