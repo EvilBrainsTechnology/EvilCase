@@ -140,4 +140,71 @@ public class ActDetailQueryTests
 
         Assert.That(detail!.Id, Is.EqualTo(act.Id));
     }
+
+    [Test]
+    public async Task TheDetailCarriesTheActsNumbersWithTheContactThatAssignedThem()
+    {
+        var @case = await this.tenant.AddCase(Day);
+        var act = await this.tenant.AddAct(@case, Day);
+        var contact = await this.tenant.AddContact("Krajský soud ve Vzorově");
+        var number = await this.tenant.AddExternalActNumber(act, "1 T 45/2026", contact);
+
+        var reader = new ActReader(new FixedDbSession(this.tenant.Context));
+        var detail = await reader.GetActDetail(@case.Id, act.Id, CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(detail!.ExternalNumbers, Has.Count.EqualTo(1));
+            Assert.That(detail.ExternalNumbers[0].Id, Is.EqualTo(number.Id));
+            Assert.That(detail.ExternalNumbers[0].Value, Is.EqualTo("1 T 45/2026"));
+            Assert.That(detail.ExternalNumbers[0].AssignedByContactId, Is.EqualTo(contact.Id));
+            Assert.That(detail.ExternalNumbers[0].AssignedByContactName, Is.EqualTo(contact.Name));
+        }
+    }
+
+    [Test]
+    public async Task TheNumbersComeInTheOrderTheyAccrued()
+    {
+        var @case = await this.tenant.AddCase(Day);
+        var act = await this.tenant.AddAct(@case, Day);
+        var contact = await this.tenant.AddContact("Krajský soud ve Vzorově");
+        await this.tenant.AddExternalActNumber(act, "1 T 45/2026", contact);
+        await this.tenant.AddExternalActNumber(act, "2 T 46/2026", contact);
+
+        var reader = new ActReader(new FixedDbSession(this.tenant.Context));
+        var detail = await reader.GetActDetail(@case.Id, act.Id, CancellationToken.None);
+
+        Assert.That(
+            detail!.ExternalNumbers.Select(number => number.Value),
+            Is.EqualTo(["1 T 45/2026", "2 T 46/2026"]),
+            "a number's place in the list is the order it accrued");
+    }
+
+    [Test]
+    public async Task AnotherActsNumbersAreNotListed()
+    {
+        var @case = await this.tenant.AddCase(Day);
+        var contact = await this.tenant.AddContact("Krajský soud ve Vzorově");
+        var actA = await this.tenant.AddAct(@case, Day, "A");
+        var actB = await this.tenant.AddAct(@case, Day, "B");
+        await this.tenant.AddExternalActNumber(actA, "1 T 45/2026", contact);
+        await this.tenant.AddExternalActNumber(actB, "2 T 46/2026", contact);
+
+        var reader = new ActReader(new FixedDbSession(this.tenant.Context));
+        var detail = await reader.GetActDetail(@case.Id, actA.Id, CancellationToken.None);
+
+        Assert.That(detail!.ExternalNumbers.Select(number => number.Value), Is.EqualTo(["1 T 45/2026"]));
+    }
+
+    [Test]
+    public async Task AnActWithNoNumbersCarriesAnEmptyList()
+    {
+        var @case = await this.tenant.AddCase(Day);
+        var act = await this.tenant.AddAct(@case, Day);
+
+        var reader = new ActReader(new FixedDbSession(this.tenant.Context));
+        var detail = await reader.GetActDetail(@case.Id, act.Id, CancellationToken.None);
+
+        Assert.That(detail!.ExternalNumbers, Is.Empty);
+    }
 }

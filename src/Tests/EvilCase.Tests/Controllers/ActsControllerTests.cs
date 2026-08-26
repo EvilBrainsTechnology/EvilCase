@@ -1,5 +1,6 @@
 using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.Api.Contract.Contacts;
+using EvilBrains.EvilCase.Api.Contract.Numbers;
 using EvilBrains.EvilCase.Api.Controllers;
 using EvilBrains.EvilCase.Business.Acts;
 using EvilBrains.EvilCase.Domain.Acts;
@@ -253,6 +254,121 @@ public class ActsControllerTests
         Assert.That(problem.Detail, Is.Not.Null, "a number another act holds is a conflict the user resolves");
     }
 
+    [Test]
+    public async Task AddingANumberReachesTheWriterWithBothRouteIdsAndTheBody()
+    {
+        var caseId = Guid.CreateVersion7();
+        var actId = Guid.CreateVersion7();
+        var writer = new RecordingExternalActNumberWriter { AddOutcome = ExternalActNumberOutcome.Added };
+        var controller = new ActsController();
+        var request = Number();
+
+        await controller.AddExternalActNumber(writer, caseId, actId, request, CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(writer.AddCaseId, Is.EqualTo(caseId));
+            Assert.That(writer.AddActId, Is.EqualTo(actId));
+            Assert.That(writer.AddRequest, Is.SameAs(request), "the controller decides nothing about the number");
+        }
+    }
+
+    [Test]
+    public async Task AddingANumberThatSucceedsAnswersWithNoContent()
+    {
+        var writer = new RecordingExternalActNumberWriter { AddOutcome = ExternalActNumberOutcome.Added };
+        var controller = new ActsController();
+
+        var result = await controller.AddExternalActNumber(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Number(), CancellationToken.None);
+
+        Assert.That(result, Is.InstanceOf<NoContentResult>());
+    }
+
+    [Test]
+    public async Task AddingANumberToAMissingActIsAProblemWithFourOhFour()
+    {
+        var writer = new RecordingExternalActNumberWriter { AddOutcome = ExternalActNumberOutcome.ActNotFound };
+        var controller = new ActsController();
+
+        var result = await controller.AddExternalActNumber(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Number(), CancellationToken.None);
+
+        var problem = AssertProblem(result, 404);
+
+        Assert.That(problem.Title, Is.EqualTo(ActProblems.ActNotFound));
+    }
+
+    [Test]
+    public async Task ANumberTheActAlreadyCarriesIsAConflict()
+    {
+        var writer = new RecordingExternalActNumberWriter { AddOutcome = ExternalActNumberOutcome.ValueTaken };
+        var controller = new ActsController();
+
+        var result = await controller.AddExternalActNumber(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Number(), CancellationToken.None);
+
+        var problem = AssertProblem(result, 409);
+
+        Assert.That(problem.Title, Is.EqualTo(ExternalNumberProblems.Taken), "the two conflicts of the add are told apart by the problem title");
+    }
+
+    [Test]
+    public async Task ANumberNamingAnUnknownContactIsAConflict()
+    {
+        var writer = new RecordingExternalActNumberWriter { AddOutcome = ExternalActNumberOutcome.UnknownContact };
+        var controller = new ActsController();
+
+        var result = await controller.AddExternalActNumber(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Number(), CancellationToken.None);
+
+        var problem = AssertProblem(result, 409);
+
+        Assert.That(problem.Title, Is.EqualTo(ExternalNumberProblems.UnknownContact));
+    }
+
+    [Test]
+    public async Task DeletingANumberAnswersWithNoContent()
+    {
+        var writer = new RecordingExternalActNumberWriter { DeleteResult = true };
+        var controller = new ActsController();
+
+        var result = await controller.DeleteExternalActNumber(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
+
+        Assert.That(result, Is.InstanceOf<NoContentResult>());
+    }
+
+    [Test]
+    public async Task DeletingANumberReachesTheWriterWithAllThreeRouteIds()
+    {
+        var caseId = Guid.CreateVersion7();
+        var actId = Guid.CreateVersion7();
+        var numberId = Guid.CreateVersion7();
+        var writer = new RecordingExternalActNumberWriter { DeleteResult = true };
+        var controller = new ActsController();
+
+        await controller.DeleteExternalActNumber(writer, caseId, actId, numberId, CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(writer.DeleteCaseId, Is.EqualTo(caseId));
+            Assert.That(writer.DeleteActId, Is.EqualTo(actId));
+            Assert.That(writer.DeleteNumberId, Is.EqualTo(numberId));
+        }
+    }
+
+    [Test]
+    public async Task DeletingAMissingNumberIsAProblemWithFourOhFour()
+    {
+        var writer = new RecordingExternalActNumberWriter { DeleteResult = false };
+        var controller = new ActsController();
+
+        var result = await controller.DeleteExternalActNumber(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
+
+        AssertProblem(result, 404);
+    }
+
+    private static ExternalNumberRequest Number()
+    {
+        return new() { Value = "1 T 45/2026", AssignedByContactId = Guid.CreateVersion7() };
+    }
+
     private static ProblemDetails AssertProblem(IActionResult? result, in int statusCode)
     {
         Assert.That(result, Is.InstanceOf<ObjectResult>());
@@ -377,6 +493,43 @@ public class ActsControllerTests
             this.UpdateRequest = request;
 
             return Task.FromResult(this.UpdateOutcome);
+        }
+    }
+
+    private sealed class RecordingExternalActNumberWriter : IExternalActNumberWriter
+    {
+        public Guid? AddCaseId { get; private set; }
+
+        public Guid? AddActId { get; private set; }
+
+        public ExternalNumberRequest? AddRequest { get; private set; }
+
+        public ExternalActNumberOutcome AddOutcome { get; init; }
+
+        public Guid? DeleteCaseId { get; private set; }
+
+        public Guid? DeleteActId { get; private set; }
+
+        public Guid? DeleteNumberId { get; private set; }
+
+        public bool DeleteResult { get; init; }
+
+        public Task<ExternalActNumberOutcome> AddExternalActNumber(Guid caseId, Guid actId, ExternalNumberRequest request, CancellationToken token)
+        {
+            this.AddCaseId = caseId;
+            this.AddActId = actId;
+            this.AddRequest = request;
+
+            return Task.FromResult(this.AddOutcome);
+        }
+
+        public Task<bool> DeleteExternalActNumber(Guid caseId, Guid actId, Guid numberId, CancellationToken token)
+        {
+            this.DeleteCaseId = caseId;
+            this.DeleteActId = actId;
+            this.DeleteNumberId = numberId;
+
+            return Task.FromResult(this.DeleteResult);
         }
     }
 }

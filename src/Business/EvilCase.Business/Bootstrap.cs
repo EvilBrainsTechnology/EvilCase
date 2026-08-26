@@ -24,6 +24,7 @@ public static class Bootstrap
         services.AddScoped<IActReader, ActReader>();
         services.AddScoped<IActWriter, ActWriter>();
         services.AddScoped<IExternalCaseNumberWriter, ExternalCaseNumberWriter>();
+        services.AddScoped<IExternalActNumberWriter, ExternalActNumberWriter>();
         services.AddScoped<ICommentReader, CommentReader>();
         services.AddScoped<ICommentWriter, CommentWriter>();
         services.AddScoped<IContactReader, ContactReader>();

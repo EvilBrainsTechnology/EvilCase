@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using EvilBrains.ApiClient;
 using EvilBrains.EvilCase.Api.Contract.Acts;
+using EvilBrains.EvilCase.Api.Contract.Numbers;
 using EvilBrains.EvilCase.Business.Acts;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -70,6 +71,53 @@ public class ActsController : ControllerBase
             ActUpdateOutcome.InvalidActNumber => this.InvalidActNumberProblem(),
             _ => throw new UnreachableException(),
         };
+    }
+
+    [HttpPost("{actId:guid}/external-numbers")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult> AddExternalActNumber(
+        [FromServices] IExternalActNumberWriter writer,
+        [FromRoute] Guid caseId,
+        [FromRoute] Guid actId,
+        [FromBody] ExternalNumberRequest request,
+        CancellationToken token)
+    {
+        var outcome = await writer.AddExternalActNumber(caseId, actId, request, token);
+
+        return outcome switch
+        {
+            ExternalActNumberOutcome.Added => this.NoContent(),
+            ExternalActNumberOutcome.ActNotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.ActNotFound),
+            ExternalActNumberOutcome.UnknownContact => this.Problem(
+                detail: "The contact that assigned the number does not exist.",
+                statusCode: StatusCodes.Status409Conflict,
+                title: ExternalNumberProblems.UnknownContact),
+            ExternalActNumberOutcome.ValueTaken => this.Problem(
+                detail: "The act already carries the number.",
+                statusCode: StatusCodes.Status409Conflict,
+                title: ExternalNumberProblems.Taken),
+            _ => throw new UnreachableException(),
+        };
+    }
+
+    [HttpDelete("{actId:guid}/external-numbers/{numberId:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> DeleteExternalActNumber(
+        [FromServices] IExternalActNumberWriter writer,
+        [FromRoute] Guid caseId,
+        [FromRoute] Guid actId,
+        [FromRoute] Guid numberId,
+        CancellationToken token)
+    {
+        var deleted = await writer.DeleteExternalActNumber(caseId, actId, numberId, token);
+
+        return deleted
+            ? this.NoContent()
+            : this.Problem(statusCode: StatusCodes.Status404NotFound, title: "External act number not found");
     }
 
     private ActionResult InvalidActNumberProblem()
