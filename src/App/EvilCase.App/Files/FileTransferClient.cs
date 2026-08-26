@@ -1,0 +1,56 @@
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
+using System.Text.Json;
+using EvilBrains.ApiClient;
+using EvilBrains.EvilCase.Api.Contract.Files;
+using Microsoft.AspNetCore.Components.Forms;
+
+namespace EvilBrains.EvilCase.App.Files;
+
+internal sealed class FileTransferClient(HttpClient httpClient) : IFileTransferClient
+{
+    private const string DefaultMediaType = "application/octet-stream";
+
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+
+    public async Task<FileListItem> UploadCaseFile(Guid caseId, IBrowserFile file, CancellationToken token)
+    {
+        await using var stream = file.OpenReadStream(FileLimits.MaxUploadBytes, token);
+
+        using var content = new MultipartFormDataContent();
+        using var part = new StreamContent(stream);
+        part.Headers.ContentType = new MediaTypeHeaderValue(string.IsNullOrEmpty(file.ContentType) ? DefaultMediaType : file.ContentType);
+        content.Add(part, "file", file.Name);
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, new Uri($"api/cases/{caseId}/files", UriKind.Relative)) { Content = content };
+        using var response = await httpClient.SendAsync(request, token);
+        await EnsureSuccess(response, token);
+
+        return await response.Content.ReadFromJsonAsync<FileListItem>(JsonOptions, token) ?? throw new ApiException(response.StatusCode, responseBody: null);
+    }
+
+    public async Task<FileContent> DownloadFileContent(Guid fileId, CancellationToken token)
+    {
+        using var response = await httpClient.GetAsync(new Uri($"api/files/{fileId}/content", UriKind.Relative), token);
+        await EnsureSuccess(response, token);
+
+        var bytes = await response.Content.ReadAsByteArrayAsync(token);
+
+        return new FileContent
+        {
+            MediaType = response.Content.Headers.ContentType?.MediaType ?? DefaultMediaType,
+            Content = new MemoryStream(bytes),
+        };
+    }
+
+    // The same failure the generated clients raise, so every screen catches one exception type.
+    private static async Task EnsureSuccess(HttpResponseMessage response, CancellationToken token)
+    {
+        if (response.IsSuccessStatusCode)
+            return;
+
+        var body = await response.Content.ReadAsStringAsync(token);
+
+        throw new ApiException(response.StatusCode, body.Length == 0 ? null : body);
+    }
+}

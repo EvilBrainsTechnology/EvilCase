@@ -155,6 +155,31 @@ public class FileBlobStoreTests
     }
 
     [Test]
+    public async Task AWrittenBlobReadsBackByteForByte()
+    {
+        var content = "abc"u8.ToArray();
+        var info = await this.store.WriteFileBlob(this.tenantId, this.fileAssetId, new MemoryStream(content), CancellationToken.None);
+
+        await using var stream = this.store.ReadFileBlob(info.StoragePath);
+        await using var reader = new MemoryStream();
+        await stream!.CopyToAsync(reader);
+
+        Assert.That(reader.ToArray(), Is.EqualTo(content), "a read blob must return exactly the bytes that were written");
+    }
+
+    [Test]
+    public void ReadingAMissingBlobAnswersWithNothing()
+    {
+        Assert.That(this.store.ReadFileBlob(FileBlobPathFor(this.tenantId, this.fileAssetId)), Is.Null, "a path with no blob behind it must not throw");
+    }
+
+    [Test]
+    public void AReadPathLeavingTheRootIsRefused()
+    {
+        Assert.That(() => this.store.ReadFileBlob("../outside"), Throws.ArgumentException, "a path read back from the database must not reach outside the root");
+    }
+
+    [Test]
     public async Task ARootWrittenWithATrailingSeparatorStillTakesBlobs()
     {
         var settings = new FileSettings { RootPath = this.root + Path.DirectorySeparatorChar };

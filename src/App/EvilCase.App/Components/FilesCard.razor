@@ -1,0 +1,220 @@
+@using System.Net
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Contract.Files
+@using Microsoft.JSInterop
+@using TabBlazor.Services
+@inject IModalService ModalService
+@inject ILogger<FilesCard> Logger
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Soubory</h3>
+    </div>
+
+    <div class="card-body">
+        <div class="file-drop-zone @(this.dragging ? "is-dragging" : "")"
+             @ondragenter:preventDefault
+             @ondragover:preventDefault
+             @ondragleave:preventDefault
+             @ondragenter="() => this.dragging = true"
+             @ondragleave="() => this.dragging = false"
+             @ondrop="() => this.dragging = false">
+            <Icon CssClass="icon" IconType="AppIcons.Upload" />
+            <div>Přetáhněte soubory sem nebo je vyberte.</div>
+            <div class="text-secondary">Nejvýše 100 MB na soubor.</div>
+            <InputFile multiple OnChange="this.OnFilesSelected" aria-label="Vybrat soubory" />
+        </div>
+
+        @if (this.uploadTotal > 0)
+        {
+            <div class="mt-2 text-secondary">Nahrávám @this.uploadIndex / @this.uploadTotal: @this.uploadName</div>
+        }
+
+        @foreach (var failure in this.failures)
+        {
+            <div class="alert alert-danger mt-2" role="alert">@failure</div>
+        }
+
+        @if (this.error is not null)
+        {
+            <div class="alert alert-danger mt-2" role="alert">@this.error</div>
+        }
+    </div>
+
+    @if (this.Files.Count == 0)
+    {
+        <div class="empty">
+            <p class="empty-title">Zatím tu není žádný soubor</p>
+        </div>
+    }
+    else
+    {
+        <div class="d-none d-lg-block">
+            <table class="table card-table table-vcenter">
+                <thead>
+                    <tr>
+                        <th>Název</th>
+                        <th>Velikost</th>
+                        <th>Nahráno</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var file in this.Files)
+                    {
+                        <tr>
+                            <td>@file.FileName</td>
+                            <td>@FileSizeDisplay.Text(file.SizeBytes)</td>
+                            <td>@DateDisplay.Text(file.Created)</td>
+                            <td class="text-end">
+                                <button type="button" class="btn btn-sm" aria-label="Stáhnout soubor" disabled="@(this.downloadingId == file.Id)" @onclick="() => this.Download(file)">
+                                    <Icon IconType="AppIcons.Download" />
+                                </button>
+                                <button type="button" class="btn btn-sm btn-danger ms-2" aria-label="Smazat soubor" @onclick="() => this.Delete(file)">
+                                    <Icon IconType="AppIcons.Trash" />
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="d-lg-none">
+            @foreach (var file in this.Files)
+            {
+                <div class="card mb-2">
+                    <div class="card-body">
+                        <div>@file.FileName</div>
+                        <div class="text-secondary">@FileSizeDisplay.Text(file.SizeBytes) · @DateDisplay.Text(file.Created)</div>
+                        <div class="mt-2">
+                            <button type="button" class="btn btn-sm" aria-label="Stáhnout soubor" disabled="@(this.downloadingId == file.Id)" @onclick="() => this.Download(file)">
+                                <Icon IconType="AppIcons.Download" />
+                            </button>
+                            <button type="button" class="btn btn-sm btn-danger ms-2" aria-label="Smazat soubor" @onclick="() => this.Delete(file)">
+                                <Icon IconType="AppIcons.Trash" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private const int MaxBatchFiles = 100;
+
+    [Parameter, EditorRequired]
+    public required IReadOnlyList<FileListItem> Files { get; set; }
+
+    [Parameter, EditorRequired]
+    public required Func<IBrowserFile, CancellationToken, Task> UploadFile { get; set; }
+
+    [Parameter, EditorRequired]
+    public required Func<FileListItem, CancellationToken, Task> DownloadFile { get; set; }
+
+    [Parameter, EditorRequired]
+    public required Func<FileListItem, CancellationToken, Task> DeleteFile { get; set; }
+
+    /// <summary>
+    /// Invoked once after a batch and after a delete; the owner reloads its list.
+    /// </summary>
+    [Parameter]
+    public EventCallback FilesChanged { get; set; }
+
+    private readonly List<string> failures = [];
+
+    private bool dragging;
+
+    private int uploadIndex;
+
+    private int uploadTotal;
+
+    private string uploadName = "";
+
+    private Guid? downloadingId;
+
+    private string? error;
+
+    private async Task OnFilesSelected(InputFileChangeEventArgs args)
+    {
+        this.failures.Clear();
+        this.dragging = false;
+        this.uploadTotal = args.FileCount;
+        this.uploadIndex = 0;
+
+        // One file at a time: only the file that fails is refused.
+        foreach (var file in args.GetMultipleFiles(MaxBatchFiles))
+        {
+            this.uploadIndex++;
+            this.uploadName = file.Name;
+            this.StateHasChanged();
+
+            if (file.Size > FileLimits.MaxUploadBytes)
+            {
+                this.failures.Add($"{file.Name}: soubor je větší než 100 MB.");
+                continue;
+            }
+
+            try
+            {
+                await this.UploadFile(file, CancellationToken.None);
+            }
+            catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.RequestEntityTooLarge)
+            {
+                this.Logger.LogWarning(exception, "Uploading {FileName} failed: too large", file.Name);
+
+                this.failures.Add($"{file.Name}: soubor je větší než 100 MB.");
+            }
+            catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+            {
+                this.Logger.LogWarning(exception, "Uploading {FileName} failed: case is gone", file.Name);
+
+                this.failures.Add($"{file.Name}: spis už neexistuje.");
+            }
+            catch (Exception exception) when (exception is ApiException or HttpRequestException or IOException)
+            {
+                this.Logger.LogWarning(exception, "Uploading {FileName} failed", file.Name);
+
+                this.failures.Add($"{file.Name}: nahrání se nezdařilo.");
+            }
+        }
+
+        this.uploadTotal = 0;
+
+        await this.FilesChanged.InvokeAsync();
+    }
+
+    private async Task Download(FileListItem file)
+    {
+        this.downloadingId = file.Id;
+        this.error = null;
+
+        try
+        {
+            await this.DownloadFile(file, CancellationToken.None);
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException or JSException)
+        {
+            this.Logger.LogWarning(exception, "Downloading {FileName} failed", file.FileName);
+
+            this.error = "Soubor se nepodařilo stáhnout. Zkuste to za chvíli znovu.";
+        }
+        finally
+        {
+            this.downloadingId = null;
+        }
+    }
+
+    private async Task Delete(FileListItem file)
+    {
+        await this.ModalService.ShowAsync(
+            "Smazat soubor",
+            new RenderComponent<FileDeleteModal>()
+                .Set(component => component.FileName, file.FileName)
+                .Set(component => component.Delete, (CancellationToken token) => this.DeleteFile(file, token))
+                .Set(component => component.OnDeleted, EventCallback.Factory.Create(this, () => this.FilesChanged.InvokeAsync())),
+            new ModalOptions { Fullscreen = ModalFullscreen.BelowLarge });
+    }
+}

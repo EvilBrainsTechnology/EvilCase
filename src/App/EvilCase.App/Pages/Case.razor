@@ -4,9 +4,13 @@
 @using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Cases
 @using EvilBrains.EvilCase.Api.Contract.Comments
+@using EvilBrains.EvilCase.Api.Contract.Files
 @using TabBlazor.Services
 @inject ICasesClient CasesClient
 @inject ICaseCommentsClient CaseCommentsClient
+@inject ICaseFilesClient CaseFilesClient
+@inject IFileTransferClient FileTransfer
+@inject IFileDownloader Downloader
 @inject IModalService ModalService
 @inject NavigationManager Navigation
 @inject ILogger<Case> Logger
@@ -118,6 +122,15 @@
                               SaveComment="this.SaveComment"
                               DeleteComment="this.DeleteComment" />
             </div>
+
+            <div class="mt-3">
+                <FilesCard @key="this.CaseId"
+                           Files="this.files"
+                           UploadFile="this.UploadFile"
+                           DownloadFile="this.DownloadFile"
+                           DeleteFile="this.DeleteFile"
+                           FilesChanged="this.LoadFiles" />
+            </div>
         }
     </div>
 </div>
@@ -131,6 +144,8 @@
     private bool notFound;
 
     private string? failure;
+
+    private IReadOnlyList<FileListItem> files = [];
 
     protected override Task OnParametersSetAsync()
     {
@@ -150,13 +165,47 @@
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
         {
             this.notFound = true;
+
+            return;
         }
         catch (Exception exception) when (exception is ApiException or HttpRequestException)
         {
             this.Logger.LogWarning(exception, "Loading the case detail failed");
 
             this.failure = "Spis se nepodařilo načíst. Zkuste to za chvíli znovu.";
+
+            return;
         }
+
+        await this.LoadFiles();
+    }
+
+    private async Task LoadFiles()
+    {
+        try
+        {
+            this.files = (await this.CaseFilesClient.ListCaseFiles(this.CaseId, CancellationToken.None)).Items;
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Loading the case files failed");
+        }
+    }
+
+    private Task UploadFile(IBrowserFile file, CancellationToken token)
+    {
+        return this.FileTransfer.UploadCaseFile(this.CaseId, file, token);
+    }
+
+    private async Task DownloadFile(FileListItem file, CancellationToken token)
+    {
+        var content = await this.FileTransfer.DownloadFileContent(file.Id, token);
+        await this.Downloader.SaveFile(file.FileName, content, token);
+    }
+
+    private Task DeleteFile(FileListItem file, CancellationToken token)
+    {
+        return this.CaseFilesClient.DeleteCaseFile(this.CaseId, file.Id, token);
     }
 
     private async Task<IReadOnlyList<CommentItem>> LoadComments(CancellationToken token)

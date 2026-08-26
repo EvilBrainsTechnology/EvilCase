@@ -14,6 +14,11 @@ public static class AppIcons
         + "<path d='M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0' />"
         + "<path d='M12 7v5l3 3' />");
 
+    public static IIconType Download { get; } = new TablerIcon("<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2' />"
+        + "<path d='M7 11l5 5l5 -5' />"
+        + "<path d='M12 4l0 12' />");
+
     public static IIconType FileText { get; } = new TablerIcon("<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M14 3v4a1 1 0 0 0 1 1h4' />"
         + "<path d='M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z' />"
@@ -49,6 +54,18 @@ public static class AppIcons
     public static IIconType Sun { get; } = new TablerIcon("<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0' />"
         + "<path d='M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7' />");
+
+    public static IIconType Trash { get; } = new TablerIcon("<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M4 7l16 0' />"
+        + "<path d='M10 11l0 6' />"
+        + "<path d='M14 11l0 6' />"
+        + "<path d='M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12' />"
+        + "<path d='M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3' />");
+
+    public static IIconType Upload { get; } = new TablerIcon("<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2' />"
+        + "<path d='M7 9l5 -5l5 5' />"
+        + "<path d='M12 4l0 12' />");
 
     public static IIconType User { get; } = new TablerIcon("<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0' />"

@@ -11,4 +11,9 @@ public static class DateDisplay
     {
         return date.ToString(Format, CultureInfo.InvariantCulture);
     }
+
+    public static string Text(in DateTime moment)
+    {
+        return DateOnly.FromDateTime(moment).ToString(Format, CultureInfo.InvariantCulture);
+    }
 }

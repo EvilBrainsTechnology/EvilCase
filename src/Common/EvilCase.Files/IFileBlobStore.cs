@@ -13,6 +13,12 @@ public interface IFileBlobStore
     public Task<FileBlobInfo> WriteFileBlob(Guid tenantId, Guid fileAssetId, Stream content, CancellationToken token);
 
     /// <summary>
+    /// Opens the blob at the stored path for reading, or null where no blob is there. The caller owns
+    /// the stream.
+    /// </summary>
+    public Stream? ReadFileBlob(string storagePath);
+
+    /// <summary>
     /// Removes the blob at the stored path. A path with no blob behind it is not an error.
     /// </summary>
     public Task DeleteFileBlob(string storagePath, CancellationToken token);
