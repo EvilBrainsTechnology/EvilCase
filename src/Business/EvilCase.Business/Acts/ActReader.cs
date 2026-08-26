@@ -14,4 +14,9 @@ internal sealed class ActReader(IDbSession dbSession) : IActReader
             .AsListItems()
             .ToListAsync(token);
     }
+
+    public Task<ActDetail?> GetActDetail(Guid caseId, Guid actId, CancellationToken token)
+    {
+        return dbSession.Current.Acts.DetailOf(caseId, actId, token);
+    }
 }

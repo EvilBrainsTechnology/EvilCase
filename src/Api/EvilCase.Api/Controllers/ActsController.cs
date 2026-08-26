@@ -31,11 +31,51 @@ public class ActsController : ControllerBase
 
         return result.Outcome switch
         {
-            // No Location header: the act detail endpoint does not exist yet.
-            ActCreateOutcome.Created => this.Created((string?)null, result.Act),
-            ActCreateOutcome.CaseNotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: "Case not found"),
-            ActCreateOutcome.ContactNotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: "Contact not found"),
+            ActCreateOutcome.Created => this.Created($"/api/cases/{caseId}/acts/{result.Act!.Id}", result.Act),
+            ActCreateOutcome.CaseNotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.CaseNotFound),
+            ActCreateOutcome.ContactNotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.ContactNotFound),
             _ => throw new UnreachableException(),
         };
+    }
+
+    [HttpGet("{actId:guid}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ActDetail>> GetAct([FromServices] IActReader acts, [FromRoute] Guid caseId, [FromRoute] Guid actId, CancellationToken token)
+    {
+        var act = await acts.GetActDetail(caseId, actId, token);
+
+        return act is null
+            ? this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.ActNotFound)
+            : this.Ok(act);
+    }
+
+    [HttpPut("{actId:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult> EditAct(
+        [FromServices] IActWriter writer, [FromRoute] Guid caseId, [FromRoute] Guid actId, [FromBody] ActEditRequest request, CancellationToken token)
+    {
+        var outcome = await writer.UpdateAct(caseId, actId, request, token);
+
+        return outcome switch
+        {
+            ActUpdateOutcome.Updated => this.NoContent(),
+            ActUpdateOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.ActNotFound),
+            ActUpdateOutcome.ContactNotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.ContactNotFound),
+            ActUpdateOutcome.ActNumberTaken => this.Problem(
+                detail: "Another act already carries the number.", statusCode: StatusCodes.Status409Conflict, title: ActProblems.ActNumberTaken),
+            ActUpdateOutcome.InvalidActNumber => this.InvalidActNumberProblem(),
+            _ => throw new UnreachableException(),
+        };
+    }
+
+    private ActionResult InvalidActNumberProblem()
+    {
+        this.ModelState.AddModelError(nameof(ActEditRequest.ActNumber), "The act number must read <case-number>/yyyyMMdd-nnn.");
+
+        return this.ValidationProblem(statusCode: StatusCodes.Status400BadRequest);
     }
 }

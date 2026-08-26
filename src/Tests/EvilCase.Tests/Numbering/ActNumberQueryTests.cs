@@ -118,6 +118,22 @@ public class ActNumberQueryTests
             actNumber: ActNumberFormat.Compose(this.ownCase.CaseNumber, ActDay, sequence));
     }
 
+    [Test]
+    public async Task ANumberIsHeldOnlyByAnotherAct()
+    {
+        var first = await this.tenant.AddAct(this.ownCase, ActDay);
+        var second = await this.tenant.AddAct(this.ownCase, ActDay);
+
+        var byFirst = await this.tenant.Context.Acts.WithNumberHeldByAnother(first.ActNumber, first.Id).ToListAsync();
+        var bySecond = await this.tenant.Context.Acts.WithNumberHeldByAnother(second.ActNumber, first.Id).ToListAsync();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(byFirst, Is.Empty, "an act does not hold its own number against itself");
+            Assert.That(bySecond.Select(act => act.Id), Is.EqualTo([second.Id]));
+        }
+    }
+
     private async Task<List<string>> NumbersOfCaseWithPrefix(Case @case, string prefix)
     {
         return await this.tenant.Context.Acts
