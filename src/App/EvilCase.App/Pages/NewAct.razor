@@ -121,8 +121,8 @@
                 Date = this.model.Date,
                 Title = this.model.Title,
                 Description = this.model.Description,
-                IssuedByContactId = this.model.IssuedByContact!.Id,
-                AddressedToContactId = this.model.AddressedToContact?.Id,
+                IssuedByContactId = this.model.IssuedByContact!.ContactId,
+                AddressedToContactId = this.model.AddressedToContact?.ContactId,
             };
 
             _ = await this.ActsClient.CreateAct(this.CaseId, request, CancellationToken.None);

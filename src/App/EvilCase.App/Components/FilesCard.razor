@@ -1,0 +1,264 @@
+@using System.Net
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Contract.Files
+@using Microsoft.JSInterop
+@using TabBlazor.Services
+@inject IModalService ModalService
+@inject ILogger<FilesCard> Logger
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Soubory</h3>
+    </div>
+
+    <div class="card-body">
+        <div class="file-drop-zone @(this.dragging ? "is-dragging" : "")"
+             @ondragenter:preventDefault
+             @ondragover:preventDefault
+             @ondragleave:preventDefault
+             @ondragenter="() => this.dragging = true"
+             @ondragleave="() => this.dragging = false"
+             @ondrop="() => this.dragging = false">
+            <Icon CssClass="icon" IconType="AppIcons.Upload" />
+            <div>Přetáhněte soubory sem nebo je vyberte.</div>
+            <div class="text-secondary">Nejvýše @(FileSizeDisplay.Text(FileLimits.MaxUploadBytes)) na soubor.</div>
+            <InputFile multiple OnChange="this.OnFilesSelected" aria-label="Vybrat soubory" />
+        </div>
+
+        @if (this.uploadTotal > 0)
+        {
+            <div class="mt-2 text-secondary">Nahrávám @this.uploadIndex / @this.uploadTotal: @this.uploadName</div>
+        }
+
+        @foreach (var failure in this.failures)
+        {
+            <div class="alert alert-danger mt-2" role="alert">@failure</div>
+        }
+
+        @if (this.error is not null)
+        {
+            <div class="alert alert-danger mt-2" role="alert">@this.error</div>
+        }
+    </div>
+
+    @if (this.loading)
+    {
+        <div class="card-body text-center text-secondary">
+            <div class="spinner-border" role="status"></div>
+        </div>
+    }
+    else if (this.listFailure is not null)
+    {
+        <div class="empty">
+            <p class="empty-title">Soubory se nepodařilo načíst</p>
+            <p class="empty-subtitle text-secondary">@this.listFailure</p>
+        </div>
+    }
+    else if (this.items.Count == 0)
+    {
+        <div class="empty">
+            <p class="empty-title">Zatím tu není žádný soubor</p>
+        </div>
+    }
+    else
+    {
+        <div class="d-none d-lg-block">
+            <table class="table card-table table-vcenter">
+                <thead>
+                    <tr>
+                        <th>Název</th>
+                        <th>Velikost</th>
+                        <th>Nahráno</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var file in this.items)
+                    {
+                        <tr>
+                            <td>@file.FileName</td>
+                            <td>@FileSizeDisplay.Text(file.SizeBytes)</td>
+                            <td>@MomentDisplay.Text(file.Created)</td>
+                            <td class="text-end">
+                                <button type="button" class="btn btn-sm" aria-label="Stáhnout soubor" disabled="@(this.downloadingFileId == file.FileId)" @onclick="() => this.Download(file)">
+                                    <Icon IconType="AppIcons.Download" />
+                                </button>
+                                <button type="button" class="btn btn-sm btn-danger ms-2" aria-label="Smazat soubor" @onclick="() => this.ConfirmDelete(file)">
+                                    <Icon IconType="AppIcons.Trash" />
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="d-lg-none">
+            @foreach (var file in this.items)
+            {
+                <div class="card mb-2">
+                    <div class="card-body">
+                        <div>@file.FileName</div>
+                        <div class="text-secondary">@FileSizeDisplay.Text(file.SizeBytes) · @MomentDisplay.Text(file.Created)</div>
+                        <div class="mt-2">
+                            <button type="button" class="btn btn-sm" aria-label="Stáhnout soubor" disabled="@(this.downloadingFileId == file.FileId)" @onclick="() => this.Download(file)">
+                                <Icon IconType="AppIcons.Download" />
+                            </button>
+                            <button type="button" class="btn btn-sm btn-danger ms-2" aria-label="Smazat soubor" @onclick="() => this.ConfirmDelete(file)">
+                                <Icon IconType="AppIcons.Trash" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private const int MaxBatchFiles = 100;
+
+    [Parameter, EditorRequired]
+    public required Func<CancellationToken, Task<IReadOnlyList<FileListItem>>> LoadFiles { get; set; }
+
+    [Parameter, EditorRequired]
+    public required Func<IBrowserFile, CancellationToken, Task> UploadFile { get; set; }
+
+    [Parameter, EditorRequired]
+    public required Func<FileListItem, CancellationToken, Task> DownloadFile { get; set; }
+
+    [Parameter, EditorRequired]
+    public required Func<FileListItem, CancellationToken, Task> DeleteFile { get; set; }
+
+    private readonly List<string> failures = [];
+
+    private IReadOnlyList<FileListItem> items = [];
+
+    private bool dragging;
+
+    private bool loading = true;
+
+    private int uploadIndex;
+
+    private int uploadTotal;
+
+    private string uploadName = "";
+
+    private Guid? downloadingFileId;
+
+    private string? listFailure;
+
+    private string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await this.ReloadFiles();
+        this.loading = false;
+    }
+
+    private async Task ReloadFiles()
+    {
+        this.listFailure = null;
+
+        try
+        {
+            this.items = await this.LoadFiles(CancellationToken.None);
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Loading the files failed");
+
+            this.items = [];
+            this.listFailure = "Soubory se nepodařilo načíst. Zkuste to za chvíli znovu.";
+        }
+    }
+
+    private async Task OnFilesSelected(InputFileChangeEventArgs args)
+    {
+        this.failures.Clear();
+        this.dragging = false;
+        this.uploadIndex = 0;
+
+        if (args.FileCount > MaxBatchFiles)
+        {
+            this.failures.Add($"Najednou lze nahrát nejvýše {MaxBatchFiles} souborů.");
+
+            return;
+        }
+
+        this.uploadTotal = args.FileCount;
+
+        // One file at a time: only the file that fails is refused.
+        foreach (var file in args.GetMultipleFiles(MaxBatchFiles))
+        {
+            this.uploadIndex++;
+            this.uploadName = file.Name;
+            this.StateHasChanged();
+
+            if (file.Size > FileLimits.MaxUploadBytes)
+            {
+                this.failures.Add($"{file.Name}: soubor je větší než {FileSizeDisplay.Text(FileLimits.MaxUploadBytes)}.");
+                continue;
+            }
+
+            try
+            {
+                await this.UploadFile(file, CancellationToken.None);
+            }
+            catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.RequestEntityTooLarge)
+            {
+                this.Logger.LogWarning(exception, "Uploading a file failed: too large");
+
+                this.failures.Add($"{file.Name}: soubor je větší než {FileSizeDisplay.Text(FileLimits.MaxUploadBytes)}.");
+            }
+            catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+            {
+                this.Logger.LogWarning(exception, "Uploading a file failed: the owner is gone");
+
+                this.failures.Add($"{file.Name}: spis už neexistuje.");
+            }
+            catch (Exception exception) when (exception is ApiException or HttpRequestException or IOException or JSException)
+            {
+                this.Logger.LogWarning(exception, "Uploading a file failed");
+
+                this.failures.Add($"{file.Name}: nahrání se nezdařilo.");
+            }
+        }
+
+        this.uploadTotal = 0;
+
+        await this.ReloadFiles();
+    }
+
+    private async Task Download(FileListItem file)
+    {
+        this.downloadingFileId = file.FileId;
+        this.error = null;
+
+        try
+        {
+            await this.DownloadFile(file, CancellationToken.None);
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException or JSException)
+        {
+            this.Logger.LogWarning(exception, "Downloading file {FileId} failed", file.FileId);
+
+            this.error = "Soubor se nepodařilo stáhnout. Zkuste to za chvíli znovu.";
+        }
+        finally
+        {
+            this.downloadingFileId = null;
+        }
+    }
+
+    private async Task ConfirmDelete(FileListItem file)
+    {
+        await this.ModalService.ShowAsync(
+            "Smazat soubor",
+            new RenderComponent<FileDeleteModal>()
+                .Set(component => component.FileName, file.FileName)
+                .Set(component => component.DeleteFile, (CancellationToken token) => this.DeleteFile(file, token))
+                .Set(component => component.OnDeleted, EventCallback.Factory.Create(this, this.ReloadFiles)),
+            new ModalOptions { Fullscreen = ModalFullscreen.BelowLarge });
+    }
+}

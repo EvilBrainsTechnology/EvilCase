@@ -132,7 +132,7 @@ public class CaseListQueryTests
             .WithStatus(CaseStatusFilter.Closed)
             .InListOrder()
             .AsListItems()
-            .Select(item => item.Id)
+            .Select(item => item.CaseId)
             .ToListAsync();
 
         Guid[] expected = [wanted.Id];
@@ -149,7 +149,7 @@ public class CaseListQueryTests
 
         var expected = new CaseListItem
         {
-            Id = seeded.Id,
+            CaseId = seeded.Id,
             CaseNumber = seeded.CaseNumber,
             Title = "Přestupek",
             Date = new DateOnly(2026, 8, 21),
@@ -172,7 +172,7 @@ public class CaseListQueryTests
             .WithStatus(CaseStatusFilter.All)
             .InListOrder()
             .AsListItems()
-            .Select(item => item.Id)
+            .Select(item => item.CaseId)
             .ToListAsync();
 
         Guid[] expected = [mine.Id];

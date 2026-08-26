@@ -1,6 +1,7 @@
 using EvilBrains.EvilCase.Api.Client;
 using EvilBrains.EvilCase.Api.Contract.Logging;
 using EvilBrains.EvilCase.App.Auth;
+using EvilBrains.EvilCase.App.Files;
 using EvilBrains.EvilCase.App.Logging;
 using EvilBrains.Logging.WebAssembly;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -38,6 +39,16 @@ internal static class Program
         builder.Services.AddEvilCaseApiClient(
             new Uri(builder.HostEnvironment.BaseAddress),
             client => client.AddRequestContextHeaders().AddRequestLogging().AddHttpMessageHandler<AuthTokenHandler>());
+
+        builder.Services.AddSingleton<IFileDownloader, FileDownloader>();
+
+        // The multipart upload and the byte stream the generated clients cannot express, on the same
+        // handler chain so they carry the same authorization and renewal.
+        builder.Services
+            .AddHttpClient<IFileTransferClient, FileTransferClient>(client => client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress))
+            .AddRequestContextHeaders()
+            .AddRequestLogging()
+            .AddHttpMessageHandler<AuthTokenHandler>();
 
         builder.Services.AddTabBlazor(
             options =>

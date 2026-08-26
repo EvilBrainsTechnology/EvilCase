@@ -88,7 +88,7 @@
                                 <option value="">— bez nadřízeného spisu —</option>
                                 @foreach (var option in this.parentOptions)
                                 {
-                                    <option value="@option.Id">@option.CaseNumber — @option.Title</option>
+                                    <option value="@option.CaseId">@option.CaseNumber — @option.Title</option>
                                 }
                             </InputSelect>
                             <ValidationMessage For="() => this.model.ParentCaseId" class="invalid-feedback d-block" />
@@ -165,12 +165,12 @@
             this.model.Title = @case.Title;
             this.model.Description = @case.Description;
             this.model.Status = @case.Status;
-            this.model.ParentCaseId = @case.ParentCase?.Id;
+            this.model.ParentCaseId = @case.ParentCase?.CaseId;
             this.externalNumbers = @case.ExternalNumbers;
 
             var response = await this.CasesClient.ListCases(new CaseListRequest { Status = CaseStatusFilter.All }, CancellationToken.None);
 
-            this.parentOptions = [.. response.Items.Where(item => item.Id != this.CaseId)];
+            this.parentOptions = [.. response.Items.Where(item => item.CaseId != this.CaseId)];
 
             this.loaded = true;
         }

@@ -32,7 +32,7 @@ public static class ActListQuery
     {
         return acts.Select(act => new ActListItem
         {
-            Id = act.Id,
+            ActId = act.Id,
             ActNumber = act.ActNumber,
             Direction = act.Direction,
             Title = act.Title,

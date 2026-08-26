@@ -170,7 +170,7 @@ internal sealed class CaseWriter(
     {
         return new()
         {
-            Id = @case.Id,
+            CaseId = @case.Id,
             CaseNumber = @case.CaseNumber,
             Title = @case.Title,
             Date = @case.Date,

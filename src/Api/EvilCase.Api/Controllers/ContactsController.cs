@@ -27,7 +27,7 @@ public class ContactsController : ControllerBase
     {
         var created = await writer.CreateContact(request, token);
 
-        return this.CreatedAtAction(nameof(this.GetContact), new { contactId = created.Id }, created);
+        return this.CreatedAtAction(nameof(this.GetContact), new { contactId = created.ContactId }, created);
     }
 
     [HttpGet("default")]

@@ -51,7 +51,7 @@ public class ContactsControllerTests
         {
             Assert.That(result.StatusCode, Is.EqualTo(201), "a create answers 201, not 200");
             Assert.That(result.ActionName, Is.EqualTo(nameof(ContactsController.GetContact)), "the Location names the detail action of the contact");
-            Assert.That(result.RouteValues?["contactId"], Is.EqualTo(created.Id), "the Location carries the id of the contact that was filed");
+            Assert.That(result.RouteValues?["contactId"], Is.EqualTo(created.ContactId), "the Location carries the id of the contact that was filed");
         }
     }
 
@@ -227,12 +227,12 @@ public class ContactsControllerTests
 
     private static ContactListItem Item(string name)
     {
-        return new() { Id = Guid.CreateVersion7(), Kind = ContactKind.Authority, Name = name };
+        return new() { ContactId = Guid.CreateVersion7(), Kind = ContactKind.Authority, Name = name };
     }
 
     private static ContactDetail BuildDetail(in Guid contactId)
     {
-        return new() { Id = contactId, Kind = ContactKind.Authority, Name = "Kontakt" };
+        return new() { ContactId = contactId, Kind = ContactKind.Authority, Name = "Kontakt" };
     }
 
     private static ContactEditRequest Edit()

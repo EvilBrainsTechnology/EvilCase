@@ -31,7 +31,7 @@ public class CasesController : ControllerBase
 
         return result.Outcome switch
         {
-            CaseCreateOutcome.Created => this.CreatedAtAction(nameof(this.GetCase), new { caseId = result.Case!.Id }, result.Case),
+            CaseCreateOutcome.Created => this.CreatedAtAction(nameof(this.GetCase), new { caseId = result.Case!.CaseId }, result.Case),
             CaseCreateOutcome.InvalidParent => this.Problem(
                 detail: "The parent case does not exist.", statusCode: StatusCodes.Status409Conflict, title: CaseProblems.InvalidParent),
             _ => throw new UnreachableException(),

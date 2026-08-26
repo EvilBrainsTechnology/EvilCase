@@ -4,7 +4,7 @@ namespace EvilBrains.EvilCase.Api.Contract.Acts;
 
 public sealed record ActListItem
 {
-    public required Guid Id { get; init; }
+    public required Guid ActId { get; init; }
 
     public required string ActNumber { get; init; }
 

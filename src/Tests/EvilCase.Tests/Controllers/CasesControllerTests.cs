@@ -88,7 +88,7 @@ public class CasesControllerTests
         {
             Assert.That(result.StatusCode, Is.EqualTo(201), "a create answers 201, not 200");
             Assert.That(result.ActionName, Is.EqualTo(nameof(CasesController.GetCase)), "the Location names the detail action of the case");
-            Assert.That(result.RouteValues?["caseId"], Is.EqualTo(created.Id), "the Location carries the id of the case that was filed");
+            Assert.That(result.RouteValues?["caseId"], Is.EqualTo(created.CaseId), "the Location carries the id of the case that was filed");
         }
     }
 
@@ -405,7 +405,7 @@ public class CasesControllerTests
     {
         return new()
         {
-            Id = caseId,
+            CaseId = caseId,
             CaseNumber = "EC/20260821-001",
             Date = new DateOnly(2026, 8, 21),
             Title = "Přestupek",
@@ -428,7 +428,7 @@ public class CasesControllerTests
     {
         return new()
         {
-            Id = Guid.CreateVersion7(),
+            CaseId = Guid.CreateVersion7(),
             CaseNumber = caseNumber,
             Title = title,
             Date = new DateOnly(2026, 8, 21),

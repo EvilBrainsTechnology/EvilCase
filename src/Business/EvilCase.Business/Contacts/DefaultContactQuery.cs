@@ -24,7 +24,7 @@ internal static class DefaultContactQuery
             .WithId(userId)
             .Select(user => new ContactListItem
             {
-                Id = user.DefaultContact!.Id,
+                ContactId = user.DefaultContact!.Id,
                 Kind = user.DefaultContact!.Kind,
                 Name = user.DefaultContact!.Name,
                 DataBoxId = user.DefaultContact!.DataBoxId,

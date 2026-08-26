@@ -127,7 +127,7 @@ public class ContactListQueryTests
 
         var expected = new ContactListItem
         {
-            Id = seeded.Id,
+            ContactId = seeded.Id,
             Kind = ContactKind.Authority,
             Name = "Městský úřad Beroun",
             DataBoxId = "abcdefg",

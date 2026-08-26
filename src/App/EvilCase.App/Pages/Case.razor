@@ -4,9 +4,13 @@
 @using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Cases
 @using EvilBrains.EvilCase.Api.Contract.Comments
+@using EvilBrains.EvilCase.Api.Contract.Files
 @using TabBlazor.Services
 @inject ICasesClient CasesClient
 @inject ICaseCommentsClient CaseCommentsClient
+@inject ICaseFilesClient CaseFilesClient
+@inject IFileTransferClient FileTransfer
+@inject IFileDownloader Downloader
 @inject IModalService ModalService
 @inject NavigationManager Navigation
 @inject ILogger<Case> Logger
@@ -85,7 +89,7 @@
                             <div class="datagrid-content">
                                 @if (this.caseDetail.ParentCase is { } parent)
                                 {
-                                    <a href="@($"/cases/{parent.Id}")">@parent.CaseNumber — @parent.Title</a>
+                                    <a href="@($"/cases/{parent.CaseId}")">@parent.CaseNumber — @parent.Title</a>
                                 }
                                 else
                                 {
@@ -117,6 +121,14 @@
                               AddComment="this.AddComment"
                               SaveComment="this.SaveComment"
                               DeleteComment="this.DeleteComment" />
+            </div>
+
+            <div class="mt-3">
+                <FilesCard @key="this.CaseId"
+                           LoadFiles="this.LoadFiles"
+                           UploadFile="this.UploadFile"
+                           DownloadFile="this.DownloadFile"
+                           DeleteFile="this.DeleteFile" />
             </div>
         }
     </div>
@@ -157,6 +169,27 @@
 
             this.failure = "Spis se nepodařilo načíst. Zkuste to za chvíli znovu.";
         }
+    }
+
+    private async Task<IReadOnlyList<FileListItem>> LoadFiles(CancellationToken token)
+    {
+        return (await this.CaseFilesClient.ListCaseFiles(this.CaseId, token)).Items;
+    }
+
+    private Task UploadFile(IBrowserFile file, CancellationToken token)
+    {
+        return this.FileTransfer.UploadCaseFile(this.CaseId, file, token);
+    }
+
+    private async Task DownloadFile(FileListItem file, CancellationToken token)
+    {
+        var content = await this.FileTransfer.DownloadFileContent(file.FileId, token);
+        await this.Downloader.SaveFile(file.FileName, content, token);
+    }
+
+    private Task DeleteFile(FileListItem file, CancellationToken token)
+    {
+        return this.CaseFilesClient.DeleteCaseFile(this.CaseId, file.FileId, token);
     }
 
     private async Task<IReadOnlyList<CommentItem>> LoadComments(CancellationToken token)

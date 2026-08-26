@@ -1,0 +1,82 @@
+using EvilBrains.EvilCase.Api.Contract.Files;
+using EvilBrains.EvilCase.Business.Entities;
+using EvilBrains.EvilCase.Data.DbContexts;
+using EvilBrains.EvilCase.Data.Entities;
+using EvilBrains.EvilCase.Domain.Users;
+using EvilBrains.EvilCase.Files;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+
+namespace EvilBrains.EvilCase.Business.Files;
+
+internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore, IUserContext userContext, ILogger<FileWriter> logger) : IFileWriter
+{
+    public async Task<UploadFileResult> UploadCaseFile(Guid caseId, FileUpload upload, CancellationToken token)
+    {
+        var context = dbSession.Current;
+
+        var caseExists = await context.Cases.WithId(caseId).AnyAsync(token);
+        if (!caseExists)
+            return new UploadFileResult { Outcome = UploadFileOutcome.CaseNotFound };
+
+        var fileAssetId = Guid.CreateVersion7();
+
+        // The blob is written before the transaction commits; a blob orphaned by a failed write is tolerated (SDD-012).
+        var blob = await blobStore.WriteFileBlob(userContext.TenantId, fileAssetId, upload.Content, token);
+
+        var file = new FileAsset
+        {
+            Id = fileAssetId,
+            CaseId = caseId,
+            FileName = upload.FileName,
+            ContentHash = blob.ContentHash,
+            SizeBytes = blob.SizeBytes,
+            StoragePath = blob.StoragePath,
+            MediaType = upload.MediaType,
+        };
+
+        context.FileAssets.Add(file);
+        await context.SaveChangesAsync(token);
+
+        logger.LogInformation("File {FileAssetId} was stored on case {CaseId}, {SizeBytes} bytes", file.Id, caseId, file.SizeBytes);
+
+        return new UploadFileResult
+        {
+            Outcome = UploadFileOutcome.Uploaded,
+            File = new FileListItem
+            {
+                FileId = file.Id,
+                FileName = file.FileName,
+                SizeBytes = file.SizeBytes,
+                Created = file.Created,
+            },
+        };
+    }
+
+    public async Task<FileDeleteOutcome> DeleteCaseFile(Guid caseId, Guid fileId, CancellationToken token)
+    {
+        var context = dbSession.Current;
+
+        // Read before the delete: the row is gone once ExecuteDeleteAsync runs.
+        var storagePath = await context.FileAssets
+            .OfCase(caseId)
+            .WithId(fileId)
+            .Select(file => file.StoragePath)
+            .SingleOrDefaultAsync(token);
+
+        if (storagePath is null)
+            return FileDeleteOutcome.NotFound;
+
+        await context.FileAssets
+            .OfCase(caseId)
+            .WithId(fileId)
+            .ExecuteDeleteAsync(token);
+
+        // The row goes first; a blob left behind is tolerated (SDD-012).
+        await blobStore.DeleteFileBlob(storagePath, token);
+
+        logger.LogInformation("File {FileAssetId} was removed from case {CaseId}", fileId, caseId);
+
+        return FileDeleteOutcome.Deleted;
+    }
+}

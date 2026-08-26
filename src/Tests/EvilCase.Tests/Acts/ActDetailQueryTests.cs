@@ -39,7 +39,7 @@ public class ActDetailQueryTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(detail.Id, Is.EqualTo(act.Id));
+            Assert.That(detail.ActId, Is.EqualTo(act.Id));
             Assert.That(detail.ActNumber, Is.EqualTo(act.ActNumber));
             Assert.That(detail.Direction, Is.EqualTo(ActDirection.Outgoing));
             Assert.That(detail.Date, Is.EqualTo(Day));
@@ -75,10 +75,10 @@ public class ActDetailQueryTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(detail!.IssuedByContact.Id, Is.EqualTo(sender.Id));
+            Assert.That(detail!.IssuedByContact.ContactId, Is.EqualTo(sender.Id));
             Assert.That(detail.IssuedByContact.Name, Is.EqualTo(sender.Name));
             Assert.That(detail.IssuedByContact.Kind, Is.EqualTo(sender.Kind));
-            Assert.That(detail.AddressedToContact!.Id, Is.EqualTo(recipient.Id));
+            Assert.That(detail.AddressedToContact!.ContactId, Is.EqualTo(recipient.Id));
             Assert.That(detail.AddressedToContact.Name, Is.EqualTo(recipient.Name));
             Assert.That(detail.AddressedToContact.Kind, Is.EqualTo(recipient.Kind));
         }
@@ -138,7 +138,7 @@ public class ActDetailQueryTests
         var reader = new ActReader(new FixedDbSession(this.tenant.Context));
         var detail = await reader.GetActDetail(@case.Id, act.Id, CancellationToken.None);
 
-        Assert.That(detail!.Id, Is.EqualTo(act.Id));
+        Assert.That(detail!.ActId, Is.EqualTo(act.Id));
     }
 
     [Test]
@@ -155,7 +155,7 @@ public class ActDetailQueryTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(detail!.ExternalNumbers, Has.Count.EqualTo(1));
-            Assert.That(detail.ExternalNumbers[0].Id, Is.EqualTo(number.Id));
+            Assert.That(detail.ExternalNumbers[0].ExternalNumberId, Is.EqualTo(number.Id));
             Assert.That(detail.ExternalNumbers[0].Value, Is.EqualTo("1 T 45/2026"));
             Assert.That(detail.ExternalNumbers[0].AssignedByContactId, Is.EqualTo(contact.Id));
             Assert.That(detail.ExternalNumbers[0].AssignedByContactName, Is.EqualTo(contact.Name));

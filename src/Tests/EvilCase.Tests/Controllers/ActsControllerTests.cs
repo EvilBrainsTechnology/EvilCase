@@ -86,7 +86,7 @@ public class ActsControllerTests
             Assert.That(result.StatusCode, Is.EqualTo(201), "a POST that creates a row answers 201 Created");
             Assert.That(result.ActionName, Is.EqualTo(nameof(ActsController.GetAct)), "the Location names the detail action of the act");
             Assert.That(result.RouteValues?["caseId"], Is.EqualTo(caseId), "the Location carries the case the act was filed into");
-            Assert.That(result.RouteValues?["actId"], Is.EqualTo(act.Id), "the Location carries the id of the act that was filed");
+            Assert.That(result.RouteValues?["actId"], Is.EqualTo(act.ActId), "the Location carries the id of the act that was filed");
         }
     }
 
@@ -453,7 +453,7 @@ public class ActsControllerTests
     {
         return new()
         {
-            Id = Guid.CreateVersion7(),
+            ActId = Guid.CreateVersion7(),
             ActNumber = "EC/20260821-001/20260825-001",
             Direction = ActDirection.Incoming,
             Title = title,
@@ -477,14 +477,14 @@ public class ActsControllerTests
     {
         return new ActDetail
         {
-            Id = Guid.CreateVersion7(),
+            ActId = Guid.CreateVersion7(),
             CaseId = Guid.CreateVersion7(),
             CaseNumber = "EC/20260821-001",
             ActNumber = "EC/20260821-001/20260825-001",
             Direction = ActDirection.Incoming,
             Date = new DateOnly(2026, 8, 25),
             Title = "Podání",
-            IssuedByContact = new ContactListItem { Id = Guid.CreateVersion7(), Kind = ContactKind.Authority, Name = "Odesílatel" },
+            IssuedByContact = new ContactListItem { ContactId = Guid.CreateVersion7(), Kind = ContactKind.Authority, Name = "Odesílatel" },
         };
     }
 

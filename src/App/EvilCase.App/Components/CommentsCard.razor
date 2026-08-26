@@ -39,7 +39,7 @@
                         @item.AuthorEmail · @MomentDisplay.Text(item.Created)@(item.Updated is null ? "" : $" · upraveno {MomentDisplay.Text(item.Updated.Value)}")
                     </div>
 
-                    @if (this.editingCommentId == item.Id)
+                    @if (this.editingCommentId == item.CommentId)
                     {
                         <EditForm Model="this.editModel" OnValidSubmit="this.SaveEditedComment">
                             <DataAnnotationsValidator />
@@ -188,7 +188,7 @@
 
     private void StartEditing(CommentItem comment)
     {
-        this.editingCommentId = comment.Id;
+        this.editingCommentId = comment.CommentId;
         this.editModel.Body = comment.Body;
         this.editError = null;
     }
@@ -241,7 +241,7 @@
             "Smazat komentář",
             new RenderComponent<CommentDeleteModal>()
                 .Set(component => component.Body, comment.Body)
-                .Set(component => component.DeleteComment, (CancellationToken token) => this.DeleteComment(comment.Id, token))
+                .Set(component => component.DeleteComment, (CancellationToken token) => this.DeleteComment(comment.CommentId, token))
                 .Set(component => component.OnDeleted, EventCallback.Factory.Create(this, this.ReloadComments)),
             new ModalOptions { Fullscreen = ModalFullscreen.BelowLarge });
     }

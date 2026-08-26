@@ -42,7 +42,7 @@ public class ContactCreateTests
 
         var created = await this.writer.CreateContact(request, CancellationToken.None);
 
-        var reloaded = await this.tenant.Context.Contacts.SingleAsync(contact => contact.Id == created.Id);
+        var reloaded = await this.tenant.Context.Contacts.SingleAsync(contact => contact.Id == created.ContactId);
 
         using (Assert.EnterMultipleScope())
         {
@@ -70,7 +70,7 @@ public class ContactCreateTests
 
         var created = await this.writer.CreateContact(request, CancellationToken.None);
 
-        var reloaded = await this.tenant.Context.Contacts.SingleAsync(contact => contact.Id == created.Id);
+        var reloaded = await this.tenant.Context.Contacts.SingleAsync(contact => contact.Id == created.ContactId);
 
         using (Assert.EnterMultipleScope())
         {
@@ -87,7 +87,7 @@ public class ContactCreateTests
 
         var created = await this.writer.CreateContact(request, CancellationToken.None);
 
-        var visible = await this.tenant.Context.Contacts.AnyAsync(contact => contact.Id == created.Id);
+        var visible = await this.tenant.Context.Contacts.AnyAsync(contact => contact.Id == created.ContactId);
 
         Assert.That(visible, Is.True, "the write stamps the tenant, so the tenant-filtered set sees the row");
     }

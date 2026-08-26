@@ -45,7 +45,7 @@ public class CaseCreateTests
 
         Assert.That(result.Outcome, Is.EqualTo(CaseCreateOutcome.Created));
 
-        var reloaded = await this.tenant.Context.Cases.SingleAsync(@case => @case.Id == result.Case!.Id);
+        var reloaded = await this.tenant.Context.Cases.SingleAsync(@case => @case.Id == result.Case!.CaseId);
 
         Assert.That(reloaded.ParentCaseId, Is.EqualTo(parent.Id));
     }
@@ -77,7 +77,7 @@ public class CaseCreateTests
 
         Assert.That(result.Outcome, Is.EqualTo(CaseCreateOutcome.Created));
 
-        var reloaded = await this.tenant.Context.Cases.SingleAsync(@case => @case.Id == result.Case!.Id);
+        var reloaded = await this.tenant.Context.Cases.SingleAsync(@case => @case.Id == result.Case!.CaseId);
 
         Assert.That(reloaded.ParentCaseId, Is.Null);
     }

@@ -28,7 +28,7 @@ internal sealed class ContactWriter(IDbSession dbSession) : IContactWriter
 
         return new ContactListItem
         {
-            Id = contact.Id,
+            ContactId = contact.Id,
             Kind = contact.Kind,
             Name = contact.Name,
             DataBoxId = contact.DataBoxId,

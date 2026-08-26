@@ -43,7 +43,7 @@
 
         try
         {
-            await this.ContactsClient.DeleteContact(this.Contact.Id, CancellationToken.None);
+            await this.ContactsClient.DeleteContact(this.Contact.ContactId, CancellationToken.None);
 
             this.ModalService.Close();
             await this.OnDeleted.InvokeAsync();

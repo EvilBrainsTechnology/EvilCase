@@ -50,7 +50,7 @@
 
         try
         {
-            await this.CasesClient.DeleteCase(this.Case.Id, CancellationToken.None);
+            await this.CasesClient.DeleteCase(this.Case.CaseId, CancellationToken.None);
 
             this.ModalService.Close();
             await this.OnDeleted.InvokeAsync();

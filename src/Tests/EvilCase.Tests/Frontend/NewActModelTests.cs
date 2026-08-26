@@ -9,7 +9,7 @@ public class NewActModelTests
     [Test]
     public void SwitchingTheDirectionMovesTheDefaultContactToTheOtherSide()
     {
-        var contact = new ContactListItem { Id = Guid.CreateVersion7(), Kind = ContactKind.Person, Name = "Výchozí kontakt" };
+        var contact = new ContactListItem { ContactId = Guid.CreateVersion7(), Kind = ContactKind.Person, Name = "Výchozí kontakt" };
         var model = new NewActModel { AddressedToContact = contact, IssuedByContact = null };
 
         model.SwapContacts();

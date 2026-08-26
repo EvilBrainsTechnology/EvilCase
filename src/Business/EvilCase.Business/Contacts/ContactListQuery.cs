@@ -44,7 +44,7 @@ public static class ContactListQuery
     {
         return contacts.Select(contact => new ContactListItem
         {
-            Id = contact.Id,
+            ContactId = contact.Id,
             Kind = contact.Kind,
             Name = contact.Name,
             DataBoxId = contact.DataBoxId,

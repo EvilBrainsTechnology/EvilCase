@@ -41,7 +41,7 @@ public class CaseDetailQueryTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(detail.Id, Is.EqualTo(@case.Id));
+            Assert.That(detail.CaseId, Is.EqualTo(@case.Id));
             Assert.That(detail.CaseNumber, Is.EqualTo(@case.CaseNumber));
             Assert.That(detail.Date, Is.EqualTo(Day));
             Assert.That(detail.Title, Is.EqualTo("Přestupek"));
@@ -70,7 +70,7 @@ public class CaseDetailQueryTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(detail!.ParentCase!.Id, Is.EqualTo(parent.Id), "the detail links to the parent so the flat lists are enough to walk the hierarchy");
+            Assert.That(detail!.ParentCase!.CaseId, Is.EqualTo(parent.Id), "the detail links to the parent so the flat lists are enough to walk the hierarchy");
             Assert.That(detail.ParentCase.CaseNumber, Is.EqualTo(parent.CaseNumber));
             Assert.That(detail.ParentCase.Title, Is.EqualTo(parent.Title));
         }
@@ -86,7 +86,7 @@ public class CaseDetailQueryTests
         var reader = new CaseReader(new FixedDbSession(this.tenant.Context));
         var detail = await reader.GetCaseDetail(root.Id, CancellationToken.None);
 
-        Assert.That(detail!.ChildCases.Select(item => item.Id), Is.EqualTo([child.Id]), "the detail lists the direct subordinates and never a whole tree");
+        Assert.That(detail!.ChildCases.Select(item => item.CaseId), Is.EqualTo([child.Id]), "the detail lists the direct subordinates and never a whole tree");
     }
 
     [Test]
@@ -100,7 +100,7 @@ public class CaseDetailQueryTests
         var detail = await reader.GetCaseDetail(root.Id, CancellationToken.None);
 
         Assert.That(
-            detail!.ChildCases.Select(item => item.Id),
+            detail!.ChildCases.Select(item => item.CaseId),
             Is.EqualTo([newer.Id, older.Id]),
             "subordinate cases share the list order, newest by the case's own date first");
     }
@@ -120,7 +120,7 @@ public class CaseDetailQueryTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(item.Id, Is.EqualTo(number.Id));
+            Assert.That(item.ExternalNumberId, Is.EqualTo(number.Id));
             Assert.That(item.Value, Is.EqualTo("VV41/2025/08464"));
             Assert.That(item.AssignedByContactId, Is.EqualTo(contact.Id));
             Assert.That(item.AssignedByContactName, Is.EqualTo(contact.Name));

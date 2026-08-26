@@ -92,7 +92,7 @@
                 Address = this.model.Address,
             };
 
-            await this.ContactsClient.EditContact(this.Contact.Id, request, CancellationToken.None);
+            await this.ContactsClient.EditContact(this.Contact.ContactId, request, CancellationToken.None);
 
             this.ModalService.Close();
             await this.OnSaved.InvokeAsync();

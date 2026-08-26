@@ -16,7 +16,7 @@
         <div class="page-pretitle">
             @if (this.act is not null)
             {
-                <a href="@($"/cases/{this.act.CaseId}/act/{this.act.Id}")">Úkon</a>
+                <a href="@($"/cases/{this.act.CaseId}/act/{this.act.ActId}")">Úkon</a>
             }
             else
             {
@@ -110,7 +110,7 @@
                     </div>
 
                     <div class="card-footer form-actions-sticky d-flex justify-content-end gap-2">
-                        <a href="@($"/cases/{this.act.CaseId}/act/{this.act.Id}")" class="btn">Zrušit</a>
+                        <a href="@($"/cases/{this.act.CaseId}/act/{this.act.ActId}")" class="btn">Zrušit</a>
                         <button id="act-submit" type="submit" class="btn btn-primary" disabled="@this.busy">
                             @if (this.busy)
                             {
@@ -208,13 +208,13 @@
                 Date = this.model.Date,
                 Title = this.model.Title,
                 Description = this.model.Description,
-                IssuedByContactId = this.model.IssuedByContact!.Id,
-                AddressedToContactId = this.model.AddressedToContact?.Id,
+                IssuedByContactId = this.model.IssuedByContact!.ContactId,
+                AddressedToContactId = this.model.AddressedToContact?.ContactId,
             };
 
             await this.ActsClient.EditAct(this.CaseId, this.ActId, request, CancellationToken.None);
 
-            this.Navigation.NavigateTo($"/cases/{this.act!.CaseId}/act/{this.act.Id}");
+            this.Navigation.NavigateTo($"/cases/{this.act!.CaseId}/act/{this.act.ActId}");
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
         {

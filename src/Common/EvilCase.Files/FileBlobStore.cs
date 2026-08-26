@@ -70,6 +70,20 @@ internal sealed class FileBlobStore(IOptions<FileSettings> settings, ILogger<Fil
         return info;
     }
 
+    public Stream? ReadFileBlob(string storagePath)
+    {
+        var fullPath = this.FullPath(storagePath);
+
+        if (!File.Exists(fullPath))
+        {
+            logger.LogWarning("Blob at {StoragePath} is missing", storagePath);
+
+            return null;
+        }
+
+        return new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read, BufferSize, FileOptions.Asynchronous | FileOptions.SequentialScan);
+    }
+
     public Task DeleteFileBlob(string storagePath, CancellationToken token)
     {
         var fullPath = this.FullPath(storagePath);

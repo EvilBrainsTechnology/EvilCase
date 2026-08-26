@@ -26,7 +26,7 @@ public class DefaultContactQueryTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(contact.Id, Is.EqualTo(this.tenant.DefaultContact.Id), "the user's default contact is what an act prefills with");
+            Assert.That(contact.ContactId, Is.EqualTo(this.tenant.DefaultContact.Id), "the user's default contact is what an act prefills with");
             Assert.That(contact.Kind, Is.EqualTo(this.tenant.DefaultContact.Kind));
             Assert.That(contact.Name, Is.EqualTo(this.tenant.DefaultContact.Name));
         }

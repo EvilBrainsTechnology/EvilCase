@@ -16,9 +16,9 @@ namespace EvilBrains.EvilCase.Tests.Hosting;
 /// </summary>
 public class CreateLocationTests
 {
-    private static readonly Guid CaseId = Guid.CreateVersion7();
+    private static readonly Guid FiledCaseId = Guid.CreateVersion7();
 
-    private static readonly Guid ContactId = Guid.CreateVersion7();
+    private static readonly Guid FiledContactId = Guid.CreateVersion7();
 
     private EvilCaseHost host = null!;
 
@@ -58,7 +58,7 @@ public class CreateLocationTests
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Created));
             Assert.That(
                 response.Headers.Location?.ToString(),
-                Is.EqualTo($"http://localhost/api/cases/{CaseId}"),
+                Is.EqualTo($"http://localhost/api/cases/{FiledCaseId}"),
                 "the Location names the detail route of the case that was filed");
         }
     }
@@ -79,7 +79,7 @@ public class CreateLocationTests
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Created));
             Assert.That(
                 response.Headers.Location?.ToString(),
-                Is.EqualTo($"http://localhost/api/contacts/{ContactId}"),
+                Is.EqualTo($"http://localhost/api/contacts/{FiledContactId}"),
                 "the Location names the detail route of the contact that was filed");
         }
     }
@@ -93,7 +93,7 @@ public class CreateLocationTests
                 Outcome = CaseCreateOutcome.Created,
                 Case = new CaseListItem
                 {
-                    Id = CaseId,
+                    CaseId = FiledCaseId,
                     CaseNumber = "EC/20260821-001",
                     Title = request.Title,
                     Date = request.Date,
@@ -117,7 +117,7 @@ public class CreateLocationTests
     {
         public Task<ContactListItem> CreateContact(ContactEditRequest request, CancellationToken token)
         {
-            return Task.FromResult(new ContactListItem { Id = ContactId, Kind = request.Kind, Name = request.Name });
+            return Task.FromResult(new ContactListItem { ContactId = FiledContactId, Kind = request.Kind, Name = request.Name });
         }
 
         public Task<ContactUpdateOutcome> UpdateContact(Guid contactId, ContactEditRequest request, CancellationToken token)
