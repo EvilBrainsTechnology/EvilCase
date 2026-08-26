@@ -53,21 +53,25 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
     {
         var context = dbSession.Current;
 
-        var file = await context.FileAssets
+        // Read before the delete: the row is gone once ExecuteDeleteAsync runs.
+        var storagePath = await context.FileAssets
             .OfCase(caseId)
             .WithId(fileId)
+            .Select(file => file.StoragePath)
             .SingleOrDefaultAsync(token);
 
-        if (file is null)
+        if (storagePath is null)
             return FileDeleteOutcome.NotFound;
 
-        context.FileAssets.Remove(file);
-        await context.SaveChangesAsync(token);
+        await context.FileAssets
+            .OfCase(caseId)
+            .WithId(fileId)
+            .ExecuteDeleteAsync(token);
 
         // The row goes first; a blob left behind is tolerated (SDD-012).
-        await blobStore.DeleteFileBlob(file.StoragePath, token);
+        await blobStore.DeleteFileBlob(storagePath, token);
 
-        logger.LogInformation("File {FileAssetId} was removed from case {CaseId}", file.Id, caseId);
+        logger.LogInformation("File {FileAssetId} was removed from case {CaseId}", fileId, caseId);
 
         return FileDeleteOutcome.Deleted;
     }
