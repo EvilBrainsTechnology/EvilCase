@@ -66,7 +66,7 @@ public class ActsController : ControllerBase
             ActUpdateOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.ActNotFound),
             ActUpdateOutcome.ContactNotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.ContactNotFound),
             ActUpdateOutcome.ActNumberTaken => this.Problem(
-                detail: "Another act already carries the number.", statusCode: StatusCodes.Status409Conflict, title: ActProblems.ActNumberTaken),
+                detail: "Another act already carries the number.", statusCode: StatusCodes.Status409Conflict, title: "Act number taken"),
             ActUpdateOutcome.InvalidActNumber => this.InvalidActNumberProblem(),
             _ => throw new UnreachableException(),
         };

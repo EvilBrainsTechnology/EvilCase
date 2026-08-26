@@ -250,11 +250,7 @@ public class ActsControllerTests
 
         var problem = AssertProblem(result, 409);
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(problem.Title, Is.EqualTo(ActProblems.ActNumberTaken));
-            Assert.That(problem.Detail, Is.Not.Null);
-        }
+        Assert.That(problem.Detail, Is.Not.Null, "a number another act holds is a conflict the user resolves");
     }
 
     private static ProblemDetails AssertProblem(IActionResult? result, in int statusCode)

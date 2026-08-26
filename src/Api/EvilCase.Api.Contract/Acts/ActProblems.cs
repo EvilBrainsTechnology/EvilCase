@@ -10,6 +10,4 @@ public static class ActProblems
     public const string ActNotFound = "Act not found";
 
     public const string ContactNotFound = "Contact not found";
-
-    public const string ActNumberTaken = "Act number taken";
 }
