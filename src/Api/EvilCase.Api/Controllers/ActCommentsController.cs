@@ -62,16 +62,4 @@ public class ActCommentsController : ControllerBase
 
         return this.Answer(outcome);
     }
-
-    private ActionResult Answer(CommentWriteOutcome outcome)
-    {
-        return outcome switch
-        {
-            CommentWriteOutcome.Written => this.NoContent(),
-            CommentWriteOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: "Comment not found"),
-            CommentWriteOutcome.NotAuthor => this.Problem(
-                detail: "Only the author edits or deletes a comment.", statusCode: StatusCodes.Status403Forbidden, title: "Not the author"),
-            _ => throw new UnreachableException(),
-        };
-    }
 }

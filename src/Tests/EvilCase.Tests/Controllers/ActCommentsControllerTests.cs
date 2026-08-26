@@ -131,6 +131,19 @@ public class ActCommentsControllerTests
     }
 
     [Test]
+    public async Task AnEditOutcomeTheEndpointDoesNotKnowThrows()
+    {
+        var writer = new RecordingCommentWriter { UpdateOutcome = (CommentWriteOutcome)99 };
+        var controller = new ActCommentsController();
+
+        await Assert.ThatAsync(
+            () => controller.EditActComment(
+                writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Guid.CreateVersion7(), new CommentEditRequest { Body = "x" }, CancellationToken.None),
+            Throws.InstanceOf<UnreachableException>(),
+            "an outcome the endpoint does not name never turns into a status");
+    }
+
+    [Test]
     public async Task DeletingReachesTheWriterWithBothRouteIdsAndTheCommentId()
     {
         var caseId = Guid.CreateVersion7();
