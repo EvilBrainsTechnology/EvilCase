@@ -25,7 +25,7 @@ public sealed record ExternalNumberText
 
     public required string DeleteFailedError { get; init; }
 
-    public static readonly ExternalNumberText ForCase = new()
+    public static ExternalNumberText ForCase { get; } = new()
     {
         Heading = "Externí spisové značky",
         EmptyTitle = "Žádné externí značky",
@@ -39,7 +39,7 @@ public sealed record ExternalNumberText
         DeleteFailedError = "Značku se nepodařilo smazat. Zkuste to za chvíli znovu.",
     };
 
-    public static readonly ExternalNumberText ForAct = new()
+    public static ExternalNumberText ForAct { get; } = new()
     {
         Heading = "Externí čísla jednací",
         EmptyTitle = "Žádná externí čísla jednací",
