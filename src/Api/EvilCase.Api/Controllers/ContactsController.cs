@@ -22,6 +22,7 @@ public class ContactsController : ControllerBase
 
     [HttpPost("")]
     [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ContactListItem>> CreateContact([FromServices] IContactWriter writer, [FromBody] ContactEditRequest request, CancellationToken token)
     {
         var created = await writer.CreateContact(request, token);
