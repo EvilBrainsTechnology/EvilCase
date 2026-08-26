@@ -1,13 +1,12 @@
 @using System.Net
-@using EvilBrains.EvilCase.Api.Client
-@using EvilBrains.EvilCase.Api.Contract.Cases
 @using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Contract.Numbers
+@using EvilBrains.EvilCase.App.Models
 @using TabBlazor.Services
-@inject ICasesClient CasesClient
 @inject IModalService ModalService
-@inject ILogger<CaseExternalNumberDeleteModal> Logger
+@inject ILogger<ExternalNumberDeleteModal> Logger
 
-<p>Opravdu smazat značku <strong>@Number.Value</strong>? Akci nelze vrátit zpět.</p>
+<p>@this.Text.DeleteQuestion <strong>@this.Number.Value</strong>? Akci nelze vrátit zpět.</p>
 
 @if (this.error is not null)
 {
@@ -16,7 +15,7 @@
 
 <div class="d-flex justify-content-end gap-2 mt-3">
     <button type="button" class="btn" @onclick="() => this.ModalService.Close()">Zrušit</button>
-    <button type="button" class="btn btn-danger" disabled="@this.busy" @onclick="this.DeleteNumber">
+    <button type="button" class="btn btn-danger" disabled="@this.busy" @onclick="this.DeleteNumberClick">
         @if (this.busy)
         {
             <span class="spinner-border spinner-border-sm me-2" role="status"></span>
@@ -27,10 +26,13 @@
 
 @code {
     [Parameter, EditorRequired]
-    public required Guid CaseId { get; set; }
+    public required ExternalNumberText Text { get; set; }
 
     [Parameter, EditorRequired]
-    public required ExternalCaseNumberItem Number { get; set; }
+    public required ExternalNumberItem Number { get; set; }
+
+    [Parameter, EditorRequired]
+    public required Func<CancellationToken, Task> DeleteNumber { get; set; }
 
     [Parameter]
     public EventCallback OnDeleted { get; set; }
@@ -39,29 +41,29 @@
 
     private bool busy;
 
-    private async Task DeleteNumber()
+    private async Task DeleteNumberClick()
     {
         this.busy = true;
         this.error = null;
 
         try
         {
-            await this.CasesClient.DeleteExternalCaseNumber(this.CaseId, this.Number.Id, CancellationToken.None);
+            await this.DeleteNumber(CancellationToken.None);
 
             this.ModalService.Close();
             await this.OnDeleted.InvokeAsync();
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
         {
-            this.Logger.LogWarning(exception, "Deleting the external case number failed: it is already gone");
+            this.Logger.LogWarning(exception, "Deleting the external number failed: it is already gone");
 
-            this.error = "Značka už neexistuje.";
+            this.error = this.Text.DeleteGoneError;
         }
         catch (Exception exception) when (exception is ApiException or HttpRequestException)
         {
-            this.Logger.LogWarning(exception, "Deleting the external case number failed");
+            this.Logger.LogWarning(exception, "Deleting the external number failed");
 
-            this.error = "Značku se nepodařilo smazat. Zkuste to za chvíli znovu.";
+            this.error = this.Text.DeleteFailedError;
         }
         finally
         {

@@ -1,21 +1,20 @@
 @using System.Net
 @using EvilBrains.ApiClient
-@using EvilBrains.EvilCase.Api.Client
-@using EvilBrains.EvilCase.Api.Contract.Cases
+@using EvilBrains.EvilCase.Api.Contract.Numbers
+@using EvilBrains.EvilCase.App.Models
 @using TabBlazor.Services
-@inject ICasesClient CasesClient
 @inject IModalService ModalService
-@inject ILogger<CaseExternalNumbersCard> Logger
+@inject ILogger<ExternalNumbersCard> Logger
 
 <div class="card">
     <div class="card-header">
-        <h3 class="card-title">Externí spisové značky</h3>
+        <h3 class="card-title">@this.Text.Heading</h3>
     </div>
 
     @if (this.Items.Count == 0)
     {
         <div class="empty">
-            <p class="empty-title">Žádné externí značky</p>
+            <p class="empty-title">@this.Text.EmptyTitle</p>
         </div>
     }
     else
@@ -25,7 +24,7 @@
             <table class="table card-table table-vcenter">
                 <thead>
                     <tr>
-                        <th>Značka</th>
+                        <th>@this.Text.ValueColumn</th>
                         <th>Přidělil</th>
                         @if (this.Editable)
                         {
@@ -42,7 +41,7 @@
                             @if (this.Editable)
                             {
                                 <td class="text-end">
-                                    <button type="button" class="btn btn-sm" @onclick="() => this.DeleteNumber(item)">Smazat</button>
+                                    <button type="button" class="btn btn-sm" @onclick="() => this.ConfirmDelete(item)">Smazat</button>
                                 </td>
                             }
                         </tr>
@@ -59,7 +58,7 @@
                     <div><a href="/contacts/@item.AssignedByContactId">@item.AssignedByContactName</a></div>
                     @if (this.Editable)
                     {
-                        <button type="button" class="btn btn-sm" @onclick="() => this.DeleteNumber(item)">Smazat</button>
+                        <button type="button" class="btn btn-sm" @onclick="() => this.ConfirmDelete(item)">Smazat</button>
                     }
                 </div>
             }
@@ -69,11 +68,11 @@
     @if (this.Editable)
     {
         <div class="card-body border-top">
-            <EditForm Model="this.model" OnValidSubmit="this.AddNumber">
+            <EditForm Model="this.model" OnValidSubmit="this.SubmitNumber">
                 <DataAnnotationsValidator />
 
                 <div class="mb-3">
-                    <label class="form-label" for="external-number-value">Značka</label>
+                    <label class="form-label" for="external-number-value">@this.Text.ValueColumn</label>
                     <InputText id="external-number-value" class="form-control" @bind-Value="this.model.Value" />
                     <ValidationMessage For="() => this.model.Value" class="invalid-feedback d-block" />
                 </div>
@@ -103,36 +102,45 @@
 
 @code {
     [Parameter, EditorRequired]
-    public required Guid CaseId { get; set; }
+    public required ExternalNumberText Text { get; set; }
 
     [Parameter, EditorRequired]
-    public required IReadOnlyList<ExternalCaseNumberItem> Items { get; set; }
+    public required IReadOnlyList<ExternalNumberItem> Items { get; set; }
 
     /// <summary>
-    /// Adds and removals show only where the case is being edited (SDD-009).
+    /// Adds and removals show only where the owner is being edited (SDD-009, SDD-010); the two
+    /// callbacks come with them.
     /// </summary>
     [Parameter]
     public bool Editable { get; set; }
 
     [Parameter]
+    public Func<ExternalNumberRequest, CancellationToken, Task>? AddNumber { get; set; }
+
+    [Parameter]
+    public Func<Guid, CancellationToken, Task>? DeleteNumber { get; set; }
+
+    [Parameter]
     public EventCallback OnChanged { get; set; }
 
-    private ExternalCaseNumberModel model = new();
+    private ExternalNumberModel model = new();
 
     private string? error;
 
     private bool busy;
 
-    private async Task AddNumber()
+    private async Task SubmitNumber()
     {
+        if (this.AddNumber is not { } add)
+            return;
+
         this.busy = true;
         this.error = null;
 
         try
         {
-            await this.CasesClient.AddExternalCaseNumber(
-                this.CaseId,
-                new ExternalCaseNumberRequest { Value = this.model.Value, AssignedByContactId = this.model.AssignedBy!.Id },
+            await add(
+                new ExternalNumberRequest { Value = this.model.Value, AssignedByContactId = this.model.AssignedBy!.Id },
                 CancellationToken.None);
 
             this.model = new();
@@ -141,19 +149,19 @@
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
         {
-            this.error = exception.ResponseBody?.Contains(CaseProblems.ExternalNumberTaken, StringComparison.Ordinal) == true
-                ? "Tuto značku už spis nese."
+            this.error = exception.ResponseBody?.Contains(ExternalNumberProblems.Taken, StringComparison.Ordinal) == true
+                ? this.Text.AddTakenError
                 : "Vybraný kontakt už neexistuje.";
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
         {
-            this.error = "Spis už neexistuje.";
+            this.error = this.Text.AddOwnerGoneError;
         }
         catch (Exception exception) when (exception is ApiException or HttpRequestException)
         {
-            this.Logger.LogWarning(exception, "Adding the external case number failed");
+            this.Logger.LogWarning(exception, "Adding the external number failed");
 
-            this.error = "Značku se nepodařilo přidat. Zkuste to znovu.";
+            this.error = this.Text.AddFailedError;
         }
         finally
         {
@@ -161,13 +169,17 @@
         }
     }
 
-    private async Task DeleteNumber(ExternalCaseNumberItem number)
+    private async Task ConfirmDelete(ExternalNumberItem number)
     {
+        if (this.DeleteNumber is not { } delete)
+            return;
+
         await this.ModalService.ShowAsync(
-            "Smazat externí značku",
-            new RenderComponent<CaseExternalNumberDeleteModal>()
-                .Set(component => component.CaseId, this.CaseId)
+            this.Text.DeleteTitle,
+            new RenderComponent<ExternalNumberDeleteModal>()
+                .Set(component => component.Text, this.Text)
                 .Set(component => component.Number, number)
+                .Set(component => component.DeleteNumber, (CancellationToken token) => delete(number.Id, token))
                 .Set(component => component.OnDeleted, EventCallback.Factory.Create(this, () => this.OnChanged.InvokeAsync())),
             new ModalOptions { Fullscreen = ModalFullscreen.BelowLarge });
     }
