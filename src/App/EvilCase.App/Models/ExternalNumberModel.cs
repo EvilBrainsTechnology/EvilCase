@@ -12,6 +12,6 @@ internal sealed class ExternalNumberModel
     [StringLength(128, ErrorMessage = "Hodnota může mít nejvýše 128 znaků")]
     public string Value { get; set; } = "";
 
-    [Required(ErrorMessage = "Vyberte kontakt, který ho přidělil")]
+    [Required(ErrorMessage = "Vyberte kontakt, který hodnotu přidělil")]
     public ContactListItem? AssignedBy { get; set; }
 }
