@@ -93,17 +93,14 @@ internal sealed class CommentWriter(IDbSession dbSession, IUserContext userConte
     {
         var body = request.Body.Trim();
         var userId = userContext.UserId;
-        var context = dbSession.Current;
 
-        var comments = context.Comments.OnAct(caseId, actId).WithId(commentId);
+        var comments = dbSession.Current.Comments.OnAct(caseId, actId).WithId(commentId);
 
         var outcome = await Authorize(comments, userId, token);
         if (outcome != CommentWriteOutcome.Written)
             return outcome;
 
-        // The act and its case are settled by the read; the write goes by identifier and author.
-        var rows = await context.Comments
-            .WithId(commentId)
+        var rows = await comments
             .Where(comment => comment.UserId == userId)
             .ExecuteUpdateAsync(setters => setters.SetProperty(comment => comment.Body, body), token);
 
@@ -113,17 +110,14 @@ internal sealed class CommentWriter(IDbSession dbSession, IUserContext userConte
     public async Task<CommentWriteOutcome> DeleteActComment(Guid caseId, Guid actId, Guid commentId, CancellationToken token)
     {
         var userId = userContext.UserId;
-        var context = dbSession.Current;
 
-        var comments = context.Comments.OnAct(caseId, actId).WithId(commentId);
+        var comments = dbSession.Current.Comments.OnAct(caseId, actId).WithId(commentId);
 
         var outcome = await Authorize(comments, userId, token);
         if (outcome != CommentWriteOutcome.Written)
             return outcome;
 
-        // The act and its case are settled by the read; the write goes by identifier and author.
-        var rows = await context.Comments
-            .WithId(commentId)
+        var rows = await comments
             .Where(comment => comment.UserId == userId)
             .ExecuteDeleteAsync(token);
 
