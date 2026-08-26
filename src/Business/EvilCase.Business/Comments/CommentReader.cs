@@ -23,7 +23,7 @@ internal sealed class CommentReader(IDbSession dbSession, IUserContext userConte
         var context = dbSession.Current;
 
         return await context.Comments
-            .OnActOfCase(caseId, actId)
+            .OnAct(caseId, actId)
             .AsCommentItems(context.Users, userContext.UserId)
             .InDiaryOrder()
             .ToListAsync(token);

@@ -95,17 +95,15 @@ internal sealed class CommentWriter(IDbSession dbSession, IUserContext userConte
         var userId = userContext.UserId;
         var context = dbSession.Current;
 
-        var actExists = await context.Acts.OfCase(caseId).WithId(actId).AnyAsync(token);
-        if (!actExists)
-            return CommentWriteOutcome.NotFound;
-
-        var comments = context.Comments.OnAct(actId).WithId(commentId);
+        var comments = context.Comments.OnAct(caseId, actId).WithId(commentId);
 
         var outcome = await Authorize(comments, userId, token);
         if (outcome != CommentWriteOutcome.Written)
             return outcome;
 
-        var rows = await comments
+        // The act and its case are settled by the read; the write goes by identifier and author.
+        var rows = await context.Comments
+            .WithId(commentId)
             .Where(comment => comment.UserId == userId)
             .ExecuteUpdateAsync(setters => setters.SetProperty(comment => comment.Body, body), token);
 
@@ -117,17 +115,15 @@ internal sealed class CommentWriter(IDbSession dbSession, IUserContext userConte
         var userId = userContext.UserId;
         var context = dbSession.Current;
 
-        var actExists = await context.Acts.OfCase(caseId).WithId(actId).AnyAsync(token);
-        if (!actExists)
-            return CommentWriteOutcome.NotFound;
-
-        var comments = context.Comments.OnAct(actId).WithId(commentId);
+        var comments = context.Comments.OnAct(caseId, actId).WithId(commentId);
 
         var outcome = await Authorize(comments, userId, token);
         if (outcome != CommentWriteOutcome.Written)
             return outcome;
 
-        var rows = await comments
+        // The act and its case are settled by the read; the write goes by identifier and author.
+        var rows = await context.Comments
+            .WithId(commentId)
             .Where(comment => comment.UserId == userId)
             .ExecuteDeleteAsync(token);
 

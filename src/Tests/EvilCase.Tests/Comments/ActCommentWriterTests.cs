@@ -38,13 +38,13 @@ public class ActCommentWriterTests
         var @case = await this.tenant.AddCase(Day);
         var act = await this.tenant.AddAct(@case, Day);
 
-        var added = await this.writer.AddActComment(@case.Id, act.Id, new CommentEditRequest { Body = "Poznámka" }, CancellationToken.None);
+        var outcome = await this.writer.AddActComment(@case.Id, act.Id, new CommentEditRequest { Body = "Poznámka" }, CancellationToken.None);
 
         var reloaded = await this.Reload(act.Id);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(added, Is.True);
+            Assert.That(outcome, Is.EqualTo(CommentWriteOutcome.Written));
             Assert.That(reloaded.Body, Is.EqualTo("Poznámka"));
             Assert.That(reloaded.ActId, Is.EqualTo(act.Id));
             Assert.That(reloaded.CaseId, Is.Null, "an act note carries no case");
@@ -71,13 +71,13 @@ public class ActCommentWriterTests
     {
         var @case = await this.tenant.AddCase(Day);
 
-        var added = await this.writer.AddActComment(@case.Id, Guid.CreateVersion7(), new CommentEditRequest { Body = "Poznámka" }, CancellationToken.None);
+        var outcome = await this.writer.AddActComment(@case.Id, Guid.CreateVersion7(), new CommentEditRequest { Body = "Poznámka" }, CancellationToken.None);
 
         var any = await this.tenant.Context.Comments.AsNoTracking().AnyAsync();
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(added, Is.False);
+            Assert.That(outcome, Is.EqualTo(CommentWriteOutcome.NotFound));
             Assert.That(any, Is.False, "nothing is written when the act does not exist");
         }
     }
@@ -89,13 +89,13 @@ public class ActCommentWriterTests
         var otherCase = await this.tenant.AddCase(Day, "Jiný");
         var act = await this.tenant.AddAct(@case, Day);
 
-        var added = await this.writer.AddActComment(otherCase.Id, act.Id, new CommentEditRequest { Body = "Poznámka" }, CancellationToken.None);
+        var outcome = await this.writer.AddActComment(otherCase.Id, act.Id, new CommentEditRequest { Body = "Poznámka" }, CancellationToken.None);
 
         var any = await this.tenant.Context.Comments.AsNoTracking().AnyAsync();
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(added, Is.False, "the act must hang on the asked case");
+            Assert.That(outcome, Is.EqualTo(CommentWriteOutcome.NotFound), "the act must hang on the asked case");
             Assert.That(any, Is.False);
         }
     }
@@ -107,14 +107,14 @@ public class ActCommentWriterTests
         var otherCase = await other.AddCase(Day);
         var otherAct = await other.AddAct(otherCase, Day);
 
-        var added = await this.writer.AddActComment(otherCase.Id, otherAct.Id, new CommentEditRequest { Body = "Poznámka" }, CancellationToken.None);
+        var outcome = await this.writer.AddActComment(otherCase.Id, otherAct.Id, new CommentEditRequest { Body = "Poznámka" }, CancellationToken.None);
 
         var ownAny = await this.tenant.Context.Comments.AsNoTracking().AnyAsync();
         var otherAny = await other.Context.Comments.AsNoTracking().AnyAsync();
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(added, Is.False, "the tenant query filter is what turns another tenant's act into nothing");
+            Assert.That(outcome, Is.EqualTo(CommentWriteOutcome.NotFound), "the tenant query filter is what turns another tenant's act into nothing");
             Assert.That(ownAny, Is.False);
             Assert.That(otherAny, Is.False);
         }
@@ -189,6 +189,25 @@ public class ActCommentWriterTests
     }
 
     [Test]
+    public async Task ANoteIsNotEditedUnderAnotherCase()
+    {
+        var @case = await this.tenant.AddCase(Day, "Správný");
+        var otherCase = await this.tenant.AddCase(Day, "Jiný");
+        var act = await this.tenant.AddAct(@case, Day);
+        var comment = await this.tenant.AddActComment(act, "Původní");
+
+        var outcome = await this.writer.UpdateActComment(otherCase.Id, act.Id, comment.Id, new CommentEditRequest { Body = "Upravená" }, CancellationToken.None);
+
+        var reloaded = await this.Reload(act.Id);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome, Is.EqualTo(CommentWriteOutcome.NotFound));
+            Assert.That(reloaded.Body, Is.EqualTo("Původní"), "the act must hang on the asked case");
+        }
+    }
+
+    [Test]
     public async Task TheAuthorDeletesTheirOwnNote()
     {
         var @case = await this.tenant.AddCase(Day);
@@ -252,6 +271,25 @@ public class ActCommentWriterTests
         {
             Assert.That(outcome, Is.EqualTo(CommentWriteOutcome.NotFound));
             Assert.That(exists, Is.True, "the note must hang on the act in the route");
+        }
+    }
+
+    [Test]
+    public async Task ANoteIsNotDeletedUnderAnotherCase()
+    {
+        var @case = await this.tenant.AddCase(Day, "Správný");
+        var otherCase = await this.tenant.AddCase(Day, "Jiný");
+        var act = await this.tenant.AddAct(@case, Day);
+        var comment = await this.tenant.AddActComment(act, "Poznámka");
+
+        var outcome = await this.writer.DeleteActComment(otherCase.Id, act.Id, comment.Id, CancellationToken.None);
+
+        var exists = await this.tenant.Context.Comments.AsNoTracking().AnyAsync(c => c.Id == comment.Id);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome, Is.EqualTo(CommentWriteOutcome.NotFound));
+            Assert.That(exists, Is.True, "the act must hang on the asked case");
         }
     }
 
