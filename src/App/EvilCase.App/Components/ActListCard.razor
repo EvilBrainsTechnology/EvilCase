@@ -1,0 +1,124 @@
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.Acts
+@inject IActsClient ActsClient
+@inject ILogger<ActListCard> Logger
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Úkony</h3>
+        <div class="card-actions">
+            <a href="/cases/@this.CaseId/act/new" class="btn btn-primary">Nový úkon</a>
+        </div>
+    </div>
+
+    @if (this.failure is not null)
+    {
+        <div class="empty">
+            <p class="empty-title">Úkony se nepodařilo načíst</p>
+            <p class="empty-subtitle text-secondary">@this.failure</p>
+        </div>
+    }
+    else if (this.items is null)
+    {
+        <div class="card-body text-center text-secondary">
+            <div class="spinner-border" role="status"></div>
+        </div>
+    }
+    else if (this.items.Count == 0)
+    {
+        <div class="empty">
+            <p class="empty-title">Žádné úkony</p>
+            <p class="empty-subtitle text-secondary">Zatím tu není žádný úkon.</p>
+            <div class="empty-action">
+                <a href="/cases/@this.CaseId/act/new" class="btn btn-primary">Založit úkon</a>
+            </div>
+        </div>
+    }
+    else
+    {
+        @* Table on desktop, cards on mobile: two renderings switched by CSS only. *@
+        <div class="d-none d-lg-block">
+            <table class="table card-table table-vcenter">
+                <thead>
+                    <tr>
+                        <th>Datum</th>
+                        <th>Číslo jednací</th>
+                        <th>Směr</th>
+                        <th>Název</th>
+                        <th>Odesílatel</th>
+                        <th>Příjemce</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in this.items)
+                    {
+                        <tr>
+                            <td class="text-nowrap">@DateDisplay.Text(item.Date)</td>
+                            <td class="text-nowrap">@item.ActNumber</td>
+                            <td class="text-nowrap">
+                                <Status BackgroundColor="ActDirectionDisplay.Color(item.Direction)" Lite="true">@ActDirectionDisplay.Text(item.Direction)</Status>
+                            </td>
+                            <td>@item.Title</td>
+                            <td>@item.IssuedByName</td>
+                            <td>@item.AddressedToName</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card-body d-lg-none">
+            @foreach (var item in this.items)
+            {
+                <div class="card mb-2">
+                    <div class="card-body">
+                        <div class="font-weight-medium">@item.Title</div>
+                        <div class="text-secondary">@item.ActNumber</div>
+                        <div>
+                            <Status BackgroundColor="ActDirectionDisplay.Color(item.Direction)" Lite="true">@ActDirectionDisplay.Text(item.Direction)</Status>
+                        </div>
+                        <div class="text-secondary">Od: @item.IssuedByName</div>
+                        @if (!string.IsNullOrWhiteSpace(item.AddressedToName))
+                        {
+                            <div class="text-secondary">Komu: @item.AddressedToName</div>
+                        }
+                        <div class="text-secondary">@DateDisplay.Text(item.Date)</div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public required Guid CaseId { get; set; }
+
+    private IReadOnlyList<ActListItem>? items;
+
+    private string? failure;
+
+    protected override Task OnInitializedAsync()
+    {
+        return this.LoadActs();
+    }
+
+    private async Task LoadActs()
+    {
+        try
+        {
+            var response = await this.ActsClient.ListActs(this.CaseId, CancellationToken.None);
+
+            this.items = response.Items;
+            this.failure = null;
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Loading the act list failed");
+
+            this.items = [];
+            this.failure = "Seznam úkonů se nepodařilo načíst. Zkuste to za chvíli znovu.";
+        }
+    }
+}

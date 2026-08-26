@@ -40,26 +40,26 @@ public class ActListQueryTests
     }
 
     [Test]
-    public async Task TheIdentifierBreaksATieOnTheDate()
+    public async Task TheWriteMomentBreaksATieOnTheDate()
     {
         var @case = await this.tenant.AddCase(new DateOnly(2026, 8, 20));
         var sameDay = new DateOnly(2026, 8, 22);
         var actIds = TestTenant.SortedEntityIds(3);
 
-        // The write order and the identifier order disagree, so only the identifier can break the tie.
-        var third = await this.tenant.AddAct(@case, sameDay, "Podání", actId: actIds[2]);
-        var first = await this.tenant.AddAct(@case, sameDay, "Výzva", actId: actIds[0]);
-        var second = await this.tenant.AddAct(@case, sameDay, "Rozhodnutí", actId: actIds[1]);
+        // The write order and the identifier order disagree, so only the write moment can break the tie.
+        var first = await this.tenant.AddAct(@case, sameDay, "Podání", actId: actIds[2]);
+        var second = await this.tenant.AddAct(@case, sameDay, "Výzva", actId: actIds[0]);
+        var third = await this.tenant.AddAct(@case, sameDay, "Rozhodnutí", actId: actIds[1]);
 
         var ids = await this.tenant.Context.Acts.InListOrder().Select(act => act.Id).ToListAsync();
 
         Guid[] expected = [first.Id, second.Id, third.Id];
 
-        Assert.That(ids, Is.EqualTo(expected), "the identifier breaks the tie so the order is total");
+        Assert.That(ids, Is.EqualTo(expected), "equal act dates fall back to when the row was written");
     }
 
     [Test]
-    public async Task NothingButTheDateAndTheIdentifierOrdersTheList()
+    public async Task NothingButTheDateAndTheWriteMomentOrdersTheList()
     {
         var @case = await this.tenant.AddCase(new DateOnly(2026, 8, 20));
         var sameDay = new DateOnly(2026, 8, 22);
@@ -72,9 +72,9 @@ public class ActListQueryTests
 
         var ids = await this.tenant.Context.Acts.InListOrder().Select(act => act.Id).ToListAsync();
 
-        Guid[] expected = [middleNumber.Id, highestNumber.Id, lowestNumber.Id];
+        Guid[] expected = [lowestNumber.Id, highestNumber.Id, middleNumber.Id];
 
-        Assert.That(ids, Is.EqualTo(expected), "the date orders, and only the identifier breaks its ties");
+        Assert.That(ids, Is.EqualTo(expected), "the date orders, and only the write moment breaks its ties");
     }
 
     [Test]
@@ -94,5 +94,52 @@ public class ActListQueryTests
         Guid[] expected = [mine.Id];
 
         Assert.That(ids, Is.EqualTo(expected), "the tenant query filter is what keeps another tenant's rows out");
+    }
+
+    [Test]
+    public async Task OnlyTheActsOfTheCaseComeBack()
+    {
+        var first = await this.tenant.AddCase(new DateOnly(2026, 8, 20));
+        var second = await this.tenant.AddCase(new DateOnly(2026, 8, 20));
+        var inFirst = await this.tenant.AddAct(first, new DateOnly(2026, 8, 21), "Podání");
+        await this.tenant.AddAct(second, new DateOnly(2026, 8, 21), "Jiný úkon");
+
+        var ids = await this.tenant.Context.Acts.OfCase(first.Id).InListOrder().Select(act => act.Id).ToListAsync();
+
+        Guid[] expected = [inFirst.Id];
+
+        Assert.That(ids, Is.EqualTo(expected), "the act list of a case never reaches into another case");
+    }
+
+    [Test]
+    public async Task AListItemCarriesBothContactNames()
+    {
+        var @case = await this.tenant.AddCase(new DateOnly(2026, 8, 20));
+        var issuedBy = await this.tenant.AddContact("Městský úřad Vzorov");
+        var addressedTo = await this.tenant.AddContact("Ing. Petr Vzorek");
+        var act = await this.tenant.AddAct(@case, new DateOnly(2026, 8, 22), "Rozhodnutí", issuedBy: issuedBy, addressedTo: addressedTo);
+
+        var item = await this.tenant.Context.Acts.OfCase(@case.Id).InListOrder().AsListItems().SingleAsync();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(item.IssuedByName, Is.EqualTo("Městský úřad Vzorov"));
+            Assert.That(item.AddressedToName, Is.EqualTo("Ing. Petr Vzorek"));
+            Assert.That(item.ActNumber, Is.EqualTo(act.ActNumber));
+            Assert.That(item.Direction, Is.EqualTo(act.Direction));
+            Assert.That(item.Title, Is.EqualTo(act.Title));
+            Assert.That(item.Date, Is.EqualTo(act.Date));
+        }
+    }
+
+    [Test]
+    public async Task AListItemWithoutARecipientCarriesNoName()
+    {
+        var @case = await this.tenant.AddCase(new DateOnly(2026, 8, 20));
+        await this.tenant.AddAct(@case, new DateOnly(2026, 8, 22), "Podání", addressedTo: null);
+
+        var item = await this.tenant.Context.Acts.OfCase(@case.Id).InListOrder().AsListItems().SingleAsync();
+
+        Assert.That(item.AddressedToName, Is.Null, "a recipient is optional and its absence is a null name, not a failed read");
     }
 }

@@ -108,6 +108,10 @@
             <CaseChildrenCard Items="this.caseDetail.ChildCases" ParentCaseId="this.CaseId" />
 
             <div class="mt-3">
+                <ActListCard @key="this.CaseId" CaseId="this.CaseId" />
+            </div>
+
+            <div class="mt-3">
                 <CommentsCard @key="this.CaseId"
                               LoadComments="this.LoadComments"
                               AddComment="this.AddComment"
