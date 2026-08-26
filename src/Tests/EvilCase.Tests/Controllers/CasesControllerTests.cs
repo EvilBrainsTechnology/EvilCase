@@ -56,25 +56,44 @@ public class CasesControllerTests
     public async Task TheCreatedCaseIsWhatTheWriterReturned()
     {
         var created = Item("EC/20260821-001", "Nový spis");
-        var writer = new RecordingCaseWriter { Created = created };
+        var writer = new RecordingCaseWriter { CreateResult = new CaseCreateResult { Outcome = CaseCreateOutcome.Created, Case = created } };
         var controller = new CasesController();
 
-        var result = await controller.CreateCase(
+        var response = await controller.CreateCase(
             writer,
             new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "Nový spis" },
             CancellationToken.None);
 
+        Assert.That((response.Result as CreatedAtActionResult)?.Value, Is.SameAs(created), "the created case travels back in the response body");
+    }
+
+    [Test]
+    public async Task AFiledCaseIsAnsweredWithCreatedAtItsDetailRoute()
+    {
+        var created = Item("EC/20260821-001", "Nový spis");
+        var writer = new RecordingCaseWriter { CreateResult = new CaseCreateResult { Outcome = CaseCreateOutcome.Created, Case = created } };
+        var controller = new CasesController();
+
+        var response = await controller.CreateCase(
+            writer,
+            new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "Nový spis" },
+            CancellationToken.None);
+
+        Assert.That(response.Result, Is.InstanceOf<CreatedAtActionResult>());
+        var result = (CreatedAtActionResult)response.Result!;
+
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result.Result, Is.InstanceOf<OkObjectResult>());
-            Assert.That(((OkObjectResult)result.Result!).Value, Is.SameAs(created));
+            Assert.That(result.StatusCode, Is.EqualTo(201), "a create answers 201, not 200");
+            Assert.That(result.ActionName, Is.EqualTo(nameof(CasesController.GetCase)), "the Location names the detail action of the case");
+            Assert.That(result.RouteValues?["caseId"], Is.EqualTo(created.Id), "the Location carries the id of the case that was filed");
         }
     }
 
     [Test]
     public async Task FilingUnderAParentThatIsNoCaseIsAConflict()
     {
-        var writer = new RecordingCaseWriter { Created = null };
+        var writer = new RecordingCaseWriter { CreateResult = new CaseCreateResult { Outcome = CaseCreateOutcome.InvalidParent } };
         var controller = new CasesController();
 
         var result = await controller.CreateCase(
@@ -420,7 +439,7 @@ public class CasesControllerTests
     {
         public CreateCaseRequest? Request { get; private set; }
 
-        public CaseListItem? Created { get; init; } = Item("EC/20260821-001", "Spis");
+        public CaseCreateResult CreateResult { get; init; } = new() { Outcome = CaseCreateOutcome.Created, Case = Item("EC/20260821-001", "Spis") };
 
         public Guid? UpdateId { get; private set; }
 
@@ -428,11 +447,11 @@ public class CasesControllerTests
 
         public CaseUpdateOutcome UpdateOutcome { get; init; }
 
-        public Task<CaseListItem?> CreateCase(CreateCaseRequest request, CancellationToken token)
+        public Task<CaseCreateResult> CreateCase(CreateCaseRequest request, CancellationToken token)
         {
             this.Request = request;
 
-            return Task.FromResult(this.Created);
+            return Task.FromResult(this.CreateResult);
         }
 
         public Task<CaseUpdateOutcome> UpdateCase(Guid caseId, CaseEditRequest request, CancellationToken token)

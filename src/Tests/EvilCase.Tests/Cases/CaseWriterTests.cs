@@ -57,11 +57,11 @@ public class CaseWriterTests
         var numbers = new QueuedCaseNumberIssuer(["EC/20260821-001", "EC/20260821-002"]);
         var writer = new CaseWriter(new FixedDbSession(context), numbers, new FakeFileBlobStore(), NullLogger<CaseWriter>.Instance);
 
-        var created = await writer.CreateCase(new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "Přestupek" }, CancellationToken.None);
+        var result = await writer.CreateCase(new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "Přestupek" }, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(created?.CaseNumber, Is.EqualTo("EC/20260821-002"), "the loser of the race files under the next free number");
+            Assert.That(result.Case?.CaseNumber, Is.EqualTo("EC/20260821-002"), "the loser of the race files under the next free number");
             Assert.That(context.Saves, Is.EqualTo(2));
             Assert.That(context.Added<Case>().Count(), Is.EqualTo(1), "the row that lost the race is not written twice");
         }

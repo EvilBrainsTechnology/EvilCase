@@ -27,9 +27,31 @@ public class ContactsControllerTests
         var writer = new RecordingContactWriter { Created = created };
         var controller = new ContactsController();
 
-        var result = await controller.CreateContact(writer, new ContactEditRequest { Name = "Nový kontakt", Kind = ContactKind.Authority }, CancellationToken.None);
+        var response = await controller.CreateContact(writer, new ContactEditRequest { Name = "Nový kontakt", Kind = ContactKind.Authority }, CancellationToken.None);
 
-        Assert.That(result, Is.SameAs(created));
+        Assert.That((response.Result as CreatedAtActionResult)?.Value, Is.SameAs(created));
+    }
+
+    [Test]
+    public async Task AFiledContactIsAnsweredWithCreatedAtItsDetailRoute()
+    {
+        var created = Item("Nový kontakt");
+        var controller = new ContactsController();
+
+        var response = await controller.CreateContact(
+            new RecordingContactWriter { Created = created },
+            new ContactEditRequest { Name = "Nový kontakt", Kind = ContactKind.Authority },
+            CancellationToken.None);
+
+        Assert.That(response.Result, Is.InstanceOf<CreatedAtActionResult>());
+        var result = (CreatedAtActionResult)response.Result!;
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.StatusCode, Is.EqualTo(201), "a create answers 201, not 200");
+            Assert.That(result.ActionName, Is.EqualTo(nameof(ContactsController.GetContact)), "the Location names the detail action of the contact");
+            Assert.That(result.RouteValues?["contactId"], Is.EqualTo(created.Id), "the Location carries the id of the contact that was filed");
+        }
     }
 
     [Test]

@@ -39,13 +39,13 @@ public class CaseCreateTests
     {
         var parent = await this.tenant.AddCase(ParentDay, "Rodič");
 
-        var created = await this.writer.CreateCase(
+        var result = await this.writer.CreateCase(
             new CreateCaseRequest { Date = ChildDay, Title = "Podřízený", ParentCaseId = parent.Id },
             CancellationToken.None);
 
-        Assert.That(created, Is.Not.Null);
+        Assert.That(result.Outcome, Is.EqualTo(CaseCreateOutcome.Created));
 
-        var reloaded = await this.tenant.Context.Cases.SingleAsync(@case => @case.Id == created!.Id);
+        var reloaded = await this.tenant.Context.Cases.SingleAsync(@case => @case.Id == result.Case!.Id);
 
         Assert.That(reloaded.ParentCaseId, Is.EqualTo(parent.Id));
     }
@@ -56,13 +56,14 @@ public class CaseCreateTests
         await using var other = await TestTenant.Create();
         var otherCase = await other.AddCase(ParentDay, "Cizí spis");
 
-        var created = await this.writer.CreateCase(
+        var result = await this.writer.CreateCase(
             new CreateCaseRequest { Date = ChildDay, Title = "Podřízený", ParentCaseId = otherCase.Id },
             CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(created, Is.Null, "a parent from another tenant is no parent, and nothing is filed");
+            Assert.That(result.Outcome, Is.EqualTo(CaseCreateOutcome.InvalidParent), "a parent from another tenant is no parent, and nothing is filed");
+            Assert.That(result.Case, Is.Null);
             Assert.That(await this.tenant.Context.Cases.CountAsync(), Is.Zero);
         }
     }
@@ -70,13 +71,13 @@ public class CaseCreateTests
     [Test]
     public async Task ACaseWithNoParentIsFiled()
     {
-        var created = await this.writer.CreateCase(
+        var result = await this.writer.CreateCase(
             new CreateCaseRequest { Date = ChildDay, Title = "Samostatný", ParentCaseId = null },
             CancellationToken.None);
 
-        Assert.That(created, Is.Not.Null);
+        Assert.That(result.Outcome, Is.EqualTo(CaseCreateOutcome.Created));
 
-        var reloaded = await this.tenant.Context.Cases.SingleAsync(@case => @case.Id == created!.Id);
+        var reloaded = await this.tenant.Context.Cases.SingleAsync(@case => @case.Id == result.Case!.Id);
 
         Assert.That(reloaded.ParentCaseId, Is.Null);
     }

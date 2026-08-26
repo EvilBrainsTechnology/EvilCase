@@ -25,7 +25,7 @@ internal sealed class CaseWriter(
     /// </summary>
     private const int Attempts = 5;
 
-    public async Task<CaseListItem?> CreateCase(CreateCaseRequest request, CancellationToken token)
+    public async Task<CaseCreateResult> CreateCase(CreateCaseRequest request, CancellationToken token)
     {
         var context = dbSession.Current;
 
@@ -36,7 +36,7 @@ internal sealed class CaseWriter(
                 .AnyAsync(token);
 
             if (!known)
-                return null;
+                return new CaseCreateResult { Outcome = CaseCreateOutcome.InvalidParent };
         }
 
         for (var attempt = 1; ; attempt++)
@@ -61,7 +61,7 @@ internal sealed class CaseWriter(
 
             logger.LogInformation("Case {CaseId} was filed under {CaseNumber}", @case.Id, @case.CaseNumber);
 
-            return Describe(@case);
+            return new CaseCreateResult { Outcome = CaseCreateOutcome.Created, Case = Describe(@case) };
         }
     }
 
