@@ -1,9 +1,7 @@
+using System.Text;
 using EvilBrains.EvilCase.Business.Files;
-using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
-using EvilBrains.EvilCase.Domain.Cases;
 using EvilBrains.EvilCase.Files;
-using EvilBrains.EvilCase.Tests.Auth;
 using EvilBrains.EvilCase.Tests.Data;
 using EvilBrains.EvilCase.Tests.Seeding;
 using Microsoft.EntityFrameworkCore;
@@ -11,30 +9,44 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace EvilBrains.EvilCase.Tests.Files;
 
+/// <summary>
+/// Uploads and deletes a case's files against a real PostgreSQL. Each test seeds a tenant of its own, so
+/// none cleans up after itself.
+/// </summary>
 public class FileWriterTests
 {
+    private static readonly DateOnly Day = new(2026, 8, 21);
+
+    private TestTenant tenant = null!;
+
+    private FakeFileBlobStore blobs = null!;
+
+    private FileWriter writer = null!;
+
+    [SetUp]
+    public async Task SetUp()
+    {
+        this.tenant = await TestTenant.Create(asHost: true);
+        this.blobs = new FakeFileBlobStore();
+        this.writer = new FileWriter(new FixedDbSession(this.tenant.Context), this.blobs, this.tenant.UserContext, NullLogger<FileWriter>.Instance);
+    }
+
+    [TearDown]
+    public async Task TearDown()
+    {
+        await this.tenant.DisposeAsync();
+    }
+
     [Test]
     public async Task AnUploadedFileHangsOnItsCaseWithWhatTheStoreMeasured()
     {
-        var userContext = new StubUserContext();
-        var tenantId = Guid.CreateVersion7();
-        var userId = Guid.CreateVersion7();
-        using var entered = userContext.Enter(tenantId, userId);
+        var @case = await this.tenant.AddCase(Day);
 
-        await using var context = TestDatabase.CreateMigrated(userContext);
-        var @case = await SeedCase(context, tenantId, userId);
-
-        var blobs = new FakeFileBlobStore();
-        var writer = new FileWriter(new FixedDbSession(context), blobs, userContext, NullLogger<FileWriter>.Instance);
-
-        var upload = new FileUpload { FileName = "smlouva.pdf", MediaType = "application/pdf", Content = new MemoryStream("abc"u8.ToArray()) };
-
-        var result = await writer.UploadCaseFile(@case.Id, upload, CancellationToken.None);
+        var result = await this.writer.UploadCaseFile(@case.Id, Upload("smlouva.pdf", "application/pdf", "abc"), CancellationToken.None);
 
         Assert.That(result, Is.Not.Null);
 
-        var stored = await context.FileAssets.SingleAsync(file => file.Id == result!.Id);
-        var blobInfo = blobs.WrittenByPath[stored.StoragePath];
+        var stored = await this.Reload(result!.Id);
 
         using (Assert.EnterMultipleScope())
         {
@@ -43,145 +55,86 @@ public class FileWriterTests
             Assert.That(stored.FileName, Is.EqualTo("smlouva.pdf"), "an uploaded file keeps the name it arrived under");
             Assert.That(stored.MediaType, Is.EqualTo("application/pdf"), "an uploaded file keeps the media type it arrived under");
             Assert.That(stored.ContentHash, Has.Length.EqualTo(64), "the store's hash is what the row carries");
-            Assert.That(blobInfo, Is.EqualTo("abc"), "the row's storage path resolves to what the store wrote");
+            Assert.That(this.blobs.WrittenByPath[stored.StoragePath], Is.EqualTo("abc"), "the row's storage path resolves to what the store wrote");
         }
     }
 
     [Test]
     public async Task AnUploadNamesTheTenantTheStoreWritesUnder()
     {
-        var userContext = new StubUserContext();
-        var tenantId = Guid.CreateVersion7();
-        var userId = Guid.CreateVersion7();
-        using var entered = userContext.Enter(tenantId, userId);
+        var @case = await this.tenant.AddCase(Day);
+        var recording = new RecordingTenantBlobStore();
+        var recordingWriter = new FileWriter(new FixedDbSession(this.tenant.Context), recording, this.tenant.UserContext, NullLogger<FileWriter>.Instance);
 
-        await using var context = TestDatabase.CreateMigrated(userContext);
-        var @case = await SeedCase(context, tenantId, userId);
+        await recordingWriter.UploadCaseFile(@case.Id, Upload("a.txt"), CancellationToken.None);
 
-        var blobs = new RecordingTenantBlobStore();
-        var writer = new FileWriter(new FixedDbSession(context), blobs, userContext, NullLogger<FileWriter>.Instance);
-
-        await writer.UploadCaseFile(@case.Id, new FileUpload { FileName = "a.txt", MediaType = "text/plain", Content = new MemoryStream("a"u8.ToArray()) }, CancellationToken.None);
-
-        Assert.That(blobs.WrittenUnderTenant, Is.EqualTo(tenantId), "the upload writes the blob under the tenant IUserContext names");
+        Assert.That(recording.WrittenUnderTenant, Is.EqualTo(this.tenant.UserContext.TenantId), "the upload writes the blob under the tenant IUserContext names");
     }
 
     [Test]
     public async Task AnUploadOntoAMissingCaseIsRefused()
     {
-        var userContext = new StubUserContext();
-        var tenantId = Guid.CreateVersion7();
-        var userId = Guid.CreateVersion7();
-        using var entered = userContext.Enter(tenantId, userId);
-
-        await using var context = TestDatabase.CreateMigrated(userContext);
-
-        var blobs = new FakeFileBlobStore();
-        var writer = new FileWriter(new FixedDbSession(context), blobs, userContext, NullLogger<FileWriter>.Instance);
-
-        var result = await writer.UploadCaseFile(Guid.CreateVersion7(), new FileUpload { FileName = "a.txt", MediaType = "text/plain", Content = new MemoryStream("a"u8.ToArray()) }, CancellationToken.None);
+        var result = await this.writer.UploadCaseFile(Guid.CreateVersion7(), Upload("a.txt"), CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result, Is.Null, "an upload onto a case the tenant has no such case must be refused");
-            Assert.That(await context.FileAssets.AnyAsync(), Is.False, "a refused upload must write no row");
-            Assert.That(blobs.WrittenByPath, Is.Empty, "a refused upload must write no blob");
+            Assert.That(result, Is.Null, "an upload onto a case the tenant does not have must be refused");
+            Assert.That(await this.tenant.Context.FileAssets.AnyAsync(), Is.False, "a refused upload must write no row");
+            Assert.That(this.blobs.WrittenByPath, Is.Empty, "a refused upload must write no blob");
         }
     }
 
     [Test]
     public async Task ADeletedFileTakesItsBlobWithIt()
     {
-        var userContext = new StubUserContext();
-        var tenantId = Guid.CreateVersion7();
-        var userId = Guid.CreateVersion7();
-        using var entered = userContext.Enter(tenantId, userId);
+        var @case = await this.tenant.AddCase(Day);
+        var uploaded = await this.writer.UploadCaseFile(@case.Id, Upload("a.txt"), CancellationToken.None);
+        var storagePath = (await this.Reload(uploaded!.Id)).StoragePath;
 
-        await using var context = TestDatabase.CreateMigrated(userContext);
-        var @case = await SeedCase(context, tenantId, userId);
-
-        var blobs = new FakeFileBlobStore();
-        var writer = new FileWriter(new FixedDbSession(context), blobs, userContext, NullLogger<FileWriter>.Instance);
-
-        var uploaded = await writer.UploadCaseFile(@case.Id, new FileUpload { FileName = "a.txt", MediaType = "text/plain", Content = new MemoryStream("a"u8.ToArray()) }, CancellationToken.None);
-        var storagePath = (await context.FileAssets.SingleAsync(file => file.Id == uploaded!.Id)).StoragePath;
-
-        var outcome = await writer.DeleteCaseFile(@case.Id, uploaded!.Id, CancellationToken.None);
+        var outcome = await this.writer.DeleteCaseFile(@case.Id, uploaded.Id, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(outcome, Is.EqualTo(FileDeleteOutcome.Deleted));
-            Assert.That(await context.FileAssets.AnyAsync(file => file.Id == uploaded.Id), Is.False, "a deleted file leaves no row");
-            Assert.That(blobs.Deleted, Does.Contain(storagePath), "a deleted file takes its blob with it");
+            Assert.That(await this.tenant.Context.FileAssets.AnyAsync(file => file.Id == uploaded.Id), Is.False, "a deleted file leaves no row");
+            Assert.That(this.blobs.Deleted, Does.Contain(storagePath), "a deleted file takes its blob with it");
         }
     }
 
     [Test]
     public async Task AFileOfAnotherCaseIsNotDeleted()
     {
-        var userContext = new StubUserContext();
-        var tenantId = Guid.CreateVersion7();
-        var userId = Guid.CreateVersion7();
-        using var entered = userContext.Enter(tenantId, userId);
+        var caseA = await this.tenant.AddCase(Day);
+        var caseB = await this.tenant.AddCase(Day);
+        var uploaded = await this.writer.UploadCaseFile(caseA.Id, Upload("a.txt"), CancellationToken.None);
 
-        await using var context = TestDatabase.CreateMigrated(userContext);
-        var caseA = await SeedCase(context, tenantId, userId, "EC/20260821-001");
-        var caseB = await SeedCase(context, tenantId, userId, "EC/20260821-002");
-
-        var blobs = new FakeFileBlobStore();
-        var writer = new FileWriter(new FixedDbSession(context), blobs, userContext, NullLogger<FileWriter>.Instance);
-
-        var uploaded = await writer.UploadCaseFile(caseA.Id, new FileUpload { FileName = "a.txt", MediaType = "text/plain", Content = new MemoryStream("a"u8.ToArray()) }, CancellationToken.None);
-
-        var outcome = await writer.DeleteCaseFile(caseB.Id, uploaded!.Id, CancellationToken.None);
+        var outcome = await this.writer.DeleteCaseFile(caseB.Id, uploaded!.Id, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(outcome, Is.EqualTo(FileDeleteOutcome.NotFound), "a file of another case must not be found for delete");
-            Assert.That(await context.FileAssets.AnyAsync(file => file.Id == uploaded.Id), Is.True, "the file must survive a delete naming the wrong case");
+            Assert.That(await this.tenant.Context.FileAssets.AnyAsync(file => file.Id == uploaded.Id), Is.True, "the file must survive a delete naming the wrong case");
         }
     }
 
     [Test]
     public async Task DeletingAMissingFileIsNotFound()
     {
-        var userContext = new StubUserContext();
-        var tenantId = Guid.CreateVersion7();
-        var userId = Guid.CreateVersion7();
-        using var entered = userContext.Enter(tenantId, userId);
+        var @case = await this.tenant.AddCase(Day);
 
-        await using var context = TestDatabase.CreateMigrated(userContext);
-        var @case = await SeedCase(context, tenantId, userId);
-
-        var writer = new FileWriter(new FixedDbSession(context), new FakeFileBlobStore(), userContext, NullLogger<FileWriter>.Instance);
-
-        var outcome = await writer.DeleteCaseFile(@case.Id, Guid.CreateVersion7(), CancellationToken.None);
+        var outcome = await this.writer.DeleteCaseFile(@case.Id, Guid.CreateVersion7(), CancellationToken.None);
 
         Assert.That(outcome, Is.EqualTo(FileDeleteOutcome.NotFound));
     }
 
-    private static async Task<Case> SeedCase(ApplicationDbContext context, Guid tenantId, Guid userId, string caseNumber = "EC/20260821-001")
+    private static FileUpload Upload(string fileName, string mediaType = "text/plain", string content = "a")
     {
-        var account = new Account { Name = "file writer" };
-        var tenant = new Tenant { Id = tenantId, AccountId = account.Id, Name = "tenant" };
-        var @case = new Case
-        {
-            TenantId = tenantId,
-            UserId = userId,
-            CaseNumber = caseNumber,
-            Date = new DateOnly(2026, 8, 21),
-            Title = "Přestupek",
-            Status = CaseStatus.Active,
-        };
+        return new FileUpload { FileName = fileName, MediaType = mediaType, Content = new MemoryStream(Encoding.UTF8.GetBytes(content)) };
+    }
 
-        context.Accounts.Add(account);
-        context.Tenants.Add(tenant);
-        context.Cases.Add(@case);
-        await context.SaveChangesAsync();
-
-        context.ChangeTracker.Clear();
-
-        return @case;
+    private Task<FileAsset> Reload(Guid fileAssetId)
+    {
+        return this.tenant.Context.FileAssets.SingleAsync(file => file.Id == fileAssetId);
     }
 
     private sealed class RecordingTenantBlobStore : IFileBlobStore

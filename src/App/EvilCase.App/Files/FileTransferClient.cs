@@ -1,6 +1,4 @@
 using System.Net.Http.Headers;
-using System.Net.Http.Json;
-using System.Text.Json;
 using EvilBrains.ApiClient;
 using EvilBrains.EvilCase.Api.Contract.Files;
 using Microsoft.AspNetCore.Components.Forms;
@@ -11,9 +9,7 @@ internal sealed class FileTransferClient(HttpClient httpClient) : IFileTransferC
 {
     private const string DefaultMediaType = "application/octet-stream";
 
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
-
-    public async Task<FileListItem> UploadCaseFile(Guid caseId, IBrowserFile file, CancellationToken token)
+    public async Task UploadCaseFile(Guid caseId, IBrowserFile file, CancellationToken token)
     {
         await using var stream = file.OpenReadStream(FileLimits.MaxUploadBytes, token);
 
@@ -25,8 +21,6 @@ internal sealed class FileTransferClient(HttpClient httpClient) : IFileTransferC
         using var request = new HttpRequestMessage(HttpMethod.Post, new Uri($"api/cases/{caseId}/files", UriKind.Relative)) { Content = content };
         using var response = await httpClient.SendAsync(request, token);
         await EnsureSuccess(response, token);
-
-        return await response.Content.ReadFromJsonAsync<FileListItem>(JsonOptions, token) ?? throw new ApiException(response.StatusCode, responseBody: null);
     }
 
     public async Task<FileContent> DownloadFileContent(Guid fileId, CancellationToken token)

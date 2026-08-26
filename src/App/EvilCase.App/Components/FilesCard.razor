@@ -65,7 +65,7 @@
                         <tr>
                             <td>@file.FileName</td>
                             <td>@FileSizeDisplay.Text(file.SizeBytes)</td>
-                            <td>@DateDisplay.Text(file.Created)</td>
+                            <td>@MomentDisplay.Text(file.Created)</td>
                             <td class="text-end">
                                 <button type="button" class="btn btn-sm" aria-label="Stáhnout soubor" disabled="@(this.downloadingId == file.Id)" @onclick="() => this.Download(file)">
                                     <Icon IconType="AppIcons.Download" />
@@ -86,7 +86,7 @@
                 <div class="card mb-2">
                     <div class="card-body">
                         <div>@file.FileName</div>
-                        <div class="text-secondary">@FileSizeDisplay.Text(file.SizeBytes) · @DateDisplay.Text(file.Created)</div>
+                        <div class="text-secondary">@FileSizeDisplay.Text(file.SizeBytes) · @MomentDisplay.Text(file.Created)</div>
                         <div class="mt-2">
                             <button type="button" class="btn btn-sm" aria-label="Stáhnout soubor" disabled="@(this.downloadingId == file.Id)" @onclick="() => this.Download(file)">
                                 <Icon IconType="AppIcons.Download" />
@@ -141,8 +141,16 @@
     {
         this.failures.Clear();
         this.dragging = false;
-        this.uploadTotal = args.FileCount;
         this.uploadIndex = 0;
+
+        if (args.FileCount > MaxBatchFiles)
+        {
+            this.failures.Add($"Najednou lze nahrát nejvýše {MaxBatchFiles} souborů.");
+
+            return;
+        }
+
+        this.uploadTotal = args.FileCount;
 
         // One file at a time: only the file that fails is refused.
         foreach (var file in args.GetMultipleFiles(MaxBatchFiles))

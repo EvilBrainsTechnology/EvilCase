@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Headers;
 using EvilBrains.ApiClient;
 using EvilBrains.EvilCase.App.Files;
 using Microsoft.AspNetCore.Components.Forms;
@@ -11,7 +12,7 @@ public class FileTransferClientTests
     public async Task AnUploadPostsTheFileAsMultipartToTheCaseSFiles()
     {
         var caseId = Guid.CreateVersion7();
-        var handler = new CapturingHandler(new HttpResponseMessage(HttpStatusCode.Created) { Content = JsonContent() });
+        var handler = new CapturingHandler(new HttpResponseMessage(HttpStatusCode.Created));
 
         var client = Client(handler);
 
@@ -44,7 +45,7 @@ public class FileTransferClientTests
     {
         var bytes = "the content"u8.ToArray();
         var response = new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(bytes) };
-        response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/pdf");
+        response.Content.Headers.ContentType = new MediaTypeHeaderValue("application/pdf");
 
         var handler = new CapturingHandler(response);
         var client = Client(handler);
@@ -64,11 +65,6 @@ public class FileTransferClientTests
     private static FileTransferClient Client(HttpMessageHandler handler)
     {
         return new FileTransferClient(new HttpClient(handler) { BaseAddress = new Uri("https://localhost/") });
-    }
-
-    private static StringContent JsonContent()
-    {
-        return new StringContent("""{"id":"00000000-0000-0000-0000-000000000000","fileName":"smlouva.pdf","sizeBytes":3,"created":"2026-08-21T00:00:00Z"}""", System.Text.Encoding.UTF8, "application/json");
     }
 
     private sealed class CapturingHandler(HttpResponseMessage response) : HttpMessageHandler
