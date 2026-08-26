@@ -31,4 +31,14 @@ public static class ActNumberQuery
             .OrderByDescending(act => act.ActNumber.Length)
             .ThenByDescending(act => act.ActNumber);
     }
+
+    /// <summary>
+    /// Another act of the tenant already carrying the number. An act never takes its own number from itself.
+    /// </summary>
+    public static IQueryable<Act> WithNumberHeldByAnother(this IQueryable<Act> acts, string actNumber, Guid actId)
+    {
+        return acts
+            .Where(act => act.ActNumber == actNumber)
+            .Where(act => act.Id != actId);
+    }
 }

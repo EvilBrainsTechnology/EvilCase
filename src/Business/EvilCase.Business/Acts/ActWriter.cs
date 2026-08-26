@@ -1,9 +1,11 @@
+using EvilBrains.Collections;
 using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Business.Numbering;
 using EvilBrains.EvilCase.Data;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
+using EvilBrains.EvilCase.Domain.Numbering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -28,23 +30,8 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
         if (@case is null)
             return new ActCreateResult { Outcome = ActCreateOutcome.CaseNotFound };
 
-        // The foreign key alone would take a contact of another tenant; the filtered read is what refuses it.
-        var issuedByKnown = await context.Contacts
-            .WithId(request.IssuedByContactId)
-            .AnyAsync(token);
-
-        if (!issuedByKnown)
+        if (!await this.ContactsKnown(request.IssuedByContactId, request.AddressedToContactId, token))
             return new ActCreateResult { Outcome = ActCreateOutcome.ContactNotFound };
-
-        if (request.AddressedToContactId is { } addressedToContactId)
-        {
-            var addressedToKnown = await context.Contacts
-                .WithId(addressedToContactId)
-                .AnyAsync(token);
-
-            if (!addressedToKnown)
-                return new ActCreateResult { Outcome = ActCreateOutcome.ContactNotFound };
-        }
 
         for (var attempt = 1; ; attempt++)
         {
@@ -94,5 +81,69 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
             IssuedByContactId = request.IssuedByContactId,
             AddressedToContactId = request.AddressedToContactId,
         };
+    }
+
+    public async Task<ActUpdateOutcome> UpdateAct(Guid caseId, Guid actId, ActEditRequest request, CancellationToken token)
+    {
+        var context = dbSession.Current;
+
+        var acts = context.Acts
+            .OfCase(caseId)
+            .WithId(actId);
+
+        // An act the tenant does not have is not found, whatever else the edit gets wrong.
+        if (!await acts.AnyAsync(token))
+            return ActUpdateOutcome.NotFound;
+
+        var edit = request with
+        {
+            ActNumber = request.ActNumber.Trim(),
+            Title = request.Title.Trim(),
+            Description = request.Description?.TrimEmptyToNull(),
+        };
+
+        if (ActNumberFormat.ParseOrDefault(edit.ActNumber) is null)
+            return ActUpdateOutcome.InvalidActNumber;
+
+        var taken = await context.Acts
+            .WithNumberHeldByAnother(edit.ActNumber, actId)
+            .AnyAsync(token);
+
+        if (taken)
+            return ActUpdateOutcome.ActNumberTaken;
+
+        if (!await this.ContactsKnown(edit.IssuedByContactId, edit.AddressedToContactId, token))
+            return ActUpdateOutcome.ContactNotFound;
+
+        var rows = await acts.ExecuteUpdateAsync(
+            setters => setters
+                .SetProperty(act => act.ActNumber, edit.ActNumber)
+                .SetProperty(act => act.Direction, edit.Direction)
+                .SetProperty(act => act.Date, edit.Date)
+                .SetProperty(act => act.Title, edit.Title)
+                .SetProperty(act => act.Description, edit.Description)
+                .SetProperty(act => act.IssuedByContactId, edit.IssuedByContactId)
+                .SetProperty(act => act.AddressedToContactId, edit.AddressedToContactId),
+            token);
+
+        if (rows == 0)
+            return ActUpdateOutcome.NotFound;
+
+        logger.LogInformation("Act {ActId} was edited", actId);
+
+        return ActUpdateOutcome.Updated;
+    }
+
+    /// <summary>
+    /// The foreign key alone would take a contact of another tenant; the filtered read is what refuses it.
+    /// </summary>
+    private async Task<bool> ContactsKnown(Guid issuedByContactId, Guid? addressedToContactId, CancellationToken token)
+    {
+        var contacts = dbSession.Current.Contacts;
+
+        if (!await contacts.WithId(issuedByContactId).AnyAsync(token))
+            return false;
+
+        return addressedToContactId is not { } contactId || await contacts.WithId(contactId).AnyAsync(token);
     }
 }

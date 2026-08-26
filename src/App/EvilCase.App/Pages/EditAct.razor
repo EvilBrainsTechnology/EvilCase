@@ -1,0 +1,230 @@
+@page "/cases/{CaseId:guid}/act/{ActId:guid}/edit"
+@using System.Net
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.Acts
+@using EvilBrains.EvilCase.Domain.Acts
+@inject IActsClient ActsClient
+@inject NavigationManager Navigation
+@inject ILogger<EditAct> Logger
+
+<PageTitle>Upravit úkon – EvilCase</PageTitle>
+
+<div class="page-header d-print-none">
+    <div class="container-xl">
+        <div class="page-pretitle">
+            @if (this.act is not null)
+            {
+                <a href="@($"/cases/{this.act.CaseId}/act/{this.act.Id}")">Úkon</a>
+            }
+            else
+            {
+                @:Úkon
+            }
+        </div>
+        <h2 class="page-title">Upravit úkon</h2>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        @if (this.notFound)
+        {
+            <div class="empty">
+                <p class="empty-title">Úkon nenalezen</p>
+            </div>
+        }
+        else if (this.failure is not null)
+        {
+            <div class="empty">
+                <p class="empty-title">Úkon se nepodařilo načíst</p>
+                <p class="empty-subtitle text-secondary">@this.failure</p>
+            </div>
+        }
+        else if (this.act is null)
+        {
+            <div class="text-center text-secondary">
+                <div class="spinner-border" role="status"></div>
+            </div>
+        }
+        else
+        {
+            <div class="card">
+                <EditForm Model="this.model" OnValidSubmit="this.SubmitAct">
+                    <DataAnnotationsValidator />
+
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label" for="act-number">Číslo jednací</label>
+                            <InputText id="act-number" class="form-control" @bind-Value="this.model.ActNumber" />
+                            <div class="form-hint">Tvar SPISOVÁ-ZNAČKA/RRRRMMDD-NNN. Změna data úkonu číslo nemění.</div>
+                            <ValidationMessage For="() => this.model.ActNumber" class="invalid-feedback d-block" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="act-direction">Směr</label>
+                            <InputSelect id="act-direction" class="form-select" @bind-Value="this.model.Direction">
+                                @foreach (var direction in Enum.GetValues<ActDirection>())
+                                {
+                                    <option value="@direction">@ActDirectionDisplay.Text(direction)</option>
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="() => this.model.Direction" class="invalid-feedback d-block" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="act-date">Datum úkonu</label>
+                            <InputDate id="act-date" class="form-control" @bind-Value="this.model.Date" />
+                            <ValidationMessage For="() => this.model.Date" class="invalid-feedback d-block" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="act-title">Název</label>
+                            <InputText id="act-title" class="form-control" @bind-Value="this.model.Title" />
+                            <ValidationMessage For="() => this.model.Title" class="invalid-feedback d-block" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="act-description">Popis</label>
+                            <InputTextArea id="act-description" class="form-control" rows="5" @bind-Value="this.model.Description" />
+                            <ValidationMessage For="() => this.model.Description" class="invalid-feedback d-block" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="act-issued-by">Odesílatel</label>
+                            <ContactPicker InputId="act-issued-by" @bind-Selected="this.model.IssuedByContact" />
+                            <ValidationMessage For="() => this.model.IssuedByContact" class="invalid-feedback d-block" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="act-addressed-to">Příjemce</label>
+                            <ContactPicker InputId="act-addressed-to" @bind-Selected="this.model.AddressedToContact" />
+                            <ValidationMessage For="() => this.model.AddressedToContact" class="invalid-feedback d-block" />
+                        </div>
+
+                        @if (this.error is not null)
+                        {
+                            <div class="alert alert-danger mb-0" role="alert">@this.error</div>
+                        }
+                    </div>
+
+                    <div class="card-footer form-actions-sticky d-flex justify-content-end gap-2">
+                        <a href="@($"/cases/{this.act.CaseId}/act/{this.act.Id}")" class="btn">Zrušit</a>
+                        <button id="act-submit" type="submit" class="btn btn-primary" disabled="@this.busy">
+                            @if (this.busy)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                            }
+                            Uložit
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public Guid CaseId { get; set; }
+
+    [Parameter]
+    public Guid ActId { get; set; }
+
+    private readonly ActEditModel model = new();
+
+    private bool notFound;
+
+    private string? failure;
+
+    private string? error;
+
+    private bool busy;
+
+    private ActDetail? act;
+
+    protected override Task OnParametersSetAsync()
+    {
+        return this.LoadAct();
+    }
+
+    private async Task LoadAct()
+    {
+        this.notFound = false;
+        this.failure = null;
+        this.act = null;
+
+        try
+        {
+            var detail = await this.ActsClient.GetAct(this.CaseId, this.ActId, CancellationToken.None);
+
+            this.model.ActNumber = detail.ActNumber;
+            this.model.Direction = detail.Direction;
+            this.model.Date = detail.Date;
+            this.model.Title = detail.Title;
+            this.model.Description = detail.Description;
+            this.model.IssuedByContact = detail.IssuedByContact;
+            this.model.AddressedToContact = detail.AddressedToContact;
+
+            this.act = detail;
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+        {
+            this.notFound = true;
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Loading the act for editing failed");
+
+            this.failure = "Úkon se nepodařilo načíst. Zkuste to za chvíli znovu.";
+        }
+    }
+
+    private async Task SubmitAct()
+    {
+        this.busy = true;
+        this.error = null;
+
+        try
+        {
+            var request = new ActEditRequest
+            {
+                ActNumber = this.model.ActNumber,
+                Direction = this.model.Direction,
+                Date = this.model.Date,
+                Title = this.model.Title,
+                Description = this.model.Description,
+                IssuedByContactId = this.model.IssuedByContact!.Id,
+                AddressedToContactId = this.model.AddressedToContact?.Id,
+            };
+
+            await this.ActsClient.EditAct(this.CaseId, this.ActId, request, CancellationToken.None);
+
+            this.Navigation.NavigateTo($"/cases/{this.act!.CaseId}/act/{this.act.Id}");
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
+        {
+            this.error = "Číslo jednací už nese jiný úkon. Zvolte jiné.";
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.BadRequest)
+        {
+            this.error = "Číslo jednací musí mít tvar SPISOVÁ-ZNAČKA/RRRRMMDD-NNN, například EC/20260807-001/20260812-001.";
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+        {
+            this.error = exception.ResponseBody?.Contains(ActProblems.ContactNotFound, StringComparison.Ordinal) == true
+                ? "Vybraný kontakt už neexistuje. Vyberte jiný."
+                : "Úkon už neexistuje.";
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Editing the act failed");
+
+            this.error = "Úkon se nepodařilo uložit. Zkontrolujte zadané údaje a zkuste to znovu.";
+        }
+        finally
+        {
+            this.busy = false;
+        }
+    }
+}

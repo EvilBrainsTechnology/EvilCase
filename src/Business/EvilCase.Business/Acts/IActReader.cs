@@ -8,4 +8,6 @@ namespace EvilBrains.EvilCase.Business.Acts;
 public interface IActReader
 {
     public Task<IReadOnlyList<ActListItem>> ListActs(Guid caseId, CancellationToken token);
+
+    public Task<ActDetail?> GetActDetail(Guid caseId, Guid actId, CancellationToken token);
 }
