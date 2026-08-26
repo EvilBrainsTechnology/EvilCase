@@ -85,12 +85,25 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
 
     public async Task<ActUpdateOutcome> UpdateAct(Guid caseId, Guid actId, ActEditRequest request, CancellationToken token)
     {
-        var edit = Normalize(request);
+        var context = dbSession.Current;
+
+        var acts = context.Acts
+            .OfCase(caseId)
+            .WithId(actId);
+
+        // An act the tenant does not have is not found, whatever else the edit gets wrong.
+        if (!await acts.AnyAsync(token))
+            return ActUpdateOutcome.NotFound;
+
+        var edit = request with
+        {
+            ActNumber = request.ActNumber.Trim(),
+            Title = request.Title.Trim(),
+            Description = request.Description?.TrimEmptyToNull(),
+        };
 
         if (ActNumberFormat.ParseOrDefault(edit.ActNumber) is null)
             return ActUpdateOutcome.InvalidActNumber;
-
-        var context = dbSession.Current;
 
         var taken = await context.Acts
             .WithNumberHeldByAnother(edit.ActNumber, actId)
@@ -102,19 +115,16 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
         if (!await this.ContactsKnown(edit.IssuedByContactId, edit.AddressedToContactId, token))
             return ActUpdateOutcome.ContactNotFound;
 
-        var rows = await context.Acts
-            .OfCase(caseId)
-            .WithId(actId)
-            .ExecuteUpdateAsync(
-                setters => setters
-                    .SetProperty(act => act.ActNumber, edit.ActNumber)
-                    .SetProperty(act => act.Direction, edit.Direction)
-                    .SetProperty(act => act.Date, edit.Date)
-                    .SetProperty(act => act.Title, edit.Title)
-                    .SetProperty(act => act.Description, edit.Description)
-                    .SetProperty(act => act.IssuedByContactId, edit.IssuedByContactId)
-                    .SetProperty(act => act.AddressedToContactId, edit.AddressedToContactId),
-                token);
+        var rows = await acts.ExecuteUpdateAsync(
+            setters => setters
+                .SetProperty(act => act.ActNumber, edit.ActNumber)
+                .SetProperty(act => act.Direction, edit.Direction)
+                .SetProperty(act => act.Date, edit.Date)
+                .SetProperty(act => act.Title, edit.Title)
+                .SetProperty(act => act.Description, edit.Description)
+                .SetProperty(act => act.IssuedByContactId, edit.IssuedByContactId)
+                .SetProperty(act => act.AddressedToContactId, edit.AddressedToContactId),
+            token);
 
         if (rows == 0)
             return ActUpdateOutcome.NotFound;
@@ -122,16 +132,6 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
         logger.LogInformation("Act {ActId} was edited", actId);
 
         return ActUpdateOutcome.Updated;
-    }
-
-    internal static ActEditRequest Normalize(ActEditRequest request)
-    {
-        return request with
-        {
-            ActNumber = request.ActNumber.Trim(),
-            Title = request.Title.Trim(),
-            Description = request.Description?.TrimEmptyToNull(),
-        };
     }
 
     /// <summary>

@@ -257,6 +257,17 @@ public class ActUpdateTests
     }
 
     [Test]
+    public async Task AnUnknownActIsNotFoundBeforeTheEditIsWeighed()
+    {
+        var @case = await this.tenant.AddCase(Day);
+        var request = Edit("cj 7/2026", ActDirection.Incoming, Day, "Podání", description: null, Guid.CreateVersion7());
+
+        var outcome = await this.writer.UpdateAct(@case.Id, Guid.CreateVersion7(), request, CancellationToken.None);
+
+        Assert.That(outcome, Is.EqualTo(ActUpdateOutcome.NotFound), "an act that is not there is not found, whatever else the edit gets wrong");
+    }
+
+    [Test]
     public async Task AnActOfAnotherCaseIsNotFound()
     {
         var first = await this.tenant.AddCase(Day, "První");
