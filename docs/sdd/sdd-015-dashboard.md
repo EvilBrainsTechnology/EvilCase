@@ -22,7 +22,8 @@ nemění — ta aktivita se ukazuje v dlaždici posledních úkonů. Seznamové 
 nejvýše 5 položek.
 
 Dashboard nemá vlastní API; skládá se na klientu z API entit (SDD-005): dlaždice počtů
-a naposledy změněné spisy z výpisu spisů, poslední úkony z tenantového výpisu `/api/acts`.
+z počtů spisů `/api/cases/counts`, naposledy změněné spisy z výpisu spisů, poslední úkony
+z tenantového výpisu `/api/acts`.
 
 Žádné lhůty. Prázdný tenant vede na založení prvního spisu.
 
@@ -35,4 +36,5 @@ a naposledy změněné spisy z výpisu spisů, poslední úkony z tenantového v
 ## Dopady
 
 Hard-coded `SampleData` dnešní úvodní stránky zaniká v M7. Tenantový výpis `/api/acts`
-(SDD-005) vzniká v M7 s dashboardem — nic dřívějšího ho nepotřebuje.
+a počty spisů `/api/cases/counts` (SDD-005) vznikají v M7 s dashboardem — nic dřívějšího
+je nepotřebuje.
