@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using EvilBrains.EvilCase.Api.Contract.Cases;
+using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Api.Contract.Numbers;
 using EvilBrains.EvilCase.Api.Controllers;
 using EvilBrains.EvilCase.Business.Cases;
@@ -340,7 +341,7 @@ public class CasesControllerTests
 
         var problem = AssertProblem(result, 409);
 
-        Assert.That(problem.Title, Is.EqualTo(ExternalNumberProblems.UnknownContact));
+        Assert.That(problem.Title, Is.EqualTo(ContactProblems.UnknownContact));
     }
 
     [Test]
