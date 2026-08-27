@@ -23,11 +23,15 @@ internal sealed class CommentWriter(IDbSession dbSession, IUserContext userConte
         return outcome;
     }
 
-    public Task<CommentWriteOutcome> UpdateCaseComment(Guid caseId, Guid commentId, CommentEditRequest request, CancellationToken token)
+    public async Task<CommentWriteOutcome> UpdateCaseComment(Guid caseId, Guid commentId, CommentEditRequest request, CancellationToken token)
     {
         var comments = dbSession.Current.Comments.OnCase(caseId).WithId(commentId);
 
-        return this.UpdateComment(comments, request.Body.Trim(), token);
+        var outcome = await this.UpdateComment(comments, request.Body.Trim(), token);
+        if (outcome == CommentWriteOutcome.Written)
+            logger.LogInformation("Comment {CommentId} was edited on case {CaseId}", commentId, caseId);
+
+        return outcome;
     }
 
     public async Task<CommentWriteOutcome> DeleteCaseComment(Guid caseId, Guid commentId, CancellationToken token)
@@ -53,11 +57,15 @@ internal sealed class CommentWriter(IDbSession dbSession, IUserContext userConte
         return outcome;
     }
 
-    public Task<CommentWriteOutcome> UpdateActComment(Guid caseId, Guid actId, Guid commentId, CommentEditRequest request, CancellationToken token)
+    public async Task<CommentWriteOutcome> UpdateActComment(Guid caseId, Guid actId, Guid commentId, CommentEditRequest request, CancellationToken token)
     {
         var comments = dbSession.Current.Comments.OnAct(caseId, actId).WithId(commentId);
 
-        return this.UpdateComment(comments, request.Body.Trim(), token);
+        var outcome = await this.UpdateComment(comments, request.Body.Trim(), token);
+        if (outcome == CommentWriteOutcome.Written)
+            logger.LogInformation("Comment {CommentId} was edited on act {ActId}", commentId, actId);
+
+        return outcome;
     }
 
     public async Task<CommentWriteOutcome> DeleteActComment(Guid caseId, Guid actId, Guid commentId, CancellationToken token)

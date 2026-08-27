@@ -58,6 +58,11 @@ internal sealed class ExternalActNumberWriter(IDbSession dbSession, ILogger<Exte
             .WithId(numberId)
             .ExecuteDeleteAsync(token);
 
-        return rows == 0 ? DeleteOutcome.NotFound : DeleteOutcome.Deleted;
+        if (rows == 0)
+            return DeleteOutcome.NotFound;
+
+        logger.LogInformation("External act number {ExternalActNumberId} was removed from act {ActId}", numberId, actId);
+
+        return DeleteOutcome.Deleted;
     }
 }

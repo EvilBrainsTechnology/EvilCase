@@ -3,6 +3,7 @@ using EvilBrains.EvilCase.Business.Contacts;
 using EvilBrains.EvilCase.Domain.Contacts;
 using EvilBrains.EvilCase.Tests.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace EvilBrains.EvilCase.Tests.Contacts;
 
@@ -20,7 +21,7 @@ public class ContactCreateTests
     public async Task SetUp()
     {
         this.tenant = await TestTenant.Create(asHost: true);
-        this.writer = new ContactWriter(new FixedDbSession(this.tenant.Context));
+        this.writer = new ContactWriter(new FixedDbSession(this.tenant.Context), NullLogger<ContactWriter>.Instance);
     }
 
     [TearDown]

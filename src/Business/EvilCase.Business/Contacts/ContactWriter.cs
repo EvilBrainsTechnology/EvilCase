@@ -5,10 +5,11 @@ using EvilBrains.EvilCase.Data;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace EvilBrains.EvilCase.Business.Contacts;
 
-internal sealed class ContactWriter(IDbSession dbSession) : IContactWriter
+internal sealed class ContactWriter(IDbSession dbSession, ILogger<ContactWriter> logger) : IContactWriter
 {
     public async Task<ContactListItem> CreateContact(ContactEditRequest request, CancellationToken token)
     {
@@ -26,6 +27,8 @@ internal sealed class ContactWriter(IDbSession dbSession) : IContactWriter
         context.Contacts.Add(contact);
 
         await context.SaveChangesAsync(token);
+
+        logger.LogInformation("Contact {ContactId} was created", contact.Id);
 
         return new ContactListItem
         {
@@ -51,7 +54,12 @@ internal sealed class ContactWriter(IDbSession dbSession) : IContactWriter
                     .SetProperty(contact => contact.Address, normalized.Address),
                 token);
 
-        return rows == 0 ? ContactUpdateOutcome.NotFound : ContactUpdateOutcome.Updated;
+        if (rows == 0)
+            return ContactUpdateOutcome.NotFound;
+
+        logger.LogInformation("Contact {ContactId} was edited", contactId);
+
+        return ContactUpdateOutcome.Updated;
     }
 
     public async Task<ContactDeleteOutcome> DeleteContact(Guid contactId, CancellationToken token)
@@ -86,6 +94,8 @@ internal sealed class ContactWriter(IDbSession dbSession) : IContactWriter
             // A reference written between the checks above and this save.
             return ContactDeleteOutcome.Referenced;
         }
+
+        logger.LogInformation("Contact {ContactId} was deleted", contactId);
 
         return ContactDeleteOutcome.Deleted;
     }
