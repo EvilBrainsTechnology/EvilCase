@@ -28,7 +28,7 @@
                     </div>
                     <div class="col-12 col-lg-auto">
                         <select class="form-select" aria-label="Stav spisu"
-                                @bind="this.status" @bind:after="this.Reload">
+                                @bind="this.status" @bind:after="this.LoadCases">
                             @foreach (var value in Filters)
                             {
                                 <option value="@value">@CaseStatusDisplay.FilterText(value)</option>
@@ -108,11 +108,6 @@
     private string? failure;
 
     protected override Task OnInitializedAsync()
-    {
-        return this.LoadCases();
-    }
-
-    private Task Reload()
     {
         return this.LoadCases();
     }

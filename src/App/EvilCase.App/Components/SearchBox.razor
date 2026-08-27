@@ -29,7 +29,7 @@
         }
     </div>
 }
-else if (this.items.Count == 0 && this.searched)
+else if (this.searched)
 {
     <div class="form-hint">Nic neodpovídá.</div>
 }
@@ -55,6 +55,7 @@ else if (this.items.Count == 0 && this.searched)
     private async Task OnInput(ChangeEventArgs args)
     {
         this.term = args.Value as string ?? "";
+        this.exactMatch = null;
 
         var token = await this.debouncer.Start(debounce: true);
         if (token is null)
@@ -95,7 +96,6 @@ else if (this.items.Count == 0 && this.searched)
             return;
         }
 
-        // Only Enter navigates, and only where the term is one entity's number.
         if (args.Key == "Enter" && this.exactMatch is not null)
             this.Open(this.exactMatch);
     }
