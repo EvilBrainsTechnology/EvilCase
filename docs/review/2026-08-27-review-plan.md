@@ -5,7 +5,7 @@ bezpečnost, konzistence UI, složitost, závislosti. Build je čistý (0 warnin
 zelené, `dotnet list package --vulnerable --include-transitive` nehlásí nic, `.env` nikdy
 nebyl v gitu. Lokální selhání testů v této session způsobil chybějící Docker (Testcontainers),
 ne kód. Rozhodnutí vlastníka z 2026-08-27 jsou zapracovaná; sekce Rozhodnutí nese otázky
-i odpovědi.
+i odpovědi, sekce Provedení stav každého nálezu a pull request, který ho nese.
 
 ## Shrnutí
 
@@ -327,63 +327,76 @@ Zodpovězeno vlastníkem 2026-08-27:
 9. **R-051, limit instrukcí** — `maxLinesTotal` se zvedá na 550 a navržená pravidla se
    přidávají.
 
-## Pořadí provádění
+## Provedení
 
-Jeden nález nebo skupina sourozeneckých nálezů = jeden pull request; každý builduje, má zelené
-testy a nese změnu chování s testem. Tři stopy — backend, frontend, dokumentace — jedou
-souběžně. Uvnitř stopy stojí každý pull request na předchozím, protože si sahají do týchž
-souborů; vlastník merguje stopu v jejím pořadí. Brána je CI na GitHubu.
+Provedeno 2026-08-27 ve třech stopách stacked pull requestů; každý staví na předchozím a CI je
+u všech zelená. Slití obou kódových stop bylo ověřeno nanečisto: automatické, jediný sdílený
+soubor `EditAct.razor`, sloučený výsledek buildí bez warningů.
 
 ### Backend
 
-| # | Nálezy | Co |
+| # | PR | Nálezy |
 | --- | --- | --- |
-| B1 | R-002 | striktní binding enumů |
-| B2 | R-003 | validace metadat uploadu |
-| B3 | R-005 | IPv6 partice rate limitu |
-| B4 | R-004 | `Permissions-Policy` |
-| B5 | R-001 | vlastnictví řádky v set-based zápisech |
-| B6 | R-009, R-044 | 409 pro id odkazované v těle a hlášky formulářů úkonu |
-| B7 | R-015, R-016, R-017 | mrtvá konfigurace a reference |
-| B8 | R-018, R-019, R-020 | foldy writerů a upload preambule |
-| B9 | R-021, R-022, R-023 | kroky dotazů |
-| B10 | R-024 | konstanty titulků problémů |
-| B11 | R-025, R-026, R-027, R-030 | konzistence writerů |
-| B12 | R-028, R-029 | viditelnost a `sealed` |
-| B13 | R-031, R-033 | sdílený `DeleteOutcome` a pojmenování outcome |
-| B14 | R-032 | logování mutací |
-| B15 | R-034, R-035, R-036 | lešení testů |
+| B1 | #448 | R-002 |
+| B2 | #450 | R-003 |
+| B3 | #452 | R-005 |
+| B4 | #454 | R-004 |
+| B5 | #457 | R-001, R-025 |
+| B6 | #459 | R-009, R-044 |
+| B7 | #460 | R-015, R-016, R-017 |
+| B8 | #462 | R-018, R-019, R-020 |
+| B9 | #463 | R-021, R-022, R-023 |
+| B10 | #464 | R-024 |
+| B11 | #465 | R-026, R-027 |
+| B12 | #466 | R-028, R-029 |
+| B13 | #467 | R-031 |
+| B14 | #468 | R-032 |
+| B15 | #469 | R-034, R-035 |
 
 ### Frontend
 
-| # | Nálezy | Co |
+| # | PR | Nálezy |
 | --- | --- | --- |
-| F1 | R-037 | `ConfirmDeleteModal` |
-| F2 | R-038 | `ContactFormModal` |
-| F3 | R-039 | `LoadStateView` |
-| F4 | R-040, R-010 | prostá tabulka kontaktů, konec `ToastContaineru`, stav selhání pickeru |
-| F5 | R-041, R-042, R-043, R-046 | touch targety, breakpoint, `PageTitle`, popisky |
-| F6 | R-045, R-048, R-049 | pořadí tlačítek, prázdné stavy, odkazy |
-| F7 | R-047 | česká terminologie |
+| F1 | #447 | R-037 |
+| F2 | #449 | R-038 |
+| F3 | #451 | R-039 |
+| F4 | #453 | R-010 (frontend) |
+| F5 | #455 | R-040 |
+| F6 | #456 | R-041, R-042, R-046 |
+| F7 | #458 | R-043, R-045, R-048, R-049 |
+| F8 | #461 | R-047 |
 
 ### Dokumentace
 
-| # | Nálezy | Co |
+| # | PR | Nálezy |
 | --- | --- | --- |
-| D1 | R-007, R-008, R-011, R-012 | SDD podle hotového stavu |
-| D2 | R-050, R-051 | pravidla a limit 550 |
+| D1 | #470 | R-007, R-008, R-010 (SDD), R-011, R-012 |
+| D2 | #471 | R-050, R-051 |
 
-Dokumentace popisuje hotový stav, takže jde až za oběma kódovými stopami. Meta-edit flow
-(`touch .claude/allow-meta-edits`, editace, smazání příznaku) platí pro D1 i D2.
+### Stav nálezů
 
-### Konflikty
+Hotovo: R-001 až R-005, R-007 až R-012, R-016 až R-029, R-031, R-032, R-034, R-035,
+R-037 až R-050.
 
-Pořadí uvnitř stopy drží sdílené soubory: `FileTransferController` (B2, B8), `FileWriter`
-(B5, B8), `CaseWriter` a `ActWriter` (B5, B9, B11, B14), controllery (B5, B6, B10, B11, B13),
-testovací fixtures (B15 a vše před ním), stránky detailu (F3, F5, F6). Napříč stopami sdílejí
-soubor jen B6 a F3 (`EditAct.razor`), každý jinou oblastí; merge obou stop se před odevzdáním
-ověří nanečisto.
+Neprovedeno, s důvodem:
 
+- **R-006** — odloženo vlastníkem (rozhodnutí 8). Lešení v kódu zůstává, SDD-011 zůstává cílem.
+- **R-013, R-014** — zamítnuto vlastníkem (rozhodnutí 4): `src/Utils/**` zůstává celé.
+- **R-015** — provedeno mimo `src/Utils/**`; redundantní reference `Serilog.Extensions.Hosting`
+  zůstává podle téhož rozhodnutí.
+- **R-030** — zamítnuto při provádění: smazání explicitní větve `NotAuthor` shodí build na
+  IDE0072, který vynucuje pojmenování každého členu enumu i vedle discard větve. Stejný tvar
+  nese sdílený `CommentWriteAnswer`, takže jde o konvenci, ne o mrtvý kód.
+- **R-033** — zamítnuto při provádění: navržené pravidlo už platí. Enum sloužící jednomu
+  vlastníkovi ho jmenuje, enum sloužící dvěma je generický; `UploadFileOutcome.OwnerNotFound`
+  je proto správně a přejmenování by vrátilo mrtvou větev, kvůli které vznikl.
+- **R-036** — mimo rozsah: leží v `src/Utils/**` (rozhodnutí 4). Čeká na vlastníkovo slovo.
+- **R-051** — přidána dvě pravidla z pěti. Zamítnuta: kontraktní DTO nemají všechny vlastnosti
+  povinné (`CaseListRequest`, `ActListRequest` a `ContactListRequest` nesou volitelné filtry);
+  pravidlo o pojmenování testů a pravidlo o pojmenování test doubles neplatí v
+  `src/Utils/Tests/**`, tedy padají spolu s R-036.
+
+Limit instrukcí zvednut na 550 řádků (rozhodnutí 9); po přidání pravidel 542.
 ## Co záměrně neměníme
 
 - `ExternalCaseNumberWriter` vs. `ExternalActNumberWriter` (~90 % identické, po 38 řádcích):
@@ -428,3 +441,5 @@ ověří nanečisto.
 4. Editace externích čísel: vlastník přidá později (rozhodnutí 6).
 5. Výskyty kontaktu přes externí čísla jednací (R-006): vlastník doplní později
    (rozhodnutí 8).
+6. Pojmenování testů a test doubles v `src/Utils/Tests/**` (R-036): rozhodnout, zda se Utils
+   srovnají se zbytkem řešení. Dokud ne, nejdou zapsat dvě pravidla z R-051.
