@@ -15,7 +15,7 @@ svá SDD; žádný Critical ani High bezpečnostní nález. Největší problém
 1. Set-based zápisy (`ExecuteUpdate`/`ExecuteDelete`) obcházejí pravidlo vlastnictví řádky
    z SDD-006 — latentní, dokud 1 uživatel = 1 tenant (R-001).
 2. Detail kontaktu neukazuje výskyty přes externí čísla jednací; odkazovaný kontakt může
-   ukázat nula výskytů a přesto vrátit 409 při mazání (R-006).
+   ukázat nula výskytů a přesto vrátit 409 při mazání (R-006 — vlastník odložil, Q8).
 3. ~600 řádků duplicit ve frontendu a testech s prokazatelně záporným součtem sdílení
    (R-034, R-035, R-037, R-038).
 4. SDD ujela v detailech: tabulka stavů chyb, tabulka rout, pravidlo o toastech, login layout
@@ -66,16 +66,16 @@ Riziko: žádné.
 
 ### Soulad s SDD
 
-**R-006 · kód je špatně (SDD-011) · M** — Výskytům kontaktu chybí zdroj přes externí čísla
-jednací.
+**R-006 · Odloženo (Q8) · kód je špatně (SDD-011)** — Výskytům kontaktu chybí zdroj přes
+externí čísla jednací.
 Kde: `ContactReader.cs:33-53`, `ContactOccurrenceQuery.cs` (žádný dotaz přes
 `ExternalActNumber.AssignedByContactId`); mrtvé lešení `ContactActRole.cs:16` (`NumberIssuer`),
 `ContactActRoleDisplay.cs:13`, `ContactActOccurrence.ExternalNumber` vždy null, věčně prázdný
 sloupec `ContactActOccurrences.razor:37`.
 SDD-011 jmenuje výskyty „úkony přes … externí čísla“; kontakt odkazovaný jen externím číslem
-jednacím ukáže nula výskytů, a přesto na mazání odpoví 409. Změna: čtvrtý dotaz + spojení
-v readeru, naplnit `ExternalNumber`, `Role = NumberIssuer`; databázový test. Riziko: spojené
-řádky výskytů potřebují deterministický řadicí klíč.
+jednacím ukáže nula výskytů, a přesto na mazání odpoví 409. Vlastník doplnění odložil mimo
+review (Q8); lešení zůstává pro budoucí implementaci, SDD-011 zůstává cílový stav.
+Viz follow-up 5.
 
 **R-007 · SDD zastaralé · S** — Tabulce stavů v SDD-004 chybí stavy, které kód vrací.
 403 ne-autor u komentářů (`CommentWriteAnswer.cs:16-17`), 423 lockout (`AuthController.cs:34`),
@@ -162,7 +162,7 @@ beroucí probe vlastníka a scopované `IQueryable`; veřejné metody zůstanou 
 Změna: dva kroky dotazu vedle `EntityQuery`. ~−10 řádků, jedno znění pravidla vlastnictví.
 
 **R-022 · S** — `ContactOccurrenceQuery.cs:48-61` vs. `:63-76` se liší jen konstantou `Role`.
-Změna: jeden `AsActOccurrences(role)`. ~−12 řádků. Až po R-006 (týž soubor).
+Změna: jeden `AsActOccurrences(role)`. ~−12 řádků.
 
 **R-023 · S** — `ExternalActNumberQuery.OfAct(actId)` scopuje jen přes úkon, zatímco soubory
 a komentáře přes `(caseId, actId)`; vynucuje probe navíc
@@ -291,12 +291,20 @@ identifikátorů nezná výjimku klíče entity (všech 11 entit správně dekla
 doplnit „; an entity's key property is `Id`“; pravidlo assertion message neříká, kdy je
 message povinná (půlka sady žádnou nemá) — doplnit „where the assert alone does not say it“.
 
-**R-051 · S** — Jedna nezapsaná konvence za jeden řádek (rozpočet: 538/539 řádků celkem,
-vejde se právě jedna): `- A business write returns an outcome enum named
-<Entity><Verb>Outcome; the action maps every member and throws UnreachableException for the
-rest.` Zachytila by pojmenování `UploadFileOutcome` (R-033). Další kandidáti (sealed
-kontraktní recordy, pojmenování testů, vzor fixture, pojmenování doubles) se do limitu
-nevejdou a zamítají se.
+**R-051 · rozhodnuto (Q9) · S** — Nezapsané konvence, které kód všude drží.
+Vlastník povolil zvednout `maxLinesTotal` v `.claude/instruction-limits.json` z 539 na 550;
+přidává se pět pravidel (znění každého se před commitem ověří proti kódu):
+
+- business.md: `A business write returns an outcome enum named <Entity><Verb>Outcome; the
+  action maps every member and throws UnreachableException for the rest.` — zachytí
+  pojmenování `UploadFileOutcome` (R-033).
+- api.md: `A contract DTO is a sealed record; every property is required with init.`
+- code.md: `A test name is a declarative sentence in PascalCase; no Test suffix, no
+  underscores.` — R-036 pak drží pravidlo.
+- code.md: `A test double records under Recording*, behaves under Fake*, returns fixtures
+  under Stub*; shared only once two fixtures use it.`
+- code.md: `A database test runs under its own TestTenant; the fixture's doc comment names
+  the rules it pins.`
 
 ## Rozhodnutí
 
@@ -314,6 +322,10 @@ Zodpovězeno vlastníkem 2026-08-27:
 6. **Editace externích čísel** — zatím platí smazat-a-přidat; editaci vlastník přidá později,
    mimo toto review. V rámci review bez změny SDD i vize.
 7. **R-031, delete outcome enumy** — sloučit do jednoho sdíleného `DeleteOutcome`.
+8. **R-006, výskyty přes externí čísla jednací** — odloženo: zdroj se teď nedoplňuje, lešení
+   zůstává, SDD-011 zůstává cílový stav.
+9. **R-051, limit instrukcí** — `maxLinesTotal` se zvedá na 550 a navržená pravidla se
+   přidávají.
 
 ## Pořadí provádění
 
@@ -324,16 +336,16 @@ na rozhodnutí.
 - **Dávka 1 — bezpečnostní opravy:** R-002, R-003, R-005 (+ testy).
 - **Dávka 2 — rozhodnutá bezpečnost:** R-001, R-004 (+ testy).
 - **Dávka 3 — mazání:** R-015, R-016, R-017.
-- **Dávka 4 — mezera dle SDD:** R-006 (+ databázový test).
-- **Dávka 5 — backend foldy:** R-018, R-019, R-020, R-021, R-022, R-023.
-- **Dávka 6 — konzistence backendu:** R-024, R-025, R-026, R-027, R-030 (+ testy chování).
-- **Dávka 7 — povrch backendu:** R-028, R-029, R-031, R-032, R-033.
-- **Dávka 8 — testy:** R-034, R-035, R-036.
-- **Dávka 9 — struktura frontendu:** R-037, R-038, R-039, R-040, část R-010 v `ContactPicker`.
-- **Dávka 10 — jemnosti frontendu:** R-041 … R-049.
-- **Dávka 11 — aktualizace SDD:** R-007, R-008, R-011, R-012 a dopady rozhodnutí 1–3;
+- **Dávka 4 — backend foldy:** R-018, R-019, R-020, R-021, R-022, R-023.
+- **Dávka 5 — konzistence backendu:** R-024, R-025, R-026, R-027, R-030 (+ testy chování).
+- **Dávka 6 — povrch backendu:** R-028, R-029, R-031, R-032, R-033.
+- **Dávka 7 — testy:** R-034, R-035, R-036.
+- **Dávka 8 — struktura frontendu:** R-037, R-038, R-039, R-040, část R-010 v `ContactPicker`.
+- **Dávka 9 — jemnosti frontendu:** R-041 … R-049.
+- **Dávka 10 — aktualizace SDD:** R-007, R-008, R-011, R-012 a dopady rozhodnutí 1–3;
   oddělené commity, meta-edit flow.
-- **Dávka 12 — aktualizace pravidel:** R-050, R-051; meta-edit flow.
+- **Dávka 11 — aktualizace pravidel:** R-050, R-051 včetně navýšení limitu na 550;
+  meta-edit flow.
 
 ## Co záměrně neměníme
 
@@ -377,3 +389,5 @@ na rozhodnutí.
    proxy), aby „nedosažitelné jinak než přes proxy“ bylo vynucené, ne předpokládané.
 3. `TabBlazor 0.15.48-beta`: pre-release UI závislost v produkční aplikaci; sledovat upstream.
 4. Editace externích čísel: vlastník přidá později (rozhodnutí 6).
+5. Výskyty kontaktu přes externí čísla jednací (R-006): vlastník doplní později
+   (rozhodnutí 8).
