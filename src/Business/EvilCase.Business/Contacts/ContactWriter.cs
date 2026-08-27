@@ -12,6 +12,7 @@ internal sealed class ContactWriter(IDbSession dbSession) : IContactWriter
 {
     public async Task<ContactListItem> CreateContact(ContactEditRequest request, CancellationToken token)
     {
+        var context = dbSession.Current;
         var normalized = Normalize(request);
 
         var contact = new Contact
@@ -22,9 +23,9 @@ internal sealed class ContactWriter(IDbSession dbSession) : IContactWriter
             Address = normalized.Address,
         };
 
-        dbSession.Current.Contacts.Add(contact);
+        context.Contacts.Add(contact);
 
-        await dbSession.Current.SaveChangesAsync(token);
+        await context.SaveChangesAsync(token);
 
         return new ContactListItem
         {
@@ -57,7 +58,7 @@ internal sealed class ContactWriter(IDbSession dbSession) : IContactWriter
     {
         var context = dbSession.Current;
 
-        var contact = await context.Contacts.SingleOrDefaultAsync(entity => entity.Id == contactId, token);
+        var contact = await context.Contacts.WithId(contactId).SingleOrDefaultAsync(token);
         if (contact is null)
             return ContactDeleteOutcome.NotFound;
 

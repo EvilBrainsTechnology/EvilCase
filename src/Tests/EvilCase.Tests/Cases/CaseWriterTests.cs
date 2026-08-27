@@ -45,6 +45,20 @@ public class CaseWriterTests
     }
 
     [Test]
+    public void ATitleAndDescriptionAreStoredTrimmed()
+    {
+        var request = new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "  Přestupek  ", Description = "  text  " };
+
+        var @case = CaseWriter.BuildCase(request, "EC/20260821-001");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(@case.Title, Is.EqualTo("Přestupek"), "a created case stores its title trimmed");
+            Assert.That(@case.Description, Is.EqualTo("text"), "a created case stores its description trimmed");
+        }
+    }
+
+    [Test]
     public async Task ANumberTakenWhileTheCaseIsFiledIsIssuedAgain()
     {
         var userContext = new StubUserContext();
