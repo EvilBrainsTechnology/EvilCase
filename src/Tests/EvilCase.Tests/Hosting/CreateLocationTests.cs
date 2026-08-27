@@ -4,6 +4,7 @@ using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Business.Cases;
 using EvilBrains.EvilCase.Business.Contacts;
+using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Domain.Cases;
 using EvilBrains.EvilCase.Domain.Contacts;
 using Microsoft.Extensions.DependencyInjection;
@@ -108,7 +109,7 @@ public class CreateLocationTests
             throw new NotSupportedException();
         }
 
-        public Task<CaseDeleteOutcome> DeleteCase(Guid caseId, CancellationToken token)
+        public Task<DeleteOutcome> DeleteCase(Guid caseId, CancellationToken token)
         {
             throw new NotSupportedException();
         }

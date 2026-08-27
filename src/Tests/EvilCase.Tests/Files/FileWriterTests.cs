@@ -1,4 +1,5 @@
 using System.Text;
+using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Business.Files;
 using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Files;
@@ -100,7 +101,7 @@ public class FileWriterTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(outcome, Is.EqualTo(FileDeleteOutcome.Deleted));
+            Assert.That(outcome, Is.EqualTo(DeleteOutcome.Deleted));
             Assert.That(await this.tenant.Context.FileAssets.AnyAsync(file => file.Id == uploaded.File.FileId), Is.False, "a deleted file leaves no row");
             Assert.That(this.blobs.Deleted, Does.Contain(storagePath), "a deleted file takes its blob with it");
         }
@@ -117,7 +118,7 @@ public class FileWriterTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(outcome, Is.EqualTo(FileDeleteOutcome.NotFound), "a file of another case must not be found for delete");
+            Assert.That(outcome, Is.EqualTo(DeleteOutcome.NotFound), "a file of another case must not be found for delete");
             Assert.That(await this.tenant.Context.FileAssets.AnyAsync(file => file.Id == uploaded.File.FileId), Is.True, "the file must survive a delete naming the wrong case");
         }
     }
@@ -129,7 +130,7 @@ public class FileWriterTests
 
         var outcome = await this.writer.DeleteCaseFile(@case.Id, Guid.CreateVersion7(), CancellationToken.None);
 
-        Assert.That(outcome, Is.EqualTo(FileDeleteOutcome.NotFound));
+        Assert.That(outcome, Is.EqualTo(DeleteOutcome.NotFound));
     }
 
     [Test]
@@ -197,7 +198,7 @@ public class FileWriterTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(outcome, Is.EqualTo(FileDeleteOutcome.Deleted));
+            Assert.That(outcome, Is.EqualTo(DeleteOutcome.Deleted));
             Assert.That(await this.tenant.Context.FileAssets.AnyAsync(file => file.Id == uploaded.File.FileId), Is.False);
             Assert.That(this.blobs.Deleted, Does.Contain(storagePath));
         }
@@ -215,7 +216,7 @@ public class FileWriterTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(outcome, Is.EqualTo(FileDeleteOutcome.NotFound));
+            Assert.That(outcome, Is.EqualTo(DeleteOutcome.NotFound));
             Assert.That(await this.tenant.Context.FileAssets.AnyAsync(file => file.Id == uploaded.File.FileId), Is.True);
         }
     }
@@ -233,9 +234,9 @@ public class FileWriterTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(actDeleteOutcome, Is.EqualTo(FileDeleteOutcome.NotFound), "an act must not delete a file of its case");
+            Assert.That(actDeleteOutcome, Is.EqualTo(DeleteOutcome.NotFound), "an act must not delete a file of its case");
             Assert.That(await this.tenant.Context.FileAssets.AnyAsync(file => file.Id == caseFile.File.FileId), Is.True, "an act must not delete a file of its case");
-            Assert.That(caseDeleteOutcome, Is.EqualTo(FileDeleteOutcome.NotFound), "a case must not delete a file of its act");
+            Assert.That(caseDeleteOutcome, Is.EqualTo(DeleteOutcome.NotFound), "a case must not delete a file of its act");
             Assert.That(await this.tenant.Context.FileAssets.AnyAsync(file => file.Id == actFile.File.FileId), Is.True, "a case must not delete a file of its act");
         }
     }

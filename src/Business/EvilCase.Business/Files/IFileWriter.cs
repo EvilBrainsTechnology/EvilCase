@@ -1,3 +1,5 @@
+using EvilBrains.EvilCase.Business.Entities;
+
 namespace EvilBrains.EvilCase.Business.Files;
 
 /// <summary>
@@ -9,7 +11,7 @@ public interface IFileWriter
 
     public Task<UploadFileResult> UploadActFile(Guid caseId, Guid actId, FileUpload upload, CancellationToken token);
 
-    public Task<FileDeleteOutcome> DeleteCaseFile(Guid caseId, Guid fileId, CancellationToken token);
+    public Task<DeleteOutcome> DeleteCaseFile(Guid caseId, Guid fileId, CancellationToken token);
 
-    public Task<FileDeleteOutcome> DeleteActFile(Guid caseId, Guid actId, Guid fileId, CancellationToken token);
+    public Task<DeleteOutcome> DeleteActFile(Guid caseId, Guid actId, Guid fileId, CancellationToken token);
 }

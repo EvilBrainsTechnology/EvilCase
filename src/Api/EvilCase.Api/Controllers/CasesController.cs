@@ -4,6 +4,7 @@ using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Api.Contract.Numbers;
 using EvilBrains.EvilCase.Business.Cases;
+using EvilBrains.EvilCase.Business.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -90,8 +91,8 @@ public class CasesController : ControllerBase
 
         return outcome switch
         {
-            CaseDeleteOutcome.Deleted => this.NoContent(),
-            CaseDeleteOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: CaseProblems.NotFound),
+            DeleteOutcome.Deleted => this.NoContent(),
+            DeleteOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: CaseProblems.NotFound),
             _ => throw new UnreachableException(),
         };
     }
@@ -138,8 +139,8 @@ public class CasesController : ControllerBase
 
         return outcome switch
         {
-            ExternalCaseNumberDeleteOutcome.Deleted => this.NoContent(),
-            ExternalCaseNumberDeleteOutcome.NotFound => this.Problem(
+            DeleteOutcome.Deleted => this.NoContent(),
+            DeleteOutcome.NotFound => this.Problem(
                 statusCode: StatusCodes.Status404NotFound, title: "External case number not found"),
             _ => throw new UnreachableException(),
         };

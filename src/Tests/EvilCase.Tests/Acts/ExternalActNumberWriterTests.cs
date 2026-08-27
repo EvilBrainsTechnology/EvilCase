@@ -1,5 +1,6 @@
 using EvilBrains.EvilCase.Api.Contract.Numbers;
 using EvilBrains.EvilCase.Business.Acts;
+using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Tests.Data;
 using Microsoft.EntityFrameworkCore;
@@ -227,7 +228,7 @@ public class ExternalActNumberWriterTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(deleted, Is.EqualTo(ExternalActNumberDeleteOutcome.Deleted));
+            Assert.That(deleted, Is.EqualTo(DeleteOutcome.Deleted));
             Assert.That(exists, Is.False);
         }
     }
@@ -247,7 +248,7 @@ public class ExternalActNumberWriterTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(deleted, Is.EqualTo(ExternalActNumberDeleteOutcome.NotFound));
+            Assert.That(deleted, Is.EqualTo(DeleteOutcome.NotFound));
             Assert.That(exists, Is.True);
         }
     }
@@ -267,7 +268,7 @@ public class ExternalActNumberWriterTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(deleted, Is.EqualTo(ExternalActNumberDeleteOutcome.NotFound));
+            Assert.That(deleted, Is.EqualTo(DeleteOutcome.NotFound));
             Assert.That(exists, Is.True);
         }
     }
@@ -280,7 +281,7 @@ public class ExternalActNumberWriterTests
 
         var deleted = await this.writer.DeleteExternalActNumber(@case.Id, act.Id, Guid.CreateVersion7(), CancellationToken.None);
 
-        Assert.That(deleted, Is.EqualTo(ExternalActNumberDeleteOutcome.NotFound));
+        Assert.That(deleted, Is.EqualTo(DeleteOutcome.NotFound));
     }
 
     [Test]
@@ -298,7 +299,7 @@ public class ExternalActNumberWriterTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(deleted, Is.EqualTo(ExternalActNumberDeleteOutcome.NotFound));
+            Assert.That(deleted, Is.EqualTo(DeleteOutcome.NotFound));
             Assert.That(exists, Is.True, "the other tenant still holds it");
         }
     }

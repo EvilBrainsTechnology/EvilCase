@@ -1,5 +1,6 @@
 using EvilBrains.EvilCase.Api.Contract.Numbers;
 using EvilBrains.EvilCase.Business.Cases;
+using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Tests.Data;
 using Microsoft.EntityFrameworkCore;
@@ -187,7 +188,7 @@ public class ExternalCaseNumberWriterTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(deleted, Is.EqualTo(ExternalCaseNumberDeleteOutcome.Deleted));
+            Assert.That(deleted, Is.EqualTo(DeleteOutcome.Deleted));
             Assert.That(exists, Is.False);
         }
     }
@@ -206,7 +207,7 @@ public class ExternalCaseNumberWriterTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(deleted, Is.EqualTo(ExternalCaseNumberDeleteOutcome.NotFound));
+            Assert.That(deleted, Is.EqualTo(DeleteOutcome.NotFound));
             Assert.That(exists, Is.True);
         }
     }
@@ -218,7 +219,7 @@ public class ExternalCaseNumberWriterTests
 
         var deleted = await this.writer.DeleteExternalCaseNumber(@case.Id, Guid.CreateVersion7(), CancellationToken.None);
 
-        Assert.That(deleted, Is.EqualTo(ExternalCaseNumberDeleteOutcome.NotFound));
+        Assert.That(deleted, Is.EqualTo(DeleteOutcome.NotFound));
     }
 
     [Test]
@@ -235,7 +236,7 @@ public class ExternalCaseNumberWriterTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(deleted, Is.EqualTo(ExternalCaseNumberDeleteOutcome.NotFound), "the tenant query filter is what turns another tenant's mark into nothing");
+            Assert.That(deleted, Is.EqualTo(DeleteOutcome.NotFound), "the tenant query filter is what turns another tenant's mark into nothing");
             Assert.That(exists, Is.True, "the other tenant still holds it");
         }
     }

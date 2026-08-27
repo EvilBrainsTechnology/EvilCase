@@ -1,3 +1,4 @@
+using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Business.Files;
 
 namespace EvilBrains.EvilCase.Tests.Controllers;
@@ -20,7 +21,7 @@ internal sealed class RecordingFileWriter : IFileWriter
 
     public Guid? DeleteFileId { get; private set; }
 
-    public FileDeleteOutcome DeleteOutcome { get; init; }
+    public DeleteOutcome DeleteOutcome { get; init; }
 
     public Task<UploadFileResult> UploadCaseFile(Guid caseId, FileUpload upload, CancellationToken token)
     {
@@ -41,7 +42,7 @@ internal sealed class RecordingFileWriter : IFileWriter
         return Task.FromResult(this.UploadResult);
     }
 
-    public Task<FileDeleteOutcome> DeleteCaseFile(Guid caseId, Guid fileId, CancellationToken token)
+    public Task<DeleteOutcome> DeleteCaseFile(Guid caseId, Guid fileId, CancellationToken token)
     {
         this.DeleteCaseId = caseId;
         this.DeleteFileId = fileId;
@@ -49,7 +50,7 @@ internal sealed class RecordingFileWriter : IFileWriter
         return Task.FromResult(this.DeleteOutcome);
     }
 
-    public Task<FileDeleteOutcome> DeleteActFile(Guid caseId, Guid actId, Guid fileId, CancellationToken token)
+    public Task<DeleteOutcome> DeleteActFile(Guid caseId, Guid actId, Guid fileId, CancellationToken token)
     {
         this.DeleteCaseId = caseId;
         this.DeleteActId = actId;

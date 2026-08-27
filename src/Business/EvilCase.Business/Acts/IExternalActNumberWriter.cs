@@ -1,4 +1,5 @@
 using EvilBrains.EvilCase.Api.Contract.Numbers;
+using EvilBrains.EvilCase.Business.Entities;
 
 namespace EvilBrains.EvilCase.Business.Acts;
 
@@ -9,5 +10,5 @@ public interface IExternalActNumberWriter
 {
     public Task<ExternalActNumberOutcome> AddExternalActNumber(Guid caseId, Guid actId, ExternalNumberRequest request, CancellationToken token);
 
-    public Task<ExternalActNumberDeleteOutcome> DeleteExternalActNumber(Guid caseId, Guid actId, Guid numberId, CancellationToken token);
+    public Task<DeleteOutcome> DeleteExternalActNumber(Guid caseId, Guid actId, Guid numberId, CancellationToken token);
 }

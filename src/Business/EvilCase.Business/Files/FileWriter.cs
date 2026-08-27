@@ -38,29 +38,29 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
         return new UploadFileResult { Outcome = UploadFileOutcome.Uploaded, File = file };
     }
 
-    public async Task<FileDeleteOutcome> DeleteCaseFile(Guid caseId, Guid fileId, CancellationToken token)
+    public async Task<DeleteOutcome> DeleteCaseFile(Guid caseId, Guid fileId, CancellationToken token)
     {
         var files = dbSession.Current.FileAssets.OfCase(caseId).WithId(fileId);
 
         var outcome = await this.DeleteFile(files, token);
-        if (outcome == FileDeleteOutcome.Deleted)
+        if (outcome == DeleteOutcome.Deleted)
             logger.LogInformation("File {FileAssetId} was removed from case {CaseId}", fileId, caseId);
 
         return outcome;
     }
 
-    public async Task<FileDeleteOutcome> DeleteActFile(Guid caseId, Guid actId, Guid fileId, CancellationToken token)
+    public async Task<DeleteOutcome> DeleteActFile(Guid caseId, Guid actId, Guid fileId, CancellationToken token)
     {
         var files = dbSession.Current.FileAssets.OfAct(caseId, actId).WithId(fileId);
 
         var outcome = await this.DeleteFile(files, token);
-        if (outcome == FileDeleteOutcome.Deleted)
+        if (outcome == DeleteOutcome.Deleted)
             logger.LogInformation("File {FileAssetId} was removed from act {ActId}", fileId, actId);
 
         return outcome;
     }
 
-    private async Task<FileDeleteOutcome> DeleteFile(IQueryable<FileAsset> files, CancellationToken token)
+    private async Task<DeleteOutcome> DeleteFile(IQueryable<FileAsset> files, CancellationToken token)
     {
         // Read before the delete: the row is gone once ExecuteDeleteAsync runs.
         var storagePath = await files
@@ -68,14 +68,14 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
             .SingleOrDefaultAsync(token);
 
         if (storagePath is null)
-            return FileDeleteOutcome.NotFound;
+            return DeleteOutcome.NotFound;
 
         await files.ExecuteDeleteAsync(token);
 
         // The row goes first; a blob left behind is tolerated (SDD-012).
         await blobStore.DeleteFileBlob(storagePath, token);
 
-        return FileDeleteOutcome.Deleted;
+        return DeleteOutcome.Deleted;
     }
 
     private async Task<FileListItem> StoreFile(Guid? caseId, Guid? actId, FileUpload upload, CancellationToken token)
