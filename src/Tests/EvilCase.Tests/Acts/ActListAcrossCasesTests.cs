@@ -6,10 +6,10 @@ using EvilBrains.EvilCase.Tests.Data;
 namespace EvilBrains.EvilCase.Tests.Acts;
 
 /// <summary>
-/// The tenant act list on the rows a real PostgreSQL returns. Each test seeds a tenant of its own, so
-/// none cleans up after itself.
+/// The act list across every case on the rows a real PostgreSQL returns. Each test seeds a tenant of
+/// its own, so none cleans up after itself.
 /// </summary>
-public class TenantActListTests
+public class ActListAcrossCasesTests
 {
     private TestTenant tenant = null!;
 
@@ -37,14 +37,14 @@ public class TenantActListTests
 
         var reader = new ActReader(new FixedDbSession(this.tenant.Context));
 
-        var items = await reader.ListTenantActs(new ActListRequest(), CancellationToken.None);
+        var items = await reader.ListActs(new ActListRequest(), CancellationToken.None);
 
         Guid[] expected = [newest.Id, middle.Id, oldest.Id];
 
         Assert.That(
             items.Select(item => item.ActId),
             Is.EqualTo(expected),
-            "the tenant act list crosses cases and puts the newest act date first");
+            "the act list crosses cases and puts the newest act date first");
     }
 
     [Test]
@@ -61,14 +61,14 @@ public class TenantActListTests
 
         var reader = new ActReader(new FixedDbSession(this.tenant.Context));
 
-        var items = await reader.ListTenantActs(new ActListRequest(), CancellationToken.None);
+        var items = await reader.ListActs(new ActListRequest(), CancellationToken.None);
 
         Guid[] expected = [mine.Id];
 
         Assert.That(
             items.Select(item => item.ActId),
             Is.EqualTo(expected),
-            "the tenant query filter is what keeps another tenant's acts out of the tenant act list");
+            "the tenant query filter is what keeps another tenant's acts out of the act list");
     }
 
     [Test]
@@ -82,7 +82,7 @@ public class TenantActListTests
 
         var reader = new ActReader(new FixedDbSession(this.tenant.Context));
 
-        var items = await reader.ListTenantActs(new ActListRequest { Take = 5 }, CancellationToken.None);
+        var items = await reader.ListActs(new ActListRequest { Take = 5 }, CancellationToken.None);
 
         var expected = acts.TakeLast(5).Reverse().Select(act => act.Id);
 
@@ -102,7 +102,7 @@ public class TenantActListTests
 
         var reader = new ActReader(new FixedDbSession(this.tenant.Context));
 
-        var items = await reader.ListTenantActs(new ActListRequest { Take = null }, CancellationToken.None);
+        var items = await reader.ListActs(new ActListRequest { Take = null }, CancellationToken.None);
 
         Assert.That(items, Has.Count.EqualTo(7), "an absent cap narrows nothing");
     }
@@ -115,13 +115,13 @@ public class TenantActListTests
 
         var reader = new ActReader(new FixedDbSession(this.tenant.Context));
 
-        var items = await reader.ListTenantActs(new ActListRequest(), CancellationToken.None);
+        var items = await reader.ListActs(new ActListRequest(), CancellationToken.None);
         var item = items.Single();
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(item.CaseId, Is.EqualTo(@case.Id), "a row of the tenant act list names the case, which is what the dashboard links to");
-            Assert.That(item.CaseNumber, Is.EqualTo(@case.CaseNumber), "a row of the tenant act list names the case, which is what the dashboard links to");
+            Assert.That(item.CaseId, Is.EqualTo(@case.Id), "a row names the case, which is what the dashboard links to");
+            Assert.That(item.CaseNumber, Is.EqualTo(@case.CaseNumber), "a row names the case, which is what the dashboard links to");
         }
     }
 }

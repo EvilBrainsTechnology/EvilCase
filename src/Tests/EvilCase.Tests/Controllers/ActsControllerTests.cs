@@ -18,7 +18,7 @@ public class ActsControllerTests
         var reader = new RecordingActReader { Items = [Item("Podání"), Item("Rozhodnutí")] };
         var controller = new ActsController();
 
-        var response = await controller.ListActs(reader, Guid.CreateVersion7(), CancellationToken.None);
+        var response = await controller.ListCaseActs(reader, Guid.CreateVersion7(), CancellationToken.None);
 
         Assert.That(response.Items.Select(item => item.Title), Is.EqualTo(["Podání", "Rozhodnutí"]));
     }
@@ -30,9 +30,31 @@ public class ActsControllerTests
         var reader = new RecordingActReader();
         var controller = new ActsController();
 
-        await controller.ListActs(reader, caseId, CancellationToken.None);
+        await controller.ListCaseActs(reader, caseId, CancellationToken.None);
 
         Assert.That(reader.CaseId, Is.EqualTo(caseId));
+    }
+
+    [Test]
+    public async Task TheListRequestReachesTheReaderUntouched()
+    {
+        var reader = new RecordingActReader();
+        var controller = new ActsController();
+
+        await controller.ListActs(reader, new ActListRequest { Take = 5 }, CancellationToken.None);
+
+        Assert.That(reader.ListRequest?.Take, Is.EqualTo(5), "the controller decides nothing about the cap");
+    }
+
+    [Test]
+    public async Task TheActsAcrossEveryCaseComeBackInTheOrderTheReaderGaveThem()
+    {
+        var reader = new RecordingActReader { Items = [Item("druhý"), Item("první")] };
+        var controller = new ActsController();
+
+        var response = await controller.ListActs(reader, new ActListRequest(), CancellationToken.None);
+
+        Assert.That(response.Items.Select(item => item.Title), Is.EqualTo(["druhý", "první"]), "the controller does not re-order what the reader gave it");
     }
 
     [Test]
@@ -506,6 +528,8 @@ public class ActsControllerTests
     {
         public Guid? CaseId { get; private set; }
 
+        public ActListRequest? ListRequest { get; private set; }
+
         public Guid? DetailCaseId { get; private set; }
 
         public Guid? DetailActId { get; private set; }
@@ -514,7 +538,14 @@ public class ActsControllerTests
 
         public ActDetail? DetailResult { get; init; }
 
-        public Task<IReadOnlyList<ActListItem>> ListActs(Guid caseId, CancellationToken token)
+        public Task<IReadOnlyList<ActListItem>> ListActs(ActListRequest request, CancellationToken token)
+        {
+            this.ListRequest = request;
+
+            return Task.FromResult(this.Items);
+        }
+
+        public Task<IReadOnlyList<ActListItem>> ListCaseActs(Guid caseId, CancellationToken token)
         {
             this.CaseId = caseId;
 
@@ -527,11 +558,6 @@ public class ActsControllerTests
             this.DetailActId = actId;
 
             return Task.FromResult(this.DetailResult);
-        }
-
-        public Task<IReadOnlyList<ActListItem>> ListTenantActs(ActListRequest request, CancellationToken token)
-        {
-            throw new NotSupportedException("This controller under test never reads the tenant act list.");
         }
     }
 

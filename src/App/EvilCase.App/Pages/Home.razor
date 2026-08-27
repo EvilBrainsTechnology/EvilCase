@@ -5,7 +5,7 @@
 @using EvilBrains.EvilCase.Api.Contract.Cases
 @using EvilBrains.EvilCase.Domain.Cases
 @inject ICasesClient CasesClient
-@inject ITenantActsClient TenantActsClient
+@inject IActsClient ActsClient
 @inject ILogger<Home> Logger
 
 <div class="page-header d-print-none">
@@ -84,7 +84,7 @@
                 new CaseListRequest { Status = CaseStatusFilter.All, Order = CaseListOrder.Changed, Take = TileItems },
                 CancellationToken.None);
 
-            var acts = await this.TenantActsClient.ListTenantActs(new ActListRequest { Take = TileItems }, CancellationToken.None);
+            var acts = await this.ActsClient.ListActs(new ActListRequest { Take = TileItems }, CancellationToken.None);
 
             this.view = new DashboardView { Counts = cases.Counts, ChangedCases = cases.Items, RecentActs = acts.Items };
         }

@@ -10,18 +10,26 @@ namespace EvilBrains.EvilCase.Api.Controllers;
 
 [ApiController]
 [GenerateApiClient]
-[Route("api/cases/{caseId:guid}/acts")]
+[Route("api")]
 public class ActsController : ControllerBase
 {
-    [HttpGet("")]
-    public async Task<ActListResponse> ListActs([FromServices] IActReader acts, [FromRoute] Guid caseId, CancellationToken token)
+    [HttpGet("acts")]
+    public async Task<ActListResponse> ListActs([FromServices] IActReader acts, [FromQuery] ActListRequest request, CancellationToken token)
     {
-        var items = await acts.ListActs(caseId, token);
+        var items = await acts.ListActs(request, token);
 
         return new ActListResponse { Items = items };
     }
 
-    [HttpPost("")]
+    [HttpGet("cases/{caseId:guid}/acts")]
+    public async Task<ActListResponse> ListCaseActs([FromServices] IActReader acts, [FromRoute] Guid caseId, CancellationToken token)
+    {
+        var items = await acts.ListCaseActs(caseId, token);
+
+        return new ActListResponse { Items = items };
+    }
+
+    [HttpPost("cases/{caseId:guid}/acts")]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -39,7 +47,7 @@ public class ActsController : ControllerBase
         };
     }
 
-    [HttpGet("{actId:guid}")]
+    [HttpGet("cases/{caseId:guid}/acts/{actId:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ActDetail>> GetAct([FromServices] IActReader acts, [FromRoute] Guid caseId, [FromRoute] Guid actId, CancellationToken token)
@@ -51,7 +59,7 @@ public class ActsController : ControllerBase
             : this.Ok(act);
     }
 
-    [HttpPut("{actId:guid}")]
+    [HttpPut("cases/{caseId:guid}/acts/{actId:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -73,7 +81,7 @@ public class ActsController : ControllerBase
         };
     }
 
-    [HttpDelete("{actId:guid}")]
+    [HttpDelete("cases/{caseId:guid}/acts/{actId:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeleteAct([FromServices] IActWriter writer, [FromRoute] Guid caseId, [FromRoute] Guid actId, CancellationToken token)
@@ -88,7 +96,7 @@ public class ActsController : ControllerBase
         };
     }
 
-    [HttpPost("{actId:guid}/external-numbers")]
+    [HttpPost("cases/{caseId:guid}/acts/{actId:guid}/external-numbers")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -118,7 +126,7 @@ public class ActsController : ControllerBase
         };
     }
 
-    [HttpDelete("{actId:guid}/external-numbers/{numberId:guid}")]
+    [HttpDelete("cases/{caseId:guid}/acts/{actId:guid}/external-numbers/{numberId:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeleteExternalActNumber(

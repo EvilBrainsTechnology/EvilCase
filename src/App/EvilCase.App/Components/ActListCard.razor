@@ -103,7 +103,7 @@
     {
         try
         {
-            var response = await this.ActsClient.ListActs(this.CaseId, CancellationToken.None);
+            var response = await this.ActsClient.ListCaseActs(this.CaseId, CancellationToken.None);
 
             this.items = response.Items;
         }
