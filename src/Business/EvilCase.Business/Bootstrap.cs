@@ -4,6 +4,7 @@ using EvilBrains.EvilCase.Business.Comments;
 using EvilBrains.EvilCase.Business.Contacts;
 using EvilBrains.EvilCase.Business.Files;
 using EvilBrains.EvilCase.Business.Numbering;
+using EvilBrains.EvilCase.Business.Search;
 using EvilBrains.EvilCase.Business.Seeding;
 using EvilBrains.EvilCase.Data;
 using EvilBrains.EvilCase.Data.DbContexts;
@@ -35,6 +36,7 @@ public static class Bootstrap
         services.AddScoped<ISampleDataSeeder, SampleDataSeeder>();
         services.AddScoped<ICaseNumberIssuer, CaseNumberIssuer>();
         services.AddScoped<IActNumberIssuer, ActNumberIssuer>();
+        services.AddScoped<ISearchReader, SearchReader>();
 
         return services;
     }
