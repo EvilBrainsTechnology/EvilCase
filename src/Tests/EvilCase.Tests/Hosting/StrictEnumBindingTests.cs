@@ -49,7 +49,7 @@ public class StrictEnumBindingTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest), "an integer enum value in a JSON body bypasses no validation");
-            Assert.That(problem?.Errors, Does.ContainKey(nameof(ContactEditRequest.Kind)), "the refused value is reported on the field that carries it");
+            Assert.That(problem?.Errors, Does.ContainKey("$.kind"), "a JSON conversion failure is reported under the JSON path of the field that carried the integer");
         }
     }
 
