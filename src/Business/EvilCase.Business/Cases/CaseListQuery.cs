@@ -1,9 +1,6 @@
 using EvilBrains.EvilCase.Api.Contract.Cases;
-using EvilBrains.EvilCase.Data;
-using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Domain.Cases;
-using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Business.Cases;
 
@@ -12,22 +9,6 @@ namespace EvilBrains.EvilCase.Business.Cases;
 /// </summary>
 public static class CaseListQuery
 {
-    /// <summary>
-    /// Matches the title or the description, ignoring case and diacritics. A blank term narrows nothing.
-    /// </summary>
-    public static IQueryable<Case> MatchingSearch(this IQueryable<Case> cases, string? search)
-    {
-        if (string.IsNullOrWhiteSpace(search))
-            return cases;
-
-        var pattern = $"%{search.Trim().EscapeLikeWildcards()}%";
-
-        return cases.Where(@case =>
-            EF.Functions.ILike(DatabaseFunctions.Unaccent(@case.Title), DatabaseFunctions.Unaccent(pattern), LikeExtensions.LikeEscape)
-                || (@case.Description != null
-                    && EF.Functions.ILike(DatabaseFunctions.Unaccent(@case.Description), DatabaseFunctions.Unaccent(pattern), LikeExtensions.LikeEscape)));
-    }
-
     public static IQueryable<Case> WithStatus(this IQueryable<Case> cases, CaseStatusFilter filter)
     {
         return filter switch

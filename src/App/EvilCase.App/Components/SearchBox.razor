@@ -1,0 +1,117 @@
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.Search
+@implements IDisposable
+@inject ISearchClient SearchClient
+@inject NavigationManager Navigation
+@inject ILogger<SearchBox> Logger
+
+<div class="input-icon">
+    <span class="input-icon-addon">
+        <Icon CssClass="icon" IconType="AppIcons.Search" />
+    </span>
+    <input type="search" class="form-control" aria-label="Hledat ve spisech a úkonech"
+           placeholder="Hledat v názvech, popisech a číslech"
+           value="@this.term" @oninput="this.OnInput" @onkeydown="this.OnKeyDown" />
+</div>
+
+@if (this.items.Count > 0)
+{
+    <div class="list-group mt-1">
+        @foreach (var item in this.items)
+        {
+            <button type="button" class="list-group-item list-group-item-action" @onclick="() => this.Open(item)">
+                <span class="badge bg-secondary-lt me-2">@SearchResultDisplay.KindText(item.Kind)</span>
+                <span class="text-secondary me-2">@item.Number</span>
+                @item.Title
+                <span class="text-secondary ms-2">@DateDisplay.Text(item.Date)</span>
+            </button>
+        }
+    </div>
+}
+else if (this.items.Count == 0 && this.searched)
+{
+    <div class="form-hint">Nic neodpovídá.</div>
+}
+
+@code {
+    private const int MinimumTermLength = 2;
+
+    private readonly SearchDebouncer debouncer = new();
+
+    private IReadOnlyList<SearchResultItem> items = [];
+
+    private SearchResultItem? exactMatch;
+
+    private string term = "";
+
+    private bool searched;
+
+    public void Dispose()
+    {
+        this.debouncer.Dispose();
+    }
+
+    private async Task OnInput(ChangeEventArgs args)
+    {
+        this.term = args.Value as string ?? "";
+
+        var token = await this.debouncer.Start(debounce: true);
+        if (token is null)
+            return;
+
+        if (this.term.Trim().Length < MinimumTermLength)
+        {
+            this.Clear();
+            return;
+        }
+
+        try
+        {
+            var response = await this.SearchClient.Search(new SearchRequest { Query = this.term }, token.Value);
+
+            this.items = response.Items;
+            this.exactMatch = response.ExactMatch;
+            this.searched = true;
+        }
+        catch (OperationCanceledException)
+        {
+            // Superseded by a newer search.
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Loading the search results failed");
+
+            this.Clear();
+            this.searched = true;
+        }
+    }
+
+    private void OnKeyDown(KeyboardEventArgs args)
+    {
+        if (args.Key == "Escape")
+        {
+            this.Clear();
+            return;
+        }
+
+        // Only Enter navigates, and only where the term is one entity's number.
+        if (args.Key == "Enter" && this.exactMatch is not null)
+            this.Open(this.exactMatch);
+    }
+
+    private void Open(SearchResultItem item)
+    {
+        var href = SearchResultDisplay.Href(item);
+
+        this.Clear();
+        this.Navigation.NavigateTo(href);
+    }
+
+    private void Clear()
+    {
+        this.items = [];
+        this.exactMatch = null;
+        this.searched = false;
+    }
+}

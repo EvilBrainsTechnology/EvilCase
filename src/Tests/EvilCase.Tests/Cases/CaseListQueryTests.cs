@@ -29,57 +29,6 @@ public class CaseListQueryTests
     }
 
     [Test]
-    public async Task TheSearchFoldsCaseAndDiacriticsOverTheTitleAndTheDescription()
-    {
-        await this.tenant.AddCase(Day, "Odvolání proti rozhodnutí");
-        await this.tenant.AddCase(Day, "Přestupek", description: "Odvolání podáno v termínu");
-        await this.tenant.AddCase(Day, "ODVOLANI bez diakritiky");
-        await this.tenant.AddCase(Day, "Nahlédnutí do spisu", description: "bez poznámky");
-
-        var byPlainTerm = await this.Titles("odvolani");
-        var byAccentedTerm = await this.Titles("Odvolání");
-
-        string[] expected = ["Odvolání proti rozhodnutí", "Přestupek", "ODVOLANI bez diakritiky"];
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(byPlainTerm, Is.EquivalentTo(expected), "the search folds case and diacritics over both the title and the description");
-            Assert.That(byAccentedTerm, Is.EquivalentTo(expected), "the term folds too, so an accented term reaches a row written without diacritics");
-        }
-    }
-
-    [Test]
-    public async Task ABlankSearchReturnsEveryCaseOfTheTenant()
-    {
-        await this.tenant.AddCase(Day, "Odvolání");
-        await this.tenant.AddCase(Day, "Přestupek");
-
-        var unset = await this.tenant.Context.Cases.MatchingSearch(search: null).CountAsync();
-        var empty = await this.tenant.Context.Cases.MatchingSearch("").CountAsync();
-        var blank = await this.tenant.Context.Cases.MatchingSearch("   ").CountAsync();
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(unset, Is.EqualTo(2), "a blank term narrows nothing");
-            Assert.That(empty, Is.EqualTo(2), "a blank term narrows nothing");
-            Assert.That(blank, Is.EqualTo(2), "a blank term narrows nothing");
-        }
-    }
-
-    [Test]
-    public async Task AWildcardInTheTermMatchesOnlyItself()
-    {
-        await this.tenant.AddCase(Day, @"Sleva 50%_a\b");
-        await this.tenant.AddCase(Day, "Sleva 50 ab");
-
-        var titles = await this.Titles(@"50%_a\b");
-
-        string[] expected = [@"Sleva 50%_a\b"];
-
-        Assert.That(titles, Is.EqualTo(expected), "a wildcard in the term matches only itself");
-    }
-
-    [Test]
     public async Task TheOrderIsTheCasesOwnDateNewestFirstWithCreatedBreakingATie()
     {
         var caseIds = TestTenant.SortedEntityIds(2);
@@ -121,26 +70,6 @@ public class CaseListQueryTests
     }
 
     [Test]
-    public async Task TheSearchAndTheStatusNarrowTheSameQuery()
-    {
-        await this.tenant.AddCase(Day, "Odvolání živé", status: CaseStatus.Active);
-        var wanted = await this.tenant.AddCase(Day, "Odvolání uzavřené", status: CaseStatus.Closed);
-        await this.tenant.AddCase(Day, "Přestupek", status: CaseStatus.Closed);
-
-        var ids = await this.tenant.Context.Cases
-            .MatchingSearch("odvolani")
-            .WithStatus(CaseStatusFilter.Closed)
-            .InListOrder()
-            .AsListItems()
-            .Select(item => item.CaseId)
-            .ToListAsync();
-
-        Guid[] expected = [wanted.Id];
-
-        Assert.That(ids, Is.EqualTo(expected), "the two narrow together, not one instead of the other");
-    }
-
-    [Test]
     public async Task ARowCarriesTheCaseNumberTheTitleTheDateAndTheStatus()
     {
         var seeded = await this.tenant.AddCase(new DateOnly(2026, 8, 21), "Přestupek", status: CaseStatus.WaitingOnAuthority);
@@ -168,7 +97,6 @@ public class CaseListQueryTests
             await other.AddCase(Day, "Cizí věc");
 
         var ids = await this.tenant.Context.Cases
-            .MatchingSearch(search: null)
             .WithStatus(CaseStatusFilter.All)
             .InListOrder()
             .AsListItems()
@@ -187,7 +115,6 @@ public class CaseListQueryTests
     public void TheListReadsNoDescriptionCountsNothingAndPagesNothing()
     {
         var sql = this.tenant.Context.Cases
-            .MatchingSearch(search: null)
             .WithStatus(CaseStatusFilter.All)
             .InListOrder()
             .AsListItems()
@@ -212,14 +139,6 @@ public class CaseListQueryTests
         var sql = this.tenant.Context.Cases.InListOrder().ToQueryString();
 
         Assert.That(sql, Does.Contain("\"Id\" DESC"), "the identifier makes the order total");
-    }
-
-    private async Task<List<string>> Titles(string search)
-    {
-        return await this.tenant.Context.Cases
-            .MatchingSearch(search)
-            .Select(@case => @case.Title)
-            .ToListAsync();
     }
 
     private async Task<List<Guid>> IdsWithStatus(CaseStatusFilter filter)

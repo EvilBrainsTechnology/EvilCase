@@ -2,7 +2,6 @@
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Cases
-@implements IDisposable
 @inject ICasesClient CasesClient
 @inject ILogger<Cases> Logger
 
@@ -25,14 +24,7 @@
             <div class="card-body border-bottom py-3">
                 <div class="row g-2">
                     <div class="col-12 col-lg">
-                        <div class="input-icon">
-                            <span class="input-icon-addon">
-                                <Icon CssClass="icon" IconType="AppIcons.Search" />
-                            </span>
-                            <input type="search" class="form-control" aria-label="Hledat ve spisech"
-                                   placeholder="Hledat v názvu a popisu"
-                                   value="@this.search" @oninput="this.OnSearchInput" />
-                        </div>
+                        <SearchBox />
                     </div>
                     <div class="col-12 col-lg-auto">
                         <select class="form-select" aria-label="Stav spisu"
@@ -62,7 +54,7 @@
             {
                 <div class="empty">
                     <p class="empty-title">Žádné spisy</p>
-                    <p class="empty-subtitle text-secondary">@(!string.IsNullOrWhiteSpace(this.search) || this.status != CaseStatusFilter.All ? "Zkuste jiné hledání nebo jiný stav — uzavřené spisy se ve výchozím nastavení nezobrazují." : "Zatím tu není žádný spis.")</p>
+                    <p class="empty-subtitle text-secondary">@(this.status != CaseStatusFilter.All ? "Zkuste jiný stav — uzavřené spisy se ve výchozím nastavení nezobrazují." : "Zatím tu není žádný spis.")</p>
                     <div class="empty-action">
                         <a href="/cases/new" class="btn btn-primary">Založit spis</a>
                     </div>
@@ -111,57 +103,30 @@
 @code {
     private static readonly CaseStatusFilter[] Filters = Enum.GetValues<CaseStatusFilter>();
 
-    private readonly SearchDebouncer debouncer = new();
-
     private IReadOnlyList<CaseListItem>? items;
-    private string search = "";
     private CaseStatusFilter status = CaseStatusFilter.Open;
     private string? failure;
 
     protected override Task OnInitializedAsync()
     {
-        return this.LoadCases(debounce: false);
-    }
-
-    public void Dispose()
-    {
-        this.debouncer.Dispose();
-    }
-
-    private Task OnSearchInput(ChangeEventArgs args)
-    {
-        this.search = args.Value as string ?? "";
-
-        return this.LoadCases(debounce: true);
+        return this.LoadCases();
     }
 
     private Task Reload()
     {
-        return this.LoadCases(debounce: false);
+        return this.LoadCases();
     }
 
-    private async Task LoadCases(bool debounce)
+    private async Task LoadCases()
     {
-        var token = await this.debouncer.Start(debounce);
-        if (token is null)
-            return;
-
-        var request = new CaseListRequest
-        {
-            Search = string.IsNullOrWhiteSpace(this.search) ? null : this.search,
-            Status = this.status,
-        };
+        var request = new CaseListRequest { Status = this.status };
 
         try
         {
-            var response = await this.CasesClient.ListCases(request, token.Value);
+            var response = await this.CasesClient.ListCases(request, CancellationToken.None);
 
             this.items = response.Items;
             this.failure = null;
-        }
-        catch (OperationCanceledException)
-        {
-            // Superseded by a newer request.
         }
         catch (Exception exception) when (exception is ApiException or HttpRequestException)
         {

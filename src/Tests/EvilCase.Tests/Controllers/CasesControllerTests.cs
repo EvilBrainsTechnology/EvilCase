@@ -22,18 +22,14 @@ public class CasesControllerTests
     }
 
     [Test]
-    public async Task TheSearchTermReachesTheReaderUntouched()
+    public async Task TheStatusFilterReachesTheReaderUntouched()
     {
         var reader = new RecordingCaseReader();
         var controller = new CasesController();
 
-        await controller.ListCases(reader, new CaseListRequest { Search = "odvolání", Status = CaseStatusFilter.WaitingOnAuthority }, CancellationToken.None);
+        await controller.ListCases(reader, new CaseListRequest { Status = CaseStatusFilter.WaitingOnAuthority }, CancellationToken.None);
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(reader.Request?.Search, Is.EqualTo("odvolání"), "the controller decides nothing about the term");
-            Assert.That(reader.Request?.Status, Is.EqualTo(CaseStatusFilter.WaitingOnAuthority), "the controller hands the status through untouched");
-        }
+        Assert.That(reader.Request?.Status, Is.EqualTo(CaseStatusFilter.WaitingOnAuthority), "the controller hands the status through untouched");
     }
 
     [Test]
