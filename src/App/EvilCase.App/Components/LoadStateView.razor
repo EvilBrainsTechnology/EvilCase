@@ -1,0 +1,43 @@
+@if (this.NotFound)
+{
+    <div class="empty">
+        <p class="empty-title">@this.NotFoundTitle</p>
+    </div>
+}
+else if (this.Failure is not null)
+{
+    <div class="empty">
+        <p class="empty-title">@this.FailureTitle</p>
+        <p class="empty-subtitle text-secondary">@this.Failure</p>
+    </div>
+}
+else if (!this.Loaded)
+{
+    <div class="text-center text-secondary">
+        <div class="spinner-border" role="status"></div>
+    </div>
+}
+else
+{
+    @this.ChildContent
+}
+
+@code {
+    [Parameter]
+    public bool NotFound { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string NotFoundTitle { get; set; }
+
+    [Parameter]
+    public string? Failure { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string FailureTitle { get; set; }
+
+    [Parameter]
+    public bool Loaded { get; set; }
+
+    [Parameter, EditorRequired]
+    public required RenderFragment ChildContent { get; set; }
+}

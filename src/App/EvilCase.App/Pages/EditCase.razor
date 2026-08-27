@@ -20,27 +20,7 @@
 
 <div class="page-body">
     <div class="container-xl">
-        @if (this.notFound)
-        {
-            <div class="empty">
-                <p class="empty-title">Spis nenalezen</p>
-            </div>
-        }
-        else if (this.failure is not null)
-        {
-            <div class="empty">
-                <p class="empty-title">Spis se nepodařilo načíst</p>
-                <p class="empty-subtitle text-secondary">@this.failure</p>
-            </div>
-        }
-        else if (!this.loaded)
-        {
-            <div class="text-center text-secondary">
-                <div class="spinner-border" role="status"></div>
-            </div>
-        }
-        else
-        {
+        <LoadStateView NotFound="this.notFound" NotFoundTitle="Spis nenalezen" Failure="@this.failure" FailureTitle="Spis se nepodařilo načíst" Loaded="this.loaded">
             <div class="card">
                 <EditForm Model="this.model" OnValidSubmit="this.SubmitCase">
                     <DataAnnotationsValidator />
@@ -121,7 +101,7 @@
                                      DeleteNumber="this.DeleteExternalNumber"
                                      OnChanged="this.ReloadExternalNumbers" />
             </div>
-        }
+        </LoadStateView>
     </div>
 </div>
 

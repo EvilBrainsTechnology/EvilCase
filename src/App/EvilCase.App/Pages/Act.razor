@@ -54,27 +54,7 @@
 
 <div class="page-body">
     <div class="container-xl">
-        @if (this.notFound)
-        {
-            <div class="empty">
-                <p class="empty-title">Úkon nenalezen</p>
-            </div>
-        }
-        else if (this.failure is not null)
-        {
-            <div class="empty">
-                <p class="empty-title">Úkon se nepodařilo načíst</p>
-                <p class="empty-subtitle text-secondary">@this.failure</p>
-            </div>
-        }
-        else if (this.act is null)
-        {
-            <div class="text-center text-secondary">
-                <div class="spinner-border" role="status"></div>
-            </div>
-        }
-        else
-        {
+        <LoadStateView NotFound="this.notFound" NotFoundTitle="Úkon nenalezen" Failure="@this.failure" FailureTitle="Úkon se nepodařilo načíst" Loaded="this.act is not null">
             <div class="card mb-3">
                 <div class="card-header">
                     <h3 class="card-title">Údaje</h3>
@@ -83,7 +63,7 @@
                     <div class="datagrid">
                         <div class="datagrid-item">
                             <div class="datagrid-title">Číslo jednací</div>
-                            <div class="datagrid-content">@this.act.ActNumber</div>
+                            <div class="datagrid-content">@this.act!.ActNumber</div>
                         </div>
                         <div class="datagrid-item">
                             <div class="datagrid-title">Směr</div>
@@ -136,7 +116,7 @@
                            DownloadFile="this.DownloadFile"
                            DeleteFile="this.DeleteFile" />
             </div>
-        }
+        </LoadStateView>
     </div>
 </div>
 

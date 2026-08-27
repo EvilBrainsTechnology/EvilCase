@@ -45,27 +45,7 @@
 
 <div class="page-body">
     <div class="container-xl">
-        @if (this.notFound)
-        {
-            <div class="empty">
-                <p class="empty-title">Kontakt nenalezen</p>
-            </div>
-        }
-        else if (this.failure is not null)
-        {
-            <div class="empty">
-                <p class="empty-title">Kontakt se nepodařilo načíst</p>
-                <p class="empty-subtitle text-secondary">@this.failure</p>
-            </div>
-        }
-        else if (this.contact is null)
-        {
-            <div class="text-center text-secondary">
-                <div class="spinner-border" role="status"></div>
-            </div>
-        }
-        else
-        {
+        <LoadStateView NotFound="this.notFound" NotFoundTitle="Kontakt nenalezen" Failure="@this.failure" FailureTitle="Kontakt se nepodařilo načíst" Loaded="this.contact is not null">
             <div class="card mb-3">
                 <div class="card-header">
                     <h3 class="card-title">Údaje</h3>
@@ -74,7 +54,7 @@
                     <div class="datagrid">
                         <div class="datagrid-item">
                             <div class="datagrid-title">Typ</div>
-                            <div class="datagrid-content">@ContactKindDisplay.Text(this.contact.Kind)</div>
+                            <div class="datagrid-content">@ContactKindDisplay.Text(this.contact!.Kind)</div>
                         </div>
                         <div class="datagrid-item">
                             <div class="datagrid-title">ID datové schránky</div>
@@ -102,7 +82,7 @@
             </div>
 
             <ContactActOccurrences Items="this.contact.Acts" />
-        }
+        </LoadStateView>
     </div>
 </div>
 
