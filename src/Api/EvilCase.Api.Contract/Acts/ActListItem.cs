@@ -6,6 +6,10 @@ public sealed record ActListItem
 {
     public required Guid ActId { get; init; }
 
+    public required Guid CaseId { get; init; }
+
+    public required string CaseNumber { get; init; }
+
     public required string ActNumber { get; init; }
 
     public required ActDirection Direction { get; init; }

@@ -1,5 +1,7 @@
 using EvilBrains.EvilCase.Api.Contract.Cases;
+using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Data.DbContexts;
+using EvilBrains.EvilCase.Domain.Cases;
 using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Business.Cases;
@@ -8,12 +10,31 @@ internal sealed class CaseReader(IDbSession dbSession) : ICaseReader
 {
     public async Task<IReadOnlyList<CaseListItem>> ListCases(CaseListRequest request, CancellationToken token)
     {
-        return await dbSession.Current.Cases
+        var cases = dbSession.Current.Cases
             .MatchingSearch(request.Search)
-            .WithStatus(request.Status)
-            .InListOrder()
+            .WithStatus(request.Status);
+
+        var ordered = request.Order == CaseListOrder.Changed ? cases.InChangeOrder() : cases.InListOrder();
+
+        return await ordered
+            .TakeAtMost(request.Take)
             .AsListItems()
             .ToListAsync(token);
+    }
+
+    public async Task<CaseStatusCounts> CountCasesByStatus(CancellationToken token)
+    {
+        var counted = await dbSession.Current.Cases
+            .GroupBy(@case => @case.Status)
+            .Select(group => new { Status = group.Key, Count = group.Count() })
+            .ToDictionaryAsync(row => row.Status, row => row.Count, token);
+
+        return new CaseStatusCounts
+        {
+            Active = counted.GetValueOrDefault(CaseStatus.Active),
+            WaitingOnAuthority = counted.GetValueOrDefault(CaseStatus.WaitingOnAuthority),
+            Closed = counted.GetValueOrDefault(CaseStatus.Closed),
+        };
     }
 
     public async Task<CaseDetail?> GetCaseDetail(Guid caseId, CancellationToken token)

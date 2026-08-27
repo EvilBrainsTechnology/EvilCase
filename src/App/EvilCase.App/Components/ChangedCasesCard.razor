@@ -1,0 +1,58 @@
+@using EvilBrains.EvilCase.Api.Contract.Cases
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Naposledy změněné spisy</h3>
+        <div class="card-actions">
+            <a href="/cases">Všechny spisy</a>
+        </div>
+    </div>
+
+    @* Table on desktop, cards on mobile: two renderings switched by CSS only. *@
+    <div class="d-none d-lg-block">
+        <table class="table card-table table-vcenter">
+            <thead>
+                <tr>
+                    <th>Změněno</th>
+                    <th>Spisová značka</th>
+                    <th>Název</th>
+                    <th>Stav</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in this.Items)
+                {
+                    <tr>
+                        <td class="text-nowrap">@MomentDisplay.Text(item.Changed)</td>
+                        <td class="text-nowrap">@item.CaseNumber</td>
+                        <td><a href="@($"/cases/{item.CaseId}")">@item.Title</a></td>
+                        <td class="text-nowrap">
+                            <Status BackgroundColor="CaseStatusDisplay.Color(item.Status)" Lite="true">@CaseStatusDisplay.Text(item.Status)</Status>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card-body d-lg-none">
+        @foreach (var item in this.Items)
+        {
+            <div class="card mb-2">
+                <div class="card-body">
+                    <div class="text-secondary">@item.CaseNumber</div>
+                    <div class="font-weight-medium"><a href="@($"/cases/{item.CaseId}")">@item.Title</a></div>
+                    <div>
+                        <Status BackgroundColor="CaseStatusDisplay.Color(item.Status)" Lite="true">@CaseStatusDisplay.Text(item.Status)</Status>
+                    </div>
+                    <div class="text-secondary">Změněno @MomentDisplay.Text(item.Changed)</div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public required IReadOnlyList<CaseListItem> Items { get; set; }
+}

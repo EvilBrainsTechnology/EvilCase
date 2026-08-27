@@ -34,6 +34,7 @@ internal static class CaseDetailQuery
                         Title = @case.ParentCase.Title,
                         Date = @case.ParentCase.Date,
                         Status = @case.ParentCase.Status,
+                        Changed = @case.ParentCase.Updated ?? @case.ParentCase.Created,
                     },
             })
             .SingleOrDefaultAsync(token);

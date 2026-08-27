@@ -98,6 +98,7 @@ public class CreateLocationTests
                     Title = request.Title,
                     Date = request.Date,
                     Status = CaseStatus.Active,
+                    Changed = DateTime.UtcNow,
                 },
             });
         }

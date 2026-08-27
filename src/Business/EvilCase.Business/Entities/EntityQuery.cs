@@ -9,4 +9,9 @@ public static class EntityQuery
     {
         return entities.Where(entity => entity.Id == entityId);
     }
+
+    public static IQueryable<TEntity> TakeAtMost<TEntity>(this IQueryable<TEntity> entities, int? count)
+    {
+        return count is { } cap ? entities.Take(cap) : entities;
+    }
 }

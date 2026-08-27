@@ -21,6 +21,12 @@ public class CasesController : ControllerBase
         return new CaseListResponse { Items = items };
     }
 
+    [HttpGet("counts")]
+    public async Task<CaseStatusCounts> CountCases([FromServices] ICaseReader cases, CancellationToken token)
+    {
+        return await cases.CountCasesByStatus(token);
+    }
+
     [HttpPost("")]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

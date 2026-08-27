@@ -22,6 +22,18 @@ public class CasesControllerTests
     }
 
     [Test]
+    public async Task TheCountsAreWhatTheReaderRead()
+    {
+        var counts = new CaseStatusCounts { Active = 2, WaitingOnAuthority = 1, Closed = 3 };
+        var reader = new RecordingCaseReader { Counts = counts };
+        var controller = new CasesController();
+
+        var response = await controller.CountCases(reader, CancellationToken.None);
+
+        Assert.That(response, Is.EqualTo(counts), "the counts endpoint answers the counts the reader read, which is what feeds the dashboard tile");
+    }
+
+    [Test]
     public async Task TheSearchTermReachesTheReaderUntouched()
     {
         var reader = new RecordingCaseReader();
@@ -433,6 +445,7 @@ public class CasesControllerTests
             Title = title,
             Date = new DateOnly(2026, 8, 21),
             Status = CaseStatus.Active,
+            Changed = new DateTime(2026, 8, 21, 0, 0, 0, DateTimeKind.Utc),
         };
     }
 
@@ -446,6 +459,8 @@ public class CasesControllerTests
 
         public CaseDetail? DetailResult { get; init; }
 
+        public CaseStatusCounts Counts { get; init; } = new() { Active = 0, WaitingOnAuthority = 0, Closed = 0 };
+
         public Task<IReadOnlyList<CaseListItem>> ListCases(CaseListRequest request, CancellationToken token)
         {
             this.Request = request;
@@ -458,6 +473,11 @@ public class CasesControllerTests
             this.DetailId = caseId;
 
             return Task.FromResult(this.DetailResult);
+        }
+
+        public Task<CaseStatusCounts> CountCasesByStatus(CancellationToken token)
+        {
+            return Task.FromResult(this.Counts);
         }
     }
 
