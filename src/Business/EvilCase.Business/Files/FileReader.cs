@@ -15,7 +15,7 @@ internal sealed class FileReader(IDbSession dbSession, IFileBlobStore blobStore)
     {
         var context = dbSession.Current;
 
-        var caseExists = await context.Cases.WithId(caseId).AnyAsync(token);
+        var caseExists = await context.Cases.Exists(caseId, token);
         if (!caseExists)
             return null;
 
@@ -30,7 +30,7 @@ internal sealed class FileReader(IDbSession dbSession, IFileBlobStore blobStore)
     {
         var context = dbSession.Current;
 
-        var actExists = await context.Acts.OfCase(caseId).WithId(actId).AnyAsync(token);
+        var actExists = await context.Acts.OfCase(caseId).Exists(actId, token);
         if (!actExists)
             return null;
 

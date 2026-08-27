@@ -127,12 +127,12 @@ public class ContactOccurrenceQueryTests
 
         var issuedBy = await this.tenant.Context.Acts
             .IssuedByContact(authority.Id)
-            .AsIssuedByOccurrences()
+            .AsActOccurrences(ContactActRole.IssuedBy)
             .ToListAsync();
 
         var addressedTo = await this.tenant.Context.Acts
             .AddressedToContact(authority.Id)
-            .AsAddressedToOccurrences()
+            .AsActOccurrences(ContactActRole.AddressedTo)
             .ToListAsync();
 
         var expected = new ContactActOccurrence
@@ -166,7 +166,7 @@ public class ContactOccurrenceQueryTests
 
         var occurrence = await this.tenant.Context.Acts
             .AddressedToContact(person.Id)
-            .AsAddressedToOccurrences()
+            .AsActOccurrences(ContactActRole.AddressedTo)
             .SingleAsync();
 
         var expected = new ContactActOccurrence

@@ -16,7 +16,7 @@ internal sealed class CommentWriter(IDbSession dbSession, IUserContext userConte
         var context = dbSession.Current;
         var comment = new Comment { CaseId = caseId, Body = request.Body.Trim() };
 
-        var outcome = await this.AddComment(t => context.Cases.WithId(caseId).AnyAsync(t), comment, token);
+        var outcome = await this.AddComment(t => context.Cases.Exists(caseId, t), comment, token);
         if (outcome == CommentWriteOutcome.Written)
             logger.LogInformation("Comment {CommentId} was written on case {CaseId}", comment.Id, caseId);
 
@@ -46,7 +46,7 @@ internal sealed class CommentWriter(IDbSession dbSession, IUserContext userConte
         var context = dbSession.Current;
         var comment = new Comment { ActId = actId, Body = request.Body.Trim() };
 
-        var outcome = await this.AddComment(t => context.Acts.OfCase(caseId).WithId(actId).AnyAsync(t), comment, token);
+        var outcome = await this.AddComment(t => context.Acts.OfCase(caseId).Exists(actId, t), comment, token);
         if (outcome == CommentWriteOutcome.Written)
             logger.LogInformation("Comment {CommentId} was written on act {ActId}", comment.Id, actId);
 

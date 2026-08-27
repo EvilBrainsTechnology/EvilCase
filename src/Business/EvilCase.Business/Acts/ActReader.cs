@@ -34,7 +34,7 @@ internal sealed class ActReader(IDbSession dbSession) : IActReader
             return null;
 
         var numbers = await context.ExternalActNumbers
-            .OfAct(actId)
+            .OfAct(caseId, actId)
             .InAssignmentOrder()
             .AsItems()
             .ToListAsync(token);

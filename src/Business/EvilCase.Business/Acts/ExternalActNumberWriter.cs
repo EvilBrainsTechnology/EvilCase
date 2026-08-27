@@ -16,7 +16,7 @@ internal sealed class ExternalActNumberWriter(IDbSession dbSession, ILogger<Exte
 
         var context = dbSession.Current;
 
-        var actExists = await context.Acts.OfCase(caseId).WithId(actId).AnyAsync(token);
+        var actExists = await context.Acts.OfCase(caseId).Exists(actId, token);
         if (!actExists)
             return ExternalActNumberOutcome.ActNotFound;
 
@@ -53,12 +53,8 @@ internal sealed class ExternalActNumberWriter(IDbSession dbSession, ILogger<Exte
     {
         var context = dbSession.Current;
 
-        var actExists = await context.Acts.OfCase(caseId).WithId(actId).AnyAsync(token);
-        if (!actExists)
-            return ExternalActNumberDeleteOutcome.NotFound;
-
         var rows = await context.ExternalActNumbers
-            .OfAct(actId)
+            .OfAct(caseId, actId)
             .WithId(numberId)
             .ExecuteDeleteAsync(token);
 
