@@ -23,8 +23,11 @@ The images never enter the slice's diff. They live on `docs/images`, an orphan b
 1. Take the screenshots into `/tmp/shots/<issue>`. A non-zero exit ends it — fix the screen.
 2. Open the pull request, body without images.
 3. `./.claude/skills/product-loop/Push-EvilCaseImages.ps1 -PullRequest <n> -Path /tmp/shots/<issue>`
-   pushes them and prints the commit sha.
-4. Edit the body to embed each as
-   `https://raw.githubusercontent.com/EvilBrainsTechnology/EvilCase/<sha>/pull-request/<n>/<name>.png`,
-   pinned to that sha, never to a branch name.
-5. Read the body back. Where GitHub wrapped a URL in a backtick, embed as `<img src="…">`.
+   pushes them and prints the body's Screenshots block on stdout, one markdown image line per
+   pushed file, pinned to the commit it just made.
+4. Paste that block verbatim under a `## Screenshots` heading, the last section before
+   `Closes #`. Nothing else in that section: no `<img>`, no bare URL, no caption line, no bullet,
+   no indentation.
+5. Read the body back and fetch each URL. A URL that does not answer 200, or a line GitHub did
+   not render as an image, means the body is written again from a file with
+   `gh pr edit --body-file`; never left as it is.
