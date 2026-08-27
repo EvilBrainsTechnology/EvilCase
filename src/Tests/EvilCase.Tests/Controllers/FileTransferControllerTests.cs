@@ -92,6 +92,22 @@ public class FileTransferControllerTests
     }
 
     [Test]
+    public async Task AnUploadWithNoMediaTypeIsAcceptedWithANullMediaType()
+    {
+        var writer = new RecordingFileWriter { UploadResult = Uploaded(Item()) };
+        var controller = new FileTransferController();
+        var file = FormFile(1, contentType: null);
+
+        await controller.UploadCaseFile(writer, Guid.CreateVersion7(), file, CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(writer.UploadCalled, Is.True, "a multipart part with no content type must reach the writer");
+            Assert.That(writer.Upload!.MediaType, Is.Null, "a missing content type stores a null media type, not an exception");
+        }
+    }
+
+    [Test]
     public async Task AnUploadAnswersCreatedAtTheContentOfTheNewFile()
     {
         var created = Item();
@@ -246,6 +262,22 @@ public class FileTransferControllerTests
     }
 
     [Test]
+    public async Task AnActUploadWithNoMediaTypeIsAcceptedWithANullMediaType()
+    {
+        var writer = new RecordingFileWriter { UploadResult = Uploaded(Item()) };
+        var controller = new FileTransferController();
+        var file = FormFile(1, contentType: null);
+
+        await controller.UploadActFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), file, CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(writer.UploadCalled, Is.True, "a multipart part with no content type must reach the writer");
+            Assert.That(writer.Upload!.MediaType, Is.Null, "a missing content type stores a null media type, not an exception");
+        }
+    }
+
+    [Test]
     public async Task AnActUploadAnswersCreatedAtTheContentOfTheNewFile()
     {
         var created = Item();
@@ -327,8 +359,8 @@ public class FileTransferControllerTests
 
     // The controller never reads the backing stream when the recording writer stands in, so the stream
     // itself stays empty; only the reported Length matters.
-    private static FormFile FormFile(long length, string fileName = "a.pdf", string contentType = "application/pdf")
+    private static FormFile FormFile(long length, string fileName = "a.pdf", string? contentType = "application/pdf")
     {
-        return new FormFile(new MemoryStream(), 0, length, "file", fileName) { Headers = new HeaderDictionary(), ContentType = contentType };
+        return new FormFile(new MemoryStream(), 0, length, "file", fileName) { Headers = new HeaderDictionary(), ContentType = contentType! };
     }
 }

@@ -105,7 +105,7 @@ public class FileTransferController : ControllerBase
         return this.File(download.Content, download.MediaType, download.FileName);
     }
 
-    private ActionResult? InvalidUploadMetadataProblem(string fileName, string mediaType)
+    private ActionResult? InvalidUploadMetadataProblem(string fileName, string? mediaType)
     {
         if (string.IsNullOrWhiteSpace(fileName))
         {
@@ -119,7 +119,7 @@ public class FileTransferController : ControllerBase
             return this.ValidationProblem(statusCode: StatusCodes.Status400BadRequest);
         }
 
-        if (mediaType.Length > FileLimits.MaxMediaTypeLength)
+        if (mediaType is { Length: > FileLimits.MaxMediaTypeLength })
         {
             this.ModelState.AddModelError("mediaType", $"The media type must not exceed {FileLimits.MaxMediaTypeLength} characters.");
             return this.ValidationProblem(statusCode: StatusCodes.Status400BadRequest);
