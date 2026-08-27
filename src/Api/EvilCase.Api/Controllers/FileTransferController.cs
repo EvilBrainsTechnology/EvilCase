@@ -18,6 +18,7 @@ public class FileTransferController : ControllerBase
     [HttpPost("cases/{caseId:guid}/files")]
     [RequestSizeLimit(FileLimits.MaxUploadRequestBytes)]
     [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status413PayloadTooLarge)]
     public async Task<ActionResult<FileListItem>> UploadCaseFile([FromServices] IFileWriter writer, [FromRoute] Guid caseId, [FromForm] IFormFile file, CancellationToken token)
@@ -25,12 +26,18 @@ public class FileTransferController : ControllerBase
         if (file.Length > FileLimits.MaxUploadBytes)
             return this.Problem(detail: "The file exceeds the 100 MB upload limit.", statusCode: StatusCodes.Status413PayloadTooLarge, title: "File too large");
 
+        // The browser may send a path; only the name is stored.
+        var fileName = Path.GetFileName(file.FileName);
+        var invalidMetadata = this.InvalidUploadMetadataProblem(fileName, file.ContentType);
+
+        if (invalidMetadata is not null)
+            return invalidMetadata;
+
         await using var content = file.OpenReadStream();
 
         var upload = new FileUpload
         {
-            // The browser may send a path; only the name is stored.
-            FileName = Path.GetFileName(file.FileName),
+            FileName = fileName,
             MediaType = file.ContentType,
             Content = content,
         };
@@ -48,6 +55,7 @@ public class FileTransferController : ControllerBase
     [HttpPost("cases/{caseId:guid}/acts/{actId:guid}/files")]
     [RequestSizeLimit(FileLimits.MaxUploadRequestBytes)]
     [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status413PayloadTooLarge)]
     public async Task<ActionResult<FileListItem>> UploadActFile(
@@ -56,12 +64,18 @@ public class FileTransferController : ControllerBase
         if (file.Length > FileLimits.MaxUploadBytes)
             return this.Problem(detail: "The file exceeds the 100 MB upload limit.", statusCode: StatusCodes.Status413PayloadTooLarge, title: "File too large");
 
+        // The browser may send a path; only the name is stored.
+        var fileName = Path.GetFileName(file.FileName);
+        var invalidMetadata = this.InvalidUploadMetadataProblem(fileName, file.ContentType);
+
+        if (invalidMetadata is not null)
+            return invalidMetadata;
+
         await using var content = file.OpenReadStream();
 
         var upload = new FileUpload
         {
-            // The browser may send a path; only the name is stored.
-            FileName = Path.GetFileName(file.FileName),
+            FileName = fileName,
             MediaType = file.ContentType,
             Content = content,
         };
@@ -89,5 +103,28 @@ public class FileTransferController : ControllerBase
         // Always an attachment: a stored document is never rendered in place (SDD-012).
         // X-Content-Type-Options: nosniff already comes from SecurityHeadersMiddleware on every response.
         return this.File(download.Content, download.MediaType, download.FileName);
+    }
+
+    private ActionResult? InvalidUploadMetadataProblem(string fileName, string mediaType)
+    {
+        if (string.IsNullOrWhiteSpace(fileName))
+        {
+            this.ModelState.AddModelError("fileName", "The file name must not be empty.");
+            return this.ValidationProblem(statusCode: StatusCodes.Status400BadRequest);
+        }
+
+        if (fileName.Length > FileLimits.MaxFileNameLength)
+        {
+            this.ModelState.AddModelError("fileName", $"The file name must not exceed {FileLimits.MaxFileNameLength} characters.");
+            return this.ValidationProblem(statusCode: StatusCodes.Status400BadRequest);
+        }
+
+        if (mediaType.Length > FileLimits.MaxMediaTypeLength)
+        {
+            this.ModelState.AddModelError("mediaType", $"The media type must not exceed {FileLimits.MaxMediaTypeLength} characters.");
+            return this.ValidationProblem(statusCode: StatusCodes.Status400BadRequest);
+        }
+
+        return null;
     }
 }
