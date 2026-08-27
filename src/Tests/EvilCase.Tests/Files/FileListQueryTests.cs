@@ -8,35 +8,26 @@ namespace EvilBrains.EvilCase.Tests.Files;
 /// The file list on the rows a real PostgreSQL returns. Each test seeds a tenant of its own, so none
 /// cleans up after itself.
 /// </summary>
-public class FileListQueryTests
+public class FileListQueryTests : TenantFixture
 {
     private static readonly DateOnly Day = new(2026, 8, 21);
-
-    private TestTenant tenant = null!;
 
     private FileReader reader = null!;
 
     [SetUp]
-    public async Task SetUp()
+    public void SetUpReader()
     {
-        this.tenant = await TestTenant.Create();
-        this.reader = new FileReader(new FixedDbSession(this.tenant.Context), new FakeFileBlobStore());
-    }
-
-    [TearDown]
-    public async Task TearDown()
-    {
-        await this.tenant.DisposeAsync();
+        this.reader = new FileReader(new FixedDbSession(this.Tenant.Context), new FakeFileBlobStore());
     }
 
     [Test]
     public async Task TheFilesOfACaseComeOldestFirst()
     {
-        var @case = await this.tenant.AddCase(Day);
+        var @case = await this.Tenant.AddCase(Day);
 
-        await this.tenant.AddCaseFile(@case, "prvni.txt");
-        await this.tenant.AddCaseFile(@case, "druhy.txt");
-        await this.tenant.AddCaseFile(@case, "treti.txt");
+        await this.Tenant.AddCaseFile(@case, "prvni.txt");
+        await this.Tenant.AddCaseFile(@case, "druhy.txt");
+        await this.Tenant.AddCaseFile(@case, "treti.txt");
 
         var items = await this.reader.ListCaseFiles(@case.Id, CancellationToken.None);
 
@@ -46,11 +37,11 @@ public class FileListQueryTests
     [Test]
     public async Task AFileOfAnotherCaseIsNotListed()
     {
-        var caseA = await this.tenant.AddCase(Day);
-        var caseB = await this.tenant.AddCase(Day);
+        var caseA = await this.Tenant.AddCase(Day);
+        var caseB = await this.Tenant.AddCase(Day);
 
-        await this.tenant.AddCaseFile(caseA, "a.txt");
-        await this.tenant.AddCaseFile(caseB, "b.txt");
+        await this.Tenant.AddCaseFile(caseA, "a.txt");
+        await this.Tenant.AddCaseFile(caseB, "b.txt");
 
         var items = await this.reader.ListCaseFiles(caseA.Id, CancellationToken.None);
 
@@ -68,12 +59,12 @@ public class FileListQueryTests
     [Test]
     public async Task TheFilesOfAnActComeOldestFirst()
     {
-        var @case = await this.tenant.AddCase(Day);
-        var act = await this.tenant.AddAct(@case, Day);
+        var @case = await this.Tenant.AddCase(Day);
+        var act = await this.Tenant.AddAct(@case, Day);
 
-        await this.tenant.AddActFile(act, "prvni.txt");
-        await this.tenant.AddActFile(act, "druhy.txt");
-        await this.tenant.AddActFile(act, "treti.txt");
+        await this.Tenant.AddActFile(act, "prvni.txt");
+        await this.Tenant.AddActFile(act, "druhy.txt");
+        await this.Tenant.AddActFile(act, "treti.txt");
 
         var items = await this.reader.ListActFiles(@case.Id, act.Id, CancellationToken.None);
 
@@ -83,11 +74,11 @@ public class FileListQueryTests
     [Test]
     public async Task ACaseFileIsNeverListedOnItsActAndBackAgain()
     {
-        var @case = await this.tenant.AddCase(Day);
-        var act = await this.tenant.AddAct(@case, Day);
+        var @case = await this.Tenant.AddCase(Day);
+        var act = await this.Tenant.AddAct(@case, Day);
 
-        await this.tenant.AddCaseFile(@case, "spis.txt");
-        await this.tenant.AddActFile(act, "ukon.txt");
+        await this.Tenant.AddCaseFile(@case, "spis.txt");
+        await this.Tenant.AddActFile(act, "ukon.txt");
 
         var actItems = await this.reader.ListActFiles(@case.Id, act.Id, CancellationToken.None);
         var caseItems = await this.reader.ListCaseFiles(@case.Id, CancellationToken.None);
@@ -102,12 +93,12 @@ public class FileListQueryTests
     [Test]
     public async Task AFileOfAnotherActIsNotListed()
     {
-        var @case = await this.tenant.AddCase(Day);
-        var actA = await this.tenant.AddAct(@case, Day);
-        var actB = await this.tenant.AddAct(@case, Day);
+        var @case = await this.Tenant.AddCase(Day);
+        var actA = await this.Tenant.AddAct(@case, Day);
+        var actB = await this.Tenant.AddAct(@case, Day);
 
-        await this.tenant.AddActFile(actA, "a.txt");
-        await this.tenant.AddActFile(actB, "b.txt");
+        await this.Tenant.AddActFile(actA, "a.txt");
+        await this.Tenant.AddActFile(actB, "b.txt");
 
         var items = await this.reader.ListActFiles(@case.Id, actA.Id, CancellationToken.None);
 
@@ -117,9 +108,9 @@ public class FileListQueryTests
     [Test]
     public async Task ListingTheFilesOfAnActOfAnotherCaseAnswersWithNothing()
     {
-        var caseA = await this.tenant.AddCase(Day);
-        var caseB = await this.tenant.AddCase(Day);
-        var act = await this.tenant.AddAct(caseA, Day);
+        var caseA = await this.Tenant.AddCase(Day);
+        var caseB = await this.Tenant.AddCase(Day);
+        var act = await this.Tenant.AddAct(caseA, Day);
 
         var items = await this.reader.ListActFiles(caseB.Id, act.Id, CancellationToken.None);
 
@@ -129,7 +120,7 @@ public class FileListQueryTests
     [Test]
     public async Task ListingTheFilesOfAMissingActAnswersWithNothing()
     {
-        var @case = await this.tenant.AddCase(Day);
+        var @case = await this.Tenant.AddCase(Day);
 
         var items = await this.reader.ListActFiles(@case.Id, Guid.CreateVersion7(), CancellationToken.None);
 

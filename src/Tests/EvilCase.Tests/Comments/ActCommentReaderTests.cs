@@ -7,33 +7,24 @@ namespace EvilBrains.EvilCase.Tests.Comments;
 /// Reads an act's comments, on the rows a real PostgreSQL returns. Each test seeds a tenant of its own,
 /// so none cleans up after itself.
 /// </summary>
-public class ActCommentReaderTests
+public class ActCommentReaderTests : TenantFixture
 {
     private static readonly DateOnly Day = new(2026, 8, 24);
-
-    private TestTenant tenant = null!;
 
     private CommentReader reader = null!;
 
     [SetUp]
-    public async Task SetUp()
+    public void SetUpReader()
     {
-        this.tenant = await TestTenant.Create();
-        this.reader = new CommentReader(new FixedDbSession(this.tenant.Context), this.tenant.UserContext);
-    }
-
-    [TearDown]
-    public async Task TearDown()
-    {
-        await this.tenant.DisposeAsync();
+        this.reader = new CommentReader(new FixedDbSession(this.Tenant.Context), this.Tenant.UserContext);
     }
 
     [Test]
     public async Task ANoteCarriesItsBodyItsAuthorAndItsStamp()
     {
-        var @case = await this.tenant.AddCase(Day);
-        var act = await this.tenant.AddAct(@case, Day);
-        await this.tenant.AddActComment(act, "Poznámka");
+        var @case = await this.Tenant.AddCase(Day);
+        var act = await this.Tenant.AddAct(@case, Day);
+        await this.Tenant.AddActComment(act, "Poznámka");
 
         var items = await this.reader.ListActComments(@case.Id, act.Id, CancellationToken.None);
         var item = items.Single();
@@ -51,11 +42,11 @@ public class ActCommentReaderTests
     [Test]
     public async Task TheOrderIsOldestFirst()
     {
-        var @case = await this.tenant.AddCase(Day);
-        var act = await this.tenant.AddAct(@case, Day);
-        var first = await this.tenant.AddActComment(act, "První");
-        var second = await this.tenant.AddActComment(act, "Druhá");
-        var third = await this.tenant.AddActComment(act, "Třetí");
+        var @case = await this.Tenant.AddCase(Day);
+        var act = await this.Tenant.AddAct(@case, Day);
+        var first = await this.Tenant.AddActComment(act, "První");
+        var second = await this.Tenant.AddActComment(act, "Druhá");
+        var third = await this.Tenant.AddActComment(act, "Třetí");
 
         var items = await this.reader.ListActComments(@case.Id, act.Id, CancellationToken.None);
 
@@ -65,11 +56,11 @@ public class ActCommentReaderTests
     [Test]
     public async Task AnotherUsersNoteIsListedButNotAsTheSignedInUsers()
     {
-        var @case = await this.tenant.AddCase(Day);
-        var act = await this.tenant.AddAct(@case, Day);
-        var other = await this.tenant.AddUser();
-        var theirs = await this.tenant.AddActComment(act, "Jejich", other.Id);
-        var ours = await this.tenant.AddActComment(act, "Naše");
+        var @case = await this.Tenant.AddCase(Day);
+        var act = await this.Tenant.AddAct(@case, Day);
+        var other = await this.Tenant.AddUser();
+        var theirs = await this.Tenant.AddActComment(act, "Jejich", other.Id);
+        var ours = await this.Tenant.AddActComment(act, "Naše");
 
         var items = await this.reader.ListActComments(@case.Id, act.Id, CancellationToken.None);
 
@@ -85,11 +76,11 @@ public class ActCommentReaderTests
     [Test]
     public async Task ANoteOfAnotherActNeverComesBack()
     {
-        var @case = await this.tenant.AddCase(Day);
-        var first = await this.tenant.AddAct(@case, Day, "První");
-        var second = await this.tenant.AddAct(@case, Day, "Druhý");
-        var ownComment = await this.tenant.AddActComment(first, "Vlastní");
-        await this.tenant.AddActComment(second, "Cizí");
+        var @case = await this.Tenant.AddCase(Day);
+        var first = await this.Tenant.AddAct(@case, Day, "První");
+        var second = await this.Tenant.AddAct(@case, Day, "Druhý");
+        var ownComment = await this.Tenant.AddActComment(first, "Vlastní");
+        await this.Tenant.AddActComment(second, "Cizí");
 
         var items = await this.reader.ListActComments(@case.Id, first.Id, CancellationToken.None);
 
@@ -99,9 +90,9 @@ public class ActCommentReaderTests
     [Test]
     public async Task ANoteOfTheCaseIsNotAnActNote()
     {
-        var @case = await this.tenant.AddCase(Day);
-        var act = await this.tenant.AddAct(@case, Day);
-        await this.tenant.AddCaseComment(@case, "Poznámka ke spisu");
+        var @case = await this.Tenant.AddCase(Day);
+        var act = await this.Tenant.AddAct(@case, Day);
+        await this.Tenant.AddCaseComment(@case, "Poznámka ke spisu");
 
         var items = await this.reader.ListActComments(@case.Id, act.Id, CancellationToken.None);
 
@@ -111,10 +102,10 @@ public class ActCommentReaderTests
     [Test]
     public async Task AnActReadUnderAnotherCaseNeverComesBack()
     {
-        var @case = await this.tenant.AddCase(Day, "První");
-        var otherCase = await this.tenant.AddCase(Day, "Druhý");
-        var act = await this.tenant.AddAct(@case, Day);
-        await this.tenant.AddActComment(act, "Poznámka");
+        var @case = await this.Tenant.AddCase(Day, "První");
+        var otherCase = await this.Tenant.AddCase(Day, "Druhý");
+        var act = await this.Tenant.AddAct(@case, Day);
+        await this.Tenant.AddActComment(act, "Poznámka");
 
         var items = await this.reader.ListActComments(otherCase.Id, act.Id, CancellationToken.None);
 
@@ -128,8 +119,8 @@ public class ActCommentReaderTests
         var otherCase = await other.AddCase(Day);
         var otherAct = await other.AddAct(otherCase, Day);
         await other.AddActComment(otherAct, "Cizí");
-        var @case = await this.tenant.AddCase(Day);
-        var act = await this.tenant.AddAct(@case, Day);
+        var @case = await this.Tenant.AddCase(Day);
+        var act = await this.Tenant.AddAct(@case, Day);
 
         var items = await this.reader.ListActComments(@case.Id, act.Id, CancellationToken.None);
 

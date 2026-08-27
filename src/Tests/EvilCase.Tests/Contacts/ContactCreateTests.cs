@@ -11,23 +11,16 @@ namespace EvilBrains.EvilCase.Tests.Contacts;
 /// The create rules on the rows a real PostgreSQL returns. Each test seeds a tenant of its own, so none
 /// cleans up after itself.
 /// </summary>
-public class ContactCreateTests
+public class ContactCreateTests : TenantFixture
 {
-    private TestTenant tenant = null!;
-
     private ContactWriter writer = null!;
 
-    [SetUp]
-    public async Task SetUp()
-    {
-        this.tenant = await TestTenant.Create(asHost: true);
-        this.writer = new ContactWriter(new FixedDbSession(this.tenant.Context), NullLogger<ContactWriter>.Instance);
-    }
+    protected override bool AsHost => true;
 
-    [TearDown]
-    public async Task TearDown()
+    [SetUp]
+    public void SetUpWriter()
     {
-        await this.tenant.DisposeAsync();
+        this.writer = new ContactWriter(new FixedDbSession(this.Tenant.Context), NullLogger<ContactWriter>.Instance);
     }
 
     [Test]
@@ -43,7 +36,7 @@ public class ContactCreateTests
 
         var created = await this.writer.CreateContact(request, CancellationToken.None);
 
-        var reloaded = await this.tenant.Context.Contacts.SingleAsync(contact => contact.Id == created.ContactId);
+        var reloaded = await this.Tenant.Context.Contacts.SingleAsync(contact => contact.Id == created.ContactId);
 
         using (Assert.EnterMultipleScope())
         {
@@ -71,7 +64,7 @@ public class ContactCreateTests
 
         var created = await this.writer.CreateContact(request, CancellationToken.None);
 
-        var reloaded = await this.tenant.Context.Contacts.SingleAsync(contact => contact.Id == created.ContactId);
+        var reloaded = await this.Tenant.Context.Contacts.SingleAsync(contact => contact.Id == created.ContactId);
 
         using (Assert.EnterMultipleScope())
         {
@@ -88,7 +81,7 @@ public class ContactCreateTests
 
         var created = await this.writer.CreateContact(request, CancellationToken.None);
 
-        var visible = await this.tenant.Context.Contacts.AnyAsync(contact => contact.Id == created.ContactId);
+        var visible = await this.Tenant.Context.Contacts.AnyAsync(contact => contact.Id == created.ContactId);
 
         Assert.That(visible, Is.True, "the write stamps the tenant, so the tenant-filtered set sees the row");
     }

@@ -9,31 +9,17 @@ namespace EvilBrains.EvilCase.Tests.Numbering;
 /// What the next case number of a day reads, on the rows a real PostgreSQL returns. Each test seeds a
 /// tenant of its own, so none cleans up after itself.
 /// </summary>
-public class CaseNumberQueryTests
+public class CaseNumberQueryTests : TenantFixture
 {
     private static readonly DateOnly Day = new(2026, 8, 7);
-
-    private TestTenant tenant = null!;
-
-    [SetUp]
-    public async Task SetUp()
-    {
-        this.tenant = await TestTenant.Create();
-    }
-
-    [TearDown]
-    public async Task TearDown()
-    {
-        await this.tenant.DisposeAsync();
-    }
 
     [Test]
     public async Task ThePrefixNarrowsToTheDaysOwnNumbers()
     {
-        await this.tenant.AddCase(Day);
-        await this.tenant.AddCase(Day);
-        await this.tenant.AddCase(new DateOnly(2026, 8, 8));
-        await this.tenant.AddCase(Day, caseNumber: "2026/117-Ber");
+        await this.Tenant.AddCase(Day);
+        await this.Tenant.AddCase(Day);
+        await this.Tenant.AddCase(new DateOnly(2026, 8, 8));
+        await this.Tenant.AddCase(Day, caseNumber: "2026/117-Ber");
 
         var numbers = await this.NumbersWithPrefix(CaseNumberFormat.Prefix(Day));
 
@@ -48,9 +34,9 @@ public class CaseNumberQueryTests
     [Test]
     public async Task AWildcardInAHandWrittenCaseNumberMatchesOnlyItself()
     {
-        await this.tenant.AddCase(Day, caseNumber: @"EC/100%_1-a\b");
-        await this.tenant.AddCase(Day, caseNumber: "EC/100ZZZ_1-ab");
-        await this.tenant.AddCase(Day, caseNumber: "EC/100%_1-aXb");
+        await this.Tenant.AddCase(Day, caseNumber: @"EC/100%_1-a\b");
+        await this.Tenant.AddCase(Day, caseNumber: "EC/100ZZZ_1-ab");
+        await this.Tenant.AddCase(Day, caseNumber: "EC/100%_1-aXb");
 
         var numbers = await this.NumbersWithPrefix(@"EC/100%_1-a\b");
 
@@ -62,11 +48,11 @@ public class CaseNumberQueryTests
     [Test]
     public async Task ANumberThatGrewADigitComesFirst()
     {
-        await this.tenant.AddCase(Day, caseNumber: CaseNumberFormat.Compose(Day, 999));
-        await this.tenant.AddCase(Day, caseNumber: CaseNumberFormat.Compose(Day, 1000));
-        await this.tenant.AddCase(Day, caseNumber: CaseNumberFormat.Compose(Day, 998));
+        await this.Tenant.AddCase(Day, caseNumber: CaseNumberFormat.Compose(Day, 999));
+        await this.Tenant.AddCase(Day, caseNumber: CaseNumberFormat.Compose(Day, 1000));
+        await this.Tenant.AddCase(Day, caseNumber: CaseNumberFormat.Compose(Day, 998));
 
-        var numbers = await this.tenant.Context.Cases
+        var numbers = await this.Tenant.Context.Cases
             .WithNumberPrefix(CaseNumberFormat.Prefix(Day))
             .OrderByNumberDescending()
             .Select(@case => @case.CaseNumber)
@@ -84,7 +70,7 @@ public class CaseNumberQueryTests
     [Test]
     public async Task ACaseOfAnotherTenantNeverComesBack()
     {
-        await this.tenant.AddCase(Day);
+        await this.Tenant.AddCase(Day);
 
         await using (var other = await TestTenant.Create())
         {
@@ -102,11 +88,11 @@ public class CaseNumberQueryTests
     [Test]
     public async Task ANumberIsHeldOnlyByAnotherCase()
     {
-        var first = await this.tenant.AddCase(Day, caseNumber: CaseNumberFormat.Compose(Day, 1));
-        var second = await this.tenant.AddCase(Day, caseNumber: CaseNumberFormat.Compose(Day, 2));
+        var first = await this.Tenant.AddCase(Day, caseNumber: CaseNumberFormat.Compose(Day, 1));
+        var second = await this.Tenant.AddCase(Day, caseNumber: CaseNumberFormat.Compose(Day, 2));
 
-        var byFirst = await this.tenant.Context.Cases.WithNumberHeldByAnother(first.CaseNumber, first.Id).ToListAsync();
-        var bySecond = await this.tenant.Context.Cases.WithNumberHeldByAnother(second.CaseNumber, first.Id).ToListAsync();
+        var byFirst = await this.Tenant.Context.Cases.WithNumberHeldByAnother(first.CaseNumber, first.Id).ToListAsync();
+        var bySecond = await this.Tenant.Context.Cases.WithNumberHeldByAnother(second.CaseNumber, first.Id).ToListAsync();
 
         using (Assert.EnterMultipleScope())
         {
@@ -117,7 +103,7 @@ public class CaseNumberQueryTests
 
     private async Task<List<string>> NumbersWithPrefix(string prefix)
     {
-        return await this.tenant.Context.Cases
+        return await this.Tenant.Context.Cases
             .WithNumberPrefix(prefix)
             .Select(@case => @case.CaseNumber)
             .ToListAsync();

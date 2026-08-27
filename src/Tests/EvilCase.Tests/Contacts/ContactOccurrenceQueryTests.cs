@@ -11,32 +11,18 @@ namespace EvilBrains.EvilCase.Tests.Contacts;
 /// The four places a contact is named, on the rows a real PostgreSQL returns. Each test seeds a tenant
 /// of its own, so none cleans up after itself.
 /// </summary>
-public class ContactOccurrenceQueryTests
+public class ContactOccurrenceQueryTests : TenantFixture
 {
     private static readonly DateOnly Day = new(2026, 8, 7);
-
-    private TestTenant tenant = null!;
-
-    [SetUp]
-    public async Task SetUp()
-    {
-        this.tenant = await TestTenant.Create();
-    }
-
-    [TearDown]
-    public async Task TearDown()
-    {
-        await this.tenant.DisposeAsync();
-    }
 
     [Test]
     public async Task ACaseOccurrenceReachesTheCaseThroughTheExternalNumber()
     {
-        var authority = await this.tenant.AddContact("Městský úřad");
-        var @case = await this.tenant.AddCase(Day, "Přestupek");
-        await this.tenant.AddExternalCaseNumber(@case, "MUB/2026/117", authority);
+        var authority = await this.Tenant.AddContact("Městský úřad");
+        var @case = await this.Tenant.AddCase(Day, "Přestupek");
+        await this.Tenant.AddExternalCaseNumber(@case, "MUB/2026/117", authority);
 
-        var occurrence = await this.tenant.Context.ExternalCaseNumbers
+        var occurrence = await this.Tenant.Context.ExternalCaseNumbers
             .AssignedByContact(authority.Id)
             .AsCaseOccurrences()
             .SingleAsync();
@@ -56,13 +42,13 @@ public class ContactOccurrenceQueryTests
     [Test]
     public async Task AMarkAnotherContactAssignedNeverComesBack()
     {
-        var authority = await this.tenant.AddContact("Městský úřad");
-        var court = await this.tenant.AddContact("Krajský soud");
-        var @case = await this.tenant.AddCase(Day);
-        await this.tenant.AddExternalCaseNumber(@case, "MUB/2026/117", authority);
-        await this.tenant.AddExternalCaseNumber(@case, "KS/2026/42", court);
+        var authority = await this.Tenant.AddContact("Městský úřad");
+        var court = await this.Tenant.AddContact("Krajský soud");
+        var @case = await this.Tenant.AddCase(Day);
+        await this.Tenant.AddExternalCaseNumber(@case, "MUB/2026/117", authority);
+        await this.Tenant.AddExternalCaseNumber(@case, "KS/2026/42", court);
 
-        var numbers = await this.tenant.Context.ExternalCaseNumbers
+        var numbers = await this.Tenant.Context.ExternalCaseNumbers
             .AssignedByContact(authority.Id)
             .AsCaseOccurrences()
             .Select(occurrence => occurrence.ExternalNumber)
@@ -76,16 +62,16 @@ public class ContactOccurrenceQueryTests
     [Test]
     public async Task TheCaseOccurrenceOrderPutsANumberThatGrewADigitFirst()
     {
-        var authority = await this.tenant.AddContact("Městský úřad");
-        var newer = await this.tenant.AddCase(new DateOnly(2026, 8, 20));
-        var grown = await this.tenant.AddCase(Day, caseNumber: CaseNumberFormat.Compose(Day, 1000));
-        var shorter = await this.tenant.AddCase(Day, caseNumber: CaseNumberFormat.Compose(Day, 999));
+        var authority = await this.Tenant.AddContact("Městský úřad");
+        var newer = await this.Tenant.AddCase(new DateOnly(2026, 8, 20));
+        var grown = await this.Tenant.AddCase(Day, caseNumber: CaseNumberFormat.Compose(Day, 1000));
+        var shorter = await this.Tenant.AddCase(Day, caseNumber: CaseNumberFormat.Compose(Day, 999));
 
-        await this.tenant.AddExternalCaseNumber(newer, "A", authority);
-        await this.tenant.AddExternalCaseNumber(grown, "B", authority);
-        await this.tenant.AddExternalCaseNumber(shorter, "C", authority);
+        await this.Tenant.AddExternalCaseNumber(newer, "A", authority);
+        await this.Tenant.AddExternalCaseNumber(grown, "B", authority);
+        await this.Tenant.AddExternalCaseNumber(shorter, "C", authority);
 
-        var caseIds = await this.tenant.Context.ExternalCaseNumbers
+        var caseIds = await this.Tenant.Context.ExternalCaseNumbers
             .AssignedByContact(authority.Id)
             .InCaseOccurrenceOrder()
             .AsCaseOccurrences()
@@ -100,12 +86,12 @@ public class ContactOccurrenceQueryTests
     [Test]
     public async Task TwoMarksOnOneCaseAreOrderedByTheirValue()
     {
-        var authority = await this.tenant.AddContact("Městský úřad");
-        var @case = await this.tenant.AddCase(Day);
-        await this.tenant.AddExternalCaseNumber(@case, "MUB/2026/200", authority);
-        await this.tenant.AddExternalCaseNumber(@case, "MUB/2026/117", authority);
+        var authority = await this.Tenant.AddContact("Městský úřad");
+        var @case = await this.Tenant.AddCase(Day);
+        await this.Tenant.AddExternalCaseNumber(@case, "MUB/2026/200", authority);
+        await this.Tenant.AddExternalCaseNumber(@case, "MUB/2026/117", authority);
 
-        var numbers = await this.tenant.Context.ExternalCaseNumbers
+        var numbers = await this.Tenant.Context.ExternalCaseNumbers
             .AssignedByContact(authority.Id)
             .InCaseOccurrenceOrder()
             .AsCaseOccurrences()
@@ -120,17 +106,17 @@ public class ContactOccurrenceQueryTests
     [Test]
     public async Task TheIssuerAndTheAddresseeEachNarrowByTheirOwnColumn()
     {
-        var authority = await this.tenant.AddContact("Městský úřad");
-        var person = await this.tenant.AddContact("Jan Novák", ContactKind.Person);
-        var @case = await this.tenant.AddCase(Day);
-        var issued = await this.tenant.AddAct(@case, Day, "Rozhodnutí", issuedBy: authority, addressedTo: person);
+        var authority = await this.Tenant.AddContact("Městský úřad");
+        var person = await this.Tenant.AddContact("Jan Novák", ContactKind.Person);
+        var @case = await this.Tenant.AddCase(Day);
+        var issued = await this.Tenant.AddAct(@case, Day, "Rozhodnutí", issuedBy: authority, addressedTo: person);
 
-        var issuedBy = await this.tenant.Context.Acts
+        var issuedBy = await this.Tenant.Context.Acts
             .IssuedByContact(authority.Id)
             .AsActOccurrences(ContactActRole.IssuedBy)
             .ToListAsync();
 
-        var addressedTo = await this.tenant.Context.Acts
+        var addressedTo = await this.Tenant.Context.Acts
             .AddressedToContact(authority.Id)
             .AsActOccurrences(ContactActRole.AddressedTo)
             .ToListAsync();
@@ -159,12 +145,12 @@ public class ContactOccurrenceQueryTests
     [Test]
     public async Task TheAddresseeSourceCarriesItsOwnRole()
     {
-        var authority = await this.tenant.AddContact("Městský úřad");
-        var person = await this.tenant.AddContact("Jan Novák", ContactKind.Person);
-        var @case = await this.tenant.AddCase(Day);
-        var addressed = await this.tenant.AddAct(@case, Day, "Výzva", issuedBy: authority, addressedTo: person);
+        var authority = await this.Tenant.AddContact("Městský úřad");
+        var person = await this.Tenant.AddContact("Jan Novák", ContactKind.Person);
+        var @case = await this.Tenant.AddCase(Day);
+        var addressed = await this.Tenant.AddAct(@case, Day, "Výzva", issuedBy: authority, addressedTo: person);
 
-        var occurrence = await this.tenant.Context.Acts
+        var occurrence = await this.Tenant.Context.Acts
             .AddressedToContact(person.Id)
             .AsActOccurrences(ContactActRole.AddressedTo)
             .SingleAsync();
@@ -199,9 +185,9 @@ public class ContactOccurrenceQueryTests
             contactId = otherContact.Id;
         }
 
-        var caseOccurrences = await this.tenant.Context.ExternalCaseNumbers.AssignedByContact(contactId).CountAsync();
-        var issuedBy = await this.tenant.Context.Acts.IssuedByContact(contactId).CountAsync();
-        var defaultContacts = await this.tenant.Context.Users.WithDefaultContact(contactId).CountAsync();
+        var caseOccurrences = await this.Tenant.Context.ExternalCaseNumbers.AssignedByContact(contactId).CountAsync();
+        var issuedBy = await this.Tenant.Context.Acts.IssuedByContact(contactId).CountAsync();
+        var defaultContacts = await this.Tenant.Context.Users.WithDefaultContact(contactId).CountAsync();
 
         using (Assert.EnterMultipleScope())
         {
@@ -214,10 +200,10 @@ public class ContactOccurrenceQueryTests
     [Test]
     public async Task TheDefaultContactCheckFindsTheUserThatHoldsIt()
     {
-        var other = await this.tenant.AddContact("Městský úřad");
+        var other = await this.Tenant.AddContact("Městský úřad");
 
-        var holdsDefault = await this.tenant.Context.Users.WithDefaultContact(this.tenant.DefaultContact.Id).CountAsync();
-        var holdsOther = await this.tenant.Context.Users.WithDefaultContact(other.Id).CountAsync();
+        var holdsDefault = await this.Tenant.Context.Users.WithDefaultContact(this.Tenant.DefaultContact.Id).CountAsync();
+        var holdsOther = await this.Tenant.Context.Users.WithDefaultContact(other.Id).CountAsync();
 
         using (Assert.EnterMultipleScope())
         {
@@ -232,7 +218,7 @@ public class ContactOccurrenceQueryTests
     [Test]
     public void AnOccurrenceCountsNothingUnderItself()
     {
-        var sql = this.tenant.Context.ExternalCaseNumbers
+        var sql = this.Tenant.Context.ExternalCaseNumbers
             .AssignedByContact(Guid.CreateVersion7())
             .InCaseOccurrenceOrder()
             .AsCaseOccurrences()

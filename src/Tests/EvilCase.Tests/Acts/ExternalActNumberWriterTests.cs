@@ -12,33 +12,26 @@ namespace EvilBrains.EvilCase.Tests.Acts;
 /// Adds and removes the reference numbers other authorities gave an act, on the rows a real
 /// PostgreSQL returns. Each test seeds a tenant of its own, so none cleans up after itself.
 /// </summary>
-public class ExternalActNumberWriterTests
+public class ExternalActNumberWriterTests : TenantFixture
 {
     private static readonly DateOnly Day = new(2026, 8, 24);
 
-    private TestTenant tenant = null!;
-
     private ExternalActNumberWriter writer = null!;
 
-    [SetUp]
-    public async Task SetUp()
-    {
-        this.tenant = await TestTenant.Create(asHost: true);
-        this.writer = new ExternalActNumberWriter(new FixedDbSession(this.tenant.Context), NullLogger<ExternalActNumberWriter>.Instance);
-    }
+    protected override bool AsHost => true;
 
-    [TearDown]
-    public async Task TearDown()
+    [SetUp]
+    public void SetUpWriter()
     {
-        await this.tenant.DisposeAsync();
+        this.writer = new ExternalActNumberWriter(new FixedDbSession(this.Tenant.Context), NullLogger<ExternalActNumberWriter>.Instance);
     }
 
     [Test]
     public async Task ANumberIsFiledWithItsValueAndTheContactThatAssignedIt()
     {
-        var @case = await this.tenant.AddCase(Day);
-        var act = await this.tenant.AddAct(@case, Day);
-        var contact = await this.tenant.AddContact("Krajský soud ve Vzorově");
+        var @case = await this.Tenant.AddCase(Day);
+        var act = await this.Tenant.AddAct(@case, Day);
+        var contact = await this.Tenant.AddContact("Krajský soud ve Vzorově");
 
         var outcome = await this.writer.AddExternalActNumber(
             @case.Id,
@@ -59,9 +52,9 @@ public class ExternalActNumberWriterTests
     [Test]
     public async Task TheValueIsStoredWithoutItsSurroundingSpace()
     {
-        var @case = await this.tenant.AddCase(Day);
-        var act = await this.tenant.AddAct(@case, Day);
-        var contact = await this.tenant.AddContact("Krajský soud ve Vzorově");
+        var @case = await this.Tenant.AddCase(Day);
+        var act = await this.Tenant.AddAct(@case, Day);
+        var contact = await this.Tenant.AddContact("Krajský soud ve Vzorově");
 
         await this.writer.AddExternalActNumber(
             @case.Id,
@@ -77,10 +70,10 @@ public class ExternalActNumberWriterTests
     [Test]
     public async Task AValueTheActAlreadyCarriesIsRefused()
     {
-        var @case = await this.tenant.AddCase(Day);
-        var act = await this.tenant.AddAct(@case, Day);
-        var contact = await this.tenant.AddContact("Krajský soud ve Vzorově");
-        await this.tenant.AddExternalActNumber(act, "1 T 45/2026", contact);
+        var @case = await this.Tenant.AddCase(Day);
+        var act = await this.Tenant.AddAct(@case, Day);
+        var contact = await this.Tenant.AddContact("Krajský soud ve Vzorově");
+        await this.Tenant.AddExternalActNumber(act, "1 T 45/2026", contact);
 
         var outcome = await this.writer.AddExternalActNumber(
             @case.Id,
@@ -88,7 +81,7 @@ public class ExternalActNumberWriterTests
             new ExternalNumberRequest { Value = "1 T 45/2026", AssignedByContactId = contact.Id },
             CancellationToken.None);
 
-        var count = await this.tenant.Context.ExternalActNumbers.CountAsync(number => number.ActId == act.Id && number.Value == "1 T 45/2026");
+        var count = await this.Tenant.Context.ExternalActNumbers.CountAsync(number => number.ActId == act.Id && number.Value == "1 T 45/2026");
 
         using (Assert.EnterMultipleScope())
         {
@@ -100,11 +93,11 @@ public class ExternalActNumberWriterTests
     [Test]
     public async Task TheSameValueOnAnotherActIsAccepted()
     {
-        var @case = await this.tenant.AddCase(Day);
-        var contact = await this.tenant.AddContact("Krajský soud ve Vzorově");
-        var first = await this.tenant.AddAct(@case, Day, "První");
-        var second = await this.tenant.AddAct(@case, Day, "Druhý");
-        await this.tenant.AddExternalActNumber(first, "1 T 45/2026", contact);
+        var @case = await this.Tenant.AddCase(Day);
+        var contact = await this.Tenant.AddContact("Krajský soud ve Vzorově");
+        var first = await this.Tenant.AddAct(@case, Day, "První");
+        var second = await this.Tenant.AddAct(@case, Day, "Druhý");
+        await this.Tenant.AddExternalActNumber(first, "1 T 45/2026", contact);
 
         var outcome = await this.writer.AddExternalActNumber(
             @case.Id,
@@ -118,8 +111,8 @@ public class ExternalActNumberWriterTests
     [Test]
     public async Task AnUnknownActIsNotFound()
     {
-        var @case = await this.tenant.AddCase(Day);
-        var contact = await this.tenant.AddContact("Krajský soud ve Vzorově");
+        var @case = await this.Tenant.AddCase(Day);
+        var contact = await this.Tenant.AddContact("Krajský soud ve Vzorově");
 
         var outcome = await this.writer.AddExternalActNumber(
             @case.Id,
@@ -127,7 +120,7 @@ public class ExternalActNumberWriterTests
             new ExternalNumberRequest { Value = "1 T 45/2026", AssignedByContactId = contact.Id },
             CancellationToken.None);
 
-        var any = await this.tenant.Context.ExternalActNumbers.AnyAsync();
+        var any = await this.Tenant.Context.ExternalActNumbers.AnyAsync();
 
         using (Assert.EnterMultipleScope())
         {
@@ -139,10 +132,10 @@ public class ExternalActNumberWriterTests
     [Test]
     public async Task AnActOfAnotherCaseIsNotFound()
     {
-        var caseA = await this.tenant.AddCase(Day, "A");
-        var caseB = await this.tenant.AddCase(Day, "B");
-        var act = await this.tenant.AddAct(caseA, Day);
-        var contact = await this.tenant.AddContact("Krajský soud ve Vzorově");
+        var caseA = await this.Tenant.AddCase(Day, "A");
+        var caseB = await this.Tenant.AddCase(Day, "B");
+        var act = await this.Tenant.AddAct(caseA, Day);
+        var contact = await this.Tenant.AddContact("Krajský soud ve Vzorově");
 
         var outcome = await this.writer.AddExternalActNumber(
             caseB.Id,
@@ -150,7 +143,7 @@ public class ExternalActNumberWriterTests
             new ExternalNumberRequest { Value = "1 T 45/2026", AssignedByContactId = contact.Id },
             CancellationToken.None);
 
-        var any = await this.tenant.Context.ExternalActNumbers.AnyAsync();
+        var any = await this.Tenant.Context.ExternalActNumbers.AnyAsync();
 
         using (Assert.EnterMultipleScope())
         {
@@ -165,7 +158,7 @@ public class ExternalActNumberWriterTests
         await using var other = await TestTenant.Create();
         var otherCase = await other.AddCase(Day);
         var otherAct = await other.AddAct(otherCase, Day);
-        var contact = await this.tenant.AddContact("Krajský soud ve Vzorově");
+        var contact = await this.Tenant.AddContact("Krajský soud ve Vzorově");
 
         var outcome = await this.writer.AddExternalActNumber(
             otherCase.Id,
@@ -179,8 +172,8 @@ public class ExternalActNumberWriterTests
     [Test]
     public async Task AnUnknownContactIsRefused()
     {
-        var @case = await this.tenant.AddCase(Day);
-        var act = await this.tenant.AddAct(@case, Day);
+        var @case = await this.Tenant.AddCase(Day);
+        var act = await this.Tenant.AddAct(@case, Day);
 
         var outcome = await this.writer.AddExternalActNumber(
             @case.Id,
@@ -188,7 +181,7 @@ public class ExternalActNumberWriterTests
             new ExternalNumberRequest { Value = "1 T 45/2026", AssignedByContactId = Guid.CreateVersion7() },
             CancellationToken.None);
 
-        var any = await this.tenant.Context.ExternalActNumbers.AnyAsync();
+        var any = await this.Tenant.Context.ExternalActNumbers.AnyAsync();
 
         using (Assert.EnterMultipleScope())
         {
@@ -202,8 +195,8 @@ public class ExternalActNumberWriterTests
     {
         await using var other = await TestTenant.Create();
         var otherContact = await other.AddContact("Cizí kontakt");
-        var @case = await this.tenant.AddCase(Day);
-        var act = await this.tenant.AddAct(@case, Day);
+        var @case = await this.Tenant.AddCase(Day);
+        var act = await this.Tenant.AddAct(@case, Day);
 
         var outcome = await this.writer.AddExternalActNumber(
             @case.Id,
@@ -217,14 +210,14 @@ public class ExternalActNumberWriterTests
     [Test]
     public async Task ADeleteRemovesTheNumber()
     {
-        var @case = await this.tenant.AddCase(Day);
-        var act = await this.tenant.AddAct(@case, Day);
-        var contact = await this.tenant.AddContact("Krajský soud ve Vzorově");
-        var number = await this.tenant.AddExternalActNumber(act, "1 T 45/2026", contact);
+        var @case = await this.Tenant.AddCase(Day);
+        var act = await this.Tenant.AddAct(@case, Day);
+        var contact = await this.Tenant.AddContact("Krajský soud ve Vzorově");
+        var number = await this.Tenant.AddExternalActNumber(act, "1 T 45/2026", contact);
 
         var deleted = await this.writer.DeleteExternalActNumber(@case.Id, act.Id, number.Id, CancellationToken.None);
 
-        var exists = await this.tenant.Context.ExternalActNumbers.AnyAsync(entity => entity.Id == number.Id);
+        var exists = await this.Tenant.Context.ExternalActNumbers.AnyAsync(entity => entity.Id == number.Id);
 
         using (Assert.EnterMultipleScope())
         {
@@ -236,15 +229,15 @@ public class ExternalActNumberWriterTests
     [Test]
     public async Task ADeleteAimedAtAnotherActsNumberRemovesNothing()
     {
-        var @case = await this.tenant.AddCase(Day);
-        var contact = await this.tenant.AddContact("Krajský soud ve Vzorově");
-        var actA = await this.tenant.AddAct(@case, Day, "A");
-        var actB = await this.tenant.AddAct(@case, Day, "B");
-        var number = await this.tenant.AddExternalActNumber(actA, "1 T 45/2026", contact);
+        var @case = await this.Tenant.AddCase(Day);
+        var contact = await this.Tenant.AddContact("Krajský soud ve Vzorově");
+        var actA = await this.Tenant.AddAct(@case, Day, "A");
+        var actB = await this.Tenant.AddAct(@case, Day, "B");
+        var number = await this.Tenant.AddExternalActNumber(actA, "1 T 45/2026", contact);
 
         var deleted = await this.writer.DeleteExternalActNumber(@case.Id, actB.Id, number.Id, CancellationToken.None);
 
-        var exists = await this.tenant.Context.ExternalActNumbers.AnyAsync(entity => entity.Id == number.Id);
+        var exists = await this.Tenant.Context.ExternalActNumbers.AnyAsync(entity => entity.Id == number.Id);
 
         using (Assert.EnterMultipleScope())
         {
@@ -256,15 +249,15 @@ public class ExternalActNumberWriterTests
     [Test]
     public async Task ADeleteUnderAnotherCaseRemovesNothing()
     {
-        var caseA = await this.tenant.AddCase(Day, "A");
-        var caseB = await this.tenant.AddCase(Day, "B");
-        var act = await this.tenant.AddAct(caseA, Day);
-        var contact = await this.tenant.AddContact("Krajský soud ve Vzorově");
-        var number = await this.tenant.AddExternalActNumber(act, "1 T 45/2026", contact);
+        var caseA = await this.Tenant.AddCase(Day, "A");
+        var caseB = await this.Tenant.AddCase(Day, "B");
+        var act = await this.Tenant.AddAct(caseA, Day);
+        var contact = await this.Tenant.AddContact("Krajský soud ve Vzorově");
+        var number = await this.Tenant.AddExternalActNumber(act, "1 T 45/2026", contact);
 
         var deleted = await this.writer.DeleteExternalActNumber(caseB.Id, act.Id, number.Id, CancellationToken.None);
 
-        var exists = await this.tenant.Context.ExternalActNumbers.AnyAsync(entity => entity.Id == number.Id);
+        var exists = await this.Tenant.Context.ExternalActNumbers.AnyAsync(entity => entity.Id == number.Id);
 
         using (Assert.EnterMultipleScope())
         {
@@ -276,8 +269,8 @@ public class ExternalActNumberWriterTests
     [Test]
     public async Task AnUnknownNumberIsNotFound()
     {
-        var @case = await this.tenant.AddCase(Day);
-        var act = await this.tenant.AddAct(@case, Day);
+        var @case = await this.Tenant.AddCase(Day);
+        var act = await this.Tenant.AddAct(@case, Day);
 
         var deleted = await this.writer.DeleteExternalActNumber(@case.Id, act.Id, Guid.CreateVersion7(), CancellationToken.None);
 
@@ -306,6 +299,6 @@ public class ExternalActNumberWriterTests
 
     private async Task<ExternalActNumber> Reload(Guid actId)
     {
-        return await this.tenant.Context.ExternalActNumbers.SingleAsync(number => number.ActId == actId);
+        return await this.Tenant.Context.ExternalActNumbers.SingleAsync(number => number.ActId == actId);
     }
 }

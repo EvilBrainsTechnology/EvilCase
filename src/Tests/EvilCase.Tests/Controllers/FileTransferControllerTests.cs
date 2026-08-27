@@ -6,6 +6,7 @@ using EvilBrains.EvilCase.Business.Files;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Metadata;
 using Microsoft.AspNetCore.Mvc;
+using static EvilBrains.EvilCase.Tests.Controllers.ProblemAssertions;
 
 namespace EvilBrains.EvilCase.Tests.Controllers;
 
@@ -331,20 +332,6 @@ public class FileTransferControllerTests
             ((IRequestSizeLimitMetadata)attribute).MaxRequestBodySize,
             Is.EqualTo(FileLimits.MaxUploadRequestBytes),
             "Kestrel's 30 MB default would cap the upload below the product limit");
-    }
-
-    private static ProblemDetails AssertProblem(IActionResult? result, in int statusCode)
-    {
-        Assert.That(result, Is.InstanceOf<ObjectResult>());
-        var objectResult = (ObjectResult)result!;
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(objectResult.StatusCode, Is.EqualTo(statusCode));
-            Assert.That(objectResult.Value, Is.InstanceOf<ProblemDetails>());
-        }
-
-        return (ProblemDetails)objectResult.Value!;
     }
 
     private static FileListItem Item()

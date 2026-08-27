@@ -16,33 +16,25 @@ namespace EvilBrains.EvilCase.Tests.Acts;
 /// The edit rules on the rows a real PostgreSQL returns. Each test seeds a tenant of its own, so none
 /// cleans up after itself.
 /// </summary>
-public class ActUpdateTests
+public class ActUpdateTests : TenantFixture
 {
     private static readonly DateOnly Day = new(2026, 8, 21);
-
-    private TestTenant tenant = null!;
 
     private ActWriter writer = null!;
 
     [SetUp]
-    public async Task SetUp()
+    public void SetUpWriter()
     {
-        this.tenant = await TestTenant.Create();
-        this.writer = new ActWriter(new FixedDbSession(this.tenant.Context), new FakeActNumberIssuer(), new FakeFileBlobStore(), NullLogger<ActWriter>.Instance);
-    }
-
-    [TearDown]
-    public async Task TearDown()
-    {
-        await this.tenant.DisposeAsync();
+        this.writer = new ActWriter(
+            new FixedDbSession(this.Tenant.Context), new FakeActNumberIssuer(), new FakeFileBlobStore(), NullLogger<ActWriter>.Instance);
     }
 
     [Test]
     public async Task AnEditWritesTheDirectionTheDateTheTitleTheDescriptionAndBothContacts()
     {
-        var @case = await this.tenant.AddCase(Day);
-        var seeded = await this.tenant.AddAct(@case, Day, "Podání");
-        var recipient = await this.tenant.AddContact("Příjemce");
+        var @case = await this.Tenant.AddCase(Day);
+        var seeded = await this.Tenant.AddAct(@case, Day, "Podání");
+        var recipient = await this.Tenant.AddContact("Příjemce");
         var request = Edit(seeded.ActNumber, ActDirection.Outgoing, Day.AddDays(1), "Nový název", "Nový popis", seeded.IssuedByContactId, recipient.Id);
 
         var outcome = await this.writer.UpdateAct(@case.Id, seeded.Id, request, CancellationToken.None);
@@ -64,9 +56,9 @@ public class ActUpdateTests
     [Test]
     public async Task AnEditClearsTheRecipient()
     {
-        var @case = await this.tenant.AddCase(Day);
-        var recipient = await this.tenant.AddContact("Příjemce");
-        var seeded = await this.tenant.AddAct(@case, Day, addressedTo: recipient);
+        var @case = await this.Tenant.AddCase(Day);
+        var recipient = await this.Tenant.AddContact("Příjemce");
+        var seeded = await this.Tenant.AddAct(@case, Day, addressedTo: recipient);
         var request = Edit(seeded.ActNumber, seeded.Direction, seeded.Date, seeded.Title, description: null, seeded.IssuedByContactId, addressedToContactId: null);
 
         var outcome = await this.writer.UpdateAct(@case.Id, seeded.Id, request, CancellationToken.None);
@@ -83,8 +75,8 @@ public class ActUpdateTests
     [Test]
     public async Task ChangingTheDateLeavesTheNumberAsItWasIssued()
     {
-        var @case = await this.tenant.AddCase(Day);
-        var seeded = await this.tenant.AddAct(@case, Day, "Podání");
+        var @case = await this.Tenant.AddCase(Day);
+        var seeded = await this.Tenant.AddAct(@case, Day, "Podání");
         var newDate = Day.AddDays(3);
         var request = Edit(seeded.ActNumber, seeded.Direction, newDate, seeded.Title, description: null, seeded.IssuedByContactId);
 
@@ -103,8 +95,8 @@ public class ActUpdateTests
     [Test]
     public async Task AnActKeepsItsOwnNumberOnAnEdit()
     {
-        var @case = await this.tenant.AddCase(Day);
-        var seeded = await this.tenant.AddAct(@case, Day);
+        var @case = await this.Tenant.AddCase(Day);
+        var seeded = await this.Tenant.AddAct(@case, Day);
         var request = Edit(seeded.ActNumber, seeded.Direction, seeded.Date, seeded.Title, description: null, seeded.IssuedByContactId);
 
         var outcome = await this.writer.UpdateAct(@case.Id, seeded.Id, request, CancellationToken.None);
@@ -115,8 +107,8 @@ public class ActUpdateTests
     [Test]
     public async Task AHandWrittenNumberInTheFormatBecomesTheActsOwn()
     {
-        var @case = await this.tenant.AddCase(Day);
-        var seeded = await this.tenant.AddAct(@case, Day);
+        var @case = await this.Tenant.AddCase(Day);
+        var seeded = await this.Tenant.AddAct(@case, Day);
         var request = Edit(
             "  EC/20260101-042/20260105-007  ", seeded.Direction, seeded.Date, seeded.Title, description: null, seeded.IssuedByContactId);
 
@@ -137,8 +129,8 @@ public class ActUpdateTests
     [Test]
     public async Task AHandWrittenNumberOutsideTheFormatIsRefused()
     {
-        var @case = await this.tenant.AddCase(Day);
-        var seeded = await this.tenant.AddAct(@case, Day, "Podání");
+        var @case = await this.Tenant.AddCase(Day);
+        var seeded = await this.Tenant.AddAct(@case, Day, "Podání");
         var request = Edit("cj 7/2026", seeded.Direction, seeded.Date, "Jiný název", description: null, seeded.IssuedByContactId);
 
         var outcome = await this.writer.UpdateAct(@case.Id, seeded.Id, request, CancellationToken.None);
@@ -156,9 +148,9 @@ public class ActUpdateTests
     [Test]
     public async Task ANumberAnotherActHoldsIsRefused()
     {
-        var @case = await this.tenant.AddCase(Day);
-        var first = await this.tenant.AddAct(@case, Day, "První");
-        var second = await this.tenant.AddAct(@case, Day, "Druhý");
+        var @case = await this.Tenant.AddCase(Day);
+        var first = await this.Tenant.AddAct(@case, Day, "První");
+        var second = await this.Tenant.AddAct(@case, Day, "Druhý");
         var request = Edit(second.ActNumber, first.Direction, first.Date, "Jiný název", description: null, first.IssuedByContactId);
 
         var outcome = await this.writer.UpdateAct(@case.Id, first.Id, request, CancellationToken.None);
@@ -176,10 +168,10 @@ public class ActUpdateTests
     [Test]
     public async Task ANumberAnotherCasesActHoldsIsRefused()
     {
-        var caseA = await this.tenant.AddCase(Day, "A");
-        var caseB = await this.tenant.AddCase(Day, "B");
-        var actA = await this.tenant.AddAct(caseA, Day);
-        var actB = await this.tenant.AddAct(caseB, Day);
+        var caseA = await this.Tenant.AddCase(Day, "A");
+        var caseB = await this.Tenant.AddCase(Day, "B");
+        var actA = await this.Tenant.AddAct(caseA, Day);
+        var actB = await this.Tenant.AddAct(caseB, Day);
         var request = Edit(actB.ActNumber, actA.Direction, actA.Date, actA.Title, description: null, actA.IssuedByContactId);
 
         var outcome = await this.writer.UpdateAct(caseA.Id, actA.Id, request, CancellationToken.None);
@@ -193,8 +185,8 @@ public class ActUpdateTests
     [Test]
     public async Task ABlankDescriptionIsFiledAsNothing()
     {
-        var @case = await this.tenant.AddCase(Day);
-        var seeded = await this.tenant.AddAct(@case, Day);
+        var @case = await this.Tenant.AddCase(Day);
+        var seeded = await this.Tenant.AddAct(@case, Day);
         var request = Edit(seeded.ActNumber, seeded.Direction, seeded.Date, seeded.Title, "   ", seeded.IssuedByContactId);
 
         await this.writer.UpdateAct(@case.Id, seeded.Id, request, CancellationToken.None);
@@ -207,8 +199,8 @@ public class ActUpdateTests
     [Test]
     public async Task AnEditNamingAContactThatIsNotThereIsRefused()
     {
-        var @case = await this.tenant.AddCase(Day);
-        var seeded = await this.tenant.AddAct(@case, Day, "Podání");
+        var @case = await this.Tenant.AddCase(Day);
+        var seeded = await this.Tenant.AddAct(@case, Day, "Podání");
         var request = Edit(seeded.ActNumber, seeded.Direction, seeded.Date, "Jiný název", description: null, Guid.CreateVersion7());
 
         var outcome = await this.writer.UpdateAct(@case.Id, seeded.Id, request, CancellationToken.None);
@@ -229,8 +221,8 @@ public class ActUpdateTests
         await using var other = await TestTenant.Create();
         var foreignContact = await other.AddContact("Cizí kontakt");
 
-        var @case = await this.tenant.AddCase(Day);
-        var seeded = await this.tenant.AddAct(@case, Day);
+        var @case = await this.Tenant.AddCase(Day);
+        var seeded = await this.Tenant.AddAct(@case, Day);
 
         var asSender = Edit(seeded.ActNumber, seeded.Direction, seeded.Date, seeded.Title, description: null, foreignContact.Id);
         var senderOutcome = await this.writer.UpdateAct(@case.Id, seeded.Id, asSender, CancellationToken.None);
@@ -248,8 +240,8 @@ public class ActUpdateTests
     [Test]
     public async Task AnUnknownActIsNotFound()
     {
-        var @case = await this.tenant.AddCase(Day);
-        var request = Edit("EC/20260101-042/20260105-007", ActDirection.Incoming, Day, "Podání", description: null, this.tenant.DefaultContact.Id);
+        var @case = await this.Tenant.AddCase(Day);
+        var request = Edit("EC/20260101-042/20260105-007", ActDirection.Incoming, Day, "Podání", description: null, this.Tenant.DefaultContact.Id);
 
         var outcome = await this.writer.UpdateAct(@case.Id, Guid.CreateVersion7(), request, CancellationToken.None);
 
@@ -259,7 +251,7 @@ public class ActUpdateTests
     [Test]
     public async Task AnUnknownActIsNotFoundBeforeTheEditIsWeighed()
     {
-        var @case = await this.tenant.AddCase(Day);
+        var @case = await this.Tenant.AddCase(Day);
         var request = Edit("cj 7/2026", ActDirection.Incoming, Day, "Podání", description: null, Guid.CreateVersion7());
 
         var outcome = await this.writer.UpdateAct(@case.Id, Guid.CreateVersion7(), request, CancellationToken.None);
@@ -270,9 +262,9 @@ public class ActUpdateTests
     [Test]
     public async Task AnActOfAnotherCaseIsNotFound()
     {
-        var first = await this.tenant.AddCase(Day, "První");
-        var second = await this.tenant.AddCase(Day, "Druhý");
-        var seeded = await this.tenant.AddAct(first, Day, "Podání");
+        var first = await this.Tenant.AddCase(Day, "První");
+        var second = await this.Tenant.AddCase(Day, "Druhý");
+        var seeded = await this.Tenant.AddAct(first, Day, "Podání");
         var request = Edit(seeded.ActNumber, seeded.Direction, seeded.Date, "Jiný název", description: null, seeded.IssuedByContactId);
 
         var outcome = await this.writer.UpdateAct(second.Id, seeded.Id, request, CancellationToken.None);
@@ -302,13 +294,14 @@ public class ActUpdateTests
     [Test]
     public async Task RewritingTheCaseNumberLeavesTheIssuedActNumbersAlone()
     {
-        var @case = await this.tenant.AddCase(Day);
-        var first = await this.tenant.AddAct(@case, Day, "První");
-        var second = await this.tenant.AddAct(@case, Day, "Druhý");
+        var @case = await this.Tenant.AddCase(Day);
+        var first = await this.Tenant.AddAct(@case, Day, "První");
+        var second = await this.Tenant.AddAct(@case, Day, "Druhý");
         var firstNumber = first.ActNumber;
         var secondNumber = second.ActNumber;
 
-        var caseWriter = new CaseWriter(new FixedDbSession(this.tenant.Context), new FakeCaseNumberIssuer(), new FakeFileBlobStore(), NullLogger<CaseWriter>.Instance);
+        var caseWriter = new CaseWriter(
+            new FixedDbSession(this.Tenant.Context), new FakeCaseNumberIssuer(), new FakeFileBlobStore(), NullLogger<CaseWriter>.Instance);
         var caseEdit = new CaseEditRequest
         {
             CaseNumber = "EC/20260101-042",
@@ -320,8 +313,8 @@ public class ActUpdateTests
 
         var outcome = await caseWriter.UpdateCase(@case.Id, caseEdit, CancellationToken.None);
 
-        this.tenant.Context.ChangeTracker.Clear();
-        var reloadedCase = await this.tenant.Context.Cases.SingleAsync(c => c.Id == @case.Id);
+        this.Tenant.Context.ChangeTracker.Clear();
+        var reloadedCase = await this.Tenant.Context.Cases.SingleAsync(c => c.Id == @case.Id);
         var reloadedFirst = await this.Reload(first.Id);
         var reloadedSecond = await this.Reload(second.Id);
 
@@ -342,9 +335,9 @@ public class ActUpdateTests
 
     private async Task<Act> Reload(Guid actId)
     {
-        this.tenant.Context.ChangeTracker.Clear();
+        this.Tenant.Context.ChangeTracker.Clear();
 
-        return await this.tenant.Context.Acts.SingleAsync(act => act.Id == actId);
+        return await this.Tenant.Context.Acts.SingleAsync(act => act.Id == actId);
     }
 
     private static ActEditRequest Edit(

@@ -10,21 +10,9 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace EvilBrains.EvilCase.Tests.Acts;
 
-public class ActWriterTests
+public class ActWriterTests : TenantFixture
 {
-    private TestTenant tenant = null!;
-
-    [SetUp]
-    public async Task SetUp()
-    {
-        this.tenant = await TestTenant.Create(asHost: true);
-    }
-
-    [TearDown]
-    public async Task TearDown()
-    {
-        await this.tenant.DisposeAsync();
-    }
+    protected override bool AsHost => true;
 
     [Test]
     public void ANewActCarriesTheRequestAndTheNumberIssuedToIt()
@@ -85,19 +73,19 @@ public class ActWriterTests
     [Test]
     public async Task ANumberTakenWhileTheActIsFiledIsIssuedAgain()
     {
-        var @case = await this.tenant.AddCase(new DateOnly(2026, 8, 21));
+        var @case = await this.Tenant.AddCase(new DateOnly(2026, 8, 21));
         const string taken = "EC/20260821-001/20260825-001";
         const string free = "EC/20260821-001/20260825-002";
 
-        await this.tenant.AddAct(@case, new DateOnly(2026, 8, 25), "Podání", actNumber: taken);
+        await this.Tenant.AddAct(@case, new DateOnly(2026, 8, 25), "Podání", actNumber: taken);
 
-        var writer = new ActWriter(new FixedDbSession(this.tenant.Context), new QueuedActNumberIssuer([taken, free]), new FakeFileBlobStore(), NullLogger<ActWriter>.Instance);
+        var writer = new ActWriter(new FixedDbSession(this.Tenant.Context), new QueuedActNumberIssuer([taken, free]), new FakeFileBlobStore(), NullLogger<ActWriter>.Instance);
 
-        var request = Request() with { Date = new DateOnly(2026, 8, 25), IssuedByContactId = this.tenant.DefaultContact.Id };
+        var request = Request() with { Date = new DateOnly(2026, 8, 25), IssuedByContactId = this.Tenant.DefaultContact.Id };
 
         var result = await writer.CreateAct(@case.Id, request, CancellationToken.None);
 
-        var acts = await this.tenant.Context.Acts.OfCase(@case.Id).ToListAsync();
+        var acts = await this.Tenant.Context.Acts.OfCase(@case.Id).ToListAsync();
 
         using (Assert.EnterMultipleScope())
         {
@@ -110,7 +98,7 @@ public class ActWriterTests
     [Test]
     public async Task AnActInACaseThatIsNotThereIsRefused()
     {
-        var writer = new ActWriter(new FixedDbSession(this.tenant.Context), new QueuedActNumberIssuer([]), new FakeFileBlobStore(), NullLogger<ActWriter>.Instance);
+        var writer = new ActWriter(new FixedDbSession(this.Tenant.Context), new QueuedActNumberIssuer([]), new FakeFileBlobStore(), NullLogger<ActWriter>.Instance);
 
         var result = await writer.CreateAct(Guid.CreateVersion7(), Request(), CancellationToken.None);
 
@@ -124,8 +112,8 @@ public class ActWriterTests
     [Test]
     public async Task AnActNamingAContactThatIsNotThereIsRefused()
     {
-        var @case = await this.tenant.AddCase(new DateOnly(2026, 8, 21));
-        var writer = new ActWriter(new FixedDbSession(this.tenant.Context), new QueuedActNumberIssuer(["EC/20260821-001/20260825-001"]), new FakeFileBlobStore(), NullLogger<ActWriter>.Instance);
+        var @case = await this.Tenant.AddCase(new DateOnly(2026, 8, 21));
+        var writer = new ActWriter(new FixedDbSession(this.Tenant.Context), new QueuedActNumberIssuer(["EC/20260821-001/20260825-001"]), new FakeFileBlobStore(), NullLogger<ActWriter>.Instance);
 
         var result = await writer.CreateAct(@case.Id, Request() with { IssuedByContactId = Guid.CreateVersion7() }, CancellationToken.None);
 
@@ -135,7 +123,7 @@ public class ActWriterTests
     [Test]
     public async Task AnActNamingTheContactOfAnotherTenantIsRefused()
     {
-        var @case = await this.tenant.AddCase(new DateOnly(2026, 8, 21));
+        var @case = await this.Tenant.AddCase(new DateOnly(2026, 8, 21));
 
         Guid foreignContactId;
         await using (var other = await TestTenant.Create())
@@ -145,12 +133,12 @@ public class ActWriterTests
         }
 
         // No number is queued: a contact of another tenant never reaches the insert.
-        var writer = new ActWriter(new FixedDbSession(this.tenant.Context), new QueuedActNumberIssuer([]), new FakeFileBlobStore(), NullLogger<ActWriter>.Instance);
+        var writer = new ActWriter(new FixedDbSession(this.Tenant.Context), new QueuedActNumberIssuer([]), new FakeFileBlobStore(), NullLogger<ActWriter>.Instance);
 
         var asSender = await writer.CreateAct(@case.Id, Request() with { IssuedByContactId = foreignContactId }, CancellationToken.None);
         var asRecipient = await writer.CreateAct(
             @case.Id,
-            Request() with { IssuedByContactId = this.tenant.DefaultContact.Id, AddressedToContactId = foreignContactId },
+            Request() with { IssuedByContactId = this.Tenant.DefaultContact.Id, AddressedToContactId = foreignContactId },
             CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
@@ -163,17 +151,17 @@ public class ActWriterTests
     [Test]
     public async Task AFiledActCarriesTheContactNames()
     {
-        var @case = await this.tenant.AddCase(new DateOnly(2026, 8, 21));
-        var addressedTo = await this.tenant.AddContact("Krajský soud ve Vzorově");
-        var writer = new ActWriter(new FixedDbSession(this.tenant.Context), new QueuedActNumberIssuer(["EC/20260821-001/20260825-001"]), new FakeFileBlobStore(), NullLogger<ActWriter>.Instance);
+        var @case = await this.Tenant.AddCase(new DateOnly(2026, 8, 21));
+        var addressedTo = await this.Tenant.AddContact("Krajský soud ve Vzorově");
+        var writer = new ActWriter(new FixedDbSession(this.Tenant.Context), new QueuedActNumberIssuer(["EC/20260821-001/20260825-001"]), new FakeFileBlobStore(), NullLogger<ActWriter>.Instance);
 
-        var request = Request() with { IssuedByContactId = this.tenant.DefaultContact.Id, AddressedToContactId = addressedTo.Id };
+        var request = Request() with { IssuedByContactId = this.Tenant.DefaultContact.Id, AddressedToContactId = addressedTo.Id };
 
         var result = await writer.CreateAct(@case.Id, request, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result.Act!.IssuedByName, Is.EqualTo(this.tenant.DefaultContact.Name));
+            Assert.That(result.Act!.IssuedByName, Is.EqualTo(this.Tenant.DefaultContact.Name));
             Assert.That(result.Act!.AddressedToName, Is.EqualTo("Krajský soud ve Vzorově"));
             Assert.That(result.Act!.ActNumber, Does.StartWith(@case.CaseNumber + "/"));
         }

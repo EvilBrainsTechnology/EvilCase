@@ -10,39 +10,30 @@ namespace EvilBrains.EvilCase.Tests.Numbering;
 /// What the next act number of a day inside a case reads, on the rows a real PostgreSQL returns. Each
 /// test seeds a tenant of its own, so none cleans up after itself.
 /// </summary>
-public class ActNumberQueryTests
+public class ActNumberQueryTests : TenantFixture
 {
     private static readonly DateOnly CaseDay = new(2026, 8, 7);
 
     private static readonly DateOnly ActDay = new(2026, 8, 12);
 
-    private TestTenant tenant = null!;
-
     private Case ownCase = null!;
 
     [SetUp]
-    public async Task SetUp()
+    public async Task SetUpCase()
     {
-        this.tenant = await TestTenant.Create();
-        this.ownCase = await this.tenant.AddCase(CaseDay);
-    }
-
-    [TearDown]
-    public async Task TearDown()
-    {
-        await this.tenant.DisposeAsync();
+        this.ownCase = await this.Tenant.AddCase(CaseDay);
     }
 
     [Test]
     public async Task ThePrefixNarrowsToTheCasesOwnNumbersOfTheDay()
     {
-        await this.tenant.AddAct(this.ownCase, ActDay);
-        await this.tenant.AddAct(this.ownCase, ActDay);
-        await this.tenant.AddAct(this.ownCase, new DateOnly(2026, 8, 13));
-        await this.tenant.AddAct(this.ownCase, ActDay, actNumber: $"{this.ownCase.CaseNumber}/2026-117");
+        await this.Tenant.AddAct(this.ownCase, ActDay);
+        await this.Tenant.AddAct(this.ownCase, ActDay);
+        await this.Tenant.AddAct(this.ownCase, new DateOnly(2026, 8, 13));
+        await this.Tenant.AddAct(this.ownCase, ActDay, actNumber: $"{this.ownCase.CaseNumber}/2026-117");
 
-        var otherCase = await this.tenant.AddCase(CaseDay);
-        await this.tenant.AddAct(otherCase, ActDay);
+        var otherCase = await this.Tenant.AddCase(CaseDay);
+        await this.Tenant.AddAct(otherCase, ActDay);
 
         var numbers = await this.NumbersOfCaseWithPrefix(this.ownCase, ActNumberFormat.Prefix(this.ownCase.CaseNumber, ActDay));
 
@@ -61,12 +52,12 @@ public class ActNumberQueryTests
     [Test]
     public async Task AWildcardInAHandWrittenCaseNumberMatchesOnlyItself()
     {
-        var written = await this.tenant.AddCase(CaseDay, caseNumber: @"EC/100%_1-a\b");
+        var written = await this.Tenant.AddCase(CaseDay, caseNumber: @"EC/100%_1-a\b");
 
-        await this.tenant.AddAct(written, ActDay);
+        await this.Tenant.AddAct(written, ActDay);
 
         // The same case, carrying a number only the unescaped pattern would reach.
-        await this.tenant.AddAct(written, ActDay, actNumber: "EC/100ZZZ_1-ab/20260812-777");
+        await this.Tenant.AddAct(written, ActDay, actNumber: "EC/100ZZZ_1-ab/20260812-777");
 
         var numbers = await this.NumbersOfCaseWithPrefix(written, ActNumberFormat.Prefix(written.CaseNumber, ActDay));
 
@@ -82,7 +73,7 @@ public class ActNumberQueryTests
         await this.AddNumberedAct(1000);
         await this.AddNumberedAct(998);
 
-        var numbers = await this.tenant.Context.Acts
+        var numbers = await this.Tenant.Context.Acts
             .OfCaseWithNumberPrefix(this.ownCase.Id, ActNumberFormat.Prefix(this.ownCase.CaseNumber, ActDay))
             .OrderByNumberDescending()
             .Select(act => act.ActNumber)
@@ -112,7 +103,7 @@ public class ActNumberQueryTests
 
     private async Task AddNumberedAct(int sequence)
     {
-        await this.tenant.AddAct(
+        await this.Tenant.AddAct(
             this.ownCase,
             ActDay,
             actNumber: ActNumberFormat.Compose(this.ownCase.CaseNumber, ActDay, sequence));
@@ -121,11 +112,11 @@ public class ActNumberQueryTests
     [Test]
     public async Task ANumberIsHeldOnlyByAnotherAct()
     {
-        var first = await this.tenant.AddAct(this.ownCase, ActDay);
-        var second = await this.tenant.AddAct(this.ownCase, ActDay);
+        var first = await this.Tenant.AddAct(this.ownCase, ActDay);
+        var second = await this.Tenant.AddAct(this.ownCase, ActDay);
 
-        var byFirst = await this.tenant.Context.Acts.WithNumberHeldByAnother(first.ActNumber, first.Id).ToListAsync();
-        var bySecond = await this.tenant.Context.Acts.WithNumberHeldByAnother(second.ActNumber, first.Id).ToListAsync();
+        var byFirst = await this.Tenant.Context.Acts.WithNumberHeldByAnother(first.ActNumber, first.Id).ToListAsync();
+        var bySecond = await this.Tenant.Context.Acts.WithNumberHeldByAnother(second.ActNumber, first.Id).ToListAsync();
 
         using (Assert.EnterMultipleScope())
         {
@@ -136,7 +127,7 @@ public class ActNumberQueryTests
 
     private async Task<List<string>> NumbersOfCaseWithPrefix(Case @case, string prefix)
     {
-        return await this.tenant.Context.Acts
+        return await this.Tenant.Context.Acts
             .OfCaseWithNumberPrefix(@case.Id, prefix)
             .Select(act => act.ActNumber)
             .ToListAsync();

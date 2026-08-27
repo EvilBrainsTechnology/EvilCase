@@ -7,6 +7,7 @@ using EvilBrains.EvilCase.Business.Cases;
 using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Domain.Cases;
 using Microsoft.AspNetCore.Mvc;
+using static EvilBrains.EvilCase.Tests.Controllers.ProblemAssertions;
 
 namespace EvilBrains.EvilCase.Tests.Controllers;
 
@@ -399,20 +400,6 @@ public class CasesControllerTests
     private static ExternalNumberRequest Mark()
     {
         return new() { Value = "VV41/2025/08464", AssignedByContactId = Guid.CreateVersion7() };
-    }
-
-    private static ProblemDetails AssertProblem(IActionResult? result, in int statusCode)
-    {
-        Assert.That(result, Is.InstanceOf<ObjectResult>());
-        var objectResult = (ObjectResult)result!;
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(objectResult.StatusCode, Is.EqualTo(statusCode));
-            Assert.That(objectResult.Value, Is.InstanceOf<ProblemDetails>());
-        }
-
-        return (ProblemDetails)objectResult.Value!;
     }
 
     private static CaseDetail Detail(Guid caseId)
