@@ -68,8 +68,7 @@ Aplikace čísluje spisy a úkony sama, bez konfigurace; tvar čísel, ruční p
 
 URL nesou UUID: `/cases`, `/cases/{id}`, `/cases/{id}/act/{actId}`, `/contacts`, `/login`
 ([SDD-016](../sdd/sdd-016-navigace-a-vzhled.md)). Dashboard `/` stojí nad reálnými daty
-([SDD-015](../sdd/sdd-015-dashboard.md)). Hledání pokrývá názvy, popisy i čísla a ignoruje
-diakritiku ([SDD-014](../sdd/sdd-014-vyhledavani.md)). Vzhled zůstává: Tabler + TabBlazor.
+([SDD-015](../sdd/sdd-015-dashboard.md)). Vzhled zůstává: Tabler + TabBlazor.
 
 ## Vzorová data
 
@@ -84,7 +83,6 @@ V pořadí podle toho, co při práci s reálným spisem bolí nejvíc:
 1. Všechno k případu na jednom místě — spis, podřízené spisy, úkony a dokumenty — místo složky
    na disku.
 2. Zavedení nového úkonu s jeho dokumenty pod minutu.
-3. Rychlé nalezení spisu i úkonu, textem i číslem; hledání ignoruje diakritiku.
 
 ## Milníky
 
@@ -96,7 +94,7 @@ V pořadí podle toho, co při práci s reálným spisem bolí nejvíc:
 | M4 | Úkony | založení, detail, editace a mazání úkonu; směr, kontakty, externí čísla, komentáře úkonů | SDD-010, 011, 013 |
 | M5 | Soubory | UI souborů: upload včetně hromadného přetažením, download, mazání | SDD-012 |
 | M6 | Kontakty | agenda kontaktů s výskyty, defaultní kontakt v UI | SDD-011 |
-| M7 | Dashboard a hledání | dashboard nad reálnými daty, fulltext s navigací přesnou shodou | SDD-014, 015 |
+| M7 | Dashboard | dashboard nad reálnými daty | SDD-015 |
 
 Průřezová SDD-001 až 005 platí pro každý milník. Základ je hotový, když jde reálný spis vést
 rukou od začátku do konce.
@@ -104,10 +102,10 @@ rukou od začátku do konce.
 ## Non-goals pro teď
 
 Konfigurovatelné číslování, tagy, vazby souborů mezi úkony, lhůty, timeline, import složek,
-extrakce textu z dokumentů a fulltext nad obsahem souborů, .docx šablony a generovaná podání,
-datové schránky (ISDS), e-mail, AI shrnutí, role, registrace, pozvánky, více uživatelů
-v tenantu, billing, správa uživatelů nad rámec seedovaného administrátora. Model všem nechává
-místo; nic z toho se nestaví.
+hledání nad spisy a úkony, extrakce textu z dokumentů a fulltext nad obsahem souborů, .docx
+šablony a generovaná podání, datové schránky (ISDS), e-mail, AI shrnutí, role, registrace,
+pozvánky, více uživatelů v tenantu, billing, správa uživatelů nad rámec seedovaného
+administrátora. Model všem nechává místo; nic z toho se nestaví.
 
 ## Soukromí
 

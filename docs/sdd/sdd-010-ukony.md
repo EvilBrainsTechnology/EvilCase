@@ -49,5 +49,4 @@ Mazání řídí matice v SDD-007; potvrzení jmenuje, co kaskáda bere.
 
 ## Dopady
 
-Sloupec `Act.ExternalActNumber` zaniká (SDD-007). Přesná shoda externího čísla naviguje jen
-při jednoznačnosti (SDD-014).
+Sloupec `Act.ExternalActNumber` zaniká (SDD-007).

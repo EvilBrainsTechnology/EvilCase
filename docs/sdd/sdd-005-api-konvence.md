@@ -28,7 +28,6 @@ Tvary API a klienta pro nové agendy. Z velké části dnešní stav, který pla
 | Kontakty | `/api/contacts`, `/api/contacts/{id}` |
 | Soubory | upload a výpis na vlastníku; download `/api/files/{id}/content` |
 | Komentáře | na vlastníku, `…/comments`, `…/comments/{id}` |
-| Hledání | `/api/search?query=` |
 
 - Id v routách je `Guid`.
 - Tenanta i uživatele dodává `IUserContext`; endpoint ani dotaz nikdy neberou id tenanta parametrem

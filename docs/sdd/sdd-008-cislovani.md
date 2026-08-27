@@ -3,7 +3,7 @@
 - **Stav:** platí
 - **Milníky:** M2
 - **Související SDD:** [009](sdd-009-spisy.md), [010](sdd-010-ukony.md),
-  [014](sdd-014-vyhledavani.md), [016](sdd-016-navigace-a-vzhled.md)
+  [016](sdd-016-navigace-a-vzhled.md)
 
 ## Rozsah
 
@@ -53,4 +53,4 @@ bez databáze (SDD-003).
 
 ## Dopady
 
-Přesná shoda čísla naviguje rovnou na entitu (SDD-014).
+—

@@ -3,7 +3,7 @@
 - **Stav:** platí
 - **Milníky:** M7
 - **Související SDD:** [005](sdd-005-api-konvence.md), [009](sdd-009-spisy.md),
-  [010](sdd-010-ukony.md), [014](sdd-014-vyhledavani.md)
+  [010](sdd-010-ukony.md)
 
 ## Rozsah
 
@@ -15,8 +15,7 @@ Dashboard stojí nad reálnými daty tenantu:
 
 - dlaždice počtů spisů podle stavu,
 - poslední úkony podle data úkonu, s odkazem do detailu,
-- naposledy změněné spisy,
-- hledací pole (SDD-014).
+- naposledy změněné spisy.
 
 Naposledy změněné spisy řadí vlastní `Updated` spisu; zápis úkonu, komentáře nebo souboru ho
 nemění — ta aktivita se ukazuje v dlaždici posledních úkonů. Seznamové dlaždice ukazují

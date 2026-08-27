@@ -2,8 +2,7 @@
 
 - **Stav:** platí
 - **Milníky:** M1
-- **Související SDD:** [008](sdd-008-cislovani.md), [014](sdd-014-vyhledavani.md),
-  [015](sdd-015-dashboard.md)
+- **Související SDD:** [008](sdd-008-cislovani.md), [015](sdd-015-dashboard.md)
 
 ## Rozsah
 
