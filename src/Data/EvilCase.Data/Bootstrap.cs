@@ -13,7 +13,25 @@ public static class Bootstrap
     {
         serviceCollection.AddScoped<UserWriteInterceptor>();
 
-        serviceCollection.AddLocalDbContext<ApplicationDbContext>();
+        serviceCollection.AddDbContext<ApplicationDbContext>(
+            (serviceProvider, options) =>
+            {
+                var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+                var connectionStringSection = configuration.GetRequiredSection("EvilBrains:EvilCase:ConnectionString");
+                var connectionString = connectionStringSection.Value ?? throw new InvalidOperationException("Connection string not found");
+
+                options.UseNpgsql(connectionString, npgsql => npgsql.UseEvilCaseMigrations());
+                options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+                options.AddInterceptors(serviceProvider.GetRequiredService<UserWriteInterceptor>());
+
+                var environment = serviceProvider.GetRequiredService<IHostEnvironment>();
+                if (environment.IsDevelopment())
+                {
+                    options.EnableSensitiveDataLogging();
+                    options.EnableDetailedErrors();
+                }
+            });
+
         serviceCollection.AddScoped<IDatabaseMigrator, DatabaseMigrator>();
         serviceCollection.AddScoped<IDbSession, DbSession>();
 
@@ -37,30 +55,5 @@ public static class Bootstrap
 
         var migrator = scope.ServiceProvider.GetRequiredService<IDatabaseMigrator>();
         await migrator.Migrate(token);
-    }
-
-    private static IServiceCollection AddLocalDbContext<TContext>(this IServiceCollection services)
-        where TContext : DbContext
-    {
-        services.AddDbContext<TContext>(
-            (serviceProvider, options) =>
-            {
-                var configuration = serviceProvider.GetRequiredService<IConfiguration>();
-                var connectionStringSection = configuration.GetRequiredSection("EvilBrains:EvilCase:ConnectionString");
-                var connectionString = connectionStringSection.Value ?? throw new InvalidOperationException("Connection string not found");
-
-                options.UseNpgsql(connectionString, npgsql => npgsql.UseEvilCaseMigrations());
-                options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
-                options.AddInterceptors(serviceProvider.GetRequiredService<UserWriteInterceptor>());
-
-                var environment = serviceProvider.GetRequiredService<IHostEnvironment>();
-                if (environment.IsDevelopment())
-                {
-                    options.EnableSensitiveDataLogging();
-                    options.EnableDetailedErrors();
-                }
-            });
-
-        return services;
     }
 }

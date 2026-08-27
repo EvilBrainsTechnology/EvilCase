@@ -4,11 +4,11 @@ namespace EvilBrains.EvilCase.Files;
 
 public static class Bootstrap
 {
-    public static IServiceCollection AddEvilCaseFiles(this IServiceCollection services, string fileSettingsPath)
+    public static IServiceCollection AddEvilCaseFiles(this IServiceCollection services)
     {
         services
             .AddOptions<FileSettings>()
-            .BindConfiguration(fileSettingsPath, options => options.ErrorOnUnknownConfiguration = true)
+            .BindConfiguration("EvilBrains:EvilCase:Files", options => options.ErrorOnUnknownConfiguration = true)
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
