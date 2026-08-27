@@ -329,23 +329,60 @@ Zodpovězeno vlastníkem 2026-08-27:
 
 ## Pořadí provádění
 
-Každá dávka builduje, testy zelené, jeden commit (`review: R-0xx, R-0yy — <co>`); úpravy SDD
-a pravidel v oddělených commitech na konci, aby popisovaly hotový stav. Žádná dávka už nečeká
-na rozhodnutí.
+Jeden nález nebo skupina sourozeneckých nálezů = jeden pull request; každý builduje, má zelené
+testy a nese změnu chování s testem. Tři stopy — backend, frontend, dokumentace — jedou
+souběžně. Uvnitř stopy stojí každý pull request na předchozím, protože si sahají do týchž
+souborů; vlastník merguje stopu v jejím pořadí. Brána je CI na GitHubu.
 
-- **Dávka 1 — bezpečnostní opravy:** R-002, R-003, R-005 (+ testy).
-- **Dávka 2 — rozhodnutá bezpečnost:** R-001, R-004 (+ testy).
-- **Dávka 3 — mazání:** R-015, R-016, R-017.
-- **Dávka 4 — backend foldy:** R-018, R-019, R-020, R-021, R-022, R-023.
-- **Dávka 5 — konzistence backendu:** R-024, R-025, R-026, R-027, R-030 (+ testy chování).
-- **Dávka 6 — povrch backendu:** R-028, R-029, R-031, R-032, R-033.
-- **Dávka 7 — testy:** R-034, R-035, R-036.
-- **Dávka 8 — struktura frontendu:** R-037, R-038, R-039, R-040, část R-010 v `ContactPicker`.
-- **Dávka 9 — jemnosti frontendu:** R-041 … R-049.
-- **Dávka 10 — aktualizace SDD:** R-007, R-008, R-011, R-012 a dopady rozhodnutí 1–3;
-  oddělené commity, meta-edit flow.
-- **Dávka 11 — aktualizace pravidel:** R-050, R-051 včetně navýšení limitu na 550;
-  meta-edit flow.
+### Backend
+
+| # | Nálezy | Co |
+| --- | --- | --- |
+| B1 | R-002 | striktní binding enumů |
+| B2 | R-003 | validace metadat uploadu |
+| B3 | R-005 | IPv6 partice rate limitu |
+| B4 | R-004 | `Permissions-Policy` |
+| B5 | R-001 | vlastnictví řádky v set-based zápisech |
+| B6 | R-009, R-044 | 409 pro id odkazované v těle a hlášky formulářů úkonu |
+| B7 | R-015, R-016, R-017 | mrtvá konfigurace a reference |
+| B8 | R-018, R-019, R-020 | foldy writerů a upload preambule |
+| B9 | R-021, R-022, R-023 | kroky dotazů |
+| B10 | R-024 | konstanty titulků problémů |
+| B11 | R-025, R-026, R-027, R-030 | konzistence writerů |
+| B12 | R-028, R-029 | viditelnost a `sealed` |
+| B13 | R-031, R-033 | sdílený `DeleteOutcome` a pojmenování outcome |
+| B14 | R-032 | logování mutací |
+| B15 | R-034, R-035, R-036 | lešení testů |
+
+### Frontend
+
+| # | Nálezy | Co |
+| --- | --- | --- |
+| F1 | R-037 | `ConfirmDeleteModal` |
+| F2 | R-038 | `ContactFormModal` |
+| F3 | R-039 | `LoadStateView` |
+| F4 | R-040, R-010 | prostá tabulka kontaktů, konec `ToastContaineru`, stav selhání pickeru |
+| F5 | R-041, R-042, R-043, R-046 | touch targety, breakpoint, `PageTitle`, popisky |
+| F6 | R-045, R-048, R-049 | pořadí tlačítek, prázdné stavy, odkazy |
+| F7 | R-047 | česká terminologie |
+
+### Dokumentace
+
+| # | Nálezy | Co |
+| --- | --- | --- |
+| D1 | R-007, R-008, R-011, R-012 | SDD podle hotového stavu |
+| D2 | R-050, R-051 | pravidla a limit 550 |
+
+Dokumentace popisuje hotový stav, takže jde až za oběma kódovými stopami. Meta-edit flow
+(`touch .claude/allow-meta-edits`, editace, smazání příznaku) platí pro D1 i D2.
+
+### Konflikty
+
+Pořadí uvnitř stopy drží sdílené soubory: `FileTransferController` (B2, B8), `FileWriter`
+(B5, B8), `CaseWriter` a `ActWriter` (B5, B9, B11, B14), controllery (B5, B6, B10, B11, B13),
+testovací fixtures (B15 a vše před ním), stránky detailu (F3, F5, F6). Napříč stopami sdílejí
+soubor jen B6 a F3 (`EditAct.razor`), každý jinou oblastí; merge obou stop se před odevzdáním
+ověří nanečisto.
 
 ## Co záměrně neměníme
 
