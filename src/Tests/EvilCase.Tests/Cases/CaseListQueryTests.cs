@@ -1,5 +1,7 @@
 using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Business.Cases;
+using EvilBrains.EvilCase.Business.Entities;
+using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Domain.Cases;
 using EvilBrains.EvilCase.Tests.Data;
 using Microsoft.EntityFrameworkCore;
@@ -154,6 +156,7 @@ public class CaseListQueryTests
             Title = "Přestupek",
             Date = new DateOnly(2026, 8, 21),
             Status = CaseStatus.WaitingOnAuthority,
+            Changed = seeded.Created,
         };
 
         Assert.That(row, Is.EqualTo(expected), "a row of the list shows the case's number, title, date and status");
@@ -212,6 +215,58 @@ public class CaseListQueryTests
         var sql = this.tenant.Context.Cases.InListOrder().ToQueryString();
 
         Assert.That(sql, Does.Contain("\"Id\" DESC"), "the identifier makes the order total");
+    }
+
+    [Test]
+    public async Task TheChangeOrderPutsTheLastChangedCaseFirst()
+    {
+        var a = await this.tenant.AddCase(Day, "A");
+        var b = await this.tenant.AddCase(Day, "B");
+        var c = await this.tenant.AddCase(Day, "C");
+
+        await this.tenant.Context.Cases.Where(@case => @case.Id == a.Id)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(@case => @case.Title, "A upravené"));
+        await this.tenant.Context.Cases.Where(@case => @case.Id == b.Id)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(@case => @case.Title, "B upravené"));
+
+        var ids = await this.tenant.Context.Cases.InChangeOrder().Select(@case => @case.Id).ToListAsync();
+
+        Guid[] expected = [b.Id, a.Id, c.Id];
+
+        Assert.That(ids, Is.EqualTo(expected), "the case's own Updated orders the list, and a case never edited falls back to its Created");
+    }
+
+    [Test]
+    public async Task ARowCarriesWhenTheCaseLastChanged()
+    {
+        var seeded = await this.tenant.AddCase(Day, "Přestupek");
+
+        var beforeEdit = await this.tenant.Context.Cases.AsListItems().SingleAsync();
+
+        Assert.That(beforeEdit.Changed, Is.EqualTo(seeded.Created), "a row shows the case's own last change, its Created while it has never been edited");
+
+        await this.tenant.Context.Cases.Where(@case => @case.Id == seeded.Id)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(@case => @case.Title, "Přestupek upravený"));
+
+        var afterEdit = await this.tenant.Context.Cases.AsListItems().SingleAsync();
+        var updated = await this.tenant.Context.Cases.WithId(seeded.Id).Select(@case => @case.Updated).SingleAsync();
+
+        Assert.That(afterEdit.Changed, Is.EqualTo(updated), "a row shows the case's own last change, its Updated once it has been edited");
+    }
+
+    [Test]
+    public async Task TheCapReturnsOnlyTheFirstCases()
+    {
+        var cases = new List<Case>();
+
+        for (var day = 15; day <= 21; day++)
+            cases.Add(await this.tenant.AddCase(new DateOnly(2026, 8, day), $"Případ {day.ToString(CultureInfo.InvariantCulture)}"));
+
+        var ids = await this.tenant.Context.Cases.InListOrder().TakeAtMost(5).Select(@case => @case.Id).ToListAsync();
+
+        var expected = cases.TakeLast(5).Reverse().Select(@case => @case.Id);
+
+        Assert.That(ids, Is.EqualTo(expected), "the dashboard tile's five is a cap the database applies");
     }
 
     private async Task<List<string>> Titles(string search)

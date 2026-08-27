@@ -26,6 +26,18 @@ public static class ActListQuery
     }
 
     /// <summary>
+    /// Newest by the act's own date; equal dates fall back to when the row was written, and the
+    /// UUIDv7 identifier makes the order total.
+    /// </summary>
+    public static IQueryable<Act> InLatestOrder(this IQueryable<Act> acts)
+    {
+        return acts
+            .OrderByDescending(act => act.Date)
+            .ThenByDescending(act => act.Created)
+            .ThenByDescending(act => act.Id);
+    }
+
+    /// <summary>
     /// Reads only what a row shows, in one query.
     /// </summary>
     public static IQueryable<ActListItem> AsListItems(this IQueryable<Act> acts)
@@ -33,6 +45,8 @@ public static class ActListQuery
         return acts.Select(act => new ActListItem
         {
             ActId = act.Id,
+            CaseId = act.CaseId,
+            CaseNumber = act.Case!.CaseNumber,
             ActNumber = act.ActNumber,
             Direction = act.Direction,
             Title = act.Title,

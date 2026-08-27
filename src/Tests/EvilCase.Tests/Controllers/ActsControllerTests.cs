@@ -454,6 +454,8 @@ public class ActsControllerTests
         return new()
         {
             ActId = Guid.CreateVersion7(),
+            CaseId = Guid.CreateVersion7(),
+            CaseNumber = "EC/20260821-001",
             ActNumber = "EC/20260821-001/20260825-001",
             Direction = ActDirection.Incoming,
             Title = title,
@@ -525,6 +527,11 @@ public class ActsControllerTests
             this.DetailActId = actId;
 
             return Task.FromResult(this.DetailResult);
+        }
+
+        public Task<IReadOnlyList<ActListItem>> ListTenantActs(ActListRequest request, CancellationToken token)
+        {
+            throw new NotSupportedException("This controller under test never reads the tenant act list.");
         }
     }
 

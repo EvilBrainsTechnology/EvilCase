@@ -1,4 +1,5 @@
 using EvilBrains.EvilCase.Api.Contract.Acts;
+using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Data.DbContexts;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,6 +12,15 @@ internal sealed class ActReader(IDbSession dbSession) : IActReader
         return await dbSession.Current.Acts
             .OfCase(caseId)
             .InListOrder()
+            .AsListItems()
+            .ToListAsync(token);
+    }
+
+    public async Task<IReadOnlyList<ActListItem>> ListTenantActs(ActListRequest request, CancellationToken token)
+    {
+        return await dbSession.Current.Acts
+            .InLatestOrder()
+            .TakeAtMost(request.Take)
             .AsListItems()
             .ToListAsync(token);
     }

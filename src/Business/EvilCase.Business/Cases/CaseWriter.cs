@@ -175,6 +175,7 @@ internal sealed class CaseWriter(
             Title = @case.Title,
             Date = @case.Date,
             Status = @case.Status,
+            Changed = @case.Updated ?? @case.Created,
         };
     }
 }

@@ -63,6 +63,17 @@ public static class CaseListQuery
     }
 
     /// <summary>
+    /// Latest change first, by the case's own stamps; a case never edited sorts by its Created.
+    /// The UUIDv7 identifier makes the order total.
+    /// </summary>
+    public static IQueryable<Case> InChangeOrder(this IQueryable<Case> cases)
+    {
+        return cases
+            .OrderByDescending(@case => @case.Updated ?? @case.Created)
+            .ThenByDescending(@case => @case.Id);
+    }
+
+    /// <summary>
     /// Reads only what a row shows, in one query.
     /// </summary>
     public static IQueryable<CaseListItem> AsListItems(this IQueryable<Case> cases)
@@ -74,6 +85,7 @@ public static class CaseListQuery
             Title = @case.Title,
             Date = @case.Date,
             Status = @case.Status,
+            Changed = @case.Updated ?? @case.Created,
         });
     }
 }

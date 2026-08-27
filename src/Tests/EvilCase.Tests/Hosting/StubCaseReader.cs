@@ -23,6 +23,7 @@ internal sealed class StubCaseReader : ICaseReader
                 Title = Title,
                 Date = new DateOnly(2026, 1, 1),
                 Status = CaseStatus.Active,
+                Changed = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
             },
         ]);
     }
@@ -30,5 +31,10 @@ internal sealed class StubCaseReader : ICaseReader
     public Task<CaseDetail?> GetCaseDetail(Guid caseId, CancellationToken token)
     {
         return Task.FromResult<CaseDetail?>(null);
+    }
+
+    public Task<CaseStatusCounts> CountCasesByStatus(CancellationToken token)
+    {
+        return Task.FromResult(new CaseStatusCounts { Active = 1, WaitingOnAuthority = 0, Closed = 0 });
     }
 }
