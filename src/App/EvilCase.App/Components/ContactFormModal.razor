@@ -1,24 +1,25 @@
 @using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Contacts
+@using EvilBrains.EvilCase.App.Models
 @using EvilBrains.EvilCase.Domain.Contacts
 @using EvilBrains.ApiClient
 @using TabBlazor.Services
 @inject IContactsClient ContactsClient
 @inject IModalService ModalService
-@inject ILogger<ContactEditModal> Logger
+@inject ILogger<ContactFormModal> Logger
 
 <EditForm Model="this.model" OnValidSubmit="this.SaveContact">
     <DataAnnotationsValidator />
 
     <div class="mb-3">
-        <label class="form-label" for="contact-edit-name">Název</label>
-        <InputText id="contact-edit-name" class="form-control" @bind-Value="this.model.Name" />
+        <label class="form-label" for="@($"{this.idPrefix}-name")">Název</label>
+        <InputText id="@($"{this.idPrefix}-name")" class="form-control" @bind-Value="this.model.Name" />
         <ValidationMessage For="() => this.model.Name" class="invalid-feedback d-block" />
     </div>
 
     <div class="mb-3">
-        <label class="form-label" for="contact-edit-kind">Typ</label>
-        <InputSelect id="contact-edit-kind" class="form-select" @bind-Value="this.model.Kind">
+        <label class="form-label" for="@($"{this.idPrefix}-kind")">Typ</label>
+        <InputSelect id="@($"{this.idPrefix}-kind")" class="form-select" @bind-Value="this.model.Kind">
             @foreach (var kind in Enum.GetValues<ContactKind>())
             {
                 <option value="@kind">@ContactKindDisplay.Text(kind)</option>
@@ -28,14 +29,14 @@
     </div>
 
     <div class="mb-3">
-        <label class="form-label" for="contact-edit-databox">ID datové schránky</label>
-        <InputText id="contact-edit-databox" class="form-control" @bind-Value="this.model.DataBoxId" />
+        <label class="form-label" for="@($"{this.idPrefix}-databox")">ID datové schránky</label>
+        <InputText id="@($"{this.idPrefix}-databox")" class="form-control" @bind-Value="this.model.DataBoxId" />
         <ValidationMessage For="() => this.model.DataBoxId" class="invalid-feedback d-block" />
     </div>
 
     <div class="mb-3">
-        <label class="form-label" for="contact-edit-address">Adresa</label>
-        <InputTextArea id="contact-edit-address" class="form-control" rows="4" @bind-Value="this.model.Address" />
+        <label class="form-label" for="@($"{this.idPrefix}-address")">Adresa</label>
+        <InputTextArea id="@($"{this.idPrefix}-address")" class="form-control" rows="4" @bind-Value="this.model.Address" />
         <ValidationMessage For="() => this.model.Address" class="invalid-feedback d-block" />
     </div>
 
@@ -57,8 +58,12 @@
 </EditForm>
 
 @code {
-    [Parameter, EditorRequired]
-    public required ContactDetail Contact { get; set; }
+    /// <summary>Editing an existing contact when set; creating a new one when null.</summary>
+    [Parameter]
+    public ContactDetail? Contact { get; set; }
+
+    [Parameter]
+    public EventCallback<ContactListItem> OnCreated { get; set; }
 
     [Parameter]
     public EventCallback OnSaved { get; set; }
@@ -69,12 +74,17 @@
 
     private bool busy;
 
+    private string idPrefix => this.Contact is null ? "contact-create" : "contact-edit";
+
     protected override void OnInitialized()
     {
-        this.model.Name = this.Contact.Name;
-        this.model.Kind = this.Contact.Kind;
-        this.model.DataBoxId = this.Contact.DataBoxId;
-        this.model.Address = this.Contact.Address;
+        if (this.Contact is { } contact)
+        {
+            this.model.Name = contact.Name;
+            this.model.Kind = contact.Kind;
+            this.model.DataBoxId = contact.DataBoxId;
+            this.model.Address = contact.Address;
+        }
     }
 
     private async Task SaveContact()
@@ -92,16 +102,28 @@
                 Address = this.model.Address,
             };
 
-            await this.ContactsClient.EditContact(this.Contact.ContactId, request, CancellationToken.None);
+            if (this.Contact is { } contact)
+            {
+                await this.ContactsClient.EditContact(contact.ContactId, request, CancellationToken.None);
 
-            this.ModalService.Close();
-            await this.OnSaved.InvokeAsync();
+                this.ModalService.Close();
+                await this.OnSaved.InvokeAsync();
+            }
+            else
+            {
+                var created = await this.ContactsClient.CreateContact(request, CancellationToken.None);
+
+                this.ModalService.Close();
+                await this.OnCreated.InvokeAsync(created);
+            }
         }
         catch (Exception exception) when (exception is ApiException or HttpRequestException)
         {
-            this.Logger.LogWarning(exception, "Editing the contact failed");
+            this.Logger.LogWarning(exception, "Saving the contact failed");
 
-            this.error = "Kontakt se nepodařilo uložit. Zkontrolujte zadané údaje a zkuste to znovu.";
+            this.error = this.Contact is null
+                ? "Kontakt se nepodařilo založit. Zkontrolujte zadané údaje a zkuste to znovu."
+                : "Kontakt se nepodařilo uložit. Zkontrolujte zadané údaje a zkuste to znovu.";
         }
         finally
         {

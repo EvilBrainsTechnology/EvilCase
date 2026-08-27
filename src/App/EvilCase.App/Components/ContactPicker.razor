@@ -120,7 +120,7 @@ else
     {
         await this.ModalService.ShowAsync(
             "Nový kontakt",
-            new RenderComponent<ContactCreateModal>()
+            new RenderComponent<ContactFormModal>()
                 .Set(component => component.OnCreated, EventCallback.Factory.Create<ContactListItem>(this, this.Select)),
             new ModalOptions { Fullscreen = ModalFullscreen.BelowLarge });
     }
