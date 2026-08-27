@@ -26,17 +26,26 @@ Každá chybová odpověď je Problem Details (RFC 9457).
 | --- | --- |
 | 400 | validace vstupu; chyby po polích v `errors` |
 | 401 | bez přihlášení |
-| 404 | neexistující id — i id z cizího tenantu |
-| 409 | konflikt stavu: obsazené číslo, odkazovaný kontakt, cyklus v hierarchii |
+| 403 | zápis cizí řádky uvnitř tenantu: komentář, spis, úkon, soubor nebo externí číslo, jehož autor či vlastník je jiný uživatel |
+| 404 | neexistující id v routě — i id z cizího tenantu |
+| 409 | konflikt stavu: obsazené číslo, odkazovaný kontakt, cyklus v hierarchii; neexistující id v těle požadavku |
+| 413 | upload nad limit velikosti |
+| 423 | uzamčený účet |
+| 429 | překročený limit požadavků |
 | 500 | bez detailů |
 
-Cizí tenant nikdy nevrací 403 — existence cizích dat nesmí uniknout.
+Cizí tenant nikdy nevrací 403 — existence cizích dat nesmí uniknout. 403 vzniká jen uvnitř
+tenantu, kde je řádka podle SDD-006 vidět.
+
+Id, které požadavek jmenuje a které neexistuje: v routě 404, v těle 409. Platí pro odkazovaný
+kontakt v těle úkonu i externího čísla stejně jako pro chybějící spis nebo úkon v routě.
 
 ### Frontend
 
 - Formulář ukazuje chyby polí u polí, chybu požadavku nad formulářem.
 - Mimo formulář: 401 po neúspěšném tichém refreshi přesměruje na `/login`, 404 vykreslí
-  stav nenalezeno, selhání sítě ukáže toast.
+  stav nenalezeno, selhání sítě vykreslí inline — chybu na formuláři, nebo prázdný stav
+  na seznamu.
 - Destruktivní operace se potvrzuje dialogem; kaskádové smazání jmenuje, co bere s sebou.
 
 ## Rozhodnutí

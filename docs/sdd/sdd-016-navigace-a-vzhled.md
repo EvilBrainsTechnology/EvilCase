@@ -39,7 +39,9 @@ URL nesou UUID entit, nikdy jejich čísla:
 ### Menu a vzhled
 
 Menu nese dashboard, spisy a kontakty. Vzhled zůstává současný: Tabler + TabBlazor,
-responsivita podle `.claude/rules/app.md`. Každá stránka žije v `MainLayout`. Každý seznam
+responsivita podle `.claude/rules/app.md`. Každá stránka žije v `MainLayout`, kromě `/login` —
+`MainLayout` je autentizovaná schránka a přihlašovací stránka jí nutně nemá jak podléhat.
+Každý seznam
 má prázdný stav (vzor `.empty`); kde jde záznam založit, nese výzvu k založení.
 
 ## Rozhodnutí
