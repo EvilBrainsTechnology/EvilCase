@@ -42,6 +42,10 @@ public class SecurityHeadersTests
             Assert.That(Header(response, "X-Content-Type-Options"), Is.EqualTo("nosniff"));
             Assert.That(Header(response, "Referrer-Policy"), Is.EqualTo("no-referrer"));
             Assert.That(Header(response, "X-Frame-Options"), Is.EqualTo("DENY"));
+            Assert.That(
+                Header(response, "Permissions-Policy"),
+                Is.EqualTo("camera=(), microphone=(), geolocation=()"),
+                "every response must deny camera, microphone and geolocation");
         }
     }
 
