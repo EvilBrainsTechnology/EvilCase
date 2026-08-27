@@ -37,8 +37,7 @@ kontakt, který značku přidělil. Hodnota je unikátní per spis. Spravují se
 
 - `/cases` — seznam spisů: číslo, název, stav, datum. Řadí se podle data spisu sestupně,
   shodná data řadí `Created`; bez stránkování. Hledací pole hledá v názvu a popisu bez ohledu na
-  diakritiku a filtr stavu s výchozí hodnotou Otevřené; fulltext přes čísla a úkony přidává M7
-  (SDD-014).
+  diakritiku a filtr stavu s výchozí hodnotou Otevřené.
 - `/cases/new` — založení.
 - `/cases/{id}` — detail: údaje, značky, podřízené spisy, komentáře; sekce úkonů přibývá
   v M4 (SDD-010), sekce souborů v M5 (SDD-012).
@@ -57,5 +56,4 @@ Mazání řídí matice v SDD-007; potvrzení jmenuje, co kaskáda bere.
 
 ## Dopady
 
-`CaseRelation` a `CaseTag` zanikají (SDD-007). Značky vyžadují kontakt (SDD-011). Přesná
-shoda značky naviguje (SDD-014).
+`CaseRelation` a `CaseTag` zanikají (SDD-007). Značky vyžadují kontakt (SDD-011).

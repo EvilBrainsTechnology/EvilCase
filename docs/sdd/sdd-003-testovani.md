@@ -3,7 +3,7 @@
 - **Stav:** platí
 - **Milníky:** průřez
 - **Související SDD:** [006](sdd-006-tenance-a-ucty.md), [008](sdd-008-cislovani.md),
-  [012](sdd-012-soubory.md), [014](sdd-014-vyhledavani.md), [017](sdd-017-seed-vzorovych-dat.md)
+  [012](sdd-012-soubory.md), [017](sdd-017-seed-vzorovych-dat.md)
 
 ## Rozsah
 
@@ -26,7 +26,6 @@ Vrstvy testů a povinné testy nových oblastí.
 - Testy číslování: formát, pořadí per den, přetečení, zpětné datování, ruční přepis
   (SDD-008).
 - Souborové úložiště na temp adresáři: zápis, atomicita, smazání blobu (SDD-012).
-- Fold diakritiky ve vyhledávání (SDD-014).
 - Smoke test seedu: seed proběhne a založí spis se stromem (SDD-017).
 - Testy razítek nad reálnou PostgreSQL: hodnoty, které si zápis čte zpět, změna, která `Created`
   nechá být, zápis mimo EF a pokrytí každé mapované tabulky triggerem; bez serveru selžou s tím,

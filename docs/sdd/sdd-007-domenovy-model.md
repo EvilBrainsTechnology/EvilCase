@@ -3,7 +3,7 @@
 - **Stav:** platí
 - **Milníky:** M2
 - **Související SDD:** [006](sdd-006-tenance-a-ucty.md), [009](sdd-009-spisy.md) až
-  [013](sdd-013-komentare.md), [014](sdd-014-vyhledavani.md), [017](sdd-017-seed-vzorovych-dat.md)
+  [013](sdd-013-komentare.md), [017](sdd-017-seed-vzorovych-dat.md)
 
 ## Rozsah
 
@@ -54,7 +54,6 @@ Každé smazání se v UI potvrzuje (SDD-004).
 ### Migrace
 
 Schéma začíná migrací `Init`; řetěz migrací od ní jen roste a nikdy se nepřepisuje.
-Vyhledávací rozšíření a indexy (SDD-014) nese schéma od `Init` — M7 migraci nepotřebuje.
 
 ## Rozhodnutí
 
