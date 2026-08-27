@@ -4,7 +4,7 @@ using EvilBrains.EvilCase.Api.Contract.Cases;
 namespace EvilBrains.EvilCase.App.Models;
 
 /// <summary>
-/// What the dashboard shows, composed from the two list responses it loads (SDD-015).
+/// What the dashboard shows, composed from the entity endpoints it loads (SDD-015).
 /// </summary>
 public sealed record DashboardView
 {

@@ -22,15 +22,15 @@ public class CasesControllerTests
     }
 
     [Test]
-    public async Task TheCountsComeBackBesideTheItems()
+    public async Task TheCountsAreWhatTheReaderRead()
     {
         var counts = new CaseStatusCounts { Active = 2, WaitingOnAuthority = 1, Closed = 3 };
         var reader = new RecordingCaseReader { Counts = counts };
         var controller = new CasesController();
 
-        var response = await controller.ListCases(reader, new CaseListRequest(), CancellationToken.None);
+        var response = await controller.CountCases(reader, CancellationToken.None);
 
-        Assert.That(response.Counts, Is.EqualTo(counts), "the case list answers the counts the reader read, which is what feeds the dashboard tile");
+        Assert.That(response, Is.EqualTo(counts), "the counts endpoint answers the counts the reader read, which is what feeds the dashboard tile");
     }
 
     [Test]

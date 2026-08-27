@@ -84,9 +84,11 @@
                 new CaseListRequest { Status = CaseStatusFilter.All, Order = CaseListOrder.Changed, Take = TileItems },
                 CancellationToken.None);
 
+            var counts = await this.CasesClient.CountCases(CancellationToken.None);
+
             var acts = await this.ActsClient.ListActs(new ActListRequest { Take = TileItems }, CancellationToken.None);
 
-            this.view = new DashboardView { Counts = cases.Counts, ChangedCases = cases.Items, RecentActs = acts.Items };
+            this.view = new DashboardView { Counts = counts, ChangedCases = cases.Items, RecentActs = acts.Items };
         }
         catch (Exception exception) when (exception is ApiException or HttpRequestException)
         {

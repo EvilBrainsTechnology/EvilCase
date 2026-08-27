@@ -17,9 +17,14 @@ public class CasesController : ControllerBase
     public async Task<CaseListResponse> ListCases([FromServices] ICaseReader cases, [FromQuery] CaseListRequest request, CancellationToken token)
     {
         var items = await cases.ListCases(request, token);
-        var counts = await cases.CountCasesByStatus(token);
 
-        return new CaseListResponse { Items = items, Counts = counts };
+        return new CaseListResponse { Items = items };
+    }
+
+    [HttpGet("counts")]
+    public async Task<CaseStatusCounts> CountCases([FromServices] ICaseReader cases, CancellationToken token)
+    {
+        return await cases.CountCasesByStatus(token);
     }
 
     [HttpPost("")]
