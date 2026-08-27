@@ -11,8 +11,5 @@ public interface ICaseReader
 
     public Task<CaseDetail?> GetCaseDetail(Guid caseId, CancellationToken token);
 
-    /// <summary>
-    /// How many cases the tenant holds in each status, counted by the database.
-    /// </summary>
     public Task<CaseStatusCounts> CountCasesByStatus(CancellationToken token);
 }

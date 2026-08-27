@@ -1,6 +1,7 @@
 using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Data.DbContexts;
+using EvilBrains.EvilCase.Domain.Cases;
 using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Business.Cases;
@@ -23,22 +24,17 @@ internal sealed class CaseReader(IDbSession dbSession) : ICaseReader
 
     public async Task<CaseStatusCounts> CountCasesByStatus(CancellationToken token)
     {
-        var cases = dbSession.Current.Cases;
+        var counted = await dbSession.Current.Cases
+            .GroupBy(@case => @case.Status)
+            .Select(group => new { Status = group.Key, Count = group.Count() })
+            .ToDictionaryAsync(row => row.Status, row => row.Count, token);
 
-        // The database counts, over the whole tenant, whatever a list request narrows to.
-        var active = await cases
-            .WithStatus(CaseStatusFilter.Active)
-            .CountAsync(token);
-
-        var waiting = await cases
-            .WithStatus(CaseStatusFilter.WaitingOnAuthority)
-            .CountAsync(token);
-
-        var closed = await cases
-            .WithStatus(CaseStatusFilter.Closed)
-            .CountAsync(token);
-
-        return new CaseStatusCounts { Active = active, WaitingOnAuthority = waiting, Closed = closed };
+        return new CaseStatusCounts
+        {
+            Active = counted.GetValueOrDefault(CaseStatus.Active),
+            WaitingOnAuthority = counted.GetValueOrDefault(CaseStatus.WaitingOnAuthority),
+            Closed = counted.GetValueOrDefault(CaseStatus.Closed),
+        };
     }
 
     public async Task<CaseDetail?> GetCaseDetail(Guid caseId, CancellationToken token)

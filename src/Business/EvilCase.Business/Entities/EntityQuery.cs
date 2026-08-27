@@ -10,9 +10,6 @@ public static class EntityQuery
         return entities.Where(entity => entity.Id == entityId);
     }
 
-    /// <summary>
-    /// Caps how many rows come back; no cap returns the whole list.
-    /// </summary>
     public static IQueryable<TEntity> TakeAtMost<TEntity>(this IQueryable<TEntity> entities, int? count)
     {
         return count is { } cap ? entities.Take(cap) : entities;

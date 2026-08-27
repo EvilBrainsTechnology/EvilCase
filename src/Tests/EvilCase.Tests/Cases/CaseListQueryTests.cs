@@ -269,6 +269,48 @@ public class CaseListQueryTests
         Assert.That(ids, Is.EqualTo(expected), "the dashboard tile's five is a cap the database applies");
     }
 
+    [Test]
+    public async Task TheRequestedOrderIsTheOneTheListComesBackIn()
+    {
+        var older = await this.tenant.AddCase(new DateOnly(2026, 8, 24), "Starší");
+        var newer = await this.tenant.AddCase(new DateOnly(2026, 8, 26), "Novější");
+
+        await this.tenant.Context.Cases.Where(@case => @case.Id == older.Id)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(@case => @case.Title, "Starší upravený"));
+
+        var reader = new CaseReader(new FixedDbSession(this.tenant.Context));
+
+        var byDate = await reader.ListCases(new CaseListRequest(), CancellationToken.None);
+        var byChange = await reader.ListCases(new CaseListRequest { Order = CaseListOrder.Changed }, CancellationToken.None);
+
+        Guid[] byDateExpected = [newer.Id, older.Id];
+        Guid[] byChangeExpected = [older.Id, newer.Id];
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(byDate.Select(item => item.CaseId), Is.EqualTo(byDateExpected), "the case's own date orders the list until the request asks for another order");
+            Assert.That(byChange.Select(item => item.CaseId), Is.EqualTo(byChangeExpected), "the requested order is the one the list comes back in");
+        }
+    }
+
+    [Test]
+    public async Task TheRequestedCapIsTheOneTheListComesBackWith()
+    {
+        for (var day = 15; day <= 21; day++)
+            await this.tenant.AddCase(new DateOnly(2026, 8, day), $"Případ {day.ToString(CultureInfo.InvariantCulture)}");
+
+        var reader = new CaseReader(new FixedDbSession(this.tenant.Context));
+
+        var capped = await reader.ListCases(new CaseListRequest { Take = 5 }, CancellationToken.None);
+        var whole = await reader.ListCases(new CaseListRequest(), CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(capped, Has.Count.EqualTo(5), "the requested cap is the one the list comes back with");
+            Assert.That(whole, Has.Count.EqualTo(7), "an absent cap narrows nothing");
+        }
+    }
+
     private async Task<List<string>> Titles(string search)
     {
         return await this.tenant.Context.Cases
