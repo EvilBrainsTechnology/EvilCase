@@ -16,6 +16,8 @@
     [Parameter]
     public EventCallback OnDeleted { get; set; }
 
-    private static string? MapCommentError(ApiException exception) =>
-        exception.StatusCode == HttpStatusCode.Forbidden ? "Komentář smí smazat jen jeho autor." : null;
+    private static string? MapCommentError(ApiException exception)
+    {
+        return exception.StatusCode == HttpStatusCode.Forbidden ? "Komentář smí smazat jen jeho autor." : null;
+    }
 }

@@ -1,6 +1,6 @@
 @using EvilBrains.EvilCase.Api.Contract.Numbers
 
-<ConfirmDeleteModal Delete="this.DeleteNumber" GoneError="this.Text.DeleteGoneError" FailedError="this.Text.DeleteFailedError" OnDeleted="this.OnDeleted">
+<ConfirmDeleteModal Delete="this.DeleteNumber" GoneError="@this.Text.DeleteGoneError" FailedError="@this.Text.DeleteFailedError" OnDeleted="this.OnDeleted">
     <p>@this.Text.DeleteQuestion <strong>@this.Number.Value</strong>? Akci nelze vrátit zpět.</p>
 </ConfirmDeleteModal>
 

@@ -20,6 +20,8 @@
     [Parameter]
     public EventCallback OnDeleted { get; set; }
 
-    private Task DeleteCase(CancellationToken cancellationToken) =>
-        this.CasesClient.DeleteCase(this.Case.CaseId, cancellationToken);
+    private Task DeleteCase(CancellationToken cancellationToken)
+    {
+        return this.CasesClient.DeleteCase(this.Case.CaseId, cancellationToken);
+    }
 }

@@ -15,9 +15,13 @@
     [Parameter]
     public EventCallback OnDeleted { get; set; }
 
-    private Task DeleteContact(CancellationToken cancellationToken) =>
-        this.ContactsClient.DeleteContact(this.Contact.ContactId, cancellationToken);
+    private Task DeleteContact(CancellationToken cancellationToken)
+    {
+        return this.ContactsClient.DeleteContact(this.Contact.ContactId, cancellationToken);
+    }
 
-    private static string? MapContactError(ApiException exception) =>
-        exception.StatusCode == HttpStatusCode.Conflict ? "Kontakt nelze smazat: figuruje ve spisu nebo úkonu." : null;
+    private static string? MapContactError(ApiException exception)
+    {
+        return exception.StatusCode == HttpStatusCode.Conflict ? "Kontakt nelze smazat: figuruje ve spisu nebo úkonu." : null;
+    }
 }
