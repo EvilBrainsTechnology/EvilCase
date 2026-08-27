@@ -17,7 +17,7 @@
 else
 {
     <div class="input-group">
-        <input id="@this.InputId" type="search" class="form-control" placeholder="Hledat podle názvu nebo ID datové schránky"
+        <input id="@this.InputId" type="search" class="form-control" placeholder="Hledat v názvu a ID datové schránky"
                aria-label="Hledat kontakt" value="@this.search" @oninput="this.OnSearchInput" />
         <button type="button" id="@($"{this.InputId}-new")" class="btn" @onclick="this.CreateContact">Nový kontakt</button>
     </div>

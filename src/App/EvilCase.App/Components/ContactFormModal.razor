@@ -52,7 +52,7 @@
             {
                 <span class="spinner-border spinner-border-sm me-2" role="status"></span>
             }
-            Uložit
+            @(this.Contact is null ? "Založit kontakt" : "Uložit")
         </button>
     </div>
 </EditForm>
