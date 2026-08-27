@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Comments;
 using EvilBrains.EvilCase.Api.Controllers;
 using EvilBrains.EvilCase.Business.Comments;
@@ -59,7 +60,7 @@ public class CaseCommentsControllerTests
 
         var problem = AssertProblem(result, 404);
 
-        Assert.That(problem.Title, Is.EqualTo("Case not found"), "the answer names the case, not the comment");
+        Assert.That(problem.Title, Is.EqualTo(CaseProblems.NotFound), "the answer names the case, not the comment");
     }
 
     [Test]

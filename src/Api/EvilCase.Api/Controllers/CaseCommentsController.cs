@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using EvilBrains.ApiClient;
+using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Comments;
 using EvilBrains.EvilCase.Business.Comments;
 using Microsoft.AspNetCore.Http;
@@ -30,7 +31,7 @@ public class CaseCommentsController : ControllerBase
         return outcome switch
         {
             CommentWriteOutcome.Written => this.NoContent(),
-            CommentWriteOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: "Case not found"),
+            CommentWriteOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: CaseProblems.NotFound),
             CommentWriteOutcome.NotAuthor => throw new UnreachableException(),
             _ => throw new UnreachableException(),
         };

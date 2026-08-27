@@ -35,7 +35,7 @@ public class ActFilesController : ControllerBase
         return outcome switch
         {
             FileDeleteOutcome.Deleted => this.NoContent(),
-            FileDeleteOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: "File not found"),
+            FileDeleteOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: FileProblems.NotFound),
             _ => throw new UnreachableException(),
         };
     }

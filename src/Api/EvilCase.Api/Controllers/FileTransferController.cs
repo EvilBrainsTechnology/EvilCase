@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using EvilBrains.EvilCase.Api.Contract.Acts;
+using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Business.Files;
 using Microsoft.AspNetCore.Http;
@@ -34,7 +35,7 @@ public class FileTransferController : ControllerBase
         return result.Outcome switch
         {
             UploadFileOutcome.Uploaded => this.CreatedAtAction(nameof(this.DownloadFileContent), new { fileId = result.File!.FileId }, result.File),
-            UploadFileOutcome.OwnerNotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: "Case not found"),
+            UploadFileOutcome.OwnerNotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: CaseProblems.NotFound),
             _ => throw new UnreachableException(),
         };
     }
@@ -72,7 +73,7 @@ public class FileTransferController : ControllerBase
         var download = await files.OpenFileContent(fileId, token);
 
         if (download is null)
-            return this.Problem(statusCode: StatusCodes.Status404NotFound, title: "File not found");
+            return this.Problem(statusCode: StatusCodes.Status404NotFound, title: FileProblems.NotFound);
 
         // Always an attachment: a stored document is never rendered in place (SDD-012).
         // X-Content-Type-Options: nosniff already comes from SecurityHeadersMiddleware on every response.

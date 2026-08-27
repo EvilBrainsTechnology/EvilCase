@@ -53,7 +53,7 @@ public class CasesController : ControllerBase
         var @case = await cases.GetCaseDetail(caseId, token);
 
         return @case is null
-            ? this.Problem(statusCode: StatusCodes.Status404NotFound, title: "Case not found")
+            ? this.Problem(statusCode: StatusCodes.Status404NotFound, title: CaseProblems.NotFound)
             : this.Ok(@case);
     }
 
@@ -69,7 +69,7 @@ public class CasesController : ControllerBase
         return outcome switch
         {
             CaseUpdateOutcome.Updated => this.NoContent(),
-            CaseUpdateOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: "Case not found"),
+            CaseUpdateOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: CaseProblems.NotFound),
             CaseUpdateOutcome.CaseNumberTaken => this.Problem(
                 detail: "Another case already carries the number.", statusCode: StatusCodes.Status409Conflict, title: "Case number taken"),
             CaseUpdateOutcome.InvalidCaseNumber => this.InvalidCaseNumberProblem(),
@@ -91,7 +91,7 @@ public class CasesController : ControllerBase
         return outcome switch
         {
             CaseDeleteOutcome.Deleted => this.NoContent(),
-            CaseDeleteOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: "Case not found"),
+            CaseDeleteOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: CaseProblems.NotFound),
             _ => throw new UnreachableException(),
         };
     }
@@ -112,7 +112,7 @@ public class CasesController : ControllerBase
         return outcome switch
         {
             ExternalCaseNumberOutcome.Added => this.NoContent(),
-            ExternalCaseNumberOutcome.CaseNotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: "Case not found"),
+            ExternalCaseNumberOutcome.CaseNotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: CaseProblems.NotFound),
             ExternalCaseNumberOutcome.UnknownContact => this.Problem(
                 detail: "The contact that assigned the mark does not exist.",
                 statusCode: StatusCodes.Status409Conflict,
