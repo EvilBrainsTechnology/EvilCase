@@ -35,6 +35,5 @@ paths:
 - A query test asserts the rows a real database returns; it reads the generated SQL only for a rule
   no result reaches — the columns read, an aggregate, paging, an order key no two rows can tie on.
 - A namespace and an assembly carry the `EvilBrains.*` prefix, longer than the folder suggests.
-- A database test inherits `TenantFixture`, which seeds and disposes its own `TestTenant`.
 - The owner decides first on a destructive migration, a dependency change, a change to
   authentication or the security headers, and a rewrite of something that works.
