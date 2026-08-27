@@ -4,10 +4,13 @@
 <!-- One or two sentences. State the assumption where one was made. -->
 
 ## Changes
-<!-- One bullet per change. Screenshot where a screen changed. -->
+<!-- One bullet per change. See the Screenshots section where a screen changed. -->
 -
 
 <!-- Add "## Risks" where the change carries one. -->
+
+## Screenshots
+<!-- The block Push-EvilCaseImages.ps1 printed. Remove this section where no screen changed. -->
 
 <!-- Remove where there is no issue. -->
 Closes #

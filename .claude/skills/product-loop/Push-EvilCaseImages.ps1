@@ -1,7 +1,8 @@
 #!/usr/bin/env pwsh
 <#
     Puts a pull request's screenshots on the docs/images orphan branch under pull-request/<number>/,
-    and prints the commit sha, and nothing else, on stdout — the body pins its raw URLs to it.
+    and prints the finished markdown image block on stdout, one line per pushed image sorted by file
+    name, ready to paste into the body's Screenshots section. The commit sha goes to stderr.
 
         ./.claude/skills/product-loop/Push-EvilCaseImages.ps1 -PullRequest <number> -Path /tmp/shots/<issue>
 
@@ -62,6 +63,16 @@ if (-not (Test-Path -LiteralPath (Join-Path $root 'src'))) { throw "$root is not
 $images = @(Get-ChildItem -LiteralPath $Path -File -Filter '*.png' | Sort-Object -Property Name)
 if (-not $images) { throw "no *.png in $Path" }
 
+# The body's URLs need <owner>/<repo>, not the remote's name; both URL forms git supports point at
+# github.com or this fails rather than guess.
+$remoteUrl = (& git -C $root remote get-url $Remote).Trim()
+if ($remoteUrl -match '^(?:https://github\.com/|git@github\.com:)(?<owner>[^/]+)/(?<repo>[^/]+?)(?:\.git)?/?$') {
+    $ownerRepo = "$($Matches.owner)/$($Matches.repo)"
+}
+else {
+    throw "$Remote ($remoteUrl) is not a GitHub remote"
+}
+
 # Missing credentials are a failure, never a question: git asks on /dev/tty, which a redirected
 # stdin does not close, and a tool call with no one at the keyboard hangs on it.
 $env:GIT_TERMINAL_PROMPT = '0'
@@ -121,7 +132,11 @@ try {
 
         $push = Invoke-Git @('push', $Remote, "${sha}:refs/heads/$Branch")
         if ($push.ExitCode -eq 0) {
-            Write-Output $sha
+            [Console]::Error.WriteLine($sha)
+            foreach ($image in $images) {
+                $basename = [System.IO.Path]::GetFileNameWithoutExtension($image.Name)
+                Write-Output "![$basename](https://raw.githubusercontent.com/$ownerRepo/$sha/pull-request/$PullRequest/$basename.png)"
+            }
             return
         }
         # The branch moved; the header has the three wordings. Anything else — the ruleset declining
@@ -130,7 +145,6 @@ try {
             throw "git push $sha to $Branch failed: $($push.Error)"
         }
         if ($attempt -ge $Attempts) { throw "$Branch moved under all $Attempts attempts: $($push.Error)" }
-        # stderr: stdout carries the sha.
         [Console]::Error.WriteLine("$Branch moved, attempt $attempt of $Attempts rejected; re-parenting")
         Start-Sleep -Seconds ([math]::Min(8, [math]::Pow(2, $attempt - 1)))
     }
