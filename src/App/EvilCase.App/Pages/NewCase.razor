@@ -7,6 +7,8 @@
 @inject NavigationManager Navigation
 @inject ILogger<NewCase> Logger
 
+<PageTitle>@(this.ParentCaseId is null ? "Nový spis" : "Nový podřízený spis") – EvilCase</PageTitle>
+
 <div class="page-header d-print-none">
     <div class="container-xl">
         <h2 class="page-title">@(this.ParentCaseId is null ? "Nový spis" : "Nový podřízený spis")</h2>

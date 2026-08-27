@@ -55,8 +55,14 @@
                             }
 
                             <div class="d-flex gap-2">
-                                <button type="submit" class="btn btn-primary btn-sm" disabled="@this.busy">Uložit</button>
                                 <button type="button" class="btn btn-sm" @onclick="this.CancelEditing">Zrušit</button>
+                                <button type="submit" class="btn btn-primary btn-sm" disabled="@this.busy">
+                                    @if (this.busy)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                                    }
+                                    Uložit
+                                </button>
                             </div>
                         </EditForm>
                     }
