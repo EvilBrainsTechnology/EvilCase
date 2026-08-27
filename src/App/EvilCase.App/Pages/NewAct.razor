@@ -141,7 +141,7 @@
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
         {
-            this.error = "Případ už neexistuje.";
+            this.error = "Spis už neexistuje.";
         }
         catch (Exception exception) when (exception is ApiException or HttpRequestException)
         {
