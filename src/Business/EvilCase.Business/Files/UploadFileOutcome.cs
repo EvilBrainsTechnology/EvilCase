@@ -4,5 +4,5 @@ public enum UploadFileOutcome
 {
     Uploaded = 0,
 
-    CaseNotFound = 1,
+    OwnerNotFound = 1,
 }

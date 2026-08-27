@@ -130,6 +130,12 @@
     [Parameter, EditorRequired]
     public required Func<FileListItem, CancellationToken, Task> DeleteFile { get; set; }
 
+    /// <summary>
+    /// What a 404 on upload means here, lower case: the sentence follows the file name and a colon.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required string OwnerGoneError { get; set; }
+
     private readonly List<string> failures = [];
 
     private IReadOnlyList<FileListItem> items = [];
@@ -215,7 +221,7 @@
             {
                 this.Logger.LogWarning(exception, "Uploading a file failed: the owner is gone");
 
-                this.failures.Add($"{file.Name}: spis už neexistuje.");
+                this.failures.Add($"{file.Name}: {this.OwnerGoneError}");
             }
             catch (Exception exception) when (exception is ApiException or HttpRequestException or IOException or JSException)
             {
