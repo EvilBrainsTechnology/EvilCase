@@ -23,7 +23,7 @@ Tvary API a klienta pro nové agendy. Z velké části dnešní stav, který pla
 
 | Zdroj | Routy |
 | --- | --- |
-| Spisy | `/api/cases`, `/api/cases/{id}` |
+| Spisy | `/api/cases`, `/api/cases/{id}`; počty podle stavu `/api/cases/counts` |
 | Úkony | `/api/cases/{caseId}/acts`, `/api/cases/{caseId}/acts/{actId}`; výpis napříč spisy `/api/acts` |
 | Kontakty | `/api/contacts`, `/api/contacts/{id}` |
 | Soubory | upload a výpis na vlastníku; download `/api/files/{id}/content` |
@@ -37,8 +37,8 @@ Tvary API a klienta pro nové agendy. Z velké části dnešní stav, který pla
 
 - Úkony v API: ploché `/api/acts` / vnořené pod spis. Platí vnořené pod spis; ploché
   `/api/acts` je jen tenantový výpis pro dashboard (SDD-015).
-- Dashboard: vlastní endpoint / skládání z API entit. Platí skládání z API entit; žádný
-  dashboardový endpoint není.
+- Dashboard: vlastní endpoint / skládání z API entit. Platí skládání z API entit; počty spisů
+  drží zdroj spisů, žádný dashboardový endpoint není.
 - Komentáře a soubory: vlastní ploché zdroje / pod vlastníkem. Platí pod vlastníkem.
 
 ## Dopady
