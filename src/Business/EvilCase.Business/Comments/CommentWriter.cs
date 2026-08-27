@@ -14,87 +14,80 @@ internal sealed class CommentWriter(IDbSession dbSession, IUserContext userConte
     public async Task<CommentWriteOutcome> AddCaseComment(Guid caseId, CommentEditRequest request, CancellationToken token)
     {
         var context = dbSession.Current;
-
-        var caseExists = await context.Cases.WithId(caseId).AnyAsync(token);
-        if (!caseExists)
-            return CommentWriteOutcome.NotFound;
-
         var comment = new Comment { CaseId = caseId, Body = request.Body.Trim() };
 
-        context.Comments.Add(comment);
+        var outcome = await this.AddComment(t => context.Cases.WithId(caseId).AnyAsync(t), comment, token);
+        if (outcome == CommentWriteOutcome.Written)
+            logger.LogInformation("Comment {CommentId} was written on case {CaseId}", comment.Id, caseId);
 
-        await context.SaveChangesAsync(token);
-
-        logger.LogInformation("Comment {CommentId} was written on case {CaseId}", comment.Id, caseId);
-
-        return CommentWriteOutcome.Written;
+        return outcome;
     }
 
-    public async Task<CommentWriteOutcome> UpdateCaseComment(Guid caseId, Guid commentId, CommentEditRequest request, CancellationToken token)
+    public Task<CommentWriteOutcome> UpdateCaseComment(Guid caseId, Guid commentId, CommentEditRequest request, CancellationToken token)
     {
-        var body = request.Body.Trim();
-        var userId = userContext.UserId;
-
         var comments = dbSession.Current.Comments.OnCase(caseId).WithId(commentId);
 
-        var outcome = await Authorize(comments, userId, token);
-        if (outcome != CommentWriteOutcome.Written)
-            return outcome;
-
-        var rows = await comments
-            .Where(comment => comment.UserId == userId)
-            .ExecuteUpdateAsync(setters => setters.SetProperty(comment => comment.Body, body), token);
-
-        return rows == 0 ? CommentWriteOutcome.NotFound : CommentWriteOutcome.Written;
+        return this.UpdateComment(comments, request.Body.Trim(), token);
     }
 
     public async Task<CommentWriteOutcome> DeleteCaseComment(Guid caseId, Guid commentId, CancellationToken token)
     {
-        var userId = userContext.UserId;
-
         var comments = dbSession.Current.Comments.OnCase(caseId).WithId(commentId);
 
-        var outcome = await Authorize(comments, userId, token);
-        if (outcome != CommentWriteOutcome.Written)
-            return outcome;
+        var outcome = await this.DeleteComment(comments, token);
+        if (outcome == CommentWriteOutcome.Written)
+            logger.LogInformation("Comment {CommentId} was removed from case {CaseId}", commentId, caseId);
 
-        var rows = await comments
-            .Where(comment => comment.UserId == userId)
-            .ExecuteDeleteAsync(token);
-
-        if (rows == 0)
-            return CommentWriteOutcome.NotFound;
-
-        logger.LogInformation("Comment {CommentId} was removed from case {CaseId}", commentId, caseId);
-
-        return CommentWriteOutcome.Written;
+        return outcome;
     }
 
     public async Task<CommentWriteOutcome> AddActComment(Guid caseId, Guid actId, CommentEditRequest request, CancellationToken token)
     {
         var context = dbSession.Current;
-
-        var actExists = await context.Acts.OfCase(caseId).WithId(actId).AnyAsync(token);
-        if (!actExists)
-            return CommentWriteOutcome.NotFound;
-
         var comment = new Comment { ActId = actId, Body = request.Body.Trim() };
+
+        var outcome = await this.AddComment(t => context.Acts.OfCase(caseId).WithId(actId).AnyAsync(t), comment, token);
+        if (outcome == CommentWriteOutcome.Written)
+            logger.LogInformation("Comment {CommentId} was written on act {ActId}", comment.Id, actId);
+
+        return outcome;
+    }
+
+    public Task<CommentWriteOutcome> UpdateActComment(Guid caseId, Guid actId, Guid commentId, CommentEditRequest request, CancellationToken token)
+    {
+        var comments = dbSession.Current.Comments.OnAct(caseId, actId).WithId(commentId);
+
+        return this.UpdateComment(comments, request.Body.Trim(), token);
+    }
+
+    public async Task<CommentWriteOutcome> DeleteActComment(Guid caseId, Guid actId, Guid commentId, CancellationToken token)
+    {
+        var comments = dbSession.Current.Comments.OnAct(caseId, actId).WithId(commentId);
+
+        var outcome = await this.DeleteComment(comments, token);
+        if (outcome == CommentWriteOutcome.Written)
+            logger.LogInformation("Comment {CommentId} was removed from act {ActId}", commentId, actId);
+
+        return outcome;
+    }
+
+    private async Task<CommentWriteOutcome> AddComment(Func<CancellationToken, Task<bool>> ownerExists, Comment comment, CancellationToken token)
+    {
+        var context = dbSession.Current;
+
+        if (!await ownerExists(token))
+            return CommentWriteOutcome.NotFound;
 
         context.Comments.Add(comment);
 
         await context.SaveChangesAsync(token);
 
-        logger.LogInformation("Comment {CommentId} was written on act {ActId}", comment.Id, actId);
-
         return CommentWriteOutcome.Written;
     }
 
-    public async Task<CommentWriteOutcome> UpdateActComment(Guid caseId, Guid actId, Guid commentId, CommentEditRequest request, CancellationToken token)
+    private async Task<CommentWriteOutcome> UpdateComment(IQueryable<Comment> comments, string body, CancellationToken token)
     {
-        var body = request.Body.Trim();
         var userId = userContext.UserId;
-
-        var comments = dbSession.Current.Comments.OnAct(caseId, actId).WithId(commentId);
 
         var outcome = await Authorize(comments, userId, token);
         if (outcome != CommentWriteOutcome.Written)
@@ -107,11 +100,9 @@ internal sealed class CommentWriter(IDbSession dbSession, IUserContext userConte
         return rows == 0 ? CommentWriteOutcome.NotFound : CommentWriteOutcome.Written;
     }
 
-    public async Task<CommentWriteOutcome> DeleteActComment(Guid caseId, Guid actId, Guid commentId, CancellationToken token)
+    private async Task<CommentWriteOutcome> DeleteComment(IQueryable<Comment> comments, CancellationToken token)
     {
         var userId = userContext.UserId;
-
-        var comments = dbSession.Current.Comments.OnAct(caseId, actId).WithId(commentId);
 
         var outcome = await Authorize(comments, userId, token);
         if (outcome != CommentWriteOutcome.Written)
@@ -121,12 +112,7 @@ internal sealed class CommentWriter(IDbSession dbSession, IUserContext userConte
             .Where(comment => comment.UserId == userId)
             .ExecuteDeleteAsync(token);
 
-        if (rows == 0)
-            return CommentWriteOutcome.NotFound;
-
-        logger.LogInformation("Comment {CommentId} was removed from act {ActId}", commentId, actId);
-
-        return CommentWriteOutcome.Written;
+        return rows == 0 ? CommentWriteOutcome.NotFound : CommentWriteOutcome.Written;
     }
 
     /// <summary>

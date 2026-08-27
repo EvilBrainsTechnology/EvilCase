@@ -40,54 +40,40 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
 
     public async Task<FileDeleteOutcome> DeleteCaseFile(Guid caseId, Guid fileId, CancellationToken token)
     {
-        var context = dbSession.Current;
+        var files = dbSession.Current.FileAssets.OfCase(caseId).WithId(fileId);
 
-        // Read before the delete: the row is gone once ExecuteDeleteAsync runs.
-        var storagePath = await context.FileAssets
-            .OfCase(caseId)
-            .WithId(fileId)
-            .Select(file => file.StoragePath)
-            .SingleOrDefaultAsync(token);
+        var outcome = await this.DeleteFile(files, token);
+        if (outcome == FileDeleteOutcome.Deleted)
+            logger.LogInformation("File {FileAssetId} was removed from case {CaseId}", fileId, caseId);
 
-        if (storagePath is null)
-            return FileDeleteOutcome.NotFound;
-
-        await context.FileAssets
-            .OfCase(caseId)
-            .WithId(fileId)
-            .ExecuteDeleteAsync(token);
-
-        // The row goes first; a blob left behind is tolerated (SDD-012).
-        await blobStore.DeleteFileBlob(storagePath, token);
-
-        logger.LogInformation("File {FileAssetId} was removed from case {CaseId}", fileId, caseId);
-
-        return FileDeleteOutcome.Deleted;
+        return outcome;
     }
 
     public async Task<FileDeleteOutcome> DeleteActFile(Guid caseId, Guid actId, Guid fileId, CancellationToken token)
     {
-        var context = dbSession.Current;
+        var files = dbSession.Current.FileAssets.OfAct(caseId, actId).WithId(fileId);
 
+        var outcome = await this.DeleteFile(files, token);
+        if (outcome == FileDeleteOutcome.Deleted)
+            logger.LogInformation("File {FileAssetId} was removed from act {ActId}", fileId, actId);
+
+        return outcome;
+    }
+
+    private async Task<FileDeleteOutcome> DeleteFile(IQueryable<FileAsset> files, CancellationToken token)
+    {
         // Read before the delete: the row is gone once ExecuteDeleteAsync runs.
-        var storagePath = await context.FileAssets
-            .OfAct(caseId, actId)
-            .WithId(fileId)
+        var storagePath = await files
             .Select(file => file.StoragePath)
             .SingleOrDefaultAsync(token);
 
         if (storagePath is null)
             return FileDeleteOutcome.NotFound;
 
-        await context.FileAssets
-            .OfAct(caseId, actId)
-            .WithId(fileId)
-            .ExecuteDeleteAsync(token);
+        await files.ExecuteDeleteAsync(token);
 
         // The row goes first; a blob left behind is tolerated (SDD-012).
         await blobStore.DeleteFileBlob(storagePath, token);
-
-        logger.LogInformation("File {FileAssetId} was removed from act {ActId}", fileId, actId);
 
         return FileDeleteOutcome.Deleted;
     }
