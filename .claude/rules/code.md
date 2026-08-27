@@ -13,7 +13,8 @@ paths:
 - No `Async` suffix. Exceptions: a genuine sync/async pair on one surface, and names not ours to
   choose (`SendAsync`, `DisposeAsync`, `OnAfterRenderAsync`).
 - A name says the thing itself; no `Application` prefix outside the `ApplicationDbContext` types.
-- An identifier names its entity: `caseId`, never bare `id`, `entityId` if generic; `Id` on the entity itself.
+- An identifier names its entity: `caseId`, never bare `id`, `entityId` if generic; `Id` on
+  the entity itself.
 - A method name carries its entity: `ListCases`, `WriteFileBlob`. A static class already naming it
   keeps the short name.
 - `Parse` throws on invalid input; `ParseOrDefault` returns the default.
