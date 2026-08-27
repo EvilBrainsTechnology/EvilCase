@@ -28,7 +28,8 @@ public class FileTransferController : ControllerBase
 
         // The browser may send a path; only the name is stored.
         var fileName = Path.GetFileName(file.FileName);
-        var invalidMetadata = this.InvalidUploadMetadataProblem(fileName, file.ContentType);
+        var mediaType = NormalizeMediaType(file.ContentType);
+        var invalidMetadata = this.InvalidUploadMetadataProblem(fileName, mediaType);
 
         if (invalidMetadata is not null)
             return invalidMetadata;
@@ -38,7 +39,7 @@ public class FileTransferController : ControllerBase
         var upload = new FileUpload
         {
             FileName = fileName,
-            MediaType = file.ContentType,
+            MediaType = mediaType,
             Content = content,
         };
 
@@ -66,7 +67,8 @@ public class FileTransferController : ControllerBase
 
         // The browser may send a path; only the name is stored.
         var fileName = Path.GetFileName(file.FileName);
-        var invalidMetadata = this.InvalidUploadMetadataProblem(fileName, file.ContentType);
+        var mediaType = NormalizeMediaType(file.ContentType);
+        var invalidMetadata = this.InvalidUploadMetadataProblem(fileName, mediaType);
 
         if (invalidMetadata is not null)
             return invalidMetadata;
@@ -76,7 +78,7 @@ public class FileTransferController : ControllerBase
         var upload = new FileUpload
         {
             FileName = fileName,
-            MediaType = file.ContentType,
+            MediaType = mediaType,
             Content = content,
         };
 
@@ -103,6 +105,12 @@ public class FileTransferController : ControllerBase
         // Always an attachment: a stored document is never rendered in place (SDD-012).
         // X-Content-Type-Options: nosniff already comes from SecurityHeadersMiddleware on every response.
         return this.File(download.Content, download.MediaType, download.FileName);
+    }
+
+    // IFormFile.ContentType is never null, only empty, when a multipart part carries no Content-Type header.
+    private static string? NormalizeMediaType(string mediaType)
+    {
+        return string.IsNullOrEmpty(mediaType) ? null : mediaType;
     }
 
     private ActionResult? InvalidUploadMetadataProblem(string fileName, string? mediaType)
