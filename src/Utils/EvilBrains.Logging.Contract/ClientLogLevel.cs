@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace EvilBrains.Logging.Contract;
 
-[JsonConverter(typeof(JsonStringEnumConverter<ClientLogLevel>))]
+[JsonConverter(typeof(StrictJsonStringEnumConverter<ClientLogLevel>))]
 public enum ClientLogLevel
 {
     Verbose = 0,

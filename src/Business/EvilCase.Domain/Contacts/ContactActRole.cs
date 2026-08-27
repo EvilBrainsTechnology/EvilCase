@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using EvilBrains.EvilCase.Domain.Json;
 
 namespace EvilBrains.EvilCase.Domain.Contacts;
 
@@ -6,7 +7,7 @@ namespace EvilBrains.EvilCase.Domain.Contacts;
 /// How a contact is named by an act. Serialized by name rather than by number, so the wire format
 /// survives a reordering.
 /// </summary>
-[JsonConverter(typeof(JsonStringEnumConverter<ContactActRole>))]
+[JsonConverter(typeof(StrictJsonStringEnumConverter<ContactActRole>))]
 public enum ContactActRole
 {
     IssuedBy = 0,

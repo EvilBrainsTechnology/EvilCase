@@ -1,8 +1,9 @@
 using System.Text.Json.Serialization;
+using EvilBrains.EvilCase.Domain.Json;
 
 namespace EvilBrains.EvilCase.Api.Contract.Cases;
 
-[JsonConverter(typeof(JsonStringEnumConverter<CaseListOrder>))]
+[JsonConverter(typeof(StrictJsonStringEnumConverter<CaseListOrder>))]
 public enum CaseListOrder
 {
     /// <summary>
