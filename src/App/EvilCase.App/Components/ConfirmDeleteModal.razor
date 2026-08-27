@@ -1,0 +1,84 @@
+@using System.Net
+@using EvilBrains.ApiClient
+@using TabBlazor.Services
+@inject IModalService ModalService
+@inject ILogger<ConfirmDeleteModal> Logger
+
+@ChildContent
+
+@if (this.error is not null)
+{
+    <div class="alert alert-danger" role="alert">@this.error</div>
+}
+
+<div class="d-flex justify-content-end gap-2 mt-3">
+    <button type="button" class="btn" @onclick="() => this.ModalService.Close()">Zrušit</button>
+    <button type="button" class="btn btn-danger" disabled="@this.busy" @onclick="this.ConfirmDelete">
+        @if (this.busy)
+        {
+            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+        }
+        Smazat
+    </button>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public required RenderFragment ChildContent { get; set; }
+
+    [Parameter, EditorRequired]
+    public required Func<CancellationToken, Task> Delete { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string GoneError { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string FailedError { get; set; }
+
+    /// <summary>Maps an <see cref="ApiException"/> to its message; null falls through to the default handling.</summary>
+    [Parameter]
+    public Func<ApiException, string?>? MapError { get; set; }
+
+    [Parameter]
+    public EventCallback OnDeleted { get; set; }
+
+    private string? error;
+
+    private bool busy;
+
+    private async Task ConfirmDelete()
+    {
+        this.busy = true;
+        this.error = null;
+
+        try
+        {
+            await this.Delete(CancellationToken.None);
+
+            this.ModalService.Close();
+            await this.OnDeleted.InvokeAsync();
+        }
+        catch (ApiException exception) when (this.MapError?.Invoke(exception) is { } mapped)
+        {
+            this.Logger.LogWarning(exception, "Deleting failed: mapped error");
+
+            this.error = mapped;
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+        {
+            this.Logger.LogWarning(exception, "Deleting failed: it is already gone");
+
+            this.error = this.GoneError;
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Deleting failed");
+
+            this.error = this.FailedError;
+        }
+        finally
+        {
+            this.busy = false;
+        }
+    }
+}
