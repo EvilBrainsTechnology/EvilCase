@@ -9,7 +9,7 @@ namespace EvilBrains.EvilCase.Business.Contacts;
 /// <summary>
 /// Shapes the contact list, one composable step per rule.
 /// </summary>
-public static class ContactListQuery
+internal static class ContactListQuery
 {
     /// <summary>
     /// Matches the name or the data box id, ignoring case and diacritics. A blank term narrows nothing.

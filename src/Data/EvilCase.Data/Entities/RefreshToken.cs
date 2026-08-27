@@ -9,7 +9,7 @@ namespace EvilBrains.EvilCase.Data.Entities;
 /// </summary>
 [Index(nameof(TokenHash), IsUnique = true)]
 [Index(nameof(AuthSessionId))]
-public record RefreshToken : IEntity
+public sealed record RefreshToken : IEntity
 {
     [Key]
     public Guid Id { get; init; } = Guid.CreateVersion7();

@@ -5,7 +5,7 @@ namespace EvilBrains.EvilCase.Data.Entities;
 /// <summary>
 /// Covers N tenants.
 /// </summary>
-public record Account : IEntity
+public sealed record Account : IEntity
 {
     [Key]
     public Guid Id { get; init; } = Guid.CreateVersion7();

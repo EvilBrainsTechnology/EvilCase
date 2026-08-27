@@ -10,7 +10,7 @@ namespace EvilBrains.EvilCase.Business.Cases;
 /// <summary>
 /// Shapes the case list, one composable step per rule.
 /// </summary>
-public static class CaseListQuery
+internal static class CaseListQuery
 {
     /// <summary>
     /// Matches the title or the description, ignoring case and diacritics. A blank term narrows nothing.

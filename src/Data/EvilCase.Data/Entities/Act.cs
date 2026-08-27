@@ -12,7 +12,7 @@ namespace EvilBrains.EvilCase.Data.Entities;
 [Index(nameof(CaseId))]
 [Index(nameof(IssuedByContactId))]
 [Index(nameof(AddressedToContactId))]
-public record Act : IUserOwnedEntity
+public sealed record Act : IUserOwnedEntity
 {
     [Key]
     public Guid Id { get; init; } = Guid.CreateVersion7();

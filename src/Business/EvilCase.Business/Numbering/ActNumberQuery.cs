@@ -7,7 +7,7 @@ namespace EvilBrains.EvilCase.Business.Numbering;
 /// <summary>
 /// Reads what the next act number of a day inside a case needs, one composable step per rule.
 /// </summary>
-public static class ActNumberQuery
+internal static class ActNumberQuery
 {
     /// <summary>
     /// The case's own numbers of the day. A hand-written case number carries another prefix and drops out here.

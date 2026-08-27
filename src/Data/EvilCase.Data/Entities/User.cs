@@ -7,7 +7,7 @@ namespace EvilBrains.EvilCase.Data.Entities;
 [Index(nameof(Email), IsUnique = true)]
 [Index(nameof(TenantId))]
 [Index(nameof(DefaultContactId))]
-public record User : ITenantEntity
+public sealed record User : ITenantEntity
 {
     [Key]
     public Guid Id { get; init; } = Guid.CreateVersion7();

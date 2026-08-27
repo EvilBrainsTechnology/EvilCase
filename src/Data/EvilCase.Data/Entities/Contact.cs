@@ -9,7 +9,7 @@ namespace EvilBrains.EvilCase.Data.Entities;
 /// in, so a contact accumulates history across every case it appears in.
 /// </summary>
 [Index(nameof(TenantId))]
-public record Contact : ITenantEntity
+public sealed record Contact : ITenantEntity
 {
     [Key]
     public Guid Id { get; init; } = Guid.CreateVersion7();
