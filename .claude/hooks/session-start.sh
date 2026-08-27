@@ -25,21 +25,40 @@ require /opt/node22/bin/node "screenshots need Node 22"
 require /opt/node22/lib/node_modules/playwright "screenshots need Playwright"
 require /opt/pw-browsers "screenshots need the Playwright browsers"
 
+# --- Docker ---------------------------------------------------------------------------------
+# The SDK is copied out of a container image and the tests start PostgreSQL through
+# Testcontainers. The egress policy blocks Docker Hub's blob CDN, so a pull reaches the manifest
+# and none of the layers; mirror.gcr.io serves the same images and is allowed. The daemon reads
+# the mirror at startup only.
+start_docker() {
+    mkdir -p /etc/docker
+    cat > /etc/docker/daemon.json <<'JSON'
+{
+  "registry-mirrors": ["https://mirror.gcr.io"]
+}
+JSON
+
+    if docker info >/dev/null 2>&1; then
+        log "docker daemon already running"
+        return 0
+    fi
+
+    log "starting docker daemon"
+    nohup dockerd >/var/log/dockerd.log 2>&1 &
+    for _ in $(seq 1 30); do
+        docker info >/dev/null 2>&1 && break
+        sleep 1
+    done
+    docker info >/dev/null 2>&1 || { log "docker daemon did not start"; exit 1; }
+}
+
+start_docker
+
 # --- .NET SDK -------------------------------------------------------------------------------
 # The egress policy blocks builds.dotnet.microsoft.com, so dotnet-install.sh cannot reach the
 # SDK. mcr.microsoft.com is allowed, so the SDK is copied out of the official image instead and
-# ends up on the host filesystem — Docker is not involved in anything after this block.
+# ends up on the host filesystem.
 install_dotnet() {
-    if ! docker info >/dev/null 2>&1; then
-        log "starting docker daemon"
-        nohup dockerd >/var/log/dockerd.log 2>&1 &
-        for _ in $(seq 1 30); do
-            docker info >/dev/null 2>&1 && break
-            sleep 1
-        done
-        docker info >/dev/null 2>&1 || { log "docker daemon did not start"; return 1; }
-    fi
-
     log "pulling $SDK_IMAGE"
     docker pull --quiet "$SDK_IMAGE" >/dev/null
 
