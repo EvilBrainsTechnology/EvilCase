@@ -20,6 +20,9 @@ What it cannot see:
 - A business service returns the contract DTO — no second model set, no mapping layer.
 - `EvilCase.Auth` is a closed module behind `IAuthService`, exempt from the layering.
 - A pure rule is a static class with no `DbContext` in sight, tested without one.
+- A business write that can fail answers with an outcome enum, alone or inside its result record,
+  its own or the shared `DeleteOutcome`; the action maps every member and throws
+  `UnreachableException` on the rest.
 
 ## Queries
 
