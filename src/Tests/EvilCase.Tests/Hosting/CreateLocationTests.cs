@@ -4,7 +4,6 @@ using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Business.Cases;
 using EvilBrains.EvilCase.Business.Contacts;
-using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Domain.Cases;
 using EvilBrains.EvilCase.Domain.Contacts;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,8 +29,8 @@ public class CreateLocationTests
     {
         this.host = new EvilCaseHost(configureServices: static services =>
         {
-            services.AddSingleton<ICaseWriter>(new StubCaseWriter());
-            services.AddSingleton<IContactWriter>(new StubContactWriter());
+            services.AddSingleton(CaseWriter());
+            services.AddSingleton(ContactWriter());
         });
         this.client = this.host.CreateClient();
     }
@@ -85,51 +84,38 @@ public class CreateLocationTests
         }
     }
 
-    private sealed class StubCaseWriter : ICaseWriter
+    private static ICaseWriter CaseWriter()
     {
-        public async Task<CaseCreateResult> CreateCase(CreateCaseRequest request, CancellationToken token)
-        {
-            return new CaseCreateResult
+        var writer = Substitute.For<ICaseWriter>();
+        writer.CreateCase(Arg.Any<CreateCaseRequest>(), Arg.Any<CancellationToken>())
+            .Returns(static call => new CaseCreateResult
             {
                 Outcome = CaseCreateOutcome.Created,
                 Case = new CaseListItem
                 {
                     CaseId = FiledCaseId,
                     CaseNumber = "EC/20260821-001",
-                    Title = request.Title,
-                    Date = request.Date,
+                    Title = call.Arg<CreateCaseRequest>().Title,
+                    Date = call.Arg<CreateCaseRequest>().Date,
                     Status = CaseStatus.Active,
                     Changed = DateTime.UtcNow,
                 },
-            };
-        }
+            });
 
-        public Task<CaseUpdateOutcome> UpdateCase(Guid caseId, CaseEditRequest request, CancellationToken token)
-        {
-            throw new NotSupportedException();
-        }
-
-        public Task<DeleteOutcome> DeleteCase(Guid caseId, CancellationToken token)
-        {
-            throw new NotSupportedException();
-        }
+        return writer;
     }
 
-    private sealed class StubContactWriter : IContactWriter
+    private static IContactWriter ContactWriter()
     {
-        public async Task<ContactListItem> CreateContact(ContactEditRequest request, CancellationToken token)
-        {
-            return new ContactListItem { ContactId = FiledContactId, Kind = request.Kind, Name = request.Name };
-        }
+        var writer = Substitute.For<IContactWriter>();
+        writer.CreateContact(Arg.Any<ContactEditRequest>(), Arg.Any<CancellationToken>())
+            .Returns(static call => new ContactListItem
+            {
+                ContactId = FiledContactId,
+                Kind = call.Arg<ContactEditRequest>().Kind,
+                Name = call.Arg<ContactEditRequest>().Name,
+            });
 
-        public Task<ContactUpdateOutcome> UpdateContact(Guid contactId, ContactEditRequest request, CancellationToken token)
-        {
-            throw new NotSupportedException();
-        }
-
-        public Task<ContactDeleteOutcome> DeleteContact(Guid contactId, CancellationToken token)
-        {
-            throw new NotSupportedException();
-        }
+        return writer;
     }
 }

@@ -1,5 +1,4 @@
 using System.Net;
-using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Business.Files;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -11,6 +10,8 @@ namespace EvilBrains.EvilCase.Tests.Hosting;
 /// </summary>
 public class FileDownloadHeaderTests
 {
+    private const string StoredFileName = "smlouva.pdf";
+
     private EvilCaseHost host = null!;
 
     private HttpClient client = null!;
@@ -18,7 +19,7 @@ public class FileDownloadHeaderTests
     [OneTimeSetUp]
     public void SetUp()
     {
-        this.host = new EvilCaseHost(configureServices: static services => services.AddSingleton<IFileReader>(new StubFileReader()));
+        this.host = new EvilCaseHost(configureServices: static services => services.AddSingleton(FileReader()));
         this.client = this.host.CreateClient();
     }
 
@@ -40,28 +41,17 @@ public class FileDownloadHeaderTests
         {
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
             Assert.That(response.Content.Headers.ContentDisposition?.DispositionType, Is.EqualTo("attachment"), "a stored document is never rendered in place");
-            Assert.That(response.Content.Headers.ContentDisposition?.FileName, Is.EqualTo(StubFileReader.FileName));
+            Assert.That(response.Content.Headers.ContentDisposition?.FileName, Is.EqualTo(StoredFileName));
             Assert.That(response.Headers.TryGetValues("X-Content-Type-Options", out var values) ? values.Single() : null, Is.EqualTo("nosniff"));
         }
     }
 
-    private sealed class StubFileReader : IFileReader
+    private static IFileReader FileReader()
     {
-        public const string FileName = "smlouva.pdf";
+        var reader = Substitute.For<IFileReader>();
+        reader.OpenFileContent(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(new FileDownload { FileName = StoredFileName, MediaType = "application/pdf", Content = new MemoryStream("abc"u8.ToArray()) });
 
-        public async Task<IReadOnlyList<FileListItem>?> ListCaseFiles(Guid caseId, CancellationToken token)
-        {
-            return null;
-        }
-
-        public async Task<IReadOnlyList<FileListItem>?> ListActFiles(Guid caseId, Guid actId, CancellationToken token)
-        {
-            return null;
-        }
-
-        public async Task<FileDownload?> OpenFileContent(Guid fileId, CancellationToken token)
-        {
-            return new FileDownload { FileName = FileName, MediaType = "application/pdf", Content = new MemoryStream("abc"u8.ToArray()) };
-        }
+        return reader;
     }
 }
