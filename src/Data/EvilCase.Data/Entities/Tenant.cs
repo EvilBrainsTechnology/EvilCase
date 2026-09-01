@@ -7,7 +7,7 @@ namespace EvilBrains.EvilCase.Data.Entities;
 /// The boundary data isolation runs along (SDD-006).
 /// </summary>
 [Index(nameof(AccountId))]
-public record Tenant : IEntity
+public sealed record Tenant : IEntity
 {
     [Key]
     public Guid Id { get; init; } = Guid.CreateVersion7();

@@ -10,7 +10,7 @@ namespace EvilBrains.EvilCase.Data.Entities;
 /// </summary>
 [Index(nameof(TenantId), nameof(CaseId), nameof(Value), IsUnique = true)]
 [Index(nameof(AssignedByContactId))]
-public record ExternalCaseNumber : IUserOwnedEntity
+public sealed record ExternalCaseNumber : IUserOwnedEntity
 {
     [Key]
     public Guid Id { get; init; } = Guid.CreateVersion7();

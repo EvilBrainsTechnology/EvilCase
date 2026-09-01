@@ -6,7 +6,7 @@ namespace EvilBrains.EvilCase.Business.Acts;
 /// <summary>
 /// Shapes an act list, one composable step per rule.
 /// </summary>
-public static class ActListQuery
+internal static class ActListQuery
 {
     /// <summary>
     /// Oldest first by the act's own date; equal dates fall back to when the row was written, and the

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Business.Entities;
 
-public static class EntityQuery
+internal static class EntityQuery
 {
     public static IQueryable<TEntity> WithId<TEntity>(this IQueryable<TEntity> entities, Guid entityId)
         where TEntity : IEntity
