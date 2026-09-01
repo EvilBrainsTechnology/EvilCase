@@ -83,7 +83,9 @@ public class ContactsControllerTests
     public async Task TheDefaultContactIsWhatTheReaderReturned()
     {
         var defaultContact = Item("Výchozí kontakt");
-        var reader = DefaultContactReader(defaultContact);
+        var reader = Substitute.For<IContactReader>();
+        reader.GetDefaultContact(Arg.Any<CancellationToken>())
+            .Returns(defaultContact);
         var controller = new ContactsController();
 
         var result = await controller.GetDefaultContact(reader, CancellationToken.None);
@@ -228,15 +230,6 @@ public class ContactsControllerTests
         var reader = Substitute.For<IContactReader>();
         reader.ListContacts(Arg.Any<ContactListRequest>(), Arg.Any<CancellationToken>())
             .Returns(items);
-
-        return reader;
-    }
-
-    private static IContactReader DefaultContactReader(ContactListItem contact)
-    {
-        var reader = Substitute.For<IContactReader>();
-        reader.GetDefaultContact(Arg.Any<CancellationToken>())
-            .Returns(contact);
 
         return reader;
     }

@@ -23,7 +23,18 @@ public class StrictEnumBindingTests
     [OneTimeSetUp]
     public void SetUp()
     {
-        this.host = new EvilCaseHost(configureServices: static services => services.AddSingleton(ContactWriter()));
+        this.host = new EvilCaseHost(configureServices: static services =>
+        {
+            var writer = Substitute.For<IContactWriter>();
+            writer.CreateContact(Arg.Any<ContactEditRequest>(), Arg.Any<CancellationToken>())
+                .Returns(static call => new ContactListItem
+                {
+                    ContactId = Guid.CreateVersion7(),
+                    Kind = call.Arg<ContactEditRequest>().Kind,
+                    Name = call.Arg<ContactEditRequest>().Name,
+                });
+            services.AddSingleton(writer);
+        });
         this.client = this.host.CreateClient();
     }
 
@@ -65,19 +76,5 @@ public class StrictEnumBindingTests
         using var response = await this.client.SendAsync(request);
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Created), "the strict converter still accepts the member by its name");
-    }
-
-    private static IContactWriter ContactWriter()
-    {
-        var writer = Substitute.For<IContactWriter>();
-        writer.CreateContact(Arg.Any<ContactEditRequest>(), Arg.Any<CancellationToken>())
-            .Returns(static call => new ContactListItem
-            {
-                ContactId = Guid.CreateVersion7(),
-                Kind = call.Arg<ContactEditRequest>().Kind,
-                Name = call.Arg<ContactEditRequest>().Name,
-            });
-
-        return writer;
     }
 }

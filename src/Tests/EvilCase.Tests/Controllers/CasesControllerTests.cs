@@ -16,7 +16,9 @@ public class CasesControllerTests
     [Test]
     public async Task TheItemsAreReturnedInTheOrderTheReaderGaveThem()
     {
-        var reader = ListingReader([Item("EC/20260821-002", "druhý"), Item("EC/20260821-001", "první")]);
+        var reader = Substitute.For<ICaseReader>();
+        reader.ListCases(Arg.Any<CaseListRequest>(), Arg.Any<CancellationToken>())
+            .Returns([Item("EC/20260821-002", "druhý"), Item("EC/20260821-001", "první")]);
         var controller = new CasesController();
 
         var response = await controller.ListCases(reader, new CaseListRequest(), CancellationToken.None);
@@ -28,7 +30,9 @@ public class CasesControllerTests
     public async Task TheCountsAreWhatTheReaderRead()
     {
         var counts = new CaseStatusCounts { Active = 2, WaitingOnAuthority = 1, Closed = 3 };
-        var reader = CountingReader(counts);
+        var reader = Substitute.For<ICaseReader>();
+        reader.CountCasesByStatus(Arg.Any<CancellationToken>())
+            .Returns(counts);
         var controller = new CasesController();
 
         var response = await controller.CountCases(reader, CancellationToken.None);
@@ -422,24 +426,6 @@ public class CasesControllerTests
             Status = CaseStatus.Active,
             Changed = new DateTime(2026, 8, 21, 0, 0, 0, DateTimeKind.Utc),
         };
-    }
-
-    private static ICaseReader ListingReader(IReadOnlyList<CaseListItem> items)
-    {
-        var reader = Substitute.For<ICaseReader>();
-        reader.ListCases(Arg.Any<CaseListRequest>(), Arg.Any<CancellationToken>())
-            .Returns(items);
-
-        return reader;
-    }
-
-    private static ICaseReader CountingReader(CaseStatusCounts counts)
-    {
-        var reader = Substitute.For<ICaseReader>();
-        reader.CountCasesByStatus(Arg.Any<CancellationToken>())
-            .Returns(counts);
-
-        return reader;
     }
 
     private static ICaseReader DetailReader(CaseDetail? detail)

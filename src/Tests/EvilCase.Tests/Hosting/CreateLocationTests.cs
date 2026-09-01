@@ -29,8 +29,32 @@ public class CreateLocationTests
     {
         this.host = new EvilCaseHost(configureServices: static services =>
         {
-            services.AddSingleton(CaseWriter());
-            services.AddSingleton(ContactWriter());
+            var caseWriter = Substitute.For<ICaseWriter>();
+            caseWriter.CreateCase(Arg.Any<CreateCaseRequest>(), Arg.Any<CancellationToken>())
+                .Returns(static call => new CaseCreateResult
+                {
+                    Outcome = CaseCreateOutcome.Created,
+                    Case = new CaseListItem
+                    {
+                        CaseId = FiledCaseId,
+                        CaseNumber = "EC/20260821-001",
+                        Title = call.Arg<CreateCaseRequest>().Title,
+                        Date = call.Arg<CreateCaseRequest>().Date,
+                        Status = CaseStatus.Active,
+                        Changed = DateTime.UtcNow,
+                    },
+                });
+            services.AddSingleton(caseWriter);
+
+            var contactWriter = Substitute.For<IContactWriter>();
+            contactWriter.CreateContact(Arg.Any<ContactEditRequest>(), Arg.Any<CancellationToken>())
+                .Returns(static call => new ContactListItem
+                {
+                    ContactId = FiledContactId,
+                    Kind = call.Arg<ContactEditRequest>().Kind,
+                    Name = call.Arg<ContactEditRequest>().Name,
+                });
+            services.AddSingleton(contactWriter);
         });
         this.client = this.host.CreateClient();
     }
@@ -82,40 +106,5 @@ public class CreateLocationTests
                 Is.EqualTo($"http://localhost/api/contacts/{FiledContactId}"),
                 "the Location names the detail route of the contact that was filed");
         }
-    }
-
-    private static ICaseWriter CaseWriter()
-    {
-        var writer = Substitute.For<ICaseWriter>();
-        writer.CreateCase(Arg.Any<CreateCaseRequest>(), Arg.Any<CancellationToken>())
-            .Returns(static call => new CaseCreateResult
-            {
-                Outcome = CaseCreateOutcome.Created,
-                Case = new CaseListItem
-                {
-                    CaseId = FiledCaseId,
-                    CaseNumber = "EC/20260821-001",
-                    Title = call.Arg<CreateCaseRequest>().Title,
-                    Date = call.Arg<CreateCaseRequest>().Date,
-                    Status = CaseStatus.Active,
-                    Changed = DateTime.UtcNow,
-                },
-            });
-
-        return writer;
-    }
-
-    private static IContactWriter ContactWriter()
-    {
-        var writer = Substitute.For<IContactWriter>();
-        writer.CreateContact(Arg.Any<ContactEditRequest>(), Arg.Any<CancellationToken>())
-            .Returns(static call => new ContactListItem
-            {
-                ContactId = FiledContactId,
-                Kind = call.Arg<ContactEditRequest>().Kind,
-                Name = call.Arg<ContactEditRequest>().Name,
-            });
-
-        return writer;
     }
 }

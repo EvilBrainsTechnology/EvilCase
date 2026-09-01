@@ -19,7 +19,13 @@ public class FileDownloadHeaderTests
     [OneTimeSetUp]
     public void SetUp()
     {
-        this.host = new EvilCaseHost(configureServices: static services => services.AddSingleton(FileReader()));
+        this.host = new EvilCaseHost(configureServices: static services =>
+        {
+            var reader = Substitute.For<IFileReader>();
+            reader.OpenFileContent(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+                .Returns(new FileDownload { FileName = StoredFileName, MediaType = "application/pdf", Content = new MemoryStream("abc"u8.ToArray()) });
+            services.AddSingleton(reader);
+        });
         this.client = this.host.CreateClient();
     }
 
@@ -44,14 +50,5 @@ public class FileDownloadHeaderTests
             Assert.That(response.Content.Headers.ContentDisposition?.FileName, Is.EqualTo(StoredFileName));
             Assert.That(response.Headers.TryGetValues("X-Content-Type-Options", out var values) ? values.Single() : null, Is.EqualTo("nosniff"));
         }
-    }
-
-    private static IFileReader FileReader()
-    {
-        var reader = Substitute.For<IFileReader>();
-        reader.OpenFileContent(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-            .Returns(new FileDownload { FileName = StoredFileName, MediaType = "application/pdf", Content = new MemoryStream("abc"u8.ToArray()) });
-
-        return reader;
     }
 }
