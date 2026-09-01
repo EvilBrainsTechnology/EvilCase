@@ -25,15 +25,24 @@ public class UserWriteInterceptorTests
 
     private ApplicationDbContext context = null!;
 
+    private IDisposable scope = null!;
+
+    private UserWriteInterceptor interceptor = null!;
+
     [SetUp]
     public void SetUp()
     {
         this.context = new ApplicationDbContextFactory().CreateDbContext([]);
+
+        var userContext = new StubUserContext();
+        this.scope = userContext.Enter(TenantA, UserA);
+        this.interceptor = new UserWriteInterceptor(userContext);
     }
 
     [TearDown]
     public void TearDown()
     {
+        this.scope.Dispose();
         this.context.Dispose();
     }
 
@@ -43,11 +52,7 @@ public class UserWriteInterceptorTests
         var contact = new Contact { Kind = ContactKind.Person, Name = "test" };
         this.context.Contacts.Add(contact);
 
-        var userContext = new StubUserContext();
-        using var scope = userContext.Enter(TenantA, UserA);
-        var interceptor = new UserWriteInterceptor(userContext);
-
-        SaveChanges(interceptor, this.context);
+        SaveChanges(this.interceptor, this.context);
 
         Assert.That(this.context.Entry(contact).Property(nameof(Contact.TenantId)).CurrentValue, Is.EqualTo(TenantA), "a new tenant row takes the tenant of the write, so no creation has to set it");
     }
@@ -58,11 +63,7 @@ public class UserWriteInterceptorTests
         var @case = NewCase();
         this.context.Cases.Add(@case);
 
-        var userContext = new StubUserContext();
-        using var scope = userContext.Enter(TenantA, UserA);
-        var interceptor = new UserWriteInterceptor(userContext);
-
-        SaveChanges(interceptor, this.context);
+        SaveChanges(this.interceptor, this.context);
 
         using (Assert.EnterMultipleScope())
         {
@@ -82,11 +83,7 @@ public class UserWriteInterceptorTests
         this.context.Entry(modified).State = EntityState.Modified;
         this.context.Entry(deleted).State = EntityState.Deleted;
 
-        var userContext = new StubUserContext();
-        using var scope = userContext.Enter(TenantA, UserA);
-        var interceptor = new UserWriteInterceptor(userContext);
-
-        Assert.That(() => SaveChanges(interceptor, this.context), Throws.Nothing, "an explicit tenant that matches the write stands");
+        Assert.That(() => SaveChanges(this.interceptor, this.context), Throws.Nothing, "an explicit tenant that matches the write stands");
         Assert.That(this.context.Entry(added).Property(nameof(Contact.TenantId)).CurrentValue, Is.EqualTo(TenantA));
     }
 
@@ -101,11 +98,7 @@ public class UserWriteInterceptorTests
         this.context.Entry(modified).State = EntityState.Modified;
         this.context.Entry(deleted).State = EntityState.Deleted;
 
-        var userContext = new StubUserContext();
-        using var scope = userContext.Enter(TenantA, UserA);
-        var interceptor = new UserWriteInterceptor(userContext);
-
-        Assert.That(() => SaveChanges(interceptor, this.context), Throws.Nothing, "an explicit user that matches the write stands");
+        Assert.That(() => SaveChanges(this.interceptor, this.context), Throws.Nothing, "an explicit user that matches the write stands");
         Assert.That(this.context.Entry(added).Property(nameof(Case.UserId)).CurrentValue, Is.EqualTo(UserA));
     }
 
@@ -114,12 +107,8 @@ public class UserWriteInterceptorTests
     {
         this.context.Contacts.Add(NewContact(TenantB));
 
-        var userContext = new StubUserContext();
-        using var scope = userContext.Enter(TenantA, UserA);
-        var interceptor = new UserWriteInterceptor(userContext);
-
         Assert.That(
-            () => SaveChanges(interceptor, this.context),
+            () => SaveChanges(this.interceptor, this.context),
             Throws.InvalidOperationException,
             "a row of another tenant is refused, not silently restamped");
     }
@@ -129,12 +118,8 @@ public class UserWriteInterceptorTests
     {
         this.context.Cases.Add(NewCase(UserB, TenantA));
 
-        var userContext = new StubUserContext();
-        using var scope = userContext.Enter(TenantA, UserA);
-        var interceptor = new UserWriteInterceptor(userContext);
-
         Assert.That(
-            () => SaveChanges(interceptor, this.context),
+            () => SaveChanges(this.interceptor, this.context),
             Throws.InvalidOperationException,
             "a row of another user is refused, not silently restamped");
     }
@@ -146,12 +131,8 @@ public class UserWriteInterceptorTests
         this.context.Cases.Add(@case);
         this.context.Entry(@case).State = EntityState.Modified;
 
-        var userContext = new StubUserContext();
-        using var scope = userContext.Enter(TenantA, UserA);
-        var interceptor = new UserWriteInterceptor(userContext);
-
         Assert.That(
-            () => SaveChanges(interceptor, this.context),
+            () => SaveChanges(this.interceptor, this.context),
             Throws.InvalidOperationException,
             "a row of another user in the tenant is visible but not editable");
     }
@@ -163,12 +144,8 @@ public class UserWriteInterceptorTests
         this.context.Cases.Add(@case);
         this.context.Entry(@case).State = EntityState.Deleted;
 
-        var userContext = new StubUserContext();
-        using var scope = userContext.Enter(TenantA, UserA);
-        var interceptor = new UserWriteInterceptor(userContext);
-
         Assert.That(
-            () => SaveChanges(interceptor, this.context),
+            () => SaveChanges(this.interceptor, this.context),
             Throws.InvalidOperationException,
             "a row of another user in the tenant is visible but not deletable");
     }
@@ -179,11 +156,7 @@ public class UserWriteInterceptorTests
         var user = NewUser();
         this.context.Users.Add(user);
 
-        var userContext = new StubUserContext();
-        using var scope = userContext.Enter(TenantA, UserA);
-        var interceptor = new UserWriteInterceptor(userContext);
-
-        SaveChanges(interceptor, this.context);
+        SaveChanges(this.interceptor, this.context);
 
         Assert.That(this.context.Entry(user).Property(nameof(User.TenantId)).CurrentValue, Is.EqualTo(TenantA), "a user takes the tenant of the write, so the seed does not name it");
     }
@@ -193,12 +166,8 @@ public class UserWriteInterceptorTests
     {
         this.context.Users.Add(NewUser(TenantB));
 
-        var userContext = new StubUserContext();
-        using var scope = userContext.Enter(TenantA, UserA);
-        var interceptor = new UserWriteInterceptor(userContext);
-
         Assert.That(
-            () => SaveChanges(interceptor, this.context),
+            () => SaveChanges(this.interceptor, this.context),
             Throws.InvalidOperationException,
             "a user of another tenant is refused, not silently restamped");
     }
@@ -215,10 +184,10 @@ public class UserWriteInterceptorTests
             SessionExpires = Moment.AddDays(30),
         });
 
-        var interceptor = new UserWriteInterceptor(new StubUserContext());
+        var noContextInterceptor = new UserWriteInterceptor(new StubUserContext());
 
         Assert.That(
-            () => SaveChanges(interceptor, this.context),
+            () => SaveChanges(noContextInterceptor, this.context),
             Throws.Nothing,
             "signing in writes with no tenant and no user");
     }

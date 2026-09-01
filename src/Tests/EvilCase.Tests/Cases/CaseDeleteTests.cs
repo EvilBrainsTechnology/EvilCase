@@ -11,53 +11,45 @@ namespace EvilBrains.EvilCase.Tests.Cases;
 /// The delete cascade against a real PostgreSQL: the foreign keys carry it, so no fake decides it
 /// (SDD-007). Each test seeds a tenant of its own, so none cleans up after itself.
 /// </summary>
-public class CaseDeleteTests
+public class CaseDeleteTests : TenantFixture
 {
     private static readonly DateOnly Day = new(2026, 8, 21);
-
-    private TestTenant tenant = null!;
 
     private FakeFileBlobStore blobs = null!;
 
     private CaseWriter writer = null!;
 
     [SetUp]
-    public async Task SetUp()
+    public void SetUpWriter()
     {
-        this.tenant = await TestTenant.Create();
         this.blobs = new FakeFileBlobStore();
-        this.writer = new CaseWriter(new FixedDbSession(this.tenant.Context), new FakeCaseNumberIssuer(), this.blobs, NullLogger<CaseWriter>.Instance);
-    }
-
-    [TearDown]
-    public async Task TearDown()
-    {
-        await this.tenant.DisposeAsync();
+        this.writer = new CaseWriter(
+            new FixedDbSession(this.Tenant.Context), new FakeCaseNumberIssuer(), this.blobs, NullLogger<CaseWriter>.Instance);
     }
 
     [Test]
     public async Task DeletingACaseTakesItsActsCommentsMarksAndFiles()
     {
-        var contact = await this.tenant.AddContact("Úřad");
-        var seeded = await this.tenant.AddCase(Day, "Přestupek");
-        var act = await this.tenant.AddAct(seeded, Day);
-        var caseComment = await this.tenant.AddCaseComment(seeded, "Poznámka ke spisu");
-        var actComment = await this.tenant.AddActComment(act, "Poznámka k úkonu");
-        await this.tenant.AddExternalCaseNumber(seeded, "EXT-1", contact);
-        await this.tenant.AddExternalActNumber(act, "EXT-2", contact);
-        var caseFile = await this.tenant.AddCaseFile(seeded);
-        var actFile = await this.tenant.AddActFile(act);
+        var contact = await this.Tenant.AddContact("Úřad");
+        var seeded = await this.Tenant.AddCase(Day, "Přestupek");
+        var act = await this.Tenant.AddAct(seeded, Day);
+        var caseComment = await this.Tenant.AddCaseComment(seeded, "Poznámka ke spisu");
+        var actComment = await this.Tenant.AddActComment(act, "Poznámka k úkonu");
+        await this.Tenant.AddExternalCaseNumber(seeded, "EXT-1", contact);
+        await this.Tenant.AddExternalActNumber(act, "EXT-2", contact);
+        var caseFile = await this.Tenant.AddCaseFile(seeded);
+        var actFile = await this.Tenant.AddActFile(act);
 
         var result = await this.writer.DeleteCase(seeded.Id, CancellationToken.None);
 
-        this.tenant.Context.ChangeTracker.Clear();
+        this.Tenant.Context.ChangeTracker.Clear();
 
-        var caseExists = await this.tenant.Context.Cases.AnyAsync(row => row.Id == seeded.Id);
-        var actExists = await this.tenant.Context.Acts.AnyAsync(row => row.Id == act.Id);
-        var commentsExist = await this.tenant.Context.Comments.AnyAsync(row => row.Id == caseComment.Id || row.Id == actComment.Id);
-        var externalCaseNumbersExist = await this.tenant.Context.ExternalCaseNumbers.AnyAsync(row => row.CaseId == seeded.Id);
-        var externalActNumbersExist = await this.tenant.Context.ExternalActNumbers.AnyAsync(row => row.ActId == act.Id);
-        var filesExist = await this.tenant.Context.FileAssets.AnyAsync(row => row.Id == caseFile.Id || row.Id == actFile.Id);
+        var caseExists = await this.Tenant.Context.Cases.AnyAsync(row => row.Id == seeded.Id);
+        var actExists = await this.Tenant.Context.Acts.AnyAsync(row => row.Id == act.Id);
+        var commentsExist = await this.Tenant.Context.Comments.AnyAsync(row => row.Id == caseComment.Id || row.Id == actComment.Id);
+        var externalCaseNumbersExist = await this.Tenant.Context.ExternalCaseNumbers.AnyAsync(row => row.CaseId == seeded.Id);
+        var externalActNumbersExist = await this.Tenant.Context.ExternalActNumbers.AnyAsync(row => row.ActId == act.Id);
+        var filesExist = await this.Tenant.Context.FileAssets.AnyAsync(row => row.Id == caseFile.Id || row.Id == actFile.Id);
 
         using (Assert.EnterMultipleScope())
         {
@@ -74,14 +66,14 @@ public class CaseDeleteTests
     [Test]
     public async Task ASubordinateCaseSurvivesWithoutAParent()
     {
-        var parent = await this.tenant.AddCase(Day, "Rodič");
-        var child = await this.tenant.AddCase(Day, "Podřízený", parentCaseId: parent.Id);
+        var parent = await this.Tenant.AddCase(Day, "Rodič");
+        var child = await this.Tenant.AddCase(Day, "Podřízený", parentCaseId: parent.Id);
 
         var result = await this.writer.DeleteCase(parent.Id, CancellationToken.None);
 
-        this.tenant.Context.ChangeTracker.Clear();
+        this.Tenant.Context.ChangeTracker.Clear();
 
-        var reloadedChild = await this.tenant.Context.Cases.SingleOrDefaultAsync(row => row.Id == child.Id);
+        var reloadedChild = await this.Tenant.Context.Cases.SingleOrDefaultAsync(row => row.Id == child.Id);
 
         using (Assert.EnterMultipleScope())
         {
@@ -94,10 +86,10 @@ public class CaseDeleteTests
     [Test]
     public async Task TheBlobsOfTheCaseAndItsActsGoWithTheRecords()
     {
-        var seeded = await this.tenant.AddCase(Day, "Přestupek");
-        var act = await this.tenant.AddAct(seeded, Day);
-        var caseFile = await this.tenant.AddCaseFile(seeded);
-        var actFile = await this.tenant.AddActFile(act);
+        var seeded = await this.Tenant.AddCase(Day, "Přestupek");
+        var act = await this.Tenant.AddAct(seeded, Day);
+        var caseFile = await this.Tenant.AddCaseFile(seeded);
+        var actFile = await this.Tenant.AddActFile(act);
 
         await this.writer.DeleteCase(seeded.Id, CancellationToken.None);
 
@@ -107,16 +99,16 @@ public class CaseDeleteTests
     [Test]
     public async Task AnotherCasesFilesAndBlobsAreLeftAlone()
     {
-        var seeded = await this.tenant.AddCase(Day, "Přestupek");
-        await this.tenant.AddCaseFile(seeded);
-        var other = await this.tenant.AddCase(Day, "Jiný");
-        var otherFile = await this.tenant.AddCaseFile(other);
+        var seeded = await this.Tenant.AddCase(Day, "Přestupek");
+        await this.Tenant.AddCaseFile(seeded);
+        var other = await this.Tenant.AddCase(Day, "Jiný");
+        var otherFile = await this.Tenant.AddCaseFile(other);
 
         await this.writer.DeleteCase(seeded.Id, CancellationToken.None);
 
-        this.tenant.Context.ChangeTracker.Clear();
+        this.Tenant.Context.ChangeTracker.Clear();
 
-        var otherFileExists = await this.tenant.Context.FileAssets.AnyAsync(row => row.Id == otherFile.Id);
+        var otherFileExists = await this.Tenant.Context.FileAssets.AnyAsync(row => row.Id == otherFile.Id);
 
         using (Assert.EnterMultipleScope())
         {
@@ -136,8 +128,8 @@ public class CaseDeleteTests
     [Test]
     public async Task NoBlobIsDeletedWhereNoCaseIs()
     {
-        var seeded = await this.tenant.AddCase(Day, "Přestupek");
-        await this.tenant.AddCaseFile(seeded);
+        var seeded = await this.Tenant.AddCase(Day, "Přestupek");
+        await this.Tenant.AddCaseFile(seeded);
 
         await this.writer.DeleteCase(Guid.CreateVersion7(), CancellationToken.None);
 
@@ -162,4 +154,5 @@ public class CaseDeleteTests
             Assert.That(otherCaseExists, Is.True);
         }
     }
+
 }

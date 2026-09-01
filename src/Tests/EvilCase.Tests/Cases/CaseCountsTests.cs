@@ -9,35 +9,21 @@ namespace EvilBrains.EvilCase.Tests.Cases;
 /// The status counts on the rows a real PostgreSQL returns. Each test seeds a tenant of its own, so
 /// none cleans up after itself.
 /// </summary>
-public class CaseCountsTests
+public class CaseCountsTests : TenantFixture
 {
     private static readonly DateOnly Day = new(2026, 8, 24);
-
-    private TestTenant tenant = null!;
-
-    [SetUp]
-    public async Task SetUp()
-    {
-        this.tenant = await TestTenant.Create();
-    }
-
-    [TearDown]
-    public async Task TearDown()
-    {
-        await this.tenant.DisposeAsync();
-    }
 
     [Test]
     public async Task EachStatusIsCountedByTheDatabase()
     {
-        await this.tenant.AddCase(Day, "Aktivní 1", status: CaseStatus.Active);
-        await this.tenant.AddCase(Day, "Aktivní 2", status: CaseStatus.Active);
-        await this.tenant.AddCase(Day, "Čeká", status: CaseStatus.WaitingOnAuthority);
-        await this.tenant.AddCase(Day, "Uzavřená 1", status: CaseStatus.Closed);
-        await this.tenant.AddCase(Day, "Uzavřená 2", status: CaseStatus.Closed);
-        await this.tenant.AddCase(Day, "Uzavřená 3", status: CaseStatus.Closed);
+        await this.Tenant.AddCase(Day, "Aktivní 1", status: CaseStatus.Active);
+        await this.Tenant.AddCase(Day, "Aktivní 2", status: CaseStatus.Active);
+        await this.Tenant.AddCase(Day, "Čeká", status: CaseStatus.WaitingOnAuthority);
+        await this.Tenant.AddCase(Day, "Uzavřená 1", status: CaseStatus.Closed);
+        await this.Tenant.AddCase(Day, "Uzavřená 2", status: CaseStatus.Closed);
+        await this.Tenant.AddCase(Day, "Uzavřená 3", status: CaseStatus.Closed);
 
-        var reader = new CaseReader(new FixedDbSession(this.tenant.Context));
+        var reader = new CaseReader(new FixedDbSession(this.Tenant.Context));
 
         var counts = await reader.CountCasesByStatus(CancellationToken.None);
 
@@ -53,7 +39,7 @@ public class CaseCountsTests
     [Test]
     public async Task AnEmptyTenantCountsZeroInEveryStatus()
     {
-        var reader = new CaseReader(new FixedDbSession(this.tenant.Context));
+        var reader = new CaseReader(new FixedDbSession(this.Tenant.Context));
 
         var counts = await reader.CountCasesByStatus(CancellationToken.None);
 
@@ -69,10 +55,10 @@ public class CaseCountsTests
     [Test]
     public async Task TheCountsIgnoreWhatTheListNarrowsTo()
     {
-        await this.tenant.AddCase(Day, "Aktivní", status: CaseStatus.Active);
-        await this.tenant.AddCase(Day, "Uzavřená", status: CaseStatus.Closed);
+        await this.Tenant.AddCase(Day, "Aktivní", status: CaseStatus.Active);
+        await this.Tenant.AddCase(Day, "Uzavřená", status: CaseStatus.Closed);
 
-        var reader = new CaseReader(new FixedDbSession(this.tenant.Context));
+        var reader = new CaseReader(new FixedDbSession(this.Tenant.Context));
 
         var listed = await reader.ListCases(new CaseListRequest { Status = CaseStatusFilter.Active }, CancellationToken.None);
         var counts = await reader.CountCasesByStatus(CancellationToken.None);
@@ -87,7 +73,7 @@ public class CaseCountsTests
     [Test]
     public async Task ACaseOfAnotherTenantIsNeverCounted()
     {
-        await this.tenant.AddCase(Day, "Moje věc", status: CaseStatus.Active);
+        await this.Tenant.AddCase(Day, "Moje věc", status: CaseStatus.Active);
 
         await using (var other = await TestTenant.Create())
         {
@@ -96,7 +82,7 @@ public class CaseCountsTests
             await other.AddCase(Day, "Cizí 3", status: CaseStatus.Closed);
         }
 
-        var reader = new CaseReader(new FixedDbSession(this.tenant.Context));
+        var reader = new CaseReader(new FixedDbSession(this.Tenant.Context));
 
         var counts = await reader.CountCasesByStatus(CancellationToken.None);
 

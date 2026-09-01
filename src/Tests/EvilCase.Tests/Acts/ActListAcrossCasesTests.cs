@@ -9,33 +9,19 @@ namespace EvilBrains.EvilCase.Tests.Acts;
 /// The act list across every case on the rows a real PostgreSQL returns. Each test seeds a tenant of
 /// its own, so none cleans up after itself.
 /// </summary>
-public class ActListAcrossCasesTests
+public class ActListAcrossCasesTests : TenantFixture
 {
-    private TestTenant tenant = null!;
-
-    [SetUp]
-    public async Task SetUp()
-    {
-        this.tenant = await TestTenant.Create();
-    }
-
-    [TearDown]
-    public async Task TearDown()
-    {
-        await this.tenant.DisposeAsync();
-    }
-
     [Test]
     public async Task TheActDateOrdersNewestFirstAcrossEveryCase()
     {
-        var first = await this.tenant.AddCase(new DateOnly(2026, 8, 20), "První spis");
-        var second = await this.tenant.AddCase(new DateOnly(2026, 8, 20), "Druhý spis");
+        var first = await this.Tenant.AddCase(new DateOnly(2026, 8, 20), "První spis");
+        var second = await this.Tenant.AddCase(new DateOnly(2026, 8, 20), "Druhý spis");
 
-        var middle = await this.tenant.AddAct(first, new DateOnly(2026, 8, 22), "Výzva");
-        var newest = await this.tenant.AddAct(second, new DateOnly(2026, 8, 24), "Rozhodnutí");
-        var oldest = await this.tenant.AddAct(first, new DateOnly(2026, 8, 20), "Podání");
+        var middle = await this.Tenant.AddAct(first, new DateOnly(2026, 8, 22), "Výzva");
+        var newest = await this.Tenant.AddAct(second, new DateOnly(2026, 8, 24), "Rozhodnutí");
+        var oldest = await this.Tenant.AddAct(first, new DateOnly(2026, 8, 20), "Podání");
 
-        var reader = new ActReader(new FixedDbSession(this.tenant.Context));
+        var reader = new ActReader(new FixedDbSession(this.Tenant.Context));
 
         var items = await reader.ListActs(new ActListRequest(), CancellationToken.None);
 
@@ -50,8 +36,8 @@ public class ActListAcrossCasesTests
     [Test]
     public async Task AnActOfAnotherTenantNeverComesBack()
     {
-        var @case = await this.tenant.AddCase(new DateOnly(2026, 8, 20));
-        var mine = await this.tenant.AddAct(@case, new DateOnly(2026, 8, 22), "Podání");
+        var @case = await this.Tenant.AddCase(new DateOnly(2026, 8, 20));
+        var mine = await this.Tenant.AddAct(@case, new DateOnly(2026, 8, 22), "Podání");
 
         await using (var other = await TestTenant.Create())
         {
@@ -59,7 +45,7 @@ public class ActListAcrossCasesTests
             await other.AddAct(otherCase, new DateOnly(2026, 8, 21), "Cizí úkon");
         }
 
-        var reader = new ActReader(new FixedDbSession(this.tenant.Context));
+        var reader = new ActReader(new FixedDbSession(this.Tenant.Context));
 
         var items = await reader.ListActs(new ActListRequest(), CancellationToken.None);
 
@@ -74,13 +60,13 @@ public class ActListAcrossCasesTests
     [Test]
     public async Task TheCapReturnsOnlyTheNewestActs()
     {
-        var @case = await this.tenant.AddCase(new DateOnly(2026, 8, 15));
+        var @case = await this.Tenant.AddCase(new DateOnly(2026, 8, 15));
         var acts = new List<Act>();
 
         for (var day = 15; day <= 21; day++)
-            acts.Add(await this.tenant.AddAct(@case, new DateOnly(2026, 8, day), $"Úkon {day.ToString(CultureInfo.InvariantCulture)}"));
+            acts.Add(await this.Tenant.AddAct(@case, new DateOnly(2026, 8, day), $"Úkon {day.ToString(CultureInfo.InvariantCulture)}"));
 
-        var reader = new ActReader(new FixedDbSession(this.tenant.Context));
+        var reader = new ActReader(new FixedDbSession(this.Tenant.Context));
 
         var items = await reader.ListActs(new ActListRequest { Take = 5 }, CancellationToken.None);
 
@@ -95,12 +81,12 @@ public class ActListAcrossCasesTests
     [Test]
     public async Task AnAbsentCapReturnsEveryAct()
     {
-        var @case = await this.tenant.AddCase(new DateOnly(2026, 8, 15));
+        var @case = await this.Tenant.AddCase(new DateOnly(2026, 8, 15));
 
         for (var day = 15; day <= 21; day++)
-            await this.tenant.AddAct(@case, new DateOnly(2026, 8, day), $"Úkon {day.ToString(CultureInfo.InvariantCulture)}");
+            await this.Tenant.AddAct(@case, new DateOnly(2026, 8, day), $"Úkon {day.ToString(CultureInfo.InvariantCulture)}");
 
-        var reader = new ActReader(new FixedDbSession(this.tenant.Context));
+        var reader = new ActReader(new FixedDbSession(this.Tenant.Context));
 
         var items = await reader.ListActs(new ActListRequest { Take = null }, CancellationToken.None);
 
@@ -110,10 +96,10 @@ public class ActListAcrossCasesTests
     [Test]
     public async Task ARowNamesTheCaseTheActBelongsTo()
     {
-        var @case = await this.tenant.AddCase(new DateOnly(2026, 8, 20));
-        await this.tenant.AddAct(@case, new DateOnly(2026, 8, 21), "Podání");
+        var @case = await this.Tenant.AddCase(new DateOnly(2026, 8, 20));
+        await this.Tenant.AddAct(@case, new DateOnly(2026, 8, 21), "Podání");
 
-        var reader = new ActReader(new FixedDbSession(this.tenant.Context));
+        var reader = new ActReader(new FixedDbSession(this.Tenant.Context));
 
         var items = await reader.ListActs(new ActListRequest(), CancellationToken.None);
         var item = items.Single();

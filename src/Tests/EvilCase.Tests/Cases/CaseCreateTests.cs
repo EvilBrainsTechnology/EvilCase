@@ -11,33 +11,27 @@ namespace EvilBrains.EvilCase.Tests.Cases;
 /// Filing a case against a real PostgreSQL. Each test seeds a tenant of its own, so none cleans up
 /// after itself.
 /// </summary>
-public class CaseCreateTests
+public class CaseCreateTests : TenantFixture
 {
     private static readonly DateOnly ParentDay = new(2026, 8, 21);
 
     private static readonly DateOnly ChildDay = new(2026, 8, 22);
 
-    private TestTenant tenant = null!;
-
     private CaseWriter writer = null!;
 
-    [SetUp]
-    public async Task SetUp()
-    {
-        this.tenant = await TestTenant.Create(asHost: true);
-        this.writer = new CaseWriter(new FixedDbSession(this.tenant.Context), new FakeCaseNumberIssuer(), new FakeFileBlobStore(), NullLogger<CaseWriter>.Instance);
-    }
+    protected override bool AsHost => true;
 
-    [TearDown]
-    public async Task TearDown()
+    [SetUp]
+    public void SetUpWriter()
     {
-        await this.tenant.DisposeAsync();
+        this.writer = new CaseWriter(
+            new FixedDbSession(this.Tenant.Context), new FakeCaseNumberIssuer(), new FakeFileBlobStore(), NullLogger<CaseWriter>.Instance);
     }
 
     [Test]
     public async Task ASubordinateCaseIsFiledUnderItsParent()
     {
-        var parent = await this.tenant.AddCase(ParentDay, "Rodič");
+        var parent = await this.Tenant.AddCase(ParentDay, "Rodič");
 
         var result = await this.writer.CreateCase(
             new CreateCaseRequest { Date = ChildDay, Title = "Podřízený", ParentCaseId = parent.Id },
@@ -45,7 +39,7 @@ public class CaseCreateTests
 
         Assert.That(result.Outcome, Is.EqualTo(CaseCreateOutcome.Created));
 
-        var reloaded = await this.tenant.Context.Cases.SingleAsync(@case => @case.Id == result.Case!.CaseId);
+        var reloaded = await this.Tenant.Context.Cases.SingleAsync(@case => @case.Id == result.Case!.CaseId);
 
         Assert.That(reloaded.ParentCaseId, Is.EqualTo(parent.Id));
     }
@@ -64,7 +58,7 @@ public class CaseCreateTests
         {
             Assert.That(result.Outcome, Is.EqualTo(CaseCreateOutcome.InvalidParent), "a parent from another tenant is no parent, and nothing is filed");
             Assert.That(result.Case, Is.Null);
-            Assert.That(await this.tenant.Context.Cases.CountAsync(), Is.Zero);
+            Assert.That(await this.Tenant.Context.Cases.CountAsync(), Is.Zero);
         }
     }
 
@@ -77,7 +71,7 @@ public class CaseCreateTests
 
         Assert.That(result.Outcome, Is.EqualTo(CaseCreateOutcome.Created));
 
-        var reloaded = await this.tenant.Context.Cases.SingleAsync(@case => @case.Id == result.Case!.CaseId);
+        var reloaded = await this.Tenant.Context.Cases.SingleAsync(@case => @case.Id == result.Case!.CaseId);
 
         Assert.That(reloaded.ParentCaseId, Is.Null);
     }

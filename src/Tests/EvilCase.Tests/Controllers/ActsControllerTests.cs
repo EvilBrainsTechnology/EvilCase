@@ -8,6 +8,7 @@ using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Domain.Acts;
 using EvilBrains.EvilCase.Domain.Contacts;
 using Microsoft.AspNetCore.Mvc;
+using static EvilBrains.EvilCase.Tests.Controllers.ProblemAssertions;
 
 namespace EvilBrains.EvilCase.Tests.Controllers;
 
@@ -453,20 +454,6 @@ public class ActsControllerTests
     private static ExternalNumberRequest Number()
     {
         return new() { Value = "1 T 45/2026", AssignedByContactId = Guid.CreateVersion7() };
-    }
-
-    private static ProblemDetails AssertProblem(IActionResult? result, in int statusCode)
-    {
-        Assert.That(result, Is.InstanceOf<ObjectResult>());
-        var objectResult = (ObjectResult)result!;
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(objectResult.StatusCode, Is.EqualTo(statusCode));
-            Assert.That(objectResult.Value, Is.InstanceOf<ProblemDetails>());
-        }
-
-        return (ProblemDetails)objectResult.Value!;
     }
 
     private static ActListItem Item(string title)

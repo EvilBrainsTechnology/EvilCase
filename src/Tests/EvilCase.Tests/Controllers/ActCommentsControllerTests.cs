@@ -4,6 +4,7 @@ using EvilBrains.EvilCase.Api.Contract.Comments;
 using EvilBrains.EvilCase.Api.Controllers;
 using EvilBrains.EvilCase.Business.Comments;
 using Microsoft.AspNetCore.Mvc;
+using static EvilBrains.EvilCase.Tests.Controllers.ProblemAssertions;
 
 namespace EvilBrains.EvilCase.Tests.Controllers;
 
@@ -183,20 +184,6 @@ public class ActCommentsControllerTests
         var result = await controller.DeleteActComment(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
 
         AssertProblem(result, 404);
-    }
-
-    private static ProblemDetails AssertProblem(IActionResult? result, in int statusCode)
-    {
-        Assert.That(result, Is.InstanceOf<ObjectResult>());
-        var objectResult = (ObjectResult)result!;
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(objectResult.StatusCode, Is.EqualTo(statusCode));
-            Assert.That(objectResult.Value, Is.InstanceOf<ProblemDetails>());
-        }
-
-        return (ProblemDetails)objectResult.Value!;
     }
 
     private static CommentItem Item(string body)

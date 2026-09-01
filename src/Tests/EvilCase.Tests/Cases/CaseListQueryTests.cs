@@ -12,31 +12,17 @@ namespace EvilBrains.EvilCase.Tests.Cases;
 /// The list rules on the rows a real PostgreSQL returns. Each test seeds a tenant of its own, so none
 /// cleans up after itself. Only what a result cannot show is read off the generated SQL.
 /// </summary>
-public class CaseListQueryTests
+public class CaseListQueryTests : TenantFixture
 {
     private static readonly DateOnly Day = new(2026, 8, 24);
-
-    private TestTenant tenant = null!;
-
-    [SetUp]
-    public async Task SetUp()
-    {
-        this.tenant = await TestTenant.Create();
-    }
-
-    [TearDown]
-    public async Task TearDown()
-    {
-        await this.tenant.DisposeAsync();
-    }
 
     [Test]
     public async Task TheSearchFoldsCaseAndDiacriticsOverTheTitleAndTheDescription()
     {
-        await this.tenant.AddCase(Day, "Odvolání proti rozhodnutí");
-        await this.tenant.AddCase(Day, "Přestupek", description: "Odvolání podáno v termínu");
-        await this.tenant.AddCase(Day, "ODVOLANI bez diakritiky");
-        await this.tenant.AddCase(Day, "Nahlédnutí do spisu", description: "bez poznámky");
+        await this.Tenant.AddCase(Day, "Odvolání proti rozhodnutí");
+        await this.Tenant.AddCase(Day, "Přestupek", description: "Odvolání podáno v termínu");
+        await this.Tenant.AddCase(Day, "ODVOLANI bez diakritiky");
+        await this.Tenant.AddCase(Day, "Nahlédnutí do spisu", description: "bez poznámky");
 
         var byPlainTerm = await this.Titles("odvolani");
         var byAccentedTerm = await this.Titles("Odvolání");
@@ -53,12 +39,12 @@ public class CaseListQueryTests
     [Test]
     public async Task ABlankSearchReturnsEveryCaseOfTheTenant()
     {
-        await this.tenant.AddCase(Day, "Odvolání");
-        await this.tenant.AddCase(Day, "Přestupek");
+        await this.Tenant.AddCase(Day, "Odvolání");
+        await this.Tenant.AddCase(Day, "Přestupek");
 
-        var unset = await this.tenant.Context.Cases.MatchingSearch(search: null).CountAsync();
-        var empty = await this.tenant.Context.Cases.MatchingSearch("").CountAsync();
-        var blank = await this.tenant.Context.Cases.MatchingSearch("   ").CountAsync();
+        var unset = await this.Tenant.Context.Cases.MatchingSearch(search: null).CountAsync();
+        var empty = await this.Tenant.Context.Cases.MatchingSearch("").CountAsync();
+        var blank = await this.Tenant.Context.Cases.MatchingSearch("   ").CountAsync();
 
         using (Assert.EnterMultipleScope())
         {
@@ -71,8 +57,8 @@ public class CaseListQueryTests
     [Test]
     public async Task AWildcardInTheTermMatchesOnlyItself()
     {
-        await this.tenant.AddCase(Day, @"Sleva 50%_a\b");
-        await this.tenant.AddCase(Day, "Sleva 50 ab");
+        await this.Tenant.AddCase(Day, @"Sleva 50%_a\b");
+        await this.Tenant.AddCase(Day, "Sleva 50 ab");
 
         var titles = await this.Titles(@"50%_a\b");
 
@@ -85,13 +71,13 @@ public class CaseListQueryTests
     public async Task TheOrderIsTheCasesOwnDateNewestFirstWithCreatedBreakingATie()
     {
         var caseIds = TestTenant.SortedEntityIds(2);
-        var older = await this.tenant.AddCase(new DateOnly(2026, 8, 20), "Starší datum");
+        var older = await this.Tenant.AddCase(new DateOnly(2026, 8, 20), "Starší datum");
 
         // The tie falls to the row written later even where the identifier alone would put it last.
-        var written = await this.tenant.AddCase(new DateOnly(2026, 8, 22), "Zapsáno dřív", caseId: caseIds[1]);
-        var writtenLater = await this.tenant.AddCase(new DateOnly(2026, 8, 22), "Zapsáno později", caseId: caseIds[0]);
+        var written = await this.Tenant.AddCase(new DateOnly(2026, 8, 22), "Zapsáno dřív", caseId: caseIds[1]);
+        var writtenLater = await this.Tenant.AddCase(new DateOnly(2026, 8, 22), "Zapsáno později", caseId: caseIds[0]);
 
-        var ordered = await this.tenant.Context.Cases.InListOrder().Select(@case => @case.Id).ToListAsync();
+        var ordered = await this.Tenant.Context.Cases.InListOrder().Select(@case => @case.Id).ToListAsync();
 
         Guid[] expected = [writtenLater.Id, written.Id, older.Id];
 
@@ -101,9 +87,9 @@ public class CaseListQueryTests
     [Test]
     public async Task OpenIsEverythingNotClosedClosedIsOnlyTheClosedAndAllIsEverything()
     {
-        var active = await this.tenant.AddCase(Day, "Aktivní", status: CaseStatus.Active);
-        var waiting = await this.tenant.AddCase(Day, "Čeká na úřad", status: CaseStatus.WaitingOnAuthority);
-        var closed = await this.tenant.AddCase(Day, "Uzavřená", status: CaseStatus.Closed);
+        var active = await this.Tenant.AddCase(Day, "Aktivní", status: CaseStatus.Active);
+        var waiting = await this.Tenant.AddCase(Day, "Čeká na úřad", status: CaseStatus.WaitingOnAuthority);
+        var closed = await this.Tenant.AddCase(Day, "Uzavřená", status: CaseStatus.Closed);
 
         var open = await this.IdsWithStatus(CaseStatusFilter.Open);
         var onlyClosed = await this.IdsWithStatus(CaseStatusFilter.Closed);
@@ -125,11 +111,11 @@ public class CaseListQueryTests
     [Test]
     public async Task TheSearchAndTheStatusNarrowTheSameQuery()
     {
-        await this.tenant.AddCase(Day, "Odvolání živé", status: CaseStatus.Active);
-        var wanted = await this.tenant.AddCase(Day, "Odvolání uzavřené", status: CaseStatus.Closed);
-        await this.tenant.AddCase(Day, "Přestupek", status: CaseStatus.Closed);
+        await this.Tenant.AddCase(Day, "Odvolání živé", status: CaseStatus.Active);
+        var wanted = await this.Tenant.AddCase(Day, "Odvolání uzavřené", status: CaseStatus.Closed);
+        await this.Tenant.AddCase(Day, "Přestupek", status: CaseStatus.Closed);
 
-        var ids = await this.tenant.Context.Cases
+        var ids = await this.Tenant.Context.Cases
             .MatchingSearch("odvolani")
             .WithStatus(CaseStatusFilter.Closed)
             .InListOrder()
@@ -145,9 +131,9 @@ public class CaseListQueryTests
     [Test]
     public async Task ARowCarriesTheCaseNumberTheTitleTheDateAndTheStatus()
     {
-        var seeded = await this.tenant.AddCase(new DateOnly(2026, 8, 21), "Přestupek", status: CaseStatus.WaitingOnAuthority);
+        var seeded = await this.Tenant.AddCase(new DateOnly(2026, 8, 21), "Přestupek", status: CaseStatus.WaitingOnAuthority);
 
-        var row = await this.tenant.Context.Cases.AsListItems().SingleAsync();
+        var row = await this.Tenant.Context.Cases.AsListItems().SingleAsync();
 
         var expected = new CaseListItem
         {
@@ -165,12 +151,12 @@ public class CaseListQueryTests
     [Test]
     public async Task ACaseOfAnotherTenantNeverComesBack()
     {
-        var mine = await this.tenant.AddCase(Day, "Moje věc");
+        var mine = await this.Tenant.AddCase(Day, "Moje věc");
 
         await using (var other = await TestTenant.Create())
             await other.AddCase(Day, "Cizí věc");
 
-        var ids = await this.tenant.Context.Cases
+        var ids = await this.Tenant.Context.Cases
             .MatchingSearch(search: null)
             .WithStatus(CaseStatusFilter.All)
             .InListOrder()
@@ -189,7 +175,7 @@ public class CaseListQueryTests
     [Test]
     public void TheListReadsNoDescriptionCountsNothingAndPagesNothing()
     {
-        var sql = this.tenant.Context.Cases
+        var sql = this.Tenant.Context.Cases
             .MatchingSearch(search: null)
             .WithStatus(CaseStatusFilter.All)
             .InListOrder()
@@ -212,7 +198,7 @@ public class CaseListQueryTests
     [Test]
     public void TheIdentifierMakesTheOrderTotal()
     {
-        var sql = this.tenant.Context.Cases.InListOrder().ToQueryString();
+        var sql = this.Tenant.Context.Cases.InListOrder().ToQueryString();
 
         Assert.That(sql, Does.Contain("\"Id\" DESC"), "the identifier makes the order total");
     }
@@ -220,16 +206,16 @@ public class CaseListQueryTests
     [Test]
     public async Task TheChangeOrderPutsTheLastChangedCaseFirst()
     {
-        var a = await this.tenant.AddCase(Day, "A");
-        var b = await this.tenant.AddCase(Day, "B");
-        var c = await this.tenant.AddCase(Day, "C");
+        var a = await this.Tenant.AddCase(Day, "A");
+        var b = await this.Tenant.AddCase(Day, "B");
+        var c = await this.Tenant.AddCase(Day, "C");
 
-        await this.tenant.Context.Cases.Where(@case => @case.Id == a.Id)
+        await this.Tenant.Context.Cases.Where(@case => @case.Id == a.Id)
             .ExecuteUpdateAsync(setters => setters.SetProperty(@case => @case.Title, "A upravené"));
-        await this.tenant.Context.Cases.Where(@case => @case.Id == b.Id)
+        await this.Tenant.Context.Cases.Where(@case => @case.Id == b.Id)
             .ExecuteUpdateAsync(setters => setters.SetProperty(@case => @case.Title, "B upravené"));
 
-        var ids = await this.tenant.Context.Cases.InChangeOrder().Select(@case => @case.Id).ToListAsync();
+        var ids = await this.Tenant.Context.Cases.InChangeOrder().Select(@case => @case.Id).ToListAsync();
 
         Guid[] expected = [b.Id, a.Id, c.Id];
 
@@ -239,17 +225,17 @@ public class CaseListQueryTests
     [Test]
     public async Task ARowCarriesWhenTheCaseLastChanged()
     {
-        var seeded = await this.tenant.AddCase(Day, "Přestupek");
+        var seeded = await this.Tenant.AddCase(Day, "Přestupek");
 
-        var beforeEdit = await this.tenant.Context.Cases.AsListItems().SingleAsync();
+        var beforeEdit = await this.Tenant.Context.Cases.AsListItems().SingleAsync();
 
         Assert.That(beforeEdit.Changed, Is.EqualTo(seeded.Created), "a row shows the case's own last change, its Created while it has never been edited");
 
-        await this.tenant.Context.Cases.Where(@case => @case.Id == seeded.Id)
+        await this.Tenant.Context.Cases.Where(@case => @case.Id == seeded.Id)
             .ExecuteUpdateAsync(setters => setters.SetProperty(@case => @case.Title, "Přestupek upravený"));
 
-        var afterEdit = await this.tenant.Context.Cases.AsListItems().SingleAsync();
-        var updated = await this.tenant.Context.Cases.WithId(seeded.Id).Select(@case => @case.Updated).SingleAsync();
+        var afterEdit = await this.Tenant.Context.Cases.AsListItems().SingleAsync();
+        var updated = await this.Tenant.Context.Cases.WithId(seeded.Id).Select(@case => @case.Updated).SingleAsync();
 
         Assert.That(afterEdit.Changed, Is.EqualTo(updated), "a row shows the case's own last change, its Updated once it has been edited");
     }
@@ -260,9 +246,9 @@ public class CaseListQueryTests
         var cases = new List<Case>();
 
         for (var day = 15; day <= 21; day++)
-            cases.Add(await this.tenant.AddCase(new DateOnly(2026, 8, day), $"Případ {day.ToString(CultureInfo.InvariantCulture)}"));
+            cases.Add(await this.Tenant.AddCase(new DateOnly(2026, 8, day), $"Případ {day.ToString(CultureInfo.InvariantCulture)}"));
 
-        var ids = await this.tenant.Context.Cases.InListOrder().TakeAtMost(5).Select(@case => @case.Id).ToListAsync();
+        var ids = await this.Tenant.Context.Cases.InListOrder().TakeAtMost(5).Select(@case => @case.Id).ToListAsync();
 
         var expected = cases.TakeLast(5).Reverse().Select(@case => @case.Id);
 
@@ -272,13 +258,13 @@ public class CaseListQueryTests
     [Test]
     public async Task TheRequestedOrderIsTheOneTheListComesBackIn()
     {
-        var older = await this.tenant.AddCase(new DateOnly(2026, 8, 24), "Starší");
-        var newer = await this.tenant.AddCase(new DateOnly(2026, 8, 26), "Novější");
+        var older = await this.Tenant.AddCase(new DateOnly(2026, 8, 24), "Starší");
+        var newer = await this.Tenant.AddCase(new DateOnly(2026, 8, 26), "Novější");
 
-        await this.tenant.Context.Cases.Where(@case => @case.Id == older.Id)
+        await this.Tenant.Context.Cases.Where(@case => @case.Id == older.Id)
             .ExecuteUpdateAsync(setters => setters.SetProperty(@case => @case.Title, "Starší upravený"));
 
-        var reader = new CaseReader(new FixedDbSession(this.tenant.Context));
+        var reader = new CaseReader(new FixedDbSession(this.Tenant.Context));
 
         var byDate = await reader.ListCases(new CaseListRequest(), CancellationToken.None);
         var byChange = await reader.ListCases(new CaseListRequest { Order = CaseListOrder.Changed }, CancellationToken.None);
@@ -297,9 +283,9 @@ public class CaseListQueryTests
     public async Task TheRequestedCapIsTheOneTheListComesBackWith()
     {
         for (var day = 15; day <= 21; day++)
-            await this.tenant.AddCase(new DateOnly(2026, 8, day), $"Případ {day.ToString(CultureInfo.InvariantCulture)}");
+            await this.Tenant.AddCase(new DateOnly(2026, 8, day), $"Případ {day.ToString(CultureInfo.InvariantCulture)}");
 
-        var reader = new CaseReader(new FixedDbSession(this.tenant.Context));
+        var reader = new CaseReader(new FixedDbSession(this.Tenant.Context));
 
         var capped = await reader.ListCases(new CaseListRequest { Take = 5 }, CancellationToken.None);
         var whole = await reader.ListCases(new CaseListRequest(), CancellationToken.None);
@@ -313,7 +299,7 @@ public class CaseListQueryTests
 
     private async Task<List<string>> Titles(string search)
     {
-        return await this.tenant.Context.Cases
+        return await this.Tenant.Context.Cases
             .MatchingSearch(search)
             .Select(@case => @case.Title)
             .ToListAsync();
@@ -321,6 +307,6 @@ public class CaseListQueryTests
 
     private async Task<List<Guid>> IdsWithStatus(CaseStatusFilter filter)
     {
-        return await this.tenant.Context.Cases.WithStatus(filter).Select(@case => @case.Id).ToListAsync();
+        return await this.Tenant.Context.Cases.WithStatus(filter).Select(@case => @case.Id).ToListAsync();
     }
 }

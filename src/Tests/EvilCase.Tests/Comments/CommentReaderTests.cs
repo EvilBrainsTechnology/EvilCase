@@ -8,32 +8,23 @@ namespace EvilBrains.EvilCase.Tests.Comments;
 /// Reads a case's comments, on the rows a real PostgreSQL returns. Each test seeds a tenant of its own,
 /// so none cleans up after itself.
 /// </summary>
-public class CommentReaderTests
+public class CommentReaderTests : TenantFixture
 {
     private static readonly DateOnly Day = new(2026, 8, 24);
-
-    private TestTenant tenant = null!;
 
     private CommentReader reader = null!;
 
     [SetUp]
-    public async Task SetUp()
+    public void SetUpReader()
     {
-        this.tenant = await TestTenant.Create();
-        this.reader = new CommentReader(new FixedDbSession(this.tenant.Context), this.tenant.UserContext);
-    }
-
-    [TearDown]
-    public async Task TearDown()
-    {
-        await this.tenant.DisposeAsync();
+        this.reader = new CommentReader(new FixedDbSession(this.Tenant.Context), this.Tenant.UserContext);
     }
 
     [Test]
     public async Task ANoteCarriesItsBodyItsAuthorAndItsStamp()
     {
-        var @case = await this.tenant.AddCase(Day);
-        await this.tenant.AddCaseComment(@case, "Poznámka");
+        var @case = await this.Tenant.AddCase(Day);
+        await this.Tenant.AddCaseComment(@case, "Poznámka");
 
         var items = await this.reader.ListCaseComments(@case.Id, CancellationToken.None);
         var item = items.Single();
@@ -51,10 +42,10 @@ public class CommentReaderTests
     [Test]
     public async Task TheOrderIsOldestFirst()
     {
-        var @case = await this.tenant.AddCase(Day);
-        var first = await this.tenant.AddCaseComment(@case, "První");
-        var second = await this.tenant.AddCaseComment(@case, "Druhá");
-        var third = await this.tenant.AddCaseComment(@case, "Třetí");
+        var @case = await this.Tenant.AddCase(Day);
+        var first = await this.Tenant.AddCaseComment(@case, "První");
+        var second = await this.Tenant.AddCaseComment(@case, "Druhá");
+        var third = await this.Tenant.AddCaseComment(@case, "Třetí");
 
         var items = await this.reader.ListCaseComments(@case.Id, CancellationToken.None);
 
@@ -64,10 +55,10 @@ public class CommentReaderTests
     [Test]
     public async Task AnotherUsersNoteIsListedButNotAsTheSignedInUsers()
     {
-        var @case = await this.tenant.AddCase(Day);
-        var other = await this.tenant.AddUser();
-        var theirs = await this.tenant.AddCaseComment(@case, "Jejich", other.Id);
-        var ours = await this.tenant.AddCaseComment(@case, "Naše");
+        var @case = await this.Tenant.AddCase(Day);
+        var other = await this.Tenant.AddUser();
+        var theirs = await this.Tenant.AddCaseComment(@case, "Jejich", other.Id);
+        var ours = await this.Tenant.AddCaseComment(@case, "Naše");
 
         var items = await this.reader.ListCaseComments(@case.Id, CancellationToken.None);
 
@@ -83,10 +74,10 @@ public class CommentReaderTests
     [Test]
     public async Task ANoteOfAnotherCaseNeverComesBack()
     {
-        var first = await this.tenant.AddCase(Day, "První");
-        var second = await this.tenant.AddCase(Day, "Druhý");
-        var ownComment = await this.tenant.AddCaseComment(first, "Vlastní");
-        await this.tenant.AddCaseComment(second, "Cizí");
+        var first = await this.Tenant.AddCase(Day, "První");
+        var second = await this.Tenant.AddCase(Day, "Druhý");
+        var ownComment = await this.Tenant.AddCaseComment(first, "Vlastní");
+        await this.Tenant.AddCaseComment(second, "Cizí");
 
         var items = await this.reader.ListCaseComments(first.Id, CancellationToken.None);
 
@@ -96,9 +87,9 @@ public class CommentReaderTests
     [Test]
     public async Task ANoteOfAnActIsNotACaseNote()
     {
-        var @case = await this.tenant.AddCase(Day);
-        var act = await this.tenant.AddAct(@case, Day);
-        await this.tenant.AddActComment(act, "Poznámka k úkonu");
+        var @case = await this.Tenant.AddCase(Day);
+        var act = await this.Tenant.AddAct(@case, Day);
+        await this.Tenant.AddActComment(act, "Poznámka k úkonu");
 
         var items = await this.reader.ListCaseComments(@case.Id, CancellationToken.None);
 
@@ -111,7 +102,7 @@ public class CommentReaderTests
         await using var other = await TestTenant.Create();
         var otherCase = await other.AddCase(Day);
         await other.AddCaseComment(otherCase, "Cizí");
-        var @case = await this.tenant.AddCase(Day);
+        var @case = await this.Tenant.AddCase(Day);
 
         var items = await this.reader.ListCaseComments(@case.Id, CancellationToken.None);
 
@@ -125,11 +116,11 @@ public class CommentReaderTests
     [Test]
     public void TheIdentifierMakesTheDiaryOrderTotal()
     {
-        var context = this.tenant.Context;
+        var context = this.Tenant.Context;
 
         var sql = context.Comments
             .OnCase(Guid.CreateVersion7())
-            .AsCommentItems(context.Users, this.tenant.UserId)
+            .AsCommentItems(context.Users, this.Tenant.UserId)
             .InDiaryOrder()
             .ToQueryString();
 

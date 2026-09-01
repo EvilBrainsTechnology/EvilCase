@@ -11,33 +11,19 @@ namespace EvilBrains.EvilCase.Tests.Contacts;
 /// The delete guard on the rows a real PostgreSQL returns: a contact is referenced from each of the four
 /// places, and from none. Each test seeds a tenant of its own, so none cleans up after itself.
 /// </summary>
-public class ContactReferencesTests
+public class ContactReferencesTests : TenantFixture
 {
     private static readonly DateOnly Day = new(2026, 8, 7);
-
-    private TestTenant tenant = null!;
-
-    [SetUp]
-    public async Task SetUp()
-    {
-        this.tenant = await TestTenant.Create();
-    }
-
-    [TearDown]
-    public async Task TearDown()
-    {
-        await this.tenant.DisposeAsync();
-    }
 
     [Test]
     public async Task AContactNothingPointsAtIsNotReferenced()
     {
-        var contact = await this.tenant.AddContact("Městský úřad");
+        var contact = await this.Tenant.AddContact("Městský úřad");
 
         // A case and an act of their own, naming another contact: the guard answers for its contact alone.
-        var other = await this.tenant.AddContact("Krajský soud");
-        var @case = await this.tenant.AddCase(Day);
-        await this.tenant.AddAct(@case, Day, issuedBy: other);
+        var other = await this.Tenant.AddContact("Krajský soud");
+        var @case = await this.Tenant.AddCase(Day);
+        await this.Tenant.AddAct(@case, Day, issuedBy: other);
 
         Assert.That(await this.IsReferenced(contact), Is.False, "nothing points at the contact, so nothing stands between it and deletion");
     }
@@ -45,9 +31,9 @@ public class ContactReferencesTests
     [Test]
     public async Task AnIssuedActReferencesTheContact()
     {
-        var contact = await this.tenant.AddContact("Městský úřad");
-        var @case = await this.tenant.AddCase(Day);
-        await this.tenant.AddAct(@case, Day, issuedBy: contact);
+        var contact = await this.Tenant.AddContact("Městský úřad");
+        var @case = await this.Tenant.AddCase(Day);
+        await this.Tenant.AddAct(@case, Day, issuedBy: contact);
 
         Assert.That(await this.IsReferenced(contact), Is.True, "an act the contact issued still points at it");
     }
@@ -55,10 +41,10 @@ public class ContactReferencesTests
     [Test]
     public async Task AnAddressedActReferencesTheContact()
     {
-        var contact = await this.tenant.AddContact("Jan Novák", ContactKind.Person);
-        var issuer = await this.tenant.AddContact("Městský úřad");
-        var @case = await this.tenant.AddCase(Day);
-        await this.tenant.AddAct(@case, Day, issuedBy: issuer, addressedTo: contact);
+        var contact = await this.Tenant.AddContact("Jan Novák", ContactKind.Person);
+        var issuer = await this.Tenant.AddContact("Městský úřad");
+        var @case = await this.Tenant.AddCase(Day);
+        await this.Tenant.AddAct(@case, Day, issuedBy: issuer, addressedTo: contact);
 
         Assert.That(await this.IsReferenced(contact), Is.True, "an act addressed to the contact still points at it");
     }
@@ -66,9 +52,9 @@ public class ContactReferencesTests
     [Test]
     public async Task AnAssignedExternalCaseNumberReferencesTheContact()
     {
-        var contact = await this.tenant.AddContact("Městský úřad");
-        var @case = await this.tenant.AddCase(Day);
-        await this.tenant.AddExternalCaseNumber(@case, "MUB/2026/117", contact);
+        var contact = await this.Tenant.AddContact("Městský úřad");
+        var @case = await this.Tenant.AddCase(Day);
+        await this.Tenant.AddExternalCaseNumber(@case, "MUB/2026/117", contact);
 
         Assert.That(await this.IsReferenced(contact), Is.True, "a case mark the contact assigned still points at it");
     }
@@ -76,11 +62,11 @@ public class ContactReferencesTests
     [Test]
     public async Task AnAssignedExternalActNumberReferencesTheContact()
     {
-        var contact = await this.tenant.AddContact("Městský úřad");
-        var issuer = await this.tenant.AddContact("Krajský soud");
-        var @case = await this.tenant.AddCase(Day);
-        var act = await this.tenant.AddAct(@case, Day, issuedBy: issuer);
-        await this.tenant.AddExternalActNumber(act, "MUB/2026/117-3", contact);
+        var contact = await this.Tenant.AddContact("Městský úřad");
+        var issuer = await this.Tenant.AddContact("Krajský soud");
+        var @case = await this.Tenant.AddCase(Day);
+        var act = await this.Tenant.AddAct(@case, Day, issuedBy: issuer);
+        await this.Tenant.AddExternalActNumber(act, "MUB/2026/117-3", contact);
 
         Assert.That(await this.IsReferenced(contact), Is.True, "an act reference number the contact assigned still points at it");
     }
@@ -91,7 +77,7 @@ public class ContactReferencesTests
     [Test]
     public void TheGuardCountsNothing()
     {
-        var sql = this.tenant.Context.Contacts
+        var sql = this.Tenant.Context.Contacts
             .WithId(Guid.CreateVersion7())
             .Referenced()
             .ToQueryString();
@@ -101,7 +87,7 @@ public class ContactReferencesTests
 
     private async Task<bool> IsReferenced(Contact contact)
     {
-        return await this.tenant.Context.Contacts
+        return await this.Tenant.Context.Contacts
             .WithId(contact.Id)
             .Referenced()
             .AnyAsync();

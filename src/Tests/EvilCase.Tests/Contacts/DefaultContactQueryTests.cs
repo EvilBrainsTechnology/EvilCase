@@ -3,32 +3,18 @@ using EvilBrains.EvilCase.Tests.Data;
 
 namespace EvilBrains.EvilCase.Tests.Contacts;
 
-public class DefaultContactQueryTests
+public class DefaultContactQueryTests : TenantFixture
 {
-    private TestTenant tenant = null!;
-
-    [SetUp]
-    public async Task SetUp()
-    {
-        this.tenant = await TestTenant.Create();
-    }
-
-    [TearDown]
-    public async Task TearDown()
-    {
-        await this.tenant.DisposeAsync();
-    }
-
     [Test]
     public async Task TheDefaultContactOfTheUserComesBack()
     {
-        var contact = await this.tenant.Context.Users.DefaultContactOf(this.tenant.UserId, CancellationToken.None);
+        var contact = await this.Tenant.Context.Users.DefaultContactOf(this.Tenant.UserId, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(contact.ContactId, Is.EqualTo(this.tenant.DefaultContact.Id), "the user's default contact is what an act prefills with");
-            Assert.That(contact.Kind, Is.EqualTo(this.tenant.DefaultContact.Kind));
-            Assert.That(contact.Name, Is.EqualTo(this.tenant.DefaultContact.Name));
+            Assert.That(contact.ContactId, Is.EqualTo(this.Tenant.DefaultContact.Id), "the user's default contact is what an act prefills with");
+            Assert.That(contact.Kind, Is.EqualTo(this.Tenant.DefaultContact.Kind));
+            Assert.That(contact.Name, Is.EqualTo(this.Tenant.DefaultContact.Name));
         }
     }
 }

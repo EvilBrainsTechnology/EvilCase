@@ -8,34 +8,20 @@ namespace EvilBrains.EvilCase.Tests.Cases;
 /// The one case's header, on the rows a real PostgreSQL returns. Each test seeds a tenant of its own,
 /// so none cleans up after itself.
 /// </summary>
-public class CaseDetailQueryTests
+public class CaseDetailQueryTests : TenantFixture
 {
     private static readonly DateOnly Day = new(2026, 8, 24);
-
-    private TestTenant tenant = null!;
-
-    [SetUp]
-    public async Task SetUp()
-    {
-        this.tenant = await TestTenant.Create();
-    }
-
-    [TearDown]
-    public async Task TearDown()
-    {
-        await this.tenant.DisposeAsync();
-    }
 
     [Test]
     public async Task TheDetailCarriesTheNumberTheDateTheTitleTheDescriptionAndTheStatus()
     {
-        var @case = await this.tenant.AddCase(
+        var @case = await this.Tenant.AddCase(
             Day,
             "Přestupek",
             description: "Popis přestupku",
             status: CaseStatus.WaitingOnAuthority);
 
-        var detail = await this.tenant.Context.Cases.DetailOf(@case.Id, CancellationToken.None);
+        var detail = await this.Tenant.Context.Cases.DetailOf(@case.Id, CancellationToken.None);
 
         Assert.That(detail, Is.Not.Null);
 
@@ -53,9 +39,9 @@ public class CaseDetailQueryTests
     [Test]
     public async Task ACaseWithNoParentNamesNone()
     {
-        var @case = await this.tenant.AddCase(Day);
+        var @case = await this.Tenant.AddCase(Day);
 
-        var detail = await this.tenant.Context.Cases.DetailOf(@case.Id, CancellationToken.None);
+        var detail = await this.Tenant.Context.Cases.DetailOf(@case.Id, CancellationToken.None);
 
         Assert.That(detail!.ParentCase, Is.Null);
     }
@@ -63,10 +49,10 @@ public class CaseDetailQueryTests
     [Test]
     public async Task TheDetailNamesTheParentCase()
     {
-        var parent = await this.tenant.AddCase(Day, "Nadřízený");
-        var child = await this.tenant.AddCase(Day, "Podřízený", parentCaseId: parent.Id);
+        var parent = await this.Tenant.AddCase(Day, "Nadřízený");
+        var child = await this.Tenant.AddCase(Day, "Podřízený", parentCaseId: parent.Id);
 
-        var detail = await this.tenant.Context.Cases.DetailOf(child.Id, CancellationToken.None);
+        var detail = await this.Tenant.Context.Cases.DetailOf(child.Id, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -79,11 +65,11 @@ public class CaseDetailQueryTests
     [Test]
     public async Task TheDetailListsOnlyTheDirectSubordinateCases()
     {
-        var root = await this.tenant.AddCase(Day, "Kořen");
-        var child = await this.tenant.AddCase(Day, "Podřízený", parentCaseId: root.Id);
-        _ = await this.tenant.AddCase(Day, "Vnuk", parentCaseId: child.Id);
+        var root = await this.Tenant.AddCase(Day, "Kořen");
+        var child = await this.Tenant.AddCase(Day, "Podřízený", parentCaseId: root.Id);
+        _ = await this.Tenant.AddCase(Day, "Vnuk", parentCaseId: child.Id);
 
-        var reader = new CaseReader(new FixedDbSession(this.tenant.Context));
+        var reader = new CaseReader(new FixedDbSession(this.Tenant.Context));
         var detail = await reader.GetCaseDetail(root.Id, CancellationToken.None);
 
         Assert.That(detail!.ChildCases.Select(item => item.CaseId), Is.EqualTo([child.Id]), "the detail lists the direct subordinates and never a whole tree");
@@ -92,11 +78,11 @@ public class CaseDetailQueryTests
     [Test]
     public async Task TheSubordinateCasesComeNewestFirst()
     {
-        var root = await this.tenant.AddCase(Day, "Kořen");
-        var older = await this.tenant.AddCase(Day.AddDays(-2), "Starší", parentCaseId: root.Id);
-        var newer = await this.tenant.AddCase(Day.AddDays(-1), "Novější", parentCaseId: root.Id);
+        var root = await this.Tenant.AddCase(Day, "Kořen");
+        var older = await this.Tenant.AddCase(Day.AddDays(-2), "Starší", parentCaseId: root.Id);
+        var newer = await this.Tenant.AddCase(Day.AddDays(-1), "Novější", parentCaseId: root.Id);
 
-        var reader = new CaseReader(new FixedDbSession(this.tenant.Context));
+        var reader = new CaseReader(new FixedDbSession(this.Tenant.Context));
         var detail = await reader.GetCaseDetail(root.Id, CancellationToken.None);
 
         Assert.That(
@@ -108,11 +94,11 @@ public class CaseDetailQueryTests
     [Test]
     public async Task TheDetailCarriesTheCasesMarksWithTheContactThatAssignedThem()
     {
-        var @case = await this.tenant.AddCase(Day);
-        var contact = await this.tenant.AddContact("Krajský soud ve Vzorově");
-        var number = await this.tenant.AddExternalCaseNumber(@case, "VV41/2025/08464", contact);
+        var @case = await this.Tenant.AddCase(Day);
+        var contact = await this.Tenant.AddContact("Krajský soud ve Vzorově");
+        var number = await this.Tenant.AddExternalCaseNumber(@case, "VV41/2025/08464", contact);
 
-        var reader = new CaseReader(new FixedDbSession(this.tenant.Context));
+        var reader = new CaseReader(new FixedDbSession(this.Tenant.Context));
         var detail = await reader.GetCaseDetail(@case.Id, CancellationToken.None);
 
         Assert.That(detail!.ExternalNumbers, Has.Count.EqualTo(1));
@@ -130,12 +116,12 @@ public class CaseDetailQueryTests
     [Test]
     public async Task TheMarksComeInTheOrderTheyAccrued()
     {
-        var @case = await this.tenant.AddCase(Day);
-        var contact = await this.tenant.AddContact("Krajský soud ve Vzorově");
-        var first = await this.tenant.AddExternalCaseNumber(@case, "VV41/2025/08464", contact);
-        var second = await this.tenant.AddExternalCaseNumber(@case, "10 A 1/2025", contact);
+        var @case = await this.Tenant.AddCase(Day);
+        var contact = await this.Tenant.AddContact("Krajský soud ve Vzorově");
+        var first = await this.Tenant.AddExternalCaseNumber(@case, "VV41/2025/08464", contact);
+        var second = await this.Tenant.AddExternalCaseNumber(@case, "10 A 1/2025", contact);
 
-        var reader = new CaseReader(new FixedDbSession(this.tenant.Context));
+        var reader = new CaseReader(new FixedDbSession(this.Tenant.Context));
         var detail = await reader.GetCaseDetail(@case.Id, CancellationToken.None);
 
         Assert.That(
@@ -147,13 +133,13 @@ public class CaseDetailQueryTests
     [Test]
     public async Task AnotherCasesMarksAreNotListed()
     {
-        var contact = await this.tenant.AddContact("Krajský soud ve Vzorově");
-        var one = await this.tenant.AddCase(Day, "Jeden");
-        var other = await this.tenant.AddCase(Day, "Druhý");
-        await this.tenant.AddExternalCaseNumber(one, "VV41/2025/08464", contact);
-        await this.tenant.AddExternalCaseNumber(other, "10 A 1/2025", contact);
+        var contact = await this.Tenant.AddContact("Krajský soud ve Vzorově");
+        var one = await this.Tenant.AddCase(Day, "Jeden");
+        var other = await this.Tenant.AddCase(Day, "Druhý");
+        await this.Tenant.AddExternalCaseNumber(one, "VV41/2025/08464", contact);
+        await this.Tenant.AddExternalCaseNumber(other, "10 A 1/2025", contact);
 
-        var reader = new CaseReader(new FixedDbSession(this.tenant.Context));
+        var reader = new CaseReader(new FixedDbSession(this.Tenant.Context));
         var detail = await reader.GetCaseDetail(one.Id, CancellationToken.None);
 
         Assert.That(detail!.ExternalNumbers.Select(item => item.Value), Is.EqualTo(["VV41/2025/08464"]));
@@ -162,9 +148,9 @@ public class CaseDetailQueryTests
     [Test]
     public async Task ACaseWithNoMarksCarriesAnEmptyList()
     {
-        var @case = await this.tenant.AddCase(Day);
+        var @case = await this.Tenant.AddCase(Day);
 
-        var reader = new CaseReader(new FixedDbSession(this.tenant.Context));
+        var reader = new CaseReader(new FixedDbSession(this.Tenant.Context));
         var detail = await reader.GetCaseDetail(@case.Id, CancellationToken.None);
 
         Assert.That(detail!.ExternalNumbers, Is.Empty);
@@ -173,7 +159,7 @@ public class CaseDetailQueryTests
     [Test]
     public async Task AnUnknownIdIsNoDetail()
     {
-        var detail = await this.tenant.Context.Cases.DetailOf(Guid.CreateVersion7(), CancellationToken.None);
+        var detail = await this.Tenant.Context.Cases.DetailOf(Guid.CreateVersion7(), CancellationToken.None);
 
         Assert.That(detail, Is.Null);
     }
@@ -184,7 +170,7 @@ public class CaseDetailQueryTests
         await using var other = await TestTenant.Create();
         var otherCase = await other.AddCase(Day);
 
-        var detail = await this.tenant.Context.Cases.DetailOf(otherCase.Id, CancellationToken.None);
+        var detail = await this.Tenant.Context.Cases.DetailOf(otherCase.Id, CancellationToken.None);
 
         Assert.That(detail, Is.Null, "the tenant query filter is what turns another tenant's id into nothing");
     }

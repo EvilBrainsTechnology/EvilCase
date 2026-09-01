@@ -13,31 +13,23 @@ namespace EvilBrains.EvilCase.Tests.Cases;
 /// The edit rules on the rows a real PostgreSQL returns. Each test seeds a tenant of its own, so none
 /// cleans up after itself.
 /// </summary>
-public class CaseUpdateTests
+public class CaseUpdateTests : TenantFixture
 {
     private static readonly DateOnly Day = new(2026, 8, 21);
-
-    private TestTenant tenant = null!;
 
     private CaseWriter writer = null!;
 
     [SetUp]
-    public async Task SetUp()
+    public void SetUpWriter()
     {
-        this.tenant = await TestTenant.Create();
-        this.writer = new CaseWriter(new FixedDbSession(this.tenant.Context), new FakeCaseNumberIssuer(), new FakeFileBlobStore(), NullLogger<CaseWriter>.Instance);
-    }
-
-    [TearDown]
-    public async Task TearDown()
-    {
-        await this.tenant.DisposeAsync();
+        this.writer = new CaseWriter(
+            new FixedDbSession(this.Tenant.Context), new FakeCaseNumberIssuer(), new FakeFileBlobStore(), NullLogger<CaseWriter>.Instance);
     }
 
     [Test]
     public async Task AnEditWritesTheDateTheTitleTheDescriptionAndTheStatus()
     {
-        var seeded = await this.tenant.AddCase(Day, "Přestupek", status: CaseStatus.Active);
+        var seeded = await this.Tenant.AddCase(Day, "Přestupek", status: CaseStatus.Active);
         var request = Edit(seeded.CaseNumber, new DateOnly(2026, 9, 1), "Nový název", "Nový popis", CaseStatus.WaitingOnAuthority);
 
         var outcome = await this.writer.UpdateCase(seeded.Id, request, CancellationToken.None);
@@ -57,7 +49,7 @@ public class CaseUpdateTests
     [Test]
     public async Task AClosedCaseIsStillEditable()
     {
-        var seeded = await this.tenant.AddCase(Day, status: CaseStatus.Closed);
+        var seeded = await this.Tenant.AddCase(Day, status: CaseStatus.Closed);
         var request = Edit(seeded.CaseNumber, Day, seeded.Title, description: null, CaseStatus.Active);
 
         var outcome = await this.writer.UpdateCase(seeded.Id, request, CancellationToken.None);
@@ -68,7 +60,7 @@ public class CaseUpdateTests
     [Test]
     public async Task ChangingTheDateLeavesTheNumberAsItWasIssued()
     {
-        var seeded = await this.tenant.AddCase(Day, "Přestupek");
+        var seeded = await this.Tenant.AddCase(Day, "Přestupek");
         var newDate = Day.AddMonths(1);
         var request = Edit(seeded.CaseNumber, newDate, seeded.Title, description: null, CaseStatus.Active);
 
@@ -87,7 +79,7 @@ public class CaseUpdateTests
     [Test]
     public async Task ACaseKeepsItsOwnNumberOnAnEdit()
     {
-        var seeded = await this.tenant.AddCase(Day, "Přestupek");
+        var seeded = await this.Tenant.AddCase(Day, "Přestupek");
         var request = Edit(seeded.CaseNumber, Day, seeded.Title, description: null, CaseStatus.Active);
 
         var outcome = await this.writer.UpdateCase(seeded.Id, request, CancellationToken.None);
@@ -98,7 +90,7 @@ public class CaseUpdateTests
     [Test]
     public async Task AHandWrittenNumberInTheFormatBecomesTheCasesOwn()
     {
-        var seeded = await this.tenant.AddCase(Day, "Přestupek");
+        var seeded = await this.Tenant.AddCase(Day, "Přestupek");
         var request = Edit("  EC/20260101-042  ", Day, seeded.Title, description: null, CaseStatus.Active);
 
         var outcome = await this.writer.UpdateCase(seeded.Id, request, CancellationToken.None);
@@ -115,7 +107,7 @@ public class CaseUpdateTests
     [Test]
     public async Task AHandWrittenNumberOutsideTheFormatIsRefused()
     {
-        var seeded = await this.tenant.AddCase(Day, "Přestupek");
+        var seeded = await this.Tenant.AddCase(Day, "Přestupek");
         var request = Edit("spis 7/2026", Day, "Jiný název", description: null, CaseStatus.Active);
 
         var outcome = await this.writer.UpdateCase(seeded.Id, request, CancellationToken.None);
@@ -133,8 +125,8 @@ public class CaseUpdateTests
     [Test]
     public async Task ANumberAnotherCaseHoldsIsRefused()
     {
-        var first = await this.tenant.AddCase(Day, "První");
-        var second = await this.tenant.AddCase(Day, "Druhý");
+        var first = await this.Tenant.AddCase(Day, "První");
+        var second = await this.Tenant.AddCase(Day, "Druhý");
         var request = Edit(second.CaseNumber, Day, "Přejmenováno", description: null, CaseStatus.Active);
 
         var outcome = await this.writer.UpdateCase(first.Id, request, CancellationToken.None);
@@ -152,7 +144,7 @@ public class CaseUpdateTests
     [Test]
     public async Task ABlankDescriptionIsFiledAsNothing()
     {
-        var seeded = await this.tenant.AddCase(Day, "Přestupek");
+        var seeded = await this.Tenant.AddCase(Day, "Přestupek");
         var request = Edit(seeded.CaseNumber, Day, seeded.Title, "   ", CaseStatus.Active);
 
         await this.writer.UpdateCase(seeded.Id, request, CancellationToken.None);
@@ -196,16 +188,16 @@ public class CaseUpdateTests
 
     private async Task<Case> Reload(Guid caseId)
     {
-        this.tenant.Context.ChangeTracker.Clear();
+        this.Tenant.Context.ChangeTracker.Clear();
 
-        return await this.tenant.Context.Cases.SingleAsync(@case => @case.Id == caseId);
+        return await this.Tenant.Context.Cases.SingleAsync(@case => @case.Id == caseId);
     }
 
     [Test]
     public async Task AnEditHangsTheCaseUnderAParent()
     {
-        var parent = await this.tenant.AddCase(Day, "Rodič");
-        var seeded = await this.tenant.AddCase(Day, "Přestupek");
+        var parent = await this.Tenant.AddCase(Day, "Rodič");
+        var seeded = await this.Tenant.AddCase(Day, "Přestupek");
         var request = Edit(seeded.CaseNumber, Day, seeded.Title, description: null, CaseStatus.Active, parentCaseId: parent.Id);
 
         var outcome = await this.writer.UpdateCase(seeded.Id, request, CancellationToken.None);
@@ -222,8 +214,8 @@ public class CaseUpdateTests
     [Test]
     public async Task AnEditClearsTheParent()
     {
-        var parent = await this.tenant.AddCase(Day, "Rodič");
-        var seeded = await this.tenant.AddCase(Day, "Přestupek", parentCaseId: parent.Id);
+        var parent = await this.Tenant.AddCase(Day, "Rodič");
+        var seeded = await this.Tenant.AddCase(Day, "Přestupek", parentCaseId: parent.Id);
         var request = Edit(seeded.CaseNumber, Day, seeded.Title, description: null, CaseStatus.Active, parentCaseId: null);
 
         var outcome = await this.writer.UpdateCase(seeded.Id, request, CancellationToken.None);
@@ -240,7 +232,7 @@ public class CaseUpdateTests
     [Test]
     public async Task ACaseCannotBecomeItsOwnParent()
     {
-        var seeded = await this.tenant.AddCase(Day, "Přestupek");
+        var seeded = await this.Tenant.AddCase(Day, "Přestupek");
         var request = Edit(seeded.CaseNumber, Day, seeded.Title, description: null, CaseStatus.Active, parentCaseId: seeded.Id);
 
         var outcome = await this.writer.UpdateCase(seeded.Id, request, CancellationToken.None);
@@ -257,9 +249,9 @@ public class CaseUpdateTests
     [Test]
     public async Task ACaseCannotHangUnderItsOwnSubordinate()
     {
-        var root = await this.tenant.AddCase(Day, "Kořen");
-        var child = await this.tenant.AddCase(Day, "Podřízený", parentCaseId: root.Id);
-        var grandchild = await this.tenant.AddCase(Day, "Vnuk", parentCaseId: child.Id);
+        var root = await this.Tenant.AddCase(Day, "Kořen");
+        var child = await this.Tenant.AddCase(Day, "Podřízený", parentCaseId: root.Id);
+        var grandchild = await this.Tenant.AddCase(Day, "Vnuk", parentCaseId: child.Id);
         var request = Edit(root.CaseNumber, Day, root.Title, description: null, CaseStatus.Active, parentCaseId: grandchild.Id);
 
         var outcome = await this.writer.UpdateCase(root.Id, request, CancellationToken.None);
@@ -278,7 +270,7 @@ public class CaseUpdateTests
     {
         await using var other = await TestTenant.Create();
         var otherCase = await other.AddCase(Day, "Cizí spis");
-        var seeded = await this.tenant.AddCase(Day, "Přestupek");
+        var seeded = await this.Tenant.AddCase(Day, "Přestupek");
         var request = Edit(seeded.CaseNumber, Day, seeded.Title, description: null, CaseStatus.Active, parentCaseId: otherCase.Id);
 
         var outcome = await this.writer.UpdateCase(seeded.Id, request, CancellationToken.None);

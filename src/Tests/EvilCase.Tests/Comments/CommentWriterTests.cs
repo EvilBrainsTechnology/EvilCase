@@ -11,31 +11,24 @@ namespace EvilBrains.EvilCase.Tests.Comments;
 /// Writes and enforces authorship on a case's comments, on the rows a real PostgreSQL returns. Each test
 /// seeds a tenant of its own, so none cleans up after itself.
 /// </summary>
-public class CommentWriterTests
+public class CommentWriterTests : TenantFixture
 {
     private static readonly DateOnly Day = new(2026, 8, 24);
 
-    private TestTenant tenant = null!;
-
     private CommentWriter writer = null!;
 
-    [SetUp]
-    public async Task SetUp()
-    {
-        this.tenant = await TestTenant.Create(asHost: true);
-        this.writer = new CommentWriter(new FixedDbSession(this.tenant.Context), this.tenant.UserContext, NullLogger<CommentWriter>.Instance);
-    }
+    protected override bool AsHost => true;
 
-    [TearDown]
-    public async Task TearDown()
+    [SetUp]
+    public void SetUpWriter()
     {
-        await this.tenant.DisposeAsync();
+        this.writer = new CommentWriter(new FixedDbSession(this.Tenant.Context), this.Tenant.UserContext, NullLogger<CommentWriter>.Instance);
     }
 
     [Test]
     public async Task ANoteIsFiledOnTheCaseUnderItsAuthor()
     {
-        var @case = await this.tenant.AddCase(Day);
+        var @case = await this.Tenant.AddCase(Day);
 
         var outcome = await this.writer.AddCaseComment(@case.Id, new CommentEditRequest { Body = "Poznámka" }, CancellationToken.None);
 
@@ -47,7 +40,7 @@ public class CommentWriterTests
             Assert.That(reloaded.Body, Is.EqualTo("Poznámka"));
             Assert.That(reloaded.CaseId, Is.EqualTo(@case.Id));
             Assert.That(reloaded.ActId, Is.Null, "a case note carries no act");
-            Assert.That(reloaded.UserId, Is.EqualTo(this.tenant.UserId), "the write interceptor stamps the author");
+            Assert.That(reloaded.UserId, Is.EqualTo(this.Tenant.UserId), "the write interceptor stamps the author");
             Assert.That(reloaded.TenantId, Is.Not.EqualTo(Guid.Empty), "the write interceptor stamps the tenant");
         }
     }
@@ -55,7 +48,7 @@ public class CommentWriterTests
     [Test]
     public async Task ABodyIsStoredWithoutItsSurroundingSpace()
     {
-        var @case = await this.tenant.AddCase(Day);
+        var @case = await this.Tenant.AddCase(Day);
 
         await this.writer.AddCaseComment(@case.Id, new CommentEditRequest { Body = "  text  " }, CancellationToken.None);
 
@@ -69,7 +62,7 @@ public class CommentWriterTests
     {
         var outcome = await this.writer.AddCaseComment(Guid.CreateVersion7(), new CommentEditRequest { Body = "Poznámka" }, CancellationToken.None);
 
-        var any = await this.tenant.Context.Comments.AsNoTracking().AnyAsync();
+        var any = await this.Tenant.Context.Comments.AsNoTracking().AnyAsync();
 
         using (Assert.EnterMultipleScope())
         {
@@ -86,7 +79,7 @@ public class CommentWriterTests
 
         var outcome = await this.writer.AddCaseComment(otherCase.Id, new CommentEditRequest { Body = "Poznámka" }, CancellationToken.None);
 
-        var ownAny = await this.tenant.Context.Comments.AsNoTracking().AnyAsync();
+        var ownAny = await this.Tenant.Context.Comments.AsNoTracking().AnyAsync();
         var otherAny = await other.Context.Comments.AsNoTracking().AnyAsync();
 
         using (Assert.EnterMultipleScope())
@@ -100,8 +93,8 @@ public class CommentWriterTests
     [Test]
     public async Task TheAuthorEditsTheirOwnNote()
     {
-        var @case = await this.tenant.AddCase(Day);
-        var comment = await this.tenant.AddCaseComment(@case, "Původní");
+        var @case = await this.Tenant.AddCase(Day);
+        var comment = await this.Tenant.AddCaseComment(@case, "Původní");
 
         var outcome = await this.writer.UpdateCaseComment(@case.Id, comment.Id, new CommentEditRequest { Body = "Upravená" }, CancellationToken.None);
 
@@ -118,9 +111,9 @@ public class CommentWriterTests
     [Test]
     public async Task AnotherUsersNoteIsNotEdited()
     {
-        var @case = await this.tenant.AddCase(Day);
-        var other = await this.tenant.AddUser();
-        var comment = await this.tenant.AddCaseComment(@case, "Původní", other.Id);
+        var @case = await this.Tenant.AddCase(Day);
+        var other = await this.Tenant.AddUser();
+        var comment = await this.Tenant.AddCaseComment(@case, "Původní", other.Id);
 
         var outcome = await this.writer.UpdateCaseComment(@case.Id, comment.Id, new CommentEditRequest { Body = "Upravená" }, CancellationToken.None);
 
@@ -136,7 +129,7 @@ public class CommentWriterTests
     [Test]
     public async Task AnUnknownNoteIsNotEdited()
     {
-        var @case = await this.tenant.AddCase(Day);
+        var @case = await this.Tenant.AddCase(Day);
 
         var outcome = await this.writer.UpdateCaseComment(@case.Id, Guid.CreateVersion7(), new CommentEditRequest { Body = "Upravená" }, CancellationToken.None);
 
@@ -146,13 +139,13 @@ public class CommentWriterTests
     [Test]
     public async Task ANoteOfAnotherCaseIsNotEditedUnderThisCase()
     {
-        var right = await this.tenant.AddCase(Day, "Správný");
-        var wrong = await this.tenant.AddCase(Day, "Jiný");
-        var comment = await this.tenant.AddCaseComment(right, "Původní");
+        var right = await this.Tenant.AddCase(Day, "Správný");
+        var wrong = await this.Tenant.AddCase(Day, "Jiný");
+        var comment = await this.Tenant.AddCaseComment(right, "Původní");
 
         var outcome = await this.writer.UpdateCaseComment(wrong.Id, comment.Id, new CommentEditRequest { Body = "Upravená" }, CancellationToken.None);
 
-        var reloaded = await this.tenant.Context.Comments.AsNoTracking().SingleAsync(c => c.Id == comment.Id);
+        var reloaded = await this.Tenant.Context.Comments.AsNoTracking().SingleAsync(c => c.Id == comment.Id);
 
         using (Assert.EnterMultipleScope())
         {
@@ -164,12 +157,12 @@ public class CommentWriterTests
     [Test]
     public async Task TheAuthorDeletesTheirOwnNote()
     {
-        var @case = await this.tenant.AddCase(Day);
-        var comment = await this.tenant.AddCaseComment(@case, "Poznámka");
+        var @case = await this.Tenant.AddCase(Day);
+        var comment = await this.Tenant.AddCaseComment(@case, "Poznámka");
 
         var outcome = await this.writer.DeleteCaseComment(@case.Id, comment.Id, CancellationToken.None);
 
-        var exists = await this.tenant.Context.Comments.AsNoTracking().AnyAsync(c => c.Id == comment.Id);
+        var exists = await this.Tenant.Context.Comments.AsNoTracking().AnyAsync(c => c.Id == comment.Id);
 
         using (Assert.EnterMultipleScope())
         {
@@ -181,13 +174,13 @@ public class CommentWriterTests
     [Test]
     public async Task AnotherUsersNoteIsNotDeleted()
     {
-        var @case = await this.tenant.AddCase(Day);
-        var other = await this.tenant.AddUser();
-        var comment = await this.tenant.AddCaseComment(@case, "Poznámka", other.Id);
+        var @case = await this.Tenant.AddCase(Day);
+        var other = await this.Tenant.AddUser();
+        var comment = await this.Tenant.AddCaseComment(@case, "Poznámka", other.Id);
 
         var outcome = await this.writer.DeleteCaseComment(@case.Id, comment.Id, CancellationToken.None);
 
-        var exists = await this.tenant.Context.Comments.AsNoTracking().AnyAsync(c => c.Id == comment.Id);
+        var exists = await this.Tenant.Context.Comments.AsNoTracking().AnyAsync(c => c.Id == comment.Id);
 
         using (Assert.EnterMultipleScope())
         {
@@ -199,7 +192,7 @@ public class CommentWriterTests
     [Test]
     public async Task AnUnknownNoteIsNotDeleted()
     {
-        var @case = await this.tenant.AddCase(Day);
+        var @case = await this.Tenant.AddCase(Day);
 
         var outcome = await this.writer.DeleteCaseComment(@case.Id, Guid.CreateVersion7(), CancellationToken.None);
 
@@ -226,6 +219,6 @@ public class CommentWriterTests
 
     private async Task<Comment> Reload(Guid caseId)
     {
-        return await this.tenant.Context.Comments.AsNoTracking().SingleAsync(comment => comment.CaseId == caseId);
+        return await this.Tenant.Context.Comments.AsNoTracking().SingleAsync(comment => comment.CaseId == caseId);
     }
 }

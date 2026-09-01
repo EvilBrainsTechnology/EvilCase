@@ -3,6 +3,7 @@ using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Api.Controllers;
 using EvilBrains.EvilCase.Business.Entities;
 using Microsoft.AspNetCore.Mvc;
+using static EvilBrains.EvilCase.Tests.Controllers.ProblemAssertions;
 
 namespace EvilBrains.EvilCase.Tests.Controllers;
 
@@ -93,20 +94,6 @@ public class CaseFilesControllerTests
             () => controller.DeleteCaseFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None),
             Throws.InstanceOf<UnreachableException>(),
             "an outcome the endpoint does not name never turns into a status");
-    }
-
-    private static ProblemDetails AssertProblem(IActionResult? result, in int statusCode)
-    {
-        Assert.That(result, Is.InstanceOf<ObjectResult>());
-        var objectResult = (ObjectResult)result!;
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(objectResult.StatusCode, Is.EqualTo(statusCode));
-            Assert.That(objectResult.Value, Is.InstanceOf<ProblemDetails>());
-        }
-
-        return (ProblemDetails)objectResult.Value!;
     }
 
     private static FileListItem Item(string fileName)
