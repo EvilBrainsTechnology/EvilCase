@@ -19,7 +19,7 @@ internal static class ActDetailQuery
         return acts
             .OfCase(caseId)
             .WithId(actId)
-            .Select(act => new ActDetail
+            .Select(static act => new ActDetail
             {
                 ActId = act.Id,
                 CaseId = act.CaseId,

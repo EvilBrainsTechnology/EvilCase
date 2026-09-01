@@ -60,8 +60,8 @@ public static class Bootstrap
         // The sample-data seed runs before a tenant is known.
         var user = await dbSession.Current.Users
             .IgnoreQueryFilters()
-            .OrderBy(user => user.Created)
-            .ThenBy(user => user.Id)
+            .OrderBy(static user => user.Created)
+            .ThenBy(static user => user.Id)
             .FirstOrDefaultAsync(token);
 
         if (user is null)

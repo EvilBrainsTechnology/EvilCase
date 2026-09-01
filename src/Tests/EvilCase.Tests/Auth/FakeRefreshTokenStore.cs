@@ -69,7 +69,7 @@ internal sealed class FakeRefreshTokenStore(TimeProvider timeProvider) : IRefres
     {
         var active = this.tokens
             .Where(token => token.UserId == userId)
-            .Where(token => token.RevokedAt is null)
+            .Where(static token => token.RevokedAt is null)
             .Where(token => token.Expires > now)
             .Where(token => token.SessionExpires > now);
 
@@ -81,8 +81,8 @@ internal sealed class FakeRefreshTokenStore(TimeProvider timeProvider) : IRefres
         return Task.FromResult<IReadOnlyDictionary<Guid, DateTime>>(
             this.tokens
                 .Where(token => token.UserId == userId)
-                .GroupBy(token => token.AuthSessionId)
-                .ToDictionary(chain => chain.Key, chain => chain.Min(token => token.Created)));
+                .GroupBy(static token => token.AuthSessionId)
+                .ToDictionary(static chain => chain.Key, static chain => chain.Min(static token => token.Created)));
     }
 
     private int RevokeMatching(Func<RefreshToken, bool> match, in DateTime now, bool alsoUsed)

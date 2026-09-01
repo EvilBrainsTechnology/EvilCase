@@ -170,13 +170,13 @@ public class ClientLogWriterTests
     [Test]
     public void PropertyCountIsClamped()
     {
-        var names = Enumerable.Range(0, ClientLogEntry.MaxProperties + 4).Select(x => "P" + x.ToString(CultureInfo.InvariantCulture)).ToList();
-        var template = string.Concat(names.Select(x => "{" + x + "}"));
-        var properties = names.ToDictionary(x => x, _ => "value", StringComparer.Ordinal);
+        var names = Enumerable.Range(0, ClientLogEntry.MaxProperties + 4).Select(static x => "P" + x.ToString(CultureInfo.InvariantCulture)).ToList();
+        var template = string.Concat(names.Select(static x => "{" + x + "}"));
+        var properties = names.ToDictionary(static x => x, static _ => "value", StringComparer.Ordinal);
 
         this.writer.Write(Entry(template, properties));
 
-        Assert.That(this.sink.Single().Properties.Keys.Count(x => x.StartsWith('P')), Is.EqualTo(ClientLogEntry.MaxProperties));
+        Assert.That(this.sink.Single().Properties.Keys.Count(static x => x.StartsWith('P')), Is.EqualTo(ClientLogEntry.MaxProperties));
     }
 
     [Test]

@@ -28,7 +28,7 @@ public class CreateLocationTests
     [OneTimeSetUp]
     public void SetUp()
     {
-        this.host = new EvilCaseHost(configureServices: services =>
+        this.host = new EvilCaseHost(configureServices: static services =>
         {
             services.AddSingleton<ICaseWriter>(new StubCaseWriter());
             services.AddSingleton<IContactWriter>(new StubContactWriter());

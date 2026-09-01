@@ -14,7 +14,7 @@ public class ExpressionBodyAnalyzerTests
             public int Value() => 1;
             """);
 
-        Assert.That(diagnostics.Select(x => x.Id), Is.EqualTo(["EB0006"]), "member should have a block body");
+        Assert.That(diagnostics.Select(static x => x.Id), Is.EqualTo(["EB0006"]), "member should have a block body");
     }
 
     [Test]
@@ -45,7 +45,7 @@ public class ExpressionBodyAnalyzerTests
                 1;
             """);
 
-        Assert.That(diagnostics.Select(x => x.Id), Is.EqualTo(["EB0006"]), "a property spanning multiple lines must have a block body");
+        Assert.That(diagnostics.Select(static x => x.Id), Is.EqualTo(["EB0006"]), "a property spanning multiple lines must have a block body");
     }
 
     [Test]
@@ -77,7 +77,7 @@ public class ExpressionBodyAnalyzerTests
             public Sample(int value) => this.value = value;
             """);
 
-        Assert.That(diagnostics.Select(x => x.Id), Is.EqualTo(["EB0006"]), "a constructor must have a block body");
+        Assert.That(diagnostics.Select(static x => x.Id), Is.EqualTo(["EB0006"]), "a constructor must have a block body");
     }
 
     [Test]
@@ -87,7 +87,7 @@ public class ExpressionBodyAnalyzerTests
             public static Sample operator +(Sample left, Sample right) => left;
             """);
 
-        Assert.That(diagnostics.Select(x => x.Id), Is.EqualTo(["EB0006"]), "an operator must have a block body");
+        Assert.That(diagnostics.Select(static x => x.Id), Is.EqualTo(["EB0006"]), "an operator must have a block body");
     }
 
     [Test]
@@ -101,7 +101,7 @@ public class ExpressionBodyAnalyzerTests
             }
             """);
 
-        Assert.That(diagnostics.Select(x => x.Id), Is.EqualTo(["EB0006"]), "a local function must have a block body");
+        Assert.That(diagnostics.Select(static x => x.Id), Is.EqualTo(["EB0006"]), "a local function must have a block body");
     }
 
     [Test]

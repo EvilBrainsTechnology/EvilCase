@@ -15,12 +15,12 @@ public class ModelConventionTests : ModelFixture
     public void EveryEntityIsReachedThroughItsOwnDbSet()
     {
         var sets = typeof(ApplicationDbContext).GetProperties()
-            .Where(property => property.PropertyType.IsGenericType)
-            .Where(property => property.PropertyType.GetGenericTypeDefinition() == typeof(DbSet<>))
-            .Select(property => property.PropertyType.GetGenericArguments()[0])
+            .Where(static property => property.PropertyType.IsGenericType)
+            .Where(static property => property.PropertyType.GetGenericTypeDefinition() == typeof(DbSet<>))
+            .Select(static property => property.PropertyType.GetGenericArguments()[0])
             .ToList();
 
-        var entities = Model.GetEntityTypes().Select(entityType => entityType.ClrType).ToList();
+        var entities = Model.GetEntityTypes().Select(static entityType => entityType.ClrType).ToList();
 
         Assert.That(entities, Is.Not.Empty);
 
@@ -35,8 +35,8 @@ public class ModelConventionTests : ModelFixture
     public void EveryEnumIsStoredAsAName()
     {
         var enumProperties = Model.GetEntityTypes()
-            .SelectMany(entityType => entityType.GetProperties())
-            .Where(property => (Nullable.GetUnderlyingType(property.ClrType) ?? property.ClrType).IsEnum)
+            .SelectMany(static entityType => entityType.GetProperties())
+            .Where(static property => (Nullable.GetUnderlyingType(property.ClrType) ?? property.ClrType).IsEnum)
             .ToList();
 
         Assert.That(enumProperties, Is.Not.Empty, "the model has enums at all, or this test passes vacuously");
@@ -46,7 +46,7 @@ public class ModelConventionTests : ModelFixture
             foreach (var property in enumProperties)
             {
                 var name = $"{property.DeclaringType.ShortName()}.{property.Name}";
-                var longest = Enum.GetNames(Nullable.GetUnderlyingType(property.ClrType) ?? property.ClrType).Max(value => value.Length);
+                var longest = Enum.GetNames(Nullable.GetUnderlyingType(property.ClrType) ?? property.ClrType).Max(static value => value.Length);
 
                 Assert.That(property.GetProviderClrType(), Is.EqualTo(typeof(string)), $"{name} is stored by number, so renumbering the enum would silently rewrite every row");
                 Assert.That(property.GetColumnType(), Does.StartWith("character varying"), $"{name} is stored as unbounded text rather than a bounded column");
@@ -65,11 +65,11 @@ public class ModelConventionTests : ModelFixture
     public void EveryOneToManyIsNavigableFromBothEnds()
     {
         var oneToMany = Model.GetEntityTypes()
-            .SelectMany(entityType => entityType.GetForeignKeys())
-            .Where(key => !key.IsUnique)
-            .Where(key => key.DependentToPrincipal is not null)
-            .Where(key => key.PrincipalEntityType.ClrType != typeof(User))
-            .Where(key => key.DeclaringEntityType.ClrType != typeof(User))
+            .SelectMany(static entityType => entityType.GetForeignKeys())
+            .Where(static key => !key.IsUnique)
+            .Where(static key => key.DependentToPrincipal is not null)
+            .Where(static key => key.PrincipalEntityType.ClrType != typeof(User))
+            .Where(static key => key.DeclaringEntityType.ClrType != typeof(User))
             .ToList();
 
         Assert.That(oneToMany, Is.Not.Empty);
@@ -92,9 +92,9 @@ public class ModelConventionTests : ModelFixture
     public void NothingIsEagerLoaded()
     {
         var eager = Model.GetEntityTypes()
-            .SelectMany(entityType => entityType.GetNavigations())
-            .Where(navigation => navigation.IsEagerLoaded)
-            .Select(navigation => $"{navigation.DeclaringEntityType.ShortName()}.{navigation.Name}")
+            .SelectMany(static entityType => entityType.GetNavigations())
+            .Where(static navigation => navigation.IsEagerLoaded)
+            .Select(static navigation => $"{navigation.DeclaringEntityType.ShortName()}.{navigation.Name}")
             .ToList();
 
         Assert.That(eager, Is.Empty, "auto-include is off, and an AutoInclude() would turn one read of the case list into a read of everything under it");
@@ -104,7 +104,7 @@ public class ModelConventionTests : ModelFixture
     public void EveryIdentifierIsAUuidTheApplicationGenerates()
     {
         var entities = Model.GetEntityTypes()
-            .Where(entityType => typeof(IEntity).IsAssignableFrom(entityType.ClrType))
+            .Where(static entityType => typeof(IEntity).IsAssignableFrom(entityType.ClrType))
             .ToList();
 
         Assert.That(entities, Is.Not.Empty);
@@ -129,7 +129,7 @@ public class ModelConventionTests : ModelFixture
     public void TheDatabaseOwnsEveryTimestamp()
     {
         var entities = DesignTimeModel.GetEntityTypes()
-            .Where(entityType => typeof(IEntity).IsAssignableFrom(entityType.ClrType))
+            .Where(static entityType => typeof(IEntity).IsAssignableFrom(entityType.ClrType))
             .ToList();
 
         Assert.That(entities, Is.Not.Empty);

@@ -32,11 +32,11 @@ internal static class CaseListQuery
     {
         return filter switch
         {
-            CaseStatusFilter.Open => cases.Where(@case => @case.Status != CaseStatus.Closed),
+            CaseStatusFilter.Open => cases.Where(static @case => @case.Status != CaseStatus.Closed),
             CaseStatusFilter.All => cases,
-            CaseStatusFilter.Active => cases.Where(@case => @case.Status == CaseStatus.Active),
-            CaseStatusFilter.WaitingOnAuthority => cases.Where(@case => @case.Status == CaseStatus.WaitingOnAuthority),
-            CaseStatusFilter.Closed => cases.Where(@case => @case.Status == CaseStatus.Closed),
+            CaseStatusFilter.Active => cases.Where(static @case => @case.Status == CaseStatus.Active),
+            CaseStatusFilter.WaitingOnAuthority => cases.Where(static @case => @case.Status == CaseStatus.WaitingOnAuthority),
+            CaseStatusFilter.Closed => cases.Where(static @case => @case.Status == CaseStatus.Closed),
             _ => throw new ArgumentOutOfRangeException(nameof(filter), filter, "Unknown case status filter."),
         };
     }
@@ -57,9 +57,9 @@ internal static class CaseListQuery
     public static IQueryable<Case> InListOrder(this IQueryable<Case> cases)
     {
         return cases
-            .OrderByDescending(@case => @case.Date)
-            .ThenByDescending(@case => @case.Created)
-            .ThenByDescending(@case => @case.Id);
+            .OrderByDescending(static @case => @case.Date)
+            .ThenByDescending(static @case => @case.Created)
+            .ThenByDescending(static @case => @case.Id);
     }
 
     /// <summary>
@@ -69,8 +69,8 @@ internal static class CaseListQuery
     public static IQueryable<Case> InChangeOrder(this IQueryable<Case> cases)
     {
         return cases
-            .OrderByDescending(@case => @case.Updated ?? @case.Created)
-            .ThenByDescending(@case => @case.Id);
+            .OrderByDescending(static @case => @case.Updated ?? @case.Created)
+            .ThenByDescending(static @case => @case.Id);
     }
 
     /// <summary>
@@ -78,7 +78,7 @@ internal static class CaseListQuery
     /// </summary>
     public static IQueryable<CaseListItem> AsListItems(this IQueryable<Case> cases)
     {
-        return cases.Select(@case => new CaseListItem
+        return cases.Select(static @case => new CaseListItem
         {
             CaseId = @case.Id,
             CaseNumber = @case.CaseNumber,

@@ -82,16 +82,16 @@ public partial class Init : Migration
     {
         migrationBuilder.CreateTable(
             name: "Accounts",
-            columns: table => new
+            columns: static table => new
             {
                 Id = table.Column<Guid>(type: "uuid", nullable: false),
                 Name = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
                 Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                 Updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
             },
-            constraints: table =>
+            constraints: static table =>
             {
-                table.PrimaryKey("PK_Accounts", x => x.Id);
+                table.PrimaryKey("PK_Accounts", static x => x.Id);
             });
     }
 
@@ -99,7 +99,7 @@ public partial class Init : Migration
     {
         migrationBuilder.CreateTable(
             name: "Tenants",
-            columns: table => new
+            columns: static table => new
             {
                 Id = table.Column<Guid>(type: "uuid", nullable: false),
                 AccountId = table.Column<Guid>(type: "uuid", nullable: false),
@@ -107,12 +107,12 @@ public partial class Init : Migration
                 Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                 Updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
             },
-            constraints: table =>
+            constraints: static table =>
             {
-                table.PrimaryKey("PK_Tenants", x => x.Id);
+                table.PrimaryKey("PK_Tenants", static x => x.Id);
                 table.ForeignKey(
                     name: "FK_Tenants_Accounts_AccountId",
-                    column: x => x.AccountId,
+                    column: static x => x.AccountId,
                     principalTable: "Accounts",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Cascade);
@@ -123,7 +123,7 @@ public partial class Init : Migration
     {
         migrationBuilder.CreateTable(
             name: "Contacts",
-            columns: table => new
+            columns: static table => new
             {
                 Id = table.Column<Guid>(type: "uuid", nullable: false),
                 TenantId = table.Column<Guid>(type: "uuid", nullable: false),
@@ -134,12 +134,12 @@ public partial class Init : Migration
                 Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                 Updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
             },
-            constraints: table =>
+            constraints: static table =>
             {
-                table.PrimaryKey("PK_Contacts", x => x.Id);
+                table.PrimaryKey("PK_Contacts", static x => x.Id);
                 table.ForeignKey(
                     name: "FK_Contacts_Tenants_TenantId",
-                    column: x => x.TenantId,
+                    column: static x => x.TenantId,
                     principalTable: "Tenants",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Restrict);
@@ -150,7 +150,7 @@ public partial class Init : Migration
     {
         migrationBuilder.CreateTable(
             name: "Users",
-            columns: table => new
+            columns: static table => new
             {
                 Id = table.Column<Guid>(type: "uuid", nullable: false),
                 TenantId = table.Column<Guid>(type: "uuid", nullable: false),
@@ -163,18 +163,18 @@ public partial class Init : Migration
                 FailedLoginAttempts = table.Column<int>(type: "integer", nullable: false),
                 LockoutEnd = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
             },
-            constraints: table =>
+            constraints: static table =>
             {
-                table.PrimaryKey("PK_Users", x => x.Id);
+                table.PrimaryKey("PK_Users", static x => x.Id);
                 table.ForeignKey(
                     name: "FK_Users_Contacts_DefaultContactId",
-                    column: x => x.DefaultContactId,
+                    column: static x => x.DefaultContactId,
                     principalTable: "Contacts",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Restrict);
                 table.ForeignKey(
                     name: "FK_Users_Tenants_TenantId",
-                    column: x => x.TenantId,
+                    column: static x => x.TenantId,
                     principalTable: "Tenants",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Restrict);
@@ -185,7 +185,7 @@ public partial class Init : Migration
     {
         migrationBuilder.CreateTable(
             name: "Cases",
-            columns: table => new
+            columns: static table => new
             {
                 Id = table.Column<Guid>(type: "uuid", nullable: false),
                 TenantId = table.Column<Guid>(type: "uuid", nullable: false),
@@ -199,24 +199,24 @@ public partial class Init : Migration
                 Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                 Updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
             },
-            constraints: table =>
+            constraints: static table =>
             {
-                table.PrimaryKey("PK_Cases", x => x.Id);
+                table.PrimaryKey("PK_Cases", static x => x.Id);
                 table.ForeignKey(
                     name: "FK_Cases_Cases_ParentCaseId",
-                    column: x => x.ParentCaseId,
+                    column: static x => x.ParentCaseId,
                     principalTable: "Cases",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.SetNull);
                 table.ForeignKey(
                     name: "FK_Cases_Tenants_TenantId",
-                    column: x => x.TenantId,
+                    column: static x => x.TenantId,
                     principalTable: "Tenants",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Restrict);
                 table.ForeignKey(
                     name: "FK_Cases_Users_UserId",
-                    column: x => x.UserId,
+                    column: static x => x.UserId,
                     principalTable: "Users",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Restrict);
@@ -227,7 +227,7 @@ public partial class Init : Migration
     {
         migrationBuilder.CreateTable(
             name: "RefreshTokens",
-            columns: table => new
+            columns: static table => new
             {
                 Id = table.Column<Guid>(type: "uuid", nullable: false),
                 UserId = table.Column<Guid>(type: "uuid", nullable: false),
@@ -242,12 +242,12 @@ public partial class Init : Migration
                 CreatedByIp = table.Column<string>(type: "character varying(45)", maxLength: 45, nullable: true),
                 UserAgent = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
             },
-            constraints: table =>
+            constraints: static table =>
             {
-                table.PrimaryKey("PK_RefreshTokens", x => x.Id);
+                table.PrimaryKey("PK_RefreshTokens", static x => x.Id);
                 table.ForeignKey(
                     name: "FK_RefreshTokens_Users_UserId",
-                    column: x => x.UserId,
+                    column: static x => x.UserId,
                     principalTable: "Users",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Cascade);
@@ -258,7 +258,7 @@ public partial class Init : Migration
     {
         migrationBuilder.CreateTable(
             name: "Acts",
-            columns: table => new
+            columns: static table => new
             {
                 Id = table.Column<Guid>(type: "uuid", nullable: false),
                 TenantId = table.Column<Guid>(type: "uuid", nullable: false),
@@ -274,36 +274,36 @@ public partial class Init : Migration
                 Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                 Updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
             },
-            constraints: table =>
+            constraints: static table =>
             {
-                table.PrimaryKey("PK_Acts", x => x.Id);
+                table.PrimaryKey("PK_Acts", static x => x.Id);
                 table.ForeignKey(
                     name: "FK_Acts_Cases_CaseId",
-                    column: x => x.CaseId,
+                    column: static x => x.CaseId,
                     principalTable: "Cases",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Cascade);
                 table.ForeignKey(
                     name: "FK_Acts_Contacts_AddressedToContactId",
-                    column: x => x.AddressedToContactId,
+                    column: static x => x.AddressedToContactId,
                     principalTable: "Contacts",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Restrict);
                 table.ForeignKey(
                     name: "FK_Acts_Contacts_IssuedByContactId",
-                    column: x => x.IssuedByContactId,
+                    column: static x => x.IssuedByContactId,
                     principalTable: "Contacts",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Restrict);
                 table.ForeignKey(
                     name: "FK_Acts_Tenants_TenantId",
-                    column: x => x.TenantId,
+                    column: static x => x.TenantId,
                     principalTable: "Tenants",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Restrict);
                 table.ForeignKey(
                     name: "FK_Acts_Users_UserId",
-                    column: x => x.UserId,
+                    column: static x => x.UserId,
                     principalTable: "Users",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Restrict);
@@ -314,7 +314,7 @@ public partial class Init : Migration
     {
         migrationBuilder.CreateTable(
             name: "ExternalCaseNumbers",
-            columns: table => new
+            columns: static table => new
             {
                 Id = table.Column<Guid>(type: "uuid", nullable: false),
                 TenantId = table.Column<Guid>(type: "uuid", nullable: false),
@@ -325,30 +325,30 @@ public partial class Init : Migration
                 Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                 Updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
             },
-            constraints: table =>
+            constraints: static table =>
             {
-                table.PrimaryKey("PK_ExternalCaseNumbers", x => x.Id);
+                table.PrimaryKey("PK_ExternalCaseNumbers", static x => x.Id);
                 table.ForeignKey(
                     name: "FK_ExternalCaseNumbers_Cases_CaseId",
-                    column: x => x.CaseId,
+                    column: static x => x.CaseId,
                     principalTable: "Cases",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Cascade);
                 table.ForeignKey(
                     name: "FK_ExternalCaseNumbers_Contacts_AssignedByContactId",
-                    column: x => x.AssignedByContactId,
+                    column: static x => x.AssignedByContactId,
                     principalTable: "Contacts",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Restrict);
                 table.ForeignKey(
                     name: "FK_ExternalCaseNumbers_Tenants_TenantId",
-                    column: x => x.TenantId,
+                    column: static x => x.TenantId,
                     principalTable: "Tenants",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Restrict);
                 table.ForeignKey(
                     name: "FK_ExternalCaseNumbers_Users_UserId",
-                    column: x => x.UserId,
+                    column: static x => x.UserId,
                     principalTable: "Users",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Restrict);
@@ -359,7 +359,7 @@ public partial class Init : Migration
     {
         migrationBuilder.CreateTable(
             name: "Comments",
-            columns: table => new
+            columns: static table => new
             {
                 Id = table.Column<Guid>(type: "uuid", nullable: false),
                 TenantId = table.Column<Guid>(type: "uuid", nullable: false),
@@ -370,31 +370,31 @@ public partial class Init : Migration
                 Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                 Updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
             },
-            constraints: table =>
+            constraints: static table =>
             {
-                table.PrimaryKey("PK_Comments", x => x.Id);
+                table.PrimaryKey("PK_Comments", static x => x.Id);
                 table.CheckConstraint("CK_Comments_OnACaseOrAnAct", "(\"CaseId\" IS NULL) <> (\"ActId\" IS NULL)");
                 table.ForeignKey(
                     name: "FK_Comments_Acts_ActId",
-                    column: x => x.ActId,
+                    column: static x => x.ActId,
                     principalTable: "Acts",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Cascade);
                 table.ForeignKey(
                     name: "FK_Comments_Cases_CaseId",
-                    column: x => x.CaseId,
+                    column: static x => x.CaseId,
                     principalTable: "Cases",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Cascade);
                 table.ForeignKey(
                     name: "FK_Comments_Tenants_TenantId",
-                    column: x => x.TenantId,
+                    column: static x => x.TenantId,
                     principalTable: "Tenants",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Restrict);
                 table.ForeignKey(
                     name: "FK_Comments_Users_UserId",
-                    column: x => x.UserId,
+                    column: static x => x.UserId,
                     principalTable: "Users",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Restrict);
@@ -405,7 +405,7 @@ public partial class Init : Migration
     {
         migrationBuilder.CreateTable(
             name: "ExternalActNumbers",
-            columns: table => new
+            columns: static table => new
             {
                 Id = table.Column<Guid>(type: "uuid", nullable: false),
                 TenantId = table.Column<Guid>(type: "uuid", nullable: false),
@@ -416,30 +416,30 @@ public partial class Init : Migration
                 Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                 Updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
             },
-            constraints: table =>
+            constraints: static table =>
             {
-                table.PrimaryKey("PK_ExternalActNumbers", x => x.Id);
+                table.PrimaryKey("PK_ExternalActNumbers", static x => x.Id);
                 table.ForeignKey(
                     name: "FK_ExternalActNumbers_Acts_ActId",
-                    column: x => x.ActId,
+                    column: static x => x.ActId,
                     principalTable: "Acts",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Cascade);
                 table.ForeignKey(
                     name: "FK_ExternalActNumbers_Contacts_AssignedByContactId",
-                    column: x => x.AssignedByContactId,
+                    column: static x => x.AssignedByContactId,
                     principalTable: "Contacts",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Restrict);
                 table.ForeignKey(
                     name: "FK_ExternalActNumbers_Tenants_TenantId",
-                    column: x => x.TenantId,
+                    column: static x => x.TenantId,
                     principalTable: "Tenants",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Restrict);
                 table.ForeignKey(
                     name: "FK_ExternalActNumbers_Users_UserId",
-                    column: x => x.UserId,
+                    column: static x => x.UserId,
                     principalTable: "Users",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Restrict);
@@ -450,7 +450,7 @@ public partial class Init : Migration
     {
         migrationBuilder.CreateTable(
             name: "FileAssets",
-            columns: table => new
+            columns: static table => new
             {
                 Id = table.Column<Guid>(type: "uuid", nullable: false),
                 TenantId = table.Column<Guid>(type: "uuid", nullable: false),
@@ -464,31 +464,31 @@ public partial class Init : Migration
                 Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                 Updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
             },
-            constraints: table =>
+            constraints: static table =>
             {
-                table.PrimaryKey("PK_FileAssets", x => x.Id);
+                table.PrimaryKey("PK_FileAssets", static x => x.Id);
                 table.CheckConstraint("CK_FileAssets_OnACaseOrAnAct", "(\"CaseId\" IS NULL) <> (\"ActId\" IS NULL)");
                 table.ForeignKey(
                     name: "FK_FileAssets_Acts_ActId",
-                    column: x => x.ActId,
+                    column: static x => x.ActId,
                     principalTable: "Acts",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Cascade);
                 table.ForeignKey(
                     name: "FK_FileAssets_Cases_CaseId",
-                    column: x => x.CaseId,
+                    column: static x => x.CaseId,
                     principalTable: "Cases",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Cascade);
                 table.ForeignKey(
                     name: "FK_FileAssets_Tenants_TenantId",
-                    column: x => x.TenantId,
+                    column: static x => x.TenantId,
                     principalTable: "Tenants",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Restrict);
                 table.ForeignKey(
                     name: "FK_FileAssets_Users_UserId",
-                    column: x => x.UserId,
+                    column: static x => x.UserId,
                     principalTable: "Users",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Restrict);

@@ -17,7 +17,7 @@ internal static class CaseDetailQuery
     {
         return cases
             .WithId(caseId)
-            .Select(@case => new CaseDetail
+            .Select(static @case => new CaseDetail
             {
                 CaseId = @case.Id,
                 CaseNumber = @case.CaseNumber,

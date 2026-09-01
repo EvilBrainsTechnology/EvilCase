@@ -66,11 +66,11 @@ public class ActNumberFormatTests
     {
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(() => ActNumberFormat.Parse("EC/20260807-001/20260812-1"), Throws.TypeOf<FormatException>(), "a sequence under three digits is outside the format");
-            Assert.That(() => ActNumberFormat.Parse("EC/20260807-001/20260812-0001"), Throws.TypeOf<FormatException>(), "a padded sequence does not read back to itself");
-            Assert.That(() => ActNumberFormat.Parse("spis 7/2026"), Throws.TypeOf<FormatException>(), "a hand-written case number alone has no act tail");
-            Assert.That(() => ActNumberFormat.Parse("EC/20260807-001/20261312-001"), Throws.TypeOf<FormatException>(), "month 13 is not a day");
-            Assert.That(() => ActNumberFormat.Parse(""), Throws.TypeOf<FormatException>(), "an empty value is not an act number");
+            Assert.That(static () => ActNumberFormat.Parse("EC/20260807-001/20260812-1"), Throws.TypeOf<FormatException>(), "a sequence under three digits is outside the format");
+            Assert.That(static () => ActNumberFormat.Parse("EC/20260807-001/20260812-0001"), Throws.TypeOf<FormatException>(), "a padded sequence does not read back to itself");
+            Assert.That(static () => ActNumberFormat.Parse("spis 7/2026"), Throws.TypeOf<FormatException>(), "a hand-written case number alone has no act tail");
+            Assert.That(static () => ActNumberFormat.Parse("EC/20260807-001/20261312-001"), Throws.TypeOf<FormatException>(), "month 13 is not a day");
+            Assert.That(static () => ActNumberFormat.Parse(""), Throws.TypeOf<FormatException>(), "an empty value is not an act number");
         }
     }
 

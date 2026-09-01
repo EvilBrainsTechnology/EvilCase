@@ -88,7 +88,7 @@ public class DatabaseTimestampTests
 
         await context.Accounts
             .Where(a => a.Id == account.Id)
-            .ExecuteUpdateAsync(setters => setters.SetProperty(a => a.Name, "renamed"));
+            .ExecuteUpdateAsync(static setters => setters.SetProperty(static a => a.Name, "renamed"));
 
         await using var reader = TestDatabase.CreateMigrated();
         var persisted = await reader.Accounts.AsNoTracking().SingleAsync(a => a.Id == account.Id);
@@ -106,8 +106,8 @@ public class DatabaseTimestampTests
         await using var context = TestDatabase.CreateMigrated();
 
         var stamped = context.Model.GetEntityTypes()
-            .Where(entityType => typeof(IEntity).IsAssignableFrom(entityType.ClrType))
-            .Select(entityType => entityType.GetTableName())
+            .Where(static entityType => typeof(IEntity).IsAssignableFrom(entityType.ClrType))
+            .Select(static entityType => entityType.GetTableName())
             .Distinct(StringComparer.Ordinal)
             .ToList();
 

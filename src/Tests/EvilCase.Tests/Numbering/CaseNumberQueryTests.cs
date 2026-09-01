@@ -55,7 +55,7 @@ public class CaseNumberQueryTests : TenantFixture
         var numbers = await this.Tenant.Context.Cases
             .WithNumberPrefix(CaseNumberFormat.Prefix(Day))
             .OrderByNumberDescending()
-            .Select(@case => @case.CaseNumber)
+            .Select(static @case => @case.CaseNumber)
             .ToListAsync();
 
         string[] expected = [CaseNumberFormat.Compose(Day, 1000), CaseNumberFormat.Compose(Day, 999), CaseNumberFormat.Compose(Day, 998)];
@@ -97,7 +97,7 @@ public class CaseNumberQueryTests : TenantFixture
         using (Assert.EnterMultipleScope())
         {
             Assert.That(byFirst, Is.Empty, "a case does not hold its own number against itself");
-            Assert.That(bySecond.Select(@case => @case.Id), Is.EqualTo([second.Id]));
+            Assert.That(bySecond.Select(static @case => @case.Id), Is.EqualTo([second.Id]));
         }
     }
 
@@ -105,7 +105,7 @@ public class CaseNumberQueryTests : TenantFixture
     {
         return await this.Tenant.Context.Cases
             .WithNumberPrefix(prefix)
-            .Select(@case => @case.CaseNumber)
+            .Select(static @case => @case.CaseNumber)
             .ToListAsync();
     }
 }

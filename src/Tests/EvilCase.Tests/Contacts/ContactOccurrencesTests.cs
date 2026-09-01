@@ -20,7 +20,7 @@ public class ContactOccurrencesTests
 
         Guid[] expected = [newest.ActId, middle.ActId, oldest.ActId];
 
-        Assert.That(order.Select(occurrence => occurrence.ActId), Is.EqualTo(expected));
+        Assert.That(order.Select(static occurrence => occurrence.ActId), Is.EqualTo(expected));
     }
 
     [Test]
@@ -33,7 +33,7 @@ public class ContactOccurrencesTests
 
         Guid[] expected = [higher.ActId, lower.ActId];
 
-        Assert.That(order.Select(occurrence => occurrence.ActId), Is.EqualTo(expected), "the act number runs from the back, same as the case number");
+        Assert.That(order.Select(static occurrence => occurrence.ActId), Is.EqualTo(expected), "the act number runs from the back, same as the case number");
     }
 
     [Test]
@@ -47,7 +47,7 @@ public class ContactOccurrencesTests
 
         Guid[] expected = [pastAThousand.ActId, high.ActId, low.ActId];
 
-        Assert.That(order.Select(occurrence => occurrence.ActId), Is.EqualTo(expected), "the number's length decides before its text, so a sequence that grew a digit follows the one below it");
+        Assert.That(order.Select(static occurrence => occurrence.ActId), Is.EqualTo(expected), "the number's length decides before its text, so a sequence that grew a digit follows the one below it");
     }
 
     [Test]
@@ -65,7 +65,7 @@ public class ContactOccurrencesTests
 
             ContactActRole[] expectedRoles = [ContactActRole.IssuedBy, ContactActRole.AddressedTo];
 
-            Assert.That(order.Select(occurrence => occurrence.Role), Is.EquivalentTo(expectedRoles));
+            Assert.That(order.Select(static occurrence => occurrence.Role), Is.EquivalentTo(expectedRoles));
         }
     }
 

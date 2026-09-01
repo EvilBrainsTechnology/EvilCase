@@ -60,7 +60,7 @@ public class ContactDeleteTests
 
         Assert.That(
             async () => await context.SaveChangesAsync(),
-            Throws.InstanceOf<DbUpdateException>().With.Matches<DbUpdateException>(exception => exception.IsForeignKeyViolation()),
+            Throws.InstanceOf<DbUpdateException>().With.Matches<DbUpdateException>(static exception => exception.IsForeignKeyViolation()),
             "the write PostgreSQL refuses for a foreign key is read as a foreign-key violation");
     }
 

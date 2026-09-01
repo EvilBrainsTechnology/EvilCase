@@ -103,7 +103,7 @@ internal sealed class CommentWriter(IDbSession dbSession, IUserContext userConte
 
         var rows = await comments
             .Where(comment => comment.UserId == userId)
-            .ExecuteUpdateAsync(setters => setters.SetProperty(comment => comment.Body, body), token);
+            .ExecuteUpdateAsync(setters => setters.SetProperty(static comment => comment.Body, body), token);
 
         return rows == 0 ? CommentWriteOutcome.NotFound : CommentWriteOutcome.Written;
     }
@@ -130,7 +130,7 @@ internal sealed class CommentWriter(IDbSession dbSession, IUserContext userConte
     private static async Task<CommentWriteOutcome> Authorize(IQueryable<Comment> comments, Guid userId, CancellationToken token)
     {
         var authorId = await comments
-            .Select(comment => (Guid?)comment.UserId)
+            .Select(static comment => (Guid?)comment.UserId)
             .SingleOrDefaultAsync(token);
 
         if (authorId is null)

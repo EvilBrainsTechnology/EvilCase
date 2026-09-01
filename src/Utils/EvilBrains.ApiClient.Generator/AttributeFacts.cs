@@ -26,7 +26,7 @@ internal static class AttributeFacts
 
     public static AttributeSyntax? Find(in SyntaxList<AttributeListSyntax> lists, string name)
     {
-        return lists.SelectMany(x => x.Attributes).FirstOrDefault(x => string.Equals(GetName(x), name, StringComparison.Ordinal));
+        return lists.SelectMany(static x => x.Attributes).FirstOrDefault(x => string.Equals(GetName(x), name, StringComparison.Ordinal));
     }
 
     public static bool Has(in SyntaxList<AttributeListSyntax> lists, string name)
@@ -36,7 +36,7 @@ internal static class AttributeFacts
 
     public static string? GetTemplateArgument(AttributeSyntax attribute, SemanticModel semanticModel)
     {
-        var argument = attribute.ArgumentList?.Arguments.FirstOrDefault(x =>
+        var argument = attribute.ArgumentList?.Arguments.FirstOrDefault(static x =>
             x.NameEquals is null && (x.NameColon is null || string.Equals(x.NameColon.Name.Identifier.Text, "template", StringComparison.Ordinal)));
         if (argument is null)
             return null;
@@ -46,7 +46,7 @@ internal static class AttributeFacts
 
     public static string? GetNameArgument(AttributeSyntax attribute)
     {
-        var argument = attribute.ArgumentList?.Arguments.FirstOrDefault(x => string.Equals(x.NameEquals?.Name.Identifier.Text, "Name", StringComparison.Ordinal));
+        var argument = attribute.ArgumentList?.Arguments.FirstOrDefault(static x => string.Equals(x.NameEquals?.Name.Identifier.Text, "Name", StringComparison.Ordinal));
 
         return argument?.Expression is LiteralExpressionSyntax { Token.Value: string value } ? value : null;
     }

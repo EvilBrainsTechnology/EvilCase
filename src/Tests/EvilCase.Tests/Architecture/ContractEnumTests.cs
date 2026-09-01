@@ -34,9 +34,9 @@ public class ContractEnumTests
         [
             .. typeof(Api.Contract.Cases.CaseListItem).Assembly
                 .GetExportedTypes()
-                .SelectMany(type => type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
-                .SelectMany(property => Unwrap(property.PropertyType))
-                .Where(type => type.IsEnum)
+                .SelectMany(static type => type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+                .SelectMany(static property => Unwrap(property.PropertyType))
+                .Where(static type => type.IsEnum)
                 .Distinct(),
         ];
     }

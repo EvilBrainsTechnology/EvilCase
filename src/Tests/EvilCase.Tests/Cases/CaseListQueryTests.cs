@@ -77,7 +77,7 @@ public class CaseListQueryTests : TenantFixture
         var written = await this.Tenant.AddCase(new DateOnly(2026, 8, 22), "Zapsáno dřív", caseId: caseIds[1]);
         var writtenLater = await this.Tenant.AddCase(new DateOnly(2026, 8, 22), "Zapsáno později", caseId: caseIds[0]);
 
-        var ordered = await this.Tenant.Context.Cases.InListOrder().Select(@case => @case.Id).ToListAsync();
+        var ordered = await this.Tenant.Context.Cases.InListOrder().Select(static @case => @case.Id).ToListAsync();
 
         Guid[] expected = [writtenLater.Id, written.Id, older.Id];
 
@@ -120,7 +120,7 @@ public class CaseListQueryTests : TenantFixture
             .WithStatus(CaseStatusFilter.Closed)
             .InListOrder()
             .AsListItems()
-            .Select(item => item.CaseId)
+            .Select(static item => item.CaseId)
             .ToListAsync();
 
         Guid[] expected = [wanted.Id];
@@ -161,7 +161,7 @@ public class CaseListQueryTests : TenantFixture
             .WithStatus(CaseStatusFilter.All)
             .InListOrder()
             .AsListItems()
-            .Select(item => item.CaseId)
+            .Select(static item => item.CaseId)
             .ToListAsync();
 
         Guid[] expected = [mine.Id];
@@ -211,11 +211,11 @@ public class CaseListQueryTests : TenantFixture
         var c = await this.Tenant.AddCase(Day, "C");
 
         await this.Tenant.Context.Cases.Where(@case => @case.Id == a.Id)
-            .ExecuteUpdateAsync(setters => setters.SetProperty(@case => @case.Title, "A upravené"));
+            .ExecuteUpdateAsync(static setters => setters.SetProperty(static @case => @case.Title, "A upravené"));
         await this.Tenant.Context.Cases.Where(@case => @case.Id == b.Id)
-            .ExecuteUpdateAsync(setters => setters.SetProperty(@case => @case.Title, "B upravené"));
+            .ExecuteUpdateAsync(static setters => setters.SetProperty(static @case => @case.Title, "B upravené"));
 
-        var ids = await this.Tenant.Context.Cases.InChangeOrder().Select(@case => @case.Id).ToListAsync();
+        var ids = await this.Tenant.Context.Cases.InChangeOrder().Select(static @case => @case.Id).ToListAsync();
 
         Guid[] expected = [b.Id, a.Id, c.Id];
 
@@ -232,10 +232,10 @@ public class CaseListQueryTests : TenantFixture
         Assert.That(beforeEdit.Changed, Is.EqualTo(seeded.Created), "a row shows the case's own last change, its Created while it has never been edited");
 
         await this.Tenant.Context.Cases.Where(@case => @case.Id == seeded.Id)
-            .ExecuteUpdateAsync(setters => setters.SetProperty(@case => @case.Title, "Přestupek upravený"));
+            .ExecuteUpdateAsync(static setters => setters.SetProperty(static @case => @case.Title, "Přestupek upravený"));
 
         var afterEdit = await this.Tenant.Context.Cases.AsListItems().SingleAsync();
-        var updated = await this.Tenant.Context.Cases.WithId(seeded.Id).Select(@case => @case.Updated).SingleAsync();
+        var updated = await this.Tenant.Context.Cases.WithId(seeded.Id).Select(static @case => @case.Updated).SingleAsync();
 
         Assert.That(afterEdit.Changed, Is.EqualTo(updated), "a row shows the case's own last change, its Updated once it has been edited");
     }
@@ -248,9 +248,9 @@ public class CaseListQueryTests : TenantFixture
         for (var day = 15; day <= 21; day++)
             cases.Add(await this.Tenant.AddCase(new DateOnly(2026, 8, day), $"Případ {day.ToString(CultureInfo.InvariantCulture)}"));
 
-        var ids = await this.Tenant.Context.Cases.InListOrder().TakeAtMost(5).Select(@case => @case.Id).ToListAsync();
+        var ids = await this.Tenant.Context.Cases.InListOrder().TakeAtMost(5).Select(static @case => @case.Id).ToListAsync();
 
-        var expected = cases.TakeLast(5).Reverse().Select(@case => @case.Id);
+        var expected = cases.TakeLast(5).Reverse().Select(static @case => @case.Id);
 
         Assert.That(ids, Is.EqualTo(expected), "the dashboard tile's five is a cap the database applies");
     }
@@ -262,7 +262,7 @@ public class CaseListQueryTests : TenantFixture
         var newer = await this.Tenant.AddCase(new DateOnly(2026, 8, 26), "Novější");
 
         await this.Tenant.Context.Cases.Where(@case => @case.Id == older.Id)
-            .ExecuteUpdateAsync(setters => setters.SetProperty(@case => @case.Title, "Starší upravený"));
+            .ExecuteUpdateAsync(static setters => setters.SetProperty(static @case => @case.Title, "Starší upravený"));
 
         var reader = new CaseReader(new FixedDbSession(this.Tenant.Context));
 
@@ -274,8 +274,8 @@ public class CaseListQueryTests : TenantFixture
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(byDate.Select(item => item.CaseId), Is.EqualTo(byDateExpected), "the case's own date orders the list until the request asks for another order");
-            Assert.That(byChange.Select(item => item.CaseId), Is.EqualTo(byChangeExpected), "the requested order is the one the list comes back in");
+            Assert.That(byDate.Select(static item => item.CaseId), Is.EqualTo(byDateExpected), "the case's own date orders the list until the request asks for another order");
+            Assert.That(byChange.Select(static item => item.CaseId), Is.EqualTo(byChangeExpected), "the requested order is the one the list comes back in");
         }
     }
 
@@ -301,12 +301,12 @@ public class CaseListQueryTests : TenantFixture
     {
         return await this.Tenant.Context.Cases
             .MatchingSearch(search)
-            .Select(@case => @case.Title)
+            .Select(static @case => @case.Title)
             .ToListAsync();
     }
 
     private async Task<List<Guid>> IdsWithStatus(CaseStatusFilter filter)
     {
-        return await this.Tenant.Context.Cases.WithStatus(filter).Select(@case => @case.Id).ToListAsync();
+        return await this.Tenant.Context.Cases.WithStatus(filter).Select(static @case => @case.Id).ToListAsync();
     }
 }

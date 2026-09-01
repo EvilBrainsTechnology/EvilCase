@@ -31,7 +31,7 @@ public class FileListQueryTests : TenantFixture
 
         var items = await this.reader.ListCaseFiles(@case.Id, CancellationToken.None);
 
-        Assert.That(items!.Select(item => item.FileName), Is.EqualTo(["prvni.txt", "druhy.txt", "treti.txt"]), "the files of a case come back oldest first");
+        Assert.That(items!.Select(static item => item.FileName), Is.EqualTo(["prvni.txt", "druhy.txt", "treti.txt"]), "the files of a case come back oldest first");
     }
 
     [Test]
@@ -45,7 +45,7 @@ public class FileListQueryTests : TenantFixture
 
         var items = await this.reader.ListCaseFiles(caseA.Id, CancellationToken.None);
 
-        Assert.That(items!.Select(item => item.FileName), Is.EqualTo(["a.txt"]), "a file of another case must not be listed");
+        Assert.That(items!.Select(static item => item.FileName), Is.EqualTo(["a.txt"]), "a file of another case must not be listed");
     }
 
     [Test]
@@ -68,7 +68,7 @@ public class FileListQueryTests : TenantFixture
 
         var items = await this.reader.ListActFiles(@case.Id, act.Id, CancellationToken.None);
 
-        Assert.That(items!.Select(item => item.FileName), Is.EqualTo(["prvni.txt", "druhy.txt", "treti.txt"]), "the files of an act come back oldest first");
+        Assert.That(items!.Select(static item => item.FileName), Is.EqualTo(["prvni.txt", "druhy.txt", "treti.txt"]), "the files of an act come back oldest first");
     }
 
     [Test]
@@ -85,8 +85,8 @@ public class FileListQueryTests : TenantFixture
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(actItems!.Select(item => item.FileName), Is.EqualTo(["ukon.txt"]), "the act's list never shows a file of its case");
-            Assert.That(caseItems!.Select(item => item.FileName), Is.EqualTo(["spis.txt"]), "the case's list never shows a file of its act");
+            Assert.That(actItems!.Select(static item => item.FileName), Is.EqualTo(["ukon.txt"]), "the act's list never shows a file of its case");
+            Assert.That(caseItems!.Select(static item => item.FileName), Is.EqualTo(["spis.txt"]), "the case's list never shows a file of its act");
         }
     }
 
@@ -102,7 +102,7 @@ public class FileListQueryTests : TenantFixture
 
         var items = await this.reader.ListActFiles(@case.Id, actA.Id, CancellationToken.None);
 
-        Assert.That(items!.Select(item => item.FileName), Is.EqualTo(["a.txt"]), "a file of another act must not be listed");
+        Assert.That(items!.Select(static item => item.FileName), Is.EqualTo(["a.txt"]), "a file of another act must not be listed");
     }
 
     [Test]

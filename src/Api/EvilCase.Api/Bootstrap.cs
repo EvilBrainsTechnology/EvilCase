@@ -50,9 +50,9 @@ public static class Bootstrap
         // Backs the 404 fallback below; [ApiController] builds its own responses through ProblemDetailsFactory.
         services.AddProblemDetails();
 
-        services.AddOpenApi(options =>
+        services.AddOpenApi(static options =>
         {
-            options.AddDocumentTransformer((document, _, _) =>
+            options.AddDocumentTransformer(static (document, _, _) =>
             {
                 document.Info.Title = "EvilCase API";
                 return Task.CompletedTask;
@@ -84,7 +84,7 @@ public static class Bootstrap
         // Liveness runs no check: the process answering is the signal. A database check here would
         // restart every instance at once on a brief outage.
         endpoints
-            .MapHealthChecks(HealthCheckPaths.Live, new HealthCheckOptions { Predicate = _ => false })
+            .MapHealthChecks(HealthCheckPaths.Live, new HealthCheckOptions { Predicate = static _ => false })
             .AllowAnonymous();
 
         endpoints
@@ -92,7 +92,7 @@ public static class Bootstrap
                 HealthCheckPaths.Ready,
                 new HealthCheckOptions
                 {
-                    Predicate = check => check.Tags.Contains(HealthCheckTags.Ready),
+                    Predicate = static check => check.Tags.Contains(HealthCheckTags.Ready),
                     ResponseWriter = HealthCheckResponseWriter.Write,
 
                     // Degraded is 200 by default, which would keep an instance in rotation on a partial failure.

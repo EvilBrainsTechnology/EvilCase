@@ -17,7 +17,7 @@ public static class Bootstrap
     {
         services
             .AddOptions<AuthSettings>()
-            .BindConfiguration("EvilBrains:EvilCase:Auth", options => options.ErrorOnUnknownConfiguration = true)
+            .BindConfiguration("EvilBrains:EvilCase:Auth", static options => options.ErrorOnUnknownConfiguration = true)
             .ValidateOnStart();
 
         services.AddSingleton<IValidateOptions<AuthSettings>, AuthSettingsValidator>();
@@ -38,7 +38,7 @@ public static class Bootstrap
         // the validated settings are the only ones the scheme can be built from.
         services
             .AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
-            .Configure<IOptions<AuthSettings>>((options, authSettings) =>
+            .Configure<IOptions<AuthSettings>>(static (options, authSettings) =>
             {
                 var jwt = authSettings.Value.Jwt;
 

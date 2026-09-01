@@ -21,7 +21,7 @@ public abstract class ModelFixture
 
     protected static List<string> ColumnsOf(IReadOnlyEntityType? entityType)
     {
-        return entityType?.GetProperties().Select(property => property.GetColumnName()).ToList() ?? [];
+        return entityType?.GetProperties().Select(static property => property.GetColumnName()).ToList() ?? [];
     }
 
     protected static List<string> Naming(IEnumerable<string> names, string word)
@@ -31,7 +31,7 @@ public abstract class ModelFixture
 
     protected static IReadOnlyForeignKey? ForeignKeyTo<TPrincipal>(IReadOnlyEntityType entityType)
     {
-        return entityType.GetForeignKeys().SingleOrDefault(key => key.PrincipalEntityType.ClrType == typeof(TPrincipal));
+        return entityType.GetForeignKeys().SingleOrDefault(static key => key.PrincipalEntityType.ClrType == typeof(TPrincipal));
     }
 
     protected static bool IsIndexed(IReadOnlyEntityType entityType, string propertyName)

@@ -31,7 +31,7 @@ public class MigrationsTests
                 var columns = migrated.GetValueOrDefault(table.Name) ?? [];
 
                 Assert.That(migrated.Keys, Does.Contain(table.Name), $"no migration creates {table.Name}");
-                Assert.That(columns, Is.SupersetOf(table.Columns.Select(column => column.Name)), $"the migrations leave {table.Name} without every column the model maps");
+                Assert.That(columns, Is.SupersetOf(table.Columns.Select(static column => column.Name)), $"the migrations leave {table.Name} without every column the model maps");
             }
         }
     }
@@ -43,12 +43,12 @@ public class MigrationsTests
 
         var created = context.GetService<IMigrationsAssembly>().Migrations
             .Select(entry => context.GetService<IMigrationsAssembly>().CreateMigration(entry.Value, context.GetService<IDatabaseProvider>().Name))
-            .SelectMany(migration => migration.UpOperations)
+            .SelectMany(static migration => migration.UpOperations)
             .OfType<CreateIndexOperation>()
-            .Select(operation => operation.Name)
+            .Select(static operation => operation.Name)
             .ToList();
 
-        var mapped = context.Model.GetRelationalModel().Tables.SelectMany(table => table.Indexes).Select(index => index.Name).ToList();
+        var mapped = context.Model.GetRelationalModel().Tables.SelectMany(static table => table.Indexes).Select(static index => index.Name).ToList();
 
         using (Assert.EnterMultipleScope())
         {
@@ -73,7 +73,7 @@ public class MigrationsTests
 
         var operations = assembly.Migrations
             .Select(entry => assembly.CreateMigration(entry.Value, provider))
-            .SelectMany(migration => migration.UpOperations);
+            .SelectMany(static migration => migration.UpOperations);
 
         foreach (var operation in operations)
             Apply(tables, operation);
@@ -84,7 +84,7 @@ public class MigrationsTests
     private static void Apply(Dictionary<string, HashSet<string>> tables, MigrationOperation operation)
     {
         if (operation is CreateTableOperation create)
-            tables[create.Name] = new HashSet<string>(create.Columns.Select(column => column.Name), StringComparer.Ordinal);
+            tables[create.Name] = new HashSet<string>(create.Columns.Select(static column => column.Name), StringComparer.Ordinal);
         else if (operation is AddColumnOperation add)
             tables[add.Table].Add(add.Name);
         else if (operation is DropColumnOperation dropColumn)

@@ -27,7 +27,7 @@ public class TenantIsolationTests : ModelFixture
     [Test]
     public void EveryUserOwnedEntityCarriesItsUser()
     {
-        var userOwnedEntities = Model.GetEntityTypes().Where(type => typeof(IUserOwnedEntity).IsAssignableFrom(type.ClrType)).ToList();
+        var userOwnedEntities = Model.GetEntityTypes().Where(static type => typeof(IUserOwnedEntity).IsAssignableFrom(type.ClrType)).ToList();
 
         Assert.That(userOwnedEntities, Is.Not.Empty);
 
@@ -85,7 +85,7 @@ public class TenantIsolationTests : ModelFixture
         {
             foreach (var entityType in tenantEntities)
             {
-                foreach (var index in entityType.GetIndexes().Where(index => index.IsUnique))
+                foreach (var index in entityType.GetIndexes().Where(static index => index.IsUnique))
                 {
                     Assert.That(
                         index.Properties[0].Name,
@@ -100,8 +100,8 @@ public class TenantIsolationTests : ModelFixture
     public void TheOnlyRowsOutsideATenantAreAccountsTenantsAndTokens()
     {
         var untenanted = Model.GetEntityTypes()
-            .Where(entityType => !typeof(ITenantEntity).IsAssignableFrom(entityType.ClrType))
-            .Select(entityType => entityType.ShortName())
+            .Where(static entityType => !typeof(ITenantEntity).IsAssignableFrom(entityType.ClrType))
+            .Select(static entityType => entityType.ShortName())
             .ToList();
 
         Assert.That(
@@ -121,18 +121,18 @@ public class TenantIsolationTests : ModelFixture
 
         Assert.That(user, Is.Not.Null);
 
-        var email = user.GetIndexes().Single(index => index.IsUnique);
+        var email = user.GetIndexes().Single(static index => index.IsUnique);
 
-        Assert.That(email.Properties.Select(property => property.Name), Is.EqualTo([nameof(User.Email)]));
+        Assert.That(email.Properties.Select(static property => property.Name), Is.EqualTo([nameof(User.Email)]));
     }
 
     private static List<IReadOnlyEntityType> TenantEntities()
     {
-        return [.. Model.GetEntityTypes().Where(type => typeof(ITenantEntity).IsAssignableFrom(type.ClrType))];
+        return [.. Model.GetEntityTypes().Where(static type => typeof(ITenantEntity).IsAssignableFrom(type.ClrType))];
     }
 
     private static List<IReadOnlyEntityType> TenantScopedEntities()
     {
-        return [.. TenantEntities().Where(type => type.ClrType != typeof(User))];
+        return [.. TenantEntities().Where(static type => type.ClrType != typeof(User))];
     }
 }

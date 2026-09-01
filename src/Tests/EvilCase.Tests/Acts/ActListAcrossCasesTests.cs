@@ -28,7 +28,7 @@ public class ActListAcrossCasesTests : TenantFixture
         Guid[] expected = [newest.Id, middle.Id, oldest.Id];
 
         Assert.That(
-            items.Select(item => item.ActId),
+            items.Select(static item => item.ActId),
             Is.EqualTo(expected),
             "the act list crosses cases and puts the newest act date first");
     }
@@ -52,7 +52,7 @@ public class ActListAcrossCasesTests : TenantFixture
         Guid[] expected = [mine.Id];
 
         Assert.That(
-            items.Select(item => item.ActId),
+            items.Select(static item => item.ActId),
             Is.EqualTo(expected),
             "the tenant query filter is what keeps another tenant's acts out of the act list");
     }
@@ -70,10 +70,10 @@ public class ActListAcrossCasesTests : TenantFixture
 
         var items = await reader.ListActs(new ActListRequest { Take = 5 }, CancellationToken.None);
 
-        var expected = acts.TakeLast(5).Reverse().Select(act => act.Id);
+        var expected = acts.TakeLast(5).Reverse().Select(static act => act.Id);
 
         Assert.That(
-            items.Select(item => item.ActId),
+            items.Select(static item => item.ActId),
             Is.EqualTo(expected),
             "the dashboard tile's five is a cap the database applies, not a slice the caller takes");
     }

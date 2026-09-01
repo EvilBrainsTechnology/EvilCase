@@ -52,8 +52,8 @@ public class SampleDataSeedDatabaseTests
             using (Assert.EnterMultipleScope())
             {
                 Assert.That(cases, Has.Count.EqualTo(17), "the seed writes the main case and its sixteen sub-cases into a real database");
-                Assert.That(cases.Count(@case => @case.ParentCaseId is null), Is.EqualTo(1), "exactly one case has no parent");
-                Assert.That(cases.Select(@case => @case.CaseNumber).Distinct().Count(), Is.EqualTo(17), "the issuer gives every seeded case its own number");
+                Assert.That(cases.Count(static @case => @case.ParentCaseId is null), Is.EqualTo(1), "exactly one case has no parent");
+                Assert.That(cases.Select(static @case => @case.CaseNumber).Distinct().Count(), Is.EqualTo(17), "the issuer gives every seeded case its own number");
                 Assert.That(cases.TrueForAll(@case => @case.TenantId == tenantId), Is.True, "the write stamps the seeded tenant, which the seed itself never names");
                 Assert.That(cases.TrueForAll(@case => @case.UserId == userId), Is.True, "the write stamps the seeding user, which the seed itself never names");
                 Assert.That(actCount, Is.EqualTo(55), "23 main-case acts plus two on each of the sixteen sub-cases");

@@ -43,8 +43,8 @@ public class NullIfEmptyTests
 
             Assert.That(Enumerable.From(1, 2, 3).NullIfEmpty(), Is.EqualTo(Enumerable.From(1, 2, 3)));
 
-            Assert.Throws<InvalidOperationException>(() => FailAfter(0).NullIfEmpty());
-            Assert.DoesNotThrow(() => FailAfter(1).NullIfEmpty());
+            Assert.Throws<InvalidOperationException>(static () => FailAfter(0).NullIfEmpty());
+            Assert.DoesNotThrow(static () => FailAfter(1).NullIfEmpty());
         }
     }
 

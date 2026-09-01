@@ -20,7 +20,7 @@ public class DbSetAccessAnalyzerTests
             }
             """);
 
-        Assert.That(diagnostics.Select(x => x.Id), Is.EqualTo(["EB0009"]), "an entity must be reached through its typed DbSet");
+        Assert.That(diagnostics.Select(static x => x.Id), Is.EqualTo(["EB0009"]), "an entity must be reached through its typed DbSet");
     }
 
     [Test]
@@ -36,7 +36,7 @@ public class DbSetAccessAnalyzerTests
             }
             """);
 
-        Assert.That(diagnostics.Select(x => x.Id), Is.EqualTo(["EB0009"]), "the named overload is Set<TEntity>() all the same");
+        Assert.That(diagnostics.Select(static x => x.Id), Is.EqualTo(["EB0009"]), "the named overload is Set<TEntity>() all the same");
     }
 
     [Test]
@@ -56,7 +56,7 @@ public class DbSetAccessAnalyzerTests
             }
             """);
 
-        Assert.That(diagnostics.Select(x => x.Id), Is.EqualTo(["EB0009"]), "a derived context does not exempt the caller from the typed DbSet");
+        Assert.That(diagnostics.Select(static x => x.Id), Is.EqualTo(["EB0009"]), "a derived context does not exempt the caller from the typed DbSet");
     }
 
     [Test]

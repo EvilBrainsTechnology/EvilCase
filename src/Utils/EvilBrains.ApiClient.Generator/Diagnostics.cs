@@ -83,7 +83,7 @@ internal static class Diagnostics
             DuplicateClientName,
         };
 
-        return descriptors.ToDictionary(x => x.Id, StringComparer.Ordinal);
+        return descriptors.ToDictionary(static x => x.Id, StringComparer.Ordinal);
     }
 
     private static DiagnosticDescriptor Descriptor(string id, string title, string messageFormat)

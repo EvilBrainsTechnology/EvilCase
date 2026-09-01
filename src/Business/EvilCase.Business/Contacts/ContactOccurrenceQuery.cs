@@ -17,15 +17,15 @@ internal static class ContactOccurrenceQuery
     public static IQueryable<ExternalCaseNumber> InCaseOccurrenceOrder(this IQueryable<ExternalCaseNumber> numbers)
     {
         return numbers
-            .OrderByDescending(number => number.Case!.Date)
-            .ThenByDescending(number => number.Case!.CaseNumber.Length)
-            .ThenByDescending(number => number.Case!.CaseNumber)
-            .ThenBy(number => number.Value);
+            .OrderByDescending(static number => number.Case!.Date)
+            .ThenByDescending(static number => number.Case!.CaseNumber.Length)
+            .ThenByDescending(static number => number.Case!.CaseNumber)
+            .ThenBy(static number => number.Value);
     }
 
     public static IQueryable<ContactCaseOccurrence> AsCaseOccurrences(this IQueryable<ExternalCaseNumber> numbers)
     {
-        return numbers.Select(number => new ContactCaseOccurrence
+        return numbers.Select(static number => new ContactCaseOccurrence
         {
             CaseId = number.CaseId,
             CaseNumber = number.Case!.CaseNumber,

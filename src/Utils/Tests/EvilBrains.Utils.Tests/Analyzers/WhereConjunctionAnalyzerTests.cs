@@ -17,7 +17,7 @@ public class WhereConjunctionAnalyzerTests
             }
             """);
 
-        Assert.That(diagnostics.Select(x => x.Id), Is.EqualTo(["EB0010"]), "consecutive Where calls are the form, not '&&'");
+        Assert.That(diagnostics.Select(static x => x.Id), Is.EqualTo(["EB0010"]), "consecutive Where calls are the form, not '&&'");
     }
 
     [Test]
@@ -30,7 +30,7 @@ public class WhereConjunctionAnalyzerTests
             }
             """);
 
-        Assert.That(diagnostics.Select(x => x.Id), Is.EqualTo(["EB0010"]), "one Where with '&&' is one finding, however many conditions it joins");
+        Assert.That(diagnostics.Select(static x => x.Id), Is.EqualTo(["EB0010"]), "one Where with '&&' is one finding, however many conditions it joins");
     }
 
     [Test]
@@ -43,7 +43,7 @@ public class WhereConjunctionAnalyzerTests
             }
             """);
 
-        Assert.That(diagnostics.Select(x => x.Id), Is.EqualTo(["EB0010"]), "parentheses around the predicate must not hide the '&&'");
+        Assert.That(diagnostics.Select(static x => x.Id), Is.EqualTo(["EB0010"]), "parentheses around the predicate must not hide the '&&'");
     }
 
     [Test]
@@ -56,7 +56,7 @@ public class WhereConjunctionAnalyzerTests
             }
             """);
 
-        Assert.That(diagnostics.Select(x => x.Id), Is.EqualTo(["EB0010"]), "a queryable Where carries the same form");
+        Assert.That(diagnostics.Select(static x => x.Id), Is.EqualTo(["EB0010"]), "a queryable Where carries the same form");
     }
 
     [Test]

@@ -51,7 +51,7 @@ public class ContactOccurrenceQueryTests : TenantFixture
         var numbers = await this.Tenant.Context.ExternalCaseNumbers
             .AssignedByContact(authority.Id)
             .AsCaseOccurrences()
-            .Select(occurrence => occurrence.ExternalNumber)
+            .Select(static occurrence => occurrence.ExternalNumber)
             .ToListAsync();
 
         string[] expected = ["MUB/2026/117"];
@@ -75,7 +75,7 @@ public class ContactOccurrenceQueryTests : TenantFixture
             .AssignedByContact(authority.Id)
             .InCaseOccurrenceOrder()
             .AsCaseOccurrences()
-            .Select(occurrence => occurrence.CaseId)
+            .Select(static occurrence => occurrence.CaseId)
             .ToListAsync();
 
         Guid[] expected = [newer.Id, grown.Id, shorter.Id];
@@ -95,7 +95,7 @@ public class ContactOccurrenceQueryTests : TenantFixture
             .AssignedByContact(authority.Id)
             .InCaseOccurrenceOrder()
             .AsCaseOccurrences()
-            .Select(occurrence => occurrence.ExternalNumber)
+            .Select(static occurrence => occurrence.ExternalNumber)
             .ToListAsync();
 
         string[] expected = ["MUB/2026/117", "MUB/2026/200"];

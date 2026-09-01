@@ -35,7 +35,7 @@ public sealed class ControllerConstructorAnalyzer : DiagnosticAnalyzer
         if (!MvcFacts.IsApiController(type))
             return;
 
-        foreach (var constructor in type.InstanceConstructors.Where(x => !x.IsImplicitlyDeclared))
+        foreach (var constructor in type.InstanceConstructors.Where(static x => !x.IsImplicitlyDeclared))
         {
             foreach (var parameter in constructor.Parameters)
                 context.ReportDiagnostic(Diagnostic.Create(NoConstructorDependencies, parameter.Locations[0], type.Name, parameter.Name));

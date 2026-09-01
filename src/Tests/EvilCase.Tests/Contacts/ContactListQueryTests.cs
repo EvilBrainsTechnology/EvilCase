@@ -79,13 +79,13 @@ public class ContactListQueryTests : TenantFixture
 
         var names = await this.Seeded()
             .InListOrder()
-            .Select(contact => contact.Name)
+            .Select(static contact => contact.Name)
             .ToListAsync();
 
         var tiedIds = await this.Seeded()
-            .Where(contact => contact.Name == "Novák")
+            .Where(static contact => contact.Name == "Novák")
             .InListOrder()
-            .Select(contact => contact.Id)
+            .Select(static contact => contact.Id)
             .ToListAsync();
 
         string[] expectedNames = ["Adam", "Novák", "Novák", "Zeman"];
@@ -135,7 +135,7 @@ public class ContactListQueryTests : TenantFixture
             .MatchingSearch(search: null)
             .InListOrder()
             .AsListItems()
-            .Select(item => item.Name)
+            .Select(static item => item.Name)
             .ToListAsync();
 
         using (Assert.EnterMultipleScope())
@@ -178,7 +178,7 @@ public class ContactListQueryTests : TenantFixture
     {
         return await this.Tenant.Context.Contacts
             .MatchingSearch(term)
-            .Select(contact => contact.Name)
+            .Select(static contact => contact.Name)
             .ToListAsync();
     }
 }

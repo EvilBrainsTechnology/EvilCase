@@ -14,13 +14,13 @@ public static class Bootstrap
         serviceCollection.AddScoped<UserWriteInterceptor>();
 
         serviceCollection.AddDbContext<ApplicationDbContext>(
-            (serviceProvider, options) =>
+            static (serviceProvider, options) =>
             {
                 var configuration = serviceProvider.GetRequiredService<IConfiguration>();
                 var connectionStringSection = configuration.GetRequiredSection("EvilBrains:EvilCase:ConnectionString");
                 var connectionString = connectionStringSection.Value ?? throw new InvalidOperationException("Connection string not found");
 
-                options.UseNpgsql(connectionString, npgsql => npgsql.UseEvilCaseMigrations());
+                options.UseNpgsql(connectionString, static npgsql => npgsql.UseEvilCaseMigrations());
                 options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
                 options.AddInterceptors(serviceProvider.GetRequiredService<UserWriteInterceptor>());
 

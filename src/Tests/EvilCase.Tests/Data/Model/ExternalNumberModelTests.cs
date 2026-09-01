@@ -39,7 +39,7 @@ public class ExternalNumberModelTests : ModelFixture
                 "a mark nobody assigned is the owner's own, and that one lives on the owner");
 
             Assert.That(
-                external.GetIndexes().Any(index => index.GetFilter() is not null),
+                external.GetIndexes().Any(static index => index.GetFilter() is not null),
                 Is.False,
                 "nothing here is conditional any more — this table is external marks and only those");
         }
@@ -71,15 +71,15 @@ public class ExternalNumberModelTests : ModelFixture
 
         Assert.That(new[] { caseNumber, actNumber }, Has.None.Null);
 
-        var caseUnique = caseNumber!.GetIndexes().SingleOrDefault(index => index.IsUnique);
-        var actUnique = actNumber!.GetIndexes().SingleOrDefault(index => index.IsUnique);
+        var caseUnique = caseNumber!.GetIndexes().SingleOrDefault(static index => index.IsUnique);
+        var actUnique = actNumber!.GetIndexes().SingleOrDefault(static index => index.IsUnique);
         string[] expectedCase = [nameof(ExternalCaseNumber.TenantId), nameof(ExternalCaseNumber.CaseId), nameof(ExternalCaseNumber.Value)];
         string[] expectedAct = [nameof(ExternalActNumber.TenantId), nameof(ExternalActNumber.ActId), nameof(ExternalActNumber.Value)];
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(caseUnique?.Properties.Select(property => property.Name), Is.EqualTo(expectedCase));
-            Assert.That(actUnique?.Properties.Select(property => property.Name), Is.EqualTo(expectedAct));
+            Assert.That(caseUnique?.Properties.Select(static property => property.Name), Is.EqualTo(expectedCase));
+            Assert.That(actUnique?.Properties.Select(static property => property.Name), Is.EqualTo(expectedAct));
         }
     }
 }

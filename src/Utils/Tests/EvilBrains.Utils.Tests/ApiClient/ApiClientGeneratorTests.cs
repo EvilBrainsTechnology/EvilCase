@@ -164,7 +164,7 @@ public class ApiClientGeneratorTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(diagnostics, Is.Empty);
-            Assert.That(output.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning), Is.Empty, "generated code must be warning-clean");
+            Assert.That(output.GetDiagnostics().Where(static x => x.Severity >= DiagnosticSeverity.Warning), Is.Empty, "generated code must be warning-clean");
             Assert.That(output.GetTypeByMetadataName("FakeApi.Consumer.Registration"), Is.Not.Null);
         }
     }
@@ -177,7 +177,7 @@ public class ApiClientGeneratorTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(diagnostics, Is.Empty);
-            Assert.That(output.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning), Is.Empty, "generated code must be warning-clean");
+            Assert.That(output.GetDiagnostics().Where(static x => x.Severity >= DiagnosticSeverity.Warning), Is.Empty, "generated code must be warning-clean");
             Assert.That(output.GetTypeByMetadataName("FakeApi.Client.IItemsClient"), Is.Not.Null);
             Assert.That(output.GetTypeByMetadataName("FakeApi.Client.ItemsClient"), Is.Not.Null);
             Assert.That(output.GetTypeByMetadataName("FakeApi.Client.ApiClientRegistrations"), Is.Not.Null);
@@ -193,7 +193,7 @@ public class ApiClientGeneratorTests
         var create = (IMethodSymbol)client.GetMembers("Create").Single();
         string[] expected = ["request", "token"];
 
-        Assert.That(create.Parameters.Select(x => x.Name), Is.EqualTo(expected));
+        Assert.That(create.Parameters.Select(static x => x.Name), Is.EqualTo(expected));
     }
 
     [Test]
@@ -240,7 +240,7 @@ public class ApiClientGeneratorTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(diagnostics, Is.Empty);
-            Assert.That(output.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning), Is.Empty, "generated code must be warning-clean");
+            Assert.That(output.GetDiagnostics().Where(static x => x.Severity >= DiagnosticSeverity.Warning), Is.Empty, "generated code must be warning-clean");
             Assert.That(order.ExplicitDefaultValue, Is.EqualTo(1), "the enum default must survive the round-trip through the generator");
         }
     }
@@ -322,7 +322,7 @@ public class ApiClientGeneratorTests
             }
             """);
 
-        var diagnostic = diagnostics.Single(x => string.Equals(x.Id, "EB1001", StringComparison.Ordinal));
+        var diagnostic = diagnostics.Single(static x => string.Equals(x.Id, "EB1001", StringComparison.Ordinal));
         var lineSpan = diagnostic.Location.GetLineSpan();
 
         using (Assert.EnterMultipleScope())
@@ -422,7 +422,7 @@ public class ApiClientGeneratorTests
     {
         var (diagnostics, output) = GeneratorTestHost.Run(ValidController, DefaultContract);
 
-        var source = output.SyntaxTrees.Single(x => x.FilePath.EndsWith("ItemsClient.g.cs", StringComparison.Ordinal)).ToString();
+        var source = output.SyntaxTrees.Single(static x => x.FilePath.EndsWith("ItemsClient.g.cs", StringComparison.Ordinal)).ToString();
 
         using (Assert.EnterMultipleScope())
         {
@@ -438,7 +438,7 @@ public class ApiClientGeneratorTests
     {
         var (_, output) = GeneratorTestHost.Run(ValidController, DefaultContract);
 
-        var source = output.SyntaxTrees.Single(x => x.FilePath.EndsWith("ItemsClient.g.cs", StringComparison.Ordinal)).ToString();
+        var source = output.SyntaxTrees.Single(static x => x.FilePath.EndsWith("ItemsClient.g.cs", StringComparison.Ordinal)).ToString();
 
         Assert.That(source, Does.Contain("\"api/items\""), "an empty action template must leave the controller route alone");
     }
@@ -466,7 +466,7 @@ public class ApiClientGeneratorTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(diagnostics, Is.Empty);
-            Assert.That(output.GetDiagnostics().Where(x => x.Severity >= DiagnosticSeverity.Warning), Is.Empty, "generated code must be warning-clean");
+            Assert.That(output.GetDiagnostics().Where(static x => x.Severity >= DiagnosticSeverity.Warning), Is.Empty, "generated code must be warning-clean");
             Assert.That(ReturnTypeOf(client, "Create"), Is.EqualTo(task), "Task<ActionResult> carries no result");
             Assert.That(ReturnTypeOf(client, "Find"), Is.EqualTo(taskOfResponse), "Task<ActionResult<T>> unwraps to T");
             Assert.That(ReturnTypeOf(client, "Info"), Is.EqualTo(taskOfResponse), "a synchronous action becomes asynchronous");
@@ -621,7 +621,7 @@ public class ApiClientGeneratorTests
             """,
             contract);
 
-        var source = output.SyntaxTrees.Single(x => x.FilePath.EndsWith("ItemsClient.g.cs", StringComparison.Ordinal)).ToString();
+        var source = output.SyntaxTrees.Single(static x => x.FilePath.EndsWith("ItemsClient.g.cs", StringComparison.Ordinal)).ToString();
         var pairs = source.Split(["(\"name\""], StringSplitOptions.None).Length - 1;
 
         using (Assert.EnterMultipleScope())
@@ -636,7 +636,7 @@ public class ApiClientGeneratorTests
     {
         var (diagnostics, _) = GeneratorTestHost.Run(DuplicateControllers);
 
-        Assert.That(diagnostics.Select(x => x.Id), Does.Contain("EB1016"));
+        Assert.That(diagnostics.Select(static x => x.Id), Does.Contain("EB1016"));
     }
 
     private static string ReturnTypeOf(INamedTypeSymbol client, string method)
@@ -670,6 +670,6 @@ public class ApiClientGeneratorTests
 
         var (diagnostics, _) = GeneratorTestHost.Run(controller, contract ?? DefaultContract);
 
-        Assert.That(diagnostics.Select(x => x.Id), Does.Contain(id));
+        Assert.That(diagnostics.Select(static x => x.Id), Does.Contain(id));
     }
 }

@@ -19,7 +19,7 @@ internal static class ContactDetailQuery
     {
         return contacts
             .WithId(contactId)
-            .Select(contact => new ContactDetail
+            .Select(static contact => new ContactDetail
             {
                 ContactId = contact.Id,
                 Name = contact.Name,

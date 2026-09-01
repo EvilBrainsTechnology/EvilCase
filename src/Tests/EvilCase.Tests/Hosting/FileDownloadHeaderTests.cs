@@ -18,7 +18,7 @@ public class FileDownloadHeaderTests
     [OneTimeSetUp]
     public void SetUp()
     {
-        this.host = new EvilCaseHost(configureServices: services => services.AddSingleton<IFileReader>(new StubFileReader()));
+        this.host = new EvilCaseHost(configureServices: static services => services.AddSingleton<IFileReader>(new StubFileReader()));
         this.client = this.host.CreateClient();
     }
 

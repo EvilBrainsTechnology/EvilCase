@@ -43,7 +43,7 @@ public static class MvcFacts
 
     public static AttributeData? FindRouteAttribute(INamedTypeSymbol type)
     {
-        return type.GetAttributes().FirstOrDefault(x => string.Equals(GetAttributeName(x), RouteAttributeName, StringComparison.Ordinal));
+        return type.GetAttributes().FirstOrDefault(static x => string.Equals(GetAttributeName(x), RouteAttributeName, StringComparison.Ordinal));
     }
 
     public static bool IsHttpMethodAttribute(AttributeData attribute)

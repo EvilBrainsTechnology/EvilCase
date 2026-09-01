@@ -98,7 +98,7 @@ public class PrincipalUserContextTests
 
     private static PrincipalUserContext NewContext(params (string Type, string Value)[] claims)
     {
-        var identity = new ClaimsIdentity(claims.Select(claim => new Claim(claim.Type, claim.Value)));
+        var identity = new ClaimsIdentity(claims.Select(static claim => new Claim(claim.Type, claim.Value)));
         var httpContext = new DefaultHttpContext { User = new(identity) };
         var accessor = new HttpContextAccessor { HttpContext = httpContext };
 

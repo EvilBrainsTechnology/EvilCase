@@ -49,7 +49,7 @@ if (seqServerUrl is not null)
 Log.Logger = loggerConfiguration.CreateLogger();
 
 builder.Services.Configure<ForwardedHeadersOptions>(
-    options =>
+    static options =>
     {
         options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
 
@@ -106,7 +106,7 @@ builder.Services.AddRateLimiter(
                 return RateLimitPartition.GetNoLimiter("unlimited");
             });
 
-        options.OnRejected = (context, _) =>
+        options.OnRejected = static (context, _) =>
         {
             // Rounded up: truncation would answer a sub-second remainder with "Retry-After: 0".
             if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
@@ -174,7 +174,7 @@ if (!app.Environment.IsDevelopment())
 app.UseWhen(
     context => !app.Environment.IsDevelopment()
         || !context.Request.Path.StartsWithSegments(apiReferencePath, StringComparison.OrdinalIgnoreCase),
-    branch => branch.UseMiddleware<SecurityHeadersMiddleware>());
+    static branch => branch.UseMiddleware<SecurityHeadersMiddleware>());
 
 // Only the API is logged: the frontend, its assets and the health probes would otherwise bury it.
 // The log upload is the exception inside it — logging it would be shipped by the next upload.
@@ -185,8 +185,8 @@ if (app.Configuration.GetValue("EvilBrains:EvilCase:Hosting:HttpsRedirection", d
 {
     // Probes usually arrive over plain HTTP; a redirect carries no body and counts as a failed probe.
     app.UseWhen(
-        context => !context.Request.Path.StartsWithSegments(HealthCheckPaths.Prefix, StringComparison.OrdinalIgnoreCase),
-        branch => branch.UseHttpsRedirection());
+        static context => !context.Request.Path.StartsWithSegments(HealthCheckPaths.Prefix, StringComparison.OrdinalIgnoreCase),
+        static branch => branch.UseHttpsRedirection());
 }
 
 app.UseBlazorFrameworkFiles();

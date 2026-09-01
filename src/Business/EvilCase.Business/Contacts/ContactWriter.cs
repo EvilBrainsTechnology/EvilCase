@@ -48,10 +48,10 @@ internal sealed class ContactWriter(IDbSession dbSession, ILogger<ContactWriter>
             .WithId(contactId)
             .ExecuteUpdateAsync(
                 setters => setters
-                    .SetProperty(contact => contact.Name, normalized.Name)
-                    .SetProperty(contact => contact.Kind, normalized.Kind)
-                    .SetProperty(contact => contact.DataBoxId, normalized.DataBoxId)
-                    .SetProperty(contact => contact.Address, normalized.Address),
+                    .SetProperty(static contact => contact.Name, normalized.Name)
+                    .SetProperty(static contact => contact.Kind, normalized.Kind)
+                    .SetProperty(static contact => contact.DataBoxId, normalized.DataBoxId)
+                    .SetProperty(static contact => contact.Address, normalized.Address),
                 token);
 
         if (rows == 0)

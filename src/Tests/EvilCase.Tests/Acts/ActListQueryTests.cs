@@ -18,7 +18,7 @@ public class ActListQueryTests : TenantFixture
         var earliest = await this.Tenant.AddAct(@case, new DateOnly(2026, 8, 20), "Podání");
         var middle = await this.Tenant.AddAct(@case, new DateOnly(2026, 8, 22), "Výzva");
 
-        var ids = await this.Tenant.Context.Acts.InListOrder().Select(act => act.Id).ToListAsync();
+        var ids = await this.Tenant.Context.Acts.InListOrder().Select(static act => act.Id).ToListAsync();
 
         Guid[] expected = [earliest.Id, middle.Id, latest.Id];
 
@@ -37,7 +37,7 @@ public class ActListQueryTests : TenantFixture
         var second = await this.Tenant.AddAct(@case, sameDay, "Výzva", actId: actIds[0]);
         var third = await this.Tenant.AddAct(@case, sameDay, "Rozhodnutí", actId: actIds[1]);
 
-        var ids = await this.Tenant.Context.Acts.InListOrder().Select(act => act.Id).ToListAsync();
+        var ids = await this.Tenant.Context.Acts.InListOrder().Select(static act => act.Id).ToListAsync();
 
         Guid[] expected = [first.Id, second.Id, third.Id];
 
@@ -56,7 +56,7 @@ public class ActListQueryTests : TenantFixture
         var highestNumber = await this.Tenant.AddAct(@case, sameDay, "Výzva", actNumber: $"{@case.CaseNumber}/20260822-009", actId: actIds[1]);
         var middleNumber = await this.Tenant.AddAct(@case, sameDay, "Podání", actNumber: $"{@case.CaseNumber}/20260822-005", actId: actIds[0]);
 
-        var ids = await this.Tenant.Context.Acts.InListOrder().Select(act => act.Id).ToListAsync();
+        var ids = await this.Tenant.Context.Acts.InListOrder().Select(static act => act.Id).ToListAsync();
 
         Guid[] expected = [lowestNumber.Id, highestNumber.Id, middleNumber.Id];
 
@@ -75,7 +75,7 @@ public class ActListQueryTests : TenantFixture
             await other.AddAct(otherCase, new DateOnly(2026, 8, 21), "Cizí úkon");
         }
 
-        var ids = await this.Tenant.Context.Acts.InListOrder().Select(act => act.Id).ToListAsync();
+        var ids = await this.Tenant.Context.Acts.InListOrder().Select(static act => act.Id).ToListAsync();
 
         Guid[] expected = [mine.Id];
 
@@ -90,7 +90,7 @@ public class ActListQueryTests : TenantFixture
         var inFirst = await this.Tenant.AddAct(first, new DateOnly(2026, 8, 21), "Podání");
         await this.Tenant.AddAct(second, new DateOnly(2026, 8, 21), "Jiný úkon");
 
-        var ids = await this.Tenant.Context.Acts.OfCase(first.Id).InListOrder().Select(act => act.Id).ToListAsync();
+        var ids = await this.Tenant.Context.Acts.OfCase(first.Id).InListOrder().Select(static act => act.Id).ToListAsync();
 
         Guid[] expected = [inFirst.Id];
 

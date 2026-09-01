@@ -35,7 +35,7 @@ public class ActCommentsControllerTests
 
         var response = await controller.ListActComments(reader, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
 
-        Assert.That(response.Items.Select(item => item.Body), Is.EqualTo(["První", "Druhá"]));
+        Assert.That(response.Items.Select(static item => item.Body), Is.EqualTo(["První", "Druhá"]));
     }
 
     [Test]

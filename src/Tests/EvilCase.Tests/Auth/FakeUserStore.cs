@@ -60,7 +60,7 @@ internal sealed class FakeUserStore : IUserStore
 
     public Task RecordSuccessfulLogin(Guid userId, CancellationToken token)
     {
-        this.Replace(userId, user => user with { FailedLoginAttempts = 0, LockoutEnd = null });
+        this.Replace(userId, static user => user with { FailedLoginAttempts = 0, LockoutEnd = null });
 
         return Task.CompletedTask;
     }

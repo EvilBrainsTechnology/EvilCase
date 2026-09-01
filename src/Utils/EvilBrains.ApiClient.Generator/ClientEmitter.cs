@@ -92,7 +92,7 @@ internal static class ClientEmitter
         source.Append("        ").Append(Helpers).Append('.').Append(Executor(action)).Append('(');
         source.Append("this.httpClient, global::System.Net.Http.HttpMethod.").Append(action.HttpMethod).Append(", ").Append(UrlExpression(action)).Append(", ").Append(TokenExpression(action));
 
-        var body = action.Parameters.FirstOrDefault(x => x.Kind == ParameterKind.Body);
+        var body = action.Parameters.FirstOrDefault(static x => x.Kind == ParameterKind.Body);
         if (body is not null)
             source.Append(", body: ").Append(body.Name);
 
@@ -119,7 +119,7 @@ internal static class ClientEmitter
 
     private static string TokenExpression(ActionModel action)
     {
-        var token = action.Parameters.FirstOrDefault(x => x.Kind == ParameterKind.Token);
+        var token = action.Parameters.FirstOrDefault(static x => x.Kind == ParameterKind.Token);
 
         return token is null ? "global::System.Threading.CancellationToken.None" : token.Name;
     }
@@ -152,7 +152,7 @@ internal static class ClientEmitter
     {
         var pairs = new List<string>();
 
-        foreach (var parameter in action.Parameters.Where(x => x.Kind == ParameterKind.Header))
+        foreach (var parameter in action.Parameters.Where(static x => x.Kind == ParameterKind.Header))
             pairs.Add($"(\"{parameter.WireName}\", {parameter.Name})");
 
         return pairs;
@@ -203,8 +203,8 @@ internal static class ClientEmitter
     private static string Parameters(ActionModel action)
     {
         var parameters = action.Parameters
-            .Where(x => x.Kind != ParameterKind.Skipped)
-            .Select(x => x.DefaultValue is null ? $"{x.Type} {x.Name}" : $"{x.Type} {x.Name} = {x.DefaultValue}");
+            .Where(static x => x.Kind != ParameterKind.Skipped)
+            .Select(static x => x.DefaultValue is null ? $"{x.Type} {x.Name}" : $"{x.Type} {x.Name} = {x.DefaultValue}");
 
         return string.Join(", ", parameters);
     }

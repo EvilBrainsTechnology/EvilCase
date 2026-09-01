@@ -12,11 +12,11 @@ public class ContactModelTests : ModelFixture
 
         Assert.That(contact, Is.Not.Null);
 
-        var columns = contact.GetProperties().Select(property => property.Name).ToList();
+        var columns = contact.GetProperties().Select(static property => property.Name).ToList();
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(contact.GetForeignKeys().Any(key => key.PrincipalEntityType.ClrType == typeof(Contact)), Is.False, "an official carries no link to its authority");
+            Assert.That(contact.GetForeignKeys().Any(static key => key.PrincipalEntityType.ClrType == typeof(Contact)), Is.False, "an official carries no link to its authority");
             Assert.That(columns, Has.Member(nameof(Contact.Address)), "the address is one free-text block");
             Assert.That(columns, Does.Not.Contain("Town").And.Not.Contains("PostCode"), "and is never split into parts");
             Assert.That(contact.FindProperty(nameof(Contact.Kind))?.ClrType, Is.EqualTo(typeof(ContactKind)));

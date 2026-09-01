@@ -161,7 +161,7 @@ public class ActDetailQueryTests : TenantFixture
         var detail = await reader.GetActDetail(@case.Id, act.Id, CancellationToken.None);
 
         Assert.That(
-            detail!.ExternalNumbers.Select(number => number.Value),
+            detail!.ExternalNumbers.Select(static number => number.Value),
             Is.EqualTo(["1 T 45/2026", "2 T 46/2026"]),
             "a number's place in the list is the order it accrued");
     }
@@ -179,7 +179,7 @@ public class ActDetailQueryTests : TenantFixture
         var reader = new ActReader(new FixedDbSession(this.Tenant.Context));
         var detail = await reader.GetActDetail(@case.Id, actA.Id, CancellationToken.None);
 
-        Assert.That(detail!.ExternalNumbers.Select(number => number.Value), Is.EqualTo(["1 T 45/2026"]));
+        Assert.That(detail!.ExternalNumbers.Select(static number => number.Value), Is.EqualTo(["1 T 45/2026"]));
     }
 
     [Test]

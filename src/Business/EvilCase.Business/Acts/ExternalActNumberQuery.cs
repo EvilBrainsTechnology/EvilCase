@@ -17,12 +17,12 @@ internal static class ExternalActNumberQuery
     /// </summary>
     public static IQueryable<ExternalActNumber> InAssignmentOrder(this IQueryable<ExternalActNumber> numbers)
     {
-        return numbers.OrderBy(number => number.Created).ThenBy(number => number.Id);
+        return numbers.OrderBy(static number => number.Created).ThenBy(static number => number.Id);
     }
 
     public static IQueryable<ExternalNumberItem> AsItems(this IQueryable<ExternalActNumber> numbers)
     {
-        return numbers.Select(number => new ExternalNumberItem
+        return numbers.Select(static number => new ExternalNumberItem
         {
             ExternalNumberId = number.Id,
             Value = number.Value,
