@@ -2,12 +2,13 @@
 
 <div class="card">
     <div class="card-header">
-        <h3 class="card-title">Poslední úkony</h3>
+        <h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.FileText" />Poslední úkony</h3>
     </div>
 
     @if (this.Items.Count == 0)
     {
         <div class="empty">
+            <div class="empty-icon"><Icon IconType="AppIcons.FileText" /></div>
             <p class="empty-title">Žádné úkony</p>
             <p class="empty-subtitle text-secondary">Zatím tu není žádný úkon.</p>
         </div>

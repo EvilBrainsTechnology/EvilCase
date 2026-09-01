@@ -35,8 +35,8 @@
             @if (this.caseDetail is not null)
             {
                 <div class="col-auto ms-auto d-print-none">
-                    <a id="case-edit" href="@($"/cases/{this.CaseId}/edit")" class="btn btn-primary">Upravit</a>
-                    <button id="case-delete" type="button" class="btn btn-danger ms-2" @onclick="this.DeleteCase">Smazat</button>
+                    <a id="case-edit" href="@($"/cases/{this.CaseId}/edit")" class="btn btn-primary"><Icon CssClass="icon" IconType="AppIcons.Pencil" />Upravit</a>
+                    <button id="case-delete" type="button" class="btn btn-danger ms-2" @onclick="this.DeleteCase"><Icon CssClass="icon" IconType="AppIcons.Trash" />Smazat</button>
                 </div>
             }
         </div>
@@ -48,7 +48,7 @@
         <LoadStateView NotFound="this.notFound" NotFoundTitle="Spis nenalezen" Failure="@this.failure" FailureTitle="Spis se nepodařilo načíst" Loaded="this.caseDetail is not null">
             <div class="card mb-3">
                 <div class="card-header">
-                    <h3 class="card-title">Údaje</h3>
+                    <h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.ListDetails" />Údaje</h3>
                 </div>
                 <div class="card-body">
                     <div class="datagrid">

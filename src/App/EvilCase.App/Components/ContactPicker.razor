@@ -11,7 +11,7 @@
 {
     <div class="input-group">
         <input id="@this.InputId" class="form-control" value="@selected.Name" readonly aria-label="Vybraný kontakt" />
-        <button type="button" class="btn" @onclick="this.ClearSelection">Změnit</button>
+        <button type="button" class="btn" @onclick="this.ClearSelection"><Icon CssClass="icon" IconType="AppIcons.ArrowsExchange" />Změnit</button>
     </div>
 }
 else
@@ -19,7 +19,7 @@ else
     <div class="input-group">
         <input id="@this.InputId" type="search" class="form-control" placeholder="Hledat v názvu a ID datové schránky"
                aria-label="Hledat kontakt" value="@this.search" @oninput="this.OnSearchInput" />
-        <button type="button" id="@($"{this.InputId}-new")" class="btn" @onclick="this.CreateContact">Nový kontakt</button>
+        <button type="button" id="@($"{this.InputId}-new")" class="btn" @onclick="this.CreateContact"><Icon CssClass="icon" IconType="AppIcons.Plus" />Nový kontakt</button>
     </div>
 
     @if (this.searchFailure is not null)

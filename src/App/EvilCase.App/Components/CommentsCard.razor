@@ -7,7 +7,7 @@
 
 <div id="comments-card" class="card">
     <div class="card-header">
-        <h3 class="card-title">Komentáře</h3>
+        <h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.Message" />Komentáře</h3>
     </div>
 
     @if (this.loading)
@@ -19,6 +19,7 @@
     else if (this.listFailure is not null)
     {
         <div class="empty">
+            <div class="empty-icon"><Icon IconType="AppIcons.AlertTriangle" /></div>
             <p class="empty-title">Komentáře se nepodařilo načíst</p>
             <p class="empty-subtitle text-secondary">@this.listFailure</p>
         </div>
@@ -26,6 +27,7 @@
     else if (this.items.Count == 0)
     {
         <div class="empty">
+            <div class="empty-icon"><Icon IconType="AppIcons.Message" /></div>
             <p class="empty-title">Žádné komentáře</p>
         </div>
     }
@@ -51,15 +53,19 @@
 
                             @if (this.editError is not null)
                             {
-                                <div class="alert alert-danger" role="alert">@this.editError</div>
+                                <div class="alert alert-danger" role="alert"><Icon CssClass="icon me-2" IconType="AppIcons.AlertTriangle" />@this.editError</div>
                             }
 
                             <div class="d-flex gap-2">
-                                <button type="button" class="btn btn-sm" @onclick="this.CancelEditing">Zrušit</button>
+                                <button type="button" class="btn btn-sm" @onclick="this.CancelEditing"><Icon CssClass="icon" IconType="AppIcons.X" />Zrušit</button>
                                 <button type="submit" class="btn btn-primary btn-sm" disabled="@this.busy">
                                     @if (this.busy)
                                     {
                                         <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                                    }
+                                    else
+                                    {
+                                        <Icon CssClass="icon" IconType="AppIcons.DeviceFloppy" />
                                     }
                                     Uložit
                                 </button>
@@ -73,8 +79,8 @@
                         @if (item.IsAuthor)
                         {
                             <div class="d-flex gap-2 mt-2">
-                                <button type="button" class="btn btn-sm comment-edit" @onclick="() => this.StartEditing(item)">Upravit</button>
-                                <button type="button" class="btn btn-sm btn-danger comment-delete" @onclick="() => this.ConfirmDelete(item)">Smazat</button>
+                                <button type="button" class="btn btn-sm comment-edit" @onclick="() => this.StartEditing(item)"><Icon CssClass="icon" IconType="AppIcons.Pencil" />Upravit</button>
+                                <button type="button" class="btn btn-sm btn-danger comment-delete" @onclick="() => this.ConfirmDelete(item)"><Icon CssClass="icon" IconType="AppIcons.Trash" />Smazat</button>
                             </div>
                         }
                     }
@@ -95,13 +101,17 @@
 
             @if (this.addError is not null)
             {
-                <div class="alert alert-danger" role="alert">@this.addError</div>
+                <div class="alert alert-danger" role="alert"><Icon CssClass="icon me-2" IconType="AppIcons.AlertTriangle" />@this.addError</div>
             }
 
             <button id="comment-add" type="submit" class="btn btn-primary" disabled="@this.busy">
                 @if (this.busy)
                 {
                     <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                }
+                else
+                {
+                    <Icon CssClass="icon" IconType="AppIcons.Plus" />
                 }
                 Přidat
             </button>

@@ -2,15 +2,16 @@
 
 <div class="card">
     <div class="card-header">
-        <h3 class="card-title">Podřízené spisy</h3>
+        <h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.Folders" />Podřízené spisy</h3>
         <div class="card-actions">
-            <a href="@($"/cases/new?parent={ParentCaseId}")" class="btn btn-primary">Nový podřízený spis</a>
+            <a href="@($"/cases/new?parent={ParentCaseId}")" class="btn btn-primary"><Icon CssClass="icon" IconType="AppIcons.Plus" />Nový podřízený spis</a>
         </div>
     </div>
 
     @if (Items.Count == 0)
     {
         <div class="empty">
+            <div class="empty-icon"><Icon IconType="AppIcons.Folders" /></div>
             <p class="empty-title">Žádné podřízené spisy</p>
         </div>
     }

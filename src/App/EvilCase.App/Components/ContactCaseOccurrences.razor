@@ -2,12 +2,13 @@
 
 <div class="card">
     <div class="card-header">
-        <h3 class="card-title">Spisy</h3>
+        <h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.Folders" />Spisy</h3>
     </div>
 
     @if (Items.Count == 0)
     {
         <div class="empty">
+            <div class="empty-icon"><Icon IconType="AppIcons.Folders" /></div>
             <p class="empty-title">Žádné spisy</p>
             <p class="empty-subtitle text-secondary">Kontakt nefiguruje v žádném spisu.</p>
         </div>
