@@ -22,7 +22,11 @@ else
         <button type="button" id="@($"{this.InputId}-new")" class="btn" @onclick="this.CreateContact">Nový kontakt</button>
     </div>
 
-    @if (this.matches.Count > 0)
+    @if (this.searchFailure is not null)
+    {
+        <div class="form-hint">@this.searchFailure</div>
+    }
+    else if (this.matches.Count > 0)
     {
         <div class="list-group mt-1">
             @foreach (var match in this.matches)
@@ -62,6 +66,8 @@ else
 
     private bool searched;
 
+    private string? searchFailure;
+
     public void Dispose()
     {
         this.debouncer.Dispose();
@@ -74,6 +80,8 @@ else
         var token = await this.debouncer.Start(debounce: true);
         if (token is null)
             return;
+
+        this.searchFailure = null;
 
         if (string.IsNullOrWhiteSpace(this.search))
         {
@@ -99,6 +107,7 @@ else
 
             this.matches = [];
             this.searched = true;
+            this.searchFailure = "Hledání kontaktů se nezdařilo. Zkuste to za chvíli znovu.";
         }
     }
 
