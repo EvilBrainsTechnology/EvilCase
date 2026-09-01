@@ -3,6 +3,7 @@
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Acts
+@using EvilBrains.EvilCase.Api.Contract.Contacts
 @using EvilBrains.EvilCase.Api.Contract.Numbers
 @using EvilBrains.EvilCase.Domain.Acts
 @inject IActsClient ActsClient
@@ -198,7 +199,9 @@
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
         {
-            this.error = "Číslo jednací už nese jiný úkon. Zvolte jiné.";
+            this.error = exception.ResponseBody?.Contains(ContactProblems.UnknownContact, StringComparison.Ordinal) == true
+                ? "Vybraný kontakt už neexistuje. Vyberte jiný."
+                : "Číslo jednací už nese jiný úkon. Zvolte jiné.";
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.BadRequest)
         {
@@ -206,9 +209,7 @@
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
         {
-            this.error = exception.ResponseBody?.Contains(ActProblems.ContactNotFound, StringComparison.Ordinal) == true
-                ? "Vybraný kontakt už neexistuje. Vyberte jiný."
-                : "Úkon už neexistuje.";
+            this.error = "Úkon už neexistuje.";
         }
         catch (Exception exception) when (exception is ApiException or HttpRequestException)
         {

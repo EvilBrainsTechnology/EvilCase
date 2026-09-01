@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using EvilBrains.ApiClient;
 using EvilBrains.EvilCase.Api.Contract.Acts;
+using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Api.Contract.Numbers;
 using EvilBrains.EvilCase.Business.Acts;
 using Microsoft.AspNetCore.Http;
@@ -33,6 +34,7 @@ public class ActsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<ActListItem>> CreateAct(
         [FromServices] IActWriter writer, [FromRoute] Guid caseId, [FromBody] CreateActRequest request, CancellationToken token)
     {
@@ -42,7 +44,10 @@ public class ActsController : ControllerBase
         {
             ActCreateOutcome.Created => this.CreatedAtAction(nameof(this.GetAct), new { caseId, actId = result.Act!.ActId }, result.Act),
             ActCreateOutcome.CaseNotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.CaseNotFound),
-            ActCreateOutcome.ContactNotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.ContactNotFound),
+            ActCreateOutcome.ContactNotFound => this.Problem(
+                detail: "The contact named in the request does not exist.",
+                statusCode: StatusCodes.Status409Conflict,
+                title: ContactProblems.UnknownContact),
             _ => throw new UnreachableException(),
         };
     }
@@ -73,7 +78,10 @@ public class ActsController : ControllerBase
         {
             ActUpdateOutcome.Updated => this.NoContent(),
             ActUpdateOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.ActNotFound),
-            ActUpdateOutcome.ContactNotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.ContactNotFound),
+            ActUpdateOutcome.ContactNotFound => this.Problem(
+                detail: "The contact named in the request does not exist.",
+                statusCode: StatusCodes.Status409Conflict,
+                title: ContactProblems.UnknownContact),
             ActUpdateOutcome.ActNumberTaken => this.Problem(
                 detail: "Another act already carries the number.", statusCode: StatusCodes.Status409Conflict, title: "Act number taken"),
             ActUpdateOutcome.InvalidActNumber => this.InvalidActNumberProblem(),
@@ -117,7 +125,7 @@ public class ActsController : ControllerBase
             ExternalActNumberOutcome.UnknownContact => this.Problem(
                 detail: "The contact that assigned the number does not exist.",
                 statusCode: StatusCodes.Status409Conflict,
-                title: ExternalNumberProblems.UnknownContact),
+                title: ContactProblems.UnknownContact),
             ExternalActNumberOutcome.ValueTaken => this.Problem(
                 detail: "The act already carries the number.",
                 statusCode: StatusCodes.Status409Conflict,

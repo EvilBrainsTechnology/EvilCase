@@ -1,7 +1,9 @@
 @page "/cases/{CaseId:guid}/act/new"
+@using System.Net
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Acts
+@using EvilBrains.EvilCase.Api.Contract.Contacts
 @using EvilBrains.EvilCase.Domain.Acts
 @inject IActsClient ActsClient
 @inject IContactsClient ContactsClient
@@ -130,6 +132,16 @@
             _ = await this.ActsClient.CreateAct(this.CaseId, request, CancellationToken.None);
 
             this.Navigation.NavigateTo($"/cases/{this.CaseId}");
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
+        {
+            this.error = exception.ResponseBody?.Contains(ContactProblems.UnknownContact, StringComparison.Ordinal) == true
+                ? "Vybraný kontakt už neexistuje. Vyberte jiný."
+                : "Zkontrolujte zadané údaje a zkuste to znovu.";
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+        {
+            this.error = "Spis už neexistuje.";
         }
         catch (Exception exception) when (exception is ApiException or HttpRequestException)
         {

@@ -124,19 +124,16 @@ public class ActsControllerTests
     }
 
     [Test]
-    public async Task FilingWithAContactThatIsNotThereIsAProblemWithFourOhFour()
+    public async Task FilingWithAContactThatIsNotThereIsAConflict()
     {
-        var caseNotFound = new RecordingActWriter { Result = new ActCreateResult { Outcome = ActCreateOutcome.CaseNotFound } };
-        var contactNotFound = new RecordingActWriter { Result = new ActCreateResult { Outcome = ActCreateOutcome.ContactNotFound } };
+        var writer = new RecordingActWriter { Result = new ActCreateResult { Outcome = ActCreateOutcome.ContactNotFound } };
         var controller = new ActsController();
 
-        var caseResult = await controller.CreateAct(caseNotFound, Guid.CreateVersion7(), Request(), CancellationToken.None);
-        var contactResult = await controller.CreateAct(contactNotFound, Guid.CreateVersion7(), Request(), CancellationToken.None);
+        var result = await controller.CreateAct(writer, Guid.CreateVersion7(), Request(), CancellationToken.None);
 
-        var caseProblem = AssertProblem(caseResult.Result, 404);
-        var contactProblem = AssertProblem(contactResult.Result, 404);
+        var problem = AssertProblem(result.Result, 409);
 
-        Assert.That(contactProblem.Title, Is.Not.EqualTo(caseProblem.Title), "the answer says which id was not found");
+        Assert.That(problem.Title, Is.EqualTo(ContactProblems.UnknownContact), "an id named in the body is a conflict, not a 404");
     }
 
     [Test]
@@ -227,16 +224,16 @@ public class ActsControllerTests
     }
 
     [Test]
-    public async Task AnEditNamingAContactThatIsNotThereIsAProblemWithFourOhFour()
+    public async Task AnEditNamingAContactThatIsNotThereIsAConflict()
     {
         var writer = new RecordingActWriter { UpdateOutcome = ActUpdateOutcome.ContactNotFound };
         var controller = new ActsController();
 
         var result = await controller.EditAct(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), EditRequest(), CancellationToken.None);
 
-        var problem = AssertProblem(result, 404);
+        var problem = AssertProblem(result, 409);
 
-        Assert.That(problem.Title, Is.Not.EqualTo(ActProblems.ActNotFound), "the answer says which id was not found");
+        Assert.That(problem.Title, Is.EqualTo(ContactProblems.UnknownContact), "an id named in the body is a conflict, not a 404");
     }
 
     [Test]
@@ -396,7 +393,7 @@ public class ActsControllerTests
 
         var problem = AssertProblem(result, 409);
 
-        Assert.That(problem.Title, Is.EqualTo(ExternalNumberProblems.UnknownContact));
+        Assert.That(problem.Title, Is.EqualTo(ContactProblems.UnknownContact));
     }
 
     [Test]

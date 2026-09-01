@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using EvilBrains.ApiClient;
 using EvilBrains.EvilCase.Api.Contract.Cases;
+using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Api.Contract.Numbers;
 using EvilBrains.EvilCase.Business.Cases;
 using Microsoft.AspNetCore.Http;
@@ -115,7 +116,7 @@ public class CasesController : ControllerBase
             ExternalCaseNumberOutcome.UnknownContact => this.Problem(
                 detail: "The contact that assigned the mark does not exist.",
                 statusCode: StatusCodes.Status409Conflict,
-                title: ExternalNumberProblems.UnknownContact),
+                title: ContactProblems.UnknownContact),
             ExternalCaseNumberOutcome.ValueTaken => this.Problem(
                 detail: "The case already carries the mark.",
                 statusCode: StatusCodes.Status409Conflict,
