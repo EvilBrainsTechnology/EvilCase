@@ -49,19 +49,19 @@ public class FileDownloadHeaderTests
     {
         public const string FileName = "smlouva.pdf";
 
-        public Task<IReadOnlyList<FileListItem>?> ListCaseFiles(Guid caseId, CancellationToken token)
+        public async Task<IReadOnlyList<FileListItem>?> ListCaseFiles(Guid caseId, CancellationToken token)
         {
-            return Task.FromResult<IReadOnlyList<FileListItem>?>(null);
+            return await Task.FromResult<IReadOnlyList<FileListItem>?>(null);
         }
 
-        public Task<IReadOnlyList<FileListItem>?> ListActFiles(Guid caseId, Guid actId, CancellationToken token)
+        public async Task<IReadOnlyList<FileListItem>?> ListActFiles(Guid caseId, Guid actId, CancellationToken token)
         {
-            return Task.FromResult<IReadOnlyList<FileListItem>?>(null);
+            return await Task.FromResult<IReadOnlyList<FileListItem>?>(null);
         }
 
-        public Task<FileDownload?> OpenFileContent(Guid fileId, CancellationToken token)
+        public async Task<FileDownload?> OpenFileContent(Guid fileId, CancellationToken token)
         {
-            return Task.FromResult<FileDownload?>(new FileDownload { FileName = FileName, MediaType = "application/pdf", Content = new MemoryStream("abc"u8.ToArray()) });
+            return await Task.FromResult<FileDownload?>(new FileDownload { FileName = FileName, MediaType = "application/pdf", Content = new MemoryStream("abc"u8.ToArray()) });
         }
     }
 }

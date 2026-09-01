@@ -126,9 +126,9 @@ public class ControllerConstructorAnalyzerTests
         Assert.That(diagnostics.Select(static x => x.Id), Is.EqualTo(["EB0007"]), "[ApiController] alone marks a controller");
     }
 
-    private static Task<ImmutableArray<Diagnostic>> Analyze(string type)
+    private static async Task<ImmutableArray<Diagnostic>> Analyze(string type)
     {
-        return AnalyzerTestHost.Analyze(new ControllerConstructorAnalyzer(), Fixture(type));
+        return await AnalyzerTestHost.Analyze(new ControllerConstructorAnalyzer(), Fixture(type));
     }
 
     private static string Fixture(string type)

@@ -7,7 +7,7 @@ namespace EvilBrains.Logging.WebAssembly;
 /// </summary>
 internal sealed class RequestContextHandler(IClientIdentity identity) : DelegatingHandler
 {
-    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         var requestId = Guid.NewGuid().ToString("D", CultureInfo.InvariantCulture);
 
@@ -16,6 +16,6 @@ internal sealed class RequestContextHandler(IClientIdentity identity) : Delegati
         request.Headers.TryAddWithoutValidation(RequestContextHeaderNames.SessionId, identity.SessionId);
         request.Headers.TryAddWithoutValidation(RequestContextHeaderNames.MachineId, identity.MachineId);
 
-        return base.SendAsync(request, cancellationToken);
+        return await base.SendAsync(request, cancellationToken);
     }
 }

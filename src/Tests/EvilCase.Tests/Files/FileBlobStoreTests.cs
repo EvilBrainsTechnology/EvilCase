@@ -103,7 +103,7 @@ public class FileBlobStoreTests
     {
         var failing = new FailingStream("ab"u8.ToArray());
 
-        await Assert.ThatAsync(() => this.store.WriteFileBlob(this.tenantId, this.fileAssetId, failing, CancellationToken.None), Throws.InstanceOf<IOException>());
+        await Assert.ThatAsync(async () => await this.store.WriteFileBlob(this.tenantId, this.fileAssetId, failing, CancellationToken.None), Throws.InstanceOf<IOException>());
 
         var storagePath = FileBlobPathFor(this.tenantId, this.fileAssetId);
         var directory = Path.GetDirectoryName(Path.Combine(this.root, storagePath));
@@ -119,7 +119,7 @@ public class FileBlobStoreTests
     public async Task AWriteAfterAFailedOneStillLands()
     {
         var failing = new FailingStream("ab"u8.ToArray());
-        await Assert.ThatAsync(() => this.store.WriteFileBlob(this.tenantId, this.fileAssetId, failing, CancellationToken.None), Throws.InstanceOf<IOException>());
+        await Assert.ThatAsync(async () => await this.store.WriteFileBlob(this.tenantId, this.fileAssetId, failing, CancellationToken.None), Throws.InstanceOf<IOException>());
 
         var content = "abc"u8.ToArray();
         var info = await this.store.WriteFileBlob(this.tenantId, this.fileAssetId, new MemoryStream(content), CancellationToken.None);
@@ -145,13 +145,13 @@ public class FileBlobStoreTests
 
         Assert.That(File.Exists(path), Is.False, "the blob must be gone from disk");
 
-        Assert.DoesNotThrowAsync(() => this.store.DeleteFileBlob(info.StoragePath, CancellationToken.None), "deleting a missing blob must not throw");
+        Assert.DoesNotThrowAsync(async () => await this.store.DeleteFileBlob(info.StoragePath, CancellationToken.None), "deleting a missing blob must not throw");
     }
 
     [Test]
     public async Task APathLeavingTheRootIsRefused()
     {
-        await Assert.ThatAsync(() => this.store.DeleteFileBlob("../outside", CancellationToken.None), Throws.ArgumentException, "a path read back from the database must not reach outside the root");
+        await Assert.ThatAsync(async () => await this.store.DeleteFileBlob("../outside", CancellationToken.None), Throws.ArgumentException, "a path read back from the database must not reach outside the root");
     }
 
     [Test]

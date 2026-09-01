@@ -16,11 +16,14 @@ internal sealed class CommentWriter(IDbSession dbSession, IUserContext userConte
         var context = dbSession.Current;
         var comment = new Comment { CaseId = caseId, Body = request.Body.Trim() };
 
-        var outcome = await this.AddComment(t => context.Cases.Exists(caseId, t), comment, token);
-        if (outcome == CommentWriteOutcome.Written)
-            logger.LogInformation("Comment {CommentId} was written on case {CaseId}", comment.Id, caseId);
+        var caseExists = await context.Cases.Exists(caseId, token);
+        if (!caseExists)
+            return CommentWriteOutcome.NotFound;
 
-        return outcome;
+        context.Comments.Add(comment);
+        await context.SaveChangesAsync(token);
+        logger.LogInformation("Comment {CommentId} was written on case {CaseId}", comment.Id, caseId);
+        return CommentWriteOutcome.Written;
     }
 
     public async Task<CommentWriteOutcome> UpdateCaseComment(Guid caseId, Guid commentId, CommentEditRequest request, CancellationToken token)
@@ -50,11 +53,14 @@ internal sealed class CommentWriter(IDbSession dbSession, IUserContext userConte
         var context = dbSession.Current;
         var comment = new Comment { ActId = actId, Body = request.Body.Trim() };
 
-        var outcome = await this.AddComment(t => context.Acts.OfCase(caseId).Exists(actId, t), comment, token);
-        if (outcome == CommentWriteOutcome.Written)
-            logger.LogInformation("Comment {CommentId} was written on act {ActId}", comment.Id, actId);
+        var actExists = await context.Acts.OfCase(caseId).Exists(actId, token);
+        if (!actExists)
+            return CommentWriteOutcome.NotFound;
 
-        return outcome;
+        context.Comments.Add(comment);
+        await context.SaveChangesAsync(token);
+        logger.LogInformation("Comment {CommentId} was written on act {ActId}", comment.Id, actId);
+        return CommentWriteOutcome.Written;
     }
 
     public async Task<CommentWriteOutcome> UpdateActComment(Guid caseId, Guid actId, Guid commentId, CommentEditRequest request, CancellationToken token)
@@ -77,20 +83,6 @@ internal sealed class CommentWriter(IDbSession dbSession, IUserContext userConte
             logger.LogInformation("Comment {CommentId} was removed from act {ActId}", commentId, actId);
 
         return outcome;
-    }
-
-    private async Task<CommentWriteOutcome> AddComment(Func<CancellationToken, Task<bool>> ownerExists, Comment comment, CancellationToken token)
-    {
-        var context = dbSession.Current;
-
-        if (!await ownerExists(token))
-            return CommentWriteOutcome.NotFound;
-
-        context.Comments.Add(comment);
-
-        await context.SaveChangesAsync(token);
-
-        return CommentWriteOutcome.Written;
     }
 
     private async Task<CommentWriteOutcome> UpdateComment(IQueryable<Comment> comments, string body, CancellationToken token)

@@ -52,10 +52,9 @@ public static class Bootstrap
 
         services.AddOpenApi(static options =>
         {
-            options.AddDocumentTransformer(static (document, _, _) =>
+            options.AddDocumentTransformer(static async (document, _, _) =>
             {
                 document.Info.Title = "EvilCase API";
-                return Task.CompletedTask;
             });
         });
 

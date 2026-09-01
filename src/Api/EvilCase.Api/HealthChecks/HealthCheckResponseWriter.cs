@@ -9,7 +9,7 @@ namespace EvilBrains.EvilCase.Api.HealthChecks;
 /// </summary>
 internal static class HealthCheckResponseWriter
 {
-    public static Task Write(HttpContext context, HealthReport report)
+    public static async Task Write(HttpContext context, HealthReport report)
     {
         var response = new
         {
@@ -17,6 +17,6 @@ internal static class HealthCheckResponseWriter
             checks = report.Entries.Select(static entry => new { name = entry.Key, status = entry.Value.Status.ToString() }),
         };
 
-        return context.Response.WriteAsJsonAsync(response, context.RequestAborted);
+        await context.Response.WriteAsJsonAsync(response, context.RequestAborted);
     }
 }

@@ -91,7 +91,7 @@ public class CaseFilesControllerTests
         var controller = new CaseFilesController();
 
         await Assert.ThatAsync(
-            () => controller.DeleteCaseFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None),
+            async () => await controller.DeleteCaseFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None),
             Throws.InstanceOf<UnreachableException>(),
             "an outcome the endpoint does not name never turns into a status");
     }

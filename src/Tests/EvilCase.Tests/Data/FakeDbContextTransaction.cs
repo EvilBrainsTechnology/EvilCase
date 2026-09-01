@@ -13,25 +13,22 @@ internal sealed class FakeDbContextTransaction : IDbContextTransaction
         this.Committed = true;
     }
 
-    public Task CommitAsync(CancellationToken cancellationToken = default)
+    public async Task CommitAsync(CancellationToken cancellationToken = default)
     {
         this.Committed = true;
-        return Task.CompletedTask;
     }
 
     public void Rollback()
     { }
 
-    public Task RollbackAsync(CancellationToken cancellationToken = default)
-    {
-        return Task.CompletedTask;
-    }
+    public async Task RollbackAsync(CancellationToken cancellationToken = default)
+    { }
 
     public void Dispose()
     { }
 
-    public ValueTask DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
-        return ValueTask.CompletedTask;
+        await ValueTask.CompletedTask;
     }
 }

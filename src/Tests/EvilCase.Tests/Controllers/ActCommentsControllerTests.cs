@@ -79,7 +79,7 @@ public class ActCommentsControllerTests
         var controller = new ActCommentsController();
 
         await Assert.ThatAsync(
-            () => controller.AddActComment(
+            async () => await controller.AddActComment(
                 writer, Guid.CreateVersion7(), Guid.CreateVersion7(), new CommentEditRequest { Body = "Poznámka" }, CancellationToken.None),
             Throws.InstanceOf<UnreachableException>(),
             "an outcome the endpoint does not name never turns into a status");
@@ -138,7 +138,7 @@ public class ActCommentsControllerTests
         var controller = new ActCommentsController();
 
         await Assert.ThatAsync(
-            () => controller.EditActComment(
+            async () => await controller.EditActComment(
                 writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Guid.CreateVersion7(), new CommentEditRequest { Body = "x" }, CancellationToken.None),
             Throws.InstanceOf<UnreachableException>(),
             "an outcome the endpoint does not name never turns into a status");

@@ -208,16 +208,16 @@ public class RefreshCookieTests
         return setCookie[(setCookie.IndexOf('=', StringComparison.Ordinal) + 1)..setCookie.IndexOf(';', StringComparison.Ordinal)];
     }
 
-    private Task<HttpResponseMessage> SignIn(string password)
+    private async Task<HttpResponseMessage> SignIn(string password)
     {
-        return this.client.PostAsJsonAsync(
+        return await this.client.PostAsJsonAsync(
             new Uri(AuthRoute.LoginPath, UriKind.Relative),
             new LoginRequest { Email = Email, Password = password });
     }
 
-    private Task<HttpResponseMessage> Refresh(string cookie)
+    private async Task<HttpResponseMessage> Refresh(string cookie)
     {
-        return this.Post(AuthRoute.RefreshPath, cookie);
+        return await this.Post(AuthRoute.RefreshPath, cookie);
     }
 
     private async Task<HttpResponseMessage> Post(string path, string? cookie)

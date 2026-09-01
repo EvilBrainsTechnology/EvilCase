@@ -24,7 +24,7 @@ internal sealed class SecurityHeadersMiddleware(RequestDelegate next)
             + "script-src 'self' 'wasm-unsafe-eval' 'sha256-Twd7JFh40ZBLj45GN0frQiMZ6sELOfQJW1roNApIVxk='; "
             + "connect-src 'self'";
 
-    private static readonly Func<object, Task> WriteHeaders = static state =>
+    private static readonly Func<object, Task> WriteHeaders = static async state =>
     {
         var headers = ((HttpResponse)state).Headers;
 
@@ -33,16 +33,14 @@ internal sealed class SecurityHeadersMiddleware(RequestDelegate next)
         headers.XFrameOptions = "DENY";
         headers["Referrer-Policy"] = "no-referrer";
         headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
-
-        return Task.CompletedTask;
     };
 
-    public Task Invoke(HttpContext context)
+    public async Task Invoke(HttpContext context)
     {
         // Written when the response starts rather than here: the exception handler clears the response
         // before it writes the problem details, which would drop headers set on the way in.
         context.Response.OnStarting(WriteHeaders, context.Response);
 
-        return next(context);
+        await next(context);
     }
 }

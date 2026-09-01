@@ -324,7 +324,7 @@ public class ActsControllerTests
         var controller = new ActsController();
 
         await Assert.ThatAsync(
-            () => controller.DeleteAct(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None),
+            async () => await controller.DeleteAct(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None),
             Throws.InstanceOf<UnreachableException>(),
             "an outcome the endpoint does not name never turns into a status");
     }
@@ -446,7 +446,7 @@ public class ActsControllerTests
         var controller = new ActsController();
 
         await Assert.ThatAsync(
-            () => controller.DeleteExternalActNumber(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None),
+            async () => await controller.DeleteExternalActNumber(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None),
             Throws.InstanceOf<UnreachableException>(),
             "an outcome the endpoint does not name never turns into a status");
     }
@@ -523,26 +523,26 @@ public class ActsControllerTests
 
         public ActDetail? DetailResult { get; init; }
 
-        public Task<IReadOnlyList<ActListItem>> ListActs(ActListRequest request, CancellationToken token)
+        public async Task<IReadOnlyList<ActListItem>> ListActs(ActListRequest request, CancellationToken token)
         {
             this.ListRequest = request;
 
-            return Task.FromResult(this.Items);
+            return await Task.FromResult(this.Items);
         }
 
-        public Task<IReadOnlyList<ActListItem>> ListCaseActs(Guid caseId, CancellationToken token)
+        public async Task<IReadOnlyList<ActListItem>> ListCaseActs(Guid caseId, CancellationToken token)
         {
             this.CaseId = caseId;
 
-            return Task.FromResult(this.Items);
+            return await Task.FromResult(this.Items);
         }
 
-        public Task<ActDetail?> GetActDetail(Guid caseId, Guid actId, CancellationToken token)
+        public async Task<ActDetail?> GetActDetail(Guid caseId, Guid actId, CancellationToken token)
         {
             this.DetailCaseId = caseId;
             this.DetailActId = actId;
 
-            return Task.FromResult(this.DetailResult);
+            return await Task.FromResult(this.DetailResult);
         }
     }
 
@@ -568,29 +568,29 @@ public class ActsControllerTests
 
         public DeleteOutcome DeleteOutcome { get; init; }
 
-        public Task<ActCreateResult> CreateAct(Guid caseId, CreateActRequest request, CancellationToken token)
+        public async Task<ActCreateResult> CreateAct(Guid caseId, CreateActRequest request, CancellationToken token)
         {
             this.CaseId = caseId;
             this.Request = request;
 
-            return Task.FromResult(this.Result);
+            return await Task.FromResult(this.Result);
         }
 
-        public Task<ActUpdateOutcome> UpdateAct(Guid caseId, Guid actId, ActEditRequest request, CancellationToken token)
+        public async Task<ActUpdateOutcome> UpdateAct(Guid caseId, Guid actId, ActEditRequest request, CancellationToken token)
         {
             this.UpdateCaseId = caseId;
             this.UpdateActId = actId;
             this.UpdateRequest = request;
 
-            return Task.FromResult(this.UpdateOutcome);
+            return await Task.FromResult(this.UpdateOutcome);
         }
 
-        public Task<DeleteOutcome> DeleteAct(Guid caseId, Guid actId, CancellationToken token)
+        public async Task<DeleteOutcome> DeleteAct(Guid caseId, Guid actId, CancellationToken token)
         {
             this.DeleteCaseId = caseId;
             this.DeleteActId = actId;
 
-            return Task.FromResult(this.DeleteOutcome);
+            return await Task.FromResult(this.DeleteOutcome);
         }
     }
 
@@ -612,22 +612,22 @@ public class ActsControllerTests
 
         public DeleteOutcome DeleteOutcome { get; init; }
 
-        public Task<ExternalActNumberOutcome> AddExternalActNumber(Guid caseId, Guid actId, ExternalNumberRequest request, CancellationToken token)
+        public async Task<ExternalActNumberOutcome> AddExternalActNumber(Guid caseId, Guid actId, ExternalNumberRequest request, CancellationToken token)
         {
             this.AddCaseId = caseId;
             this.AddActId = actId;
             this.AddRequest = request;
 
-            return Task.FromResult(this.AddOutcome);
+            return await Task.FromResult(this.AddOutcome);
         }
 
-        public Task<DeleteOutcome> DeleteExternalActNumber(Guid caseId, Guid actId, Guid numberId, CancellationToken token)
+        public async Task<DeleteOutcome> DeleteExternalActNumber(Guid caseId, Guid actId, Guid numberId, CancellationToken token)
         {
             this.DeleteCaseId = caseId;
             this.DeleteActId = actId;
             this.DeleteNumberId = numberId;
 
-            return Task.FromResult(this.DeleteOutcome);
+            return await Task.FromResult(this.DeleteOutcome);
         }
     }
 }

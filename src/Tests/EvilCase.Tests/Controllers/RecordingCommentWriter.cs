@@ -31,56 +31,56 @@ internal sealed class RecordingCommentWriter : ICommentWriter
 
     public CommentWriteOutcome DeleteOutcome { get; init; }
 
-    public Task<CommentWriteOutcome> AddCaseComment(Guid caseId, CommentEditRequest request, CancellationToken token)
+    public async Task<CommentWriteOutcome> AddCaseComment(Guid caseId, CommentEditRequest request, CancellationToken token)
     {
         this.AddCaseId = caseId;
         this.AddRequest = request;
 
-        return Task.FromResult(this.AddOutcome);
+        return await Task.FromResult(this.AddOutcome);
     }
 
-    public Task<CommentWriteOutcome> UpdateCaseComment(Guid caseId, Guid commentId, CommentEditRequest request, CancellationToken token)
+    public async Task<CommentWriteOutcome> UpdateCaseComment(Guid caseId, Guid commentId, CommentEditRequest request, CancellationToken token)
     {
         this.UpdateCaseId = caseId;
         this.UpdateCommentId = commentId;
         this.UpdateRequest = request;
 
-        return Task.FromResult(this.UpdateOutcome);
+        return await Task.FromResult(this.UpdateOutcome);
     }
 
-    public Task<CommentWriteOutcome> DeleteCaseComment(Guid caseId, Guid commentId, CancellationToken token)
+    public async Task<CommentWriteOutcome> DeleteCaseComment(Guid caseId, Guid commentId, CancellationToken token)
     {
         this.DeleteCaseId = caseId;
         this.DeleteCommentId = commentId;
 
-        return Task.FromResult(this.DeleteOutcome);
+        return await Task.FromResult(this.DeleteOutcome);
     }
 
-    public Task<CommentWriteOutcome> AddActComment(Guid caseId, Guid actId, CommentEditRequest request, CancellationToken token)
+    public async Task<CommentWriteOutcome> AddActComment(Guid caseId, Guid actId, CommentEditRequest request, CancellationToken token)
     {
         this.AddCaseId = caseId;
         this.AddActId = actId;
         this.AddRequest = request;
 
-        return Task.FromResult(this.AddOutcome);
+        return await Task.FromResult(this.AddOutcome);
     }
 
-    public Task<CommentWriteOutcome> UpdateActComment(Guid caseId, Guid actId, Guid commentId, CommentEditRequest request, CancellationToken token)
+    public async Task<CommentWriteOutcome> UpdateActComment(Guid caseId, Guid actId, Guid commentId, CommentEditRequest request, CancellationToken token)
     {
         this.UpdateCaseId = caseId;
         this.UpdateActId = actId;
         this.UpdateCommentId = commentId;
         this.UpdateRequest = request;
 
-        return Task.FromResult(this.UpdateOutcome);
+        return await Task.FromResult(this.UpdateOutcome);
     }
 
-    public Task<CommentWriteOutcome> DeleteActComment(Guid caseId, Guid actId, Guid commentId, CancellationToken token)
+    public async Task<CommentWriteOutcome> DeleteActComment(Guid caseId, Guid actId, Guid commentId, CancellationToken token)
     {
         this.DeleteCaseId = caseId;
         this.DeleteActId = actId;
         this.DeleteCommentId = commentId;
 
-        return Task.FromResult(this.DeleteOutcome);
+        return await Task.FromResult(this.DeleteOutcome);
     }
 }

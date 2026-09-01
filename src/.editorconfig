@@ -104,6 +104,8 @@ dotnet_diagnostic.IDE0051.severity = none       # Private member is unused
 dotnet_diagnostic.IDE0058.severity = none       # Remove unnecessary expression value
 dotnet_diagnostic.IDE0059.severity = warning    # Unnecessary assignment of a value
 dotnet_diagnostic.IDE0060.severity = none       # Remove unused parameter if it is not part of a shipped public API (replaced by RCS1163)
+dotnet_diagnostic.IDE0390.severity = none       # Make method synchronous
+dotnet_diagnostic.IDE0391.severity = none       # Make method synchronous
 
 dotnet_diagnostic.SYSLIB1045.severity = suggestion # Use GeneratedRegexAttribute
 
@@ -415,8 +417,8 @@ dotnet_diagnostic.MA0210.severity = none       # Use in keyword to call the in o
 dotnet_diagnostic.MA0211.severity = none       # Use multi-line syntax for XML summary comments (disabled by default)
 dotnet_diagnostic.MA0212.severity = none       # Use MemoryMarshal.GetReference instead of indexing at 0 (disabled by default)
 dotnet_diagnostic.MA0213.severity = error      # Simplify negated boolean expression
-dotnet_diagnostic.MA0214.severity = none       # Use 'await' instead of returning the task (the opposite of MA0215; neither is adopted)
-dotnet_diagnostic.MA0215.severity = none       # Return the task instead of awaiting it (the opposite of MA0214; neither is adopted)
+dotnet_diagnostic.MA0214.severity = error      # Use 'await' instead of returning the task (the opposite of MA0215)
+dotnet_diagnostic.MA0215.severity = none       # Return the task instead of awaiting it (the opposite of MA0214)
 dotnet_diagnostic.MA0216.severity = error      # Remove unnecessary closed modifier
 dotnet_diagnostic.MA0217.severity = error      # Use a static lambda
 dotnet_diagnostic.MA0218.severity = error      # The language attribute is empty

@@ -34,10 +34,8 @@ internal sealed class FakeFileBlobStore : IFileBlobStore
         return this.WrittenByPath.TryGetValue(storagePath, out var text) ? new MemoryStream(Encoding.UTF8.GetBytes(text)) : null;
     }
 
-    public Task DeleteFileBlob(string storagePath, CancellationToken token)
+    public async Task DeleteFileBlob(string storagePath, CancellationToken token)
     {
         this.Deleted.Add(storagePath);
-
-        return Task.CompletedTask;
     }
 }

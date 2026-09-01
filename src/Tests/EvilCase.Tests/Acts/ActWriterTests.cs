@@ -182,9 +182,9 @@ public class ActWriterTests : TenantFixture
     {
         private int issued;
 
-        public Task<string> NextActNumber(Case @case, DateOnly date, CancellationToken token)
+        public async Task<string> NextActNumber(Case @case, DateOnly date, CancellationToken token)
         {
-            return Task.FromResult(actNumbers[this.issued++]);
+            return await Task.FromResult(actNumbers[this.issued++]);
         }
     }
 }

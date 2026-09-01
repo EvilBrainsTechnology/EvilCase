@@ -183,9 +183,9 @@ public class ControllerRouteAnalyzerTests
         Assert.That(diagnostics.Select(static x => x.Id), Is.EqualTo(expected));
     }
 
-    private static Task<ImmutableArray<Diagnostic>> Analyze(string controller)
+    private static async Task<ImmutableArray<Diagnostic>> Analyze(string controller)
     {
-        return AnalyzerTestHost.Analyze(new ControllerRouteAnalyzer(), Fixture(controller));
+        return await AnalyzerTestHost.Analyze(new ControllerRouteAnalyzer(), Fixture(controller));
     }
 
     private static string Fixture(string controller)

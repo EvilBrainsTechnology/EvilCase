@@ -50,12 +50,10 @@ public class RequestContextLoggingMiddlewareTests
         using var factory = new SerilogLoggerFactory(Logger(sink));
         var logger = factory.CreateLogger("Test");
 
-        var middleware = new RequestContextLoggingMiddleware(_ =>
+        var middleware = new RequestContextLoggingMiddleware(async _ =>
         {
             using (logger.BeginScope(new Dictionary<string, object> { ["RequestId"] = context.TraceIdentifier }))
                 logger.LogInformation("Inside the hosting scope");
-
-            return Task.CompletedTask;
         });
 
         await middleware.Invoke(context);

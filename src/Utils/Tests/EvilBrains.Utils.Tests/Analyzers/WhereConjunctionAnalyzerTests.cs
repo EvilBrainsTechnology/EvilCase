@@ -161,9 +161,9 @@ public class WhereConjunctionAnalyzerTests
         Assert.That(diagnostics, Is.Empty, "a block-bodied predicate is out of scope for the analyzer");
     }
 
-    private static Task<ImmutableArray<Diagnostic>> Analyze(string body)
+    private static async Task<ImmutableArray<Diagnostic>> Analyze(string body)
     {
-        return AnalyzerTestHost.Analyze(new WhereConjunctionAnalyzer(), Fixture(body));
+        return await AnalyzerTestHost.Analyze(new WhereConjunctionAnalyzer(), Fixture(body));
     }
 
     private static string Fixture(string body)

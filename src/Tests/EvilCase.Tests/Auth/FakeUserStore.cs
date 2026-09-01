@@ -35,19 +35,19 @@ internal sealed class FakeUserStore : IUserStore
         return this.users.Single();
     }
 
-    public Task<User?> FindByEmail(string email, CancellationToken token)
+    public async Task<User?> FindByEmail(string email, CancellationToken token)
     {
         var normalized = EmailNormalizer.Normalize(email);
 
-        return Task.FromResult(this.users.Find(user => string.Equals(user.Email, normalized, StringComparison.Ordinal)));
+        return await Task.FromResult(this.users.Find(user => string.Equals(user.Email, normalized, StringComparison.Ordinal)));
     }
 
-    public Task<User?> FindById(Guid userId, CancellationToken token)
+    public async Task<User?> FindById(Guid userId, CancellationToken token)
     {
-        return Task.FromResult(this.users.Find(user => user.Id == userId));
+        return await Task.FromResult(this.users.Find(user => user.Id == userId));
     }
 
-    public Task<DateTime?> RecordFailedLogin(Guid userId, int maxAttempts, DateTime lockoutEnd, CancellationToken token)
+    public async Task<DateTime?> RecordFailedLogin(Guid userId, int maxAttempts, DateTime lockoutEnd, CancellationToken token)
     {
         this.Replace(
             userId,
@@ -55,27 +55,23 @@ internal sealed class FakeUserStore : IUserStore
                 ? user with { FailedLoginAttempts = 0, LockoutEnd = lockoutEnd }
                 : user with { FailedLoginAttempts = user.FailedLoginAttempts + 1 });
 
-        return Task.FromResult(this.GetUser(userId).LockoutEnd);
+        return await Task.FromResult(this.GetUser(userId).LockoutEnd);
     }
 
-    public Task RecordSuccessfulLogin(Guid userId, CancellationToken token)
+    public async Task RecordSuccessfulLogin(Guid userId, CancellationToken token)
     {
         this.Replace(userId, static user => user with { FailedLoginAttempts = 0, LockoutEnd = null });
-
-        return Task.CompletedTask;
     }
 
-    public Task<bool> Any(CancellationToken token)
+    public async Task<bool> Any(CancellationToken token)
     {
-        return Task.FromResult(this.users.Count > 0);
+        return await Task.FromResult(this.users.Count > 0);
     }
 
-    public Task AddUser(User user, Contact defaultContact, CancellationToken token)
+    public async Task AddUser(User user, Contact defaultContact, CancellationToken token)
     {
         this.users.Add(user);
         this.contacts.Add(defaultContact);
-
-        return Task.CompletedTask;
     }
 
     private void Replace(Guid userId, Func<User, User> update)
