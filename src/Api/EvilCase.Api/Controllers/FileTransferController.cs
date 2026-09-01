@@ -23,25 +23,11 @@ public class FileTransferController : ControllerBase
     [ProducesResponseType(StatusCodes.Status413PayloadTooLarge)]
     public async Task<ActionResult<FileListItem>> UploadCaseFile([FromServices] IFileWriter writer, [FromRoute] Guid caseId, [FromForm] IFormFile file, CancellationToken token)
     {
-        if (file.Length > FileLimits.MaxUploadBytes)
-            return this.Problem(detail: "The file exceeds the 100 MB upload limit.", statusCode: StatusCodes.Status413PayloadTooLarge, title: "File too large");
+        var upload = this.BuildFileUpload(file, out var error);
+        if (error is not null)
+            return error;
 
-        // The browser may send a path; only the name is stored.
-        var fileName = Path.GetFileName(file.FileName);
-        var mediaType = NormalizeMediaType(file.ContentType);
-        var invalidMetadata = this.InvalidUploadMetadataProblem(fileName, mediaType);
-
-        if (invalidMetadata is not null)
-            return invalidMetadata;
-
-        await using var content = file.OpenReadStream();
-
-        var upload = new FileUpload
-        {
-            FileName = fileName,
-            MediaType = mediaType,
-            Content = content,
-        };
+        await using var content = upload!.Content;
 
         var result = await writer.UploadCaseFile(caseId, upload, token);
 
@@ -62,25 +48,11 @@ public class FileTransferController : ControllerBase
     public async Task<ActionResult<FileListItem>> UploadActFile(
         [FromServices] IFileWriter writer, [FromRoute] Guid caseId, [FromRoute] Guid actId, [FromForm] IFormFile file, CancellationToken token)
     {
-        if (file.Length > FileLimits.MaxUploadBytes)
-            return this.Problem(detail: "The file exceeds the 100 MB upload limit.", statusCode: StatusCodes.Status413PayloadTooLarge, title: "File too large");
+        var upload = this.BuildFileUpload(file, out var error);
+        if (error is not null)
+            return error;
 
-        // The browser may send a path; only the name is stored.
-        var fileName = Path.GetFileName(file.FileName);
-        var mediaType = NormalizeMediaType(file.ContentType);
-        var invalidMetadata = this.InvalidUploadMetadataProblem(fileName, mediaType);
-
-        if (invalidMetadata is not null)
-            return invalidMetadata;
-
-        await using var content = file.OpenReadStream();
-
-        var upload = new FileUpload
-        {
-            FileName = fileName,
-            MediaType = mediaType,
-            Content = content,
-        };
+        await using var content = upload!.Content;
 
         var result = await writer.UploadActFile(caseId, actId, upload, token);
 
@@ -111,6 +83,30 @@ public class FileTransferController : ControllerBase
     private static string? NormalizeMediaType(string mediaType)
     {
         return string.IsNullOrEmpty(mediaType) ? null : mediaType;
+    }
+
+    private FileUpload? BuildFileUpload(IFormFile file, out ActionResult? error)
+    {
+        if (file.Length > FileLimits.MaxUploadBytes)
+        {
+            error = this.Problem(detail: "The file exceeds the 100 MB upload limit.", statusCode: StatusCodes.Status413PayloadTooLarge, title: "File too large");
+            return null;
+        }
+
+        // The browser may send a path; only the name is stored.
+        var fileName = Path.GetFileName(file.FileName);
+        var mediaType = NormalizeMediaType(file.ContentType);
+        error = this.InvalidUploadMetadataProblem(fileName, mediaType);
+
+        if (error is not null)
+            return null;
+
+        return new FileUpload
+        {
+            FileName = fileName,
+            MediaType = mediaType,
+            Content = file.OpenReadStream(),
+        };
     }
 
     private ActionResult? InvalidUploadMetadataProblem(string fileName, string? mediaType)
