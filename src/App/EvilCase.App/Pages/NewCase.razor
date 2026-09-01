@@ -20,12 +20,14 @@
         @if (this.parentNotFound)
         {
             <div class="empty">
+                <div class="empty-icon"><Icon IconType="AppIcons.AlertTriangle" /></div>
                 <p class="empty-title">Nadřízený spis nenalezen</p>
             </div>
         }
         else if (this.failure is not null)
         {
             <div class="empty">
+                <div class="empty-icon"><Icon IconType="AppIcons.AlertTriangle" /></div>
                 <p class="empty-title">Nadřízený spis se nepodařilo načíst</p>
                 <p class="empty-subtitle text-secondary">@this.failure</p>
             </div>
