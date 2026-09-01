@@ -150,7 +150,7 @@
 
         await this.ModalService.ShowAsync(
             "Upravit kontakt",
-            new RenderComponent<ContactEditModal>()
+            new RenderComponent<ContactFormModal>()
                 .Set(component => component.Contact, this.contact)
                 .Set(component => component.OnSaved, EventCallback.Factory.Create(this, this.LoadContact)),
             FullscreenBelowLarge());
