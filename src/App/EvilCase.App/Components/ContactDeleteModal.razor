@@ -1,29 +1,12 @@
 @using System.Net
+@using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Contacts
-@using EvilBrains.ApiClient
-@using TabBlazor.Services
 @inject IContactsClient ContactsClient
-@inject IModalService ModalService
-@inject ILogger<ContactDeleteModal> Logger
 
-<p>Opravdu smazat kontakt <strong>@Contact.Name</strong>? Akci nelze vrátit zpět.</p>
-
-@if (this.error is not null)
-{
-    <div class="alert alert-danger" role="alert">@this.error</div>
-}
-
-<div class="d-flex justify-content-end gap-2 mt-3">
-    <button type="button" class="btn" @onclick="() => this.ModalService.Close()">Zrušit</button>
-    <button type="button" class="btn btn-danger" disabled="@this.busy" @onclick="this.DeleteContact">
-        @if (this.busy)
-        {
-            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-        }
-        Smazat
-    </button>
-</div>
+<ConfirmDeleteModal Delete="this.DeleteContact" GoneError="Kontakt už neexistuje." FailedError="Kontakt se nepodařilo smazat. Zkuste to za chvíli znovu." MapError="MapContactError" OnDeleted="this.OnDeleted">
+    <p>Opravdu smazat kontakt <strong>@Contact.Name</strong>? Akci nelze vrátit zpět.</p>
+</ConfirmDeleteModal>
 
 @code {
     [Parameter, EditorRequired]
@@ -32,43 +15,13 @@
     [Parameter]
     public EventCallback OnDeleted { get; set; }
 
-    private string? error;
-
-    private bool busy;
-
-    private async Task DeleteContact()
+    private Task DeleteContact(CancellationToken cancellationToken)
     {
-        this.busy = true;
-        this.error = null;
+        return this.ContactsClient.DeleteContact(this.Contact.ContactId, cancellationToken);
+    }
 
-        try
-        {
-            await this.ContactsClient.DeleteContact(this.Contact.ContactId, CancellationToken.None);
-
-            this.ModalService.Close();
-            await this.OnDeleted.InvokeAsync();
-        }
-        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
-        {
-            this.Logger.LogWarning(exception, "Deleting the contact failed: it is referenced");
-
-            this.error = "Kontakt nelze smazat: figuruje ve spisu nebo úkonu.";
-        }
-        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
-        {
-            this.Logger.LogWarning(exception, "Deleting the contact failed: it is already gone");
-
-            this.error = "Kontakt už neexistuje.";
-        }
-        catch (Exception exception) when (exception is ApiException or HttpRequestException)
-        {
-            this.Logger.LogWarning(exception, "Deleting the contact failed");
-
-            this.error = "Kontakt se nepodařilo smazat. Zkuste to za chvíli znovu.";
-        }
-        finally
-        {
-            this.busy = false;
-        }
+    private static string? MapContactError(ApiException exception)
+    {
+        return exception.StatusCode == HttpStatusCode.Conflict ? "Kontakt nelze smazat: figuruje ve spisu nebo úkonu." : null;
     }
 }
