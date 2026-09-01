@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using EvilBrains.EvilCase.Domain.Json;
 
 namespace EvilBrains.EvilCase.Domain.Cases;
 
@@ -6,7 +7,7 @@ namespace EvilBrains.EvilCase.Domain.Cases;
 /// The closed set from <c>docs/product/vision.md</c>. Serialized by name rather than by number, so the
 /// wire format survives a reordering and the stored column stays readable.
 /// </summary>
-[JsonConverter(typeof(JsonStringEnumConverter<CaseStatus>))]
+[JsonConverter(typeof(StrictJsonStringEnumConverter<CaseStatus>))]
 public enum CaseStatus
 {
     Active = 0,

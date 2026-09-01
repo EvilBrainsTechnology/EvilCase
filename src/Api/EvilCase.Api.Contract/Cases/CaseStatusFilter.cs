@@ -1,8 +1,9 @@
 using System.Text.Json.Serialization;
+using EvilBrains.EvilCase.Domain.Json;
 
 namespace EvilBrains.EvilCase.Api.Contract.Cases;
 
-[JsonConverter(typeof(JsonStringEnumConverter<CaseStatusFilter>))]
+[JsonConverter(typeof(StrictJsonStringEnumConverter<CaseStatusFilter>))]
 public enum CaseStatusFilter
 {
     /// <summary>

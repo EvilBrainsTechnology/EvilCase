@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using EvilBrains.EvilCase.Domain.Json;
 
 namespace EvilBrains.EvilCase.Domain.Contacts;
 
@@ -7,7 +8,7 @@ namespace EvilBrains.EvilCase.Domain.Contacts;
 /// authority it acts for. Serialized by name rather than by number, so the wire format survives a
 /// reordering and the stored column stays readable.
 /// </summary>
-[JsonConverter(typeof(JsonStringEnumConverter<ContactKind>))]
+[JsonConverter(typeof(StrictJsonStringEnumConverter<ContactKind>))]
 public enum ContactKind
 {
     /// <summary>

@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using EvilBrains.EvilCase.Domain.Json;
 
 namespace EvilBrains.EvilCase.Domain.Acts;
 
@@ -6,7 +7,7 @@ namespace EvilBrains.EvilCase.Domain.Acts;
 /// Which way an act travelled, from the case owner's point of view. Serialized by name rather than by
 /// number, so the wire format survives a reordering and the stored column stays readable.
 /// </summary>
-[JsonConverter(typeof(JsonStringEnumConverter<ActDirection>))]
+[JsonConverter(typeof(StrictJsonStringEnumConverter<ActDirection>))]
 public enum ActDirection
 {
     /// <summary>
