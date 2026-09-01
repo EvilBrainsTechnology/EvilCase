@@ -56,6 +56,11 @@ internal sealed class ExternalCaseNumberWriter(IDbSession dbSession, ILogger<Ext
             .WithId(numberId)
             .ExecuteDeleteAsync(token);
 
-        return rows == 0 ? DeleteOutcome.NotFound : DeleteOutcome.Deleted;
+        if (rows == 0)
+            return DeleteOutcome.NotFound;
+
+        logger.LogInformation("External case number {ExternalCaseNumberId} was removed from case {CaseId}", numberId, caseId);
+
+        return DeleteOutcome.Deleted;
     }
 }

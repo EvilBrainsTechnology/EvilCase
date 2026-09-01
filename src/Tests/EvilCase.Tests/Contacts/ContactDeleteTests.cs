@@ -9,6 +9,7 @@ using EvilBrains.EvilCase.Domain.Users;
 using EvilBrains.EvilCase.Tests.Auth;
 using EvilBrains.EvilCase.Tests.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using Npgsql;
 
 namespace EvilBrains.EvilCase.Tests.Contacts;
@@ -33,7 +34,7 @@ public class ContactDeleteTests
         // The act lands between the delete's checks and its save, on another connection: the race, without timing.
         context.SavingChanges += (_, _) => WriteIssuedAct(userContext, seeded.Case, seeded.Contact.Id);
 
-        var writer = new ContactWriter(new FixedDbSession(context));
+        var writer = new ContactWriter(new FixedDbSession(context), NullLogger<ContactWriter>.Instance);
 
         var outcome = await writer.DeleteContact(seeded.Contact.Id, CancellationToken.None);
 
