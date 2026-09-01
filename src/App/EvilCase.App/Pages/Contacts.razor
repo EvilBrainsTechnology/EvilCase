@@ -2,7 +2,6 @@
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Contacts
-@using TabBlazor.Components.QuickTables
 @implements IDisposable
 @inject IContactsClient ContactsClient
 @inject ILogger<Contacts> Logger
@@ -52,17 +51,27 @@
             else
             {
                 <div class="d-none d-lg-block">
-                    @* QuickTable sorts by its first column, so that has to be the one the API ordered by. *@
-                    <QuickTable Items="this.items.AsQueryable()" Class="card-table table-vcenter">
-                        <TemplateColumn Title="Název" Context="item" SortBy="@(GridSort<ContactListItem>.ByAscending(contact => contact.Name))">
-                            <a href="/contacts/@item.ContactId">@item.Name</a>
-                        </TemplateColumn>
-                        <TemplateColumn Title="Typ" Context="item" Class="text-nowrap">
-                            @ContactKindDisplay.Text(item.Kind)
-                        </TemplateColumn>
-                        <PropertyColumn Property="@(item => item.DataBoxId)" Title="Datová schránka" />
-                        <PropertyColumn Property="@(item => item.Address)" Title="Adresa" />
-                    </QuickTable>
+                    <table class="table card-table table-vcenter">
+                        <thead>
+                            <tr>
+                                <th>Název</th>
+                                <th>Typ</th>
+                                <th>Datová schránka</th>
+                                <th>Adresa</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in this.items)
+                            {
+                                <tr>
+                                    <td><a href="/contacts/@item.ContactId">@item.Name</a></td>
+                                    <td class="text-nowrap">@ContactKindDisplay.Text(item.Kind)</td>
+                                    <td>@item.DataBoxId</td>
+                                    <td>@item.Address</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
                 </div>
 
                 <div class="card-body d-lg-none">
