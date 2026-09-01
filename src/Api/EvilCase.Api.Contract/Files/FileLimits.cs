@@ -13,4 +13,14 @@ public static class FileLimits
     /// request at 30 MB, so the upload names its own.
     /// </summary>
     public const long MaxUploadRequestBytes = MaxUploadBytes + (1024 * 1024);
+
+    /// <summary>
+    /// Mirrors <c>FileAsset.FileName</c>'s <c>MaxLength</c>.
+    /// </summary>
+    public const int MaxFileNameLength = 256;
+
+    /// <summary>
+    /// Mirrors <c>FileAsset.MediaType</c>'s <c>MaxLength</c>.
+    /// </summary>
+    public const int MaxMediaTypeLength = 128;
 }
