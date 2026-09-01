@@ -33,8 +33,8 @@ jinými entitami; tentýž dokument ve dvou spisech jsou dva soubory.
 ### UI
 
 Drag-and-drop multi-upload na detailu spisu i úkonu; hromadné přetažení běží po souborech
-a odmítne jen soubor, který selže. Download jde přes fetch a Blob URL — nese autorizační
-hlavičku; endpoint posílá `Content-Disposition: attachment`
+a odmítne jen soubor, který selže. Dávka nad 100 souborů se odmítá celá. Download jde přes
+fetch a Blob URL — nese autorizační hlavičku; endpoint posílá `Content-Disposition: attachment`
 a `X-Content-Type-Options: nosniff`. Smazání je prosté, s potvrzením.
 
 ## Rozhodnutí

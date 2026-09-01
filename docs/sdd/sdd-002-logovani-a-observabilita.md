@@ -17,7 +17,12 @@ Logging přes `EvilBrains.Logging.*` (server i WebAssembly), Seq z prostředí, 
 logging s allow-listem, health checks — vše podle READMEs pod `src/Utils/` a
 `.claude/rules/api.md`.
 
-### Nové featury logují
+### Co loguje každá agenda
+
+Každý zápis business vrstvy — založení, změna, smazání — loguje identifikátory dotčených
+entit, v každé agendě stejně.
+
+### Navíc loguje
 
 - Přidělení čísla: přidělené `CaseNumber` / `ActNumber` a id entity (SDD-008).
 - Souborové úložiště: zápis a smazání blobu s id, velikostí a výsledkem (SDD-012).
