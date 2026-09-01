@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using EvilBrains.ApiClient;
+using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Business.Files;
 using Microsoft.AspNetCore.Http;
@@ -20,7 +21,7 @@ public class CaseFilesController : ControllerBase
         var items = await files.ListCaseFiles(caseId, token);
 
         return items is null
-            ? this.Problem(statusCode: StatusCodes.Status404NotFound, title: "Case not found")
+            ? this.Problem(statusCode: StatusCodes.Status404NotFound, title: CaseProblems.NotFound)
             : this.Ok(new FileListResponse { Items = items });
     }
 
@@ -34,7 +35,7 @@ public class CaseFilesController : ControllerBase
         return outcome switch
         {
             FileDeleteOutcome.Deleted => this.NoContent(),
-            FileDeleteOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: "File not found"),
+            FileDeleteOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: FileProblems.NotFound),
             _ => throw new UnreachableException(),
         };
     }

@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using EvilBrains.ApiClient;
 using EvilBrains.EvilCase.Api.Contract.Acts;
+using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Api.Contract.Numbers;
 using EvilBrains.EvilCase.Business.Acts;
@@ -43,7 +44,7 @@ public class ActsController : ControllerBase
         return result.Outcome switch
         {
             ActCreateOutcome.Created => this.CreatedAtAction(nameof(this.GetAct), new { caseId, actId = result.Act!.ActId }, result.Act),
-            ActCreateOutcome.CaseNotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.CaseNotFound),
+            ActCreateOutcome.CaseNotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: CaseProblems.NotFound),
             ActCreateOutcome.ContactNotFound => this.Problem(
                 detail: "The contact named in the request does not exist.",
                 statusCode: StatusCodes.Status409Conflict,

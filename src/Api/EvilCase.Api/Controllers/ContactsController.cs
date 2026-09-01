@@ -44,7 +44,7 @@ public class ContactsController : ControllerBase
         var contact = await contacts.GetContactDetail(contactId, token);
 
         return contact is null
-            ? this.Problem(statusCode: StatusCodes.Status404NotFound, title: "Contact not found")
+            ? this.Problem(statusCode: StatusCodes.Status404NotFound, title: ContactProblems.NotFound)
             : this.Ok(contact);
     }
 
@@ -59,7 +59,7 @@ public class ContactsController : ControllerBase
         return outcome switch
         {
             ContactUpdateOutcome.Updated => this.NoContent(),
-            ContactUpdateOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: "Contact not found"),
+            ContactUpdateOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: ContactProblems.NotFound),
             _ => throw new UnreachableException(),
         };
     }
@@ -75,7 +75,7 @@ public class ContactsController : ControllerBase
         return outcome switch
         {
             ContactDeleteOutcome.Deleted => this.NoContent(),
-            ContactDeleteOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: "Contact not found"),
+            ContactDeleteOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: ContactProblems.NotFound),
             ContactDeleteOutcome.DefaultContact => this.Problem(
                 detail: "The default contact cannot be deleted.", statusCode: StatusCodes.Status409Conflict, title: "Contact in use"),
             ContactDeleteOutcome.Referenced => this.Problem(
