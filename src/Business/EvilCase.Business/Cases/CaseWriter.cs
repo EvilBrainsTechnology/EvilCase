@@ -84,12 +84,16 @@ internal sealed class CaseWriter(
 
     public async Task<CaseUpdateOutcome> UpdateCase(Guid caseId, CaseEditRequest request, CancellationToken token)
     {
+        var context = dbSession.Current;
+
+        // A case the tenant does not have is not found, whatever else the edit gets wrong (R-025).
+        if (!await context.Cases.WithId(caseId).AnyAsync(token))
+            return CaseUpdateOutcome.NotFound;
+
         var edit = Normalize(request);
 
         if (CaseNumberFormat.ParseOrDefault(edit.CaseNumber) is null)
             return CaseUpdateOutcome.InvalidCaseNumber;
-
-        var context = dbSession.Current;
 
         var taken = await context.Cases
             .WithNumberHeldByAnother(edit.CaseNumber, caseId)

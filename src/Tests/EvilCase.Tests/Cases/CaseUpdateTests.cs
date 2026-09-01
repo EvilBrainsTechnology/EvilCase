@@ -173,6 +173,16 @@ public class CaseUpdateTests
     }
 
     [Test]
+    public async Task AnUnknownCaseWithAMalformedNumberIsNotFoundNotInvalid()
+    {
+        var request = Edit("spis 7/2026", Day, "Neexistující", description: null, CaseStatus.Active);
+
+        var outcome = await this.writer.UpdateCase(Guid.CreateVersion7(), request, CancellationToken.None);
+
+        Assert.That(outcome, Is.EqualTo(CaseUpdateOutcome.NotFound), "the row is checked before the number is validated (R-025)");
+    }
+
+    [Test]
     public async Task ACaseOfAnotherTenantIsNotFound()
     {
         await using var other = await TestTenant.Create();
