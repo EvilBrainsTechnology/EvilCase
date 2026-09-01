@@ -5,9 +5,25 @@ namespace EvilBrains.EvilCase.App.Icons;
 // TabBlazor ships no icon set. Path data comes from the Tabler icon set; add icons here as they are needed.
 public static class AppIcons
 {
+    // The second path exceeds the file's line width, so it is split at an SVG command boundary.
+    public static IIconType AlertTriangle { get; } = new TablerIcon("<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M12 9v4' />"
+        + "<path d='M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871"
+        + "h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z' />"
+        + "<path d='M12 16h.01' />");
+
+    public static IIconType ArrowsExchange { get; } = new TablerIcon("<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M7 10h14l-4 -4' />"
+        + "<path d='M17 14h-14l4 4' />");
+
     public static IIconType Clock { get; } = new TablerIcon("<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0' />"
         + "<path d='M12 7v5l3 3' />");
+
+    public static IIconType DeviceFloppy { get; } = new TablerIcon("<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M6 4h10l4 4v10a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2' />"
+        + "<path d='M12 14m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0' />"
+        + "<path d='M14 4l0 4l-6 0l0 -4' />");
 
     public static IIconType Download { get; } = new TablerIcon("<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2' />"
@@ -25,14 +41,54 @@ public static class AppIcons
         + "<path d='M9 4h3l2 2h5a2 2 0 0 1 2 2v7a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2' />"
         + "<path d='M17 17v2a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2h2' />");
 
+    public static IIconType Hash { get; } = new TablerIcon("<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M5 9l14 0' />"
+        + "<path d='M5 15l14 0' />"
+        + "<path d='M11 4l-4 16' />"
+        + "<path d='M17 4l-4 16' />");
+
     public static IIconType LayoutDashboard { get; } = new TablerIcon("<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M5 4h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1' />"
         + "<path d='M5 16h4a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-2a1 1 0 0 1 1 -1' />"
         + "<path d='M15 12h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1' />"
         + "<path d='M15 4h4a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-2a1 1 0 0 1 1 -1' />");
 
+    public static IIconType ListDetails { get; } = new TablerIcon("<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M13 5h8' />"
+        + "<path d='M13 9h5' />"
+        + "<path d='M13 15h8' />"
+        + "<path d='M13 19h5' />"
+        + "<path d='M3 4m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z' />"
+        + "<path d='M3 14m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z' />");
+
+    public static IIconType Login { get; } = new TablerIcon("<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M15 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2' />"
+        + "<path d='M21 12h-13l3 -3' />"
+        + "<path d='M11 15l-3 -3' />");
+
+    public static IIconType Logout { get; } = new TablerIcon("<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2' />"
+        + "<path d='M9 12h12l-3 -3' />"
+        + "<path d='M18 15l3 -3' />");
+
+    public static IIconType Message { get; } = new TablerIcon("<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M8 9h8' />"
+        + "<path d='M8 13h6' />"
+        + "<path d='M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-5l-5 3v-3h-2a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12z' />");
+
     public static IIconType Moon { get; } = new TablerIcon("<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z' />");
+
+    public static IIconType Paperclip { get; } = new TablerIcon("<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M15 7l-6.5 6.5a1.5 1.5 0 0 0 3 3l6.5 -6.5a3 3 0 0 0 -6 -6l-6.5 6.5a4.5 4.5 0 0 0 9 9l6.5 -6.5' />");
+
+    public static IIconType Pencil { get; } = new TablerIcon("<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4' />"
+        + "<path d='M13.5 6.5l4 4' />");
+
+    public static IIconType Plus { get; } = new TablerIcon("<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M12 5l0 14' />"
+        + "<path d='M5 12l14 0' />");
 
     public static IIconType Scale { get; } = new TablerIcon("<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M7 20l10 0' />"
@@ -71,4 +127,8 @@ public static class AppIcons
         + "<path d='M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2' />"
         + "<path d='M16 3.13a4 4 0 0 1 0 7.75' />"
         + "<path d='M21 21v-2a4 4 0 0 0 -3 -3.85' />");
+
+    public static IIconType X { get; } = new TablerIcon("<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M18 6l-12 12' />"
+        + "<path d='M6 6l12 12' />");
 }
