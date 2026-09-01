@@ -13,11 +13,11 @@ namespace EvilBrains.EvilCase.Auth;
 
 public static class Bootstrap
 {
-    public static IServiceCollection AddEvilCaseAuth(this IServiceCollection services, string authSettingsPath)
+    public static IServiceCollection AddEvilCaseAuth(this IServiceCollection services)
     {
         services
             .AddOptions<AuthSettings>()
-            .BindConfiguration(authSettingsPath, options => options.ErrorOnUnknownConfiguration = true)
+            .BindConfiguration("EvilBrains:EvilCase:Auth", options => options.ErrorOnUnknownConfiguration = true)
             .ValidateOnStart();
 
         services.AddSingleton<IValidateOptions<AuthSettings>, AuthSettingsValidator>();
