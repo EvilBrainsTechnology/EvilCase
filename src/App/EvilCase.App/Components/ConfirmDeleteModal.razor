@@ -8,15 +8,19 @@
 
 @if (this.error is not null)
 {
-    <div class="alert alert-danger" role="alert">@this.error</div>
+    <div class="alert alert-danger" role="alert"><Icon CssClass="icon me-2" IconType="AppIcons.AlertTriangle" />@this.error</div>
 }
 
 <div class="d-flex justify-content-end gap-2 mt-3">
-    <button type="button" class="btn" @onclick="() => this.ModalService.Close()">Zrušit</button>
+    <button type="button" class="btn" @onclick="() => this.ModalService.Close()"><Icon CssClass="icon" IconType="AppIcons.X" />Zrušit</button>
     <button type="button" class="btn btn-danger" disabled="@this.busy" @onclick="this.ConfirmDelete">
         @if (this.busy)
         {
             <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+        }
+        else
+        {
+            <Icon CssClass="icon" IconType="AppIcons.Trash" />
         }
         Smazat
     </button>

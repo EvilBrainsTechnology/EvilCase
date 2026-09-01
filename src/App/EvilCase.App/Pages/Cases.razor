@@ -15,7 +15,7 @@
                 <h2 class="page-title">Spisy</h2>
             </div>
             <div class="col-auto ms-auto">
-                <a href="/cases/new" class="btn btn-primary">Nový spis</a>
+                <a href="/cases/new" class="btn btn-primary"><Icon CssClass="icon" IconType="AppIcons.Plus" />Nový spis</a>
             </div>
         </div>
     </div>
@@ -50,6 +50,7 @@
             @if (this.failure is not null)
             {
                 <div class="empty">
+                    <div class="empty-icon"><Icon IconType="AppIcons.AlertTriangle" /></div>
                     <p class="empty-title">Spisy se nepodařilo načíst</p>
                     <p class="empty-subtitle text-secondary">@this.failure</p>
                 </div>
@@ -63,10 +64,11 @@
             else if (this.items.Count == 0)
             {
                 <div class="empty">
+                    <div class="empty-icon"><Icon IconType="AppIcons.Folders" /></div>
                     <p class="empty-title">Žádné spisy</p>
                     <p class="empty-subtitle text-secondary">@(!string.IsNullOrWhiteSpace(this.search) || this.status != CaseStatusFilter.All ? "Zkuste jiné hledání nebo jiný stav — uzavřené spisy se ve výchozím nastavení nezobrazují." : "Zatím tu není žádný spis.")</p>
                     <div class="empty-action">
-                        <a href="/cases/new" class="btn btn-primary">Založit spis</a>
+                        <a href="/cases/new" class="btn btn-primary"><Icon CssClass="icon" IconType="AppIcons.Plus" />Založit spis</a>
                     </div>
                 </div>
             }

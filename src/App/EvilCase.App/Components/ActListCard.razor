@@ -6,15 +6,16 @@
 
 <div class="card">
     <div class="card-header">
-        <h3 class="card-title">Úkony</h3>
+        <h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.FileText" />Úkony</h3>
         <div class="card-actions">
-            <a href="/cases/@this.CaseId/act/new" class="btn btn-primary">Nový úkon</a>
+            <a href="/cases/@this.CaseId/act/new" class="btn btn-primary"><Icon CssClass="icon" IconType="AppIcons.Plus" />Nový úkon</a>
         </div>
     </div>
 
     @if (this.failure is not null)
     {
         <div class="empty">
+            <div class="empty-icon"><Icon IconType="AppIcons.AlertTriangle" /></div>
             <p class="empty-title">Úkony se nepodařilo načíst</p>
             <p class="empty-subtitle text-secondary">@this.failure</p>
         </div>
@@ -28,10 +29,11 @@
     else if (this.items.Count == 0)
     {
         <div class="empty">
+            <div class="empty-icon"><Icon IconType="AppIcons.FileText" /></div>
             <p class="empty-title">Žádné úkony</p>
             <p class="empty-subtitle text-secondary">Zatím tu není žádný úkon.</p>
             <div class="empty-action">
-                <a href="/cases/@this.CaseId/act/new" class="btn btn-primary">Založit úkon</a>
+                <a href="/cases/@this.CaseId/act/new" class="btn btn-primary"><Icon CssClass="icon" IconType="AppIcons.Plus" />Založit úkon</a>
             </div>
         </div>
     }

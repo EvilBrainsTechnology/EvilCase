@@ -31,6 +31,7 @@
             @if (this.failure is not null)
             {
                 <div class="empty">
+                    <div class="empty-icon"><Icon IconType="AppIcons.AlertTriangle" /></div>
                     <p class="empty-title">Kontakty se nepodařilo načíst</p>
                     <p class="empty-subtitle text-secondary">@this.failure</p>
                 </div>
@@ -44,6 +45,7 @@
             else if (this.items.Count == 0)
             {
                 <div class="empty">
+                    <div class="empty-icon"><Icon IconType="AppIcons.Users" /></div>
                     <p class="empty-title">Žádné kontakty</p>
                     <p class="empty-subtitle text-secondary">
                         @(string.IsNullOrWhiteSpace(this.search) ? "Zatím tu není žádný kontakt." : "Zkuste jiné hledání.")

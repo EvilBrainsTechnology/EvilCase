@@ -7,12 +7,13 @@
 
 <div class="card">
     <div class="card-header">
-        <h3 class="card-title">@this.Text.Heading</h3>
+        <h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.Hash" />@this.Text.Heading</h3>
     </div>
 
     @if (this.Items.Count == 0)
     {
         <div class="empty">
+            <div class="empty-icon"><Icon IconType="AppIcons.Hash" /></div>
             <p class="empty-title">@this.Text.EmptyTitle</p>
         </div>
     }
@@ -40,7 +41,7 @@
                             @if (this.Editable)
                             {
                                 <td class="text-end">
-                                    <button type="button" class="btn btn-sm btn-danger" @onclick="() => this.ConfirmDelete(item)">Smazat</button>
+                                    <button type="button" class="btn btn-sm btn-danger" @onclick="() => this.ConfirmDelete(item)"><Icon CssClass="icon" IconType="AppIcons.Trash" />Smazat</button>
                                 </td>
                             }
                         </tr>
@@ -57,7 +58,7 @@
                     <div><a href="/contacts/@item.AssignedByContactId">@item.AssignedByContactName</a></div>
                     @if (this.Editable)
                     {
-                        <button type="button" class="btn btn-sm btn-danger" @onclick="() => this.ConfirmDelete(item)">Smazat</button>
+                        <button type="button" class="btn btn-sm btn-danger" @onclick="() => this.ConfirmDelete(item)"><Icon CssClass="icon" IconType="AppIcons.Trash" />Smazat</button>
                     }
                 </div>
             }
@@ -84,13 +85,17 @@
 
                 @if (this.error is not null)
                 {
-                    <div class="alert alert-danger" role="alert">@this.error</div>
+                    <div class="alert alert-danger" role="alert"><Icon CssClass="icon me-2" IconType="AppIcons.AlertTriangle" />@this.error</div>
                 }
 
                 <button id="external-number-add" type="submit" class="btn btn-primary" disabled="@this.busy">
                     @if (this.busy)
                     {
                         <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                    }
+                    else
+                    {
+                        <Icon CssClass="icon" IconType="AppIcons.Plus" />
                     }
                     Přidat
                 </button>

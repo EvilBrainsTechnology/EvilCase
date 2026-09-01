@@ -1,12 +1,14 @@
 @if (this.NotFound)
 {
     <div class="empty">
+        <div class="empty-icon"><Icon IconType="AppIcons.AlertTriangle" /></div>
         <p class="empty-title">@this.NotFoundTitle</p>
     </div>
 }
 else if (this.Failure is not null)
 {
     <div class="empty">
+        <div class="empty-icon"><Icon IconType="AppIcons.AlertTriangle" /></div>
         <p class="empty-title">@this.FailureTitle</p>
         <p class="empty-subtitle text-secondary">@this.Failure</p>
     </div>

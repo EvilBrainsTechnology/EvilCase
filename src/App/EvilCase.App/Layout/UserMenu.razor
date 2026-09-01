@@ -17,8 +17,8 @@
 
             <div class="dropdown-menu dropdown-menu-end show">
                 <span class="dropdown-header text-truncate d-lg-none">@authenticationState.User.Identity?.Name</span>
-                <button type="button" class="dropdown-item" @onclick="() => SignOut(everywhere: false)">Odhlásit se</button>
-                <button type="button" class="dropdown-item" @onclick="() => SignOut(everywhere: true)">Odhlásit všechna zařízení</button>
+                <button type="button" class="dropdown-item" @onclick="() => SignOut(everywhere: false)"><Icon CssClass="icon me-2" IconType="AppIcons.Logout" />Odhlásit se</button>
+                <button type="button" class="dropdown-item" @onclick="() => SignOut(everywhere: true)"><Icon CssClass="icon me-2" IconType="AppIcons.Logout" />Odhlásit všechna zařízení</button>
             </div>
         }
     </div>
