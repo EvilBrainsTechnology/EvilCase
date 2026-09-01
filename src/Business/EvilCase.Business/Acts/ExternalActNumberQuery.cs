@@ -5,9 +5,11 @@ namespace EvilBrains.EvilCase.Business.Acts;
 
 internal static class ExternalActNumberQuery
 {
-    public static IQueryable<ExternalActNumber> OfAct(this IQueryable<ExternalActNumber> numbers, Guid actId)
+    public static IQueryable<ExternalActNumber> OfAct(this IQueryable<ExternalActNumber> numbers, Guid caseId, Guid actId)
     {
-        return numbers.Where(number => number.ActId == actId);
+        return numbers
+            .Where(number => number.ActId == actId)
+            .Where(number => number.Act!.CaseId == caseId);
     }
 
     /// <summary>

@@ -16,7 +16,7 @@ internal sealed class ExternalCaseNumberWriter(IDbSession dbSession, ILogger<Ext
 
         var context = dbSession.Current;
 
-        var caseExists = await context.Cases.WithId(caseId).AnyAsync(token);
+        var caseExists = await context.Cases.Exists(caseId, token);
         if (!caseExists)
             return ExternalCaseNumberOutcome.CaseNotFound;
 

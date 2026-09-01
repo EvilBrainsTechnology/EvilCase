@@ -45,7 +45,7 @@ internal static class ContactOccurrenceQuery
         return acts.Where(act => act.AddressedToContactId == contactId);
     }
 
-    public static IQueryable<ContactActOccurrence> AsIssuedByOccurrences(this IQueryable<Act> acts)
+    public static IQueryable<ContactActOccurrence> AsActOccurrences(this IQueryable<Act> acts, ContactActRole role)
     {
         return acts.Select(act => new ContactActOccurrence
         {
@@ -55,22 +55,7 @@ internal static class ContactOccurrenceQuery
             ActDate = act.Date,
             CaseId = act.CaseId,
             CaseNumber = act.Case!.CaseNumber,
-            Role = ContactActRole.IssuedBy,
-            ExternalNumber = null,
-        });
-    }
-
-    public static IQueryable<ContactActOccurrence> AsAddressedToOccurrences(this IQueryable<Act> acts)
-    {
-        return acts.Select(act => new ContactActOccurrence
-        {
-            ActId = act.Id,
-            ActNumber = act.ActNumber,
-            ActTitle = act.Title,
-            ActDate = act.Date,
-            CaseId = act.CaseId,
-            CaseNumber = act.Case!.CaseNumber,
-            Role = ContactActRole.AddressedTo,
+            Role = role,
             ExternalNumber = null,
         });
     }

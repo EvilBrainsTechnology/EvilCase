@@ -31,9 +31,7 @@ internal sealed class CaseWriter(
 
         if (request.ParentCaseId is { } parentCaseId)
         {
-            var known = await context.Cases
-                .WithId(parentCaseId)
-                .AnyAsync(token);
+            var known = await context.Cases.Exists(parentCaseId, token);
 
             if (!known)
                 return new CaseCreateResult { Outcome = CaseCreateOutcome.InvalidParent };

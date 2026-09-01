@@ -14,7 +14,7 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
 {
     public async Task<UploadFileResult> UploadCaseFile(Guid caseId, FileUpload upload, CancellationToken token)
     {
-        var caseExists = await dbSession.Current.Cases.WithId(caseId).AnyAsync(token);
+        var caseExists = await dbSession.Current.Cases.Exists(caseId, token);
         if (!caseExists)
             return new UploadFileResult { Outcome = UploadFileOutcome.OwnerNotFound };
 
@@ -27,7 +27,7 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
 
     public async Task<UploadFileResult> UploadActFile(Guid caseId, Guid actId, FileUpload upload, CancellationToken token)
     {
-        var actExists = await dbSession.Current.Acts.OfCase(caseId).WithId(actId).AnyAsync(token);
+        var actExists = await dbSession.Current.Acts.OfCase(caseId).Exists(actId, token);
         if (!actExists)
             return new UploadFileResult { Outcome = UploadFileOutcome.OwnerNotFound };
 

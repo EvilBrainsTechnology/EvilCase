@@ -1,5 +1,6 @@
 using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Data.DbContexts;
+using EvilBrains.EvilCase.Domain.Contacts;
 using EvilBrains.EvilCase.Domain.Users;
 using Microsoft.EntityFrameworkCore;
 
@@ -38,12 +39,12 @@ internal sealed class ContactReader(IDbSession dbSession, IUserContext userConte
 
         var issuedBy = await context.Acts
             .IssuedByContact(contactId)
-            .AsIssuedByOccurrences()
+            .AsActOccurrences(ContactActRole.IssuedBy)
             .ToListAsync(token);
 
         var addressedTo = await context.Acts
             .AddressedToContact(contactId)
-            .AsAddressedToOccurrences()
+            .AsActOccurrences(ContactActRole.AddressedTo)
             .ToListAsync(token);
 
         return contact with
