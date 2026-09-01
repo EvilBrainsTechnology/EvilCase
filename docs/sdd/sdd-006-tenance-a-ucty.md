@@ -21,8 +21,9 @@ Doménové entity popisuje SDD-007.
   (SDD-011).
 
 Každá tenantová entita nese `TenantId`. Vlastníka `UserId` nese každá kromě kontaktu; kontakt
-patří tenantu (SDD-011). Obojí plní zápis, ne volající. Viditelná je v celém tenantu, zapsat a
-změnit ji může jen její uživatel.
+patří tenantu (SDD-011). Obojí plní zápis, ne volající. Viditelná i zapisovatelná je v celém
+tenantu, `UserId` jen říká, kdo ji založil; výjimkou je komentář, ten smí upravit a smazat jen
+jeho autor (SDD-013).
 
 Account, Tenant a první administrátor vznikají jen seedem při startu
 (`EvilBrains__EvilCase__Auth__Seed__*`, jen do prázdné tabulky uživatelů). Žádné UI pro
