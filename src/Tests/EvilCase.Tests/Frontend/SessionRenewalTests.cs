@@ -1,7 +1,9 @@
 using System.Net;
 using EvilBrains.ApiClient;
+using EvilBrains.EvilCase.Api.Client;
 using EvilBrains.EvilCase.App.Auth;
 using Microsoft.Extensions.Logging.Abstractions;
+using NSubstitute.ExceptionExtensions;
 
 namespace EvilBrains.EvilCase.Tests.Frontend;
 
@@ -57,9 +59,10 @@ public class SessionRenewalTests
 
     private static EvilCaseAuthenticationStateProvider Provider(IAccessTokenStore tokens, Exception refreshFailure)
     {
-        return new EvilCaseAuthenticationStateProvider(
-            tokens,
-            new FakeAuthClient(refreshFailure),
-            NullLogger<EvilCaseAuthenticationStateProvider>.Instance);
+        var authClient = Substitute.For<IAuthClient>();
+        authClient.Refresh(Arg.Any<CancellationToken>())
+            .ThrowsAsync(refreshFailure);
+
+        return new EvilCaseAuthenticationStateProvider(tokens, authClient, NullLogger<EvilCaseAuthenticationStateProvider>.Instance);
     }
 }
