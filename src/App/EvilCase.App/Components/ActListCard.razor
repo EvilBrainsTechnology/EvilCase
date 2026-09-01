@@ -78,10 +78,10 @@
                         <div>
                             <Status BackgroundColor="ActDirectionDisplay.Color(item.Direction)" Lite="true">@ActDirectionDisplay.Text(item.Direction)</Status>
                         </div>
-                        <div class="text-secondary">Od: @item.IssuedByName</div>
+                        <div class="text-secondary">Odesílatel: @item.IssuedByName</div>
                         @if (!string.IsNullOrWhiteSpace(item.AddressedToName))
                         {
-                            <div class="text-secondary">Komu: @item.AddressedToName</div>
+                            <div class="text-secondary">Příjemce: @item.AddressedToName</div>
                         }
                         <div class="text-secondary">@DateDisplay.Text(item.Date)</div>
                     </div>

@@ -8,8 +8,8 @@ public static class ContactActRoleDisplay
     {
         return role switch
         {
-            ContactActRole.IssuedBy => "Vydal",
-            ContactActRole.AddressedTo => "Adresát",
+            ContactActRole.IssuedBy => "Odesílatel",
+            ContactActRole.AddressedTo => "Příjemce",
             ContactActRole.NumberIssuer => "Přidělil číslo jednací",
             _ => "",
         };
