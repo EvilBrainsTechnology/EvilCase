@@ -32,6 +32,7 @@ internal sealed class SecurityHeadersMiddleware(RequestDelegate next)
         headers.XContentTypeOptions = "nosniff";
         headers.XFrameOptions = "DENY";
         headers["Referrer-Policy"] = "no-referrer";
+        headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
 
         return Task.CompletedTask;
     };
