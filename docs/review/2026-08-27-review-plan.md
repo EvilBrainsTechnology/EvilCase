@@ -13,7 +13,7 @@ Kód je ve velmi dobrém stavu: vrstvení, tenance, autentizace, číslování i
 svá SDD; žádný Critical ani High bezpečnostní nález. Největší problémy:
 
 1. Set-based zápisy (`ExecuteUpdate`/`ExecuteDelete`) obcházejí pravidlo vlastnictví řádky
-   z SDD-006 — latentní, dokud 1 uživatel = 1 tenant (R-001).
+   z SDD-006; vlastník rozhodl opačně — mění se SDD-006, ne kód (R-001).
 2. Detail kontaktu neukazuje výskyty přes externí čísla jednací; odkazovaný kontakt může
    ukázat nula výskytů a přesto vrátit 409 při mazání (R-006 — vlastník odložil, Q8).
 3. ~600 řádků duplicit ve frontendu a testech s prokazatelně záporným součtem sdílení
@@ -37,6 +37,7 @@ Uživatele v predikátu zápisu opakuje jen `CommentWriter`. Dnes nedosažiteln�
 zavřená, 1 uživatel = 1 tenant), s druhým uživatelem v tenantu jde o IDOR.
 Změna (Q1): pět writerů zrcadlí `CommentWriter` — přečíst vlastníka, cizímu odpovědět 403;
 řádek 403 do SDD-004 nese R-007. Riziko: dnes žádné; mění budoucí sémantiku 404/403.
+Vlastník rozhodnutí otočil při review #457; platí opačné pravidlo, viz rozhodnutí 1.
 
 **R-002 · Low · S** — JSON binding enumů přijímá nedefinované číselné hodnoty.
 Kde: `CaseStatus.cs:9`, `ActDirection.cs:9`, `ContactKind.cs:11` (`JsonStringEnumConverter<T>`
@@ -310,8 +311,10 @@ přidává se pět pravidel (znění každého se před commitem ověří proti 
 
 Zodpovězeno vlastníkem 2026-08-27:
 
-1. **R-001, vynucení vlastnictví v set-based zápisech** — vynutit: pět writerů zrcadlí
-   `CommentWriter` (přečíst vlastníka, cizímu 403); SDD-004 dostane řádek 403 (R-007).
+1. **R-001, vynucení vlastnictví v set-based zápisech** — vlastník rozhodnutí otočil při
+   review #457: uvnitř tenantu smí kterýkoli uživatel entitu změnit i smazat. Vynucení se
+   ruší a mění se věta v SDD-006. Komentář zůstává jen autorovi (SDD-013). Řádek 403
+   v SDD-004 (R-007) platí dál — nese ho právě komentář.
 2. **R-009, chybějící id odkazované v těle** — 409 pro id v těle, 404 pro id v routě;
    `ContactNotFound` na create/edit úkonu přechází na 409; pravidlo do SDD-004.
 3. **R-010, UX selhání sítě** — platí inline vzor; SDD-004 se mění, `ToastContainer` se maže,
@@ -341,7 +344,7 @@ soubor `EditAct.razor`, sloučený výsledek buildí bez warningů.
 | B2 | #450 | R-003 |
 | B3 | #452 | R-005 |
 | B4 | #454 | R-004 |
-| B5 | #457 | R-001, R-025 |
+| B5 | #457 | R-025 |
 | B6 | #459 | R-009, R-044 |
 | B7 | #460 | R-015, R-016, R-017 |
 | B8 | #462 | R-018, R-019, R-020 |
@@ -375,11 +378,14 @@ soubor `EditAct.razor`, sloučený výsledek buildí bez warningů.
 
 ### Stav nálezů
 
-Hotovo: R-001 až R-005, R-007 až R-012, R-016 až R-029, R-031, R-032, R-034, R-035,
+Hotovo: R-002 až R-005, R-007 až R-012, R-016 až R-029, R-031, R-032, R-034, R-035,
 R-037 až R-050.
 
 Neprovedeno, s důvodem:
 
+- **R-001** — zamítnuto vlastníkem při review #457 (rozhodnutí 1): uvnitř tenantu smí
+  kterýkoli uživatel entitu změnit i smazat. Vynucení se z B5 odstranilo, SDD-006 se opravilo;
+  B5 nese už jen R-025.
 - **R-006** — odloženo vlastníkem (rozhodnutí 8). Lešení v kódu zůstává, SDD-011 zůstává cílem.
 - **R-013, R-014** — zamítnuto vlastníkem (rozhodnutí 4): `src/Utils/**` zůstává celé.
 - **R-015** — provedeno mimo `src/Utils/**`; redundantní reference `Serilog.Extensions.Hosting`
