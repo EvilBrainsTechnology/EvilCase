@@ -13,6 +13,6 @@ internal sealed class FixedDbSession(ApplicationDbContext context) : IDbSession
     {
         this.Transaction = new FakeDbContextTransaction();
 
-        return await Task.FromResult<IDbContextTransaction>(this.Transaction);
+        return this.Transaction;
     }
 }

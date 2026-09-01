@@ -39,12 +39,12 @@ internal sealed class FakeUserStore : IUserStore
     {
         var normalized = EmailNormalizer.Normalize(email);
 
-        return await Task.FromResult(this.users.Find(user => string.Equals(user.Email, normalized, StringComparison.Ordinal)));
+        return this.users.Find(user => string.Equals(user.Email, normalized, StringComparison.Ordinal));
     }
 
     public async Task<User?> FindById(Guid userId, CancellationToken token)
     {
-        return await Task.FromResult(this.users.Find(user => user.Id == userId));
+        return this.users.Find(user => user.Id == userId);
     }
 
     public async Task<DateTime?> RecordFailedLogin(Guid userId, int maxAttempts, DateTime lockoutEnd, CancellationToken token)
@@ -55,7 +55,7 @@ internal sealed class FakeUserStore : IUserStore
                 ? user with { FailedLoginAttempts = 0, LockoutEnd = lockoutEnd }
                 : user with { FailedLoginAttempts = user.FailedLoginAttempts + 1 });
 
-        return await Task.FromResult(this.GetUser(userId).LockoutEnd);
+        return this.GetUser(userId).LockoutEnd;
     }
 
     public async Task RecordSuccessfulLogin(Guid userId, CancellationToken token)
@@ -65,7 +65,7 @@ internal sealed class FakeUserStore : IUserStore
 
     public async Task<bool> Any(CancellationToken token)
     {
-        return await Task.FromResult(this.users.Count > 0);
+        return this.users.Count > 0;
     }
 
     public async Task AddUser(User user, Contact defaultContact, CancellationToken token)

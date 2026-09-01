@@ -17,7 +17,7 @@ internal sealed class RecordingFileReader : IFileReader
     {
         this.ListCaseId = caseId;
 
-        return await Task.FromResult(this.ListResult);
+        return this.ListResult;
     }
 
     public async Task<IReadOnlyList<FileListItem>?> ListActFiles(Guid caseId, Guid actId, CancellationToken token)
@@ -25,11 +25,11 @@ internal sealed class RecordingFileReader : IFileReader
         this.ListCaseId = caseId;
         this.ListActId = actId;
 
-        return await Task.FromResult(this.ListResult);
+        return this.ListResult;
     }
 
     public async Task<FileDownload?> OpenFileContent(Guid fileId, CancellationToken token)
     {
-        return await Task.FromResult(this.Download);
+        return this.Download;
     }
 }

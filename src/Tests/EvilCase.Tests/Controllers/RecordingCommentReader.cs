@@ -15,7 +15,7 @@ internal sealed class RecordingCommentReader : ICommentReader
     {
         this.CaseId = caseId;
 
-        return await Task.FromResult(this.Items);
+        return this.Items;
     }
 
     public async Task<IReadOnlyList<CommentItem>> ListActComments(Guid caseId, Guid actId, CancellationToken token)
@@ -23,6 +23,6 @@ internal sealed class RecordingCommentReader : ICommentReader
         this.CaseId = caseId;
         this.ActId = actId;
 
-        return await Task.FromResult(this.Items);
+        return this.Items;
     }
 }

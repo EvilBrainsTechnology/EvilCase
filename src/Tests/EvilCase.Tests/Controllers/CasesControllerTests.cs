@@ -454,19 +454,19 @@ public class CasesControllerTests
         {
             this.Request = request;
 
-            return await Task.FromResult(this.Items);
+            return this.Items;
         }
 
         public async Task<CaseDetail?> GetCaseDetail(Guid caseId, CancellationToken token)
         {
             this.DetailId = caseId;
 
-            return await Task.FromResult(this.DetailResult);
+            return this.DetailResult;
         }
 
         public async Task<CaseStatusCounts> CountCasesByStatus(CancellationToken token)
         {
-            return await Task.FromResult(this.Counts);
+            return this.Counts;
         }
     }
 
@@ -486,7 +486,7 @@ public class CasesControllerTests
         {
             this.Request = request;
 
-            return await Task.FromResult(this.CreateResult);
+            return this.CreateResult;
         }
 
         public async Task<CaseUpdateOutcome> UpdateCase(Guid caseId, CaseEditRequest request, CancellationToken token)
@@ -494,7 +494,7 @@ public class CasesControllerTests
             this.UpdateId = caseId;
             this.UpdateRequest = request;
 
-            return await Task.FromResult(this.UpdateOutcome);
+            return this.UpdateOutcome;
         }
 
         public Guid? DeleteId { get; private set; }
@@ -505,7 +505,7 @@ public class CasesControllerTests
         {
             this.DeleteId = caseId;
 
-            return await Task.FromResult(this.DeleteOutcome);
+            return this.DeleteOutcome;
         }
     }
 
@@ -528,7 +528,7 @@ public class CasesControllerTests
             this.AddCaseId = caseId;
             this.AddRequest = request;
 
-            return await Task.FromResult(this.AddOutcome);
+            return this.AddOutcome;
         }
 
         public async Task<DeleteOutcome> DeleteExternalCaseNumber(Guid caseId, Guid numberId, CancellationToken token)
@@ -536,7 +536,7 @@ public class CasesControllerTests
             this.DeleteCaseId = caseId;
             this.DeleteNumberId = numberId;
 
-            return await Task.FromResult(this.DeleteOutcome);
+            return this.DeleteOutcome;
         }
     }
 }

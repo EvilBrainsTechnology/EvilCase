@@ -527,14 +527,14 @@ public class ActsControllerTests
         {
             this.ListRequest = request;
 
-            return await Task.FromResult(this.Items);
+            return this.Items;
         }
 
         public async Task<IReadOnlyList<ActListItem>> ListCaseActs(Guid caseId, CancellationToken token)
         {
             this.CaseId = caseId;
 
-            return await Task.FromResult(this.Items);
+            return this.Items;
         }
 
         public async Task<ActDetail?> GetActDetail(Guid caseId, Guid actId, CancellationToken token)
@@ -542,7 +542,7 @@ public class ActsControllerTests
             this.DetailCaseId = caseId;
             this.DetailActId = actId;
 
-            return await Task.FromResult(this.DetailResult);
+            return this.DetailResult;
         }
     }
 
@@ -573,7 +573,7 @@ public class ActsControllerTests
             this.CaseId = caseId;
             this.Request = request;
 
-            return await Task.FromResult(this.Result);
+            return this.Result;
         }
 
         public async Task<ActUpdateOutcome> UpdateAct(Guid caseId, Guid actId, ActEditRequest request, CancellationToken token)
@@ -582,7 +582,7 @@ public class ActsControllerTests
             this.UpdateActId = actId;
             this.UpdateRequest = request;
 
-            return await Task.FromResult(this.UpdateOutcome);
+            return this.UpdateOutcome;
         }
 
         public async Task<DeleteOutcome> DeleteAct(Guid caseId, Guid actId, CancellationToken token)
@@ -590,7 +590,7 @@ public class ActsControllerTests
             this.DeleteCaseId = caseId;
             this.DeleteActId = actId;
 
-            return await Task.FromResult(this.DeleteOutcome);
+            return this.DeleteOutcome;
         }
     }
 
@@ -618,7 +618,7 @@ public class ActsControllerTests
             this.AddActId = actId;
             this.AddRequest = request;
 
-            return await Task.FromResult(this.AddOutcome);
+            return this.AddOutcome;
         }
 
         public async Task<DeleteOutcome> DeleteExternalActNumber(Guid caseId, Guid actId, Guid numberId, CancellationToken token)
@@ -627,7 +627,7 @@ public class ActsControllerTests
             this.DeleteActId = actId;
             this.DeleteNumberId = numberId;
 
-            return await Task.FromResult(this.DeleteOutcome);
+            return this.DeleteOutcome;
         }
     }
 }

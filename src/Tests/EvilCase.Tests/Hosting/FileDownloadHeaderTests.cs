@@ -51,17 +51,17 @@ public class FileDownloadHeaderTests
 
         public async Task<IReadOnlyList<FileListItem>?> ListCaseFiles(Guid caseId, CancellationToken token)
         {
-            return await Task.FromResult<IReadOnlyList<FileListItem>?>(null);
+            return null;
         }
 
         public async Task<IReadOnlyList<FileListItem>?> ListActFiles(Guid caseId, Guid actId, CancellationToken token)
         {
-            return await Task.FromResult<IReadOnlyList<FileListItem>?>(null);
+            return null;
         }
 
         public async Task<FileDownload?> OpenFileContent(Guid fileId, CancellationToken token)
         {
-            return await Task.FromResult<FileDownload?>(new FileDownload { FileName = FileName, MediaType = "application/pdf", Content = new MemoryStream("abc"u8.ToArray()) });
+            return new FileDownload { FileName = FileName, MediaType = "application/pdf", Content = new MemoryStream("abc"u8.ToArray()) };
         }
     }
 }

@@ -29,7 +29,7 @@ internal sealed class RecordingFileWriter : IFileWriter
         this.UploadCaseId = caseId;
         this.Upload = upload;
 
-        return await Task.FromResult(this.UploadResult);
+        return this.UploadResult;
     }
 
     public async Task<UploadFileResult> UploadActFile(Guid caseId, Guid actId, FileUpload upload, CancellationToken token)
@@ -39,7 +39,7 @@ internal sealed class RecordingFileWriter : IFileWriter
         this.UploadActId = actId;
         this.Upload = upload;
 
-        return await Task.FromResult(this.UploadResult);
+        return this.UploadResult;
     }
 
     public async Task<DeleteOutcome> DeleteCaseFile(Guid caseId, Guid fileId, CancellationToken token)
@@ -47,7 +47,7 @@ internal sealed class RecordingFileWriter : IFileWriter
         this.DeleteCaseId = caseId;
         this.DeleteFileId = fileId;
 
-        return await Task.FromResult(this.DeleteOutcome);
+        return this.DeleteOutcome;
     }
 
     public async Task<DeleteOutcome> DeleteActFile(Guid caseId, Guid actId, Guid fileId, CancellationToken token)
@@ -56,6 +56,6 @@ internal sealed class RecordingFileWriter : IFileWriter
         this.DeleteActId = actId;
         this.DeleteFileId = fileId;
 
-        return await Task.FromResult(this.DeleteOutcome);
+        return this.DeleteOutcome;
     }
 }

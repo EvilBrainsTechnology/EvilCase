@@ -38,7 +38,7 @@ internal sealed class FakeRefreshTokenStore(TimeProvider timeProvider) : IRefres
 
     public async Task<RefreshToken?> FindRefreshToken(string tokenHash, CancellationToken token)
     {
-        return await Task.FromResult(this.tokens.Find(token => string.Equals(token.TokenHash, tokenHash, StringComparison.Ordinal)));
+        return this.tokens.Find(token => string.Equals(token.TokenHash, tokenHash, StringComparison.Ordinal));
     }
 
     public async Task<bool> RevokeRefreshToken(Guid refreshTokenId, DateTime now, CancellationToken token)
@@ -67,16 +67,15 @@ internal sealed class FakeRefreshTokenStore(TimeProvider timeProvider) : IRefres
             .Where(token => token.Expires > now)
             .Where(token => token.SessionExpires > now);
 
-        return await Task.FromResult<IReadOnlyList<RefreshToken>>([.. active]);
+        return [.. active];
     }
 
     public async Task<IReadOnlyDictionary<Guid, DateTime>> GetSessionStarts(Guid userId, CancellationToken token)
     {
-        return await Task.FromResult<IReadOnlyDictionary<Guid, DateTime>>(
-            this.tokens
-                .Where(token => token.UserId == userId)
-                .GroupBy(static token => token.AuthSessionId)
-                .ToDictionary(static chain => chain.Key, static chain => chain.Min(static token => token.Created)));
+        return this.tokens
+            .Where(token => token.UserId == userId)
+            .GroupBy(static token => token.AuthSessionId)
+            .ToDictionary(static chain => chain.Key, static chain => chain.Min(static token => token.Created));
     }
 
     private int RevokeMatching(Func<RefreshToken, bool> match, in DateTime now, bool alsoUsed)

@@ -114,7 +114,7 @@ public class CaseWriterTests
 
         public async Task<string> NextCaseNumber(DateOnly date, CancellationToken token)
         {
-            return await Task.FromResult(caseNumbers[this.issued++]);
+            return caseNumbers[this.issued++];
         }
     }
 }

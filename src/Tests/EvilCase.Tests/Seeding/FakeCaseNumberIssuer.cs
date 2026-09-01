@@ -8,6 +8,6 @@ internal sealed class FakeCaseNumberIssuer : ICaseNumberIssuer
 
     public async Task<string> NextCaseNumber(DateOnly date, CancellationToken token)
     {
-        return await Task.FromResult("EC/" + date.ToString("yyyyMMdd", CultureInfo.InvariantCulture) + "-" + (++this.issued).ToString("000", CultureInfo.InvariantCulture));
+        return "EC/" + date.ToString("yyyyMMdd", CultureInfo.InvariantCulture) + "-" + (++this.issued).ToString("000", CultureInfo.InvariantCulture);
     }
 }

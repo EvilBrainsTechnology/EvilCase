@@ -36,7 +36,7 @@ internal sealed class RecordingCommentWriter : ICommentWriter
         this.AddCaseId = caseId;
         this.AddRequest = request;
 
-        return await Task.FromResult(this.AddOutcome);
+        return this.AddOutcome;
     }
 
     public async Task<CommentWriteOutcome> UpdateCaseComment(Guid caseId, Guid commentId, CommentEditRequest request, CancellationToken token)
@@ -45,7 +45,7 @@ internal sealed class RecordingCommentWriter : ICommentWriter
         this.UpdateCommentId = commentId;
         this.UpdateRequest = request;
 
-        return await Task.FromResult(this.UpdateOutcome);
+        return this.UpdateOutcome;
     }
 
     public async Task<CommentWriteOutcome> DeleteCaseComment(Guid caseId, Guid commentId, CancellationToken token)
@@ -53,7 +53,7 @@ internal sealed class RecordingCommentWriter : ICommentWriter
         this.DeleteCaseId = caseId;
         this.DeleteCommentId = commentId;
 
-        return await Task.FromResult(this.DeleteOutcome);
+        return this.DeleteOutcome;
     }
 
     public async Task<CommentWriteOutcome> AddActComment(Guid caseId, Guid actId, CommentEditRequest request, CancellationToken token)
@@ -62,7 +62,7 @@ internal sealed class RecordingCommentWriter : ICommentWriter
         this.AddActId = actId;
         this.AddRequest = request;
 
-        return await Task.FromResult(this.AddOutcome);
+        return this.AddOutcome;
     }
 
     public async Task<CommentWriteOutcome> UpdateActComment(Guid caseId, Guid actId, Guid commentId, CommentEditRequest request, CancellationToken token)
@@ -72,7 +72,7 @@ internal sealed class RecordingCommentWriter : ICommentWriter
         this.UpdateCommentId = commentId;
         this.UpdateRequest = request;
 
-        return await Task.FromResult(this.UpdateOutcome);
+        return this.UpdateOutcome;
     }
 
     public async Task<CommentWriteOutcome> DeleteActComment(Guid caseId, Guid actId, Guid commentId, CancellationToken token)
@@ -81,6 +81,6 @@ internal sealed class RecordingCommentWriter : ICommentWriter
         this.DeleteActId = actId;
         this.DeleteCommentId = commentId;
 
-        return await Task.FromResult(this.DeleteOutcome);
+        return this.DeleteOutcome;
     }
 }

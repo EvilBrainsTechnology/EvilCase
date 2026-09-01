@@ -252,7 +252,7 @@ public class FileWriterTests : TenantFixture
         {
             this.WrittenUnderTenant = tenantId;
 
-            return await Task.FromResult(new FileBlobInfo { StoragePath = $"{tenantId}/{fileAssetId}", ContentHash = new string('a', 64), SizeBytes = 1 });
+            return new FileBlobInfo { StoragePath = $"{tenantId}/{fileAssetId}", ContentHash = new string('a', 64), SizeBytes = 1 };
         }
 
         public Stream? ReadFileBlob(string storagePath)

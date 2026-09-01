@@ -14,7 +14,7 @@ internal sealed class StubCaseReader : ICaseReader
 
     public async Task<IReadOnlyList<CaseListItem>> ListCases(CaseListRequest request, CancellationToken token)
     {
-        return await Task.FromResult<IReadOnlyList<CaseListItem>>(
+        return
         [
             new CaseListItem
             {
@@ -25,16 +25,16 @@ internal sealed class StubCaseReader : ICaseReader
                 Status = CaseStatus.Active,
                 Changed = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
             },
-        ]);
+        ];
     }
 
     public async Task<CaseDetail?> GetCaseDetail(Guid caseId, CancellationToken token)
     {
-        return await Task.FromResult<CaseDetail?>(null);
+        return null;
     }
 
     public async Task<CaseStatusCounts> CountCasesByStatus(CancellationToken token)
     {
-        return await Task.FromResult(new CaseStatusCounts { Active = 1, WaitingOnAuthority = 0, Closed = 0 });
+        return new CaseStatusCounts { Active = 1, WaitingOnAuthority = 0, Closed = 0 };
     }
 }

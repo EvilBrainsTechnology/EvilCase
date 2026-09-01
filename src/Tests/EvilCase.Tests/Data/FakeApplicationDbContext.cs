@@ -38,10 +38,10 @@ internal sealed class FakeApplicationDbContext(DbContextOptions<ApplicationDbCon
         this.Saves++;
 
         if (this.FailNextSave is not { } failure)
-            return await Task.FromResult(0);
+            return 0;
 
         this.FailNextSave = null;
 
-        return await Task.FromException<int>(failure);
+        throw failure;
     }
 }

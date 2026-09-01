@@ -28,7 +28,5 @@ internal sealed class FakeDbContextTransaction : IDbContextTransaction
     { }
 
     public async ValueTask DisposeAsync()
-    {
-        await ValueTask.CompletedTask;
-    }
+    { }
 }

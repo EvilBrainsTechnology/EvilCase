@@ -71,7 +71,7 @@ public class StrictEnumBindingTests
     {
         public async Task<ContactListItem> CreateContact(ContactEditRequest request, CancellationToken token)
         {
-            return await Task.FromResult(new ContactListItem { ContactId = Guid.CreateVersion7(), Kind = request.Kind, Name = request.Name });
+            return new ContactListItem { ContactId = Guid.CreateVersion7(), Kind = request.Kind, Name = request.Name };
         }
 
         public Task<ContactUpdateOutcome> UpdateContact(Guid contactId, ContactEditRequest request, CancellationToken token)

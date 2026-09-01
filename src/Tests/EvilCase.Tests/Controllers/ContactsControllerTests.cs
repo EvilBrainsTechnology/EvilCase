@@ -243,19 +243,19 @@ public class ContactsControllerTests
         {
             this.Request = request;
 
-            return await Task.FromResult(this.Items);
+            return this.Items;
         }
 
         public async Task<ContactDetail?> GetContactDetail(Guid contactId, CancellationToken token)
         {
             this.DetailId = contactId;
 
-            return await Task.FromResult(this.DetailResult);
+            return this.DetailResult;
         }
 
         public async Task<ContactListItem> GetDefaultContact(CancellationToken token)
         {
-            return await Task.FromResult(this.DefaultContact);
+            return this.DefaultContact;
         }
     }
 
@@ -277,7 +277,7 @@ public class ContactsControllerTests
         {
             this.CreateRequest = request;
 
-            return await Task.FromResult(this.Created);
+            return this.Created;
         }
 
         public async Task<ContactUpdateOutcome> UpdateContact(Guid contactId, ContactEditRequest request, CancellationToken token)
@@ -285,12 +285,12 @@ public class ContactsControllerTests
             this.UpdateId = contactId;
             this.UpdateRequest = request;
 
-            return await Task.FromResult(this.UpdateOutcome);
+            return this.UpdateOutcome;
         }
 
         public async Task<ContactDeleteOutcome> DeleteContact(Guid contactId, CancellationToken token)
         {
-            return await Task.FromResult(this.DeleteOutcome);
+            return this.DeleteOutcome;
         }
     }
 }
