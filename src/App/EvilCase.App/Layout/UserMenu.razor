@@ -6,7 +6,7 @@
         <button type="button" class="nav-link d-flex lh-1 p-0 px-2 user-menu-toggle"
                 aria-label="Otevřít uživatelské menu" aria-expanded="@this.open" @onclick="Toggle">
             <Icon IconType="AppIcons.User" Size="24" />
-            <span class="d-none d-xl-block ps-2">@authenticationState.User.Identity?.Name</span>
+            <span class="d-none d-lg-block ps-2">@authenticationState.User.Identity?.Name</span>
         </button>
 
         @if (this.open)
@@ -16,7 +16,7 @@
             <div class="dropdown-backdrop" @onclick="Close"></div>
 
             <div class="dropdown-menu dropdown-menu-end show">
-                <span class="dropdown-header text-truncate d-xl-none">@authenticationState.User.Identity?.Name</span>
+                <span class="dropdown-header text-truncate d-lg-none">@authenticationState.User.Identity?.Name</span>
                 <button type="button" class="dropdown-item" @onclick="() => SignOut(everywhere: false)">Odhlásit se</button>
                 <button type="button" class="dropdown-item" @onclick="() => SignOut(everywhere: true)">Odhlásit všechna zařízení</button>
             </div>
