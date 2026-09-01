@@ -15,22 +15,20 @@ public class ActCommentsControllerTests
     {
         var caseId = Guid.CreateVersion7();
         var actId = Guid.CreateVersion7();
-        var reader = new RecordingCommentReader();
+        var reader = Substitute.For<ICommentReader>();
         var controller = new ActCommentsController();
 
         await controller.ListActComments(reader, caseId, actId, CancellationToken.None);
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(reader.CaseId, Is.EqualTo(caseId));
-            Assert.That(reader.ActId, Is.EqualTo(actId));
-        }
+        await reader.Received(1).ListActComments(caseId, actId, Arg.Any<CancellationToken>());
     }
 
     [Test]
     public async Task TheItemsAreReturnedInTheOrderTheReaderGaveThem()
     {
-        var reader = new RecordingCommentReader { Items = [Item("První"), Item("Druhá")] };
+        var reader = Substitute.For<ICommentReader>();
+        reader.ListActComments(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns([Item("První"), Item("Druhá")]);
         var controller = new ActCommentsController();
 
         var response = await controller.ListActComments(reader, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
@@ -43,25 +41,20 @@ public class ActCommentsControllerTests
     {
         var caseId = Guid.CreateVersion7();
         var actId = Guid.CreateVersion7();
-        var writer = new RecordingCommentWriter { AddOutcome = CommentWriteOutcome.Written };
+        var writer = AddingWriter(CommentWriteOutcome.Written);
         var controller = new ActCommentsController();
         var request = new CommentEditRequest { Body = "Poznámka" };
 
         var result = await controller.AddActComment(writer, caseId, actId, request, CancellationToken.None);
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(writer.AddCaseId, Is.EqualTo(caseId));
-            Assert.That(writer.AddActId, Is.EqualTo(actId));
-            Assert.That(writer.AddRequest, Is.SameAs(request));
-            Assert.That(result, Is.InstanceOf<NoContentResult>());
-        }
+        Assert.That(result, Is.InstanceOf<NoContentResult>());
+        await writer.Received(1).AddActComment(caseId, actId, request, Arg.Any<CancellationToken>());
     }
 
     [Test]
     public async Task AddingUnderAMissingActIsAProblemWithFourOhFour()
     {
-        var writer = new RecordingCommentWriter { AddOutcome = CommentWriteOutcome.NotFound };
+        var writer = AddingWriter(CommentWriteOutcome.NotFound);
         var controller = new ActCommentsController();
 
         var result = await controller.AddActComment(
@@ -75,7 +68,7 @@ public class ActCommentsControllerTests
     [Test]
     public async Task AnAddOutcomeTheEndpointDoesNotKnowThrows()
     {
-        var writer = new RecordingCommentWriter { AddOutcome = (CommentWriteOutcome)99 };
+        var writer = AddingWriter((CommentWriteOutcome)99);
         var controller = new ActCommentsController();
 
         await Assert.ThatAsync(
@@ -91,26 +84,20 @@ public class ActCommentsControllerTests
         var caseId = Guid.CreateVersion7();
         var actId = Guid.CreateVersion7();
         var commentId = Guid.CreateVersion7();
-        var writer = new RecordingCommentWriter { UpdateOutcome = CommentWriteOutcome.Written };
+        var writer = EditingWriter(CommentWriteOutcome.Written);
         var controller = new ActCommentsController();
         var request = new CommentEditRequest { Body = "Upravená" };
 
         var result = await controller.EditActComment(writer, caseId, actId, commentId, request, CancellationToken.None);
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(writer.UpdateCaseId, Is.EqualTo(caseId));
-            Assert.That(writer.UpdateActId, Is.EqualTo(actId));
-            Assert.That(writer.UpdateCommentId, Is.EqualTo(commentId));
-            Assert.That(writer.UpdateRequest, Is.SameAs(request));
-            Assert.That(result, Is.InstanceOf<NoContentResult>());
-        }
+        Assert.That(result, Is.InstanceOf<NoContentResult>());
+        await writer.Received(1).UpdateActComment(caseId, actId, commentId, request, Arg.Any<CancellationToken>());
     }
 
     [Test]
     public async Task EditingSomeoneElsesNoteIsAProblemWithFourOhThree()
     {
-        var writer = new RecordingCommentWriter { UpdateOutcome = CommentWriteOutcome.NotAuthor };
+        var writer = EditingWriter(CommentWriteOutcome.NotAuthor);
         var controller = new ActCommentsController();
 
         var result = await controller.EditActComment(
@@ -122,7 +109,7 @@ public class ActCommentsControllerTests
     [Test]
     public async Task EditingAMissingNoteIsAProblemWithFourOhFour()
     {
-        var writer = new RecordingCommentWriter { UpdateOutcome = CommentWriteOutcome.NotFound };
+        var writer = EditingWriter(CommentWriteOutcome.NotFound);
         var controller = new ActCommentsController();
 
         var result = await controller.EditActComment(
@@ -134,7 +121,7 @@ public class ActCommentsControllerTests
     [Test]
     public async Task AnEditOutcomeTheEndpointDoesNotKnowThrows()
     {
-        var writer = new RecordingCommentWriter { UpdateOutcome = (CommentWriteOutcome)99 };
+        var writer = EditingWriter((CommentWriteOutcome)99);
         var controller = new ActCommentsController();
 
         await Assert.ThatAsync(
@@ -150,24 +137,19 @@ public class ActCommentsControllerTests
         var caseId = Guid.CreateVersion7();
         var actId = Guid.CreateVersion7();
         var commentId = Guid.CreateVersion7();
-        var writer = new RecordingCommentWriter { DeleteOutcome = CommentWriteOutcome.Written };
+        var writer = DeletingWriter(CommentWriteOutcome.Written);
         var controller = new ActCommentsController();
 
         var result = await controller.DeleteActComment(writer, caseId, actId, commentId, CancellationToken.None);
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(writer.DeleteCaseId, Is.EqualTo(caseId));
-            Assert.That(writer.DeleteActId, Is.EqualTo(actId));
-            Assert.That(writer.DeleteCommentId, Is.EqualTo(commentId));
-            Assert.That(result, Is.InstanceOf<NoContentResult>());
-        }
+        Assert.That(result, Is.InstanceOf<NoContentResult>());
+        await writer.Received(1).DeleteActComment(caseId, actId, commentId, Arg.Any<CancellationToken>());
     }
 
     [Test]
     public async Task DeletingSomeoneElsesNoteIsAProblemWithFourOhThree()
     {
-        var writer = new RecordingCommentWriter { DeleteOutcome = CommentWriteOutcome.NotAuthor };
+        var writer = DeletingWriter(CommentWriteOutcome.NotAuthor);
         var controller = new ActCommentsController();
 
         var result = await controller.DeleteActComment(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
@@ -178,12 +160,39 @@ public class ActCommentsControllerTests
     [Test]
     public async Task DeletingAMissingNoteIsAProblemWithFourOhFour()
     {
-        var writer = new RecordingCommentWriter { DeleteOutcome = CommentWriteOutcome.NotFound };
+        var writer = DeletingWriter(CommentWriteOutcome.NotFound);
         var controller = new ActCommentsController();
 
         var result = await controller.DeleteActComment(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
 
         AssertProblem(result, 404);
+    }
+
+    private static ICommentWriter AddingWriter(CommentWriteOutcome outcome)
+    {
+        var writer = Substitute.For<ICommentWriter>();
+        writer.AddActComment(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CommentEditRequest>(), Arg.Any<CancellationToken>())
+            .Returns(outcome);
+
+        return writer;
+    }
+
+    private static ICommentWriter EditingWriter(CommentWriteOutcome outcome)
+    {
+        var writer = Substitute.For<ICommentWriter>();
+        writer.UpdateActComment(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CommentEditRequest>(), Arg.Any<CancellationToken>())
+            .Returns(outcome);
+
+        return writer;
+    }
+
+    private static ICommentWriter DeletingWriter(CommentWriteOutcome outcome)
+    {
+        var writer = Substitute.For<ICommentWriter>();
+        writer.DeleteActComment(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(outcome);
+
+        return writer;
     }
 
     private static CommentItem Item(string body)

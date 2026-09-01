@@ -17,6 +17,7 @@ updates:
       test:
         patterns:
           - "Microsoft.NET.Test.Sdk"
+          - "NSubstitute*"
           - "NUnit*"
       serilog:
         patterns:
