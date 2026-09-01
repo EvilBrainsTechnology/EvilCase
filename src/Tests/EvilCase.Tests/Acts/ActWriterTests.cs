@@ -56,6 +56,20 @@ public class ActWriterTests
     }
 
     [Test]
+    public void ATitleAndDescriptionAreStoredTrimmed()
+    {
+        var request = Request() with { Title = "  Odvolání  ", Description = "  text  " };
+
+        var act = ActWriter.BuildAct(Guid.CreateVersion7(), request, "EC/20260821-001/20260825-001");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(act.Title, Is.EqualTo("Odvolání"), "a created act stores its title trimmed");
+            Assert.That(act.Description, Is.EqualTo("text"), "a created act stores its description trimmed");
+        }
+    }
+
+    [Test]
     public void ABlankDescriptionIsFiledAsNothing()
     {
         var blank = Request() with { Description = "   " };

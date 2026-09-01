@@ -73,8 +73,8 @@ internal sealed class CaseWriter(
         {
             ParentCaseId = request.ParentCaseId,
             CaseNumber = caseNumber,
-            Title = request.Title,
-            Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description,
+            Title = request.Title.Trim(),
+            Description = request.Description?.TrimEmptyToNull(),
             Date = request.Date,
             Status = CaseStatus.Active,
         };
@@ -88,7 +88,12 @@ internal sealed class CaseWriter(
         if (!await context.Cases.WithId(caseId).AnyAsync(token))
             return CaseUpdateOutcome.NotFound;
 
-        var edit = Normalize(request);
+        var edit = request with
+        {
+            CaseNumber = request.CaseNumber.Trim(),
+            Title = request.Title.Trim(),
+            Description = request.Description?.TrimEmptyToNull(),
+        };
 
         if (CaseNumberFormat.ParseOrDefault(edit.CaseNumber) is null)
             return CaseUpdateOutcome.InvalidCaseNumber;
@@ -128,16 +133,6 @@ internal sealed class CaseWriter(
         logger.LogInformation("Case {CaseId} was edited", caseId);
 
         return CaseUpdateOutcome.Updated;
-    }
-
-    internal static CaseEditRequest Normalize(CaseEditRequest request)
-    {
-        return request with
-        {
-            CaseNumber = request.CaseNumber.Trim(),
-            Title = request.Title.Trim(),
-            Description = request.Description?.TrimEmptyToNull(),
-        };
     }
 
     public async Task<CaseDeleteOutcome> DeleteCase(Guid caseId, CancellationToken token)
