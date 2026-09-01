@@ -218,5 +218,5 @@ await Log.CloseAndFlushAsync();
 
 static string ClientAddress(HttpContext context)
 {
-    return context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+    return RateLimitPartitionKey.ForAddress(context.Connection.RemoteIpAddress);
 }
