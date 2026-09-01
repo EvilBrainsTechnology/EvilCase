@@ -29,27 +29,7 @@
 
 <div class="page-body">
     <div class="container-xl">
-        @if (this.notFound)
-        {
-            <div class="empty">
-                <p class="empty-title">Úkon nenalezen</p>
-            </div>
-        }
-        else if (this.failure is not null)
-        {
-            <div class="empty">
-                <p class="empty-title">Úkon se nepodařilo načíst</p>
-                <p class="empty-subtitle text-secondary">@this.failure</p>
-            </div>
-        }
-        else if (this.act is null)
-        {
-            <div class="text-center text-secondary">
-                <div class="spinner-border" role="status"></div>
-            </div>
-        }
-        else
-        {
+        <LoadStateView NotFound="this.notFound" NotFoundTitle="Úkon nenalezen" Failure="@this.failure" FailureTitle="Úkon se nepodařilo načíst" Loaded="this.act is not null">
             <div class="card">
                 <EditForm Model="this.model" OnValidSubmit="this.SubmitAct">
                     <DataAnnotationsValidator />
@@ -110,7 +90,7 @@
                     </div>
 
                     <div class="card-footer form-actions-sticky d-flex justify-content-end gap-2">
-                        <a href="@($"/cases/{this.act.CaseId}/act/{this.act.ActId}")" class="btn">Zrušit</a>
+                        <a href="@($"/cases/{this.act!.CaseId}/act/{this.act.ActId}")" class="btn">Zrušit</a>
                         <button id="act-submit" type="submit" class="btn btn-primary" disabled="@this.busy">
                             @if (this.busy)
                             {
@@ -130,7 +110,7 @@
                                      DeleteNumber="this.DeleteExternalNumber"
                                      OnChanged="this.ReloadExternalNumbers" />
             </div>
-        }
+        </LoadStateView>
     </div>
 </div>
 

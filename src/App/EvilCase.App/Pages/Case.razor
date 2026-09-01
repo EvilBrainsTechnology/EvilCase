@@ -45,27 +45,7 @@
 
 <div class="page-body">
     <div class="container-xl">
-        @if (this.notFound)
-        {
-            <div class="empty">
-                <p class="empty-title">Spis nenalezen</p>
-            </div>
-        }
-        else if (this.failure is not null)
-        {
-            <div class="empty">
-                <p class="empty-title">Spis se nepodařilo načíst</p>
-                <p class="empty-subtitle text-secondary">@this.failure</p>
-            </div>
-        }
-        else if (this.caseDetail is null)
-        {
-            <div class="text-center text-secondary">
-                <div class="spinner-border" role="status"></div>
-            </div>
-        }
-        else
-        {
+        <LoadStateView NotFound="this.notFound" NotFoundTitle="Spis nenalezen" Failure="@this.failure" FailureTitle="Spis se nepodařilo načíst" Loaded="this.caseDetail is not null">
             <div class="card mb-3">
                 <div class="card-header">
                     <h3 class="card-title">Údaje</h3>
@@ -74,7 +54,7 @@
                     <div class="datagrid">
                         <div class="datagrid-item">
                             <div class="datagrid-title">Spisová značka</div>
-                            <div class="datagrid-content">@this.caseDetail.CaseNumber</div>
+                            <div class="datagrid-content">@this.caseDetail!.CaseNumber</div>
                         </div>
                         <div class="datagrid-item">
                             <div class="datagrid-title">Datum</div>
@@ -131,7 +111,7 @@
                            DownloadFile="this.DownloadFile"
                            DeleteFile="this.DeleteFile" />
             </div>
-        }
+        </LoadStateView>
     </div>
 </div>
 
