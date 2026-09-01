@@ -135,7 +135,7 @@ internal sealed class CaseWriter(
         return CaseUpdateOutcome.Updated;
     }
 
-    public async Task<CaseDeleteOutcome> DeleteCase(Guid caseId, CancellationToken token)
+    public async Task<DeleteOutcome> DeleteCase(Guid caseId, CancellationToken token)
     {
         var context = dbSession.Current;
 
@@ -152,7 +152,7 @@ internal sealed class CaseWriter(
             .ExecuteDeleteAsync(token);
 
         if (rows == 0)
-            return CaseDeleteOutcome.NotFound;
+            return DeleteOutcome.NotFound;
 
         // After the commit: a blob orphaned by a failed delete is tolerated, a lost one is not (SDD-012).
         foreach (var storagePath in storagePaths)
@@ -160,7 +160,7 @@ internal sealed class CaseWriter(
 
         logger.LogInformation("Case {CaseId} was deleted", caseId);
 
-        return CaseDeleteOutcome.Deleted;
+        return DeleteOutcome.Deleted;
     }
 
     private static CaseListItem Describe(Case @case)

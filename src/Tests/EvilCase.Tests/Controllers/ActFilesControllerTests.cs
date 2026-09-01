@@ -2,7 +2,7 @@ using System.Diagnostics;
 using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Api.Controllers;
-using EvilBrains.EvilCase.Business.Files;
+using EvilBrains.EvilCase.Business.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EvilBrains.EvilCase.Tests.Controllers;
@@ -57,7 +57,7 @@ public class ActFilesControllerTests
         var caseId = Guid.CreateVersion7();
         var actId = Guid.CreateVersion7();
         var fileId = Guid.CreateVersion7();
-        var writer = new RecordingFileWriter { DeleteOutcome = FileDeleteOutcome.Deleted };
+        var writer = new RecordingFileWriter { DeleteOutcome = DeleteOutcome.Deleted };
         var controller = new ActFilesController();
 
         await controller.DeleteActFile(writer, caseId, actId, fileId, CancellationToken.None);
@@ -73,7 +73,7 @@ public class ActFilesControllerTests
     [Test]
     public async Task DeletingAFileAnswersWithNoContent()
     {
-        var writer = new RecordingFileWriter { DeleteOutcome = FileDeleteOutcome.Deleted };
+        var writer = new RecordingFileWriter { DeleteOutcome = DeleteOutcome.Deleted };
         var controller = new ActFilesController();
 
         var result = await controller.DeleteActFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
@@ -84,7 +84,7 @@ public class ActFilesControllerTests
     [Test]
     public async Task DeletingAMissingFileIsAProblemWithFourOhFour()
     {
-        var writer = new RecordingFileWriter { DeleteOutcome = FileDeleteOutcome.NotFound };
+        var writer = new RecordingFileWriter { DeleteOutcome = DeleteOutcome.NotFound };
         var controller = new ActFilesController();
 
         var result = await controller.DeleteActFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
@@ -95,7 +95,7 @@ public class ActFilesControllerTests
     [Test]
     public async Task ADeleteOutcomeTheEndpointDoesNotKnowThrows()
     {
-        var writer = new RecordingFileWriter { DeleteOutcome = (FileDeleteOutcome)99 };
+        var writer = new RecordingFileWriter { DeleteOutcome = (DeleteOutcome)99 };
         var controller = new ActFilesController();
 
         await Assert.ThatAsync(

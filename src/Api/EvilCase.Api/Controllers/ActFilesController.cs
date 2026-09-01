@@ -2,6 +2,7 @@ using System.Diagnostics;
 using EvilBrains.ApiClient;
 using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.Api.Contract.Files;
+using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Business.Files;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -34,8 +35,8 @@ public class ActFilesController : ControllerBase
 
         return outcome switch
         {
-            FileDeleteOutcome.Deleted => this.NoContent(),
-            FileDeleteOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: FileProblems.NotFound),
+            DeleteOutcome.Deleted => this.NoContent(),
+            DeleteOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: FileProblems.NotFound),
             _ => throw new UnreachableException(),
         };
     }

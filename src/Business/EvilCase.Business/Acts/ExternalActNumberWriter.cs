@@ -49,7 +49,7 @@ internal sealed class ExternalActNumberWriter(IDbSession dbSession, ILogger<Exte
         return ExternalActNumberOutcome.Added;
     }
 
-    public async Task<ExternalActNumberDeleteOutcome> DeleteExternalActNumber(Guid caseId, Guid actId, Guid numberId, CancellationToken token)
+    public async Task<DeleteOutcome> DeleteExternalActNumber(Guid caseId, Guid actId, Guid numberId, CancellationToken token)
     {
         var context = dbSession.Current;
 
@@ -58,6 +58,6 @@ internal sealed class ExternalActNumberWriter(IDbSession dbSession, ILogger<Exte
             .WithId(numberId)
             .ExecuteDeleteAsync(token);
 
-        return rows == 0 ? ExternalActNumberDeleteOutcome.NotFound : ExternalActNumberDeleteOutcome.Deleted;
+        return rows == 0 ? DeleteOutcome.NotFound : DeleteOutcome.Deleted;
     }
 }

@@ -4,6 +4,7 @@ using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Api.Contract.Numbers;
 using EvilBrains.EvilCase.Api.Controllers;
 using EvilBrains.EvilCase.Business.Cases;
+using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Domain.Cases;
 using Microsoft.AspNetCore.Mvc;
 
@@ -237,7 +238,7 @@ public class CasesControllerTests
     public async Task DeletingACaseReachesTheWriterWithTheRouteId()
     {
         var caseId = Guid.CreateVersion7();
-        var writer = new RecordingCaseWriter { DeleteOutcome = CaseDeleteOutcome.Deleted };
+        var writer = new RecordingCaseWriter { DeleteOutcome = DeleteOutcome.Deleted };
         var controller = new CasesController();
 
         await controller.DeleteCase(writer, caseId, CancellationToken.None);
@@ -248,7 +249,7 @@ public class CasesControllerTests
     [Test]
     public async Task DeletingACaseAnswersWithNoContent()
     {
-        var writer = new RecordingCaseWriter { DeleteOutcome = CaseDeleteOutcome.Deleted };
+        var writer = new RecordingCaseWriter { DeleteOutcome = DeleteOutcome.Deleted };
         var controller = new CasesController();
 
         var result = await controller.DeleteCase(writer, Guid.CreateVersion7(), CancellationToken.None);
@@ -259,7 +260,7 @@ public class CasesControllerTests
     [Test]
     public async Task DeletingAMissingCaseIsAProblemWithFourOhFour()
     {
-        var writer = new RecordingCaseWriter { DeleteOutcome = CaseDeleteOutcome.NotFound };
+        var writer = new RecordingCaseWriter { DeleteOutcome = DeleteOutcome.NotFound };
         var controller = new CasesController();
 
         var result = await controller.DeleteCase(writer, Guid.CreateVersion7(), CancellationToken.None);
@@ -270,7 +271,7 @@ public class CasesControllerTests
     [Test]
     public async Task ADeleteOutcomeTheEndpointDoesNotKnowThrows()
     {
-        var writer = new RecordingCaseWriter { DeleteOutcome = (CaseDeleteOutcome)99 };
+        var writer = new RecordingCaseWriter { DeleteOutcome = (DeleteOutcome)99 };
         var controller = new CasesController();
 
         await Assert.ThatAsync(
@@ -347,7 +348,7 @@ public class CasesControllerTests
     [Test]
     public async Task DeletingAMarkAnswersWithNoContent()
     {
-        var writer = new RecordingExternalCaseNumberWriter { DeleteOutcome = ExternalCaseNumberDeleteOutcome.Deleted };
+        var writer = new RecordingExternalCaseNumberWriter { DeleteOutcome = DeleteOutcome.Deleted };
         var controller = new CasesController();
 
         var result = await controller.DeleteExternalCaseNumber(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
@@ -360,7 +361,7 @@ public class CasesControllerTests
     {
         var caseId = Guid.CreateVersion7();
         var numberId = Guid.CreateVersion7();
-        var writer = new RecordingExternalCaseNumberWriter { DeleteOutcome = ExternalCaseNumberDeleteOutcome.Deleted };
+        var writer = new RecordingExternalCaseNumberWriter { DeleteOutcome = DeleteOutcome.Deleted };
         var controller = new CasesController();
 
         await controller.DeleteExternalCaseNumber(writer, caseId, numberId, CancellationToken.None);
@@ -375,7 +376,7 @@ public class CasesControllerTests
     [Test]
     public async Task DeletingAMissingMarkIsAProblemWithFourOhFour()
     {
-        var writer = new RecordingExternalCaseNumberWriter { DeleteOutcome = ExternalCaseNumberDeleteOutcome.NotFound };
+        var writer = new RecordingExternalCaseNumberWriter { DeleteOutcome = DeleteOutcome.NotFound };
         var controller = new CasesController();
 
         var result = await controller.DeleteExternalCaseNumber(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
@@ -386,7 +387,7 @@ public class CasesControllerTests
     [Test]
     public async Task AMarkDeleteOutcomeTheEndpointDoesNotKnowThrows()
     {
-        var writer = new RecordingExternalCaseNumberWriter { DeleteOutcome = (ExternalCaseNumberDeleteOutcome)99 };
+        var writer = new RecordingExternalCaseNumberWriter { DeleteOutcome = (DeleteOutcome)99 };
         var controller = new CasesController();
 
         await Assert.ThatAsync(
@@ -511,9 +512,9 @@ public class CasesControllerTests
 
         public Guid? DeleteId { get; private set; }
 
-        public CaseDeleteOutcome DeleteOutcome { get; init; }
+        public DeleteOutcome DeleteOutcome { get; init; }
 
-        public Task<CaseDeleteOutcome> DeleteCase(Guid caseId, CancellationToken token)
+        public Task<DeleteOutcome> DeleteCase(Guid caseId, CancellationToken token)
         {
             this.DeleteId = caseId;
 
@@ -533,7 +534,7 @@ public class CasesControllerTests
 
         public Guid? DeleteNumberId { get; private set; }
 
-        public ExternalCaseNumberDeleteOutcome DeleteOutcome { get; init; }
+        public DeleteOutcome DeleteOutcome { get; init; }
 
         public Task<ExternalCaseNumberOutcome> AddExternalCaseNumber(Guid caseId, ExternalNumberRequest request, CancellationToken token)
         {
@@ -543,7 +544,7 @@ public class CasesControllerTests
             return Task.FromResult(this.AddOutcome);
         }
 
-        public Task<ExternalCaseNumberDeleteOutcome> DeleteExternalCaseNumber(Guid caseId, Guid numberId, CancellationToken token)
+        public Task<DeleteOutcome> DeleteExternalCaseNumber(Guid caseId, Guid numberId, CancellationToken token)
         {
             this.DeleteCaseId = caseId;
             this.DeleteNumberId = numberId;

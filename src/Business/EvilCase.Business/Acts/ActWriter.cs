@@ -135,7 +135,7 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
         return ActUpdateOutcome.Updated;
     }
 
-    public async Task<ActDeleteOutcome> DeleteAct(Guid caseId, Guid actId, CancellationToken token)
+    public async Task<DeleteOutcome> DeleteAct(Guid caseId, Guid actId, CancellationToken token)
     {
         var context = dbSession.Current;
 
@@ -153,7 +153,7 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
             .ExecuteDeleteAsync(token);
 
         if (rows == 0)
-            return ActDeleteOutcome.NotFound;
+            return DeleteOutcome.NotFound;
 
         // After the commit: a blob orphaned by a failed delete is tolerated, a lost one is not (SDD-012).
         foreach (var storagePath in storagePaths)
@@ -161,7 +161,7 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
 
         logger.LogInformation("Act {ActId} was deleted", actId);
 
-        return ActDeleteOutcome.Deleted;
+        return DeleteOutcome.Deleted;
     }
 
     /// <summary>

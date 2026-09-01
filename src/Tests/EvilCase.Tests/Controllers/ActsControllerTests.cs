@@ -4,6 +4,7 @@ using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Api.Contract.Numbers;
 using EvilBrains.EvilCase.Api.Controllers;
 using EvilBrains.EvilCase.Business.Acts;
+using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Domain.Acts;
 using EvilBrains.EvilCase.Domain.Contacts;
 using Microsoft.AspNetCore.Mvc;
@@ -279,7 +280,7 @@ public class ActsControllerTests
     {
         var caseId = Guid.CreateVersion7();
         var actId = Guid.CreateVersion7();
-        var writer = new RecordingActWriter { DeleteOutcome = ActDeleteOutcome.Deleted };
+        var writer = new RecordingActWriter { DeleteOutcome = DeleteOutcome.Deleted };
         var controller = new ActsController();
 
         await controller.DeleteAct(writer, caseId, actId, CancellationToken.None);
@@ -294,7 +295,7 @@ public class ActsControllerTests
     [Test]
     public async Task ADeleteThatSucceedsAnswersWithNoContent()
     {
-        var writer = new RecordingActWriter { DeleteOutcome = ActDeleteOutcome.Deleted };
+        var writer = new RecordingActWriter { DeleteOutcome = DeleteOutcome.Deleted };
         var controller = new ActsController();
 
         var result = await controller.DeleteAct(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
@@ -305,7 +306,7 @@ public class ActsControllerTests
     [Test]
     public async Task DeletingAMissingActIsAProblemWithFourOhFour()
     {
-        var writer = new RecordingActWriter { DeleteOutcome = ActDeleteOutcome.NotFound };
+        var writer = new RecordingActWriter { DeleteOutcome = DeleteOutcome.NotFound };
         var controller = new ActsController();
 
         var result = await controller.DeleteAct(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
@@ -318,7 +319,7 @@ public class ActsControllerTests
     [Test]
     public async Task AnActDeleteOutcomeTheEndpointDoesNotKnowThrows()
     {
-        var writer = new RecordingActWriter { DeleteOutcome = (ActDeleteOutcome)99 };
+        var writer = new RecordingActWriter { DeleteOutcome = (DeleteOutcome)99 };
         var controller = new ActsController();
 
         await Assert.ThatAsync(
@@ -399,7 +400,7 @@ public class ActsControllerTests
     [Test]
     public async Task DeletingANumberAnswersWithNoContent()
     {
-        var writer = new RecordingExternalActNumberWriter { DeleteOutcome = ExternalActNumberDeleteOutcome.Deleted };
+        var writer = new RecordingExternalActNumberWriter { DeleteOutcome = DeleteOutcome.Deleted };
         var controller = new ActsController();
 
         var result = await controller.DeleteExternalActNumber(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
@@ -413,7 +414,7 @@ public class ActsControllerTests
         var caseId = Guid.CreateVersion7();
         var actId = Guid.CreateVersion7();
         var numberId = Guid.CreateVersion7();
-        var writer = new RecordingExternalActNumberWriter { DeleteOutcome = ExternalActNumberDeleteOutcome.Deleted };
+        var writer = new RecordingExternalActNumberWriter { DeleteOutcome = DeleteOutcome.Deleted };
         var controller = new ActsController();
 
         await controller.DeleteExternalActNumber(writer, caseId, actId, numberId, CancellationToken.None);
@@ -429,7 +430,7 @@ public class ActsControllerTests
     [Test]
     public async Task DeletingAMissingNumberIsAProblemWithFourOhFour()
     {
-        var writer = new RecordingExternalActNumberWriter { DeleteOutcome = ExternalActNumberDeleteOutcome.NotFound };
+        var writer = new RecordingExternalActNumberWriter { DeleteOutcome = DeleteOutcome.NotFound };
         var controller = new ActsController();
 
         var result = await controller.DeleteExternalActNumber(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
@@ -440,7 +441,7 @@ public class ActsControllerTests
     [Test]
     public async Task ANumberDeleteOutcomeTheEndpointDoesNotKnowThrows()
     {
-        var writer = new RecordingExternalActNumberWriter { DeleteOutcome = (ExternalActNumberDeleteOutcome)99 };
+        var writer = new RecordingExternalActNumberWriter { DeleteOutcome = (DeleteOutcome)99 };
         var controller = new ActsController();
 
         await Assert.ThatAsync(
@@ -578,7 +579,7 @@ public class ActsControllerTests
 
         public ActUpdateOutcome UpdateOutcome { get; init; }
 
-        public ActDeleteOutcome DeleteOutcome { get; init; }
+        public DeleteOutcome DeleteOutcome { get; init; }
 
         public Task<ActCreateResult> CreateAct(Guid caseId, CreateActRequest request, CancellationToken token)
         {
@@ -597,7 +598,7 @@ public class ActsControllerTests
             return Task.FromResult(this.UpdateOutcome);
         }
 
-        public Task<ActDeleteOutcome> DeleteAct(Guid caseId, Guid actId, CancellationToken token)
+        public Task<DeleteOutcome> DeleteAct(Guid caseId, Guid actId, CancellationToken token)
         {
             this.DeleteCaseId = caseId;
             this.DeleteActId = actId;
@@ -622,7 +623,7 @@ public class ActsControllerTests
 
         public Guid? DeleteNumberId { get; private set; }
 
-        public ExternalActNumberDeleteOutcome DeleteOutcome { get; init; }
+        public DeleteOutcome DeleteOutcome { get; init; }
 
         public Task<ExternalActNumberOutcome> AddExternalActNumber(Guid caseId, Guid actId, ExternalNumberRequest request, CancellationToken token)
         {
@@ -633,7 +634,7 @@ public class ActsControllerTests
             return Task.FromResult(this.AddOutcome);
         }
 
-        public Task<ExternalActNumberDeleteOutcome> DeleteExternalActNumber(Guid caseId, Guid actId, Guid numberId, CancellationToken token)
+        public Task<DeleteOutcome> DeleteExternalActNumber(Guid caseId, Guid actId, Guid numberId, CancellationToken token)
         {
             this.DeleteCaseId = caseId;
             this.DeleteActId = actId;

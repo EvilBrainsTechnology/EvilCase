@@ -5,6 +5,7 @@ using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Api.Contract.Numbers;
 using EvilBrains.EvilCase.Business.Acts;
+using EvilBrains.EvilCase.Business.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -99,8 +100,8 @@ public class ActsController : ControllerBase
 
         return outcome switch
         {
-            ActDeleteOutcome.Deleted => this.NoContent(),
-            ActDeleteOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.ActNotFound),
+            DeleteOutcome.Deleted => this.NoContent(),
+            DeleteOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.ActNotFound),
             _ => throw new UnreachableException(),
         };
     }
@@ -149,8 +150,8 @@ public class ActsController : ControllerBase
 
         return outcome switch
         {
-            ExternalActNumberDeleteOutcome.Deleted => this.NoContent(),
-            ExternalActNumberDeleteOutcome.NotFound => this.Problem(
+            DeleteOutcome.Deleted => this.NoContent(),
+            DeleteOutcome.NotFound => this.Problem(
                 statusCode: StatusCodes.Status404NotFound, title: "External act number not found"),
             _ => throw new UnreachableException(),
         };

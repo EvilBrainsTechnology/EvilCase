@@ -1,4 +1,5 @@
 using EvilBrains.EvilCase.Business.Acts;
+using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Tests.Data;
 using EvilBrains.EvilCase.Tests.Seeding;
 using Microsoft.EntityFrameworkCore;
@@ -55,7 +56,7 @@ public class ActDeleteTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result, Is.EqualTo(ActDeleteOutcome.Deleted));
+            Assert.That(result, Is.EqualTo(DeleteOutcome.Deleted));
             Assert.That(actExists, Is.False, "the cascade takes the act itself");
             Assert.That(commentExists, Is.False, "the cascade takes the act's comments");
             Assert.That(externalNumberExists, Is.False, "the cascade takes the act's external act numbers");
@@ -111,7 +112,7 @@ public class ActDeleteTests
     {
         var result = await this.writer.DeleteAct(Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
 
-        Assert.That(result, Is.EqualTo(ActDeleteOutcome.NotFound));
+        Assert.That(result, Is.EqualTo(DeleteOutcome.NotFound));
     }
 
     [Test]
@@ -129,7 +130,7 @@ public class ActDeleteTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result, Is.EqualTo(ActDeleteOutcome.NotFound), "an act scoped to another case is not found");
+            Assert.That(result, Is.EqualTo(DeleteOutcome.NotFound), "an act scoped to another case is not found");
             Assert.That(actExists, Is.True);
             Assert.That(this.blobs.Deleted, Is.Empty);
         }
@@ -150,7 +151,7 @@ public class ActDeleteTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result, Is.EqualTo(ActDeleteOutcome.NotFound), "the tenant query filter is what keeps another tenant's act out of a delete");
+            Assert.That(result, Is.EqualTo(DeleteOutcome.NotFound), "the tenant query filter is what keeps another tenant's act out of a delete");
             Assert.That(otherActExists, Is.True);
         }
     }

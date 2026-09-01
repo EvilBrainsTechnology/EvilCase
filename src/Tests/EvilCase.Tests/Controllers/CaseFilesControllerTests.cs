@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Api.Controllers;
-using EvilBrains.EvilCase.Business.Files;
+using EvilBrains.EvilCase.Business.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EvilBrains.EvilCase.Tests.Controllers;
@@ -49,7 +49,7 @@ public class CaseFilesControllerTests
     {
         var caseId = Guid.CreateVersion7();
         var fileId = Guid.CreateVersion7();
-        var writer = new RecordingFileWriter { DeleteOutcome = FileDeleteOutcome.Deleted };
+        var writer = new RecordingFileWriter { DeleteOutcome = DeleteOutcome.Deleted };
         var controller = new CaseFilesController();
 
         await controller.DeleteCaseFile(writer, caseId, fileId, CancellationToken.None);
@@ -64,7 +64,7 @@ public class CaseFilesControllerTests
     [Test]
     public async Task DeletingAFileAnswersWithNoContent()
     {
-        var writer = new RecordingFileWriter { DeleteOutcome = FileDeleteOutcome.Deleted };
+        var writer = new RecordingFileWriter { DeleteOutcome = DeleteOutcome.Deleted };
         var controller = new CaseFilesController();
 
         var result = await controller.DeleteCaseFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
@@ -75,7 +75,7 @@ public class CaseFilesControllerTests
     [Test]
     public async Task DeletingAMissingFileIsAProblemWithFourOhFour()
     {
-        var writer = new RecordingFileWriter { DeleteOutcome = FileDeleteOutcome.NotFound };
+        var writer = new RecordingFileWriter { DeleteOutcome = DeleteOutcome.NotFound };
         var controller = new CaseFilesController();
 
         var result = await controller.DeleteCaseFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
@@ -86,7 +86,7 @@ public class CaseFilesControllerTests
     [Test]
     public async Task ADeleteOutcomeTheEndpointDoesNotKnowThrows()
     {
-        var writer = new RecordingFileWriter { DeleteOutcome = (FileDeleteOutcome)99 };
+        var writer = new RecordingFileWriter { DeleteOutcome = (DeleteOutcome)99 };
         var controller = new CaseFilesController();
 
         await Assert.ThatAsync(
