@@ -16,7 +16,7 @@ public class CasesControllerTests
     [Test]
     public async Task TheItemsAreReturnedInTheOrderTheReaderGaveThem()
     {
-        var reader = new RecordingCaseReader { Items = [Item("EC/20260821-002", "druhý"), Item("EC/20260821-001", "první")] };
+        var reader = ListingReader([Item("EC/20260821-002", "druhý"), Item("EC/20260821-001", "první")]);
         var controller = new CasesController();
 
         var response = await controller.ListCases(reader, new CaseListRequest(), CancellationToken.None);
@@ -28,7 +28,7 @@ public class CasesControllerTests
     public async Task TheCountsAreWhatTheReaderRead()
     {
         var counts = new CaseStatusCounts { Active = 2, WaitingOnAuthority = 1, Closed = 3 };
-        var reader = new RecordingCaseReader { Counts = counts };
+        var reader = CountingReader(counts);
         var controller = new CasesController();
 
         var response = await controller.CountCases(reader, CancellationToken.None);
@@ -39,41 +39,39 @@ public class CasesControllerTests
     [Test]
     public async Task TheSearchTermReachesTheReaderUntouched()
     {
-        var reader = new RecordingCaseReader();
+        CaseListRequest? listRequest = null;
+        var reader = Substitute.For<ICaseReader>();
+        reader.ListCases(Arg.Any<CaseListRequest>(), Arg.Any<CancellationToken>())
+            .Returns([])
+            .AndDoes(call => listRequest = call.Arg<CaseListRequest>());
         var controller = new CasesController();
 
         await controller.ListCases(reader, new CaseListRequest { Search = "odvolání", Status = CaseStatusFilter.WaitingOnAuthority }, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(reader.Request?.Search, Is.EqualTo("odvolání"), "the controller decides nothing about the term");
-            Assert.That(reader.Request?.Status, Is.EqualTo(CaseStatusFilter.WaitingOnAuthority), "the controller hands the status through untouched");
+            Assert.That(listRequest?.Search, Is.EqualTo("odvolání"), "the controller decides nothing about the term");
+            Assert.That(listRequest?.Status, Is.EqualTo(CaseStatusFilter.WaitingOnAuthority), "the controller hands the status through untouched");
         }
     }
 
     [Test]
     public async Task TheRequestReachesTheWriterUntouched()
     {
-        var writer = new RecordingCaseWriter();
+        var writer = CreatingWriter(new CaseCreateResult { Outcome = CaseCreateOutcome.Created, Case = Item("EC/20260821-001", "Spis") });
         var controller = new CasesController();
         var request = new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "Přestupek", Description = "Popis", ParentCaseId = Guid.CreateVersion7() };
 
         await controller.CreateCase(writer, request, CancellationToken.None);
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(writer.Request?.Date, Is.EqualTo(request.Date));
-            Assert.That(writer.Request?.Title, Is.EqualTo(request.Title));
-            Assert.That(writer.Request?.Description, Is.EqualTo(request.Description));
-            Assert.That(writer.Request?.ParentCaseId, Is.EqualTo(request.ParentCaseId));
-        }
+        await writer.Received(1).CreateCase(request, Arg.Any<CancellationToken>());
     }
 
     [Test]
     public async Task TheCreatedCaseIsWhatTheWriterReturned()
     {
         var created = Item("EC/20260821-001", "Nový spis");
-        var writer = new RecordingCaseWriter { CreateResult = new CaseCreateResult { Outcome = CaseCreateOutcome.Created, Case = created } };
+        var writer = CreatingWriter(new CaseCreateResult { Outcome = CaseCreateOutcome.Created, Case = created });
         var controller = new CasesController();
 
         var response = await controller.CreateCase(
@@ -88,7 +86,7 @@ public class CasesControllerTests
     public async Task AFiledCaseIsAnsweredWithCreatedAtItsDetailRoute()
     {
         var created = Item("EC/20260821-001", "Nový spis");
-        var writer = new RecordingCaseWriter { CreateResult = new CaseCreateResult { Outcome = CaseCreateOutcome.Created, Case = created } };
+        var writer = CreatingWriter(new CaseCreateResult { Outcome = CaseCreateOutcome.Created, Case = created });
         var controller = new CasesController();
 
         var response = await controller.CreateCase(
@@ -110,7 +108,7 @@ public class CasesControllerTests
     [Test]
     public async Task FilingUnderAParentThatIsNoCaseIsAConflict()
     {
-        var writer = new RecordingCaseWriter { CreateResult = new CaseCreateResult { Outcome = CaseCreateOutcome.InvalidParent } };
+        var writer = CreatingWriter(new CaseCreateResult { Outcome = CaseCreateOutcome.InvalidParent });
         var controller = new CasesController();
 
         var result = await controller.CreateCase(
@@ -127,12 +125,12 @@ public class CasesControllerTests
     public async Task TheDetailIsAskedForTheIdInTheRoute()
     {
         var caseId = Guid.CreateVersion7();
-        var reader = new RecordingCaseReader { DetailResult = Detail(caseId) };
+        var reader = DetailReader(Detail(caseId));
         var controller = new CasesController();
 
         await controller.GetCase(reader, caseId, CancellationToken.None);
 
-        Assert.That(reader.DetailId, Is.EqualTo(caseId));
+        await reader.Received(1).GetCaseDetail(caseId, Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -140,7 +138,7 @@ public class CasesControllerTests
     {
         var controller = new CasesController();
 
-        var result = await controller.GetCase(new RecordingCaseReader { DetailResult = null }, Guid.CreateVersion7(), CancellationToken.None);
+        var result = await controller.GetCase(DetailReader(detail: null), Guid.CreateVersion7(), CancellationToken.None);
 
         AssertProblem(result.Result, 404);
     }
@@ -149,23 +147,19 @@ public class CasesControllerTests
     public async Task AnEditReachesTheWriterWithTheRouteIdAndTheBody()
     {
         var caseId = Guid.CreateVersion7();
-        var writer = new RecordingCaseWriter { UpdateOutcome = CaseUpdateOutcome.Updated };
+        var writer = EditingWriter(CaseUpdateOutcome.Updated);
         var controller = new CasesController();
         var request = Edit();
 
         await controller.EditCase(writer, caseId, request, CancellationToken.None);
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(writer.UpdateId, Is.EqualTo(caseId));
-            Assert.That(writer.UpdateRequest, Is.SameAs(request), "the controller decides nothing about the edit");
-        }
+        await writer.Received(1).UpdateCase(caseId, request, Arg.Any<CancellationToken>());
     }
 
     [Test]
     public async Task AnEditThatSucceedsAnswersWithNoContent()
     {
-        var writer = new RecordingCaseWriter { UpdateOutcome = CaseUpdateOutcome.Updated };
+        var writer = EditingWriter(CaseUpdateOutcome.Updated);
         var controller = new CasesController();
 
         var result = await controller.EditCase(writer, Guid.CreateVersion7(), Edit(), CancellationToken.None);
@@ -176,7 +170,7 @@ public class CasesControllerTests
     [Test]
     public async Task EditingAMissingCaseIsAProblemWithFourOhFour()
     {
-        var writer = new RecordingCaseWriter { UpdateOutcome = CaseUpdateOutcome.NotFound };
+        var writer = EditingWriter(CaseUpdateOutcome.NotFound);
         var controller = new CasesController();
 
         var result = await controller.EditCase(writer, Guid.CreateVersion7(), Edit(), CancellationToken.None);
@@ -187,7 +181,7 @@ public class CasesControllerTests
     [Test]
     public async Task ACaseNumberOutsideTheFormatIsAFieldErrorOnTheNumber()
     {
-        var writer = new RecordingCaseWriter { UpdateOutcome = CaseUpdateOutcome.InvalidCaseNumber };
+        var writer = EditingWriter(CaseUpdateOutcome.InvalidCaseNumber);
         var controller = new CasesController();
 
         var result = await controller.EditCase(writer, Guid.CreateVersion7(), Edit(), CancellationToken.None);
@@ -212,7 +206,7 @@ public class CasesControllerTests
     [Test]
     public async Task ACaseNumberAnotherCaseHoldsIsAConflict()
     {
-        var writer = new RecordingCaseWriter { UpdateOutcome = CaseUpdateOutcome.CaseNumberTaken };
+        var writer = EditingWriter(CaseUpdateOutcome.CaseNumberTaken);
         var controller = new CasesController();
 
         var result = await controller.EditCase(writer, Guid.CreateVersion7(), Edit(), CancellationToken.None);
@@ -225,7 +219,7 @@ public class CasesControllerTests
     [Test]
     public async Task AParentThatWouldCloseALoopIsAConflict()
     {
-        var writer = new RecordingCaseWriter { UpdateOutcome = CaseUpdateOutcome.InvalidParent };
+        var writer = EditingWriter(CaseUpdateOutcome.InvalidParent);
         var controller = new CasesController();
 
         var result = await controller.EditCase(writer, Guid.CreateVersion7(), Edit(), CancellationToken.None);
@@ -239,18 +233,18 @@ public class CasesControllerTests
     public async Task DeletingACaseReachesTheWriterWithTheRouteId()
     {
         var caseId = Guid.CreateVersion7();
-        var writer = new RecordingCaseWriter { DeleteOutcome = DeleteOutcome.Deleted };
+        var writer = DeletingWriter(DeleteOutcome.Deleted);
         var controller = new CasesController();
 
         await controller.DeleteCase(writer, caseId, CancellationToken.None);
 
-        Assert.That(writer.DeleteId, Is.EqualTo(caseId));
+        await writer.Received(1).DeleteCase(caseId, Arg.Any<CancellationToken>());
     }
 
     [Test]
     public async Task DeletingACaseAnswersWithNoContent()
     {
-        var writer = new RecordingCaseWriter { DeleteOutcome = DeleteOutcome.Deleted };
+        var writer = DeletingWriter(DeleteOutcome.Deleted);
         var controller = new CasesController();
 
         var result = await controller.DeleteCase(writer, Guid.CreateVersion7(), CancellationToken.None);
@@ -261,7 +255,7 @@ public class CasesControllerTests
     [Test]
     public async Task DeletingAMissingCaseIsAProblemWithFourOhFour()
     {
-        var writer = new RecordingCaseWriter { DeleteOutcome = DeleteOutcome.NotFound };
+        var writer = DeletingWriter(DeleteOutcome.NotFound);
         var controller = new CasesController();
 
         var result = await controller.DeleteCase(writer, Guid.CreateVersion7(), CancellationToken.None);
@@ -272,7 +266,7 @@ public class CasesControllerTests
     [Test]
     public async Task ADeleteOutcomeTheEndpointDoesNotKnowThrows()
     {
-        var writer = new RecordingCaseWriter { DeleteOutcome = (DeleteOutcome)99 };
+        var writer = DeletingWriter((DeleteOutcome)99);
         var controller = new CasesController();
 
         await Assert.ThatAsync(
@@ -285,23 +279,19 @@ public class CasesControllerTests
     public async Task AddingAMarkReachesTheWriterWithTheRouteIdAndTheBody()
     {
         var caseId = Guid.CreateVersion7();
-        var writer = new RecordingExternalCaseNumberWriter { AddOutcome = ExternalCaseNumberOutcome.Added };
+        var writer = AddingMarkWriter(ExternalCaseNumberOutcome.Added);
         var controller = new CasesController();
         var request = Mark();
 
         await controller.AddExternalCaseNumber(writer, caseId, request, CancellationToken.None);
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(writer.AddCaseId, Is.EqualTo(caseId));
-            Assert.That(writer.AddRequest, Is.SameAs(request), "the controller decides nothing about the mark");
-        }
+        await writer.Received(1).AddExternalCaseNumber(caseId, request, Arg.Any<CancellationToken>());
     }
 
     [Test]
     public async Task AddingAMarkThatSucceedsAnswersWithNoContent()
     {
-        var writer = new RecordingExternalCaseNumberWriter { AddOutcome = ExternalCaseNumberOutcome.Added };
+        var writer = AddingMarkWriter(ExternalCaseNumberOutcome.Added);
         var controller = new CasesController();
 
         var result = await controller.AddExternalCaseNumber(writer, Guid.CreateVersion7(), Mark(), CancellationToken.None);
@@ -312,7 +302,7 @@ public class CasesControllerTests
     [Test]
     public async Task AddingAMarkToAMissingCaseIsAProblemWithFourOhFour()
     {
-        var writer = new RecordingExternalCaseNumberWriter { AddOutcome = ExternalCaseNumberOutcome.CaseNotFound };
+        var writer = AddingMarkWriter(ExternalCaseNumberOutcome.CaseNotFound);
         var controller = new CasesController();
 
         var result = await controller.AddExternalCaseNumber(writer, Guid.CreateVersion7(), Mark(), CancellationToken.None);
@@ -323,7 +313,7 @@ public class CasesControllerTests
     [Test]
     public async Task AMarkTheCaseAlreadyCarriesIsAConflict()
     {
-        var writer = new RecordingExternalCaseNumberWriter { AddOutcome = ExternalCaseNumberOutcome.ValueTaken };
+        var writer = AddingMarkWriter(ExternalCaseNumberOutcome.ValueTaken);
         var controller = new CasesController();
 
         var result = await controller.AddExternalCaseNumber(writer, Guid.CreateVersion7(), Mark(), CancellationToken.None);
@@ -336,7 +326,7 @@ public class CasesControllerTests
     [Test]
     public async Task AMarkNamingAnUnknownContactIsAConflict()
     {
-        var writer = new RecordingExternalCaseNumberWriter { AddOutcome = ExternalCaseNumberOutcome.UnknownContact };
+        var writer = AddingMarkWriter(ExternalCaseNumberOutcome.UnknownContact);
         var controller = new CasesController();
 
         var result = await controller.AddExternalCaseNumber(writer, Guid.CreateVersion7(), Mark(), CancellationToken.None);
@@ -349,7 +339,7 @@ public class CasesControllerTests
     [Test]
     public async Task DeletingAMarkAnswersWithNoContent()
     {
-        var writer = new RecordingExternalCaseNumberWriter { DeleteOutcome = DeleteOutcome.Deleted };
+        var writer = DeletingMarkWriter(DeleteOutcome.Deleted);
         var controller = new CasesController();
 
         var result = await controller.DeleteExternalCaseNumber(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
@@ -362,22 +352,18 @@ public class CasesControllerTests
     {
         var caseId = Guid.CreateVersion7();
         var numberId = Guid.CreateVersion7();
-        var writer = new RecordingExternalCaseNumberWriter { DeleteOutcome = DeleteOutcome.Deleted };
+        var writer = DeletingMarkWriter(DeleteOutcome.Deleted);
         var controller = new CasesController();
 
         await controller.DeleteExternalCaseNumber(writer, caseId, numberId, CancellationToken.None);
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(writer.DeleteCaseId, Is.EqualTo(caseId));
-            Assert.That(writer.DeleteNumberId, Is.EqualTo(numberId));
-        }
+        await writer.Received(1).DeleteExternalCaseNumber(caseId, numberId, Arg.Any<CancellationToken>());
     }
 
     [Test]
     public async Task DeletingAMissingMarkIsAProblemWithFourOhFour()
     {
-        var writer = new RecordingExternalCaseNumberWriter { DeleteOutcome = DeleteOutcome.NotFound };
+        var writer = DeletingMarkWriter(DeleteOutcome.NotFound);
         var controller = new CasesController();
 
         var result = await controller.DeleteExternalCaseNumber(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
@@ -388,7 +374,7 @@ public class CasesControllerTests
     [Test]
     public async Task AMarkDeleteOutcomeTheEndpointDoesNotKnowThrows()
     {
-        var writer = new RecordingExternalCaseNumberWriter { DeleteOutcome = (DeleteOutcome)99 };
+        var writer = DeletingMarkWriter((DeleteOutcome)99);
         var controller = new CasesController();
 
         await Assert.ThatAsync(
@@ -438,105 +424,75 @@ public class CasesControllerTests
         };
     }
 
-    private sealed class RecordingCaseReader : ICaseReader
+    private static ICaseReader ListingReader(IReadOnlyList<CaseListItem> items)
     {
-        public IReadOnlyList<CaseListItem> Items { get; init; } = [];
+        var reader = Substitute.For<ICaseReader>();
+        reader.ListCases(Arg.Any<CaseListRequest>(), Arg.Any<CancellationToken>())
+            .Returns(items);
 
-        public CaseListRequest? Request { get; private set; }
-
-        public Guid? DetailId { get; private set; }
-
-        public CaseDetail? DetailResult { get; init; }
-
-        public CaseStatusCounts Counts { get; init; } = new() { Active = 0, WaitingOnAuthority = 0, Closed = 0 };
-
-        public async Task<IReadOnlyList<CaseListItem>> ListCases(CaseListRequest request, CancellationToken token)
-        {
-            this.Request = request;
-
-            return this.Items;
-        }
-
-        public async Task<CaseDetail?> GetCaseDetail(Guid caseId, CancellationToken token)
-        {
-            this.DetailId = caseId;
-
-            return this.DetailResult;
-        }
-
-        public async Task<CaseStatusCounts> CountCasesByStatus(CancellationToken token)
-        {
-            return this.Counts;
-        }
+        return reader;
     }
 
-    private sealed class RecordingCaseWriter : ICaseWriter
+    private static ICaseReader CountingReader(CaseStatusCounts counts)
     {
-        public CreateCaseRequest? Request { get; private set; }
+        var reader = Substitute.For<ICaseReader>();
+        reader.CountCasesByStatus(Arg.Any<CancellationToken>())
+            .Returns(counts);
 
-        public CaseCreateResult CreateResult { get; init; } = new() { Outcome = CaseCreateOutcome.Created, Case = Item("EC/20260821-001", "Spis") };
-
-        public Guid? UpdateId { get; private set; }
-
-        public CaseEditRequest? UpdateRequest { get; private set; }
-
-        public CaseUpdateOutcome UpdateOutcome { get; init; }
-
-        public async Task<CaseCreateResult> CreateCase(CreateCaseRequest request, CancellationToken token)
-        {
-            this.Request = request;
-
-            return this.CreateResult;
-        }
-
-        public async Task<CaseUpdateOutcome> UpdateCase(Guid caseId, CaseEditRequest request, CancellationToken token)
-        {
-            this.UpdateId = caseId;
-            this.UpdateRequest = request;
-
-            return this.UpdateOutcome;
-        }
-
-        public Guid? DeleteId { get; private set; }
-
-        public DeleteOutcome DeleteOutcome { get; init; }
-
-        public async Task<DeleteOutcome> DeleteCase(Guid caseId, CancellationToken token)
-        {
-            this.DeleteId = caseId;
-
-            return this.DeleteOutcome;
-        }
+        return reader;
     }
 
-    private sealed class RecordingExternalCaseNumberWriter : IExternalCaseNumberWriter
+    private static ICaseReader DetailReader(CaseDetail? detail)
     {
-        public Guid? AddCaseId { get; private set; }
+        var reader = Substitute.For<ICaseReader>();
+        reader.GetCaseDetail(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(detail);
 
-        public ExternalNumberRequest? AddRequest { get; private set; }
+        return reader;
+    }
 
-        public ExternalCaseNumberOutcome AddOutcome { get; init; }
+    private static ICaseWriter CreatingWriter(CaseCreateResult result)
+    {
+        var writer = Substitute.For<ICaseWriter>();
+        writer.CreateCase(Arg.Any<CreateCaseRequest>(), Arg.Any<CancellationToken>())
+            .Returns(result);
 
-        public Guid? DeleteCaseId { get; private set; }
+        return writer;
+    }
 
-        public Guid? DeleteNumberId { get; private set; }
+    private static ICaseWriter EditingWriter(CaseUpdateOutcome outcome)
+    {
+        var writer = Substitute.For<ICaseWriter>();
+        writer.UpdateCase(Arg.Any<Guid>(), Arg.Any<CaseEditRequest>(), Arg.Any<CancellationToken>())
+            .Returns(outcome);
 
-        public DeleteOutcome DeleteOutcome { get; init; }
+        return writer;
+    }
 
-        public async Task<ExternalCaseNumberOutcome> AddExternalCaseNumber(Guid caseId, ExternalNumberRequest request, CancellationToken token)
-        {
-            this.AddCaseId = caseId;
-            this.AddRequest = request;
+    private static ICaseWriter DeletingWriter(DeleteOutcome outcome)
+    {
+        var writer = Substitute.For<ICaseWriter>();
+        writer.DeleteCase(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(outcome);
 
-            return this.AddOutcome;
-        }
+        return writer;
+    }
 
-        public async Task<DeleteOutcome> DeleteExternalCaseNumber(Guid caseId, Guid numberId, CancellationToken token)
-        {
-            this.DeleteCaseId = caseId;
-            this.DeleteNumberId = numberId;
+    private static IExternalCaseNumberWriter AddingMarkWriter(ExternalCaseNumberOutcome outcome)
+    {
+        var writer = Substitute.For<IExternalCaseNumberWriter>();
+        writer.AddExternalCaseNumber(Arg.Any<Guid>(), Arg.Any<ExternalNumberRequest>(), Arg.Any<CancellationToken>())
+            .Returns(outcome);
 
-            return this.DeleteOutcome;
-        }
+        return writer;
+    }
+
+    private static IExternalCaseNumberWriter DeletingMarkWriter(DeleteOutcome outcome)
+    {
+        var writer = Substitute.For<IExternalCaseNumberWriter>();
+        writer.DeleteExternalCaseNumber(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(outcome);
+
+        return writer;
     }
 }

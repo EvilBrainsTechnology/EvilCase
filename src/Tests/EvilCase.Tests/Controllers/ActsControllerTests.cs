@@ -17,7 +17,7 @@ public class ActsControllerTests
     [Test]
     public async Task TheItemsAreReturnedInTheOrderTheReaderGaveThem()
     {
-        var reader = new RecordingActReader { Items = [Item("Podání"), Item("Rozhodnutí")] };
+        var reader = ListingReader([Item("Podání"), Item("Rozhodnutí")]);
         var controller = new ActsController();
 
         var response = await controller.ListCaseActs(reader, Guid.CreateVersion7(), CancellationToken.None);
@@ -29,29 +29,33 @@ public class ActsControllerTests
     public async Task TheCaseIdInTheRouteReachesTheReader()
     {
         var caseId = Guid.CreateVersion7();
-        var reader = new RecordingActReader();
+        var reader = Substitute.For<IActReader>();
         var controller = new ActsController();
 
         await controller.ListCaseActs(reader, caseId, CancellationToken.None);
 
-        Assert.That(reader.CaseId, Is.EqualTo(caseId));
+        await reader.Received(1).ListCaseActs(caseId, Arg.Any<CancellationToken>());
     }
 
     [Test]
     public async Task TheListRequestReachesTheReaderUntouched()
     {
-        var reader = new RecordingActReader();
+        ActListRequest? listRequest = null;
+        var reader = Substitute.For<IActReader>();
+        reader.ListActs(Arg.Any<ActListRequest>(), Arg.Any<CancellationToken>())
+            .Returns([])
+            .AndDoes(call => listRequest = call.Arg<ActListRequest>());
         var controller = new ActsController();
 
         await controller.ListActs(reader, new ActListRequest { Take = 5 }, CancellationToken.None);
 
-        Assert.That(reader.ListRequest?.Take, Is.EqualTo(5), "the controller decides nothing about the cap");
+        Assert.That(listRequest?.Take, Is.EqualTo(5), "the controller decides nothing about the cap");
     }
 
     [Test]
     public async Task TheActsAcrossEveryCaseComeBackInTheOrderTheReaderGaveThem()
     {
-        var reader = new RecordingActReader { Items = [Item("druhý"), Item("první")] };
+        var reader = ListingReader([Item("druhý"), Item("první")]);
         var controller = new ActsController();
 
         var response = await controller.ListActs(reader, new ActListRequest(), CancellationToken.None);
@@ -63,24 +67,20 @@ public class ActsControllerTests
     public async Task TheRequestAndTheCaseIdReachTheWriterUntouched()
     {
         var caseId = Guid.CreateVersion7();
-        var writer = new RecordingActWriter { Result = new ActCreateResult { Outcome = ActCreateOutcome.Created, Act = Item("Podání") } };
+        var writer = CreatingWriter(new ActCreateResult { Outcome = ActCreateOutcome.Created, Act = Item("Podání") });
         var controller = new ActsController();
         var request = Request();
 
         await controller.CreateAct(writer, caseId, request, CancellationToken.None);
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(writer.CaseId, Is.EqualTo(caseId));
-            Assert.That(writer.Request, Is.SameAs(request));
-        }
+        await writer.Received(1).CreateAct(caseId, request, Arg.Any<CancellationToken>());
     }
 
     [Test]
     public async Task TheCreatedActIsWhatTheWriterReturned()
     {
         var created = Item("Podání");
-        var writer = new RecordingActWriter { Result = new ActCreateResult { Outcome = ActCreateOutcome.Created, Act = created } };
+        var writer = CreatingWriter(new ActCreateResult { Outcome = ActCreateOutcome.Created, Act = created });
         var controller = new ActsController();
 
         var result = await controller.CreateAct(writer, Guid.CreateVersion7(), Request(), CancellationToken.None);
@@ -96,7 +96,7 @@ public class ActsControllerTests
     public async Task AFiledActIsAnsweredWithCreatedAtItsDetailRoute()
     {
         var act = Item("Podání");
-        var writer = new RecordingActWriter { Result = new ActCreateResult { Outcome = ActCreateOutcome.Created, Act = act } };
+        var writer = CreatingWriter(new ActCreateResult { Outcome = ActCreateOutcome.Created, Act = act });
         var controller = new ActsController();
         var caseId = Guid.CreateVersion7();
 
@@ -117,7 +117,7 @@ public class ActsControllerTests
     [Test]
     public async Task FilingIntoACaseThatIsNotThereIsAProblemWithFourOhFour()
     {
-        var writer = new RecordingActWriter { Result = new ActCreateResult { Outcome = ActCreateOutcome.CaseNotFound } };
+        var writer = CreatingWriter(new ActCreateResult { Outcome = ActCreateOutcome.CaseNotFound });
         var controller = new ActsController();
 
         var result = await controller.CreateAct(writer, Guid.CreateVersion7(), Request(), CancellationToken.None);
@@ -128,7 +128,7 @@ public class ActsControllerTests
     [Test]
     public async Task FilingWithAContactThatIsNotThereIsAConflict()
     {
-        var writer = new RecordingActWriter { Result = new ActCreateResult { Outcome = ActCreateOutcome.ContactNotFound } };
+        var writer = CreatingWriter(new ActCreateResult { Outcome = ActCreateOutcome.ContactNotFound });
         var controller = new ActsController();
 
         var result = await controller.CreateAct(writer, Guid.CreateVersion7(), Request(), CancellationToken.None);
@@ -143,23 +143,19 @@ public class ActsControllerTests
     {
         var caseId = Guid.CreateVersion7();
         var actId = Guid.CreateVersion7();
-        var reader = new RecordingActReader { DetailResult = Detail() };
+        var reader = DetailReader(Detail());
         var controller = new ActsController();
 
         await controller.GetAct(reader, caseId, actId, CancellationToken.None);
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(reader.DetailCaseId, Is.EqualTo(caseId));
-            Assert.That(reader.DetailActId, Is.EqualTo(actId));
-        }
+        await reader.Received(1).GetActDetail(caseId, actId, Arg.Any<CancellationToken>());
     }
 
     [Test]
     public async Task TheActDetailIsWhatTheReaderReturned()
     {
         var detail = Detail();
-        var reader = new RecordingActReader { DetailResult = detail };
+        var reader = DetailReader(detail);
         var controller = new ActsController();
 
         var result = await controller.GetAct(reader, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
@@ -174,7 +170,7 @@ public class ActsControllerTests
     [Test]
     public async Task AMissingActIsAProblemWithFourOhFour()
     {
-        var reader = new RecordingActReader { DetailResult = null };
+        var reader = DetailReader(detail: null);
         var controller = new ActsController();
 
         var result = await controller.GetAct(reader, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
@@ -187,24 +183,19 @@ public class ActsControllerTests
     {
         var caseId = Guid.CreateVersion7();
         var actId = Guid.CreateVersion7();
-        var writer = new RecordingActWriter { UpdateOutcome = ActUpdateOutcome.Updated };
+        var writer = EditingWriter(ActUpdateOutcome.Updated);
         var controller = new ActsController();
         var request = EditRequest();
 
         await controller.EditAct(writer, caseId, actId, request, CancellationToken.None);
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(writer.UpdateCaseId, Is.EqualTo(caseId));
-            Assert.That(writer.UpdateActId, Is.EqualTo(actId));
-            Assert.That(writer.UpdateRequest, Is.SameAs(request));
-        }
+        await writer.Received(1).UpdateAct(caseId, actId, request, Arg.Any<CancellationToken>());
     }
 
     [Test]
     public async Task AnEditThatSucceedsAnswersWithNoContent()
     {
-        var writer = new RecordingActWriter { UpdateOutcome = ActUpdateOutcome.Updated };
+        var writer = EditingWriter(ActUpdateOutcome.Updated);
         var controller = new ActsController();
 
         var result = await controller.EditAct(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), EditRequest(), CancellationToken.None);
@@ -215,7 +206,7 @@ public class ActsControllerTests
     [Test]
     public async Task EditingAMissingActIsAProblemWithFourOhFour()
     {
-        var writer = new RecordingActWriter { UpdateOutcome = ActUpdateOutcome.NotFound };
+        var writer = EditingWriter(ActUpdateOutcome.NotFound);
         var controller = new ActsController();
 
         var result = await controller.EditAct(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), EditRequest(), CancellationToken.None);
@@ -228,7 +219,7 @@ public class ActsControllerTests
     [Test]
     public async Task AnEditNamingAContactThatIsNotThereIsAConflict()
     {
-        var writer = new RecordingActWriter { UpdateOutcome = ActUpdateOutcome.ContactNotFound };
+        var writer = EditingWriter(ActUpdateOutcome.ContactNotFound);
         var controller = new ActsController();
 
         var result = await controller.EditAct(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), EditRequest(), CancellationToken.None);
@@ -241,7 +232,7 @@ public class ActsControllerTests
     [Test]
     public async Task AnActNumberOutsideTheFormatIsAFieldErrorOnTheNumber()
     {
-        var writer = new RecordingActWriter { UpdateOutcome = ActUpdateOutcome.InvalidActNumber };
+        var writer = EditingWriter(ActUpdateOutcome.InvalidActNumber);
         var controller = new ActsController();
 
         var result = await controller.EditAct(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), EditRequest(), CancellationToken.None);
@@ -266,7 +257,7 @@ public class ActsControllerTests
     [Test]
     public async Task AnActNumberAnotherActHoldsIsAConflict()
     {
-        var writer = new RecordingActWriter { UpdateOutcome = ActUpdateOutcome.ActNumberTaken };
+        var writer = EditingWriter(ActUpdateOutcome.ActNumberTaken);
         var controller = new ActsController();
 
         var result = await controller.EditAct(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), EditRequest(), CancellationToken.None);
@@ -281,22 +272,18 @@ public class ActsControllerTests
     {
         var caseId = Guid.CreateVersion7();
         var actId = Guid.CreateVersion7();
-        var writer = new RecordingActWriter { DeleteOutcome = DeleteOutcome.Deleted };
+        var writer = DeletingWriter(DeleteOutcome.Deleted);
         var controller = new ActsController();
 
         await controller.DeleteAct(writer, caseId, actId, CancellationToken.None);
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(writer.DeleteCaseId, Is.EqualTo(caseId));
-            Assert.That(writer.DeleteActId, Is.EqualTo(actId));
-        }
+        await writer.Received(1).DeleteAct(caseId, actId, Arg.Any<CancellationToken>());
     }
 
     [Test]
     public async Task ADeleteThatSucceedsAnswersWithNoContent()
     {
-        var writer = new RecordingActWriter { DeleteOutcome = DeleteOutcome.Deleted };
+        var writer = DeletingWriter(DeleteOutcome.Deleted);
         var controller = new ActsController();
 
         var result = await controller.DeleteAct(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
@@ -307,7 +294,7 @@ public class ActsControllerTests
     [Test]
     public async Task DeletingAMissingActIsAProblemWithFourOhFour()
     {
-        var writer = new RecordingActWriter { DeleteOutcome = DeleteOutcome.NotFound };
+        var writer = DeletingWriter(DeleteOutcome.NotFound);
         var controller = new ActsController();
 
         var result = await controller.DeleteAct(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
@@ -320,7 +307,7 @@ public class ActsControllerTests
     [Test]
     public async Task AnActDeleteOutcomeTheEndpointDoesNotKnowThrows()
     {
-        var writer = new RecordingActWriter { DeleteOutcome = (DeleteOutcome)99 };
+        var writer = DeletingWriter((DeleteOutcome)99);
         var controller = new ActsController();
 
         await Assert.ThatAsync(
@@ -334,24 +321,19 @@ public class ActsControllerTests
     {
         var caseId = Guid.CreateVersion7();
         var actId = Guid.CreateVersion7();
-        var writer = new RecordingExternalActNumberWriter { AddOutcome = ExternalActNumberOutcome.Added };
+        var writer = AddingNumberWriter(ExternalActNumberOutcome.Added);
         var controller = new ActsController();
         var request = Number();
 
         await controller.AddExternalActNumber(writer, caseId, actId, request, CancellationToken.None);
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(writer.AddCaseId, Is.EqualTo(caseId));
-            Assert.That(writer.AddActId, Is.EqualTo(actId));
-            Assert.That(writer.AddRequest, Is.SameAs(request), "the controller decides nothing about the number");
-        }
+        await writer.Received(1).AddExternalActNumber(caseId, actId, request, Arg.Any<CancellationToken>());
     }
 
     [Test]
     public async Task AddingANumberThatSucceedsAnswersWithNoContent()
     {
-        var writer = new RecordingExternalActNumberWriter { AddOutcome = ExternalActNumberOutcome.Added };
+        var writer = AddingNumberWriter(ExternalActNumberOutcome.Added);
         var controller = new ActsController();
 
         var result = await controller.AddExternalActNumber(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Number(), CancellationToken.None);
@@ -362,7 +344,7 @@ public class ActsControllerTests
     [Test]
     public async Task AddingANumberToAMissingActIsAProblemWithFourOhFour()
     {
-        var writer = new RecordingExternalActNumberWriter { AddOutcome = ExternalActNumberOutcome.ActNotFound };
+        var writer = AddingNumberWriter(ExternalActNumberOutcome.ActNotFound);
         var controller = new ActsController();
 
         var result = await controller.AddExternalActNumber(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Number(), CancellationToken.None);
@@ -375,7 +357,7 @@ public class ActsControllerTests
     [Test]
     public async Task ANumberTheActAlreadyCarriesIsAConflict()
     {
-        var writer = new RecordingExternalActNumberWriter { AddOutcome = ExternalActNumberOutcome.ValueTaken };
+        var writer = AddingNumberWriter(ExternalActNumberOutcome.ValueTaken);
         var controller = new ActsController();
 
         var result = await controller.AddExternalActNumber(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Number(), CancellationToken.None);
@@ -388,7 +370,7 @@ public class ActsControllerTests
     [Test]
     public async Task ANumberNamingAnUnknownContactIsAConflict()
     {
-        var writer = new RecordingExternalActNumberWriter { AddOutcome = ExternalActNumberOutcome.UnknownContact };
+        var writer = AddingNumberWriter(ExternalActNumberOutcome.UnknownContact);
         var controller = new ActsController();
 
         var result = await controller.AddExternalActNumber(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Number(), CancellationToken.None);
@@ -401,7 +383,7 @@ public class ActsControllerTests
     [Test]
     public async Task DeletingANumberAnswersWithNoContent()
     {
-        var writer = new RecordingExternalActNumberWriter { DeleteOutcome = DeleteOutcome.Deleted };
+        var writer = DeletingNumberWriter(DeleteOutcome.Deleted);
         var controller = new ActsController();
 
         var result = await controller.DeleteExternalActNumber(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
@@ -415,23 +397,18 @@ public class ActsControllerTests
         var caseId = Guid.CreateVersion7();
         var actId = Guid.CreateVersion7();
         var numberId = Guid.CreateVersion7();
-        var writer = new RecordingExternalActNumberWriter { DeleteOutcome = DeleteOutcome.Deleted };
+        var writer = DeletingNumberWriter(DeleteOutcome.Deleted);
         var controller = new ActsController();
 
         await controller.DeleteExternalActNumber(writer, caseId, actId, numberId, CancellationToken.None);
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(writer.DeleteCaseId, Is.EqualTo(caseId));
-            Assert.That(writer.DeleteActId, Is.EqualTo(actId));
-            Assert.That(writer.DeleteNumberId, Is.EqualTo(numberId));
-        }
+        await writer.Received(1).DeleteExternalActNumber(caseId, actId, numberId, Arg.Any<CancellationToken>());
     }
 
     [Test]
     public async Task DeletingAMissingNumberIsAProblemWithFourOhFour()
     {
-        var writer = new RecordingExternalActNumberWriter { DeleteOutcome = DeleteOutcome.NotFound };
+        var writer = DeletingNumberWriter(DeleteOutcome.NotFound);
         var controller = new ActsController();
 
         var result = await controller.DeleteExternalActNumber(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
@@ -442,7 +419,7 @@ public class ActsControllerTests
     [Test]
     public async Task ANumberDeleteOutcomeTheEndpointDoesNotKnowThrows()
     {
-        var writer = new RecordingExternalActNumberWriter { DeleteOutcome = (DeleteOutcome)99 };
+        var writer = DeletingNumberWriter((DeleteOutcome)99);
         var controller = new ActsController();
 
         await Assert.ThatAsync(
@@ -509,125 +486,68 @@ public class ActsControllerTests
         };
     }
 
-    private sealed class RecordingActReader : IActReader
+    private static IActReader ListingReader(IReadOnlyList<ActListItem> items)
     {
-        public Guid? CaseId { get; private set; }
+        var reader = Substitute.For<IActReader>();
+        reader.ListCaseActs(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(items);
+        reader.ListActs(Arg.Any<ActListRequest>(), Arg.Any<CancellationToken>())
+            .Returns(items);
 
-        public ActListRequest? ListRequest { get; private set; }
-
-        public Guid? DetailCaseId { get; private set; }
-
-        public Guid? DetailActId { get; private set; }
-
-        public IReadOnlyList<ActListItem> Items { get; init; } = [];
-
-        public ActDetail? DetailResult { get; init; }
-
-        public async Task<IReadOnlyList<ActListItem>> ListActs(ActListRequest request, CancellationToken token)
-        {
-            this.ListRequest = request;
-
-            return this.Items;
-        }
-
-        public async Task<IReadOnlyList<ActListItem>> ListCaseActs(Guid caseId, CancellationToken token)
-        {
-            this.CaseId = caseId;
-
-            return this.Items;
-        }
-
-        public async Task<ActDetail?> GetActDetail(Guid caseId, Guid actId, CancellationToken token)
-        {
-            this.DetailCaseId = caseId;
-            this.DetailActId = actId;
-
-            return this.DetailResult;
-        }
+        return reader;
     }
 
-    private sealed class RecordingActWriter : IActWriter
+    private static IActReader DetailReader(ActDetail? detail)
     {
-        public Guid? CaseId { get; private set; }
+        var reader = Substitute.For<IActReader>();
+        reader.GetActDetail(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(detail);
 
-        public CreateActRequest? Request { get; private set; }
-
-        public Guid? UpdateCaseId { get; private set; }
-
-        public Guid? UpdateActId { get; private set; }
-
-        public ActEditRequest? UpdateRequest { get; private set; }
-
-        public Guid? DeleteCaseId { get; private set; }
-
-        public Guid? DeleteActId { get; private set; }
-
-        public ActCreateResult Result { get; init; } = new() { Outcome = ActCreateOutcome.Created, Act = Item("Podání") };
-
-        public ActUpdateOutcome UpdateOutcome { get; init; }
-
-        public DeleteOutcome DeleteOutcome { get; init; }
-
-        public async Task<ActCreateResult> CreateAct(Guid caseId, CreateActRequest request, CancellationToken token)
-        {
-            this.CaseId = caseId;
-            this.Request = request;
-
-            return this.Result;
-        }
-
-        public async Task<ActUpdateOutcome> UpdateAct(Guid caseId, Guid actId, ActEditRequest request, CancellationToken token)
-        {
-            this.UpdateCaseId = caseId;
-            this.UpdateActId = actId;
-            this.UpdateRequest = request;
-
-            return this.UpdateOutcome;
-        }
-
-        public async Task<DeleteOutcome> DeleteAct(Guid caseId, Guid actId, CancellationToken token)
-        {
-            this.DeleteCaseId = caseId;
-            this.DeleteActId = actId;
-
-            return this.DeleteOutcome;
-        }
+        return reader;
     }
 
-    private sealed class RecordingExternalActNumberWriter : IExternalActNumberWriter
+    private static IActWriter CreatingWriter(ActCreateResult result)
     {
-        public Guid? AddCaseId { get; private set; }
+        var writer = Substitute.For<IActWriter>();
+        writer.CreateAct(Arg.Any<Guid>(), Arg.Any<CreateActRequest>(), Arg.Any<CancellationToken>())
+            .Returns(result);
 
-        public Guid? AddActId { get; private set; }
+        return writer;
+    }
 
-        public ExternalNumberRequest? AddRequest { get; private set; }
+    private static IActWriter EditingWriter(ActUpdateOutcome outcome)
+    {
+        var writer = Substitute.For<IActWriter>();
+        writer.UpdateAct(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<ActEditRequest>(), Arg.Any<CancellationToken>())
+            .Returns(outcome);
 
-        public ExternalActNumberOutcome AddOutcome { get; init; }
+        return writer;
+    }
 
-        public Guid? DeleteCaseId { get; private set; }
+    private static IActWriter DeletingWriter(DeleteOutcome outcome)
+    {
+        var writer = Substitute.For<IActWriter>();
+        writer.DeleteAct(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(outcome);
 
-        public Guid? DeleteActId { get; private set; }
+        return writer;
+    }
 
-        public Guid? DeleteNumberId { get; private set; }
+    private static IExternalActNumberWriter AddingNumberWriter(ExternalActNumberOutcome outcome)
+    {
+        var writer = Substitute.For<IExternalActNumberWriter>();
+        writer.AddExternalActNumber(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<ExternalNumberRequest>(), Arg.Any<CancellationToken>())
+            .Returns(outcome);
 
-        public DeleteOutcome DeleteOutcome { get; init; }
+        return writer;
+    }
 
-        public async Task<ExternalActNumberOutcome> AddExternalActNumber(Guid caseId, Guid actId, ExternalNumberRequest request, CancellationToken token)
-        {
-            this.AddCaseId = caseId;
-            this.AddActId = actId;
-            this.AddRequest = request;
+    private static IExternalActNumberWriter DeletingNumberWriter(DeleteOutcome outcome)
+    {
+        var writer = Substitute.For<IExternalActNumberWriter>();
+        writer.DeleteExternalActNumber(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(outcome);
 
-            return this.AddOutcome;
-        }
-
-        public async Task<DeleteOutcome> DeleteExternalActNumber(Guid caseId, Guid actId, Guid numberId, CancellationToken token)
-        {
-            this.DeleteCaseId = caseId;
-            this.DeleteActId = actId;
-            this.DeleteNumberId = numberId;
-
-            return this.DeleteOutcome;
-        }
+        return writer;
     }
 }
