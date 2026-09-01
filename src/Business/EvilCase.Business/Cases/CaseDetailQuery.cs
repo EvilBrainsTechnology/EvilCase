@@ -13,9 +13,9 @@ internal static class CaseDetailQuery
     /// <summary>
     /// The one case with its parent, or null where the tenant has no such case.
     /// </summary>
-    public static Task<CaseDetail?> DetailOf(this IQueryable<Case> cases, Guid caseId, CancellationToken token)
+    public static async Task<CaseDetail?> DetailOf(this IQueryable<Case> cases, Guid caseId, CancellationToken token)
     {
-        return cases
+        return await cases
             .WithId(caseId)
             .Select(static @case => new CaseDetail
             {

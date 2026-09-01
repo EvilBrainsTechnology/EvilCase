@@ -26,13 +26,14 @@ internal sealed class FakeAuthClient : IAuthClient
         throw new NotSupportedException();
     }
 
-    public Task<LoginResponse> Refresh(CancellationToken token)
+    public async Task<LoginResponse> Refresh(CancellationToken token)
     {
         this.Refreshes++;
 
-        return this.refreshFailure is { } failure
-            ? Task.FromException<LoginResponse>(failure)
-            : Task.FromResult(this.renewal!);
+        if (this.refreshFailure is { } failure)
+            throw failure;
+
+        return this.renewal!;
     }
 
     public Task Logout(CancellationToken token)

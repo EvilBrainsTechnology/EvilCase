@@ -33,15 +33,15 @@ internal sealed class FakeApplicationDbContext(DbContextOptions<ApplicationDbCon
     /// </summary>
     public Exception? FailNextSave { get; set; }
 
-    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         this.Saves++;
 
         if (this.FailNextSave is not { } failure)
-            return Task.FromResult(0);
+            return 0;
 
         this.FailNextSave = null;
 
-        return Task.FromException<int>(failure);
+        throw failure;
     }
 }

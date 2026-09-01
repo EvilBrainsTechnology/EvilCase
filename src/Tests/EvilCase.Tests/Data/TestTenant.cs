@@ -256,14 +256,14 @@ internal sealed class TestTenant : IAsyncDisposable
         return await this.Save(this.Context.ExternalActNumbers, number);
     }
 
-    public Task<FileAsset> AddCaseFile(Case @case, string fileName = "dokument.pdf")
+    public async Task<FileAsset> AddCaseFile(Case @case, string fileName = "dokument.pdf")
     {
-        return this.AddFile(@case.Id, actId: null, fileName);
+        return await this.AddFile(@case.Id, actId: null, fileName);
     }
 
-    public Task<FileAsset> AddActFile(Act act, string fileName = "dokument.pdf")
+    public async Task<FileAsset> AddActFile(Act act, string fileName = "dokument.pdf")
     {
-        return this.AddFile(caseId: null, act.Id, fileName);
+        return await this.AddFile(caseId: null, act.Id, fileName);
     }
 
     public async ValueTask DisposeAsync()
@@ -272,7 +272,7 @@ internal sealed class TestTenant : IAsyncDisposable
         this.entered.Dispose();
     }
 
-    private Task<FileAsset> AddFile(Guid? caseId, Guid? actId, string fileName)
+    private async Task<FileAsset> AddFile(Guid? caseId, Guid? actId, string fileName)
     {
         var fileAssetId = Guid.CreateVersion7();
 
@@ -290,7 +290,7 @@ internal sealed class TestTenant : IAsyncDisposable
             StoragePath = $"{this.tenantId}/{fileAssetId}",
         };
 
-        return this.Save(this.Context.FileAssets, file);
+        return await this.Save(this.Context.FileAssets, file);
     }
 
     private int NextSequence(string prefix)

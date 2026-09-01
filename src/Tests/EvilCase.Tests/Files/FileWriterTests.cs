@@ -239,20 +239,20 @@ public class FileWriterTests : TenantFixture
         return new FileUpload { FileName = fileName, MediaType = mediaType, Content = new MemoryStream(Encoding.UTF8.GetBytes(content)) };
     }
 
-    private Task<FileAsset> Reload(Guid fileAssetId)
+    private async Task<FileAsset> Reload(Guid fileAssetId)
     {
-        return this.Tenant.Context.FileAssets.SingleAsync(file => file.Id == fileAssetId);
+        return await this.Tenant.Context.FileAssets.SingleAsync(file => file.Id == fileAssetId);
     }
 
     private sealed class RecordingTenantBlobStore : IFileBlobStore
     {
         public Guid WrittenUnderTenant { get; private set; }
 
-        public Task<FileBlobInfo> WriteFileBlob(Guid tenantId, Guid fileAssetId, Stream content, CancellationToken token)
+        public async Task<FileBlobInfo> WriteFileBlob(Guid tenantId, Guid fileAssetId, Stream content, CancellationToken token)
         {
             this.WrittenUnderTenant = tenantId;
 
-            return Task.FromResult(new FileBlobInfo { StoragePath = $"{tenantId}/{fileAssetId}", ContentHash = new string('a', 64), SizeBytes = 1 });
+            return new FileBlobInfo { StoragePath = $"{tenantId}/{fileAssetId}", ContentHash = new string('a', 64), SizeBytes = 1 };
         }
 
         public Stream? ReadFileBlob(string storagePath)
@@ -260,9 +260,7 @@ public class FileWriterTests : TenantFixture
             return null;
         }
 
-        public Task DeleteFileBlob(string storagePath, CancellationToken token)
-        {
-            return Task.CompletedTask;
-        }
+        public async Task DeleteFileBlob(string storagePath, CancellationToken token)
+        { }
     }
 }

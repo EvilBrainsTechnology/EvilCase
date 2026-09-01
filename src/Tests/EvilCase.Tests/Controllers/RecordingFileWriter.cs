@@ -23,39 +23,39 @@ internal sealed class RecordingFileWriter : IFileWriter
 
     public DeleteOutcome DeleteOutcome { get; init; }
 
-    public Task<UploadFileResult> UploadCaseFile(Guid caseId, FileUpload upload, CancellationToken token)
+    public async Task<UploadFileResult> UploadCaseFile(Guid caseId, FileUpload upload, CancellationToken token)
     {
         this.UploadCalled = true;
         this.UploadCaseId = caseId;
         this.Upload = upload;
 
-        return Task.FromResult(this.UploadResult);
+        return this.UploadResult;
     }
 
-    public Task<UploadFileResult> UploadActFile(Guid caseId, Guid actId, FileUpload upload, CancellationToken token)
+    public async Task<UploadFileResult> UploadActFile(Guid caseId, Guid actId, FileUpload upload, CancellationToken token)
     {
         this.UploadCalled = true;
         this.UploadCaseId = caseId;
         this.UploadActId = actId;
         this.Upload = upload;
 
-        return Task.FromResult(this.UploadResult);
+        return this.UploadResult;
     }
 
-    public Task<DeleteOutcome> DeleteCaseFile(Guid caseId, Guid fileId, CancellationToken token)
+    public async Task<DeleteOutcome> DeleteCaseFile(Guid caseId, Guid fileId, CancellationToken token)
     {
         this.DeleteCaseId = caseId;
         this.DeleteFileId = fileId;
 
-        return Task.FromResult(this.DeleteOutcome);
+        return this.DeleteOutcome;
     }
 
-    public Task<DeleteOutcome> DeleteActFile(Guid caseId, Guid actId, Guid fileId, CancellationToken token)
+    public async Task<DeleteOutcome> DeleteActFile(Guid caseId, Guid actId, Guid fileId, CancellationToken token)
     {
         this.DeleteCaseId = caseId;
         this.DeleteActId = actId;
         this.DeleteFileId = fileId;
 
-        return Task.FromResult(this.DeleteOutcome);
+        return this.DeleteOutcome;
     }
 }

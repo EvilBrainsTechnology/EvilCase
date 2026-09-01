@@ -126,9 +126,9 @@ public class ActionParameterOrderAnalyzerTests
         Assert.That(diagnostics.Select(static x => x.Id), Is.EqualTo(["EB0008"]), message);
     }
 
-    private static Task<ImmutableArray<Diagnostic>> Analyze(string action)
+    private static async Task<ImmutableArray<Diagnostic>> Analyze(string action)
     {
-        return AnalyzeType(
+        return await AnalyzeType(
             $$"""
             [ApiController]
             [Route("api/items")]
@@ -139,9 +139,9 @@ public class ActionParameterOrderAnalyzerTests
             """);
     }
 
-    private static Task<ImmutableArray<Diagnostic>> AnalyzeType(string type)
+    private static async Task<ImmutableArray<Diagnostic>> AnalyzeType(string type)
     {
-        return AnalyzerTestHost.Analyze(
+        return await AnalyzerTestHost.Analyze(
             new ActionParameterOrderAnalyzer(),
             $$"""
             using System;

@@ -31,9 +31,9 @@ public class ContactsController : ControllerBase
     }
 
     [HttpGet("default")]
-    public Task<ContactListItem> GetDefaultContact([FromServices] IContactReader contacts, CancellationToken token)
+    public async Task<ContactListItem> GetDefaultContact([FromServices] IContactReader contacts, CancellationToken token)
     {
-        return contacts.GetDefaultContact(token);
+        return await contacts.GetDefaultContact(token);
     }
 
     [HttpGet("{contactId:guid}")]

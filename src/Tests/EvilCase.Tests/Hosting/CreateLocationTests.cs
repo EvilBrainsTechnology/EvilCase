@@ -87,9 +87,9 @@ public class CreateLocationTests
 
     private sealed class StubCaseWriter : ICaseWriter
     {
-        public Task<CaseCreateResult> CreateCase(CreateCaseRequest request, CancellationToken token)
+        public async Task<CaseCreateResult> CreateCase(CreateCaseRequest request, CancellationToken token)
         {
-            return Task.FromResult(new CaseCreateResult
+            return new CaseCreateResult
             {
                 Outcome = CaseCreateOutcome.Created,
                 Case = new CaseListItem
@@ -101,7 +101,7 @@ public class CreateLocationTests
                     Status = CaseStatus.Active,
                     Changed = DateTime.UtcNow,
                 },
-            });
+            };
         }
 
         public Task<CaseUpdateOutcome> UpdateCase(Guid caseId, CaseEditRequest request, CancellationToken token)
@@ -117,9 +117,9 @@ public class CreateLocationTests
 
     private sealed class StubContactWriter : IContactWriter
     {
-        public Task<ContactListItem> CreateContact(ContactEditRequest request, CancellationToken token)
+        public async Task<ContactListItem> CreateContact(ContactEditRequest request, CancellationToken token)
         {
-            return Task.FromResult(new ContactListItem { ContactId = FiledContactId, Kind = request.Kind, Name = request.Name });
+            return new ContactListItem { ContactId = FiledContactId, Kind = request.Kind, Name = request.Name };
         }
 
         public Task<ContactUpdateOutcome> UpdateContact(Guid contactId, ContactEditRequest request, CancellationToken token)

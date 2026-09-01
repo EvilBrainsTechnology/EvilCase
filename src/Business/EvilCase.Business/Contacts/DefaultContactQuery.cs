@@ -18,9 +18,9 @@ internal static class DefaultContactQuery
     /// <summary>
     /// The user's default contact. Every user has one (SDD-011), so this never comes back empty.
     /// </summary>
-    public static Task<ContactListItem> DefaultContactOf(this IQueryable<User> users, Guid userId, CancellationToken token)
+    public static async Task<ContactListItem> DefaultContactOf(this IQueryable<User> users, Guid userId, CancellationToken token)
     {
-        return users
+        return await users
             .WithId(userId)
             .Select(static user => new ContactListItem
             {

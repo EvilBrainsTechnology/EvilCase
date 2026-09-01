@@ -2,8 +2,13 @@
 
 public static class WhenAllExtensions
 {
-    public static Task WhenAll(this IEnumerable<Task> tasks)
+    public static async Task WhenAll(this IEnumerable<Task> tasks)
     {
-        return Task.WhenAll(tasks);
+        await Task.WhenAll(tasks);
+    }
+
+    public static async Task<T[]> WhenAll<T>(this IEnumerable<Task<T>> tasks)
+    {
+        return await Task.WhenAll(tasks);
     }
 }

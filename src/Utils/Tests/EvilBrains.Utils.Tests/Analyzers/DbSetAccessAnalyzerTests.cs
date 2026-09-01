@@ -149,9 +149,9 @@ public class DbSetAccessAnalyzerTests
         Assert.That(diagnostics, Is.Empty, "only a DbContext's Set<TEntity>() is in scope");
     }
 
-    private static Task<ImmutableArray<Diagnostic>> Analyze(string body)
+    private static async Task<ImmutableArray<Diagnostic>> Analyze(string body)
     {
-        return AnalyzerTestHost.Analyze(new DbSetAccessAnalyzer(), Fixture(body));
+        return await AnalyzerTestHost.Analyze(new DbSetAccessAnalyzer(), Fixture(body));
     }
 
     private static string Fixture(string body)

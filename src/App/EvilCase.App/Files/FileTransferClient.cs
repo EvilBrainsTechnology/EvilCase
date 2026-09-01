@@ -9,14 +9,14 @@ internal sealed class FileTransferClient(HttpClient httpClient) : IFileTransferC
 {
     private const string DefaultMediaType = "application/octet-stream";
 
-    public Task UploadCaseFile(Guid caseId, IBrowserFile file, CancellationToken token)
+    public async Task UploadCaseFile(Guid caseId, IBrowserFile file, CancellationToken token)
     {
-        return this.Upload(new Uri($"api/cases/{caseId}/files", UriKind.Relative), file, token);
+        await this.Upload(new Uri($"api/cases/{caseId}/files", UriKind.Relative), file, token);
     }
 
-    public Task UploadActFile(Guid caseId, Guid actId, IBrowserFile file, CancellationToken token)
+    public async Task UploadActFile(Guid caseId, Guid actId, IBrowserFile file, CancellationToken token)
     {
-        return this.Upload(new Uri($"api/cases/{caseId}/acts/{actId}/files", UriKind.Relative), file, token);
+        await this.Upload(new Uri($"api/cases/{caseId}/acts/{actId}/files", UriKind.Relative), file, token);
     }
 
     private async Task Upload(Uri route, IBrowserFile file, CancellationToken token)

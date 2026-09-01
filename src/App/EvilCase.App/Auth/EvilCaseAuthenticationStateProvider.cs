@@ -30,9 +30,10 @@ internal sealed class EvilCaseAuthenticationStateProvider(
 
     private bool restored;
 
-    public override Task<AuthenticationState> GetAuthenticationStateAsync()
+    public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
-        return this.state ??= this.Restore();
+        this.state ??= this.Restore();
+        return await this.state;
     }
 
     public void Dispose()

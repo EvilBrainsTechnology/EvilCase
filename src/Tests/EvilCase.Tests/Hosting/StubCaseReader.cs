@@ -12,9 +12,9 @@ internal sealed class StubCaseReader : ICaseReader
 {
     public const string Title = "Přestupek — překročení rychlosti";
 
-    public Task<IReadOnlyList<CaseListItem>> ListCases(CaseListRequest request, CancellationToken token)
+    public async Task<IReadOnlyList<CaseListItem>> ListCases(CaseListRequest request, CancellationToken token)
     {
-        return Task.FromResult<IReadOnlyList<CaseListItem>>(
+        return
         [
             new CaseListItem
             {
@@ -25,16 +25,16 @@ internal sealed class StubCaseReader : ICaseReader
                 Status = CaseStatus.Active,
                 Changed = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
             },
-        ]);
+        ];
     }
 
-    public Task<CaseDetail?> GetCaseDetail(Guid caseId, CancellationToken token)
+    public async Task<CaseDetail?> GetCaseDetail(Guid caseId, CancellationToken token)
     {
-        return Task.FromResult<CaseDetail?>(null);
+        return null;
     }
 
-    public Task<CaseStatusCounts> CountCasesByStatus(CancellationToken token)
+    public async Task<CaseStatusCounts> CountCasesByStatus(CancellationToken token)
     {
-        return Task.FromResult(new CaseStatusCounts { Active = 1, WaitingOnAuthority = 0, Closed = 0 });
+        return new CaseStatusCounts { Active = 1, WaitingOnAuthority = 0, Closed = 0 };
     }
 }

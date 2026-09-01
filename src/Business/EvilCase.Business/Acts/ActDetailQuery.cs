@@ -14,9 +14,9 @@ internal static class ActDetailQuery
     /// <summary>
     /// The one act of the case with both its contacts, or null where the tenant has no such act.
     /// </summary>
-    public static Task<ActDetail?> DetailOf(this IQueryable<Act> acts, Guid caseId, Guid actId, CancellationToken token)
+    public static async Task<ActDetail?> DetailOf(this IQueryable<Act> acts, Guid caseId, Guid actId, CancellationToken token)
     {
-        return acts
+        return await acts
             .OfCase(caseId)
             .WithId(actId)
             .Select(static act => new ActDetail

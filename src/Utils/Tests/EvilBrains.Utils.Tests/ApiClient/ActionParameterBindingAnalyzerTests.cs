@@ -55,9 +55,9 @@ public class ActionParameterBindingAnalyzerTests
         Assert.That(diagnostics.Select(static x => x.Id), Is.EqualTo(expected));
     }
 
-    private static Task<ImmutableArray<Diagnostic>> Analyze(string action)
+    private static async Task<ImmutableArray<Diagnostic>> Analyze(string action)
     {
-        return AnalyzerTestHost.Analyze(new ActionParameterBindingAnalyzer(), Fixture(action));
+        return await AnalyzerTestHost.Analyze(new ActionParameterBindingAnalyzer(), Fixture(action));
     }
 
     private static string Fixture(string action)

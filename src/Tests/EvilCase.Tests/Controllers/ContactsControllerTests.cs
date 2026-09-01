@@ -159,7 +159,7 @@ public class ContactsControllerTests
         var controller = new ContactsController();
 
         await Assert.ThatAsync(
-            () => controller.EditContact(writer, Guid.CreateVersion7(), Edit(), CancellationToken.None),
+            async () => await controller.EditContact(writer, Guid.CreateVersion7(), Edit(), CancellationToken.None),
             Throws.InstanceOf<UnreachableException>(),
             "an outcome the endpoint does not name never turns into a status");
     }
@@ -239,23 +239,23 @@ public class ContactsControllerTests
 
         public ContactListItem DefaultContact { get; init; } = Item("Výchozí kontakt");
 
-        public Task<IReadOnlyList<ContactListItem>> ListContacts(ContactListRequest request, CancellationToken token)
+        public async Task<IReadOnlyList<ContactListItem>> ListContacts(ContactListRequest request, CancellationToken token)
         {
             this.Request = request;
 
-            return Task.FromResult(this.Items);
+            return this.Items;
         }
 
-        public Task<ContactDetail?> GetContactDetail(Guid contactId, CancellationToken token)
+        public async Task<ContactDetail?> GetContactDetail(Guid contactId, CancellationToken token)
         {
             this.DetailId = contactId;
 
-            return Task.FromResult(this.DetailResult);
+            return this.DetailResult;
         }
 
-        public Task<ContactListItem> GetDefaultContact(CancellationToken token)
+        public async Task<ContactListItem> GetDefaultContact(CancellationToken token)
         {
-            return Task.FromResult(this.DefaultContact);
+            return this.DefaultContact;
         }
     }
 
@@ -273,24 +273,24 @@ public class ContactsControllerTests
 
         public ContactDeleteOutcome DeleteOutcome { get; init; }
 
-        public Task<ContactListItem> CreateContact(ContactEditRequest request, CancellationToken token)
+        public async Task<ContactListItem> CreateContact(ContactEditRequest request, CancellationToken token)
         {
             this.CreateRequest = request;
 
-            return Task.FromResult(this.Created);
+            return this.Created;
         }
 
-        public Task<ContactUpdateOutcome> UpdateContact(Guid contactId, ContactEditRequest request, CancellationToken token)
+        public async Task<ContactUpdateOutcome> UpdateContact(Guid contactId, ContactEditRequest request, CancellationToken token)
         {
             this.UpdateId = contactId;
             this.UpdateRequest = request;
 
-            return Task.FromResult(this.UpdateOutcome);
+            return this.UpdateOutcome;
         }
 
-        public Task<ContactDeleteOutcome> DeleteContact(Guid contactId, CancellationToken token)
+        public async Task<ContactDeleteOutcome> DeleteContact(Guid contactId, CancellationToken token)
         {
-            return Task.FromResult(this.DeleteOutcome);
+            return this.DeleteOutcome;
         }
     }
 }

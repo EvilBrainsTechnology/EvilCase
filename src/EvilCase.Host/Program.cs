@@ -106,13 +106,11 @@ builder.Services.AddRateLimiter(
                 return RateLimitPartition.GetNoLimiter("unlimited");
             });
 
-        options.OnRejected = static (context, _) =>
+        options.OnRejected = static async (context, _) =>
         {
             // Rounded up: truncation would answer a sub-second remainder with "Retry-After: 0".
             if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
                 context.HttpContext.Response.Headers.RetryAfter = ((int)Math.Ceiling(retryAfter.TotalSeconds)).ToString(CultureInfo.InvariantCulture);
-
-            return ValueTask.CompletedTask;
         };
     });
 

@@ -11,10 +11,10 @@ internal static class EntityQuery
         return entities.Where(entity => entity.Id == entityId);
     }
 
-    public static Task<bool> Exists<TEntity>(this IQueryable<TEntity> entities, Guid entityId, CancellationToken token)
+    public static async Task<bool> Exists<TEntity>(this IQueryable<TEntity> entities, Guid entityId, CancellationToken token)
         where TEntity : IEntity
     {
-        return entities.WithId(entityId).AnyAsync(token);
+        return await entities.WithId(entityId).AnyAsync(token);
     }
 
     public static IQueryable<TEntity> TakeAtMost<TEntity>(this IQueryable<TEntity> entities, int? count)

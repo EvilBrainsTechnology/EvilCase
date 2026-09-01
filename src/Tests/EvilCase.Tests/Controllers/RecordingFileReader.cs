@@ -13,23 +13,23 @@ internal sealed class RecordingFileReader : IFileReader
 
     public FileDownload? Download { get; init; }
 
-    public Task<IReadOnlyList<FileListItem>?> ListCaseFiles(Guid caseId, CancellationToken token)
+    public async Task<IReadOnlyList<FileListItem>?> ListCaseFiles(Guid caseId, CancellationToken token)
     {
         this.ListCaseId = caseId;
 
-        return Task.FromResult(this.ListResult);
+        return this.ListResult;
     }
 
-    public Task<IReadOnlyList<FileListItem>?> ListActFiles(Guid caseId, Guid actId, CancellationToken token)
+    public async Task<IReadOnlyList<FileListItem>?> ListActFiles(Guid caseId, Guid actId, CancellationToken token)
     {
         this.ListCaseId = caseId;
         this.ListActId = actId;
 
-        return Task.FromResult(this.ListResult);
+        return this.ListResult;
     }
 
-    public Task<FileDownload?> OpenFileContent(Guid fileId, CancellationToken token)
+    public async Task<FileDownload?> OpenFileContent(Guid fileId, CancellationToken token)
     {
-        return Task.FromResult(this.Download);
+        return this.Download;
     }
 }

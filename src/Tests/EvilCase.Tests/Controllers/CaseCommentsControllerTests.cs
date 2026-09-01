@@ -71,7 +71,7 @@ public class CaseCommentsControllerTests
         var controller = new CaseCommentsController();
 
         await Assert.ThatAsync(
-            () => controller.AddCaseComment(writer, Guid.CreateVersion7(), new CommentEditRequest { Body = "Poznámka" }, CancellationToken.None),
+            async () => await controller.AddCaseComment(writer, Guid.CreateVersion7(), new CommentEditRequest { Body = "Poznámka" }, CancellationToken.None),
             Throws.InstanceOf<UnreachableException>(),
             "an outcome the endpoint does not name never turns into a status");
     }
