@@ -8,7 +8,8 @@
     @if (Items.Count == 0)
     {
         <div class="empty">
-            <p class="empty-title">Kontakt nefiguruje v žádném spisu.</p>
+            <p class="empty-title">Žádné spisy</p>
+            <p class="empty-subtitle text-secondary">Kontakt nefiguruje v žádném spisu.</p>
         </div>
     }
     else
@@ -28,8 +29,8 @@
                     {
                         <tr>
                             <td class="text-nowrap">@DateDisplay.Text(item.CaseDate)</td>
-                            <td class="text-nowrap"><a href="/cases/@item.CaseId">@item.CaseNumber</a></td>
-                            <td>@item.CaseTitle</td>
+                            <td class="text-nowrap">@item.CaseNumber</td>
+                            <td><a href="/cases/@item.CaseId">@item.CaseTitle</a></td>
                             <td>@item.ExternalNumber</td>
                         </tr>
                     }
@@ -42,8 +43,8 @@
             {
                 <div class="card mb-2">
                     <div class="card-body">
-                        <div class="font-weight-medium">@item.CaseTitle</div>
-                        <div><a href="/cases/@item.CaseId">@item.CaseNumber</a></div>
+                        <div class="font-weight-medium"><a href="/cases/@item.CaseId">@item.CaseTitle</a></div>
+                        <div class="text-secondary">@item.CaseNumber</div>
                         <div class="text-secondary">Značka: @item.ExternalNumber</div>
                         <div class="text-secondary">@DateDisplay.Text(item.CaseDate)</div>
                     </div>

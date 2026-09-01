@@ -40,7 +40,7 @@
                             @if (this.Editable)
                             {
                                 <td class="text-end">
-                                    <button type="button" class="btn btn-sm" @onclick="() => this.ConfirmDelete(item)">Smazat</button>
+                                    <button type="button" class="btn btn-sm btn-danger" @onclick="() => this.ConfirmDelete(item)">Smazat</button>
                                 </td>
                             }
                         </tr>
@@ -57,7 +57,7 @@
                     <div><a href="/contacts/@item.AssignedByContactId">@item.AssignedByContactName</a></div>
                     @if (this.Editable)
                     {
-                        <button type="button" class="btn btn-sm" @onclick="() => this.ConfirmDelete(item)">Smazat</button>
+                        <button type="button" class="btn btn-sm btn-danger" @onclick="() => this.ConfirmDelete(item)">Smazat</button>
                     }
                 </div>
             }
