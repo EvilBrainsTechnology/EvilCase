@@ -30,7 +30,7 @@ public class CaseCommentsControllerTests
 
         var response = await controller.ListCaseComments(reader, Guid.CreateVersion7(), CancellationToken.None);
 
-        Assert.That(response.Items.Select(item => item.Body), Is.EqualTo(["První", "Druhá"]));
+        Assert.That(response.Items.Select(static item => item.Body), Is.EqualTo(["První", "Druhá"]));
     }
 
     [Test]

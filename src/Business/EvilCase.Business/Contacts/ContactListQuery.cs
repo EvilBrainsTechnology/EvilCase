@@ -33,8 +33,8 @@ internal static class ContactListQuery
     public static IQueryable<Contact> InListOrder(this IQueryable<Contact> contacts)
     {
         return contacts
-            .OrderBy(contact => contact.Name)
-            .ThenBy(contact => contact.Id);
+            .OrderBy(static contact => contact.Name)
+            .ThenBy(static contact => contact.Id);
     }
 
     /// <summary>
@@ -42,7 +42,7 @@ internal static class ContactListQuery
     /// </summary>
     public static IQueryable<ContactListItem> AsListItems(this IQueryable<Contact> contacts)
     {
-        return contacts.Select(contact => new ContactListItem
+        return contacts.Select(static contact => new ContactListItem
         {
             ContactId = contact.Id,
             Kind = contact.Kind,

@@ -123,7 +123,7 @@ public class ActionParameterOrderAnalyzerTests
 
     private static void AssertIds(in ImmutableArray<Diagnostic> diagnostics, string message)
     {
-        Assert.That(diagnostics.Select(x => x.Id), Is.EqualTo(["EB0008"]), message);
+        Assert.That(diagnostics.Select(static x => x.Id), Is.EqualTo(["EB0008"]), message);
     }
 
     private static Task<ImmutableArray<Diagnostic>> Analyze(string action)

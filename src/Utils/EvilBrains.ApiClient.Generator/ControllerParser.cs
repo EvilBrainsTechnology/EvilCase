@@ -151,7 +151,7 @@ internal static class ControllerParser
             parameters.Add(model);
         }
 
-        if (parameters.Where(x => x.Kind == ParameterKind.Body).Skip(1).Any() || parameters.Where(x => x.Kind == ParameterKind.Token).Skip(1).Any())
+        if (parameters.Where(static x => x.Kind == ParameterKind.Body).Skip(1).Any() || parameters.Where(static x => x.Kind == ParameterKind.Token).Skip(1).Any())
         {
             diagnostics.Add(ApiModelParser.Diagnostic(Diagnostics.DuplicateSpecialParameter, method.Identifier, symbol.Name));
             valid = false;
@@ -308,7 +308,7 @@ internal static class ControllerParser
     private static bool ValidatePlaceholders(MethodDeclarationSyntax method, string route, in ImmutableArray<ParameterModel> parameters, ImmutableArray<DiagnosticModel>.Builder diagnostics)
     {
         var placeholders = RouteTemplate.GetPlaceholders(route);
-        var routeParameters = parameters.Where(x => x.Kind == ParameterKind.Route).ToList();
+        var routeParameters = parameters.Where(static x => x.Kind == ParameterKind.Route).ToList();
 
         foreach (var placeholder in placeholders)
         {
@@ -337,7 +337,7 @@ internal static class ControllerParser
     {
         var result = new List<(AttributeSyntax, string)>();
 
-        foreach (var attribute in method.AttributeLists.SelectMany(x => x.Attributes))
+        foreach (var attribute in method.AttributeLists.SelectMany(static x => x.Attributes))
         {
             if (HttpMethodAttributes.TryGetValue(AttributeFacts.GetName(attribute), out var httpMethod))
                 result.Add((attribute, httpMethod));
@@ -350,7 +350,7 @@ internal static class ControllerParser
     {
         var result = new List<(AttributeSyntax, string)>();
 
-        foreach (var attribute in parameter.AttributeLists.SelectMany(x => x.Attributes))
+        foreach (var attribute in parameter.AttributeLists.SelectMany(static x => x.Attributes))
         {
             var name = AttributeFacts.GetName(attribute);
             if (BindingAttributeNames.Contains(name))

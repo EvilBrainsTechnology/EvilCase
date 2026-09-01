@@ -11,7 +11,7 @@ internal sealed class CaseNumberIssuer(IDbSession dbSession) : ICaseNumberIssuer
         var highest = await dbSession.Current.Cases
             .WithNumberPrefix(CaseNumberFormat.Prefix(date))
             .OrderByNumberDescending()
-            .Select(@case => @case.CaseNumber)
+            .Select(static @case => @case.CaseNumber)
             .FirstOrDefaultAsync(token);
 
         return CaseNumberFormat.Next(date, highest);

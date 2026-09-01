@@ -76,7 +76,7 @@ public class ContactsControllerTests
 
         var response = await controller.ListContacts(reader, new ContactListRequest(), CancellationToken.None);
 
-        Assert.That(response.Items.Select(item => item.Name), Is.EqualTo(["Krajský soud ve Vzorově", "Česká advokátní komora"]));
+        Assert.That(response.Items.Select(static item => item.Name), Is.EqualTo(["Krajský soud ve Vzorově", "Česká advokátní komora"]));
     }
 
     [Test]

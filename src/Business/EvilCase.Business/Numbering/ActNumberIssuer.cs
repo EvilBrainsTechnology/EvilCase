@@ -12,7 +12,7 @@ internal sealed class ActNumberIssuer(IDbSession dbSession) : IActNumberIssuer
         var highest = await dbSession.Current.Acts
             .OfCaseWithNumberPrefix(@case.Id, ActNumberFormat.Prefix(@case.CaseNumber, date))
             .OrderByNumberDescending()
-            .Select(act => act.ActNumber)
+            .Select(static act => act.ActNumber)
             .FirstOrDefaultAsync(token);
 
         return ActNumberFormat.Next(@case.CaseNumber, date, highest);

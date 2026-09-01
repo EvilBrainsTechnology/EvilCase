@@ -76,7 +76,7 @@ public class ActNumberQueryTests : TenantFixture
         var numbers = await this.Tenant.Context.Acts
             .OfCaseWithNumberPrefix(this.ownCase.Id, ActNumberFormat.Prefix(this.ownCase.CaseNumber, ActDay))
             .OrderByNumberDescending()
-            .Select(act => act.ActNumber)
+            .Select(static act => act.ActNumber)
             .ToListAsync();
 
         string[] expected =
@@ -121,7 +121,7 @@ public class ActNumberQueryTests : TenantFixture
         using (Assert.EnterMultipleScope())
         {
             Assert.That(byFirst, Is.Empty, "an act does not hold its own number against itself");
-            Assert.That(bySecond.Select(act => act.Id), Is.EqualTo([second.Id]));
+            Assert.That(bySecond.Select(static act => act.Id), Is.EqualTo([second.Id]));
         }
     }
 
@@ -129,7 +129,7 @@ public class ActNumberQueryTests : TenantFixture
     {
         return await this.Tenant.Context.Acts
             .OfCaseWithNumberPrefix(@case.Id, prefix)
-            .Select(act => act.ActNumber)
+            .Select(static act => act.ActNumber)
             .ToListAsync();
     }
 }

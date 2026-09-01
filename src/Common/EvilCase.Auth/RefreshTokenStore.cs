@@ -23,11 +23,11 @@ internal sealed class RefreshTokenStore(IDbSession dbSession) : IRefreshTokenSto
     {
         return await dbSession.Current.RefreshTokens
             .Where(token => token.Id == refreshTokenId)
-            .Where(token => token.RevokedAt == null)
+            .Where(static token => token.RevokedAt == null)
             .ExecuteUpdateAsync(
                 setters => setters
-                    .SetProperty(token => token.RevokedAt, now)
-                    .SetProperty(token => token.LastUsed, now),
+                    .SetProperty(static token => token.RevokedAt, now)
+                    .SetProperty(static token => token.LastUsed, now),
                 token) > 0;
     }
 
@@ -35,9 +35,9 @@ internal sealed class RefreshTokenStore(IDbSession dbSession) : IRefreshTokenSto
     {
         await dbSession.Current.RefreshTokens
             .Where(token => token.AuthSessionId == authSessionId)
-            .Where(token => token.RevokedAt == null)
+            .Where(static token => token.RevokedAt == null)
             .ExecuteUpdateAsync(
-                setters => setters.SetProperty(token => token.RevokedAt, now),
+                setters => setters.SetProperty(static token => token.RevokedAt, now),
                 token);
     }
 
@@ -45,9 +45,9 @@ internal sealed class RefreshTokenStore(IDbSession dbSession) : IRefreshTokenSto
     {
         await dbSession.Current.RefreshTokens
             .Where(token => token.UserId == userId)
-            .Where(token => token.RevokedAt == null)
+            .Where(static token => token.RevokedAt == null)
             .ExecuteUpdateAsync(
-                setters => setters.SetProperty(token => token.RevokedAt, now),
+                setters => setters.SetProperty(static token => token.RevokedAt, now),
                 token);
     }
 
@@ -57,10 +57,10 @@ internal sealed class RefreshTokenStore(IDbSession dbSession) : IRefreshTokenSto
     {
         return await dbSession.Current.RefreshTokens
             .Where(token => token.UserId == userId)
-            .Where(token => token.RevokedAt == null)
+            .Where(static token => token.RevokedAt == null)
             .Where(token => token.Expires > now)
             .Where(token => token.SessionExpires > now)
-            .OrderByDescending(token => token.Created)
+            .OrderByDescending(static token => token.Created)
             .ToListAsync(token);
     }
 
@@ -68,8 +68,8 @@ internal sealed class RefreshTokenStore(IDbSession dbSession) : IRefreshTokenSto
     {
         return await dbSession.Current.RefreshTokens
             .Where(token => token.UserId == userId)
-            .GroupBy(token => token.AuthSessionId)
-            .Select(chain => new { AuthSessionId = chain.Key, Started = chain.Min(token => token.Created) })
-            .ToDictionaryAsync(chain => chain.AuthSessionId, chain => chain.Started, token);
+            .GroupBy(static token => token.AuthSessionId)
+            .Select(static chain => new { AuthSessionId = chain.Key, Started = chain.Min(static token => token.Created) })
+            .ToDictionaryAsync(static chain => chain.AuthSessionId, static chain => chain.Started, token);
     }
 }

@@ -15,9 +15,9 @@ internal static class ContactOccurrences
     {
         return issuedBy
             .Concat(addressedTo)
-            .OrderByDescending(occurrence => occurrence.ActDate)
-            .ThenByDescending(occurrence => occurrence.ActNumber.Length)
-            .ThenByDescending(occurrence => occurrence.ActNumber, StringComparer.Ordinal)
+            .OrderByDescending(static occurrence => occurrence.ActDate)
+            .ThenByDescending(static occurrence => occurrence.ActNumber.Length)
+            .ThenByDescending(static occurrence => occurrence.ActNumber, StringComparer.Ordinal)
             .AsReadOnlyList();
     }
 }

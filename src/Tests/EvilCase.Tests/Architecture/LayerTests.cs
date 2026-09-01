@@ -52,8 +52,8 @@ public class LayerTests
     public void TheDomainDependsOnNothingOfOurs()
     {
         var ours = Domain.GetReferencedAssemblies()
-            .Where(reference => reference.Name?.StartsWith("EvilBrains.", StringComparison.Ordinal) == true)
-            .Select(reference => reference.Name)
+            .Where(static reference => reference.Name?.StartsWith("EvilBrains.", StringComparison.Ordinal) == true)
+            .Select(static reference => reference.Name)
             .ToList();
 
         Assert.That(ours, Is.Empty, "the domain is the shared kernel and references nothing");

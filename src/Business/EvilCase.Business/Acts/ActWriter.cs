@@ -118,13 +118,13 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
 
         var rows = await acts.ExecuteUpdateAsync(
             setters => setters
-                .SetProperty(act => act.ActNumber, edit.ActNumber)
-                .SetProperty(act => act.Direction, edit.Direction)
-                .SetProperty(act => act.Date, edit.Date)
-                .SetProperty(act => act.Title, edit.Title)
-                .SetProperty(act => act.Description, edit.Description)
-                .SetProperty(act => act.IssuedByContactId, edit.IssuedByContactId)
-                .SetProperty(act => act.AddressedToContactId, edit.AddressedToContactId),
+                .SetProperty(static act => act.ActNumber, edit.ActNumber)
+                .SetProperty(static act => act.Direction, edit.Direction)
+                .SetProperty(static act => act.Date, edit.Date)
+                .SetProperty(static act => act.Title, edit.Title)
+                .SetProperty(static act => act.Description, edit.Description)
+                .SetProperty(static act => act.IssuedByContactId, edit.IssuedByContactId)
+                .SetProperty(static act => act.AddressedToContactId, edit.AddressedToContactId),
             token);
 
         if (rows == 0)
@@ -142,7 +142,7 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
         // Read before the delete: the rows are gone once it runs.
         var storagePaths = await context.FileAssets
             .Where(file => file.ActId == actId)
-            .Select(file => file.StoragePath)
+            .Select(static file => file.StoragePath)
             .ToListAsync(token);
 
         // The comments, external numbers and files go with the row: the database's foreign keys carry

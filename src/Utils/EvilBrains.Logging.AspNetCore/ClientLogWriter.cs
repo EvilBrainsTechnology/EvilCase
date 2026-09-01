@@ -118,7 +118,7 @@ internal sealed class ClientLogWriter : IClientLogWriter
 
         var text = ClientLogText.Truncate(value, maxLength);
 
-        return text.Any(char.IsControl) ? string.Concat(text.Where(x => !char.IsControl(x))) : text;
+        return text.Any(char.IsControl) ? string.Concat(text.Where(static x => !char.IsControl(x))) : text;
     }
 
     private static LogEventLevel ToLogEventLevel(ClientLogLevel level)

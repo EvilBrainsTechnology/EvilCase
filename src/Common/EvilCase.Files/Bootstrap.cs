@@ -8,7 +8,7 @@ public static class Bootstrap
     {
         services
             .AddOptions<FileSettings>()
-            .BindConfiguration("EvilBrains:EvilCase:Files", options => options.ErrorOnUnknownConfiguration = true)
+            .BindConfiguration("EvilBrains:EvilCase:Files", static options => options.ErrorOnUnknownConfiguration = true)
             .ValidateDataAnnotations()
             .ValidateOnStart();
 

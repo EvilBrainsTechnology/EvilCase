@@ -26,8 +26,8 @@ internal static class CaseNumberQuery
     public static IQueryable<Case> OrderByNumberDescending(this IQueryable<Case> cases)
     {
         return cases
-            .OrderByDescending(@case => @case.CaseNumber.Length)
-            .ThenByDescending(@case => @case.CaseNumber);
+            .OrderByDescending(static @case => @case.CaseNumber.Length)
+            .ThenByDescending(static @case => @case.CaseNumber);
     }
 
     /// <summary>

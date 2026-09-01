@@ -33,14 +33,14 @@ public class ActModelTests : ModelFixture
 
         var date = act.FindProperty(nameof(Act.Date));
         var others = act.GetProperties()
-            .Where(property => (Nullable.GetUnderlyingType(property.ClrType) ?? property.ClrType) == typeof(DateOnly))
-            .Where(property => !string.Equals(property.Name, nameof(Act.Date), StringComparison.Ordinal));
+            .Where(static property => (Nullable.GetUnderlyingType(property.ClrType) ?? property.ClrType) == typeof(DateOnly))
+            .Where(static property => !string.Equals(property.Name, nameof(Act.Date), StringComparison.Ordinal));
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(date?.ClrType, Is.EqualTo(typeof(DateOnly)), "the act date is a calendar date, and the hour never enters the period arithmetic it starts");
             Assert.That(typeof(Act).GetProperty(nameof(Act.Date))?.GetCustomAttribute<RequiredMemberAttribute>(), Is.Not.Null, "an act cannot be constructed without its date");
-            Assert.That(others.Select(property => property.Name), Is.Empty, "the act date is the only date an act carries");
+            Assert.That(others.Select(static property => property.Name), Is.Empty, "the act date is the only date an act carries");
             Assert.That(act.FindProperty("Ordinal"), Is.Null, "an act is ordered by its date alone, so it carries no ordering number");
         }
     }
@@ -61,7 +61,7 @@ public class ActModelTests : ModelFixture
 
         Assert.That(act, Is.Not.Null);
 
-        var byCase = act.GetIndexes().SingleOrDefault(index => index.Properties.Select(property => property.Name).SequenceEqual([nameof(Act.CaseId)], StringComparer.Ordinal));
+        var byCase = act.GetIndexes().SingleOrDefault(static index => index.Properties.Select(static property => property.Name).SequenceEqual([nameof(Act.CaseId)], StringComparer.Ordinal));
 
         using (Assert.EnterMultipleScope())
         {
@@ -77,13 +77,13 @@ public class ActModelTests : ModelFixture
 
         Assert.That(act, Is.Not.Null);
 
-        var toContacts = act.GetForeignKeys().Where(key => key.PrincipalEntityType.ClrType == typeof(Contact)).ToList();
-        var toCase = act.GetForeignKeys().SingleOrDefault(key => key.PrincipalEntityType.ClrType == typeof(Case));
+        var toContacts = act.GetForeignKeys().Where(static key => key.PrincipalEntityType.ClrType == typeof(Contact)).ToList();
+        var toCase = act.GetForeignKeys().SingleOrDefault(static key => key.PrincipalEntityType.ClrType == typeof(Case));
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(toContacts, Has.Count.EqualTo(2), "an act references its sender and its recipient");
-            Assert.That(toContacts.TrueForAll(key => key.DeleteBehavior == DeleteBehavior.Restrict), Is.True, "a contact outlives any one act naming it");
+            Assert.That(toContacts.TrueForAll(static key => key.DeleteBehavior == DeleteBehavior.Restrict), Is.True, "a contact outlives any one act naming it");
             Assert.That(toCase?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Cascade), "an act has no meaning without its case");
         }
     }
@@ -92,9 +92,9 @@ public class ActModelTests : ModelFixture
     public void TheActsOwnNumberIsUniqueWithinTheTenant()
     {
         var act = Model.FindEntityType(typeof(Act));
-        var unique = act?.GetIndexes().SingleOrDefault(index => index.IsUnique);
+        var unique = act?.GetIndexes().SingleOrDefault(static index => index.IsUnique);
         string[] expected = [nameof(Act.TenantId), nameof(Act.ActNumber)];
 
-        Assert.That(unique?.Properties.Select(property => property.Name), Is.EqualTo(expected), "a generated series must not repeat within one tenant");
+        Assert.That(unique?.Properties.Select(static property => property.Name), Is.EqualTo(expected), "a generated series must not repeat within one tenant");
     }
 }

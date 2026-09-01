@@ -12,9 +12,9 @@ public class ContractIdentifierTests
     {
         var offenders = typeof(Api.Contract.Cases.CaseListItem).Assembly
             .GetExportedTypes()
-            .SelectMany(type => type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
-            .Where(property => string.Equals(property.Name, "Id", StringComparison.Ordinal))
-            .Select(property => $"{property.DeclaringType!.Name}.{property.Name}")
+            .SelectMany(static type => type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            .Where(static property => string.Equals(property.Name, "Id", StringComparison.Ordinal))
+            .Select(static property => $"{property.DeclaringType!.Name}.{property.Name}")
             .ToList();
 
         Assert.That(offenders, Is.Empty, "an identifier value on the contract names its entity, never a bare Id");

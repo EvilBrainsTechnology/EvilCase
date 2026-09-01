@@ -28,8 +28,8 @@ internal static class ActNumberQuery
     public static IQueryable<Act> OrderByNumberDescending(this IQueryable<Act> acts)
     {
         return acts
-            .OrderByDescending(act => act.ActNumber.Length)
-            .ThenByDescending(act => act.ActNumber);
+            .OrderByDescending(static act => act.ActNumber.Length)
+            .ThenByDescending(static act => act.ActNumber);
     }
 
     /// <summary>

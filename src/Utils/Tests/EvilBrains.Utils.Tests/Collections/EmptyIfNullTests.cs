@@ -60,7 +60,7 @@ public class EmptyIfNullTests
 
             Assert.That(enumerable.EmptyIfNull(), Is.SameAs(enumerable));
 
-            Assert.DoesNotThrow(() => FailAfter(0).EmptyIfNull());
+            Assert.DoesNotThrow(static () => FailAfter(0).EmptyIfNull());
         }
     }
 

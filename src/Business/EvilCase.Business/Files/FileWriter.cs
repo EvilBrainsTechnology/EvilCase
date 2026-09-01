@@ -64,7 +64,7 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
     {
         // Read before the delete: the row is gone once ExecuteDeleteAsync runs.
         var storagePath = await files
-            .Select(file => file.StoragePath)
+            .Select(static file => file.StoragePath)
             .SingleOrDefaultAsync(token);
 
         if (storagePath is null)

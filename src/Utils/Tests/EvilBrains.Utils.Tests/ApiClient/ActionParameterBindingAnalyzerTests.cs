@@ -52,7 +52,7 @@ public class ActionParameterBindingAnalyzerTests
 
     private static void AssertIds(in ImmutableArray<Diagnostic> diagnostics, params string[] expected)
     {
-        Assert.That(diagnostics.Select(x => x.Id), Is.EqualTo(expected));
+        Assert.That(diagnostics.Select(static x => x.Id), Is.EqualTo(expected));
     }
 
     private static Task<ImmutableArray<Diagnostic>> Analyze(string action)

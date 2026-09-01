@@ -418,9 +418,9 @@ dotnet_diagnostic.MA0213.severity = error      # Simplify negated boolean expres
 dotnet_diagnostic.MA0214.severity = none       # Use 'await' instead of returning the task (the opposite of MA0215; neither is adopted)
 dotnet_diagnostic.MA0215.severity = none       # Return the task instead of awaiting it (the opposite of MA0214; neither is adopted)
 dotnet_diagnostic.MA0216.severity = error      # Remove unnecessary closed modifier
-dotnet_diagnostic.MA0217.severity = none       # Use a static lambda (worth adopting; it wants a static modifier on some forty lambdas, which is its own change)
+dotnet_diagnostic.MA0217.severity = error      # Use a static lambda
 dotnet_diagnostic.MA0218.severity = error      # The language attribute is empty
-dotnet_diagnostic.MA0219.severity = none       # Set the language attribute in XML comment (a <c> span here holds a path, a format or an identifier, not code in a language)
+dotnet_diagnostic.MA0219.severity = suggestion # Set the language attribute in XML comment (a <c> span here holds a path, a format or an identifier, not code in a language)
 dotnet_diagnostic.MA0220.severity = error      # The configured regular expression is not valid
 
 ########################################################################################################################

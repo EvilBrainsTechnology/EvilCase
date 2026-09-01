@@ -16,14 +16,14 @@ internal sealed class FakeApplicationDbContext(DbContextOptions<ApplicationDbCon
     public static FakeApplicationDbContext Create(IUserContext userContext)
     {
         var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-        optionsBuilder.UseNpgsql(npgsql => npgsql.UseEvilCaseMigrations());
+        optionsBuilder.UseNpgsql(static npgsql => npgsql.UseEvilCaseMigrations());
 
         return new FakeApplicationDbContext(optionsBuilder.Options, userContext);
     }
 
     public IEnumerable<TEntity> Added<TEntity>() where TEntity : class
     {
-        return this.ChangeTracker.Entries<TEntity>().Select(entry => entry.Entity);
+        return this.ChangeTracker.Entries<TEntity>().Select(static entry => entry.Entity);
     }
 
     public int Saves { get; private set; }

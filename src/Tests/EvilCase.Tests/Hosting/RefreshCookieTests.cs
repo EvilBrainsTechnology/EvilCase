@@ -51,8 +51,8 @@ public class RefreshCookieTests
             services.AddSingleton<IRefreshTokenStore>(new FakeRefreshTokenStore(TimeProvider.System));
 
             services.Configure<RateLimiterOptions>(
-                options => options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(
-                    _ => RateLimitPartition.GetNoLimiter("tests")));
+                static options => options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(
+                    static _ => RateLimitPartition.GetNoLimiter("tests")));
         });
 
         this.client = this.host.CreateClient();
@@ -199,7 +199,7 @@ public class RefreshCookieTests
     private static string RefreshCookieOf(HttpResponseMessage response)
     {
         return response.Headers.TryGetValues("Set-Cookie", out var values)
-            ? values.Single(value => value.StartsWith(RefreshCookie.Name, StringComparison.Ordinal))
+            ? values.Single(static value => value.StartsWith(RefreshCookie.Name, StringComparison.Ordinal))
             : throw new AssertionException("The response carries no Set-Cookie header");
     }
 

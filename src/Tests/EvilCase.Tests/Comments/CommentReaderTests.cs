@@ -49,7 +49,7 @@ public class CommentReaderTests : TenantFixture
 
         var items = await this.reader.ListCaseComments(@case.Id, CancellationToken.None);
 
-        Assert.That(items.Select(item => item.CommentId), Is.EqualTo([first.Id, second.Id, third.Id]), "the diary reads oldest first");
+        Assert.That(items.Select(static item => item.CommentId), Is.EqualTo([first.Id, second.Id, third.Id]), "the diary reads oldest first");
     }
 
     [Test]
@@ -64,7 +64,7 @@ public class CommentReaderTests : TenantFixture
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(items.Select(item => item.CommentId), Is.EquivalentTo([theirs.Id, ours.Id]), "both notes come back");
+            Assert.That(items.Select(static item => item.CommentId), Is.EquivalentTo([theirs.Id, ours.Id]), "both notes come back");
             Assert.That(items.Single(item => item.CommentId == theirs.Id).IsAuthor, Is.False);
             Assert.That(items.Single(item => item.CommentId == theirs.Id).AuthorEmail, Is.EqualTo(other.Email));
             Assert.That(items.Single(item => item.CommentId == ours.Id).IsAuthor, Is.True);
@@ -81,7 +81,7 @@ public class CommentReaderTests : TenantFixture
 
         var items = await this.reader.ListCaseComments(first.Id, CancellationToken.None);
 
-        Assert.That(items.Select(item => item.CommentId), Is.EqualTo([ownComment.Id]), "the list holds only the asked case's notes");
+        Assert.That(items.Select(static item => item.CommentId), Is.EqualTo([ownComment.Id]), "the list holds only the asked case's notes");
     }
 
     [Test]

@@ -43,7 +43,7 @@ public class AuthServiceTests
         var session = await this.harness.SignIn();
 
         Assert.That(
-            this.harness.RefreshTokens.All.Select(token => token.TokenHash),
+            this.harness.RefreshTokens.All.Select(static token => token.TokenHash),
             Has.No.Member(session.RefreshToken));
     }
 

@@ -20,10 +20,10 @@ public class AwaitEnumerableTests
         var values = await Enumerable.Range(2, 3)
             .Select(this.Foo)
             .AsAsyncEnumerable()
-            .Select(x => 2 * x)
+            .Select(static x => 2 * x)
             .AsReadOnlyCollectionAsync(CancellationToken.None);
 
-        Assert.That(values, Is.EqualTo(Enumerable.Range(2, 3).Select(x => 2 * x)));
+        Assert.That(values, Is.EqualTo(Enumerable.Range(2, 3).Select(static x => 2 * x)));
     }
 
     private async Task<int> Foo(int number)

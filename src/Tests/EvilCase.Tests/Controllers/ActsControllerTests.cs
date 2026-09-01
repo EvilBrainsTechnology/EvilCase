@@ -22,7 +22,7 @@ public class ActsControllerTests
 
         var response = await controller.ListCaseActs(reader, Guid.CreateVersion7(), CancellationToken.None);
 
-        Assert.That(response.Items.Select(item => item.Title), Is.EqualTo(["Podání", "Rozhodnutí"]));
+        Assert.That(response.Items.Select(static item => item.Title), Is.EqualTo(["Podání", "Rozhodnutí"]));
     }
 
     [Test]
@@ -56,7 +56,7 @@ public class ActsControllerTests
 
         var response = await controller.ListActs(reader, new ActListRequest(), CancellationToken.None);
 
-        Assert.That(response.Items.Select(item => item.Title), Is.EqualTo(["druhý", "první"]), "the controller does not re-order what the reader gave it");
+        Assert.That(response.Items.Select(static item => item.Title), Is.EqualTo(["druhý", "první"]), "the controller does not re-order what the reader gave it");
     }
 
     [Test]

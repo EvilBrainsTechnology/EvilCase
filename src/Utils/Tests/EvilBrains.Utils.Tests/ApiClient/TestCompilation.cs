@@ -10,7 +10,7 @@ internal static class TestCompilation
 
     public static CSharpCompilation Create(string assemblyName, params string[] sources)
     {
-        var trees = sources.Select(x => CSharpSyntaxTree.ParseText(x, new CSharpParseOptions(LanguageVersion.Latest))).ToArray();
+        var trees = sources.Select(static x => CSharpSyntaxTree.ParseText(x, new CSharpParseOptions(LanguageVersion.Latest))).ToArray();
 
         return CSharpCompilation.Create(
             assemblyName,
@@ -26,7 +26,7 @@ internal static class TestCompilation
             .Split(Path.PathSeparator)
             .Append(typeof(EvilBrains.ApiClient.GenerateApiClientAttribute).Assembly.Location)
             .Distinct()
-            .Select(x => (MetadataReference)MetadataReference.CreateFromFile(x));
+            .Select(static x => (MetadataReference)MetadataReference.CreateFromFile(x));
 
         return [.. references];
     }

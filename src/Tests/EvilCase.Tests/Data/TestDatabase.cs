@@ -49,7 +49,7 @@ internal static class TestDatabase
     public static ApplicationDbContext CreateMigrated(IUserContext userContext)
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseNpgsql(ConnectionString.Value, npgsql => npgsql.UseEvilCaseMigrations())
+            .UseNpgsql(ConnectionString.Value, static npgsql => npgsql.UseEvilCaseMigrations())
             .Options;
 
         var context = new ApplicationDbContext(options, userContext);
@@ -65,7 +65,7 @@ internal static class TestDatabase
     public static ApplicationDbContext CreateMigratedAsHost(IUserContext userContext)
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseNpgsql(ConnectionString.Value, npgsql => npgsql.UseEvilCaseMigrations())
+            .UseNpgsql(ConnectionString.Value, static npgsql => npgsql.UseEvilCaseMigrations())
             .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking)
             .AddInterceptors(new UserWriteInterceptor(userContext))
             .Options;

@@ -30,7 +30,7 @@ public static class Bootstrap
 
         sink = new ClientLogSink();
 
-        SelfLog.Enable(message => Console.Error.WriteLine(message));
+        SelfLog.Enable(static message => Console.Error.WriteLine(message));
 
         // The pipeline lets through whatever either destination asks for; each one then restricts
         // itself. Sharing a single threshold would silently cap the more verbose of the two.

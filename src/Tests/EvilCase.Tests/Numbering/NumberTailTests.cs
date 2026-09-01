@@ -27,11 +27,11 @@ public class NumberTailTests
     {
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(() => NumberTail.Parse("20260807-01"), Throws.TypeOf<FormatException>(), "a sequence under three digits is outside the format");
-            Assert.That(() => NumberTail.Parse("2026-08-07-001"), Throws.TypeOf<FormatException>(), "the date carries no dashes of its own");
-            Assert.That(() => NumberTail.Parse("20260807-abc"), Throws.TypeOf<FormatException>(), "the sequence is digits only");
-            Assert.That(() => NumberTail.Parse("20260807001"), Throws.TypeOf<FormatException>(), "the dash between the day and the sequence is required");
-            Assert.That(() => NumberTail.Parse("20261307-001"), Throws.TypeOf<FormatException>(), "month 13 is not a day");
+            Assert.That(static () => NumberTail.Parse("20260807-01"), Throws.TypeOf<FormatException>(), "a sequence under three digits is outside the format");
+            Assert.That(static () => NumberTail.Parse("2026-08-07-001"), Throws.TypeOf<FormatException>(), "the date carries no dashes of its own");
+            Assert.That(static () => NumberTail.Parse("20260807-abc"), Throws.TypeOf<FormatException>(), "the sequence is digits only");
+            Assert.That(static () => NumberTail.Parse("20260807001"), Throws.TypeOf<FormatException>(), "the dash between the day and the sequence is required");
+            Assert.That(static () => NumberTail.Parse("20261307-001"), Throws.TypeOf<FormatException>(), "month 13 is not a day");
         }
     }
 

@@ -63,7 +63,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     private static void ConfigureEntities(ModelBuilder modelBuilder)
     {
         var entityTypes = modelBuilder.Model.GetEntityTypes()
-            .Where(type => typeof(IEntity).IsAssignableFrom(type.ClrType))
+            .Where(static type => typeof(IEntity).IsAssignableFrom(type.ClrType))
             .ToList();
 
         foreach (var entityType in entityTypes)
@@ -88,7 +88,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     {
         var properties = modelBuilder.Model
             .GetEntityTypes()
-            .SelectMany(entityType => entityType.GetDeclaredProperties());
+            .SelectMany(static entityType => entityType.GetDeclaredProperties());
 
         foreach (var property in properties)
         {
@@ -98,7 +98,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 continue;
 
             property.SetProviderClrType(typeof(string));
-            property.SetMaxLength(Enum.GetNames(enumType).Max(name => name.Length));
+            property.SetMaxLength(Enum.GetNames(enumType).Max(static name => name.Length));
         }
     }
 
@@ -114,7 +114,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         modelBuilder.Entity<Comment>().HasQueryFilter(comment => comment.TenantId == this.userContext.TenantIdOrDefault);
 
         var tenantEntityTypes = modelBuilder.Model.GetEntityTypes()
-            .Where(type => typeof(ITenantEntity).IsAssignableFrom(type.ClrType))
+            .Where(static type => typeof(ITenantEntity).IsAssignableFrom(type.ClrType))
             .ToList();
 
         foreach (var entityType in tenantEntityTypes)
@@ -127,7 +127,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         }
 
         var userOwnedEntityTypes = modelBuilder.Model.GetEntityTypes()
-            .Where(type => typeof(IUserOwnedEntity).IsAssignableFrom(type.ClrType))
+            .Where(static type => typeof(IUserOwnedEntity).IsAssignableFrom(type.ClrType))
             .ToList();
 
         foreach (var entityType in userOwnedEntityTypes)
@@ -149,112 +149,112 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<User>()
-            .HasOne(user => user.DefaultContact)
+            .HasOne(static user => user.DefaultContact)
             .WithMany()
-            .HasForeignKey(user => user.DefaultContactId)
+            .HasForeignKey(static user => user.DefaultContactId)
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<RefreshToken>()
-            .HasOne(token => token.User)
+            .HasOne(static token => token.User)
             .WithMany()
-            .HasForeignKey(token => token.UserId)
+            .HasForeignKey(static token => token.UserId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 
     private static void ConfigureCases(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Case>()
-            .HasOne(@case => @case.ParentCase)
-            .WithMany(@case => @case.ChildCases)
-            .HasForeignKey(@case => @case.ParentCaseId)
+            .HasOne(static @case => @case.ParentCase)
+            .WithMany(static @case => @case.ChildCases)
+            .HasForeignKey(static @case => @case.ParentCaseId)
             .OnDelete(DeleteBehavior.SetNull);
 
         modelBuilder.Entity<ExternalCaseNumber>()
-            .HasOne(number => number.Case)
-            .WithMany(@case => @case.ExternalCaseNumbers)
-            .HasForeignKey(number => number.CaseId)
+            .HasOne(static number => number.Case)
+            .WithMany(static @case => @case.ExternalCaseNumbers)
+            .HasForeignKey(static number => number.CaseId)
             .OnDelete(DeleteBehavior.Cascade);
 
         // A contact accumulates history across cases, so it outlives any one mark that names it.
         modelBuilder.Entity<ExternalCaseNumber>()
-            .HasOne(number => number.AssignedBy)
-            .WithMany(contact => contact.AssignedExternalCaseNumbers)
-            .HasForeignKey(number => number.AssignedByContactId)
+            .HasOne(static number => number.AssignedBy)
+            .WithMany(static contact => contact.AssignedExternalCaseNumbers)
+            .HasForeignKey(static number => number.AssignedByContactId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 
     private static void ConfigureActs(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Act>()
-            .HasOne(act => act.Case)
-            .WithMany(@case => @case.Acts)
-            .HasForeignKey(act => act.CaseId)
+            .HasOne(static act => act.Case)
+            .WithMany(static @case => @case.Acts)
+            .HasForeignKey(static act => act.CaseId)
             .OnDelete(DeleteBehavior.Cascade);
 
         // A contact accumulates history across cases, so it outlives any one act naming it. Both ends
         // are configured explicitly because two foreign keys to the same table cannot be inferred.
         modelBuilder.Entity<Act>()
-            .HasOne(act => act.IssuedByContact)
-            .WithMany(contact => contact.IssuedActs)
-            .HasForeignKey(act => act.IssuedByContactId)
+            .HasOne(static act => act.IssuedByContact)
+            .WithMany(static contact => contact.IssuedActs)
+            .HasForeignKey(static act => act.IssuedByContactId)
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Act>()
-            .HasOne(act => act.AddressedToContact)
-            .WithMany(contact => contact.AddressedActs)
-            .HasForeignKey(act => act.AddressedToContactId)
+            .HasOne(static act => act.AddressedToContact)
+            .WithMany(static contact => contact.AddressedActs)
+            .HasForeignKey(static act => act.AddressedToContactId)
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<ExternalActNumber>()
-            .HasOne(number => number.Act)
-            .WithMany(act => act.ExternalActNumbers)
-            .HasForeignKey(number => number.ActId)
+            .HasOne(static number => number.Act)
+            .WithMany(static act => act.ExternalActNumbers)
+            .HasForeignKey(static number => number.ActId)
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<ExternalActNumber>()
-            .HasOne(number => number.AssignedBy)
-            .WithMany(contact => contact.AssignedExternalActNumbers)
-            .HasForeignKey(number => number.AssignedByContactId)
+            .HasOne(static number => number.AssignedBy)
+            .WithMany(static contact => contact.AssignedExternalActNumbers)
+            .HasForeignKey(static number => number.AssignedByContactId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 
     private static void ConfigureFiles(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<FileAsset>()
-            .ToTable(table => table.HasCheckConstraint(
+            .ToTable(static table => table.HasCheckConstraint(
                 "CK_FileAssets_OnACaseOrAnAct",
                 @"(""CaseId"" IS NULL) <> (""ActId"" IS NULL)"));
 
         modelBuilder.Entity<FileAsset>()
-            .HasOne(asset => asset.Case)
-            .WithMany(@case => @case.Files)
-            .HasForeignKey(asset => asset.CaseId)
+            .HasOne(static asset => asset.Case)
+            .WithMany(static @case => @case.Files)
+            .HasForeignKey(static asset => asset.CaseId)
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<FileAsset>()
-            .HasOne(asset => asset.Act)
-            .WithMany(act => act.Files)
-            .HasForeignKey(asset => asset.ActId)
+            .HasOne(static asset => asset.Act)
+            .WithMany(static act => act.Files)
+            .HasForeignKey(static asset => asset.ActId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 
     private static void ConfigureComments(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Comment>()
-            .ToTable(table => table.HasCheckConstraint(
+            .ToTable(static table => table.HasCheckConstraint(
                 "CK_Comments_OnACaseOrAnAct",
                 @"(""CaseId"" IS NULL) <> (""ActId"" IS NULL)"));
 
         modelBuilder.Entity<Comment>()
-            .HasOne(comment => comment.Case)
-            .WithMany(@case => @case.Comments)
-            .HasForeignKey(comment => comment.CaseId)
+            .HasOne(static comment => comment.Case)
+            .WithMany(static @case => @case.Comments)
+            .HasForeignKey(static comment => comment.CaseId)
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Comment>()
-            .HasOne(comment => comment.Act)
-            .WithMany(act => act.Comments)
-            .HasForeignKey(comment => comment.ActId)
+            .HasOne(static comment => comment.Act)
+            .WithMany(static act => act.Comments)
+            .HasForeignKey(static comment => comment.ActId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

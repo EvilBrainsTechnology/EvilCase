@@ -68,7 +68,7 @@ public class FileModelTests : ModelFixture
     public void NothingAboutAFileIsARole()
     {
         var columns = ColumnsOf(Model.FindEntityType(typeof(FileAsset)));
-        var kernel = typeof(ContactKind).Assembly.GetTypes().Select(type => type.Name).ToList();
+        var kernel = typeof(ContactKind).Assembly.GetTypes().Select(static type => type.Name).ToList();
 
         using (Assert.EnterMultipleScope())
         {

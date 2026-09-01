@@ -43,7 +43,7 @@ public class HealthCheckResponseWriterTests
 
     private static HealthReport Report(params (string Name, HealthReportEntry Entry)[] entries)
     {
-        return new(entries.ToDictionary(x => x.Name, x => x.Entry, StringComparer.Ordinal), TimeSpan.FromSeconds(1));
+        return new(entries.ToDictionary(static x => x.Name, static x => x.Entry, StringComparer.Ordinal), TimeSpan.FromSeconds(1));
     }
 
     private static async Task<string> Write(HealthReport report)

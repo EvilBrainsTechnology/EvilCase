@@ -24,7 +24,7 @@ public class AuthorizationFallbackTests
     [OneTimeSetUp]
     public void SetUp()
     {
-        this.host = new EvilCaseHost(configureServices: services => services.AddSingleton<ICaseReader>(new StubCaseReader()));
+        this.host = new EvilCaseHost(configureServices: static services => services.AddSingleton<ICaseReader>(new StubCaseReader()));
         this.client = this.host.CreateClient();
     }
 
@@ -144,7 +144,7 @@ public class AuthorizationFallbackTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-            Assert.That(body?.Items.Select(item => item.Title), Is.EqualTo([StubCaseReader.Title]));
+            Assert.That(body?.Items.Select(static item => item.Title), Is.EqualTo([StubCaseReader.Title]));
         }
     }
 }

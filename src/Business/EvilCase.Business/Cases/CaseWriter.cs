@@ -108,8 +108,8 @@ internal sealed class CaseWriter(
         if (edit.ParentCaseId is { } parentCaseId)
         {
             var parents = await context.Cases
-                .Select(@case => new { @case.Id, @case.ParentCaseId })
-                .ToDictionaryAsync(link => link.Id, link => link.ParentCaseId, token);
+                .Select(static @case => new { @case.Id, @case.ParentCaseId })
+                .ToDictionaryAsync(static link => link.Id, static link => link.ParentCaseId, token);
 
             if (!parents.ContainsKey(parentCaseId) || CaseHierarchy.WouldFormCycle(parents, caseId, parentCaseId))
                 return CaseUpdateOutcome.InvalidParent;
@@ -119,12 +119,12 @@ internal sealed class CaseWriter(
             .WithId(caseId)
             .ExecuteUpdateAsync(
                 setters => setters
-                    .SetProperty(@case => @case.CaseNumber, edit.CaseNumber)
-                    .SetProperty(@case => @case.ParentCaseId, edit.ParentCaseId)
-                    .SetProperty(@case => @case.Date, edit.Date)
-                    .SetProperty(@case => @case.Title, edit.Title)
-                    .SetProperty(@case => @case.Description, edit.Description)
-                    .SetProperty(@case => @case.Status, edit.Status),
+                    .SetProperty(static @case => @case.CaseNumber, edit.CaseNumber)
+                    .SetProperty(static @case => @case.ParentCaseId, edit.ParentCaseId)
+                    .SetProperty(static @case => @case.Date, edit.Date)
+                    .SetProperty(static @case => @case.Title, edit.Title)
+                    .SetProperty(static @case => @case.Description, edit.Description)
+                    .SetProperty(static @case => @case.Status, edit.Status),
                 token);
 
         if (rows == 0)
@@ -142,7 +142,7 @@ internal sealed class CaseWriter(
         // Read before the delete: the rows are gone once it runs.
         var storagePaths = await context.FileAssets
             .Where(file => file.CaseId == caseId || file.Act!.CaseId == caseId)
-            .Select(file => file.StoragePath)
+            .Select(static file => file.StoragePath)
             .ToListAsync(token);
 
         // The acts, comments, marks and files go with the row: the database's foreign keys carry the

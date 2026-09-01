@@ -58,11 +58,11 @@ public class CaseNumberFormatTests
     {
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(() => CaseNumberFormat.Parse("EC/20260807-1"), Throws.TypeOf<FormatException>(), "a sequence under three digits is outside the format");
-            Assert.That(() => CaseNumberFormat.Parse("EC/20260807-0001"), Throws.TypeOf<FormatException>(), "a padded sequence does not read back to itself");
-            Assert.That(() => CaseNumberFormat.Parse("XX/20260807-001"), Throws.TypeOf<FormatException>(), "the prefix is fixed");
-            Assert.That(() => CaseNumberFormat.Parse("EC/20261307-001"), Throws.TypeOf<FormatException>(), "month 13 is not a day");
-            Assert.That(() => CaseNumberFormat.Parse(""), Throws.TypeOf<FormatException>(), "an empty value is not a case number");
+            Assert.That(static () => CaseNumberFormat.Parse("EC/20260807-1"), Throws.TypeOf<FormatException>(), "a sequence under three digits is outside the format");
+            Assert.That(static () => CaseNumberFormat.Parse("EC/20260807-0001"), Throws.TypeOf<FormatException>(), "a padded sequence does not read back to itself");
+            Assert.That(static () => CaseNumberFormat.Parse("XX/20260807-001"), Throws.TypeOf<FormatException>(), "the prefix is fixed");
+            Assert.That(static () => CaseNumberFormat.Parse("EC/20261307-001"), Throws.TypeOf<FormatException>(), "month 13 is not a day");
+            Assert.That(static () => CaseNumberFormat.Parse(""), Throws.TypeOf<FormatException>(), "an empty value is not a case number");
         }
     }
 

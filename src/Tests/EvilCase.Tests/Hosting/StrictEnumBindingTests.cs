@@ -23,7 +23,7 @@ public class StrictEnumBindingTests
     [OneTimeSetUp]
     public void SetUp()
     {
-        this.host = new EvilCaseHost(configureServices: services => services.AddSingleton<IContactWriter>(new StubContactWriter()));
+        this.host = new EvilCaseHost(configureServices: static services => services.AddSingleton<IContactWriter>(new StubContactWriter()));
         this.client = this.host.CreateClient();
     }
 

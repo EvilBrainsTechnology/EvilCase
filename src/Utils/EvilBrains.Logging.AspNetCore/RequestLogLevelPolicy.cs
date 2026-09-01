@@ -12,9 +12,9 @@ namespace EvilBrains.Logging.AspNetCore;
 /// </summary>
 internal sealed class RequestLogLevelPolicy(IReadOnlyList<string> loggedPaths, IReadOnlyList<string> quietPaths)
 {
-    private readonly PathString[] logged = [.. loggedPaths.Select(x => new PathString(x))];
+    private readonly PathString[] logged = [.. loggedPaths.Select(static x => new PathString(x))];
 
-    private readonly PathString[] quiet = [.. quietPaths.Select(x => new PathString(x))];
+    private readonly PathString[] quiet = [.. quietPaths.Select(static x => new PathString(x))];
 
     public LogEventLevel GetLevel(HttpContext context, double _, Exception? exception)
     {

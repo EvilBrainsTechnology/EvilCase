@@ -38,7 +38,7 @@ public class ControllerConstructorAnalyzerTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(diagnostics.Select(x => x.Id), Is.EqualTo(["EB0007"]), "a controller must not take constructor dependencies");
+            Assert.That(diagnostics.Select(static x => x.Id), Is.EqualTo(["EB0007"]), "a controller must not take constructor dependencies");
             Assert.That(diagnostics.Single().GetMessage(CultureInfo.InvariantCulture), Does.Contain("thing"), "the message names the constructor parameter");
         }
     }
@@ -60,7 +60,7 @@ public class ControllerConstructorAnalyzerTests
             }
             """);
 
-        Assert.That(diagnostics.Select(x => x.Id), Is.EqualTo(["EB0007"]), "a controller must not take constructor dependencies");
+        Assert.That(diagnostics.Select(static x => x.Id), Is.EqualTo(["EB0007"]), "a controller must not take constructor dependencies");
     }
 
     [Test]
@@ -76,7 +76,7 @@ public class ControllerConstructorAnalyzerTests
             }
             """);
 
-        Assert.That(diagnostics.Select(x => x.Id), Is.EqualTo(["EB0007", "EB0007"]), "each constructor dependency is reported");
+        Assert.That(diagnostics.Select(static x => x.Id), Is.EqualTo(["EB0007", "EB0007"]), "each constructor dependency is reported");
     }
 
     [Test]
@@ -123,7 +123,7 @@ public class ControllerConstructorAnalyzerTests
             }
             """);
 
-        Assert.That(diagnostics.Select(x => x.Id), Is.EqualTo(["EB0007"]), "[ApiController] alone marks a controller");
+        Assert.That(diagnostics.Select(static x => x.Id), Is.EqualTo(["EB0007"]), "[ApiController] alone marks a controller");
     }
 
     private static Task<ImmutableArray<Diagnostic>> Analyze(string type)

@@ -34,17 +34,17 @@ internal sealed class UserStore(IDbSession dbSession) : IUserStore
             .ExecuteUpdateAsync(
                 setters => setters
                     .SetProperty(
-                        user => user.FailedLoginAttempts,
+                        static user => user.FailedLoginAttempts,
                         user => user.FailedLoginAttempts + 1 >= maxAttempts ? 0 : user.FailedLoginAttempts + 1)
                     .SetProperty(
-                        user => user.LockoutEnd,
+                        static user => user.LockoutEnd,
                         user => user.FailedLoginAttempts + 1 >= maxAttempts ? lockoutEnd : user.LockoutEnd),
                 token);
 
         return await dbSession.Current.Users
             .IgnoreQueryFilters()
             .Where(user => user.Id == userId)
-            .Select(user => user.LockoutEnd)
+            .Select(static user => user.LockoutEnd)
             .SingleOrDefaultAsync(token);
     }
 
@@ -55,9 +55,9 @@ internal sealed class UserStore(IDbSession dbSession) : IUserStore
             .IgnoreQueryFilters()
             .Where(user => user.Id == userId)
             .ExecuteUpdateAsync(
-                setters => setters
-                    .SetProperty(user => user.FailedLoginAttempts, 0)
-                    .SetProperty(user => user.LockoutEnd, (DateTime?)null),
+                static setters => setters
+                    .SetProperty(static user => user.FailedLoginAttempts, 0)
+                    .SetProperty(static user => user.LockoutEnd, (DateTime?)null),
                 token);
     }
 

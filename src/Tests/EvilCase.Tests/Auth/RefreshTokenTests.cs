@@ -50,7 +50,7 @@ public class RefreshTokenTests
 
         await this.harness.Refresh(first.RefreshToken);
 
-        Assert.That(this.harness.RefreshTokens.All.Select(token => token.AuthSessionId).Distinct(), Has.Exactly(1).Items);
+        Assert.That(this.harness.RefreshTokens.All.Select(static token => token.AuthSessionId).Distinct(), Has.Exactly(1).Items);
     }
 
     [Test]
@@ -70,7 +70,7 @@ public class RefreshTokenTests
 
             // The one token that was still live goes with the session; whoever holds it holds a copy.
             Assert.That(afterwards, Is.Null);
-            Assert.That(this.harness.RefreshTokens.All.Where(token => token.RevokedAt is null), Is.Empty);
+            Assert.That(this.harness.RefreshTokens.All.Where(static token => token.RevokedAt is null), Is.Empty);
         }
     }
 
@@ -117,9 +117,9 @@ public class RefreshTokenTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(results.Count(result => result.Session is not null), Is.EqualTo(1));
-            Assert.That(results.Select(result => result.Status), Does.Contain(RefreshStatus.Raced));
-            Assert.That(this.harness.RefreshTokens.All.Where(token => token.RevokedAt is null), Has.Exactly(1).Items);
+            Assert.That(results.Count(static result => result.Session is not null), Is.EqualTo(1));
+            Assert.That(results.Select(static result => result.Status), Does.Contain(RefreshStatus.Raced));
+            Assert.That(this.harness.RefreshTokens.All.Where(static token => token.RevokedAt is null), Has.Exactly(1).Items);
         }
     }
 

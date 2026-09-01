@@ -22,7 +22,7 @@ internal static class DefaultContactQuery
     {
         return users
             .WithId(userId)
-            .Select(user => new ContactListItem
+            .Select(static user => new ContactListItem
             {
                 ContactId = user.DefaultContact!.Id,
                 Kind = user.DefaultContact!.Kind,

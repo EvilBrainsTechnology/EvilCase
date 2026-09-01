@@ -20,12 +20,12 @@ internal static class FileListQuery
     // Oldest first; the id breaks the tie two uploads in one transaction would leave.
     public static IQueryable<FileAsset> InUploadOrder(this IQueryable<FileAsset> files)
     {
-        return files.OrderBy(file => file.Created).ThenBy(file => file.Id);
+        return files.OrderBy(static file => file.Created).ThenBy(static file => file.Id);
     }
 
     public static IQueryable<FileListItem> AsListItems(this IQueryable<FileAsset> files)
     {
-        return files.Select(file => new FileListItem
+        return files.Select(static file => new FileListItem
         {
             FileId = file.Id,
             FileName = file.FileName,

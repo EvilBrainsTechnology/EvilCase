@@ -35,7 +35,7 @@ public static class AsReadOnlyExtensions
     public static IReadOnlyDictionary<TKey, TSource> AsReadOnlyDictionary<TSource, TKey>(this IEnumerable<TSource> collection, Func<TSource, TKey> keySelector)
         where TKey : notnull
     {
-        return collection.ToDictionary(keySelector, x => x).AsReadOnly();
+        return collection.ToDictionary(keySelector, static x => x).AsReadOnly();
     }
 
     public static IReadOnlyDictionary<TKey, TValue> AsReadOnlyDictionary<TSource, TKey, TValue>(this IEnumerable<TSource> collection, Func<TSource, TKey> keySelector, Func<TSource, TValue> valueSelector)

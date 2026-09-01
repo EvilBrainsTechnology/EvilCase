@@ -24,8 +24,8 @@ internal static class CommentListQuery
     {
         return comments.Join(
             users,
-            comment => comment.UserId,
-            user => user.Id,
+            static comment => comment.UserId,
+            static user => user.Id,
             (comment, user) => new CommentItem
             {
                 CommentId = comment.Id,
@@ -39,6 +39,6 @@ internal static class CommentListQuery
 
     public static IQueryable<CommentItem> InDiaryOrder(this IQueryable<CommentItem> items)
     {
-        return items.OrderBy(item => item.Created).ThenBy(item => item.CommentId);
+        return items.OrderBy(static item => item.Created).ThenBy(static item => item.CommentId);
     }
 }

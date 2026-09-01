@@ -14,7 +14,7 @@ public class LogsControllerTests
 
         controller.WriteClientLogs(writer, new ClientLogBatch { Entries = [Entry("first"), Entry("second")] });
 
-        Assert.That(writer.Entries.Select(x => x.MessageTemplate), Is.EqualTo(["first", "second"]));
+        Assert.That(writer.Entries.Select(static x => x.MessageTemplate), Is.EqualTo(["first", "second"]));
     }
 
     /// <summary>
@@ -28,7 +28,7 @@ public class LogsControllerTests
 
         controller.WriteClientLogs(writer, new ClientLogBatch { Entries = [null!, Entry("second")] });
 
-        Assert.That(writer.Entries.Select(x => x.MessageTemplate), Is.EqualTo(["second"]));
+        Assert.That(writer.Entries.Select(static x => x.MessageTemplate), Is.EqualTo(["second"]));
     }
 
     private static ClientLogEntry Entry(string messageTemplate)

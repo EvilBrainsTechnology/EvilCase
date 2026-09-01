@@ -13,7 +13,7 @@ public class SearchDebouncerTests
         var first = await debouncer.Start(debounce: false);
 
         // A live registration forces the next CancelAsync to yield, opening the re-entrancy window.
-        await using var registration = first!.Value.Register(() =>
+        await using var registration = first!.Value.Register(static () =>
         {
         });
 

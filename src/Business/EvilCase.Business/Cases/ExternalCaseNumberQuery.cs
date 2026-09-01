@@ -15,12 +15,12 @@ internal static class ExternalCaseNumberQuery
     /// </summary>
     public static IQueryable<ExternalCaseNumber> InAssignmentOrder(this IQueryable<ExternalCaseNumber> numbers)
     {
-        return numbers.OrderBy(number => number.Created).ThenBy(number => number.Id);
+        return numbers.OrderBy(static number => number.Created).ThenBy(static number => number.Id);
     }
 
     public static IQueryable<ExternalNumberItem> AsItems(this IQueryable<ExternalCaseNumber> numbers)
     {
-        return numbers.Select(number => new ExternalNumberItem
+        return numbers.Select(static number => new ExternalNumberItem
         {
             ExternalNumberId = number.Id,
             Value = number.Value,

@@ -96,8 +96,8 @@ internal sealed class TestTenant : IAsyncDisposable
         return
         [
             .. Enumerable.Range(0, count)
-                .Select(_ => Guid.CreateVersion7())
-                .OrderBy(entityId => entityId.ToString(), StringComparer.Ordinal),
+                .Select(static _ => Guid.CreateVersion7())
+                .OrderBy(static entityId => entityId.ToString(), StringComparer.Ordinal),
         ];
     }
 

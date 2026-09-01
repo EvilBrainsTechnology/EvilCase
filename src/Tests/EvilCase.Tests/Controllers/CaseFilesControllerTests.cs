@@ -31,7 +31,7 @@ public class CaseFilesControllerTests
 
         var body = (FileListResponse)((OkObjectResult)response.Result!).Value!;
 
-        Assert.That(body.Items.Select(item => item.FileName), Is.EqualTo(["prvni.txt", "druhy.txt"]));
+        Assert.That(body.Items.Select(static item => item.FileName), Is.EqualTo(["prvni.txt", "druhy.txt"]));
     }
 
     [Test]

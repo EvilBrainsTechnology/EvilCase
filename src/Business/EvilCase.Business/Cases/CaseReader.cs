@@ -25,9 +25,9 @@ internal sealed class CaseReader(IDbSession dbSession) : ICaseReader
     public async Task<CaseStatusCounts> CountCasesByStatus(CancellationToken token)
     {
         var counted = await dbSession.Current.Cases
-            .GroupBy(@case => @case.Status)
-            .Select(group => new { Status = group.Key, Count = group.Count() })
-            .ToDictionaryAsync(row => row.Status, row => row.Count, token);
+            .GroupBy(static @case => @case.Status)
+            .Select(static group => new { Status = group.Key, Count = group.Count() })
+            .ToDictionaryAsync(static row => row.Status, static row => row.Count, token);
 
         return new CaseStatusCounts
         {

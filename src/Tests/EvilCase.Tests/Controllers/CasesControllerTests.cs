@@ -21,7 +21,7 @@ public class CasesControllerTests
 
         var response = await controller.ListCases(reader, new CaseListRequest(), CancellationToken.None);
 
-        Assert.That(response.Items.Select(item => item.Title), Is.EqualTo(["druhý", "první"]), "the controller does not re-order what the reader gave it");
+        Assert.That(response.Items.Select(static item => item.Title), Is.EqualTo(["druhý", "první"]), "the controller does not re-order what the reader gave it");
     }
 
     [Test]

@@ -27,8 +27,8 @@ internal static class Program
         // puts the user back. One instance carries the session, the router's view of it and the renewal lock.
         builder.Services.AddSingleton<IAccessTokenStore, AccessTokenStore>();
         builder.Services.AddSingleton<EvilCaseAuthenticationStateProvider>();
-        builder.Services.AddSingleton<AuthenticationStateProvider>(services => services.GetRequiredService<EvilCaseAuthenticationStateProvider>());
-        builder.Services.AddSingleton<IAuthSession>(services => services.GetRequiredService<EvilCaseAuthenticationStateProvider>());
+        builder.Services.AddSingleton<AuthenticationStateProvider>(static services => services.GetRequiredService<EvilCaseAuthenticationStateProvider>());
+        builder.Services.AddSingleton<IAuthSession>(static services => services.GetRequiredService<EvilCaseAuthenticationStateProvider>());
         builder.Services.AddTransient<AuthTokenHandler>();
 
         builder.Services.AddAuthorizationCore();
@@ -38,7 +38,7 @@ internal static class Program
         builder.Services.AddSingleton<IClientLogUploader, ApiLogUploader>();
         builder.Services.AddEvilCaseApiClient(
             new Uri(builder.HostEnvironment.BaseAddress),
-            client => client.AddRequestContextHeaders().AddRequestLogging().AddHttpMessageHandler<AuthTokenHandler>());
+            static client => client.AddRequestContextHeaders().AddRequestLogging().AddHttpMessageHandler<AuthTokenHandler>());
 
         builder.Services.AddSingleton<IFileDownloader, FileDownloader>();
 
@@ -51,7 +51,7 @@ internal static class Program
             .AddHttpMessageHandler<AuthTokenHandler>();
 
         builder.Services.AddTabBlazor(
-            options =>
+            static options =>
             {
                 options.EnablePopper = true;
                 options.DefaultPositioning = Positioning.Absolute;

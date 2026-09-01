@@ -72,7 +72,7 @@ public class CaseDetailQueryTests : TenantFixture
         var reader = new CaseReader(new FixedDbSession(this.Tenant.Context));
         var detail = await reader.GetCaseDetail(root.Id, CancellationToken.None);
 
-        Assert.That(detail!.ChildCases.Select(item => item.CaseId), Is.EqualTo([child.Id]), "the detail lists the direct subordinates and never a whole tree");
+        Assert.That(detail!.ChildCases.Select(static item => item.CaseId), Is.EqualTo([child.Id]), "the detail lists the direct subordinates and never a whole tree");
     }
 
     [Test]
@@ -86,7 +86,7 @@ public class CaseDetailQueryTests : TenantFixture
         var detail = await reader.GetCaseDetail(root.Id, CancellationToken.None);
 
         Assert.That(
-            detail!.ChildCases.Select(item => item.CaseId),
+            detail!.ChildCases.Select(static item => item.CaseId),
             Is.EqualTo([newer.Id, older.Id]),
             "subordinate cases share the list order, newest by the case's own date first");
     }
@@ -125,7 +125,7 @@ public class CaseDetailQueryTests : TenantFixture
         var detail = await reader.GetCaseDetail(@case.Id, CancellationToken.None);
 
         Assert.That(
-            detail!.ExternalNumbers.Select(item => item.Value),
+            detail!.ExternalNumbers.Select(static item => item.Value),
             Is.EqualTo([first.Value, second.Value]),
             "a mark's place in the list is the order it accrued");
     }
@@ -142,7 +142,7 @@ public class CaseDetailQueryTests : TenantFixture
         var reader = new CaseReader(new FixedDbSession(this.Tenant.Context));
         var detail = await reader.GetCaseDetail(one.Id, CancellationToken.None);
 
-        Assert.That(detail!.ExternalNumbers.Select(item => item.Value), Is.EqualTo(["VV41/2025/08464"]));
+        Assert.That(detail!.ExternalNumbers.Select(static item => item.Value), Is.EqualTo(["VV41/2025/08464"]));
     }
 
     [Test]

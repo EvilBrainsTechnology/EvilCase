@@ -97,7 +97,7 @@ public class ClientHttpLoggerTests
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {
             var properties = state as IReadOnlyList<KeyValuePair<string, object?>> ?? [];
-            var path = properties.FirstOrDefault(x => string.Equals(x.Key, "RequestPath", StringComparison.Ordinal)).Value;
+            var path = properties.FirstOrDefault(static x => string.Equals(x.Key, "RequestPath", StringComparison.Ordinal)).Value;
 
             this.Paths.Add(path?.ToString() ?? "");
         }
