@@ -34,7 +34,9 @@ public class ActsControllerTests
 
         await controller.ListCaseActs(reader, caseId, CancellationToken.None);
 
-        await reader.Received(1).ListCaseActs(caseId, Arg.Any<CancellationToken>());
+        await reader
+            .Received(1)
+            .ListCaseActs(caseId, Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -42,7 +44,8 @@ public class ActsControllerTests
     {
         ActListRequest? listRequest = null;
         var reader = Substitute.For<IActReader>();
-        reader.ListActs(Arg.Any<ActListRequest>(), Arg.Any<CancellationToken>())
+        reader
+            .ListActs(Arg.Any<ActListRequest>(), Arg.Any<CancellationToken>())
             .Returns([])
             .AndDoes(call => listRequest = call.Arg<ActListRequest>());
         var controller = new ActsController();
@@ -73,7 +76,9 @@ public class ActsControllerTests
 
         await controller.CreateAct(writer, caseId, request, CancellationToken.None);
 
-        await writer.Received(1).CreateAct(caseId, request, Arg.Any<CancellationToken>());
+        await writer
+            .Received(1)
+            .CreateAct(caseId, request, Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -148,7 +153,9 @@ public class ActsControllerTests
 
         await controller.GetAct(reader, caseId, actId, CancellationToken.None);
 
-        await reader.Received(1).GetActDetail(caseId, actId, Arg.Any<CancellationToken>());
+        await reader
+            .Received(1)
+            .GetActDetail(caseId, actId, Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -189,7 +196,9 @@ public class ActsControllerTests
 
         await controller.EditAct(writer, caseId, actId, request, CancellationToken.None);
 
-        await writer.Received(1).UpdateAct(caseId, actId, request, Arg.Any<CancellationToken>());
+        await writer
+            .Received(1)
+            .UpdateAct(caseId, actId, request, Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -277,7 +286,9 @@ public class ActsControllerTests
 
         await controller.DeleteAct(writer, caseId, actId, CancellationToken.None);
 
-        await writer.Received(1).DeleteAct(caseId, actId, Arg.Any<CancellationToken>());
+        await writer
+            .Received(1)
+            .DeleteAct(caseId, actId, Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -327,7 +338,9 @@ public class ActsControllerTests
 
         await controller.AddExternalActNumber(writer, caseId, actId, request, CancellationToken.None);
 
-        await writer.Received(1).AddExternalActNumber(caseId, actId, request, Arg.Any<CancellationToken>());
+        await writer
+            .Received(1)
+            .AddExternalActNumber(caseId, actId, request, Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -402,7 +415,9 @@ public class ActsControllerTests
 
         await controller.DeleteExternalActNumber(writer, caseId, actId, numberId, CancellationToken.None);
 
-        await writer.Received(1).DeleteExternalActNumber(caseId, actId, numberId, Arg.Any<CancellationToken>());
+        await writer
+            .Received(1)
+            .DeleteExternalActNumber(caseId, actId, numberId, Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -489,9 +504,11 @@ public class ActsControllerTests
     private static IActReader ListingReader(IReadOnlyList<ActListItem> items)
     {
         var reader = Substitute.For<IActReader>();
-        reader.ListCaseActs(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        reader
+            .ListCaseActs(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(items);
-        reader.ListActs(Arg.Any<ActListRequest>(), Arg.Any<CancellationToken>())
+        reader
+            .ListActs(Arg.Any<ActListRequest>(), Arg.Any<CancellationToken>())
             .Returns(items);
 
         return reader;
@@ -500,7 +517,8 @@ public class ActsControllerTests
     private static IActReader DetailReader(ActDetail? detail)
     {
         var reader = Substitute.For<IActReader>();
-        reader.GetActDetail(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        reader
+            .GetActDetail(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(detail);
 
         return reader;
@@ -509,7 +527,8 @@ public class ActsControllerTests
     private static IActWriter CreatingWriter(ActCreateResult result)
     {
         var writer = Substitute.For<IActWriter>();
-        writer.CreateAct(Arg.Any<Guid>(), Arg.Any<CreateActRequest>(), Arg.Any<CancellationToken>())
+        writer
+            .CreateAct(Arg.Any<Guid>(), Arg.Any<CreateActRequest>(), Arg.Any<CancellationToken>())
             .Returns(result);
 
         return writer;
@@ -518,7 +537,8 @@ public class ActsControllerTests
     private static IActWriter EditingWriter(ActUpdateOutcome outcome)
     {
         var writer = Substitute.For<IActWriter>();
-        writer.UpdateAct(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<ActEditRequest>(), Arg.Any<CancellationToken>())
+        writer
+            .UpdateAct(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<ActEditRequest>(), Arg.Any<CancellationToken>())
             .Returns(outcome);
 
         return writer;
@@ -527,7 +547,8 @@ public class ActsControllerTests
     private static IActWriter DeletingWriter(DeleteOutcome outcome)
     {
         var writer = Substitute.For<IActWriter>();
-        writer.DeleteAct(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        writer
+            .DeleteAct(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(outcome);
 
         return writer;
@@ -536,7 +557,8 @@ public class ActsControllerTests
     private static IExternalActNumberWriter AddingNumberWriter(ExternalActNumberOutcome outcome)
     {
         var writer = Substitute.For<IExternalActNumberWriter>();
-        writer.AddExternalActNumber(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<ExternalNumberRequest>(), Arg.Any<CancellationToken>())
+        writer
+            .AddExternalActNumber(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<ExternalNumberRequest>(), Arg.Any<CancellationToken>())
             .Returns(outcome);
 
         return writer;
@@ -545,7 +567,8 @@ public class ActsControllerTests
     private static IExternalActNumberWriter DeletingNumberWriter(DeleteOutcome outcome)
     {
         var writer = Substitute.For<IExternalActNumberWriter>();
-        writer.DeleteExternalActNumber(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        writer
+            .DeleteExternalActNumber(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(outcome);
 
         return writer;

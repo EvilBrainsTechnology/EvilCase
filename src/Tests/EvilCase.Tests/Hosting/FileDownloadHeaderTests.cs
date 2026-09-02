@@ -22,7 +22,8 @@ public class FileDownloadHeaderTests
         this.host = new EvilCaseHost(configureServices: static services =>
         {
             var reader = Substitute.For<IFileReader>();
-            reader.OpenFileContent(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            reader
+                .OpenFileContent(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
                 .Returns(new FileDownload { FileName = StoredFileName, MediaType = "application/pdf", Content = new MemoryStream("abc"u8.ToArray()) });
             services.AddSingleton(reader);
         });

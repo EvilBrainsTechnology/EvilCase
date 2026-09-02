@@ -60,7 +60,8 @@ public class SessionRenewalTests
     private static EvilCaseAuthenticationStateProvider Provider(IAccessTokenStore tokens, Exception refreshFailure)
     {
         var authClient = Substitute.For<IAuthClient>();
-        authClient.Refresh(Arg.Any<CancellationToken>())
+        authClient
+            .Refresh(Arg.Any<CancellationToken>())
             .ThrowsAsync(refreshFailure);
 
         return new EvilCaseAuthenticationStateProvider(tokens, authClient, NullLogger<EvilCaseAuthenticationStateProvider>.Instance);

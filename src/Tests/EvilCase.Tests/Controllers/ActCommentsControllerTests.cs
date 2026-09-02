@@ -20,14 +20,17 @@ public class ActCommentsControllerTests
 
         await controller.ListActComments(reader, caseId, actId, CancellationToken.None);
 
-        await reader.Received(1).ListActComments(caseId, actId, Arg.Any<CancellationToken>());
+        await reader
+            .Received(1)
+            .ListActComments(caseId, actId, Arg.Any<CancellationToken>());
     }
 
     [Test]
     public async Task TheItemsAreReturnedInTheOrderTheReaderGaveThem()
     {
         var reader = Substitute.For<ICommentReader>();
-        reader.ListActComments(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        reader
+            .ListActComments(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns([Item("První"), Item("Druhá")]);
         var controller = new ActCommentsController();
 
@@ -48,7 +51,9 @@ public class ActCommentsControllerTests
         var result = await controller.AddActComment(writer, caseId, actId, request, CancellationToken.None);
 
         Assert.That(result, Is.InstanceOf<NoContentResult>());
-        await writer.Received(1).AddActComment(caseId, actId, request, Arg.Any<CancellationToken>());
+        await writer
+            .Received(1)
+            .AddActComment(caseId, actId, request, Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -91,7 +96,9 @@ public class ActCommentsControllerTests
         var result = await controller.EditActComment(writer, caseId, actId, commentId, request, CancellationToken.None);
 
         Assert.That(result, Is.InstanceOf<NoContentResult>());
-        await writer.Received(1).UpdateActComment(caseId, actId, commentId, request, Arg.Any<CancellationToken>());
+        await writer
+            .Received(1)
+            .UpdateActComment(caseId, actId, commentId, request, Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -143,7 +150,9 @@ public class ActCommentsControllerTests
         var result = await controller.DeleteActComment(writer, caseId, actId, commentId, CancellationToken.None);
 
         Assert.That(result, Is.InstanceOf<NoContentResult>());
-        await writer.Received(1).DeleteActComment(caseId, actId, commentId, Arg.Any<CancellationToken>());
+        await writer
+            .Received(1)
+            .DeleteActComment(caseId, actId, commentId, Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -171,7 +180,8 @@ public class ActCommentsControllerTests
     private static ICommentWriter AddingWriter(CommentWriteOutcome outcome)
     {
         var writer = Substitute.For<ICommentWriter>();
-        writer.AddActComment(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CommentEditRequest>(), Arg.Any<CancellationToken>())
+        writer
+            .AddActComment(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CommentEditRequest>(), Arg.Any<CancellationToken>())
             .Returns(outcome);
 
         return writer;
@@ -180,7 +190,8 @@ public class ActCommentsControllerTests
     private static ICommentWriter EditingWriter(CommentWriteOutcome outcome)
     {
         var writer = Substitute.For<ICommentWriter>();
-        writer.UpdateActComment(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CommentEditRequest>(), Arg.Any<CancellationToken>())
+        writer
+            .UpdateActComment(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CommentEditRequest>(), Arg.Any<CancellationToken>())
             .Returns(outcome);
 
         return writer;
@@ -189,7 +200,8 @@ public class ActCommentsControllerTests
     private static ICommentWriter DeletingWriter(CommentWriteOutcome outcome)
     {
         var writer = Substitute.For<ICommentWriter>();
-        writer.DeleteActComment(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        writer
+            .DeleteActComment(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(outcome);
 
         return writer;

@@ -17,7 +17,8 @@ public class CasesControllerTests
     public async Task TheItemsAreReturnedInTheOrderTheReaderGaveThem()
     {
         var reader = Substitute.For<ICaseReader>();
-        reader.ListCases(Arg.Any<CaseListRequest>(), Arg.Any<CancellationToken>())
+        reader
+            .ListCases(Arg.Any<CaseListRequest>(), Arg.Any<CancellationToken>())
             .Returns([Item("EC/20260821-002", "druhý"), Item("EC/20260821-001", "první")]);
         var controller = new CasesController();
 
@@ -31,7 +32,8 @@ public class CasesControllerTests
     {
         var counts = new CaseStatusCounts { Active = 2, WaitingOnAuthority = 1, Closed = 3 };
         var reader = Substitute.For<ICaseReader>();
-        reader.CountCasesByStatus(Arg.Any<CancellationToken>())
+        reader
+            .CountCasesByStatus(Arg.Any<CancellationToken>())
             .Returns(counts);
         var controller = new CasesController();
 
@@ -45,7 +47,8 @@ public class CasesControllerTests
     {
         CaseListRequest? listRequest = null;
         var reader = Substitute.For<ICaseReader>();
-        reader.ListCases(Arg.Any<CaseListRequest>(), Arg.Any<CancellationToken>())
+        reader
+            .ListCases(Arg.Any<CaseListRequest>(), Arg.Any<CancellationToken>())
             .Returns([])
             .AndDoes(call => listRequest = call.Arg<CaseListRequest>());
         var controller = new CasesController();
@@ -68,7 +71,9 @@ public class CasesControllerTests
 
         await controller.CreateCase(writer, request, CancellationToken.None);
 
-        await writer.Received(1).CreateCase(request, Arg.Any<CancellationToken>());
+        await writer
+            .Received(1)
+            .CreateCase(request, Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -134,7 +139,9 @@ public class CasesControllerTests
 
         await controller.GetCase(reader, caseId, CancellationToken.None);
 
-        await reader.Received(1).GetCaseDetail(caseId, Arg.Any<CancellationToken>());
+        await reader
+            .Received(1)
+            .GetCaseDetail(caseId, Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -157,7 +164,9 @@ public class CasesControllerTests
 
         await controller.EditCase(writer, caseId, request, CancellationToken.None);
 
-        await writer.Received(1).UpdateCase(caseId, request, Arg.Any<CancellationToken>());
+        await writer
+            .Received(1)
+            .UpdateCase(caseId, request, Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -242,7 +251,9 @@ public class CasesControllerTests
 
         await controller.DeleteCase(writer, caseId, CancellationToken.None);
 
-        await writer.Received(1).DeleteCase(caseId, Arg.Any<CancellationToken>());
+        await writer
+            .Received(1)
+            .DeleteCase(caseId, Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -289,7 +300,9 @@ public class CasesControllerTests
 
         await controller.AddExternalCaseNumber(writer, caseId, request, CancellationToken.None);
 
-        await writer.Received(1).AddExternalCaseNumber(caseId, request, Arg.Any<CancellationToken>());
+        await writer
+            .Received(1)
+            .AddExternalCaseNumber(caseId, request, Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -361,7 +374,9 @@ public class CasesControllerTests
 
         await controller.DeleteExternalCaseNumber(writer, caseId, numberId, CancellationToken.None);
 
-        await writer.Received(1).DeleteExternalCaseNumber(caseId, numberId, Arg.Any<CancellationToken>());
+        await writer
+            .Received(1)
+            .DeleteExternalCaseNumber(caseId, numberId, Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -431,7 +446,8 @@ public class CasesControllerTests
     private static ICaseReader DetailReader(CaseDetail? detail)
     {
         var reader = Substitute.For<ICaseReader>();
-        reader.GetCaseDetail(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        reader
+            .GetCaseDetail(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(detail);
 
         return reader;
@@ -440,7 +456,8 @@ public class CasesControllerTests
     private static ICaseWriter CreatingWriter(CaseCreateResult result)
     {
         var writer = Substitute.For<ICaseWriter>();
-        writer.CreateCase(Arg.Any<CreateCaseRequest>(), Arg.Any<CancellationToken>())
+        writer
+            .CreateCase(Arg.Any<CreateCaseRequest>(), Arg.Any<CancellationToken>())
             .Returns(result);
 
         return writer;
@@ -449,7 +466,8 @@ public class CasesControllerTests
     private static ICaseWriter EditingWriter(CaseUpdateOutcome outcome)
     {
         var writer = Substitute.For<ICaseWriter>();
-        writer.UpdateCase(Arg.Any<Guid>(), Arg.Any<CaseEditRequest>(), Arg.Any<CancellationToken>())
+        writer
+            .UpdateCase(Arg.Any<Guid>(), Arg.Any<CaseEditRequest>(), Arg.Any<CancellationToken>())
             .Returns(outcome);
 
         return writer;
@@ -458,7 +476,8 @@ public class CasesControllerTests
     private static ICaseWriter DeletingWriter(DeleteOutcome outcome)
     {
         var writer = Substitute.For<ICaseWriter>();
-        writer.DeleteCase(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        writer
+            .DeleteCase(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(outcome);
 
         return writer;
@@ -467,7 +486,8 @@ public class CasesControllerTests
     private static IExternalCaseNumberWriter AddingMarkWriter(ExternalCaseNumberOutcome outcome)
     {
         var writer = Substitute.For<IExternalCaseNumberWriter>();
-        writer.AddExternalCaseNumber(Arg.Any<Guid>(), Arg.Any<ExternalNumberRequest>(), Arg.Any<CancellationToken>())
+        writer
+            .AddExternalCaseNumber(Arg.Any<Guid>(), Arg.Any<ExternalNumberRequest>(), Arg.Any<CancellationToken>())
             .Returns(outcome);
 
         return writer;
@@ -476,7 +496,8 @@ public class CasesControllerTests
     private static IExternalCaseNumberWriter DeletingMarkWriter(DeleteOutcome outcome)
     {
         var writer = Substitute.For<IExternalCaseNumberWriter>();
-        writer.DeleteExternalCaseNumber(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        writer
+            .DeleteExternalCaseNumber(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(outcome);
 
         return writer;

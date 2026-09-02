@@ -17,7 +17,8 @@ public class AuthTokenHandlerTests
     public async Task AnExpiringTokenIsRenewedBeforeTheRequest()
     {
         var authClient = Substitute.For<IAuthClient>();
-        authClient.Refresh(Arg.Any<CancellationToken>())
+        authClient
+            .Refresh(Arg.Any<CancellationToken>())
             .Returns(new LoginResponse
             {
                 AccessToken = "renewed",
@@ -38,7 +39,8 @@ public class AuthTokenHandlerTests
     public async Task AClientLogUploadNeverRenews()
     {
         var authClient = Substitute.For<IAuthClient>();
-        authClient.Refresh(Arg.Any<CancellationToken>())
+        authClient
+            .Refresh(Arg.Any<CancellationToken>())
             .ThrowsAsync(new ApiException(HttpStatusCode.InternalServerError, responseBody: null));
 
         using var response = await Send(authClient, ClientLogRoute.Path);

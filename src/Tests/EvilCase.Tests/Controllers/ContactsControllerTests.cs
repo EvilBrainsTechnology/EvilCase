@@ -19,7 +19,9 @@ public class ContactsControllerTests
 
         await controller.CreateContact(writer, request, CancellationToken.None);
 
-        await writer.Received(1).CreateContact(request, Arg.Any<CancellationToken>());
+        await writer
+            .Received(1)
+            .CreateContact(request, Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -65,7 +67,9 @@ public class ContactsControllerTests
 
         await controller.ListContacts(reader, request, CancellationToken.None);
 
-        await reader.Received(1).ListContacts(request, Arg.Any<CancellationToken>());
+        await reader
+            .Received(1)
+            .ListContacts(request, Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -84,7 +88,8 @@ public class ContactsControllerTests
     {
         var defaultContact = Item("Výchozí kontakt");
         var reader = Substitute.For<IContactReader>();
-        reader.GetDefaultContact(Arg.Any<CancellationToken>())
+        reader
+            .GetDefaultContact(Arg.Any<CancellationToken>())
             .Returns(defaultContact);
         var controller = new ContactsController();
 
@@ -102,7 +107,9 @@ public class ContactsControllerTests
 
         await controller.GetContact(reader, contactId, CancellationToken.None);
 
-        await reader.Received(1).GetContactDetail(contactId, Arg.Any<CancellationToken>());
+        await reader
+            .Received(1)
+            .GetContactDetail(contactId, Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -125,7 +132,9 @@ public class ContactsControllerTests
 
         await controller.EditContact(writer, contactId, request, CancellationToken.None);
 
-        await writer.Received(1).UpdateContact(contactId, request, Arg.Any<CancellationToken>());
+        await writer
+            .Received(1)
+            .UpdateContact(contactId, request, Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -228,7 +237,8 @@ public class ContactsControllerTests
     private static IContactReader ListingReader(IReadOnlyList<ContactListItem> items)
     {
         var reader = Substitute.For<IContactReader>();
-        reader.ListContacts(Arg.Any<ContactListRequest>(), Arg.Any<CancellationToken>())
+        reader
+            .ListContacts(Arg.Any<ContactListRequest>(), Arg.Any<CancellationToken>())
             .Returns(items);
 
         return reader;
@@ -237,7 +247,8 @@ public class ContactsControllerTests
     private static IContactReader DetailReader(ContactDetail? detail)
     {
         var reader = Substitute.For<IContactReader>();
-        reader.GetContactDetail(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        reader
+            .GetContactDetail(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(detail);
 
         return reader;
@@ -246,7 +257,8 @@ public class ContactsControllerTests
     private static IContactWriter CreatingWriter(ContactListItem created)
     {
         var writer = Substitute.For<IContactWriter>();
-        writer.CreateContact(Arg.Any<ContactEditRequest>(), Arg.Any<CancellationToken>())
+        writer
+            .CreateContact(Arg.Any<ContactEditRequest>(), Arg.Any<CancellationToken>())
             .Returns(created);
 
         return writer;
@@ -255,7 +267,8 @@ public class ContactsControllerTests
     private static IContactWriter EditingWriter(ContactUpdateOutcome outcome)
     {
         var writer = Substitute.For<IContactWriter>();
-        writer.UpdateContact(Arg.Any<Guid>(), Arg.Any<ContactEditRequest>(), Arg.Any<CancellationToken>())
+        writer
+            .UpdateContact(Arg.Any<Guid>(), Arg.Any<ContactEditRequest>(), Arg.Any<CancellationToken>())
             .Returns(outcome);
 
         return writer;
@@ -264,7 +277,8 @@ public class ContactsControllerTests
     private static IContactWriter DeletingWriter(ContactDeleteOutcome outcome)
     {
         var writer = Substitute.For<IContactWriter>();
-        writer.DeleteContact(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        writer
+            .DeleteContact(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(outcome);
 
         return writer;

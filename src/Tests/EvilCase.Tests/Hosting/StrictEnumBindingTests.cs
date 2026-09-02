@@ -26,7 +26,8 @@ public class StrictEnumBindingTests
         this.host = new EvilCaseHost(configureServices: static services =>
         {
             var writer = Substitute.For<IContactWriter>();
-            writer.CreateContact(Arg.Any<ContactEditRequest>(), Arg.Any<CancellationToken>())
+            writer
+                .CreateContact(Arg.Any<ContactEditRequest>(), Arg.Any<CancellationToken>())
                 .Returns(static call => new ContactListItem
                 {
                     ContactId = Guid.CreateVersion7(),

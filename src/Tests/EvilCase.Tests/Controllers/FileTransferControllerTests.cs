@@ -34,7 +34,9 @@ public class FileTransferControllerTests
 
         await controller.UploadCaseFile(writer, Guid.CreateVersion7(), file, CancellationToken.None);
 
-        await writer.Received(1).UploadCaseFile(Arg.Any<Guid>(), Arg.Any<FileUpload>(), Arg.Any<CancellationToken>());
+        await writer
+            .Received(1)
+            .UploadCaseFile(Arg.Any<Guid>(), Arg.Any<FileUpload>(), Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -218,7 +220,9 @@ public class FileTransferControllerTests
 
         await controller.UploadActFile(writer, caseId, actId, FormFile(1), CancellationToken.None);
 
-        await writer.Received(1).UploadActFile(caseId, actId, Arg.Any<FileUpload>(), Arg.Any<CancellationToken>());
+        await writer
+            .Received(1)
+            .UploadActFile(caseId, actId, Arg.Any<FileUpload>(), Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -336,10 +340,12 @@ public class FileTransferControllerTests
     private static IFileWriter UploadingWriter(UploadFileResult result, Action<FileUpload>? capture = null)
     {
         var writer = Substitute.For<IFileWriter>();
-        writer.UploadCaseFile(Arg.Any<Guid>(), Arg.Any<FileUpload>(), Arg.Any<CancellationToken>())
+        writer
+            .UploadCaseFile(Arg.Any<Guid>(), Arg.Any<FileUpload>(), Arg.Any<CancellationToken>())
             .Returns(result)
             .AndDoes(call => capture?.Invoke(call.Arg<FileUpload>()));
-        writer.UploadActFile(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<FileUpload>(), Arg.Any<CancellationToken>())
+        writer
+            .UploadActFile(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<FileUpload>(), Arg.Any<CancellationToken>())
             .Returns(result)
             .AndDoes(call => capture?.Invoke(call.Arg<FileUpload>()));
 
@@ -349,7 +355,8 @@ public class FileTransferControllerTests
     private static IFileReader DownloadingReader(FileDownload? download)
     {
         var reader = Substitute.For<IFileReader>();
-        reader.OpenFileContent(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        reader
+            .OpenFileContent(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(download);
 
         return reader;

@@ -15,7 +15,8 @@ internal static class CaseReaderStub
     public static ICaseReader WithOneCase()
     {
         var reader = Substitute.For<ICaseReader>();
-        reader.ListCases(Arg.Any<CaseListRequest>(), Arg.Any<CancellationToken>())
+        reader
+            .ListCases(Arg.Any<CaseListRequest>(), Arg.Any<CancellationToken>())
             .Returns([
                 new CaseListItem
                 {
@@ -27,7 +28,8 @@ internal static class CaseReaderStub
                     Changed = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                 },
             ]);
-        reader.CountCasesByStatus(Arg.Any<CancellationToken>())
+        reader
+            .CountCasesByStatus(Arg.Any<CancellationToken>())
             .Returns(new CaseStatusCounts { Active = 1, WaitingOnAuthority = 0, Closed = 0 });
 
         return reader;

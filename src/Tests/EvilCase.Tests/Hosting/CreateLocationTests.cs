@@ -30,7 +30,8 @@ public class CreateLocationTests
         this.host = new EvilCaseHost(configureServices: static services =>
         {
             var caseWriter = Substitute.For<ICaseWriter>();
-            caseWriter.CreateCase(Arg.Any<CreateCaseRequest>(), Arg.Any<CancellationToken>())
+            caseWriter
+                .CreateCase(Arg.Any<CreateCaseRequest>(), Arg.Any<CancellationToken>())
                 .Returns(static call => new CaseCreateResult
                 {
                     Outcome = CaseCreateOutcome.Created,
@@ -47,7 +48,8 @@ public class CreateLocationTests
             services.AddSingleton(caseWriter);
 
             var contactWriter = Substitute.For<IContactWriter>();
-            contactWriter.CreateContact(Arg.Any<ContactEditRequest>(), Arg.Any<CancellationToken>())
+            contactWriter
+                .CreateContact(Arg.Any<ContactEditRequest>(), Arg.Any<CancellationToken>())
                 .Returns(static call => new ContactListItem
                 {
                     ContactId = FiledContactId,

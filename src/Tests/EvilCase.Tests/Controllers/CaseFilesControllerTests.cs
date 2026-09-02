@@ -19,7 +19,9 @@ public class CaseFilesControllerTests
 
         await controller.ListCaseFiles(reader, caseId, CancellationToken.None);
 
-        await reader.Received(1).ListCaseFiles(caseId, Arg.Any<CancellationToken>());
+        await reader
+            .Received(1)
+            .ListCaseFiles(caseId, Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -56,7 +58,9 @@ public class CaseFilesControllerTests
 
         await controller.DeleteCaseFile(writer, caseId, fileId, CancellationToken.None);
 
-        await writer.Received(1).DeleteCaseFile(caseId, fileId, Arg.Any<CancellationToken>());
+        await writer
+            .Received(1)
+            .DeleteCaseFile(caseId, fileId, Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -96,7 +100,8 @@ public class CaseFilesControllerTests
     private static IFileReader ListingReader(IReadOnlyList<FileListItem>? items)
     {
         var reader = Substitute.For<IFileReader>();
-        reader.ListCaseFiles(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        reader
+            .ListCaseFiles(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(items);
 
         return reader;
@@ -105,7 +110,8 @@ public class CaseFilesControllerTests
     private static IFileWriter DeletingWriter(DeleteOutcome outcome)
     {
         var writer = Substitute.For<IFileWriter>();
-        writer.DeleteCaseFile(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        writer
+            .DeleteCaseFile(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(outcome);
 
         return writer;
