@@ -41,7 +41,7 @@ public class StaticAssetHeadersTests
     [Test]
     public async Task TheRuntimeIsServedCompressed()
     {
-        var runtime = await this.FingerprintedRuntimeAsync();
+        var runtime = await this.FingerprintedRuntime();
 
         using var response = await this.client.GetAsync(new Uri($"/_framework/{runtime}", UriKind.Relative));
 
@@ -82,7 +82,7 @@ public class StaticAssetHeadersTests
     /// The boot config is inlined into dotnet.js. It names the runtime twice: once plain, once under the
     /// fingerprint it is actually downloaded by.
     /// </summary>
-    private async Task<string> FingerprintedRuntimeAsync()
+    private async Task<string> FingerprintedRuntime()
     {
         var bootScript = await this.client.GetStringAsync(new Uri("/_framework/dotnet.js", UriKind.Relative));
 
