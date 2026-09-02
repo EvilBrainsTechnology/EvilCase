@@ -12,6 +12,7 @@ public static class Bootstrap
     public static IServiceCollection AddEvilCaseData(this IServiceCollection serviceCollection)
     {
         serviceCollection.AddScoped<UserWriteInterceptor>();
+        serviceCollection.AddSingleton<SoftDeleteInterceptor>();
 
         serviceCollection.AddDbContext<ApplicationDbContext>(
             static (serviceProvider, options) =>
@@ -22,7 +23,9 @@ public static class Bootstrap
 
                 options.UseNpgsql(connectionString, static npgsql => npgsql.UseEvilCaseMigrations());
                 options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
-                options.AddInterceptors(serviceProvider.GetRequiredService<UserWriteInterceptor>());
+                options.AddInterceptors(
+                    serviceProvider.GetRequiredService<UserWriteInterceptor>(),
+                    serviceProvider.GetRequiredService<SoftDeleteInterceptor>());
 
                 var environment = serviceProvider.GetRequiredService<IHostEnvironment>();
                 if (environment.IsDevelopment())

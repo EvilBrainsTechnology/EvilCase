@@ -54,7 +54,7 @@ internal sealed class ExternalCaseNumberWriter(IDbSession dbSession, ILogger<Ext
         var rows = await dbSession.Current.ExternalCaseNumbers
             .OfCase(caseId)
             .WithId(numberId)
-            .ExecuteDeleteAsync(token);
+            .ExecuteSoftDelete(token);
 
         if (rows == 0)
             return DeleteOutcome.NotFound;

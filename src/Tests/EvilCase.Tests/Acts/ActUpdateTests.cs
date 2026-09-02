@@ -26,7 +26,7 @@ public class ActUpdateTests : TenantFixture
     public void SetUpWriter()
     {
         this.writer = new ActWriter(
-            new FixedDbSession(this.Tenant.Context), new FakeActNumberIssuer(), new FakeFileBlobStore(), NullLogger<ActWriter>.Instance);
+            new FixedDbSession(this.Tenant.Context), new FakeActNumberIssuer(), NullLogger<ActWriter>.Instance);
     }
 
     [Test]
@@ -301,7 +301,7 @@ public class ActUpdateTests : TenantFixture
         var secondNumber = second.ActNumber;
 
         var caseWriter = new CaseWriter(
-            new FixedDbSession(this.Tenant.Context), new FakeCaseNumberIssuer(), new FakeFileBlobStore(), NullLogger<CaseWriter>.Instance);
+            new FixedDbSession(this.Tenant.Context), new FakeCaseNumberIssuer(), NullLogger<CaseWriter>.Instance);
         var caseEdit = new CaseEditRequest
         {
             CaseNumber = "EC/20260101-042",

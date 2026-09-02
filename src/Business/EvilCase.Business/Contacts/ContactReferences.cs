@@ -15,4 +15,13 @@ internal static class ContactReferences
                 || contact.AssignedExternalCaseNumbers.Count != 0
                 || contact.AssignedExternalActNumbers.Count != 0);
     }
+
+    public static IQueryable<Contact> NotReferenced(this IQueryable<Contact> contacts)
+    {
+        return contacts
+            .Where(static contact => contact.IssuedActs.Count == 0)
+            .Where(static contact => contact.AddressedActs.Count == 0)
+            .Where(static contact => contact.AssignedExternalCaseNumbers.Count == 0)
+            .Where(static contact => contact.AssignedExternalActNumbers.Count == 0);
+    }
 }

@@ -1,11 +1,11 @@
 using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Business.Acts;
 using EvilBrains.EvilCase.Business.Entities;
+using EvilBrains.EvilCase.Data;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Domain.Users;
 using EvilBrains.EvilCase.Files;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace EvilBrains.EvilCase.Business.Files;
@@ -62,19 +62,12 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
 
     private async Task<DeleteOutcome> DeleteFile(IQueryable<FileAsset> files, CancellationToken token)
     {
-        // Read before the delete: the row is gone once ExecuteDeleteAsync runs.
-        var storagePath = await files
-            .Select(static file => file.StoragePath)
-            .SingleOrDefaultAsync(token);
+        var rows = await files.ExecuteSoftDelete(token);
 
-        if (storagePath is null)
+        if (rows == 0)
             return DeleteOutcome.NotFound;
 
-        await files.ExecuteDeleteAsync(token);
-
-        // The row goes first; a blob left behind is tolerated (SDD-012).
-        await blobStore.DeleteFileBlob(storagePath, token);
-
+        // The blob stays: a stamped file is a file that can come back (SDD-012).
         return DeleteOutcome.Deleted;
     }
 

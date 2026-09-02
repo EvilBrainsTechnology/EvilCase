@@ -56,7 +56,7 @@ internal sealed class ExternalActNumberWriter(IDbSession dbSession, ILogger<Exte
         var rows = await context.ExternalActNumbers
             .OfAct(caseId, actId)
             .WithId(numberId)
-            .ExecuteDeleteAsync(token);
+            .ExecuteSoftDelete(token);
 
         if (rows == 0)
             return DeleteOutcome.NotFound;

@@ -66,8 +66,8 @@ internal sealed class ContactWriter(IDbSession dbSession, ILogger<ContactWriter>
     {
         var context = dbSession.Current;
 
-        var contact = await context.Contacts.WithId(contactId).SingleOrDefaultAsync(token);
-        if (contact is null)
+        var known = await context.Contacts.Exists(contactId, token);
+        if (!known)
             return ContactDeleteOutcome.NotFound;
 
         var isDefault = await context.Users
@@ -76,24 +76,16 @@ internal sealed class ContactWriter(IDbSession dbSession, ILogger<ContactWriter>
         if (isDefault)
             return ContactDeleteOutcome.DefaultContact;
 
-        var referenced = await context.Contacts
+        // The stamp repeats the reference test rather than trusting a read before it: a stamp breaks
+        // no foreign key, so a reference written meanwhile would leave a live row pointing at a
+        // contact nothing can read.
+        var rows = await context.Contacts
             .WithId(contactId)
-            .Referenced()
-            .AnyAsync(token);
-        if (referenced)
-            return ContactDeleteOutcome.Referenced;
+            .NotReferenced()
+            .ExecuteSoftDelete(token);
 
-        context.Contacts.Remove(contact);
-
-        try
-        {
-            await context.SaveChangesAsync(token);
-        }
-        catch (DbUpdateException exception) when (exception.IsForeignKeyViolation())
-        {
-            // A reference written between the checks above and this save.
+        if (rows == 0)
             return ContactDeleteOutcome.Referenced;
-        }
 
         logger.LogInformation("Contact {ContactId} was deleted", contactId);
 

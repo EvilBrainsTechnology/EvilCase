@@ -1,5 +1,6 @@
 using EvilBrains.EvilCase.Business.Acts;
 using EvilBrains.EvilCase.Business.Entities;
+using EvilBrains.EvilCase.Data;
 using EvilBrains.EvilCase.Tests.Data;
 using EvilBrains.EvilCase.Tests.Seeding;
 using Microsoft.EntityFrameworkCore;
@@ -15,16 +16,13 @@ public class ActDeleteTests : TenantFixture
 {
     private static readonly DateOnly Day = new(2026, 8, 21);
 
-    private FakeFileBlobStore blobs = null!;
-
     private ActWriter writer = null!;
 
     [SetUp]
     public void SetUpWriter()
     {
-        this.blobs = new FakeFileBlobStore();
         this.writer = new ActWriter(
-            new FixedDbSession(this.Tenant.Context), new FakeActNumberIssuer(), this.blobs, NullLogger<ActWriter>.Instance);
+            new FixedDbSession(this.Tenant.Context), new FakeActNumberIssuer(), NullLogger<ActWriter>.Instance);
     }
 
     [Test]
@@ -82,21 +80,37 @@ public class ActDeleteTests : TenantFixture
             Assert.That(otherActExists, Is.True, "the cascade leaves the case's other acts");
             Assert.That(otherCommentExists, Is.True, "the cascade leaves the other act's comments");
             Assert.That(otherFileExists, Is.True, "the cascade leaves the other act's files");
-            Assert.That(this.blobs.Deleted, Does.Not.Contain(otherFile.StoragePath));
         }
     }
 
     [Test]
-    public async Task TheBlobsOfTheActGoWithTheRecord()
+    public async Task EverythingTheCascadeTakesCarriesOneMoment()
     {
+        var contact = await this.Tenant.AddContact("Úřad");
         var seeded = await this.Tenant.AddCase(Day, "Přestupek");
         var act = await this.Tenant.AddAct(seeded, Day);
-        var firstFile = await this.Tenant.AddActFile(act, "prvni.pdf");
-        var secondFile = await this.Tenant.AddActFile(act, "druhy.pdf");
+        await this.Tenant.AddActComment(act, "Poznámka k úkonu");
+        await this.Tenant.AddExternalActNumber(act, "EXT-1", contact);
+        await this.Tenant.AddActFile(act, "prvni.pdf");
+        await this.Tenant.AddActFile(act, "druhy.pdf");
 
         await this.writer.DeleteAct(seeded.Id, act.Id, CancellationToken.None);
 
-        Assert.That(this.blobs.Deleted, Is.EquivalentTo([firstFile.StoragePath, secondFile.StoragePath]), "the bytes of every file the cascade takes go with the record");
+        this.Tenant.Context.ChangeTracker.Clear();
+
+        var context = this.Tenant.Context;
+        var acts = await context.Acts.IncludingDeleted().Select(static row => row.Deleted).ToListAsync();
+        var comments = await context.Comments.IncludingDeleted().Select(static row => row.Deleted).ToListAsync();
+        var numbers = await context.ExternalActNumbers.IncludingDeleted().Select(static row => row.Deleted).ToListAsync();
+        var files = await context.FileAssets.IncludingDeleted().Select(static row => row.Deleted).ToListAsync();
+
+        var stamps = acts.Concat(comments).Concat(numbers).Concat(files).OfType<DateTime>().ToList();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(stamps, Has.Count.EqualTo(5), "every row the cascade reaches carries a stamp");
+            Assert.That(stamps.Distinct().ToList(), Has.Count.EqualTo(1), "one transaction stamps the whole cascade with one moment");
+        }
     }
 
     [Test]
@@ -124,7 +138,6 @@ public class ActDeleteTests : TenantFixture
         {
             Assert.That(result, Is.EqualTo(DeleteOutcome.NotFound), "an act scoped to another case is not found");
             Assert.That(actExists, Is.True);
-            Assert.That(this.blobs.Deleted, Is.Empty);
         }
     }
 
@@ -146,18 +159,6 @@ public class ActDeleteTests : TenantFixture
             Assert.That(result, Is.EqualTo(DeleteOutcome.NotFound), "the tenant query filter is what keeps another tenant's act out of a delete");
             Assert.That(otherActExists, Is.True);
         }
-    }
-
-    [Test]
-    public async Task NoBlobIsDeletedWhereNoActIs()
-    {
-        var seeded = await this.Tenant.AddCase(Day, "Přestupek");
-        var act = await this.Tenant.AddAct(seeded, Day);
-        await this.Tenant.AddActFile(act);
-
-        await this.writer.DeleteAct(seeded.Id, Guid.CreateVersion7(), CancellationToken.None);
-
-        Assert.That(this.blobs.Deleted, Is.Empty, "a delete that found no act takes no bytes");
     }
 
 }

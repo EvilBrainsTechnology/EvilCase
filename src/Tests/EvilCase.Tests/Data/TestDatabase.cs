@@ -4,6 +4,7 @@ using EvilBrains.EvilCase.Data.Interceptors;
 using EvilBrains.EvilCase.Data.Migrations.DbContexts;
 using EvilBrains.EvilCase.Domain.Users;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Testcontainers.PostgreSql;
 
 namespace EvilBrains.EvilCase.Tests.Data;
@@ -46,10 +47,11 @@ internal static class TestDatabase
     /// The same database under a caller's tenant and user, for a test that reads its rows back through the
     /// query filters.
     /// </summary>
-    public static ApplicationDbContext CreateMigrated(IUserContext userContext)
+    public static ApplicationDbContext CreateMigrated(IUserContext userContext, params IInterceptor[] interceptors)
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseNpgsql(ConnectionString.Value, static npgsql => npgsql.UseEvilCaseMigrations())
+            .AddInterceptors(interceptors)
             .Options;
 
         var context = new ApplicationDbContext(options, userContext);
@@ -67,7 +69,7 @@ internal static class TestDatabase
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseNpgsql(ConnectionString.Value, static npgsql => npgsql.UseEvilCaseMigrations())
             .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking)
-            .AddInterceptors(new UserWriteInterceptor(userContext))
+            .AddInterceptors(new UserWriteInterceptor(userContext), new SoftDeleteInterceptor())
             .Options;
 
         var context = new ApplicationDbContext(options, userContext);

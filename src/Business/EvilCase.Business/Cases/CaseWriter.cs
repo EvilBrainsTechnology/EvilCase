@@ -7,7 +7,6 @@ using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Domain.Cases;
 using EvilBrains.EvilCase.Domain.Numbering;
-using EvilBrains.EvilCase.Files;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -16,7 +15,6 @@ namespace EvilBrains.EvilCase.Business.Cases;
 internal sealed class CaseWriter(
     IDbSession dbSession,
     ICaseNumberIssuer numbers,
-    IFileBlobStore fileBlobStore,
     ILogger<CaseWriter> logger) : ICaseWriter
 {
     /// <summary>
@@ -139,28 +137,73 @@ internal sealed class CaseWriter(
     {
         var context = dbSession.Current;
 
-        // Read before the delete: the rows are gone once it runs.
-        var storagePaths = await context.FileAssets
-            .Where(file => file.CaseId == caseId || file.Act!.CaseId == caseId)
-            .Select(static file => file.StoragePath)
-            .ToListAsync(token);
+        // One transaction, so now() stamps the case and everything under it with one moment.
+        await using var transaction = await dbSession.BeginTransaction(token);
 
-        // The acts, comments, marks and files go with the row: the database's foreign keys carry the
-        // cascade, and a subordinate case is left with no parent (SDD-007).
-        var rows = await context.Cases
-            .WithId(caseId)
-            .ExecuteDeleteAsync(token);
-
-        if (rows == 0)
+        var caseIds = await CaseWithItsSubordinates(context.Cases, caseId, token);
+        if (caseIds.Count == 0)
             return DeleteOutcome.NotFound;
 
-        // After the commit: a blob orphaned by a failed delete is tolerated, a lost one is not (SDD-012).
-        foreach (var storagePath in storagePaths)
-            await fileBlobStore.DeleteFileBlob(storagePath, token);
+        var actIds = await context.Acts
+            .Where(act => caseIds.Contains(act.CaseId))
+            .Select(static act => act.Id)
+            .ToListAsync(token);
 
+        // The act ids are read up front, so stamping the acts cannot hide the rows hanging off them.
+        await context.Comments
+            .Where(comment => caseIds.Contains(comment.CaseId!.Value) || actIds.Contains(comment.ActId!.Value))
+            .ExecuteSoftDelete(token);
+
+        await context.FileAssets
+            .Where(file => caseIds.Contains(file.CaseId!.Value) || actIds.Contains(file.ActId!.Value))
+            .ExecuteSoftDelete(token);
+
+        await context.ExternalActNumbers
+            .Where(number => actIds.Contains(number.ActId))
+            .ExecuteSoftDelete(token);
+
+        await context.ExternalCaseNumbers
+            .Where(number => caseIds.Contains(number.CaseId))
+            .ExecuteSoftDelete(token);
+
+        await context.Acts
+            .Where(act => caseIds.Contains(act.CaseId))
+            .ExecuteSoftDelete(token);
+
+        await context.Cases
+            .Where(@case => caseIds.Contains(@case.Id))
+            .ExecuteSoftDelete(token);
+
+        await transaction.CommitAsync(token);
+
+        // The blobs stay: a stamped file is a file that can come back (SDD-012).
         logger.LogInformation("Case {CaseId} was deleted", caseId);
 
         return DeleteOutcome.Deleted;
+    }
+
+    /// <summary>
+    /// The case and every case under it. A parent is optional and a cycle is refused (SDD-009), so
+    /// the descent ends.
+    /// </summary>
+    private static async Task<List<Guid>> CaseWithItsSubordinates(IQueryable<Case> cases, Guid caseId, CancellationToken token)
+    {
+        var caseIds = await cases
+            .WithId(caseId)
+            .Select(static @case => @case.Id)
+            .ToListAsync(token);
+
+        for (var parentIds = caseIds; parentIds.Count != 0;)
+        {
+            parentIds = await cases
+                .Where(@case => parentIds.Contains(@case.ParentCaseId!.Value))
+                .Select(static @case => @case.Id)
+                .ToListAsync(token);
+
+            caseIds.AddRange(parentIds);
+        }
+
+        return caseIds;
     }
 
     private static CaseListItem Describe(Case @case)

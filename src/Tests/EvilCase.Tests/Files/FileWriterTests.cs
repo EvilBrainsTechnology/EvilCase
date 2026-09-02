@@ -84,7 +84,7 @@ public class FileWriterTests : TenantFixture
     }
 
     [Test]
-    public async Task ADeletedFileTakesItsBlobWithIt()
+    public async Task ADeletedFileLeavesItsBlobBehind()
     {
         var @case = await this.Tenant.AddCase(Day);
         var uploaded = await this.writer.UploadCaseFile(@case.Id, Upload("a.txt"), CancellationToken.None);
@@ -95,8 +95,8 @@ public class FileWriterTests : TenantFixture
         using (Assert.EnterMultipleScope())
         {
             Assert.That(outcome, Is.EqualTo(DeleteOutcome.Deleted));
-            Assert.That(await this.Tenant.Context.FileAssets.AnyAsync(file => file.Id == uploaded.File.FileId), Is.False, "a deleted file leaves no row");
-            Assert.That(this.blobs.Deleted, Does.Contain(storagePath), "a deleted file takes its blob with it");
+            Assert.That(await this.Tenant.Context.FileAssets.AnyAsync(file => file.Id == uploaded.File.FileId), Is.False, "a deleted file is out of every read");
+            Assert.That(this.blobs.Deleted, Does.Not.Contain(storagePath), "the bytes stay, so a stamped file is a file that can come back");
         }
     }
 
@@ -180,7 +180,7 @@ public class FileWriterTests : TenantFixture
     }
 
     [Test]
-    public async Task ADeletedActFileTakesItsBlobWithIt()
+    public async Task ADeletedActFileLeavesItsBlobBehind()
     {
         var @case = await this.Tenant.AddCase(Day);
         var act = await this.Tenant.AddAct(@case, Day);
@@ -193,7 +193,7 @@ public class FileWriterTests : TenantFixture
         {
             Assert.That(outcome, Is.EqualTo(DeleteOutcome.Deleted));
             Assert.That(await this.Tenant.Context.FileAssets.AnyAsync(file => file.Id == uploaded.File.FileId), Is.False);
-            Assert.That(this.blobs.Deleted, Does.Contain(storagePath));
+            Assert.That(this.blobs.Deleted, Does.Not.Contain(storagePath), "the bytes stay, so a stamped file is a file that can come back");
         }
     }
 

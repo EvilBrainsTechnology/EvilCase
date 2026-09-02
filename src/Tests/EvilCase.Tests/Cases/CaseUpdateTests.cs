@@ -23,7 +23,7 @@ public class CaseUpdateTests : TenantFixture
     public void SetUpWriter()
     {
         this.writer = new CaseWriter(
-            new FixedDbSession(this.Tenant.Context), new FakeCaseNumberIssuer(), new FakeFileBlobStore(), NullLogger<CaseWriter>.Instance);
+            new FixedDbSession(this.Tenant.Context), new FakeCaseNumberIssuer(), NullLogger<CaseWriter>.Instance);
     }
 
     [Test]

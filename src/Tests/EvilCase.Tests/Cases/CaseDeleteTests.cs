@@ -1,5 +1,7 @@
+using EvilBrains.EvilCase.Business.Acts;
 using EvilBrains.EvilCase.Business.Cases;
 using EvilBrains.EvilCase.Business.Entities;
+using EvilBrains.EvilCase.Data;
 using EvilBrains.EvilCase.Tests.Data;
 using EvilBrains.EvilCase.Tests.Seeding;
 using Microsoft.EntityFrameworkCore;
@@ -8,23 +10,20 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace EvilBrains.EvilCase.Tests.Cases;
 
 /// <summary>
-/// The delete cascade against a real PostgreSQL: the foreign keys carry it, so no fake decides it
-/// (SDD-007). Each test seeds a tenant of its own, so none cleans up after itself.
+/// The delete cascade against a real PostgreSQL. Each test seeds a tenant of its own, so none cleans
+/// up after itself.
 /// </summary>
 public class CaseDeleteTests : TenantFixture
 {
     private static readonly DateOnly Day = new(2026, 8, 21);
-
-    private FakeFileBlobStore blobs = null!;
 
     private CaseWriter writer = null!;
 
     [SetUp]
     public void SetUpWriter()
     {
-        this.blobs = new FakeFileBlobStore();
         this.writer = new CaseWriter(
-            new FixedDbSession(this.Tenant.Context), new FakeCaseNumberIssuer(), this.blobs, NullLogger<CaseWriter>.Instance);
+            new FixedDbSession(this.Tenant.Context), new FakeCaseNumberIssuer(), NullLogger<CaseWriter>.Instance);
     }
 
     [Test]
@@ -64,40 +63,76 @@ public class CaseDeleteTests : TenantFixture
     }
 
     [Test]
-    public async Task ASubordinateCaseSurvivesWithoutAParent()
+    public async Task EverythingTheCascadeTakesCarriesOneMoment()
+    {
+        var contact = await this.Tenant.AddContact("Úřad");
+        var seeded = await this.Tenant.AddCase(Day, "Přestupek");
+        var act = await this.Tenant.AddAct(seeded, Day);
+        await this.Tenant.AddCaseComment(seeded, "Poznámka ke spisu");
+        await this.Tenant.AddActComment(act, "Poznámka k úkonu");
+        await this.Tenant.AddExternalCaseNumber(seeded, "EXT-1", contact);
+        await this.Tenant.AddExternalActNumber(act, "EXT-2", contact);
+        await this.Tenant.AddCaseFile(seeded);
+        await this.Tenant.AddActFile(act);
+
+        await this.writer.DeleteCase(seeded.Id, CancellationToken.None);
+
+        this.Tenant.Context.ChangeTracker.Clear();
+
+        var stamps = await this.Stamps(seeded.Id, act.Id);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(stamps, Has.Count.EqualTo(8), "every row the cascade reaches carries a stamp");
+            Assert.That(stamps.Distinct().ToList(), Has.Count.EqualTo(1), "one transaction stamps the whole cascade with one moment");
+        }
+    }
+
+    [Test]
+    public async Task ASubordinateCaseGoesWithItsParent()
     {
         var parent = await this.Tenant.AddCase(Day, "Rodič");
         var child = await this.Tenant.AddCase(Day, "Podřízený", parentCaseId: parent.Id);
+        var grandChild = await this.Tenant.AddCase(Day, "Vnuk", parentCaseId: child.Id);
 
         var result = await this.writer.DeleteCase(parent.Id, CancellationToken.None);
 
         this.Tenant.Context.ChangeTracker.Clear();
 
-        var reloadedChild = await this.Tenant.Context.Cases.SingleOrDefaultAsync(row => row.Id == child.Id);
+        var descendantsExist = await this.Tenant.Context.Cases.AnyAsync(row => row.Id == child.Id || row.Id == grandChild.Id);
+        var stamped = await this.Tenant.Context.Cases
+            .IncludingDeleted()
+            .Where(row => row.Id == child.Id || row.Id == grandChild.Id)
+            .ToListAsync();
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result, Is.EqualTo(DeleteOutcome.Deleted));
-            Assert.That(reloadedChild, Is.Not.Null, "a subordinate case survives the delete of its parent");
-            Assert.That(reloadedChild!.ParentCaseId, Is.Null, "the surviving subordinate case is left without a parent");
+            Assert.That(descendantsExist, Is.False, "the cascade follows the hierarchy to the bottom");
+            Assert.That(stamped.Select(static row => row.ParentCaseId), Has.No.Null, "a stamped case keeps its place, so restoring the parent restores the tree");
         }
     }
 
     [Test]
-    public async Task TheBlobsOfTheCaseAndItsActsGoWithTheRecords()
+    public async Task AStampedRowKeepsTheMomentAnEarlierDeleteGaveIt()
     {
         var seeded = await this.Tenant.AddCase(Day, "Přestupek");
         var act = await this.Tenant.AddAct(seeded, Day);
-        var caseFile = await this.Tenant.AddCaseFile(seeded);
-        var actFile = await this.Tenant.AddActFile(act);
+        var acts = new ActWriter(
+            new FixedDbSession(this.Tenant.Context), new FakeActNumberIssuer(), NullLogger<ActWriter>.Instance);
+
+        await acts.DeleteAct(seeded.Id, act.Id, CancellationToken.None);
+        var actStamp = await this.Stamp(act.Id);
 
         await this.writer.DeleteCase(seeded.Id, CancellationToken.None);
 
-        Assert.That(this.blobs.Deleted, Is.EquivalentTo([caseFile.StoragePath, actFile.StoragePath]), "the bytes of every file the cascade takes go with the record");
+        this.Tenant.Context.ChangeTracker.Clear();
+
+        Assert.That(await this.Stamp(act.Id), Is.EqualTo(actStamp), "the filter keeps the cascade off a row an earlier delete already took");
     }
 
     [Test]
-    public async Task AnotherCasesFilesAndBlobsAreLeftAlone()
+    public async Task AnotherCasesRowsAreLeftAlone()
     {
         var seeded = await this.Tenant.AddCase(Day, "Přestupek");
         await this.Tenant.AddCaseFile(seeded);
@@ -110,11 +145,7 @@ public class CaseDeleteTests : TenantFixture
 
         var otherFileExists = await this.Tenant.Context.FileAssets.AnyAsync(row => row.Id == otherFile.Id);
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(otherFileExists, Is.True, "the cascade reaches only the files of the deleted case and its acts");
-            Assert.That(this.blobs.Deleted, Does.Not.Contain(otherFile.StoragePath));
-        }
+        Assert.That(otherFileExists, Is.True, "the cascade reaches only the files of the deleted case and its acts");
     }
 
     [Test]
@@ -123,17 +154,6 @@ public class CaseDeleteTests : TenantFixture
         var result = await this.writer.DeleteCase(Guid.CreateVersion7(), CancellationToken.None);
 
         Assert.That(result, Is.EqualTo(DeleteOutcome.NotFound));
-    }
-
-    [Test]
-    public async Task NoBlobIsDeletedWhereNoCaseIs()
-    {
-        var seeded = await this.Tenant.AddCase(Day, "Přestupek");
-        await this.Tenant.AddCaseFile(seeded);
-
-        await this.writer.DeleteCase(Guid.CreateVersion7(), CancellationToken.None);
-
-        Assert.That(this.blobs.Deleted, Is.Empty, "a delete that found no case takes no bytes");
     }
 
     [Test]
@@ -155,4 +175,26 @@ public class CaseDeleteTests : TenantFixture
         }
     }
 
+    private async Task<List<DateTime>> Stamps(Guid caseId, Guid actId)
+    {
+        var context = this.Tenant.Context;
+
+        var cases = await context.Cases.IncludingDeleted().Where(row => row.Id == caseId).Select(static row => row.Deleted).ToListAsync();
+        var acts = await context.Acts.IncludingDeleted().Where(row => row.Id == actId).Select(static row => row.Deleted).ToListAsync();
+        var comments = await context.Comments.IncludingDeleted().Select(static row => row.Deleted).ToListAsync();
+        var caseNumbers = await context.ExternalCaseNumbers.IncludingDeleted().Select(static row => row.Deleted).ToListAsync();
+        var actNumbers = await context.ExternalActNumbers.IncludingDeleted().Select(static row => row.Deleted).ToListAsync();
+        var files = await context.FileAssets.IncludingDeleted().Select(static row => row.Deleted).ToListAsync();
+
+        return [.. cases.Concat(acts).Concat(comments).Concat(caseNumbers).Concat(actNumbers).Concat(files).OfType<DateTime>()];
+    }
+
+    private async Task<DateTime?> Stamp(Guid actId)
+    {
+        return await this.Tenant.Context.Acts
+            .IncludingDeleted()
+            .Where(row => row.Id == actId)
+            .Select(static row => row.Deleted)
+            .SingleAsync();
+    }
 }

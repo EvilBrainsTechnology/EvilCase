@@ -8,6 +8,7 @@ using EvilBrains.EvilCase.Domain.Contacts;
 using EvilBrains.EvilCase.Domain.Users;
 using EvilBrains.EvilCase.Tests.Auth;
 using EvilBrains.EvilCase.Tests.Data;
+using EvilBrains.EvilCase.Tests.Data.Interceptors;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Npgsql;
@@ -15,8 +16,8 @@ using Npgsql;
 namespace EvilBrains.EvilCase.Tests.Contacts;
 
 /// <summary>
-/// The delete against a real PostgreSQL: a reference written once the checks have run is refused by the
-/// foreign key, which no fake decides.
+/// The delete against a real PostgreSQL. A stamp breaks no foreign key, so what refuses a contact
+/// written into use after the checks is the reference test the stamp itself carries.
 /// </summary>
 public class ContactDeleteTests
 {
@@ -28,11 +29,18 @@ public class ContactDeleteTests
         var userId = Guid.CreateVersion7();
         using var entered = userContext.Enter(tenantId, userId);
 
-        await using var context = TestDatabase.CreateMigrated(userContext);
+        Case? seededCase = null;
+        Guid contactId = default;
+
+        // The act lands between the delete's checks and the statement that stamps, on another
+        // connection: the race, without timing.
+        var race = new BeforeNonQueryInterceptor(() => WriteIssuedAct(userContext, seededCase!, contactId));
+
+        await using var context = TestDatabase.CreateMigrated(userContext, race);
         var seeded = await SeedContactAndCase(context, tenantId, userId);
 
-        // The act lands between the delete's checks and its save, on another connection: the race, without timing.
-        context.SavingChanges += (_, _) => WriteIssuedAct(userContext, seeded.Case, seeded.Contact.Id);
+        seededCase = seeded.Case;
+        contactId = seeded.Contact.Id;
 
         var writer = new ContactWriter(new FixedDbSession(context), NullLogger<ContactWriter>.Instance);
 
@@ -45,37 +53,13 @@ public class ContactDeleteTests
     }
 
     [Test]
-    public async Task ADeleteRefusedByAForeignKeyIsReadAsOne()
-    {
-        var userContext = new StubUserContext();
-        var tenantId = Guid.CreateVersion7();
-        var userId = Guid.CreateVersion7();
-        using var entered = userContext.Enter(tenantId, userId);
-
-        await using var context = TestDatabase.CreateMigrated(userContext);
-        var seeded = await SeedContactAndCase(context, tenantId, userId);
-        WriteIssuedAct(userContext, seeded.Case, seeded.Contact.Id);
-
-        context.Contacts.Remove(seeded.Contact);
-
-        Assert.That(
-            async () => await context.SaveChangesAsync(),
-            Throws.InstanceOf<DbUpdateException>().With.Matches<DbUpdateException>(static exception => exception.IsForeignKeyViolation()),
-            "the write PostgreSQL refuses for a foreign key is read as a foreign-key violation");
-    }
-
-    [Test]
-    public void AUniqueViolationIsNotAForeignKeyViolation()
+    public void ADuplicateKeyIsReadAsAUniqueViolation()
     {
         var exception = new DbUpdateException(
             "duplicate key",
             new PostgresException("duplicate key", "ERROR", "ERROR", PostgresErrorCodes.UniqueViolation));
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(exception.IsForeignKeyViolation(), Is.False, "the two readings of a failed write answer for their own error alone");
-            Assert.That(exception.IsUniqueViolation(), Is.True, "the two readings of a failed write answer for their own error alone");
-        }
+        Assert.That(exception.IsUniqueViolation(), Is.True);
     }
 
     /// <summary>

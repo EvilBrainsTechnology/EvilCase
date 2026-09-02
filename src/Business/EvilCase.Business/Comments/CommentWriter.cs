@@ -1,6 +1,7 @@
 using EvilBrains.EvilCase.Api.Contract.Comments;
 using EvilBrains.EvilCase.Business.Acts;
 using EvilBrains.EvilCase.Business.Entities;
+using EvilBrains.EvilCase.Data;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Domain.Users;
@@ -110,7 +111,7 @@ internal sealed class CommentWriter(IDbSession dbSession, IUserContext userConte
 
         var rows = await comments
             .Where(comment => comment.UserId == userId)
-            .ExecuteDeleteAsync(token);
+            .ExecuteSoftDelete(token);
 
         return rows == 0 ? CommentWriteOutcome.NotFound : CommentWriteOutcome.Written;
     }

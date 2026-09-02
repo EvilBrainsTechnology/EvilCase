@@ -203,7 +203,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasOne(static @case => @case.ParentCase)
             .WithMany(static @case => @case.ChildCases)
             .HasForeignKey(static @case => @case.ParentCaseId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<ExternalCaseNumber>()
             .HasOne(static number => number.Case)
