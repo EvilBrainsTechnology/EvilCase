@@ -4,7 +4,6 @@ using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Business.Cases;
 using EvilBrains.EvilCase.Business.Contacts;
-using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Domain.Cases;
 using EvilBrains.EvilCase.Domain.Contacts;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,8 +29,34 @@ public class CreateLocationTests
     {
         this.host = new EvilCaseHost(configureServices: static services =>
         {
-            services.AddSingleton<ICaseWriter>(new StubCaseWriter());
-            services.AddSingleton<IContactWriter>(new StubContactWriter());
+            var caseWriter = Substitute.For<ICaseWriter>();
+            caseWriter
+                .CreateCase(Arg.Any<CreateCaseRequest>(), Arg.Any<CancellationToken>())
+                .Returns(static call => new CaseCreateResult
+                {
+                    Outcome = CaseCreateOutcome.Created,
+                    Case = new CaseListItem
+                    {
+                        CaseId = FiledCaseId,
+                        CaseNumber = "EC/20260821-001",
+                        Title = call.Arg<CreateCaseRequest>().Title,
+                        Date = call.Arg<CreateCaseRequest>().Date,
+                        Status = CaseStatus.Active,
+                        Changed = DateTime.UtcNow,
+                    },
+                });
+            services.AddSingleton(caseWriter);
+
+            var contactWriter = Substitute.For<IContactWriter>();
+            contactWriter
+                .CreateContact(Arg.Any<ContactEditRequest>(), Arg.Any<CancellationToken>())
+                .Returns(static call => new ContactListItem
+                {
+                    ContactId = FiledContactId,
+                    Kind = call.Arg<ContactEditRequest>().Kind,
+                    Name = call.Arg<ContactEditRequest>().Name,
+                });
+            services.AddSingleton(contactWriter);
         });
         this.client = this.host.CreateClient();
     }
@@ -82,54 +107,6 @@ public class CreateLocationTests
                 response.Headers.Location?.ToString(),
                 Is.EqualTo($"http://localhost/api/contacts/{FiledContactId}"),
                 "the Location names the detail route of the contact that was filed");
-        }
-    }
-
-    private sealed class StubCaseWriter : ICaseWriter
-    {
-        public async Task<CaseCreateResult> CreateCase(CreateCaseRequest request, CancellationToken token)
-        {
-            return new CaseCreateResult
-            {
-                Outcome = CaseCreateOutcome.Created,
-                Case = new CaseListItem
-                {
-                    CaseId = FiledCaseId,
-                    CaseNumber = "EC/20260821-001",
-                    Title = request.Title,
-                    Date = request.Date,
-                    Status = CaseStatus.Active,
-                    Changed = DateTime.UtcNow,
-                },
-            };
-        }
-
-        public Task<CaseUpdateOutcome> UpdateCase(Guid caseId, CaseEditRequest request, CancellationToken token)
-        {
-            throw new NotSupportedException();
-        }
-
-        public Task<DeleteOutcome> DeleteCase(Guid caseId, CancellationToken token)
-        {
-            throw new NotSupportedException();
-        }
-    }
-
-    private sealed class StubContactWriter : IContactWriter
-    {
-        public async Task<ContactListItem> CreateContact(ContactEditRequest request, CancellationToken token)
-        {
-            return new ContactListItem { ContactId = FiledContactId, Kind = request.Kind, Name = request.Name };
-        }
-
-        public Task<ContactUpdateOutcome> UpdateContact(Guid contactId, ContactEditRequest request, CancellationToken token)
-        {
-            throw new NotSupportedException();
-        }
-
-        public Task<ContactDeleteOutcome> DeleteContact(Guid contactId, CancellationToken token)
-        {
-            throw new NotSupportedException();
         }
     }
 }

@@ -1,7 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
 using EvilBrains.EvilCase.Api.Contract.Cases;
-using EvilBrains.EvilCase.Business.Cases;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EvilBrains.EvilCase.Tests.Hosting;
@@ -20,7 +19,7 @@ public class RoutingTests
     [OneTimeSetUp]
     public void SetUp()
     {
-        this.host = new EvilCaseHost(configureServices: static services => services.AddSingleton<ICaseReader>(new StubCaseReader()));
+        this.host = new EvilCaseHost(configureServices: static services => services.AddSingleton(CaseReaderStub.WithOneCase()));
         this.client = this.host.CreateClient();
     }
 
@@ -72,7 +71,7 @@ public class RoutingTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-            Assert.That(body?.Items.Select(static item => item.Title), Is.EqualTo([StubCaseReader.Title]));
+            Assert.That(body?.Items.Select(static item => item.Title), Is.EqualTo([CaseReaderStub.Title]));
         }
     }
 

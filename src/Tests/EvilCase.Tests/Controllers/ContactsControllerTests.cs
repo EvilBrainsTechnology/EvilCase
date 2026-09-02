@@ -13,20 +13,22 @@ public class ContactsControllerTests
     [Test]
     public async Task TheCreateRequestReachesTheWriterUntouched()
     {
-        var writer = new RecordingContactWriter();
+        var writer = CreatingWriter(Item("Kontakt"));
         var controller = new ContactsController();
         var request = new ContactEditRequest { Name = "Nový kontakt", Kind = ContactKind.Authority };
 
         await controller.CreateContact(writer, request, CancellationToken.None);
 
-        Assert.That(writer.CreateRequest, Is.SameAs(request));
+        await writer
+            .Received(1)
+            .CreateContact(request, Arg.Any<CancellationToken>());
     }
 
     [Test]
     public async Task TheCreatedContactIsWhatTheWriterReturned()
     {
         var created = Item("Nový kontakt");
-        var writer = new RecordingContactWriter { Created = created };
+        var writer = CreatingWriter(created);
         var controller = new ContactsController();
 
         var response = await controller.CreateContact(writer, new ContactEditRequest { Name = "Nový kontakt", Kind = ContactKind.Authority }, CancellationToken.None);
@@ -41,7 +43,7 @@ public class ContactsControllerTests
         var controller = new ContactsController();
 
         var response = await controller.CreateContact(
-            new RecordingContactWriter { Created = created },
+            CreatingWriter(created),
             new ContactEditRequest { Name = "Nový kontakt", Kind = ContactKind.Authority },
             CancellationToken.None);
 
@@ -59,19 +61,21 @@ public class ContactsControllerTests
     [Test]
     public async Task TheRequestReachesTheReaderUntouched()
     {
-        var reader = new RecordingContactReader();
+        var reader = ListingReader([]);
         var controller = new ContactsController();
         var request = new ContactListRequest { Search = "úřad" };
 
         await controller.ListContacts(reader, request, CancellationToken.None);
 
-        Assert.That(reader.Request?.Search, Is.EqualTo("úřad"));
+        await reader
+            .Received(1)
+            .ListContacts(request, Arg.Any<CancellationToken>());
     }
 
     [Test]
     public async Task TheItemsAreReturnedInTheOrderTheReaderGaveThem()
     {
-        var reader = new RecordingContactReader { Items = [Item("Krajský soud ve Vzorově"), Item("Česká advokátní komora")] };
+        var reader = ListingReader([Item("Krajský soud ve Vzorově"), Item("Česká advokátní komora")]);
         var controller = new ContactsController();
 
         var response = await controller.ListContacts(reader, new ContactListRequest(), CancellationToken.None);
@@ -83,7 +87,10 @@ public class ContactsControllerTests
     public async Task TheDefaultContactIsWhatTheReaderReturned()
     {
         var defaultContact = Item("Výchozí kontakt");
-        var reader = new RecordingContactReader { DefaultContact = defaultContact };
+        var reader = Substitute.For<IContactReader>();
+        reader
+            .GetDefaultContact(Arg.Any<CancellationToken>())
+            .Returns(defaultContact);
         var controller = new ContactsController();
 
         var result = await controller.GetDefaultContact(reader, CancellationToken.None);
@@ -95,12 +102,14 @@ public class ContactsControllerTests
     public async Task TheDetailIsAskedForTheIdInTheRoute()
     {
         var contactId = Guid.CreateVersion7();
-        var reader = new RecordingContactReader { DetailResult = BuildDetail(contactId) };
+        var reader = DetailReader(BuildDetail(contactId));
         var controller = new ContactsController();
 
         await controller.GetContact(reader, contactId, CancellationToken.None);
 
-        Assert.That(reader.DetailId, Is.EqualTo(contactId));
+        await reader
+            .Received(1)
+            .GetContactDetail(contactId, Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -108,7 +117,7 @@ public class ContactsControllerTests
     {
         var controller = new ContactsController();
 
-        var result = await controller.GetContact(new RecordingContactReader { DetailResult = null }, Guid.CreateVersion7(), CancellationToken.None);
+        var result = await controller.GetContact(DetailReader(detail: null), Guid.CreateVersion7(), CancellationToken.None);
 
         AssertProblem(result.Result, 404);
     }
@@ -117,23 +126,21 @@ public class ContactsControllerTests
     public async Task AnEditReachesTheWriterWithTheRouteIdAndTheBody()
     {
         var contactId = Guid.CreateVersion7();
-        var writer = new RecordingContactWriter { UpdateOutcome = ContactUpdateOutcome.Updated };
+        var writer = EditingWriter(ContactUpdateOutcome.Updated);
         var controller = new ContactsController();
         var request = new ContactEditRequest { Name = "Nový název", Kind = ContactKind.Authority };
 
         await controller.EditContact(writer, contactId, request, CancellationToken.None);
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(writer.UpdateId, Is.EqualTo(contactId));
-            Assert.That(writer.UpdateRequest, Is.SameAs(request));
-        }
+        await writer
+            .Received(1)
+            .UpdateContact(contactId, request, Arg.Any<CancellationToken>());
     }
 
     [Test]
     public async Task EditingAMissingContactIsAProblemWithFourOhFour()
     {
-        var writer = new RecordingContactWriter { UpdateOutcome = ContactUpdateOutcome.NotFound };
+        var writer = EditingWriter(ContactUpdateOutcome.NotFound);
         var controller = new ContactsController();
 
         var result = await controller.EditContact(writer, Guid.CreateVersion7(), Edit(), CancellationToken.None);
@@ -144,7 +151,7 @@ public class ContactsControllerTests
     [Test]
     public async Task AnEditThatSucceedsAnswersWithNoContent()
     {
-        var writer = new RecordingContactWriter { UpdateOutcome = ContactUpdateOutcome.Updated };
+        var writer = EditingWriter(ContactUpdateOutcome.Updated);
         var controller = new ContactsController();
 
         var result = await controller.EditContact(writer, Guid.CreateVersion7(), Edit(), CancellationToken.None);
@@ -155,7 +162,7 @@ public class ContactsControllerTests
     [Test]
     public async Task AnEditOutcomeTheEndpointDoesNotKnowThrows()
     {
-        var writer = new RecordingContactWriter { UpdateOutcome = (ContactUpdateOutcome)99 };
+        var writer = EditingWriter((ContactUpdateOutcome)99);
         var controller = new ContactsController();
 
         await Assert.ThatAsync(
@@ -167,7 +174,7 @@ public class ContactsControllerTests
     [Test]
     public async Task DeletingAnUnreferencedContactAnswersWithNoContent()
     {
-        var writer = new RecordingContactWriter { DeleteOutcome = ContactDeleteOutcome.Deleted };
+        var writer = DeletingWriter(ContactDeleteOutcome.Deleted);
         var controller = new ContactsController();
 
         var result = await controller.DeleteContact(writer, Guid.CreateVersion7(), CancellationToken.None);
@@ -178,7 +185,7 @@ public class ContactsControllerTests
     [Test]
     public async Task DeletingAReferencedContactIsAConflict()
     {
-        var writer = new RecordingContactWriter { DeleteOutcome = ContactDeleteOutcome.Referenced };
+        var writer = DeletingWriter(ContactDeleteOutcome.Referenced);
         var controller = new ContactsController();
 
         var result = await controller.DeleteContact(writer, Guid.CreateVersion7(), CancellationToken.None);
@@ -189,8 +196,8 @@ public class ContactsControllerTests
     [Test]
     public async Task DeletingTheDefaultContactIsAConflict()
     {
-        var referenced = new RecordingContactWriter { DeleteOutcome = ContactDeleteOutcome.Referenced };
-        var defaultContact = new RecordingContactWriter { DeleteOutcome = ContactDeleteOutcome.DefaultContact };
+        var referenced = DeletingWriter(ContactDeleteOutcome.Referenced);
+        var defaultContact = DeletingWriter(ContactDeleteOutcome.DefaultContact);
         var controller = new ContactsController();
         var referencedResult = await controller.DeleteContact(referenced, Guid.CreateVersion7(), CancellationToken.None);
         var defaultResult = await controller.DeleteContact(defaultContact, Guid.CreateVersion7(), CancellationToken.None);
@@ -204,7 +211,7 @@ public class ContactsControllerTests
     [Test]
     public async Task DeletingAMissingContactIsAProblemWithFourOhFour()
     {
-        var writer = new RecordingContactWriter { DeleteOutcome = ContactDeleteOutcome.NotFound };
+        var writer = DeletingWriter(ContactDeleteOutcome.NotFound);
         var controller = new ContactsController();
 
         var result = await controller.DeleteContact(writer, Guid.CreateVersion7(), CancellationToken.None);
@@ -227,70 +234,53 @@ public class ContactsControllerTests
         return new() { Name = "Kontakt", Kind = ContactKind.Authority };
     }
 
-    private sealed class RecordingContactReader : IContactReader
+    private static IContactReader ListingReader(IReadOnlyList<ContactListItem> items)
     {
-        public ContactListRequest? Request { get; private set; }
+        var reader = Substitute.For<IContactReader>();
+        reader
+            .ListContacts(Arg.Any<ContactListRequest>(), Arg.Any<CancellationToken>())
+            .Returns(items);
 
-        public IReadOnlyList<ContactListItem> Items { get; init; } = [];
-
-        public Guid? DetailId { get; private set; }
-
-        public ContactDetail? DetailResult { get; init; }
-
-        public ContactListItem DefaultContact { get; init; } = Item("Výchozí kontakt");
-
-        public async Task<IReadOnlyList<ContactListItem>> ListContacts(ContactListRequest request, CancellationToken token)
-        {
-            this.Request = request;
-
-            return this.Items;
-        }
-
-        public async Task<ContactDetail?> GetContactDetail(Guid contactId, CancellationToken token)
-        {
-            this.DetailId = contactId;
-
-            return this.DetailResult;
-        }
-
-        public async Task<ContactListItem> GetDefaultContact(CancellationToken token)
-        {
-            return this.DefaultContact;
-        }
+        return reader;
     }
 
-    private sealed class RecordingContactWriter : IContactWriter
+    private static IContactReader DetailReader(ContactDetail? detail)
     {
-        public ContactEditRequest? CreateRequest { get; private set; }
+        var reader = Substitute.For<IContactReader>();
+        reader
+            .GetContactDetail(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(detail);
 
-        public ContactListItem Created { get; init; } = Item("Kontakt");
+        return reader;
+    }
 
-        public Guid? UpdateId { get; private set; }
+    private static IContactWriter CreatingWriter(ContactListItem created)
+    {
+        var writer = Substitute.For<IContactWriter>();
+        writer
+            .CreateContact(Arg.Any<ContactEditRequest>(), Arg.Any<CancellationToken>())
+            .Returns(created);
 
-        public ContactEditRequest? UpdateRequest { get; private set; }
+        return writer;
+    }
 
-        public ContactUpdateOutcome UpdateOutcome { get; init; }
+    private static IContactWriter EditingWriter(ContactUpdateOutcome outcome)
+    {
+        var writer = Substitute.For<IContactWriter>();
+        writer
+            .UpdateContact(Arg.Any<Guid>(), Arg.Any<ContactEditRequest>(), Arg.Any<CancellationToken>())
+            .Returns(outcome);
 
-        public ContactDeleteOutcome DeleteOutcome { get; init; }
+        return writer;
+    }
 
-        public async Task<ContactListItem> CreateContact(ContactEditRequest request, CancellationToken token)
-        {
-            this.CreateRequest = request;
+    private static IContactWriter DeletingWriter(ContactDeleteOutcome outcome)
+    {
+        var writer = Substitute.For<IContactWriter>();
+        writer
+            .DeleteContact(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(outcome);
 
-            return this.Created;
-        }
-
-        public async Task<ContactUpdateOutcome> UpdateContact(Guid contactId, ContactEditRequest request, CancellationToken token)
-        {
-            this.UpdateId = contactId;
-            this.UpdateRequest = request;
-
-            return this.UpdateOutcome;
-        }
-
-        public async Task<ContactDeleteOutcome> DeleteContact(Guid contactId, CancellationToken token)
-        {
-            return this.DeleteOutcome;
-        }
+        return writer;
     }
 }

@@ -23,7 +23,19 @@ public class StrictEnumBindingTests
     [OneTimeSetUp]
     public void SetUp()
     {
-        this.host = new EvilCaseHost(configureServices: static services => services.AddSingleton<IContactWriter>(new StubContactWriter()));
+        this.host = new EvilCaseHost(configureServices: static services =>
+        {
+            var writer = Substitute.For<IContactWriter>();
+            writer
+                .CreateContact(Arg.Any<ContactEditRequest>(), Arg.Any<CancellationToken>())
+                .Returns(static call => new ContactListItem
+                {
+                    ContactId = Guid.CreateVersion7(),
+                    Kind = call.Arg<ContactEditRequest>().Kind,
+                    Name = call.Arg<ContactEditRequest>().Name,
+                });
+            services.AddSingleton(writer);
+        });
         this.client = this.host.CreateClient();
     }
 
@@ -65,23 +77,5 @@ public class StrictEnumBindingTests
         using var response = await this.client.SendAsync(request);
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Created), "the strict converter still accepts the member by its name");
-    }
-
-    private sealed class StubContactWriter : IContactWriter
-    {
-        public async Task<ContactListItem> CreateContact(ContactEditRequest request, CancellationToken token)
-        {
-            return new ContactListItem { ContactId = Guid.CreateVersion7(), Kind = request.Kind, Name = request.Name };
-        }
-
-        public Task<ContactUpdateOutcome> UpdateContact(Guid contactId, ContactEditRequest request, CancellationToken token)
-        {
-            throw new NotSupportedException();
-        }
-
-        public Task<ContactDeleteOutcome> DeleteContact(Guid contactId, CancellationToken token)
-        {
-            throw new NotSupportedException();
-        }
     }
 }

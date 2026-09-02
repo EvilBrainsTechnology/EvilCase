@@ -3,6 +3,7 @@ using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Api.Controllers;
 using EvilBrains.EvilCase.Business.Entities;
+using EvilBrains.EvilCase.Business.Files;
 using Microsoft.AspNetCore.Mvc;
 using static EvilBrains.EvilCase.Tests.Controllers.ProblemAssertions;
 
@@ -15,22 +16,20 @@ public class ActFilesControllerTests
     {
         var caseId = Guid.CreateVersion7();
         var actId = Guid.CreateVersion7();
-        var reader = new RecordingFileReader { ListResult = [] };
+        var reader = ListingReader([]);
         var controller = new ActFilesController();
 
         await controller.ListActFiles(reader, caseId, actId, CancellationToken.None);
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(reader.ListCaseId, Is.EqualTo(caseId));
-            Assert.That(reader.ListActId, Is.EqualTo(actId));
-        }
+        await reader
+            .Received(1)
+            .ListActFiles(caseId, actId, Arg.Any<CancellationToken>());
     }
 
     [Test]
     public async Task TheListedItemsComeBackInTheOrderTheReaderGaveThem()
     {
-        var reader = new RecordingFileReader { ListResult = [Item("prvni.txt"), Item("druhy.txt")] };
+        var reader = ListingReader([Item("prvni.txt"), Item("druhy.txt")]);
         var controller = new ActFilesController();
 
         var response = await controller.ListActFiles(reader, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
@@ -43,7 +42,7 @@ public class ActFilesControllerTests
     [Test]
     public async Task AListOnAMissingActIsAProblemWithFourOhFour()
     {
-        var reader = new RecordingFileReader { ListResult = null };
+        var reader = ListingReader(items: null);
         var controller = new ActFilesController();
 
         var response = await controller.ListActFiles(reader, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
@@ -58,23 +57,20 @@ public class ActFilesControllerTests
         var caseId = Guid.CreateVersion7();
         var actId = Guid.CreateVersion7();
         var fileId = Guid.CreateVersion7();
-        var writer = new RecordingFileWriter { DeleteOutcome = DeleteOutcome.Deleted };
+        var writer = DeletingWriter(DeleteOutcome.Deleted);
         var controller = new ActFilesController();
 
         await controller.DeleteActFile(writer, caseId, actId, fileId, CancellationToken.None);
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(writer.DeleteCaseId, Is.EqualTo(caseId));
-            Assert.That(writer.DeleteActId, Is.EqualTo(actId));
-            Assert.That(writer.DeleteFileId, Is.EqualTo(fileId));
-        }
+        await writer
+            .Received(1)
+            .DeleteActFile(caseId, actId, fileId, Arg.Any<CancellationToken>());
     }
 
     [Test]
     public async Task DeletingAFileAnswersWithNoContent()
     {
-        var writer = new RecordingFileWriter { DeleteOutcome = DeleteOutcome.Deleted };
+        var writer = DeletingWriter(DeleteOutcome.Deleted);
         var controller = new ActFilesController();
 
         var result = await controller.DeleteActFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
@@ -85,7 +81,7 @@ public class ActFilesControllerTests
     [Test]
     public async Task DeletingAMissingFileIsAProblemWithFourOhFour()
     {
-        var writer = new RecordingFileWriter { DeleteOutcome = DeleteOutcome.NotFound };
+        var writer = DeletingWriter(DeleteOutcome.NotFound);
         var controller = new ActFilesController();
 
         var result = await controller.DeleteActFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
@@ -96,13 +92,33 @@ public class ActFilesControllerTests
     [Test]
     public async Task ADeleteOutcomeTheEndpointDoesNotKnowThrows()
     {
-        var writer = new RecordingFileWriter { DeleteOutcome = (DeleteOutcome)99 };
+        var writer = DeletingWriter((DeleteOutcome)99);
         var controller = new ActFilesController();
 
         await Assert.ThatAsync(
             async () => await controller.DeleteActFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None),
             Throws.InstanceOf<UnreachableException>(),
             "an outcome the endpoint does not name never turns into a status");
+    }
+
+    private static IFileReader ListingReader(IReadOnlyList<FileListItem>? items)
+    {
+        var reader = Substitute.For<IFileReader>();
+        reader
+            .ListActFiles(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(items);
+
+        return reader;
+    }
+
+    private static IFileWriter DeletingWriter(DeleteOutcome outcome)
+    {
+        var writer = Substitute.For<IFileWriter>();
+        writer
+            .DeleteActFile(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(outcome);
+
+        return writer;
     }
 
     private static FileListItem Item(string fileName)
