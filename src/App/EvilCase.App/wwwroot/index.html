@@ -24,7 +24,20 @@
     <div id="app">
         <div class="page page-center">
             <div class="container container-tight py-4 text-center">
-                <h1 class="mb-3">EvilCase</h1>
+                <!-- AppIcons.Scale, which the header and the sign-in page render through TabBlazor; this screen
+                     is static HTML and has no component to render it with. -->
+                <h1 class="mb-3 d-flex align-items-center justify-content-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="text-primary me-2" width="36" height="36"
+                         viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                        <path d="M7 20l10 0" />
+                        <path d="M6 6l6 -1l6 1" />
+                        <path d="M12 3l0 17" />
+                        <path d="M9 12l-3 -6l-3 6a3 3 0 0 0 6 0" />
+                        <path d="M21 12l-3 -6l-3 6a3 3 0 0 0 6 0" />
+                    </svg>EvilCase
+                </h1>
                 <div class="text-secondary mb-2">
                     <span class="boot-step-download">1/3 Stahování</span>
                     <span class="boot-step-start">2/3 Spouštění aplikace</span>

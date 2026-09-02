@@ -107,8 +107,11 @@
 .boot-progress-bar {
     width: var(--blazor-load-percentage, 0%);
     /* So the percentage inside the bar is readable from the first frame rather than clipped away. */
-    min-width: 2.75rem;
-    transition: width 0.2s linear;
+    min-width: 2.5rem;
+    /* Tabler animates the width over 0.6s. Blazor counts resources rather than bytes, so the
+       percentage arrives in jumps that restart that animation before it has arrived, and the bar
+       trails the number beside it by half the track. It has to snap instead. */
+    transition: none;
 }
 
 .boot-progress-bar::after {
