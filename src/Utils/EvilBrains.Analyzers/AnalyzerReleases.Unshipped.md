@@ -15,3 +15,4 @@ EB0007 | EvilBrains.Design | Warning | Controller must not take constructor depe
 EB0008 | EvilBrains.Design | Warning | Action parameters must run [FromServices], [FromRoute], [FromQuery], [FromBody], CancellationToken
 EB0009 | EvilBrains.Usage | Warning | Entity is reached through Set<TEntity>() instead of its typed DbSet
 EB0010 | EvilBrains.Usage | Warning | Where predicate joins conditions with '&&'
+EB0011 | EvilBrains.Usage | Warning | Soft-delete entity is removed by ExecuteDelete
