@@ -187,8 +187,16 @@ if (app.Configuration.GetValue("EvilBrains:EvilCase:Hosting:HttpsRedirection", d
         static branch => branch.UseHttpsRedirection());
 }
 
-app.UseBlazorFrameworkFiles();
-app.UseStaticFiles();
+// The entry point of the frontend, answered by the static asset endpoint of index.html: compressed,
+// which the fallback below is not.
+app.Use(
+    static async (context, next) =>
+    {
+        if (context.Request.Path == "/")
+            context.Request.Path = "/index.html";
+
+        await next(context);
+    });
 
 app.UseRouting();
 
@@ -200,6 +208,12 @@ app.UseRateLimiter();
 // proxy's address.
 app.UseAuthentication();
 app.UseAuthorization();
+
+// The frontend and its assets, served from the build's endpoint manifest: the compressed sibling the
+// build produced, and an immutable cache for every fingerprinted file. It replaces UseBlazorFrameworkFiles,
+// whose /_framework branch would terminate ahead of it.
+// Anonymous, like the fallback below: the default policy denies, and the sign-in page needs its assets.
+app.MapStaticAssets().AllowAnonymous();
 
 app.MapEvilCaseApi();
 

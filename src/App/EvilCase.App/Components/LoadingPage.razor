@@ -1,7 +1,12 @@
-@* Matches the boot placeholder in index.html, so restoring a session does not flash a different screen. *@
+@* The last step of the boot, picked up from the screen in index.html: the wait for the server,
+   which has no progress to report. *@
 <div class="page page-center">
     <div class="container container-tight py-4 text-center">
-        <div class="progress progress-sm">
+        <h1 class="mb-3 d-flex align-items-center justify-content-center">
+            <Icon IconType="AppIcons.Scale" Size="36" CssClass="me-2" TextColor="TablerColor.Primary" />EvilCase
+        </h1>
+        <div class="text-secondary mb-2">3/3 Přihlašování</div>
+        <div class="progress boot-progress">
             <div class="progress-bar progress-bar-indeterminate"></div>
         </div>
     </div>

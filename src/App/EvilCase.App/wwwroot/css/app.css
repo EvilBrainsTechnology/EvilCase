@@ -94,6 +94,50 @@
     white-space: pre-line;
 }
 
+/* The boot screen of index.html and LoadingPage are three steps of one wait and share this bar,
+   tall enough to hold the percentage the first step counts. Blazor writes --blazor-load-percentage
+   and --blazor-load-percentage-text on the root element while it downloads; the style query below
+   is what moves the screen to its second step once the download is done, which otherwise takes a
+   script, and every inline script has to be named in the content security policy. */
+.boot-progress {
+    height: 1.25rem;
+    font-size: 0.75rem;
+}
+
+.boot-progress-bar {
+    width: var(--blazor-load-percentage, 0%);
+    /* So the percentage inside the bar is readable from the first frame rather than clipped away. */
+    min-width: 2.5rem;
+    /* Tabler animates the width over 0.6s. Blazor counts resources rather than bytes, so the
+       percentage arrives in jumps that restart that animation before it has arrived, and the bar
+       trails the number beside it by half the track. It has to snap instead. */
+    transition: none;
+}
+
+.boot-progress-bar::after {
+    content: var(--blazor-load-percentage-text, "0%");
+}
+
+.boot-step-start,
+.boot-progress-indeterminate {
+    display: none;
+}
+
+@container style(--blazor-load-percentage: 100%) {
+    .boot-step-download,
+    .boot-progress-bar {
+        display: none;
+    }
+
+    .boot-step-start {
+        display: inline;
+    }
+
+    .boot-progress-indeterminate {
+        display: flex;
+    }
+}
+
 /* A comment is one free-text block, shown as it was written. */
 .comment-body {
     white-space: pre-line;
