@@ -36,6 +36,8 @@ Data nesmí utéct mezi tenanty; únik je kritická chyba.
 - Každá tenantová entita včetně uživatele má EF global query filter na `TenantId`; tenant
   i uživatele dodává `IUserContext`. Hledání, které tenanta ještě nezná — přihlášení, obnova
   tokenu a oba seedy — filtr nepoužije.
+- Filtry jsou pojmenované. Čtení, které potřebuje vidět smazané řádky (SDD-007), vypouští jen
+  filtr smazání; tenantní filtr nesmí vypustit nikdy.
 - Access token nese tenant claim i subject claim; `IUserContext` je čte z principalu.
 - `SaveChanges` doplní `TenantId` nové tenantové entitě z kontextu a zápis do cizího tenanta
   odmítne.

@@ -41,8 +41,9 @@ Přehled i výskyty jsou bez stránkování.
 
 ### Mazání
 
-Smazat jde jen kontakt, na který nic neodkazuje; jinak 409 (SDD-004). Defaultní kontakt
-smazat nejde.
+Smazat jde jen kontakt, na který nic neodkazuje; jinak 409 (SDD-004). Odkazem je i smazaný
+úkon nebo smazané číslo — jinak by po jejich obnově jmenovaly kontakt, který mezitím zanikl.
+Defaultní kontakt smazat nejde.
 
 ## Rozhodnutí
 

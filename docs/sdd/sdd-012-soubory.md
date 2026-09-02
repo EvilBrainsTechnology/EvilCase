@@ -21,7 +21,8 @@ jinými entitami; tentýž dokument ve dvou spisech jsou dva soubory.
 - Bajty leží na souborovém systému pod kořenem z konfigurace; databáze nese jen metadata:
   název, velikost, `MediaType`, SHA-256 hash, cestu k blobu.
 - Blob se zapisuje před commitem databázové transakce; osiřelý blob po neúspěšné transakci se
-  toleruje, bez automatického úklidu. Mazání drží matice v SDD-007.
+  toleruje, bez automatického úklidu. Mazání drží matice v SDD-007: záznam dostane razítko a
+  bajty na disku zůstávají, takže smazaný soubor jde vrátit celý.
 - Kód úložiště žije v `Common/EvilCase.Files` (SDD-001).
 
 ### Pravidla
@@ -44,6 +45,7 @@ a `X-Content-Type-Options: nosniff`. Smazání je prosté, s potvrzením.
 - Limit velikosti: bez limitu / 100 MB. Platí 100 MB.
 - Úložiště: databáze / souborový systém. Platí souborový systém, metadata v databázi.
 - Přípona v názvu blobu: zůstává / nezůstává. Nezůstává.
+- Blob při smazání záznamu: zaniká / zůstává. Platí zůstává; úklid disku nemá nic.
 
 ## Dopady
 

@@ -30,6 +30,11 @@ Vrstvy testů a povinné testy nových oblastí.
 - Testy razítek nad reálnou PostgreSQL: hodnoty, které si zápis čte zpět, změna, která `Created`
   nechá být, zápis mimo EF a pokrytí každé mapované tabulky triggerem; bez serveru selžou s tím,
   co chybí, nepřeskakují se (SDD-018).
+- Konvenční test smazání: každá entita kromě `RefreshToken` má filtr smazání a žádný filtr
+  v modelu není bezejmenný (SDD-007).
+- Testy smazání nad reálnou PostgreSQL: kaskáda pod jedním okamžikem, dřívější razítko, které
+  pozdější kaskáda nepřepíše, obsazené číslo po smazání a kontakt, který drží i smazaný řádek
+  (SDD-007).
 
 ## Rozhodnutí
 

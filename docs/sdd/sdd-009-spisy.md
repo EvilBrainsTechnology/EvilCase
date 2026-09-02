@@ -49,7 +49,8 @@ Mazání řídí matice v SDD-007; potvrzení jmenuje, co kaskáda bere.
 
 ## Rozhodnutí
 
-- Podřízené spisy při smazání rodiče: kaskáda / osiření. Platí osiření — rodič se vynuluje.
+- Podřízené spisy při smazání rodiče: kaskáda / osiření. Platí kaskáda — podřízené spisy jdou
+  s rodičem do libovolné hloubky a rodiče si podrží.
 - Hierarchie v UI: strom / ploché seznamy. Platí ploché seznamy.
 - Datum spisu: datum založení záznamu / explicitní pole. Platí explicitní pole.
 - Stav spisu: řídí chování / jen štítek. Platí jen štítek.

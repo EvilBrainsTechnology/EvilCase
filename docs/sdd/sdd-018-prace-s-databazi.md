@@ -41,6 +41,14 @@ Schéma drží SDD-007, izolaci tenantů SDD-006.
   v migraci, která ji zakládá.
 - Model obě pole mapuje jako generovaná databází: zápis je neposílá a po uložení si je čte zpět.
 
+### Razítko Deleted
+
+- `Deleted` posílá zápis, ne trigger, a hodnotu bere z hodin databáze v čase transakce. Celá
+  kaskáda proto nese jeden okamžik a jde podle něj poznat, co spolu zaniklo (SDD-007).
+- `ExecuteDelete` jde mimo interceptory, takže razítko nedoplní; nad entitou, kterou maže
+  razítko, ho hlásí analyzátor.
+- Sledované `Remove` překlápí na razítko interceptor.
+
 ### Migrace
 
 Migrace nejsou přístup k datům aplikace: `DatabaseMigrator` drží `ApplicationDbContext` přímo
@@ -57,6 +65,8 @@ a běží ve vlastním scope dřív, než se obslouží první požadavek.
 - Čas razítka: čas transakce / čas řádku. Platí čas řádku — `Created` rozhoduje pořadí a seed
   píše celý strom v jedné transakci.
 - `Updated`: jen při skutečné změně / při každém UPDATE. Platí každý UPDATE.
+- Čas razítka `Deleted`: čas řádku / čas transakce. Platí čas transakce — na rozdíl od `Created`
+  je jeho smysl právě to, že celou kaskádu spojí jeden okamžik.
 
 ## Dopady
 

@@ -38,18 +38,27 @@ Account → Tenant → User (SDD-006). Tenantová data:
 - Tenantové entity nesou `TenantId` a vlastníka `UserId`; kontakt vlastníka nemá (SDD-006).
   Obě hodnoty na nový řádek doplní zápis z `IUserContext`.
 - Datum spisu a úkonu je `DateOnly` (`.claude/rules/data.md`).
+- Každá entita kromě `RefreshToken` nese `Deleted`: prázdné, dokud řádek žije, jinak okamžik
+  jeho smazání.
 
 ### Matice mazání
 
+Smazání je razítko: řádek dostane `Deleted`, zmizí z každého čtení a zůstane v databázi. Spisová
+značka, číslo jednací i hodnota externí značky proto zůstávají obsazené a smazaný soubor si své
+bajty drží.
+
 | Entita | Smazání |
 | --- | --- |
-| Case | kaskáda: úkony, komentáře, značky, soubory; podřízené spisy přežijí bez rodiče |
+| Case | kaskáda: úkony, komentáře, značky, soubory i podřízené spisy |
 | Act | kaskáda: komentáře, externí čísla jednací, soubory |
-| Contact | jen neodkazovaný; defaultní kontakt nikdy (SDD-011) |
-| FileAsset | prosté; blob zaniká se záznamem (SDD-012) |
+| Contact | jen kontakt, na který neodkazuje nic, ani smazaný řádek; defaultní kontakt nikdy (SDD-011) |
+| FileAsset | prosté; blob na disku zůstává (SDD-012) |
 | Comment | prosté; jen autor (SDD-013) |
 
-Každé smazání se v UI potvrzuje (SDD-004).
+Celá kaskáda nese jeden okamžik. Řádek, který vzalo dřívější smazání, si svůj okamžik nechá,
+takže se s pozdější kaskádou nevrací.
+
+Každé smazání se v UI potvrzuje (SDD-004). Obnovu ani trvalé smazání UI nenabízí.
 
 ### Migrace
 
@@ -63,6 +72,9 @@ Schéma začíná migrací `Init`; řetěz migrací od ní jen roste a nikdy se 
 - Migrace: řetěz na starých 12 / reset. Platil reset; schéma začíná migrací `Init`.
 - Optimistická konkurence: token / bez tokenu. Platí zatím bez tokenu — poslední zápis
   vyhrává.
+- Smazání: řádek zaniká / razítko. Platí razítko na každé entitě kromě `RefreshToken`.
+- Obsazenost čísel po smazání: uvolní se / zůstane. Platí zůstane — obnova nikdy nekoliduje.
+- Podřízené spisy při smazání rodiče: osiření / kaskáda. Platí kaskáda (SDD-009).
 
 ## Dopady
 
