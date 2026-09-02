@@ -9,7 +9,7 @@ namespace EvilBrains.EvilCase.Data.Entities;
 /// </summary>
 [Index(nameof(TenantId), nameof(CaseNumber), IsUnique = true)]
 [Index(nameof(ParentCaseId))]
-public sealed record Case : IUserOwnedEntity
+public sealed record Case : IUserOwnedEntity, ISoftDeleteEntity
 {
     [Key]
     public Guid Id { get; init; } = Guid.CreateVersion7();
@@ -35,6 +35,8 @@ public sealed record Case : IUserOwnedEntity
     public DateTime Created { get; init; }
 
     public DateTime? Updated { get; init; }
+
+    public DateTime? Deleted { get; init; }
 
     public Case? ParentCase { get; init; }
 

@@ -9,7 +9,7 @@ namespace EvilBrains.EvilCase.Data.Entities;
 /// in, so a contact accumulates history across every case it appears in.
 /// </summary>
 [Index(nameof(TenantId))]
-public sealed record Contact : ITenantEntity
+public sealed record Contact : ITenantEntity, ISoftDeleteEntity
 {
     [Key]
     public Guid Id { get; init; } = Guid.CreateVersion7();
@@ -41,6 +41,8 @@ public sealed record Contact : ITenantEntity
     public DateTime Created { get; init; }
 
     public DateTime? Updated { get; init; }
+
+    public DateTime? Deleted { get; init; }
 
     public ICollection<ExternalCaseNumber> AssignedExternalCaseNumbers { get; init; } = [];
 

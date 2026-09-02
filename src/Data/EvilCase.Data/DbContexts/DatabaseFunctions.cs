@@ -13,4 +13,12 @@ public static class DatabaseFunctions
     {
         throw new NotSupportedException($"{nameof(Unaccent)} runs in the database and has no in-memory form.");
     }
+
+    /// <summary>
+    /// The transaction's own timestamp, so every row one transaction stamps carries one moment.
+    /// </summary>
+    public static DateTime Now()
+    {
+        throw new NotSupportedException($"{nameof(Now)} runs in the database and has no in-memory form.");
+    }
 }

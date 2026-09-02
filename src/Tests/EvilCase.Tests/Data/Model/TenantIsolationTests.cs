@@ -1,3 +1,4 @@
+using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
 using Microsoft.EntityFrameworkCore.Metadata;
 
@@ -67,8 +68,8 @@ public class TenantIsolationTests : ModelFixture
             foreach (var entityType in tenantEntities)
             {
                 Assert.That(
-                    entityType.GetDeclaredQueryFilters(),
-                    Is.Not.Empty,
+                    entityType.FindDeclaredQueryFilter(ApplicationDbContext.TenantFilter),
+                    Is.Not.Null,
                     $"{entityType.ShortName()}: a tenant entity without a query filter leaks across tenants");
             }
         }

@@ -5,7 +5,7 @@ namespace EvilBrains.EvilCase.Data.Entities;
 /// <summary>
 /// Covers N tenants.
 /// </summary>
-public sealed record Account : IEntity
+public sealed record Account : ISoftDeleteEntity
 {
     [Key]
     public Guid Id { get; init; } = Guid.CreateVersion7();
@@ -16,4 +16,6 @@ public sealed record Account : IEntity
     public DateTime Created { get; init; }
 
     public DateTime? Updated { get; init; }
+
+    public DateTime? Deleted { get; init; }
 }

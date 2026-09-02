@@ -8,7 +8,7 @@ namespace EvilBrains.EvilCase.Data.Entities;
 /// </summary>
 [Index(nameof(TenantId), nameof(ActId), nameof(Value), IsUnique = true)]
 [Index(nameof(AssignedByContactId))]
-public sealed record ExternalActNumber : IUserOwnedEntity
+public sealed record ExternalActNumber : IUserOwnedEntity, ISoftDeleteEntity
 {
     [Key]
     public Guid Id { get; init; } = Guid.CreateVersion7();
@@ -34,6 +34,8 @@ public sealed record ExternalActNumber : IUserOwnedEntity
     public DateTime Created { get; init; }
 
     public DateTime? Updated { get; init; }
+
+    public DateTime? Deleted { get; init; }
 
     public Act? Act { get; init; }
 

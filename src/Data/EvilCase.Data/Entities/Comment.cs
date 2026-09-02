@@ -10,7 +10,7 @@ namespace EvilBrains.EvilCase.Data.Entities;
 [Index(nameof(TenantId))]
 [Index(nameof(CaseId))]
 [Index(nameof(ActId))]
-public sealed record Comment : IUserOwnedEntity
+public sealed record Comment : IUserOwnedEntity, ISoftDeleteEntity
 {
     [Key]
     public Guid Id { get; init; } = Guid.CreateVersion7();
@@ -40,6 +40,8 @@ public sealed record Comment : IUserOwnedEntity
     /// Set once a note has been edited.
     /// </summary>
     public DateTime? Updated { get; init; }
+
+    public DateTime? Deleted { get; init; }
 
     public Case? Case { get; init; }
 

@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Domain.Users;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +8,14 @@ namespace EvilBrains.EvilCase.Data.DbContexts;
 
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, IUserContext userContext) : DbContext(options)
 {
+    /// <summary>
+    /// Names the tenant filter so a read can drop the soft-delete filter and keep this one. EF refuses
+    /// a model that mixes named and anonymous filters, so every filter here carries a key.
+    /// </summary>
+    public const string TenantFilter = "Tenant";
+
+    public const string SoftDeleteFilter = "SoftDelete";
+
     private readonly IUserContext userContext = userContext;
 
     public DbSet<Account> Accounts => this.Set<Account>();
@@ -39,6 +48,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         ConfigureExtensions(modelBuilder);
         ConfigureEntities(modelBuilder);
         this.ConfigureTenancy(modelBuilder);
+        ConfigureSoftDelete(modelBuilder);
         ConfigureAccounts(modelBuilder);
         ConfigureCases(modelBuilder);
         ConfigureActs(modelBuilder);
@@ -52,6 +62,11 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         modelBuilder
             .HasDbFunction(typeof(DatabaseFunctions).GetMethod(nameof(DatabaseFunctions.Unaccent), [typeof(string)])!)
             .HasName("immutable_unaccent");
+
+        modelBuilder
+            .HasDbFunction(typeof(DatabaseFunctions).GetMethod(nameof(DatabaseFunctions.Now), [])!)
+            .HasName("now")
+            .IsBuiltIn(true);
     }
 
     private static void ConfigureExtensions(ModelBuilder modelBuilder)
@@ -83,6 +98,27 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         }
     }
 
+    /// <summary>
+    /// The filter is built by hand because the non-generic builder takes only a
+    /// <see cref="LambdaExpression"/>. It closes over nothing, so the model caches it safely.
+    /// </summary>
+    private static void ConfigureSoftDelete(ModelBuilder modelBuilder)
+    {
+        var entityTypes = modelBuilder.Model.GetEntityTypes()
+            .Where(static type => typeof(ISoftDeleteEntity).IsAssignableFrom(type.ClrType))
+            .ToList();
+
+        foreach (var entityType in entityTypes)
+        {
+            var entity = Expression.Parameter(entityType.ClrType, "entity");
+            var deleted = Expression.Property(entity, nameof(ISoftDeleteEntity.Deleted));
+            var undeleted = Expression.Equal(deleted, Expression.Constant(null, typeof(DateTime?)));
+
+            modelBuilder.Entity(entityType.ClrType)
+                .HasQueryFilter(SoftDeleteFilter, Expression.Lambda(undeleted, entity));
+        }
+    }
+
     // Every enum is stored as its name, in a column as wide as the longest name that enum has.
     private static void ConfigureEnums(ModelBuilder modelBuilder)
     {
@@ -104,14 +140,14 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     private void ConfigureTenancy(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<User>().HasQueryFilter(user => user.TenantId == this.userContext.TenantIdOrDefault);
-        modelBuilder.Entity<Contact>().HasQueryFilter(contact => contact.TenantId == this.userContext.TenantIdOrDefault);
-        modelBuilder.Entity<Case>().HasQueryFilter(@case => @case.TenantId == this.userContext.TenantIdOrDefault);
-        modelBuilder.Entity<ExternalCaseNumber>().HasQueryFilter(number => number.TenantId == this.userContext.TenantIdOrDefault);
-        modelBuilder.Entity<Act>().HasQueryFilter(act => act.TenantId == this.userContext.TenantIdOrDefault);
-        modelBuilder.Entity<ExternalActNumber>().HasQueryFilter(number => number.TenantId == this.userContext.TenantIdOrDefault);
-        modelBuilder.Entity<FileAsset>().HasQueryFilter(file => file.TenantId == this.userContext.TenantIdOrDefault);
-        modelBuilder.Entity<Comment>().HasQueryFilter(comment => comment.TenantId == this.userContext.TenantIdOrDefault);
+        modelBuilder.Entity<User>().HasQueryFilter(TenantFilter, user => user.TenantId == this.userContext.TenantIdOrDefault);
+        modelBuilder.Entity<Contact>().HasQueryFilter(TenantFilter, contact => contact.TenantId == this.userContext.TenantIdOrDefault);
+        modelBuilder.Entity<Case>().HasQueryFilter(TenantFilter, @case => @case.TenantId == this.userContext.TenantIdOrDefault);
+        modelBuilder.Entity<ExternalCaseNumber>().HasQueryFilter(TenantFilter, number => number.TenantId == this.userContext.TenantIdOrDefault);
+        modelBuilder.Entity<Act>().HasQueryFilter(TenantFilter, act => act.TenantId == this.userContext.TenantIdOrDefault);
+        modelBuilder.Entity<ExternalActNumber>().HasQueryFilter(TenantFilter, number => number.TenantId == this.userContext.TenantIdOrDefault);
+        modelBuilder.Entity<FileAsset>().HasQueryFilter(TenantFilter, file => file.TenantId == this.userContext.TenantIdOrDefault);
+        modelBuilder.Entity<Comment>().HasQueryFilter(TenantFilter, comment => comment.TenantId == this.userContext.TenantIdOrDefault);
 
         var tenantEntityTypes = modelBuilder.Model.GetEntityTypes()
             .Where(static type => typeof(ITenantEntity).IsAssignableFrom(type.ClrType))

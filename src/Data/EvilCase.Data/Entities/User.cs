@@ -7,7 +7,7 @@ namespace EvilBrains.EvilCase.Data.Entities;
 [Index(nameof(Email), IsUnique = true)]
 [Index(nameof(TenantId))]
 [Index(nameof(DefaultContactId))]
-public sealed record User : ITenantEntity
+public sealed record User : ITenantEntity, ISoftDeleteEntity
 {
     [Key]
     public Guid Id { get; init; } = Guid.CreateVersion7();
@@ -35,6 +35,8 @@ public sealed record User : ITenantEntity
     public DateTime Created { get; init; }
 
     public DateTime? Updated { get; init; }
+
+    public DateTime? Deleted { get; init; }
 
     /// <summary>
     /// Consecutive failed sign-ins. A successful one puts it back to zero.

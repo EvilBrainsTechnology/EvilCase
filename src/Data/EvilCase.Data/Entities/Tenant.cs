@@ -7,7 +7,7 @@ namespace EvilBrains.EvilCase.Data.Entities;
 /// The boundary data isolation runs along (SDD-006).
 /// </summary>
 [Index(nameof(AccountId))]
-public sealed record Tenant : IEntity
+public sealed record Tenant : ISoftDeleteEntity
 {
     [Key]
     public Guid Id { get; init; } = Guid.CreateVersion7();
@@ -20,4 +20,6 @@ public sealed record Tenant : IEntity
     public DateTime Created { get; init; }
 
     public DateTime? Updated { get; init; }
+
+    public DateTime? Deleted { get; init; }
 }
