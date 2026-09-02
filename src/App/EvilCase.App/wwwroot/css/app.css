@@ -94,15 +94,12 @@
     white-space: pre-line;
 }
 
-/* Blazor writes --blazor-load-percentage and --blazor-load-percentage-text on the root element while it
-   downloads the runtime. The boot screen in index.html is the only thing that reads them. */
+/* Blazor writes --blazor-load-percentage on the root element while it downloads the runtime. The
+   download is not the whole boot: starting the runtime takes another second with no progress to
+   report, so the bar keeps the last tenth for it rather than filling and then waiting. */
 .boot-progress-bar {
-    width: var(--blazor-load-percentage, 0%);
+    width: calc(var(--blazor-load-percentage, 0%) * 0.9);
     transition: width 0.2s linear;
-}
-
-.boot-progress-text::after {
-    content: var(--blazor-load-percentage-text, "0%");
 }
 
 /* A comment is one free-text block, shown as it was written. */
