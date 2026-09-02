@@ -29,4 +29,24 @@ public static class SoftDeleteExtensions
     {
         return entities.IgnoreQueryFilters([ApplicationDbContext.SoftDeleteFilter]);
     }
+
+    /// <summary>
+    /// The stamped rows alone, which is where a value the unique index still holds comes back from.
+    /// </summary>
+    public static IQueryable<TEntity> OnlyDeleted<TEntity>(this IQueryable<TEntity> entities)
+        where TEntity : class, ISoftDeleteEntity
+    {
+        return entities
+            .IncludingDeleted()
+            .Where(static entity => entity.Deleted != null);
+    }
+
+    /// <summary>
+    /// The rows no stamp has taken, spelled out where the query dropped the filter for its own reason.
+    /// </summary>
+    public static IQueryable<TEntity> NotDeleted<TEntity>(this IQueryable<TEntity> entities)
+        where TEntity : class, ISoftDeleteEntity
+    {
+        return entities.Where(static entity => entity.Deleted == null);
+    }
 }

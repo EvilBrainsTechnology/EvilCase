@@ -106,6 +106,7 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
             return ActUpdateOutcome.InvalidActNumber;
 
         var taken = await context.Acts
+            .IncludingDeleted()
             .WithNumberHeldByAnother(edit.ActNumber, actId)
             .AnyAsync(token);
 

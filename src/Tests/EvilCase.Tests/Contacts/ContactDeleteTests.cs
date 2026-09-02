@@ -1,3 +1,4 @@
+using EvilBrains.EvilCase.Business.Acts;
 using EvilBrains.EvilCase.Business.Contacts;
 using EvilBrains.EvilCase.Data;
 using EvilBrains.EvilCase.Data.DbContexts;
@@ -9,6 +10,7 @@ using EvilBrains.EvilCase.Domain.Users;
 using EvilBrains.EvilCase.Tests.Auth;
 using EvilBrains.EvilCase.Tests.Data;
 using EvilBrains.EvilCase.Tests.Data.Interceptors;
+using EvilBrains.EvilCase.Tests.Seeding;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Npgsql;
@@ -60,6 +62,38 @@ public class ContactDeleteTests
             new PostgresException("duplicate key", "ERROR", "ERROR", PostgresErrorCodes.UniqueViolation));
 
         Assert.That(exception.IsUniqueViolation(), Is.True);
+    }
+
+    [Test]
+    public async Task AContactADeletedActNamesIsStillInUse()
+    {
+        var userContext = new StubUserContext();
+        var tenantId = Guid.CreateVersion7();
+        var userId = Guid.CreateVersion7();
+        using var entered = userContext.Enter(tenantId, userId);
+
+        await using var context = TestDatabase.CreateMigrated(userContext);
+        var seeded = await SeedContactAndCase(context, tenantId, userId);
+        WriteIssuedAct(userContext, seeded.Case, seeded.Contact.Id);
+
+        var writer = new ContactWriter(new FixedDbSession(context), NullLogger<ContactWriter>.Instance);
+        var acts = new ActWriter(new FixedDbSession(context), new FakeActNumberIssuer(), NullLogger<ActWriter>.Instance);
+
+        await acts.DeleteAct(seeded.Case.Id, await ActIdOf(context, seeded.Case.Id), CancellationToken.None);
+
+        var outcome = await writer.DeleteContact(seeded.Contact.Id, CancellationToken.None);
+
+        Assert.That(
+            outcome,
+            Is.EqualTo(ContactDeleteOutcome.Referenced),
+            "a stamped act still names the contact, so taking the contact would leave the act nothing to point at");
+    }
+
+    private static async Task<Guid> ActIdOf(ApplicationDbContext context, Guid caseId)
+    {
+        context.ChangeTracker.Clear();
+
+        return await context.Acts.Where(act => act.CaseId == caseId).Select(static act => act.Id).SingleAsync();
     }
 
     /// <summary>

@@ -97,6 +97,7 @@ internal sealed class CaseWriter(
             return CaseUpdateOutcome.InvalidCaseNumber;
 
         var taken = await context.Cases
+            .IncludingDeleted()
             .WithNumberHeldByAnother(edit.CaseNumber, caseId)
             .AnyAsync(token);
 

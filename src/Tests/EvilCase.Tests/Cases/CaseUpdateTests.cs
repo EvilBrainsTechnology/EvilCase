@@ -186,6 +186,26 @@ public class CaseUpdateTests : TenantFixture
         Assert.That(outcome, Is.EqualTo(CaseUpdateOutcome.NotFound), "the tenant query filter is what keeps another tenant's row out of an edit");
     }
 
+    [Test]
+    public async Task ANumberADeletedCaseHoldsIsRefused()
+    {
+        var first = await this.Tenant.AddCase(Day, "První");
+        var second = await this.Tenant.AddCase(Day, "Druhý");
+
+        await this.writer.DeleteCase(second.Id, CancellationToken.None);
+
+        this.Tenant.Context.ChangeTracker.Clear();
+
+        var request = Edit(second.CaseNumber, Day, "Přejmenováno", description: null, CaseStatus.Active);
+
+        var outcome = await this.writer.UpdateCase(first.Id, request, CancellationToken.None);
+
+        Assert.That(
+            outcome,
+            Is.EqualTo(CaseUpdateOutcome.CaseNumberTaken),
+            "the index still holds the deleted case's number, so the edit is refused rather than failing the write");
+    }
+
     private async Task<Case> Reload(Guid caseId)
     {
         this.Tenant.Context.ChangeTracker.Clear();

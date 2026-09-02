@@ -234,6 +234,35 @@ public class ExternalCaseNumberWriterTests : TenantFixture
         }
     }
 
+    [Test]
+    public async Task AMarkAddedAgainAfterItsDeleteComesBack()
+    {
+        var @case = await this.Tenant.AddCase(Day);
+        var contact = await this.Tenant.AddContact("Krajský soud");
+        var other = await this.Tenant.AddContact("Městský úřad");
+        var request = new ExternalNumberRequest { Value = "VV41/2025/08464", AssignedByContactId = contact.Id };
+
+        await this.writer.AddExternalCaseNumber(@case.Id, request, CancellationToken.None);
+        var added = await this.Reload(@case.Id);
+        await this.writer.DeleteExternalCaseNumber(@case.Id, added.Id, CancellationToken.None);
+
+        var outcome = await this.writer.AddExternalCaseNumber(
+            @case.Id,
+            request with { AssignedByContactId = other.Id },
+            CancellationToken.None);
+
+        this.Tenant.Context.ChangeTracker.Clear();
+
+        var reloaded = await this.Reload(@case.Id);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome, Is.EqualTo(ExternalCaseNumberOutcome.Added), "the index still holds the deleted mark's value, so adding it again must not read as taken");
+            Assert.That(reloaded.Id, Is.EqualTo(added.Id), "the mark comes back rather than arriving as a second row");
+            Assert.That(reloaded.AssignedByContactId, Is.EqualTo(other.Id), "the mark comes back with the contact the second add named");
+        }
+    }
+
     private async Task<ExternalCaseNumber> Reload(Guid caseId)
     {
         return await this.Tenant.Context.ExternalCaseNumbers.SingleAsync(number => number.CaseId == caseId);

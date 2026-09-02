@@ -24,6 +24,21 @@ internal sealed class ExternalActNumberWriter(IDbSession dbSession, ILogger<Exte
         if (!contactExists)
             return ExternalActNumberOutcome.UnknownContact;
 
+        // The unique index holds a stamped row's value, so the same mark added again is that row
+        // coming back rather than a value the user cannot see refusing it.
+        var revived = await context.ExternalActNumbers
+            .OnlyDeleted()
+            .OfAct(caseId, actId)
+            .Where(number => number.Value == value)
+            .ExecuteUpdateAsync(
+                setters => setters
+                    .SetProperty(static number => number.Deleted, static _ => null)
+                    .SetProperty(static number => number.AssignedByContactId, request.AssignedByContactId),
+                token);
+
+        if (revived != 0)
+            return ExternalActNumberOutcome.Added;
+
         var number = new ExternalActNumber
         {
             ActId = actId,

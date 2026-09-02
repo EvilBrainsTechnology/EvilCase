@@ -297,6 +297,37 @@ public class ExternalActNumberWriterTests : TenantFixture
         }
     }
 
+    [Test]
+    public async Task ANumberAddedAgainAfterItsDeleteComesBack()
+    {
+        var @case = await this.Tenant.AddCase(Day);
+        var act = await this.Tenant.AddAct(@case, Day);
+        var contact = await this.Tenant.AddContact("Krajský soud");
+        var other = await this.Tenant.AddContact("Městský úřad");
+        var request = new ExternalNumberRequest { Value = "VV41/2025/08464", AssignedByContactId = contact.Id };
+
+        await this.writer.AddExternalActNumber(@case.Id, act.Id, request, CancellationToken.None);
+        var added = await this.Reload(act.Id);
+        await this.writer.DeleteExternalActNumber(@case.Id, act.Id, added.Id, CancellationToken.None);
+
+        var outcome = await this.writer.AddExternalActNumber(
+            @case.Id,
+            act.Id,
+            request with { AssignedByContactId = other.Id },
+            CancellationToken.None);
+
+        this.Tenant.Context.ChangeTracker.Clear();
+
+        var reloaded = await this.Reload(act.Id);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome, Is.EqualTo(ExternalActNumberOutcome.Added), "the index still holds the deleted number's value, so adding it again must not read as taken");
+            Assert.That(reloaded.Id, Is.EqualTo(added.Id), "the number comes back rather than arriving as a second row");
+            Assert.That(reloaded.AssignedByContactId, Is.EqualTo(other.Id), "the number comes back with the contact the second add named");
+        }
+    }
+
     private async Task<ExternalActNumber> Reload(Guid actId)
     {
         return await this.Tenant.Context.ExternalActNumbers.SingleAsync(number => number.ActId == actId);

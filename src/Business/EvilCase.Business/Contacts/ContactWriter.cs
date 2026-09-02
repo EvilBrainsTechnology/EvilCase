@@ -71,6 +71,7 @@ internal sealed class ContactWriter(IDbSession dbSession, ILogger<ContactWriter>
             return ContactDeleteOutcome.NotFound;
 
         var isDefault = await context.Users
+            .IncludingDeleted()
             .WithDefaultContact(contactId)
             .AnyAsync(token);
         if (isDefault)
@@ -78,9 +79,12 @@ internal sealed class ContactWriter(IDbSession dbSession, ILogger<ContactWriter>
 
         // The stamp repeats the reference test rather than trusting a read before it: a stamp breaks
         // no foreign key, so a reference written meanwhile would leave a live row pointing at a
-        // contact nothing can read.
+        // contact nothing can read. Stamped rows count too, or restoring one would name a contact
+        // that went in the meantime.
         var rows = await context.Contacts
+            .IncludingDeleted()
             .WithId(contactId)
+            .NotDeleted()
             .NotReferenced()
             .ExecuteSoftDelete(token);
 
