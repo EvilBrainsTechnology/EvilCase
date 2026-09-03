@@ -7,15 +7,15 @@
 
 ## Rozsah
 
-Entita spisu, hierarchie, externí značky, stránky spisů a mazání. Číslování patří SDD-008,
+Entita spisu, hierarchie, externí značka, stránky spisů a mazání. Číslování patří SDD-008,
 soubory SDD-012, komentáře SDD-013.
 
 ## Popis
 
 ### Entita
 
-Case: `ParentCaseId?`, `CaseNumber`, explicitní datum (`DateOnly`), název, popis, stav
-`Active` / `WaitingOnAuthority` / `Closed`. Bez tagů.
+Case: `ParentCaseId?`, `CaseNumber`, `ExternalCaseNumber?`, explicitní datum (`DateOnly`), název,
+popis, stav `Active` / `WaitingOnAuthority` / `Closed`. Bez tagů.
 
 Stav je jen štítek: na nic se neváže, spis ve stavu `Closed` jde editovat a přijímá úkony,
 soubory i komentáře jako každý jiný. Nový spis vzniká jako `Active`.
@@ -28,10 +28,10 @@ soubory i komentáře jako každý jiný. Nový spis vzniká jako `Active`.
 - UI zobrazuje jen ploché seznamy: detail spisu ukazuje odkaz na rodiče a seznam přímých
   podřízených spisů. Žádný strom.
 
-### Externí značky
+### Externí spisová značka
 
-Spis nese N externích značek (`ExternalCaseNumber`): hodnota volným textem a povinný
-kontakt, který značku přidělil. Hodnota je unikátní per spis. Spravují se na editaci spisu.
+Spis nese nejvýše jednu značku, kterou mu dal jiný úřad: nepovinný volný text, sloupec spisu,
+bez vazby na kontakt. Zadává se na editaci spisu.
 
 ### Stránky
 
@@ -39,7 +39,7 @@ kontakt, který značku přidělil. Hodnota je unikátní per spis. Spravují se
   shodná data řadí `Created`; bez stránkování. Hledací pole hledá v názvu a popisu bez ohledu na
   diakritiku a filtr stavu s výchozí hodnotou Otevřené.
 - `/cases/new` — založení.
-- `/cases/{id}` — detail: údaje, značky, podřízené spisy, komentáře; sekce úkonů přibývá
+- `/cases/{id}` — detail: údaje, podřízené spisy, komentáře; sekce úkonů přibývá
   v M4 (SDD-010), sekce souborů v M5 (SDD-012).
 - `/cases/{id}/edit` — editace.
 
@@ -53,7 +53,8 @@ Mazání řídí matice v SDD-007; potvrzení jmenuje, co kaskáda bere.
 - Hierarchie v UI: strom / ploché seznamy. Platí ploché seznamy.
 - Datum spisu: datum založení záznamu / explicitní pole. Platí explicitní pole.
 - Stav spisu: řídí chování / jen štítek. Platí jen štítek.
+- Externí značka: N řádků s kontaktem / jeden sloupec. Platí jeden sloupec bez kontaktu.
 
 ## Dopady
 
-`CaseRelation` a `CaseTag` zanikají (SDD-007). Značky vyžadují kontakt (SDD-011).
+`CaseRelation`, `CaseTag` a `ExternalCaseNumber` zanikají (SDD-007).

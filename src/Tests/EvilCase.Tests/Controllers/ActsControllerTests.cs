@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.Api.Contract.Contacts;
-using EvilBrains.EvilCase.Api.Contract.Numbers;
 using EvilBrains.EvilCase.Api.Controllers;
 using EvilBrains.EvilCase.Business.Acts;
 using EvilBrains.EvilCase.Business.Entities;
@@ -327,127 +326,6 @@ public class ActsControllerTests
             "an outcome the endpoint does not name never turns into a status");
     }
 
-    [Test]
-    public async Task AddingANumberReachesTheWriterWithBothRouteIdsAndTheBody()
-    {
-        var caseId = Guid.CreateVersion7();
-        var actId = Guid.CreateVersion7();
-        var writer = AddingNumberWriter(ExternalActNumberOutcome.Added);
-        var controller = new ActsController();
-        var request = Number();
-
-        await controller.AddExternalActNumber(writer, caseId, actId, request, CancellationToken.None);
-
-        await writer
-            .Received(1)
-            .AddExternalActNumber(caseId, actId, request, Arg.Any<CancellationToken>());
-    }
-
-    [Test]
-    public async Task AddingANumberThatSucceedsAnswersWithNoContent()
-    {
-        var writer = AddingNumberWriter(ExternalActNumberOutcome.Added);
-        var controller = new ActsController();
-
-        var result = await controller.AddExternalActNumber(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Number(), CancellationToken.None);
-
-        Assert.That(result, Is.InstanceOf<NoContentResult>());
-    }
-
-    [Test]
-    public async Task AddingANumberToAMissingActIsAProblemWithFourOhFour()
-    {
-        var writer = AddingNumberWriter(ExternalActNumberOutcome.ActNotFound);
-        var controller = new ActsController();
-
-        var result = await controller.AddExternalActNumber(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Number(), CancellationToken.None);
-
-        var problem = AssertProblem(result, 404);
-
-        Assert.That(problem.Title, Is.EqualTo(ActProblems.ActNotFound));
-    }
-
-    [Test]
-    public async Task ANumberTheActAlreadyCarriesIsAConflict()
-    {
-        var writer = AddingNumberWriter(ExternalActNumberOutcome.ValueTaken);
-        var controller = new ActsController();
-
-        var result = await controller.AddExternalActNumber(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Number(), CancellationToken.None);
-
-        var problem = AssertProblem(result, 409);
-
-        Assert.That(problem.Title, Is.EqualTo(ExternalNumberProblems.Taken), "the two conflicts of the add are told apart by the problem title");
-    }
-
-    [Test]
-    public async Task ANumberNamingAnUnknownContactIsAConflict()
-    {
-        var writer = AddingNumberWriter(ExternalActNumberOutcome.UnknownContact);
-        var controller = new ActsController();
-
-        var result = await controller.AddExternalActNumber(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Number(), CancellationToken.None);
-
-        var problem = AssertProblem(result, 409);
-
-        Assert.That(problem.Title, Is.EqualTo(ContactProblems.UnknownContact));
-    }
-
-    [Test]
-    public async Task DeletingANumberAnswersWithNoContent()
-    {
-        var writer = DeletingNumberWriter(DeleteOutcome.Deleted);
-        var controller = new ActsController();
-
-        var result = await controller.DeleteExternalActNumber(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
-
-        Assert.That(result, Is.InstanceOf<NoContentResult>());
-    }
-
-    [Test]
-    public async Task DeletingANumberReachesTheWriterWithAllThreeRouteIds()
-    {
-        var caseId = Guid.CreateVersion7();
-        var actId = Guid.CreateVersion7();
-        var numberId = Guid.CreateVersion7();
-        var writer = DeletingNumberWriter(DeleteOutcome.Deleted);
-        var controller = new ActsController();
-
-        await controller.DeleteExternalActNumber(writer, caseId, actId, numberId, CancellationToken.None);
-
-        await writer
-            .Received(1)
-            .DeleteExternalActNumber(caseId, actId, numberId, Arg.Any<CancellationToken>());
-    }
-
-    [Test]
-    public async Task DeletingAMissingNumberIsAProblemWithFourOhFour()
-    {
-        var writer = DeletingNumberWriter(DeleteOutcome.NotFound);
-        var controller = new ActsController();
-
-        var result = await controller.DeleteExternalActNumber(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
-
-        AssertProblem(result, 404);
-    }
-
-    [Test]
-    public async Task ANumberDeleteOutcomeTheEndpointDoesNotKnowThrows()
-    {
-        var writer = DeletingNumberWriter((DeleteOutcome)99);
-        var controller = new ActsController();
-
-        await Assert.ThatAsync(
-            async () => await controller.DeleteExternalActNumber(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None),
-            Throws.InstanceOf<UnreachableException>(),
-            "an outcome the endpoint does not name never turns into a status");
-    }
-
-    private static ExternalNumberRequest Number()
-    {
-        return new() { Value = "1 T 45/2026", AssignedByContactId = Guid.CreateVersion7() };
-    }
-
     private static ActListItem Item(string title)
     {
         return new()
@@ -549,26 +427,6 @@ public class ActsControllerTests
         var writer = Substitute.For<IActWriter>();
         writer
             .DeleteAct(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-            .Returns(outcome);
-
-        return writer;
-    }
-
-    private static IExternalActNumberWriter AddingNumberWriter(ExternalActNumberOutcome outcome)
-    {
-        var writer = Substitute.For<IExternalActNumberWriter>();
-        writer
-            .AddExternalActNumber(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<ExternalNumberRequest>(), Arg.Any<CancellationToken>())
-            .Returns(outcome);
-
-        return writer;
-    }
-
-    private static IExternalActNumberWriter DeletingNumberWriter(DeleteOutcome outcome)
-    {
-        var writer = Substitute.For<IExternalActNumberWriter>();
-        writer
-            .DeleteExternalActNumber(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(outcome);
 
         return writer;

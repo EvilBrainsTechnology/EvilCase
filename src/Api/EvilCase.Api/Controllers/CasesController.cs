@@ -1,8 +1,6 @@
 using System.Diagnostics;
 using EvilBrains.ApiClient;
 using EvilBrains.EvilCase.Api.Contract.Cases;
-using EvilBrains.EvilCase.Api.Contract.Contacts;
-using EvilBrains.EvilCase.Api.Contract.Numbers;
 using EvilBrains.EvilCase.Business.Cases;
 using EvilBrains.EvilCase.Business.Entities;
 using Microsoft.AspNetCore.Http;
@@ -93,55 +91,6 @@ public class CasesController : ControllerBase
         {
             DeleteOutcome.Deleted => this.NoContent(),
             DeleteOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: CaseProblems.NotFound),
-            _ => throw new UnreachableException(),
-        };
-    }
-
-    [HttpPost("{caseId:guid}/external-numbers")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult> AddExternalCaseNumber(
-        [FromServices] IExternalCaseNumberWriter writer,
-        [FromRoute] Guid caseId,
-        [FromBody] ExternalNumberRequest request,
-        CancellationToken token)
-    {
-        var outcome = await writer.AddExternalCaseNumber(caseId, request, token);
-
-        return outcome switch
-        {
-            ExternalCaseNumberOutcome.Added => this.NoContent(),
-            ExternalCaseNumberOutcome.CaseNotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: CaseProblems.NotFound),
-            ExternalCaseNumberOutcome.UnknownContact => this.Problem(
-                detail: "The contact that assigned the mark does not exist.",
-                statusCode: StatusCodes.Status409Conflict,
-                title: ContactProblems.UnknownContact),
-            ExternalCaseNumberOutcome.ValueTaken => this.Problem(
-                detail: "The case already carries the mark.",
-                statusCode: StatusCodes.Status409Conflict,
-                title: ExternalNumberProblems.Taken),
-            _ => throw new UnreachableException(),
-        };
-    }
-
-    [HttpDelete("{caseId:guid}/external-numbers/{numberId:guid}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult> DeleteExternalCaseNumber(
-        [FromServices] IExternalCaseNumberWriter writer,
-        [FromRoute] Guid caseId,
-        [FromRoute] Guid numberId,
-        CancellationToken token)
-    {
-        var outcome = await writer.DeleteExternalCaseNumber(caseId, numberId, token);
-
-        return outcome switch
-        {
-            DeleteOutcome.Deleted => this.NoContent(),
-            DeleteOutcome.NotFound => this.Problem(
-                statusCode: StatusCodes.Status404NotFound, title: "External case number not found"),
             _ => throw new UnreachableException(),
         };
     }

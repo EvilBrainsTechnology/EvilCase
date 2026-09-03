@@ -14,6 +14,9 @@ internal sealed class ActEditModel
     [StringLength(128, ErrorMessage = "Číslo jednací může mít nejvýše 128 znaků")]
     public string ActNumber { get; set; } = "";
 
+    [StringLength(128, ErrorMessage = "Externí číslo jednací může mít nejvýše 128 znaků")]
+    public string? ExternalActNumber { get; set; }
+
     public ActDirection Direction { get; set; } = ActDirection.Incoming;
 
     public DateOnly Date { get; set; }

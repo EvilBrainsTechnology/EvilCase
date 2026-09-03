@@ -26,7 +26,6 @@ Tvary API a klienta pro nové agendy. Z velké části dnešní stav, který pla
 | Spisy | `/api/cases`, `/api/cases/{id}`; počty podle stavu `/api/cases/counts` |
 | Úkony | `/api/cases/{caseId}/acts`, `/api/cases/{caseId}/acts/{actId}`; výpis napříč spisy `/api/acts` |
 | Kontakty | `/api/contacts`, `/api/contacts/{id}`; defaultní kontakt formuláře úkonu `/api/contacts/default` |
-| Externí čísla | na vlastníku (spis nebo úkon), `…/external-numbers`, `…/external-numbers/{numberId}` |
 | Soubory | upload a výpis na vlastníku; download `/api/files/{id}/content` |
 | Komentáře | na vlastníku, `…/comments`, `…/comments/{id}` |
 

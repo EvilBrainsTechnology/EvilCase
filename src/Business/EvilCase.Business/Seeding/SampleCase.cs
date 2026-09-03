@@ -22,7 +22,7 @@ internal sealed record SampleCase
     /// </summary>
     public string? CounterpartyKey { get; init; }
 
-    public IReadOnlyList<SampleExternalNumber> ExternalNumbers { get; init; } = [];
+    public string? ExternalCaseNumber { get; init; }
 
     public IReadOnlyList<string> Comments { get; init; } = [];
 }

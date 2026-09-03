@@ -14,7 +14,7 @@ internal sealed record SampleAct
 
     public required string CounterpartyKey { get; init; }
 
-    public IReadOnlyList<SampleExternalNumber> ExternalNumbers { get; init; } = [];
+    public string? ExternalActNumber { get; init; }
 
     public IReadOnlyList<string> Comments { get; init; } = [];
 

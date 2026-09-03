@@ -284,16 +284,48 @@ public class CaseUpdateTests : TenantFixture
         }
     }
 
-    private static CaseEditRequest Edit(string caseNumber, DateOnly date, string title, string? description, CaseStatus status, Guid? parentCaseId = null)
+    private static CaseEditRequest Edit(
+        string caseNumber, DateOnly date, string title, string? description, CaseStatus status, Guid? parentCaseId = null, string? externalCaseNumber = null)
     {
         return new()
         {
             ParentCaseId = parentCaseId,
             CaseNumber = caseNumber,
+            ExternalCaseNumber = externalCaseNumber,
             Date = date,
             Title = title,
             Description = description,
             Status = status,
         };
+    }
+
+    [Test]
+    public async Task AnEditWritesTheExternalMark()
+    {
+        var seeded = await this.Tenant.AddCase(Day, "Přestupek");
+        var request = Edit(seeded.CaseNumber, Day, seeded.Title, description: null, CaseStatus.Active, externalCaseNumber: "  VV41/2025/08464  ");
+
+        var outcome = await this.writer.UpdateCase(seeded.Id, request, CancellationToken.None);
+
+        var reloaded = await this.Reload(seeded.Id);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome, Is.EqualTo(CaseUpdateOutcome.Updated));
+            Assert.That(reloaded.ExternalCaseNumber, Is.EqualTo("VV41/2025/08464"), "the mark is stored without its surrounding space");
+        }
+    }
+
+    [Test]
+    public async Task ABlankExternalMarkIsFiledAsNothing()
+    {
+        var seeded = await this.Tenant.AddCase(Day, "Přestupek", externalCaseNumber: "VV41/2025/08464");
+        var request = Edit(seeded.CaseNumber, Day, seeded.Title, description: null, CaseStatus.Active, externalCaseNumber: "   ");
+
+        await this.writer.UpdateCase(seeded.Id, request, CancellationToken.None);
+
+        var reloaded = await this.Reload(seeded.Id);
+
+        Assert.That(reloaded.ExternalCaseNumber, Is.Null, "an emptied field takes the mark away");
     }
 }

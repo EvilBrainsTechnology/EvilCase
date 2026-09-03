@@ -28,15 +28,12 @@ public class CaseDeleteTests : TenantFixture
     }
 
     [Test]
-    public async Task DeletingACaseTakesItsActsCommentsMarksAndFiles()
+    public async Task DeletingACaseTakesItsActsCommentsAndFiles()
     {
-        var contact = await this.Tenant.AddContact("Úřad");
         var seeded = await this.Tenant.AddCase(Day, "Přestupek");
         var act = await this.Tenant.AddAct(seeded, Day);
         var caseComment = await this.Tenant.AddCaseComment(seeded, "Poznámka ke spisu");
         var actComment = await this.Tenant.AddActComment(act, "Poznámka k úkonu");
-        await this.Tenant.AddExternalCaseNumber(seeded, "EXT-1", contact);
-        await this.Tenant.AddExternalActNumber(act, "EXT-2", contact);
         var caseFile = await this.Tenant.AddCaseFile(seeded);
         var actFile = await this.Tenant.AddActFile(act);
 
@@ -47,8 +44,6 @@ public class CaseDeleteTests : TenantFixture
         var caseExists = await this.Tenant.Context.Cases.AnyAsync(row => row.Id == seeded.Id);
         var actExists = await this.Tenant.Context.Acts.AnyAsync(row => row.Id == act.Id);
         var commentsExist = await this.Tenant.Context.Comments.AnyAsync(row => row.Id == caseComment.Id || row.Id == actComment.Id);
-        var externalCaseNumbersExist = await this.Tenant.Context.ExternalCaseNumbers.AnyAsync(row => row.CaseId == seeded.Id);
-        var externalActNumbersExist = await this.Tenant.Context.ExternalActNumbers.AnyAsync(row => row.ActId == act.Id);
         var filesExist = await this.Tenant.Context.FileAssets.AnyAsync(row => row.Id == caseFile.Id || row.Id == actFile.Id);
 
         using (Assert.EnterMultipleScope())
@@ -57,8 +52,6 @@ public class CaseDeleteTests : TenantFixture
             Assert.That(caseExists, Is.False, "the cascade takes the case itself");
             Assert.That(actExists, Is.False, "the cascade takes the case's acts");
             Assert.That(commentsExist, Is.False, "the cascade takes the comments of the case and of its acts");
-            Assert.That(externalCaseNumbersExist, Is.False, "the cascade takes the case's external marks");
-            Assert.That(externalActNumbersExist, Is.False, "the cascade takes the external numbers of the case's acts");
             Assert.That(filesExist, Is.False, "the cascade takes the files of the case and of its acts");
         }
     }

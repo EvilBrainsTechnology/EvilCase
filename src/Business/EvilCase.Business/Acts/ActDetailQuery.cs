@@ -25,6 +25,7 @@ internal static class ActDetailQuery
                 CaseId = act.CaseId,
                 CaseNumber = act.Case!.CaseNumber,
                 ActNumber = act.ActNumber,
+                ExternalActNumber = act.ExternalActNumber,
                 Direction = act.Direction,
                 Date = act.Date,
                 Title = act.Title,

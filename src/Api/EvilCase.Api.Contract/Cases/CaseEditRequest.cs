@@ -19,6 +19,12 @@ public sealed record CaseEditRequest
     public required string CaseNumber { get; init; }
 
     /// <summary>
+    /// The mark another authority gave this case; optional free text (SDD-009).
+    /// </summary>
+    [StringLength(128)]
+    public string? ExternalCaseNumber { get; init; }
+
+    /// <summary>
     /// The case's own date. Moving it leaves the number as it was issued.
     /// </summary>
     public required DateOnly Date { get; init; }

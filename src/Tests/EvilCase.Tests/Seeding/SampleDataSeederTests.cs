@@ -92,24 +92,22 @@ public class SampleDataSeederTests
     }
 
     [Test]
-    public async Task ExternalNumbersNameTheContactThatAssignedThem()
+    public async Task TheMainCaseAndItsActsCarryTheirExternalNumbers()
     {
         var (context, _, _, _) = await RunSampleDataSeeder();
 
-        var contactIds = context.Added<Contact>().Select(static contact => contact.Id).ToHashSet();
-        var caseNumbers = context.Added<ExternalCaseNumber>().ToList();
-        var actNumbers = context.Added<ExternalActNumber>().ToList();
+        var mainCase = context.Added<Case>().Single(static @case => @case.ParentCaseId is null);
+        var actNumbers = context.Added<Act>()
+            .Select(static act => act.ExternalActNumber)
+            .Where(static number => number is not null)
+            .ToList();
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(caseNumbers, Is.Not.Empty, "the main case carries external numbers");
-            Assert.That(actNumbers, Is.Not.Empty, "acts carry external numbers");
-            Assert.That(caseNumbers.TrueForAll(number => contactIds.Contains(number.AssignedByContactId)), Is.True, "every case-level number names a seeded contact");
-            Assert.That(actNumbers.TrueForAll(number => contactIds.Contains(number.AssignedByContactId)), Is.True, "every act-level number names a seeded contact");
-            Assert.That(caseNumbers.Select(static number => number.Value), Does.Contain("VV41/2025/08464"));
-            Assert.That(caseNumbers.Select(static number => number.Value), Does.Contain("10 A 1/2025"));
-            Assert.That(actNumbers.Select(static number => number.Value), Does.Contain("MUVZ/2025/80535"));
-            Assert.That(actNumbers.Select(static number => number.Value), Does.Contain("KUVZ 109838/2025"));
+            Assert.That(mainCase.ExternalCaseNumber, Is.EqualTo("VV41/2025/08464"), "the main case carries the mark the first-instance authority gave it");
+            Assert.That(actNumbers, Does.Contain("MUVZ/2025/80535"));
+            Assert.That(actNumbers, Does.Contain("KUVZ 109838/2025"));
+            Assert.That(actNumbers, Does.Contain("10 A 1/2025"));
         }
     }
 

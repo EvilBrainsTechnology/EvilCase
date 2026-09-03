@@ -66,6 +66,10 @@
                             <div class="datagrid-content">@this.act!.ActNumber</div>
                         </div>
                         <div class="datagrid-item">
+                            <div class="datagrid-title">Externí číslo jednací</div>
+                            <div class="datagrid-content">@(string.IsNullOrWhiteSpace(this.act.ExternalActNumber) ? "—" : this.act.ExternalActNumber)</div>
+                        </div>
+                        <div class="datagrid-item">
                             <div class="datagrid-title">Směr</div>
                             <div class="datagrid-content">@ActDirectionDisplay.Text(this.act.Direction)</div>
                         </div>
@@ -97,8 +101,6 @@
                     </div>
                 </div>
             </div>
-
-            <ExternalNumbersCard Text="ExternalNumberText.ForAct" Items="this.act.ExternalNumbers" />
 
             <div class="mt-3">
                 <CommentsCard @key="this.ActId"

@@ -92,68 +92,23 @@ public class CaseDetailQueryTests : TenantFixture
     }
 
     [Test]
-    public async Task TheDetailCarriesTheCasesMarksWithTheContactThatAssignedThem()
+    public async Task TheDetailCarriesTheCasesExternalMark()
     {
-        var @case = await this.Tenant.AddCase(Day);
-        var contact = await this.Tenant.AddContact("Krajský soud ve Vzorově");
-        var number = await this.Tenant.AddExternalCaseNumber(@case, "VV41/2025/08464", contact);
+        var @case = await this.Tenant.AddCase(Day, externalCaseNumber: "VV41/2025/08464");
 
-        var reader = new CaseReader(new FixedDbSession(this.Tenant.Context));
-        var detail = await reader.GetCaseDetail(@case.Id, CancellationToken.None);
+        var detail = await this.Tenant.Context.Cases.DetailOf(@case.Id, CancellationToken.None);
 
-        Assert.That(detail!.ExternalNumbers, Has.Count.EqualTo(1));
-        var item = detail.ExternalNumbers[0];
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(item.ExternalNumberId, Is.EqualTo(number.Id));
-            Assert.That(item.Value, Is.EqualTo("VV41/2025/08464"));
-            Assert.That(item.AssignedByContactId, Is.EqualTo(contact.Id));
-            Assert.That(item.AssignedByContactName, Is.EqualTo(contact.Name));
-        }
+        Assert.That(detail!.ExternalCaseNumber, Is.EqualTo("VV41/2025/08464"));
     }
 
     [Test]
-    public async Task TheMarksComeInTheOrderTheyAccrued()
-    {
-        var @case = await this.Tenant.AddCase(Day);
-        var contact = await this.Tenant.AddContact("Krajský soud ve Vzorově");
-        var first = await this.Tenant.AddExternalCaseNumber(@case, "VV41/2025/08464", contact);
-        var second = await this.Tenant.AddExternalCaseNumber(@case, "10 A 1/2025", contact);
-
-        var reader = new CaseReader(new FixedDbSession(this.Tenant.Context));
-        var detail = await reader.GetCaseDetail(@case.Id, CancellationToken.None);
-
-        Assert.That(
-            detail!.ExternalNumbers.Select(static item => item.Value),
-            Is.EqualTo([first.Value, second.Value]),
-            "a mark's place in the list is the order it accrued");
-    }
-
-    [Test]
-    public async Task AnotherCasesMarksAreNotListed()
-    {
-        var contact = await this.Tenant.AddContact("Krajský soud ve Vzorově");
-        var one = await this.Tenant.AddCase(Day, "Jeden");
-        var other = await this.Tenant.AddCase(Day, "Druhý");
-        await this.Tenant.AddExternalCaseNumber(one, "VV41/2025/08464", contact);
-        await this.Tenant.AddExternalCaseNumber(other, "10 A 1/2025", contact);
-
-        var reader = new CaseReader(new FixedDbSession(this.Tenant.Context));
-        var detail = await reader.GetCaseDetail(one.Id, CancellationToken.None);
-
-        Assert.That(detail!.ExternalNumbers.Select(static item => item.Value), Is.EqualTo(["VV41/2025/08464"]));
-    }
-
-    [Test]
-    public async Task ACaseWithNoMarksCarriesAnEmptyList()
+    public async Task ACaseWithNoExternalMarkNamesNone()
     {
         var @case = await this.Tenant.AddCase(Day);
 
-        var reader = new CaseReader(new FixedDbSession(this.Tenant.Context));
-        var detail = await reader.GetCaseDetail(@case.Id, CancellationToken.None);
+        var detail = await this.Tenant.Context.Cases.DetailOf(@case.Id, CancellationToken.None);
 
-        Assert.That(detail!.ExternalNumbers, Is.Empty);
+        Assert.That(detail!.ExternalCaseNumber, Is.Null, "the mark is optional and its absence is no mark, not a failed read");
     }
 
     [Test]

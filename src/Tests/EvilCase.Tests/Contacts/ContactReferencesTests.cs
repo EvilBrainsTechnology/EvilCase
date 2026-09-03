@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 namespace EvilBrains.EvilCase.Tests.Contacts;
 
 /// <summary>
-/// The delete guard on the rows a real PostgreSQL returns: a contact is referenced from each of the four
+/// The delete guard on the rows a real PostgreSQL returns: a contact is referenced from each of the two
 /// places, and from none. Each test seeds a tenant of its own, so none cleans up after itself.
 /// </summary>
 public class ContactReferencesTests : TenantFixture
@@ -47,28 +47,6 @@ public class ContactReferencesTests : TenantFixture
         await this.Tenant.AddAct(@case, Day, issuedBy: issuer, addressedTo: contact);
 
         Assert.That(await this.IsReferenced(contact), Is.True, "an act addressed to the contact still points at it");
-    }
-
-    [Test]
-    public async Task AnAssignedExternalCaseNumberReferencesTheContact()
-    {
-        var contact = await this.Tenant.AddContact("Městský úřad");
-        var @case = await this.Tenant.AddCase(Day);
-        await this.Tenant.AddExternalCaseNumber(@case, "MUB/2026/117", contact);
-
-        Assert.That(await this.IsReferenced(contact), Is.True, "a case mark the contact assigned still points at it");
-    }
-
-    [Test]
-    public async Task AnAssignedExternalActNumberReferencesTheContact()
-    {
-        var contact = await this.Tenant.AddContact("Městský úřad");
-        var issuer = await this.Tenant.AddContact("Krajský soud");
-        var @case = await this.Tenant.AddCase(Day);
-        var act = await this.Tenant.AddAct(@case, Day, issuedBy: issuer);
-        await this.Tenant.AddExternalActNumber(act, "MUB/2026/117-3", contact);
-
-        Assert.That(await this.IsReferenced(contact), Is.True, "an act reference number the contact assigned still points at it");
     }
 
     /// <summary>

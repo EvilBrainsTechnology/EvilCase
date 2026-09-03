@@ -21,6 +21,7 @@ internal static class CaseDetailQuery
             {
                 CaseId = @case.Id,
                 CaseNumber = @case.CaseNumber,
+                ExternalCaseNumber = @case.ExternalCaseNumber,
                 Date = @case.Date,
                 Title = @case.Title,
                 Description = @case.Description,

@@ -121,11 +121,7 @@ internal static class SampleData
             Description = "Řízení o odpovědnosti provozovatele vozidla za překročení nejvyšší dovolené "
                 + "rychlosti. Vede od příkazu přes prvostupňové rozhodnutí a odvolání až k žalobě u "
                 + "krajského soudu.",
-            ExternalNumbers =
-            [
-                new() { Value = "VV41/2025/08464", AssignedByKey = "first-instance" },
-                new() { Value = "10 A 1/2025", AssignedByKey = "court" },
-            ],
+            ExternalCaseNumber = "VV41/2025/08464",
             Comments =
             [
                 "Pseudonymizovaná vzorová data z reálného spisu. Nic v nich není skutečné.",
@@ -311,7 +307,7 @@ internal static class SampleData
             Date = new DateOnly(2025, 7, 31),
             CounterpartyKey = "first-instance",
             Description = "Pokuta 2 000 Kč, náklady řízení 2 500 Kč.",
-            ExternalNumbers = [new() { Value = "MUVZ/2025/80535", AssignedByKey = "first-instance" }],
+            ExternalActNumber = "MUVZ/2025/80535",
         },
         new()
         {
@@ -320,7 +316,7 @@ internal static class SampleData
             Date = new DateOnly(2025, 8, 4),
             CounterpartyKey = "first-instance",
             Description = "Odpor ruší příkaz v plném rozsahu.",
-            ExternalNumbers = [new() { Value = "VV41/2025/08464", AssignedByKey = "first-instance" }],
+            ExternalActNumber = "VV41/2025/08464",
             Comments = ["Odpor ruší příkaz v plném rozsahu, řízení pokračuje."],
         },
         new()
@@ -329,7 +325,7 @@ internal static class SampleData
             Title = "Vyrozumění o pokračování řízení a výzva k vyjádření se k podkladům",
             Date = new DateOnly(2025, 8, 6),
             CounterpartyKey = "first-instance",
-            ExternalNumbers = [new() { Value = "MUVZ/2025/82743", AssignedByKey = "first-instance" }],
+            ExternalActNumber = "MUVZ/2025/82743",
         },
         new()
         {
@@ -337,7 +333,7 @@ internal static class SampleData
             Title = "Vyjádření k podkladům rozhodnutí",
             Date = new DateOnly(2025, 8, 18),
             CounterpartyKey = "first-instance",
-            ExternalNumbers = [new() { Value = "VV41/2025/08464", AssignedByKey = "first-instance" }],
+            ExternalActNumber = "VV41/2025/08464",
         },
         new()
         {
@@ -346,7 +342,7 @@ internal static class SampleData
             Date = new DateOnly(2025, 9, 2),
             CounterpartyKey = "first-instance",
             Description = "Vina, pokuta 2 000 Kč, náklady řízení 2 500 Kč.",
-            ExternalNumbers = [new() { Value = "MUVZ/2025/93547", AssignedByKey = "first-instance" }],
+            ExternalActNumber = "MUVZ/2025/93547",
         },
         new()
         {
@@ -354,7 +350,7 @@ internal static class SampleData
             Title = "Odvolání proti rozhodnutí v plném rozsahu",
             Date = new DateOnly(2025, 9, 15),
             CounterpartyKey = "first-instance",
-            ExternalNumbers = [new() { Value = "MUVZ/2025/93547", AssignedByKey = "first-instance" }],
+            ExternalActNumber = "MUVZ/2025/93547",
         },
         new()
         {
@@ -363,7 +359,7 @@ internal static class SampleData
             Date = new DateOnly(2025, 9, 26),
             CounterpartyKey = "appellate",
             Description = "Odvolání zamítnuto, rozhodnutí prvního stupně potvrzeno.",
-            ExternalNumbers = [new() { Value = "KUVZ 109838/2025", AssignedByKey = "appellate" }],
+            ExternalActNumber = "KUVZ 109838/2025",
         },
         new()
         {
@@ -372,7 +368,7 @@ internal static class SampleData
             Date = new DateOnly(2025, 10, 1),
             CounterpartyKey = "court",
             Description = "Žaloba směřuje proti rozhodnutí o odvolání.",
-            ExternalNumbers = [new() { Value = "10 A 1/2025", AssignedByKey = "court" }],
+            ExternalActNumber = "10 A 1/2025",
             Comments = ["Součástí žaloby je návrh na přiznání odkladného účinku."],
         },
         new()
@@ -381,7 +377,7 @@ internal static class SampleData
             Title = "Poučení o možné podjatosti senátu",
             Date = new DateOnly(2025, 10, 6),
             CounterpartyKey = "court",
-            ExternalNumbers = [new() { Value = "10 A 1/2025", AssignedByKey = "court" }],
+            ExternalActNumber = "10 A 1/2025",
         },
         new()
         {
@@ -389,7 +385,7 @@ internal static class SampleData
             Title = "Vyjádření k poučení, souhlas s rozhodnutím bez jednání a vyčíslení nákladů",
             Date = new DateOnly(2025, 10, 7),
             CounterpartyKey = "court",
-            ExternalNumbers = [new() { Value = "10 A 1/2025", AssignedByKey = "court" }],
+            ExternalActNumber = "10 A 1/2025",
         },
         new()
         {
@@ -397,7 +393,7 @@ internal static class SampleData
             Title = "Výzva k zaplacení soudního poplatku",
             Date = new DateOnly(2025, 10, 9),
             CounterpartyKey = "court",
-            ExternalNumbers = [new() { Value = "10 A 1/2025-31", AssignedByKey = "court" }],
+            ExternalActNumber = "10 A 1/2025-31",
         },
         new()
         {
@@ -405,7 +401,7 @@ internal static class SampleData
             Title = "Doplnění žaloby — materiální stránka přestupku",
             Date = new DateOnly(2025, 10, 13),
             CounterpartyKey = "court",
-            ExternalNumbers = [new() { Value = "10 A 1/2025", AssignedByKey = "court" }],
+            ExternalActNumber = "10 A 1/2025",
         },
         new()
         {
@@ -413,7 +409,7 @@ internal static class SampleData
             Title = "Doplnění žaloby — nezákonnost měření rychlosti",
             Date = new DateOnly(2025, 10, 14),
             CounterpartyKey = "court",
-            ExternalNumbers = [new() { Value = "10 A 1/2025", AssignedByKey = "court" }],
+            ExternalActNumber = "10 A 1/2025",
         },
         new()
         {
@@ -421,7 +417,7 @@ internal static class SampleData
             Title = "Usnesení o nepřiznání odkladného účinku",
             Date = new DateOnly(2025, 10, 15),
             CounterpartyKey = "court",
-            ExternalNumbers = [new() { Value = "10 A 1/2025", AssignedByKey = "court" }],
+            ExternalActNumber = "10 A 1/2025",
         },
         new()
         {
@@ -429,7 +425,7 @@ internal static class SampleData
             Title = "Přípis soudu",
             Date = new DateOnly(2025, 10, 16),
             CounterpartyKey = "court",
-            ExternalNumbers = [new() { Value = "10 A 1/2025", AssignedByKey = "court" }],
+            ExternalActNumber = "10 A 1/2025",
         },
         new()
         {
@@ -437,7 +433,7 @@ internal static class SampleData
             Title = "Vyjádření žalovaného k žalobě",
             Date = new DateOnly(2025, 10, 17),
             CounterpartyKey = "appellate",
-            ExternalNumbers = [new() { Value = "10 A 1/2025", AssignedByKey = "court" }],
+            ExternalActNumber = "10 A 1/2025",
         },
         new()
         {
@@ -445,7 +441,7 @@ internal static class SampleData
             Title = "Vyčíslení nákladů řízení",
             Date = new DateOnly(2025, 10, 18),
             CounterpartyKey = "court",
-            ExternalNumbers = [new() { Value = "10 A 1/2025", AssignedByKey = "court" }],
+            ExternalActNumber = "10 A 1/2025",
         },
         new()
         {
@@ -453,7 +449,7 @@ internal static class SampleData
             Title = "Doplnění žaloby — rozpor mezi rozhodnutími a replika k vyjádření žalovaného",
             Date = new DateOnly(2025, 11, 3),
             CounterpartyKey = "court",
-            ExternalNumbers = [new() { Value = "10 A 1/2025", AssignedByKey = "court" }],
+            ExternalActNumber = "10 A 1/2025",
         },
         new()
         {
@@ -461,7 +457,7 @@ internal static class SampleData
             Title = "Žádost o prodloužení lhůty k doplnění žaloby",
             Date = new DateOnly(2025, 11, 10),
             CounterpartyKey = "court",
-            ExternalNumbers = [new() { Value = "10 A 1/2025", AssignedByKey = "court" }],
+            ExternalActNumber = "10 A 1/2025",
         },
         new()
         {
@@ -469,7 +465,7 @@ internal static class SampleData
             Title = "Druhá žádost o prodloužení lhůty",
             Date = new DateOnly(2025, 11, 25),
             CounterpartyKey = "court",
-            ExternalNumbers = [new() { Value = "10 A 1/2025", AssignedByKey = "court" }],
+            ExternalActNumber = "10 A 1/2025",
         },
         new()
         {
@@ -479,7 +475,7 @@ internal static class SampleData
             Title = "Třetí žádost o prodloužení lhůty",
             Date = new DateOnly(2025, 12, 30),
             CounterpartyKey = "court",
-            ExternalNumbers = [new() { Value = "10 A 1/2025", AssignedByKey = "court" }],
+            ExternalActNumber = "10 A 1/2025",
         },
         new()
         {
@@ -488,7 +484,7 @@ internal static class SampleData
             Date = new DateOnly(2026, 3, 13),
             CounterpartyKey = "court",
             Description = "Konečné doplnění s přiloženou sadou důkazů.",
-            ExternalNumbers = [new() { Value = "10 A 1/2025", AssignedByKey = "court" }],
+            ExternalActNumber = "10 A 1/2025",
             Comments = ["Přílohou je sada důkazů shromážděná v podřízených spisech."],
             ExtraFileSuffix = "prilohy",
         },

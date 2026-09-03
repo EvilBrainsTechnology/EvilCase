@@ -35,12 +35,11 @@ internal sealed class SampleDataSeeder(
 
         logger.LogInformation(
             "Sample data seeded into tenant {TenantId}: {ContactCount} contacts, {CaseCount} cases, {ActCount} acts, "
-                + "{ExternalNumberCount} external numbers, {CommentCount} comments, {FileCount} files",
+                + "{CommentCount} comments, {FileCount} files",
             tenantId,
             contactsByKey.Count,
             casesByKey.Count,
             counters.ActCount,
-            counters.ExternalNumberCount,
             counters.CommentCount,
             counters.FileCount);
     }
@@ -82,6 +81,7 @@ internal sealed class SampleDataSeeder(
         {
             ParentCaseId = sampleCase.ParentKey is null ? null : casesByKey[sampleCase.ParentKey].Id,
             CaseNumber = caseNumber,
+            ExternalCaseNumber = sampleCase.ExternalCaseNumber,
             Date = sampleCase.Date,
             Title = sampleCase.Title,
             Description = sampleCase.Description,
@@ -91,18 +91,6 @@ internal sealed class SampleDataSeeder(
         casesByKey[sampleCase.Key] = @case;
         dbSession.Current.Cases.Add(@case);
         await dbSession.Current.SaveChangesAsync(token);
-
-        foreach (var externalNumber in sampleCase.ExternalNumbers)
-        {
-            dbSession.Current.ExternalCaseNumbers.Add(new ExternalCaseNumber
-            {
-                CaseId = @case.Id,
-                Value = externalNumber.Value,
-                AssignedByContactId = contactsByKey[externalNumber.AssignedByKey].Id,
-            });
-
-            counters.ExternalNumberCount++;
-        }
 
         foreach (var body in sampleCase.Comments)
         {
@@ -151,6 +139,7 @@ internal sealed class SampleDataSeeder(
         {
             CaseId = @case.Id,
             ActNumber = actNumber,
+            ExternalActNumber = sampleAct.ExternalActNumber,
             Direction = sampleAct.Direction,
             Title = sampleAct.Title,
             Description = sampleAct.Description,
@@ -162,18 +151,6 @@ internal sealed class SampleDataSeeder(
         dbSession.Current.Acts.Add(act);
         await dbSession.Current.SaveChangesAsync(token);
         counters.ActCount++;
-
-        foreach (var externalNumber in sampleAct.ExternalNumbers)
-        {
-            dbSession.Current.ExternalActNumbers.Add(new ExternalActNumber
-            {
-                ActId = act.Id,
-                Value = externalNumber.Value,
-                AssignedByContactId = contactsByKey[externalNumber.AssignedByKey].Id,
-            });
-
-            counters.ExternalNumberCount++;
-        }
 
         foreach (var body in sampleAct.Comments)
         {
@@ -263,8 +240,6 @@ internal sealed class SampleDataSeeder(
     private sealed class SeedCounters
     {
         public int ActCount { get; set; }
-
-        public int ExternalNumberCount { get; set; }
 
         public int CommentCount { get; set; }
 

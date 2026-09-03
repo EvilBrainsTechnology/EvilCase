@@ -41,12 +41,6 @@ public static class AppIcons
         + "<path d='M9 4h3l2 2h5a2 2 0 0 1 2 2v7a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2' />"
         + "<path d='M17 17v2a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2h2' />");
 
-    public static IIconType Hash { get; } = new TablerIcon("<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
-        + "<path d='M5 9l14 0' />"
-        + "<path d='M5 15l14 0' />"
-        + "<path d='M11 4l-4 16' />"
-        + "<path d='M17 4l-4 16' />");
-
     public static IIconType LayoutDashboard { get; } = new TablerIcon("<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M5 4h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1' />"
         + "<path d='M5 16h4a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-2a1 1 0 0 1 1 -1' />"

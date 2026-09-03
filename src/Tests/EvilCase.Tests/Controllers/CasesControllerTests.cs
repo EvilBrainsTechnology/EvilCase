@@ -1,7 +1,5 @@
 using System.Diagnostics;
 using EvilBrains.EvilCase.Api.Contract.Cases;
-using EvilBrains.EvilCase.Api.Contract.Contacts;
-using EvilBrains.EvilCase.Api.Contract.Numbers;
 using EvilBrains.EvilCase.Api.Controllers;
 using EvilBrains.EvilCase.Business.Cases;
 using EvilBrains.EvilCase.Business.Entities;
@@ -290,123 +288,6 @@ public class CasesControllerTests
             "an outcome the endpoint does not name never turns into a status");
     }
 
-    [Test]
-    public async Task AddingAMarkReachesTheWriterWithTheRouteIdAndTheBody()
-    {
-        var caseId = Guid.CreateVersion7();
-        var writer = AddingMarkWriter(ExternalCaseNumberOutcome.Added);
-        var controller = new CasesController();
-        var request = Mark();
-
-        await controller.AddExternalCaseNumber(writer, caseId, request, CancellationToken.None);
-
-        await writer
-            .Received(1)
-            .AddExternalCaseNumber(caseId, request, Arg.Any<CancellationToken>());
-    }
-
-    [Test]
-    public async Task AddingAMarkThatSucceedsAnswersWithNoContent()
-    {
-        var writer = AddingMarkWriter(ExternalCaseNumberOutcome.Added);
-        var controller = new CasesController();
-
-        var result = await controller.AddExternalCaseNumber(writer, Guid.CreateVersion7(), Mark(), CancellationToken.None);
-
-        Assert.That(result, Is.InstanceOf<NoContentResult>());
-    }
-
-    [Test]
-    public async Task AddingAMarkToAMissingCaseIsAProblemWithFourOhFour()
-    {
-        var writer = AddingMarkWriter(ExternalCaseNumberOutcome.CaseNotFound);
-        var controller = new CasesController();
-
-        var result = await controller.AddExternalCaseNumber(writer, Guid.CreateVersion7(), Mark(), CancellationToken.None);
-
-        AssertProblem(result, 404);
-    }
-
-    [Test]
-    public async Task AMarkTheCaseAlreadyCarriesIsAConflict()
-    {
-        var writer = AddingMarkWriter(ExternalCaseNumberOutcome.ValueTaken);
-        var controller = new CasesController();
-
-        var result = await controller.AddExternalCaseNumber(writer, Guid.CreateVersion7(), Mark(), CancellationToken.None);
-
-        var problem = AssertProblem(result, 409);
-
-        Assert.That(problem.Title, Is.EqualTo(ExternalNumberProblems.Taken), "the two conflicts of the add are told apart by the problem title");
-    }
-
-    [Test]
-    public async Task AMarkNamingAnUnknownContactIsAConflict()
-    {
-        var writer = AddingMarkWriter(ExternalCaseNumberOutcome.UnknownContact);
-        var controller = new CasesController();
-
-        var result = await controller.AddExternalCaseNumber(writer, Guid.CreateVersion7(), Mark(), CancellationToken.None);
-
-        var problem = AssertProblem(result, 409);
-
-        Assert.That(problem.Title, Is.EqualTo(ContactProblems.UnknownContact));
-    }
-
-    [Test]
-    public async Task DeletingAMarkAnswersWithNoContent()
-    {
-        var writer = DeletingMarkWriter(DeleteOutcome.Deleted);
-        var controller = new CasesController();
-
-        var result = await controller.DeleteExternalCaseNumber(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
-
-        Assert.That(result, Is.InstanceOf<NoContentResult>());
-    }
-
-    [Test]
-    public async Task DeletingAMarkReachesTheWriterWithBothRouteIds()
-    {
-        var caseId = Guid.CreateVersion7();
-        var numberId = Guid.CreateVersion7();
-        var writer = DeletingMarkWriter(DeleteOutcome.Deleted);
-        var controller = new CasesController();
-
-        await controller.DeleteExternalCaseNumber(writer, caseId, numberId, CancellationToken.None);
-
-        await writer
-            .Received(1)
-            .DeleteExternalCaseNumber(caseId, numberId, Arg.Any<CancellationToken>());
-    }
-
-    [Test]
-    public async Task DeletingAMissingMarkIsAProblemWithFourOhFour()
-    {
-        var writer = DeletingMarkWriter(DeleteOutcome.NotFound);
-        var controller = new CasesController();
-
-        var result = await controller.DeleteExternalCaseNumber(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
-
-        AssertProblem(result, 404);
-    }
-
-    [Test]
-    public async Task AMarkDeleteOutcomeTheEndpointDoesNotKnowThrows()
-    {
-        var writer = DeletingMarkWriter((DeleteOutcome)99);
-        var controller = new CasesController();
-
-        await Assert.ThatAsync(
-            async () => await controller.DeleteExternalCaseNumber(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None),
-            Throws.InstanceOf<UnreachableException>(),
-            "an outcome the endpoint does not name never turns into a status");
-    }
-
-    private static ExternalNumberRequest Mark()
-    {
-        return new() { Value = "VV41/2025/08464", AssignedByContactId = Guid.CreateVersion7() };
-    }
-
     private static CaseDetail Detail(Guid caseId)
     {
         return new()
@@ -478,26 +359,6 @@ public class CasesControllerTests
         var writer = Substitute.For<ICaseWriter>();
         writer
             .DeleteCase(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-            .Returns(outcome);
-
-        return writer;
-    }
-
-    private static IExternalCaseNumberWriter AddingMarkWriter(ExternalCaseNumberOutcome outcome)
-    {
-        var writer = Substitute.For<IExternalCaseNumberWriter>();
-        writer
-            .AddExternalCaseNumber(Arg.Any<Guid>(), Arg.Any<ExternalNumberRequest>(), Arg.Any<CancellationToken>())
-            .Returns(outcome);
-
-        return writer;
-    }
-
-    private static IExternalCaseNumberWriter DeletingMarkWriter(DeleteOutcome outcome)
-    {
-        var writer = Substitute.For<IExternalCaseNumberWriter>();
-        writer
-            .DeleteExternalCaseNumber(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(outcome);
 
         return writer;

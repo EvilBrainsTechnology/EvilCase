@@ -131,7 +131,8 @@ internal sealed class TestTenant : IAsyncDisposable
         CaseStatus status = CaseStatus.Active,
         string? caseNumber = null,
         Guid? caseId = null,
-        Guid? parentCaseId = null)
+        Guid? parentCaseId = null,
+        string? externalCaseNumber = null)
     {
         var @case = new Case
         {
@@ -140,6 +141,7 @@ internal sealed class TestTenant : IAsyncDisposable
             TenantId = this.tenantId,
             UserId = this.UserId,
             CaseNumber = caseNumber ?? CaseNumberFormat.Compose(date, this.NextSequence(CaseNumberFormat.Prefix(date))),
+            ExternalCaseNumber = externalCaseNumber,
             Date = date,
             Title = title,
             Description = description,
@@ -158,7 +160,8 @@ internal sealed class TestTenant : IAsyncDisposable
         string? actNumber = null,
         Guid? actId = null,
         ActDirection direction = ActDirection.Incoming,
-        string? description = null)
+        string? description = null,
+        string? externalActNumber = null)
     {
         var prefix = ActNumberFormat.Prefix(@case.CaseNumber, date);
 
@@ -169,6 +172,7 @@ internal sealed class TestTenant : IAsyncDisposable
             UserId = this.UserId,
             CaseId = @case.Id,
             ActNumber = actNumber ?? ActNumberFormat.Compose(@case.CaseNumber, date, this.NextSequence(prefix)),
+            ExternalActNumber = externalActNumber,
             Direction = direction,
             Title = title,
             Date = date,
@@ -226,34 +230,6 @@ internal sealed class TestTenant : IAsyncDisposable
         using var scope = this.stubUserContext.Enter(this.tenantId, comment.UserId);
 
         return await this.Save(this.Context.Comments, comment);
-    }
-
-    public async Task<ExternalCaseNumber> AddExternalCaseNumber(Case @case, string value, Contact assignedBy)
-    {
-        var number = new ExternalCaseNumber
-        {
-            TenantId = this.tenantId,
-            UserId = this.UserId,
-            CaseId = @case.Id,
-            Value = value,
-            AssignedByContactId = assignedBy.Id,
-        };
-
-        return await this.Save(this.Context.ExternalCaseNumbers, number);
-    }
-
-    public async Task<ExternalActNumber> AddExternalActNumber(Act act, string value, Contact assignedBy)
-    {
-        var number = new ExternalActNumber
-        {
-            TenantId = this.tenantId,
-            UserId = this.UserId,
-            ActId = act.Id,
-            Value = value,
-            AssignedByContactId = assignedBy.Id,
-        };
-
-        return await this.Save(this.Context.ExternalActNumbers, number);
     }
 
     public async Task<FileAsset> AddCaseFile(Case @case, string fileName = "dokument.pdf")
