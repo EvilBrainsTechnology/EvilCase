@@ -20,7 +20,7 @@ public class ContactOccurrenceQueryTests : TenantFixture
         var authority = await this.Tenant.AddContact("Městský úřad");
         var person = await this.Tenant.AddContact("Jan Novák", ContactKind.Person);
         var @case = await this.Tenant.AddCase(Day);
-        var issued = await this.Tenant.AddAct(@case, Day, "Rozhodnutí", issuedBy: authority, addressedTo: person, externalNumber: "MUVZ/2026/117");
+        var issued = await this.Tenant.AddAct(@case, Day, "Rozhodnutí", issuedBy: authority, addressedTo: person, externalActNumber: "MUVZ/2026/117");
 
         var issuedBy = await this.Tenant.Context.Acts
             .IssuedByContact(authority.Id)

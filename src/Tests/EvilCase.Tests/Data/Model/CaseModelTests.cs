@@ -82,14 +82,14 @@ public class CaseModelTests : ModelFixture
 
         Assert.That(@case, Is.Not.Null);
 
-        var mark = @case.FindProperty(nameof(Case.ExternalNumber));
+        var mark = @case.FindProperty(nameof(Case.ExternalCaseNumber));
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(mark, Is.Not.Null, "a case carries at most one mark another authority gave it, so it is a column and not a row");
             Assert.That(mark?.IsNullable, Is.True, "a case exists before anybody records one");
             Assert.That(mark?.GetMaxLength(), Is.EqualTo(128));
-            Assert.That(IsIndexed(@case!, nameof(Case.ExternalNumber)), Is.False, "no read filters or orders cases by it");
+            Assert.That(IsIndexed(@case!, nameof(Case.ExternalCaseNumber)), Is.False, "no read filters or orders cases by it");
         }
     }
 }

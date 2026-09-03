@@ -98,13 +98,13 @@ public class SampleDataSeederTests
 
         var mainCase = context.Added<Case>().Single(static @case => @case.ParentCaseId is null);
         var actNumbers = context.Added<Act>()
-            .Select(static act => act.ExternalNumber)
+            .Select(static act => act.ExternalActNumber)
             .Where(static number => number is not null)
             .ToList();
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(mainCase.ExternalNumber, Is.EqualTo("VV41/2025/08464"), "the main case carries the mark the first-instance authority gave it");
+            Assert.That(mainCase.ExternalCaseNumber, Is.EqualTo("VV41/2025/08464"), "the main case carries the mark the first-instance authority gave it");
             Assert.That(actNumbers, Does.Contain("MUVZ/2025/80535"));
             Assert.That(actNumbers, Does.Contain("KUVZ 109838/2025"));
             Assert.That(actNumbers, Does.Contain("10 A 1/2025"));

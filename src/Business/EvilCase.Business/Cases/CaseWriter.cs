@@ -91,7 +91,7 @@ internal sealed class CaseWriter(
         var edit = request with
         {
             CaseNumber = request.CaseNumber.Trim(),
-            ExternalNumber = request.ExternalNumber?.TrimEmptyToNull(),
+            ExternalCaseNumber = request.ExternalCaseNumber?.TrimEmptyToNull(),
             Title = request.Title.Trim(),
             Description = request.Description?.TrimEmptyToNull(),
         };
@@ -121,7 +121,7 @@ internal sealed class CaseWriter(
             .ExecuteUpdateAsync(
                 setters => setters
                     .SetProperty(static @case => @case.CaseNumber, edit.CaseNumber)
-                    .SetProperty(static @case => @case.ExternalNumber, edit.ExternalNumber)
+                    .SetProperty(static @case => @case.ExternalCaseNumber, edit.ExternalCaseNumber)
                     .SetProperty(static @case => @case.ParentCaseId, edit.ParentCaseId)
                     .SetProperty(static @case => @case.Date, edit.Date)
                     .SetProperty(static @case => @case.Title, edit.Title)

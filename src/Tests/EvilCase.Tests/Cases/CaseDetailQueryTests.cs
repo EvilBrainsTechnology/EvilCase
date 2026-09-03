@@ -94,11 +94,11 @@ public class CaseDetailQueryTests : TenantFixture
     [Test]
     public async Task TheDetailCarriesTheCasesExternalMark()
     {
-        var @case = await this.Tenant.AddCase(Day, externalNumber: "VV41/2025/08464");
+        var @case = await this.Tenant.AddCase(Day, externalCaseNumber: "VV41/2025/08464");
 
         var detail = await this.Tenant.Context.Cases.DetailOf(@case.Id, CancellationToken.None);
 
-        Assert.That(detail!.ExternalNumber, Is.EqualTo("VV41/2025/08464"));
+        Assert.That(detail!.ExternalCaseNumber, Is.EqualTo("VV41/2025/08464"));
     }
 
     [Test]
@@ -108,7 +108,7 @@ public class CaseDetailQueryTests : TenantFixture
 
         var detail = await this.Tenant.Context.Cases.DetailOf(@case.Id, CancellationToken.None);
 
-        Assert.That(detail!.ExternalNumber, Is.Null, "the mark is optional and its absence is no mark, not a failed read");
+        Assert.That(detail!.ExternalCaseNumber, Is.Null, "the mark is optional and its absence is no mark, not a failed read");
     }
 
     [Test]

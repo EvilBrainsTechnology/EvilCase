@@ -30,7 +30,7 @@ public sealed record Act : IUserOwnedEntity
     /// The reference number another authority gave this act, as that authority writes it (SDD-010).
     /// </summary>
     [MaxLength(128)]
-    public string? ExternalNumber { get; init; }
+    public string? ExternalActNumber { get; init; }
 
     public required ActDirection Direction { get; init; }
 

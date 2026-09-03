@@ -34,8 +34,8 @@
 
                         <div class="mb-3">
                             <label class="form-label" for="case-external-number">Externí spisová značka</label>
-                            <InputText id="case-external-number" class="form-control" @bind-Value="this.model.ExternalNumber" />
-                            <ValidationMessage For="() => this.model.ExternalNumber" class="invalid-feedback d-block" />
+                            <InputText id="case-external-number" class="form-control" @bind-Value="this.model.ExternalCaseNumber" />
+                            <ValidationMessage For="() => this.model.ExternalCaseNumber" class="invalid-feedback d-block" />
                         </div>
 
                         <div class="mb-3">
@@ -139,7 +139,7 @@
             var @case = await this.CasesClient.GetCase(this.CaseId, CancellationToken.None);
 
             this.model.CaseNumber = @case.CaseNumber;
-            this.model.ExternalNumber = @case.ExternalNumber;
+            this.model.ExternalCaseNumber = @case.ExternalCaseNumber;
             this.model.Date = @case.Date;
             this.model.Title = @case.Title;
             this.model.Description = @case.Description;
@@ -175,7 +175,7 @@
             {
                 ParentCaseId = this.model.ParentCaseId,
                 CaseNumber = this.model.CaseNumber,
-                ExternalNumber = this.model.ExternalNumber,
+                ExternalCaseNumber = this.model.ExternalCaseNumber,
                 Date = this.model.Date,
                 Title = this.model.Title,
                 Description = this.model.Description,

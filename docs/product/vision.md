@@ -29,7 +29,7 @@ základ vynechává, je dole v non-goals a přijde později, po krocích.
 
 Názvy v kódu jsou anglické: spis = `Case`, úkon = `Act`, soubor = `FileAsset`, kontakt =
 `Contact`, komentář = `Comment`; spisová značka = `CaseNumber`, číslo jednací = `ActNumber`,
-cizí, přidělené někým jiným, je `ExternalNumber`, vlastní sloupec na spisu i na úkonu. Mapu drží
+cizí, přidělené někým jiným, jsou `ExternalCaseNumber` a `ExternalActNumber`. Mapu drží
 [SDD-007](../sdd/sdd-007-domenovy-model.md).
 
 **Spis** — jedno řízení. Nese explicitní datum, název, popis, status (`Active`,

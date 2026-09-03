@@ -20,7 +20,7 @@ public class ActModelTests : ModelFixture
         using (Assert.EnterMultipleScope())
         {
             Assert.That(columns, Has.Member("ActNumber"), "the act's own mark is stored in a column named ActNumber");
-            Assert.That(columns, Has.Member("ExternalNumber"), "the number the issuing authority gave an act is a column on the act");
+            Assert.That(columns, Has.Member("ExternalActNumber"), "the number the issuing authority gave an act is a column on the act");
         }
     }
 
@@ -105,14 +105,14 @@ public class ActModelTests : ModelFixture
 
         Assert.That(act, Is.Not.Null);
 
-        var number = act.FindProperty(nameof(Act.ExternalNumber));
+        var number = act.FindProperty(nameof(Act.ExternalActNumber));
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(number, Is.Not.Null, "an act carries at most one number another authority gave it, so it is a column and not a row");
             Assert.That(number?.IsNullable, Is.True, "an act exists before anybody records one");
             Assert.That(number?.GetMaxLength(), Is.EqualTo(128));
-            Assert.That(IsIndexed(act!, nameof(Act.ExternalNumber)), Is.False, "no read filters or orders acts by it");
+            Assert.That(IsIndexed(act!, nameof(Act.ExternalActNumber)), Is.False, "no read filters or orders acts by it");
         }
     }
 }

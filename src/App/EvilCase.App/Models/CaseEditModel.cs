@@ -16,7 +16,7 @@ internal sealed class CaseEditModel
     public string CaseNumber { get; set; } = "";
 
     [StringLength(128, ErrorMessage = "Externí spisová značka může mít nejvýše 128 znaků")]
-    public string? ExternalNumber { get; set; }
+    public string? ExternalCaseNumber { get; set; }
 
     public DateOnly Date { get; set; }
 

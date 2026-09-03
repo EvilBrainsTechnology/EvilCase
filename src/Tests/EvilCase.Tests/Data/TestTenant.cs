@@ -132,7 +132,7 @@ internal sealed class TestTenant : IAsyncDisposable
         string? caseNumber = null,
         Guid? caseId = null,
         Guid? parentCaseId = null,
-        string? externalNumber = null)
+        string? externalCaseNumber = null)
     {
         var @case = new Case
         {
@@ -141,7 +141,7 @@ internal sealed class TestTenant : IAsyncDisposable
             TenantId = this.tenantId,
             UserId = this.UserId,
             CaseNumber = caseNumber ?? CaseNumberFormat.Compose(date, this.NextSequence(CaseNumberFormat.Prefix(date))),
-            ExternalNumber = externalNumber,
+            ExternalCaseNumber = externalCaseNumber,
             Date = date,
             Title = title,
             Description = description,
@@ -161,7 +161,7 @@ internal sealed class TestTenant : IAsyncDisposable
         Guid? actId = null,
         ActDirection direction = ActDirection.Incoming,
         string? description = null,
-        string? externalNumber = null)
+        string? externalActNumber = null)
     {
         var prefix = ActNumberFormat.Prefix(@case.CaseNumber, date);
 
@@ -172,7 +172,7 @@ internal sealed class TestTenant : IAsyncDisposable
             UserId = this.UserId,
             CaseId = @case.Id,
             ActNumber = actNumber ?? ActNumberFormat.Compose(@case.CaseNumber, date, this.NextSequence(prefix)),
-            ExternalNumber = externalNumber,
+            ExternalActNumber = externalActNumber,
             Direction = direction,
             Title = title,
             Date = date,
