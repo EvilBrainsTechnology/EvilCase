@@ -3,7 +3,7 @@
 - **Stav:** platí
 - **Milníky:** M3
 - **Související SDD:** [007](sdd-007-domenovy-model.md), [008](sdd-008-cislovani.md),
-  [011](sdd-011-kontakty.md), [013](sdd-013-komentare.md)
+  [013](sdd-013-komentare.md)
 
 ## Rozsah
 
@@ -30,8 +30,8 @@ soubory i komentáře jako každý jiný. Nový spis vzniká jako `Active`.
 
 ### Externí spisová značka
 
-Spis nese nejvýše jednu značku, kterou mu dal jiný úřad: nepovinný volný text, sloupec spisu,
-bez vazby na kontakt. Zadává se na editaci spisu.
+Spis nese nejvýše jednu značku, kterou mu dal jiný úřad: nepovinný volný text bez vazby na
+kontakt. Zadává se na editaci spisu.
 
 ### Stránky
 

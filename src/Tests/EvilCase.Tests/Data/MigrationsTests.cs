@@ -62,17 +62,24 @@ public class MigrationsTests
         Assert.That(context.Database.HasPendingModelChanges(), Is.False, "the migration and its snapshot are behind the model, so a fresh database is not the one the model maps");
     }
 
-    private static Dictionary<string, HashSet<string>> Replay(DbContext context)
+    /// <summary>
+    /// Every <c>Up</c> operation the migrations carry, in the order they run.
+    /// </summary>
+    private static IEnumerable<MigrationOperation> UpOperations(DbContext context)
     {
         var assembly = context.GetService<IMigrationsAssembly>();
         var provider = context.GetService<IDatabaseProvider>().Name;
-        var tables = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
 
-        var operations = assembly.Migrations
+        return assembly.Migrations
             .Select(entry => assembly.CreateMigration(entry.Value, provider))
             .SelectMany(static migration => migration.UpOperations);
+    }
 
-        foreach (var operation in operations)
+    private static Dictionary<string, HashSet<string>> Replay(DbContext context)
+    {
+        var tables = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
+
+        foreach (var operation in UpOperations(context))
             Apply(tables, operation);
 
         return tables;
@@ -113,15 +120,9 @@ public class MigrationsTests
     /// </summary>
     private static List<string> ReplayIndexes(DbContext context)
     {
-        var assembly = context.GetService<IMigrationsAssembly>();
-        var provider = context.GetService<IDatabaseProvider>().Name;
         var indexes = new Dictionary<string, string>(StringComparer.Ordinal);
 
-        var operations = assembly.Migrations
-            .Select(entry => assembly.CreateMigration(entry.Value, provider))
-            .SelectMany(static migration => migration.UpOperations);
-
-        foreach (var operation in operations)
+        foreach (var operation in UpOperations(context))
         {
             if (operation is CreateIndexOperation create)
             {

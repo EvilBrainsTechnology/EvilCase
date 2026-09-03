@@ -1,9 +1,8 @@
 # SDD-011 — Kontakty
 
 - **Stav:** platí
-- **Milníky:** M2, M3, M4, M6
-- **Související SDD:** [004](sdd-004-validace-a-chyby.md), [009](sdd-009-spisy.md),
-  [010](sdd-010-ukony.md)
+- **Milníky:** M2, M4, M6
+- **Související SDD:** [004](sdd-004-validace-a-chyby.md), [010](sdd-010-ukony.md)
 
 ## Rozsah
 

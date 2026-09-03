@@ -119,5 +119,4 @@ public class ContactOccurrenceQueryTests : TenantFixture
             Assert.That(holdsOther, Is.Zero, "a contact no user prefills with is nobody's default");
         }
     }
-
 }

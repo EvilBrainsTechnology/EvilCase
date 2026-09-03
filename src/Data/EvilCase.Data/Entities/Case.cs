@@ -24,8 +24,7 @@ public sealed record Case : IUserOwnedEntity
     public required string CaseNumber { get; init; }
 
     /// <summary>
-    /// The mark another authority gave this case, as that authority writes it. Absent until somebody
-    /// records one (SDD-009).
+    /// The mark another authority gave this case, as that authority writes it (SDD-009).
     /// </summary>
     [MaxLength(128)]
     public string? ExternalCaseNumber { get; init; }

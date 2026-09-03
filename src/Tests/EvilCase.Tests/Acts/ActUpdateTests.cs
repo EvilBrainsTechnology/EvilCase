@@ -333,36 +333,6 @@ public class ActUpdateTests : TenantFixture
         }
     }
 
-    private async Task<Act> Reload(Guid actId)
-    {
-        this.Tenant.Context.ChangeTracker.Clear();
-
-        return await this.Tenant.Context.Acts.SingleAsync(act => act.Id == actId);
-    }
-
-    private static ActEditRequest Edit(
-        string actNumber,
-        ActDirection direction,
-        DateOnly date,
-        string title,
-        string? description,
-        Guid issuedByContactId,
-        Guid? addressedToContactId = null,
-        string? externalActNumber = null)
-    {
-        return new()
-        {
-            ActNumber = actNumber,
-            ExternalActNumber = externalActNumber,
-            Direction = direction,
-            Date = date,
-            Title = title,
-            Description = description,
-            IssuedByContactId = issuedByContactId,
-            AddressedToContactId = addressedToContactId,
-        };
-    }
-
     [Test]
     public async Task AnEditWritesTheExternalReferenceNumber()
     {
@@ -395,5 +365,35 @@ public class ActUpdateTests : TenantFixture
         var reloaded = await this.Reload(seeded.Id);
 
         Assert.That(reloaded.ExternalActNumber, Is.Null, "an emptied field takes the number away");
+    }
+
+    private async Task<Act> Reload(Guid actId)
+    {
+        this.Tenant.Context.ChangeTracker.Clear();
+
+        return await this.Tenant.Context.Acts.SingleAsync(act => act.Id == actId);
+    }
+
+    private static ActEditRequest Edit(
+        string actNumber,
+        ActDirection direction,
+        DateOnly date,
+        string title,
+        string? description,
+        Guid issuedByContactId,
+        Guid? addressedToContactId = null,
+        string? externalActNumber = null)
+    {
+        return new()
+        {
+            ActNumber = actNumber,
+            ExternalActNumber = externalActNumber,
+            Direction = direction,
+            Date = date,
+            Title = title,
+            Description = description,
+            IssuedByContactId = issuedByContactId,
+            AddressedToContactId = addressedToContactId,
+        };
     }
 }

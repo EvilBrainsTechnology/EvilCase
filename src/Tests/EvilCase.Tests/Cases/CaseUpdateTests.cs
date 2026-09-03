@@ -284,21 +284,6 @@ public class CaseUpdateTests : TenantFixture
         }
     }
 
-    private static CaseEditRequest Edit(
-        string caseNumber, DateOnly date, string title, string? description, CaseStatus status, Guid? parentCaseId = null, string? externalCaseNumber = null)
-    {
-        return new()
-        {
-            ParentCaseId = parentCaseId,
-            CaseNumber = caseNumber,
-            ExternalCaseNumber = externalCaseNumber,
-            Date = date,
-            Title = title,
-            Description = description,
-            Status = status,
-        };
-    }
-
     [Test]
     public async Task AnEditWritesTheExternalMark()
     {
@@ -327,5 +312,20 @@ public class CaseUpdateTests : TenantFixture
         var reloaded = await this.Reload(seeded.Id);
 
         Assert.That(reloaded.ExternalCaseNumber, Is.Null, "an emptied field takes the mark away");
+    }
+
+    private static CaseEditRequest Edit(
+        string caseNumber, DateOnly date, string title, string? description, CaseStatus status, Guid? parentCaseId = null, string? externalCaseNumber = null)
+    {
+        return new()
+        {
+            ParentCaseId = parentCaseId,
+            CaseNumber = caseNumber,
+            ExternalCaseNumber = externalCaseNumber,
+            Date = date,
+            Title = title,
+            Description = description,
+            Status = status,
+        };
     }
 }

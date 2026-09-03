@@ -27,8 +27,7 @@ public sealed record Act : IUserOwnedEntity
     public required string ActNumber { get; init; }
 
     /// <summary>
-    /// The reference number another authority gave this act, as that authority writes it. Absent until
-    /// somebody records one (SDD-010).
+    /// The reference number another authority gave this act, as that authority writes it (SDD-010).
     /// </summary>
     [MaxLength(128)]
     public string? ExternalActNumber { get; init; }

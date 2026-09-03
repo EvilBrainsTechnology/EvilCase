@@ -24,8 +24,8 @@ Odchozí úkon předvyplní odesílatele defaultním kontaktem uživatele, pří
 
 ### Externí číslo jednací
 
-Úkon nese nejvýše jedno číslo, které mu dal jiný úřad: nepovinný volný text, sloupec úkonu,
-bez vazby na kontakt. Zadává se na editaci úkonu.
+Úkon nese nejvýše jedno číslo, které mu dal jiný úřad: nepovinný volný text bez vazby na
+kontakt. Zadává se na editaci úkonu.
 
 ### Stránky a řazení
 

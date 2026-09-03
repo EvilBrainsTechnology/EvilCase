@@ -90,7 +90,7 @@ V pořadí podle toho, co při práci s reálným spisem bolí nejvíc:
 | --- | --- | --- | --- |
 | M1 | Úklid | smazání stránek a API mimo vizi: `/deadlines`, `/echo` s kontrolerem a kontraktem, `/settings` | SDD-016 |
 | M2 | Datový model a seed | nové entity, tenance, interceptory, číslování, jedna Init migrace, rename Party → Contact, jádro souborového úložiště, seed účtů i vzorových dat | SDD-006, 007, 008, 011, 012, 017 |
-| M3 | Spisy | seznam, založení, detail a editace spisu; hierarchie, externí značka, komentáře spisů, kaskádové mazání | SDD-009, 011, 013 |
+| M3 | Spisy | seznam, založení, detail a editace spisu; hierarchie, externí značka, komentáře spisů, kaskádové mazání | SDD-009, 013 |
 | M4 | Úkony | založení, detail, editace a mazání úkonu; směr, kontakty, externí číslo jednací, komentáře úkonů | SDD-010, 011, 013 |
 | M5 | Soubory | UI souborů: upload včetně hromadného přetažením, download, mazání | SDD-012 |
 | M6 | Kontakty | agenda kontaktů s výskyty, defaultní kontakt v UI | SDD-011 |
