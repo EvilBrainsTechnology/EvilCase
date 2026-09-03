@@ -9,18 +9,19 @@ public partial class ActAndCaseContact : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        DropIssuedAndAddressedContacts(migrationBuilder);
         AddContactColumns(migrationBuilder);
-        ClearDirections(migrationBuilder);
+        BackfillActContacts(migrationBuilder);
+        DropIssuedAndAddressedContacts(migrationBuilder);
         AddContactConstraints(migrationBuilder);
     }
 
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        DropContactConstraints(migrationBuilder);
+        DropDirectionPairing(migrationBuilder);
         AddIssuedAndAddressedColumns(migrationBuilder);
-        RestoreRequiredContacts(migrationBuilder);
+        RestoreIssuedAndAddressedContacts(migrationBuilder);
+        DropContactColumns(migrationBuilder);
         RequireDirection(migrationBuilder);
         AddIssuedAndAddressedConstraints(migrationBuilder);
     }
@@ -123,12 +124,15 @@ public partial class ActAndCaseContact : Migration
             onDelete: ReferentialAction.Restrict);
     }
 
-    private static void DropContactConstraints(MigrationBuilder migrationBuilder)
+    private static void DropDirectionPairing(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.DropCheckConstraint(
             name: "CK_Acts_DirectionWithContact",
             table: "Acts");
+    }
 
+    private static void DropContactColumns(MigrationBuilder migrationBuilder)
+    {
         migrationBuilder.DropForeignKey(
             name: "FK_Acts_Contacts_ContactId",
             table: "Acts");
@@ -233,23 +237,28 @@ public partial class ActAndCaseContact : Migration
             onDelete: ReferentialAction.Restrict);
     }
 
-    // Direction and contact hold only together from here on, and no row carries a contact yet. The stamp
-    // trigger is off for it: a migration is not a change the user made.
-    private static void ClearDirections(MigrationBuilder migrationBuilder)
+    // The counterparty is the far side of the direction: an incoming act came from its issuer, an outgoing
+    // one went to its addressee. An outgoing act that named no addressee keeps no contact, so it gives up
+    // its direction too. The stamp trigger is off for it: a migration is not a change the user made.
+    private static void BackfillActContacts(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.Sql(
             """
             ALTER TABLE "Acts" DISABLE TRIGGER stamp_timestamps;
 
-            UPDATE "Acts" SET "Direction" = NULL;
+            UPDATE "Acts"
+            SET "ContactId" = CASE WHEN "Direction" = 'Incoming' THEN "IssuedByContactId" ELSE "AddressedToContactId" END;
+
+            UPDATE "Acts" SET "Direction" = NULL WHERE "ContactId" IS NULL;
 
             ALTER TABLE "Acts" ENABLE TRIGGER stamp_timestamps;
             """);
     }
 
-    // The sender each act named and the user's default contact are recorded nowhere after Up, so both fall
-    // back to the tenant's oldest contact and every act to the incoming direction.
-    private static void RestoreRequiredContacts(MigrationBuilder migrationBuilder)
+    // The contact goes back to the side its direction names. The side the act never recorded and the user's
+    // default contact fall back to the tenant's oldest contact, and an act with no direction takes the
+    // incoming one.
+    private static void RestoreIssuedAndAddressedContacts(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.Sql(
             """
@@ -257,9 +266,11 @@ public partial class ActAndCaseContact : Migration
             ALTER TABLE "Users" DISABLE TRIGGER stamp_timestamps;
 
             UPDATE "Acts" AS a
-            SET "IssuedByContactId" = (
-                    SELECT c."Id" FROM "Contacts" AS c WHERE c."TenantId" = a."TenantId" ORDER BY c."Created", c."Id" LIMIT 1),
-                "Direction" = COALESCE("Direction", 'Incoming');
+            SET "IssuedByContactId" = COALESCE(
+                    CASE WHEN a."Direction" = 'Outgoing' THEN NULL ELSE a."ContactId" END,
+                    (SELECT c."Id" FROM "Contacts" AS c WHERE c."TenantId" = a."TenantId" ORDER BY c."Created", c."Id" LIMIT 1)),
+                "AddressedToContactId" = CASE WHEN a."Direction" = 'Outgoing' THEN a."ContactId" END,
+                "Direction" = COALESCE(a."Direction", 'Incoming');
 
             UPDATE "Users" AS u
             SET "DefaultContactId" = (
