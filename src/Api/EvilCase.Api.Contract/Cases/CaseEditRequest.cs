@@ -22,7 +22,7 @@ public sealed record CaseEditRequest
     /// The mark another authority gave this case; optional free text (SDD-009).
     /// </summary>
     [StringLength(128)]
-    public string? ExternalCaseNumber { get; init; }
+    public string? ExternalNumber { get; init; }
 
     /// <summary>
     /// The case's own date. Moving it leaves the number as it was issued.

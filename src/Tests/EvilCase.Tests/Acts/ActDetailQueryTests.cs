@@ -131,11 +131,11 @@ public class ActDetailQueryTests : TenantFixture
     public async Task TheDetailCarriesTheActsExternalReferenceNumber()
     {
         var @case = await this.Tenant.AddCase(Day);
-        var act = await this.Tenant.AddAct(@case, Day, externalActNumber: "1 T 45/2026");
+        var act = await this.Tenant.AddAct(@case, Day, externalNumber: "1 T 45/2026");
 
         var detail = await this.Tenant.Context.Acts.DetailOf(@case.Id, act.Id, CancellationToken.None);
 
-        Assert.That(detail!.ExternalActNumber, Is.EqualTo("1 T 45/2026"));
+        Assert.That(detail!.ExternalNumber, Is.EqualTo("1 T 45/2026"));
     }
 
     [Test]
@@ -146,6 +146,6 @@ public class ActDetailQueryTests : TenantFixture
 
         var detail = await this.Tenant.Context.Acts.DetailOf(@case.Id, act.Id, CancellationToken.None);
 
-        Assert.That(detail!.ExternalActNumber, Is.Null, "the number is optional and its absence is no number, not a failed read");
+        Assert.That(detail!.ExternalNumber, Is.Null, "the number is optional and its absence is no number, not a failed read");
     }
 }

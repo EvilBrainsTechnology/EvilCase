@@ -10,14 +10,14 @@ public partial class SingleExternalNumbers : Migration
     protected override void Up(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.AddColumn<string>(
-            name: "ExternalCaseNumber",
+            name: "ExternalNumber",
             table: "Cases",
             type: "character varying(128)",
             maxLength: 128,
             nullable: true);
 
         migrationBuilder.AddColumn<string>(
-            name: "ExternalActNumber",
+            name: "ExternalNumber",
             table: "Acts",
             type: "character varying(128)",
             maxLength: 128,
@@ -40,11 +40,11 @@ public partial class SingleExternalNumbers : Migration
         CreateSearchIndexesAndTriggers(migrationBuilder);
 
         migrationBuilder.DropColumn(
-            name: "ExternalCaseNumber",
+            name: "ExternalNumber",
             table: "Cases");
 
         migrationBuilder.DropColumn(
-            name: "ExternalActNumber",
+            name: "ExternalNumber",
             table: "Acts");
     }
 
@@ -57,7 +57,7 @@ public partial class SingleExternalNumbers : Migration
             ALTER TABLE "Cases" DISABLE TRIGGER stamp_timestamps;
 
             UPDATE "Cases" AS c
-            SET "ExternalCaseNumber" = n."Value"
+            SET "ExternalNumber" = n."Value"
             FROM (
                 SELECT DISTINCT ON ("CaseId") "CaseId", "Value"
                 FROM "ExternalCaseNumbers"
@@ -76,7 +76,7 @@ public partial class SingleExternalNumbers : Migration
             ALTER TABLE "Acts" DISABLE TRIGGER stamp_timestamps;
 
             UPDATE "Acts" AS a
-            SET "ExternalActNumber" = n."Value"
+            SET "ExternalNumber" = n."Value"
             FROM (
                 SELECT DISTINCT ON ("ActId") "ActId", "Value"
                 FROM "ExternalActNumbers"

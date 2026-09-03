@@ -14,7 +14,7 @@ patří SDD-012, komentáře SDD-013.
 
 ### Entita
 
-Act: `CaseId`, `ActNumber` (SDD-008), `ExternalActNumber?`, název, explicitní datum (`DateOnly`),
+Act: `CaseId`, `ActNumber` (SDD-008), `ExternalNumber?`, název, explicitní datum (`DateOnly`),
 popis, směr `Incoming` / `Outgoing`. Odesílatel je povinný kontakt, příjemce nepovinný kontakt.
 
 ### Předvyplnění

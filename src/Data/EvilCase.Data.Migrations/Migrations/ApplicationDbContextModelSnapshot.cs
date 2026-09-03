@@ -78,7 +78,7 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                         .HasMaxLength(8)
                         .HasColumnType("character varying(8)");
 
-                    b.Property<string>("ExternalActNumber")
+                    b.Property<string>("ExternalNumber")
                         .HasMaxLength(128)
                         .HasColumnType("character varying(128)");
 
@@ -136,7 +136,7 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
-                    b.Property<string>("ExternalCaseNumber")
+                    b.Property<string>("ExternalNumber")
                         .HasMaxLength(128)
                         .HasColumnType("character varying(128)");
 

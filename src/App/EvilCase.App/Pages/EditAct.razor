@@ -44,8 +44,8 @@
 
                         <div class="mb-3">
                             <label class="form-label" for="act-external-number">Externí číslo jednací</label>
-                            <InputText id="act-external-number" class="form-control" @bind-Value="this.model.ExternalActNumber" />
-                            <ValidationMessage For="() => this.model.ExternalActNumber" class="invalid-feedback d-block" />
+                            <InputText id="act-external-number" class="form-control" @bind-Value="this.model.ExternalNumber" />
+                            <ValidationMessage For="() => this.model.ExternalNumber" class="invalid-feedback d-block" />
                         </div>
 
                         <div class="mb-3">
@@ -150,7 +150,7 @@
             var detail = await this.ActsClient.GetAct(this.CaseId, this.ActId, CancellationToken.None);
 
             this.model.ActNumber = detail.ActNumber;
-            this.model.ExternalActNumber = detail.ExternalActNumber;
+            this.model.ExternalNumber = detail.ExternalNumber;
             this.model.Direction = detail.Direction;
             this.model.Date = detail.Date;
             this.model.Title = detail.Title;
@@ -182,7 +182,7 @@
             var request = new ActEditRequest
             {
                 ActNumber = this.model.ActNumber,
-                ExternalActNumber = this.model.ExternalActNumber,
+                ExternalNumber = this.model.ExternalNumber,
                 Direction = this.model.Direction,
                 Date = this.model.Date,
                 Title = this.model.Title,

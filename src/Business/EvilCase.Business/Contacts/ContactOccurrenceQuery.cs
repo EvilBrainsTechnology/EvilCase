@@ -30,7 +30,7 @@ internal static class ContactOccurrenceQuery
             CaseId = act.CaseId,
             CaseNumber = act.Case!.CaseNumber,
             Role = role,
-            ExternalNumber = act.ExternalActNumber,
+            ExternalNumber = act.ExternalNumber,
         });
     }
 }

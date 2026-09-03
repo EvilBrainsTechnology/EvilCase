@@ -14,7 +14,7 @@ soubory SDD-012, komentáře SDD-013.
 
 ### Entita
 
-Case: `ParentCaseId?`, `CaseNumber`, `ExternalCaseNumber?`, explicitní datum (`DateOnly`), název,
+Case: `ParentCaseId?`, `CaseNumber`, `ExternalNumber?`, explicitní datum (`DateOnly`), název,
 popis, stav `Active` / `WaitingOnAuthority` / `Closed`. Bez tagů.
 
 Stav je jen štítek: na nic se neváže, spis ve stavu `Closed` jde editovat a přijímá úkony,

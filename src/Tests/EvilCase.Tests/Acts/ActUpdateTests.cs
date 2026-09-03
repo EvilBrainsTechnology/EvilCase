@@ -339,7 +339,7 @@ public class ActUpdateTests : TenantFixture
         var @case = await this.Tenant.AddCase(Day);
         var seeded = await this.Tenant.AddAct(@case, Day, "Podání");
         var request = Edit(
-            seeded.ActNumber, seeded.Direction, seeded.Date, seeded.Title, description: null, seeded.IssuedByContactId, externalActNumber: "  MUVZ/2025/80535  ");
+            seeded.ActNumber, seeded.Direction, seeded.Date, seeded.Title, description: null, seeded.IssuedByContactId, externalNumber: "  MUVZ/2025/80535  ");
 
         var outcome = await this.writer.UpdateAct(@case.Id, seeded.Id, request, CancellationToken.None);
 
@@ -348,7 +348,7 @@ public class ActUpdateTests : TenantFixture
         using (Assert.EnterMultipleScope())
         {
             Assert.That(outcome, Is.EqualTo(ActUpdateOutcome.Updated));
-            Assert.That(reloaded.ExternalActNumber, Is.EqualTo("MUVZ/2025/80535"), "the number is stored without its surrounding space");
+            Assert.That(reloaded.ExternalNumber, Is.EqualTo("MUVZ/2025/80535"), "the number is stored without its surrounding space");
         }
     }
 
@@ -356,15 +356,15 @@ public class ActUpdateTests : TenantFixture
     public async Task ABlankExternalReferenceNumberIsFiledAsNothing()
     {
         var @case = await this.Tenant.AddCase(Day);
-        var seeded = await this.Tenant.AddAct(@case, Day, externalActNumber: "MUVZ/2025/80535");
+        var seeded = await this.Tenant.AddAct(@case, Day, externalNumber: "MUVZ/2025/80535");
         var request = Edit(
-            seeded.ActNumber, seeded.Direction, seeded.Date, seeded.Title, description: null, seeded.IssuedByContactId, externalActNumber: "   ");
+            seeded.ActNumber, seeded.Direction, seeded.Date, seeded.Title, description: null, seeded.IssuedByContactId, externalNumber: "   ");
 
         await this.writer.UpdateAct(@case.Id, seeded.Id, request, CancellationToken.None);
 
         var reloaded = await this.Reload(seeded.Id);
 
-        Assert.That(reloaded.ExternalActNumber, Is.Null, "an emptied field takes the number away");
+        Assert.That(reloaded.ExternalNumber, Is.Null, "an emptied field takes the number away");
     }
 
     private async Task<Act> Reload(Guid actId)
@@ -382,12 +382,12 @@ public class ActUpdateTests : TenantFixture
         string? description,
         Guid issuedByContactId,
         Guid? addressedToContactId = null,
-        string? externalActNumber = null)
+        string? externalNumber = null)
     {
         return new()
         {
             ActNumber = actNumber,
-            ExternalActNumber = externalActNumber,
+            ExternalNumber = externalNumber,
             Direction = direction,
             Date = date,
             Title = title,

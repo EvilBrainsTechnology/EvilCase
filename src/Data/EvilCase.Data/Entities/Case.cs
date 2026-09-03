@@ -27,7 +27,7 @@ public sealed record Case : IUserOwnedEntity
     /// The mark another authority gave this case, as that authority writes it (SDD-009).
     /// </summary>
     [MaxLength(128)]
-    public string? ExternalCaseNumber { get; init; }
+    public string? ExternalNumber { get; init; }
 
     public required DateOnly Date { get; init; }
 

@@ -99,7 +99,7 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
         var edit = request with
         {
             ActNumber = request.ActNumber.Trim(),
-            ExternalActNumber = request.ExternalActNumber?.TrimEmptyToNull(),
+            ExternalNumber = request.ExternalNumber?.TrimEmptyToNull(),
             Title = request.Title.Trim(),
             Description = request.Description?.TrimEmptyToNull(),
         };
@@ -120,7 +120,7 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
         var rows = await acts.ExecuteUpdateAsync(
             setters => setters
                 .SetProperty(static act => act.ActNumber, edit.ActNumber)
-                .SetProperty(static act => act.ExternalActNumber, edit.ExternalActNumber)
+                .SetProperty(static act => act.ExternalNumber, edit.ExternalNumber)
                 .SetProperty(static act => act.Direction, edit.Direction)
                 .SetProperty(static act => act.Date, edit.Date)
                 .SetProperty(static act => act.Title, edit.Title)

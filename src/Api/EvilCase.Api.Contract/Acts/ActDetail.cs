@@ -22,7 +22,7 @@ public sealed record ActDetail
     /// <summary>
     /// The reference number another authority gave this act, null where none is recorded (SDD-010).
     /// </summary>
-    public string? ExternalActNumber { get; init; }
+    public string? ExternalNumber { get; init; }
 
     public required ActDirection Direction { get; init; }
 

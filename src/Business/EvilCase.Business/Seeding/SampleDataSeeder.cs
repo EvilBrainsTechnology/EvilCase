@@ -81,7 +81,7 @@ internal sealed class SampleDataSeeder(
         {
             ParentCaseId = sampleCase.ParentKey is null ? null : casesByKey[sampleCase.ParentKey].Id,
             CaseNumber = caseNumber,
-            ExternalCaseNumber = sampleCase.ExternalCaseNumber,
+            ExternalNumber = sampleCase.ExternalNumber,
             Date = sampleCase.Date,
             Title = sampleCase.Title,
             Description = sampleCase.Description,
@@ -139,7 +139,7 @@ internal sealed class SampleDataSeeder(
         {
             CaseId = @case.Id,
             ActNumber = actNumber,
-            ExternalActNumber = sampleAct.ExternalActNumber,
+            ExternalNumber = sampleAct.ExternalNumber,
             Direction = sampleAct.Direction,
             Title = sampleAct.Title,
             Description = sampleAct.Description,

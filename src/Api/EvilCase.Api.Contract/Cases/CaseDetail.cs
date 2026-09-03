@@ -11,7 +11,7 @@ public sealed record CaseDetail
     /// <summary>
     /// The mark another authority gave this case, null where none is recorded (SDD-009).
     /// </summary>
-    public string? ExternalCaseNumber { get; init; }
+    public string? ExternalNumber { get; init; }
 
     public required DateOnly Date { get; init; }
 
