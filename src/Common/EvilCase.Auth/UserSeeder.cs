@@ -1,7 +1,6 @@
 using EvilBrains.Cryptography;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
-using EvilBrains.EvilCase.Domain.Contacts;
 using EvilBrains.EvilCase.Domain.Users;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -38,23 +37,16 @@ internal sealed class UserSeeder(
         dbSession.Current.Tenants.Add(tenant);
         await dbSession.Current.SaveChangesAsync(token);
 
-        var contact = new Contact
-        {
-            Kind = ContactKind.Person,
-            Name = normalizedEmail,
-        };
-
         var user = new User
         {
             Email = normalizedEmail,
             PasswordHash = PasswordHasher.Hash(password),
             Role = UserRole.Admin,
-            DefaultContactId = contact.Id,
         };
 
         using var scope = userContext.Enter(tenant.Id, user.Id);
 
-        await userStore.AddUser(user, contact, token);
+        await userStore.AddUser(user, token);
 
         logger.LogInformation("No user existed, so the configured administrator {Email} was created in tenant {TenantId}", user.Email, tenant.Id);
     }

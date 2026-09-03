@@ -3,9 +3,9 @@ using EvilBrains.EvilCase.Domain.Acts;
 
 namespace EvilBrains.EvilCase.Api.Contract.Acts;
 
-public sealed record CreateActRequest
+public sealed record CreateActRequest : IValidatableObject
 {
-    public required ActDirection Direction { get; init; }
+    public ActDirection? Direction { get; init; }
 
     /// <summary>
     /// The act's own date, not the moment the row is written; the act number is issued to it.
@@ -19,7 +19,17 @@ public sealed record CreateActRequest
     [StringLength(4000)]
     public string? Description { get; init; }
 
-    public required Guid IssuedByContactId { get; init; }
+    /// <summary>
+    /// The counterparty of the act; set exactly when <see cref="Direction"/> is (SDD-010).
+    /// </summary>
+    public Guid? ContactId { get; init; }
 
-    public Guid? AddressedToContactId { get; init; }
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (this.Direction is not null && this.ContactId is null)
+            yield return new ValidationResult("A direction names a contact.", [nameof(this.ContactId)]);
+
+        if (this.ContactId is not null && this.Direction is null)
+            yield return new ValidationResult("A contact names a direction.", [nameof(this.Direction)]);
+    }
 }

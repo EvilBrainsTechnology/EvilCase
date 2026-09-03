@@ -10,7 +10,7 @@
         <div class="empty">
             <div class="empty-icon"><Icon IconType="AppIcons.FileText" /></div>
             <p class="empty-title">Žádné úkony</p>
-            <p class="empty-subtitle text-secondary">Kontakt nefiguruje v žádném úkonu.</p>
+            <p class="empty-subtitle text-secondary">Žádný úkon kontaktu se neliší od kontaktu svého spisu.</p>
         </div>
     }
     else
@@ -22,7 +22,6 @@
                         <th>Datum</th>
                         <th>Číslo jednací</th>
                         <th>Název</th>
-                        <th>Role</th>
                         <th>Spis</th>
                         <th>Externí číslo</th>
                     </tr>
@@ -34,7 +33,6 @@
                             <td class="text-nowrap">@DateDisplay.Text(item.ActDate)</td>
                             <td class="text-nowrap">@item.ActNumber</td>
                             <td>@item.ActTitle</td>
-                            <td class="text-nowrap">@ContactActRoleDisplay.Text(item.Role)</td>
                             <td class="text-nowrap"><a href="/cases/@item.CaseId">@item.CaseNumber</a></td>
                             <td>@item.ExternalNumber</td>
                         </tr>
@@ -50,7 +48,6 @@
                     <div class="card-body">
                         <div class="font-weight-medium">@item.ActTitle</div>
                         <div class="text-secondary">@item.ActNumber</div>
-                        <div class="text-secondary">@ContactActRoleDisplay.Text(item.Role)</div>
                         <div><a href="/cases/@item.CaseId">@item.CaseNumber</a></div>
                         @if (!string.IsNullOrWhiteSpace(item.ExternalNumber))
                         {

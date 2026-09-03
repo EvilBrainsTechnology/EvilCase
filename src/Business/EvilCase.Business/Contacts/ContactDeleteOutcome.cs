@@ -7,6 +7,4 @@ public enum ContactDeleteOutcome
     NotFound = 1,
 
     Referenced = 2,
-
-    DefaultContact = 3,
 }

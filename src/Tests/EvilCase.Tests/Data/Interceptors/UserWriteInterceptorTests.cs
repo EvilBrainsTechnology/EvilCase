@@ -205,7 +205,6 @@ public class UserWriteInterceptorTests
             Email = "user@evilcase.test",
             PasswordHash = "hash",
             Role = UserRole.User,
-            DefaultContactId = Guid.CreateVersion7(),
         };
     }
 

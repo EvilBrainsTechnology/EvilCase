@@ -17,7 +17,13 @@ public class ActDetailQueryTests : TenantFixture
     public async Task TheDetailCarriesTheNumberTheDirectionTheDateTheTitleAndTheDescription()
     {
         var @case = await this.Tenant.AddCase(Day);
-        var act = await this.Tenant.AddAct(@case, Day, "Rozhodnutí", direction: ActDirection.Outgoing, description: "Popis úkonu");
+        var act = await this.Tenant.AddAct(
+            @case,
+            Day,
+            "Rozhodnutí",
+            contact: await this.Tenant.AddContact("Městský úřad"),
+            direction: ActDirection.Outgoing,
+            description: "Popis úkonu");
 
         var detail = await this.Tenant.Context.Acts.DetailOf(@case.Id, act.Id, CancellationToken.None);
 
@@ -50,35 +56,53 @@ public class ActDetailQueryTests : TenantFixture
     }
 
     [Test]
-    public async Task TheDetailCarriesBothContacts()
+    public async Task TheDetailCarriesTheActsContactAndTheCasesContact()
     {
-        var @case = await this.Tenant.AddCase(Day);
-        var sender = await this.Tenant.AddContact("Odesílatel", kind: ContactKind.Authority);
-        var recipient = await this.Tenant.AddContact("Příjemce", kind: ContactKind.Person);
-        var act = await this.Tenant.AddAct(@case, Day, issuedBy: sender, addressedTo: recipient);
+        var caseContact = await this.Tenant.AddContact("Městský úřad Vzorov", kind: ContactKind.Authority);
+        var actContact = await this.Tenant.AddContact("Krajský soud ve Vzorově", kind: ContactKind.Person);
+        var @case = await this.Tenant.AddCase(Day, contact: caseContact);
+        var act = await this.Tenant.AddAct(@case, Day, contact: actContact);
 
         var detail = await this.Tenant.Context.Acts.DetailOf(@case.Id, act.Id, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(detail!.IssuedByContact.ContactId, Is.EqualTo(sender.Id));
-            Assert.That(detail.IssuedByContact.Name, Is.EqualTo(sender.Name));
-            Assert.That(detail.IssuedByContact.Kind, Is.EqualTo(sender.Kind));
-            Assert.That(detail.AddressedToContact!.ContactId, Is.EqualTo(recipient.Id));
-            Assert.That(detail.AddressedToContact.Name, Is.EqualTo(recipient.Name));
-            Assert.That(detail.AddressedToContact.Kind, Is.EqualTo(recipient.Kind));
+            Assert.That(detail!.Contact!.ContactId, Is.EqualTo(actContact.Id));
+            Assert.That(detail.Contact.Name, Is.EqualTo(actContact.Name));
+            Assert.That(detail.Contact.Kind, Is.EqualTo(actContact.Kind));
+            Assert.That(detail.CaseContact!.ContactId, Is.EqualTo(caseContact.Id));
         }
     }
 
     [Test]
-    public async Task AnActWithoutARecipientNamesNone()
+    public async Task AnActWithNoContactNamesNone()
     {
         var @case = await this.Tenant.AddCase(Day);
         var act = await this.Tenant.AddAct(@case, Day);
 
         var detail = await this.Tenant.Context.Acts.DetailOf(@case.Id, act.Id, CancellationToken.None);
 
-        Assert.That(detail!.AddressedToContact, Is.Null, "a recipient is optional and its absence is no recipient, not a failed read");
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(detail!.Contact, Is.Null, "a contact is optional and its absence is no contact, not a failed read");
+            Assert.That(detail.CaseContact, Is.Null);
+        }
+    }
+
+    [Test]
+    public async Task TheDetailNamesTheCasesContactEvenWhereTheActNamesNone()
+    {
+        var caseContact = await this.Tenant.AddContact("Městský úřad Vzorov");
+        var @case = await this.Tenant.AddCase(Day, contact: caseContact);
+        var act = await this.Tenant.AddAct(@case, Day);
+
+        var detail = await this.Tenant.Context.Acts.DetailOf(@case.Id, act.Id, CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(detail!.Contact, Is.Null);
+            Assert.That(detail.CaseContact!.ContactId, Is.EqualTo(caseContact.Id), "the warning on the act is built from the case's contact");
+        }
     }
 
     [Test]

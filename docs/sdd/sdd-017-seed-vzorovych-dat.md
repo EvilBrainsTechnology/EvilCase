@@ -16,8 +16,8 @@ SDD-006.
   startu, v jakémkoli prostředí, jen když tenant nemá žádný spis.
 - Data jsou pseudonymizovaný případ překročení rychlosti z `test-data/case-01-speeding.md`,
   přemapovaný na nový model: pod-spisy jako podřízené spisy hlavního spisu, strany jako
-  kontakty, externí značka spisu a externí čísla jednací úkonů, úkony se směrem,
-  odesílatelem a příjemcem, komentáře.
+  kontakty, kontakt spisu i úkonu, externí značka spisu a externí čísla jednací úkonů, úkony
+  se směrem, komentáře.
 - Soubory jsou jednoduché syntetické TXT generované při seedu a zapsané úložištěm SDD-012,
   jehož jádro od M2 existuje. Žádná PDF, žádné binárky v repozitáři.
 - Seeder je C# kód s daty zapsanými v kódu; markdown se neparsuje.

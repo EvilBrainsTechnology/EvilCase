@@ -67,10 +67,8 @@ internal sealed class UserStore(IDbSession dbSession) : IUserStore
         return await dbSession.Current.Users.IgnoreQueryFilters().AnyAsync(token);
     }
 
-    public async Task AddUser(User user, Contact defaultContact, CancellationToken token)
+    public async Task AddUser(User user, CancellationToken token)
     {
-        // One save carries both rows; EF orders the contact before the user, which the user's key needs.
-        dbSession.Current.Contacts.Add(defaultContact);
         dbSession.Current.Users.Add(user);
 
         await dbSession.Current.SaveChangesAsync(token);

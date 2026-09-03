@@ -26,20 +26,16 @@ public class AccountModelTests : ModelFixture
     }
 
     [Test]
-    public void AUserAlwaysHasADefaultContactAndCannotDeleteIt()
+    public void AUserNamesNoContact()
     {
         var user = Model.FindEntityType(typeof(User));
 
         Assert.That(user, Is.Not.Null);
 
-        var toContact = ForeignKeyTo<Contact>(user);
-
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(user.FindProperty(nameof(User.DefaultContactId))?.IsNullable, Is.False, "a user with no default contact has nothing to prefill an act with");
-            Assert.That(toContact?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Restrict));
-            Assert.That(toContact?.DependentToPrincipal?.Name, Is.EqualTo(nameof(User.DefaultContact)), "the user reaches its default contact without a second query");
-            Assert.That(toContact?.PrincipalToDependent, Is.Null, "the contact carries no back reference, so the link is not a full 1:1");
+            Assert.That(user.FindProperty("DefaultContactId"), Is.Null, "an act prefills from the case it sits in, so a user names no contact");
+            Assert.That(ForeignKeyTo<Contact>(user), Is.Null, "an act prefills from the case it sits in, so a user names no contact");
         }
     }
 }

@@ -18,15 +18,13 @@ public class ActWriterTests : TenantFixture
     public void ANewActCarriesTheRequestAndTheNumberIssuedToIt()
     {
         var caseId = Guid.CreateVersion7();
-        var issuedByContactId = Guid.CreateVersion7();
-        var addressedToContactId = Guid.CreateVersion7();
+        var contactId = Guid.CreateVersion7();
         var request = new CreateActRequest
         {
             Direction = ActDirection.Outgoing,
             Date = new DateOnly(2026, 8, 25),
             Title = "Odvolání",
-            IssuedByContactId = issuedByContactId,
-            AddressedToContactId = addressedToContactId,
+            ContactId = contactId,
         };
 
         var act = ActWriter.BuildAct(caseId, request, "EC/20260821-001/20260825-001");
@@ -38,8 +36,7 @@ public class ActWriterTests : TenantFixture
             Assert.That(act.Direction, Is.EqualTo(ActDirection.Outgoing));
             Assert.That(act.Title, Is.EqualTo("Odvolání"));
             Assert.That(act.Date, Is.EqualTo(request.Date));
-            Assert.That(act.IssuedByContactId, Is.EqualTo(issuedByContactId));
-            Assert.That(act.AddressedToContactId, Is.EqualTo(addressedToContactId));
+            Assert.That(act.ContactId, Is.EqualTo(contactId));
         }
     }
 
@@ -81,7 +78,7 @@ public class ActWriterTests : TenantFixture
 
         var writer = new ActWriter(new FixedDbSession(this.Tenant.Context), new QueuedActNumberIssuer([taken, free]), new FakeFileBlobStore(), NullLogger<ActWriter>.Instance);
 
-        var request = Request() with { Date = new DateOnly(2026, 8, 25), IssuedByContactId = this.Tenant.DefaultContact.Id };
+        var request = Request() with { Date = new DateOnly(2026, 8, 25) };
 
         var result = await writer.CreateAct(@case.Id, request, CancellationToken.None);
 
@@ -115,9 +112,29 @@ public class ActWriterTests : TenantFixture
         var @case = await this.Tenant.AddCase(new DateOnly(2026, 8, 21));
         var writer = new ActWriter(new FixedDbSession(this.Tenant.Context), new QueuedActNumberIssuer(["EC/20260821-001/20260825-001"]), new FakeFileBlobStore(), NullLogger<ActWriter>.Instance);
 
-        var result = await writer.CreateAct(@case.Id, Request() with { IssuedByContactId = Guid.CreateVersion7() }, CancellationToken.None);
+        var request = Request() with { Direction = ActDirection.Incoming, ContactId = Guid.CreateVersion7() };
 
-        Assert.That(result.Outcome, Is.EqualTo(ActCreateOutcome.ContactNotFound), "a sender the tenant does not hold never reaches the row");
+        var result = await writer.CreateAct(@case.Id, request, CancellationToken.None);
+
+        Assert.That(result.Outcome, Is.EqualTo(ActCreateOutcome.ContactNotFound), "a contact the tenant does not hold never reaches the row");
+    }
+
+    [Test]
+    public async Task AnActWithNeitherADirectionNorAContactIsFiled()
+    {
+        var @case = await this.Tenant.AddCase(new DateOnly(2026, 8, 21));
+        var writer = new ActWriter(new FixedDbSession(this.Tenant.Context), new QueuedActNumberIssuer(["EC/20260821-001/20260825-001"]), new FakeFileBlobStore(), NullLogger<ActWriter>.Instance);
+
+        var result = await writer.CreateAct(@case.Id, Request(), CancellationToken.None);
+
+        var reloaded = await this.Tenant.Context.Acts.SingleAsync(act => act.Id == result.Act!.ActId);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.Outcome, Is.EqualTo(ActCreateOutcome.Created));
+            Assert.That(reloaded.Direction, Is.Null, "an act records no counterparty until one is known");
+            Assert.That(reloaded.ContactId, Is.Null, "an act records no counterparty until one is known");
+        }
     }
 
     [Test]
@@ -135,47 +152,34 @@ public class ActWriterTests : TenantFixture
         // No number is queued: a contact of another tenant never reaches the insert.
         var writer = new ActWriter(new FixedDbSession(this.Tenant.Context), new QueuedActNumberIssuer([]), new FakeFileBlobStore(), NullLogger<ActWriter>.Instance);
 
-        var asSender = await writer.CreateAct(@case.Id, Request() with { IssuedByContactId = foreignContactId }, CancellationToken.None);
-        var asRecipient = await writer.CreateAct(
-            @case.Id,
-            Request() with { IssuedByContactId = this.Tenant.DefaultContact.Id, AddressedToContactId = foreignContactId },
-            CancellationToken.None);
+        var request = Request() with { Direction = ActDirection.Incoming, ContactId = foreignContactId };
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(asSender.Outcome, Is.EqualTo(ActCreateOutcome.ContactNotFound), "an act never names a contact of another tenant");
-            Assert.That(asRecipient.Outcome, Is.EqualTo(ActCreateOutcome.ContactNotFound), "an act never names a contact of another tenant");
-        }
+        var result = await writer.CreateAct(@case.Id, request, CancellationToken.None);
+
+        Assert.That(result.Outcome, Is.EqualTo(ActCreateOutcome.ContactNotFound), "an act never names a contact of another tenant");
     }
 
     [Test]
-    public async Task AFiledActCarriesTheContactNames()
+    public async Task AFiledActCarriesTheContactName()
     {
         var @case = await this.Tenant.AddCase(new DateOnly(2026, 8, 21));
-        var addressedTo = await this.Tenant.AddContact("Krajský soud ve Vzorově");
+        var contact = await this.Tenant.AddContact("Krajský soud ve Vzorově");
         var writer = new ActWriter(new FixedDbSession(this.Tenant.Context), new QueuedActNumberIssuer(["EC/20260821-001/20260825-001"]), new FakeFileBlobStore(), NullLogger<ActWriter>.Instance);
 
-        var request = Request() with { IssuedByContactId = this.Tenant.DefaultContact.Id, AddressedToContactId = addressedTo.Id };
+        var request = Request() with { Direction = ActDirection.Outgoing, ContactId = contact.Id };
 
         var result = await writer.CreateAct(@case.Id, request, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result.Act!.IssuedByName, Is.EqualTo(this.Tenant.DefaultContact.Name));
-            Assert.That(result.Act!.AddressedToName, Is.EqualTo("Krajský soud ve Vzorově"));
+            Assert.That(result.Act!.ContactName, Is.EqualTo("Krajský soud ve Vzorově"));
             Assert.That(result.Act!.ActNumber, Does.StartWith(@case.CaseNumber + "/"));
         }
     }
 
     private static CreateActRequest Request()
     {
-        return new CreateActRequest
-        {
-            Direction = ActDirection.Incoming,
-            Date = new DateOnly(2026, 8, 25),
-            Title = "Podání",
-            IssuedByContactId = Guid.CreateVersion7(),
-        };
+        return new CreateActRequest { Date = new DateOnly(2026, 8, 25), Title = "Podání" };
     }
 
     private sealed class QueuedActNumberIssuer(IReadOnlyList<string> actNumbers) : IActNumberIssuer

@@ -1,7 +1,6 @@
 using EvilBrains.EvilCase.Business.Contacts;
 using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Data.Entities;
-using EvilBrains.EvilCase.Domain.Contacts;
 using EvilBrains.EvilCase.Tests.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,31 +21,29 @@ public class ContactReferencesTests : TenantFixture
 
         // A case and an act of their own, naming another contact: the guard answers for its contact alone.
         var other = await this.Tenant.AddContact("Krajský soud");
-        var @case = await this.Tenant.AddCase(Day);
-        await this.Tenant.AddAct(@case, Day, issuedBy: other);
+        var @case = await this.Tenant.AddCase(Day, contact: other);
+        await this.Tenant.AddAct(@case, Day, contact: other);
 
         Assert.That(await this.IsReferenced(contact), Is.False, "nothing points at the contact, so nothing stands between it and deletion");
     }
 
     [Test]
-    public async Task AnIssuedActReferencesTheContact()
+    public async Task AnActReferencesTheContact()
     {
         var contact = await this.Tenant.AddContact("Městský úřad");
         var @case = await this.Tenant.AddCase(Day);
-        await this.Tenant.AddAct(@case, Day, issuedBy: contact);
+        await this.Tenant.AddAct(@case, Day, contact: contact);
 
-        Assert.That(await this.IsReferenced(contact), Is.True, "an act the contact issued still points at it");
+        Assert.That(await this.IsReferenced(contact), Is.True, "an act naming the contact still points at it");
     }
 
     [Test]
-    public async Task AnAddressedActReferencesTheContact()
+    public async Task ACaseReferencesTheContact()
     {
-        var contact = await this.Tenant.AddContact("Jan Novák", ContactKind.Person);
-        var issuer = await this.Tenant.AddContact("Městský úřad");
-        var @case = await this.Tenant.AddCase(Day);
-        await this.Tenant.AddAct(@case, Day, issuedBy: issuer, addressedTo: contact);
+        var contact = await this.Tenant.AddContact("Městský úřad");
+        await this.Tenant.AddCase(Day, contact: contact);
 
-        Assert.That(await this.IsReferenced(contact), Is.True, "an act addressed to the contact still points at it");
+        Assert.That(await this.IsReferenced(contact), Is.True, "a case naming the contact still points at it");
     }
 
     /// <summary>

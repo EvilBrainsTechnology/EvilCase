@@ -32,7 +32,7 @@ public class ContactDeleteTests
         var seeded = await SeedContactAndCase(context, tenantId, userId);
 
         // The act lands between the delete's checks and its save, on another connection: the race, without timing.
-        context.SavingChanges += (_, _) => WriteIssuedAct(userContext, seeded.Case, seeded.Contact.Id);
+        context.SavingChanges += (_, _) => WriteAct(userContext, seeded.Case, seeded.Contact.Id);
 
         var writer = new ContactWriter(new FixedDbSession(context), NullLogger<ContactWriter>.Instance);
 
@@ -54,7 +54,7 @@ public class ContactDeleteTests
 
         await using var context = TestDatabase.CreateMigrated(userContext);
         var seeded = await SeedContactAndCase(context, tenantId, userId);
-        WriteIssuedAct(userContext, seeded.Case, seeded.Contact.Id);
+        WriteAct(userContext, seeded.Case, seeded.Contact.Id);
 
         context.Contacts.Remove(seeded.Contact);
 
@@ -79,15 +79,13 @@ public class ContactDeleteTests
     }
 
     /// <summary>
-    /// The contact the delete aims at, and the case an act can hang under. The user holds a second contact
-    /// as its default, so the delete's default-contact check passes.
+    /// The contact the delete aims at, and the case an act can hang under.
     /// </summary>
     private static async Task<(Contact Contact, Case Case)> SeedContactAndCase(ApplicationDbContext context, Guid tenantId, Guid userId)
     {
         var account = new Account { Name = "contact delete" };
         var tenant = new Tenant { Id = tenantId, AccountId = account.Id, Name = "tenant" };
         var contact = new Contact { TenantId = tenantId, Kind = ContactKind.Authority, Name = "Krajský soud" };
-        var defaultContact = new Contact { TenantId = tenantId, Kind = ContactKind.Person, Name = "default" };
 
         var user = new User
         {
@@ -96,7 +94,6 @@ public class ContactDeleteTests
             Email = $"{Guid.CreateVersion7()}@example.com",
             PasswordHash = "hash",
             Role = UserRole.User,
-            DefaultContactId = defaultContact.Id,
         };
 
         var @case = new Case
@@ -111,7 +108,7 @@ public class ContactDeleteTests
 
         context.Accounts.Add(account);
         context.Tenants.Add(tenant);
-        context.Contacts.AddRange(contact, defaultContact);
+        context.Contacts.Add(contact);
         context.Users.Add(user);
         context.Cases.Add(@case);
         await context.SaveChangesAsync();
@@ -122,7 +119,7 @@ public class ContactDeleteTests
         return (contact, @case);
     }
 
-    private static void WriteIssuedAct(IUserContext userContext, Case @case, Guid contactId)
+    private static void WriteAct(IUserContext userContext, Case @case, Guid contactId)
     {
         using var context = TestDatabase.CreateMigrated(userContext);
 
@@ -133,9 +130,9 @@ public class ContactDeleteTests
             CaseId = @case.Id,
             ActNumber = "EC/20260821-001/01",
             Direction = ActDirection.Incoming,
+            ContactId = contactId,
             Title = "Rozhodnutí",
             Date = @case.Date,
-            IssuedByContactId = contactId,
         });
 
         context.SaveChanges();

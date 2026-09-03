@@ -29,7 +29,6 @@ public class UserSeederTests
 
         var account = context.Added<Account>().Single();
         var tenant = context.Added<Tenant>().Single();
-        var contact = store.SingleContact();
         var user = store.Single();
 
         using (Assert.EnterMultipleScope())
@@ -38,13 +37,11 @@ public class UserSeederTests
             Assert.That(user.Role, Is.EqualTo(UserRole.Admin));
             Assert.That(PasswordHasher.Verify(SeedPassword, user.PasswordHash), Is.True);
             Assert.That(tenant.AccountId, Is.EqualTo(account.Id));
-            Assert.That(contact.Name, Is.EqualTo(user.Email));
-            Assert.That(user.DefaultContactId, Is.EqualTo(contact.Id), "the seeded administrator gets a default contact in the same write");
         }
     }
 
     [Test]
-    public async Task TheFirstAdministratorGetsAnAccountATenantAndADefaultContact()
+    public async Task TheFirstAdministratorGetsAnAccountAndATenant()
     {
         var store = new FakeUserStore();
         var userContext = new StubUserContext();
@@ -53,17 +50,14 @@ public class UserSeederTests
         await Seeder(context, userContext, store, SeedEmail, SeedPassword).SeedUser(CancellationToken.None);
 
         var tenant = context.Added<Tenant>().Single();
-        var contact = store.SingleContact();
         var user = store.Single();
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(context.Added<Account>(), Has.Exactly(1).Items);
             Assert.That(context.Added<Tenant>(), Has.Exactly(1).Items);
-            Assert.That(contact.TenantId, Is.EqualTo(Guid.Empty), "the seed names no tenant on the contact; the write is what stamps it");
-            Assert.That(user.TenantId, Is.EqualTo(Guid.Empty), "the seed names no tenant on the administrator either; the write is what stamps it");
-            Assert.That(userContext.Entered, Is.EqualTo([(tenant.Id, user.Id)]), "the contact is written under the tenant and the user the seed created, which is what stamps them");
-            Assert.That(user.DefaultContactId, Is.EqualTo(contact.Id), "the user points at the contact the seed made for it");
+            Assert.That(user.TenantId, Is.EqualTo(Guid.Empty), "the seed names no tenant on the administrator; the write is what stamps it");
+            Assert.That(userContext.Entered, Is.EqualTo([(tenant.Id, user.Id)]), "the user is written under the tenant the seed created, which is what stamps it");
         }
     }
 
@@ -80,7 +74,6 @@ public class UserSeederTests
             Email = "someone@evilcase.test",
             PasswordHash = "unused",
             Role = UserRole.User,
-            DefaultContactId = Guid.CreateVersion7(),
         });
 
         await Seeder(context, userContext, store, SeedEmail, SeedPassword).SeedUser(CancellationToken.None);

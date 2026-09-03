@@ -1,5 +1,3 @@
-using EvilBrains.EvilCase.Domain.Contacts;
-
 namespace EvilBrains.EvilCase.Api.Contract.Contacts;
 
 public sealed record ContactActOccurrence
@@ -15,8 +13,6 @@ public sealed record ContactActOccurrence
     public required Guid CaseId { get; init; }
 
     public required string CaseNumber { get; init; }
-
-    public required ContactActRole Role { get; init; }
 
     /// <summary>
     /// The reference number another authority gave the act, null where none is recorded (SDD-010).

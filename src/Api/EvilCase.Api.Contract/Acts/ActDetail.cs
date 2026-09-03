@@ -24,7 +24,7 @@ public sealed record ActDetail
     /// </summary>
     public string? ExternalActNumber { get; init; }
 
-    public required ActDirection Direction { get; init; }
+    public ActDirection? Direction { get; init; }
 
     public required DateOnly Date { get; init; }
 
@@ -33,12 +33,13 @@ public sealed record ActDetail
     public string? Description { get; init; }
 
     /// <summary>
-    /// The sender, which every act names (SDD-010).
+    /// The counterparty of the act, null where it names none (SDD-010).
     /// </summary>
-    public required ContactListItem IssuedByContact { get; init; }
+    public ContactListItem? Contact { get; init; }
 
     /// <summary>
-    /// The recipient, null where the act names none (SDD-010).
+    /// The contact of the case the act sits in — what the screens compare the act's contact against
+    /// (SDD-010). Null where the case names none.
     /// </summary>
-    public ContactListItem? AddressedToContact { get; init; }
+    public ContactListItem? CaseContact { get; init; }
 }

@@ -42,7 +42,7 @@ public sealed record Contact : ITenantEntity
 
     public DateTime? Updated { get; init; }
 
-    public ICollection<Act> IssuedActs { get; init; } = [];
+    public ICollection<Act> Acts { get; init; } = [];
 
-    public ICollection<Act> AddressedActs { get; init; } = [];
+    public ICollection<Case> Cases { get; init; } = [];
 }

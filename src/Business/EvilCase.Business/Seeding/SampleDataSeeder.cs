@@ -80,6 +80,7 @@ internal sealed class SampleDataSeeder(
         var @case = new Case
         {
             ParentCaseId = sampleCase.ParentKey is null ? null : casesByKey[sampleCase.ParentKey].Id,
+            ContactId = contactsByKey[sampleCase.CounterpartyKey].Id,
             CaseNumber = caseNumber,
             ExternalCaseNumber = sampleCase.ExternalCaseNumber,
             Date = sampleCase.Date,
@@ -132,8 +133,6 @@ internal sealed class SampleDataSeeder(
         var actNumber = await actNumberIssuer.NextActNumber(@case, sampleAct.Date, token);
 
         var counterparty = contactsByKey[sampleAct.CounterpartyKey];
-        var subject = contactsByKey[SampleData.SubjectKey];
-        var incoming = sampleAct.Direction == ActDirection.Incoming;
 
         var act = new Act
         {
@@ -144,8 +143,7 @@ internal sealed class SampleDataSeeder(
             Title = sampleAct.Title,
             Description = sampleAct.Description,
             Date = sampleAct.Date,
-            IssuedByContactId = incoming ? counterparty.Id : subject.Id,
-            AddressedToContactId = incoming ? subject.Id : counterparty.Id,
+            ContactId = counterparty.Id,
         };
 
         dbSession.Current.Acts.Add(act);
@@ -177,7 +175,7 @@ internal sealed class SampleDataSeeder(
     /// </summary>
     private static IReadOnlyList<SampleAct> SubCaseActs(SampleCase sampleCase)
     {
-        var counterpartyKey = sampleCase.CounterpartyKey ?? throw new InvalidOperationException($"Sub-case '{sampleCase.Key}' names no counterparty.");
+        var counterpartyKey = sampleCase.CounterpartyKey;
 
         return
         [

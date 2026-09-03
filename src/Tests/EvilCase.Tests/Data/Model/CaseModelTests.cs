@@ -76,6 +76,23 @@ public class CaseModelTests : ModelFixture
     }
 
     [Test]
+    public void ACaseNamesAnOptionalContactItNeverTakesDownWithIt()
+    {
+        var @case = Model.FindEntityType(typeof(Case));
+
+        Assert.That(@case, Is.Not.Null);
+
+        var toContact = ForeignKeyTo<Contact>(@case);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(@case.FindProperty(nameof(Case.ContactId))?.IsNullable, Is.True, "a case exists before anybody names its counterparty");
+            Assert.That(toContact?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Restrict), "a contact outlives any case naming it");
+            Assert.That(IsIndexed(@case, nameof(Case.ContactId)), Is.True, "the contact detail reads the cases of a contact through this index");
+        }
+    }
+
+    [Test]
     public void TheExternalMarkIsOneOptionalColumnOnTheCase()
     {
         var @case = Model.FindEntityType(typeof(Case));

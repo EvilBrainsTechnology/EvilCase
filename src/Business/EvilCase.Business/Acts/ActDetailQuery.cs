@@ -12,7 +12,8 @@ namespace EvilBrains.EvilCase.Business.Acts;
 internal static class ActDetailQuery
 {
     /// <summary>
-    /// The one act of the case with both its contacts, or null where the tenant has no such act.
+    /// The one act of the case with its contact and the contact of its case, or null where the tenant has no
+    /// such act.
     /// </summary>
     public static async Task<ActDetail?> DetailOf(this IQueryable<Act> acts, Guid caseId, Guid actId, CancellationToken token)
     {
@@ -30,23 +31,25 @@ internal static class ActDetailQuery
                 Date = act.Date,
                 Title = act.Title,
                 Description = act.Description,
-                IssuedByContact = new ContactListItem
-                {
-                    ContactId = act.IssuedByContact!.Id,
-                    Kind = act.IssuedByContact.Kind,
-                    Name = act.IssuedByContact.Name,
-                    DataBoxId = act.IssuedByContact.DataBoxId,
-                    Address = act.IssuedByContact.Address,
-                },
-                AddressedToContact = act.AddressedToContact == null
+                Contact = act.Contact == null
                     ? null
                     : new ContactListItem
                     {
-                        ContactId = act.AddressedToContact.Id,
-                        Kind = act.AddressedToContact.Kind,
-                        Name = act.AddressedToContact.Name,
-                        DataBoxId = act.AddressedToContact.DataBoxId,
-                        Address = act.AddressedToContact.Address,
+                        ContactId = act.Contact.Id,
+                        Kind = act.Contact.Kind,
+                        Name = act.Contact.Name,
+                        DataBoxId = act.Contact.DataBoxId,
+                        Address = act.Contact.Address,
+                    },
+                CaseContact = act.Case!.Contact == null
+                    ? null
+                    : new ContactListItem
+                    {
+                        ContactId = act.Case.Contact.Id,
+                        Kind = act.Case.Contact.Kind,
+                        Name = act.Case.Contact.Name,
+                        DataBoxId = act.Case.Contact.DataBoxId,
+                        Address = act.Case.Contact.Address,
                     },
             })
             .SingleOrDefaultAsync(token);

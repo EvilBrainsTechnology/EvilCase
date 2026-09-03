@@ -33,18 +33,19 @@ cizí, přidělené někým jiným, jsou `ExternalCaseNumber` a `ExternalActNumb
 [SDD-007](../sdd/sdd-007-domenovy-model.md).
 
 **Spis** — jedno řízení. Nese explicitní datum, název, popis, status (`Active`,
-`WaitingOnAuthority`, `Closed`), externí spisovou značku, komentáře a soubory. Spisy tvoří
-hierarchii: volitelný rodič, libovolná hloubka, UI ukazuje jen ploché seznamy. Bez tagů.
+`WaitingOnAuthority`, `Closed`), externí spisovou značku, nepovinný kontakt protistrany, komentáře
+a soubory. Spisy tvoří hierarchii: volitelný rodič, libovolná hloubka, UI ukazuje jen ploché
+seznamy. Bez tagů.
 ([SDD-009](../sdd/sdd-009-spisy.md))
 
-**Úkon** — jednotka práce ve spisu: jedno podání, rozhodnutí, vyrozumění nebo výzva. Má směr
-(příchozí/odchozí), povinného odesílatele a nepovinného příjemce, explicitní datum, název,
-externí číslo jednací, popis, komentáře a soubory.
+**Úkon** — jednotka práce ve spisu: jedno podání, rozhodnutí, vyrozumění nebo výzva. Má nepovinný
+kontakt protistrany a nepovinný směr (příchozí/odchozí); platí buď obojí, nebo nic. Dále explicitní
+datum, název, externí číslo jednací, popis, komentáře a soubory.
 ([SDD-010](../sdd/sdd-010-ukony.md))
 
 **Kontakt** — úřad, úřední osoba nebo člověk; plochý, sdílený napříč spisy; nese id datové
-schránky a adresu jako jeden volný text. Vybírá se nebo zakládá inline všude, kde ho úkon jmenuje,
-a spravuje se v agendě, která ukazuje, ve kterých úkonech figuruje.
+schránky a adresu jako jeden volný text. Vybírá se nebo zakládá inline všude, kde ho spis
+nebo úkon jmenuje, a zakládá i spravuje se v agendě, která ukazuje jeho spisy a úkony.
 ([SDD-011](../sdd/sdd-011-kontakty.md))
 
 **Soubor** — patří právě jednomu spisu nebo úkonu; žádné odkazy mezi soubory a jinými
@@ -93,7 +94,7 @@ V pořadí podle toho, co při práci s reálným spisem bolí nejvíc:
 | M3 | Spisy | seznam, založení, detail a editace spisu; hierarchie, externí značka, komentáře spisů, kaskádové mazání | SDD-009, 013 |
 | M4 | Úkony | založení, detail, editace a mazání úkonu; směr, kontakty, externí číslo jednací, komentáře úkonů | SDD-010, 011, 013 |
 | M5 | Soubory | UI souborů: upload včetně hromadného přetažením, download, mazání | SDD-012 |
-| M6 | Kontakty | agenda kontaktů s výskyty, defaultní kontakt v UI | SDD-011 |
+| M6 | Kontakty | agenda kontaktů s výskyty, zakládání kontaktu v agendě | SDD-011 |
 | M7 | Dashboard | dashboard nad reálnými daty | SDD-015 |
 
 Průřezová SDD-001 až 005 platí pro každý milník. Základ je hotový, když jde reálný spis vést

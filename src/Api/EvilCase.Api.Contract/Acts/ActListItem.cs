@@ -12,13 +12,11 @@ public sealed record ActListItem
 
     public required string ActNumber { get; init; }
 
-    public required ActDirection Direction { get; init; }
+    public ActDirection? Direction { get; init; }
 
     public required string Title { get; init; }
 
     public required DateOnly Date { get; init; }
 
-    public required string IssuedByName { get; init; }
-
-    public string? AddressedToName { get; init; }
+    public string? ContactName { get; init; }
 }

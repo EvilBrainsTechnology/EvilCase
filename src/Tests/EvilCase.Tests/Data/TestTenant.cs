@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore;
 namespace EvilBrains.EvilCase.Tests.Data;
 
 /// <summary>
-/// A tenant of its own on the test database, with the account, the user and the user's default contact
-/// a write needs. Two of them never see each other's rows, so a test that seeds one cleans up nothing.
+/// A tenant of its own on the test database, with the account and the user a write needs.
+/// Two of them never see each other's rows, so a test that seeds one cleans up nothing.
 /// Every add saves on its own, which is what makes the database stamp two rows with different
 /// <c>Created</c> values.
 /// </summary>
@@ -27,14 +27,13 @@ internal sealed class TestTenant : IAsyncDisposable
     // The day's next sequence, so a seeded number is the one SDD-008 gives that day.
     private readonly Dictionary<string, int> sequences = [];
 
-    private TestTenant(IDisposable entered, StubUserContext stubUserContext, ApplicationDbContext context, Guid tenantId, Guid userId, Contact defaultContact)
+    private TestTenant(IDisposable entered, StubUserContext stubUserContext, ApplicationDbContext context, Guid tenantId, Guid userId)
     {
         this.entered = entered;
         this.stubUserContext = stubUserContext;
         this.Context = context;
         this.tenantId = tenantId;
         this.UserId = userId;
-        this.DefaultContact = defaultContact;
     }
 
     public ApplicationDbContext Context { get; }
@@ -45,12 +44,6 @@ internal sealed class TestTenant : IAsyncDisposable
     public Guid UserId { get; }
 
     public IUserContext UserContext => this.stubUserContext;
-
-    /// <summary>
-    /// The contact the seeded user prefills an act with. A delete aimed at it answers
-    /// <c>DefaultContact</c>, so a test that needs a deletable contact adds one of its own.
-    /// </summary>
-    public Contact DefaultContact { get; }
 
     /// <summary>
     /// <paramref name="asHost"/> wires the context the way the host wires it, so a service under test
@@ -67,11 +60,9 @@ internal sealed class TestTenant : IAsyncDisposable
             : TestDatabase.CreateMigrated(userContext);
 
         var account = new Account { Name = "tests" };
-        var defaultContact = new Contact { TenantId = seededTenantId, Kind = ContactKind.Person, Name = "default" };
 
         context.Accounts.Add(account);
         context.Tenants.Add(new Tenant { Id = seededTenantId, AccountId = account.Id, Name = "tenant" });
-        context.Contacts.Add(defaultContact);
         context.Users.Add(new User
         {
             Id = seededUserId,
@@ -79,12 +70,11 @@ internal sealed class TestTenant : IAsyncDisposable
             Email = $"{Guid.CreateVersion7()}@example.com",
             PasswordHash = "hash",
             Role = UserRole.User,
-            DefaultContactId = defaultContact.Id,
         });
 
         await context.SaveChangesAsync();
 
-        return new TestTenant(scope, userContext, context, seededTenantId, seededUserId, defaultContact);
+        return new TestTenant(scope, userContext, context, seededTenantId, seededUserId);
     }
 
     /// <summary>
@@ -132,7 +122,8 @@ internal sealed class TestTenant : IAsyncDisposable
         string? caseNumber = null,
         Guid? caseId = null,
         Guid? parentCaseId = null,
-        string? externalCaseNumber = null)
+        string? externalCaseNumber = null,
+        Contact? contact = null)
     {
         var @case = new Case
         {
@@ -142,6 +133,7 @@ internal sealed class TestTenant : IAsyncDisposable
             UserId = this.UserId,
             CaseNumber = caseNumber ?? CaseNumberFormat.Compose(date, this.NextSequence(CaseNumberFormat.Prefix(date))),
             ExternalCaseNumber = externalCaseNumber,
+            ContactId = contact?.Id,
             Date = date,
             Title = title,
             Description = description,
@@ -151,15 +143,18 @@ internal sealed class TestTenant : IAsyncDisposable
         return await this.Save(this.Context.Cases, @case);
     }
 
+    /// <summary>
+    /// An act names no contact and no direction unless the caller names a contact; a contact alone takes
+    /// the incoming direction, which is the pair the check constraint requires.
+    /// </summary>
     public async Task<Act> AddAct(
         Case @case,
         DateOnly date,
         string title = "Úkon",
-        Contact? issuedBy = null,
-        Contact? addressedTo = null,
+        Contact? contact = null,
         string? actNumber = null,
         Guid? actId = null,
-        ActDirection direction = ActDirection.Incoming,
+        ActDirection? direction = null,
         string? description = null,
         string? externalActNumber = null)
     {
@@ -173,12 +168,11 @@ internal sealed class TestTenant : IAsyncDisposable
             CaseId = @case.Id,
             ActNumber = actNumber ?? ActNumberFormat.Compose(@case.CaseNumber, date, this.NextSequence(prefix)),
             ExternalActNumber = externalActNumber,
-            Direction = direction,
+            Direction = contact is null ? null : direction ?? ActDirection.Incoming,
+            ContactId = contact?.Id,
             Title = title,
             Date = date,
             Description = description,
-            IssuedByContactId = (issuedBy ?? this.DefaultContact).Id,
-            AddressedToContactId = addressedTo?.Id,
         };
 
         return await this.Save(this.Context.Acts, act);
@@ -196,7 +190,6 @@ internal sealed class TestTenant : IAsyncDisposable
             Email = $"{Guid.CreateVersion7()}@example.com",
             PasswordHash = "hash",
             Role = UserRole.User,
-            DefaultContactId = this.DefaultContact.Id,
         };
 
         return await this.Save(this.Context.Users, user);

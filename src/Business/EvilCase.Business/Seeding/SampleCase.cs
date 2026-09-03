@@ -17,10 +17,9 @@ internal sealed record SampleCase
     public required DateOnly Date { get; init; }
 
     /// <summary>
-    /// Set on a sub-case: the seeder gives it a submission and an answer with this contact. Null on the
-    /// main case, whose acts are listed one by one.
+    /// The case's contact. On a sub-case the seeder also gives it a submission and an answer with it.
     /// </summary>
-    public string? CounterpartyKey { get; init; }
+    public required string CounterpartyKey { get; init; }
 
     public string? ExternalCaseNumber { get; init; }
 

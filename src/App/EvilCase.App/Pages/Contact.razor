@@ -17,26 +17,13 @@
         <div class="row g-2 align-items-center">
             <div class="col">
                 <div class="page-pretitle"><a href="/contacts">Kontakty</a></div>
-                <h2 class="page-title">
-                    @(this.contact?.Name)
-                    @if (this.contact is { IsDefault: true })
-                    {
-                        <span class="badge bg-blue-lt ms-2">Výchozí kontakt</span>
-                    }
-                </h2>
+                <h2 class="page-title">@(this.contact?.Name)</h2>
             </div>
             @if (this.contact is not null)
             {
                 <div class="col-auto ms-auto d-print-none">
                     <button type="button" class="btn btn-primary" @onclick="this.Edit"><Icon CssClass="icon" IconType="AppIcons.Pencil" />Upravit</button>
-                    @if (!this.contact.IsDefault)
-                    {
-                        <button type="button" class="btn btn-danger ms-2" @onclick="this.DeleteContact"><Icon CssClass="icon" IconType="AppIcons.Trash" />Smazat</button>
-                    }
-                    else
-                    {
-                        <span class="text-secondary ms-2">Výchozí kontakt nelze smazat.</span>
-                    }
+                    <button type="button" class="btn btn-danger ms-2" @onclick="this.DeleteContact"><Icon CssClass="icon" IconType="AppIcons.Trash" />Smazat</button>
                 </div>
             }
         </div>
@@ -77,7 +64,11 @@
                 </div>
             </div>
 
-            <ContactActOccurrences Items="this.contact.Acts" />
+            <ContactCaseOccurrences Items="this.contact.Cases" />
+
+            <div class="mt-3">
+                <ContactActOccurrences Items="this.contact.Acts" />
+            </div>
         </LoadStateView>
     </div>
 </div>

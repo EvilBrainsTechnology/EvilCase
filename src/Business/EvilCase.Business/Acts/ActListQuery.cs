@@ -51,8 +51,7 @@ internal static class ActListQuery
             Direction = act.Direction,
             Title = act.Title,
             Date = act.Date,
-            IssuedByName = act.IssuedByContact!.Name,
-            AddressedToName = act.AddressedToContact!.Name,
+            ContactName = act.Contact!.Name,
         });
     }
 }

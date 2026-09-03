@@ -17,8 +17,7 @@ Doménové entity popisuje SDD-007.
 - **Account** — id a název. Zastřešuje N tenantů.
 - **Tenant** — id, název, `AccountId`. Hranice izolace dat.
 - **User** — tenantová entita, patří právě jednomu tenantu (`User.TenantId`). Dnešní sloupce
-  (e-mail, hash hesla, role, lockout) zůstávají; přibývá `TenantId` a povinný `DefaultContactId`
-  (SDD-011).
+  (e-mail, hash hesla, role, lockout) zůstávají; přibývá `TenantId`.
 
 Každá tenantová entita nese `TenantId`. Vlastníka `UserId` nese každá kromě kontaktu; kontakt
 patří tenantu (SDD-011). Obojí plní zápis, ne volající. Viditelná i zapisovatelná je v celém

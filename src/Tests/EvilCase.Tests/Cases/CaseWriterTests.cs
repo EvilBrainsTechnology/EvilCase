@@ -59,6 +59,17 @@ public class CaseWriterTests
     }
 
     [Test]
+    public void ANewCaseTakesTheContactTheRequestNames()
+    {
+        var contactId = Guid.CreateVersion7();
+        var request = new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "Přestupek", ContactId = contactId };
+
+        var @case = CaseWriter.BuildCase(request, "EC/20260821-001");
+
+        Assert.That(@case.ContactId, Is.EqualTo(contactId));
+    }
+
+    [Test]
     public async Task ANumberTakenWhileTheCaseIsFiledIsIssuedAgain()
     {
         var userContext = new StubUserContext();

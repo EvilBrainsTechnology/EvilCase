@@ -337,7 +337,7 @@ public class ActsControllerTests
             Direction = ActDirection.Incoming,
             Title = title,
             Date = new DateOnly(2026, 8, 25),
-            IssuedByName = "Odesílatel",
+            ContactName = "Kontakt",
         };
     }
 
@@ -348,7 +348,7 @@ public class ActsControllerTests
             Direction = ActDirection.Incoming,
             Date = new DateOnly(2026, 8, 25),
             Title = "Podání",
-            IssuedByContactId = Guid.CreateVersion7(),
+            ContactId = Guid.CreateVersion7(),
         };
     }
 
@@ -363,7 +363,7 @@ public class ActsControllerTests
             Direction = ActDirection.Incoming,
             Date = new DateOnly(2026, 8, 25),
             Title = "Podání",
-            IssuedByContact = new ContactListItem { ContactId = Guid.CreateVersion7(), Kind = ContactKind.Authority, Name = "Odesílatel" },
+            Contact = new ContactListItem { ContactId = Guid.CreateVersion7(), Kind = ContactKind.Authority, Name = "Kontakt" },
         };
     }
 
@@ -375,7 +375,7 @@ public class ActsControllerTests
             Direction = ActDirection.Incoming,
             Date = new DateOnly(2026, 8, 25),
             Title = "Podání",
-            IssuedByContactId = Guid.CreateVersion7(),
+            ContactId = Guid.CreateVersion7(),
         };
     }
 

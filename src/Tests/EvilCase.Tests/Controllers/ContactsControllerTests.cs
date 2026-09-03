@@ -84,21 +84,6 @@ public class ContactsControllerTests
     }
 
     [Test]
-    public async Task TheDefaultContactIsWhatTheReaderReturned()
-    {
-        var defaultContact = Item("Výchozí kontakt");
-        var reader = Substitute.For<IContactReader>();
-        reader
-            .GetDefaultContact(Arg.Any<CancellationToken>())
-            .Returns(defaultContact);
-        var controller = new ContactsController();
-
-        var result = await controller.GetDefaultContact(reader, CancellationToken.None);
-
-        Assert.That(result, Is.SameAs(defaultContact));
-    }
-
-    [Test]
     public async Task TheDetailIsAskedForTheIdInTheRoute()
     {
         var contactId = Guid.CreateVersion7();
@@ -190,22 +175,9 @@ public class ContactsControllerTests
 
         var result = await controller.DeleteContact(writer, Guid.CreateVersion7(), CancellationToken.None);
 
-        AssertProblem(result, 409);
-    }
+        var problem = AssertProblem(result, 409);
 
-    [Test]
-    public async Task DeletingTheDefaultContactIsAConflict()
-    {
-        var referenced = DeletingWriter(ContactDeleteOutcome.Referenced);
-        var defaultContact = DeletingWriter(ContactDeleteOutcome.DefaultContact);
-        var controller = new ContactsController();
-        var referencedResult = await controller.DeleteContact(referenced, Guid.CreateVersion7(), CancellationToken.None);
-        var defaultResult = await controller.DeleteContact(defaultContact, Guid.CreateVersion7(), CancellationToken.None);
-
-        var referencedProblem = AssertProblem(referencedResult, 409);
-        var defaultProblem = AssertProblem(defaultResult, 409);
-
-        Assert.That(defaultProblem.Detail, Is.Not.EqualTo(referencedProblem.Detail), "the default contact says why it cannot go");
+        Assert.That(problem.Detail, Is.Not.Null, "the conflict says why the contact cannot go");
     }
 
     [Test]

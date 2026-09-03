@@ -30,8 +30,5 @@ internal interface IUserStore
 
     public Task<bool> Any(CancellationToken token);
 
-    /// <summary>
-    /// Writes the user and its default contact in one save. A user without a default contact cannot exist.
-    /// </summary>
-    public Task AddUser(User user, Contact defaultContact, CancellationToken token);
+    public Task AddUser(User user, CancellationToken token);
 }

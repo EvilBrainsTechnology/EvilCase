@@ -1,6 +1,5 @@
 using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Business.Contacts;
-using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Domain.Contacts;
 using EvilBrains.EvilCase.Tests.Data;
 using Microsoft.EntityFrameworkCore;
@@ -43,12 +42,11 @@ public class ContactListQueryTests : TenantFixture
         var empty = await this.Tenant.Context.Contacts.MatchingSearch("").CountAsync();
         var blank = await this.Tenant.Context.Contacts.MatchingSearch("   ").CountAsync();
 
-        // The tenant's user carries a default contact, which is a contact of the tenant like any other.
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(unset, Is.EqualTo(3), "a blank term narrows nothing");
-            Assert.That(empty, Is.EqualTo(3), "a blank term narrows nothing");
-            Assert.That(blank, Is.EqualTo(3), "a blank term narrows nothing");
+            Assert.That(unset, Is.EqualTo(2), "a blank term narrows nothing");
+            Assert.That(empty, Is.EqualTo(2), "a blank term narrows nothing");
+            Assert.That(blank, Is.EqualTo(2), "a blank term narrows nothing");
         }
     }
 
@@ -77,12 +75,12 @@ public class ContactListQueryTests : TenantFixture
         var secondNovak = await this.Tenant.AddContact("Novák", contactId: contactIds[1]);
         var firstNovak = await this.Tenant.AddContact("Novák", contactId: contactIds[0]);
 
-        var names = await this.Seeded()
+        var names = await this.Tenant.Context.Contacts
             .InListOrder()
             .Select(static contact => contact.Name)
             .ToListAsync();
 
-        var tiedIds = await this.Seeded()
+        var tiedIds = await this.Tenant.Context.Contacts
             .Where(static contact => contact.Name == "Novák")
             .InListOrder()
             .Select(static contact => contact.Id)
@@ -164,14 +162,6 @@ public class ContactListQueryTests : TenantFixture
             Assert.That(sql, Does.Not.Contain("LIMIT"), "the overview has no paging");
             Assert.That(sql, Does.Not.Contain("OFFSET"), "the overview has no paging");
         }
-    }
-
-    /// <summary>
-    /// The tenant's contacts without the user's default one, which every seeded tenant carries.
-    /// </summary>
-    private IQueryable<Contact> Seeded()
-    {
-        return this.Tenant.Context.Contacts.Where(contact => contact.Id != this.Tenant.DefaultContact.Id);
     }
 
     private async Task<List<string>> Search(string term)

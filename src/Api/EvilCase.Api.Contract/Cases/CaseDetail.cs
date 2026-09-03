@@ -1,3 +1,4 @@
+using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Domain.Cases;
 
 namespace EvilBrains.EvilCase.Api.Contract.Cases;
@@ -20,6 +21,11 @@ public sealed record CaseDetail
     public string? Description { get; init; }
 
     public required CaseStatus Status { get; init; }
+
+    /// <summary>
+    /// The counterparty of the proceeding, null where the case names none (SDD-009).
+    /// </summary>
+    public ContactListItem? Contact { get; init; }
 
     /// <summary>
     /// The case this one hangs under, or null where it hangs under nothing (SDD-009).

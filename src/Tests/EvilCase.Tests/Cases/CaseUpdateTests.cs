@@ -186,6 +186,60 @@ public class CaseUpdateTests : TenantFixture
         Assert.That(outcome, Is.EqualTo(CaseUpdateOutcome.NotFound), "the tenant query filter is what keeps another tenant's row out of an edit");
     }
 
+    [Test]
+    public async Task AnEditWritesTheContact()
+    {
+        var seeded = await this.Tenant.AddCase(Day);
+        var contact = await this.Tenant.AddContact("Městský úřad Vzorov");
+        var request = Edit(seeded.CaseNumber, Day, seeded.Title, description: null, CaseStatus.Active, contactId: contact.Id);
+
+        var outcome = await this.writer.UpdateCase(seeded.Id, request, CancellationToken.None);
+
+        var reloaded = await this.Reload(seeded.Id);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome, Is.EqualTo(CaseUpdateOutcome.Updated));
+            Assert.That(reloaded.ContactId, Is.EqualTo(contact.Id));
+        }
+    }
+
+    [Test]
+    public async Task AnEditClearsTheContact()
+    {
+        var contact = await this.Tenant.AddContact("Městský úřad Vzorov");
+        var seeded = await this.Tenant.AddCase(Day, contact: contact);
+        var request = Edit(seeded.CaseNumber, Day, seeded.Title, description: null, CaseStatus.Active, contactId: null);
+
+        var outcome = await this.writer.UpdateCase(seeded.Id, request, CancellationToken.None);
+
+        var reloaded = await this.Reload(seeded.Id);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome, Is.EqualTo(CaseUpdateOutcome.Updated));
+            Assert.That(reloaded.ContactId, Is.Null, "a contact is optional, so an edit takes it away as well as sets it");
+        }
+    }
+
+    [Test]
+    public async Task AnEditNamingAContactThatIsNotThereIsRefused()
+    {
+        var seeded = await this.Tenant.AddCase(Day, "Přestupek");
+        var request = Edit(seeded.CaseNumber, Day, "Jiný název", description: null, CaseStatus.Active, contactId: Guid.CreateVersion7());
+
+        var outcome = await this.writer.UpdateCase(seeded.Id, request, CancellationToken.None);
+
+        var reloaded = await this.Reload(seeded.Id);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome, Is.EqualTo(CaseUpdateOutcome.ContactNotFound));
+            Assert.That(reloaded.Title, Is.EqualTo(seeded.Title));
+            Assert.That(reloaded.ContactId, Is.Null);
+        }
+    }
+
     private async Task<Case> Reload(Guid caseId)
     {
         this.Tenant.Context.ChangeTracker.Clear();
@@ -315,11 +369,19 @@ public class CaseUpdateTests : TenantFixture
     }
 
     private static CaseEditRequest Edit(
-        string caseNumber, DateOnly date, string title, string? description, CaseStatus status, Guid? parentCaseId = null, string? externalCaseNumber = null)
+        string caseNumber,
+        DateOnly date,
+        string title,
+        string? description,
+        CaseStatus status,
+        Guid? parentCaseId = null,
+        string? externalCaseNumber = null,
+        Guid? contactId = null)
     {
         return new()
         {
             ParentCaseId = parentCaseId,
+            ContactId = contactId,
             CaseNumber = caseNumber,
             ExternalCaseNumber = externalCaseNumber,
             Date = date,

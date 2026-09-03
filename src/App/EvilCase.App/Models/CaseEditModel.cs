@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Domain.Cases;
 
 namespace EvilBrains.EvilCase.App.Models;
@@ -26,6 +27,8 @@ internal sealed class CaseEditModel
 
     [StringLength(4000, ErrorMessage = "Popis může mít nejvýše 4000 znaků")]
     public string? Description { get; set; }
+
+    public ContactListItem? Contact { get; set; }
 
     public CaseStatus Status { get; set; } = CaseStatus.Active;
 }

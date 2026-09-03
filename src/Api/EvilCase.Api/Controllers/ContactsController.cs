@@ -30,12 +30,6 @@ public class ContactsController : ControllerBase
         return this.CreatedAtAction(nameof(this.GetContact), new { contactId = created.ContactId }, created);
     }
 
-    [HttpGet("default")]
-    public async Task<ContactListItem> GetDefaultContact([FromServices] IContactReader contacts, CancellationToken token)
-    {
-        return await contacts.GetDefaultContact(token);
-    }
-
     [HttpGet("{contactId:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -76,10 +70,8 @@ public class ContactsController : ControllerBase
         {
             ContactDeleteOutcome.Deleted => this.NoContent(),
             ContactDeleteOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: ContactProblems.NotFound),
-            ContactDeleteOutcome.DefaultContact => this.Problem(
-                detail: "The default contact cannot be deleted.", statusCode: StatusCodes.Status409Conflict, title: "Contact in use"),
             ContactDeleteOutcome.Referenced => this.Problem(
-                detail: "The contact is referenced by a case or an act.", statusCode: StatusCodes.Status409Conflict, title: "Contact in use"),
+                detail: "The contact is named by a case or an act.", statusCode: StatusCodes.Status409Conflict, title: "Contact in use"),
             _ => throw new UnreachableException(),
         };
     }

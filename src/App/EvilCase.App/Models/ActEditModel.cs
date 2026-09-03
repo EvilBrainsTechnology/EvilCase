@@ -8,7 +8,7 @@ namespace EvilBrains.EvilCase.App.Models;
 /// What the act edit form binds to. Separate from the request contract, whose properties are init-only
 /// and whose messages are English.
 /// </summary>
-internal sealed class ActEditModel
+internal sealed class ActEditModel : IValidatableObject
 {
     [Required(ErrorMessage = "Zadejte číslo jednací")]
     [StringLength(128, ErrorMessage = "Číslo jednací může mít nejvýše 128 znaků")]
@@ -17,7 +17,7 @@ internal sealed class ActEditModel
     [StringLength(128, ErrorMessage = "Externí číslo jednací může mít nejvýše 128 znaků")]
     public string? ExternalActNumber { get; set; }
 
-    public ActDirection Direction { get; set; } = ActDirection.Incoming;
+    public ActDirection? Direction { get; set; }
 
     public DateOnly Date { get; set; }
 
@@ -28,8 +28,14 @@ internal sealed class ActEditModel
     [StringLength(4000, ErrorMessage = "Popis může mít nejvýše 4000 znaků")]
     public string? Description { get; set; }
 
-    [Required(ErrorMessage = "Vyberte odesílatele")]
-    public ContactListItem? IssuedByContact { get; set; }
+    public ContactListItem? Contact { get; set; }
 
-    public ContactListItem? AddressedToContact { get; set; }
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (this.Direction is not null && this.Contact is null)
+            yield return new ValidationResult("Vyberte kontakt, nebo zrušte výběr směru", [nameof(this.Contact)]);
+
+        if (this.Contact is not null && this.Direction is null)
+            yield return new ValidationResult("Vyberte směr úkonu, nebo zrušte výběr kontaktu", [nameof(this.Direction)]);
+    }
 }

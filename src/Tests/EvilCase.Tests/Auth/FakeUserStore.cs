@@ -11,13 +11,6 @@ internal sealed class FakeUserStore : IUserStore
 {
     private readonly List<User> users = [];
 
-    private readonly List<Contact> contacts = [];
-
-    public Contact SingleContact()
-    {
-        return this.contacts.Single();
-    }
-
     public User SeedUser(User user)
     {
         this.users.Add(user);
@@ -68,10 +61,9 @@ internal sealed class FakeUserStore : IUserStore
         return this.users.Count > 0;
     }
 
-    public async Task AddUser(User user, Contact defaultContact, CancellationToken token)
+    public async Task AddUser(User user, CancellationToken token)
     {
         this.users.Add(user);
-        this.contacts.Add(defaultContact);
     }
 
     private void Replace(Guid userId, Func<User, User> update)
