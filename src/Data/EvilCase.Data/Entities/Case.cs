@@ -23,6 +23,12 @@ public sealed record Case : IUserOwnedEntity
     [MaxLength(64)]
     public required string CaseNumber { get; init; }
 
+    /// <summary>
+    /// The mark another authority gave this case, as that authority writes it (SDD-009).
+    /// </summary>
+    [MaxLength(128)]
+    public string? ExternalCaseNumber { get; init; }
+
     public required DateOnly Date { get; init; }
 
     [MaxLength(256)]
@@ -39,8 +45,6 @@ public sealed record Case : IUserOwnedEntity
     public Case? ParentCase { get; init; }
 
     public ICollection<Case> ChildCases { get; init; } = [];
-
-    public ICollection<ExternalCaseNumber> ExternalCaseNumbers { get; init; } = [];
 
     public ICollection<Act> Acts { get; init; } = [];
 

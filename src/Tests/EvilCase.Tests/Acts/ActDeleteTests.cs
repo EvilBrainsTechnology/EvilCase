@@ -28,13 +28,11 @@ public class ActDeleteTests : TenantFixture
     }
 
     [Test]
-    public async Task DeletingAnActTakesItsCommentsExternalNumbersAndFiles()
+    public async Task DeletingAnActTakesItsCommentsAndFiles()
     {
-        var contact = await this.Tenant.AddContact("Úřad");
         var seeded = await this.Tenant.AddCase(Day, "Přestupek");
         var act = await this.Tenant.AddAct(seeded, Day);
         var comment = await this.Tenant.AddActComment(act, "Poznámka k úkonu");
-        var externalNumber = await this.Tenant.AddExternalActNumber(act, "EXT-1", contact);
         var file = await this.Tenant.AddActFile(act);
 
         var result = await this.writer.DeleteAct(seeded.Id, act.Id, CancellationToken.None);
@@ -43,7 +41,6 @@ public class ActDeleteTests : TenantFixture
 
         var actExists = await this.Tenant.Context.Acts.AnyAsync(row => row.Id == act.Id);
         var commentExists = await this.Tenant.Context.Comments.AnyAsync(row => row.Id == comment.Id);
-        var externalNumberExists = await this.Tenant.Context.ExternalActNumbers.AnyAsync(row => row.Id == externalNumber.Id);
         var fileExists = await this.Tenant.Context.FileAssets.AnyAsync(row => row.Id == file.Id);
 
         using (Assert.EnterMultipleScope())
@@ -51,7 +48,6 @@ public class ActDeleteTests : TenantFixture
             Assert.That(result, Is.EqualTo(DeleteOutcome.Deleted));
             Assert.That(actExists, Is.False, "the cascade takes the act itself");
             Assert.That(commentExists, Is.False, "the cascade takes the act's comments");
-            Assert.That(externalNumberExists, Is.False, "the cascade takes the act's external act numbers");
             Assert.That(fileExists, Is.False, "the cascade takes the act's files");
         }
     }

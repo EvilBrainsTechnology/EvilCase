@@ -17,7 +17,5 @@ public sealed record ContactDetail
     // Not required: the EF projection sets only the scalar members and the reader fills these with `with`.
     public bool IsDefault { get; init; }
 
-    public IReadOnlyList<ContactCaseOccurrence> Cases { get; init; } = [];
-
     public IReadOnlyList<ContactActOccurrence> Acts { get; init; } = [];
 }

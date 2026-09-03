@@ -3,7 +3,6 @@
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Cases
-@using EvilBrains.EvilCase.Api.Contract.Numbers
 @using EvilBrains.EvilCase.Domain.Cases
 @inject ICasesClient CasesClient
 @inject NavigationManager Navigation
@@ -31,6 +30,12 @@
                             <InputText id="case-number" class="form-control" @bind-Value="this.model.CaseNumber" />
                             <div class="form-hint">Tvar EC/RRRRMMDD-NNN. Změna data spisu značku nemění.</div>
                             <ValidationMessage For="() => this.model.CaseNumber" class="invalid-feedback d-block" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="case-external-number">Externí spisová značka</label>
+                            <InputText id="case-external-number" class="form-control" @bind-Value="this.model.ExternalCaseNumber" />
+                            <ValidationMessage For="() => this.model.ExternalCaseNumber" class="invalid-feedback d-block" />
                         </div>
 
                         <div class="mb-3">
@@ -96,15 +101,6 @@
                     </div>
                 </EditForm>
             </div>
-
-            <div class="mt-3">
-                <ExternalNumbersCard Text="ExternalNumberText.ForCase"
-                                     Items="this.externalNumbers"
-                                     Editable="true"
-                                     AddNumber="this.AddExternalNumber"
-                                     DeleteNumber="this.DeleteExternalNumber"
-                                     OnChanged="this.ReloadExternalNumbers" />
-            </div>
         </LoadStateView>
     </div>
 </div>
@@ -116,8 +112,6 @@
     private readonly CaseEditModel model = new();
 
     private IReadOnlyList<CaseListItem> parentOptions = [];
-
-    private IReadOnlyList<ExternalNumberItem> externalNumbers = [];
 
     private bool notFound;
 
@@ -145,12 +139,12 @@
             var @case = await this.CasesClient.GetCase(this.CaseId, CancellationToken.None);
 
             this.model.CaseNumber = @case.CaseNumber;
+            this.model.ExternalCaseNumber = @case.ExternalCaseNumber;
             this.model.Date = @case.Date;
             this.model.Title = @case.Title;
             this.model.Description = @case.Description;
             this.model.Status = @case.Status;
             this.model.ParentCaseId = @case.ParentCase?.CaseId;
-            this.externalNumbers = @case.ExternalNumbers;
 
             var response = await this.CasesClient.ListCases(new CaseListRequest { Status = CaseStatusFilter.All }, CancellationToken.None);
 
@@ -181,6 +175,7 @@
             {
                 ParentCaseId = this.model.ParentCaseId,
                 CaseNumber = this.model.CaseNumber,
+                ExternalCaseNumber = this.model.ExternalCaseNumber,
                 Date = this.model.Date,
                 Title = this.model.Title,
                 Description = this.model.Description,
@@ -215,29 +210,5 @@
         {
             this.busy = false;
         }
-    }
-
-    private async Task ReloadExternalNumbers()
-    {
-        try
-        {
-            var @case = await this.CasesClient.GetCase(this.CaseId, CancellationToken.None);
-
-            this.externalNumbers = @case.ExternalNumbers;
-        }
-        catch (Exception exception) when (exception is ApiException or HttpRequestException)
-        {
-            this.Logger.LogWarning(exception, "Reloading the external case numbers failed");
-        }
-    }
-
-    private Task AddExternalNumber(ExternalNumberRequest request, CancellationToken token)
-    {
-        return this.CasesClient.AddExternalCaseNumber(this.CaseId, request, token);
-    }
-
-    private Task DeleteExternalNumber(Guid numberId, CancellationToken token)
-    {
-        return this.CasesClient.DeleteExternalCaseNumber(this.CaseId, numberId, token);
     }
 }

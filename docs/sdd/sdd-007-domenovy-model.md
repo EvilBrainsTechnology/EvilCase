@@ -17,9 +17,7 @@ jednotlivých entit drží SDD-009 až 012.
 Account → Tenant → User (SDD-006). Tenantová data:
 
 - **Case** — spis, volitelný rodič `ParentCaseId` (SDD-009).
-- **ExternalCaseNumber** — externí značka spisu, vázaná na Contact (SDD-009).
 - **Act** — úkon spisu (SDD-010).
-- **ExternalActNumber** — externí číslo jednací úkonu, vázané na Contact (SDD-010).
 - **Contact** — kontakt, dřívější Party (SDD-011).
 - **FileAsset** — soubor spisu XOR úkonu (SDD-012).
 - **Comment** — komentář spisu XOR úkonu (SDD-013).
@@ -29,7 +27,7 @@ Account → Tenant → User (SDD-006). Tenantová data:
 - `CaseRelation` — nahrazuje rodičovská vazba na spisu.
 - `CaseTag` — tagy bez náhrady.
 - `ActFileReference` — soubor patří právě jednomu vlastníku.
-- Sloupec `Act.ExternalActNumber` — nahrazuje tabulka `ExternalActNumber`.
+- `ExternalCaseNumber` a `ExternalActNumber` — nahrazuje sloupec na spisu, resp. na úkonu.
 
 ### Společné vlastnosti
 
@@ -43,8 +41,8 @@ Account → Tenant → User (SDD-006). Tenantová data:
 
 | Entita | Smazání |
 | --- | --- |
-| Case | kaskáda: úkony, komentáře, značky, soubory; podřízené spisy přežijí bez rodiče |
-| Act | kaskáda: komentáře, externí čísla jednací, soubory |
+| Case | kaskáda: úkony, komentáře, soubory; podřízené spisy přežijí bez rodiče |
+| Act | kaskáda: komentáře, soubory |
 | Contact | jen neodkazovaný; defaultní kontakt nikdy (SDD-011) |
 | FileAsset | prosté; blob zaniká se záznamem (SDD-012) |
 | Comment | prosté; jen autor (SDD-013) |

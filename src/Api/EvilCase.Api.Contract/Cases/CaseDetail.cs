@@ -1,4 +1,3 @@
-using EvilBrains.EvilCase.Api.Contract.Numbers;
 using EvilBrains.EvilCase.Domain.Cases;
 
 namespace EvilBrains.EvilCase.Api.Contract.Cases;
@@ -8,6 +7,11 @@ public sealed record CaseDetail
     public required Guid CaseId { get; init; }
 
     public required string CaseNumber { get; init; }
+
+    /// <summary>
+    /// The mark another authority gave this case, null where none is recorded (SDD-009).
+    /// </summary>
+    public string? ExternalCaseNumber { get; init; }
 
     public required DateOnly Date { get; init; }
 
@@ -26,9 +30,4 @@ public sealed record CaseDetail
     /// The cases that hang directly under this one; the detail shows one level, never a tree (SDD-009).
     /// </summary>
     public IReadOnlyList<CaseListItem> ChildCases { get; init; } = [];
-
-    /// <summary>
-    /// The marks other authorities gave this case, in the order they accrued (SDD-009).
-    /// </summary>
-    public IReadOnlyList<ExternalNumberItem> ExternalNumbers { get; init; } = [];
 }

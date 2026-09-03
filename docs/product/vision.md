@@ -33,26 +33,26 @@ cizí, přidělené někým jiným, jsou `ExternalCaseNumber` a `ExternalActNumb
 [SDD-007](../sdd/sdd-007-domenovy-model.md).
 
 **Spis** — jedno řízení. Nese explicitní datum, název, popis, status (`Active`,
-`WaitingOnAuthority`, `Closed`), externí značky, komentáře a soubory. Spisy tvoří hierarchii:
-volitelný rodič, libovolná hloubka, UI ukazuje jen ploché seznamy. Bez tagů.
+`WaitingOnAuthority`, `Closed`), externí spisovou značku, komentáře a soubory. Spisy tvoří
+hierarchii: volitelný rodič, libovolná hloubka, UI ukazuje jen ploché seznamy. Bez tagů.
 ([SDD-009](../sdd/sdd-009-spisy.md))
 
 **Úkon** — jednotka práce ve spisu: jedno podání, rozhodnutí, vyrozumění nebo výzva. Má směr
 (příchozí/odchozí), povinného odesílatele a nepovinného příjemce, explicitní datum, název,
-N externích čísel jednacích, popis, komentáře a soubory.
+externí číslo jednací, popis, komentáře a soubory.
 ([SDD-010](../sdd/sdd-010-ukony.md))
 
 **Kontakt** — úřad, úřední osoba nebo člověk; plochý, sdílený napříč spisy; nese id datové
-schránky a adresu jako jeden volný text. Vybírá se nebo zakládá inline všude, kde ho spis, úkon
-nebo číslo jmenuje, a spravuje se v agendě, která ukazuje, kde všude figuruje.
+schránky a adresu jako jeden volný text. Vybírá se nebo zakládá inline všude, kde ho úkon jmenuje,
+a spravuje se v agendě, která ukazuje, ve kterých úkonech figuruje.
 ([SDD-011](../sdd/sdd-011-kontakty.md))
 
 **Soubor** — patří právě jednomu spisu nebo úkonu; žádné odkazy mezi soubory a jinými
 entitami. Bajty leží na disku, databáze nese metadata. Upload i download v prohlížeči, včetně
 hromadného přetažením. ([SDD-012](../sdd/sdd-012-soubory.md))
 
-**Externí čísla** — spis nese N cizích značek, úkon N cizích čísel jednacích; každé je svázané
-s kontaktem, který ho přidělil — každý úřad v řetězu přiděluje své.
+**Externí čísla** — spis nese nejvýše jednu cizí spisovou značku, úkon nejvýše jedno cizí číslo
+jednací; obojí je nepovinný volný text bez vazby na kontakt.
 
 **Komentář** — volná poznámka ke spisu nebo úkonu, průběžný deník. Edituje a maže jen autor.
 ([SDD-013](../sdd/sdd-013-komentare.md))
@@ -90,8 +90,8 @@ V pořadí podle toho, co při práci s reálným spisem bolí nejvíc:
 | --- | --- | --- | --- |
 | M1 | Úklid | smazání stránek a API mimo vizi: `/deadlines`, `/echo` s kontrolerem a kontraktem, `/settings` | SDD-016 |
 | M2 | Datový model a seed | nové entity, tenance, interceptory, číslování, jedna Init migrace, rename Party → Contact, jádro souborového úložiště, seed účtů i vzorových dat | SDD-006, 007, 008, 011, 012, 017 |
-| M3 | Spisy | seznam, založení, detail a editace spisu; hierarchie, externí značky, komentáře spisů, kaskádové mazání | SDD-009, 011, 013 |
-| M4 | Úkony | založení, detail, editace a mazání úkonu; směr, kontakty, externí čísla, komentáře úkonů | SDD-010, 011, 013 |
+| M3 | Spisy | seznam, založení, detail a editace spisu; hierarchie, externí značka, komentáře spisů, kaskádové mazání | SDD-009, 013 |
+| M4 | Úkony | založení, detail, editace a mazání úkonu; směr, kontakty, externí číslo jednací, komentáře úkonů | SDD-010, 011, 013 |
 | M5 | Soubory | UI souborů: upload včetně hromadného přetažením, download, mazání | SDD-012 |
 | M6 | Kontakty | agenda kontaktů s výskyty, defaultní kontakt v UI | SDD-011 |
 | M7 | Dashboard | dashboard nad reálnými daty | SDD-015 |

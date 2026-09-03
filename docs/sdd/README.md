@@ -30,7 +30,7 @@ základ 006–008 (tenance, model, číslování), agendy 009–013, aplikace 01
 | [008](sdd-008-cislovani.md) | Číslování | M2 |
 | [009](sdd-009-spisy.md) | Spisy | M3 |
 | [010](sdd-010-ukony.md) | Úkony | M4 |
-| [011](sdd-011-kontakty.md) | Kontakty | M2, M3, M4, M6 |
+| [011](sdd-011-kontakty.md) | Kontakty | M2, M4, M6 |
 | [012](sdd-012-soubory.md) | Soubory | M2, M5 |
 | [013](sdd-013-komentare.md) | Komentáře | M3, M4 |
 | [015](sdd-015-dashboard.md) | Dashboard | M7 |

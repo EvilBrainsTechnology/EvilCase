@@ -1,9 +1,8 @@
 # SDD-011 — Kontakty
 
 - **Stav:** platí
-- **Milníky:** M2, M3, M4, M6
-- **Související SDD:** [004](sdd-004-validace-a-chyby.md), [009](sdd-009-spisy.md),
-  [010](sdd-010-ukony.md)
+- **Milníky:** M2, M4, M6
+- **Související SDD:** [004](sdd-004-validace-a-chyby.md), [010](sdd-010-ukony.md)
 
 ## Rozsah
 
@@ -26,16 +25,16 @@ nepodporuje.
 
 ### Výběr a založení
 
-Jedna inline komponenta všude, kde spis, úkon nebo číslo kontakt jmenuje: vybrat existující,
-nebo založit nový bez opuštění formuláře. Vyžadují ji už externí značky spisů (M3)
-a odesílatel s příjemcem úkonu (M4). Našeptávač hledá podle názvu a id datové schránky.
-Inline založení vyžaduje název a `Kind`; ostatní pole jsou nepovinná.
+Jedna inline komponenta všude, kde úkon kontakt jmenuje: vybrat existující, nebo založit nový
+bez opuštění formuláře. Vyžaduje ji odesílatel a příjemce úkonu (M4). Našeptávač hledá podle
+názvu a id datové schránky. Inline založení vyžaduje název a `Kind`; ostatní pole jsou
+nepovinná.
 
 ### Agenda
 
 - `/contacts` — přehled kontaktů s hledacím polem (název, id datové schránky).
-- `/contacts/{id}` — detail s výskyty: spisy přes značky, úkony přes odesílatele, příjemce
-  a externí čísla; editace a smazání kontaktu.
+- `/contacts/{id}` — detail s výskyty: úkony přes odesílatele a příjemce; editace a smazání
+  kontaktu.
 
 Přehled i výskyty jsou bez stránkování.
 

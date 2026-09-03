@@ -27,18 +27,6 @@ internal sealed class ActReader(IDbSession dbSession) : IActReader
 
     public async Task<ActDetail?> GetActDetail(Guid caseId, Guid actId, CancellationToken token)
     {
-        var context = dbSession.Current;
-
-        var act = await context.Acts.DetailOf(caseId, actId, token);
-        if (act is null)
-            return null;
-
-        var numbers = await context.ExternalActNumbers
-            .OfAct(caseId, actId)
-            .InAssignmentOrder()
-            .AsItems()
-            .ToListAsync(token);
-
-        return act with { ExternalNumbers = numbers };
+        return await dbSession.Current.Acts.DetailOf(caseId, actId, token);
     }
 }

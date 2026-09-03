@@ -21,11 +21,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     public DbSet<Case> Cases => this.Set<Case>();
 
-    public DbSet<ExternalCaseNumber> ExternalCaseNumbers => this.Set<ExternalCaseNumber>();
-
     public DbSet<Act> Acts => this.Set<Act>();
-
-    public DbSet<ExternalActNumber> ExternalActNumbers => this.Set<ExternalActNumber>();
 
     public DbSet<FileAsset> FileAssets => this.Set<FileAsset>();
 
@@ -107,9 +103,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         modelBuilder.Entity<User>().HasQueryFilter(user => user.TenantId == this.userContext.TenantIdOrDefault);
         modelBuilder.Entity<Contact>().HasQueryFilter(contact => contact.TenantId == this.userContext.TenantIdOrDefault);
         modelBuilder.Entity<Case>().HasQueryFilter(@case => @case.TenantId == this.userContext.TenantIdOrDefault);
-        modelBuilder.Entity<ExternalCaseNumber>().HasQueryFilter(number => number.TenantId == this.userContext.TenantIdOrDefault);
         modelBuilder.Entity<Act>().HasQueryFilter(act => act.TenantId == this.userContext.TenantIdOrDefault);
-        modelBuilder.Entity<ExternalActNumber>().HasQueryFilter(number => number.TenantId == this.userContext.TenantIdOrDefault);
         modelBuilder.Entity<FileAsset>().HasQueryFilter(file => file.TenantId == this.userContext.TenantIdOrDefault);
         modelBuilder.Entity<Comment>().HasQueryFilter(comment => comment.TenantId == this.userContext.TenantIdOrDefault);
 
@@ -168,19 +162,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .WithMany(static @case => @case.ChildCases)
             .HasForeignKey(static @case => @case.ParentCaseId)
             .OnDelete(DeleteBehavior.SetNull);
-
-        modelBuilder.Entity<ExternalCaseNumber>()
-            .HasOne(static number => number.Case)
-            .WithMany(static @case => @case.ExternalCaseNumbers)
-            .HasForeignKey(static number => number.CaseId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        // A contact accumulates history across cases, so it outlives any one mark that names it.
-        modelBuilder.Entity<ExternalCaseNumber>()
-            .HasOne(static number => number.AssignedBy)
-            .WithMany(static contact => contact.AssignedExternalCaseNumbers)
-            .HasForeignKey(static number => number.AssignedByContactId)
-            .OnDelete(DeleteBehavior.Restrict);
     }
 
     private static void ConfigureActs(ModelBuilder modelBuilder)
@@ -203,18 +184,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasOne(static act => act.AddressedToContact)
             .WithMany(static contact => contact.AddressedActs)
             .HasForeignKey(static act => act.AddressedToContactId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        modelBuilder.Entity<ExternalActNumber>()
-            .HasOne(static number => number.Act)
-            .WithMany(static act => act.ExternalActNumbers)
-            .HasForeignKey(static number => number.ActId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        modelBuilder.Entity<ExternalActNumber>()
-            .HasOne(static number => number.AssignedBy)
-            .WithMany(static contact => contact.AssignedExternalActNumbers)
-            .HasForeignKey(static number => number.AssignedByContactId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 

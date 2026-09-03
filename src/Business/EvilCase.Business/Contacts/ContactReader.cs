@@ -17,7 +17,7 @@ internal sealed class ContactReader(IDbSession dbSession, IUserContext userConte
             .ToListAsync(token);
     }
 
-    // A detail is not a list query: the header, the default-contact flag and the three act sources
+    // A detail is not a list query: the header, the default-contact flag and the two act sources
     // are separate reads, merged here.
     public async Task<ContactDetail?> GetContactDetail(Guid contactId, CancellationToken token)
     {
@@ -30,12 +30,6 @@ internal sealed class ContactReader(IDbSession dbSession, IUserContext userConte
         var isDefault = await context.Users
             .WithDefaultContact(contactId)
             .AnyAsync(token);
-
-        var cases = await context.ExternalCaseNumbers
-            .AssignedByContact(contactId)
-            .InCaseOccurrenceOrder()
-            .AsCaseOccurrences()
-            .ToListAsync(token);
 
         var issuedBy = await context.Acts
             .IssuedByContact(contactId)
@@ -50,7 +44,6 @@ internal sealed class ContactReader(IDbSession dbSession, IUserContext userConte
         return contact with
         {
             IsDefault = isDefault,
-            Cases = cases,
             Acts = ContactOccurrences.InDisplayOrder(issuedBy, addressedTo),
         };
     }

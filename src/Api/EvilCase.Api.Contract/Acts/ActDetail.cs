@@ -1,5 +1,4 @@
 using EvilBrains.EvilCase.Api.Contract.Contacts;
-using EvilBrains.EvilCase.Api.Contract.Numbers;
 using EvilBrains.EvilCase.Domain.Acts;
 
 namespace EvilBrains.EvilCase.Api.Contract.Acts;
@@ -20,6 +19,11 @@ public sealed record ActDetail
 
     public required string ActNumber { get; init; }
 
+    /// <summary>
+    /// The reference number another authority gave this act, null where none is recorded (SDD-010).
+    /// </summary>
+    public string? ExternalActNumber { get; init; }
+
     public required ActDirection Direction { get; init; }
 
     public required DateOnly Date { get; init; }
@@ -37,9 +41,4 @@ public sealed record ActDetail
     /// The recipient, null where the act names none (SDD-010).
     /// </summary>
     public ContactListItem? AddressedToContact { get; init; }
-
-    /// <summary>
-    /// The reference numbers other authorities gave this act, in the order they accrued (SDD-010).
-    /// </summary>
-    public IReadOnlyList<ExternalNumberItem> ExternalNumbers { get; init; } = [];
 }

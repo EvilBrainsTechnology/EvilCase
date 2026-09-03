@@ -42,10 +42,6 @@ public sealed record Contact : ITenantEntity
 
     public DateTime? Updated { get; init; }
 
-    public ICollection<ExternalCaseNumber> AssignedExternalCaseNumbers { get; init; } = [];
-
-    public ICollection<ExternalActNumber> AssignedExternalActNumbers { get; init; } = [];
-
     public ICollection<Act> IssuedActs { get; init; } = [];
 
     public ICollection<Act> AddressedActs { get; init; } = [];

@@ -99,6 +99,7 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
         var edit = request with
         {
             ActNumber = request.ActNumber.Trim(),
+            ExternalActNumber = request.ExternalActNumber?.TrimEmptyToNull(),
             Title = request.Title.Trim(),
             Description = request.Description?.TrimEmptyToNull(),
         };
@@ -119,6 +120,7 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
         var rows = await acts.ExecuteUpdateAsync(
             setters => setters
                 .SetProperty(static act => act.ActNumber, edit.ActNumber)
+                .SetProperty(static act => act.ExternalActNumber, edit.ExternalActNumber)
                 .SetProperty(static act => act.Direction, edit.Direction)
                 .SetProperty(static act => act.Date, edit.Date)
                 .SetProperty(static act => act.Title, edit.Title)
@@ -145,8 +147,7 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
             .Select(static file => file.StoragePath)
             .ToListAsync(token);
 
-        // The comments, external numbers and files go with the row: the database's foreign keys carry
-        // the cascade (SDD-007).
+        // The comments and files go with the row: the database's foreign keys carry the cascade (SDD-007).
         var rows = await context.Acts
             .OfCase(caseId)
             .WithId(actId)

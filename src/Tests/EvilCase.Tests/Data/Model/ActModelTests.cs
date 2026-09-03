@@ -20,7 +20,7 @@ public class ActModelTests : ModelFixture
         using (Assert.EnterMultipleScope())
         {
             Assert.That(columns, Has.Member("ActNumber"), "the act's own mark is stored in a column named ActNumber");
-            Assert.That(columns, Does.Not.Contain("ExternalActNumber"), "the number the issuing authority gave an act is a table now");
+            Assert.That(columns, Has.Member("ExternalActNumber"), "the number the issuing authority gave an act is a column on the act");
         }
     }
 
@@ -96,5 +96,23 @@ public class ActModelTests : ModelFixture
         string[] expected = [nameof(Act.TenantId), nameof(Act.ActNumber)];
 
         Assert.That(unique?.Properties.Select(static property => property.Name), Is.EqualTo(expected), "a generated series must not repeat within one tenant");
+    }
+
+    [Test]
+    public void TheExternalNumberIsOneOptionalColumnOnTheAct()
+    {
+        var act = Model.FindEntityType(typeof(Act));
+
+        Assert.That(act, Is.Not.Null);
+
+        var number = act.FindProperty(nameof(Act.ExternalActNumber));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(number, Is.Not.Null, "an act carries at most one number another authority gave it, so it is a column and not a row");
+            Assert.That(number?.IsNullable, Is.True, "an act exists before anybody records one");
+            Assert.That(number?.GetMaxLength(), Is.EqualTo(128));
+            Assert.That(IsIndexed(act!, nameof(Act.ExternalActNumber)), Is.False, "no read filters or orders acts by it");
+        }
     }
 }

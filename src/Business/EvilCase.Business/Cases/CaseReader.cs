@@ -51,12 +51,6 @@ internal sealed class CaseReader(IDbSession dbSession) : ICaseReader
             .AsListItems()
             .ToListAsync(token);
 
-        var numbers = await context.ExternalCaseNumbers
-            .OfCase(caseId)
-            .InAssignmentOrder()
-            .AsItems()
-            .ToListAsync(token);
-
-        return @case with { ChildCases = children, ExternalNumbers = numbers };
+        return @case with { ChildCases = children };
     }
 }

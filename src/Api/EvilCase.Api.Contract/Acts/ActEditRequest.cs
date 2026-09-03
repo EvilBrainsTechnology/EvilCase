@@ -13,6 +13,12 @@ public sealed record ActEditRequest
     [StringLength(128)]
     public required string ActNumber { get; init; }
 
+    /// <summary>
+    /// The reference number another authority gave this act; optional free text (SDD-010).
+    /// </summary>
+    [StringLength(128)]
+    public string? ExternalActNumber { get; init; }
+
     public required ActDirection Direction { get; init; }
 
     /// <summary>

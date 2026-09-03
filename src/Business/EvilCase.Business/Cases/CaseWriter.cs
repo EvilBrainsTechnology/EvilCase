@@ -91,6 +91,7 @@ internal sealed class CaseWriter(
         var edit = request with
         {
             CaseNumber = request.CaseNumber.Trim(),
+            ExternalCaseNumber = request.ExternalCaseNumber?.TrimEmptyToNull(),
             Title = request.Title.Trim(),
             Description = request.Description?.TrimEmptyToNull(),
         };
@@ -120,6 +121,7 @@ internal sealed class CaseWriter(
             .ExecuteUpdateAsync(
                 setters => setters
                     .SetProperty(static @case => @case.CaseNumber, edit.CaseNumber)
+                    .SetProperty(static @case => @case.ExternalCaseNumber, edit.ExternalCaseNumber)
                     .SetProperty(static @case => @case.ParentCaseId, edit.ParentCaseId)
                     .SetProperty(static @case => @case.Date, edit.Date)
                     .SetProperty(static @case => @case.Title, edit.Title)
@@ -145,8 +147,8 @@ internal sealed class CaseWriter(
             .Select(static file => file.StoragePath)
             .ToListAsync(token);
 
-        // The acts, comments, marks and files go with the row: the database's foreign keys carry the
-        // cascade, and a subordinate case is left with no parent (SDD-007).
+        // The acts, comments and files go with the row: the database's foreign keys carry the cascade,
+        // and a subordinate case is left with no parent (SDD-007).
         var rows = await context.Cases
             .WithId(caseId)
             .ExecuteDeleteAsync(token);

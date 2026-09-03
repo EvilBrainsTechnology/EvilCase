@@ -26,6 +26,12 @@ public sealed record Act : IUserOwnedEntity
     [MaxLength(128)]
     public required string ActNumber { get; init; }
 
+    /// <summary>
+    /// The reference number another authority gave this act, as that authority writes it (SDD-010).
+    /// </summary>
+    [MaxLength(128)]
+    public string? ExternalActNumber { get; init; }
+
     public required ActDirection Direction { get; init; }
 
     [MaxLength(256)]
@@ -52,8 +58,6 @@ public sealed record Act : IUserOwnedEntity
     public Contact? IssuedByContact { get; init; }
 
     public Contact? AddressedToContact { get; init; }
-
-    public ICollection<ExternalActNumber> ExternalActNumbers { get; init; } = [];
 
     public ICollection<Comment> Comments { get; init; } = [];
 

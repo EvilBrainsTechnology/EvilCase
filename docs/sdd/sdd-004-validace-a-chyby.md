@@ -38,7 +38,7 @@ Cizí tenant nikdy nevrací 403 — existence cizích dat nesmí uniknout. Uvnit
 volný (SDD-006); jediné 403 nese komentář, který smí upravit a smazat jen jeho autor (SDD-013).
 
 Id, které požadavek jmenuje a které neexistuje: v routě 404, v těle 409. Platí pro odkazovaný
-kontakt v těle úkonu i externího čísla stejně jako pro chybějící spis nebo úkon v routě.
+kontakt v těle úkonu stejně jako pro chybějící spis nebo úkon v routě.
 
 ### Frontend
 

@@ -74,4 +74,22 @@ public class CaseModelTests : ModelFixture
             Assert.That(selfFk?.DeleteBehavior, Is.EqualTo(DeleteBehavior.SetNull), "a deleted parent orphans its children rather than taking them");
         }
     }
+
+    [Test]
+    public void TheExternalMarkIsOneOptionalColumnOnTheCase()
+    {
+        var @case = Model.FindEntityType(typeof(Case));
+
+        Assert.That(@case, Is.Not.Null);
+
+        var mark = @case.FindProperty(nameof(Case.ExternalCaseNumber));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(mark, Is.Not.Null, "a case carries at most one mark another authority gave it, so it is a column and not a row");
+            Assert.That(mark?.IsNullable, Is.True, "a case exists before anybody records one");
+            Assert.That(mark?.GetMaxLength(), Is.EqualTo(128));
+            Assert.That(IsIndexed(@case!, nameof(Case.ExternalCaseNumber)), Is.False, "no read filters or orders cases by it");
+        }
+    }
 }
