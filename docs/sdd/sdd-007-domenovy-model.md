@@ -16,8 +16,8 @@ jednotlivých entit drží SDD-009 až 012.
 
 Account → Tenant → User (SDD-006). Tenantová data:
 
-- **Case** — spis, volitelný rodič `ParentCaseId` (SDD-009).
-- **Act** — úkon spisu (SDD-010).
+- **Case** — spis, volitelný rodič `ParentCaseId`, nepovinný kontakt (SDD-009).
+- **Act** — úkon spisu, nepovinný kontakt se směrem (SDD-010).
 - **Contact** — kontakt, dřívější Party (SDD-011).
 - **FileAsset** — soubor spisu XOR úkonu (SDD-012).
 - **Comment** — komentář spisu XOR úkonu (SDD-013).
@@ -43,7 +43,7 @@ Account → Tenant → User (SDD-006). Tenantová data:
 | --- | --- |
 | Case | kaskáda: úkony, komentáře, soubory; podřízené spisy přežijí bez rodiče |
 | Act | kaskáda: komentáře, soubory |
-| Contact | jen neodkazovaný; defaultní kontakt nikdy (SDD-011) |
+| Contact | jen ten, na který neodkazuje žádný spis ani úkon (SDD-011) |
 | FileAsset | prosté; blob zaniká se záznamem (SDD-012) |
 | Comment | prosté; jen autor (SDD-013) |
 

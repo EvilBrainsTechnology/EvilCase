@@ -2,15 +2,24 @@
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Contacts
+@using TabBlazor.Services
 @implements IDisposable
 @inject IContactsClient ContactsClient
+@inject IModalService ModalService
 @inject ILogger<Contacts> Logger
 
 <PageTitle>Kontakty – EvilCase</PageTitle>
 
 <div class="page-header d-print-none">
     <div class="container-xl">
-        <h2 class="page-title">Kontakty</h2>
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <h2 class="page-title">Kontakty</h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                <button id="contact-new" type="button" class="btn btn-primary" @onclick="this.CreateContact"><Icon CssClass="icon" IconType="AppIcons.Plus" />Nový kontakt</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -104,6 +113,15 @@
     public void Dispose()
     {
         this.debouncer.Dispose();
+    }
+
+    private async Task CreateContact()
+    {
+        await this.ModalService.ShowAsync(
+            "Nový kontakt",
+            new RenderComponent<ContactFormModal>()
+                .Set(component => component.OnCreated, EventCallback.Factory.Create<ContactListItem>(this, _ => this.LoadContacts(debounce: false))),
+            new ModalOptions { Fullscreen = ModalFullscreen.BelowLarge });
     }
 
     private Task OnSearchInput(ChangeEventArgs args)

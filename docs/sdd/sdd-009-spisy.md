@@ -15,7 +15,8 @@ soubory SDD-012, komentáře SDD-013.
 ### Entita
 
 Case: `ParentCaseId?`, `CaseNumber`, `ExternalCaseNumber?`, explicitní datum (`DateOnly`), název,
-popis, stav `Active` / `WaitingOnAuthority` / `Closed`. Bez tagů.
+popis, stav `Active` / `WaitingOnAuthority` / `Closed`, nepovinný kontakt protistrany (SDD-011).
+Bez tagů.
 
 Stav je jen štítek: na nic se neváže, spis ve stavu `Closed` jde editovat a přijímá úkony,
 soubory i komentáře jako každý jiný. Nový spis vzniká jako `Active`.
@@ -38,10 +39,10 @@ kontakt. Zadává se na editaci spisu.
 - `/cases` — seznam spisů: číslo, název, stav, datum. Řadí se podle data spisu sestupně,
   shodná data řadí `Created`; bez stránkování. Hledací pole hledá v názvu a popisu bez ohledu na
   diakritiku a filtr stavu s výchozí hodnotou Otevřené.
-- `/cases/new` — založení.
+- `/cases/new` — založení, včetně kontaktu.
 - `/cases/{id}` — detail: údaje, podřízené spisy, komentáře; sekce úkonů přibývá
   v M4 (SDD-010), sekce souborů v M5 (SDD-012).
-- `/cases/{id}/edit` — editace.
+- `/cases/{id}/edit` — editace, včetně kontaktu.
 
 ### Mazání
 
@@ -54,6 +55,8 @@ Mazání řídí matice v SDD-007; potvrzení jmenuje, co kaskáda bere.
 - Datum spisu: datum založení záznamu / explicitní pole. Platí explicitní pole.
 - Stav spisu: řídí chování / jen štítek. Platí jen štítek.
 - Externí značka: N řádků s kontaktem / jeden sloupec. Platí jeden sloupec bez kontaktu.
+- Kontakt spisu: povinný / nepovinný. Platí nepovinný.
+- Zadání kontaktu: jen editace / založení i editace. Platí obojí.
 
 ## Dopady
 

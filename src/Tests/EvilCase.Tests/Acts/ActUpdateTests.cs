@@ -30,12 +30,12 @@ public class ActUpdateTests : TenantFixture
     }
 
     [Test]
-    public async Task AnEditWritesTheDirectionTheDateTheTitleTheDescriptionAndBothContacts()
+    public async Task AnEditWritesTheDirectionTheDateTheTitleTheDescriptionAndTheContact()
     {
         var @case = await this.Tenant.AddCase(Day);
         var seeded = await this.Tenant.AddAct(@case, Day, "Podání");
-        var recipient = await this.Tenant.AddContact("Příjemce");
-        var request = Edit(seeded.ActNumber, ActDirection.Outgoing, Day.AddDays(1), "Nový název", "Nový popis", seeded.IssuedByContactId, recipient.Id);
+        var contact = await this.Tenant.AddContact("Krajský soud ve Vzorově");
+        var request = Edit(seeded.ActNumber, ActDirection.Outgoing, Day.AddDays(1), "Nový název", "Nový popis", contact.Id);
 
         var outcome = await this.writer.UpdateAct(@case.Id, seeded.Id, request, CancellationToken.None);
 
@@ -48,18 +48,17 @@ public class ActUpdateTests : TenantFixture
             Assert.That(reloaded.Date, Is.EqualTo(request.Date));
             Assert.That(reloaded.Title, Is.EqualTo(request.Title));
             Assert.That(reloaded.Description, Is.EqualTo(request.Description));
-            Assert.That(reloaded.IssuedByContactId, Is.EqualTo(request.IssuedByContactId));
-            Assert.That(reloaded.AddressedToContactId, Is.EqualTo(recipient.Id));
+            Assert.That(reloaded.ContactId, Is.EqualTo(contact.Id));
         }
     }
 
     [Test]
-    public async Task AnEditClearsTheRecipient()
+    public async Task AnEditClearsTheDirectionAndTheContact()
     {
         var @case = await this.Tenant.AddCase(Day);
-        var recipient = await this.Tenant.AddContact("Příjemce");
-        var seeded = await this.Tenant.AddAct(@case, Day, addressedTo: recipient);
-        var request = Edit(seeded.ActNumber, seeded.Direction, seeded.Date, seeded.Title, description: null, seeded.IssuedByContactId, addressedToContactId: null);
+        var contact = await this.Tenant.AddContact("Krajský soud ve Vzorově");
+        var seeded = await this.Tenant.AddAct(@case, Day, contact: contact);
+        var request = Edit(seeded.ActNumber, direction: null, seeded.Date, seeded.Title, contactId: null);
 
         var outcome = await this.writer.UpdateAct(@case.Id, seeded.Id, request, CancellationToken.None);
 
@@ -68,7 +67,8 @@ public class ActUpdateTests : TenantFixture
         using (Assert.EnterMultipleScope())
         {
             Assert.That(outcome, Is.EqualTo(ActUpdateOutcome.Updated));
-            Assert.That(reloaded.AddressedToContactId, Is.Null, "a recipient is optional, so an edit takes it away as well as sets it");
+            Assert.That(reloaded.Direction, Is.Null, "direction and contact are optional, so an edit takes them away as well as sets them");
+            Assert.That(reloaded.ContactId, Is.Null, "direction and contact are optional, so an edit takes them away as well as sets them");
         }
     }
 
@@ -78,7 +78,7 @@ public class ActUpdateTests : TenantFixture
         var @case = await this.Tenant.AddCase(Day);
         var seeded = await this.Tenant.AddAct(@case, Day, "Podání");
         var newDate = Day.AddDays(3);
-        var request = Edit(seeded.ActNumber, seeded.Direction, newDate, seeded.Title, description: null, seeded.IssuedByContactId);
+        var request = Edit(seeded.ActNumber, seeded.Direction, newDate, seeded.Title);
 
         var outcome = await this.writer.UpdateAct(@case.Id, seeded.Id, request, CancellationToken.None);
 
@@ -97,7 +97,7 @@ public class ActUpdateTests : TenantFixture
     {
         var @case = await this.Tenant.AddCase(Day);
         var seeded = await this.Tenant.AddAct(@case, Day);
-        var request = Edit(seeded.ActNumber, seeded.Direction, seeded.Date, seeded.Title, description: null, seeded.IssuedByContactId);
+        var request = Edit(seeded.ActNumber, seeded.Direction, seeded.Date, seeded.Title);
 
         var outcome = await this.writer.UpdateAct(@case.Id, seeded.Id, request, CancellationToken.None);
 
@@ -110,7 +110,7 @@ public class ActUpdateTests : TenantFixture
         var @case = await this.Tenant.AddCase(Day);
         var seeded = await this.Tenant.AddAct(@case, Day);
         var request = Edit(
-            "  EC/20260101-042/20260105-007  ", seeded.Direction, seeded.Date, seeded.Title, description: null, seeded.IssuedByContactId);
+            "  EC/20260101-042/20260105-007  ", seeded.Direction, seeded.Date, seeded.Title);
 
         var outcome = await this.writer.UpdateAct(@case.Id, seeded.Id, request, CancellationToken.None);
 
@@ -131,7 +131,7 @@ public class ActUpdateTests : TenantFixture
     {
         var @case = await this.Tenant.AddCase(Day);
         var seeded = await this.Tenant.AddAct(@case, Day, "Podání");
-        var request = Edit("cj 7/2026", seeded.Direction, seeded.Date, "Jiný název", description: null, seeded.IssuedByContactId);
+        var request = Edit("cj 7/2026", seeded.Direction, seeded.Date, "Jiný název");
 
         var outcome = await this.writer.UpdateAct(@case.Id, seeded.Id, request, CancellationToken.None);
 
@@ -151,7 +151,7 @@ public class ActUpdateTests : TenantFixture
         var @case = await this.Tenant.AddCase(Day);
         var first = await this.Tenant.AddAct(@case, Day, "První");
         var second = await this.Tenant.AddAct(@case, Day, "Druhý");
-        var request = Edit(second.ActNumber, first.Direction, first.Date, "Jiný název", description: null, first.IssuedByContactId);
+        var request = Edit(second.ActNumber, first.Direction, first.Date, "Jiný název");
 
         var outcome = await this.writer.UpdateAct(@case.Id, first.Id, request, CancellationToken.None);
 
@@ -172,7 +172,7 @@ public class ActUpdateTests : TenantFixture
         var caseB = await this.Tenant.AddCase(Day, "B");
         var actA = await this.Tenant.AddAct(caseA, Day);
         var actB = await this.Tenant.AddAct(caseB, Day);
-        var request = Edit(actB.ActNumber, actA.Direction, actA.Date, actA.Title, description: null, actA.IssuedByContactId);
+        var request = Edit(actB.ActNumber, actA.Direction, actA.Date, actA.Title);
 
         var outcome = await this.writer.UpdateAct(caseA.Id, actA.Id, request, CancellationToken.None);
 
@@ -187,7 +187,7 @@ public class ActUpdateTests : TenantFixture
     {
         var @case = await this.Tenant.AddCase(Day);
         var seeded = await this.Tenant.AddAct(@case, Day);
-        var request = Edit(seeded.ActNumber, seeded.Direction, seeded.Date, seeded.Title, "   ", seeded.IssuedByContactId);
+        var request = Edit(seeded.ActNumber, seeded.Direction, seeded.Date, seeded.Title, "   ");
 
         await this.writer.UpdateAct(@case.Id, seeded.Id, request, CancellationToken.None);
 
@@ -201,7 +201,7 @@ public class ActUpdateTests : TenantFixture
     {
         var @case = await this.Tenant.AddCase(Day);
         var seeded = await this.Tenant.AddAct(@case, Day, "Podání");
-        var request = Edit(seeded.ActNumber, seeded.Direction, seeded.Date, "Jiný název", description: null, Guid.CreateVersion7());
+        var request = Edit(seeded.ActNumber, ActDirection.Incoming, seeded.Date, "Jiný název", contactId: Guid.CreateVersion7());
 
         var outcome = await this.writer.UpdateAct(@case.Id, seeded.Id, request, CancellationToken.None);
 
@@ -211,7 +211,7 @@ public class ActUpdateTests : TenantFixture
         {
             Assert.That(outcome, Is.EqualTo(ActUpdateOutcome.ContactNotFound));
             Assert.That(reloaded.Title, Is.EqualTo(seeded.Title));
-            Assert.That(reloaded.IssuedByContactId, Is.EqualTo(seeded.IssuedByContactId));
+            Assert.That(reloaded.ContactId, Is.EqualTo(seeded.ContactId));
         }
     }
 
@@ -224,24 +224,18 @@ public class ActUpdateTests : TenantFixture
         var @case = await this.Tenant.AddCase(Day);
         var seeded = await this.Tenant.AddAct(@case, Day);
 
-        var asSender = Edit(seeded.ActNumber, seeded.Direction, seeded.Date, seeded.Title, description: null, foreignContact.Id);
-        var senderOutcome = await this.writer.UpdateAct(@case.Id, seeded.Id, asSender, CancellationToken.None);
+        var request = Edit(seeded.ActNumber, ActDirection.Incoming, seeded.Date, seeded.Title, contactId: foreignContact.Id);
 
-        var asRecipient = Edit(seeded.ActNumber, seeded.Direction, seeded.Date, seeded.Title, description: null, seeded.IssuedByContactId, foreignContact.Id);
-        var recipientOutcome = await this.writer.UpdateAct(@case.Id, seeded.Id, asRecipient, CancellationToken.None);
+        var outcome = await this.writer.UpdateAct(@case.Id, seeded.Id, request, CancellationToken.None);
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(senderOutcome, Is.EqualTo(ActUpdateOutcome.ContactNotFound), "an act never names a contact of another tenant");
-            Assert.That(recipientOutcome, Is.EqualTo(ActUpdateOutcome.ContactNotFound), "an act never names a contact of another tenant");
-        }
+        Assert.That(outcome, Is.EqualTo(ActUpdateOutcome.ContactNotFound), "an act never names a contact of another tenant");
     }
 
     [Test]
     public async Task AnUnknownActIsNotFound()
     {
         var @case = await this.Tenant.AddCase(Day);
-        var request = Edit("EC/20260101-042/20260105-007", ActDirection.Incoming, Day, "Podání", description: null, this.Tenant.DefaultContact.Id);
+        var request = Edit("EC/20260101-042/20260105-007", direction: null, Day, "Podání");
 
         var outcome = await this.writer.UpdateAct(@case.Id, Guid.CreateVersion7(), request, CancellationToken.None);
 
@@ -252,7 +246,7 @@ public class ActUpdateTests : TenantFixture
     public async Task AnUnknownActIsNotFoundBeforeTheEditIsWeighed()
     {
         var @case = await this.Tenant.AddCase(Day);
-        var request = Edit("cj 7/2026", ActDirection.Incoming, Day, "Podání", description: null, Guid.CreateVersion7());
+        var request = Edit("cj 7/2026", direction: null, Day, "Podání");
 
         var outcome = await this.writer.UpdateAct(@case.Id, Guid.CreateVersion7(), request, CancellationToken.None);
 
@@ -265,7 +259,7 @@ public class ActUpdateTests : TenantFixture
         var first = await this.Tenant.AddCase(Day, "První");
         var second = await this.Tenant.AddCase(Day, "Druhý");
         var seeded = await this.Tenant.AddAct(first, Day, "Podání");
-        var request = Edit(seeded.ActNumber, seeded.Direction, seeded.Date, "Jiný název", description: null, seeded.IssuedByContactId);
+        var request = Edit(seeded.ActNumber, seeded.Direction, seeded.Date, "Jiný název");
 
         var outcome = await this.writer.UpdateAct(second.Id, seeded.Id, request, CancellationToken.None);
 
@@ -284,7 +278,7 @@ public class ActUpdateTests : TenantFixture
         await using var other = await TestTenant.Create();
         var otherCase = await other.AddCase(Day);
         var otherAct = await other.AddAct(otherCase, Day);
-        var request = Edit(otherAct.ActNumber, otherAct.Direction, otherAct.Date, otherAct.Title, description: null, otherAct.IssuedByContactId);
+        var request = Edit(otherAct.ActNumber, otherAct.Direction, otherAct.Date, otherAct.Title);
 
         var outcome = await this.writer.UpdateAct(otherCase.Id, otherAct.Id, request, CancellationToken.None);
 
@@ -339,7 +333,7 @@ public class ActUpdateTests : TenantFixture
         var @case = await this.Tenant.AddCase(Day);
         var seeded = await this.Tenant.AddAct(@case, Day, "Podání");
         var request = Edit(
-            seeded.ActNumber, seeded.Direction, seeded.Date, seeded.Title, description: null, seeded.IssuedByContactId, externalActNumber: "  MUVZ/2025/80535  ");
+            seeded.ActNumber, seeded.Direction, seeded.Date, seeded.Title, description: null, externalActNumber: "  MUVZ/2025/80535  ");
 
         var outcome = await this.writer.UpdateAct(@case.Id, seeded.Id, request, CancellationToken.None);
 
@@ -358,7 +352,7 @@ public class ActUpdateTests : TenantFixture
         var @case = await this.Tenant.AddCase(Day);
         var seeded = await this.Tenant.AddAct(@case, Day, externalActNumber: "MUVZ/2025/80535");
         var request = Edit(
-            seeded.ActNumber, seeded.Direction, seeded.Date, seeded.Title, description: null, seeded.IssuedByContactId, externalActNumber: "   ");
+            seeded.ActNumber, seeded.Direction, seeded.Date, seeded.Title, description: null, externalActNumber: "   ");
 
         await this.writer.UpdateAct(@case.Id, seeded.Id, request, CancellationToken.None);
 
@@ -376,12 +370,11 @@ public class ActUpdateTests : TenantFixture
 
     private static ActEditRequest Edit(
         string actNumber,
-        ActDirection direction,
+        ActDirection? direction,
         DateOnly date,
         string title,
-        string? description,
-        Guid issuedByContactId,
-        Guid? addressedToContactId = null,
+        string? description = null,
+        Guid? contactId = null,
         string? externalActNumber = null)
     {
         return new()
@@ -392,8 +385,7 @@ public class ActUpdateTests : TenantFixture
             Date = date,
             Title = title,
             Description = description,
-            IssuedByContactId = issuedByContactId,
-            AddressedToContactId = addressedToContactId,
+            ContactId = contactId,
         };
     }
 }

@@ -26,6 +26,22 @@ public class ContactModelTests : ModelFixture
     }
 
     [Test]
+    public void AContactReachesItsCasesAndItsActs()
+    {
+        var contact = Model.FindEntityType(typeof(Contact));
+
+        Assert.That(contact, Is.Not.Null);
+
+        var navigations = contact.GetNavigations().Select(static navigation => navigation.Name).ToList();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(navigations, Has.Member(nameof(Contact.Cases)), "the contact detail lists the cases naming it");
+            Assert.That(navigations, Has.Member(nameof(Contact.Acts)), "and the acts naming it");
+        }
+    }
+
+    [Test]
     public void AContactBelongsToTheTenantNotToAUser()
     {
         var contact = Model.FindEntityType(typeof(Contact));

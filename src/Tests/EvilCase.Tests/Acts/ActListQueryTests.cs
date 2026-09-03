@@ -98,19 +98,17 @@ public class ActListQueryTests : TenantFixture
     }
 
     [Test]
-    public async Task AListItemCarriesBothContactNames()
+    public async Task AListItemCarriesTheContactName()
     {
         var @case = await this.Tenant.AddCase(new DateOnly(2026, 8, 20));
-        var issuedBy = await this.Tenant.AddContact("Městský úřad Vzorov");
-        var addressedTo = await this.Tenant.AddContact("Ing. Petr Vzorek");
-        var act = await this.Tenant.AddAct(@case, new DateOnly(2026, 8, 22), "Rozhodnutí", issuedBy: issuedBy, addressedTo: addressedTo);
+        var contact = await this.Tenant.AddContact("Městský úřad Vzorov");
+        var act = await this.Tenant.AddAct(@case, new DateOnly(2026, 8, 22), "Rozhodnutí", contact: contact);
 
         var item = await this.Tenant.Context.Acts.OfCase(@case.Id).InListOrder().AsListItems().SingleAsync();
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(item.IssuedByName, Is.EqualTo("Městský úřad Vzorov"));
-            Assert.That(item.AddressedToName, Is.EqualTo("Ing. Petr Vzorek"));
+            Assert.That(item.ContactName, Is.EqualTo("Městský úřad Vzorov"));
             Assert.That(item.ActNumber, Is.EqualTo(act.ActNumber));
             Assert.That(item.Direction, Is.EqualTo(act.Direction));
             Assert.That(item.Title, Is.EqualTo(act.Title));
@@ -119,14 +117,18 @@ public class ActListQueryTests : TenantFixture
     }
 
     [Test]
-    public async Task AListItemWithoutARecipientCarriesNoName()
+    public async Task AnActWithNoContactCarriesNoNameAndNoDirection()
     {
         var @case = await this.Tenant.AddCase(new DateOnly(2026, 8, 20));
-        await this.Tenant.AddAct(@case, new DateOnly(2026, 8, 22), "Podání", addressedTo: null);
+        await this.Tenant.AddAct(@case, new DateOnly(2026, 8, 22), "Podání");
 
         var item = await this.Tenant.Context.Acts.OfCase(@case.Id).InListOrder().AsListItems().SingleAsync();
 
-        Assert.That(item.AddressedToName, Is.Null, "a recipient is optional and its absence is a null name, not a failed read");
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(item.ContactName, Is.Null, "a contact is optional and its absence is a null name, not a failed read");
+            Assert.That(item.Direction, Is.Null);
+        }
     }
 
     /// <summary>

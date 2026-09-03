@@ -63,6 +63,53 @@ public class CaseCreateTests : TenantFixture
     }
 
     [Test]
+    public async Task ACaseNamingItsContactIsFiled()
+    {
+        var contact = await this.Tenant.AddContact("Městský úřad Vzorov");
+
+        var result = await this.writer.CreateCase(
+            new CreateCaseRequest { Date = ChildDay, Title = "Přestupek", ContactId = contact.Id },
+            CancellationToken.None);
+
+        Assert.That(result.Outcome, Is.EqualTo(CaseCreateOutcome.Created));
+
+        var reloaded = await this.Tenant.Context.Cases.SingleAsync(@case => @case.Id == result.Case!.CaseId);
+
+        Assert.That(reloaded.ContactId, Is.EqualTo(contact.Id));
+    }
+
+    [Test]
+    public async Task ACaseNamingAContactThatIsNotThereFilesNothing()
+    {
+        var result = await this.writer.CreateCase(
+            new CreateCaseRequest { Date = ChildDay, Title = "Přestupek", ContactId = Guid.CreateVersion7() },
+            CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.Outcome, Is.EqualTo(CaseCreateOutcome.ContactNotFound));
+            Assert.That(await this.Tenant.Context.Cases.CountAsync(), Is.Zero);
+        }
+    }
+
+    [Test]
+    public async Task ACaseNamingTheContactOfAnotherTenantFilesNothing()
+    {
+        await using var other = await TestTenant.Create();
+        var foreignContact = await other.AddContact("Cizí kontakt");
+
+        var result = await this.writer.CreateCase(
+            new CreateCaseRequest { Date = ChildDay, Title = "Přestupek", ContactId = foreignContact.Id },
+            CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.Outcome, Is.EqualTo(CaseCreateOutcome.ContactNotFound), "a case never names a contact of another tenant");
+            Assert.That(await this.Tenant.Context.Cases.CountAsync(), Is.Zero);
+        }
+    }
+
+    [Test]
     public async Task ACaseWithNoParentIsFiled()
     {
         var result = await this.writer.CreateCase(

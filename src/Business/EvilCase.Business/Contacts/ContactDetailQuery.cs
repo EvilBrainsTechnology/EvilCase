@@ -12,7 +12,7 @@ internal static class ContactDetailQuery
 {
     /// <summary>
     /// The header of one contact, or null where the tenant has no such contact.
-    /// <see cref="ContactDetail.IsDefault"/> and <see cref="ContactDetail.Acts"/> are filled separately,
+    /// <see cref="ContactDetail.Cases"/> and <see cref="ContactDetail.Acts"/> are filled separately,
     /// with <c>with</c>.
     /// </summary>
     public static async Task<ContactDetail?> DetailOf(this IQueryable<Contact> contacts, Guid contactId, CancellationToken token)

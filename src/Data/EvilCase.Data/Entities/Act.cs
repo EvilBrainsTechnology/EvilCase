@@ -10,8 +10,7 @@ namespace EvilBrains.EvilCase.Data.Entities;
 /// </summary>
 [Index(nameof(TenantId), nameof(ActNumber), IsUnique = true)]
 [Index(nameof(CaseId))]
-[Index(nameof(IssuedByContactId))]
-[Index(nameof(AddressedToContactId))]
+[Index(nameof(ContactId))]
 public sealed record Act : IUserOwnedEntity
 {
     [Key]
@@ -32,7 +31,11 @@ public sealed record Act : IUserOwnedEntity
     [MaxLength(128)]
     public string? ExternalActNumber { get; init; }
 
-    public required ActDirection Direction { get; init; }
+    /// <summary>
+    /// Which way the act travelled relative to <see cref="Contact"/>. Set exactly when the contact is
+    /// (SDD-010); a check constraint holds the pair together.
+    /// </summary>
+    public ActDirection? Direction { get; init; }
 
     [MaxLength(256)]
     public required string Title { get; init; }
@@ -45,9 +48,10 @@ public sealed record Act : IUserOwnedEntity
 
     public string? Description { get; init; }
 
-    public required Guid IssuedByContactId { get; init; }
-
-    public Guid? AddressedToContactId { get; init; }
+    /// <summary>
+    /// The counterparty of the act, null where none is recorded (SDD-010).
+    /// </summary>
+    public Guid? ContactId { get; init; }
 
     public DateTime Created { get; init; }
 
@@ -55,9 +59,7 @@ public sealed record Act : IUserOwnedEntity
 
     public Case? Case { get; init; }
 
-    public Contact? IssuedByContact { get; init; }
-
-    public Contact? AddressedToContact { get; init; }
+    public Contact? Contact { get; init; }
 
     public ICollection<Comment> Comments { get; init; } = [];
 

@@ -6,7 +6,6 @@ namespace EvilBrains.EvilCase.Data.Entities;
 
 [Index(nameof(Email), IsUnique = true)]
 [Index(nameof(TenantId))]
-[Index(nameof(DefaultContactId))]
 public sealed record User : ITenantEntity
 {
     [Key]
@@ -27,11 +26,6 @@ public sealed record User : ITenantEntity
 
     public required UserRole Role { get; init; }
 
-    /// <summary>
-    /// The contact the user prefills an act with. It is created with the user, in the same write.
-    /// </summary>
-    public required Guid DefaultContactId { get; init; }
-
     public DateTime Created { get; init; }
 
     public DateTime? Updated { get; init; }
@@ -45,6 +39,4 @@ public sealed record User : ITenantEntity
     /// Set while the account is locked out; in the past means the lockout has elapsed.
     /// </summary>
     public DateTime? LockoutEnd { get; init; }
-
-    public Contact? DefaultContact { get; init; }
 }

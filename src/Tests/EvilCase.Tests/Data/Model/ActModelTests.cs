@@ -82,9 +82,29 @@ public class ActModelTests : ModelFixture
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(toContacts, Has.Count.EqualTo(2), "an act references its sender and its recipient");
+            Assert.That(toContacts, Has.Count.EqualTo(1), "an act names at most one contact");
             Assert.That(toContacts.TrueForAll(static key => key.DeleteBehavior == DeleteBehavior.Restrict), Is.True, "a contact outlives any one act naming it");
             Assert.That(toCase?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Cascade), "an act has no meaning without its case");
+        }
+    }
+
+    [Test]
+    public void ADirectionAndAContactHoldOnlyTogether()
+    {
+        var act = Model.FindEntityType(typeof(Act));
+        var designTime = DesignTimeModel.FindEntityType(typeof(Act));
+
+        Assert.That(new[] { act, designTime }, Has.None.Null);
+
+        var check = designTime!.GetCheckConstraints().SingleOrDefault();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(act!.FindProperty(nameof(Act.Direction))?.IsNullable, Is.True, "an act records no counterparty until one is known");
+            Assert.That(act.FindProperty(nameof(Act.ContactId))?.IsNullable, Is.True);
+            Assert.That(check?.Name, Is.EqualTo("CK_Acts_DirectionWithContact"), "the rule is in the database, not only in the code that writes an act");
+            Assert.That(check?.Sql, Does.Contain("Direction").And.Contains("ContactId"), "either both are set or neither is");
+            Assert.That(IsIndexed(act, nameof(Act.ContactId)), Is.True, "the contact detail reads the acts of a contact through this index");
         }
     }
 

@@ -31,7 +31,7 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
         if (@case is null)
             return new ActCreateResult { Outcome = ActCreateOutcome.CaseNotFound };
 
-        if (!await this.ContactsKnown(request.IssuedByContactId, request.AddressedToContactId, token))
+        if (!await this.ContactKnown(request.ContactId, token))
             return new ActCreateResult { Outcome = ActCreateOutcome.ContactNotFound };
 
         for (var attempt = 1; ; attempt++)
@@ -79,8 +79,7 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
             Title = request.Title.Trim(),
             Date = request.Date,
             Description = request.Description?.TrimEmptyToNull(),
-            IssuedByContactId = request.IssuedByContactId,
-            AddressedToContactId = request.AddressedToContactId,
+            ContactId = request.ContactId,
         };
     }
 
@@ -114,7 +113,7 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
         if (taken)
             return ActUpdateOutcome.ActNumberTaken;
 
-        if (!await this.ContactsKnown(edit.IssuedByContactId, edit.AddressedToContactId, token))
+        if (!await this.ContactKnown(edit.ContactId, token))
             return ActUpdateOutcome.ContactNotFound;
 
         var rows = await acts.ExecuteUpdateAsync(
@@ -125,8 +124,7 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
                 .SetProperty(static act => act.Date, edit.Date)
                 .SetProperty(static act => act.Title, edit.Title)
                 .SetProperty(static act => act.Description, edit.Description)
-                .SetProperty(static act => act.IssuedByContactId, edit.IssuedByContactId)
-                .SetProperty(static act => act.AddressedToContactId, edit.AddressedToContactId),
+                .SetProperty(static act => act.ContactId, edit.ContactId),
             token);
 
         if (rows == 0)
@@ -168,13 +166,8 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
     /// <summary>
     /// The foreign key alone would take a contact of another tenant; the filtered read is what refuses it.
     /// </summary>
-    private async Task<bool> ContactsKnown(Guid issuedByContactId, Guid? addressedToContactId, CancellationToken token)
+    private async Task<bool> ContactKnown(Guid? contactId, CancellationToken token)
     {
-        var contacts = dbSession.Current.Contacts;
-
-        if (!await contacts.WithId(issuedByContactId).AnyAsync(token))
-            return false;
-
-        return addressedToContactId is not { } contactId || await contacts.WithId(contactId).AnyAsync(token);
+        return contactId is not { } id || await dbSession.Current.Contacts.Exists(id, token);
     }
 }

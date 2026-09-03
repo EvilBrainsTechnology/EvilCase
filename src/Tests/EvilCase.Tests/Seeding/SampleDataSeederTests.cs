@@ -39,7 +39,7 @@ public class SampleDataSeederTests
     }
 
     [Test]
-    public async Task EveryActBelongsToASeededCaseAndNamesItsSender()
+    public async Task EveryActBelongsToASeededCaseAndNamesItsContact()
     {
         var (context, _, _, _) = await RunSampleDataSeeder();
 
@@ -51,10 +51,21 @@ public class SampleDataSeederTests
         {
             Assert.That(acts, Has.Count.EqualTo(55), "23 main-case acts plus two generated acts on each of the sixteen sub-cases");
             Assert.That(acts.TrueForAll(act => caseIds.Contains(act.CaseId)), Is.True, "every act hangs on a seeded case");
-            Assert.That(acts.TrueForAll(act => act.IssuedByContactId != Guid.Empty && contactIds.Contains(act.IssuedByContactId)), Is.True, "every act names a seeded issuer");
-            Assert.That(acts.TrueForAll(act => act.AddressedToContactId is not null && act.AddressedToContactId != Guid.Empty && contactIds.Contains(act.AddressedToContactId.Value)), Is.True, "every act names a seeded recipient");
+            Assert.That(acts.TrueForAll(act => act.ContactId is not null && contactIds.Contains(act.ContactId.Value)), Is.True, "a seeded act names its counterparty");
+            Assert.That(acts.TrueForAll(static act => act.Direction is not null), Is.True, "a seeded act names the way it travelled");
             Assert.That(acts.TrueForAll(static act => !string.IsNullOrEmpty(act.ActNumber)), Is.True, "every act carries a number");
         }
+    }
+
+    [Test]
+    public async Task EveryCaseNamesItsContact()
+    {
+        var (context, _, _, _) = await RunSampleDataSeeder();
+
+        var contactIds = context.Added<Contact>().Select(static contact => contact.Id).ToHashSet();
+        var cases = context.Added<Case>().ToList();
+
+        Assert.That(cases.TrueForAll(@case => @case.ContactId is not null && contactIds.Contains(@case.ContactId.Value)), Is.True, "a seeded case names its counterparty");
     }
 
     [Test]
@@ -120,11 +131,10 @@ public class SampleDataSeederTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(contacts, Has.Count.EqualTo(12), "the case names twelve contacts");
-            Assert.That(contacts.Select(static contact => contact.Name), Does.Contain("Ing. Petr Vzorek"));
+            Assert.That(contacts, Has.Count.EqualTo(11), "the case names eleven contacts");
             Assert.That(contacts.Select(static contact => contact.Name), Does.Contain("Městský úřad Vzorov, odbor vnitřních věcí"));
             Assert.That(contacts.Select(static contact => contact.Name), Does.Contain("Krajský soud ve Vzorově"));
-            Assert.That(contacts.Count(static contact => contact.Kind == ContactKind.Person), Is.EqualTo(1), "the subject is the only person");
+            Assert.That(contacts.Count(static contact => contact.Kind == ContactKind.Authority), Is.EqualTo(9), "nine of them are authorities");
             Assert.That(contacts.Count(static contact => contact.Kind == ContactKind.Official), Is.EqualTo(2), "the mayor and the officer are the only officials");
         }
     }

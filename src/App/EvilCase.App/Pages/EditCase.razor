@@ -3,6 +3,7 @@
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Cases
+@using EvilBrains.EvilCase.Api.Contract.Contacts
 @using EvilBrains.EvilCase.Domain.Cases
 @inject ICasesClient CasesClient
 @inject NavigationManager Navigation
@@ -54,6 +55,12 @@
                             <label class="form-label" for="case-description">Popis</label>
                             <InputTextArea id="case-description" class="form-control" rows="5" @bind-Value="this.model.Description" />
                             <ValidationMessage For="() => this.model.Description" class="invalid-feedback d-block" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="case-contact">Kontakt</label>
+                            <ContactPicker InputId="case-contact" @bind-Selected="this.model.Contact" />
+                            <ValidationMessage For="() => this.model.Contact" class="invalid-feedback d-block" />
                         </div>
 
                         <div class="mb-3">
@@ -143,6 +150,7 @@
             this.model.Date = @case.Date;
             this.model.Title = @case.Title;
             this.model.Description = @case.Description;
+            this.model.Contact = @case.Contact;
             this.model.Status = @case.Status;
             this.model.ParentCaseId = @case.ParentCase?.CaseId;
 
@@ -179,6 +187,7 @@
                 Date = this.model.Date,
                 Title = this.model.Title,
                 Description = this.model.Description,
+                ContactId = this.model.Contact?.ContactId,
                 Status = this.model.Status,
             };
 

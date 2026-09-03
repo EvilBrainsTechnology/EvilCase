@@ -33,7 +33,7 @@
                 </div>
                 <h2 class="page-title">
                     @(this.act?.Title)
-                    @if (this.act is not null)
+                    @if (this.act is { Direction: not null })
                     {
                         <span class="ms-2">
                             <Status BackgroundColor="ActDirectionDisplay.Color(this.act.Direction)" Lite="true">@ActDirectionDisplay.Text(this.act.Direction)</Status>
@@ -78,15 +78,11 @@
                             <div class="datagrid-content">@DateDisplay.Text(this.act.Date)</div>
                         </div>
                         <div class="datagrid-item">
-                            <div class="datagrid-title">Odesílatel</div>
-                            <div class="datagrid-content"><a href="/contacts/@this.act.IssuedByContact.ContactId">@this.act.IssuedByContact.Name</a></div>
-                        </div>
-                        <div class="datagrid-item">
-                            <div class="datagrid-title">Příjemce</div>
+                            <div class="datagrid-title">Kontakt</div>
                             <div class="datagrid-content">
-                                @if (this.act.AddressedToContact is { } recipient)
+                                @if (this.act.Contact is { } contact)
                                 {
-                                    <a href="/contacts/@recipient.ContactId">@recipient.Name</a>
+                                    <a href="/contacts/@contact.ContactId">@contact.Name</a>
                                 }
                                 else
                                 {
@@ -99,6 +95,13 @@
                             <div class="datagrid-content">@(string.IsNullOrWhiteSpace(this.act.Description) ? "—" : this.act.Description)</div>
                         </div>
                     </div>
+
+                    @if (ActContactRules.DifferingCaseContact(this.act.Contact, this.act.CaseContact) is { } differing)
+                    {
+                        <div class="alert alert-warning mt-3 mb-0" role="alert">
+                            <Icon CssClass="icon me-2" IconType="AppIcons.AlertTriangle" />Kontakt úkonu se liší od kontaktu spisu (@differing.Name).
+                        </div>
+                    }
                 </div>
             </div>
 

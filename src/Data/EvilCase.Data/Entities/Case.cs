@@ -9,6 +9,7 @@ namespace EvilBrains.EvilCase.Data.Entities;
 /// </summary>
 [Index(nameof(TenantId), nameof(CaseNumber), IsUnique = true)]
 [Index(nameof(ParentCaseId))]
+[Index(nameof(ContactId))]
 public sealed record Case : IUserOwnedEntity
 {
     [Key]
@@ -19,6 +20,11 @@ public sealed record Case : IUserOwnedEntity
     public Guid UserId { get; init; }
 
     public Guid? ParentCaseId { get; init; }
+
+    /// <summary>
+    /// The counterparty of the proceeding, null where none is recorded (SDD-009).
+    /// </summary>
+    public Guid? ContactId { get; init; }
 
     [MaxLength(64)]
     public required string CaseNumber { get; init; }
@@ -43,6 +49,8 @@ public sealed record Case : IUserOwnedEntity
     public DateTime? Updated { get; init; }
 
     public Case? ParentCase { get; init; }
+
+    public Contact? Contact { get; init; }
 
     public ICollection<Case> ChildCases { get; init; } = [];
 

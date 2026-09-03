@@ -1,4 +1,5 @@
 using EvilBrains.EvilCase.Api.Contract.Cases;
+using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Data.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -26,6 +27,16 @@ internal static class CaseDetailQuery
                 Title = @case.Title,
                 Description = @case.Description,
                 Status = @case.Status,
+                Contact = @case.Contact == null
+                    ? null
+                    : new ContactListItem
+                    {
+                        ContactId = @case.Contact.Id,
+                        Kind = @case.Contact.Kind,
+                        Name = @case.Contact.Name,
+                        DataBoxId = @case.Contact.DataBoxId,
+                        Address = @case.Contact.Address,
+                    },
                 ParentCase = @case.ParentCase == null
                     ? null
                     : new CaseListItem

@@ -70,12 +70,6 @@ internal sealed class ContactWriter(IDbSession dbSession, ILogger<ContactWriter>
         if (contact is null)
             return ContactDeleteOutcome.NotFound;
 
-        var isDefault = await context.Users
-            .WithDefaultContact(contactId)
-            .AnyAsync(token);
-        if (isDefault)
-            return ContactDeleteOutcome.DefaultContact;
-
         var referenced = await context.Contacts
             .WithId(contactId)
             .Referenced()

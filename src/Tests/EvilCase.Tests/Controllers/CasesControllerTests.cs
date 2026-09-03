@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using EvilBrains.EvilCase.Api.Contract.Cases;
+using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Api.Controllers;
 using EvilBrains.EvilCase.Business.Cases;
 using EvilBrains.EvilCase.Business.Entities;
@@ -129,6 +130,22 @@ public class CasesControllerTests
     }
 
     [Test]
+    public async Task FilingWithAContactThatIsNotThereIsAConflict()
+    {
+        var writer = CreatingWriter(new CaseCreateResult { Outcome = CaseCreateOutcome.ContactNotFound });
+        var controller = new CasesController();
+
+        var result = await controller.CreateCase(
+            writer,
+            new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "Nový spis", ContactId = Guid.CreateVersion7() },
+            CancellationToken.None);
+
+        var problem = AssertProblem(result.Result, 409);
+
+        Assert.That(problem.Title, Is.EqualTo(ContactProblems.UnknownContact), "the create's conflicts are told apart by the problem title");
+    }
+
+    [Test]
     public async Task TheDetailIsAskedForTheIdInTheRoute()
     {
         var caseId = Guid.CreateVersion7();
@@ -237,7 +254,20 @@ public class CasesControllerTests
 
         var problem = AssertProblem(result, 409);
 
-        Assert.That(problem.Title, Is.EqualTo("Invalid parent"), "the edit's two conflicts are told apart by the problem title");
+        Assert.That(problem.Title, Is.EqualTo("Invalid parent"), "the edit's conflicts are told apart by the problem title");
+    }
+
+    [Test]
+    public async Task AnEditNamingAContactThatIsNotThereIsAConflict()
+    {
+        var writer = EditingWriter(CaseUpdateOutcome.ContactNotFound);
+        var controller = new CasesController();
+
+        var result = await controller.EditCase(writer, Guid.CreateVersion7(), Edit(), CancellationToken.None);
+
+        var problem = AssertProblem(result, 409);
+
+        Assert.That(problem.Title, Is.EqualTo(ContactProblems.UnknownContact), "the edit's conflicts are told apart by the problem title");
     }
 
     [Test]

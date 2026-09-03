@@ -47,6 +47,32 @@ public class CaseDetailQueryTests : TenantFixture
     }
 
     [Test]
+    public async Task TheDetailNamesTheCasesContact()
+    {
+        var contact = await this.Tenant.AddContact("Městský úřad Vzorov");
+        var @case = await this.Tenant.AddCase(Day, contact: contact);
+
+        var detail = await this.Tenant.Context.Cases.DetailOf(@case.Id, CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(detail!.Contact!.ContactId, Is.EqualTo(contact.Id));
+            Assert.That(detail.Contact.Name, Is.EqualTo(contact.Name));
+            Assert.That(detail.Contact.Kind, Is.EqualTo(contact.Kind));
+        }
+    }
+
+    [Test]
+    public async Task ACaseWithNoContactNamesNone()
+    {
+        var @case = await this.Tenant.AddCase(Day);
+
+        var detail = await this.Tenant.Context.Cases.DetailOf(@case.Id, CancellationToken.None);
+
+        Assert.That(detail!.Contact, Is.Null, "a contact is optional and its absence is no contact, not a failed read");
+    }
+
+    [Test]
     public async Task TheDetailNamesTheParentCase()
     {
         var parent = await this.Tenant.AddCase(Day, "Nadřízený");

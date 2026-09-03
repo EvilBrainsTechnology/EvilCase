@@ -142,12 +142,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasForeignKey(nameof(Tenant.AccountId))
             .OnDelete(DeleteBehavior.Cascade);
 
-        modelBuilder.Entity<User>()
-            .HasOne(static user => user.DefaultContact)
-            .WithMany()
-            .HasForeignKey(static user => user.DefaultContactId)
-            .OnDelete(DeleteBehavior.Restrict);
-
         modelBuilder.Entity<RefreshToken>()
             .HasOne(static token => token.User)
             .WithMany()
@@ -162,6 +156,13 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .WithMany(static @case => @case.ChildCases)
             .HasForeignKey(static @case => @case.ParentCaseId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        // A contact outlives any case naming it (SDD-007).
+        modelBuilder.Entity<Case>()
+            .HasOne(static @case => @case.Contact)
+            .WithMany(static contact => contact.Cases)
+            .HasForeignKey(static @case => @case.ContactId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 
     private static void ConfigureActs(ModelBuilder modelBuilder)
@@ -172,18 +173,16 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasForeignKey(static act => act.CaseId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // A contact accumulates history across cases, so it outlives any one act naming it. Both ends
-        // are configured explicitly because two foreign keys to the same table cannot be inferred.
         modelBuilder.Entity<Act>()
-            .HasOne(static act => act.IssuedByContact)
-            .WithMany(static contact => contact.IssuedActs)
-            .HasForeignKey(static act => act.IssuedByContactId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .ToTable(static table => table.HasCheckConstraint(
+                "CK_Acts_DirectionWithContact",
+                @"(""Direction"" IS NULL) = (""ContactId"" IS NULL)"));
 
+        // A contact accumulates history across cases, so it outlives any one act naming it.
         modelBuilder.Entity<Act>()
-            .HasOne(static act => act.AddressedToContact)
-            .WithMany(static contact => contact.AddressedActs)
-            .HasForeignKey(static act => act.AddressedToContactId)
+            .HasOne(static act => act.Contact)
+            .WithMany(static contact => contact.Acts)
+            .HasForeignKey(static act => act.ContactId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 

@@ -1,12 +1,12 @@
 using EvilBrains.EvilCase.Api.Contract.Contacts;
+using EvilBrains.EvilCase.Business.Acts;
+using EvilBrains.EvilCase.Business.Cases;
 using EvilBrains.EvilCase.Data.DbContexts;
-using EvilBrains.EvilCase.Domain.Contacts;
-using EvilBrains.EvilCase.Domain.Users;
 using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Business.Contacts;
 
-internal sealed class ContactReader(IDbSession dbSession, IUserContext userContext) : IContactReader
+internal sealed class ContactReader(IDbSession dbSession) : IContactReader
 {
     public async Task<IReadOnlyList<ContactListItem>> ListContacts(ContactListRequest request, CancellationToken token)
     {
@@ -17,8 +17,8 @@ internal sealed class ContactReader(IDbSession dbSession, IUserContext userConte
             .ToListAsync(token);
     }
 
-    // A detail is not a list query: the header, the default-contact flag and the two act sources
-    // are separate reads, merged here.
+    // A detail is not a list query: the header, the cases and the differing acts are separate reads,
+    // merged here.
     public async Task<ContactDetail?> GetContactDetail(Guid contactId, CancellationToken token)
     {
         var context = dbSession.Current;
@@ -27,29 +27,18 @@ internal sealed class ContactReader(IDbSession dbSession, IUserContext userConte
         if (contact is null)
             return null;
 
-        var isDefault = await context.Users
-            .WithDefaultContact(contactId)
-            .AnyAsync(token);
-
-        var issuedBy = await context.Acts
-            .IssuedByContact(contactId)
-            .AsActOccurrences(ContactActRole.IssuedBy)
+        var cases = await context.Cases
+            .WithContact(contactId)
+            .InListOrder()
+            .AsListItems()
             .ToListAsync(token);
 
-        var addressedTo = await context.Acts
-            .AddressedToContact(contactId)
-            .AsActOccurrences(ContactActRole.AddressedTo)
+        var acts = await context.Acts
+            .WithContactDifferingFromItsCase(contactId)
+            .InLatestOrder()
+            .AsActOccurrences()
             .ToListAsync(token);
 
-        return contact with
-        {
-            IsDefault = isDefault,
-            Acts = ContactOccurrences.InDisplayOrder(issuedBy, addressedTo),
-        };
-    }
-
-    public async Task<ContactListItem> GetDefaultContact(CancellationToken token)
-    {
-        return await dbSession.Current.Users.DefaultContactOf(userContext.UserId, token);
+        return contact with { Cases = cases, Acts = acts };
     }
 }

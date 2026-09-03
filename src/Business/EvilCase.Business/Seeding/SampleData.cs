@@ -10,20 +10,10 @@ namespace EvilBrains.EvilCase.Business.Seeding;
 /// </summary>
 internal static class SampleData
 {
-    public const string SubjectKey = "subject";
-
     public const string MainCaseKey = "main";
 
     public static IReadOnlyList<SampleContact> Contacts { get; } =
     [
-        new()
-        {
-            Key = SubjectKey,
-            Kind = ContactKind.Person,
-            Name = "Ing. Petr Vzorek",
-            Address = "Vzorová 1, 100 00 Vzorov",
-            DataBoxId = "abc1def",
-        },
         new()
         {
             Key = "first-instance",
@@ -122,6 +112,7 @@ internal static class SampleData
                 + "rychlosti. Vede od příkazu přes prvostupňové rozhodnutí a odvolání až k žalobě u "
                 + "krajského soudu.",
             ExternalCaseNumber = "VV41/2025/08464",
+            CounterpartyKey = "first-instance",
             Comments =
             [
                 "Pseudonymizovaná vzorová data z reálného spisu. Nic v nich není skutečné.",

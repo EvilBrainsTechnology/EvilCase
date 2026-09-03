@@ -6,7 +6,7 @@
 @using EvilBrains.EvilCase.Api.Contract.Contacts
 @using EvilBrains.EvilCase.Domain.Acts
 @inject IActsClient ActsClient
-@inject IContactsClient ContactsClient
+@inject ICasesClient CasesClient
 @inject NavigationManager Navigation
 @inject ILogger<NewAct> Logger
 
@@ -27,7 +27,8 @@
                 <div class="card-body">
                     <div class="mb-3">
                         <label class="form-label" for="act-direction">Směr</label>
-                        <InputSelect id="act-direction" class="form-select" @bind-Value="this.model.Direction" @bind-Value:after="this.model.SwapContacts">
+                        <InputSelect id="act-direction" class="form-select" @bind-Value="this.model.Direction" @bind-Value:after="this.PrefillContact">
+                            <option value="">— bez směru —</option>
                             @foreach (var direction in Enum.GetValues<ActDirection>())
                             {
                                 <option value="@direction">@ActDirectionDisplay.Text(direction)</option>
@@ -55,15 +56,15 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label" for="act-issued-by">Odesílatel</label>
-                        <ContactPicker InputId="act-issued-by" @bind-Selected="this.model.IssuedByContact" />
-                        <ValidationMessage For="() => this.model.IssuedByContact" class="invalid-feedback d-block" />
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label" for="act-addressed-to">Příjemce</label>
-                        <ContactPicker InputId="act-addressed-to" @bind-Selected="this.model.AddressedToContact" />
-                        <ValidationMessage For="() => this.model.AddressedToContact" class="invalid-feedback d-block" />
+                        <label class="form-label" for="act-contact">Kontakt</label>
+                        <ContactPicker InputId="act-contact" @bind-Selected="this.model.Contact" />
+                        <ValidationMessage For="() => this.model.Contact" class="invalid-feedback d-block" />
+                        @if (ActContactRules.DifferingCaseContact(this.model.Contact, this.caseContact) is { } differing)
+                        {
+                            <div class="alert alert-warning mt-2" role="alert">
+                                <Icon CssClass="icon me-2" IconType="AppIcons.AlertTriangle" />Kontakt úkonu se liší od kontaktu spisu (@differing.Name).
+                            </div>
+                        }
                     </div>
 
                     @if (this.error is not null)
@@ -97,6 +98,8 @@
 
     private readonly NewActModel model = new() { Date = DateOnly.FromDateTime(DateTime.Now) };
 
+    private ContactListItem? caseContact;
+
     private string? error;
 
     private bool busy;
@@ -105,15 +108,19 @@
     {
         try
         {
-            var contact = await this.ContactsClient.GetDefaultContact(CancellationToken.None);
+            var @case = await this.CasesClient.GetCase(this.CaseId, CancellationToken.None);
 
-            // The direction starts incoming, so the default contact starts as the recipient; switching the direction swaps it over.
-            this.model.AddressedToContact = contact;
+            this.caseContact = @case.Contact;
         }
         catch (Exception exception) when (exception is ApiException or HttpRequestException)
         {
-            this.Logger.LogWarning(exception, "Reading the default contact failed");
+            this.Logger.LogWarning(exception, "Reading the case of the new act failed");
         }
+    }
+
+    private void PrefillContact()
+    {
+        this.model.Contact = ActContactRules.Prefilled(this.model.Direction, this.model.Contact, this.caseContact);
     }
 
     private async Task SubmitAct()
@@ -129,8 +136,7 @@
                 Date = this.model.Date,
                 Title = this.model.Title,
                 Description = this.model.Description,
-                IssuedByContactId = this.model.IssuedByContact!.ContactId,
-                AddressedToContactId = this.model.AddressedToContact?.ContactId,
+                ContactId = this.model.Contact?.ContactId,
             };
 
             _ = await this.ActsClient.CreateAct(this.CaseId, request, CancellationToken.None);

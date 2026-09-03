@@ -11,6 +11,11 @@ public sealed record CaseEditRequest
     public Guid? ParentCaseId { get; init; }
 
     /// <summary>
+    /// The counterparty of the proceeding, null for none (SDD-009).
+    /// </summary>
+    public Guid? ContactId { get; init; }
+
+    /// <summary>
     /// Hand-written over the issued one. The format and the tenant's uniqueness hold; the day inside it
     /// is not tied to <see cref="Date"/> (SDD-008).
     /// </summary>

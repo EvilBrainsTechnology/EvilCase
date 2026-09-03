@@ -1,27 +1,33 @@
 using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Data.Entities;
-using EvilBrains.EvilCase.Domain.Contacts;
 
 namespace EvilBrains.EvilCase.Business.Contacts;
 
 /// <summary>
-/// Shapes each of the two places a contact can be named, one query per place.
+/// Shapes the two places a contact appears: the cases that name it and the acts that name it instead of
+/// the contact their case names.
 /// </summary>
 internal static class ContactOccurrenceQuery
 {
-    public static IQueryable<Act> IssuedByContact(this IQueryable<Act> acts, Guid contactId)
+    public static IQueryable<Case> WithContact(this IQueryable<Case> cases, Guid contactId)
     {
-        return acts.Where(act => act.IssuedByContactId == contactId);
+        return cases.Where(@case => @case.ContactId == contactId);
     }
 
-    public static IQueryable<Act> AddressedToContact(this IQueryable<Act> acts, Guid contactId)
+    /// <summary>
+    /// An act whose contact is the case's own is already listed under that case, so only the differing
+    /// ones come back (SDD-011).
+    /// </summary>
+    public static IQueryable<Act> WithContactDifferingFromItsCase(this IQueryable<Act> acts, Guid contactId)
     {
-        return acts.Where(act => act.AddressedToContactId == contactId);
+        return acts
+            .Where(act => act.ContactId == contactId)
+            .Where(act => act.Case!.ContactId != contactId);
     }
 
-    public static IQueryable<ContactActOccurrence> AsActOccurrences(this IQueryable<Act> acts, ContactActRole role)
+    public static IQueryable<ContactActOccurrence> AsActOccurrences(this IQueryable<Act> acts)
     {
-        return acts.Select(act => new ContactActOccurrence
+        return acts.Select(static act => new ContactActOccurrence
         {
             ActId = act.Id,
             ActNumber = act.ActNumber,
@@ -29,7 +35,6 @@ internal static class ContactOccurrenceQuery
             ActDate = act.Date,
             CaseId = act.CaseId,
             CaseNumber = act.Case!.CaseNumber,
-            Role = role,
             ExternalNumber = act.ExternalActNumber,
         });
     }

@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using EvilBrains.ApiClient;
 using EvilBrains.EvilCase.Api.Contract.Cases;
+using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Business.Cases;
 using EvilBrains.EvilCase.Business.Entities;
 using Microsoft.AspNetCore.Http;
@@ -40,6 +41,10 @@ public class CasesController : ControllerBase
             CaseCreateOutcome.Created => this.CreatedAtAction(nameof(this.GetCase), new { caseId = result.Case!.CaseId }, result.Case),
             CaseCreateOutcome.InvalidParent => this.Problem(
                 detail: "The parent case does not exist.", statusCode: StatusCodes.Status409Conflict, title: CaseProblems.InvalidParent),
+            CaseCreateOutcome.ContactNotFound => this.Problem(
+                detail: "The contact named in the request does not exist.",
+                statusCode: StatusCodes.Status409Conflict,
+                title: ContactProblems.UnknownContact),
             _ => throw new UnreachableException(),
         };
     }
@@ -76,6 +81,10 @@ public class CasesController : ControllerBase
                 detail: "The parent case must exist and must be neither the case itself nor one of its subordinates.",
                 statusCode: StatusCodes.Status409Conflict,
                 title: CaseProblems.InvalidParent),
+            CaseUpdateOutcome.ContactNotFound => this.Problem(
+                detail: "The contact named in the request does not exist.",
+                statusCode: StatusCodes.Status409Conflict,
+                title: ContactProblems.UnknownContact),
             _ => throw new UnreachableException(),
         };
     }

@@ -69,6 +69,19 @@
                             <div class="datagrid-content">@CaseStatusDisplay.Text(this.caseDetail.Status)</div>
                         </div>
                         <div class="datagrid-item">
+                            <div class="datagrid-title">Kontakt</div>
+                            <div class="datagrid-content">
+                                @if (this.caseDetail.Contact is { } contact)
+                                {
+                                    <a href="/contacts/@contact.ContactId">@contact.Name</a>
+                                }
+                                else
+                                {
+                                    @:—
+                                }
+                            </div>
+                        </div>
+                        <div class="datagrid-item">
                             <div class="datagrid-title">Nadřízený spis</div>
                             <div class="datagrid-content">
                                 @if (this.caseDetail.ParentCase is { } parent)

@@ -37,6 +37,9 @@ internal sealed class CaseWriter(
                 return new CaseCreateResult { Outcome = CaseCreateOutcome.InvalidParent };
         }
 
+        if (request.ContactId is { } contactId && !await context.Contacts.Exists(contactId, token))
+            return new CaseCreateResult { Outcome = CaseCreateOutcome.ContactNotFound };
+
         for (var attempt = 1; ; attempt++)
         {
             var caseNumber = await numbers.NextCaseNumber(request.Date, token);
@@ -72,6 +75,7 @@ internal sealed class CaseWriter(
         return new()
         {
             ParentCaseId = request.ParentCaseId,
+            ContactId = request.ContactId,
             CaseNumber = caseNumber,
             Title = request.Title.Trim(),
             Description = request.Description?.TrimEmptyToNull(),
@@ -116,6 +120,9 @@ internal sealed class CaseWriter(
                 return CaseUpdateOutcome.InvalidParent;
         }
 
+        if (edit.ContactId is { } contactId && !await context.Contacts.Exists(contactId, token))
+            return CaseUpdateOutcome.ContactNotFound;
+
         var rows = await context.Cases
             .WithId(caseId)
             .ExecuteUpdateAsync(
@@ -123,6 +130,7 @@ internal sealed class CaseWriter(
                     .SetProperty(static @case => @case.CaseNumber, edit.CaseNumber)
                     .SetProperty(static @case => @case.ExternalCaseNumber, edit.ExternalCaseNumber)
                     .SetProperty(static @case => @case.ParentCaseId, edit.ParentCaseId)
+                    .SetProperty(static @case => @case.ContactId, edit.ContactId)
                     .SetProperty(static @case => @case.Date, edit.Date)
                     .SetProperty(static @case => @case.Title, edit.Title)
                     .SetProperty(static @case => @case.Description, edit.Description)

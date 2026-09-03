@@ -8,9 +8,9 @@ namespace EvilBrains.EvilCase.App.Models;
 /// What the new-act form binds to. Separate from the request contract, whose properties are init-only
 /// and whose messages are English.
 /// </summary>
-internal sealed class NewActModel
+internal sealed class NewActModel : IValidatableObject
 {
-    public ActDirection Direction { get; set; } = ActDirection.Incoming;
+    public ActDirection? Direction { get; set; }
 
     public DateOnly Date { get; set; }
 
@@ -21,16 +21,14 @@ internal sealed class NewActModel
     [StringLength(4000, ErrorMessage = "Popis může mít nejvýše 4000 znaků")]
     public string? Description { get; set; }
 
-    [Required(ErrorMessage = "Vyberte odesílatele")]
-    public ContactListItem? IssuedByContact { get; set; }
+    public ContactListItem? Contact { get; set; }
 
-    public ContactListItem? AddressedToContact { get; set; }
-
-    /// <summary>
-    /// Switching the direction swaps the two sides, which is what keeps the default contact on the prefilled one (SDD-010).
-    /// </summary>
-    public void SwapContacts()
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
-        (this.IssuedByContact, this.AddressedToContact) = (this.AddressedToContact, this.IssuedByContact);
+        if (this.Direction is not null && this.Contact is null)
+            yield return new ValidationResult("Vyberte kontakt, nebo zrušte výběr směru", [nameof(this.Contact)]);
+
+        if (this.Contact is not null && this.Direction is null)
+            yield return new ValidationResult("Vyberte směr úkonu, nebo zrušte výběr kontaktu", [nameof(this.Direction)]);
     }
 }

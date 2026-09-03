@@ -5,17 +5,17 @@ namespace EvilBrains.EvilCase.App.Models;
 
 public static class ActDirectionDisplay
 {
-    public static string Text(ActDirection direction)
+    public static string Text(ActDirection? direction)
     {
         return direction switch
         {
             ActDirection.Incoming => "Příchozí",
             ActDirection.Outgoing => "Odchozí",
-            _ => "",
+            _ => "—",
         };
     }
 
-    public static TablerColor Color(ActDirection direction)
+    public static TablerColor Color(ActDirection? direction)
     {
         return direction switch
         {
