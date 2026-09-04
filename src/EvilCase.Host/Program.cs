@@ -69,7 +69,8 @@ var authWindow = new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = 
 // Tied to the browser sink's one-upload-per-second cadence.
 var clientLogWindow = new FixedWindowRateLimiterOptions { PermitLimit = 120, Window = TimeSpan.FromMinutes(1) };
 
-// Only the anonymous endpoints a caller can make expensive; nothing else, health probes included.
+// What a caller can make expensive: all of /api/auth, its signed-in endpoints included, and the
+// client log upload. Nothing else, health probes included.
 builder.Services.AddRateLimiter(
     options =>
     {
