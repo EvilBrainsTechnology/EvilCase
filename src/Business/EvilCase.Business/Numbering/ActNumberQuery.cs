@@ -4,13 +4,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Business.Numbering;
 
-/// <summary>
-/// Reads what the next act number of a day inside a case needs, one composable step per rule.
-/// </summary>
 internal static class ActNumberQuery
 {
     /// <summary>
-    /// The case's own numbers of the day. A hand-written case number carries another prefix and drops out here.
+    /// A hand-edited number outside the format drops out here.
     /// </summary>
     public static IQueryable<Act> OfCaseWithNumberPrefix(this IQueryable<Act> acts, Guid caseId, string prefix)
     {
@@ -22,8 +19,7 @@ internal static class ActNumberQuery
     }
 
     /// <summary>
-    /// Highest number first. Length decides first, so a sequence that grew a digit outranks a
-    /// three-digit one. The caller takes the row it wants.
+    /// Length first: under string order 1000 sorts below 999.
     /// </summary>
     public static IQueryable<Act> OrderByNumberDescending(this IQueryable<Act> acts)
     {
@@ -32,9 +28,6 @@ internal static class ActNumberQuery
             .ThenByDescending(static act => act.ActNumber);
     }
 
-    /// <summary>
-    /// Another act of the tenant already carrying the number. An act never takes its own number from itself.
-    /// </summary>
     public static IQueryable<Act> WithNumberHeldByAnother(this IQueryable<Act> acts, string actNumber, Guid actId)
     {
         return acts

@@ -3,9 +3,6 @@ using EvilBrains.EvilCase.Business.Entities;
 
 namespace EvilBrains.EvilCase.Business.Acts;
 
-/// <summary>
-/// Writes the acts the user files.
-/// </summary>
 public interface IActWriter
 {
     public Task<ActCreateResult> CreateAct(Guid caseId, CreateActRequest request, CancellationToken token);

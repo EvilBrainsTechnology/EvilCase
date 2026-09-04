@@ -7,14 +7,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Business.Cases;
 
-/// <summary>
-/// Shapes the case list, one composable step per rule.
-/// </summary>
 internal static class CaseListQuery
 {
-    /// <summary>
-    /// Matches the title or the description, ignoring case and diacritics. A blank term narrows nothing.
-    /// </summary>
     public static IQueryable<Case> MatchingSearch(this IQueryable<Case> cases, string? search)
     {
         if (string.IsNullOrWhiteSpace(search))
@@ -42,18 +36,13 @@ internal static class CaseListQuery
     }
 
     /// <summary>
-    /// The direct subordinate cases of one case. The hierarchy is flat in the UI, so no read ever
-    /// walks deeper (SDD-009).
+    /// One level only; no read walks deeper (SDD-009).
     /// </summary>
     public static IQueryable<Case> WithParent(this IQueryable<Case> cases, Guid parentCaseId)
     {
         return cases.Where(@case => @case.ParentCaseId == parentCaseId);
     }
 
-    /// <summary>
-    /// Newest by the case's own date; equal dates fall back to when the row was written, and the
-    /// UUIDv7 identifier makes the order total.
-    /// </summary>
     public static IQueryable<Case> InListOrder(this IQueryable<Case> cases)
     {
         return cases
@@ -62,10 +51,6 @@ internal static class CaseListQuery
             .ThenByDescending(static @case => @case.Id);
     }
 
-    /// <summary>
-    /// Latest change first, by the case's own stamps; a case never edited sorts by its Created.
-    /// The UUIDv7 identifier makes the order total.
-    /// </summary>
     public static IQueryable<Case> InChangeOrder(this IQueryable<Case> cases)
     {
         return cases
@@ -73,9 +58,6 @@ internal static class CaseListQuery
             .ThenByDescending(static @case => @case.Id);
     }
 
-    /// <summary>
-    /// Reads only what a row shows, in one query.
-    /// </summary>
     public static IQueryable<CaseListItem> AsListItems(this IQueryable<Case> cases)
     {
         return cases.Select(static @case => new CaseListItem

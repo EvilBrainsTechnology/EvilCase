@@ -170,9 +170,6 @@ internal sealed class SampleDataSeeder(
         await dbSession.Current.SaveChangesAsync(token);
     }
 
-    /// <summary>
-    /// The two generated acts every sub-case gets: the source only records their counts (SDD-017).
-    /// </summary>
     private static IReadOnlyList<SampleAct> SubCaseActs(SampleCase sampleCase)
     {
         var counterpartyKey = sampleCase.CounterpartyKey;
@@ -231,10 +228,6 @@ internal sealed class SampleDataSeeder(
             """;
     }
 
-    /// <summary>
-    /// Running totals across the whole seed, threaded through the per-case and per-act helpers so the
-    /// final log line reports what was actually written.
-    /// </summary>
     private sealed class SeedCounters
     {
         public int ActCount { get; set; }

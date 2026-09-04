@@ -17,8 +17,6 @@ internal sealed class ContactReader(IDbSession dbSession) : IContactReader
             .ToListAsync(token);
     }
 
-    // A detail is not a list query: the header, the cases and the differing acts are separate reads,
-    // merged here.
     public async Task<ContactDetail?> GetContactDetail(Guid contactId, CancellationToken token)
     {
         var context = dbSession.Current;

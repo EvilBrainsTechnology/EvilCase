@@ -6,15 +6,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Business.Acts;
 
-/// <summary>
-/// Reads the header of one act.
-/// </summary>
 internal static class ActDetailQuery
 {
-    /// <summary>
-    /// The one act of the case with its contact and the contact of its case, or null where the tenant has no
-    /// such act.
-    /// </summary>
     public static async Task<ActDetail?> DetailOf(this IQueryable<Act> acts, Guid caseId, Guid actId, CancellationToken token)
     {
         return await acts

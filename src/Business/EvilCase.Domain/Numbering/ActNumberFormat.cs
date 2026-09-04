@@ -1,8 +1,5 @@
 namespace EvilBrains.EvilCase.Domain.Numbering;
 
-/// <summary>
-/// The act's own number, <c>{case-number}/{yyyyMMdd}-{seq:3}</c> (SDD-008).
-/// </summary>
 public static class ActNumberFormat
 {
     public static string Prefix(string caseNumber, in DateOnly date)
@@ -15,26 +12,16 @@ public static class ActNumberFormat
         return $"{caseNumber}/{NumberTail.Compose(date, sequence)}";
     }
 
-    /// <summary>
-    /// The number that follows the day's highest inside the case. A day without one of its own starts at 001,
-    /// and so does a highest that stands outside the format.
-    /// </summary>
     public static string Next(string caseNumber, in DateOnly date, string? highest)
     {
         return Compose(caseNumber, date, (ParseOrDefault(highest)?.Sequence ?? 0) + 1);
     }
 
-    /// <summary>
-    /// Throws <see cref="FormatException"/> where the value is not an act number.
-    /// </summary>
     public static ActNumberParts Parse(string value)
     {
         return ParseOrDefault(value) ?? throw new FormatException($"'{value}' is not an act number.");
     }
 
-    /// <summary>
-    /// Null where the value is not an act number.
-    /// </summary>
     public static ActNumberParts? ParseOrDefault(string? value)
     {
         // A case number carries slashes of its own, so the act's day and sequence are what stands after the last one.
