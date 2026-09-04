@@ -13,10 +13,8 @@ using Microsoft.Extensions.DependencyInjection;
 namespace EvilBrains.EvilCase.Tests.Hosting;
 
 /// <summary>
-/// The refresh token only ever travels as a cookie, and the attributes on that cookie are the whole of
-/// what keeps a script or another site from getting at it. They are set in one place and asserted here
-/// against the raw header — the handler's own cookie container would drop a Secure cookie sent over the
-/// plain-HTTP loopback the test server uses, and prove nothing either way.
+/// Asserted against the raw <c>Set-Cookie</c> header: the handler's cookie container would drop a Secure
+/// cookie over the test server's plain-HTTP loopback.
 /// </summary>
 public class RefreshCookieTests
 {
@@ -41,9 +39,8 @@ public class RefreshCookieTests
             Role = UserRole.User,
         });
 
-        // The two types that would reach for the database; everything else is the real host. The rate
-        // limiter goes with them: this fixture signs in more often in a minute than a person ever would,
-        // and what it is about is the cookie. RateLimitingTests is where the limits are pinned.
+        // The limiter is off: this fixture signs in more often than the login partition allows;
+        // RateLimitingTests pins the limits.
         this.host = new EvilCaseHost(configureServices: services =>
         {
             services.AddSingleton<IUserStore>(users);
@@ -84,16 +81,12 @@ public class RefreshCookieTests
         }
     }
 
-    /// <summary>
-    /// The <c>__Host-</c> prefix is what a browser enforces the rest against, so the name is not
-    /// cosmetic.
-    /// </summary>
     [Test]
     public async Task TheCookieCarriesTheHostPrefix()
     {
         using var response = await this.SignIn(Password);
 
-        Assert.That(RefreshCookieOf(response), Does.StartWith("__Host-"));
+        Assert.That(RefreshCookieOf(response), Does.StartWith("__Host-"), "the prefix is what a browser enforces the other attributes against");
     }
 
     [Test]
@@ -133,10 +126,6 @@ public class RefreshCookieTests
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
     }
 
-    /// <summary>
-    /// A cookie the server no longer honours has to go, or the browser keeps sending it on every
-    /// navigation for as long as it was good for.
-    /// </summary>
     [Test]
     public async Task SigningOutClearsTheCookie()
     {
@@ -150,17 +139,11 @@ public class RefreshCookieTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(signOut.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
-            Assert.That(ValueOf(cleared), Is.Empty);
-            Assert.That(cleared, Does.Contain("expires=Thu, 01 Jan 1970").IgnoreCase);
+            Assert.That(ValueOf(cleared), Is.Empty, "a cookie the server no longer honours is sent on every navigation until it is cleared");
+            Assert.That(cleared, Does.Contain("expires=Thu, 01 Jan 1970").IgnoreCase, "a cookie the server no longer honours is sent on every navigation until it is cleared");
         }
     }
 
-    /// <summary>
-    /// A token the browser has only just replaced is two tabs racing, and the response must not touch the
-    /// cookie: it holds the winner's replacement, and a delete matches by name alone — it would take that
-    /// replacement with it and sign every tab out, which is the one thing the grace window exists to
-    /// prevent.
-    /// </summary>
     [Test]
     public async Task ASpentRefreshTokenIsRefusedButLeavesTheReplacementCookieAlone()
     {
@@ -175,14 +158,10 @@ public class RefreshCookieTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(replayed.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
-            Assert.That(replayed.Headers.Contains("Set-Cookie"), Is.False);
+            Assert.That(replayed.Headers.Contains("Set-Cookie"), Is.False, "a delete matches by name alone, so it would take the replacement the cookie already holds");
         }
     }
 
-    /// <summary>
-    /// A token that was never issued is not a race; leaving it in place would only make the browser send
-    /// it again on every navigation.
-    /// </summary>
     [Test]
     public async Task AnUnknownRefreshTokenIsRefusedAndTheCookieGoesWithIt()
     {
@@ -191,7 +170,7 @@ public class RefreshCookieTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
-            Assert.That(ValueOf(RefreshCookieOf(response)), Is.Empty);
+            Assert.That(ValueOf(RefreshCookieOf(response)), Is.Empty, "a token that was never issued is no race, so the cookie goes with it");
         }
     }
 

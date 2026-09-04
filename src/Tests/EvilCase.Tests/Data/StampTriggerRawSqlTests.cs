@@ -3,10 +3,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Tests.Data;
 
-/// <summary>
-/// What the stamp trigger does to a write that never passes through EF: raw SQL naming Created and
-/// Updated itself.
-/// </summary>
 public class StampTriggerRawSqlTests
 {
     private static readonly DateTime HandSet = new(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc);

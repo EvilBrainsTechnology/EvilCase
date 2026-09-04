@@ -6,9 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace EvilBrains.EvilCase.Tests.Data;
 
 /// <summary>
-/// A real <see cref="ApplicationDbContext"/> that never opens a connection: <see cref="SaveChangesAsync"/>
-/// leaves every entry tracked instead of sending it to a server, so a test reads what was added straight
-/// off the change tracker.
+/// UseNpgsql only builds the model; the overridden save never opens a connection.
 /// </summary>
 internal sealed class FakeApplicationDbContext(DbContextOptions<ApplicationDbContext> options, IUserContext userContext)
     : ApplicationDbContext(options, userContext)
@@ -28,9 +26,6 @@ internal sealed class FakeApplicationDbContext(DbContextOptions<ApplicationDbCon
 
     public int Saves { get; private set; }
 
-    /// <summary>
-    /// Thrown by the next save, once, so a test can drive what a writer does with a failed write.
-    /// </summary>
     public Exception? FailNextSave { get; set; }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

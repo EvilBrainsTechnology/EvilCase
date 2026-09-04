@@ -7,10 +7,6 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace EvilBrains.EvilCase.Tests.Comments;
 
-/// <summary>
-/// Writes and enforces authorship on an act's comments, on the rows a real PostgreSQL returns. Each test
-/// seeds a tenant of its own, so none cleans up after itself.
-/// </summary>
 public class ActCommentWriterTests : TenantFixture
 {
     private static readonly DateOnly Day = new(2026, 8, 24);

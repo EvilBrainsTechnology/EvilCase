@@ -2,10 +2,6 @@ using EvilBrains.EvilCase.Auth;
 
 namespace EvilBrains.EvilCase.Tests.Auth;
 
-/// <summary>
-/// Signing in: what separates a wrong password from an unknown account (nothing the caller can see),
-/// and what the failure counter does on the way to a lockout.
-/// </summary>
 public class AuthServiceTests
 {
     private const string WrongPassword = "not-the-password";
@@ -34,9 +30,6 @@ public class AuthServiceTests
         }
     }
 
-    /// <summary>
-    /// The stored token is a hash, so the value handed to the browser must not be findable in the store.
-    /// </summary>
     [Test]
     public async Task TheRefreshTokenIsNeverStoredAsGiven()
     {
@@ -124,10 +117,6 @@ public class AuthServiceTests
         Assert.That(result.Status, Is.EqualTo(LoginStatus.Success));
     }
 
-    /// <summary>
-    /// The counter starts over with the lockout, or the first miss after it elapsed would lock the
-    /// account straight back.
-    /// </summary>
     [Test]
     public async Task OneMissAfterAnElapsedLockoutDoesNotLockAgain()
     {

@@ -7,10 +7,6 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace EvilBrains.EvilCase.Tests.Contacts;
 
-/// <summary>
-/// The create rules on the rows a real PostgreSQL returns. Each test seeds a tenant of its own, so none
-/// cleans up after itself.
-/// </summary>
 public class ContactCreateTests : TenantFixture
 {
     private ContactWriter writer = null!;

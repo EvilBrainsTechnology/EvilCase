@@ -5,11 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace EvilBrains.EvilCase.Tests.Hosting;
 
-/// <summary>
-/// The single host splits the URL space between the API and the frontend on the api/ segment, and the
-/// split rests on route precedence alone — the literal segment of the API fallback beating the catch-all
-/// serving index.html. Nothing in the type system holds that in place, so it is pinned here.
-/// </summary>
 public class RoutingTests
 {
     private EvilCaseHost host = null!;
@@ -75,9 +70,6 @@ public class RoutingTests
         }
     }
 
-    /// <summary>
-    /// A client-side route has to survive a reload, so anything outside the API is the app's entry point.
-    /// </summary>
     [Test]
     public async Task ClientSideRouteFallsBackToTheApp()
     {
@@ -85,8 +77,8 @@ public class RoutingTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-            Assert.That(response.Content.Headers.ContentType?.MediaType, Is.EqualTo("text/html"));
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK), "a client-side route has to survive a reload, so anything outside the API is the app's entry point");
+            Assert.That(response.Content.Headers.ContentType?.MediaType, Is.EqualTo("text/html"), "a client-side route has to survive a reload, so anything outside the API is the app's entry point");
         }
     }
 
@@ -104,21 +96,14 @@ public class RoutingTests
         }
     }
 
-    /// <summary>
-    /// They sit outside the api/ segment, so the API fallback must not swallow them.
-    /// </summary>
     [Test]
     public async Task HealthEndpointsAreNotShadowedByEitherFallback()
     {
         using var response = await this.client.GetAsync(new Uri("/health/ready", UriKind.Relative));
 
-        Assert.That(response.StatusCode, Is.Not.EqualTo(HttpStatusCode.NotFound));
+        Assert.That(response.StatusCode, Is.Not.EqualTo(HttpStatusCode.NotFound), "the probes sit outside the api/ segment, so neither fallback may swallow them");
     }
 
-    /// <summary>
-    /// Every link of the registration chain forwards to the one below it, and nothing fails to compile
-    /// when one of them stops.
-    /// </summary>
     [Test]
     public async Task TheReadyProbeRunsTheDatabaseCheck()
     {
@@ -126,6 +111,6 @@ public class RoutingTests
 
         var body = await response.Content.ReadAsStringAsync();
 
-        Assert.That(body, Does.Contain("\"database\""));
+        Assert.That(body, Does.Contain("\"database\""), "a link of the registration chain that stops forwarding still compiles");
     }
 }

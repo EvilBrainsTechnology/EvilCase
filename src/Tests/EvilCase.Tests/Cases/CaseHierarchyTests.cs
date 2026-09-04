@@ -2,9 +2,6 @@ using EvilBrains.EvilCase.Domain.Cases;
 
 namespace EvilBrains.EvilCase.Tests.Cases;
 
-/// <summary>
-/// The cycle rule, on maps rather than rows: it is what stands between an edit and a loop (SDD-009).
-/// </summary>
 public class CaseHierarchyTests
 {
     [Test]

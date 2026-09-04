@@ -10,10 +10,6 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace EvilBrains.EvilCase.Tests.Files;
 
-/// <summary>
-/// Uploads and deletes a case's files against a real PostgreSQL. Each test seeds a tenant of its own, so
-/// none cleans up after itself.
-/// </summary>
 public class FileWriterTests : TenantFixture
 {
     private static readonly DateOnly Day = new(2026, 8, 21);

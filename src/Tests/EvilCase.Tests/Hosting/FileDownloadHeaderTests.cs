@@ -5,8 +5,8 @@ using Microsoft.Extensions.DependencyInjection;
 namespace EvilBrains.EvilCase.Tests.Hosting;
 
 /// <summary>
-/// SDD-012 pins the download's headers on the real pipeline, not on the controller alone:
-/// <c>X-Content-Type-Options</c> comes from <c>SecurityHeadersMiddleware</c>, not from the action.
+/// <c>X-Content-Type-Options</c> comes from <c>SecurityHeadersMiddleware</c>, not the action, so only
+/// the real pipeline shows it.
 /// </summary>
 public class FileDownloadHeaderTests
 {

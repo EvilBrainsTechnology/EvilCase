@@ -6,10 +6,6 @@ using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace EvilBrains.EvilCase.Tests.Auth;
 
-/// <summary>
-/// The access token is the only thing an authenticated request carries, so everything a controller can
-/// ask about the caller has to be in it.
-/// </summary>
 public class AuthTokenServiceTests
 {
     private static readonly Guid AuthSessionId = Guid.Parse("0f9b8a7c-6d5e-4f3a-2b1c-0d9e8f7a6b5c", CultureInfo.InvariantCulture);
@@ -39,9 +35,6 @@ public class AuthTokenServiceTests
         }
     }
 
-    /// <summary>
-    /// Two tokens for the same user must not be interchangeable, so each carries its own identifier.
-    /// </summary>
     [Test]
     public void EveryTokenGetsItsOwnIdentifier()
     {

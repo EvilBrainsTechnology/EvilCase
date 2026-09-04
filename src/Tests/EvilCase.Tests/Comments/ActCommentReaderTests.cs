@@ -3,10 +3,6 @@ using EvilBrains.EvilCase.Tests.Data;
 
 namespace EvilBrains.EvilCase.Tests.Comments;
 
-/// <summary>
-/// Reads an act's comments, on the rows a real PostgreSQL returns. Each test seeds a tenant of its own,
-/// so none cleans up after itself.
-/// </summary>
 public class ActCommentReaderTests : TenantFixture
 {
     private static readonly DateOnly Day = new(2026, 8, 24);

@@ -7,10 +7,6 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace EvilBrains.EvilCase.Tests.Cases;
 
-/// <summary>
-/// Filing a case against a real PostgreSQL. Each test seeds a tenant of its own, so none cleans up
-/// after itself.
-/// </summary>
 public class CaseCreateTests : TenantFixture
 {
     private static readonly DateOnly ParentDay = new(2026, 8, 21);

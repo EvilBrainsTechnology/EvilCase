@@ -38,9 +38,6 @@ public class UserStoreTests
         }
     }
 
-    /// <summary>
-    /// Both calls start from the same stored counter, as two concurrent sign-ins do.
-    /// </summary>
     [Test]
     public async Task EveryFailureCountsEvenWhenNothingIsReadBetweenThem()
     {
@@ -102,10 +99,6 @@ public class UserStoreTests
         Assert.That(lockout, Is.Null, "a user deleted between the read and the write is not locked out");
     }
 
-    /// <summary>
-    /// Sign-in names an e-mail and no tenant, so it must still find the row a tenant query filter would
-    /// otherwise hide.
-    /// </summary>
     [Test]
     public async Task FindByEmailFindsTheUserWithNoTenantInContext()
     {
@@ -119,9 +112,6 @@ public class UserStoreTests
         Assert.That(found?.Id, Is.EqualTo(user.Id), "sign-in must find the user before a tenant is known");
     }
 
-    /// <summary>
-    /// The anonymous refresh endpoint calls this before a tenant is known.
-    /// </summary>
     [Test]
     public async Task FindByIdFindsTheUserWithNoTenantInContext()
     {

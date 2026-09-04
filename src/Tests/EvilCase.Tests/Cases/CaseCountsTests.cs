@@ -5,10 +5,6 @@ using EvilBrains.EvilCase.Tests.Data;
 
 namespace EvilBrains.EvilCase.Tests.Cases;
 
-/// <summary>
-/// The status counts on the rows a real PostgreSQL returns. Each test seeds a tenant of its own, so
-/// none cleans up after itself.
-/// </summary>
 public class CaseCountsTests : TenantFixture
 {
     private static readonly DateOnly Day = new(2026, 8, 24);

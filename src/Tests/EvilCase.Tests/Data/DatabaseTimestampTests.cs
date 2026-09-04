@@ -4,9 +4,8 @@ using Microsoft.EntityFrameworkCore;
 namespace EvilBrains.EvilCase.Tests.Data;
 
 /// <summary>
-/// Covers the trigger from SDD-018 against a real PostgreSQL: no fake stands in for a database clock.
-/// <see cref="Account"/> carries the columns with no tenant filter, no foreign key and no other
-/// required property, so no other write concern gets in the way.
+/// <see cref="Account"/> is the one stamped entity with no tenant filter, foreign key or other
+/// required property, so nothing else gets in the way.
 /// </summary>
 public class DatabaseTimestampTests
 {

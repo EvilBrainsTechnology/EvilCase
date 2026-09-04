@@ -6,10 +6,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Tests.Contacts;
 
-/// <summary>
-/// The contact list rules on the rows a real PostgreSQL returns. Each test seeds a tenant of its own,
-/// so none cleans up after itself. Only what a result cannot show is read off the generated SQL.
-/// </summary>
 public class ContactListQueryTests : TenantFixture
 {
     [Test]
@@ -143,9 +139,6 @@ public class ContactListQueryTests : TenantFixture
         }
     }
 
-    /// <summary>
-    /// What a returned row cannot show.
-    /// </summary>
     [Test]
     public void TheListReadsNoTimestampCountsNothingAndPagesNothing()
     {

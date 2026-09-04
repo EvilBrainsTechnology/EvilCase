@@ -6,10 +6,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Tests.Numbering;
 
-/// <summary>
-/// What the next act number of a day inside a case reads, on the rows a real PostgreSQL returns. Each
-/// test seeds a tenant of its own, so none cleans up after itself.
-/// </summary>
 public class ActNumberQueryTests : TenantFixture
 {
     private static readonly DateOnly CaseDay = new(2026, 8, 7);
@@ -56,7 +52,6 @@ public class ActNumberQueryTests : TenantFixture
 
         await this.Tenant.AddAct(written, ActDay);
 
-        // The same case, carrying a number only the unescaped pattern would reach.
         await this.Tenant.AddAct(written, ActDay, actNumber: "EC/100ZZZ_1-ab/20260812-777");
 
         var numbers = await this.NumbersOfCaseWithPrefix(written, ActNumberFormat.Prefix(written.CaseNumber, ActDay));

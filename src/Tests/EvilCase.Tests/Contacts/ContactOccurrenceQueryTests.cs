@@ -6,10 +6,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Tests.Contacts;
 
-/// <summary>
-/// The two places a contact appears, on the rows a real PostgreSQL returns. Each test seeds a tenant
-/// of its own, so none cleans up after itself.
-/// </summary>
 public class ContactOccurrenceQueryTests : TenantFixture
 {
     private static readonly DateOnly Day = new(2026, 8, 7);

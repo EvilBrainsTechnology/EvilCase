@@ -5,10 +5,8 @@ using Microsoft.Extensions.Options;
 namespace EvilBrains.EvilCase.Tests.Auth;
 
 /// <summary>
-/// The settings are validated on start, so anything this rejects is a deployment that does not come up
-/// at all. What it must not reject is the ordinary case of a key that is present but empty: every
-/// environment reads its secrets from environment variables, and a compose file interpolating an unset
-/// one hands over an empty string rather than nothing.
+/// A compose file interpolating an unset variable hands over an empty string, not nothing, so a blank
+/// seed reads as no seed.
 /// </summary>
 public class AuthSettingsTests
 {
@@ -27,10 +25,6 @@ public class AuthSettingsTests
         }
     }
 
-    /// <summary>
-    /// Blank is the only thing the leniency covers: a seed that is actually configured is still worth
-    /// failing the start over, because nobody would notice the administrator that was never created.
-    /// </summary>
     [Test]
     public void AMalformedSeedEmailStillFailsTheStart()
     {

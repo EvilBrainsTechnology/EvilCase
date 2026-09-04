@@ -4,10 +4,6 @@ using EvilBrains.EvilCase.Domain.Cases;
 
 namespace EvilBrains.EvilCase.Tests.Hosting;
 
-/// <summary>
-/// Stands in for the one type behind the case list that would open a database connection, so a host
-/// test can reach an ordinary authenticated endpoint and see its body.
-/// </summary>
 internal static class CaseReaderStub
 {
     public const string Title = "Přestupek — překročení rychlosti";

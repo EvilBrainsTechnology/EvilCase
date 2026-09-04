@@ -5,10 +5,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Tests.Numbering;
 
-/// <summary>
-/// What the next case number of a day reads, on the rows a real PostgreSQL returns. Each test seeds a
-/// tenant of its own, so none cleans up after itself.
-/// </summary>
 public class CaseNumberQueryTests : TenantFixture
 {
     private static readonly DateOnly Day = new(2026, 8, 7);

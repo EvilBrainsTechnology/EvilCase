@@ -7,10 +7,6 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace EvilBrains.EvilCase.Tests.Cases;
 
-/// <summary>
-/// The delete cascade against a real PostgreSQL: the foreign keys carry it, so no fake decides it
-/// (SDD-007). Each test seeds a tenant of its own, so none cleans up after itself.
-/// </summary>
 public class CaseDeleteTests : TenantFixture
 {
     private static readonly DateOnly Day = new(2026, 8, 21);

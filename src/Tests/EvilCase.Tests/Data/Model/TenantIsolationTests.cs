@@ -110,10 +110,6 @@ public class TenantIsolationTests : ModelFixture
             "a new entity outside the tenant is a leak until someone says otherwise");
     }
 
-    /// <summary>
-    /// A sign-in names an e-mail and no tenant, so the user's unique index cannot lead with the tenant
-    /// the way every other tenant entity's does.
-    /// </summary>
     [Test]
     public void AUserIsReachedByEmailAloneAcrossTheDeployment()
     {
@@ -123,7 +119,10 @@ public class TenantIsolationTests : ModelFixture
 
         var email = user.GetIndexes().Single(static index => index.IsUnique);
 
-        Assert.That(email.Properties.Select(static property => property.Name), Is.EqualTo([nameof(User.Email)]));
+        Assert.That(
+            email.Properties.Select(static property => property.Name),
+            Is.EqualTo([nameof(User.Email)]),
+            "a sign-in names an e-mail and no tenant, so the user's unique index cannot lead with the tenant");
     }
 
     private static List<IReadOnlyEntityType> TenantEntities()

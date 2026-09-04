@@ -8,10 +8,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Tests.Cases;
 
-/// <summary>
-/// The list rules on the rows a real PostgreSQL returns. Each test seeds a tenant of its own, so none
-/// cleans up after itself. Only what a result cannot show is read off the generated SQL.
-/// </summary>
 public class CaseListQueryTests : TenantFixture
 {
     private static readonly DateOnly Day = new(2026, 8, 24);
@@ -169,9 +165,6 @@ public class CaseListQueryTests : TenantFixture
         Assert.That(ids, Is.EqualTo(expected), "the tenant query filter is what keeps another tenant's rows out");
     }
 
-    /// <summary>
-    /// What a returned row cannot show.
-    /// </summary>
     [Test]
     public void TheListReadsNoDescriptionCountsNothingAndPagesNothing()
     {

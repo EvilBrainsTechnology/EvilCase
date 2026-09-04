@@ -11,10 +11,7 @@ using Microsoft.EntityFrameworkCore;
 namespace EvilBrains.EvilCase.Tests.Data;
 
 /// <summary>
-/// A tenant of its own on the test database, with the account and the user a write needs.
-/// Two of them never see each other's rows, so a test that seeds one cleans up nothing.
-/// Every add saves on its own, which is what makes the database stamp two rows with different
-/// <c>Created</c> values.
+/// Every add saves on its own, so the database stamps two rows with different <c>Created</c> values.
 /// </summary>
 internal sealed class TestTenant : IAsyncDisposable
 {
@@ -24,7 +21,6 @@ internal sealed class TestTenant : IAsyncDisposable
 
     private readonly Guid tenantId;
 
-    // The day's next sequence, so a seeded number is the one SDD-008 gives that day.
     private readonly Dictionary<string, int> sequences = [];
 
     private TestTenant(IDisposable entered, StubUserContext stubUserContext, ApplicationDbContext context, Guid tenantId, Guid userId)
@@ -38,17 +34,10 @@ internal sealed class TestTenant : IAsyncDisposable
 
     public ApplicationDbContext Context { get; }
 
-    /// <summary>
-    /// The seeded user's id, the one a write lands under absent another author.
-    /// </summary>
     public Guid UserId { get; }
 
     public IUserContext UserContext => this.stubUserContext;
 
-    /// <summary>
-    /// <paramref name="asHost"/> wires the context the way the host wires it, so a service under test
-    /// writes rows the interceptor stamps with the tenant and the user.
-    /// </summary>
     public static async Task<TestTenant> Create(bool asHost = false)
     {
         var userContext = new StubUserContext();
@@ -78,8 +67,7 @@ internal sealed class TestTenant : IAsyncDisposable
     }
 
     /// <summary>
-    /// Identifiers in the order PostgreSQL sorts them, so a test can write them in another order and
-    /// leave the write order and the identifier order disagreeing.
+    /// Sorted the way PostgreSQL sorts a uuid, so a test can write them out of that order.
     /// </summary>
     public static Guid[] SortedEntityIds(int count)
     {
@@ -111,9 +99,6 @@ internal sealed class TestTenant : IAsyncDisposable
         return await this.Save(this.Context.Contacts, contact);
     }
 
-    /// <summary>
-    /// A case whose own number is the one its date gives it, unless the caller writes the number itself.
-    /// </summary>
     public async Task<Case> AddCase(
         DateOnly date,
         string title = "Případ",
@@ -144,8 +129,7 @@ internal sealed class TestTenant : IAsyncDisposable
     }
 
     /// <summary>
-    /// An act names no contact and no direction unless the caller names a contact; a contact alone takes
-    /// the incoming direction, which is the pair the check constraint requires.
+    /// A contact alone takes <see cref="ActDirection.Incoming"/>, the pair the check constraint requires.
     /// </summary>
     public async Task<Act> AddAct(
         Case @case,
@@ -179,8 +163,7 @@ internal sealed class TestTenant : IAsyncDisposable
     }
 
     /// <summary>
-    /// A second user of the same tenant, for a test that needs another author. Its e-mail is unique
-    /// deployment-wide, so two tests seeding one never collide.
+    /// The e-mail is unique deployment-wide, hence the <see cref="Guid"/>.
     /// </summary>
     public async Task<User> AddUser()
     {

@@ -3,10 +3,6 @@ using System.Text;
 
 namespace EvilBrains.EvilCase.Tests.Hosting;
 
-/// <summary>
-/// The content security policy is written once, in the host, while what it has to allow lives in the
-/// frontend: a script hash that no longer matches index.html only shows up as a blank page in a browser.
-/// </summary>
 public class SecurityHeadersTests
 {
     private const string ScriptOpenTag = "<script>";
@@ -49,20 +45,14 @@ public class SecurityHeadersTests
         }
     }
 
-    /// <summary>
-    /// Blazor WebAssembly compiles its runtime, which no policy without this source expression allows.
-    /// </summary>
     [Test]
     public async Task PolicyAllowsTheWebAssemblyRuntime()
     {
         using var response = await this.client.GetAsync(new Uri("/some/client/route", UriKind.Relative));
 
-        Assert.That(Header(response, "Content-Security-Policy"), Does.Contain("'wasm-unsafe-eval'"));
+        Assert.That(Header(response, "Content-Security-Policy"), Does.Contain("'wasm-unsafe-eval'"), "Blazor WebAssembly compiles its runtime, which no policy without this source expression allows");
     }
 
-    /// <summary>
-    /// index.html boots the theme from an inline script, which a policy without its hash would block.
-    /// </summary>
     [Test]
     public async Task PolicyCarriesTheHashOfEveryInlineScriptOfTheApp()
     {
@@ -77,7 +67,7 @@ public class SecurityHeadersTests
         using (Assert.EnterMultipleScope())
         {
             foreach (var script in scripts)
-                Assert.That(policy, Does.Contain(Hash(script)));
+                Assert.That(policy, Does.Contain(Hash(script)), "an inline script the policy carries no hash for is blocked in the browser");
         }
     }
 

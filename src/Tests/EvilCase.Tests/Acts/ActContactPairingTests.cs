@@ -6,10 +6,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Tests.Acts;
 
-/// <summary>
-/// The pair rule as a real PostgreSQL enforces it. Each test seeds a tenant of its own, so none cleans
-/// up after itself.
-/// </summary>
 public class ActContactPairingTests : TenantFixture
 {
     private static readonly DateOnly Day = new(2026, 8, 21);

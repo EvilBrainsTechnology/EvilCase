@@ -6,11 +6,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace EvilBrains.EvilCase.Tests.Hosting;
 
-/// <summary>
-/// Mints access tokens through the very service the sign-in endpoint uses, so a signing configuration
-/// that drifts apart from the one the bearer scheme validates against fails in a test rather than only
-/// in a browser. Nothing here reaches the database.
-/// </summary>
 internal static class TestTokens
 {
     public const string Email = "user@evilcase.test";

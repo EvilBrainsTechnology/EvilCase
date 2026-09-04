@@ -7,8 +7,7 @@ using EvilBrains.EvilCase.Domain.Contacts;
 namespace EvilBrains.EvilCase.Tests.Frontend;
 
 /// <summary>
-/// The pairing rule both act forms carry. Every model names a title, so property validation passes and
-/// the object-level rule is the one that answers.
+/// Every model names a title, so property validation passes and only the object-level rule answers.
 /// </summary>
 public class NewActModelTests
 {

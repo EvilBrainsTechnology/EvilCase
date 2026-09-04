@@ -5,10 +5,6 @@ namespace EvilBrains.EvilCase.Tests.Data.Model;
 
 public class CaseModelTests : ModelFixture
 {
-    /// <summary>
-    /// The vocabulary of <c>docs/product/vision.md</c>, held against the storage names rather than the
-    /// CLR ones — a <c>HasColumnName</c> back to the old name would otherwise go unnoticed.
-    /// </summary>
     [Test]
     public void EveryIdentifierIsStoredUnderTheNameTheVisionGivesIt()
     {

@@ -3,10 +3,6 @@ using EvilBrains.EvilCase.Data.Entities;
 
 namespace EvilBrains.EvilCase.Tests.Auth;
 
-/// <summary>
-/// The whole of the authentication layer's contact with the users table. Standing in for it here is
-/// what lets everything above be tested without a database.
-/// </summary>
 internal sealed class FakeUserStore : IUserStore
 {
     private readonly List<User> users = [];
