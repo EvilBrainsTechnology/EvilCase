@@ -18,8 +18,9 @@ Act: `CaseId`, `ActNumber` (SDD-008), `ExternalActNumber?`, název, explicitní 
 popis, nepovinný kontakt protistrany a nepovinný směr `Incoming` / `Outgoing`. Směr a kontakt
 platí jen spolu: buď je vyplněné obojí, nebo nic; jinak 400 s chybami u polí (SDD-004).
 
-Délky: název nejvýše 256 znaků, popis 4000, externí číslo 128, číslo jednací 128. Název a datum
-jsou povinné, ostatní pole nepovinná. Nový úkon vzniká s dnešním datem.
+Délky: název nejvýše 256 znaků, popis 4000, externí číslo 128, číslo jednací 128. Povinné jsou
+název a datum, v editaci i číslo jednací; ostatní pole jsou nepovinná. Nový úkon vzniká s dnešním
+datem.
 
 ### Předvyplnění a upozornění
 

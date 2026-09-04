@@ -20,8 +20,8 @@ popis, stav `Active` / `WaitingOnAuthority` / `Closed`, nepovinný kontakt proti
 Stav je jen štítek: na nic se neváže, spis ve stavu `Closed` jde editovat a přijímá úkony,
 soubory i komentáře jako každý jiný. Nový spis vzniká jako `Active` a s dnešním datem.
 
-Délky: název nejvýše 256 znaků, popis 4000, externí značka 128, spisová značka 64. Název a datum
-jsou povinné, ostatní pole nepovinná.
+Délky: název nejvýše 256 znaků, popis 4000, externí značka 128, spisová značka 64. Povinné jsou
+název, datum a stav, v editaci i spisová značka; ostatní pole jsou nepovinná.
 
 ### Hierarchie
 

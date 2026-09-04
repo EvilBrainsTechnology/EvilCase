@@ -22,8 +22,8 @@ tentýž dokument ve dvou spisech jsou dva soubory.
   (`EvilBrains__EvilCase__Files__RootPath`, povinný); databáze nese jen metadata: název,
   velikost, `MediaType`, SHA-256 hash, cestu k blobu. Blob se jmenuje podle id souboru,
   bez přípony.
-- Neúspěšný upload může zanechat osiřelý blob; tolerují se, úklid není. Mazání drží matice
-  v SDD-007.
+- Blob se zapíše dřív, než transakce s metadaty commitne, takže neúspěšný upload může zanechat
+  osiřelý blob; tolerují se, úklid není. Mazání drží matice v SDD-007.
 
 ### Pravidla
 
