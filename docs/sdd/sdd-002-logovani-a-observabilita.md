@@ -7,25 +7,25 @@
 
 ## Rozsah
 
-Co nové featury logují a co nikdy. Pipeline se nemění.
+Co se loguje a co nikdy.
 
 ## Popis
 
-### Platí dál
+### Pipeline
 
-Logging přes `EvilBrains.Logging.*` (server i WebAssembly), Seq z prostředí, request
-logging s allow-listem, health checks — vše podle READMEs pod `src/Utils/` a
-`.claude/rules/api.md`.
+Logování jde přes `EvilBrains.Logging.*` na serveru i ve WebAssembly. Seq zapíná URL
+z prostředí; bez ní se loguje jen do konzole. Logují se požadavky na `/api/**` kromě uploadu
+klientských logů — ten by se sám sebou zalogoval do dalšího uploadu. Health checks se nelogují.
 
 ### Co loguje každá agenda
 
 Každý zápis business vrstvy — založení, změna, smazání — loguje identifikátory dotčených
-entit, v každé agendě stejně.
+entit, v každé agendě stejně. Výjimkou je seed vzorových dat, který loguje jen počty.
 
-### Navíc loguje
+### Zvlášť loguje
 
-- Přidělení čísla: přidělené `CaseNumber` / `ActNumber` a id entity (SDD-008).
-- Souborové úložiště: zápis a smazání blobu s id, velikostí a výsledkem (SDD-012).
+- Založení spisu a úkonu: přidělené `CaseNumber` / `ActNumber` a id entity (SDD-008).
+- Souborové úložiště: zápis blobu s cestou a velikostí, smazání s cestou (SDD-012).
 - Seed vzorových dat: začátek, výsledek a počty založených entit (SDD-017).
 
 ### Nikdy
@@ -38,4 +38,4 @@ Obsah souborů, těla komentářů, obsah reálných spisů. Log nese identifik�
 
 ## Dopady
 
-Beze změny v `src/Utils/`.
+—

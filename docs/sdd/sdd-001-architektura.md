@@ -22,8 +22,7 @@ a se serverem mluví jen přes API, typovaným klientem (SDD-005).
 
 Stav drží PostgreSQL; bajty souborů leží na souborovém systému, databáze nese jejich
 metadata (SDD-012). Mimo databázi server stav nedrží: přihlášení nese JWT access token
-v paměti prohlížeče a rotující refresh token v `__Host-` cookie, celé za `IAuthService`
-(`.claude/rules/auth.md`).
+v paměti prohlížeče a rotující refresh token v `__Host-` cookie (SDD-006).
 
 Nasazení je jeden kontejnerový image v compose stacku. Databáze do stacku nepatří;
 connection string míří na existující PostgreSQL (`deploy/README.md`).
@@ -46,7 +45,7 @@ Kód žije v `src/`, řešení `EvilCase.slnx`:
 | `Common/EvilCase.Auth` | autentizace; uzavřený modul za `IAuthService` |
 | `Common/EvilCase.Files` | souborové úložiště; uzavřený modul za `IFileBlobStore` |
 | `Tests/EvilCase.Tests` | testy aplikace (SDD-003) |
-| `Utils/EvilBrains.*` | sdílené knihovny nezávislé na EvilCase |
+| `Utils/EvilBrains.*` | sdílené knihovny nezávislé na EvilCase, s vlastními testy |
 
 ### Vrstvy
 
@@ -59,34 +58,33 @@ Api, Business, Auth, Data, Api.Contract → Domain
 ```
 
 - Šipka je závislost; jiná neexistuje. Host je kompoziční root a skládá zbytek.
-- Zakázané směry a nosné šipky drží `Tests/Architecture/LayerTests` (SDD-003).
+- Zakázané směry drží testy vrstvení (SDD-003); pinují část šipek, ne všechny.
 - Frontend renderuje a sbírá vstup; rozhoduje server.
 - Tvary API — jediný zdroj pravdy v kontrolerech, generovaný klient, jedna sada modelů —
   drží SDD-005.
-- Čisté doménové pravidlo je statická třída v `Domain` bez `DbContext`, testovaná bez
-  databáze (SDD-003).
+- Čisté doménové pravidlo žije v `Domain` a testuje se bez databáze (SDD-003).
 - `EvilCase.Auth` a `EvilCase.Files` stojí mimo vrstvení; dovnitř vede jen `IAuthService`, resp.
   `IFileBlobStore`.
 
 ### Technologie
 
-.NET 10 — SDK pinuje `src/global.json`. ASP.NET Core, EF Core nad PostgreSQL, Blazor
-WebAssembly s TabBlazor nad Tabler CSS, NUnit. Logování jde přes `EvilBrains.Logging.*` na
-serveru i ve WebAssembly; Seq je volitelný a zapíná ho URL z prostředí (SDD-002).
+.NET 10, ASP.NET Core, EF Core nad PostgreSQL, Blazor WebAssembly s TabBlazor nad Tabler CSS,
+NUnit. Logování jde přes `EvilBrains.Logging.*` na serveru i ve WebAssembly; Seq je volitelný
+a zapíná ho URL z prostředí (SDD-002).
 
 ### Konfigurace
 
-Konfigurace a secrets přicházejí z proměnných prostředí v každém prostředí; klíče nesou
-prefix `EvilBrains__EvilCase__`. Development navíc čte `src/EvilCase.Host/.env`. Repozitář
-nenese žádný secret.
+Nastavení bez tajemství — vydavatel a publikum tokenu, jeho platnosti, lockout, přepínače
+migrace a seedu — jsou v `appsettings.json` a přepisují se proměnnými prostředí s prefixem
+`EvilBrains__EvilCase__`. Secrets přicházejí jen z proměnných prostředí; Development je navíc
+čte z `src/EvilCase.Host/.env`. Repozitář nenese žádný secret.
 
 ## Rozhodnutí
 
-- Tvar: samostatné služby / monolit. Platí monolit; hranice drží projekty a `LayerTests`.
-- Frontend: Blazor Server / Blazor WebAssembly. Platí WebAssembly — server nedrží okruhy
-  a zůstává bezstavové API.
+- Tvar: samostatné služby / monolit. Platí monolit; hranice drží projekty a testy vrstvení.
+- Frontend: Blazor Server / Blazor WebAssembly. Platí WebAssembly; server je bezstavové API.
 - Hosting frontendu: druhý proces / týž proces. Platí týž proces — same-origin drží CSRF
-  obranu bez antiforgery tokenu (`.claude/rules/auth.md`).
+  obranu bez antiforgery tokenu (SDD-006).
 - API klient: psaný ručně / generovaný z kontrolerů. Platí generovaný.
 - Modely: business modely s mapováním na DTO / kontraktní DTO všude. Platí kontraktní DTO.
 - Doménová logika: bohaté entity / služby nad schématem. Platí služby v `Business`
@@ -94,5 +92,4 @@ nenese žádný secret.
 
 ## Dopady
 
-`.claude/rules/api.md`, `app.md`, `business.md`, `data.md` a `auth.md` nesou z tohoto návrhu
-invarianty; změny SDD řídí `.claude/rules/instructions.md`.
+—
