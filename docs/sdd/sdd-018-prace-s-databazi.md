@@ -25,8 +25,9 @@ nestojí. Kdo potřebuje vlastní rozsah — seed, úloha na pozadí — dostane
 ### Hromadný zápis
 
 Hromadná změna a hromadné smazání jdou mimo doplňování a kontroly, které jinak zápis provádí:
-spoléhají jen na to, že nevidí cizí tenant. Kde na řádce záleží i na uživateli, musí ho takový
-zápis jmenovat sám — dnes to dělá jen komentář (SDD-013).
+čím je řádka omezená, to musí takový zápis jmenovat sám. Nad tenantovou entitou zbývá filtr
+tenantu a dopsat se musí uživatel — dnes to dělá jen komentář (SDD-013); zápisy přihlášení
+a refresh tokeny filtr nemají a jmenují řádku jejím id.
 
 ### Razítka Created a Updated
 

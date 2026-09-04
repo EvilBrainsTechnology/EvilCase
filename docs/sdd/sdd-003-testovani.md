@@ -38,7 +38,7 @@ Vrstvy testů a povinné testy.
 - Testy úložiště: mock souborového systému / temp adresář. Platí temp adresář.
 - Testy razítek: fake kontext / reálná databáze. Platí reálná databáze — razítko píší hodiny
   databáze, ne aplikace.
-- Test doubles: ruční třídy / mockovací knihovna. Platí knihovna pro stub, který jen zaznamená
+- Test doubles: ruční třídy / mockovací knihovna. Platí NSubstitute pro stub, který jen zaznamená
   argumenty a vrátí připravenou hodnotu; stavový fake si píše sám.
 
 ## Dopady

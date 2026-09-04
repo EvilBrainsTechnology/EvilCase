@@ -18,17 +18,22 @@ Tvary API a klienta.
 - Jeden proces, API pod `/api/**`, same-origin, bez CORS. Neznámá cesta pod `/api` je 404
   jako Problem Details, nikdy `index.html` frontendu.
 - Business služba vrací kontraktní DTO; žádná druhá sada modelů.
-- Endpoint bez výslovné výjimky vyžaduje přihlášení. Anonymní jsou jen přihlášení, obnova
-  tokenu, odhlášení, health checks a upload klientských logů.
-- Založení odpovídá 201 s hlavičkou `Location` na detail nového záznamu; výjimkou je komentář,
-  který odpovídá 204 jako jeho editace a smazání. Editace a smazání odpovídají 204.
-- Hodnota výčtu jde po drátě jako název; číslo ani neznámý název se nepřijme (400).
-- Výpisy berou nejvýše 100 položek na požadavek; stránkování není.
+- Endpoint bez výslovné výjimky vyžaduje přihlášení. Anonymní jsou přihlášení, obnova tokenu,
+  odhlášení, health checks, upload klientských logů, 404 pod `/api` a v Development `/openapi`
+  a `/scalar`.
+- Založení odpovídá 201 s hlavičkou `Location` na detail nového záznamu; u souboru míří na
+  stažení obsahu, detail souboru není. Komentář odpovídá 204 i na založení. Editace a smazání
+  odpovídají 204.
+- V těle jde hodnota výčtu jako název; číslo ani neznámý název se nepřijme (400). V query
+  stringu ji váže framework, který číslo bere.
+- Výpis spisů a výpis úkonů umí `Take` nejvýše 100; bez něj a v ostatních výpisech se vrací
+  všechno. Stránkování není.
 
 ### Limity požadavků
 
-Limitem prochází jen to, co může anonymní volající zdražit, a partition je adresa volajícího:
-přihlášení 5 za minutu, obnova tokenu 60, zbytek `/api/auth/**` 10, upload klientských logů 120.
+Limitem prochází celé `/api/auth/**`, přihlášené endpointy včetně, a upload klientských logů;
+partition je adresa volajícího: přihlášení 5 za minutu, obnova tokenu 60, zbytek `/api/auth/**` 10,
+upload klientských logů 120.
 Vše ostatní je bez limitu, health checks včetně. Odmítnutí je 429 s `Retry-After`.
 
 ### Zdroje
