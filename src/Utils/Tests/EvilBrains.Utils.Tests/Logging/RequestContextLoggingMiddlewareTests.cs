@@ -34,11 +34,6 @@ public class RequestContextLoggingMiddlewareTests
         }
     }
 
-    /// <summary>
-    /// ASP.NET Core opens a scope per request whose RequestId is the trace identifier, and a scope
-    /// property reaches the event ahead of the log context. The caller's identifiers sit next to it
-    /// under their own names instead of competing with it.
-    /// </summary>
     [Test]
     public async Task HostingScopeKeepsRequestIdAndLeavesTheCallerIdentifiersAlone()
     {
@@ -52,6 +47,7 @@ public class RequestContextLoggingMiddlewareTests
 
         var middleware = new RequestContextLoggingMiddleware(async _ =>
         {
+            // The hosting scope: a scope property reaches the event ahead of the log context.
             using (logger.BeginScope(new Dictionary<string, object> { ["RequestId"] = context.TraceIdentifier }))
                 logger.LogInformation("Inside the hosting scope");
         });
@@ -65,10 +61,6 @@ public class RequestContextLoggingMiddlewareTests
         }
     }
 
-    /// <summary>
-    /// The hosting scope only reaches what is logged through ILogger&lt;T&gt;; Serilog writes its own
-    /// request completion event outside it, and that one needs the trace identifier too.
-    /// </summary>
     [Test]
     public async Task TraceIdentifierIsOnEventsWrittenOutsideTheHostingScope()
     {
@@ -77,7 +69,7 @@ public class RequestContextLoggingMiddlewareTests
 
         var logEvent = (await LogDuringRequest(context, "Inside")).Single();
 
-        Assert.That(Value(logEvent, "RequestId"), Is.EqualTo("0HN7TRACE:00000002"));
+        Assert.That(Value(logEvent, "RequestId"), Is.EqualTo("0HN7TRACE:00000002"), "Serilog's completion event is written outside the hosting scope");
     }
 
     [Test]

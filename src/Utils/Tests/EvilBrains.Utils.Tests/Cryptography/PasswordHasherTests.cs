@@ -2,9 +2,6 @@ using EvilBrains.Cryptography;
 
 namespace EvilBrains.Utils.Tests.Cryptography;
 
-/// <summary>
-/// The one thing standing between a leaked database and everybody's account.
-/// </summary>
 public class PasswordHasherTests
 {
     private const string Password = "correct-horse-battery-staple";
@@ -26,9 +23,6 @@ public class PasswordHasherTests
         }
     }
 
-    /// <summary>
-    /// The salt is per hash, so two accounts sharing a password must not share a row anyone could spot.
-    /// </summary>
     [Test]
     public void TheSamePasswordHashesDifferentlyEveryTime()
     {
@@ -38,9 +32,6 @@ public class PasswordHasherTests
         Assert.That(second, Is.Not.EqualTo(first));
     }
 
-    /// <summary>
-    /// The parameters travel with the hash, so raising them later must not invalidate what is stored.
-    /// </summary>
     [Test]
     public void TheHashCarriesItsOwnParameters()
     {
@@ -48,28 +39,21 @@ public class PasswordHasherTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(segments, Has.Length.EqualTo(4));
-            Assert.That(int.Parse(segments[2], CultureInfo.InvariantCulture), Is.GreaterThanOrEqualTo(600_000));
-            Assert.That(segments[3], Is.EqualTo("SHA256"));
+            Assert.That(segments, Has.Length.EqualTo(4), "raising the parameters later must not invalidate stored hashes");
+            Assert.That(int.Parse(segments[2], CultureInfo.InvariantCulture), Is.GreaterThanOrEqualTo(600_000), "raising the parameters later must not invalidate stored hashes");
+            Assert.That(segments[3], Is.EqualTo("SHA256"), "raising the parameters later must not invalidate stored hashes");
         }
     }
 
-    /// <summary>
-    /// Runs on the sign-in path for an e-mail nobody has, purely to spend the same time a real
-    /// verification would. It must not be the thing that throws instead.
-    /// </summary>
     [Test]
     public void TheDecoyVerificationDoesNotThrow()
     {
-        Assert.DoesNotThrow(PasswordHasher.FakeVerify);
+        Assert.DoesNotThrow(PasswordHasher.FakeVerify, "the decoy spends a real verification's time and must not throw");
     }
 
-    /// <summary>
-    /// The column it is stored in is not unbounded.
-    /// </summary>
     [Test]
     public void TheHashFitsTheColumnItIsStoredIn()
     {
-        Assert.That(PasswordHasher.Hash(Password), Has.Length.LessThanOrEqualTo(256));
+        Assert.That(PasswordHasher.Hash(Password), Has.Length.LessThanOrEqualTo(256), "the hash is stored in a 256-character column");
     }
 }

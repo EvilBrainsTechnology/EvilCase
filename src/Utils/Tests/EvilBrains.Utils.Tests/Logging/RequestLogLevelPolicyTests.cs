@@ -39,22 +39,16 @@ public class RequestLogLevelPolicyTests
         Assert.That(Level("/api/echo/post", method: HttpMethods.Options), Is.EqualTo(LogEventLevel.Verbose));
     }
 
-    /// <summary>
-    /// Logging a successful upload would ship that log with the next upload, which would log again.
-    /// </summary>
     [Test]
     public void SuccessfulUploadOfClientLogsLeavesNoLog()
     {
-        Assert.That(Level("/api/logs/client"), Is.EqualTo(LogEventLevel.Verbose));
+        Assert.That(Level("/api/logs/client"), Is.EqualTo(LogEventLevel.Verbose), "a logged upload would ship itself with the next upload");
     }
 
-    /// <summary>
-    /// A rejected batch is dropped rather than retried, so logging it settles instead of feeding itself.
-    /// </summary>
     [Test]
     public void RejectedUploadOfClientLogsIsLogged()
     {
-        Assert.That(Level("/api/logs/client", statusCode: StatusCodes.Status400BadRequest), Is.EqualTo(LogEventLevel.Information));
+        Assert.That(Level("/api/logs/client", statusCode: StatusCodes.Status400BadRequest), Is.EqualTo(LogEventLevel.Information), "a rejected batch is dropped, so logging it settles");
     }
 
     [Test]
