@@ -27,4 +27,5 @@ an entity; below is what neither says.
   `dotnet r generate-sql-script`.
 - Rewrite a scaffolded rename by hand as `RenameColumn`, `RenameTable` and `RenameIndex`; rename
   a foreign key through `Sql`.
+- A committed migration carries no `/// <inheritdoc />`; the scaffolder's are removed.
 - The runtime registration and `ApplicationDbContextFactory` both call `UseEvilCaseMigrations`.
