@@ -45,7 +45,8 @@ datum, název, externí číslo jednací, popis, komentáře a soubory.
 
 **Kontakt** — úřad, úřední osoba nebo člověk; plochý, sdílený napříč spisy; nese id datové
 schránky a adresu jako jeden volný text. Vybírá se nebo zakládá inline všude, kde ho spis
-nebo úkon jmenuje, a zakládá i spravuje se v agendě, která ukazuje jeho spisy a úkony.
+nebo úkon jmenuje, a zakládá i spravuje se v agendě, která ukazuje jeho spisy a ty jeho úkony,
+jejichž kontakt se od kontaktu jejich spisu liší.
 ([SDD-011](../sdd/sdd-011-kontakty.md))
 
 **Soubor** — patří právě jednomu spisu nebo úkonu; žádné odkazy mezi soubory a jinými
@@ -58,7 +59,8 @@ jednací; obojí je nepovinný volný text bez vazby na kontakt.
 **Komentář** — volná poznámka ke spisu nebo úkonu, průběžný deník. Edituje a maže jen autor.
 ([SDD-013](../sdd/sdd-013-komentare.md))
 
-Vše, co uživatel zadá, jde editovat i smazat; destruktivní operace se napřed potvrzuje.
+Vše, co uživatel zadá, jde smazat, a kromě souboru i editovat; destruktivní operace se napřed
+potvrzuje.
 
 ## Číslování
 
@@ -69,7 +71,7 @@ Aplikace čísluje spisy a úkony sama, bez konfigurace; tvar čísel, ruční p
 
 URL nesou UUID: `/cases`, `/cases/{id}`, `/cases/{id}/act/{actId}`, `/contacts`, `/login`
 ([SDD-016](../sdd/sdd-016-navigace-a-vzhled.md)). Dashboard `/` stojí nad reálnými daty
-([SDD-015](../sdd/sdd-015-dashboard.md)). Vzhled zůstává: Tabler + TabBlazor.
+([SDD-015](../sdd/sdd-015-dashboard.md)). Vzhled: Tabler + TabBlazor.
 
 ## Vzorová data
 
@@ -103,7 +105,8 @@ rukou od začátku do konce.
 ## Non-goals pro teď
 
 Konfigurovatelné číslování, tagy, vazby souborů mezi úkony, lhůty, timeline, import složek,
-hledání nad spisy a úkony, extrakce textu z dokumentů a fulltext nad obsahem souborů, .docx
+hledání napříč agendami nad rámec filtru v jednotlivých seznamech, extrakce textu z dokumentů
+a fulltext nad obsahem souborů, .docx
 šablony a generovaná podání, datové schránky (ISDS), e-mail, AI shrnutí, role, registrace,
 pozvánky, více uživatelů v tenantu, billing, správa uživatelů nad rámec seedovaného
 administrátora. Model všem nechává místo; nic z toho se nestaví.
