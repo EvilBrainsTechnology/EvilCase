@@ -16,7 +16,7 @@ paths:
 Desktop is primary. Every screen a user works in daily is first-class on mobile; the rest only
 must not break.
 
-- One breakpoint: `lg` (992 px), never mixed with `md`. Modals: `modal-fullscreen-lg-down`.
+- One breakpoint: `lg` (992 px), never mixed with `md`. Modals: `ModalFullscreen.BelowLarge`.
 - Data lists never scroll horizontally on mobile: render a table and a card variant and switch
   by CSS only (`d-none d-lg-block` / `d-lg-none`); `Components/ChangedCasesCard.razor` is the
   reference. Never branch layout in C# or JS by viewport.

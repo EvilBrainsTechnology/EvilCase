@@ -21,7 +21,8 @@ paths:
 - Every class resolved from DI is `internal sealed` and consumed through an interface; a public
   consumer gets a public interface with an internal implementation. Exceptions: types the framework
   instantiates by concrete type or with no service role — controllers, `DelegatingHandler`
-  subclasses, middleware, exceptions, DTO and options records, static helpers.
+  subclasses, middleware, the `DbContext`, interceptors, exceptions, DTO and options records,
+  static helpers.
 - One type per file.
 - A convention is configured over the whole model, never property by property.
 - Required beats nullable; a property is nullable only where the domain allows its absence.
