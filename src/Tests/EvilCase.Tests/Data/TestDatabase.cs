@@ -9,9 +9,8 @@ using Testcontainers.PostgreSql;
 namespace EvilBrains.EvilCase.Tests.Data;
 
 /// <summary>
-/// The PostgreSQL the stamp tests write against, in a container the tests start themselves. A test that
-/// skips itself hides a broken trigger, so a machine without Docker gets a failure that names what is
-/// missing.
+/// A test that skips itself hides a broken trigger, so a machine without Docker fails and names what
+/// is missing.
 /// </summary>
 internal static class TestDatabase
 {
@@ -24,14 +23,10 @@ internal static class TestDatabase
 
     private static readonly Lazy<string> ConnectionString = new(Connect);
 
-    // Set once the run has started the container, so a run that reached no database takes nothing down.
     private static PostgreSqlContainer? container;
 
     private static bool migrated;
 
-    /// <summary>
-    /// A context over a database built from the migrations.
-    /// </summary>
     public static ApplicationDbContext CreateMigrated()
     {
         var context = new ApplicationDbContextFactory().CreateDbContext([]);
@@ -42,10 +37,6 @@ internal static class TestDatabase
         return context;
     }
 
-    /// <summary>
-    /// The same database under a caller's tenant and user, for a test that reads its rows back through the
-    /// query filters.
-    /// </summary>
     public static ApplicationDbContext CreateMigrated(IUserContext userContext)
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
@@ -59,9 +50,6 @@ internal static class TestDatabase
         return context;
     }
 
-    /// <summary>
-    /// The same database wired the way the host wires it.
-    /// </summary>
     public static ApplicationDbContext CreateMigratedAsHost(IUserContext userContext)
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
@@ -77,9 +65,6 @@ internal static class TestDatabase
         return context;
     }
 
-    /// <summary>
-    /// Removes the container this run started.
-    /// </summary>
     public static async Task Remove()
     {
         if (container is not null)

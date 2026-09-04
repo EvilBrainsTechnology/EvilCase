@@ -1,8 +1,7 @@
 namespace EvilBrains.EvilCase.Auth;
 
 /// <summary>
-/// What the caller looked like when a session was opened. Recorded so a user can recognise their own
-/// devices in the session list; never used to decide whether a token is accepted.
+/// Shown in the session list only; never a factor in accepting a token.
 /// </summary>
 public sealed record ClientInfo
 {

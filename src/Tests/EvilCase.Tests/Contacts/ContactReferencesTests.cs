@@ -6,10 +6,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Tests.Contacts;
 
-/// <summary>
-/// The delete guard on the rows a real PostgreSQL returns: a contact is referenced from each of the two
-/// places, and from none. Each test seeds a tenant of its own, so none cleans up after itself.
-/// </summary>
 public class ContactReferencesTests : TenantFixture
 {
     private static readonly DateOnly Day = new(2026, 8, 7);
@@ -19,7 +15,6 @@ public class ContactReferencesTests : TenantFixture
     {
         var contact = await this.Tenant.AddContact("Městský úřad");
 
-        // A case and an act of their own, naming another contact: the guard answers for its contact alone.
         var other = await this.Tenant.AddContact("Krajský soud");
         var @case = await this.Tenant.AddCase(Day, contact: other);
         await this.Tenant.AddAct(@case, Day, contact: other);
@@ -46,9 +41,6 @@ public class ContactReferencesTests : TenantFixture
         Assert.That(await this.IsReferenced(contact), Is.True, "a case naming the contact still points at it");
     }
 
-    /// <summary>
-    /// What a returned row cannot show.
-    /// </summary>
     [Test]
     public void TheGuardCountsNothing()
     {

@@ -1,8 +1,5 @@
 namespace EvilBrains.EvilCase.App.Models;
 
-/// <summary>
-/// Every file size the frontend shows, in one format.
-/// </summary>
 public static class FileSizeDisplay
 {
     private const long Kilobyte = 1024;

@@ -31,10 +31,6 @@ public class ClientLogSinkTests
         }
     }
 
-    /// <summary>
-    /// A cut between a high and a low surrogate leaves a lone surrogate, which the JSON writer rejects
-    /// with an exception the uploader does not translate — the whole batch would be lost.
-    /// </summary>
     [Test]
     public void TruncatedTextStaysSerializable()
     {
@@ -46,7 +42,7 @@ public class ClientLogSinkTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(batch?.Entries[0].MessageTemplate, Has.Length.EqualTo(ClientLogEntry.MessageTemplateMaxLength - 1));
-            Assert.That(() => JsonSerializer.Serialize(batch, JsonOptions), Throws.Nothing);
+            Assert.That(() => JsonSerializer.Serialize(batch, JsonOptions), Throws.Nothing, "a lone surrogate fails serialization and loses the batch");
         }
     }
 

@@ -5,10 +5,6 @@ using EvilBrains.EvilCase.Tests.Data;
 
 namespace EvilBrains.EvilCase.Tests.Acts;
 
-/// <summary>
-/// The act list across every case on the rows a real PostgreSQL returns. Each test seeds a tenant of
-/// its own, so none cleans up after itself.
-/// </summary>
 public class ActListAcrossCasesTests : TenantFixture
 {
     [Test]

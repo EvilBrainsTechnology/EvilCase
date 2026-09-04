@@ -18,10 +18,7 @@ public static class Bootstrap
     // The name browser logs are recorded under; it identifies the deployment, not the library.
     private const string ClientSourceContext = "EvilBrains.EvilCase.App.Client";
 
-    // A RequestDelegate rather than a minimal API handler: the catch-all segment only exists to give
-    // this fallback a literal prefix, and binding it would leave an unused parameter behind. The body is
-    // written through the problem details service so an unknown path answers in the same shape as every
-    // other API error rather than with nothing at all.
+    // A RequestDelegate: a minimal-API handler would have to bind the unused {**path}.
     private static readonly RequestDelegate NotFound = static async context =>
     {
         context.Response.StatusCode = StatusCodes.Status404NotFound;
@@ -42,7 +39,6 @@ public static class Bootstrap
 
     public static IServiceCollection ConfigureServices(this IServiceCollection services)
     {
-        // The controllers live in this library rather than in the host, so the part is added explicitly.
         services
             .AddControllers()
             .AddApplicationPart(typeof(Bootstrap).Assembly);
@@ -62,7 +58,6 @@ public static class Bootstrap
 
         services.AddEvilCaseBusiness();
 
-        // Scoped: it answers for the request being served.
         services.AddHttpContextAccessor();
         services.AddScoped<IUserContext, PrincipalUserContext>();
 
@@ -99,9 +94,7 @@ public static class Bootstrap
                 })
             .AllowAnonymous();
 
-        // An unknown API path is a 404, never the host's index.html. The literal segment gives this
-        // fallback precedence over the catch-all one serving the frontend. Anonymous, or the default
-        // deny policy would answer an unknown path with 401 and tell a caller nothing at all.
+        // The literal segment outranks the host's index.html fallback.
         endpoints
             .MapFallback("/api/{**path}", NotFound)
             .AllowAnonymous();
@@ -111,8 +104,7 @@ public static class Bootstrap
 
     public static IEndpointRouteBuilder MapEvilCaseApiReference(this IEndpointRouteBuilder endpoints)
     {
-        // Development only, and the default deny policy would otherwise put the reference behind a token
-        // the reference itself is the way to obtain.
+        // Anonymous, so mapped in Development only.
         endpoints
             .MapOpenApi()
             .AllowAnonymous();

@@ -9,5 +9,5 @@
   parallel, each with its own `.env` copy, port and database (run-app skill); scratch files
   go under the session scratchpad.
 - The main checkout never holds a delegated branch, `--ignore-other-worktrees` included.
-- Search with `Grep`, `Glob` and `Read`, never the shell; the shell runs `git`, `gh` and the
-  commands that build, run or change something.
+- Search the repository with `Grep`, `Glob` and `Read`, never the shell; the shell runs `git`,
+  `gh` and the commands that build, run or change something.

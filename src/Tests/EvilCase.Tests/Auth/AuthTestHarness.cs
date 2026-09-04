@@ -7,10 +7,6 @@ using Microsoft.Extensions.Options;
 
 namespace EvilBrains.EvilCase.Tests.Auth;
 
-/// <summary>
-/// An <see cref="IAuthService"/> wired to in-memory stores and a clock a test can move. Nothing here
-/// opens a connection.
-/// </summary>
 internal sealed class AuthTestHarness
 {
     public const string Email = "user@evilcase.test";

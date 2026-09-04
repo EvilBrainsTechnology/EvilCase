@@ -4,8 +4,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 namespace EvilBrains.EvilCase.Api.HealthChecks;
 
 /// <summary>
-/// Writes the check names and their status. Descriptions, exceptions and data stay out:
-/// the endpoint is anonymous.
+/// Names and status only: the endpoint is anonymous.
 /// </summary>
 internal static class HealthCheckResponseWriter
 {

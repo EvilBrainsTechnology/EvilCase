@@ -1,13 +1,12 @@
 namespace EvilBrains.EvilCase.Data.DbContexts;
 
 /// <summary>
-/// Functions the database carries. Each one is mapped in <see cref="ApplicationDbContext"/> and has
-/// meaning only inside a query.
+/// Each function must also be mapped in ApplicationDbContext.
 /// </summary>
 public static class DatabaseFunctions
 {
     /// <summary>
-    /// Folds diacritics through the IMMUTABLE wrapper the <c>Init</c> migration creates (SDD-014).
+    /// Folds diacritics through the IMMUTABLE wrapper the <c>Init</c> migration creates.
     /// </summary>
     public static string Unaccent(string value)
     {

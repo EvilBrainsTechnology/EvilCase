@@ -4,10 +4,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Tests.Comments;
 
-/// <summary>
-/// Reads a case's comments, on the rows a real PostgreSQL returns. Each test seeds a tenant of its own,
-/// so none cleans up after itself.
-/// </summary>
 public class CommentReaderTests : TenantFixture
 {
     private static readonly DateOnly Day = new(2026, 8, 24);

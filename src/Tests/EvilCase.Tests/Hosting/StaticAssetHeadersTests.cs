@@ -4,10 +4,8 @@ using System.Net.Http.Headers;
 namespace EvilBrains.EvilCase.Tests.Hosting;
 
 /// <summary>
-/// The frontend is served from the build's endpoint manifest, which answers every static file
-/// compressed. The immutable cache the manifest also carries stays out of reach here: a host reading
-/// static web assets from the source tree rewrites every Cache-Control to no-cache, and the test host
-/// does exactly that.
+/// <c>Cache-Control</c> stays out of reach: a host reading static web assets from the source tree
+/// rewrites it to no-cache, as the test host does.
 /// </summary>
 public class StaticAssetHeadersTests
 {
@@ -34,10 +32,6 @@ public class StaticAssetHeadersTests
         this.host.Dispose();
     }
 
-    /// <summary>
-    /// The runtime is the largest download of the boot, and the only middleware that used to serve it is
-    /// gone.
-    /// </summary>
     [Test]
     public async Task TheRuntimeIsServedCompressed()
     {
@@ -52,9 +46,6 @@ public class StaticAssetHeadersTests
         }
     }
 
-    /// <summary>
-    /// The entry point of the frontend, which the fallback would answer uncompressed.
-    /// </summary>
     [Test]
     public async Task TheEntryPointIsServedCompressed()
     {
@@ -63,13 +54,10 @@ public class StaticAssetHeadersTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(response.Content.Headers.ContentType?.MediaType, Is.EqualTo("text/html"));
-            Assert.That(response.Content.Headers.ContentEncoding, Does.Contain("gzip"));
+            Assert.That(response.Content.Headers.ContentEncoding, Does.Contain("gzip"), "the fallback would answer the entry point uncompressed");
         }
     }
 
-    /// <summary>
-    /// The stylesheets block the first render and are the bulk of what is downloaded before the runtime.
-    /// </summary>
     [Test]
     public async Task AStylesheetIsServedCompressed()
     {

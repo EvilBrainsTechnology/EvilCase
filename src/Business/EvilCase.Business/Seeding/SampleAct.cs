@@ -18,8 +18,5 @@ internal sealed record SampleAct
 
     public IReadOnlyList<string> Comments { get; init; } = [];
 
-    /// <summary>
-    /// Names a second TXT beside the act's own, for the act that carries an evidence bundle.
-    /// </summary>
     public string? ExtraFileSuffix { get; init; }
 }

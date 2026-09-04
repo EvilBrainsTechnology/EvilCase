@@ -7,10 +7,6 @@ using Microsoft.AspNetCore.Components.Authorization;
 
 namespace EvilBrains.EvilCase.App.Auth;
 
-/// <summary>
-/// Holds the signed-in user for the whole application. The framework resolves it by its base type, so
-/// the interface next to it is what everything else talks to.
-/// </summary>
 internal sealed class EvilCaseAuthenticationStateProvider(
     IAccessTokenStore tokens,
     IAuthClient authClient,
@@ -19,8 +15,7 @@ internal sealed class EvilCaseAuthenticationStateProvider(
     private const string AuthenticationType = "EvilCase";
 
     /// <summary>
-    /// Renewing this far ahead of the expiry keeps a request that is already on its way from coming
-    /// back 401 because the clock rolled over while it was in flight.
+    /// The margin covers a request already on its way when the token runs out.
     /// </summary>
     public static readonly TimeSpan RenewAhead = TimeSpan.FromSeconds(60);
 
@@ -135,8 +130,6 @@ internal sealed class EvilCaseAuthenticationStateProvider(
         if (token is null)
             return new(new ClaimsPrincipal(new ClaimsIdentity()));
 
-        // The claim types match what the API puts in the token, so [Authorize(Roles = ...)] and
-        // AuthorizeView mean the same thing on both sides.
         var identity = new ClaimsIdentity(
             [new Claim(AuthClaims.Email, token.Email), new Claim(AuthClaims.Role, token.Role.ToString())],
             AuthenticationType,
@@ -146,10 +139,6 @@ internal sealed class EvilCaseAuthenticationStateProvider(
         return new(new ClaimsPrincipal(identity));
     }
 
-    /// <summary>
-    /// The first thing the application asks for after a page load. The access token went with the tab,
-    /// but the refresh cookie did not, so the session is picked up again before anything renders.
-    /// </summary>
     private async Task<AuthenticationState> Restore()
     {
         await this.Renew(CancellationToken.None);

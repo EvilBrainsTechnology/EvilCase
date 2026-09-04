@@ -11,8 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace EvilBrains.EvilCase.Tests.Hosting;
 
 /// <summary>
-/// <c>CreatedAtAction</c> names an action and route values that only a route of the running host can
-/// match, so the <c>Location</c> it produces is pinned here.
+/// <c>CreatedAtAction</c> resolves its <c>Location</c> only against the running host's routes.
 /// </summary>
 public class CreateLocationTests
 {

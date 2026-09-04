@@ -7,10 +7,6 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace EvilBrains.EvilCase.Tests.Seeding;
 
-/// <summary>
-/// The sample case tree is the one populated dataset most manual and screenshot checks run against, so
-/// its shape has to hold: a real tree, real numbers, every act naming a real sender and recipient.
-/// </summary>
 public class SampleDataSeederTests
 {
     private static readonly Guid TenantId = Guid.CreateVersion7();

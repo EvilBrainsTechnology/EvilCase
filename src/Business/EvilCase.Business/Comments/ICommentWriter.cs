@@ -3,7 +3,7 @@ using EvilBrains.EvilCase.Api.Contract.Comments;
 namespace EvilBrains.EvilCase.Business.Comments;
 
 /// <summary>
-/// Writes the comments filed on a case or on an act. Only the author edits or deletes their own (SDD-013).
+/// Only the author edits or deletes a comment (SDD-013).
 /// </summary>
 public interface ICommentWriter
 {

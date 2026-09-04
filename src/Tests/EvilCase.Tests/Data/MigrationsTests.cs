@@ -8,9 +8,8 @@ using Microsoft.EntityFrameworkCore.Storage;
 namespace EvilBrains.EvilCase.Tests.Data;
 
 /// <summary>
-/// Replays what the migrations do and compares it with the model. A migration whose <c>Up</c> is empty
-/// still leaves the snapshot agreeing with the model, so this is the only thing that sees a table the
-/// database never gets.
+/// A migration whose <c>Up</c> is empty still leaves the snapshot agreeing with the model, so only
+/// a replay sees a table the database never gets.
 /// </summary>
 public class MigrationsTests
 {
@@ -62,9 +61,6 @@ public class MigrationsTests
         Assert.That(context.Database.HasPendingModelChanges(), Is.False, "the migration and its snapshot are behind the model, so a fresh database is not the one the model maps");
     }
 
-    /// <summary>
-    /// Every <c>Up</c> operation the migrations carry, in the order they run.
-    /// </summary>
     private static IEnumerable<MigrationOperation> UpOperations(DbContext context)
     {
         var assembly = context.GetService<IMigrationsAssembly>();
@@ -116,7 +112,7 @@ public class MigrationsTests
     }
 
     /// <summary>
-    /// Index names left standing once every drop is replayed: a dropped table takes its indexes with it.
+    /// A dropped table takes its indexes with it and no <c>DropIndex</c> says so.
     /// </summary>
     private static List<string> ReplayIndexes(DbContext context)
     {

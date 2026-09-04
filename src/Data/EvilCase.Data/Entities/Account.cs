@@ -2,9 +2,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EvilBrains.EvilCase.Data.Entities;
 
-/// <summary>
-/// Covers N tenants.
-/// </summary>
 public sealed record Account : IEntity
 {
     [Key]

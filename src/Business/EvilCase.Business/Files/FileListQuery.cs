@@ -17,7 +17,6 @@ internal static class FileListQuery
             .Where(file => file.Act!.CaseId == caseId);
     }
 
-    // Oldest first; the id breaks the tie two uploads in one transaction would leave.
     public static IQueryable<FileAsset> InUploadOrder(this IQueryable<FileAsset> files)
     {
         return files.OrderBy(static file => file.Created).ThenBy(static file => file.Id);

@@ -8,9 +8,7 @@ using Serilog.Events;
 namespace EvilBrains.Logging.WebAssembly;
 
 /// <summary>
-/// Buffers log events in the browser and ships them to the server in batches.
-/// The sink is created before the host exists, so the uploader arrives later through <see cref="Start"/>;
-/// events emitted until then are buffered.
+/// Created before the host exists: the uploader arrives through Start, events until then are buffered.
 /// </summary>
 internal sealed class ClientLogSink : ILogEventSink
 {
@@ -31,7 +29,6 @@ internal sealed class ClientLogSink : ILogEventSink
 
     public void Emit(LogEvent logEvent)
     {
-        // Once the queue is full the app is either offline or flooding; drop instead of growing without bound.
         if (this.queue.Count >= QueueCapacity)
             return;
 
@@ -46,8 +43,7 @@ internal sealed class ClientLogSink : ILogEventSink
     }
 
     /// <summary>
-    /// Takes the next batch out of the buffer. Public for the unload flush, which cannot await an upload
-    /// and ships the batch itself.
+    /// Public for the unload flush, which ships the batch itself.
     /// </summary>
     public ClientLogBatch? Drain()
     {
@@ -84,7 +80,6 @@ internal sealed class ClientLogSink : ILogEventSink
             if (properties.Count == ClientLogEntry.MaxProperties)
                 break;
 
-            // Shipped as fields of their own.
             if (Lifted.Contains(name))
                 continue;
 
@@ -114,9 +109,7 @@ internal sealed class ClientLogSink : ILogEventSink
     }
 
     /// <summary>
-    /// Nothing observes this task, so an exception escaping the loop would stop the shipping for the
-    /// rest of the application's life without a trace. Anything an uploader was not supposed to throw
-    /// costs the current batch and nothing more.
+    /// Nothing observes this task: an escaping exception would end shipping silently for the rest of the app's life.
     /// </summary>
     private async Task Ship(IClientLogUploader uploader)
     {

@@ -7,9 +7,8 @@ using EvilBrains.EvilCase.Domain.Users;
 namespace EvilBrains.EvilCase.Tests.Hosting;
 
 /// <summary>
-/// What the bearer scheme makes of a token the application itself signed. Nothing below reaches the
-/// database: the endpoint answers from the claims principal alone, which is also what pins the claim
-/// names — inbound mapping is off, so a rename would silently empty the principal.
+/// Inbound claim mapping is off, so a renamed claim silently empties the principal; the endpoint
+/// answers from the principal alone.
 /// </summary>
 public class AuthenticationTests
 {
@@ -56,10 +55,6 @@ public class AuthenticationTests
         }
     }
 
-    /// <summary>
-    /// Same issuer, audience and algorithm, only the key differs — so this passes everything the bearer
-    /// scheme checks except the signature.
-    /// </summary>
     [Test]
     public async Task UserInfoRejectsATokenSignedWithAnotherKey()
     {
@@ -67,7 +62,7 @@ public class AuthenticationTests
 
         using var response = await this.GetUserInfo(TestTokens.TokenFrom(foreignHost));
 
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized), "the token shares issuer, audience and algorithm, so only the signature can refuse it");
     }
 
     private async Task<HttpResponseMessage> GetUserInfo(string? token)

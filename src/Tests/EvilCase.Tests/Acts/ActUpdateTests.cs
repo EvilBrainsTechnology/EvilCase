@@ -12,10 +12,6 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace EvilBrains.EvilCase.Tests.Acts;
 
-/// <summary>
-/// The edit rules on the rows a real PostgreSQL returns. Each test seeds a tenant of its own, so none
-/// cleans up after itself.
-/// </summary>
 public class ActUpdateTests : TenantFixture
 {
     private static readonly DateOnly Day = new(2026, 8, 21);

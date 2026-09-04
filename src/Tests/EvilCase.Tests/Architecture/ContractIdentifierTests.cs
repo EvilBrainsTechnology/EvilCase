@@ -2,9 +2,6 @@ using System.Reflection;
 
 namespace EvilBrains.EvilCase.Tests.Architecture;
 
-/// <summary>
-/// An identifier value names its entity, so no contract type carries a bare <c>Id</c>.
-/// </summary>
 public class ContractIdentifierTests
 {
     [Test]

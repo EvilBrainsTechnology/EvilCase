@@ -13,17 +13,11 @@ public sealed record ActEditRequest : IValidatableObject
     [StringLength(128)]
     public required string ActNumber { get; init; }
 
-    /// <summary>
-    /// The reference number another authority gave this act; optional free text (SDD-010).
-    /// </summary>
     [StringLength(128)]
     public string? ExternalActNumber { get; init; }
 
     public ActDirection? Direction { get; init; }
 
-    /// <summary>
-    /// The act's own date. Moving it leaves the number as it was issued.
-    /// </summary>
     public required DateOnly Date { get; init; }
 
     [Required]
@@ -33,9 +27,6 @@ public sealed record ActEditRequest : IValidatableObject
     [StringLength(4000)]
     public string? Description { get; init; }
 
-    /// <summary>
-    /// The counterparty of the act; set exactly when <see cref="Direction"/> is (SDD-010).
-    /// </summary>
     public Guid? ContactId { get; init; }
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)

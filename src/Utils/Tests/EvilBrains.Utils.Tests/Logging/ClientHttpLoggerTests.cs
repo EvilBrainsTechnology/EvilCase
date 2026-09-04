@@ -14,26 +14,18 @@ public class ClientHttpLoggerTests
         Assert.That(LoggedPaths("https://localhost/api/logs/client"), Is.Empty);
     }
 
-    /// <summary>
-    /// The base address carries the sub-path the app is served from into every resolved request URI,
-    /// so an equality match on the path would let the upload log itself and never settle.
-    /// </summary>
     [Test]
     public void SuccessfulUploadOfClientLogsIsNotLoggedUnderASubPath()
     {
-        Assert.That(LoggedPaths("https://localhost/evilcase/api/logs/client"), Is.Empty);
+        Assert.That(LoggedPaths("https://localhost/evilcase/api/logs/client"), Is.Empty, "an equality match on the path would let a sub-path upload log itself");
     }
 
-    /// <summary>
-    /// A rejected batch is dropped rather than retried, so logging it settles; staying quiet would leave
-    /// an upload the server refuses invisible on both sides.
-    /// </summary>
     [Test]
     public void RejectedUploadOfClientLogsIsLogged()
     {
         string[] expected = ["/api/logs/client"];
 
-        Assert.That(LoggedPaths("https://localhost/api/logs/client", HttpStatusCode.BadRequest), Is.EqualTo(expected));
+        Assert.That(LoggedPaths("https://localhost/api/logs/client", HttpStatusCode.BadRequest), Is.EqualTo(expected), "a rejected batch is dropped, so logging it settles");
     }
 
     [Test]
@@ -52,9 +44,6 @@ public class ClientHttpLoggerTests
         Assert.That(LoggedPaths("https://localhost/xapi/logs/client"), Is.EqualTo(expected));
     }
 
-    /// <summary>
-    /// A batch that fails is dropped rather than retried, so logging the failure settles.
-    /// </summary>
     [Test]
     public void FailedUploadOfClientLogsIsLogged()
     {
@@ -64,7 +53,7 @@ public class ClientHttpLoggerTests
 
         subject.LogRequestFailed(context: null, request, response: null, new HttpRequestException(), TimeSpan.Zero);
 
-        Assert.That(logger.Paths, Has.Count.EqualTo(1));
+        Assert.That(logger.Paths, Has.Count.EqualTo(1), "a failed batch is dropped, so logging it settles");
     }
 
     private static List<string> LoggedPaths(string url, HttpStatusCode statusCode = HttpStatusCode.OK)

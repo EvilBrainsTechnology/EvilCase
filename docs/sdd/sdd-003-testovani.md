@@ -7,23 +7,25 @@
 
 ## Rozsah
 
-Vrstvy testů a povinné testy nových oblastí.
+Vrstvy testů a povinné testy.
 
 ## Popis
 
-### Platí dál
+### Vrstvy testů
 
 - NUnit v `Tests/EvilCase.Tests`; změna chování nese test (`.claude/rules/github.md`).
-- `Architecture/LayerTests` pinují vrstvení.
-- Modelové testy nad `IDesignTimeModel`: fixture per entita a konvenční testy.
-- Hosting testy nad `EvilCaseHost`: autentizace, hlavičky, rate limiting, routing.
+- Testy vrstvení pinují povolené závislosti mezi projekty (SDD-001).
+- Modelové testy nad modelem EF: fixture na každou doménovou entitu a konvenční testy nad
+  celým modelem. Check constraints se čtou z návrhového modelu, běhový je zahazuje.
+- Hosting testy nad reálnou pipeline: autentizace, hlavičky, rate limiting, routing.
 - Čistá doménová logika se testuje bez databáze.
 
-### Nové povinnosti
+### Povinné testy
 
 - Konvenční test izolace tenantů: každá tenantová entita má query filter a `TenantId`
-  v unikátních indexech (SDD-006).
-- Testy číslování: formát, pořadí per den, přetečení, zpětné datování, ruční přepis
+  v unikátních indexech; uživatel je výjimka, jeho e-mail je unikátní přes celé nasazení
+  (SDD-006).
+- Testy číslování: formát, pořadí per den, přetečení, zpětné datování, ruční přepis, souběh
   (SDD-008).
 - Souborové úložiště na temp adresáři: zápis, atomicita, smazání blobu (SDD-012).
 - Smoke test seedu: seed proběhne a založí spis se stromem (SDD-017).
@@ -41,5 +43,4 @@ Vrstvy testů a povinné testy nových oblastí.
 
 ## Dopady
 
-Testy `CaseRelation`, `CaseTag` a `PrincipalOwnerContext` zanikají se svými typy v M2
-(SDD-006, SDD-007).
+—

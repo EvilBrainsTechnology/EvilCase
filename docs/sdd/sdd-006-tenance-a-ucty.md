@@ -2,13 +2,13 @@
 
 - **Stav:** platí
 - **Milníky:** M2
-- **Související SDD:** [003](sdd-003-testovani.md), [005](sdd-005-api-konvence.md),
-  [007](sdd-007-domenovy-model.md)
+- **Související SDD:** [003](sdd-003-testovani.md), [004](sdd-004-validace-a-chyby.md),
+  [005](sdd-005-api-konvence.md), [007](sdd-007-domenovy-model.md)
 
 ## Rozsah
 
-Účty, tenanti, uživatelé, izolace dat mezi tenanty a rozšíření autentizace o tenanta.
-Doménové entity popisuje SDD-007.
+Účty, tenanti, uživatelé, izolace dat mezi tenanty a autentizace. Doménové entity popisuje
+SDD-007.
 
 ## Popis
 
@@ -16,13 +16,16 @@ Doménové entity popisuje SDD-007.
 
 - **Account** — id a název. Zastřešuje N tenantů.
 - **Tenant** — id, název, `AccountId`. Hranice izolace dat.
-- **User** — tenantová entita, patří právě jednomu tenantu (`User.TenantId`). Dnešní sloupce
-  (e-mail, hash hesla, role, lockout) zůstávají; přibývá `TenantId`.
+- **User** — tenantová entita, patří právě jednomu tenantu: e-mail, hash hesla, role, lockout
+  a `TenantId`.
 
-Každá tenantová entita nese `TenantId`. Vlastníka `UserId` nese každá kromě kontaktu; kontakt
-patří tenantu (SDD-011). Obojí plní zápis, ne volající. Viditelná i zapisovatelná je v celém
-tenantu, `UserId` jen říká, kdo ji založil; výjimkou je komentář, ten smí upravit a smazat jen
-jeho autor (SDD-013).
+Mimo tenant stojí jen Account, Tenant a refresh token; každá jiná entita nese `TenantId`.
+Vlastníka `UserId` nese každá kromě kontaktu; kontakt patří tenantu (SDD-011). Obojí plní
+zápis, ne volající. Tenanta ani uživatele nelze smazat, dokud drží řádky.
+
+Uvnitř tenantu je záznam vidět bez ohledu na to, kdo ho založil; změnit a smazat ho smí jen
+uživatel, kterého jmenuje jeho `UserId`. U komentáře to nese API jako 403 (SDD-013), u ostatních
+entit to odmítne až zápis.
 
 Account, Tenant a první administrátor vznikají jen seedem při startu
 (`EvilBrains__EvilCase__Auth__Seed__*`, jen do prázdné tabulky uživatelů). Žádné UI pro
@@ -32,40 +35,41 @@ správu účtů, žádná registrace.
 
 Data nesmí utéct mezi tenanty; únik je kritická chyba.
 
-- Každá tenantová entita včetně uživatele má EF global query filter na `TenantId`; tenant
-  i uživatele dodává `IUserContext`. Hledání, které tenanta ještě nezná — přihlášení, obnova
-  tokenu a oba seedy — filtr nepoužije.
-- Access token nese tenant claim i subject claim; `IUserContext` je čte z principalu.
-- `SaveChanges` doplní `TenantId` nové tenantové entitě z kontextu a zápis do cizího tenanta
-  odmítne.
-- `SaveChanges` doplní `UserId` nové uživatelské entitě z `IUserContext` a zápis, změnu i
-  smazání řádky jiného uživatele odmítne.
+- Čtení nikdy nevidí řádek cizího tenantu; tenanta i uživatele dodává kontext požadavku.
+  Výjimka je hledání uživatele, které tenanta ještě znát nemůže — přihlášení, obnova tokenu
+  a oba seedy.
+- Access token nese tenant claim i subject claim.
+- Zápis doplní `TenantId` a `UserId` nové entity z kontextu a odmítne řádek, který jmenuje
+  cizího tenanta nebo cizího uživatele.
 - Mimo požadavek (seed, úloha na pozadí) se tenant a uživatel vstupují jen společně a zápis
   prochází stejnou kontrolou jako požadavek.
 - Unikátní indexy tenantových entit jsou kompozitní s `TenantId`; e-mail uživatele je unikátní
-  přes celé nasazení.
-- Konvenční test hlídá, že žádná tenantová entita filtr nepostrádá (SDD-003).
+  přes celé nasazení a ukládá se oříznutý a malými písmeny, takže přihlášení nerozlišuje
+  velikost písmen.
+- Konvenční test hlídá, že žádná tenantová entita filtr nepostrádá a že mimo tenant stojí jen
+  Account, Tenant a refresh token (SDD-003).
 
 ### Autentizace
 
-Beze změny: JWT access token v paměti, rotující refresh token v `__Host-` cookie,
-`PasswordHasher` (PBKDF2), pravidla v `.claude/rules/auth.md`. Jediné rozšíření je tenant
-claim v access tokenu. Tenant claim se odvozuje z řádku uživatele při každém vydání tokenu,
-včetně refresh.
+JWT access token v paměti prohlížeče, rotující refresh token v `__Host-` cookie, heslo uložené
+jako hash odolný proti hrubé síle. Access token nese tenant claim odvozený z řádku uživatele
+při každém vydání, obnovu tokenu včetně. CSRF obranu drží `SameSite=Strict` a same-origin;
+antiforgery token není.
+
+Pět po sobě jdoucích neúspěšných přihlášení účet na 15 minut uzamkne; uzamčený účet odpovídá
+423 (SDD-004) a úspěšné přihlášení počitadlo vynuluje.
 
 ## Rozhodnutí
 
 - Uživatelé v tenantu: více uživatelů sdílí tenant / 1 uživatel = 1 tenant. Platí
   1 uživatel = 1 tenant; sdílení je non-goal.
-- Vynucení izolace: jen ruční scope v dotazech / query filtry + kontrola zápisu. Platí query
-  filtry a kontrola v `SaveChanges`.
+- Vynucení izolace: jen ruční scope v dotazech / filtr na čtení a kontrola na zápisu. Platí
+  filtr a kontrola.
 - Vznik účtů: registrace v UI / jen seed. Platí jen seed.
-- Plnění UserId: volající / interceptor. Platí interceptor; jen prázdnou hodnotu na nové řadě.
-- Zápis cizí řádky uvnitř tenantu: povolený / odmítnutý. Platí odmítnutý — řádka jiného
-  uživatele je v tenantu vidět, ale zapsat, změnit ani smazat ji nelze.
+- Plnění `TenantId` a `UserId`: volající / zápis sám. Platí zápis sám, jen na nové řádce.
+- Zápis cizí řádky uvnitř tenantu: povolený / odmítnutý. Platí odmítnutý; jeden uživatel na
+  tenant znamená, že k němu nedojde.
 
 ## Dopady
 
-- `IOwnerContext` a `PrincipalOwnerContext` zanikají; nahrazuje je `IUserContext`.
-- Sloupce `OwnerId` zanikají; nahrazuje je `TenantId` + `UserId` (SDD-007).
-- `.claude/rules/business.md` (Ownership) se mění s kódem M2.
+—

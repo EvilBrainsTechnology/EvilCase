@@ -13,11 +13,13 @@
         <div class="empty">
             <div class="empty-icon"><Icon IconType="AppIcons.Folders" /></div>
             <p class="empty-title">Žádné podřízené spisy</p>
+            <div class="empty-action">
+                <a href="@($"/cases/new?parent={ParentCaseId}")" class="btn btn-primary"><Icon CssClass="icon" IconType="AppIcons.Plus" />Založit podřízený spis</a>
+            </div>
         </div>
     }
     else
     {
-        @* Table on desktop, cards on mobile: two renderings switched by CSS only. *@
         <div class="d-none d-lg-block">
             <table class="table card-table table-vcenter">
                 <thead>

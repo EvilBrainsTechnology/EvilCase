@@ -4,10 +4,6 @@ using Serilog.Context;
 
 namespace EvilBrains.Logging.AspNetCore;
 
-/// <summary>
-/// Puts the identifiers of the incoming request into the Serilog log context, so every event written
-/// while the request runs carries them.
-/// </summary>
 internal sealed class RequestContextLoggingMiddleware(RequestDelegate next)
 {
     /// <summary>
@@ -27,9 +23,6 @@ internal sealed class RequestContextLoggingMiddleware(RequestDelegate next)
             await next(context);
     }
 
-    /// <summary>
-    /// A caller that sends no identifier gets no property; an "unknown" placeholder would only pollute queries.
-    /// </summary>
     private static IDisposable Push(HttpContext context, string headerName, string propertyName)
     {
         var id = ReadId(context, headerName);
@@ -38,8 +31,7 @@ internal sealed class RequestContextLoggingMiddleware(RequestDelegate next)
     }
 
     /// <summary>
-    /// Headers are untrusted: only a single well-formed value is accepted, and the identifier is
-    /// re-formatted rather than logged as received.
+    /// Untrusted: a repeated or malformed header is dropped, never logged as received.
     /// </summary>
     private static string? ReadId(HttpContext context, string headerName)
     {

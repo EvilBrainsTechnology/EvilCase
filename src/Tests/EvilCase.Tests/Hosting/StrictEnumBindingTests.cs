@@ -10,9 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace EvilBrains.EvilCase.Tests.Hosting;
 
 /// <summary>
-/// <c>JsonStringEnumConverter&lt;T&gt;</c> defaults to accepting an integer alongside the name. A JSON
-/// body could then name an enum member no name ever named, which the query-string binder already
-/// refuses — SDD-004's validation layer must refuse it too.
+/// <c>JsonStringEnumConverter&lt;T&gt;</c> accepts an integer alongside the name by default.
 /// </summary>
 public class StrictEnumBindingTests
 {

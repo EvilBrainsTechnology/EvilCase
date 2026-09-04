@@ -6,32 +6,14 @@ using EvilBrains.Logging.Contract;
 
 namespace EvilBrains.EvilCase.Tests.Hosting;
 
-/// <summary>
-/// The anonymous endpoints are the ones a single caller can make expensive, and the log upload is the one
-/// whose successful requests are not even logged. Everything else, the health probes above all, has to
-/// stay unlimited: a limiter reaching them would take instances out of rotation under load.
-/// </summary>
 public class RateLimitingTests
 {
-    /// <summary>
-    /// Comfortably past the permit limit the host configures for the upload path.
-    /// </summary>
     private const int PastTheLimit = 200;
 
-    /// <summary>
-    /// Below it, so nothing up to here may be rejected.
-    /// </summary>
     private const int WithinTheLimit = 100;
 
-    /// <summary>
-    /// The permit limit the host configures for the auth path, which is low enough to be spent exactly.
-    /// </summary>
     private const int AuthPermitLimit = 10;
 
-    /// <summary>
-    /// Sign-in has a partition of its own, and a tighter one: it is the only anonymous endpoint where
-    /// guessing pays off, and the account lockout only guards one account at a time.
-    /// </summary>
     private const int LoginPermitLimit = 5;
 
     private EvilCaseHost host = null!;
@@ -89,10 +71,6 @@ public class RateLimitingTests
         }
     }
 
-    /// <summary>
-    /// The limiter sits ahead of the authentication middleware, so a rejected caller pays for its attempts
-    /// too — which is the point, the expensive one is login and it is anonymous.
-    /// </summary>
     [Test]
     public async Task AuthEndpointsAreLimited()
     {
@@ -107,15 +85,11 @@ public class RateLimitingTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(statusCodes.Take(AuthPermitLimit), Is.All.EqualTo(HttpStatusCode.Unauthorized));
+            Assert.That(statusCodes.Take(AuthPermitLimit), Is.All.EqualTo(HttpStatusCode.Unauthorized), "the limiter sits ahead of the authentication middleware, so a 401 still spends a permit");
             Assert.That(statusCodes[^1], Is.EqualTo(HttpStatusCode.TooManyRequests));
         }
     }
 
-    /// <summary>
-    /// Its own partition, so spending it must not cost the rest of the auth endpoints their permits and
-    /// must not be paid for by them either.
-    /// </summary>
     [Test]
     public async Task SignInIsLimitedSeparatelyAndSooner()
     {
@@ -128,14 +102,13 @@ public class RateLimitingTests
             statusCodes.Add(response.StatusCode);
         }
 
-        // Bodyless, so anything that got through is a binding failure rather than a rejected limit.
         using var afterwards = await this.client.PostAsync(new Uri(AuthRoute.RefreshPath, UriKind.Relative), content: null);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(statusCodes.Take(LoginPermitLimit), Is.All.EqualTo(HttpStatusCode.UnsupportedMediaType));
             Assert.That(statusCodes[^1], Is.EqualTo(HttpStatusCode.TooManyRequests));
-            Assert.That(afterwards.StatusCode, Is.Not.EqualTo(HttpStatusCode.TooManyRequests));
+            Assert.That(afterwards.StatusCode, Is.Not.EqualTo(HttpStatusCode.TooManyRequests), "sign-in has a partition of its own, and this bodyless call reaches binding rather than the limiter");
         }
     }
 

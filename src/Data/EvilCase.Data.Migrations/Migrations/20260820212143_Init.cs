@@ -6,7 +6,6 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations;
 
 public partial class Init : Migration
 {
-    /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.AlterDatabase()
@@ -39,7 +38,6 @@ public partial class Init : Migration
         CreateSearchIndexes(migrationBuilder);
     }
 
-    /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.DropTable(

@@ -1,9 +1,5 @@
 namespace EvilBrains.EvilCase.Host;
 
-/// <summary>
-/// Baseline security headers on every response. Nothing in the app renders raw HTML today; the policy is
-/// what keeps a future sink from mattering.
-/// </summary>
 internal sealed class SecurityHeadersMiddleware(RequestDelegate next)
 {
     /// <summary>

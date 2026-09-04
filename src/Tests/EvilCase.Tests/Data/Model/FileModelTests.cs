@@ -61,9 +61,6 @@ public class FileModelTests : ModelFixture
         }
     }
 
-    /// <summary>
-    /// A file is what it is called, never what it is for.
-    /// </summary>
     [Test]
     public void NothingAboutAFileIsARole()
     {

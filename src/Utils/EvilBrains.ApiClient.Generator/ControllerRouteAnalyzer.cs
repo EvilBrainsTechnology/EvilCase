@@ -6,11 +6,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace EvilBrains.ApiClient.Generator;
 
-/// <summary>
-/// Enforces route conventions on [ApiController] classes: [Route] is mandatory on the controller and opens
-/// with the api segment, each action carries exactly one HTTP method attribute with a template, and templates
-/// are relative kebab-case.
-/// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class ControllerRouteAnalyzer : DiagnosticAnalyzer
 {

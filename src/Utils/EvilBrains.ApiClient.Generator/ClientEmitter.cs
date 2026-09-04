@@ -6,8 +6,7 @@ using System.Text;
 namespace EvilBrains.ApiClient.Generator;
 
 /// <summary>
-/// Emits generated sources with fixed "\n" line endings so the output does not depend on the host platform.
-/// The HTTP mechanics live in EvilBrains.ApiClient.ApiClientHttp; each action becomes a single executor call.
+/// Line endings are a fixed \n so the output does not depend on the host platform.
 /// </summary>
 internal static class ClientEmitter
 {

@@ -51,8 +51,7 @@ internal sealed class RefreshTokenStore(IDbSession dbSession) : IRefreshTokenSto
                 token);
     }
 
-    // Rotation revokes as it goes, so at most one row per chain is left unrevoked and the filter alone
-    // gives one row per live session.
+    // Rotation leaves one unrevoked row per chain, so this is one row per live session.
     public async Task<IReadOnlyList<RefreshToken>> GetActive(Guid userId, DateTime now, CancellationToken token)
     {
         return await dbSession.Current.RefreshTokens

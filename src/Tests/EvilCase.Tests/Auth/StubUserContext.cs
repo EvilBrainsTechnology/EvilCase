@@ -3,9 +3,6 @@ using EvilBrains.EvilCase.Domain.Users;
 
 namespace EvilBrains.EvilCase.Tests.Auth;
 
-/// <summary>
-/// A minimal <see cref="IUserContext"/>: nothing is resolved until <see cref="Enter"/> names both ids.
-/// </summary>
 internal sealed class StubUserContext : IUserContext
 {
     private (Guid TenantId, Guid UserId)? entered;
@@ -18,9 +15,6 @@ internal sealed class StubUserContext : IUserContext
 
     public Guid? UserIdOrDefault => this.entered?.UserId;
 
-    /// <summary>
-    /// Every pair <see cref="Enter"/> was called with, in order.
-    /// </summary>
     public List<(Guid TenantId, Guid UserId)> Entered { get; } = [];
 
     public IDisposable Enter(Guid tenantId, Guid userId)

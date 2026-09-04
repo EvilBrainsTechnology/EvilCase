@@ -1,8 +1,5 @@
 namespace EvilBrains.EvilCase.Data;
 
-/// <summary>
-/// Builds the operands of a SQL <c>LIKE</c>.
-/// </summary>
 public static class LikeExtensions
 {
     /// <summary>
@@ -10,10 +7,6 @@ public static class LikeExtensions
     /// </summary>
     public const string LikeEscape = "\\";
 
-    /// <summary>
-    /// Turns a wildcard inside a literal back into the character itself, so only the pattern the caller
-    /// adds around it still matches many rows.
-    /// </summary>
     public static string EscapeLikeWildcards(this string value)
     {
         return value

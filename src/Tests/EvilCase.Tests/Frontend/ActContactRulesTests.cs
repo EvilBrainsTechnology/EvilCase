@@ -5,9 +5,6 @@ using EvilBrains.EvilCase.Domain.Contacts;
 
 namespace EvilBrains.EvilCase.Tests.Frontend;
 
-/// <summary>
-/// What the act forms and the act detail make of the case's contact.
-/// </summary>
 public class ActContactRulesTests
 {
     private static readonly ContactListItem ActContact = Contact("Krajský soud ve Vzorově");

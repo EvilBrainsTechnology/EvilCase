@@ -116,8 +116,7 @@ internal sealed class CommentWriter(IDbSession dbSession, IUserContext userConte
     }
 
     /// <summary>
-    /// Written where the note exists and the caller wrote it; the write itself repeats the author in its
-    /// filter, so no decision rests on the read alone.
+    /// The write repeats the author filter; this read only picks the outcome.
     /// </summary>
     private static async Task<CommentWriteOutcome> Authorize(IQueryable<Comment> comments, Guid userId, CancellationToken token)
     {

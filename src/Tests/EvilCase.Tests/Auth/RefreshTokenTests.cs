@@ -2,15 +2,8 @@ using EvilBrains.EvilCase.Auth;
 
 namespace EvilBrains.EvilCase.Tests.Auth;
 
-/// <summary>
-/// Rotation and what it buys: a refresh token is good once, and a second use of a spent one is taken as
-/// a stolen cookie and ends the session it came from.
-/// </summary>
 public class RefreshTokenTests
 {
-    /// <summary>
-    /// Comfortably outside the window in which a replay is read as two tabs racing.
-    /// </summary>
     private static readonly TimeSpan PastTheGracePeriod = TimeSpan.FromMinutes(5);
 
     private AuthTestHarness harness = null!;
@@ -39,10 +32,6 @@ public class RefreshTokenTests
         }
     }
 
-    /// <summary>
-    /// One browser stays one session however often it renews, which is what makes the session list and
-    /// signing a single device out mean anything.
-    /// </summary>
     [Test]
     public async Task RotationStaysInsideTheSameSession()
     {
@@ -67,18 +56,12 @@ public class RefreshTokenTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(replayed, Is.Null);
-
-            // The one token that was still live goes with the session; whoever holds it holds a copy.
             Assert.That(afterwards, Is.Null);
             Assert.That(this.harness.RefreshTokens.All.Where(static token => token.RevokedAt is null), Is.Empty);
         }
     }
 
-    /// <summary>
-    /// Two tabs presenting the same cookie at once is a race, not a theft. The loser is refused, but the
-    /// session survives — the cookie already holds the replacement, so its next attempt succeeds. The
-    /// status says so, because the endpoint above has to leave that cookie alone.
-    /// </summary>
+    // The Raced status exists so the endpoint leaves the cookie alone: it already holds the replacement.
     [Test]
     public async Task AReplayInsideTheGraceWindowLeavesTheSessionAlone()
     {
@@ -96,11 +79,7 @@ public class RefreshTokenTests
         }
     }
 
-    /// <summary>
-    /// The read that finds a token live and the write that spends it are two statements, so two callers
-    /// can both pass the first. The write is what settles it: the loser gets nothing, rather than a
-    /// second live token in a chain that is supposed to hold exactly one.
-    /// </summary>
+    // The read that finds a token live and the write that spends it are two statements, so the write must settle the race.
     [Test]
     public async Task OnlyOneOfTwoCallersRacingForTheSameTokenSpendsIt()
     {
@@ -133,10 +112,6 @@ public class RefreshTokenTests
         Assert.That(await this.harness.Refresh(session.RefreshToken), Is.Null);
     }
 
-    /// <summary>
-    /// Renewing must not be a way to stay signed in for ever, so the chain's ceiling caps every token
-    /// issued inside it.
-    /// </summary>
     [Test]
     public async Task RotationNeverReachesPastTheSessionCeiling()
     {
@@ -145,8 +120,6 @@ public class RefreshTokenTests
         var session = await this.harness.SignIn();
         var ceiling = this.harness.RefreshTokens.All[0].SessionExpires;
 
-        // Renewed just before each token would have run out, twice, which is how a browser that is used
-        // every day walks a session towards its ceiling.
         this.harness.Time.Advance(lifetime - TimeSpan.FromDays(1));
         var renewed = await this.harness.Refresh(session.RefreshToken);
 
@@ -199,10 +172,7 @@ public class RefreshTokenTests
         Assert.That(sessions, Has.Exactly(2).Items);
     }
 
-    /// <summary>
-    /// The list is there so a user can spot a device that is not theirs, which needs the two moments the
-    /// live token cannot supply on its own: rotation replaces the row, so it knows only the last renewal.
-    /// </summary>
+    // Rotation replaces the row, so the live token knows only its last renewal; sign-in comes from the chain's first row.
     [Test]
     public async Task ASessionIsDatedFromTheSignInAndFromItsLastRenewal()
     {

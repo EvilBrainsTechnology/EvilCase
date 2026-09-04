@@ -2,9 +2,6 @@ using EvilBrains.EvilCase.Api.Contract.Contacts;
 
 namespace EvilBrains.EvilCase.Business.Contacts;
 
-/// <summary>
-/// Creates, edits and deletes a contact.
-/// </summary>
 public interface IContactWriter
 {
     public Task<ContactListItem> CreateContact(ContactEditRequest request, CancellationToken token);

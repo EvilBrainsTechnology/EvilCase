@@ -8,10 +8,6 @@ using Microsoft.Extensions.Options;
 
 namespace EvilBrains.EvilCase.Tests.Auth;
 
-/// <summary>
-/// Registration is closed, so this is the only way a deployment gets its first account — and the one
-/// thing that must never quietly reinstate an account somebody removed.
-/// </summary>
 public class UserSeederTests
 {
     private const string SeedEmail = "Admin@EvilCase.Test";
@@ -93,9 +89,6 @@ public class UserSeederTests
         Assert.That(await store.Any(CancellationToken.None), Is.False);
     }
 
-    /// <summary>
-    /// Half a seed is a misconfiguration, not an instruction to invent the other half.
-    /// </summary>
     [Test]
     public async Task AnEmailWithoutAPasswordCreatesNothing()
     {

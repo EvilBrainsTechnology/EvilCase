@@ -6,10 +6,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace EvilBrains.ApiClient.Generator;
 
-/// <summary>
-/// Enforces explicit parameter binding on [ApiController] actions: every parameter carries
-/// exactly one binding attribute, except CancellationToken which carries none.
-/// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class ActionParameterBindingAnalyzer : DiagnosticAnalyzer
 {

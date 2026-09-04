@@ -4,10 +4,6 @@ using EvilBrains.EvilCase.Tests.Seeding;
 
 namespace EvilBrains.EvilCase.Tests.Files;
 
-/// <summary>
-/// The file list on the rows a real PostgreSQL returns. Each test seeds a tenant of its own, so none
-/// cleans up after itself.
-/// </summary>
 public class FileListQueryTests : TenantFixture
 {
     private static readonly DateOnly Day = new(2026, 8, 21);

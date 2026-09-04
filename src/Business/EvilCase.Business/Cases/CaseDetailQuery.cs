@@ -6,14 +6,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Business.Cases;
 
-/// <summary>
-/// Reads the header of one case.
-/// </summary>
 internal static class CaseDetailQuery
 {
-    /// <summary>
-    /// The one case with its parent, or null where the tenant has no such case.
-    /// </summary>
     public static async Task<CaseDetail?> DetailOf(this IQueryable<Case> cases, Guid caseId, CancellationToken token)
     {
         return await cases

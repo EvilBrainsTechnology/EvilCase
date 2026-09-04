@@ -7,10 +7,7 @@ using Serilog.Parsing;
 namespace EvilBrains.Logging.AspNetCore;
 
 /// <summary>
-/// Rebuilds a Serilog event from an untrusted browser log entry. The parsed message template is the
-/// allow-list of property names: whatever the template does not reference is dropped, and so is
-/// anything the server owns. The event timestamp is the server clock, because browser clocks are
-/// arbitrary; the browser value is kept as ClientTimestamp.
+/// The entry is untrusted: the template is the allow-list of properties, and the event time is the server clock.
 /// </summary>
 internal sealed class ClientLogWriter : IClientLogWriter
 {
@@ -96,8 +93,7 @@ internal sealed class ClientLogWriter : IClientLogWriter
     }
 
     /// <summary>
-    /// The browser tells which request an entry belongs to; it is reformatted rather than trusted, and
-    /// an unparseable value leaves the identifier of the upload in place.
+    /// An unparseable value leaves the upload's own identifier, pushed by the middleware, in place.
     /// </summary>
     private static void AddIdentifier(List<LogEventProperty> properties, string name, string? value)
     {

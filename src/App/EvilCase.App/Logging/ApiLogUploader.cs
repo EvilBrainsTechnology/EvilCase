@@ -5,9 +5,6 @@ using EvilBrains.Logging.WebAssembly;
 
 namespace EvilBrains.EvilCase.App.Logging;
 
-/// <summary>
-/// Ships buffered browser logs through the generated API client.
-/// </summary>
 internal sealed class ApiLogUploader(ILogsClient client) : IClientLogUploader
 {
     public async Task Upload(ClientLogBatch batch)

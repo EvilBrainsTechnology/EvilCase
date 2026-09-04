@@ -22,4 +22,4 @@ Sporné body, každý jako odrážka: možnosti jednou větou, zvolené řešen�
 
 ## Dopady
 
-Co se maže nebo mění a vazby na jiná SDD.
+Vazby na jiná SDD, kterých se tohle SDD dotýká. Nikdy dokončené přechody ani co zaniklo.

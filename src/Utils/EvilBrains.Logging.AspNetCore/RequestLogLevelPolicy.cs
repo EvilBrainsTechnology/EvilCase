@@ -4,11 +4,8 @@ using Serilog.Events;
 namespace EvilBrains.Logging.AspNetCore;
 
 /// <summary>
-/// Serilog's default request logging levels, narrowed to the logged paths: anything outside them —
-/// a static asset, the frontend itself, a health probe — is demoted below the configured minimum and
-/// leaves no log, and so is a successful request to a quiet path inside them, or a CORS preflight.
-/// Failures are logged wherever they happen: server errors as errors, and a rejected request to a
-/// quiet path as information, because it is the upload that succeeds which must not feed itself.
+/// Verbose is "no log" only while the host minimum sits above it. A successful upload of client logs is never
+/// logged: the next upload would ship that log and log again.
 /// </summary>
 internal sealed class RequestLogLevelPolicy(IReadOnlyList<string> loggedPaths, IReadOnlyList<string> quietPaths)
 {

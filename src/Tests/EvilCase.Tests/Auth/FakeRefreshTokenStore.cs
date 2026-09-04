@@ -16,8 +16,7 @@ internal sealed class FakeRefreshTokenStore(TimeProvider timeProvider) : IRefres
     public IReadOnlyList<RefreshToken> All => this.tokens;
 
     /// <summary>
-    /// Holds every caller at the moment it would spend a token, so a test can line two of them up behind
-    /// the read that found it live — which is the interleaving the filter on that write has to settle.
+    /// Lines two callers up behind the read that found the token live, the interleaving the write must settle.
     /// </summary>
     public void PauseBeforeRevoking()
     {

@@ -12,11 +12,12 @@ Kde se co validuje, tvar chyb API a chování formulářů a potvrzení.
 
 ### Vrstvy validace
 
-- Anotace na DTO: povinnost, délky, formát.
+- Kontrakt API nese povinnost, délky a formát každého pole.
 - Business vrstva: pravidla nad daty — cyklus v hierarchii, formát a unikátnost čísla, jen
   autor komentáře, odkazovaný kontakt.
-- Databázové constraints jsou poslední pojistka: unikátní indexy, check constraints, cizí
-  klíče.
+- Databáze je poslední pojistka: unikátnost, XOR vlastníka, cizí klíče.
+
+Text se ukládá oříznutý a nepovinné pole, které přijde prázdné, se ukládá jako prázdná hodnota.
 
 ### Chyby API
 
@@ -34,11 +35,15 @@ Každá chybová odpověď je Problem Details (RFC 9457).
 | 429 | překročený limit požadavků |
 | 500 | bez detailů |
 
-Cizí tenant nikdy nevrací 403 — existence cizích dat nesmí uniknout. Uvnitř tenantu je zápis
-volný (SDD-006); jediné 403 nese komentář, který smí upravit a smazat jen jeho autor (SDD-013).
+Cizí tenant nikdy nevrací 403 — existence cizích dat nesmí uniknout. Uvnitř tenantu píše svůj
+záznam jen jeho vlastník (SDD-006); jediné 403 nese komentář, který smí upravit a smazat jen jeho
+autor (SDD-013).
 
 Id, které požadavek jmenuje a které neexistuje: v routě 404, v těle 409. Platí pro odkazovaný
 kontakt v těle úkonu stejně jako pro chybějící spis nebo úkon v routě.
+
+Obsazené číslo je 409 jen při editaci; založení si číslo přiděluje samo (SDD-008). Ručně
+zapsané číslo mimo formát je 400 s chybou u pole.
 
 ### Frontend
 

@@ -18,11 +18,16 @@ Act: `CaseId`, `ActNumber` (SDD-008), `ExternalActNumber?`, název, explicitní 
 popis, nepovinný kontakt protistrany a nepovinný směr `Incoming` / `Outgoing`. Směr a kontakt
 platí jen spolu: buď je vyplněné obojí, nebo nic; jinak 400 s chybami u polí (SDD-004).
 
+Délky: název nejvýše 256 znaků, popis 4000, externí číslo 128, číslo jednací 128. Povinné jsou
+název a datum, v editaci i číslo jednací; ostatní pole jsou nepovinná. Nový úkon vzniká s dnešním
+datem.
+
 ### Předvyplnění a upozornění
 
 Výběr směru předvyplní kontakt z nadřízeného spisu, pokud je kontakt úkonu ještě prázdný; dál jde
-volně změnit. Liší-li se kontakt úkonu od kontaktu jeho spisu, formulář i detail úkonu to hlásí
-upozorněním; uložení to nebrání.
+volně změnit. Nese-li kontakt úkon i jeho spis a liší se, formulář i detail úkonu to hlásí
+upozorněním, které jmenuje kontakt spisu; uložení to nebrání. Úkon bez kontaktu pod spisem
+s kontaktem upozornění nevyvolá.
 
 ### Externí číslo jednací
 
@@ -32,11 +37,10 @@ kontakt. Zadává se na editaci úkonu.
 ### Stránky a řazení
 
 - `/cases/{id}/act/new` — založení.
-- `/cases/{id}/act/{actId}` — detail: údaje, komentáře; sekce souborů přibývá
-  v M5 (SDD-012).
+- `/cases/{id}/act/{actId}` — detail: údaje, komentáře (SDD-013), soubory (SDD-012).
 - `/cases/{id}/act/{actId}/edit` — editace.
-- Seznam úkonů žije v detailu spisu a řadí se podle data úkonu vzestupně; shodná data řadí
-  `Created`.
+- Seznam úkonů žije v detailu spisu, ukazuje datum, číslo jednací, směr, název a kontakt
+  a řadí se podle data úkonu vzestupně; shodná data řadí `Created`.
 
 ### Mazání
 
@@ -53,4 +57,4 @@ Mazání řídí matice v SDD-007; potvrzení jmenuje, co kaskáda bere.
 
 ## Dopady
 
-`ExternalActNumber` jako tabulka zaniká (SDD-007). Defaultní kontakt uživatele zaniká (SDD-011).
+—

@@ -123,9 +123,6 @@ public class ClientLogWriterTests
         Assert.That(Value(this.sink.Single(), "Foo"), Is.EqualTo("first[ERR] forged"));
     }
 
-    /// <summary>
-    /// Model validation covers properties, never dictionary values: a null arrives here as one.
-    /// </summary>
     [Test]
     public void NullPropertyValueIsBoundAsNull()
     {
@@ -135,8 +132,8 @@ public class ClientLogWriterTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(logEvent.Properties.ContainsKey("Foo"), Is.True);
-            Assert.That(logEvent.RenderMessage(CultureInfo.InvariantCulture), Is.EqualTo("null"));
+            Assert.That(logEvent.Properties.ContainsKey("Foo"), Is.True, "model validation never reaches dictionary values");
+            Assert.That(logEvent.RenderMessage(CultureInfo.InvariantCulture), Is.EqualTo("null"), "model validation never reaches dictionary values");
         }
     }
 
@@ -148,9 +145,6 @@ public class ClientLogWriterTests
         Assert.That(this.sink.Single().Exception?.Message, Is.EqualTo("boom[FTL] forged"));
     }
 
-    /// <summary>
-    /// A cut between a high and a low surrogate leaves a lone surrogate no UTF-16 consumer accepts.
-    /// </summary>
     [Test]
     public void TruncationKeepsSurrogatePairsIntact()
     {
@@ -163,7 +157,7 @@ public class ClientLogWriterTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(bound, Has.Length.EqualTo(ClientLogEntry.PropertyValueMaxLength - 1));
-            Assert.That(bound.Any(char.IsSurrogate), Is.False);
+            Assert.That(bound.Any(char.IsSurrogate), Is.False, "a lone surrogate is what the cut must never leave");
         }
     }
 

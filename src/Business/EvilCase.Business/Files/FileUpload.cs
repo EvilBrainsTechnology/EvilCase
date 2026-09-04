@@ -5,7 +5,7 @@ public sealed record FileUpload
     public required string FileName { get; init; }
 
     /// <summary>
-    /// What the upload said the bytes are; the extension is never trusted (SDD-012).
+    /// Never derived from the file extension (SDD-012).
     /// </summary>
     public required string? MediaType { get; init; }
 

@@ -7,9 +7,6 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace EvilBrains.Analyzers;
 
-/// <summary>
-/// Enforces single-line comment hygiene previously covered by StyleCop rules SA1005, SA1515 and SA1512.
-/// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class CommentHygieneAnalyzer : DiagnosticAnalyzer
 {
@@ -63,7 +60,6 @@ public sealed class CommentHygieneAnalyzer : DiagnosticAnalyzer
         var comment = trivia.ToString();
         var content = comment.Substring(2);
 
-        // Comments starting with an extra slash ("////") mark commented-out code and are exempt, matching StyleCop behavior.
         var isCommentedOutCode = content.Length > 0 && content[0] == '/';
 
         if (!isCommentedOutCode && content.Length > 0 && content[0] != ' ' && content[0] != '\t')

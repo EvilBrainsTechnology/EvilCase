@@ -14,10 +14,6 @@ using Npgsql;
 
 namespace EvilBrains.EvilCase.Tests.Contacts;
 
-/// <summary>
-/// The delete against a real PostgreSQL: a reference written once the checks have run is refused by the
-/// foreign key, which no fake decides.
-/// </summary>
 public class ContactDeleteTests
 {
     [Test]
@@ -78,9 +74,6 @@ public class ContactDeleteTests
         }
     }
 
-    /// <summary>
-    /// The contact the delete aims at, and the case an act can hang under.
-    /// </summary>
     private static async Task<(Contact Contact, Case Case)> SeedContactAndCase(ApplicationDbContext context, Guid tenantId, Guid userId)
     {
         var account = new Account { Name = "contact delete" };

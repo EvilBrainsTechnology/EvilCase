@@ -4,10 +4,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Tests.Acts;
 
-/// <summary>
-/// The act order on the rows a real PostgreSQL returns. Each test seeds a tenant of its own, so none
-/// cleans up after itself.
-/// </summary>
 public class ActListQueryTests : TenantFixture
 {
     [Test]

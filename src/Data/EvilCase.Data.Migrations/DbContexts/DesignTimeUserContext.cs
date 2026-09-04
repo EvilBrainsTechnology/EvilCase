@@ -3,7 +3,7 @@ using EvilBrains.EvilCase.Domain.Users;
 namespace EvilBrains.EvilCase.Data.Migrations.DbContexts;
 
 /// <summary>
-/// Design time builds the model and never queries. A fixed tenant and user keep the SQL the tests read stable.
+/// Fixed ids keep the SQL the tests read stable.
 /// </summary>
 internal sealed class DesignTimeUserContext : IUserContext
 {

@@ -8,14 +8,11 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace EvilBrains.Analyzers;
 
 /// <summary>
-/// Orders a controller action's parameters: [FromServices], [FromRoute], [FromQuery], [FromBody],
-/// CancellationToken. [FromHeader] and [FromForm] rank with [FromQuery]. Requires every binding
-/// attribute written out explicitly.
+/// An unattributed parameter ranks with the CancellationToken; EB1005 keeps every other one attributed.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class ActionParameterOrderAnalyzer : DiagnosticAnalyzer
 {
-    // The order an action declares its parameters in; equal ranks are free among themselves.
     private static readonly Dictionary<string, int> BindingRanks = new(StringComparer.Ordinal)
     {
         ["Microsoft.AspNetCore.Mvc.FromServicesAttribute"] = 0,
@@ -57,7 +54,6 @@ public sealed class ActionParameterOrderAnalyzer : DiagnosticAnalyzer
             AnalyzeAction(context, method);
     }
 
-    // One report per action: the first parameter that sits behind a higher-ranked one.
     private static void AnalyzeAction(in SymbolAnalysisContext context, IMethodSymbol method)
     {
         var highestRank = int.MinValue;

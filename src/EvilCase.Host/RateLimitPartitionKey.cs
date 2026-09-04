@@ -4,10 +4,8 @@ using System.Net.Sockets;
 namespace EvilBrains.EvilCase.Host;
 
 /// <summary>
-/// A caller's rate-limit partition key. An IPv6 caller is keyed on its /64 prefix, the block an ISP
-/// hands out to one customer; the full address would let one caller spread across as many partitions
-/// as it has addresses inside that block. An IPv4-mapped IPv6 address is unwrapped first, or it would
-/// be keyed as if it owned a /64.
+/// IPv6 is keyed on its /64: the full address lets one customer spread over a block. An IPv4-mapped address
+/// is unwrapped first, or it would be keyed as a /64.
 /// </summary>
 internal static class RateLimitPartitionKey
 {

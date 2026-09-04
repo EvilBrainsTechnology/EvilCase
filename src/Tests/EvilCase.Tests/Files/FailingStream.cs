@@ -1,8 +1,5 @@
 namespace EvilBrains.EvilCase.Tests.Files;
 
-/// <summary>
-/// An upload that drops mid-request.
-/// </summary>
 internal sealed class FailingStream(byte[] head) : Stream
 {
     private bool headReturned;

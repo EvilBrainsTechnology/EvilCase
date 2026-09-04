@@ -20,8 +20,7 @@ internal sealed class CaseWriter(
     ILogger<CaseWriter> logger) : ICaseWriter
 {
     /// <summary>
-    /// How many numbers one case may be issued. The generator reads the day's highest and the unique index
-    /// settles the race, so the loser of one files again with the number the winner left free (SDD-008).
+    /// The unique index settles the numbering race; a loser retries (SDD-008).
     /// </summary>
     private const int Attempts = 5;
 
@@ -66,10 +65,7 @@ internal sealed class CaseWriter(
         }
     }
 
-    /// <summary>
-    /// <c>TenantId</c> and <c>UserId</c> are left unset here, the way the sample seeder leaves them
-    /// (SDD-018): the write stamps both from <c>IUserContext</c>.
-    /// </summary>
+    // TenantId and UserId are stamped by UserWriteInterceptor.
     internal static Case BuildCase(CreateCaseRequest request, string caseNumber)
     {
         return new()

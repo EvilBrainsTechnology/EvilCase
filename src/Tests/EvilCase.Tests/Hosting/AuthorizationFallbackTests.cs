@@ -8,12 +8,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace EvilBrains.EvilCase.Tests.Hosting;
 
-/// <summary>
-/// Authorization is default deny: an endpoint that says nothing needs an authenticated caller. That
-/// makes forgetting to protect something harmless and forgetting to open something loud, so the handful
-/// of paths that have to stay anonymous are pinned here — the frontend among them, which would
-/// otherwise put the sign-in page itself behind a sign-in.
-/// </summary>
 public class AuthorizationFallbackTests
 {
     private EvilCaseHost host = null!;
@@ -65,10 +59,6 @@ public class AuthorizationFallbackTests
         }
     }
 
-    /// <summary>
-    /// The frontend uploads its logs from the sign-in page too, where there is nothing to authenticate
-    /// with — and a failure there is exactly what one would want to see in the log.
-    /// </summary>
     [Test]
     public async Task TheClientLogUploadStaysAnonymous()
     {
@@ -76,7 +66,7 @@ public class AuthorizationFallbackTests
             new Uri(ClientLogRoute.Path, UriKind.Relative),
             new ClientLogBatch { Entries = [] });
 
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK), "the frontend uploads its logs from the sign-in page too, where there is nothing to authenticate with");
     }
 
     [Test]
@@ -87,9 +77,7 @@ public class AuthorizationFallbackTests
 
         using (Assert.EnterMultipleScope())
         {
-            // No body at all, so binding rejects it before the action — which is the point: it got that
-            // far, rather than being turned away by the fallback policy.
-            Assert.That(login.StatusCode, Is.EqualTo(HttpStatusCode.UnsupportedMediaType));
+            Assert.That(login.StatusCode, Is.EqualTo(HttpStatusCode.UnsupportedMediaType), "the call carries no body, so binding refused it and the fallback policy did not");
             Assert.That(refresh.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
             Assert.That(refresh.Content.Headers.ContentType?.MediaType, Is.EqualTo("application/problem+json"));
         }
@@ -117,16 +105,12 @@ public class AuthorizationFallbackTests
         }
     }
 
-    /// <summary>
-    /// An unknown path is a 404 rather than a 401: the fallback policy would otherwise turn every typo
-    /// into a claim that the path exists and is protected.
-    /// </summary>
     [Test]
     public async Task AnUnknownApiPathIsStillNotFound()
     {
         using var response = await this.client.GetAsync(new Uri("/api/nope", UriKind.Relative));
 
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound), "a 401 would turn every typo into a claim that the path exists and is protected");
     }
 
     [Test]

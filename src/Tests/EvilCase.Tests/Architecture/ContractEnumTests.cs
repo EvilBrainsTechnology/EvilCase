@@ -3,10 +3,6 @@ using System.Text.Json.Serialization;
 
 namespace EvilBrains.EvilCase.Tests.Architecture;
 
-/// <summary>
-/// A wire enum without a string converter is serialized as a number, and reordering its members
-/// silently changes the API.
-/// </summary>
 public class ContractEnumTests
 {
     [Test]

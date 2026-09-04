@@ -3,8 +3,7 @@ using EvilBrains.EvilCase.Domain.Users;
 namespace EvilBrains.EvilCase.App.Auth;
 
 /// <summary>
-/// The signed-in user as the browser knows them. Lives in memory only: a reload throws it away and the
-/// refresh cookie is what brings it back, so no script on the page can ever read a token out of storage.
+/// In memory only, never in storage: a reload throws it away and the refresh cookie brings it back.
 /// </summary>
 internal sealed record AccessTokenState
 {

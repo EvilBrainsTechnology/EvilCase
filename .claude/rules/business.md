@@ -26,9 +26,9 @@ What it cannot see:
 
 ## Queries
 
-- One `IQueryable` extension step per rule, composed by a reader; a step returns `IQueryable`
-  and ends at the ordering.
-- The reader projects straight into the contract DTO and calls `ToListAsync` once, at the end.
+- One `IQueryable` extension step per rule, composed by a reader; a step returns `IQueryable`,
+  and the last one projects into the contract DTO.
+- The reader composes the steps and calls `ToListAsync` once, at the end.
 - A read that yields one row is one step that returns the row, not an `IQueryable`.
 
 ## Tenancy

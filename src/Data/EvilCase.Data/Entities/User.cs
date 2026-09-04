@@ -14,8 +14,7 @@ public sealed record User : ITenantEntity
     public Guid TenantId { get; init; }
 
     /// <summary>
-    /// Stored normalised — trimmed and lower-cased — so the unique index is what makes e-mails
-    /// case-insensitive and a lookup never has to fold case in the database.
+    /// Stored trimmed and lower-cased; the unique index is case-sensitive.
     /// </summary>
     [MaxLength(256)]
     public required string Email { get; init; }
@@ -30,13 +29,7 @@ public sealed record User : ITenantEntity
 
     public DateTime? Updated { get; init; }
 
-    /// <summary>
-    /// Consecutive failed sign-ins. A successful one puts it back to zero.
-    /// </summary>
     public int FailedLoginAttempts { get; init; }
 
-    /// <summary>
-    /// Set while the account is locked out; in the past means the lockout has elapsed.
-    /// </summary>
     public DateTime? LockoutEnd { get; init; }
 }

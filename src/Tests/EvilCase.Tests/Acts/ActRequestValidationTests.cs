@@ -4,9 +4,6 @@ using EvilBrains.EvilCase.Domain.Acts;
 
 namespace EvilBrains.EvilCase.Tests.Acts;
 
-/// <summary>
-/// The pairing rule both act request records carry, which is what turns a half-filled pair into a 400.
-/// </summary>
 public class ActRequestValidationTests
 {
     [Test]

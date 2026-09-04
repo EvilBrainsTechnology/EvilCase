@@ -5,8 +5,7 @@ public enum RefreshStatus
     Success = 0,
 
     /// <summary>
-    /// Unknown, expired, revoked past the grace window, or belonging to a locked-out account. Whatever
-    /// the browser is holding is worthless and has to go with the refusal.
+    /// The cookie is dead and must be cleared.
     /// </summary>
     Rejected = 1,
 

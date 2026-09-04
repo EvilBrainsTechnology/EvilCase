@@ -1,5 +1,4 @@
-@* The router only cares about page-level [Authorize]. What makes the application closed by default is
-   MainLayout: everything laid out by it is behind an AuthorizeView, so a new page cannot forget. *@
+@* Default deny lives in MainLayout; the router only handles page-level [Authorize]. *@
 <CascadingAuthenticationState>
     <Router AppAssembly="typeof(App).Assembly">
         <Found Context="routeData">

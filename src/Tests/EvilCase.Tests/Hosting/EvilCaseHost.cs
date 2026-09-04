@@ -7,11 +7,8 @@ using Microsoft.Extensions.DependencyInjection;
 namespace EvilBrains.EvilCase.Tests.Hosting;
 
 /// <summary>
-/// Runs the real host: its Program.cs, its middleware pipeline and its endpoints. Per-instance settings
-/// travel as a configuration source of this factory, so coexisting hosts cannot leak them into each
-/// other. The environment name is the one exception: the host checks it before the builder exists, so it
-/// has to be a process environment variable — safe process-wide because every instance writes the same
-/// value.
+/// Settings travel as a configuration source of this factory, so coexisting hosts do not leak; only the
+/// environment name must be a process variable, read before the builder exists.
 /// </summary>
 internal sealed class EvilCaseHost(
     bool behindReverseProxy = false,
@@ -21,14 +18,9 @@ internal sealed class EvilCaseHost(
     string? filesRootPath = null,
     Action<IServiceCollection>? configureServices = null) : WebApplicationFactory<Program>
 {
-    /// <summary>
-    /// Long enough to pass the signing key validation, so every test that is not about the key gets a host
-    /// that starts.
-    /// </summary>
     private static readonly string ValidJwtKey = new('k', 64);
 
     /// <summary>
-    /// A directory every test that is not about the file storage root gets a host that starts with.
     /// Nothing creates it; the host never touches it at startup.
     /// </summary>
     private static readonly string ValidFilesRootPath = Path.Combine(Path.GetTempPath(), "evilcase-tests-files");
@@ -44,12 +36,8 @@ internal sealed class EvilCaseHost(
         // path outside the API answers 404 instead of falling back to it.
         builder.UseStaticWebAssets();
 
-        // Nothing here opens a connection: the DbContext is registered, never used, and startup migration
-        // — the one thing that would reach for the database before a request arrives — is turned off.
-        // httpsPort: UseHttpsRedirection needs a target port; without one it logs and lets the request
-        // through, so a test that wants to see a redirect has to name it.
-        // jwtKey: an empty value maps to a null entry, which leaves the key unconfigured — the same
-        // failure as a deployment that never set it.
+        // httpsPort: UseHttpsRedirection needs a target port; without one it logs and lets the request through.
+        // jwtKey: an empty value maps to a null entry, the same as a deployment that never set it.
         builder.ConfigureAppConfiguration(configuration => configuration.AddInMemoryCollection(
             new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase)
             {
@@ -64,8 +52,6 @@ internal sealed class EvilCaseHost(
                 ["HTTPS_PORT"] = httpsPort?.ToString(CultureInfo.InvariantCulture),
             }));
 
-        // Runs after the application's own registrations, so a test that wants to reach an endpoint which
-        // does touch the database swaps the two stores that do.
         if (configureServices is not null)
             builder.ConfigureTestServices(configureServices);
     }

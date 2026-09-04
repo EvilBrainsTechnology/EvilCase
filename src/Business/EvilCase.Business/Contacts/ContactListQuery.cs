@@ -6,14 +6,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Business.Contacts;
 
-/// <summary>
-/// Shapes the contact list, one composable step per rule.
-/// </summary>
 internal static class ContactListQuery
 {
-    /// <summary>
-    /// Matches the name or the data box id, ignoring case and diacritics. A blank term narrows nothing.
-    /// </summary>
     public static IQueryable<Contact> MatchingSearch(this IQueryable<Contact> contacts, string? search)
     {
         if (string.IsNullOrWhiteSpace(search))
@@ -27,9 +21,6 @@ internal static class ContactListQuery
                     && EF.Functions.ILike(DatabaseFunctions.Unaccent(contact.DataBoxId), DatabaseFunctions.Unaccent(pattern), LikeExtensions.LikeEscape)));
     }
 
-    /// <summary>
-    /// By name, the identifier breaking the tie so the order is total.
-    /// </summary>
     public static IQueryable<Contact> InListOrder(this IQueryable<Contact> contacts)
     {
         return contacts
@@ -37,9 +28,6 @@ internal static class ContactListQuery
             .ThenBy(static contact => contact.Id);
     }
 
-    /// <summary>
-    /// Reads only what a row shows, in one query.
-    /// </summary>
     public static IQueryable<ContactListItem> AsListItems(this IQueryable<Contact> contacts)
     {
         return contacts.Select(static contact => new ContactListItem

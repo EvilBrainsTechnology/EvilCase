@@ -14,9 +14,8 @@ internal sealed class AuthService(
     ILogger<AuthService> logger) : IAuthService
 {
     /// <summary>
-    /// Two tabs can present the same refresh token at once and only one of them can win. Inside this
-    /// window a token rotation has just revoked is that race rather than a replay: the browser's cookie
-    /// already holds the replacement, so the loser's next attempt succeeds and nothing is torn down.
+    /// Within this window a revoked token is a two-tab race, not a replay: the cookie already holds the
+    /// replacement.
     /// </summary>
     private static readonly TimeSpan ReplayGracePeriod = TimeSpan.FromSeconds(30);
 
@@ -67,10 +66,8 @@ internal sealed class AuthService(
         if (user is null || user.LockoutEnd > now)
             return RefreshResult.Failed(RefreshStatus.Rejected);
 
-        // Revoking is what settles a race rather than the read above it: two callers presenting the same
-        // token both find it live, and only the one whose update still finds it unrevoked may spend it.
-        // Without this the loser would be handed a second live token in the same chain, and a stolen
-        // cookie racing the browser would never be seen as the replay it is.
+        // The revoke settles the race, not the read above: only the caller whose update finds
+        // the row unrevoked may spend it.
         if (!await refreshTokenStore.RevokeRefreshToken(stored.Id, now, token))
             return RefreshResult.Failed(RefreshStatus.Raced);
 
@@ -107,8 +104,7 @@ internal sealed class AuthService(
                     AuthSessionId = token.AuthSessionId,
                     Created = starts[token.AuthSessionId],
 
-                    // The live token was issued the last time this session renewed, and every row behind
-                    // it carries its own use as the LastUsed rotation stamped on it when it was spent.
+                    // The live token's Created is the last renewal; LastUsed is stamped only on spent rows.
                     LastUsed = token.Created,
                     Expires = token.SessionExpires,
                     IpAddress = token.CreatedByIp,
@@ -161,7 +157,6 @@ internal sealed class AuthService(
         var value = RefreshTokenValue.Create();
         var expires = now.Add(options.Value.RefreshToken.Expiration);
 
-        // Never past the chain's ceiling: rotating must not be a way to extend a session for ever.
         if (expires > sessionExpires)
             expires = sessionExpires;
 

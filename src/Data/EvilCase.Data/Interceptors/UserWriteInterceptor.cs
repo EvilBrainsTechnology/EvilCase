@@ -6,10 +6,6 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace EvilBrains.EvilCase.Data.Interceptors;
 
-/// <summary>
-/// Fills a new row's <c>TenantId</c> and <c>UserId</c> from <see cref="IUserContext"/>. A row of another
-/// tenant, or a row of another user within the same tenant, is refused on write, change or deletion.
-/// </summary>
 internal sealed class UserWriteInterceptor(IUserContext userContext) : SaveChangesInterceptor
 {
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)

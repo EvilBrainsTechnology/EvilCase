@@ -56,10 +56,7 @@ public class ModelConventionTests : ModelFixture
     }
 
     /// <summary>
-    /// From review on #86: a one-to-many is reachable from both ends, so the principal carries a
-    /// collection rather than the dependent carrying the only reference. Without it a contact's history
-    /// across cases can be reached only by querying the dependent table by hand. A <see cref="User"/> at
-    /// either end is outside this: neither the rows it owns nor its default contact are read from there.
+    /// <see cref="User"/> is left out at either end: the rows it owns are never read from there.
     /// </summary>
     [Test]
     public void EveryOneToManyIsNavigableFromBothEnds()
@@ -85,9 +82,6 @@ public class ModelConventionTests : ModelFixture
         }
     }
 
-    /// <summary>
-    /// From the same review: a navigation is followed because a query asked, never because it exists.
-    /// </summary>
     [Test]
     public void NothingIsEagerLoaded()
     {
@@ -122,8 +116,7 @@ public class ModelConventionTests : ModelFixture
     }
 
     /// <summary>
-    /// A trigger stamps both (SDD-018): the write sends neither and reads both back. Read off the
-    /// design-time model, which is the one that carries the save behaviours.
+    /// The runtime model drops the save behaviours; only the design-time one carries them.
     /// </summary>
     [Test]
     public void TheDatabaseOwnsEveryTimestamp()

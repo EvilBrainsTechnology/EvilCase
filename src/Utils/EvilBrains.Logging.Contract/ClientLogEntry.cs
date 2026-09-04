@@ -29,8 +29,7 @@ public record ClientLogEntry
     public IReadOnlyDictionary<string, string>? Properties { get; init; }
 
     /// <summary>
-    /// The request this entry belongs to, when it was written while one was in flight. Without it the
-    /// entry inherits the identifiers of the upload that carried it.
+    /// Absent, the entry inherits the identifiers of the upload that carried it.
     /// </summary>
     [StringLength(IdentifierMaxLength)]
     public string? RequestId { get; init; }

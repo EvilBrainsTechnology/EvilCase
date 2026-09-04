@@ -4,10 +4,6 @@ using EvilBrains.EvilCase.Tests.Data;
 
 namespace EvilBrains.EvilCase.Tests.Cases;
 
-/// <summary>
-/// The one case's header, on the rows a real PostgreSQL returns. Each test seeds a tenant of its own,
-/// so none cleans up after itself.
-/// </summary>
 public class CaseDetailQueryTests : TenantFixture
 {
     private static readonly DateOnly Day = new(2026, 8, 24);

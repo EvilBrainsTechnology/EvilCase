@@ -69,7 +69,7 @@ Aplikace čísluje spisy a úkony sama, bez konfigurace; tvar čísel, ruční p
 
 URL nesou UUID: `/cases`, `/cases/{id}`, `/cases/{id}/act/{actId}`, `/contacts`, `/login`
 ([SDD-016](../sdd/sdd-016-navigace-a-vzhled.md)). Dashboard `/` stojí nad reálnými daty
-([SDD-015](../sdd/sdd-015-dashboard.md)). Vzhled zůstává: Tabler + TabBlazor.
+([SDD-015](../sdd/sdd-015-dashboard.md)). Vzhled: Tabler + TabBlazor.
 
 ## Vzorová data
 
@@ -103,7 +103,8 @@ rukou od začátku do konce.
 ## Non-goals pro teď
 
 Konfigurovatelné číslování, tagy, vazby souborů mezi úkony, lhůty, timeline, import složek,
-hledání nad spisy a úkony, extrakce textu z dokumentů a fulltext nad obsahem souborů, .docx
+hledání napříč agendami nad rámec filtru v jednotlivých seznamech, extrakce textu z dokumentů
+a fulltext nad obsahem souborů, .docx
 šablony a generovaná podání, datové schránky (ISDS), e-mail, AI shrnutí, role, registrace,
 pozvánky, více uživatelů v tenantu, billing, správa uživatelů nad rámec seedovaného
 administrátora. Model všem nechává místo; nic z toho se nestaví.

@@ -9,9 +9,6 @@ public sealed record CaseDetail
 
     public required string CaseNumber { get; init; }
 
-    /// <summary>
-    /// The mark another authority gave this case, null where none is recorded (SDD-009).
-    /// </summary>
     public string? ExternalCaseNumber { get; init; }
 
     public required DateOnly Date { get; init; }
@@ -22,18 +19,12 @@ public sealed record CaseDetail
 
     public required CaseStatus Status { get; init; }
 
-    /// <summary>
-    /// The counterparty of the proceeding, null where the case names none (SDD-009).
-    /// </summary>
     public ContactListItem? Contact { get; init; }
 
-    /// <summary>
-    /// The case this one hangs under, or null where it hangs under nothing (SDD-009).
-    /// </summary>
     public CaseListItem? ParentCase { get; init; }
 
     /// <summary>
-    /// The cases that hang directly under this one; the detail shows one level, never a tree (SDD-009).
+    /// Direct children only, never descendants.
     /// </summary>
     public IReadOnlyList<CaseListItem> ChildCases { get; init; } = [];
 }

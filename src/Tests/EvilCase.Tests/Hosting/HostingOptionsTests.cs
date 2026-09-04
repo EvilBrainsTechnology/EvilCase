@@ -3,12 +3,6 @@ using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace EvilBrains.EvilCase.Tests.Hosting;
 
-/// <summary>
-/// The two keys under EvilBrains:EvilCase:Hosting are read as strings and fall back to a default when
-/// they do not match, so a typo in either one changes how the deployed application behaves without
-/// failing anywhere. Both are pinned through the redirect they decide: with an HTTPS port configured a
-/// plain HTTP request is redirected, unless the forwarded scheme says the caller already used HTTPS.
-/// </summary>
 public class HostingOptionsTests
 {
     private const string ForwardedProtoHeader = "X-Forwarded-Proto";
@@ -54,10 +48,6 @@ public class HostingOptionsTests
         }
     }
 
-    /// <summary>
-    /// The proxy terminates TLS and the request reaches the host over plain HTTP, so without the
-    /// forwarded scheme the redirect would bounce a caller that already used HTTPS back to the proxy.
-    /// </summary>
     [Test]
     public async Task ForwardedSchemeIsHonouredBehindAReverseProxy()
     {
@@ -66,12 +56,9 @@ public class HostingOptionsTests
 
         using var response = await GetAsync(client, forwardedProto: "https");
 
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK), "the proxy terminates TLS, so a redirect would bounce a caller that already used HTTPS");
     }
 
-    /// <summary>
-    /// Nothing is known to sit in front, so the header is a claim any caller can make.
-    /// </summary>
     [Test]
     public async Task ForwardedSchemeIsIgnoredWithoutAReverseProxy()
     {
@@ -80,13 +67,9 @@ public class HostingOptionsTests
 
         using var response = await GetAsync(client, forwardedProto: "https");
 
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.TemporaryRedirect));
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.TemporaryRedirect), "nothing is known to sit in front, so the header is a claim any caller can make");
     }
 
-    /// <summary>
-    /// A redirect carries no body, so an orchestrator sending its probes over plain HTTP would count it
-    /// as a failed probe and take the instance out of rotation.
-    /// </summary>
     [Test]
     public async Task HealthProbesAreNotRedirected()
     {
@@ -95,6 +78,6 @@ public class HostingOptionsTests
 
         using var response = await client.GetAsync(new Uri("/health/live", UriKind.Relative));
 
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK), "a redirect carries no body, so an orchestrator probing over plain HTTP would count it as a failure");
     }
 }

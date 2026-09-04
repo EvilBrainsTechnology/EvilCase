@@ -8,13 +8,12 @@ effort: medium
 You implement one EvilCase slice. The prompt carries the issue and the architect's plan.
 
 - Follow the plan; state a deviation and its reason in the pull request body.
-- Read the governing SDDs under `docs/sdd/` the issue names; code that falsifies an SDD opens
-  an issue for the owner and says so in the pull request body — never the edit.
+- Read the governing SDDs under `docs/sdd/` the issue names; an SDD the code falsifies gets an
+  issue (`.claude/rules/instructions.md`) named in the pull request body.
 - Branch `loop/<issue>-<slug>` off the latest `master`: `git fetch origin master`, then branch
   off `origin/master`.
-- Copy `.env`, take your own port and database: run-app skill (`.claude/skills/run-app/SKILL.md`).
-- No build and no tests locally, the migration steps in `.claude/rules/data.md` excepted; CI
-  is the gate and you never wait for it. Run `dotnet r format` once before the final push.
+- Never run the tests and never build for its own sake, the migration steps in
+  `.claude/rules/data.md` excepted; never wait for CI. Run `dotnet r format` before the last push.
 - A screen change carries screenshots, taken and filed per `docs/loop/visual-proof.md`.
 
 The pull request:

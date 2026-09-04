@@ -6,9 +6,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 namespace EvilBrains.EvilCase.Tests.Data.Model;
 
 /// <summary>
-/// Builds the model without touching a server — the design-time factory names no connection string,
-/// and nothing here opens one. What the fixtures pin are the conventions in
-/// <c>.claude/rules/data.md</c>, which a new entity is otherwise free to forget silently.
+/// The design-time factory names no connection string, so building the model touches no server.
 /// </summary>
 public abstract class ModelFixture
 {
