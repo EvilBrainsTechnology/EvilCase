@@ -6,7 +6,7 @@
 
 ## Rozsah
 
-Routy aplikace, rušené stránky, menu a vzhled. Obsah stránek drží SDD jednotlivých agend.
+Routy aplikace, menu a vzhled. Obsah stránek drží SDD jednotlivých agend.
 
 ## Popis
 
@@ -28,29 +28,27 @@ URL nesou UUID entit, nikdy jejich čísla:
 | `/contacts/{id}` | detail kontaktu |
 | `/login` | přihlášení |
 
-### Zaniká
-
-- `/deadlines` — lhůty jsou non-goal.
-- `/echo` včetně `EchoController` a jeho kontraktu.
-- `/settings` — číslování je natvrdo (SDD-008).
-- Widget lhůt na dashboardu včetně jeho vzorových dat; zbytek dnešního dashboardu žije do
-  přepisu v M7 (SDD-015).
+Neznámá routa vykreslí stav nenalezeno uvnitř aplikace, neznámé id v routě prázdný stav
+s tím, který záznam chybí.
 
 ### Menu a vzhled
 
-Menu nese dashboard, spisy a kontakty. Vzhled zůstává současný: Tabler + TabBlazor,
-responsivita podle `.claude/rules/app.md`. Každá stránka žije v `MainLayout`, kromě `/login` —
-`MainLayout` je autentizovaná schránka a přihlašovací stránka jí nutně nemá jak podléhat.
-Každý seznam
-má prázdný stav (vzor `.empty`); kde jde záznam založit, nese výzvu k založení.
+Menu nese Přehled, Spisy a Kontakty a zvýrazňuje položku i na podřízených routách. Vzhled je
+Tabler a TabBlazor. Desktop je primární, každá denně používaná obrazovka je plnohodnotná i na
+mobilu a seznam se na mobilu nikdy neposouvá vodorovně. Datum se všude píše `d. M. yyyy`,
+okamžik `d. M. yyyy H:mm` v časovém pásmu prohlížeče.
+
+Každý seznam má prázdný stav; kde jde záznam založit, nese výzvu k založení.
+
+### Přihlášení
+
+Každá stránka kromě `/login` vyžaduje přihlášení; nepřihlášeného aplikace přesměruje na
+`/login` a po přihlášení ho vrátí tam, odkud přišel. Cíl mimo aplikaci se ignoruje a vede na `/`.
 
 ## Rozhodnutí
 
 - Identifikátor v URL: `CaseNumber` / UUID. Platí UUID.
-- Rušené stránky: nechat ležet do náhrady / smazat v M1. Platí smazat v M1.
 
 ## Dopady
 
-Rušené stránky, `EchoController`, jeho kontrakt ani klient v repozitáři nejsou. Sekce Verify
-v `.claude/skills/run-app/SKILL.md` sonduje autentizovaný `GET /api/cases` a stránku
-`/cases`. Dashboard se přepisuje v M7 (SDD-015).
+—
