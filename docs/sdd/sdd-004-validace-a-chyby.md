@@ -35,8 +35,9 @@ Každá chybová odpověď je Problem Details (RFC 9457).
 | 429 | překročený limit požadavků |
 | 500 | bez detailů |
 
-Cizí tenant nikdy nevrací 403 — existence cizích dat nesmí uniknout. Uvnitř tenantu je zápis
-volný (SDD-006); jediné 403 nese komentář, který smí upravit a smazat jen jeho autor (SDD-013).
+Cizí tenant nikdy nevrací 403 — existence cizích dat nesmí uniknout. Uvnitř tenantu píše svůj
+záznam jen jeho vlastník (SDD-006); jediné 403 nese komentář, který smí upravit a smazat jen jeho
+autor (SDD-013).
 
 Id, které požadavek jmenuje a které neexistuje: v routě 404, v těle 409. Platí pro odkazovaný
 kontakt v těle úkonu stejně jako pro chybějící spis nebo úkon v routě.
