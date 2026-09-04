@@ -3,12 +3,12 @@
 - **Stav:** platí
 - **Milníky:** M3
 - **Související SDD:** [007](sdd-007-domenovy-model.md), [008](sdd-008-cislovani.md),
-  [013](sdd-013-komentare.md)
+  [011](sdd-011-kontakty.md), [013](sdd-013-komentare.md)
 
 ## Rozsah
 
 Entita spisu, hierarchie, externí značka, stránky spisů a mazání. Číslování patří SDD-008,
-soubory SDD-012, komentáře SDD-013.
+úkony SDD-010, soubory SDD-012, komentáře SDD-013.
 
 ## Popis
 
@@ -16,16 +16,20 @@ soubory SDD-012, komentáře SDD-013.
 
 Case: `ParentCaseId?`, `CaseNumber`, `ExternalCaseNumber?`, explicitní datum (`DateOnly`), název,
 popis, stav `Active` / `WaitingOnAuthority` / `Closed`, nepovinný kontakt protistrany (SDD-011).
-Bez tagů.
 
 Stav je jen štítek: na nic se neváže, spis ve stavu `Closed` jde editovat a přijímá úkony,
-soubory i komentáře jako každý jiný. Nový spis vzniká jako `Active`.
+soubory i komentáře jako každý jiný. Nový spis vzniká jako `Active` a s dnešním datem.
+
+Délky: název nejvýše 256 znaků, popis 4000, externí značka 128, spisová značka 64. Název a datum
+jsou povinné, ostatní pole nepovinná.
 
 ### Hierarchie
 
-- Rodič je volitelný, hloubka libovolná. Cyklus je zakázaný; hlídá ho zápis v business
-  vrstvě.
-- Podřízený spis se zakládá z detailu rodiče; rodič jde nastavit i v editaci spisu.
+- Rodič je volitelný, hloubka libovolná. Cyklus je zakázaný: uložení, které by ho uzavřelo,
+  vrací 409 (SDD-004).
+- Podřízený spis se zakládá z detailu rodiče a rodiče na formuláři jen ukazuje; v editaci spisu
+  jde rodič vybrat z kterýchkoli spisů tenantu kromě samotného spisu. Cyklus se pozná až při
+  uložení.
 - UI zobrazuje jen ploché seznamy: detail spisu ukazuje odkaz na rodiče a seznam přímých
   podřízených spisů. Žádný strom.
 
@@ -38,15 +42,17 @@ kontakt. Zadává se na editaci spisu.
 
 - `/cases` — seznam spisů: číslo, název, stav, datum. Řadí se podle data spisu sestupně,
   shodná data řadí `Created`; bez stránkování. Hledací pole hledá v názvu a popisu bez ohledu na
-  diakritiku a filtr stavu s výchozí hodnotou Otevřené.
-- `/cases/new` — založení, včetně kontaktu.
-- `/cases/{id}` — detail: údaje, podřízené spisy, komentáře; sekce úkonů přibývá
-  v M4 (SDD-010), sekce souborů v M5 (SDD-012).
-- `/cases/{id}/edit` — editace, včetně kontaktu.
+  diakritiku. Filtr stavu nabízí Otevřené (vše kromě uzavřených), Všechny stavy a každý stav
+  zvlášť; výchozí je Otevřené.
+- `/cases/new` — založení, včetně kontaktu; `?parent={id}` zakládá podřízený spis.
+- `/cases/{id}` — detail: údaje, podřízené spisy, úkony (SDD-010), komentáře (SDD-013),
+  soubory (SDD-012).
+- `/cases/{id}/edit` — editace, včetně kontaktu a rodiče.
 
 ### Mazání
 
-Mazání řídí matice v SDD-007; potvrzení jmenuje, co kaskáda bere.
+Mazání řídí matice v SDD-007. Potvrzení jmenuje, co kaskáda bere, a u spisu s podřízenými
+spisy jejich počet a to, že zůstanou bez rodiče.
 
 ## Rozhodnutí
 
@@ -60,4 +66,4 @@ Mazání řídí matice v SDD-007; potvrzení jmenuje, co kaskáda bere.
 
 ## Dopady
 
-`CaseRelation`, `CaseTag` a `ExternalCaseNumber` zanikají (SDD-007).
+—
