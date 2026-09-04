@@ -2,11 +2,6 @@ using EvilBrains.EvilCase.Domain.Users;
 
 namespace EvilBrains.EvilCase.Auth;
 
-/// <summary>
-/// A signed-in user, as everything the caller has to hand back to the browser. The access token goes
-/// into the response body, the refresh token into a cookie — this is the only place the raw refresh
-/// token exists, as the store keeps nothing but its hash.
-/// </summary>
 public sealed record AuthSession
 {
     public required string AccessToken { get; init; }

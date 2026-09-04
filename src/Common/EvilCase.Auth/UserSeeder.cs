@@ -23,8 +23,7 @@ internal sealed class UserSeeder(
         if (seed?.Email is not { Length: > 0 } email || seed.Password is not { Length: > 0 } password)
             return;
 
-        // Any user at all, not just this e-mail: the seed exists to make an empty deployment reachable,
-        // and once someone can sign in it must not quietly reinstate an account that was removed.
+        // Any user, not this e-mail: the seed must never reinstate a removed account.
         if (await userStore.Any(token))
             return;
 

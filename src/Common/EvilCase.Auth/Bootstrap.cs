@@ -34,16 +34,13 @@ public static class Bootstrap
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer();
 
-        // Configured through the options pipeline rather than from a second binding of the section, so
-        // the validated settings are the only ones the scheme can be built from.
         services
             .AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
             .Configure<IOptions<AuthSettings>>(static (options, authSettings) =>
             {
                 var jwt = authSettings.Value.Jwt;
 
-                // Claims stay as the token wrote them. Mapped, "sub" and "role" would arrive under
-                // WS-Federation URIs and everything reading them would have to name those instead.
+                // Off, or "sub" and "role" arrive under WS-Federation URIs.
                 options.MapInboundClaims = false;
 
                 options.TokenValidationParameters.ValidateIssuer = true;
@@ -63,10 +60,7 @@ public static class Bootstrap
                 options.TokenValidationParameters.ValidAlgorithms = [SecurityAlgorithms.HmacSha256];
             });
 
-        // Default deny. An endpoint that carries no authorization attribute now requires an authenticated
-        // caller, and everything meant to stay open — the health probes, the sign-in endpoints, the
-        // frontend itself — says so with [AllowAnonymous]. Adding an endpoint and forgetting to protect
-        // it fails closed rather than open.
+        // Default deny: an unattributed endpoint fails closed; open ones say [AllowAnonymous].
         services
             .AddAuthorizationBuilder()
             .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
@@ -74,19 +68,13 @@ public static class Bootstrap
         return services;
     }
 
-    /// <summary>
-    /// Creates the account, the tenant, the configured administrator and the administrator's default
-    /// contact where the database holds no user at all. Runs after the migrations and before anything
-    /// is served, so an empty deployment is reachable on first start.
-    /// </summary>
     public static async Task SeedEvilCaseUser(this IHost host, CancellationToken token)
     {
         await using var scope = host.Services.CreateAsyncScope();
 
         var seeder = scope.ServiceProvider.GetRequiredService<IUserSeeder>();
 
-        // A deployment that names no seed never reaches the database, so a host with nothing to seed
-        // starts without a connection.
+        // Before IDbSession is resolved: nothing to seed, no connection.
         if (!seeder.IsConfigured)
             return;
 

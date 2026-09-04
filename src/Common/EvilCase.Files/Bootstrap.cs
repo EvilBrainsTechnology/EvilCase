@@ -12,7 +12,6 @@ public static class Bootstrap
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
-        // Singleton: the store holds a root path and nothing else.
         services.AddSingleton<IFileBlobStore, FileBlobStore>();
 
         return services;

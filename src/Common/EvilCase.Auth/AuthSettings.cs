@@ -17,9 +17,6 @@ internal sealed record AuthSettings
     [ValidateObjectMembers]
     public required LockoutSettings Lockout { get; init; }
 
-    /// <summary>
-    /// Optional: an environment that names no seed credentials simply gets no seeded account.
-    /// </summary>
     [ValidateObjectMembers]
     public SeedSettings? Seed { get; init; }
 
@@ -31,10 +28,6 @@ internal sealed record AuthSettings
         [Required]
         public required string Audience { get; init; }
 
-        /// <summary>
-        /// Short on purpose: the token cannot be revoked, so its lifetime is the window a stolen one
-        /// stays usable. The refresh token is what keeps the user signed in past it.
-        /// </summary>
         [Required]
         public required TimeSpan AccessTokenExpiration { get; init; }
 
@@ -46,15 +39,11 @@ internal sealed record AuthSettings
 
     internal sealed record RefreshTokenSettings
     {
-        /// <summary>
-        /// How long one issued refresh token stays valid. Every rotation starts it over.
-        /// </summary>
         [Required]
         public required TimeSpan Expiration { get; init; }
 
         /// <summary>
-        /// The ceiling on a rotation chain, fixed when the user signs in. However diligently a browser
-        /// refreshes, the session ends here and the password is asked for again.
+        /// The ceiling on a whole rotation chain, fixed at sign-in.
         /// </summary>
         [Required]
         public required TimeSpan SessionExpiration { get; init; }
@@ -70,10 +59,8 @@ internal sealed record AuthSettings
     }
 
     /// <summary>
-    /// Blank counts as unset, the way <c>UserSeeder</c> already reads it. An environment that names no
-    /// seed still passes the key along — a compose file interpolating <c>${VAR:-}</c> hands over an empty
-    /// string, not nothing at all — and the validation below would otherwise refuse to start over a
-    /// deployment that simply seeds no account.
+    /// Blank counts as unset: compose's ${VAR:-} hands over an empty string the attributes would otherwise
+    /// refuse at start.
     /// </summary>
     internal sealed record SeedSettings
     {

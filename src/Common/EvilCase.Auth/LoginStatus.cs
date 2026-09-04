@@ -10,8 +10,7 @@ public enum LoginStatus
     InvalidCredentials = 1,
 
     /// <summary>
-    /// Too many consecutive failures. Only ever reported to someone who already caused them, so it
-    /// tells an attacker nothing they did not already know.
+    /// Safe to report: only the caller who caused the failures sees it.
     /// </summary>
     LockedOut = 2,
 }

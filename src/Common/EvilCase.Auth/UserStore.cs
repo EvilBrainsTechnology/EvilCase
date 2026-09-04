@@ -4,13 +4,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Auth;
 
+// Every query here ignores the tenant filter: sign-in, refresh and the seed run before a tenant is known.
 internal sealed class UserStore(IDbSession dbSession) : IUserStore
 {
     public async Task<User?> FindByEmail(string email, CancellationToken token)
     {
         var normalized = EmailNormalizer.Normalize(email);
 
-        // Sign-in runs before a tenant is known.
         return await dbSession.Current.Users
             .IgnoreQueryFilters()
             .SingleOrDefaultAsync(user => user.Email == normalized, token);
@@ -18,7 +18,6 @@ internal sealed class UserStore(IDbSession dbSession) : IUserStore
 
     public async Task<User?> FindById(Guid userId, CancellationToken token)
     {
-        // The anonymous refresh endpoint calls this before a tenant is known.
         return await dbSession.Current.Users
             .IgnoreQueryFilters()
             .SingleOrDefaultAsync(user => user.Id == userId, token);
@@ -26,8 +25,6 @@ internal sealed class UserStore(IDbSession dbSession) : IUserStore
 
     public async Task<DateTime?> RecordFailedLogin(Guid userId, int maxAttempts, DateTime lockoutEnd, CancellationToken token)
     {
-        // Sign-in runs before a tenant is known.
-        // Every setter reads the stored column, never a number worked out from an earlier read.
         await dbSession.Current.Users
             .IgnoreQueryFilters()
             .Where(user => user.Id == userId)
@@ -50,7 +47,6 @@ internal sealed class UserStore(IDbSession dbSession) : IUserStore
 
     public async Task RecordSuccessfulLogin(Guid userId, CancellationToken token)
     {
-        // Sign-in runs before a tenant is known.
         await dbSession.Current.Users
             .IgnoreQueryFilters()
             .Where(user => user.Id == userId)
@@ -63,7 +59,6 @@ internal sealed class UserStore(IDbSession dbSession) : IUserStore
 
     public async Task<bool> Any(CancellationToken token)
     {
-        // The administrator seed at startup runs before a tenant is known.
         return await dbSession.Current.Users.IgnoreQueryFilters().AnyAsync(token);
     }
 

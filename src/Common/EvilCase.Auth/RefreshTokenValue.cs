@@ -5,8 +5,7 @@ using System.Text;
 namespace EvilBrains.EvilCase.Auth;
 
 /// <summary>
-/// The refresh token itself: 256 bits of randomness, stored only as a hash. A password KDF would be
-/// wrong here — there is nothing to guess — but a database dump still must not hand out live sessions.
+/// SHA-256, not a KDF: 256 random bits cannot be guessed, but a dump must not hand out sessions.
 /// </summary>
 internal static class RefreshTokenValue
 {

@@ -8,9 +8,8 @@ internal sealed class FileBlobStore(IOptions<FileSettings> settings, ILogger<Fil
 {
     private const int BufferSize = 80 * 1024;
 
-    // A relative root resolves against the application directory, not the process working directory.
-    // Exactly one trailing separator, whatever the configured root ended with: the containment check
-    // below compares this as a prefix, and a root written with a trailing slash would match nothing.
+    // Resolved against the app directory, not the working directory, and normalised to one
+    // trailing separator for the prefix check in FullPath.
     private readonly string rootFullPath =
         Path.TrimEndingDirectorySeparator(Path.GetFullPath(settings.Value.RootPath, AppContext.BaseDirectory)) + Path.DirectorySeparatorChar;
 
@@ -19,7 +18,6 @@ internal sealed class FileBlobStore(IOptions<FileSettings> settings, ILogger<Fil
         var storagePath = FileBlobPath.For(tenantId, fileAssetId);
         var fullPath = this.FullPath(storagePath);
 
-        // A blob is named by its id alone, so no stored blob can ever carry this name.
         var temporaryPath = fullPath + ".tmp";
 
         Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
@@ -35,25 +33,17 @@ internal sealed class FileBlobStore(IOptions<FileSettings> settings, ILogger<Fil
                 await content.CopyToAsync(crypto, token);
             }
 
-            // The rename is the commit: until it runs, no reader sees a blob.
             File.Move(temporaryPath, fullPath, overwrite: true);
         }
         catch
         {
-            // An upload that drops leaves the temp file behind, and nothing else ever removes it.
-            // A cleanup that fails must not replace the failure that got us here.
+            // A failed cleanup must not replace the failure that got us here.
             try
             {
                 File.Delete(temporaryPath);
             }
-            catch (IOException)
-            {
-                // Ignored.
-            }
-            catch (UnauthorizedAccessException)
-            {
-                // Ignored.
-            }
+            catch (IOException) { }
+            catch (UnauthorizedAccessException) { }
 
             throw;
         }
