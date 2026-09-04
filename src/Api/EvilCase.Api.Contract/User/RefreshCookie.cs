@@ -1,9 +1,5 @@
 namespace EvilBrains.EvilCase.Api.Contract.User;
 
-/// <summary>
-/// The cookie carrying the refresh token. Named here rather than in the controller because the host's
-/// tests assert on it, and a second spelling would let the two drift apart unnoticed.
-/// </summary>
 public static class RefreshCookie
 {
     /// <summary>

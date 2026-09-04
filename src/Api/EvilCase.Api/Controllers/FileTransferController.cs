@@ -9,8 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace EvilBrains.EvilCase.Api.Controllers;
 
 /// <summary>
-/// The upload and download endpoints the client generator cannot express: a multipart upload for a case
-/// and for an act, and a byte stream. The frontend reaches all three through its own transfer client.
+/// No [GenerateApiClient]: the generator cannot express multipart or a byte stream.
 /// </summary>
 [ApiController]
 [Route("api")]
@@ -94,7 +93,6 @@ public class FileTransferController : ControllerBase
             return null;
         }
 
-        // The browser may send a path; only the name is stored.
         var fileName = Path.GetFileName(file.FileName);
         var mediaType = NormalizeMediaType(file.ContentType);
         error = this.InvalidUploadMetadataProblem(fileName, mediaType);

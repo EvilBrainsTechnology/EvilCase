@@ -1,9 +1,5 @@
 namespace EvilBrains.EvilCase.Api.Contract.Files;
 
-/// <summary>
-/// The upload limit both sides hold to: the browser refuses a larger file before it sends anything and
-/// the endpoint answers 413 (SDD-012).
-/// </summary>
 public static class FileLimits
 {
     public const long MaxUploadBytes = 100L * 1024 * 1024;

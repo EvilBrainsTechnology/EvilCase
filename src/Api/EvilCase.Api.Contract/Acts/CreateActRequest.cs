@@ -8,7 +8,7 @@ public sealed record CreateActRequest : IValidatableObject
     public ActDirection? Direction { get; init; }
 
     /// <summary>
-    /// The act's own date, not the moment the row is written; the act number is issued to it.
+    /// The act number is issued from this date, not the write's.
     /// </summary>
     public required DateOnly Date { get; init; }
 
@@ -19,9 +19,6 @@ public sealed record CreateActRequest : IValidatableObject
     [StringLength(4000)]
     public string? Description { get; init; }
 
-    /// <summary>
-    /// The counterparty of the act; set exactly when <see cref="Direction"/> is (SDD-010).
-    /// </summary>
     public Guid? ContactId { get; init; }
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)

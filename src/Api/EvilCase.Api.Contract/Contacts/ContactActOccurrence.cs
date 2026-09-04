@@ -14,8 +14,5 @@ public sealed record ContactActOccurrence
 
     public required string CaseNumber { get; init; }
 
-    /// <summary>
-    /// The reference number another authority gave the act, null where none is recorded (SDD-010).
-    /// </summary>
     public string? ExternalNumber { get; init; }
 }

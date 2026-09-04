@@ -5,14 +5,8 @@ namespace EvilBrains.EvilCase.Api.Contract.Cases;
 
 public sealed record CaseEditRequest
 {
-    /// <summary>
-    /// The case the new one hangs under, null for a case of its own (SDD-009).
-    /// </summary>
     public Guid? ParentCaseId { get; init; }
 
-    /// <summary>
-    /// The counterparty of the proceeding, null for none (SDD-009).
-    /// </summary>
     public Guid? ContactId { get; init; }
 
     /// <summary>
@@ -23,15 +17,9 @@ public sealed record CaseEditRequest
     [StringLength(64)]
     public required string CaseNumber { get; init; }
 
-    /// <summary>
-    /// The mark another authority gave this case; optional free text (SDD-009).
-    /// </summary>
     [StringLength(128)]
     public string? ExternalCaseNumber { get; init; }
 
-    /// <summary>
-    /// The case's own date. Moving it leaves the number as it was issued.
-    /// </summary>
     public required DateOnly Date { get; init; }
 
     [Required]

@@ -1,7 +1,7 @@
 namespace EvilBrains.EvilCase.Api.Contract.Cases;
 
 /// <summary>
-/// How many cases the tenant holds in each status, the whole tenant in every one of them.
+/// Whole-tenant counts; the list's search and filter never narrow them.
 /// </summary>
 public sealed record CaseStatusCounts
 {

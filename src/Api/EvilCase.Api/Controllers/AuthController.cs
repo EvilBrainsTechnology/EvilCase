@@ -14,7 +14,7 @@ namespace EvilBrains.EvilCase.Api.Controllers;
 [Route(AuthRoute.Template)]
 public class AuthController : ControllerBase
 {
-    // The column behind it; a browser is free to send more than that.
+    // Mirrors RefreshToken.UserAgent's MaxLength.
     private const int UserAgentMaxLength = 256;
 
     [HttpPost("login")]
@@ -28,8 +28,7 @@ public class AuthController : ControllerBase
 
         if (result.Session is not { } session)
         {
-            // A separate status for the lockout, so the page can say why without parsing a message. It
-            // only ever reaches someone who already caused the failures, so it gives nothing away.
+            // A separate status for the lockout, so the page can say why without parsing a message.
             return result.Status == LoginStatus.LockedOut
                 ? this.Problem(statusCode: StatusCodes.Status423Locked, title: "Account temporarily locked")
                 : this.Problem(statusCode: StatusCodes.Status401Unauthorized, title: "Invalid credentials");
@@ -40,10 +39,6 @@ public class AuthController : ControllerBase
         return this.Ok(Describe(session));
     }
 
-    /// <summary>
-    /// Takes the refresh token from its cookie and nothing from the request body. Every call rotates:
-    /// the token that came in is spent, and a replay of it later ends the whole session.
-    /// </summary>
     [HttpPost("refresh")]
     [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -58,10 +53,7 @@ public class AuthController : ControllerBase
 
         if (result.Session is not { } session)
         {
-            // Whatever it was, it is not usable; leaving it in place would only make the browser send it
-            // again on every navigation. The one exception is a token another tab of this same browser
-            // spent moments ago: the cookie now holds that tab's replacement, and deleting it here would
-            // end the session that tab just renewed.
+            // Not on Raced: the cookie already holds another tab's replacement.
             if (result.Status != RefreshStatus.Raced)
                 this.ClearRefreshCookie();
 
@@ -190,9 +182,7 @@ public class AuthController : ControllerBase
         this.Response.Cookies.Delete(RefreshCookie.Name, CookieOptions(expires: null));
     }
 
-    // Secure and the __Host- path are what the cookie's own name promises; HttpOnly keeps the token out
-    // of reach of any script on the page, and Strict means no other site can make the browser send it.
-    // Delete has to repeat all of it: a browser only drops a cookie whose attributes match.
+    // Delete has to repeat these: a browser only drops a cookie whose attributes match.
     private static CookieOptions CookieOptions(DateTime? expires)
     {
         return new()

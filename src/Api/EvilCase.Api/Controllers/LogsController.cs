@@ -7,8 +7,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace EvilBrains.EvilCase.Api.Controllers;
 
-// The whole route sits on the controller and the action template is empty: the host and the browser sink
-// both silence this exact path, and one constant is what keeps the three from drifting apart.
 [ApiController]
 [GenerateApiClient]
 [AllowAnonymous]
