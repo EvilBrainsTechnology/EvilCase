@@ -4,9 +4,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Data.Entities;
 
-/// <summary>
-/// A proceeding. An optional parent gives it its place in a hierarchy (SDD-009).
-/// </summary>
 [Index(nameof(TenantId), nameof(CaseNumber), IsUnique = true)]
 [Index(nameof(ParentCaseId))]
 [Index(nameof(ContactId))]
@@ -21,17 +18,11 @@ public sealed record Case : IUserOwnedEntity
 
     public Guid? ParentCaseId { get; init; }
 
-    /// <summary>
-    /// The counterparty of the proceeding, null where none is recorded (SDD-009).
-    /// </summary>
     public Guid? ContactId { get; init; }
 
     [MaxLength(64)]
     public required string CaseNumber { get; init; }
 
-    /// <summary>
-    /// The mark another authority gave this case, as that authority writes it (SDD-009).
-    /// </summary>
     [MaxLength(128)]
     public string? ExternalCaseNumber { get; init; }
 

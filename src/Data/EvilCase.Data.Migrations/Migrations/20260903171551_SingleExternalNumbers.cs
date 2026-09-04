@@ -6,7 +6,6 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations;
 
 public partial class SingleExternalNumbers : Migration
 {
-    /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.AddColumn<string>(
@@ -30,7 +29,7 @@ public partial class SingleExternalNumbers : Migration
         migrationBuilder.DropTable(name: "ExternalActNumbers");
     }
 
-    /// <inheritdoc />
+    // Rows are not restored: the contact that assigned each value is recorded nowhere after Up.
     protected override void Down(MigrationBuilder migrationBuilder)
     {
         CreateExternalCaseNumbers(migrationBuilder);
@@ -226,7 +225,6 @@ public partial class SingleExternalNumbers : Migration
             column: "UserId");
     }
 
-    // Rows are not restored: the contact that assigned each value is recorded nowhere after Up.
     private static void CreateSearchIndexesAndTriggers(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.Sql("""CREATE INDEX "IX_ExternalCaseNumbers_Value_Trigram" ON "ExternalCaseNumbers" USING GIN ("Value" gin_trgm_ops);""");

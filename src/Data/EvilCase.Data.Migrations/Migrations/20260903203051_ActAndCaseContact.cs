@@ -6,7 +6,6 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations;
 
 public partial class ActAndCaseContact : Migration
 {
-    /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
         AddContactColumns(migrationBuilder);
@@ -15,7 +14,6 @@ public partial class ActAndCaseContact : Migration
         AddContactConstraints(migrationBuilder);
     }
 
-    /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
         DropDirectionPairing(migrationBuilder);
@@ -237,9 +235,8 @@ public partial class ActAndCaseContact : Migration
             onDelete: ReferentialAction.Restrict);
     }
 
-    // The counterparty is the far side of the direction: an incoming act came from its issuer, an outgoing
-    // one went to its addressee. An outgoing act that named no addressee keeps no contact, so it gives up
-    // its direction too. The stamp trigger is off for it: a migration is not a change the user made.
+    // The direction is nulled with the contact so the check constraint holds.
+    // The stamp trigger is off: a migration is not a change the user made.
     private static void BackfillActContacts(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.Sql(
@@ -255,9 +252,7 @@ public partial class ActAndCaseContact : Migration
             """);
     }
 
-    // The contact goes back to the side its direction names. The side the act never recorded and the user's
-    // default contact fall back to the tenant's oldest contact, and an act with no direction takes the
-    // incoming one.
+    // IssuedBy and DefaultContact are NOT NULL: the oldest contact stands in.
     private static void RestoreIssuedAndAddressedContacts(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.Sql(

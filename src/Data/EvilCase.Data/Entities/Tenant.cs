@@ -3,9 +3,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Data.Entities;
 
-/// <summary>
-/// The boundary data isolation runs along (SDD-006).
-/// </summary>
 [Index(nameof(AccountId))]
 public sealed record Tenant : IEntity
 {

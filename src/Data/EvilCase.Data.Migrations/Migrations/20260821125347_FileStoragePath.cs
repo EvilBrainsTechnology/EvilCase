@@ -6,7 +6,6 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations;
 
 public partial class FileStoragePath : Migration
 {
-    /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.AddColumn<string>(
@@ -18,7 +17,6 @@ public partial class FileStoragePath : Migration
             defaultValue: "");
     }
 
-    /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.DropColumn(

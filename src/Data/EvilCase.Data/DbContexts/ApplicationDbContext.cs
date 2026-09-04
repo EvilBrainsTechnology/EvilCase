@@ -79,7 +79,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         }
     }
 
-    // Every enum is stored as its name, in a column as wide as the longest name that enum has.
     private static void ConfigureEnums(ModelBuilder modelBuilder)
     {
         var properties = modelBuilder.Model
@@ -157,7 +156,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasForeignKey(static @case => @case.ParentCaseId)
             .OnDelete(DeleteBehavior.SetNull);
 
-        // A contact outlives any case naming it (SDD-007).
         modelBuilder.Entity<Case>()
             .HasOne(static @case => @case.Contact)
             .WithMany(static contact => contact.Cases)
@@ -178,7 +176,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 "CK_Acts_DirectionWithContact",
                 @"(""Direction"" IS NULL) = (""ContactId"" IS NULL)"));
 
-        // A contact accumulates history across cases, so it outlives any one act naming it.
         modelBuilder.Entity<Act>()
             .HasOne(static act => act.Contact)
             .WithMany(static contact => contact.Acts)

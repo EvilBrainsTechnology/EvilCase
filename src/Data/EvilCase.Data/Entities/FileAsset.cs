@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 namespace EvilBrains.EvilCase.Data.Entities;
 
 /// <summary>
-/// Stored bytes belonging to exactly one case or one act, XOR held by a check constraint (SDD-012).
+/// Exactly one of CaseId and ActId is set (check constraint).
 /// </summary>
 [Index(nameof(TenantId))]
 [Index(nameof(CaseId))]
@@ -22,9 +22,6 @@ public sealed record FileAsset : IUserOwnedEntity
 
     public Guid? ActId { get; init; }
 
-    /// <summary>
-    /// The name it arrived under.
-    /// </summary>
     [MaxLength(256)]
     public required string FileName { get; init; }
 
@@ -36,9 +33,6 @@ public sealed record FileAsset : IUserOwnedEntity
 
     public required long SizeBytes { get; init; }
 
-    /// <summary>
-    /// What the bytes are, where it is known. Never trusted from a file extension.
-    /// </summary>
     [MaxLength(128)]
     public string? MediaType { get; init; }
 

@@ -21,7 +21,6 @@ public partial class DatabaseStampedTimestamps : Migration
         "Users",
     ];
 
-    /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.Sql(
@@ -48,7 +47,6 @@ public partial class DatabaseStampedTimestamps : Migration
             migrationBuilder.Sql($"""CREATE TRIGGER stamp_timestamps BEFORE INSERT OR UPDATE ON "{table}" FOR EACH ROW EXECUTE FUNCTION stamp_timestamps();""");
     }
 
-    /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
         foreach (var table in StampedTables)
