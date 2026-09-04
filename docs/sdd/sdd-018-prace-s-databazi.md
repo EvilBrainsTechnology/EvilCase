@@ -7,57 +7,53 @@
 
 ## Rozsah
 
-Jak aplikace čte a zapisuje: přístup ke kontextu, transakce a interceptory.
-Schéma drží SDD-007, izolaci tenantů SDD-006.
+Jak aplikace čte a zapisuje: přístup ke kontextu, transakce a razítka. Schéma drží SDD-007,
+izolaci tenantů SDD-006. Invarianty přístupu drží `.claude/rules/data.md`.
 
 ## Popis
 
 ### Přístup ke kontextu
 
-- Aplikace čte a zapisuje přes `IDbSession.Current`; nic jiného mezi ní a
-  `ApplicationDbContext` nestojí. Invarianty přístupu drží `.claude/rules/data.md`.
-- Kdo potřebuje vlastní scope (seed, úloha na pozadí), zakládá ho sám a dostane vlastní
-  kontext.
+Aplikace čte a zapisuje přes jeden kontext na požadavek; nic jiného mezi ní a databází
+nestojí. Kdo potřebuje vlastní rozsah — seed, úloha na pozadí — dostane vlastní kontext.
 
 ### Transakce
 
-- Transakci otevírá `IDbSession.BeginTransaction` ten, kdo drží celou jednotku práce;
-  jednotlivý zápis ji neotevírá.
-- Seed vzorových dat je celá jednotka práce: transakci i scope `IUserContext` si otevírá sám
-  (SDD-017).
+- Transakci otevírá ten, kdo drží celou jednotku práce; jednotlivý zápis ji neotevírá.
+- Seed vzorových dat je celá jednotka práce a běží v jedné transakci (SDD-017).
 
-### Interceptory
+### Hromadný zápis
 
-- Zápis doplňuje a hlídá interceptor (SDD-006). `ExecuteUpdate` a `ExecuteDelete` jdou mimo
-  interceptory: co jinak plní interceptor, nastavuje takový zápis sám; razítka plní trigger
-  i jim.
+Hromadná změna a hromadné smazání jdou mimo doplňování a kontroly, které jinak zápis provádí:
+spoléhají jen na to, že nevidí cizí tenant. Kde na řádce záleží i na uživateli, musí ho takový
+zápis jmenovat sám — dnes to dělá jen komentář (SDD-013).
 
 ### Razítka Created a Updated
 
-- `Created` a `Updated` plní trigger v databázi, ne zápis: vloženému řádku nastaví `Created`
+- `Created` a `Updated` plní databáze, ne zápis: vloženému řádku nastaví `Created`
   a `Updated` nechá prázdné, změněnému nastaví `Updated` a `Created` nechá být. Obojí z hodin
   databáze, v okamžiku řádku.
-- Trigger visí na každé tabulce, jejíž entita ta dvě pole nese; nová tabulka ho dostává
+- Razítko dostane každá tabulka, jejíž entita ta dvě pole nese; nová tabulka ho dostává
   v migraci, která ji zakládá.
-- Model obě pole mapuje jako generovaná databází: zápis je neposílá a po uložení si je čte zpět.
+- Zápis obě pole neposílá a po uložení si je čte zpět.
 
 ### Migrace
 
-Migrace nejsou přístup k datům aplikace: `DatabaseMigrator` drží `ApplicationDbContext` přímo
-a běží ve vlastním scope dřív, než se obslouží první požadavek.
+Migrace nejsou přístup k datům aplikace: běží ve vlastním rozsahu dřív, než se obslouží první
+požadavek. Přepínač `EvilBrains__EvilCase__Database__MigrateOnStartup` je zapnutý a vypíná se
+tam, kde se schéma vydává zvlášť nebo kde startuje víc instancí najednou. Neúspěšná migrace
+aplikaci nespustí.
 
 ## Rozhodnutí
 
-- Přístup k datům: `DbContext` přímo ve službách / accessor nad DI scope. Platí accessor.
-- Životnost `DbContext`: ruční správa / scoped z DI. Platí scoped z DI.
 - Transakce: uvnitř každého zápisu / o úroveň výš. Platí o úroveň výš.
 - Transakce seedu: volající / seed sám. Platí seed sám.
-- Repository per entita: ano / ne. Ne — typovaný `DbSet` na `IDbSession.Current` stačí.
-- Razítka: interceptor / trigger. Platí trigger.
+- Repository per entita: ano / ne. Ne.
+- Razítka: doplňuje aplikace / doplňuje databáze. Platí databáze.
 - Čas razítka: čas transakce / čas řádku. Platí čas řádku — `Created` rozhoduje pořadí a seed
   píše celý strom v jedné transakci.
 - `Updated`: jen při skutečné změně / při každém UPDATE. Platí každý UPDATE.
 
 ## Dopady
 
-Čas drží databáze: `TimeProvider` patří `EvilCase.Auth`, ne `EvilCase.Data`.
+—
