@@ -59,6 +59,9 @@
                     <p class="empty-subtitle text-secondary">
                         @(string.IsNullOrWhiteSpace(this.search) ? "Zatím tu není žádný kontakt." : "Zkuste jiné hledání.")
                     </p>
+                    <div class="empty-action">
+                        <button type="button" class="btn btn-primary" @onclick="this.CreateContact"><Icon CssClass="icon" IconType="AppIcons.Plus" />Nový kontakt</button>
+                    </div>
                 </div>
             }
             else

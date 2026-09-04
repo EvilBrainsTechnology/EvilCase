@@ -13,6 +13,9 @@
         <div class="empty">
             <div class="empty-icon"><Icon IconType="AppIcons.Folders" /></div>
             <p class="empty-title">Žádné podřízené spisy</p>
+            <div class="empty-action">
+                <a href="@($"/cases/new?parent={ParentCaseId}")" class="btn btn-primary"><Icon CssClass="icon" IconType="AppIcons.Plus" />Nový podřízený spis</a>
+            </div>
         </div>
     }
     else
