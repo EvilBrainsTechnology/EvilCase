@@ -4,9 +4,9 @@ namespace EvilBrains.Cryptography;
 
 public static class PasswordHasher
 {
-    private const int SaltSize = 16; // 128 bits
+    private const int SaltSize = 16;
 
-    private const int KeySize = 32; // 256 bits
+    private const int KeySize = 32;
 
     // OWASP recommendation for PBKDF2-HMAC-SHA256
     private const int Iterations = 600_000;

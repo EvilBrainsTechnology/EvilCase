@@ -6,8 +6,7 @@ using Microsoft.CodeAnalysis;
 namespace EvilBrains.ApiClient.Generator;
 
 /// <summary>
-/// EB1001-EB1006 are convention rules enforced by analyzers in the API project (and re-checked by the generator);
-/// EB1010+ are client-feasibility rules reported only by the generator.
+/// EB1001-EB1006 also run as analyzers in the API project; EB1010+ are generator-only.
 /// </summary>
 internal static class Diagnostics
 {

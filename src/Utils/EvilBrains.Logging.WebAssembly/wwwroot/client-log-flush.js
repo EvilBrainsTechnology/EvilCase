@@ -8,8 +8,7 @@ let listener = null;
 export function register(url, flushHandler) {
     handler = flushHandler;
     listener = () => {
-        // Flush hands over one batch at a time, so it is drained until empty. A beacon refused over
-        // quota ends the loop: the browser would refuse the rest of the queue too.
+        // A beacon refused over quota ends the loop: the rest would be refused too.
         let payload;
         while ((payload = handler.invokeMethod('Flush')) !== null) {
             if (!navigator.sendBeacon(url, new Blob([payload], { type: 'application/json' })))

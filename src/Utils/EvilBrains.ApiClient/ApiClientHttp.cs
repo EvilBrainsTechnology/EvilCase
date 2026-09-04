@@ -6,8 +6,7 @@ using System.Text.Json;
 namespace EvilBrains.ApiClient;
 
 /// <summary>
-/// Request executor consumed by generated API clients; the generator emits one call per action.
-/// Query and header values are passed as name/value pairs and null values are skipped.
+/// Called only from generated code: ClientEmitter emits these member names.
 /// </summary>
 public static class ApiClientHttp
 {

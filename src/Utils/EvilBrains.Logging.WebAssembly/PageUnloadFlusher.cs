@@ -5,8 +5,7 @@ using Serilog.Debugging;
 namespace EvilBrains.Logging.WebAssembly;
 
 /// <summary>
-/// Ships what is still buffered when the page goes away. The periodic loop drains once a second, so an
-/// error logged just before a reload would otherwise die with the runtime.
+/// The periodic loop drains once a second; an error logged just before a reload would otherwise die with the runtime.
 /// </summary>
 internal sealed class PageUnloadFlusher(IJSRuntime jsRuntime, ClientLogSink sink, string uploadUrl) : IPageUnloadFlusher, IAsyncDisposable
 {
@@ -28,9 +27,6 @@ internal sealed class PageUnloadFlusher(IJSRuntime jsRuntime, ClientLogSink sink
         return batch is null ? null : JsonSerializer.Serialize(batch, ClientLogJsonContext.Default.ClientLogBatch);
     }
 
-    /// <summary>
-    /// Nothing awaits this, so a browser that refuses the module costs the unload flush and nothing more.
-    /// </summary>
     public async Task Start()
     {
         try

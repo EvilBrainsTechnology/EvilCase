@@ -6,9 +6,6 @@ using System.Net;
 
 namespace EvilBrains.ApiClient;
 
-/// <summary>
-/// Thrown by generated API clients when the server responds with a non-success status code.
-/// </summary>
 public sealed class ApiException(HttpStatusCode statusCode, string? responseBody, string? message = null)
     : Exception(message ?? string.Create(CultureInfo.InvariantCulture, $"API request failed with status code {(int)statusCode} ({statusCode})."))
 {

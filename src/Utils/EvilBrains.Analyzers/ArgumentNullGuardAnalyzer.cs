@@ -6,10 +6,6 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace EvilBrains.Analyzers;
 
-/// <summary>
-/// Nullability is the guard: a runtime null check on a parameter the compiler keeps non-null is code no
-/// call can reach.
-/// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class ArgumentNullGuardAnalyzer : DiagnosticAnalyzer
 {

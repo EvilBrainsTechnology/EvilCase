@@ -6,8 +6,7 @@ using Microsoft.CodeAnalysis;
 namespace EvilBrains.ApiClient.Generator;
 
 /// <summary>
-/// Generates HTTP client interfaces and implementations for [GenerateApiClient] controllers
-/// found in controller sources passed to the consuming project as additional files.
+/// The controllers are additional files of the consuming project, not part of its compilation.
 /// </summary>
 [Generator(LanguageNames.CSharp)]
 public sealed class ApiClientGenerator : IIncrementalGenerator

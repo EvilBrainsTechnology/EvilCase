@@ -2,9 +2,6 @@ using EvilBrains.Logging.Contract;
 
 namespace EvilBrains.Logging.WebAssembly;
 
-/// <summary>
-/// Stamps every request with identifiers the server puts into its log context.
-/// </summary>
 internal sealed class RequestContextHandler(IClientIdentity identity) : DelegatingHandler
 {
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)

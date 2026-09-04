@@ -25,9 +25,6 @@ internal static class ReturnTypeFacts
         "ActionResult",
         "IActionResult");
 
-    /// <summary>
-    /// Returns the type carrying the response body, or null when the action has no result.
-    /// </summary>
     public static TypeSyntax? Peel(TypeSyntax type)
     {
         var current = type;

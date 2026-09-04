@@ -15,10 +15,7 @@ public static class Bootstrap
     private static ClientLogSink? sink;
 
     /// <summary>
-    /// Logs to the browser console and buffers events for the server. The application supplies an
-    /// <see cref="IClientLogUploader"/> and calls <see cref="StartClientLogging"/> once the host is built.
-    /// The upload path is the endpoint the batches go to; a successful request to it is not logged,
-    /// because the next upload would ship that log and log again.
+    /// The application registers an IClientLogUploader and calls StartClientLogging once the host is built.
     /// </summary>
     public static WebAssemblyHostBuilder AddClientLogging(
         this WebAssemblyHostBuilder builder,
@@ -83,7 +80,6 @@ public static class Bootstrap
         return host;
     }
 
-    // Verbose is the lowest LogEventLevel and Fatal the highest.
     private static LogEventLevel MoreVerbose(LogEventLevel first, LogEventLevel second)
     {
         return first < second ? first : second;

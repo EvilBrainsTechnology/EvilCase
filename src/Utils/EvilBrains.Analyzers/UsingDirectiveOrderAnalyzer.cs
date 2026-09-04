@@ -7,10 +7,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace EvilBrains.Analyzers;
 
-/// <summary>
-/// Enforces using directive ordering previously covered by StyleCop rules SA1208, SA1209, SA1210, SA1211 and SA1216:
-/// global first, then regular usings (System namespaces first, alphabetical), then using static, then aliases.
-/// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class UsingDirectiveOrderAnalyzer : DiagnosticAnalyzer
 {

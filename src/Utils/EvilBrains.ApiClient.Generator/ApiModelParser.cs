@@ -10,9 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace EvilBrains.ApiClient.Generator;
 
 /// <summary>
-/// Builds the client model from API controller sources passed as additional files. The sources are parsed and
-/// added to a fork of the client compilation: contract types resolve semantically while MVC attributes do not
-/// and are read syntactically. Diagnostics point at the original controller files.
+/// Sources join a fork of the client compilation: contract types resolve, MVC attributes do not and are read by name.
 /// </summary>
 internal static class ApiModelParser
 {

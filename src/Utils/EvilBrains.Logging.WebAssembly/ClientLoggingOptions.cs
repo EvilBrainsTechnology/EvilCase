@@ -2,9 +2,6 @@ using Serilog.Events;
 
 namespace EvilBrains.Logging.WebAssembly;
 
-/// <summary>
-/// Minimum levels for the browser console and for the events shipped to the server.
-/// </summary>
 internal sealed record ClientLoggingOptions
 {
     // Settable, not init: the configuration binding source generator assigns after construction and

@@ -7,10 +7,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace EvilBrains.Analyzers;
 
-/// <summary>
-/// Consecutive Where calls are the form: one call per rule. An '&amp;&amp;' under an '||' is one rule and
-/// stays.
-/// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class WhereConjunctionAnalyzer : DiagnosticAnalyzer
 {
@@ -74,6 +70,7 @@ public sealed class WhereConjunctionAnalyzer : DiagnosticAnalyzer
         };
     }
 
+    // Only a top-level '&&': one under an '||' is one rule and stays.
     private static BinaryExpressionSyntax? FindConjunction(ExpressionSyntax expression)
     {
         return expression switch

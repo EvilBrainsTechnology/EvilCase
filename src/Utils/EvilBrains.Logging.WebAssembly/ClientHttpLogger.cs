@@ -5,10 +5,8 @@ using Microsoft.Extensions.Logging;
 namespace EvilBrains.Logging.WebAssembly;
 
 /// <summary>
-/// Replaces the four events the HTTP client factory logs per request with one, carrying the
-/// identifiers the request was stamped with, so a browser call and its server side share a RequestId.
-/// A successful upload of the log batch is not logged at all: it would be shipped by the next upload,
-/// which would log again. A rejected or failed one is, and it settles because a batch that fails is dropped.
+/// A successful upload of a log batch is not logged: the next upload would ship that log and log again.
+/// A failed one settles because the batch is dropped.
 /// </summary>
 internal sealed class ClientHttpLogger(ILogger<ClientHttpLogger> logger, string quietPath) : IHttpClientLogger
 {
@@ -53,9 +51,6 @@ internal sealed class ClientHttpLogger(ILogger<ClientHttpLogger> logger, string 
             milliseconds);
     }
 
-    /// <summary>
-    /// The identifiers ride in a scope rather than in the message: they are for correlating, not for reading.
-    /// </summary>
     private static Dictionary<string, object?> Identifiers(HttpRequestMessage request)
     {
         return new(StringComparer.Ordinal)

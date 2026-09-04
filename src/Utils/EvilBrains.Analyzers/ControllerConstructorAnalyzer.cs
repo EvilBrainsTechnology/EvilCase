@@ -5,9 +5,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace EvilBrains.Analyzers;
 
-/// <summary>
-/// Keeps controllers free of constructor dependencies; an action takes what it needs as a [FromServices] parameter.
-/// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class ControllerConstructorAnalyzer : DiagnosticAnalyzer
 {

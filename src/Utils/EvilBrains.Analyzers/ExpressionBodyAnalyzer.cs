@@ -7,10 +7,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace EvilBrains.Analyzers;
 
-/// <summary>
-/// Requires a block body on every member; an expression body is allowed only on a property or indexer
-/// whose declaration fits on one line.
-/// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class ExpressionBodyAnalyzer : DiagnosticAnalyzer
 {

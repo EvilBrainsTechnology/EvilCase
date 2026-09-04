@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis;
 namespace EvilBrains.Analyzers;
 
 /// <summary>
-/// The one definition of a controller and its actions, shared by both analyzer assemblies.
+/// Public: EvilBrains.ApiClient.Generator shares this definition.
 /// </summary>
 public static class MvcFacts
 {

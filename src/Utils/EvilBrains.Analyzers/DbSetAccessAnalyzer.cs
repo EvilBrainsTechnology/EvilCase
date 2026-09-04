@@ -7,10 +7,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace EvilBrains.Analyzers;
 
-/// <summary>
-/// A typed DbSet names the entity every read and write reaches for; Set&lt;TEntity&gt;() belongs to the
-/// context's own declaration and nowhere else.
-/// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class DbSetAccessAnalyzer : DiagnosticAnalyzer
 {
