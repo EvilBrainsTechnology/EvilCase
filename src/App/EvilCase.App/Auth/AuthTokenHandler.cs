@@ -6,10 +6,6 @@ using Microsoft.AspNetCore.Components.WebAssembly.Http;
 
 namespace EvilBrains.EvilCase.App.Auth;
 
-/// <summary>
-/// Puts the access token on every API call and renews it when it is about to run out or has already
-/// been refused. Attached to all generated clients, because that is the only hook they offer.
-/// </summary>
 internal sealed class AuthTokenHandler(IAccessTokenStore tokens, IServiceProvider services) : DelegatingHandler
 {
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
@@ -27,7 +23,7 @@ internal sealed class AuthTokenHandler(IAccessTokenStore tokens, IServiceProvide
         }
 
         // Buffered before the first attempt: HttpClient disposes the content it sent, so a retry would
-        // have nothing left to send. Every payload here is small enough for that to cost nothing.
+        // have nothing left to send.
         var body = request.Content is null ? null : await request.Content.ReadAsByteArrayAsync(cancellationToken);
         var contentType = request.Content?.Headers.ContentType;
 
@@ -38,7 +34,6 @@ internal sealed class AuthTokenHandler(IAccessTokenStore tokens, IServiceProvide
 
         var response = await base.SendAsync(request, cancellationToken);
 
-        // Nothing to renew from where the caller was never signed in: the request simply was not allowed.
         if (response.StatusCode != HttpStatusCode.Unauthorized || tokens.Current is null)
             return response;
 
@@ -55,12 +50,7 @@ internal sealed class AuthTokenHandler(IAccessTokenStore tokens, IServiceProvide
     }
 
     /// <summary>
-    /// The three endpoints under <c>/api/auth</c> that carry <c>[AllowAnonymous]</c>: signing in has no
-    /// session to renew yet, renewal is this handler's own way out of an expired token, and signing out
-    /// is about to throw the session away. Everything else under that prefix is <c>[Authorize]</c> and
-    /// needs the bearer kept alive like any other endpoint — <c>logout-all</c> above all, whose failure
-    /// leaves every other device signed in. The log upload is anonymous too, and a renewal that fails
-    /// logs: renewing for it would put the next batch in the queue that the batch after it renews for.
+    /// Mirrors the server's [AllowAnonymous] list; the log upload renewing through this handler would loop.
     /// </summary>
     private static bool IsExemptFromRenewal(HttpRequestMessage request)
     {

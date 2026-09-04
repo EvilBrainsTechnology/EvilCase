@@ -4,10 +4,6 @@ using EvilBrains.EvilCase.Domain.Acts;
 
 namespace EvilBrains.EvilCase.App.Models;
 
-/// <summary>
-/// What the new-act form binds to. Separate from the request contract, whose properties are init-only
-/// and whose messages are English.
-/// </summary>
 internal sealed class NewActModel : IValidatableObject
 {
     public ActDirection? Direction { get; set; }

@@ -4,10 +4,6 @@ using EvilBrains.EvilCase.Domain.Acts;
 
 namespace EvilBrains.EvilCase.App.Models;
 
-/// <summary>
-/// What the act edit form binds to. Separate from the request contract, whose properties are init-only
-/// and whose messages are English.
-/// </summary>
 internal sealed class ActEditModel : IValidatableObject
 {
     [Required(ErrorMessage = "Zadejte číslo jednací")]

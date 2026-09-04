@@ -134,7 +134,7 @@
     public required Func<FileListItem, CancellationToken, Task> DeleteFile { get; set; }
 
     /// <summary>
-    /// What a 404 on upload means here, lower case: the sentence follows the file name and a colon.
+    /// Lower case: it follows the file name and a colon.
     /// </summary>
     [Parameter, EditorRequired]
     public required string OwnerGoneError { get; set; }
@@ -197,7 +197,6 @@
 
         this.uploadTotal = args.FileCount;
 
-        // One file at a time: only the file that fails is refused.
         foreach (var file in args.GetMultipleFiles(MaxBatchFiles))
         {
             this.uploadIndex++;

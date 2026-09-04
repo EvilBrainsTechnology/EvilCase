@@ -5,7 +5,7 @@
 
 @* The application's default deny. Anything laid out by MainLayout is behind this, so a new page is
    protected without doing anything; escaping it means deliberately choosing another layout, the way
-   the sign-in page does. The server enforces the same by way of its authorization fallback policy. *@
+   the sign-in page does. *@
 <AuthorizeView>
     <Authorized>
         <div class="page">

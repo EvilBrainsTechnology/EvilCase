@@ -2,10 +2,9 @@ using TabBlazor;
 
 namespace EvilBrains.EvilCase.App.Icons;
 
-// TabBlazor ships no icon set. Path data comes from the Tabler icon set; add icons here as they are needed.
+// TabBlazor ships no icon set; the path data is copied from Tabler icons.
 public static class AppIcons
 {
-    // The second path exceeds the file's line width, so it is split at an SVG command boundary.
     public static IIconType AlertTriangle { get; } = new TablerIcon("<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M12 9v4' />"
         + "<path d='M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871"
@@ -91,7 +90,6 @@ public static class AppIcons
         + "<path d='M9 12l-3 -6l-3 6a3 3 0 0 0 6 0' />"
         + "<path d='M21 12l-3 -6l-3 6a3 3 0 0 0 6 0' />");
 
-    // The first path exceeds the line limit, so it is split at SVG command boundaries.
     public static IIconType Search { get; } = new TablerIcon("<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0' />"
         + "<path d='M21 21l-6 -6' />");

@@ -1,8 +1,5 @@
 namespace EvilBrains.EvilCase.App.Search;
 
-/// <summary>
-/// One search request at a time: starting another cancels the one before it.
-/// </summary>
 internal sealed class SearchDebouncer : IDisposable
 {
     private static readonly TimeSpan Delay = TimeSpan.FromMilliseconds(300);
@@ -10,8 +7,7 @@ internal sealed class SearchDebouncer : IDisposable
     private CancellationTokenSource? pending;
 
     /// <summary>
-    /// Returns the token to run this search with, or <see langword="null"/> when a newer search
-    /// superseded this one before it got its turn.
+    /// Null when a newer search superseded this one.
     /// </summary>
     public async Task<CancellationToken?> Start(bool debounce)
     {

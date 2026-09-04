@@ -60,9 +60,6 @@
 </div>
 
 @code {
-    /// <summary>
-    /// Where the user was heading when they were bounced here. Written by <c>RedirectToLogin</c>.
-    /// </summary>
     [Parameter]
     [SupplyParameterFromQuery(Name = RedirectToLogin.ReturnUrlParameter)]
     public string? ReturnUrl { get; set; }
@@ -84,8 +81,6 @@
 
             if (outcome == SignInOutcome.Success)
             {
-                // Forced to a relative path: a returnUrl from the address bar must not be able to send
-                // the user somewhere else entirely after they hand over their password.
                 this.Navigation.NavigateTo(this.SafeReturnUrl(), replace: true);
 
                 return;

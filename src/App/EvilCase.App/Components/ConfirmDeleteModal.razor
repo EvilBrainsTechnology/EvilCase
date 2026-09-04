@@ -39,7 +39,6 @@
     [Parameter, EditorRequired]
     public required string FailedError { get; set; }
 
-    /// <summary>Maps an <see cref="ApiException"/> to its message; null falls through to the default handling.</summary>
     [Parameter]
     public Func<ApiException, string?>? MapError { get; set; }
 

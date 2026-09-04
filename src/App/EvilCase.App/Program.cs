@@ -23,8 +23,7 @@ internal static class Program
 
         builder.AddClientLogging("ClientLogging", "evilcase.machine-id", ClientLogRoute.Path);
 
-        // The access token never leaves memory, so a reload starts signed out and the refresh cookie is what
-        // puts the user back. One instance carries the session, the router's view of it and the renewal lock.
+        // One instance behind all three registrations.
         builder.Services.AddSingleton<IAccessTokenStore, AccessTokenStore>();
         builder.Services.AddSingleton<EvilCaseAuthenticationStateProvider>();
         builder.Services.AddSingleton<AuthenticationStateProvider>(static services => services.GetRequiredService<EvilCaseAuthenticationStateProvider>());
@@ -34,16 +33,16 @@ internal static class Program
         builder.Services.AddAuthorizationCore();
         builder.Services.AddCascadingAuthenticationState();
 
-        // The app is served by the API host, so the API is same-origin.
         builder.Services.AddSingleton<IClientLogUploader, ApiLogUploader>();
+
+        // The app is served by the API host, so the API is same-origin.
         builder.Services.AddEvilCaseApiClient(
             new Uri(builder.HostEnvironment.BaseAddress),
             static client => client.AddRequestContextHeaders().AddRequestLogging().AddHttpMessageHandler<AuthTokenHandler>());
 
         builder.Services.AddSingleton<IFileDownloader, FileDownloader>();
 
-        // The multipart upload and the byte stream the generated clients cannot express, on the same
-        // handler chain so they carry the same authorization and renewal.
+        // The same handler chain as the generated clients, so the upload and the download carry the same authorization.
         builder.Services
             .AddHttpClient<IFileTransferClient, FileTransferClient>(client => client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress))
             .AddRequestContextHeaders()

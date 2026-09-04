@@ -3,9 +3,6 @@ using EvilBrains.EvilCase.Domain.Contacts;
 
 namespace EvilBrains.EvilCase.App.Models;
 
-/// <summary>
-/// What the contact edit form binds to. Separate from the request contract, whose messages are English.
-/// </summary>
 internal sealed class ContactEditModel
 {
     [Required(ErrorMessage = "Zadejte název kontaktu")]
