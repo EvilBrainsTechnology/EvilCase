@@ -290,6 +290,41 @@ public class CaseListQueryTests : TenantFixture
         }
     }
 
+    [Test]
+    public async Task TheRootFilterLeavesOnlyTheCasesWithoutAParent()
+    {
+        var root = await this.Tenant.AddCase(Day, "Rodič");
+        var child = await this.Tenant.AddCase(Day, "Podřízený", parentCaseId: root.Id);
+
+        var off = await this.Tenant.Context.Cases.WithoutParent(rootOnly: false).Select(static @case => @case.Id).ToListAsync();
+        var on = await this.Tenant.Context.Cases.WithoutParent(rootOnly: true).Select(static @case => @case.Id).ToListAsync();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(new CaseListRequest().RootOnly, Is.False, "the list shows subordinate cases until the switch is used");
+            Assert.That(off, Is.EquivalentTo([root.Id, child.Id]), "the unset filter narrows nothing");
+            Assert.That(on, Is.EquivalentTo([root.Id]), "the set filter leaves only the cases without a parent");
+        }
+    }
+
+    [Test]
+    public async Task TheReaderPassesTheRootFilterToTheList()
+    {
+        var root = await this.Tenant.AddCase(Day, "Rodič");
+        await this.Tenant.AddCase(Day, "Podřízený", parentCaseId: root.Id);
+
+        var reader = new CaseReader(new FixedDbSession(this.Tenant.Context));
+
+        var whole = await reader.ListCases(new CaseListRequest(), CancellationToken.None);
+        var roots = await reader.ListCases(new CaseListRequest { RootOnly = true }, CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(whole, Has.Count.EqualTo(2));
+            Assert.That(roots.Select(static item => item.CaseId), Is.EqualTo([root.Id]), "the reader narrows the list by the requested root filter");
+        }
+    }
+
     private async Task<List<string>> Titles(string search)
     {
         return await this.Tenant.Context.Cases

@@ -67,6 +67,15 @@
     }
 }
 
+/* The switch itself keeps its Tabler size, so the label carries the touch target. */
+@media (max-width: 991.98px) {
+    .form-check-label {
+        display: flex;
+        align-items: center;
+        min-height: 44px;
+    }
+}
+
 @media (max-width: 991.98px) {
     .form-actions-sticky {
         position: sticky;

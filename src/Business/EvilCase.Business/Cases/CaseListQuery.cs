@@ -35,6 +35,11 @@ internal static class CaseListQuery
         };
     }
 
+    public static IQueryable<Case> WithoutParent(this IQueryable<Case> cases, bool rootOnly)
+    {
+        return rootOnly ? cases.Where(static @case => @case.ParentCaseId == null) : cases;
+    }
+
     /// <summary>
     /// One level only; no read walks deeper (SDD-009).
     /// </summary>
