@@ -67,7 +67,7 @@ public class CaseModelTests : ModelFixture
             Assert.That(@case.FindProperty(nameof(Case.ParentCaseId)), Is.Not.Null);
             Assert.That(@case.FindProperty(nameof(Case.ParentCaseId))?.IsNullable, Is.True);
             Assert.That(selfFk, Is.Not.Null);
-            Assert.That(selfFk?.DeleteBehavior, Is.EqualTo(DeleteBehavior.SetNull), "a deleted parent orphans its children rather than taking them");
+            Assert.That(selfFk?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Cascade), "a deleted parent takes its whole subtree of subordinate cases with it");
         }
     }
 

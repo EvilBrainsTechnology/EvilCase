@@ -145,14 +145,21 @@ internal sealed class CaseWriter(
     {
         var context = dbSession.Current;
 
+        var parents = await context.Cases
+            .Select(static @case => new { @case.Id, @case.ParentCaseId })
+            .ToDictionaryAsync(static link => link.Id, static link => link.ParentCaseId, token);
+
+        var subtree = CaseHierarchy.WithSubordinates(parents, caseId)
+            .ToList();
+
         // Read before the delete: the rows are gone once it runs.
         var storagePaths = await context.FileAssets
-            .Where(file => file.CaseId == caseId || file.Act!.CaseId == caseId)
+            .Where(file => subtree.Contains(file.CaseId!.Value) || subtree.Contains(file.Act!.CaseId))
             .Select(static file => file.StoragePath)
             .ToListAsync(token);
 
-        // The acts, comments and files go with the row: the database's foreign keys carry the cascade,
-        // and a subordinate case is left with no parent (SDD-007).
+        // The subordinate cases, acts, comments and files go with the row: the database's foreign keys
+        // carry the cascade down the whole subtree (SDD-007).
         var rows = await context.Cases
             .WithId(caseId)
             .ExecuteDeleteAsync(token);

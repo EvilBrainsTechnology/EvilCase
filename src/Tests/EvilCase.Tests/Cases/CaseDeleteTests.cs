@@ -53,22 +53,79 @@ public class CaseDeleteTests : TenantFixture
     }
 
     [Test]
-    public async Task ASubordinateCaseSurvivesWithoutAParent()
+    public async Task TheSubordinateCasesGoWithTheirParent()
     {
         var parent = await this.Tenant.AddCase(Day, "Rodič");
         var child = await this.Tenant.AddCase(Day, "Podřízený", parentCaseId: parent.Id);
+        var grandchild = await this.Tenant.AddCase(Day, "Podřízený podřízeného", parentCaseId: child.Id);
 
         var result = await this.writer.DeleteCase(parent.Id, CancellationToken.None);
 
         this.Tenant.Context.ChangeTracker.Clear();
 
-        var reloadedChild = await this.Tenant.Context.Cases.SingleOrDefaultAsync(row => row.Id == child.Id);
+        var childExists = await this.Tenant.Context.Cases.AnyAsync(row => row.Id == child.Id);
+        var grandchildExists = await this.Tenant.Context.Cases.AnyAsync(row => row.Id == grandchild.Id);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result, Is.EqualTo(DeleteOutcome.Deleted));
-            Assert.That(reloadedChild, Is.Not.Null, "a subordinate case survives the delete of its parent");
-            Assert.That(reloadedChild!.ParentCaseId, Is.Null, "the surviving subordinate case is left without a parent");
+            Assert.That(childExists, Is.False, "a subordinate case goes with its parent");
+            Assert.That(grandchildExists, Is.False, "the cascade runs down the whole subtree");
+        }
+    }
+
+    [Test]
+    public async Task ASubordinateCaseLosesItsActsCommentsFilesAndBlobs()
+    {
+        var parent = await this.Tenant.AddCase(Day, "Rodič");
+        var child = await this.Tenant.AddCase(Day, "Podřízený", parentCaseId: parent.Id);
+        var childAct = await this.Tenant.AddAct(child, Day);
+        var childComment = await this.Tenant.AddCaseComment(child, "Poznámka k podřízenému spisu");
+        var childActComment = await this.Tenant.AddActComment(childAct, "Poznámka k úkonu podřízeného spisu");
+        var childFile = await this.Tenant.AddCaseFile(child);
+        var childActFile = await this.Tenant.AddActFile(childAct);
+
+        await this.writer.DeleteCase(parent.Id, CancellationToken.None);
+
+        this.Tenant.Context.ChangeTracker.Clear();
+
+        var actExists = await this.Tenant.Context.Acts.AnyAsync(row => row.Id == childAct.Id);
+        var commentsExist = await this.Tenant.Context.Comments.AnyAsync(row => row.Id == childComment.Id || row.Id == childActComment.Id);
+        var filesExist = await this.Tenant.Context.FileAssets.AnyAsync(row => row.Id == childFile.Id || row.Id == childActFile.Id);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(actExists, Is.False, "the cascade takes the acts of a subordinate case");
+            Assert.That(commentsExist, Is.False, "the cascade takes the comments of a subordinate case and of its acts");
+            Assert.That(filesExist, Is.False, "the cascade takes the files of a subordinate case and of its acts");
+            Assert.That(
+                this.blobs.Deleted,
+                Is.EquivalentTo([childFile.StoragePath, childActFile.StoragePath]),
+                "the bytes of every file under the subtree go with the record");
+        }
+    }
+
+    [Test]
+    public async Task ACaseOutsideTheSubtreeKeepsItsRowsAndBlobs()
+    {
+        var parent = await this.Tenant.AddCase(Day, "Rodič");
+        await this.Tenant.AddCase(Day, "Podřízený", parentCaseId: parent.Id);
+        var outside = await this.Tenant.AddCase(Day, "Mimo podstrom");
+        var outsideAct = await this.Tenant.AddAct(outside, Day);
+        var outsideFile = await this.Tenant.AddActFile(outsideAct);
+
+        await this.writer.DeleteCase(parent.Id, CancellationToken.None);
+
+        this.Tenant.Context.ChangeTracker.Clear();
+
+        var outsideExists = await this.Tenant.Context.Cases.AnyAsync(row => row.Id == outside.Id);
+        var outsideFileExists = await this.Tenant.Context.FileAssets.AnyAsync(row => row.Id == outsideFile.Id);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outsideExists, Is.True, "the cascade reaches only the subtree of the deleted case");
+            Assert.That(outsideFileExists, Is.True);
+            Assert.That(this.blobs.Deleted, Does.Not.Contain(outsideFile.StoragePath));
         }
     }
 

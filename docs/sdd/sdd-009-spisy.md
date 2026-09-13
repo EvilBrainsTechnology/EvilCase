@@ -52,11 +52,11 @@ kontakt. Zadává se na editaci spisu.
 ### Mazání
 
 Mazání řídí matice v SDD-007. Potvrzení jmenuje, co kaskáda bere, a u spisu s podřízenými
-spisy jejich počet a to, že zůstanou bez rodiče.
+spisy jejich počet a to, že se smažou spolu s ním.
 
 ## Rozhodnutí
 
-- Podřízené spisy při smazání rodiče: kaskáda / osiření. Platí osiření — rodič se vynuluje.
+- Podřízené spisy při smazání rodiče: kaskáda / osiření. Platí kaskáda — celý podstrom zaniká.
 - Hierarchie v UI: strom / ploché seznamy. Platí ploché seznamy.
 - Datum spisu: datum založení záznamu / explicitní pole. Platí explicitní pole.
 - Stav spisu: řídí chování / jen štítek. Platí jen štítek.
