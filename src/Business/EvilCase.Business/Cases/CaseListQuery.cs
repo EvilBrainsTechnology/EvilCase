@@ -35,9 +35,14 @@ internal static class CaseListQuery
         };
     }
 
-    public static IQueryable<Case> WithoutParent(this IQueryable<Case> cases, bool rootOnly)
+    public static IQueryable<Case> WithinScope(this IQueryable<Case> cases, CaseListScope scope)
     {
-        return rootOnly ? cases.Where(static @case => @case.ParentCaseId == null) : cases;
+        return scope switch
+        {
+            CaseListScope.RootOnly => cases.Where(static @case => @case.ParentCaseId == null),
+            CaseListScope.All => cases,
+            _ => throw new ArgumentOutOfRangeException(nameof(scope), scope, "Unknown case list scope."),
+        };
     }
 
     /// <summary>

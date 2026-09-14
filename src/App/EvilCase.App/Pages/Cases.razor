@@ -161,7 +161,7 @@
         {
             Search = string.IsNullOrWhiteSpace(this.search) ? null : this.search,
             Status = this.status,
-            RootOnly = this.rootOnly,
+            Scope = this.rootOnly ? CaseListScope.RootOnly : CaseListScope.All,
         };
 
         try

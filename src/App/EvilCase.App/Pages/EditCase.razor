@@ -155,7 +155,7 @@
             this.model.ParentCaseId = @case.ParentCase?.CaseId;
 
             // Every case of the tenant, subordinate ones included: a case hangs under any of them.
-            var response = await this.CasesClient.ListCases(new CaseListRequest { Status = CaseStatusFilter.All, RootOnly = false }, CancellationToken.None);
+            var response = await this.CasesClient.ListCases(new CaseListRequest { Status = CaseStatusFilter.All, Scope = CaseListScope.All }, CancellationToken.None);
 
             this.parentOptions = [.. response.Items.Where(item => item.CaseId != this.CaseId)];
 
