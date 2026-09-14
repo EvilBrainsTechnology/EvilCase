@@ -55,7 +55,7 @@ internal static class TestDatabase
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseNpgsql(ConnectionString.Value, static npgsql => npgsql.UseEvilCaseMigrations())
             .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking)
-            .AddInterceptors(new UserWriteInterceptor(userContext))
+            .AddInterceptors(new UserWriteInterceptor(userContext), new HistoryUserInterceptor(userContext))
             .Options;
 
         var context = new ApplicationDbContext(options, userContext);
