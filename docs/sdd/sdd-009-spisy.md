@@ -52,8 +52,8 @@ kontakt. Zadává se na editaci spisu.
 
 ### Mazání
 
-Mazání řídí matice v SDD-007. Potvrzení jmenuje, co kaskáda bere, a u spisu s podřízenými
-spisy jejich počet a to, že se smažou spolu s ním.
+Mazání řídí matice v SDD-007. Potvrzení jednou větou jmenuje, co kaskáda bere: podřízené spisy,
+úkony, komentáře a soubory.
 
 ## Rozhodnutí
 
