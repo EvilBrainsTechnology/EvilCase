@@ -290,6 +290,41 @@ public class CaseListQueryTests : TenantFixture
         }
     }
 
+    [Test]
+    public async Task TheRootScopeLeavesOnlyTheCasesWithoutAParent()
+    {
+        var root = await this.Tenant.AddCase(Day, "Rodič");
+        var child = await this.Tenant.AddCase(Day, "Podřízený", parentCaseId: root.Id);
+
+        var all = await this.Tenant.Context.Cases.WithinScope(CaseListScope.All).Select(static @case => @case.Id).ToListAsync();
+        var rootOnly = await this.Tenant.Context.Cases.WithinScope(CaseListScope.RootOnly).Select(static @case => @case.Id).ToListAsync();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(new CaseListRequest().Scope, Is.EqualTo(CaseListScope.RootOnly), "the list opens on the cases without a parent and shows the subordinate ones only once the switch is turned off");
+            Assert.That(all, Is.EquivalentTo([root.Id, child.Id]), "the whole scope narrows nothing");
+            Assert.That(rootOnly, Is.EquivalentTo([root.Id]), "the root scope leaves only the cases without a parent");
+        }
+    }
+
+    [Test]
+    public async Task TheReaderPassesTheScopeToTheList()
+    {
+        var root = await this.Tenant.AddCase(Day, "Rodič");
+        await this.Tenant.AddCase(Day, "Podřízený", parentCaseId: root.Id);
+
+        var reader = new CaseReader(new FixedDbSession(this.Tenant.Context));
+
+        var whole = await reader.ListCases(new CaseListRequest { Scope = CaseListScope.All }, CancellationToken.None);
+        var roots = await reader.ListCases(new CaseListRequest(), CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(whole, Has.Count.EqualTo(2), "a request asking for the whole scope lists the subordinate cases too");
+            Assert.That(roots.Select(static item => item.CaseId), Is.EqualTo([root.Id]), "the reader narrows the list by the requested scope");
+        }
+    }
+
     private async Task<List<string>> Titles(string search)
     {
         return await this.Tenant.Context.Cases

@@ -5,12 +5,7 @@
 <ConfirmDeleteModal Delete="this.DeleteCase" GoneError="Spis už neexistuje." FailedError="Spis se nepodařilo smazat. Zkuste to za chvíli znovu." OnDeleted="this.OnDeleted">
     <p>Opravdu smazat spis <strong>@Case.CaseNumber</strong> — @Case.Title? Akci nelze vrátit zpět.</p>
 
-    <p class="text-secondary">Se spisem zaniknou jeho úkony i s externími čísly jednacími, komentáře spisu i úkonů, externí značky spisu a soubory spisu i úkonů.</p>
-
-    @if (Case.ChildCases.Count > 0)
-    {
-        <p class="text-secondary">Podřízené spisy (@Case.ChildCases.Count) zůstanou zachovány a zůstanou bez nadřízeného spisu.</p>
-    }
+    <p class="text-secondary">Se spisem zaniknou jeho podřízené spisy, úkony, komentáře a soubory.</p>
 </ConfirmDeleteModal>
 
 @code {

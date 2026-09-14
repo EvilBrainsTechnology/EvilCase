@@ -12,7 +12,8 @@ internal sealed class CaseReader(IDbSession dbSession) : ICaseReader
     {
         var cases = dbSession.Current.Cases
             .MatchingSearch(request.Search)
-            .WithStatus(request.Status);
+            .WithStatus(request.Status)
+            .WithinScope(request.Scope);
 
         var ordered = request.Order == CaseListOrder.Changed ? cases.InChangeOrder() : cases.InListOrder();
 

@@ -43,7 +43,8 @@ kontakt. Zadává se na editaci spisu.
 - `/cases` — seznam spisů: číslo, název, stav, datum. Řadí se podle data spisu sestupně,
   shodná data řadí `Created`; bez stránkování. Hledací pole hledá v názvu a popisu bez ohledu na
   diakritiku. Filtr stavu nabízí Otevřené (vše kromě uzavřených), Všechny stavy a každý stav
-  zvlášť; výchozí je Otevřené.
+  zvlášť; výchozí je Otevřené. Přepínač Jen rodičovské spisy nechá v seznamu jen spisy bez
+  rodiče; ve výchozím stavu je zapnutý a po vypnutí seznam ukazuje i podřízené spisy.
 - `/cases/new` — založení, včetně kontaktu; `?parent={id}` zakládá podřízený spis.
 - `/cases/{id}` — detail: údaje, podřízené spisy, úkony (SDD-010), komentáře (SDD-013),
   soubory (SDD-012).
@@ -51,13 +52,15 @@ kontakt. Zadává se na editaci spisu.
 
 ### Mazání
 
-Mazání řídí matice v SDD-007. Potvrzení jmenuje, co kaskáda bere, a u spisu s podřízenými
-spisy jejich počet a to, že zůstanou bez rodiče.
+Mazání řídí matice v SDD-007. Potvrzení jednou větou jmenuje, co kaskáda bere: podřízené spisy,
+úkony, komentáře a soubory.
 
 ## Rozhodnutí
 
-- Podřízené spisy při smazání rodiče: kaskáda / osiření. Platí osiření — rodič se vynuluje.
+- Podřízené spisy při smazání rodiče: kaskáda / osiření. Platí kaskáda — celý podstrom zaniká.
 - Hierarchie v UI: strom / ploché seznamy. Platí ploché seznamy.
+- Podřízené spisy v seznamu `/cases`: skryté / volitelný přepínač. Platí přepínač, výchozí
+  zapnutý.
 - Datum spisu: datum založení záznamu / explicitní pole. Platí explicitní pole.
 - Stav spisu: řídí chování / jen štítek. Platí jen štítek.
 - Externí značka: N řádků s kontaktem / jeden sloupec. Platí jeden sloupec bez kontaktu.

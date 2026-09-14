@@ -15,7 +15,7 @@ Dashboard stojí nad reálnými daty tenantu:
 
 - dlaždice počtů spisů podle stavu, za celý tenant,
 - poslední úkony podle data úkonu sestupně, shodná data řadí `Created`, s odkazem do detailu,
-- naposledy změněné spisy, bez ohledu na stav.
+- naposledy změněné spisy, bez ohledu na stav, ve výchozím rozsahu výpisu spisů (SDD-009).
 
 Naposledy změněné spisy řadí vlastní `Updated` spisu; zápis úkonu, komentáře nebo souboru ho
 nemění — ta aktivita se ukazuje v dlaždici posledních úkonů. Spis, který nikdo neupravil, se

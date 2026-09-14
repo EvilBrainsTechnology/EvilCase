@@ -35,7 +35,7 @@ Account → Tenant → User (SDD-006). Tenantová data:
 
 | Entita | Smazání |
 | --- | --- |
-| Case | kaskáda: úkony, komentáře, soubory; podřízené spisy přežijí bez rodiče |
+| Case | kaskáda: úkony, komentáře, soubory; podřízené spisy do libovolné hloubky se vším, co k nim patří |
 | Act | kaskáda: komentáře, soubory |
 | Contact | jen ten, na který neodkazuje žádný spis ani úkon (SDD-011) |
 | FileAsset | prosté; blob zaniká se záznamem (SDD-012) |
