@@ -9,8 +9,6 @@ internal sealed class FakeFileBlobStore : IFileBlobStore
 
     public Dictionary<string, string> WrittenByPath { get; } = [];
 
-    public List<string> Deleted { get; } = [];
-
     public async Task<FileBlobInfo> WriteFileBlob(Guid tenantId, Guid fileAssetId, Stream content, CancellationToken token)
     {
         using var reader = new StreamReader(content, Encoding.UTF8);
@@ -32,10 +30,5 @@ internal sealed class FakeFileBlobStore : IFileBlobStore
     public Stream? ReadFileBlob(string storagePath)
     {
         return this.WrittenByPath.TryGetValue(storagePath, out var text) ? new MemoryStream(Encoding.UTF8.GetBytes(text)) : null;
-    }
-
-    public async Task DeleteFileBlob(string storagePath, CancellationToken token)
-    {
-        this.Deleted.Add(storagePath);
     }
 }

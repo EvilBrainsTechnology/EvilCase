@@ -11,16 +11,13 @@ public class CaseDeleteTests : TenantFixture
 {
     private static readonly DateOnly Day = new(2026, 8, 21);
 
-    private FakeFileBlobStore blobs = null!;
-
     private CaseWriter writer = null!;
 
     [SetUp]
     public void SetUpWriter()
     {
-        this.blobs = new FakeFileBlobStore();
         this.writer = new CaseWriter(
-            new FixedDbSession(this.Tenant.Context), new FakeCaseNumberIssuer(), this.blobs, NullLogger<CaseWriter>.Instance);
+            new FixedDbSession(this.Tenant.Context), new FakeCaseNumberIssuer(), NullLogger<CaseWriter>.Instance);
     }
 
     [Test]
@@ -75,7 +72,7 @@ public class CaseDeleteTests : TenantFixture
     }
 
     [Test]
-    public async Task ASubordinateCaseLosesItsActsCommentsFilesAndBlobs()
+    public async Task ASubordinateCaseLosesItsActsCommentsAndFiles()
     {
         var parent = await this.Tenant.AddCase(Day, "Rodič");
         var child = await this.Tenant.AddCase(Day, "Podřízený", parentCaseId: parent.Id);
@@ -98,15 +95,11 @@ public class CaseDeleteTests : TenantFixture
             Assert.That(actExists, Is.False, "the cascade takes the acts of a subordinate case");
             Assert.That(commentsExist, Is.False, "the cascade takes the comments of a subordinate case and of its acts");
             Assert.That(filesExist, Is.False, "the cascade takes the files of a subordinate case and of its acts");
-            Assert.That(
-                this.blobs.Deleted,
-                Is.EquivalentTo([childFile.StoragePath, childActFile.StoragePath]),
-                "the bytes of every file under the subtree go with the record");
         }
     }
 
     [Test]
-    public async Task ACaseOutsideTheSubtreeKeepsItsRowsAndBlobs()
+    public async Task ACaseOutsideTheSubtreeKeepsItsRows()
     {
         var parent = await this.Tenant.AddCase(Day, "Rodič");
         await this.Tenant.AddCase(Day, "Podřízený", parentCaseId: parent.Id);
@@ -125,25 +118,11 @@ public class CaseDeleteTests : TenantFixture
         {
             Assert.That(outsideExists, Is.True, "the cascade reaches only the subtree of the deleted case");
             Assert.That(outsideFileExists, Is.True);
-            Assert.That(this.blobs.Deleted, Does.Not.Contain(outsideFile.StoragePath));
         }
     }
 
     [Test]
-    public async Task TheBlobsOfTheCaseAndItsActsGoWithTheRecords()
-    {
-        var seeded = await this.Tenant.AddCase(Day, "Přestupek");
-        var act = await this.Tenant.AddAct(seeded, Day);
-        var caseFile = await this.Tenant.AddCaseFile(seeded);
-        var actFile = await this.Tenant.AddActFile(act);
-
-        await this.writer.DeleteCase(seeded.Id, CancellationToken.None);
-
-        Assert.That(this.blobs.Deleted, Is.EquivalentTo([caseFile.StoragePath, actFile.StoragePath]), "the bytes of every file the cascade takes go with the record");
-    }
-
-    [Test]
-    public async Task AnotherCasesFilesAndBlobsAreLeftAlone()
+    public async Task AnotherCasesFilesAreLeftAlone()
     {
         var seeded = await this.Tenant.AddCase(Day, "Přestupek");
         await this.Tenant.AddCaseFile(seeded);
@@ -156,11 +135,7 @@ public class CaseDeleteTests : TenantFixture
 
         var otherFileExists = await this.Tenant.Context.FileAssets.AnyAsync(row => row.Id == otherFile.Id);
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(otherFileExists, Is.True, "the cascade reaches only the files of the deleted case and its acts");
-            Assert.That(this.blobs.Deleted, Does.Not.Contain(otherFile.StoragePath));
-        }
+        Assert.That(otherFileExists, Is.True, "the cascade reaches only the files of the deleted case and its acts");
     }
 
     [Test]
@@ -169,17 +144,6 @@ public class CaseDeleteTests : TenantFixture
         var result = await this.writer.DeleteCase(Guid.CreateVersion7(), CancellationToken.None);
 
         Assert.That(result, Is.EqualTo(DeleteOutcome.NotFound));
-    }
-
-    [Test]
-    public async Task NoBlobIsDeletedWhereNoCaseIs()
-    {
-        var seeded = await this.Tenant.AddCase(Day, "Přestupek");
-        await this.Tenant.AddCaseFile(seeded);
-
-        await this.writer.DeleteCase(Guid.CreateVersion7(), CancellationToken.None);
-
-        Assert.That(this.blobs.Deleted, Is.Empty, "a delete that found no case takes no bytes");
     }
 
     [Test]

@@ -4,7 +4,6 @@ using EvilBrains.EvilCase.Business.Numbering;
 using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Domain.Acts;
 using EvilBrains.EvilCase.Tests.Data;
-using EvilBrains.EvilCase.Tests.Seeding;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -76,7 +75,7 @@ public class ActWriterTests : TenantFixture
 
         await this.Tenant.AddAct(@case, new DateOnly(2026, 8, 25), "Podání", actNumber: taken);
 
-        var writer = new ActWriter(new FixedDbSession(this.Tenant.Context), new QueuedActNumberIssuer([taken, free]), new FakeFileBlobStore(), NullLogger<ActWriter>.Instance);
+        var writer = new ActWriter(new FixedDbSession(this.Tenant.Context), new QueuedActNumberIssuer([taken, free]), NullLogger<ActWriter>.Instance);
 
         var request = Request() with { Date = new DateOnly(2026, 8, 25) };
 
@@ -95,7 +94,7 @@ public class ActWriterTests : TenantFixture
     [Test]
     public async Task AnActInACaseThatIsNotThereIsRefused()
     {
-        var writer = new ActWriter(new FixedDbSession(this.Tenant.Context), new QueuedActNumberIssuer([]), new FakeFileBlobStore(), NullLogger<ActWriter>.Instance);
+        var writer = new ActWriter(new FixedDbSession(this.Tenant.Context), new QueuedActNumberIssuer([]), NullLogger<ActWriter>.Instance);
 
         var result = await writer.CreateAct(Guid.CreateVersion7(), Request(), CancellationToken.None);
 
@@ -110,7 +109,7 @@ public class ActWriterTests : TenantFixture
     public async Task AnActNamingAContactThatIsNotThereIsRefused()
     {
         var @case = await this.Tenant.AddCase(new DateOnly(2026, 8, 21));
-        var writer = new ActWriter(new FixedDbSession(this.Tenant.Context), new QueuedActNumberIssuer(["EC/20260821-001/20260825-001"]), new FakeFileBlobStore(), NullLogger<ActWriter>.Instance);
+        var writer = new ActWriter(new FixedDbSession(this.Tenant.Context), new QueuedActNumberIssuer(["EC/20260821-001/20260825-001"]), NullLogger<ActWriter>.Instance);
 
         var request = Request() with { Direction = ActDirection.Incoming, ContactId = Guid.CreateVersion7() };
 
@@ -123,7 +122,7 @@ public class ActWriterTests : TenantFixture
     public async Task AnActWithNeitherADirectionNorAContactIsFiled()
     {
         var @case = await this.Tenant.AddCase(new DateOnly(2026, 8, 21));
-        var writer = new ActWriter(new FixedDbSession(this.Tenant.Context), new QueuedActNumberIssuer(["EC/20260821-001/20260825-001"]), new FakeFileBlobStore(), NullLogger<ActWriter>.Instance);
+        var writer = new ActWriter(new FixedDbSession(this.Tenant.Context), new QueuedActNumberIssuer(["EC/20260821-001/20260825-001"]), NullLogger<ActWriter>.Instance);
 
         var result = await writer.CreateAct(@case.Id, Request(), CancellationToken.None);
 
@@ -150,7 +149,7 @@ public class ActWriterTests : TenantFixture
         }
 
         // No number is queued: a contact of another tenant never reaches the insert.
-        var writer = new ActWriter(new FixedDbSession(this.Tenant.Context), new QueuedActNumberIssuer([]), new FakeFileBlobStore(), NullLogger<ActWriter>.Instance);
+        var writer = new ActWriter(new FixedDbSession(this.Tenant.Context), new QueuedActNumberIssuer([]), NullLogger<ActWriter>.Instance);
 
         var request = Request() with { Direction = ActDirection.Incoming, ContactId = foreignContactId };
 
@@ -164,7 +163,7 @@ public class ActWriterTests : TenantFixture
     {
         var @case = await this.Tenant.AddCase(new DateOnly(2026, 8, 21));
         var contact = await this.Tenant.AddContact("Krajský soud ve Vzorově");
-        var writer = new ActWriter(new FixedDbSession(this.Tenant.Context), new QueuedActNumberIssuer(["EC/20260821-001/20260825-001"]), new FakeFileBlobStore(), NullLogger<ActWriter>.Instance);
+        var writer = new ActWriter(new FixedDbSession(this.Tenant.Context), new QueuedActNumberIssuer(["EC/20260821-001/20260825-001"]), NullLogger<ActWriter>.Instance);
 
         var request = Request() with { Direction = ActDirection.Outgoing, ContactId = contact.Id };
 

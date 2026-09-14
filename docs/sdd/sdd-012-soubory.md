@@ -22,8 +22,8 @@ tentýž dokument ve dvou spisech jsou dva soubory.
   (`EvilBrains__EvilCase__Files__RootPath`, povinný); databáze nese jen metadata: název,
   velikost, `MediaType`, SHA-256 hash, cestu k blobu. Blob se jmenuje podle id souboru,
   bez přípony.
-- Blob se zapíše dřív, než transakce s metadaty commitne, takže neúspěšný upload může zanechat
-  osiřelý blob; tolerují se, úklid není. Mazání drží matice v SDD-007.
+- Blob se nikdy fyzicky nemaže. Neúspěšný upload i smazaný záznam (SDD-007) zanechají osiřelý
+  blob; osiřelé blob nejde ani vypsat, ani uklidit — úložiště jen roste.
 
 ### Pravidla
 
@@ -48,7 +48,8 @@ Smazání je prosté, s potvrzením.
 - Deduplikace hashem: ano / ne. Ne.
 - Limit velikosti: bez limitu / 100 MB. Platí 100 MB.
 - Úložiště: databáze / souborový systém. Platí souborový systém, metadata v databázi.
+- Smazání blobu: fyzické / žádné. Platí žádné — bajty přežívají smazaný záznam.
 
 ## Dopady
 
-Zápis a smazání blobu se loguje, obsah nikdy (SDD-002).
+Zápis blobu se loguje, obsah nikdy (SDD-002).

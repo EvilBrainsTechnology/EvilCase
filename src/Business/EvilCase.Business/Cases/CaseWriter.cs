@@ -7,7 +7,6 @@ using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Domain.Cases;
 using EvilBrains.EvilCase.Domain.Numbering;
-using EvilBrains.EvilCase.Files;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -16,7 +15,6 @@ namespace EvilBrains.EvilCase.Business.Cases;
 internal sealed class CaseWriter(
     IDbSession dbSession,
     ICaseNumberIssuer numbers,
-    IFileBlobStore fileBlobStore,
     ILogger<CaseWriter> logger) : ICaseWriter
 {
     /// <summary>
@@ -145,31 +143,14 @@ internal sealed class CaseWriter(
     {
         var context = dbSession.Current;
 
-        var parents = await context.Cases
-            .Select(static @case => new { @case.Id, @case.ParentCaseId })
-            .ToDictionaryAsync(static link => link.Id, static link => link.ParentCaseId, token);
-
-        var subtree = CaseHierarchy.WithSubordinates(parents, caseId)
-            .ToList();
-
-        // Read before the delete: the rows are gone once it runs.
-        var storagePaths = await context.FileAssets
-            .Where(file => subtree.Contains(file.CaseId!.Value) || subtree.Contains(file.Act!.CaseId))
-            .Select(static file => file.StoragePath)
-            .ToListAsync(token);
-
         // The subordinate cases, acts, comments and files go with the row: the database's foreign keys
-        // carry the cascade down the whole subtree (SDD-007).
+        // carry the cascade down the whole subtree (SDD-007). Their blobs stay on disk (SDD-012).
         var rows = await context.Cases
             .WithId(caseId)
             .ExecuteDeleteAsync(token);
 
         if (rows == 0)
             return DeleteOutcome.NotFound;
-
-        // After the commit: a blob orphaned by a failed delete is tolerated, a lost one is not (SDD-012).
-        foreach (var storagePath in storagePaths)
-            await fileBlobStore.DeleteFileBlob(storagePath, token);
 
         logger.LogInformation("Case {CaseId} was deleted", caseId);
 

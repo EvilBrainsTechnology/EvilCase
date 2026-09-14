@@ -80,7 +80,7 @@ public class FileWriterTests : TenantFixture
     }
 
     [Test]
-    public async Task ADeletedFileTakesItsBlobWithIt()
+    public async Task ADeletedFileLeavesItsBlobOnDisk()
     {
         var @case = await this.Tenant.AddCase(Day);
         var uploaded = await this.writer.UploadCaseFile(@case.Id, Upload("a.txt"), CancellationToken.None);
@@ -92,7 +92,7 @@ public class FileWriterTests : TenantFixture
         {
             Assert.That(outcome, Is.EqualTo(DeleteOutcome.Deleted));
             Assert.That(await this.Tenant.Context.FileAssets.AnyAsync(file => file.Id == uploaded.File.FileId), Is.False, "a deleted file leaves no row");
-            Assert.That(this.blobs.Deleted, Does.Contain(storagePath), "a deleted file takes its blob with it");
+            Assert.That(this.blobs.WrittenByPath, Contains.Key(storagePath), "a deleted file's bytes stay on disk");
         }
     }
 
@@ -176,7 +176,7 @@ public class FileWriterTests : TenantFixture
     }
 
     [Test]
-    public async Task ADeletedActFileTakesItsBlobWithIt()
+    public async Task ADeletedActFileLeavesItsBlobOnDisk()
     {
         var @case = await this.Tenant.AddCase(Day);
         var act = await this.Tenant.AddAct(@case, Day);
@@ -189,7 +189,7 @@ public class FileWriterTests : TenantFixture
         {
             Assert.That(outcome, Is.EqualTo(DeleteOutcome.Deleted));
             Assert.That(await this.Tenant.Context.FileAssets.AnyAsync(file => file.Id == uploaded.File.FileId), Is.False);
-            Assert.That(this.blobs.Deleted, Does.Contain(storagePath));
+            Assert.That(this.blobs.WrittenByPath, Contains.Key(storagePath), "a deleted act file's bytes stay on disk");
         }
     }
 
@@ -255,8 +255,5 @@ public class FileWriterTests : TenantFixture
         {
             return null;
         }
-
-        public async Task DeleteFileBlob(string storagePath, CancellationToken token)
-        { }
     }
 }

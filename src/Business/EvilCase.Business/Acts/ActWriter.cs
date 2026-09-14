@@ -6,13 +6,12 @@ using EvilBrains.EvilCase.Data;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Domain.Numbering;
-using EvilBrains.EvilCase.Files;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace EvilBrains.EvilCase.Business.Acts;
 
-internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, IFileBlobStore fileBlobStore, ILogger<ActWriter> logger) : IActWriter
+internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, ILogger<ActWriter> logger) : IActWriter
 {
     /// <summary>
     /// The unique index settles the numbering race; a loser retries (SDD-008).
@@ -135,13 +134,8 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
     {
         var context = dbSession.Current;
 
-        // Read before the delete: the rows are gone once it runs.
-        var storagePaths = await context.FileAssets
-            .Where(file => file.ActId == actId)
-            .Select(static file => file.StoragePath)
-            .ToListAsync(token);
-
-        // The comments and files go with the row: the database's foreign keys carry the cascade (SDD-007).
+        // The comments and files go with the row: the database's foreign keys carry the cascade
+        // (SDD-007). Their blobs stay on disk (SDD-012).
         var rows = await context.Acts
             .OfCase(caseId)
             .WithId(actId)
@@ -149,10 +143,6 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
 
         if (rows == 0)
             return DeleteOutcome.NotFound;
-
-        // After the commit: a blob orphaned by a failed delete is tolerated, a lost one is not (SDD-012).
-        foreach (var storagePath in storagePaths)
-            await fileBlobStore.DeleteFileBlob(storagePath, token);
 
         logger.LogInformation("Act {ActId} was deleted", actId);
 
