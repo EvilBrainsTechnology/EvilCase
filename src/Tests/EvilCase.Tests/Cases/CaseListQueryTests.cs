@@ -301,7 +301,7 @@ public class CaseListQueryTests : TenantFixture
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(new CaseListRequest().RootOnly, Is.False, "the list shows subordinate cases until the switch is used");
+            Assert.That(new CaseListRequest().RootOnly, Is.True, "the list opens on the cases without a parent and shows the subordinate ones only once the switch is turned off");
             Assert.That(off, Is.EquivalentTo([root.Id, child.Id]), "the unset filter narrows nothing");
             Assert.That(on, Is.EquivalentTo([root.Id]), "the set filter leaves only the cases without a parent");
         }
@@ -315,12 +315,12 @@ public class CaseListQueryTests : TenantFixture
 
         var reader = new CaseReader(new FixedDbSession(this.Tenant.Context));
 
-        var whole = await reader.ListCases(new CaseListRequest(), CancellationToken.None);
-        var roots = await reader.ListCases(new CaseListRequest { RootOnly = true }, CancellationToken.None);
+        var whole = await reader.ListCases(new CaseListRequest { RootOnly = false }, CancellationToken.None);
+        var roots = await reader.ListCases(new CaseListRequest(), CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(whole, Has.Count.EqualTo(2));
+            Assert.That(whole, Has.Count.EqualTo(2), "a request that turns the filter off lists the subordinate cases too");
             Assert.That(roots.Select(static item => item.CaseId), Is.EqualTo([root.Id]), "the reader narrows the list by the requested root filter");
         }
     }

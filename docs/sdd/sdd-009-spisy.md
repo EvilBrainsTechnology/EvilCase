@@ -44,7 +44,7 @@ kontakt. Zadává se na editaci spisu.
   shodná data řadí `Created`; bez stránkování. Hledací pole hledá v názvu a popisu bez ohledu na
   diakritiku. Filtr stavu nabízí Otevřené (vše kromě uzavřených), Všechny stavy a každý stav
   zvlášť; výchozí je Otevřené. Přepínač Jen rodičovské spisy nechá v seznamu jen spisy bez
-  rodiče; ve výchozím stavu je vypnutý a seznam ukazuje i podřízené spisy.
+  rodiče; ve výchozím stavu je zapnutý a po vypnutí seznam ukazuje i podřízené spisy.
 - `/cases/new` — založení, včetně kontaktu; `?parent={id}` zakládá podřízený spis.
 - `/cases/{id}` — detail: údaje, podřízené spisy, úkony (SDD-010), komentáře (SDD-013),
   soubory (SDD-012).
@@ -60,7 +60,7 @@ spisy jejich počet a to, že se smažou spolu s ním.
 - Podřízené spisy při smazání rodiče: kaskáda / osiření. Platí kaskáda — celý podstrom zaniká.
 - Hierarchie v UI: strom / ploché seznamy. Platí ploché seznamy.
 - Podřízené spisy v seznamu `/cases`: skryté / volitelný přepínač. Platí přepínač, výchozí
-  vypnutý.
+  zapnutý.
 - Datum spisu: datum založení záznamu / explicitní pole. Platí explicitní pole.
 - Stav spisu: řídí chování / jen štítek. Platí jen štítek.
 - Externí značka: N řádků s kontaktem / jeden sloupec. Platí jeden sloupec bez kontaktu.

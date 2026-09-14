@@ -10,7 +10,7 @@ public sealed record CaseListRequest
 
     public CaseListOrder Order { get; init; } = CaseListOrder.Date;
 
-    public bool RootOnly { get; init; }
+    public bool RootOnly { get; init; } = true;
 
     [Range(1, 100)]
     public int? Take { get; init; }

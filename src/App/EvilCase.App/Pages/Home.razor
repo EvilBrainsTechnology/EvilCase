@@ -85,7 +85,7 @@
         try
         {
             var cases = await this.CasesClient.ListCases(
-                new CaseListRequest { Status = CaseStatusFilter.All, Order = CaseListOrder.Changed, Take = TileItems },
+                new CaseListRequest { Status = CaseStatusFilter.All, Order = CaseListOrder.Changed, Take = TileItems, RootOnly = false },
                 CancellationToken.None);
 
             var counts = await this.CasesClient.CountCases(CancellationToken.None);
