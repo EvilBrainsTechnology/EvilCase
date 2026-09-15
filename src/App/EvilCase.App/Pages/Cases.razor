@@ -5,6 +5,7 @@
 @implements IDisposable
 @inject ICasesClient CasesClient
 @inject ILogger<Cases> Logger
+@inject NavigationManager NavigationManager
 
 <PageTitle>Spisy – EvilCase</PageTitle>
 
@@ -82,25 +83,25 @@
             else
             {
                 <div class="d-none d-lg-block">
-                    <table class="table card-table table-vcenter">
+                    <table class="table card-table table-vcenter table-hover">
                         <thead>
                             <tr>
-                                <th>Spisová značka</th>
+                                <th>Datum</th>
                                 <th>Název</th>
                                 <th>Stav</th>
-                                <th>Datum</th>
+                                <th>Spisová značka</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var item in this.items)
                             {
-                                <tr>
-                                    <td class="text-nowrap">@item.CaseNumber</td>
-                                    <td><a href="@($"/cases/{item.CaseId}")">@item.Title</a></td>
+                                <tr class="table-row-link" @onclick="@(() => this.NavigationManager.NavigateTo($"/cases/{item.CaseId}"))">
+                                    <td class="text-nowrap">@DateDisplay.Text(item.Date)</td>
+                                    <td><a href="@($"/cases/{item.CaseId}")" @onclick:stopPropagation @onclick="() => { }">@item.Title</a></td>
                                     <td class="text-nowrap">
                                         <Status BackgroundColor="CaseStatusDisplay.Color(item.Status)" Lite="true">@CaseStatusDisplay.Text(item.Status)</Status>
                                     </td>
-                                    <td class="text-nowrap">@DateDisplay.Text(item.Date)</td>
+                                    <td class="text-nowrap">@item.CaseNumber</td>
                                 </tr>
                             }
                         </tbody>

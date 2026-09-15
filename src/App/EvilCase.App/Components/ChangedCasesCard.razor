@@ -1,4 +1,5 @@
 @using EvilBrains.EvilCase.Api.Contract.Cases
+@inject NavigationManager NavigationManager
 
 <div class="card">
     <div class="card-header">
@@ -9,25 +10,27 @@
     </div>
 
     <div class="d-none d-lg-block">
-        <table class="table card-table table-vcenter">
+        <table class="table card-table table-vcenter table-hover">
             <thead>
                 <tr>
                     <th>Změněno</th>
-                    <th>Spisová značka</th>
+                    <th>Datum</th>
                     <th>Název</th>
                     <th>Stav</th>
+                    <th>Spisová značka</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var item in this.Items)
                 {
-                    <tr>
+                    <tr class="table-row-link" @onclick="@(() => this.NavigationManager.NavigateTo($"/cases/{item.CaseId}"))">
                         <td class="text-nowrap">@MomentDisplay.Text(item.Changed)</td>
-                        <td class="text-nowrap">@item.CaseNumber</td>
-                        <td><a href="@($"/cases/{item.CaseId}")">@item.Title</a></td>
+                        <td class="text-nowrap">@DateDisplay.Text(item.Date)</td>
+                        <td><a href="@($"/cases/{item.CaseId}")" @onclick:stopPropagation @onclick="() => { }">@item.Title</a></td>
                         <td class="text-nowrap">
                             <Status BackgroundColor="CaseStatusDisplay.Color(item.Status)" Lite="true">@CaseStatusDisplay.Text(item.Status)</Status>
                         </td>
+                        <td class="text-nowrap">@item.CaseNumber</td>
                     </tr>
                 }
             </tbody>
@@ -44,6 +47,7 @@
                     <div>
                         <Status BackgroundColor="CaseStatusDisplay.Color(item.Status)" Lite="true">@CaseStatusDisplay.Text(item.Status)</Status>
                     </div>
+                    <div class="text-secondary">@DateDisplay.Text(item.Date)</div>
                     <div class="text-secondary">Změněno @MomentDisplay.Text(item.Changed)</div>
                 </div>
             </div>
