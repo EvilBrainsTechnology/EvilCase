@@ -1,3 +1,5 @@
+using EvilBrains.EvilCase.Domain.Acts;
+
 namespace EvilBrains.EvilCase.Api.Contract.Contacts;
 
 public sealed record ContactActOccurrence
@@ -10,9 +12,13 @@ public sealed record ContactActOccurrence
 
     public required DateOnly ActDate { get; init; }
 
+    public ActDirection? Direction { get; init; }
+
     public required Guid CaseId { get; init; }
 
     public required string CaseNumber { get; init; }
+
+    public required string CaseTitle { get; init; }
 
     public string? ExternalNumber { get; init; }
 }

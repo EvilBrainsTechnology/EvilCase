@@ -25,8 +25,10 @@ internal static class ContactOccurrenceQuery
             ActNumber = act.ActNumber,
             ActTitle = act.Title,
             ActDate = act.Date,
+            Direction = act.Direction,
             CaseId = act.CaseId,
             CaseNumber = act.Case!.CaseNumber,
+            CaseTitle = act.Case!.Title,
             ExternalNumber = act.ExternalActNumber,
         });
     }

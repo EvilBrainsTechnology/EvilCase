@@ -26,6 +26,13 @@ internal static class ActListQuery
             .ThenByDescending(static act => act.Id);
     }
 
+    public static IQueryable<Act> InChangeOrder(this IQueryable<Act> acts)
+    {
+        return acts
+            .OrderByDescending(static act => act.Updated ?? act.Created)
+            .ThenByDescending(static act => act.Id);
+    }
+
     public static IQueryable<ActListItem> AsListItems(this IQueryable<Act> acts)
     {
         return acts.Select(static act => new ActListItem
@@ -33,10 +40,12 @@ internal static class ActListQuery
             ActId = act.Id,
             CaseId = act.CaseId,
             CaseNumber = act.Case!.CaseNumber,
+            CaseTitle = act.Case!.Title,
             ActNumber = act.ActNumber,
             Direction = act.Direction,
             Title = act.Title,
             Date = act.Date,
+            Changed = act.Updated ?? act.Created,
             ContactName = act.Contact!.Name,
         });
     }
