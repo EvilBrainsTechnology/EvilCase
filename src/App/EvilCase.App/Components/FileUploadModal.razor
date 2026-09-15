@@ -1,0 +1,118 @@
+@using System.Net
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Contract.Files
+@using Microsoft.JSInterop
+@using TabBlazor.Services
+@inject IModalService ModalService
+@inject ILogger<FileUploadModal> Logger
+
+<div class="mb-3">
+    <label class="form-label" for="upload-input">Soubory</label>
+    <InputFile id="upload-input" class="form-control" multiple OnChange="this.OnFilesSelected" />
+    <div class="form-hint">Nejvýše @(FileSizeDisplay.Text(FileLimits.MaxUploadBytes)) na soubor.</div>
+</div>
+
+@if (this.uploadTotal > 0)
+{
+    <div class="uprow mb-3">
+        <div class="progress flex-fill" role="progressbar" aria-valuenow="@this.uploadIndex" aria-valuemin="0" aria-valuemax="@this.uploadTotal">
+            <div class="progress-bar" style="@($"width: {this.uploadIndex * 100 / this.uploadTotal}%")"></div>
+        </div>
+        <span class="text-secondary ec-num">@this.uploadIndex / @this.uploadTotal</span>
+    </div>
+    <div class="text-secondary mb-3 text-truncate">Nahrávám @this.uploadName</div>
+}
+
+@foreach (var failure in this.failures)
+{
+    <div class="alert alert-danger" role="alert"><Icon CssClass="icon me-2" IconType="AppIcons.AlertTriangle" />@failure</div>
+}
+
+<div class="form-actions-sticky d-flex justify-content-end gap-2 mt-3">
+    <button type="button" class="btn btn-primary" @onclick="() => this.ModalService.Close()">
+        <Icon CssClass="icon" IconType="AppIcons.X" />Hotovo
+    </button>
+</div>
+
+@code {
+    private const int MaxBatchFiles = 100;
+
+    [Parameter, EditorRequired]
+    public required Func<IBrowserFile, CancellationToken, Task> UploadFile { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string OwnerGoneError { get; set; }
+
+    [Parameter]
+    public EventCallback OnUploaded { get; set; }
+
+    private readonly List<string> failures = [];
+
+    private int uploadIndex;
+
+    private int uploadTotal;
+
+    private string uploadName = "";
+
+    private async Task OnFilesSelected(InputFileChangeEventArgs args)
+    {
+        this.failures.Clear();
+        this.uploadIndex = 0;
+
+        if (args.FileCount > MaxBatchFiles)
+        {
+            this.failures.Add($"Najednou lze nahrát nejvýše {MaxBatchFiles} souborů.");
+
+            return;
+        }
+
+        this.uploadTotal = args.FileCount;
+
+        var uploadedAny = false;
+
+        foreach (var file in args.GetMultipleFiles(MaxBatchFiles))
+        {
+            this.uploadIndex++;
+            this.uploadName = file.Name;
+            this.StateHasChanged();
+
+            if (file.Size > FileLimits.MaxUploadBytes)
+            {
+                this.failures.Add($"{file.Name}: soubor je větší než {FileSizeDisplay.Text(FileLimits.MaxUploadBytes)}.");
+                continue;
+            }
+
+            try
+            {
+                await this.UploadFile(file, CancellationToken.None);
+
+                uploadedAny = true;
+            }
+            catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.RequestEntityTooLarge)
+            {
+                this.Logger.LogWarning(exception, "Uploading a file failed: too large");
+
+                this.failures.Add($"{file.Name}: soubor je větší než {FileSizeDisplay.Text(FileLimits.MaxUploadBytes)}.");
+            }
+            catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+            {
+                this.Logger.LogWarning(exception, "Uploading a file failed: the owner is gone");
+
+                this.failures.Add($"{file.Name}: {this.OwnerGoneError}");
+            }
+            catch (Exception exception) when (exception is ApiException or HttpRequestException or IOException or JSException)
+            {
+                this.Logger.LogWarning(exception, "Uploading a file failed");
+
+                this.failures.Add($"{file.Name}: nahrání se nezdařilo.");
+            }
+        }
+
+        this.uploadTotal = 0;
+
+        if (uploadedAny)
+        {
+            await this.OnUploaded.InvokeAsync();
+        }
+    }
+}
