@@ -39,7 +39,7 @@ kontakt. Zadává se na editaci úkonu.
 - `/cases/{id}/act/new` — založení.
 - `/cases/{id}/act/{actId}` — detail: údaje, komentáře (SDD-013), soubory (SDD-012).
 - `/cases/{id}/act/{actId}/edit` — editace.
-- Seznam úkonů žije v detailu spisu, ukazuje datum, číslo jednací, směr, název a kontakt
+- Seznam úkonů žije v detailu spisu, ukazuje datum, název, směr, číslo jednací a kontakt
   a řadí se podle data úkonu vzestupně; shodná data řadí `Created`.
 
 ### Mazání

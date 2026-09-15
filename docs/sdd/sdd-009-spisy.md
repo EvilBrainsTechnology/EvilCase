@@ -40,7 +40,7 @@ kontakt. Zadává se na editaci spisu.
 
 ### Stránky
 
-- `/cases` — seznam spisů: číslo, název, stav, datum. Řadí se podle data spisu sestupně,
+- `/cases` — seznam spisů: datum, název, stav, číslo. Řadí se podle data spisu sestupně,
   shodná data řadí `Created`; bez stránkování. Hledací pole hledá v názvu a popisu bez ohledu na
   diakritiku. Filtr stavu nabízí Otevřené (vše kromě uzavřených), Všechny stavy a každý stav
   zvlášť; výchozí je Otevřené. Přepínač Jen rodičovské spisy nechá v seznamu jen spisy bez

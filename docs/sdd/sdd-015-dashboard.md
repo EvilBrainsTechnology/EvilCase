@@ -14,12 +14,16 @@
 Dashboard stojí nad reálnými daty tenantu:
 
 - dlaždice počtů spisů podle stavu, za celý tenant,
-- poslední úkony podle data úkonu sestupně, shodná data řadí `Created`, s odkazem do detailu,
-- naposledy změněné spisy, bez ohledu na stav, ve výchozím rozsahu výpisu spisů (SDD-009).
+- naposledy změněné spisy, bez ohledu na stav, ve výchozím rozsahu výpisu spisů (SDD-009),
+- naposledy změněné úkony napříč spisy, s odkazem do detailu a jménem spisu, kterému úkon patří.
+
+Obě seznamové dlaždice ukazují změnu jako první sloupec; dlaždice spisů je první, dlaždice
+úkonů druhá.
 
 Naposledy změněné spisy řadí vlastní `Updated` spisu; zápis úkonu, komentáře nebo souboru ho
-nemění — ta aktivita se ukazuje v dlaždici posledních úkonů. Spis, který nikdo neupravil, se
-řadí a zobrazuje podle svého `Created`. Seznamové dlaždice ukazují nejvýše 5 položek.
+nemění. Spis, který nikdo neupravil, se řadí a zobrazuje podle svého `Created`. Naposledy
+změněné úkony řadí stejně vlastní `Updated` úkonu, nebo `Created` u úkonu, který nikdo
+neupravil. Seznamové dlaždice ukazují nejvýše 5 položek.
 
 Dashboard nemá vlastní API; skládá se na klientu z API entit (SDD-005): dlaždice počtů
 z počtů spisů `/api/cases/counts`, naposledy změněné spisy z výpisu spisů, poslední úkony
