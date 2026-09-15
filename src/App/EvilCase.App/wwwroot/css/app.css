@@ -178,8 +178,9 @@
     z-index: 2;
 }
 
-/* The colour swatches of the label form; .status-dot takes its size from this variable. */
-.label-swatch {
+/* The colour swatches of the label form. Tabler declares the size on .status-dot itself, so the
+   override belongs there too — a value on the button would never be reached. */
+.label-swatch .status-dot {
     --tblr-status-size: 1.5rem;
 }
 
