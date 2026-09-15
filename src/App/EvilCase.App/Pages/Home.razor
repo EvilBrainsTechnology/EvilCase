@@ -62,11 +62,11 @@
             </div>
 
             <div class="mt-3">
-                <RecentActsCard Items="this.view.RecentActs" />
+                <ChangedCasesCard Items="this.view.ChangedCases" />
             </div>
 
             <div class="mt-3">
-                <ChangedCasesCard Items="this.view.ChangedCases" />
+                <ChangedActsCard Items="this.view.ChangedActs" />
             </div>
         }
 
@@ -92,7 +92,7 @@
 
             var acts = await this.ActsClient.ListActs(new ActListRequest { Take = TileItems }, CancellationToken.None);
 
-            this.view = new DashboardView { Counts = counts, ChangedCases = cases.Items, RecentActs = acts.Items };
+            this.view = new DashboardView { Counts = counts, ChangedCases = cases.Items, ChangedActs = acts.Items };
         }
         catch (Exception exception) when (exception is ApiException or HttpRequestException)
         {

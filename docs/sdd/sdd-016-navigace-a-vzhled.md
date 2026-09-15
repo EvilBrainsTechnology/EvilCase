@@ -36,7 +36,10 @@ s tím, který záznam chybí.
 Menu nese Přehled, Spisy a Kontakty a zvýrazňuje položku i na podřízených routách. Vzhled je
 Tabler a TabBlazor. Desktop je primární, každá denně používaná obrazovka je plnohodnotná i na
 mobilu a seznam se na mobilu nikdy neposouvá vodorovně. Datum se všude píše `d. M. yyyy`,
-okamžik `d. M. yyyy H:mm` v časovém pásmu prohlížeče.
+okamžik `d. M. yyyy H:mm` v časovém pásmu prohlížeče. Řádek tabulky se seznamem záznamů je
+odkaz na detail záznamu po celé šířce a otevírá se na nové kartě nebo v novém okně jako
+kterýkoli jiný odkaz. Záhlaví sloupce pojmenovává entitu, které sloupec patří. Buňka nese
+odkaz jen tam, kde vede jinam než řádek.
 
 Každý seznam má prázdný stav; kde jde záznam založit, nese výzvu k založení.
 

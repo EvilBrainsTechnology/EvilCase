@@ -10,7 +10,7 @@ internal sealed class ActReader(IDbSession dbSession) : IActReader
     public async Task<IReadOnlyList<ActListItem>> ListActs(ActListRequest request, CancellationToken token)
     {
         return await dbSession.Current.Acts
-            .InLatestOrder()
+            .InChangeOrder()
             .TakeAtMost(request.Take)
             .AsListItems()
             .ToListAsync(token);

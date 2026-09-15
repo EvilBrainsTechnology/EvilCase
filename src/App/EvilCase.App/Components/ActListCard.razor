@@ -40,22 +40,22 @@
     else
     {
         <div class="d-none d-lg-block">
-            <table class="table card-table table-vcenter">
+            <table class="table card-table table-vcenter table-hover">
                 <thead>
                     <tr>
                         <th>Datum</th>
-                        <th>Číslo jednací</th>
+                        <th>Úkon</th>
                         <th>Směr</th>
-                        <th>Název</th>
+                        <th>Číslo jednací</th>
                         <th>Kontakt</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var item in this.items)
                     {
-                        <tr>
+                        <tr class="table-row-link">
                             <td class="text-nowrap">@DateDisplay.Text(item.Date)</td>
-                            <td class="text-nowrap">@item.ActNumber</td>
+                            <td class="fw-bold"><a href="@($"/cases/{this.CaseId}/act/{item.ActId}")" class="stretched-link">@item.Title</a></td>
                             <td class="text-nowrap">
                                 @if (item.Direction is not null)
                                 {
@@ -66,7 +66,7 @@
                                     @:—
                                 }
                             </td>
-                            <td><a href="@($"/cases/{this.CaseId}/act/{item.ActId}")">@item.Title</a></td>
+                            <td class="text-nowrap">@item.ActNumber</td>
                             <td>@item.ContactName</td>
                         </tr>
                     }
@@ -79,7 +79,7 @@
             {
                 <div class="card mb-2">
                     <div class="card-body">
-                        <div class="font-weight-medium"><a href="@($"/cases/{this.CaseId}/act/{item.ActId}")">@item.Title</a></div>
+                        <div class="fw-bold"><a href="@($"/cases/{this.CaseId}/act/{item.ActId}")">@item.Title</a></div>
                         <div class="text-secondary">@item.ActNumber</div>
                         @if (item.Direction is not null)
                         {

@@ -1,6 +1,7 @@
 using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Business.Acts;
 using EvilBrains.EvilCase.Business.Contacts;
+using EvilBrains.EvilCase.Domain.Acts;
 using EvilBrains.EvilCase.Tests.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,8 +16,8 @@ public class ContactOccurrenceQueryTests : TenantFixture
     {
         var caseContact = await this.Tenant.AddContact("Městský úřad");
         var actContact = await this.Tenant.AddContact("Krajský soud ve Vzorově");
-        var @case = await this.Tenant.AddCase(Day, contact: caseContact);
-        var act = await this.Tenant.AddAct(@case, Day, "Rozhodnutí", contact: actContact, externalActNumber: "MUVZ/2026/117");
+        var @case = await this.Tenant.AddCase(Day, "Přestupek", contact: caseContact);
+        var act = await this.Tenant.AddAct(@case, Day, "Rozhodnutí", contact: actContact, direction: ActDirection.Outgoing, externalActNumber: "MUVZ/2026/117");
 
         var occurrences = await this.Tenant.Context.Acts
             .WithContactDifferingFromItsCase(actContact.Id)
@@ -29,8 +30,10 @@ public class ContactOccurrenceQueryTests : TenantFixture
             ActNumber = act.ActNumber,
             ActTitle = "Rozhodnutí",
             ActDate = Day,
+            Direction = ActDirection.Outgoing,
             CaseId = @case.Id,
             CaseNumber = @case.CaseNumber,
+            CaseTitle = "Přestupek",
             ExternalNumber = "MUVZ/2026/117",
         };
 

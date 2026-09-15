@@ -9,25 +9,27 @@
     </div>
 
     <div class="d-none d-lg-block">
-        <table class="table card-table table-vcenter">
+        <table class="table card-table table-vcenter table-hover">
             <thead>
                 <tr>
                     <th>Změněno</th>
-                    <th>Spisová značka</th>
-                    <th>Název</th>
+                    <th>Datum</th>
+                    <th>Spis</th>
                     <th>Stav</th>
+                    <th>Spisová značka</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var item in this.Items)
                 {
-                    <tr>
+                    <tr class="table-row-link">
                         <td class="text-nowrap">@MomentDisplay.Text(item.Changed)</td>
-                        <td class="text-nowrap">@item.CaseNumber</td>
-                        <td><a href="@($"/cases/{item.CaseId}")">@item.Title</a></td>
+                        <td class="text-nowrap">@DateDisplay.Text(item.Date)</td>
+                        <td class="fw-bold"><a href="@($"/cases/{item.CaseId}")" class="stretched-link">@item.Title</a></td>
                         <td class="text-nowrap">
                             <Status BackgroundColor="CaseStatusDisplay.Color(item.Status)" Lite="true">@CaseStatusDisplay.Text(item.Status)</Status>
                         </td>
+                        <td class="text-nowrap">@item.CaseNumber</td>
                     </tr>
                 }
             </tbody>
@@ -40,10 +42,11 @@
             <div class="card mb-2">
                 <div class="card-body">
                     <div class="text-secondary">@item.CaseNumber</div>
-                    <div class="font-weight-medium"><a href="@($"/cases/{item.CaseId}")">@item.Title</a></div>
+                    <div class="fw-bold"><a href="@($"/cases/{item.CaseId}")">@item.Title</a></div>
                     <div>
                         <Status BackgroundColor="CaseStatusDisplay.Color(item.Status)" Lite="true">@CaseStatusDisplay.Text(item.Status)</Status>
                     </div>
+                    <div class="text-secondary">@DateDisplay.Text(item.Date)</div>
                     <div class="text-secondary">Změněno @MomentDisplay.Text(item.Changed)</div>
                 </div>
             </div>

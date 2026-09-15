@@ -67,10 +67,10 @@
             else
             {
                 <div class="d-none d-lg-block">
-                    <table class="table card-table table-vcenter">
+                    <table class="table card-table table-vcenter table-hover">
                         <thead>
                             <tr>
-                                <th>Název</th>
+                                <th>Kontakt</th>
                                 <th>Typ</th>
                                 <th>ID datové schránky</th>
                                 <th>Adresa</th>
@@ -79,8 +79,8 @@
                         <tbody>
                             @foreach (var item in this.items)
                             {
-                                <tr>
-                                    <td><a href="/contacts/@item.ContactId">@item.Name</a></td>
+                                <tr class="table-row-link">
+                                    <td><a href="/contacts/@item.ContactId" class="stretched-link">@item.Name</a></td>
                                     <td class="text-nowrap">@ContactKindDisplay.Text(item.Kind)</td>
                                     <td>@item.DataBoxId</td>
                                     <td>@item.Address</td>

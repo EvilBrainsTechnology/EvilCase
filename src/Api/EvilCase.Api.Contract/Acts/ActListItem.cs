@@ -10,6 +10,8 @@ public sealed record ActListItem
 
     public required string CaseNumber { get; init; }
 
+    public required string CaseTitle { get; init; }
+
     public required string ActNumber { get; init; }
 
     public ActDirection? Direction { get; init; }
@@ -17,6 +19,8 @@ public sealed record ActListItem
     public required string Title { get; init; }
 
     public required DateOnly Date { get; init; }
+
+    public required DateTime Changed { get; init; }
 
     public string? ContactName { get; init; }
 }
