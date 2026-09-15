@@ -101,22 +101,13 @@ if ! command -v pwsh >/dev/null 2>&1; then
 fi
 
 # --- PostgreSQL -----------------------------------------------------------------------------
-# The image ships PostgreSQL 16, so deploy/docker-compose.dev.yml (PostgreSQL 18) is not needed.
-# Credentials and database name still match the connection string in .env.example.
-if pg_isready -h 127.0.0.1 -q 2>/dev/null; then
-    log "PostgreSQL already running"
-else
-    log "starting PostgreSQL"
-    service postgresql start >/dev/null
-    for _ in $(seq 1 30); do
-        pg_isready -h 127.0.0.1 -q 2>/dev/null && break
-        sleep 1
-    done
-fi
-
-su postgres -c "psql -qc \"ALTER USER postgres PASSWORD 'postgres';\"" >/dev/null
-su postgres -c "psql -tAc \"SELECT 1 FROM pg_database WHERE datname='evilcase'\"" | grep -q 1 \
-    || su postgres -c "createdb evilcase"
+# The image ships PostgreSQL 16, which lacks uuidv7(); the history triggers need PostgreSQL 18.
+# The image's own server stays down so it does not hold 5432, and deploy/docker-compose.dev.yml
+# (PostgreSQL 18) runs instead. It already sets the user, password and database the connection
+# string expects.
+log "starting PostgreSQL"
+service postgresql stop >/dev/null 2>&1 || true
+docker compose --progress quiet -f "$REPO/deploy/docker-compose.dev.yml" up -d --wait
 
 # --- Secrets --------------------------------------------------------------------------------
 # .env is gitignored, so a fresh container has none. These values are throwaway and local only;
