@@ -6,11 +6,11 @@
 @using EvilBrains.EvilCase.Api.Contract.Comments
 @using EvilBrains.EvilCase.Api.Contract.Files
 @using EvilBrains.EvilCase.Api.Contract.Labels
+@using EvilBrains.EvilCase.Domain.Cases
 @using TabBlazor.Services
 @inject ICasesClient CasesClient
 @inject ICaseCommentsClient CaseCommentsClient
 @inject ICaseFilesClient CaseFilesClient
-@inject ICaseLabelsClient CaseLabelsClient
 @inject IFileTransferClient FileTransfer
 @inject IFileDownloader Downloader
 @inject IModalService ModalService
@@ -23,22 +23,51 @@
     <div class="container-xl">
         <div class="row g-2 align-items-center">
             <div class="col">
-                <div class="page-pretitle"><a href="/cases">Spisy</a></div>
-                <h2 class="page-title">
-                    @(this.caseDetail?.Title)
-                    @if (this.caseDetail is not null)
-                    {
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1">
+                        <li class="breadcrumb-item"><a href="/cases">Spisy</a></li>
+                        @if (this.caseDetail is not null)
+                        {
+                            @if (this.Edit)
+                            {
+                                <li class="breadcrumb-item"><a href="@($"/cases/{this.CaseId}")">@this.caseDetail!.Title</a></li>
+                                <li class="breadcrumb-item active" aria-current="page">Upravit</li>
+                            }
+                            else
+                            {
+                                <li class="breadcrumb-item active" aria-current="page">@this.caseDetail!.Title</li>
+                            }
+                        }
+                    </ol>
+                </nav>
+
+                @if (this.Edit)
+                {
+                    <label class="visually-hidden" for="case-title">Název</label>
+                    <input id="case-title" class="form-control ec-title-input" @bind="this.model.Title" @bind:event="oninput" />
+                }
+                else if (this.caseDetail is not null)
+                {
+                    <h2 class="page-title">
+                        @this.caseDetail!.Title
                         <span class="ms-2">
-                            <Status BackgroundColor="CaseStatusDisplay.Color(this.caseDetail.Status)" Lite="true">@CaseStatusDisplay.Text(this.caseDetail.Status)</Status>
+                            <Status BackgroundColor="CaseStatusDisplay.Color(this.caseDetail!.Status)" Lite="true">@CaseStatusDisplay.Text(this.caseDetail!.Status)</Status>
                         </span>
-                    }
-                </h2>
+                    </h2>
+                }
             </div>
             @if (this.caseDetail is not null)
             {
                 <div class="col-auto ms-auto d-print-none">
-                    <a id="case-edit" href="@($"/cases/{this.CaseId}/edit")" class="btn btn-primary"><Icon CssClass="icon" IconType="AppIcons.Pencil" />Upravit</a>
-                    <button id="case-delete" type="button" class="btn btn-danger ms-2" @onclick="this.DeleteCase"><Icon CssClass="icon" IconType="AppIcons.Trash" />Smazat</button>
+                    @if (this.Edit)
+                    {
+                        <span class="ec-mode-chip"><Icon CssClass="icon" IconType="AppIcons.Pencil" />Režim editace</span>
+                    }
+                    else
+                    {
+                        <a id="case-edit" href="@($"/cases/{this.CaseId}/edit")" class="btn btn-primary"><Icon CssClass="icon" IconType="AppIcons.Pencil" />Upravit</a>
+                        <button id="case-delete" type="button" class="btn btn-danger ms-2" @onclick="this.DeleteCase"><Icon CssClass="icon" IconType="AppIcons.Trash" />Smazat</button>
+                    }
                 </div>
             }
         </div>
@@ -48,92 +77,201 @@
 <div class="page-body">
     <div class="container-xl">
         <LoadStateView NotFound="this.notFound" NotFoundTitle="Spis nenalezen" Failure="@this.failure" FailureTitle="Spis se nepodařilo načíst" Loaded="this.caseDetail is not null">
-            <div class="mb-3">
-                <LabelsCard @key="this.CaseId"
-                            InputId="case-labels"
-                            Labels="this.caseDetail!.Labels"
-                            SaveLabels="this.SaveLabels"
-                            OwnerGoneError="Spis už neexistuje." />
-            </div>
+            @* A CascadingValue, not EditForm: Komentáře renders its own <form> further down, and a
+               <form> cannot nest inside another one. *@
+            <CascadingValue Value="this.editContext" IsFixed="true">
+                <DataAnnotationsValidator />
 
-            <div class="card mb-3">
-                <div class="card-header">
-                    <h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.ListDetails" />Údaje</h3>
-                </div>
-                <div class="card-body">
-                    <div class="datagrid">
-                        <div class="datagrid-item">
-                            <div class="datagrid-title">Spisová značka</div>
-                            <div class="datagrid-content">@this.caseDetail.CaseNumber</div>
-                        </div>
-                        <div class="datagrid-item">
-                            <div class="datagrid-title">Externí spisová značka</div>
-                            <div class="datagrid-content">@(string.IsNullOrWhiteSpace(this.caseDetail.ExternalCaseNumber) ? "—" : this.caseDetail.ExternalCaseNumber)</div>
-                        </div>
-                        <div class="datagrid-item">
-                            <div class="datagrid-title">Datum</div>
-                            <div class="datagrid-content">@DateDisplay.Text(this.caseDetail.Date)</div>
-                        </div>
-                        <div class="datagrid-item">
-                            <div class="datagrid-title">Stav</div>
-                            <div class="datagrid-content">@CaseStatusDisplay.Text(this.caseDetail.Status)</div>
-                        </div>
-                        <div class="datagrid-item">
-                            <div class="datagrid-title">Kontakt</div>
-                            <div class="datagrid-content">
-                                @if (this.caseDetail.Contact is { } contact)
+                <div class="ec-layout">
+                    <div class="ec-main">
+                        <div class="card">
+                            <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.FileText" />Popis</h3></div>
+                            <div class="card-body">
+                                @if (this.Edit)
                                 {
-                                    <a href="/contacts/@contact.ContactId">@contact.Name</a>
+                                    <label class="visually-hidden" for="case-description">Popis</label>
+                                    <InputTextArea id="case-description" class="form-control" rows="5" @bind-Value="this.model.Description" />
+                                    <ValidationMessage For="() => this.model.Description" class="invalid-feedback d-block" />
                                 }
                                 else
                                 {
-                                    @:—
+                                    <p class="comment-body mb-0">@(string.IsNullOrWhiteSpace(this.caseDetail!.Description) ? "—" : this.caseDetail!.Description)</p>
                                 }
                             </div>
                         </div>
-                        <div class="datagrid-item">
-                            <div class="datagrid-title">Nadřízený spis</div>
-                            <div class="datagrid-content">
-                                @if (this.caseDetail.ParentCase is { } parent)
-                                {
-                                    <a href="@($"/cases/{parent.CaseId}")">@parent.CaseNumber — @parent.Title</a>
-                                }
-                                else
-                                {
-                                    @:—
-                                }
-                            </div>
-                        </div>
-                        <div class="datagrid-item">
-                            <div class="datagrid-title">Popis</div>
-                            <div class="datagrid-content">@(string.IsNullOrWhiteSpace(this.caseDetail.Description) ? "—" : this.caseDetail.Description)</div>
-                        </div>
+
+                        <ActListCard @key="this.CaseId" CaseId="this.CaseId" />
+
+                        <FilesCard @key="this.CaseId"
+                                   OwnerGoneError="spis už neexistuje."
+                                   LoadFiles="this.LoadFiles"
+                                   UploadFile="this.UploadFile"
+                                   DownloadFile="this.DownloadFile"
+                                   DeleteFile="this.DeleteFile" />
+
+                        <CommentsCard @key="this.CaseId"
+                                      LoadComments="this.LoadComments"
+                                      AddComment="this.AddComment"
+                                      SaveComment="this.SaveComment"
+                                      DeleteComment="this.DeleteComment" />
                     </div>
+
+                    <aside class="ec-sidebar d-flex flex-column gap-3">
+                        <div class="card">
+                            <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.ListDetails" />Údaje</h3></div>
+                            <div class="card-body d-flex flex-column gap-3">
+                                @if (this.Edit)
+                                {
+                                    <div>
+                                        <label class="ec-field-label" for="case-number">Spisová značka</label>
+                                        <InputText id="case-number" class="form-control ec-mono" @bind-Value="this.model.CaseNumber" />
+                                        <div class="form-hint">Tvar EC/RRRRMMDD-NNN. Změna data spisu značku nemění.</div>
+                                        <ValidationMessage For="() => this.model.CaseNumber" class="invalid-feedback d-block" />
+                                    </div>
+                                    <div>
+                                        <label class="ec-field-label" for="case-external-number">Externí spisová značka</label>
+                                        <InputText id="case-external-number" class="form-control ec-mono" @bind-Value="this.model.ExternalCaseNumber" />
+                                        <ValidationMessage For="() => this.model.ExternalCaseNumber" class="invalid-feedback d-block" />
+                                    </div>
+                                    <div>
+                                        <label class="ec-field-label" for="case-date">Datum spisu</label>
+                                        <InputDate id="case-date" class="form-control" @bind-Value="this.model.Date" />
+                                        <ValidationMessage For="() => this.model.Date" class="invalid-feedback d-block" />
+                                    </div>
+                                    <div>
+                                        <label class="ec-field-label" for="case-status">Stav</label>
+                                        <InputSelect id="case-status" class="form-select" @bind-Value="this.model.Status">
+                                            @foreach (var status in Enum.GetValues<CaseStatus>())
+                                            {
+                                                <option value="@status">@CaseStatusDisplay.Text(status)</option>
+                                            }
+                                        </InputSelect>
+                                        <ValidationMessage For="() => this.model.Status" class="invalid-feedback d-block" />
+                                    </div>
+                                    <div>
+                                        <label class="ec-field-label" for="case-contact">Kontakt</label>
+                                        <ContactPicker InputId="case-contact" @bind-Selected="this.model.Contact" />
+                                        <ValidationMessage For="() => this.model.Contact" class="invalid-feedback d-block" />
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div>
+                                        <div class="ec-field-label">Spisová značka</div>
+                                        <div class="ec-mono fw-bold">@this.caseDetail!.CaseNumber</div>
+                                    </div>
+                                    <div>
+                                        <div class="ec-field-label">Externí spisová značka</div>
+                                        <div class="ec-mono">@(string.IsNullOrWhiteSpace(this.caseDetail!.ExternalCaseNumber) ? "—" : this.caseDetail!.ExternalCaseNumber)</div>
+                                    </div>
+                                    <div>
+                                        <div class="ec-field-label">Datum spisu</div>
+                                        <div class="ec-num">@DateDisplay.Text(this.caseDetail!.Date)</div>
+                                    </div>
+                                    <div>
+                                        <div class="ec-field-label">Stav</div>
+                                        <div><Status BackgroundColor="CaseStatusDisplay.Color(this.caseDetail!.Status)" Lite="true">@CaseStatusDisplay.Text(this.caseDetail!.Status)</Status></div>
+                                    </div>
+                                    <div>
+                                        <div class="ec-field-label">Kontakt</div>
+                                        <div>
+                                            @if (this.caseDetail!.Contact is { } contact)
+                                            {
+                                                <a href="/contacts/@contact.ContactId">@contact.Name</a>
+                                            }
+                                            else
+                                            {
+                                                @:—
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.Tag" />Štítky</h3></div>
+                            <div class="card-body">
+                                @if (this.Edit)
+                                {
+                                    <label class="visually-hidden" for="case-labels">Štítky</label>
+                                    <LabelPicker InputId="case-labels" @bind-Selected="this.model.Labels" />
+                                }
+                                else if (this.caseDetail!.Labels.Count > 0)
+                                {
+                                    <LabelBadges Labels="this.caseDetail.Labels" />
+                                }
+                                else
+                                {
+                                    <div class="text-secondary">Bez štítků.</div>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.Folders" />Hierarchie</h3></div>
+                            <div class="card-body">
+                                @if (this.Edit)
+                                {
+                                    <label class="ec-field-label" for="case-parent">Nadřízený spis</label>
+                                    <InputSelect id="case-parent" class="form-select mb-3" @bind-Value="this.model.ParentCaseId">
+                                        <option value="">— bez nadřízeného spisu —</option>
+                                        @foreach (var option in this.parentOptions)
+                                        {
+                                            <option value="@option.CaseId">@option.CaseNumber — @option.Title</option>
+                                        }
+                                    </InputSelect>
+                                    <ValidationMessage For="() => this.model.ParentCaseId" class="invalid-feedback d-block" />
+                                }
+                                else
+                                {
+                                    <div class="ec-field-label">Nadřízený spis</div>
+                                    <div class="mb-3">
+                                        @if (this.caseDetail!.ParentCase is { } parent)
+                                        {
+                                            <a href="@($"/cases/{parent.CaseId}")">@parent.CaseNumber — @parent.Title</a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-secondary">Žádný</span>
+                                        }
+                                    </div>
+                                }
+
+                                <CaseChildrenCard Items="this.caseDetail!.ChildCases" ParentCaseId="this.CaseId" />
+                            </div>
+                        </div>
+                    </aside>
+
+                    @if (this.Edit)
+                    {
+                        <div class="ec-savebar">
+                            <span class="text-secondary d-none d-lg-inline">Neuložené změny</span>
+                            <div class="ec-savebar-actions">
+                                <a href="@($"/cases/{this.CaseId}")" class="btn"><Icon CssClass="icon" IconType="AppIcons.X" />Zrušit</a>
+                                <button id="case-submit" type="button" class="btn btn-primary" disabled="@this.busy" @onclick="this.SubmitCase">
+                                    @if (this.busy)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                                    }
+                                    else
+                                    {
+                                        <Icon CssClass="icon" IconType="AppIcons.DeviceFloppy" />
+                                    }
+                                    Uložit
+                                </button>
+                            </div>
+                        </div>
+
+                        @if (this.error is not null)
+                        {
+                            <div class="ec-savebar-error">
+                                <div class="alert alert-danger mb-0" role="alert"><Icon CssClass="icon me-2" IconType="AppIcons.AlertTriangle" />@this.error</div>
+                            </div>
+                        }
+                    }
                 </div>
-            </div>
-
-            <CaseChildrenCard Items="this.caseDetail.ChildCases" ParentCaseId="this.CaseId" />
-
-            <div class="mt-3">
-                <ActListCard @key="this.CaseId" CaseId="this.CaseId" />
-            </div>
-
-            <div class="mt-3">
-                <CommentsCard @key="this.CaseId"
-                              LoadComments="this.LoadComments"
-                              AddComment="this.AddComment"
-                              SaveComment="this.SaveComment"
-                              DeleteComment="this.DeleteComment" />
-            </div>
-
-            <div class="mt-3">
-                <FilesCard @key="this.CaseId"
-                           OwnerGoneError="spis už neexistuje."
-                           LoadFiles="this.LoadFiles"
-                           UploadFile="this.UploadFile"
-                           DownloadFile="this.DownloadFile"
-                           DeleteFile="this.DeleteFile" />
-            </div>
+            </CascadingValue>
         </LoadStateView>
     </div>
 </div>
@@ -142,11 +280,29 @@
     [Parameter]
     public Guid CaseId { get; set; }
 
+    [Parameter]
+    public bool Edit { get; set; }
+
+    private readonly CaseEditModel model = new();
+
+    private EditContext editContext = null!;
+
     private CaseDetail? caseDetail;
+
+    private IReadOnlyList<CaseListItem> parentOptions = [];
 
     private bool notFound;
 
     private string? failure;
+
+    private string? error;
+
+    private bool busy;
+
+    protected override void OnInitialized()
+    {
+        this.editContext = new EditContext(this.model);
+    }
 
     protected override Task OnParametersSetAsync()
     {
@@ -158,10 +314,20 @@
         this.caseDetail = null;
         this.notFound = false;
         this.failure = null;
+        this.error = null;
 
         try
         {
             this.caseDetail = await this.CasesClient.GetCase(this.CaseId, CancellationToken.None);
+            this.model.CopyFrom(CaseEditModel.From(this.caseDetail));
+
+            if (this.Edit)
+            {
+                // Every case of the tenant, subordinate ones included: a case hangs under any of them.
+                var response = await this.CasesClient.ListCases(new CaseListRequest { Status = CaseStatusFilter.All, Scope = CaseListScope.All }, CancellationToken.None);
+
+                this.parentOptions = [.. response.Items.Where(item => item.CaseId != this.CaseId)];
+            }
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
         {
@@ -173,11 +339,6 @@
 
             this.failure = "Spis se nepodařilo načíst. Zkuste to za chvíli znovu.";
         }
-    }
-
-    private Task SaveLabels(IReadOnlyList<Guid> labelIds, CancellationToken token)
-    {
-        return this.CaseLabelsClient.SetCaseLabels(this.CaseId, new LabelAssignmentRequest { LabelIds = labelIds }, token);
     }
 
     private async Task<IReadOnlyList<FileListItem>> LoadFiles(CancellationToken token)
@@ -233,5 +394,58 @@
                 .Set(component => component.Case, this.caseDetail)
                 .Set(component => component.OnDeleted, EventCallback.Factory.Create(this, () => this.Navigation.NavigateTo("/cases"))),
             new ModalOptions { Fullscreen = ModalFullscreen.BelowLarge });
+    }
+
+    private async Task SubmitCase()
+    {
+        if (!this.editContext.Validate())
+            return;
+
+        this.busy = true;
+        this.error = null;
+
+        try
+        {
+            var request = new CaseEditRequest
+            {
+                ParentCaseId = this.model.ParentCaseId,
+                CaseNumber = this.model.CaseNumber,
+                ExternalCaseNumber = this.model.ExternalCaseNumber,
+                Date = this.model.Date,
+                Title = this.model.Title,
+                Description = this.model.Description,
+                ContactId = this.model.Contact?.ContactId,
+                LabelIds = [.. this.model.Labels.Select(static label => label.LabelId)],
+                Status = this.model.Status,
+            };
+
+            await this.CasesClient.EditCase(this.CaseId, request, CancellationToken.None);
+
+            this.Navigation.NavigateTo($"/cases/{this.CaseId}");
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
+        {
+            this.error = exception.ResponseBody?.Contains(CaseProblems.InvalidParent, StringComparison.Ordinal) == true
+                ? "Nadřízeným spisem nemůže být tento spis ani spis, který je mu podřízený."
+                : "Spisovou značku už nese jiný spis. Zvolte jinou.";
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.BadRequest)
+        {
+            this.error = "Spisová značka musí mít tvar EC/RRRRMMDD-NNN, například EC/20260807-001.";
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+        {
+            this.error = "Spis už neexistuje.";
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Editing the case failed");
+
+            this.error = "Spis se nepodařilo uložit. Zkontrolujte zadané údaje a zkuste to znovu.";
+        }
+        finally
+        {
+            this.busy = false;
+        }
     }
 }

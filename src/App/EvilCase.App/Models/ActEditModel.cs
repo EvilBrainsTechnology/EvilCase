@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.Domain.Acts;
@@ -7,6 +8,37 @@ namespace EvilBrains.EvilCase.App.Models;
 
 internal sealed class ActEditModel : IValidatableObject
 {
+    public static ActEditModel From(ActDetail detail)
+    {
+        return new ActEditModel
+        {
+            ActNumber = detail.ActNumber,
+            ExternalActNumber = detail.ExternalActNumber,
+            Direction = detail.Direction,
+            Date = detail.Date,
+            Title = detail.Title,
+            Description = detail.Description,
+            Contact = detail.Contact,
+            Labels = detail.Labels,
+        };
+    }
+
+    /// <summary>
+    /// Assigns another instance's values onto this one, so a page can refresh its bound model
+    /// without replacing the instance its EditContext already tracks.
+    /// </summary>
+    public void CopyFrom(ActEditModel other)
+    {
+        this.ActNumber = other.ActNumber;
+        this.ExternalActNumber = other.ExternalActNumber;
+        this.Direction = other.Direction;
+        this.Date = other.Date;
+        this.Title = other.Title;
+        this.Description = other.Description;
+        this.Contact = other.Contact;
+        this.Labels = other.Labels;
+    }
+
     [Required(ErrorMessage = "Zadejte číslo jednací")]
     [StringLength(128, ErrorMessage = "Číslo jednací může mít nejvýše 128 znaků")]
     public string ActNumber { get; set; } = "";
