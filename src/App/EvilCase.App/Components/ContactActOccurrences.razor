@@ -1,5 +1,4 @@
 @using EvilBrains.EvilCase.Api.Contract.Contacts
-@inject NavigationManager Navigation
 
 <div class="card">
     <div class="card-header">
@@ -31,10 +30,10 @@
                 <tbody>
                     @foreach (var item in Items)
                     {
-                        <tr class="table-row-link" @onclick="@(() => this.Navigation.NavigateTo($"/cases/{item.CaseId}/act/{item.ActId}"))">
+                        <tr class="table-row-link">
                             <td class="text-nowrap">@DateDisplay.Text(item.ActDate)</td>
-                            <td class="text-nowrap"><a href="/cases/@item.CaseId" @onclick:stopPropagation @onclick="() => { }">@item.CaseTitle</a></td>
-                            <td class="fw-bold">@item.ActTitle</td>
+                            <td class="text-nowrap"><a href="/cases/@item.CaseId">@item.CaseTitle</a></td>
+                            <td class="fw-bold"><a href="@($"/cases/{item.CaseId}/act/{item.ActId}")" class="stretched-link">@item.ActTitle</a></td>
                             <td class="text-nowrap">
                                 @if (item.Direction is not null)
                                 {

@@ -161,6 +161,19 @@
     cursor: pointer;
 }
 
+/* The containing block .stretched-link's ::after overlay resolves position: absolute against. */
 .table-row-link {
-    cursor: pointer;
+    position: relative;
+}
+
+.table-row-link .stretched-link {
+    color: inherit;
+    text-decoration: none;
+}
+
+/* A second, visible link in the row — the case a Spis column names inside an act table — sits
+   above the stretched-link overlay (z-index: 1) instead of under it. */
+.table-row-link a:not(.stretched-link) {
+    position: relative;
+    z-index: 2;
 }

@@ -3,7 +3,6 @@
 @using EvilBrains.EvilCase.Api.Contract.Acts
 @inject IActsClient ActsClient
 @inject ILogger<ActListCard> Logger
-@inject NavigationManager Navigation
 
 <div class="card">
     <div class="card-header">
@@ -54,9 +53,9 @@
                 <tbody>
                     @foreach (var item in this.items)
                     {
-                        <tr class="table-row-link" @onclick="@(() => this.Navigation.NavigateTo($"/cases/{this.CaseId}/act/{item.ActId}"))">
+                        <tr class="table-row-link">
                             <td class="text-nowrap">@DateDisplay.Text(item.Date)</td>
-                            <td class="fw-bold">@item.Title</td>
+                            <td class="fw-bold"><a href="@($"/cases/{this.CaseId}/act/{item.ActId}")" class="stretched-link">@item.Title</a></td>
                             <td class="text-nowrap">
                                 @if (item.Direction is not null)
                                 {
