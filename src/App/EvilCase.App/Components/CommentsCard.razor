@@ -8,7 +8,45 @@
 <div id="comments-card" class="card">
     <div class="card-header">
         <h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.Message" />Komentáře</h3>
+        <div class="card-actions">
+            <button id="comment-add" type="button" class="btn btn-primary" @onclick="this.OpenComposer">
+                <Icon CssClass="icon" IconType="AppIcons.Plus" />Přidat komentář
+            </button>
+        </div>
     </div>
+
+    @if (this.composing)
+    {
+        <div class="card-body border-bottom">
+            <EditForm Model="this.newModel" OnValidSubmit="this.AddNewComment">
+                <DataAnnotationsValidator />
+
+                <label class="visually-hidden" for="comment-new-body">Nový komentář</label>
+                <InputTextArea id="comment-new-body" class="form-control" rows="3" @bind-Value="this.newModel.Body" />
+                <ValidationMessage For="() => this.newModel.Body" class="invalid-feedback d-block" />
+
+                @if (this.addError is not null)
+                {
+                    <div class="alert alert-danger mt-2" role="alert"><Icon CssClass="icon me-2" IconType="AppIcons.AlertTriangle" />@this.addError</div>
+                }
+
+                <div class="d-flex justify-content-end gap-2 mt-2">
+                    <button type="button" class="btn" @onclick="this.CloseComposer"><Icon CssClass="icon" IconType="AppIcons.X" />Zrušit</button>
+                    <button type="submit" class="btn btn-primary" disabled="@this.busy">
+                        @if (this.busy)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                        }
+                        else
+                        {
+                            <Icon CssClass="icon" IconType="AppIcons.DeviceFloppy" />
+                        }
+                        Uložit komentář
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    }
 
     @if (this.loading)
     {
@@ -37,8 +75,17 @@
             @foreach (var item in this.items)
             {
                 <div class="comment-item border-bottom pb-3 mb-3">
-                    <div class="text-secondary small">
-                        @item.AuthorEmail · @MomentDisplay.Text(item.Created)@(item.Updated is null ? "" : $" · upraveno {MomentDisplay.Text(item.Updated.Value)}")
+                    <div class="d-flex align-items-start gap-2">
+                        <div class="text-secondary small flex-fill">
+                            @item.AuthorEmail · @MomentDisplay.Text(item.Created)@(item.Updated is null ? "" : $" · upraveno {MomentDisplay.Text(item.Updated.Value)}")
+                        </div>
+                        @if (item.IsAuthor && this.editingCommentId != item.CommentId)
+                        {
+                            <div class="d-flex gap-1">
+                                <button type="button" class="btn btn-icon btn-sm comment-edit" aria-label="Upravit komentář" @onclick="() => this.StartEditing(item)"><Icon IconType="AppIcons.Pencil" /></button>
+                                <button type="button" class="btn btn-icon btn-sm comment-delete" aria-label="Smazat komentář" @onclick="() => this.ConfirmDelete(item)"><Icon IconType="AppIcons.Trash" /></button>
+                            </div>
+                        }
                     </div>
 
                     @if (this.editingCommentId == item.CommentId)
@@ -46,7 +93,7 @@
                         <EditForm Model="this.editModel" OnValidSubmit="this.SaveEditedComment">
                             <DataAnnotationsValidator />
 
-                            <div class="mb-2">
+                            <div class="mb-2 mt-2">
                                 <InputTextArea id="comment-edit-body" class="form-control" rows="4" @bind-Value="this.editModel.Body" />
                                 <ValidationMessage For="() => this.editModel.Body" class="invalid-feedback d-block" />
                             </div>
@@ -75,48 +122,11 @@
                     else
                     {
                         <div class="comment-body">@item.Body</div>
-
-                        @if (item.IsAuthor)
-                        {
-                            <div class="d-flex gap-2 mt-2">
-                                <button type="button" class="btn btn-sm comment-edit" @onclick="() => this.StartEditing(item)"><Icon CssClass="icon" IconType="AppIcons.Pencil" />Upravit</button>
-                                <button type="button" class="btn btn-sm btn-danger comment-delete" @onclick="() => this.ConfirmDelete(item)"><Icon CssClass="icon" IconType="AppIcons.Trash" />Smazat</button>
-                            </div>
-                        }
                     }
                 </div>
             }
         </div>
     }
-
-    <div class="card-body border-top">
-        <EditForm Model="this.newModel" OnValidSubmit="this.AddNewComment">
-            <DataAnnotationsValidator />
-
-            <div class="mb-3">
-                <label class="form-label" for="comment-new-body">Nový komentář</label>
-                <InputTextArea id="comment-new-body" class="form-control" rows="3" @bind-Value="this.newModel.Body" />
-                <ValidationMessage For="() => this.newModel.Body" class="invalid-feedback d-block" />
-            </div>
-
-            @if (this.addError is not null)
-            {
-                <div class="alert alert-danger" role="alert"><Icon CssClass="icon me-2" IconType="AppIcons.AlertTriangle" />@this.addError</div>
-            }
-
-            <button id="comment-add" type="submit" class="btn btn-primary" disabled="@this.busy">
-                @if (this.busy)
-                {
-                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-                }
-                else
-                {
-                    <Icon CssClass="icon" IconType="AppIcons.Plus" />
-                }
-                Přidat
-            </button>
-        </EditForm>
-    </div>
 </div>
 
 @code {
@@ -139,6 +149,8 @@
     private IReadOnlyList<CommentItem> items = [];
 
     private Guid? editingCommentId;
+
+    private bool composing;
 
     private bool loading = true;
 
@@ -173,6 +185,19 @@
         }
     }
 
+    private void OpenComposer()
+    {
+        this.composing = true;
+        this.addError = null;
+        this.newModel.Body = "";
+    }
+
+    private void CloseComposer()
+    {
+        this.composing = false;
+        this.addError = null;
+    }
+
     private async Task AddNewComment()
     {
         this.busy = true;
@@ -183,6 +208,7 @@
             await this.AddComment(new CommentEditRequest { Body = this.newModel.Body }, CancellationToken.None);
 
             this.newModel.Body = "";
+            this.composing = false;
 
             await this.ReloadComments();
         }
