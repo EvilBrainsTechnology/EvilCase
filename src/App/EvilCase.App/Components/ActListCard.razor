@@ -3,6 +3,7 @@
 @using EvilBrains.EvilCase.Api.Contract.Acts
 @inject IActsClient ActsClient
 @inject ILogger<ActListCard> Logger
+@inject NavigationManager NavigationManager
 
 <div class="card">
     <div class="card-header">
@@ -40,22 +41,22 @@
     else
     {
         <div class="d-none d-lg-block">
-            <table class="table card-table table-vcenter">
+            <table class="table card-table table-vcenter table-hover">
                 <thead>
                     <tr>
                         <th>Datum</th>
-                        <th>Číslo jednací</th>
+                        <th>Úkon</th>
                         <th>Směr</th>
-                        <th>Název</th>
+                        <th>Číslo jednací</th>
                         <th>Kontakt</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var item in this.items)
                     {
-                        <tr>
+                        <tr class="table-row-link" @onclick="@(() => this.NavigationManager.NavigateTo($"/cases/{this.CaseId}/act/{item.ActId}"))">
                             <td class="text-nowrap">@DateDisplay.Text(item.Date)</td>
-                            <td class="text-nowrap">@item.ActNumber</td>
+                            <td><a href="@($"/cases/{this.CaseId}/act/{item.ActId}")" @onclick:stopPropagation @onclick="() => { }">@item.Title</a></td>
                             <td class="text-nowrap">
                                 @if (item.Direction is not null)
                                 {
@@ -66,7 +67,7 @@
                                     @:—
                                 }
                             </td>
-                            <td><a href="@($"/cases/{this.CaseId}/act/{item.ActId}")">@item.Title</a></td>
+                            <td class="text-nowrap">@item.ActNumber</td>
                             <td>@item.ContactName</td>
                         </tr>
                     }
