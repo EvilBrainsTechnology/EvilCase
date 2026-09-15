@@ -13,7 +13,7 @@ public class DashboardViewTests
         {
             Counts = new CaseStatusCounts { Active = 0, WaitingOnAuthority = 0, Closed = 0 },
             ChangedCases = [],
-            RecentActs = [],
+            ChangedActs = [],
         };
 
         Assert.That(view.IsEmpty, Is.True, "a tenant with no case at all leads to creating the first one");
@@ -26,7 +26,7 @@ public class DashboardViewTests
         {
             Counts = new CaseStatusCounts { Active = 1, WaitingOnAuthority = 0, Closed = 0 },
             ChangedCases = [ChangedCase()],
-            RecentActs = [],
+            ChangedActs = [],
         };
 
         Assert.That(view.IsEmpty, Is.False, "an empty act list is an empty tile, not the dashboard's empty state");
@@ -39,7 +39,7 @@ public class DashboardViewTests
         {
             Counts = new CaseStatusCounts { Active = 0, WaitingOnAuthority = 0, Closed = 1 },
             ChangedCases = [ChangedCase(CaseStatus.Closed)],
-            RecentActs = [],
+            ChangedActs = [],
         };
 
         Assert.That(view.IsEmpty, Is.False, "a tenant whose only case is closed still holds a case");

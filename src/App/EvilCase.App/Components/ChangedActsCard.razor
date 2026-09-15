@@ -1,0 +1,82 @@
+@using EvilBrains.EvilCase.Api.Contract.Acts
+@inject NavigationManager NavigationManager
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.FileText" />Naposledy změněné úkony</h3>
+    </div>
+
+    @if (this.Items.Count == 0)
+    {
+        <div class="empty">
+            <div class="empty-icon"><Icon IconType="AppIcons.FileText" /></div>
+            <p class="empty-title">Žádné úkony</p>
+            <p class="empty-subtitle text-secondary">Zatím tu není žádný úkon.</p>
+        </div>
+    }
+    else
+    {
+        <div class="d-none d-lg-block">
+            <table class="table card-table table-vcenter table-hover">
+                <thead>
+                    <tr>
+                        <th>Změněno</th>
+                        <th>Datum</th>
+                        <th>Název</th>
+                        <th>Úkon</th>
+                        <th>Směr</th>
+                        <th>Číslo jednací</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in this.Items)
+                    {
+                        <tr class="table-row-link" @onclick="@(() => this.NavigationManager.NavigateTo($"/cases/{item.CaseId}/act/{item.ActId}"))">
+                            <td class="text-nowrap">@MomentDisplay.Text(item.Changed)</td>
+                            <td class="text-nowrap">@DateDisplay.Text(item.Date)</td>
+                            <td class="text-nowrap"><a href="@($"/cases/{item.CaseId}")" @onclick:stopPropagation @onclick="() => { }">@item.CaseTitle</a></td>
+                            <td><a href="@($"/cases/{item.CaseId}/act/{item.ActId}")" @onclick:stopPropagation @onclick="() => { }">@item.Title</a></td>
+                            <td class="text-nowrap">
+                                @if (item.Direction is not null)
+                                {
+                                    <Status BackgroundColor="ActDirectionDisplay.Color(item.Direction)" Lite="true">@ActDirectionDisplay.Text(item.Direction)</Status>
+                                }
+                                else
+                                {
+                                    @:—
+                                }
+                            </td>
+                            <td class="text-nowrap">@item.ActNumber</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card-body d-lg-none">
+            @foreach (var item in this.Items)
+            {
+                <div class="card mb-2">
+                    <div class="card-body">
+                        <div class="text-secondary"><a href="@($"/cases/{item.CaseId}")">@item.CaseTitle</a></div>
+                        <div class="font-weight-medium"><a href="@($"/cases/{item.CaseId}/act/{item.ActId}")">@item.Title</a></div>
+                        <div class="text-secondary">@item.ActNumber</div>
+                        @if (item.Direction is not null)
+                        {
+                            <div>
+                                <Status BackgroundColor="ActDirectionDisplay.Color(item.Direction)" Lite="true">@ActDirectionDisplay.Text(item.Direction)</Status>
+                            </div>
+                        }
+                        <div class="text-secondary">@DateDisplay.Text(item.Date)</div>
+                        <div class="text-secondary">Změněno @MomentDisplay.Text(item.Changed)</div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public required IReadOnlyList<ActListItem> Items { get; set; }
+}
