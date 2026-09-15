@@ -17,7 +17,13 @@
         <div class="row g-2 align-items-center">
             <div class="col">
                 <div class="page-pretitle"><a href="/contacts">Kontakty</a></div>
-                <h2 class="page-title">@(this.contact?.Name)</h2>
+                <h2 class="page-title">
+                    @(this.contact?.Name)
+                    @if (this.contact is not null)
+                    {
+                        <span class="ms-2"><span class="badge bg-secondary-lt">@ContactKindDisplay.Text(this.contact.Kind)</span></span>
+                    }
+                </h2>
             </div>
             @if (this.contact is not null)
             {
@@ -33,41 +39,40 @@
 <div class="page-body">
     <div class="container-xl">
         <LoadStateView NotFound="this.notFound" NotFoundTitle="Kontakt nenalezen" Failure="@this.failure" FailureTitle="Kontakt se nepodařilo načíst" Loaded="this.contact is not null">
-            <div class="card mb-3">
-                <div class="card-header">
-                    <h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.ListDetails" />Údaje</h3>
+            <div class="ec-layout">
+                <div class="ec-main">
+                    <ContactCaseOccurrences Items="this.contact!.Cases" />
+                    <ContactActOccurrences Items="this.contact.Acts" />
                 </div>
-                <div class="card-body">
-                    <div class="datagrid">
-                        <div class="datagrid-item">
-                            <div class="datagrid-title">Typ</div>
-                            <div class="datagrid-content">@ContactKindDisplay.Text(this.contact!.Kind)</div>
-                        </div>
-                        <div class="datagrid-item">
-                            <div class="datagrid-title">ID datové schránky</div>
-                            <div class="datagrid-content">@(this.contact.DataBoxId ?? "—")</div>
-                        </div>
-                        <div class="datagrid-item">
-                            <div class="datagrid-title">Adresa</div>
-                            <div class="datagrid-content">
-                                @if (string.IsNullOrWhiteSpace(this.contact.Address))
-                                {
-                                    @:—
-                                }
-                                else
-                                {
-                                    <div class="address-block">@this.contact.Address</div>
-                                }
+
+                <aside class="ec-sidebar d-flex flex-column gap-3">
+                    <div class="card">
+                        <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.ListDetails" />Údaje</h3></div>
+                        <div class="card-body d-flex flex-column gap-3">
+                            <div>
+                                <div class="ec-field-label">Typ</div>
+                                <div>@ContactKindDisplay.Text(this.contact.Kind)</div>
+                            </div>
+                            <div>
+                                <div class="ec-field-label">ID datové schránky</div>
+                                <div class="ec-mono">@(this.contact.DataBoxId ?? "—")</div>
+                            </div>
+                            <div>
+                                <div class="ec-field-label">Adresa</div>
+                                <div>
+                                    @if (string.IsNullOrWhiteSpace(this.contact.Address))
+                                    {
+                                        @:—
+                                    }
+                                    else
+                                    {
+                                        <div class="address-block">@this.contact.Address</div>
+                                    }
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <ContactCaseOccurrences Items="this.contact.Cases" />
-
-            <div class="mt-3">
-                <ContactActOccurrences Items="this.contact.Acts" />
+                </aside>
             </div>
         </LoadStateView>
     </div>
