@@ -162,6 +162,19 @@ body {
     word-break: break-word;
 }
 
+/* Case, act and contact detail header: below lg the actions no longer sit beside the title,
+   which wraps around them; they drop to their own full-width row instead. */
+@media (max-width: 991.98px) {
+    .ec-detail-header > .col-auto {
+        flex: 1 0 100%;
+        max-width: 100%;
+    }
+
+    .ec-detail-header > .col-auto .btn {
+        flex: 1 1 0;
+    }
+}
+
 /* A compact row: a full-width link with a title line and a date/status second line, no chevron. */
 .ec-comprow {
     display: flex;
