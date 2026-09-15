@@ -326,6 +326,85 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                         });
                 });
 
+            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Label", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Color")
+                        .IsRequired()
+                        .HasMaxLength(6)
+                        .HasColumnType("character varying(6)");
+
+                    b.Property<DateTime>("Created")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("Updated")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("Labels");
+                });
+
+            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.LabelAssignment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ActId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CaseId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("Created")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("LabelId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("Updated")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActId");
+
+                    b.HasIndex("CaseId");
+
+                    b.HasIndex("LabelId");
+
+                    b.HasIndex("TenantId", "LabelId", "ActId")
+                        .IsUnique();
+
+                    b.HasIndex("TenantId", "LabelId", "CaseId")
+                        .IsUnique();
+
+                    b.ToTable("LabelAssignments", t =>
+                        {
+                            t.HasCheckConstraint("CK_LabelAssignments_OnACaseOrAnAct", "(\"CaseId\" IS NULL) <> (\"ActId\" IS NULL)");
+                        });
+                });
+
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.RefreshToken", b =>
                 {
                     b.Property<Guid>("Id")
@@ -583,6 +662,46 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.Navigation("Case");
                 });
 
+            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Label", b =>
+                {
+                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.LabelAssignment", b =>
+                {
+                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Act", "Act")
+                        .WithMany("Labels")
+                        .HasForeignKey("ActId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Case", "Case")
+                        .WithMany("Labels")
+                        .HasForeignKey("CaseId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Label", "Label")
+                        .WithMany("Assignments")
+                        .HasForeignKey("LabelId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Act");
+
+                    b.Navigation("Case");
+
+                    b.Navigation("Label");
+                });
+
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.RefreshToken", b =>
                 {
                     b.HasOne("EvilBrains.EvilCase.Data.Entities.User", "User")
@@ -617,6 +736,8 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.Navigation("Comments");
 
                     b.Navigation("Files");
+
+                    b.Navigation("Labels");
                 });
 
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Case", b =>
@@ -628,6 +749,8 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.Navigation("Comments");
 
                     b.Navigation("Files");
+
+                    b.Navigation("Labels");
                 });
 
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Contact", b =>
@@ -635,6 +758,11 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.Navigation("Acts");
 
                     b.Navigation("Cases");
+                });
+
+            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Label", b =>
+                {
+                    b.Navigation("Assignments");
                 });
 #pragma warning restore 612, 618
         }

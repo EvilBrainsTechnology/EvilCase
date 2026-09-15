@@ -19,4 +19,6 @@ public sealed record CreateCaseRequest
 
     [StringLength(4000)]
     public string? Description { get; init; }
+
+    public IReadOnlyList<Guid> LabelIds { get; init; } = [];
 }

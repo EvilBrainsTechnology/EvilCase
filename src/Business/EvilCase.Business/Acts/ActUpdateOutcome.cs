@@ -11,4 +11,6 @@ public enum ActUpdateOutcome
     ActNumberTaken = 3,
 
     ContactNotFound = 4,
+
+    LabelNotFound = 5,
 }

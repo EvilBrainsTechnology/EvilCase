@@ -21,6 +21,8 @@ public sealed record CreateActRequest : IValidatableObject
 
     public Guid? ContactId { get; init; }
 
+    public IReadOnlyList<Guid> LabelIds { get; init; } = [];
+
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
         if (this.Direction is not null && this.ContactId is null)

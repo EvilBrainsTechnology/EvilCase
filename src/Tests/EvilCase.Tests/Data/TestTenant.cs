@@ -3,6 +3,7 @@ using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Domain.Acts;
 using EvilBrains.EvilCase.Domain.Cases;
 using EvilBrains.EvilCase.Domain.Contacts;
+using EvilBrains.EvilCase.Domain.Labels;
 using EvilBrains.EvilCase.Domain.Numbering;
 using EvilBrains.EvilCase.Domain.Users;
 using EvilBrains.EvilCase.Tests.Auth;
@@ -97,6 +98,29 @@ internal sealed class TestTenant : IAsyncDisposable
         };
 
         return await this.Save(this.Context.Contacts, contact);
+    }
+
+    public async Task<Label> AddLabel(string name, LabelColor color = LabelColor.Blue, Guid? labelId = null)
+    {
+        var label = new Label
+        {
+            Id = labelId ?? Guid.CreateVersion7(),
+            TenantId = this.tenantId,
+            Name = name,
+            Color = color,
+        };
+
+        return await this.Save(this.Context.Labels, label);
+    }
+
+    public async Task<LabelAssignment> AddCaseLabel(Case @case, Label label)
+    {
+        return await this.AddLabelAssignment(label, @case.Id, actId: null);
+    }
+
+    public async Task<LabelAssignment> AddActLabel(Act act, Label label)
+    {
+        return await this.AddLabelAssignment(label, caseId: null, act.Id);
     }
 
     public async Task<Case> AddCase(
@@ -222,6 +246,19 @@ internal sealed class TestTenant : IAsyncDisposable
     {
         await this.Context.DisposeAsync();
         this.entered.Dispose();
+    }
+
+    private async Task<LabelAssignment> AddLabelAssignment(Label label, Guid? caseId, Guid? actId)
+    {
+        var assignment = new LabelAssignment
+        {
+            TenantId = this.tenantId,
+            LabelId = label.Id,
+            CaseId = caseId,
+            ActId = actId,
+        };
+
+        return await this.Save(this.Context.LabelAssignments, assignment);
     }
 
     private async Task<FileAsset> AddFile(Guid? caseId, Guid? actId, string fileName)

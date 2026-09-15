@@ -1,4 +1,5 @@
 using EvilBrains.EvilCase.Api.Contract.Cases;
+using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.Data;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
@@ -78,6 +79,15 @@ internal static class CaseListQuery
             Date = @case.Date,
             Status = @case.Status,
             Changed = @case.Updated ?? @case.Created,
+            Labels = @case.Labels
+                .OrderBy(static assignment => assignment.Label!.Name)
+                .Select(static assignment => new LabelItem
+                {
+                    LabelId = assignment.LabelId,
+                    Name = assignment.Label!.Name,
+                    Color = assignment.Label!.Color,
+                })
+                .ToList(),
         });
     }
 }

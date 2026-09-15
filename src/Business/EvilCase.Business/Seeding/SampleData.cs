@@ -1,6 +1,7 @@
 using EvilBrains.EvilCase.Domain.Acts;
 using EvilBrains.EvilCase.Domain.Cases;
 using EvilBrains.EvilCase.Domain.Contacts;
+using EvilBrains.EvilCase.Domain.Labels;
 
 namespace EvilBrains.EvilCase.Business.Seeding;
 
@@ -11,6 +12,14 @@ namespace EvilBrains.EvilCase.Business.Seeding;
 internal static class SampleData
 {
     public const string MainCaseKey = "main";
+
+    public static IReadOnlyList<SampleLabel> Labels { get; } =
+    [
+        new() { Key = "priority", Name = "Priorita", Color = LabelColor.Red },
+        new() { Key = "deadline", Name = "Hlídat lhůtu", Color = LabelColor.Orange },
+        new() { Key = "court", Name = "Soud", Color = LabelColor.Indigo },
+        new() { Key = "information", Name = "Žádost o informace", Color = LabelColor.Teal },
+    ];
 
     public static IReadOnlyList<SampleContact> Contacts { get; } =
     [
@@ -113,6 +122,7 @@ internal static class SampleData
                 + "krajského soudu.",
             ExternalCaseNumber = "VV41/2025/08464",
             CounterpartyKey = "first-instance",
+            LabelKeys = ["priority", "deadline"],
             Comments =
             [
                 "Pseudonymizovaná vzorová data z reálného spisu. Nic v nich není skutečné.",
@@ -128,6 +138,7 @@ internal static class SampleData
             Date = new DateOnly(2025, 6, 2),
             CounterpartyKey = "ministry-transport",
             Description = "Podklady k měřicímu zařízení a smlouvě o jeho provozu.",
+            LabelKeys = ["information"],
         },
         new()
         {
@@ -138,6 +149,7 @@ internal static class SampleData
             Date = new DateOnly(2025, 6, 3),
             CounterpartyKey = "police",
             Description = "Podklady k provedenému měření rychlosti.",
+            LabelKeys = ["information"],
         },
         new()
         {
@@ -208,6 +220,7 @@ internal static class SampleData
             Date = new DateOnly(2025, 6, 12),
             CounterpartyKey = "roads",
             Description = "Žádost o podklady k dopravnímu značení v úseku měření.",
+            LabelKeys = ["information"],
         },
         new()
         {
@@ -248,6 +261,7 @@ internal static class SampleData
             Date = new DateOnly(2025, 9, 15),
             CounterpartyKey = "ministry-interior",
             Description = "Žádost o informace vedená uvnitř nároku na náhradu újmy.",
+            LabelKeys = ["information"],
         },
         new()
         {
@@ -299,6 +313,7 @@ internal static class SampleData
             CounterpartyKey = "first-instance",
             Description = "Pokuta 2 000 Kč, náklady řízení 2 500 Kč.",
             ExternalActNumber = "MUVZ/2025/80535",
+            LabelKeys = ["deadline"],
         },
         new()
         {
@@ -476,6 +491,7 @@ internal static class SampleData
             CounterpartyKey = "court",
             Description = "Konečné doplnění s přiloženou sadou důkazů.",
             ExternalActNumber = "10 A 1/2025",
+            LabelKeys = ["court", "priority"],
             Comments = ["Přílohou je sada důkazů shromážděná v podřízených spisech."],
             ExtraFileSuffix = "prilohy",
         },

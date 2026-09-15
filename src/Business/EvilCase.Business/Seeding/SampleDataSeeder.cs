@@ -24,24 +24,49 @@ internal sealed class SampleDataSeeder(
         using var userScope = userContext.Enter(tenantId, userId);
         await using var transaction = await dbSession.BeginTransaction(token);
 
+        var labelsByKey = await this.SeedLabels(token);
         var contactsByKey = await this.SeedContacts(token);
         var casesByKey = new Dictionary<string, Case>();
         var counters = new SeedCounters();
 
         foreach (var sampleCase in SampleData.Cases)
-            await this.SeedCase(tenantId, sampleCase, contactsByKey, casesByKey, counters, token);
+            await this.SeedCase(tenantId, sampleCase, contactsByKey, labelsByKey, casesByKey, counters, token);
 
         await transaction.CommitAsync(token);
 
         logger.LogInformation(
-            "Sample data seeded into tenant {TenantId}: {ContactCount} contacts, {CaseCount} cases, {ActCount} acts, "
-                + "{CommentCount} comments, {FileCount} files",
+            "Sample data seeded into tenant {TenantId}: {LabelCount} labels, {ContactCount} contacts, {CaseCount} cases, "
+                + "{ActCount} acts, {CommentCount} comments, {FileCount} files",
             tenantId,
+            labelsByKey.Count,
             contactsByKey.Count,
             casesByKey.Count,
             counters.ActCount,
             counters.CommentCount,
             counters.FileCount);
+    }
+
+    private async Task<Dictionary<string, Label>> SeedLabels(CancellationToken token)
+    {
+        var labelsByKey = new Dictionary<string, Label>(StringComparer.Ordinal);
+
+        foreach (var sampleLabel in SampleData.Labels)
+        {
+            var label = new Label { Name = sampleLabel.Name, Color = sampleLabel.Color };
+
+            labelsByKey[sampleLabel.Key] = label;
+            dbSession.Current.Labels.Add(label);
+        }
+
+        await dbSession.Current.SaveChangesAsync(token);
+
+        return labelsByKey;
+    }
+
+    private void AssignLabels(IReadOnlyList<string> labelKeys, Dictionary<string, Label> labelsByKey, Guid? caseId, Guid? actId)
+    {
+        foreach (var labelKey in labelKeys)
+            dbSession.Current.LabelAssignments.Add(new LabelAssignment { LabelId = labelsByKey[labelKey].Id, CaseId = caseId, ActId = actId });
     }
 
     private async Task<Dictionary<string, Contact>> SeedContacts(CancellationToken token)
@@ -71,6 +96,7 @@ internal sealed class SampleDataSeeder(
         Guid tenantId,
         SampleCase sampleCase,
         Dictionary<string, Contact> contactsByKey,
+        Dictionary<string, Label> labelsByKey,
         Dictionary<string, Case> casesByKey,
         SeedCounters counters,
         CancellationToken token)
@@ -92,6 +118,8 @@ internal sealed class SampleDataSeeder(
         casesByKey[sampleCase.Key] = @case;
         dbSession.Current.Cases.Add(@case);
         await dbSession.Current.SaveChangesAsync(token);
+
+        this.AssignLabels(sampleCase.LabelKeys, labelsByKey, @case.Id, actId: null);
 
         foreach (var body in sampleCase.Comments)
         {
@@ -119,7 +147,7 @@ internal sealed class SampleDataSeeder(
             : SubCaseActs(sampleCase);
 
         foreach (var sampleAct in sampleActs)
-            await this.SeedAct(tenantId, @case, sampleAct, contactsByKey, counters, token);
+            await this.SeedAct(tenantId, @case, sampleAct, contactsByKey, labelsByKey, counters, token);
     }
 
     private async Task SeedAct(
@@ -127,6 +155,7 @@ internal sealed class SampleDataSeeder(
         Case @case,
         SampleAct sampleAct,
         Dictionary<string, Contact> contactsByKey,
+        Dictionary<string, Label> labelsByKey,
         SeedCounters counters,
         CancellationToken token)
     {
@@ -149,6 +178,8 @@ internal sealed class SampleDataSeeder(
         dbSession.Current.Acts.Add(act);
         await dbSession.Current.SaveChangesAsync(token);
         counters.ActCount++;
+
+        this.AssignLabels(sampleAct.LabelKeys, labelsByKey, caseId: null, act.Id);
 
         foreach (var body in sampleAct.Comments)
         {

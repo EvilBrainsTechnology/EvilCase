@@ -3,6 +3,7 @@ using EvilBrains.EvilCase.Business.Cases;
 using EvilBrains.EvilCase.Business.Comments;
 using EvilBrains.EvilCase.Business.Contacts;
 using EvilBrains.EvilCase.Business.Files;
+using EvilBrains.EvilCase.Business.Labels;
 using EvilBrains.EvilCase.Business.Numbering;
 using EvilBrains.EvilCase.Business.Seeding;
 using EvilBrains.EvilCase.Data;
@@ -28,6 +29,9 @@ public static class Bootstrap
         services.AddScoped<ICommentWriter, CommentWriter>();
         services.AddScoped<IContactReader, ContactReader>();
         services.AddScoped<IContactWriter, ContactWriter>();
+        services.AddScoped<ILabelReader, LabelReader>();
+        services.AddScoped<ILabelWriter, LabelWriter>();
+        services.AddScoped<ILabelAssignmentWriter, LabelAssignmentWriter>();
         services.AddScoped<IFileReader, FileReader>();
         services.AddScoped<IFileWriter, FileWriter>();
         services.AddScoped<ISampleDataSeeder, SampleDataSeeder>();

@@ -19,4 +19,6 @@ internal sealed record SampleAct
     public IReadOnlyList<string> Comments { get; init; } = [];
 
     public string? ExtraFileSuffix { get; init; }
+
+    public IReadOnlyList<string> LabelKeys { get; init; } = [];
 }

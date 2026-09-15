@@ -1,4 +1,5 @@
 using EvilBrains.EvilCase.Api.Contract.Acts;
+using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.Data.Entities;
 
 namespace EvilBrains.EvilCase.Business.Acts;
@@ -47,6 +48,15 @@ internal static class ActListQuery
             Date = act.Date,
             Changed = act.Updated ?? act.Created,
             ContactName = act.Contact!.Name,
+            Labels = act.Labels
+                .OrderBy(static assignment => assignment.Label!.Name)
+                .Select(static assignment => new LabelItem
+                {
+                    LabelId = assignment.LabelId,
+                    Name = assignment.Label!.Name,
+                    Color = assignment.Label!.Color,
+                })
+                .ToList(),
         });
     }
 }

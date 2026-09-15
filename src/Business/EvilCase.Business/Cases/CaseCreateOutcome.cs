@@ -7,4 +7,6 @@ public enum CaseCreateOutcome
     InvalidParent = 1,
 
     ContactNotFound = 2,
+
+    LabelNotFound = 3,
 }

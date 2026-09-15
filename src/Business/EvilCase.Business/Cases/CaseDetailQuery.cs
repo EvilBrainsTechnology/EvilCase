@@ -1,5 +1,6 @@
 using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Contacts;
+using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Data.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -42,6 +43,15 @@ internal static class CaseDetailQuery
                         Status = @case.ParentCase.Status,
                         Changed = @case.ParentCase.Updated ?? @case.ParentCase.Created,
                     },
+                Labels = @case.Labels
+                    .OrderBy(static assignment => assignment.Label!.Name)
+                    .Select(static assignment => new LabelItem
+                    {
+                        LabelId = assignment.LabelId,
+                        Name = assignment.Label!.Name,
+                        Color = assignment.Label!.Color,
+                    })
+                    .ToList(),
             })
             .SingleOrDefaultAsync(token);
     }
