@@ -38,6 +38,15 @@ a refresh tokeny filtr nemají a jmenují řádku jejím id.
   v migraci, která ji zakládá.
 - Zápis obě pole neposílá a po uložení si je čte zpět.
 
+### Historizace
+
+- Každý zápis do historizované tabulky — `Accounts`, `Tenants`, `Users`, `Contacts`, `Cases`,
+  `Acts`, `FileAssets`, `Comments` — zůstává navždy jako řádek se svým operátorem a časem, i po
+  smazání původního řádku. `RefreshTokens` historii nemá: rotují při každém refreshi a nesou hash
+  tokenu.
+- Historický řádek je jen k čtení, žádný zápis ho nezmění ani nesmaže.
+- Operátor je ten, kdo byl přihlášený v okamžiku zápisu, ne vlastník řádku.
+
 ### Migrace
 
 Migrace nejsou přístup k datům aplikace: běží ve vlastním rozsahu dřív, než se obslouží první
@@ -54,6 +63,8 @@ aplikaci nespustí.
 - Čas razítka: čas transakce / čas řádku. Platí čas řádku — `Created` rozhoduje pořadí a seed
   píše celý strom v jedné transakci.
 - `Updated`: jen při skutečné změně / při každém UPDATE. Platí každý UPDATE.
+- Historii zapisuje: aplikace / databáze. Platí databáze.
+- Rozsah historizace: každá tabulka / vyjmenované tabulky. Platí vyjmenované tabulky.
 
 ## Dopady
 

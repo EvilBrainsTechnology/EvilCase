@@ -29,3 +29,5 @@ an entity; below is what neither says.
   a foreign key through `Sql`.
 - A committed migration carries no `/// <inheritdoc />`; the scaffolder's are removed.
 - The runtime registration and `ApplicationDbContextFactory` both call `UseEvilCaseMigrations`.
+- A column added to a historized table is added to its mirror too, always nullable; a dropped
+  column stays in the mirror and the record function goes to a named column list.
