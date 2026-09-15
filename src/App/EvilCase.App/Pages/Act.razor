@@ -10,6 +10,7 @@
 @using EvilBrains.EvilCase.Domain.Acts
 @using TabBlazor.Services
 @inject IActsClient ActsClient
+@inject IActLabelsClient ActLabelsClient
 @inject IActCommentsClient ActCommentsClient
 @inject IActFilesClient ActFilesClient
 @inject IFileTransferClient FileTransfer
@@ -214,24 +215,23 @@
                             </div>
                         </div>
 
-                        <div class="card">
-                            <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.Tag" />Štítky</h3></div>
-                            <div class="card-body">
-                                @if (this.Edit)
-                                {
+                        @if (this.Edit)
+                        {
+                            <div class="card">
+                                <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.Tag" />Štítky</h3></div>
+                                <div class="card-body">
                                     <label class="visually-hidden" for="act-labels">Štítky</label>
                                     <LabelPicker InputId="act-labels" @bind-Selected="this.model.Labels" />
-                                }
-                                else if (this.act!.Labels.Count > 0)
-                                {
-                                    <LabelBadges Labels="this.act.Labels" />
-                                }
-                                else
-                                {
-                                    <div class="text-secondary">Bez štítků.</div>
-                                }
+                                </div>
                             </div>
-                        </div>
+                        }
+                        else
+                        {
+                            <LabelsCard InputId="act-labels"
+                                        Labels="this.act!.Labels"
+                                        SaveLabels="this.SaveLabels"
+                                        OwnerGoneError="Úkon už neexistuje." />
+                        }
 
                         <a href="@($"/cases/{this.act!.CaseId}")" class="btn btn-outline-secondary w-100">
                             <Icon CssClass="icon" IconType="AppIcons.Folders" />@this.act!.CaseTitle
@@ -339,6 +339,25 @@
     private void PrefillContact()
     {
         this.model.Contact = ActContactRules.Prefilled(this.model.Direction, this.model.Contact, this.caseContact);
+    }
+
+    private async Task SaveLabels(IReadOnlyList<Guid> labelIds, CancellationToken token)
+    {
+        await this.ActLabelsClient.SetActLabels(this.CaseId, this.ActId, new LabelAssignmentRequest { LabelIds = labelIds }, token);
+
+        try
+        {
+            var detail = await this.ActsClient.GetAct(this.CaseId, this.ActId, token);
+
+            this.model.CopyFrom(ActEditModel.From(detail));
+            this.caseContact = detail.CaseContact;
+
+            this.act = detail;
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Reloading the act after a label change failed");
+        }
     }
 
     private async Task<IReadOnlyList<FileListItem>> LoadFiles(CancellationToken token)

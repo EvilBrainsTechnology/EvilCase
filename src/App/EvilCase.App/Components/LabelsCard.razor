@@ -1,0 +1,73 @@
+@using System.Net
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Contract.Labels
+@inject ILogger<LabelsCard> Logger
+
+@* Read mode's Štítky card (SDD-019): the picker adds or removes a label immediately, no edit mode. *@
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.Tag" />Štítky</h3>
+        <div class="card-actions">
+            <button type="button" class="btn btn-icon" aria-label="@(this.picking ? "Zavřít" : "Přidat štítek")" title="@(this.picking ? "Zavřít" : "Přidat štítek")" @onclick="() => this.picking = !this.picking">
+                <Icon CssClass="icon" IconType="@(this.picking ? AppIcons.X : AppIcons.Plus)" />
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        @if (this.picking)
+        {
+            <LabelPicker InputId="@this.InputId" Selected="this.Labels" SelectedChanged="this.SaveSelection" />
+        }
+        else if (this.Labels.Count > 0)
+        {
+            <LabelBadges Labels="this.Labels" />
+        }
+        else
+        {
+            <div class="text-secondary">Bez štítků.</div>
+        }
+
+        @if (this.error is not null)
+        {
+            <div class="alert alert-danger mt-3 mb-0" role="alert"><Icon CssClass="icon me-2" IconType="AppIcons.AlertTriangle" />@this.error</div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public required string InputId { get; set; }
+
+    [Parameter, EditorRequired]
+    public required IReadOnlyList<LabelItem> Labels { get; set; }
+
+    [Parameter, EditorRequired]
+    public required Func<IReadOnlyList<Guid>, CancellationToken, Task> SaveLabels { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string OwnerGoneError { get; set; }
+
+    private bool picking;
+
+    private string? error;
+
+    private async Task SaveSelection(IReadOnlyList<LabelItem> selection)
+    {
+        this.error = null;
+
+        try
+        {
+            await this.SaveLabels([.. selection.Select(static label => label.LabelId)], CancellationToken.None);
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+        {
+            this.error = this.OwnerGoneError;
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Saving the labels failed");
+
+            this.error = "Štítky se nepodařilo uložit. Zkuste to za chvíli znovu.";
+        }
+    }
+}

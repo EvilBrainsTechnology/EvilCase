@@ -9,6 +9,7 @@
 @using EvilBrains.EvilCase.Domain.Cases
 @using TabBlazor.Services
 @inject ICasesClient CasesClient
+@inject ICaseLabelsClient CaseLabelsClient
 @inject ICaseCommentsClient CaseCommentsClient
 @inject ICaseFilesClient CaseFilesClient
 @inject IFileTransferClient FileTransfer
@@ -189,24 +190,23 @@
                             </div>
                         </div>
 
-                        <div class="card">
-                            <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.Tag" />Štítky</h3></div>
-                            <div class="card-body">
-                                @if (this.Edit)
-                                {
+                        @if (this.Edit)
+                        {
+                            <div class="card">
+                                <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.Tag" />Štítky</h3></div>
+                                <div class="card-body">
                                     <label class="visually-hidden" for="case-labels">Štítky</label>
                                     <LabelPicker InputId="case-labels" @bind-Selected="this.model.Labels" />
-                                }
-                                else if (this.caseDetail!.Labels.Count > 0)
-                                {
-                                    <LabelBadges Labels="this.caseDetail.Labels" />
-                                }
-                                else
-                                {
-                                    <div class="text-secondary">Bez štítků.</div>
-                                }
+                                </div>
                             </div>
-                        </div>
+                        }
+                        else
+                        {
+                            <LabelsCard InputId="case-labels"
+                                        Labels="this.caseDetail!.Labels"
+                                        SaveLabels="this.SaveLabels"
+                                        OwnerGoneError="Spis už neexistuje." />
+                        }
 
                         <div class="card">
                             <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.Folders" />Hierarchie</h3></div>
@@ -338,6 +338,21 @@
             this.Logger.LogWarning(exception, "Loading the case detail failed");
 
             this.failure = "Spis se nepodařilo načíst. Zkuste to za chvíli znovu.";
+        }
+    }
+
+    private async Task SaveLabels(IReadOnlyList<Guid> labelIds, CancellationToken token)
+    {
+        await this.CaseLabelsClient.SetCaseLabels(this.CaseId, new LabelAssignmentRequest { LabelIds = labelIds }, token);
+
+        try
+        {
+            this.caseDetail = await this.CasesClient.GetCase(this.CaseId, token);
+            this.model.CopyFrom(CaseEditModel.From(this.caseDetail));
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Reloading the case after a label change failed");
         }
     }
 
