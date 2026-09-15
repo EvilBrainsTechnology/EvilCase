@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.Domain.Cases;
@@ -7,6 +8,39 @@ namespace EvilBrains.EvilCase.App.Models;
 
 internal sealed class CaseEditModel
 {
+    public static CaseEditModel From(CaseDetail detail)
+    {
+        return new CaseEditModel
+        {
+            ParentCaseId = detail.ParentCase?.CaseId,
+            CaseNumber = detail.CaseNumber,
+            ExternalCaseNumber = detail.ExternalCaseNumber,
+            Date = detail.Date,
+            Title = detail.Title,
+            Description = detail.Description,
+            Contact = detail.Contact,
+            Labels = detail.Labels,
+            Status = detail.Status,
+        };
+    }
+
+    /// <summary>
+    /// Assigns another instance's values onto this one, so a page can refresh its bound model
+    /// without replacing the instance its EditContext already tracks.
+    /// </summary>
+    public void CopyFrom(CaseEditModel other)
+    {
+        this.ParentCaseId = other.ParentCaseId;
+        this.CaseNumber = other.CaseNumber;
+        this.ExternalCaseNumber = other.ExternalCaseNumber;
+        this.Date = other.Date;
+        this.Title = other.Title;
+        this.Description = other.Description;
+        this.Contact = other.Contact;
+        this.Labels = other.Labels;
+        this.Status = other.Status;
+    }
+
     public Guid? ParentCaseId { get; set; }
 
     [Required(ErrorMessage = "Zadejte spisovou značku")]

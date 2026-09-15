@@ -21,80 +21,100 @@
 
 <div class="page-body">
     <div class="container-xl">
-        <div class="card">
-            <EditForm Model="this.model" OnValidSubmit="this.SubmitAct">
-                <DataAnnotationsValidator />
+        <EditForm Model="this.model" OnValidSubmit="this.SubmitAct">
+            <DataAnnotationsValidator />
 
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label" for="act-direction">Směr</label>
-                        <InputSelect id="act-direction" class="form-select" @bind-Value="this.model.Direction" @bind-Value:after="this.PrefillContact">
-                            <option value="">— bez směru —</option>
-                            @foreach (var direction in Enum.GetValues<ActDirection>())
-                            {
-                                <option value="@direction">@ActDirectionDisplay.Text(direction)</option>
-                            }
-                        </InputSelect>
-                        <ValidationMessage For="() => this.model.Direction" class="invalid-feedback d-block" />
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label" for="act-date">Datum úkonu</label>
-                        <InputDate id="act-date" class="form-control" @bind-Value="this.model.Date" />
-                        <ValidationMessage For="() => this.model.Date" class="invalid-feedback d-block" />
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label" for="act-title">Název</label>
-                        <InputText id="act-title" class="form-control" autofocus @bind-Value="this.model.Title" />
+            <div class="ec-layout">
+                <div class="ec-main">
+                    <div>
+                        <label class="visually-hidden" for="act-title">Název</label>
+                        <input id="act-title" class="form-control ec-title-input" placeholder="Název úkonu" autofocus @bind="this.model.Title" @bind:event="oninput" />
                         <ValidationMessage For="() => this.model.Title" class="invalid-feedback d-block" />
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label" for="act-description">Popis</label>
-                        <InputTextArea id="act-description" class="form-control" rows="5" @bind-Value="this.model.Description" />
-                        <ValidationMessage For="() => this.model.Description" class="invalid-feedback d-block" />
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label" for="act-contact">Kontakt</label>
-                        <ContactPicker InputId="act-contact" @bind-Selected="this.model.Contact" />
-                        <ValidationMessage For="() => this.model.Contact" class="invalid-feedback d-block" />
-                        @if (ActContactRules.DifferingCaseContact(this.model.Contact, this.caseContact) is { } differing)
-                        {
-                            <div class="alert alert-warning mt-2" role="alert">
-                                <Icon CssClass="icon me-2" IconType="AppIcons.AlertTriangle" />Kontakt úkonu se liší od kontaktu spisu (@differing.Name).
-                            </div>
-                        }
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label" for="act-labels">Štítky</label>
-                        <LabelPicker InputId="act-labels" @bind-Selected="this.model.Labels" />
-                    </div>
-
-                    @if (this.error is not null)
+                    @if (ActContactRules.DifferingCaseContact(this.model.Contact, this.caseContact) is { } differing)
                     {
-                        <div class="alert alert-danger mb-0" role="alert"><Icon CssClass="icon me-2" IconType="AppIcons.AlertTriangle" />@this.error</div>
+                        <div class="alert alert-warning mb-0" role="alert">
+                            <Icon CssClass="icon me-2" IconType="AppIcons.AlertTriangle" />Kontakt úkonu se liší od kontaktu spisu (@differing.Name).
+                        </div>
                     }
+
+                    <div class="card">
+                        <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.FileText" />Popis</h3></div>
+                        <div class="card-body">
+                            <label class="visually-hidden" for="act-description">Popis</label>
+                            <InputTextArea id="act-description" class="form-control" rows="8" @bind-Value="this.model.Description" />
+                            <ValidationMessage For="() => this.model.Description" class="invalid-feedback d-block" />
+                        </div>
+                    </div>
                 </div>
 
-                <div class="card-footer form-actions-sticky d-flex justify-content-end gap-2">
-                    <a href="/cases/@this.CaseId" class="btn"><Icon CssClass="icon" IconType="AppIcons.X" />Zrušit</a>
-                    <button id="act-submit" type="submit" class="btn btn-primary" disabled="@this.busy">
-                        @if (this.busy)
-                        {
-                            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-                        }
-                        else
-                        {
-                            <Icon CssClass="icon" IconType="AppIcons.Plus" />
-                        }
-                        Založit úkon
-                    </button>
+                <aside class="ec-sidebar d-flex flex-column gap-3">
+                    <div class="card">
+                        <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.ListDetails" />Údaje</h3></div>
+                        <div class="card-body d-flex flex-column gap-3">
+                            <div>
+                                <span class="ec-field-label">Číslo jednací</span>
+                                <div class="text-secondary">Přidělí se po založení.</div>
+                            </div>
+                            <div>
+                                <label class="ec-field-label" for="act-date">Datum úkonu</label>
+                                <InputDate id="act-date" class="form-control" @bind-Value="this.model.Date" />
+                                <ValidationMessage For="() => this.model.Date" class="invalid-feedback d-block" />
+                            </div>
+                            <div>
+                                <label class="ec-field-label" for="act-direction">Směr</label>
+                                <InputSelect id="act-direction" class="form-select" @bind-Value="this.model.Direction" @bind-Value:after="this.PrefillContact">
+                                    <option value="">— bez směru —</option>
+                                    @foreach (var direction in Enum.GetValues<ActDirection>())
+                                    {
+                                        <option value="@direction">@ActDirectionDisplay.Text(direction)</option>
+                                    }
+                                </InputSelect>
+                                <ValidationMessage For="() => this.model.Direction" class="invalid-feedback d-block" />
+                            </div>
+                            <div>
+                                <label class="ec-field-label" for="act-contact">Kontakt</label>
+                                <ContactPicker InputId="act-contact" @bind-Selected="this.model.Contact" />
+                                <ValidationMessage For="() => this.model.Contact" class="invalid-feedback d-block" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.Tag" />Štítky</h3></div>
+                        <div class="card-body">
+                            <label class="visually-hidden" for="act-labels">Štítky</label>
+                            <LabelPicker InputId="act-labels" @bind-Selected="this.model.Labels" />
+                        </div>
+                    </div>
+                </aside>
+
+                <div class="ec-savebar">
+                    <div class="ec-savebar-actions">
+                        <a href="/cases/@this.CaseId" class="btn"><Icon CssClass="icon" IconType="AppIcons.X" />Zrušit</a>
+                        <button id="act-submit" type="submit" class="btn btn-primary" disabled="@this.busy">
+                            @if (this.busy)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                            }
+                            else
+                            {
+                                <Icon CssClass="icon" IconType="AppIcons.Plus" />
+                            }
+                            Založit úkon
+                        </button>
+                    </div>
                 </div>
-            </EditForm>
-        </div>
+
+                @if (this.error is not null)
+                {
+                    <div class="ec-savebar-error">
+                        <div class="alert alert-danger mb-0" role="alert"><Icon CssClass="icon me-2" IconType="AppIcons.AlertTriangle" />@this.error</div>
+                    </div>
+                }
+            </div>
+        </EditForm>
     </div>
 </div>
 

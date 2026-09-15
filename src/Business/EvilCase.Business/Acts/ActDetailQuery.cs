@@ -19,6 +19,7 @@ internal static class ActDetailQuery
                 ActId = act.Id,
                 CaseId = act.CaseId,
                 CaseNumber = act.Case!.CaseNumber,
+                CaseTitle = act.Case.Title,
                 ActNumber = act.ActNumber,
                 ExternalActNumber = act.ExternalActNumber,
                 Direction = act.Direction,

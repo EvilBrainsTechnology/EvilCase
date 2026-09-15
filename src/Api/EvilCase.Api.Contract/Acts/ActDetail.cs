@@ -12,6 +12,8 @@ public sealed record ActDetail
 
     public required string CaseNumber { get; init; }
 
+    public required string CaseTitle { get; init; }
+
     public required string ActNumber { get; init; }
 
     public string? ExternalActNumber { get; init; }

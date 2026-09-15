@@ -1,3 +1,328 @@
+/* Redesign tokens (2026): values that differ from Tabler's own defaults. Light first, dark under
+   data-bs-theme, set by ThemeSwitch. */
+:root {
+    --ec-shell-bg: #f3f4f6;
+    --ec-page-width: 1700px;
+    --ec-sidebar-width: 360px;
+    --ec-card-radius: 10px;
+    --ec-control-radius: 8px;
+    --ec-mono: Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+[data-bs-theme="dark"] {
+    --ec-shell-bg: #111827;
+}
+
+body {
+    background: var(--ec-shell-bg);
+}
+
+/* The whole app grows from Tabler's 1320px container to fit the wider two-column pages. */
+.container-xl {
+    max-width: var(--ec-page-width);
+}
+
+.card {
+    border-radius: var(--ec-card-radius);
+}
+
+.modal-content {
+    border-radius: 12px;
+}
+
+.btn,
+.form-control,
+.form-select,
+.input-group .btn,
+.input-group .form-control {
+    border-radius: var(--ec-control-radius);
+}
+
+.ec-mono {
+    font-family: var(--ec-mono);
+    font-size: 0.8125rem;
+    letter-spacing: -0.01em;
+}
+
+.ec-num {
+    font-variant-numeric: tabular-nums;
+}
+
+/* Lets a flex child truncate instead of pushing the row wider; Tabler ships no such utility. */
+.ec-min-w-0 {
+    min-width: 0;
+}
+
+.ec-field-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--tblr-secondary);
+}
+
+/* Case and act detail: main column plus the sticky 360px sidebar (SDD-016 §2-3). */
+.ec-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) var(--ec-sidebar-width);
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.ec-main {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: 0;
+}
+
+.ec-sidebar {
+    position: sticky;
+    top: 1rem;
+}
+
+@media (max-width: 991.98px) {
+    .ec-layout {
+        display: flex;
+        flex-direction: column;
+        /* The grid rule's align-items: start leaves a flex child unstretched otherwise, sized to
+           its own content instead of the column's width. */
+        align-items: stretch;
+    }
+
+    .ec-sidebar {
+        position: static;
+        order: -1;
+    }
+}
+
+/* The bottom save bar of inline editing; sticky at every width, spanning both columns. */
+.ec-savebar {
+    grid-column: 1 / -1;
+    position: sticky;
+    bottom: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+    background: var(--tblr-card-bg);
+    border: 1px solid var(--tblr-border-color);
+    border-radius: var(--ec-card-radius);
+    box-shadow: 0 8px 24px -12px rgba(0, 0, 0, 0.25);
+}
+
+.ec-savebar-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: auto;
+}
+
+@media (max-width: 991.98px) {
+    .ec-savebar-actions {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .ec-savebar .btn {
+        flex: 1 1 0;
+        min-height: 44px;
+    }
+}
+
+.ec-savebar-error {
+    grid-column: 1 / -1;
+}
+
+.ec-title-input {
+    max-width: 640px;
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}
+
+.ec-mode-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    height: 28px;
+    padding: 0 0.75rem;
+    border-radius: 100rem;
+    background: var(--tblr-primary-lt);
+    color: var(--tblr-primary);
+    font-size: 0.8125rem;
+    font-weight: 600;
+}
+
+/* A long case or act name wraps instead of pushing the page sideways (SDD-016 §9). */
+.breadcrumb-item {
+    white-space: normal;
+    word-break: break-word;
+}
+
+/* Case, act and contact detail header: below lg the actions no longer sit beside the title,
+   which wraps around them; they drop to their own full-width row instead. */
+@media (max-width: 991.98px) {
+    .ec-detail-header > .col-auto {
+        flex: 1 0 100%;
+        max-width: 100%;
+    }
+
+    .ec-detail-header > .col-auto .btn {
+        flex: 1 1 0;
+    }
+}
+
+/* A compact row: a full-width link with a title line and a date/status second line, no chevron. */
+.ec-comprow {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.5rem 0;
+    border-top: 1px solid var(--tblr-border-color);
+    color: inherit;
+    text-decoration: none;
+}
+
+.ec-comprow:first-child {
+    border-top: 0;
+}
+
+.ec-comprow:hover {
+    color: inherit;
+}
+
+.ec-comprow-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.ec-comprow-meta {
+    font-size: 12px;
+    color: var(--tblr-secondary);
+}
+
+/* Segmented status filter on the case list toolbar (SDD-016 §8). */
+.ec-search-field {
+    min-width: 220px;
+}
+
+.ec-segment {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 3px;
+    max-width: 100%;
+    overflow-x: auto;
+    background: var(--tblr-bg-surface-tertiary, var(--tblr-body-bg));
+    border-radius: 100rem;
+}
+
+.ec-segment button {
+    border: 0;
+    background: transparent;
+    border-radius: 100rem;
+    height: 30px;
+    padding: 0 0.875rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--tblr-secondary);
+    white-space: nowrap;
+}
+
+.ec-segment button.active {
+    background: var(--tblr-card-bg);
+    color: var(--tblr-body-color);
+    font-weight: 600;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+@media (max-width: 991.98px) {
+    .ec-segment button {
+        min-height: 44px;
+    }
+}
+
+/* The files card is itself the drop target; no inner drop zone (SDD-016 §5). */
+.ec-dropcard {
+    position: relative;
+}
+
+.ec-dropcard.is-dragover {
+    border-color: var(--tblr-primary);
+    box-shadow: 0 0 0 3px var(--tblr-primary-lt);
+}
+
+.ec-dropveil {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--ec-card-radius);
+    background: color-mix(in srgb, var(--tblr-primary) 8%, transparent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.ec-droppill {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.625rem 1rem;
+    border-radius: 100rem;
+    background: var(--tblr-card-bg);
+    box-shadow: 0 8px 24px -12px rgba(0, 0, 0, 0.3);
+    color: var(--tblr-primary);
+    font-weight: 600;
+}
+
+.ec-filerow {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 1rem;
+    border-top: 1px solid var(--tblr-border-color);
+}
+
+.ec-filerow:first-child {
+    border-top: 0;
+}
+
+.ec-filerow-link {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: inherit;
+    text-decoration: none;
+}
+
+.ec-filerow-link:hover {
+    color: inherit;
+}
+
+.ec-filerow-meta {
+    font-size: 12px;
+    color: var(--tblr-secondary);
+}
+
+.ec-filerow-icon {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: var(--ec-control-radius);
+    background: var(--tblr-bg-surface-tertiary, var(--tblr-body-bg));
+    color: var(--tblr-secondary);
+}
+
 /* Tabler sizes .page against a full-height chain, which the Blazor root element breaks. Without a
    definite height here, page-center has nothing to centre the boot loader in. */
 #app {
@@ -136,29 +461,6 @@
 
 .comment-body {
     white-space: pre-line;
-}
-
-/* The file input covers its drop zone, so a drop anywhere on the zone reaches it and no script is needed. */
-.file-drop-zone {
-    position: relative;
-    padding: 1.5rem;
-    border: 1px dashed var(--tblr-border-color);
-    border-radius: var(--tblr-border-radius);
-    text-align: center;
-}
-
-.file-drop-zone.is-dragging {
-    border-color: var(--tblr-primary);
-    background: var(--tblr-active-bg);
-}
-
-.file-drop-zone input[type="file"] {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-    cursor: pointer;
 }
 
 /* The containing block .stretched-link's ::after overlay resolves position: absolute against. */
