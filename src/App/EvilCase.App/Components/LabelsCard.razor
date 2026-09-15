@@ -52,7 +52,8 @@
 
     private string? error;
 
-    protected override void OnParametersSet()
+    // The owner's key recreates the card, so the parameter seeds the state and the card owns it after.
+    protected override void OnInitialized()
     {
         this.labels = this.Labels;
     }

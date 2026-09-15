@@ -187,3 +187,9 @@
     outline: 2px solid var(--tblr-primary);
     outline-offset: 1px;
 }
+
+/* Above the row link's overlay, which would otherwise take the hover and with it the label's tooltip. */
+.label-dots {
+    position: relative;
+    z-index: 2;
+}
