@@ -15,7 +15,7 @@
                 <tr>
                     <th>Změněno</th>
                     <th>Datum</th>
-                    <th>Název</th>
+                    <th>Spis</th>
                     <th>Stav</th>
                     <th>Spisová značka</th>
                 </tr>
@@ -26,7 +26,7 @@
                     <tr class="table-row-link" @onclick="@(() => this.Navigation.NavigateTo($"/cases/{item.CaseId}"))">
                         <td class="text-nowrap">@MomentDisplay.Text(item.Changed)</td>
                         <td class="text-nowrap">@DateDisplay.Text(item.Date)</td>
-                        <td><a href="@($"/cases/{item.CaseId}")" @onclick:stopPropagation @onclick="() => { }">@item.Title</a></td>
+                        <td class="font-weight-medium">@item.Title</td>
                         <td class="text-nowrap">
                             <Status BackgroundColor="CaseStatusDisplay.Color(item.Status)" Lite="true">@CaseStatusDisplay.Text(item.Status)</Status>
                         </td>
