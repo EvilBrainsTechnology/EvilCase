@@ -26,8 +26,8 @@ změněné úkony řadí stejně vlastní `Updated` úkonu, nebo `Created` u úk
 neupravil. Seznamové dlaždice ukazují nejvýše 5 položek.
 
 Dashboard nemá vlastní API; skládá se na klientu z API entit (SDD-005): dlaždice počtů
-z počtů spisů `/api/cases/counts`, naposledy změněné spisy z výpisu spisů, poslední úkony
-z tenantového výpisu `/api/acts`.
+z počtů spisů `/api/cases/counts`, naposledy změněné spisy z výpisu spisů, naposledy změněné
+úkony z tenantového výpisu `/api/acts`.
 
 Žádné lhůty. Tenant bez jediného spisu vede na založení prvního spisu; tenant se spisy a bez
 úkonů si dlaždice ponechá a dlaždice úkonů ukáže vlastní prázdný stav.
