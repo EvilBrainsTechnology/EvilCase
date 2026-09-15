@@ -42,7 +42,7 @@ Account → Tenant → User (SDD-006). Tenantová data:
 | Contact | jen ten, na který neodkazuje žádný spis ani úkon (SDD-011) |
 | FileAsset | prosté; blob přežívá záznam (SDD-012) |
 | Comment | prosté; jen autor (SDD-013) |
-| Label | kaskáda: přidělení štítku spisům a úkonům (SDD-019) |
+| Label | kaskáda: jen jeho přidělení; spisy a úkony, které ho nesly, zůstávají (SDD-019) |
 
 Kaskáda maže záznamy souborů; jejich bajty na disku zůstávají, blob se nikdy nemaže.
 Každé smazání se v UI potvrzuje (SDD-004).

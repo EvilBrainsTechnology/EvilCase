@@ -53,7 +53,8 @@ mobilu, kde tooltip není, nese štítky s názvem.
 
 - Barva: volný kód / pevná paleta. Platí pevná paleta — drží kontrast ve světlém i tmavém motivu.
 - Číselník: společný pro spisy i úkony / dva oddělené. Platí společný.
-- Smazání štítku, který něco nese: zákaz / kaskáda. Platí kaskáda.
+- Smazání štítku, který něco nese: zákaz / smazání i s jeho přiděleními. Platí smazání
+  i s přiděleními; spis ani úkon, který štítek nesl, tím nezaniká.
 - Zápis přidělení: přidání a odebrání po jednom / celá množina. Platí celá množina.
 - Nastavení: vlastní stránka / sekce v profilu uživatele. Platí vlastní stránka `/settings`.
 
