@@ -26,7 +26,7 @@
                     <tr class="table-row-link" @onclick="@(() => this.Navigation.NavigateTo($"/cases/{item.CaseId}"))">
                         <td class="text-nowrap">@MomentDisplay.Text(item.Changed)</td>
                         <td class="text-nowrap">@DateDisplay.Text(item.Date)</td>
-                        <td class="font-weight-medium">@item.Title</td>
+                        <td class="fw-bold">@item.Title</td>
                         <td class="text-nowrap">
                             <Status BackgroundColor="CaseStatusDisplay.Color(item.Status)" Lite="true">@CaseStatusDisplay.Text(item.Status)</Status>
                         </td>
@@ -43,7 +43,7 @@
             <div class="card mb-2">
                 <div class="card-body">
                     <div class="text-secondary">@item.CaseNumber</div>
-                    <div class="font-weight-medium"><a href="@($"/cases/{item.CaseId}")">@item.Title</a></div>
+                    <div class="fw-bold"><a href="@($"/cases/{item.CaseId}")">@item.Title</a></div>
                     <div>
                         <Status BackgroundColor="CaseStatusDisplay.Color(item.Status)" Lite="true">@CaseStatusDisplay.Text(item.Status)</Status>
                     </div>

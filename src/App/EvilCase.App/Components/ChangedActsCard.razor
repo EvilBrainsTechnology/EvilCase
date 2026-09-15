@@ -35,7 +35,7 @@
                             <td class="text-nowrap">@MomentDisplay.Text(item.Changed)</td>
                             <td class="text-nowrap">@DateDisplay.Text(item.Date)</td>
                             <td class="text-nowrap"><a href="@($"/cases/{item.CaseId}")" @onclick:stopPropagation @onclick="() => { }">@item.CaseTitle</a></td>
-                            <td class="font-weight-medium">@item.Title</td>
+                            <td class="fw-bold">@item.Title</td>
                             <td class="text-nowrap">
                                 @if (item.Direction is not null)
                                 {
@@ -59,7 +59,7 @@
                 <div class="card mb-2">
                     <div class="card-body">
                         <div class="text-secondary"><a href="@($"/cases/{item.CaseId}")">@item.CaseTitle</a></div>
-                        <div class="font-weight-medium"><a href="@($"/cases/{item.CaseId}/act/{item.ActId}")">@item.Title</a></div>
+                        <div class="fw-bold"><a href="@($"/cases/{item.CaseId}/act/{item.ActId}")">@item.Title</a></div>
                         <div class="text-secondary">@item.ActNumber</div>
                         @if (item.Direction is not null)
                         {
