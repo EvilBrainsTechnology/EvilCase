@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using EvilBrains.EvilCase.Api.Contract.Contacts;
+using EvilBrains.EvilCase.Api.Contract.Labels;
 
 namespace EvilBrains.EvilCase.App.Models;
 
@@ -15,4 +16,6 @@ internal sealed class NewCaseModel
     public string? Description { get; set; }
 
     public ContactListItem? Contact { get; set; }
+
+    public IReadOnlyList<LabelItem> Labels { get; set; } = [];
 }

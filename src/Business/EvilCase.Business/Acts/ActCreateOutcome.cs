@@ -7,4 +7,6 @@ public enum ActCreateOutcome
     CaseNotFound = 1,
 
     ContactNotFound = 2,
+
+    LabelNotFound = 3,
 }

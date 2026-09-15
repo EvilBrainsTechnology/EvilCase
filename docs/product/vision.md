@@ -28,19 +28,19 @@ základ vynechává, je dole v non-goals a přijde později, po krocích.
 ## Doménový model
 
 Názvy v kódu jsou anglické: spis = `Case`, úkon = `Act`, soubor = `FileAsset`, kontakt =
-`Contact`, komentář = `Comment`; spisová značka = `CaseNumber`, číslo jednací = `ActNumber`,
-cizí, přidělené někým jiným, jsou `ExternalCaseNumber` a `ExternalActNumber`. Mapu drží
+`Contact`, komentář = `Comment`, štítek = `Label`; spisová značka = `CaseNumber`, číslo jednací =
+`ActNumber`, cizí, přidělené někým jiným, jsou `ExternalCaseNumber` a `ExternalActNumber`. Mapu drží
 [SDD-007](../sdd/sdd-007-domenovy-model.md).
 
 **Spis** — jedno řízení. Nese explicitní datum, název, popis, status (`Active`,
-`WaitingOnAuthority`, `Closed`), externí spisovou značku, nepovinný kontakt protistrany, komentáře
-a soubory. Spisy tvoří hierarchii: volitelný rodič, libovolná hloubka, UI ukazuje jen ploché
-seznamy. Bez tagů.
+`WaitingOnAuthority`, `Closed`), externí spisovou značku, nepovinný kontakt protistrany, štítky,
+komentáře a soubory. Spisy tvoří hierarchii: volitelný rodič, libovolná hloubka, UI ukazuje jen
+ploché seznamy.
 ([SDD-009](../sdd/sdd-009-spisy.md))
 
 **Úkon** — jednotka práce ve spisu: jedno podání, rozhodnutí, vyrozumění nebo výzva. Má nepovinný
 kontakt protistrany a nepovinný směr (příchozí/odchozí); platí buď obojí, nebo nic. Dále explicitní
-datum, název, externí číslo jednací, popis, komentáře a soubory.
+datum, název, externí číslo jednací, popis, štítky, komentáře a soubory.
 ([SDD-010](../sdd/sdd-010-ukony.md))
 
 **Kontakt** — úřad, úřední osoba nebo člověk; plochý, sdílený napříč spisy; nese id datové
@@ -55,6 +55,9 @@ hromadného přetažením. ([SDD-012](../sdd/sdd-012-soubory.md))
 **Externí čísla** — spis nese nejvýše jednu cizí spisovou značku, úkon nejvýše jedno cizí číslo
 jednací; obojí je nepovinný volný text bez vazby na kontakt.
 
+**Štítek** — pojmenovaná a obarvená značka, kterou nese spis i úkon; jeden číselník pro obojí.
+Zakládá a spravuje se v nastavení. ([SDD-019](../sdd/sdd-019-stitky.md))
+
 **Komentář** — volná poznámka ke spisu nebo úkonu, průběžný deník. Edituje a maže jen autor.
 ([SDD-013](../sdd/sdd-013-komentare.md))
 
@@ -67,7 +70,8 @@ Aplikace čísluje spisy a úkony sama, bez konfigurace; tvar čísel, ruční p
 
 ## Aplikace
 
-URL nesou UUID: `/cases`, `/cases/{id}`, `/cases/{id}/act/{actId}`, `/contacts`, `/login`
+URL nesou UUID: `/cases`, `/cases/{id}`, `/cases/{id}/act/{actId}`, `/contacts`, `/settings`,
+`/login`
 ([SDD-016](../sdd/sdd-016-navigace-a-vzhled.md)). Dashboard `/` stojí nad reálnými daty
 ([SDD-015](../sdd/sdd-015-dashboard.md)). Vzhled: Tabler + TabBlazor.
 
@@ -96,13 +100,14 @@ V pořadí podle toho, co při práci s reálným spisem bolí nejvíc:
 | M5 | Soubory | UI souborů: upload včetně hromadného přetažením, download, mazání | SDD-012 |
 | M6 | Kontakty | agenda kontaktů s výskyty, zakládání kontaktu v agendě | SDD-011 |
 | M7 | Dashboard | dashboard nad reálnými daty | SDD-015 |
+| M8 | Štítky | štítky spisů a úkonů, sekce nastavení s jejich číselníkem | SDD-019 |
 
 Průřezová SDD-001 až 005 platí pro každý milník. Základ je hotový, když jde reálný spis vést
 rukou od začátku do konce.
 
 ## Non-goals pro teď
 
-Konfigurovatelné číslování, tagy, vazby souborů mezi úkony, lhůty, timeline, import složek,
+Konfigurovatelné číslování, vazby souborů mezi úkony, lhůty, timeline, import složek,
 hledání napříč agendami nad rámec filtru v jednotlivých seznamech, extrakce textu z dokumentů
 a fulltext nad obsahem souborů, .docx
 šablony a generovaná podání, datové schránky (ISDS), e-mail, AI shrnutí, role, registrace,

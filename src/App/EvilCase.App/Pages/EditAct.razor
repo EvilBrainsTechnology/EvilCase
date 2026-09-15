@@ -4,6 +4,7 @@
 @using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Acts
 @using EvilBrains.EvilCase.Api.Contract.Contacts
+@using EvilBrains.EvilCase.Api.Contract.Labels
 @using EvilBrains.EvilCase.Domain.Acts
 @inject IActsClient ActsClient
 @inject NavigationManager Navigation
@@ -90,6 +91,11 @@
                             }
                         </div>
 
+                        <div class="mb-3">
+                            <label class="form-label" for="act-labels">Štítky</label>
+                            <LabelPicker InputId="act-labels" @bind-Selected="this.model.Labels" />
+                        </div>
+
                         @if (this.error is not null)
                         {
                             <div class="alert alert-danger mb-0" role="alert"><Icon CssClass="icon me-2" IconType="AppIcons.AlertTriangle" />@this.error</div>
@@ -160,6 +166,7 @@
             this.model.Title = detail.Title;
             this.model.Description = detail.Description;
             this.model.Contact = detail.Contact;
+            this.model.Labels = detail.Labels;
             this.caseContact = detail.CaseContact;
 
             this.act = detail;
@@ -197,6 +204,7 @@
                 Title = this.model.Title,
                 Description = this.model.Description,
                 ContactId = this.model.Contact?.ContactId,
+                LabelIds = [.. this.model.Labels.Select(static label => label.LabelId)],
             };
 
             await this.ActsClient.EditAct(this.CaseId, this.ActId, request, CancellationToken.None);

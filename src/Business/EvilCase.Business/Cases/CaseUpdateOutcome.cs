@@ -13,4 +13,6 @@ public enum CaseUpdateOutcome
     InvalidParent = 4,
 
     ContactNotFound = 5,
+
+    LabelNotFound = 6,
 }

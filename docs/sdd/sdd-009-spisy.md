@@ -3,7 +3,7 @@
 - **Stav:** platí
 - **Milníky:** M3
 - **Související SDD:** [007](sdd-007-domenovy-model.md), [008](sdd-008-cislovani.md),
-  [011](sdd-011-kontakty.md), [013](sdd-013-komentare.md)
+  [011](sdd-011-kontakty.md), [013](sdd-013-komentare.md), [019](sdd-019-stitky.md)
 
 ## Rozsah
 
@@ -15,7 +15,8 @@ Entita spisu, hierarchie, externí značka, stránky spisů a mazání. Číslov
 ### Entita
 
 Case: `ParentCaseId?`, `CaseNumber`, `ExternalCaseNumber?`, explicitní datum (`DateOnly`), název,
-popis, stav `Active` / `WaitingOnAuthority` / `Closed`, nepovinný kontakt protistrany (SDD-011).
+popis, stav `Active` / `WaitingOnAuthority` / `Closed`, nepovinný kontakt protistrany (SDD-011)
+a štítky (SDD-019).
 
 Stav je jen štítek: na nic se neváže, spis ve stavu `Closed` jde editovat a přijímá úkony,
 soubory i komentáře jako každý jiný. Nový spis vzniká jako `Active` a s dnešním datem.
@@ -40,15 +41,15 @@ kontakt. Zadává se na editaci spisu.
 
 ### Stránky
 
-- `/cases` — seznam spisů: datum, název, stav, číslo. Řadí se podle data spisu sestupně,
-  shodná data řadí `Created`; bez stránkování. Hledací pole hledá v názvu a popisu bez ohledu na
-  diakritiku. Filtr stavu nabízí Otevřené (vše kromě uzavřených), Všechny stavy a každý stav
-  zvlášť; výchozí je Otevřené. Přepínač Jen rodičovské spisy nechá v seznamu jen spisy bez
-  rodiče; ve výchozím stavu je zapnutý a po vypnutí seznam ukazuje i podřízené spisy.
-- `/cases/new` — založení, včetně kontaktu; `?parent={id}` zakládá podřízený spis.
-- `/cases/{id}` — detail: údaje, podřízené spisy, úkony (SDD-010), komentáře (SDD-013),
+- `/cases` — seznam spisů: datum, název, stav, číslo a tečky štítků (SDD-019). Řadí se podle data
+  spisu sestupně, shodná data řadí `Created`; bez stránkování. Hledací pole hledá v názvu a popisu
+  bez ohledu na diakritiku. Filtr stavu nabízí Otevřené (vše kromě uzavřených), Všechny stavy
+  a každý stav zvlášť; výchozí je Otevřené. Přepínač Jen rodičovské spisy nechá v seznamu jen spisy
+  bez rodiče; ve výchozím stavu je zapnutý a po vypnutí seznam ukazuje i podřízené spisy.
+- `/cases/new` — založení, včetně kontaktu a štítků; `?parent={id}` zakládá podřízený spis.
+- `/cases/{id}` — detail: štítky, údaje, podřízené spisy, úkony (SDD-010), komentáře (SDD-013),
   soubory (SDD-012).
-- `/cases/{id}/edit` — editace, včetně kontaktu a rodiče.
+- `/cases/{id}/edit` — editace, včetně kontaktu, štítků a rodiče.
 
 ### Mazání
 

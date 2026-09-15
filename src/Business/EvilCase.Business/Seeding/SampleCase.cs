@@ -21,4 +21,6 @@ internal sealed record SampleCase
     public string? ExternalCaseNumber { get; init; }
 
     public IReadOnlyList<string> Comments { get; init; } = [];
+
+    public IReadOnlyList<string> LabelKeys { get; init; } = [];
 }

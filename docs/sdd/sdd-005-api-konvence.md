@@ -45,6 +45,7 @@ Vše ostatní je bez limitu, health checks včetně. Odmítnutí je 429 s `Retry
 | Kontakty | `/api/contacts`, `/api/contacts/{id}` |
 | Soubory | výpis a smazání na vlastníku; upload na vlastníku a download `/api/files/{id}/content` |
 | Komentáře | na vlastníku, `…/comments`, `…/comments/{id}` |
+| Štítky | `/api/labels`, `/api/labels/{id}`; přidělení na vlastníku `…/labels` |
 
 - Id v routách je `Guid`.
 - Tenanta i uživatele dodává kontext požadavku; endpoint ani dotaz nikdy neberou id tenanta

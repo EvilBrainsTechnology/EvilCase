@@ -5,10 +5,12 @@
 @using EvilBrains.EvilCase.Api.Contract.Cases
 @using EvilBrains.EvilCase.Api.Contract.Comments
 @using EvilBrains.EvilCase.Api.Contract.Files
+@using EvilBrains.EvilCase.Api.Contract.Labels
 @using TabBlazor.Services
 @inject ICasesClient CasesClient
 @inject ICaseCommentsClient CaseCommentsClient
 @inject ICaseFilesClient CaseFilesClient
+@inject ICaseLabelsClient CaseLabelsClient
 @inject IFileTransferClient FileTransfer
 @inject IFileDownloader Downloader
 @inject IModalService ModalService
@@ -46,6 +48,14 @@
 <div class="page-body">
     <div class="container-xl">
         <LoadStateView NotFound="this.notFound" NotFoundTitle="Spis nenalezen" Failure="@this.failure" FailureTitle="Spis se nepodařilo načíst" Loaded="this.caseDetail is not null">
+            <div class="mb-3">
+                <LabelsCard @key="this.CaseId"
+                            InputId="case-labels"
+                            Labels="this.caseDetail!.Labels"
+                            SaveLabels="this.SaveLabels"
+                            OwnerGoneError="Spis už neexistuje." />
+            </div>
+
             <div class="card mb-3">
                 <div class="card-header">
                     <h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.ListDetails" />Údaje</h3>
@@ -54,7 +64,7 @@
                     <div class="datagrid">
                         <div class="datagrid-item">
                             <div class="datagrid-title">Spisová značka</div>
-                            <div class="datagrid-content">@this.caseDetail!.CaseNumber</div>
+                            <div class="datagrid-content">@this.caseDetail.CaseNumber</div>
                         </div>
                         <div class="datagrid-item">
                             <div class="datagrid-title">Externí spisová značka</div>
@@ -163,6 +173,11 @@
 
             this.failure = "Spis se nepodařilo načíst. Zkuste to za chvíli znovu.";
         }
+    }
+
+    private Task SaveLabels(IReadOnlyList<Guid> labelIds, CancellationToken token)
+    {
+        return this.CaseLabelsClient.SetCaseLabels(this.CaseId, new LabelAssignmentRequest { LabelIds = labelIds }, token);
     }
 
     private async Task<IReadOnlyList<FileListItem>> LoadFiles(CancellationToken token)

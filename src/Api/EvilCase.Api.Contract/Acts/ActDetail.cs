@@ -1,4 +1,5 @@
 using EvilBrains.EvilCase.Api.Contract.Contacts;
+using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.Domain.Acts;
 
 namespace EvilBrains.EvilCase.Api.Contract.Acts;
@@ -29,4 +30,6 @@ public sealed record ActDetail
     /// Carried so a screen can tell the act's contact from the case's.
     /// </summary>
     public ContactListItem? CaseContact { get; init; }
+
+    public IReadOnlyList<LabelItem> Labels { get; init; } = [];
 }

@@ -29,6 +29,11 @@ public sealed record ActEditRequest : IValidatableObject
 
     public Guid? ContactId { get; init; }
 
+    /// <summary>
+    /// The whole set the entity carries afterwards; a label left out is taken off.
+    /// </summary>
+    public IReadOnlyList<Guid> LabelIds { get; init; } = [];
+
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
         if (this.Direction is not null && this.ContactId is null)

@@ -1,6 +1,7 @@
 using EvilBrains.Collections;
 using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.Business.Entities;
+using EvilBrains.EvilCase.Business.Labels;
 using EvilBrains.EvilCase.Business.Numbering;
 using EvilBrains.EvilCase.Data;
 using EvilBrains.EvilCase.Data.DbContexts;
@@ -32,6 +33,9 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
         if (!await this.ContactKnown(request.ContactId, token))
             return new ActCreateResult { Outcome = ActCreateOutcome.ContactNotFound };
 
+        if (await context.Labels.ReadLabels(request.LabelIds, token) is not { } labels)
+            return new ActCreateResult { Outcome = ActCreateOutcome.LabelNotFound };
+
         for (var attempt = 1; ; attempt++)
         {
             var actNumber = await numbers.NextActNumber(@case, request.Date, token);
@@ -50,6 +54,12 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
                 logger.LogWarning("The act number {ActNumber} was taken while the act was being filed", actNumber);
 
                 continue;
+            }
+
+            if (labels.Count != 0)
+            {
+                LabelAssignmentWrites.AddActLabels(context, act.Id, labels);
+                await context.SaveChangesAsync(token);
             }
 
             logger.LogInformation("Act {ActId} was filed in case {CaseId} under {ActNumber}", act.Id, caseId, act.ActNumber);
@@ -111,6 +121,9 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
         if (!await this.ContactKnown(edit.ContactId, token))
             return ActUpdateOutcome.ContactNotFound;
 
+        if (await context.Labels.ReadLabels(edit.LabelIds, token) is not { } labels)
+            return ActUpdateOutcome.LabelNotFound;
+
         var rows = await acts.ExecuteUpdateAsync(
             setters => setters
                 .SetProperty(static act => act.ActNumber, edit.ActNumber)
@@ -124,6 +137,8 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
 
         if (rows == 0)
             return ActUpdateOutcome.NotFound;
+
+        await LabelAssignmentWrites.ReplaceActLabels(context, actId, labels, token);
 
         logger.LogInformation("Act {ActId} was edited", actId);
 

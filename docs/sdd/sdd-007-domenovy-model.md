@@ -3,12 +3,12 @@
 - **Stav:** platí
 - **Milníky:** M2
 - **Související SDD:** [006](sdd-006-tenance-a-ucty.md), [009](sdd-009-spisy.md) až
-  [013](sdd-013-komentare.md), [017](sdd-017-seed-vzorovych-dat.md)
+  [013](sdd-013-komentare.md), [017](sdd-017-seed-vzorovych-dat.md), [019](sdd-019-stitky.md)
 
 ## Rozsah
 
 Mapa entit, společné vlastnosti, matice mazání a migrace. Detaily jednotlivých entit drží
-SDD-009 až 013.
+SDD-009 až 013 a SDD-019.
 
 ## Popis
 
@@ -21,6 +21,8 @@ Account → Tenant → User (SDD-006). Tenantová data:
 - **Contact** — kontakt (SDD-011).
 - **FileAsset** — soubor spisu XOR úkonu (SDD-012).
 - **Comment** — komentář spisu XOR úkonu (SDD-013).
+- **Label** — štítek tenantu (SDD-019).
+- **LabelAssignment** — štítek na spisu XOR úkonu (SDD-019).
 
 ### Společné vlastnosti
 
@@ -35,11 +37,12 @@ Account → Tenant → User (SDD-006). Tenantová data:
 
 | Entita | Smazání |
 | --- | --- |
-| Case | kaskáda: úkony, komentáře, soubory; podřízené spisy do libovolné hloubky se vším, co k nim patří |
-| Act | kaskáda: komentáře, soubory |
+| Case | kaskáda: úkony, komentáře, soubory, přidělené štítky; podřízené spisy do libovolné hloubky se vším, co k nim patří |
+| Act | kaskáda: komentáře, soubory, přidělené štítky |
 | Contact | jen ten, na který neodkazuje žádný spis ani úkon (SDD-011) |
 | FileAsset | prosté; blob přežívá záznam (SDD-012) |
 | Comment | prosté; jen autor (SDD-013) |
+| Label | kaskáda: jen jeho přidělení; spisy a úkony, které ho nesly, zůstávají (SDD-019) |
 
 Kaskáda maže záznamy souborů; jejich bajty na disku zůstávají, blob se nikdy nemaže.
 Každé smazání se v UI potvrzuje (SDD-004).

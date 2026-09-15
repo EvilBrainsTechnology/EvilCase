@@ -30,4 +30,9 @@ public sealed record CaseEditRequest
     public string? Description { get; init; }
 
     public required CaseStatus Status { get; init; }
+
+    /// <summary>
+    /// The whole set the entity carries afterwards; a label left out is taken off.
+    /// </summary>
+    public IReadOnlyList<Guid> LabelIds { get; init; } = [];
 }

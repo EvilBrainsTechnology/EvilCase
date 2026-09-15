@@ -1,5 +1,6 @@
 using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.Api.Contract.Contacts;
+using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Data.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -44,6 +45,15 @@ internal static class ActDetailQuery
                         DataBoxId = act.Case.Contact.DataBoxId,
                         Address = act.Case.Contact.Address,
                     },
+                Labels = act.Labels
+                    .OrderBy(static assignment => assignment.Label!.Name)
+                    .Select(static assignment => new LabelItem
+                    {
+                        LabelId = assignment.LabelId,
+                        Name = assignment.Label!.Name,
+                        Color = assignment.Label!.Color,
+                    })
+                    .ToList(),
             })
             .SingleOrDefaultAsync(token);
     }

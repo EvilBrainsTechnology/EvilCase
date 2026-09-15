@@ -1,6 +1,8 @@
 using EvilBrains.Collections;
 using EvilBrains.EvilCase.Api.Contract.Cases;
+using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.Business.Entities;
+using EvilBrains.EvilCase.Business.Labels;
 using EvilBrains.EvilCase.Business.Numbering;
 using EvilBrains.EvilCase.Data;
 using EvilBrains.EvilCase.Data.DbContexts;
@@ -37,6 +39,9 @@ internal sealed class CaseWriter(
         if (request.ContactId is { } contactId && !await context.Contacts.Exists(contactId, token))
             return new CaseCreateResult { Outcome = CaseCreateOutcome.ContactNotFound };
 
+        if (await context.Labels.ReadLabels(request.LabelIds, token) is not { } labels)
+            return new CaseCreateResult { Outcome = CaseCreateOutcome.LabelNotFound };
+
         for (var attempt = 1; ; attempt++)
         {
             var caseNumber = await numbers.NextCaseNumber(request.Date, token);
@@ -57,9 +62,15 @@ internal sealed class CaseWriter(
                 continue;
             }
 
+            if (labels.Count != 0)
+            {
+                LabelAssignmentWrites.AddCaseLabels(context, @case.Id, labels);
+                await context.SaveChangesAsync(token);
+            }
+
             logger.LogInformation("Case {CaseId} was filed under {CaseNumber}", @case.Id, @case.CaseNumber);
 
-            return new CaseCreateResult { Outcome = CaseCreateOutcome.Created, Case = Describe(@case) };
+            return new CaseCreateResult { Outcome = CaseCreateOutcome.Created, Case = Describe(@case, labels) };
         }
     }
 
@@ -104,18 +115,14 @@ internal sealed class CaseWriter(
         if (taken)
             return CaseUpdateOutcome.CaseNumberTaken;
 
-        if (edit.ParentCaseId is { } parentCaseId)
-        {
-            var parents = await context.Cases
-                .Select(static @case => new { @case.Id, @case.ParentCaseId })
-                .ToDictionaryAsync(static link => link.Id, static link => link.ParentCaseId, token);
-
-            if (!parents.ContainsKey(parentCaseId) || CaseHierarchy.WouldFormCycle(parents, caseId, parentCaseId))
-                return CaseUpdateOutcome.InvalidParent;
-        }
+        if (edit.ParentCaseId is { } parentCaseId && !await this.ParentAllowed(caseId, parentCaseId, token))
+            return CaseUpdateOutcome.InvalidParent;
 
         if (edit.ContactId is { } contactId && !await context.Contacts.Exists(contactId, token))
             return CaseUpdateOutcome.ContactNotFound;
+
+        if (await context.Labels.ReadLabels(edit.LabelIds, token) is not { } labels)
+            return CaseUpdateOutcome.LabelNotFound;
 
         var rows = await context.Cases
             .WithId(caseId)
@@ -134,9 +141,37 @@ internal sealed class CaseWriter(
         if (rows == 0)
             return CaseUpdateOutcome.NotFound;
 
+        await LabelAssignmentWrites.ReplaceCaseLabels(context, caseId, labels, token);
+
         logger.LogInformation("Case {CaseId} was edited", caseId);
 
         return CaseUpdateOutcome.Updated;
+    }
+
+    private static CaseListItem Describe(Case @case, IReadOnlyList<LabelItem> labels)
+    {
+        return new()
+        {
+            CaseId = @case.Id,
+            CaseNumber = @case.CaseNumber,
+            Title = @case.Title,
+            Date = @case.Date,
+            Status = @case.Status,
+            Changed = @case.Updated ?? @case.Created,
+            Labels = labels,
+        };
+    }
+
+    /// <summary>
+    /// The parent must exist and must close no cycle (SDD-009).
+    /// </summary>
+    private async Task<bool> ParentAllowed(Guid caseId, Guid parentCaseId, CancellationToken token)
+    {
+        var parents = await dbSession.Current.Cases
+            .Select(static @case => new { @case.Id, @case.ParentCaseId })
+            .ToDictionaryAsync(static link => link.Id, static link => link.ParentCaseId, token);
+
+        return parents.ContainsKey(parentCaseId) && !CaseHierarchy.WouldFormCycle(parents, caseId, parentCaseId);
     }
 
     public async Task<DeleteOutcome> DeleteCase(Guid caseId, CancellationToken token)
@@ -155,18 +190,5 @@ internal sealed class CaseWriter(
         logger.LogInformation("Case {CaseId} was deleted", caseId);
 
         return DeleteOutcome.Deleted;
-    }
-
-    private static CaseListItem Describe(Case @case)
-    {
-        return new()
-        {
-            CaseId = @case.Id,
-            CaseNumber = @case.CaseNumber,
-            Title = @case.Title,
-            Date = @case.Date,
-            Status = @case.Status,
-            Changed = @case.Updated ?? @case.Created,
-        };
     }
 }

@@ -5,10 +5,12 @@
 @using EvilBrains.EvilCase.Api.Contract.Acts
 @using EvilBrains.EvilCase.Api.Contract.Comments
 @using EvilBrains.EvilCase.Api.Contract.Files
+@using EvilBrains.EvilCase.Api.Contract.Labels
 @using TabBlazor.Services
 @inject IActsClient ActsClient
 @inject IActCommentsClient ActCommentsClient
 @inject IActFilesClient ActFilesClient
+@inject IActLabelsClient ActLabelsClient
 @inject IFileTransferClient FileTransfer
 @inject IFileDownloader Downloader
 @inject IModalService ModalService
@@ -55,6 +57,14 @@
 <div class="page-body">
     <div class="container-xl">
         <LoadStateView NotFound="this.notFound" NotFoundTitle="Úkon nenalezen" Failure="@this.failure" FailureTitle="Úkon se nepodařilo načíst" Loaded="this.act is not null">
+            <div class="mb-3">
+                <LabelsCard @key="this.ActId"
+                            InputId="act-labels"
+                            Labels="this.act!.Labels"
+                            SaveLabels="this.SaveLabels"
+                            OwnerGoneError="Úkon už neexistuje." />
+            </div>
+
             <div class="card mb-3">
                 <div class="card-header">
                     <h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.ListDetails" />Údaje</h3>
@@ -63,7 +73,7 @@
                     <div class="datagrid">
                         <div class="datagrid-item">
                             <div class="datagrid-title">Číslo jednací</div>
-                            <div class="datagrid-content">@this.act!.ActNumber</div>
+                            <div class="datagrid-content">@this.act.ActNumber</div>
                         </div>
                         <div class="datagrid-item">
                             <div class="datagrid-title">Externí číslo jednací</div>
@@ -163,6 +173,11 @@
 
             this.failure = "Úkon se nepodařilo načíst. Zkuste to za chvíli znovu.";
         }
+    }
+
+    private Task SaveLabels(IReadOnlyList<Guid> labelIds, CancellationToken token)
+    {
+        return this.ActLabelsClient.SetActLabels(this.CaseId, this.ActId, new LabelAssignmentRequest { LabelIds = labelIds }, token);
     }
 
     private async Task<IReadOnlyList<FileListItem>> LoadFiles(CancellationToken token)

@@ -27,6 +27,10 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     public DbSet<Comment> Comments => this.Set<Comment>();
 
+    public DbSet<Label> Labels => this.Set<Label>();
+
+    public DbSet<LabelAssignment> LabelAssignments => this.Set<LabelAssignment>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -40,6 +44,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         ConfigureActs(modelBuilder);
         ConfigureFiles(modelBuilder);
         ConfigureComments(modelBuilder);
+        ConfigureLabels(modelBuilder);
         ConfigureEnums(modelBuilder);
     }
 
@@ -105,6 +110,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         modelBuilder.Entity<Act>().HasQueryFilter(act => act.TenantId == this.userContext.TenantIdOrDefault);
         modelBuilder.Entity<FileAsset>().HasQueryFilter(file => file.TenantId == this.userContext.TenantIdOrDefault);
         modelBuilder.Entity<Comment>().HasQueryFilter(comment => comment.TenantId == this.userContext.TenantIdOrDefault);
+        modelBuilder.Entity<Label>().HasQueryFilter(label => label.TenantId == this.userContext.TenantIdOrDefault);
+        modelBuilder.Entity<LabelAssignment>().HasQueryFilter(assignment => assignment.TenantId == this.userContext.TenantIdOrDefault);
 
         var tenantEntityTypes = modelBuilder.Model.GetEntityTypes()
             .Where(static type => typeof(ITenantEntity).IsAssignableFrom(type.ClrType))
@@ -220,6 +227,32 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasOne(static comment => comment.Act)
             .WithMany(static act => act.Comments)
             .HasForeignKey(static comment => comment.ActId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+
+    private static void ConfigureLabels(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<LabelAssignment>()
+            .ToTable(static table => table.HasCheckConstraint(
+                "CK_LabelAssignments_OnACaseOrAnAct",
+                @"(""CaseId"" IS NULL) <> (""ActId"" IS NULL)"));
+
+        modelBuilder.Entity<LabelAssignment>()
+            .HasOne(static assignment => assignment.Label)
+            .WithMany(static label => label.Assignments)
+            .HasForeignKey(static assignment => assignment.LabelId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<LabelAssignment>()
+            .HasOne(static assignment => assignment.Case)
+            .WithMany(static @case => @case.Labels)
+            .HasForeignKey(static assignment => assignment.CaseId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<LabelAssignment>()
+            .HasOne(static assignment => assignment.Act)
+            .WithMany(static act => act.Labels)
+            .HasForeignKey(static assignment => assignment.ActId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

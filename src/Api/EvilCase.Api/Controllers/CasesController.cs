@@ -2,6 +2,7 @@ using System.Diagnostics;
 using EvilBrains.ApiClient;
 using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Contacts;
+using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.Business.Cases;
 using EvilBrains.EvilCase.Business.Entities;
 using Microsoft.AspNetCore.Http;
@@ -45,6 +46,10 @@ public class CasesController : ControllerBase
                 detail: "The contact named in the request does not exist.",
                 statusCode: StatusCodes.Status409Conflict,
                 title: ContactProblems.UnknownContact),
+            CaseCreateOutcome.LabelNotFound => this.Problem(
+                detail: "A label named in the request does not exist.",
+                statusCode: StatusCodes.Status409Conflict,
+                title: LabelProblems.UnknownLabel),
             _ => throw new UnreachableException(),
         };
     }
@@ -85,6 +90,10 @@ public class CasesController : ControllerBase
                 detail: "The contact named in the request does not exist.",
                 statusCode: StatusCodes.Status409Conflict,
                 title: ContactProblems.UnknownContact),
+            CaseUpdateOutcome.LabelNotFound => this.Problem(
+                detail: "A label named in the request does not exist.",
+                statusCode: StatusCodes.Status409Conflict,
+                title: LabelProblems.UnknownLabel),
             _ => throw new UnreachableException(),
         };
     }

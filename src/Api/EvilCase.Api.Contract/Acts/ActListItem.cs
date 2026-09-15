@@ -1,3 +1,4 @@
+using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.Domain.Acts;
 
 namespace EvilBrains.EvilCase.Api.Contract.Acts;
@@ -23,4 +24,6 @@ public sealed record ActListItem
     public required DateTime Changed { get; init; }
 
     public string? ContactName { get; init; }
+
+    public IReadOnlyList<LabelItem> Labels { get; init; } = [];
 }

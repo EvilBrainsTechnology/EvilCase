@@ -3,6 +3,7 @@ using EvilBrains.ApiClient;
 using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Contacts;
+using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.Business.Acts;
 using EvilBrains.EvilCase.Business.Entities;
 using Microsoft.AspNetCore.Http;
@@ -49,6 +50,10 @@ public class ActsController : ControllerBase
                 detail: "The contact named in the request does not exist.",
                 statusCode: StatusCodes.Status409Conflict,
                 title: ContactProblems.UnknownContact),
+            ActCreateOutcome.LabelNotFound => this.Problem(
+                detail: "A label named in the request does not exist.",
+                statusCode: StatusCodes.Status409Conflict,
+                title: LabelProblems.UnknownLabel),
             _ => throw new UnreachableException(),
         };
     }
@@ -86,6 +91,10 @@ public class ActsController : ControllerBase
             ActUpdateOutcome.ActNumberTaken => this.Problem(
                 detail: "Another act already carries the number.", statusCode: StatusCodes.Status409Conflict, title: "Act number taken"),
             ActUpdateOutcome.InvalidActNumber => this.InvalidActNumberProblem(),
+            ActUpdateOutcome.LabelNotFound => this.Problem(
+                detail: "A label named in the request does not exist.",
+                statusCode: StatusCodes.Status409Conflict,
+                title: LabelProblems.UnknownLabel),
             _ => throw new UnreachableException(),
         };
     }

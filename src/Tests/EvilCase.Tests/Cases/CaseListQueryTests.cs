@@ -139,9 +139,14 @@ public class CaseListQueryTests : TenantFixture
             Date = new DateOnly(2026, 8, 21),
             Status = CaseStatus.WaitingOnAuthority,
             Changed = seeded.Created,
+            Labels = row.Labels,
         };
 
-        Assert.That(row, Is.EqualTo(expected), "a row of the list shows the case's number, title, date and status");
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(row.Labels, Is.Empty, "a case carrying no label shows none");
+            Assert.That(row, Is.EqualTo(expected), "a row of the list shows the case's number, title, date and status");
+        }
     }
 
     [Test]

@@ -23,6 +23,13 @@
             <span class="nav-link-title">Kontakty</span>
         </a>
     </li>
+
+    <li class="nav-item @ActiveClass("/settings")">
+        <a class="nav-link" href="/settings" @onclick="Close">
+            <span class="nav-link-icon"><Icon CssClass="icon" IconType="AppIcons.Settings" /></span>
+            <span class="nav-link-title">Nastavení</span>
+        </a>
+    </li>
 </ul>
 
 @code {

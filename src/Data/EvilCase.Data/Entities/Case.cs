@@ -50,4 +50,6 @@ public sealed record Case : IUserOwnedEntity
     public ICollection<Comment> Comments { get; init; } = [];
 
     public ICollection<FileAsset> Files { get; init; } = [];
+
+    public ICollection<LabelAssignment> Labels { get; init; } = [];
 }

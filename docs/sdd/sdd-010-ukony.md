@@ -3,7 +3,7 @@
 - **Stav:** platí
 - **Milníky:** M4
 - **Související SDD:** [008](sdd-008-cislovani.md), [009](sdd-009-spisy.md),
-  [011](sdd-011-kontakty.md), [013](sdd-013-komentare.md)
+  [011](sdd-011-kontakty.md), [013](sdd-013-komentare.md), [019](sdd-019-stitky.md)
 
 ## Rozsah
 
@@ -15,8 +15,9 @@ patří SDD-012, komentáře SDD-013.
 ### Entita
 
 Act: `CaseId`, `ActNumber` (SDD-008), `ExternalActNumber?`, název, explicitní datum (`DateOnly`),
-popis, nepovinný kontakt protistrany a nepovinný směr `Incoming` / `Outgoing`. Směr a kontakt
-platí jen spolu: buď je vyplněné obojí, nebo nic; jinak 400 s chybami u polí (SDD-004).
+popis, štítky (SDD-019), nepovinný kontakt protistrany a nepovinný směr `Incoming` / `Outgoing`.
+Směr a kontakt platí jen spolu: buď je vyplněné obojí, nebo nic; jinak 400 s chybami u polí
+(SDD-004).
 
 Délky: název nejvýše 256 znaků, popis 4000, externí číslo 128, číslo jednací 128. Povinné jsou
 název a datum, v editaci i číslo jednací; ostatní pole jsou nepovinná. Nový úkon vzniká s dnešním
@@ -36,11 +37,11 @@ kontakt. Zadává se na editaci úkonu.
 
 ### Stránky a řazení
 
-- `/cases/{id}/act/new` — založení.
-- `/cases/{id}/act/{actId}` — detail: údaje, komentáře (SDD-013), soubory (SDD-012).
-- `/cases/{id}/act/{actId}/edit` — editace.
-- Seznam úkonů žije v detailu spisu, ukazuje datum, název, směr, číslo jednací a kontakt
-  a řadí se podle data úkonu vzestupně; shodná data řadí `Created`.
+- `/cases/{id}/act/new` — založení, včetně štítků.
+- `/cases/{id}/act/{actId}` — detail: štítky, údaje, komentáře (SDD-013), soubory (SDD-012).
+- `/cases/{id}/act/{actId}/edit` — editace, včetně štítků.
+- Seznam úkonů žije v detailu spisu, ukazuje datum, název, směr, číslo jednací, kontakt a tečky
+  štítků (SDD-019) a řadí se podle data úkonu vzestupně; shodná data řadí `Created`.
 
 ### Mazání
 

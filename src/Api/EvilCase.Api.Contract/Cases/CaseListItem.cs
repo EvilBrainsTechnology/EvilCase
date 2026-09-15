@@ -1,3 +1,4 @@
+using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.Domain.Cases;
 
 namespace EvilBrains.EvilCase.Api.Contract.Cases;
@@ -19,4 +20,6 @@ public sealed record CaseListItem
     /// edited. An act, a comment or a file of the case never moves it (SDD-015).
     /// </summary>
     public required DateTime Changed { get; init; }
+
+    public IReadOnlyList<LabelItem> Labels { get; init; } = [];
 }

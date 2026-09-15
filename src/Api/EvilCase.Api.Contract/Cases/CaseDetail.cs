@@ -1,4 +1,5 @@
 using EvilBrains.EvilCase.Api.Contract.Contacts;
+using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.Domain.Cases;
 
 namespace EvilBrains.EvilCase.Api.Contract.Cases;
@@ -27,4 +28,6 @@ public sealed record CaseDetail
     /// Direct children only, never descendants.
     /// </summary>
     public IReadOnlyList<CaseListItem> ChildCases { get; init; } = [];
+
+    public IReadOnlyList<LabelItem> Labels { get; init; } = [];
 }

@@ -3,7 +3,7 @@
 - **Stav:** platí
 - **Milníky:** M2
 - **Související SDD:** [002](sdd-002-logovani-a-observabilita.md), [003](sdd-003-testovani.md),
-  [007](sdd-007-domenovy-model.md), [012](sdd-012-soubory.md)
+  [007](sdd-007-domenovy-model.md), [012](sdd-012-soubory.md), [019](sdd-019-stitky.md)
 
 ## Rozsah
 
@@ -21,6 +21,8 @@ SDD-006.
   hlouběji pod jiným pod-spisem, strany jako kontakty, kontakt spisu i úkonu, externí značka
   spisu a externí čísla jednací úkonů, úkony se směrem, komentáře.
 - Každý pod-spis nese dva syntetické úkony; počty úkonů, které drží zdroj, seed nepřebírá.
+- Seed zakládá čtyři štítky a přiděluje je hlavnímu spisu, žádostem o informace a dvěma
+  úkonům hlavního spisu (SDD-019).
 - Soubory jsou jednoduché syntetické TXT generované při seedu a zapsané úložištěm SDD-012.
   Hlavní spis i každý úkon dostane jeden, jmenovaný podle svého čísla s lomítky nahrazenými
   pomlčkami; poslední úkon hlavního spisu dostane druhý, s přílohami. Žádná PDF, žádné binárky

@@ -24,6 +24,7 @@
                         <th>Spis</th>
                         <th>Úkon</th>
                         <th>Směr</th>
+                        <th>Štítky</th>
                         <th>Číslo jednací</th>
                     </tr>
                 </thead>
@@ -45,6 +46,7 @@
                                     @:—
                                 }
                             </td>
+                            <td class="text-nowrap"><LabelDots Labels="item.Labels" /></td>
                             <td class="text-nowrap">@item.ActNumber</td>
                         </tr>
                     }
@@ -64,6 +66,12 @@
                         {
                             <div>
                                 <Status BackgroundColor="ActDirectionDisplay.Color(item.Direction)" Lite="true">@ActDirectionDisplay.Text(item.Direction)</Status>
+                            </div>
+                        }
+                        @if (item.Labels.Count > 0)
+                        {
+                            <div class="mt-2">
+                                <LabelBadges Labels="item.Labels" />
                             </div>
                         }
                         <div class="text-secondary">@DateDisplay.Text(item.Date)</div>
