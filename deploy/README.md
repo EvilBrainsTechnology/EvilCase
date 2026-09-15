@@ -45,7 +45,7 @@ The service is published over plain HTTP for a reverse proxy that terminates TLS
 
 Seq is driven by `EVILCASE_SEQ_URL` alone — an empty one logs to the console only.
 
-File bytes live on the `files` named volume, mounted at `/var/lib/evilcase/files`; the path is fixed in the image, and nothing in `.env` configures it. Without the mount, the files die with the container.
+File bytes live on the `files` named volume, mounted at `/var/lib/evilcase/files`; the path is fixed in the image, and nothing in `.env` configures it. Without the mount, the files die with the container. A file's bytes are never deleted, so the volume only grows.
 
 ```
 cp .env.example .env   # then fill in the connection string and the JWT key

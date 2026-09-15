@@ -136,25 +136,6 @@ public class FileBlobStoreTests
     }
 
     [Test]
-    public async Task TheDeleteFollowsTheStoredPath()
-    {
-        var info = await this.store.WriteFileBlob(this.tenantId, this.fileAssetId, new MemoryStream("abc"u8.ToArray()), CancellationToken.None);
-        var path = Path.Combine(this.root, info.StoragePath);
-
-        await this.store.DeleteFileBlob(info.StoragePath, CancellationToken.None);
-
-        Assert.That(File.Exists(path), Is.False, "the blob must be gone from disk");
-
-        Assert.DoesNotThrowAsync(async () => await this.store.DeleteFileBlob(info.StoragePath, CancellationToken.None), "deleting a missing blob must not throw");
-    }
-
-    [Test]
-    public async Task APathLeavingTheRootIsRefused()
-    {
-        await Assert.ThatAsync(async () => await this.store.DeleteFileBlob("../outside", CancellationToken.None), Throws.ArgumentException, "a path read back from the database must not reach outside the root");
-    }
-
-    [Test]
     public async Task AWrittenBlobReadsBackByteForByte()
     {
         var content = "abc"u8.ToArray();

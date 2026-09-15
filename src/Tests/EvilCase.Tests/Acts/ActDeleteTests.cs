@@ -11,16 +11,13 @@ public class ActDeleteTests : TenantFixture
 {
     private static readonly DateOnly Day = new(2026, 8, 21);
 
-    private FakeFileBlobStore blobs = null!;
-
     private ActWriter writer = null!;
 
     [SetUp]
     public void SetUpWriter()
     {
-        this.blobs = new FakeFileBlobStore();
         this.writer = new ActWriter(
-            new FixedDbSession(this.Tenant.Context), new FakeActNumberIssuer(), this.blobs, NullLogger<ActWriter>.Instance);
+            new FixedDbSession(this.Tenant.Context), new FakeActNumberIssuer(), NullLogger<ActWriter>.Instance);
     }
 
     [Test]
@@ -74,21 +71,7 @@ public class ActDeleteTests : TenantFixture
             Assert.That(otherActExists, Is.True, "the cascade leaves the case's other acts");
             Assert.That(otherCommentExists, Is.True, "the cascade leaves the other act's comments");
             Assert.That(otherFileExists, Is.True, "the cascade leaves the other act's files");
-            Assert.That(this.blobs.Deleted, Does.Not.Contain(otherFile.StoragePath));
         }
-    }
-
-    [Test]
-    public async Task TheBlobsOfTheActGoWithTheRecord()
-    {
-        var seeded = await this.Tenant.AddCase(Day, "Přestupek");
-        var act = await this.Tenant.AddAct(seeded, Day);
-        var firstFile = await this.Tenant.AddActFile(act, "prvni.pdf");
-        var secondFile = await this.Tenant.AddActFile(act, "druhy.pdf");
-
-        await this.writer.DeleteAct(seeded.Id, act.Id, CancellationToken.None);
-
-        Assert.That(this.blobs.Deleted, Is.EquivalentTo([firstFile.StoragePath, secondFile.StoragePath]), "the bytes of every file the cascade takes go with the record");
     }
 
     [Test]
@@ -116,7 +99,6 @@ public class ActDeleteTests : TenantFixture
         {
             Assert.That(result, Is.EqualTo(DeleteOutcome.NotFound), "an act scoped to another case is not found");
             Assert.That(actExists, Is.True);
-            Assert.That(this.blobs.Deleted, Is.Empty);
         }
     }
 
@@ -139,17 +121,4 @@ public class ActDeleteTests : TenantFixture
             Assert.That(otherActExists, Is.True);
         }
     }
-
-    [Test]
-    public async Task NoBlobIsDeletedWhereNoActIs()
-    {
-        var seeded = await this.Tenant.AddCase(Day, "Přestupek");
-        var act = await this.Tenant.AddAct(seeded, Day);
-        await this.Tenant.AddActFile(act);
-
-        await this.writer.DeleteAct(seeded.Id, Guid.CreateVersion7(), CancellationToken.None);
-
-        Assert.That(this.blobs.Deleted, Is.Empty, "a delete that found no act takes no bytes");
-    }
-
 }

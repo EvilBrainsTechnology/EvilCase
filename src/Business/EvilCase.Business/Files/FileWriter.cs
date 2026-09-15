@@ -42,7 +42,7 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
     {
         var files = dbSession.Current.FileAssets.OfCase(caseId).WithId(fileId);
 
-        var outcome = await this.DeleteFile(files, token);
+        var outcome = await DeleteFile(files, token);
         if (outcome == DeleteOutcome.Deleted)
             logger.LogInformation("File {FileAssetId} was removed from case {CaseId}", fileId, caseId);
 
@@ -53,29 +53,18 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
     {
         var files = dbSession.Current.FileAssets.OfAct(caseId, actId).WithId(fileId);
 
-        var outcome = await this.DeleteFile(files, token);
+        var outcome = await DeleteFile(files, token);
         if (outcome == DeleteOutcome.Deleted)
             logger.LogInformation("File {FileAssetId} was removed from act {ActId}", fileId, actId);
 
         return outcome;
     }
 
-    private async Task<DeleteOutcome> DeleteFile(IQueryable<FileAsset> files, CancellationToken token)
+    private static async Task<DeleteOutcome> DeleteFile(IQueryable<FileAsset> files, CancellationToken token)
     {
-        // Read before the delete: the row is gone once ExecuteDeleteAsync runs.
-        var storagePath = await files
-            .Select(static file => file.StoragePath)
-            .SingleOrDefaultAsync(token);
+        var rows = await files.ExecuteDeleteAsync(token);
 
-        if (storagePath is null)
-            return DeleteOutcome.NotFound;
-
-        await files.ExecuteDeleteAsync(token);
-
-        // The row goes first; a blob left behind is tolerated (SDD-012).
-        await blobStore.DeleteFileBlob(storagePath, token);
-
-        return DeleteOutcome.Deleted;
+        return rows == 0 ? DeleteOutcome.NotFound : DeleteOutcome.Deleted;
     }
 
     private async Task<FileListItem> StoreFile(Guid? caseId, Guid? actId, FileUpload upload, CancellationToken token)

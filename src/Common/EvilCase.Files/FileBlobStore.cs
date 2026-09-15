@@ -74,21 +74,6 @@ internal sealed class FileBlobStore(IOptions<FileSettings> settings, ILogger<Fil
         return new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read, BufferSize, FileOptions.Asynchronous | FileOptions.SequentialScan);
     }
 
-    public async Task DeleteFileBlob(string storagePath, CancellationToken token)
-    {
-        var fullPath = this.FullPath(storagePath);
-
-        if (File.Exists(fullPath))
-        {
-            File.Delete(fullPath);
-            logger.LogInformation("Blob at {StoragePath} was deleted", storagePath);
-        }
-        else
-        {
-            logger.LogWarning("Blob at {StoragePath} was already gone", storagePath);
-        }
-    }
-
     private string FullPath(string storagePath)
     {
         var fullPath = Path.GetFullPath(Path.Combine(this.rootFullPath, storagePath.Replace('/', Path.DirectorySeparatorChar)));

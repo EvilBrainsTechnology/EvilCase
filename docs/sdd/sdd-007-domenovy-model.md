@@ -38,10 +38,10 @@ Account → Tenant → User (SDD-006). Tenantová data:
 | Case | kaskáda: úkony, komentáře, soubory; podřízené spisy do libovolné hloubky se vším, co k nim patří |
 | Act | kaskáda: komentáře, soubory |
 | Contact | jen ten, na který neodkazuje žádný spis ani úkon (SDD-011) |
-| FileAsset | prosté; blob zaniká se záznamem (SDD-012) |
+| FileAsset | prosté; blob přežívá záznam (SDD-012) |
 | Comment | prosté; jen autor (SDD-013) |
 
-Kaskáda maže záznamy souborů; jejich bajty se sbírají zvlášť, protože databáze o nich neví.
+Kaskáda maže záznamy souborů; jejich bajty na disku zůstávají, blob se nikdy nemaže.
 Každé smazání se v UI potvrzuje (SDD-004).
 
 ### Migrace
