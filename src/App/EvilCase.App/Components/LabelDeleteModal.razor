@@ -1,0 +1,26 @@
+@using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.Labels
+@inject ILabelsClient LabelsClient
+
+<ConfirmDeleteModal Delete="this.DeleteLabel"
+                    GoneError="Štítek už neexistuje."
+                    FailedError="Štítek se nepodařilo smazat. Zkuste to za chvíli znovu."
+                    OnDeleted="this.OnDeleted">
+    <p>
+        Opravdu smazat štítek <strong>@this.Label.Name</strong>? Zmizí i ze všech spisů a úkonů,
+        které ho nesou.
+    </p>
+</ConfirmDeleteModal>
+
+@code {
+    [Parameter, EditorRequired]
+    public required LabelItem Label { get; set; }
+
+    [Parameter]
+    public EventCallback OnDeleted { get; set; }
+
+    private Task DeleteLabel(CancellationToken token)
+    {
+        return this.LabelsClient.DeleteLabel(this.Label.LabelId, token);
+    }
+}

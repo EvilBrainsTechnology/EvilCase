@@ -1,0 +1,160 @@
+@page "/settings"
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.Labels
+@using TabBlazor.Services
+@inject ILabelsClient LabelsClient
+@inject IModalService ModalService
+@inject ILogger<Settings> Logger
+
+<PageTitle>Nastavení – EvilCase</PageTitle>
+
+<div class="page-header d-print-none">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <h2 class="page-title">Nastavení</h2>
+            </div>
+            <div class="col-auto ms-auto d-print-none">
+                <button id="label-new" type="button" class="btn btn-primary" @onclick="this.CreateLabel"><Icon CssClass="icon" IconType="AppIcons.Plus" />Nový štítek</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="container-xl">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.Tag" />Štítky</h3>
+            </div>
+
+            @if (this.failure is not null)
+            {
+                <div class="empty">
+                    <div class="empty-icon"><Icon IconType="AppIcons.AlertTriangle" /></div>
+                    <p class="empty-title">Štítky se nepodařilo načíst</p>
+                    <p class="empty-subtitle text-secondary">@this.failure</p>
+                </div>
+            }
+            else if (this.items is null)
+            {
+                <div class="card-body text-center text-secondary">
+                    <div class="spinner-border" role="status"></div>
+                </div>
+            }
+            else if (this.items.Count == 0)
+            {
+                <div class="empty">
+                    <div class="empty-icon"><Icon IconType="AppIcons.Tag" /></div>
+                    <p class="empty-title">Žádné štítky</p>
+                    <p class="empty-subtitle text-secondary">Štítkem se označuje spis i úkon.</p>
+                    <div class="empty-action">
+                        <button type="button" class="btn btn-primary" @onclick="this.CreateLabel"><Icon CssClass="icon" IconType="AppIcons.Plus" />Založit štítek</button>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="d-none d-lg-block">
+                    <table class="table card-table table-vcenter">
+                        <thead>
+                            <tr>
+                                <th>Štítek</th>
+                                <th>Barva</th>
+                                <th class="w-1"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in this.items)
+                            {
+                                <tr>
+                                    <td><span class="badge bg-@(LabelColorDisplay.Css(item.Color))-lt">@item.Name</span></td>
+                                    <td class="text-nowrap">@LabelColorDisplay.Text(item.Color)</td>
+                                    <td class="text-nowrap text-end">
+                                        <button type="button" class="btn btn-sm" @onclick="() => this.EditLabel(item)"><Icon CssClass="icon" IconType="AppIcons.Pencil" />Upravit</button>
+                                        <button type="button" class="btn btn-sm btn-danger ms-2" @onclick="() => this.DeleteLabel(item)"><Icon CssClass="icon" IconType="AppIcons.Trash" />Smazat</button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card-body d-lg-none">
+                    @foreach (var item in this.items)
+                    {
+                        <div class="card mb-2">
+                            <div class="card-body">
+                                <span class="badge bg-@(LabelColorDisplay.Css(item.Color))-lt">@item.Name</span>
+                                <div class="text-secondary mt-2">@LabelColorDisplay.Text(item.Color)</div>
+                                <div class="mt-2 d-flex gap-2">
+                                    <button type="button" class="btn btn-sm" @onclick="() => this.EditLabel(item)"><Icon CssClass="icon" IconType="AppIcons.Pencil" />Upravit</button>
+                                    <button type="button" class="btn btn-sm btn-danger" @onclick="() => this.DeleteLabel(item)"><Icon CssClass="icon" IconType="AppIcons.Trash" />Smazat</button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private IReadOnlyList<LabelItem>? items;
+
+    private string? failure;
+
+    protected override Task OnInitializedAsync()
+    {
+        return this.LoadLabels();
+    }
+
+    private async Task LoadLabels()
+    {
+        try
+        {
+            var response = await this.LabelsClient.ListLabels(CancellationToken.None);
+
+            this.items = response.Items;
+            this.failure = null;
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Loading the label list failed");
+
+            this.items = [];
+            this.failure = "Seznam štítků se nepodařilo načíst. Zkuste to za chvíli znovu.";
+        }
+    }
+
+    private async Task CreateLabel()
+    {
+        await this.ModalService.ShowAsync(
+            "Nový štítek",
+            new RenderComponent<LabelFormModal>()
+                .Set(component => component.OnSaved, EventCallback.Factory.Create(this, this.LoadLabels)),
+            new ModalOptions { Fullscreen = ModalFullscreen.BelowLarge });
+    }
+
+    private async Task EditLabel(LabelItem label)
+    {
+        await this.ModalService.ShowAsync(
+            "Upravit štítek",
+            new RenderComponent<LabelFormModal>()
+                .Set(component => component.Label, label)
+                .Set(component => component.OnSaved, EventCallback.Factory.Create(this, this.LoadLabels)),
+            new ModalOptions { Fullscreen = ModalFullscreen.BelowLarge });
+    }
+
+    private async Task DeleteLabel(LabelItem label)
+    {
+        await this.ModalService.ShowAsync(
+            "Smazat štítek",
+            new RenderComponent<LabelDeleteModal>()
+                .Set(component => component.Label, label)
+                .Set(component => component.OnDeleted, EventCallback.Factory.Create(this, this.LoadLabels)),
+            new ModalOptions { Fullscreen = ModalFullscreen.BelowLarge });
+    }
+}

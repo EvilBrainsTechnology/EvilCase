@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using EvilBrains.EvilCase.Api.Contract.Contacts;
+using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.Domain.Acts;
 
 namespace EvilBrains.EvilCase.App.Models;
@@ -25,6 +26,8 @@ internal sealed class ActEditModel : IValidatableObject
     public string? Description { get; set; }
 
     public ContactListItem? Contact { get; set; }
+
+    public IReadOnlyList<LabelItem> Labels { get; set; } = [];
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {

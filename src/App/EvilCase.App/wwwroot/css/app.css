@@ -177,3 +177,13 @@
     position: relative;
     z-index: 2;
 }
+
+/* The colour swatches of the label form; .status-dot takes its size from this variable. */
+.label-swatch {
+    --tblr-status-size: 1.5rem;
+}
+
+.label-swatch-picked {
+    outline: 2px solid var(--tblr-primary);
+    outline-offset: 1px;
+}

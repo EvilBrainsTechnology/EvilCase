@@ -4,6 +4,7 @@
 @using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Cases
 @using EvilBrains.EvilCase.Api.Contract.Contacts
+@using EvilBrains.EvilCase.Api.Contract.Labels
 @inject ICasesClient CasesClient
 @inject NavigationManager Navigation
 @inject ILogger<NewCase> Logger
@@ -72,6 +73,11 @@
                             <label class="form-label" for="case-contact">Kontakt</label>
                             <ContactPicker InputId="case-contact" @bind-Selected="this.model.Contact" />
                             <ValidationMessage For="() => this.model.Contact" class="invalid-feedback d-block" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="case-labels">Štítky</label>
+                            <LabelPicker InputId="case-labels" @bind-Selected="this.model.Labels" />
                         </div>
 
                         @if (this.error is not null)
@@ -156,6 +162,7 @@
                 Title = this.model.Title,
                 Description = this.model.Description,
                 ContactId = this.model.Contact?.ContactId,
+                LabelIds = [.. this.model.Labels.Select(static label => label.LabelId)],
             };
 
             _ = await this.CasesClient.CreateCase(request, CancellationToken.None);

@@ -1,0 +1,17 @@
+@using EvilBrains.EvilCase.Api.Contract.Labels
+
+@* The name lives in the tooltip; the card variant of every list carries it in text (SDD-019). *@
+@if (this.Labels.Count > 0)
+{
+    <span class="d-inline-flex align-items-center gap-1">
+        @foreach (var label in this.Labels)
+        {
+            <span class="status-dot bg-@LabelColorDisplay.Css(label.Color)" role="img" title="@label.Name" aria-label="@label.Name"></span>
+        }
+    </span>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public required IReadOnlyList<LabelItem> Labels { get; set; }
+}

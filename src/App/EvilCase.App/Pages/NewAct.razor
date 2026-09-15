@@ -4,6 +4,7 @@
 @using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Acts
 @using EvilBrains.EvilCase.Api.Contract.Contacts
+@using EvilBrains.EvilCase.Api.Contract.Labels
 @using EvilBrains.EvilCase.Domain.Acts
 @inject IActsClient ActsClient
 @inject ICasesClient CasesClient
@@ -65,6 +66,11 @@
                                 <Icon CssClass="icon me-2" IconType="AppIcons.AlertTriangle" />Kontakt úkonu se liší od kontaktu spisu (@differing.Name).
                             </div>
                         }
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="act-labels">Štítky</label>
+                        <LabelPicker InputId="act-labels" @bind-Selected="this.model.Labels" />
                     </div>
 
                     @if (this.error is not null)
@@ -137,6 +143,7 @@
                 Title = this.model.Title,
                 Description = this.model.Description,
                 ContactId = this.model.Contact?.ContactId,
+                LabelIds = [.. this.model.Labels.Select(static label => label.LabelId)],
             };
 
             _ = await this.ActsClient.CreateAct(this.CaseId, request, CancellationToken.None);

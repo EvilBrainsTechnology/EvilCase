@@ -13,6 +13,13 @@
             </div>
         </div>
 
+        @if (Case.Labels.Count > 0)
+        {
+            <div class="mt-2">
+                <LabelBadges Labels="Case.Labels" />
+            </div>
+        }
+
         <div class="text-secondary mt-2">@DateDisplay.Text(Case.Date)</div>
     </div>
 </div>

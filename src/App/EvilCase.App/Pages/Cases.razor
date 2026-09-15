@@ -88,6 +88,7 @@
                                 <th>Datum</th>
                                 <th>Spis</th>
                                 <th>Stav</th>
+                                <th>Štítky</th>
                                 <th>Spisová značka</th>
                             </tr>
                         </thead>
@@ -100,6 +101,7 @@
                                     <td class="text-nowrap">
                                         <Status BackgroundColor="CaseStatusDisplay.Color(item.Status)" Lite="true">@CaseStatusDisplay.Text(item.Status)</Status>
                                     </td>
+                                    <td class="text-nowrap"><LabelDots Labels="item.Labels" /></td>
                                     <td class="text-nowrap">@item.CaseNumber</td>
                                 </tr>
                             }

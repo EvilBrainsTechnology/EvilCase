@@ -94,9 +94,22 @@ public static class AppIcons
         + "<path d='M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0' />"
         + "<path d='M21 21l-6 -6' />");
 
+    public static IIconType Settings { get; } = new TablerIcon("<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37"
+        + "a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37"
+        + "a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37"
+        + "a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37"
+        + "c1 .608 2.296 .07 2.572 -1.065z' />"
+        + "<path d='M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0' />");
+
     public static IIconType Sun { get; } = new TablerIcon("<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0' />"
         + "<path d='M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7' />");
+
+    public static IIconType Tag { get; } = new TablerIcon("<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M7.5 7.5m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0' />"
+        + "<path d='M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592"
+        + "a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3z' />");
 
     public static IIconType Trash { get; } = new TablerIcon("<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M4 7l16 0' />"

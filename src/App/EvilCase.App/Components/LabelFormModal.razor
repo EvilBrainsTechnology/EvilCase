@@ -1,0 +1,126 @@
+@using System.Net
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.Labels
+@using EvilBrains.EvilCase.Domain.Labels
+@using TabBlazor.Services
+@inject ILabelsClient LabelsClient
+@inject IModalService ModalService
+@inject ILogger<LabelFormModal> Logger
+
+<EditForm Model="this.model" OnValidSubmit="this.SaveLabel">
+    <DataAnnotationsValidator />
+
+    <div class="mb-3">
+        <label class="form-label" for="@($"{this.IdPrefix}-name")">Název</label>
+        <InputText id="@($"{this.IdPrefix}-name")" class="form-control" @bind-Value="this.model.Name" />
+        <ValidationMessage For="() => this.model.Name" class="invalid-feedback d-block" />
+    </div>
+
+    <div class="mb-3">
+        <div class="form-label">Barva</div>
+        <div class="d-flex flex-wrap gap-2">
+            @foreach (var color in LabelColorDisplay.Palette)
+            {
+                <button type="button" class="btn btn-icon label-swatch @(this.model.Color == color ? "label-swatch-picked" : "")"
+                        title="@LabelColorDisplay.Text(color)" aria-label="@LabelColorDisplay.Text(color)"
+                        aria-pressed="@(this.model.Color == color)" @onclick="() => this.model.Color = color">
+                    <span class="status-dot bg-@LabelColorDisplay.Css(color)"></span>
+                </button>
+            }
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <div class="form-label">Náhled</div>
+        <span class="badge bg-@(LabelColorDisplay.Css(this.model.Color))-lt">@(string.IsNullOrWhiteSpace(this.model.Name) ? "Štítek" : this.model.Name)</span>
+    </div>
+
+    @if (this.error is not null)
+    {
+        <div class="alert alert-danger" role="alert"><Icon CssClass="icon me-2" IconType="AppIcons.AlertTriangle" />@this.error</div>
+    }
+
+    <div class="form-actions-sticky d-flex justify-content-end gap-2 mt-3">
+        <button type="button" class="btn" @onclick="() => this.ModalService.Close()"><Icon CssClass="icon" IconType="AppIcons.X" />Zrušit</button>
+        <button type="submit" class="btn btn-primary" disabled="@this.busy">
+            @if (this.busy)
+            {
+                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+            }
+            else
+            {
+                <Icon CssClass="icon" IconType="AppIcons.DeviceFloppy" />
+            }
+            @(this.Label is null ? "Založit štítek" : "Uložit")
+        </button>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter]
+    public LabelItem? Label { get; set; }
+
+    [Parameter]
+    public EventCallback OnSaved { get; set; }
+
+    private readonly LabelEditModel model = new();
+
+    private string? error;
+
+    private bool busy;
+
+    private string IdPrefix => this.Label is null ? "label-create" : "label-edit";
+
+    protected override void OnInitialized()
+    {
+        if (this.Label is { } label)
+        {
+            this.model.Name = label.Name;
+            this.model.Color = label.Color;
+        }
+    }
+
+    private async Task SaveLabel()
+    {
+        this.busy = true;
+        this.error = null;
+
+        try
+        {
+            var request = new LabelEditRequest { Name = this.model.Name, Color = this.model.Color };
+
+            if (this.Label is { } label)
+            {
+                await this.LabelsClient.EditLabel(label.LabelId, request, CancellationToken.None);
+            }
+            else
+            {
+                _ = await this.LabelsClient.CreateLabel(request, CancellationToken.None);
+            }
+
+            this.ModalService.Close();
+            await this.OnSaved.InvokeAsync();
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
+        {
+            this.error = "Štítek s tímto názvem už existuje. Zvolte jiný.";
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+        {
+            this.error = "Štítek už neexistuje.";
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Saving the label failed");
+
+            this.error = this.Label is null
+                ? "Štítek se nepodařilo založit. Zkontrolujte zadané údaje a zkuste to znovu."
+                : "Štítek se nepodařilo uložit. Zkontrolujte zadané údaje a zkuste to znovu.";
+        }
+        finally
+        {
+            this.busy = false;
+        }
+    }
+}
