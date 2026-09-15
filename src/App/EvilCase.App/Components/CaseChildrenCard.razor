@@ -1,7 +1,10 @@
 @using EvilBrains.EvilCase.Api.Contract.Cases
 
 @* The sidebar's Hierarchie section: parent case link, then the child list as compact full-width rows. *@
-<div class="ec-field-label mb-2">Podřízené spisy · @Items.Count</div>
+<div class="ec-field-label mb-2 d-flex align-items-center gap-2">
+    Podřízené spisy
+    <span class="badge bg-secondary-lt">@Items.Count</span>
+</div>
 
 @if (Items.Count == 0)
 {

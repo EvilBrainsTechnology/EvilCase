@@ -7,7 +7,13 @@
 
 <div id="comments-card" class="card">
     <div class="card-header">
-        <h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.Message" />Komentáře</h3>
+        <h3 class="card-title">
+            <Icon CssClass="icon me-2" IconType="AppIcons.Message" />Komentáře
+            @if (!this.loading && this.listFailure is null)
+            {
+                <span class="badge bg-secondary-lt ms-2">@this.items.Count</span>
+            }
+        </h3>
         <div class="card-actions">
             <button id="comment-add" type="button" class="btn btn-primary" @onclick="this.OpenComposer">
                 <Icon CssClass="icon" IconType="AppIcons.Plus" />Přidat komentář

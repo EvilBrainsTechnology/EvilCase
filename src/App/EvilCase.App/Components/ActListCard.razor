@@ -6,7 +6,13 @@
 
 <div class="card">
     <div class="card-header">
-        <h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.FileText" />Úkony</h3>
+        <h3 class="card-title">
+            <Icon CssClass="icon me-2" IconType="AppIcons.FileText" />Úkony
+            @if (this.items is not null)
+            {
+                <span class="badge bg-secondary-lt ms-2">@this.items.Count</span>
+            }
+        </h3>
         <div class="card-actions">
             <a href="/cases/@this.CaseId/act/new" class="btn btn-primary"><Icon CssClass="icon" IconType="AppIcons.Plus" />Nový úkon</a>
         </div>
