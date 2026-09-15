@@ -56,7 +56,7 @@
                     {
                         <tr class="table-row-link" @onclick="@(() => this.Navigation.NavigateTo($"/cases/{this.CaseId}/act/{item.ActId}"))">
                             <td class="text-nowrap">@DateDisplay.Text(item.Date)</td>
-                            <td><a href="@($"/cases/{this.CaseId}/act/{item.ActId}")" @onclick:stopPropagation @onclick="() => { }">@item.Title</a></td>
+                            <td class="font-weight-medium">@item.Title</td>
                             <td class="text-nowrap">
                                 @if (item.Direction is not null)
                                 {

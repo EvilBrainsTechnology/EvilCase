@@ -22,7 +22,7 @@
                     <tr>
                         <th>Změněno</th>
                         <th>Datum</th>
-                        <th>Název</th>
+                        <th>Spis</th>
                         <th>Úkon</th>
                         <th>Směr</th>
                         <th>Číslo jednací</th>
@@ -35,7 +35,7 @@
                             <td class="text-nowrap">@MomentDisplay.Text(item.Changed)</td>
                             <td class="text-nowrap">@DateDisplay.Text(item.Date)</td>
                             <td class="text-nowrap"><a href="@($"/cases/{item.CaseId}")" @onclick:stopPropagation @onclick="() => { }">@item.CaseTitle</a></td>
-                            <td><a href="@($"/cases/{item.CaseId}/act/{item.ActId}")" @onclick:stopPropagation @onclick="() => { }">@item.Title</a></td>
+                            <td class="font-weight-medium">@item.Title</td>
                             <td class="text-nowrap">
                                 @if (item.Direction is not null)
                                 {
