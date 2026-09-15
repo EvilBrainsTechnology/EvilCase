@@ -5,7 +5,7 @@
 @implements IDisposable
 @inject ICasesClient CasesClient
 @inject ILogger<Cases> Logger
-@inject NavigationManager NavigationManager
+@inject NavigationManager Navigation
 
 <PageTitle>Spisy – EvilCase</PageTitle>
 
@@ -95,7 +95,7 @@
                         <tbody>
                             @foreach (var item in this.items)
                             {
-                                <tr class="table-row-link" @onclick="@(() => this.NavigationManager.NavigateTo($"/cases/{item.CaseId}"))">
+                                <tr class="table-row-link" @onclick="@(() => this.Navigation.NavigateTo($"/cases/{item.CaseId}"))">
                                     <td class="text-nowrap">@DateDisplay.Text(item.Date)</td>
                                     <td><a href="@($"/cases/{item.CaseId}")" @onclick:stopPropagation @onclick="() => { }">@item.Title</a></td>
                                     <td class="text-nowrap">
