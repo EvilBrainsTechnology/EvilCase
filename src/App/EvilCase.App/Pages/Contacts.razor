@@ -7,6 +7,7 @@
 @inject IContactsClient ContactsClient
 @inject IModalService ModalService
 @inject ILogger<Contacts> Logger
+@inject NavigationManager NavigationManager
 
 <PageTitle>Kontakty – EvilCase</PageTitle>
 
@@ -67,7 +68,7 @@
             else
             {
                 <div class="d-none d-lg-block">
-                    <table class="table card-table table-vcenter">
+                    <table class="table card-table table-vcenter table-hover">
                         <thead>
                             <tr>
                                 <th>Název</th>
@@ -79,8 +80,8 @@
                         <tbody>
                             @foreach (var item in this.items)
                             {
-                                <tr>
-                                    <td><a href="/contacts/@item.ContactId">@item.Name</a></td>
+                                <tr class="table-row-link" @onclick="@(() => this.NavigationManager.NavigateTo($"/contacts/{item.ContactId}"))">
+                                    <td><a href="/contacts/@item.ContactId" @onclick:stopPropagation @onclick="() => { }">@item.Name</a></td>
                                     <td class="text-nowrap">@ContactKindDisplay.Text(item.Kind)</td>
                                     <td>@item.DataBoxId</td>
                                     <td>@item.Address</td>
