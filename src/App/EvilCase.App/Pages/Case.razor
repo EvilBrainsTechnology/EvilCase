@@ -42,10 +42,11 @@
                     </ol>
                 </nav>
 
-                @if (this.Edit)
+                @if (this.Edit && this.caseDetail is not null)
                 {
                     <label class="visually-hidden" for="case-title">Název</label>
-                    <input id="case-title" class="form-control ec-title-input" @bind="this.model.Title" @bind:event="oninput" />
+                    <input id="case-title" class="form-control ec-title-input" @bind="this.model.Title" />
+                    <ValidationMessage For="() => this.model.Title" class="invalid-feedback d-block" />
                 }
                 else if (this.caseDetail is not null)
                 {
@@ -245,6 +246,13 @@
 
                     @if (this.Edit)
                     {
+                        @if (this.error is not null)
+                        {
+                            <div class="ec-savebar-error">
+                                <div class="alert alert-danger mb-0" role="alert"><Icon CssClass="icon me-2" IconType="AppIcons.AlertTriangle" />@this.error</div>
+                            </div>
+                        }
+
                         <div class="ec-savebar">
                             <span class="text-secondary d-none d-lg-inline">Neuložené změny</span>
                             <div class="ec-savebar-actions">
@@ -262,13 +270,6 @@
                                 </button>
                             </div>
                         </div>
-
-                        @if (this.error is not null)
-                        {
-                            <div class="ec-savebar-error">
-                                <div class="alert alert-danger mb-0" role="alert"><Icon CssClass="icon me-2" IconType="AppIcons.AlertTriangle" />@this.error</div>
-                            </div>
-                        }
                     }
                 </div>
             </CascadingValue>
@@ -349,6 +350,8 @@
         {
             this.caseDetail = await this.CasesClient.GetCase(this.CaseId, token);
             this.model.CopyFrom(CaseEditModel.From(this.caseDetail));
+
+            this.StateHasChanged();
         }
         catch (Exception exception) when (exception is ApiException or HttpRequestException)
         {

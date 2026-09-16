@@ -28,7 +28,7 @@
                 <div class="ec-main">
                     <div>
                         <label class="visually-hidden" for="act-title">Název</label>
-                        <input id="act-title" class="form-control ec-title-input" placeholder="Název úkonu" autofocus @bind="this.model.Title" @bind:event="oninput" />
+                        <input id="act-title" class="form-control ec-title-input" placeholder="Název úkonu" autofocus @bind="this.model.Title" />
                         <ValidationMessage For="() => this.model.Title" class="invalid-feedback d-block" />
                     </div>
 
