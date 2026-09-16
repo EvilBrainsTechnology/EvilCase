@@ -38,12 +38,14 @@ export function bindCardDrop(cardElement, inputWrapperElement, dotNetRef) {
     cardElement.addEventListener("dragleave", leave);
     cardElement.addEventListener("drop", drop);
 
-    return {
+    // The caller awaits this as an IJSObjectReference, which only deserializes from a tracked
+    // JS object reference, never a plain object.
+    return DotNet.createJSObjectReference({
         dispose() {
             cardElement.removeEventListener("dragenter", enter);
             cardElement.removeEventListener("dragover", prevent);
             cardElement.removeEventListener("dragleave", leave);
             cardElement.removeEventListener("drop", drop);
         },
-    };
+    });
 }
