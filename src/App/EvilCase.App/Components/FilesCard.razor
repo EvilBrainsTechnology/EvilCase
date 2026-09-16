@@ -185,14 +185,13 @@
         if (this.dropModule is null || this.dropBound)
             return;
 
-        var dotNetRef = DotNetObjectReference.Create(this);
-        this.dropRef = dotNetRef;
+        this.dropRef ??= DotNetObjectReference.Create(this);
 
         // bindCardDrop and unbindCardDrop are void calls keyed by the card element, so a dispose
         // racing this await has nothing to hand back and can simply unbind right after.
         try
         {
-            await this.dropModule.InvokeVoidAsync("bindCardDrop", this.cardRef, this.dropInputWrapper, dotNetRef);
+            await this.dropModule.InvokeVoidAsync("bindCardDrop", this.cardRef, this.dropInputWrapper, this.dropRef);
 
             if (this.disposed)
             {
