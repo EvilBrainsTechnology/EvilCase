@@ -106,14 +106,14 @@
 
                         <ActListCard @key="this.CaseId" CaseId="this.CaseId" ConfirmNavigation="this.Edit && this.dirty" />
 
-                        <FilesCard @key="this.CaseId"
+                        <FilesCard @key="(nameof(FilesCard), this.CaseId)"
                                    OwnerGoneError="spis už neexistuje."
                                    LoadFiles="this.LoadFiles"
                                    UploadFile="this.UploadFile"
                                    DownloadFile="this.DownloadFile"
                                    DeleteFile="this.DeleteFile" />
 
-                        <CommentsCard @key="this.CaseId"
+                        <CommentsCard @key="(nameof(CommentsCard), this.CaseId)"
                                       LoadComments="this.LoadComments"
                                       AddComment="this.AddComment"
                                       SaveComment="this.SaveComment"
