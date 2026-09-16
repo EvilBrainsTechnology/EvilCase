@@ -109,7 +109,7 @@ public class ContactListRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(requests[^1].SortDirection, Is.EqualTo(ListSortDirection.Ascending), "a click on the sorted column turns it around");
+            Assert.That(requests[^1].SortDirection, Is.Not.EqualTo(requests[0].SortDirection), "a click on the sorted column turns it around");
             Assert.That(requests[^1].Skip, Is.Zero, "a change of the order starts the list over");
         }
     }

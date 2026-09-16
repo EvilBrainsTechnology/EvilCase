@@ -89,6 +89,20 @@ public class ListRequestValidationTests
             "a contact carries no label, no contact and no date, so the contact list never takes such a filter");
     }
 
+    [Test]
+    public void TheContactListReadsFromAToZWhereTheOthersReadNewestFirst()
+    {
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(
+                new ContactListRequest { Take = 20 }.SortDirection,
+                Is.EqualTo(ListSortDirection.Ascending),
+                "a contact list reads by name, so it starts at A");
+            Assert.That(new CaseListRequest { Take = 20 }.SortDirection, Is.EqualTo(ListSortDirection.Descending));
+            Assert.That(new ActListRequest { Take = 20 }.SortDirection, Is.EqualTo(ListSortDirection.Descending));
+        }
+    }
+
     private static List<ValidationResult> Validate(ListRequest request)
     {
         var results = new List<ValidationResult>();
