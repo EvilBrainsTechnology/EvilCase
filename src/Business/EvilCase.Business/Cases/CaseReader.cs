@@ -8,19 +8,25 @@ namespace EvilBrains.EvilCase.Business.Cases;
 
 internal sealed class CaseReader(IDbSession dbSession) : ICaseReader
 {
-    public async Task<IReadOnlyList<CaseListItem>> ListCases(CaseListRequest request, CancellationToken token)
+    public async Task<CaseListResponse> ListCases(CaseListRequest request, CancellationToken token)
     {
-        var cases = dbSession.Current.Cases
+        var filtered = dbSession.Current.Cases
             .MatchingSearch(request.Search)
             .WithStatus(request.Status)
-            .WithinScope(request.Scope);
+            .UnderParent(request.ParentCaseId, request.Scope)
+            .WithContact(request.ContactId)
+            .WithLabels(request.LabelIds)
+            .WithinDates(request.From, request.To);
 
-        var ordered = request.Order == CaseListOrder.Changed ? cases.InChangeOrder() : cases.InListOrder();
+        var total = await filtered.CountAsync(token);
 
-        return await ordered
-            .TakeAtMost(request.Take)
+        var items = await filtered
+            .InSortOrder(request.Sort, request.SortDirection)
+            .InPage(request)
             .AsListItems()
             .ToListAsync(token);
+
+        return new CaseListResponse { Items = items, TotalCount = total };
     }
 
     public async Task<CaseStatusCounts> CountCasesByStatus(CancellationToken token)
@@ -40,18 +46,6 @@ internal sealed class CaseReader(IDbSession dbSession) : ICaseReader
 
     public async Task<CaseDetail?> GetCaseDetail(Guid caseId, CancellationToken token)
     {
-        var context = dbSession.Current;
-
-        var @case = await context.Cases.DetailOf(caseId, token);
-        if (@case is null)
-            return null;
-
-        var children = await context.Cases
-            .WithParent(caseId)
-            .InListOrder()
-            .AsListItems()
-            .ToListAsync(token);
-
-        return @case with { ChildCases = children };
+        return await dbSession.Current.Cases.DetailOf(caseId, token);
     }
 }

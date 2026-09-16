@@ -1,5 +1,7 @@
 using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Labels;
+using EvilBrains.EvilCase.Api.Contract.Lists;
+using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Data;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
@@ -15,7 +17,7 @@ internal static class CaseListQuery
         if (string.IsNullOrWhiteSpace(search))
             return cases;
 
-        var pattern = $"%{search.Trim().EscapeLikeWildcards()}%";
+        var pattern = search.ContainsPattern();
 
         return cases.Where(@case =>
             EF.Functions.ILike(DatabaseFunctions.Unaccent(@case.Title), DatabaseFunctions.Unaccent(pattern), LikeExtensions.LikeEscape)
@@ -36,8 +38,15 @@ internal static class CaseListQuery
         };
     }
 
-    public static IQueryable<Case> WithinScope(this IQueryable<Case> cases, CaseListScope scope)
+    /// <summary>
+    /// A named parent takes precedence over the scope and leaves its direct children only; no read
+    /// walks deeper (SDD-009).
+    /// </summary>
+    public static IQueryable<Case> UnderParent(this IQueryable<Case> cases, Guid? parentCaseId, CaseListScope scope)
     {
+        if (parentCaseId is not null)
+            return cases.Where(@case => @case.ParentCaseId == parentCaseId);
+
         return scope switch
         {
             CaseListScope.RootOnly => cases.Where(static @case => @case.ParentCaseId == null),
@@ -46,27 +55,40 @@ internal static class CaseListQuery
         };
     }
 
-    /// <summary>
-    /// One level only; no read walks deeper (SDD-009).
-    /// </summary>
-    public static IQueryable<Case> WithParent(this IQueryable<Case> cases, Guid parentCaseId)
+    public static IQueryable<Case> WithContact(this IQueryable<Case> cases, Guid? contactId)
     {
-        return cases.Where(@case => @case.ParentCaseId == parentCaseId);
+        return contactId is null ? cases : cases.Where(@case => @case.ContactId == contactId);
     }
 
-    public static IQueryable<Case> InListOrder(this IQueryable<Case> cases)
+    public static IQueryable<Case> WithLabels(this IQueryable<Case> cases, IReadOnlyList<Guid> labelIds)
     {
-        return cases
-            .OrderByDescending(static @case => @case.Date)
-            .ThenByDescending(static @case => @case.Created)
-            .ThenByDescending(static @case => @case.Id);
+        foreach (var labelId in labelIds)
+            cases = cases.Where(@case => @case.Labels.Any(assignment => assignment.LabelId == labelId));
+
+        return cases;
     }
 
-    public static IQueryable<Case> InChangeOrder(this IQueryable<Case> cases)
+    public static IQueryable<Case> WithinDates(this IQueryable<Case> cases, DateOnly? from, DateOnly? to)
     {
-        return cases
-            .OrderByDescending(static @case => @case.Updated ?? @case.Created)
-            .ThenByDescending(static @case => @case.Id);
+        if (from is not null)
+            cases = cases.Where(@case => @case.Date >= from);
+
+        if (to is not null)
+            cases = cases.Where(@case => @case.Date <= to);
+
+        return cases;
+    }
+
+    public static IQueryable<Case> InSortOrder(this IQueryable<Case> cases, CaseSortKey sort, ListSortDirection direction)
+    {
+        return sort switch
+        {
+            CaseSortKey.Date => cases.InKeyOrder(static @case => @case.Date, direction).ThenInWriteOrder(direction),
+            CaseSortKey.Changed => cases.InKeyOrder(static @case => @case.Updated ?? @case.Created, direction).ThenInWriteOrder(direction),
+            CaseSortKey.Title => cases.InKeyOrder(static @case => @case.Title, direction).ThenInWriteOrder(direction),
+            CaseSortKey.CaseNumber => cases.InKeyOrder(static @case => @case.CaseNumber, direction).ThenInWriteOrder(direction),
+            _ => throw new ArgumentOutOfRangeException(nameof(sort), sort, "Unknown case sort key."),
+        };
     }
 
     public static IQueryable<CaseListItem> AsListItems(this IQueryable<Case> cases)
@@ -75,6 +97,7 @@ internal static class CaseListQuery
         {
             CaseId = @case.Id,
             CaseNumber = @case.CaseNumber,
+            ExternalCaseNumber = @case.ExternalCaseNumber,
             Title = @case.Title,
             Date = @case.Date,
             Status = @case.Status,
