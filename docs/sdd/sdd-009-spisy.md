@@ -41,11 +41,13 @@ kontakt. Zadává se na editaci spisu.
 
 ### Stránky
 
-- `/cases` — seznam spisů: datum, název, stav, číslo a tečky štítků (SDD-019). Řadí se podle data
-  spisu sestupně, shodná data řadí `Created`; bez stránkování. Hledací pole hledá v názvu a popisu
-  bez ohledu na diakritiku. Filtr stavu nabízí Otevřené (vše kromě uzavřených), Všechny stavy
-  a každý stav zvlášť; výchozí je Otevřené. Přepínač Jen rodičovské spisy nechá v seznamu jen spisy
-  bez rodiče; ve výchozím stavu je zapnutý a po vypnutí seznam ukazuje i podřízené spisy.
+- `/cases` — seznam spisů: datum, název, stav, číslo a tečky štítků (SDD-019). Výchozí řazení je
+  podle data spisu sestupně; záhlaví sloupce řadí podle sebe a druhý klik otočí směr. Seznam je
+  stránkovaný podle SDD-005 a nese celkový počet. Hledací pole hledá v názvu a popisu bez ohledu
+  na diakritiku; zúžit jde i rozsahem dat, kontaktem a štítky. Filtr stavu nabízí Otevřené (vše
+  kromě uzavřených), Všechny stavy a každý stav zvlášť; výchozí je Otevřené. Přepínač Jen
+  rodičovské spisy nechá v seznamu jen spisy bez rodiče; ve výchozím stavu je zapnutý a po vypnutí
+  seznam ukazuje i podřízené spisy.
 - `/cases/new` — založení, včetně kontaktu a štítků; `?parent={id}` zakládá podřízený spis.
 - `/cases/{id}` — detail: údaje, štítky, podřízené spisy, úkony (SDD-010), komentáře (SDD-013),
   soubory (SDD-012).

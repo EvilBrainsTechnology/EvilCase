@@ -27,7 +27,8 @@ neupravil. Seznamové dlaždice ukazují nejvýše 5 položek.
 
 Dashboard nemá vlastní API; skládá se na klientu z API entit (SDD-005): dlaždice počtů
 z počtů spisů `/api/cases/counts`, naposledy změněné spisy z výpisu spisů, naposledy změněné
-úkony z tenantového výpisu `/api/acts`.
+úkony z výpisu úkonů. Obě seznamové dlaždice jsou týž seznam jako agenda, jen bez hledání,
+filtrů a stránkování a se stránkou o pěti položkách.
 
 Žádné lhůty. Tenant bez jediného spisu vede na založení prvního spisu; tenant se spisy a bez
 úkonů si dlaždice ponechá a dlaždice úkonů ukáže vlastní prázdný stav.
