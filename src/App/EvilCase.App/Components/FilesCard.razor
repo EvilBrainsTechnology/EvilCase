@@ -170,10 +170,7 @@
         // handed the just-awaited object itself, since DisposeAsync never saw it to clean it up.
         try
         {
-            // A JS call issued as the direct continuation of the renderer's own callback, or of
-            // another JS call's result, runs on that call's stack; on a page with enough concurrent
-            // first-render JS interop it then loses its result, reproducibly. Yielding before each
-            // such call moves it onto its own turn, off that stack.
+            // Off the renderer's own call stack before it starts: see the commit message.
             await Task.Yield();
             var module = await this.JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/file-drop.js");
 
