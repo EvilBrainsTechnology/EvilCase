@@ -47,7 +47,7 @@ kontakt. Zadává se na editaci spisu.
   a každý stav zvlášť; výchozí je Otevřené. Přepínač Jen rodičovské spisy nechá v seznamu jen spisy
   bez rodiče; ve výchozím stavu je zapnutý a po vypnutí seznam ukazuje i podřízené spisy.
 - `/cases/new` — založení, včetně kontaktu a štítků; `?parent={id}` zakládá podřízený spis.
-- `/cases/{id}` — detail: štítky, údaje, podřízené spisy, úkony (SDD-010), komentáře (SDD-013),
+- `/cases/{id}` — detail: údaje, štítky, podřízené spisy, úkony (SDD-010), komentáře (SDD-013),
   soubory (SDD-012).
 - `/cases/{id}/edit` — editace, včetně kontaktu, štítků a rodiče.
 

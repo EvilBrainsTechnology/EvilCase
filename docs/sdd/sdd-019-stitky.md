@@ -44,7 +44,7 @@ Obojí posílá celou množinu, kterou entita nese po zápisu: štítek, který 
 
 ### Zobrazení
 
-Detail spisu i úkonu nese štítky nahoře, nad údaji, s názvem a barvou.
+Detail spisu i úkonu nese štítky s názvem a barvou.
 
 Seznam nese jen barevné tečky v barvách štítků, bez názvu; název drží tooltip. Karta seznamu na
 mobilu, kde tooltip není, nese štítky s názvem.
