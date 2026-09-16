@@ -62,4 +62,36 @@ public class FilesCardRenderTests
 
         dropModule.VerifyInvoke("unbindCardDrop");
     }
+
+    [Test]
+    public void BindingTheCardWideDropStillBindsWhenLoadFilesIsStillPendingOnTheFirstRender()
+    {
+        using var ctx = new BunitContext();
+
+        ctx.Services.AddSingleton(Substitute.For<IModalService>());
+
+        var dropModule = ctx.JSInterop.SetupModule("./js/file-drop.js");
+        dropModule.SetupVoid("bindCardDrop", static _ => true).SetVoidResult();
+
+        var loadFiles = new TaskCompletionSource<IReadOnlyList<FileListItem>>();
+
+        async Task<IReadOnlyList<FileListItem>> LoadFiles(CancellationToken _)
+        {
+            return await loadFiles.Task;
+        }
+
+        // OnInitializedAsync's first render happens while LoadFiles is still pending (ComponentBase
+        // renders as soon as OnInitializedAsync returns an incomplete task), so the first
+        // OnAfterRenderAsync finds dropModule still unset. The bind has to happen on a later render.
+        var component = ctx.Render<FilesCard>(parameters => parameters
+            .Add(static card => card.LoadFiles, LoadFiles)
+            .Add(static card => card.UploadFile, static (_, _) => Task.CompletedTask)
+            .Add(static card => card.DownloadFile, static (_, _) => Task.CompletedTask)
+            .Add(static card => card.DeleteFile, static (_, _) => Task.CompletedTask)
+            .Add(static card => card.OwnerGoneError, "spis už neexistuje."));
+
+        loadFiles.SetResult([]);
+
+        component.WaitForAssertion(() => dropModule.VerifyInvoke("bindCardDrop"));
+    }
 }

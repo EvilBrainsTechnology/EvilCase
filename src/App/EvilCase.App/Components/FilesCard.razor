@@ -182,7 +182,7 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender || this.dropModule is null)
+        if (this.dropModule is null || this.dropBound)
             return;
 
         var dotNetRef = DotNetObjectReference.Create(this);
