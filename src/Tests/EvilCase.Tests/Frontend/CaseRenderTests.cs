@@ -9,6 +9,7 @@ using EvilBrains.EvilCase.App.Files;
 using EvilBrains.EvilCase.App.Pages;
 using EvilBrains.EvilCase.Domain.Cases;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.JSInterop;
 using TabBlazor.Services;
 
 namespace EvilBrains.EvilCase.Tests.Frontend;
@@ -21,8 +22,10 @@ public class CaseRenderTests
         using var ctx = new BunitContext();
 
         // FilesCard's drop zone imports its own module on first render from a path carrying a
-        // version query string, which no SetupModule can name.
+        // version query string, which no SetupModule can name, and reads a property bUnit's
+        // runtime does not answer.
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        ctx.Services.AddSingleton<IJSRuntime>(new PropertyReadingJSRuntime(ctx.JSInterop.JSRuntime));
 
         var caseId = Guid.CreateVersion7();
 
@@ -59,7 +62,6 @@ public class CaseRenderTests
         ctx.Services.AddSingleton(actsClient);
         ctx.Services.AddSingleton(labelsClient);
         ctx.Services.AddSingleton(Substitute.For<IContactsClient>());
-
 
         // The regression: before the fix, ValidationMessage sat outside the CascadingValue that
         // carries the EditContext and threw a null cascading-parameter exception on this render.
