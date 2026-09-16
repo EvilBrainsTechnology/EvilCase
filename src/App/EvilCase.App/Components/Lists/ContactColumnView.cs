@@ -4,8 +4,7 @@ using Microsoft.AspNetCore.Components;
 namespace EvilBrains.EvilCase.App.Components.Lists;
 
 /// <summary>
-/// One column of the contact list: its header, its table cell and the line it writes on the
-/// card variant. A column the card leaves out carries no <see cref="Line"/>.
+/// A column the card variant leaves out carries no <see cref="Line"/>.
 /// </summary>
 public sealed record ContactColumnView
 {
