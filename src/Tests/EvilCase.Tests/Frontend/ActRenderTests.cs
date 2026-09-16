@@ -19,6 +19,10 @@ public class ActRenderTests
     {
         using var ctx = new BunitContext();
 
+        // FilesCard's drop zone imports its own module on first render from a path carrying a
+        // version query string, which no SetupModule can name.
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+
         var caseId = Guid.CreateVersion7();
         var actId = Guid.CreateVersion7();
 
@@ -54,11 +58,6 @@ public class ActRenderTests
         ctx.Services.AddSingleton(Substitute.For<IModalService>());
         ctx.Services.AddSingleton(labelsClient);
         ctx.Services.AddSingleton(Substitute.For<IContactsClient>());
-
-        // FilesCard binds the card-wide file drop through this module on first render.
-        var dropModule = ctx.JSInterop.SetupModule("./js/file-drop.js");
-        dropModule.SetupVoid("bindCardDrop", static _ => true).SetVoidResult();
-        dropModule.SetupVoid("unbindCardDrop", static _ => true).SetVoidResult();
 
         // The regression: before the fix, ValidationMessage sat outside the CascadingValue that
         // carries the EditContext and threw a null cascading-parameter exception on this render.

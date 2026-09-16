@@ -2,14 +2,13 @@
 @using EvilBrains.EvilCase.Api.Contract.Files
 @using Microsoft.JSInterop
 @using TabBlazor.Services
-@implements IAsyncDisposable
+@using Toolbelt.Blazor.FileDropZone
 @inject IModalService ModalService
-@inject IJSRuntime JSRuntime
 @inject ILogger<FilesCard> Logger
 
-@* The card is itself the drop target (SDD-016 §5): the hidden InputFile below receives a card-wide
-   drop through file-drop.js and uploads it the same way a picked file uploads. *@
-<div class="card ec-dropcard" @ref="this.cardRef">
+@* The card is itself the drop zone (SDD-012): FileDropZone hands a card-wide drop to the hidden
+   InputFile below, which uploads it the same way a picked file uploads. *@
+<FileDropZone class="card ec-dropcard">
     <div class="card-header">
         <h3 class="card-title">
             <Icon CssClass="icon me-2" IconType="AppIcons.Paperclip" />Soubory
@@ -25,7 +24,7 @@
         </div>
     </div>
 
-    <div class="visually-hidden" aria-hidden="true" @ref="this.dropInputWrapper">
+    <div class="visually-hidden" aria-hidden="true">
         <InputFile multiple tabindex="-1" OnChange="this.OnDropFilesSelected" aria-label="Přetáhnout soubory" />
     </div>
 
@@ -98,7 +97,7 @@
             </div>
         </div>
     </div>
-</div>
+</FileDropZone>
 
 @code {
     [Parameter, EditorRequired]
@@ -121,16 +120,6 @@
 
     private readonly List<string> dropFailures = [];
 
-    private ElementReference cardRef;
-
-    private ElementReference dropInputWrapper;
-
-    private IJSObjectReference? dropModule;
-
-    private bool dropBound;
-
-    private bool disposed;
-
     private IReadOnlyList<FileListItem> items = [];
 
     private bool loading = true;
@@ -151,73 +140,6 @@
     {
         await this.ReloadFiles();
         this.loading = false;
-
-        // The import needs no ElementReference, so it does not wait for a render; a navigation
-        // away while it is in flight aborts the call, and the card-wide drop is then simply
-        // unavailable, never a broken page.
-        try
-        {
-            var module = await this.JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/file-drop.js");
-
-            if (this.disposed)
-            {
-                await module.DisposeAsync();
-                return;
-            }
-
-            this.dropModule = module;
-        }
-        catch (Exception exception) when (exception is JSException or JSDisconnectedException or OperationCanceledException)
-        {
-            this.Logger.LogWarning(exception, "Loading the card-wide file drop failed");
-        }
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (this.dropModule is null || this.dropBound)
-            return;
-
-        // bindCardDrop and unbindCardDrop are void calls keyed by the card element, so a dispose
-        // racing this await has nothing to hand back and can simply unbind right after.
-        try
-        {
-            await this.dropModule.InvokeVoidAsync("bindCardDrop", this.cardRef, this.dropInputWrapper);
-
-            if (this.disposed)
-            {
-                await this.dropModule.InvokeVoidAsync("unbindCardDrop", this.cardRef);
-                return;
-            }
-
-            this.dropBound = true;
-        }
-        catch (Exception exception) when (exception is JSException or JSDisconnectedException or OperationCanceledException)
-        {
-            this.Logger.LogWarning(exception, "Binding the card-wide file drop failed");
-        }
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        this.disposed = true;
-
-        try
-        {
-            if (this.dropBound)
-            {
-                await this.dropModule!.InvokeVoidAsync("unbindCardDrop", this.cardRef);
-            }
-
-            if (this.dropModule is not null)
-            {
-                await this.dropModule.DisposeAsync();
-            }
-        }
-        catch (Exception exception) when (exception is JSException or JSDisconnectedException)
-        {
-            this.Logger.LogWarning(exception, "Disposing the card-wide file drop failed");
-        }
     }
 
     private async Task ReloadFiles()
