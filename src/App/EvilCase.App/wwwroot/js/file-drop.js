@@ -2,7 +2,9 @@
 // "change" event on its own <input>, so a card-wide drop has to set that input's files and dispatch one.
 const bindings = new Map();
 
-export function bindCardDrop(cardElement, inputWrapperElement, dotNetRef) {
+const dragOverClass = "is-dragover";
+
+export function bindCardDrop(cardElement, inputWrapperElement) {
     const inputElement = inputWrapperElement.querySelector("input[type=file]");
 
     function prevent(event) {
@@ -11,7 +13,7 @@ export function bindCardDrop(cardElement, inputWrapperElement, dotNetRef) {
 
     function enter(event) {
         prevent(event);
-        dotNetRef.invokeMethodAsync("SetDragOver", true);
+        cardElement.classList.add(dragOverClass);
     }
 
     function leave(event) {
@@ -22,12 +24,15 @@ export function bindCardDrop(cardElement, inputWrapperElement, dotNetRef) {
         if (event.relatedTarget && cardElement.contains(event.relatedTarget))
             return;
 
-        dotNetRef.invokeMethodAsync("SetDragOver", false);
+        cardElement.classList.remove(dragOverClass);
     }
 
     function drop(event) {
         prevent(event);
-        dotNetRef.invokeMethodAsync("SetDragOver", false);
+        cardElement.classList.remove(dragOverClass);
+
+        if (!document.contains(cardElement))
+            return;
 
         if (event.dataTransfer && event.dataTransfer.files.length > 0) {
             inputElement.files = event.dataTransfer.files;
@@ -53,6 +58,7 @@ export function unbindCardDrop(cardElement) {
     cardElement.removeEventListener("dragover", handlers.prevent);
     cardElement.removeEventListener("dragleave", handlers.leave);
     cardElement.removeEventListener("drop", handlers.drop);
+    cardElement.classList.remove(dragOverClass);
 
     bindings.delete(cardElement);
 }

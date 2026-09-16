@@ -9,7 +9,7 @@
 
 @* The card is itself the drop target (SDD-016 §5): the hidden InputFile below receives a card-wide
    drop through file-drop.js and uploads it the same way a picked file uploads. *@
-<div class="card ec-dropcard @(this.dragOver ? "is-dragover" : "")" @ref="this.cardRef">
+<div class="card ec-dropcard" @ref="this.cardRef">
     <div class="card-header">
         <h3 class="card-title">
             <Icon CssClass="icon me-2" IconType="AppIcons.Paperclip" />Soubory
@@ -89,18 +89,15 @@
         }
     }
 
-    @if (this.dragOver)
-    {
-        <div class="ec-dropveil">
-            <div class="ec-droppill">
-                <Icon CssClass="icon" IconType="AppIcons.Upload" />
-                <div>
-                    <div>Pustit soubory sem</div>
-                    <div class="ec-filerow-meta">Nejvýše @(FileSizeDisplay.Text(FileLimits.MaxUploadBytes)) na soubor.</div>
-                </div>
+    <div class="ec-dropveil">
+        <div class="ec-droppill">
+            <Icon CssClass="icon" IconType="AppIcons.Upload" />
+            <div>
+                <div>Pustit soubory sem</div>
+                <div class="ec-filerow-meta">Nejvýše @(FileSizeDisplay.Text(FileLimits.MaxUploadBytes)) na soubor.</div>
             </div>
         </div>
-    }
+    </div>
 </div>
 
 @code {
@@ -130,15 +127,11 @@
 
     private IJSObjectReference? dropModule;
 
-    private DotNetObjectReference<FilesCard>? dropRef;
-
     private bool dropBound;
 
     private bool disposed;
 
     private IReadOnlyList<FileListItem> items = [];
-
-    private bool dragOver;
 
     private bool loading = true;
 
@@ -185,13 +178,11 @@
         if (this.dropModule is null || this.dropBound)
             return;
 
-        this.dropRef ??= DotNetObjectReference.Create(this);
-
         // bindCardDrop and unbindCardDrop are void calls keyed by the card element, so a dispose
         // racing this await has nothing to hand back and can simply unbind right after.
         try
         {
-            await this.dropModule.InvokeVoidAsync("bindCardDrop", this.cardRef, this.dropInputWrapper, this.dropRef);
+            await this.dropModule.InvokeVoidAsync("bindCardDrop", this.cardRef, this.dropInputWrapper);
 
             if (this.disposed)
             {
@@ -205,13 +196,6 @@
         {
             this.Logger.LogWarning(exception, "Binding the card-wide file drop failed");
         }
-    }
-
-    [JSInvokable]
-    public void SetDragOver(bool value)
-    {
-        this.dragOver = value;
-        this.StateHasChanged();
     }
 
     public async ValueTask DisposeAsync()
@@ -233,10 +217,6 @@
         catch (Exception exception) when (exception is JSException or JSDisconnectedException)
         {
             this.Logger.LogWarning(exception, "Disposing the card-wide file drop failed");
-        }
-        finally
-        {
-            this.dropRef?.Dispose();
         }
     }
 
@@ -271,7 +251,6 @@
     private async Task OnDropFilesSelected(InputFileChangeEventArgs args)
     {
         this.dropFailures.Clear();
-        this.dragOver = false;
         this.dropUploadIndex = 0;
         this.dropUploadTotal = args.FileCount;
 
