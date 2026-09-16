@@ -16,7 +16,7 @@ internal static class ContactListQuery
         if (string.IsNullOrWhiteSpace(search))
             return contacts;
 
-        var pattern = search.ContainsPattern();
+        var pattern = search.ContainsLikePattern();
 
         return contacts.Where(contact =>
             EF.Functions.ILike(DatabaseFunctions.Unaccent(contact.Name), DatabaseFunctions.Unaccent(pattern), LikeExtensions.LikeEscape)

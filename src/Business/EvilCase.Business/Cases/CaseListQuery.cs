@@ -17,7 +17,7 @@ internal static class CaseListQuery
         if (string.IsNullOrWhiteSpace(search))
             return cases;
 
-        var pattern = search.ContainsPattern();
+        var pattern = search.ContainsLikePattern();
 
         return cases.Where(@case =>
             EF.Functions.ILike(DatabaseFunctions.Unaccent(@case.Title), DatabaseFunctions.Unaccent(pattern), LikeExtensions.LikeEscape)

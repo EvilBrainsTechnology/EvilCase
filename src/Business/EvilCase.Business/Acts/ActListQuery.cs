@@ -17,7 +17,7 @@ internal static class ActListQuery
         if (string.IsNullOrWhiteSpace(search))
             return acts;
 
-        var pattern = search.ContainsPattern();
+        var pattern = search.ContainsLikePattern();
 
         return acts.Where(act =>
             EF.Functions.ILike(DatabaseFunctions.Unaccent(act.Title), DatabaseFunctions.Unaccent(pattern), LikeExtensions.LikeEscape)
