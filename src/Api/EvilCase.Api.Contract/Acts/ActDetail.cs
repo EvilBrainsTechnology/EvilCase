@@ -1,6 +1,7 @@
 using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.Domain.Acts;
+using EvilBrains.EvilCase.Domain.Cases;
 
 namespace EvilBrains.EvilCase.Api.Contract.Acts;
 
@@ -13,6 +14,10 @@ public sealed record ActDetail
     public required string CaseNumber { get; init; }
 
     public required string CaseTitle { get; init; }
+
+    public required DateOnly CaseDate { get; init; }
+
+    public required CaseStatus CaseStatus { get; init; }
 
     public required string ActNumber { get; init; }
 

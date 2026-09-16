@@ -2,6 +2,7 @@ using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.App.Models;
 using EvilBrains.EvilCase.Domain.Acts;
+using EvilBrains.EvilCase.Domain.Cases;
 using EvilBrains.EvilCase.Domain.Contacts;
 
 namespace EvilBrains.EvilCase.Tests.Frontend;
@@ -19,6 +20,8 @@ public class ActEditModelTests
             CaseId = Guid.CreateVersion7(),
             CaseNumber = "EC/20260807-001",
             CaseTitle = "Spis",
+            CaseDate = new DateOnly(2026, 8, 7),
+            CaseStatus = CaseStatus.Active,
             ActNumber = "EC/20260807-001/20260812-001",
             ExternalActNumber = "MUVZ/2026/1",
             Direction = ActDirection.Incoming,
@@ -53,6 +56,8 @@ public class ActEditModelTests
             CaseId = Guid.CreateVersion7(),
             CaseNumber = "EC/20260807-001",
             CaseTitle = "Spis",
+            CaseDate = new DateOnly(2026, 8, 7),
+            CaseStatus = CaseStatus.Active,
             ActNumber = "EC/20260807-001/20260812-001",
             Date = new DateOnly(2026, 8, 12),
             Title = "Úkon",

@@ -44,10 +44,11 @@
                     </ol>
                 </nav>
 
-                @if (this.Edit)
+                @if (this.Edit && this.act is not null)
                 {
                     <label class="visually-hidden" for="act-title">Název</label>
-                    <input id="act-title" class="form-control ec-title-input" @bind="this.model.Title" @bind:event="oninput" />
+                    <input id="act-title" class="form-control ec-title-input" @bind="this.model.Title" />
+                    <ValidationMessage For="() => this.model.Title" class="invalid-feedback d-block" />
                 }
                 else if (this.act is not null)
                 {
@@ -233,13 +234,31 @@
                                         OwnerGoneError="Úkon už neexistuje." />
                         }
 
-                        <a href="@($"/cases/{this.act!.CaseId}")" class="btn btn-outline-secondary w-100">
-                            <Icon CssClass="icon" IconType="AppIcons.Folders" />@this.act!.CaseTitle
-                        </a>
+                        <div class="card">
+                            <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.Folders" />Spis</h3></div>
+                            <div class="card-body">
+                                <a class="ec-comprow" href="@($"/cases/{this.act!.CaseId}")">
+                                    <span class="ec-min-w-0 flex-fill">
+                                        <span class="d-block ec-comprow-title">@this.act!.CaseTitle</span>
+                                        <span class="ec-comprow-meta">
+                                            <span class="ec-num">@DateDisplay.Text(this.act!.CaseDate)</span> ·
+                                            <Status BackgroundColor="CaseStatusDisplay.Color(this.act!.CaseStatus)" Lite="true">@CaseStatusDisplay.Text(this.act!.CaseStatus)</Status>
+                                        </span>
+                                    </span>
+                                </a>
+                            </div>
+                        </div>
                     </aside>
 
                     @if (this.Edit)
                     {
+                        @if (this.error is not null)
+                        {
+                            <div class="ec-savebar-error">
+                                <div class="alert alert-danger mb-0" role="alert"><Icon CssClass="icon me-2" IconType="AppIcons.AlertTriangle" />@this.error</div>
+                            </div>
+                        }
+
                         <div class="ec-savebar">
                             <span class="text-secondary d-none d-lg-inline">Neuložené změny</span>
                             <div class="ec-savebar-actions">
@@ -257,13 +276,6 @@
                                 </button>
                             </div>
                         </div>
-
-                        @if (this.error is not null)
-                        {
-                            <div class="ec-savebar-error">
-                                <div class="alert alert-danger mb-0" role="alert"><Icon CssClass="icon me-2" IconType="AppIcons.AlertTriangle" />@this.error</div>
-                            </div>
-                        }
                     }
                 </div>
             </CascadingValue>
@@ -353,6 +365,8 @@
             this.caseContact = detail.CaseContact;
 
             this.act = detail;
+
+            this.StateHasChanged();
         }
         catch (Exception exception) when (exception is ApiException or HttpRequestException)
         {
