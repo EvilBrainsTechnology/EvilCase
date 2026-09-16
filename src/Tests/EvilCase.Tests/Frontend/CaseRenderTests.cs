@@ -58,7 +58,8 @@ public class CaseRenderTests
 
         // FilesCard binds the card-wide file drop through this module on first render.
         var dropModule = ctx.JSInterop.SetupModule("./js/file-drop.js");
-        dropModule.SetupModule("bindCardDrop", static _ => true);
+        dropModule.SetupVoid("bindCardDrop", static _ => true).SetVoidResult();
+        dropModule.SetupVoid("unbindCardDrop", static _ => true).SetVoidResult();
 
         // The regression: before the fix, ValidationMessage sat outside the CascadingValue that
         // carries the EditContext and threw a null cascading-parameter exception on this render.

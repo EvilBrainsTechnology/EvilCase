@@ -1,6 +1,10 @@
 // Forwards a drop anywhere on the card to the hidden InputFile: InputFile only reacts to a native
 // "change" event on its own <input>, so a card-wide drop has to set that input's files and dispatch one.
-export function bindCardDrop(cardElement, inputWrapperElement, dotNetRef) {
+const bindings = new Map();
+
+const dragOverClass = "is-dragover";
+
+export function bindCardDrop(cardElement, inputWrapperElement) {
     const inputElement = inputWrapperElement.querySelector("input[type=file]");
 
     function prevent(event) {
@@ -9,7 +13,7 @@ export function bindCardDrop(cardElement, inputWrapperElement, dotNetRef) {
 
     function enter(event) {
         prevent(event);
-        dotNetRef.invokeMethodAsync("SetDragOver", true);
+        cardElement.classList.add(dragOverClass);
     }
 
     function leave(event) {
@@ -20,12 +24,15 @@ export function bindCardDrop(cardElement, inputWrapperElement, dotNetRef) {
         if (event.relatedTarget && cardElement.contains(event.relatedTarget))
             return;
 
-        dotNetRef.invokeMethodAsync("SetDragOver", false);
+        cardElement.classList.remove(dragOverClass);
     }
 
     function drop(event) {
         prevent(event);
-        dotNetRef.invokeMethodAsync("SetDragOver", false);
+        cardElement.classList.remove(dragOverClass);
+
+        if (!document.contains(cardElement))
+            return;
 
         if (event.dataTransfer && event.dataTransfer.files.length > 0) {
             inputElement.files = event.dataTransfer.files;
@@ -38,14 +45,20 @@ export function bindCardDrop(cardElement, inputWrapperElement, dotNetRef) {
     cardElement.addEventListener("dragleave", leave);
     cardElement.addEventListener("drop", drop);
 
-    // The caller awaits this as an IJSObjectReference, which only deserializes from a tracked
-    // JS object reference, never a plain object.
-    return DotNet.createJSObjectReference({
-        dispose() {
-            cardElement.removeEventListener("dragenter", enter);
-            cardElement.removeEventListener("dragover", prevent);
-            cardElement.removeEventListener("dragleave", leave);
-            cardElement.removeEventListener("drop", drop);
-        },
-    });
+    bindings.set(cardElement, { enter, prevent, leave, drop });
+}
+
+export function unbindCardDrop(cardElement) {
+    const handlers = bindings.get(cardElement);
+
+    if (!handlers)
+        return;
+
+    cardElement.removeEventListener("dragenter", handlers.enter);
+    cardElement.removeEventListener("dragover", handlers.prevent);
+    cardElement.removeEventListener("dragleave", handlers.leave);
+    cardElement.removeEventListener("drop", handlers.drop);
+    cardElement.classList.remove(dragOverClass);
+
+    bindings.delete(cardElement);
 }

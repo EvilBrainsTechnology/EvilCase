@@ -277,10 +277,14 @@ body {
     inset: 0;
     border-radius: var(--ec-card-radius);
     background: color-mix(in srgb, var(--tblr-primary) 8%, transparent);
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
     pointer-events: none;
+}
+
+.ec-dropcard.is-dragover .ec-dropveil {
+    display: flex;
 }
 
 .ec-droppill {
