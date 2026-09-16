@@ -2,7 +2,7 @@ using EvilBrains.EvilCase.Api.Contract.Lists;
 
 namespace EvilBrains.EvilCase.Api.Contract.Cases;
 
-public sealed record CaseListRequest : ListRequest<CaseSortKey>
+public sealed record CaseListRequest : SortableListRequest<CaseSortKey>
 {
     public override CaseSortKey Sort { get; init; } = CaseSortKey.Date;
 

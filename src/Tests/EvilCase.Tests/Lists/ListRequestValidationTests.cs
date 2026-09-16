@@ -64,16 +64,29 @@ public class ListRequestValidationTests
     }
 
     [Test]
-    public void TheSharedRequestCarriesThePageAndTheSortAndNoFilter()
+    public void TheSharedRequestCarriesThePageAndNoFilter()
     {
-        var declared = typeof(ListRequest<CaseSortKey>)
+        var declared = typeof(ListRequest)
             .GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
             .Select(static property => property.Name);
 
         Assert.That(
             declared,
-            Is.EquivalentTo(["Skip", "Take", "SortDirection", "Sort"]),
-            "a list request shares the page, the sort key and its direction; a filter belongs to the list that narrows by it");
+            Is.EquivalentTo([nameof(ListRequest.Skip), nameof(ListRequest.Take)]),
+            "every list shares the page; a filter belongs to the list that narrows by it");
+    }
+
+    [Test]
+    public void TheSortableRequestAddsTheSortKeyAndItsDirection()
+    {
+        var declared = typeof(SortableListRequest<CaseSortKey>)
+            .GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+            .Select(static property => property.Name);
+
+        Assert.That(
+            declared,
+            Is.EquivalentTo([nameof(SortableListRequest<>.Sort), nameof(SortableListRequest<>.SortDirection)]),
+            "a list the reader sorts carries the sort key and its direction, the page it already has");
     }
 
     [Test]
@@ -112,8 +125,7 @@ public class ListRequestValidationTests
         }
     }
 
-    private static List<ValidationResult> Validate<TSortKey>(ListRequest<TSortKey> request)
-        where TSortKey : struct, Enum
+    private static List<ValidationResult> Validate(ListRequest request)
     {
         var results = new List<ValidationResult>();
         Validator.TryValidateObject(request, new ValidationContext(request), results, validateAllProperties: true);

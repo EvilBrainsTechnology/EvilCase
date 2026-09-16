@@ -3,7 +3,7 @@ using EvilBrains.EvilCase.Domain.Acts;
 
 namespace EvilBrains.EvilCase.Api.Contract.Acts;
 
-public sealed record ActListRequest : ListRequest<ActSortKey>
+public sealed record ActListRequest : SortableListRequest<ActSortKey>
 {
     public override ActSortKey Sort { get; init; } = ActSortKey.Date;
 

@@ -4,13 +4,8 @@ using Microsoft.AspNetCore.Components;
 
 namespace EvilBrains.EvilCase.App.Components.Lists;
 
-/// <summary>
-/// The date range and the labels the case list and the act list narrow by; the contact list
-/// narrows by neither.
-/// </summary>
-public abstract class FilteredListComponent<TFilter, TSortKey> : ListComponent<TFilter, TSortKey>
-    where TFilter : ListRequest<TSortKey>
-    where TSortKey : struct, Enum
+public abstract class FilteredListComponent<TSortRequest> : ListComponent<TSortRequest>
+    where TSortRequest : ListRequest
 {
     protected DateOnly? From { get; private set; }
 
