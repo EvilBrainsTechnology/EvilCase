@@ -3,7 +3,6 @@ using Bunit;
 using EvilBrains.ApiClient;
 using EvilBrains.EvilCase.Api.Client;
 using EvilBrains.EvilCase.Api.Contract.Contacts;
-using EvilBrains.EvilCase.Api.Contract.Lists;
 using EvilBrains.EvilCase.App.Components.Lists;
 using EvilBrains.EvilCase.Domain.Contacts;
 using Microsoft.AspNetCore.Components;

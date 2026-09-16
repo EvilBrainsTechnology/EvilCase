@@ -155,6 +155,23 @@ public class CaseListRenderTests
     }
 
     [Test]
+    public async Task AnEqualFilterHandedAgainLoadsNothingAgain()
+    {
+        await using var ctx = new BunitContext();
+        Serve(ctx, out var requests);
+
+        var component = Render(ctx, [CaseColumn.Date]);
+
+        await component.WaitForElementAsync("tbody tr");
+
+        // The host builds its filter in a property, so every one of its renders hands over a new
+        // record of the same values.
+        component.Render(static parameters => parameters.Add(static list => list.Filter, new CaseListRequest { Take = 20 }));
+
+        Assert.That(requests, Has.Count.EqualTo(1), "a filter the list already loaded reloads nothing");
+    }
+
+    [Test]
     public void TheFailureStateReplacesTheTableAndNamesWhatFailed()
     {
         using var ctx = new BunitContext();
