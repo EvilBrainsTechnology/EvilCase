@@ -1,6 +1,8 @@
 using System.ComponentModel.DataAnnotations;
+using System.Reflection;
 using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.Api.Contract.Cases;
+using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Api.Contract.Lists;
 
 namespace EvilBrains.EvilCase.Tests.Lists;
@@ -32,16 +34,59 @@ public class ListRequestValidationTests
     }
 
     [Test]
-    public void TheLimitDeclaredOnTheSharedRequestBindsTheActListToo()
+    public void TheLimitsDeclaredOnTheSharedRequestBindTheActListToo()
     {
         var refused = Validate(new ActListRequest { Take = 101 });
+        var negative = Validate(new ActListRequest { Skip = -1, Take = 20 });
         var accepted = Validate(new ActListRequest { Skip = 40, Take = 100 });
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(refused.Single().MemberNames, Does.Contain(nameof(ListRequest.Take)), "every list takes its page limit from the shared request");
+            Assert.That(negative.Single().MemberNames, Does.Contain(nameof(ListRequest.Skip)), "every list takes its page start from the shared request");
             Assert.That(accepted, Is.Empty);
         }
+    }
+
+    [Test]
+    public void TheLimitsDeclaredOnTheSharedRequestBindTheContactListToo()
+    {
+        var refused = Validate(new ContactListRequest { Take = 101 });
+        var negative = Validate(new ContactListRequest { Skip = -1, Take = 20 });
+        var accepted = Validate(new ContactListRequest { Skip = 40, Take = 100 });
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(refused.Single().MemberNames, Does.Contain(nameof(ListRequest.Take)), "every list takes its page limit from the shared request");
+            Assert.That(negative.Single().MemberNames, Does.Contain(nameof(ListRequest.Skip)), "every list takes its page start from the shared request");
+            Assert.That(accepted, Is.Empty);
+        }
+    }
+
+    [Test]
+    public void TheSharedRequestCarriesThePageAndTheDirectionAndNoFilter()
+    {
+        var declared = typeof(ListRequest)
+            .GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+            .Select(static property => property.Name);
+
+        Assert.That(
+            declared,
+            Is.EquivalentTo(new[] { nameof(ListRequest.Skip), nameof(ListRequest.Take), nameof(ListRequest.SortDirection) }),
+            "a list request shares the page and the direction; a filter belongs to the list that narrows by it");
+    }
+
+    [Test]
+    public void TheContactListNarrowsByItsOwnSearchAndKindAlone()
+    {
+        var declared = typeof(ContactListRequest)
+            .GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+            .Select(static property => property.Name);
+
+        Assert.That(
+            declared,
+            Is.EquivalentTo(new[] { nameof(ContactListRequest.Search), nameof(ContactListRequest.Kind), nameof(ContactListRequest.Sort) }),
+            "a contact carries no label, no contact and no date, so the contact list never takes such a filter");
     }
 
     private static List<ValidationResult> Validate(ListRequest request)

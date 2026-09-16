@@ -26,9 +26,9 @@ Tvary API a klienta.
   odpovídají 204.
 - V těle jde hodnota výčtu jako název; číslo ani neznámý název se nepřijme (400). V query
   stringu ji váže framework, který číslo bere.
-- Každý výpis bere tytéž parametry: hledaný text, rozsah dat, kontakt, štítky, směr řazení
-  a stránku; k tomu vlastní řadicí klíč a zúžení své agendy. Výpis kontaktů z nich uplatňuje jen
-  hledaný text a typ kontaktu — kontakt nenese štítek, kontakt ani datum.
+- Každý výpis bere stránku, směr řazení, svůj řadicí klíč a hledaný text; k tomu zúžení své
+  agendy. Rozsah dat, kontakt a štítky berou výpisy spisů a úkonů; výpis kontaktů je nezná,
+  protože kontakt nenese štítek, kontakt ani datum. Výpis nepřijímá parametr, který neuplatní.
 - Stránka je povinná: `Skip` od nuly, `Take` od 1 do 100. Výpis bez `Take` je 400. Odpověď nese
   vedle položek celkový počet všeho, co filtr nechal, bez ohledu na stránku.
 - Filtr štítků bere více štítků; položka musí nést všechny.

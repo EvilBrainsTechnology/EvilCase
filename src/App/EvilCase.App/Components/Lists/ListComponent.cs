@@ -1,5 +1,4 @@
 using EvilBrains.ApiClient;
-using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.Api.Contract.Lists;
 using EvilBrains.EvilCase.App.Search;
 using Microsoft.AspNetCore.Components;
@@ -20,12 +19,6 @@ public abstract class ListComponent : ComponentBase, IDisposable
 
     protected string SearchText { get; private set; } = "";
 
-    protected DateOnly? From { get; private set; }
-
-    protected DateOnly? To { get; private set; }
-
-    protected IReadOnlyList<LabelItem> SelectedLabels { get; private set; } = [];
-
     protected ListSortDirection Direction { get; set; } = ListSortDirection.Descending;
 
     protected int Skip { get; private set; }
@@ -37,8 +30,6 @@ public abstract class ListComponent : ComponentBase, IDisposable
     protected string? Failure { get; private set; }
 
     protected string? Search => string.IsNullOrWhiteSpace(this.SearchText) ? null : this.SearchText;
-
-    protected IReadOnlyList<Guid> LabelIds => [.. this.SelectedLabels.Select(static label => label.LabelId)];
 
     protected abstract int PageSize { get; }
 
@@ -96,27 +87,6 @@ public abstract class ListComponent : ComponentBase, IDisposable
         await this.Load(debounce: true);
     }
 
-    protected async Task OnFromInput(ChangeEventArgs args)
-    {
-        this.From = ParseDate(args);
-
-        await this.ReloadFirstPage();
-    }
-
-    protected async Task OnToInput(ChangeEventArgs args)
-    {
-        this.To = ParseDate(args);
-
-        await this.ReloadFirstPage();
-    }
-
-    protected async Task OnLabelsChanged(IReadOnlyList<LabelItem> labels)
-    {
-        this.SelectedLabels = labels;
-
-        await this.ReloadFirstPage();
-    }
-
     protected async Task ToPreviousPage()
     {
         this.Skip = Math.Max(0, this.Skip - this.PageSize);
@@ -129,11 +99,6 @@ public abstract class ListComponent : ComponentBase, IDisposable
         this.Skip += this.PageSize;
 
         await this.Load(debounce: false);
-    }
-
-    private static DateOnly? ParseDate(ChangeEventArgs args)
-    {
-        return DateOnly.TryParse(args.Value as string, CultureInfo.InvariantCulture, out var date) ? date : null;
     }
 
     private async Task Load(bool debounce)

@@ -5,6 +5,8 @@ namespace EvilBrains.EvilCase.Api.Contract.Contacts;
 
 public sealed record ContactListRequest : ListRequest
 {
+    public string? Search { get; init; }
+
     public ContactKind? Kind { get; init; }
 
     public ContactSortKey Sort { get; init; } = ContactSortKey.Name;

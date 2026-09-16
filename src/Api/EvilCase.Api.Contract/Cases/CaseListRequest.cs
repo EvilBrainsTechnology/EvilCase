@@ -4,6 +4,16 @@ namespace EvilBrains.EvilCase.Api.Contract.Cases;
 
 public sealed record CaseListRequest : ListRequest
 {
+    public string? Search { get; init; }
+
+    public DateOnly? From { get; init; }
+
+    public DateOnly? To { get; init; }
+
+    public Guid? ContactId { get; init; }
+
+    public IReadOnlyList<Guid> LabelIds { get; init; } = [];
+
     public CaseStatusFilter Status { get; init; } = CaseStatusFilter.Open;
 
     /// <summary>
