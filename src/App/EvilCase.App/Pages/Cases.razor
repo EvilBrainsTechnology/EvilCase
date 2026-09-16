@@ -25,32 +25,27 @@
     <div class="container-xl">
         <div class="card">
             <div class="card-body border-bottom py-3">
-                <div class="row g-2">
-                    <div class="col-12 col-lg">
-                        <div class="input-icon">
-                            <span class="input-icon-addon">
-                                <Icon CssClass="icon" IconType="AppIcons.Search" />
-                            </span>
-                            <input type="search" class="form-control" aria-label="Hledat ve spisech"
-                                   placeholder="Hledat v názvu a popisu"
-                                   value="@this.search" @oninput="this.OnSearchInput" />
-                        </div>
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <div class="input-icon flex-fill ec-search-field">
+                        <span class="input-icon-addon">
+                            <Icon CssClass="icon" IconType="AppIcons.Search" />
+                        </span>
+                        <input type="search" class="form-control" aria-label="Hledat ve spisech"
+                               placeholder="Hledat v názvu a popisu"
+                               value="@this.search" @oninput="this.OnSearchInput" />
                     </div>
-                    <div class="col-12 col-lg-auto">
-                        <select class="form-select" aria-label="Stav spisu"
-                                @bind="this.status" @bind:after="this.Reload">
-                            @foreach (var value in Filters)
-                            {
-                                <option value="@value">@CaseStatusDisplay.FilterText(value)</option>
-                            }
-                        </select>
+
+                    <div class="form-check form-switch mb-0">
+                        <input class="form-check-input" type="checkbox" id="cases-root-only"
+                               @bind="this.rootOnly" @bind:after="this.Reload" />
+                        <label class="form-check-label" for="cases-root-only">Jen rodičovské spisy</label>
                     </div>
-                    <div class="col-12 col-lg-auto d-flex align-items-center">
-                        <div class="form-check form-switch mb-0">
-                            <input class="form-check-input" type="checkbox" id="cases-root-only"
-                                   @bind="this.rootOnly" @bind:after="this.Reload" />
-                            <label class="form-check-label" for="cases-root-only">Jen rodičovské spisy</label>
-                        </div>
+
+                    <div class="ec-segment" role="group" aria-label="Stav spisu">
+                        @foreach (var value in Filters)
+                        {
+                            <button type="button" class="@(this.status == value ? "active" : "")" @onclick="() => this.SetStatus(value)">@CaseStatusDisplay.FilterText(value)</button>
+                        }
                     </div>
                 </div>
             </div>
@@ -102,7 +97,7 @@
                                         <Status BackgroundColor="CaseStatusDisplay.Color(item.Status)" Lite="true">@CaseStatusDisplay.Text(item.Status)</Status>
                                     </td>
                                     <td class="text-nowrap"><LabelDots Labels="item.Labels" /></td>
-                                    <td class="text-nowrap">@item.CaseNumber</td>
+                                    <td class="text-nowrap ec-mono">@item.CaseNumber</td>
                                 </tr>
                             }
                         </tbody>
@@ -121,7 +116,15 @@
 </div>
 
 @code {
-    private static readonly CaseStatusFilter[] Filters = Enum.GetValues<CaseStatusFilter>();
+    // The segmented control's order (Otevřené, Aktivní, Čeká na úřad, Uzavřené, Všechny), not the enum's.
+    private static readonly CaseStatusFilter[] Filters =
+    [
+        CaseStatusFilter.Open,
+        CaseStatusFilter.Active,
+        CaseStatusFilter.WaitingOnAuthority,
+        CaseStatusFilter.Closed,
+        CaseStatusFilter.All,
+    ];
 
     private readonly SearchDebouncer debouncer = new();
 
@@ -150,6 +153,13 @@
 
     private Task Reload()
     {
+        return this.LoadCases(debounce: false);
+    }
+
+    private Task SetStatus(CaseStatusFilter value)
+    {
+        this.status = value;
+
         return this.LoadCases(debounce: false);
     }
 

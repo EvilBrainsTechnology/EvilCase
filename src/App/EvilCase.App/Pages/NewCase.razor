@@ -36,72 +36,93 @@
         }
         else
         {
-            <div class="card">
-                <EditForm Model="this.model" OnValidSubmit="this.SubmitCase">
-                    <DataAnnotationsValidator />
+            <EditForm Model="this.model" OnValidSubmit="this.SubmitCase">
+                <DataAnnotationsValidator />
 
-                    <div class="card-body">
+                <div class="ec-layout">
+                    <div class="ec-main">
+                        <div>
+                            <label class="visually-hidden" for="case-title">Název</label>
+                            <input id="case-title" class="form-control ec-title-input" placeholder="Název spisu" autofocus @bind="this.model.Title" />
+                            <ValidationMessage For="() => this.model.Title" class="invalid-feedback d-block" />
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.FileText" />Popis</h3></div>
+                            <div class="card-body">
+                                <label class="visually-hidden" for="case-description">Popis</label>
+                                <InputTextArea id="case-description" class="form-control" rows="8" @bind-Value="this.model.Description" />
+                                <ValidationMessage For="() => this.model.Description" class="invalid-feedback d-block" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <aside class="ec-sidebar d-flex flex-column gap-3">
+                        <div class="card">
+                            <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.ListDetails" />Údaje</h3></div>
+                            <div class="card-body d-flex flex-column gap-3">
+                                <div>
+                                    <span class="ec-field-label">Spisová značka</span>
+                                    <div class="text-secondary">Přidělí se po založení.</div>
+                                </div>
+                                <div>
+                                    <label class="ec-field-label" for="case-date">Datum spisu</label>
+                                    <InputDate id="case-date" class="form-control" @bind-Value="this.model.Date" />
+                                    <ValidationMessage For="() => this.model.Date" class="invalid-feedback d-block" />
+                                </div>
+                                <div>
+                                    <label class="ec-field-label" for="case-contact">Kontakt</label>
+                                    <ContactPicker InputId="case-contact" @bind-Selected="this.model.Contact" />
+                                    <ValidationMessage For="() => this.model.Contact" class="invalid-feedback d-block" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.Tag" />Štítky</h3></div>
+                            <div class="card-body">
+                                <label class="visually-hidden" for="case-labels">Štítky</label>
+                                <LabelPicker InputId="case-labels" @bind-Selected="this.model.Labels" />
+                            </div>
+                        </div>
+
                         @if (this.parentCase is not null)
                         {
-                            <div class="mb-3">
-                                <div class="form-label">Nadřízený spis</div>
-                                <div class="form-control-plaintext">
+                            <div class="card">
+                                <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.Folders" />Hierarchie</h3></div>
+                                <div class="card-body">
+                                    <div class="ec-field-label">Nadřízený spis</div>
                                     <a href="@($"/cases/{this.parentCase.CaseId}")">@this.parentCase.CaseNumber — @this.parentCase.Title</a>
                                 </div>
                             </div>
                         }
+                    </aside>
 
-                        <div class="mb-3">
-                            <label class="form-label" for="case-date">Datum spisu</label>
-                            <InputDate id="case-date" class="form-control" @bind-Value="this.model.Date" />
-                            <ValidationMessage For="() => this.model.Date" class="invalid-feedback d-block" />
+                    <div class="ec-savebar">
+                        <div class="ec-savebar-actions">
+                            <a href="@(this.ParentCaseId is { } parentId ? $"/cases/{parentId}" : "/cases")" class="btn"><Icon CssClass="icon" IconType="AppIcons.X" />Zrušit</a>
+                            <button id="case-submit" type="submit" class="btn btn-primary" disabled="@this.busy">
+                                @if (this.busy)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                                }
+                                else
+                                {
+                                    <Icon CssClass="icon" IconType="AppIcons.Plus" />
+                                }
+                                Založit spis
+                            </button>
                         </div>
+                    </div>
 
-                        <div class="mb-3">
-                            <label class="form-label" for="case-title">Název</label>
-                            <InputText id="case-title" class="form-control" autofocus @bind-Value="this.model.Title" />
-                            <ValidationMessage For="() => this.model.Title" class="invalid-feedback d-block" />
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label" for="case-description">Popis</label>
-                            <InputTextArea id="case-description" class="form-control" rows="5" @bind-Value="this.model.Description" />
-                            <ValidationMessage For="() => this.model.Description" class="invalid-feedback d-block" />
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label" for="case-contact">Kontakt</label>
-                            <ContactPicker InputId="case-contact" @bind-Selected="this.model.Contact" />
-                            <ValidationMessage For="() => this.model.Contact" class="invalid-feedback d-block" />
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label" for="case-labels">Štítky</label>
-                            <LabelPicker InputId="case-labels" @bind-Selected="this.model.Labels" />
-                        </div>
-
-                        @if (this.error is not null)
-                        {
+                    @if (this.error is not null)
+                    {
+                        <div class="ec-savebar-error">
                             <div class="alert alert-danger mb-0" role="alert"><Icon CssClass="icon me-2" IconType="AppIcons.AlertTriangle" />@this.error</div>
-                        }
-                    </div>
-
-                    <div class="card-footer form-actions-sticky d-flex justify-content-end gap-2">
-                        <a href="@(this.ParentCaseId is { } parentId ? $"/cases/{parentId}" : "/cases")" class="btn"><Icon CssClass="icon" IconType="AppIcons.X" />Zrušit</a>
-                        <button id="case-submit" type="submit" class="btn btn-primary" disabled="@this.busy">
-                            @if (this.busy)
-                            {
-                                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-                            }
-                            else
-                            {
-                                <Icon CssClass="icon" IconType="AppIcons.Plus" />
-                            }
-                            Založit spis
-                        </button>
-                    </div>
-                </EditForm>
-            </div>
+                        </div>
+                    }
+                </div>
+            </EditForm>
         }
     </div>
 </div>

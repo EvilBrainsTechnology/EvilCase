@@ -1,5 +1,6 @@
 using EvilBrains.EvilCase.Business.Acts;
 using EvilBrains.EvilCase.Domain.Acts;
+using EvilBrains.EvilCase.Domain.Cases;
 using EvilBrains.EvilCase.Domain.Contacts;
 using EvilBrains.EvilCase.Tests.Data;
 
@@ -39,7 +40,7 @@ public class ActDetailQueryTests : TenantFixture
     [Test]
     public async Task TheDetailNamesTheCaseTheActSitsIn()
     {
-        var @case = await this.Tenant.AddCase(Day);
+        var @case = await this.Tenant.AddCase(Day, status: CaseStatus.WaitingOnAuthority);
         var act = await this.Tenant.AddAct(@case, Day);
 
         var detail = await this.Tenant.Context.Acts.DetailOf(@case.Id, act.Id, CancellationToken.None);
@@ -48,6 +49,8 @@ public class ActDetailQueryTests : TenantFixture
         {
             Assert.That(detail!.CaseId, Is.EqualTo(@case.Id), "the detail carries the case id the screens build their links from");
             Assert.That(detail.CaseNumber, Is.EqualTo(@case.CaseNumber), "the detail carries the case number the link back to the case reads");
+            Assert.That(detail.CaseDate, Is.EqualTo(@case.Date), "the sidebar's Spis link reads the case date");
+            Assert.That(detail.CaseStatus, Is.EqualTo(CaseStatus.WaitingOnAuthority), "the sidebar's Spis link reads the case status");
         }
     }
 

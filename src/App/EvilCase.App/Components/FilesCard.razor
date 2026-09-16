@@ -1,45 +1,52 @@
-@using System.Net
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Contract.Files
 @using Microsoft.JSInterop
 @using TabBlazor.Services
+@implements IAsyncDisposable
 @inject IModalService ModalService
+@inject IJSRuntime JSRuntime
 @inject ILogger<FilesCard> Logger
 
-<div class="card">
+@* The card is itself the drop target (SDD-016 §5): the hidden InputFile below receives a card-wide
+   drop through file-drop.js and uploads it the same way a picked file uploads. *@
+<div class="card ec-dropcard @(this.dragOver ? "is-dragover" : "")" @ref="this.cardRef">
     <div class="card-header">
-        <h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.Paperclip" />Soubory</h3>
-    </div>
-
-    <div class="card-body">
-        <div class="file-drop-zone @(this.dragging ? "is-dragging" : "")"
-             @ondragenter:preventDefault
-             @ondragover:preventDefault
-             @ondragleave:preventDefault
-             @ondragenter="() => this.dragging = true"
-             @ondragleave="() => this.dragging = false"
-             @ondrop="() => this.dragging = false">
-            <Icon CssClass="icon" IconType="AppIcons.Upload" />
-            <div>Přetáhněte soubory sem nebo je vyberte.</div>
-            <div class="text-secondary">Nejvýše @(FileSizeDisplay.Text(FileLimits.MaxUploadBytes)) na soubor.</div>
-            <InputFile multiple OnChange="this.OnFilesSelected" aria-label="Vybrat soubory" />
+        <h3 class="card-title">
+            <Icon CssClass="icon me-2" IconType="AppIcons.Paperclip" />Soubory
+            @if (!this.loading && this.listFailure is null)
+            {
+                <span class="badge bg-secondary-lt ms-2">@this.items.Count</span>
+            }
+        </h3>
+        <div class="card-actions">
+            <button id="files-upload" type="button" class="btn btn-primary" @onclick="this.OpenUploadModal">
+                <Icon CssClass="icon" IconType="AppIcons.Upload" />Nahrát
+            </button>
         </div>
-
-        @if (this.uploadTotal > 0)
-        {
-            <div class="mt-2 text-secondary">Nahrávám @this.uploadIndex / @this.uploadTotal: @this.uploadName</div>
-        }
-
-        @foreach (var failure in this.failures)
-        {
-            <div class="alert alert-danger mt-2" role="alert"><Icon CssClass="icon me-2" IconType="AppIcons.AlertTriangle" />@failure</div>
-        }
-
-        @if (this.error is not null)
-        {
-            <div class="alert alert-danger mt-2" role="alert"><Icon CssClass="icon me-2" IconType="AppIcons.AlertTriangle" />@this.error</div>
-        }
     </div>
+
+    <div class="visually-hidden" aria-hidden="true" @ref="this.dropInputWrapper">
+        <InputFile multiple tabindex="-1" OnChange="this.OnDropFilesSelected" aria-label="Přetáhnout soubory" />
+    </div>
+
+    @foreach (var failure in this.dropFailures)
+    {
+        <div class="card-body pb-0">
+            <div class="alert alert-danger mb-0" role="alert"><Icon CssClass="icon me-2" IconType="AppIcons.AlertTriangle" />@failure</div>
+        </div>
+    }
+
+    @if (this.dropUploadTotal > 0)
+    {
+        <div class="card-body pb-0 text-secondary">Nahrávám @this.dropUploadIndex / @this.dropUploadTotal: @this.dropUploadName</div>
+    }
+
+    @if (this.error is not null)
+    {
+        <div class="card-body pb-0">
+            <div class="alert alert-danger mb-0" role="alert"><Icon CssClass="icon me-2" IconType="AppIcons.AlertTriangle" />@this.error</div>
+        </div>
+    }
 
     @if (this.loading)
     {
@@ -60,67 +67,43 @@
         <div class="empty">
             <div class="empty-icon"><Icon IconType="AppIcons.Paperclip" /></div>
             <p class="empty-title">Žádné soubory</p>
-            <p class="empty-subtitle text-secondary">Zatím tu není žádný soubor.</p>
+            <p class="empty-subtitle text-secondary">Přetáhněte soubory sem, nebo je nahrajte tlačítkem Nahrát.</p>
         </div>
     }
     else
     {
-        <div class="d-none d-lg-block">
-            <table class="table card-table table-vcenter">
-                <thead>
-                    <tr>
-                        <th>Název</th>
-                        <th>Velikost</th>
-                        <th>Nahráno</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var file in this.items)
-                    {
-                        <tr>
-                            <td>@file.FileName</td>
-                            <td>@FileSizeDisplay.Text(file.SizeBytes)</td>
-                            <td>@MomentDisplay.Text(file.Created)</td>
-                            <td class="text-end">
-                                <button type="button" class="btn btn-sm" aria-label="Stáhnout soubor" disabled="@(this.downloadingFileId == file.FileId)" @onclick="() => this.Download(file)">
-                                    <Icon IconType="AppIcons.Download" />
-                                </button>
-                                <button type="button" class="btn btn-sm btn-danger ms-2" aria-label="Smazat soubor" @onclick="() => this.ConfirmDelete(file)">
-                                    <Icon IconType="AppIcons.Trash" />
-                                </button>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
+        @foreach (var file in this.items)
+        {
+            <div class="ec-filerow">
+                <button type="button" class="ec-filerow-link" aria-label="@($"Stáhnout {file.FileName}")" disabled="@(this.downloadingFileId == file.FileId)" @onclick="() => this.Download(file)">
+                    <span class="ec-filerow-icon" aria-hidden="true">@FileExtensionDisplay.Text(file.FileName)</span>
+                    <span class="ec-min-w-0 flex-fill">
+                        <span class="d-block text-truncate">@file.FileName</span>
+                        <span class="ec-filerow-meta ec-num">@FileSizeDisplay.Text(file.SizeBytes) · @MomentDisplay.Text(file.Created)</span>
+                    </span>
+                </button>
+                <button type="button" class="btn btn-icon btn-ghost-danger" aria-label="@($"Smazat {file.FileName}")" @onclick="() => this.ConfirmDelete(file)">
+                    <Icon IconType="AppIcons.Trash" />
+                </button>
+            </div>
+        }
+    }
 
-        <div class="d-lg-none">
-            @foreach (var file in this.items)
-            {
-                <div class="card mb-2">
-                    <div class="card-body">
-                        <div>@file.FileName</div>
-                        <div class="text-secondary">@FileSizeDisplay.Text(file.SizeBytes) · @MomentDisplay.Text(file.Created)</div>
-                        <div class="mt-2">
-                            <button type="button" class="btn btn-sm" aria-label="Stáhnout soubor" disabled="@(this.downloadingFileId == file.FileId)" @onclick="() => this.Download(file)">
-                                <Icon IconType="AppIcons.Download" />
-                            </button>
-                            <button type="button" class="btn btn-sm btn-danger ms-2" aria-label="Smazat soubor" @onclick="() => this.ConfirmDelete(file)">
-                                <Icon IconType="AppIcons.Trash" />
-                            </button>
-                        </div>
-                    </div>
+    @if (this.dragOver)
+    {
+        <div class="ec-dropveil">
+            <div class="ec-droppill">
+                <Icon CssClass="icon" IconType="AppIcons.Upload" />
+                <div>
+                    <div>Pustit soubory sem</div>
+                    <div class="ec-filerow-meta">Nejvýše @(FileSizeDisplay.Text(FileLimits.MaxUploadBytes)) na soubor.</div>
                 </div>
-            }
+            </div>
         </div>
     }
 </div>
 
 @code {
-    private const int MaxBatchFiles = 100;
-
     [Parameter, EditorRequired]
     public required Func<CancellationToken, Task<IReadOnlyList<FileListItem>>> LoadFiles { get; set; }
 
@@ -139,19 +122,31 @@
     [Parameter, EditorRequired]
     public required string OwnerGoneError { get; set; }
 
-    private readonly List<string> failures = [];
+    private readonly List<string> dropFailures = [];
+
+    private ElementReference cardRef;
+
+    private ElementReference dropInputWrapper;
+
+    private IJSObjectReference? dropModule;
+
+    private IJSObjectReference? dropBinding;
+
+    private DotNetObjectReference<FilesCard>? dropRef;
+
+    private bool disposed;
 
     private IReadOnlyList<FileListItem> items = [];
 
-    private bool dragging;
+    private bool dragOver;
 
     private bool loading = true;
 
-    private int uploadIndex;
+    private int dropUploadIndex;
 
-    private int uploadTotal;
+    private int dropUploadTotal;
 
-    private string uploadName = "";
+    private string dropUploadName = "";
 
     private Guid? downloadingFileId;
 
@@ -163,6 +158,80 @@
     {
         await this.ReloadFiles();
         this.loading = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        // A navigation away while this is in flight aborts the JS interop call; the card-wide
+        // drop is then simply unavailable, never a broken page. A dispose racing either await is
+        // handed the just-awaited object itself, since DisposeAsync never saw it to clean it up.
+        try
+        {
+            var module = await this.JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/file-drop.js");
+
+            if (this.disposed)
+            {
+                await module.DisposeAsync();
+                return;
+            }
+
+            this.dropModule = module;
+
+            var dotNetRef = DotNetObjectReference.Create(this);
+            this.dropRef = dotNetRef;
+
+            var binding = await module.InvokeAsync<IJSObjectReference>("bindCardDrop", this.cardRef, this.dropInputWrapper, dotNetRef);
+
+            if (this.disposed)
+            {
+                await binding.InvokeVoidAsync("dispose");
+                await binding.DisposeAsync();
+                return;
+            }
+
+            this.dropBinding = binding;
+        }
+        catch (Exception exception) when (exception is JSException or JSDisconnectedException or OperationCanceledException)
+        {
+            this.Logger.LogWarning(exception, "Binding the card-wide file drop failed");
+        }
+    }
+
+    [JSInvokable]
+    public void SetDragOver(bool value)
+    {
+        this.dragOver = value;
+        this.StateHasChanged();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        this.disposed = true;
+
+        try
+        {
+            if (this.dropBinding is not null)
+            {
+                await this.dropBinding.InvokeVoidAsync("dispose");
+                await this.dropBinding.DisposeAsync();
+            }
+
+            if (this.dropModule is not null)
+            {
+                await this.dropModule.DisposeAsync();
+            }
+        }
+        catch (Exception exception) when (exception is JSException or JSDisconnectedException)
+        {
+            this.Logger.LogWarning(exception, "Disposing the card-wide file drop failed");
+        }
+        finally
+        {
+            this.dropRef?.Dispose();
+        }
     }
 
     private async Task ReloadFiles()
@@ -182,58 +251,38 @@
         }
     }
 
-    private async Task OnFilesSelected(InputFileChangeEventArgs args)
+    private Task OpenUploadModal()
     {
-        this.failures.Clear();
-        this.dragging = false;
-        this.uploadIndex = 0;
+        return this.ModalService.ShowAsync(
+            "Nahrát soubory",
+            new RenderComponent<FileUploadModal>()
+                .Set(component => component.UploadFile, this.UploadFile)
+                .Set(component => component.OwnerGoneError, this.OwnerGoneError)
+                .Set(component => component.OnUploaded, EventCallback.Factory.Create(this, this.ReloadFiles)),
+            new ModalOptions { Fullscreen = ModalFullscreen.BelowLarge });
+    }
 
-        if (args.FileCount > MaxBatchFiles)
-        {
-            this.failures.Add($"Najednou lze nahrát nejvýše {MaxBatchFiles} souborů.");
+    private async Task OnDropFilesSelected(InputFileChangeEventArgs args)
+    {
+        this.dropFailures.Clear();
+        this.dragOver = false;
+        this.dropUploadIndex = 0;
+        this.dropUploadTotal = args.FileCount;
 
-            return;
-        }
-
-        this.uploadTotal = args.FileCount;
-
-        foreach (var file in args.GetMultipleFiles(MaxBatchFiles))
-        {
-            this.uploadIndex++;
-            this.uploadName = file.Name;
-            this.StateHasChanged();
-
-            if (file.Size > FileLimits.MaxUploadBytes)
+        await FileBatchUploader.Run(
+            args,
+            this.UploadFile,
+            this.OwnerGoneError,
+            this.dropFailures,
+            (index, name) =>
             {
-                this.failures.Add($"{file.Name}: soubor je větší než {FileSizeDisplay.Text(FileLimits.MaxUploadBytes)}.");
-                continue;
-            }
+                this.dropUploadIndex = index;
+                this.dropUploadName = name;
+                this.StateHasChanged();
+            },
+            this.Logger);
 
-            try
-            {
-                await this.UploadFile(file, CancellationToken.None);
-            }
-            catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.RequestEntityTooLarge)
-            {
-                this.Logger.LogWarning(exception, "Uploading a file failed: too large");
-
-                this.failures.Add($"{file.Name}: soubor je větší než {FileSizeDisplay.Text(FileLimits.MaxUploadBytes)}.");
-            }
-            catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
-            {
-                this.Logger.LogWarning(exception, "Uploading a file failed: the owner is gone");
-
-                this.failures.Add($"{file.Name}: {this.OwnerGoneError}");
-            }
-            catch (Exception exception) when (exception is ApiException or HttpRequestException or IOException or JSException)
-            {
-                this.Logger.LogWarning(exception, "Uploading a file failed");
-
-                this.failures.Add($"{file.Name}: nahrání se nezdařilo.");
-            }
-        }
-
-        this.uploadTotal = 0;
+        this.dropUploadTotal = 0;
 
         await this.ReloadFiles();
     }

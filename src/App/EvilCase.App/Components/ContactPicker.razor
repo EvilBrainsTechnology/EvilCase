@@ -16,33 +16,36 @@
 }
 else
 {
-    <div class="input-group">
-        <input id="@this.InputId" type="search" class="form-control" placeholder="Hledat v názvu a ID datové schránky"
-               aria-label="Hledat kontakt" value="@this.search" @oninput="this.OnSearchInput" />
-        <button type="button" id="@($"{this.InputId}-new")" class="btn" @onclick="this.CreateContact"><Icon CssClass="icon" IconType="AppIcons.Plus" />Nový kontakt</button>
+    <div class="ec-picker">
+        <div class="input-group">
+            <input id="@this.InputId" type="search" class="form-control" placeholder="Hledat v názvu a ID datové schránky"
+                   aria-label="Hledat kontakt" value="@this.search" @oninput="this.OnSearchInput" @onkeydown="this.OnKeyDown" />
+            <button type="button" id="@($"{this.InputId}-new")" class="btn" @onclick="this.CreateContact"><Icon CssClass="icon" IconType="AppIcons.Plus" />Nový kontakt</button>
+        </div>
+
+        @if (!this.closed && this.matches.Count > 0)
+        {
+            <div class="dropdown-menu show ec-picker-menu">
+                @foreach (var match in this.matches)
+                {
+                    <button type="button" class="dropdown-item" @onclick="() => this.Select(match)">
+                        @match.Name
+                        <span class="text-secondary ms-2">@ContactKindDisplay.Text(match.Kind)</span>
+                        @if (!string.IsNullOrWhiteSpace(match.DataBoxId))
+                        {
+                            <span class="text-secondary ms-2">@match.DataBoxId</span>
+                        }
+                    </button>
+                }
+            </div>
+        }
     </div>
 
     @if (this.searchFailure is not null)
     {
         <div class="form-hint">@this.searchFailure</div>
     }
-    else if (this.matches.Count > 0)
-    {
-        <div class="list-group mt-1">
-            @foreach (var match in this.matches)
-            {
-                <button type="button" class="list-group-item list-group-item-action" @onclick="() => this.Select(match)">
-                    @match.Name
-                    <span class="text-secondary ms-2">@ContactKindDisplay.Text(match.Kind)</span>
-                    @if (!string.IsNullOrWhiteSpace(match.DataBoxId))
-                    {
-                        <span class="text-secondary ms-2">@match.DataBoxId</span>
-                    }
-                </button>
-            }
-        </div>
-    }
-    else if (this.searched)
+    else if (!this.closed && this.matches.Count == 0 && this.searched)
     {
         <div class="form-hint">Žádný kontakt neodpovídá. Založte nový.</div>
     }
@@ -66,6 +69,8 @@ else
 
     private bool searched;
 
+    private bool closed;
+
     private string? searchFailure;
 
     public void Dispose()
@@ -73,9 +78,16 @@ else
         this.debouncer.Dispose();
     }
 
+    private void OnKeyDown(KeyboardEventArgs args)
+    {
+        if (args.Key == "Escape")
+            this.closed = true;
+    }
+
     private async Task OnSearchInput(ChangeEventArgs args)
     {
         this.search = args.Value as string ?? "";
+        this.closed = false;
 
         var token = await this.debouncer.Start(debounce: true);
         if (token is null)

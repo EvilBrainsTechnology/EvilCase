@@ -17,31 +17,37 @@
     </div>
 }
 
-<input id="@this.InputId" type="search" class="form-control" placeholder="Hledat štítek"
-       aria-label="Hledat štítek" value="@this.search" @oninput="this.OnSearchInput" />
+<div class="ec-picker">
+    <input id="@this.InputId" type="search" class="form-control" placeholder="Hledat štítek"
+           aria-label="Hledat štítek" value="@this.search" @oninput="this.OnSearchInput" @onkeydown="this.OnKeyDown" />
+
+    @if (!this.closed && this.Matches is { Count: > 0 } matches)
+    {
+        <div class="dropdown-menu show ec-picker-menu">
+            @foreach (var match in matches)
+            {
+                <button type="button" class="dropdown-item" @onclick="() => this.Add(match)">
+                    <span class="status-dot bg-@LabelColorDisplay.Css(match.Color) me-2"></span>@match.Name
+                </button>
+            }
+        </div>
+    }
+</div>
 
 @if (this.failure is not null)
 {
     <div class="form-hint">@this.failure</div>
 }
-else if (this.Matches is { Count: > 0 } matches)
+else if (!this.closed && this.Matches.Count == 0)
 {
-    <div class="list-group mt-1">
-        @foreach (var match in matches)
-        {
-            <button type="button" class="list-group-item list-group-item-action" @onclick="() => this.Add(match)">
-                <span class="status-dot bg-@LabelColorDisplay.Css(match.Color) me-2"></span>@match.Name
-            </button>
-        }
-    </div>
-}
-else if (this.available.Count == 0)
-{
-    <div class="form-hint">Zatím není žádný štítek. Založte ho v <a href="/settings">nastavení</a>.</div>
-}
-else
-{
-    <div class="form-hint">Žádný další štítek neodpovídá.</div>
+    @if (this.available.Count == 0)
+    {
+        <div class="form-hint">Zatím není žádný štítek. Založte ho v <a href="/settings">nastavení</a>.</div>
+    }
+    else
+    {
+        <div class="form-hint">Žádný další štítek neodpovídá.</div>
+    }
 }
 
 @code {
@@ -57,6 +63,8 @@ else
     private IReadOnlyList<LabelItem> available = [];
 
     private string search = "";
+
+    private bool closed;
 
     private string? failure;
 
@@ -90,6 +98,13 @@ else
     private void OnSearchInput(ChangeEventArgs args)
     {
         this.search = args.Value as string ?? "";
+        this.closed = false;
+    }
+
+    private void OnKeyDown(KeyboardEventArgs args)
+    {
+        if (args.Key == "Escape")
+            this.closed = true;
     }
 
     private async Task Add(LabelItem label)

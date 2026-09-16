@@ -5,6 +5,7 @@ using EvilBrains.EvilCase.Api.Controllers;
 using EvilBrains.EvilCase.Business.Acts;
 using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Domain.Acts;
+using EvilBrains.EvilCase.Domain.Cases;
 using EvilBrains.EvilCase.Domain.Contacts;
 using Microsoft.AspNetCore.Mvc;
 using static EvilBrains.EvilCase.Tests.Controllers.ProblemAssertions;
@@ -361,6 +362,9 @@ public class ActsControllerTests
             ActId = Guid.CreateVersion7(),
             CaseId = Guid.CreateVersion7(),
             CaseNumber = "EC/20260821-001",
+            CaseTitle = "Vzorový spis",
+            CaseDate = new DateOnly(2026, 8, 21),
+            CaseStatus = CaseStatus.Active,
             ActNumber = "EC/20260821-001/20260825-001",
             Direction = ActDirection.Incoming,
             Date = new DateOnly(2026, 8, 25),

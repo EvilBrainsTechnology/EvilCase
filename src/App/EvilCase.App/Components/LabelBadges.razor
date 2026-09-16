@@ -5,7 +5,9 @@
     <div class="badges-list">
         @foreach (var label in this.Labels)
         {
-            <span class="badge bg-@(LabelColorDisplay.Css(label.Color))-lt">@label.Name</span>
+            <span class="badge bg-@(LabelColorDisplay.Css(label.Color))-lt d-inline-flex align-items-center gap-1">
+                <span class="status-dot bg-@LabelColorDisplay.Css(label.Color)"></span>@label.Name
+            </span>
         }
     </div>
 }
