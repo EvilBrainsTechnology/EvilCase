@@ -1,5 +1,7 @@
 // Forwards a drop anywhere on the card to the hidden InputFile: InputFile only reacts to a native
 // "change" event on its own <input>, so a card-wide drop has to set that input's files and dispatch one.
+const bindings = new Map();
+
 export function bindCardDrop(cardElement, inputWrapperElement, dotNetRef) {
     const inputElement = inputWrapperElement.querySelector("input[type=file]");
 
@@ -38,14 +40,19 @@ export function bindCardDrop(cardElement, inputWrapperElement, dotNetRef) {
     cardElement.addEventListener("dragleave", leave);
     cardElement.addEventListener("drop", drop);
 
-    // The caller awaits this as an IJSObjectReference, which only deserializes from a tracked
-    // JS object reference, never a plain object.
-    return DotNet.createJSObjectReference({
-        dispose() {
-            cardElement.removeEventListener("dragenter", enter);
-            cardElement.removeEventListener("dragover", prevent);
-            cardElement.removeEventListener("dragleave", leave);
-            cardElement.removeEventListener("drop", drop);
-        },
-    });
+    bindings.set(cardElement, { enter, prevent, leave, drop });
+}
+
+export function unbindCardDrop(cardElement) {
+    const handlers = bindings.get(cardElement);
+
+    if (!handlers)
+        return;
+
+    cardElement.removeEventListener("dragenter", handlers.enter);
+    cardElement.removeEventListener("dragover", handlers.prevent);
+    cardElement.removeEventListener("dragleave", handlers.leave);
+    cardElement.removeEventListener("drop", handlers.drop);
+
+    bindings.delete(cardElement);
 }

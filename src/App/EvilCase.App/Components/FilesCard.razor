@@ -130,9 +130,9 @@
 
     private IJSObjectReference? dropModule;
 
-    private IJSObjectReference? dropBinding;
-
     private DotNetObjectReference<FilesCard>? dropRef;
+
+    private bool dropBound;
 
     private bool disposed;
 
@@ -158,20 +158,12 @@
     {
         await this.ReloadFiles();
         this.loading = false;
-    }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (!firstRender)
-            return;
-
-        // A navigation away while this is in flight aborts the JS interop call; the card-wide
-        // drop is then simply unavailable, never a broken page. A dispose racing either await is
-        // handed the just-awaited object itself, since DisposeAsync never saw it to clean it up.
+        // The import needs no ElementReference, so it does not wait for a render; a navigation
+        // away while it is in flight aborts the call, and the card-wide drop is then simply
+        // unavailable, never a broken page.
         try
         {
-            // Off the renderer's own call stack before it starts: see the commit message.
-            await Task.Yield();
             var module = await this.JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/file-drop.js");
 
             if (this.disposed)
@@ -181,21 +173,34 @@
             }
 
             this.dropModule = module;
+        }
+        catch (Exception exception) when (exception is JSException or JSDisconnectedException or OperationCanceledException)
+        {
+            this.Logger.LogWarning(exception, "Loading the card-wide file drop failed");
+        }
+    }
 
-            var dotNetRef = DotNetObjectReference.Create(this);
-            this.dropRef = dotNetRef;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || this.dropModule is null)
+            return;
 
-            await Task.Yield();
-            var binding = await module.InvokeAsync<IJSObjectReference>("bindCardDrop", this.cardRef, this.dropInputWrapper, dotNetRef);
+        var dotNetRef = DotNetObjectReference.Create(this);
+        this.dropRef = dotNetRef;
+
+        // bindCardDrop and unbindCardDrop are void calls keyed by the card element, so a dispose
+        // racing this await has nothing to hand back and can simply unbind right after.
+        try
+        {
+            await this.dropModule.InvokeVoidAsync("bindCardDrop", this.cardRef, this.dropInputWrapper, dotNetRef);
 
             if (this.disposed)
             {
-                await binding.InvokeVoidAsync("dispose");
-                await binding.DisposeAsync();
+                await this.dropModule.InvokeVoidAsync("unbindCardDrop", this.cardRef);
                 return;
             }
 
-            this.dropBinding = binding;
+            this.dropBound = true;
         }
         catch (Exception exception) when (exception is JSException or JSDisconnectedException or OperationCanceledException)
         {
@@ -216,10 +221,9 @@
 
         try
         {
-            if (this.dropBinding is not null)
+            if (this.dropBound)
             {
-                await this.dropBinding.InvokeVoidAsync("dispose");
-                await this.dropBinding.DisposeAsync();
+                await this.dropModule!.InvokeVoidAsync("unbindCardDrop", this.cardRef);
             }
 
             if (this.dropModule is not null)
