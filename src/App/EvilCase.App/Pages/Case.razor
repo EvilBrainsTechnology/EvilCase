@@ -108,7 +108,7 @@
                             </div>
                         </div>
 
-                        <ActList @key="this.CaseId"
+                        <ActList @key="(nameof(ActList), this.CaseId)"
                                  Columns="ActColumns"
                                  Filter="this.ActFilter"
                                  Title="Úkony"
@@ -127,14 +127,14 @@
                             </EmptyAction>
                         </ActList>
 
-                        <FilesCard @key="this.CaseId"
+                        <FilesCard @key="(nameof(FilesCard), this.CaseId)"
                                    OwnerGoneError="spis už neexistuje."
                                    LoadFiles="this.LoadFiles"
                                    UploadFile="this.UploadFile"
                                    DownloadFile="this.DownloadFile"
                                    DeleteFile="this.DeleteFile" />
 
-                        <CommentsCard @key="this.CaseId"
+                        <CommentsCard @key="(nameof(CommentsCard), this.CaseId)"
                                       LoadComments="this.LoadComments"
                                       AddComment="this.AddComment"
                                       SaveComment="this.SaveComment"
