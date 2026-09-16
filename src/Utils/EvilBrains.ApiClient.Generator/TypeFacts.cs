@@ -68,6 +68,16 @@ internal static class TypeFacts
         return type is INamedTypeSymbol named && named.TypeArguments.Any(ContainsError);
     }
 
+    /// <summary>
+    /// An array or an IReadOnlyList of a simple element; the wire carries one query pair per value.
+    /// </summary>
+    public static bool IsSimpleCollection(ITypeSymbol type)
+    {
+        var element = Element(type);
+
+        return element is not null && IsSimple(element);
+    }
+
     public static bool IsSimple(ITypeSymbol type)
     {
         var unwrapped = Unwrap(type);
@@ -78,5 +88,16 @@ internal static class TypeFacts
             return true;
 
         return SimpleTypeNames.Contains(unwrapped.ToDisplayString());
+    }
+
+    private static ITypeSymbol? Element(ITypeSymbol type)
+    {
+        if (type is IArrayTypeSymbol array)
+            return array.ElementType;
+
+        return type is INamedTypeSymbol { IsGenericType: true } named
+            && string.Equals(named.ConstructedFrom.ToDisplayString(), "System.Collections.Generic.IReadOnlyList<T>", StringComparison.Ordinal)
+                ? named.TypeArguments[0]
+                : null;
     }
 }

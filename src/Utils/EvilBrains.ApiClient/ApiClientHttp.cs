@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text;
@@ -98,14 +99,27 @@ public static class ApiClientHttp
 
         foreach (var (name, value) in query)
         {
-            if (value is null)
-                continue;
+            if (value is IEnumerable values and not string)
+            {
+                foreach (var item in values)
+                    AppendPair(builder, ref separator, name, item);
 
-            builder.Append(separator).Append(name).Append('=').Append(Uri.EscapeDataString(Format(value)));
-            separator = '&';
+                continue;
+            }
+
+            AppendPair(builder, ref separator, name, value);
         }
 
         return builder.ToString();
+    }
+
+    private static void AppendPair(StringBuilder builder, ref char separator, string name, object? value)
+    {
+        if (value is null)
+            return;
+
+        builder.Append(separator).Append(name).Append('=').Append(Uri.EscapeDataString(Format(value)));
+        separator = '&';
     }
 
     private static void AddHeaders(HttpRequestMessage request, (string Name, object? Value)[]? headers)
