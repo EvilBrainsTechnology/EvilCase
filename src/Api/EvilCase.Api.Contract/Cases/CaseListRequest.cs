@@ -1,17 +1,17 @@
-using System.ComponentModel.DataAnnotations;
+using EvilBrains.EvilCase.Api.Contract.Lists;
 
 namespace EvilBrains.EvilCase.Api.Contract.Cases;
 
-public sealed record CaseListRequest
+public sealed record CaseListRequest : ListRequest
 {
-    public string? Search { get; init; }
-
     public CaseStatusFilter Status { get; init; } = CaseStatusFilter.Open;
 
-    public CaseListOrder Order { get; init; } = CaseListOrder.Date;
-
+    /// <summary>
+    /// Ignored where <see cref="ParentCaseId"/> is given.
+    /// </summary>
     public CaseListScope Scope { get; init; } = CaseListScope.RootOnly;
 
-    [Range(1, 100)]
-    public int? Take { get; init; }
+    public Guid? ParentCaseId { get; init; }
+
+    public CaseSortKey Sort { get; init; } = CaseSortKey.Date;
 }
