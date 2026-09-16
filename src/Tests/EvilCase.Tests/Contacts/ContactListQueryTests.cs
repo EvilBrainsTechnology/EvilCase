@@ -1,5 +1,7 @@
 using EvilBrains.EvilCase.Api.Contract.Contacts;
+using EvilBrains.EvilCase.Api.Contract.Lists;
 using EvilBrains.EvilCase.Business.Contacts;
+using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Domain.Contacts;
 using EvilBrains.EvilCase.Tests.Data;
 using Microsoft.EntityFrameworkCore;
@@ -60,35 +62,35 @@ public class ContactListQueryTests : TenantFixture
     }
 
     [Test]
-    public async Task TheOrderIsByNameWithTheIdentifierBreakingATie()
+    public async Task TheOrderIsByNameWithTheWriteMomentBreakingATie()
     {
         var contactIds = TestTenant.SortedEntityIds(2);
 
         await this.Tenant.AddContact("Zeman");
         await this.Tenant.AddContact("Adam");
 
-        // The higher identifier is written first, so the write order is not what the tie falls to.
-        var secondNovak = await this.Tenant.AddContact("Novák", contactId: contactIds[1]);
-        var firstNovak = await this.Tenant.AddContact("Novák", contactId: contactIds[0]);
+        // The higher identifier is written first, so the tie shows which of the two decides.
+        var written = await this.Tenant.AddContact("Novák", contactId: contactIds[1]);
+        var writtenLater = await this.Tenant.AddContact("Novák", contactId: contactIds[0]);
 
         var names = await this.Tenant.Context.Contacts
-            .InListOrder()
+            .InSortOrder(ContactSortKey.Name, ListSortDirection.Ascending)
             .Select(static contact => contact.Name)
             .ToListAsync();
 
         var tiedIds = await this.Tenant.Context.Contacts
             .Where(static contact => contact.Name == "Novák")
-            .InListOrder()
+            .InSortOrder(ContactSortKey.Name, ListSortDirection.Ascending)
             .Select(static contact => contact.Id)
             .ToListAsync();
 
         string[] expectedNames = ["Adam", "Novák", "Novák", "Zeman"];
-        Guid[] expectedTied = [firstNovak.Id, secondNovak.Id];
+        Guid[] expectedTied = [written.Id, writtenLater.Id];
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(names, Is.EqualTo(expectedNames), "the contact list is ordered by name");
-            Assert.That(tiedIds, Is.EqualTo(expectedTied), "the identifier only breaks a tie on the name");
+            Assert.That(tiedIds, Is.EqualTo(expectedTied), "the write moment breaks a tie on the name");
         }
     }
 
@@ -127,7 +129,7 @@ public class ContactListQueryTests : TenantFixture
 
         var names = await this.Tenant.Context.Contacts
             .MatchingSearch(search: null)
-            .InListOrder()
+            .InSortOrder(ContactSortKey.Name, ListSortDirection.Ascending)
             .AsListItems()
             .Select(static item => item.Name)
             .ToListAsync();
@@ -140,20 +142,58 @@ public class ContactListQueryTests : TenantFixture
     }
 
     [Test]
-    public void TheListReadsNoTimestampCountsNothingAndPagesNothing()
+    public void TheListCountsNothingUnderARowAndPagesInTheDatabase()
     {
         var sql = this.Tenant.Context.Contacts
             .MatchingSearch(search: null)
-            .InListOrder()
+            .InSortOrder(ContactSortKey.Name, ListSortDirection.Ascending)
+            .InPage(skip: 20, take: 10)
             .AsListItems()
             .ToQueryString();
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(sql, Does.Not.Contain("\"Created\""), "a row of the list shows no timestamp");
             Assert.That(sql, Does.Not.Contain("count(").IgnoreCase, "a row of the list stands for one contact and counts nothing under it");
-            Assert.That(sql, Does.Not.Contain("LIMIT"), "the overview has no paging");
-            Assert.That(sql, Does.Not.Contain("OFFSET"), "the overview has no paging");
+            Assert.That(sql, Does.Contain("LIMIT"), "the page is one the database applies");
+            Assert.That(sql, Does.Contain("OFFSET"), "the page is one the database applies");
+        }
+    }
+
+    [Test]
+    public async Task OnlyTheContactsOfTheKindComeBack()
+    {
+        var authority = await this.Tenant.AddContact("Městský úřad");
+        await this.Tenant.AddContact("Jan Novák", ContactKind.Person);
+
+        var ids = await this.Tenant.Context.Contacts
+            .WithKind(ContactKind.Authority)
+            .Select(static contact => contact.Id)
+            .ToListAsync();
+        var whole = await this.Tenant.Context.Contacts.WithKind(kind: null).CountAsync();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(ids, Is.EqualTo([authority.Id]), "the kind filter leaves only the contacts of that kind");
+            Assert.That(whole, Is.EqualTo(2), "an absent kind narrows nothing");
+        }
+    }
+
+    [Test]
+    public async Task TheReaderPagesTheContactsAndCountsThemAll()
+    {
+        await this.Tenant.AddContact("Adam");
+        await this.Tenant.AddContact("Novák");
+        await this.Tenant.AddContact("Zeman");
+
+        var reader = new ContactReader(new FixedDbSession(this.Tenant.Context));
+
+        var page = await reader.ListContacts(
+            new ContactListRequest { Skip = 1, Take = 1, SortDirection = ListSortDirection.Ascending }, CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(page.Items.Select(static item => item.Name), Is.EqualTo(["Novák"]), "the page starts where Skip says and holds what Take says");
+            Assert.That(page.TotalCount, Is.EqualTo(3), "the total counts every contact the filter leaves");
         }
     }
 

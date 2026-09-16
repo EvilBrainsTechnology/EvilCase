@@ -15,44 +15,25 @@ namespace EvilBrains.EvilCase.Tests.Controllers;
 public class ActsControllerTests
 {
     [Test]
-    public async Task TheItemsAreReturnedInTheOrderTheReaderGaveThem()
-    {
-        var reader = ListingReader([Item("Podání"), Item("Rozhodnutí")]);
-        var controller = new ActsController();
-
-        var response = await controller.ListCaseActs(reader, Guid.CreateVersion7(), CancellationToken.None);
-
-        Assert.That(response.Items.Select(static item => item.Title), Is.EqualTo(["Podání", "Rozhodnutí"]));
-    }
-
-    [Test]
-    public async Task TheCaseIdInTheRouteReachesTheReader()
-    {
-        var caseId = Guid.CreateVersion7();
-        var reader = Substitute.For<IActReader>();
-        var controller = new ActsController();
-
-        await controller.ListCaseActs(reader, caseId, CancellationToken.None);
-
-        await reader
-            .Received(1)
-            .ListCaseActs(caseId, Arg.Any<CancellationToken>());
-    }
-
-    [Test]
     public async Task TheListRequestReachesTheReaderUntouched()
     {
+        var caseId = Guid.CreateVersion7();
         ActListRequest? listRequest = null;
         var reader = Substitute.For<IActReader>();
         reader
             .ListActs(Arg.Any<ActListRequest>(), Arg.Any<CancellationToken>())
-            .Returns([])
+            .Returns(new ActListResponse { Items = [], TotalCount = 0 })
             .AndDoes(call => listRequest = call.Arg<ActListRequest>());
         var controller = new ActsController();
 
-        await controller.ListActs(reader, new ActListRequest { Take = 5 }, CancellationToken.None);
+        await controller.ListActs(reader, new ActListRequest { Take = 5, Skip = 10, CaseId = caseId }, CancellationToken.None);
 
-        Assert.That(listRequest?.Take, Is.EqualTo(5), "the controller decides nothing about the cap");
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(listRequest?.Take, Is.EqualTo(5), "the controller decides nothing about the page");
+            Assert.That(listRequest?.Skip, Is.EqualTo(10), "the controller decides nothing about the page");
+            Assert.That(listRequest?.CaseId, Is.EqualTo(caseId), "the case a list is narrowed to rides in the request, not in the route");
+        }
     }
 
     [Test]
@@ -61,9 +42,13 @@ public class ActsControllerTests
         var reader = ListingReader([Item("druhý"), Item("první")]);
         var controller = new ActsController();
 
-        var response = await controller.ListActs(reader, new ActListRequest(), CancellationToken.None);
+        var response = await controller.ListActs(reader, new ActListRequest { Take = 20 }, CancellationToken.None);
 
-        Assert.That(response.Items.Select(static item => item.Title), Is.EqualTo(["druhý", "první"]), "the controller does not re-order what the reader gave it");
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(response.Items.Select(static item => item.Title), Is.EqualTo(["druhý", "první"]), "the controller does not re-order what the reader gave it");
+            Assert.That(response.TotalCount, Is.EqualTo(9), "the controller hands the total through untouched");
+        }
     }
 
     [Test]
@@ -389,11 +374,8 @@ public class ActsControllerTests
     {
         var reader = Substitute.For<IActReader>();
         reader
-            .ListCaseActs(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-            .Returns(items);
-        reader
             .ListActs(Arg.Any<ActListRequest>(), Arg.Any<CancellationToken>())
-            .Returns(items);
+            .Returns(new ActListResponse { Items = items, TotalCount = 9 });
 
         return reader;
     }

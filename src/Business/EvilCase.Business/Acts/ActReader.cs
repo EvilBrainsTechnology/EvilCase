@@ -7,22 +7,25 @@ namespace EvilBrains.EvilCase.Business.Acts;
 
 internal sealed class ActReader(IDbSession dbSession) : IActReader
 {
-    public async Task<IReadOnlyList<ActListItem>> ListActs(ActListRequest request, CancellationToken token)
+    public async Task<ActListResponse> ListActs(ActListRequest request, CancellationToken token)
     {
-        return await dbSession.Current.Acts
-            .InChangeOrder()
-            .TakeAtMost(request.Take)
-            .AsListItems()
-            .ToListAsync(token);
-    }
+        var filtered = dbSession.Current.Acts
+            .MatchingSearch(request.Search)
+            .OfCase(request.CaseId)
+            .WithContact(request.ContactId)
+            .WithDirection(request.Direction)
+            .WithLabels(request.LabelIds)
+            .WithinDates(request.From, request.To);
 
-    public async Task<IReadOnlyList<ActListItem>> ListCaseActs(Guid caseId, CancellationToken token)
-    {
-        return await dbSession.Current.Acts
-            .OfCase(caseId)
-            .InListOrder()
+        var total = await filtered.CountAsync(token);
+
+        var items = await filtered
+            .InSortOrder(request.Sort, request.SortDirection)
+            .InPage(request.Skip, request.Take)
             .AsListItems()
             .ToListAsync(token);
+
+        return new ActListResponse { Items = items, TotalCount = total };
     }
 
     public async Task<ActDetail?> GetActDetail(Guid caseId, Guid actId, CancellationToken token)

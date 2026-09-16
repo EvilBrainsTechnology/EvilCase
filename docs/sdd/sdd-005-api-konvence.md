@@ -26,8 +26,12 @@ Tvary API a klienta.
   odpovídají 204.
 - V těle jde hodnota výčtu jako název; číslo ani neznámý název se nepřijme (400). V query
   stringu ji váže framework, který číslo bere.
-- Výpis spisů a výpis úkonů umí `Take` nejvýše 100; bez něj a v ostatních výpisech se vrací
-  všechno. Stránkování není.
+- Každý výpis bere stránku, směr řazení, svůj řadicí klíč a hledaný text; k tomu zúžení své
+  agendy. Rozsah dat, kontakt a štítky berou výpisy spisů a úkonů; výpis kontaktů je nezná,
+  protože kontakt nenese štítek, kontakt ani datum. Výpis nepřijímá parametr, který neuplatní.
+- Stránka je povinná: `Skip` od nuly, `Take` od 1 do 100. Výpis bez `Take` je 400. Odpověď nese
+  vedle položek celkový počet všeho, co filtr nechal, bez ohledu na stránku.
+- Filtr štítků bere více štítků; položka musí nést všechny.
 
 ### Limity požadavků
 
@@ -41,7 +45,7 @@ Vše ostatní je bez limitu, health checks včetně. Odmítnutí je 429 s `Retry
 | Zdroj | Routy |
 | --- | --- |
 | Spisy | `/api/cases`, `/api/cases/{id}`; počty podle stavu `/api/cases/counts` |
-| Úkony | `/api/cases/{caseId}/acts`, `/api/cases/{caseId}/acts/{actId}`; výpis napříč spisy `/api/acts` |
+| Úkony | výpis `/api/acts`; založení `/api/cases/{caseId}/acts`, detail `/api/cases/{caseId}/acts/{actId}` |
 | Kontakty | `/api/contacts`, `/api/contacts/{id}` |
 | Soubory | výpis a smazání na vlastníku; upload na vlastníku a download `/api/files/{id}/content` |
 | Komentáře | na vlastníku, `…/comments`, `…/comments/{id}` |
@@ -55,8 +59,10 @@ Vše ostatní je bez limitu, health checks včetně. Odmítnutí je 429 s `Retry
 
 ## Rozhodnutí
 
-- Úkony v API: ploché `/api/acts` / vnořené pod spis. Platí vnořené pod spis; ploché
-  `/api/acts` je jen tenantový výpis pro dashboard (SDD-015).
+- Úkony v API: ploché `/api/acts` / vnořené pod spis. Platí ploché: `/api/acts` je jediný výpis
+  úkonů a zužuje se spisem. Vnořené zůstává založení a detail.
+- Stránkování: bez něj / `Skip` a `Take` na každém výpisu. Platí `Skip` a `Take`, povinná
+  velikost stránky a celkový počet v odpovědi.
 - Dashboard: vlastní endpoint / skládání z API entit. Platí skládání z API entit; počty spisů
   drží zdroj spisů, žádný dashboardový endpoint není.
 - Komentáře a soubory: vlastní ploché zdroje / pod vlastníkem. Platí pod vlastníkem.

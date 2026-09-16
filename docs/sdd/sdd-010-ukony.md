@@ -40,8 +40,10 @@ kontakt. Zadává se na editaci úkonu.
 - `/cases/{id}/act/new` — založení, včetně štítků.
 - `/cases/{id}/act/{actId}` — detail: štítky, údaje, komentáře (SDD-013), soubory (SDD-012).
 - `/cases/{id}/act/{actId}/edit` — editace, včetně štítků.
-- Seznam úkonů žije v detailu spisu, ukazuje datum, název, směr, číslo jednací, kontakt a tečky
-  štítků (SDD-019) a řadí se podle data úkonu vzestupně; shodná data řadí `Created`.
+- Seznam úkonů jde napříč spisy a zužuje se spisem, kontaktem, štítkem, směrem a rozsahem dat;
+  v detailu spisu je zúžený tímto spisem. Ukazuje datum, název, směr, číslo jednací, kontakt
+  a tečky štítků (SDD-019). Výchozí řazení je podle data úkonu vzestupně; záhlaví sloupce řadí
+  podle sebe a druhý klik otočí směr. Seznam je stránkovaný podle SDD-005 a nese celkový počet.
 
 ### Mazání
 
@@ -52,8 +54,8 @@ Mazání řídí matice v SDD-007; potvrzení jmenuje, co kaskáda bere.
 - Kontakty úkonu: odesílatel a příjemce / jeden kontakt protistrany. Platí jeden.
 - Směr a kontakt: nezávislé / jen spolu. Platí jen spolu.
 - Kontakt odlišný od spisu: zákaz / upozornění. Platí upozornění.
-- Řazení: datum + pořadové číslo / jen datum. Viditelné řazení je datum úkonu; shodná data
-  řadí deterministicky `Created`.
+- Řazení: datum + pořadové číslo / jen datum. Výchozí viditelné řazení je datum úkonu; shodná
+  data řadí deterministicky `Created`.
 - Externí číslo: jeden sloupec / N řádků s kontaktem. Platí jeden sloupec bez kontaktu.
 
 ## Dopady

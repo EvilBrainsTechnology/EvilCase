@@ -19,17 +19,7 @@ public class ActsController : ControllerBase
     [HttpGet("acts")]
     public async Task<ActListResponse> ListActs([FromServices] IActReader acts, [FromQuery] ActListRequest request, CancellationToken token)
     {
-        var items = await acts.ListActs(request, token);
-
-        return new ActListResponse { Items = items };
-    }
-
-    [HttpGet("cases/{caseId:guid}/acts")]
-    public async Task<ActListResponse> ListCaseActs([FromServices] IActReader acts, [FromRoute] Guid caseId, CancellationToken token)
-    {
-        var items = await acts.ListCaseActs(caseId, token);
-
-        return new ActListResponse { Items = items };
+        return await acts.ListActs(request, token);
     }
 
     [HttpPost("cases/{caseId:guid}/acts")]

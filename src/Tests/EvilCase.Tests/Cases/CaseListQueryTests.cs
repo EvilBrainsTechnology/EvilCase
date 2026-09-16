@@ -1,7 +1,7 @@
 using EvilBrains.EvilCase.Api.Contract.Cases;
+using EvilBrains.EvilCase.Api.Contract.Lists;
 using EvilBrains.EvilCase.Business.Cases;
 using EvilBrains.EvilCase.Business.Entities;
-using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Domain.Cases;
 using EvilBrains.EvilCase.Tests.Data;
 using Microsoft.EntityFrameworkCore;
@@ -73,11 +73,15 @@ public class CaseListQueryTests : TenantFixture
         var written = await this.Tenant.AddCase(new DateOnly(2026, 8, 22), "Zapsáno dřív", caseId: caseIds[1]);
         var writtenLater = await this.Tenant.AddCase(new DateOnly(2026, 8, 22), "Zapsáno později", caseId: caseIds[0]);
 
-        var ordered = await this.Tenant.Context.Cases.InListOrder().Select(static @case => @case.Id).ToListAsync();
+        var ordered = await this.InSortOrder(CaseSortKey.Date, ListSortDirection.Descending);
 
         Guid[] expected = [writtenLater.Id, written.Id, older.Id];
 
-        Assert.That(ordered, Is.EqualTo(expected), "the case's own date orders newest first and the write breaks a tie on it");
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(new CaseListRequest { Take = 20 }.Sort, Is.EqualTo(CaseSortKey.Date), "the list opens on the case's own date");
+            Assert.That(ordered, Is.EqualTo(expected), "the case's own date orders newest first and the write breaks a tie on it");
+        }
     }
 
     [Test]
@@ -97,7 +101,7 @@ public class CaseListQueryTests : TenantFixture
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(new CaseListRequest().Status, Is.EqualTo(CaseStatusFilter.Open), "the list opens on everything that is not closed");
+            Assert.That(new CaseListRequest { Take = 20 }.Status, Is.EqualTo(CaseStatusFilter.Open), "the list opens on everything that is not closed");
             Assert.That(open, Is.EquivalentTo(expectedOpen), "open is everything not closed");
             Assert.That(onlyClosed, Is.EquivalentTo(expectedClosed), "closed is only the closed ones");
             Assert.That(all, Is.EquivalentTo(expectedAll), "all narrows nothing");
@@ -114,7 +118,7 @@ public class CaseListQueryTests : TenantFixture
         var ids = await this.Tenant.Context.Cases
             .MatchingSearch("odvolani")
             .WithStatus(CaseStatusFilter.Closed)
-            .InListOrder()
+            .InSortOrder(CaseSortKey.Date, ListSortDirection.Descending)
             .AsListItems()
             .Select(static item => item.CaseId)
             .ToListAsync();
@@ -127,7 +131,8 @@ public class CaseListQueryTests : TenantFixture
     [Test]
     public async Task ARowCarriesTheCaseNumberTheTitleTheDateAndTheStatus()
     {
-        var seeded = await this.Tenant.AddCase(new DateOnly(2026, 8, 21), "Přestupek", status: CaseStatus.WaitingOnAuthority);
+        var seeded = await this.Tenant.AddCase(
+            new DateOnly(2026, 8, 21), "Přestupek", status: CaseStatus.WaitingOnAuthority, externalCaseNumber: "VV41/2025/08464");
 
         var row = await this.Tenant.Context.Cases.AsListItems().SingleAsync();
 
@@ -135,6 +140,7 @@ public class CaseListQueryTests : TenantFixture
         {
             CaseId = seeded.Id,
             CaseNumber = seeded.CaseNumber,
+            ExternalCaseNumber = "VV41/2025/08464",
             Title = "Přestupek",
             Date = new DateOnly(2026, 8, 21),
             Status = CaseStatus.WaitingOnAuthority,
@@ -145,7 +151,7 @@ public class CaseListQueryTests : TenantFixture
         using (Assert.EnterMultipleScope())
         {
             Assert.That(row.Labels, Is.Empty, "a case carrying no label shows none");
-            Assert.That(row, Is.EqualTo(expected), "a row of the list shows the case's number, title, date and status");
+            Assert.That(row, Is.EqualTo(expected), "a row of the list shows the case's number, external mark, title, date and status");
         }
     }
 
@@ -160,7 +166,7 @@ public class CaseListQueryTests : TenantFixture
         var ids = await this.Tenant.Context.Cases
             .MatchingSearch(search: null)
             .WithStatus(CaseStatusFilter.All)
-            .InListOrder()
+            .InSortOrder(CaseSortKey.Date, ListSortDirection.Descending)
             .AsListItems()
             .Select(static item => item.CaseId)
             .ToListAsync();
@@ -171,12 +177,13 @@ public class CaseListQueryTests : TenantFixture
     }
 
     [Test]
-    public void TheListReadsNoDescriptionCountsNothingAndPagesNothing()
+    public void TheListReadsNoDescriptionCountsNothingUnderARowAndPagesInTheDatabase()
     {
         var sql = this.Tenant.Context.Cases
             .MatchingSearch(search: null)
             .WithStatus(CaseStatusFilter.All)
-            .InListOrder()
+            .InSortOrder(CaseSortKey.Date, ListSortDirection.Descending)
+            .InPage(skip: 20, take: 10)
             .AsListItems()
             .ToQueryString();
 
@@ -184,21 +191,9 @@ public class CaseListQueryTests : TenantFixture
         {
             Assert.That(sql, Does.Not.Contain("\"Description\""), "a row of the list never carries the case's text");
             Assert.That(sql, Does.Not.Contain("count(").IgnoreCase, "a row of the list stands for one case and counts nothing under it");
-            Assert.That(sql, Does.Not.Contain("LIMIT"), "the list is not paged");
-            Assert.That(sql, Does.Not.Contain("OFFSET"), "the list is not paged");
+            Assert.That(sql, Does.Contain("LIMIT"), "the page is one the database applies");
+            Assert.That(sql, Does.Contain("OFFSET"), "the page is one the database applies");
         }
-    }
-
-    /// <summary>
-    /// The database stamps <c>Created</c> off the clock, so two rows never share it and no result reaches
-    /// the identifier behind it.
-    /// </summary>
-    [Test]
-    public void TheIdentifierMakesTheOrderTotal()
-    {
-        var sql = this.Tenant.Context.Cases.InListOrder().ToQueryString();
-
-        Assert.That(sql, Does.Contain("\"Id\" DESC"), "the identifier makes the order total");
     }
 
     [Test]
@@ -213,11 +208,31 @@ public class CaseListQueryTests : TenantFixture
         await this.Tenant.Context.Cases.Where(@case => @case.Id == b.Id)
             .ExecuteUpdateAsync(static setters => setters.SetProperty(static @case => @case.Title, "B upravené"));
 
-        var ids = await this.Tenant.Context.Cases.InChangeOrder().Select(static @case => @case.Id).ToListAsync();
+        var ids = await this.InSortOrder(CaseSortKey.Changed, ListSortDirection.Descending);
 
         Guid[] expected = [b.Id, a.Id, c.Id];
 
         Assert.That(ids, Is.EqualTo(expected), "the case's own Updated orders the list, and a case never edited falls back to its Created");
+    }
+
+    [Test]
+    public async Task TheTitleAndTheCaseNumberOrderTheListToo()
+    {
+        var first = await this.Tenant.AddCase(Day, "Alfa", caseNumber: "EC/20260824-003");
+        var second = await this.Tenant.AddCase(Day, "Beta", caseNumber: "EC/20260824-001");
+        var third = await this.Tenant.AddCase(Day, "Gama", caseNumber: "EC/20260824-002");
+
+        var byTitle = await this.InSortOrder(CaseSortKey.Title, ListSortDirection.Ascending);
+        var byNumber = await this.InSortOrder(CaseSortKey.CaseNumber, ListSortDirection.Ascending);
+
+        Guid[] expectedByTitle = [first.Id, second.Id, third.Id];
+        Guid[] expectedByNumber = [second.Id, third.Id, first.Id];
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(byTitle, Is.EqualTo(expectedByTitle), "the title orders the list where the request asks for it");
+            Assert.That(byNumber, Is.EqualTo(expectedByNumber), "the case number orders the list where the request asks for it");
+        }
     }
 
     [Test]
@@ -239,21 +254,6 @@ public class CaseListQueryTests : TenantFixture
     }
 
     [Test]
-    public async Task TheCapReturnsOnlyTheFirstCases()
-    {
-        var cases = new List<Case>();
-
-        for (var day = 15; day <= 21; day++)
-            cases.Add(await this.Tenant.AddCase(new DateOnly(2026, 8, day), $"Případ {day.ToString(CultureInfo.InvariantCulture)}"));
-
-        var ids = await this.Tenant.Context.Cases.InListOrder().TakeAtMost(5).Select(static @case => @case.Id).ToListAsync();
-
-        var expected = cases.TakeLast(5).Reverse().Select(static @case => @case.Id);
-
-        Assert.That(ids, Is.EqualTo(expected), "the dashboard tile's five is a cap the database applies");
-    }
-
-    [Test]
     public async Task TheRequestedOrderIsTheOneTheListComesBackIn()
     {
         var older = await this.Tenant.AddCase(new DateOnly(2026, 8, 24), "Starší");
@@ -264,34 +264,16 @@ public class CaseListQueryTests : TenantFixture
 
         var reader = new CaseReader(new FixedDbSession(this.Tenant.Context));
 
-        var byDate = await reader.ListCases(new CaseListRequest(), CancellationToken.None);
-        var byChange = await reader.ListCases(new CaseListRequest { Order = CaseListOrder.Changed }, CancellationToken.None);
+        var byDate = await reader.ListCases(new CaseListRequest { Take = 20 }, CancellationToken.None);
+        var byChange = await reader.ListCases(new CaseListRequest { Take = 20, Sort = CaseSortKey.Changed }, CancellationToken.None);
 
         Guid[] byDateExpected = [newer.Id, older.Id];
         Guid[] byChangeExpected = [older.Id, newer.Id];
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(byDate.Select(static item => item.CaseId), Is.EqualTo(byDateExpected), "the case's own date orders the list until the request asks for another order");
-            Assert.That(byChange.Select(static item => item.CaseId), Is.EqualTo(byChangeExpected), "the requested order is the one the list comes back in");
-        }
-    }
-
-    [Test]
-    public async Task TheRequestedCapIsTheOneTheListComesBackWith()
-    {
-        for (var day = 15; day <= 21; day++)
-            await this.Tenant.AddCase(new DateOnly(2026, 8, day), $"Případ {day.ToString(CultureInfo.InvariantCulture)}");
-
-        var reader = new CaseReader(new FixedDbSession(this.Tenant.Context));
-
-        var capped = await reader.ListCases(new CaseListRequest { Take = 5 }, CancellationToken.None);
-        var whole = await reader.ListCases(new CaseListRequest(), CancellationToken.None);
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(capped, Has.Count.EqualTo(5), "the requested cap is the one the list comes back with");
-            Assert.That(whole, Has.Count.EqualTo(7), "an absent cap narrows nothing");
+            Assert.That(byDate.Items.Select(static item => item.CaseId), Is.EqualTo(byDateExpected), "the case's own date orders the list until the request asks for another key");
+            Assert.That(byChange.Items.Select(static item => item.CaseId), Is.EqualTo(byChangeExpected), "the requested order is the one the list comes back in");
         }
     }
 
@@ -301,12 +283,21 @@ public class CaseListQueryTests : TenantFixture
         var root = await this.Tenant.AddCase(Day, "Rodič");
         var child = await this.Tenant.AddCase(Day, "Podřízený", parentCaseId: root.Id);
 
-        var all = await this.Tenant.Context.Cases.WithinScope(CaseListScope.All).Select(static @case => @case.Id).ToListAsync();
-        var rootOnly = await this.Tenant.Context.Cases.WithinScope(CaseListScope.RootOnly).Select(static @case => @case.Id).ToListAsync();
+        var all = await this.Tenant.Context.Cases
+            .UnderParent(parentCaseId: null, CaseListScope.All)
+            .Select(static @case => @case.Id)
+            .ToListAsync();
+        var rootOnly = await this.Tenant.Context.Cases
+            .UnderParent(parentCaseId: null, CaseListScope.RootOnly)
+            .Select(static @case => @case.Id)
+            .ToListAsync();
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(new CaseListRequest().Scope, Is.EqualTo(CaseListScope.RootOnly), "the list opens on the cases without a parent and shows the subordinate ones only once the switch is turned off");
+            Assert.That(
+                new CaseListRequest { Take = 20 }.Scope,
+                Is.EqualTo(CaseListScope.RootOnly),
+                "the list opens on the cases without a parent and shows the subordinate ones only once the switch is turned off");
             Assert.That(all, Is.EquivalentTo([root.Id, child.Id]), "the whole scope narrows nothing");
             Assert.That(rootOnly, Is.EquivalentTo([root.Id]), "the root scope leaves only the cases without a parent");
         }
@@ -320,14 +311,22 @@ public class CaseListQueryTests : TenantFixture
 
         var reader = new CaseReader(new FixedDbSession(this.Tenant.Context));
 
-        var whole = await reader.ListCases(new CaseListRequest { Scope = CaseListScope.All }, CancellationToken.None);
-        var roots = await reader.ListCases(new CaseListRequest(), CancellationToken.None);
+        var whole = await reader.ListCases(new CaseListRequest { Take = 20, Scope = CaseListScope.All }, CancellationToken.None);
+        var roots = await reader.ListCases(new CaseListRequest { Take = 20 }, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(whole, Has.Count.EqualTo(2), "a request asking for the whole scope lists the subordinate cases too");
-            Assert.That(roots.Select(static item => item.CaseId), Is.EqualTo([root.Id]), "the reader narrows the list by the requested scope");
+            Assert.That(whole.Items, Has.Count.EqualTo(2), "a request asking for the whole scope lists the subordinate cases too");
+            Assert.That(roots.Items.Select(static item => item.CaseId), Is.EqualTo([root.Id]), "the reader narrows the list by the requested scope");
         }
+    }
+
+    private async Task<List<Guid>> InSortOrder(CaseSortKey sort, ListSortDirection direction)
+    {
+        return await this.Tenant.Context.Cases
+            .InSortOrder(sort, direction)
+            .Select(static @case => @case.Id)
+            .ToListAsync();
     }
 
     private async Task<List<string>> Titles(string search)

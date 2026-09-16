@@ -2,12 +2,14 @@
 @using System.Net
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.Acts
 @using EvilBrains.EvilCase.Api.Contract.Cases
 @using EvilBrains.EvilCase.Api.Contract.Comments
 @using EvilBrains.EvilCase.Api.Contract.Contacts
 @using EvilBrains.EvilCase.Api.Contract.Files
 @using EvilBrains.EvilCase.Api.Contract.Labels
 @using EvilBrains.EvilCase.Domain.Cases
+@using Microsoft.JSInterop
 @using TabBlazor.Services
 @inject ICasesClient CasesClient
 @inject ICaseLabelsClient CaseLabelsClient
@@ -17,6 +19,7 @@
 @inject IFileDownloader Downloader
 @inject IModalService ModalService
 @inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
 @inject ILogger<Case> Logger
 
 <PageTitle>@(this.caseDetail is null ? "Spis" : this.caseDetail.CaseNumber) – EvilCase</PageTitle>
@@ -104,7 +107,24 @@
                             </div>
                         </div>
 
-                        <ActListCard @key="(nameof(ActListCard), this.CaseId)" CaseId="this.CaseId" ConfirmNavigation="this.Edit && this.dirty" />
+                        <ActList @key="(nameof(ActList), this.CaseId)"
+                                 Columns="ActColumns"
+                                 Filter="this.ActFilter"
+                                 Title="Úkony"
+                                 ShowSearch="true"
+                                 ShowDates="true"
+                                 ShowLabelFilter="true"
+                                 ShowDirectionFilter="true"
+                                 ShowSorting="true"
+                                 ShowPaging="true"
+                                 EmptySubtitle="Zatím tu není žádný úkon.">
+                            <Actions>
+                                <a href="/cases/@this.CaseId/act/new" class="btn btn-primary" @onclick="this.GoToNewAct" @onclick:preventDefault="this.Edit && this.dirty"><Icon CssClass="icon" IconType="AppIcons.Plus" />Nový úkon</a>
+                            </Actions>
+                            <EmptyAction>
+                                <a href="/cases/@this.CaseId/act/new" class="btn btn-primary" @onclick="this.GoToNewAct" @onclick:preventDefault="this.Edit && this.dirty"><Icon CssClass="icon" IconType="AppIcons.Plus" />Založit úkon</a>
+                            </EmptyAction>
+                        </ActList>
 
                         <FilesCard @key="(nameof(FilesCard), this.CaseId)"
                                    OwnerGoneError="spis už neexistuje."
@@ -217,14 +237,10 @@
                                 @if (this.Edit)
                                 {
                                     <label class="ec-field-label" for="case-parent">Nadřízený spis</label>
-                                    <InputSelect id="case-parent" class="form-select mb-3" @bind-Value="this.model.ParentCaseId">
-                                        <option value="">— bez nadřízeného spisu —</option>
-                                        @foreach (var option in this.parentOptions)
-                                        {
-                                            <option value="@option.CaseId">@option.CaseNumber — @option.Title</option>
-                                        }
-                                    </InputSelect>
-                                    <ValidationMessage For="() => this.model.ParentCaseId" class="invalid-feedback d-block" />
+                                    <div class="mb-3">
+                                        <CasePicker InputId="case-parent" ExcludedCaseId="this.CaseId"
+                                                    Selected="this.model.ParentCase" SelectedChanged="this.OnParentChanged" />
+                                    </div>
                                 }
                                 else
                                 {
@@ -241,7 +257,7 @@
                                     </div>
                                 }
 
-                                <CaseChildrenCard Items="this.caseDetail!.ChildCases" ParentCaseId="this.CaseId" ConfirmNavigation="this.Edit && this.dirty" />
+                                <CaseChildrenCard ParentCaseId="this.CaseId" ConfirmNavigation="this.Edit && this.dirty" />
                             </div>
                         </div>
                     </aside>
@@ -283,6 +299,18 @@
 </CascadingValue>
 
 @code {
+    private const int ActItems = 20;
+
+    private static readonly ActColumn[] ActColumns =
+    [
+        ActColumn.Date,
+        ActColumn.Act,
+        ActColumn.Direction,
+        ActColumn.Contact,
+        ActColumn.Labels,
+        ActColumn.ActNumber,
+    ];
+
     [Parameter]
     public Guid CaseId { get; set; }
 
@@ -295,8 +323,6 @@
 
     private CaseDetail? caseDetail;
 
-    private IReadOnlyList<CaseListItem> parentOptions = [];
-
     private bool notFound;
 
     private string? failure;
@@ -306,6 +332,8 @@
     private bool busy;
 
     private bool dirty;
+
+    private ActListRequest ActFilter => new() { CaseId = this.CaseId, Take = ActItems };
 
     protected override void OnInitialized()
     {
@@ -321,6 +349,12 @@
     private void MarkDirty()
     {
         this.dirty = true;
+    }
+
+    private void OnParentChanged(CaseListItem? parentCase)
+    {
+        this.model.ParentCase = parentCase;
+        this.MarkDirty();
     }
 
     private void OnContactChanged(ContactListItem? contact)
@@ -347,14 +381,6 @@
         {
             this.caseDetail = await this.CasesClient.GetCase(this.CaseId, CancellationToken.None);
             this.model.CopyFrom(CaseEditModel.From(this.caseDetail));
-
-            if (this.Edit)
-            {
-                // Every case of the tenant, subordinate ones included: a case hangs under any of them.
-                var response = await this.CasesClient.ListCases(new CaseListRequest { Status = CaseStatusFilter.All, Scope = CaseListScope.All }, CancellationToken.None);
-
-                this.parentOptions = [.. response.Items.Where(item => item.CaseId != this.CaseId)];
-            }
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
         {
@@ -427,6 +453,14 @@
         return this.CaseCommentsClient.DeleteCaseComment(this.CaseId, commentId, token);
     }
 
+    private async Task GoToNewAct()
+    {
+        if (this.Edit && this.dirty && !await UnsavedChangesGuard.ConfirmLeave(this.JSRuntime))
+            return;
+
+        this.Navigation.NavigateTo($"/cases/{this.CaseId}/act/new");
+    }
+
     private async Task DeleteCase()
     {
         if (this.caseDetail is null)
@@ -452,7 +486,7 @@
         {
             var request = new CaseEditRequest
             {
-                ParentCaseId = this.model.ParentCaseId,
+                ParentCaseId = this.model.ParentCase?.CaseId,
                 CaseNumber = this.model.CaseNumber,
                 ExternalCaseNumber = this.model.ExternalCaseNumber,
                 Date = this.model.Date,

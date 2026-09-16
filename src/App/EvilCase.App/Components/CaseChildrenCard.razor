@@ -1,22 +1,37 @@
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Cases
 @using EvilBrains.EvilCase.App.Models
 @using Microsoft.JSInterop
+@inject ICasesClient CasesClient
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
+@inject ILogger<CaseChildrenCard> Logger
 
 @* The sidebar's Hierarchie section: parent case link, then the child list as compact full-width rows. *@
 <div class="ec-field-label mb-2 d-flex align-items-center gap-2">
     Podřízené spisy
-    <span class="badge bg-secondary-lt">@Items.Count</span>
+    @if (this.children is not null)
+    {
+        <span class="badge bg-secondary-lt">@this.children.Count</span>
+    }
 </div>
 
-@if (Items.Count == 0)
+@if (this.failure is not null)
+{
+    <div class="text-secondary small mb-2">@this.failure</div>
+}
+else if (this.children is null)
+{
+    <div class="text-secondary small mb-2">Načítám…</div>
+}
+else if (this.children.Count == 0)
 {
     <div class="text-secondary small mb-2">Žádné podřízené spisy.</div>
 }
 else
 {
-    @foreach (var item in Items)
+    @foreach (var item in this.children)
     {
         <a class="ec-comprow" href="@($"/cases/{item.CaseId}")">
             <span class="ec-min-w-0 flex-fill">
@@ -35,8 +50,10 @@ else
 </a>
 
 @code {
-    [Parameter, EditorRequired]
-    public required IReadOnlyList<CaseListItem> Items { get; set; }
+    /// <summary>
+    /// The sidebar summary lists every child of one case; the tenant holds no case with more.
+    /// </summary>
+    private const int ChildLimit = 100;
 
     [Parameter, EditorRequired]
     public required Guid ParentCaseId { get; set; }
@@ -47,6 +64,40 @@ else
     /// </summary>
     [Parameter]
     public bool ConfirmNavigation { get; set; }
+
+    private IReadOnlyList<CaseListItem>? children;
+
+    private string? failure;
+
+    private Guid loaded;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (this.loaded == this.ParentCaseId)
+            return;
+
+        this.loaded = this.ParentCaseId;
+
+        var request = new CaseListRequest
+        {
+            ParentCaseId = this.ParentCaseId,
+            Status = CaseStatusFilter.All,
+            Take = ChildLimit,
+        };
+
+        try
+        {
+            var response = await this.CasesClient.ListCases(request, CancellationToken.None);
+
+            this.children = response.Items;
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Loading the child cases failed");
+
+            this.failure = "Podřízené spisy se nepodařilo načíst.";
+        }
+    }
 
     private async Task GoToNewChildCase()
     {

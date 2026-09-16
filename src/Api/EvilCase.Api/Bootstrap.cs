@@ -1,4 +1,5 @@
 using EvilBrains.EvilCase.Api.Auth;
+using EvilBrains.EvilCase.Api.Binding;
 using EvilBrains.EvilCase.Api.HealthChecks;
 using EvilBrains.EvilCase.Business;
 using EvilBrains.EvilCase.Domain.Users;
@@ -6,6 +7,7 @@ using EvilBrains.Logging.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -40,7 +42,14 @@ public static class Bootstrap
     public static IServiceCollection ConfigureServices(this IServiceCollection services)
     {
         services
-            .AddControllers()
+            .AddControllers(static options =>
+            {
+                // Ahead of the list binder, behind every binder a binding source picks.
+                var collections = options.ModelBinderProviders.IndexOf(
+                    options.ModelBinderProviders.First(static provider => provider is CollectionModelBinderProvider));
+
+                options.ModelBinderProviders.Insert(collections, new ReadOnlyListModelBinderProvider());
+            })
             .AddApplicationPart(typeof(Bootstrap).Assembly);
 
         // Backs the 404 fallback below; [ApiController] builds its own responses through ProblemDetailsFactory.

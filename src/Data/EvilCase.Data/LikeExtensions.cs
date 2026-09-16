@@ -7,6 +7,14 @@ public static class LikeExtensions
     /// </summary>
     public const string LikeEscape = "\\";
 
+    /// <summary>
+    /// The pattern a search term takes: the term itself, anywhere in the column.
+    /// </summary>
+    public static string ContainsLikePattern(this string value)
+    {
+        return $"%{value.Trim().EscapeLikeWildcards()}%";
+    }
+
     public static string EscapeLikeWildcards(this string value)
     {
         return value

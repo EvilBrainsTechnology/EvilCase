@@ -16,9 +16,4 @@ internal static class EntityQuery
     {
         return await entities.WithId(entityId).AnyAsync(token);
     }
-
-    public static IQueryable<TEntity> TakeAtMost<TEntity>(this IQueryable<TEntity> entities, int? count)
-    {
-        return count is { } cap ? entities.Take(cap) : entities;
-    }
 }

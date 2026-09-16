@@ -9,9 +9,8 @@ namespace EvilBrains.EvilCase.Tests.Frontend;
 public class CaseEditModelTests
 {
     [Test]
-    public void FromCopiesEveryFieldIncludingTheParentCaseId()
+    public void FromCopiesEveryFieldIncludingTheParentCase()
     {
-        var parentId = Guid.CreateVersion7();
         var contact = new ContactListItem { ContactId = Guid.CreateVersion7(), Kind = ContactKind.Authority, Name = "Úřad" };
 
         var detail = new CaseDetail
@@ -26,7 +25,7 @@ public class CaseEditModelTests
             Contact = contact,
             ParentCase = new CaseListItem
             {
-                CaseId = parentId,
+                CaseId = Guid.CreateVersion7(),
                 CaseNumber = "EC/20260101-001",
                 Title = "Nadřízený",
                 Date = new DateOnly(2026, 1, 1),
@@ -39,7 +38,7 @@ public class CaseEditModelTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(model.ParentCaseId, Is.EqualTo(parentId), "the sidebar's parent select preselects the case's actual parent");
+            Assert.That(model.ParentCase, Is.SameAs(detail.ParentCase), "the sidebar's parent picker opens on the case's actual parent");
             Assert.That(model.CaseNumber, Is.EqualTo(detail.CaseNumber));
             Assert.That(model.ExternalCaseNumber, Is.EqualTo(detail.ExternalCaseNumber));
             Assert.That(model.Date, Is.EqualTo(detail.Date));
@@ -51,11 +50,11 @@ public class CaseEditModelTests
     }
 
     [Test]
-    public void FromLeavesParentCaseIdNullForARootCase()
+    public void FromLeavesTheParentCaseNullForARootCase()
     {
         var model = CaseEditModel.From(RootCase());
 
-        Assert.That(model.ParentCaseId, Is.Null);
+        Assert.That(model.ParentCase, Is.Null);
     }
 
     [Test]

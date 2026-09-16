@@ -48,7 +48,10 @@ internal static class Diagnostics
         Descriptor("EB1014", "Type not visible to the client", "Type '{0}' is not resolvable in the client compilation; move it to the shared contract assembly");
 
     public static readonly DiagnosticDescriptor QueryPropertyNotSimple =
-        Descriptor("EB1015", "Query property not simple", "Property '{0}' of [FromQuery] parameter type '{1}' must be a simple type");
+        Descriptor(
+            "EB1015",
+            "Query property not simple",
+            "Property '{0}' of [FromQuery] parameter type '{1}' must be a simple type, an array of one or an IReadOnlyList<T> of one");
 
     public static readonly DiagnosticDescriptor DuplicateClientName =
         Descriptor("EB1016", "Duplicate client name", "Client name '{0}' is generated from multiple controllers");

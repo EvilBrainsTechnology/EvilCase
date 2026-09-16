@@ -1,0 +1,407 @@
+@using System.Diagnostics
+@using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.Acts
+@using EvilBrains.EvilCase.Api.Contract.Lists
+@using EvilBrains.EvilCase.Domain.Acts
+@inherits FilteredListComponent<ActListRequest>
+@inject IActsClient ActsClient
+
+@{
+    var views = new List<ActColumnView>();
+
+    foreach (var column in this.Columns)
+    {
+        views.Add(column switch
+        {
+            ActColumn.Changed => new ActColumnView
+            {
+                Header = "Změněno",
+                CellClass = "text-nowrap",
+                Sort = ActSortKey.Changed,
+                Cell = item =>@<text>@MomentDisplay.Text(item.Changed)</text>,
+                Line = item =>@<div class="text-secondary">Změněno @MomentDisplay.Text(item.Changed)</div>,
+            },
+            ActColumn.Date => new ActColumnView
+            {
+                Header = "Datum",
+                CellClass = "text-nowrap",
+                Sort = ActSortKey.Date,
+                Cell = item =>@<text>@DateDisplay.Text(item.Date)</text>,
+                Line = item =>@<div class="text-secondary">@DateDisplay.Text(item.Date)</div>,
+            },
+            ActColumn.Case => new ActColumnView
+            {
+                Header = "Spis",
+                CellClass = "text-nowrap",
+                Cell = item =>@<a href="@($"/cases/{item.CaseId}")">@item.CaseTitle</a>,
+                Line = item =>@<div class="text-secondary"><a href="@($"/cases/{item.CaseId}")">@item.CaseTitle</a></div>,
+            },
+            ActColumn.Act => new ActColumnView
+            {
+                Header = "Úkon",
+                CellClass = "fw-bold",
+                Sort = ActSortKey.Title,
+                Cell = item =>@<a href="@($"/cases/{item.CaseId}/act/{item.ActId}")" class="stretched-link">@item.Title</a>,
+                Line = item =>@<div class="fw-bold"><a href="@($"/cases/{item.CaseId}/act/{item.ActId}")">@item.Title</a></div>,
+            },
+            ActColumn.Direction => new ActColumnView
+            {
+                Header = "Směr",
+                CellClass = "text-nowrap",
+                Cell = item =>@<text>
+                    @if (item.Direction is not null)
+                    {
+                        <Status BackgroundColor="ActDirectionDisplay.Color(item.Direction)" Lite="true">@ActDirectionDisplay.Text(item.Direction)</Status>
+                    }
+                    else
+                    {
+                        @:—
+                    }
+                </text>,
+                Line = item =>@<text>
+                    @if (item.Direction is not null)
+                    {
+                        <div><Status BackgroundColor="ActDirectionDisplay.Color(item.Direction)" Lite="true">@ActDirectionDisplay.Text(item.Direction)</Status></div>
+                    }
+                </text>,
+            },
+            ActColumn.Contact => new ActColumnView
+            {
+                Header = "Kontakt",
+                Cell = item =>@<text>@item.ContactName</text>,
+                Line = item =>@<text>
+                    @if (!string.IsNullOrWhiteSpace(item.ContactName))
+                    {
+                        <div class="text-secondary">Kontakt: @item.ContactName</div>
+                    }
+                </text>,
+            },
+            ActColumn.Labels => new ActColumnView
+            {
+                Header = "Štítky",
+                CellClass = "text-nowrap",
+                Cell = item =>@<LabelDots Labels="item.Labels" />,
+                Line = item =>@<text>
+                    @if (item.Labels.Count > 0)
+                    {
+                        <div class="mt-2"><LabelBadges Labels="item.Labels" /></div>
+                    }
+                </text>,
+            },
+            ActColumn.ActNumber => new ActColumnView
+            {
+                Header = "Číslo jednací",
+                CellClass = "text-nowrap ec-mono",
+                Sort = ActSortKey.ActNumber,
+                Cell = item =>@<text>@item.ActNumber</text>,
+                Line = item =>@<div class="text-secondary ec-mono">@item.ActNumber</div>,
+            },
+            ActColumn.ExternalNumber => new ActColumnView
+            {
+                Header = "Externí číslo",
+                CellClass = "text-nowrap ec-mono",
+                Cell = item =>@<text>@item.ExternalActNumber</text>,
+                Line = item =>@<text>
+                    @if (!string.IsNullOrWhiteSpace(item.ExternalActNumber))
+                    {
+                        <div class="text-secondary ec-mono">Externí číslo: @item.ExternalActNumber</div>
+                    }
+                </text>,
+            },
+            _ => throw new UnreachableException(),
+        });
+    }
+}
+
+<div class="card">
+    @if (this.Title is not null)
+    {
+        <div class="card-header">
+            <h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.FileText" />@this.Title</h3>
+            @if (this.Actions is not null)
+            {
+                <div class="card-actions">@this.Actions</div>
+            }
+        </div>
+    }
+
+    @if (this.ShowSearch || this.ShowDates || this.ShowLabelFilter || this.ShowDirectionFilter || this.ShowSorting)
+    {
+        <div class="card-body border-bottom py-3 @this.ToolbarClass">
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                @if (this.ShowSearch)
+                {
+                    <div class="input-icon flex-fill ec-search-field">
+                        <span class="input-icon-addon"><Icon CssClass="icon" IconType="AppIcons.Search" /></span>
+                        <input type="search" class="form-control" aria-label="Hledat v úkonech"
+                               placeholder="Hledat v názvu a popisu"
+                               value="@this.SearchText" @oninput="this.OnSearchInput" />
+                    </div>
+                }
+
+                @if (this.ShowDates)
+                {
+                    <input type="date" class="form-control w-auto ec-date-field" aria-label="Datum od"
+                           value="@this.From?.ToString("yyyy-MM-dd")" @onchange="this.OnFromInput" />
+                    <input type="date" class="form-control w-auto ec-date-field" aria-label="Datum do"
+                           value="@this.To?.ToString("yyyy-MM-dd")" @onchange="this.OnToInput" />
+                }
+
+                @if (this.ShowDirectionFilter)
+                {
+                    <div class="ec-segment" role="group" aria-label="Směr úkonu">
+                        @foreach (var value in DirectionFilters)
+                        {
+                            <button type="button" class="@(this.direction == value ? "active" : "")" @onclick="() => this.SetDirection(value)">@DirectionText(value)</button>
+                        }
+                    </div>
+                }
+
+                @if (this.ShowSorting)
+                {
+                    <select class="form-select w-auto d-lg-none" aria-label="Řazení" @onchange="this.OnSortSelected">
+                        @foreach (var view in views.Where(static view => view.Sort is not null))
+                        {
+                            <option value="@view.Sort" selected="@(view.Sort == this.sort)">@view.Header</option>
+                        }
+                    </select>
+                }
+
+                @if (this.ShowLabelFilter)
+                {
+                    <div class="ec-search-field">
+                        <LabelPicker InputId="@($"{this.InputPrefix}-labels")" Selected="this.SelectedLabels" SelectedChanged="this.OnLabelsChanged" />
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    @if (this.Failure is not null)
+    {
+        <div class="empty">
+            <div class="empty-icon"><Icon IconType="AppIcons.AlertTriangle" /></div>
+            <p class="empty-title">Úkony se nepodařilo načíst</p>
+            <p class="empty-subtitle text-secondary">@this.Failure</p>
+        </div>
+    }
+    else if (this.Loading)
+    {
+        <div class="card-body text-center text-secondary">
+            <div class="spinner-border" role="status"></div>
+        </div>
+    }
+    else if (this.items.Count == 0)
+    {
+        <div class="empty">
+            <div class="empty-icon"><Icon IconType="AppIcons.FileText" /></div>
+            <p class="empty-title">@this.EmptyTitle</p>
+            <p class="empty-subtitle text-secondary">@this.EmptySubtitle</p>
+            @if (this.EmptyAction is not null)
+            {
+                <div class="empty-action">@this.EmptyAction</div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="d-none d-lg-block">
+            <table class="table card-table table-vcenter table-hover">
+                <thead>
+                    <tr>
+                        @foreach (var view in views)
+                        {
+                            <th>
+                                @if (view.Sort is { } key)
+                                {
+                                    <button type="button" class="@this.HeaderClass(key)" @onclick="() => this.SortBy(key)">@view.Header</button>
+                                }
+                                else
+                                {
+                                    @view.Header
+                                }
+                            </th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in this.items)
+                    {
+                        <tr class="table-row-link">
+                            @foreach (var view in views)
+                            {
+                                <td class="@view.CellClass">@view.Cell(item)</td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card-body d-lg-none">
+            @foreach (var item in this.items)
+            {
+                <div class="card mb-2">
+                    <div class="card-body">
+                        @foreach (var view in views)
+                        {
+                            @if (view.Line is { } line)
+                            {
+                                @line(item)
+                            }
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        @if (this.ShowPaging && this.Total > this.Filter.Take)
+        {
+            <ListFooter Skip="this.Skip" Take="this.Filter.Take" Total="this.Total" Previous="this.ToPreviousPage" Next="this.ToNextPage" />
+        }
+    }
+</div>
+
+@code {
+    private static readonly ActDirection?[] DirectionFilters = [null, ActDirection.Incoming, ActDirection.Outgoing];
+
+    [Parameter, EditorRequired]
+    public required IReadOnlyList<ActColumn> Columns { get; set; }
+
+    [Parameter, EditorRequired]
+    public required ActListRequest Filter { get; set; }
+
+    [Parameter]
+    public string? Title { get; set; }
+
+    [Parameter]
+    public RenderFragment? Actions { get; set; }
+
+    [Parameter]
+    public string EmptyTitle { get; set; } = "Žádné úkony";
+
+    [Parameter]
+    public string EmptySubtitle { get; set; } = "Filtru neodpovídá žádný úkon.";
+
+    [Parameter]
+    public RenderFragment? EmptyAction { get; set; }
+
+    [Parameter]
+    public bool ShowSearch { get; set; }
+
+    [Parameter]
+    public bool ShowDates { get; set; }
+
+    [Parameter]
+    public bool ShowLabelFilter { get; set; }
+
+    [Parameter]
+    public bool ShowDirectionFilter { get; set; }
+
+    [Parameter]
+    public bool ShowSorting { get; set; }
+
+    [Parameter]
+    public bool ShowPaging { get; set; }
+
+    /// <summary>
+    /// Prefixes the ids of the toolbar's inputs, so two lists on one page never share one.
+    /// </summary>
+    [Parameter]
+    public string InputPrefix { get; set; } = "acts";
+
+    private IReadOnlyList<ActListItem> items = [];
+
+    private ActSortKey sort;
+
+    private ActDirection? direction;
+
+    protected override int PageSize => this.Filter.Take;
+
+    protected override string FailureText => "Seznam úkonů se nepodařilo načíst. Zkuste to za chvíli znovu.";
+
+    /// <summary>
+    /// A toolbar holding nothing but the sorting select belongs to the card variant alone; the
+    /// table sorts by its headers.
+    /// </summary>
+    private string? ToolbarClass =>
+        this.ShowSearch || this.ShowDates || this.ShowLabelFilter || this.ShowDirectionFilter ? null : "d-lg-none";
+
+    protected override void OnInitialized()
+    {
+        this.sort = this.Filter.Sort;
+        this.direction = this.Filter.Direction;
+        this.Direction = this.Filter.SortDirection;
+    }
+
+    protected override Task OnParametersSetAsync()
+    {
+        return this.ReloadOnFilterChange(this.Filter);
+    }
+
+    protected override async Task<int> LoadPage(CancellationToken token)
+    {
+        var request = this.Filter with
+        {
+            Search = this.Search,
+            From = this.From,
+            To = this.To,
+            LabelIds = this.LabelIds,
+            Direction = this.direction,
+            Sort = this.sort,
+            SortDirection = this.Direction,
+            Skip = this.Skip,
+        };
+
+        var response = await this.ActsClient.ListActs(request, token);
+
+        this.items = response.Items;
+
+        return response.TotalCount;
+    }
+
+    private static string DirectionText(ActDirection? value)
+    {
+        return value is null ? "Vše" : ActDirectionDisplay.Text(value);
+    }
+
+    private static ListSortDirection NaturalDirection(ActSortKey key)
+    {
+        return key is ActSortKey.Date or ActSortKey.Changed ? ListSortDirection.Descending : ListSortDirection.Ascending;
+    }
+
+    private string HeaderClass(ActSortKey key)
+    {
+        if (key != this.sort)
+            return "table-sort";
+
+        return this.Direction == ListSortDirection.Ascending ? "table-sort asc" : "table-sort desc";
+    }
+
+    private Task SetDirection(ActDirection? value)
+    {
+        this.direction = value;
+
+        return this.ReloadFirstPage();
+    }
+
+    private Task SortBy(ActSortKey key)
+    {
+        if (key == this.sort)
+        {
+            this.TurnDirection();
+        }
+        else
+        {
+            this.sort = key;
+            this.Direction = NaturalDirection(key);
+        }
+
+        return this.ReloadFirstPage();
+    }
+
+    private Task OnSortSelected(ChangeEventArgs args)
+    {
+        return this.SortBy(Enum.Parse<ActSortKey>(args.Value as string ?? ""));
+    }
+}

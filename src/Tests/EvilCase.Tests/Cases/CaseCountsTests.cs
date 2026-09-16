@@ -56,12 +56,12 @@ public class CaseCountsTests : TenantFixture
 
         var reader = new CaseReader(new FixedDbSession(this.Tenant.Context));
 
-        var listed = await reader.ListCases(new CaseListRequest { Status = CaseStatusFilter.Active }, CancellationToken.None);
+        var listed = await reader.ListCases(new CaseListRequest { Take = 20, Status = CaseStatusFilter.Active }, CancellationToken.None);
         var counts = await reader.CountCasesByStatus(CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(listed, Has.Count.EqualTo(1), "the list narrows to what the request asks for");
+            Assert.That(listed.Items, Has.Count.EqualTo(1), "the list narrows to what the request asks for");
             Assert.That(counts.Closed, Is.EqualTo(1), "the counts cover the whole tenant, whatever the list request narrows to");
         }
     }

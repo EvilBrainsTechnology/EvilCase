@@ -24,10 +24,5 @@ public sealed record CaseDetail
 
     public CaseListItem? ParentCase { get; init; }
 
-    /// <summary>
-    /// Direct children only, never descendants.
-    /// </summary>
-    public IReadOnlyList<CaseListItem> ChildCases { get; init; } = [];
-
     public IReadOnlyList<LabelItem> Labels { get; init; } = [];
 }

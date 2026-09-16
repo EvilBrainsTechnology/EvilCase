@@ -27,13 +27,14 @@ a edituje existující.
 
 ### Agenda
 
-- `/contacts` — přehled kontaktů: název, typ, id datové schránky, adresa. Řadí se podle názvu.
-  Hledací pole hledá v názvu a id datové schránky bez ohledu na diakritiku. Zakládá se odsud
-  nový kontakt.
-- `/contacts/{id}` — detail s výskyty: spisy kontaktu a ty jeho úkony, jejichž kontakt se liší
-  od kontaktu jejich spisu, obojí od nejnovějšího data; editace a smazání kontaktu.
+- `/contacts` — přehled kontaktů: název, typ, id datové schránky, adresa. Výchozí řazení je podle
+  názvu; záhlaví sloupce řadí podle sebe a druhý klik otočí směr. Hledací pole hledá v názvu a id
+  datové schránky bez ohledu na diakritiku, filtr typu nechá v seznamu jen kontakty jednoho typu.
+  Zakládá se odsud nový kontakt.
+- `/contacts/{id}` — detail s výskyty: spisy kontaktu a všechny jeho úkony, obojí od nejnovějšího
+  data; editace a smazání kontaktu.
 
-Přehled i výskyty jsou bez stránkování.
+Přehled i výskyty jsou stránkované podle SDD-005 a nesou celkový počet.
 
 ### Mazání
 
@@ -42,8 +43,8 @@ Smazat jde jen kontakt, na který neodkazuje žádný spis ani úkon; jinak 409 
 ## Rozhodnutí
 
 - Mazání odkazovaného kontaktu: přepojení referencí / zákaz. Platí zákaz.
-- Výskyty úkonů: všechny úkony kontaktu / jen ty, jejichž kontakt se liší od spisu. Platí jen
-  odlišné.
+- Výskyty úkonů: všechny úkony kontaktu / jen ty, jejichž kontakt se liší od spisu. Platí všechny
+  úkony kontaktu.
 - Zakládání kontaktu: jen inline / inline i v agendě. Platí obojí, jedním formulářem.
 
 ## Dopady

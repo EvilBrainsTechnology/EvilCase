@@ -18,9 +18,7 @@ public class CasesController : ControllerBase
     [HttpGet("")]
     public async Task<CaseListResponse> ListCases([FromServices] ICaseReader cases, [FromQuery] CaseListRequest request, CancellationToken token)
     {
-        var items = await cases.ListCases(request, token);
-
-        return new CaseListResponse { Items = items };
+        return await cases.ListCases(request, token);
     }
 
     [HttpGet("counts")]

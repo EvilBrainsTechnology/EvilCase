@@ -43,6 +43,10 @@ odkaz na detail záznamu po celé šířce a otevírá se na nové kartě nebo v
 kterýkoli jiný odkaz. Záhlaví sloupce pojmenovává entitu, které sloupec patří. Buňka nese
 odkaz jen tam, kde vede jinam než řádek.
 
+Každý seznam vypadá stejně; stránka volí jen sloupce, jejich pořadí a nabízené ovládání.
+Řaditelné záhlaví sloupce je tlačítko, na mobilu řadí select v liště. Stránkovaný seznam nese
+v patičce zobrazený rozsah, celkový počet a předchozí/další.
+
 Každý seznam má prázdný stav; kde jde záznam založit, nese výzvu k založení.
 
 ### Přihlášení

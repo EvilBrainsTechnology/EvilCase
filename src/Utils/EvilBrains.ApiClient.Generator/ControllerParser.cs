@@ -253,7 +253,7 @@ internal static class ControllerParser
 
         foreach (var property in GetQueryProperties(symbol.Type))
         {
-            if (!TypeFacts.IsSimple(property.Type))
+            if (!TypeFacts.IsSimple(property.Type) && !TypeFacts.IsSimpleCollection(property.Type))
             {
                 diagnostics.Add(ApiModelParser.Diagnostic(Diagnostics.QueryPropertyNotSimple, syntax, property.Name, TypeFacts.Display(symbol.Type)));
 

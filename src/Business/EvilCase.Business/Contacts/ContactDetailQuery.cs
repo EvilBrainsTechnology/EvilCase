@@ -7,9 +7,6 @@ namespace EvilBrains.EvilCase.Business.Contacts;
 
 internal static class ContactDetailQuery
 {
-    /// <summary>
-    /// Cases and Acts are left empty for the caller to fill.
-    /// </summary>
     public static async Task<ContactDetail?> DetailOf(this IQueryable<Contact> contacts, Guid contactId, CancellationToken token)
     {
         return await contacts

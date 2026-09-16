@@ -15,6 +15,8 @@ public sealed record ActListItem
 
     public required string ActNumber { get; init; }
 
+    public string? ExternalActNumber { get; init; }
+
     public ActDirection? Direction { get; init; }
 
     public required string Title { get; init; }

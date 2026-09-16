@@ -1,0 +1,314 @@
+@using System.Diagnostics
+@using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.Contacts
+@using EvilBrains.EvilCase.Api.Contract.Lists
+@using EvilBrains.EvilCase.Domain.Contacts
+@inherits ListComponent<ContactListRequest>
+@inject IContactsClient ContactsClient
+
+@{
+    var views = new List<ContactColumnView>();
+
+    foreach (var column in this.Columns)
+    {
+        views.Add(column switch
+        {
+            ContactColumn.Name => new ContactColumnView
+            {
+                Header = "Kontakt",
+                CellClass = "fw-bold",
+                Sort = ContactSortKey.Name,
+                Cell = item =>@<a href="@($"/contacts/{item.ContactId}")" class="stretched-link">@item.Name</a>,
+                Line = item =>@<div class="fw-bold"><a href="@($"/contacts/{item.ContactId}")">@item.Name</a></div>,
+            },
+            ContactColumn.Kind => new ContactColumnView
+            {
+                Header = "Typ",
+                CellClass = "text-nowrap",
+                Cell = item =>@<text>@ContactKindDisplay.Text(item.Kind)</text>,
+                Line = item =>@<div><span class="badge bg-secondary-lt">@ContactKindDisplay.Text(item.Kind)</span></div>,
+            },
+            ContactColumn.DataBoxId => new ContactColumnView
+            {
+                Header = "ID datové schránky",
+                CellClass = "text-nowrap ec-mono",
+                Cell = item =>@<text>@item.DataBoxId</text>,
+                Line = item =>@<text>
+                    @if (!string.IsNullOrWhiteSpace(item.DataBoxId))
+                    {
+                        <div class="text-secondary ec-mono">ID datové schránky: @item.DataBoxId</div>
+                    }
+                </text>,
+            },
+            ContactColumn.Address => new ContactColumnView
+            {
+                Header = "Adresa",
+                Cell = item =>@<span class="address-block">@item.Address</span>,
+                Line = item =>@<text>
+                    @if (!string.IsNullOrWhiteSpace(item.Address))
+                    {
+                        <div class="text-secondary address-block">@item.Address</div>
+                    }
+                </text>,
+            },
+            _ => throw new UnreachableException(),
+        });
+    }
+}
+
+<div class="card">
+    @if (this.Title is not null)
+    {
+        <div class="card-header">
+            <h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.Users" />@this.Title</h3>
+            @if (this.Actions is not null)
+            {
+                <div class="card-actions">@this.Actions</div>
+            }
+        </div>
+    }
+
+    @if (this.ShowSearch || this.ShowKindFilter || this.ShowSorting)
+    {
+        <div class="card-body border-bottom py-3 @this.ToolbarClass">
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                @if (this.ShowSearch)
+                {
+                    <div class="input-icon flex-fill ec-search-field">
+                        <span class="input-icon-addon"><Icon CssClass="icon" IconType="AppIcons.Search" /></span>
+                        <input type="search" class="form-control" aria-label="Hledat v kontaktech"
+                               placeholder="Hledat v názvu a ID datové schránky"
+                               value="@this.SearchText" @oninput="this.OnSearchInput" />
+                    </div>
+                }
+
+                @if (this.ShowKindFilter)
+                {
+                    <div class="ec-segment" role="group" aria-label="Typ kontaktu">
+                        @foreach (var value in KindFilters)
+                        {
+                            <button type="button" class="@(this.kind == value ? "active" : "")" @onclick="() => this.SetKind(value)">@KindText(value)</button>
+                        }
+                    </div>
+                }
+
+                @if (this.ShowSorting)
+                {
+                    <select class="form-select w-auto d-lg-none" aria-label="Řazení" @onchange="this.OnSortSelected">
+                        @foreach (var view in views.Where(static view => view.Sort is not null))
+                        {
+                            <option value="@view.Sort" selected="@(view.Sort == this.sort)">@view.Header</option>
+                        }
+                    </select>
+                }
+            </div>
+        </div>
+    }
+
+    @if (this.Failure is not null)
+    {
+        <div class="empty">
+            <div class="empty-icon"><Icon IconType="AppIcons.AlertTriangle" /></div>
+            <p class="empty-title">Kontakty se nepodařilo načíst</p>
+            <p class="empty-subtitle text-secondary">@this.Failure</p>
+        </div>
+    }
+    else if (this.Loading)
+    {
+        <div class="card-body text-center text-secondary">
+            <div class="spinner-border" role="status"></div>
+        </div>
+    }
+    else if (this.items.Count == 0)
+    {
+        <div class="empty">
+            <div class="empty-icon"><Icon IconType="AppIcons.Users" /></div>
+            <p class="empty-title">@this.EmptyTitle</p>
+            <p class="empty-subtitle text-secondary">@this.EmptySubtitle</p>
+            @if (this.EmptyAction is not null)
+            {
+                <div class="empty-action">@this.EmptyAction</div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="d-none d-lg-block">
+            <table class="table card-table table-vcenter table-hover">
+                <thead>
+                    <tr>
+                        @foreach (var view in views)
+                        {
+                            <th>
+                                @if (view.Sort is { } key)
+                                {
+                                    <button type="button" class="@this.HeaderClass(key)" @onclick="() => this.SortBy(key)">@view.Header</button>
+                                }
+                                else
+                                {
+                                    @view.Header
+                                }
+                            </th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in this.items)
+                    {
+                        <tr class="table-row-link">
+                            @foreach (var view in views)
+                            {
+                                <td class="@view.CellClass">@view.Cell(item)</td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card-body d-lg-none">
+            @foreach (var item in this.items)
+            {
+                <div class="card mb-2">
+                    <div class="card-body">
+                        @foreach (var view in views)
+                        {
+                            @if (view.Line is { } line)
+                            {
+                                @line(item)
+                            }
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        @if (this.ShowPaging && this.Total > this.Filter.Take)
+        {
+            <ListFooter Skip="this.Skip" Take="this.Filter.Take" Total="this.Total" Previous="this.ToPreviousPage" Next="this.ToNextPage" />
+        }
+    }
+</div>
+
+@code {
+    private static readonly ContactKind?[] KindFilters = [null, ContactKind.Authority, ContactKind.Official, ContactKind.Person];
+
+    [Parameter, EditorRequired]
+    public required IReadOnlyList<ContactColumn> Columns { get; set; }
+
+    [Parameter, EditorRequired]
+    public required ContactListRequest Filter { get; set; }
+
+    [Parameter]
+    public string? Title { get; set; }
+
+    [Parameter]
+    public RenderFragment? Actions { get; set; }
+
+    [Parameter]
+    public string EmptyTitle { get; set; } = "Žádné kontakty";
+
+    [Parameter]
+    public string EmptySubtitle { get; set; } = "Filtru neodpovídá žádný kontakt.";
+
+    [Parameter]
+    public RenderFragment? EmptyAction { get; set; }
+
+    [Parameter]
+    public bool ShowSearch { get; set; }
+
+    [Parameter]
+    public bool ShowKindFilter { get; set; }
+
+    [Parameter]
+    public bool ShowSorting { get; set; }
+
+    [Parameter]
+    public bool ShowPaging { get; set; }
+
+    private IReadOnlyList<ContactListItem> items = [];
+
+    private ContactSortKey sort;
+
+    private ContactKind? kind;
+
+    protected override int PageSize => this.Filter.Take;
+
+    protected override string FailureText => "Seznam kontaktů se nepodařilo načíst. Zkuste to za chvíli znovu.";
+
+    /// <summary>
+    /// A toolbar holding nothing but the sorting select belongs to the card variant alone; the
+    /// table sorts by its headers.
+    /// </summary>
+    private string? ToolbarClass => this.ShowSearch || this.ShowKindFilter ? null : "d-lg-none";
+
+    protected override void OnInitialized()
+    {
+        this.sort = this.Filter.Sort;
+        this.kind = this.Filter.Kind;
+        this.Direction = this.Filter.SortDirection;
+    }
+
+    protected override Task OnParametersSetAsync()
+    {
+        return this.ReloadOnFilterChange(this.Filter);
+    }
+
+    protected override async Task<int> LoadPage(CancellationToken token)
+    {
+        var request = this.Filter with
+        {
+            Search = this.Search,
+            Kind = this.kind,
+            Sort = this.sort,
+            SortDirection = this.Direction,
+            Skip = this.Skip,
+        };
+
+        var response = await this.ContactsClient.ListContacts(request, token);
+
+        this.items = response.Items;
+
+        return response.TotalCount;
+    }
+
+    private static string KindText(ContactKind? value)
+    {
+        return value is null ? "Vše" : ContactKindDisplay.Text(value.Value);
+    }
+
+    private string HeaderClass(ContactSortKey key)
+    {
+        if (key != this.sort)
+            return "table-sort";
+
+        return this.Direction == ListSortDirection.Ascending ? "table-sort asc" : "table-sort desc";
+    }
+
+    private Task SetKind(ContactKind? value)
+    {
+        this.kind = value;
+
+        return this.ReloadFirstPage();
+    }
+
+    private Task SortBy(ContactSortKey key)
+    {
+        if (key == this.sort)
+        {
+            this.TurnDirection();
+        }
+        else
+        {
+            this.sort = key;
+            this.Direction = key == ContactSortKey.Changed ? ListSortDirection.Descending : ListSortDirection.Ascending;
+        }
+
+        return this.ReloadFirstPage();
+    }
+
+    private Task OnSortSelected(ChangeEventArgs args)
+    {
+        return this.SortBy(Enum.Parse<ContactSortKey>(args.Value as string ?? ""));
+    }
+}

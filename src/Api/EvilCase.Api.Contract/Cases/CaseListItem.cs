@@ -9,6 +9,8 @@ public sealed record CaseListItem
 
     public required string CaseNumber { get; init; }
 
+    public string? ExternalCaseNumber { get; init; }
+
     public required string Title { get; init; }
 
     public required DateOnly Date { get; init; }

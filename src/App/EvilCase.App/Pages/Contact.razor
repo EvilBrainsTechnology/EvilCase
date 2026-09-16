@@ -2,7 +2,10 @@
 @using System.Net
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.Acts
+@using EvilBrains.EvilCase.Api.Contract.Cases
 @using EvilBrains.EvilCase.Api.Contract.Contacts
+@using EvilBrains.EvilCase.Api.Contract.Lists
 @using EvilBrains.EvilCase.Domain.Contacts
 @using TabBlazor.Services
 @inject IContactsClient ContactsClient
@@ -41,8 +44,19 @@
         <LoadStateView NotFound="this.notFound" NotFoundTitle="Kontakt nenalezen" Failure="@this.failure" FailureTitle="Kontakt se nepodařilo načíst" Loaded="this.contact is not null">
             <div class="ec-layout">
                 <div class="ec-main">
-                    <ContactCaseOccurrences Items="this.contact!.Cases" />
-                    <ContactActOccurrences Items="this.contact.Acts" />
+                    <CaseList Columns="CaseColumns"
+                              Filter="this.CaseFilter"
+                              Title="Spisy"
+                              ShowSorting="true"
+                              ShowPaging="true"
+                              EmptySubtitle="Kontakt nefiguruje v žádném spisu." />
+
+                    <ActList Columns="ActColumns"
+                             Filter="this.ActFilter"
+                             Title="Úkony"
+                             ShowSorting="true"
+                             ShowPaging="true"
+                             EmptySubtitle="Kontakt nefiguruje v žádném úkonu." />
                 </div>
 
                 <aside class="ec-sidebar d-flex flex-column gap-3">
@@ -51,7 +65,7 @@
                         <div class="card-body d-flex flex-column gap-3">
                             <div>
                                 <div class="ec-field-label">Typ</div>
-                                <div>@ContactKindDisplay.Text(this.contact.Kind)</div>
+                                <div>@ContactKindDisplay.Text(this.contact!.Kind)</div>
                             </div>
                             <div>
                                 <div class="ec-field-label">ID datové schránky</div>
@@ -79,6 +93,26 @@
 </div>
 
 @code {
+    private const int OccurrenceItems = 20;
+
+    private static readonly CaseColumn[] CaseColumns =
+    [
+        CaseColumn.Date,
+        CaseColumn.Case,
+        CaseColumn.Status,
+        CaseColumn.CaseNumber,
+    ];
+
+    private static readonly ActColumn[] ActColumns =
+    [
+        ActColumn.Date,
+        ActColumn.Case,
+        ActColumn.Act,
+        ActColumn.Direction,
+        ActColumn.ActNumber,
+        ActColumn.ExternalNumber,
+    ];
+
     [Parameter]
     public Guid ContactId { get; set; }
 
@@ -87,6 +121,22 @@
     private bool notFound;
 
     private string? failure;
+
+    private CaseListRequest CaseFilter => new()
+    {
+        ContactId = this.ContactId,
+        Status = CaseStatusFilter.All,
+        Scope = CaseListScope.All,
+        Take = OccurrenceItems,
+    };
+
+    // The occurrences of a contact read from the newest date (SDD-011).
+    private ActListRequest ActFilter => new()
+    {
+        ContactId = this.ContactId,
+        SortDirection = ListSortDirection.Descending,
+        Take = OccurrenceItems,
+    };
 
     protected override Task OnParametersSetAsync()
     {
