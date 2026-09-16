@@ -14,7 +14,7 @@ public class ListRequestValidationTests
     {
         var refused = Validate(new CaseListRequest { Take = 101 });
 
-        Assert.That(refused.Single().MemberNames, Does.Contain(nameof(ListRequest.Take)), "a page never holds more than a hundred rows");
+        Assert.That(refused.Single().MemberNames, Does.Contain(nameof(CaseListRequest.Take)), "a page never holds more than a hundred rows");
     }
 
     [Test]
@@ -22,7 +22,7 @@ public class ListRequestValidationTests
     {
         var refused = Validate(new CaseListRequest { Take = 0 });
 
-        Assert.That(refused.Single().MemberNames, Does.Contain(nameof(ListRequest.Take)), "a page holds at least one row");
+        Assert.That(refused.Single().MemberNames, Does.Contain(nameof(CaseListRequest.Take)), "a page holds at least one row");
     }
 
     [Test]
@@ -30,7 +30,7 @@ public class ListRequestValidationTests
     {
         var refused = Validate(new CaseListRequest { Skip = -1, Take = 20 });
 
-        Assert.That(refused.Single().MemberNames, Does.Contain(nameof(ListRequest.Skip)), "a page starts at the first row or later");
+        Assert.That(refused.Single().MemberNames, Does.Contain(nameof(CaseListRequest.Skip)), "a page starts at the first row or later");
     }
 
     [Test]
@@ -42,8 +42,8 @@ public class ListRequestValidationTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(refused.Single().MemberNames, Does.Contain(nameof(ListRequest.Take)), "every list takes its page limit from the shared request");
-            Assert.That(negative.Single().MemberNames, Does.Contain(nameof(ListRequest.Skip)), "every list takes its page start from the shared request");
+            Assert.That(refused.Single().MemberNames, Does.Contain(nameof(ActListRequest.Take)), "every list takes its page limit from the shared request");
+            Assert.That(negative.Single().MemberNames, Does.Contain(nameof(ActListRequest.Skip)), "every list takes its page start from the shared request");
             Assert.That(accepted, Is.Empty);
         }
     }
@@ -57,23 +57,23 @@ public class ListRequestValidationTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(refused.Single().MemberNames, Does.Contain(nameof(ListRequest.Take)), "every list takes its page limit from the shared request");
-            Assert.That(negative.Single().MemberNames, Does.Contain(nameof(ListRequest.Skip)), "every list takes its page start from the shared request");
+            Assert.That(refused.Single().MemberNames, Does.Contain(nameof(ContactListRequest.Take)), "every list takes its page limit from the shared request");
+            Assert.That(negative.Single().MemberNames, Does.Contain(nameof(ContactListRequest.Skip)), "every list takes its page start from the shared request");
             Assert.That(accepted, Is.Empty);
         }
     }
 
     [Test]
-    public void TheSharedRequestCarriesThePageAndTheDirectionAndNoFilter()
+    public void TheSharedRequestCarriesThePageAndTheSortAndNoFilter()
     {
-        var declared = typeof(ListRequest)
+        var declared = typeof(ListRequest<CaseSortKey>)
             .GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
             .Select(static property => property.Name);
 
         Assert.That(
             declared,
-            Is.EquivalentTo([nameof(ListRequest.Skip), nameof(ListRequest.Take), nameof(ListRequest.SortDirection)]),
-            "a list request shares the page and the direction; a filter belongs to the list that narrows by it");
+            Is.EquivalentTo(["Skip", "Take", "SortDirection", "Sort"]),
+            "a list request shares the page, the sort key and its direction; a filter belongs to the list that narrows by it");
     }
 
     [Test]
@@ -90,20 +90,30 @@ public class ListRequestValidationTests
     }
 
     [Test]
-    public void TheContactListReadsFromAToZWhereTheOthersReadNewestFirst()
+    public void EveryListOpensOnTheKeyAndTheDirectionItsOwnRecordCarries()
     {
         using (Assert.EnterMultipleScope())
         {
+            Assert.That(new CaseListRequest { Take = 20 }.Sort, Is.EqualTo(CaseSortKey.Date));
+            Assert.That(
+                new CaseListRequest { Take = 20 }.SortDirection,
+                Is.EqualTo(ListSortDirection.Descending),
+                "a case list reads by the case's own date, newest first");
+            Assert.That(new ActListRequest { Take = 20 }.Sort, Is.EqualTo(ActSortKey.Date));
+            Assert.That(
+                new ActListRequest { Take = 20 }.SortDirection,
+                Is.EqualTo(ListSortDirection.Ascending),
+                "an act list reads by the act's own date, oldest first, the direction the shared request already holds");
+            Assert.That(new ContactListRequest { Take = 20 }.Sort, Is.EqualTo(ContactSortKey.Name));
             Assert.That(
                 new ContactListRequest { Take = 20 }.SortDirection,
                 Is.EqualTo(ListSortDirection.Ascending),
                 "a contact list reads by name, so it starts at A");
-            Assert.That(new CaseListRequest { Take = 20 }.SortDirection, Is.EqualTo(ListSortDirection.Descending));
-            Assert.That(new ActListRequest { Take = 20 }.SortDirection, Is.EqualTo(ListSortDirection.Descending));
         }
     }
 
-    private static List<ValidationResult> Validate(ListRequest request)
+    private static List<ValidationResult> Validate<TSortKey>(ListRequest<TSortKey> request)
+        where TSortKey : struct, Enum
     {
         var results = new List<ValidationResult>();
         Validator.TryValidateObject(request, new ValidationContext(request), results, validateAllProperties: true);

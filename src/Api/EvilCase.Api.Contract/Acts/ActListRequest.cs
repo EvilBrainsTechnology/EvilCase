@@ -3,8 +3,11 @@ using EvilBrains.EvilCase.Domain.Acts;
 
 namespace EvilBrains.EvilCase.Api.Contract.Acts;
 
-public sealed record ActListRequest : ListRequest
+public sealed record ActListRequest : ListRequest<ActSortKey>
 {
+    // An act list reads by the act's own date, oldest first (SDD-010).
+    public override ActSortKey Sort { get; init; } = ActSortKey.Date;
+
     public string? Search { get; init; }
 
     public DateOnly? From { get; init; }
@@ -18,6 +21,4 @@ public sealed record ActListRequest : ListRequest
     public Guid? CaseId { get; init; }
 
     public ActDirection? Direction { get; init; }
-
-    public ActSortKey Sort { get; init; } = ActSortKey.Date;
 }

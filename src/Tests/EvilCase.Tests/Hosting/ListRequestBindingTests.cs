@@ -1,5 +1,8 @@
 using System.Net;
+using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.Api.Contract.Cases;
+using EvilBrains.EvilCase.Api.Contract.Lists;
+using EvilBrains.EvilCase.Business.Acts;
 using EvilBrains.EvilCase.Business.Cases;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -9,6 +12,8 @@ public class ListRequestBindingTests
 {
     private readonly List<CaseListRequest> bound = [];
 
+    private readonly List<ActListRequest> boundActs = [];
+
     private EvilCaseHost host = null!;
 
     private HttpClient client = null!;
@@ -17,6 +22,7 @@ public class ListRequestBindingTests
     public void SetUp()
     {
         this.bound.Clear();
+        this.boundActs.Clear();
 
         var reader = Substitute.For<ICaseReader>();
         reader
@@ -24,7 +30,17 @@ public class ListRequestBindingTests
             .Returns(new CaseListResponse { Items = [], TotalCount = 0 })
             .AndDoes(call => this.bound.Add(call.Arg<CaseListRequest>()));
 
-        this.host = new EvilCaseHost(configureServices: services => services.AddSingleton(reader));
+        var actReader = Substitute.For<IActReader>();
+        actReader
+            .ListActs(Arg.Any<ActListRequest>(), Arg.Any<CancellationToken>())
+            .Returns(new ActListResponse { Items = [], TotalCount = 0 })
+            .AndDoes(call => this.boundActs.Add(call.Arg<ActListRequest>()));
+
+        this.host = new EvilCaseHost(configureServices: services =>
+        {
+            services.AddSingleton(reader);
+            services.AddSingleton(actReader);
+        });
         this.client = this.host.CreateClient();
     }
 
@@ -68,6 +84,22 @@ public class ListRequestBindingTests
         using var response = await this.Get("/api/cases?take=101");
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest), "the page limit holds at the wire, not only on the record");
+    }
+
+    [Test]
+    public async Task TheSortAndItsDirectionBindFromTheWireThoughTheSharedRequestDeclaresThem()
+    {
+        using var response = await this.Get("/api/acts?take=20&sort=Title&sortDirection=Descending");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+            Assert.That(this.boundActs.Single().Sort, Is.EqualTo(ActSortKey.Title));
+            Assert.That(
+                this.boundActs.Single().SortDirection,
+                Is.EqualTo(ListSortDirection.Descending),
+                "a list takes the sort its caller asks for, though the shared request declares both");
+        }
     }
 
     private async Task<HttpResponseMessage> Get(string path)

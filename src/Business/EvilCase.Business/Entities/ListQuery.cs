@@ -24,7 +24,8 @@ internal static class ListQuery
             : entities.ThenByDescending(static entity => entity.Created).ThenByDescending(static entity => entity.Id);
     }
 
-    public static IQueryable<TEntity> InPage<TEntity>(this IQueryable<TEntity> entities, ListRequest request)
+    public static IQueryable<TEntity> InPage<TEntity, TSortKey>(this IQueryable<TEntity> entities, ListRequest<TSortKey> request)
+        where TSortKey : struct, Enum
     {
         return entities
             .Skip(request.Skip)

@@ -3,6 +3,7 @@
 @using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Acts
 @using EvilBrains.EvilCase.Api.Contract.Cases
+@using EvilBrains.EvilCase.Api.Contract.Lists
 @using EvilBrains.EvilCase.Domain.Cases
 @inject ICasesClient CasesClient
 @inject ILogger<Home> Logger
@@ -111,7 +112,12 @@
         Take = TileItems,
     };
 
-    private static readonly ActListRequest ActTile = new() { Sort = ActSortKey.Changed, Take = TileItems };
+    private static readonly ActListRequest ActTile = new()
+    {
+        Sort = ActSortKey.Changed,
+        SortDirection = ListSortDirection.Descending,
+        Take = TileItems,
+    };
 
     private DashboardView? view;
 

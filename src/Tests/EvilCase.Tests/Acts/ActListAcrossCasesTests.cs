@@ -1,4 +1,5 @@
 using EvilBrains.EvilCase.Api.Contract.Acts;
+using EvilBrains.EvilCase.Api.Contract.Lists;
 using EvilBrains.EvilCase.Business.Acts;
 using EvilBrains.EvilCase.Tests.Data;
 using Microsoft.EntityFrameworkCore;
@@ -17,7 +18,7 @@ public class ActListAcrossCasesTests : TenantFixture
         var middle = await this.Tenant.AddAct(first, new DateOnly(2026, 8, 22), "Výzva");
         var newest = await this.Tenant.AddAct(second, new DateOnly(2026, 8, 24), "Rozhodnutí");
 
-        var items = await this.List(new ActListRequest { Take = 20, Sort = ActSortKey.Changed });
+        var items = await this.List(new ActListRequest { Take = 20, Sort = ActSortKey.Changed, SortDirection = ListSortDirection.Descending });
 
         Guid[] expected = [newest.Id, middle.Id, oldest.Id];
 
@@ -36,7 +37,7 @@ public class ActListAcrossCasesTests : TenantFixture
         await this.Tenant.Context.Acts.Where(act => act.Id == a.Id)
             .ExecuteUpdateAsync(static setters => setters.SetProperty(static act => act.Title, "A upravený"));
 
-        var items = await this.List(new ActListRequest { Take = 20, Sort = ActSortKey.Changed });
+        var items = await this.List(new ActListRequest { Take = 20, Sort = ActSortKey.Changed, SortDirection = ListSortDirection.Descending });
 
         Guid[] expected = [a.Id, c.Id, b.Id];
 

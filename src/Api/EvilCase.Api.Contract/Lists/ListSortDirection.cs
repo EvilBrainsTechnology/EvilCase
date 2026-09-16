@@ -6,7 +6,7 @@ namespace EvilBrains.EvilCase.Api.Contract.Lists;
 [JsonConverter(typeof(StrictJsonStringEnumConverter<ListSortDirection>))]
 public enum ListSortDirection
 {
-    Descending = 0,
+    Ascending = 0,
 
-    Ascending = 1,
+    Descending = 1,
 }

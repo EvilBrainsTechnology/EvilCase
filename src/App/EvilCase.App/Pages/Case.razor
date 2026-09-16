@@ -8,7 +8,6 @@
 @using EvilBrains.EvilCase.Api.Contract.Contacts
 @using EvilBrains.EvilCase.Api.Contract.Files
 @using EvilBrains.EvilCase.Api.Contract.Labels
-@using EvilBrains.EvilCase.Api.Contract.Lists
 @using EvilBrains.EvilCase.Domain.Cases
 @using Microsoft.JSInterop
 @using TabBlazor.Services
@@ -334,12 +333,7 @@
 
     private bool dirty;
 
-    private ActListRequest ActFilter => new()
-    {
-        CaseId = this.CaseId,
-        SortDirection = ListSortDirection.Ascending,
-        Take = ActItems,
-    };
+    private ActListRequest ActFilter => new() { CaseId = this.CaseId, Take = ActItems };
 
     protected override void OnInitialized()
     {

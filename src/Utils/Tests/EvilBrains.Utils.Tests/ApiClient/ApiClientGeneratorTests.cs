@@ -666,6 +666,49 @@ public class ApiClientGeneratorTests
     }
 
     [Test]
+    public void QueryPropertyOfAGenericBaseIsEmittedTest()
+    {
+        const string contract = """
+            namespace FakeApi.Contract;
+
+            public enum ItemSortKey
+            {
+                Name = 0,
+            }
+
+            public abstract record BaseQuery<TSortKey>
+                where TSortKey : struct, System.Enum
+            {
+                public TSortKey Sort { get; init; }
+
+                public int Take { get; init; }
+            }
+
+            public sealed record ItemQuery : BaseQuery<ItemSortKey>
+            {
+                public string? Search { get; init; }
+            }
+
+            public record ItemResponse
+            {
+                public required string Name { get; init; }
+            }
+            """;
+
+        var (diagnostics, output) = GeneratorTestHost.Run(QueryObjectController, contract);
+        var source = GeneratedClient(output);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(diagnostics, Is.Empty);
+            Assert.That(output.GetDiagnostics().Where(static x => x.Severity >= DiagnosticSeverity.Warning), Is.Empty, "generated code must be warning-clean");
+            Assert.That(source, Does.Contain("(\"sort\", query.Sort)"), "a property the request inherits as its base's type argument reaches the wire as the type it stands for");
+            Assert.That(source, Does.Contain("(\"take\", query.Take)"));
+            Assert.That(source, Does.Contain("(\"search\", query.Search)"));
+        }
+    }
+
+    [Test]
     public void CollectionQueryPropertyIsEmittedTest()
     {
         const string contract = """

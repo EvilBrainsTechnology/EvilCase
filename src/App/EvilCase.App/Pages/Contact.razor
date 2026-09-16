@@ -5,6 +5,7 @@
 @using EvilBrains.EvilCase.Api.Contract.Acts
 @using EvilBrains.EvilCase.Api.Contract.Cases
 @using EvilBrains.EvilCase.Api.Contract.Contacts
+@using EvilBrains.EvilCase.Api.Contract.Lists
 @using EvilBrains.EvilCase.Domain.Contacts
 @using TabBlazor.Services
 @inject IContactsClient ContactsClient
@@ -129,7 +130,13 @@
         Take = OccurrenceItems,
     };
 
-    private ActListRequest ActFilter => new() { ContactId = this.ContactId, Take = OccurrenceItems };
+    // The occurrences of a contact read from the newest date (SDD-011).
+    private ActListRequest ActFilter => new()
+    {
+        ContactId = this.ContactId,
+        SortDirection = ListSortDirection.Descending,
+        Take = OccurrenceItems,
+    };
 
     protected override Task OnParametersSetAsync()
     {

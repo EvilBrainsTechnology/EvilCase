@@ -5,21 +5,18 @@ using Microsoft.AspNetCore.Components;
 
 namespace EvilBrains.EvilCase.App.Components.Lists;
 
-/// <summary>
-/// The toolbar state, the page and the load every list component shares.
-/// </summary>
 public abstract class ListComponent : ComponentBase, IDisposable
 {
     private readonly SearchDebouncer debouncer = new();
 
-    private ListRequest? loaded;
+    private object? loaded;
 
     [Inject]
     protected ILogger<ListComponent> Logger { get; set; } = null!;
 
     protected string SearchText { get; private set; } = "";
 
-    protected ListSortDirection Direction { get; set; } = ListSortDirection.Descending;
+    protected ListSortDirection Direction { get; set; } = ListSortDirection.Ascending;
 
     protected int Skip { get; private set; }
 
@@ -54,12 +51,10 @@ public abstract class ListComponent : ComponentBase, IDisposable
     /// </summary>
     protected abstract Task<int> LoadPage(CancellationToken token);
 
-    /// <summary>
-    /// Loads the first page again, unless the host's filter is the one already loaded.
-    /// </summary>
-    protected async Task ReloadOnFilterChange(ListRequest filter)
+    protected async Task ReloadOnFilterChange<TSortKey>(ListRequest<TSortKey> filter)
+        where TSortKey : struct, Enum
     {
-        if (this.loaded == filter)
+        if (Equals(this.loaded, filter))
             return;
 
         this.loaded = filter;

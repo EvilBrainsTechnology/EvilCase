@@ -2,8 +2,13 @@ using EvilBrains.EvilCase.Api.Contract.Lists;
 
 namespace EvilBrains.EvilCase.Api.Contract.Cases;
 
-public sealed record CaseListRequest : ListRequest
+public sealed record CaseListRequest : ListRequest<CaseSortKey>
 {
+    // A case list reads by the case's own date, newest first (SDD-009).
+    public override CaseSortKey Sort { get; init; } = CaseSortKey.Date;
+
+    public override ListSortDirection SortDirection { get; init; } = ListSortDirection.Descending;
+
     public string? Search { get; init; }
 
     public DateOnly? From { get; init; }
@@ -22,6 +27,4 @@ public sealed record CaseListRequest : ListRequest
     public CaseListScope Scope { get; init; } = CaseListScope.RootOnly;
 
     public Guid? ParentCaseId { get; init; }
-
-    public CaseSortKey Sort { get; init; } = CaseSortKey.Date;
 }
