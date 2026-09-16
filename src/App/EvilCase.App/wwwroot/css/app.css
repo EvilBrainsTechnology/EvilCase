@@ -262,12 +262,12 @@ body {
     }
 }
 
-/* The files card is itself the drop target; no inner drop zone (SDD-016 §5). */
+/* The files card is the drop zone; FileDropZone toggles "hover" on it. */
 .ec-dropcard {
     position: relative;
 }
 
-.ec-dropcard.is-dragover {
+.ec-dropcard.hover {
     border-color: var(--tblr-primary);
     box-shadow: 0 0 0 3px var(--tblr-primary-lt);
 }
@@ -283,7 +283,7 @@ body {
     pointer-events: none;
 }
 
-.ec-dropcard.is-dragover .ec-dropveil {
+.ec-dropcard.hover .ec-dropveil {
     display: flex;
 }
 
