@@ -38,10 +38,12 @@ public class CaseRenderTests
             Title = "Spis",
             Status = CaseStatus.Active,
         }));
-        casesClient.ListCases(Arg.Any<CaseListRequest>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(new CaseListResponse { Items = [] }));
+        casesClient.ListCases(Arg.Any<CaseListRequest>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new CaseListResponse { Items = [], TotalCount = 0 }));
 
         var actsClient = Substitute.For<IActsClient>();
-        actsClient.ListCaseActs(caseId, Arg.Any<CancellationToken>()).Returns(Task.FromResult(new ActListResponse { Items = [] }));
+        actsClient.ListActs(Arg.Any<ActListRequest>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new ActListResponse { Items = [], TotalCount = 0 }));
 
         var labelsClient = Substitute.For<ILabelsClient>();
         labelsClient.ListLabels(Arg.Any<CancellationToken>()).Returns(Task.FromResult(new LabelListResponse { Items = [] }));

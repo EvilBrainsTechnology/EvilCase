@@ -13,17 +13,22 @@ internal static class CaseReaderStub
         var reader = Substitute.For<ICaseReader>();
         reader
             .ListCases(Arg.Any<CaseListRequest>(), Arg.Any<CancellationToken>())
-            .Returns([
-                new CaseListItem
-                {
-                    CaseId = Guid.CreateVersion7(),
-                    CaseNumber = "EC/20260821-001",
-                    Title = Title,
-                    Date = new DateOnly(2026, 1, 1),
-                    Status = CaseStatus.Active,
-                    Changed = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-                },
-            ]);
+            .Returns(new CaseListResponse
+            {
+                Items =
+                [
+                    new CaseListItem
+                    {
+                        CaseId = Guid.CreateVersion7(),
+                        CaseNumber = "EC/20260821-001",
+                        Title = Title,
+                        Date = new DateOnly(2026, 1, 1),
+                        Status = CaseStatus.Active,
+                        Changed = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                    },
+                ],
+                TotalCount = 1,
+            });
         reader
             .CountCasesByStatus(Arg.Any<CancellationToken>())
             .Returns(new CaseStatusCounts { Active = 1, WaitingOnAuthority = 0, Closed = 0 });

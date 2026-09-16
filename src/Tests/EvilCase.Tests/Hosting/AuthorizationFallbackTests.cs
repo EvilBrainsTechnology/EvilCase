@@ -116,7 +116,7 @@ public class AuthorizationFallbackTests
     [Test]
     public async Task ATokenIsEnoughToReachAnOrdinaryEndpoint()
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, new Uri("/api/cases", UriKind.Relative));
+        using var request = new HttpRequestMessage(HttpMethod.Get, new Uri("/api/cases?take=20", UriKind.Relative));
 
         request.Headers.Authorization = TestTokens.BearerFrom(this.host);
 
