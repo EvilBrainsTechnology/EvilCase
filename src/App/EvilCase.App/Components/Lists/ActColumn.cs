@@ -2,21 +2,21 @@ namespace EvilBrains.EvilCase.App.Components.Lists;
 
 public enum ActColumn
 {
-    Changed,
+    Changed = 0,
 
-    Date,
+    Date = 1,
 
-    Case,
+    Case = 2,
 
-    Act,
+    Act = 3,
 
-    Direction,
+    Direction = 4,
 
-    Contact,
+    Contact = 5,
 
-    Labels,
+    Labels = 6,
 
-    ActNumber,
+    ActNumber = 7,
 
-    ExternalNumber,
+    ExternalNumber = 8,
 }

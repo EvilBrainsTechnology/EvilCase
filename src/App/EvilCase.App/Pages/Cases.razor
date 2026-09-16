@@ -1,10 +1,5 @@
 @page "/cases"
-@using EvilBrains.ApiClient
-@using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Cases
-@implements IDisposable
-@inject ICasesClient CasesClient
-@inject ILogger<Cases> Logger
 
 <PageTitle>Spisy – EvilCase</PageTitle>
 
@@ -13,6 +8,12 @@
         <div class="row g-2 align-items-center">
             <div class="col">
                 <h2 class="page-title">Spisy</h2>
+            </div>
+            <div class="col-auto">
+                <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" id="cases-root-only" @bind="this.rootOnly" />
+                    <label class="form-check-label" for="cases-root-only">Jen rodičovské spisy</label>
+                </div>
             </div>
             <div class="col-auto ms-auto">
                 <a href="/cases/new" class="btn btn-primary"><Icon CssClass="icon" IconType="AppIcons.Plus" />Nový spis</a>
@@ -23,176 +24,38 @@
 
 <div class="page-body">
     <div class="container-xl">
-        <div class="card">
-            <div class="card-body border-bottom py-3">
-                <div class="d-flex flex-wrap align-items-center gap-2">
-                    <div class="input-icon flex-fill ec-search-field">
-                        <span class="input-icon-addon">
-                            <Icon CssClass="icon" IconType="AppIcons.Search" />
-                        </span>
-                        <input type="search" class="form-control" aria-label="Hledat ve spisech"
-                               placeholder="Hledat v názvu a popisu"
-                               value="@this.search" @oninput="this.OnSearchInput" />
-                    </div>
-
-                    <div class="form-check form-switch mb-0">
-                        <input class="form-check-input" type="checkbox" id="cases-root-only"
-                               @bind="this.rootOnly" @bind:after="this.Reload" />
-                        <label class="form-check-label" for="cases-root-only">Jen rodičovské spisy</label>
-                    </div>
-
-                    <div class="ec-segment" role="group" aria-label="Stav spisu">
-                        @foreach (var value in Filters)
-                        {
-                            <button type="button" class="@(this.status == value ? "active" : "")" @onclick="() => this.SetStatus(value)">@CaseStatusDisplay.FilterText(value)</button>
-                        }
-                    </div>
-                </div>
-            </div>
-            @if (this.failure is not null)
-            {
-                <div class="empty">
-                    <div class="empty-icon"><Icon IconType="AppIcons.AlertTriangle" /></div>
-                    <p class="empty-title">Spisy se nepodařilo načíst</p>
-                    <p class="empty-subtitle text-secondary">@this.failure</p>
-                </div>
-            }
-            else if (this.items is null)
-            {
-                <div class="card-body text-center text-secondary">
-                    <div class="spinner-border" role="status"></div>
-                </div>
-            }
-            else if (this.items.Count == 0)
-            {
-                <div class="empty">
-                    <div class="empty-icon"><Icon IconType="AppIcons.Folders" /></div>
-                    <p class="empty-title">Žádné spisy</p>
-                    <p class="empty-subtitle text-secondary">Filtru neodpovídá žádný spis.</p>
-                    <div class="empty-action">
-                        <a href="/cases/new" class="btn btn-primary"><Icon CssClass="icon" IconType="AppIcons.Plus" />Založit spis</a>
-                    </div>
-                </div>
-            }
-            else
-            {
-                <div class="d-none d-lg-block">
-                    <table class="table card-table table-vcenter table-hover">
-                        <thead>
-                            <tr>
-                                <th>Datum</th>
-                                <th>Spis</th>
-                                <th>Stav</th>
-                                <th>Štítky</th>
-                                <th>Spisová značka</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var item in this.items)
-                            {
-                                <tr class="table-row-link">
-                                    <td class="text-nowrap">@DateDisplay.Text(item.Date)</td>
-                                    <td class="fw-bold"><a href="@($"/cases/{item.CaseId}")" class="stretched-link">@item.Title</a></td>
-                                    <td class="text-nowrap">
-                                        <Status BackgroundColor="CaseStatusDisplay.Color(item.Status)" Lite="true">@CaseStatusDisplay.Text(item.Status)</Status>
-                                    </td>
-                                    <td class="text-nowrap"><LabelDots Labels="item.Labels" /></td>
-                                    <td class="text-nowrap ec-mono">@item.CaseNumber</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="card-body d-lg-none">
-                    @foreach (var item in this.items)
-                    {
-                        <CaseListCard Case="item" />
-                    }
-                </div>
-            }
-        </div>
+        <CaseList Columns="Columns"
+                  Filter="this.Filter"
+                  ShowSearch="true"
+                  ShowDates="true"
+                  ShowLabelFilter="true"
+                  ShowStatusFilter="true"
+                  ShowSorting="true"
+                  ShowPaging="true">
+            <EmptyAction>
+                <a href="/cases/new" class="btn btn-primary"><Icon CssClass="icon" IconType="AppIcons.Plus" />Založit spis</a>
+            </EmptyAction>
+        </CaseList>
     </div>
 </div>
 
 @code {
-    // The segmented control's order (Otevřené, Aktivní, Čeká na úřad, Uzavřené, Všechny), not the enum's.
-    private static readonly CaseStatusFilter[] Filters =
+    private const int PageItems = 20;
+
+    private static readonly CaseColumn[] Columns =
     [
-        CaseStatusFilter.Open,
-        CaseStatusFilter.Active,
-        CaseStatusFilter.WaitingOnAuthority,
-        CaseStatusFilter.Closed,
-        CaseStatusFilter.All,
+        CaseColumn.Date,
+        CaseColumn.Case,
+        CaseColumn.Status,
+        CaseColumn.Labels,
+        CaseColumn.CaseNumber,
     ];
 
-    private readonly SearchDebouncer debouncer = new();
-
-    private IReadOnlyList<CaseListItem>? items;
-    private string search = "";
-    private CaseStatusFilter status = CaseStatusFilter.Open;
     private bool rootOnly = true;
-    private string? failure;
 
-    protected override Task OnInitializedAsync()
+    private CaseListRequest Filter => new()
     {
-        return this.LoadCases(debounce: false);
-    }
-
-    public void Dispose()
-    {
-        this.debouncer.Dispose();
-    }
-
-    private Task OnSearchInput(ChangeEventArgs args)
-    {
-        this.search = args.Value as string ?? "";
-
-        return this.LoadCases(debounce: true);
-    }
-
-    private Task Reload()
-    {
-        return this.LoadCases(debounce: false);
-    }
-
-    private Task SetStatus(CaseStatusFilter value)
-    {
-        this.status = value;
-
-        return this.LoadCases(debounce: false);
-    }
-
-    private async Task LoadCases(bool debounce)
-    {
-        var token = await this.debouncer.Start(debounce);
-        if (token is null)
-            return;
-
-        var request = new CaseListRequest
-        {
-            Search = string.IsNullOrWhiteSpace(this.search) ? null : this.search,
-            Status = this.status,
-            Scope = this.rootOnly ? CaseListScope.RootOnly : CaseListScope.All,
-        };
-
-        try
-        {
-            var response = await this.CasesClient.ListCases(request, token.Value);
-
-            this.items = response.Items;
-            this.failure = null;
-        }
-        catch (OperationCanceledException)
-        {
-            // Superseded by a newer request.
-        }
-        catch (Exception exception) when (exception is ApiException or HttpRequestException)
-        {
-            this.Logger.LogWarning(exception, "Loading the case list failed");
-
-            this.items = [];
-            this.failure = "Seznam spisů se nepodařilo načíst. Zkuste to za chvíli znovu.";
-        }
-    }
+        Scope = this.rootOnly ? CaseListScope.RootOnly : CaseListScope.All,
+        Take = PageItems,
+    };
 }

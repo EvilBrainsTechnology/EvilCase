@@ -2,11 +2,11 @@ namespace EvilBrains.EvilCase.App.Components.Lists;
 
 public enum ContactColumn
 {
-    Name,
+    Name = 0,
 
-    Kind,
+    Kind = 1,
 
-    DataBoxId,
+    DataBoxId = 2,
 
-    Address,
+    Address = 3,
 }

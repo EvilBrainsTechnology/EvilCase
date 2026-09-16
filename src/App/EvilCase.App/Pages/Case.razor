@@ -2,12 +2,15 @@
 @using System.Net
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.Acts
 @using EvilBrains.EvilCase.Api.Contract.Cases
 @using EvilBrains.EvilCase.Api.Contract.Comments
 @using EvilBrains.EvilCase.Api.Contract.Contacts
 @using EvilBrains.EvilCase.Api.Contract.Files
 @using EvilBrains.EvilCase.Api.Contract.Labels
+@using EvilBrains.EvilCase.Api.Contract.Lists
 @using EvilBrains.EvilCase.Domain.Cases
+@using Microsoft.JSInterop
 @using TabBlazor.Services
 @inject ICasesClient CasesClient
 @inject ICaseLabelsClient CaseLabelsClient
@@ -17,6 +20,7 @@
 @inject IFileDownloader Downloader
 @inject IModalService ModalService
 @inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
 @inject ILogger<Case> Logger
 
 <PageTitle>@(this.caseDetail is null ? "Spis" : this.caseDetail.CaseNumber) – EvilCase</PageTitle>
@@ -104,7 +108,24 @@
                             </div>
                         </div>
 
-                        <ActListCard @key="this.CaseId" CaseId="this.CaseId" ConfirmNavigation="this.Edit && this.dirty" />
+                        <ActList @key="this.CaseId"
+                                 Columns="ActColumns"
+                                 Filter="this.ActFilter"
+                                 Title="Úkony"
+                                 ShowSearch="true"
+                                 ShowDates="true"
+                                 ShowLabelFilter="true"
+                                 ShowDirectionFilter="true"
+                                 ShowSorting="true"
+                                 ShowPaging="true"
+                                 EmptySubtitle="Zatím tu není žádný úkon.">
+                            <Actions>
+                                <a href="/cases/@this.CaseId/act/new" class="btn btn-primary" @onclick="this.GoToNewAct" @onclick:preventDefault="this.Edit && this.dirty"><Icon CssClass="icon" IconType="AppIcons.Plus" />Nový úkon</a>
+                            </Actions>
+                            <EmptyAction>
+                                <a href="/cases/@this.CaseId/act/new" class="btn btn-primary" @onclick="this.GoToNewAct" @onclick:preventDefault="this.Edit && this.dirty"><Icon CssClass="icon" IconType="AppIcons.Plus" />Založit úkon</a>
+                            </EmptyAction>
+                        </ActList>
 
                         <FilesCard @key="this.CaseId"
                                    OwnerGoneError="spis už neexistuje."
@@ -241,7 +262,7 @@
                                     </div>
                                 }
 
-                                <CaseChildrenCard Items="this.caseDetail!.ChildCases" ParentCaseId="this.CaseId" ConfirmNavigation="this.Edit && this.dirty" />
+                                <CaseChildrenCard ParentCaseId="this.CaseId" ConfirmNavigation="this.Edit && this.dirty" />
                             </div>
                         </div>
                     </aside>
@@ -283,6 +304,23 @@
 </CascadingValue>
 
 @code {
+    private const int ActItems = 20;
+
+    /// <summary>
+    /// Every case of the tenant is a candidate parent; the tenant holds no more than this many.
+    /// </summary>
+    private const int ParentOptions = 100;
+
+    private static readonly ActColumn[] ActColumns =
+    [
+        ActColumn.Date,
+        ActColumn.Act,
+        ActColumn.Direction,
+        ActColumn.Contact,
+        ActColumn.Labels,
+        ActColumn.ActNumber,
+    ];
+
     [Parameter]
     public Guid CaseId { get; set; }
 
@@ -306,6 +344,13 @@
     private bool busy;
 
     private bool dirty;
+
+    private ActListRequest ActFilter => new()
+    {
+        CaseId = this.CaseId,
+        SortDirection = ListSortDirection.Ascending,
+        Take = ActItems,
+    };
 
     protected override void OnInitialized()
     {
@@ -351,7 +396,8 @@
             if (this.Edit)
             {
                 // Every case of the tenant, subordinate ones included: a case hangs under any of them.
-                var response = await this.CasesClient.ListCases(new CaseListRequest { Status = CaseStatusFilter.All, Scope = CaseListScope.All }, CancellationToken.None);
+                var request = new CaseListRequest { Status = CaseStatusFilter.All, Scope = CaseListScope.All, Take = ParentOptions };
+                var response = await this.CasesClient.ListCases(request, CancellationToken.None);
 
                 this.parentOptions = [.. response.Items.Where(item => item.CaseId != this.CaseId)];
             }
@@ -425,6 +471,14 @@
     private Task DeleteComment(Guid commentId, CancellationToken token)
     {
         return this.CaseCommentsClient.DeleteCaseComment(this.CaseId, commentId, token);
+    }
+
+    private async Task GoToNewAct()
+    {
+        if (this.Edit && this.dirty && !await UnsavedChangesGuard.ConfirmLeave(this.JSRuntime))
+            return;
+
+        this.Navigation.NavigateTo($"/cases/{this.CaseId}/act/new");
     }
 
     private async Task DeleteCase()

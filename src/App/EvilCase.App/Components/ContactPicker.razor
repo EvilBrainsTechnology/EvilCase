@@ -52,6 +52,9 @@ else
 }
 
 @code {
+    // The suggester offers at most eight matches (SDD-011).
+    private const int Matches = 8;
+
     [Parameter, EditorRequired]
     public required string InputId { get; set; }
 
@@ -104,9 +107,9 @@ else
 
         try
         {
-            var response = await this.ContactsClient.ListContacts(new ContactListRequest { Search = this.search }, token.Value);
+            var response = await this.ContactsClient.ListContacts(new ContactListRequest { Search = this.search, Take = Matches }, token.Value);
 
-            this.matches = [.. response.Items.Take(8)];
+            this.matches = response.Items;
             this.searched = true;
         }
         catch (OperationCanceledException)

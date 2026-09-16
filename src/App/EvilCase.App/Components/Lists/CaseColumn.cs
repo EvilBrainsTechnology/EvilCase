@@ -2,17 +2,17 @@ namespace EvilBrains.EvilCase.App.Components.Lists;
 
 public enum CaseColumn
 {
-    Changed,
+    Changed = 0,
 
-    Date,
+    Date = 1,
 
-    Case,
+    Case = 2,
 
-    Status,
+    Status = 3,
 
-    Labels,
+    Labels = 4,
 
-    CaseNumber,
+    CaseNumber = 5,
 
-    ExternalNumber,
+    ExternalNumber = 6,
 }

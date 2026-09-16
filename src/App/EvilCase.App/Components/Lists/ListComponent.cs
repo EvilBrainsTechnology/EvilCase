@@ -1,10 +1,8 @@
-using System.Globalization;
 using EvilBrains.ApiClient;
 using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.Api.Contract.Lists;
 using EvilBrains.EvilCase.App.Search;
 using Microsoft.AspNetCore.Components;
-using Microsoft.Extensions.Logging;
 
 namespace EvilBrains.EvilCase.App.Components.Lists;
 
@@ -53,6 +51,14 @@ public abstract class ListComponent : ComponentBase, IDisposable
     }
 
     /// <summary>
+    /// Reads the list again from its first page; the host calls it after it wrote a record.
+    /// </summary>
+    public async Task Reload()
+    {
+        await this.ReloadFirstPage();
+    }
+
+    /// <summary>
     /// Reads the page the toolbar asks for and answers with the count the filter leaves.
     /// </summary>
     protected abstract Task<int> LoadPage(CancellationToken token);
@@ -60,21 +66,21 @@ public abstract class ListComponent : ComponentBase, IDisposable
     /// <summary>
     /// Loads the first page again, unless the host's filter is the one already loaded.
     /// </summary>
-    protected Task ReloadOnFilterChange(ListRequest filter)
+    protected async Task ReloadOnFilterChange(ListRequest filter)
     {
         if (this.loaded == filter)
-            return Task.CompletedTask;
+            return;
 
         this.loaded = filter;
 
-        return this.ReloadFirstPage();
+        await this.ReloadFirstPage();
     }
 
-    protected Task ReloadFirstPage()
+    protected async Task ReloadFirstPage()
     {
         this.Skip = 0;
 
-        return this.Reload(debounce: false);
+        await this.Load(debounce: false);
     }
 
     protected void TurnDirection()
@@ -82,47 +88,47 @@ public abstract class ListComponent : ComponentBase, IDisposable
         this.Direction = this.Direction == ListSortDirection.Descending ? ListSortDirection.Ascending : ListSortDirection.Descending;
     }
 
-    protected Task OnSearchInput(ChangeEventArgs args)
+    protected async Task OnSearchInput(ChangeEventArgs args)
     {
         this.SearchText = args.Value as string ?? "";
         this.Skip = 0;
 
-        return this.Reload(debounce: true);
+        await this.Load(debounce: true);
     }
 
-    protected Task OnFromInput(ChangeEventArgs args)
+    protected async Task OnFromInput(ChangeEventArgs args)
     {
         this.From = ParseDate(args);
 
-        return this.ReloadFirstPage();
+        await this.ReloadFirstPage();
     }
 
-    protected Task OnToInput(ChangeEventArgs args)
+    protected async Task OnToInput(ChangeEventArgs args)
     {
         this.To = ParseDate(args);
 
-        return this.ReloadFirstPage();
+        await this.ReloadFirstPage();
     }
 
-    protected Task OnLabelsChanged(IReadOnlyList<LabelItem> labels)
+    protected async Task OnLabelsChanged(IReadOnlyList<LabelItem> labels)
     {
         this.SelectedLabels = labels;
 
-        return this.ReloadFirstPage();
+        await this.ReloadFirstPage();
     }
 
-    protected Task ToPreviousPage()
+    protected async Task ToPreviousPage()
     {
         this.Skip = Math.Max(0, this.Skip - this.PageSize);
 
-        return this.Reload(debounce: false);
+        await this.Load(debounce: false);
     }
 
-    protected Task ToNextPage()
+    protected async Task ToNextPage()
     {
         this.Skip += this.PageSize;
 
-        return this.Reload(debounce: false);
+        await this.Load(debounce: false);
     }
 
     private static DateOnly? ParseDate(ChangeEventArgs args)
@@ -130,7 +136,7 @@ public abstract class ListComponent : ComponentBase, IDisposable
         return DateOnly.TryParse(args.Value as string, CultureInfo.InvariantCulture, out var date) ? date : null;
     }
 
-    private async Task Reload(bool debounce)
+    private async Task Load(bool debounce)
     {
         var token = await this.debouncer.Start(debounce);
         if (token is null)
