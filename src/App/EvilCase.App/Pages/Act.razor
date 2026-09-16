@@ -120,14 +120,14 @@
                             </div>
                         </div>
 
-                        <FilesCard @key="this.ActId"
+                        <FilesCard @key="(nameof(FilesCard), this.ActId)"
                                    OwnerGoneError="úkon už neexistuje."
                                    LoadFiles="this.LoadFiles"
                                    UploadFile="this.UploadFile"
                                    DownloadFile="this.DownloadFile"
                                    DeleteFile="this.DeleteFile" />
 
-                        <CommentsCard @key="this.ActId"
+                        <CommentsCard @key="(nameof(CommentsCard), this.ActId)"
                                       LoadComments="this.LoadComments"
                                       AddComment="this.AddComment"
                                       SaveComment="this.SaveComment"

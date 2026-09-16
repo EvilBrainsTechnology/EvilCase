@@ -19,10 +19,14 @@
 
 <div class="ec-picker">
     <input id="@this.InputId" type="search" class="form-control" placeholder="Hledat štítek"
-           aria-label="Hledat štítek" value="@this.search" @oninput="this.OnSearchInput" @onkeydown="this.OnKeyDown" />
+           aria-label="Hledat štítek" value="@this.search" @oninput="this.OnSearchInput" @onkeydown="this.OnKeyDown" @onfocus="this.Open" />
 
-    @if (!this.closed && this.Matches is { Count: > 0 } matches)
+    @if (this.open && this.Matches is { Count: > 0 } matches)
     {
+        @* Closes the menu on a click anywhere else. Tabler's own dropdown does this from Bootstrap's
+           JavaScript, which does not survive the Blazor renderer. *@
+        <div class="dropdown-backdrop" @onclick="this.Close"></div>
+
         <div class="dropdown-menu show ec-picker-menu">
             @foreach (var match in matches)
             {
@@ -38,16 +42,13 @@
 {
     <div class="form-hint">@this.failure</div>
 }
-else if (!this.closed && this.Matches.Count == 0)
+else if (this.available.Count == 0)
 {
-    @if (this.available.Count == 0)
-    {
-        <div class="form-hint">Zatím není žádný štítek. Založte ho v <a href="/settings">nastavení</a>.</div>
-    }
-    else
-    {
-        <div class="form-hint">Žádný další štítek neodpovídá.</div>
-    }
+    <div class="form-hint">Zatím není žádný štítek. Založte ho v <a href="/settings">nastavení</a>.</div>
+}
+else if (this.open && this.Matches.Count == 0)
+{
+    <div class="form-hint">Žádný další štítek neodpovídá.</div>
 }
 
 @code {
@@ -64,7 +65,7 @@ else if (!this.closed && this.Matches.Count == 0)
 
     private string search = "";
 
-    private bool closed;
+    private bool open;
 
     private string? failure;
 
@@ -95,16 +96,26 @@ else if (!this.closed && this.Matches.Count == 0)
         }
     }
 
+    private void Open()
+    {
+        this.open = true;
+    }
+
+    private void Close()
+    {
+        this.open = false;
+    }
+
     private void OnSearchInput(ChangeEventArgs args)
     {
         this.search = args.Value as string ?? "";
-        this.closed = false;
+        this.open = true;
     }
 
     private void OnKeyDown(KeyboardEventArgs args)
     {
         if (args.Key == "Escape")
-            this.closed = true;
+            this.open = false;
     }
 
     private async Task Add(LabelItem label)
