@@ -94,7 +94,7 @@
 
     @if (this.ShowSearch || this.ShowDates || this.ShowLabelFilter || this.ShowStatusFilter || this.ShowSorting)
     {
-        <div class="card-body border-bottom py-3">
+        <div class="card-body border-bottom py-3 @this.ToolbarClass">
             <div class="d-flex flex-wrap align-items-center gap-2">
                 @if (this.ShowSearch)
                 {
@@ -108,9 +108,9 @@
 
                 @if (this.ShowDates)
                 {
-                    <input type="date" class="form-control ec-date-field" aria-label="Datum od"
+                    <input type="date" class="form-control w-auto ec-date-field" aria-label="Datum od"
                            value="@this.From?.ToString("yyyy-MM-dd")" @onchange="this.OnFromInput" />
-                    <input type="date" class="form-control ec-date-field" aria-label="Datum do"
+                    <input type="date" class="form-control w-auto ec-date-field" aria-label="Datum do"
                            value="@this.To?.ToString("yyyy-MM-dd")" @onchange="this.OnToInput" />
                 }
 
@@ -136,7 +136,7 @@
 
                 @if (this.ShowLabelFilter)
                 {
-                    <div class="flex-fill ec-search-field">
+                    <div class="ec-search-field">
                         <LabelPicker InputId="@($"{this.InputPrefix}-labels")" Selected="this.SelectedLabels" SelectedChanged="this.OnLabelsChanged" />
                     </div>
                 }
@@ -294,6 +294,13 @@
     protected override int PageSize => this.Filter.Take;
 
     protected override string FailureText => "Seznam spisů se nepodařilo načíst. Zkuste to za chvíli znovu.";
+
+    /// <summary>
+    /// A toolbar holding nothing but the sorting select belongs to the card variant alone; the
+    /// table sorts by its headers.
+    /// </summary>
+    private string? ToolbarClass =>
+        this.ShowSearch || this.ShowDates || this.ShowLabelFilter || this.ShowStatusFilter ? null : "d-lg-none";
 
     protected override void OnInitialized()
     {

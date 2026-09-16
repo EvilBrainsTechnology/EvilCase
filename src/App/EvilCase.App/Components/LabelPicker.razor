@@ -19,7 +19,7 @@
 
 <div class="ec-picker">
     <input id="@this.InputId" type="search" class="form-control" placeholder="Hledat štítek"
-           aria-label="Hledat štítek" value="@this.search" @oninput="this.OnSearchInput" @onkeydown="this.OnKeyDown" />
+           aria-label="Hledat štítek" value="@this.search" @oninput="this.OnSearchInput" @onkeydown="this.OnKeyDown" @onfocus="this.Open" />
 
     @if (!this.closed && this.Matches is { Count: > 0 } matches)
     {
@@ -64,7 +64,9 @@ else if (!this.closed && this.Matches.Count == 0)
 
     private string search = "";
 
-    private bool closed;
+    // The menu opens on focus: the picker sits in a list toolbar too, where an open menu would
+    // cover the list.
+    private bool closed = true;
 
     private string? failure;
 
@@ -98,6 +100,11 @@ else if (!this.closed && this.Matches.Count == 0)
     private void OnSearchInput(ChangeEventArgs args)
     {
         this.search = args.Value as string ?? "";
+        this.closed = false;
+    }
+
+    private void Open()
+    {
         this.closed = false;
     }
 
