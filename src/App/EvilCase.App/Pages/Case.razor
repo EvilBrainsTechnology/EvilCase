@@ -104,7 +104,7 @@
                             </div>
                         </div>
 
-                        <ActListCard @key="this.CaseId" CaseId="this.CaseId" ConfirmNavigation="this.Edit && this.dirty" />
+                        <ActListCard @key="(nameof(ActListCard), this.CaseId)" CaseId="this.CaseId" ConfirmNavigation="this.Edit && this.dirty" />
 
                         <FilesCard @key="(nameof(FilesCard), this.CaseId)"
                                    OwnerGoneError="spis už neexistuje."
