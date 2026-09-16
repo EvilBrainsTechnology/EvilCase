@@ -45,7 +45,7 @@
                 @if (this.Edit && this.caseDetail is not null)
                 {
                     <label class="visually-hidden" for="case-title">Název</label>
-                    <input id="case-title" class="form-control ec-title-input" @bind="this.model.Title" />
+                    <input id="case-title" class="form-control ec-title-input" @bind="this.model.Title" @bind:after="this.MarkDirty" />
                     <ValidationMessage For="() => this.model.Title" class="invalid-feedback d-block" />
                 }
                 else if (this.caseDetail is not null)
@@ -102,7 +102,7 @@
                             </div>
                         </div>
 
-                        <ActListCard @key="this.CaseId" CaseId="this.CaseId" />
+                        <ActListCard @key="this.CaseId" CaseId="this.CaseId" ConfirmNavigation="this.Edit && this.dirty" />
 
                         <FilesCard @key="this.CaseId"
                                    OwnerGoneError="spis už neexistuje."
@@ -152,7 +152,7 @@
                                     </div>
                                     <div>
                                         <label class="ec-field-label" for="case-contact">Kontakt</label>
-                                        <ContactPicker InputId="case-contact" @bind-Selected="this.model.Contact" />
+                                        <ContactPicker InputId="case-contact" Selected="this.model.Contact" SelectedChanged="this.OnContactChanged" />
                                         <ValidationMessage For="() => this.model.Contact" class="invalid-feedback d-block" />
                                     </div>
                                 }
@@ -197,7 +197,7 @@
                                 <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.Tag" />Štítky</h3></div>
                                 <div class="card-body">
                                     <label class="visually-hidden" for="case-labels">Štítky</label>
-                                    <LabelPicker InputId="case-labels" @bind-Selected="this.model.Labels" />
+                                    <LabelPicker InputId="case-labels" Selected="this.model.Labels" SelectedChanged="this.OnLabelsChanged" />
                                 </div>
                             </div>
                         }
@@ -239,7 +239,7 @@
                                     </div>
                                 }
 
-                                <CaseChildrenCard Items="this.caseDetail!.ChildCases" ParentCaseId="this.CaseId" />
+                                <CaseChildrenCard Items="this.caseDetail!.ChildCases" ParentCaseId="this.CaseId" ConfirmNavigation="this.Edit && this.dirty" />
                             </div>
                         </div>
                     </aside>
@@ -254,7 +254,10 @@
                         }
 
                         <div class="ec-savebar">
-                            <span class="text-secondary d-none d-lg-inline">Neuložené změny</span>
+                            @if (this.dirty)
+                            {
+                                <span class="text-secondary d-none d-lg-inline">Neuložené změny</span>
+                            }
                             <div class="ec-savebar-actions">
                                 <a href="@($"/cases/{this.CaseId}")" class="btn"><Icon CssClass="icon" IconType="AppIcons.X" />Zrušit</a>
                                 <button id="case-submit" type="button" class="btn btn-primary" disabled="@this.busy" @onclick="this.SubmitCase">
@@ -300,14 +303,34 @@
 
     private bool busy;
 
+    private bool dirty;
+
     protected override void OnInitialized()
     {
         this.editContext = new EditContext(this.model);
+        this.editContext.OnFieldChanged += (_, _) => this.MarkDirty();
     }
 
     protected override Task OnParametersSetAsync()
     {
         return this.LoadCase();
+    }
+
+    private void MarkDirty()
+    {
+        this.dirty = true;
+    }
+
+    private void OnContactChanged(ContactListItem? contact)
+    {
+        this.model.Contact = contact;
+        this.MarkDirty();
+    }
+
+    private void OnLabelsChanged(IReadOnlyList<LabelItem> labels)
+    {
+        this.model.Labels = labels;
+        this.MarkDirty();
     }
 
     private async Task LoadCase()
@@ -316,6 +339,7 @@
         this.notFound = false;
         this.failure = null;
         this.error = null;
+        this.dirty = false;
 
         try
         {

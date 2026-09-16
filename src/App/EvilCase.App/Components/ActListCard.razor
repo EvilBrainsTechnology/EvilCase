@@ -1,7 +1,11 @@
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Acts
+@using EvilBrains.EvilCase.App.Models
+@using Microsoft.JSInterop
 @inject IActsClient ActsClient
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
 @inject ILogger<ActListCard> Logger
 
 <div class="card">
@@ -14,7 +18,7 @@
             }
         </h3>
         <div class="card-actions">
-            <a href="/cases/@this.CaseId/act/new" class="btn btn-primary"><Icon CssClass="icon" IconType="AppIcons.Plus" />Nový úkon</a>
+            <a href="/cases/@this.CaseId/act/new" class="btn btn-primary" @onclick="this.GoToNewAct" @onclick:preventDefault="this.ConfirmNavigation"><Icon CssClass="icon" IconType="AppIcons.Plus" />Nový úkon</a>
         </div>
     </div>
 
@@ -39,7 +43,7 @@
             <p class="empty-title">Žádné úkony</p>
             <p class="empty-subtitle text-secondary">Zatím tu není žádný úkon.</p>
             <div class="empty-action">
-                <a href="/cases/@this.CaseId/act/new" class="btn btn-primary"><Icon CssClass="icon" IconType="AppIcons.Plus" />Založit úkon</a>
+                <a href="/cases/@this.CaseId/act/new" class="btn btn-primary" @onclick="this.GoToNewAct" @onclick:preventDefault="this.ConfirmNavigation"><Icon CssClass="icon" IconType="AppIcons.Plus" />Založit úkon</a>
             </div>
         </div>
     }
@@ -117,9 +121,24 @@
     [Parameter, EditorRequired]
     public required Guid CaseId { get; set; }
 
+    /// <summary>
+    /// True while the case's edit form holds unsaved changes: Nový úkon confirms before it
+    /// navigates away and discards them.
+    /// </summary>
+    [Parameter]
+    public bool ConfirmNavigation { get; set; }
+
     private IReadOnlyList<ActListItem>? items;
 
     private string? failure;
+
+    private async Task GoToNewAct()
+    {
+        if (this.ConfirmNavigation && !await UnsavedChangesGuard.ConfirmLeave(this.JSRuntime))
+            return;
+
+        this.Navigation.NavigateTo($"/cases/{this.CaseId}/act/new");
+    }
 
     protected override async Task OnInitializedAsync()
     {

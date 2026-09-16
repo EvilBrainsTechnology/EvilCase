@@ -1,4 +1,8 @@
 @using EvilBrains.EvilCase.Api.Contract.Cases
+@using EvilBrains.EvilCase.App.Models
+@using Microsoft.JSInterop
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
 
 @* The sidebar's Hierarchie section: parent case link, then the child list as compact full-width rows. *@
 <div class="ec-field-label mb-2 d-flex align-items-center gap-2">
@@ -26,7 +30,7 @@ else
     }
 }
 
-<a href="@($"/cases/new?parent={ParentCaseId}")" class="btn btn-outline-secondary w-100 mt-2">
+<a href="@($"/cases/new?parent={ParentCaseId}")" class="btn btn-outline-secondary w-100 mt-2" @onclick="this.GoToNewChildCase" @onclick:preventDefault="this.ConfirmNavigation">
     <Icon CssClass="icon" IconType="AppIcons.Plus" />Nový podřízený spis
 </a>
 
@@ -36,4 +40,19 @@ else
 
     [Parameter, EditorRequired]
     public required Guid ParentCaseId { get; set; }
+
+    /// <summary>
+    /// True while the case's edit form holds unsaved changes: Nový podřízený spis confirms
+    /// before it navigates away and discards them.
+    /// </summary>
+    [Parameter]
+    public bool ConfirmNavigation { get; set; }
+
+    private async Task GoToNewChildCase()
+    {
+        if (this.ConfirmNavigation && !await UnsavedChangesGuard.ConfirmLeave(this.JSRuntime))
+            return;
+
+        this.Navigation.NavigateTo($"/cases/new?parent={this.ParentCaseId}");
+    }
 }

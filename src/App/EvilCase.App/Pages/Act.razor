@@ -47,7 +47,7 @@
                 @if (this.Edit && this.act is not null)
                 {
                     <label class="visually-hidden" for="act-title">Název</label>
-                    <input id="act-title" class="form-control ec-title-input" @bind="this.model.Title" />
+                    <input id="act-title" class="form-control ec-title-input" @bind="this.model.Title" @bind:after="this.MarkDirty" />
                     <ValidationMessage For="() => this.model.Title" class="invalid-feedback d-block" />
                 }
                 else if (this.act is not null)
@@ -168,7 +168,7 @@
                                     </div>
                                     <div>
                                         <label class="ec-field-label" for="act-contact">Kontakt</label>
-                                        <ContactPicker InputId="act-contact" @bind-Selected="this.model.Contact" />
+                                        <ContactPicker InputId="act-contact" Selected="this.model.Contact" SelectedChanged="this.OnContactChanged" />
                                         <ValidationMessage For="() => this.model.Contact" class="invalid-feedback d-block" />
                                     </div>
                                 }
@@ -222,7 +222,7 @@
                                 <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.Tag" />Štítky</h3></div>
                                 <div class="card-body">
                                     <label class="visually-hidden" for="act-labels">Štítky</label>
-                                    <LabelPicker InputId="act-labels" @bind-Selected="this.model.Labels" />
+                                    <LabelPicker InputId="act-labels" Selected="this.model.Labels" SelectedChanged="this.OnLabelsChanged" />
                                 </div>
                             </div>
                         }
@@ -260,7 +260,10 @@
                         }
 
                         <div class="ec-savebar">
-                            <span class="text-secondary d-none d-lg-inline">Neuložené změny</span>
+                            @if (this.dirty)
+                            {
+                                <span class="text-secondary d-none d-lg-inline">Neuložené změny</span>
+                            }
                             <div class="ec-savebar-actions">
                                 <a href="@($"/cases/{this.act!.CaseId}/act/{this.act!.ActId}")" class="btn"><Icon CssClass="icon" IconType="AppIcons.X" />Zrušit</a>
                                 <button id="act-submit" type="button" class="btn btn-primary" disabled="@this.busy" @onclick="this.SubmitAct">
@@ -309,14 +312,34 @@
 
     private ContactListItem? caseContact;
 
+    private bool dirty;
+
     protected override void OnInitialized()
     {
         this.editContext = new EditContext(this.model);
+        this.editContext.OnFieldChanged += (_, _) => this.MarkDirty();
     }
 
     protected override Task OnParametersSetAsync()
     {
         return this.LoadAct();
+    }
+
+    private void MarkDirty()
+    {
+        this.dirty = true;
+    }
+
+    private void OnContactChanged(ContactListItem? contact)
+    {
+        this.model.Contact = contact;
+        this.MarkDirty();
+    }
+
+    private void OnLabelsChanged(IReadOnlyList<LabelItem> labels)
+    {
+        this.model.Labels = labels;
+        this.MarkDirty();
     }
 
     private async Task LoadAct()
@@ -326,6 +349,7 @@
         this.error = null;
         this.act = null;
         this.caseContact = null;
+        this.dirty = false;
 
         try
         {
