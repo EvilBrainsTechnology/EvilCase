@@ -18,12 +18,16 @@ public class CasesControllerTests
         var reader = Substitute.For<ICaseReader>();
         reader
             .ListCases(Arg.Any<CaseListRequest>(), Arg.Any<CancellationToken>())
-            .Returns([Item("EC/20260821-002", "druhý"), Item("EC/20260821-001", "první")]);
+            .Returns(new CaseListResponse { Items = [Item("EC/20260821-002", "druhý"), Item("EC/20260821-001", "první")], TotalCount = 7 });
         var controller = new CasesController();
 
-        var response = await controller.ListCases(reader, new CaseListRequest(), CancellationToken.None);
+        var response = await controller.ListCases(reader, Request(), CancellationToken.None);
 
-        Assert.That(response.Items.Select(static item => item.Title), Is.EqualTo(["druhý", "první"]), "the controller does not re-order what the reader gave it");
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(response.Items.Select(static item => item.Title), Is.EqualTo(["druhý", "první"]), "the controller does not re-order what the reader gave it");
+            Assert.That(response.TotalCount, Is.EqualTo(7), "the controller hands the total through untouched");
+        }
     }
 
     [Test]
@@ -44,20 +48,26 @@ public class CasesControllerTests
     [Test]
     public async Task TheSearchTermReachesTheReaderUntouched()
     {
+        var labelId = Guid.CreateVersion7();
         CaseListRequest? listRequest = null;
         var reader = Substitute.For<ICaseReader>();
         reader
             .ListCases(Arg.Any<CaseListRequest>(), Arg.Any<CancellationToken>())
-            .Returns([])
+            .Returns(new CaseListResponse { Items = [], TotalCount = 0 })
             .AndDoes(call => listRequest = call.Arg<CaseListRequest>());
         var controller = new CasesController();
 
-        await controller.ListCases(reader, new CaseListRequest { Search = "odvolání", Status = CaseStatusFilter.WaitingOnAuthority }, CancellationToken.None);
+        await controller.ListCases(
+            reader,
+            Request() with { Search = "odvolání", Status = CaseStatusFilter.WaitingOnAuthority, LabelIds = [labelId], Skip = 40 },
+            CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(listRequest?.Search, Is.EqualTo("odvolání"), "the controller decides nothing about the term");
             Assert.That(listRequest?.Status, Is.EqualTo(CaseStatusFilter.WaitingOnAuthority), "the controller hands the status through untouched");
+            Assert.That(listRequest?.LabelIds, Is.EqualTo([labelId]), "the controller hands every requested label through untouched");
+            Assert.That(listRequest?.Skip, Is.EqualTo(40), "the controller decides nothing about the page");
         }
     }
 
@@ -339,6 +349,11 @@ public class CasesControllerTests
             Title = "Přestupek",
             Status = CaseStatus.Active,
         };
+    }
+
+    private static CaseListRequest Request()
+    {
+        return new() { Take = 20 };
     }
 
     private static CaseListItem Item(string caseNumber, string title)

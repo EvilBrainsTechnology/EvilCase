@@ -63,7 +63,7 @@ public class ContactsControllerTests
     {
         var reader = ListingReader([]);
         var controller = new ContactsController();
-        var request = new ContactListRequest { Search = "úřad" };
+        var request = new ContactListRequest { Search = "úřad", Take = 20 };
 
         await controller.ListContacts(reader, request, CancellationToken.None);
 
@@ -78,9 +78,13 @@ public class ContactsControllerTests
         var reader = ListingReader([Item("Krajský soud ve Vzorově"), Item("Česká advokátní komora")]);
         var controller = new ContactsController();
 
-        var response = await controller.ListContacts(reader, new ContactListRequest(), CancellationToken.None);
+        var response = await controller.ListContacts(reader, new ContactListRequest { Take = 20 }, CancellationToken.None);
 
-        Assert.That(response.Items.Select(static item => item.Name), Is.EqualTo(["Krajský soud ve Vzorově", "Česká advokátní komora"]));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(response.Items.Select(static item => item.Name), Is.EqualTo(["Krajský soud ve Vzorově", "Česká advokátní komora"]));
+            Assert.That(response.TotalCount, Is.EqualTo(5), "the controller hands the total through untouched");
+        }
     }
 
     [Test]
@@ -211,7 +215,7 @@ public class ContactsControllerTests
         var reader = Substitute.For<IContactReader>();
         reader
             .ListContacts(Arg.Any<ContactListRequest>(), Arg.Any<CancellationToken>())
-            .Returns(items);
+            .Returns(new ContactListResponse { Items = items, TotalCount = 5 });
 
         return reader;
     }

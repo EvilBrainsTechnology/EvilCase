@@ -85,35 +85,6 @@ public class CaseDetailQueryTests : TenantFixture
     }
 
     [Test]
-    public async Task TheDetailListsOnlyTheDirectSubordinateCases()
-    {
-        var root = await this.Tenant.AddCase(Day, "Kořen");
-        var child = await this.Tenant.AddCase(Day, "Podřízený", parentCaseId: root.Id);
-        _ = await this.Tenant.AddCase(Day, "Vnuk", parentCaseId: child.Id);
-
-        var reader = new CaseReader(new FixedDbSession(this.Tenant.Context));
-        var detail = await reader.GetCaseDetail(root.Id, CancellationToken.None);
-
-        Assert.That(detail!.ChildCases.Select(static item => item.CaseId), Is.EqualTo([child.Id]), "the detail lists the direct subordinates and never a whole tree");
-    }
-
-    [Test]
-    public async Task TheSubordinateCasesComeNewestFirst()
-    {
-        var root = await this.Tenant.AddCase(Day, "Kořen");
-        var older = await this.Tenant.AddCase(Day.AddDays(-2), "Starší", parentCaseId: root.Id);
-        var newer = await this.Tenant.AddCase(Day.AddDays(-1), "Novější", parentCaseId: root.Id);
-
-        var reader = new CaseReader(new FixedDbSession(this.Tenant.Context));
-        var detail = await reader.GetCaseDetail(root.Id, CancellationToken.None);
-
-        Assert.That(
-            detail!.ChildCases.Select(static item => item.CaseId),
-            Is.EqualTo([newer.Id, older.Id]),
-            "subordinate cases share the list order, newest by the case's own date first");
-    }
-
-    [Test]
     public async Task TheDetailCarriesTheCasesExternalMark()
     {
         var @case = await this.Tenant.AddCase(Day, externalCaseNumber: "VV41/2025/08464");

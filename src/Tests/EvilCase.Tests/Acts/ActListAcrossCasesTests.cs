@@ -1,6 +1,5 @@
 using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.Business.Acts;
-using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Tests.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,16 +17,11 @@ public class ActListAcrossCasesTests : TenantFixture
         var middle = await this.Tenant.AddAct(first, new DateOnly(2026, 8, 22), "Výzva");
         var newest = await this.Tenant.AddAct(second, new DateOnly(2026, 8, 24), "Rozhodnutí");
 
-        var reader = new ActReader(new FixedDbSession(this.Tenant.Context));
-
-        var items = await reader.ListActs(new ActListRequest(), CancellationToken.None);
+        var items = await this.List(new ActListRequest { Take = 20, Sort = ActSortKey.Changed });
 
         Guid[] expected = [newest.Id, middle.Id, oldest.Id];
 
-        Assert.That(
-            items.Select(static item => item.ActId),
-            Is.EqualTo(expected),
-            "the act list crosses cases and orders by each act's own Created while none was edited");
+        Assert.That(items, Is.EqualTo(expected), "the act list crosses cases and orders by each act's own Created while none was edited");
     }
 
     [Test]
@@ -42,16 +36,11 @@ public class ActListAcrossCasesTests : TenantFixture
         await this.Tenant.Context.Acts.Where(act => act.Id == a.Id)
             .ExecuteUpdateAsync(static setters => setters.SetProperty(static act => act.Title, "A upravený"));
 
-        var reader = new ActReader(new FixedDbSession(this.Tenant.Context));
-
-        var items = await reader.ListActs(new ActListRequest(), CancellationToken.None);
+        var items = await this.List(new ActListRequest { Take = 20, Sort = ActSortKey.Changed });
 
         Guid[] expected = [a.Id, c.Id, b.Id];
 
-        Assert.That(
-            items.Select(static item => item.ActId),
-            Is.EqualTo(expected),
-            "an edited act's own Updated moves it to the front, ahead of acts never touched");
+        Assert.That(items, Is.EqualTo(expected), "an edited act's own Updated moves it to the front, ahead of acts never touched");
     }
 
     [Test]
@@ -66,52 +55,29 @@ public class ActListAcrossCasesTests : TenantFixture
             await other.AddAct(otherCase, new DateOnly(2026, 8, 21), "Cizí úkon");
         }
 
-        var reader = new ActReader(new FixedDbSession(this.Tenant.Context));
-
-        var items = await reader.ListActs(new ActListRequest(), CancellationToken.None);
+        var items = await this.List(new ActListRequest { Take = 20 });
 
         Guid[] expected = [mine.Id];
 
-        Assert.That(
-            items.Select(static item => item.ActId),
-            Is.EqualTo(expected),
-            "the tenant query filter is what keeps another tenant's acts out of the act list");
+        Assert.That(items, Is.EqualTo(expected), "the tenant query filter is what keeps another tenant's acts out of the act list");
     }
 
     [Test]
-    public async Task TheCapReturnsOnlyTheNewestActs()
+    public async Task TheCaseNarrowsTheListTheOtherFiltersLeaveAlone()
     {
-        var @case = await this.Tenant.AddCase(new DateOnly(2026, 8, 15));
-        var acts = new List<Act>();
+        var first = await this.Tenant.AddCase(new DateOnly(2026, 8, 20), "První spis");
+        var second = await this.Tenant.AddCase(new DateOnly(2026, 8, 20), "Druhý spis");
 
-        for (var day = 15; day <= 21; day++)
-            acts.Add(await this.Tenant.AddAct(@case, new DateOnly(2026, 8, day), $"Úkon {day.ToString(CultureInfo.InvariantCulture)}"));
+        var wanted = await this.Tenant.AddAct(first, new DateOnly(2026, 8, 21), "Podání");
+        await this.Tenant.AddAct(second, new DateOnly(2026, 8, 21), "Jiný úkon");
 
-        var reader = new ActReader(new FixedDbSession(this.Tenant.Context));
+        var response = await this.Reader().ListActs(new ActListRequest { Take = 20, CaseId = first.Id }, CancellationToken.None);
 
-        var items = await reader.ListActs(new ActListRequest { Take = 5 }, CancellationToken.None);
-
-        var expected = acts.TakeLast(5).Reverse().Select(static act => act.Id);
-
-        Assert.That(
-            items.Select(static item => item.ActId),
-            Is.EqualTo(expected),
-            "the dashboard tile's five is a cap the database applies, not a slice the caller takes");
-    }
-
-    [Test]
-    public async Task AnAbsentCapReturnsEveryAct()
-    {
-        var @case = await this.Tenant.AddCase(new DateOnly(2026, 8, 15));
-
-        for (var day = 15; day <= 21; day++)
-            await this.Tenant.AddAct(@case, new DateOnly(2026, 8, day), $"Úkon {day.ToString(CultureInfo.InvariantCulture)}");
-
-        var reader = new ActReader(new FixedDbSession(this.Tenant.Context));
-
-        var items = await reader.ListActs(new ActListRequest { Take = null }, CancellationToken.None);
-
-        Assert.That(items, Has.Count.EqualTo(7), "an absent cap narrows nothing");
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(response.Items.Select(static item => item.ActId), Is.EqualTo([wanted.Id]), "the act list narrows to one case where the request names it");
+            Assert.That(response.TotalCount, Is.EqualTo(1), "the total counts what the case filter leaves");
+        }
     }
 
     [Test]
@@ -120,10 +86,8 @@ public class ActListAcrossCasesTests : TenantFixture
         var @case = await this.Tenant.AddCase(new DateOnly(2026, 8, 20), "Přestupek");
         var act = await this.Tenant.AddAct(@case, new DateOnly(2026, 8, 21), "Podání");
 
-        var reader = new ActReader(new FixedDbSession(this.Tenant.Context));
-
-        var items = await reader.ListActs(new ActListRequest(), CancellationToken.None);
-        var item = items.Single();
+        var response = await this.Reader().ListActs(new ActListRequest { Take = 20 }, CancellationToken.None);
+        var item = response.Items.Single();
 
         using (Assert.EnterMultipleScope())
         {
@@ -132,5 +96,17 @@ public class ActListAcrossCasesTests : TenantFixture
             Assert.That(item.CaseTitle, Is.EqualTo(@case.Title), "a row also names the case by title, for the dashboard tile's Název column");
             Assert.That(item.Changed, Is.EqualTo(act.Created), "a row shows the act's own last change, its Created while it has never been edited");
         }
+    }
+
+    private async Task<List<Guid>> List(ActListRequest request)
+    {
+        var response = await this.Reader().ListActs(request, CancellationToken.None);
+
+        return [.. response.Items.Select(static item => item.ActId)];
+    }
+
+    private ActReader Reader()
+    {
+        return new ActReader(new FixedDbSession(this.Tenant.Context));
     }
 }

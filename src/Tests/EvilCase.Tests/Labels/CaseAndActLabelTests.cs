@@ -107,11 +107,11 @@ public class CaseAndActLabelTests : TenantFixture
         await this.Tenant.AddCaseLabel(@case, second);
         await this.Tenant.AddCaseLabel(@case, first);
 
-        var items = await this.caseReader.ListCases(new CaseListRequest(), CancellationToken.None);
+        var listed = await this.caseReader.ListCases(new CaseListRequest { Take = 20 }, CancellationToken.None);
 
         string[] expected = ["Priorita", "Soud"];
 
-        Assert.That(items.Single().Labels.Select(static item => item.Name), Is.EqualTo(expected), "labels of a listed case read by name");
+        Assert.That(listed.Items.Single().Labels.Select(static item => item.Name), Is.EqualTo(expected), "labels of a listed case read by name");
     }
 
     [Test]

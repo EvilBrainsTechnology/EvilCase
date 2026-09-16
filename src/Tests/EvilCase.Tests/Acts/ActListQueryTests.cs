@@ -1,3 +1,5 @@
+using EvilBrains.EvilCase.Api.Contract.Acts;
+using EvilBrains.EvilCase.Api.Contract.Lists;
 using EvilBrains.EvilCase.Business.Acts;
 using EvilBrains.EvilCase.Tests.Data;
 using Microsoft.EntityFrameworkCore;
@@ -14,11 +16,11 @@ public class ActListQueryTests : TenantFixture
         var earliest = await this.Tenant.AddAct(@case, new DateOnly(2026, 8, 20), "Podání");
         var middle = await this.Tenant.AddAct(@case, new DateOnly(2026, 8, 22), "Výzva");
 
-        var ids = await this.Tenant.Context.Acts.InListOrder().Select(static act => act.Id).ToListAsync();
+        var ids = await this.InSortOrder(ActSortKey.Date, ListSortDirection.Ascending);
 
         Guid[] expected = [earliest.Id, middle.Id, latest.Id];
 
-        Assert.That(ids, Is.EqualTo(expected), "act lists are ordered by the act date, oldest first");
+        Assert.That(ids, Is.EqualTo(expected), "the act date orders the list of a case, oldest first");
     }
 
     [Test]
@@ -33,7 +35,7 @@ public class ActListQueryTests : TenantFixture
         var second = await this.Tenant.AddAct(@case, sameDay, "Výzva", actId: actIds[0]);
         var third = await this.Tenant.AddAct(@case, sameDay, "Rozhodnutí", actId: actIds[1]);
 
-        var ids = await this.Tenant.Context.Acts.InListOrder().Select(static act => act.Id).ToListAsync();
+        var ids = await this.InSortOrder(ActSortKey.Date, ListSortDirection.Ascending);
 
         Guid[] expected = [first.Id, second.Id, third.Id];
 
@@ -52,11 +54,34 @@ public class ActListQueryTests : TenantFixture
         var highestNumber = await this.Tenant.AddAct(@case, sameDay, "Výzva", actNumber: $"{@case.CaseNumber}/20260822-009", actId: actIds[1]);
         var middleNumber = await this.Tenant.AddAct(@case, sameDay, "Podání", actNumber: $"{@case.CaseNumber}/20260822-005", actId: actIds[0]);
 
-        var ids = await this.Tenant.Context.Acts.InListOrder().Select(static act => act.Id).ToListAsync();
+        var ids = await this.InSortOrder(ActSortKey.Date, ListSortDirection.Ascending);
 
         Guid[] expected = [lowestNumber.Id, highestNumber.Id, middleNumber.Id];
 
         Assert.That(ids, Is.EqualTo(expected), "the date orders, and only the write moment breaks its ties");
+    }
+
+    [Test]
+    public async Task TheTitleAndTheActNumberOrderTheListToo()
+    {
+        var @case = await this.Tenant.AddCase(new DateOnly(2026, 8, 20));
+        var sameDay = new DateOnly(2026, 8, 22);
+
+        var first = await this.Tenant.AddAct(@case, sameDay, "Alfa", actNumber: $"{@case.CaseNumber}/20260822-003");
+        var second = await this.Tenant.AddAct(@case, sameDay, "Beta", actNumber: $"{@case.CaseNumber}/20260822-001");
+        var third = await this.Tenant.AddAct(@case, sameDay, "Gama", actNumber: $"{@case.CaseNumber}/20260822-002");
+
+        var byTitle = await this.InSortOrder(ActSortKey.Title, ListSortDirection.Ascending);
+        var byNumber = await this.InSortOrder(ActSortKey.ActNumber, ListSortDirection.Ascending);
+
+        Guid[] expectedByTitle = [first.Id, second.Id, third.Id];
+        Guid[] expectedByNumber = [second.Id, third.Id, first.Id];
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(byTitle, Is.EqualTo(expectedByTitle), "the title orders the list where the request asks for it");
+            Assert.That(byNumber, Is.EqualTo(expectedByNumber), "the act number orders the list where the request asks for it");
+        }
     }
 
     [Test]
@@ -71,7 +96,7 @@ public class ActListQueryTests : TenantFixture
             await other.AddAct(otherCase, new DateOnly(2026, 8, 21), "Cizí úkon");
         }
 
-        var ids = await this.Tenant.Context.Acts.InListOrder().Select(static act => act.Id).ToListAsync();
+        var ids = await this.InSortOrder(ActSortKey.Date, ListSortDirection.Ascending);
 
         Guid[] expected = [mine.Id];
 
@@ -79,33 +104,19 @@ public class ActListQueryTests : TenantFixture
     }
 
     [Test]
-    public async Task OnlyTheActsOfTheCaseComeBack()
-    {
-        var first = await this.Tenant.AddCase(new DateOnly(2026, 8, 20));
-        var second = await this.Tenant.AddCase(new DateOnly(2026, 8, 20));
-        var inFirst = await this.Tenant.AddAct(first, new DateOnly(2026, 8, 21), "Podání");
-        await this.Tenant.AddAct(second, new DateOnly(2026, 8, 21), "Jiný úkon");
-
-        var ids = await this.Tenant.Context.Acts.OfCase(first.Id).InListOrder().Select(static act => act.Id).ToListAsync();
-
-        Guid[] expected = [inFirst.Id];
-
-        Assert.That(ids, Is.EqualTo(expected), "the act list of a case never reaches into another case");
-    }
-
-    [Test]
-    public async Task AListItemCarriesTheContactName()
+    public async Task AListItemCarriesTheContactNameAndTheExternalMark()
     {
         var @case = await this.Tenant.AddCase(new DateOnly(2026, 8, 20));
         var contact = await this.Tenant.AddContact("Městský úřad Vzorov");
-        var act = await this.Tenant.AddAct(@case, new DateOnly(2026, 8, 22), "Rozhodnutí", contact: contact);
+        var act = await this.Tenant.AddAct(@case, new DateOnly(2026, 8, 22), "Rozhodnutí", contact: contact, externalActNumber: "MUVZ/2026/117");
 
-        var item = await this.Tenant.Context.Acts.OfCase(@case.Id).InListOrder().AsListItems().SingleAsync();
+        var item = await this.Tenant.Context.Acts.OfCase(@case.Id).AsListItems().SingleAsync();
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(item.ContactName, Is.EqualTo("Městský úřad Vzorov"));
             Assert.That(item.ActNumber, Is.EqualTo(act.ActNumber));
+            Assert.That(item.ExternalActNumber, Is.EqualTo("MUVZ/2026/117"), "a row carries the act's external mark, which the contact's detail shows");
             Assert.That(item.Direction, Is.EqualTo(act.Direction));
             Assert.That(item.Title, Is.EqualTo(act.Title));
             Assert.That(item.Date, Is.EqualTo(act.Date));
@@ -118,7 +129,7 @@ public class ActListQueryTests : TenantFixture
         var @case = await this.Tenant.AddCase(new DateOnly(2026, 8, 20));
         await this.Tenant.AddAct(@case, new DateOnly(2026, 8, 22), "Podání");
 
-        var item = await this.Tenant.Context.Acts.OfCase(@case.Id).InListOrder().AsListItems().SingleAsync();
+        var item = await this.Tenant.Context.Acts.OfCase(@case.Id).AsListItems().SingleAsync();
 
         using (Assert.EnterMultipleScope())
         {
@@ -127,23 +138,11 @@ public class ActListQueryTests : TenantFixture
         }
     }
 
-    /// <summary>
-    /// The database stamps <c>Created</c> off the clock, so two acts never share it and no result reaches
-    /// the identifier behind it.
-    /// </summary>
-    [Test]
-    public void TheIdentifierMakesTheOrderTotal()
+    private async Task<List<Guid>> InSortOrder(ActSortKey sort, ListSortDirection direction)
     {
-        var sql = this.Tenant.Context.Acts.InListOrder().ToQueryString();
-
-        var orderBy = sql.LastIndexOf("ORDER BY", StringComparison.Ordinal);
-
-        Assert.That(orderBy, Is.GreaterThanOrEqualTo(0), "the list order is the database's");
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(sql[orderBy..], Does.Contain("\"Created\""), "the write moment breaks a tie on the date");
-            Assert.That(sql[orderBy..], Does.Contain("\"Id\""), "the identifier makes the order total");
-        }
+        return await this.Tenant.Context.Acts
+            .InSortOrder(sort, direction)
+            .Select(static act => act.Id)
+            .ToListAsync();
     }
 }
