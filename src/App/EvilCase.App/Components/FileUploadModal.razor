@@ -14,9 +14,9 @@
 
 @if (this.uploadTotal > 0)
 {
-    <div class="uprow mb-3">
+    <div class="d-flex align-items-center gap-2 mb-3">
         <div class="progress flex-fill" role="progressbar" aria-valuenow="@this.uploadIndex" aria-valuemin="0" aria-valuemax="@this.uploadTotal">
-            <div class="progress-bar" style="@($"width: {this.uploadIndex * 100 / this.uploadTotal}%")"></div>
+            <div class="progress-bar ec-upload-progress" style="--ec-upload-percent: @(this.uploadIndex * 100 / this.uploadTotal)%"></div>
         </div>
         <span class="text-secondary ec-num">@this.uploadIndex / @this.uploadTotal</span>
     </div>

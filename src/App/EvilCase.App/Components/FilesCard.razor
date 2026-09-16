@@ -26,8 +26,8 @@
         </div>
     </div>
 
-    <div class="visually-hidden" @ref="this.dropInputWrapper">
-        <InputFile multiple OnChange="this.OnDropFilesSelected" aria-label="Přetáhnout soubory" />
+    <div class="visually-hidden" aria-hidden="true" @ref="this.dropInputWrapper">
+        <InputFile multiple tabindex="-1" OnChange="this.OnDropFilesSelected" aria-label="Přetáhnout soubory" />
     </div>
 
     @foreach (var failure in this.dropFailures)
@@ -76,14 +76,14 @@
         @foreach (var file in this.items)
         {
             <div class="ec-filerow">
-                <a class="ec-filerow-link" href="#" aria-label="@($"Stáhnout {file.FileName}")" @onclick="() => this.Download(file)" @onclick:preventDefault>
+                <button type="button" class="ec-filerow-link" aria-label="@($"Stáhnout {file.FileName}")" disabled="@(this.downloadingFileId == file.FileId)" @onclick="() => this.Download(file)">
                     <span class="ec-filerow-icon" aria-hidden="true">@FileExtensionDisplay.Text(file.FileName)</span>
                     <span class="ec-min-w-0 flex-fill">
                         <span class="d-block text-truncate">@file.FileName</span>
                         <span class="ec-filerow-meta ec-num">@FileSizeDisplay.Text(file.SizeBytes) · @MomentDisplay.Text(file.Created)</span>
                     </span>
-                </a>
-                <button type="button" class="btn btn-sm btn-danger" aria-label="@($"Smazat {file.FileName}")" disabled="@(this.downloadingFileId == file.FileId)" @onclick="() => this.ConfirmDelete(file)">
+                </button>
+                <button type="button" class="btn btn-icon btn-ghost-danger" aria-label="@($"Smazat {file.FileName}")" @onclick="() => this.ConfirmDelete(file)">
                     <Icon IconType="AppIcons.Trash" />
                 </button>
             </div>
@@ -137,6 +137,8 @@
 
     private DotNetObjectReference<FilesCard>? dropRef;
 
+    private bool disposed;
+
     private IReadOnlyList<FileListItem> items = [];
 
     private bool dragOver;
@@ -167,18 +169,33 @@
             return;
 
         // A navigation away while this is in flight aborts the JS interop call; the card-wide
-        // drop is then simply unavailable, never a broken page.
+        // drop is then simply unavailable, never a broken page. A dispose racing either await is
+        // handed the just-awaited object itself, since DisposeAsync never saw it to clean it up.
         try
         {
             var module = await this.JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/file-drop.js");
-            if (module is null)
-                return;
 
-            var dotNetRef = DotNetObjectReference.Create(this);
+            if (this.disposed)
+            {
+                await module.DisposeAsync();
+                return;
+            }
 
             this.dropModule = module;
+
+            var dotNetRef = DotNetObjectReference.Create(this);
             this.dropRef = dotNetRef;
-            this.dropBinding = await module.InvokeAsync<IJSObjectReference>("bindCardDrop", this.cardRef, this.dropInputWrapper, dotNetRef);
+
+            var binding = await module.InvokeAsync<IJSObjectReference>("bindCardDrop", this.cardRef, this.dropInputWrapper, dotNetRef);
+
+            if (this.disposed)
+            {
+                await binding.InvokeVoidAsync("dispose");
+                await binding.DisposeAsync();
+                return;
+            }
+
+            this.dropBinding = binding;
         }
         catch (Exception exception) when (exception is JSException or JSDisconnectedException or OperationCanceledException)
         {
@@ -195,18 +212,29 @@
 
     public async ValueTask DisposeAsync()
     {
-        if (this.dropBinding is not null)
-        {
-            await this.dropBinding.InvokeVoidAsync("dispose");
-            await this.dropBinding.DisposeAsync();
-        }
+        this.disposed = true;
 
-        if (this.dropModule is not null)
+        try
         {
-            await this.dropModule.DisposeAsync();
-        }
+            if (this.dropBinding is not null)
+            {
+                await this.dropBinding.InvokeVoidAsync("dispose");
+                await this.dropBinding.DisposeAsync();
+            }
 
-        this.dropRef?.Dispose();
+            if (this.dropModule is not null)
+            {
+                await this.dropModule.DisposeAsync();
+            }
+        }
+        catch (Exception exception) when (exception is JSException or JSDisconnectedException)
+        {
+            this.Logger.LogWarning(exception, "Disposing the card-wide file drop failed");
+        }
+        finally
+        {
+            this.dropRef?.Dispose();
+        }
     }
 
     private async Task ReloadFiles()

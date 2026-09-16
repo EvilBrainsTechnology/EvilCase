@@ -14,6 +14,12 @@ export function bindCardDrop(cardElement, inputWrapperElement, dotNetRef) {
 
     function leave(event) {
         prevent(event);
+
+        // A dragleave bubbles from every child the pointer crosses; only a leave whose
+        // relatedTarget is outside the card itself actually leaves the drop area.
+        if (event.relatedTarget && cardElement.contains(event.relatedTarget))
+            return;
+
         dotNetRef.invokeMethodAsync("SetDragOver", false);
     }
 
