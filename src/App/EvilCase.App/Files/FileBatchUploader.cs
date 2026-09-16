@@ -3,7 +3,6 @@ using EvilBrains.ApiClient;
 using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.App.Models;
 using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 
 namespace EvilBrains.EvilCase.App.Files;

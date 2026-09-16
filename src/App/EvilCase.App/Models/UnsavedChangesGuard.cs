@@ -7,8 +7,8 @@ namespace EvilBrains.EvilCase.App.Models;
 /// </summary>
 internal static class UnsavedChangesGuard
 {
-    public static ValueTask<bool> ConfirmLeave(IJSRuntime jsRuntime)
+    public static async ValueTask<bool> ConfirmLeave(IJSRuntime jsRuntime)
     {
-        return jsRuntime.InvokeAsync<bool>("confirm", "Neuložené změny se ztratí. Pokračovat?");
+        return await jsRuntime.InvokeAsync<bool>("confirm", "Neuložené změny se ztratí. Pokračovat?");
     }
 }
