@@ -5,7 +5,6 @@ namespace EvilBrains.EvilCase.Api.Contract.Acts;
 
 public sealed record ActListRequest : ListRequest<ActSortKey>
 {
-    // An act list reads by the act's own date, oldest first (SDD-010).
     public override ActSortKey Sort { get; init; } = ActSortKey.Date;
 
     public string? Search { get; init; }

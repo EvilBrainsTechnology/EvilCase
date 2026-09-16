@@ -21,7 +21,7 @@ internal sealed class ActReader(IDbSession dbSession) : IActReader
 
         var items = await filtered
             .InSortOrder(request.Sort, request.SortDirection)
-            .InPage(request)
+            .InPage(request.Skip, request.Take)
             .AsListItems()
             .ToListAsync(token);
 

@@ -3,7 +3,7 @@
 @using EvilBrains.EvilCase.Api.Contract.Contacts
 @using EvilBrains.EvilCase.Api.Contract.Lists
 @using EvilBrains.EvilCase.Domain.Contacts
-@inherits ListComponent
+@inherits ListComponent<ContactListRequest, ContactSortKey>
 @inject IContactsClient ContactsClient
 
 @{

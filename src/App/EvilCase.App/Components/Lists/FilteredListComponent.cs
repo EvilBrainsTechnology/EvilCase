@@ -1,4 +1,5 @@
 using EvilBrains.EvilCase.Api.Contract.Labels;
+using EvilBrains.EvilCase.Api.Contract.Lists;
 using Microsoft.AspNetCore.Components;
 
 namespace EvilBrains.EvilCase.App.Components.Lists;
@@ -7,7 +8,9 @@ namespace EvilBrains.EvilCase.App.Components.Lists;
 /// The date range and the labels the case list and the act list narrow by; the contact list
 /// narrows by neither.
 /// </summary>
-public abstract class FilteredListComponent : ListComponent
+public abstract class FilteredListComponent<TFilter, TSortKey> : ListComponent<TFilter, TSortKey>
+    where TFilter : ListRequest<TSortKey>
+    where TSortKey : struct, Enum
 {
     protected DateOnly? From { get; private set; }
 

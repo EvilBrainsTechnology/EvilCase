@@ -4,7 +4,6 @@ namespace EvilBrains.EvilCase.Api.Contract.Cases;
 
 public sealed record CaseListRequest : ListRequest<CaseSortKey>
 {
-    // A case list reads by the case's own date, newest first (SDD-009).
     public override CaseSortKey Sort { get; init; } = CaseSortKey.Date;
 
     public override ListSortDirection SortDirection { get; init; } = ListSortDirection.Descending;

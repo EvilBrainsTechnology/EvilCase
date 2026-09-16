@@ -3,9 +3,6 @@ using Microsoft.AspNetCore.Components;
 
 namespace EvilBrains.EvilCase.App.Components.Lists;
 
-/// <summary>
-/// A column the card variant leaves out carries no <see cref="Line"/>.
-/// </summary>
 public sealed record ActColumnView
 {
     public required string Header { get; init; }
@@ -16,5 +13,6 @@ public sealed record ActColumnView
 
     public required RenderFragment<ActListItem> Cell { get; init; }
 
+    // A column the card variant leaves out carries no Line.
     public RenderFragment<ActListItem>? Line { get; init; }
 }

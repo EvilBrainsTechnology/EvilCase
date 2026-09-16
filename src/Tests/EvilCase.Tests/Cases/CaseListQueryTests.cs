@@ -183,7 +183,7 @@ public class CaseListQueryTests : TenantFixture
             .MatchingSearch(search: null)
             .WithStatus(CaseStatusFilter.All)
             .InSortOrder(CaseSortKey.Date, ListSortDirection.Descending)
-            .InPage(new CaseListRequest { Skip = 20, Take = 10 })
+            .InPage(skip: 20, take: 10)
             .AsListItems()
             .ToQueryString();
 

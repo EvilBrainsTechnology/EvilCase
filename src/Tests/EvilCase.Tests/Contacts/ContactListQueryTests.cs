@@ -147,7 +147,7 @@ public class ContactListQueryTests : TenantFixture
         var sql = this.Tenant.Context.Contacts
             .MatchingSearch(search: null)
             .InSortOrder(ContactSortKey.Name, ListSortDirection.Ascending)
-            .InPage(new ContactListRequest { Skip = 20, Take = 10 })
+            .InPage(skip: 20, take: 10)
             .AsListItems()
             .ToQueryString();
 

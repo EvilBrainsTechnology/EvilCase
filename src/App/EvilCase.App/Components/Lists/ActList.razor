@@ -3,7 +3,7 @@
 @using EvilBrains.EvilCase.Api.Contract.Acts
 @using EvilBrains.EvilCase.Api.Contract.Lists
 @using EvilBrains.EvilCase.Domain.Acts
-@inherits FilteredListComponent
+@inherits FilteredListComponent<ActListRequest, ActSortKey>
 @inject IActsClient ActsClient
 
 @{

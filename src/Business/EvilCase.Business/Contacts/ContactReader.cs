@@ -17,7 +17,7 @@ internal sealed class ContactReader(IDbSession dbSession) : IContactReader
 
         var items = await filtered
             .InSortOrder(request.Sort, request.SortDirection)
-            .InPage(request)
+            .InPage(request.Skip, request.Take)
             .AsListItems()
             .ToListAsync(token);
 

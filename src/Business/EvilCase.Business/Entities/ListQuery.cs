@@ -24,11 +24,10 @@ internal static class ListQuery
             : entities.ThenByDescending(static entity => entity.Created).ThenByDescending(static entity => entity.Id);
     }
 
-    public static IQueryable<TEntity> InPage<TEntity, TSortKey>(this IQueryable<TEntity> entities, ListRequest<TSortKey> request)
-        where TSortKey : struct, Enum
+    public static IQueryable<TEntity> InPage<TEntity>(this IQueryable<TEntity> entities, int skip, int take)
     {
         return entities
-            .Skip(request.Skip)
-            .Take(request.Take);
+            .Skip(skip)
+            .Take(take);
     }
 }

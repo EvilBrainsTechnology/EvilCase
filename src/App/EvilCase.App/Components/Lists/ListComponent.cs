@@ -5,14 +5,16 @@ using Microsoft.AspNetCore.Components;
 
 namespace EvilBrains.EvilCase.App.Components.Lists;
 
-public abstract class ListComponent : ComponentBase, IDisposable
+public abstract class ListComponent<TFilter, TSortKey> : ComponentBase, IDisposable
+    where TFilter : ListRequest<TSortKey>
+    where TSortKey : struct, Enum
 {
     private readonly SearchDebouncer debouncer = new();
 
-    private object? loaded;
+    private TFilter? loaded;
 
     [Inject]
-    protected ILogger<ListComponent> Logger { get; set; } = null!;
+    protected ILogger<ListComponent<TFilter, TSortKey>> Logger { get; set; } = null!;
 
     protected string SearchText { get; private set; } = "";
 
@@ -51,8 +53,7 @@ public abstract class ListComponent : ComponentBase, IDisposable
     /// </summary>
     protected abstract Task<int> LoadPage(CancellationToken token);
 
-    protected async Task ReloadOnFilterChange<TSortKey>(ListRequest<TSortKey> filter)
-        where TSortKey : struct, Enum
+    protected async Task ReloadOnFilterChange(TFilter filter)
     {
         if (Equals(this.loaded, filter))
             return;
