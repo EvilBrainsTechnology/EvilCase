@@ -21,6 +21,10 @@
 
 <PageTitle>@(this.caseDetail is null ? "Spis" : this.caseDetail.CaseNumber) – EvilCase</PageTitle>
 
+@* A CascadingValue, not EditForm: Komentáře renders its own <form> further down, and a
+   <form> cannot nest inside another one. It opens above the header so the title's
+   ValidationMessage there shares the same EditContext as the fields below. *@
+<CascadingValue Value="this.editContext" IsFixed="true">
 <div class="page-header d-print-none">
     <div class="container-xl">
         <div class="row g-2 align-items-center ec-detail-header">
@@ -80,9 +84,6 @@
 <div class="page-body">
     <div class="container-xl">
         <LoadStateView NotFound="this.notFound" NotFoundTitle="Spis nenalezen" Failure="@this.failure" FailureTitle="Spis se nepodařilo načíst" Loaded="this.caseDetail is not null">
-            @* A CascadingValue, not EditForm: Komentáře renders its own <form> further down, and a
-               <form> cannot nest inside another one. *@
-            <CascadingValue Value="this.editContext" IsFixed="true">
                 <DataAnnotationsValidator />
 
                 <div class="ec-layout">
@@ -276,10 +277,10 @@
                         </div>
                     }
                 </div>
-            </CascadingValue>
         </LoadStateView>
     </div>
 </div>
+</CascadingValue>
 
 @code {
     [Parameter]
