@@ -15,9 +15,7 @@ public class ContactsController : ControllerBase
     [HttpGet("")]
     public async Task<ContactListResponse> ListContacts([FromServices] IContactReader contacts, [FromQuery] ContactListRequest request, CancellationToken token)
     {
-        var items = await contacts.ListContacts(request, token);
-
-        return new ContactListResponse { Items = items };
+        return await contacts.ListContacts(request, token);
     }
 
     [HttpPost("")]
