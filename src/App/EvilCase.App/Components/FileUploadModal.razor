@@ -1,7 +1,4 @@
-@using System.Net
-@using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Contract.Files
-@using Microsoft.JSInterop
 @using TabBlazor.Services
 @inject IModalService ModalService
 @inject ILogger<FileUploadModal> Logger
@@ -35,8 +32,6 @@
 </div>
 
 @code {
-    private const int MaxBatchFiles = 100;
-
     [Parameter, EditorRequired]
     public required Func<IBrowserFile, CancellationToken, Task> UploadFile { get; set; }
 
@@ -58,55 +53,20 @@
     {
         this.failures.Clear();
         this.uploadIndex = 0;
-
-        if (args.FileCount > MaxBatchFiles)
-        {
-            this.failures.Add($"Najednou lze nahrát nejvýše {MaxBatchFiles} souborů.");
-
-            return;
-        }
-
         this.uploadTotal = args.FileCount;
 
-        var uploadedAny = false;
-
-        foreach (var file in args.GetMultipleFiles(MaxBatchFiles))
-        {
-            this.uploadIndex++;
-            this.uploadName = file.Name;
-            this.StateHasChanged();
-
-            if (file.Size > FileLimits.MaxUploadBytes)
+        var uploadedAny = await FileBatchUploader.Run(
+            args,
+            this.UploadFile,
+            this.OwnerGoneError,
+            this.failures,
+            (index, name) =>
             {
-                this.failures.Add($"{file.Name}: soubor je větší než {FileSizeDisplay.Text(FileLimits.MaxUploadBytes)}.");
-                continue;
-            }
-
-            try
-            {
-                await this.UploadFile(file, CancellationToken.None);
-
-                uploadedAny = true;
-            }
-            catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.RequestEntityTooLarge)
-            {
-                this.Logger.LogWarning(exception, "Uploading a file failed: too large");
-
-                this.failures.Add($"{file.Name}: soubor je větší než {FileSizeDisplay.Text(FileLimits.MaxUploadBytes)}.");
-            }
-            catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
-            {
-                this.Logger.LogWarning(exception, "Uploading a file failed: the owner is gone");
-
-                this.failures.Add($"{file.Name}: {this.OwnerGoneError}");
-            }
-            catch (Exception exception) when (exception is ApiException or HttpRequestException or IOException or JSException)
-            {
-                this.Logger.LogWarning(exception, "Uploading a file failed");
-
-                this.failures.Add($"{file.Name}: nahrání se nezdařilo.");
-            }
-        }
+                this.uploadIndex = index;
+                this.uploadName = name;
+                this.StateHasChanged();
+            },
+            this.Logger);
 
         this.uploadTotal = 0;
 

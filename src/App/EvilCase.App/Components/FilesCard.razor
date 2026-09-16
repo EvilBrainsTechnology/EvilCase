@@ -1,4 +1,3 @@
-@using System.Net
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Contract.Files
 @using Microsoft.JSInterop
@@ -105,8 +104,6 @@
 </div>
 
 @code {
-    private const int MaxBatchFiles = 100;
-
     [Parameter, EditorRequired]
     public required Func<CancellationToken, Task<IReadOnlyList<FileListItem>>> LoadFiles { get; set; }
 
@@ -270,51 +267,20 @@
         this.dropFailures.Clear();
         this.dragOver = false;
         this.dropUploadIndex = 0;
-
-        if (args.FileCount > MaxBatchFiles)
-        {
-            this.dropFailures.Add($"Najednou lze nahrát nejvýše {MaxBatchFiles} souborů.");
-
-            return;
-        }
-
         this.dropUploadTotal = args.FileCount;
 
-        foreach (var file in args.GetMultipleFiles(MaxBatchFiles))
-        {
-            this.dropUploadIndex++;
-            this.dropUploadName = file.Name;
-            this.StateHasChanged();
-
-            if (file.Size > FileLimits.MaxUploadBytes)
+        await FileBatchUploader.Run(
+            args,
+            this.UploadFile,
+            this.OwnerGoneError,
+            this.dropFailures,
+            (index, name) =>
             {
-                this.dropFailures.Add($"{file.Name}: soubor je větší než {FileSizeDisplay.Text(FileLimits.MaxUploadBytes)}.");
-                continue;
-            }
-
-            try
-            {
-                await this.UploadFile(file, CancellationToken.None);
-            }
-            catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.RequestEntityTooLarge)
-            {
-                this.Logger.LogWarning(exception, "Uploading a dropped file failed: too large");
-
-                this.dropFailures.Add($"{file.Name}: soubor je větší než {FileSizeDisplay.Text(FileLimits.MaxUploadBytes)}.");
-            }
-            catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
-            {
-                this.Logger.LogWarning(exception, "Uploading a dropped file failed: the owner is gone");
-
-                this.dropFailures.Add($"{file.Name}: {this.OwnerGoneError}");
-            }
-            catch (Exception exception) when (exception is ApiException or HttpRequestException or IOException or JSException)
-            {
-                this.Logger.LogWarning(exception, "Uploading a dropped file failed");
-
-                this.dropFailures.Add($"{file.Name}: nahrání se nezdařilo.");
-            }
-        }
+                this.dropUploadIndex = index;
+                this.dropUploadName = name;
+                this.StateHasChanged();
+            },
+            this.Logger);
 
         this.dropUploadTotal = 0;
 
