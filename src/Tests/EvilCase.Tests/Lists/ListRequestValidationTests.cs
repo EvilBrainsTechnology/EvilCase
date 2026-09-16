@@ -72,7 +72,7 @@ public class ListRequestValidationTests
 
         Assert.That(
             declared,
-            Is.EquivalentTo(new[] { nameof(ListRequest.Skip), nameof(ListRequest.Take), nameof(ListRequest.SortDirection) }),
+            Is.EquivalentTo([nameof(ListRequest.Skip), nameof(ListRequest.Take), nameof(ListRequest.SortDirection)]),
             "a list request shares the page and the direction; a filter belongs to the list that narrows by it");
     }
 
@@ -85,7 +85,7 @@ public class ListRequestValidationTests
 
         Assert.That(
             declared,
-            Is.EquivalentTo(new[] { nameof(ContactListRequest.Search), nameof(ContactListRequest.Kind), nameof(ContactListRequest.Sort) }),
+            Is.EquivalentTo([nameof(ContactListRequest.Search), nameof(ContactListRequest.Kind), nameof(ContactListRequest.Sort)]),
             "a contact carries no label, no contact and no date, so the contact list never takes such a filter");
     }
 

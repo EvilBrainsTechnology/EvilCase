@@ -12,7 +12,7 @@ internal sealed class CaseEditModel
     {
         return new CaseEditModel
         {
-            ParentCaseId = detail.ParentCase?.CaseId,
+            ParentCase = detail.ParentCase,
             CaseNumber = detail.CaseNumber,
             ExternalCaseNumber = detail.ExternalCaseNumber,
             Date = detail.Date,
@@ -30,7 +30,7 @@ internal sealed class CaseEditModel
     /// </summary>
     public void CopyFrom(CaseEditModel other)
     {
-        this.ParentCaseId = other.ParentCaseId;
+        this.ParentCase = other.ParentCase;
         this.CaseNumber = other.CaseNumber;
         this.ExternalCaseNumber = other.ExternalCaseNumber;
         this.Date = other.Date;
@@ -41,7 +41,7 @@ internal sealed class CaseEditModel
         this.Status = other.Status;
     }
 
-    public Guid? ParentCaseId { get; set; }
+    public CaseListItem? ParentCase { get; set; }
 
     [Required(ErrorMessage = "Zadejte spisovou značku")]
     [StringLength(64, ErrorMessage = "Spisová značka může mít nejvýše 64 znaků")]

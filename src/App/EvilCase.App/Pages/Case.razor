@@ -238,14 +238,10 @@
                                 @if (this.Edit)
                                 {
                                     <label class="ec-field-label" for="case-parent">Nadřízený spis</label>
-                                    <InputSelect id="case-parent" class="form-select mb-3" @bind-Value="this.model.ParentCaseId">
-                                        <option value="">— bez nadřízeného spisu —</option>
-                                        @foreach (var option in this.parentOptions)
-                                        {
-                                            <option value="@option.CaseId">@option.CaseNumber — @option.Title</option>
-                                        }
-                                    </InputSelect>
-                                    <ValidationMessage For="() => this.model.ParentCaseId" class="invalid-feedback d-block" />
+                                    <div class="mb-3">
+                                        <CasePicker InputId="case-parent" ExcludedCaseId="this.CaseId"
+                                                    Selected="this.model.ParentCase" SelectedChanged="this.OnParentChanged" />
+                                    </div>
                                 }
                                 else
                                 {
@@ -306,11 +302,6 @@
 @code {
     private const int ActItems = 20;
 
-    /// <summary>
-    /// Every case of the tenant is a candidate parent; the tenant holds no more than this many.
-    /// </summary>
-    private const int ParentOptions = 100;
-
     private static readonly ActColumn[] ActColumns =
     [
         ActColumn.Date,
@@ -332,8 +323,6 @@
     private EditContext editContext = null!;
 
     private CaseDetail? caseDetail;
-
-    private IReadOnlyList<CaseListItem> parentOptions = [];
 
     private bool notFound;
 
@@ -368,6 +357,12 @@
         this.dirty = true;
     }
 
+    private void OnParentChanged(CaseListItem? parentCase)
+    {
+        this.model.ParentCase = parentCase;
+        this.MarkDirty();
+    }
+
     private void OnContactChanged(ContactListItem? contact)
     {
         this.model.Contact = contact;
@@ -392,15 +387,6 @@
         {
             this.caseDetail = await this.CasesClient.GetCase(this.CaseId, CancellationToken.None);
             this.model.CopyFrom(CaseEditModel.From(this.caseDetail));
-
-            if (this.Edit)
-            {
-                // Every case of the tenant, subordinate ones included: a case hangs under any of them.
-                var request = new CaseListRequest { Status = CaseStatusFilter.All, Scope = CaseListScope.All, Take = ParentOptions };
-                var response = await this.CasesClient.ListCases(request, CancellationToken.None);
-
-                this.parentOptions = [.. response.Items.Where(item => item.CaseId != this.CaseId)];
-            }
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
         {
@@ -506,7 +492,7 @@
         {
             var request = new CaseEditRequest
             {
-                ParentCaseId = this.model.ParentCaseId,
+                ParentCaseId = this.model.ParentCase?.CaseId,
                 CaseNumber = this.model.CaseNumber,
                 ExternalCaseNumber = this.model.ExternalCaseNumber,
                 Date = this.model.Date,
