@@ -147,6 +147,12 @@ body {
     letter-spacing: -0.02em;
 }
 
+@media (max-width: 991.98px) {
+    .ec-title-input {
+        font-size: 1rem;
+    }
+}
+
 .ec-mode-chip {
     display: inline-flex;
     align-items: center;
@@ -221,6 +227,7 @@ body {
     gap: 2px;
     padding: 3px;
     max-width: 100%;
+    min-width: 0;
     overflow-x: auto;
     background: var(--tblr-bg-surface-tertiary, var(--tblr-body-bg));
     border-radius: 100rem;
@@ -246,6 +253,10 @@ body {
 }
 
 @media (max-width: 991.98px) {
+    .ec-segment {
+        width: 100%;
+    }
+
     .ec-segment button {
         min-height: 44px;
     }
