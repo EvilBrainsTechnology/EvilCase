@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>detail-spisu – EvilCase</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+  <style>
+    body { margin: 0; font-family: 'Instrument Sans', 'Segoe UI', sans-serif; background: #ECEEF2; color: #14161B; }
+    a { color: #2F4FD1; text-decoration: none; } a:hover { color: #1F3AA8; }
+    .act:hover { background: #F5F6F9; }
+    .navlink:hover { color: #14161B; }
+  </style>
+</head>
+<body>
+<div style="width: 1440px; height: 1480px; box-sizing: border-box; background: #F2F3F6; display: flex; flex-direction: column;">
+
+  <header style="height: 60px; flex-shrink: 0; box-sizing: border-box; padding: 0 32px; display: flex; align-items: center; gap: 36px; background: #FFFFFF; border-bottom: 1px solid #E1E4EA;">
+    <a href="#" style="display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 700; color: #14161B; letter-spacing: -0.01em;">
+      <span style="width: 32px; height: 32px; border-radius: 9px; background: #3B5BDB; display: flex; align-items: center; justify-content: center;">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 20h10"/><path d="M6 6l6-1 6 1"/><path d="M12 3v17"/><path d="M9 12L6 6l-3 6a3 3 0 0 0 6 0"/><path d="M21 12l-3-6-3 6a3 3 0 0 0 6 0"/></svg>
+      </span>
+      EvilCase
+    </a>
+    <nav aria-label="Hlavní menu" style="display: flex; gap: 4px; height: 100%;">
+      <a href="#" class="navlink" style="display: flex; align-items: center; gap: 8px; padding: 0 14px; font-size: 14px; font-weight: 500; color: #5B6270;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="8" rx="1"/><rect x="4" y="16" width="6" height="4" rx="1"/><rect x="14" y="12" width="6" height="8" rx="1"/><rect x="14" y="4" width="6" height="4" rx="1"/></svg>Přehled
+      </a>
+      <a href="#" aria-current="page" style="display: flex; align-items: center; gap: 8px; padding: 0 14px; font-size: 14px; font-weight: 600; color: #14161B; box-shadow: inset 0 -2px 0 #3B5BDB;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h3l2 2h5a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2"/><path d="M17 17v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2h2"/></svg>Spisy
+      </a>
+      <a href="#" class="navlink" style="display: flex; align-items: center; gap: 8px; padding: 0 14px; font-size: 14px; font-weight: 500; color: #5B6270;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0-3-3.85"/></svg>Kontakty
+      </a>
+      <a href="#" class="navlink" style="display: flex; align-items: center; gap: 8px; padding: 0 14px; font-size: 14px; font-weight: 500; color: #5B6270;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>Nastavení
+      </a>
+    </nav>
+    <div style="flex-grow: 1;"></div>
+    <label for="c2-global" style="display: flex; align-items: center; gap: 8px; width: 300px; height: 38px; box-sizing: border-box; padding: 0 12px; border: 1px solid #D5D9E1; border-radius: 10px; background: #F6F7FA; color: #5B6270;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10" cy="10" r="7"/><path d="M21 21l-6-6"/></svg>
+      <input id="c2-global" placeholder="Hledat spis" style="border: 0; outline: none; font: inherit; font-size: 14px; width: 100%; background: transparent;">
+    </label>
+    <button type="button" aria-label="Uživatelské menu – Martin Volek" style="width: 38px; height: 38px; border-radius: 50%; border: 0; background: #14161B; color: #FFFFFF; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;">MV</button>
+  </header>
+
+  <div style="flex-grow: 1; box-sizing: border-box; padding: 24px 32px 32px; display: flex; flex-direction: column; gap: 20px; min-height: 0;">
+
+    <section aria-label="Spis" style="background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; padding: 22px 28px 24px; display: flex; flex-direction: column; gap: 14px;">
+      <div style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: #5B6270;">
+        <a href="#" style="color: #5B6270;">Spisy</a><span>/</span><span style="font-family: 'JetBrains Mono', monospace; color: #14161B;">EC/20250528-001</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <h1 style="margin: 0; font-size: 32px; font-weight: 600; letter-spacing: -0.02em;">Překročení rychlosti Vzorov – 121 v 110</h1>
+        <span style="height: 26px; padding: 0 10px; display: flex; align-items: center; border-radius: 999px; background: #E3F4E8; color: #1D6B36; font-size: 13px; font-weight: 600;">Aktivní</span>
+        <div style="flex-grow: 1;"></div>
+        <button type="button" style="display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; font: inherit; font-size: 14px; font-weight: 500; color: #14161B; background: #FFFFFF; border: 1px solid #D5D9E1; border-radius: 10px; cursor: pointer;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3"/><path d="M13.5 6.5l4 4"/></svg>Upravit spis
+        </button>
+        <button type="button" aria-label="Další akce se spisem" style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; font: inherit; color: #14161B; background: #FFFFFF; border: 1px solid #D5D9E1; border-radius: 10px; cursor: pointer;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+        </button>
+      </div>
+      <p style="margin: 0; max-width: 900px; font-size: 16px; line-height: 1.6; color: #2E323B; text-wrap: pretty;">Automatizované měření rychlosti ve Vzorově, 121 km/h v úseku 110. Řízení vede přes příkaz a rozhodnutí prvního stupně a odvolání až ke správní žalobě, která je dosud otevřená u Krajského soudu ve Vzorově. Podřízené spisy sbírají důkazy, hlavně žádostmi o informace.</p>
+      <div style="display: flex; align-items: stretch; gap: 0; margin-top: 6px; border: 1px solid #E8EAEF; border-radius: 12px;">
+        <div style="display: flex; flex-direction: column; gap: 4px; padding: 12px 18px; border-right: 1px solid #E8EAEF;">
+          <span style="font-size: 12px; color: #5B6270;">Datum spisu</span>
+          <span style="font-size: 14px; font-weight: 500;">28. 5. 2025</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding: 12px 18px; border-right: 1px solid #E8EAEF;">
+          <span style="font-size: 12px; color: #5B6270;">Externí spisová značka</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 500;">VV41/2025/08464</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding: 12px 18px; border-right: 1px solid #E8EAEF;">
+          <span style="font-size: 12px; color: #5B6270;">Protistrana</span>
+          <a href="#" style="font-size: 14px; font-weight: 500;">Městský úřad Vzorov, odbor vnitřních věcí</a>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding: 12px 18px; border-right: 1px solid #E8EAEF;">
+          <span style="font-size: 12px; color: #5B6270;">Nadřízený spis</span>
+          <span style="font-size: 14px; color: #5B6270;">—</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px; padding: 12px 18px; flex-grow: 1;">
+          <span style="font-size: 12px; color: #5B6270;">Štítky</span>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+            <span style="font-size: 12px; padding: 1px 8px; border-radius: 6px; background: #FDE4E1; color: #9B2C1F;">rychlost</span>
+            <span style="font-size: 12px; padding: 1px 8px; border-radius: 6px; background: #FDEFD8; color: #8A5307;">odpovědnost provozovatele</span>
+            <span style="font-size: 12px; padding: 1px 8px; border-radius: 6px; background: #E1E9FD; color: #2A48B8;">InfZ</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div style="flex-grow: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 20px; align-items: start;">
+
+      <section aria-label="Úkony spisu" style="background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden;">
+        <div style="display: flex; align-items: center; gap: 12px; padding: 16px 20px;">
+          <h2 style="margin: 0; font-size: 18px; font-weight: 600;">Úkony</h2>
+          <span style="font-size: 13px; color: #5B6270;">23</span>
+          <div style="flex-grow: 1;"></div>
+          <label for="c2-search" style="display: flex; align-items: center; gap: 6px; width: 220px; height: 36px; box-sizing: border-box; padding: 0 10px; border: 1px solid #D5D9E1; border-radius: 9px; color: #5B6270;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10" cy="10" r="7"/><path d="M21 21l-6-6"/></svg>
+            <input id="c2-search" placeholder="Hledat v úkonech" style="border: 0; outline: none; font: inherit; font-size: 13px; width: 100%; background: transparent;">
+          </label>
+          <div role="group" aria-label="Směr" style="display: flex; padding: 3px; gap: 2px; background: #F0F2F5; border-radius: 9px;">
+            <button type="button" aria-pressed="true" style="height: 30px; padding: 0 12px; font: inherit; font-size: 13px; border: 0; border-radius: 7px; background: #FFFFFF; color: #14161B; box-shadow: 0 1px 2px rgba(20,22,27,0.08);">Vše</button>
+            <button type="button" aria-pressed="false" style="height: 30px; padding: 0 12px; font: inherit; font-size: 13px; border: 0; border-radius: 7px; background: transparent; color: #454B57;">Příchozí</button>
+            <button type="button" aria-pressed="false" style="height: 30px; padding: 0 12px; font: inherit; font-size: 13px; border: 0; border-radius: 7px; background: transparent; color: #454B57;">Odchozí</button>
+          </div>
+          <button type="button" style="display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; font: inherit; font-size: 14px; font-weight: 600; color: #FFFFFF; background: #3B5BDB; border: 0; border-radius: 9px; cursor: pointer;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>Nový úkon
+          </button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 110px minmax(0, 1fr) 100px 200px 60px 20px; column-gap: 16px; align-items: center; height: 34px; padding: 0 20px; font-size: 12px; color: #5B6270; background: #F8F9FB; border-top: 1px solid #EDEFF3; border-bottom: 1px solid #EDEFF3;">
+          <span>Datum ↑</span><span>Úkon</span><span>Směr</span><span>Kontakt</span><span>Soubory</span><span></span>
+        </div>
+
+        
+          <div style="border-bottom:1px solid #EDEFF3;">
+            <button type="button" class="act" onClick="() => this.setState({ open: isOpen ? -1 : i })" aria-expanded="" style="display:grid;grid-template-columns:110px minmax(0,1fr) 100px 200px 60px 20px;column-gap:16px;align-items:center;width:100%;min-height:52px;padding:0 20px;font:inherit;color:#14161B;background:transparent;border:0;cursor:pointer;">
+              <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums; text-align: left;">31. 7. 2025</span>
+              <span style="font-size: 14px; font-weight: 500; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Příkaz o uložení pokuty</span>
+              <span style="display:inline-flex;align-items:center;width:fit-content;height:22px;padding:0 8px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;">↙ Příchozí</span>
+              <span style="font-size: 13px; color: #454B57; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">MěÚ Vzorov</span>
+              <span style="display: flex; align-items: center; gap: 4px; font-size: 13px; color: #5B6270;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7l-6.5 6.5a1.5 1.5 0 0 0 3 3L18 10a3 3 0 0 0-6-6l-6.5 6.5a4.5 4.5 0 0 0 9 9L21 13"/></svg>1
+              </span>
+              <span style="font-size:18px;color:#5B6270;display:inline-block;transform:rotate(0deg);">›</span>
+            </button>
+            
+          </div>
+        
+          <div style="border-bottom:1px solid #EDEFF3;">
+            <button type="button" class="act" onClick="() => this.setState({ open: isOpen ? -1 : i })" aria-expanded="" style="display:grid;grid-template-columns:110px minmax(0,1fr) 100px 200px 60px 20px;column-gap:16px;align-items:center;width:100%;min-height:52px;padding:0 20px;font:inherit;color:#14161B;background:transparent;border:0;cursor:pointer;">
+              <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums; text-align: left;">4. 8. 2025</span>
+              <span style="font-size: 14px; font-weight: 500; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Odpor proti příkazu</span>
+              <span style="display:inline-flex;align-items:center;width:fit-content;height:22px;padding:0 8px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;">↗ Odchozí</span>
+              <span style="font-size: 13px; color: #454B57; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">MěÚ Vzorov</span>
+              <span style="display: flex; align-items: center; gap: 4px; font-size: 13px; color: #5B6270;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7l-6.5 6.5a1.5 1.5 0 0 0 3 3L18 10a3 3 0 0 0-6-6l-6.5 6.5a4.5 4.5 0 0 0 9 9L21 13"/></svg>2
+              </span>
+              <span style="font-size:18px;color:#5B6270;display:inline-block;transform:rotate(0deg);">›</span>
+            </button>
+            
+          </div>
+        
+          <div style="border-bottom:1px solid #EDEFF3;">
+            <button type="button" class="act" onClick="() => this.setState({ open: isOpen ? -1 : i })" aria-expanded="" style="display:grid;grid-template-columns:110px minmax(0,1fr) 100px 200px 60px 20px;column-gap:16px;align-items:center;width:100%;min-height:52px;padding:0 20px;font:inherit;color:#14161B;background:transparent;border:0;cursor:pointer;">
+              <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums; text-align: left;">6. 8. 2025</span>
+              <span style="font-size: 14px; font-weight: 500; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Vyrozumění o pokračování řízení a výzva k vyjádření</span>
+              <span style="display:inline-flex;align-items:center;width:fit-content;height:22px;padding:0 8px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;">↙ Příchozí</span>
+              <span style="font-size: 13px; color: #454B57; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">MěÚ Vzorov</span>
+              <span style="display: flex; align-items: center; gap: 4px; font-size: 13px; color: #5B6270;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7l-6.5 6.5a1.5 1.5 0 0 0 3 3L18 10a3 3 0 0 0-6-6l-6.5 6.5a4.5 4.5 0 0 0 9 9L21 13"/></svg>1
+              </span>
+              <span style="font-size:18px;color:#5B6270;display:inline-block;transform:rotate(0deg);">›</span>
+            </button>
+            
+          </div>
+        
+          <div style="border-bottom:1px solid #EDEFF3;">
+            <button type="button" class="act" onClick="() => this.setState({ open: isOpen ? -1 : i })" aria-expanded="" style="display:grid;grid-template-columns:110px minmax(0,1fr) 100px 200px 60px 20px;column-gap:16px;align-items:center;width:100%;min-height:52px;padding:0 20px;font:inherit;color:#14161B;background:transparent;border:0;cursor:pointer;">
+              <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums; text-align: left;">18. 8. 2025</span>
+              <span style="font-size: 14px; font-weight: 500; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Vyjádření k podkladům rozhodnutí</span>
+              <span style="display:inline-flex;align-items:center;width:fit-content;height:22px;padding:0 8px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;">↗ Odchozí</span>
+              <span style="font-size: 13px; color: #454B57; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">MěÚ Vzorov</span>
+              <span style="display: flex; align-items: center; gap: 4px; font-size: 13px; color: #5B6270;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7l-6.5 6.5a1.5 1.5 0 0 0 3 3L18 10a3 3 0 0 0-6-6l-6.5 6.5a4.5 4.5 0 0 0 9 9L21 13"/></svg>2
+              </span>
+              <span style="font-size:18px;color:#5B6270;display:inline-block;transform:rotate(0deg);">›</span>
+            </button>
+            
+          </div>
+        
+          <div style="border-bottom:1px solid #EDEFF3;box-shadow:inset 3px 0 0 #3B5BDB;background:#FBFCFF;">
+            <button type="button" class="act" onClick="() => this.setState({ open: isOpen ? -1 : i })" aria-expanded="true" style="display:grid;grid-template-columns:110px minmax(0,1fr) 100px 200px 60px 20px;column-gap:16px;align-items:center;width:100%;min-height:52px;padding:0 20px;font:inherit;color:#14161B;background:transparent;border:0;cursor:pointer;">
+              <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums; text-align: left;">2. 9. 2025</span>
+              <span style="font-size: 14px; font-weight: 500; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Rozhodnutí o přestupku</span>
+              <span style="display:inline-flex;align-items:center;width:fit-content;height:22px;padding:0 8px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;">↙ Příchozí</span>
+              <span style="font-size: 13px; color: #454B57; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">MěÚ Vzorov</span>
+              <span style="display: flex; align-items: center; gap: 4px; font-size: 13px; color: #5B6270;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7l-6.5 6.5a1.5 1.5 0 0 0 3 3L18 10a3 3 0 0 0-6-6l-6.5 6.5a4.5 4.5 0 0 0 9 9L21 13"/></svg>1
+              </span>
+              <span style="font-size:18px;color:#5B6270;display:inline-block;transform:rotate(90deg);">›</span>
+            </button>
+            
+              <div style="margin: 0 20px 16px; padding: 18px 20px; background: #F5F7FE; border: 1px solid #DCE3FB; border-radius: 12px; display: flex; flex-direction: column; gap: 16px;">
+                <div style="display: flex; align-items: center; gap: 24px; font-size: 13px;">
+                  <span style="display: flex; flex-direction: column; gap: 2px;"><span style="color: #5B6270; font-size: 12px;">Číslo jednací</span><span style="font-family: 'JetBrains Mono', monospace;">EC/20250528-001/20250902-001</span></span>
+                  <span style="display: flex; flex-direction: column; gap: 2px;"><span style="color: #5B6270; font-size: 12px;">Externí č. j.</span><span style="font-family: 'JetBrains Mono', monospace;">MUVZ/2025/93547</span></span>
+                  <span style="display: flex; flex-direction: column; gap: 2px;"><span style="color: #5B6270; font-size: 12px;">Kontakt</span><a href="#">Městský úřad Vzorov, odbor vnitřních věcí</a></span>
+                  <div style="flex-grow: 1;"></div>
+                  <a href="#" style="font-size: 13px; font-weight: 600;">Otevřít úkon →</a>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                  <h3 style="margin: 0; font-size: 12px; font-weight: 600; color: #5B6270;">Popis úkonu</h3>
+                  <p style="margin: 0; max-width: 760px; font-size: 14px; line-height: 1.55; color: #2E323B; text-wrap: pretty;">Vina, pokuta 2 000 Kč a náhrada nákladů řízení 2 500 Kč.</p>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px;">
+                  <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                      <h3 style="margin: 0; font-size: 13px; font-weight: 600;">Soubory úkonu</h3>
+                      <button type="button" style="display: flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; font: inherit; font-size: 12px; color: #2F4FD1; background: #FFFFFF; border: 1px solid #DCE3FB; border-radius: 7px; cursor: pointer;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M5 20h14"/></svg>Nahrát
+                      </button>
+                    </div>
+                    
+                      <a href="#" style="display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 9px; color: #14161B;">
+                        <span style="height:26px;padding:0 8px;border-radius:6px;display:flex;align-items:center;gap:5px;flex-shrink:0;font-size:11px;font-weight:700;letter-spacing:0.03em;background:#FDE4E1;color:#9B2C1F;">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/></svg>PDF
+                        </span>
+                        <span style="flex-grow: 1; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Rozhodnutí o přestupku.pdf</span>
+                      </a>
+                    
+                  </div>
+                  <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <h3 style="margin: 0; font-size: 13px; font-weight: 600; line-height: 28px;">Komentáře úkonu</h3>
+                    <label for="c2-act-comment" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">Komentář k úkonu</label>
+                    <textarea id="c2-act-comment" rows="3" placeholder="Poznámka k tomuto úkonu…" style="font: inherit; font-size: 13px; padding: 8px 10px; border: 1px solid #DCE3FB; border-radius: 9px; resize: none; background: #FFFFFF;"></textarea>
+                  </div>
+                </div>
+              </div>
+            
+          </div>
+        
+          <div style="border-bottom:1px solid #EDEFF3;">
+            <button type="button" class="act" onClick="() => this.setState({ open: isOpen ? -1 : i })" aria-expanded="" style="display:grid;grid-template-columns:110px minmax(0,1fr) 100px 200px 60px 20px;column-gap:16px;align-items:center;width:100%;min-height:52px;padding:0 20px;font:inherit;color:#14161B;background:transparent;border:0;cursor:pointer;">
+              <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums; text-align: left;">26. 9. 2025</span>
+              <span style="font-size: 14px; font-weight: 500; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Rozhodnutí o odvolání</span>
+              <span style="display:inline-flex;align-items:center;width:fit-content;height:22px;padding:0 8px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;">↙ Příchozí</span>
+              <span style="font-size: 13px; color: #454B57; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">KÚ Vzorového kraje</span>
+              <span style="display: flex; align-items: center; gap: 4px; font-size: 13px; color: #5B6270;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7l-6.5 6.5a1.5 1.5 0 0 0 3 3L18 10a3 3 0 0 0-6-6l-6.5 6.5a4.5 4.5 0 0 0 9 9L21 13"/></svg>1
+              </span>
+              <span style="font-size:18px;color:#5B6270;display:inline-block;transform:rotate(0deg);">›</span>
+            </button>
+            
+          </div>
+        
+          <div style="border-bottom:1px solid #EDEFF3;">
+            <button type="button" class="act" onClick="() => this.setState({ open: isOpen ? -1 : i })" aria-expanded="" style="display:grid;grid-template-columns:110px minmax(0,1fr) 100px 200px 60px 20px;column-gap:16px;align-items:center;width:100%;min-height:52px;padding:0 20px;font:inherit;color:#14161B;background:transparent;border:0;cursor:pointer;">
+              <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums; text-align: left;">7. 10. 2025</span>
+              <span style="font-size: 14px; font-weight: 500; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Vyjádření k poučení, souhlas s rozhodnutím bez jednání</span>
+              <span style="display:inline-flex;align-items:center;width:fit-content;height:22px;padding:0 8px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;">↗ Odchozí</span>
+              <span style="font-size: 13px; color: #454B57; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Krajský soud ve Vzorově</span>
+              <span style="display: flex; align-items: center; gap: 4px; font-size: 13px; color: #5B6270;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7l-6.5 6.5a1.5 1.5 0 0 0 3 3L18 10a3 3 0 0 0-6-6l-6.5 6.5a4.5 4.5 0 0 0 9 9L21 13"/></svg>2
+              </span>
+              <span style="font-size:18px;color:#5B6270;display:inline-block;transform:rotate(0deg);">›</span>
+            </button>
+            
+          </div>
+        
+          <div style="border-bottom:1px solid #EDEFF3;">
+            <button type="button" class="act" onClick="() => this.setState({ open: isOpen ? -1 : i })" aria-expanded="" style="display:grid;grid-template-columns:110px minmax(0,1fr) 100px 200px 60px 20px;column-gap:16px;align-items:center;width:100%;min-height:52px;padding:0 20px;font:inherit;color:#14161B;background:transparent;border:0;cursor:pointer;">
+              <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums; text-align: left;">9. 10. 2025</span>
+              <span style="font-size: 14px; font-weight: 500; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Výzva k zaplacení soudního poplatku</span>
+              <span style="display:inline-flex;align-items:center;width:fit-content;height:22px;padding:0 8px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;">↙ Příchozí</span>
+              <span style="font-size: 13px; color: #454B57; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Krajský soud ve Vzorově</span>
+              <span style="display: flex; align-items: center; gap: 4px; font-size: 13px; color: #5B6270;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7l-6.5 6.5a1.5 1.5 0 0 0 3 3L18 10a3 3 0 0 0-6-6l-6.5 6.5a4.5 4.5 0 0 0 9 9L21 13"/></svg>1
+              </span>
+              <span style="font-size:18px;color:#5B6270;display:inline-block;transform:rotate(0deg);">›</span>
+            </button>
+            
+          </div>
+        
+          <div style="border-bottom:1px solid #EDEFF3;">
+            <button type="button" class="act" onClick="() => this.setState({ open: isOpen ? -1 : i })" aria-expanded="" style="display:grid;grid-template-columns:110px minmax(0,1fr) 100px 200px 60px 20px;column-gap:16px;align-items:center;width:100%;min-height:52px;padding:0 20px;font:inherit;color:#14161B;background:transparent;border:0;cursor:pointer;">
+              <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums; text-align: left;">18. 10. 2025</span>
+              <span style="font-size: 14px; font-weight: 500; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Vyčíslení nákladů řízení</span>
+              <span style="display:inline-flex;align-items:center;width:fit-content;height:22px;padding:0 8px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;">↗ Odchozí</span>
+              <span style="font-size: 13px; color: #454B57; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Krajský soud ve Vzorově</span>
+              <span style="display: flex; align-items: center; gap: 4px; font-size: 13px; color: #5B6270;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7l-6.5 6.5a1.5 1.5 0 0 0 3 3L18 10a3 3 0 0 0-6-6l-6.5 6.5a4.5 4.5 0 0 0 9 9L21 13"/></svg>2
+              </span>
+              <span style="font-size:18px;color:#5B6270;display:inline-block;transform:rotate(0deg);">›</span>
+            </button>
+            
+          </div>
+        
+          <div style="border-bottom:1px solid #EDEFF3;">
+            <button type="button" class="act" onClick="() => this.setState({ open: isOpen ? -1 : i })" aria-expanded="" style="display:grid;grid-template-columns:110px minmax(0,1fr) 100px 200px 60px 20px;column-gap:16px;align-items:center;width:100%;min-height:52px;padding:0 20px;font:inherit;color:#14161B;background:transparent;border:0;cursor:pointer;">
+              <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums; text-align: left;">25. 11. 2025</span>
+              <span style="font-size: 14px; font-weight: 500; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Druhá žádost o prodloužení lhůty</span>
+              <span style="display:inline-flex;align-items:center;width:fit-content;height:22px;padding:0 8px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;">↗ Odchozí</span>
+              <span style="font-size: 13px; color: #454B57; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Krajský soud ve Vzorově</span>
+              <span style="display: flex; align-items: center; gap: 4px; font-size: 13px; color: #5B6270;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7l-6.5 6.5a1.5 1.5 0 0 0 3 3L18 10a3 3 0 0 0-6-6l-6.5 6.5a4.5 4.5 0 0 0 9 9L21 13"/></svg>2
+              </span>
+              <span style="font-size:18px;color:#5B6270;display:inline-block;transform:rotate(0deg);">›</span>
+            </button>
+            
+          </div>
+        
+
+        <div style="display: flex; align-items: center; gap: 8px; padding: 12px 20px; font-size: 13px; color: #5B6270;">
+          <span>1–10 z 23</span>
+          <div style="flex-grow: 1;"></div>
+          <button type="button" disabled style="display: flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; font: inherit; font-size: 13px; border: 1px solid #E1E4EA; border-radius: 8px; background: #FFFFFF; color: #8A909C;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>Předchozí
+          </button>
+          <button type="button" style="display: flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; font: inherit; font-size: 13px; border: 1px solid #D5D9E1; border-radius: 8px; background: #FFFFFF; color: #14161B; cursor: pointer;">
+            Další<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+          </button>
+        </div>
+      </section>
+
+      <aside aria-label="Obsah spisu" style="display: flex; flex-direction: column; gap: 20px; min-width: 0;">
+        <section style="background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; padding: 16px 18px 12px; display: flex; flex-direction: column; gap: 6px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <h2 style="margin: 0; font-size: 16px; font-weight: 600;">Podřízené spisy</h2>
+            <span style="font-size: 13px; color: #5B6270;">15</span>
+            <div style="flex-grow: 1;"></div>
+            <button type="button" aria-label="Založit podřízený spis" style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; font: inherit; color: #2F4FD1; background: #EEF2FE; border: 0; border-radius: 8px; cursor: pointer;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+            </button>
+          </div>
+          
+            <a href="#" style="display: grid; grid-template-columns: 76px minmax(0, 1fr); column-gap: 10px; padding: 9px 0; border-top: 1px solid #EDEFF3; color: #14161B;">
+              <span style="font-size: 12px; color: #5B6270; font-variant-numeric: tabular-nums; padding-top: 2px;">14. 3. 2026</span>
+              <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+                <span style="font-size: 13px; font-weight: 500;">Pojistná událost – právní ochrana</span>
+                <span style="font-size:12px;color:#1D6B36;">Aktivní</span>
+              </span>
+            </a>
+          
+            <a href="#" style="display: grid; grid-template-columns: 76px minmax(0, 1fr); column-gap: 10px; padding: 9px 0; border-top: 1px solid #EDEFF3; color: #14161B;">
+              <span style="font-size: 12px; color: #5B6270; font-variant-numeric: tabular-nums; padding-top: 2px;">2. 2. 2026</span>
+              <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+                <span style="font-size: 13px; font-weight: 500;">Kárný podnět České advokátní komoře</span>
+                <span style="font-size:12px;color:#1D6B36;">Aktivní</span>
+              </span>
+            </a>
+          
+            <a href="#" style="display: grid; grid-template-columns: 76px minmax(0, 1fr); column-gap: 10px; padding: 9px 0; border-top: 1px solid #EDEFF3; color: #14161B;">
+              <span style="font-size: 12px; color: #5B6270; font-variant-numeric: tabular-nums; padding-top: 2px;">12. 1. 2026</span>
+              <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+                <span style="font-size: 13px; font-weight: 500;">Oznámení přestupku starosty</span>
+                <span style="font-size:12px;color:#1D6B36;">Aktivní</span>
+              </span>
+            </a>
+          
+            <a href="#" style="display: grid; grid-template-columns: 76px minmax(0, 1fr); column-gap: 10px; padding: 9px 0; border-top: 1px solid #EDEFF3; color: #14161B;">
+              <span style="font-size: 12px; color: #5B6270; font-variant-numeric: tabular-nums; padding-top: 2px;">8. 12. 2025</span>
+              <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+                <span style="font-size: 13px; font-weight: 500;">Nemajetková újma – Ministerstvo vnitra</span>
+                <span style="font-size:12px;color:#1D6B36;">Aktivní</span>
+              </span>
+            </a>
+          
+            <a href="#" style="display: grid; grid-template-columns: 76px minmax(0, 1fr); column-gap: 10px; padding: 9px 0; border-top: 1px solid #EDEFF3; color: #14161B;">
+              <span style="font-size: 12px; color: #5B6270; font-variant-numeric: tabular-nums; padding-top: 2px;">20. 11. 2025</span>
+              <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+                <span style="font-size: 13px; font-weight: 500;">Předžalobní výzva</span>
+                <span style="font-size:12px;color:#1D6B36;">Aktivní</span>
+              </span>
+            </a>
+          
+            <a href="#" style="display: grid; grid-template-columns: 76px minmax(0, 1fr); column-gap: 10px; padding: 9px 0; border-top: 1px solid #EDEFF3; color: #14161B;">
+              <span style="font-size: 12px; color: #5B6270; font-variant-numeric: tabular-nums; padding-top: 2px;">11. 8. 2025</span>
+              <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+                <span style="font-size: 13px; font-weight: 500;">Žádost o informace – Policie</span>
+                <span style="font-size:12px;color:#5B6270;">Uzavřený</span>
+              </span>
+            </a>
+          
+          <a href="#" style="font-size: 13px; font-weight: 500; padding-top: 6px; border-top: 1px solid #EDEFF3;">Všech 15 podřízených spisů</a>
+        </section>
+
+        <section style="background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <h2 style="margin: 0; font-size: 16px; font-weight: 600;">Soubory spisu</h2>
+            <button type="button" style="display: flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; font: inherit; font-size: 13px; color: #2F4FD1; background: #EEF2FE; border: 0; border-radius: 8px; cursor: pointer;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M5 20h14"/></svg>Nahrát
+            </button>
+          </div>
+          <a href="#" style="display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid #E1E4EA; border-radius: 9px; color: #14161B;">
+            <span style="height: 26px; padding: 0 8px; border-radius: 6px; display: flex; align-items: center; gap: 5px; flex-shrink: 0; font-size: 11px; font-weight: 700; background: #FDE4E1; color: #9B2C1F;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/></svg>PDF
+            </span>
+            <span style="font-size: 13px;">[SOUBOR SPISU].pdf</span>
+          </a>
+          <div style="display: flex; align-items: center; justify-content: center; height: 52px; border: 1.5px dashed #C9CFDA; border-radius: 10px; font-size: 13px; color: #5B6270;">Přetáhněte soubory ke spisu</div>
+        </section>
+
+        <section style="background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px;">
+          <h2 style="margin: 0; font-size: 16px; font-weight: 600;">Komentáře spisu</h2>
+          <div style="display: flex; gap: 10px;">
+            <span style="width: 30px; height: 30px; flex-shrink: 0; border-radius: 50%; background: #14161B; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600;">MV</span>
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+              <span style="font-size: 12px; color: #5B6270;"><span style="color: #14161B; font-weight: 600;">Martin Volek</span> · [DATUM A ČAS]</span>
+              <p style="margin: 0; font-size: 13px; line-height: 1.5;">[TEXT KOMENTÁŘE]</p>
+            </div>
+          </div>
+          <label for="c2-case-comment" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">Komentář ke spisu</label>
+          <textarea id="c2-case-comment" rows="2" placeholder="Poznámka ke spisu…" style="font: inherit; font-size: 13px; padding: 8px 10px; border: 1px solid #D5D9E1; border-radius: 9px; resize: none;"></textarea>
+        </section>
+      </aside>
+    </div>
+  </div>
+</div>
+</body>
+</html>

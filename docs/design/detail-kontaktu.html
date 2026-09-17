@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>detail-kontaktu – EvilCase</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+  <style>
+    body { margin: 0; font-family: 'Instrument Sans', 'Segoe UI', sans-serif; background: #ECEEF2; color: #14161B; }
+    a { color: #2F4FD1; text-decoration: none; } a:hover { color: #1F3AA8; }
+    .row:hover { background: #F5F6F9; }
+    .navlink:hover { color: #14161B; }
+  </style>
+</head>
+<body>
+<div style="width: 1440px; height: 1080px; box-sizing: border-box; background: #F2F3F6; display: flex; flex-direction: column;">
+
+  <header style="height: 60px; flex-shrink: 0; box-sizing: border-box; padding: 0 32px; display: flex; align-items: center; gap: 36px; background: #FFFFFF; border-bottom: 1px solid #E1E4EA;">
+    <a href="prehled.html" style="display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 700; color: #14161B; letter-spacing: -0.01em;">
+      <span style="width: 32px; height: 32px; border-radius: 9px; background: #3B5BDB; display: flex; align-items: center; justify-content: center;">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 20h10"/><path d="M6 6l6-1 6 1"/><path d="M12 3v17"/><path d="M9 12L6 6l-3 6a3 3 0 0 0 6 0"/><path d="M21 12l-3-6-3 6a3 3 0 0 0 6 0"/></svg>
+      </span>
+      EvilCase
+    </a>
+    <nav aria-label="Hlavní menu" style="display: flex; gap: 4px; height: 100%;">
+      <a href="prehled.html" class="navlink" style="display: flex; align-items: center; gap: 8px; padding: 0 14px; font-size: 14px; font-weight: 500; color: #5B6270;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="8" rx="1"/><rect x="4" y="16" width="6" height="4" rx="1"/><rect x="14" y="12" width="6" height="8" rx="1"/><rect x="14" y="4" width="6" height="4" rx="1"/></svg>Přehled
+      </a>
+      <a href="spisy.html" class="navlink" style="display: flex; align-items: center; gap: 8px; padding: 0 14px; font-size: 14px; font-weight: 500; color: #5B6270;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h3l2 2h5a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2"/><path d="M17 17v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2h2"/></svg>Spisy
+      </a>
+      <a href="kontakty.html" aria-current="page" style="display: flex; align-items: center; gap: 8px; padding: 0 14px; font-size: 14px; font-weight: 600; color: #14161B; box-shadow: inset 0 -2px 0 #3B5BDB;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0-3-3.85"/></svg>Kontakty
+      </a>
+      <a href="nastaveni.html" class="navlink" style="display: flex; align-items: center; gap: 8px; padding: 0 14px; font-size: 14px; font-weight: 500; color: #5B6270;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>Nastavení
+      </a>
+    </nav>
+    <div style="flex-grow: 1;"></div>
+    <label for="kd-global" style="display: flex; align-items: center; gap: 8px; width: 300px; height: 38px; box-sizing: border-box; padding: 0 12px; border: 1px solid #D5D9E1; border-radius: 10px; background: #F6F7FA; color: #5B6270;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10" cy="10" r="7"/><path d="M21 21l-6-6"/></svg>
+      <input id="kd-global" placeholder="Hledat spis" style="border: 0; outline: none; font: inherit; font-size: 14px; width: 100%; background: transparent;">
+    </label>
+    <button type="button" aria-label="Uživatelské menu – Martin Volek" style="width: 38px; height: 38px; border-radius: 50%; border: 0; background: #14161B; color: #FFFFFF; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;">MV</button>
+  </header>
+
+  <div style="flex-grow: 1; box-sizing: border-box; padding: 24px 32px 32px; display: flex; flex-direction: column; gap: 20px; min-height: 0;">
+
+    <section style="background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; padding: 22px 28px 24px; display: flex; flex-direction: column; gap: 14px;">
+      <div style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: #5B6270;">
+        <a href="kontakty.html" style="color: #5B6270;">Kontakty</a><span>/</span><span style="color: #14161B;">Detail kontaktu</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <span style="width: 52px; height: 52px; border-radius: 14px; background: #E6EEFD; color: #2A48B8; display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 600;">MV</span>
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <h1 style="margin: 0; font-size: 28px; font-weight: 600; letter-spacing: -0.02em;">Městský úřad Vzorov, odbor vnitřních věcí</h1>
+          <span style="display: inline-flex; align-items: center; width: fit-content; height: 24px; padding: 0 10px; border-radius: 999px; background: #E6EEFD; color: #2A48B8; font-size: 12px; font-weight: 500;">Úřad</span>
+        </div>
+        <div style="flex-grow: 1;"></div>
+        <button type="button" style="display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; font: inherit; font-size: 14px; font-weight: 500; color: #14161B; background: #FFFFFF; border: 1px solid #D5D9E1; border-radius: 10px; cursor: pointer;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3"/><path d="M13.5 6.5l4 4"/></svg>Upravit kontakt
+        </button>
+        <button type="button" aria-label="Další akce s kontaktem" style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; font: inherit; color: #14161B; background: #FFFFFF; border: 1px solid #D5D9E1; border-radius: 10px; cursor: pointer;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+        </button>
+      </div>
+      <div style="display: flex; align-items: stretch; margin-top: 6px; border: 1px solid #E8EAEF; border-radius: 12px;">
+        <div style="display: flex; flex-direction: column; gap: 4px; padding: 12px 18px; border-right: 1px solid #E8EAEF;">
+          <span style="font-size: 12px; color: #5B6270;">ID datové schránky</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 500;">[ID SCHRÁNKY]</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding: 12px 18px; border-right: 1px solid #E8EAEF; flex-grow: 1;">
+          <span style="font-size: 12px; color: #5B6270;">Adresa</span>
+          <span style="font-size: 14px;">[ADRESA JEDNÍM TEXTEM]</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding: 12px 18px; border-right: 1px solid #E8EAEF;">
+          <span style="font-size: 12px; color: #5B6270;">Spisy</span>
+          <span style="font-size: 14px; font-weight: 500;">6</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding: 12px 18px;">
+          <span style="font-size: 12px; color: #5B6270;">Úkony</span>
+          <span style="font-size: 14px; font-weight: 500;">41</span>
+        </div>
+      </div>
+    </section>
+
+    <div style="flex-grow: 1; min-height: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start;">
+      <section style="background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden;">
+        <div style="display: flex; align-items: center; gap: 10px; padding: 16px 20px;">
+          <h2 style="margin: 0; font-size: 18px; font-weight: 600;">Spisy s tímto kontaktem</h2>
+          <span style="font-size: 13px; color: #5B6270;">6</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 110px minmax(0, 1fr) 130px; column-gap: 16px; align-items: center; height: 34px; padding: 0 20px; font-size: 12px; color: #5B6270; background: #F8F9FB; border-top: 1px solid #EDEFF3; border-bottom: 1px solid #EDEFF3;">
+          <span>Datum spisu</span><span>Spis</span><span>Stav</span>
+        </div>
+        
+          <a href="detail-spisu.html" class="row" style="display: grid; grid-template-columns: 110px minmax(0, 1fr) 130px; column-gap: 16px; align-items: center; min-height: 50px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+            <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">28. 5. 2025</span>
+            <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Překročení rychlosti Vzorov – 121 v 110</span>
+            <span style="display:inline-flex;align-items:center;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;">Aktivní</span>
+          </a>
+        
+          <a href="detail-spisu.html" class="row" style="display: grid; grid-template-columns: 110px minmax(0, 1fr) 130px; column-gap: 16px; align-items: center; min-height: 50px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+            <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">20. 11. 2025</span>
+            <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Předžalobní výzva</span>
+            <span style="display:inline-flex;align-items:center;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;">Aktivní</span>
+          </a>
+        
+          <a href="detail-spisu.html" class="row" style="display: grid; grid-template-columns: 110px minmax(0, 1fr) 130px; column-gap: 16px; align-items: center; min-height: 50px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+            <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">15. 10. 2025</span>
+            <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Otevřený dopis zastupitelstvu</span>
+            <span style="display:inline-flex;align-items:center;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;">Aktivní</span>
+          </a>
+        
+          <a href="detail-spisu.html" class="row" style="display: grid; grid-template-columns: 110px minmax(0, 1fr) 130px; column-gap: 16px; align-items: center; min-height: 50px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+            <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">12. 1. 2026</span>
+            <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Oznámení přestupku starosty</span>
+            <span style="display:inline-flex;align-items:center;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#FDEFD8;color:#8A5307;">Čeká na úřad</span>
+          </a>
+        
+          <a href="detail-spisu.html" class="row" style="display: grid; grid-template-columns: 110px minmax(0, 1fr) 130px; column-gap: 16px; align-items: center; min-height: 50px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+            <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">6. 8. 2025</span>
+            <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Žádost o informace – Vzorov 3</span>
+            <span style="display:inline-flex;align-items:center;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#EDEFF3;color:#454B57;">Uzavřený</span>
+          </a>
+        
+          <a href="detail-spisu.html" class="row" style="display: grid; grid-template-columns: 110px minmax(0, 1fr) 130px; column-gap: 16px; align-items: center; min-height: 50px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+            <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">2. 8. 2025</span>
+            <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Žádost o informace – Vzorov 2, sběrný arch</span>
+            <span style="display:inline-flex;align-items:center;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#EDEFF3;color:#454B57;">Uzavřený</span>
+          </a>
+        
+      </section>
+
+      <section style="background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden;">
+        <div style="display: flex; align-items: center; gap: 10px; padding: 16px 20px;">
+          <h2 style="margin: 0; font-size: 18px; font-weight: 600;">Úkony s tímto kontaktem</h2>
+          <span style="font-size: 13px; color: #5B6270;">41</span>
+          <div style="flex-grow: 1;"></div>
+          <a href="detail-spisu.html" style="font-size: 13px; font-weight: 500;">Vše →</a>
+        </div>
+        <div style="display: grid; grid-template-columns: 110px minmax(0, 1fr) 110px; column-gap: 16px; align-items: center; height: 34px; padding: 0 20px; font-size: 12px; color: #5B6270; background: #F8F9FB; border-top: 1px solid #EDEFF3; border-bottom: 1px solid #EDEFF3;">
+          <span>Datum úkonu</span><span>Úkon</span><span>Směr</span>
+        </div>
+        
+          <a href="detail-ukonu.html" class="row" style="display: grid; grid-template-columns: 110px minmax(0, 1fr) 110px; column-gap: 16px; align-items: center; min-height: 50px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+            <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">2. 9. 2025</span>
+            <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Rozhodnutí o přestupku</span>
+            <span style="display:inline-flex;align-items:center;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;">↙ Příchozí</span>
+          </a>
+        
+          <a href="detail-ukonu.html" class="row" style="display: grid; grid-template-columns: 110px minmax(0, 1fr) 110px; column-gap: 16px; align-items: center; min-height: 50px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+            <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">18. 8. 2025</span>
+            <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Vyjádření k podkladům rozhodnutí</span>
+            <span style="display:inline-flex;align-items:center;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;">↗ Odchozí</span>
+          </a>
+        
+          <a href="detail-ukonu.html" class="row" style="display: grid; grid-template-columns: 110px minmax(0, 1fr) 110px; column-gap: 16px; align-items: center; min-height: 50px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+            <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">6. 8. 2025</span>
+            <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Vyrozumění o pokračování řízení</span>
+            <span style="display:inline-flex;align-items:center;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;">↙ Příchozí</span>
+          </a>
+        
+          <a href="detail-ukonu.html" class="row" style="display: grid; grid-template-columns: 110px minmax(0, 1fr) 110px; column-gap: 16px; align-items: center; min-height: 50px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+            <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">4. 8. 2025</span>
+            <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Odpor proti příkazu</span>
+            <span style="display:inline-flex;align-items:center;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;">↗ Odchozí</span>
+          </a>
+        
+          <a href="detail-ukonu.html" class="row" style="display: grid; grid-template-columns: 110px minmax(0, 1fr) 110px; column-gap: 16px; align-items: center; min-height: 50px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+            <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">31. 7. 2025</span>
+            <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Příkaz o uložení pokuty</span>
+            <span style="display:inline-flex;align-items:center;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;">↙ Příchozí</span>
+          </a>
+        
+          <a href="detail-ukonu.html" class="row" style="display: grid; grid-template-columns: 110px minmax(0, 1fr) 110px; column-gap: 16px; align-items: center; min-height: 50px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+            <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">24. 7. 2025</span>
+            <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Výzva k úhradě určené částky</span>
+            <span style="display:inline-flex;align-items:center;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;">↙ Příchozí</span>
+          </a>
+        
+      </section>
+    </div>
+  </div>
+</div>
+</body>
+</html>

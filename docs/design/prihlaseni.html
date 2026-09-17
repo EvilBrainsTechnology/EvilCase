@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>prihlaseni – EvilCase</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+  <style>
+    body { margin: 0; font-family: 'Instrument Sans', 'Segoe UI', sans-serif; background: #ECEEF2; color: #14161B; }
+    a { color: #2F4FD1; text-decoration: none; } a:hover { color: #1F3AA8; }
+  </style>
+</head>
+<body>
+<div style="width: 1440px; height: 900px; box-sizing: border-box; background: #F2F3F6; display: grid; grid-template-columns: minmax(0, 1fr) 560px;">
+
+  <div style="display: flex; flex-direction: column; justify-content: space-between; padding: 56px 64px; background: #14161B; color: #FFFFFF;">
+    <div style="display: flex; align-items: center; gap: 12px; font-size: 19px; font-weight: 700;">
+      <span style="width: 36px; height: 36px; border-radius: 10px; background: #3B5BDB; display: flex; align-items: center; justify-content: center;">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 20h10"/><path d="M6 6l6-1 6 1"/><path d="M12 3v17"/><path d="M9 12L6 6l-3 6a3 3 0 0 0 6 0"/><path d="M21 12l-3-6-3 6a3 3 0 0 0 6 0"/></svg>
+      </span>
+      EvilCase
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 20px; max-width: 520px;">
+      <h1 style="margin: 0; font-size: 44px; font-weight: 600; line-height: 1.12; letter-spacing: -0.025em; text-wrap: pretty;">Spis, který v každém okamžiku odpoví, co se stalo a co v něm je.</h1>
+      <p style="margin: 0; font-size: 17px; line-height: 1.6; color: #B7BCC6;">Správní a soudní řízení na jednom místě: spisy a podřízené spisy, úkony se směrem a kontaktem, dokumenty, komentáře.</p>
+    </div>
+    <div style="display: flex; gap: 40px; font-size: 14px; color: #8C929D;">
+      <span>Česky · datum d. M. yyyy</span>
+      <span>Samostatná instalace</span>
+    </div>
+  </div>
+
+  <div style="display: flex; align-items: center; justify-content: center; padding: 56px;">
+    <form style="width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 20px;">
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <h2 style="margin: 0; font-size: 26px; font-weight: 600; letter-spacing: -0.02em;">Přihlášení</h2>
+        <p style="margin: 0; font-size: 14px; color: #5B6270;">Účty zakládá správce, registrace není otevřená.</p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <label for="l-email" style="font-size: 13px; font-weight: 600;">E-mail</label>
+        <input id="l-email" type="email" placeholder="jmeno@example.cz" style="height: 46px; padding: 0 12px; font: inherit; font-size: 15px; border: 1px solid #D5D9E1; border-radius: 10px; background: #FFFFFF;">
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <label for="l-password" style="font-size: 13px; font-weight: 600;">Heslo</label>
+        <input id="l-password" type="password" placeholder="••••••••" style="height: 46px; padding: 0 12px; font: inherit; font-size: 15px; border: 1px solid #D5D9E1; border-radius: 10px; background: #FFFFFF;">
+      </div>
+
+      <div style="display: flex; gap: 10px; padding: 12px 14px; background: #FDECEA; border: 1px solid #F1CFCA; border-radius: 10px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9B2C1F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 1px;"><circle cx="12" cy="12" r="9"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+        <p style="margin: 0; font-size: 13px; line-height: 1.5; color: #7F2419;">Nesprávný e-mail nebo heslo.</p>
+      </div>
+
+      <button type="button" style="display: flex; align-items: center; justify-content: center; gap: 8px; height: 48px; font: inherit; font-size: 15px; font-weight: 600; color: #FFFFFF; background: #3B5BDB; border: 0; border-radius: 10px; cursor: pointer;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 12H3"/><path d="M11 8l4 4-4 4"/><path d="M15 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/></svg>Přihlásit se
+      </button>
+
+      <p style="margin: 0; font-size: 13px; line-height: 1.5; color: #5B6270;">Po přihlášení vás aplikace vrátí tam, odkud jste přišel.</p>
+    </form>
+  </div>
+</div>
+</body>
+</html>

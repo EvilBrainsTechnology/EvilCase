@@ -73,7 +73,8 @@ Aplikace čísluje spisy a úkony sama, bez konfigurace; tvar čísel, ruční p
 URL nesou UUID: `/cases`, `/cases/{id}`, `/cases/{id}/act/{actId}`, `/contacts`, `/settings`,
 `/login`
 ([SDD-016](../sdd/sdd-016-navigace-a-vzhled.md)). Dashboard `/` stojí nad reálnými daty
-([SDD-015](../sdd/sdd-015-dashboard.md)). Vzhled: Tabler + TabBlazor.
+([SDD-015](../sdd/sdd-015-dashboard.md)). Vzhled drží [SDD-020](../sdd/sdd-020-vzhled.md);
+vizuální předlohy obrazovek žijí v [`docs/design/`](../design/README.md).
 
 ## Vzorová data
 
@@ -101,6 +102,7 @@ V pořadí podle toho, co při práci s reálným spisem bolí nejvíc:
 | M6 | Kontakty | agenda kontaktů s výskyty, zakládání kontaktu v agendě | SDD-011 |
 | M7 | Dashboard | dashboard nad reálnými daty | SDD-015 |
 | M8 | Štítky | štítky spisů a úkonů, sekce nastavení s jejich číselníkem | SDD-019 |
+| M9 | Vzhled | vlastní tokeny a primitiva, migrace obrazovek na nový vzhled, odchod od Tableru a TabBlazoru | SDD-020, 016 |
 
 Průřezová SDD-001 až 005 platí pro každý milník. Základ je hotový, když jde reálný spis vést
 rukou od začátku do konce.
