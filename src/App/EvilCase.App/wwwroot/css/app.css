@@ -3,7 +3,7 @@
 :root {
     --ec-shell-bg: #f3f4f6;
     --ec-page-width: 1700px;
-    --ec-sidebar-width: 360px;
+    --ec-detail-sidebar-width: 360px;
     --ec-card-radius: 10px;
     --ec-control-radius: 8px;
     --ec-mono: Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
@@ -64,7 +64,7 @@ body {
 /* Case and act detail: main column plus the sticky 360px sidebar (SDD-016 §2-3). */
 .ec-layout {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) var(--ec-sidebar-width);
+    grid-template-columns: minmax(0, 1fr) var(--ec-detail-sidebar-width);
     gap: 1.5rem;
     align-items: start;
 }

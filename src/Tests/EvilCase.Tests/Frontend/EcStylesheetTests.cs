@@ -85,6 +85,22 @@ public class EcStylesheetTests
     }
 
     [Test]
+    public async Task TheOldSheetDefinesNoTokenNameTheNewOneDefines()
+    {
+        var appCss = await this.client.GetStringAsync(new Uri("/css/app.css", UriKind.Relative));
+        var tokensCss = await this.client.GetStringAsync(new Uri("/css/ec-tokens.css", UriKind.Relative));
+
+        var shared = DefinedNames(appCss)
+            .Intersect(DefinedNames(tokensCss), StringComparer.Ordinal)
+            .ToArray();
+
+        Assert.That(
+            shared,
+            Is.Empty,
+            "the ec scope on the app root shadows a name the old sheet defines on :root, so an unmigrated screen silently takes the new value");
+    }
+
+    [Test]
     public async Task TheIconDrawingIsOneRuleForEveryIcon()
     {
         var css = await this.client.GetStringAsync(new Uri("/css/ec-components.css", UriKind.Relative));
@@ -140,6 +156,16 @@ public class EcStylesheetTests
                 Assert.That(isToken, Is.True, $"{property}: {value} is not a token");
             }
         }
+    }
+
+    private static IEnumerable<string> DefinedNames(string css)
+    {
+        return css
+            .Split('\n')
+            .Select(static line => line.Trim())
+            .Where(static line => line.StartsWith("--", StringComparison.Ordinal))
+            .Where(static line => line.Contains(':', StringComparison.Ordinal))
+            .Select(static line => line[..line.IndexOf(':', StringComparison.Ordinal)].Trim());
     }
 
     private static IEnumerable<string> ExtractUrls(string css)
