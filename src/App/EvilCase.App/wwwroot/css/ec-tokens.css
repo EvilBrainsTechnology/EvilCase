@@ -1,0 +1,124 @@
+/*
+ * Tokeny vzhledu EvilCase — jediný zdroj barev, písem a rozměrů (SDD-020).
+ * Komponenta nikdy nepíše hodnotu přímo, vždy sahá na proměnnou odsud.
+ * Předlohy obrazovek: docs/design/.
+ */
+
+.ec {
+    /* Plochy a text */
+    --ec-bg: #F2F3F6;
+    --ec-surface: #FFFFFF;
+    --ec-surface-sunken: #F6F7FA;
+    --ec-surface-header: #F8F9FB;
+    --ec-text: #14161B;
+    --ec-text-strong: #000000;
+    --ec-text-muted: #5B6270;
+    --ec-text-soft: #454B57;
+    --ec-border: #E1E4EA;
+    --ec-border-strong: #D5D9E1;
+    --ec-border-subtle: #EDEFF3;
+    --ec-border-dashed: #C9CFDA;
+
+    /* Akcent */
+    --ec-accent: #3B5BDB;
+    --ec-accent-hover: #3050C8;
+    --ec-accent-text: #2F4FD1;
+    --ec-accent-soft: #EEF2FE;
+    --ec-on-accent: #FFFFFF;
+
+    /* Stav spisu */
+    --ec-active-bg: #E3F4E8;
+    --ec-active-text: #1D6B36;
+    --ec-active-dot: #3B9C5A;
+    --ec-waiting-bg: #FDEFD8;
+    --ec-waiting-text: #8A5307;
+    --ec-waiting-dot: #E8A33D;
+    --ec-closed-bg: #EDEFF3;
+    --ec-closed-text: #454B57;
+    --ec-closed-dot: #8A909C;
+
+    /* Směr úkonu */
+    --ec-incoming-bg: #E6EEFD;
+    --ec-incoming-text: #2A48B8;
+    --ec-outgoing-bg: #E3F4E8;
+    --ec-outgoing-text: #1D6B36;
+
+    /* Upozornění a chyba */
+    --ec-warning-bg: #FFF9EC;
+    --ec-warning-border: #F3DDAE;
+    --ec-warning-text: #6E4405;
+    --ec-danger-bg: #FDECEA;
+    --ec-danger-border: #F1CFCA;
+    --ec-danger-text: #9B2C1F;
+
+    /* Barvy štítků — číselník LabelColor (SDD-019) */
+    --ec-label-blue: #3B5BDB;
+    --ec-label-azure: #2C8FD4;
+    --ec-label-indigo: #4F46C8;
+    --ec-label-purple: #7C3AED;
+    --ec-label-pink: #D6336C;
+    --ec-label-red: #E15241;
+    --ec-label-orange: #E8A33D;
+    --ec-label-yellow: #D9B321;
+    --ec-label-lime: #7BA828;
+    --ec-label-green: #3B9C5A;
+    --ec-label-teal: #159E92;
+    --ec-label-cyan: #1B9BB8;
+    --ec-label-gray: #6B7280;
+
+    /* Písmo */
+    --ec-font: 'Instrument Sans', 'Segoe UI', system-ui, sans-serif;
+    --ec-font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', monospace;
+    --ec-text-xs: 12px;
+    --ec-text-sm: 13px;
+    --ec-text-md: 14px;
+    --ec-text-lg: 16px;
+    --ec-text-xl: 18px;
+    --ec-title-sm: 28px;
+    --ec-title: 32px;
+    --ec-weight-regular: 400;
+    --ec-weight-medium: 500;
+    --ec-weight-semibold: 600;
+    --ec-weight-bold: 700;
+    --ec-leading-tight: 1.2;
+    --ec-leading-body: 1.55;
+
+    /* Rozestupy */
+    --ec-space-1: 4px;
+    --ec-space-2: 6px;
+    --ec-space-3: 8px;
+    --ec-space-4: 12px;
+    --ec-space-5: 16px;
+    --ec-space-6: 20px;
+    --ec-space-7: 24px;
+    --ec-space-8: 32px;
+
+    /* Rádiusy */
+    --ec-radius-sm: 6px;
+    --ec-radius-md: 9px;
+    --ec-radius-lg: 10px;
+    --ec-radius-xl: 12px;
+    --ec-radius-card: 16px;
+    --ec-radius-pill: 999px;
+
+    /* Rozměry ovládacích prvků */
+    --ec-control-sm: 32px;
+    --ec-control-md: 36px;
+    --ec-control-lg: 40px;
+    --ec-control-form: 44px;
+    --ec-touch-min: 44px;
+    --ec-icon-sm: 14px;
+    --ec-icon-md: 16px;
+    --ec-icon-lg: 18px;
+
+    /* Rozvržení */
+    --ec-topbar-height: 60px;
+    --ec-content-max: 1680px;
+    --ec-content-padding: 32px;
+    --ec-sidebar-width: 380px;
+
+    /* Stíny a fokus */
+    --ec-shadow-raised: 0 1px 2px rgba(20, 22, 27, 0.08);
+    --ec-shadow-overlay: 0 12px 32px rgba(20, 22, 27, 0.16);
+    --ec-focus-ring: 0 0 0 3px rgba(59, 91, 219, 0.35);
+}

@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>kontakty – EvilCase</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+  <style>
+    body { margin: 0; font-family: 'Instrument Sans', 'Segoe UI', sans-serif; background: #ECEEF2; color: #14161B; }
+    a { color: #2F4FD1; text-decoration: none; } a:hover { color: #1F3AA8; }
+    .row:hover { background: #F5F6F9; }
+    .navlink:hover { color: #14161B; }
+  </style>
+</head>
+<body>
+<div style="width: 1440px; height: 1080px; box-sizing: border-box; background: #F2F3F6; display: flex; flex-direction: column;">
+
+  <header style="height: 60px; flex-shrink: 0; box-sizing: border-box; padding: 0 32px; display: flex; align-items: center; gap: 36px; background: #FFFFFF; border-bottom: 1px solid #E1E4EA;">
+    <a href="prehled.html" style="display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 700; color: #14161B; letter-spacing: -0.01em;">
+      <span style="width: 32px; height: 32px; border-radius: 9px; background: #3B5BDB; display: flex; align-items: center; justify-content: center;">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 20h10"/><path d="M6 6l6-1 6 1"/><path d="M12 3v17"/><path d="M9 12L6 6l-3 6a3 3 0 0 0 6 0"/><path d="M21 12l-3-6-3 6a3 3 0 0 0 6 0"/></svg>
+      </span>
+      EvilCase
+    </a>
+    <nav aria-label="Hlavní menu" style="display: flex; gap: 4px; height: 100%;">
+      <a href="prehled.html" class="navlink" style="display: flex; align-items: center; gap: 8px; padding: 0 14px; font-size: 14px; font-weight: 500; color: #5B6270;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="8" rx="1"/><rect x="4" y="16" width="6" height="4" rx="1"/><rect x="14" y="12" width="6" height="8" rx="1"/><rect x="14" y="4" width="6" height="4" rx="1"/></svg>Přehled
+      </a>
+      <a href="spisy.html" class="navlink" style="display: flex; align-items: center; gap: 8px; padding: 0 14px; font-size: 14px; font-weight: 500; color: #5B6270;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h3l2 2h5a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2"/><path d="M17 17v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2h2"/></svg>Spisy
+      </a>
+      <a href="kontakty.html" aria-current="page" style="display: flex; align-items: center; gap: 8px; padding: 0 14px; font-size: 14px; font-weight: 600; color: #14161B; box-shadow: inset 0 -2px 0 #3B5BDB;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0-3-3.85"/></svg>Kontakty
+      </a>
+      <a href="nastaveni.html" class="navlink" style="display: flex; align-items: center; gap: 8px; padding: 0 14px; font-size: 14px; font-weight: 500; color: #5B6270;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>Nastavení
+      </a>
+    </nav>
+    <div style="flex-grow: 1;"></div>
+    <label for="k-global" style="display: flex; align-items: center; gap: 8px; width: 300px; height: 38px; box-sizing: border-box; padding: 0 12px; border: 1px solid #D5D9E1; border-radius: 10px; background: #F6F7FA; color: #5B6270;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10" cy="10" r="7"/><path d="M21 21l-6-6"/></svg>
+      <input id="k-global" placeholder="Hledat spis" style="border: 0; outline: none; font: inherit; font-size: 14px; width: 100%; background: transparent;">
+    </label>
+    <button type="button" aria-label="Uživatelské menu – Martin Volek" style="width: 38px; height: 38px; border-radius: 50%; border: 0; background: #14161B; color: #FFFFFF; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;">MV</button>
+  </header>
+
+  <div style="flex-grow: 1; box-sizing: border-box; padding: 24px 32px 32px; display: flex; flex-direction: column; gap: 20px; min-height: 0;">
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <h1 style="margin: 0; font-size: 28px; font-weight: 600; letter-spacing: -0.02em;">Kontakty</h1>
+      <span style="font-size: 14px; color: #5B6270;">11 záznamů</span>
+      <div style="flex-grow: 1;"></div>
+      <button type="button" style="display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; font: inherit; font-size: 14px; font-weight: 600; color: #FFFFFF; background: #3B5BDB; border: 0; border-radius: 10px; cursor: pointer;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M19 8v6"/><path d="M22 11h-6"/></svg>Nový kontakt
+      </button>
+    </div>
+
+    <section style="flex-grow: 1; min-height: 0; background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden;">
+      <div style="display: flex; align-items: center; gap: 10px; padding: 16px 20px;">
+        <label for="k-filter" style="display: flex; align-items: center; gap: 8px; width: 300px; height: 38px; box-sizing: border-box; padding: 0 12px; border: 1px solid #D5D9E1; border-radius: 10px; color: #5B6270;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10" cy="10" r="7"/><path d="M21 21l-6-6"/></svg>
+          <input id="k-filter" placeholder="Hledat v názvu kontaktu" style="border: 0; outline: none; font: inherit; font-size: 14px; width: 100%; background: transparent;">
+        </label>
+        <div role="group" aria-label="Druh kontaktu" style="display: flex; padding: 3px; gap: 2px; background: #F0F2F5; border-radius: 10px;">
+          <button type="button" aria-pressed="true" style="height: 32px; padding: 0 12px; font: inherit; font-size: 13px; border: 0; border-radius: 8px; background: #FFFFFF; color: #14161B; box-shadow: 0 1px 2px rgba(20,22,27,0.08);">Vše</button>
+          <button type="button" aria-pressed="false" style="height: 32px; padding: 0 12px; font: inherit; font-size: 13px; border: 0; border-radius: 8px; background: transparent; color: #454B57;">Úřad</button>
+          <button type="button" aria-pressed="false" style="height: 32px; padding: 0 12px; font: inherit; font-size: 13px; border: 0; border-radius: 8px; background: transparent; color: #454B57;">Úřední osoba</button>
+          <button type="button" aria-pressed="false" style="height: 32px; padding: 0 12px; font: inherit; font-size: 13px; border: 0; border-radius: 8px; background: transparent; color: #454B57;">Člověk</button>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: minmax(0, 1fr) 160px 160px 110px 110px; column-gap: 16px; align-items: center; height: 36px; padding: 0 20px; font-size: 12px; color: #5B6270; background: #F8F9FB; border-top: 1px solid #EDEFF3; border-bottom: 1px solid #EDEFF3;">
+        <span>Kontakt</span><span>Druh</span><span>Datová schránka</span><span>Spisy</span><span>Úkony</span>
+      </div>
+
+      
+        <a href="detail-kontaktu.html" class="row" style="display: grid; grid-template-columns: minmax(0, 1fr) 160px 160px 110px 110px; column-gap: 16px; align-items: center; min-height: 52px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+          <span style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+            <span style="width:30px;height:30px;flex-shrink:0;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;background:#E6EEFD;color:#2A48B8;">MV</span>
+            <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Městský úřad Vzorov, odbor vnitřních věcí</span>
+          </span>
+          <span style="display:inline-flex;align-items:center;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;">Úřad</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #5B6270;">[ID SCHRÁNKY]</span>
+          <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">6</span>
+          <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">41</span>
+        </a>
+      
+        <a href="detail-kontaktu.html" class="row" style="display: grid; grid-template-columns: minmax(0, 1fr) 160px 160px 110px 110px; column-gap: 16px; align-items: center; min-height: 52px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+          <span style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+            <span style="width:30px;height:30px;flex-shrink:0;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;background:#E6EEFD;color:#2A48B8;">KÚ</span>
+            <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Krajský úřad Vzorového kraje</span>
+          </span>
+          <span style="display:inline-flex;align-items:center;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;">Úřad</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #5B6270;">[ID SCHRÁNKY]</span>
+          <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">3</span>
+          <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">12</span>
+        </a>
+      
+        <a href="detail-kontaktu.html" class="row" style="display: grid; grid-template-columns: minmax(0, 1fr) 160px 160px 110px 110px; column-gap: 16px; align-items: center; min-height: 52px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+          <span style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+            <span style="width:30px;height:30px;flex-shrink:0;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;background:#E6EEFD;color:#2A48B8;">KS</span>
+            <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Krajský soud ve Vzorově</span>
+          </span>
+          <span style="display:inline-flex;align-items:center;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;">Úřad</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #5B6270;">[ID SCHRÁNKY]</span>
+          <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">1</span>
+          <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">14</span>
+        </a>
+      
+        <a href="detail-kontaktu.html" class="row" style="display: grid; grid-template-columns: minmax(0, 1fr) 160px 160px 110px 110px; column-gap: 16px; align-items: center; min-height: 52px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+          <span style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+            <span style="width:30px;height:30px;flex-shrink:0;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;background:#E6EEFD;color:#2A48B8;">PV</span>
+            <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Policie Vzorového kraje</span>
+          </span>
+          <span style="display:inline-flex;align-items:center;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;">Úřad</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #5B6270;">—</span>
+          <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">1</span>
+          <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">6</span>
+        </a>
+      
+        <a href="detail-kontaktu.html" class="row" style="display: grid; grid-template-columns: minmax(0, 1fr) 160px 160px 110px 110px; column-gap: 16px; align-items: center; min-height: 52px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+          <span style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+            <span style="width:30px;height:30px;flex-shrink:0;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;background:#E6EEFD;color:#2A48B8;">MD</span>
+            <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Ministerstvo dopravy</span>
+          </span>
+          <span style="display:inline-flex;align-items:center;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;">Úřad</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #5B6270;">—</span>
+          <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">1</span>
+          <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">4</span>
+        </a>
+      
+        <a href="detail-kontaktu.html" class="row" style="display: grid; grid-template-columns: minmax(0, 1fr) 160px 160px 110px 110px; column-gap: 16px; align-items: center; min-height: 52px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+          <span style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+            <span style="width:30px;height:30px;flex-shrink:0;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;background:#E6EEFD;color:#2A48B8;">MV</span>
+            <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Ministerstvo vnitra</span>
+          </span>
+          <span style="display:inline-flex;align-items:center;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;">Úřad</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #5B6270;">—</span>
+          <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">2</span>
+          <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">9</span>
+        </a>
+      
+        <a href="detail-kontaktu.html" class="row" style="display: grid; grid-template-columns: minmax(0, 1fr) 160px 160px 110px 110px; column-gap: 16px; align-items: center; min-height: 52px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+          <span style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+            <span style="width:30px;height:30px;flex-shrink:0;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;background:#E6EEFD;color:#2A48B8;">ŘS</span>
+            <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Ředitelství silnic a dálnic</span>
+          </span>
+          <span style="display:inline-flex;align-items:center;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;">Úřad</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #5B6270;">—</span>
+          <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">1</span>
+          <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">2</span>
+        </a>
+      
+        <a href="detail-kontaktu.html" class="row" style="display: grid; grid-template-columns: minmax(0, 1fr) 160px 160px 110px 110px; column-gap: 16px; align-items: center; min-height: 52px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+          <span style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+            <span style="width:30px;height:30px;flex-shrink:0;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;background:#E6EEFD;color:#2A48B8;">ČA</span>
+            <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Česká advokátní komora</span>
+          </span>
+          <span style="display:inline-flex;align-items:center;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;">Úřad</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #5B6270;">—</span>
+          <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">1</span>
+          <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">4</span>
+        </a>
+      
+        <a href="detail-kontaktu.html" class="row" style="display: grid; grid-template-columns: minmax(0, 1fr) 160px 160px 110px 110px; column-gap: 16px; align-items: center; min-height: 52px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+          <span style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+            <span style="width:30px;height:30px;flex-shrink:0;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;background:#EFE7FB;color:#5B2FA8;">sM</span>
+            <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">starosta Městského úřadu Vzorov</span>
+          </span>
+          <span style="display:inline-flex;align-items:center;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#EFE7FB;color:#5B2FA8;">Úřední osoba</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #5B6270;">—</span>
+          <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">1</span>
+          <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">18</span>
+        </a>
+      
+        <a href="detail-kontaktu.html" class="row" style="display: grid; grid-template-columns: minmax(0, 1fr) 160px 160px 110px 110px; column-gap: 16px; align-items: center; min-height: 52px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+          <span style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+            <span style="width:30px;height:30px;flex-shrink:0;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;background:#EFE7FB;color:#5B2FA8;">pú</span>
+            <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">pověřená úřední osoba</span>
+          </span>
+          <span style="display:inline-flex;align-items:center;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#EFE7FB;color:#5B2FA8;">Úřední osoba</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #5B6270;">—</span>
+          <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">2</span>
+          <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">7</span>
+        </a>
+      
+        <a href="detail-kontaktu.html" class="row" style="display: grid; grid-template-columns: minmax(0, 1fr) 160px 160px 110px 110px; column-gap: 16px; align-items: center; min-height: 52px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+          <span style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+            <span style="width:30px;height:30px;flex-shrink:0;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;background:#E3F4E8;color:#1D6B36;">PV</span>
+            <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Ing. Petr Vzorek</span>
+          </span>
+          <span style="display:inline-flex;align-items:center;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;">Člověk</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #5B6270;">—</span>
+          <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">16</span>
+          <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">23</span>
+        </a>
+      
+
+      <div style="flex-grow: 1;"></div>
+      <div style="display: flex; align-items: center; padding: 12px 20px; border-top: 1px solid #EDEFF3; font-size: 13px; color: #5B6270;">
+        <span>1–11 z 11</span>
+      </div>
+    </section>
+  </div>
+</div>
+</body>
+</html>

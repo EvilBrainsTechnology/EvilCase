@@ -3,7 +3,7 @@
 - **Stav:** platí
 - **Milníky:** M1
 - **Související SDD:** [008](sdd-008-cislovani.md), [015](sdd-015-dashboard.md),
-  [019](sdd-019-stitky.md)
+  [019](sdd-019-stitky.md), [020](sdd-020-vzhled.md)
 
 ## Rozsah
 
@@ -35,8 +35,10 @@ s tím, který záznam chybí.
 
 ### Menu a vzhled
 
-Menu nese Přehled, Spisy, Kontakty a Nastavení a zvýrazňuje položku i na podřízených routách.
-Vzhled je Tabler a TabBlazor. Desktop je primární, každá denně používaná obrazovka je plnohodnotná
+Menu nese Přehled, Spisy, Kontakty a Nastavení a zvýrazňuje položku i na podřízených routách;
+menu je ve vodorovné liště nad obsahem. Vizuální jazyk drží [SDD-020](sdd-020-vzhled.md):
+tokeny, primitiva `Ec*` a předlohy obrazovek v [`docs/design/`](../design/README.md).
+Desktop je primární, každá denně používaná obrazovka je plnohodnotná
 i na mobilu a seznam se na mobilu nikdy neposouvá vodorovně. Datum se všude píše `d. M. yyyy`,
 okamžik `d. M. yyyy H:mm` v časovém pásmu prohlížeče. Řádek tabulky se seznamem záznamů je
 odkaz na detail záznamu po celé šířce a otevírá se na nové kartě nebo v novém okně jako
@@ -57,7 +59,8 @@ Každá stránka kromě `/login` vyžaduje přihlášení; nepřihlášeného ap
 ## Rozhodnutí
 
 - Identifikátor v URL: `CaseNumber` / UUID. Platí UUID.
+- Umístění menu: levý sloupec / vodorovná lišta. Platí vodorovná lišta.
 
 ## Dopady
 
-—
+- Vzhled menu i stránek se řídí [SDD-020](sdd-020-vzhled.md).
