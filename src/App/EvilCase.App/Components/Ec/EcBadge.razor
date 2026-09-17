@@ -1,0 +1,28 @@
+@* Pilulka podle SDD-020: stav spisu a směr úkonu. *@
+
+<span class="@this.CssClass">@this.Text</span>
+
+@code {
+    [Parameter, EditorRequired]
+    public required string Text { get; set; }
+
+    [Parameter, EditorRequired]
+    public required EcBadgeTone Tone { get; set; }
+
+    private string CssClass
+    {
+        get
+        {
+            var tone = this.Tone switch
+            {
+                EcBadgeTone.Active => "ec-badge-active",
+                EcBadgeTone.Waiting => "ec-badge-waiting",
+                EcBadgeTone.Incoming => "ec-badge-incoming",
+                EcBadgeTone.Outgoing => "ec-badge-outgoing",
+                _ => "ec-badge-closed",
+            };
+
+            return $"ec-badge {tone}";
+        }
+    }
+}

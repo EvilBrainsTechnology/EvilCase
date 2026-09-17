@@ -79,7 +79,7 @@ public class EcStylesheetTests
             using (Assert.EnterMultipleScope())
             {
                 Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-                Assert.That(body.Length, Is.GreaterThan(1000));
+                Assert.That(body, Has.Length.GreaterThan(1000));
             }
         }
     }

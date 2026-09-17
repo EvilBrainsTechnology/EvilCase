@@ -1,0 +1,27 @@
+@* Jediná kresba ikon (SDD-020); tah, konce i velikost drží ec-components.css. *@
+
+<svg class="@this.CssClass" viewBox="0 0 24 24" aria-hidden="true" focusable="false">@((MarkupString)this.Paths)</svg>
+
+@code {
+    /// <summary>Kresba jedné položky AppIcons.</summary>
+    [Parameter, EditorRequired]
+    public required string Paths { get; set; }
+
+    [Parameter]
+    public EcIconSize Size { get; set; } = EcIconSize.Medium;
+
+    private string CssClass
+    {
+        get
+        {
+            var size = this.Size switch
+            {
+                EcIconSize.Small => "ec-icon-sm",
+                EcIconSize.Large => "ec-icon-lg",
+                _ => "ec-icon-md",
+            };
+
+            return $"ec-icon {size}";
+        }
+    }
+}

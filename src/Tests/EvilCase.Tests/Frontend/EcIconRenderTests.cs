@@ -1,0 +1,51 @@
+using Bunit;
+using EvilBrains.EvilCase.App.Components.Ec;
+using EvilBrains.EvilCase.App.Icons;
+
+namespace EvilBrains.EvilCase.Tests.Frontend;
+
+public class EcIconRenderTests
+{
+    [Test]
+    public void TheIconDrawsThePathsItWasGiven()
+    {
+        using var ctx = new BunitContext();
+
+        var component = ctx.Render<EcIcon>(static parameters => parameters.Add(static icon => icon.Paths, AppIcons.PlusPath));
+
+        Assert.That(component.Find("svg").InnerHtml, Does.Contain("M12 5l0 14"));
+    }
+
+    [Test]
+    public void TheDefaultSizeIsTheOneAButtonUses()
+    {
+        using var ctx = new BunitContext();
+
+        var component = ctx.Render<EcIcon>(static parameters => parameters.Add(static icon => icon.Paths, AppIcons.PlusPath));
+
+        string[] expected = ["ec-icon", "ec-icon-md"];
+
+        Assert.That(component.Find("svg").ClassList, Is.EquivalentTo(expected));
+    }
+
+    [Test]
+    public void TheSizeIsATokenClassAndNeverAnAttribute()
+    {
+        using var ctx = new BunitContext();
+
+        var component = ctx.Render<EcIcon>(static parameters => parameters
+            .Add(static icon => icon.Paths, AppIcons.PlusPath)
+            .Add(static icon => icon.Size, EcIconSize.Large));
+
+        var svg = component.Find("svg");
+
+        string[] expected = ["ec-icon", "ec-icon-lg"];
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(svg.ClassList, Is.EquivalentTo(expected));
+            Assert.That(svg.HasAttribute("width"), Is.False, "the edge length is a token, not an attribute");
+            Assert.That(svg.HasAttribute("stroke-width"), Is.False, "the stroke is a rule of the stylesheet, not an attribute");
+        }
+    }
+}

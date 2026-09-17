@@ -1,0 +1,49 @@
+@* Hlavička stránky podle SDD-020: drobečky, název, stav, akce vpravo. *@
+
+<header class="ec-page-header">
+    @if (this.Breadcrumbs.Count > 0)
+    {
+        <nav class="ec-crumbs" aria-label="Drobečková navigace">
+            @for (var index = 0; index < this.Breadcrumbs.Count; index++)
+            {
+                var crumb = this.Breadcrumbs[index];
+
+                if (index > 0)
+                {
+                    <span class="ec-crumb-separator" aria-hidden="true">/</span>
+                }
+
+                if (crumb.Href is null)
+                {
+                    <span class="ec-crumb" aria-current="page">@crumb.Text</span>
+                }
+                else
+                {
+                    <a class="ec-crumb" href="@crumb.Href">@crumb.Text</a>
+                }
+            }
+        </nav>
+    }
+    <div class="ec-page-header-row">
+        <h1 class="ec-page-title">@this.Title</h1>
+        @this.Status
+        @if (this.Actions is not null)
+        {
+            <div class="ec-page-actions">@this.Actions</div>
+        }
+    </div>
+</header>
+
+@code {
+    [Parameter, EditorRequired]
+    public required string Title { get; set; }
+
+    [Parameter]
+    public IReadOnlyList<EcCrumb> Breadcrumbs { get; set; } = [];
+
+    [Parameter]
+    public RenderFragment? Status { get; set; }
+
+    [Parameter]
+    public RenderFragment? Actions { get; set; }
+}
