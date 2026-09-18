@@ -4,10 +4,8 @@
 @using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Acts
 @using EvilBrains.EvilCase.Api.Contract.Comments
-@using EvilBrains.EvilCase.Api.Contract.Contacts
 @using EvilBrains.EvilCase.Api.Contract.Files
 @using EvilBrains.EvilCase.Api.Contract.Labels
-@using EvilBrains.EvilCase.Domain.Acts
 @using TabBlazor.Services
 @inject IActsClient ActsClient
 @inject IActLabelsClient ActLabelsClient
@@ -21,9 +19,6 @@
 
 <PageTitle>@(this.act is null ? "Úkon" : this.act.ActNumber) – EvilCase</PageTitle>
 
-@* A CascadingValue, not EditForm: the title input sits in the page header, above the body, and
-   both must share one EditContext. *@
-<CascadingValue Value="this.editContext" IsFixed="true">
 <div class="page-header d-print-none">
     <div class="container-xl">
         <div class="row g-2 align-items-center ec-detail-header">
@@ -34,26 +29,12 @@
                         @if (this.act is not null)
                         {
                             <li class="breadcrumb-item"><a href="@($"/cases/{this.act!.CaseId}")">@this.act!.CaseTitle</a></li>
-                            @if (this.Edit)
-                            {
-                                <li class="breadcrumb-item"><a href="@($"/cases/{this.act!.CaseId}/act/{this.act!.ActId}")">@this.act!.Title</a></li>
-                                <li class="breadcrumb-item active" aria-current="page">Upravit</li>
-                            }
-                            else
-                            {
-                                <li class="breadcrumb-item active" aria-current="page">@this.act!.Title</li>
-                            }
+                            <li class="breadcrumb-item active" aria-current="page">@this.act!.Title</li>
                         }
                     </ol>
                 </nav>
 
-                @if (this.Edit && this.act is not null)
-                {
-                    <label class="visually-hidden" for="act-title">Název</label>
-                    <input id="act-title" class="form-control ec-title-input" @bind="this.model.Title" @bind:after="this.MarkDirty" />
-                    <ValidationMessage For="() => this.model.Title" class="invalid-feedback d-block" />
-                }
-                else if (this.act is not null)
+                @if (this.act is not null)
                 {
                     <h2 class="page-title">
                         @this.act!.Title
@@ -69,15 +50,8 @@
             @if (this.act is not null)
             {
                 <div class="col-auto ms-auto d-print-none">
-                    @if (this.Edit)
-                    {
-                        <span class="ec-mode-chip"><Icon CssClass="icon" IconType="TablerIcons.Pencil" />Režim editace</span>
-                    }
-                    else
-                    {
-                        <a id="act-edit" href="@($"/cases/{this.act!.CaseId}/act/{this.act!.ActId}/edit")" class="btn btn-primary"><Icon CssClass="icon" IconType="TablerIcons.Pencil" />Upravit</a>
-                        <button id="act-delete" type="button" class="btn btn-danger ms-2" @onclick="this.DeleteAct"><Icon CssClass="icon" IconType="TablerIcons.Trash" />Smazat</button>
-                    }
+                    <a id="act-edit" href="@($"/cases/{this.act!.CaseId}/act/{this.act!.ActId}/edit")" class="btn btn-primary"><Icon CssClass="icon" IconType="TablerIcons.Pencil" />Upravit</a>
+                    <button id="act-delete" type="button" class="btn btn-danger ms-2" @onclick="this.DeleteAct"><Icon CssClass="icon" IconType="TablerIcons.Trash" />Smazat</button>
                 </div>
             }
         </div>
@@ -87,14 +61,10 @@
 <div class="page-body">
     <div class="container-xl">
         <LoadStateView NotFound="this.notFound" NotFoundTitle="Úkon nenalezen" Failure="@this.failure" FailureTitle="Úkon se nepodařilo načíst" Loaded="this.act is not null">
-                <DataAnnotationsValidator />
-
                 <div class="ec-layout">
                     <div class="ec-main">
                         @{
-                            var differing = this.Edit
-                                ? ActContactRules.DifferingCaseContact(this.model.Contact, this.caseContact)
-                                : ActContactRules.DifferingCaseContact(this.act!.Contact, this.act!.CaseContact);
+                            var differing = ActContactRules.DifferingCaseContact(this.act!.Contact, this.act!.CaseContact);
                         }
                         @if (differing is not null)
                         {
@@ -106,16 +76,7 @@
                         <div class="card">
                             <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="TablerIcons.FileText" />Popis</h3></div>
                             <div class="card-body">
-                                @if (this.Edit)
-                                {
-                                    <label class="visually-hidden" for="act-description">Popis</label>
-                                    <InputTextArea id="act-description" class="form-control" rows="5" @bind-Value="this.model.Description" />
-                                    <ValidationMessage For="() => this.model.Description" class="invalid-feedback d-block" />
-                                }
-                                else
-                                {
-                                    <p class="comment-body mb-0">@(string.IsNullOrWhiteSpace(this.act!.Description) ? "—" : this.act!.Description)</p>
-                                }
+                                <p class="comment-body mb-0">@(string.IsNullOrWhiteSpace(this.act!.Description) ? "—" : this.act!.Description)</p>
                             </div>
                         </div>
 
@@ -140,102 +101,51 @@
                         <div class="card">
                             <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="TablerIcons.ListDetails" />Údaje</h3></div>
                             <div class="card-body d-flex flex-column gap-3">
-                                @if (this.Edit)
-                                {
+                                <div>
+                                    <div class="ec-field-label">Číslo jednací</div>
+                                    <div class="ec-mono fw-bold">@this.act!.ActNumber</div>
+                                </div>
+                                <div>
+                                    <div class="ec-field-label">Externí číslo jednací</div>
+                                    <div class="ec-mono">@(string.IsNullOrWhiteSpace(this.act!.ExternalActNumber) ? "—" : this.act!.ExternalActNumber)</div>
+                                </div>
+                                <div>
+                                    <div class="ec-field-label">Datum úkonu</div>
+                                    <div class="ec-num">@DateDisplay.Text(this.act!.Date)</div>
+                                </div>
+                                <div>
+                                    <div class="ec-field-label">Směr</div>
                                     <div>
-                                        <label class="ec-field-label" for="act-number">Číslo jednací</label>
-                                        <InputText id="act-number" class="form-control ec-mono" @bind-Value="this.model.ActNumber" />
-                                        <div class="form-hint">Tvar SPISOVÁ-ZNAČKA/RRRRMMDD-NNN. Změna data úkonu číslo nemění.</div>
-                                        <ValidationMessage For="() => this.model.ActNumber" class="invalid-feedback d-block" />
+                                        @if (this.act!.Direction is not null)
+                                        {
+                                            <Status BackgroundColor="ActDirectionDisplay.Color(this.act!.Direction)" Lite="true">@ActDirectionDisplay.Text(this.act!.Direction)</Status>
+                                        }
+                                        else
+                                        {
+                                            @:—
+                                        }
                                     </div>
+                                </div>
+                                <div>
+                                    <div class="ec-field-label">Kontakt</div>
                                     <div>
-                                        <label class="ec-field-label" for="act-external-number">Externí číslo jednací</label>
-                                        <InputText id="act-external-number" class="form-control ec-mono" @bind-Value="this.model.ExternalActNumber" />
-                                        <ValidationMessage For="() => this.model.ExternalActNumber" class="invalid-feedback d-block" />
+                                        @if (this.act!.Contact is { } contact)
+                                        {
+                                            <a href="/contacts/@contact.ContactId">@contact.Name</a>
+                                        }
+                                        else
+                                        {
+                                            @:—
+                                        }
                                     </div>
-                                    <div>
-                                        <label class="ec-field-label" for="act-date">Datum úkonu</label>
-                                        <InputDate id="act-date" class="form-control" @bind-Value="this.model.Date" />
-                                        <ValidationMessage For="() => this.model.Date" class="invalid-feedback d-block" />
-                                    </div>
-                                    <div>
-                                        <label class="ec-field-label" for="act-direction">Směr</label>
-                                        <InputSelect id="act-direction" class="form-select" @bind-Value="this.model.Direction" @bind-Value:after="this.PrefillContact">
-                                            <option value="">— bez směru —</option>
-                                            @foreach (var direction in Enum.GetValues<ActDirection>())
-                                            {
-                                                <option value="@direction">@ActDirectionDisplay.Text(direction)</option>
-                                            }
-                                        </InputSelect>
-                                        <ValidationMessage For="() => this.model.Direction" class="invalid-feedback d-block" />
-                                    </div>
-                                    <div>
-                                        <label class="ec-field-label" for="act-contact">Kontakt</label>
-                                        <ContactPicker InputId="act-contact" Selected="this.model.Contact" SelectedChanged="this.OnContactChanged" />
-                                        <ValidationMessage For="() => this.model.Contact" class="invalid-feedback d-block" />
-                                    </div>
-                                }
-                                else
-                                {
-                                    <div>
-                                        <div class="ec-field-label">Číslo jednací</div>
-                                        <div class="ec-mono fw-bold">@this.act!.ActNumber</div>
-                                    </div>
-                                    <div>
-                                        <div class="ec-field-label">Externí číslo jednací</div>
-                                        <div class="ec-mono">@(string.IsNullOrWhiteSpace(this.act!.ExternalActNumber) ? "—" : this.act!.ExternalActNumber)</div>
-                                    </div>
-                                    <div>
-                                        <div class="ec-field-label">Datum úkonu</div>
-                                        <div class="ec-num">@DateDisplay.Text(this.act!.Date)</div>
-                                    </div>
-                                    <div>
-                                        <div class="ec-field-label">Směr</div>
-                                        <div>
-                                            @if (this.act!.Direction is not null)
-                                            {
-                                                <Status BackgroundColor="ActDirectionDisplay.Color(this.act!.Direction)" Lite="true">@ActDirectionDisplay.Text(this.act!.Direction)</Status>
-                                            }
-                                            else
-                                            {
-                                                @:—
-                                            }
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div class="ec-field-label">Kontakt</div>
-                                        <div>
-                                            @if (this.act!.Contact is { } contact)
-                                            {
-                                                <a href="/contacts/@contact.ContactId">@contact.Name</a>
-                                            }
-                                            else
-                                            {
-                                                @:—
-                                            }
-                                        </div>
-                                    </div>
-                                }
+                                </div>
                             </div>
                         </div>
 
-                        @if (this.Edit)
-                        {
-                            <div class="card">
-                                <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="TablerIcons.Tag" />Štítky</h3></div>
-                                <div class="card-body">
-                                    <label class="visually-hidden" for="act-labels">Štítky</label>
-                                    <LabelPicker InputId="act-labels" Selected="this.model.Labels" SelectedChanged="this.OnLabelsChanged" />
-                                </div>
-                            </div>
-                        }
-                        else
-                        {
-                            <LabelsCard InputId="act-labels"
-                                        Labels="this.act!.Labels"
-                                        SaveLabels="this.SaveLabels"
-                                        OwnerGoneError="Úkon už neexistuje." />
-                        }
+                        <LabelsCard InputId="act-labels"
+                                    Labels="this.act!.Labels"
+                                    SaveLabels="this.SaveLabels"
+                                    OwnerGoneError="Úkon už neexistuje." />
 
                         <div class="card">
                             <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="TablerIcons.Folders" />Spis</h3></div>
@@ -252,42 +162,10 @@
                             </div>
                         </div>
                     </aside>
-
-                    @if (this.Edit)
-                    {
-                        @if (this.error is not null)
-                        {
-                            <div class="ec-savebar-error">
-                                <div class="alert alert-danger mb-0" role="alert"><Icon CssClass="icon me-2" IconType="TablerIcons.AlertTriangle" />@this.error</div>
-                            </div>
-                        }
-
-                        <div class="ec-savebar">
-                            @if (this.dirty)
-                            {
-                                <span class="text-secondary d-none d-lg-inline">Neuložené změny</span>
-                            }
-                            <div class="ec-savebar-actions">
-                                <a href="@($"/cases/{this.act!.CaseId}/act/{this.act!.ActId}")" class="btn"><Icon CssClass="icon" IconType="TablerIcons.X" />Zrušit</a>
-                                <button id="act-submit" type="button" class="btn btn-primary" disabled="@this.busy" @onclick="this.SubmitAct">
-                                    @if (this.busy)
-                                    {
-                                        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-                                    }
-                                    else
-                                    {
-                                        <Icon CssClass="icon" IconType="TablerIcons.DeviceFloppy" />
-                                    }
-                                    Uložit
-                                </button>
-                            </div>
-                        </div>
-                    }
                 </div>
         </LoadStateView>
     </div>
 </div>
-</CascadingValue>
 
 @code {
     [Parameter]
@@ -296,72 +174,26 @@
     [Parameter]
     public Guid ActId { get; set; }
 
-    [Parameter]
-    public bool Edit { get; set; }
-
-    private readonly ActEditModel model = new();
-
-    private EditContext editContext = null!;
-
     private bool notFound;
 
     private string? failure;
 
-    private string? error;
-
-    private bool busy;
-
     private ActDetail? act;
-
-    private ContactListItem? caseContact;
-
-    private bool dirty;
-
-    protected override void OnInitialized()
-    {
-        this.editContext = new EditContext(this.model);
-        this.editContext.OnFieldChanged += (_, _) => this.MarkDirty();
-    }
 
     protected override Task OnParametersSetAsync()
     {
         return this.LoadAct();
     }
 
-    private void MarkDirty()
-    {
-        this.dirty = true;
-    }
-
-    private void OnContactChanged(ContactListItem? contact)
-    {
-        this.model.Contact = contact;
-        this.MarkDirty();
-    }
-
-    private void OnLabelsChanged(IReadOnlyList<LabelItem> labels)
-    {
-        this.model.Labels = labels;
-        this.MarkDirty();
-    }
-
     private async Task LoadAct()
     {
         this.notFound = false;
         this.failure = null;
-        this.error = null;
         this.act = null;
-        this.caseContact = null;
-        this.dirty = false;
 
         try
         {
-            var detail = await this.ActsClient.GetAct(this.CaseId, this.ActId, CancellationToken.None);
-
-            this.model.CopyFrom(ActEditModel.From(detail));
-            this.caseContact = detail.CaseContact;
-
-            this.act = detail;
+            this.act = await this.ActsClient.GetAct(this.CaseId, this.ActId, CancellationToken.None);
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
         {
@@ -375,23 +207,13 @@
         }
     }
 
-    private void PrefillContact()
-    {
-        this.model.Contact = ActContactRules.Prefilled(this.model.Direction, this.model.Contact, this.caseContact);
-    }
-
     private async Task SaveLabels(IReadOnlyList<Guid> labelIds, CancellationToken token)
     {
         await this.ActLabelsClient.SetActLabels(this.CaseId, this.ActId, new LabelAssignmentRequest { LabelIds = labelIds }, token);
 
         try
         {
-            var detail = await this.ActsClient.GetAct(this.CaseId, this.ActId, token);
-
-            this.model.CopyFrom(ActEditModel.From(detail));
-            this.caseContact = detail.CaseContact;
-
-            this.act = detail;
+            this.act = await this.ActsClient.GetAct(this.CaseId, this.ActId, token);
 
             this.StateHasChanged();
         }
@@ -454,57 +276,5 @@
                 .Set(component => component.Act, this.act)
                 .Set(component => component.OnDeleted, EventCallback.Factory.Create(this, () => this.Navigation.NavigateTo($"/cases/{this.CaseId}"))),
             new ModalOptions { Fullscreen = ModalFullscreen.BelowLarge });
-    }
-
-    private async Task SubmitAct()
-    {
-        if (!this.editContext.Validate())
-            return;
-
-        this.busy = true;
-        this.error = null;
-
-        try
-        {
-            var request = new ActEditRequest
-            {
-                ActNumber = this.model.ActNumber,
-                ExternalActNumber = this.model.ExternalActNumber,
-                Direction = this.model.Direction,
-                Date = this.model.Date,
-                Title = this.model.Title,
-                Description = this.model.Description,
-                ContactId = this.model.Contact?.ContactId,
-                LabelIds = [.. this.model.Labels.Select(static label => label.LabelId)],
-            };
-
-            await this.ActsClient.EditAct(this.CaseId, this.ActId, request, CancellationToken.None);
-
-            this.Navigation.NavigateTo($"/cases/{this.act!.CaseId}/act/{this.act!.ActId}");
-        }
-        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
-        {
-            this.error = exception.ResponseBody?.Contains(ContactProblems.UnknownContact, StringComparison.Ordinal) == true
-                ? "Vybraný kontakt už neexistuje. Vyberte jiný."
-                : "Číslo jednací už nese jiný úkon. Zvolte jiné.";
-        }
-        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.BadRequest)
-        {
-            this.error = "Číslo jednací musí mít tvar SPISOVÁ-ZNAČKA/RRRRMMDD-NNN, například EC/20260807-001/20260812-001.";
-        }
-        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
-        {
-            this.error = "Úkon už neexistuje.";
-        }
-        catch (Exception exception) when (exception is ApiException or HttpRequestException)
-        {
-            this.Logger.LogWarning(exception, "Editing the act failed");
-
-            this.error = "Úkon se nepodařilo uložit. Zkontrolujte zadané údaje a zkuste to znovu.";
-        }
-        finally
-        {
-            this.busy = false;
-        }
     }
 }

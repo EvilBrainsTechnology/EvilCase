@@ -1,6 +1,136 @@
 @page "/cases/{CaseId:guid}/act/{ActId:guid}/edit"
+@using System.Net
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.Acts
+@using EvilBrains.EvilCase.Api.Contract.Contacts
+@using EvilBrains.EvilCase.Api.Contract.Labels
+@using EvilBrains.EvilCase.Domain.Acts
+@inject IActsClient ActsClient
+@inject NavigationManager Navigation
+@inject ILogger<EditAct> Logger
 
-<Act CaseId="this.CaseId" ActId="this.ActId" Edit="true" />
+<PageTitle>@(this.act is null ? "Upravit úkon" : this.act.ActNumber) – EvilCase</PageTitle>
+
+<div class="ec-page">
+    <EcPageHeader Title="Upravit úkon" Breadcrumbs="this.Crumbs" />
+
+    @if (this.notFound)
+    {
+        <EcCard><p class="ec-state">Úkon nenalezen.</p></EcCard>
+    }
+    else if (this.failure is not null)
+    {
+        <EcCard><p class="ec-state">@this.failure</p></EcCard>
+    }
+    else if (this.act is null)
+    {
+        <EcCard><p class="ec-state">Načítám…</p></EcCard>
+    }
+    else
+    {
+        <div class="ec-form-layout">
+            <CascadingValue Value="this.editContext">
+                <DataAnnotationsValidator />
+                <EcCard>
+                    <ChildContent>
+                        <div class="ec-form">
+                            <EcField Label="Název úkonu" Required ControlId="act-title" Hint="Nejvýše 256 znaků">
+                                <ChildContent>
+                                    <InputText id="act-title" class="ec-input" autofocus @bind-Value="this.model.Title" />
+                                </ChildContent>
+                                <Error><ValidationMessage For="() => this.model.Title" /></Error>
+                            </EcField>
+
+                            <div class="ec-form-row">
+                                <EcField Label="Datum úkonu" Required ControlId="act-date">
+                                    <ChildContent>
+                                        <InputDate id="act-date" class="ec-input" @bind-Value="this.model.Date" />
+                                    </ChildContent>
+                                    <Error><ValidationMessage For="() => this.model.Date" /></Error>
+                                </EcField>
+                                <EcField Label="Externí číslo jednací" ControlId="act-external-number">
+                                    <ChildContent>
+                                        <InputText id="act-external-number" class="ec-input ec-input-mono" placeholder="Číslo, které úkonu dal jiný úřad" @bind-Value="this.model.ExternalActNumber" />
+                                    </ChildContent>
+                                    <Error><ValidationMessage For="() => this.model.ExternalActNumber" /></Error>
+                                </EcField>
+                                <EcField Label="Číslo jednací" Required ControlId="act-number" Hint="Tvar SPISOVÁ-ZNAČKA/RRRRMMDD-NNN. Změna data úkonu číslo nemění.">
+                                    <ChildContent>
+                                        <InputText id="act-number" class="ec-input ec-input-mono" @bind-Value="this.model.ActNumber" />
+                                    </ChildContent>
+                                    <Error><ValidationMessage For="() => this.model.ActNumber" /></Error>
+                                </EcField>
+                            </div>
+
+                            <EcField Label="Štítky" ControlId="act-labels">
+                                <ChildContent>
+                                    <LabelField InputId="act-labels" Selected="this.model.Labels" SelectedChanged="this.OnLabelsChanged" />
+                                </ChildContent>
+                            </EcField>
+
+                            <div class="ec-form-group">
+                                <div class="ec-form-group-head">
+                                    <h2 class="ec-form-group-title">Směr a kontakt</h2>
+                                    <span class="ec-form-group-hint">Vyplňte obojí, nebo nic</span>
+                                </div>
+                                <div class="ec-form-group-row">
+                                    <EcField Label="Směr" Hint="Klik na vybraný směr ho zruší.">
+                                        <ChildContent>
+                                            <DirectionField InputId="act-direction" Selected="this.model.Direction" SelectedChanged="this.OnDirectionChanged" />
+                                        </ChildContent>
+                                        <Error><ValidationMessage For="() => this.model.Direction" /></Error>
+                                    </EcField>
+                                    <EcField Label="Kontakt protistrany" ControlId="act-contact">
+                                        <ChildContent>
+                                            <ContactField InputId="act-contact" Selected="this.model.Contact" SelectedChanged="this.OnContactChanged" />
+                                        </ChildContent>
+                                        <Error><ValidationMessage For="() => this.model.Contact" /></Error>
+                                    </EcField>
+                                </div>
+                                @if (ActContactRules.DifferingCaseContact(this.model.Contact, this.act.CaseContact) is { } differing)
+                                {
+                                    <div class="ec-warning" role="alert">
+                                        <EcIcon Paths="@AppIcons.AlertTriangle" Size="EcIconSize.Large" />
+                                        <p class="ec-warning-text">Spis má kontakt <strong>@differing.Name</strong>. Uložení to nebrání.</p>
+                                    </div>
+                                }
+                            </div>
+
+                            <EcField Label="Popis" ControlId="act-description" Hint="Nejvýše 4000 znaků">
+                                <ChildContent>
+                                    <InputTextArea id="act-description" class="ec-textarea" rows="5" @bind-Value="this.model.Description" />
+                                </ChildContent>
+                                <Error><ValidationMessage For="() => this.model.Description" /></Error>
+                            </EcField>
+
+                            @if (this.error is not null)
+                            {
+                                <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.error</div>
+                            }
+                        </div>
+                    </ChildContent>
+                    <Footer>
+                        <div class="ec-form-actions">
+                            <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Form" Icon="@AppIcons.X" OnClick="this.Cancel">Zrušit</EcButton>
+                            <EcButton Variant="EcButtonVariant.Primary" Size="EcButtonSize.Form" Icon="@AppIcons.DeviceFloppy" Disabled="@this.busy" OnClick="this.SubmitAct">Uložit</EcButton>
+                        </div>
+                    </Footer>
+                </EcCard>
+            </CascadingValue>
+
+            <aside class="ec-form-aside">
+                <EcCard Title="Spis">
+                    <a class="ec-parent-link" href="/cases/@this.act.CaseId">
+                        <span>@this.act.CaseTitle</span>
+                        <span class="ec-parent-number">@this.act.CaseNumber</span>
+                    </a>
+                    <p class="ec-card-text">Úkon patří pod tento spis. Přesunout ho jinam nejde.</p>
+                </EcCard>
+            </aside>
+        </div>
+    }
+</div>
 
 @code {
     [Parameter]
@@ -8,4 +138,137 @@
 
     [Parameter]
     public Guid ActId { get; set; }
+
+    private readonly ActEditModel model = new();
+
+    private EditContext editContext = null!;
+
+    private ActDetail? act;
+
+    private bool notFound;
+
+    private string? failure;
+
+    private string? error;
+
+    private bool busy;
+
+    private IReadOnlyList<EcCrumb> Crumbs => this.act is null
+        ? [new EcCrumb("Spisy", "/cases")]
+        : [
+            new EcCrumb("Spisy", "/cases"),
+            new EcCrumb(this.act.CaseTitle, $"/cases/{this.CaseId}"),
+            new EcCrumb(this.act.Title, $"/cases/{this.CaseId}/act/{this.ActId}"),
+            new EcCrumb("Upravit", null),
+        ];
+
+    protected override void OnInitialized()
+    {
+        this.editContext = new EditContext(this.model);
+    }
+
+    protected override Task OnParametersSetAsync()
+    {
+        return this.LoadAct();
+    }
+
+    private async Task LoadAct()
+    {
+        this.act = null;
+        this.notFound = false;
+        this.failure = null;
+        this.error = null;
+
+        try
+        {
+            var detail = await this.ActsClient.GetAct(this.CaseId, this.ActId, CancellationToken.None);
+
+            this.model.CopyFrom(ActEditModel.From(detail));
+
+            this.act = detail;
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+        {
+            this.notFound = true;
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Loading the act detail failed");
+
+            this.failure = "Úkon se nepodařilo načíst. Zkuste to za chvíli znovu.";
+        }
+    }
+
+    private void OnDirectionChanged(ActDirection? direction)
+    {
+        this.model.Direction = direction;
+        this.model.Contact = ActContactRules.Prefilled(this.model.Direction, this.model.Contact, this.act?.CaseContact);
+    }
+
+    private void OnContactChanged(ContactListItem? contact)
+    {
+        this.model.Contact = contact;
+    }
+
+    private void OnLabelsChanged(IReadOnlyList<LabelItem> labels)
+    {
+        this.model.Labels = labels;
+    }
+
+    private void Cancel()
+    {
+        this.Navigation.NavigateTo($"/cases/{this.CaseId}/act/{this.ActId}");
+    }
+
+    private async Task SubmitAct()
+    {
+        if (!this.editContext.Validate())
+            return;
+
+        this.busy = true;
+        this.error = null;
+
+        try
+        {
+            var request = new ActEditRequest
+            {
+                ActNumber = this.model.ActNumber,
+                ExternalActNumber = this.model.ExternalActNumber,
+                Direction = this.model.Direction,
+                Date = this.model.Date,
+                Title = this.model.Title,
+                Description = this.model.Description,
+                ContactId = this.model.Contact?.ContactId,
+                LabelIds = [.. this.model.Labels.Select(static label => label.LabelId)],
+            };
+
+            await this.ActsClient.EditAct(this.CaseId, this.ActId, request, CancellationToken.None);
+
+            this.Navigation.NavigateTo($"/cases/{this.CaseId}/act/{this.ActId}");
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
+        {
+            this.error = exception.ResponseBody?.Contains(ContactProblems.UnknownContact, StringComparison.Ordinal) == true
+                ? "Vybraný kontakt už neexistuje. Vyberte jiný."
+                : "Číslo jednací už nese jiný úkon. Zvolte jiné.";
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.BadRequest)
+        {
+            this.error = "Číslo jednací musí mít tvar SPISOVÁ-ZNAČKA/RRRRMMDD-NNN, například EC/20260807-001/20260812-001.";
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+        {
+            this.error = "Úkon už neexistuje.";
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Editing the act failed");
+
+            this.error = "Úkon se nepodařilo uložit. Zkontrolujte zadané údaje a zkuste to znovu.";
+        }
+        finally
+        {
+            this.busy = false;
+        }
+    }
 }
