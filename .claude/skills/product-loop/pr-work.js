@@ -1,9 +1,10 @@
 export const meta = {
   name: 'pr-work',
-  description: 'Work a commented pull request: the coder works its branch and the reviewer fixes the rework; a fast item is the coder alone',
+  description: 'Work a commented pull request: architect plans, coder works its branch, reviewer fixes; a fast item is the coder alone',
   phases: [
+    { title: 'Plan', detail: 'architect plans the rework' },
     { title: 'Work', detail: 'coder works on the existing branch' },
-    { title: 'Review', detail: 'reviewer reviews the rework and fixes' },
+    { title: 'Review', detail: 'reviewer reviews and fixes' },
   ],
 }
 
@@ -33,6 +34,17 @@ const META =
 const results = await pipeline(
   args,
   async (item) => {
+    // The fast lane has no plan; the work stage ignores it. Returning null here would
+    // drop the item and skip the work stage.
+    if (item.fast) return 'fast lane: no plan'
+    const plan = await agent(
+      `Plan the rework of pull request #${item.pr} (branch ${item.branch}).\n\n${item.instructions}`,
+      { agentType: 'architect', phase: 'Plan', label: `plan:#${item.pr}` },
+    )
+    if (!plan) throw new Error(`pull request #${item.pr}: no plan`)
+    return plan
+  },
+  (plan, item) => {
     if (item.fast) {
       return agent(
         `Fast lane: you are the only agent on this change — no plan, no review.\n\n` +
@@ -43,13 +55,13 @@ const results = await pipeline(
         },
       )
     }
-    return agent(
-      `Work on the existing pull request #${item.pr}, branch ${item.branch}.\n\n${item.instructions}${META}`,
-      {
-        agentType: 'coder', isolation: 'worktree', phase: 'Work',
-        label: `work:#${item.pr}`, schema: WORK_SCHEMA,
-      },
-    )
+    const prompt =
+      `Work on the existing pull request #${item.pr}, branch ${item.branch}.\n\n${item.instructions}\n\n` +
+      `The architect's plan:\n\n${plan}${META}`
+    return agent(prompt, {
+      agentType: 'coder', isolation: 'worktree', phase: 'Work',
+      label: `work:#${item.pr}`, schema: WORK_SCHEMA,
+    })
   },
   (work, item) => {
     if (!work) throw new Error(`pull request #${item.pr}: work failed`)
