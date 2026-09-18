@@ -63,7 +63,8 @@ A merged pull request starts the next round at once. A question gets its reply a
 `agent-done`; anything needing code sets `agent-in-progress` and starts one Workflow
 (`.claude/skills/product-loop/pr-work.js`, `args: [{pr, branch, instructions, fast}]`) — one per
 branch, only when no running workflow in `TaskList` names the branch. A red CI run flags
-`ci-failed` and takes the same path.
+`ci-failed` and takes the same path. A rework is fast unless a comment asks for a refactor or a
+change beyond the files it names; a behaviour change and its test alone do not lose the fast lane.
 
 ## 4. Report
 

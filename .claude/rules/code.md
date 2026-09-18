@@ -10,14 +10,16 @@ paths:
 - No type or method for a single call site; a helper folds into its only consumer.
 - No machinery before a caller needs it; a one-line comment marks what is deferred.
 - `ArgumentNullException.ThrowIfNull` never guards a non-nullable parameter.
-- No `Async` suffix. Exceptions: a genuine sync/async pair on one surface, and names not ours to
-  choose (`SendAsync`, `DisposeAsync`, `OnAfterRenderAsync`).
+- No suffix that repeats what the name or its type already says, `Async` included. Exceptions: a
+  genuine sync/async pair on one surface, and names not ours to choose (`SendAsync`,
+  `DisposeAsync`, `OnAfterRenderAsync`).
 - A name says the thing itself; no `Application` prefix outside the `ApplicationDbContext` types.
 - An identifier names its entity: `caseId`, never bare `id`, `entityId` if generic; `Id` on
   the entity itself.
 - A method name carries its entity: `ListCases`, `WriteFileBlob`. A static class already naming it
   keeps the short name.
 - `Parse` throws on invalid input; `ParseOrDefault` returns the default.
+- A switch over an enum of ours names every member; the default arm throws.
 - Every class resolved from DI is `internal sealed` and consumed through an interface; a public
   consumer gets a public interface with an internal implementation. Exceptions: types the framework
   instantiates by concrete type or with no service role — controllers, `DelegatingHandler`

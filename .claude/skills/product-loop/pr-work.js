@@ -66,10 +66,15 @@ const results = await pipeline(
   (work, item) => {
     if (!work) throw new Error(`pull request #${item.pr}: work failed`)
     if (item.fast) return { pr: item.pr, fixed: work.fixed, uncertainty: null, status: 'fast' }
-    return agent(`Review pull request #${item.pr} and fix what you find.${META}`, {
-      agentType: 'reviewer', isolation: 'worktree', phase: 'Review',
-      label: `review:#${item.pr}`, schema: REVIEW_SCHEMA,
-    }).then((review) => ({
+    return agent(
+      `Review the rework just pushed to pull request #${item.pr}, branch ${item.branch}: ` +
+        `${work.fixed}\n\nFix what you find. The rest of the pull request is not yours to ` +
+        `review.${META}`,
+      {
+        agentType: 'reviewer', isolation: 'worktree', phase: 'Review',
+        label: `review:#${item.pr}`, schema: REVIEW_SCHEMA,
+      },
+    ).then((review) => ({
       pr: item.pr,
       fixed: work.fixed,
       uncertainty: review?.uncertainty || null,
