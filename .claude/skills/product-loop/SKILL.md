@@ -61,8 +61,8 @@ from an issue whose `Blocked by #` issues have all merged or closed.
 A `subscribe_pr_activity` notification is handled when it arrives, never left for the next round.
 A merged pull request starts the next round at once. A question gets its reply and the switch to
 `agent-done`; anything needing code sets `agent-in-progress` and starts one Workflow
-(`.claude/skills/product-loop/pr-work.js`, `args: [{pr, branch, instructions, fast}]`) — one
-per branch, only when no running workflow in `TaskList` names the branch. A red CI run flags
+(`.claude/skills/product-loop/pr-work.js`, `args: [{pr, branch, instructions, fast}]`) — one per
+branch, only when no running workflow in `TaskList` names the branch. A red CI run flags
 `ci-failed` and takes the same path.
 
 ## 4. Report
