@@ -26,8 +26,6 @@ const REVIEW_SCHEMA = {
   required: ['fixed'],
 }
 
-// The comments the owner wrote are the plan; only a rework that is expensive to get wrong
-// buys an architect on top of them.
 const NO_PLAN = 'no plan'
 
 const META =
@@ -40,8 +38,7 @@ const results = await pipeline(
   async (item) => {
     // Returning null here would drop the item and skip the work stage, so a stage that
     // plans nothing still answers with a sentinel.
-    if (item.fast) return NO_PLAN
-    if (!item.deep) return NO_PLAN
+    if (item.fast || !item.deep) return NO_PLAN
     const plan = await agent(
       `Plan the rework of pull request #${item.pr} (branch ${item.branch}).\n\n${item.instructions}`,
       { agentType: 'architect', phase: 'Plan', label: `plan:#${item.pr}` },
@@ -60,7 +57,7 @@ const results = await pipeline(
         },
       )
     }
-    const planPart = plan === NO_PLAN ? '' : `\n\nThe architect's plan:\n\n${plan}`
+    const planPart = item.deep ? `\n\nThe architect's plan:\n\n${plan}` : ''
     const prompt =
       `Work on the existing pull request #${item.pr}, branch ${item.branch}.\n\n` +
       `${item.instructions}${planPart}${META}`
@@ -73,8 +70,9 @@ const results = await pipeline(
     if (!work) throw new Error(`pull request #${item.pr}: work failed`)
     if (item.fast) return { pr: item.pr, fixed: work.fixed, uncertainty: null, status: 'fast' }
     return agent(
-      `Review what the rework changed on pull request #${item.pr} since the owner's review and ` +
-        `fix what you find. The rest of the pull request is not yours to review.${META}`,
+      `Review the rework just pushed to pull request #${item.pr}, branch ${item.branch}: ` +
+        `${work.fixed}\n\nFix what you find. The rest of the pull request is not yours to ` +
+        `review.${META}`,
       {
         agentType: 'reviewer', isolation: 'worktree', phase: 'Review',
         label: `review:#${item.pr}`, schema: REVIEW_SCHEMA,

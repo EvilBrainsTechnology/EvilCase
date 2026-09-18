@@ -64,7 +64,7 @@ A merged pull request starts the next round at once. A question gets its reply a
 (`.claude/skills/product-loop/pr-work.js`, `args: [{pr, branch, instructions, fast, deep}]`) — one
 per branch, only when no running workflow in `TaskList` names the branch. A red CI run flags
 `ci-failed` and takes the same path. `deep: true` adds the architect, for a rework touching
-schema, tenancy, security or an API contract; without it the owner's comments are the plan.
+schema, tenancy, security or an API contract; without it the instructions are the plan.
 
 ## 4. Report
 
