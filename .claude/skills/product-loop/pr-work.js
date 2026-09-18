@@ -1,8 +1,7 @@
 export const meta = {
   name: 'pr-work',
-  description: 'Work a commented pull request: the coder works its branch and the reviewer fixes the rework; a deep item plans first, a fast item is the coder alone',
+  description: 'Work a commented pull request: the coder works its branch and the reviewer fixes the rework; a fast item is the coder alone',
   phases: [
-    { title: 'Plan', detail: 'architect plans a deep rework' },
     { title: 'Work', detail: 'coder works on the existing branch' },
     { title: 'Review', detail: 'reviewer reviews the rework and fixes' },
   ],
@@ -26,8 +25,6 @@ const REVIEW_SCHEMA = {
   required: ['fixed'],
 }
 
-const NO_PLAN = 'no plan'
-
 const META =
   '\n\nA hook blocks edits under .claude/** and docs/sdd/**. Only where an owner comment on ' +
   'this pull request explicitly asks for such a change: run `touch .claude/allow-meta-edits`, ' +
@@ -36,17 +33,6 @@ const META =
 const results = await pipeline(
   args,
   async (item) => {
-    // Returning null here would drop the item and skip the work stage, so a stage that
-    // plans nothing still answers with a sentinel.
-    if (item.fast || !item.deep) return NO_PLAN
-    const plan = await agent(
-      `Plan the rework of pull request #${item.pr} (branch ${item.branch}).\n\n${item.instructions}`,
-      { agentType: 'architect', phase: 'Plan', label: `plan:#${item.pr}` },
-    )
-    if (!plan) throw new Error(`pull request #${item.pr}: no plan`)
-    return plan
-  },
-  (plan, item) => {
     if (item.fast) {
       return agent(
         `Fast lane: you are the only agent on this change — no plan, no review.\n\n` +
@@ -57,14 +43,13 @@ const results = await pipeline(
         },
       )
     }
-    const planPart = item.deep ? `\n\nThe architect's plan:\n\n${plan}` : ''
-    const prompt =
-      `Work on the existing pull request #${item.pr}, branch ${item.branch}.\n\n` +
-      `${item.instructions}${planPart}${META}`
-    return agent(prompt, {
-      agentType: 'coder', isolation: 'worktree', phase: 'Work',
-      label: `work:#${item.pr}`, schema: WORK_SCHEMA,
-    })
+    return agent(
+      `Work on the existing pull request #${item.pr}, branch ${item.branch}.\n\n${item.instructions}${META}`,
+      {
+        agentType: 'coder', isolation: 'worktree', phase: 'Work',
+        label: `work:#${item.pr}`, schema: WORK_SCHEMA,
+      },
+    )
   },
   (work, item) => {
     if (!work) throw new Error(`pull request #${item.pr}: work failed`)
