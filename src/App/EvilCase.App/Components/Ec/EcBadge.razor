@@ -15,9 +15,10 @@
             {
                 EcBadgeTone.Active => "ec-badge-active",
                 EcBadgeTone.Waiting => "ec-badge-waiting",
+                EcBadgeTone.Closed => "ec-badge-closed",
                 EcBadgeTone.Incoming => "ec-badge-incoming",
                 EcBadgeTone.Outgoing => "ec-badge-outgoing",
-                _ => "ec-badge-closed",
+                _ => throw new InvalidOperationException($"unknown EcBadgeTone {this.Tone}"),
             };
 
             return $"ec-badge {tone}";

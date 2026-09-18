@@ -14,8 +14,9 @@
             var size = this.Size switch
             {
                 EcIconSize.Small => "ec-icon-sm",
+                EcIconSize.Medium => "ec-icon-md",
                 EcIconSize.Large => "ec-icon-lg",
-                _ => "ec-icon-md",
+                _ => throw new InvalidOperationException($"unknown EcIconSize {this.Size}"),
             };
 
             return $"ec-icon {size}";

@@ -48,4 +48,17 @@ public class EcIconRenderTests
             Assert.That(svg.HasAttribute("stroke-width"), Is.False, "the stroke is a rule of the stylesheet, not an attribute");
         }
     }
+
+    [Test]
+    public void AnUnknownSizeIsRefused()
+    {
+        using var ctx = new BunitContext();
+
+        Assert.That(
+            () => ctx.Render<EcIcon>(static parameters => parameters
+                .Add(static icon => icon.Paths, AppIcons.Plus)
+                .Add(static icon => icon.Size, (EcIconSize)(-1))),
+            Throws.InstanceOf<InvalidOperationException>(),
+            "an unmapped size must not fall back to the button size");
+    }
 }

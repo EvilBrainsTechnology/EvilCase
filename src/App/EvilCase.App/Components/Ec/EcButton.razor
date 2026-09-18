@@ -39,16 +39,18 @@
             var variant = this.Variant switch
             {
                 EcButtonVariant.Primary => "ec-button-primary",
+                EcButtonVariant.Secondary => "ec-button-secondary",
                 EcButtonVariant.Ghost => "ec-button-ghost",
                 EcButtonVariant.Danger => "ec-button-danger",
-                _ => "ec-button-secondary",
+                _ => throw new InvalidOperationException($"unknown EcButtonVariant {this.Variant}"),
             };
 
             var size = this.Size switch
             {
                 EcButtonSize.Compact => "ec-button-compact",
+                EcButtonSize.Standard => "ec-button-standard",
                 EcButtonSize.Form => "ec-button-form",
-                _ => "ec-button-standard",
+                _ => throw new InvalidOperationException($"unknown EcButtonSize {this.Size}"),
             };
 
             return this.ChildContent is null ? $"ec-button {variant} {size} ec-button-icon" : $"ec-button {variant} {size}";

@@ -136,4 +136,31 @@ public class EcButtonRenderTests
 
         Assert.That(component.Find("button").HasAttribute("disabled"), Is.True);
     }
+
+    [Test]
+    public void AnUnknownVariantIsRefused()
+    {
+        using var ctx = new BunitContext();
+
+        Assert.That(
+            () => ctx.Render<EcButton>(static parameters => parameters
+                .Add(static button => button.Variant, (EcButtonVariant)(-1))
+                .AddChildContent("Uložit")),
+            Throws.InstanceOf<InvalidOperationException>(),
+            "an unmapped variant must not fall back to secondary");
+    }
+
+    [Test]
+    public void AnUnknownSizeIsRefused()
+    {
+        using var ctx = new BunitContext();
+
+        Assert.That(
+            () => ctx.Render<EcButton>(static parameters => parameters
+                .Add(static button => button.Variant, EcButtonVariant.Primary)
+                .Add(static button => button.Size, (EcButtonSize)(-1))
+                .AddChildContent("Uložit")),
+            Throws.InstanceOf<InvalidOperationException>(),
+            "an unmapped size must not fall back to standard");
+    }
 }

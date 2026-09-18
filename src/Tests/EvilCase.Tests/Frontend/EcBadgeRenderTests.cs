@@ -43,4 +43,17 @@ public class EcBadgeRenderTests
 
         Assert.That(component.Find("span").TextContent.Trim(), Is.EqualTo("Aktivní"));
     }
+
+    [Test]
+    public void AnUnknownToneIsRefused()
+    {
+        using var ctx = new BunitContext();
+
+        Assert.That(
+            () => ctx.Render<EcBadge>(static parameters => parameters
+                .Add(static badge => badge.Text, "Stav")
+                .Add(static badge => badge.Tone, (EcBadgeTone)(-1))),
+            Throws.InstanceOf<InvalidOperationException>(),
+            "an unmapped tone must not fall back to closed");
+    }
 }
