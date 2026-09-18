@@ -1,12 +1,12 @@
 <div class="ec-field">
-    <label class="ec-field-name" for="@this.ControlId">
-        @this.Label
-        @if (this.Required)
-        {
-            <span class="ec-field-mark" aria-hidden="true">*</span>
-            <span class="ec-visually-hidden"> povinné</span>
-        }
-    </label>
+    @if (this.ControlId is null)
+    {
+        <span class="ec-field-name">@this.Name()</span>
+    }
+    else
+    {
+        <label class="ec-field-name" for="@this.ControlId">@this.Name()</label>
+    }
     @this.ChildContent
     @if (!string.IsNullOrEmpty(this.Hint))
     {
@@ -19,11 +19,26 @@
 </div>
 
 @code {
+    private RenderFragment Name()
+    {
+        return @<text>
+            @this.Label
+            @if (this.Required)
+            {
+                <span class="ec-field-mark" aria-hidden="true">*</span>
+                <span class="ec-visually-hidden"> povinné</span>
+            }
+        </text>;
+    }
+
     [Parameter, EditorRequired]
     public required string Label { get; set; }
 
-    [Parameter, EditorRequired]
-    public required string ControlId { get; set; }
+    /// <summary>
+    /// The id of the control the name labels; unset where the control is a group of elements.
+    /// </summary>
+    [Parameter]
+    public string? ControlId { get; set; }
 
     [Parameter]
     public bool Required { get; set; }

@@ -242,8 +242,8 @@ body {
     margin-top: 0.5rem;
 }
 
-/* ContactPicker and LabelPicker's match list, offset the same way; see the comment above. It
-   overlays instead of pushing the rest of the sidebar down on every keystroke. */
+/* LabelPicker's match list, offset the same way; see the comment above. It overlays instead of
+   pushing the rest of the sidebar down on every keystroke. */
 .ec-picker {
     position: relative;
 }

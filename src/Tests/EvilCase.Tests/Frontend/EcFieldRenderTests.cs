@@ -25,6 +25,22 @@ public class EcFieldRenderTests
     }
 
     [Test]
+    public void AFieldWithoutAControlIdNamesNothing()
+    {
+        using var ctx = new BunitContext();
+
+        var component = ctx.Render<EcField>(static parameters => parameters
+            .Add(static field => field.Label, "Směr")
+            .AddChildContent("<div role=\"group\"><button id=\"act-direction-incoming\" type=\"button\">Příchozí</button></div>"));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.FindAll("label"), Is.Empty, "a label would forward its click to a control the name does not belong to");
+            Assert.That(component.Find(".ec-field-name").LocalName, Is.EqualTo("span"));
+        }
+    }
+
+    [Test]
     public void ARequiredFieldCarriesTheAsteriskAndAnOptionalOneDoesNot()
     {
         using var required = new BunitContext();

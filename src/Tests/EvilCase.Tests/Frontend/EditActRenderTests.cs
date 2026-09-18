@@ -87,7 +87,6 @@ public class EditActRenderTests
                 Arg.Is<ActEditRequest>(request => request.Title == "Odpor proti příkazu — doplnění"
                     && request.ActNumber == detail.ActNumber
                     && request.ExternalActNumber == "MUV-2026/9999"
-                    && request.ActNumber == detail.ActNumber
                     && request.Date == detail.Date
                     && request.Direction == ActDirection.Outgoing),
                 Arg.Any<CancellationToken>());

@@ -31,19 +31,16 @@
         };
     }
 
-    private static string Suffix(ActDirection direction)
+    private string ButtonId(ActDirection direction)
     {
-        return direction switch
+        var suffix = direction switch
         {
             ActDirection.Incoming => "incoming",
             ActDirection.Outgoing => "outgoing",
             _ => throw new InvalidOperationException($"unknown ActDirection {direction}"),
         };
-    }
 
-    private string ButtonId(ActDirection direction)
-    {
-        return $"{this.InputId}-{Suffix(direction)}";
+        return $"{this.InputId}-{suffix}";
     }
 
     private Task Toggle(ActDirection direction)
