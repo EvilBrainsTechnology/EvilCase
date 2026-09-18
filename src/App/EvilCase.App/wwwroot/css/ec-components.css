@@ -412,6 +412,8 @@
 }
 
 .ec-combobox-search .ec-input {
+    position: relative;
+    z-index: 11;
     flex: 1 1 auto;
     min-width: 0;
 }

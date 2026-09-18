@@ -131,6 +131,8 @@
 @code {
     private const int Matches = 8;
 
+    private const string NoParentMatch = "Žádný spis neodpovídá.";
+
     [Parameter]
     public Guid CaseId { get; set; }
 
@@ -148,7 +150,7 @@
 
     private bool busy;
 
-    private string parentEmptyText = "Žádný spis neodpovídá.";
+    private string parentEmptyText = NoParentMatch;
 
     private IReadOnlyList<EcCrumb> Crumbs => this.caseDetail is null
         ? [new EcCrumb("Spisy", "/cases")]
@@ -222,7 +224,7 @@
         {
             var response = await this.CasesClient.ListCases(request, token);
 
-            this.parentEmptyText = "Žádný spis neodpovídá.";
+            this.ShowParentEmptyText(NoParentMatch);
 
             return [.. response.Items.Where(item => item.CaseId != this.CaseId)];
         }
@@ -230,10 +232,21 @@
         {
             this.Logger.LogWarning(exception, "Loading the parent case matches failed");
 
-            this.parentEmptyText = "Hledání spisů se nezdařilo. Zkuste to za chvíli znovu.";
+            this.ShowParentEmptyText("Hledání spisů se nezdařilo. Zkuste to za chvíli znovu.");
 
             return [];
         }
+    }
+
+    // The combobox reads the text as a parameter, so it reaches the screen only through a render of this page.
+    private void ShowParentEmptyText(string text)
+    {
+        if (string.Equals(this.parentEmptyText, text, StringComparison.Ordinal))
+            return;
+
+        this.parentEmptyText = text;
+
+        this.StateHasChanged();
     }
 
     private async Task SubmitCase()

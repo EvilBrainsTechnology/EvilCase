@@ -65,6 +65,8 @@
 @code {
     private const int Matches = 8;
 
+    private const string NoMatch = "Žádný kontakt neodpovídá. Založte nový.";
+
     [Parameter, EditorRequired]
     public required string InputId { get; set; }
 
@@ -84,7 +86,7 @@
 
     private string? error;
 
-    private string emptyText = "Žádný kontakt neodpovídá. Založte nový.";
+    private string emptyText = NoMatch;
 
     protected override void OnInitialized()
     {
@@ -97,7 +99,7 @@
         {
             var response = await this.ContactsClient.ListContacts(new ContactListRequest { Search = search, Take = Matches }, token);
 
-            this.emptyText = "Žádný kontakt neodpovídá. Založte nový.";
+            this.ShowEmptyText(NoMatch);
 
             return response.Items;
         }
@@ -105,10 +107,21 @@
         {
             this.Logger.LogWarning(exception, "Loading the contact matches failed");
 
-            this.emptyText = "Hledání kontaktů se nezdařilo. Zkuste to za chvíli znovu.";
+            this.ShowEmptyText("Hledání kontaktů se nezdařilo. Zkuste to za chvíli znovu.");
 
             return [];
         }
+    }
+
+    // The combobox reads the text as a parameter, so it reaches the screen only through a render of this component.
+    private void ShowEmptyText(string text)
+    {
+        if (string.Equals(this.emptyText, text, StringComparison.Ordinal))
+            return;
+
+        this.emptyText = text;
+
+        this.StateHasChanged();
     }
 
     private void OpenCreate(string typed)
