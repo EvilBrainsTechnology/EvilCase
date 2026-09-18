@@ -1,0 +1,86 @@
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.Labels
+@inject ILabelsClient LabelsClient
+@inject ILogger<LabelField> Logger
+
+@if (this.Selected.Count > 0)
+{
+    <div class="ec-chips">
+        @foreach (var label in this.Selected)
+        {
+            <span class="@($"ec-chip ec-chip-{LabelColorDisplay.Css(label.Color)}")">
+                <span class="ec-chip-dot" aria-hidden="true"></span>@label.Name
+                <button type="button" class="ec-chip-remove" aria-label="@($"Odebrat štítek {label.Name}")" @onclick="() => this.Remove(label)">
+                    <EcIcon Paths="@AppIcons.X" Size="EcIconSize.Small" />
+                </button>
+            </span>
+        }
+    </div>
+}
+
+<EcCombobox TItem="LabelItem" InputId="@this.InputId" Placeholder="Hledat štítek" SelectedLabel="Vybraný štítek"
+            EmptyText="@this.EmptyText" ItemText="@(static label => label.Name)" Search="this.SearchLabels"
+            SelectedChanged="this.Add">
+    <ItemTemplate>
+        <span class="@($"ec-chip-dot ec-chip-{LabelColorDisplay.Css(context.Color)}")" aria-hidden="true"></span>@context.Name
+    </ItemTemplate>
+</EcCombobox>
+
+@code {
+    [Parameter, EditorRequired]
+    public required string InputId { get; set; }
+
+    [Parameter]
+    public IReadOnlyList<LabelItem> Selected { get; set; } = [];
+
+    [Parameter]
+    public EventCallback<IReadOnlyList<LabelItem>> SelectedChanged { get; set; }
+
+    private IReadOnlyList<LabelItem> available = [];
+
+    private string? failure;
+
+    private string EmptyText => this.failure
+        ?? (this.available.Count == 0 ? "Zatím není žádný štítek; založte ho v nastavení." : "Žádný další štítek neodpovídá.");
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var response = await this.LabelsClient.ListLabels(CancellationToken.None);
+
+            this.available = response.Items;
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Loading the labels failed");
+
+            this.failure = "Štítky se nepodařilo načíst. Zkuste to za chvíli znovu.";
+        }
+    }
+
+    private Task<IReadOnlyList<LabelItem>> SearchLabels(string search, CancellationToken token)
+    {
+        return Task.FromResult<IReadOnlyList<LabelItem>>(
+            [
+                .. this.available
+                    .Where(label => !this.Selected.Any(selected => selected.LabelId == label.LabelId))
+                    .Where(label => SearchText.Matches(label.Name, search))
+                    .Take(8),
+            ]);
+    }
+
+    private async Task Add(LabelItem? label)
+    {
+        if (label is null)
+            return;
+
+        await this.SelectedChanged.InvokeAsync([.. this.Selected, label]);
+    }
+
+    private async Task Remove(LabelItem label)
+    {
+        await this.SelectedChanged.InvokeAsync([.. this.Selected.Where(selected => selected.LabelId != label.LabelId)]);
+    }
+}

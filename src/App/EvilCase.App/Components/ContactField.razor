@@ -1,0 +1,169 @@
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.Contacts
+@using EvilBrains.EvilCase.Domain.Contacts
+@inject IContactsClient ContactsClient
+@inject ILogger<ContactField> Logger
+
+<EcCombobox TItem="ContactListItem" InputId="@this.InputId" Placeholder="Hledat v názvu a ID datové schránky"
+            SelectedLabel="Vybraný kontakt" EmptyText="@this.emptyText" ItemText="@(static contact => contact.Name)"
+            Search="this.SearchContacts" CreateText="Nový kontakt" OnCreate="this.OpenCreate"
+            Selected="this.Selected" SelectedChanged="this.SelectedChanged">
+    <ItemTemplate>
+        <span>@context.Name</span>
+        <span class="ec-combobox-option-meta">@ContactKindDisplay.Text(context.Kind)</span>
+    </ItemTemplate>
+</EcCombobox>
+
+<EcModal Title="Nový kontakt" Open="this.createOpen" OpenChanged="this.OnCreateOpenChanged">
+    <ChildContent>
+        <CascadingValue Value="this.contactContext">
+            <DataAnnotationsValidator />
+            <div class="ec-form">
+                <EcField Label="Název" Required ControlId="contact-name">
+                    <ChildContent>
+                        <InputText id="contact-name" class="ec-input" @bind-Value="this.model.Name" />
+                    </ChildContent>
+                    <Error><ValidationMessage For="() => this.model.Name" /></Error>
+                </EcField>
+                <EcField Label="Typ" Required ControlId="contact-kind">
+                    <ChildContent>
+                        <InputSelect id="contact-kind" class="ec-select" @bind-Value="this.model.Kind">
+                            @foreach (var kind in Enum.GetValues<ContactKind>())
+                            {
+                                <option value="@kind">@ContactKindDisplay.Text(kind)</option>
+                            }
+                        </InputSelect>
+                    </ChildContent>
+                    <Error><ValidationMessage For="() => this.model.Kind" /></Error>
+                </EcField>
+                <EcField Label="ID datové schránky" ControlId="contact-databox">
+                    <ChildContent>
+                        <InputText id="contact-databox" class="ec-input ec-input-mono" @bind-Value="this.model.DataBoxId" />
+                    </ChildContent>
+                    <Error><ValidationMessage For="() => this.model.DataBoxId" /></Error>
+                </EcField>
+                <EcField Label="Adresa" ControlId="contact-address">
+                    <ChildContent>
+                        <InputTextArea id="contact-address" class="ec-textarea" rows="4" @bind-Value="this.model.Address" />
+                    </ChildContent>
+                    <Error><ValidationMessage For="() => this.model.Address" /></Error>
+                </EcField>
+                @if (this.error is not null)
+                {
+                    <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.error</div>
+                }
+            </div>
+        </CascadingValue>
+    </ChildContent>
+    <Footer>
+        <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Form" Icon="@AppIcons.X" OnClick="this.CancelCreate">Zrušit</EcButton>
+        <EcButton Variant="EcButtonVariant.Primary" Size="EcButtonSize.Form" Icon="@AppIcons.Check" Disabled="@this.busy" OnClick="this.CreateContact">Založit kontakt</EcButton>
+    </Footer>
+</EcModal>
+
+@code {
+    private const int Matches = 8;
+
+    [Parameter, EditorRequired]
+    public required string InputId { get; set; }
+
+    [Parameter]
+    public ContactListItem? Selected { get; set; }
+
+    [Parameter]
+    public EventCallback<ContactListItem?> SelectedChanged { get; set; }
+
+    private readonly ContactEditModel model = new();
+
+    private EditContext contactContext = null!;
+
+    private bool createOpen;
+
+    private bool busy;
+
+    private string? error;
+
+    private string emptyText = "Žádný kontakt neodpovídá. Založte nový.";
+
+    protected override void OnInitialized()
+    {
+        this.contactContext = new EditContext(this.model);
+    }
+
+    private async Task<IReadOnlyList<ContactListItem>> SearchContacts(string search, CancellationToken token)
+    {
+        try
+        {
+            var response = await this.ContactsClient.ListContacts(new ContactListRequest { Search = search, Take = Matches }, token);
+
+            this.emptyText = "Žádný kontakt neodpovídá. Založte nový.";
+
+            return response.Items;
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Loading the contact matches failed");
+
+            this.emptyText = "Hledání kontaktů se nezdařilo. Zkuste to za chvíli znovu.";
+
+            return [];
+        }
+    }
+
+    private void OpenCreate(string typed)
+    {
+        this.model.Name = typed;
+        this.model.Kind = ContactKind.Authority;
+        this.model.DataBoxId = null;
+        this.model.Address = null;
+        this.contactContext.MarkAsUnmodified();
+        this.error = null;
+        this.createOpen = true;
+    }
+
+    private void OnCreateOpenChanged(bool open)
+    {
+        this.createOpen = open;
+    }
+
+    private void CancelCreate()
+    {
+        this.createOpen = false;
+    }
+
+    private async Task CreateContact()
+    {
+        if (!this.contactContext.Validate())
+            return;
+
+        this.busy = true;
+
+        try
+        {
+            var request = new ContactEditRequest
+            {
+                Name = this.model.Name,
+                Kind = this.model.Kind,
+                DataBoxId = this.model.DataBoxId,
+                Address = this.model.Address,
+            };
+
+            var created = await this.ContactsClient.CreateContact(request, CancellationToken.None);
+
+            this.createOpen = false;
+
+            await this.SelectedChanged.InvokeAsync(created);
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Creating the contact failed");
+
+            this.error = "Kontakt se nepodařilo založit. Zkontrolujte zadané údaje a zkuste to znovu.";
+        }
+        finally
+        {
+            this.busy = false;
+        }
+    }
+}
