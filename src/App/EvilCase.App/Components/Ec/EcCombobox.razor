@@ -1,0 +1,174 @@
+@typeparam TItem where TItem : class
+@implements IDisposable
+
+<div class="ec-combobox">
+    @if (this.Selected is { } selected)
+    {
+        <div class="ec-combobox-selected">
+            <input id="@this.InputId" class="ec-input" value="@this.ItemText(selected)" readonly aria-label="@this.SelectedLabel" />
+            <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Form" Icon="@AppIcons.ArrowsExchange"
+                      OnClick="this.ClearSelection">Změnit</EcButton>
+        </div>
+    }
+    else
+    {
+        <div class="ec-combobox-search">
+            @if (this.open)
+            {
+                <div class="ec-combobox-backdrop" @onclick="this.Close"></div>
+            }
+
+            <input id="@this.InputId" type="search" class="ec-input" placeholder="@this.Placeholder" aria-label="@this.Placeholder"
+                   autocomplete="off" value="@this.search" @oninput="this.OnSearchInput" @onkeydown="this.OnKeyDown" />
+
+            @if (this.open && (this.matches.Count > 0 || this.CreateText is not null))
+            {
+                <div class="ec-combobox-menu">
+                    @foreach (var match in this.matches)
+                    {
+                        <button type="button" class="ec-combobox-option" @onclick="() => this.Select(match)">
+                            @if (this.ItemTemplate is null)
+                            {
+                                @this.ItemText(match)
+                            }
+                            else
+                            {
+                                @this.ItemTemplate(match)
+                            }
+                        </button>
+                    }
+
+                    @if (this.CreateText is { } createText)
+                    {
+                        <button type="button" class="ec-combobox-create" @onclick="this.Create">
+                            <EcIcon Paths="@AppIcons.Plus" Size="EcIconSize.Small" />@createText
+                        </button>
+                    }
+                </div>
+            }
+        </div>
+
+        @if (this.open && this.searched && this.matches.Count == 0)
+        {
+            <span class="ec-field-hint">@this.EmptyText</span>
+        }
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public required string InputId { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string Placeholder { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string SelectedLabel { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string EmptyText { get; set; }
+
+    [Parameter, EditorRequired]
+    public required Func<TItem, string> ItemText { get; set; }
+
+    /// <summary>Narrows the offer; it returns at most the rows the menu shows.</summary>
+    [Parameter, EditorRequired]
+    public required Func<string, CancellationToken, Task<IReadOnlyList<TItem>>> Search { get; set; }
+
+    [Parameter]
+    public RenderFragment<TItem>? ItemTemplate { get; set; }
+
+    [Parameter]
+    public string? CreateText { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnCreate { get; set; }
+
+    [Parameter]
+    public TItem? Selected { get; set; }
+
+    [Parameter]
+    public EventCallback<TItem?> SelectedChanged { get; set; }
+
+    private readonly SearchDebouncer debouncer = new();
+
+    private IReadOnlyList<TItem> matches = [];
+
+    private string search = "";
+
+    private bool searched;
+
+    private bool open;
+
+    public void Dispose()
+    {
+        this.debouncer.Dispose();
+    }
+
+    private void Close()
+    {
+        this.open = false;
+    }
+
+    private void OnKeyDown(KeyboardEventArgs args)
+    {
+        if (args.Key == "Escape")
+            this.open = false;
+    }
+
+    private async Task OnSearchInput(ChangeEventArgs args)
+    {
+        this.search = args.Value as string ?? "";
+        this.open = true;
+
+        var token = await this.debouncer.Start(debounce: true);
+        if (token is null)
+            return;
+
+        if (string.IsNullOrWhiteSpace(this.search))
+        {
+            this.matches = [];
+            this.searched = false;
+            return;
+        }
+
+        try
+        {
+            this.matches = await this.Search(this.search, token.Value);
+            this.searched = true;
+        }
+        catch (OperationCanceledException)
+        {
+            // Superseded by a newer search.
+        }
+    }
+
+    private async Task Select(TItem item)
+    {
+        this.Reset();
+
+        await this.SelectedChanged.InvokeAsync(item);
+    }
+
+    private async Task ClearSelection()
+    {
+        await this.SelectedChanged.InvokeAsync(null);
+    }
+
+    private async Task Create()
+    {
+        var typed = this.search;
+
+        this.Reset();
+
+        await this.OnCreate.InvokeAsync(typed);
+    }
+
+    private void Reset()
+    {
+        this.matches = [];
+        this.search = "";
+        this.searched = false;
+        this.open = false;
+    }
+}

@@ -13,6 +13,9 @@ public static class AppIcons
         + "<path d='M7 10h14l-4 -4' />"
         + "<path d='M17 14h-14l4 4' />";
 
+    public const string Check = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M5 12l5 5l10 -10' />";
+
     public const string Clock = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0' />"
         + "<path d='M12 7v5l3 3' />";

@@ -1,0 +1,39 @@
+<div class="ec-field">
+    <label class="ec-field-name" for="@this.ControlId">
+        @this.Label
+        @if (this.Required)
+        {
+            <span class="ec-field-mark" aria-hidden="true">*</span>
+            <span class="ec-visually-hidden"> povinné</span>
+        }
+    </label>
+    @this.ChildContent
+    @if (!string.IsNullOrEmpty(this.Hint))
+    {
+        <span class="ec-field-hint">@this.Hint</span>
+    }
+    @if (this.Error is not null)
+    {
+        <div class="ec-field-error">@this.Error</div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public required string Label { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string ControlId { get; set; }
+
+    [Parameter]
+    public bool Required { get; set; }
+
+    [Parameter]
+    public string? Hint { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public RenderFragment? Error { get; set; }
+}

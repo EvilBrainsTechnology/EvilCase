@@ -1,0 +1,86 @@
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+@inject IJSRuntime JSRuntime
+
+<dialog class="ec-modal" @ref="this.dialog" aria-label="@this.Title">
+    <div class="ec-modal-header">
+        <h2 class="ec-modal-title">@this.Title</h2>
+        <EcButton Variant="EcButtonVariant.Ghost" Size="EcButtonSize.Compact" Icon="@AppIcons.X"
+                  AriaLabel="Zavřít" OnClick="this.Close" />
+    </div>
+    <div class="ec-modal-body">@this.ChildContent</div>
+    @if (this.Footer is not null)
+    {
+        <div class="ec-modal-footer">@this.Footer</div>
+    }
+</dialog>
+
+@code {
+    [Parameter, EditorRequired]
+    public required string Title { get; set; }
+
+    [Parameter]
+    public bool Open { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public RenderFragment? Footer { get; set; }
+
+    private ElementReference dialog;
+
+    private IJSObjectReference? module;
+
+    private DotNetObjectReference<EcModal>? self;
+
+    private bool shown;
+
+    [JSInvokable]
+    public async Task NotifyClosed()
+    {
+        if (!this.Open)
+            return;
+
+        this.shown = false;
+
+        await this.OpenChanged.InvokeAsync(false);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (this.module is not null)
+            await this.module.DisposeAsync();
+
+        this.self?.Dispose();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (this.Open == this.shown)
+            return;
+
+        this.module ??= await this.JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/ec-modal.js");
+
+        if (this.Open)
+        {
+            this.self ??= DotNetObjectReference.Create(this);
+
+            await this.module.InvokeVoidAsync("openModal", this.dialog, this.self);
+        }
+        else
+        {
+            await this.module.InvokeVoidAsync("closeModal", this.dialog);
+        }
+
+        this.shown = this.Open;
+    }
+
+    private async Task Close()
+    {
+        await this.OpenChanged.InvokeAsync(false);
+    }
+}
