@@ -11,7 +11,7 @@ public class EcIconRenderTests
     {
         using var ctx = new BunitContext();
 
-        var component = ctx.Render<EcIcon>(static parameters => parameters.Add(static icon => icon.Paths, AppIcons.PlusPath));
+        var component = ctx.Render<EcIcon>(static parameters => parameters.Add(static icon => icon.Paths, AppIcons.Plus));
 
         Assert.That(component.Find("svg").InnerHtml, Does.Contain("M12 5l0 14"));
     }
@@ -21,7 +21,7 @@ public class EcIconRenderTests
     {
         using var ctx = new BunitContext();
 
-        var component = ctx.Render<EcIcon>(static parameters => parameters.Add(static icon => icon.Paths, AppIcons.PlusPath));
+        var component = ctx.Render<EcIcon>(static parameters => parameters.Add(static icon => icon.Paths, AppIcons.Plus));
 
         string[] expected = ["ec-icon", "ec-icon-md"];
 
@@ -34,7 +34,7 @@ public class EcIconRenderTests
         using var ctx = new BunitContext();
 
         var component = ctx.Render<EcIcon>(static parameters => parameters
-            .Add(static icon => icon.Paths, AppIcons.PlusPath)
+            .Add(static icon => icon.Paths, AppIcons.Plus)
             .Add(static icon => icon.Size, EcIconSize.Large));
 
         var svg = component.Find("svg");

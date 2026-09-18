@@ -22,12 +22,12 @@
 
 @foreach (var failure in this.failures)
 {
-    <div class="alert alert-danger" role="alert"><Icon CssClass="icon me-2" IconType="AppIcons.AlertTriangle" />@failure</div>
+    <div class="alert alert-danger" role="alert"><Icon CssClass="icon me-2" IconType="TablerIcons.AlertTriangle" />@failure</div>
 }
 
 <div class="form-actions-sticky d-flex justify-content-end gap-2 mt-3">
     <button type="button" class="btn btn-primary" @onclick="() => this.ModalService.Close()">
-        <Icon CssClass="icon" IconType="AppIcons.X" />Hotovo
+        <Icon CssClass="icon" IconType="TablerIcons.X" />Hotovo
     </button>
 </div>
 

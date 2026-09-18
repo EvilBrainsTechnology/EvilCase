@@ -22,7 +22,7 @@
         @if (this.failure is not null)
         {
             <div class="empty">
-                <div class="empty-icon"><Icon IconType="AppIcons.AlertTriangle" /></div>
+                <div class="empty-icon"><Icon IconType="TablerIcons.AlertTriangle" /></div>
                 <p class="empty-title">Přehled se nepodařilo načíst</p>
                 <p class="empty-subtitle text-secondary">@this.failure</p>
             </div>
@@ -36,11 +36,11 @@
         else if (this.view.IsEmpty)
         {
             <div class="empty">
-                <div class="empty-icon"><Icon IconType="AppIcons.Folders" /></div>
+                <div class="empty-icon"><Icon IconType="TablerIcons.Folders" /></div>
                 <p class="empty-title">Zatím tu není žádný spis</p>
                 <p class="empty-subtitle text-secondary">Založte první spis a přehled se naplní.</p>
                 <div class="empty-action">
-                    <a href="/cases/new" class="btn btn-primary"><Icon CssClass="icon" IconType="AppIcons.Plus" />Založit první spis</a>
+                    <a href="/cases/new" class="btn btn-primary"><Icon CssClass="icon" IconType="TablerIcons.Plus" />Založit první spis</a>
                 </div>
             </div>
         }
@@ -49,15 +49,15 @@
             <div class="row row-deck row-cards">
                 <div class="col-12 col-lg-4">
                     <StatCard Value="this.view.Counts.Active" Label="@CaseStatusDisplay.Text(CaseStatus.Active)"
-                              Glyph="AppIcons.Folders" Color="CaseStatusDisplay.Color(CaseStatus.Active)" />
+                              Glyph="TablerIcons.Folders" Color="CaseStatusDisplay.Color(CaseStatus.Active)" />
                 </div>
                 <div class="col-12 col-lg-4">
                     <StatCard Value="this.view.Counts.WaitingOnAuthority" Label="@CaseStatusDisplay.Text(CaseStatus.WaitingOnAuthority)"
-                              Glyph="AppIcons.Clock" Color="CaseStatusDisplay.Color(CaseStatus.WaitingOnAuthority)" />
+                              Glyph="TablerIcons.Clock" Color="CaseStatusDisplay.Color(CaseStatus.WaitingOnAuthority)" />
                 </div>
                 <div class="col-12 col-lg-4">
                     <StatCard Value="this.view.Counts.Closed" Label="@CaseStatusDisplay.Text(CaseStatus.Closed)"
-                              Glyph="AppIcons.FileText" Color="CaseStatusDisplay.Color(CaseStatus.Closed)" />
+                              Glyph="TablerIcons.FileText" Color="CaseStatusDisplay.Color(CaseStatus.Closed)" />
                 </div>
             </div>
 
@@ -67,7 +67,7 @@
                         <a href="/cases">Všechny spisy</a>
                     </Actions>
                     <EmptyAction>
-                        <a href="/cases/new" class="btn btn-primary"><Icon CssClass="icon" IconType="AppIcons.Plus" />Založit spis</a>
+                        <a href="/cases/new" class="btn btn-primary"><Icon CssClass="icon" IconType="TablerIcons.Plus" />Založit spis</a>
                     </EmptyAction>
                 </CaseList>
             </div>

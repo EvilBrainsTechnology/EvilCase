@@ -11,7 +11,7 @@
 <FileDropZone class="card ec-dropcard">
     <div class="card-header">
         <h3 class="card-title">
-            <Icon CssClass="icon me-2" IconType="AppIcons.Paperclip" />Soubory
+            <Icon CssClass="icon me-2" IconType="TablerIcons.Paperclip" />Soubory
             @if (!this.loading && this.listFailure is null)
             {
                 <span class="badge bg-secondary-lt ms-2">@this.items.Count</span>
@@ -19,7 +19,7 @@
         </h3>
         <div class="card-actions">
             <button id="files-upload" type="button" class="btn btn-primary" @onclick="this.OpenUploadModal">
-                <Icon CssClass="icon" IconType="AppIcons.Upload" />Nahrát
+                <Icon CssClass="icon" IconType="TablerIcons.Upload" />Nahrát
             </button>
         </div>
     </div>
@@ -31,7 +31,7 @@
     @foreach (var failure in this.dropFailures)
     {
         <div class="card-body pb-0">
-            <div class="alert alert-danger mb-0" role="alert"><Icon CssClass="icon me-2" IconType="AppIcons.AlertTriangle" />@failure</div>
+            <div class="alert alert-danger mb-0" role="alert"><Icon CssClass="icon me-2" IconType="TablerIcons.AlertTriangle" />@failure</div>
         </div>
     }
 
@@ -43,7 +43,7 @@
     @if (this.error is not null)
     {
         <div class="card-body pb-0">
-            <div class="alert alert-danger mb-0" role="alert"><Icon CssClass="icon me-2" IconType="AppIcons.AlertTriangle" />@this.error</div>
+            <div class="alert alert-danger mb-0" role="alert"><Icon CssClass="icon me-2" IconType="TablerIcons.AlertTriangle" />@this.error</div>
         </div>
     }
 
@@ -56,7 +56,7 @@
     else if (this.listFailure is not null)
     {
         <div class="empty">
-            <div class="empty-icon"><Icon IconType="AppIcons.AlertTriangle" /></div>
+            <div class="empty-icon"><Icon IconType="TablerIcons.AlertTriangle" /></div>
             <p class="empty-title">Soubory se nepodařilo načíst</p>
             <p class="empty-subtitle text-secondary">@this.listFailure</p>
         </div>
@@ -64,7 +64,7 @@
     else if (this.items.Count == 0)
     {
         <div class="empty">
-            <div class="empty-icon"><Icon IconType="AppIcons.Paperclip" /></div>
+            <div class="empty-icon"><Icon IconType="TablerIcons.Paperclip" /></div>
             <p class="empty-title">Žádné soubory</p>
             <p class="empty-subtitle text-secondary">Přetáhněte soubory sem, nebo je nahrajte tlačítkem Nahrát.</p>
         </div>
@@ -82,7 +82,7 @@
                     </span>
                 </button>
                 <button type="button" class="btn btn-icon btn-ghost-danger" aria-label="@($"Smazat {file.FileName}")" @onclick="() => this.ConfirmDelete(file)">
-                    <Icon IconType="AppIcons.Trash" />
+                    <Icon IconType="TablerIcons.Trash" />
                 </button>
             </div>
         }
@@ -90,7 +90,7 @@
 
     <div class="ec-dropveil">
         <div class="ec-droppill">
-            <Icon CssClass="icon" IconType="AppIcons.Upload" />
+            <Icon CssClass="icon" IconType="TablerIcons.Upload" />
             <div>
                 <div>Pustit soubory sem</div>
                 <div class="ec-filerow-meta">Nejvýše @(FileSizeDisplay.Text(FileLimits.MaxUploadBytes)) na soubor.</div>

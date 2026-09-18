@@ -35,12 +35,12 @@
                     @if (ActContactRules.DifferingCaseContact(this.model.Contact, this.caseContact) is { } differing)
                     {
                         <div class="alert alert-warning mb-0" role="alert">
-                            <Icon CssClass="icon me-2" IconType="AppIcons.AlertTriangle" />Kontakt úkonu se liší od kontaktu spisu (@differing.Name).
+                            <Icon CssClass="icon me-2" IconType="TablerIcons.AlertTriangle" />Kontakt úkonu se liší od kontaktu spisu (@differing.Name).
                         </div>
                     }
 
                     <div class="card">
-                        <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.FileText" />Popis</h3></div>
+                        <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="TablerIcons.FileText" />Popis</h3></div>
                         <div class="card-body">
                             <label class="visually-hidden" for="act-description">Popis</label>
                             <InputTextArea id="act-description" class="form-control" rows="8" @bind-Value="this.model.Description" />
@@ -51,7 +51,7 @@
 
                 <aside class="ec-sidebar d-flex flex-column gap-3">
                     <div class="card">
-                        <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.ListDetails" />Údaje</h3></div>
+                        <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="TablerIcons.ListDetails" />Údaje</h3></div>
                         <div class="card-body d-flex flex-column gap-3">
                             <div>
                                 <span class="ec-field-label">Číslo jednací</span>
@@ -82,7 +82,7 @@
                     </div>
 
                     <div class="card">
-                        <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.Tag" />Štítky</h3></div>
+                        <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="TablerIcons.Tag" />Štítky</h3></div>
                         <div class="card-body">
                             <label class="visually-hidden" for="act-labels">Štítky</label>
                             <LabelPicker InputId="act-labels" @bind-Selected="this.model.Labels" />
@@ -92,7 +92,7 @@
 
                 <div class="ec-savebar">
                     <div class="ec-savebar-actions">
-                        <a href="/cases/@this.CaseId" class="btn"><Icon CssClass="icon" IconType="AppIcons.X" />Zrušit</a>
+                        <a href="/cases/@this.CaseId" class="btn"><Icon CssClass="icon" IconType="TablerIcons.X" />Zrušit</a>
                         <button id="act-submit" type="submit" class="btn btn-primary" disabled="@this.busy">
                             @if (this.busy)
                             {
@@ -100,7 +100,7 @@
                             }
                             else
                             {
-                                <Icon CssClass="icon" IconType="AppIcons.Plus" />
+                                <Icon CssClass="icon" IconType="TablerIcons.Plus" />
                             }
                             Založit úkon
                         </button>
@@ -110,7 +110,7 @@
                 @if (this.error is not null)
                 {
                     <div class="ec-savebar-error">
-                        <div class="alert alert-danger mb-0" role="alert"><Icon CssClass="icon me-2" IconType="AppIcons.AlertTriangle" />@this.error</div>
+                        <div class="alert alert-danger mb-0" role="alert"><Icon CssClass="icon me-2" IconType="TablerIcons.AlertTriangle" />@this.error</div>
                     </div>
                 }
             </div>

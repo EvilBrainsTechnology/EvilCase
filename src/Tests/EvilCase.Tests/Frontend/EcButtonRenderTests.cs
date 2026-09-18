@@ -63,7 +63,7 @@ public class EcButtonRenderTests
 
         var component = ctx.Render<EcButton>(static parameters => parameters
             .Add(static button => button.Variant, EcButtonVariant.Secondary)
-            .Add(static button => button.Icon, AppIcons.PlusPath)
+            .Add(static button => button.Icon, AppIcons.Plus)
             .AddChildContent("Nový spis"));
 
         var button = component.Find("button");
@@ -83,7 +83,7 @@ public class EcButtonRenderTests
         Assert.That(
             () => ctx.Render<EcButton>(static parameters => parameters
                 .Add(static button => button.Variant, EcButtonVariant.Ghost)
-                .Add(static button => button.Icon, AppIcons.PlusPath)),
+                .Add(static button => button.Icon, AppIcons.Plus)),
             Throws.InstanceOf<InvalidOperationException>(),
             "a button with no text needs an aria-label");
     }
@@ -95,7 +95,7 @@ public class EcButtonRenderTests
 
         var component = ctx.Render<EcButton>(static parameters => parameters
             .Add(static button => button.Variant, EcButtonVariant.Ghost)
-            .Add(static button => button.Icon, AppIcons.PlusPath)
+            .Add(static button => button.Icon, AppIcons.Plus)
             .Add(static button => button.AriaLabel, "Smazat spis"));
 
         var button = component.Find("button");

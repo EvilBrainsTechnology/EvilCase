@@ -6,10 +6,10 @@
 @* Read mode's Štítky card (SDD-019): the picker adds or removes a label immediately, no edit mode. *@
 <div class="card">
     <div class="card-header">
-        <h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.Tag" />Štítky</h3>
+        <h3 class="card-title"><Icon CssClass="icon me-2" IconType="TablerIcons.Tag" />Štítky</h3>
         <div class="card-actions">
             <button type="button" class="btn btn-icon" aria-label="@(this.picking ? "Zavřít" : "Přidat štítek")" title="@(this.picking ? "Zavřít" : "Přidat štítek")" @onclick="() => this.picking = !this.picking">
-                <Icon CssClass="icon" IconType="@(this.picking ? AppIcons.X : AppIcons.Plus)" />
+                <Icon CssClass="icon" IconType="@(this.picking ? TablerIcons.X : TablerIcons.Plus)" />
             </button>
         </div>
     </div>
@@ -29,7 +29,7 @@
 
         @if (this.error is not null)
         {
-            <div class="alert alert-danger mt-3 mb-0" role="alert"><Icon CssClass="icon me-2" IconType="AppIcons.AlertTriangle" />@this.error</div>
+            <div class="alert alert-danger mt-3 mb-0" role="alert"><Icon CssClass="icon me-2" IconType="TablerIcons.AlertTriangle" />@this.error</div>
         }
     </div>
 </div>

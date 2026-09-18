@@ -117,7 +117,7 @@
     @if (this.Title is not null)
     {
         <div class="card-header">
-            <h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.FileText" />@this.Title</h3>
+            <h3 class="card-title"><Icon CssClass="icon me-2" IconType="TablerIcons.FileText" />@this.Title</h3>
             @if (this.Actions is not null)
             {
                 <div class="card-actions">@this.Actions</div>
@@ -132,7 +132,7 @@
                 @if (this.ShowSearch)
                 {
                     <div class="input-icon flex-fill ec-search-field">
-                        <span class="input-icon-addon"><Icon CssClass="icon" IconType="AppIcons.Search" /></span>
+                        <span class="input-icon-addon"><Icon CssClass="icon" IconType="TablerIcons.Search" /></span>
                         <input type="search" class="form-control" aria-label="Hledat v úkonech"
                                placeholder="Hledat v názvu a popisu"
                                value="@this.SearchText" @oninput="this.OnSearchInput" />
@@ -180,7 +180,7 @@
     @if (this.Failure is not null)
     {
         <div class="empty">
-            <div class="empty-icon"><Icon IconType="AppIcons.AlertTriangle" /></div>
+            <div class="empty-icon"><Icon IconType="TablerIcons.AlertTriangle" /></div>
             <p class="empty-title">Úkony se nepodařilo načíst</p>
             <p class="empty-subtitle text-secondary">@this.Failure</p>
         </div>
@@ -194,7 +194,7 @@
     else if (this.items.Count == 0)
     {
         <div class="empty">
-            <div class="empty-icon"><Icon IconType="AppIcons.FileText" /></div>
+            <div class="empty-icon"><Icon IconType="TablerIcons.FileText" /></div>
             <p class="empty-title">@this.EmptyTitle</p>
             <p class="empty-subtitle text-secondary">@this.EmptySubtitle</p>
             @if (this.EmptyAction is not null)

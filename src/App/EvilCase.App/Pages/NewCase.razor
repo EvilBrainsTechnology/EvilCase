@@ -22,14 +22,14 @@
         @if (this.parentNotFound)
         {
             <div class="empty">
-                <div class="empty-icon"><Icon IconType="AppIcons.AlertTriangle" /></div>
+                <div class="empty-icon"><Icon IconType="TablerIcons.AlertTriangle" /></div>
                 <p class="empty-title">Nadřízený spis nenalezen</p>
             </div>
         }
         else if (this.failure is not null)
         {
             <div class="empty">
-                <div class="empty-icon"><Icon IconType="AppIcons.AlertTriangle" /></div>
+                <div class="empty-icon"><Icon IconType="TablerIcons.AlertTriangle" /></div>
                 <p class="empty-title">Nadřízený spis se nepodařilo načíst</p>
                 <p class="empty-subtitle text-secondary">@this.failure</p>
             </div>
@@ -48,7 +48,7 @@
                         </div>
 
                         <div class="card">
-                            <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.FileText" />Popis</h3></div>
+                            <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="TablerIcons.FileText" />Popis</h3></div>
                             <div class="card-body">
                                 <label class="visually-hidden" for="case-description">Popis</label>
                                 <InputTextArea id="case-description" class="form-control" rows="8" @bind-Value="this.model.Description" />
@@ -59,7 +59,7 @@
 
                     <aside class="ec-sidebar d-flex flex-column gap-3">
                         <div class="card">
-                            <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.ListDetails" />Údaje</h3></div>
+                            <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="TablerIcons.ListDetails" />Údaje</h3></div>
                             <div class="card-body d-flex flex-column gap-3">
                                 <div>
                                     <span class="ec-field-label">Spisová značka</span>
@@ -79,7 +79,7 @@
                         </div>
 
                         <div class="card">
-                            <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.Tag" />Štítky</h3></div>
+                            <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="TablerIcons.Tag" />Štítky</h3></div>
                             <div class="card-body">
                                 <label class="visually-hidden" for="case-labels">Štítky</label>
                                 <LabelPicker InputId="case-labels" @bind-Selected="this.model.Labels" />
@@ -89,7 +89,7 @@
                         @if (this.parentCase is not null)
                         {
                             <div class="card">
-                                <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.Folders" />Hierarchie</h3></div>
+                                <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="TablerIcons.Folders" />Hierarchie</h3></div>
                                 <div class="card-body">
                                     <div class="ec-field-label">Nadřízený spis</div>
                                     <a href="@($"/cases/{this.parentCase.CaseId}")">@this.parentCase.CaseNumber — @this.parentCase.Title</a>
@@ -100,7 +100,7 @@
 
                     <div class="ec-savebar">
                         <div class="ec-savebar-actions">
-                            <a href="@(this.ParentCaseId is { } parentId ? $"/cases/{parentId}" : "/cases")" class="btn"><Icon CssClass="icon" IconType="AppIcons.X" />Zrušit</a>
+                            <a href="@(this.ParentCaseId is { } parentId ? $"/cases/{parentId}" : "/cases")" class="btn"><Icon CssClass="icon" IconType="TablerIcons.X" />Zrušit</a>
                             <button id="case-submit" type="submit" class="btn btn-primary" disabled="@this.busy">
                                 @if (this.busy)
                                 {
@@ -108,7 +108,7 @@
                                 }
                                 else
                                 {
-                                    <Icon CssClass="icon" IconType="AppIcons.Plus" />
+                                    <Icon CssClass="icon" IconType="TablerIcons.Plus" />
                                 }
                                 Založit spis
                             </button>
@@ -118,7 +118,7 @@
                     @if (this.error is not null)
                     {
                         <div class="ec-savebar-error">
-                            <div class="alert alert-danger mb-0" role="alert"><Icon CssClass="icon me-2" IconType="AppIcons.AlertTriangle" />@this.error</div>
+                            <div class="alert alert-danger mb-0" role="alert"><Icon CssClass="icon me-2" IconType="TablerIcons.AlertTriangle" />@this.error</div>
                         </div>
                     }
                 </div>
