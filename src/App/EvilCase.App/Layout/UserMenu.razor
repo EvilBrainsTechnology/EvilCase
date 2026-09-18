@@ -5,7 +5,7 @@
     <div class="nav-item dropdown user-menu">
         <button type="button" class="nav-link d-flex lh-1 p-0 px-2 user-menu-toggle"
                 aria-label="Otevřít uživatelské menu" aria-expanded="@this.open" @onclick="Toggle">
-            <Icon IconType="AppIcons.User" Size="24" />
+            <Icon IconType="TablerIcons.User" Size="24" />
             <span class="d-none d-lg-block ps-2">@authenticationState.User.Identity?.Name</span>
         </button>
 
@@ -17,8 +17,8 @@
 
             <div class="dropdown-menu dropdown-menu-end show">
                 <span class="dropdown-header text-truncate d-lg-none">@authenticationState.User.Identity?.Name</span>
-                <button type="button" class="dropdown-item" @onclick="() => SignOut(everywhere: false)"><Icon CssClass="icon me-2" IconType="AppIcons.Logout" />Odhlásit se</button>
-                <button type="button" class="dropdown-item" @onclick="() => SignOut(everywhere: true)"><Icon CssClass="icon me-2" IconType="AppIcons.Logout" />Odhlásit všechna zařízení</button>
+                <button type="button" class="dropdown-item" @onclick="() => SignOut(everywhere: false)"><Icon CssClass="icon me-2" IconType="TablerIcons.Logout" />Odhlásit se</button>
+                <button type="button" class="dropdown-item" @onclick="() => SignOut(everywhere: true)"><Icon CssClass="icon me-2" IconType="TablerIcons.Logout" />Odhlásit všechna zařízení</button>
             </div>
         }
     </div>

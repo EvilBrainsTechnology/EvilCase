@@ -71,12 +71,12 @@
                 <div class="col-auto ms-auto d-print-none">
                     @if (this.Edit)
                     {
-                        <span class="ec-mode-chip"><Icon CssClass="icon" IconType="AppIcons.Pencil" />Režim editace</span>
+                        <span class="ec-mode-chip"><Icon CssClass="icon" IconType="TablerIcons.Pencil" />Režim editace</span>
                     }
                     else
                     {
-                        <a id="case-edit" href="@($"/cases/{this.CaseId}/edit")" class="btn btn-primary"><Icon CssClass="icon" IconType="AppIcons.Pencil" />Upravit</a>
-                        <button id="case-delete" type="button" class="btn btn-danger ms-2" @onclick="this.DeleteCase"><Icon CssClass="icon" IconType="AppIcons.Trash" />Smazat</button>
+                        <a id="case-edit" href="@($"/cases/{this.CaseId}/edit")" class="btn btn-primary"><Icon CssClass="icon" IconType="TablerIcons.Pencil" />Upravit</a>
+                        <button id="case-delete" type="button" class="btn btn-danger ms-2" @onclick="this.DeleteCase"><Icon CssClass="icon" IconType="TablerIcons.Trash" />Smazat</button>
                     }
                 </div>
             }
@@ -92,7 +92,7 @@
                 <div class="ec-layout">
                     <div class="ec-main">
                         <div class="card">
-                            <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.FileText" />Popis</h3></div>
+                            <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="TablerIcons.FileText" />Popis</h3></div>
                             <div class="card-body">
                                 @if (this.Edit)
                                 {
@@ -119,10 +119,10 @@
                                  ShowPaging="true"
                                  EmptySubtitle="Zatím tu není žádný úkon.">
                             <Actions>
-                                <a href="/cases/@this.CaseId/act/new" class="btn btn-primary" @onclick="this.GoToNewAct" @onclick:preventDefault="this.Edit && this.dirty"><Icon CssClass="icon" IconType="AppIcons.Plus" />Nový úkon</a>
+                                <a href="/cases/@this.CaseId/act/new" class="btn btn-primary" @onclick="this.GoToNewAct" @onclick:preventDefault="this.Edit && this.dirty"><Icon CssClass="icon" IconType="TablerIcons.Plus" />Nový úkon</a>
                             </Actions>
                             <EmptyAction>
-                                <a href="/cases/@this.CaseId/act/new" class="btn btn-primary" @onclick="this.GoToNewAct" @onclick:preventDefault="this.Edit && this.dirty"><Icon CssClass="icon" IconType="AppIcons.Plus" />Založit úkon</a>
+                                <a href="/cases/@this.CaseId/act/new" class="btn btn-primary" @onclick="this.GoToNewAct" @onclick:preventDefault="this.Edit && this.dirty"><Icon CssClass="icon" IconType="TablerIcons.Plus" />Založit úkon</a>
                             </EmptyAction>
                         </ActList>
 
@@ -142,7 +142,7 @@
 
                     <aside class="ec-sidebar d-flex flex-column gap-3">
                         <div class="card">
-                            <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.ListDetails" />Údaje</h3></div>
+                            <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="TablerIcons.ListDetails" />Údaje</h3></div>
                             <div class="card-body d-flex flex-column gap-3">
                                 @if (this.Edit)
                                 {
@@ -216,7 +216,7 @@
                         @if (this.Edit)
                         {
                             <div class="card">
-                                <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.Tag" />Štítky</h3></div>
+                                <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="TablerIcons.Tag" />Štítky</h3></div>
                                 <div class="card-body">
                                     <label class="visually-hidden" for="case-labels">Štítky</label>
                                     <LabelPicker InputId="case-labels" Selected="this.model.Labels" SelectedChanged="this.OnLabelsChanged" />
@@ -232,7 +232,7 @@
                         }
 
                         <div class="card">
-                            <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.Folders" />Hierarchie</h3></div>
+                            <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="TablerIcons.Folders" />Hierarchie</h3></div>
                             <div class="card-body">
                                 @if (this.Edit)
                                 {
@@ -267,7 +267,7 @@
                         @if (this.error is not null)
                         {
                             <div class="ec-savebar-error">
-                                <div class="alert alert-danger mb-0" role="alert"><Icon CssClass="icon me-2" IconType="AppIcons.AlertTriangle" />@this.error</div>
+                                <div class="alert alert-danger mb-0" role="alert"><Icon CssClass="icon me-2" IconType="TablerIcons.AlertTriangle" />@this.error</div>
                             </div>
                         }
 
@@ -277,7 +277,7 @@
                                 <span class="text-secondary d-none d-lg-inline">Neuložené změny</span>
                             }
                             <div class="ec-savebar-actions">
-                                <a href="@($"/cases/{this.CaseId}")" class="btn"><Icon CssClass="icon" IconType="AppIcons.X" />Zrušit</a>
+                                <a href="@($"/cases/{this.CaseId}")" class="btn"><Icon CssClass="icon" IconType="TablerIcons.X" />Zrušit</a>
                                 <button id="case-submit" type="button" class="btn btn-primary" disabled="@this.busy" @onclick="this.SubmitCase">
                                     @if (this.busy)
                                     {
@@ -285,7 +285,7 @@
                                     }
                                     else
                                     {
-                                        <Icon CssClass="icon" IconType="AppIcons.DeviceFloppy" />
+                                        <Icon CssClass="icon" IconType="TablerIcons.DeviceFloppy" />
                                     }
                                     Uložit
                                 </button>

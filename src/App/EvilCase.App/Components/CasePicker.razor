@@ -9,7 +9,7 @@
 {
     <div class="input-group">
         <input id="@this.InputId" class="form-control" value="@($"{selected.CaseNumber} — {selected.Title}")" readonly aria-label="Vybraný nadřízený spis" />
-        <button type="button" id="@($"{this.InputId}-clear")" class="btn" @onclick="this.ClearSelection"><Icon CssClass="icon" IconType="AppIcons.ArrowsExchange" />Změnit</button>
+        <button type="button" id="@($"{this.InputId}-clear")" class="btn" @onclick="this.ClearSelection"><Icon CssClass="icon" IconType="TablerIcons.ArrowsExchange" />Změnit</button>
     </div>
 }
 else

@@ -1,0 +1,31 @@
+<section class="ec-card">
+    @if (!string.IsNullOrEmpty(this.Title) || this.Header is not null)
+    {
+        <div class="ec-card-header">
+            @if (!string.IsNullOrEmpty(this.Title))
+            {
+                <h2 class="ec-card-title">@this.Title</h2>
+            }
+            @this.Header
+        </div>
+    }
+    <div class="ec-card-body">@this.ChildContent</div>
+    @if (this.Footer is not null)
+    {
+        <div class="ec-card-footer">@this.Footer</div>
+    }
+</section>
+
+@code {
+    [Parameter]
+    public string? Title { get; set; }
+
+    [Parameter]
+    public RenderFragment? Header { get; set; }
+
+    [Parameter]
+    public RenderFragment? Footer { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

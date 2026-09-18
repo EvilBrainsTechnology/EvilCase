@@ -1,0 +1,27 @@
+<span class="@this.CssClass">@this.Text</span>
+
+@code {
+    [Parameter, EditorRequired]
+    public required string Text { get; set; }
+
+    [Parameter, EditorRequired]
+    public required EcBadgeTone Tone { get; set; }
+
+    private string CssClass
+    {
+        get
+        {
+            var tone = this.Tone switch
+            {
+                EcBadgeTone.Active => "ec-badge-active",
+                EcBadgeTone.Waiting => "ec-badge-waiting",
+                EcBadgeTone.Closed => "ec-badge-closed",
+                EcBadgeTone.Incoming => "ec-badge-incoming",
+                EcBadgeTone.Outgoing => "ec-badge-outgoing",
+                _ => throw new InvalidOperationException($"unknown EcBadgeTone {this.Tone}"),
+            };
+
+            return $"ec-badge {tone}";
+        }
+    }
+}

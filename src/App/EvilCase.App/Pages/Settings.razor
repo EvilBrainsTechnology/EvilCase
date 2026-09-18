@@ -16,7 +16,7 @@
                 <h2 class="page-title">Nastavení</h2>
             </div>
             <div class="col-auto ms-auto d-print-none">
-                <button id="label-new" type="button" class="btn btn-primary" @onclick="this.CreateLabel"><Icon CssClass="icon" IconType="AppIcons.Plus" />Nový štítek</button>
+                <button id="label-new" type="button" class="btn btn-primary" @onclick="this.CreateLabel"><Icon CssClass="icon" IconType="TablerIcons.Plus" />Nový štítek</button>
             </div>
         </div>
     </div>
@@ -26,13 +26,13 @@
     <div class="container-xl">
         <div class="card">
             <div class="card-header">
-                <h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.Tag" />Štítky</h3>
+                <h3 class="card-title"><Icon CssClass="icon me-2" IconType="TablerIcons.Tag" />Štítky</h3>
             </div>
 
             @if (this.failure is not null)
             {
                 <div class="empty">
-                    <div class="empty-icon"><Icon IconType="AppIcons.AlertTriangle" /></div>
+                    <div class="empty-icon"><Icon IconType="TablerIcons.AlertTriangle" /></div>
                     <p class="empty-title">Štítky se nepodařilo načíst</p>
                     <p class="empty-subtitle text-secondary">@this.failure</p>
                 </div>
@@ -46,11 +46,11 @@
             else if (this.items.Count == 0)
             {
                 <div class="empty">
-                    <div class="empty-icon"><Icon IconType="AppIcons.Tag" /></div>
+                    <div class="empty-icon"><Icon IconType="TablerIcons.Tag" /></div>
                     <p class="empty-title">Žádné štítky</p>
                     <p class="empty-subtitle text-secondary">Štítkem se označuje spis i úkon.</p>
                     <div class="empty-action">
-                        <button type="button" class="btn btn-primary" @onclick="this.CreateLabel"><Icon CssClass="icon" IconType="AppIcons.Plus" />Založit štítek</button>
+                        <button type="button" class="btn btn-primary" @onclick="this.CreateLabel"><Icon CssClass="icon" IconType="TablerIcons.Plus" />Založit štítek</button>
                     </div>
                 </div>
             }
@@ -72,8 +72,8 @@
                                     <td><span class="badge bg-@(LabelColorDisplay.Css(item.Color))-lt">@item.Name</span></td>
                                     <td class="text-nowrap">@LabelColorDisplay.Text(item.Color)</td>
                                     <td class="text-nowrap text-end">
-                                        <button type="button" class="btn btn-sm" @onclick="() => this.EditLabel(item)"><Icon CssClass="icon" IconType="AppIcons.Pencil" />Upravit</button>
-                                        <button type="button" class="btn btn-sm btn-danger ms-2" @onclick="() => this.DeleteLabel(item)"><Icon CssClass="icon" IconType="AppIcons.Trash" />Smazat</button>
+                                        <button type="button" class="btn btn-sm" @onclick="() => this.EditLabel(item)"><Icon CssClass="icon" IconType="TablerIcons.Pencil" />Upravit</button>
+                                        <button type="button" class="btn btn-sm btn-danger ms-2" @onclick="() => this.DeleteLabel(item)"><Icon CssClass="icon" IconType="TablerIcons.Trash" />Smazat</button>
                                     </td>
                                 </tr>
                             }
@@ -89,8 +89,8 @@
                                 <span class="badge bg-@(LabelColorDisplay.Css(item.Color))-lt">@item.Name</span>
                                 <div class="text-secondary mt-2">@LabelColorDisplay.Text(item.Color)</div>
                                 <div class="mt-2 d-flex gap-2">
-                                    <button type="button" class="btn btn-sm" @onclick="() => this.EditLabel(item)"><Icon CssClass="icon" IconType="AppIcons.Pencil" />Upravit</button>
-                                    <button type="button" class="btn btn-sm btn-danger" @onclick="() => this.DeleteLabel(item)"><Icon CssClass="icon" IconType="AppIcons.Trash" />Smazat</button>
+                                    <button type="button" class="btn btn-sm" @onclick="() => this.EditLabel(item)"><Icon CssClass="icon" IconType="TablerIcons.Pencil" />Upravit</button>
+                                    <button type="button" class="btn btn-sm btn-danger" @onclick="() => this.DeleteLabel(item)"><Icon CssClass="icon" IconType="TablerIcons.Trash" />Smazat</button>
                                 </div>
                             </div>
                         </div>

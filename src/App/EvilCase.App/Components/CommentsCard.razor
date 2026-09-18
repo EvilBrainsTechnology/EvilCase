@@ -8,7 +8,7 @@
 <div id="comments-card" class="card">
     <div class="card-header">
         <h3 class="card-title">
-            <Icon CssClass="icon me-2" IconType="AppIcons.Message" />Komentáře
+            <Icon CssClass="icon me-2" IconType="TablerIcons.Message" />Komentáře
             @if (!this.loading && this.listFailure is null)
             {
                 <span class="badge bg-secondary-lt ms-2">@this.items.Count</span>
@@ -16,7 +16,7 @@
         </h3>
         <div class="card-actions">
             <button id="comment-add" type="button" class="btn btn-primary" @onclick="this.OpenComposer">
-                <Icon CssClass="icon" IconType="AppIcons.Plus" />Přidat komentář
+                <Icon CssClass="icon" IconType="TablerIcons.Plus" />Přidat komentář
             </button>
         </div>
     </div>
@@ -33,11 +33,11 @@
 
                 @if (this.addError is not null)
                 {
-                    <div class="alert alert-danger mt-2" role="alert"><Icon CssClass="icon me-2" IconType="AppIcons.AlertTriangle" />@this.addError</div>
+                    <div class="alert alert-danger mt-2" role="alert"><Icon CssClass="icon me-2" IconType="TablerIcons.AlertTriangle" />@this.addError</div>
                 }
 
                 <div class="d-flex justify-content-end gap-2 mt-2">
-                    <button type="button" class="btn" @onclick="this.CloseComposer"><Icon CssClass="icon" IconType="AppIcons.X" />Zrušit</button>
+                    <button type="button" class="btn" @onclick="this.CloseComposer"><Icon CssClass="icon" IconType="TablerIcons.X" />Zrušit</button>
                     <button type="submit" class="btn btn-primary" disabled="@this.busy">
                         @if (this.busy)
                         {
@@ -45,7 +45,7 @@
                         }
                         else
                         {
-                            <Icon CssClass="icon" IconType="AppIcons.DeviceFloppy" />
+                            <Icon CssClass="icon" IconType="TablerIcons.DeviceFloppy" />
                         }
                         Uložit komentář
                     </button>
@@ -63,7 +63,7 @@
     else if (this.listFailure is not null)
     {
         <div class="empty">
-            <div class="empty-icon"><Icon IconType="AppIcons.AlertTriangle" /></div>
+            <div class="empty-icon"><Icon IconType="TablerIcons.AlertTriangle" /></div>
             <p class="empty-title">Komentáře se nepodařilo načíst</p>
             <p class="empty-subtitle text-secondary">@this.listFailure</p>
         </div>
@@ -71,7 +71,7 @@
     else if (this.items.Count == 0)
     {
         <div class="empty">
-            <div class="empty-icon"><Icon IconType="AppIcons.Message" /></div>
+            <div class="empty-icon"><Icon IconType="TablerIcons.Message" /></div>
             <p class="empty-title">Žádné komentáře</p>
         </div>
     }
@@ -88,8 +88,8 @@
                         @if (item.IsAuthor && this.editingCommentId != item.CommentId)
                         {
                             <div class="d-flex gap-1">
-                                <button type="button" class="btn btn-icon btn-sm comment-edit" aria-label="Upravit komentář" @onclick="() => this.StartEditing(item)"><Icon IconType="AppIcons.Pencil" /></button>
-                                <button type="button" class="btn btn-icon btn-sm comment-delete" aria-label="Smazat komentář" @onclick="() => this.ConfirmDelete(item)"><Icon IconType="AppIcons.Trash" /></button>
+                                <button type="button" class="btn btn-icon btn-sm comment-edit" aria-label="Upravit komentář" @onclick="() => this.StartEditing(item)"><Icon IconType="TablerIcons.Pencil" /></button>
+                                <button type="button" class="btn btn-icon btn-sm comment-delete" aria-label="Smazat komentář" @onclick="() => this.ConfirmDelete(item)"><Icon IconType="TablerIcons.Trash" /></button>
                             </div>
                         }
                     </div>
@@ -106,11 +106,11 @@
 
                             @if (this.editError is not null)
                             {
-                                <div class="alert alert-danger" role="alert"><Icon CssClass="icon me-2" IconType="AppIcons.AlertTriangle" />@this.editError</div>
+                                <div class="alert alert-danger" role="alert"><Icon CssClass="icon me-2" IconType="TablerIcons.AlertTriangle" />@this.editError</div>
                             }
 
                             <div class="d-flex gap-2">
-                                <button type="button" class="btn btn-sm" @onclick="this.CancelEditing"><Icon CssClass="icon" IconType="AppIcons.X" />Zrušit</button>
+                                <button type="button" class="btn btn-sm" @onclick="this.CancelEditing"><Icon CssClass="icon" IconType="TablerIcons.X" />Zrušit</button>
                                 <button type="submit" class="btn btn-primary btn-sm" disabled="@this.busy">
                                     @if (this.busy)
                                     {
@@ -118,7 +118,7 @@
                                     }
                                     else
                                     {
-                                        <Icon CssClass="icon" IconType="AppIcons.DeviceFloppy" />
+                                        <Icon CssClass="icon" IconType="TablerIcons.DeviceFloppy" />
                                     }
                                     Uložit
                                 </button>

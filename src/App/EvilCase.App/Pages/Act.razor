@@ -72,12 +72,12 @@
                 <div class="col-auto ms-auto d-print-none">
                     @if (this.Edit)
                     {
-                        <span class="ec-mode-chip"><Icon CssClass="icon" IconType="AppIcons.Pencil" />Režim editace</span>
+                        <span class="ec-mode-chip"><Icon CssClass="icon" IconType="TablerIcons.Pencil" />Režim editace</span>
                     }
                     else
                     {
-                        <a id="act-edit" href="@($"/cases/{this.act!.CaseId}/act/{this.act!.ActId}/edit")" class="btn btn-primary"><Icon CssClass="icon" IconType="AppIcons.Pencil" />Upravit</a>
-                        <button id="act-delete" type="button" class="btn btn-danger ms-2" @onclick="this.DeleteAct"><Icon CssClass="icon" IconType="AppIcons.Trash" />Smazat</button>
+                        <a id="act-edit" href="@($"/cases/{this.act!.CaseId}/act/{this.act!.ActId}/edit")" class="btn btn-primary"><Icon CssClass="icon" IconType="TablerIcons.Pencil" />Upravit</a>
+                        <button id="act-delete" type="button" class="btn btn-danger ms-2" @onclick="this.DeleteAct"><Icon CssClass="icon" IconType="TablerIcons.Trash" />Smazat</button>
                     }
                 </div>
             }
@@ -100,12 +100,12 @@
                         @if (differing is not null)
                         {
                             <div class="alert alert-warning mb-0" role="alert">
-                                <Icon CssClass="icon me-2" IconType="AppIcons.AlertTriangle" />Kontakt úkonu se liší od kontaktu spisu (@differing.Name).
+                                <Icon CssClass="icon me-2" IconType="TablerIcons.AlertTriangle" />Kontakt úkonu se liší od kontaktu spisu (@differing.Name).
                             </div>
                         }
 
                         <div class="card">
-                            <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.FileText" />Popis</h3></div>
+                            <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="TablerIcons.FileText" />Popis</h3></div>
                             <div class="card-body">
                                 @if (this.Edit)
                                 {
@@ -136,7 +136,7 @@
 
                     <aside class="ec-sidebar d-flex flex-column gap-3">
                         <div class="card">
-                            <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.ListDetails" />Údaje</h3></div>
+                            <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="TablerIcons.ListDetails" />Údaje</h3></div>
                             <div class="card-body d-flex flex-column gap-3">
                                 @if (this.Edit)
                                 {
@@ -220,7 +220,7 @@
                         @if (this.Edit)
                         {
                             <div class="card">
-                                <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.Tag" />Štítky</h3></div>
+                                <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="TablerIcons.Tag" />Štítky</h3></div>
                                 <div class="card-body">
                                     <label class="visually-hidden" for="act-labels">Štítky</label>
                                     <LabelPicker InputId="act-labels" Selected="this.model.Labels" SelectedChanged="this.OnLabelsChanged" />
@@ -236,7 +236,7 @@
                         }
 
                         <div class="card">
-                            <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="AppIcons.Folders" />Spis</h3></div>
+                            <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="TablerIcons.Folders" />Spis</h3></div>
                             <div class="card-body">
                                 <a class="ec-comprow" href="@($"/cases/{this.act!.CaseId}")">
                                     <span class="ec-min-w-0 flex-fill">
@@ -256,7 +256,7 @@
                         @if (this.error is not null)
                         {
                             <div class="ec-savebar-error">
-                                <div class="alert alert-danger mb-0" role="alert"><Icon CssClass="icon me-2" IconType="AppIcons.AlertTriangle" />@this.error</div>
+                                <div class="alert alert-danger mb-0" role="alert"><Icon CssClass="icon me-2" IconType="TablerIcons.AlertTriangle" />@this.error</div>
                             </div>
                         }
 
@@ -266,7 +266,7 @@
                                 <span class="text-secondary d-none d-lg-inline">Neuložené změny</span>
                             }
                             <div class="ec-savebar-actions">
-                                <a href="@($"/cases/{this.act!.CaseId}/act/{this.act!.ActId}")" class="btn"><Icon CssClass="icon" IconType="AppIcons.X" />Zrušit</a>
+                                <a href="@($"/cases/{this.act!.CaseId}/act/{this.act!.ActId}")" class="btn"><Icon CssClass="icon" IconType="TablerIcons.X" />Zrušit</a>
                                 <button id="act-submit" type="button" class="btn btn-primary" disabled="@this.busy" @onclick="this.SubmitAct">
                                     @if (this.busy)
                                     {
@@ -274,7 +274,7 @@
                                     }
                                     else
                                     {
-                                        <Icon CssClass="icon" IconType="AppIcons.DeviceFloppy" />
+                                        <Icon CssClass="icon" IconType="TablerIcons.DeviceFloppy" />
                                     }
                                     Uložit
                                 </button>

@@ -1,0 +1,266 @@
+/*
+ * Primitiva Ec (SDD-020). Každou hodnotu berou z ec-tokens.css, rozsah otevírá třída ec na
+ * kořeni aplikace. Vizuální předlohy jsou v docs/design/.
+ */
+
+.ec-icon {
+    flex: 0 0 auto;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.ec-icon-sm {
+    width: var(--ec-icon-sm);
+    height: var(--ec-icon-sm);
+}
+
+.ec-icon-md {
+    width: var(--ec-icon-md);
+    height: var(--ec-icon-md);
+}
+
+.ec-icon-lg {
+    width: var(--ec-icon-lg);
+    height: var(--ec-icon-lg);
+}
+
+.ec-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ec-space-3);
+    padding: 0 var(--ec-space-5);
+    border: 1px solid transparent;
+    border-radius: var(--ec-radius-lg);
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-md);
+    font-weight: var(--ec-weight-medium);
+    line-height: var(--ec-leading-tight);
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.ec-button:focus-visible {
+    outline: none;
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-button:disabled {
+    cursor: default;
+    opacity: 0.6;
+}
+
+.ec-button-compact {
+    height: var(--ec-control-sm);
+    padding: 0 var(--ec-space-4);
+    font-size: var(--ec-text-sm);
+}
+
+.ec-button-standard {
+    height: var(--ec-control-lg);
+}
+
+.ec-button-form {
+    height: var(--ec-control-form);
+    padding: 0 var(--ec-space-6);
+}
+
+.ec-button-icon {
+    aspect-ratio: 1;
+    padding: 0 var(--ec-space-1);
+}
+
+.ec-button-primary {
+    background: var(--ec-accent);
+    border-color: var(--ec-accent);
+    color: var(--ec-on-accent);
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-button-primary:hover:enabled {
+    background: var(--ec-accent-hover);
+    border-color: var(--ec-accent-hover);
+}
+
+.ec-button-secondary {
+    background: var(--ec-surface);
+    border-color: var(--ec-border-strong);
+    color: var(--ec-text);
+}
+
+.ec-button-secondary:hover:enabled {
+    background: var(--ec-surface-sunken);
+}
+
+.ec-button-ghost {
+    background: transparent;
+    color: var(--ec-accent-text);
+}
+
+.ec-button-ghost:hover:enabled {
+    background: var(--ec-accent-soft);
+}
+
+.ec-button-danger {
+    background: var(--ec-danger-bg);
+    border-color: var(--ec-danger-border);
+    color: var(--ec-danger-text);
+}
+
+.ec-button-danger:hover:enabled {
+    background: var(--ec-danger-border);
+}
+
+.ec-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--ec-surface);
+    border: 1px solid var(--ec-border);
+    border-radius: var(--ec-radius-card);
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-md);
+    color: var(--ec-text);
+}
+
+.ec-card-header {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-4);
+    padding: var(--ec-space-5) var(--ec-space-6);
+}
+
+.ec-card-title {
+    margin: 0;
+    font-size: var(--ec-text-xl);
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-card-body {
+    padding: var(--ec-space-5) var(--ec-space-6);
+}
+
+.ec-card-header + .ec-card-body {
+    padding-top: 0;
+}
+
+.ec-card-footer {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-4);
+    padding: var(--ec-space-4) var(--ec-space-6);
+    border-top: 1px solid var(--ec-border-subtle);
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-muted);
+}
+
+.ec-page-header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-3);
+    font-family: var(--ec-font);
+    color: var(--ec-text);
+}
+
+.ec-crumbs {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--ec-space-2);
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-muted);
+}
+
+.ec-crumb {
+    color: var(--ec-text-muted);
+    text-decoration: none;
+}
+
+.ec-crumb:hover {
+    color: var(--ec-text);
+}
+
+.ec-crumb[aria-current="page"] {
+    color: var(--ec-text);
+}
+
+.ec-crumb-separator {
+    color: var(--ec-text-muted);
+}
+
+.ec-page-header-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--ec-space-5);
+}
+
+.ec-page-title {
+    margin: 0;
+    font-size: var(--ec-title-sm);
+    font-weight: var(--ec-weight-semibold);
+    letter-spacing: -0.02em;
+}
+
+.ec-page-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+    margin-left: auto;
+}
+
+.ec-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ec-space-2);
+    padding: var(--ec-space-1) var(--ec-space-3);
+    border-radius: var(--ec-radius-pill);
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-sm);
+    font-weight: var(--ec-weight-semibold);
+    line-height: var(--ec-leading-tight);
+    white-space: nowrap;
+}
+
+.ec-badge-active {
+    background: var(--ec-active-bg);
+    color: var(--ec-active-text);
+}
+
+.ec-badge-waiting {
+    background: var(--ec-waiting-bg);
+    color: var(--ec-waiting-text);
+}
+
+.ec-badge-closed {
+    background: var(--ec-closed-bg);
+    color: var(--ec-closed-text);
+}
+
+.ec-badge-incoming {
+    background: var(--ec-incoming-bg);
+    color: var(--ec-incoming-text);
+}
+
+.ec-badge-outgoing {
+    background: var(--ec-outgoing-bg);
+    color: var(--ec-outgoing-text);
+}
+
+@media (max-width: 991.98px) {
+    .ec-button {
+        min-height: var(--ec-touch-min);
+        min-width: var(--ec-touch-min);
+    }
+
+    .ec-page-title {
+        font-size: var(--ec-text-xl);
+    }
+
+    .ec-page-actions {
+        flex: 1 1 100%;
+        margin-left: 0;
+    }
+}

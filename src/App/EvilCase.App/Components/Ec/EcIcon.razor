@@ -1,0 +1,25 @@
+<svg class="@this.CssClass" viewBox="0 0 24 24" aria-hidden="true" focusable="false">@((MarkupString)this.Paths)</svg>
+
+@code {
+    [Parameter, EditorRequired]
+    public required string Paths { get; set; }
+
+    [Parameter]
+    public EcIconSize Size { get; set; } = EcIconSize.Medium;
+
+    private string CssClass
+    {
+        get
+        {
+            var size = this.Size switch
+            {
+                EcIconSize.Small => "ec-icon-sm",
+                EcIconSize.Medium => "ec-icon-md",
+                EcIconSize.Large => "ec-icon-lg",
+                _ => throw new InvalidOperationException($"unknown EcIconSize {this.Size}"),
+            };
+
+            return $"ec-icon {size}";
+        }
+    }
+}
