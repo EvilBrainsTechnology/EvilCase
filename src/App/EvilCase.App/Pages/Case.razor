@@ -5,11 +5,8 @@
 @using EvilBrains.EvilCase.Api.Contract.Acts
 @using EvilBrains.EvilCase.Api.Contract.Cases
 @using EvilBrains.EvilCase.Api.Contract.Comments
-@using EvilBrains.EvilCase.Api.Contract.Contacts
 @using EvilBrains.EvilCase.Api.Contract.Files
 @using EvilBrains.EvilCase.Api.Contract.Labels
-@using EvilBrains.EvilCase.Domain.Cases
-@using Microsoft.JSInterop
 @using TabBlazor.Services
 @inject ICasesClient CasesClient
 @inject ICaseLabelsClient CaseLabelsClient
@@ -19,15 +16,10 @@
 @inject IFileDownloader Downloader
 @inject IModalService ModalService
 @inject NavigationManager Navigation
-@inject IJSRuntime JSRuntime
 @inject ILogger<Case> Logger
 
 <PageTitle>@(this.caseDetail is null ? "Spis" : this.caseDetail.CaseNumber) – EvilCase</PageTitle>
 
-@* A CascadingValue, not EditForm: Komentáře renders its own <form> further down, and a
-   <form> cannot nest inside another one. It opens above the header so the title's
-   ValidationMessage there shares the same EditContext as the fields below. *@
-<CascadingValue Value="this.editContext" IsFixed="true">
 <div class="page-header d-print-none">
     <div class="container-xl">
         <div class="row g-2 align-items-center ec-detail-header">
@@ -37,26 +29,12 @@
                         <li class="breadcrumb-item"><a href="/cases">Spisy</a></li>
                         @if (this.caseDetail is not null)
                         {
-                            @if (this.Edit)
-                            {
-                                <li class="breadcrumb-item"><a href="@($"/cases/{this.CaseId}")">@this.caseDetail!.Title</a></li>
-                                <li class="breadcrumb-item active" aria-current="page">Upravit</li>
-                            }
-                            else
-                            {
-                                <li class="breadcrumb-item active" aria-current="page">@this.caseDetail!.Title</li>
-                            }
+                            <li class="breadcrumb-item active" aria-current="page">@this.caseDetail!.Title</li>
                         }
                     </ol>
                 </nav>
 
-                @if (this.Edit && this.caseDetail is not null)
-                {
-                    <label class="visually-hidden" for="case-title">Název</label>
-                    <input id="case-title" class="form-control ec-title-input" @bind="this.model.Title" @bind:after="this.MarkDirty" />
-                    <ValidationMessage For="() => this.model.Title" class="invalid-feedback d-block" />
-                }
-                else if (this.caseDetail is not null)
+                @if (this.caseDetail is not null)
                 {
                     <h2 class="page-title">
                         @this.caseDetail!.Title
@@ -69,15 +47,8 @@
             @if (this.caseDetail is not null)
             {
                 <div class="col-auto ms-auto d-print-none">
-                    @if (this.Edit)
-                    {
-                        <span class="ec-mode-chip"><Icon CssClass="icon" IconType="TablerIcons.Pencil" />Režim editace</span>
-                    }
-                    else
-                    {
-                        <a id="case-edit" href="@($"/cases/{this.CaseId}/edit")" class="btn btn-primary"><Icon CssClass="icon" IconType="TablerIcons.Pencil" />Upravit</a>
-                        <button id="case-delete" type="button" class="btn btn-danger ms-2" @onclick="this.DeleteCase"><Icon CssClass="icon" IconType="TablerIcons.Trash" />Smazat</button>
-                    }
+                    <a id="case-edit" href="@($"/cases/{this.CaseId}/edit")" class="btn btn-primary"><Icon CssClass="icon" IconType="TablerIcons.Pencil" />Upravit</a>
+                    <button id="case-delete" type="button" class="btn btn-danger ms-2" @onclick="this.DeleteCase"><Icon CssClass="icon" IconType="TablerIcons.Trash" />Smazat</button>
                 </div>
             }
         </div>
@@ -87,23 +58,12 @@
 <div class="page-body">
     <div class="container-xl">
         <LoadStateView NotFound="this.notFound" NotFoundTitle="Spis nenalezen" Failure="@this.failure" FailureTitle="Spis se nepodařilo načíst" Loaded="this.caseDetail is not null">
-                <DataAnnotationsValidator />
-
                 <div class="ec-layout">
                     <div class="ec-main">
                         <div class="card">
                             <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="TablerIcons.FileText" />Popis</h3></div>
                             <div class="card-body">
-                                @if (this.Edit)
-                                {
-                                    <label class="visually-hidden" for="case-description">Popis</label>
-                                    <InputTextArea id="case-description" class="form-control" rows="5" @bind-Value="this.model.Description" />
-                                    <ValidationMessage For="() => this.model.Description" class="invalid-feedback d-block" />
-                                }
-                                else
-                                {
-                                    <p class="comment-body mb-0">@(string.IsNullOrWhiteSpace(this.caseDetail!.Description) ? "—" : this.caseDetail!.Description)</p>
-                                }
+                                <p class="comment-body mb-0">@(string.IsNullOrWhiteSpace(this.caseDetail!.Description) ? "—" : this.caseDetail!.Description)</p>
                             </div>
                         </div>
 
@@ -119,10 +79,10 @@
                                  ShowPaging="true"
                                  EmptySubtitle="Zatím tu není žádný úkon.">
                             <Actions>
-                                <a href="/cases/@this.CaseId/act/new" class="btn btn-primary" @onclick="this.GoToNewAct" @onclick:preventDefault="this.Edit && this.dirty"><Icon CssClass="icon" IconType="TablerIcons.Plus" />Nový úkon</a>
+                                <a href="/cases/@this.CaseId/act/new" class="btn btn-primary"><Icon CssClass="icon" IconType="TablerIcons.Plus" />Nový úkon</a>
                             </Actions>
                             <EmptyAction>
-                                <a href="/cases/@this.CaseId/act/new" class="btn btn-primary" @onclick="this.GoToNewAct" @onclick:preventDefault="this.Edit && this.dirty"><Icon CssClass="icon" IconType="TablerIcons.Plus" />Založit úkon</a>
+                                <a href="/cases/@this.CaseId/act/new" class="btn btn-primary"><Icon CssClass="icon" IconType="TablerIcons.Plus" />Založit úkon</a>
                             </EmptyAction>
                         </ActList>
 
@@ -144,159 +104,66 @@
                         <div class="card">
                             <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="TablerIcons.ListDetails" />Údaje</h3></div>
                             <div class="card-body d-flex flex-column gap-3">
-                                @if (this.Edit)
-                                {
+                                <div>
+                                    <div class="ec-field-label">Spisová značka</div>
+                                    <div class="ec-mono fw-bold">@this.caseDetail!.CaseNumber</div>
+                                </div>
+                                <div>
+                                    <div class="ec-field-label">Externí spisová značka</div>
+                                    <div class="ec-mono">@(string.IsNullOrWhiteSpace(this.caseDetail!.ExternalCaseNumber) ? "—" : this.caseDetail!.ExternalCaseNumber)</div>
+                                </div>
+                                <div>
+                                    <div class="ec-field-label">Datum spisu</div>
+                                    <div class="ec-num">@DateDisplay.Text(this.caseDetail!.Date)</div>
+                                </div>
+                                <div>
+                                    <div class="ec-field-label">Stav</div>
+                                    <div><Status BackgroundColor="CaseStatusDisplay.Color(this.caseDetail!.Status)" Lite="true">@CaseStatusDisplay.Text(this.caseDetail!.Status)</Status></div>
+                                </div>
+                                <div>
+                                    <div class="ec-field-label">Kontakt</div>
                                     <div>
-                                        <label class="ec-field-label" for="case-number">Spisová značka</label>
-                                        <InputText id="case-number" class="form-control ec-mono" @bind-Value="this.model.CaseNumber" />
-                                        <div class="form-hint">Tvar EC/RRRRMMDD-NNN. Změna data spisu značku nemění.</div>
-                                        <ValidationMessage For="() => this.model.CaseNumber" class="invalid-feedback d-block" />
+                                        @if (this.caseDetail!.Contact is { } contact)
+                                        {
+                                            <a href="/contacts/@contact.ContactId">@contact.Name</a>
+                                        }
+                                        else
+                                        {
+                                            @:—
+                                        }
                                     </div>
-                                    <div>
-                                        <label class="ec-field-label" for="case-external-number">Externí spisová značka</label>
-                                        <InputText id="case-external-number" class="form-control ec-mono" @bind-Value="this.model.ExternalCaseNumber" />
-                                        <ValidationMessage For="() => this.model.ExternalCaseNumber" class="invalid-feedback d-block" />
-                                    </div>
-                                    <div>
-                                        <label class="ec-field-label" for="case-date">Datum spisu</label>
-                                        <InputDate id="case-date" class="form-control" @bind-Value="this.model.Date" />
-                                        <ValidationMessage For="() => this.model.Date" class="invalid-feedback d-block" />
-                                    </div>
-                                    <div>
-                                        <label class="ec-field-label" for="case-status">Stav</label>
-                                        <InputSelect id="case-status" class="form-select" @bind-Value="this.model.Status">
-                                            @foreach (var status in Enum.GetValues<CaseStatus>())
-                                            {
-                                                <option value="@status">@CaseStatusDisplay.Text(status)</option>
-                                            }
-                                        </InputSelect>
-                                        <ValidationMessage For="() => this.model.Status" class="invalid-feedback d-block" />
-                                    </div>
-                                    <div>
-                                        <label class="ec-field-label" for="case-contact">Kontakt</label>
-                                        <ContactPicker InputId="case-contact" Selected="this.model.Contact" SelectedChanged="this.OnContactChanged" />
-                                        <ValidationMessage For="() => this.model.Contact" class="invalid-feedback d-block" />
-                                    </div>
-                                }
-                                else
-                                {
-                                    <div>
-                                        <div class="ec-field-label">Spisová značka</div>
-                                        <div class="ec-mono fw-bold">@this.caseDetail!.CaseNumber</div>
-                                    </div>
-                                    <div>
-                                        <div class="ec-field-label">Externí spisová značka</div>
-                                        <div class="ec-mono">@(string.IsNullOrWhiteSpace(this.caseDetail!.ExternalCaseNumber) ? "—" : this.caseDetail!.ExternalCaseNumber)</div>
-                                    </div>
-                                    <div>
-                                        <div class="ec-field-label">Datum spisu</div>
-                                        <div class="ec-num">@DateDisplay.Text(this.caseDetail!.Date)</div>
-                                    </div>
-                                    <div>
-                                        <div class="ec-field-label">Stav</div>
-                                        <div><Status BackgroundColor="CaseStatusDisplay.Color(this.caseDetail!.Status)" Lite="true">@CaseStatusDisplay.Text(this.caseDetail!.Status)</Status></div>
-                                    </div>
-                                    <div>
-                                        <div class="ec-field-label">Kontakt</div>
-                                        <div>
-                                            @if (this.caseDetail!.Contact is { } contact)
-                                            {
-                                                <a href="/contacts/@contact.ContactId">@contact.Name</a>
-                                            }
-                                            else
-                                            {
-                                                @:—
-                                            }
-                                        </div>
-                                    </div>
-                                }
+                                </div>
                             </div>
                         </div>
 
-                        @if (this.Edit)
-                        {
-                            <div class="card">
-                                <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="TablerIcons.Tag" />Štítky</h3></div>
-                                <div class="card-body">
-                                    <label class="visually-hidden" for="case-labels">Štítky</label>
-                                    <LabelPicker InputId="case-labels" Selected="this.model.Labels" SelectedChanged="this.OnLabelsChanged" />
-                                </div>
-                            </div>
-                        }
-                        else
-                        {
-                            <LabelsCard InputId="case-labels"
-                                        Labels="this.caseDetail!.Labels"
-                                        SaveLabels="this.SaveLabels"
-                                        OwnerGoneError="Spis už neexistuje." />
-                        }
+                        <LabelsCard InputId="case-labels"
+                                    Labels="this.caseDetail!.Labels"
+                                    SaveLabels="this.SaveLabels"
+                                    OwnerGoneError="Spis už neexistuje." />
 
                         <div class="card">
                             <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="TablerIcons.Folders" />Hierarchie</h3></div>
                             <div class="card-body">
-                                @if (this.Edit)
-                                {
-                                    <label class="ec-field-label" for="case-parent">Nadřízený spis</label>
-                                    <div class="mb-3">
-                                        <CasePicker InputId="case-parent" ExcludedCaseId="this.CaseId"
-                                                    Selected="this.model.ParentCase" SelectedChanged="this.OnParentChanged" />
-                                    </div>
-                                }
-                                else
-                                {
-                                    <div class="ec-field-label">Nadřízený spis</div>
-                                    <div class="mb-3">
-                                        @if (this.caseDetail!.ParentCase is { } parent)
-                                        {
-                                            <a href="@($"/cases/{parent.CaseId}")">@parent.CaseNumber — @parent.Title</a>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-secondary">Žádný</span>
-                                        }
-                                    </div>
-                                }
-
-                                <CaseChildrenCard ParentCaseId="this.CaseId" ConfirmNavigation="this.Edit && this.dirty" />
-                            </div>
-                        </div>
-                    </aside>
-
-                    @if (this.Edit)
-                    {
-                        @if (this.error is not null)
-                        {
-                            <div class="ec-savebar-error">
-                                <div class="alert alert-danger mb-0" role="alert"><Icon CssClass="icon me-2" IconType="TablerIcons.AlertTriangle" />@this.error</div>
-                            </div>
-                        }
-
-                        <div class="ec-savebar">
-                            @if (this.dirty)
-                            {
-                                <span class="text-secondary d-none d-lg-inline">Neuložené změny</span>
-                            }
-                            <div class="ec-savebar-actions">
-                                <a href="@($"/cases/{this.CaseId}")" class="btn"><Icon CssClass="icon" IconType="TablerIcons.X" />Zrušit</a>
-                                <button id="case-submit" type="button" class="btn btn-primary" disabled="@this.busy" @onclick="this.SubmitCase">
-                                    @if (this.busy)
+                                <div class="ec-field-label">Nadřízený spis</div>
+                                <div class="mb-3">
+                                    @if (this.caseDetail!.ParentCase is { } parent)
                                     {
-                                        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                                        <a href="@($"/cases/{parent.CaseId}")">@parent.CaseNumber — @parent.Title</a>
                                     }
                                     else
                                     {
-                                        <Icon CssClass="icon" IconType="TablerIcons.DeviceFloppy" />
+                                        <span class="text-secondary">Žádný</span>
                                     }
-                                    Uložit
-                                </button>
+                                </div>
+
+                                <CaseChildrenCard ParentCaseId="this.CaseId" />
                             </div>
                         </div>
-                    }
+                    </aside>
                 </div>
         </LoadStateView>
     </div>
 </div>
-</CascadingValue>
 
 @code {
     private const int ActItems = 20;
@@ -314,59 +181,17 @@
     [Parameter]
     public Guid CaseId { get; set; }
 
-    [Parameter]
-    public bool Edit { get; set; }
-
-    private readonly CaseEditModel model = new();
-
-    private EditContext editContext = null!;
-
     private CaseDetail? caseDetail;
 
     private bool notFound;
 
     private string? failure;
 
-    private string? error;
-
-    private bool busy;
-
-    private bool dirty;
-
     private ActListRequest ActFilter => new() { CaseId = this.CaseId, Take = ActItems };
-
-    protected override void OnInitialized()
-    {
-        this.editContext = new EditContext(this.model);
-        this.editContext.OnFieldChanged += (_, _) => this.MarkDirty();
-    }
 
     protected override Task OnParametersSetAsync()
     {
         return this.LoadCase();
-    }
-
-    private void MarkDirty()
-    {
-        this.dirty = true;
-    }
-
-    private void OnParentChanged(CaseListItem? parentCase)
-    {
-        this.model.ParentCase = parentCase;
-        this.MarkDirty();
-    }
-
-    private void OnContactChanged(ContactListItem? contact)
-    {
-        this.model.Contact = contact;
-        this.MarkDirty();
-    }
-
-    private void OnLabelsChanged(IReadOnlyList<LabelItem> labels)
-    {
-        this.model.Labels = labels;
-        this.MarkDirty();
     }
 
     private async Task LoadCase()
@@ -374,13 +199,10 @@
         this.caseDetail = null;
         this.notFound = false;
         this.failure = null;
-        this.error = null;
-        this.dirty = false;
 
         try
         {
             this.caseDetail = await this.CasesClient.GetCase(this.CaseId, CancellationToken.None);
-            this.model.CopyFrom(CaseEditModel.From(this.caseDetail));
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
         {
@@ -401,7 +223,6 @@
         try
         {
             this.caseDetail = await this.CasesClient.GetCase(this.CaseId, token);
-            this.model.CopyFrom(CaseEditModel.From(this.caseDetail));
 
             this.StateHasChanged();
         }
@@ -453,14 +274,6 @@
         return this.CaseCommentsClient.DeleteCaseComment(this.CaseId, commentId, token);
     }
 
-    private async Task GoToNewAct()
-    {
-        if (this.Edit && this.dirty && !await UnsavedChangesGuard.ConfirmLeave(this.JSRuntime))
-            return;
-
-        this.Navigation.NavigateTo($"/cases/{this.CaseId}/act/new");
-    }
-
     private async Task DeleteCase()
     {
         if (this.caseDetail is null)
@@ -472,58 +285,5 @@
                 .Set(component => component.Case, this.caseDetail)
                 .Set(component => component.OnDeleted, EventCallback.Factory.Create(this, () => this.Navigation.NavigateTo("/cases"))),
             new ModalOptions { Fullscreen = ModalFullscreen.BelowLarge });
-    }
-
-    private async Task SubmitCase()
-    {
-        if (!this.editContext.Validate())
-            return;
-
-        this.busy = true;
-        this.error = null;
-
-        try
-        {
-            var request = new CaseEditRequest
-            {
-                ParentCaseId = this.model.ParentCase?.CaseId,
-                CaseNumber = this.model.CaseNumber,
-                ExternalCaseNumber = this.model.ExternalCaseNumber,
-                Date = this.model.Date,
-                Title = this.model.Title,
-                Description = this.model.Description,
-                ContactId = this.model.Contact?.ContactId,
-                LabelIds = [.. this.model.Labels.Select(static label => label.LabelId)],
-                Status = this.model.Status,
-            };
-
-            await this.CasesClient.EditCase(this.CaseId, request, CancellationToken.None);
-
-            this.Navigation.NavigateTo($"/cases/{this.CaseId}");
-        }
-        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
-        {
-            this.error = exception.ResponseBody?.Contains(CaseProblems.InvalidParent, StringComparison.Ordinal) == true
-                ? "Nadřízeným spisem nemůže být tento spis ani spis, který je mu podřízený."
-                : "Spisovou značku už nese jiný spis. Zvolte jinou.";
-        }
-        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.BadRequest)
-        {
-            this.error = "Spisová značka musí mít tvar EC/RRRRMMDD-NNN, například EC/20260807-001.";
-        }
-        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
-        {
-            this.error = "Spis už neexistuje.";
-        }
-        catch (Exception exception) when (exception is ApiException or HttpRequestException)
-        {
-            this.Logger.LogWarning(exception, "Editing the case failed");
-
-            this.error = "Spis se nepodařilo uložit. Zkontrolujte zadané údaje a zkuste to znovu.";
-        }
-        finally
-        {
-            this.busy = false;
-        }
     }
 }
