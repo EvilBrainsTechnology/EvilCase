@@ -2,10 +2,7 @@
 @using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Cases
 @using EvilBrains.EvilCase.App.Models
-@using Microsoft.JSInterop
 @inject ICasesClient CasesClient
-@inject NavigationManager Navigation
-@inject IJSRuntime JSRuntime
 @inject ILogger<CaseChildrenCard> Logger
 
 @* The sidebar's Hierarchie section: parent case link, then the child list as compact full-width rows. *@
@@ -45,9 +42,7 @@ else
     }
 }
 
-<a href="@($"/cases/new?parent={ParentCaseId}")" class="btn btn-outline-secondary w-100 mt-2" @onclick="this.GoToNewChildCase" @onclick:preventDefault="this.ConfirmNavigation">
-    <Icon CssClass="icon" IconType="TablerIcons.Plus" />Nový podřízený spis
-</a>
+<a href="@($"/cases/new?parent={this.ParentCaseId}")" class="btn btn-outline-secondary w-100 mt-2"><Icon CssClass="icon" IconType="TablerIcons.Plus" />Nový podřízený spis</a>
 
 @code {
     /// <summary>
@@ -57,13 +52,6 @@ else
 
     [Parameter, EditorRequired]
     public required Guid ParentCaseId { get; set; }
-
-    /// <summary>
-    /// True while the case's edit form holds unsaved changes: Nový podřízený spis confirms
-    /// before it navigates away and discards them.
-    /// </summary>
-    [Parameter]
-    public bool ConfirmNavigation { get; set; }
 
     private IReadOnlyList<CaseListItem>? children;
 
@@ -97,13 +85,5 @@ else
 
             this.failure = "Podřízené spisy se nepodařilo načíst.";
         }
-    }
-
-    private async Task GoToNewChildCase()
-    {
-        if (this.ConfirmNavigation && !await UnsavedChangesGuard.ConfirmLeave(this.JSRuntime))
-            return;
-
-        this.Navigation.NavigateTo($"/cases/new?parent={this.ParentCaseId}");
     }
 }

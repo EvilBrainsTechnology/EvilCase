@@ -1,8 +1,291 @@
 @page "/cases/{CaseId:guid}/edit"
+@using System.Net
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.Cases
+@using EvilBrains.EvilCase.Api.Contract.Contacts
+@using EvilBrains.EvilCase.Api.Contract.Labels
+@using EvilBrains.EvilCase.Domain.Cases
+@inject ICasesClient CasesClient
+@inject NavigationManager Navigation
+@inject ILogger<EditCase> Logger
 
-<Case CaseId="this.CaseId" Edit="true" />
+<PageTitle>@(this.caseDetail is null ? "Upravit spis" : this.caseDetail.CaseNumber) – EvilCase</PageTitle>
+
+<div class="ec-page">
+    <EcPageHeader Title="Upravit spis" Breadcrumbs="this.Crumbs" />
+
+    @if (this.notFound)
+    {
+        <EcCard><p class="ec-state">Spis nenalezen.</p></EcCard>
+    }
+    else if (this.failure is not null)
+    {
+        <EcCard><p class="ec-state">@this.failure</p></EcCard>
+    }
+    else if (this.caseDetail is null)
+    {
+        <EcCard><p class="ec-state">Načítám…</p></EcCard>
+    }
+    else
+    {
+        <div class="ec-form-layout">
+            <CascadingValue Value="this.editContext">
+                <DataAnnotationsValidator />
+                <EcCard>
+                    <ChildContent>
+                        <div class="ec-form">
+                            <EcField Label="Název spisu" Required ControlId="case-title" Hint="Nejvýše 256 znaků">
+                                <ChildContent>
+                                    <InputText id="case-title" class="ec-input" @bind-Value="this.model.Title" />
+                                </ChildContent>
+                                <Error><ValidationMessage For="() => this.model.Title" /></Error>
+                            </EcField>
+
+                            <div class="ec-form-row">
+                                <EcField Label="Datum spisu" Required ControlId="case-date">
+                                    <ChildContent>
+                                        <InputDate id="case-date" class="ec-input" @bind-Value="this.model.Date" />
+                                    </ChildContent>
+                                    <Error><ValidationMessage For="() => this.model.Date" /></Error>
+                                </EcField>
+                                <EcField Label="Stav" Required ControlId="case-status">
+                                    <ChildContent>
+                                        <InputSelect id="case-status" class="ec-select" @bind-Value="this.model.Status">
+                                            @foreach (var status in Enum.GetValues<CaseStatus>())
+                                            {
+                                                <option value="@status">@CaseStatusDisplay.Text(status)</option>
+                                            }
+                                        </InputSelect>
+                                    </ChildContent>
+                                    <Error><ValidationMessage For="() => this.model.Status" /></Error>
+                                </EcField>
+                                <EcField Label="Externí spisová značka" ControlId="case-external-number">
+                                    <ChildContent>
+                                        <InputText id="case-external-number" class="ec-input ec-input-mono" placeholder="Značka, kterou spisu dal jiný úřad" @bind-Value="this.model.ExternalCaseNumber" />
+                                    </ChildContent>
+                                    <Error><ValidationMessage For="() => this.model.ExternalCaseNumber" /></Error>
+                                </EcField>
+                            </div>
+
+                            <div class="ec-form-row">
+                                <EcField Label="Spisová značka" Required ControlId="case-number" Hint="Tvar EC/RRRRMMDD-NNN. Změna data spisu značku nemění.">
+                                    <ChildContent>
+                                        <InputText id="case-number" class="ec-input ec-input-mono" @bind-Value="this.model.CaseNumber" />
+                                    </ChildContent>
+                                    <Error><ValidationMessage For="() => this.model.CaseNumber" /></Error>
+                                </EcField>
+                            </div>
+
+                            <EcField Label="Štítky" ControlId="case-labels">
+                                <ChildContent>
+                                    <LabelField InputId="case-labels" Selected="this.model.Labels" SelectedChanged="this.OnLabelsChanged" />
+                                </ChildContent>
+                            </EcField>
+
+                            <EcField Label="Kontakt protistrany" ControlId="case-contact">
+                                <ChildContent>
+                                    <ContactField InputId="case-contact" Selected="this.model.Contact" SelectedChanged="this.OnContactChanged" />
+                                </ChildContent>
+                            </EcField>
+
+                            <EcField Label="Popis" ControlId="case-description" Hint="Nejvýše 4000 znaků. Popis se ukazuje hned pod názvem spisu.">
+                                <ChildContent>
+                                    <InputTextArea id="case-description" class="ec-textarea" rows="6" @bind-Value="this.model.Description" />
+                                </ChildContent>
+                                <Error><ValidationMessage For="() => this.model.Description" /></Error>
+                            </EcField>
+
+                            @if (this.error is not null)
+                            {
+                                <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.error</div>
+                            }
+                        </div>
+                    </ChildContent>
+                    <Footer>
+                        <div class="ec-form-actions">
+                            <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Form" Icon="@AppIcons.X" OnClick="this.Cancel">Zrušit</EcButton>
+                            <EcButton Variant="EcButtonVariant.Primary" Size="EcButtonSize.Form" Icon="@AppIcons.DeviceFloppy" Disabled="@this.busy" OnClick="this.SubmitCase">Uložit</EcButton>
+                        </div>
+                    </Footer>
+                </EcCard>
+            </CascadingValue>
+
+            <aside class="ec-form-aside">
+                <EcCard Title="Nadřízený spis">
+                    <EcCombobox TItem="CaseListItem" InputId="case-parent" Placeholder="Hledat ve spisové značce a názvu"
+                                SelectedLabel="Vybraný nadřízený spis" EmptyText="@this.parentEmptyText"
+                                ItemText="@(static item => $"{item.CaseNumber} — {item.Title}")" Search="this.SearchParentCases"
+                                Selected="this.model.ParentCase" SelectedChanged="this.OnParentChanged">
+                        <ItemTemplate>
+                            <span class="ec-combobox-option-mono">@context.CaseNumber</span>
+                            <span>@context.Title</span>
+                        </ItemTemplate>
+                    </EcCombobox>
+                </EcCard>
+            </aside>
+        </div>
+    }
+</div>
 
 @code {
+    private const int Matches = 8;
+
     [Parameter]
     public Guid CaseId { get; set; }
+
+    private readonly CaseEditModel model = new();
+
+    private EditContext editContext = null!;
+
+    private CaseDetail? caseDetail;
+
+    private bool notFound;
+
+    private string? failure;
+
+    private string? error;
+
+    private bool busy;
+
+    private string parentEmptyText = "Žádný spis neodpovídá.";
+
+    private IReadOnlyList<EcCrumb> Crumbs => this.caseDetail is null
+        ? [new EcCrumb("Spisy", "/cases")]
+        : [new EcCrumb("Spisy", "/cases"), new EcCrumb(this.caseDetail.Title, $"/cases/{this.CaseId}"), new EcCrumb("Upravit", null)];
+
+    protected override void OnInitialized()
+    {
+        this.editContext = new EditContext(this.model);
+    }
+
+    protected override Task OnParametersSetAsync()
+    {
+        return this.LoadCase();
+    }
+
+    private void OnParentChanged(CaseListItem? parentCase)
+    {
+        this.model.ParentCase = parentCase;
+    }
+
+    private void OnContactChanged(ContactListItem? contact)
+    {
+        this.model.Contact = contact;
+    }
+
+    private void OnLabelsChanged(IReadOnlyList<LabelItem> labels)
+    {
+        this.model.Labels = labels;
+    }
+
+    private void Cancel()
+    {
+        this.Navigation.NavigateTo($"/cases/{this.CaseId}");
+    }
+
+    private async Task LoadCase()
+    {
+        this.caseDetail = null;
+        this.notFound = false;
+        this.failure = null;
+        this.error = null;
+
+        try
+        {
+            this.caseDetail = await this.CasesClient.GetCase(this.CaseId, CancellationToken.None);
+            this.model.CopyFrom(CaseEditModel.From(this.caseDetail));
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+        {
+            this.notFound = true;
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Loading the case detail failed");
+
+            this.failure = "Spis se nepodařilo načíst. Zkuste to za chvíli znovu.";
+        }
+    }
+
+    private async Task<IReadOnlyList<CaseListItem>> SearchParentCases(string search, CancellationToken token)
+    {
+        var request = new CaseListRequest
+        {
+            Search = search,
+            Status = CaseStatusFilter.All,
+            Scope = CaseListScope.All,
+            Take = Matches,
+        };
+
+        try
+        {
+            var response = await this.CasesClient.ListCases(request, token);
+
+            this.parentEmptyText = "Žádný spis neodpovídá.";
+
+            return [.. response.Items.Where(item => item.CaseId != this.CaseId)];
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Loading the parent case matches failed");
+
+            this.parentEmptyText = "Hledání spisů se nezdařilo. Zkuste to za chvíli znovu.";
+
+            return [];
+        }
+    }
+
+    private async Task SubmitCase()
+    {
+        if (!this.editContext.Validate())
+            return;
+
+        this.busy = true;
+        this.error = null;
+
+        try
+        {
+            var request = new CaseEditRequest
+            {
+                ParentCaseId = this.model.ParentCase?.CaseId,
+                CaseNumber = this.model.CaseNumber,
+                ExternalCaseNumber = this.model.ExternalCaseNumber,
+                Date = this.model.Date,
+                Title = this.model.Title,
+                Description = this.model.Description,
+                ContactId = this.model.Contact?.ContactId,
+                LabelIds = [.. this.model.Labels.Select(static label => label.LabelId)],
+                Status = this.model.Status,
+            };
+
+            await this.CasesClient.EditCase(this.CaseId, request, CancellationToken.None);
+
+            this.Navigation.NavigateTo($"/cases/{this.CaseId}");
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
+        {
+            this.error = exception.ResponseBody?.Contains(CaseProblems.InvalidParent, StringComparison.Ordinal) == true
+                ? "Nadřízeným spisem nemůže být tento spis ani spis, který je mu podřízený."
+                : "Spisovou značku už nese jiný spis. Zvolte jinou.";
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.BadRequest)
+        {
+            this.error = "Spisová značka musí mít tvar EC/RRRRMMDD-NNN, například EC/20260807-001.";
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+        {
+            this.error = "Spis už neexistuje.";
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Editing the case failed");
+
+            this.error = "Spis se nepodařilo uložit. Zkontrolujte zadané údaje a zkuste to znovu.";
+        }
+        finally
+        {
+            this.busy = false;
+        }
+    }
 }

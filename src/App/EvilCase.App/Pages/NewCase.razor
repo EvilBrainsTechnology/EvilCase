@@ -9,122 +9,95 @@
 @inject NavigationManager Navigation
 @inject ILogger<NewCase> Logger
 
-<PageTitle>@(this.ParentCaseId is null ? "Nový spis" : "Nový podřízený spis") – EvilCase</PageTitle>
+<PageTitle>@this.Heading – EvilCase</PageTitle>
 
-<div class="page-header d-print-none">
-    <div class="container-xl">
-        <h2 class="page-title">@(this.ParentCaseId is null ? "Nový spis" : "Nový podřízený spis")</h2>
-    </div>
-</div>
+<div class="ec-page">
+    <EcPageHeader Title="@this.Heading" Breadcrumbs="this.Crumbs" />
 
-<div class="page-body">
-    <div class="container-xl">
-        @if (this.parentNotFound)
-        {
-            <div class="empty">
-                <div class="empty-icon"><Icon IconType="TablerIcons.AlertTriangle" /></div>
-                <p class="empty-title">Nadřízený spis nenalezen</p>
-            </div>
-        }
-        else if (this.failure is not null)
-        {
-            <div class="empty">
-                <div class="empty-icon"><Icon IconType="TablerIcons.AlertTriangle" /></div>
-                <p class="empty-title">Nadřízený spis se nepodařilo načíst</p>
-                <p class="empty-subtitle text-secondary">@this.failure</p>
-            </div>
-        }
-        else
-        {
-            <EditForm Model="this.model" OnValidSubmit="this.SubmitCase">
+    @if (this.parentNotFound)
+    {
+        <EcCard><p class="ec-state">Nadřízený spis nenalezen.</p></EcCard>
+    }
+    else if (this.failure is not null)
+    {
+        <EcCard><p class="ec-state">@this.failure</p></EcCard>
+    }
+    else
+    {
+        <div class="ec-form-layout">
+            <CascadingValue Value="this.editContext">
                 <DataAnnotationsValidator />
+                <EcCard>
+                    <ChildContent>
+                        <div class="ec-form">
+                            <EcField Label="Název spisu" Required ControlId="case-title" Hint="Nejvýše 256 znaků">
+                                <ChildContent>
+                                    <InputText id="case-title" class="ec-input" autofocus @bind-Value="this.model.Title" />
+                                </ChildContent>
+                                <Error><ValidationMessage For="() => this.model.Title" /></Error>
+                            </EcField>
 
-                <div class="ec-layout">
-                    <div class="ec-main">
-                        <div>
-                            <label class="visually-hidden" for="case-title">Název</label>
-                            <input id="case-title" class="form-control ec-title-input" placeholder="Název spisu" autofocus @bind="this.model.Title" />
-                            <ValidationMessage For="() => this.model.Title" class="invalid-feedback d-block" />
-                        </div>
-
-                        <div class="card">
-                            <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="TablerIcons.FileText" />Popis</h3></div>
-                            <div class="card-body">
-                                <label class="visually-hidden" for="case-description">Popis</label>
-                                <InputTextArea id="case-description" class="form-control" rows="8" @bind-Value="this.model.Description" />
-                                <ValidationMessage For="() => this.model.Description" class="invalid-feedback d-block" />
+                            <div class="ec-form-row">
+                                <EcField Label="Datum spisu" Required ControlId="case-date">
+                                    <ChildContent>
+                                        <InputDate id="case-date" class="ec-input" @bind-Value="this.model.Date" />
+                                    </ChildContent>
+                                    <Error><ValidationMessage For="() => this.model.Date" /></Error>
+                                </EcField>
                             </div>
-                        </div>
-                    </div>
 
-                    <aside class="ec-sidebar d-flex flex-column gap-3">
-                        <div class="card">
-                            <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="TablerIcons.ListDetails" />Údaje</h3></div>
-                            <div class="card-body d-flex flex-column gap-3">
-                                <div>
-                                    <span class="ec-field-label">Spisová značka</span>
-                                    <div class="text-secondary">Přidělí se po založení.</div>
-                                </div>
-                                <div>
-                                    <label class="ec-field-label" for="case-date">Datum spisu</label>
-                                    <InputDate id="case-date" class="form-control" @bind-Value="this.model.Date" />
-                                    <ValidationMessage For="() => this.model.Date" class="invalid-feedback d-block" />
-                                </div>
-                                <div>
-                                    <label class="ec-field-label" for="case-contact">Kontakt</label>
-                                    <ContactPicker InputId="case-contact" @bind-Selected="this.model.Contact" />
-                                    <ValidationMessage For="() => this.model.Contact" class="invalid-feedback d-block" />
-                                </div>
-                            </div>
-                        </div>
+                            <EcField Label="Štítky" ControlId="case-labels">
+                                <ChildContent>
+                                    <LabelField InputId="case-labels" Selected="this.model.Labels" SelectedChanged="this.OnLabelsChanged" />
+                                </ChildContent>
+                            </EcField>
 
-                        <div class="card">
-                            <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="TablerIcons.Tag" />Štítky</h3></div>
-                            <div class="card-body">
-                                <label class="visually-hidden" for="case-labels">Štítky</label>
-                                <LabelPicker InputId="case-labels" @bind-Selected="this.model.Labels" />
-                            </div>
-                        </div>
+                            <EcField Label="Kontakt protistrany" ControlId="case-contact">
+                                <ChildContent>
+                                    <ContactField InputId="case-contact" Selected="this.model.Contact" SelectedChanged="this.OnContactChanged" />
+                                </ChildContent>
+                            </EcField>
 
-                        @if (this.parentCase is not null)
-                        {
-                            <div class="card">
-                                <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="TablerIcons.Folders" />Hierarchie</h3></div>
-                                <div class="card-body">
-                                    <div class="ec-field-label">Nadřízený spis</div>
-                                    <a href="@($"/cases/{this.parentCase.CaseId}")">@this.parentCase.CaseNumber — @this.parentCase.Title</a>
-                                </div>
-                            </div>
-                        }
-                    </aside>
+                            <EcField Label="Popis" ControlId="case-description" Hint="Nejvýše 4000 znaků. Popis se ukazuje hned pod názvem spisu.">
+                                <ChildContent>
+                                    <InputTextArea id="case-description" class="ec-textarea" rows="6" @bind-Value="this.model.Description" />
+                                </ChildContent>
+                                <Error><ValidationMessage For="() => this.model.Description" /></Error>
+                            </EcField>
 
-                    <div class="ec-savebar">
-                        <div class="ec-savebar-actions">
-                            <a href="@(this.ParentCaseId is { } parentId ? $"/cases/{parentId}" : "/cases")" class="btn"><Icon CssClass="icon" IconType="TablerIcons.X" />Zrušit</a>
-                            <button id="case-submit" type="submit" class="btn btn-primary" disabled="@this.busy">
-                                @if (this.busy)
-                                {
-                                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-                                }
-                                else
-                                {
-                                    <Icon CssClass="icon" IconType="TablerIcons.Plus" />
-                                }
-                                Založit spis
-                            </button>
+                            @if (this.error is not null)
+                            {
+                                <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.error</div>
+                            }
                         </div>
-                    </div>
+                    </ChildContent>
+                    <Footer>
+                        <span class="ec-form-note">Spisovou značku přidělí aplikace při uložení.</span>
+                        <div class="ec-form-actions">
+                            <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Form" Icon="@AppIcons.X" OnClick="this.Cancel">Zrušit</EcButton>
+                            <EcButton Variant="EcButtonVariant.Primary" Size="EcButtonSize.Form" Icon="@AppIcons.Check" Disabled="@this.busy" OnClick="this.SubmitCase">Založit spis</EcButton>
+                        </div>
+                    </Footer>
+                </EcCard>
+            </CascadingValue>
 
-                    @if (this.error is not null)
-                    {
-                        <div class="ec-savebar-error">
-                            <div class="alert alert-danger mb-0" role="alert"><Icon CssClass="icon me-2" IconType="TablerIcons.AlertTriangle" />@this.error</div>
-                        </div>
-                    }
-                </div>
-            </EditForm>
-        }
-    </div>
+            <aside class="ec-form-aside">
+                @if (this.parentCase is not null)
+                {
+                    <EcCard Title="Nadřízený spis">
+                        <a class="ec-parent-link" href="/cases/@this.parentCase.CaseId">
+                            <span>@this.parentCase.Title</span>
+                            <span class="ec-parent-number">@this.parentCase.CaseNumber</span>
+                        </a>
+                        <p class="ec-card-text">Zakládáte podřízený spis. Přiřadit ho jinam jde až v editaci spisu.</p>
+                    </EcCard>
+                }
+                <EcCard Title="Co přijde po uložení">
+                    <p class="ec-card-text">Spis se otevře na svém detailu, kde rovnou přidáte první úkon a jeho dokumenty. Soubory a komentáře spisu jsou v pravém sloupci detailu.</p>
+                </EcCard>
+            </aside>
+        </div>
+    }
 </div>
 
 @code {
@@ -133,6 +106,8 @@
     public Guid? ParentCaseId { get; set; }
 
     private readonly NewCaseModel model = new() { Date = DateOnly.FromDateTime(DateTime.Now) };
+
+    private EditContext editContext = null!;
 
     private CaseDetail? parentCase;
 
@@ -143,6 +118,15 @@
     private string? error;
 
     private bool busy;
+
+    private string Heading => this.ParentCaseId is null ? "Nový spis" : "Nový podřízený spis";
+
+    private IReadOnlyList<EcCrumb> Crumbs => [new EcCrumb("Spisy", "/cases"), new EcCrumb(this.Heading, null)];
+
+    protected override void OnInitialized()
+    {
+        this.editContext = new EditContext(this.model);
+    }
 
     protected override async Task OnParametersSetAsync()
     {
@@ -169,8 +153,26 @@
         }
     }
 
+    private void OnLabelsChanged(IReadOnlyList<LabelItem> labels)
+    {
+        this.model.Labels = labels;
+    }
+
+    private void OnContactChanged(ContactListItem? contact)
+    {
+        this.model.Contact = contact;
+    }
+
+    private void Cancel()
+    {
+        this.Navigation.NavigateTo(this.ParentCaseId is { } parentId ? $"/cases/{parentId}" : "/cases");
+    }
+
     private async Task SubmitCase()
     {
+        if (!this.editContext.Validate())
+            return;
+
         this.busy = true;
         this.error = null;
 
