@@ -1,0 +1,25 @@
+<span class="@this.CssClass">
+    <EcIcon Paths="@AppIcons.FileText" Size="EcIconSize.Small" />@FileExtensionDisplay.Text(this.FileName)
+</span>
+
+@code {
+    [Parameter, EditorRequired]
+    public required string FileName { get; set; }
+
+    private string CssClass
+    {
+        get
+        {
+            var tone = Path.GetExtension(this.FileName).ToLowerInvariant() switch
+            {
+                ".pdf" => "ec-file-chip-pdf",
+                ".doc" or ".docx" or ".odt" or ".rtf" or ".txt" or ".md" => "ec-file-chip-document",
+                ".xls" or ".xlsx" or ".ods" or ".csv" => "ec-file-chip-sheet",
+                ".png" or ".jpg" or ".jpeg" or ".gif" or ".webp" or ".heic" or ".tif" or ".tiff" => "ec-file-chip-image",
+                _ => "ec-file-chip-other",
+            };
+
+            return $"ec-file-chip {tone}";
+        }
+    }
+}

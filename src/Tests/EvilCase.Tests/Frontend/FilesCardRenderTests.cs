@@ -29,6 +29,7 @@ public class FilesCardRenderTests
         ctx.Services.AddSingleton(Substitute.For<IModalService>());
 
         var component = ctx.Render<FilesCard>(parameters => parameters
+            .Add(static card => card.Title, "Soubory spisu")
             .Add(
                 static card => card.LoadFiles,
                 _ =>
@@ -77,6 +78,7 @@ public class FilesCardRenderTests
         ctx.Services.AddSingleton(Substitute.For<IModalService>());
 
         var component = ctx.Render<FilesCard>(parameters => parameters
+            .Add(static card => card.Title, "Soubory spisu")
             .Add(
                 static card => card.LoadFiles,
                 _ =>
@@ -110,8 +112,37 @@ public class FilesCardRenderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(uploaded, Is.Empty, "a drop carrying no file starts no upload");
-            Assert.That(component.FindAll(".alert-danger"), Is.Empty, "a drop carrying no file reports no failure");
+            Assert.That(component.FindAll(".ec-alert"), Is.Empty, "a drop carrying no file reports no failure");
         }
+    }
+
+    [Test]
+    public void AFinishedBatchLeavesAFreshInputBehind()
+    {
+        using var ctx = new BunitContext();
+
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        ctx.Services.AddSingleton<IJSRuntime>(new PropertyReadingJSRuntime(ctx.JSInterop.JSRuntime));
+
+        ctx.Services.AddSingleton<ILogger<FilesCard>>(new CapturingLogger<FilesCard>());
+        ctx.Services.AddSingleton(Substitute.For<IModalService>());
+
+        var component = ctx.Render<FilesCard>(static parameters => parameters
+            .Add(static card => card.Title, "Soubory spisu")
+            .Add(static card => card.LoadFiles, static (_) => Task.FromResult<IReadOnlyList<FileListItem>>([]))
+            .Add(static card => card.UploadFile, static (_, _) => Task.CompletedTask)
+            .Add(static card => card.DownloadFile, static (_, _) => Task.CompletedTask)
+            .Add(static card => card.DeleteFile, static (_, _) => Task.CompletedTask)
+            .Add(static card => card.OwnerGoneError, "spis už neexistuje."));
+
+        var before = component.FindComponent<InputFile>().Instance;
+
+        component.FindComponent<InputFile>().UploadFiles(InputFileContent.CreateFromText("a", "a.txt"));
+
+        component.WaitForAssertion(() => Assert.That(
+            component.FindComponent<InputFile>().Instance,
+            Is.Not.SameAs(before),
+            "a browser raises no change event for a file already in the input, so picking the same file again needs a fresh one"));
     }
 
     [Test]
@@ -125,6 +156,7 @@ public class FilesCardRenderTests
         ctx.Services.AddSingleton(Substitute.For<IModalService>());
 
         var component = ctx.Render<FilesCard>(static parameters => parameters
+            .Add(static card => card.Title, "Soubory spisu")
             .Add(static card => card.LoadFiles, static (_) => Task.FromResult<IReadOnlyList<FileListItem>>([]))
             .Add(static card => card.UploadFile, static (_, _) => Task.CompletedTask)
             .Add(static card => card.DownloadFile, static (_, _) => Task.CompletedTask)
@@ -132,8 +164,176 @@ public class FilesCardRenderTests
             .Add(static card => card.OwnerGoneError, "spis už neexistuje."));
 
         // The drop zone hands a drop to the first file input inside its own div and nowhere else.
-        var dropZone = component.Find("div.card.ec-dropcard");
+        var dropZone = component.Find("div.ec-file-card");
 
         Assert.That(dropZone.QuerySelector("input[type=file]"), Is.Not.Null, "the drop target holds the input a drop is handed to");
+    }
+
+    [Test]
+    public void TheUploadButtonOpensTheInputADropGoesTo()
+    {
+        using var ctx = new BunitContext();
+
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        ctx.Services.AddSingleton<IJSRuntime>(new PropertyReadingJSRuntime(ctx.JSInterop.JSRuntime));
+
+        ctx.Services.AddSingleton(Substitute.For<IModalService>());
+
+        var component = ctx.Render<FilesCard>(static parameters => parameters
+            .Add(static card => card.Title, "Soubory spisu")
+            .Add(static card => card.LoadFiles, static (_) => Task.FromResult<IReadOnlyList<FileListItem>>([]))
+            .Add(static card => card.UploadFile, static (_, _) => Task.CompletedTask)
+            .Add(static card => card.DownloadFile, static (_, _) => Task.CompletedTask)
+            .Add(static card => card.DeleteFile, static (_, _) => Task.CompletedTask)
+            .Add(static card => card.OwnerGoneError, "spis už neexistuje."));
+
+        Assert.That(
+            component.Find("label.ec-file-upload").GetAttribute("for"),
+            Is.EqualTo(component.Find("input[type=file]").Id),
+            "a picked and a dropped file take one input");
+    }
+
+    [Test]
+    public void TheCardNamesWhatItBelongsTo()
+    {
+        using var ctx = new BunitContext();
+
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        ctx.Services.AddSingleton<IJSRuntime>(new PropertyReadingJSRuntime(ctx.JSInterop.JSRuntime));
+
+        ctx.Services.AddSingleton(Substitute.For<IModalService>());
+
+        var component = ctx.Render<FilesCard>(static parameters => parameters
+            .Add(static card => card.Title, "Soubory úkonu")
+            .Add(static card => card.LoadFiles, static (_) => Task.FromResult<IReadOnlyList<FileListItem>>([]))
+            .Add(static card => card.UploadFile, static (_, _) => Task.CompletedTask)
+            .Add(static card => card.DownloadFile, static (_, _) => Task.CompletedTask)
+            .Add(static card => card.DeleteFile, static (_, _) => Task.CompletedTask)
+            .Add(static card => card.OwnerGoneError, "úkon už neexistuje."));
+
+        Assert.That(component.Find(".ec-card-title").TextContent.Trim(), Is.EqualTo("Soubory úkonu"));
+    }
+
+    [Test]
+    public void AnEmptyListShowsTheEmptyStateAndNoFileRow()
+    {
+        using var ctx = new BunitContext();
+
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        ctx.Services.AddSingleton<IJSRuntime>(new PropertyReadingJSRuntime(ctx.JSInterop.JSRuntime));
+
+        ctx.Services.AddSingleton(Substitute.For<IModalService>());
+
+        var component = ctx.Render<FilesCard>(static parameters => parameters
+            .Add(static card => card.Title, "Soubory spisu")
+            .Add(static card => card.LoadFiles, static (_) => Task.FromResult<IReadOnlyList<FileListItem>>([]))
+            .Add(static card => card.UploadFile, static (_, _) => Task.CompletedTask)
+            .Add(static card => card.DownloadFile, static (_, _) => Task.CompletedTask)
+            .Add(static card => card.DeleteFile, static (_, _) => Task.CompletedTask)
+            .Add(static card => card.OwnerGoneError, "spis už neexistuje."));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.Find(".ec-empty-text").TextContent, Is.EqualTo("Zatím tu nejsou žádné soubory."));
+            Assert.That(component.FindAll(".ec-file-row"), Is.Empty);
+        }
+    }
+
+    [Test]
+    public void AFileRowShowsItsTypeAndDownloadsOnClick()
+    {
+        using var ctx = new BunitContext();
+
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        ctx.Services.AddSingleton<IJSRuntime>(new PropertyReadingJSRuntime(ctx.JSInterop.JSRuntime));
+
+        ctx.Services.AddSingleton(Substitute.For<IModalService>());
+
+        var file = new FileListItem
+        {
+            FileId = Guid.NewGuid(),
+            FileName = "Rozhodnutí o přestupku.pdf",
+            SizeBytes = 1024,
+            Created = new DateTime(2025, 9, 2, 10, 0, 0, DateTimeKind.Utc),
+        };
+
+        var downloads = 0;
+
+        var component = ctx.Render<FilesCard>(parameters => parameters
+            .Add(static card => card.Title, "Soubory spisu")
+            .Add(static card => card.LoadFiles, _ => Task.FromResult<IReadOnlyList<FileListItem>>([file]))
+            .Add(static card => card.UploadFile, static (_, _) => Task.CompletedTask)
+            .Add(
+                static card => card.DownloadFile,
+                (_, _) =>
+                {
+                    downloads++;
+
+                    return Task.CompletedTask;
+                })
+            .Add(static card => card.DeleteFile, static (_, _) => Task.CompletedTask)
+            .Add(static card => card.OwnerGoneError, "spis už neexistuje."));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.Find(".ec-file-chip").TextContent.Trim(), Is.EqualTo("PDF"));
+            Assert.That(
+                component.Find("button.ec-file-open").GetAttribute("aria-label"),
+                Is.EqualTo("Stáhnout Rozhodnutí o přestupku.pdf"));
+        }
+
+        component.Find("button.ec-file-open").Click();
+
+        Assert.That(downloads, Is.EqualTo(1));
+    }
+
+    [Test]
+    public void AFailedListShowsTheErrorAndRetryingReloads()
+    {
+        using var ctx = new BunitContext();
+
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        ctx.Services.AddSingleton<IJSRuntime>(new PropertyReadingJSRuntime(ctx.JSInterop.JSRuntime));
+
+        ctx.Services.AddSingleton(Substitute.For<IModalService>());
+
+        var file = new FileListItem
+        {
+            FileId = Guid.NewGuid(),
+            FileName = "a.pdf",
+            SizeBytes = 1024,
+            Created = new DateTime(2025, 9, 2, 10, 0, 0, DateTimeKind.Utc),
+        };
+
+        var calls = 0;
+
+        var component = ctx.Render<FilesCard>(parameters => parameters
+            .Add(static card => card.Title, "Soubory spisu")
+            .Add(
+                static card => card.LoadFiles,
+                _ =>
+                {
+                    calls++;
+
+                    if (calls == 1)
+                        throw new HttpRequestException();
+
+                    return Task.FromResult<IReadOnlyList<FileListItem>>([file]);
+                })
+            .Add(static card => card.UploadFile, static (_, _) => Task.CompletedTask)
+            .Add(static card => card.DownloadFile, static (_, _) => Task.CompletedTask)
+            .Add(static card => card.DeleteFile, static (_, _) => Task.CompletedTask)
+            .Add(static card => card.OwnerGoneError, "spis už neexistuje."));
+
+        Assert.That(
+            component.Find(".ec-card-error .ec-alert").TextContent,
+            Does.Contain("Soubory se nepodařilo načíst"));
+
+        component.Find(".ec-card-error button").Click();
+
+        component.WaitForAssertion(() => Assert.That(
+            component.FindAll(".ec-file-row"),
+            Has.Count.EqualTo(1),
+            "the retry reloads the list"));
     }
 }

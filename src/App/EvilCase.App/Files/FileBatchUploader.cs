@@ -8,14 +8,14 @@ using Microsoft.JSInterop;
 namespace EvilBrains.EvilCase.App.Files;
 
 /// <summary>
-/// The upload loop shared by the files card's card-wide drop and the upload modal's picker:
-/// enforces the batch and per-file size limits and turns a failure into a Czech message.
+/// The files card's upload loop: enforces the batch and per-file size limits and turns a failure
+/// into a Czech message.
 /// </summary>
 internal static class FileBatchUploader
 {
     public const int MaxBatchFiles = 100;
 
-    public static async Task<bool> Run(
+    public static async Task Run(
         InputFileChangeEventArgs args,
         Func<IBrowserFile, CancellationToken, Task> uploadFile,
         string ownerGoneError,
@@ -27,10 +27,9 @@ internal static class FileBatchUploader
         {
             failures.Add($"Najednou lze nahrát nejvýše {MaxBatchFiles} souborů.");
 
-            return false;
+            return;
         }
 
-        var uploadedAny = false;
         var index = 0;
 
         foreach (var file in args.GetMultipleFiles(MaxBatchFiles))
@@ -47,8 +46,6 @@ internal static class FileBatchUploader
             try
             {
                 await uploadFile(file, CancellationToken.None);
-
-                uploadedAny = true;
             }
             catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.RequestEntityTooLarge)
             {
@@ -69,7 +66,5 @@ internal static class FileBatchUploader
                 failures.Add($"{file.Name}: nahrání se nezdařilo.");
             }
         }
-
-        return uploadedAny;
     }
 }

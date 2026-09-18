@@ -616,8 +616,251 @@
     color: var(--ec-text-muted);
 }
 
+.ec-file-chip {
+    display: inline-flex;
+    align-items: center;
+    flex: 0 0 auto;
+    gap: var(--ec-space-2);
+    height: calc(var(--ec-space-7) + var(--ec-space-1));
+    padding: 0 var(--ec-space-3);
+    border-radius: var(--ec-radius-sm);
+    font-family: var(--ec-font-mono);
+    font-size: var(--ec-text-xs);
+    font-weight: var(--ec-weight-bold);
+    line-height: var(--ec-leading-tight);
+    letter-spacing: 0.03em;
+}
+
+.ec-file-chip-pdf { background: var(--ec-file-pdf-bg); color: var(--ec-file-pdf-text); }
+.ec-file-chip-document { background: var(--ec-file-document-bg); color: var(--ec-file-document-text); }
+.ec-file-chip-sheet { background: var(--ec-file-sheet-bg); color: var(--ec-file-sheet-text); }
+.ec-file-chip-image { background: var(--ec-file-image-bg); color: var(--ec-file-image-text); }
+.ec-file-chip-other { background: var(--ec-file-other-bg); color: var(--ec-file-other-text); }
+
+.ec-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--ec-space-3);
+    padding: var(--ec-space-7) var(--ec-space-5);
+    color: var(--ec-text-muted);
+    text-align: center;
+}
+
+.ec-empty-text {
+    margin: 0;
+    font-size: var(--ec-text-sm);
+}
+
+.ec-card-stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-4);
+}
+
+.ec-card-count {
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-muted);
+}
+
+.ec-card-header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+    margin-left: auto;
+}
+
+/* Loading holds a height so the card does not jump once the rows arrive. */
+.ec-card-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(var(--ec-space-8) * 3);
+    margin: 0;
+    font-size: var(--ec-text-md);
+    color: var(--ec-text-muted);
+}
+
+.ec-card-error {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--ec-space-3);
+}
+
+.ec-file-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-2);
+}
+
+.ec-file-row {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+}
+
+.ec-file-open {
+    display: flex;
+    align-items: center;
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: var(--ec-space-4);
+    padding: var(--ec-space-3) var(--ec-space-4);
+    border: 1px solid var(--ec-border);
+    border-radius: var(--ec-radius-lg);
+    background: var(--ec-surface);
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-md);
+    color: var(--ec-text);
+    text-align: left;
+    cursor: pointer;
+}
+
+.ec-file-open:hover:enabled {
+    background: var(--ec-surface-sunken);
+}
+
+.ec-file-open:focus-visible {
+    outline: none;
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-file-open:disabled {
+    cursor: default;
+    opacity: 0.6;
+}
+
+.ec-file-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.ec-file-meta {
+    flex: 0 0 auto;
+    font-family: var(--ec-font-mono);
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-muted);
+}
+
+.ec-file-upload {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ec-space-3);
+    height: var(--ec-control-md);
+    padding: 0 var(--ec-space-4);
+    border-radius: var(--ec-radius-md);
+    background: var(--ec-accent-soft);
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-md);
+    font-weight: var(--ec-weight-medium);
+    color: var(--ec-accent-text);
+    cursor: pointer;
+}
+
+.ec-file-upload:hover {
+    background: var(--ec-border-subtle);
+}
+
+/* The input the label opens is visually hidden, so the label carries its focus ring. */
+.ec-file-card:has(input[type="file"]:focus-visible) .ec-file-upload {
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-file-drop {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(var(--ec-control-form) + var(--ec-space-7));
+    margin: 0;
+    border: 1px dashed var(--ec-border-dashed);
+    border-radius: var(--ec-radius-lg);
+    font-size: var(--ec-text-md);
+    color: var(--ec-text-muted);
+}
+
+/* FileDropZone puts "hover" on its own div while a drag is over the card. */
+.ec-file-card.hover .ec-file-drop {
+    border-color: var(--ec-accent);
+    background: var(--ec-accent-soft);
+    color: var(--ec-accent-text);
+}
+
+.ec-comment-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-5);
+}
+
+.ec-comment {
+    display: flex;
+    gap: var(--ec-space-4);
+}
+
+.ec-comment-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: var(--ec-control-md);
+    height: var(--ec-control-md);
+    border-radius: var(--ec-radius-pill);
+    background: var(--ec-text);
+    font-size: var(--ec-text-xs);
+    font-weight: var(--ec-weight-semibold);
+    color: var(--ec-surface);
+}
+
+.ec-comment-main {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: var(--ec-space-1);
+}
+
+.ec-comment-meta {
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-muted);
+}
+
+.ec-comment-author {
+    font-weight: var(--ec-weight-semibold);
+    color: var(--ec-text);
+}
+
+.ec-comment-text {
+    margin: 0;
+    font-size: var(--ec-text-md);
+    line-height: var(--ec-leading-body);
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}
+
+.ec-comment-actions {
+    display: flex;
+    gap: var(--ec-space-3);
+}
+
+.ec-comment-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-3);
+}
+
+.ec-comment-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--ec-space-3);
+}
+
 @media (max-width: 991.98px) {
-    .ec-button {
+    .ec-button,
+    .ec-file-upload {
         min-height: var(--ec-touch-min);
         min-width: var(--ec-touch-min);
     }

@@ -66,6 +66,18 @@
     --ec-label-cyan: #1B9BB8;
     --ec-label-gray: #6B7280;
 
+    /* Typ souboru — EcFileChip */
+    --ec-file-pdf-bg: #FDE4E1;
+    --ec-file-pdf-text: #9B2C1F;
+    --ec-file-document-bg: #E6EEFD;
+    --ec-file-document-text: #2A48B8;
+    --ec-file-sheet-bg: #E3F4E8;
+    --ec-file-sheet-text: #1D6B36;
+    --ec-file-image-bg: #F3E8FD;
+    --ec-file-image-text: #6B21A8;
+    --ec-file-other-bg: #EDEFF3;
+    --ec-file-other-text: #454B57;
+
     /* Písmo */
     --ec-font: 'Instrument Sans', 'Segoe UI', system-ui, sans-serif;
     --ec-font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', monospace;
