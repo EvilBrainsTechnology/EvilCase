@@ -1,10 +1,10 @@
 export const meta = {
   name: 'pr-work',
-  description: 'Work a commented pull request: architect plans, coder works its branch, reviewer fixes; a fast item is the coder alone',
+  description: 'Work a commented pull request: the coder works its branch and the reviewer fixes the rework; a deep item plans first, a fast item is the coder alone',
   phases: [
-    { title: 'Plan', detail: 'architect plans the rework' },
+    { title: 'Plan', detail: 'architect plans a deep rework' },
     { title: 'Work', detail: 'coder works on the existing branch' },
-    { title: 'Review', detail: 'reviewer reviews and fixes' },
+    { title: 'Review', detail: 'reviewer reviews the rework and fixes' },
   ],
 }
 
@@ -26,6 +26,10 @@ const REVIEW_SCHEMA = {
   required: ['fixed'],
 }
 
+// The comments the owner wrote are the plan; only a rework that is expensive to get wrong
+// buys an architect on top of them.
+const NO_PLAN = 'no plan'
+
 const META =
   '\n\nA hook blocks edits under .claude/** and docs/sdd/**. Only where an owner comment on ' +
   'this pull request explicitly asks for such a change: run `touch .claude/allow-meta-edits`, ' +
@@ -34,9 +38,10 @@ const META =
 const results = await pipeline(
   args,
   async (item) => {
-    // The fast lane has no plan; the work stage ignores it. Returning null here would
-    // drop the item and skip the work stage.
-    if (item.fast) return 'fast lane: no plan'
+    // Returning null here would drop the item and skip the work stage, so a stage that
+    // plans nothing still answers with a sentinel.
+    if (item.fast) return NO_PLAN
+    if (!item.deep) return NO_PLAN
     const plan = await agent(
       `Plan the rework of pull request #${item.pr} (branch ${item.branch}).\n\n${item.instructions}`,
       { agentType: 'architect', phase: 'Plan', label: `plan:#${item.pr}` },
@@ -55,9 +60,10 @@ const results = await pipeline(
         },
       )
     }
+    const planPart = plan === NO_PLAN ? '' : `\n\nThe architect's plan:\n\n${plan}`
     const prompt =
-      `Work on the existing pull request #${item.pr}, branch ${item.branch}.\n\n${item.instructions}\n\n` +
-      `The architect's plan:\n\n${plan}${META}`
+      `Work on the existing pull request #${item.pr}, branch ${item.branch}.\n\n` +
+      `${item.instructions}${planPart}${META}`
     return agent(prompt, {
       agentType: 'coder', isolation: 'worktree', phase: 'Work',
       label: `work:#${item.pr}`, schema: WORK_SCHEMA,
@@ -66,10 +72,14 @@ const results = await pipeline(
   (work, item) => {
     if (!work) throw new Error(`pull request #${item.pr}: work failed`)
     if (item.fast) return { pr: item.pr, fixed: work.fixed, uncertainty: null, status: 'fast' }
-    return agent(`Review pull request #${item.pr} and fix what you find.${META}`, {
-      agentType: 'reviewer', isolation: 'worktree', phase: 'Review',
-      label: `review:#${item.pr}`, schema: REVIEW_SCHEMA,
-    }).then((review) => ({
+    return agent(
+      `Review what the rework changed on pull request #${item.pr} since the owner's review and ` +
+        `fix what you find. The rest of the pull request is not yours to review.${META}`,
+      {
+        agentType: 'reviewer', isolation: 'worktree', phase: 'Review',
+        label: `review:#${item.pr}`, schema: REVIEW_SCHEMA,
+      },
+    ).then((review) => ({
       pr: item.pr,
       fixed: work.fixed,
       uncertainty: review?.uncertainty || null,
