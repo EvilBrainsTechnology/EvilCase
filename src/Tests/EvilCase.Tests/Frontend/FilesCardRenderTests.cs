@@ -117,6 +117,35 @@ public class FilesCardRenderTests
     }
 
     [Test]
+    public void AFinishedBatchLeavesAFreshInputBehind()
+    {
+        using var ctx = new BunitContext();
+
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        ctx.Services.AddSingleton<IJSRuntime>(new PropertyReadingJSRuntime(ctx.JSInterop.JSRuntime));
+
+        ctx.Services.AddSingleton<ILogger<FilesCard>>(new CapturingLogger<FilesCard>());
+        ctx.Services.AddSingleton(Substitute.For<IModalService>());
+
+        var component = ctx.Render<FilesCard>(static parameters => parameters
+            .Add(static card => card.Title, "Soubory spisu")
+            .Add(static card => card.LoadFiles, static (_) => Task.FromResult<IReadOnlyList<FileListItem>>([]))
+            .Add(static card => card.UploadFile, static (_, _) => Task.CompletedTask)
+            .Add(static card => card.DownloadFile, static (_, _) => Task.CompletedTask)
+            .Add(static card => card.DeleteFile, static (_, _) => Task.CompletedTask)
+            .Add(static card => card.OwnerGoneError, "spis už neexistuje."));
+
+        var before = component.FindComponent<InputFile>().Instance;
+
+        component.FindComponent<InputFile>().UploadFiles(InputFileContent.CreateFromText("a", "a.txt"));
+
+        component.WaitForAssertion(() => Assert.That(
+            component.FindComponent<InputFile>().Instance,
+            Is.Not.SameAs(before),
+            "a browser raises no change event for a file already in the input, so picking the same file again needs a fresh one"));
+    }
+
+    [Test]
     public void TheHiddenFileInputSitsInsideTheDropZone()
     {
         using var ctx = new BunitContext();

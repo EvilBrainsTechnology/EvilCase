@@ -766,6 +766,11 @@
     background: var(--ec-border-subtle);
 }
 
+/* The input the label opens is visually hidden, so the label carries its focus ring. */
+.ec-file-card:has(input[type="file"]:focus-visible) .ec-file-upload {
+    box-shadow: var(--ec-focus-ring);
+}
+
 .ec-file-drop {
     display: flex;
     align-items: center;
@@ -854,7 +859,8 @@
 }
 
 @media (max-width: 991.98px) {
-    .ec-button {
+    .ec-button,
+    .ec-file-upload {
         min-height: var(--ec-touch-min);
         min-width: var(--ec-touch-min);
     }

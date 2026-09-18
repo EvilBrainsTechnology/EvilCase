@@ -23,8 +23,10 @@
         </Header>
         <ChildContent>
             <div class="ec-card-stack">
+                @* Keyed on the batch: a browser raises no change event for a file already in the
+                   input, so a fresh element is what lets the same file be picked again. *@
                 <div class="ec-visually-hidden">
-                    <InputFile id="files-upload-input" multiple OnChange="this.OnFilesSelected" />
+                    <InputFile @key="this.uploadRound" id="files-upload-input" multiple OnChange="this.OnFilesSelected" />
                 </div>
 
                 @foreach (var failure in this.failures)
@@ -118,6 +120,8 @@
 
     private string uploadName = "";
 
+    private int uploadRound;
+
     private Guid? downloadingFileId;
 
     private string? listFailure;
@@ -167,6 +171,7 @@
             this.Logger);
 
         this.uploadTotal = 0;
+        this.uploadRound++;
 
         await this.ReloadFiles();
     }
