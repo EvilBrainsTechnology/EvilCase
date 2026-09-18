@@ -21,9 +21,8 @@
 
 <PageTitle>@(this.act is null ? "Úkon" : this.act.ActNumber) – EvilCase</PageTitle>
 
-@* A CascadingValue, not EditForm: Komentáře renders its own <form> further down, and a
-   <form> cannot nest inside another one. It opens above the header so the title's
-   ValidationMessage there shares the same EditContext as the fields below. *@
+@* A CascadingValue, not EditForm: the title input sits in the page header, above the body, and
+   both must share one EditContext. *@
 <CascadingValue Value="this.editContext" IsFixed="true">
 <div class="page-header d-print-none">
     <div class="container-xl">
@@ -121,6 +120,7 @@
                         </div>
 
                         <FilesCard @key="(nameof(FilesCard), this.ActId)"
+                                   Title="Soubory úkonu"
                                    OwnerGoneError="úkon už neexistuje."
                                    LoadFiles="this.LoadFiles"
                                    UploadFile="this.UploadFile"
@@ -128,6 +128,8 @@
                                    DeleteFile="this.DeleteFile" />
 
                         <CommentsCard @key="(nameof(CommentsCard), this.ActId)"
+                                      Title="Komentáře úkonu"
+                                      Placeholder="Poznámka k tomuto úkonu…"
                                       LoadComments="this.LoadComments"
                                       AddComment="this.AddComment"
                                       SaveComment="this.SaveComment"

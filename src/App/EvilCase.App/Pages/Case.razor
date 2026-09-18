@@ -87,6 +87,7 @@
                         </ActList>
 
                         <FilesCard @key="(nameof(FilesCard), this.CaseId)"
+                                   Title="Soubory spisu"
                                    OwnerGoneError="spis už neexistuje."
                                    LoadFiles="this.LoadFiles"
                                    UploadFile="this.UploadFile"
@@ -94,6 +95,8 @@
                                    DeleteFile="this.DeleteFile" />
 
                         <CommentsCard @key="(nameof(CommentsCard), this.CaseId)"
+                                      Title="Komentáře spisu"
+                                      Placeholder="Poznámka ke spisu…"
                                       LoadComments="this.LoadComments"
                                       AddComment="this.AddComment"
                                       SaveComment="this.SaveComment"

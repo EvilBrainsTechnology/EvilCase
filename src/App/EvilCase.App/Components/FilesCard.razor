@@ -6,100 +6,88 @@
 @inject IModalService ModalService
 @inject ILogger<FilesCard> Logger
 
-@* The card is itself the drop zone (SDD-012): FileDropZone hands a card-wide drop to the hidden
-   InputFile below, which uploads it the same way a picked file uploads. *@
-<FileDropZone class="card ec-dropcard">
-    <div class="card-header">
-        <h3 class="card-title">
-            <Icon CssClass="icon me-2" IconType="TablerIcons.Paperclip" />Soubory
+@* The card is itself the drop zone (SDD-012): FileDropZone hands a card-wide drop to the input
+   the upload button opens, so a dropped and a picked file take one path. *@
+<FileDropZone class="ec-file-card">
+    <EcCard Title="@this.Title">
+        <Header>
             @if (!this.loading && this.listFailure is null)
             {
-                <span class="badge bg-secondary-lt ms-2">@this.items.Count</span>
+                <span class="ec-card-count">@this.items.Count</span>
             }
-        </h3>
-        <div class="card-actions">
-            <button id="files-upload" type="button" class="btn btn-primary" @onclick="this.OpenUploadModal">
-                <Icon CssClass="icon" IconType="TablerIcons.Upload" />Nahrát
-            </button>
-        </div>
-    </div>
-
-    <div class="visually-hidden" aria-hidden="true">
-        <InputFile multiple tabindex="-1" OnChange="this.OnDropFilesSelected" aria-label="Přetáhnout soubory" />
-    </div>
-
-    @foreach (var failure in this.dropFailures)
-    {
-        <div class="card-body pb-0">
-            <div class="alert alert-danger mb-0" role="alert"><Icon CssClass="icon me-2" IconType="TablerIcons.AlertTriangle" />@failure</div>
-        </div>
-    }
-
-    @if (this.dropUploadTotal > 0)
-    {
-        <div class="card-body pb-0 text-secondary">Nahrávám @this.dropUploadIndex / @this.dropUploadTotal: @this.dropUploadName</div>
-    }
-
-    @if (this.error is not null)
-    {
-        <div class="card-body pb-0">
-            <div class="alert alert-danger mb-0" role="alert"><Icon CssClass="icon me-2" IconType="TablerIcons.AlertTriangle" />@this.error</div>
-        </div>
-    }
-
-    @if (this.loading)
-    {
-        <div class="card-body text-center text-secondary">
-            <div class="spinner-border" role="status"></div>
-        </div>
-    }
-    else if (this.listFailure is not null)
-    {
-        <div class="empty">
-            <div class="empty-icon"><Icon IconType="TablerIcons.AlertTriangle" /></div>
-            <p class="empty-title">Soubory se nepodařilo načíst</p>
-            <p class="empty-subtitle text-secondary">@this.listFailure</p>
-        </div>
-    }
-    else if (this.items.Count == 0)
-    {
-        <div class="empty">
-            <div class="empty-icon"><Icon IconType="TablerIcons.Paperclip" /></div>
-            <p class="empty-title">Žádné soubory</p>
-            <p class="empty-subtitle text-secondary">Přetáhněte soubory sem, nebo je nahrajte tlačítkem Nahrát.</p>
-        </div>
-    }
-    else
-    {
-        @foreach (var file in this.items)
-        {
-            <div class="ec-filerow">
-                <button type="button" class="ec-filerow-link" aria-label="@($"Stáhnout {file.FileName}")" disabled="@(this.downloadingFileId == file.FileId)" @onclick="() => this.Download(file)">
-                    <span class="ec-filerow-icon" aria-hidden="true">@FileExtensionDisplay.Text(file.FileName)</span>
-                    <span class="ec-min-w-0 flex-fill">
-                        <span class="d-block text-truncate">@file.FileName</span>
-                        <span class="ec-filerow-meta ec-num">@FileSizeDisplay.Text(file.SizeBytes) · @MomentDisplay.Text(file.Created)</span>
-                    </span>
-                </button>
-                <button type="button" class="btn btn-icon btn-ghost-danger" aria-label="@($"Smazat {file.FileName}")" @onclick="() => this.ConfirmDelete(file)">
-                    <Icon IconType="TablerIcons.Trash" />
-                </button>
+            <div class="ec-card-header-actions">
+                <label class="ec-file-upload" for="files-upload-input">
+                    <EcIcon Paths="@AppIcons.Upload" />Nahrát soubory
+                </label>
             </div>
-        }
-    }
+        </Header>
+        <ChildContent>
+            <div class="ec-card-stack">
+                <div class="ec-visually-hidden">
+                    <InputFile id="files-upload-input" multiple OnChange="this.OnFilesSelected" />
+                </div>
 
-    <div class="ec-dropveil">
-        <div class="ec-droppill">
-            <Icon CssClass="icon" IconType="TablerIcons.Upload" />
-            <div>
-                <div>Pustit soubory sem</div>
-                <div class="ec-filerow-meta">Nejvýše @(FileSizeDisplay.Text(FileLimits.MaxUploadBytes)) na soubor.</div>
+                @foreach (var failure in this.failures)
+                {
+                    <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@failure</div>
+                }
+
+                @if (this.uploadTotal > 0)
+                {
+                    <p class="ec-card-state">Nahrávám @this.uploadIndex / @this.uploadTotal: @this.uploadName</p>
+                }
+
+                @if (this.error is not null)
+                {
+                    <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.error</div>
+                }
+
+                @if (this.loading)
+                {
+                    <p class="ec-card-state">Načítám…</p>
+                }
+                else if (this.listFailure is not null)
+                {
+                    <div class="ec-card-error">
+                        <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.listFailure</div>
+                        <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Refresh"
+                                  OnClick="this.ReloadFiles">Zkusit znovu</EcButton>
+                    </div>
+                }
+                else if (this.items.Count == 0)
+                {
+                    <EcEmptyState Icon="@AppIcons.Paperclip" Text="Zatím tu nejsou žádné soubory." />
+                }
+                else
+                {
+                    <div class="ec-file-list">
+                        @foreach (var file in this.items)
+                        {
+                            <div class="ec-file-row">
+                                <button type="button" class="ec-file-open" aria-label="@($"Stáhnout {file.FileName}")"
+                                        disabled="@(this.downloadingFileId == file.FileId)" @onclick="() => this.Download(file)">
+                                    <EcFileChip FileName="@file.FileName" />
+                                    <span class="ec-file-name">@file.FileName</span>
+                                    <span class="ec-file-meta">@FileSizeDisplay.Text(file.SizeBytes) · @MomentDisplay.Text(file.Created)</span>
+                                    <EcIcon Paths="@AppIcons.Download" />
+                                </button>
+                                <EcButton Variant="EcButtonVariant.Danger" Size="EcButtonSize.Compact" Icon="@AppIcons.Trash"
+                                          AriaLabel="@($"Smazat {file.FileName}")" OnClick="() => this.ConfirmDelete(file)" />
+                            </div>
+                        }
+                    </div>
+                }
+
+                <p class="ec-file-drop">Přetáhněte soubory sem, nebo je vyberte tlačítkem výše</p>
             </div>
-        </div>
-    </div>
+        </ChildContent>
+    </EcCard>
 </FileDropZone>
 
 @code {
+    [Parameter, EditorRequired]
+    public required string Title { get; set; }
+
     [Parameter, EditorRequired]
     public required Func<CancellationToken, Task<IReadOnlyList<FileListItem>>> LoadFiles { get; set; }
 
@@ -118,17 +106,17 @@
     [Parameter, EditorRequired]
     public required string OwnerGoneError { get; set; }
 
-    private readonly List<string> dropFailures = [];
+    private readonly List<string> failures = [];
 
     private IReadOnlyList<FileListItem> items = [];
 
     private bool loading = true;
 
-    private int dropUploadIndex;
+    private int uploadIndex;
 
-    private int dropUploadTotal;
+    private int uploadTotal;
 
-    private string dropUploadName = "";
+    private string uploadName = "";
 
     private Guid? downloadingFileId;
 
@@ -159,37 +147,26 @@
         }
     }
 
-    private Task OpenUploadModal()
+    private async Task OnFilesSelected(InputFileChangeEventArgs args)
     {
-        return this.ModalService.ShowAsync(
-            "Nahrát soubory",
-            new RenderComponent<FileUploadModal>()
-                .Set(component => component.UploadFile, this.UploadFile)
-                .Set(component => component.OwnerGoneError, this.OwnerGoneError)
-                .Set(component => component.OnUploaded, EventCallback.Factory.Create(this, this.ReloadFiles)),
-            new ModalOptions { Fullscreen = ModalFullscreen.BelowLarge });
-    }
-
-    private async Task OnDropFilesSelected(InputFileChangeEventArgs args)
-    {
-        this.dropFailures.Clear();
-        this.dropUploadIndex = 0;
-        this.dropUploadTotal = args.FileCount;
+        this.failures.Clear();
+        this.uploadIndex = 0;
+        this.uploadTotal = args.FileCount;
 
         await FileBatchUploader.Run(
             args,
             this.UploadFile,
             this.OwnerGoneError,
-            this.dropFailures,
+            this.failures,
             (index, name) =>
             {
-                this.dropUploadIndex = index;
-                this.dropUploadName = name;
+                this.uploadIndex = index;
+                this.uploadName = name;
                 this.StateHasChanged();
             },
             this.Logger);
 
-        this.dropUploadTotal = 0;
+        this.uploadTotal = 0;
 
         await this.ReloadFiles();
     }

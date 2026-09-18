@@ -5,137 +5,112 @@
 @inject IModalService ModalService
 @inject ILogger<CommentsCard> Logger
 
-<div id="comments-card" class="card">
-    <div class="card-header">
-        <h3 class="card-title">
-            <Icon CssClass="icon me-2" IconType="TablerIcons.Message" />Komentáře
-            @if (!this.loading && this.listFailure is null)
+<EcCard Title="@this.Title">
+    <Header>
+        @if (!this.loading && this.listFailure is null)
+        {
+            <span class="ec-card-count">@this.items.Count</span>
+        }
+    </Header>
+    <ChildContent>
+        <div class="ec-card-stack">
+            @if (this.loading)
             {
-                <span class="badge bg-secondary-lt ms-2">@this.items.Count</span>
+                <p class="ec-card-state">Načítám…</p>
             }
-        </h3>
-        <div class="card-actions">
-            <button id="comment-add" type="button" class="btn btn-primary" @onclick="this.OpenComposer">
-                <Icon CssClass="icon" IconType="TablerIcons.Plus" />Přidat komentář
-            </button>
-        </div>
-    </div>
-
-    @if (this.composing)
-    {
-        <div class="card-body border-bottom">
-            <EditForm Model="this.newModel" OnValidSubmit="this.AddNewComment">
-                <DataAnnotationsValidator />
-
-                <label class="visually-hidden" for="comment-new-body">Nový komentář</label>
-                <InputTextArea id="comment-new-body" class="form-control" rows="3" @bind-Value="this.newModel.Body" />
-                <ValidationMessage For="() => this.newModel.Body" class="invalid-feedback d-block" />
-
-                @if (this.addError is not null)
-                {
-                    <div class="alert alert-danger mt-2" role="alert"><Icon CssClass="icon me-2" IconType="TablerIcons.AlertTriangle" />@this.addError</div>
-                }
-
-                <div class="d-flex justify-content-end gap-2 mt-2">
-                    <button type="button" class="btn" @onclick="this.CloseComposer"><Icon CssClass="icon" IconType="TablerIcons.X" />Zrušit</button>
-                    <button type="submit" class="btn btn-primary" disabled="@this.busy">
-                        @if (this.busy)
-                        {
-                            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-                        }
-                        else
-                        {
-                            <Icon CssClass="icon" IconType="TablerIcons.DeviceFloppy" />
-                        }
-                        Uložit komentář
-                    </button>
-                </div>
-            </EditForm>
-        </div>
-    }
-
-    @if (this.loading)
-    {
-        <div class="card-body text-center text-secondary">
-            <div class="spinner-border" role="status"></div>
-        </div>
-    }
-    else if (this.listFailure is not null)
-    {
-        <div class="empty">
-            <div class="empty-icon"><Icon IconType="TablerIcons.AlertTriangle" /></div>
-            <p class="empty-title">Komentáře se nepodařilo načíst</p>
-            <p class="empty-subtitle text-secondary">@this.listFailure</p>
-        </div>
-    }
-    else if (this.items.Count == 0)
-    {
-        <div class="empty">
-            <div class="empty-icon"><Icon IconType="TablerIcons.Message" /></div>
-            <p class="empty-title">Žádné komentáře</p>
-        </div>
-    }
-    else
-    {
-        <div class="card-body">
-            @foreach (var item in this.items)
+            else if (this.listFailure is not null)
             {
-                <div class="comment-item border-bottom pb-3 mb-3">
-                    <div class="d-flex align-items-start gap-2">
-                        <div class="text-secondary small flex-fill">
-                            @item.AuthorEmail · @MomentDisplay.Text(item.Created)@(item.Updated is null ? "" : $" · upraveno {MomentDisplay.Text(item.Updated.Value)}")
+                <div class="ec-card-error">
+                    <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.listFailure</div>
+                    <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Refresh"
+                              OnClick="this.ReloadComments">Zkusit znovu</EcButton>
+                </div>
+            }
+            else if (this.items.Count == 0)
+            {
+                <EcEmptyState Icon="@AppIcons.Message" Text="Zatím tu nejsou žádné komentáře." />
+            }
+            else
+            {
+                <div class="ec-comment-list">
+                    @foreach (var item in this.items)
+                    {
+                        <div class="ec-comment">
+                            <span class="ec-comment-avatar" aria-hidden="true">@AuthorInitialsDisplay.Text(item.AuthorEmail)</span>
+                            <div class="ec-comment-main">
+                                <span class="ec-comment-meta">
+                                    <span class="ec-comment-author">@item.AuthorEmail</span> · @MomentDisplay.Text(item.Created)@(item.Updated is null ? "" : $" · upraveno {MomentDisplay.Text(item.Updated.Value)}")
+                                </span>
+
+                                @if (this.editingCommentId == item.CommentId)
+                                {
+                                    <CascadingValue Value="this.editCommentContext">
+                                        <DataAnnotationsValidator />
+                                        <div id="comment-edit" class="ec-comment-form">
+                                            <label class="ec-visually-hidden" for="comment-edit-body">Upravit komentář</label>
+                                            <InputTextArea id="comment-edit-body" class="ec-textarea" rows="4" @bind-Value="this.editModel.Body" />
+                                            <div class="ec-field-error"><ValidationMessage For="() => this.editModel.Body" /></div>
+                                            @if (this.editError is not null)
+                                            {
+                                                <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.editError</div>
+                                            }
+                                            <div class="ec-comment-form-actions">
+                                                <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.X"
+                                                          OnClick="this.CancelEditing">Zrušit</EcButton>
+                                                <EcButton Variant="EcButtonVariant.Primary" Size="EcButtonSize.Compact" Icon="@AppIcons.Check"
+                                                          Disabled="@this.busy" OnClick="this.SaveEditedComment">Uložit</EcButton>
+                                            </div>
+                                        </div>
+                                    </CascadingValue>
+                                }
+                                else
+                                {
+                                    <p class="ec-comment-text">@item.Body</p>
+
+                                    @if (item.IsAuthor)
+                                    {
+                                        <div class="ec-comment-actions">
+                                            <EcButton Variant="EcButtonVariant.Ghost" Size="EcButtonSize.Compact" Icon="@AppIcons.Pencil"
+                                                      OnClick="() => this.StartEditing(item)">Upravit</EcButton>
+                                            <EcButton Variant="EcButtonVariant.Danger" Size="EcButtonSize.Compact" Icon="@AppIcons.Trash"
+                                                      OnClick="() => this.ConfirmDelete(item)">Smazat</EcButton>
+                                        </div>
+                                    }
+                                }
+                            </div>
                         </div>
-                        @if (item.IsAuthor && this.editingCommentId != item.CommentId)
-                        {
-                            <div class="d-flex gap-1">
-                                <button type="button" class="btn btn-icon btn-sm comment-edit" aria-label="Upravit komentář" @onclick="() => this.StartEditing(item)"><Icon IconType="TablerIcons.Pencil" /></button>
-                                <button type="button" class="btn btn-icon btn-sm comment-delete" aria-label="Smazat komentář" @onclick="() => this.ConfirmDelete(item)"><Icon IconType="TablerIcons.Trash" /></button>
-                            </div>
-                        }
-                    </div>
-
-                    @if (this.editingCommentId == item.CommentId)
-                    {
-                        <EditForm Model="this.editModel" OnValidSubmit="this.SaveEditedComment">
-                            <DataAnnotationsValidator />
-
-                            <div class="mb-2 mt-2">
-                                <InputTextArea id="comment-edit-body" class="form-control" rows="4" @bind-Value="this.editModel.Body" />
-                                <ValidationMessage For="() => this.editModel.Body" class="invalid-feedback d-block" />
-                            </div>
-
-                            @if (this.editError is not null)
-                            {
-                                <div class="alert alert-danger" role="alert"><Icon CssClass="icon me-2" IconType="TablerIcons.AlertTriangle" />@this.editError</div>
-                            }
-
-                            <div class="d-flex gap-2">
-                                <button type="button" class="btn btn-sm" @onclick="this.CancelEditing"><Icon CssClass="icon" IconType="TablerIcons.X" />Zrušit</button>
-                                <button type="submit" class="btn btn-primary btn-sm" disabled="@this.busy">
-                                    @if (this.busy)
-                                    {
-                                        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-                                    }
-                                    else
-                                    {
-                                        <Icon CssClass="icon" IconType="TablerIcons.DeviceFloppy" />
-                                    }
-                                    Uložit
-                                </button>
-                            </div>
-                        </EditForm>
-                    }
-                    else
-                    {
-                        <div class="comment-body">@item.Body</div>
                     }
                 </div>
             }
+
+            <CascadingValue Value="this.newCommentContext">
+                <DataAnnotationsValidator />
+                <div id="comment-new" class="ec-comment-form">
+                    <label class="ec-visually-hidden" for="comment-new-body">Nový komentář</label>
+                    <InputTextArea id="comment-new-body" class="ec-textarea" rows="3" placeholder="@this.Placeholder"
+                                   @bind-Value="this.newModel.Body" />
+                    <div class="ec-field-error"><ValidationMessage For="() => this.newModel.Body" /></div>
+                    @if (this.addError is not null)
+                    {
+                        <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.addError</div>
+                    }
+                    <div class="ec-comment-form-actions">
+                        <EcButton Variant="EcButtonVariant.Primary" Size="EcButtonSize.Standard" Icon="@AppIcons.Message"
+                                  Disabled="@this.busy" OnClick="this.AddNewComment">Přidat komentář</EcButton>
+                    </div>
+                </div>
+            </CascadingValue>
         </div>
-    }
-</div>
+    </ChildContent>
+</EcCard>
 
 @code {
+    [Parameter, EditorRequired]
+    public required string Title { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string Placeholder { get; set; }
+
     [Parameter, EditorRequired]
     public required Func<CancellationToken, Task<IReadOnlyList<CommentItem>>> LoadComments { get; set; }
 
@@ -152,11 +127,13 @@
 
     private readonly CommentEditModel editModel = new();
 
+    private EditContext newCommentContext = null!;
+
+    private EditContext editCommentContext = null!;
+
     private IReadOnlyList<CommentItem> items = [];
 
     private Guid? editingCommentId;
-
-    private bool composing;
 
     private bool loading = true;
 
@@ -170,6 +147,9 @@
 
     protected override async Task OnInitializedAsync()
     {
+        this.newCommentContext = new EditContext(this.newModel);
+        this.editCommentContext = new EditContext(this.editModel);
+
         await this.ReloadComments();
         this.loading = false;
     }
@@ -191,21 +171,11 @@
         }
     }
 
-    private void OpenComposer()
-    {
-        this.composing = true;
-        this.addError = null;
-        this.newModel.Body = "";
-    }
-
-    private void CloseComposer()
-    {
-        this.composing = false;
-        this.addError = null;
-    }
-
     private async Task AddNewComment()
     {
+        if (!this.newCommentContext.Validate())
+            return;
+
         this.busy = true;
         this.addError = null;
 
@@ -214,7 +184,7 @@
             await this.AddComment(new CommentEditRequest { Body = this.newModel.Body }, CancellationToken.None);
 
             this.newModel.Body = "";
-            this.composing = false;
+            this.newCommentContext.MarkAsUnmodified();
 
             await this.ReloadComments();
         }
@@ -238,6 +208,7 @@
     {
         this.editingCommentId = comment.CommentId;
         this.editModel.Body = comment.Body;
+        this.editCommentContext.MarkAsUnmodified();
         this.editError = null;
     }
 
@@ -250,6 +221,9 @@
     private async Task SaveEditedComment()
     {
         if (this.editingCommentId is not { } commentId)
+            return;
+
+        if (!this.editCommentContext.Validate())
             return;
 
         this.busy = true;
