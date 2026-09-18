@@ -1,9 +1,6 @@
-@* Jediná kresba ikon (SDD-020); tah, konce i velikost drží ec-components.css. *@
-
 <svg class="@this.CssClass" viewBox="0 0 24 24" aria-hidden="true" focusable="false">@((MarkupString)this.Paths)</svg>
 
 @code {
-    /// <summary>Kresba jedné položky AppIcons.</summary>
     [Parameter, EditorRequired]
     public required string Paths { get; set; }
 
