@@ -1,0 +1,53 @@
+@using EvilBrains.EvilCase.Domain.Acts
+
+<div class="ec-segmented" role="group" aria-label="Směr úkonu">
+    @foreach (var direction in Enum.GetValues<ActDirection>())
+    {
+        <button id="@this.ButtonId(direction)" type="button" class="ec-segment"
+                aria-pressed="@(this.Selected == direction ? "true" : "false")"
+                @onclick="() => this.Toggle(direction)">
+            <EcIcon Paths="@Icon(direction)" Size="EcIconSize.Small" />@ActDirectionDisplay.Text(direction)
+        </button>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public required string InputId { get; set; }
+
+    [Parameter]
+    public ActDirection? Selected { get; set; }
+
+    [Parameter]
+    public EventCallback<ActDirection?> SelectedChanged { get; set; }
+
+    private static string Icon(ActDirection direction)
+    {
+        return direction switch
+        {
+            ActDirection.Incoming => AppIcons.ArrowDownLeft,
+            ActDirection.Outgoing => AppIcons.ArrowUpRight,
+            _ => throw new InvalidOperationException($"unknown ActDirection {direction}"),
+        };
+    }
+
+    private static string Suffix(ActDirection direction)
+    {
+        return direction switch
+        {
+            ActDirection.Incoming => "incoming",
+            ActDirection.Outgoing => "outgoing",
+            _ => throw new InvalidOperationException($"unknown ActDirection {direction}"),
+        };
+    }
+
+    private string ButtonId(ActDirection direction)
+    {
+        return $"{this.InputId}-{Suffix(direction)}";
+    }
+
+    private Task Toggle(ActDirection direction)
+    {
+        return this.SelectedChanged.InvokeAsync(this.Selected == direction ? null : direction);
+    }
+}

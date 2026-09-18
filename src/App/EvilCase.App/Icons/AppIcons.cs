@@ -9,6 +9,14 @@ public static class AppIcons
         + "h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z' />"
         + "<path d='M12 16h.01' />";
 
+    public const string ArrowDownLeft = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M17 7l-10 10' />"
+        + "<path d='M16 17h-9v-9' />";
+
+    public const string ArrowUpRight = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M7 17l10 -10' />"
+        + "<path d='M8 7h9v9' />";
+
     public const string ArrowsExchange = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M7 10h14l-4 -4' />"
         + "<path d='M17 14h-14l4 4' />";
