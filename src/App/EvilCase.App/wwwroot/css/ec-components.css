@@ -858,6 +858,94 @@
     gap: var(--ec-space-3);
 }
 
+.ec-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-3);
+    padding: var(--ec-space-5);
+    border-radius: var(--ec-radius-xl);
+    background: var(--ec-surface-sunken);
+}
+
+.ec-form-group-head {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: var(--ec-space-3);
+}
+
+.ec-form-group-title {
+    margin: 0;
+    font-size: var(--ec-text-md);
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-form-group-hint {
+    font-size: var(--ec-text-xs);
+    color: var(--ec-text-muted);
+}
+
+.ec-form-group-row {
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr);
+    gap: var(--ec-space-5);
+    align-items: start;
+}
+
+.ec-segmented {
+    display: flex;
+    gap: var(--ec-space-1);
+    padding: var(--ec-space-1);
+    border-radius: var(--ec-radius-lg);
+    background: var(--ec-surface-track);
+}
+
+.ec-segment {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1 1 0;
+    gap: var(--ec-space-2);
+    height: var(--ec-control-md);
+    padding: 0 var(--ec-space-4);
+    border: 0;
+    border-radius: var(--ec-radius-md);
+    background: transparent;
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-md);
+    color: var(--ec-text-soft);
+    cursor: pointer;
+}
+
+.ec-segment:focus-visible {
+    outline: none;
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-segment[aria-pressed="true"] {
+    background: var(--ec-surface);
+    color: var(--ec-text);
+    font-weight: var(--ec-weight-semibold);
+    box-shadow: var(--ec-shadow-raised);
+}
+
+.ec-warning {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--ec-space-3);
+    padding: var(--ec-space-4) var(--ec-space-5);
+    border: 1px solid var(--ec-warning-border);
+    border-radius: var(--ec-radius-lg);
+    background: var(--ec-warning-bg);
+    color: var(--ec-warning-text);
+    font-size: var(--ec-text-sm);
+}
+
+.ec-warning-text {
+    margin: 0;
+    line-height: var(--ec-leading-body);
+}
+
 @media (max-width: 991.98px) {
     .ec-button,
     .ec-file-upload {
@@ -875,7 +963,8 @@
     }
 
     .ec-form-layout,
-    .ec-form-row {
+    .ec-form-row,
+    .ec-form-group-row {
         grid-template-columns: minmax(0, 1fr);
     }
 

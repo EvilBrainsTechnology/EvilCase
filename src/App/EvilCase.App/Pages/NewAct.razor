@@ -3,6 +3,7 @@
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Acts
+@using EvilBrains.EvilCase.Api.Contract.Cases
 @using EvilBrains.EvilCase.Api.Contract.Contacts
 @using EvilBrains.EvilCase.Api.Contract.Labels
 @using EvilBrains.EvilCase.Domain.Acts
@@ -13,109 +14,116 @@
 
 <PageTitle>Nový úkon – EvilCase</PageTitle>
 
-<div class="page-header d-print-none">
-    <div class="container-xl">
-        <h2 class="page-title">Nový úkon</h2>
-    </div>
-</div>
+<div class="ec-page">
+    <EcPageHeader Title="Nový úkon" Breadcrumbs="this.Crumbs" />
 
-<div class="page-body">
-    <div class="container-xl">
-        <EditForm Model="this.model" OnValidSubmit="this.SubmitAct">
-            <DataAnnotationsValidator />
+    @if (this.notFound)
+    {
+        <EcCard><p class="ec-state">Spis nenalezen.</p></EcCard>
+    }
+    else if (this.failure is not null)
+    {
+        <EcCard><p class="ec-state">@this.failure</p></EcCard>
+    }
+    else if (this.caseDetail is null)
+    {
+        <EcCard><p class="ec-state">Načítám…</p></EcCard>
+    }
+    else
+    {
+        <div class="ec-form-layout">
+            <CascadingValue Value="this.editContext">
+                <DataAnnotationsValidator />
+                <EcCard>
+                    <ChildContent>
+                        <div class="ec-form">
+                            <EcField Label="Název úkonu" Required ControlId="act-title" Hint="Nejvýše 256 znaků">
+                                <ChildContent>
+                                    <InputText id="act-title" class="ec-input" autofocus @bind-Value="this.model.Title" />
+                                </ChildContent>
+                                <Error><ValidationMessage For="() => this.model.Title" /></Error>
+                            </EcField>
 
-            <div class="ec-layout">
-                <div class="ec-main">
-                    <div>
-                        <label class="visually-hidden" for="act-title">Název</label>
-                        <input id="act-title" class="form-control ec-title-input" placeholder="Název úkonu" autofocus @bind="this.model.Title" />
-                        <ValidationMessage For="() => this.model.Title" class="invalid-feedback d-block" />
-                    </div>
-
-                    @if (ActContactRules.DifferingCaseContact(this.model.Contact, this.caseContact) is { } differing)
-                    {
-                        <div class="alert alert-warning mb-0" role="alert">
-                            <Icon CssClass="icon me-2" IconType="TablerIcons.AlertTriangle" />Kontakt úkonu se liší od kontaktu spisu (@differing.Name).
-                        </div>
-                    }
-
-                    <div class="card">
-                        <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="TablerIcons.FileText" />Popis</h3></div>
-                        <div class="card-body">
-                            <label class="visually-hidden" for="act-description">Popis</label>
-                            <InputTextArea id="act-description" class="form-control" rows="8" @bind-Value="this.model.Description" />
-                            <ValidationMessage For="() => this.model.Description" class="invalid-feedback d-block" />
-                        </div>
-                    </div>
-                </div>
-
-                <aside class="ec-sidebar d-flex flex-column gap-3">
-                    <div class="card">
-                        <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="TablerIcons.ListDetails" />Údaje</h3></div>
-                        <div class="card-body d-flex flex-column gap-3">
-                            <div>
-                                <span class="ec-field-label">Číslo jednací</span>
-                                <div class="text-secondary">Přidělí se po založení.</div>
+                            <div class="ec-form-row">
+                                <EcField Label="Datum úkonu" Required ControlId="act-date">
+                                    <ChildContent>
+                                        <InputDate id="act-date" class="ec-input" @bind-Value="this.model.Date" />
+                                    </ChildContent>
+                                    <Error><ValidationMessage For="() => this.model.Date" /></Error>
+                                </EcField>
                             </div>
-                            <div>
-                                <label class="ec-field-label" for="act-date">Datum úkonu</label>
-                                <InputDate id="act-date" class="form-control" @bind-Value="this.model.Date" />
-                                <ValidationMessage For="() => this.model.Date" class="invalid-feedback d-block" />
-                            </div>
-                            <div>
-                                <label class="ec-field-label" for="act-direction">Směr</label>
-                                <InputSelect id="act-direction" class="form-select" @bind-Value="this.model.Direction" @bind-Value:after="this.PrefillContact">
-                                    <option value="">— bez směru —</option>
-                                    @foreach (var direction in Enum.GetValues<ActDirection>())
-                                    {
-                                        <option value="@direction">@ActDirectionDisplay.Text(direction)</option>
-                                    }
-                                </InputSelect>
-                                <ValidationMessage For="() => this.model.Direction" class="invalid-feedback d-block" />
-                            </div>
-                            <div>
-                                <label class="ec-field-label" for="act-contact">Kontakt</label>
-                                <ContactPicker InputId="act-contact" @bind-Selected="this.model.Contact" />
-                                <ValidationMessage For="() => this.model.Contact" class="invalid-feedback d-block" />
-                            </div>
-                        </div>
-                    </div>
 
-                    <div class="card">
-                        <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="TablerIcons.Tag" />Štítky</h3></div>
-                        <div class="card-body">
-                            <label class="visually-hidden" for="act-labels">Štítky</label>
-                            <LabelPicker InputId="act-labels" @bind-Selected="this.model.Labels" />
-                        </div>
-                    </div>
-                </aside>
+                            <EcField Label="Štítky" ControlId="act-labels">
+                                <ChildContent>
+                                    <LabelField InputId="act-labels" Selected="this.model.Labels" SelectedChanged="this.OnLabelsChanged" />
+                                </ChildContent>
+                            </EcField>
 
-                <div class="ec-savebar">
-                    <div class="ec-savebar-actions">
-                        <a href="/cases/@this.CaseId" class="btn"><Icon CssClass="icon" IconType="TablerIcons.X" />Zrušit</a>
-                        <button id="act-submit" type="submit" class="btn btn-primary" disabled="@this.busy">
-                            @if (this.busy)
+                            <div class="ec-form-group">
+                                <div class="ec-form-group-head">
+                                    <h2 class="ec-form-group-title">Směr a kontakt</h2>
+                                    <span class="ec-form-group-hint">Vyplňte obojí, nebo nic</span>
+                                </div>
+                                <div class="ec-form-group-row">
+                                    <EcField Label="Směr" Hint="Klik na vybraný směr ho zruší.">
+                                        <ChildContent>
+                                            <DirectionField InputId="act-direction" Selected="this.model.Direction" SelectedChanged="this.OnDirectionChanged" />
+                                        </ChildContent>
+                                        <Error><ValidationMessage For="() => this.model.Direction" /></Error>
+                                    </EcField>
+                                    <EcField Label="Kontakt protistrany" ControlId="act-contact">
+                                        <ChildContent>
+                                            <ContactField InputId="act-contact" Selected="this.model.Contact" SelectedChanged="this.OnContactChanged" />
+                                        </ChildContent>
+                                        <Error><ValidationMessage For="() => this.model.Contact" /></Error>
+                                    </EcField>
+                                </div>
+                                @if (ActContactRules.DifferingCaseContact(this.model.Contact, this.caseDetail.Contact) is { } differing)
+                                {
+                                    <div class="ec-warning" role="alert">
+                                        <EcIcon Paths="@AppIcons.AlertTriangle" Size="EcIconSize.Large" />
+                                        <p class="ec-warning-text">Spis má kontakt <strong>@differing.Name</strong>. Uložení to nebrání.</p>
+                                    </div>
+                                }
+                            </div>
+
+                            <EcField Label="Popis" ControlId="act-description" Hint="Nejvýše 4000 znaků">
+                                <ChildContent>
+                                    <InputTextArea id="act-description" class="ec-textarea" rows="5" @bind-Value="this.model.Description" />
+                                </ChildContent>
+                                <Error><ValidationMessage For="() => this.model.Description" /></Error>
+                            </EcField>
+
+                            @if (this.error is not null)
                             {
-                                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                                <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.error</div>
                             }
-                            else
-                            {
-                                <Icon CssClass="icon" IconType="TablerIcons.Plus" />
-                            }
-                            Založit úkon
-                        </button>
-                    </div>
-                </div>
+                        </div>
+                    </ChildContent>
+                    <Footer>
+                        <span class="ec-form-note">Číslo jednací přidělí aplikace při uložení.</span>
+                        <div class="ec-form-actions">
+                            <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Form" Icon="@AppIcons.X" OnClick="this.Cancel">Zrušit</EcButton>
+                            <EcButton Variant="EcButtonVariant.Primary" Size="EcButtonSize.Form" Icon="@AppIcons.Check" Disabled="@this.busy" OnClick="this.SubmitAct">Založit úkon</EcButton>
+                        </div>
+                    </Footer>
+                </EcCard>
+            </CascadingValue>
 
-                @if (this.error is not null)
-                {
-                    <div class="ec-savebar-error">
-                        <div class="alert alert-danger mb-0" role="alert"><Icon CssClass="icon me-2" IconType="TablerIcons.AlertTriangle" />@this.error</div>
-                    </div>
-                }
-            </div>
-        </EditForm>
-    </div>
+            <aside class="ec-form-aside">
+                <EcCard Title="Spis">
+                    <a class="ec-parent-link" href="/cases/@this.CaseId">
+                        <span>@this.caseDetail.Title</span>
+                        <span class="ec-parent-number">@this.caseDetail.CaseNumber</span>
+                    </a>
+                    <p class="ec-card-text">Úkon vzniká pod tímto spisem. Přesunout ho jinam nejde.</p>
+                </EcCard>
+                <EcCard Title="Co přijde po uložení">
+                    <p class="ec-card-text">Otevře se detail spisu se založeným úkonem v seznamu. Dokumenty a komentáře k úkonu přidáte na jeho detailu.</p>
+                </EcCard>
+            </aside>
+        </div>
+    }
 </div>
 
 @code {
@@ -124,33 +132,81 @@
 
     private readonly NewActModel model = new() { Date = DateOnly.FromDateTime(DateTime.Now) };
 
-    private ContactListItem? caseContact;
+    private EditContext editContext = null!;
+
+    private CaseDetail? caseDetail;
+
+    private bool notFound;
+
+    private string? failure;
 
     private string? error;
 
     private bool busy;
 
-    protected override async Task OnInitializedAsync()
+    private IReadOnlyList<EcCrumb> Crumbs => this.caseDetail is null
+        ? [new EcCrumb("Spisy", "/cases"), new EcCrumb("Nový úkon", null)]
+        : [new EcCrumb("Spisy", "/cases"), new EcCrumb(this.caseDetail.Title, $"/cases/{this.CaseId}"), new EcCrumb("Nový úkon", null)];
+
+    protected override void OnInitialized()
     {
+        this.editContext = new EditContext(this.model);
+    }
+
+    protected override Task OnParametersSetAsync()
+    {
+        return this.LoadCase();
+    }
+
+    private async Task LoadCase()
+    {
+        this.caseDetail = null;
+        this.notFound = false;
+        this.failure = null;
+        this.error = null;
+
         try
         {
-            var @case = await this.CasesClient.GetCase(this.CaseId, CancellationToken.None);
-
-            this.caseContact = @case.Contact;
+            this.caseDetail = await this.CasesClient.GetCase(this.CaseId, CancellationToken.None);
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+        {
+            this.notFound = true;
         }
         catch (Exception exception) when (exception is ApiException or HttpRequestException)
         {
-            this.Logger.LogWarning(exception, "Reading the case of the new act failed");
+            this.Logger.LogWarning(exception, "Loading the case of the new act failed");
+
+            this.failure = "Spis se nepodařilo načíst. Zkuste to za chvíli znovu.";
         }
     }
 
-    private void PrefillContact()
+    private void OnDirectionChanged(ActDirection? direction)
     {
-        this.model.Contact = ActContactRules.Prefilled(this.model.Direction, this.model.Contact, this.caseContact);
+        this.model.Direction = direction;
+        this.model.Contact = ActContactRules.Prefilled(this.model.Direction, this.model.Contact, this.caseDetail?.Contact);
+    }
+
+    private void OnContactChanged(ContactListItem? contact)
+    {
+        this.model.Contact = contact;
+    }
+
+    private void OnLabelsChanged(IReadOnlyList<LabelItem> labels)
+    {
+        this.model.Labels = labels;
+    }
+
+    private void Cancel()
+    {
+        this.Navigation.NavigateTo($"/cases/{this.CaseId}");
     }
 
     private async Task SubmitAct()
     {
+        if (!this.editContext.Validate())
+            return;
+
         this.busy = true;
         this.error = null;
 
