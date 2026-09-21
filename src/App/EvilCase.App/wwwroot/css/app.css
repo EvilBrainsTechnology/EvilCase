@@ -369,17 +369,6 @@ body {
     z-index: 2;
 }
 
-/* The colour swatches of the label form. Tabler declares the size on .status-dot itself, so the
-   override belongs there too — a value on the button would never be reached. */
-.label-swatch .status-dot {
-    --tblr-status-size: 1.5rem;
-}
-
-.label-swatch-picked {
-    outline: 2px solid var(--tblr-primary);
-    outline-offset: 1px;
-}
-
 /* Above the row link's overlay, which would otherwise take the hover and with it the label's tooltip. */
 .label-dots {
     position: relative;

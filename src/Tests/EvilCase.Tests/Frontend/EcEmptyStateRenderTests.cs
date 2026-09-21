@@ -21,4 +21,25 @@ public class EcEmptyStateRenderTests
             Assert.That(component.Find(".ec-empty-text").TextContent, Is.EqualTo("Zatím tu nejsou žádné soubory."));
         }
     }
+
+    [Test]
+    public void TheCallToActionRendersWhenGiven()
+    {
+        using var ctx = new BunitContext();
+
+        var component = ctx.Render<EcEmptyState>(static parameters => parameters
+            .Add(static state => state.Icon, AppIcons.Tag)
+            .Add(static state => state.Text, "Zatím tu není žádný štítek.")
+            .Add(
+                static state => state.Action,
+                static builder =>
+                {
+                    builder.OpenElement(0, "button");
+                    builder.AddAttribute(1, "type", "button");
+                    builder.AddContent(2, "Založit štítek");
+                    builder.CloseElement();
+                }));
+
+        Assert.That(component.Find(".ec-empty button").TextContent, Is.EqualTo("Založit štítek"));
+    }
 }

@@ -2,75 +2,74 @@
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Labels
-@using EvilBrains.EvilCase.Domain.Labels
-@using TabBlazor.Services
 @inject ILabelsClient LabelsClient
-@inject IModalService ModalService
 @inject ILogger<LabelFormModal> Logger
 
-<EditForm Model="this.model" OnValidSubmit="this.SaveLabel">
-    <DataAnnotationsValidator />
+<EcModal Title="@this.Title" Open="this.Open" OpenChanged="this.OpenChanged">
+    <ChildContent>
+        <CascadingValue Value="this.editContext">
+            <DataAnnotationsValidator />
+            <div class="ec-form">
+                <EcField Label="Název" Required ControlId="label-name" Hint="Nejvýše 64 znaků">
+                    <ChildContent>
+                        <InputText id="label-name" class="ec-input" @bind-Value="this.model.Name" />
+                    </ChildContent>
+                    <Error><ValidationMessage For="() => this.model.Name" /></Error>
+                </EcField>
 
-    <div class="mb-3">
-        <label class="form-label" for="@($"{this.IdPrefix}-name")">Název</label>
-        <InputText id="@($"{this.IdPrefix}-name")" class="form-control" @bind-Value="this.model.Name" />
-        <ValidationMessage For="() => this.model.Name" class="invalid-feedback d-block" />
-    </div>
+                <EcField Label="Barva" ControlId="label-color">
+                    <ChildContent>
+                        <div id="label-color" class="ec-swatches" role="group" aria-label="Barva štítku">
+                            @foreach (var color in LabelColorDisplay.Palette)
+                            {
+                                var picked = this.model.Color == color;
 
-    <div class="mb-3">
-        <div class="form-label">Barva</div>
-        <div class="d-flex flex-wrap gap-2">
-            @foreach (var color in LabelColorDisplay.Palette)
-            {
-                <button type="button" class="btn btn-icon label-swatch @(this.model.Color == color ? "label-swatch-picked" : "")"
-                        title="@LabelColorDisplay.Text(color)" aria-label="@LabelColorDisplay.Text(color)"
-                        aria-pressed="@(this.model.Color == color)" @onclick="() => this.model.Color = color">
-                    <span class="status-dot bg-@LabelColorDisplay.Css(color)"></span>
-                </button>
-            }
-        </div>
-    </div>
+                                <button type="button" class="@($"ec-swatch ec-chip-{LabelColorDisplay.Css(color)}")"
+                                        aria-label="@LabelColorDisplay.Text(color)" aria-pressed="@picked"
+                                        @onclick="() => this.model.Color = color"></button>
+                            }
+                        </div>
+                    </ChildContent>
+                </EcField>
 
-    <div class="mb-3">
-        <div class="form-label">Náhled</div>
-        <span class="badge bg-@(LabelColorDisplay.Css(this.model.Color))-lt">@(string.IsNullOrWhiteSpace(this.model.Name) ? "Štítek" : this.model.Name)</span>
-    </div>
-
-    @if (this.error is not null)
-    {
-        <div class="alert alert-danger" role="alert"><Icon CssClass="icon me-2" IconType="TablerIcons.AlertTriangle" />@this.error</div>
-    }
-
-    <div class="form-actions-sticky d-flex justify-content-end gap-2 mt-3">
-        <button type="button" class="btn" @onclick="() => this.ModalService.Close()"><Icon CssClass="icon" IconType="TablerIcons.X" />Zrušit</button>
-        <button type="submit" class="btn btn-primary" disabled="@this.busy">
-            @if (this.busy)
-            {
-                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-            }
-            else
-            {
-                <Icon CssClass="icon" IconType="TablerIcons.DeviceFloppy" />
-            }
-            @(this.Label is null ? "Založit štítek" : "Uložit")
-        </button>
-    </div>
-</EditForm>
+                @if (this.error is not null)
+                {
+                    <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.error</div>
+                }
+            </div>
+        </CascadingValue>
+    </ChildContent>
+    <Footer>
+        <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Form" Icon="@AppIcons.X" OnClick="this.Cancel">Zrušit</EcButton>
+        <EcButton Variant="EcButtonVariant.Primary" Size="EcButtonSize.Form" Icon="@AppIcons.Check"
+                  Disabled="@this.busy" OnClick="this.SaveLabel">@this.SaveText</EcButton>
+    </Footer>
+</EcModal>
 
 @code {
     [Parameter]
     public LabelItem? Label { get; set; }
 
     [Parameter]
+    public bool Open { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    [Parameter]
     public EventCallback OnSaved { get; set; }
 
     private readonly LabelEditModel model = new();
+
+    private EditContext editContext = null!;
 
     private string? error;
 
     private bool busy;
 
-    private string IdPrefix => this.Label is null ? "label-create" : "label-edit";
+    private string Title => this.Label is null ? "Nový štítek" : "Upravit štítek";
+
+    private string SaveText => this.Label is null ? "Založit štítek" : "Uložit";
 
     protected override void OnInitialized()
     {
@@ -79,10 +78,20 @@
             this.model.Name = label.Name;
             this.model.Color = label.Color;
         }
+
+        this.editContext = new EditContext(this.model);
+    }
+
+    private async Task Cancel()
+    {
+        await this.OpenChanged.InvokeAsync(false);
     }
 
     private async Task SaveLabel()
     {
+        if (!this.editContext.Validate())
+            return;
+
         this.busy = true;
         this.error = null;
 
@@ -99,7 +108,6 @@
                 _ = await this.LabelsClient.CreateLabel(request, CancellationToken.None);
             }
 
-            this.ModalService.Close();
             await this.OnSaved.InvokeAsync();
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
