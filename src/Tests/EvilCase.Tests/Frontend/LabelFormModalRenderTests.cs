@@ -33,6 +33,32 @@ public class LabelFormModalRenderTests
     }
 
     [Test]
+    public async Task TheChosenColourIsTheOnlyPressedSwatch()
+    {
+        await using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+
+        Serve(ctx);
+
+        var component = ctx.Render<LabelFormModal>(static parameters => parameters
+            .Add(static modal => modal.Open, value: true)
+            .Add(static modal => modal.Label, value: null));
+
+        await component.Find(".ec-swatch[aria-label=\"Červená\"]").ClickAsync(new MouseEventArgs());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(
+                component.Find(".ec-swatch[aria-label=\"Červená\"]").GetAttribute("aria-pressed"),
+                Is.EqualTo("true"),
+                "the chosen colour carries a visible state (SDD-020)");
+            Assert.That(
+                component.Find(".ec-swatch[aria-label=\"Modrá\"]").GetAttribute("aria-pressed"),
+                Is.EqualTo("false"));
+        }
+    }
+
+    [Test]
     public async Task AnEmptyNameIsRefusedAndNothingIsSent()
     {
         await using var ctx = new BunitContext();

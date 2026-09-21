@@ -17,15 +17,14 @@
                     <Error><ValidationMessage For="() => this.model.Name" /></Error>
                 </EcField>
 
-                <EcField Label="Barva" ControlId="label-color">
+                <EcField Label="Barva">
                     <ChildContent>
-                        <div id="label-color" class="ec-swatches" role="group" aria-label="Barva štítku">
+                        <div class="ec-swatches" role="group" aria-label="Barva štítku">
                             @foreach (var color in LabelColorDisplay.Palette)
                             {
-                                var picked = this.model.Color == color;
-
                                 <button type="button" class="@($"ec-swatch ec-chip-{LabelColorDisplay.Css(color)}")"
-                                        aria-label="@LabelColorDisplay.Text(color)" aria-pressed="@picked"
+                                        aria-label="@LabelColorDisplay.Text(color)"
+                                        aria-pressed="@(this.model.Color == color ? "true" : "false")"
                                         @onclick="() => this.model.Color = color"></button>
                             }
                         </div>
