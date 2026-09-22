@@ -6,166 +6,164 @@
 @using EvilBrains.EvilCase.Api.Contract.Comments
 @using EvilBrains.EvilCase.Api.Contract.Files
 @using EvilBrains.EvilCase.Api.Contract.Labels
-@using TabBlazor.Services
+@using EvilBrains.EvilCase.Domain.Acts
+@using EvilBrains.EvilCase.Domain.Cases
 @inject IActsClient ActsClient
 @inject IActLabelsClient ActLabelsClient
 @inject IActCommentsClient ActCommentsClient
 @inject IActFilesClient ActFilesClient
 @inject IFileTransferClient FileTransfer
 @inject IFileDownloader Downloader
-@inject IModalService ModalService
 @inject NavigationManager Navigation
 @inject ILogger<Act> Logger
 
 <PageTitle>@(this.act is null ? "Úkon" : this.act.ActNumber) – EvilCase</PageTitle>
 
-<div class="page-header d-print-none">
-    <div class="container-xl">
-        <div class="row g-2 align-items-center ec-detail-header">
-            <div class="col">
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb mb-1">
-                        <li class="breadcrumb-item"><a href="/cases">Spisy</a></li>
-                        @if (this.act is not null)
-                        {
-                            <li class="breadcrumb-item"><a href="@($"/cases/{this.act!.CaseId}")">@this.act!.CaseTitle</a></li>
-                            <li class="breadcrumb-item active" aria-current="page">@this.act!.Title</li>
-                        }
-                    </ol>
-                </nav>
-
-                @if (this.act is not null)
-                {
-                    <h2 class="page-title">
-                        @this.act!.Title
-                        @if (this.act!.Direction is not null)
-                        {
-                            <span class="ms-2">
-                                <Status BackgroundColor="ActDirectionDisplay.Color(this.act!.Direction)" Lite="true">@ActDirectionDisplay.Text(this.act!.Direction)</Status>
-                            </span>
-                        }
-                    </h2>
-                }
+<div class="ec-page">
+    @if (this.notFound)
+    {
+        <EcCard><p class="ec-state">Úkon nenalezen.</p></EcCard>
+    }
+    else if (this.failure is not null)
+    {
+        <EcCard>
+            <div class="ec-card-error">
+                <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.failure</div>
+                <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Refresh"
+                          OnClick="this.LoadAct">Zkusit znovu</EcButton>
             </div>
-            @if (this.act is not null)
-            {
-                <div class="col-auto ms-auto d-print-none">
-                    <a id="act-edit" href="@($"/cases/{this.act!.CaseId}/act/{this.act!.ActId}/edit")" class="btn btn-primary"><Icon CssClass="icon" IconType="TablerIcons.Pencil" />Upravit</a>
-                    <button id="act-delete" type="button" class="btn btn-danger ms-2" @onclick="this.DeleteAct"><Icon CssClass="icon" IconType="TablerIcons.Trash" />Smazat</button>
-                </div>
-            }
-        </div>
-    </div>
-</div>
-
-<div class="page-body">
-    <div class="container-xl">
-        <LoadStateView NotFound="this.notFound" NotFoundTitle="Úkon nenalezen" Failure="@this.failure" FailureTitle="Úkon se nepodařilo načíst" Loaded="this.act is not null">
-                <div class="ec-layout">
-                    <div class="ec-main">
-                        @{
-                            var differing = ActContactRules.DifferingCaseContact(this.act!.Contact, this.act!.CaseContact);
-                        }
-                        @if (differing is not null)
+        </EcCard>
+    }
+    else if (this.act is null)
+    {
+        <EcCard><p class="ec-state">Načítám…</p></EcCard>
+    }
+    else
+    {
+        <EcCard>
+            <div class="ec-detail">
+                <EcPageHeader Title="@this.act.Title" Breadcrumbs="this.Crumbs">
+                    <Status>
+                        @if (this.act.Direction is { } direction)
                         {
-                            <div class="alert alert-warning mb-0" role="alert">
-                                <Icon CssClass="icon me-2" IconType="TablerIcons.AlertTriangle" />Kontakt úkonu se liší od kontaktu spisu (@differing.Name).
+                            <EcBadge Text="@ActDirectionDisplay.Text(direction)" Tone="DirectionTone(direction)" />
+                        }
+                    </Status>
+                    <Actions>
+                        <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Pencil" OnClick="this.EditAct">Upravit úkon</EcButton>
+                        <EcButton Variant="EcButtonVariant.Danger" Icon="@AppIcons.Trash" OnClick="this.StartDeleting">Smazat úkon</EcButton>
+                    </Actions>
+                </EcPageHeader>
+
+                <p class="ec-detail-text">@(string.IsNullOrWhiteSpace(this.act.Description) ? "—" : this.act.Description)</p>
+
+                <div class="ec-detail-facts">
+                    <div class="ec-detail-fact">
+                        <span class="ec-detail-fact-name">Datum úkonu</span>
+                        <span class="ec-detail-fact-value">@DateDisplay.Text(this.act.Date)</span>
+                    </div>
+                    <div class="ec-detail-fact">
+                        <span class="ec-detail-fact-name">Číslo jednací</span>
+                        <span class="ec-detail-fact-mono">@this.act.ActNumber</span>
+                    </div>
+                    <div class="ec-detail-fact">
+                        <span class="ec-detail-fact-name">Externí číslo jednací</span>
+                        <span class="ec-detail-fact-mono">@(string.IsNullOrWhiteSpace(this.act.ExternalActNumber) ? "—" : this.act.ExternalActNumber)</span>
+                    </div>
+                    <div class="ec-detail-fact">
+                        <span class="ec-detail-fact-name">Kontakt</span>
+                        @if (this.act.Contact is { } contact)
+                        {
+                            <a class="ec-detail-fact-link" href="@($"/contacts/{contact.ContactId}")">@contact.Name</a>
+                        }
+                        else
+                        {
+                            <span class="ec-detail-fact-value">—</span>
+                        }
+                    </div>
+                    <div class="ec-detail-fact ec-detail-fact-grow">
+                        <span class="ec-detail-fact-name">Štítky</span>
+                        @if (this.picking)
+                        {
+                            <LabelField InputId="act-labels" Selected="this.act.Labels" SelectedChanged="this.SaveLabels" />
+                        }
+                        else if (this.act.Labels.Count > 0)
+                        {
+                            <div class="ec-chips">
+                                @foreach (var label in this.act.Labels)
+                                {
+                                    <span class="@($"ec-chip ec-chip-{LabelColorDisplay.Css(label.Color)}")">
+                                        <span class="ec-chip-dot" aria-hidden="true"></span>@label.Name
+                                    </span>
+                                }
                             </div>
                         }
-
-                        <div class="card">
-                            <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="TablerIcons.FileText" />Popis</h3></div>
-                            <div class="card-body">
-                                <p class="comment-body mb-0">@(string.IsNullOrWhiteSpace(this.act!.Description) ? "—" : this.act!.Description)</p>
-                            </div>
+                        else
+                        {
+                            <span class="ec-detail-fact-value">—</span>
+                        }
+                        @if (this.labelsError is not null)
+                        {
+                            <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.labelsError</div>
+                        }
+                        <div class="ec-detail-fact-actions">
+                            <EcButton Variant="EcButtonVariant.Ghost" Size="EcButtonSize.Compact"
+                                      Icon="@(this.picking ? AppIcons.X : AppIcons.Plus)"
+                                      AriaLabel="@(this.picking ? "Zavřít výběr štítků" : "Přidat štítek")"
+                                      OnClick="this.ToggleLabelPicker" />
                         </div>
-
-                        <FilesCard @key="(nameof(FilesCard), this.ActId)"
-                                   Title="Soubory úkonu"
-                                   OwnerGoneError="úkon už neexistuje."
-                                   LoadFiles="this.LoadFiles"
-                                   UploadFile="this.UploadFile"
-                                   DownloadFile="this.DownloadFile"
-                                   DeleteFile="this.DeleteFile" />
-
-                        <CommentsCard @key="(nameof(CommentsCard), this.ActId)"
-                                      Title="Komentáře úkonu"
-                                      Placeholder="Poznámka k tomuto úkonu…"
-                                      LoadComments="this.LoadComments"
-                                      AddComment="this.AddComment"
-                                      SaveComment="this.SaveComment"
-                                      DeleteComment="this.DeleteComment" />
                     </div>
-
-                    <aside class="ec-sidebar d-flex flex-column gap-3">
-                        <div class="card">
-                            <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="TablerIcons.ListDetails" />Údaje</h3></div>
-                            <div class="card-body d-flex flex-column gap-3">
-                                <div>
-                                    <div class="ec-field-label">Číslo jednací</div>
-                                    <div class="ec-mono fw-bold">@this.act!.ActNumber</div>
-                                </div>
-                                <div>
-                                    <div class="ec-field-label">Externí číslo jednací</div>
-                                    <div class="ec-mono">@(string.IsNullOrWhiteSpace(this.act!.ExternalActNumber) ? "—" : this.act!.ExternalActNumber)</div>
-                                </div>
-                                <div>
-                                    <div class="ec-field-label">Datum úkonu</div>
-                                    <div class="ec-num">@DateDisplay.Text(this.act!.Date)</div>
-                                </div>
-                                <div>
-                                    <div class="ec-field-label">Směr</div>
-                                    <div>
-                                        @if (this.act!.Direction is not null)
-                                        {
-                                            <Status BackgroundColor="ActDirectionDisplay.Color(this.act!.Direction)" Lite="true">@ActDirectionDisplay.Text(this.act!.Direction)</Status>
-                                        }
-                                        else
-                                        {
-                                            @:—
-                                        }
-                                    </div>
-                                </div>
-                                <div>
-                                    <div class="ec-field-label">Kontakt</div>
-                                    <div>
-                                        @if (this.act!.Contact is { } contact)
-                                        {
-                                            <a href="/contacts/@contact.ContactId">@contact.Name</a>
-                                        }
-                                        else
-                                        {
-                                            @:—
-                                        }
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <LabelsCard InputId="act-labels"
-                                    Labels="this.act!.Labels"
-                                    SaveLabels="this.SaveLabels"
-                                    OwnerGoneError="Úkon už neexistuje." />
-
-                        <div class="card">
-                            <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="TablerIcons.Folders" />Spis</h3></div>
-                            <div class="card-body">
-                                <a class="ec-comprow" href="@($"/cases/{this.act!.CaseId}")">
-                                    <span class="ec-min-w-0 flex-fill">
-                                        <span class="d-block ec-comprow-title">@this.act!.CaseTitle</span>
-                                        <span class="ec-comprow-meta">
-                                            <span class="ec-num">@DateDisplay.Text(this.act!.CaseDate)</span> ·
-                                            <Status BackgroundColor="CaseStatusDisplay.Color(this.act!.CaseStatus)" Lite="true">@CaseStatusDisplay.Text(this.act!.CaseStatus)</Status>
-                                        </span>
-                                    </span>
-                                </a>
-                            </div>
-                        </div>
-                    </aside>
                 </div>
-        </LoadStateView>
-    </div>
+            </div>
+        </EcCard>
+
+        @if (ActContactRules.DifferingCaseContact(this.act.Contact, this.act.CaseContact) is { } differing)
+        {
+            <div class="ec-warning" role="alert">
+                <EcIcon Paths="@AppIcons.AlertTriangle" Size="EcIconSize.Large" />
+                <p class="ec-warning-text">Kontakt úkonu se liší od kontaktu spisu (<strong>@differing.Name</strong>).</p>
+            </div>
+        }
+
+        <div class="ec-detail-layout">
+            <div class="ec-detail-main">
+                <FilesCard @key="(nameof(FilesCard), this.ActId)"
+                           Title="Soubory úkonu"
+                           OwnerGoneError="úkon už neexistuje."
+                           LoadFiles="this.LoadFiles"
+                           UploadFile="this.UploadFile"
+                           DownloadFile="this.DownloadFile"
+                           DeleteFile="this.DeleteFile" />
+
+                <CommentsCard @key="(nameof(CommentsCard), this.ActId)"
+                              Title="Komentáře úkonu"
+                              Placeholder="Poznámka k tomuto úkonu…"
+                              LoadComments="this.LoadComments"
+                              AddComment="this.AddComment"
+                              SaveComment="this.SaveComment"
+                              DeleteComment="this.DeleteComment" />
+            </div>
+
+            <aside class="ec-detail-aside">
+                <EcCard Title="Spis">
+                    <a class="ec-case-link" href="@($"/cases/{this.act.CaseId}")">
+                        <span class="ec-case-link-title">@this.act.CaseTitle</span>
+                        <span class="ec-case-link-number">@this.act.CaseNumber</span>
+                    </a>
+                    <p class="ec-case-meta">
+                        <span class="@($"ec-status-dot {CaseStatusDot(this.act.CaseStatus)}")" aria-hidden="true"></span>
+                        @CaseStatusDisplay.Text(this.act.CaseStatus) · @DateDisplay.Text(this.act.CaseDate)
+                    </p>
+                </EcCard>
+            </aside>
+        </div>
+    }
 </div>
+
+@if (this.deleting && this.act is not null)
+{
+    <ActDeleteModal Act="this.act" Open OpenChanged="this.CloseDelete" OnDeleted="this.ActDeleted" />
+}
 
 @code {
     [Parameter]
@@ -174,21 +172,58 @@
     [Parameter]
     public Guid ActId { get; set; }
 
+    private ActDetail? act;
+
     private bool notFound;
 
     private string? failure;
 
-    private ActDetail? act;
+    private string? labelsError;
+
+    private bool picking;
+
+    private bool deleting;
+
+    private IReadOnlyList<EcCrumb> Crumbs => this.act is null
+        ? [new EcCrumb("Spisy", "/cases")]
+        : [
+            new EcCrumb("Spisy", "/cases"),
+            new EcCrumb(this.act.CaseTitle, $"/cases/{this.CaseId}"),
+            new EcCrumb(this.act.ActNumber, null),
+        ];
 
     protected override Task OnParametersSetAsync()
     {
         return this.LoadAct();
     }
 
+    private static EcBadgeTone DirectionTone(ActDirection direction)
+    {
+        return direction switch
+        {
+            ActDirection.Incoming => EcBadgeTone.Incoming,
+            ActDirection.Outgoing => EcBadgeTone.Outgoing,
+            _ => throw new InvalidOperationException($"unknown ActDirection {direction}"),
+        };
+    }
+
+    private static string CaseStatusDot(CaseStatus status)
+    {
+        return status switch
+        {
+            CaseStatus.Active => "ec-status-dot-active",
+            CaseStatus.WaitingOnAuthority => "ec-status-dot-waiting",
+            CaseStatus.Closed => "ec-status-dot-closed",
+            _ => throw new InvalidOperationException($"unknown CaseStatus {status}"),
+        };
+    }
+
     private async Task LoadAct()
     {
         this.notFound = false;
         this.failure = null;
+        this.labelsError = null;
+        this.picking = false;
         this.act = null;
 
         try
@@ -207,20 +242,57 @@
         }
     }
 
-    private async Task SaveLabels(IReadOnlyList<Guid> labelIds, CancellationToken token)
+    private void ToggleLabelPicker()
     {
-        await this.ActLabelsClient.SetActLabels(this.CaseId, this.ActId, new LabelAssignmentRequest { LabelIds = labelIds }, token);
+        this.picking = !this.picking;
+        this.labelsError = null;
+    }
+
+    private async Task SaveLabels(IReadOnlyList<LabelItem> labels)
+    {
+        this.labelsError = null;
 
         try
         {
-            this.act = await this.ActsClient.GetAct(this.CaseId, this.ActId, token);
+            var request = new LabelAssignmentRequest { LabelIds = [.. labels.Select(static label => label.LabelId)] };
 
-            this.StateHasChanged();
+            await this.ActLabelsClient.SetActLabels(this.CaseId, this.ActId, request, CancellationToken.None);
+
+            this.act = await this.ActsClient.GetAct(this.CaseId, this.ActId, CancellationToken.None);
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+        {
+            this.labelsError = "Úkon už neexistuje.";
         }
         catch (Exception exception) when (exception is ApiException or HttpRequestException)
         {
-            this.Logger.LogWarning(exception, "Reloading the act after a label change failed");
+            this.Logger.LogWarning(exception, "Saving the act labels failed");
+
+            this.labelsError = "Štítky se nepodařilo uložit. Zkuste to za chvíli znovu.";
         }
+    }
+
+    private void EditAct()
+    {
+        this.Navigation.NavigateTo($"/cases/{this.CaseId}/act/{this.ActId}/edit");
+    }
+
+    private void StartDeleting()
+    {
+        this.deleting = true;
+    }
+
+    private void CloseDelete(bool open)
+    {
+        if (!open)
+            this.deleting = false;
+    }
+
+    private void ActDeleted()
+    {
+        this.deleting = false;
+
+        this.Navigation.NavigateTo($"/cases/{this.CaseId}");
     }
 
     private async Task<IReadOnlyList<FileListItem>> LoadFiles(CancellationToken token)
@@ -263,18 +335,5 @@
     private Task DeleteComment(Guid commentId, CancellationToken token)
     {
         return this.ActCommentsClient.DeleteActComment(this.CaseId, this.ActId, commentId, token);
-    }
-
-    private async Task DeleteAct()
-    {
-        if (this.act is null)
-            return;
-
-        await this.ModalService.ShowAsync(
-            "Smazat úkon",
-            new RenderComponent<ActDeleteModal>()
-                .Set(component => component.Act, this.act)
-                .Set(component => component.OnDeleted, EventCallback.Factory.Create(this, () => this.Navigation.NavigateTo($"/cases/{this.CaseId}"))),
-            new ModalOptions { Fullscreen = ModalFullscreen.BelowLarge });
     }
 }
