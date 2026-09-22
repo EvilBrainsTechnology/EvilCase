@@ -13,6 +13,8 @@ using EvilBrains.EvilCase.Domain.Acts;
 using EvilBrains.EvilCase.Domain.Cases;
 using EvilBrains.EvilCase.Domain.Contacts;
 using EvilBrains.EvilCase.Domain.Labels;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
 using TabBlazor.Services;
@@ -161,7 +163,7 @@ public class ActRenderTests
             Title = "Úkon",
         };
 
-        var (actsClient, _) = Serve(ctx, caseId, actId, detail);
+        var (actsClient, _, _) = Serve(ctx, caseId, actId, detail);
         actsClient
             .GetAct(caseId, actId, Arg.Any<CancellationToken>())
             .Returns(static _ => Task.FromException<ActDetail>(new ApiException(HttpStatusCode.InternalServerError, responseBody: null)));
@@ -177,7 +179,111 @@ public class ActRenderTests
         }
     }
 
-    private static (IActsClient Acts, IActLabelsClient Labels) Serve(BunitContext ctx, Guid caseId, Guid actId, ActDetail detail)
+    [Test]
+    public async Task ThePickerPutsALabelOnTheActWithoutLeavingThePage()
+    {
+        await using var ctx = new BunitContext();
+
+        var caseId = Guid.CreateVersion7();
+        var actId = Guid.CreateVersion7();
+
+        var label = new LabelItem { LabelId = Guid.CreateVersion7(), Name = "InfZ", Color = LabelColor.Blue };
+
+        var detail = new ActDetail
+        {
+            ActId = actId,
+            CaseId = caseId,
+            CaseNumber = "EC/20260807-001",
+            CaseTitle = "Spis",
+            CaseDate = new DateOnly(2026, 8, 7),
+            CaseStatus = CaseStatus.Active,
+            ActNumber = "1",
+            Date = new DateOnly(2026, 8, 7),
+            Title = "Úkon",
+        };
+
+        var (actsClient, actLabelsClient, labelsClient) = Serve(ctx, caseId, actId, detail);
+
+        labelsClient.ListLabels(Arg.Any<CancellationToken>()).Returns(Task.FromResult(new LabelListResponse { Items = [label] }));
+        actsClient
+            .GetAct(caseId, actId, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(detail), Task.FromResult(detail with { Labels = [label] }));
+
+        var component = ctx.Render<Act>(parameters => parameters
+            .Add(static page => page.CaseId, caseId)
+            .Add(static page => page.ActId, actId));
+
+        await component.Find(".ec-detail-fact-actions .ec-button-ghost").ClickAsync(new MouseEventArgs());
+        await component.Find("#act-labels").InputAsync(new ChangeEventArgs { Value = "inf" });
+
+        await component.WaitForAssertionAsync(
+            () => Assert.That(component.FindAll(".ec-combobox-option"), Has.Count.EqualTo(1)),
+            TimeSpan.FromSeconds(2));
+
+        await component.Find(".ec-combobox-option").ClickAsync(new MouseEventArgs());
+
+        await actLabelsClient
+            .Received(1)
+            .SetActLabels(
+                caseId,
+                actId,
+                Arg.Is<LabelAssignmentRequest>(request => request.LabelIds.SequenceEqual(new[] { label.LabelId })),
+                Arg.Any<CancellationToken>());
+
+        await component.WaitForAssertionAsync(
+            () => Assert.That(component.Find(".ec-chip").TextContent, Does.Contain("InfZ")),
+            TimeSpan.FromSeconds(2));
+    }
+
+    [Test]
+    public async Task AFailedLabelWriteIsReportedBesideTheLabels()
+    {
+        await using var ctx = new BunitContext();
+
+        var caseId = Guid.CreateVersion7();
+        var actId = Guid.CreateVersion7();
+
+        var label = new LabelItem { LabelId = Guid.CreateVersion7(), Name = "InfZ", Color = LabelColor.Blue };
+
+        var detail = new ActDetail
+        {
+            ActId = actId,
+            CaseId = caseId,
+            CaseNumber = "EC/20260807-001",
+            CaseTitle = "Spis",
+            CaseDate = new DateOnly(2026, 8, 7),
+            CaseStatus = CaseStatus.Active,
+            ActNumber = "1",
+            Date = new DateOnly(2026, 8, 7),
+            Title = "Úkon",
+        };
+
+        var (_, actLabelsClient, labelsClient) = Serve(ctx, caseId, actId, detail);
+
+        labelsClient.ListLabels(Arg.Any<CancellationToken>()).Returns(Task.FromResult(new LabelListResponse { Items = [label] }));
+        actLabelsClient
+            .SetActLabels(caseId, actId, Arg.Any<LabelAssignmentRequest>(), Arg.Any<CancellationToken>())
+            .Returns(static _ => Task.FromException(new ApiException(HttpStatusCode.InternalServerError, responseBody: null)));
+
+        var component = ctx.Render<Act>(parameters => parameters
+            .Add(static page => page.CaseId, caseId)
+            .Add(static page => page.ActId, actId));
+
+        await component.Find(".ec-detail-fact-actions .ec-button-ghost").ClickAsync(new MouseEventArgs());
+        await component.Find("#act-labels").InputAsync(new ChangeEventArgs { Value = "inf" });
+
+        await component.WaitForAssertionAsync(
+            () => Assert.That(component.FindAll(".ec-combobox-option"), Has.Count.EqualTo(1)),
+            TimeSpan.FromSeconds(2));
+
+        await component.Find(".ec-combobox-option").ClickAsync(new MouseEventArgs());
+
+        await component.WaitForAssertionAsync(
+            () => Assert.That(component.Find(".ec-detail-fact .ec-alert").TextContent, Does.Contain("nepodařilo uložit")),
+            TimeSpan.FromSeconds(2));
+    }
+
+    private static (IActsClient Acts, IActLabelsClient ActLabels, ILabelsClient Labels) Serve(BunitContext ctx, Guid caseId, Guid actId, ActDetail detail)
     {
         // FilesCard's drop zone imports its own module on first render from a path carrying a
         // version query string, which no SetupModule can name, and reads a property bUnit's
@@ -209,6 +315,6 @@ public class ActRenderTests
         ctx.Services.AddSingleton(labelsClient);
         ctx.Services.AddSingleton(Substitute.For<IContactsClient>());
 
-        return (actsClient, actLabelsClient);
+        return (actsClient, actLabelsClient, labelsClient);
     }
 }
