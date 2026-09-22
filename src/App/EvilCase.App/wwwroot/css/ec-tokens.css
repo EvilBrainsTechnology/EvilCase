@@ -129,6 +129,7 @@
     --ec-content-max: 1680px;
     --ec-content-padding: 32px;
     --ec-sidebar-width: 380px;
+    --ec-settings-rail: 220px;
 
     /* Stíny a fokus */
     --ec-shadow-raised: 0 1px 2px rgba(20, 22, 27, 0.08);

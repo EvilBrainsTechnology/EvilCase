@@ -2,159 +2,175 @@
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Labels
-@using TabBlazor.Services
 @inject ILabelsClient LabelsClient
-@inject IModalService ModalService
 @inject ILogger<Settings> Logger
 
 <PageTitle>Nastavení – EvilCase</PageTitle>
 
-<div class="page-header d-print-none">
-    <div class="container-xl">
-        <div class="row g-2 align-items-center">
-            <div class="col">
-                <h2 class="page-title">Nastavení</h2>
-            </div>
-            <div class="col-auto ms-auto d-print-none">
-                <button id="label-new" type="button" class="btn btn-primary" @onclick="this.CreateLabel"><Icon CssClass="icon" IconType="TablerIcons.Plus" />Nový štítek</button>
-            </div>
-        </div>
-    </div>
-</div>
+<div class="ec-page">
+    <EcPageHeader Title="Nastavení" />
 
-<div class="page-body">
-    <div class="container-xl">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title"><Icon CssClass="icon me-2" IconType="TablerIcons.Tag" />Štítky</h3>
-            </div>
+    <div class="ec-settings-layout">
+        <nav class="ec-settings-nav" aria-label="Sekce nastavení">
+            <a class="ec-settings-nav-item" href="/settings" aria-current="page">Štítky</a>
+        </nav>
 
-            @if (this.failure is not null)
-            {
-                <div class="empty">
-                    <div class="empty-icon"><Icon IconType="TablerIcons.AlertTriangle" /></div>
-                    <p class="empty-title">Štítky se nepodařilo načíst</p>
-                    <p class="empty-subtitle text-secondary">@this.failure</p>
+        <EcCard>
+            <Header>
+                <div class="ec-card-heading">
+                    <h2 class="ec-card-title">Štítky</h2>
+                    <span class="ec-card-subtitle">Jeden číselník pro spisy i úkony</span>
                 </div>
-            }
-            else if (this.items is null)
-            {
-                <div class="card-body text-center text-secondary">
-                    <div class="spinner-border" role="status"></div>
+                <div class="ec-card-header-actions">
+                    <EcButton Variant="EcButtonVariant.Primary" Icon="@AppIcons.Plus" OnClick="this.StartCreating">Nový štítek</EcButton>
                 </div>
-            }
-            else if (this.items.Count == 0)
-            {
-                <div class="empty">
-                    <div class="empty-icon"><Icon IconType="TablerIcons.Tag" /></div>
-                    <p class="empty-title">Žádné štítky</p>
-                    <p class="empty-subtitle text-secondary">Štítkem se označuje spis i úkon.</p>
-                    <div class="empty-action">
-                        <button type="button" class="btn btn-primary" @onclick="this.CreateLabel"><Icon CssClass="icon" IconType="TablerIcons.Plus" />Založit štítek</button>
+            </Header>
+            <ChildContent>
+                @if (this.loading)
+                {
+                    <p class="ec-card-state">Načítám…</p>
+                }
+                else if (this.listFailure is not null)
+                {
+                    <div class="ec-card-error">
+                        <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.listFailure</div>
+                        <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Refresh"
+                                  OnClick="this.ReloadLabels">Zkusit znovu</EcButton>
                     </div>
-                </div>
-            }
-            else
-            {
-                <div class="d-none d-lg-block">
-                    <table class="table card-table table-vcenter">
-                        <thead>
-                            <tr>
-                                <th>Štítek</th>
-                                <th>Barva</th>
-                                <th class="w-1"></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var item in this.items)
-                            {
-                                <tr>
-                                    <td><span class="badge bg-@(LabelColorDisplay.Css(item.Color))-lt">@item.Name</span></td>
-                                    <td class="text-nowrap">@LabelColorDisplay.Text(item.Color)</td>
-                                    <td class="text-nowrap text-end">
-                                        <button type="button" class="btn btn-sm" @onclick="() => this.EditLabel(item)"><Icon CssClass="icon" IconType="TablerIcons.Pencil" />Upravit</button>
-                                        <button type="button" class="btn btn-sm btn-danger ms-2" @onclick="() => this.DeleteLabel(item)"><Icon CssClass="icon" IconType="TablerIcons.Trash" />Smazat</button>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="card-body d-lg-none">
-                    @foreach (var item in this.items)
-                    {
-                        <div class="card mb-2">
-                            <div class="card-body">
-                                <span class="badge bg-@(LabelColorDisplay.Css(item.Color))-lt">@item.Name</span>
-                                <div class="text-secondary mt-2">@LabelColorDisplay.Text(item.Color)</div>
-                                <div class="mt-2 d-flex gap-2">
-                                    <button type="button" class="btn btn-sm" @onclick="() => this.EditLabel(item)"><Icon CssClass="icon" IconType="TablerIcons.Pencil" />Upravit</button>
-                                    <button type="button" class="btn btn-sm btn-danger" @onclick="() => this.DeleteLabel(item)"><Icon CssClass="icon" IconType="TablerIcons.Trash" />Smazat</button>
-                                </div>
+                }
+                else if (this.items.Count == 0)
+                {
+                    <EcEmptyState Icon="@AppIcons.Tag" Text="Zatím tu není žádný štítek.">
+                        <Action>
+                            <EcButton Variant="EcButtonVariant.Primary" Icon="@AppIcons.Plus" OnClick="this.StartCreating">Založit štítek</EcButton>
+                        </Action>
+                    </EcEmptyState>
+                }
+                else
+                {
+                    <div class="ec-settings-head" aria-hidden="true">
+                        <span>Štítek</span>
+                        <span>Barva</span>
+                        <span></span>
+                    </div>
+                    <div class="ec-settings-list">
+                        @foreach (var item in this.items)
+                        {
+                            <div class="ec-settings-row">
+                                <span class="@($"ec-chip ec-chip-{LabelColorDisplay.Css(item.Color)}")">
+                                    <span class="ec-chip-dot" aria-hidden="true"></span>@item.Name
+                                </span>
+                                <span class="ec-settings-row-color">@LabelColorDisplay.Text(item.Color)</span>
+                                <span class="ec-settings-row-actions">
+                                    <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Pencil"
+                                              OnClick="() => this.StartEditing(item)">Upravit</EcButton>
+                                    <EcButton Variant="EcButtonVariant.Danger" Size="EcButtonSize.Compact" Icon="@AppIcons.Trash"
+                                              AriaLabel="@($"Smazat štítek {item.Name}")" OnClick="() => this.StartDeleting(item)" />
+                                </span>
                             </div>
-                        </div>
-                    }
-                </div>
-            }
-        </div>
+                        }
+                    </div>
+                }
+            </ChildContent>
+            <Footer>
+                Smazání štítku ho sejme ze všech spisů a úkonů, které ho nesou.
+            </Footer>
+        </EcCard>
     </div>
 </div>
+
+@if (this.formOpen)
+{
+    <LabelFormModal Label="this.editing" Open OpenChanged="this.CloseForm" OnSaved="this.LabelSaved" />
+}
+
+@if (this.deleting is not null)
+{
+    <LabelDeleteModal Label="this.deleting" Open OpenChanged="this.CloseDelete" OnDeleted="this.LabelDeleted" />
+}
 
 @code {
-    private IReadOnlyList<LabelItem>? items;
+    private IReadOnlyList<LabelItem> items = [];
 
-    private string? failure;
+    private LabelItem? editing;
 
-    protected override Task OnInitializedAsync()
+    private LabelItem? deleting;
+
+    private bool formOpen;
+
+    private bool loading = true;
+
+    private string? listFailure;
+
+    protected override async Task OnInitializedAsync()
     {
-        return this.LoadLabels();
+        await this.ReloadLabels();
+        this.loading = false;
     }
 
-    private async Task LoadLabels()
+    private async Task ReloadLabels()
     {
+        this.listFailure = null;
+
         try
         {
             var response = await this.LabelsClient.ListLabels(CancellationToken.None);
 
             this.items = response.Items;
-            this.failure = null;
         }
         catch (Exception exception) when (exception is ApiException or HttpRequestException)
         {
             this.Logger.LogWarning(exception, "Loading the label list failed");
 
             this.items = [];
-            this.failure = "Seznam štítků se nepodařilo načíst. Zkuste to za chvíli znovu.";
+            this.listFailure = "Seznam štítků se nepodařilo načíst. Zkuste to za chvíli znovu.";
         }
     }
 
-    private async Task CreateLabel()
+    private void StartCreating()
     {
-        await this.ModalService.ShowAsync(
-            "Nový štítek",
-            new RenderComponent<LabelFormModal>()
-                .Set(component => component.OnSaved, EventCallback.Factory.Create(this, this.LoadLabels)),
-            new ModalOptions { Fullscreen = ModalFullscreen.BelowLarge });
+        this.editing = null;
+        this.formOpen = true;
     }
 
-    private async Task EditLabel(LabelItem label)
+    private void StartEditing(LabelItem label)
     {
-        await this.ModalService.ShowAsync(
-            "Upravit štítek",
-            new RenderComponent<LabelFormModal>()
-                .Set(component => component.Label, label)
-                .Set(component => component.OnSaved, EventCallback.Factory.Create(this, this.LoadLabels)),
-            new ModalOptions { Fullscreen = ModalFullscreen.BelowLarge });
+        this.editing = label;
+        this.formOpen = true;
     }
 
-    private async Task DeleteLabel(LabelItem label)
+    private void StartDeleting(LabelItem label)
     {
-        await this.ModalService.ShowAsync(
-            "Smazat štítek",
-            new RenderComponent<LabelDeleteModal>()
-                .Set(component => component.Label, label)
-                .Set(component => component.OnDeleted, EventCallback.Factory.Create(this, this.LoadLabels)),
-            new ModalOptions { Fullscreen = ModalFullscreen.BelowLarge });
+        this.deleting = label;
+    }
+
+    private void CloseForm(bool open)
+    {
+        if (open)
+            return;
+
+        this.formOpen = false;
+        this.editing = null;
+    }
+
+    private void CloseDelete(bool open)
+    {
+        if (!open)
+            this.deleting = null;
+    }
+
+    private async Task LabelSaved()
+    {
+        this.formOpen = false;
+        this.editing = null;
+
+        await this.ReloadLabels();
+    }
+
+    private async Task LabelDeleted()
+    {
+        this.deleting = null;
+
+        await this.ReloadLabels();
     }
 }

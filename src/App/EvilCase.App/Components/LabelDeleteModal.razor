@@ -1,26 +1,74 @@
+@using System.Net
+@using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Labels
 @inject ILabelsClient LabelsClient
+@inject ILogger<LabelDeleteModal> Logger
 
-<ConfirmDeleteModal Delete="this.DeleteLabel"
-                    GoneError="Štítek už neexistuje."
-                    FailedError="Štítek se nepodařilo smazat. Zkuste to za chvíli znovu."
-                    OnDeleted="this.OnDeleted">
-    <p>
-        Opravdu smazat štítek <strong>@this.Label.Name</strong>? Zmizí i ze všech spisů a úkonů,
-        které ho nesou.
-    </p>
-</ConfirmDeleteModal>
+<EcModal Title="Smazat štítek" Open="this.Open" OpenChanged="this.OpenChanged">
+    <ChildContent>
+        <p class="ec-confirm-text">
+            Opravdu smazat štítek <strong>@this.Label.Name</strong>? Zmizí i ze všech spisů a úkonů,
+            které ho nesou; spis ani úkon tím nezaniká.
+        </p>
+        @if (this.error is not null)
+        {
+            <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.error</div>
+        }
+    </ChildContent>
+    <Footer>
+        <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Form" Icon="@AppIcons.X" OnClick="this.Cancel">Zrušit</EcButton>
+        <EcButton Variant="EcButtonVariant.Danger" Size="EcButtonSize.Form" Icon="@AppIcons.Trash"
+                  Disabled="@this.busy" OnClick="this.DeleteLabel">Smazat štítek</EcButton>
+    </Footer>
+</EcModal>
 
 @code {
     [Parameter, EditorRequired]
     public required LabelItem Label { get; set; }
 
     [Parameter]
+    public bool Open { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    [Parameter]
     public EventCallback OnDeleted { get; set; }
 
-    private Task DeleteLabel(CancellationToken token)
+    private string? error;
+
+    private bool busy;
+
+    private async Task Cancel()
     {
-        return this.LabelsClient.DeleteLabel(this.Label.LabelId, token);
+        await this.OpenChanged.InvokeAsync(false);
+    }
+
+    private async Task DeleteLabel()
+    {
+        this.busy = true;
+        this.error = null;
+
+        try
+        {
+            await this.LabelsClient.DeleteLabel(this.Label.LabelId, CancellationToken.None);
+
+            await this.OnDeleted.InvokeAsync();
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+        {
+            this.error = "Štítek už neexistuje.";
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Deleting the label failed");
+
+            this.error = "Štítek se nepodařilo smazat. Zkuste to za chvíli znovu.";
+        }
+        finally
+        {
+            this.busy = false;
+        }
     }
 }
