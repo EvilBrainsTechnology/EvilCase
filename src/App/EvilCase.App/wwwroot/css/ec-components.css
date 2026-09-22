@@ -1071,6 +1071,166 @@
     line-height: var(--ec-leading-body);
 }
 
+/* Detail úkonu (docs/design/detail-ukonu.html). */
+.ec-detail {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-4);
+}
+
+.ec-detail-text {
+    margin: 0;
+    max-width: 900px;
+    font-size: var(--ec-text-lg);
+    line-height: var(--ec-leading-body);
+    color: var(--ec-text-soft);
+    white-space: pre-line;
+    text-wrap: pretty;
+}
+
+.ec-detail-facts {
+    display: flex;
+    align-items: stretch;
+    border: 1px solid var(--ec-border-subtle);
+    border-radius: var(--ec-radius-xl);
+}
+
+.ec-detail-fact {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-1);
+    min-width: 0;
+    padding: var(--ec-space-4) var(--ec-space-5);
+    border-right: 1px solid var(--ec-border-subtle);
+}
+
+.ec-detail-fact:last-child {
+    border-right: 0;
+}
+
+.ec-detail-fact-labels {
+    position: relative;
+    flex: 1 1 auto;
+}
+
+.ec-detail-fact-name {
+    font-size: var(--ec-text-xs);
+    color: var(--ec-text-muted);
+}
+
+.ec-detail-fact-value {
+    font-size: var(--ec-text-md);
+    font-weight: var(--ec-weight-medium);
+}
+
+.ec-detail-fact-mono {
+    font-family: var(--ec-font-mono);
+    font-size: var(--ec-text-sm);
+    font-weight: var(--ec-weight-medium);
+    overflow-wrap: anywhere;
+}
+
+.ec-detail-fact-link {
+    font-size: var(--ec-text-md);
+    font-weight: var(--ec-weight-medium);
+    color: var(--ec-accent-text);
+    text-decoration: none;
+}
+
+.ec-detail-fact-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ec-space-2);
+}
+
+/* Over the row of data, so opening the picker never changes the row's height. */
+.ec-label-picker {
+    position: absolute;
+    top: calc(100% - var(--ec-space-3));
+    right: var(--ec-space-5);
+    z-index: 30;
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-3);
+    width: var(--ec-popover-width);
+    max-width: calc(100% - var(--ec-space-5));
+    padding: var(--ec-space-4);
+    border: 1px solid var(--ec-border);
+    border-radius: var(--ec-radius-xl);
+    background: var(--ec-surface);
+    box-shadow: var(--ec-shadow-overlay);
+}
+
+.ec-detail-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) var(--ec-sidebar-width);
+    gap: var(--ec-space-6);
+    align-items: start;
+}
+
+.ec-detail-main,
+.ec-detail-aside {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-6);
+    min-width: 0;
+}
+
+.ec-case-link {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-1);
+    padding: var(--ec-space-4);
+    border-radius: var(--ec-radius-lg);
+    background: var(--ec-surface-sunken);
+    color: var(--ec-text);
+    text-decoration: none;
+}
+
+.ec-case-link:hover {
+    background: var(--ec-border-subtle);
+}
+
+.ec-case-link-title {
+    font-size: var(--ec-text-md);
+    font-weight: var(--ec-weight-medium);
+}
+
+.ec-case-link-number {
+    font-family: var(--ec-font-mono);
+    font-size: var(--ec-text-xs);
+    color: var(--ec-text-muted);
+}
+
+.ec-case-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+    margin: var(--ec-space-4) 0 0;
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-muted);
+}
+
+.ec-status-dot {
+    flex: 0 0 auto;
+    width: var(--ec-space-3);
+    height: var(--ec-space-3);
+    border-radius: var(--ec-radius-pill);
+}
+
+.ec-status-dot-active {
+    background: var(--ec-active-dot);
+}
+
+.ec-status-dot-waiting {
+    background: var(--ec-waiting-dot);
+}
+
+.ec-status-dot-closed {
+    background: var(--ec-closed-dot);
+}
+
 @media (max-width: 991.98px) {
     .ec-button,
     .ec-file-upload,
@@ -1090,8 +1250,22 @@
 
     .ec-form-layout,
     .ec-form-row,
-    .ec-form-group-row {
+    .ec-form-group-row,
+    .ec-detail-layout {
         grid-template-columns: minmax(0, 1fr);
+    }
+
+    .ec-detail-facts {
+        flex-direction: column;
+    }
+
+    .ec-detail-fact {
+        border-right: 0;
+        border-bottom: 1px solid var(--ec-border-subtle);
+    }
+
+    .ec-detail-fact:last-child {
+        border-bottom: 0;
     }
 
     .ec-card-footer {
