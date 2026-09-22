@@ -13,7 +13,7 @@ public static class CaseStatusDisplay
             CaseStatus.Active => "Aktivní",
             CaseStatus.WaitingOnAuthority => "Čeká na úřad",
             CaseStatus.Closed => "Uzavřený",
-            _ => "",
+            _ => throw new ArgumentOutOfRangeException(nameof(status), status, "Unknown case status."),
         };
     }
 
@@ -26,7 +26,7 @@ public static class CaseStatusDisplay
             CaseStatusFilter.Active => Text(CaseStatus.Active),
             CaseStatusFilter.WaitingOnAuthority => Text(CaseStatus.WaitingOnAuthority),
             CaseStatusFilter.Closed => Text(CaseStatus.Closed),
-            _ => "",
+            _ => throw new ArgumentOutOfRangeException(nameof(filter), filter, "Unknown case status filter."),
         };
     }
 
@@ -37,7 +37,7 @@ public static class CaseStatusDisplay
             CaseStatus.Active => TablerColor.Green,
             CaseStatus.WaitingOnAuthority => TablerColor.Yellow,
             CaseStatus.Closed => TablerColor.Secondary,
-            _ => TablerColor.Default,
+            _ => throw new ArgumentOutOfRangeException(nameof(status), status, "Unknown case status."),
         };
     }
 }

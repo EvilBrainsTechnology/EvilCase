@@ -11,7 +11,7 @@ public static class ContactKindDisplay
             ContactKind.Authority => "Úřad",
             ContactKind.Official => "Úřední osoba",
             ContactKind.Person => "Člověk",
-            _ => "",
+            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown contact kind."),
         };
     }
 }

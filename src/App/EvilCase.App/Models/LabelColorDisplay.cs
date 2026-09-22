@@ -26,7 +26,7 @@ public static class LabelColorDisplay
             LabelColor.Teal => "teal",
             LabelColor.Cyan => "cyan",
             LabelColor.Gray => "gray",
-            _ => "blue",
+            _ => throw new ArgumentOutOfRangeException(nameof(color), color, "Unknown label colour."),
         };
     }
 
@@ -47,7 +47,7 @@ public static class LabelColorDisplay
             LabelColor.Teal => "Tyrkysová",
             LabelColor.Cyan => "Azurová",
             LabelColor.Gray => "Šedá",
-            _ => "",
+            _ => throw new ArgumentOutOfRangeException(nameof(color), color, "Unknown label colour."),
         };
     }
 }
