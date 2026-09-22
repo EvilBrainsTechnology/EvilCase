@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Domain.Cases;
 using TabBlazor;
@@ -13,7 +14,7 @@ public static class CaseStatusDisplay
             CaseStatus.Active => "Aktivní",
             CaseStatus.WaitingOnAuthority => "Čeká na úřad",
             CaseStatus.Closed => "Uzavřený",
-            _ => throw new ArgumentOutOfRangeException(nameof(status), status, "Unknown case status."),
+            _ => throw new UnreachableException(),
         };
     }
 
@@ -26,7 +27,7 @@ public static class CaseStatusDisplay
             CaseStatusFilter.Active => Text(CaseStatus.Active),
             CaseStatusFilter.WaitingOnAuthority => Text(CaseStatus.WaitingOnAuthority),
             CaseStatusFilter.Closed => Text(CaseStatus.Closed),
-            _ => throw new ArgumentOutOfRangeException(nameof(filter), filter, "Unknown case status filter."),
+            _ => throw new UnreachableException(),
         };
     }
 
@@ -37,7 +38,7 @@ public static class CaseStatusDisplay
             CaseStatus.Active => TablerColor.Green,
             CaseStatus.WaitingOnAuthority => TablerColor.Yellow,
             CaseStatus.Closed => TablerColor.Secondary,
-            _ => throw new ArgumentOutOfRangeException(nameof(status), status, "Unknown case status."),
+            _ => throw new UnreachableException(),
         };
     }
 }

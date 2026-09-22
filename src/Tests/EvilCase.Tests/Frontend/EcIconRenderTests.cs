@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Bunit;
 using EvilBrains.EvilCase.App.Components.Ec;
 using EvilBrains.EvilCase.App.Icons;
@@ -58,7 +59,7 @@ public class EcIconRenderTests
             () => ctx.Render<EcIcon>(static parameters => parameters
                 .Add(static icon => icon.Paths, AppIcons.Plus)
                 .Add(static icon => icon.Size, (EcIconSize)(-1))),
-            Throws.InstanceOf<InvalidOperationException>(),
+            Throws.InstanceOf<UnreachableException>(),
             "an unmapped size must not fall back to the button size");
     }
 }

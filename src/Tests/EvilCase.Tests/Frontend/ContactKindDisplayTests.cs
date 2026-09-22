@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using EvilBrains.EvilCase.App.Models;
 using EvilBrains.EvilCase.Domain.Contacts;
 
@@ -18,6 +19,6 @@ public class ContactKindDisplayTests
     [Test]
     public void AKindTheAppDoesNotKnowIsNeverDisplayed()
     {
-        Assert.That(static () => ContactKindDisplay.Text((ContactKind)99), Throws.InstanceOf<ArgumentOutOfRangeException>(), "a kind the app does not name never renders as an empty label");
+        Assert.That(static () => ContactKindDisplay.Text((ContactKind)99), Throws.InstanceOf<UnreachableException>(), "a kind the app does not name never renders as an empty label");
     }
 }

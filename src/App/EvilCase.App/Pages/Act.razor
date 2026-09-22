@@ -1,4 +1,5 @@
 @page "/cases/{CaseId:guid}/act/{ActId:guid}"
+@using System.Diagnostics
 @using System.Net
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Client
@@ -206,7 +207,7 @@
         {
             ActDirection.Incoming => EcBadgeTone.Incoming,
             ActDirection.Outgoing => EcBadgeTone.Outgoing,
-            _ => throw new InvalidOperationException($"unknown ActDirection {direction}"),
+            _ => throw new UnreachableException(),
         };
     }
 
@@ -217,7 +218,7 @@
             CaseStatus.Active => "ec-status-dot-active",
             CaseStatus.WaitingOnAuthority => "ec-status-dot-waiting",
             CaseStatus.Closed => "ec-status-dot-closed",
-            _ => throw new InvalidOperationException($"unknown CaseStatus {status}"),
+            _ => throw new UnreachableException(),
         };
     }
 

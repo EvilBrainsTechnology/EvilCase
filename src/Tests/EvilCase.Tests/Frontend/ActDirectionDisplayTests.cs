@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using EvilBrains.EvilCase.App.Models;
 using EvilBrains.EvilCase.Domain.Acts;
 using TabBlazor;
@@ -34,8 +35,8 @@ public class ActDirectionDisplayTests
     {
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(static () => ActDirectionDisplay.Text((ActDirection)99), Throws.InstanceOf<ArgumentOutOfRangeException>(), "a direction the app does not name never renders as a dash");
-            Assert.That(static () => ActDirectionDisplay.Color((ActDirection)99), Throws.InstanceOf<ArgumentOutOfRangeException>());
+            Assert.That(static () => ActDirectionDisplay.Text((ActDirection)99), Throws.InstanceOf<UnreachableException>(), "a direction the app does not name never renders as a dash");
+            Assert.That(static () => ActDirectionDisplay.Color((ActDirection)99), Throws.InstanceOf<UnreachableException>());
         }
     }
 }

@@ -1,3 +1,4 @@
+@using System.Diagnostics
 @using EvilBrains.EvilCase.Domain.Acts
 
 <div class="ec-segmented" role="group" aria-label="Směr úkonu">
@@ -27,7 +28,7 @@
         {
             ActDirection.Incoming => AppIcons.ArrowDownLeft,
             ActDirection.Outgoing => AppIcons.ArrowUpRight,
-            _ => throw new InvalidOperationException($"unknown ActDirection {direction}"),
+            _ => throw new UnreachableException(),
         };
     }
 
@@ -37,7 +38,7 @@
         {
             ActDirection.Incoming => "incoming",
             ActDirection.Outgoing => "outgoing",
-            _ => throw new InvalidOperationException($"unknown ActDirection {direction}"),
+            _ => throw new UnreachableException(),
         };
 
         return $"{this.InputId}-{suffix}";
