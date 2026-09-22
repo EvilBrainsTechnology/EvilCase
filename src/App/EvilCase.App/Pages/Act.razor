@@ -81,37 +81,40 @@
                             <span class="ec-detail-fact-value">—</span>
                         }
                     </div>
-                    <div class="ec-detail-fact ec-detail-fact-grow">
+                    <div class="ec-detail-fact ec-detail-fact-labels">
                         <span class="ec-detail-fact-name">Štítky</span>
-                        @if (this.picking)
-                        {
-                            <LabelField InputId="act-labels" Selected="this.act.Labels" SelectedChanged="this.SaveLabels" />
-                        }
-                        else if (this.act.Labels.Count > 0)
-                        {
-                            <div class="ec-chips">
-                                @foreach (var label in this.act.Labels)
+                        <div class="ec-detail-fact-row">
+                            @if (!this.picking)
+                            {
+                                if (this.act.Labels.Count > 0)
                                 {
-                                    <span class="@($"ec-chip ec-chip-{LabelColorDisplay.Css(label.Color)}")">
-                                        <span class="ec-chip-dot" aria-hidden="true"></span>@label.Name
-                                    </span>
+                                    foreach (var label in this.act.Labels)
+                                    {
+                                        <span class="@($"ec-chip ec-chip-{LabelColorDisplay.Css(label.Color)}")">
+                                            <span class="ec-chip-dot" aria-hidden="true"></span>@label.Name
+                                        </span>
+                                    }
                                 }
-                            </div>
-                        }
-                        else
-                        {
-                            <span class="ec-detail-fact-value">—</span>
-                        }
-                        @if (this.labelsError is not null)
-                        {
-                            <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.labelsError</div>
-                        }
-                        <div class="ec-detail-fact-actions">
+                                else
+                                {
+                                    <span class="ec-detail-fact-value">—</span>
+                                }
+                            }
                             <EcButton Variant="EcButtonVariant.Ghost" Size="EcButtonSize.Compact"
                                       Icon="@(this.picking ? AppIcons.X : AppIcons.Plus)"
                                       AriaLabel="@(this.picking ? "Zavřít výběr štítků" : "Přidat štítek")"
                                       OnClick="this.ToggleLabelPicker" />
                         </div>
+                        @if (this.picking)
+                        {
+                            <div class="ec-label-picker">
+                                <LabelField InputId="act-labels" Selected="this.act.Labels" SelectedChanged="this.SaveLabels" />
+                                @if (this.labelsError is not null)
+                                {
+                                    <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.labelsError</div>
+                                }
+                            </div>
+                        }
                     </div>
                 </div>
             </div>

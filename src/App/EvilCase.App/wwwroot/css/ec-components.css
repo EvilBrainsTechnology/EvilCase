@@ -1091,7 +1091,6 @@
 .ec-detail-facts {
     display: flex;
     align-items: stretch;
-    flex-wrap: wrap;
     border: 1px solid var(--ec-border-subtle);
     border-radius: var(--ec-radius-xl);
 }
@@ -1100,6 +1099,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--ec-space-1);
+    min-width: 0;
     padding: var(--ec-space-4) var(--ec-space-5);
     border-right: 1px solid var(--ec-border-subtle);
 }
@@ -1108,9 +1108,9 @@
     border-right: 0;
 }
 
-.ec-detail-fact-grow {
-    flex: 1 1 220px;
-    min-width: 0;
+.ec-detail-fact-labels {
+    position: relative;
+    flex: 1 1 auto;
 }
 
 .ec-detail-fact-name {
@@ -1127,6 +1127,7 @@
     font-family: var(--ec-font-mono);
     font-size: var(--ec-text-sm);
     font-weight: var(--ec-weight-medium);
+    overflow-wrap: anywhere;
 }
 
 .ec-detail-fact-link {
@@ -1136,9 +1137,29 @@
     text-decoration: none;
 }
 
-.ec-detail-fact-actions {
+.ec-detail-fact-row {
     display: flex;
-    margin-top: var(--ec-space-1);
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ec-space-2);
+}
+
+/* Over the row of data, so opening the picker never changes the row's height. */
+.ec-label-picker {
+    position: absolute;
+    top: calc(100% - var(--ec-space-3));
+    right: var(--ec-space-5);
+    z-index: 30;
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-3);
+    width: 320px;
+    max-width: calc(100% - var(--ec-space-5));
+    padding: var(--ec-space-4);
+    border: 1px solid var(--ec-border);
+    border-radius: var(--ec-radius-xl);
+    background: var(--ec-surface);
+    box-shadow: var(--ec-shadow-overlay);
 }
 
 .ec-detail-layout {

@@ -213,7 +213,7 @@ public class ActRenderTests
             .Add(static page => page.CaseId, caseId)
             .Add(static page => page.ActId, actId));
 
-        await component.Find(".ec-detail-fact-actions .ec-button-ghost").ClickAsync(new MouseEventArgs());
+        await component.Find(".ec-detail-fact-labels .ec-button-ghost").ClickAsync(new MouseEventArgs());
         await component.Find("#act-labels").InputAsync(new ChangeEventArgs { Value = "inf" });
 
         await component.WaitForAssertionAsync(
@@ -233,6 +233,50 @@ public class ActRenderTests
         await component.WaitForAssertionAsync(
             () => Assert.That(component.Find(".ec-chip").TextContent, Does.Contain("InfZ")),
             TimeSpan.FromSeconds(2));
+    }
+
+    [Test]
+    public async Task TheOpenPickerCarriesTheLabelsInsteadOfTheRowOfData()
+    {
+        await using var ctx = new BunitContext();
+
+        var caseId = Guid.CreateVersion7();
+        var actId = Guid.CreateVersion7();
+
+        var detail = new ActDetail
+        {
+            ActId = actId,
+            CaseId = caseId,
+            CaseNumber = "EC/20260807-001",
+            CaseTitle = "Spis",
+            CaseDate = new DateOnly(2026, 8, 7),
+            CaseStatus = CaseStatus.Active,
+            ActNumber = "1",
+            Date = new DateOnly(2026, 8, 7),
+            Title = "Úkon",
+            Labels = [new LabelItem { LabelId = Guid.CreateVersion7(), Name = "InfZ", Color = LabelColor.Blue }],
+        };
+
+        Serve(ctx, caseId, actId, detail);
+
+        var component = ctx.Render<Act>(parameters => parameters
+            .Add(static page => page.CaseId, caseId)
+            .Add(static page => page.ActId, actId));
+
+        await component.Find(".ec-detail-fact-labels .ec-button-ghost").ClickAsync(new MouseEventArgs());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(
+                component.Find(".ec-label-picker .ec-chip").TextContent,
+                Does.Contain("InfZ"),
+                "the open picker shows the labels it can take off the act");
+            Assert.That(
+                component.FindAll(".ec-detail-fact-row .ec-chip"),
+                Is.Empty,
+                "the row of data does not repeat the labels the open picker carries");
+            Assert.That(component.FindAll(".ec-label-picker #act-labels"), Has.Count.EqualTo(1));
+        }
     }
 
     [Test]
@@ -269,7 +313,7 @@ public class ActRenderTests
             .Add(static page => page.CaseId, caseId)
             .Add(static page => page.ActId, actId));
 
-        await component.Find(".ec-detail-fact-actions .ec-button-ghost").ClickAsync(new MouseEventArgs());
+        await component.Find(".ec-detail-fact-labels .ec-button-ghost").ClickAsync(new MouseEventArgs());
         await component.Find("#act-labels").InputAsync(new ChangeEventArgs { Value = "inf" });
 
         await component.WaitForAssertionAsync(
