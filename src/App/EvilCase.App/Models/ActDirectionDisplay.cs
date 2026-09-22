@@ -9,9 +9,10 @@ public static class ActDirectionDisplay
     {
         return direction switch
         {
+            null => "—",
             ActDirection.Incoming => "Příchozí",
             ActDirection.Outgoing => "Odchozí",
-            _ => "—",
+            _ => throw new ArgumentOutOfRangeException(nameof(direction), direction, "Unknown act direction."),
         };
     }
 
@@ -19,9 +20,10 @@ public static class ActDirectionDisplay
     {
         return direction switch
         {
+            null => TablerColor.Default,
             ActDirection.Incoming => TablerColor.Blue,
             ActDirection.Outgoing => TablerColor.Green,
-            _ => TablerColor.Default,
+            _ => throw new ArgumentOutOfRangeException(nameof(direction), direction, "Unknown act direction."),
         };
     }
 }

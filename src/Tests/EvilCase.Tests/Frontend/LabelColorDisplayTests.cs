@@ -42,4 +42,14 @@ public class LabelColorDisplayTests
             Assert.That(texts.Distinct(StringComparer.Ordinal).Count(), Is.EqualTo(texts.Count), "two colours named the same cannot be told apart in the form");
         }
     }
+
+    [Test]
+    public void AColourTheAppDoesNotKnowIsNeverDisplayed()
+    {
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(static () => LabelColorDisplay.Css((LabelColor)99), Throws.InstanceOf<ArgumentOutOfRangeException>(), "a colour the app does not name never paints a badge blue");
+            Assert.That(static () => LabelColorDisplay.Text((LabelColor)99), Throws.InstanceOf<ArgumentOutOfRangeException>());
+        }
+    }
 }
