@@ -1,5 +1,6 @@
 using Bunit;
 using EvilBrains.EvilCase.App.Auth;
+using EvilBrains.EvilCase.App.Components;
 using EvilBrains.EvilCase.App.Pages;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
@@ -61,38 +62,37 @@ public class LoginRenderTests
     [Test]
     public async Task AReturnUrlOutsideTheApplicationIsIgnored()
     {
-        await using var insideCtx = new BunitContext();
+        var inside = await SignInReturningTo("/cases");
+        var outside = await SignInReturningTo("//evil.example");
 
-        insideCtx.Services.AddSingleton<IAuthSession>(new StubAuthSession { Outcome = SignInOutcome.Success });
-
-        var inside = insideCtx.Render<Login>(static parameters => parameters.Add(static page => page.ReturnUrl, "/cases"));
-
-        await Fill(inside);
-
-        var insideNavigation = insideCtx.Services.GetRequiredService<NavigationManager>();
-
-        Assert.That(insideNavigation.Uri, Does.EndWith("/cases"));
-
-        await using var outsideCtx = new BunitContext();
-
-        outsideCtx.Services.AddSingleton<IAuthSession>(new StubAuthSession { Outcome = SignInOutcome.Success });
-
-        var outside = outsideCtx.Render<Login>(static parameters => parameters.Add(static page => page.ReturnUrl, "//evil.example"));
-
-        await Fill(outside);
-
-        var outsideNavigation = outsideCtx.Services.GetRequiredService<NavigationManager>();
-
-        Assert.That(
-            outsideNavigation.Uri,
-            Is.EqualTo(outsideNavigation.BaseUri),
-            "a protocol-relative target leads out of the application (SDD-016)");
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(inside.Uri, Does.EndWith("/cases"));
+            Assert.That(
+                outside.Uri,
+                Is.EqualTo(outside.BaseUri),
+                "a protocol-relative target leads out of the application (SDD-016)");
+        }
     }
 
-    private static async Task Fill(IRenderedComponent<Login> component)
+    private static async Task<(string Uri, string BaseUri)> SignInReturningTo(string returnUrl)
     {
+        await using var ctx = new BunitContext();
+
+        ctx.Services.AddSingleton<IAuthSession>(new StubAuthSession { Outcome = SignInOutcome.Success });
+
+        var navigation = ctx.Services.GetRequiredService<NavigationManager>();
+
+        // The page reads the target from the query string, the only way a value reaches
+        // a SupplyParameterFromQuery parameter.
+        navigation.NavigateTo(navigation.GetUriWithQueryParameter(RedirectToLogin.ReturnUrlParameter, returnUrl));
+
+        var component = ctx.Render<Login>();
+
         await component.Find("#login-email").ChangeAsync(new ChangeEventArgs { Value = "spravce@example.cz" });
         await component.Find("#login-password").ChangeAsync(new ChangeEventArgs { Value = "SpravneHeslo1" });
         await component.Find("button[type=\"submit\"]").ClickAsync(new MouseEventArgs());
+
+        return (navigation.Uri, navigation.BaseUri);
     }
 }
