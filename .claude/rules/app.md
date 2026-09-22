@@ -5,24 +5,28 @@ paths:
 
 # Frontend
 
-`EvilCase.App` is Blazor WebAssembly on TabBlazor, components over the Tabler CSS framework.
+`EvilCase.App` is Blazor WebAssembly. A screen composes the `Ec` primitives from `Components/Ec`,
+styled by `wwwroot/css/ec-components.css` over the values in `wwwroot/css/ec-tokens.css`. SDD-020
+rules the look, `docs/design/` is binding on values.
 
-- `Icons/AppIcons.cs` holds only the icons the app uses, copied from Tabler; never the whole set.
-- A new page goes inside `MainLayout`, which authenticates it. Placing one outside is an owner
-  decision.
+- A style belongs in `ec-components.css` and a value in `ec-tokens.css`: no inline style, no
+  literal colour or size, no class of a foreign library.
+- Modal and date are native: `EcModal` over `dialog`, `input type="date"`.
+- `Icons/AppIcons.cs` is the only icon source and holds only the icons the app uses.
+- A new page goes inside `MainLayout`, which authenticates it; outside it is an owner decision.
 
 ## Responsive
 
-Desktop is primary. Every screen a user works in daily is first-class on mobile; the rest only
-must not break.
-
-- One breakpoint: `lg` (992 px), never mixed with `md`. Modals: `ModalFullscreen.BelowLarge`.
-- Data lists never scroll horizontally on mobile: render a table and a card variant and switch
-  by CSS only (`d-none d-lg-block` / `d-lg-none`); `Components/Lists/CaseList.razor` is the
-  reference. Never branch layout in C# or JS by viewport.
+- Desktop is primary. A screen used daily is first-class on mobile, the rest must only not break.
+- One breakpoint: `lg` (992 px), never mixed with `md`; never branch layout in C# or JS by viewport.
+- Data lists never scroll horizontally: below `lg` a row reflows onto two or three lines and
+  sorting moves into a select in the toolbar.
 - Touch targets ≥ 44 px below `lg`. Form action buttons sticky at the bottom,
   `env(safe-area-inset-bottom)` on fixed bottom elements. A tooltip never carries information alone.
-- No Bootstrap JS — use the TabBlazor services (`IModalService`, `IOffcanvasService`);
-  unavoidable JS goes through an `IJSObjectReference` disposed in `IAsyncDisposable`.
-- Custom CSS stays minimal, in `wwwroot/css/app.css`. Look for a Tabler utility class first; no
-  inline styles.
+- Unavoidable JS goes through an `IJSObjectReference` disposed in `IAsyncDisposable`.
+
+## A screen not migrated yet
+
+Until a screen moves to the `Ec` primitives it stays on TabBlazor over Tabler: a Tabler utility
+class before custom CSS, which stays minimal in `wwwroot/css/app.css`; no Bootstrap JS, modal and
+offcanvas through `IModalService` and `IOffcanvasService`; table and card variants switched by CSS.
