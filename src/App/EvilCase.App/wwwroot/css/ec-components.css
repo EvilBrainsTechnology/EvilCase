@@ -592,6 +592,11 @@
     font-size: var(--ec-text-sm);
 }
 
+.ec-alert-text {
+    margin: 0;
+    line-height: var(--ec-leading-body);
+}
+
 .ec-state {
     margin: 0;
     padding: var(--ec-space-5);
@@ -1125,5 +1130,209 @@
 
     .ec-settings-row-actions {
         justify-content: flex-start;
+    }
+}
+
+/* Značka — přihlášení, zaváděcí obrazovka v index.html a LoadingPage. */
+.ec-brand {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-4);
+    font-size: var(--ec-brand-size);
+    font-weight: var(--ec-weight-bold);
+}
+
+.ec-brand-mark {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: var(--ec-brand-mark);
+    height: var(--ec-brand-mark);
+    border-radius: var(--ec-radius-lg);
+    background: var(--ec-accent);
+    color: var(--ec-on-accent);
+}
+
+.ec-brand-mark .ec-icon {
+    width: var(--ec-brand-icon);
+    height: var(--ec-brand-icon);
+}
+
+/* Přihlášení (docs/design/prihlaseni.html). */
+.ec-login {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) var(--ec-login-aside);
+    min-height: var(--ec-viewport-height);
+    background: var(--ec-bg);
+    font-family: var(--ec-font);
+    color: var(--ec-text);
+}
+
+.ec-login-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: var(--ec-space-8);
+    padding: var(--ec-login-pad-y) var(--ec-login-pad-x);
+    background: var(--ec-login-panel-bg);
+    color: var(--ec-login-panel-text);
+}
+
+.ec-login-claim {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-6);
+    max-width: var(--ec-login-claim-width);
+}
+
+.ec-login-claim-title {
+    margin: 0;
+    font-size: var(--ec-login-claim-size);
+    font-weight: var(--ec-weight-semibold);
+    line-height: var(--ec-login-claim-leading);
+    letter-spacing: -0.025em;
+    text-wrap: pretty;
+}
+
+.ec-login-claim-text {
+    margin: 0;
+    font-size: var(--ec-login-lead-size);
+    line-height: var(--ec-leading-body);
+    color: var(--ec-login-panel-lead);
+}
+
+.ec-login-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ec-space-8);
+    font-size: var(--ec-text-md);
+    color: var(--ec-login-panel-faint);
+}
+
+.ec-login-side {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--ec-login-pad-y);
+}
+
+.ec-login-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-6);
+    width: var(--ec-login-form-width);
+    max-width: 100%;
+}
+
+.ec-login-heading {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-2);
+}
+
+.ec-login-title {
+    margin: 0;
+    font-size: var(--ec-login-title-size);
+    font-weight: var(--ec-weight-semibold);
+    letter-spacing: -0.02em;
+}
+
+.ec-login-subtitle {
+    margin: 0;
+    font-size: var(--ec-text-md);
+    color: var(--ec-text-muted);
+}
+
+.ec-login-note {
+    margin: 0;
+    font-size: var(--ec-text-sm);
+    line-height: var(--ec-leading-body);
+    color: var(--ec-text-muted);
+}
+
+/* Zavádění aplikace: kroky 1/3 a 2/3 v index.html, 3/3 v LoadingPage. */
+.ec-boot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ec-space-6);
+    min-height: var(--ec-viewport-height);
+    background: var(--ec-bg);
+    font-family: var(--ec-font);
+    color: var(--ec-text);
+}
+
+.ec-boot-step {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+    font-size: var(--ec-text-md);
+    color: var(--ec-text-muted);
+}
+
+.ec-boot-percent {
+    font-family: var(--ec-font-mono);
+    font-size: var(--ec-text-sm);
+}
+
+.ec-boot-percent::after {
+    content: var(--blazor-load-percentage-text, "0%");
+}
+
+.ec-boot-track {
+    position: relative;
+    overflow: hidden;
+    width: var(--ec-boot-track-width);
+    height: var(--ec-space-2);
+    border-radius: var(--ec-radius-pill);
+    background: var(--ec-border);
+}
+
+/* Blazor počítá soubory, ne bajty, takže procenta přicházejí skokem a pruh nesmí animovat. */
+.ec-boot-bar {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: var(--ec-boot-fill);
+    background: var(--ec-accent);
+    transition: none;
+}
+
+.ec-boot-track-full {
+    background: var(--ec-accent);
+}
+
+.ec-boot-step-start {
+    display: none;
+}
+
+@container style(--blazor-load-percentage: 100%) {
+    .ec-boot-step-download,
+    .ec-boot-percent {
+        display: none;
+    }
+
+    .ec-boot-step-start {
+        display: inline;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .ec-login {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .ec-login-panel {
+        padding: var(--ec-space-6);
+    }
+
+    .ec-login-claim,
+    .ec-login-facts {
+        display: none;
+    }
+
+    .ec-login-side {
+        padding: var(--ec-space-6);
     }
 }

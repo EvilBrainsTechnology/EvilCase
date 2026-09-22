@@ -5,58 +5,63 @@
 
 <PageTitle>Přihlášení – EvilCase</PageTitle>
 
-<div class="container container-tight py-4">
-    @* The same heading the boot screen and LoadingPage carry, so signing in follows them at one size. *@
-    <h1 class="mb-4 d-flex align-items-center justify-content-center">
-        <Icon IconType="TablerIcons.Scale" Size="36" CssClass="me-2" TextColor="TablerColor.Primary" />EvilCase
-    </h1>
-
-    <div class="card card-md">
-        <div class="card-body">
-            <h1 class="h2 text-center mb-4">Přihlaste se</h1>
-
-            <EditForm Model="this.model" OnValidSubmit="SignIn">
-                <DataAnnotationsValidator />
-
-                <div class="mb-3">
-                    <label class="form-label" for="login-email">E-mail</label>
-                    <InputText id="login-email" class="form-control" type="email" inputmode="email"
-                               autocomplete="username" autofocus @bind-Value="this.model.Email" />
-                    <ValidationMessage For="() => this.model.Email" class="invalid-feedback d-block" />
-                </div>
-
-                <div class="mb-2">
-                    <label class="form-label" for="login-password">Heslo</label>
-                    <InputText id="login-password" class="form-control" type="password"
-                               autocomplete="current-password" @bind-Value="this.model.Password" />
-                    <ValidationMessage For="() => this.model.Password" class="invalid-feedback d-block" />
-                </div>
-
-                @if (this.error is not null)
-                {
-                    <div class="alert alert-danger mt-3" role="alert"><Icon CssClass="icon me-2" IconType="TablerIcons.AlertTriangle" />@this.error</div>
-                }
-
-                <div class="form-footer">
-                    <button type="submit" class="btn btn-primary w-100" disabled="@this.busy">
-                        @if (this.busy)
-                        {
-                            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-                        }
-                        else
-                        {
-                            <Icon CssClass="icon" IconType="TablerIcons.Login" />
-                        }
-                        Přihlásit se
-                    </button>
-                </div>
-            </EditForm>
+<div class="ec-login">
+    <aside class="ec-login-panel">
+        <div class="ec-brand">
+            <span class="ec-brand-mark"><EcIcon Paths="@AppIcons.Scale" /></span>
+            EvilCase
         </div>
-    </div>
+        <div class="ec-login-claim">
+            <h1 class="ec-login-claim-title">Spis, který v každém okamžiku odpoví, co se stalo a co v něm je.</h1>
+            <p class="ec-login-claim-text">Správní a soudní řízení na jednom místě: spisy a podřízené spisy, úkony se směrem a kontaktem, dokumenty, komentáře.</p>
+        </div>
+        <div class="ec-login-facts">
+            <span>Česky · datum d. M. yyyy</span>
+            <span>Samostatná instalace</span>
+        </div>
+    </aside>
 
-    <p class="text-secondary text-center mt-3">
-        Účty zakládá správce. Pokud se nemůžete přihlásit, obraťte se na něj.
-    </p>
+    <div class="ec-login-side">
+        <EditForm class="ec-login-form" Model="this.model" OnValidSubmit="this.SignIn">
+            <DataAnnotationsValidator />
+
+            <div class="ec-login-heading">
+                <h2 class="ec-login-title">Přihlášení</h2>
+                <p class="ec-login-subtitle">Účty zakládá správce, registrace není otevřená.</p>
+            </div>
+
+            <EcField Label="E-mail" ControlId="login-email">
+                <ChildContent>
+                    <InputText id="login-email" class="ec-input" type="email" inputmode="email"
+                               autocomplete="username" autofocus placeholder="jmeno@example.cz"
+                               @bind-Value="this.model.Email" />
+                </ChildContent>
+                <Error><ValidationMessage For="() => this.model.Email" /></Error>
+            </EcField>
+
+            <EcField Label="Heslo" ControlId="login-password">
+                <ChildContent>
+                    <InputText id="login-password" class="ec-input" type="password"
+                               autocomplete="current-password" placeholder="••••••••"
+                               @bind-Value="this.model.Password" />
+                </ChildContent>
+                <Error><ValidationMessage For="() => this.model.Password" /></Error>
+            </EcField>
+
+            @if (this.error is not null)
+            {
+                <div class="ec-alert" role="alert">
+                    <EcIcon Paths="@AppIcons.AlertTriangle" Size="EcIconSize.Large" />
+                    <p class="ec-alert-text">@this.error</p>
+                </div>
+            }
+
+            <EcButton Variant="EcButtonVariant.Primary" Size="EcButtonSize.Form" Icon="@AppIcons.Login"
+                      Submit Disabled="@this.busy">Přihlásit se</EcButton>
+
+            <p class="ec-login-note">Po přihlášení vás aplikace vrátí tam, odkud jste přišel.</p>
+        </EditForm>
+    </div>
 </div>
 
 @code {

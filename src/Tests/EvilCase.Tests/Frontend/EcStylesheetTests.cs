@@ -57,6 +57,22 @@ public class EcStylesheetTests
     }
 
     [Test]
+    public async Task TheBootScreenIsTheSameBrandAsTheSignInPage()
+    {
+        var html = await this.client.GetStringAsync(new Uri("/", UriKind.Relative));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(html, Does.Contain("class=\"ec-boot\""));
+            Assert.That(html, Does.Contain("class=\"ec-brand\""));
+            Assert.That(html, Does.Contain("class=\"ec-brand-mark\""));
+            Assert.That(html, Does.Not.Contain("page-center"), "the boot screen carries no Tabler class (SDD-020)");
+            Assert.That(html, Does.Not.Contain("container-tight"), "the boot screen carries no Tabler class (SDD-020)");
+            Assert.That(html, Does.Not.Contain("progress-bar"), "the boot screen carries no Tabler class (SDD-020)");
+        }
+    }
+
+    [Test]
     public async Task TheFontsComeFromTheAppAndNotFromAForeignNetwork()
     {
         var css = await this.client.GetStringAsync(new Uri("/css/ec-fonts.css", UriKind.Relative));
