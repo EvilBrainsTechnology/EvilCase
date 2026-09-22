@@ -104,6 +104,7 @@
     {
         return outcome switch
         {
+            SignInOutcome.Success => throw new UnreachableException(),
             SignInOutcome.InvalidCredentials => "Nesprávný e-mail nebo heslo.",
             SignInOutcome.LockedOut => "Účet je dočasně zablokován po několika neúspěšných pokusech. Zkuste to za chvíli znovu.",
             SignInOutcome.TooManyAttempts => "Příliš mnoho pokusů o přihlášení. Zkuste to za chvíli znovu.",
