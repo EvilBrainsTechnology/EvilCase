@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using EvilBrains.EvilCase.Domain.Labels;
 
 namespace EvilBrains.EvilCase.App.Models;
@@ -26,7 +27,7 @@ public static class LabelColorDisplay
             LabelColor.Teal => "teal",
             LabelColor.Cyan => "cyan",
             LabelColor.Gray => "gray",
-            _ => throw new ArgumentOutOfRangeException(nameof(color), color, "Unknown label colour."),
+            _ => throw new UnreachableException(),
         };
     }
 
@@ -47,7 +48,7 @@ public static class LabelColorDisplay
             LabelColor.Teal => "Tyrkysová",
             LabelColor.Cyan => "Azurová",
             LabelColor.Gray => "Šedá",
-            _ => throw new ArgumentOutOfRangeException(nameof(color), color, "Unknown label colour."),
+            _ => throw new UnreachableException(),
         };
     }
 }

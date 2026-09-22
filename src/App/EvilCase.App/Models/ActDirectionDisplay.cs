@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using EvilBrains.EvilCase.Domain.Acts;
 using TabBlazor;
 
@@ -12,7 +13,7 @@ public static class ActDirectionDisplay
             null => "—",
             ActDirection.Incoming => "Příchozí",
             ActDirection.Outgoing => "Odchozí",
-            _ => throw new ArgumentOutOfRangeException(nameof(direction), direction, "Unknown act direction."),
+            _ => throw new UnreachableException(),
         };
     }
 
@@ -23,7 +24,7 @@ public static class ActDirectionDisplay
             null => TablerColor.Default,
             ActDirection.Incoming => TablerColor.Blue,
             ActDirection.Outgoing => TablerColor.Green,
-            _ => throw new ArgumentOutOfRangeException(nameof(direction), direction, "Unknown act direction."),
+            _ => throw new UnreachableException(),
         };
     }
 }

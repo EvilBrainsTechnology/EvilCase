@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Bunit;
 using EvilBrains.EvilCase.App.Components.Ec;
 using EvilBrains.EvilCase.App.Icons;
@@ -146,7 +147,7 @@ public class EcButtonRenderTests
             () => ctx.Render<EcButton>(static parameters => parameters
                 .Add(static button => button.Variant, (EcButtonVariant)(-1))
                 .AddChildContent("Uložit")),
-            Throws.InstanceOf<InvalidOperationException>(),
+            Throws.InstanceOf<UnreachableException>(),
             "an unmapped variant must not fall back to secondary");
     }
 
@@ -160,7 +161,7 @@ public class EcButtonRenderTests
                 .Add(static button => button.Variant, EcButtonVariant.Primary)
                 .Add(static button => button.Size, (EcButtonSize)(-1))
                 .AddChildContent("Uložit")),
-            Throws.InstanceOf<InvalidOperationException>(),
+            Throws.InstanceOf<UnreachableException>(),
             "an unmapped size must not fall back to standard");
     }
 }

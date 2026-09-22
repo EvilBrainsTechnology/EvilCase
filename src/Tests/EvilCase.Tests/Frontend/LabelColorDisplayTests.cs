@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using EvilBrains.EvilCase.App.Models;
 using EvilBrains.EvilCase.Domain.Labels;
 
@@ -48,8 +49,8 @@ public class LabelColorDisplayTests
     {
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(static () => LabelColorDisplay.Css((LabelColor)99), Throws.InstanceOf<ArgumentOutOfRangeException>(), "a colour the app does not name never paints a badge blue");
-            Assert.That(static () => LabelColorDisplay.Text((LabelColor)99), Throws.InstanceOf<ArgumentOutOfRangeException>());
+            Assert.That(static () => LabelColorDisplay.Css((LabelColor)99), Throws.InstanceOf<UnreachableException>(), "a colour the app does not name never paints a badge blue");
+            Assert.That(static () => LabelColorDisplay.Text((LabelColor)99), Throws.InstanceOf<UnreachableException>());
         }
     }
 }

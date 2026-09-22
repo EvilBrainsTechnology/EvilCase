@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using EvilBrains.EvilCase.Domain.Contacts;
 
 namespace EvilBrains.EvilCase.App.Models;
@@ -11,7 +12,7 @@ public static class ContactKindDisplay
             ContactKind.Authority => "Úřad",
             ContactKind.Official => "Úřední osoba",
             ContactKind.Person => "Člověk",
-            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown contact kind."),
+            _ => throw new UnreachableException(),
         };
     }
 }

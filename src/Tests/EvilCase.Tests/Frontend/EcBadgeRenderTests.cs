@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Bunit;
 using EvilBrains.EvilCase.App.Components.Ec;
 
@@ -53,7 +54,7 @@ public class EcBadgeRenderTests
             () => ctx.Render<EcBadge>(static parameters => parameters
                 .Add(static badge => badge.Text, "Stav")
                 .Add(static badge => badge.Tone, (EcBadgeTone)(-1))),
-            Throws.InstanceOf<InvalidOperationException>(),
+            Throws.InstanceOf<UnreachableException>(),
             "an unmapped tone must not fall back to closed");
     }
 }

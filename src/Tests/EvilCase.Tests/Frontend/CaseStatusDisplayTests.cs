@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.App.Models;
 using EvilBrains.EvilCase.Domain.Cases;
@@ -35,9 +36,9 @@ public class CaseStatusDisplayTests
     {
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(static () => CaseStatusDisplay.Text((CaseStatus)99), Throws.InstanceOf<ArgumentOutOfRangeException>(), "a status the app does not name never renders as an empty label");
-            Assert.That(static () => CaseStatusDisplay.Color((CaseStatus)99), Throws.InstanceOf<ArgumentOutOfRangeException>());
-            Assert.That(static () => CaseStatusDisplay.FilterText((CaseStatusFilter)99), Throws.InstanceOf<ArgumentOutOfRangeException>());
+            Assert.That(static () => CaseStatusDisplay.Text((CaseStatus)99), Throws.InstanceOf<UnreachableException>(), "a status the app does not name never renders as an empty label");
+            Assert.That(static () => CaseStatusDisplay.Color((CaseStatus)99), Throws.InstanceOf<UnreachableException>());
+            Assert.That(static () => CaseStatusDisplay.FilterText((CaseStatusFilter)99), Throws.InstanceOf<UnreachableException>());
         }
     }
 }

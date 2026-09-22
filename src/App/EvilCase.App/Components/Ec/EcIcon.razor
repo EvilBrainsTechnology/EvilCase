@@ -1,3 +1,5 @@
+@using System.Diagnostics
+
 <svg class="@this.CssClass" viewBox="0 0 24 24" aria-hidden="true" focusable="false">@((MarkupString)this.Paths)</svg>
 
 @code {
@@ -16,7 +18,7 @@
                 EcIconSize.Small => "ec-icon-sm",
                 EcIconSize.Medium => "ec-icon-md",
                 EcIconSize.Large => "ec-icon-lg",
-                _ => throw new InvalidOperationException($"unknown EcIconSize {this.Size}"),
+                _ => throw new UnreachableException(),
             };
 
             return $"ec-icon {size}";

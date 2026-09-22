@@ -1,3 +1,5 @@
+@using System.Diagnostics
+
 <button type="@(this.Submit ? "submit" : "button")" class="@this.CssClass" disabled="@this.Disabled"
         aria-label="@this.AriaLabel" @onclick="this.OnClick">
     @if (this.Icon.Length > 0)
@@ -42,7 +44,7 @@
                 EcButtonVariant.Secondary => "ec-button-secondary",
                 EcButtonVariant.Ghost => "ec-button-ghost",
                 EcButtonVariant.Danger => "ec-button-danger",
-                _ => throw new InvalidOperationException($"unknown EcButtonVariant {this.Variant}"),
+                _ => throw new UnreachableException(),
             };
 
             var size = this.Size switch
@@ -50,7 +52,7 @@
                 EcButtonSize.Compact => "ec-button-compact",
                 EcButtonSize.Standard => "ec-button-standard",
                 EcButtonSize.Form => "ec-button-form",
-                _ => throw new InvalidOperationException($"unknown EcButtonSize {this.Size}"),
+                _ => throw new UnreachableException(),
             };
 
             return this.ChildContent is null ? $"ec-button {variant} {size} ec-button-icon" : $"ec-button {variant} {size}";

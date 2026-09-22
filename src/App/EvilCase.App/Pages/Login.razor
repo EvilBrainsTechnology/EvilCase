@@ -1,4 +1,5 @@
 @page "/login"
+@using System.Diagnostics
 @layout LoginLayout
 @inject IAuthSession Session
 @inject NavigationManager Navigation
@@ -103,10 +104,11 @@
     {
         return outcome switch
         {
+            SignInOutcome.InvalidCredentials => "Nesprávný e-mail nebo heslo.",
             SignInOutcome.LockedOut => "Účet je dočasně zablokován po několika neúspěšných pokusech. Zkuste to za chvíli znovu.",
             SignInOutcome.TooManyAttempts => "Příliš mnoho pokusů o přihlášení. Zkuste to za chvíli znovu.",
             SignInOutcome.Unreachable => "Server je nedostupný. Zkontrolujte připojení a zkuste to znovu.",
-            _ => "Nesprávný e-mail nebo heslo.",
+            _ => throw new UnreachableException(),
         };
     }
 
