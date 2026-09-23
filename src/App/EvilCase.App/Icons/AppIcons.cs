@@ -30,10 +30,6 @@ public static class AppIcons
     public const string ChevronRight = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M9 6l6 6l-6 6' />";
 
-    public const string Clock = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
-        + "<path d='M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0' />"
-        + "<path d='M12 7v5l3 3' />";
-
     public const string DeviceFloppy = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M6 4h10l4 4v10a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2' />"
         + "<path d='M12 14m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0' />"

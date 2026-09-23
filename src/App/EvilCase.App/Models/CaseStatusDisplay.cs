@@ -2,7 +2,6 @@ using System.Diagnostics;
 using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.App.Components.Ec;
 using EvilBrains.EvilCase.Domain.Cases;
-using TabBlazor;
 
 namespace EvilBrains.EvilCase.App.Models;
 
@@ -32,13 +31,27 @@ public static class CaseStatusDisplay
         };
     }
 
-    public static TablerColor Color(CaseStatus status)
+    /// <summary>
+    /// The label under a count of cases; the closed one reads as a plural (docs/design/prehled.html).
+    /// </summary>
+    public static string CountText(CaseStatus status)
     {
         return status switch
         {
-            CaseStatus.Active => TablerColor.Green,
-            CaseStatus.WaitingOnAuthority => TablerColor.Yellow,
-            CaseStatus.Closed => TablerColor.Secondary,
+            CaseStatus.Active => "Aktivní",
+            CaseStatus.WaitingOnAuthority => "Čeká na úřad",
+            CaseStatus.Closed => "Uzavřené",
+            _ => throw new UnreachableException(),
+        };
+    }
+
+    public static string Tile(CaseStatus status)
+    {
+        return status switch
+        {
+            CaseStatus.Active => "ec-stat-icon-active",
+            CaseStatus.WaitingOnAuthority => "ec-stat-icon-waiting",
+            CaseStatus.Closed => "ec-stat-icon-closed",
             _ => throw new UnreachableException(),
         };
     }

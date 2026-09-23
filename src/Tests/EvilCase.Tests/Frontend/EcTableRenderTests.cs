@@ -15,18 +15,25 @@ public class EcTableRenderTests
     ];
 
     [Test]
-    public void TheCountStandsBesideTheTitle()
+    public void TheCountBesideTheTitleBelongsToAListThatPages()
     {
-        using var ctx = new BunitContext();
-        var withTitle = Render(ctx, title: "Úkony", total: 5);
+        using var pagingCtx = new BunitContext();
+        var paging = Render(pagingCtx, title: "Úkony", total: 5, showPaging: true);
 
-        using var ctx2 = new BunitContext();
-        var withoutTitle = Render(ctx2, total: 5);
+        using var noPagingCtx = new BunitContext();
+        var noPaging = Render(noPagingCtx, title: "Úkony", total: 5, showPaging: false);
+
+        using var noTitleCtx = new BunitContext();
+        var noTitle = Render(noTitleCtx, total: 5, showPaging: true);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(withTitle.Find(".ec-card-count").TextContent, Is.EqualTo("5"));
-            Assert.That(withoutTitle.FindAll(".ec-card-count"), Is.Empty);
+            Assert.That(paging.Find(".ec-card-count").TextContent, Is.EqualTo("5"));
+            Assert.That(
+                noPaging.FindAll(".ec-card-count"),
+                Is.Empty,
+                "a tile that does not page shows no total count (SDD-015)");
+            Assert.That(noTitle.FindAll(".ec-card-count"), Is.Empty);
         }
     }
 

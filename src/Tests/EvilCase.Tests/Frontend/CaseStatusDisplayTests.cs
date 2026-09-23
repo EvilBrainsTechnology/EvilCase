@@ -3,23 +3,35 @@ using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.App.Components.Ec;
 using EvilBrains.EvilCase.App.Models;
 using EvilBrains.EvilCase.Domain.Cases;
-using TabBlazor;
 
 namespace EvilBrains.EvilCase.Tests.Frontend;
 
 public class CaseStatusDisplayTests
 {
     [Test]
-    public void EveryStatusReadsInCzechAndCarriesAColour()
+    public void EveryStatusReadsInCzech()
     {
         using (Assert.EnterMultipleScope())
         {
             foreach (var status in Enum.GetValues<CaseStatus>())
-            {
                 Assert.That(CaseStatusDisplay.Text(status), Is.Not.Empty, $"{status}: every known case status renders text");
-                Assert.That(CaseStatusDisplay.Color(status), Is.Not.EqualTo(TablerColor.Default), $"{status}: every known case status carries its own colour");
-            }
         }
+    }
+
+    [TestCase(CaseStatus.Active, "Aktivní")]
+    [TestCase(CaseStatus.WaitingOnAuthority, "Čeká na úřad")]
+    [TestCase(CaseStatus.Closed, "Uzavřené")]
+    public void EveryStatusCarriesItsOwnCountLabel(CaseStatus status, string expected)
+    {
+        Assert.That(CaseStatusDisplay.CountText(status), Is.EqualTo(expected), "the count tile labels read as docs/design/prehled.html writes them");
+    }
+
+    [TestCase(CaseStatus.Active, "ec-stat-icon-active")]
+    [TestCase(CaseStatus.WaitingOnAuthority, "ec-stat-icon-waiting")]
+    [TestCase(CaseStatus.Closed, "ec-stat-icon-closed")]
+    public void EveryStatusCarriesItsOwnTileClass(CaseStatus status, string expected)
+    {
+        Assert.That(CaseStatusDisplay.Tile(status), Is.EqualTo(expected));
     }
 
     [TestCase(CaseStatus.Active, EcBadgeTone.Active)]
@@ -54,7 +66,8 @@ public class CaseStatusDisplayTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(static () => CaseStatusDisplay.Text((CaseStatus)99), Throws.InstanceOf<UnreachableException>(), "a status the app does not name never renders as an empty label");
-            Assert.That(static () => CaseStatusDisplay.Color((CaseStatus)99), Throws.InstanceOf<UnreachableException>());
+            Assert.That(static () => CaseStatusDisplay.CountText((CaseStatus)99), Throws.InstanceOf<UnreachableException>());
+            Assert.That(static () => CaseStatusDisplay.Tile((CaseStatus)99), Throws.InstanceOf<UnreachableException>());
             Assert.That(static () => CaseStatusDisplay.Tone((CaseStatus)99), Throws.InstanceOf<UnreachableException>());
             Assert.That(static () => CaseStatusDisplay.Dot((CaseStatus)99), Throws.InstanceOf<UnreachableException>());
             Assert.That(static () => CaseStatusDisplay.FilterText((CaseStatusFilter)99), Throws.InstanceOf<UnreachableException>());

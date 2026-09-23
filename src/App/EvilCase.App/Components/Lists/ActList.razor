@@ -23,7 +23,7 @@
             },
             ActColumn.Date => new EcColumn<ActListItem>
             {
-                Header = "Datum",
+                Header = this.DateHeader,
                 Width = "var(--ec-list-col-date)",
                 SortKey = nameof(ActSortKey.Date),
                 CellClass = "ec-cell-num",
@@ -139,6 +139,12 @@
 
     [Parameter, EditorRequired]
     public required ActListRequest Filter { get; set; }
+
+    /// <summary>
+    /// Heads the date column; a list outside one case names the act.
+    /// </summary>
+    [Parameter]
+    public string DateHeader { get; set; } = "Datum";
 
     [Parameter]
     public string? Title { get; set; }

@@ -8,15 +8,9 @@ public static class TablerIcons
 
     public static IIconType ArrowsExchange { get; } = new TablerIcon(AppIcons.ArrowsExchange);
 
-    public static IIconType Clock { get; } = new TablerIcon(AppIcons.Clock);
-
     public static IIconType DeviceFloppy { get; } = new TablerIcon(AppIcons.DeviceFloppy);
 
     public static IIconType Download { get; } = new TablerIcon(AppIcons.Download);
-
-    public static IIconType FileText { get; } = new TablerIcon(AppIcons.FileText);
-
-    public static IIconType Folders { get; } = new TablerIcon(AppIcons.Folders);
 
     public static IIconType LayoutDashboard { get; } = new TablerIcon(AppIcons.LayoutDashboard);
 
