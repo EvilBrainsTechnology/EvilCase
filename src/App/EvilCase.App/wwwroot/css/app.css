@@ -99,6 +99,18 @@ body {
     }
 }
 
+/* A screen still on the Tabler chassis takes the space above its header from the shell's own
+   frame; Tabler ties that margin to .page-wrapper, which MainLayout no longer renders. */
+.page-header {
+    margin-top: var(--ec-space-7);
+}
+
+@media (max-width: 991.98px) {
+    .page-header {
+        margin-top: var(--ec-space-5);
+    }
+}
+
 /* A long case or act name wraps instead of pushing the page sideways (SDD-016 §9). */
 .breadcrumb-item {
     white-space: normal;
