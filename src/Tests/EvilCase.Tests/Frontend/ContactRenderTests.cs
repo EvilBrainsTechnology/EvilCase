@@ -128,7 +128,7 @@ public class ContactRenderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(component.Markup, Does.Contain("Úřad"));
-            Assert.That(component.Find(".ec-contact-monogram-lg").TextContent.Trim(), Is.EqualTo("MÚ"));
+            Assert.That(component.Find(".ec-contact-monogram-lg").TextContent.Trim(), Is.EqualTo("Mú"));
         }
     }
 
