@@ -1510,3 +1510,302 @@
         padding: var(--ec-space-6);
     }
 }
+
+/* Rám aplikace: lišta nad obsahem a šedý podklad pod ním (docs/design/prehled.html). */
+
+.ec-shell {
+    display: flex;
+    flex-direction: column;
+    min-height: var(--ec-viewport-height);
+    background: var(--ec-bg);
+    font-family: var(--ec-font);
+    color: var(--ec-text);
+}
+
+.ec-shell-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-width: 0;
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+}
+
+.ec-topbar {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-topbar-gap);
+    flex: 0 0 auto;
+    box-sizing: border-box;
+    height: var(--ec-topbar-height);
+    padding: 0 var(--ec-content-padding);
+    background: var(--ec-surface);
+    border-bottom: 1px solid var(--ec-border);
+}
+
+.ec-topbar-brand {
+    gap: var(--ec-space-4);
+    font-size: var(--ec-topbar-brand-size);
+    color: var(--ec-text);
+    text-decoration: none;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+}
+
+.ec-topbar-mark {
+    width: var(--ec-topbar-mark);
+    height: var(--ec-topbar-mark);
+    border-radius: var(--ec-radius-md);
+}
+
+.ec-topbar-mark .ec-icon {
+    width: var(--ec-topbar-icon);
+    height: var(--ec-topbar-icon);
+}
+
+.ec-topbar-nav {
+    display: flex;
+    align-items: stretch;
+    gap: var(--ec-space-1);
+    height: var(--ec-topbar-height);
+}
+
+.ec-nav-link {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+    padding: 0 var(--ec-nav-pad);
+    font-size: var(--ec-text-md);
+    font-weight: var(--ec-weight-medium);
+    color: var(--ec-text-muted);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.ec-nav-link:hover {
+    color: var(--ec-text);
+}
+
+.ec-nav-link:focus-visible {
+    outline: none;
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-topbar-nav .ec-nav-link[aria-current="page"] {
+    font-weight: var(--ec-weight-semibold);
+    color: var(--ec-text);
+    box-shadow: var(--ec-nav-marker);
+}
+
+.ec-search {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+    box-sizing: border-box;
+    width: var(--ec-search-width);
+    height: var(--ec-control-bar);
+    margin-left: auto;
+    padding: 0 var(--ec-space-4);
+    border: 1px solid var(--ec-border-strong);
+    border-radius: var(--ec-radius-lg);
+    background: var(--ec-surface-sunken);
+    color: var(--ec-text-muted);
+}
+
+.ec-search:focus-within {
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-search-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    border: 0;
+    outline: none;
+    background: transparent;
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-md);
+    color: var(--ec-text);
+}
+
+.ec-search-input::placeholder {
+    color: var(--ec-text-muted);
+}
+
+.ec-usermenu {
+    position: relative;
+    flex: 0 0 auto;
+}
+
+.ec-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--ec-control-bar);
+    height: var(--ec-control-bar);
+    padding: 0;
+    border: 0;
+    border-radius: var(--ec-radius-pill);
+    background: var(--ec-text);
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-sm);
+    font-weight: var(--ec-weight-semibold);
+    color: var(--ec-surface);
+    cursor: pointer;
+}
+
+.ec-avatar:focus-visible {
+    outline: none;
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-menu-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+}
+
+.ec-menu {
+    position: absolute;
+    top: calc(100% + var(--ec-space-2));
+    right: 0;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    width: var(--ec-popover-width);
+    padding: var(--ec-space-1);
+    border: 1px solid var(--ec-border);
+    border-radius: var(--ec-radius-xl);
+    background: var(--ec-surface);
+    box-shadow: var(--ec-shadow-overlay);
+}
+
+.ec-menu-user {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: var(--ec-space-2) var(--ec-space-4);
+    font-size: var(--ec-text-xs);
+    color: var(--ec-text-muted);
+}
+
+.ec-menu-item {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+    height: var(--ec-control-md);
+    padding: 0 var(--ec-space-4);
+    border: 0;
+    border-radius: var(--ec-radius-md);
+    background: transparent;
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-md);
+    color: var(--ec-text);
+    text-align: left;
+    cursor: pointer;
+}
+
+.ec-menu-item:hover {
+    background: var(--ec-surface-sunken);
+}
+
+.ec-menu-item:focus-visible {
+    outline: none;
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-topbar-burger {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: var(--ec-touch-min);
+    height: var(--ec-touch-min);
+    padding: 0;
+    border: 0;
+    border-radius: var(--ec-radius-lg);
+    background: transparent;
+    color: var(--ec-text);
+    cursor: pointer;
+}
+
+.ec-topbar-burger:focus-visible {
+    outline: none;
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-drawer-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    background: var(--ec-overlay);
+}
+
+.ec-drawer {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 40;
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-5);
+    box-sizing: border-box;
+    width: var(--ec-drawer-width);
+    padding: var(--ec-space-5);
+    background: var(--ec-surface);
+}
+
+.ec-drawer-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ec-space-4);
+}
+
+.ec-drawer-nav {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-1);
+}
+
+.ec-drawer-nav .ec-nav-link {
+    height: var(--ec-touch-min);
+    border-radius: var(--ec-radius-lg);
+}
+
+.ec-drawer-nav .ec-nav-link[aria-current="page"] {
+    background: var(--ec-accent-soft);
+    font-weight: var(--ec-weight-semibold);
+    color: var(--ec-accent-text);
+}
+
+@media (max-width: 991.98px) {
+    .ec-topbar {
+        gap: var(--ec-space-4);
+        padding: 0 var(--ec-space-5);
+    }
+
+    .ec-topbar-burger {
+        display: flex;
+    }
+
+    .ec-topbar-nav {
+        display: none;
+    }
+
+    .ec-topbar .ec-topbar-brand-text {
+        display: none;
+    }
+
+    .ec-search {
+        flex: 1 1 auto;
+        width: auto;
+        min-width: 0;
+        height: var(--ec-touch-min);
+    }
+
+    .ec-avatar,
+    .ec-menu-item {
+        min-width: var(--ec-touch-min);
+        height: var(--ec-touch-min);
+    }
+}

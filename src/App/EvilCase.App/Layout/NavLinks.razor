@@ -1,44 +1,31 @@
 @implements IDisposable
 @inject NavigationManager Navigation
-@inject IOffcanvasService OffcanvasService
 
-<ul class="navbar-nav">
-    <li class="nav-item @ActiveClass("/")">
-        <a class="nav-link" href="/" @onclick="Close">
-            <span class="nav-link-icon"><Icon CssClass="icon" IconType="TablerIcons.LayoutDashboard" /></span>
-            <span class="nav-link-title">Přehled</span>
-        </a>
-    </li>
-
-    <li class="nav-item @ActiveClass("/cases")">
-        <a class="nav-link" href="/cases" @onclick="Close">
-            <span class="nav-link-icon"><Icon CssClass="icon" IconType="TablerIcons.Folders" /></span>
-            <span class="nav-link-title">Spisy</span>
-        </a>
-    </li>
-
-    <li class="nav-item @ActiveClass("/contacts")">
-        <a class="nav-link" href="/contacts" @onclick="Close">
-            <span class="nav-link-icon"><Icon CssClass="icon" IconType="TablerIcons.Users" /></span>
-            <span class="nav-link-title">Kontakty</span>
-        </a>
-    </li>
-
-    <li class="nav-item @ActiveClass("/settings")">
-        <a class="nav-link" href="/settings" @onclick="Close">
-            <span class="nav-link-icon"><Icon CssClass="icon" IconType="TablerIcons.Settings" /></span>
-            <span class="nav-link-title">Nastavení</span>
-        </a>
-    </li>
-</ul>
+@foreach (var item in Items)
+{
+    <a class="ec-nav-link" href="@item.Href"
+       aria-current="@(this.IsCurrent(item.Href) ? "page" : null)" @onclick="this.OnNavigate">
+        <EcIcon Paths="@item.Icon" Size="EcIconSize.Large" />
+        <span>@item.Text</span>
+    </a>
+}
 
 @code {
-    @* Tabler draws the active indicator on the list item, which Blazor's NavLink cannot reach. *@
-    private string ActiveClass(string href)
+    private static readonly (string Href, string Text, string Icon)[] Items =
+    [
+        ("/", "Přehled", AppIcons.LayoutDashboard),
+        ("/cases", "Spisy", AppIcons.Folders),
+        ("/contacts", "Kontakty", AppIcons.Users),
+        ("/settings", "Nastavení", AppIcons.Settings),
+    ];
+
+    [Parameter]
+    public EventCallback OnNavigate { get; set; }
+
+    private bool IsCurrent(string href)
     {
         return string.Equals(this.CurrentPath, href, StringComparison.OrdinalIgnoreCase)
-            || this.CurrentPath.StartsWith(href + "/", StringComparison.OrdinalIgnoreCase)
-            ? "active" : "";
+            || this.CurrentPath.StartsWith(href + "/", StringComparison.OrdinalIgnoreCase);
     }
 
     private string CurrentPath => "/" + this.Navigation.ToBaseRelativePath(this.Navigation.Uri).Split('?', '#')[0].TrimEnd('/');
@@ -56,10 +43,5 @@
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
         this.StateHasChanged();
-    }
-
-    private void Close()
-    {
-        this.OffcanvasService.Close();
     }
 }

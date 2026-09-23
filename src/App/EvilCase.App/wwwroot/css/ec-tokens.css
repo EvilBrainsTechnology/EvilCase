@@ -133,6 +133,14 @@
     --ec-popover-width: 320px;
     --ec-viewport-height: 100vh;
     --ec-boot-track-width: 260px;
+    --ec-topbar-gap: 36px;
+    --ec-topbar-mark: 32px;
+    --ec-topbar-brand-size: 17px;
+    --ec-topbar-icon: 19px;
+    --ec-nav-pad: 14px;
+    --ec-control-bar: 38px;
+    --ec-search-width: 300px;
+    --ec-drawer-width: 300px;
 
     /* Značka a přihlašovací obrazovka (docs/design/prihlaseni.html) */
     --ec-brand-size: 19px;
@@ -158,4 +166,5 @@
     --ec-shadow-overlay: 0 12px 32px rgba(20, 22, 27, 0.16);
     --ec-focus-ring: 0 0 0 3px rgba(59, 91, 219, 0.35);
     --ec-overlay: rgba(20, 22, 27, 0.4);
+    --ec-nav-marker: inset 0 -2px 0 var(--ec-accent);
 }

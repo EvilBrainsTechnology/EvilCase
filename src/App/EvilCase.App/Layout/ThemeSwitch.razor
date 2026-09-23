@@ -3,8 +3,8 @@
 @inject TablerService TablerService
 @inject IJSRuntime JSRuntime
 
-<button type="button" class="btn btn-icon btn-ghost-secondary" aria-label="@Label" @onclick="Toggle">
-    <Icon IconType="@(this.isDark ? TablerIcons.Sun : TablerIcons.Moon)" Size="20" />
+<button type="button" class="ec-menu-item" role="menuitem" @onclick="Toggle">
+    <EcIcon Paths="@(this.isDark ? AppIcons.Sun : AppIcons.Moon)" />@this.Label
 </button>
 
 @code {

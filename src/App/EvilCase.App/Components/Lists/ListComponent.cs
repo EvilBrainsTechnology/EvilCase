@@ -12,6 +12,8 @@ public abstract class ListComponent<TSortRequest> : ComponentBase, IDisposable
 
     private TSortRequest? loaded;
 
+    private string? loadedSearch;
+
     [Inject]
     protected ILogger<ListComponent<TSortRequest>> Logger { get; set; } = null!;
 
@@ -52,12 +54,22 @@ public abstract class ListComponent<TSortRequest> : ComponentBase, IDisposable
     /// </summary>
     protected abstract Task<int> LoadPage(CancellationToken token);
 
-    protected async Task ReloadOnFilterChange(TSortRequest filter)
+    /// <summary>
+    /// Reads the list again from its first page when the filter changed, and seeds the search box
+    /// from the filter's own search text whenever that text changed.
+    /// </summary>
+    protected async Task ReloadOnFilterChange(TSortRequest filter, string? search)
     {
         if (Equals(this.loaded, filter))
             return;
 
         this.loaded = filter;
+
+        if (!string.Equals(this.loadedSearch, search, StringComparison.Ordinal))
+        {
+            this.loadedSearch = search;
+            this.SearchText = search ?? "";
+        }
 
         await this.ReloadFirstPage();
     }

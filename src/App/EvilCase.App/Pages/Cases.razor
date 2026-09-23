@@ -53,9 +53,14 @@
 
     private bool rootOnly = true;
 
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "q")]
+    public string? Query { get; set; }
+
     private CaseListRequest Filter => new()
     {
         Scope = this.rootOnly ? CaseListScope.RootOnly : CaseListScope.All,
+        Search = string.IsNullOrWhiteSpace(this.Query) ? null : this.Query,
         Take = PageItems,
     };
 }
