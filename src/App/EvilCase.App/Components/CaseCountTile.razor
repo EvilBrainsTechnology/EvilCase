@@ -7,7 +7,7 @@
     </span>
     <span class="ec-stat-text">
         <span class="ec-stat-value">@(this.Count?.ToString(CultureInfo.CurrentCulture) ?? "—")</span>
-        <span class="ec-stat-label">@CaseStatusDisplay.Text(this.Status)</span>
+        <span class="ec-stat-label">@CaseStatusDisplay.CountText(this.Status)</span>
     </span>
 </a>
 

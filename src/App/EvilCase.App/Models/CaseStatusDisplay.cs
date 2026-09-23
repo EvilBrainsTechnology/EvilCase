@@ -31,6 +31,20 @@ public static class CaseStatusDisplay
         };
     }
 
+    /// <summary>
+    /// The label under a count of cases; the closed one reads as a plural (docs/design/prehled.html).
+    /// </summary>
+    public static string CountText(CaseStatus status)
+    {
+        return status switch
+        {
+            CaseStatus.Active => "Aktivní",
+            CaseStatus.WaitingOnAuthority => "Čeká na úřad",
+            CaseStatus.Closed => "Uzavřené",
+            _ => throw new UnreachableException(),
+        };
+    }
+
     public static string Tile(CaseStatus status)
     {
         return status switch

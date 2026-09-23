@@ -18,6 +18,14 @@ public class CaseStatusDisplayTests
         }
     }
 
+    [TestCase(CaseStatus.Active, "Aktivní")]
+    [TestCase(CaseStatus.WaitingOnAuthority, "Čeká na úřad")]
+    [TestCase(CaseStatus.Closed, "Uzavřené")]
+    public void EveryStatusCarriesItsOwnCountLabel(CaseStatus status, string expected)
+    {
+        Assert.That(CaseStatusDisplay.CountText(status), Is.EqualTo(expected), "the count tile labels read as docs/design/prehled.html writes them");
+    }
+
     [TestCase(CaseStatus.Active, "ec-stat-icon-active")]
     [TestCase(CaseStatus.WaitingOnAuthority, "ec-stat-icon-waiting")]
     [TestCase(CaseStatus.Closed, "ec-stat-icon-closed")]
@@ -58,6 +66,7 @@ public class CaseStatusDisplayTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(static () => CaseStatusDisplay.Text((CaseStatus)99), Throws.InstanceOf<UnreachableException>(), "a status the app does not name never renders as an empty label");
+            Assert.That(static () => CaseStatusDisplay.CountText((CaseStatus)99), Throws.InstanceOf<UnreachableException>());
             Assert.That(static () => CaseStatusDisplay.Tile((CaseStatus)99), Throws.InstanceOf<UnreachableException>());
             Assert.That(static () => CaseStatusDisplay.Tone((CaseStatus)99), Throws.InstanceOf<UnreachableException>());
             Assert.That(static () => CaseStatusDisplay.Dot((CaseStatus)99), Throws.InstanceOf<UnreachableException>());
