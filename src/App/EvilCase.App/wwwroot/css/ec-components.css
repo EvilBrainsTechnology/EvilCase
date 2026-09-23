@@ -2122,3 +2122,90 @@
         height: var(--ec-touch-min);
     }
 }
+
+/* Přehled (docs/design/prehled.html): dlaždice počtů spisů. */
+.ec-tiles {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--ec-space-6);
+}
+
+.ec-stat {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-5);
+    padding: var(--ec-space-6) var(--ec-stat-pad-x);
+    background: var(--ec-surface);
+    border: 1px solid var(--ec-border);
+    border-radius: var(--ec-radius-card);
+    color: var(--ec-text);
+    text-decoration: none;
+}
+
+.ec-stat:hover {
+    background: var(--ec-surface-sunken);
+}
+
+.ec-stat:focus-visible {
+    outline: none;
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-stat-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: var(--ec-stat-icon);
+    height: var(--ec-stat-icon);
+    border-radius: var(--ec-radius-xl);
+}
+
+.ec-stat-icon .ec-icon {
+    width: var(--ec-stat-glyph);
+    height: var(--ec-stat-glyph);
+}
+
+.ec-stat-icon-active {
+    background: var(--ec-active-bg);
+    color: var(--ec-active-text);
+}
+
+.ec-stat-icon-waiting {
+    background: var(--ec-waiting-bg);
+    color: var(--ec-waiting-text);
+}
+
+.ec-stat-icon-closed {
+    background: var(--ec-closed-bg);
+    color: var(--ec-closed-text);
+}
+
+.ec-stat-text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-stat-gap);
+    min-width: 0;
+}
+
+.ec-stat-value {
+    font-size: var(--ec-title);
+    font-weight: var(--ec-weight-semibold);
+    letter-spacing: -0.02em;
+    line-height: 1;
+}
+
+.ec-stat-label {
+    font-size: var(--ec-text-md);
+    color: var(--ec-text-muted);
+}
+
+@media (max-width: 991.98px) {
+    .ec-tiles {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .ec-stat {
+        min-height: var(--ec-touch-min);
+    }
+}

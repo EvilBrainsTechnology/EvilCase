@@ -1,0 +1,21 @@
+@using System.Globalization
+@using EvilBrains.EvilCase.Domain.Cases
+
+<a class="ec-stat" href="/cases">
+    <span class="@($"ec-stat-icon {CaseStatusDisplay.Tile(this.Status)}")">
+        <EcIcon Paths="@AppIcons.Folders" />
+    </span>
+    <span class="ec-stat-text">
+        <span class="ec-stat-value">@(this.Count?.ToString(CultureInfo.CurrentCulture) ?? "—")</span>
+        <span class="ec-stat-label">@CaseStatusDisplay.Text(this.Status)</span>
+    </span>
+</a>
+
+@code {
+    [Parameter, EditorRequired]
+    public required CaseStatus Status { get; set; }
+
+    /// <summary>Null while the counts load; the tile holds its height with a dash.</summary>
+    [Parameter]
+    public int? Count { get; set; }
+}

@@ -2,7 +2,6 @@ using System.Diagnostics;
 using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.App.Components.Ec;
 using EvilBrains.EvilCase.Domain.Cases;
-using TabBlazor;
 
 namespace EvilBrains.EvilCase.App.Models;
 
@@ -32,13 +31,13 @@ public static class CaseStatusDisplay
         };
     }
 
-    public static TablerColor Color(CaseStatus status)
+    public static string Tile(CaseStatus status)
     {
         return status switch
         {
-            CaseStatus.Active => TablerColor.Green,
-            CaseStatus.WaitingOnAuthority => TablerColor.Yellow,
-            CaseStatus.Closed => TablerColor.Secondary,
+            CaseStatus.Active => "ec-stat-icon-active",
+            CaseStatus.WaitingOnAuthority => "ec-stat-icon-waiting",
+            CaseStatus.Closed => "ec-stat-icon-closed",
             _ => throw new UnreachableException(),
         };
     }

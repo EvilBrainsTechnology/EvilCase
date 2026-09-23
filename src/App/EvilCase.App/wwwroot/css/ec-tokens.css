@@ -151,6 +151,12 @@
     --ec-list-col-labels: 90px;
     --ec-list-col-number: 200px;
 
+    /* Přehled (docs/design/prehled.html) */
+    --ec-stat-icon: 48px;
+    --ec-stat-glyph: 22px;
+    --ec-stat-pad-x: 22px;
+    --ec-stat-gap: 2px;
+
     /* Značka a přihlašovací obrazovka (docs/design/prihlaseni.html) */
     --ec-brand-size: 19px;
     --ec-brand-mark: 36px;
