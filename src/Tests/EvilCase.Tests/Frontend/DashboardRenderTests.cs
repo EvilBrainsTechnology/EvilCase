@@ -19,7 +19,7 @@ public class DashboardRenderTests
 
     private static readonly string[] CaseTileHeaders = ["Změněno ↓", "Datum spisu", "Spis", "Stav", "Štítky", "Spisová značka"];
 
-    private static readonly string[] ActTileHeaders = ["Změněno ↓", "Datum", "Spis", "Úkon", "Směr", "Číslo jednací"];
+    private static readonly string[] ActTileHeaders = ["Změněno ↓", "Datum úkonu", "Spis", "Úkon", "Směr", "Číslo jednací"];
 
     [Test]
     public void BothListTilesReadFromTheLastChange()
@@ -208,7 +208,7 @@ public class DashboardRenderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(Headers(tables[0]), Is.EqualTo(CaseTileHeaders), "the case tile carries the columns of docs/design/prehled.html");
-            Assert.That(Headers(tables[1]), Is.EqualTo(ActTileHeaders), "the act tile carries no labels column (docs/design/prehled.html)");
+            Assert.That(Headers(tables[1]), Is.EqualTo(ActTileHeaders), "the act tile carries the columns of docs/design/prehled.html");
         }
     }
 
