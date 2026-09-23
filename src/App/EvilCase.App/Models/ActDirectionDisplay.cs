@@ -1,6 +1,6 @@
 using System.Diagnostics;
+using EvilBrains.EvilCase.App.Components.Ec;
 using EvilBrains.EvilCase.Domain.Acts;
-using TabBlazor;
 
 namespace EvilBrains.EvilCase.App.Models;
 
@@ -17,13 +17,12 @@ public static class ActDirectionDisplay
         };
     }
 
-    public static TablerColor Color(ActDirection? direction)
+    public static EcBadgeTone Tone(ActDirection direction)
     {
         return direction switch
         {
-            null => TablerColor.Default,
-            ActDirection.Incoming => TablerColor.Blue,
-            ActDirection.Outgoing => TablerColor.Green,
+            ActDirection.Incoming => EcBadgeTone.Incoming,
+            ActDirection.Outgoing => EcBadgeTone.Outgoing,
             _ => throw new UnreachableException(),
         };
     }

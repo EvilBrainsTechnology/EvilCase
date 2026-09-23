@@ -53,4 +53,15 @@ public static class CaseStatusDisplay
             _ => throw new UnreachableException(),
         };
     }
+
+    public static string Dot(CaseStatus status)
+    {
+        return status switch
+        {
+            CaseStatus.Active => "ec-status-dot-active",
+            CaseStatus.WaitingOnAuthority => "ec-status-dot-waiting",
+            CaseStatus.Closed => "ec-status-dot-closed",
+            _ => throw new UnreachableException(),
+        };
+    }
 }

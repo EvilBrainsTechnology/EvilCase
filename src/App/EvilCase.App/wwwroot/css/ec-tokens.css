@@ -129,6 +129,7 @@
     --ec-content-max: 1680px;
     --ec-content-padding: 32px;
     --ec-sidebar-width: 380px;
+    --ec-child-date-width: 76px;
     --ec-settings-rail: 220px;
     --ec-popover-width: 320px;
     --ec-viewport-height: 100vh;

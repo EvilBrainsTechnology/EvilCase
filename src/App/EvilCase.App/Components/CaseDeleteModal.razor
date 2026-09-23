@@ -1,22 +1,74 @@
+@using System.Net
+@using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Cases
 @inject ICasesClient CasesClient
+@inject ILogger<CaseDeleteModal> Logger
 
-<ConfirmDeleteModal Delete="this.DeleteCase" GoneError="Spis už neexistuje." FailedError="Spis se nepodařilo smazat. Zkuste to za chvíli znovu." OnDeleted="this.OnDeleted">
-    <p>Opravdu smazat spis <strong>@Case.CaseNumber</strong> — @Case.Title? Akci nelze vrátit zpět.</p>
-
-    <p class="text-secondary">Se spisem zaniknou jeho podřízené spisy, úkony, komentáře a soubory.</p>
-</ConfirmDeleteModal>
+<EcModal Title="Smazat spis" Open="this.Open" OpenChanged="this.OpenChanged">
+    <ChildContent>
+        <p class="ec-confirm-text">
+            Opravdu smazat spis <strong>@this.Case.CaseNumber</strong> — @this.Case.Title? Se spisem zaniknou
+            jeho podřízené spisy, úkony, komentáře a soubory. Akci nelze vrátit zpět.
+        </p>
+        @if (this.error is not null)
+        {
+            <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.error</div>
+        }
+    </ChildContent>
+    <Footer>
+        <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Form" Icon="@AppIcons.X" OnClick="this.Cancel">Zrušit</EcButton>
+        <EcButton Variant="EcButtonVariant.Danger" Size="EcButtonSize.Form" Icon="@AppIcons.Trash"
+                  Disabled="@this.busy" OnClick="this.DeleteCase">Smazat spis</EcButton>
+    </Footer>
+</EcModal>
 
 @code {
     [Parameter, EditorRequired]
     public required CaseDetail Case { get; set; }
 
     [Parameter]
+    public bool Open { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    [Parameter]
     public EventCallback OnDeleted { get; set; }
 
-    private Task DeleteCase(CancellationToken cancellationToken)
+    private string? error;
+
+    private bool busy;
+
+    private async Task Cancel()
     {
-        return this.CasesClient.DeleteCase(this.Case.CaseId, cancellationToken);
+        await this.OpenChanged.InvokeAsync(false);
+    }
+
+    private async Task DeleteCase()
+    {
+        this.busy = true;
+        this.error = null;
+
+        try
+        {
+            await this.CasesClient.DeleteCase(this.Case.CaseId, CancellationToken.None);
+
+            await this.OnDeleted.InvokeAsync();
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+        {
+            this.error = "Spis už neexistuje.";
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Deleting the case failed");
+
+            this.error = "Spis se nepodařilo smazat. Zkuste to za chvíli znovu.";
+        }
+        finally
+        {
+            this.busy = false;
+        }
     }
 }

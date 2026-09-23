@@ -1,48 +1,56 @@
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Cases
-@using EvilBrains.EvilCase.App.Models
 @inject ICasesClient CasesClient
 @inject ILogger<CaseChildrenCard> Logger
 
-@* The sidebar's Hierarchie section: parent case link, then the child list as compact full-width rows. *@
-<div class="ec-field-label mb-2 d-flex align-items-center gap-2">
-    Podřízené spisy
-    @if (this.children is not null)
-    {
-        <span class="badge bg-secondary-lt">@this.children.Count</span>
-    }
-</div>
-
-@if (this.failure is not null)
-{
-    <div class="text-secondary small mb-2">@this.failure</div>
-}
-else if (this.children is null)
-{
-    <div class="text-secondary small mb-2">Načítám…</div>
-}
-else if (this.children.Count == 0)
-{
-    <div class="text-secondary small mb-2">Žádné podřízené spisy.</div>
-}
-else
-{
-    @foreach (var item in this.children)
-    {
-        <a class="ec-comprow" href="@($"/cases/{item.CaseId}")">
-            <span class="ec-min-w-0 flex-fill">
-                <span class="d-block ec-comprow-title">@item.Title</span>
-                <span class="ec-comprow-meta">
-                    <span class="ec-num">@DateDisplay.Text(item.Date)</span> ·
-                    <Status BackgroundColor="CaseStatusDisplay.Color(item.Status)" Lite="true">@CaseStatusDisplay.Text(item.Status)</Status>
-                </span>
-            </span>
-        </a>
-    }
-}
-
-<a href="@($"/cases/new?parent={this.ParentCaseId}")" class="btn btn-outline-secondary w-100 mt-2"><Icon CssClass="icon" IconType="TablerIcons.Plus" />Nový podřízený spis</a>
+<EcCard Title="Podřízené spisy">
+    <Header>
+        @if (this.children is not null)
+        {
+            <span class="ec-card-count">@this.children.Count</span>
+        }
+        <div class="ec-card-header-actions">
+            <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Plus"
+                      AriaLabel="Založit podřízený spis" Href="@($"/cases/new?parent={this.ParentCaseId}")" />
+        </div>
+    </Header>
+    <ChildContent>
+        @if (this.failure is not null)
+        {
+            <div class="ec-card-error">
+                <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.failure</div>
+                <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Refresh"
+                          OnClick="this.LoadChildren">Zkusit znovu</EcButton>
+            </div>
+        }
+        else if (this.children is null)
+        {
+            <p class="ec-card-state">Načítám…</p>
+        }
+        else if (this.children.Count == 0)
+        {
+            <EcEmptyState Icon="@AppIcons.Folders" Text="Zatím tu není žádný podřízený spis." />
+        }
+        else
+        {
+            <div class="ec-child-list">
+                @foreach (var item in this.children)
+                {
+                    <a class="ec-child-row" href="@($"/cases/{item.CaseId}")">
+                        <span class="ec-child-date">@DateDisplay.Text(item.Date)</span>
+                        <span class="ec-child-main">
+                            <span class="ec-child-title">@item.Title</span>
+                            <span class="ec-child-status">
+                                <span class="@($"ec-status-dot {CaseStatusDisplay.Dot(item.Status)}")" aria-hidden="true"></span>@CaseStatusDisplay.Text(item.Status)
+                            </span>
+                        </span>
+                    </a>
+                }
+            </div>
+        }
+    </ChildContent>
+</EcCard>
 
 @code {
     /// <summary>
@@ -59,12 +67,20 @@ else
 
     private Guid loaded;
 
-    protected override async Task OnParametersSetAsync()
+    protected override Task OnParametersSetAsync()
     {
         if (this.loaded == this.ParentCaseId)
-            return;
+            return Task.CompletedTask;
 
         this.loaded = this.ParentCaseId;
+
+        return this.LoadChildren();
+    }
+
+    private async Task LoadChildren()
+    {
+        this.children = null;
+        this.failure = null;
 
         var request = new CaseListRequest
         {
