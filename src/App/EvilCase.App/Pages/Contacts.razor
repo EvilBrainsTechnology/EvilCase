@@ -1,39 +1,38 @@
 @page "/contacts"
 @using EvilBrains.EvilCase.Api.Contract.Contacts
-@using TabBlazor.Services
-@inject IModalService ModalService
 
 <PageTitle>Kontakty – EvilCase</PageTitle>
 
-<div class="page-header d-print-none">
-    <div class="container-xl">
-        <div class="row g-2 align-items-center">
-            <div class="col">
-                <h2 class="page-title">Kontakty</h2>
-            </div>
-            <div class="col-auto ms-auto d-print-none">
-                <button id="contact-new" type="button" class="btn btn-primary" @onclick="this.CreateContact"><Icon CssClass="icon" IconType="TablerIcons.Plus" />Nový kontakt</button>
-            </div>
-        </div>
-    </div>
-</div>
+<div class="ec-page">
+    <EcPageHeader Title="Kontakty">
+        <Status>
+            @if (this.loaded)
+            {
+                <span class="ec-page-note">@RecordCountDisplay.Text(this.total)</span>
+            }
+        </Status>
+        <Actions>
+            <EcButton Variant="EcButtonVariant.Primary" Icon="@AppIcons.UserPlus" OnClick="this.CreateContact" id="contact-new">Nový kontakt</EcButton>
+        </Actions>
+    </EcPageHeader>
 
-<div class="page-body">
-    <div class="container-xl">
+    <EcCard>
         <ContactList @ref="this.list"
-                     Columns="Columns"
-                     Filter="Filter"
-                     ShowSearch="true"
-                     ShowKindFilter="true"
-                     ShowSorting="true"
-                     ShowPaging="true"
-                     EmptySubtitle="Zkuste jiné hledání.">
+                     Columns="Columns" Filter="Filter"
+                     ShowSearch="true" ShowKindFilter="true" ShowPaging="true"
+                     TotalChanged="this.OnTotalChanged"
+                     EmptyText="Zkuste jiné hledání.">
             <EmptyAction>
-                <button type="button" class="btn btn-primary" @onclick="this.CreateContact"><Icon CssClass="icon" IconType="TablerIcons.Plus" />Založit kontakt</button>
+                <EcButton Variant="EcButtonVariant.Primary" Icon="@AppIcons.UserPlus" OnClick="this.CreateContact">Založit kontakt</EcButton>
             </EmptyAction>
         </ContactList>
-    </div>
+    </EcCard>
 </div>
+
+@if (this.formOpen)
+{
+    <ContactFormModal Open OpenChanged="this.CloseForm" OnCreated="this.ContactCreated" />
+}
 
 @code {
     private const int PageItems = 20;
@@ -50,12 +49,33 @@
 
     private ContactList? list;
 
-    private async Task CreateContact()
+    private bool formOpen;
+
+    private bool loaded;
+
+    private int total;
+
+    private void CreateContact()
     {
-        await this.ModalService.ShowAsync(
-            "Nový kontakt",
-            new RenderComponent<ContactFormModal>()
-                .Set(component => component.OnCreated, EventCallback.Factory.Create<ContactListItem>(this, _ => this.list!.Reload())),
-            new ModalOptions { Fullscreen = ModalFullscreen.BelowLarge });
+        this.formOpen = true;
+    }
+
+    private void CloseForm(bool open)
+    {
+        if (!open)
+            this.formOpen = false;
+    }
+
+    private async Task ContactCreated(ContactListItem contact)
+    {
+        this.formOpen = false;
+
+        await this.list!.Reload();
+    }
+
+    private void OnTotalChanged(int count)
+    {
+        this.loaded = true;
+        this.total = count;
     }
 }

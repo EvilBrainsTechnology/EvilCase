@@ -153,6 +153,12 @@ public static class AppIcons
         + "<path d='M16 3.13a4 4 0 0 1 0 7.75' />"
         + "<path d='M21 21v-2a4 4 0 0 0 -3 -3.85' />";
 
+    public const string UserPlus = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<circle cx='9' cy='7' r='4' />"
+        + "<path d='M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2' />"
+        + "<path d='M19 8v6' />"
+        + "<path d='M22 11h-6' />";
+
     public const string X = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M18 6l-12 12' />"
         + "<path d='M6 6l12 12' />";

@@ -11,4 +11,10 @@ public enum EcBadgeTone
     Incoming = 3,
 
     Outgoing = 4,
+
+    Authority = 5,
+
+    Official = 6,
+
+    Person = 7,
 }
