@@ -1,5 +1,4 @@
 @page "/cases/{CaseId:guid}/act/{ActId:guid}"
-@using System.Diagnostics
 @using System.Net
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Client
@@ -7,8 +6,6 @@
 @using EvilBrains.EvilCase.Api.Contract.Comments
 @using EvilBrains.EvilCase.Api.Contract.Files
 @using EvilBrains.EvilCase.Api.Contract.Labels
-@using EvilBrains.EvilCase.Domain.Acts
-@using EvilBrains.EvilCase.Domain.Cases
 @inject IActsClient ActsClient
 @inject IActLabelsClient ActLabelsClient
 @inject IActCommentsClient ActCommentsClient
@@ -47,7 +44,7 @@
                     <Status>
                         @if (this.act.Direction is { } direction)
                         {
-                            <EcBadge Text="@ActDirectionDisplay.Text(direction)" Tone="DirectionTone(direction)" />
+                            <EcBadge Text="@ActDirectionDisplay.Text(direction)" Tone="ActDirectionDisplay.Tone(direction)" />
                         }
                     </Status>
                     <Actions>
@@ -155,7 +152,7 @@
                         <span class="ec-case-link-number">@this.act.CaseNumber</span>
                     </a>
                     <p class="ec-case-meta">
-                        <span class="@($"ec-status-dot {CaseStatusDot(this.act.CaseStatus)}")" aria-hidden="true"></span>
+                        <span class="@($"ec-status-dot {CaseStatusDisplay.Dot(this.act.CaseStatus)}")" aria-hidden="true"></span>
                         @CaseStatusDisplay.Text(this.act.CaseStatus) · @DateDisplay.Text(this.act.CaseDate)
                     </p>
                 </EcCard>
@@ -199,27 +196,6 @@
     protected override Task OnParametersSetAsync()
     {
         return this.LoadAct();
-    }
-
-    private static EcBadgeTone DirectionTone(ActDirection direction)
-    {
-        return direction switch
-        {
-            ActDirection.Incoming => EcBadgeTone.Incoming,
-            ActDirection.Outgoing => EcBadgeTone.Outgoing,
-            _ => throw new UnreachableException(),
-        };
-    }
-
-    private static string CaseStatusDot(CaseStatus status)
-    {
-        return status switch
-        {
-            CaseStatus.Active => "ec-status-dot-active",
-            CaseStatus.WaitingOnAuthority => "ec-status-dot-waiting",
-            CaseStatus.Closed => "ec-status-dot-closed",
-            _ => throw new UnreachableException(),
-        };
     }
 
     private async Task LoadAct()

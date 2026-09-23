@@ -15,6 +15,22 @@ public class EcTableRenderTests
     ];
 
     [Test]
+    public void TheCountStandsBesideTheTitle()
+    {
+        using var ctx = new BunitContext();
+        var withTitle = Render(ctx, title: "Úkony", total: 5);
+
+        using var ctx2 = new BunitContext();
+        var withoutTitle = Render(ctx2, total: 5);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(withTitle.Find(".ec-card-count").TextContent, Is.EqualTo("5"));
+            Assert.That(withoutTitle.FindAll(".ec-card-count"), Is.Empty);
+        }
+    }
+
+    [Test]
     public void TheRowIsOneLinkAcrossEveryColumn()
     {
         using var ctx = new BunitContext();
@@ -241,6 +257,7 @@ public class EcTableRenderTests
 
     private static IRenderedComponent<EcTable<string>> Render(
         BunitContext ctx,
+        string? title = null,
         IReadOnlyList<string>? items = null,
         Action<string>? sortChanged = null,
         string? sortKey = null,
@@ -255,6 +272,7 @@ public class EcTableRenderTests
         bool showPaging = false)
     {
         return ctx.Render<EcTable<string>>(parameters => parameters
+            .Add(static table => table.Title, title)
             .Add(static table => table.Columns, Columns)
             .Add(static table => table.Items, items ?? ["a", "b", "c"])
             .Add(static table => table.RowHref, static item => $"/cases/{item}")

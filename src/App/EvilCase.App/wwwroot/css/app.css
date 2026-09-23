@@ -47,11 +47,6 @@ body {
     font-variant-numeric: tabular-nums;
 }
 
-/* Lets a flex child truncate instead of pushing the row wider; Tabler ships no such utility. */
-.ec-min-w-0 {
-    min-width: 0;
-}
-
 .ec-field-label {
     font-size: 11px;
     font-weight: 600;
@@ -128,37 +123,6 @@ body {
     .ec-detail-header > .col-auto .btn {
         flex: 1 1 0;
     }
-}
-
-/* A compact row: a full-width link with a title line and a date/status second line, no chevron. */
-.ec-comprow {
-    display: flex;
-    align-items: center;
-    gap: 0.625rem;
-    padding: 0.5rem 0;
-    border-top: 1px solid var(--tblr-border-color);
-    color: inherit;
-    text-decoration: none;
-}
-
-.ec-comprow:first-child {
-    border-top: 0;
-}
-
-.ec-comprow:hover {
-    color: inherit;
-}
-
-.ec-comprow-title {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-weight: 500;
-}
-
-.ec-comprow-meta {
-    font-size: 12px;
-    color: var(--tblr-secondary);
 }
 
 /* Segmented status filter on the case list toolbar (SDD-016 §8). */
