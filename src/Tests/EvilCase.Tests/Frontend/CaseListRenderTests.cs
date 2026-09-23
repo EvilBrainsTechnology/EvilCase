@@ -22,54 +22,50 @@ public class CaseListRenderTests
 
         var component = Render(ctx, [CaseColumn.Status, CaseColumn.CaseNumber, CaseColumn.Date]);
 
-        component.WaitForElement("tbody tr");
+        component.WaitForElement("a.ec-table-row");
 
-        string[] headers = ["Stav", "Spisová značka", "Datum"];
+        string[] headers = ["Stav", "Spisová značka", "Datum spisu"];
 
         Assert.That(
-            component.FindAll("thead th").Select(static header => header.TextContent.Trim()),
+            component.FindAll(".ec-table-header").Select(static header => header.TextContent.Trim().TrimEnd('↑', '↓').Trim()),
             Is.EqualTo(headers),
             "the host's order of the columns is the order of the headers");
     }
 
     [Test]
-    public void AColumnRendersItsHeaderItsTableCellAndItsCardLineFromOneDefinition()
+    public void AColumnRendersItsHeaderAndItsCellFromOneDefinition()
     {
         using var ctx = new BunitContext();
         Serve(ctx, out _);
 
         var component = Render(ctx, [CaseColumn.CaseNumber]);
 
-        component.WaitForElement("tbody tr");
+        component.WaitForElement("a.ec-table-row");
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.Find("thead th").TextContent.Trim(), Is.EqualTo("Spisová značka"));
-            Assert.That(component.Find("tbody td").TextContent, Does.Contain("EC/20260821-001"));
-            Assert.That(
-                component.Find(".card-body.d-lg-none").TextContent,
-                Does.Contain("EC/20260821-001"),
-                "the column that writes the cell writes the card line too");
+            Assert.That(component.Find(".ec-table-header").TextContent.Trim(), Is.EqualTo("Spisová značka"));
+            Assert.That(component.Find(".ec-table-cell").TextContent, Does.Contain("EC/20260821-001"));
         }
     }
 
     [Test]
-    public void EveryRowRendersBothTheTableAndTheCardSoOnlyCssChoosesBetweenThem()
+    public void EveryRowRendersOnceAndOnlyCssReflowsItOnANarrowWidth()
     {
         using var ctx = new BunitContext();
         Serve(ctx, out _);
 
         var component = Render(ctx, [CaseColumn.Date, CaseColumn.Case]);
 
-        component.WaitForElement("tbody tr");
+        component.WaitForElement("a.ec-table-row");
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.FindAll(".d-none.d-lg-block tbody tr"), Has.Count.EqualTo(1));
+            Assert.That(component.FindAll("a.ec-table-row"), Has.Count.EqualTo(1), "the same row reflows on a narrow width; only CSS chooses how");
             Assert.That(
-                component.FindAll(".card-body.d-lg-none > .card"),
-                Has.Count.EqualTo(1),
-                "the same row renders as a card, and only CSS picks which of the two shows");
+                component.FindAll("a.ec-table-row")[0].QuerySelectorAll(".ec-table-cell")[1].ClassList,
+                Does.Contain("ec-table-cell-primary"),
+                "the Case column takes its own line where the row reflows");
         }
     }
 
@@ -81,13 +77,13 @@ public class CaseListRenderTests
 
         var component = Render(ctx, [CaseColumn.Date, CaseColumn.Status]);
 
-        component.WaitForElement("tbody tr");
+        component.WaitForElement("a.ec-table-row");
 
-        var headers = component.FindAll("thead th");
+        var headers = component.FindAll(".ec-table-header");
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(headers[0].QuerySelector("button.table-sort"), Is.Not.Null, "a column with a sort key sorts");
+            Assert.That(headers[0].QuerySelector("button.ec-sort"), Is.Not.Null, "a column with a sort key sorts");
             Assert.That(headers[1].QuerySelector("button"), Is.Null, "a column without a sort key carries no button");
         }
     }
@@ -100,12 +96,12 @@ public class CaseListRenderTests
 
         var component = Render(ctx, [CaseColumn.Date], take: 2, paging: true);
 
-        await component.WaitForElementAsync("tbody tr");
-        await component.Find(".ec-listfoot button:last-child").ClickAsync(new MouseEventArgs());
+        await component.WaitForElementAsync("a.ec-table-row");
+        await component.Find(".ec-card-footer button:last-child").ClickAsync(new MouseEventArgs());
 
         Assert.That(requests[^1].Skip, Is.EqualTo(2), "the next page asks for the rows behind the first one");
 
-        await component.Find("thead th button").ClickAsync(new MouseEventArgs());
+        await component.Find(".ec-table-header button").ClickAsync(new MouseEventArgs());
 
         using (Assert.EnterMultipleScope())
         {
@@ -122,8 +118,8 @@ public class CaseListRenderTests
 
         var component = Render(ctx, [CaseColumn.Date], take: 2, paging: true, search: true);
 
-        await component.WaitForElementAsync("tbody tr");
-        await component.Find(".ec-listfoot button:last-child").ClickAsync(new MouseEventArgs());
+        await component.WaitForElementAsync("a.ec-table-row");
+        await component.Find(".ec-card-footer button:last-child").ClickAsync(new MouseEventArgs());
 
         Assert.That(requests[^1].Skip, Is.EqualTo(2), "the next page asks for the rows behind the first one");
 
@@ -145,8 +141,8 @@ public class CaseListRenderTests
         var contactId = Guid.CreateVersion7();
         var component = Render(ctx, [CaseColumn.Date], contactId: contactId);
 
-        await component.WaitForElementAsync("tbody tr");
-        await component.Find("thead th button").ClickAsync(new MouseEventArgs());
+        await component.WaitForElementAsync("a.ec-table-row");
+        await component.Find(".ec-table-header button").ClickAsync(new MouseEventArgs());
 
         Assert.That(
             requests.Select(static request => request.ContactId),
@@ -162,7 +158,7 @@ public class CaseListRenderTests
 
         var component = Render(ctx, [CaseColumn.Date]);
 
-        await component.WaitForElementAsync("tbody tr");
+        await component.WaitForElementAsync("a.ec-table-row");
 
         // The host builds its filter in a property, so every one of its renders hands over a new
         // record of the same values.
@@ -189,10 +185,62 @@ public class CaseListRenderTests
         {
             using (Assert.EnterMultipleScope())
             {
-                Assert.That(component.FindAll("table"), Is.Empty, "a failed load leaves no table behind");
+                Assert.That(component.FindAll("a.ec-table-row"), Is.Empty, "a failed load leaves no row behind");
                 Assert.That(component.Markup, Does.Contain("Spisy se nepodařilo načíst"));
             }
         });
+    }
+
+    [Test]
+    public async Task TheScopeCheckboxWidensTheListBeyondTheRootCases()
+    {
+        await using var ctx = new BunitContext();
+        Serve(ctx, out var requests);
+
+        var component = Render(ctx, [CaseColumn.Date], scopeFilter: true);
+
+        await component.WaitForElementAsync("a.ec-table-row");
+        await component.Find(".ec-check-box").ChangeAsync(new ChangeEventArgs { Value = false });
+
+        Assert.That(requests[^1].Scope, Is.EqualTo(CaseListScope.All), "unchecking the box widens the list beyond the root cases");
+    }
+
+    [Test]
+    public async Task TheStatusSelectSendsTheChosenFilter()
+    {
+        await using var ctx = new BunitContext();
+        Serve(ctx, out var requests, total: 3);
+
+        var component = Render(ctx, [CaseColumn.Date], take: 2, paging: true, statusFilter: true);
+
+        await component.WaitForElementAsync("a.ec-table-row");
+        await component.Find(".ec-card-footer button:last-child").ClickAsync(new MouseEventArgs());
+
+        Assert.That(requests[^1].Skip, Is.EqualTo(2), "the next page asks for the rows behind the first one");
+
+        await component.Find(".ec-select").ChangeAsync(new ChangeEventArgs { Value = nameof(CaseStatusFilter.Closed) });
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(requests[^1].Status, Is.EqualTo(CaseStatusFilter.Closed));
+            Assert.That(requests[^1].Skip, Is.Zero, "a changed status starts the list over");
+        }
+    }
+
+    [Test]
+    public async Task TheListTellsTheHostHowManyRecordsTheFilterLeaves()
+    {
+        await using var ctx = new BunitContext();
+        Serve(ctx, out _, total: 7);
+
+        int? reported = null;
+
+        var component = ctx.Render<CaseList>(parameters => parameters
+            .Add(static list => list.Columns, [CaseColumn.Date])
+            .Add(static list => list.Filter, new CaseListRequest { Take = 20 })
+            .Add(static list => list.TotalChanged, count => reported = count));
+
+        await component.WaitForAssertionAsync(() => Assert.That(reported, Is.EqualTo(7)));
     }
 
     private static void Serve(BunitContext ctx, out List<CaseListRequest> requests, int total = 1)
@@ -236,12 +284,16 @@ public class CaseListRenderTests
         int take = 20,
         bool paging = false,
         bool search = false,
+        bool scopeFilter = false,
+        bool statusFilter = false,
         Guid? contactId = null)
     {
         return ctx.Render<CaseList>(parameters => parameters
             .Add(static list => list.Columns, columns)
             .Add(static list => list.Filter, new CaseListRequest { ContactId = contactId, Take = take })
             .Add(static list => list.ShowPaging, paging)
-            .Add(static list => list.ShowSearch, search));
+            .Add(static list => list.ShowSearch, search)
+            .Add(static list => list.ShowScopeFilter, scopeFilter)
+            .Add(static list => list.ShowStatusFilter, statusFilter));
     }
 }
