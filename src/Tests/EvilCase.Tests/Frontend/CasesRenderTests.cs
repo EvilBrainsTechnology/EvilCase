@@ -52,6 +52,26 @@ public class CasesRenderTests
         await component.WaitForAssertionAsync(() => Assert.That(requests[0].Search, Is.Null));
     }
 
+    [Test]
+    public async Task AnotherFilterKeepsWhatTheListsOwnSearchBoxHolds()
+    {
+        await using var ctx = new BunitContext();
+        Serve(ctx, out _);
+
+        ctx.Services.GetRequiredService<NavigationManager>().NavigateTo("/cases?q=rychlost");
+
+        var component = ctx.Render<App.Pages.Cases>();
+        var box = component.Find("input[aria-label=\"Hledat ve spisech\"]");
+
+        await box.InputAsync(new ChangeEventArgs { Value = "lhůta" });
+        await component.Find("#cases-root-only").ChangeAsync(new ChangeEventArgs { Value = false });
+
+        await component.WaitForAssertionAsync(() => Assert.That(
+            component.Find("input[aria-label=\"Hledat ve spisech\"]").GetAttribute("value"),
+            Is.EqualTo("lhůta"),
+            "only a changed search in the address reseeds the list's own search box"));
+    }
+
     private static void Serve(BunitContext ctx, out List<CaseListRequest> requests)
     {
         var captured = new List<CaseListRequest>();

@@ -2,7 +2,7 @@
 
 <header class="ec-topbar">
     <button type="button" class="ec-topbar-burger" aria-label="Otevřít menu"
-            aria-expanded="@this.drawerOpen" @onclick="this.OpenDrawer">
+            aria-expanded="@(this.drawerOpen ? "true" : "false")" @onclick="this.OpenDrawer">
         <EcIcon Paths="@AppIcons.Menu" Size="EcIconSize.Large" />
     </button>
 

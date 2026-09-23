@@ -99,9 +99,18 @@ public class TopBarRenderTests
 
         var component = ctx.Render<TopBar>();
 
+        Assert.That(
+            component.Find(".ec-topbar-burger").GetAttribute("aria-expanded"),
+            Is.EqualTo("false"),
+            "a collapsed control says so, not by leaving the state out (SDD-020)");
+
         await component.Find(".ec-topbar-burger").ClickAsync(new MouseEventArgs());
 
-        Assert.That(component.FindAll(".ec-drawer .ec-nav-link"), Has.Count.EqualTo(4));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.Find(".ec-topbar-burger").GetAttribute("aria-expanded"), Is.EqualTo("true"));
+            Assert.That(component.FindAll(".ec-drawer .ec-nav-link"), Has.Count.EqualTo(4));
+        }
 
         await component.Find(".ec-drawer .ec-nav-link").ClickAsync(new MouseEventArgs());
 
@@ -118,7 +127,14 @@ public class TopBarRenderTests
         var navigation = ctx.Services.GetRequiredService<NavigationManager>();
         var component = ctx.Render<TopBar>();
 
+        Assert.That(
+            component.Find(".ec-avatar").GetAttribute("aria-expanded"),
+            Is.EqualTo("false"),
+            "a collapsed control says so, not by leaving the state out (SDD-020)");
+
         await component.Find(".ec-avatar").ClickAsync(new MouseEventArgs());
+
+        Assert.That(component.Find(".ec-avatar").GetAttribute("aria-expanded"), Is.EqualTo("true"));
 
         var items = component.FindAll(".ec-menu-item").Select(static item => item.TextContent.Trim()).ToArray();
 

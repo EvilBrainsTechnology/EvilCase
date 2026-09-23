@@ -3,7 +3,7 @@
 
 <AuthorizeView Context="authenticationState">
     <div class="ec-usermenu">
-        <button type="button" class="ec-avatar" aria-haspopup="menu" aria-expanded="@this.open"
+        <button type="button" class="ec-avatar" aria-haspopup="menu" aria-expanded="@(this.open ? "true" : "false")"
                 aria-label="@($"Uživatelské menu – {authenticationState.User.Identity?.Name}")"
                 @onclick="this.Toggle">
             @AuthorInitialsDisplay.Text(authenticationState.User.Identity?.Name ?? "")
