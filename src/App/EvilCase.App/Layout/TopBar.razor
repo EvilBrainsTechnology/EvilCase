@@ -1,0 +1,71 @@
+@inject NavigationManager Navigation
+
+<header class="ec-topbar">
+    <button type="button" class="ec-topbar-burger" aria-label="Otevřít menu"
+            aria-expanded="@this.drawerOpen" @onclick="this.OpenDrawer">
+        <EcIcon Paths="@AppIcons.Menu" Size="EcIconSize.Large" />
+    </button>
+
+    <a class="ec-brand ec-topbar-brand" href="/">
+        <span class="ec-brand-mark ec-topbar-mark"><EcIcon Paths="@AppIcons.Scale" /></span>
+        <span class="ec-topbar-brand-text">EvilCase</span>
+    </a>
+
+    <nav class="ec-topbar-nav" aria-label="Hlavní menu">
+        <NavLinks />
+    </nav>
+
+    <form class="ec-search" role="search" @onsubmit="this.SubmitSearch" @onsubmit:preventDefault>
+        <EcIcon Paths="@AppIcons.Search" Size="EcIconSize.Small" />
+        <input class="ec-search-input" type="search" aria-label="Hledat spis" placeholder="Hledat spis"
+               value="@this.query" @oninput="this.OnQueryInput" />
+    </form>
+
+    <UserMenu />
+</header>
+
+@if (this.drawerOpen)
+{
+    <div class="ec-drawer-backdrop" @onclick="this.CloseDrawer"></div>
+    <div class="ec-drawer">
+        <div class="ec-drawer-head">
+            <span class="ec-brand ec-topbar-brand">
+                <span class="ec-brand-mark ec-topbar-mark"><EcIcon Paths="@AppIcons.Scale" /></span>
+                <span class="ec-topbar-brand-text">EvilCase</span>
+            </span>
+            <EcButton Variant="EcButtonVariant.Ghost" Size="EcButtonSize.Compact" Icon="@AppIcons.X"
+                      AriaLabel="Zavřít menu" OnClick="this.CloseDrawer" />
+        </div>
+        <nav class="ec-drawer-nav" aria-label="Menu">
+            <NavLinks OnNavigate="this.CloseDrawer" />
+        </nav>
+    </div>
+}
+
+@code {
+    private bool drawerOpen;
+
+    private string query = "";
+
+    private void OpenDrawer()
+    {
+        this.drawerOpen = true;
+    }
+
+    private void CloseDrawer()
+    {
+        this.drawerOpen = false;
+    }
+
+    private void OnQueryInput(ChangeEventArgs args)
+    {
+        this.query = args.Value as string ?? "";
+    }
+
+    private void SubmitSearch()
+    {
+        var text = this.query.Trim();
+
+        this.Navigation.NavigateTo(text.Length == 0 ? "/cases" : $"/cases?q={Uri.EscapeDataString(text)}");
+    }
+}

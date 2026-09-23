@@ -11,6 +11,8 @@ internal sealed class StubAuthSession : IAuthSession
 {
     public SignInOutcome Outcome { get; set; } = SignInOutcome.Success;
 
+    public List<bool> SignOuts { get; } = [];
+
     public Task<SignInOutcome> SignIn(string email, string password, CancellationToken token)
     {
         return Task.FromResult(this.Outcome);
@@ -18,6 +20,8 @@ internal sealed class StubAuthSession : IAuthSession
 
     public Task SignOut(bool everywhere, CancellationToken token)
     {
+        this.SignOuts.Add(everywhere);
+
         return Task.CompletedTask;
     }
 

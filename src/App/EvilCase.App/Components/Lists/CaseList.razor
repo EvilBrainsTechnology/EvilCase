@@ -311,7 +311,7 @@
 
     protected override Task OnParametersSetAsync()
     {
-        return this.ReloadOnFilterChange(this.Filter);
+        return this.ReloadOnFilterChange(this.Filter, this.Filter.Search);
     }
 
     protected override async Task<int> LoadPage(CancellationToken token)

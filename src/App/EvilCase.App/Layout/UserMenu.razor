@@ -2,23 +2,27 @@
 @inject NavigationManager Navigation
 
 <AuthorizeView Context="authenticationState">
-    <div class="nav-item dropdown user-menu">
-        <button type="button" class="nav-link d-flex lh-1 p-0 px-2 user-menu-toggle"
-                aria-label="Otevřít uživatelské menu" aria-expanded="@this.open" @onclick="Toggle">
-            <Icon IconType="TablerIcons.User" Size="24" />
-            <span class="d-none d-lg-block ps-2">@authenticationState.User.Identity?.Name</span>
+    <div class="ec-usermenu">
+        <button type="button" class="ec-avatar" aria-haspopup="menu" aria-expanded="@this.open"
+                aria-label="@($"Uživatelské menu – {authenticationState.User.Identity?.Name}")"
+                @onclick="this.Toggle">
+            @AuthorInitialsDisplay.Text(authenticationState.User.Identity?.Name ?? "")
         </button>
 
         @if (this.open)
         {
-            @* Closes the menu on a click anywhere else. Tabler's own dropdown does this from Bootstrap's
-               JavaScript, which does not survive the Blazor renderer. *@
-            <div class="dropdown-backdrop" @onclick="Close"></div>
+            @* Closes the menu on a click anywhere else; no Bootstrap JavaScript runs. *@
+            <div class="ec-menu-backdrop" @onclick="this.Close"></div>
 
-            <div class="dropdown-menu dropdown-menu-end show">
-                <span class="dropdown-header text-truncate d-lg-none">@authenticationState.User.Identity?.Name</span>
-                <button type="button" class="dropdown-item" @onclick="() => SignOut(everywhere: false)"><Icon CssClass="icon me-2" IconType="TablerIcons.Logout" />Odhlásit se</button>
-                <button type="button" class="dropdown-item" @onclick="() => SignOut(everywhere: true)"><Icon CssClass="icon me-2" IconType="TablerIcons.Logout" />Odhlásit všechna zařízení</button>
+            <div class="ec-menu" role="menu">
+                <span class="ec-menu-user">@authenticationState.User.Identity?.Name</span>
+                <ThemeSwitch />
+                <button type="button" class="ec-menu-item" role="menuitem" @onclick="() => this.SignOut(everywhere: false)">
+                    <EcIcon Paths="@AppIcons.Logout" />Odhlásit se
+                </button>
+                <button type="button" class="ec-menu-item" role="menuitem" @onclick="() => this.SignOut(everywhere: true)">
+                    <EcIcon Paths="@AppIcons.Logout" />Odhlásit všechna zařízení
+                </button>
             </div>
         }
     </div>

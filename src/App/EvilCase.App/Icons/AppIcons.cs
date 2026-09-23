@@ -55,6 +55,11 @@ public static class AppIcons
         + "<path d='M15 12h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1' />"
         + "<path d='M15 4h4a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-2a1 1 0 0 1 1 -1' />";
 
+    public const string Menu = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M4 6l16 0' />"
+        + "<path d='M4 12l16 0' />"
+        + "<path d='M4 18l16 0' />";
+
     public const string ListDetails = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M13 5h8' />"
         + "<path d='M13 9h5' />"

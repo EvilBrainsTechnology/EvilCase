@@ -1,19 +1,18 @@
 @inherits LayoutComponentBase
 
 <ModalContainer />
-<OffcanvasContainer />
 
 @* The application's default deny. Anything laid out by MainLayout is behind this, so a new page is
    protected without doing anything; escaping it means deliberately choosing another layout, the way
    the sign-in page does. *@
 <AuthorizeView>
     <Authorized>
-        <div class="page">
-            <NavMenu />
+        <div class="ec-shell">
+            <TopBar />
 
-            <div class="page-wrapper">
+            <main class="ec-shell-body">
                 @Body
-            </div>
+            </main>
         </div>
     </Authorized>
     <NotAuthorized>

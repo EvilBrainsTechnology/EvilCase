@@ -1,8 +1,7 @@
 /* Redesign tokens (2026): values that differ from Tabler's own defaults. Light first, dark under
    data-bs-theme, set by ThemeSwitch. */
 :root {
-    --ec-shell-bg: #f3f4f6;
-    --ec-page-width: 1700px;
+    --ec-shell-bg: #F2F3F6;
     --ec-detail-sidebar-width: 360px;
     --ec-card-radius: 10px;
     --ec-control-radius: 8px;
@@ -17,9 +16,9 @@ body {
     background: var(--ec-shell-bg);
 }
 
-/* The whole app grows from Tabler's 1320px container to fit the wider two-column pages. */
+/* The content width the shell holds (SDD-020); the token lives on the ec root. */
 .container-xl {
-    max-width: var(--ec-page-width);
+    max-width: var(--ec-content-max);
 }
 
 .card {
@@ -196,54 +195,8 @@ body {
     }
 }
 
-/* Tabler sizes .page against a full-height chain, which the Blazor root element breaks; MainLayout
-   needs a definite height here. */
-#app {
-    height: 100%;
-}
-
-/* Horizontal safe area, required because the viewport uses viewport-fit=cover. */
-.page-wrapper {
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
-}
-
-/* Narrower than the Tabler default so the backdrop stays tappable on a phone. */
-.offcanvas-nav {
-    --tblr-offcanvas-width: min(300px, 85vw);
-}
-
-/* Tabler builds the vertical navbar as a fixed, self-scrolling sidebar; inside the offcanvas it stays
-   in flow and the scrolling belongs to the offcanvas body. */
-.offcanvas-nav .navbar {
-    position: static;
-    width: auto;
-    overflow: visible;
-    box-shadow: none;
-}
-
-.user-menu-toggle {
-    border: 0;
-    background: transparent;
-}
-
-/* Bootstrap gives .dropdown-menu its offsets only once its JavaScript has marked the element with
-   data-bs-popper; set here because no Bootstrap JavaScript runs. */
-.user-menu {
-    position: relative;
-}
-
-.user-menu .dropdown-menu {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    left: auto;
-    max-width: calc(100vw - 2rem);
-    margin-top: 0.5rem;
-}
-
-/* LabelPicker's match list, offset the same way; see the comment above. It overlays instead of
-   pushing the rest of the sidebar down on every keystroke. */
+/* LabelPicker's match list overlays instead of pushing the rest of the sidebar down on every
+   keystroke; Bootstrap gives it no offset since no Bootstrap JavaScript runs. */
 .ec-picker {
     position: relative;
 }
@@ -258,24 +211,13 @@ body {
     overflow-y: auto;
 }
 
-/* Catches the click that closes the user menu; see UserMenu.razor. */
-.dropdown-backdrop {
-    position: fixed;
-    inset: 0;
-
-    /* One below Tabler's --tblr-dropdown-zindex, so the menu itself stays clickable. */
-    z-index: 999;
-}
-
 @media (max-width: 991.98px) {
     .btn,
     .btn-close,
     .form-control,
     .form-select,
     .dropdown-item,
-    .list-group-item-action,
-    .navbar-toggler,
-    .navbar .navbar-nav .nav-link {
+    .list-group-item-action {
         min-width: 44px;
         min-height: 44px;
     }
