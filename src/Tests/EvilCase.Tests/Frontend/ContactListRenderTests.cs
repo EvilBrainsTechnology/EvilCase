@@ -13,6 +13,8 @@ namespace EvilBrains.EvilCase.Tests.Frontend;
 
 public class ContactListRenderTests
 {
+    private static readonly Guid ServedContactId = Guid.CreateVersion7();
+
     [Test]
     public void TheColumnsRenderInTheOrderTheHostGaveThem()
     {
@@ -157,7 +159,7 @@ public class ContactListRenderTests
     }
 
     [Test]
-    public void TheNarrowRowNamesEveryValueItShows()
+    public void EveryColumnCarriesAHeaderAndTheKindReadsAsTextInTheRow()
     {
         using var ctx = new BunitContext();
         Serve(ctx, out _);
@@ -173,7 +175,7 @@ public class ContactListRenderTests
             Assert.That(component.FindAll(".ec-table-header").Select(static header => header.TextContent.Trim()), Does.Contain("Typ"));
             Assert.That(component.FindAll(".ec-table-header").Select(static header => header.TextContent.Trim()), Does.Contain("ID datové schránky"));
             Assert.That(component.FindAll(".ec-table-header").Select(static header => header.TextContent.Trim()), Does.Contain("Adresa"));
-            Assert.That(row, Does.Contain("Úřad"), "the row carries the label names in text at every width (#547)");
+            Assert.That(row, Does.Contain("Úřad"), "the kind reads as text in the row, at every width");
         }
     }
 
@@ -189,8 +191,6 @@ public class ContactListRenderTests
 
         Assert.That(component.Find("a.ec-table-row").GetAttribute("href"), Is.EqualTo($"/contacts/{ServedContactId}"));
     }
-
-    private static readonly Guid ServedContactId = Guid.CreateVersion7();
 
     private static void Serve(BunitContext ctx, out List<ContactListRequest> requests, int total = 1)
     {

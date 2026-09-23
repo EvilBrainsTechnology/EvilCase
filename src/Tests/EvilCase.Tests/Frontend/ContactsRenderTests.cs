@@ -14,7 +14,7 @@ public class ContactsRenderTests
     public void ThePageHeaderCountsTheContactsTheListFound()
     {
         using var ctx = new BunitContext();
-        Serve(ctx, out _, total: 11);
+        Serve(ctx, total: 11);
 
         var component = ctx.Render<App.Pages.Contacts>();
 
@@ -25,7 +25,7 @@ public class ContactsRenderTests
     public async Task TheNewContactButtonOpensTheForm()
     {
         await using var ctx = new BunitContext();
-        Serve(ctx, out _);
+        Serve(ctx);
 
         var component = ctx.Render<App.Pages.Contacts>();
 
@@ -42,7 +42,7 @@ public class ContactsRenderTests
     public async Task AContactCreatedInTheFormReloadsTheList()
     {
         await using var ctx = new BunitContext();
-        var contactsClient = Serve(ctx, out _);
+        var contactsClient = Serve(ctx);
 
         contactsClient
             .CreateContact(Arg.Any<ContactEditRequest>(), Arg.Any<CancellationToken>())
@@ -57,26 +57,18 @@ public class ContactsRenderTests
         await contactsClient.Received(2).ListContacts(Arg.Any<ContactListRequest>(), Arg.Any<CancellationToken>());
     }
 
-    private static IContactsClient Serve(BunitContext ctx, out List<ContactListRequest> requests, int total = 0)
+    private static IContactsClient Serve(BunitContext ctx, int total = 0)
     {
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
-        var captured = new List<ContactListRequest>();
         var response = new ContactListResponse { Items = [], TotalCount = total };
 
         var contactsClient = Substitute.For<IContactsClient>();
         contactsClient
             .ListContacts(Arg.Any<ContactListRequest>(), Arg.Any<CancellationToken>())
-            .Returns(call =>
-            {
-                captured.Add(call.Arg<ContactListRequest>());
-
-                return Task.FromResult(response);
-            });
+            .Returns(Task.FromResult(response));
 
         ctx.Services.AddSingleton(contactsClient);
-
-        requests = captured;
 
         return contactsClient;
     }

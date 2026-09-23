@@ -7,6 +7,7 @@ using EvilBrains.EvilCase.Api.Contract.Lists;
 using EvilBrains.EvilCase.App.Pages;
 using EvilBrains.EvilCase.Domain.Acts;
 using EvilBrains.EvilCase.Domain.Contacts;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EvilBrains.EvilCase.Tests.Frontend;
@@ -128,6 +129,29 @@ public class ContactRenderTests
         {
             Assert.That(component.Markup, Does.Contain("Úřad"));
             Assert.That(component.Find(".ec-contact-monogram-lg").TextContent.Trim(), Is.EqualTo("MÚ"));
+        }
+    }
+
+    [Test]
+    public async Task TheEditAndTheDeleteButtonEachOpenTheirModal()
+    {
+        await using var ctx = new BunitContext();
+
+        var contactId = Serve(ctx, out var caseRequests, out var actRequests, name: "Městský úřad");
+
+        var component = Render(ctx, contactId, caseRequests, actRequests);
+
+        await component.Find("#contact-edit").ClickAsync(new MouseEventArgs());
+
+        Assert.That(component.Find("dialog").TextContent, Does.Contain("Upravit kontakt"));
+
+        await component.Find(".ec-modal-header .ec-button").ClickAsync(new MouseEventArgs());
+        await component.Find("#contact-delete").ClickAsync(new MouseEventArgs());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.Find("dialog").TextContent, Does.Contain("Smazat kontakt"));
+            Assert.That(component.Find("dialog").TextContent, Does.Contain("Městský úřad"));
         }
     }
 
