@@ -186,7 +186,8 @@ public class CaseListRenderTests
             using (Assert.EnterMultipleScope())
             {
                 Assert.That(component.FindAll("a.ec-table-row"), Is.Empty, "a failed load leaves no row behind");
-                Assert.That(component.Markup, Does.Contain("Spisy se nepodařilo načíst"));
+                Assert.That(component.Markup, Does.Contain("Seznam spisů se nepodařilo načíst"));
+                Assert.That(component.FindAll(".ec-card-error button"), Has.Count.EqualTo(1), "a failed load offers a retry (SDD-020)");
             }
         });
     }
@@ -241,6 +242,20 @@ public class CaseListRenderTests
             .Add(static list => list.TotalChanged, count => reported = count));
 
         await component.WaitForAssertionAsync(() => Assert.That(reported, Is.EqualTo(7)));
+    }
+
+    [Test]
+    public void EveryColumnTrackComesFromAToken()
+    {
+        using var ctx = new BunitContext();
+        Serve(ctx, out _);
+
+        var component = Render(ctx, [CaseColumn.Date, CaseColumn.Case, CaseColumn.Status, CaseColumn.Labels, CaseColumn.CaseNumber]);
+
+        Assert.That(
+            component.Find(".ec-table").GetAttribute("style"),
+            Does.Not.Match("[0-9]+px"),
+            "a column width is a token in ec-tokens.css, never a size written in the component");
     }
 
     private static void Serve(BunitContext ctx, out List<CaseListRequest> requests, int total = 1)

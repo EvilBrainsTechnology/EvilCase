@@ -144,6 +144,11 @@
     --ec-list-search-width: 280px;
     --ec-list-row-height: 52px;
     --ec-list-min-height: 320px;
+    --ec-list-col-date: 120px;
+    --ec-list-col-moment: 150px;
+    --ec-list-col-status: 150px;
+    --ec-list-col-labels: 90px;
+    --ec-list-col-number: 200px;
 
     /* Značka a přihlašovací obrazovka (docs/design/prihlaseni.html) */
     --ec-brand-size: 19px;

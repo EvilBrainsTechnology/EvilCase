@@ -7,7 +7,7 @@ public sealed record EcColumn<TItem>
     public required string Header { get; init; }
 
     /// <summary>
-    /// The column's track in the row's grid, e.g. "120px" or "minmax(0, 1fr)".
+    /// The column's track in the row's grid, e.g. "var(--ec-list-col-date)" or "minmax(0, 1fr)".
     /// </summary>
     public required string Width { get; init; }
 

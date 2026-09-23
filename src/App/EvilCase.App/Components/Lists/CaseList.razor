@@ -15,7 +15,7 @@
             CaseColumn.Changed => new EcColumn<CaseListItem>
             {
                 Header = "Změněno",
-                Width = "150px",
+                Width = "var(--ec-list-col-moment)",
                 SortKey = nameof(CaseSortKey.Changed),
                 CellClass = "ec-cell-num",
                 Cell = item =>@<text>@MomentDisplay.Text(item.Changed)</text>,
@@ -23,7 +23,7 @@
             CaseColumn.Date => new EcColumn<CaseListItem>
             {
                 Header = "Datum spisu",
-                Width = "120px",
+                Width = "var(--ec-list-col-date)",
                 SortKey = nameof(CaseSortKey.Date),
                 CellClass = "ec-cell-num",
                 Cell = item =>@<text>@DateDisplay.Text(item.Date)</text>,
@@ -39,19 +39,19 @@
             CaseColumn.Status => new EcColumn<CaseListItem>
             {
                 Header = "Stav",
-                Width = "150px",
+                Width = "var(--ec-list-col-status)",
                 Cell = item =>@<EcBadge Tone="CaseStatusDisplay.Tone(item.Status)" Text="@CaseStatusDisplay.Text(item.Status)" />,
             },
             CaseColumn.Labels => new EcColumn<CaseListItem>
             {
                 Header = "Štítky",
-                Width = "90px",
+                Width = "var(--ec-list-col-labels)",
                 Cell = item =>@<LabelDots Labels="item.Labels" />,
             },
             CaseColumn.CaseNumber => new EcColumn<CaseListItem>
             {
                 Header = "Spisová značka",
-                Width = "200px",
+                Width = "var(--ec-list-col-number)",
                 SortKey = nameof(CaseSortKey.CaseNumber),
                 CellClass = "ec-cell-mono",
                 Cell = item =>@<text>@item.CaseNumber</text>,
@@ -59,7 +59,7 @@
             CaseColumn.ExternalNumber => new EcColumn<CaseListItem>
             {
                 Header = "Externí spisová značka",
-                Width = "200px",
+                Width = "var(--ec-list-col-number)",
                 CellClass = "ec-cell-mono",
                 Cell = item =>@<text>@item.ExternalCaseNumber</text>,
             },

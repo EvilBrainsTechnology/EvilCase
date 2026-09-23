@@ -1818,8 +1818,22 @@
 /* Sada teček nad štítky (LabelDots), sdílená migrovaným i nemigrovaným seznamem (SDD-019). */
 .label-dots {
     display: inline-flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: var(--ec-space-1);
+}
+
+.ec-label-mark {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ec-space-2);
+    min-width: 0;
+}
+
+.ec-label-name {
+    display: none;
+    font-size: var(--ec-text-xs);
+    color: var(--ec-text-muted);
 }
 
 .ec-dot {
@@ -2037,7 +2051,16 @@
         order: -1;
     }
 
+    .ec-table .ec-label-name {
+        display: inline;
+    }
+
     .ec-table .ec-card-footer .ec-button {
         flex: 1 1 0;
+        height: var(--ec-touch-min);
+    }
+
+    .ec-table .ec-card-error .ec-button {
+        height: var(--ec-touch-min);
     }
 }
