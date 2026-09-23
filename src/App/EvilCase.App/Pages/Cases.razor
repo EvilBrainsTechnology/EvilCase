@@ -3,40 +3,22 @@
 
 <PageTitle>Spisy – EvilCase</PageTitle>
 
-<div class="page-header d-print-none">
-    <div class="container-xl">
-        <div class="row g-2 align-items-center">
-            <div class="col">
-                <h2 class="page-title">Spisy</h2>
-            </div>
-            <div class="col-auto">
-                <div class="form-check form-switch mb-0">
-                    <input class="form-check-input" type="checkbox" id="cases-root-only" @bind="this.rootOnly" />
-                    <label class="form-check-label" for="cases-root-only">Jen rodičovské spisy</label>
-                </div>
-            </div>
-            <div class="col-auto ms-auto">
-                <a href="/cases/new" class="btn btn-primary"><Icon CssClass="icon" IconType="TablerIcons.Plus" />Nový spis</a>
-            </div>
-        </div>
-    </div>
-</div>
+<div class="ec-page">
+    <EcPageHeader Title="Spisy">
+        <Status><span class="ec-page-note">@RecordCountDisplay.Text(this.total)</span></Status>
+        <Actions>
+            <EcButton Variant="EcButtonVariant.Primary" Icon="@AppIcons.Plus" Href="/cases/new">Nový spis</EcButton>
+        </Actions>
+    </EcPageHeader>
 
-<div class="page-body">
-    <div class="container-xl">
-        <CaseList Columns="Columns"
-                  Filter="this.Filter"
-                  ShowSearch="true"
-                  ShowDates="true"
-                  ShowLabelFilter="true"
-                  ShowStatusFilter="true"
-                  ShowSorting="true"
-                  ShowPaging="true">
-            <EmptyAction>
-                <a href="/cases/new" class="btn btn-primary"><Icon CssClass="icon" IconType="TablerIcons.Plus" />Založit spis</a>
-            </EmptyAction>
-        </CaseList>
-    </div>
+    <CaseList Columns="Columns" Filter="Filter"
+              ShowSearch="true" ShowDates="true" ShowLabelFilter="true"
+              ShowStatusFilter="true" ShowScopeFilter="true" ShowPaging="true"
+              TotalChanged="this.OnTotalChanged">
+        <EmptyAction>
+            <EcButton Variant="EcButtonVariant.Primary" Icon="@AppIcons.Plus" Href="/cases/new">Založit spis</EcButton>
+        </EmptyAction>
+    </CaseList>
 </div>
 
 @code {
@@ -51,16 +33,22 @@
         CaseColumn.CaseNumber,
     ];
 
-    private bool rootOnly = true;
-
     [Parameter]
     [SupplyParameterFromQuery(Name = "q")]
     public string? Query { get; set; }
 
+    private int total;
+
+    // A record, so a render that hands over the same values reloads nothing (CaseListRenderTests).
     private CaseListRequest Filter => new()
     {
-        Scope = this.rootOnly ? CaseListScope.RootOnly : CaseListScope.All,
+        Scope = CaseListScope.RootOnly,
         Search = string.IsNullOrWhiteSpace(this.Query) ? null : this.Query,
         Take = PageItems,
     };
+
+    private void OnTotalChanged(int count)
+    {
+        this.total = count;
+    }
 }

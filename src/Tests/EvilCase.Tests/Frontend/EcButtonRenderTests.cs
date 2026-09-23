@@ -152,6 +152,39 @@ public class EcButtonRenderTests
     }
 
     [Test]
+    public void WithAHrefTheButtonRendersAsALink()
+    {
+        using var ctx = new BunitContext();
+
+        var component = ctx.Render<EcButton>(static parameters => parameters
+            .Add(static button => button.Variant, EcButtonVariant.Primary)
+            .Add(static button => button.Href, "/cases/new")
+            .AddChildContent("Nový spis"));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.FindAll("button"), Is.Empty, "a button with a target renders as a link, not a button");
+            Assert.That(component.Find("a").GetAttribute("href"), Is.EqualTo("/cases/new"));
+            Assert.That(component.Find("a").ClassList, Does.Contain("ec-button-primary"));
+        }
+    }
+
+    [Test]
+    public void TheEndIconStandsRightOfTheText()
+    {
+        using var ctx = new BunitContext();
+
+        var component = ctx.Render<EcButton>(static parameters => parameters
+            .Add(static button => button.Variant, EcButtonVariant.Secondary)
+            .Add(static button => button.IconEnd, AppIcons.ChevronRight)
+            .AddChildContent("Další"));
+
+        var button = component.Find("button");
+
+        Assert.That(button.LastElementChild!.LocalName, Is.EqualTo("svg"), "the end icon stands right of the text");
+    }
+
+    [Test]
     public void AnUnknownSizeIsRefused()
     {
         using var ctx = new BunitContext();

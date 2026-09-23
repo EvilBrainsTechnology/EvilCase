@@ -1,0 +1,174 @@
+@typeparam TItem
+
+<div class="ec-card ec-table" style="--ec-table-columns: @this.Template">
+    @if (this.Title is not null || this.Actions is not null)
+    {
+        <div class="ec-card-header">
+            @if (this.Title is not null)
+            {
+                <h2 class="ec-card-title">@this.Title</h2>
+            }
+            @if (this.Actions is not null)
+            {
+                <div class="ec-card-header-actions">@this.Actions</div>
+            }
+        </div>
+    }
+
+    @if (this.ShowToolbar || this.Sortable.Count > 0)
+    {
+        <div class="@this.BarClass">
+            @this.Toolbar
+            @if (this.Sortable.Count > 0)
+            {
+                <select class="ec-select ec-sort-select" aria-label="Řazení" @onchange="this.OnSortSelected">
+                    @foreach (var column in this.Sortable)
+                    {
+                        <option value="@column.SortKey" selected="@(column.SortKey == this.SortKey)">@column.Header</option>
+                    }
+                </select>
+            }
+        </div>
+    }
+
+    @if (this.Failure is not null)
+    {
+        <div class="ec-card-error">
+            <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.Failure</div>
+            <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Refresh" OnClick="this.Retry">Zkusit znovu</EcButton>
+        </div>
+    }
+    else if (this.Loading)
+    {
+        <p class="ec-card-state" role="status">Načítám…</p>
+    }
+    else if (this.Items.Count == 0)
+    {
+        @this.Empty
+    }
+    else
+    {
+        <div class="ec-table-head">
+            @foreach (var column in this.Columns)
+            {
+                <span class="ec-table-header">
+                    @if (column.SortKey is not null)
+                    {
+                        <button type="button" class="@this.HeaderClass(column)" @onclick="() => this.SortChanged.InvokeAsync(column.SortKey)">@column.Header @this.Arrow(column)</button>
+                    }
+                    else
+                    {
+                        @column.Header
+                    }
+                </span>
+            }
+        </div>
+
+        @foreach (var item in this.Items)
+        {
+            <a class="ec-table-row" href="@this.RowHref(item)">
+                @foreach (var column in this.Columns)
+                {
+                    <span class="ec-table-cell @(column.Primary ? "ec-table-cell-primary" : null) @column.CellClass">@column.Cell(item)</span>
+                }
+            </a>
+        }
+    }
+
+    @if (this.ShowPaging && this.Total > 0)
+    {
+        <div class="ec-card-footer">
+            <span class="ec-table-range">@(this.Skip + 1)–@Math.Min(this.Skip + this.Take, this.Total) z @this.Total</span>
+            <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ChevronLeft"
+                      Disabled="@(this.Skip == 0)" OnClick="this.Previous">Předchozí</EcButton>
+            <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" IconEnd="@AppIcons.ChevronRight"
+                      Disabled="@(this.Skip + this.Take >= this.Total)" OnClick="this.Next">Další</EcButton>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string? Title { get; set; }
+
+    [Parameter]
+    public RenderFragment? Actions { get; set; }
+
+    [Parameter]
+    public RenderFragment? Toolbar { get; set; }
+
+    [Parameter]
+    public bool ShowToolbar { get; set; }
+
+    [Parameter, EditorRequired]
+    public required IReadOnlyList<EcColumn<TItem>> Columns { get; set; }
+
+    [Parameter, EditorRequired]
+    public required IReadOnlyList<TItem> Items { get; set; }
+
+    [Parameter, EditorRequired]
+    public required Func<TItem, string> RowHref { get; set; }
+
+    [Parameter]
+    public string? SortKey { get; set; }
+
+    [Parameter]
+    public bool SortDescending { get; set; }
+
+    [Parameter]
+    public EventCallback<string> SortChanged { get; set; }
+
+    [Parameter]
+    public bool Loading { get; set; }
+
+    [Parameter]
+    public string? Failure { get; set; }
+
+    [Parameter]
+    public EventCallback Retry { get; set; }
+
+    [Parameter]
+    public RenderFragment? Empty { get; set; }
+
+    [Parameter]
+    public int Skip { get; set; }
+
+    [Parameter]
+    public int Take { get; set; }
+
+    [Parameter]
+    public int Total { get; set; }
+
+    [Parameter]
+    public bool ShowPaging { get; set; }
+
+    [Parameter]
+    public EventCallback Previous { get; set; }
+
+    [Parameter]
+    public EventCallback Next { get; set; }
+
+    private string Template => string.Join(" ", this.Columns.Select(static column => column.Width));
+
+    private IReadOnlyList<EcColumn<TItem>> Sortable => [.. this.Columns.Where(static column => column.SortKey is not null)];
+
+    private string BarClass => this.ShowToolbar ? "ec-table-bar" : "ec-table-bar ec-table-bar-sortonly";
+
+    private string HeaderClass(EcColumn<TItem> column)
+    {
+        return column.SortKey == this.SortKey ? "ec-sort ec-sort-active" : "ec-sort";
+    }
+
+    private string Arrow(EcColumn<TItem> column)
+    {
+        if (column.SortKey != this.SortKey)
+            return "";
+
+        return this.SortDescending ? "↓" : "↑";
+    }
+
+    private Task OnSortSelected(ChangeEventArgs args)
+    {
+        return this.SortChanged.InvokeAsync(args.Value as string ?? "");
+    }
+}

@@ -1,13 +1,34 @@
 @using System.Diagnostics
 
-<button type="@(this.Submit ? "submit" : "button")" class="@this.CssClass" disabled="@this.Disabled"
-        aria-label="@this.AriaLabel" @onclick="this.OnClick">
-    @if (this.Icon.Length > 0)
-    {
-        <EcIcon Paths="@this.Icon" />
-    }
-    @this.ChildContent
-</button>
+@if (this.Href is not null)
+{
+    <a href="@this.Href" class="@this.CssClass" aria-label="@this.AriaLabel">
+        @if (this.Icon.Length > 0)
+        {
+            <EcIcon Paths="@this.Icon" />
+        }
+        @this.ChildContent
+        @if (this.IconEnd.Length > 0)
+        {
+            <EcIcon Paths="@this.IconEnd" />
+        }
+    </a>
+}
+else
+{
+    <button type="@(this.Submit ? "submit" : "button")" class="@this.CssClass" disabled="@this.Disabled"
+            aria-label="@this.AriaLabel" @onclick="this.OnClick">
+        @if (this.Icon.Length > 0)
+        {
+            <EcIcon Paths="@this.Icon" />
+        }
+        @this.ChildContent
+        @if (this.IconEnd.Length > 0)
+        {
+            <EcIcon Paths="@this.IconEnd" />
+        }
+    </button>
+}
 
 @code {
     [Parameter, EditorRequired]
@@ -16,8 +37,16 @@
     [Parameter]
     public EcButtonSize Size { get; set; } = EcButtonSize.Standard;
 
+    /// <summary>Renders as a link instead of a button.</summary>
+    [Parameter]
+    public string? Href { get; set; }
+
     [Parameter]
     public string Icon { get; set; } = "";
+
+    /// <summary>An icon that stands right of the text, e.g. the pager's "Další".</summary>
+    [Parameter]
+    public string IconEnd { get; set; } = "";
 
     [Parameter]
     public string? AriaLabel { get; set; }

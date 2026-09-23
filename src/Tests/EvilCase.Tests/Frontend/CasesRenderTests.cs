@@ -64,7 +64,7 @@ public class CasesRenderTests
         var box = component.Find("input[aria-label=\"Hledat ve spisech\"]");
 
         await box.InputAsync(new ChangeEventArgs { Value = "lhůta" });
-        await component.Find("#cases-root-only").ChangeAsync(new ChangeEventArgs { Value = false });
+        await component.Find(".ec-check-box").ChangeAsync(new ChangeEventArgs { Value = false });
 
         await component.WaitForAssertionAsync(() => Assert.That(
             component.Find("input[aria-label=\"Hledat ve spisech\"]").GetAttribute("value"),

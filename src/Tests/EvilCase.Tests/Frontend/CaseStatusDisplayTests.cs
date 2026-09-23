@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using EvilBrains.EvilCase.Api.Contract.Cases;
+using EvilBrains.EvilCase.App.Components.Ec;
 using EvilBrains.EvilCase.App.Models;
 using EvilBrains.EvilCase.Domain.Cases;
 using TabBlazor;
@@ -21,6 +22,14 @@ public class CaseStatusDisplayTests
         }
     }
 
+    [TestCase(CaseStatus.Active, EcBadgeTone.Active)]
+    [TestCase(CaseStatus.WaitingOnAuthority, EcBadgeTone.Waiting)]
+    [TestCase(CaseStatus.Closed, EcBadgeTone.Closed)]
+    public void EveryStatusCarriesItsOwnBadgeTone(CaseStatus status, EcBadgeTone expected)
+    {
+        Assert.That(CaseStatusDisplay.Tone(status), Is.EqualTo(expected));
+    }
+
     [Test]
     public void EveryFilterReadsInCzech()
     {
@@ -38,6 +47,7 @@ public class CaseStatusDisplayTests
         {
             Assert.That(static () => CaseStatusDisplay.Text((CaseStatus)99), Throws.InstanceOf<UnreachableException>(), "a status the app does not name never renders as an empty label");
             Assert.That(static () => CaseStatusDisplay.Color((CaseStatus)99), Throws.InstanceOf<UnreachableException>());
+            Assert.That(static () => CaseStatusDisplay.Tone((CaseStatus)99), Throws.InstanceOf<UnreachableException>());
             Assert.That(static () => CaseStatusDisplay.FilterText((CaseStatusFilter)99), Throws.InstanceOf<UnreachableException>());
         }
     }

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using EvilBrains.EvilCase.Api.Contract.Cases;
+using EvilBrains.EvilCase.App.Components.Ec;
 using EvilBrains.EvilCase.Domain.Cases;
 using TabBlazor;
 
@@ -38,6 +39,17 @@ public static class CaseStatusDisplay
             CaseStatus.Active => TablerColor.Green,
             CaseStatus.WaitingOnAuthority => TablerColor.Yellow,
             CaseStatus.Closed => TablerColor.Secondary,
+            _ => throw new UnreachableException(),
+        };
+    }
+
+    public static EcBadgeTone Tone(CaseStatus status)
+    {
+        return status switch
+        {
+            CaseStatus.Active => EcBadgeTone.Active,
+            CaseStatus.WaitingOnAuthority => EcBadgeTone.Waiting,
+            CaseStatus.Closed => EcBadgeTone.Closed,
             _ => throw new UnreachableException(),
         };
     }

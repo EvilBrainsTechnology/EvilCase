@@ -211,6 +211,11 @@
     margin-left: auto;
 }
 
+.ec-page-note {
+    font-size: var(--ec-text-md);
+    color: var(--ec-text-muted);
+}
+
 .ec-badge {
     display: inline-flex;
     align-items: center;
@@ -1806,6 +1811,256 @@
     .ec-avatar,
     .ec-menu-item {
         min-width: var(--ec-touch-min);
+        height: var(--ec-touch-min);
+    }
+}
+
+/* Sada teček nad štítky (LabelDots), sdílená migrovaným i nemigrovaným seznamem (SDD-019). */
+.label-dots {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ec-space-1);
+}
+
+.ec-label-mark {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ec-space-2);
+    min-width: 0;
+}
+
+.ec-label-name {
+    display: none;
+    font-size: var(--ec-text-xs);
+    color: var(--ec-text-muted);
+}
+
+.ec-dot {
+    width: var(--ec-space-3);
+    height: var(--ec-space-3);
+    border-radius: var(--ec-radius-pill);
+}
+
+.ec-dot-blue { background: var(--ec-label-blue); }
+.ec-dot-azure { background: var(--ec-label-azure); }
+.ec-dot-indigo { background: var(--ec-label-indigo); }
+.ec-dot-purple { background: var(--ec-label-purple); }
+.ec-dot-pink { background: var(--ec-label-pink); }
+.ec-dot-red { background: var(--ec-label-red); }
+.ec-dot-orange { background: var(--ec-label-orange); }
+.ec-dot-yellow { background: var(--ec-label-yellow); }
+.ec-dot-lime { background: var(--ec-label-lime); }
+.ec-dot-green { background: var(--ec-label-green); }
+.ec-dot-teal { background: var(--ec-label-teal); }
+.ec-dot-cyan { background: var(--ec-label-cyan); }
+.ec-dot-gray { background: var(--ec-label-gray); }
+
+/* Seznam podle SDD-016: řádek je odkaz po celé šířce, patička nese rozsah, počet a stránkování
+   (docs/design/spisy.html). Nese hlavičku a patičku karty (ec-card-*, ec-card-header-actions). */
+.ec-table {
+    overflow: hidden;
+}
+
+.ec-table-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ec-space-3);
+    padding: var(--ec-space-5) var(--ec-space-6);
+}
+
+.ec-table-bar-sortonly {
+    display: none;
+}
+
+.ec-table-bar .ec-search {
+    width: var(--ec-list-search-width);
+    margin-left: 0;
+}
+
+.ec-table-bar .ec-check {
+    margin-left: auto;
+}
+
+.ec-table-head {
+    display: grid;
+    grid-template-columns: var(--ec-table-columns);
+    column-gap: var(--ec-space-5);
+    min-height: var(--ec-control-md);
+    padding: 0 var(--ec-space-6);
+    border-top: 1px solid var(--ec-border-subtle);
+    border-bottom: 1px solid var(--ec-border-subtle);
+    background: var(--ec-surface-header);
+    font-size: var(--ec-text-xs);
+    color: var(--ec-text-muted);
+}
+
+.ec-table-header {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+}
+
+.ec-sort {
+    font: inherit;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--ec-text-muted);
+    text-align: left;
+    cursor: pointer;
+}
+
+.ec-sort-active {
+    color: var(--ec-text);
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-sort:focus-visible {
+    outline: none;
+    border-radius: var(--ec-radius-sm);
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-sort-select {
+    display: none;
+}
+
+.ec-table-row {
+    display: grid;
+    grid-template-columns: var(--ec-table-columns);
+    column-gap: var(--ec-space-5);
+    min-height: var(--ec-list-row-height);
+    padding: 0 var(--ec-space-6);
+    border-bottom: 1px solid var(--ec-border-subtle);
+    color: var(--ec-text);
+    text-decoration: none;
+}
+
+.ec-table-row:hover {
+    background: var(--ec-surface-sunken);
+}
+
+.ec-table-row:focus-visible {
+    outline: none;
+    box-shadow: inset var(--ec-focus-ring);
+}
+
+.ec-table-cell {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+    min-width: 0;
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-soft);
+}
+
+.ec-table-cell-primary {
+    font-size: var(--ec-text-md);
+    font-weight: var(--ec-weight-medium);
+    color: var(--ec-text);
+}
+
+.ec-cell-text {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.ec-cell-num {
+    font-variant-numeric: tabular-nums;
+}
+
+.ec-cell-mono {
+    font-family: var(--ec-font-mono);
+    font-size: var(--ec-text-xs);
+    color: var(--ec-text-muted);
+}
+
+.ec-table-range {
+    margin-right: auto;
+}
+
+.ec-check {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+    font-size: var(--ec-text-md);
+    color: var(--ec-text);
+}
+
+.ec-check-box {
+    width: var(--ec-icon-lg);
+    height: var(--ec-icon-lg);
+    accent-color: var(--ec-accent);
+}
+
+/* Načítání, chyba a prázdno drží stejnou výšku jako plný seznam, aby obsah neposkakoval (SDD-020). */
+.ec-table .ec-card-state,
+.ec-table .ec-empty {
+    min-height: var(--ec-list-min-height);
+}
+
+.ec-table .ec-card-error {
+    min-height: var(--ec-list-min-height);
+    align-items: center;
+    justify-content: center;
+}
+
+@media (max-width: 991.98px) {
+    .ec-table-bar-sortonly {
+        display: flex;
+    }
+
+    .ec-sort-select {
+        display: block;
+    }
+
+    .ec-table-bar .ec-search {
+        flex: 1 1 100%;
+        width: auto;
+        height: var(--ec-touch-min);
+    }
+
+    .ec-table-bar .ec-input,
+    .ec-table-bar .ec-select {
+        height: var(--ec-touch-min);
+    }
+
+    .ec-table-bar .ec-check {
+        min-height: var(--ec-touch-min);
+    }
+
+    .ec-table-head {
+        display: none;
+    }
+
+    .ec-table-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        column-gap: var(--ec-space-4);
+        row-gap: var(--ec-space-1);
+        padding: var(--ec-space-4) var(--ec-space-5);
+        min-height: var(--ec-touch-min);
+    }
+
+    .ec-table-cell-primary {
+        flex: 1 0 100%;
+        order: -1;
+    }
+
+    .ec-table .ec-label-name {
+        display: inline;
+    }
+
+    .ec-table .ec-card-footer .ec-button {
+        flex: 1 1 0;
+        height: var(--ec-touch-min);
+    }
+
+    .ec-table .ec-card-error .ec-button {
         height: var(--ec-touch-min);
     }
 }
