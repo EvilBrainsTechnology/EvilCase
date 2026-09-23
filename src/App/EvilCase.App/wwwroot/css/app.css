@@ -43,10 +43,6 @@ body {
     letter-spacing: -0.01em;
 }
 
-.ec-num {
-    font-variant-numeric: tabular-nums;
-}
-
 .ec-field-label {
     font-size: 11px;
     font-weight: 600;
@@ -240,13 +236,6 @@ body {
     text-decoration: none;
 }
 
-/* A second, visible link in the row — the case a Spis column names inside an act table — sits
-   above the stretched-link overlay (z-index: 1) instead of under it. */
-.table-row-link a:not(.stretched-link) {
-    position: relative;
-    z-index: 2;
-}
-
 /* Above the row link's overlay, which would otherwise take the hover and with it the label's tooltip. */
 .label-dots {
     position: relative;
@@ -265,8 +254,4 @@ body {
     .ec-listfoot .btn {
         flex: 1 1 0;
     }
-}
-
-.ec-date-field {
-    min-width: 150px;
 }
