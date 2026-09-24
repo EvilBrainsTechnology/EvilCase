@@ -125,7 +125,9 @@
 
         @if (this.ShowLabelFilter)
         {
-            <LabelPicker InputId="@($"{this.InputPrefix}-labels")" Selected="this.SelectedLabels" SelectedChanged="this.OnLabelsChanged" />
+            <div class="ec-toolbar-labels">
+                <LabelField InputId="@($"{this.InputPrefix}-labels")" Selected="this.SelectedLabels" SelectedChanged="this.OnLabelsChanged" />
+            </div>
         }
     </Toolbar>
     <Empty>

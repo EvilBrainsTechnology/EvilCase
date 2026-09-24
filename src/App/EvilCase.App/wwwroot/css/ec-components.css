@@ -2159,6 +2159,16 @@
     }
 }
 
+/* Filtr štítků v liště seznamu: chipy nad polem, ne vedle něj. */
+.ec-toolbar-labels {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-2);
+    flex: 1 1 var(--ec-popover-width);
+    min-width: 0;
+}
+
 /* Přehled (docs/design/prehled.html): dlaždice počtů spisů. */
 .ec-tiles {
     display: grid;
