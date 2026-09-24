@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
-using TabBlazor.Services;
 
 namespace EvilBrains.EvilCase.Tests.Frontend;
 
@@ -26,7 +25,6 @@ public class FilesCardRenderTests
         var loads = 0;
 
         ctx.Services.AddSingleton<ILogger<FilesCard>>(logger);
-        ctx.Services.AddSingleton(Substitute.For<IModalService>());
 
         var component = ctx.Render<FilesCard>(parameters => parameters
             .Add(static card => card.Title, "Soubory spisu")
@@ -74,8 +72,6 @@ public class FilesCardRenderTests
 
         var uploaded = new List<string>();
         var loads = 0;
-
-        ctx.Services.AddSingleton(Substitute.For<IModalService>());
 
         var component = ctx.Render<FilesCard>(parameters => parameters
             .Add(static card => card.Title, "Soubory spisu")
@@ -125,7 +121,6 @@ public class FilesCardRenderTests
         ctx.Services.AddSingleton<IJSRuntime>(new PropertyReadingJSRuntime(ctx.JSInterop.JSRuntime));
 
         ctx.Services.AddSingleton<ILogger<FilesCard>>(new CapturingLogger<FilesCard>());
-        ctx.Services.AddSingleton(Substitute.For<IModalService>());
 
         var component = ctx.Render<FilesCard>(static parameters => parameters
             .Add(static card => card.Title, "Soubory spisu")
@@ -153,8 +148,6 @@ public class FilesCardRenderTests
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         ctx.Services.AddSingleton<IJSRuntime>(new PropertyReadingJSRuntime(ctx.JSInterop.JSRuntime));
 
-        ctx.Services.AddSingleton(Substitute.For<IModalService>());
-
         var component = ctx.Render<FilesCard>(static parameters => parameters
             .Add(static card => card.Title, "Soubory spisu")
             .Add(static card => card.LoadFiles, static (_) => Task.FromResult<IReadOnlyList<FileListItem>>([]))
@@ -176,8 +169,6 @@ public class FilesCardRenderTests
 
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         ctx.Services.AddSingleton<IJSRuntime>(new PropertyReadingJSRuntime(ctx.JSInterop.JSRuntime));
-
-        ctx.Services.AddSingleton(Substitute.For<IModalService>());
 
         var component = ctx.Render<FilesCard>(static parameters => parameters
             .Add(static card => card.Title, "Soubory spisu")
@@ -201,8 +192,6 @@ public class FilesCardRenderTests
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         ctx.Services.AddSingleton<IJSRuntime>(new PropertyReadingJSRuntime(ctx.JSInterop.JSRuntime));
 
-        ctx.Services.AddSingleton(Substitute.For<IModalService>());
-
         var component = ctx.Render<FilesCard>(static parameters => parameters
             .Add(static card => card.Title, "Soubory úkonu")
             .Add(static card => card.LoadFiles, static (_) => Task.FromResult<IReadOnlyList<FileListItem>>([]))
@@ -221,8 +210,6 @@ public class FilesCardRenderTests
 
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         ctx.Services.AddSingleton<IJSRuntime>(new PropertyReadingJSRuntime(ctx.JSInterop.JSRuntime));
-
-        ctx.Services.AddSingleton(Substitute.For<IModalService>());
 
         var component = ctx.Render<FilesCard>(static parameters => parameters
             .Add(static card => card.Title, "Soubory spisu")
@@ -246,8 +233,6 @@ public class FilesCardRenderTests
 
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         ctx.Services.AddSingleton<IJSRuntime>(new PropertyReadingJSRuntime(ctx.JSInterop.JSRuntime));
-
-        ctx.Services.AddSingleton(Substitute.For<IModalService>());
 
         var file = new FileListItem
         {
@@ -295,8 +280,6 @@ public class FilesCardRenderTests
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         ctx.Services.AddSingleton<IJSRuntime>(new PropertyReadingJSRuntime(ctx.JSInterop.JSRuntime));
 
-        ctx.Services.AddSingleton(Substitute.For<IModalService>());
-
         var file = new FileListItem
         {
             FileId = Guid.NewGuid(),
@@ -335,5 +318,38 @@ public class FilesCardRenderTests
             component.FindAll(".ec-file-row"),
             Has.Count.EqualTo(1),
             "the retry reloads the list"));
+    }
+
+    [Test]
+    public void DeletingAFileOpensTheConfirmationNamingIt()
+    {
+        using var ctx = new BunitContext();
+
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        ctx.Services.AddSingleton<IJSRuntime>(new PropertyReadingJSRuntime(ctx.JSInterop.JSRuntime));
+
+        var file = new FileListItem
+        {
+            FileId = Guid.NewGuid(),
+            FileName = "a.pdf",
+            SizeBytes = 1024,
+            Created = new DateTime(2025, 9, 2, 10, 0, 0, DateTimeKind.Utc),
+        };
+
+        var component = ctx.Render<FilesCard>(parameters => parameters
+            .Add(static card => card.Title, "Soubory spisu")
+            .Add(static card => card.LoadFiles, _ => Task.FromResult<IReadOnlyList<FileListItem>>([file]))
+            .Add(static card => card.UploadFile, static (_, _) => Task.CompletedTask)
+            .Add(static card => card.DownloadFile, static (_, _) => Task.CompletedTask)
+            .Add(static card => card.DeleteFile, static (_, _) => Task.CompletedTask)
+            .Add(static card => card.OwnerGoneError, "spis už neexistuje."));
+
+        component.Find("button.ec-button-danger").Click();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.FindAll(".ec-modal-footer"), Is.Not.Empty);
+            Assert.That(component.Find(".ec-confirm-text").TextContent, Does.Contain("a.pdf"));
+        }
     }
 }

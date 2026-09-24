@@ -1091,6 +1091,14 @@
     line-height: var(--ec-leading-body);
 }
 
+.ec-confirm-quote {
+    margin: var(--ec-space-4) 0 0;
+    padding-left: var(--ec-space-4);
+    border-left: 2px solid var(--ec-border);
+    color: var(--ec-text-muted);
+    white-space: pre-line;
+}
+
 /* Detail úkonu (docs/design/detail-ukonu.html). */
 .ec-detail {
     display: flex;

@@ -1,9 +1,7 @@
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Contract.Files
 @using Microsoft.JSInterop
-@using TabBlazor.Services
 @using Toolbelt.Blazor.FileDropZone
-@inject IModalService ModalService
 @inject ILogger<FilesCard> Logger
 
 @* The card is itself the drop zone (SDD-012): FileDropZone hands a card-wide drop to the input
@@ -86,6 +84,12 @@
     </EcCard>
 </FileDropZone>
 
+@if (this.deleting is { } file)
+{
+    <FileDeleteModal FileName="@file.FileName" Delete="token => this.DeleteFile(file, token)"
+                     Open OpenChanged="this.CloseDelete" OnDeleted="this.FileDeleted" />
+}
+
 @code {
     [Parameter, EditorRequired]
     public required string Title { get; set; }
@@ -127,6 +131,8 @@
     private string? listFailure;
 
     private string? error;
+
+    private FileListItem? deleting;
 
     protected override async Task OnInitializedAsync()
     {
@@ -197,14 +203,21 @@
         }
     }
 
-    private async Task ConfirmDelete(FileListItem file)
+    private void ConfirmDelete(FileListItem file)
     {
-        await this.ModalService.ShowAsync(
-            "Smazat soubor",
-            new RenderComponent<FileDeleteModal>()
-                .Set(component => component.FileName, file.FileName)
-                .Set(component => component.DeleteFile, (CancellationToken token) => this.DeleteFile(file, token))
-                .Set(component => component.OnDeleted, EventCallback.Factory.Create(this, this.ReloadFiles)),
-            new ModalOptions { Fullscreen = ModalFullscreen.BelowLarge });
+        this.deleting = file;
+    }
+
+    private void CloseDelete(bool open)
+    {
+        if (!open)
+            this.deleting = null;
+    }
+
+    private async Task FileDeleted()
+    {
+        this.deleting = null;
+
+        await this.ReloadFiles();
     }
 }
