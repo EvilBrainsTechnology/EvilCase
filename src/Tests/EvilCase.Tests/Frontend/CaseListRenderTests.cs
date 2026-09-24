@@ -3,9 +3,11 @@ using Bunit;
 using EvilBrains.ApiClient;
 using EvilBrains.EvilCase.Api.Client;
 using EvilBrains.EvilCase.Api.Contract.Cases;
+using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.Api.Contract.Lists;
 using EvilBrains.EvilCase.App.Components.Lists;
 using EvilBrains.EvilCase.Domain.Cases;
+using EvilBrains.EvilCase.Domain.Labels;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
@@ -245,6 +247,39 @@ public class CaseListRenderTests
     }
 
     [Test]
+    public async Task TheLabelFilterSendsTheChosenLabel()
+    {
+        await using var ctx = new BunitContext();
+        Serve(ctx, out var requests);
+
+        var labelId = Guid.CreateVersion7();
+
+        var labelsClient = Substitute.For<ILabelsClient>();
+        labelsClient
+            .ListLabels(Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new LabelListResponse { Items = [new LabelItem { LabelId = labelId, Name = "Urgentní", Color = LabelColor.Red }] }));
+
+        ctx.Services.AddSingleton(labelsClient);
+
+        var component = Render(ctx, [CaseColumn.Date], labelFilter: true);
+
+        await component.WaitForElementAsync("a.ec-table-row");
+        await component.Find("#cases-labels").InputAsync(new ChangeEventArgs { Value = "urg" });
+
+        await component.WaitForAssertionAsync(
+            () => Assert.That(component.FindAll(".ec-combobox-option"), Has.Count.EqualTo(1)),
+            TimeSpan.FromSeconds(2));
+
+        await component.Find(".ec-combobox-option").ClickAsync(new MouseEventArgs());
+
+        IReadOnlyList<Guid> chosen = [labelId];
+
+        await component.WaitForAssertionAsync(
+            () => Assert.That(requests[^1].LabelIds, Is.EqualTo(chosen)),
+            TimeSpan.FromSeconds(2));
+    }
+
+    [Test]
     public void EveryColumnTrackComesFromAToken()
     {
         using var ctx = new BunitContext();
@@ -301,6 +336,7 @@ public class CaseListRenderTests
         bool search = false,
         bool scopeFilter = false,
         bool statusFilter = false,
+        bool labelFilter = false,
         Guid? contactId = null)
     {
         return ctx.Render<CaseList>(parameters => parameters
@@ -309,6 +345,7 @@ public class CaseListRenderTests
             .Add(static list => list.ShowPaging, paging)
             .Add(static list => list.ShowSearch, search)
             .Add(static list => list.ShowScopeFilter, scopeFilter)
-            .Add(static list => list.ShowStatusFilter, statusFilter));
+            .Add(static list => list.ShowStatusFilter, statusFilter)
+            .Add(static list => list.ShowLabelFilter, labelFilter));
     }
 }

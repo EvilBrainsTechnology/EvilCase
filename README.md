@@ -6,7 +6,7 @@ A case-file system for administrative and legal proceedings: a case accumulates 
 
 ## Stack
 
-.NET 10, PostgreSQL, Serilog. The frontend is Blazor WebAssembly on [TabBlazor](https://github.com/TabBlazor/TabBlazor) over the [Tabler](https://tabler.io) CSS framework, vendored — no CDN.
+.NET 10, PostgreSQL, Serilog. The frontend is Blazor WebAssembly on the application's own `Ec` components and stylesheet; the fonts are vendored — no CDN.
 
 One process serves everything: `/api/*` goes to the API, every other path returns the WebAssembly app.
 
