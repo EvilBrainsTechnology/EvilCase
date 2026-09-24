@@ -254,6 +254,21 @@
     color: var(--ec-outgoing-text);
 }
 
+.ec-badge-authority {
+    background: var(--ec-authority-bg);
+    color: var(--ec-authority-text);
+}
+
+.ec-badge-official {
+    background: var(--ec-official-bg);
+    color: var(--ec-official-text);
+}
+
+.ec-badge-person {
+    background: var(--ec-person-bg);
+    color: var(--ec-person-text);
+}
+
 .ec-page {
     display: flex;
     flex-direction: column;
@@ -1118,6 +1133,10 @@
     flex: 1 1 auto;
 }
 
+.ec-detail-fact-grow {
+    flex: 1 1 auto;
+}
+
 .ec-detail-fact-name {
     font-size: var(--ec-text-xs);
     color: var(--ec-text-muted);
@@ -1126,6 +1145,7 @@
 .ec-detail-fact-value {
     font-size: var(--ec-text-md);
     font-weight: var(--ec-weight-medium);
+    white-space: pre-line;
 }
 
 .ec-detail-fact-mono {
@@ -1180,6 +1200,13 @@
     flex-direction: column;
     gap: var(--ec-space-6);
     min-width: 0;
+}
+
+.ec-contact-occurrences {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--ec-space-6);
+    align-items: start;
 }
 
 .ec-case-link {
@@ -1314,7 +1341,8 @@
     .ec-form-layout,
     .ec-form-row,
     .ec-form-group-row,
-    .ec-detail-layout {
+    .ec-detail-layout,
+    .ec-contact-occurrences {
         grid-template-columns: minmax(0, 1fr);
     }
 
@@ -2208,4 +2236,67 @@
     .ec-stat {
         min-height: var(--ec-touch-min);
     }
+}
+
+/* Kontakty (docs/design/kontakty.html, docs/design/detail-kontaktu.html). */
+.ec-contact-name {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-4);
+    min-width: 0;
+}
+
+.ec-contact-name-text {
+    min-width: 0;
+    overflow: hidden;
+    font-size: var(--ec-text-md);
+    font-weight: var(--ec-weight-medium);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ec-contact-monogram {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: var(--ec-monogram-sm);
+    height: var(--ec-monogram-sm);
+    border-radius: var(--ec-monogram-radius-sm);
+    font-size: var(--ec-monogram-text-sm);
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-contact-monogram-lg {
+    width: var(--ec-monogram-lg);
+    height: var(--ec-monogram-lg);
+    border-radius: var(--ec-monogram-radius-lg);
+    font-size: var(--ec-monogram-text-lg);
+}
+
+.ec-contact-monogram-authority {
+    background: var(--ec-authority-bg);
+    color: var(--ec-authority-text);
+}
+
+.ec-contact-monogram-official {
+    background: var(--ec-official-bg);
+    color: var(--ec-official-text);
+}
+
+.ec-contact-monogram-person {
+    background: var(--ec-person-bg);
+    color: var(--ec-person-text);
+}
+
+.ec-contact-header {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-5);
+}
+
+.ec-contact-header-name {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-1);
 }

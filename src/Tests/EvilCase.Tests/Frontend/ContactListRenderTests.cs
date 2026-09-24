@@ -13,6 +13,8 @@ namespace EvilBrains.EvilCase.Tests.Frontend;
 
 public class ContactListRenderTests
 {
+    private static readonly Guid ServedContactId = Guid.CreateVersion7();
+
     [Test]
     public void TheColumnsRenderInTheOrderTheHostGaveThem()
     {
@@ -21,54 +23,50 @@ public class ContactListRenderTests
 
         var component = Render(ctx, [ContactColumn.Kind, ContactColumn.Name, ContactColumn.Address]);
 
-        component.WaitForElement("tbody tr");
+        component.WaitForElement("a.ec-table-row");
 
         string[] headers = ["Typ", "Kontakt", "Adresa"];
 
         Assert.That(
-            component.FindAll("thead th").Select(static header => header.TextContent.Trim()),
+            component.FindAll(".ec-table-header").Select(static header => header.TextContent.Trim().TrimEnd('↑', '↓').Trim()),
             Is.EqualTo(headers),
             "the host's order of the columns is the order of the headers");
     }
 
     [Test]
-    public void AColumnRendersItsHeaderItsTableCellAndItsCardLineFromOneDefinition()
+    public void AColumnRendersItsHeaderAndItsCellFromOneDefinition()
     {
         using var ctx = new BunitContext();
         Serve(ctx, out _);
 
         var component = Render(ctx, [ContactColumn.DataBoxId]);
 
-        component.WaitForElement("tbody tr");
+        component.WaitForElement("a.ec-table-row");
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.Find("thead th").TextContent.Trim(), Is.EqualTo("ID datové schránky"));
-            Assert.That(component.Find("tbody td").TextContent, Does.Contain("abc1234"));
-            Assert.That(
-                component.Find(".card-body.d-lg-none").TextContent,
-                Does.Contain("abc1234"),
-                "the column that writes the cell writes the card line too");
+            Assert.That(component.Find(".ec-table-header").TextContent.Trim(), Is.EqualTo("ID datové schránky"));
+            Assert.That(component.Find(".ec-table-cell").TextContent, Does.Contain("abc1234"));
         }
     }
 
     [Test]
-    public void EveryRowRendersBothTheTableAndTheCardSoOnlyCssChoosesBetweenThem()
+    public void EveryRowRendersOnceAndOnlyCssReflowsItOnANarrowWidth()
     {
         using var ctx = new BunitContext();
         Serve(ctx, out _);
 
-        var component = Render(ctx, [ContactColumn.Name, ContactColumn.Kind]);
+        var component = Render(ctx, [ContactColumn.Kind, ContactColumn.Name]);
 
-        component.WaitForElement("tbody tr");
+        component.WaitForElement("a.ec-table-row");
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.FindAll(".d-none.d-lg-block tbody tr"), Has.Count.EqualTo(1));
+            Assert.That(component.FindAll("a.ec-table-row"), Has.Count.EqualTo(1), "the same row reflows on a narrow width; only CSS chooses how");
             Assert.That(
-                component.FindAll(".card-body.d-lg-none > .card"),
-                Has.Count.EqualTo(1),
-                "the same row renders as a card, and only CSS picks which of the two shows");
+                component.FindAll("a.ec-table-row")[0].QuerySelectorAll(".ec-table-cell")[1].ClassList,
+                Does.Contain("ec-table-cell-primary"),
+                "the Name column takes its own line where the row reflows");
         }
     }
 
@@ -80,13 +78,13 @@ public class ContactListRenderTests
 
         var component = Render(ctx, [ContactColumn.Name, ContactColumn.Address]);
 
-        component.WaitForElement("tbody tr");
+        component.WaitForElement("a.ec-table-row");
 
-        var headers = component.FindAll("thead th");
+        var headers = component.FindAll(".ec-table-header");
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(headers[0].QuerySelector("button.table-sort"), Is.Not.Null, "a column with a sort key sorts");
+            Assert.That(headers[0].QuerySelector("button.ec-sort"), Is.Not.Null, "a column with a sort key sorts");
             Assert.That(headers[1].QuerySelector("button"), Is.Null, "a column without a sort key carries no button");
         }
     }
@@ -99,12 +97,12 @@ public class ContactListRenderTests
 
         var component = Render(ctx, [ContactColumn.Name], take: 2, paging: true);
 
-        await component.WaitForElementAsync("tbody tr");
-        await component.Find(".ec-listfoot button:last-child").ClickAsync(new MouseEventArgs());
+        await component.WaitForElementAsync("a.ec-table-row");
+        await component.Find(".ec-card-footer button:last-child").ClickAsync(new MouseEventArgs());
 
         Assert.That(requests[^1].Skip, Is.EqualTo(2), "the next page asks for the rows behind the first one");
 
-        await component.Find("thead th button").ClickAsync(new MouseEventArgs());
+        await component.Find(".ec-table-header button").ClickAsync(new MouseEventArgs());
 
         using (Assert.EnterMultipleScope())
         {
@@ -121,8 +119,8 @@ public class ContactListRenderTests
 
         var component = Render(ctx, [ContactColumn.Name], take: 2, paging: true, search: true);
 
-        await component.WaitForElementAsync("tbody tr");
-        await component.Find(".ec-listfoot button:last-child").ClickAsync(new MouseEventArgs());
+        await component.WaitForElementAsync("a.ec-table-row");
+        await component.Find(".ec-card-footer button:last-child").ClickAsync(new MouseEventArgs());
 
         Assert.That(requests[^1].Skip, Is.EqualTo(2), "the next page asks for the rows behind the first one");
 
@@ -153,10 +151,45 @@ public class ContactListRenderTests
         {
             using (Assert.EnterMultipleScope())
             {
-                Assert.That(component.FindAll("table"), Is.Empty, "a failed load leaves no table behind");
-                Assert.That(component.Markup, Does.Contain("Kontakty se nepodařilo načíst"));
+                Assert.That(component.FindAll("a.ec-table-row"), Is.Empty, "a failed load leaves no row behind");
+                Assert.That(component.Markup, Does.Contain("Seznam kontaktů se nepodařilo načíst"));
+                Assert.That(component.FindAll(".ec-card-error button"), Has.Count.EqualTo(1), "a failed load offers a retry (SDD-020)");
             }
         });
+    }
+
+    [Test]
+    public void EveryColumnCarriesAHeaderAndTheKindReadsAsTextInTheRow()
+    {
+        using var ctx = new BunitContext();
+        Serve(ctx, out _);
+
+        var component = Render(ctx, [ContactColumn.Name, ContactColumn.Kind, ContactColumn.DataBoxId, ContactColumn.Address]);
+
+        component.WaitForElement("a.ec-table-row");
+
+        var row = component.Find("a.ec-table-row").TextContent;
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.FindAll(".ec-table-header").Select(static header => header.TextContent.Trim()), Does.Contain("Typ"));
+            Assert.That(component.FindAll(".ec-table-header").Select(static header => header.TextContent.Trim()), Does.Contain("ID datové schránky"));
+            Assert.That(component.FindAll(".ec-table-header").Select(static header => header.TextContent.Trim()), Does.Contain("Adresa"));
+            Assert.That(row, Does.Contain("Úřad"), "the kind reads as text in the row, at every width");
+        }
+    }
+
+    [Test]
+    public void TheRowLinksToTheContactDetail()
+    {
+        using var ctx = new BunitContext();
+        Serve(ctx, out _);
+
+        var component = Render(ctx, [ContactColumn.Name]);
+
+        component.WaitForElement("a.ec-table-row");
+
+        Assert.That(component.Find("a.ec-table-row").GetAttribute("href"), Is.EqualTo($"/contacts/{ServedContactId}"));
     }
 
     private static void Serve(BunitContext ctx, out List<ContactListRequest> requests, int total = 1)
@@ -168,7 +201,7 @@ public class ContactListRenderTests
             [
                 new ContactListItem
                 {
-                    ContactId = Guid.CreateVersion7(),
+                    ContactId = ServedContactId,
                     Kind = ContactKind.Authority,
                     Name = "Městský úřad",
                     DataBoxId = "abc1234",

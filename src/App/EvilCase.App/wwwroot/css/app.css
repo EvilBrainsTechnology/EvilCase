@@ -2,10 +2,8 @@
    data-bs-theme, set by ThemeSwitch. */
 :root {
     --ec-shell-bg: #F2F3F6;
-    --ec-detail-sidebar-width: 360px;
     --ec-card-radius: 10px;
     --ec-control-radius: 8px;
-    --ec-mono: Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
 [data-bs-theme="dark"] {
@@ -14,11 +12,6 @@
 
 body {
     background: var(--ec-shell-bg);
-}
-
-/* The content width the shell holds (SDD-020); the token lives on the ec root. */
-.container-xl {
-    max-width: var(--ec-content-max);
 }
 
 .card {
@@ -37,134 +30,10 @@ body {
     border-radius: var(--ec-control-radius);
 }
 
-.ec-mono {
-    font-family: var(--ec-mono);
-    font-size: 0.8125rem;
-    letter-spacing: -0.01em;
-}
-
-.ec-field-label {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--tblr-secondary);
-}
-
-/* Case and act detail: main column plus the sticky 360px sidebar (SDD-016 §2-3). */
-.ec-layout {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) var(--ec-detail-sidebar-width);
-    gap: 1.5rem;
-    align-items: start;
-}
-
-.ec-main {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    min-width: 0;
-}
-
-.ec-sidebar {
-    position: sticky;
-    top: 1rem;
-    max-height: calc(100vh - 2rem);
-    overflow-y: auto;
-}
-
-@media (max-width: 991.98px) {
-    .ec-layout {
-        display: flex;
-        flex-direction: column;
-        /* The grid rule's align-items: start leaves a flex child unstretched otherwise, sized to
-           its own content instead of the column's width. */
-        align-items: stretch;
-    }
-
-    .ec-sidebar {
-        position: static;
-        order: -1;
-        max-height: none;
-        overflow-y: visible;
-    }
-}
-
-/* A screen still on the Tabler chassis takes the space above its header from the shell's own
-   frame; Tabler ties that margin to .page-wrapper, which MainLayout no longer renders. */
-.page-header {
-    margin-top: var(--ec-space-7);
-}
-
-@media (max-width: 991.98px) {
-    .page-header {
-        margin-top: var(--ec-space-5);
-    }
-}
-
 /* A long case or act name wraps instead of pushing the page sideways (SDD-016 §9). */
 .breadcrumb-item {
     white-space: normal;
     word-break: break-word;
-}
-
-/* Case, act and contact detail header: below lg the actions no longer sit beside the title,
-   which wraps around them; they drop to their own full-width row instead. */
-@media (max-width: 991.98px) {
-    .ec-detail-header > .col-auto {
-        flex: 1 0 100%;
-        max-width: 100%;
-    }
-
-    .ec-detail-header > .col-auto .btn {
-        flex: 1 1 0;
-    }
-}
-
-/* Segmented status filter on the case list toolbar (SDD-016 §8). */
-.ec-search-field {
-    min-width: 220px;
-}
-
-.ec-segment {
-    display: inline-flex;
-    align-items: center;
-    gap: 2px;
-    padding: 3px;
-    max-width: 100%;
-    min-width: 0;
-    overflow-x: auto;
-    background: var(--tblr-bg-surface-tertiary, var(--tblr-body-bg));
-    border-radius: 100rem;
-}
-
-.ec-segment button {
-    border: 0;
-    background: transparent;
-    border-radius: 100rem;
-    height: 30px;
-    padding: 0 0.875rem;
-    font-size: 0.8125rem;
-    font-weight: 500;
-    color: var(--tblr-secondary);
-    white-space: nowrap;
-}
-
-.ec-segment button.active {
-    background: var(--tblr-card-bg);
-    color: var(--tblr-body-color);
-    font-weight: 600;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
-}
-
-@media (max-width: 991.98px) {
-    .ec-segment {
-        width: 100%;
-    }
-
-    .ec-segment button {
-        min-height: 44px;
-    }
 }
 
 /* LabelPicker's match list overlays instead of pushing the rest of the sidebar down on every
@@ -204,54 +73,12 @@ body {
     }
 }
 
-@media (max-width: 991.98px) {
-    .form-actions-sticky {
-        position: sticky;
-        bottom: 0;
-        z-index: 1;
-        padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
-        background: var(--tblr-card-bg);
-    }
-
-    .modal .form-actions-sticky {
-        background: var(--tblr-modal-bg);
-    }
-}
-
-.address-block {
-    white-space: pre-line;
-}
-
 .comment-body {
     white-space: pre-line;
-}
-
-/* The containing block .stretched-link's ::after overlay resolves position: absolute against. */
-.table-row-link {
-    position: relative;
-}
-
-.table-row-link .stretched-link {
-    color: inherit;
-    text-decoration: none;
 }
 
 /* Above the row link's overlay, which would otherwise take the hover and with it the label's tooltip. */
 .label-dots {
     position: relative;
     z-index: 2;
-}
-
-/* The paging footer of a list: the range on the left, the two buttons on the right. */
-.ec-listfoot {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-}
-
-@media (max-width: 991.98px) {
-    .ec-listfoot .btn {
-        flex: 1 1 0;
-    }
 }

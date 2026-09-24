@@ -2,7 +2,7 @@
 
 @if (this.Href is not null)
 {
-    <a href="@this.Href" class="@this.CssClass" aria-label="@this.AriaLabel">
+    <a href="@this.Href" class="@this.CssClass" aria-label="@this.AriaLabel" @attributes="this.AdditionalAttributes">
         @if (this.Icon.Length > 0)
         {
             <EcIcon Paths="@this.Icon" />
@@ -17,7 +17,7 @@
 else
 {
     <button type="@(this.Submit ? "submit" : "button")" class="@this.CssClass" disabled="@this.Disabled"
-            aria-label="@this.AriaLabel" @onclick="this.OnClick">
+            aria-label="@this.AriaLabel" @onclick="this.OnClick" @attributes="this.AdditionalAttributes">
         @if (this.Icon.Length > 0)
         {
             <EcIcon Paths="@this.Icon" />
@@ -62,6 +62,10 @@ else
 
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>Passed through to the rendered element, e.g. an id a test or a screenshot targets.</summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
     private string CssClass
     {

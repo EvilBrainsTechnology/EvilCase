@@ -6,89 +6,106 @@
 @using EvilBrains.EvilCase.Api.Contract.Cases
 @using EvilBrains.EvilCase.Api.Contract.Contacts
 @using EvilBrains.EvilCase.Api.Contract.Lists
-@using EvilBrains.EvilCase.Domain.Contacts
-@using TabBlazor.Services
 @inject IContactsClient ContactsClient
-@inject IModalService ModalService
 @inject NavigationManager Navigation
 @inject ILogger<Contact> Logger
 
 <PageTitle>@(this.contact is null ? "Kontakt" : this.contact.Name) – EvilCase</PageTitle>
 
-<div class="page-header d-print-none">
-    <div class="container-xl">
-        <div class="row g-2 align-items-center ec-detail-header">
-            <div class="col">
-                <div class="page-pretitle"><a href="/contacts">Kontakty</a></div>
-                <h2 class="page-title">
-                    @(this.contact?.Name)
-                    @if (this.contact is not null)
-                    {
-                        <span class="ms-2"><span class="badge bg-secondary-lt">@ContactKindDisplay.Text(this.contact.Kind)</span></span>
-                    }
-                </h2>
+<div class="ec-page">
+    @if (this.notFound)
+    {
+        <EcCard><p class="ec-state">Kontakt nenalezen.</p></EcCard>
+    }
+    else if (this.failure is not null)
+    {
+        <EcCard>
+            <div class="ec-card-error">
+                <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.failure</div>
+                <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Refresh"
+                          OnClick="this.LoadContact">Zkusit znovu</EcButton>
             </div>
-            @if (this.contact is not null)
-            {
-                <div class="col-auto ms-auto d-print-none">
-                    <button type="button" class="btn btn-primary" @onclick="this.Edit"><Icon CssClass="icon" IconType="TablerIcons.Pencil" />Upravit</button>
-                    <button type="button" class="btn btn-danger ms-2" @onclick="this.DeleteContact"><Icon CssClass="icon" IconType="TablerIcons.Trash" />Smazat</button>
-                </div>
-            }
-        </div>
-    </div>
-</div>
+        </EcCard>
+    }
+    else if (this.contact is null)
+    {
+        <EcCard><p class="ec-state">Načítám…</p></EcCard>
+    }
+    else
+    {
+        <EcCard>
+            <div class="ec-detail">
+                <nav class="ec-crumbs" aria-label="Drobečková navigace">
+                    <a class="ec-crumb" href="/contacts">Kontakty</a>
+                    <span class="ec-crumb-separator" aria-hidden="true">/</span>
+                    <span class="ec-crumb" aria-current="page">Detail kontaktu</span>
+                </nav>
 
-<div class="page-body">
-    <div class="container-xl">
-        <LoadStateView NotFound="this.notFound" NotFoundTitle="Kontakt nenalezen" Failure="@this.failure" FailureTitle="Kontakt se nepodařilo načíst" Loaded="this.contact is not null">
-            <div class="ec-layout">
-                <div class="ec-main">
-                    <CaseList Columns="CaseColumns"
-                              Filter="this.CaseFilter"
-                              Title="Spisy"
-                              ShowPaging="true"
-                              EmptyText="Kontakt nefiguruje v žádném spisu." />
-
-                    <ActList Columns="ActColumns"
-                             Filter="this.ActFilter"
-                             Title="Úkony"
-                             ShowPaging="true"
-                             EmptyText="Kontakt nefiguruje v žádném úkonu." />
-                </div>
-
-                <aside class="ec-sidebar d-flex flex-column gap-3">
-                    <div class="card">
-                        <div class="card-header"><h3 class="card-title"><Icon CssClass="icon me-2" IconType="TablerIcons.ListDetails" />Údaje</h3></div>
-                        <div class="card-body d-flex flex-column gap-3">
-                            <div>
-                                <div class="ec-field-label">Typ</div>
-                                <div>@ContactKindDisplay.Text(this.contact!.Kind)</div>
-                            </div>
-                            <div>
-                                <div class="ec-field-label">ID datové schránky</div>
-                                <div class="ec-mono">@(this.contact.DataBoxId ?? "—")</div>
-                            </div>
-                            <div>
-                                <div class="ec-field-label">Adresa</div>
-                                <div>
-                                    @if (string.IsNullOrWhiteSpace(this.contact.Address))
-                                    {
-                                        @:—
-                                    }
-                                    else
-                                    {
-                                        <div class="address-block">@this.contact.Address</div>
-                                    }
-                                </div>
-                            </div>
-                        </div>
+                <div class="ec-contact-header">
+                    <span class="@($"ec-contact-monogram ec-contact-monogram-lg ec-contact-monogram-{ContactKindDisplay.Css(this.contact.Kind)}")">
+                        @ContactMonogram.Text(this.contact.Name)
+                    </span>
+                    <div class="ec-contact-header-name">
+                        <h1 class="ec-page-title">@this.contact.Name</h1>
+                        <EcBadge Tone="ContactKindDisplay.Tone(this.contact.Kind)" Text="@ContactKindDisplay.Text(this.contact.Kind)" />
                     </div>
-                </aside>
+                    <div class="ec-page-actions">
+                        <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Pencil" id="contact-edit" OnClick="this.StartEditing">Upravit kontakt</EcButton>
+                        <EcButton Variant="EcButtonVariant.Danger" Icon="@AppIcons.Trash" id="contact-delete" OnClick="this.StartDeleting">Smazat kontakt</EcButton>
+                    </div>
+                </div>
+
+                <div class="ec-detail-facts">
+                    <div class="ec-detail-fact">
+                        <span class="ec-detail-fact-name">ID datové schránky</span>
+                        <span class="ec-detail-fact-mono">@(string.IsNullOrWhiteSpace(this.contact.DataBoxId) ? "—" : this.contact.DataBoxId)</span>
+                    </div>
+                    <div class="ec-detail-fact ec-detail-fact-grow">
+                        <span class="ec-detail-fact-name">Adresa</span>
+                        <span class="ec-detail-fact-value">@(string.IsNullOrWhiteSpace(this.contact.Address) ? "—" : this.contact.Address)</span>
+                    </div>
+                    <div class="ec-detail-fact">
+                        <span class="ec-detail-fact-name">Spisy</span>
+                        <span class="ec-detail-fact-value">@this.caseTotal</span>
+                    </div>
+                    <div class="ec-detail-fact">
+                        <span class="ec-detail-fact-name">Úkony</span>
+                        <span class="ec-detail-fact-value">@this.actTotal</span>
+                    </div>
+                </div>
             </div>
-        </LoadStateView>
-    </div>
+        </EcCard>
+
+        <div class="ec-contact-occurrences">
+            <CaseList @key="(nameof(CaseList), this.ContactId)"
+                      Columns="CaseColumns"
+                      Filter="this.CaseFilter"
+                      Title="Spisy s tímto kontaktem"
+                      ShowPaging="true"
+                      EmptyText="Kontakt nefiguruje v žádném spisu."
+                      TotalChanged="value => this.caseTotal = value" />
+
+            <ActList @key="(nameof(ActList), this.ContactId)"
+                     Columns="ActColumns"
+                     Filter="this.ActFilter"
+                     Title="Úkony s tímto kontaktem"
+                     DateHeader="Datum úkonu"
+                     ShowPaging="true"
+                     EmptyText="Kontakt nefiguruje v žádném úkonu."
+                     TotalChanged="value => this.actTotal = value" />
+        </div>
+    }
 </div>
+
+@if (this.editing && this.contact is not null)
+{
+    <ContactFormModal Contact="this.contact" Open OpenChanged="this.CloseEdit" OnSaved="this.ContactSaved" />
+}
+
+@if (this.deleting && this.contact is not null)
+{
+    <ContactDeleteModal Contact="this.contact" Open OpenChanged="this.CloseDelete" OnDeleted="this.ContactDeleted" />
+}
 
 @code {
     private const int OccurrenceItems = 20;
@@ -98,17 +115,13 @@
         CaseColumn.Date,
         CaseColumn.Case,
         CaseColumn.Status,
-        CaseColumn.CaseNumber,
     ];
 
     private static readonly ActColumn[] ActColumns =
     [
         ActColumn.Date,
-        ActColumn.Case,
         ActColumn.Act,
         ActColumn.Direction,
-        ActColumn.ActNumber,
-        ActColumn.ExternalNumber,
     ];
 
     [Parameter]
@@ -119,6 +132,14 @@
     private bool notFound;
 
     private string? failure;
+
+    private bool editing;
+
+    private bool deleting;
+
+    private int caseTotal;
+
+    private int actTotal;
 
     private CaseListRequest CaseFilter => new()
     {
@@ -163,34 +184,39 @@
         }
     }
 
-    private async Task Edit()
+    private void StartEditing()
     {
-        if (this.contact is null)
-            return;
-
-        await this.ModalService.ShowAsync(
-            "Upravit kontakt",
-            new RenderComponent<ContactFormModal>()
-                .Set(component => component.Contact, this.contact)
-                .Set(component => component.OnSaved, EventCallback.Factory.Create(this, this.LoadContact)),
-            FullscreenBelowLarge());
+        this.editing = true;
     }
 
-    private async Task DeleteContact()
+    private void CloseEdit(bool open)
     {
-        if (this.contact is null)
-            return;
-
-        await this.ModalService.ShowAsync(
-            "Smazat kontakt",
-            new RenderComponent<ContactDeleteModal>()
-                .Set(component => component.Contact, this.contact)
-                .Set(component => component.OnDeleted, EventCallback.Factory.Create(this, () => this.Navigation.NavigateTo("/contacts"))),
-            FullscreenBelowLarge());
+        if (!open)
+            this.editing = false;
     }
 
-    private static ModalOptions FullscreenBelowLarge()
+    private async Task ContactSaved()
     {
-        return new() { Fullscreen = ModalFullscreen.BelowLarge };
+        this.editing = false;
+
+        await this.LoadContact();
+    }
+
+    private void StartDeleting()
+    {
+        this.deleting = true;
+    }
+
+    private void CloseDelete(bool open)
+    {
+        if (!open)
+            this.deleting = false;
+    }
+
+    private void ContactDeleted()
+    {
+        this.deleting = false;
+
+        this.Navigation.NavigateTo("/contacts");
     }
 }

@@ -44,6 +44,14 @@
     --ec-outgoing-bg: #E3F4E8;
     --ec-outgoing-text: #1D6B36;
 
+    /* Druh kontaktu */
+    --ec-authority-bg: #E6EEFD;
+    --ec-authority-text: #2A48B8;
+    --ec-official-bg: #EFE7FB;
+    --ec-official-text: #5B2FA8;
+    --ec-person-bg: #E3F4E8;
+    --ec-person-text: #1D6B36;
+
     /* Upozornění a chyba */
     --ec-warning-bg: #FFF9EC;
     --ec-warning-border: #F3DDAE;
@@ -150,6 +158,16 @@
     --ec-list-col-status: 150px;
     --ec-list-col-labels: 90px;
     --ec-list-col-number: 200px;
+    --ec-list-col-kind: 160px;
+    --ec-list-col-databox: 160px;
+
+    /* Kontakty (docs/design/kontakty.html, docs/design/detail-kontaktu.html) */
+    --ec-monogram-sm: 30px;
+    --ec-monogram-lg: 52px;
+    --ec-monogram-radius-sm: 8px;
+    --ec-monogram-radius-lg: 14px;
+    --ec-monogram-text-sm: 11px;
+    --ec-monogram-text-lg: 17px;
 
     /* Přehled (docs/design/prehled.html) */
     --ec-stat-icon: 48px;

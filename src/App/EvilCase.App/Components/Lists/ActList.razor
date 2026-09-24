@@ -173,6 +173,9 @@
     [Parameter]
     public bool ShowPaging { get; set; }
 
+    [Parameter]
+    public EventCallback<int> TotalChanged { get; set; }
+
     /// <summary>
     /// Prefixes the ids of the toolbar's inputs, so two lists on one page never share one.
     /// </summary>
@@ -220,6 +223,8 @@
         var response = await this.ActsClient.ListActs(request, token);
 
         this.items = response.Items;
+
+        await this.TotalChanged.InvokeAsync(response.TotalCount);
 
         return response.TotalCount;
     }

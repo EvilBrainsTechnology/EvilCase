@@ -5,9 +5,10 @@ using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Api.Contract.Lists;
 using EvilBrains.EvilCase.App.Pages;
+using EvilBrains.EvilCase.Domain.Acts;
 using EvilBrains.EvilCase.Domain.Contacts;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
-using TabBlazor.Services;
 
 namespace EvilBrains.EvilCase.Tests.Frontend;
 
@@ -63,9 +64,107 @@ public class ContactRenderTests
         }
     }
 
-    private static Guid Serve(BunitContext ctx, out List<CaseListRequest> caseRequests, out List<ActListRequest> actRequests)
+    [Test]
+    public void TheActsOfTheContactAreHeadedByTheDateOfTheAct()
     {
-        // The page's TabBlazor components reach for the browser on their first render.
+        using var ctx = new BunitContext();
+
+        var act = new ActListItem
+        {
+            ActId = Guid.CreateVersion7(),
+            CaseId = Guid.CreateVersion7(),
+            CaseNumber = "EC/20260821-001",
+            CaseTitle = "Přestupek",
+            ActNumber = "EC/20260821-001-1",
+            Title = "Rozhodnutí",
+            Date = new DateOnly(2026, 8, 21),
+            Changed = new DateTime(2026, 8, 21, 0, 0, 0, DateTimeKind.Utc),
+            Direction = ActDirection.Incoming,
+        };
+
+        var contactId = Serve(ctx, out var caseRequests, out var actRequests, act: act);
+
+        var component = Render(ctx, contactId, caseRequests, actRequests);
+
+        component.WaitForAssertion(() =>
+            Assert.That(
+                component.FindAll(".ec-table-header").Select(static header => header.TextContent.Trim().TrimEnd('↑', '↓').Trim()),
+                Does.Contain("Datum úkonu"),
+                "the acts of a contact head their date column with 'Datum úkonu' (#549)"));
+    }
+
+    [Test]
+    public void TheHeaderCountsComeFromTheOccurrenceLists()
+    {
+        using var ctx = new BunitContext();
+
+        var contactId = Serve(ctx, out var caseRequests, out var actRequests, caseTotal: 3, actTotal: 5);
+
+        var component = Render(ctx, contactId, caseRequests, actRequests);
+
+        component.WaitForAssertion(() =>
+        {
+            var facts = component.FindAll(".ec-detail-fact").ToList();
+            var caseFact = facts.First(static fact => string.Equals(fact.QuerySelector(".ec-detail-fact-name")!.TextContent, "Spisy", StringComparison.Ordinal));
+            var actFact = facts.First(static fact => string.Equals(fact.QuerySelector(".ec-detail-fact-name")!.TextContent, "Úkony", StringComparison.Ordinal));
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(caseFact.QuerySelector(".ec-detail-fact-value")!.TextContent, Is.EqualTo("3"));
+                Assert.That(actFact.QuerySelector(".ec-detail-fact-value")!.TextContent, Is.EqualTo("5"));
+            }
+        });
+    }
+
+    [Test]
+    public void TheHeaderShowsTheKindAndTheMonogramOfTheContact()
+    {
+        using var ctx = new BunitContext();
+
+        var contactId = Serve(ctx, out var caseRequests, out var actRequests, name: "Městský úřad Vzorov", kind: ContactKind.Authority);
+
+        var component = Render(ctx, contactId, caseRequests, actRequests);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.Markup, Does.Contain("Úřad"));
+            Assert.That(component.Find(".ec-contact-monogram-lg").TextContent.Trim(), Is.EqualTo("MÚ"));
+        }
+    }
+
+    [Test]
+    public async Task TheEditAndTheDeleteButtonEachOpenTheirModal()
+    {
+        await using var ctx = new BunitContext();
+
+        var contactId = Serve(ctx, out var caseRequests, out var actRequests, name: "Městský úřad");
+
+        var component = Render(ctx, contactId, caseRequests, actRequests);
+
+        await component.Find("#contact-edit").ClickAsync(new MouseEventArgs());
+
+        Assert.That(component.Find("dialog").TextContent, Does.Contain("Upravit kontakt"));
+
+        await component.Find(".ec-modal-header .ec-button").ClickAsync(new MouseEventArgs());
+        await component.Find("#contact-delete").ClickAsync(new MouseEventArgs());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.Find("dialog").TextContent, Does.Contain("Smazat kontakt"));
+            Assert.That(component.Find("dialog").TextContent, Does.Contain("Městský úřad"));
+        }
+    }
+
+    private static Guid Serve(
+        BunitContext ctx,
+        out List<CaseListRequest> caseRequests,
+        out List<ActListRequest> actRequests,
+        string name = "Městský úřad",
+        ContactKind kind = ContactKind.Authority,
+        ActListItem? act = null,
+        int caseTotal = 0,
+        int actTotal = 0)
+    {
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         var contactId = Guid.CreateVersion7();
@@ -74,8 +173,8 @@ public class ContactRenderTests
         contactsClient.GetContact(contactId, Arg.Any<CancellationToken>()).Returns(Task.FromResult(new ContactDetail
         {
             ContactId = contactId,
-            Name = "Městský úřad",
-            Kind = ContactKind.Authority,
+            Name = name,
+            Kind = kind,
         }));
 
         var capturedCases = new List<CaseListRequest>();
@@ -86,7 +185,7 @@ public class ContactRenderTests
             {
                 capturedCases.Add(call.Arg<CaseListRequest>());
 
-                return Task.FromResult(new CaseListResponse { Items = [], TotalCount = 0 });
+                return Task.FromResult(new CaseListResponse { Items = [], TotalCount = caseTotal });
             });
 
         var capturedActs = new List<ActListRequest>();
@@ -97,13 +196,12 @@ public class ContactRenderTests
             {
                 capturedActs.Add(call.Arg<ActListRequest>());
 
-                return Task.FromResult(new ActListResponse { Items = [], TotalCount = 0 });
+                return Task.FromResult(new ActListResponse { Items = act is null ? [] : [act], TotalCount = actTotal });
             });
 
         ctx.Services.AddSingleton(contactsClient);
         ctx.Services.AddSingleton(casesClient);
         ctx.Services.AddSingleton(actsClient);
-        ctx.Services.AddSingleton(Substitute.For<IModalService>());
 
         caseRequests = capturedCases;
         actRequests = capturedActs;
@@ -111,7 +209,7 @@ public class ContactRenderTests
         return contactId;
     }
 
-    private static void Render(
+    private static IRenderedComponent<Contact> Render(
         BunitContext ctx,
         Guid contactId,
         List<CaseListRequest> caseRequests,
@@ -127,5 +225,7 @@ public class ContactRenderTests
                 Assert.That(actRequests, Is.Not.Empty, "the contact page loads its acts");
             }
         });
+
+        return component;
     }
 }

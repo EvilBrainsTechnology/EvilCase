@@ -24,6 +24,9 @@ public class EcBadgeRenderTests
                 EcBadgeTone.Closed => "ec-badge-closed",
                 EcBadgeTone.Incoming => "ec-badge-incoming",
                 EcBadgeTone.Outgoing => "ec-badge-outgoing",
+                EcBadgeTone.Authority => "ec-badge-authority",
+                EcBadgeTone.Official => "ec-badge-official",
+                EcBadgeTone.Person => "ec-badge-person",
                 _ => throw new InvalidOperationException($"unexpected tone {tone}"),
             };
 
