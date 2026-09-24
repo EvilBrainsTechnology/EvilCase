@@ -19,6 +19,7 @@ paths:
 - A method name carries its entity: `ListCases`, `WriteFileBlob`. A static class already naming it
   keeps the short name.
 - `Parse` throws on invalid input; `ParseOrDefault` returns the default.
+- A default arm over one of our enums throws `UnreachableException`.
 - A switch over an enum of ours names every member; the default arm throws.
 - Every class resolved from DI is `internal sealed` and consumed through an interface; a public
   consumer gets a public interface with an internal implementation. Exceptions: types the framework

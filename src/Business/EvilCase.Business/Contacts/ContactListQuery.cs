@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Api.Contract.Lists;
 using EvilBrains.EvilCase.Business.Entities;
@@ -35,7 +36,7 @@ internal static class ContactListQuery
         {
             ContactSortKey.Name => contacts.InKeyOrder(static contact => contact.Name, direction).ThenInWriteOrder(direction),
             ContactSortKey.Changed => contacts.InKeyOrder(static contact => contact.Updated ?? contact.Created, direction).ThenInWriteOrder(direction),
-            _ => throw new ArgumentOutOfRangeException(nameof(sort), sort, "Unknown contact sort key."),
+            _ => throw new UnreachableException(),
         };
     }
 

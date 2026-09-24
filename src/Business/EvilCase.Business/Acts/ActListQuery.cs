@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.Api.Contract.Lists;
@@ -67,7 +68,7 @@ internal static class ActListQuery
             ActSortKey.Changed => acts.InKeyOrder(static act => act.Updated ?? act.Created, direction).ThenInWriteOrder(direction),
             ActSortKey.Title => acts.InKeyOrder(static act => act.Title, direction).ThenInWriteOrder(direction),
             ActSortKey.ActNumber => acts.InKeyOrder(static act => act.ActNumber, direction).ThenInWriteOrder(direction),
-            _ => throw new ArgumentOutOfRangeException(nameof(sort), sort, "Unknown act sort key."),
+            _ => throw new UnreachableException(),
         };
     }
 
