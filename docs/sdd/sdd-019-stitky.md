@@ -51,7 +51,7 @@ mobilu, kde tooltip není, nese štítky s názvem.
 
 ## Rozhodnutí
 
-- Barva: volný kód / pevná paleta. Platí pevná paleta — drží kontrast ve světlém i tmavém motivu.
+- Barva: volný kód / pevná paleta. Platí pevná paleta — drží čitelný kontrast.
 - Číselník: společný pro spisy i úkony / dva oddělené. Platí společný.
 - Smazání štítku, který něco nese: zákaz / smazání i s jeho přiděleními. Platí smazání
   i s přiděleními; spis ani úkon, který štítek nesl, tím nezaniká.
