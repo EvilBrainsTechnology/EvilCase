@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.Api.Contract.Lists;
@@ -34,7 +35,7 @@ internal static class CaseListQuery
             CaseStatusFilter.Active => cases.Where(static @case => @case.Status == CaseStatus.Active),
             CaseStatusFilter.WaitingOnAuthority => cases.Where(static @case => @case.Status == CaseStatus.WaitingOnAuthority),
             CaseStatusFilter.Closed => cases.Where(static @case => @case.Status == CaseStatus.Closed),
-            _ => throw new ArgumentOutOfRangeException(nameof(filter), filter, "Unknown case status filter."),
+            _ => throw new UnreachableException(),
         };
     }
 
@@ -51,7 +52,7 @@ internal static class CaseListQuery
         {
             CaseListScope.RootOnly => cases.Where(static @case => @case.ParentCaseId == null),
             CaseListScope.All => cases,
-            _ => throw new ArgumentOutOfRangeException(nameof(scope), scope, "Unknown case list scope."),
+            _ => throw new UnreachableException(),
         };
     }
 
@@ -87,7 +88,7 @@ internal static class CaseListQuery
             CaseSortKey.Changed => cases.InKeyOrder(static @case => @case.Updated ?? @case.Created, direction).ThenInWriteOrder(direction),
             CaseSortKey.Title => cases.InKeyOrder(static @case => @case.Title, direction).ThenInWriteOrder(direction),
             CaseSortKey.CaseNumber => cases.InKeyOrder(static @case => @case.CaseNumber, direction).ThenInWriteOrder(direction),
-            _ => throw new ArgumentOutOfRangeException(nameof(sort), sort, "Unknown case sort key."),
+            _ => throw new UnreachableException(),
         };
     }
 
