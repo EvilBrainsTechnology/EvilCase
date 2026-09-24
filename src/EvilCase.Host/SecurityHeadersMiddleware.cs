@@ -13,7 +13,7 @@ internal sealed class SecurityHeadersMiddleware(RequestDelegate next)
             + "object-src 'none'; "
             + "frame-ancestors 'none'; "
             + "form-action 'self'; "
-            + "img-src 'self' data:; "
+            + "img-src 'self'; "
             + "font-src 'self'; "
             + "style-src 'self' 'unsafe-inline'; "
             + "script-src 'self' 'wasm-unsafe-eval'; "

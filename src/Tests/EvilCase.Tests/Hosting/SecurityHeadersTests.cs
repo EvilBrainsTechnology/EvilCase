@@ -51,6 +51,14 @@ public class SecurityHeadersTests
     }
 
     [Test]
+    public async Task ImagesComeFromTheOriginAlone()
+    {
+        using var response = await this.client.GetAsync(new Uri("/some/client/route", UriKind.Relative));
+
+        Assert.That(Header(response, "Content-Security-Policy"), Does.Contain("img-src 'self';"), "the policy allows an image source no page uses");
+    }
+
+    [Test]
     public async Task TheAppCarriesNoInlineScriptAndThePolicyNoHash()
     {
         using var response = await this.client.GetAsync(new Uri("/some/client/route", UriKind.Relative));
