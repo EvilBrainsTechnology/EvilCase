@@ -3,6 +3,32 @@
  * kořeni aplikace. Vizuální předlohy jsou v docs/design/.
  */
 
+/* Cizí stylopis dokument už neresetuje (SDD-020). */
+body {
+    margin: 0;
+}
+
+.ec {
+    background: var(--ec-bg);
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-md);
+    color: var(--ec-text);
+}
+
+.ec a {
+    color: var(--ec-accent-text);
+    text-decoration: none;
+}
+
+.ec button,
+.ec input,
+.ec select,
+.ec textarea {
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+}
+
 .ec-icon {
     flex: 0 0 auto;
     fill: none;

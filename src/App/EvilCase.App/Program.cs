@@ -7,7 +7,6 @@ using EvilBrains.Logging.WebAssembly;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using TabBlazor;
 
 namespace EvilBrains.EvilCase.App;
 
@@ -48,16 +47,6 @@ internal static class Program
             .AddRequestContextHeaders()
             .AddRequestLogging()
             .AddHttpMessageHandler<AuthTokenHandler>();
-
-        builder.Services.AddTabBlazor(
-            static options =>
-            {
-                options.EnablePopper = true;
-                options.DefaultPositioning = Positioning.Absolute;
-
-                // Default points at unpkg; popper.js is vendored in wwwroot instead.
-                options.PopperScriptUrl = "lib/popper/popper.min.js";
-            });
 
         var host = builder.Build();
         host.StartClientLogging();
