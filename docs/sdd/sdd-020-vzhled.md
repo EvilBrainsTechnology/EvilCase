@@ -88,22 +88,17 @@ schová do zásuvky, boční sloupec se zařadí pod hlavní, formulář má jed
 nikdy neposouvá vodorovně: na úzké šířce se řádek přeskládá na dva až tři řádky a řazení
 přebírá select v liště.
 
-### Odchod od TabBlazoru
+### Bez cizí knihovny
 
-Nový vzhled se nestaví přebarvením Tableru. Tabler i TabBlazor v aplikaci zůstávají, dokud
-drží nemigrované obrazovky, a mizí posledním krokem milníku: balíček z `csproj`, oba
-stylopisy z `index.html`, `TablerColor` z modelů v `App/Models`.
-
-Během přechodu žijí dva systémy vedle sebe. Vlastní styly jsou zapouzdřené pod třídou `ec` na
-kořeni, aby se resety nepraly, a nová komponenta nepoužije ani jednu bootstrapovou třídu.
-Cizí kód přichází v úvahu jen na pozicování plovoucích prvků; komponenta ho schová za vlastní
-rozhraní, aby ho obrazovky neviděly.
+Vzhled se nestaví přebarvením cizího CSS. Aplikace nenese knihovnu komponent ani cizí stylopis
+a obrazovka nepoužije cizí třídu. Cizí kód přichází v úvahu jen na pozicování plovoucích prvků;
+komponenta ho schová za vlastní rozhraní, aby ho obrazovky neviděly.
 
 ## Rozhodnutí
 
 - Vzhled: přebarvit Tabler / vlastní tokeny a primitiva. Platí vlastní tokeny a primitiva.
 - Postup: přepsat celou aplikaci najednou / migrovat po obrazovkách. Platí migrace po
-  obrazovkách; Tabler mizí až s poslední z nich.
+  obrazovkách.
 - Knihovna komponent: nahradit TabBlazor jinou knihovnou / napsat vlastní primitiva. Platí
   vlastní primitiva.
 - Datum a modál: knihovna / nativní prvky prohlížeče. Platí nativní `input type="date"`
@@ -114,6 +109,5 @@ rozhraní, aby ho obrazovky neviděly.
 
 ## Dopady
 
-- SDD-016 nadále drží routy, menu a pravidla seznamů; větu o Tableru a TabBlazoru nahrazuje
-  odkaz sem.
+- SDD-016 nadále drží routy, menu a pravidla seznamů; jejich vzhled se řídí tímhle SDD.
 - SDD-009, 010, 015 a 019 popisují obsah obrazovek, jejich vzhled se řídí tímto SDD.
