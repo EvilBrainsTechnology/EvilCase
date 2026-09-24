@@ -1,8 +1,6 @@
 using Bunit;
 using EvilBrains.EvilCase.Api.Contract.Comments;
 using EvilBrains.EvilCase.App.Components;
-using Microsoft.Extensions.DependencyInjection;
-using TabBlazor.Services;
 
 namespace EvilBrains.EvilCase.Tests.Frontend;
 
@@ -12,8 +10,6 @@ public class CommentsCardRenderTests
     public void TheCardNamesWhatItBelongsTo()
     {
         using var ctx = new BunitContext();
-
-        ctx.Services.AddSingleton(Substitute.For<IModalService>());
 
         var component = ctx.Render<CommentsCard>(static parameters => parameters
             .Add(static card => card.Title, "Komentáře spisu")
@@ -31,8 +27,6 @@ public class CommentsCardRenderTests
     {
         using var ctx = new BunitContext();
 
-        ctx.Services.AddSingleton(Substitute.For<IModalService>());
-
         var component = ctx.Render<CommentsCard>(static parameters => parameters
             .Add(static card => card.Title, "Komentáře spisu")
             .Add(static card => card.Placeholder, "Poznámka ke spisu…")
@@ -48,8 +42,6 @@ public class CommentsCardRenderTests
     public void WritingACommentSendsItAndReloadsTheList()
     {
         using var ctx = new BunitContext();
-
-        ctx.Services.AddSingleton(Substitute.For<IModalService>());
 
         var loads = 0;
         CommentEditRequest? sent = null;
@@ -92,8 +84,6 @@ public class CommentsCardRenderTests
     {
         using var ctx = new BunitContext();
 
-        ctx.Services.AddSingleton(Substitute.For<IModalService>());
-
         var sends = 0;
 
         var component = ctx.Render<CommentsCard>(parameters => parameters
@@ -125,8 +115,6 @@ public class CommentsCardRenderTests
     {
         using var ctx = new BunitContext();
 
-        ctx.Services.AddSingleton(Substitute.For<IModalService>());
-
         IReadOnlyList<CommentItem> items =
         [
             new CommentItem { CommentId = Guid.NewGuid(), Body = "A", AuthorEmail = "a@vzorov.cz", IsAuthor = true, Created = DateTime.UtcNow },
@@ -148,8 +136,6 @@ public class CommentsCardRenderTests
     public void EditingACommentSendsTheNewBody()
     {
         using var ctx = new BunitContext();
-
-        ctx.Services.AddSingleton(Substitute.For<IModalService>());
 
         var commentId = Guid.NewGuid();
         IReadOnlyList<CommentItem> items = [new CommentItem { CommentId = commentId, Body = "Původní", AuthorEmail = "a@vzorov.cz", IsAuthor = true, Created = DateTime.UtcNow }];
@@ -189,8 +175,6 @@ public class CommentsCardRenderTests
     {
         using var ctx = new BunitContext();
 
-        ctx.Services.AddSingleton(Substitute.For<IModalService>());
-
         IReadOnlyList<CommentItem> items = [new CommentItem { CommentId = Guid.NewGuid(), Body = "A", AuthorEmail = "martin.volek@vzorov.cz", IsAuthor = false, Created = DateTime.UtcNow }];
 
         var component = ctx.Render<CommentsCard>(parameters => parameters
@@ -208,8 +192,6 @@ public class CommentsCardRenderTests
     public void AnEditedCommentSaysWhenItWasEdited()
     {
         using var ctx = new BunitContext();
-
-        ctx.Services.AddSingleton(Substitute.For<IModalService>());
 
         IReadOnlyList<CommentItem> items =
         [
@@ -233,5 +215,26 @@ public class CommentsCardRenderTests
             .Add(static card => card.DeleteComment, static (_, _) => Task.CompletedTask));
 
         Assert.That(component.Find(".ec-comment-meta").TextContent, Does.Contain("upraveno"));
+    }
+
+    [Test]
+    public void DeletingACommentOpensTheConfirmationQuotingIt()
+    {
+        using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+
+        IReadOnlyList<CommentItem> items = [new CommentItem { CommentId = Guid.NewGuid(), Body = "Doručeno datovou schránkou.", AuthorEmail = "a@vzorov.cz", IsAuthor = true, Created = DateTime.UtcNow }];
+
+        var component = ctx.Render<CommentsCard>(parameters => parameters
+            .Add(static card => card.Title, "Komentáře spisu")
+            .Add(static card => card.Placeholder, "Poznámka ke spisu…")
+            .Add(static card => card.LoadComments, _ => Task.FromResult(items))
+            .Add(static card => card.AddComment, static (_, _) => Task.CompletedTask)
+            .Add(static card => card.SaveComment, static (_, _, _) => Task.CompletedTask)
+            .Add(static card => card.DeleteComment, static (_, _) => Task.CompletedTask));
+
+        component.Find(".ec-comment-actions .ec-button-danger").Click();
+
+        Assert.That(component.Find(".ec-confirm-quote").TextContent, Does.Contain("Doručeno datovou schránkou."));
     }
 }

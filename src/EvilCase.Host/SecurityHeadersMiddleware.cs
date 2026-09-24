@@ -3,10 +3,9 @@ namespace EvilBrains.EvilCase.Host;
 internal sealed class SecurityHeadersMiddleware(RequestDelegate next)
 {
     /// <summary>
-    /// Blazor WebAssembly compiles its runtime, which is what 'wasm-unsafe-eval' allows; the hash covers
-    /// the inline theme script of index.html and <c>SecurityHeadersTests</c> recomputes it from the served
-    /// file. Inline styles are unavoidable: TabBlazor and Popper position elements through the style
-    /// attribute. Images allow data: URIs because the vendored Tabler CSS embeds its icons as such.
+    /// Blazor WebAssembly compiles its runtime, which is what 'wasm-unsafe-eval' allows; the app carries
+    /// no inline script, so the policy carries no hash. Inline styles are unavoidable: <c>EcTable</c>
+    /// passes its column template through a custom property on the style attribute.
     /// </summary>
     private const string ContentSecurityPolicy =
         "default-src 'self'; "
@@ -14,10 +13,10 @@ internal sealed class SecurityHeadersMiddleware(RequestDelegate next)
             + "object-src 'none'; "
             + "frame-ancestors 'none'; "
             + "form-action 'self'; "
-            + "img-src 'self' data:; "
+            + "img-src 'self'; "
             + "font-src 'self'; "
             + "style-src 'self' 'unsafe-inline'; "
-            + "script-src 'self' 'wasm-unsafe-eval' 'sha256-Twd7JFh40ZBLj45GN0frQiMZ6sELOfQJW1roNApIVxk='; "
+            + "script-src 'self' 'wasm-unsafe-eval'; "
             + "connect-src 'self'";
 
     private static readonly Func<object, Task> WriteHeaders = static async state =>

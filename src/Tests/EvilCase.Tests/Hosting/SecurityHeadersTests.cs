@@ -1,6 +1,3 @@
-using System.Security.Cryptography;
-using System.Text;
-
 namespace EvilBrains.EvilCase.Tests.Hosting;
 
 public class SecurityHeadersTests
@@ -54,31 +51,31 @@ public class SecurityHeadersTests
     }
 
     [Test]
-    public async Task PolicyCarriesTheHashOfEveryInlineScriptOfTheApp()
+    public async Task ImagesComeFromTheOriginAlone()
+    {
+        using var response = await this.client.GetAsync(new Uri("/some/client/route", UriKind.Relative));
+
+        Assert.That(Header(response, "Content-Security-Policy"), Does.Contain("img-src 'self';"), "the policy allows an image source no page uses");
+    }
+
+    [Test]
+    public async Task TheAppCarriesNoInlineScriptAndThePolicyNoHash()
     {
         using var response = await this.client.GetAsync(new Uri("/some/client/route", UriKind.Relative));
 
         var html = await response.Content.ReadAsStringAsync();
         var policy = Header(response, "Content-Security-Policy");
-        var scripts = InlineScripts(html);
-
-        Assert.That(scripts, Is.Not.Empty);
 
         using (Assert.EnterMultipleScope())
         {
-            foreach (var script in scripts)
-                Assert.That(policy, Does.Contain(Hash(script)), "an inline script the policy carries no hash for is blocked in the browser");
+            Assert.That(InlineScripts(html), Is.Empty, "an inline script the policy carries no hash for is blocked in the browser");
+            Assert.That(policy, Does.Not.Contain("'sha256-"), "the policy allows a script no page carries");
         }
     }
 
     private static string? Header(HttpResponseMessage response, string name)
     {
         return response.Headers.TryGetValues(name, out var values) ? values.FirstOrDefault() : null;
-    }
-
-    private static string Hash(string script)
-    {
-        return "'sha256-" + Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(script))) + "'";
     }
 
     /// <summary>

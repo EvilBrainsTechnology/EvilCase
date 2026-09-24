@@ -1,14 +1,71 @@
-<ConfirmDeleteModal Delete="this.DeleteFile" GoneError="Soubor už neexistuje." FailedError="Soubor se nepodařilo smazat. Zkuste to za chvíli znovu." OnDeleted="this.OnDeleted">
-    <p>Opravdu smazat soubor <strong>@this.FileName</strong>? Akci nelze vrátit zpět.</p>
-</ConfirmDeleteModal>
+@using System.Net
+@using EvilBrains.ApiClient
+@inject ILogger<FileDeleteModal> Logger
+
+<EcModal Title="Smazat soubor" Open="this.Open" OpenChanged="this.OpenChanged">
+    <ChildContent>
+        <p class="ec-confirm-text">Opravdu smazat soubor <strong>@this.FileName</strong>? Akci nelze vrátit zpět.</p>
+        @if (this.error is not null)
+        {
+            <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.error</div>
+        }
+    </ChildContent>
+    <Footer>
+        <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Form" Icon="@AppIcons.X" OnClick="this.Cancel">Zrušit</EcButton>
+        <EcButton Variant="EcButtonVariant.Danger" Size="EcButtonSize.Form" Icon="@AppIcons.Trash"
+                  Disabled="@this.busy" OnClick="this.DeleteFile">Smazat soubor</EcButton>
+    </Footer>
+</EcModal>
 
 @code {
     [Parameter, EditorRequired]
     public required string FileName { get; set; }
 
     [Parameter, EditorRequired]
-    public required Func<CancellationToken, Task> DeleteFile { get; set; }
+    public required Func<CancellationToken, Task> Delete { get; set; }
+
+    [Parameter]
+    public bool Open { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
 
     [Parameter]
     public EventCallback OnDeleted { get; set; }
+
+    private string? error;
+
+    private bool busy;
+
+    private async Task Cancel()
+    {
+        await this.OpenChanged.InvokeAsync(false);
+    }
+
+    private async Task DeleteFile()
+    {
+        this.busy = true;
+        this.error = null;
+
+        try
+        {
+            await this.Delete(CancellationToken.None);
+
+            await this.OnDeleted.InvokeAsync();
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+        {
+            this.error = "Soubor už neexistuje.";
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Deleting the file failed");
+
+            this.error = "Soubor se nepodařilo smazat. Zkuste to za chvíli znovu.";
+        }
+        finally
+        {
+            this.busy = false;
+        }
+    }
 }

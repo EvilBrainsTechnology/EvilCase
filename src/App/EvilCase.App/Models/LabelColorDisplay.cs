@@ -8,7 +8,7 @@ public static class LabelColorDisplay
     public static IReadOnlyList<LabelColor> Palette { get; } = Enum.GetValues<LabelColor>();
 
     /// <summary>
-    /// The Tabler colour name behind <c>bg-{name}</c> and <c>bg-{name}-lt</c>.
+    /// The colour name behind <c>ec-chip-{name}</c> and <c>ec-dot-{name}</c>.
     /// </summary>
     public static string Css(LabelColor color)
     {

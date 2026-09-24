@@ -4,7 +4,7 @@ using EvilBrains.EvilCase.Domain.Json;
 namespace EvilBrains.EvilCase.Domain.Labels;
 
 /// <summary>
-/// The Tabler palette the frontend paints a label with; the label carries no free colour.
+/// The palette the frontend paints a label with; the label carries no free colour.
 /// </summary>
 [JsonConverter(typeof(StrictJsonStringEnumConverter<LabelColor>))]
 public enum LabelColor

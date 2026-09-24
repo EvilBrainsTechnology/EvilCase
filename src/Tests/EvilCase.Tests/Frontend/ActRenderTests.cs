@@ -17,7 +17,6 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
-using TabBlazor.Services;
 
 namespace EvilBrains.EvilCase.Tests.Frontend;
 
@@ -355,7 +354,6 @@ public class ActRenderTests
         ctx.Services.AddSingleton(actFilesClient);
         ctx.Services.AddSingleton<IFileTransferClient>(new StubFileTransferClient());
         ctx.Services.AddSingleton<IFileDownloader>(new StubFileDownloader());
-        ctx.Services.AddSingleton(Substitute.For<IModalService>());
         ctx.Services.AddSingleton(labelsClient);
         ctx.Services.AddSingleton(Substitute.For<IContactsClient>());
 

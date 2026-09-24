@@ -3,6 +3,32 @@
  * kořeni aplikace. Vizuální předlohy jsou v docs/design/.
  */
 
+/* Cizí stylopis dokument už neresetuje (SDD-020). */
+body {
+    margin: 0;
+}
+
+.ec {
+    background: var(--ec-bg);
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-md);
+    color: var(--ec-text);
+}
+
+.ec a {
+    color: var(--ec-accent-text);
+    text-decoration: none;
+}
+
+.ec button,
+.ec input,
+.ec select,
+.ec textarea {
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+}
+
 .ec-icon {
     flex: 0 0 auto;
     fill: none;
@@ -1091,6 +1117,14 @@
     line-height: var(--ec-leading-body);
 }
 
+.ec-confirm-quote {
+    margin: var(--ec-space-4) 0 0;
+    padding-left: var(--ec-space-4);
+    border-left: 2px solid var(--ec-border);
+    color: var(--ec-text-muted);
+    white-space: pre-line;
+}
+
 /* Detail úkonu (docs/design/detail-ukonu.html). */
 .ec-detail {
     display: flex;
@@ -2149,6 +2183,16 @@
     .ec-table .ec-card-error .ec-button {
         height: var(--ec-touch-min);
     }
+}
+
+/* Filtr štítků v liště seznamu: chipy nad polem, ne vedle něj. */
+.ec-toolbar-labels {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-2);
+    flex: 1 1 var(--ec-popover-width);
+    min-width: 0;
 }
 
 /* Přehled (docs/design/prehled.html): dlaždice počtů spisů. */

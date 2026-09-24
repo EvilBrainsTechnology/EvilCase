@@ -1,23 +1,76 @@
 @using System.Net
 @using EvilBrains.ApiClient
+@inject ILogger<CommentDeleteModal> Logger
 
-<ConfirmDeleteModal Delete="this.DeleteComment" GoneError="Komentář už neexistuje." FailedError="Komentář se nepodařilo smazat. Zkuste to za chvíli znovu." MapError="MapCommentError" OnDeleted="this.OnDeleted">
-    <p>Opravdu smazat komentář? Akci nelze vrátit zpět.</p>
-    <blockquote class="comment-body text-secondary">@this.Body</blockquote>
-</ConfirmDeleteModal>
+<EcModal Title="Smazat komentář" Open="this.Open" OpenChanged="this.OpenChanged">
+    <ChildContent>
+        <p class="ec-confirm-text">Opravdu smazat komentář? Akci nelze vrátit zpět.</p>
+        <blockquote class="ec-confirm-quote">@this.Body</blockquote>
+        @if (this.error is not null)
+        {
+            <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.error</div>
+        }
+    </ChildContent>
+    <Footer>
+        <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Form" Icon="@AppIcons.X" OnClick="this.Cancel">Zrušit</EcButton>
+        <EcButton Variant="EcButtonVariant.Danger" Size="EcButtonSize.Form" Icon="@AppIcons.Trash"
+                  Disabled="@this.busy" OnClick="this.DeleteComment">Smazat komentář</EcButton>
+    </Footer>
+</EcModal>
 
 @code {
     [Parameter, EditorRequired]
     public required string Body { get; set; }
 
     [Parameter, EditorRequired]
-    public required Func<CancellationToken, Task> DeleteComment { get; set; }
+    public required Func<CancellationToken, Task> Delete { get; set; }
+
+    [Parameter]
+    public bool Open { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
 
     [Parameter]
     public EventCallback OnDeleted { get; set; }
 
-    private static string? MapCommentError(ApiException exception)
+    private string? error;
+
+    private bool busy;
+
+    private async Task Cancel()
     {
-        return exception.StatusCode == HttpStatusCode.Forbidden ? "Komentář smí smazat jen jeho autor." : null;
+        await this.OpenChanged.InvokeAsync(false);
+    }
+
+    private async Task DeleteComment()
+    {
+        this.busy = true;
+        this.error = null;
+
+        try
+        {
+            await this.Delete(CancellationToken.None);
+
+            await this.OnDeleted.InvokeAsync();
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.Forbidden)
+        {
+            this.error = "Komentář smí smazat jen jeho autor.";
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+        {
+            this.error = "Komentář už neexistuje.";
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Deleting the comment failed");
+
+            this.error = "Komentář se nepodařilo smazat. Zkuste to za chvíli znovu.";
+        }
+        finally
+        {
+            this.busy = false;
+        }
     }
 }

@@ -85,9 +85,6 @@ public static class AppIcons
         + "<path d='M8 13h6' />"
         + "<path d='M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-5l-5 3v-3h-2a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12z' />";
 
-    public const string Moon = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
-        + "<path d='M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z' />";
-
     public const string Paperclip = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M15 7l-6.5 6.5a1.5 1.5 0 0 0 3 3l6.5 -6.5a3 3 0 0 0 -6 -6l-6.5 6.5a4.5 4.5 0 0 0 9 9l6.5 -6.5' />";
 
@@ -121,10 +118,6 @@ public static class AppIcons
         + "a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37"
         + "c1 .608 2.296 .07 2.572 -1.065z' />"
         + "<path d='M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0' />";
-
-    public const string Sun = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
-        + "<path d='M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0' />"
-        + "<path d='M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7' />";
 
     public const string Tag = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M7.5 7.5m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0' />"
