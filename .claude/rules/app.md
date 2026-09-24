@@ -24,9 +24,3 @@ rules the look, `docs/design/` is binding on values.
 - Touch targets ≥ 44 px below `lg`. Form action buttons sticky at the bottom,
   `env(safe-area-inset-bottom)` on fixed bottom elements. A tooltip never carries information alone.
 - Unavoidable JS goes through an `IJSObjectReference` disposed in `IAsyncDisposable`.
-
-## A screen not migrated yet
-
-Until a screen moves to the `Ec` primitives it stays on TabBlazor over Tabler: a Tabler utility
-class before custom CSS, which stays minimal in `wwwroot/css/app.css`; no Bootstrap JS, modal and
-offcanvas through `IModalService` and `IOffcanvasService`; table and card variants switched by CSS.
