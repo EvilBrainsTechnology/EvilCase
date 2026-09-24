@@ -4,7 +4,6 @@ using EvilBrains.EvilCase.App.Layout;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
-using TabBlazor;
 
 namespace EvilBrains.EvilCase.Tests.Frontend;
 
@@ -197,7 +196,6 @@ public class TopBarRenderTests
     private static void Arrange(BunitContext ctx, StubAuthSession session)
     {
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-        ctx.Services.AddTabBlazor(static _ => { });
         ctx.Services.AddSingleton<IAuthSession>(session);
         ctx.AddAuthorization().SetAuthorized("spravce@example.cz");
     }

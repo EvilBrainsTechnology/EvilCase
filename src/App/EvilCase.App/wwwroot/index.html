@@ -18,12 +18,6 @@
 </head>
 
 <body>
-    <script>
-        // Apply the OS theme before Blazor boots so the loader matches; ThemeSwitch takes over from there.
-        if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-            document.body.setAttribute("data-bs-theme", "dark");
-        }
-    </script>
     <div id="app" class="ec">
         <div class="ec-boot">
             <div class="ec-brand">
