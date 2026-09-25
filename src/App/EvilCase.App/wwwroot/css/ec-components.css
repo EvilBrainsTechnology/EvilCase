@@ -8,6 +8,12 @@ body {
     margin: 0;
 }
 
+/* Vyhradí místo pro svislý posuvník, i když ho stránka nepotřebuje: jinak se šířka obsahu mění
+   podle toho, jestli je stránka delší než okno (docs/design/prehled.html). */
+html {
+    scrollbar-gutter: stable;
+}
+
 .ec {
     background: var(--ec-bg);
     font-family: var(--ec-font);
@@ -1648,8 +1654,6 @@ body {
 }
 
 .ec-shell-body {
-    display: flex;
-    flex-direction: column;
     flex: 1 1 auto;
     min-width: 0;
     padding-left: env(safe-area-inset-left);
