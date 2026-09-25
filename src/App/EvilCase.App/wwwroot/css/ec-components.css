@@ -1654,8 +1654,6 @@ html {
 }
 
 .ec-shell-body {
-    display: flex;
-    flex-direction: column;
     flex: 1 1 auto;
     min-width: 0;
     padding-left: env(safe-area-inset-left);
