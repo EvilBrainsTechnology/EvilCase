@@ -145,12 +145,12 @@ public class FileTransferControllerTests
     }
 
     [Test]
-    public void AnUploadOutcomeTheEndpointDoesNotKnowThrows()
+    public async Task AnUploadOutcomeTheEndpointDoesNotKnowThrows()
     {
         var writer = UploadingWriter(new UploadFileResult { Outcome = (UploadFileOutcome)99 });
         var controller = new FileTransferController();
 
-        Assert.ThrowsAsync<UnreachableException>(
+        await Assert.ThrowsAsync<UnreachableException>(
             async () => await controller.UploadCaseFile(writer, Guid.CreateVersion7(), FormFile(1), CancellationToken.None),
             "an outcome the endpoint does not name never turns into a status");
     }
@@ -315,12 +315,12 @@ public class FileTransferControllerTests
     }
 
     [Test]
-    public void AnActUploadOutcomeTheEndpointDoesNotKnowThrows()
+    public async Task AnActUploadOutcomeTheEndpointDoesNotKnowThrows()
     {
         var writer = UploadingWriter(new UploadFileResult { Outcome = (UploadFileOutcome)99 });
         var controller = new FileTransferController();
 
-        Assert.ThrowsAsync<UnreachableException>(
+        await Assert.ThrowsAsync<UnreachableException>(
             async () => await controller.UploadActFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), FormFile(1), CancellationToken.None),
             "an outcome the endpoint does not name never turns into a status");
     }

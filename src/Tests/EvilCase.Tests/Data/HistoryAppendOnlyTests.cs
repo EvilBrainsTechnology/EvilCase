@@ -13,7 +13,7 @@ public class HistoryAppendOnlyTests
         await using var context = TestDatabase.CreateMigrated();
         await InsertAccount(context);
 
-        var exception = Assert.ThrowsAsync<PostgresException>(async () =>
+        var exception = await Assert.ThrowsAsync<PostgresException>(async () =>
             await context.Database.ExecuteSqlRawAsync("""UPDATE history."Accounts" SET "Operation" = 'INSERT'"""));
 
         using (Assert.EnterMultipleScope())
@@ -29,7 +29,7 @@ public class HistoryAppendOnlyTests
         await using var context = TestDatabase.CreateMigrated();
         await InsertAccount(context);
 
-        var exception = Assert.ThrowsAsync<PostgresException>(async () =>
+        var exception = await Assert.ThrowsAsync<PostgresException>(async () =>
             await context.Database.ExecuteSqlRawAsync("""DELETE FROM history."Accounts" """));
 
         using (Assert.EnterMultipleScope())
@@ -45,7 +45,7 @@ public class HistoryAppendOnlyTests
         await using var context = TestDatabase.CreateMigrated();
         await InsertAccount(context);
 
-        var exception = Assert.ThrowsAsync<PostgresException>(async () =>
+        var exception = await Assert.ThrowsAsync<PostgresException>(async () =>
             await context.Database.ExecuteSqlRawAsync("""TRUNCATE history."Accounts" """));
 
         using (Assert.EnterMultipleScope())

@@ -29,12 +29,12 @@ public class FileTransferClientTests
     }
 
     [Test]
-    public void AFailedUploadRaisesTheSameExceptionTheGeneratedClientsRaise()
+    public async Task AFailedUploadRaisesTheSameExceptionTheGeneratedClientsRaise()
     {
         var handler = new CapturingHandler(new HttpResponseMessage(HttpStatusCode.RequestEntityTooLarge) { Content = new StringContent("too large") });
         var client = Client(handler);
 
-        var exception = Assert.ThrowsAsync<ApiException>(
+        var exception = await Assert.ThrowsAsync<ApiException>(
             async () => await client.UploadCaseFile(Guid.CreateVersion7(), new StubBrowserFile("a.txt", "text/plain", "a"u8.ToArray()), CancellationToken.None));
 
         Assert.That(exception.StatusCode, Is.EqualTo(HttpStatusCode.RequestEntityTooLarge), "a failed upload raises the same exception type every generated client raises");
