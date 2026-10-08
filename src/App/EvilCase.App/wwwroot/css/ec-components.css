@@ -1842,6 +1842,33 @@ html {
     box-shadow: var(--ec-focus-ring);
 }
 
+.ec-menu-anchor {
+    position: relative;
+    flex: 0 0 auto;
+}
+
+.ec-menu.ec-menu-popup {
+    width: auto;
+    min-width: var(--ec-menu-width);
+}
+
+.ec-menu-popup .ec-menu-item {
+    white-space: nowrap;
+}
+
+.ec-menu .ec-menu-item-danger {
+    color: var(--ec-danger-text);
+}
+
+.ec-menu .ec-menu-item-danger:hover {
+    background: var(--ec-danger-bg);
+}
+
+.ec-menu-divider {
+    margin: var(--ec-space-1) 0;
+    border-top: 1px solid var(--ec-border-subtle);
+}
+
 .ec-topbar-burger {
     display: none;
     align-items: center;
@@ -1936,6 +1963,15 @@ html {
     .ec-menu-item {
         min-width: var(--ec-touch-min);
         height: var(--ec-touch-min);
+    }
+
+    .ec-menu.ec-menu-popup {
+        position: fixed;
+        top: auto;
+        right: var(--ec-space-5);
+        bottom: calc(var(--ec-space-5) + env(safe-area-inset-bottom));
+        left: var(--ec-space-5);
+        min-width: 0;
     }
 }
 
