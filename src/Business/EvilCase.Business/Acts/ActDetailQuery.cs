@@ -60,4 +60,16 @@ internal static class ActDetailQuery
             })
             .SingleOrDefaultAsync(token);
     }
+
+    public static IQueryable<ActTimelineItem> AsTimelineItems(this IQueryable<Act> acts, Guid currentActId)
+    {
+        return acts.Select(act => new ActTimelineItem
+        {
+            ActId = act.Id,
+            Title = act.Title,
+            Date = act.Date,
+            Direction = act.Direction,
+            IsCurrent = act.Id == currentActId,
+        });
+    }
 }

@@ -39,4 +39,16 @@ public sealed record ActDetail
     public ContactListItem? CaseContact { get; init; }
 
     public IReadOnlyList<LabelItem> Labels { get; init; } = [];
+
+    /// <summary>
+    /// 1-based, in the case's act order (SDD-010).
+    /// </summary>
+    public int ActPosition { get; init; }
+
+    public int CaseActCount { get; init; }
+
+    /// <summary>
+    /// Up to two acts either side of this one in the case's act order, this one included.
+    /// </summary>
+    public IReadOnlyList<ActTimelineItem> CaseTimeline { get; init; } = [];
 }
