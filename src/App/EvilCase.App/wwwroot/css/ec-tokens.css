@@ -43,6 +43,8 @@
     --ec-incoming-text: #2A48B8;
     --ec-outgoing-bg: #E3F4E8;
     --ec-outgoing-text: #1D6B36;
+    --ec-incoming-dot: #7C93E6;
+    --ec-outgoing-dot: #5FB27B;
 
     /* Druh kontaktu */
     --ec-authority-bg: #E6EEFD;
@@ -175,7 +177,14 @@
     --ec-monogram-text-lg: 17px;
 
     /* Detail úkonu (docs/design/detail-ukonu.html) */
+    --ec-act-pager-text: 92px;
     --ec-copy-size: 26px;
+    --ec-label-add-width: 24px;
+    --ec-label-add-height: 22px;
+    --ec-timeline-dot: 10px;
+    --ec-timeline-line: 2px;
+    --ec-timeline-radius: 8px;
+    --ec-timeline-leading: 1.4;
 
     /* Přehled (docs/design/prehled.html) */
     --ec-stat-icon: 48px;

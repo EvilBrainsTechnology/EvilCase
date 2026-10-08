@@ -222,6 +222,24 @@ html {
     color: var(--ec-text-muted);
 }
 
+.ec-page-header-top {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--ec-space-3);
+}
+
+.ec-page-header-top .ec-crumbs {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.ec-page-header-end {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+}
+
 .ec-page-header-row {
     display: flex;
     align-items: center;
@@ -1192,6 +1210,10 @@ html {
     border-right: 0;
 }
 
+.ec-detail-fact-copyable {
+    padding-right: var(--ec-space-4);
+}
+
 .ec-detail-fact-labels {
     position: relative;
     flex: 1 1 auto;
@@ -1226,6 +1248,30 @@ html {
     text-decoration: none;
 }
 
+.ec-detail-fact-copy {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-1);
+    min-width: 0;
+}
+
+.ec-detail-fact-copy .ec-copy {
+    color: var(--ec-text-muted);
+}
+
+.ec-detail-fact-copy .ec-copy:hover {
+    background: var(--ec-bg);
+    color: var(--ec-text);
+}
+
+.ec-detail-fact-warning {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-1);
+    font-size: var(--ec-text-xs);
+    color: var(--ec-warning-text);
+}
+
 .ec-copy {
     display: inline-flex;
     align-items: center;
@@ -1252,6 +1298,20 @@ html {
     gap: var(--ec-space-2);
 }
 
+.ec-detail-fact-row .ec-button-icon {
+    width: var(--ec-label-add-width);
+    height: var(--ec-label-add-height);
+    padding: 0;
+    border: 1px dashed var(--ec-border-dashed);
+    border-radius: var(--ec-radius-sm);
+    color: var(--ec-text-muted);
+}
+
+.ec-detail-fact-row .ec-button-icon .ec-icon {
+    width: var(--ec-icon-sm);
+    height: var(--ec-icon-sm);
+}
+
 /* Over the row of data, so opening the picker never changes the row's height. */
 .ec-label-picker {
     position: absolute;
@@ -1268,6 +1328,29 @@ html {
     border-radius: var(--ec-radius-xl);
     background: var(--ec-surface);
     box-shadow: var(--ec-shadow-overlay);
+}
+
+.ec-act-pager {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-2);
+}
+
+.ec-act-pager .ec-button {
+    color: var(--ec-text);
+}
+
+.ec-act-pager-text {
+    min-width: var(--ec-act-pager-text);
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-muted);
+    text-align: center;
+    white-space: nowrap;
+}
+
+.ec-act-pager-position {
+    font-weight: var(--ec-weight-semibold);
+    color: var(--ec-text);
 }
 
 .ec-detail-layout {
@@ -1327,6 +1410,19 @@ html {
     color: var(--ec-text-muted);
 }
 
+.ec-case-contact {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--ec-space-1) / 2);
+    margin: var(--ec-space-4) 0 0;
+    font-size: var(--ec-text-sm);
+}
+
+.ec-case-contact-label {
+    font-size: var(--ec-text-xs);
+    color: var(--ec-text-muted);
+}
+
 .ec-status-dot {
     flex: 0 0 auto;
     width: var(--ec-space-3);
@@ -1344,6 +1440,131 @@ html {
 
 .ec-status-dot-closed {
     background: var(--ec-closed-dot);
+}
+
+.ec-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ec-timeline-item {
+    display: grid;
+    grid-template-columns: var(--ec-icon-md) minmax(0, 1fr);
+    column-gap: calc(var(--ec-space-1) + var(--ec-space-2));
+    margin: 0 calc(-1 * var(--ec-space-3));
+    padding: var(--ec-space-2) var(--ec-space-3);
+    border-radius: var(--ec-timeline-radius);
+    text-decoration: none;
+}
+
+.ec-timeline-item:hover .ec-timeline-title {
+    color: var(--ec-accent-text);
+}
+
+.ec-timeline-item:focus-visible {
+    outline: none;
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-timeline-item-current {
+    background: var(--ec-accent-soft);
+}
+
+.ec-timeline-rail {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    align-self: stretch;
+}
+
+.ec-timeline-dot {
+    flex: 0 0 auto;
+    box-sizing: border-box;
+    width: var(--ec-timeline-dot);
+    height: var(--ec-timeline-dot);
+    margin-top: var(--ec-space-1);
+    border: 2px solid var(--ec-closed-dot);
+    border-radius: var(--ec-radius-pill);
+    background: var(--ec-surface);
+}
+
+.ec-timeline-dot-incoming {
+    border-color: var(--ec-incoming-dot);
+}
+
+.ec-timeline-dot-outgoing {
+    border-color: var(--ec-outgoing-dot);
+}
+
+.ec-timeline-dot-current {
+    border-color: var(--ec-accent);
+    background: var(--ec-accent);
+}
+
+.ec-timeline-line {
+    flex: 1 1 auto;
+    width: var(--ec-timeline-line);
+    margin-top: var(--ec-space-1);
+    margin-bottom: calc(-1 * (var(--ec-space-1) + var(--ec-space-2)));
+    background: var(--ec-border);
+}
+
+.ec-timeline-entry:last-child .ec-timeline-line {
+    background: transparent;
+}
+
+.ec-timeline-main {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--ec-space-1) / 2);
+    min-width: 0;
+    padding-bottom: calc(var(--ec-space-1) + var(--ec-space-2));
+}
+
+.ec-timeline-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--ec-space-1);
+    font-size: var(--ec-text-xs);
+    color: var(--ec-text-muted);
+}
+
+.ec-timeline-direction {
+    display: inline-flex;
+    align-items: center;
+    gap: calc(var(--ec-space-1) / 2);
+}
+
+.ec-timeline-direction-incoming {
+    color: var(--ec-incoming-text);
+}
+
+.ec-timeline-direction-outgoing {
+    color: var(--ec-outgoing-text);
+}
+
+.ec-timeline-title {
+    font-size: var(--ec-text-sm);
+    font-weight: var(--ec-weight-medium);
+    line-height: var(--ec-timeline-leading);
+    color: var(--ec-text);
+}
+
+.ec-timeline-item-current .ec-timeline-title {
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-timeline-all {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ec-space-1);
+    font-size: var(--ec-text-sm);
+    font-weight: var(--ec-weight-medium);
 }
 
 /* Detail spisu (docs/design/detail-spisu.html): podřízené spisy v postranním sloupci. */

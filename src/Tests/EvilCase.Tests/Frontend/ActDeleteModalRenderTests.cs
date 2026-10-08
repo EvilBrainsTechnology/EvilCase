@@ -79,7 +79,6 @@ public class ActDeleteModalRenderTests
             CaseId = Guid.CreateVersion7(),
             CaseNumber = "EC/20260807-001",
             CaseTitle = "Spis",
-            CaseDate = new DateOnly(2026, 8, 7),
             CaseStatus = CaseStatus.Active,
             ActNumber = "EC/20250528-001/20250902-001",
             Date = new DateOnly(2025, 9, 2),

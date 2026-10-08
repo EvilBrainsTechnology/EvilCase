@@ -126,7 +126,6 @@ public class EditActRenderTests
             CaseId = caseId,
             CaseNumber = "EC/20260807-001",
             CaseTitle = "Překročení rychlosti",
-            CaseDate = new DateOnly(2026, 8, 7),
             CaseStatus = CaseStatus.Active,
             ActNumber = "EC/20260807-001/20260812-001",
             ExternalActNumber = "MUV-2026/1234",

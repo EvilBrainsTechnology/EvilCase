@@ -15,8 +15,6 @@ public sealed record ActDetail
 
     public required string CaseTitle { get; init; }
 
-    public required DateOnly CaseDate { get; init; }
-
     public required CaseStatus CaseStatus { get; init; }
 
     public required string ActNumber { get; init; }
