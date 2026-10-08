@@ -64,6 +64,7 @@ html {
     align-items: center;
     justify-content: center;
     gap: var(--ec-space-3);
+    box-sizing: border-box;
     padding: 0 var(--ec-space-5);
     border: 1px solid transparent;
     border-radius: var(--ec-radius-lg);
