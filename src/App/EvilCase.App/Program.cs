@@ -1,6 +1,7 @@
 using EvilBrains.EvilCase.Api.Client;
 using EvilBrains.EvilCase.Api.Contract.Logging;
 using EvilBrains.EvilCase.App.Auth;
+using EvilBrains.EvilCase.App.Clipboard;
 using EvilBrains.EvilCase.App.Files;
 using EvilBrains.EvilCase.App.Logging;
 using EvilBrains.Logging.WebAssembly;
@@ -40,6 +41,7 @@ internal static class Program
             static client => client.AddRequestContextHeaders().AddRequestLogging().AddHttpMessageHandler<AuthTokenHandler>());
 
         builder.Services.AddSingleton<IFileDownloader, FileDownloader>();
+        builder.Services.AddSingleton<IClipboardWriter, ClipboardWriter>();
 
         // The same handler chain as the generated clients, so the upload and the download carry the same authorization.
         builder.Services

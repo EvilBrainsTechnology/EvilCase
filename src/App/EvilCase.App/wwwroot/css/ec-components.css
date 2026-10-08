@@ -1202,6 +1202,25 @@ html {
     text-decoration: none;
 }
 
+.ec-copy {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: var(--ec-copy-size);
+    height: var(--ec-copy-size);
+    padding: 0;
+    border: 0;
+    border-radius: var(--ec-radius-sm);
+    background: transparent;
+    cursor: pointer;
+}
+
+.ec-copy:focus-visible {
+    outline: none;
+    box-shadow: var(--ec-focus-ring);
+}
+
 .ec-detail-fact-row {
     display: flex;
     flex-wrap: wrap;
@@ -1364,7 +1383,8 @@ html {
 @media (max-width: 991.98px) {
     .ec-button,
     .ec-file-upload,
-    .ec-swatch {
+    .ec-swatch,
+    .ec-copy {
         min-height: var(--ec-touch-min);
         min-width: var(--ec-touch-min);
     }

@@ -1,0 +1,46 @@
+@using Microsoft.JSInterop
+@inject IClipboardWriter Clipboard
+@inject ILogger<CopyButton> Logger
+
+<button type="button" class="ec-copy" aria-label="@(this.copied ? "Zkopírováno" : this.AriaLabel)" @onclick="this.Copy">
+    <EcIcon Paths="@(this.copied ? AppIcons.Check : AppIcons.Copy)" Size="EcIconSize.Small" />
+</button>
+<span class="ec-visually-hidden" role="status">@(this.copied ? "Zkopírováno" : "")</span>
+
+@code {
+    private static readonly TimeSpan CheckShown = TimeSpan.FromSeconds(2);
+
+    [Parameter, EditorRequired]
+    public required string Value { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string AriaLabel { get; set; }
+
+    private bool copied;
+
+    private int round;
+
+    private async Task Copy()
+    {
+        try
+        {
+            await this.Clipboard.WriteText(this.Value, CancellationToken.None);
+        }
+        catch (JSException exception)
+        {
+            this.Logger.LogWarning(exception, "Copying to the clipboard failed");
+
+            return;
+        }
+
+        // A later copy owns the check; an earlier copy's delay must not clear it.
+        var current = ++this.round;
+        this.copied = true;
+        this.StateHasChanged();
+
+        await Task.Delay(CheckShown);
+
+        if (current == this.round)
+            this.copied = false;
+    }
+}

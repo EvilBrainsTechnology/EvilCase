@@ -170,6 +170,9 @@
     --ec-monogram-text-sm: 11px;
     --ec-monogram-text-lg: 17px;
 
+    /* Detail úkonu (docs/design/detail-ukonu.html) */
+    --ec-copy-size: 26px;
+
     /* Přehled (docs/design/prehled.html) */
     --ec-stat-icon: 48px;
     --ec-stat-glyph: 22px;
