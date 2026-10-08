@@ -86,6 +86,10 @@
     --ec-file-image-text: #6B21A8;
     --ec-file-other-bg: #EDEFF3;
     --ec-file-other-text: #454B57;
+    --ec-file-chip-width: 52px;
+    --ec-file-chip-height: 40px;
+    --ec-file-chip-radius: 8px;
+    --ec-file-chip-text: 11px;
 
     /* Písmo */
     --ec-font: 'Instrument Sans', 'Segoe UI', system-ui, sans-serif;
