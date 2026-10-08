@@ -63,22 +63,34 @@
                     <div class="ec-file-list">
                         @foreach (var file in this.items)
                         {
+                            var busy = this.downloadingFileId == file.FileId;
+
                             <div class="ec-file-row">
-                                <button type="button" class="ec-file-open" aria-label="@($"Stáhnout {file.FileName}")"
-                                        disabled="@(this.downloadingFileId == file.FileId)" @onclick="() => this.Download(file)">
-                                    <EcFileChip FileName="@file.FileName" />
-                                    <span class="ec-file-name">@file.FileName</span>
-                                    <span class="ec-file-meta">@FileSizeDisplay.Text(file.SizeBytes) · @MomentDisplay.Text(file.Created)</span>
-                                    <EcIcon Paths="@AppIcons.Download" />
-                                </button>
-                                <EcButton Variant="EcButtonVariant.Danger" Size="EcButtonSize.Compact" Icon="@AppIcons.Trash"
-                                          AriaLabel="@($"Smazat {file.FileName}")" OnClick="() => this.ConfirmDelete(file)" />
+                                <EcFileChip FileName="@file.FileName" />
+                                <div class="ec-file-main">
+                                    <button type="button" class="ec-file-name" disabled="@busy" @onclick="() => this.Download(file)">@file.FileName</button>
+                                    <span class="ec-file-meta">@FileSizeDisplay.Text(file.SizeBytes) · nahráno @MomentDisplay.Text(file.Created)</span>
+                                </div>
+                                <div class="ec-file-actions">
+                                    <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Download"
+                                              AriaLabel="@($"Stáhnout {file.FileName}")" Disabled="@busy"
+                                              OnClick="() => this.Download(file)">Stáhnout</EcButton>
+                                    <EcButton Variant="EcButtonVariant.Ghost" Size="EcButtonSize.Compact" Icon="@AppIcons.Trash"
+                                              AriaLabel="@($"Smazat soubor {file.FileName}")" OnClick="() => this.ConfirmDelete(file)" />
+                                </div>
                             </div>
                         }
                     </div>
                 }
 
-                <p class="ec-file-drop">Přetáhněte soubory sem, nebo je vyberte tlačítkem výše</p>
+                @if (this.items.Count > 0)
+                {
+                    <p class="ec-file-drop ec-file-drop-compact"><EcIcon Paths="@AppIcons.Upload" />Přetáhněte další soubory sem</p>
+                }
+                else
+                {
+                    <p class="ec-file-drop">Přetáhněte soubory sem, nebo je vyberte tlačítkem výše</p>
+                }
             </div>
         </ChildContent>
     </EcCard>

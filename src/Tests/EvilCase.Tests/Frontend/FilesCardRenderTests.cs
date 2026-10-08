@@ -1,6 +1,7 @@
 using Bunit;
 using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.App.Components;
+using EvilBrains.EvilCase.App.Models;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -223,6 +224,8 @@ public class FilesCardRenderTests
         {
             Assert.That(component.Find(".ec-empty-text").TextContent, Is.EqualTo("Zatím tu nejsou žádné soubory."));
             Assert.That(component.FindAll(".ec-file-row"), Is.Empty);
+            Assert.That(component.Find(".ec-file-drop").TextContent, Is.EqualTo("Přetáhněte soubory sem, nebo je vyberte tlačítkem výše"));
+            Assert.That(component.FindAll(".ec-file-drop-compact"), Is.Empty);
         }
     }
 
@@ -262,14 +265,15 @@ public class FilesCardRenderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(component.Find(".ec-file-chip").TextContent.Trim(), Is.EqualTo("PDF"));
-            Assert.That(
-                component.Find("button.ec-file-open").GetAttribute("aria-label"),
-                Is.EqualTo("Stáhnout Rozhodnutí o přestupku.pdf"));
+            Assert.That(component.Find("button.ec-file-name").TextContent, Is.EqualTo("Rozhodnutí o přestupku.pdf"), "the name is the download link");
+            Assert.That(component.Find(".ec-file-meta").TextContent, Is.EqualTo($"1 kB · nahráno {MomentDisplay.Text(file.Created)}"));
+            Assert.That(component.Find("button[aria-label='Stáhnout Rozhodnutí o přestupku.pdf']").TextContent.Trim(), Is.EqualTo("Stáhnout"));
         }
 
-        component.Find("button.ec-file-open").Click();
+        component.Find("button.ec-file-name").Click();
+        component.Find("button[aria-label='Stáhnout Rozhodnutí o přestupku.pdf']").Click();
 
-        Assert.That(downloads, Is.EqualTo(1));
+        Assert.That(downloads, Is.EqualTo(2), "the name and the Stáhnout button both download the file");
     }
 
     [Test]
@@ -344,12 +348,46 @@ public class FilesCardRenderTests
             .Add(static card => card.DeleteFile, static (_, _) => Task.CompletedTask)
             .Add(static card => card.OwnerGoneError, "spis už neexistuje."));
 
-        component.Find("button.ec-button-danger").Click();
+        component.Find("button[aria-label='Smazat soubor a.pdf']").Click();
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(component.FindAll(".ec-modal-footer"), Is.Not.Empty);
             Assert.That(component.Find(".ec-confirm-text").TextContent, Does.Contain("a.pdf"));
+        }
+    }
+
+    [Test]
+    public void TheDropZoneShrinksToOneLineOnceFilesExist()
+    {
+        using var ctx = new BunitContext();
+
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        ctx.Services.AddSingleton<IJSRuntime>(new PropertyReadingJSRuntime(ctx.JSInterop.JSRuntime));
+
+        var file = new FileListItem
+        {
+            FileId = Guid.NewGuid(),
+            FileName = "a.pdf",
+            SizeBytes = 1024,
+            Created = new DateTime(2025, 9, 2, 10, 0, 0, DateTimeKind.Utc),
+        };
+
+        var component = ctx.Render<FilesCard>(parameters => parameters
+            .Add(static card => card.Title, "Soubory spisu")
+            .Add(static card => card.LoadFiles, _ => Task.FromResult<IReadOnlyList<FileListItem>>([file]))
+            .Add(static card => card.UploadFile, static (_, _) => Task.CompletedTask)
+            .Add(static card => card.DownloadFile, static (_, _) => Task.CompletedTask)
+            .Add(static card => card.DeleteFile, static (_, _) => Task.CompletedTask)
+            .Add(static card => card.OwnerGoneError, "spis už neexistuje."));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(
+                component.Find(".ec-file-drop-compact").TextContent.Trim(),
+                Is.EqualTo("Přetáhněte další soubory sem"),
+                "with files listed the drop zone takes one line");
+            Assert.That(component.FindAll(".ec-file-drop"), Has.Count.EqualTo(1));
         }
     }
 }

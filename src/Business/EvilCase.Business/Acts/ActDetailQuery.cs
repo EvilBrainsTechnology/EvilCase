@@ -20,7 +20,6 @@ internal static class ActDetailQuery
                 CaseId = act.CaseId,
                 CaseNumber = act.Case!.CaseNumber,
                 CaseTitle = act.Case.Title,
-                CaseDate = act.Case.Date,
                 CaseStatus = act.Case.Status,
                 ActNumber = act.ActNumber,
                 ExternalActNumber = act.ExternalActNumber,
@@ -59,5 +58,17 @@ internal static class ActDetailQuery
                     .ToList(),
             })
             .SingleOrDefaultAsync(token);
+    }
+
+    public static IQueryable<ActTimelineItem> AsTimelineItems(this IQueryable<Act> acts, Guid currentActId)
+    {
+        return acts.Select(act => new ActTimelineItem
+        {
+            ActId = act.Id,
+            Title = act.Title,
+            Date = act.Date,
+            Direction = act.Direction,
+            IsCurrent = act.Id == currentActId,
+        });
     }
 }

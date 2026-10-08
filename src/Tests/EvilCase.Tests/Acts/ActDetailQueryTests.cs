@@ -49,7 +49,6 @@ public class ActDetailQueryTests : TenantFixture
         {
             Assert.That(detail!.CaseId, Is.EqualTo(@case.Id), "the detail carries the case id the screens build their links from");
             Assert.That(detail.CaseNumber, Is.EqualTo(@case.CaseNumber), "the detail carries the case number the link back to the case reads");
-            Assert.That(detail.CaseDate, Is.EqualTo(@case.Date), "the sidebar's Spis link reads the case date");
             Assert.That(detail.CaseStatus, Is.EqualTo(CaseStatus.WaitingOnAuthority), "the sidebar's Spis link reads the case status");
         }
     }

@@ -39,6 +39,9 @@ kontakt. Zadává se na editaci úkonu.
 
 - `/cases/{id}/act/new` — založení, včetně štítků.
 - `/cases/{id}/act/{actId}` — detail: štítky, údaje, komentáře (SDD-013), soubory (SDD-012).
+  Nese pořadí úkonu ve spisu s přechodem na předchozí a další úkon a průběh spisu: nejvýše dva
+  úkony před ním a dva po něm v pořadí výchozího řazení. Upozornění na odlišný kontakt spisu
+  stojí u kontaktu úkonu.
 - `/cases/{id}/act/{actId}/edit` — editace, včetně štítků.
 - Seznam úkonů jde napříč spisy a zužuje se spisem, kontaktem, štítkem, směrem a rozsahem dat;
   v detailu spisu je zúžený tímto spisem. Ukazuje datum, název, směr, číslo jednací, kontakt
