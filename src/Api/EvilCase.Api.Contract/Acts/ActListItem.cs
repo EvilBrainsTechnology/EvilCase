@@ -25,6 +25,8 @@ public sealed record ActListItem
 
     public required DateTime Changed { get; init; }
 
+    public Guid? ContactId { get; init; }
+
     public string? ContactName { get; init; }
 
     public IReadOnlyList<LabelItem> Labels { get; init; } = [];

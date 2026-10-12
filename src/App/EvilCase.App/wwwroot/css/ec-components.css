@@ -22,8 +22,12 @@ html {
 }
 
 .ec a {
-    color: var(--ec-accent-text);
     text-decoration: none;
+}
+
+/* Tlačítko EcButton, i v podobě odkazu, bere barvu ze své varianty. */
+.ec a:where(:not(.ec-button)) {
+    color: var(--ec-accent-text);
 }
 
 .ec button,
@@ -32,6 +36,12 @@ html {
 .ec textarea {
     font-family: inherit;
     font-size: inherit;
+}
+
+.ec button:where(:not(.ec-button)),
+.ec input,
+.ec select,
+.ec textarea {
     color: inherit;
 }
 
@@ -890,6 +900,43 @@ html {
     color: var(--ec-accent-text);
 }
 
+/* Soubory v bočním sloupci detailu spisu (docs/design/detail-spisu.html). */
+.ec-file-card-compact .ec-file-row {
+    flex-wrap: nowrap;
+    gap: var(--ec-space-3);
+    padding: var(--ec-space-3);
+}
+
+.ec-file-card-compact .ec-file-chip {
+    width: var(--ec-file-chip-compact-width);
+    height: var(--ec-file-chip-compact-height);
+}
+
+.ec-file-card-compact .ec-file-name {
+    font-size: var(--ec-text-sm);
+}
+
+.ec-file-card-compact .ec-file-meta {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.ec-file-card-compact .ec-file-actions {
+    flex: 0 0 auto;
+    gap: var(--ec-space-3);
+}
+
+.ec-file-card-compact .ec-file-actions .ec-button {
+    height: var(--ec-control-sm);
+}
+
+.ec-file-card-compact .ec-file-upload {
+    gap: var(--ec-space-2);
+    height: var(--ec-control-sm);
+    font-size: var(--ec-text-sm);
+}
+
 .ec-comment-list {
     display: flex;
     flex-direction: column;
@@ -943,7 +990,32 @@ html {
 
 .ec-comment-actions {
     display: flex;
-    gap: var(--ec-space-3);
+    gap: var(--ec-space-4);
+}
+
+.ec .ec-comment-action {
+    height: var(--ec-comment-action-height);
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-sm);
+    color: var(--ec-accent-text);
+    cursor: pointer;
+}
+
+.ec .ec-comment-action:hover {
+    text-decoration: underline;
+}
+
+.ec .ec-comment-action:focus-visible {
+    outline: none;
+    border-radius: var(--ec-radius-sm);
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec .ec-comment-action-danger {
+    color: var(--ec-danger-text);
 }
 
 .ec-comment-form {
@@ -956,6 +1028,41 @@ html {
     display: flex;
     justify-content: flex-end;
     gap: var(--ec-space-3);
+}
+
+/* Komentáře v bočním sloupci detailu spisu (docs/design/detail-spisu.html). */
+.ec-comments-compact .ec-comment {
+    gap: var(--ec-space-3);
+}
+
+.ec-comments-compact .ec-comment-avatar {
+    width: var(--ec-comment-avatar-compact);
+    height: var(--ec-comment-avatar-compact);
+    font-size: var(--ec-text-2xs);
+}
+
+.ec-comments-compact .ec-comment-meta,
+.ec-comments-compact .ec-comment-action {
+    font-size: var(--ec-text-xs);
+}
+
+.ec-comments-compact .ec-comment-text {
+    font-size: var(--ec-text-sm);
+}
+
+.ec-comments-compact .ec-textarea {
+    min-height: auto;
+    font-size: var(--ec-text-sm);
+}
+
+.ec-comments-compact .ec-comment-composer {
+    padding-top: var(--ec-space-4);
+    border-top: 1px solid var(--ec-border-subtle);
+}
+
+.ec-comments-compact .ec-comment-composer .ec-button {
+    height: var(--ec-control-md);
+    font-size: var(--ec-text-sm);
 }
 
 .ec-form-group {
@@ -1569,45 +1676,39 @@ html {
 }
 
 /* Detail spisu (docs/design/detail-spisu.html): podřízené spisy v postranním sloupci. */
+.ec-child-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.ec-child-counts {
+    padding-bottom: var(--ec-space-1);
+    font-size: var(--ec-text-xs);
+    color: var(--ec-text-muted);
+}
+
 .ec-child-list {
     display: flex;
     flex-direction: column;
 }
 
-.ec-child-row {
-    display: grid;
-    grid-template-columns: var(--ec-child-date-width) minmax(0, 1fr);
-    column-gap: var(--ec-space-3);
-    padding: var(--ec-space-2) 0;
+.ec .ec-child-row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-1);
+    padding: var(--ec-space-3) 0;
     border-top: 1px solid var(--ec-border-subtle);
     color: var(--ec-text);
     text-decoration: none;
 }
 
-.ec-child-row:first-child {
-    border-top: 0;
+.ec .ec-child-row:hover .ec-child-title {
+    color: var(--ec-accent-text);
 }
 
-.ec-child-row:hover {
-    background: var(--ec-surface-sunken);
-}
-
-.ec-child-row:focus-visible {
+.ec .ec-child-row:focus-visible {
     outline: none;
     box-shadow: var(--ec-focus-ring);
-}
-
-.ec-child-date {
-    font-size: var(--ec-text-xs);
-    font-variant-numeric: tabular-nums;
-    color: var(--ec-text-muted);
-}
-
-.ec-child-main {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ec-space-1);
-    min-width: 0;
 }
 
 .ec-child-title {
@@ -1624,6 +1725,30 @@ html {
     gap: var(--ec-space-2);
     font-size: var(--ec-text-xs);
     color: var(--ec-text-muted);
+}
+
+.ec .ec-child-toggle {
+    display: flex;
+    align-items: center;
+    height: var(--ec-control-md);
+    padding: 0;
+    border: 0;
+    border-top: 1px solid var(--ec-border-subtle);
+    background: transparent;
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-sm);
+    font-weight: var(--ec-weight-medium);
+    color: var(--ec-accent-text);
+    cursor: pointer;
+}
+
+.ec .ec-child-toggle:hover {
+    text-decoration: underline;
+}
+
+.ec .ec-child-toggle:focus-visible {
+    outline: none;
+    box-shadow: var(--ec-focus-ring);
 }
 
 @media (max-width: 991.98px) {
@@ -1704,7 +1829,9 @@ html {
     }
 
     .ec-file-name,
-    .ec-timeline-all {
+    .ec-timeline-all,
+    .ec-child-toggle,
+    .ec-comment-action {
         min-height: var(--ec-touch-min);
     }
 
@@ -2667,4 +2794,159 @@ html {
     display: flex;
     flex-direction: column;
     gap: var(--ec-space-1);
+}
+
+/* Detail spisu (docs/design/detail-spisu.html): úkony spisu, jejich lišta a filtry. */
+.ec-case-acts {
+    --ec-list-col-date: var(--ec-case-act-col-date);
+    --ec-list-col-status: var(--ec-case-act-col-direction);
+    --ec-list-row-height: var(--ec-case-act-row-height);
+}
+
+.ec-case-acts .ec-card-header + .ec-table-bar {
+    padding-top: 0;
+}
+
+.ec-case-acts .ec-table-bar .ec-button-compact {
+    height: var(--ec-control-md);
+}
+
+.ec-table-bar .ec-search-grow {
+    flex: 1 1 auto;
+    width: auto;
+    height: var(--ec-control-md);
+}
+
+.ec-segmented-compact .ec-segment {
+    flex: 0 0 auto;
+    height: var(--ec-segment-compact-height);
+    padding: 0 var(--ec-space-4);
+    border-radius: var(--ec-radius-sm);
+    font-size: var(--ec-text-sm);
+}
+
+.ec-segmented-compact .ec-segment[aria-pressed="true"] {
+    font-weight: var(--ec-weight-regular);
+}
+
+.ec-filter-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-width: var(--ec-filter-count-size);
+    height: var(--ec-filter-count-size);
+    padding: 0 var(--ec-space-1);
+    border-radius: var(--ec-radius-pill);
+    background: var(--ec-accent);
+    font-size: var(--ec-text-2xs);
+    font-weight: var(--ec-weight-semibold);
+    color: var(--ec-on-accent);
+}
+
+.ec-filter-panel {
+    display: flex;
+    flex: 1 1 100%;
+    align-items: flex-end;
+    gap: var(--ec-space-4);
+    padding: var(--ec-space-4);
+    border: 1px solid var(--ec-border-subtle);
+    border-radius: var(--ec-radius-lg);
+    background: var(--ec-surface-header);
+}
+
+.ec-filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-1);
+}
+
+.ec-filter-field-grow {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.ec-filter-name {
+    font-size: var(--ec-text-xs);
+    color: var(--ec-text-muted);
+}
+
+.ec-filter-panel .ec-input {
+    height: var(--ec-control-md);
+    font-size: var(--ec-text-sm);
+}
+
+.ec-filter-date {
+    width: var(--ec-filter-date-width);
+}
+
+.ec .ec-filter-clear {
+    height: var(--ec-control-md);
+    padding: 0 var(--ec-space-2);
+    border: 0;
+    background: transparent;
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-muted);
+    cursor: pointer;
+}
+
+.ec .ec-filter-clear:hover {
+    color: var(--ec-text);
+}
+
+.ec .ec-filter-clear:focus-visible {
+    outline: none;
+    border-radius: var(--ec-radius-sm);
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-chip-sm {
+    flex: 0 0 auto;
+    gap: var(--ec-space-1);
+    height: var(--ec-chip-sm-height);
+    padding: 0 var(--ec-space-2);
+    font-size: var(--ec-text-2xs);
+    font-weight: var(--ec-weight-regular);
+    white-space: nowrap;
+}
+
+.ec-chip-sm .ec-chip-dot {
+    width: var(--ec-space-2);
+    height: var(--ec-space-2);
+}
+
+.ec-cell-muted {
+    color: var(--ec-text-muted);
+}
+
+.ec-cell-strong {
+    font-weight: var(--ec-weight-medium);
+    color: var(--ec-text);
+}
+
+@media (max-width: 991.98px) {
+    .ec-table-bar .ec-search-grow {
+        flex: 1 1 100%;
+        height: var(--ec-touch-min);
+    }
+
+    .ec-segmented-compact .ec-segment,
+    .ec-filter-panel .ec-input {
+        height: var(--ec-touch-min);
+    }
+
+    .ec-filter-panel {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .ec-filter-date {
+        width: auto;
+    }
+
+    .ec-filter-clear {
+        min-height: var(--ec-touch-min);
+    }
 }

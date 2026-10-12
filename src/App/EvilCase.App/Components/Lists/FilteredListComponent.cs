@@ -36,6 +36,15 @@ public abstract class FilteredListComponent<TSortRequest> : ListComponent<TSortR
         await this.ReloadFirstPage();
     }
 
+    protected async Task ClearFilters()
+    {
+        this.From = null;
+        this.To = null;
+        this.SelectedLabels = [];
+
+        await this.ReloadFirstPage();
+    }
+
     private static DateOnly? ParseDate(ChangeEventArgs args)
     {
         return DateOnly.TryParse(args.Value as string, CultureInfo.InvariantCulture, out var date) ? date : null;

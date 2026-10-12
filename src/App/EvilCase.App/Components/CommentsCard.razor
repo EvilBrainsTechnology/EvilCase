@@ -11,7 +11,7 @@
         }
     </Header>
     <ChildContent>
-        <div class="ec-card-stack">
+        <div class="@(this.Compact ? "ec-card-stack ec-comments-compact" : "ec-card-stack")">
             @if (this.loading)
             {
                 <p class="ec-card-state">Načítám…</p>
@@ -68,10 +68,8 @@
                                     @if (item.IsAuthor)
                                     {
                                         <div class="ec-comment-actions">
-                                            <EcButton Variant="EcButtonVariant.Ghost" Size="EcButtonSize.Compact" Icon="@AppIcons.Pencil"
-                                                      OnClick="() => this.StartEditing(item)">Upravit</EcButton>
-                                            <EcButton Variant="EcButtonVariant.Danger" Size="EcButtonSize.Compact" Icon="@AppIcons.Trash"
-                                                      OnClick="() => this.ConfirmDelete(item)">Smazat</EcButton>
+                                            <button type="button" class="ec-comment-action" @onclick="() => this.StartEditing(item)">Upravit</button>
+                                            <button type="button" class="ec-comment-action ec-comment-action-danger" @onclick="() => this.ConfirmDelete(item)">Smazat</button>
                                         </div>
                                     }
                                 }
@@ -83,9 +81,9 @@
 
             <CascadingValue Value="this.newCommentContext">
                 <DataAnnotationsValidator />
-                <div id="comment-new" class="ec-comment-form">
+                <div id="comment-new" class="ec-comment-form ec-comment-composer">
                     <label class="ec-visually-hidden" for="comment-new-body">Nový komentář</label>
-                    <InputTextArea id="comment-new-body" class="ec-textarea" rows="3" placeholder="@this.Placeholder"
+                    <InputTextArea id="comment-new-body" class="ec-textarea" rows="@(this.Compact ? 2 : 3)" placeholder="@this.Placeholder"
                                    @bind-Value="this.newModel.Body" />
                     <div class="ec-field-error"><ValidationMessage For="() => this.newModel.Body" /></div>
                     @if (this.addError is not null)
@@ -126,6 +124,12 @@
 
     [Parameter, EditorRequired]
     public required Func<Guid, CancellationToken, Task> DeleteComment { get; set; }
+
+    /// <summary>
+    /// The 380 px side column of the case detail: smaller text and a two-line composer.
+    /// </summary>
+    [Parameter]
+    public bool Compact { get; set; }
 
     private readonly CommentEditModel newModel = new();
 

@@ -50,8 +50,17 @@ kontakt. Zadává se na editaci spisu.
   seznam ukazuje i podřízené spisy.
 - `/cases/new` — založení, včetně kontaktu a štítků; `?parent={id}` zakládá podřízený spis.
 - `/cases/{id}` — detail: údaje, štítky, podřízené spisy, úkony (SDD-010), komentáře (SDD-013),
-  soubory (SDD-012).
+  soubory (SDD-012). Řádek údajů nese spisovou značku i externí značku a obě jde zkopírovat.
+  Nabídka vedle Upravit spis nese Nový úkon, Nový podřízený spis, Zkopírovat odkaz na spis
+  a Smazat spis.
 - `/cases/{id}/edit` — editace, včetně kontaktu, štítků a rodiče.
+- Úkony v detailu spisu ukazují datum, název se štítky jako drobnými značkami s názvem, směr,
+  kontakt a číslo jednací bez úvodní spisové značky spisu. Kontakt, který je protistranou
+  spisu, je potlačený; jiný kontakt je zvýrazněný. Lišta nese hledání a směr; rozsah dat
+  a štítky jsou pod tlačítkem Filtry, které je ve výchozím stavu sbalené a nese počet
+  aktivních filtrů.
+- Podřízené spisy v detailu spisu ukazují počet otevřených a uzavřených a ve výchozím stavu jen
+  otevřené (vše kromě uzavřených); přepínač ukáže i uzavřené.
 
 ### Mazání
 
@@ -69,6 +78,10 @@ Mazání řídí matice v SDD-007. Potvrzení jednou větou jmenuje, co kaskáda
 - Externí značka: N řádků s kontaktem / jeden sloupec. Platí jeden sloupec bez kontaktu.
 - Kontakt spisu: povinný / nepovinný. Platí nepovinný.
 - Zadání kontaktu: jen editace / založení i editace. Platí obojí.
+- Podřízené spisy v detailu spisu: všechny / jen otevřené s přepínačem. Platí jen otevřené
+  s přepínačem.
+- Číslo jednací v úkonech detailu spisu: celé / bez spisové značky spisu. Platí bez spisové
+  značky; číslo, které jí nezačíná, se ukáže celé.
 
 ## Dopady
 

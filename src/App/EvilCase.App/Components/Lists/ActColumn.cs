@@ -19,4 +19,8 @@ public enum ActColumn
     ActNumber = 7,
 
     ExternalNumber = 8,
+
+    ActWithLabels = 9,
+
+    ActNumberInCase = 10,
 }

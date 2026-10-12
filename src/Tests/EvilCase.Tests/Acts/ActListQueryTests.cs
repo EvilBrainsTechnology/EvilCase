@@ -104,7 +104,7 @@ public class ActListQueryTests : TenantFixture
     }
 
     [Test]
-    public async Task AListItemCarriesTheContactNameAndTheExternalMark()
+    public async Task AListItemCarriesTheContactAndTheExternalMark()
     {
         var @case = await this.Tenant.AddCase(new DateOnly(2026, 8, 20));
         var contact = await this.Tenant.AddContact("Městský úřad Vzorov");
@@ -115,6 +115,7 @@ public class ActListQueryTests : TenantFixture
         using (Assert.EnterMultipleScope())
         {
             Assert.That(item.ContactName, Is.EqualTo("Městský úřad Vzorov"));
+            Assert.That(item.ContactId, Is.EqualTo(contact.Id), "the case detail compares an act's contact with the case's by id");
             Assert.That(item.ActNumber, Is.EqualTo(act.ActNumber));
             Assert.That(item.ExternalActNumber, Is.EqualTo("MUVZ/2026/117"), "a row carries the act's external mark, which the contact's detail shows");
             Assert.That(item.Direction, Is.EqualTo(act.Direction));
@@ -124,7 +125,7 @@ public class ActListQueryTests : TenantFixture
     }
 
     [Test]
-    public async Task AnActWithNoContactCarriesNoNameAndNoDirection()
+    public async Task AnActWithNoContactCarriesNoContactAndNoDirection()
     {
         var @case = await this.Tenant.AddCase(new DateOnly(2026, 8, 20));
         await this.Tenant.AddAct(@case, new DateOnly(2026, 8, 22), "Podání");
@@ -134,6 +135,7 @@ public class ActListQueryTests : TenantFixture
         using (Assert.EnterMultipleScope())
         {
             Assert.That(item.ContactName, Is.Null, "a contact is optional and its absence is a null name, not a failed read");
+            Assert.That(item.ContactId, Is.Null);
             Assert.That(item.Direction, Is.Null);
         }
     }

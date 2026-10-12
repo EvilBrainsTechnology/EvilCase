@@ -6,7 +6,7 @@
 
 @* The card is itself the drop zone (SDD-012): FileDropZone hands a card-wide drop to the input
    the upload button opens, so a dropped and a picked file take one path. *@
-<FileDropZone class="ec-file-card">
+<FileDropZone class="@(this.Compact ? "ec-file-card ec-file-card-compact" : "ec-file-card")">
     <EcCard Title="@this.Title">
         <Header>
             @if (!this.loading && this.listFailure is null)
@@ -15,7 +15,7 @@
             }
             <div class="ec-card-header-actions">
                 <label class="ec-file-upload" for="files-upload-input">
-                    <EcIcon Paths="@AppIcons.Upload" />Nahrát soubory
+                    <EcIcon Paths="@AppIcons.Upload" />@(this.Compact ? "Nahrát" : "Nahrát soubory")
                 </label>
             </div>
         </Header>
@@ -68,13 +68,22 @@
                             <div class="ec-file-row">
                                 <EcFileChip FileName="@file.FileName" />
                                 <div class="ec-file-main">
-                                    <button type="button" class="ec-file-name" disabled="@busy" @onclick="() => this.Download(file)">@file.FileName</button>
-                                    <span class="ec-file-meta">@FileSizeDisplay.Text(file.SizeBytes) · nahráno @MomentDisplay.Text(file.Created)</span>
+                                    <button type="button" class="ec-file-name" title="@file.FileName" disabled="@busy" @onclick="() => this.Download(file)">@file.FileName</button>
+                                    <span class="ec-file-meta">@FileSizeDisplay.Text(file.SizeBytes) · @(this.Compact ? "" : "nahráno ")@MomentDisplay.Text(file.Created)</span>
                                 </div>
                                 <div class="ec-file-actions">
-                                    <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Download"
-                                              AriaLabel="@($"Stáhnout {file.FileName}")" Disabled="@busy"
-                                              OnClick="() => this.Download(file)">Stáhnout</EcButton>
+                                    @if (this.Compact)
+                                    {
+                                        <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Download"
+                                                  AriaLabel="@($"Stáhnout {file.FileName}")" Disabled="@busy"
+                                                  OnClick="() => this.Download(file)" />
+                                    }
+                                    else
+                                    {
+                                        <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Download"
+                                                  AriaLabel="@($"Stáhnout {file.FileName}")" Disabled="@busy"
+                                                  OnClick="() => this.Download(file)">Stáhnout</EcButton>
+                                    }
                                     <EcButton Variant="EcButtonVariant.Ghost" Size="EcButtonSize.Compact" Icon="@AppIcons.Trash"
                                               AriaLabel="@($"Smazat soubor {file.FileName}")" OnClick="() => this.ConfirmDelete(file)" />
                                 </div>
@@ -123,6 +132,12 @@
     /// </summary>
     [Parameter, EditorRequired]
     public required string OwnerGoneError { get; set; }
+
+    /// <summary>
+    /// The 380 px side column: a short upload label and icon-only file actions.
+    /// </summary>
+    [Parameter]
+    public bool Compact { get; set; }
 
     private readonly List<string> failures = [];
 

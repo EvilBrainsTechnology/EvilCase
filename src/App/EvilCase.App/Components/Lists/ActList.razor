@@ -62,7 +62,7 @@
             {
                 Header = "Kontakt",
                 Width = "var(--ec-list-col-number)",
-                Cell = item =>@<span class="ec-cell-text">@item.ContactName</span>,
+                Cell = item =>@<span class="@this.ContactClass(item)">@item.ContactName</span>,
             },
             ActColumn.Labels => new EcColumn<ActListItem>
             {
@@ -85,6 +85,28 @@
                 CellClass = "ec-cell-mono",
                 Cell = item =>@<text>@item.ExternalActNumber</text>,
             },
+            ActColumn.ActWithLabels => new EcColumn<ActListItem>
+            {
+                Header = "Úkon",
+                Width = "minmax(0, 1fr)",
+                SortKey = nameof(ActSortKey.Title),
+                Primary = true,
+                Cell = item =>@<text>
+                    <span class="ec-cell-text" title="@item.Title">@item.Title</span>
+                    @foreach (var label in item.Labels)
+                    {
+                        <span class="@($"ec-chip ec-chip-sm ec-chip-{LabelColorDisplay.Css(label.Color)}")"><span class="ec-chip-dot" aria-hidden="true"></span>@label.Name</span>
+                    }
+                </text>,
+            },
+            ActColumn.ActNumberInCase => new EcColumn<ActListItem>
+            {
+                Header = "Číslo jednací",
+                Width = "var(--ec-case-act-col-number)",
+                SortKey = nameof(ActSortKey.ActNumber),
+                CellClass = "ec-cell-mono",
+                Cell = item =>@<span class="ec-cell-text" title="@item.ActNumber">@ActNumberDisplay.WithinCase(item.ActNumber, item.CaseNumber)</span>,
+            },
             _ => throw new UnreachableException(),
         });
     }
@@ -103,30 +125,69 @@
     <Toolbar>
         @if (this.ShowSearch)
         {
-            <label class="ec-search" for="@($"{this.InputPrefix}-search")">
+            <label class="ec-search ec-search-grow" for="@($"{this.InputPrefix}-search")">
                 <EcIcon Paths="@AppIcons.Search" Size="EcIconSize.Small" />
                 <input id="@($"{this.InputPrefix}-search")" type="search" class="ec-search-input" aria-label="Hledat v úkonech"
                        placeholder="Hledat v názvu a popisu" value="@this.SearchText" @oninput="this.OnSearchInput" />
             </label>
         }
 
-        @if (this.ShowDates)
-        {
-            <input type="date" class="ec-input" aria-label="Datum od"
-                   value="@this.From?.ToString("yyyy-MM-dd")" @onchange="this.OnFromInput" />
-            <input type="date" class="ec-input" aria-label="Datum do"
-                   value="@this.To?.ToString("yyyy-MM-dd")" @onchange="this.OnToInput" />
-        }
-
         @if (this.ShowDirectionFilter)
         {
-            <DirectionField InputId="@($"{this.InputPrefix}-direction")" Selected="this.direction" SelectedChanged="this.SetDirection" />
+            <div class="ec-segmented ec-segmented-compact" role="group" aria-label="Směr úkonu">
+                @foreach (var value in DirectionFilters)
+                {
+                    var suffix = value is null ? "all" : ActDirectionDisplay.Css(value.Value);
+
+                    <button id="@($"{this.InputPrefix}-direction-{suffix}")" type="button" class="ec-segment"
+                            aria-pressed="@(this.direction == value ? "true" : "false")" @onclick="() => this.SetDirection(value)">
+                        @if (value is not null)
+                        {
+                            <EcIcon Paths="@ActDirectionDisplay.Icon(value.Value)" Size="EcIconSize.Small" />
+                        }
+                        @(value is null ? "Vše" : ActDirectionDisplay.Text(value))
+                    </button>
+                }
+            </div>
         }
 
-        @if (this.ShowLabelFilter)
+        @if (this.ShowDates || this.ShowLabelFilter)
         {
-            <div class="ec-toolbar-labels">
-                <LabelField InputId="@($"{this.InputPrefix}-labels")" Selected="this.SelectedLabels" SelectedChanged="this.OnLabelsChanged" />
+            <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Filter"
+                      aria-expanded="@(this.filtersOpen ? "true" : "false")" aria-controls="@($"{this.InputPrefix}-filters")"
+                      OnClick="this.ToggleFilters">
+                Filtry
+                @if (this.ActiveFilterCount > 0)
+                {
+                    <span class="ec-filter-count">@this.ActiveFilterCount</span>
+                }
+            </EcButton>
+        }
+
+        @if (this.filtersOpen)
+        {
+            <div id="@($"{this.InputPrefix}-filters")" class="ec-filter-panel">
+                @if (this.ShowDates)
+                {
+                    <div class="ec-filter-field">
+                        <label class="ec-filter-name" for="@($"{this.InputPrefix}-from")">Od</label>
+                        <input id="@($"{this.InputPrefix}-from")" type="date" class="ec-input ec-filter-date" aria-label="Datum od"
+                               value="@this.From?.ToString("yyyy-MM-dd")" @onchange="this.OnFromInput" />
+                    </div>
+                    <div class="ec-filter-field">
+                        <label class="ec-filter-name" for="@($"{this.InputPrefix}-to")">Do</label>
+                        <input id="@($"{this.InputPrefix}-to")" type="date" class="ec-input ec-filter-date" aria-label="Datum do"
+                               value="@this.To?.ToString("yyyy-MM-dd")" @onchange="this.OnToInput" />
+                    </div>
+                }
+                @if (this.ShowLabelFilter)
+                {
+                    <div class="ec-filter-field ec-filter-field-grow">
+                        <label class="ec-filter-name" for="@($"{this.InputPrefix}-labels")">Štítek</label>
+                        <LabelField InputId="@($"{this.InputPrefix}-labels")" Selected="this.SelectedLabels" SelectedChanged="this.OnLabelsChanged" />
+                    </div>
+                }
+                <button type="button" class="ec-filter-clear" @onclick="this.ClearFilters">Zrušit filtry</button>
             </div>
         }
     </Toolbar>
@@ -136,6 +197,8 @@
 </EcTable>
 
 @code {
+    private static readonly ActDirection?[] DirectionFilters = [null, ActDirection.Incoming, ActDirection.Outgoing];
+
     [Parameter, EditorRequired]
     public required IReadOnlyList<ActColumn> Columns { get; set; }
 
@@ -184,17 +247,27 @@
     [Parameter]
     public string InputPrefix { get; set; } = "acts";
 
+    /// <summary>
+    /// The case's counterparty: an act with this contact shows it muted, an act with another one emphasised.
+    /// </summary>
+    [Parameter]
+    public Guid? CaseContactId { get; set; }
+
     private IReadOnlyList<ActListItem> items = [];
 
     private ActSortKey sort;
 
     private ActDirection? direction;
 
+    private bool filtersOpen;
+
     protected override int PageSize => this.Filter.Take;
 
     protected override string FailureText => "Seznam úkonů se nepodařilo načíst. Zkuste to za chvíli znovu.";
 
     private bool HasFilters => this.ShowSearch || this.ShowDates || this.ShowLabelFilter || this.ShowDirectionFilter;
+
+    private int ActiveFilterCount => (this.From is null ? 0 : 1) + (this.To is null ? 0 : 1) + this.SelectedLabels.Count;
 
     protected override void OnInitialized()
     {
@@ -266,5 +339,18 @@
         }
 
         return this.ReloadFirstPage();
+    }
+
+    private string ContactClass(ActListItem item)
+    {
+        if (this.CaseContactId is null || item.ContactId is null)
+            return "ec-cell-text";
+
+        return item.ContactId == this.CaseContactId ? "ec-cell-text ec-cell-muted" : "ec-cell-text ec-cell-strong";
+    }
+
+    private void ToggleFilters()
+    {
+        this.filtersOpen = !this.filtersOpen;
     }
 }
