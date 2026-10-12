@@ -983,7 +983,7 @@ html {
     gap: var(--ec-space-4);
 }
 
-.ec-comment-action {
+.ec .ec-comment-action {
     height: var(--ec-comment-action-height);
     padding: 0;
     border: 0;
@@ -994,17 +994,17 @@ html {
     cursor: pointer;
 }
 
-.ec-comment-action:hover {
+.ec .ec-comment-action:hover {
     text-decoration: underline;
 }
 
-.ec-comment-action:focus-visible {
+.ec .ec-comment-action:focus-visible {
     outline: none;
     border-radius: var(--ec-radius-sm);
     box-shadow: var(--ec-focus-ring);
 }
 
-.ec-comment-action-danger {
+.ec .ec-comment-action-danger {
     color: var(--ec-danger-text);
 }
 ```
@@ -1683,7 +1683,7 @@ html {
     flex-direction: column;
 }
 
-.ec-child-row {
+.ec .ec-child-row {
     display: flex;
     flex-direction: column;
     gap: var(--ec-space-1);
@@ -1693,11 +1693,11 @@ html {
     text-decoration: none;
 }
 
-.ec-child-row:hover .ec-child-title {
+.ec .ec-child-row:hover .ec-child-title {
     color: var(--ec-accent-text);
 }
 
-.ec-child-row:focus-visible {
+.ec .ec-child-row:focus-visible {
     outline: none;
     box-shadow: var(--ec-focus-ring);
 }
@@ -1718,7 +1718,7 @@ html {
     color: var(--ec-text-muted);
 }
 
-.ec-child-toggle {
+.ec .ec-child-toggle {
     display: flex;
     align-items: center;
     height: var(--ec-control-md);
@@ -1733,11 +1733,11 @@ html {
     cursor: pointer;
 }
 
-.ec-child-toggle:hover {
+.ec .ec-child-toggle:hover {
     text-decoration: underline;
 }
 
-.ec-child-toggle:focus-visible {
+.ec .ec-child-toggle:focus-visible {
     outline: none;
     box-shadow: var(--ec-focus-ring);
 }
@@ -2872,7 +2872,7 @@ html {
     width: var(--ec-filter-date-width);
 }
 
-.ec-filter-clear {
+.ec .ec-filter-clear {
     height: var(--ec-control-md);
     padding: 0 var(--ec-space-2);
     border: 0;
@@ -2883,11 +2883,11 @@ html {
     cursor: pointer;
 }
 
-.ec-filter-clear:hover {
+.ec .ec-filter-clear:hover {
     color: var(--ec-text);
 }
 
-.ec-filter-clear:focus-visible {
+.ec .ec-filter-clear:focus-visible {
     outline: none;
     border-radius: var(--ec-radius-sm);
     box-shadow: var(--ec-focus-ring);
