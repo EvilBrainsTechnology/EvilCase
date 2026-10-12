@@ -1,6 +1,7 @@
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Cases
+@using EvilBrains.EvilCase.Domain.Cases
 @inject ICasesClient CasesClient
 @inject ILogger<CaseChildrenCard> Logger
 
@@ -34,18 +35,25 @@
         }
         else
         {
-            <div class="ec-child-list">
-                @foreach (var item in this.children)
-                {
-                    <a class="ec-child-row" href="@($"/cases/{item.CaseId}")">
-                        <span class="ec-child-date">@DateDisplay.Text(item.Date)</span>
-                        <span class="ec-child-main">
-                            <span class="ec-child-title">@item.Title</span>
+            var closedCount = this.children.Count(static item => item.Status == CaseStatus.Closed);
+
+            <div class="ec-child-card">
+                <span class="ec-child-counts">@ChildCaseCountDisplay.Text(this.children.Count - closedCount, closedCount)</span>
+                <div id="case-children" class="ec-child-list">
+                    @foreach (var item in this.children.Where(item => this.showClosed || item.Status != CaseStatus.Closed))
+                    {
+                        <a class="ec-child-row" href="@($"/cases/{item.CaseId}")">
+                            <span class="ec-child-title" title="@item.Title">@item.Title</span>
                             <span class="ec-child-status">
-                                <span class="@($"ec-status-dot {CaseStatusDisplay.Dot(item.Status)}")" aria-hidden="true"></span>@CaseStatusDisplay.Text(item.Status)
+                                <span class="@($"ec-status-dot {CaseStatusDisplay.Dot(item.Status)}")" aria-hidden="true"></span>@($"{CaseStatusDisplay.Text(item.Status)} · {DateDisplay.Text(item.Date)}")
                             </span>
-                        </span>
-                    </a>
+                        </a>
+                    }
+                </div>
+                @if (closedCount > 0)
+                {
+                    <button type="button" class="ec-child-toggle" aria-expanded="@(this.showClosed ? "true" : "false")"
+                            aria-controls="case-children" @onclick="this.ToggleClosed">@(this.showClosed ? "Skrýt uzavřené" : $"Zobrazit i uzavřené ({closedCount})")</button>
                 }
             </div>
         }
@@ -65,6 +73,8 @@
 
     private string? failure;
 
+    private bool showClosed;
+
     private Guid loaded;
 
     protected override Task OnParametersSetAsync()
@@ -75,6 +85,11 @@
         this.loaded = this.ParentCaseId;
 
         return this.LoadChildren();
+    }
+
+    private void ToggleClosed()
+    {
+        this.showClosed = !this.showClosed;
     }
 
     private async Task LoadChildren()

@@ -277,6 +277,44 @@ public class FilesCardRenderTests
     }
 
     [Test]
+    public void TheCompactRowKeepsTheNameOnOneLineAndOffersIconButtons()
+    {
+        using var ctx = new BunitContext();
+
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        ctx.Services.AddSingleton<IJSRuntime>(new PropertyReadingJSRuntime(ctx.JSInterop.JSRuntime));
+
+        var file = new FileListItem
+        {
+            FileId = Guid.NewGuid(),
+            FileName = "Rozhodnutí o přestupku.pdf",
+            SizeBytes = 1024,
+            Created = new DateTime(2025, 9, 2, 10, 0, 0, DateTimeKind.Utc),
+        };
+
+        var component = ctx.Render<FilesCard>(parameters => parameters
+            .Add(static card => card.Title, "Soubory spisu")
+            .Add(static card => card.LoadFiles, _ => Task.FromResult<IReadOnlyList<FileListItem>>([file]))
+            .Add(static card => card.UploadFile, static (_, _) => Task.CompletedTask)
+            .Add(static card => card.DownloadFile, static (_, _) => Task.CompletedTask)
+            .Add(static card => card.DeleteFile, static (_, _) => Task.CompletedTask)
+            .Add(static card => card.OwnerGoneError, "spis už neexistuje.")
+            .Add(static card => card.Compact, value: true));
+
+        var download = component.Find("button[aria-label='Stáhnout Rozhodnutí o přestupku.pdf']");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.FindAll("div.ec-file-card-compact"), Has.Count.EqualTo(1));
+            Assert.That(component.Find("button.ec-file-name").GetAttribute("title"), Is.EqualTo("Rozhodnutí o přestupku.pdf"));
+            Assert.That(component.Find(".ec-file-meta").TextContent, Is.EqualTo($"1 kB · {MomentDisplay.Text(file.Created)}"));
+            Assert.That(download.ClassList, Does.Contain("ec-button-icon"));
+            Assert.That(download.TextContent.Trim(), Is.Empty);
+            Assert.That(component.Find("label.ec-file-upload").TextContent.Trim(), Is.EqualTo("Nahrát"));
+        }
+    }
+
+    [Test]
     public void AFailedListShowsTheErrorAndRetryingReloads()
     {
         using var ctx = new BunitContext();

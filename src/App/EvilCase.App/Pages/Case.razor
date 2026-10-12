@@ -7,18 +7,22 @@
 @using EvilBrains.EvilCase.Api.Contract.Comments
 @using EvilBrains.EvilCase.Api.Contract.Files
 @using EvilBrains.EvilCase.Api.Contract.Labels
+@using Microsoft.JSInterop
 @inject ICasesClient CasesClient
 @inject ICaseLabelsClient CaseLabelsClient
 @inject ICaseCommentsClient CaseCommentsClient
 @inject ICaseFilesClient CaseFilesClient
 @inject IFileTransferClient FileTransfer
 @inject IFileDownloader Downloader
+@inject IClipboardWriter Clipboard
 @inject NavigationManager Navigation
 @inject ILogger<Case> Logger
 
 <PageTitle>@(this.caseDetail is null ? "Spis" : this.caseDetail.CaseNumber) – EvilCase</PageTitle>
 
 <div class="ec-page">
+    <span class="ec-visually-hidden" role="status">@this.announcement</span>
+
     @if (this.notFound)
     {
         <EcCard><p class="ec-state">Spis nenalezen.</p></EcCard>
@@ -47,7 +51,7 @@
                     </Status>
                     <Actions>
                         <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Pencil" OnClick="this.EditCase">Upravit spis</EcButton>
-                        <EcButton Variant="EcButtonVariant.Danger" Icon="@AppIcons.Trash" OnClick="this.StartDeleting">Smazat spis</EcButton>
+                        <EcMenu AriaLabel="Další akce se spisem" Items="this.CaseActions" />
                     </Actions>
                 </EcPageHeader>
 
@@ -58,10 +62,31 @@
                         <span class="ec-detail-fact-name">Datum spisu</span>
                         <span class="ec-detail-fact-value">@DateDisplay.Text(this.caseDetail.Date)</span>
                     </div>
-                    <div class="ec-detail-fact">
-                        <span class="ec-detail-fact-name">Externí spisová značka</span>
-                        <span class="ec-detail-fact-mono">@(string.IsNullOrWhiteSpace(this.caseDetail.ExternalCaseNumber) ? "—" : this.caseDetail.ExternalCaseNumber)</span>
+                    <div class="ec-detail-fact ec-detail-fact-copyable">
+                        <span class="ec-detail-fact-name">Spisová značka</span>
+                        <span class="ec-detail-fact-copy">
+                            <span class="ec-detail-fact-mono">@this.caseDetail.CaseNumber</span>
+                            <CopyButton Value="@this.caseDetail.CaseNumber" AriaLabel="Zkopírovat spisovou značku" />
+                        </span>
                     </div>
+```
+                    @if (string.IsNullOrWhiteSpace(this.caseDetail.ExternalCaseNumber))
+                    {
+                        <div class="ec-detail-fact">
+                            <span class="ec-detail-fact-name">Externí spisová značka</span>
+                            <span class="ec-detail-fact-mono">—</span>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="ec-detail-fact ec-detail-fact-copyable">
+                            <span class="ec-detail-fact-name">Externí spisová značka</span>
+                            <span class="ec-detail-fact-copy">
+                                <span class="ec-detail-fact-mono">@this.caseDetail.ExternalCaseNumber</span>
+                                <CopyButton Value="@this.caseDetail.ExternalCaseNumber" AriaLabel="Zkopírovat externí spisovou značku" />
+                            </span>
+                        </div>
+                    }
                     <div class="ec-detail-fact">
                         <span class="ec-detail-fact-name">Protistrana</span>
                         @if (this.caseDetail.Contact is { } contact)
@@ -124,11 +149,12 @@
         </EcCard>
 
         <div class="ec-detail-layout">
-            <div class="ec-detail-main">
+            <div class="ec-detail-main ec-case-acts">
                 <ActList @key="(nameof(ActList), this.CaseId)"
                          Columns="ActColumns"
                          Filter="this.ActFilter"
                          Title="Úkony"
+                         CaseContactId="this.caseDetail.Contact?.ContactId"
                          ShowSearch="true"
                          ShowDates="true"
                          ShowLabelFilter="true"
@@ -155,7 +181,8 @@
                            LoadFiles="this.LoadFiles"
                            UploadFile="this.UploadFile"
                            DownloadFile="this.DownloadFile"
-                           DeleteFile="this.DeleteFile" />
+                           DeleteFile="this.DeleteFile"
+                           Compact="true" />
 
                 <CommentsCard @key="(nameof(CommentsCard), this.CaseId)"
                               Title="Komentáře spisu"
@@ -163,7 +190,8 @@
                               LoadComments="this.LoadComments"
                               AddComment="this.AddComment"
                               SaveComment="this.SaveComment"
-                              DeleteComment="this.DeleteComment" />
+                              DeleteComment="this.DeleteComment"
+                              Compact="true" />
             </aside>
         </div>
     }
@@ -180,11 +208,10 @@
     private static readonly ActColumn[] ActColumns =
     [
         ActColumn.Date,
-        ActColumn.Act,
+        ActColumn.ActWithLabels,
         ActColumn.Direction,
         ActColumn.Contact,
-        ActColumn.Labels,
-        ActColumn.ActNumber,
+        ActColumn.ActNumberInCase,
     ];
 
     [Parameter]
@@ -202,11 +229,27 @@
 
     private bool deleting;
 
+    private string? announcement;
+
     private ActListRequest ActFilter => new() { CaseId = this.CaseId, Take = ActItems };
 
     private IReadOnlyList<EcCrumb> Crumbs => this.caseDetail is null
         ? [new EcCrumb("Spisy", "/cases")]
         : [new EcCrumb("Spisy", "/cases"), new EcCrumb(this.caseDetail.CaseNumber, null)];
+
+    private IReadOnlyList<EcMenuItem> CaseActions
+    {
+        get
+        {
+            return
+            [
+                new EcMenuItem { Text = "Nový úkon", Icon = AppIcons.Plus, OnSelect = EventCallback.Factory.Create(this, this.OpenNewAct) },
+                new EcMenuItem { Text = "Nový podřízený spis", Icon = AppIcons.FolderPlus, OnSelect = EventCallback.Factory.Create(this, this.OpenNewChildCase) },
+                new EcMenuItem { Text = "Zkopírovat odkaz na spis", Icon = AppIcons.Link, OnSelect = EventCallback.Factory.Create(this, this.CopyCaseLink) },
+                new EcMenuItem { Text = "Smazat spis…", Icon = AppIcons.Trash, OnSelect = EventCallback.Factory.Create(this, this.StartDeleting), Danger = true, DividerBefore = true },
+            ];
+        }
+    }
 
     protected override Task OnParametersSetAsync()
     {
@@ -215,6 +258,7 @@
 
     private async Task LoadCase()
     {
+        this.announcement = null;
         this.caseDetail = null;
         this.notFound = false;
         this.failure = null;
@@ -270,6 +314,32 @@
     private void EditCase()
     {
         this.Navigation.NavigateTo($"/cases/{this.CaseId}/edit");
+    }
+
+    private void OpenNewAct()
+    {
+        this.Navigation.NavigateTo($"/cases/{this.CaseId}/act/new");
+    }
+
+    private void OpenNewChildCase()
+    {
+        this.Navigation.NavigateTo($"/cases/new?parent={this.CaseId}");
+    }
+
+    private async Task CopyCaseLink()
+    {
+        var link = this.Navigation.ToAbsoluteUri($"/cases/{this.CaseId}").AbsoluteUri;
+
+        try
+        {
+            await this.Clipboard.WriteText(link, CancellationToken.None);
+
+            this.announcement = "Odkaz na spis zkopírován.";
+        }
+        catch (JSException exception)
+        {
+            this.Logger.LogWarning(exception, "Copying the case link failed");
+        }
     }
 
     private void StartDeleting()

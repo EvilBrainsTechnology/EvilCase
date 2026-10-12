@@ -218,6 +218,50 @@ public class CommentsCardRenderTests
     }
 
     [Test]
+    public void TheAuthorsActionsAreQuietTextButtons()
+    {
+        using var ctx = new BunitContext();
+
+        IReadOnlyList<CommentItem> items = [new CommentItem { CommentId = Guid.NewGuid(), Body = "A", AuthorEmail = "a@vzorov.cz", IsAuthor = true, Created = DateTime.UtcNow }];
+
+        var component = ctx.Render<CommentsCard>(parameters => parameters
+            .Add(static card => card.Title, "Komentáře spisu")
+            .Add(static card => card.Placeholder, "Poznámka ke spisu…")
+            .Add(static card => card.LoadComments, _ => Task.FromResult(items))
+            .Add(static card => card.AddComment, static (_, _) => Task.CompletedTask)
+            .Add(static card => card.SaveComment, static (_, _, _) => Task.CompletedTask)
+            .Add(static card => card.DeleteComment, static (_, _) => Task.CompletedTask));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.FindAll(".ec-comment-actions button").Select(static button => button.TextContent.Trim()), Is.EqualTo(["Upravit", "Smazat"]));
+            Assert.That(component.FindAll(".ec-comment-actions .ec-button"), Is.Empty, "comment actions are text, not filled buttons (SDD-020)");
+        }
+    }
+
+    [TestCase(true, "2")]
+    [TestCase(false, "3")]
+    public void TheComposerHeightFollowsTheCardSize(bool compact, string rows)
+    {
+        using var ctx = new BunitContext();
+
+        var component = ctx.Render<CommentsCard>(parameters => parameters
+            .Add(static card => card.Title, "Komentáře spisu")
+            .Add(static card => card.Placeholder, "Poznámka ke spisu…")
+            .Add(static card => card.LoadComments, static (_) => Task.FromResult<IReadOnlyList<CommentItem>>([]))
+            .Add(static card => card.AddComment, static (_, _) => Task.CompletedTask)
+            .Add(static card => card.SaveComment, static (_, _, _) => Task.CompletedTask)
+            .Add(static card => card.DeleteComment, static (_, _) => Task.CompletedTask)
+            .Add(static card => card.Compact, compact));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.Find("#comment-new-body").GetAttribute("rows"), Is.EqualTo(rows));
+            Assert.That(component.FindAll(".ec-comments-compact"), Has.Count.EqualTo(compact ? 1 : 0));
+        }
+    }
+
+    [Test]
     public void DeletingACommentOpensTheConfirmationQuotingIt()
     {
         using var ctx = new BunitContext();
@@ -233,7 +277,7 @@ public class CommentsCardRenderTests
             .Add(static card => card.SaveComment, static (_, _, _) => Task.CompletedTask)
             .Add(static card => card.DeleteComment, static (_, _) => Task.CompletedTask));
 
-        component.Find(".ec-comment-actions .ec-button-danger").Click();
+        component.Find(".ec-comment-actions .ec-comment-action-danger").Click();
 
         Assert.That(component.Find(".ec-confirm-quote").TextContent, Does.Contain("Doručeno datovou schránkou."));
     }

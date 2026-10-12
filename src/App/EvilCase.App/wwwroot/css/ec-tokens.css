@@ -96,6 +96,7 @@
     /* Písmo */
     --ec-font: 'Instrument Sans', 'Segoe UI', system-ui, sans-serif;
     --ec-font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', monospace;
+    --ec-text-2xs: 11px;
     --ec-text-xs: 12px;
     --ec-text-sm: 13px;
     --ec-text-md: 14px;
@@ -143,7 +144,6 @@
     --ec-content-max: 1680px;
     --ec-content-padding: 32px;
     --ec-sidebar-width: 380px;
-    --ec-child-date-width: 76px;
     --ec-settings-rail: 220px;
     --ec-popover-width: 320px;
     --ec-menu-width: 240px;
@@ -185,6 +185,20 @@
     --ec-timeline-line: 2px;
     --ec-timeline-radius: 8px;
     --ec-timeline-leading: 1.4;
+
+    /* Detail spisu (docs/design/detail-spisu.html) */
+    --ec-case-act-col-date: 96px;
+    --ec-case-act-col-direction: 96px;
+    --ec-case-act-col-number: 112px;
+    --ec-case-act-row-height: 48px;
+    --ec-chip-sm-height: 18px;
+    --ec-filter-count-size: 18px;
+    --ec-filter-date-width: 140px;
+    --ec-segment-compact-height: 28px;
+    --ec-file-chip-compact-width: 46px;
+    --ec-file-chip-compact-height: 36px;
+    --ec-comment-avatar-compact: 30px;
+    --ec-comment-action-height: 24px;
 
     /* Přehled (docs/design/prehled.html) */
     --ec-stat-icon: 48px;

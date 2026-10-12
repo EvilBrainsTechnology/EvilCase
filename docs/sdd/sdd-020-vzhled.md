@@ -28,8 +28,8 @@ směr úkonu (modrá příchozí, zelená odchozí) a chyba (červená). Každá
 alespoň 4,5:1.
 
 Písmo: `Instrument Sans` na text, `JetBrains Mono` na čísla, značky a přípony souborů. Obojí
-se dodává s aplikací, ne z cizí sítě. Velikosti 12, 13, 14, 16, 18, 28 a 32 px; nadpis stránky
-32 px, nadpis karty 18 px, tělo 14 px, popisek 12 px.
+se dodává s aplikací, ne z cizí sítě. Velikosti 11, 12, 13, 14, 16, 18, 28 a 32 px; nadpis
+stránky 32 px, nadpis karty 18 px, tělo 14 px, popisek 12 px, drobná značka 11 px.
 
 Rozměry: rozestupy 4, 6, 8, 12, 16, 20, 24 a 32 px. Rádius karty 16 px, pole a tlačítka 10 px,
 drobné prvky 6 až 9 px, pilulka 999 px. Výška tlačítka a pole 40 px, na formuláři 44 px,
@@ -43,7 +43,9 @@ Aplikace má vlastní sadu komponent s prefixem `Ec`. Obrazovka skládá jen je,
 - `EcPageHeader` — drobečky, název, stav, akce vpravo.
 - `EcCard` — bílá plocha s linkou a rádiusem 16 px, volitelnou hlavičkou a patičkou.
 - `EcButton` — varianty `primary`, `secondary`, `ghost`, `danger`; každé tlačítko nese ikonu
-  vlevo od textu. Tlačítko jen s ikonou má `aria-label`.
+  vlevo od textu. Tlačítko jen s ikonou má `aria-label`. Tichá textová akce u položky nebo
+  v liště (Upravit a Smazat u komentáře, Zrušit filtry, Zobrazit i uzavřené) je výjimka: text
+  bez ikony a bez plochy; mazání nese barvu chyby.
 - `EcBadge` — pilulka pro stav spisu, směr úkonu a štítek.
 - `EcTable` — seznam podle SDD-016: řádek je odkaz po celé šířce, řaditelné záhlaví je
   tlačítko, patička nese rozsah, počet a stránkování.
@@ -72,6 +74,12 @@ Detail spisu i úkonu začíná kartou se jménem, stavem, popisem a řádkem ú
 pod názvem, ne v postranním sloupci. Obsah, který patří spisu, je v pravém sloupci; obsah,
 který patří úkonu, je uvnitř úkonu. Soubory a komentáře proto existují dvakrát a název to
 vždycky říká: „Soubory spisu" a „Soubory úkonu".
+
+Další akce detailu jsou v nabídce `EcMenu` vedle hlavní akce; smazání je v ní poslední
+a oddělené. Spisovou značku, číslo jednací i externí značky v řádku údajů jde zkopírovat
+tlačítkem vedle hodnoty. Soubory a komentáře v bočním sloupci detailu spisu jsou kompaktní:
+soubor drží název na jednom řádku a velikost s okamžikem nahrání na druhém, stažení i smazání
+jsou tlačítka jen s ikonou a pole pro nový komentář má dva řádky.
 
 ### Stavy
 
@@ -108,6 +116,8 @@ komponenta ho schová za vlastní rozhraní, aby ho obrazovky neviděly.
 - Šířka obsahu: bez omezení / strop. Platí strop 1680 px.
 - Popis spisu: postranní sloupec / pod názvem. Platí pod názvem.
 - Soubory a komentáře úkonu: samostatný panel / uvnitř úkonu. Platí uvnitř úkonu.
+- Smazání na detailu: tlačítko vedle hlavní akce / poslední položka nabídky. Platí položka
+  nabídky.
 
 ## Dopady
 

@@ -3,9 +3,12 @@ using Bunit;
 using EvilBrains.ApiClient;
 using EvilBrains.EvilCase.Api.Client;
 using EvilBrains.EvilCase.Api.Contract.Acts;
+using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.Api.Contract.Lists;
 using EvilBrains.EvilCase.App.Components.Lists;
 using EvilBrains.EvilCase.Domain.Acts;
+using EvilBrains.EvilCase.Domain.Labels;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -44,7 +47,7 @@ public class ActListRenderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(component.Find(".ec-table-header").TextContent.Trim(), Is.EqualTo("Číslo jednací"));
-            Assert.That(component.Find(".ec-table-cell").TextContent, Does.Contain("EC/20260821-001/1"));
+            Assert.That(component.Find(".ec-table-cell").TextContent, Does.Contain("EC/20260821-001/20260821-002"));
         }
     }
 
@@ -197,7 +200,7 @@ public class ActListRenderTests
 
         var component = Render(
             ctx,
-            [ActColumn.Changed, ActColumn.Date, ActColumn.Case, ActColumn.Act, ActColumn.Direction, ActColumn.Contact, ActColumn.Labels, ActColumn.ActNumber, ActColumn.ExternalNumber]);
+            [ActColumn.Changed, ActColumn.Date, ActColumn.Case, ActColumn.Act, ActColumn.Direction, ActColumn.Contact, ActColumn.Labels, ActColumn.ActNumber, ActColumn.ExternalNumber, ActColumn.ActWithLabels, ActColumn.ActNumberInCase]);
 
         Assert.That(
             component.Find(".ec-table").GetAttribute("style"),
@@ -205,30 +208,212 @@ public class ActListRenderTests
             "a column width is a token in ec-tokens.css, never a size written in the component");
     }
 
+    [Test]
+    public void TheActNumberInTheCaseDropsTheCasePrefix()
+    {
+        using var ctx = new BunitContext();
+        Serve(ctx, out _);
+
+        var component = Render(ctx, [ActColumn.ActNumberInCase]);
+
+        component.WaitForElement("a.ec-table-row");
+
+        var cell = component.Find(".ec-table-cell .ec-cell-text");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.Find(".ec-table-header").TextContent.Trim().TrimEnd('↑', '↓').Trim(), Is.EqualTo("Číslo jednací"));
+            Assert.That(cell.TextContent, Is.EqualTo("20260821-002"));
+            Assert.That(cell.GetAttribute("title"), Is.EqualTo("EC/20260821-001/20260821-002"), "the title keeps the whole number");
+        }
+    }
+
+    [Test]
+    public void TheLabelsSitBesideTheTitleAsSmallChips()
+    {
+        using var ctx = new BunitContext();
+
+        var labelled = Row with
+        {
+            Labels =
+            [
+                new LabelItem { LabelId = Guid.CreateVersion7(), Name = "Priorita", Color = LabelColor.Red },
+                new LabelItem { LabelId = Guid.CreateVersion7(), Name = "Hlídat lhůtu", Color = LabelColor.Orange },
+            ],
+        };
+
+        Serve(ctx, out _, items: [labelled]);
+
+        var component = Render(ctx, [ActColumn.ActWithLabels]);
+
+        component.WaitForElement("a.ec-table-row");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(
+                component.FindAll(".ec-table-cell-primary .ec-chip-sm").Select(static chip => chip.TextContent.Trim()),
+                Is.EqualTo(["Priorita", "Hlídat lhůtu"]));
+            Assert.That(component.FindAll(".ec-table-cell-primary .ec-chip-red"), Has.Count.EqualTo(1));
+            Assert.That(component.Find(".ec-table-cell-primary .ec-cell-text").GetAttribute("title"), Is.EqualTo("Oznámení"));
+        }
+    }
+
+    [Test]
+    public void TheCaseCounterpartyIsMutedAndAnotherContactStandsOut()
+    {
+        using var ctx = new BunitContext();
+
+        var counterpartyId = Guid.CreateVersion7();
+        var otherId = Guid.CreateVersion7();
+
+        Serve(
+            ctx,
+            out _,
+            total: 2,
+            items:
+            [
+                Row with { ContactId = counterpartyId, ContactName = "Městský úřad Vzorov" },
+                Row with { ActId = Guid.CreateVersion7(), ContactId = otherId, ContactName = "Krajský úřad Vzorového kraje" },
+            ]);
+
+        var component = Render(ctx, [ActColumn.Contact], caseContactId: counterpartyId);
+
+        component.WaitForElement("a.ec-table-row");
+
+        Assert.That(
+            component.FindAll(".ec-table-cell > span").Select(static span => span.ClassName),
+            Is.EqualTo(["ec-cell-text ec-cell-muted", "ec-cell-text ec-cell-strong"]));
+    }
+
+    [Test]
+    public void WithoutACaseContactNoContactIsMarked()
+    {
+        using var ctx = new BunitContext();
+        Serve(ctx, out _, items: [Row with { ContactId = Guid.CreateVersion7(), ContactName = "Jan Novák" }]);
+
+        var component = Render(ctx, [ActColumn.Contact]);
+
+        component.WaitForElement("a.ec-table-row");
+
+        Assert.That(component.Find(".ec-table-cell > span").ClassName, Is.EqualTo("ec-cell-text"));
+    }
+
+    [Test]
+    public async Task TheFiltersStayFoldedUntilTheButtonOpensThem()
+    {
+        await using var ctx = new BunitContext();
+        ServeNoLabels(ctx);
+        Serve(ctx, out _);
+
+        var component = Render(ctx, [ActColumn.Date], filterPanel: true);
+
+        await component.WaitForElementAsync("a.ec-table-row");
+
+        var button = component.Find("button[aria-controls='acts-filters']");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(button.GetAttribute("aria-expanded"), Is.EqualTo("false"));
+            Assert.That(component.FindAll("#acts-filters"), Is.Empty);
+            Assert.That(component.FindAll("input[type=date]"), Is.Empty);
+        }
+
+        await button.ClickAsync(new MouseEventArgs());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.Find("button[aria-controls='acts-filters']").GetAttribute("aria-expanded"), Is.EqualTo("true"));
+            Assert.That(component.Find("#acts-filters").QuerySelectorAll("input[type=date]"), Has.Length.EqualTo(2));
+            Assert.That(component.FindAll("#acts-labels"), Has.Count.EqualTo(1));
+        }
+    }
+
+    [Test]
+    public async Task TheButtonCountsTheActiveFiltersAndClearingThemStartsOver()
+    {
+        await using var ctx = new BunitContext();
+        ServeNoLabels(ctx);
+        Serve(ctx, out var requests);
+
+        var component = Render(ctx, [ActColumn.Date], filterPanel: true);
+
+        await component.WaitForElementAsync("a.ec-table-row");
+        await component.Find("button[aria-controls='acts-filters']").ClickAsync(new MouseEventArgs());
+        await component.Find("#acts-from").ChangeAsync(new ChangeEventArgs { Value = "2026-08-01" });
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(requests[^1].From, Is.EqualTo(new DateOnly(2026, 8, 1)));
+            Assert.That(component.Find(".ec-filter-count").TextContent, Is.EqualTo("1"));
+        }
+
+        await component.Find("#acts-to").ChangeAsync(new ChangeEventArgs { Value = "2026-08-31" });
+
+        Assert.That(component.Find(".ec-filter-count").TextContent, Is.EqualTo("2"));
+
+        await component.Find(".ec-filter-clear").ClickAsync(new MouseEventArgs());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(requests[^1].From, Is.Null);
+            Assert.That(requests[^1].To, Is.Null);
+            Assert.That(component.FindAll(".ec-filter-count"), Is.Empty, "no active filter, no count");
+            Assert.That(component.FindAll("#acts-filters"), Has.Count.EqualTo(1), "clearing leaves the panel open");
+        }
+    }
+
+    [Test]
+    public async Task TheDirectionFilterOffersAllAndMarksTheChosenOne()
+    {
+        await using var ctx = new BunitContext();
+        Serve(ctx, out var requests);
+
+        var component = Render(ctx, [ActColumn.Date], directionFilter: true);
+
+        await component.WaitForElementAsync("a.ec-table-row");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.FindAll(".ec-segment").Select(static segment => segment.TextContent.Trim()), Is.EqualTo(["Vše", "Příchozí", "Odchozí"]));
+            Assert.That(component.Find("#acts-direction-all").GetAttribute("aria-pressed"), Is.EqualTo("true"));
+        }
+
+        await component.Find("#acts-direction-outgoing").ClickAsync(new MouseEventArgs());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(requests[^1].Direction, Is.EqualTo(ActDirection.Outgoing));
+            Assert.That(component.Find("#acts-direction-outgoing").GetAttribute("aria-pressed"), Is.EqualTo("true"));
+        }
+
+        await component.Find("#acts-direction-all").ClickAsync(new MouseEventArgs());
+
+        Assert.That(requests[^1].Direction, Is.Null);
+    }
+
     private static readonly Guid CaseId = Guid.CreateVersion7();
 
     private static readonly Guid ActId = Guid.CreateVersion7();
 
-    private static void Serve(BunitContext ctx, out List<ActListRequest> requests, int total = 1)
+    private static readonly ActListItem Row = new()
+    {
+        ActId = ActId,
+        CaseId = CaseId,
+        CaseNumber = "EC/20260821-001",
+        CaseTitle = "Přestupek",
+        ActNumber = "EC/20260821-001/20260821-002",
+        Direction = ActDirection.Incoming,
+        Title = "Oznámení",
+        Date = new DateOnly(2026, 8, 21),
+        Changed = new DateTime(2026, 8, 21, 0, 0, 0, DateTimeKind.Utc),
+    };
+
+    private static void Serve(BunitContext ctx, out List<ActListRequest> requests, int total = 1, IReadOnlyList<ActListItem>? items = null)
     {
         var captured = new List<ActListRequest>();
         var response = new ActListResponse
         {
-            Items =
-            [
-                new ActListItem
-                {
-                    ActId = ActId,
-                    CaseId = CaseId,
-                    CaseNumber = "EC/20260821-001",
-                    CaseTitle = "Přestupek",
-                    ActNumber = "EC/20260821-001/1",
-                    Direction = ActDirection.Incoming,
-                    Title = "Oznámení",
-                    Date = new DateOnly(2026, 8, 21),
-                    Changed = new DateTime(2026, 8, 21, 0, 0, 0, DateTimeKind.Utc),
-                },
-            ],
+            Items = items ?? [Row],
             TotalCount = total,
         };
 
@@ -247,18 +432,35 @@ public class ActListRenderTests
         requests = captured;
     }
 
+    private static void ServeNoLabels(BunitContext ctx)
+    {
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+
+        var labelsClient = Substitute.For<ILabelsClient>();
+        labelsClient
+            .ListLabels(Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new LabelListResponse { Items = [] }));
+
+        ctx.Services.AddSingleton(labelsClient);
+    }
+
     private static IRenderedComponent<ActList> Render(
         BunitContext ctx,
         IReadOnlyList<ActColumn> columns,
         int take = 20,
         bool paging = false,
         bool directionFilter = false,
-        Guid? caseId = null)
+        Guid? caseId = null,
+        bool filterPanel = false,
+        Guid? caseContactId = null)
     {
         return ctx.Render<ActList>(parameters => parameters
             .Add(static list => list.Columns, columns)
             .Add(static list => list.Filter, new ActListRequest { CaseId = caseId, SortDirection = ListSortDirection.Ascending, Take = take })
             .Add(static list => list.ShowPaging, paging)
-            .Add(static list => list.ShowDirectionFilter, directionFilter));
+            .Add(static list => list.ShowDirectionFilter, directionFilter)
+            .Add(static list => list.ShowDates, filterPanel)
+            .Add(static list => list.ShowLabelFilter, filterPanel)
+            .Add(static list => list.CaseContactId, caseContactId));
     }
 }
