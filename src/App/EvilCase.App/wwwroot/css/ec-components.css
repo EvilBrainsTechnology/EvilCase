@@ -1875,70 +1875,62 @@ html {
     height: var(--ec-brand-icon);
 }
 
-/* Přihlášení (docs/design/prihlaseni.html). */
-.ec-login {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) var(--ec-login-aside);
+/* Brána: přihlášení a zavádění aplikace sdílí jeden rám (docs/design/prihlaseni.html, nacitani.html). */
+.ec-gate {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ec-space-7);
     min-height: var(--ec-viewport-height);
-    background: var(--ec-bg);
+    padding: var(--ec-space-7) var(--ec-space-6);
+    box-sizing: border-box;
+    background: var(--ec-login-panel-bg);
     font-family: var(--ec-font);
     color: var(--ec-text);
 }
 
-.ec-login-panel {
+/* Rezervovaný posuvník by pod tmavou stránkou ukázal světlý pruh. */
+html:has(.ec-gate) {
+    scrollbar-gutter: auto;
+}
+
+.ec-gate-card {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
     gap: var(--ec-space-8);
-    padding: var(--ec-login-pad-y) var(--ec-login-pad-x);
-    background: var(--ec-login-panel-bg);
-    color: var(--ec-login-panel-text);
+    box-sizing: border-box;
+    width: var(--ec-gate-card-width);
+    max-width: 100%;
+    min-height: var(--ec-gate-card-height);
+    padding: var(--ec-gate-card-pad);
+    background: var(--ec-surface);
+    border: 1px solid var(--ec-border);
+    border-radius: var(--ec-radius-card);
+    box-shadow: var(--ec-shadow-overlay);
 }
 
-.ec-login-claim {
+.ec-gate-body {
     display: flex;
+    flex: 1;
     flex-direction: column;
+    justify-content: center;
     gap: var(--ec-space-6);
-    max-width: var(--ec-login-claim-width);
 }
 
-.ec-login-claim-title {
-    margin: 0;
-    font-size: var(--ec-login-claim-size);
-    font-weight: var(--ec-weight-semibold);
-    line-height: var(--ec-login-claim-leading);
-    letter-spacing: -0.025em;
-    text-wrap: pretty;
-}
-
-.ec-login-claim-text {
-    margin: 0;
-    font-size: var(--ec-login-lead-size);
-    line-height: var(--ec-leading-body);
-    color: var(--ec-login-panel-lead);
-}
-
-.ec-login-facts {
+.ec-gate-facts {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--ec-space-8);
+    justify-content: center;
+    gap: var(--ec-space-2) var(--ec-space-8);
     font-size: var(--ec-text-md);
     color: var(--ec-login-panel-faint);
-}
-
-.ec-login-side {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: var(--ec-login-pad-y);
 }
 
 .ec-login-form {
     display: flex;
     flex-direction: column;
     gap: var(--ec-space-6);
-    width: var(--ec-login-form-width);
-    max-width: 100%;
 }
 
 .ec-login-heading {
@@ -1968,18 +1960,6 @@ html {
 }
 
 /* Zavádění aplikace: kroky 1/3 a 2/3 v index.html, 3/3 v LoadingPage. */
-.ec-boot {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: var(--ec-space-6);
-    min-height: var(--ec-viewport-height);
-    background: var(--ec-bg);
-    font-family: var(--ec-font);
-    color: var(--ec-text);
-}
-
 .ec-boot-step {
     display: flex;
     align-items: center;
@@ -2000,7 +1980,6 @@ html {
 .ec-boot-track {
     position: relative;
     overflow: hidden;
-    width: var(--ec-boot-track-width);
     height: var(--ec-space-2);
     border-radius: var(--ec-radius-pill);
     background: var(--ec-border);
@@ -2031,25 +2010,6 @@ html {
 
     .ec-boot-step-start {
         display: inline;
-    }
-}
-
-@media (max-width: 991.98px) {
-    .ec-login {
-        grid-template-columns: minmax(0, 1fr);
-    }
-
-    .ec-login-panel {
-        padding: var(--ec-space-6);
-    }
-
-    .ec-login-claim,
-    .ec-login-facts {
-        display: none;
-    }
-
-    .ec-login-side {
-        padding: var(--ec-space-6);
     }
 }
 

@@ -33,6 +33,26 @@ public class LoginRenderTests
     }
 
     [Test]
+    public async Task TheFormSitsInTheSameFrameAsTheLoadingStep()
+    {
+        await using var ctx = new BunitContext();
+
+        ctx.Services.AddSingleton<IAuthSession>(new StubAuthSession());
+
+        var login = ctx.Render<Login>();
+        var loading = ctx.Render<LoadingPage>();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(login.Find(".ec-gate-card form"), Is.Not.Null);
+            Assert.That(login.Find(".ec-gate-card > .ec-brand").TextContent.Trim(), Is.EqualTo("EvilCase"));
+            Assert.That(loading.Find(".ec-gate-card > .ec-brand").TextContent.Trim(), Is.EqualTo("EvilCase"));
+            Assert.That(loading.Find(".ec-gate-card .ec-boot-track"), Is.Not.Null);
+            Assert.That(loading.Find(".ec-gate-facts").InnerHtml, Is.EqualTo(login.Find(".ec-gate-facts").InnerHtml));
+        }
+    }
+
+    [Test]
     public async Task ARefusedSignInShowsTheReasonInsideTheForm()
     {
         await using var ctx = new BunitContext();
