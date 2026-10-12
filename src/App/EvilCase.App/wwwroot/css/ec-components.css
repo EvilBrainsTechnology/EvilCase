@@ -22,8 +22,12 @@ html {
 }
 
 .ec a {
-    color: var(--ec-accent-text);
     text-decoration: none;
+}
+
+/* Tlačítko EcButton, i v podobě odkazu, bere barvu ze své varianty. */
+.ec a:where(:not(.ec-button)) {
+    color: var(--ec-accent-text);
 }
 
 .ec button,
@@ -32,6 +36,12 @@ html {
 .ec textarea {
     font-family: inherit;
     font-size: inherit;
+}
+
+.ec button:where(:not(.ec-button)),
+.ec input,
+.ec select,
+.ec textarea {
     color: inherit;
 }
 
