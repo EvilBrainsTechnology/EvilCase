@@ -64,6 +64,7 @@ html {
     align-items: center;
     justify-content: center;
     gap: var(--ec-space-3);
+    box-sizing: border-box;
     padding: 0 var(--ec-space-5);
     border: 1px solid transparent;
     border-radius: var(--ec-radius-lg);
@@ -220,6 +221,24 @@ html {
 
 .ec-crumb-separator {
     color: var(--ec-text-muted);
+}
+
+.ec-page-header-top {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--ec-space-3);
+}
+
+.ec-page-header-top .ec-crumbs {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.ec-page-header-end {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
 }
 
 .ec-page-header-row {
@@ -676,13 +695,16 @@ html {
 .ec-file-chip {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     flex: 0 0 auto;
-    gap: var(--ec-space-2);
-    height: calc(var(--ec-space-7) + var(--ec-space-1));
-    padding: 0 var(--ec-space-3);
-    border-radius: var(--ec-radius-sm);
+    gap: var(--ec-space-1);
+    box-sizing: border-box;
+    width: var(--ec-file-chip-width);
+    height: var(--ec-file-chip-height);
+    padding: 0;
+    border-radius: var(--ec-file-chip-radius);
     font-family: var(--ec-font-mono);
-    font-size: var(--ec-text-xs);
+    font-size: var(--ec-file-chip-text);
     font-weight: var(--ec-weight-bold);
     line-height: var(--ec-leading-tight);
     letter-spacing: 0.03em;
@@ -748,58 +770,73 @@ html {
 .ec-file-list {
     display: flex;
     flex-direction: column;
-    gap: var(--ec-space-2);
+    gap: var(--ec-space-3);
 }
 
 .ec-file-row {
     display: flex;
     align-items: center;
-    gap: var(--ec-space-3);
-}
-
-.ec-file-open {
-    display: flex;
-    align-items: center;
-    flex: 1 1 auto;
-    min-width: 0;
     gap: var(--ec-space-4);
-    padding: var(--ec-space-3) var(--ec-space-4);
+    padding: var(--ec-space-4);
     border: 1px solid var(--ec-border);
     border-radius: var(--ec-radius-lg);
-    background: var(--ec-surface);
-    font-family: var(--ec-font);
-    font-size: var(--ec-text-md);
-    color: var(--ec-text);
+}
+
+.ec-file-main {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    gap: calc(var(--ec-space-1) / 2);
+    min-width: 0;
+}
+
+.ec-file-name {
+    align-self: flex-start;
+    max-width: 100%;
+    overflow: hidden;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font-weight: var(--ec-weight-medium);
     text-align: left;
+    white-space: nowrap;
+    text-overflow: ellipsis;
     cursor: pointer;
 }
 
-.ec-file-open:hover:enabled {
-    background: var(--ec-surface-sunken);
+.ec-file-name:hover:enabled {
+    color: var(--ec-accent-text);
 }
 
-.ec-file-open:focus-visible {
+.ec-file-name:focus-visible {
     outline: none;
+    border-radius: var(--ec-radius-sm);
     box-shadow: var(--ec-focus-ring);
 }
 
-.ec-file-open:disabled {
+.ec-file-name:disabled {
     cursor: default;
     opacity: 0.6;
 }
 
-.ec-file-name {
-    flex: 1 1 auto;
-    min-width: 0;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
+.ec-file-meta {
+    font-size: var(--ec-text-xs);
+    color: var(--ec-text-muted);
 }
 
-.ec-file-meta {
+.ec-file-actions {
+    display: flex;
+    align-items: center;
     flex: 0 0 auto;
-    font-family: var(--ec-font-mono);
-    font-size: var(--ec-text-sm);
+    gap: var(--ec-space-4);
+}
+
+.ec-file-actions .ec-button {
+    height: var(--ec-control-md);
+    font-size: var(--ec-text-md);
+}
+
+.ec-file-actions .ec-button-ghost {
     color: var(--ec-text-muted);
 }
 
@@ -838,6 +875,12 @@ html {
     border-radius: var(--ec-radius-lg);
     font-size: var(--ec-text-md);
     color: var(--ec-text-muted);
+}
+
+.ec-file-drop-compact {
+    gap: var(--ec-space-3);
+    min-height: calc(var(--ec-control-lg) + var(--ec-space-3));
+    font-size: var(--ec-text-sm);
 }
 
 /* FileDropZone puts "hover" on its own div while a drag is over the card. */
@@ -1168,6 +1211,10 @@ html {
     border-right: 0;
 }
 
+.ec-detail-fact-copyable {
+    padding-right: var(--ec-space-4);
+}
+
 .ec-detail-fact-labels {
     position: relative;
     flex: 1 1 auto;
@@ -1202,11 +1249,68 @@ html {
     text-decoration: none;
 }
 
+.ec-detail-fact-copy {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-1);
+    min-width: 0;
+}
+
+.ec-detail-fact-copy .ec-copy {
+    color: var(--ec-text-muted);
+}
+
+.ec-detail-fact-copy .ec-copy:hover {
+    background: var(--ec-bg);
+    color: var(--ec-text);
+}
+
+.ec-detail-fact-warning {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-1);
+    font-size: var(--ec-text-xs);
+    color: var(--ec-warning-text);
+}
+
+.ec-copy {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: var(--ec-copy-size);
+    height: var(--ec-copy-size);
+    padding: 0;
+    border: 0;
+    border-radius: var(--ec-radius-sm);
+    background: transparent;
+    cursor: pointer;
+}
+
+.ec-copy:focus-visible {
+    outline: none;
+    box-shadow: var(--ec-focus-ring);
+}
+
 .ec-detail-fact-row {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: var(--ec-space-2);
+}
+
+.ec-detail-fact-row .ec-button-icon {
+    width: var(--ec-label-add-width);
+    height: var(--ec-label-add-height);
+    padding: 0;
+    border: 1px dashed var(--ec-border-dashed);
+    border-radius: var(--ec-radius-sm);
+    color: var(--ec-text-muted);
+}
+
+.ec-detail-fact-row .ec-button-icon .ec-icon {
+    width: var(--ec-icon-sm);
+    height: var(--ec-icon-sm);
 }
 
 /* Over the row of data, so opening the picker never changes the row's height. */
@@ -1225,6 +1329,29 @@ html {
     border-radius: var(--ec-radius-xl);
     background: var(--ec-surface);
     box-shadow: var(--ec-shadow-overlay);
+}
+
+.ec-act-pager {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-2);
+}
+
+.ec-act-pager .ec-button {
+    color: var(--ec-text);
+}
+
+.ec-act-pager-text {
+    min-width: var(--ec-act-pager-text);
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-muted);
+    text-align: center;
+    white-space: nowrap;
+}
+
+.ec-act-pager-position {
+    font-weight: var(--ec-weight-semibold);
+    color: var(--ec-text);
 }
 
 .ec-detail-layout {
@@ -1284,6 +1411,19 @@ html {
     color: var(--ec-text-muted);
 }
 
+.ec-case-contact {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--ec-space-1) / 2);
+    margin: var(--ec-space-4) 0 0;
+    font-size: var(--ec-text-sm);
+}
+
+.ec-case-contact-label {
+    font-size: var(--ec-text-xs);
+    color: var(--ec-text-muted);
+}
+
 .ec-status-dot {
     flex: 0 0 auto;
     width: var(--ec-space-3);
@@ -1301,6 +1441,131 @@ html {
 
 .ec-status-dot-closed {
     background: var(--ec-closed-dot);
+}
+
+.ec-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ec-timeline-item {
+    display: grid;
+    grid-template-columns: var(--ec-icon-md) minmax(0, 1fr);
+    column-gap: calc(var(--ec-space-1) + var(--ec-space-2));
+    margin: 0 calc(-1 * var(--ec-space-3));
+    padding: var(--ec-space-2) var(--ec-space-3);
+    border-radius: var(--ec-timeline-radius);
+    text-decoration: none;
+}
+
+.ec-timeline-item:hover .ec-timeline-title {
+    color: var(--ec-accent-text);
+}
+
+.ec-timeline-item:focus-visible {
+    outline: none;
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-timeline-item-current {
+    background: var(--ec-accent-soft);
+}
+
+.ec-timeline-rail {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    align-self: stretch;
+}
+
+.ec-timeline-dot {
+    flex: 0 0 auto;
+    box-sizing: border-box;
+    width: var(--ec-timeline-dot);
+    height: var(--ec-timeline-dot);
+    margin-top: var(--ec-space-1);
+    border: 2px solid var(--ec-closed-dot);
+    border-radius: var(--ec-radius-pill);
+    background: var(--ec-surface);
+}
+
+.ec-timeline-dot-incoming {
+    border-color: var(--ec-incoming-dot);
+}
+
+.ec-timeline-dot-outgoing {
+    border-color: var(--ec-outgoing-dot);
+}
+
+.ec-timeline-dot-current {
+    border-color: var(--ec-accent);
+    background: var(--ec-accent);
+}
+
+.ec-timeline-line {
+    flex: 1 1 auto;
+    width: var(--ec-timeline-line);
+    margin-top: var(--ec-space-1);
+    margin-bottom: calc(-1 * (var(--ec-space-1) + var(--ec-space-2)));
+    background: var(--ec-border);
+}
+
+.ec-timeline-entry:last-child .ec-timeline-line {
+    background: transparent;
+}
+
+.ec-timeline-main {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--ec-space-1) / 2);
+    min-width: 0;
+    padding-bottom: calc(var(--ec-space-1) + var(--ec-space-2));
+}
+
+.ec-timeline-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--ec-space-1);
+    font-size: var(--ec-text-xs);
+    color: var(--ec-text-muted);
+}
+
+.ec-timeline-direction {
+    display: inline-flex;
+    align-items: center;
+    gap: calc(var(--ec-space-1) / 2);
+}
+
+.ec-timeline-direction-incoming {
+    color: var(--ec-incoming-text);
+}
+
+.ec-timeline-direction-outgoing {
+    color: var(--ec-outgoing-text);
+}
+
+.ec-timeline-title {
+    font-size: var(--ec-text-sm);
+    font-weight: var(--ec-weight-medium);
+    line-height: var(--ec-timeline-leading);
+    color: var(--ec-text);
+}
+
+.ec-timeline-item-current .ec-timeline-title {
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-timeline-all {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ec-space-1);
+    font-size: var(--ec-text-sm);
+    font-weight: var(--ec-weight-medium);
 }
 
 /* Detail spisu (docs/design/detail-spisu.html): podřízené spisy v postranním sloupci. */
@@ -1364,7 +1629,8 @@ html {
 @media (max-width: 991.98px) {
     .ec-button,
     .ec-file-upload,
-    .ec-swatch {
+    .ec-swatch,
+    .ec-copy {
         min-height: var(--ec-touch-min);
         min-width: var(--ec-touch-min);
     }
@@ -1435,6 +1701,24 @@ html {
 
     .ec-settings-row-actions {
         justify-content: flex-start;
+    }
+
+    .ec-file-name,
+    .ec-timeline-all {
+        min-height: var(--ec-touch-min);
+    }
+
+    .ec-file-row {
+        flex-wrap: wrap;
+    }
+
+    .ec-file-main {
+        flex: 1 1 0;
+    }
+
+    .ec-file-actions {
+        flex: 1 1 100%;
+        justify-content: flex-end;
     }
 }
 
@@ -1842,6 +2126,33 @@ html {
     box-shadow: var(--ec-focus-ring);
 }
 
+.ec-menu-anchor {
+    position: relative;
+    flex: 0 0 auto;
+}
+
+.ec-menu.ec-menu-popup {
+    width: auto;
+    min-width: var(--ec-menu-width);
+}
+
+.ec-menu-popup .ec-menu-item {
+    white-space: nowrap;
+}
+
+.ec-menu .ec-menu-item-danger {
+    color: var(--ec-danger-text);
+}
+
+.ec-menu .ec-menu-item-danger:hover {
+    background: var(--ec-danger-bg);
+}
+
+.ec-menu-divider {
+    margin: var(--ec-space-1) 0;
+    border-top: 1px solid var(--ec-border-subtle);
+}
+
 .ec-topbar-burger {
     display: none;
     align-items: center;
@@ -1936,6 +2247,15 @@ html {
     .ec-menu-item {
         min-width: var(--ec-touch-min);
         height: var(--ec-touch-min);
+    }
+
+    .ec-menu.ec-menu-popup {
+        position: fixed;
+        top: auto;
+        right: var(--ec-space-5);
+        bottom: calc(var(--ec-space-5) + env(safe-area-inset-bottom));
+        left: var(--ec-space-5);
+        min-width: 0;
     }
 }
 

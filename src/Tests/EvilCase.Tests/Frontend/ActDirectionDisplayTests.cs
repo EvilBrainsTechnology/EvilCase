@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using EvilBrains.EvilCase.App.Components.Ec;
+using EvilBrains.EvilCase.App.Icons;
 using EvilBrains.EvilCase.App.Models;
 using EvilBrains.EvilCase.Domain.Acts;
 
@@ -37,6 +38,34 @@ public class ActDirectionDisplayTests
         {
             Assert.That(static () => ActDirectionDisplay.Text((ActDirection)99), Throws.InstanceOf<UnreachableException>(), "a direction the app does not name never renders as a dash");
             Assert.That(static () => ActDirectionDisplay.Tone((ActDirection)99), Throws.InstanceOf<UnreachableException>());
+            Assert.That(static () => ActDirectionDisplay.ContactLabel((ActDirection)99), Throws.InstanceOf<UnreachableException>());
+            Assert.That(static () => ActDirectionDisplay.Icon((ActDirection)99), Throws.InstanceOf<UnreachableException>());
+            Assert.That(static () => ActDirectionDisplay.Css((ActDirection)99), Throws.InstanceOf<UnreachableException>());
+        }
+    }
+
+    [TestCase(null, "Kontakt")]
+    [TestCase(ActDirection.Incoming, "Odesílatel")]
+    [TestCase(ActDirection.Outgoing, "Adresát")]
+    public void TheContactFactIsNamedByTheDirection(ActDirection? direction, string expected)
+    {
+        Assert.That(ActDirectionDisplay.ContactLabel(direction), Is.EqualTo(expected));
+    }
+
+    [TestCase(ActDirection.Incoming, "incoming")]
+    [TestCase(ActDirection.Outgoing, "outgoing")]
+    public void EveryDirectionNamesItsOwnTimelineTone(ActDirection direction, string expected)
+    {
+        Assert.That(ActDirectionDisplay.Css(direction), Is.EqualTo(expected));
+    }
+
+    [Test]
+    public void EveryDirectionDrawsItsOwnArrow()
+    {
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(ActDirectionDisplay.Icon(ActDirection.Incoming), Is.EqualTo(AppIcons.ArrowDownLeft));
+            Assert.That(ActDirectionDisplay.Icon(ActDirection.Outgoing), Is.EqualTo(AppIcons.ArrowUpRight));
         }
     }
 }

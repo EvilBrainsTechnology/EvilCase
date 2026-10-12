@@ -1,26 +1,35 @@
 <header class="ec-page-header">
-    @if (this.Breadcrumbs.Count > 0)
+    @if (this.Breadcrumbs.Count > 0 || this.CrumbsEnd is not null)
     {
-        <nav class="ec-crumbs" aria-label="Drobečková navigace">
-            @for (var index = 0; index < this.Breadcrumbs.Count; index++)
+        <div class="ec-page-header-top">
+            @if (this.Breadcrumbs.Count > 0)
             {
-                var crumb = this.Breadcrumbs[index];
+                <nav class="ec-crumbs" aria-label="Drobečková navigace">
+                    @for (var index = 0; index < this.Breadcrumbs.Count; index++)
+                    {
+                        var crumb = this.Breadcrumbs[index];
 
-                if (index > 0)
-                {
-                    <span class="ec-crumb-separator" aria-hidden="true">/</span>
-                }
+                        if (index > 0)
+                        {
+                            <span class="ec-crumb-separator" aria-hidden="true">/</span>
+                        }
 
-                if (crumb.Href is null)
-                {
-                    <span class="ec-crumb" aria-current="page">@crumb.Text</span>
-                }
-                else
-                {
-                    <a class="ec-crumb" href="@crumb.Href">@crumb.Text</a>
-                }
+                        if (crumb.Href is null)
+                        {
+                            <span class="ec-crumb" aria-current="page">@crumb.Text</span>
+                        }
+                        else
+                        {
+                            <a class="ec-crumb" href="@crumb.Href">@crumb.Text</a>
+                        }
+                    }
+                </nav>
             }
-        </nav>
+            @if (this.CrumbsEnd is not null)
+            {
+                <div class="ec-page-header-end">@this.CrumbsEnd</div>
+            }
+        </div>
     }
     <div class="ec-page-header-row">
         <h1 class="ec-page-title">@this.Title</h1>
@@ -38,6 +47,12 @@
 
     [Parameter]
     public IReadOnlyList<EcCrumb> Breadcrumbs { get; set; } = [];
+
+    /// <summary>
+    /// Stands right of the breadcrumbs, e.g. the act detail's previous and next act.
+    /// </summary>
+    [Parameter]
+    public RenderFragment? CrumbsEnd { get; set; }
 
     [Parameter]
     public RenderFragment? Status { get; set; }

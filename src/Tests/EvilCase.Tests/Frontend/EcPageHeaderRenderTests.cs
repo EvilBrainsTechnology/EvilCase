@@ -16,6 +16,7 @@ public class EcPageHeaderRenderTests
         {
             Assert.That(component.Find("h1").TextContent.Trim(), Is.EqualTo("Spisy"));
             Assert.That(component.FindAll("nav"), Is.Empty);
+            Assert.That(component.FindAll(".ec-page-header-top"), Is.Empty);
             Assert.That(component.FindAll(".ec-page-actions"), Is.Empty);
         }
     }
@@ -62,6 +63,28 @@ public class EcPageHeaderRenderTests
             Assert.That(component.Find(".ec-page-header-row").TextContent, Does.Contain("Aktivní"));
             Assert.That(component.Find(".ec-page-header-row").TextContent, Does.Contain("Nový spis"));
             Assert.That(component.Find(".ec-page-actions").TextContent, Does.Contain("Nový spis"));
+        }
+    }
+
+    [Test]
+    public void TheCrumbsEndStandsInTheBreadcrumbRow()
+    {
+        using var ctx = new BunitContext();
+
+        EcCrumb[] crumbs = [new EcCrumb("Spisy", "/spisy")];
+
+        var component = ctx.Render<EcPageHeader>(parameters => parameters
+            .Add(static header => header.Title, "Spisy")
+            .Add(static header => header.Breadcrumbs, crumbs)
+            .Add(static header => header.CrumbsEnd, "Úkon 5 z 23"));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.FindAll(".ec-page-header-top .ec-crumbs"), Has.Count.EqualTo(1));
+            Assert.That(
+                component.Find(".ec-page-header-top .ec-page-header-end").TextContent,
+                Is.EqualTo("Úkon 5 z 23"),
+                "the slot shares the breadcrumb row");
         }
     }
 }

@@ -7,6 +7,7 @@ using EvilBrains.EvilCase.Api.Contract.Comments;
 using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Api.Contract.Labels;
+using EvilBrains.EvilCase.App.Clipboard;
 using EvilBrains.EvilCase.App.Files;
 using EvilBrains.EvilCase.App.Pages;
 using EvilBrains.EvilCase.Domain.Acts;
@@ -36,7 +37,6 @@ public class ActRenderTests
             CaseId = caseId,
             CaseNumber = "EC/20260807-001",
             CaseTitle = "Spis",
-            CaseDate = new DateOnly(2026, 8, 7),
             CaseStatus = CaseStatus.Active,
             ActNumber = "1",
             Date = new DateOnly(2026, 8, 7),
@@ -75,7 +75,6 @@ public class ActRenderTests
             CaseId = caseId,
             CaseNumber = "EC/20260807-001",
             CaseTitle = "Spis",
-            CaseDate = new DateOnly(2026, 8, 7),
             CaseStatus = CaseStatus.Active,
             ActNumber = "EC/20250528-001/20250902-001",
             Date = new DateOnly(2025, 9, 2),
@@ -100,7 +99,7 @@ public class ActRenderTests
             Assert.That(component.Find(".ec-detail-text").TextContent, Is.EqualTo("Vina a pokuta."));
             Assert.That(
                 component.FindAll(".ec-detail-fact-name").Select(static node => node.TextContent),
-                Is.EqualTo(["Datum úkonu", "Číslo jednací", "Externí číslo jednací", "Kontakt", "Štítky"]),
+                Is.EqualTo(["Datum úkonu", "Číslo jednací", "Externí číslo jednací", "Odesílatel", "Štítky"]),
                 "the row of data follows the design");
             Assert.That(component.Find(".ec-crumb[aria-current=page]").TextContent, Is.EqualTo("EC/20250528-001/20250902-001"));
         }
@@ -120,7 +119,6 @@ public class ActRenderTests
             CaseId = caseId,
             CaseNumber = "EC/20260807-001",
             CaseTitle = "Spis",
-            CaseDate = new DateOnly(2026, 8, 7),
             CaseStatus = CaseStatus.Active,
             ActNumber = "1",
             Date = new DateOnly(2026, 8, 7),
@@ -155,7 +153,6 @@ public class ActRenderTests
             CaseId = caseId,
             CaseNumber = "EC/20260807-001",
             CaseTitle = "Spis",
-            CaseDate = new DateOnly(2026, 8, 7),
             CaseStatus = CaseStatus.Active,
             ActNumber = "1",
             Date = new DateOnly(2026, 8, 7),
@@ -194,7 +191,6 @@ public class ActRenderTests
             CaseId = caseId,
             CaseNumber = "EC/20260807-001",
             CaseTitle = "Spis",
-            CaseDate = new DateOnly(2026, 8, 7),
             CaseStatus = CaseStatus.Active,
             ActNumber = "1",
             Date = new DateOnly(2026, 8, 7),
@@ -248,7 +244,6 @@ public class ActRenderTests
             CaseId = caseId,
             CaseNumber = "EC/20260807-001",
             CaseTitle = "Spis",
-            CaseDate = new DateOnly(2026, 8, 7),
             CaseStatus = CaseStatus.Active,
             ActNumber = "1",
             Date = new DateOnly(2026, 8, 7),
@@ -294,7 +289,6 @@ public class ActRenderTests
             CaseId = caseId,
             CaseNumber = "EC/20260807-001",
             CaseTitle = "Spis",
-            CaseDate = new DateOnly(2026, 8, 7),
             CaseStatus = CaseStatus.Active,
             ActNumber = "1",
             Date = new DateOnly(2026, 8, 7),
@@ -326,6 +320,299 @@ public class ActRenderTests
             TimeSpan.FromSeconds(2));
     }
 
+    [Test]
+    public void ThePagerNamesThePositionAndLinksTheNeighbours()
+    {
+        using var ctx = new BunitContext();
+
+        var caseId = Guid.CreateVersion7();
+        var actId = Guid.CreateVersion7();
+        var previousId = Guid.CreateVersion7();
+        var nextId = Guid.CreateVersion7();
+
+        Serve(ctx, caseId, actId, MiddleOfThree(caseId, actId, previousId, nextId));
+
+        var component = RenderAct(ctx, caseId, actId);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.Find(".ec-page-header-top .ec-act-pager-text").TextContent, Is.EqualTo("Úkon 2 z 3"));
+            Assert.That(component.Find("a[aria-label='Předchozí úkon: Výzva']").GetAttribute("href"), Is.EqualTo($"/cases/{caseId}/act/{previousId}"));
+            Assert.That(component.Find("a[aria-label='Další úkon: Odvolání']").GetAttribute("href"), Is.EqualTo($"/cases/{caseId}/act/{nextId}"));
+        }
+    }
+
+    [Test]
+    public void TheFirstActOffersNoPreviousAct()
+    {
+        using var ctx = new BunitContext();
+
+        var caseId = Guid.CreateVersion7();
+        var actId = Guid.CreateVersion7();
+        var nextId = Guid.CreateVersion7();
+
+        var detail = Detail(caseId, actId) with
+        {
+            ActPosition = 1,
+            CaseActCount = 2,
+            CaseTimeline =
+            [
+                new ActTimelineItem { ActId = actId, Title = "Úkon", Date = new DateOnly(2026, 8, 7), IsCurrent = true },
+                new ActTimelineItem { ActId = nextId, Title = "Odvolání", Date = new DateOnly(2026, 8, 9), IsCurrent = false },
+            ],
+        };
+
+        Serve(ctx, caseId, actId, detail);
+
+        var component = RenderAct(ctx, caseId, actId);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(
+                component.Find("button[aria-label='Předchozí úkon']").HasAttribute("disabled"),
+                Is.True,
+                "a missing neighbour leaves its button disabled");
+            Assert.That(component.FindAll("a[aria-label='Další úkon: Odvolání']"), Has.Count.EqualTo(1));
+        }
+    }
+
+    [Test]
+    public void TheTimelineLinksTheNeighboursAndMarksThisAct()
+    {
+        using var ctx = new BunitContext();
+
+        var caseId = Guid.CreateVersion7();
+        var actId = Guid.CreateVersion7();
+        var previousId = Guid.CreateVersion7();
+        var nextId = Guid.CreateVersion7();
+
+        Serve(ctx, caseId, actId, MiddleOfThree(caseId, actId, previousId, nextId));
+
+        var component = RenderAct(ctx, caseId, actId);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(
+                component.FindAll("a.ec-timeline-item").Select(static link => link.GetAttribute("href")),
+                Is.EqualTo([$"/cases/{caseId}/act/{previousId}", $"/cases/{caseId}/act/{actId}", $"/cases/{caseId}/act/{nextId}"]));
+            Assert.That(component.Find("a.ec-timeline-item[aria-current=page] .ec-timeline-title").TextContent, Is.EqualTo("Úkon"));
+            Assert.That(component.Find(".ec-timeline-direction-outgoing").TextContent.Trim(), Is.EqualTo("Odchozí"));
+            Assert.That(
+                component.FindAll("a.ec-timeline-item[aria-current=page] .ec-timeline-direction"),
+                Is.Empty,
+                "an act without a direction shows no direction");
+            Assert.That(component.Find("a.ec-timeline-all").GetAttribute("href"), Is.EqualTo($"/cases/{caseId}"));
+            Assert.That(component.Find("a.ec-timeline-all").TextContent.Trim(), Is.EqualTo("Všechny 3 úkony spisu"));
+        }
+    }
+
+    [Test]
+    public void ADifferingCaseContactIsFlaggedAtTheActsContact()
+    {
+        using var ctx = new BunitContext();
+
+        var caseId = Guid.CreateVersion7();
+        var actId = Guid.CreateVersion7();
+
+        var detail = Detail(caseId, actId) with
+        {
+            Direction = ActDirection.Incoming,
+            Contact = new ContactListItem { ContactId = Guid.CreateVersion7(), Name = "Jan Novák", Kind = ContactKind.Person },
+            CaseContact = new ContactListItem { ContactId = Guid.CreateVersion7(), Name = "Městský úřad Vzorov", Kind = ContactKind.Authority },
+        };
+
+        Serve(ctx, caseId, actId, detail);
+
+        var component = RenderAct(ctx, caseId, actId);
+
+        var warning = component.Find(".ec-detail-fact-warning[role=alert]");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(warning.TextContent.Trim(), Is.EqualTo("Spis vede protistranu Městský úřad Vzorov"));
+            Assert.That(
+                warning.ParentElement!.QuerySelector(".ec-detail-fact-name")!.TextContent,
+                Is.EqualTo("Odesílatel"),
+                "the warning sits in the contact fact");
+            Assert.That(component.FindAll(".ec-warning"), Is.Empty);
+        }
+    }
+
+    [Test]
+    public void TheCaseCardNamesTheCaseContactAndTheActCount()
+    {
+        using var ctx = new BunitContext();
+
+        var caseId = Guid.CreateVersion7();
+        var actId = Guid.CreateVersion7();
+        var caseContactId = Guid.CreateVersion7();
+
+        var detail = Detail(caseId, actId) with
+        {
+            CaseActCount = 3,
+            CaseContact = new ContactListItem { ContactId = caseContactId, Name = "Městský úřad Vzorov", Kind = ContactKind.Authority },
+        };
+
+        Serve(ctx, caseId, actId, detail);
+
+        var component = RenderAct(ctx, caseId, actId);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.Find(".ec-case-contact a").GetAttribute("href"), Is.EqualTo($"/contacts/{caseContactId}"));
+            Assert.That(component.Find(".ec-case-contact a").TextContent, Is.EqualTo("Městský úřad Vzorov"));
+            Assert.That(component.Find(".ec-case-meta").TextContent, Does.Contain("Aktivní · 3 úkony"));
+        }
+    }
+
+    [Test]
+    public async Task TheActNumberCopiesAndAMissingExternalNumberOffersNoCopy()
+    {
+        await using var ctx = new BunitContext();
+
+        var caseId = Guid.CreateVersion7();
+        var actId = Guid.CreateVersion7();
+        var detail = Detail(caseId, actId);
+
+        Serve(ctx, caseId, actId, detail);
+
+        var clipboard = (StubClipboardWriter)ctx.Services.GetRequiredService<IClipboardWriter>();
+        var component = RenderAct(ctx, caseId, actId);
+
+        Assert.That(
+            component.FindAll("button[aria-label='Zkopírovat externí číslo jednací']"),
+            Is.Empty,
+            "an act with no external number has nothing to copy");
+
+        await component.Find("button[aria-label='Zkopírovat číslo jednací']").ClickAsync(new MouseEventArgs());
+
+        Assert.That(clipboard.Written, Is.EqualTo([detail.ActNumber]));
+    }
+
+    [Test]
+    public async Task TheMenuOffersTheActActionsAndDeleteNoLongerStandsBesideEdit()
+    {
+        await using var ctx = new BunitContext();
+
+        var caseId = Guid.CreateVersion7();
+        var actId = Guid.CreateVersion7();
+
+        Serve(ctx, caseId, actId, Detail(caseId, actId));
+
+        var component = RenderAct(ctx, caseId, actId);
+
+        await component.Find("button[aria-label='Další akce s úkonem']").ClickAsync(new MouseEventArgs());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(
+                component.FindAll("[role=menuitem]").Select(static item => item.TextContent.Trim()),
+                Is.EqualTo(["Nový úkon ve spisu", "Zkopírovat odkaz na úkon", "Smazat úkon…"]));
+            Assert.That(component.FindAll(".ec-page-actions .ec-button-danger"), Is.Empty, "delete lives in the menu");
+        }
+    }
+
+    [Test]
+    public async Task TheMenuCopiesAnAbsoluteLinkToTheAct()
+    {
+        await using var ctx = new BunitContext();
+
+        var caseId = Guid.CreateVersion7();
+        var actId = Guid.CreateVersion7();
+
+        Serve(ctx, caseId, actId, Detail(caseId, actId));
+
+        var clipboard = (StubClipboardWriter)ctx.Services.GetRequiredService<IClipboardWriter>();
+        var component = RenderAct(ctx, caseId, actId);
+
+        await component.Find("button[aria-label='Další akce s úkonem']").ClickAsync(new MouseEventArgs());
+        await component.FindAll("[role=menuitem]")[1].ClickAsync(new MouseEventArgs());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(
+                clipboard.Written,
+                Is.EqualTo([$"http://localhost/cases/{caseId}/act/{actId}"]),
+                "the link is absolute, so it opens outside the app");
+            Assert.That(component.Find(".ec-page > span[role=status]").TextContent, Is.EqualTo("Odkaz na úkon zkopírován."));
+        }
+    }
+
+    [Test]
+    public async Task TheMenuOpensTheDeleteConfirmation()
+    {
+        await using var ctx = new BunitContext();
+
+        var caseId = Guid.CreateVersion7();
+        var actId = Guid.CreateVersion7();
+        var detail = Detail(caseId, actId);
+
+        Serve(ctx, caseId, actId, detail);
+
+        var component = RenderAct(ctx, caseId, actId);
+
+        await component.Find("button[aria-label='Další akce s úkonem']").ClickAsync(new MouseEventArgs());
+        await component.FindAll("[role=menuitem]")[2].ClickAsync(new MouseEventArgs());
+
+        Assert.That(component.Find(".ec-confirm-text").TextContent, Does.Contain(detail.ActNumber));
+    }
+
+    [Test]
+    public async Task TheMenuStartsANewActInTheCase()
+    {
+        await using var ctx = new BunitContext();
+
+        var caseId = Guid.CreateVersion7();
+        var actId = Guid.CreateVersion7();
+
+        Serve(ctx, caseId, actId, Detail(caseId, actId));
+
+        var navigation = ctx.Services.GetRequiredService<NavigationManager>();
+        var component = RenderAct(ctx, caseId, actId);
+
+        await component.Find("button[aria-label='Další akce s úkonem']").ClickAsync(new MouseEventArgs());
+        await component.FindAll("[role=menuitem]")[0].ClickAsync(new MouseEventArgs());
+
+        Assert.That(navigation.Uri, Does.EndWith($"/cases/{caseId}/act/new"));
+    }
+
+    private static IRenderedComponent<Act> RenderAct(BunitContext ctx, Guid caseId, Guid actId)
+    {
+        return ctx.Render<Act>(parameters => parameters
+            .Add(static page => page.CaseId, caseId)
+            .Add(static page => page.ActId, actId));
+    }
+
+    private static ActDetail Detail(Guid caseId, Guid actId)
+    {
+        return new ActDetail
+        {
+            ActId = actId,
+            CaseId = caseId,
+            CaseNumber = "EC/20260807-001",
+            CaseTitle = "Spis",
+            CaseStatus = CaseStatus.Active,
+            ActNumber = "EC/20260807-001/20260807-002",
+            Date = new DateOnly(2026, 8, 7),
+            Title = "Úkon",
+        };
+    }
+
+    private static ActDetail MiddleOfThree(Guid caseId, Guid actId, Guid previousId, Guid nextId)
+    {
+        return Detail(caseId, actId) with
+        {
+            ActPosition = 2,
+            CaseActCount = 3,
+            CaseTimeline =
+            [
+                new ActTimelineItem { ActId = previousId, Title = "Výzva", Date = new DateOnly(2026, 8, 1), Direction = ActDirection.Incoming, IsCurrent = false },
+                new ActTimelineItem { ActId = actId, Title = "Úkon", Date = new DateOnly(2026, 8, 7), IsCurrent = true },
+                new ActTimelineItem { ActId = nextId, Title = "Odvolání", Date = new DateOnly(2026, 8, 9), Direction = ActDirection.Outgoing, IsCurrent = false },
+            ],
+        };
+    }
+
     private static (IActsClient Acts, IActLabelsClient ActLabels, ILabelsClient Labels) Serve(BunitContext ctx, Guid caseId, Guid actId, ActDetail detail)
     {
         // FilesCard's drop zone imports its own module on first render from a path carrying a
@@ -354,6 +641,7 @@ public class ActRenderTests
         ctx.Services.AddSingleton(actFilesClient);
         ctx.Services.AddSingleton<IFileTransferClient>(new StubFileTransferClient());
         ctx.Services.AddSingleton<IFileDownloader>(new StubFileDownloader());
+        ctx.Services.AddSingleton<IClipboardWriter>(new StubClipboardWriter());
         ctx.Services.AddSingleton(labelsClient);
         ctx.Services.AddSingleton(Substitute.For<IContactsClient>());
 

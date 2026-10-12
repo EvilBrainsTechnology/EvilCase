@@ -43,6 +43,8 @@
     --ec-incoming-text: #2A48B8;
     --ec-outgoing-bg: #E3F4E8;
     --ec-outgoing-text: #1D6B36;
+    --ec-incoming-dot: #7C93E6;
+    --ec-outgoing-dot: #5FB27B;
 
     /* Druh kontaktu */
     --ec-authority-bg: #E6EEFD;
@@ -86,6 +88,10 @@
     --ec-file-image-text: #6B21A8;
     --ec-file-other-bg: #EDEFF3;
     --ec-file-other-text: #454B57;
+    --ec-file-chip-width: 52px;
+    --ec-file-chip-height: 40px;
+    --ec-file-chip-radius: 8px;
+    --ec-file-chip-text: 11px;
 
     /* Písmo */
     --ec-font: 'Instrument Sans', 'Segoe UI', system-ui, sans-serif;
@@ -140,6 +146,7 @@
     --ec-child-date-width: 76px;
     --ec-settings-rail: 220px;
     --ec-popover-width: 320px;
+    --ec-menu-width: 240px;
     --ec-viewport-height: 100vh;
     --ec-boot-track-width: 260px;
     --ec-topbar-gap: 36px;
@@ -168,6 +175,16 @@
     --ec-monogram-radius-lg: 14px;
     --ec-monogram-text-sm: 11px;
     --ec-monogram-text-lg: 17px;
+
+    /* Detail úkonu (docs/design/detail-ukonu.html) */
+    --ec-act-pager-text: 92px;
+    --ec-copy-size: 26px;
+    --ec-label-add-width: 24px;
+    --ec-label-add-height: 22px;
+    --ec-timeline-dot: 10px;
+    --ec-timeline-line: 2px;
+    --ec-timeline-radius: 8px;
+    --ec-timeline-leading: 1.4;
 
     /* Přehled (docs/design/prehled.html) */
     --ec-stat-icon: 48px;

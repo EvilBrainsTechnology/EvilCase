@@ -21,7 +21,7 @@ public class FileSizeDisplayTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(FileSizeDisplay.Text(1024), Is.EqualTo("1 kB"));
-            Assert.That(FileSizeDisplay.Text(1536), Is.EqualTo("1.5 kB"));
+            Assert.That(FileSizeDisplay.Text(1536), Is.EqualTo("1,5 kB"));
         }
     }
 
@@ -32,6 +32,7 @@ public class FileSizeDisplayTests
         {
             Assert.That(FileSizeDisplay.Text(1048576), Is.EqualTo("1 MB"));
             Assert.That(FileSizeDisplay.Text(FileLimits.MaxUploadBytes), Is.EqualTo("100 MB"));
+            Assert.That(FileSizeDisplay.Text(1572864), Is.EqualTo("1,5 MB"), "a decimal reads with a Czech comma");
         }
     }
 }

@@ -49,6 +49,8 @@ Aplikace má vlastní sadu komponent s prefixem `Ec`. Obrazovka skládá jen je,
   tlačítko, patička nese rozsah, počet a stránkování.
 - `EcField` — popisek, ovládací prvek, nápověda a chyba pod sebou; povinné pole značí hvězdička.
 - `EcModal` — nad nativním `dialog`, se správou fokusu a zavíráním klávesou Esc.
+- `EcMenu` — tlačítko s nabídkou akcí; Esc i klik mimo ji zavřou, šipky chodí mezi položkami
+  a fokus se vrací na tlačítko.
 - `EcCombobox` — pole s hledáním bez ohledu na diakritiku a se založením záznamu přímo
   z nabídky; stojí na něm výběr kontaktu i štítku.
 - `EcEmptyState` — ikona, věta, volitelná výzva k založení.

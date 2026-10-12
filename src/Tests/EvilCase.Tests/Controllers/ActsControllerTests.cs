@@ -348,7 +348,6 @@ public class ActsControllerTests
             CaseId = Guid.CreateVersion7(),
             CaseNumber = "EC/20260821-001",
             CaseTitle = "Vzorový spis",
-            CaseDate = new DateOnly(2026, 8, 21),
             CaseStatus = CaseStatus.Active,
             ActNumber = "EC/20260821-001/20260825-001",
             Direction = ActDirection.Incoming,

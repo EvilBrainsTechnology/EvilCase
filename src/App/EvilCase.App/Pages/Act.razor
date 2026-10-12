@@ -6,18 +6,22 @@
 @using EvilBrains.EvilCase.Api.Contract.Comments
 @using EvilBrains.EvilCase.Api.Contract.Files
 @using EvilBrains.EvilCase.Api.Contract.Labels
+@using Microsoft.JSInterop
 @inject IActsClient ActsClient
 @inject IActLabelsClient ActLabelsClient
 @inject IActCommentsClient ActCommentsClient
 @inject IActFilesClient ActFilesClient
 @inject IFileTransferClient FileTransfer
 @inject IFileDownloader Downloader
+@inject IClipboardWriter Clipboard
 @inject NavigationManager Navigation
 @inject ILogger<Act> Logger
 
 <PageTitle>@(this.act is null ? "Úkon" : this.act.ActNumber) – EvilCase</PageTitle>
 
 <div class="ec-page">
+    <span class="ec-visually-hidden" role="status">@this.announcement</span>
+
     @if (this.notFound)
     {
         <EcCard><p class="ec-state">Úkon nenalezen.</p></EcCard>
@@ -41,6 +45,31 @@
         <EcCard>
             <div class="ec-detail">
                 <EcPageHeader Title="@this.act.Title" Breadcrumbs="this.Crumbs">
+                    <CrumbsEnd>
+                        <nav class="ec-act-pager" aria-label="Úkony spisu">
+                            @if (this.Previous is { } previous)
+                            {
+                                <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ChevronLeft"
+                                          Href="@this.ActHref(previous.ActId)" AriaLabel="@($"Předchozí úkon: {previous.Title}")" />
+                            }
+                            else
+                            {
+                                <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ChevronLeft"
+                                          AriaLabel="Předchozí úkon" Disabled />
+                            }
+                            <span class="ec-act-pager-text">Úkon <span class="ec-act-pager-position">@this.act.ActPosition</span> z @this.act.CaseActCount</span>
+                            @if (this.Next is { } next)
+                            {
+                                <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ChevronRight"
+                                          Href="@this.ActHref(next.ActId)" AriaLabel="@($"Další úkon: {next.Title}")" />
+                            }
+                            else
+                            {
+                                <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ChevronRight"
+                                          AriaLabel="Další úkon" Disabled />
+                            }
+                        </nav>
+                    </CrumbsEnd>
                     <Status>
                         @if (this.act.Direction is { } direction)
                         {
@@ -49,7 +78,7 @@
                     </Status>
                     <Actions>
                         <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Pencil" OnClick="this.EditAct">Upravit úkon</EcButton>
-                        <EcButton Variant="EcButtonVariant.Danger" Icon="@AppIcons.Trash" OnClick="this.StartDeleting">Smazat úkon</EcButton>
+                        <EcMenu AriaLabel="Další akce s úkonem" Items="this.ActActions" />
                     </Actions>
                 </EcPageHeader>
 
@@ -60,16 +89,32 @@
                         <span class="ec-detail-fact-name">Datum úkonu</span>
                         <span class="ec-detail-fact-value">@DateDisplay.Text(this.act.Date)</span>
                     </div>
-                    <div class="ec-detail-fact">
+                    <div class="ec-detail-fact ec-detail-fact-copyable">
                         <span class="ec-detail-fact-name">Číslo jednací</span>
-                        <span class="ec-detail-fact-mono">@this.act.ActNumber</span>
+                        <span class="ec-detail-fact-copy">
+                            <span class="ec-detail-fact-mono">@this.act.ActNumber</span>
+                            <CopyButton Value="@this.act.ActNumber" AriaLabel="Zkopírovat číslo jednací" />
+                        </span>
                     </div>
+                    @if (string.IsNullOrWhiteSpace(this.act.ExternalActNumber))
+                    {
+                        <div class="ec-detail-fact">
+                            <span class="ec-detail-fact-name">Externí číslo jednací</span>
+                            <span class="ec-detail-fact-mono">—</span>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="ec-detail-fact ec-detail-fact-copyable">
+                            <span class="ec-detail-fact-name">Externí číslo jednací</span>
+                            <span class="ec-detail-fact-copy">
+                                <span class="ec-detail-fact-mono">@this.act.ExternalActNumber</span>
+                                <CopyButton Value="@this.act.ExternalActNumber" AriaLabel="Zkopírovat externí číslo jednací" />
+                            </span>
+                        </div>
+                    }
                     <div class="ec-detail-fact">
-                        <span class="ec-detail-fact-name">Externí číslo jednací</span>
-                        <span class="ec-detail-fact-mono">@(string.IsNullOrWhiteSpace(this.act.ExternalActNumber) ? "—" : this.act.ExternalActNumber)</span>
-                    </div>
-                    <div class="ec-detail-fact">
-                        <span class="ec-detail-fact-name">Kontakt</span>
+                        <span class="ec-detail-fact-name">@ActDirectionDisplay.ContactLabel(this.act.Direction)</span>
                         @if (this.act.Contact is { } contact)
                         {
                             <a class="ec-detail-fact-link" href="@($"/contacts/{contact.ContactId}")">@contact.Name</a>
@@ -77,6 +122,10 @@
                         else
                         {
                             <span class="ec-detail-fact-value">—</span>
+                        }
+                        @if (ActContactRules.DifferingCaseContact(this.act.Contact, this.act.CaseContact) is { } differing)
+                        {
+                            <span class="ec-detail-fact-warning" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" Size="EcIconSize.Small" />Spis vede protistranu @differing.Name</span>
                         }
                     </div>
                     <div class="ec-detail-fact ec-detail-fact-labels">
@@ -118,14 +167,6 @@
             </div>
         </EcCard>
 
-        @if (ActContactRules.DifferingCaseContact(this.act.Contact, this.act.CaseContact) is { } differing)
-        {
-            <div class="ec-warning" role="alert">
-                <EcIcon Paths="@AppIcons.AlertTriangle" Size="EcIconSize.Large" />
-                <p class="ec-warning-text">Kontakt úkonu se liší od kontaktu spisu (<strong>@differing.Name</strong>).</p>
-            </div>
-        }
-
         <div class="ec-detail-layout">
             <div class="ec-detail-main">
                 <FilesCard @key="(nameof(FilesCard), this.ActId)"
@@ -153,8 +194,56 @@
                     </a>
                     <p class="ec-case-meta">
                         <span class="@($"ec-status-dot {CaseStatusDisplay.Dot(this.act.CaseStatus)}")" aria-hidden="true"></span>
-                        @CaseStatusDisplay.Text(this.act.CaseStatus) · @DateDisplay.Text(this.act.CaseDate)
+                        @CaseStatusDisplay.Text(this.act.CaseStatus) · @ActCountDisplay.Text(this.act.CaseActCount)
                     </p>
+                    <div class="ec-case-contact">
+                        <span class="ec-case-contact-label">Protistrana spisu</span>
+                        @if (this.act.CaseContact is { } caseContact)
+                        {
+                            <a href="@($"/contacts/{caseContact.ContactId}")">@caseContact.Name</a>
+                        }
+                        else
+                        {
+                            <span>—</span>
+                        }
+                    </div>
+                </EcCard>
+
+                <EcCard Title="Průběh spisu">
+                    <ChildContent>
+                        <ol class="ec-timeline">
+                            @foreach (var item in this.act.CaseTimeline)
+                            {
+                                var dot = item.IsCurrent
+                                    ? "ec-timeline-dot ec-timeline-dot-current"
+                                    : item.Direction is { } dotDirection ? $"ec-timeline-dot ec-timeline-dot-{ActDirectionDisplay.Css(dotDirection)}" : "ec-timeline-dot";
+
+                                <li class="ec-timeline-entry">
+                                    <a class="@(item.IsCurrent ? "ec-timeline-item ec-timeline-item-current" : "ec-timeline-item")"
+                                       href="@this.ActHref(item.ActId)" aria-current="@(item.IsCurrent ? "page" : null)">
+                                        <span class="ec-timeline-rail" aria-hidden="true">
+                                            <span class="@dot"></span>
+                                            <span class="ec-timeline-line"></span>
+                                        </span>
+                                        <span class="ec-timeline-main">
+                                            <span class="ec-timeline-meta">
+                                                @DateDisplay.Text(item.Date)
+                                                @if (item.Direction is { } itemDirection)
+                                                {
+                                                    <span aria-hidden="true">·</span>
+                                                    <span class="@($"ec-timeline-direction ec-timeline-direction-{ActDirectionDisplay.Css(itemDirection)}")"><EcIcon Paths="@ActDirectionDisplay.Icon(itemDirection)" Size="EcIconSize.Small" />@ActDirectionDisplay.Text(itemDirection)</span>
+                                                }
+                                            </span>
+                                            <span class="ec-timeline-title">@item.Title</span>
+                                        </span>
+                                    </a>
+                                </li>
+                            }
+                        </ol>
+                    </ChildContent>
+                    <Footer>
+                        <a class="ec-timeline-all" href="@($"/cases/{this.act.CaseId}")">@ActCountDisplay.AllText(this.act.CaseActCount)<EcIcon Paths="@AppIcons.ChevronRight" Size="EcIconSize.Small" /></a>
+                    </Footer>
                 </EcCard>
             </aside>
         </div>
@@ -185,6 +274,8 @@
 
     private bool deleting;
 
+    private string? announcement;
+
     private IReadOnlyList<EcCrumb> Crumbs => this.act is null
         ? [new EcCrumb("Spisy", "/cases")]
         : [
@@ -193,6 +284,23 @@
             new EcCrumb(this.act.ActNumber, null),
         ];
 
+    private IReadOnlyList<EcMenuItem> ActActions
+    {
+        get
+        {
+            return
+            [
+                new EcMenuItem { Text = "Nový úkon ve spisu", Icon = AppIcons.Plus, OnSelect = EventCallback.Factory.Create(this, this.OpenNewAct) },
+                new EcMenuItem { Text = "Zkopírovat odkaz na úkon", Icon = AppIcons.Link, OnSelect = EventCallback.Factory.Create(this, this.CopyActLink) },
+                new EcMenuItem { Text = "Smazat úkon…", Icon = AppIcons.Trash, OnSelect = EventCallback.Factory.Create(this, this.StartDeleting), Danger = true, DividerBefore = true },
+            ];
+        }
+    }
+
+    private ActTimelineItem? Previous => this.Neighbour(-1);
+
+    private ActTimelineItem? Next => this.Neighbour(1);
+
     protected override Task OnParametersSetAsync()
     {
         return this.LoadAct();
@@ -200,6 +308,7 @@
 
     private async Task LoadAct()
     {
+        this.announcement = null;
         this.notFound = false;
         this.failure = null;
         this.labelsError = null;
@@ -255,6 +364,44 @@
     private void EditAct()
     {
         this.Navigation.NavigateTo($"/cases/{this.CaseId}/act/{this.ActId}/edit");
+    }
+
+    private void OpenNewAct()
+    {
+        this.Navigation.NavigateTo($"/cases/{this.CaseId}/act/new");
+    }
+
+    private async Task CopyActLink()
+    {
+        var link = this.Navigation.ToAbsoluteUri(this.ActHref(this.ActId)).AbsoluteUri;
+
+        try
+        {
+            await this.Clipboard.WriteText(link, CancellationToken.None);
+
+            this.announcement = "Odkaz na úkon zkopírován.";
+        }
+        catch (JSException exception)
+        {
+            this.Logger.LogWarning(exception, "Copying the act link failed");
+        }
+    }
+
+    private string ActHref(Guid actId)
+    {
+        return $"/cases/{this.CaseId}/act/{actId}";
+    }
+
+    private ActTimelineItem? Neighbour(int step)
+    {
+        IReadOnlyList<ActTimelineItem> timeline = this.act?.CaseTimeline ?? [];
+
+        var current = timeline
+            .TakeWhile(static item => !item.IsCurrent)
+            .Count();
+        var neighbour = current + step;
+
+        return current < timeline.Count && neighbour >= 0 && neighbour < timeline.Count ? timeline[neighbour] : null;
     }
 
     private void StartDeleting()

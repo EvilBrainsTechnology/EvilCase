@@ -1,0 +1,119 @@
+@* Not an EcButton: the focus returns to the trigger, which needs its element reference. *@
+<div class="ec-menu-anchor">
+    <button type="button" class="ec-button ec-button-secondary ec-button-standard ec-button-icon"
+            aria-label="@this.AriaLabel" aria-haspopup="menu" aria-expanded="@(this.open ? "true" : "false")"
+            @ref="this.trigger" @onclick="this.Open">
+        <EcIcon Paths="@AppIcons.DotsVertical" />
+    </button>
+    @if (this.open)
+    {
+        <div class="ec-menu-backdrop" @onclick="this.Close"></div>
+        <div class="ec-menu ec-menu-popup" role="menu" aria-label="@this.AriaLabel"
+             @onkeydown="this.OnKeyDown" @onkeydown:preventDefault>
+            @for (var index = 0; index < this.Items.Count; index++)
+            {
+                var position = index;
+                var item = this.Items[position];
+
+                if (item.DividerBefore)
+                {
+                    <div class="ec-menu-divider" role="separator"></div>
+                }
+
+                <button type="button" role="menuitem" tabindex="-1"
+                        class="@(item.Danger ? "ec-menu-item ec-menu-item-danger" : "ec-menu-item")"
+                        @ref="this.itemElements[position]" @onclick="() => this.Select(item)">
+                    <EcIcon Paths="@item.Icon" Size="EcIconSize.Large" />@item.Text
+                </button>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public required string AriaLabel { get; set; }
+
+    [Parameter, EditorRequired]
+    public required IReadOnlyList<EcMenuItem> Items { get; set; }
+
+    private ElementReference trigger;
+
+    private ElementReference[] itemElements = [];
+
+    private bool open;
+
+    private bool focusFirst;
+
+    private int active;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!this.focusFirst)
+            return;
+
+        this.focusFirst = false;
+
+        await this.itemElements[0].FocusAsync();
+    }
+
+    private void Open()
+    {
+        this.itemElements = new ElementReference[this.Items.Count];
+        this.active = 0;
+        this.focusFirst = true;
+        this.open = true;
+    }
+
+    private void Close()
+    {
+        this.open = false;
+    }
+
+    private async Task CloseToTrigger()
+    {
+        this.open = false;
+
+        await this.trigger.FocusAsync();
+    }
+
+    private async Task Select(EcMenuItem item)
+    {
+        await this.CloseToTrigger();
+        await item.OnSelect.InvokeAsync();
+    }
+
+    private async Task FocusItem(int index)
+    {
+        this.active = index;
+
+        await this.itemElements[index].FocusAsync();
+    }
+
+    private async Task OnKeyDown(KeyboardEventArgs args)
+    {
+        var count = this.Items.Count;
+
+        switch (args.Key)
+        {
+            case "ArrowDown":
+                await this.FocusItem((this.active + 1) % count);
+                break;
+            case "ArrowUp":
+                await this.FocusItem((this.active + count - 1) % count);
+                break;
+            case "Home":
+                await this.FocusItem(0);
+                break;
+            case "End":
+                await this.FocusItem(count - 1);
+                break;
+            case "Enter" or " ":
+                await this.Select(this.Items[this.active]);
+                break;
+            case "Escape" or "Tab":
+                await this.CloseToTrigger();
+                break;
+        }
+    }
+}
