@@ -1007,7 +1007,6 @@ html {
 .ec .ec-comment-action-danger {
     color: var(--ec-danger-text);
 }
-```
 
 .ec-comment-form {
     display: flex;

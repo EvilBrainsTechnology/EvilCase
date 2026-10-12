@@ -1,4 +1,5 @@
 using System.Net;
+using AngleSharp.Dom;
 using Bunit;
 using EvilBrains.ApiClient;
 using EvilBrains.EvilCase.Api.Client;
@@ -55,6 +56,10 @@ public class CaseRenderTests
                 component.FindAll(".ec-detail-fact-name").Select(static node => node.TextContent),
                 Is.EqualTo(["Datum spisu", "Spisová značka", "Externí spisová značka", "Protistrana", "Nadřízený spis", "Štítky"]),
                 "the row of data follows the design");
+            Assert.That(
+                component.Find(".ec-detail-facts").ChildNodes.OfType<IText>().Select(static node => node.Data.Trim()),
+                Is.All.Empty,
+                "the row of data holds only facts");
             Assert.That(component.Find(".ec-crumb[aria-current=page]").TextContent, Is.EqualTo("EC/20260821-001"));
         }
     }
