@@ -49,6 +49,8 @@ Detail spisu i úkonu nese štítky s názvem a barvou.
 Seznam nese jen barevné tečky v barvách štítků, bez názvu; název drží tooltip. Karta seznamu na
 mobilu, kde tooltip není, nese štítky s názvem.
 
+Seznam úkonů v detailu spisu nese štítky jako drobné značky s názvem u názvu úkonu (SDD-009).
+
 ## Rozhodnutí
 
 - Barva: volný kód / pevná paleta. Platí pevná paleta — drží čitelný kontrast.
