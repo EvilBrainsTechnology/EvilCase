@@ -86,6 +86,7 @@ internal static class ActListQuery
             Title = act.Title,
             Date = act.Date,
             Changed = act.Updated ?? act.Created,
+            ContactId = act.ContactId,
             ContactName = act.Contact!.Name,
             Labels = act.Labels
                 .OrderBy(static assignment => assignment.Label!.Name)
