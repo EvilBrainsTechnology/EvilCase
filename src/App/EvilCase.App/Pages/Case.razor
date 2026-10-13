@@ -1,53 +1,34 @@
 @page "/cases/{CaseId:guid}"
-@using System.Net
-@using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Acts
 @using EvilBrains.EvilCase.Api.Contract.Cases
 @using EvilBrains.EvilCase.Api.Contract.Comments
 @using EvilBrains.EvilCase.Api.Contract.Files
 @using EvilBrains.EvilCase.Api.Contract.Labels
-@using Microsoft.JSInterop
+@using EvilBrains.EvilCase.Api.Contract.Lists
+@inherits DetailPage<CaseDetail>
 @inject ICasesClient CasesClient
 @inject ICaseLabelsClient CaseLabelsClient
 @inject ICaseCommentsClient CaseCommentsClient
 @inject ICaseFilesClient CaseFilesClient
 @inject IFileTransferClient FileTransfer
-@inject IFileDownloader Downloader
-@inject IClipboardWriter Clipboard
-@inject NavigationManager Navigation
-@inject ILogger<Case> Logger
 
-<PageTitle>@(this.caseDetail is null ? "Spis" : this.caseDetail.CaseNumber) – EvilCase</PageTitle>
+<PageTitle>@(this.Detail is null ? "Spis" : this.Detail.CaseNumber) – EvilCase</PageTitle>
 
 <div class="ec-page">
-    <span class="ec-visually-hidden" role="status">@this.announcement</span>
+    <span class="ec-visually-hidden" role="status">@this.Announcement</span>
 
-    @if (this.notFound)
+    @if (this.Detail is null)
     {
-        <EcCard><p class="ec-state">Spis nenalezen.</p></EcCard>
-    }
-    else if (this.failure is not null)
-    {
-        <EcCard>
-            <div class="ec-card-error">
-                <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.failure</div>
-                <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Refresh"
-                          OnClick="this.LoadCase">Zkusit znovu</EcButton>
-            </div>
-        </EcCard>
-    }
-    else if (this.caseDetail is null)
-    {
-        <EcCard><p class="ec-state">Načítám…</p></EcCard>
+        <DetailStatus NotFound="this.NotFound" NotFoundText="Spis nenalezen." Failure="@this.Failure" Retry="this.Load" />
     }
     else
     {
         <EcCard>
             <div class="ec-detail">
-                <EcPageHeader Title="@this.caseDetail.Title" Breadcrumbs="this.Crumbs">
+                <EcPageHeader Title="@this.Detail.Title" Breadcrumbs="this.Crumbs">
                     <Status>
-                        <EcBadge Text="@CaseStatusDisplay.Text(this.caseDetail.Status)" Tone="CaseStatusDisplay.Tone(this.caseDetail.Status)" />
+                        <EcBadge Text="@CaseStatusDisplay.Text(this.Detail.Status)" Tone="CaseStatusDisplay.Tone(this.Detail.Status)" />
                     </Status>
                     <Actions>
                         <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Pencil" OnClick="this.EditCase">Upravit spis</EcButton>
@@ -55,21 +36,21 @@
                     </Actions>
                 </EcPageHeader>
 
-                <p class="ec-detail-text">@(string.IsNullOrWhiteSpace(this.caseDetail.Description) ? "—" : this.caseDetail.Description)</p>
+                <p class="ec-detail-text">@(string.IsNullOrWhiteSpace(this.Detail.Description) ? "—" : this.Detail.Description)</p>
 
                 <div class="ec-detail-facts">
                     <div class="ec-detail-fact">
                         <span class="ec-detail-fact-name">Datum spisu</span>
-                        <span class="ec-detail-fact-value">@DateDisplay.Text(this.caseDetail.Date)</span>
+                        <span class="ec-detail-fact-value">@DateDisplay.Text(this.Detail.Date)</span>
                     </div>
                     <div class="ec-detail-fact ec-detail-fact-copyable">
                         <span class="ec-detail-fact-name">Spisová značka</span>
                         <span class="ec-detail-fact-copy">
-                            <span class="ec-detail-fact-mono">@this.caseDetail.CaseNumber</span>
-                            <CopyButton Value="@this.caseDetail.CaseNumber" AriaLabel="Zkopírovat spisovou značku" />
+                            <span class="ec-detail-fact-mono">@this.Detail.CaseNumber</span>
+                            <CopyButton Value="@this.Detail.CaseNumber" AriaLabel="Zkopírovat spisovou značku" />
                         </span>
                     </div>
-                    @if (string.IsNullOrWhiteSpace(this.caseDetail.ExternalCaseNumber))
+                    @if (string.IsNullOrWhiteSpace(this.Detail.ExternalCaseNumber))
                     {
                         <div class="ec-detail-fact">
                             <span class="ec-detail-fact-name">Externí spisová značka</span>
@@ -81,14 +62,14 @@
                         <div class="ec-detail-fact ec-detail-fact-copyable">
                             <span class="ec-detail-fact-name">Externí spisová značka</span>
                             <span class="ec-detail-fact-copy">
-                                <span class="ec-detail-fact-mono">@this.caseDetail.ExternalCaseNumber</span>
-                                <CopyButton Value="@this.caseDetail.ExternalCaseNumber" AriaLabel="Zkopírovat externí spisovou značku" />
+                                <span class="ec-detail-fact-mono">@this.Detail.ExternalCaseNumber</span>
+                                <CopyButton Value="@this.Detail.ExternalCaseNumber" AriaLabel="Zkopírovat externí spisovou značku" />
                             </span>
                         </div>
                     }
                     <div class="ec-detail-fact">
                         <span class="ec-detail-fact-name">Protistrana</span>
-                        @if (this.caseDetail.Contact is { } contact)
+                        @if (this.Detail.Contact is { } contact)
                         {
                             <a class="ec-detail-fact-link" href="@($"/contacts/{contact.ContactId}")">@contact.Name</a>
                         }
@@ -99,7 +80,7 @@
                     </div>
                     <div class="ec-detail-fact">
                         <span class="ec-detail-fact-name">Nadřízený spis</span>
-                        @if (this.caseDetail.ParentCase is { } parent)
+                        @if (this.Detail.ParentCase is { } parent)
                         {
                             <a class="ec-detail-fact-link" href="@($"/cases/{parent.CaseId}")">@parent.Title</a>
                         }
@@ -110,10 +91,10 @@
                     </div>
                     <div class="ec-detail-fact ec-detail-fact-labels">
                         <span class="ec-detail-fact-name">Štítky<kbd class="ec-kbd" aria-hidden="true">L</kbd></span>
-                        <LabelField Inline InputId="case-labels" Selected="this.caseDetail.Labels" SelectedChanged="this.SaveLabels" />
-                        @if (this.labelsError is not null)
+                        <LabelField Inline InputId="case-labels" Selected="this.Detail.Labels" SelectedChanged="this.SaveLabels" />
+                        @if (this.LabelsError is not null)
                         {
-                            <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.labelsError</div>
+                            <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.LabelsError</div>
                         }
                     </div>
                 </div>
@@ -126,7 +107,7 @@
                          Columns="ActColumns"
                          Filter="this.ActFilter"
                          Title="Úkony"
-                         CaseContactId="this.caseDetail.Contact?.ContactId"
+                         CaseContactId="this.Detail.Contact?.ContactId"
                          ShowSearch="true"
                          ShowDates="true"
                          ShowLabelFilter="true"
@@ -169,9 +150,9 @@
     }
 </div>
 
-@if (this.deleting && this.caseDetail is not null)
+@if (this.deleting && this.Detail is not null)
 {
-    <CaseDeleteModal Case="this.caseDetail" Open OpenChanged="this.CloseDelete" OnDeleted="this.CaseDeleted" />
+    <CaseDeleteModal Case="this.Detail" Open OpenChanged="this.CloseDelete" OnDeleted="this.CaseDeleted" />
 }
 
 @code {
@@ -189,23 +170,21 @@
     [Parameter]
     public Guid CaseId { get; set; }
 
-    private CaseDetail? caseDetail;
-
-    private bool notFound;
-
-    private string? failure;
-
-    private string? labelsError;
-
     private bool deleting;
 
-    private string? announcement;
+    protected override string LoadFailedText => "Spis se nepodařilo načíst. Zkuste to za chvíli znovu.";
 
-    private ActListRequest ActFilter => new() { CaseId = this.CaseId, Take = ActItems };
+    protected override string GoneText => "Spis už neexistuje.";
 
-    private IReadOnlyList<EcCrumb> Crumbs => this.caseDetail is null
+    protected override string LinkCopiedText => "Odkaz na spis zkopírován.";
+
+    protected override string LinkPath => $"/cases/{this.CaseId}";
+
+    private ActListRequest ActFilter => new() { CaseId = this.CaseId, SortDirection = ListSortDirection.Ascending, Take = ActItems };
+
+    private IReadOnlyList<EcCrumb> Crumbs => this.Detail is null
         ? [new EcCrumb("Spisy", "/cases")]
-        : [new EcCrumb("Spisy", "/cases"), new EcCrumb(this.caseDetail.CaseNumber, null)];
+        : [new EcCrumb("Spisy", "/cases"), new EcCrumb(this.Detail.CaseNumber, null)];
 
     private IReadOnlyList<EcMenuItem> CaseActions
     {
@@ -215,63 +194,20 @@
             [
                 new EcMenuItem { Text = "Nový úkon", Icon = AppIcons.Plus, OnSelect = EventCallback.Factory.Create(this, this.OpenNewAct) },
                 new EcMenuItem { Text = "Nový podřízený spis", Icon = AppIcons.FolderPlus, OnSelect = EventCallback.Factory.Create(this, this.OpenNewChildCase) },
-                new EcMenuItem { Text = "Zkopírovat odkaz na spis", Icon = AppIcons.Link, OnSelect = EventCallback.Factory.Create(this, this.CopyCaseLink) },
+                new EcMenuItem { Text = "Zkopírovat odkaz na spis", Icon = AppIcons.Link, OnSelect = EventCallback.Factory.Create(this, this.CopyLink) },
                 new EcMenuItem { Text = "Smazat spis…", Icon = AppIcons.Trash, OnSelect = EventCallback.Factory.Create(this, this.StartDeleting), Danger = true, DividerBefore = true },
             ];
         }
     }
 
-    protected override Task OnParametersSetAsync()
+    protected override Task<CaseDetail> Fetch()
     {
-        return this.LoadCase();
+        return this.CasesClient.GetCase(this.CaseId, CancellationToken.None);
     }
 
-    private async Task LoadCase()
+    protected override Task StoreLabels(LabelAssignmentRequest request)
     {
-        this.announcement = null;
-        this.caseDetail = null;
-        this.notFound = false;
-        this.failure = null;
-        this.labelsError = null;
-
-        try
-        {
-            this.caseDetail = await this.CasesClient.GetCase(this.CaseId, CancellationToken.None);
-        }
-        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
-        {
-            this.notFound = true;
-        }
-        catch (Exception exception) when (exception is ApiException or HttpRequestException)
-        {
-            this.Logger.LogWarning(exception, "Loading the case detail failed");
-
-            this.failure = "Spis se nepodařilo načíst. Zkuste to za chvíli znovu.";
-        }
-    }
-
-    private async Task SaveLabels(IReadOnlyList<LabelItem> labels)
-    {
-        this.labelsError = null;
-
-        try
-        {
-            var request = new LabelAssignmentRequest { LabelIds = [.. labels.Select(static label => label.LabelId)] };
-
-            await this.CaseLabelsClient.SetCaseLabels(this.CaseId, request, CancellationToken.None);
-
-            this.caseDetail = await this.CasesClient.GetCase(this.CaseId, CancellationToken.None);
-        }
-        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
-        {
-            this.labelsError = "Spis už neexistuje.";
-        }
-        catch (Exception exception) when (exception is ApiException or HttpRequestException)
-        {
-            this.Logger.LogWarning(exception, "Saving the case labels failed");
-
-            this.labelsError = "Štítky se nepodařilo uložit. Zkuste to za chvíli znovu.";
-        }
+        return this.CaseLabelsClient.SetCaseLabels(this.CaseId, request, CancellationToken.None);
     }
 
     private void EditCase()
@@ -287,22 +223,6 @@
     private void OpenNewChildCase()
     {
         this.Navigation.NavigateTo($"/cases/new?parent={this.CaseId}");
-    }
-
-    private async Task CopyCaseLink()
-    {
-        var link = this.Navigation.ToAbsoluteUri($"/cases/{this.CaseId}").AbsoluteUri;
-
-        try
-        {
-            await this.Clipboard.WriteText(link, CancellationToken.None);
-
-            this.announcement = "Odkaz na spis zkopírován.";
-        }
-        catch (JSException exception)
-        {
-            this.Logger.LogWarning(exception, "Copying the case link failed");
-        }
     }
 
     private void StartDeleting()
@@ -331,12 +251,6 @@
     private Task UploadFile(IBrowserFile file, CancellationToken token)
     {
         return this.FileTransfer.UploadCaseFile(this.CaseId, file, token);
-    }
-
-    private async Task DownloadFile(FileListItem file, CancellationToken token)
-    {
-        var content = await this.FileTransfer.DownloadFileContent(file.FileId, token);
-        await this.Downloader.SaveFile(file.FileName, content, token);
     }
 
     private Task DeleteFile(FileListItem file, CancellationToken token)

@@ -115,8 +115,8 @@ public class ListRequestValidationTests
             Assert.That(new ActListRequest { Take = 20 }.Sort, Is.EqualTo(ActSortKey.Date));
             Assert.That(
                 new ActListRequest { Take = 20 }.SortDirection,
-                Is.EqualTo(ListSortDirection.Ascending),
-                "an act list reads by the act's own date, oldest first, the direction the shared request already holds");
+                Is.EqualTo(ListSortDirection.Descending),
+                "an act list reads by the act's own date, newest first");
             Assert.That(new ContactListRequest { Take = 20 }.Sort, Is.EqualTo(ContactSortKey.Name));
             Assert.That(
                 new ContactListRequest { Take = 20 }.SortDirection,

@@ -8,6 +8,8 @@ public sealed record ActListRequest : SortableListRequest<ActSortKey>
 {
     public override ActSortKey Sort { get; init; } = ActSortKey.Date;
 
+    public override ListSortDirection SortDirection { get; init; } = ListSortDirection.Descending;
+
     public string? Search { get; init; }
 
     public DateOnly? From { get; init; }
