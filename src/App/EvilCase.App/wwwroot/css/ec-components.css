@@ -1198,6 +1198,10 @@ html {
     color: var(--ec-text-muted);
 }
 
+.ec-settings-layout .ec-card-body {
+    padding: 0;
+}
+
 .ec-card-title-count {
     font-weight: var(--ec-weight-regular);
     color: var(--ec-text-muted);
@@ -1912,8 +1916,10 @@ html {
 
     .ec-card-subtitle {
         white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+    }
+
+    .ec-settings-new-more {
+        display: none;
     }
 
     .ec-card-header-actions {
