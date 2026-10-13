@@ -106,6 +106,24 @@ public class LabelFormModalRenderTests
     }
 
     [Test]
+    public async Task TypingANameClearsTheRefusal()
+    {
+        await using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+
+        Serve(ctx);
+
+        var component = ctx.Render<LabelFormModal>(static parameters => parameters
+            .Add(static modal => modal.Open, value: true)
+            .Add(static modal => modal.Label, value: null));
+
+        await component.Find(".ec-modal-footer .ec-button-primary").ClickAsync(new MouseEventArgs());
+        await component.Find("#label-name").InputAsync("Soud");
+
+        Assert.That(component.FindAll(".validation-message"), Is.Empty, "a valid name revalidates the field");
+    }
+
+    [Test]
     public async Task CreatingSendsTheNameAndTheChosenColour()
     {
         await using var ctx = new BunitContext();
