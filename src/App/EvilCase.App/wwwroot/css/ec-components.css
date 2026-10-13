@@ -1934,7 +1934,7 @@ html {
 
     .ec-settings-row {
         grid-template-columns: minmax(0, 1fr) auto;
-        padding-inline: var(--ec-space-5) var(--ec-space-3);
+        padding: var(--ec-space-3) var(--ec-space-3) var(--ec-space-3) var(--ec-space-6);
     }
 
     .ec-settings-row-usage {
