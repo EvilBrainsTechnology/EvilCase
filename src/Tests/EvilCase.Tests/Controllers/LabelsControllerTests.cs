@@ -15,12 +15,16 @@ public class LabelsControllerTests
     public async Task TheItemsAreReturnedInTheOrderTheReaderGaveThem()
     {
         var reader = Substitute.For<ILabelReader>();
-        reader.ListLabels(Arg.Any<CancellationToken>()).Returns([Item("Soud"), Item("Priorita")]);
+        reader.ListLabels(Arg.Any<CancellationToken>()).Returns([Counted("Soud", 2, 1), Counted("Priorita", 0, 0)]);
         var controller = new LabelsController();
 
         var response = await controller.ListLabels(reader, CancellationToken.None);
 
-        Assert.That(response.Items.Select(static item => item.Name), Is.EqualTo(["Soud", "Priorita"]));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(response.Items.Select(static item => item.Name), Is.EqualTo(["Soud", "Priorita"]));
+            Assert.That(response.Items.Select(static item => (item.CaseCount, item.ActCount)), Is.EqualTo([(2, 1), (0, 0)]), "the counts reach the response");
+        }
     }
 
     [Test]
@@ -166,6 +170,11 @@ public class LabelsControllerTests
         var result = await controller.DeleteLabel(DeletingWriter(DeleteOutcome.NotFound), Guid.CreateVersion7(), CancellationToken.None);
 
         AssertProblem(result, 404);
+    }
+
+    private static LabelListItem Counted(string name, int caseCount, int actCount)
+    {
+        return new() { LabelId = Guid.CreateVersion7(), Name = name, Color = LabelColor.Blue, CaseCount = caseCount, ActCount = actCount };
     }
 
     private static LabelItem Item(string name)

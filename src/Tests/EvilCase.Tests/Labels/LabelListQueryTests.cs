@@ -33,4 +33,23 @@ public class LabelListQueryTests : TenantFixture
             Assert.That(items.Single(static item => string.Equals(item.Name, "Soud", StringComparison.Ordinal)).Color, Is.EqualTo(LabelColor.Indigo));
         }
     }
+
+    [Test]
+    public async Task EachLabelCountsTheCasesAndActsThatCarryIt()
+    {
+        var used = await this.Tenant.AddLabel("Soud");
+        await this.Tenant.AddLabel("Priorita");
+
+        var first = await this.Tenant.AddCase(new DateOnly(2026, 8, 1));
+        var second = await this.Tenant.AddCase(new DateOnly(2026, 8, 2));
+        var act = await this.Tenant.AddAct(first, new DateOnly(2026, 8, 3));
+
+        await this.Tenant.AddCaseLabel(first, used);
+        await this.Tenant.AddCaseLabel(second, used);
+        await this.Tenant.AddActLabel(act, used);
+
+        var items = await this.reader.ListLabels(CancellationToken.None);
+
+        Assert.That(items.Select(static item => (item.Name, item.CaseCount, item.ActCount)), Is.EqualTo([("Priorita", 0, 0), ("Soud", 2, 1)]));
+    }
 }

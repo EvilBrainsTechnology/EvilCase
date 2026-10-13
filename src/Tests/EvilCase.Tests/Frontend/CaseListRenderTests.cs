@@ -257,7 +257,7 @@ public class CaseListRenderTests
         var labelsClient = Substitute.For<ILabelsClient>();
         labelsClient
             .ListLabels(Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(new LabelListResponse { Items = [new LabelItem { LabelId = labelId, Name = "Urgentní", Color = LabelColor.Red }] }));
+            .Returns(Task.FromResult(new LabelListResponse { Items = [new LabelListItem { LabelId = labelId, Name = "Urgentní", Color = LabelColor.Red, CaseCount = 0, ActCount = 0 }] }));
 
         ctx.Services.AddSingleton(labelsClient);
 

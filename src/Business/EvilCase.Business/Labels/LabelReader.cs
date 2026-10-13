@@ -6,11 +6,11 @@ namespace EvilBrains.EvilCase.Business.Labels;
 
 internal sealed class LabelReader(IDbSession dbSession) : ILabelReader
 {
-    public async Task<IReadOnlyList<LabelItem>> ListLabels(CancellationToken token)
+    public async Task<IReadOnlyList<LabelListItem>> ListLabels(CancellationToken token)
     {
         return await dbSession.Current.Labels
             .InListOrder()
-            .AsListItems()
+            .AsCountedListItems()
             .ToListAsync(token);
     }
 }

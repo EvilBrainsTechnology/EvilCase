@@ -50,7 +50,7 @@
         {
             var response = await this.LabelsClient.ListLabels(CancellationToken.None);
 
-            this.available = response.Items;
+            this.available = [.. response.Items.Select(static item => new LabelItem { LabelId = item.LabelId, Name = item.Name, Color = item.Color })];
         }
         catch (Exception exception) when (exception is ApiException or HttpRequestException)
         {
