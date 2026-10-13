@@ -98,7 +98,7 @@ public class ActRenderTests
             Assert.That(component.Find(".ec-badge-incoming").TextContent, Is.EqualTo("Příchozí"));
             Assert.That(component.Find(".ec-detail-text").TextContent, Is.EqualTo("Vina a pokuta."));
             Assert.That(
-                component.FindAll(".ec-detail-fact-name").Select(static node => node.TextContent),
+                component.FindAll(".ec-detail-fact-name").Select(static node => node.FirstChild!.TextContent),
                 Is.EqualTo(["Datum úkonu", "Číslo jednací", "Externí číslo jednací", "Odesílatel", "Štítky"]),
                 "the row of data follows the design");
             Assert.That(component.Find(".ec-crumb[aria-current=page]").TextContent, Is.EqualTo("EC/20250528-001/20250902-001"));
