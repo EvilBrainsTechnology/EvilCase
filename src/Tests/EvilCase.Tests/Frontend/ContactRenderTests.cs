@@ -70,20 +70,7 @@ public class ContactRenderTests
     {
         using var ctx = new BunitContext();
 
-        var act = new ActListItem
-        {
-            ActId = Guid.CreateVersion7(),
-            CaseId = Guid.CreateVersion7(),
-            CaseNumber = "EC/20260821-001",
-            CaseTitle = "Přestupek",
-            ActNumber = "EC/20260821-001-1",
-            Title = "Rozhodnutí",
-            Date = new DateOnly(2026, 8, 21),
-            Changed = new DateTime(2026, 8, 21, 0, 0, 0, DateTimeKind.Utc),
-            Direction = ActDirection.Incoming,
-        };
-
-        var contactId = Serve(ctx, out var caseRequests, out var actRequests, act: act);
+        var contactId = Serve(ctx, out var caseRequests, out var actRequests, act: IncomingAct());
 
         var component = Render(ctx, contactId, caseRequests, actRequests);
 
@@ -187,7 +174,30 @@ public class ContactRenderTests
     }
 
     [Test]
-    public async Task TheEditButtonAndTheMenuSDeleteEachOpenTheirModal()
+    public async Task AFilterThatMatchesNothingKeepsTheToolbarAndSaysTheFilterMatchesNothing()
+    {
+        await using var ctx = new BunitContext();
+
+        var contactId = Serve(ctx, out var caseRequests, out var actRequests, act: IncomingAct(), actTotal: 1);
+
+        var component = Render(ctx, contactId, caseRequests, actRequests);
+
+        await (await component.WaitForElementAsync("#contact-acts-direction-outgoing")).ClickAsync(new MouseEventArgs());
+
+        await component.WaitForAssertionAsync(() =>
+        {
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(component.FindAll("#contact-acts-search"), Has.Count.EqualTo(1), "a set filter keeps the toolbar");
+                Assert.That(
+                    component.FindAll(".ec-empty-text").Select(static text => text.TextContent),
+                    Is.EqualTo(["Kontakt nefiguruje v žádném spisu.", "Filtru neodpovídá žádný úkon."]));
+            }
+        });
+    }
+
+    [Test]
+    public async Task TheEditButtonAndTheMenuDeleteEachOpenTheirModal()
     {
         await using var ctx = new BunitContext();
 
@@ -235,6 +245,22 @@ public class ContactRenderTests
         }
     }
 
+    private static ActListItem IncomingAct()
+    {
+        return new ActListItem
+        {
+            ActId = Guid.CreateVersion7(),
+            CaseId = Guid.CreateVersion7(),
+            CaseNumber = "EC/20260821-001",
+            CaseTitle = "Přestupek",
+            ActNumber = "EC/20260821-001-1",
+            Title = "Rozhodnutí",
+            Date = new DateOnly(2026, 8, 21),
+            Changed = new DateTime(2026, 8, 21, 0, 0, 0, DateTimeKind.Utc),
+            Direction = ActDirection.Incoming,
+        };
+    }
+
     private static Guid Serve(
         BunitContext ctx,
         out List<CaseListRequest> caseRequests,
@@ -278,9 +304,13 @@ public class ContactRenderTests
             .ListActs(Arg.Any<ActListRequest>(), Arg.Any<CancellationToken>())
             .Returns(call =>
             {
-                capturedActs.Add(call.Arg<ActListRequest>());
+                var request = call.Arg<ActListRequest>();
+                capturedActs.Add(request);
 
-                return Task.FromResult(new ActListResponse { Items = act is null ? [] : [act], TotalCount = actTotal });
+                // The served act is incoming, so an outgoing filter matches nothing.
+                var outgoing = request.Direction == ActDirection.Outgoing;
+
+                return Task.FromResult(new ActListResponse { Items = act is null || outgoing ? [] : [act], TotalCount = outgoing ? 0 : actTotal });
             });
 
         ctx.Services.AddSingleton<IClipboardWriter>(new StubClipboardWriter());

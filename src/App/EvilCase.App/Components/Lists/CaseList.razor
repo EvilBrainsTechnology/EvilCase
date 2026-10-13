@@ -124,11 +124,13 @@
         }
     </Toolbar>
     <Empty>
-        <EcEmptyState Icon="@AppIcons.Folders" Text="@this.EmptyText" Action="this.EmptyAction" />
+        <EcEmptyState Icon="@AppIcons.Folders" Text="@(this.IsFiltered ? FilteredEmptyText : this.EmptyText)" Action="this.EmptyAction" />
     </Empty>
 </EcTable>
 
 @code {
+    private const string FilteredEmptyText = "Filtru neodpovídá žádný spis.";
+
     // The select's order (Otevřené, Všechny stavy, Aktivní, Čeká na úřad, Uzavřený), not the enum's.
     private static readonly CaseStatusFilter[] StatusFilters =
     [
@@ -152,7 +154,7 @@
     public RenderFragment? Actions { get; set; }
 
     [Parameter]
-    public string EmptyText { get; set; } = "Filtru neodpovídá žádný spis.";
+    public string EmptyText { get; set; } = FilteredEmptyText;
 
     [Parameter]
     public RenderFragment? EmptyAction { get; set; }
@@ -206,9 +208,10 @@
 
     private bool ToolbarShown => this.HasFilters && !(this.HideToolbarWhenEmpty && this.IsEmptyUnfiltered);
 
-    private bool IsEmptyUnfiltered => !this.Loading && this.Failure is null && this.Total == 0
-        && this.Search is null && this.status == this.Filter.Status && this.scope == this.Filter.Scope
-        && this.From is null && this.To is null && this.SelectedLabels.Count == 0;
+    private bool IsEmptyUnfiltered => !this.Loading && this.Failure is null && this.Total == 0 && !this.IsFiltered;
+
+    private bool IsFiltered => this.Search is not null || this.status != this.Filter.Status || this.scope != this.Filter.Scope
+        || this.From is not null || this.To is not null || this.SelectedLabels.Count > 0;
 
     protected override void OnInitialized()
     {

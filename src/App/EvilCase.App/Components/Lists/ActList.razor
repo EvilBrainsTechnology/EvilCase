@@ -192,11 +192,13 @@
         }
     </Toolbar>
     <Empty>
-        <EcEmptyState Icon="@AppIcons.FileText" Text="@this.EmptyText" Action="this.EmptyAction" />
+        <EcEmptyState Icon="@AppIcons.FileText" Text="@(this.IsFiltered ? FilteredEmptyText : this.EmptyText)" Action="this.EmptyAction" />
     </Empty>
 </EcTable>
 
 @code {
+    private const string FilteredEmptyText = "Filtru neodpovídá žádný úkon.";
+
     private static readonly ActDirection?[] DirectionFilters = [null, ActDirection.Incoming, ActDirection.Outgoing];
 
     [Parameter, EditorRequired]
@@ -218,7 +220,7 @@
     public RenderFragment? Actions { get; set; }
 
     [Parameter]
-    public string EmptyText { get; set; } = "Filtru neodpovídá žádný úkon.";
+    public string EmptyText { get; set; } = FilteredEmptyText;
 
     [Parameter]
     public RenderFragment? EmptyAction { get; set; }
@@ -275,8 +277,9 @@
 
     private bool ToolbarShown => this.HasFilters && !(this.HideToolbarWhenEmpty && this.IsEmptyUnfiltered);
 
-    private bool IsEmptyUnfiltered => !this.Loading && this.Failure is null && this.Total == 0
-        && this.Search is null && this.direction == this.Filter.Direction && this.ActiveFilterCount == 0;
+    private bool IsEmptyUnfiltered => !this.Loading && this.Failure is null && this.Total == 0 && !this.IsFiltered;
+
+    private bool IsFiltered => this.Search is not null || this.direction != this.Filter.Direction || this.ActiveFilterCount > 0;
 
     private int ActiveFilterCount => (this.From is null ? 0 : 1) + (this.To is null ? 0 : 1) + this.SelectedLabels.Count;
 
