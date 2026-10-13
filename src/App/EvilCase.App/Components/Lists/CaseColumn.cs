@@ -10,8 +10,6 @@ public enum CaseColumn
 
     Status = 3,
 
-    Labels = 4,
-
     CaseNumber = 5,
 
     ExternalNumber = 6,

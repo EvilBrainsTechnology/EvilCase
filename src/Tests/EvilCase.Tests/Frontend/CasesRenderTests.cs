@@ -72,6 +72,49 @@ public class CasesRenderTests
             "only a changed search in the address reseeds the list's own search box"));
     }
 
+    [Test]
+    public async Task TheStatusAndScopeFromTheAddressNarrowTheListAndSetTheToolbar()
+    {
+        await using var ctx = new BunitContext();
+        Serve(ctx, out var requests);
+
+        ctx.Services.GetRequiredService<NavigationManager>().NavigateTo("/cases?status=Closed&scope=All");
+
+        var component = ctx.Render<App.Pages.Cases>();
+
+        await component.WaitForAssertionAsync(() =>
+        {
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(requests[0].Status, Is.EqualTo(CaseStatusFilter.Closed));
+                Assert.That(requests[0].Scope, Is.EqualTo(CaseListScope.All));
+                Assert.That(component.Find("#cases-status-Closed").GetAttribute("aria-pressed"), Is.EqualTo("true"));
+                Assert.That(component.Find(".ec-check-box").HasAttribute("checked"), Is.False, "a list that includes the sub-cases leaves the scope box unchecked");
+            }
+        });
+    }
+
+    [Test]
+    public async Task UnknownStatusAndScopeInTheAddressFallBackToTheDefaults()
+    {
+        await using var ctx = new BunitContext();
+        Serve(ctx, out var requests);
+
+        ctx.Services.GetRequiredService<NavigationManager>().NavigateTo("/cases?status=Nonsense&scope=99");
+
+        _ = ctx.Render<App.Pages.Cases>();
+
+        await Assert.ThatAsync(
+            () => Task.FromResult(requests.Count),
+            Is.GreaterThan(0).After(2000, 20));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(requests[0].Status, Is.EqualTo(CaseStatusFilter.Open));
+            Assert.That(requests[0].Scope, Is.EqualTo(CaseListScope.RootOnly));
+        }
+    }
+
     private static void Serve(BunitContext ctx, out List<CaseListRequest> requests)
     {
         var captured = new List<CaseListRequest>();

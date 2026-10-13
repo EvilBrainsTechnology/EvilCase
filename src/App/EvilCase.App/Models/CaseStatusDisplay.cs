@@ -32,6 +32,22 @@ public static class CaseStatusDisplay
     }
 
     /// <summary>
+    /// A segment of the case list's status switch (docs/design/spisy.html).
+    /// </summary>
+    public static string SwitchText(CaseStatusFilter filter)
+    {
+        return filter switch
+        {
+            CaseStatusFilter.Open => "Otevřené",
+            CaseStatusFilter.All => "Vše",
+            CaseStatusFilter.Active => CountText(CaseStatus.Active),
+            CaseStatusFilter.WaitingOnAuthority => CountText(CaseStatus.WaitingOnAuthority),
+            CaseStatusFilter.Closed => CountText(CaseStatus.Closed),
+            _ => throw new UnreachableException(),
+        };
+    }
+
+    /// <summary>
     /// The label under a count of cases; the closed one reads as a plural (docs/design/prehled.html).
     /// </summary>
     public static string CountText(CaseStatus status)

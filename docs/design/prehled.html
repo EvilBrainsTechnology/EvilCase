@@ -8,15 +8,17 @@
   <style>
     body { margin: 0; font-family: 'Instrument Sans', 'Segoe UI', sans-serif; background: #ECEEF2; color: #14161B; }
     a { color: #2F4FD1; text-decoration: none; } a:hover { color: #1F3AA8; }
-    .row:hover { background: #F5F6F9; }
     .navlink:hover { color: #14161B; }
+    .row:hover { background: #F5F6F9; }
+    .tile:hover { border-color: #C9CFDA; }
+    .tile:hover .tile-more { color: #2F4FD1; }
   </style>
 </head>
 <body>
-<div style="width: 1440px; height: 1080px; box-sizing: border-box; background: #F2F3F6; display: flex; flex-direction: column;">
+<div style="width: 1440px; height: 1060px; box-sizing: border-box; background: #F2F3F6; display: flex; flex-direction: column;">
 
   <header style="height: 60px; flex-shrink: 0; box-sizing: border-box; padding: 0 32px; display: flex; align-items: center; gap: 36px; background: #FFFFFF; border-bottom: 1px solid #E1E4EA;">
-    <a href="detail-spisu.html" style="display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 700; color: #14161B; letter-spacing: -0.01em;">
+    <a href="prehled.html" style="display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 700; color: #14161B; letter-spacing: -0.01em;">
       <span style="width: 32px; height: 32px; border-radius: 9px; background: #3B5BDB; display: flex; align-items: center; justify-content: center;">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 20h10"/><path d="M6 6l6-1 6 1"/><path d="M12 3v17"/><path d="M9 12L6 6l-3 6a3 3 0 0 0 6 0"/><path d="M21 12l-3-6-3 6a3 3 0 0 0 6 0"/></svg>
       </span>
@@ -49,166 +51,162 @@
       <h1 style="margin: 0; font-size: 28px; font-weight: 600; letter-spacing: -0.02em;">Přehled</h1>
       <div style="flex-grow: 1;"></div>
       <a href="novy-spis.html" style="display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; font-size: 14px; font-weight: 600; color: #FFFFFF; background: #3B5BDB; border-radius: 10px;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>Nový spis
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>Nový spis
       </a>
     </div>
 
     <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px;">
-      
-        <a href="spisy.html" style="display: flex; align-items: center; gap: 16px; padding: 20px 22px; background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; color: #14161B;">
-          <span style="width:48px;height:48px;flex-shrink:0;border-radius:12px;display:flex;align-items:center;justify-content:center;background:#E3F4E8;color:#1D6B36;">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h3l2 2h5a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2"/><path d="M17 17v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2h2"/></svg>
-          </span>
-          <span style="display: flex; flex-direction: column; gap: 2px;">
-            <span style="font-size: 32px; font-weight: 600; letter-spacing: -0.02em; line-height: 1;">6</span>
-            <span style="font-size: 14px; color: #5B6270;">Aktivní</span>
-          </span>
-        </a>
-      
-        <a href="spisy.html" style="display: flex; align-items: center; gap: 16px; padding: 20px 22px; background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; color: #14161B;">
-          <span style="width:48px;height:48px;flex-shrink:0;border-radius:12px;display:flex;align-items:center;justify-content:center;background:#FDEFD8;color:#8A5307;">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h3l2 2h5a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2"/><path d="M17 17v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2h2"/></svg>
-          </span>
-          <span style="display: flex; flex-direction: column; gap: 2px;">
-            <span style="font-size: 32px; font-weight: 600; letter-spacing: -0.02em; line-height: 1;">1</span>
-            <span style="font-size: 14px; color: #5B6270;">Čeká na úřad</span>
-          </span>
-        </a>
-      
-        <a href="spisy.html" style="display: flex; align-items: center; gap: 16px; padding: 20px 22px; background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; color: #14161B;">
-          <span style="width:48px;height:48px;flex-shrink:0;border-radius:12px;display:flex;align-items:center;justify-content:center;background:#EDEFF3;color:#454B57;">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h3l2 2h5a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2"/><path d="M17 17v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2h2"/></svg>
-          </span>
-          <span style="display: flex; flex-direction: column; gap: 2px;">
-            <span style="font-size: 32px; font-weight: 600; letter-spacing: -0.02em; line-height: 1;">9</span>
-            <span style="font-size: 14px; color: #5B6270;">Uzavřené</span>
-          </span>
-        </a>
-      
+      <a href="spisy.html" class="tile" style="display: flex; align-items: center; gap: 16px; padding: 18px 22px; background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; color: #14161B;">
+        <span style="width:46px;height:46px;flex-shrink:0;border-radius:12px;display:flex;align-items:center;justify-content:center;background:#E3F4E8;color:#1D6B36;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4h3l2 2h5a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2"/><path d="M17 17v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2h2"/></svg>
+        </span>
+        <span style="display: flex; flex-direction: column; gap: 4px; flex-grow: 1;">
+          <span style="font-size: 32px; font-weight: 600; letter-spacing: -0.02em; line-height: 1; color: #14161B; font-variant-numeric: tabular-nums;">5</span>
+          <span style="font-size: 14px; color: #5B6270;">Aktivní</span>
+        </span>
+        <span class="tile-more" style="display: flex; align-items: center; gap: 4px; font-size: 13px; color: #5B6270;">Zobrazit<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+      </a>
+      <a href="spisy.html" class="tile" style="display: flex; align-items: center; gap: 16px; padding: 18px 22px; background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; color: #14161B;">
+        <span style="width:46px;height:46px;flex-shrink:0;border-radius:12px;display:flex;align-items:center;justify-content:center;background:#FDEFD8;color:#8A5307;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4h3l2 2h5a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2"/><path d="M17 17v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2h2"/></svg>
+        </span>
+        <span style="display: flex; flex-direction: column; gap: 4px; flex-grow: 1;">
+          <span style="font-size: 32px; font-weight: 600; letter-spacing: -0.02em; line-height: 1; color: #14161B; font-variant-numeric: tabular-nums;">2</span>
+          <span style="font-size: 14px; color: #5B6270;">Čeká na úřad</span>
+        </span>
+        <span class="tile-more" style="display: flex; align-items: center; gap: 4px; font-size: 13px; color: #5B6270;">Zobrazit<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+      </a>
+      <a href="spisy.html" class="tile" style="display: flex; align-items: center; gap: 16px; padding: 18px 22px; background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; color: #14161B;">
+        <span style="width:46px;height:46px;flex-shrink:0;border-radius:12px;display:flex;align-items:center;justify-content:center;background:#EDEFF3;color:#454B57;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4h3l2 2h5a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2"/><path d="M17 17v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2h2"/></svg>
+        </span>
+        <span style="display: flex; flex-direction: column; gap: 4px; flex-grow: 1;">
+          <span style="font-size: 32px; font-weight: 600; letter-spacing: -0.02em; line-height: 1; color: #14161B; font-variant-numeric: tabular-nums;">10</span>
+          <span style="font-size: 14px; color: #5B6270;">Uzavřené</span>
+        </span>
+        <span class="tile-more" style="display: flex; align-items: center; gap: 4px; font-size: 13px; color: #5B6270;">Zobrazit<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>
+      </a>
     </div>
 
-    <section style="background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden;">
+    <section aria-label="Naposledy změněné spisy" style="background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden;">
       <div style="display: flex; align-items: center; gap: 12px; padding: 16px 20px;">
         <h2 style="margin: 0; font-size: 18px; font-weight: 600;">Naposledy změněné spisy</h2>
         <div style="flex-grow: 1;"></div>
-        <a href="spisy.html" style="font-size: 13px; font-weight: 500;">Všechny spisy →</a>
+        <a href="spisy.html" style="display: flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 500;">Všechny spisy<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a>
       </div>
-      <div style="display: grid; grid-template-columns: 150px 110px minmax(0, 1fr) 140px 90px 200px; column-gap: 16px; align-items: center; height: 34px; padding: 0 20px; font-size: 12px; color: #5B6270; background: #F8F9FB; border-top: 1px solid #EDEFF3; border-bottom: 1px solid #EDEFF3;">
-        <span>Změněno ↓</span><span>Datum spisu</span><span>Spis</span><span>Stav</span><span>Štítky</span><span>Spisová značka</span>
+      <div style="display: grid; grid-template-columns: 120px 100px minmax(0, 1fr) 130px 170px; column-gap: 16px; align-items: center; height: 34px; padding: 0 20px; font-size: 12px; color: #5B6270; background: #F8F9FB; border-top: 1px solid #EDEFF3; border-bottom: 1px solid #EDEFF3;">
+        <span style="color: #14161B; font-weight: 600;">Změněno ↓</span><span>Datum spisu</span><span>Spis</span><span>Stav</span><span>Spisová značka</span>
       </div>
-      
-        <a href="detail-spisu.html" class="row" style="display: grid; grid-template-columns: 150px 110px minmax(0, 1fr) 140px 90px 200px; column-gap: 16px; align-items: center; min-height: 48px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
-          <span style="font-size: 13px; color: #5B6270; font-variant-numeric: tabular-nums;">17. 9. 2026 9:42</span>
-          <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">28. 5. 2025</span>
-          <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Překročení rychlosti Vzorov – 121 v 110</span>
-          <span style="display:inline-flex;align-items:center;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;">Aktivní</span>
-          <span style="display: flex; gap: 4px;">
-            <span style="width:8px;height:8px;border-radius:50%;background:#E15241;"></span><span style="width:8px;height:8px;border-radius:50%;background:#E8A33D;"></span><span style="width:8px;height:8px;border-radius:50%;background:#3B5BDB;"></span>
-          </span>
-          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #5B6270;">EC/20250528-001</span>
-        </a>
-      
-        <a href="detail-spisu.html" class="row" style="display: grid; grid-template-columns: 150px 110px minmax(0, 1fr) 140px 90px 200px; column-gap: 16px; align-items: center; min-height: 48px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
-          <span style="font-size: 13px; color: #5B6270; font-variant-numeric: tabular-nums;">16. 9. 2026 18:05</span>
-          <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">14. 3. 2026</span>
-          <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Pojistná událost – právní ochrana</span>
-          <span style="display:inline-flex;align-items:center;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;">Aktivní</span>
-          <span style="display: flex; gap: 4px;">
-            <span style="width:8px;height:8px;border-radius:50%;background:#3B5BDB;"></span>
-          </span>
-          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #5B6270;">EC/20260314-001</span>
-        </a>
-      
-        <a href="detail-spisu.html" class="row" style="display: grid; grid-template-columns: 150px 110px minmax(0, 1fr) 140px 90px 200px; column-gap: 16px; align-items: center; min-height: 48px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
-          <span style="font-size: 13px; color: #5B6270; font-variant-numeric: tabular-nums;">11. 9. 2026 8:20</span>
-          <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">2. 2. 2026</span>
-          <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Kárný podnět České advokátní komoře</span>
-          <span style="display:inline-flex;align-items:center;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#FDEFD8;color:#8A5307;">Čeká na úřad</span>
-          <span style="display: flex; gap: 4px;">
-            <span style="width:8px;height:8px;border-radius:50%;background:#E8A33D;"></span>
-          </span>
-          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #5B6270;">EC/20260202-001</span>
-        </a>
-      
-        <a href="detail-spisu.html" class="row" style="display: grid; grid-template-columns: 150px 110px minmax(0, 1fr) 140px 90px 200px; column-gap: 16px; align-items: center; min-height: 48px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
-          <span style="font-size: 13px; color: #5B6270; font-variant-numeric: tabular-nums;">4. 9. 2026 15:11</span>
-          <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">12. 1. 2026</span>
+      <a href="detail-spisu.html" class="row" style="display: grid; grid-template-columns: 120px 100px minmax(0, 1fr) 130px 170px; column-gap: 16px; align-items: center; min-height: 46px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+        <span title="12. 10. 2026 21:45" style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">dnes 21:45</span>
+        <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">2. 10. 2025</span>
+        <span style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+          <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Uplatnění pojištění právní ochrany</span>
+        </span>
+        <span style="display:inline-flex;align-items:center;gap:6px;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;"><span style="width:6px;height:6px;border-radius:50%;background:#3B9C5A;"></span>Aktivní</span>
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #2E323B;">EC/20251002-001</span>
+      </a>
+      <a href="detail-spisu.html" class="row" style="display: grid; grid-template-columns: 120px 100px minmax(0, 1fr) 130px 170px; column-gap: 16px; align-items: center; min-height: 46px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+        <span title="12. 10. 2026 21:45" style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">dnes 21:45</span>
+        <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">25. 9. 2025</span>
+        <span style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+          <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Stížnost k České advokátní komoře</span>
+        </span>
+        <span style="display:inline-flex;align-items:center;gap:6px;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;"><span style="width:6px;height:6px;border-radius:50%;background:#3B9C5A;"></span>Aktivní</span>
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #2E323B;">EC/20250925-001</span>
+      </a>
+      <a href="detail-spisu.html" class="row" style="display: grid; grid-template-columns: 120px 100px minmax(0, 1fr) 130px 170px; column-gap: 16px; align-items: center; min-height: 46px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+        <span title="12. 10. 2026 21:45" style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">dnes 21:45</span>
+        <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">20. 9. 2025</span>
+        <span style="display: flex; align-items: center; gap: 8px; min-width: 0;">
           <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Oznámení přestupku starosty</span>
-          <span style="display:inline-flex;align-items:center;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;">Aktivní</span>
-          <span style="display: flex; gap: 4px;">
-            <span style="width:8px;height:8px;border-radius:50%;background:#E15241;"></span>
-          </span>
-          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #5B6270;">EC/20260112-001</span>
-        </a>
-      
-        <a href="detail-spisu.html" class="row" style="display: grid; grid-template-columns: 150px 110px minmax(0, 1fr) 140px 90px 200px; column-gap: 16px; align-items: center; min-height: 48px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
-          <span style="font-size: 13px; color: #5B6270; font-variant-numeric: tabular-nums;">29. 8. 2026 10:36</span>
-          <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">11. 8. 2025</span>
-          <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Žádost o informace – Policie</span>
-          <span style="display:inline-flex;align-items:center;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#EDEFF3;color:#454B57;">Uzavřený</span>
-          <span style="display: flex; gap: 4px;">
-            <span style="width:8px;height:8px;border-radius:50%;background:#3B5BDB;"></span>
-          </span>
-          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #5B6270;">EC/20250811-001</span>
-        </a>
-      
+        </span>
+        <span style="display:inline-flex;align-items:center;gap:6px;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#FDEFD8;color:#8A5307;"><span style="width:6px;height:6px;border-radius:50%;background:#D98A1B;"></span>Čeká na úřad</span>
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #2E323B;">EC/20250920-001</span>
+      </a>
+      <a href="detail-spisu.html" class="row" style="display: grid; grid-template-columns: 120px 100px minmax(0, 1fr) 130px 170px; column-gap: 16px; align-items: center; min-height: 46px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+        <span title="12. 10. 2026 21:45" style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">dnes 21:45</span>
+        <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">15. 9. 2025</span>
+        <span style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+          <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Žádost o informace — Ministerstvo vnitra</span>
+            <span style="flex-shrink:0;font-size:11px;padding:0 6px;line-height:18px;border-radius:5px;background:#DDF3EF;color:#1C6158;">Žádost o informace</span>
+        </span>
+        <span style="display:inline-flex;align-items:center;gap:6px;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#EDEFF3;color:#454B57;"><span style="width:6px;height:6px;border-radius:50%;background:#A0A6B1;"></span>Uzavřený</span>
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #2E323B;">EC/20250915-001</span>
+      </a>
+      <a href="detail-spisu.html" class="row" style="display: grid; grid-template-columns: 120px 100px minmax(0, 1fr) 130px 170px; column-gap: 16px; align-items: center; min-height: 46px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+        <span title="12. 10. 2026 21:45" style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">dnes 21:45</span>
+        <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">10. 9. 2025</span>
+        <span style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+          <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Náhrada nemajetkové újmy — Ministerstvo vnitra</span>
+        </span>
+        <span style="display:inline-flex;align-items:center;gap:6px;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#FDEFD8;color:#8A5307;"><span style="width:6px;height:6px;border-radius:50%;background:#D98A1B;"></span>Čeká na úřad</span>
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #2E323B;">EC/20250910-001</span>
+      </a>
     </section>
 
-    <section style="background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden;">
+    <section aria-label="Naposledy změněné úkony" style="background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden;">
       <div style="display: flex; align-items: center; gap: 12px; padding: 16px 20px;">
         <h2 style="margin: 0; font-size: 18px; font-weight: 600;">Naposledy změněné úkony</h2>
-        <div style="flex-grow: 1;"></div>
-        <a href="detail-spisu.html" style="font-size: 13px; font-weight: 500;">Otevřít spis →</a>
       </div>
-      <div style="display: grid; grid-template-columns: 150px 110px 200px minmax(0, 1fr) 110px 180px; column-gap: 16px; align-items: center; height: 34px; padding: 0 20px; font-size: 12px; color: #5B6270; background: #F8F9FB; border-top: 1px solid #EDEFF3; border-bottom: 1px solid #EDEFF3;">
-        <span>Změněno ↓</span><span>Datum úkonu</span><span>Spis</span><span>Úkon</span><span>Směr</span><span>Číslo jednací</span>
+      <div style="display: grid; grid-template-columns: 120px 100px minmax(0, 1fr) 110px 240px 112px; column-gap: 16px; align-items: center; height: 34px; padding: 0 20px; font-size: 12px; color: #5B6270; background: #F8F9FB; border-top: 1px solid #EDEFF3; border-bottom: 1px solid #EDEFF3;">
+        <span style="color: #14161B; font-weight: 600;">Změněno ↓</span><span>Datum úkonu</span><span>Úkon a spis</span><span>Směr</span><span>Kontakt</span><span>Číslo jednací</span>
       </div>
-      
-        <a href="detail-ukonu.html" class="row" style="display: grid; grid-template-columns: 150px 110px 200px minmax(0, 1fr) 110px 180px; column-gap: 16px; align-items: center; min-height: 48px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
-          <span style="font-size: 13px; color: #5B6270; font-variant-numeric: tabular-nums;">17. 9. 2026 9:42</span>
-          <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">13. 3. 2026</span>
-          <span style="font-size: 13px; color: #454B57; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Překročení rychlosti Vzorov</span>
-          <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Závěrečné doplnění žaloby</span>
-          <span style="display:inline-flex;align-items:center;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;">↗ Odchozí</span>
-          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #5B6270;">20260313-001</span>
-        </a>
-      
-        <a href="detail-ukonu.html" class="row" style="display: grid; grid-template-columns: 150px 110px 200px minmax(0, 1fr) 110px 180px; column-gap: 16px; align-items: center; min-height: 48px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
-          <span style="font-size: 13px; color: #5B6270; font-variant-numeric: tabular-nums;">16. 9. 2026 18:05</span>
-          <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">14. 3. 2026</span>
-          <span style="font-size: 13px; color: #454B57; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Pojistná událost</span>
-          <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Oznámení škodné události</span>
-          <span style="display:inline-flex;align-items:center;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;">↗ Odchozí</span>
-          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #5B6270;">20260314-001</span>
-        </a>
-      
-        <a href="detail-ukonu.html" class="row" style="display: grid; grid-template-columns: 150px 110px 200px minmax(0, 1fr) 110px 180px; column-gap: 16px; align-items: center; min-height: 48px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
-          <span style="font-size: 13px; color: #5B6270; font-variant-numeric: tabular-nums;">12. 9. 2026 7:58</span>
-          <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">25. 11. 2025</span>
-          <span style="font-size: 13px; color: #454B57; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Překročení rychlosti Vzorov</span>
-          <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Druhá žádost o prodloužení lhůty</span>
-          <span style="display:inline-flex;align-items:center;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;">↗ Odchozí</span>
-          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #5B6270;">20251125-001</span>
-        </a>
-      
-        <a href="detail-ukonu.html" class="row" style="display: grid; grid-template-columns: 150px 110px 200px minmax(0, 1fr) 110px 180px; column-gap: 16px; align-items: center; min-height: 48px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
-          <span style="font-size: 13px; color: #5B6270; font-variant-numeric: tabular-nums;">9. 9. 2026 16:24</span>
-          <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">9. 10. 2025</span>
-          <span style="font-size: 13px; color: #454B57; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Překročení rychlosti Vzorov</span>
-          <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Výzva k zaplacení soudního poplatku</span>
-          <span style="display:inline-flex;align-items:center;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;">↙ Příchozí</span>
-          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #5B6270;">20251009-001</span>
-        </a>
-      
-        <a href="detail-ukonu.html" class="row" style="display: grid; grid-template-columns: 150px 110px 200px minmax(0, 1fr) 110px 180px; column-gap: 16px; align-items: center; min-height: 48px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
-          <span style="font-size: 13px; color: #5B6270; font-variant-numeric: tabular-nums;">2. 9. 2026 11:03</span>
-          <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">2. 9. 2025</span>
-          <span style="font-size: 13px; color: #454B57; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Překročení rychlosti Vzorov</span>
-          <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Rozhodnutí o přestupku</span>
-          <span style="display:inline-flex;align-items:center;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;">↙ Příchozí</span>
-          <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #5B6270;">20250902-001</span>
-        </a>
-      
+      <a href="detail-ukonu.html" class="row" style="display: grid; grid-template-columns: 120px 100px minmax(0, 1fr) 110px 240px 112px; column-gap: 16px; align-items: center; min-height: 54px; padding: 6px 20px; box-sizing: border-box; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+        <span title="12. 10. 2026 21:45" style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">dnes 21:45</span>
+        <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">16. 10. 2025</span>
+        <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+          <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Odpověď</span>
+          <span style="font-size: 12px; color: #5B6270; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Uplatnění pojištění právní ochrany</span>
+        </span>
+        <span style="display:inline-flex;align-items:center;gap:6px;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 7l-10 10"/><path d="M16 17h-9v-9"/></svg>Příchozí</span>
+        <span style="font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Vzorová pojišťovna, a.s.</span>
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #2E323B;">20251016-001</span>
+      </a>
+      <a href="detail-ukonu.html" class="row" style="display: grid; grid-template-columns: 120px 100px minmax(0, 1fr) 110px 240px 112px; column-gap: 16px; align-items: center; min-height: 54px; padding: 6px 20px; box-sizing: border-box; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+        <span title="12. 10. 2026 21:45" style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">dnes 21:45</span>
+        <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">2. 10. 2025</span>
+        <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+          <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Podání</span>
+          <span style="font-size: 12px; color: #5B6270; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Uplatnění pojištění právní ochrany</span>
+        </span>
+        <span style="display:inline-flex;align-items:center;gap:6px;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17l10 -10"/><path d="M8 7h9v9"/></svg>Odchozí</span>
+        <span style="font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Vzorová pojišťovna, a.s.</span>
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #2E323B;">20251002-001</span>
+      </a>
+      <a href="detail-ukonu.html" class="row" style="display: grid; grid-template-columns: 120px 100px minmax(0, 1fr) 110px 240px 112px; column-gap: 16px; align-items: center; min-height: 54px; padding: 6px 20px; box-sizing: border-box; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+        <span title="12. 10. 2026 21:45" style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">dnes 21:45</span>
+        <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">9. 10. 2025</span>
+        <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+          <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Odpověď</span>
+          <span style="font-size: 12px; color: #5B6270; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Stížnost k České advokátní komoře</span>
+        </span>
+        <span style="display:inline-flex;align-items:center;gap:6px;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 7l-10 10"/><path d="M16 17h-9v-9"/></svg>Příchozí</span>
+        <span style="font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Česká advokátní komora</span>
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #2E323B;">20251009-001</span>
+      </a>
+      <a href="detail-ukonu.html" class="row" style="display: grid; grid-template-columns: 120px 100px minmax(0, 1fr) 110px 240px 112px; column-gap: 16px; align-items: center; min-height: 54px; padding: 6px 20px; box-sizing: border-box; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+        <span title="12. 10. 2026 21:45" style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">dnes 21:45</span>
+        <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">25. 9. 2025</span>
+        <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+          <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Podání</span>
+          <span style="font-size: 12px; color: #5B6270; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Stížnost k České advokátní komoře</span>
+        </span>
+        <span style="display:inline-flex;align-items:center;gap:6px;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17l10 -10"/><path d="M8 7h9v9"/></svg>Odchozí</span>
+        <span style="font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Česká advokátní komora</span>
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #2E323B;">20250925-001</span>
+      </a>
+      <a href="detail-ukonu.html" class="row" style="display: grid; grid-template-columns: 120px 100px minmax(0, 1fr) 110px 240px 112px; column-gap: 16px; align-items: center; min-height: 54px; padding: 6px 20px; box-sizing: border-box; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+        <span title="12. 10. 2026 21:45" style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">dnes 21:45</span>
+        <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">4. 10. 2025</span>
+        <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+          <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Odpověď</span>
+          <span style="font-size: 12px; color: #5B6270; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Oznámení přestupku starosty</span>
+        </span>
+        <span style="display:inline-flex;align-items:center;gap:6px;width:fit-content;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 7l-10 10"/><path d="M16 17h-9v-9"/></svg>Příchozí</span>
+        <span style="font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Městský úřad Vzorov, odbor vnitřních věcí</span>
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #2E323B;">20251004-001</span>
+      </a>
     </section>
   </div>
 </div>

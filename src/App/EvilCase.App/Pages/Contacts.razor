@@ -16,17 +16,15 @@
         </Actions>
     </EcPageHeader>
 
-    <EcCard>
-        <ContactList @ref="this.list"
-                     Columns="Columns" Filter="Filter"
-                     ShowSearch="true" ShowKindFilter="true" ShowPaging="true"
-                     TotalChanged="this.OnTotalChanged"
-                     EmptyText="Zkuste jiné hledání.">
-            <EmptyAction>
-                <EcButton Variant="EcButtonVariant.Primary" Icon="@AppIcons.UserPlus" OnClick="this.CreateContact">Založit kontakt</EcButton>
-            </EmptyAction>
-        </ContactList>
-    </EcCard>
+    <ContactList @ref="this.list"
+                 Columns="Columns" Filter="Filter"
+                 ShowSearch="true" ShowKindFilter="true" ShowPaging="true"
+                 TotalChanged="this.OnTotalChanged"
+                 EmptyText="Zkuste jiné hledání.">
+        <EmptyAction>
+            <EcButton Variant="EcButtonVariant.Primary" Icon="@AppIcons.UserPlus" OnClick="this.CreateContact">Založit kontakt</EcButton>
+        </EmptyAction>
+    </ContactList>
 </div>
 
 @if (this.formOpen)

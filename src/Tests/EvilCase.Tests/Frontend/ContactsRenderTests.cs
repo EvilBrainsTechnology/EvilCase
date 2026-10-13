@@ -22,6 +22,24 @@ public class ContactsRenderTests
     }
 
     [Test]
+    public void TheListIsTheOnlyCardOnThePage()
+    {
+        using var ctx = new BunitContext();
+        Serve(ctx);
+
+        var component = ctx.Render<App.Pages.Contacts>();
+
+        component.WaitForAssertion(() =>
+        {
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(component.FindAll(".ec-card"), Has.Count.EqualTo(1));
+                Assert.That(component.FindAll(".ec-card .ec-card"), Is.Empty, "a card never lies inside another card (SDD-020)");
+            }
+        });
+    }
+
+    [Test]
     public async Task TheNewContactButtonOpensTheForm()
     {
         await using var ctx = new BunitContext();

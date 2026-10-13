@@ -15,6 +15,20 @@ public class MomentDisplayTests
     }
 
     [Test]
+    public void TodayAndYesterdayReadRelativelyAndEveryOtherMomentInFull()
+    {
+        var now = new DateTime(2026, 10, 13, 22, 0, 0, DateTimeKind.Local);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(MomentDisplay.Relative(new DateTime(2026, 10, 13, 21, 45, 0, DateTimeKind.Local), now), Is.EqualTo("dnes 21:45"));
+            Assert.That(MomentDisplay.Relative(new DateTime(2026, 10, 12, 9, 10, 0, DateTimeKind.Local), now), Is.EqualTo("včera 9:10"));
+            Assert.That(MomentDisplay.Relative(new DateTime(2026, 10, 11, 9, 10, 0, DateTimeKind.Local), now), Is.EqualTo("11. 10. 2026 9:10"));
+            Assert.That(MomentDisplay.Relative(new DateTime(2026, 10, 14, 8, 0, 0, DateTimeKind.Local), now), Is.EqualTo("14. 10. 2026 8:00"), "a moment ahead of now never reads as today");
+        }
+    }
+
+    [Test]
     public void TheFormatDoesNotFollowTheMachinesCulture()
     {
         var culture = CultureInfo.CurrentCulture;

@@ -1,0 +1,92 @@
+@using EvilBrains.EvilCase.Api.Contract.Labels
+
+<EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Filter"
+          aria-expanded="@(this.open ? "true" : "false")" aria-controls="@($"{this.InputPrefix}-filters")"
+          OnClick="this.Toggle">
+    Filtry
+    @if (this.ActiveCount > 0)
+    {
+        <span class="ec-filter-count">@this.ActiveCount</span>
+    }
+</EcButton>
+
+@if (this.open)
+{
+    <div id="@($"{this.InputPrefix}-filters")" class="ec-filter-panel">
+        @if (this.ShowDates)
+        {
+            <div class="ec-filter-field">
+                <label class="ec-filter-name" for="@($"{this.InputPrefix}-from")">@this.FromLabel</label>
+                <input id="@($"{this.InputPrefix}-from")" type="date" class="ec-input ec-filter-date"
+                       value="@this.From?.ToString("yyyy-MM-dd")" @onchange="args => this.FromChanged.InvokeAsync(args)" />
+            </div>
+            <div class="ec-filter-field">
+                <label class="ec-filter-name" for="@($"{this.InputPrefix}-to")">@this.ToLabel</label>
+                <input id="@($"{this.InputPrefix}-to")" type="date" class="ec-input ec-filter-date"
+                       value="@this.To?.ToString("yyyy-MM-dd")" @onchange="args => this.ToChanged.InvokeAsync(args)" />
+            </div>
+        }
+        @if (this.ShowLabelFilter)
+        {
+            <div class="ec-filter-field ec-filter-field-grow">
+                <label class="ec-filter-name" for="@($"{this.InputPrefix}-labels")">Štítek</label>
+                <LabelField InputId="@($"{this.InputPrefix}-labels")" Selected="this.SelectedLabels" SelectedChanged="this.LabelsChanged" />
+            </div>
+        }
+        <button type="button" class="ec-filter-clear" @onclick="() => this.Cleared.InvokeAsync()">Zrušit filtry</button>
+    </div>
+}
+
+@code {
+    /// <summary>
+    /// Prefixes the ids of the panel and its inputs, as the list's toolbar does.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required string InputPrefix { get; set; }
+
+    [Parameter]
+    public bool ShowDates { get; set; }
+
+    [Parameter]
+    public bool ShowLabelFilter { get; set; }
+
+    [Parameter]
+    public string FromLabel { get; set; } = "Od";
+
+    [Parameter]
+    public string ToLabel { get; set; } = "Do";
+
+    [Parameter]
+    public DateOnly? From { get; set; }
+
+    [Parameter]
+    public DateOnly? To { get; set; }
+
+    [Parameter]
+    public IReadOnlyList<LabelItem> SelectedLabels { get; set; } = [];
+
+    /// <summary>
+    /// The count on the button; no badge at zero.
+    /// </summary>
+    [Parameter]
+    public int ActiveCount { get; set; }
+
+    [Parameter]
+    public EventCallback<ChangeEventArgs> FromChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<ChangeEventArgs> ToChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<IReadOnlyList<LabelItem>> LabelsChanged { get; set; }
+
+    [Parameter]
+    public EventCallback Cleared { get; set; }
+
+    private bool open;
+
+    private void Toggle()
+    {
+        this.open = !this.open;
+    }
+}

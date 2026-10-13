@@ -15,6 +15,8 @@ public abstract class FilteredListComponent<TSortRequest> : ListComponent<TSortR
 
     protected IReadOnlyList<Guid> LabelIds => [.. this.SelectedLabels.Select(static label => label.LabelId)];
 
+    protected int ActiveFilterCount => (this.From is null ? 0 : 1) + (this.To is null ? 0 : 1) + this.SelectedLabels.Count;
+
     protected async Task OnFromInput(ChangeEventArgs args)
     {
         this.From = ParseDate(args);

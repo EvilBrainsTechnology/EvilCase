@@ -13,7 +13,7 @@
 
     <CaseList Columns="Columns" Filter="Filter"
               ShowSearch="true" ShowDates="true" ShowLabelFilter="true"
-              ShowStatusFilter="true" ShowScopeFilter="true" ShowPaging="true"
+              ShowStatusSwitch="true" ShowScopeFilter="true" ShowPaging="true"
               TotalChanged="this.OnTotalChanged">
         <EmptyAction>
             <EcButton Variant="EcButtonVariant.Primary" Icon="@AppIcons.Plus" Href="/cases/new">Založit spis</EcButton>
@@ -29,7 +29,6 @@
         CaseColumn.Date,
         CaseColumn.Case,
         CaseColumn.Status,
-        CaseColumn.Labels,
         CaseColumn.CaseNumber,
     ];
 
@@ -37,12 +36,25 @@
     [SupplyParameterFromQuery(Name = "q")]
     public string? Query { get; set; }
 
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "status")]
+    public string? StatusQuery { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "scope")]
+    public string? ScopeQuery { get; set; }
+
     private int total;
 
     // A record, so a render that hands over the same values reloads nothing (CaseListRenderTests).
     private CaseListRequest Filter => new()
     {
-        Scope = CaseListScope.RootOnly,
+        Status = Enum.TryParse<CaseStatusFilter>(this.StatusQuery, ignoreCase: true, out var status) && Enum.IsDefined(status)
+            ? status
+            : CaseStatusFilter.Open,
+        Scope = Enum.TryParse<CaseListScope>(this.ScopeQuery, ignoreCase: true, out var scope) && Enum.IsDefined(scope)
+            ? scope
+            : CaseListScope.RootOnly,
         Search = string.IsNullOrWhiteSpace(this.Query) ? null : this.Query,
         Take = PageItems,
     };
