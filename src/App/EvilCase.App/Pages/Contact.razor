@@ -17,23 +17,9 @@
 <div class="ec-page">
     <span class="ec-visually-hidden" role="status">@this.announcement</span>
 
-    @if (this.notFound)
+    @if (this.contact is null)
     {
-        <EcCard><p class="ec-state">Kontakt nenalezen.</p></EcCard>
-    }
-    else if (this.failure is not null)
-    {
-        <EcCard>
-            <div class="ec-card-error">
-                <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.failure</div>
-                <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Refresh"
-                          OnClick="this.LoadContact">Zkusit znovu</EcButton>
-            </div>
-        </EcCard>
-    }
-    else if (this.contact is null)
-    {
-        <EcCard><p class="ec-state">Načítám…</p></EcCard>
+        <DetailStatus NotFound="this.notFound" NotFoundText="Kontakt nenalezen." Failure="@this.failure" Retry="this.LoadContact" />
     }
     else
     {

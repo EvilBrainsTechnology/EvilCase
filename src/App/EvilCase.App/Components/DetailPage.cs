@@ -19,13 +19,13 @@ public abstract class DetailPage<TDetail> : ComponentBase
     protected NavigationManager Navigation { get; set; } = null!;
 
     [Inject]
+    private protected IFileTransferClient FileTransfer { get; set; } = null!;
+
+    [Inject]
     private ILogger<DetailPage<TDetail>> Logger { get; set; } = null!;
 
     [Inject]
     private IClipboardWriter Clipboard { get; set; } = null!;
-
-    [Inject]
-    private IFileTransferClient FileTransfer { get; set; } = null!;
 
     [Inject]
     private IFileDownloader Downloader { get; set; } = null!;
