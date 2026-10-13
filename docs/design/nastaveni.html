@@ -8,12 +8,14 @@
   <style>
     body { margin: 0; font-family: 'Instrument Sans', 'Segoe UI', sans-serif; background: #ECEEF2; color: #14161B; }
     a { color: #2F4FD1; text-decoration: none; } a:hover { color: #1F3AA8; }
-    .row:hover { background: #F5F6F9; }
+    .row:hover { background: #F8F9FB; }
     .navlink:hover { color: #14161B; }
+    .iconbtn:hover { background: #F1F2F5; }
+    .iconbtn.danger:hover { background: #FDECEA; }
   </style>
 </head>
 <body>
-<div style="width: 1440px; height: 1000px; box-sizing: border-box; background: #F2F3F6; display: flex; flex-direction: column;">
+<div style="width: 1440px; min-height: 1760px; box-sizing: border-box; background: #F2F3F6; display: flex; flex-direction: column; font-family: 'Instrument Sans', 'Segoe UI', sans-serif; color: #14161B;">
 
   <header style="height: 60px; flex-shrink: 0; box-sizing: border-box; padding: 0 32px; display: flex; align-items: center; gap: 36px; background: #FFFFFF; border-bottom: 1px solid #E1E4EA;">
     <a href="prehled.html" style="display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 700; color: #14161B; letter-spacing: -0.01em;">
@@ -44,135 +46,247 @@
     <button type="button" aria-label="Uživatelské menu – Martin Volek" style="width: 38px; height: 38px; border-radius: 50%; border: 0; background: #14161B; color: #FFFFFF; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;">MV</button>
   </header>
 
-  <div style="flex-grow: 1; box-sizing: border-box; padding: 24px 32px 32px; display: flex; flex-direction: column; gap: 20px; min-height: 0;">
+  <div style="box-sizing: border-box; padding: 24px 32px 40px; display: flex; flex-direction: column; gap: 20px;">
     <h1 style="margin: 0; font-size: 28px; font-weight: 600; letter-spacing: -0.02em;">Nastavení</h1>
 
-    <div style="flex-grow: 1; min-height: 0; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 20px; align-items: start;">
+    <div style="display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 20px; align-items: start;">
       <nav aria-label="Sekce nastavení" style="background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; padding: 10px; display: flex; flex-direction: column; gap: 2px;">
-        <a href="nastaveni.html" aria-current="page" style="display: flex; align-items: center; height: 40px; padding: 0 12px; border-radius: 10px; font-size: 14px; font-weight: 600; background: #EEF2FE; color: #2A48B8;">Štítky</a>
-        <a href="nastaveni.html" style="display: flex; align-items: center; height: 40px; padding: 0 12px; border-radius: 10px; font-size: 14px; color: #454B57;">Účet</a>
+        <a href="nastaveni.html" aria-current="page" style="display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 12px; border-radius: 10px; font-size: 14px; font-weight: 600; background: #EEF2FE; color: #2A48B8;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9-9-9"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>Štítky
+        </a>
       </nav>
 
-      <div style="display: flex; flex-direction: column; gap: 20px;">
-        <section style="background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden;">
-          <div style="display: flex; align-items: center; gap: 12px; padding: 18px 20px;">
-            <div style="display: flex; flex-direction: column; gap: 2px;">
-              <h2 style="margin: 0; font-size: 18px; font-weight: 600;">Štítky</h2>
-              <span style="font-size: 13px; color: #5B6270;">Jeden číselník pro spisy i úkony</span>
-            </div>
-            <div style="flex-grow: 1;"></div>
-            <button type="button" style="display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; font: inherit; font-size: 14px; font-weight: 600; color: #FFFFFF; background: #3B5BDB; border: 0; border-radius: 10px; cursor: pointer;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>Nový štítek
-            </button>
+      <section style="background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden;">
+        <div style="display: flex; align-items: center; gap: 12px; padding: 18px 20px;">
+          <div style="display: flex; flex-direction: column; gap: 2px;">
+            <h2 style="margin: 0; font-size: 18px; font-weight: 600;">Štítky <span style="font-weight: 400; color: #5B6270;">4</span></h2>
+            <span style="font-size: 13px; color: #5B6270;">Jeden číselník pro spisy i úkony</span>
           </div>
-          <div style="display: grid; grid-template-columns: minmax(0, 1fr) 160px 110px 110px 120px; column-gap: 16px; align-items: center; height: 36px; padding: 0 20px; font-size: 12px; color: #5B6270; background: #F8F9FB; border-top: 1px solid #EDEFF3; border-bottom: 1px solid #EDEFF3;">
-            <span>Štítek</span><span>Barva</span><span>Spisy</span><span>Úkony</span><span></span>
+          <div style="flex-grow: 1;"></div>
+          <button type="button" style="display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; font: inherit; font-size: 14px; font-weight: 600; color: #FFFFFF; background: #3B5BDB; border: 0; border-radius: 10px; cursor: pointer;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>Nový štítek
+          </button>
+        </div>
+        <div style="display: grid; grid-template-columns: minmax(0, 1fr) 150px 90px 90px 96px; column-gap: 16px; align-items: center; height: 36px; padding: 0 20px; font-size: 12px; color: #5B6270; background: #F8F9FB; border-top: 1px solid #EDEFF3; border-bottom: 1px solid #EDEFF3;">
+          <span>Štítek</span><span>Barva</span><span style="text-align: right;">Spisy</span><span style="text-align: right;">Úkony</span><span></span>
+        </div>
+          <div class="row" style="display: grid; grid-template-columns: minmax(0, 1fr) 150px 90px 90px 96px; column-gap: 16px; align-items: center; min-height: 52px; padding: 0 20px; border-bottom: 1px solid #EDEFF3;">
+            <span style="display: flex; align-items: center; min-width: 0;">
+              <span style="display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 10px; border-radius: 6px; background: #F1F2F5; font-size: 13px; color: #14161B; white-space: nowrap;">
+                <span style="width:10px;height:10px;border-radius:50%;flex-shrink:0;background:#E8A33D;"></span>Hlídat lhůtu
+              </span>
+            </span>
+            <span style="font-size: 14px; color: #454B57;">Oranžová</span>
+            <span style="font-size: 14px; color: #454B57; text-align: right; font-variant-numeric: tabular-nums;">1</span>
+            <span style="font-size: 14px; color: #454B57; text-align: right; font-variant-numeric: tabular-nums;">1</span>
+            <span style="display: flex; gap: 4px; justify-content: flex-end;">
+              <button type="button" class="iconbtn" aria-label="Upravit štítek Hlídat lhůtu" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; color: #454B57; background: transparent; border: 0; border-radius: 8px; cursor: pointer;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3"/><path d="M13.5 6.5l4 4"/></svg>
+              </button>
+              <button type="button" class="iconbtn danger" aria-label="Smazat štítek Hlídat lhůtu" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; color: #B42318; background: transparent; border: 0; border-radius: 8px; cursor: pointer;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12"/><path d="M9 7V4h6v3"/></svg>
+              </button>
+            </span>
           </div>
-          
-            <div class="row" style="display: grid; grid-template-columns: minmax(0, 1fr) 160px 110px 110px 120px; column-gap: 16px; align-items: center; min-height: 56px; padding: 0 20px; border-bottom: 1px solid #EDEFF3;">
-              <span style="display: flex; align-items: center; gap: 10px;">
-                <span style="width:10px;height:10px;border-radius:50%;background:#E15241;"></span>
-                <span style="display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:6px;font-size:13px;background:#FDE4E1;color:#9B2C1F;">rychlost</span>
+          <div class="row" style="display: grid; grid-template-columns: minmax(0, 1fr) 150px 90px 90px 96px; column-gap: 16px; align-items: center; min-height: 52px; padding: 0 20px; border-bottom: 1px solid #EDEFF3;">
+            <span style="display: flex; align-items: center; min-width: 0;">
+              <span style="display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 10px; border-radius: 6px; background: #F1F2F5; font-size: 13px; color: #14161B; white-space: nowrap;">
+                <span style="width:10px;height:10px;border-radius:50%;flex-shrink:0;background:#E15241;"></span>Priorita
               </span>
-              <span style="font-size: 14px; color: #454B57;">Červená</span>
-              <span style="font-size: 14px; color: #454B57; font-variant-numeric: tabular-nums;">3</span>
-              <span style="font-size: 14px; color: #454B57; font-variant-numeric: tabular-nums;">18</span>
-              <span style="display: flex; gap: 8px; justify-content: flex-end;">
-                <button type="button" style="display: flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; font: inherit; font-size: 13px; color: #14161B; background: #FFFFFF; border: 1px solid #D5D9E1; border-radius: 8px; cursor: pointer;">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3"/><path d="M13.5 6.5l4 4"/></svg>Upravit
-                </button>
-                <button type="button" aria-label="Smazat štítek" style="width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; color: #9B2C1F; background: #FFFFFF; border: 1px solid #E8D3D0; border-radius: 8px; cursor: pointer;">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12"/><path d="M9 7V4h6v3"/></svg>
-                </button>
-              </span>
-            </div>
-          
-            <div class="row" style="display: grid; grid-template-columns: minmax(0, 1fr) 160px 110px 110px 120px; column-gap: 16px; align-items: center; min-height: 56px; padding: 0 20px; border-bottom: 1px solid #EDEFF3;">
-              <span style="display: flex; align-items: center; gap: 10px;">
-                <span style="width:10px;height:10px;border-radius:50%;background:#E8A33D;"></span>
-                <span style="display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:6px;font-size:13px;background:#FDEFD8;color:#8A5307;">odpovědnost provozovatele</span>
-              </span>
-              <span style="font-size: 14px; color: #454B57;">Oranžová</span>
-              <span style="font-size: 14px; color: #454B57; font-variant-numeric: tabular-nums;">2</span>
-              <span style="font-size: 14px; color: #454B57; font-variant-numeric: tabular-nums;">11</span>
-              <span style="display: flex; gap: 8px; justify-content: flex-end;">
-                <button type="button" style="display: flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; font: inherit; font-size: 13px; color: #14161B; background: #FFFFFF; border: 1px solid #D5D9E1; border-radius: 8px; cursor: pointer;">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3"/><path d="M13.5 6.5l4 4"/></svg>Upravit
-                </button>
-                <button type="button" aria-label="Smazat štítek" style="width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; color: #9B2C1F; background: #FFFFFF; border: 1px solid #E8D3D0; border-radius: 8px; cursor: pointer;">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12"/><path d="M9 7V4h6v3"/></svg>
-                </button>
-              </span>
-            </div>
-          
-            <div class="row" style="display: grid; grid-template-columns: minmax(0, 1fr) 160px 110px 110px 120px; column-gap: 16px; align-items: center; min-height: 56px; padding: 0 20px; border-bottom: 1px solid #EDEFF3;">
-              <span style="display: flex; align-items: center; gap: 10px;">
-                <span style="width:10px;height:10px;border-radius:50%;background:#3B5BDB;"></span>
-                <span style="display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:6px;font-size:13px;background:#E1E9FD;color:#2A48B8;">InfZ</span>
-              </span>
-              <span style="font-size: 14px; color: #454B57;">Modrá</span>
-              <span style="font-size: 14px; color: #454B57; font-variant-numeric: tabular-nums;">9</span>
-              <span style="font-size: 14px; color: #454B57; font-variant-numeric: tabular-nums;">44</span>
-              <span style="display: flex; gap: 8px; justify-content: flex-end;">
-                <button type="button" style="display: flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; font: inherit; font-size: 13px; color: #14161B; background: #FFFFFF; border: 1px solid #D5D9E1; border-radius: 8px; cursor: pointer;">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3"/><path d="M13.5 6.5l4 4"/></svg>Upravit
-                </button>
-                <button type="button" aria-label="Smazat štítek" style="width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; color: #9B2C1F; background: #FFFFFF; border: 1px solid #E8D3D0; border-radius: 8px; cursor: pointer;">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12"/><path d="M9 7V4h6v3"/></svg>
-                </button>
-              </span>
-            </div>
-          
-          <div style="display: flex; align-items: center; gap: 8px; padding: 14px 20px; font-size: 13px; color: #5B6270;">
-            Smazání štítku ho odebere ze všech spisů a úkonů. Potvrzuje se jednou větou, která jmenuje počet výskytů.
+            </span>
+            <span style="font-size: 14px; color: #454B57;">Červená</span>
+            <span style="font-size: 14px; color: #454B57; text-align: right; font-variant-numeric: tabular-nums;">1</span>
+            <span style="font-size: 14px; color: #454B57; text-align: right; font-variant-numeric: tabular-nums;">1</span>
+            <span style="display: flex; gap: 4px; justify-content: flex-end;">
+              <button type="button" class="iconbtn" aria-label="Upravit štítek Priorita" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; color: #454B57; background: transparent; border: 0; border-radius: 8px; cursor: pointer;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3"/><path d="M13.5 6.5l4 4"/></svg>
+              </button>
+              <button type="button" class="iconbtn danger" aria-label="Smazat štítek Priorita" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; color: #B42318; background: transparent; border: 0; border-radius: 8px; cursor: pointer;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12"/><path d="M9 7V4h6v3"/></svg>
+              </button>
+            </span>
           </div>
-        </section>
+          <div class="row" style="display: grid; grid-template-columns: minmax(0, 1fr) 150px 90px 90px 96px; column-gap: 16px; align-items: center; min-height: 52px; padding: 0 20px; border-bottom: 1px solid #EDEFF3;">
+            <span style="display: flex; align-items: center; min-width: 0;">
+              <span style="display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 10px; border-radius: 6px; background: #F1F2F5; font-size: 13px; color: #14161B; white-space: nowrap;">
+                <span style="width:10px;height:10px;border-radius:50%;flex-shrink:0;background:#4F46C8;"></span>Soud
+              </span>
+            </span>
+            <span style="font-size: 14px; color: #454B57;">Indigová</span>
+            <span style="font-size: 14px; color: #9AA0AB; text-align: right; font-variant-numeric: tabular-nums;">–</span>
+            <span style="font-size: 14px; color: #454B57; text-align: right; font-variant-numeric: tabular-nums;">1</span>
+            <span style="display: flex; gap: 4px; justify-content: flex-end;">
+              <button type="button" class="iconbtn" aria-label="Upravit štítek Soud" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; color: #454B57; background: transparent; border: 0; border-radius: 8px; cursor: pointer;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3"/><path d="M13.5 6.5l4 4"/></svg>
+              </button>
+              <button type="button" class="iconbtn danger" aria-label="Smazat štítek Soud" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; color: #B42318; background: transparent; border: 0; border-radius: 8px; cursor: pointer;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12"/><path d="M9 7V4h6v3"/></svg>
+              </button>
+            </span>
+          </div>
+          <div class="row" style="display: grid; grid-template-columns: minmax(0, 1fr) 150px 90px 90px 96px; column-gap: 16px; align-items: center; min-height: 52px; padding: 0 20px; border-bottom: 1px solid #EDEFF3;">
+            <span style="display: flex; align-items: center; min-width: 0;">
+              <span style="display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 10px; border-radius: 6px; background: #F1F2F5; font-size: 13px; color: #14161B; white-space: nowrap;">
+                <span style="width:10px;height:10px;border-radius:50%;flex-shrink:0;background:#159E92;"></span>Žádost o informace
+              </span>
+            </span>
+            <span style="font-size: 14px; color: #454B57;">Tyrkysová</span>
+            <span style="font-size: 14px; color: #454B57; text-align: right; font-variant-numeric: tabular-nums;">4</span>
+            <span style="font-size: 14px; color: #454B57; text-align: right; font-variant-numeric: tabular-nums;">1</span>
+            <span style="display: flex; gap: 4px; justify-content: flex-end;">
+              <button type="button" class="iconbtn" aria-label="Upravit štítek Žádost o informace" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; color: #454B57; background: transparent; border: 0; border-radius: 8px; cursor: pointer;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3"/><path d="M13.5 6.5l4 4"/></svg>
+              </button>
+              <button type="button" class="iconbtn danger" aria-label="Smazat štítek Žádost o informace" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; color: #B42318; background: transparent; border: 0; border-radius: 8px; cursor: pointer;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12"/><path d="M9 7V4h6v3"/></svg>
+              </button>
+            </span>
+          </div>
+        <div style="padding: 14px 20px; font-size: 13px; color: #5B6270;">Smazání štítku ho sejme ze všech spisů a úkonů, které ho nesou.</div>
+      </section>
+    </div>
 
-        <section style="background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; padding: 18px 20px; display: flex; flex-direction: column; gap: 14px;">
-          <h2 style="margin: 0; font-size: 18px; font-weight: 600;">Nový štítek</h2>
-          <div style="display: grid; grid-template-columns: minmax(0, 1fr) 320px auto; gap: 16px; align-items: end;">
-            <div style="display: flex; flex-direction: column; gap: 6px;">
-              <label for="n-label-name" style="font-size: 13px; font-weight: 600;">Název <span style="color: #9B2C1F;">*</span></label>
-              <input id="n-label-name" placeholder="Například nečinnost" style="height: 44px; padding: 0 12px; font: inherit; font-size: 15px; border: 1px solid #D5D9E1; border-radius: 10px;">
+    <div style="display: grid; grid-template-columns: 560px 520px 390px; gap: 48px; align-items: start; margin-top: 40px;">
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <span style="font-size: 13px; font-weight: 600; color: #5B6270;">Upravit štítek</span>
+        <div role="dialog" aria-label="Upravit štítek" style="background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; box-shadow: 0 12px 32px rgba(20, 22, 27, 0.12); display: flex; flex-direction: column;">
+          <div style="display: flex; align-items: center; padding: 18px 20px; border-bottom: 1px solid #EDEFF3;">
+            <h2 style="margin: 0; font-size: 18px; font-weight: 600; flex-grow: 1;">Upravit štítek</h2>
+            <button type="button" aria-label="Zavřít" style="width: 36px; height: 36px; border: 0; background: transparent; color: #454B57; cursor: pointer;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 18px; padding: 20px;">
+            <div style="display: flex; align-items: center; gap: 12px; padding: 14px; background: #F8F9FB; border-radius: 10px;">
+              <span style="font-size: 13px; color: #5B6270;">Náhled</span>
+              <span style="display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 10px; border-radius: 6px; background: #FFFFFF; border: 1px solid #E1E4EA; font-size: 13px;">
+                <span style="width:10px;height:10px;border-radius:50%;flex-shrink:0;background:#E8A33D;"></span>Hlídat lhůtu
+              </span>
             </div>
             <div style="display: flex; flex-direction: column; gap: 6px;">
-              <span style="font-size: 13px; font-weight: 600;">Barva</span>
-              <div role="group" aria-label="Barva štítku" style="display: flex; gap: 8px; align-items: center; height: 44px;">
-                
-                  <button type="button" aria-label="Modrá" aria-pressed="false" style="width:28px;height:28px;border-radius:50%;cursor:pointer;background:#3B5BDB;border:1px solid rgba(20,22,27,0.12);"></button>
-                
-                  <button type="button" aria-label="Blankytná" aria-pressed="false" style="width:28px;height:28px;border-radius:50%;cursor:pointer;background:#2C8FD4;border:1px solid rgba(20,22,27,0.12);"></button>
-                
-                  <button type="button" aria-label="Indigová" aria-pressed="false" style="width:28px;height:28px;border-radius:50%;cursor:pointer;background:#4F46C8;border:1px solid rgba(20,22,27,0.12);"></button>
-                
-                  <button type="button" aria-label="Fialová" aria-pressed="false" style="width:28px;height:28px;border-radius:50%;cursor:pointer;background:#7C3AED;border:1px solid rgba(20,22,27,0.12);"></button>
-                
-                  <button type="button" aria-label="Růžová" aria-pressed="false" style="width:28px;height:28px;border-radius:50%;cursor:pointer;background:#D6336C;border:1px solid rgba(20,22,27,0.12);"></button>
-                
-                  <button type="button" aria-label="Červená" aria-pressed="true" style="width:28px;height:28px;border-radius:50%;cursor:pointer;background:#E15241;border:2px solid #14161B;"></button>
-                
-                  <button type="button" aria-label="Oranžová" aria-pressed="false" style="width:28px;height:28px;border-radius:50%;cursor:pointer;background:#E8A33D;border:1px solid rgba(20,22,27,0.12);"></button>
-                
-                  <button type="button" aria-label="Žlutá" aria-pressed="false" style="width:28px;height:28px;border-radius:50%;cursor:pointer;background:#D9B321;border:1px solid rgba(20,22,27,0.12);"></button>
-                
-                  <button type="button" aria-label="Limetková" aria-pressed="false" style="width:28px;height:28px;border-radius:50%;cursor:pointer;background:#7BA828;border:1px solid rgba(20,22,27,0.12);"></button>
-                
-                  <button type="button" aria-label="Zelená" aria-pressed="false" style="width:28px;height:28px;border-radius:50%;cursor:pointer;background:#3B9C5A;border:1px solid rgba(20,22,27,0.12);"></button>
-                
-                  <button type="button" aria-label="Tyrkysová" aria-pressed="false" style="width:28px;height:28px;border-radius:50%;cursor:pointer;background:#159E92;border:1px solid rgba(20,22,27,0.12);"></button>
-                
-                  <button type="button" aria-label="Azurová" aria-pressed="false" style="width:28px;height:28px;border-radius:50%;cursor:pointer;background:#1B9BB8;border:1px solid rgba(20,22,27,0.12);"></button>
-                
-                  <button type="button" aria-label="Šedá" aria-pressed="false" style="width:28px;height:28px;border-radius:50%;cursor:pointer;background:#6B7280;border:1px solid rgba(20,22,27,0.12);"></button>
-                
+              <label for="n2-name" style="font-size: 13px; font-weight: 600;">Název <span style="color: #B42318;">*</span></label>
+              <input id="n2-name" value="Hlídat lhůtu" style="height: 44px; padding: 0 12px; font: inherit; font-size: 15px; border: 1px solid #D5D9E1; border-radius: 10px;">
+              <span style="font-size: 12px; color: #5B6270;">Nejvýše 64 znaků</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <span style="font-size: 13px; font-weight: 600;">Barva <span style="font-weight: 400; color: #5B6270;">· Oranžová</span></span>
+              <div role="group" aria-label="Barva štítku" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                  <button type="button" title="Modrá" aria-label="Modrá" aria-pressed="false" style="width:32px;height:32px;border-radius:50%;cursor:pointer;padding:0;background:#3B5BDB;border:1px solid rgba(20,22,27,0.12);"></button>
+                  <button type="button" title="Blankytná" aria-label="Blankytná" aria-pressed="false" style="width:32px;height:32px;border-radius:50%;cursor:pointer;padding:0;background:#2C8FD4;border:1px solid rgba(20,22,27,0.12);"></button>
+                  <button type="button" title="Indigová" aria-label="Indigová" aria-pressed="false" style="width:32px;height:32px;border-radius:50%;cursor:pointer;padding:0;background:#4F46C8;border:1px solid rgba(20,22,27,0.12);"></button>
+                  <button type="button" title="Fialová" aria-label="Fialová" aria-pressed="false" style="width:32px;height:32px;border-radius:50%;cursor:pointer;padding:0;background:#7C3AED;border:1px solid rgba(20,22,27,0.12);"></button>
+                  <button type="button" title="Růžová" aria-label="Růžová" aria-pressed="false" style="width:32px;height:32px;border-radius:50%;cursor:pointer;padding:0;background:#D6336C;border:1px solid rgba(20,22,27,0.12);"></button>
+                  <button type="button" title="Červená" aria-label="Červená" aria-pressed="false" style="width:32px;height:32px;border-radius:50%;cursor:pointer;padding:0;background:#E15241;border:1px solid rgba(20,22,27,0.12);"></button>
+                  <button type="button" title="Oranžová" aria-label="Oranžová" aria-pressed="true" style="width:32px;height:32px;border-radius:50%;cursor:pointer;padding:0;background:#E8A33D;border:3px solid #FFFFFF;box-shadow:0 0 0 2px #14161B;"></button>
+                  <button type="button" title="Žlutá" aria-label="Žlutá" aria-pressed="false" style="width:32px;height:32px;border-radius:50%;cursor:pointer;padding:0;background:#D9B321;border:1px solid rgba(20,22,27,0.12);"></button>
+                  <button type="button" title="Limetková" aria-label="Limetková" aria-pressed="false" style="width:32px;height:32px;border-radius:50%;cursor:pointer;padding:0;background:#7BA828;border:1px solid rgba(20,22,27,0.12);"></button>
+                  <button type="button" title="Zelená" aria-label="Zelená" aria-pressed="false" style="width:32px;height:32px;border-radius:50%;cursor:pointer;padding:0;background:#3B9C5A;border:1px solid rgba(20,22,27,0.12);"></button>
+                  <button type="button" title="Tyrkysová" aria-label="Tyrkysová" aria-pressed="false" style="width:32px;height:32px;border-radius:50%;cursor:pointer;padding:0;background:#159E92;border:1px solid rgba(20,22,27,0.12);"></button>
+                  <button type="button" title="Azurová" aria-label="Azurová" aria-pressed="false" style="width:32px;height:32px;border-radius:50%;cursor:pointer;padding:0;background:#1B9BB8;border:1px solid rgba(20,22,27,0.12);"></button>
+                  <button type="button" title="Šedá" aria-label="Šedá" aria-pressed="false" style="width:32px;height:32px;border-radius:50%;cursor:pointer;padding:0;background:#6B7280;border:1px solid rgba(20,22,27,0.12);"></button>
               </div>
             </div>
-            <button type="button" style="display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 20px; font: inherit; font-size: 14px; font-weight: 600; color: #FFFFFF; background: #3B5BDB; border: 0; border-radius: 10px; cursor: pointer;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>Přidat štítek
-            </button>
           </div>
-        </section>
+          <div style="display: flex; justify-content: flex-end; gap: 10px; padding: 16px 20px; border-top: 1px solid #EDEFF3;">
+            <button type="button" style="height: 44px; padding: 0 18px; font: inherit; font-size: 14px; background: #FFFFFF; border: 1px solid #D5D9E1; border-radius: 10px; cursor: pointer;">Zrušit</button>
+            <button type="button" style="height: 44px; padding: 0 18px; font: inherit; font-size: 14px; font-weight: 600; color: #FFFFFF; background: #3B5BDB; border: 0; border-radius: 10px; cursor: pointer;">Uložit</button>
+          </div>
+        </div>
       </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <span style="font-size: 13px; font-weight: 600; color: #5B6270;">Smazat štítek</span>
+        <div role="dialog" aria-label="Smazat štítek" style="background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; box-shadow: 0 12px 32px rgba(20, 22, 27, 0.12); display: flex; flex-direction: column;">
+          <div style="padding: 18px 20px; border-bottom: 1px solid #EDEFF3;">
+            <h2 style="margin: 0; font-size: 18px; font-weight: 600;">Smazat štítek</h2>
+          </div>
+          <p style="margin: 0; padding: 20px; font-size: 15px; line-height: 1.5;">Opravdu smazat štítek <strong>Žádost o informace</strong>? Zmizí ze 4 spisů a 1 úkonu; spisy ani úkony tím nezanikají.</p>
+          <div style="display: flex; justify-content: flex-end; gap: 10px; padding: 16px 20px; border-top: 1px solid #EDEFF3;">
+            <button type="button" style="height: 44px; padding: 0 18px; font: inherit; font-size: 14px; background: #FFFFFF; border: 1px solid #D5D9E1; border-radius: 10px; cursor: pointer;">Zrušit</button>
+            <button type="button" style="height: 44px; padding: 0 18px; font: inherit; font-size: 14px; font-weight: 600; color: #FFFFFF; background: #B42318; border: 0; border-radius: 10px; cursor: pointer;">Smazat štítek</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <span style="font-size: 13px; font-weight: 600; color: #5B6270;">Mobil · 390 px</span>
+        <div style="width: 390px; box-sizing: border-box; background: #F2F3F6; border: 1px solid #E1E4EA; border-radius: 20px; overflow: hidden; display: flex; flex-direction: column; gap: 14px; padding: 18px 16px 24px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <h1 style="margin: 0; font-size: 22px; font-weight: 600; flex-grow: 1;">Nastavení</h1>
+          </div>
+          <nav aria-label="Sekce nastavení (mobil)" style="display: flex; gap: 6px;">
+            <a href="nastaveni.html" aria-current="page" style="display: flex; align-items: center; height: 36px; padding: 0 14px; border-radius: 999px; font-size: 14px; font-weight: 600; background: #EEF2FE; color: #2A48B8;">Štítky</a>
+          </nav>
+          <section style="background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; overflow: hidden;">
+            <div style="display: flex; align-items: center; gap: 10px; padding: 14px 16px;">
+              <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0;">
+                <h2 style="margin: 0; font-size: 17px; font-weight: 600;">Štítky <span style="font-weight: 400; color: #5B6270;">4</span></h2>
+                <span style="font-size: 12px; color: #5B6270; white-space: nowrap;">Jeden číselník pro spisy i úkony</span>
+              </div>
+              <button type="button" style="display: flex; align-items: center; gap: 6px; height: 44px; padding: 0 14px; font: inherit; font-size: 14px; font-weight: 600; color: #FFFFFF; background: #3B5BDB; border: 0; border-radius: 10px; flex-shrink: 0;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>Nový
+              </button>
+            </div>
+              <div style="display: flex; align-items: center; gap: 8px; padding: 10px 8px 10px 16px; border-top: 1px solid #EDEFF3;">
+                <div style="display: flex; flex-direction: column; gap: 4px; flex-grow: 1; min-width: 0;">
+                  <span style="display: inline-flex; align-self: flex-start; align-items: center; gap: 8px; height: 28px; padding: 0 10px; border-radius: 6px; background: #F1F2F5; font-size: 13px;">
+                    <span style="width:10px;height:10px;border-radius:50%;flex-shrink:0;background:#E8A33D;"></span>Hlídat lhůtu
+                  </span>
+                  <span style="font-size: 12px; color: #5B6270;">1 spis · 1 úkon</span>
+                </div>
+                <button type="button" aria-label="Upravit štítek Hlídat lhůtu" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: #454B57; background: transparent; border: 0;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3"/><path d="M13.5 6.5l4 4"/></svg>
+                </button>
+                <button type="button" aria-label="Smazat štítek Hlídat lhůtu" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: #B42318; background: transparent; border: 0;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12"/><path d="M9 7V4h6v3"/></svg>
+                </button>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px; padding: 10px 8px 10px 16px; border-top: 1px solid #EDEFF3;">
+                <div style="display: flex; flex-direction: column; gap: 4px; flex-grow: 1; min-width: 0;">
+                  <span style="display: inline-flex; align-self: flex-start; align-items: center; gap: 8px; height: 28px; padding: 0 10px; border-radius: 6px; background: #F1F2F5; font-size: 13px;">
+                    <span style="width:10px;height:10px;border-radius:50%;flex-shrink:0;background:#E15241;"></span>Priorita
+                  </span>
+                  <span style="font-size: 12px; color: #5B6270;">1 spis · 1 úkon</span>
+                </div>
+                <button type="button" aria-label="Upravit štítek Priorita" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: #454B57; background: transparent; border: 0;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3"/><path d="M13.5 6.5l4 4"/></svg>
+                </button>
+                <button type="button" aria-label="Smazat štítek Priorita" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: #B42318; background: transparent; border: 0;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12"/><path d="M9 7V4h6v3"/></svg>
+                </button>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px; padding: 10px 8px 10px 16px; border-top: 1px solid #EDEFF3;">
+                <div style="display: flex; flex-direction: column; gap: 4px; flex-grow: 1; min-width: 0;">
+                  <span style="display: inline-flex; align-self: flex-start; align-items: center; gap: 8px; height: 28px; padding: 0 10px; border-radius: 6px; background: #F1F2F5; font-size: 13px;">
+                    <span style="width:10px;height:10px;border-radius:50%;flex-shrink:0;background:#4F46C8;"></span>Soud
+                  </span>
+                  <span style="font-size: 12px; color: #5B6270;">1 úkon</span>
+                </div>
+                <button type="button" aria-label="Upravit štítek Soud" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: #454B57; background: transparent; border: 0;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3"/><path d="M13.5 6.5l4 4"/></svg>
+                </button>
+                <button type="button" aria-label="Smazat štítek Soud" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: #B42318; background: transparent; border: 0;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12"/><path d="M9 7V4h6v3"/></svg>
+                </button>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px; padding: 10px 8px 10px 16px; border-top: 1px solid #EDEFF3;">
+                <div style="display: flex; flex-direction: column; gap: 4px; flex-grow: 1; min-width: 0;">
+                  <span style="display: inline-flex; align-self: flex-start; align-items: center; gap: 8px; height: 28px; padding: 0 10px; border-radius: 6px; background: #F1F2F5; font-size: 13px;">
+                    <span style="width:10px;height:10px;border-radius:50%;flex-shrink:0;background:#159E92;"></span>Žádost o informace
+                  </span>
+                  <span style="font-size: 12px; color: #5B6270;">4 spisy · 1 úkon</span>
+                </div>
+                <button type="button" aria-label="Upravit štítek Žádost o informace" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: #454B57; background: transparent; border: 0;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3"/><path d="M13.5 6.5l4 4"/></svg>
+                </button>
+                <button type="button" aria-label="Smazat štítek Žádost o informace" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: #B42318; background: transparent; border: 0;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12"/><path d="M9 7V4h6v3"/></svg>
+                </button>
+              </div>
+            <div style="padding: 12px 16px; font-size: 12px; color: #5B6270; border-top: 1px solid #EDEFF3;">Smazání štítku ho sejme ze všech spisů a úkonů, které ho nesou.</div>
+          </section>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
