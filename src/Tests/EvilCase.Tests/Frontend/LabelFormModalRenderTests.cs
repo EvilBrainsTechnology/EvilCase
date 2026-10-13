@@ -6,7 +6,6 @@ using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.App.Components;
 using EvilBrains.EvilCase.App.Models;
 using EvilBrains.EvilCase.Domain.Labels;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -30,6 +29,36 @@ public class LabelFormModalRenderTests
             component.FindAll(".ec-swatch"),
             Has.Count.EqualTo(LabelColorDisplay.Palette.Count),
             "the colour is a fixed palette, never a free code (SDD-019)");
+    }
+
+    [Test]
+    public async Task ThePreviewFollowsTheTypedNameAndTheChosenColour()
+    {
+        await using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+
+        Serve(ctx);
+
+        var component = ctx.Render<LabelFormModal>(static parameters => parameters
+            .Add(static modal => modal.Open, value: true)
+            .Add(static modal => modal.Label, value: null));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.Find(".ec-label-preview .ec-chip").TextContent.Trim(), Is.EqualTo("Nový štítek"), "an empty name falls back");
+            Assert.That(component.Find(".ec-label-preview .ec-chip").ClassList, Does.Contain("ec-chip-blue"));
+        }
+
+        await component.Find("#label-name").InputAsync("Soud");
+        await component.Find(".ec-swatch[aria-label=\"Červená\"]").ClickAsync(new MouseEventArgs());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.Find(".ec-label-preview .ec-chip").TextContent.Trim(), Is.EqualTo("Soud"));
+            Assert.That(component.Find(".ec-label-preview .ec-chip").ClassList, Does.Contain("ec-chip-red"));
+            Assert.That(component.FindAll(".ec-field-name")[1].TextContent, Does.Contain("Barva").And.Contain("Červená"));
+            Assert.That(component.Find(".ec-swatch[aria-label=\"Červená\"]").GetAttribute("title"), Is.EqualTo("Červená"));
+        }
     }
 
     [Test]
@@ -88,7 +117,7 @@ public class LabelFormModalRenderTests
             .Add(static modal => modal.Open, value: true)
             .Add(static modal => modal.Label, value: null));
 
-        await component.Find("#label-name").ChangeAsync(new ChangeEventArgs { Value = "nečinnost" });
+        await component.Find("#label-name").InputAsync("nečinnost");
         await component.Find(".ec-swatch[aria-label=\"Červená\"]").ClickAsync(new MouseEventArgs());
         await component.Find(".ec-modal-footer .ec-button-primary").ClickAsync(new MouseEventArgs());
 
@@ -114,7 +143,7 @@ public class LabelFormModalRenderTests
             .Add(static modal => modal.Open, value: true)
             .Add(static modal => modal.Label, label));
 
-        await component.Find("#label-name").ChangeAsync(new ChangeEventArgs { Value = "InfZ – nečinnost" });
+        await component.Find("#label-name").InputAsync("InfZ – nečinnost");
         await component.Find(".ec-modal-footer .ec-button-primary").ClickAsync(new MouseEventArgs());
 
         await labelsClient
@@ -137,7 +166,7 @@ public class LabelFormModalRenderTests
             .Add(static modal => modal.Open, value: true)
             .Add(static modal => modal.Label, value: null));
 
-        await component.Find("#label-name").ChangeAsync(new ChangeEventArgs { Value = "InfZ" });
+        await component.Find("#label-name").InputAsync("InfZ");
         await component.Find(".ec-modal-footer .ec-button-primary").ClickAsync(new MouseEventArgs());
 
         await component.WaitForAssertionAsync(

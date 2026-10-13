@@ -9,4 +9,11 @@ public enum EcButtonVariant
     Ghost = 2,
 
     Danger = 3,
+
+    /// <summary>
+    /// Borderless icon button in the text colour.
+    /// </summary>
+    Quiet = 4,
+
+    QuietDanger = 5,
 }

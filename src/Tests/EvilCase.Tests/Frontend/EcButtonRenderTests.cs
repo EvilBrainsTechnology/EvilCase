@@ -24,6 +24,8 @@ public class EcButtonRenderTests
                 EcButtonVariant.Secondary => "ec-button-secondary",
                 EcButtonVariant.Ghost => "ec-button-ghost",
                 EcButtonVariant.Danger => "ec-button-danger",
+                EcButtonVariant.Quiet => "ec-button-quiet",
+                EcButtonVariant.QuietDanger => "ec-button-quiet-danger",
                 _ => throw new InvalidOperationException($"unexpected variant {variant}"),
             };
 
