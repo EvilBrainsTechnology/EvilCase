@@ -98,7 +98,7 @@ public class ActRenderTests
             Assert.That(component.Find(".ec-badge-incoming").TextContent, Is.EqualTo("Příchozí"));
             Assert.That(component.Find(".ec-detail-text").TextContent, Is.EqualTo("Vina a pokuta."));
             Assert.That(
-                component.FindAll(".ec-detail-fact-name").Select(static node => node.TextContent),
+                component.FindAll(".ec-detail-fact-name").Select(static node => node.FirstChild!.TextContent),
                 Is.EqualTo(["Datum úkonu", "Číslo jednací", "Externí číslo jednací", "Odesílatel", "Štítky"]),
                 "the row of data follows the design");
             Assert.That(component.Find(".ec-crumb[aria-current=page]").TextContent, Is.EqualTo("EC/20250528-001/20250902-001"));
@@ -176,101 +176,85 @@ public class ActRenderTests
     }
 
     [Test]
-    public async Task ThePickerPutsALabelOnTheActWithoutLeavingThePage()
+    public async Task AnOfferedLabelIsSavedOnTheActAtOnceAndLeavesTheOffer()
     {
         await using var ctx = new BunitContext();
 
         var caseId = Guid.CreateVersion7();
         var actId = Guid.CreateVersion7();
 
-        var label = new LabelItem { LabelId = Guid.CreateVersion7(), Name = "InfZ", Color = LabelColor.Blue };
+        var carried = new LabelItem { LabelId = Guid.CreateVersion7(), Name = "Priorita", Color = LabelColor.Red };
+        var offered = new LabelItem { LabelId = Guid.CreateVersion7(), Name = "InfZ", Color = LabelColor.Blue };
 
-        var detail = new ActDetail
-        {
-            ActId = actId,
-            CaseId = caseId,
-            CaseNumber = "EC/20260807-001",
-            CaseTitle = "Spis",
-            CaseStatus = CaseStatus.Active,
-            ActNumber = "1",
-            Date = new DateOnly(2026, 8, 7),
-            Title = "Úkon",
-        };
+        var detail = ActWith(caseId, actId, carried);
 
         var (actsClient, actLabelsClient, labelsClient) = Serve(ctx, caseId, actId, detail);
 
-        labelsClient.ListLabels(Arg.Any<CancellationToken>()).Returns(Task.FromResult(new LabelListResponse { Items = [LabelListItems.Of(label)] }));
+        labelsClient
+            .ListLabels(Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new LabelListResponse { Items = [LabelListItems.Of(carried), LabelListItems.Of(offered)] }));
         actsClient
             .GetAct(caseId, actId, Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(detail), Task.FromResult(detail with { Labels = [label] }));
+            .Returns(Task.FromResult(detail), Task.FromResult(detail with { Labels = [carried, offered] }));
 
         var component = ctx.Render<Act>(parameters => parameters
             .Add(static page => page.CaseId, caseId)
             .Add(static page => page.ActId, actId));
 
-        await component.Find(".ec-detail-fact-labels .ec-button-ghost").ClickAsync(new MouseEventArgs());
-        await component.Find("#act-labels").InputAsync(new ChangeEventArgs { Value = "inf" });
+        await component.Find(".ec-label-add").ClickAsync(new MouseEventArgs());
 
         await component.WaitForAssertionAsync(
-            () => Assert.That(component.FindAll(".ec-combobox-option"), Has.Count.EqualTo(1)),
+            () => Assert.That(component.FindAll(".ec-label-option"), Has.Count.EqualTo(1), "only a label the act lacks is offered"),
             TimeSpan.FromSeconds(2));
 
-        await component.Find(".ec-combobox-option").ClickAsync(new MouseEventArgs());
+        await component.Find(".ec-label-option").ClickAsync(new MouseEventArgs());
 
         await actLabelsClient
             .Received(1)
             .SetActLabels(
                 caseId,
                 actId,
-                Arg.Is<LabelAssignmentRequest>(request => request.LabelIds.SequenceEqual(new[] { label.LabelId })),
+                Arg.Is<LabelAssignmentRequest>(request => request.LabelIds.SequenceEqual(new[] { carried.LabelId, offered.LabelId })),
                 Arg.Any<CancellationToken>());
 
         await component.WaitForAssertionAsync(
-            () => Assert.That(component.Find(".ec-chip").TextContent, Does.Contain("InfZ")),
+            () =>
+            {
+                using (Assert.EnterMultipleScope())
+                {
+                    Assert.That(component.FindAll(".ec-label-field-inline > .ec-chip"), Has.Count.EqualTo(2));
+                    Assert.That(component.FindAll(".ec-label-option"), Is.Empty);
+                }
+            },
             TimeSpan.FromSeconds(2));
     }
 
     [Test]
-    public async Task TheOpenPickerCarriesTheLabelsInsteadOfTheRowOfData()
+    public async Task TheCrossOnAChipTakesTheLabelOffTheActAtOnce()
     {
         await using var ctx = new BunitContext();
 
         var caseId = Guid.CreateVersion7();
         var actId = Guid.CreateVersion7();
 
-        var detail = new ActDetail
-        {
-            ActId = actId,
-            CaseId = caseId,
-            CaseNumber = "EC/20260807-001",
-            CaseTitle = "Spis",
-            CaseStatus = CaseStatus.Active,
-            ActNumber = "1",
-            Date = new DateOnly(2026, 8, 7),
-            Title = "Úkon",
-            Labels = [new LabelItem { LabelId = Guid.CreateVersion7(), Name = "InfZ", Color = LabelColor.Blue }],
-        };
+        var kept = new LabelItem { LabelId = Guid.CreateVersion7(), Name = "Priorita", Color = LabelColor.Red };
+        var removed = new LabelItem { LabelId = Guid.CreateVersion7(), Name = "InfZ", Color = LabelColor.Blue };
 
-        Serve(ctx, caseId, actId, detail);
+        var (_, actLabelsClient, _) = Serve(ctx, caseId, actId, ActWith(caseId, actId, kept, removed));
 
         var component = ctx.Render<Act>(parameters => parameters
             .Add(static page => page.CaseId, caseId)
             .Add(static page => page.ActId, actId));
 
-        await component.Find(".ec-detail-fact-labels .ec-button-ghost").ClickAsync(new MouseEventArgs());
+        await component.Find("button[aria-label='Odebrat štítek InfZ']").ClickAsync(new MouseEventArgs());
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(
-                component.Find(".ec-label-picker .ec-chip").TextContent,
-                Does.Contain("InfZ"),
-                "the open picker shows the labels it can take off the act");
-            Assert.That(
-                component.FindAll(".ec-detail-fact-row .ec-chip"),
-                Is.Empty,
-                "the row of data does not repeat the labels the open picker carries");
-            Assert.That(component.FindAll(".ec-label-picker #act-labels"), Has.Count.EqualTo(1));
-        }
+        await actLabelsClient
+            .Received(1)
+            .SetActLabels(
+                caseId,
+                actId,
+                Arg.Is<LabelAssignmentRequest>(request => request.LabelIds.SequenceEqual(new[] { kept.LabelId })),
+                Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -283,19 +267,7 @@ public class ActRenderTests
 
         var label = new LabelItem { LabelId = Guid.CreateVersion7(), Name = "InfZ", Color = LabelColor.Blue };
 
-        var detail = new ActDetail
-        {
-            ActId = actId,
-            CaseId = caseId,
-            CaseNumber = "EC/20260807-001",
-            CaseTitle = "Spis",
-            CaseStatus = CaseStatus.Active,
-            ActNumber = "1",
-            Date = new DateOnly(2026, 8, 7),
-            Title = "Úkon",
-        };
-
-        var (_, actLabelsClient, labelsClient) = Serve(ctx, caseId, actId, detail);
+        var (_, actLabelsClient, labelsClient) = Serve(ctx, caseId, actId, ActWith(caseId, actId));
 
         labelsClient.ListLabels(Arg.Any<CancellationToken>()).Returns(Task.FromResult(new LabelListResponse { Items = [LabelListItems.Of(label)] }));
         actLabelsClient
@@ -306,14 +278,13 @@ public class ActRenderTests
             .Add(static page => page.CaseId, caseId)
             .Add(static page => page.ActId, actId));
 
-        await component.Find(".ec-detail-fact-labels .ec-button-ghost").ClickAsync(new MouseEventArgs());
-        await component.Find("#act-labels").InputAsync(new ChangeEventArgs { Value = "inf" });
+        await component.Find(".ec-label-add").ClickAsync(new MouseEventArgs());
 
         await component.WaitForAssertionAsync(
-            () => Assert.That(component.FindAll(".ec-combobox-option"), Has.Count.EqualTo(1)),
+            () => Assert.That(component.FindAll(".ec-label-option"), Has.Count.EqualTo(1)),
             TimeSpan.FromSeconds(2));
 
-        await component.Find(".ec-combobox-option").ClickAsync(new MouseEventArgs());
+        await component.Find(".ec-label-option").ClickAsync(new MouseEventArgs());
 
         await component.WaitForAssertionAsync(
             () => Assert.That(component.Find(".ec-detail-fact .ec-alert").TextContent, Does.Contain("nepodařilo uložit")),
@@ -610,6 +581,22 @@ public class ActRenderTests
                 new ActTimelineItem { ActId = actId, Title = "Úkon", Date = new DateOnly(2026, 8, 7), IsCurrent = true },
                 new ActTimelineItem { ActId = nextId, Title = "Odvolání", Date = new DateOnly(2026, 8, 9), Direction = ActDirection.Outgoing, IsCurrent = false },
             ],
+        };
+    }
+
+    private static ActDetail ActWith(Guid caseId, Guid actId, params LabelItem[] labels)
+    {
+        return new ActDetail
+        {
+            ActId = actId,
+            CaseId = caseId,
+            CaseNumber = "EC/20260807-001",
+            CaseTitle = "Spis",
+            CaseStatus = CaseStatus.Active,
+            ActNumber = "1",
+            Date = new DateOnly(2026, 8, 7),
+            Title = "Úkon",
+            Labels = labels,
         };
     }
 

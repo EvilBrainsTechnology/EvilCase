@@ -1,33 +1,114 @@
+@using System.Net
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Labels
+@using EvilBrains.EvilCase.Domain.Labels
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
 @inject ILabelsClient LabelsClient
+@inject IJSRuntime JSRuntime
 @inject ILogger<LabelField> Logger
 
-@if (this.Selected.Count > 0)
+@if (this.open)
 {
-    <div class="ec-chips">
-        @foreach (var label in this.Selected)
-        {
-            <span class="@($"ec-chip ec-chip-{LabelColorDisplay.Css(label.Color)}")">
-                <span class="ec-chip-dot" aria-hidden="true"></span>@label.Name
-                <button type="button" class="ec-chip-remove" aria-label="@($"Odebrat štítek {label.Name}")" @onclick="() => this.Remove(label)">
-                    <EcIcon Paths="@AppIcons.X" Size="EcIconSize.Small" />
-                </button>
-            </span>
-        }
-    </div>
+    <div class="ec-label-backdrop" @onclick="this.Close"></div>
 }
 
-<EcCombobox TItem="LabelItem" InputId="@this.InputId" Placeholder="Hledat štítek" SelectedLabel="Vybraný štítek"
-            EmptyText="@this.EmptyText" ItemText="@(static label => label.Name)" Search="this.SearchLabels"
-            SelectedChanged="this.Add">
-    <ItemTemplate>
-        <span class="@($"ec-chip-dot ec-chip-{LabelColorDisplay.Css(context.Color)}")" aria-hidden="true"></span>@context.Name
-    </ItemTemplate>
-</EcCombobox>
+<div class="@this.RootClass">
+    @foreach (var label in this.Selected)
+    {
+        <span class="@($"ec-chip ec-chip-{LabelColorDisplay.Css(label.Color)}")">
+            <span class="ec-chip-dot" aria-hidden="true"></span>@label.Name
+            <button type="button" class="ec-chip-remove" aria-label="@($"Odebrat štítek {label.Name}")" @onclick="() => this.Remove(label)">
+                <EcIcon Paths="@AppIcons.X" Size="EcIconSize.Small" />
+            </button>
+        </span>
+    }
+
+    @if (this.Inline && !this.open)
+    {
+        <button @ref="this.addButton" type="button" class="ec-label-add" aria-label="Přidat štítek" aria-haspopup="listbox" aria-expanded="false"
+                aria-keyshortcuts="L" @onclick="this.OpenPicker">
+            <EcIcon Paths="@AppIcons.Plus" Size="EcIconSize.Small" />Štítek
+        </button>
+    }
+    else
+    {
+        <span class="ec-label-search">
+            <input @ref="this.input" id="@this.InputId" type="text" class="ec-label-input" form="ec-label-no-form"
+                   placeholder="@(this.Inline ? "Hledat štítek" : "Přidat štítek")" aria-label="Hledat nebo založit štítek"
+                   role="combobox" aria-expanded="@(this.open ? "true" : "false")" aria-controls="@this.ListId"
+                   aria-activedescendant="@this.ActiveOptionId" autocomplete="off"
+                   value="@this.search" @oninput="this.OnInput" @onkeydown="this.OnKeyDown" @onfocus="this.OpenPicker" @onclick="this.OpenPicker" />
+
+            @if (this.open)
+            {
+                <div class="ec-label-menu">
+                    <div class="ec-label-sheet-head">
+                        <span class="ec-label-sheet-title">Přidat štítek</span>
+                        <button type="button" class="ec-label-sheet-done" @onclick="this.Close">Hotovo</button>
+                    </div>
+                    <input @ref="this.sheetInput" id="@($"{this.InputId}-sheet")" type="text" class="ec-input ec-label-sheet-search" form="ec-label-no-form"
+                           placeholder="Hledat nebo založit štítek" aria-label="Hledat nebo založit štítek" autocomplete="off"
+                           value="@this.search" @oninput="this.OnInput" @onkeydown="this.OnKeyDown" />
+
+                    <div @ref="this.list" id="@this.ListId" class="ec-label-options" role="listbox" aria-label="Štítky k přidání">
+                        @for (var index = 0; index < this.rows.Count; index++)
+                        {
+                            var row = this.rows[index];
+
+                            <button type="button" id="@this.OptionId(index)" role="option" aria-selected="@(index == this.active ? "true" : "false")"
+                                    class="@(index == this.active ? "ec-label-option ec-label-option-active" : "ec-label-option")"
+                                    @onclick="() => this.Add(row)">
+                                <span class="@($"ec-chip ec-chip-{LabelColorDisplay.Css(row.Color)}")">
+                                    <span class="ec-chip-dot" aria-hidden="true"></span>@row.Name
+                                </span>
+                            </button>
+                        }
+
+                        @if (this.rows.Count == 0 && !this.CanCreate)
+                        {
+                            <span class="ec-label-empty">@this.EmptyText</span>
+                        }
+                    </div>
+
+                    @if (this.CanCreate)
+                    {
+                        <div class="ec-label-create">
+                            <button type="button" class="ec-label-create-button" @onclick="this.CreateLabel">
+                                <EcIcon Paths="@AppIcons.Plus" Size="EcIconSize.Small" />Založit štítek „@this.search.Trim()“
+                            </button>
+                            <div class="ec-swatches ec-label-swatches" role="radiogroup" aria-label="Barva nového štítku">
+                                @foreach (var color in LabelColorDisplay.Palette)
+                                {
+                                    <button type="button" role="radio" class="@($"ec-swatch ec-chip-{LabelColorDisplay.Css(color)}")"
+                                            title="@LabelColorDisplay.Text(color)" aria-label="@LabelColorDisplay.Text(color)"
+                                            aria-checked="@(this.newColor == color ? "true" : "false")"
+                                            aria-pressed="@(this.newColor == color ? "true" : "false")"
+                                            @onclick="() => this.newColor = color"></button>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    @if (this.createError is not null)
+                    {
+                        <span class="ec-field-error" role="alert">@this.createError</span>
+                    }
+
+                    <div class="ec-label-menu-foot">
+                        <span class="ec-label-hint">↑↓ pohyb · Enter přidat · Esc zavřít</span>
+                        <a class="ec-label-manage" href="/settings">Spravovat</a>
+                    </div>
+                </div>
+            }
+        </span>
+    }
+</div>
 
 @code {
+    private const int NameMaxLength = 64;
+
     [Parameter, EditorRequired]
     public required string InputId { get; set; }
 
@@ -37,20 +118,228 @@
     [Parameter]
     public EventCallback<IReadOnlyList<LabelItem>> SelectedChanged { get; set; }
 
-    private IReadOnlyList<LabelItem> available = [];
+    /// <summary>The detail row: a "+ Štítek" button opens the input in place, and the key L opens it too.</summary>
+    [Parameter]
+    public bool Inline { get; set; }
+
+    /// <summary>Whether text that matches no label offers to found one.</summary>
+    [Parameter]
+    public bool AllowCreate { get; set; } = true;
+
+    private readonly List<LabelItem> available = [];
+
+    // A change waits for the one before it, so it builds on the selection that one saved.
+    private readonly SemaphoreSlim changing = new(1, 1);
+
+    private IReadOnlyList<LabelItem> rows = [];
+
+    private ElementReference addButton;
+
+    private ElementReference input;
+
+    private ElementReference sheetInput;
+
+    private ElementReference list;
+
+    private DotNetObjectReference<LabelField>? self;
+
+    private IJSObjectReference? module;
+
+    private string search = "";
 
     private string? failure;
 
-    private string EmptyText => this.failure
-        ?? (this.available.Count == 0 ? "Zatím není žádný štítek; založte ho v nastavení." : "Žádný další štítek neodpovídá.");
+    private string? createError;
 
-    protected override async Task OnInitializedAsync()
+    private LabelColor newColor = LabelColor.Blue;
+
+    private bool open;
+
+    private bool loaded;
+
+    private bool focusPending;
+
+    private bool scrollPending;
+
+    private bool returnFocus;
+
+    private int active;
+
+    private string RootClass => (this.Inline ? "ec-label-field ec-label-field-inline" : "ec-label-field ec-label-field-box")
+        + (this.open ? " ec-label-field-open" : "");
+
+    private string ListId => $"{this.InputId}-list";
+
+    private string? ActiveOptionId => this.open && this.active < this.rows.Count ? this.OptionId(this.active) : null;
+
+    private bool CanCreate
     {
+        get
+        {
+            var name = this.search.Trim();
+
+            return this.AllowCreate
+                && this.loaded
+                && name.Length is > 0 and <= NameMaxLength
+                && !this.available.Any(label => string.Equals(label.Name, name, StringComparison.OrdinalIgnoreCase));
+        }
+    }
+
+    private string EmptyText
+    {
+        get
+        {
+            if (this.failure is not null)
+                return this.failure;
+
+            if (!this.loaded)
+                return "Načítám štítky…";
+
+            if (this.available.Count == 0)
+                return this.AllowCreate ? "Zatím není žádný štítek. Napište název a založte ho." : "Zatím není žádný štítek.";
+
+            return this.available.All(label => this.Selected.Any(selected => selected.LabelId == label.LabelId))
+                ? "Všechny štítky už jsou přidané."
+                : "Žádný další štítek neodpovídá.";
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        this.Refilter();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && this.Inline)
+        {
+            this.self = DotNetObjectReference.Create(this);
+            // The module import answers null while the first render batch is still being applied.
+            await Task.Yield();
+
+            var labels = await this.Script();
+
+            await labels.InvokeVoidAsync("listen", this.self);
+        }
+
+        if (this.open && this.focusPending)
+        {
+            this.focusPending = false;
+
+            // Below lg the sheet's input is the one on screen; above, the field's own.
+            await this.sheetInput.FocusAsync();
+            await this.input.FocusAsync();
+        }
+
+        if (this.open && this.scrollPending)
+        {
+            this.scrollPending = false;
+
+            var labels = await this.Script();
+
+            await labels.InvokeVoidAsync("scrollActiveIntoView", this.list);
+        }
+
+        if (!this.open && this.returnFocus)
+        {
+            this.returnFocus = false;
+
+            await this.addButton.FocusAsync();
+        }
+    }
+
+    [JSInvokable]
+    public async Task OpenFromShortcut()
+    {
+        await this.InvokeAsync(async () =>
+        {
+            var opening = this.OpenPicker();
+
+            this.StateHasChanged();
+
+            await opening;
+
+            this.StateHasChanged();
+        });
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (this.module is not null)
+        {
+            try
+            {
+                // The listener belongs to the inline field; a form or filter field leaves it alone.
+                if (this.Inline)
+                    await this.module.InvokeVoidAsync("stop");
+
+                await this.module.DisposeAsync();
+            }
+            catch (JSDisconnectedException)
+            {
+                // The circuit is gone; the listener went with the page.
+            }
+        }
+
+        this.self?.Dispose();
+    }
+
+    private string OptionId(int index)
+    {
+        return $"{this.InputId}-option-{index}";
+    }
+
+    private async Task<IJSObjectReference> Script()
+    {
+        return this.module ??= await this.JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/ec-label-field.js");
+    }
+
+    private void Refilter()
+    {
+        this.rows =
+        [
+            .. this.available
+                .Where(label => !this.Selected.Any(selected => selected.LabelId == label.LabelId))
+                .Where(label => SearchText.Matches(label.Name, this.search))
+                .OrderBy(static label => label.Name, StringComparer.CurrentCultureIgnoreCase),
+        ];
+
+        this.active = Math.Clamp(this.active, 0, Math.Max(this.rows.Count - 1, 0));
+    }
+
+    private async Task OpenPicker()
+    {
+        if (this.open)
+            return;
+
+        this.open = true;
+        this.focusPending = true;
+        this.createError = null;
+
+        await this.LoadLabels();
+    }
+
+    private void Close()
+    {
+        this.open = false;
+        this.search = "";
+        this.active = 0;
+        this.createError = null;
+        this.Refilter();
+    }
+
+    private async Task LoadLabels()
+    {
+        if (this.loaded)
+            return;
+
         try
         {
             var response = await this.LabelsClient.ListLabels(CancellationToken.None);
 
-            this.available = [.. response.Items.Select(static item => new LabelItem { LabelId = item.LabelId, Name = item.Name, Color = item.Color })];
+            this.available.AddRange(response.Items.Select(static item => new LabelItem { LabelId = item.LabelId, Name = item.Name, Color = item.Color }));
+            this.loaded = true;
+            this.failure = null;
         }
         catch (Exception exception) when (exception is ApiException or HttpRequestException)
         {
@@ -58,29 +347,113 @@
 
             this.failure = "Štítky se nepodařilo načíst. Zkuste to za chvíli znovu.";
         }
+
+        this.Refilter();
     }
 
-    private Task<IReadOnlyList<LabelItem>> SearchLabels(string search, CancellationToken token)
+    private async Task OnInput(ChangeEventArgs args)
     {
-        return Task.FromResult<IReadOnlyList<LabelItem>>(
-            [
-                .. this.available
-                    .Where(label => !this.Selected.Any(selected => selected.LabelId == label.LabelId))
-                    .Where(label => SearchText.Matches(label.Name, search))
-                    .Take(8),
-            ]);
+        this.search = args.Value as string ?? "";
+        this.active = 0;
+        this.createError = null;
+
+        await this.OpenPicker();
+
+        this.Refilter();
     }
 
-    private async Task Add(LabelItem? label)
+    private async Task OnKeyDown(KeyboardEventArgs args)
     {
-        if (label is null)
+        if (!this.open)
+        {
+            if (args.Key is "ArrowDown" or "ArrowUp")
+                await this.OpenPicker();
+
             return;
+        }
 
-        await this.SelectedChanged.InvokeAsync([.. this.Selected, label]);
+        switch (args.Key)
+        {
+            case "ArrowDown":
+                this.active = Math.Min(this.active + 1, Math.Max(this.rows.Count - 1, 0));
+                this.scrollPending = true;
+                break;
+            case "ArrowUp":
+                this.active = Math.Max(this.active - 1, 0);
+                this.scrollPending = true;
+                break;
+            case "Enter" when this.active < this.rows.Count:
+                await this.Add(this.rows[this.active]);
+                break;
+            case "Enter" when this.CanCreate:
+                await this.CreateLabel();
+                break;
+            case "Escape":
+                this.Close();
+                this.returnFocus = this.Inline;
+                break;
+        }
+    }
+
+    private async Task Add(LabelItem label)
+    {
+        this.search = "";
+        this.active = 0;
+        this.createError = null;
+        this.focusPending = true;
+
+        await this.changing.WaitAsync();
+
+        try
+        {
+            if (!this.Selected.Any(selected => selected.LabelId == label.LabelId))
+                await this.SelectedChanged.InvokeAsync([.. this.Selected, label]);
+        }
+        finally
+        {
+            this.changing.Release();
+        }
+
+        this.Refilter();
     }
 
     private async Task Remove(LabelItem label)
     {
-        await this.SelectedChanged.InvokeAsync([.. this.Selected.Where(selected => selected.LabelId != label.LabelId)]);
+        await this.changing.WaitAsync();
+
+        try
+        {
+            await this.SelectedChanged.InvokeAsync([.. this.Selected.Where(selected => selected.LabelId != label.LabelId)]);
+        }
+        finally
+        {
+            this.changing.Release();
+        }
+    }
+
+    private async Task CreateLabel()
+    {
+        var request = new LabelEditRequest { Name = this.search.Trim(), Color = this.newColor };
+
+        this.createError = null;
+
+        try
+        {
+            var created = await this.LabelsClient.CreateLabel(request, CancellationToken.None);
+
+            this.available.Add(created);
+
+            await this.Add(created);
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
+        {
+            this.createError = "Štítek s tímto názvem už existuje.";
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Creating the label failed");
+
+            this.createError = "Štítek se nepodařilo založit. Zkuste to za chvíli znovu.";
+        }
     }
 }

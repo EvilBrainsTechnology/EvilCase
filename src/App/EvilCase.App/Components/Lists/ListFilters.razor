@@ -30,7 +30,7 @@
         {
             <div class="ec-filter-field ec-filter-field-grow">
                 <label class="ec-filter-name" for="@($"{this.InputPrefix}-labels")">Štítek</label>
-                <LabelField InputId="@($"{this.InputPrefix}-labels")" Selected="this.SelectedLabels" SelectedChanged="this.LabelsChanged" />
+                <LabelField AllowCreate="false" InputId="@($"{this.InputPrefix}-labels")" Selected="this.SelectedLabels" SelectedChanged="this.LabelsChanged" />
             </div>
         }
         <button type="button" class="ec-filter-clear" @onclick="() => this.Cleared.InvokeAsync()">Zrušit filtry</button>

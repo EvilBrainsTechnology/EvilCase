@@ -270,10 +270,10 @@ public class CaseListRenderTests
         await component.Find("#cases-labels").InputAsync(new ChangeEventArgs { Value = "urg" });
 
         await component.WaitForAssertionAsync(
-            () => Assert.That(component.FindAll(".ec-combobox-option"), Has.Count.EqualTo(1)),
+            () => Assert.That(component.FindAll(".ec-label-option"), Has.Count.EqualTo(1)),
             TimeSpan.FromSeconds(2));
 
-        await component.Find(".ec-combobox-option").ClickAsync(new MouseEventArgs());
+        await component.Find(".ec-label-option").ClickAsync(new MouseEventArgs());
 
         IReadOnlyList<Guid> chosen = [labelId];
 

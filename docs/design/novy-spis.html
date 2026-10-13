@@ -80,15 +80,13 @@
 
         <div style="display: flex; flex-direction: column; gap: 6px;">
           <span style="font-size: 13px; font-weight: 600;">Štítky</span>
-          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-height: 44px; padding: 6px 10px; border: 1px solid #D5D9E1; border-radius: 10px;">
+          <div style="position: relative; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-height: 44px; padding: 6px 10px; border: 1px solid #D5D9E1; border-radius: 10px;">
             <span style="display: flex; align-items: center; gap: 6px; font-size: 13px; padding: 4px 8px; border-radius: 6px; background: #E1E9FD; color: #2A48B8;">InfZ
               <button type="button" aria-label="Odebrat štítek InfZ" style="display: flex; align-items: center; font: inherit; border: 0; background: none; color: #2A48B8; cursor: pointer; padding: 0;">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></svg>
               </button>
             </span>
-            <button type="button" style="display: flex; align-items: center; gap: 6px; font: inherit; font-size: 13px; color: #2F4FD1; background: none; border: 0; cursor: pointer;">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>Přidat štítek
-            </button>
+            <label for="ns-labels" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">Hledat nebo založit štítek</label><input id="ns-labels" placeholder="Přidat štítek" autocomplete="off" style="flex-grow: 1; min-width: 80px; border: 0; outline: none; font: inherit; font-size: 14px; background: transparent;">
           </div>
         </div>
 

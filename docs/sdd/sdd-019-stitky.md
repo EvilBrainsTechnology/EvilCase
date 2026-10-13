@@ -39,6 +39,9 @@ nezaniká. Potvrzuje se jako každé mazání a potvrzení jmenuje, kolik spisů
   formuláře.
 - Detail spisu a úkonu nese našeptávač, který štítek přidá nebo sejme rovnou, bez editace.
 
+Výběr štítků nabízí jen štítky, které entita ještě nenese. Text, který nesedí na název žádného
+štítku, nabídne založení nového štítku s volbou barvy z palety; založený štítek se přidělí hned.
+
 Obojí posílá celou množinu, kterou entita nese po zápisu: štítek, který v ní není, se sejme.
 Štítek, který tenant nemá, odmítne zápis 409 a nezapíše nic.
 

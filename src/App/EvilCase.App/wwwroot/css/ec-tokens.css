@@ -213,8 +213,8 @@
     /* Detail úkonu (docs/design/detail-ukonu.html) */
     --ec-act-pager-text: 92px;
     --ec-copy-size: 26px;
-    --ec-label-add-width: 24px;
-    --ec-label-add-height: 22px;
+    --ec-label-search-width: 160px;
+    --ec-touch-row: 48px;
     --ec-timeline-dot: 10px;
     --ec-timeline-line: 2px;
     --ec-timeline-radius: 8px;
