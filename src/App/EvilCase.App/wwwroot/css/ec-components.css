@@ -1202,6 +1202,10 @@ html {
     padding: 0;
 }
 
+.ec-settings-layout .ec-card-error {
+    padding: 0 var(--ec-space-6) var(--ec-space-5);
+}
+
 .ec-card-title-count {
     font-weight: var(--ec-weight-regular);
     color: var(--ec-text-muted);
@@ -1210,7 +1214,7 @@ html {
 .ec-settings-head,
 .ec-settings-row {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 150px 90px 90px 96px;
+    grid-template-columns: minmax(0, 1fr) var(--ec-settings-col-color) var(--ec-settings-col-count) var(--ec-settings-col-count) var(--ec-settings-col-actions);
     align-items: center;
     column-gap: var(--ec-space-5);
     padding-inline: var(--ec-space-6);
@@ -1905,16 +1909,16 @@ html {
     }
 
     .ec-settings-nav-item {
-        height: var(--ec-control-md);
+        height: var(--ec-touch-min);
         border-radius: var(--ec-radius-pill);
     }
 
-    .ec-card-heading {
+    .ec-settings-layout .ec-card-heading {
         flex: 1 1 auto;
         min-width: 0;
     }
 
-    .ec-card-subtitle {
+    .ec-settings-layout .ec-card-subtitle {
         white-space: nowrap;
     }
 
@@ -1922,7 +1926,7 @@ html {
         display: none;
     }
 
-    .ec-card-header-actions {
+    .ec-settings-layout .ec-card-header-actions {
         flex-shrink: 0;
     }
 
