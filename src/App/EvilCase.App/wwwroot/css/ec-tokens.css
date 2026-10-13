@@ -220,6 +220,11 @@
     --ec-timeline-radius: 8px;
     --ec-timeline-leading: 1.4;
 
+    /* Nastavení (docs/design/nastaveni.html) */
+    --ec-settings-col-color: 150px;
+    --ec-settings-col-count: 90px;
+    --ec-settings-col-actions: 96px;
+
     /* Detail spisu (docs/design/detail-spisu.html) */
     --ec-case-act-col-date: 96px;
     --ec-case-act-col-direction: 96px;

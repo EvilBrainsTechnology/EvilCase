@@ -95,6 +95,7 @@
     private void TypeName(ChangeEventArgs args)
     {
         this.model.Name = args.Value?.ToString() ?? "";
+        this.editContext.NotifyFieldChanged(FieldIdentifier.Create(() => this.model.Name));
     }
 
     private async Task Cancel()
