@@ -1,13 +1,11 @@
 @* The frame of the sign-in page and of boot step 3 of 3; steps 1 and 2 are the same markup in index.html, keep them in sync. *@
 <div class="ec-gate">
+    <div class="ec-brand ec-gate-brand">
+        <span class="ec-brand-mark"><EcIcon Paths="@AppIcons.Scale" /></span>
+        EvilCase
+    </div>
     <div class="ec-gate-card">
-        <div class="ec-brand">
-            <span class="ec-brand-mark"><EcIcon Paths="@AppIcons.Scale" /></span>
-            EvilCase
-        </div>
-        <div class="ec-gate-body">
-            @this.ChildContent
-        </div>
+        @this.ChildContent
     </div>
     <div class="ec-gate-facts">
         <span>Česky · datum d. M. yyyy</span>

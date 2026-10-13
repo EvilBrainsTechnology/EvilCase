@@ -1880,12 +1880,13 @@ html {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
     gap: var(--ec-space-7);
     min-height: var(--ec-viewport-height);
-    padding: var(--ec-space-7) var(--ec-space-6);
+    padding: max(var(--ec-space-7), calc(var(--ec-viewport-height) / 2 - var(--ec-gate-anchor))) var(--ec-space-6) var(--ec-space-7);
     box-sizing: border-box;
-    background: var(--ec-login-panel-bg);
+    background:
+        radial-gradient(ellipse 70% 55% at 50% 30%, var(--ec-gate-glow), transparent 70%),
+        var(--ec-login-panel-bg);
     font-family: var(--ec-font);
     color: var(--ec-text);
 }
@@ -1895,27 +1896,38 @@ html:has(.ec-gate) {
     scrollbar-gutter: auto;
 }
 
+.ec-gate-brand {
+    flex-direction: column;
+    gap: var(--ec-space-4);
+    font-size: var(--ec-gate-brand-size);
+    letter-spacing: -0.02em;
+    color: var(--ec-login-panel-text);
+}
+
+.ec-gate-brand .ec-brand-mark {
+    width: var(--ec-gate-brand-mark);
+    height: var(--ec-gate-brand-mark);
+    border-radius: var(--ec-radius-xl);
+}
+
+.ec-gate-brand .ec-brand-mark .ec-icon,
+.ec-gate-brand .ec-brand-mark svg {
+    width: var(--ec-gate-brand-icon);
+    height: var(--ec-gate-brand-icon);
+}
+
 .ec-gate-card {
     display: flex;
     flex-direction: column;
-    gap: var(--ec-space-8);
+    gap: var(--ec-space-6);
     box-sizing: border-box;
     width: var(--ec-gate-card-width);
     max-width: 100%;
-    min-height: var(--ec-gate-card-height);
     padding: var(--ec-gate-card-pad);
     background: var(--ec-surface);
     border: 1px solid var(--ec-border);
-    border-radius: var(--ec-radius-card);
-    box-shadow: var(--ec-shadow-overlay);
-}
-
-.ec-gate-body {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    justify-content: center;
-    gap: var(--ec-space-6);
+    border-radius: var(--ec-gate-card-radius);
+    box-shadow: var(--ec-gate-card-shadow);
 }
 
 .ec-gate-facts {
@@ -1937,6 +1949,7 @@ html:has(.ec-gate) {
     display: flex;
     flex-direction: column;
     gap: var(--ec-space-2);
+    text-align: center;
 }
 
 .ec-login-title {
@@ -1952,17 +1965,11 @@ html:has(.ec-gate) {
     color: var(--ec-text-muted);
 }
 
-.ec-login-note {
-    margin: 0;
-    font-size: var(--ec-text-sm);
-    line-height: var(--ec-leading-body);
-    color: var(--ec-text-muted);
-}
-
 /* Zavádění aplikace: kroky 1/3 a 2/3 v index.html, 3/3 v LoadingPage. */
 .ec-boot-step {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: var(--ec-space-3);
     font-size: var(--ec-text-md);
     color: var(--ec-text-muted);
@@ -1980,7 +1987,7 @@ html:has(.ec-gate) {
 .ec-boot-track {
     position: relative;
     overflow: hidden;
-    height: var(--ec-space-2);
+    height: var(--ec-space-1);
     border-radius: var(--ec-radius-pill);
     background: var(--ec-border);
 }

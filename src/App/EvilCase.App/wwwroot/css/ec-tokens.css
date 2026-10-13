@@ -212,7 +212,13 @@
     --ec-login-form-width: 380px;
     --ec-gate-card-pad: 40px;
     --ec-gate-card-width: calc(var(--ec-login-form-width) + 2 * var(--ec-gate-card-pad) + 2px);
-    --ec-gate-card-height: 580px;
+    --ec-gate-card-radius: 20px;
+    --ec-gate-card-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+    --ec-gate-glow: rgba(59, 91, 219, 0.32);
+    --ec-gate-anchor: 300px;
+    --ec-gate-brand-size: 28px;
+    --ec-gate-brand-mark: 60px;
+    --ec-gate-brand-icon: 32px;
     --ec-login-title-size: 26px;
     --ec-login-panel-bg: var(--ec-text);
     --ec-login-panel-text: var(--ec-surface);
