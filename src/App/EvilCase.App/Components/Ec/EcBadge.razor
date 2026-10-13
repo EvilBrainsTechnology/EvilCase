@@ -1,6 +1,16 @@
 @using System.Diagnostics
 
-<span class="@this.CssClass">@this.Text</span>
+<span class="@this.CssClass">
+    @if (this.ShowDot)
+    {
+        <span class="ec-badge-dot" aria-hidden="true"></span>
+    }
+    @if (this.Icon.Length > 0)
+    {
+        <EcIcon Paths="@this.Icon" Size="EcIconSize.Small" />
+    }
+    @this.Text
+</span>
 
 @code {
     [Parameter, EditorRequired]
@@ -8,6 +18,18 @@
 
     [Parameter, EditorRequired]
     public required EcBadgeTone Tone { get; set; }
+
+    /// <summary>
+    /// A dot in the tone's colour before the text; a case status carries one.
+    /// </summary>
+    [Parameter]
+    public bool ShowDot { get; set; }
+
+    /// <summary>
+    /// An icon before the text; an act direction carries its arrow.
+    /// </summary>
+    [Parameter]
+    public string Icon { get; set; } = "";
 
     private string CssClass
     {

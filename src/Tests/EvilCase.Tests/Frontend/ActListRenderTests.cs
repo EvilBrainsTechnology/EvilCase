@@ -391,6 +391,41 @@ public class ActListRenderTests
         Assert.That(requests[^1].Direction, Is.Null);
     }
 
+    [Test]
+    public void TheDirectionPillCarriesItsArrow()
+    {
+        using var ctx = new BunitContext();
+        Serve(ctx, out _);
+
+        var component = Render(ctx, [ActColumn.Direction]);
+
+        component.WaitForElement("a.ec-table-row");
+
+        var pill = component.Find(".ec-table-cell .ec-badge");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(pill.TextContent.Trim(), Is.EqualTo("Příchozí"));
+            Assert.That(pill.QuerySelectorAll("svg.ec-icon"), Has.Length.EqualTo(1), "the direction reads from its arrow as well as its word");
+        }
+    }
+
+    [Test]
+    public void AnActWithoutDirectionOrContactShowsALightDash()
+    {
+        using var ctx = new BunitContext();
+        Serve(ctx, out _, items: [Row with { Direction = null, ContactId = null, ContactName = null }]);
+
+        var component = Render(ctx, [ActColumn.Direction, ActColumn.Contact]);
+
+        component.WaitForElement("a.ec-table-row");
+
+        Assert.That(
+            component.FindAll(".ec-cell-empty").Select(static dash => dash.TextContent),
+            Is.EqualTo(["—", "—"]),
+            "a missing value reads as a light dash (SDD-020)");
+    }
+
     private static readonly Guid CaseId = Guid.CreateVersion7();
 
     private static readonly Guid ActId = Guid.CreateVersion7();

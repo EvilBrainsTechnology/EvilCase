@@ -1,0 +1,11 @@
+@using EvilBrains.EvilCase.Api.Contract.Labels
+
+@foreach (var label in this.Labels)
+{
+    <span class="@($"ec-chip ec-chip-sm ec-chip-{LabelColorDisplay.Css(label.Color)}")"><span class="ec-chip-dot" aria-hidden="true"></span>@label.Name</span>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public required IReadOnlyList<LabelItem> Labels { get; set; }
+}

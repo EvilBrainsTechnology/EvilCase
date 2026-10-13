@@ -15,6 +15,9 @@
     --ec-text-strong: #000000;
     --ec-text-muted: #5B6270;
     --ec-text-soft: #454B57;
+    --ec-text-faint: #A0A6B1;
+    --ec-text-number: #2E323B;
+    --ec-text-subtle: #6B7280;
     --ec-border: #E1E4EA;
     --ec-border-strong: #D5D9E1;
     --ec-border-subtle: #EDEFF3;
@@ -33,10 +36,10 @@
     --ec-active-dot: #3B9C5A;
     --ec-waiting-bg: #FDEFD8;
     --ec-waiting-text: #8A5307;
-    --ec-waiting-dot: #E8A33D;
+    --ec-waiting-dot: #D98A1B;
     --ec-closed-bg: #EDEFF3;
     --ec-closed-text: #454B57;
-    --ec-closed-dot: #8A909C;
+    --ec-closed-dot: #A0A6B1;
 
     /* Směr úkonu */
     --ec-incoming-bg: #E6EEFD;
@@ -167,6 +170,10 @@
     --ec-list-col-number: 200px;
     --ec-list-col-kind: 160px;
     --ec-list-col-databox: 160px;
+    --ec-list-col-contact: 200px;
+    --ec-list-badge-height: 24px;
+    --ec-list-badge-pad: 10px;
+    --ec-cell-stack-gap: 2px;
 
     /* Kontakty (docs/design/kontakty.html, docs/design/detail-kontaktu.html) */
     --ec-monogram-sm: 30px;
@@ -191,6 +198,8 @@
     --ec-case-act-col-direction: 96px;
     --ec-case-act-col-number: 112px;
     --ec-case-act-row-height: 48px;
+    --ec-case-act-badge-height: 22px;
+    --ec-filter-label-width: 360px;
     --ec-chip-sm-height: 18px;
     --ec-filter-count-size: 18px;
     --ec-filter-date-width: 140px;

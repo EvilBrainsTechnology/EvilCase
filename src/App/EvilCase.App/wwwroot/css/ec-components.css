@@ -291,16 +291,19 @@ html {
 }
 
 .ec-badge-active {
+    --ec-badge-dot-color: var(--ec-active-dot);
     background: var(--ec-active-bg);
     color: var(--ec-active-text);
 }
 
 .ec-badge-waiting {
+    --ec-badge-dot-color: var(--ec-waiting-dot);
     background: var(--ec-waiting-bg);
     color: var(--ec-waiting-text);
 }
 
 .ec-badge-closed {
+    --ec-badge-dot-color: var(--ec-closed-dot);
     background: var(--ec-closed-bg);
     color: var(--ec-closed-text);
 }
@@ -328,6 +331,19 @@ html {
 .ec-badge-person {
     background: var(--ec-person-bg);
     color: var(--ec-person-text);
+}
+
+.ec-badge-dot {
+    flex: 0 0 auto;
+    width: var(--ec-space-2);
+    height: var(--ec-space-2);
+    border-radius: var(--ec-radius-pill);
+    background: var(--ec-badge-dot-color, currentColor);
+}
+
+.ec-badge .ec-icon {
+    width: var(--ec-text-xs);
+    height: var(--ec-text-xs);
 }
 
 .ec-page {
@@ -1122,6 +1138,7 @@ html {
     font-size: var(--ec-text-md);
     color: var(--ec-text-soft);
     cursor: pointer;
+    white-space: nowrap;
 }
 
 .ec-segment:focus-visible {
@@ -2491,6 +2508,28 @@ html:has(.ec-gate) {
     color: var(--ec-text-soft);
 }
 
+.ec-table-cell .ec-badge {
+    box-sizing: border-box;
+    height: var(--ec-list-badge-height);
+    padding: 0 var(--ec-list-badge-pad);
+    font-size: var(--ec-text-xs);
+    font-weight: var(--ec-weight-medium);
+}
+
+.ec-table-cell.ec-cell-stack {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    gap: var(--ec-cell-stack-gap);
+}
+
+.ec-cell-line {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+    min-width: 0;
+}
+
 .ec-table-cell-primary {
     font-size: var(--ec-text-md);
     font-weight: var(--ec-weight-medium);
@@ -2510,7 +2549,28 @@ html:has(.ec-gate) {
 .ec-cell-mono {
     font-family: var(--ec-font-mono);
     font-size: var(--ec-text-xs);
+    color: var(--ec-text-number);
+}
+
+.ec-case-acts .ec-cell-mono {
     color: var(--ec-text-muted);
+}
+
+.ec-cell-sub {
+    font-size: var(--ec-text-xs);
+    font-weight: var(--ec-weight-regular);
+    color: var(--ec-text-muted);
+}
+
+.ec-cell-mono .ec-cell-sub {
+    font-size: var(--ec-text-2xs);
+    color: var(--ec-text-subtle);
+}
+
+.ec-cell-empty {
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-faint);
 }
 
 .ec-table-range {
@@ -2781,7 +2841,8 @@ html:has(.ec-gate) {
 
 /* Detail kontaktu (docs/design/detail-kontaktu.html): dva seznamy výskytů na půl šířky. */
 .ec-contact-occurrences {
-    --ec-list-col-case: minmax(0, 0.8fr);
+    --ec-list-badge-height: var(--ec-case-act-badge-height);
+    --ec-list-badge-pad: var(--ec-space-3);
     --ec-list-col-date: var(--ec-case-act-col-date);
     --ec-list-col-status: var(--ec-case-act-col-number);
     --ec-list-row-height: var(--ec-case-act-row-height);
@@ -2803,6 +2864,8 @@ html:has(.ec-gate) {
 
 /* Detail spisu (docs/design/detail-spisu.html): úkony spisu, jejich lišta a filtry. */
 .ec-case-acts {
+    --ec-list-badge-height: var(--ec-case-act-badge-height);
+    --ec-list-badge-pad: var(--ec-space-3);
     --ec-list-col-date: var(--ec-case-act-col-date);
     --ec-list-col-status: var(--ec-case-act-col-direction);
     --ec-list-row-height: var(--ec-case-act-row-height);
@@ -2812,7 +2875,7 @@ html:has(.ec-gate) {
     padding-top: 0;
 }
 
-.ec-case-acts .ec-table-bar .ec-button-compact {
+.ec-table-bar .ec-button-compact {
     height: var(--ec-control-md);
 }
 
@@ -2851,6 +2914,7 @@ html:has(.ec-gate) {
 
 .ec-filter-panel {
     display: flex;
+    order: 1;
     flex: 1 1 100%;
     align-items: flex-end;
     gap: var(--ec-space-4);
@@ -2868,7 +2932,7 @@ html:has(.ec-gate) {
 
 .ec-filter-field-grow {
     position: relative;
-    flex: 1 1 auto;
+    flex: 0 1 var(--ec-filter-label-width);
     min-width: 0;
 }
 
@@ -2949,6 +3013,19 @@ html:has(.ec-gate) {
 
     .ec-filter-date {
         width: auto;
+    }
+
+    .ec-table-bar .ec-segmented {
+        flex: 1 1 100%;
+        flex-wrap: wrap;
+    }
+
+    .ec-table-bar .ec-segmented-compact .ec-segment {
+        flex: 1 1 auto;
+    }
+
+    .ec-filter-field-grow {
+        flex: 0 0 auto;
     }
 
     .ec-filter-clear {
