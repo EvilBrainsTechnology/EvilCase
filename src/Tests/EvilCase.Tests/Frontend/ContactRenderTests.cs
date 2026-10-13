@@ -82,6 +82,27 @@ public class ContactRenderTests
     }
 
     [Test]
+    public void TheActsOfTheContactCarryTheirCaseUnderTheTitle()
+    {
+        using var ctx = new BunitContext();
+
+        var contactId = Serve(ctx, out var caseRequests, out var actRequests, act: IncomingAct(), actTotal: 1);
+
+        var component = Render(ctx, contactId, caseRequests, actRequests);
+
+        component.WaitForAssertion(() =>
+        {
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(
+                    component.FindAll(".ec-contact-occurrences .ec-table")[1].QuerySelectorAll(".ec-table-header").Select(static header => header.TextContent.Trim().TrimEnd('↑', '↓').Trim()),
+                    Is.EqualTo(["Datum úkonu", "Úkon a spis", "Směr"]));
+                Assert.That(component.Find(".ec-cell-sub").TextContent, Is.EqualTo("Přestupek"));
+            }
+        });
+    }
+
+    [Test]
     public void TheFactsCarryTheDataBoxAndTheAddressEachWithACopyButtonAndNoCounts()
     {
         using var ctx = new BunitContext();

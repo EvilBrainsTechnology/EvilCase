@@ -192,22 +192,65 @@ public class ContactListRenderTests
         Assert.That(component.Find("a.ec-table-row").GetAttribute("href"), Is.EqualTo($"/contacts/{ServedContactId}"));
     }
 
-    private static void Serve(BunitContext ctx, out List<ContactListRequest> requests, int total = 1)
+    [Test]
+    public void AMissingDataBoxAndAddressShowALightDash()
+    {
+        using var ctx = new BunitContext();
+        Serve(ctx, out _, items: [new ContactListItem { ContactId = ServedContactId, Kind = ContactKind.Official, Name = "starosta" }]);
+
+        var component = Render(ctx, [ContactColumn.DataBoxId, ContactColumn.Address]);
+
+        component.WaitForElement("a.ec-table-row");
+
+        Assert.That(
+            component.FindAll(".ec-cell-empty").Select(static dash => dash.TextContent),
+            Is.EqualTo(["—", "—"]),
+            "a missing value reads as a light dash (SDD-020)");
+    }
+
+    [Test]
+    public async Task TheToolbarSearchesNameAndDataBoxAndSwitchesKindInCompactSegments()
+    {
+        await using var ctx = new BunitContext();
+        Serve(ctx, out var requests);
+
+        var component = ctx.Render<ContactList>(static parameters => parameters
+            .Add(static list => list.Columns, [ContactColumn.Name])
+            .Add(static list => list.Filter, new ContactListRequest { Take = 20 })
+            .Add(static list => list.ShowSearch, value: true)
+            .Add(static list => list.ShowKindFilter, value: true));
+
+        await component.WaitForElementAsync("a.ec-table-row");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.Find("input[type=search]").GetAttribute("placeholder"), Is.EqualTo("Hledat v názvu a ID schránky"));
+            Assert.That(component.Find(".ec-segmented").ClassList, Does.Contain("ec-segmented-compact"));
+            Assert.That(
+                component.FindAll(".ec-segment").Select(static segment => segment.TextContent.Trim()),
+                Is.EqualTo(["Vše", "Úřad", "Úřední osoba", "Člověk"]));
+        }
+
+        await component.FindAll(".ec-segment")[1].ClickAsync(new MouseEventArgs());
+
+        Assert.That(requests[^1].Kind, Is.EqualTo(ContactKind.Authority));
+    }
+
+    private static readonly ContactListItem Served = new()
+    {
+        ContactId = ServedContactId,
+        Kind = ContactKind.Authority,
+        Name = "Městský úřad",
+        DataBoxId = "abc1234",
+        Address = "Náměstí 1",
+    };
+
+    private static void Serve(BunitContext ctx, out List<ContactListRequest> requests, int total = 1, IReadOnlyList<ContactListItem>? items = null)
     {
         var captured = new List<ContactListRequest>();
         var response = new ContactListResponse
         {
-            Items =
-            [
-                new ContactListItem
-                {
-                    ContactId = ServedContactId,
-                    Kind = ContactKind.Authority,
-                    Name = "Městský úřad",
-                    DataBoxId = "abc1234",
-                    Address = "Náměstí 1",
-                },
-            ],
+            Items = items ?? [Served],
             TotalCount = total,
         };
 

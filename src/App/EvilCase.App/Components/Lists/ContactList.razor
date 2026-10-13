@@ -21,7 +21,7 @@
                 Primary = true,
                 Cell = item =>@<span class="ec-contact-name">
                     <span class="@($"ec-contact-monogram ec-contact-monogram-{ContactKindDisplay.Css(item.Kind)}")">@ContactMonogram.Text(item.Name)</span>
-                    <span class="ec-contact-name-text">@item.Name</span>
+                    <span class="ec-contact-name-text" title="@item.Name">@item.Name</span>
                 </span>,
             },
             ContactColumn.Kind => new EcColumn<ContactListItem>
@@ -35,13 +35,31 @@
                 Header = "ID datové schránky",
                 Width = "var(--ec-list-col-databox)",
                 CellClass = "ec-cell-mono",
-                Cell = item =>@<text>@(string.IsNullOrWhiteSpace(item.DataBoxId) ? "—" : item.DataBoxId)</text>,
+                Cell = item =>@<text>
+                    @if (string.IsNullOrWhiteSpace(item.DataBoxId))
+                    {
+                        <span class="ec-cell-empty">—</span>
+                    }
+                    else
+                    {
+                        @item.DataBoxId
+                    }
+                </text>,
             },
             ContactColumn.Address => new EcColumn<ContactListItem>
             {
                 Header = "Adresa",
-                Width = "minmax(0, 1fr)",
-                Cell = item =>@<span class="ec-cell-text">@(string.IsNullOrWhiteSpace(item.Address) ? "—" : item.Address)</span>,
+                Width = "var(--ec-list-col-address)",
+                Cell = item =>@<text>
+                    @if (string.IsNullOrWhiteSpace(item.Address))
+                    {
+                        <span class="ec-cell-empty">—</span>
+                    }
+                    else
+                    {
+                        <span class="ec-cell-text" title="@item.Address">@item.Address</span>
+                    }
+                </text>,
             },
             _ => throw new UnreachableException(),
         });
@@ -64,13 +82,13 @@
             <label class="ec-search" for="@($"{this.InputPrefix}-search")">
                 <EcIcon Paths="@AppIcons.Search" Size="EcIconSize.Small" />
                 <input id="@($"{this.InputPrefix}-search")" type="search" class="ec-search-input" aria-label="Hledat v kontaktech"
-                       placeholder="Hledat v názvu a ID datové schránky" value="@this.SearchText" @oninput="this.OnSearchInput" />
+                       placeholder="Hledat v názvu a ID schránky" value="@this.SearchText" @oninput="this.OnSearchInput" />
             </label>
         }
 
         @if (this.ShowKindFilter)
         {
-            <div class="ec-segmented" role="group" aria-label="Typ kontaktu">
+            <div class="ec-segmented ec-segmented-compact" role="group" aria-label="Typ kontaktu">
                 @foreach (var value in KindFilters)
                 {
                     <button type="button" class="ec-segment" aria-pressed="@(this.kind == value ? "true" : "false")"

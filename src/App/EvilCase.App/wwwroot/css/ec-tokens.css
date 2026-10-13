@@ -167,8 +167,9 @@
     --ec-list-col-moment: 120px;
     --ec-list-col-status: 130px;
     --ec-list-col-number: 230px;
-    --ec-list-col-kind: 160px;
-    --ec-list-col-databox: 160px;
+    --ec-list-col-kind: 140px;
+    --ec-list-col-databox: 170px;
+    --ec-list-col-address: 300px;
     --ec-list-col-contact: 200px;
     --ec-list-badge-height: 24px;
     --ec-list-badge-pad: 10px;
