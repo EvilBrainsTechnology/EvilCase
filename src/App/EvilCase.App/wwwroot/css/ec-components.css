@@ -1962,18 +1962,6 @@ html:has(.ec-gate) {
     letter-spacing: -0.02em;
 }
 
-.ec-login-subtitle {
-    margin: 0;
-    font-size: var(--ec-text-md);
-    color: var(--ec-text-muted);
-}
-
-@media (max-width: 991.98px) {
-    .ec {
-        --ec-gate-card-height: 404px;
-    }
-}
-
 /* Zavádění aplikace: kroky 1/3 a 2/3 v index.html, 3/3 v LoadingPage. */
 .ec-boot-step {
     display: flex;
