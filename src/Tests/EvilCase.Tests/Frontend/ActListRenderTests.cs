@@ -23,7 +23,7 @@ public class ActListRenderTests
         using var ctx = new BunitContext();
         Serve(ctx, out _);
 
-        var component = Render(ctx, [ActColumn.Act, ActColumn.Direction, ActColumn.Date]);
+        var component = Render(ctx, [ActColumn.ActWithLabels, ActColumn.Direction, ActColumn.Date]);
 
         component.WaitForElement("a.ec-table-row");
 
@@ -41,14 +41,14 @@ public class ActListRenderTests
         using var ctx = new BunitContext();
         Serve(ctx, out _);
 
-        var component = Render(ctx, [ActColumn.ActNumber]);
+        var component = Render(ctx, [ActColumn.ActWithLabels]);
 
         component.WaitForElement("a.ec-table-row");
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.Find(".ec-table-header").TextContent.Trim(), Is.EqualTo("Číslo jednací"));
-            Assert.That(component.Find(".ec-table-cell").TextContent, Does.Contain("EC/20260821-001/20260821-002"));
+            Assert.That(component.Find(".ec-table-header").TextContent.Trim().TrimEnd('↑', '↓').Trim(), Is.EqualTo("Úkon"));
+            Assert.That(component.Find(".ec-table-cell").TextContent, Does.Contain("Oznámení"));
         }
     }
 
@@ -58,7 +58,7 @@ public class ActListRenderTests
         using var ctx = new BunitContext();
         Serve(ctx, out _);
 
-        var component = Render(ctx, [ActColumn.Date, ActColumn.Act]);
+        var component = Render(ctx, [ActColumn.Date, ActColumn.ActWithLabels]);
 
         component.WaitForElement("a.ec-table-row");
 
@@ -137,7 +137,7 @@ public class ActListRenderTests
         await using var ctx = new BunitContext();
         Serve(ctx, out _);
 
-        var component = Render(ctx, [ActColumn.Act]);
+        var component = Render(ctx, [ActColumn.ActWithLabels]);
 
         await component.WaitForElementAsync("a.ec-table-row");
 
@@ -201,7 +201,7 @@ public class ActListRenderTests
 
         var component = Render(
             ctx,
-            [ActColumn.Changed, ActColumn.Date, ActColumn.Case, ActColumn.Act, ActColumn.Direction, ActColumn.Contact, ActColumn.ActNumber, ActColumn.ExternalNumber, ActColumn.ActWithLabels, ActColumn.ActNumberInCase, ActColumn.ActAndCase]);
+            [ActColumn.Changed, ActColumn.Date, ActColumn.Direction, ActColumn.Contact, ActColumn.ExternalNumber, ActColumn.ActWithLabels, ActColumn.ActNumberInCase, ActColumn.ActAndCase]);
 
         Assert.That(
             component.Find(".ec-table").GetAttribute("style"),

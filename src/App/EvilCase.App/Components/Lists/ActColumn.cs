@@ -6,15 +6,9 @@ public enum ActColumn
 
     Date = 1,
 
-    Case = 2,
-
-    Act = 3,
-
     Direction = 4,
 
     Contact = 5,
-
-    ActNumber = 7,
 
     ExternalNumber = 8,
 

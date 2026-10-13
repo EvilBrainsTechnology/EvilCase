@@ -29,20 +29,6 @@
                 CellClass = "ec-cell-num",
                 Cell = item =>@<text>@DateDisplay.Text(item.Date)</text>,
             },
-            ActColumn.Case => new EcColumn<ActListItem>
-            {
-                Header = "Spis",
-                Width = "var(--ec-list-col-case)",
-                Cell = item =>@<span class="ec-cell-text" title="@item.CaseTitle">@item.CaseTitle</span>,
-            },
-            ActColumn.Act => new EcColumn<ActListItem>
-            {
-                Header = "Úkon",
-                Width = "minmax(0, 1fr)",
-                SortKey = nameof(ActSortKey.Title),
-                Primary = true,
-                Cell = item =>@<span class="ec-cell-text">@item.Title</span>,
-            },
             ActColumn.Direction => new EcColumn<ActListItem>
             {
                 Header = "Směr",
@@ -72,14 +58,6 @@
                         <span class="@this.ContactClass(item)">@item.ContactName</span>
                     }
                 </text>,
-            },
-            ActColumn.ActNumber => new EcColumn<ActListItem>
-            {
-                Header = "Číslo jednací",
-                Width = "var(--ec-list-col-number)",
-                SortKey = nameof(ActSortKey.ActNumber),
-                CellClass = "ec-cell-mono",
-                Cell = item =>@<text>@item.ActNumber</text>,
             },
             ActColumn.ExternalNumber => new EcColumn<ActListItem>
             {
