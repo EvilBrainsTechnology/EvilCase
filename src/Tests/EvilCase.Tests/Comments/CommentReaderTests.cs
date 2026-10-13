@@ -22,7 +22,7 @@ public class CommentReaderTests : TenantFixture
         var @case = await this.Tenant.AddCase(Day);
         await this.Tenant.AddCaseComment(@case, "Poznámka");
 
-        var items = await this.reader.ListCaseComments(@case.Id, CancellationToken.None);
+        var items = (await this.reader.ListCaseComments(@case.Id, CancellationToken.None))!;
         var item = items.Single();
 
         using (Assert.EnterMultipleScope())
@@ -43,7 +43,7 @@ public class CommentReaderTests : TenantFixture
         var second = await this.Tenant.AddCaseComment(@case, "Druhá");
         var third = await this.Tenant.AddCaseComment(@case, "Třetí");
 
-        var items = await this.reader.ListCaseComments(@case.Id, CancellationToken.None);
+        var items = (await this.reader.ListCaseComments(@case.Id, CancellationToken.None))!;
 
         Assert.That(items.Select(static item => item.CommentId), Is.EqualTo([first.Id, second.Id, third.Id]), "the diary reads oldest first");
     }
@@ -56,7 +56,7 @@ public class CommentReaderTests : TenantFixture
         var theirs = await this.Tenant.AddCaseComment(@case, "Jejich", other.Id);
         var ours = await this.Tenant.AddCaseComment(@case, "Naše");
 
-        var items = await this.reader.ListCaseComments(@case.Id, CancellationToken.None);
+        var items = (await this.reader.ListCaseComments(@case.Id, CancellationToken.None))!;
 
         using (Assert.EnterMultipleScope())
         {
@@ -75,7 +75,7 @@ public class CommentReaderTests : TenantFixture
         var ownComment = await this.Tenant.AddCaseComment(first, "Vlastní");
         await this.Tenant.AddCaseComment(second, "Cizí");
 
-        var items = await this.reader.ListCaseComments(first.Id, CancellationToken.None);
+        var items = (await this.reader.ListCaseComments(first.Id, CancellationToken.None))!;
 
         Assert.That(items.Select(static item => item.CommentId), Is.EqualTo([ownComment.Id]), "the list holds only the asked case's notes");
     }
@@ -90,6 +90,14 @@ public class CommentReaderTests : TenantFixture
         var items = await this.reader.ListCaseComments(@case.Id, CancellationToken.None);
 
         Assert.That(items, Is.Empty, "a note on an act is not a note on its case");
+    }
+
+    [Test]
+    public async Task AMissingCaseIsNullAndNotAnEmptyList()
+    {
+        var items = await this.reader.ListCaseComments(Guid.CreateVersion7(), CancellationToken.None);
+
+        Assert.That(items, Is.Null, "a case that does not exist is told apart from a case without notes");
     }
 
     [Test]

@@ -35,7 +35,24 @@ public class ActCommentsControllerTests
 
         var response = await controller.ListActComments(reader, Guid.CreateVersion7(), CancellationToken.None);
 
-        Assert.That(response.Items.Select(static item => item.Body), Is.EqualTo(["První", "Druhá"]));
+        var body = (CommentListResponse)((OkObjectResult)response.Result!).Value!;
+
+        Assert.That(body.Items.Select(static item => item.Body), Is.EqualTo(["První", "Druhá"]));
+    }
+
+    [Test]
+    public async Task AListOnAMissingActIsAProblemWithFourOhFour()
+    {
+        var reader = Substitute.For<ICommentReader>();
+        reader
+            .ListActComments(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns((IReadOnlyList<CommentItem>?)null);
+        var controller = new ActCommentsController();
+
+        var response = await controller.ListActComments(reader, Guid.CreateVersion7(), CancellationToken.None);
+
+        var problem = AssertProblem(response.Result, 404);
+        Assert.That(problem.Title, Is.EqualTo(ActProblems.ActNotFound));
     }
 
     [Test]

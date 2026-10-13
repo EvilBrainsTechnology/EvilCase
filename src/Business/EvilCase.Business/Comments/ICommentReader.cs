@@ -4,7 +4,13 @@ namespace EvilBrains.EvilCase.Business.Comments;
 
 public interface ICommentReader
 {
-    public Task<IReadOnlyList<CommentItem>> ListCaseComments(Guid caseId, CancellationToken token);
+    /// <summary>
+    /// Null where the case is unknown; empty where it has no comments.
+    /// </summary>
+    public Task<IReadOnlyList<CommentItem>?> ListCaseComments(Guid caseId, CancellationToken token);
 
-    public Task<IReadOnlyList<CommentItem>> ListActComments(Guid actId, CancellationToken token);
+    /// <summary>
+    /// Null where the act is unknown; empty where it has no comments.
+    /// </summary>
+    public Task<IReadOnlyList<CommentItem>?> ListActComments(Guid actId, CancellationToken token);
 }

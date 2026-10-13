@@ -14,9 +14,16 @@ namespace EvilBrains.EvilCase.Api.Controllers;
 public class CaseCommentsController : ControllerBase
 {
     [HttpGet("")]
-    public async Task<CommentListResponse> ListCaseComments([FromServices] ICommentReader comments, [FromRoute] Guid caseId, CancellationToken token)
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<CommentListResponse>> ListCaseComments(
+        [FromServices] ICommentReader comments, [FromRoute] Guid caseId, CancellationToken token)
     {
-        return new CommentListResponse { Items = await comments.ListCaseComments(caseId, token) };
+        var items = await comments.ListCaseComments(caseId, token);
+
+        return items is null
+            ? this.Problem(statusCode: StatusCodes.Status404NotFound, title: CaseProblems.NotFound)
+            : this.Ok(new CommentListResponse { Items = items });
     }
 
     [HttpPost("")]

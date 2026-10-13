@@ -22,7 +22,7 @@ public class ActCommentReaderTests : TenantFixture
         var act = await this.Tenant.AddAct(@case, Day);
         await this.Tenant.AddActComment(act, "Poznámka");
 
-        var items = await this.reader.ListActComments(act.Id, CancellationToken.None);
+        var items = (await this.reader.ListActComments(act.Id, CancellationToken.None))!;
         var item = items.Single();
 
         using (Assert.EnterMultipleScope())
@@ -44,7 +44,7 @@ public class ActCommentReaderTests : TenantFixture
         var second = await this.Tenant.AddActComment(act, "Druhá");
         var third = await this.Tenant.AddActComment(act, "Třetí");
 
-        var items = await this.reader.ListActComments(act.Id, CancellationToken.None);
+        var items = (await this.reader.ListActComments(act.Id, CancellationToken.None))!;
 
         Assert.That(items.Select(static item => item.CommentId), Is.EqualTo([first.Id, second.Id, third.Id]), "the diary reads oldest first");
     }
@@ -58,7 +58,7 @@ public class ActCommentReaderTests : TenantFixture
         var theirs = await this.Tenant.AddActComment(act, "Jejich", other.Id);
         var ours = await this.Tenant.AddActComment(act, "Naše");
 
-        var items = await this.reader.ListActComments(act.Id, CancellationToken.None);
+        var items = (await this.reader.ListActComments(act.Id, CancellationToken.None))!;
 
         using (Assert.EnterMultipleScope())
         {
@@ -78,7 +78,7 @@ public class ActCommentReaderTests : TenantFixture
         var ownComment = await this.Tenant.AddActComment(first, "Vlastní");
         await this.Tenant.AddActComment(second, "Cizí");
 
-        var items = await this.reader.ListActComments(first.Id, CancellationToken.None);
+        var items = (await this.reader.ListActComments(first.Id, CancellationToken.None))!;
 
         Assert.That(items.Select(static item => item.CommentId), Is.EqualTo([ownComment.Id]), "the list holds only the asked act's notes");
     }
@@ -93,6 +93,14 @@ public class ActCommentReaderTests : TenantFixture
         var items = await this.reader.ListActComments(act.Id, CancellationToken.None);
 
         Assert.That(items, Is.Empty, "a note on the case is not a note on its act");
+    }
+
+    [Test]
+    public async Task AMissingActIsNullAndNotAnEmptyList()
+    {
+        var items = await this.reader.ListActComments(Guid.CreateVersion7(), CancellationToken.None);
+
+        Assert.That(items, Is.Null, "an act that does not exist is told apart from an act without notes");
     }
 
     [Test]
