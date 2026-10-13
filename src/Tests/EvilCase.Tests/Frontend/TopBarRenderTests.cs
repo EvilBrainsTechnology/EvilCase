@@ -58,6 +58,23 @@ public class TopBarRenderTests
     }
 
     [Test]
+    public async Task TheMenuMarksTheCaseAgendaOnAnActPage()
+    {
+        await using var ctx = new BunitContext();
+        Arrange(ctx, new StubAuthSession());
+
+        var navigation = ctx.Services.GetRequiredService<NavigationManager>();
+        navigation.NavigateTo("/acts/" + Guid.NewGuid());
+
+        var component = ctx.Render<TopBar>();
+
+        Assert.That(
+            component.Find(".ec-topbar-nav a[href='/cases']").GetAttribute("aria-current"),
+            Is.EqualTo("page"),
+            "an act belongs to the case agenda (SDD-016)");
+    }
+
+    [Test]
     public async Task SearchingInTheBarOpensTheCaseListNarrowedByTheText()
     {
         await using var ctx = new BunitContext();
