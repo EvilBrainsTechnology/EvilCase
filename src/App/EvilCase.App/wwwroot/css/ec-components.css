@@ -1551,43 +1551,302 @@ html {
     box-shadow: var(--ec-focus-ring);
 }
 
-.ec-detail-fact-row {
+.ec-kbd {
+    margin-left: var(--ec-space-3);
+    padding: 0 var(--ec-space-2);
+    border: 1px solid var(--ec-border-strong);
+    border-radius: var(--ec-radius-sm);
+    font-family: var(--ec-font-mono);
+    font-size: var(--ec-text-xs);
+    color: var(--ec-text-muted);
+}
+
+.ec-label-field {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: var(--ec-space-2);
 }
 
-.ec-detail-fact-row .ec-button-icon {
-    width: var(--ec-label-add-width);
-    height: var(--ec-label-add-height);
-    padding: 0;
+.ec-label-field-open {
+    position: relative;
+    z-index: 21;
+}
+
+.ec-label-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+}
+
+.ec-label-add {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ec-space-2);
+    height: calc(var(--ec-space-7) + var(--ec-space-1));
+    padding: 0 var(--ec-space-3);
     border: 1px dashed var(--ec-border-dashed);
     border-radius: var(--ec-radius-sm);
+    background: transparent;
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-muted);
+    cursor: pointer;
+}
+
+.ec-label-add:hover {
+    background: var(--ec-surface-sunken);
+    color: var(--ec-text);
+}
+
+.ec-label-add:focus-visible {
+    outline: none;
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-label-search {
+    display: inline-flex;
+}
+
+.ec-label-input {
+    box-sizing: border-box;
+    height: calc(var(--ec-space-7) + var(--ec-space-1));
+    width: var(--ec-label-search-width);
+    min-width: 0;
+    padding: 0 var(--ec-space-3);
+    border: 1px solid var(--ec-accent);
+    border-radius: var(--ec-radius-sm);
+    outline: none;
+    box-shadow: var(--ec-focus-ring);
+    background: var(--ec-surface);
+    color: var(--ec-text);
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-sm);
+}
+
+.ec-label-input::placeholder {
     color: var(--ec-text-muted);
 }
 
-.ec-detail-fact-row .ec-button-icon .ec-icon {
-    width: var(--ec-icon-sm);
-    height: var(--ec-icon-sm);
+.ec-label-field-inline .ec-label-search {
+    position: relative;
 }
 
-/* Over the row of data, so opening the picker never changes the row's height. */
-.ec-label-picker {
+/* The form field: the chips and the input share one box. */
+.ec-label-field-box {
+    position: relative;
+    min-height: var(--ec-control-form);
+    box-sizing: border-box;
+    padding: var(--ec-space-2) var(--ec-space-3);
+    border: 1px solid var(--ec-border-strong);
+    border-radius: var(--ec-radius-lg);
+    background: var(--ec-surface);
+}
+
+.ec-label-field-box:focus-within {
+    border-color: var(--ec-accent);
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-label-field-box .ec-label-search {
+    flex: 1 1 var(--ec-label-search-width);
+}
+
+.ec-label-field-box .ec-label-input {
+    flex: 1 1 auto;
+    width: auto;
+    border: 0;
+    box-shadow: none;
+    background: transparent;
+    font-size: var(--ec-text-md);
+}
+
+.ec-label-menu {
     position: absolute;
-    top: calc(100% - var(--ec-space-3));
-    right: var(--ec-space-5);
-    z-index: 30;
+    top: calc(100% + var(--ec-space-2));
+    left: 0;
+    z-index: 22;
     display: flex;
     flex-direction: column;
-    gap: var(--ec-space-3);
     width: var(--ec-popover-width);
-    max-width: calc(100% - var(--ec-space-5));
-    padding: var(--ec-space-4);
+    box-sizing: border-box;
+    overflow: hidden;
     border: 1px solid var(--ec-border);
     border-radius: var(--ec-radius-xl);
     background: var(--ec-surface);
     box-shadow: var(--ec-shadow-overlay);
+}
+
+.ec-label-field-box .ec-label-menu {
+    width: auto;
+    right: calc(var(--ec-space-3) * -1);
+    left: calc(var(--ec-space-3) * -1);
+    top: calc(100% + var(--ec-space-4));
+}
+
+.ec-label-sheet-head,
+.ec-label-sheet-search {
+    display: none;
+}
+
+.ec-label-options {
+    display: flex;
+    flex-direction: column;
+    max-height: var(--ec-popover-width);
+    overflow-y: auto;
+    padding: var(--ec-space-2);
+}
+
+.ec-label-options:empty {
+    display: none;
+}
+
+.ec-label-option {
+    display: flex;
+    align-items: center;
+    min-height: var(--ec-control-md);
+    padding: 0 var(--ec-space-3);
+    border: 0;
+    border-radius: var(--ec-radius-md);
+    background: transparent;
+    cursor: pointer;
+}
+
+.ec-label-option:hover,
+.ec-label-option-active {
+    background: var(--ec-accent-soft);
+}
+
+.ec-label-empty {
+    padding: var(--ec-space-4);
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-muted);
+}
+
+.ec-label-create {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-4);
+    padding: var(--ec-space-4);
+    border-top: 1px solid var(--ec-border-subtle);
+    background: var(--ec-surface-sunken);
+}
+
+.ec-label-create-button {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+    min-height: var(--ec-control-sm);
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-md);
+    color: var(--ec-text);
+    text-align: left;
+    cursor: pointer;
+}
+
+.ec-label-swatches {
+    min-height: 0;
+    gap: var(--ec-space-2);
+}
+
+.ec-label-create + .ec-field-error,
+.ec-label-menu > .ec-field-error {
+    padding: var(--ec-space-3) var(--ec-space-4) 0;
+}
+
+.ec-label-menu-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ec-space-4);
+    min-height: var(--ec-control-md);
+    padding: 0 var(--ec-space-4);
+    border-top: 1px solid var(--ec-border-subtle);
+    font-size: var(--ec-text-xs);
+    color: var(--ec-text-muted);
+}
+
+.ec-label-manage {
+    font-weight: var(--ec-weight-medium);
+    color: var(--ec-accent-text);
+}
+
+@media (max-width: 991.98px) {
+    .ec-label-backdrop {
+        z-index: 50;
+        background: var(--ec-overlay);
+    }
+
+    .ec-label-field-open {
+        z-index: 51;
+    }
+
+    /* The sheet carries its own search; the field's input steps aside while it is open. */
+    .ec-label-field-open .ec-label-input {
+        display: none;
+    }
+
+    .ec-label-menu,
+    .ec-label-field-box .ec-label-menu {
+        position: fixed;
+        top: auto;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 52;
+        width: auto;
+        max-height: calc(var(--ec-viewport-height) * 0.8);
+        padding-bottom: env(safe-area-inset-bottom);
+        border-width: 1px 0 0;
+        border-radius: var(--ec-radius-card) var(--ec-radius-card) 0 0;
+    }
+
+    .ec-label-sheet-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: var(--ec-space-4) var(--ec-space-5) 0;
+    }
+
+    .ec-label-sheet-title {
+        font-size: var(--ec-text-xl);
+        font-weight: var(--ec-weight-semibold);
+    }
+
+    .ec-label-sheet-done {
+        min-height: var(--ec-touch-min);
+        padding: 0 var(--ec-space-4);
+        border: 0;
+        background: transparent;
+        font-family: var(--ec-font);
+        font-size: var(--ec-text-md);
+        font-weight: var(--ec-weight-semibold);
+        color: var(--ec-accent-text);
+        cursor: pointer;
+    }
+
+    .ec-label-sheet-search {
+        display: block;
+        flex: 0 0 auto;
+        height: var(--ec-touch-min);
+        margin: var(--ec-space-3) var(--ec-space-5);
+        font-size: var(--ec-text-lg);
+    }
+
+    .ec-label-option {
+        min-height: var(--ec-touch-row);
+    }
+
+    .ec-label-add {
+        min-height: var(--ec-touch-min);
+    }
+
+    .ec-label-hint {
+        display: none;
+    }
 }
 
 .ec-act-pager {

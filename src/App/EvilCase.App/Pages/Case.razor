@@ -109,38 +109,11 @@
                         }
                     </div>
                     <div class="ec-detail-fact ec-detail-fact-labels">
-                        <span class="ec-detail-fact-name">Štítky</span>
-                        <div class="ec-detail-fact-row">
-                            @if (!this.picking)
-                            {
-                                if (this.caseDetail.Labels.Count > 0)
-                                {
-                                    foreach (var label in this.caseDetail.Labels)
-                                    {
-                                        <span class="@($"ec-chip ec-chip-{LabelColorDisplay.Css(label.Color)}")">
-                                            <span class="ec-chip-dot" aria-hidden="true"></span>@label.Name
-                                        </span>
-                                    }
-                                }
-                                else
-                                {
-                                    <span class="ec-detail-fact-value">—</span>
-                                }
-                            }
-                            <EcButton Variant="EcButtonVariant.Ghost" Size="EcButtonSize.Compact"
-                                      Icon="@(this.picking ? AppIcons.X : AppIcons.Plus)"
-                                      AriaLabel="@(this.picking ? "Zavřít výběr štítků" : "Přidat štítek")"
-                                      OnClick="this.ToggleLabelPicker" />
-                        </div>
-                        @if (this.picking)
+                        <span class="ec-detail-fact-name">Štítky<kbd class="ec-kbd" aria-hidden="true">L</kbd></span>
+                        <LabelField Inline InputId="case-labels" Selected="this.caseDetail.Labels" SelectedChanged="this.SaveLabels" />
+                        @if (this.labelsError is not null)
                         {
-                            <div class="ec-label-picker">
-                                <LabelField InputId="case-labels" Selected="this.caseDetail.Labels" SelectedChanged="this.SaveLabels" />
-                                @if (this.labelsError is not null)
-                                {
-                                    <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.labelsError</div>
-                                }
-                            </div>
+                            <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.labelsError</div>
                         }
                     </div>
                 </div>
@@ -224,8 +197,6 @@
 
     private string? labelsError;
 
-    private bool picking;
-
     private bool deleting;
 
     private string? announcement;
@@ -262,7 +233,6 @@
         this.notFound = false;
         this.failure = null;
         this.labelsError = null;
-        this.picking = false;
 
         try
         {
@@ -278,12 +248,6 @@
 
             this.failure = "Spis se nepodařilo načíst. Zkuste to za chvíli znovu.";
         }
-    }
-
-    private void ToggleLabelPicker()
-    {
-        this.picking = !this.picking;
-        this.labelsError = null;
     }
 
     private async Task SaveLabels(IReadOnlyList<LabelItem> labels)
