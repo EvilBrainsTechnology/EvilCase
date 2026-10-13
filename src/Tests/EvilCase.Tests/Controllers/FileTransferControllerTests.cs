@@ -204,7 +204,7 @@ public class FileTransferControllerTests
         var controller = new FileTransferController();
         var file = FormFile(FileLimits.MaxUploadBytes + 1);
 
-        var response = await controller.UploadActFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), file, CancellationToken.None);
+        var response = await controller.UploadActFile(writer, Guid.CreateVersion7(), file, CancellationToken.None);
 
         AssertProblem(response.Result, 413);
         Assert.That(writer.ReceivedCalls(), Is.Empty, "an upload over the limit must never reach the writer");
@@ -218,11 +218,11 @@ public class FileTransferControllerTests
         var writer = UploadingWriter(Uploaded(Item()));
         var controller = new FileTransferController();
 
-        await controller.UploadActFile(writer, caseId, actId, FormFile(1), CancellationToken.None);
+        await controller.UploadActFile(writer, actId, FormFile(1), CancellationToken.None);
 
         await writer
             .Received(1)
-            .UploadActFile(caseId, actId, Arg.Any<FileUpload>(), Arg.Any<CancellationToken>());
+            .UploadActFile(actId, Arg.Any<FileUpload>(), Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -232,7 +232,7 @@ public class FileTransferControllerTests
         var controller = new FileTransferController();
         var file = FormFile(1, fileName: new string('a', FileLimits.MaxFileNameLength + 1) + ".pdf");
 
-        var response = await controller.UploadActFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), file, CancellationToken.None);
+        var response = await controller.UploadActFile(writer, Guid.CreateVersion7(), file, CancellationToken.None);
 
         AssertProblem(response.Result, 400);
         Assert.That(writer.ReceivedCalls(), Is.Empty, "a file name over the FileAsset.FileName column limit must never reach the writer");
@@ -245,7 +245,7 @@ public class FileTransferControllerTests
         var controller = new FileTransferController();
         var file = FormFile(1, fileName: "   ");
 
-        var response = await controller.UploadActFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), file, CancellationToken.None);
+        var response = await controller.UploadActFile(writer, Guid.CreateVersion7(), file, CancellationToken.None);
 
         AssertProblem(response.Result, 400);
         Assert.That(writer.ReceivedCalls(), Is.Empty, "an empty file name must never reach the writer");
@@ -258,7 +258,7 @@ public class FileTransferControllerTests
         var controller = new FileTransferController();
         var file = FormFile(1, contentType: new string('a', FileLimits.MaxMediaTypeLength + 1));
 
-        var response = await controller.UploadActFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), file, CancellationToken.None);
+        var response = await controller.UploadActFile(writer, Guid.CreateVersion7(), file, CancellationToken.None);
 
         AssertProblem(response.Result, 400);
         Assert.That(writer.ReceivedCalls(), Is.Empty, "a media type over the FileAsset.MediaType column limit must never reach the writer");
@@ -272,7 +272,7 @@ public class FileTransferControllerTests
         var controller = new FileTransferController();
         var file = FormFile(1, contentType: null);
 
-        await controller.UploadActFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), file, CancellationToken.None);
+        await controller.UploadActFile(writer, Guid.CreateVersion7(), file, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -288,7 +288,7 @@ public class FileTransferControllerTests
         var writer = UploadingWriter(Uploaded(created));
         var controller = new FileTransferController();
 
-        var response = await controller.UploadActFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), FormFile(1), CancellationToken.None);
+        var response = await controller.UploadActFile(writer, Guid.CreateVersion7(), FormFile(1), CancellationToken.None);
 
         Assert.That(response.Result, Is.InstanceOf<CreatedAtActionResult>());
         var result = (CreatedAtActionResult)response.Result!;
@@ -308,7 +308,7 @@ public class FileTransferControllerTests
         var writer = UploadingWriter(new UploadFileResult { Outcome = UploadFileOutcome.OwnerNotFound });
         var controller = new FileTransferController();
 
-        var response = await controller.UploadActFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), FormFile(1), CancellationToken.None);
+        var response = await controller.UploadActFile(writer, Guid.CreateVersion7(), FormFile(1), CancellationToken.None);
 
         var problem = AssertProblem(response.Result, 404);
         Assert.That(problem.Title, Is.EqualTo(ActProblems.ActNotFound), "the act's 404 names the act, not the case");
@@ -321,7 +321,7 @@ public class FileTransferControllerTests
         var controller = new FileTransferController();
 
         await Assert.ThrowsAsync<UnreachableException>(
-            async () => await controller.UploadActFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), FormFile(1), CancellationToken.None),
+            async () => await controller.UploadActFile(writer, Guid.CreateVersion7(), FormFile(1), CancellationToken.None),
             "an outcome the endpoint does not name never turns into a status");
     }
 
@@ -345,7 +345,7 @@ public class FileTransferControllerTests
             .Returns(result)
             .AndDoes(call => capture?.Invoke(call.Arg<FileUpload>()));
         writer
-            .UploadActFile(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<FileUpload>(), Arg.Any<CancellationToken>())
+            .UploadActFile(Arg.Any<Guid>(), Arg.Any<FileUpload>(), Arg.Any<CancellationToken>())
             .Returns(result)
             .AndDoes(call => capture?.Invoke(call.Arg<FileUpload>()));
 

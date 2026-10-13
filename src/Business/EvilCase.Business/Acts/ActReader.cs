@@ -31,15 +31,15 @@ internal sealed class ActReader(IDbSession dbSession) : IActReader
         return new ActListResponse { Items = items, TotalCount = total };
     }
 
-    public async Task<ActDetail?> GetActDetail(Guid caseId, Guid actId, CancellationToken token)
+    public async Task<ActDetail?> GetActDetail(Guid actId, CancellationToken token)
     {
-        var detail = await dbSession.Current.Acts.DetailOf(caseId, actId, token);
+        var detail = await dbSession.Current.Acts.DetailOf(actId, token);
 
         if (detail is null)
             return null;
 
         var caseActs = await dbSession.Current.Acts
-            .OfCase(caseId)
+            .OfCase(detail.CaseId)
             .InSortOrder(ActSortKey.Date, ListSortDirection.Ascending)
             .AsTimelineItems(actId)
             .ToListAsync(token);

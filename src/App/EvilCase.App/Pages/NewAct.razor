@@ -1,4 +1,4 @@
-@page "/cases/{CaseId:guid}/act/new"
+@page "/acts/new"
 @using System.Net
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Client
@@ -25,7 +25,7 @@
     {
         <EcCard><p class="ec-state">@this.failure</p></EcCard>
     }
-    else if (this.caseDetail is null)
+    else if (this.Loading)
     {
         <EcCard><p class="ec-state">Načítám…</p></EcCard>
     }
@@ -37,6 +37,21 @@
                 <EcCard>
                     <ChildContent>
                         <div class="ec-form">
+                            @if (this.CaseId is null)
+                            {
+                                <EcField Label="Spis" Required ControlId="act-case">
+                                    <ChildContent>
+                                        <CaseField InputId="act-case" Selected="this.pickedCase" SelectedChanged="this.OnCasePicked" />
+                                    </ChildContent>
+                                    <Error>
+                                        @if (this.caseError is not null)
+                                        {
+                                            <div class="validation-message">@this.caseError</div>
+                                        }
+                                    </Error>
+                                </EcField>
+                            }
+
                             <EcField Label="Název úkonu" Required ControlId="act-title" Hint="Nejvýše 256 znaků">
                                 <ChildContent>
                                     <InputText id="act-title" class="ec-input" autofocus @bind-Value="this.model.Title" />
@@ -78,7 +93,7 @@
                                         <Error><ValidationMessage For="() => this.model.Contact" /></Error>
                                     </EcField>
                                 </div>
-                                @if (ActContactRules.DifferingCaseContact(this.model.Contact, this.caseDetail.Contact) is { } differing)
+                                @if (ActContactRules.DifferingCaseContact(this.model.Contact, this.caseDetail?.Contact) is { } differing)
                                 {
                                     <div class="ec-warning" role="alert">
                                         <EcIcon Paths="@AppIcons.AlertTriangle" Size="EcIconSize.Large" />
@@ -111,13 +126,16 @@
             </CascadingValue>
 
             <aside class="ec-form-aside">
-                <EcCard Title="Spis">
-                    <a class="ec-parent-link" href="/cases/@this.CaseId">
-                        <span>@this.caseDetail.Title</span>
-                        <span class="ec-parent-number">@this.caseDetail.CaseNumber</span>
-                    </a>
-                    <p class="ec-card-text">Úkon vzniká pod tímto spisem. Přesunout ho jinam nejde.</p>
-                </EcCard>
+                @if (this.caseDetail is not null)
+                {
+                    <EcCard Title="Spis">
+                        <a class="ec-parent-link" href="/cases/@this.caseDetail.CaseId">
+                            <span>@this.caseDetail.Title</span>
+                            <span class="ec-parent-number">@this.caseDetail.CaseNumber</span>
+                        </a>
+                        <p class="ec-card-text">Úkon vzniká pod tímto spisem. Přesunout ho jinam nejde.</p>
+                    </EcCard>
+                }
                 <EcCard Title="Co přijde po uložení">
                     <p class="ec-card-text">Otevře se detail spisu se založeným úkonem v seznamu. Dokumenty a komentáře k úkonu přidáte na jeho detailu.</p>
                 </EcCard>
@@ -127,14 +145,18 @@
 </div>
 
 @code {
-    [Parameter]
-    public Guid CaseId { get; set; }
+    [SupplyParameterFromQuery(Name = "case")]
+    public Guid? CaseId { get; set; }
 
     private readonly NewActModel model = new() { Date = DateOnly.FromDateTime(DateTime.Now) };
 
     private EditContext editContext = null!;
 
     private CaseDetail? caseDetail;
+
+    private CaseListItem? pickedCase;
+
+    private string? caseError;
 
     private bool notFound;
 
@@ -144,9 +166,11 @@
 
     private bool busy;
 
+    private bool Loading => this.CaseId is not null && this.caseDetail is null;
+
     private IReadOnlyList<EcCrumb> Crumbs => this.caseDetail is null
         ? [new EcCrumb("Spisy", "/cases"), new EcCrumb("Nový úkon", null)]
-        : [new EcCrumb("Spisy", "/cases"), new EcCrumb(this.caseDetail.Title, $"/cases/{this.CaseId}"), new EcCrumb("Nový úkon", null)];
+        : [new EcCrumb("Spisy", "/cases"), new EcCrumb(this.caseDetail.Title, $"/cases/{this.caseDetail.CaseId}"), new EcCrumb("Nový úkon", null)];
 
     protected override void OnInitialized()
     {
@@ -161,13 +185,18 @@
     private async Task LoadCase()
     {
         this.caseDetail = null;
+        this.pickedCase = null;
+        this.caseError = null;
         this.notFound = false;
         this.failure = null;
         this.error = null;
 
+        if (this.CaseId is not { } caseId)
+            return;
+
         try
         {
-            this.caseDetail = await this.CasesClient.GetCase(this.CaseId, CancellationToken.None);
+            this.caseDetail = await this.CasesClient.GetCase(caseId, CancellationToken.None);
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
         {
@@ -178,6 +207,29 @@
             this.Logger.LogWarning(exception, "Loading the case of the new act failed");
 
             this.failure = "Spis se nepodařilo načíst. Zkuste to za chvíli znovu.";
+        }
+    }
+
+    private async Task OnCasePicked(CaseListItem? picked)
+    {
+        this.pickedCase = picked;
+        this.caseDetail = null;
+        this.caseError = null;
+        this.error = null;
+
+        if (picked is null)
+            return;
+
+        try
+        {
+            this.caseDetail = await this.CasesClient.GetCase(picked.CaseId, CancellationToken.None);
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Loading the picked case of the new act failed");
+
+            this.pickedCase = null;
+            this.error = "Spis se nepodařilo načíst. Vyberte ho znovu.";
         }
     }
 
@@ -199,12 +251,20 @@
 
     private void Cancel()
     {
-        this.Navigation.NavigateTo($"/cases/{this.CaseId}");
+        this.Navigation.NavigateTo(this.CaseId is { } caseId ? $"/cases/{caseId}" : "/cases");
     }
 
     private async Task SubmitAct()
     {
-        if (!this.editContext.Validate())
+        var valid = this.editContext.Validate();
+
+        if (this.caseDetail is null)
+        {
+            this.caseError = "Vyberte spis";
+            valid = false;
+        }
+
+        if (!valid)
             return;
 
         this.busy = true;
@@ -214,6 +274,7 @@
         {
             var request = new CreateActRequest
             {
+                CaseId = this.caseDetail!.CaseId,
                 Direction = this.model.Direction,
                 Date = this.model.Date,
                 Title = this.model.Title,
@@ -222,9 +283,9 @@
                 LabelIds = [.. this.model.Labels.Select(static label => label.LabelId)],
             };
 
-            _ = await this.ActsClient.CreateAct(this.CaseId, request, CancellationToken.None);
+            _ = await this.ActsClient.CreateAct(request, CancellationToken.None);
 
-            this.Navigation.NavigateTo($"/cases/{this.CaseId}");
+            this.Navigation.NavigateTo($"/cases/{request.CaseId}");
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
         {

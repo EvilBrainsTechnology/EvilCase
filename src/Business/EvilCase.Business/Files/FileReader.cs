@@ -1,5 +1,4 @@
 using EvilBrains.EvilCase.Api.Contract.Files;
-using EvilBrains.EvilCase.Business.Acts;
 using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Files;
@@ -26,16 +25,16 @@ internal sealed class FileReader(IDbSession dbSession, IFileBlobStore blobStore)
             .ToListAsync(token);
     }
 
-    public async Task<IReadOnlyList<FileListItem>?> ListActFiles(Guid caseId, Guid actId, CancellationToken token)
+    public async Task<IReadOnlyList<FileListItem>?> ListActFiles(Guid actId, CancellationToken token)
     {
         var context = dbSession.Current;
 
-        var actExists = await context.Acts.OfCase(caseId).Exists(actId, token);
+        var actExists = await context.Acts.Exists(actId, token);
         if (!actExists)
             return null;
 
         return await context.FileAssets
-            .OfAct(caseId, actId)
+            .OfAct(actId)
             .InUploadOrder()
             .AsListItems()
             .ToListAsync(token);

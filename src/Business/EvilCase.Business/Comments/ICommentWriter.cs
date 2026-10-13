@@ -13,9 +13,9 @@ public interface ICommentWriter
 
     public Task<CommentWriteOutcome> DeleteCaseComment(Guid caseId, Guid commentId, CancellationToken token);
 
-    public Task<CommentWriteOutcome> AddActComment(Guid caseId, Guid actId, CommentEditRequest request, CancellationToken token);
+    public Task<CommentWriteOutcome> AddActComment(Guid actId, CommentEditRequest request, CancellationToken token);
 
-    public Task<CommentWriteOutcome> UpdateActComment(Guid caseId, Guid actId, Guid commentId, CommentEditRequest request, CancellationToken token);
+    public Task<CommentWriteOutcome> UpdateActComment(Guid actId, Guid commentId, CommentEditRequest request, CancellationToken token);
 
-    public Task<CommentWriteOutcome> DeleteActComment(Guid caseId, Guid actId, Guid commentId, CancellationToken token);
+    public Task<CommentWriteOutcome> DeleteActComment(Guid actId, Guid commentId, CancellationToken token);
 }

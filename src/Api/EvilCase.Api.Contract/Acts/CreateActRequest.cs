@@ -5,6 +5,8 @@ namespace EvilBrains.EvilCase.Api.Contract.Acts;
 
 public sealed record CreateActRequest : IValidatableObject
 {
+    public required Guid CaseId { get; init; }
+
     public ActDirection? Direction { get; init; }
 
     /// <summary>

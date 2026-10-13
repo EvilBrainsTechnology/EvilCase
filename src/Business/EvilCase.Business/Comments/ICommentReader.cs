@@ -6,5 +6,5 @@ public interface ICommentReader
 {
     public Task<IReadOnlyList<CommentItem>> ListCaseComments(Guid caseId, CancellationToken token);
 
-    public Task<IReadOnlyList<CommentItem>> ListActComments(Guid caseId, Guid actId, CancellationToken token);
+    public Task<IReadOnlyList<CommentItem>> ListActComments(Guid actId, CancellationToken token);
 }

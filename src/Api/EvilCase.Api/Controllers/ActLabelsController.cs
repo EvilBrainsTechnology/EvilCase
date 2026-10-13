@@ -10,7 +10,7 @@ namespace EvilBrains.EvilCase.Api.Controllers;
 
 [ApiController]
 [GenerateApiClient]
-[Route("api/cases/{caseId:guid}/acts/{actId:guid}/labels")]
+[Route("api/acts/{actId:guid}/labels")]
 public class ActLabelsController : ControllerBase
 {
     [HttpPut("")]
@@ -20,12 +20,11 @@ public class ActLabelsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult> SetActLabels(
         [FromServices] ILabelAssignmentWriter writer,
-        [FromRoute] Guid caseId,
         [FromRoute] Guid actId,
         [FromBody] LabelAssignmentRequest request,
         CancellationToken token)
     {
-        var outcome = await writer.SetActLabels(caseId, actId, request, token);
+        var outcome = await writer.SetActLabels(actId, request, token);
 
         return outcome switch
         {

@@ -56,6 +56,7 @@ public class ActRequestValidationTests
     {
         return new()
         {
+            CaseId = Guid.CreateVersion7(),
             Direction = direction,
             ContactId = contactId,
             Date = new DateOnly(2026, 8, 25),

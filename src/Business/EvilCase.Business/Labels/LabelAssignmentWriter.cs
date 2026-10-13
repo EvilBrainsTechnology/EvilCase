@@ -1,5 +1,4 @@
 using EvilBrains.EvilCase.Api.Contract.Labels;
-using EvilBrains.EvilCase.Business.Acts;
 using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Data.DbContexts;
 using Microsoft.EntityFrameworkCore;
@@ -26,11 +25,11 @@ internal sealed class LabelAssignmentWriter(IDbSession dbSession, ILogger<LabelA
         return LabelAssignmentOutcome.Assigned;
     }
 
-    public async Task<LabelAssignmentOutcome> SetActLabels(Guid caseId, Guid actId, LabelAssignmentRequest request, CancellationToken token)
+    public async Task<LabelAssignmentOutcome> SetActLabels(Guid actId, LabelAssignmentRequest request, CancellationToken token)
     {
         var context = dbSession.Current;
 
-        if (!await context.Acts.OfCase(caseId).WithId(actId).AnyAsync(token))
+        if (!await context.Acts.WithId(actId).AnyAsync(token))
             return LabelAssignmentOutcome.OwnerNotFound;
 
         if (await context.Labels.ReadLabels(request.LabelIds, token) is not { } labels)

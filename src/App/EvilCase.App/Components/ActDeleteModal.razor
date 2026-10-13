@@ -52,7 +52,7 @@
 
         try
         {
-            await this.ActsClient.DeleteAct(this.Act.CaseId, this.Act.ActId, CancellationToken.None);
+            await this.ActsClient.DeleteAct(this.Act.ActId, CancellationToken.None);
 
             await this.OnDeleted.InvokeAsync();
         }

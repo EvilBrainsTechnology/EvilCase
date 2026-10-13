@@ -45,7 +45,7 @@ Vše ostatní je bez limitu, health checks včetně. Odmítnutí je 429 s `Retry
 | Zdroj | Routy |
 | --- | --- |
 | Spisy | `/api/cases`, `/api/cases/{id}`; počty podle stavu `/api/cases/counts` |
-| Úkony | výpis `/api/acts`; založení `/api/cases/{caseId}/acts`, detail `/api/cases/{caseId}/acts/{actId}` |
+| Úkony | výpis a založení `/api/acts` (spis v těle), detail `/api/acts/{actId}` |
 | Kontakty | `/api/contacts`, `/api/contacts/{id}` |
 | Soubory | výpis a smazání na vlastníku; upload na vlastníku a download `/api/files/{id}/content` |
 | Komentáře | na vlastníku, `…/comments`, `…/comments/{id}` |
@@ -59,8 +59,8 @@ Vše ostatní je bez limitu, health checks včetně. Odmítnutí je 429 s `Retry
 
 ## Rozhodnutí
 
-- Úkony v API: ploché `/api/acts` / vnořené pod spis. Platí ploché: `/api/acts` je jediný výpis
-  úkonů a zužuje se spisem. Vnořené zůstává založení a detail.
+- Úkony v API: ploché `/api/acts` / vnořené pod spis. Platí ploché: úkon se pozná jen podle
+  svého id, spis nese tělo založení a filtr výpisu.
 - Stránkování: bez něj / `Skip` a `Take` na každém výpisu. Platí `Skip` a `Take`, povinná
   velikost stránky a celkový počet v odpovědi.
 - Dashboard: vlastní endpoint / skládání z API entit. Platí skládání z API entit; počty spisů

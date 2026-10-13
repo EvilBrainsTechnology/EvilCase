@@ -46,7 +46,7 @@ public class ActDeleteModalRenderTests
 
         await component.Find(".ec-modal-footer .ec-button-danger").ClickAsync(new MouseEventArgs());
 
-        await actsClient.Received(1).DeleteAct(act.CaseId, act.ActId, Arg.Any<CancellationToken>());
+        await actsClient.Received(1).DeleteAct(act.ActId, Arg.Any<CancellationToken>());
         Assert.That(deleted, Is.True);
     }
 
@@ -58,7 +58,7 @@ public class ActDeleteModalRenderTests
 
         var (actsClient, act) = Serve(ctx);
         actsClient
-            .DeleteAct(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .DeleteAct(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(static _ => Task.FromException(new ApiException(HttpStatusCode.InternalServerError, responseBody: null)));
 
         var component = ctx.Render<ActDeleteModal>(parameters => parameters
@@ -87,7 +87,7 @@ public class ActDeleteModalRenderTests
 
         var actsClient = Substitute.For<IActsClient>();
         actsClient
-            .DeleteAct(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .DeleteAct(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
 
         ctx.Services.AddSingleton(actsClient);

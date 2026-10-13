@@ -1,5 +1,4 @@
 using EvilBrains.EvilCase.Api.Contract.Files;
-using EvilBrains.EvilCase.Business.Acts;
 using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
@@ -25,9 +24,9 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
         return new UploadFileResult { Outcome = UploadFileOutcome.Uploaded, File = file };
     }
 
-    public async Task<UploadFileResult> UploadActFile(Guid caseId, Guid actId, FileUpload upload, CancellationToken token)
+    public async Task<UploadFileResult> UploadActFile(Guid actId, FileUpload upload, CancellationToken token)
     {
-        var actExists = await dbSession.Current.Acts.OfCase(caseId).Exists(actId, token);
+        var actExists = await dbSession.Current.Acts.Exists(actId, token);
         if (!actExists)
             return new UploadFileResult { Outcome = UploadFileOutcome.OwnerNotFound };
 
@@ -49,9 +48,9 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
         return outcome;
     }
 
-    public async Task<DeleteOutcome> DeleteActFile(Guid caseId, Guid actId, Guid fileId, CancellationToken token)
+    public async Task<DeleteOutcome> DeleteActFile(Guid actId, Guid fileId, CancellationToken token)
     {
-        var files = dbSession.Current.FileAssets.OfAct(caseId, actId).WithId(fileId);
+        var files = dbSession.Current.FileAssets.OfAct(actId).WithId(fileId);
 
         var outcome = await DeleteFile(files, token);
         if (outcome == DeleteOutcome.Deleted)

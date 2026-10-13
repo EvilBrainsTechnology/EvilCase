@@ -12,7 +12,7 @@ public interface IFileReader
     /// <summary>
     /// Null where the act is unknown; empty where it has no files.
     /// </summary>
-    public Task<IReadOnlyList<FileListItem>?> ListActFiles(Guid caseId, Guid actId, CancellationToken token);
+    public Task<IReadOnlyList<FileListItem>?> ListActFiles(Guid actId, CancellationToken token);
 
     /// <summary>
     /// Null where the file is unknown or its blob is gone.

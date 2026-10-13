@@ -15,7 +15,7 @@ internal sealed class StubFileTransferClient : IFileTransferClient
         return Task.CompletedTask;
     }
 
-    public Task UploadActFile(Guid caseId, Guid actId, IBrowserFile file, CancellationToken token)
+    public Task UploadActFile(Guid actId, IBrowserFile file, CancellationToken token)
     {
         return Task.CompletedTask;
     }

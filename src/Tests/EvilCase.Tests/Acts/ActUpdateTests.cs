@@ -33,7 +33,7 @@ public class ActUpdateTests : TenantFixture
         var contact = await this.Tenant.AddContact("Krajský soud ve Vzorově");
         var request = Edit(seeded.ActNumber, ActDirection.Outgoing, Day.AddDays(1), "Nový název", "Nový popis", contact.Id);
 
-        var outcome = await this.writer.UpdateAct(@case.Id, seeded.Id, request, CancellationToken.None);
+        var outcome = await this.writer.UpdateAct(seeded.Id, request, CancellationToken.None);
 
         var reloaded = await this.Reload(seeded.Id);
 
@@ -56,7 +56,7 @@ public class ActUpdateTests : TenantFixture
         var seeded = await this.Tenant.AddAct(@case, Day, contact: contact);
         var request = Edit(seeded.ActNumber, direction: null, seeded.Date, seeded.Title, contactId: null);
 
-        var outcome = await this.writer.UpdateAct(@case.Id, seeded.Id, request, CancellationToken.None);
+        var outcome = await this.writer.UpdateAct(seeded.Id, request, CancellationToken.None);
 
         var reloaded = await this.Reload(seeded.Id);
 
@@ -76,7 +76,7 @@ public class ActUpdateTests : TenantFixture
         var newDate = Day.AddDays(3);
         var request = Edit(seeded.ActNumber, seeded.Direction, newDate, seeded.Title);
 
-        var outcome = await this.writer.UpdateAct(@case.Id, seeded.Id, request, CancellationToken.None);
+        var outcome = await this.writer.UpdateAct(seeded.Id, request, CancellationToken.None);
 
         var reloaded = await this.Reload(seeded.Id);
 
@@ -95,7 +95,7 @@ public class ActUpdateTests : TenantFixture
         var seeded = await this.Tenant.AddAct(@case, Day);
         var request = Edit(seeded.ActNumber, seeded.Direction, seeded.Date, seeded.Title);
 
-        var outcome = await this.writer.UpdateAct(@case.Id, seeded.Id, request, CancellationToken.None);
+        var outcome = await this.writer.UpdateAct(seeded.Id, request, CancellationToken.None);
 
         Assert.That(outcome, Is.EqualTo(ActUpdateOutcome.Updated), "an act does not take its own number from itself");
     }
@@ -108,7 +108,7 @@ public class ActUpdateTests : TenantFixture
         var request = Edit(
             "  EC/20260101-042/20260105-007  ", seeded.Direction, seeded.Date, seeded.Title);
 
-        var outcome = await this.writer.UpdateAct(@case.Id, seeded.Id, request, CancellationToken.None);
+        var outcome = await this.writer.UpdateAct(seeded.Id, request, CancellationToken.None);
 
         var reloaded = await this.Reload(seeded.Id);
 
@@ -129,7 +129,7 @@ public class ActUpdateTests : TenantFixture
         var seeded = await this.Tenant.AddAct(@case, Day, "Podání");
         var request = Edit("cj 7/2026", seeded.Direction, seeded.Date, "Jiný název");
 
-        var outcome = await this.writer.UpdateAct(@case.Id, seeded.Id, request, CancellationToken.None);
+        var outcome = await this.writer.UpdateAct(seeded.Id, request, CancellationToken.None);
 
         var reloaded = await this.Reload(seeded.Id);
 
@@ -149,7 +149,7 @@ public class ActUpdateTests : TenantFixture
         var second = await this.Tenant.AddAct(@case, Day, "Druhý");
         var request = Edit(second.ActNumber, first.Direction, first.Date, "Jiný název");
 
-        var outcome = await this.writer.UpdateAct(@case.Id, first.Id, request, CancellationToken.None);
+        var outcome = await this.writer.UpdateAct(first.Id, request, CancellationToken.None);
 
         var reloaded = await this.Reload(first.Id);
 
@@ -170,7 +170,7 @@ public class ActUpdateTests : TenantFixture
         var actB = await this.Tenant.AddAct(caseB, Day);
         var request = Edit(actB.ActNumber, actA.Direction, actA.Date, actA.Title);
 
-        var outcome = await this.writer.UpdateAct(caseA.Id, actA.Id, request, CancellationToken.None);
+        var outcome = await this.writer.UpdateAct(actA.Id, request, CancellationToken.None);
 
         Assert.That(
             outcome,
@@ -185,7 +185,7 @@ public class ActUpdateTests : TenantFixture
         var seeded = await this.Tenant.AddAct(@case, Day);
         var request = Edit(seeded.ActNumber, seeded.Direction, seeded.Date, seeded.Title, "   ");
 
-        await this.writer.UpdateAct(@case.Id, seeded.Id, request, CancellationToken.None);
+        await this.writer.UpdateAct(seeded.Id, request, CancellationToken.None);
 
         var reloaded = await this.Reload(seeded.Id);
 
@@ -199,7 +199,7 @@ public class ActUpdateTests : TenantFixture
         var seeded = await this.Tenant.AddAct(@case, Day, "Podání");
         var request = Edit(seeded.ActNumber, ActDirection.Incoming, seeded.Date, "Jiný název", contactId: Guid.CreateVersion7());
 
-        var outcome = await this.writer.UpdateAct(@case.Id, seeded.Id, request, CancellationToken.None);
+        var outcome = await this.writer.UpdateAct(seeded.Id, request, CancellationToken.None);
 
         var reloaded = await this.Reload(seeded.Id);
 
@@ -222,7 +222,7 @@ public class ActUpdateTests : TenantFixture
 
         var request = Edit(seeded.ActNumber, ActDirection.Incoming, seeded.Date, seeded.Title, contactId: foreignContact.Id);
 
-        var outcome = await this.writer.UpdateAct(@case.Id, seeded.Id, request, CancellationToken.None);
+        var outcome = await this.writer.UpdateAct(seeded.Id, request, CancellationToken.None);
 
         Assert.That(outcome, Is.EqualTo(ActUpdateOutcome.ContactNotFound), "an act never names a contact of another tenant");
     }
@@ -230,10 +230,9 @@ public class ActUpdateTests : TenantFixture
     [Test]
     public async Task AnUnknownActIsNotFound()
     {
-        var @case = await this.Tenant.AddCase(Day);
         var request = Edit("EC/20260101-042/20260105-007", direction: null, Day, "Podání");
 
-        var outcome = await this.writer.UpdateAct(@case.Id, Guid.CreateVersion7(), request, CancellationToken.None);
+        var outcome = await this.writer.UpdateAct(Guid.CreateVersion7(), request, CancellationToken.None);
 
         Assert.That(outcome, Is.EqualTo(ActUpdateOutcome.NotFound));
     }
@@ -241,31 +240,11 @@ public class ActUpdateTests : TenantFixture
     [Test]
     public async Task AnUnknownActIsNotFoundBeforeTheEditIsWeighed()
     {
-        var @case = await this.Tenant.AddCase(Day);
         var request = Edit("cj 7/2026", direction: null, Day, "Podání");
 
-        var outcome = await this.writer.UpdateAct(@case.Id, Guid.CreateVersion7(), request, CancellationToken.None);
+        var outcome = await this.writer.UpdateAct(Guid.CreateVersion7(), request, CancellationToken.None);
 
         Assert.That(outcome, Is.EqualTo(ActUpdateOutcome.NotFound), "an act that is not there is not found, whatever else the edit gets wrong");
-    }
-
-    [Test]
-    public async Task AnActOfAnotherCaseIsNotFound()
-    {
-        var first = await this.Tenant.AddCase(Day, "První");
-        var second = await this.Tenant.AddCase(Day, "Druhý");
-        var seeded = await this.Tenant.AddAct(first, Day, "Podání");
-        var request = Edit(seeded.ActNumber, seeded.Direction, seeded.Date, "Jiný název");
-
-        var outcome = await this.writer.UpdateAct(second.Id, seeded.Id, request, CancellationToken.None);
-
-        var reloaded = await this.Reload(seeded.Id);
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(outcome, Is.EqualTo(ActUpdateOutcome.NotFound), "an act is only ever edited under the case it sits in");
-            Assert.That(reloaded.Title, Is.EqualTo(seeded.Title));
-        }
     }
 
     [Test]
@@ -276,7 +255,7 @@ public class ActUpdateTests : TenantFixture
         var otherAct = await other.AddAct(otherCase, Day);
         var request = Edit(otherAct.ActNumber, otherAct.Direction, otherAct.Date, otherAct.Title);
 
-        var outcome = await this.writer.UpdateAct(otherCase.Id, otherAct.Id, request, CancellationToken.None);
+        var outcome = await this.writer.UpdateAct(otherAct.Id, request, CancellationToken.None);
 
         Assert.That(outcome, Is.EqualTo(ActUpdateOutcome.NotFound), "the tenant query filter is what keeps another tenant's row out of an edit");
     }
@@ -331,7 +310,7 @@ public class ActUpdateTests : TenantFixture
         var request = Edit(
             seeded.ActNumber, seeded.Direction, seeded.Date, seeded.Title, description: null, externalActNumber: "  MUVZ/2025/80535  ");
 
-        var outcome = await this.writer.UpdateAct(@case.Id, seeded.Id, request, CancellationToken.None);
+        var outcome = await this.writer.UpdateAct(seeded.Id, request, CancellationToken.None);
 
         var reloaded = await this.Reload(seeded.Id);
 
@@ -350,7 +329,7 @@ public class ActUpdateTests : TenantFixture
         var request = Edit(
             seeded.ActNumber, seeded.Direction, seeded.Date, seeded.Title, description: null, externalActNumber: "   ");
 
-        await this.writer.UpdateAct(@case.Id, seeded.Id, request, CancellationToken.None);
+        await this.writer.UpdateAct(seeded.Id, request, CancellationToken.None);
 
         var reloaded = await this.Reload(seeded.Id);
 

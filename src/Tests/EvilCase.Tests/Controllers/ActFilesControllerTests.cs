@@ -14,16 +14,15 @@ public class ActFilesControllerTests
     [Test]
     public async Task TheListIsAskedForTheActInTheRoute()
     {
-        var caseId = Guid.CreateVersion7();
         var actId = Guid.CreateVersion7();
         var reader = ListingReader([]);
         var controller = new ActFilesController();
 
-        await controller.ListActFiles(reader, caseId, actId, CancellationToken.None);
+        await controller.ListActFiles(reader, actId, CancellationToken.None);
 
         await reader
             .Received(1)
-            .ListActFiles(caseId, actId, Arg.Any<CancellationToken>());
+            .ListActFiles(actId, Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -32,7 +31,7 @@ public class ActFilesControllerTests
         var reader = ListingReader([Item("prvni.txt"), Item("druhy.txt")]);
         var controller = new ActFilesController();
 
-        var response = await controller.ListActFiles(reader, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
+        var response = await controller.ListActFiles(reader, Guid.CreateVersion7(), CancellationToken.None);
 
         var body = (FileListResponse)((OkObjectResult)response.Result!).Value!;
 
@@ -45,7 +44,7 @@ public class ActFilesControllerTests
         var reader = ListingReader(items: null);
         var controller = new ActFilesController();
 
-        var response = await controller.ListActFiles(reader, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
+        var response = await controller.ListActFiles(reader, Guid.CreateVersion7(), CancellationToken.None);
 
         var problem = AssertProblem(response.Result, 404);
         Assert.That(problem.Title, Is.EqualTo(ActProblems.ActNotFound));
@@ -54,17 +53,16 @@ public class ActFilesControllerTests
     [Test]
     public async Task TheDeleteReachesTheWriterWithEveryRouteId()
     {
-        var caseId = Guid.CreateVersion7();
         var actId = Guid.CreateVersion7();
         var fileId = Guid.CreateVersion7();
         var writer = DeletingWriter(DeleteOutcome.Deleted);
         var controller = new ActFilesController();
 
-        await controller.DeleteActFile(writer, caseId, actId, fileId, CancellationToken.None);
+        await controller.DeleteActFile(writer, actId, fileId, CancellationToken.None);
 
         await writer
             .Received(1)
-            .DeleteActFile(caseId, actId, fileId, Arg.Any<CancellationToken>());
+            .DeleteActFile(actId, fileId, Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -73,7 +71,7 @@ public class ActFilesControllerTests
         var writer = DeletingWriter(DeleteOutcome.Deleted);
         var controller = new ActFilesController();
 
-        var result = await controller.DeleteActFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
+        var result = await controller.DeleteActFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
 
         Assert.That(result, Is.InstanceOf<NoContentResult>());
     }
@@ -84,7 +82,7 @@ public class ActFilesControllerTests
         var writer = DeletingWriter(DeleteOutcome.NotFound);
         var controller = new ActFilesController();
 
-        var result = await controller.DeleteActFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
+        var result = await controller.DeleteActFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
 
         AssertProblem(result, 404);
     }
@@ -96,7 +94,7 @@ public class ActFilesControllerTests
         var controller = new ActFilesController();
 
         await Assert.ThatAsync(
-            async () => await controller.DeleteActFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None),
+            async () => await controller.DeleteActFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None),
             Throws.InstanceOf<UnreachableException>(),
             "an outcome the endpoint does not name never turns into a status");
     }
@@ -105,7 +103,7 @@ public class ActFilesControllerTests
     {
         var reader = Substitute.For<IFileReader>();
         reader
-            .ListActFiles(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .ListActFiles(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(items);
 
         return reader;
@@ -115,7 +113,7 @@ public class ActFilesControllerTests
     {
         var writer = Substitute.For<IFileWriter>();
         writer
-            .DeleteActFile(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .DeleteActFile(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(outcome);
 
         return writer;

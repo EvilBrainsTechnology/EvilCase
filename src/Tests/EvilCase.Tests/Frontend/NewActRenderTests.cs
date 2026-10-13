@@ -4,6 +4,7 @@ using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Api.Contract.Labels;
+using EvilBrains.EvilCase.App.Models;
 using EvilBrains.EvilCase.App.Pages;
 using EvilBrains.EvilCase.Domain.Cases;
 using EvilBrains.EvilCase.Domain.Contacts;
@@ -80,7 +81,7 @@ public class NewActRenderTests
 
         await actsClient
             .Received(1)
-            .CreateAct(caseId, Arg.Any<CreateActRequest>(), Arg.Any<CancellationToken>());
+            .CreateAct(Arg.Is<CreateActRequest>(request => request.CaseId == caseId), Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -98,9 +99,52 @@ public class NewActRenderTests
         await actsClient
             .Received(1)
             .CreateAct(
-                caseId,
-                Arg.Is<CreateActRequest>(static request => request.Title == "Odpor proti příkazu" && request.Direction == null && request.ContactId == null),
+                Arg.Is<CreateActRequest>(request => request.CaseId == caseId && request.Title == "Odpor proti příkazu" && request.Direction == null && request.ContactId == null),
                 Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task PickingTheCaseInTheFormFilesTheActIntoIt()
+    {
+        await using var ctx = new BunitContext();
+
+        var (actsClient, _, _, _, _) = Serve(ctx, out var caseId);
+
+        var component = Render(ctx, caseId: null);
+
+        await component.Find("#act-case").InputAsync(new ChangeEventArgs { Value = "rychlosti" });
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-combobox-option"), Is.Not.Empty), WaitTimeout);
+        await component.Find(".ec-combobox-option").ClickAsync(new MouseEventArgs());
+
+        await component.WaitForAssertionAsync(
+            () => Assert.That(component.Find("#act-case").GetAttribute("value"), Is.EqualTo("Překročení rychlosti")),
+            WaitTimeout);
+
+        await component.Find("#act-title").ChangeAsync(new ChangeEventArgs { Value = "Odpor proti příkazu" });
+        await component.Find(".ec-card-footer .ec-button-primary").ClickAsync(new MouseEventArgs());
+
+        await actsClient
+            .Received(1)
+            .CreateAct(Arg.Is<CreateActRequest>(request => request.CaseId == caseId), Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task TheFormWithoutACaseRefusesToFileUntilOneIsPicked()
+    {
+        await using var ctx = new BunitContext();
+
+        var (actsClient, _, _, _, _) = Serve(ctx, out _);
+
+        var component = Render(ctx, caseId: null);
+
+        await component.Find("#act-title").ChangeAsync(new ChangeEventArgs { Value = "Odpor proti příkazu" });
+        await component.Find(".ec-card-footer .ec-button-primary").ClickAsync(new MouseEventArgs());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.Find(".validation-message").TextContent, Does.Contain("Vyberte spis"), "an act is filed into a case");
+            Assert.That(actsClient.ReceivedCalls(), Is.Empty, "nothing is filed without a case");
+        }
     }
 
     private static (IActsClient Acts, ICasesClient Cases, IContactsClient Contacts, ILabelsClient Labels, ContactListItem CaseContact) Serve(BunitContext ctx, out Guid caseId)
@@ -112,7 +156,7 @@ public class NewActRenderTests
 
         var actsClient = Substitute.For<IActsClient>();
         actsClient
-            .CreateAct(Arg.Any<Guid>(), Arg.Any<CreateActRequest>(), Arg.Any<CancellationToken>())
+            .CreateAct(Arg.Any<CreateActRequest>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(new ActListItem
             {
                 ActId = Guid.CreateVersion7(),
@@ -138,6 +182,10 @@ public class NewActRenderTests
                 Contact = caseContact,
             }));
 
+        casesClient
+            .ListCases(Arg.Any<CaseListRequest>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(ListedCase(caseId)));
+
         var contactsClient = Substitute.For<IContactsClient>();
         contactsClient
             .ListContacts(Arg.Any<ContactListRequest>(), Arg.Any<CancellationToken>())
@@ -156,8 +204,31 @@ public class NewActRenderTests
         return (actsClient, casesClient, contactsClient, labelsClient, caseContact);
     }
 
-    private static IRenderedComponent<NewAct> Render(BunitContext ctx, Guid caseId)
+    private static CaseListResponse ListedCase(Guid caseId)
     {
-        return ctx.Render<NewAct>(parameters => parameters.Add(static page => page.CaseId, caseId));
+        return new CaseListResponse
+        {
+            Items =
+            [
+                new CaseListItem
+                {
+                    CaseId = caseId,
+                    CaseNumber = "EC/20260807-001",
+                    Title = "Překročení rychlosti",
+                    Date = new DateOnly(2026, 8, 7),
+                    Status = CaseStatus.Active,
+                    Changed = new DateTime(2026, 8, 7, 0, 0, 0, DateTimeKind.Utc),
+                },
+            ],
+            TotalCount = 1,
+        };
+    }
+
+    private static IRenderedComponent<NewAct> Render(BunitContext ctx, Guid? caseId)
+    {
+        var navigation = ctx.Services.GetRequiredService<NavigationManager>();
+        navigation.NavigateTo(ActRoutes.New(caseId));
+
+        return ctx.Render<NewAct>();
     }
 }

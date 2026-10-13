@@ -52,18 +52,17 @@ public class ActsControllerTests
     }
 
     [Test]
-    public async Task TheRequestAndTheCaseIdReachTheWriterUntouched()
+    public async Task TheRequestReachesTheWriterUntouched()
     {
-        var caseId = Guid.CreateVersion7();
         var writer = CreatingWriter(new ActCreateResult { Outcome = ActCreateOutcome.Created, Act = Item("Podání") });
         var controller = new ActsController();
         var request = Request();
 
-        await controller.CreateAct(writer, caseId, request, CancellationToken.None);
+        await controller.CreateAct(writer, request, CancellationToken.None);
 
         await writer
             .Received(1)
-            .CreateAct(caseId, request, Arg.Any<CancellationToken>());
+            .CreateAct(request, Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -73,7 +72,7 @@ public class ActsControllerTests
         var writer = CreatingWriter(new ActCreateResult { Outcome = ActCreateOutcome.Created, Act = created });
         var controller = new ActsController();
 
-        var result = await controller.CreateAct(writer, Guid.CreateVersion7(), Request(), CancellationToken.None);
+        var result = await controller.CreateAct(writer, Request(), CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -88,9 +87,8 @@ public class ActsControllerTests
         var act = Item("Podání");
         var writer = CreatingWriter(new ActCreateResult { Outcome = ActCreateOutcome.Created, Act = act });
         var controller = new ActsController();
-        var caseId = Guid.CreateVersion7();
 
-        var response = await controller.CreateAct(writer, caseId, Request(), CancellationToken.None);
+        var response = await controller.CreateAct(writer, Request(), CancellationToken.None);
 
         Assert.That(response.Result, Is.InstanceOf<CreatedAtActionResult>());
         var result = (CreatedAtActionResult)response.Result!;
@@ -99,8 +97,22 @@ public class ActsControllerTests
         {
             Assert.That(result.StatusCode, Is.EqualTo(201), "a POST that creates a row answers 201 Created");
             Assert.That(result.ActionName, Is.EqualTo(nameof(ActsController.GetAct)), "the Location names the detail action of the act");
-            Assert.That(result.RouteValues?["caseId"], Is.EqualTo(caseId), "the Location carries the case the act was filed into");
+            Assert.That(result.RouteValues, Does.Not.ContainKey("caseId"), "an act is addressed by its own id alone");
             Assert.That(result.RouteValues?["actId"], Is.EqualTo(act.ActId), "the Location carries the id of the act that was filed");
+        }
+    }
+
+    [Test]
+    public void FilingPostsToTheActsRouteWithTheCaseInTheBody()
+    {
+        var method = typeof(ActsController).GetMethod(nameof(ActsController.CreateAct))!;
+        var post = method.GetCustomAttributes(typeof(HttpPostAttribute), inherit: false).Cast<HttpPostAttribute>().Single();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(post.Template, Is.EqualTo("acts"), "an act is filed on the flat route, not under a case");
+            Assert.That(method.GetParameters().Select(static parameter => parameter.Name), Does.Not.Contain("caseId"), "the case rides in the body");
+            Assert.That(typeof(CreateActRequest).GetProperty(nameof(CreateActRequest.CaseId)), Is.Not.Null);
         }
     }
 
@@ -110,7 +122,7 @@ public class ActsControllerTests
         var writer = CreatingWriter(new ActCreateResult { Outcome = ActCreateOutcome.CaseNotFound });
         var controller = new ActsController();
 
-        var result = await controller.CreateAct(writer, Guid.CreateVersion7(), Request(), CancellationToken.None);
+        var result = await controller.CreateAct(writer, Request(), CancellationToken.None);
 
         AssertProblem(result.Result, 404);
     }
@@ -121,7 +133,7 @@ public class ActsControllerTests
         var writer = CreatingWriter(new ActCreateResult { Outcome = ActCreateOutcome.ContactNotFound });
         var controller = new ActsController();
 
-        var result = await controller.CreateAct(writer, Guid.CreateVersion7(), Request(), CancellationToken.None);
+        var result = await controller.CreateAct(writer, Request(), CancellationToken.None);
 
         var problem = AssertProblem(result.Result, 409);
 
@@ -129,18 +141,17 @@ public class ActsControllerTests
     }
 
     [Test]
-    public async Task TheDetailIsAskedForBothIdsInTheRoute()
+    public async Task TheDetailIsAskedForTheIdInTheRoute()
     {
-        var caseId = Guid.CreateVersion7();
         var actId = Guid.CreateVersion7();
         var reader = DetailReader(Detail());
         var controller = new ActsController();
 
-        await controller.GetAct(reader, caseId, actId, CancellationToken.None);
+        await controller.GetAct(reader, actId, CancellationToken.None);
 
         await reader
             .Received(1)
-            .GetActDetail(caseId, actId, Arg.Any<CancellationToken>());
+            .GetActDetail(actId, Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -150,7 +161,7 @@ public class ActsControllerTests
         var reader = DetailReader(detail);
         var controller = new ActsController();
 
-        var result = await controller.GetAct(reader, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
+        var result = await controller.GetAct(reader, Guid.CreateVersion7(), CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -165,25 +176,24 @@ public class ActsControllerTests
         var reader = DetailReader(detail: null);
         var controller = new ActsController();
 
-        var result = await controller.GetAct(reader, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
+        var result = await controller.GetAct(reader, Guid.CreateVersion7(), CancellationToken.None);
 
         AssertProblem(result.Result, 404);
     }
 
     [Test]
-    public async Task AnEditReachesTheWriterWithBothRouteIdsAndTheBody()
+    public async Task AnEditReachesTheWriterWithTheRouteIdAndTheBody()
     {
-        var caseId = Guid.CreateVersion7();
         var actId = Guid.CreateVersion7();
         var writer = EditingWriter(ActUpdateOutcome.Updated);
         var controller = new ActsController();
         var request = EditRequest();
 
-        await controller.EditAct(writer, caseId, actId, request, CancellationToken.None);
+        await controller.EditAct(writer, actId, request, CancellationToken.None);
 
         await writer
             .Received(1)
-            .UpdateAct(caseId, actId, request, Arg.Any<CancellationToken>());
+            .UpdateAct(actId, request, Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -192,7 +202,7 @@ public class ActsControllerTests
         var writer = EditingWriter(ActUpdateOutcome.Updated);
         var controller = new ActsController();
 
-        var result = await controller.EditAct(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), EditRequest(), CancellationToken.None);
+        var result = await controller.EditAct(writer, Guid.CreateVersion7(), EditRequest(), CancellationToken.None);
 
         Assert.That(result, Is.InstanceOf<NoContentResult>());
     }
@@ -203,7 +213,7 @@ public class ActsControllerTests
         var writer = EditingWriter(ActUpdateOutcome.NotFound);
         var controller = new ActsController();
 
-        var result = await controller.EditAct(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), EditRequest(), CancellationToken.None);
+        var result = await controller.EditAct(writer, Guid.CreateVersion7(), EditRequest(), CancellationToken.None);
 
         var problem = AssertProblem(result, 404);
 
@@ -216,7 +226,7 @@ public class ActsControllerTests
         var writer = EditingWriter(ActUpdateOutcome.ContactNotFound);
         var controller = new ActsController();
 
-        var result = await controller.EditAct(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), EditRequest(), CancellationToken.None);
+        var result = await controller.EditAct(writer, Guid.CreateVersion7(), EditRequest(), CancellationToken.None);
 
         var problem = AssertProblem(result, 409);
 
@@ -229,7 +239,7 @@ public class ActsControllerTests
         var writer = EditingWriter(ActUpdateOutcome.InvalidActNumber);
         var controller = new ActsController();
 
-        var result = await controller.EditAct(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), EditRequest(), CancellationToken.None);
+        var result = await controller.EditAct(writer, Guid.CreateVersion7(), EditRequest(), CancellationToken.None);
 
         Assert.That(result, Is.InstanceOf<ObjectResult>());
         var problem = (ObjectResult)result;
@@ -254,7 +264,7 @@ public class ActsControllerTests
         var writer = EditingWriter(ActUpdateOutcome.ActNumberTaken);
         var controller = new ActsController();
 
-        var result = await controller.EditAct(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), EditRequest(), CancellationToken.None);
+        var result = await controller.EditAct(writer, Guid.CreateVersion7(), EditRequest(), CancellationToken.None);
 
         var problem = AssertProblem(result, 409);
 
@@ -262,18 +272,17 @@ public class ActsControllerTests
     }
 
     [Test]
-    public async Task ADeleteReachesTheWriterWithBothRouteIds()
+    public async Task ADeleteReachesTheWriterWithTheRouteId()
     {
-        var caseId = Guid.CreateVersion7();
         var actId = Guid.CreateVersion7();
         var writer = DeletingWriter(DeleteOutcome.Deleted);
         var controller = new ActsController();
 
-        await controller.DeleteAct(writer, caseId, actId, CancellationToken.None);
+        await controller.DeleteAct(writer, actId, CancellationToken.None);
 
         await writer
             .Received(1)
-            .DeleteAct(caseId, actId, Arg.Any<CancellationToken>());
+            .DeleteAct(actId, Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -282,7 +291,7 @@ public class ActsControllerTests
         var writer = DeletingWriter(DeleteOutcome.Deleted);
         var controller = new ActsController();
 
-        var result = await controller.DeleteAct(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
+        var result = await controller.DeleteAct(writer, Guid.CreateVersion7(), CancellationToken.None);
 
         Assert.That(result, Is.InstanceOf<NoContentResult>());
     }
@@ -293,7 +302,7 @@ public class ActsControllerTests
         var writer = DeletingWriter(DeleteOutcome.NotFound);
         var controller = new ActsController();
 
-        var result = await controller.DeleteAct(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
+        var result = await controller.DeleteAct(writer, Guid.CreateVersion7(), CancellationToken.None);
 
         var problem = AssertProblem(result, 404);
 
@@ -307,7 +316,7 @@ public class ActsControllerTests
         var controller = new ActsController();
 
         await Assert.ThatAsync(
-            async () => await controller.DeleteAct(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None),
+            async () => await controller.DeleteAct(writer, Guid.CreateVersion7(), CancellationToken.None),
             Throws.InstanceOf<UnreachableException>(),
             "an outcome the endpoint does not name never turns into a status");
     }
@@ -333,6 +342,7 @@ public class ActsControllerTests
     {
         return new CreateActRequest
         {
+            CaseId = Guid.CreateVersion7(),
             Direction = ActDirection.Incoming,
             Date = new DateOnly(2026, 8, 25),
             Title = "Podání",
@@ -383,7 +393,7 @@ public class ActsControllerTests
     {
         var reader = Substitute.For<IActReader>();
         reader
-            .GetActDetail(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .GetActDetail(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(detail);
 
         return reader;
@@ -393,7 +403,7 @@ public class ActsControllerTests
     {
         var writer = Substitute.For<IActWriter>();
         writer
-            .CreateAct(Arg.Any<Guid>(), Arg.Any<CreateActRequest>(), Arg.Any<CancellationToken>())
+            .CreateAct(Arg.Any<CreateActRequest>(), Arg.Any<CancellationToken>())
             .Returns(result);
 
         return writer;
@@ -403,7 +413,7 @@ public class ActsControllerTests
     {
         var writer = Substitute.For<IActWriter>();
         writer
-            .UpdateAct(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<ActEditRequest>(), Arg.Any<CancellationToken>())
+            .UpdateAct(Arg.Any<Guid>(), Arg.Any<ActEditRequest>(), Arg.Any<CancellationToken>())
             .Returns(outcome);
 
         return writer;
@@ -413,7 +423,7 @@ public class ActsControllerTests
     {
         var writer = Substitute.For<IActWriter>();
         writer
-            .DeleteAct(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .DeleteAct(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(outcome);
 
         return writer;

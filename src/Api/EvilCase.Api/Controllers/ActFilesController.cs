@@ -11,15 +11,15 @@ namespace EvilBrains.EvilCase.Api.Controllers;
 
 [ApiController]
 [GenerateApiClient]
-[Route("api/cases/{caseId:guid}/acts/{actId:guid}/files")]
+[Route("api/acts/{actId:guid}/files")]
 public class ActFilesController : ControllerBase
 {
     [HttpGet("")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<FileListResponse>> ListActFiles([FromServices] IFileReader files, [FromRoute] Guid caseId, [FromRoute] Guid actId, CancellationToken token)
+    public async Task<ActionResult<FileListResponse>> ListActFiles([FromServices] IFileReader files, [FromRoute] Guid actId, CancellationToken token)
     {
-        var items = await files.ListActFiles(caseId, actId, token);
+        var items = await files.ListActFiles(actId, token);
 
         return items is null
             ? this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.ActNotFound)
@@ -29,9 +29,9 @@ public class ActFilesController : ControllerBase
     [HttpDelete("{fileId:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult> DeleteActFile([FromServices] IFileWriter writer, [FromRoute] Guid caseId, [FromRoute] Guid actId, [FromRoute] Guid fileId, CancellationToken token)
+    public async Task<ActionResult> DeleteActFile([FromServices] IFileWriter writer, [FromRoute] Guid actId, [FromRoute] Guid fileId, CancellationToken token)
     {
-        var outcome = await writer.DeleteActFile(caseId, actId, fileId, token);
+        var outcome = await writer.DeleteActFile(actId, fileId, token);
 
         return outcome switch
         {

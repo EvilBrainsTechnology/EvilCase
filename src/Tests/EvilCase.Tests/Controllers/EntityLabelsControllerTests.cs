@@ -68,19 +68,18 @@ public class EntityLabelsControllerTests
     }
 
     [Test]
-    public async Task TheActRequestReachesTheWriterWithBothRouteIdsAndTheBody()
+    public async Task TheActRequestReachesTheWriterWithTheRouteIdAndTheBody()
     {
-        var caseId = Guid.CreateVersion7();
         var actId = Guid.CreateVersion7();
         var writer = ActWriter(LabelAssignmentOutcome.Assigned);
         var controller = new ActLabelsController();
         var request = new LabelAssignmentRequest { LabelIds = [Guid.CreateVersion7()] };
 
-        await controller.SetActLabels(writer, caseId, actId, request, CancellationToken.None);
+        await controller.SetActLabels(writer, actId, request, CancellationToken.None);
 
         await writer
             .Received(1)
-            .SetActLabels(caseId, actId, request, Arg.Any<CancellationToken>());
+            .SetActLabels(actId, request, Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -89,7 +88,7 @@ public class EntityLabelsControllerTests
         var controller = new ActLabelsController();
 
         var result = await controller.SetActLabels(
-            ActWriter(LabelAssignmentOutcome.OwnerNotFound), Guid.CreateVersion7(), Guid.CreateVersion7(), new LabelAssignmentRequest(), CancellationToken.None);
+            ActWriter(LabelAssignmentOutcome.OwnerNotFound), Guid.CreateVersion7(), new LabelAssignmentRequest(), CancellationToken.None);
 
         AssertProblem(result, 404);
     }
@@ -101,7 +100,7 @@ public class EntityLabelsControllerTests
 
         await Assert.ThatAsync(
             async () => await controller.SetActLabels(
-                ActWriter((LabelAssignmentOutcome)99), Guid.CreateVersion7(), Guid.CreateVersion7(), new LabelAssignmentRequest(), CancellationToken.None),
+                ActWriter((LabelAssignmentOutcome)99), Guid.CreateVersion7(), new LabelAssignmentRequest(), CancellationToken.None),
             Throws.InstanceOf<UnreachableException>(),
             "an outcome the endpoint does not name never turns into a status");
     }
@@ -120,7 +119,7 @@ public class EntityLabelsControllerTests
     {
         var writer = Substitute.For<ILabelAssignmentWriter>();
         writer
-            .SetActLabels(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<LabelAssignmentRequest>(), Arg.Any<CancellationToken>())
+            .SetActLabels(Arg.Any<Guid>(), Arg.Any<LabelAssignmentRequest>(), Arg.Any<CancellationToken>())
             .Returns(outcome);
 
         return writer;

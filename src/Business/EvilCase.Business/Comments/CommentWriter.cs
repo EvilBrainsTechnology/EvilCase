@@ -1,5 +1,4 @@
 using EvilBrains.EvilCase.Api.Contract.Comments;
-using EvilBrains.EvilCase.Business.Acts;
 using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
@@ -48,12 +47,12 @@ internal sealed class CommentWriter(IDbSession dbSession, IUserContext userConte
         return outcome;
     }
 
-    public async Task<CommentWriteOutcome> AddActComment(Guid caseId, Guid actId, CommentEditRequest request, CancellationToken token)
+    public async Task<CommentWriteOutcome> AddActComment(Guid actId, CommentEditRequest request, CancellationToken token)
     {
         var context = dbSession.Current;
         var comment = new Comment { ActId = actId, Body = request.Body.Trim() };
 
-        var actExists = await context.Acts.OfCase(caseId).Exists(actId, token);
+        var actExists = await context.Acts.Exists(actId, token);
         if (!actExists)
             return CommentWriteOutcome.NotFound;
 
@@ -63,9 +62,9 @@ internal sealed class CommentWriter(IDbSession dbSession, IUserContext userConte
         return CommentWriteOutcome.Written;
     }
 
-    public async Task<CommentWriteOutcome> UpdateActComment(Guid caseId, Guid actId, Guid commentId, CommentEditRequest request, CancellationToken token)
+    public async Task<CommentWriteOutcome> UpdateActComment(Guid actId, Guid commentId, CommentEditRequest request, CancellationToken token)
     {
-        var comments = dbSession.Current.Comments.OnAct(caseId, actId).WithId(commentId);
+        var comments = dbSession.Current.Comments.OnAct(actId).WithId(commentId);
 
         var outcome = await this.UpdateComment(comments, request.Body.Trim(), token);
         if (outcome == CommentWriteOutcome.Written)
@@ -74,9 +73,9 @@ internal sealed class CommentWriter(IDbSession dbSession, IUserContext userConte
         return outcome;
     }
 
-    public async Task<CommentWriteOutcome> DeleteActComment(Guid caseId, Guid actId, Guid commentId, CancellationToken token)
+    public async Task<CommentWriteOutcome> DeleteActComment(Guid actId, Guid commentId, CancellationToken token)
     {
-        var comments = dbSession.Current.Comments.OnAct(caseId, actId).WithId(commentId);
+        var comments = dbSession.Current.Comments.OnAct(actId).WithId(commentId);
 
         var outcome = await this.DeleteComment(comments, token);
         if (outcome == CommentWriteOutcome.Written)

@@ -235,7 +235,7 @@ public class CaseRenderTests
         await component.Find("button[aria-label='Další akce se spisem']").ClickAsync(new MouseEventArgs());
         await component.FindAll("[role=menuitem]")[0].ClickAsync(new MouseEventArgs());
 
-        Assert.That(navigation.Uri, Does.EndWith($"/cases/{caseId}/act/new"));
+        Assert.That(navigation.Uri, Does.EndWith($"/acts/new?case={caseId}"));
     }
 
     [Test]

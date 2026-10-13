@@ -107,7 +107,7 @@ public class LabelAssignmentWriterTests : TenantFixture
         var @case = await this.Tenant.AddCase(new DateOnly(2026, 1, 5));
         var act = await this.Tenant.AddAct(@case, new DateOnly(2026, 1, 6));
 
-        var outcome = await this.writer.SetActLabels(@case.Id, act.Id, new LabelAssignmentRequest { LabelIds = [label.Id] }, CancellationToken.None);
+        var outcome = await this.writer.SetActLabels(act.Id, new LabelAssignmentRequest { LabelIds = [label.Id] }, CancellationToken.None);
 
         var assignment = await this.Tenant.Context.LabelAssignments.SingleAsync();
 
@@ -118,18 +118,6 @@ public class LabelAssignmentWriterTests : TenantFixture
             Assert.That(assignment.CaseId, Is.Null, "an assignment hangs on the act alone");
             Assert.That(assignment.LabelId, Is.EqualTo(label.Id));
         }
-    }
-
-    [Test]
-    public async Task AnActUnderAnotherCaseIsNotFound()
-    {
-        var @case = await this.Tenant.AddCase(new DateOnly(2026, 1, 5));
-        var other = await this.Tenant.AddCase(new DateOnly(2026, 1, 7));
-        var act = await this.Tenant.AddAct(@case, new DateOnly(2026, 1, 6));
-
-        var outcome = await this.writer.SetActLabels(other.Id, act.Id, new LabelAssignmentRequest(), CancellationToken.None);
-
-        Assert.That(outcome, Is.EqualTo(LabelAssignmentOutcome.OwnerNotFound));
     }
 
     private async Task<List<Guid>> CarriedLabelIds()

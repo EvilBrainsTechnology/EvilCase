@@ -10,14 +10,14 @@ namespace EvilBrains.EvilCase.Api.Controllers;
 
 [ApiController]
 [GenerateApiClient]
-[Route("api/cases/{caseId:guid}/acts/{actId:guid}/comments")]
+[Route("api/acts/{actId:guid}/comments")]
 public class ActCommentsController : ControllerBase
 {
     [HttpGet("")]
     public async Task<CommentListResponse> ListActComments(
-        [FromServices] ICommentReader comments, [FromRoute] Guid caseId, [FromRoute] Guid actId, CancellationToken token)
+        [FromServices] ICommentReader comments, [FromRoute] Guid actId, CancellationToken token)
     {
-        return new CommentListResponse { Items = await comments.ListActComments(caseId, actId, token) };
+        return new CommentListResponse { Items = await comments.ListActComments(actId, token) };
     }
 
     [HttpPost("")]
@@ -25,9 +25,9 @@ public class ActCommentsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> AddActComment(
-        [FromServices] ICommentWriter writer, [FromRoute] Guid caseId, [FromRoute] Guid actId, [FromBody] CommentEditRequest request, CancellationToken token)
+        [FromServices] ICommentWriter writer, [FromRoute] Guid actId, [FromBody] CommentEditRequest request, CancellationToken token)
     {
-        var outcome = await writer.AddActComment(caseId, actId, request, token);
+        var outcome = await writer.AddActComment(actId, request, token);
 
         return outcome switch
         {
@@ -44,9 +44,9 @@ public class ActCommentsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> EditActComment(
-        [FromServices] ICommentWriter writer, [FromRoute] Guid caseId, [FromRoute] Guid actId, [FromRoute] Guid commentId, [FromBody] CommentEditRequest request, CancellationToken token)
+        [FromServices] ICommentWriter writer, [FromRoute] Guid actId, [FromRoute] Guid commentId, [FromBody] CommentEditRequest request, CancellationToken token)
     {
-        var outcome = await writer.UpdateActComment(caseId, actId, commentId, request, token);
+        var outcome = await writer.UpdateActComment(actId, commentId, request, token);
 
         return this.Answer(outcome);
     }
@@ -56,9 +56,9 @@ public class ActCommentsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeleteActComment(
-        [FromServices] ICommentWriter writer, [FromRoute] Guid caseId, [FromRoute] Guid actId, [FromRoute] Guid commentId, CancellationToken token)
+        [FromServices] ICommentWriter writer, [FromRoute] Guid actId, [FromRoute] Guid commentId, CancellationToken token)
     {
-        var outcome = await writer.DeleteActComment(caseId, actId, commentId, token);
+        var outcome = await writer.DeleteActComment(actId, commentId, token);
 
         return this.Answer(outcome);
     }

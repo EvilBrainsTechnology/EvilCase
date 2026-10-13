@@ -121,11 +121,10 @@ public class CaseAndActLabelTests : TenantFixture
         var @case = await this.Tenant.AddCase(new DateOnly(2026, 1, 5));
 
         var result = await this.actWriter.CreateAct(
-            @case.Id,
-            new CreateActRequest { Date = new DateOnly(2026, 1, 6), Title = "Úkon", LabelIds = [label.Id] },
+            new CreateActRequest { CaseId = @case.Id, Date = new DateOnly(2026, 1, 6), Title = "Úkon", LabelIds = [label.Id] },
             CancellationToken.None);
 
-        var detail = await this.actReader.GetActDetail(@case.Id, result.Act!.ActId, CancellationToken.None);
+        var detail = await this.actReader.GetActDetail(result.Act!.ActId, CancellationToken.None);
 
         string[] expected = ["Soud"];
 
@@ -149,12 +148,11 @@ public class CaseAndActLabelTests : TenantFixture
         await this.Tenant.AddActLabel(act, dropped);
 
         var outcome = await this.actWriter.UpdateAct(
-            @case.Id,
             act.Id,
             new ActEditRequest { ActNumber = act.ActNumber, Date = act.Date, Title = act.Title, LabelIds = [added.Id] },
             CancellationToken.None);
 
-        var detail = await this.actReader.GetActDetail(@case.Id, act.Id, CancellationToken.None);
+        var detail = await this.actReader.GetActDetail(act.Id, CancellationToken.None);
 
         string[] expected = ["Priorita"];
 
@@ -172,7 +170,6 @@ public class CaseAndActLabelTests : TenantFixture
         var act = await this.Tenant.AddAct(@case, new DateOnly(2026, 1, 6));
 
         var outcome = await this.actWriter.UpdateAct(
-            @case.Id,
             act.Id,
             new ActEditRequest { ActNumber = act.ActNumber, Date = act.Date, Title = act.Title, LabelIds = [Guid.CreateVersion7()] },
             CancellationToken.None);
