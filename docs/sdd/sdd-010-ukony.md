@@ -47,11 +47,11 @@ kontakt. Zadává se na editaci úkonu.
   úkony před ním a dva po něm v pořadí výchozího řazení. Upozornění na odlišný kontakt spisu
   stojí u kontaktu úkonu.
 - `/acts/{actId}/edit` — editace, včetně štítků.
-- Seznam úkonů jde napříč spisy a zužuje se spisem, kontaktem, štítkem, směrem a rozsahem dat;
-  v detailu spisu je zúžený tímto spisem. Ukazuje datum, název, směr, číslo jednací, kontakt
-  a štítky (SDD-019); podobu v detailu spisu řídí SDD-009. Výchozí řazení je podle data úkonu
-  vzestupně; záhlaví sloupce řadí podle sebe a druhý klik otočí směr. Seznam je stránkovaný podle
-  SDD-005 a nese celkový počet.
+- Seznam úkonů jde napříč spisy a zužuje se spisem, stavem spisu, kontaktem, štítkem, směrem
+  a rozsahem dat; v detailu spisu je zúžený tímto spisem. Ukazuje datum, název, směr, číslo
+  jednací, kontakt a štítky (SDD-019); podobu v detailu spisu řídí SDD-009. Výchozí řazení je
+  podle data úkonu vzestupně; záhlaví sloupce řadí podle sebe a druhý klik otočí směr. Seznam je
+  stránkovaný podle SDD-005 a nese celkový počet.
 
 ### Mazání
 

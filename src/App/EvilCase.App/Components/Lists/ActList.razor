@@ -255,7 +255,8 @@
 
     private bool IsEmptyUnfiltered => !this.Loading && this.Failure is null && this.Total == 0 && !this.IsFiltered;
 
-    private bool IsFiltered => this.Search is not null || this.direction != this.Filter.Direction || this.caseStatus != this.Filter.CaseStatus || this.ActiveFilterCount > 0;
+    private bool IsFiltered => this.Search is not null || this.direction != this.Filter.Direction || this.caseStatus != this.Filter.CaseStatus
+        || this.ActiveFilterCount > 0;
 
     protected override void OnInitialized()
     {
@@ -266,7 +267,7 @@
     // A host filter with another direction or case status, e.g. a new address, resets the toolbar to it.
     protected override Task OnParametersSetAsync()
     {
-        if (this.seeded is null || this.seeded.Direction != this.Filter.Direction)
+        if (this.seeded?.Direction != this.Filter.Direction)
             this.direction = this.Filter.Direction;
 
         if (this.seeded?.CaseStatus != this.Filter.CaseStatus)

@@ -107,6 +107,32 @@ public class ActsRenderTests
             () => Assert.That(component.Find("#acts-direction-outgoing").GetAttribute("aria-pressed"), Is.EqualTo("true")));
     }
 
+    [Test]
+    public async Task ANewOpenValueInTheAddressResetsTheBox()
+    {
+        await using var ctx = new BunitContext();
+        Serve(ctx, out var requests);
+
+        var navigation = ctx.Services.GetRequiredService<NavigationManager>();
+        navigation.NavigateTo("/acts");
+
+        var component = ctx.Render<App.Pages.Acts>();
+
+        await component.WaitForAssertionAsync(
+            () => Assert.That(component.Find("#acts-open-cases").HasAttribute("checked"), Is.True));
+
+        navigation.NavigateTo("/acts?open=false");
+
+        await component.WaitForAssertionAsync(() =>
+        {
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(component.Find("#acts-open-cases").HasAttribute("checked"), Is.False);
+                Assert.That(requests[^1].CaseStatus, Is.EqualTo(CaseStatusFilter.All));
+            }
+        });
+    }
+
     private static void Serve(BunitContext ctx, out List<ActListRequest> requests)
     {
         var captured = new List<ActListRequest>();
