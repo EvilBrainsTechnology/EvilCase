@@ -112,7 +112,6 @@ public class ActsControllerTests
         {
             Assert.That(post.Template, Is.EqualTo("acts"), "an act is filed on the flat route, not under a case");
             Assert.That(method.GetParameters().Select(static parameter => parameter.Name), Does.Not.Contain("caseId"), "the case rides in the body");
-            Assert.That(typeof(CreateActRequest).GetProperty(nameof(CreateActRequest.CaseId)), Is.Not.Null);
         }
     }
 

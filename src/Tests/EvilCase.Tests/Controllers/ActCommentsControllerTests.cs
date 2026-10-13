@@ -11,7 +11,7 @@ namespace EvilBrains.EvilCase.Tests.Controllers;
 public class ActCommentsControllerTests
 {
     [Test]
-    public async Task TheListIsAskedForTheCaseAndTheActInTheRoute()
+    public async Task TheListIsAskedForTheActInTheRoute()
     {
         var actId = Guid.CreateVersion7();
         var reader = Substitute.For<ICommentReader>();
@@ -39,7 +39,7 @@ public class ActCommentsControllerTests
     }
 
     [Test]
-    public async Task AddingReachesTheWriterWithBothRouteIdsAndTheBody()
+    public async Task AddingReachesTheWriterWithTheActIdAndTheBody()
     {
         var actId = Guid.CreateVersion7();
         var writer = AddingWriter(CommentWriteOutcome.Written);
@@ -80,7 +80,7 @@ public class ActCommentsControllerTests
     }
 
     [Test]
-    public async Task EditingReachesTheWriterWithBothRouteIdsTheCommentIdAndTheBody()
+    public async Task EditingReachesTheWriterWithBothRouteIdsAndTheBody()
     {
         var actId = Guid.CreateVersion7();
         var commentId = Guid.CreateVersion7();
@@ -131,7 +131,7 @@ public class ActCommentsControllerTests
     }
 
     [Test]
-    public async Task DeletingReachesTheWriterWithBothRouteIdsAndTheCommentId()
+    public async Task DeletingReachesTheWriterWithBothRouteIds()
     {
         var actId = Guid.CreateVersion7();
         var commentId = Guid.CreateVersion7();

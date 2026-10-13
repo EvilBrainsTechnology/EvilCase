@@ -17,7 +17,7 @@ public class ActTimelineTests : TenantFixture
     [Test]
     public async Task TheFirstActStandsFirstAndSeesTwoActsAhead()
     {
-        var (caseId, actIds) = await this.AddCaseOfSevenActs();
+        var actIds = await this.AddCaseOfSevenActs();
 
         var detail = await this.ReadActDetail(actIds[0]);
 
@@ -39,7 +39,7 @@ public class ActTimelineTests : TenantFixture
     [Test]
     public async Task AnActInTheMiddleSeesTwoActsEitherSide()
     {
-        var (caseId, actIds) = await this.AddCaseOfSevenActs();
+        var actIds = await this.AddCaseOfSevenActs();
 
         var detail = await this.ReadActDetail(actIds[3]);
 
@@ -55,7 +55,7 @@ public class ActTimelineTests : TenantFixture
     [Test]
     public async Task TheLastActStandsLastAndSeesTwoActsBehind()
     {
-        var (caseId, actIds) = await this.AddCaseOfSevenActs();
+        var actIds = await this.AddCaseOfSevenActs();
 
         var detail = await this.ReadActDetail(actIds[6]);
 
@@ -156,7 +156,7 @@ public class ActTimelineTests : TenantFixture
         Assert.That(detail, Is.Null);
     }
 
-    private async Task<(Guid CaseId, Guid[] ActIds)> AddCaseOfSevenActs()
+    private async Task<Guid[]> AddCaseOfSevenActs()
     {
         var @case = await this.Tenant.AddCase(Day);
         var actIds = new Guid[WriteOrder.Length];
@@ -164,7 +164,7 @@ public class ActTimelineTests : TenantFixture
         foreach (var offset in WriteOrder)
             actIds[offset] = (await this.Tenant.AddAct(@case, Day.AddDays(offset))).Id;
 
-        return (@case.Id, actIds);
+        return actIds;
     }
 
     private async Task<ActDetail> ReadActDetail(Guid actId)

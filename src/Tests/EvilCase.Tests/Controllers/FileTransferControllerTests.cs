@@ -211,9 +211,8 @@ public class FileTransferControllerTests
     }
 
     [Test]
-    public async Task AnActUploadReachesTheWriterWithBothRouteIds()
+    public async Task AnActUploadReachesTheWriterWithTheActId()
     {
-        var caseId = Guid.CreateVersion7();
         var actId = Guid.CreateVersion7();
         var writer = UploadingWriter(Uploaded(Item()));
         var controller = new FileTransferController();
