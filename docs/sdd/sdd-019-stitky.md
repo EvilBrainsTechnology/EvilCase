@@ -49,8 +49,6 @@ Detail spisu i úkonu nese štítky s názvem a barvou.
 Seznam spisů i úkonů nese štítky jako drobné značky s názvem a barevnou tečkou hned za názvem
 spisu nebo úkonu, na každé šířce.
 
-Seznam úkonů v detailu spisu nese štítky jako drobné značky s názvem u názvu úkonu (SDD-009).
-
 ## Rozhodnutí
 
 - Štítky v seznamu: barevné tečky s názvem v tooltipu / drobné značky s názvem. Platí drobné značky
