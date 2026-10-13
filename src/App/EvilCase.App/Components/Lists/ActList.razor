@@ -73,12 +73,6 @@
                     }
                 </text>,
             },
-            ActColumn.Labels => new EcColumn<ActListItem>
-            {
-                Header = "Štítky",
-                Width = "var(--ec-list-col-labels)",
-                Cell = item =>@<LabelDots Labels="item.Labels" />,
-            },
             ActColumn.ActNumber => new EcColumn<ActListItem>
             {
                 Header = "Číslo jednací",

@@ -46,13 +46,15 @@ Obojí posílá celou množinu, kterou entita nese po zápisu: štítek, který 
 
 Detail spisu i úkonu nese štítky s názvem a barvou.
 
-Seznam nese jen barevné tečky v barvách štítků, bez názvu; název drží tooltip. Karta seznamu na
-mobilu, kde tooltip není, nese štítky s názvem.
+Seznam spisů i úkonů nese štítky jako drobné značky s názvem a barevnou tečkou hned za názvem
+spisu nebo úkonu, na každé šířce.
 
 Seznam úkonů v detailu spisu nese štítky jako drobné značky s názvem u názvu úkonu (SDD-009).
 
 ## Rozhodnutí
 
+- Štítky v seznamu: barevné tečky s názvem v tooltipu / drobné značky s názvem. Platí drobné značky
+  s názvem.
 - Barva: volný kód / pevná paleta. Platí pevná paleta — drží čitelný kontrast.
 - Číselník: společný pro spisy i úkony / dva oddělené. Platí společný.
 - Smazání štítku, který něco nese: zákaz / smazání i s jeho přiděleními. Platí smazání

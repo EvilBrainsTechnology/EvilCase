@@ -14,8 +14,6 @@ public enum ActColumn
 
     Contact = 5,
 
-    Labels = 6,
-
     ActNumber = 7,
 
     ExternalNumber = 8,

@@ -46,9 +46,11 @@ Aplikace má vlastní sadu komponent s prefixem `Ec`. Obrazovka skládá jen je,
   vlevo od textu. Tlačítko jen s ikonou má `aria-label`. Tichá textová akce u položky nebo
   v liště (Upravit a Smazat u komentáře, Zrušit filtry, Zobrazit i uzavřené) je výjimka: text
   bez ikony a bez plochy; mazání nese barvu chyby.
-- `EcBadge` — pilulka pro stav spisu, směr úkonu a štítek.
+- `EcBadge` — pilulka pro stav spisu, směr úkonu a typ kontaktu; stav nese barevnou tečku, směr
+  šipku.
 - `EcTable` — seznam podle SDD-016: řádek je odkaz po celé šířce, řaditelné záhlaví je
-  tlačítko, patička nese rozsah, počet a stránkování.
+  tlačítko, patička nese rozsah, počet a stránkování. Chybějící hodnota v buňce je světlá
+  pomlčka.
 - `EcField` — popisek, ovládací prvek, nápověda a chyba pod sebou; povinné pole značí hvězdička.
 - `EcModal` — nad nativním `dialog`, se správou fokusu a zavíráním klávesou Esc.
 - `EcMenu` — tlačítko s nabídkou akcí; Esc i klik mimo ji zavřou, šipky chodí mezi položkami
@@ -67,8 +69,8 @@ v tlačítku, 18 px v menu. Ikona vždy doprovází text; samostatná stojí jen
 ### Skladba obrazovky
 
 Nad obsahem je vodorovná lišta s logem, menu, hledáním a uživatelským menu. Obsah leží na
-šedém podkladu v bílých kartách. Obsah stránky je nejvýše 1680 px široký a zbytek okna zůstane
-prázdný; roste přitom hlavní sloupec, boční zůstává 380 px.
+šedém podkladu v bílých kartách; karta nikdy neleží v jiné kartě. Obsah stránky je nejvýše
+1680 px široký a zbytek okna zůstane prázdný; roste přitom hlavní sloupec, boční zůstává 380 px.
 
 Detail spisu i úkonu začíná kartou se jménem, stavem, popisem a řádkem údajů. Popis je hned
 pod názvem, ne v postranním sloupci. Obsah, který patří spisu, je v pravém sloupci; obsah,

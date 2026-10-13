@@ -34,27 +34,30 @@
                 Width = "minmax(0, 1fr)",
                 SortKey = nameof(CaseSortKey.Title),
                 Primary = true,
-                Cell = item =>@<span class="ec-cell-text" title="@item.Title">@item.Title</span>,
+                Cell = item =>@<text>
+                    <span class="ec-cell-text" title="@item.Title">@item.Title</span>
+                    <LabelChips Labels="item.Labels" />
+                </text>,
             },
             CaseColumn.Status => new EcColumn<CaseListItem>
             {
                 Header = "Stav",
                 Width = "var(--ec-list-col-status)",
-                Cell = item =>@<EcBadge Tone="CaseStatusDisplay.Tone(item.Status)" Text="@CaseStatusDisplay.Text(item.Status)" />,
-            },
-            CaseColumn.Labels => new EcColumn<CaseListItem>
-            {
-                Header = "Štítky",
-                Width = "var(--ec-list-col-labels)",
-                Cell = item =>@<LabelDots Labels="item.Labels" />,
+                Cell = item =>@<EcBadge Tone="CaseStatusDisplay.Tone(item.Status)" Text="@CaseStatusDisplay.Text(item.Status)" ShowDot="true" />,
             },
             CaseColumn.CaseNumber => new EcColumn<CaseListItem>
             {
                 Header = "Spisová značka",
                 Width = "var(--ec-list-col-number)",
                 SortKey = nameof(CaseSortKey.CaseNumber),
-                CellClass = "ec-cell-mono",
-                Cell = item =>@<text>@item.CaseNumber</text>,
+                CellClass = "ec-cell-mono ec-cell-stack",
+                Cell = item =>@<text>
+                    <span class="ec-cell-text">@item.CaseNumber</span>
+                    @if (!string.IsNullOrEmpty(item.ExternalCaseNumber))
+                    {
+                        <span class="ec-cell-text ec-cell-sub">@item.ExternalCaseNumber</span>
+                    }
+                </text>,
             },
             CaseColumn.ExternalNumber => new EcColumn<CaseListItem>
             {
@@ -99,19 +102,24 @@
             </select>
         }
 
-        @if (this.ShowDates)
+        @if (this.ShowStatusSwitch)
         {
-            <input type="date" class="ec-input" aria-label="Datum od"
-                   value="@this.From?.ToString("yyyy-MM-dd")" @onchange="this.OnFromInput" />
-            <input type="date" class="ec-input" aria-label="Datum do"
-                   value="@this.To?.ToString("yyyy-MM-dd")" @onchange="this.OnToInput" />
+            <div class="ec-segmented ec-segmented-compact" role="group" aria-label="Stav spisu">
+                @foreach (var value in StatusSwitch)
+                {
+                    <button id="@($"{this.InputPrefix}-status-{value}")" type="button" class="ec-segment"
+                            aria-pressed="@(this.status == value ? "true" : "false")" @onclick="() => this.SetStatus(value)">@CaseStatusDisplay.SwitchText(value)</button>
+                }
+            </div>
         }
 
-        @if (this.ShowLabelFilter)
+        @if (this.ShowDates || this.ShowLabelFilter)
         {
-            <div class="ec-toolbar-labels">
-                <LabelField InputId="@($"{this.InputPrefix}-labels")" Selected="this.SelectedLabels" SelectedChanged="this.OnLabelsChanged" />
-            </div>
+            <ListFilters InputPrefix="@this.InputPrefix" ShowDates="this.ShowDates" ShowLabelFilter="this.ShowLabelFilter"
+                         FromLabel="Datum spisu od" ToLabel="do"
+                         From="this.From" To="this.To" SelectedLabels="this.SelectedLabels" ActiveCount="this.ActiveFilterCount"
+                         FromChanged="this.OnFromInput" ToChanged="this.OnToInput" LabelsChanged="this.OnLabelsChanged"
+                         Cleared="this.ClearFilters" />
         }
 
         @if (this.ShowScopeFilter)
@@ -139,6 +147,16 @@
         CaseStatusFilter.Active,
         CaseStatusFilter.WaitingOnAuthority,
         CaseStatusFilter.Closed,
+    ];
+
+    // The switch's order (Otevřené, Aktivní, Čeká na úřad, Uzavřené, Vše), not the enum's.
+    private static readonly CaseStatusFilter[] StatusSwitch =
+    [
+        CaseStatusFilter.Open,
+        CaseStatusFilter.Active,
+        CaseStatusFilter.WaitingOnAuthority,
+        CaseStatusFilter.Closed,
+        CaseStatusFilter.All,
     ];
 
     [Parameter, EditorRequired]
@@ -172,6 +190,9 @@
     public bool ShowStatusFilter { get; set; }
 
     [Parameter]
+    public bool ShowStatusSwitch { get; set; }
+
+    [Parameter]
     public bool ShowScopeFilter { get; set; }
 
     [Parameter]
@@ -200,29 +221,38 @@
 
     private CaseListScope scope;
 
+    private CaseListRequest? seeded;
+
     protected override int PageSize => this.Filter.Take;
 
     protected override string FailureText => "Seznam spisů se nepodařilo načíst. Zkuste to za chvíli znovu.";
 
-    private bool HasFilters => this.ShowSearch || this.ShowDates || this.ShowLabelFilter || this.ShowStatusFilter || this.ShowScopeFilter;
+    private bool HasFilters => this.ShowSearch || this.ShowDates || this.ShowLabelFilter || this.ShowStatusFilter || this.ShowStatusSwitch || this.ShowScopeFilter;
 
     private bool ToolbarShown => this.HasFilters && !(this.HideToolbarWhenEmpty && this.IsEmptyUnfiltered);
 
     private bool IsEmptyUnfiltered => !this.Loading && this.Failure is null && this.Total == 0 && !this.IsFiltered;
 
     private bool IsFiltered => this.Search is not null || this.status != this.Filter.Status || this.scope != this.Filter.Scope
-        || this.From is not null || this.To is not null || this.SelectedLabels.Count > 0;
+        || this.ActiveFilterCount > 0;
 
     protected override void OnInitialized()
     {
         this.sort = this.Filter.Sort;
-        this.status = this.Filter.Status;
-        this.scope = this.Filter.Scope;
         this.Direction = this.Filter.SortDirection;
     }
 
+    // A host filter with another status or scope, e.g. a new address, resets the toolbar to it.
     protected override Task OnParametersSetAsync()
     {
+        if (this.seeded?.Status != this.Filter.Status)
+            this.status = this.Filter.Status;
+
+        if (this.seeded?.Scope != this.Filter.Scope)
+            this.scope = this.Filter.Scope;
+
+        this.seeded = this.Filter;
+
         return this.ReloadOnFilterChange(this.Filter, this.Filter.Search);
     }
 
@@ -253,6 +283,13 @@
     private Task OnStatusSelected(ChangeEventArgs args)
     {
         this.status = Enum.Parse<CaseStatusFilter>(args.Value as string ?? "");
+
+        return this.ReloadFirstPage();
+    }
+
+    private Task SetStatus(CaseStatusFilter value)
+    {
+        this.status = value;
 
         return this.ReloadFirstPage();
     }

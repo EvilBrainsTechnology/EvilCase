@@ -2367,47 +2367,6 @@ html:has(.ec-gate) {
     }
 }
 
-/* Sada teček nad štítky (LabelDots), sdílená migrovaným i nemigrovaným seznamem (SDD-019). */
-.label-dots {
-    display: inline-flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--ec-space-1);
-}
-
-.ec-label-mark {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--ec-space-2);
-    min-width: 0;
-}
-
-.ec-label-name {
-    display: none;
-    font-size: var(--ec-text-xs);
-    color: var(--ec-text-muted);
-}
-
-.ec-dot {
-    width: var(--ec-space-3);
-    height: var(--ec-space-3);
-    border-radius: var(--ec-radius-pill);
-}
-
-.ec-dot-blue { background: var(--ec-label-blue); }
-.ec-dot-azure { background: var(--ec-label-azure); }
-.ec-dot-indigo { background: var(--ec-label-indigo); }
-.ec-dot-purple { background: var(--ec-label-purple); }
-.ec-dot-pink { background: var(--ec-label-pink); }
-.ec-dot-red { background: var(--ec-label-red); }
-.ec-dot-orange { background: var(--ec-label-orange); }
-.ec-dot-yellow { background: var(--ec-label-yellow); }
-.ec-dot-lime { background: var(--ec-label-lime); }
-.ec-dot-green { background: var(--ec-label-green); }
-.ec-dot-teal { background: var(--ec-label-teal); }
-.ec-dot-cyan { background: var(--ec-label-cyan); }
-.ec-dot-gray { background: var(--ec-label-gray); }
-
 /* Seznam podle SDD-016: řádek je odkaz po celé šířce, patička nese rozsah, počet a stránkování
    (docs/design/spisy.html). Nese hlavičku a patičku karty (ec-card-*, ec-card-header-actions). */
 .ec-table {
@@ -2428,11 +2387,23 @@ html:has(.ec-gate) {
 
 .ec-table-bar .ec-search {
     width: var(--ec-list-search-width);
+    height: var(--ec-control-md);
     margin-left: 0;
+    border-radius: var(--ec-radius-md);
+}
+
+.ec-table-bar .ec-search-input {
+    font-size: var(--ec-text-sm);
 }
 
 .ec-table-bar .ec-check {
     margin-left: auto;
+    font-size: var(--ec-text-sm);
+}
+
+.ec-table-bar .ec-check-box {
+    width: var(--ec-icon-md);
+    height: var(--ec-icon-md);
 }
 
 .ec-table-head {
@@ -2646,10 +2617,6 @@ html:has(.ec-gate) {
         order: -1;
     }
 
-    .ec-table .ec-label-name {
-        display: inline;
-    }
-
     .ec-table .ec-card-footer .ec-button {
         flex: 1 1 0;
         height: var(--ec-touch-min);
@@ -2658,16 +2625,6 @@ html:has(.ec-gate) {
     .ec-table .ec-card-error .ec-button {
         height: var(--ec-touch-min);
     }
-}
-
-/* Filtr štítků v liště seznamu: chipy nad polem, ne vedle něj. */
-.ec-toolbar-labels {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: var(--ec-space-2);
-    flex: 1 1 var(--ec-popover-width);
-    min-width: 0;
 }
 
 /* Přehled (docs/design/prehled.html): dlaždice počtů spisů. */

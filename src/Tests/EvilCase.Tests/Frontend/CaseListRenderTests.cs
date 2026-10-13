@@ -250,6 +250,7 @@ public class CaseListRenderTests
     public async Task TheLabelFilterSendsTheChosenLabel()
     {
         await using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         Serve(ctx, out var requests);
 
         var labelId = Guid.CreateVersion7();
@@ -264,6 +265,7 @@ public class CaseListRenderTests
         var component = Render(ctx, [CaseColumn.Date], labelFilter: true);
 
         await component.WaitForElementAsync("a.ec-table-row");
+        await component.Find("button[aria-controls='cases-filters']").ClickAsync(new MouseEventArgs());
         await component.Find("#cases-labels").InputAsync(new ChangeEventArgs { Value = "urg" });
 
         await component.WaitForAssertionAsync(
@@ -285,7 +287,7 @@ public class CaseListRenderTests
         using var ctx = new BunitContext();
         Serve(ctx, out _);
 
-        var component = Render(ctx, [CaseColumn.Date, CaseColumn.Case, CaseColumn.Status, CaseColumn.Labels, CaseColumn.CaseNumber]);
+        var component = Render(ctx, [CaseColumn.Changed, CaseColumn.Date, CaseColumn.Case, CaseColumn.Status, CaseColumn.CaseNumber, CaseColumn.ExternalNumber]);
 
         Assert.That(
             component.Find(".ec-table").GetAttribute("style"),
@@ -293,23 +295,189 @@ public class CaseListRenderTests
             "a column width is a token in ec-tokens.css, never a size written in the component");
     }
 
-    private static void Serve(BunitContext ctx, out List<CaseListRequest> requests, int total = 1)
+    [Test]
+    public void TheLabelsSitBesideTheTitleAsSmallChips()
+    {
+        using var ctx = new BunitContext();
+
+        var labelled = Row with
+        {
+            Labels =
+            [
+                new LabelItem { LabelId = Guid.CreateVersion7(), Name = "Priorita", Color = LabelColor.Red },
+                new LabelItem { LabelId = Guid.CreateVersion7(), Name = "Hlídat lhůtu", Color = LabelColor.Orange },
+            ],
+        };
+
+        Serve(ctx, out _, items: [labelled]);
+
+        var component = Render(ctx, [CaseColumn.Case]);
+
+        component.WaitForElement("a.ec-table-row");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(
+                component.FindAll(".ec-table-cell-primary .ec-chip-sm").Select(static chip => chip.TextContent.Trim()),
+                Is.EqualTo(["Priorita", "Hlídat lhůtu"]));
+            Assert.That(component.FindAll(".ec-table-cell-primary .ec-chip-red"), Has.Count.EqualTo(1));
+            Assert.That(component.Find(".ec-table-cell-primary .ec-cell-text").GetAttribute("title"), Is.EqualTo("Přestupek"));
+        }
+    }
+
+    [Test]
+    public void TheStatusPillCarriesADot()
+    {
+        using var ctx = new BunitContext();
+        Serve(ctx, out _);
+
+        var component = Render(ctx, [CaseColumn.Status]);
+
+        component.WaitForElement("a.ec-table-row");
+
+        Assert.That(component.FindAll(".ec-table-cell .ec-badge .ec-badge-dot"), Has.Count.EqualTo(1), "a case status reads from its colour as well as its word");
+    }
+
+    [Test]
+    public void TheExternalCaseNumberSitsUnderTheCaseNumber()
+    {
+        using var ctx = new BunitContext();
+        Serve(ctx, out _, total: 2, items: [Row with { ExternalCaseNumber = "VV41/2025/08464" }, Row with { CaseId = Guid.CreateVersion7() }]);
+
+        var component = Render(ctx, [CaseColumn.CaseNumber]);
+
+        component.WaitForElement("a.ec-table-row");
+
+        var cells = component.FindAll(".ec-table-cell");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(cells[0].ClassList, Does.Contain("ec-cell-stack"));
+            Assert.That(cells[0].QuerySelector(".ec-cell-sub")!.TextContent, Is.EqualTo("VV41/2025/08464"));
+            Assert.That(cells[1].QuerySelector(".ec-cell-sub"), Is.Null, "a case without an external number shows no empty line");
+        }
+    }
+
+    [Test]
+    public async Task TheStatusSwitchOffersEveryStatusAndSendsTheChosenOne()
+    {
+        await using var ctx = new BunitContext();
+        Serve(ctx, out var requests, total: 3);
+
+        var component = Render(ctx, [CaseColumn.Date], take: 2, paging: true, statusSwitch: true);
+
+        await component.WaitForElementAsync("a.ec-table-row");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(
+                component.FindAll(".ec-segment").Select(static segment => segment.TextContent.Trim()),
+                Is.EqualTo(["Otevřené", "Aktivní", "Čeká na úřad", "Uzavřené", "Vše"]));
+            Assert.That(component.Find("#cases-status-Open").GetAttribute("aria-pressed"), Is.EqualTo("true"));
+        }
+
+        await component.Find(".ec-card-footer button:last-child").ClickAsync(new MouseEventArgs());
+
+        Assert.That(requests[^1].Skip, Is.EqualTo(2), "the next page asks for the rows behind the first one");
+
+        await component.Find("#cases-status-Closed").ClickAsync(new MouseEventArgs());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(requests[^1].Status, Is.EqualTo(CaseStatusFilter.Closed));
+            Assert.That(requests[^1].Skip, Is.Zero, "a changed status starts the list over");
+            Assert.That(component.Find("#cases-status-Closed").GetAttribute("aria-pressed"), Is.EqualTo("true"));
+            Assert.That(component.Find("#cases-status-Open").GetAttribute("aria-pressed"), Is.EqualTo("false"));
+        }
+    }
+
+    [Test]
+    public async Task TheFiltersStayFoldedUntilTheButtonOpensThemAndCountWhatIsSet()
+    {
+        await using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        ServeNoLabels(ctx);
+        Serve(ctx, out var requests);
+
+        var component = Render(ctx, [CaseColumn.Date], dates: true, labelFilter: true);
+
+        await component.WaitForElementAsync("a.ec-table-row");
+
+        var button = component.Find("button[aria-controls='cases-filters']");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(button.GetAttribute("aria-expanded"), Is.EqualTo("false"));
+            Assert.That(component.FindAll("#cases-filters"), Is.Empty);
+            Assert.That(component.FindAll("input[type=date]"), Is.Empty);
+        }
+
+        await button.ClickAsync(new MouseEventArgs());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.Find("button[aria-controls='cases-filters']").GetAttribute("aria-expanded"), Is.EqualTo("true"));
+            Assert.That(
+                component.FindAll("#cases-filters .ec-filter-name").Select(static name => name.TextContent),
+                Is.EqualTo(["Datum spisu od", "do", "Štítek"]));
+        }
+
+        await component.Find("#cases-from").ChangeAsync(new ChangeEventArgs { Value = "2026-08-01" });
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(requests[^1].From, Is.EqualTo(new DateOnly(2026, 8, 1)));
+            Assert.That(component.Find(".ec-filter-count").TextContent, Is.EqualTo("1"));
+        }
+
+        await component.Find(".ec-filter-clear").ClickAsync(new MouseEventArgs());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(requests[^1].From, Is.Null);
+            Assert.That(component.FindAll(".ec-filter-count"), Is.Empty, "no active filter, no count");
+        }
+    }
+
+    [Test]
+    public async Task AHostFilterWithAnotherStatusResetsTheSwitch()
+    {
+        await using var ctx = new BunitContext();
+        Serve(ctx, out var requests);
+
+        var component = Render(ctx, [CaseColumn.Date], statusSwitch: true);
+
+        await component.WaitForElementAsync("a.ec-table-row");
+        await component.Find("#cases-status-Closed").ClickAsync(new MouseEventArgs());
+
+        component.Render(static parameters => parameters.Add(static list => list.Filter, new CaseListRequest { Take = 20, Status = CaseStatusFilter.Active }));
+
+        await component.WaitForAssertionAsync(() =>
+        {
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(component.Find("#cases-status-Active").GetAttribute("aria-pressed"), Is.EqualTo("true"), "a new address narrows the list and the switch with it");
+                Assert.That(requests[^1].Status, Is.EqualTo(CaseStatusFilter.Active));
+            }
+        });
+    }
+
+    private static readonly CaseListItem Row = new()
+    {
+        CaseId = Guid.CreateVersion7(),
+        CaseNumber = "EC/20260821-001",
+        Title = "Přestupek",
+        Date = new DateOnly(2026, 8, 21),
+        Status = CaseStatus.Active,
+        Changed = new DateTime(2026, 8, 21, 0, 0, 0, DateTimeKind.Utc),
+    };
+
+    private static void Serve(BunitContext ctx, out List<CaseListRequest> requests, int total = 1, IReadOnlyList<CaseListItem>? items = null)
     {
         var captured = new List<CaseListRequest>();
         var response = new CaseListResponse
         {
-            Items =
-            [
-                new CaseListItem
-                {
-                    CaseId = Guid.CreateVersion7(),
-                    CaseNumber = "EC/20260821-001",
-                    Title = "Přestupek",
-                    Date = new DateOnly(2026, 8, 21),
-                    Status = CaseStatus.Active,
-                    Changed = new DateTime(2026, 8, 21, 0, 0, 0, DateTimeKind.Utc),
-                },
-            ],
+            Items = items ?? [Row],
             TotalCount = total,
         };
 
@@ -328,6 +496,16 @@ public class CaseListRenderTests
         requests = captured;
     }
 
+    private static void ServeNoLabels(BunitContext ctx)
+    {
+        var labelsClient = Substitute.For<ILabelsClient>();
+        labelsClient
+            .ListLabels(Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new LabelListResponse { Items = [] }));
+
+        ctx.Services.AddSingleton(labelsClient);
+    }
+
     private static IRenderedComponent<CaseList> Render(
         BunitContext ctx,
         IReadOnlyList<CaseColumn> columns,
@@ -336,6 +514,8 @@ public class CaseListRenderTests
         bool search = false,
         bool scopeFilter = false,
         bool statusFilter = false,
+        bool statusSwitch = false,
+        bool dates = false,
         bool labelFilter = false,
         Guid? contactId = null)
     {
@@ -346,6 +526,8 @@ public class CaseListRenderTests
             .Add(static list => list.ShowSearch, search)
             .Add(static list => list.ShowScopeFilter, scopeFilter)
             .Add(static list => list.ShowStatusFilter, statusFilter)
+            .Add(static list => list.ShowStatusSwitch, statusSwitch)
+            .Add(static list => list.ShowDates, dates)
             .Add(static list => list.ShowLabelFilter, labelFilter));
     }
 }

@@ -50,6 +50,16 @@ public class CaseStatusDisplayTests
         Assert.That(CaseStatusDisplay.Dot(status), Is.EqualTo(expected));
     }
 
+    [TestCase(CaseStatusFilter.Open, "Otevřené")]
+    [TestCase(CaseStatusFilter.Active, "Aktivní")]
+    [TestCase(CaseStatusFilter.WaitingOnAuthority, "Čeká na úřad")]
+    [TestCase(CaseStatusFilter.Closed, "Uzavřené")]
+    [TestCase(CaseStatusFilter.All, "Vše")]
+    public void EverySegmentOfTheStatusSwitchReadsAsTheDesignWritesIt(CaseStatusFilter filter, string expected)
+    {
+        Assert.That(CaseStatusDisplay.SwitchText(filter), Is.EqualTo(expected));
+    }
+
     [Test]
     public void EveryFilterReadsInCzech()
     {
@@ -71,6 +81,7 @@ public class CaseStatusDisplayTests
             Assert.That(static () => CaseStatusDisplay.Tone((CaseStatus)99), Throws.InstanceOf<UnreachableException>());
             Assert.That(static () => CaseStatusDisplay.Dot((CaseStatus)99), Throws.InstanceOf<UnreachableException>());
             Assert.That(static () => CaseStatusDisplay.FilterText((CaseStatusFilter)99), Throws.InstanceOf<UnreachableException>());
+            Assert.That(static () => CaseStatusDisplay.SwitchText((CaseStatusFilter)99), Throws.InstanceOf<UnreachableException>());
         }
     }
 }

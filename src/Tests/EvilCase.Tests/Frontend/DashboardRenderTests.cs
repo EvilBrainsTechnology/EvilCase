@@ -17,7 +17,7 @@ public class DashboardRenderTests
 
     private static readonly string[] ExpectedLabels = ["Aktivní", "Čeká na úřad", "Uzavřené"];
 
-    private static readonly string[] CaseTileHeaders = ["Změněno ↓", "Datum spisu", "Spis", "Stav", "Štítky", "Spisová značka"];
+    private static readonly string[] CaseTileHeaders = ["Změněno ↓", "Datum spisu", "Spis", "Stav", "Spisová značka"];
 
     private static readonly string[] ActTileHeaders = ["Změněno ↓", "Datum úkonu", "Spis", "Úkon", "Směr", "Číslo jednací"];
 
