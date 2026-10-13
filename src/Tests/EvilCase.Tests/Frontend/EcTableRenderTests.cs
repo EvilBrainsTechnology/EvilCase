@@ -183,6 +183,24 @@ public class EcTableRenderTests
     }
 
     [Test]
+    public void AnEmptyListShowsNoSortBarButKeepsTheHostsToolbar()
+    {
+        using var ctx = new BunitContext();
+
+        var withoutToolbar = Render(ctx, items: [], showToolbar: false);
+
+        using var ctx2 = new BunitContext();
+
+        var withToolbar = Render(ctx2, items: [], showToolbar: true);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(withoutToolbar.FindAll(".ec-table-bar"), Is.Empty);
+            Assert.That(withToolbar.FindAll(".ec-table-bar"), Has.Count.EqualTo(1));
+        }
+    }
+
+    [Test]
     public void TheFooterCarriesTheRangeTheCountAndBothDirections()
     {
         using var ctx = new BunitContext();

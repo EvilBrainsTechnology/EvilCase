@@ -161,6 +161,7 @@
     --ec-list-row-height: 52px;
     --ec-list-min-height: 320px;
     --ec-list-col-date: 120px;
+    --ec-list-col-case: minmax(0, 1fr);
     --ec-list-col-moment: 150px;
     --ec-list-col-status: 150px;
     --ec-list-col-labels: 90px;

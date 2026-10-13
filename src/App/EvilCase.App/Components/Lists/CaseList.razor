@@ -34,7 +34,7 @@
                 Width = "minmax(0, 1fr)",
                 SortKey = nameof(CaseSortKey.Title),
                 Primary = true,
-                Cell = item =>@<span class="ec-cell-text">@item.Title</span>,
+                Cell = item =>@<span class="ec-cell-text" title="@item.Title">@item.Title</span>,
             },
             CaseColumn.Status => new EcColumn<CaseListItem>
             {
@@ -70,7 +70,7 @@
 
 <EcTable TItem="CaseListItem"
          Title="@this.Title" Actions="this.Actions"
-         ShowToolbar="this.HasFilters"
+         ShowToolbar="this.ToolbarShown"
          Columns="columns" Items="this.items" RowHref="RowHref"
          SortKey="@this.sort.ToString()"
          SortDescending="@(this.Direction == ListSortDirection.Descending)"
@@ -124,11 +124,13 @@
         }
     </Toolbar>
     <Empty>
-        <EcEmptyState Icon="@AppIcons.Folders" Text="@this.EmptyText" Action="this.EmptyAction" />
+        <EcEmptyState Icon="@AppIcons.Folders" Text="@(this.IsFiltered ? FilteredEmptyText : this.EmptyText)" Action="this.EmptyAction" />
     </Empty>
 </EcTable>
 
 @code {
+    private const string FilteredEmptyText = "Filtru neodpovídá žádný spis.";
+
     // The select's order (Otevřené, Všechny stavy, Aktivní, Čeká na úřad, Uzavřený), not the enum's.
     private static readonly CaseStatusFilter[] StatusFilters =
     [
@@ -152,7 +154,7 @@
     public RenderFragment? Actions { get; set; }
 
     [Parameter]
-    public string EmptyText { get; set; } = "Filtru neodpovídá žádný spis.";
+    public string EmptyText { get; set; } = FilteredEmptyText;
 
     [Parameter]
     public RenderFragment? EmptyAction { get; set; }
@@ -174,6 +176,12 @@
 
     [Parameter]
     public bool ShowPaging { get; set; }
+
+    /// <summary>
+    /// Hides the toolbar while the list is empty and no filter is set, so an empty card shows no filters.
+    /// </summary>
+    [Parameter]
+    public bool HideToolbarWhenEmpty { get; set; }
 
     [Parameter]
     public EventCallback<int> TotalChanged { get; set; }
@@ -197,6 +205,13 @@
     protected override string FailureText => "Seznam spisů se nepodařilo načíst. Zkuste to za chvíli znovu.";
 
     private bool HasFilters => this.ShowSearch || this.ShowDates || this.ShowLabelFilter || this.ShowStatusFilter || this.ShowScopeFilter;
+
+    private bool ToolbarShown => this.HasFilters && !(this.HideToolbarWhenEmpty && this.IsEmptyUnfiltered);
+
+    private bool IsEmptyUnfiltered => !this.Loading && this.Failure is null && this.Total == 0 && !this.IsFiltered;
+
+    private bool IsFiltered => this.Search is not null || this.status != this.Filter.Status || this.scope != this.Filter.Scope
+        || this.From is not null || this.To is not null || this.SelectedLabels.Count > 0;
 
     protected override void OnInitialized()
     {
