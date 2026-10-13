@@ -12,6 +12,7 @@ Otevři je v prohlížeči přímo ze souboru.
 
 | Soubor | Obrazovka | Routa |
 | --- | --- | --- |
+| [`nacitani.html`](nacitani.html) | Načítání aplikace | start aplikace |
 | [`prihlaseni.html`](prihlaseni.html) | Přihlášení | `/login` |
 | [`prehled.html`](prehled.html) | Přehled | `/` |
 | [`spisy.html`](spisy.html) | Seznam spisů | `/cases` |

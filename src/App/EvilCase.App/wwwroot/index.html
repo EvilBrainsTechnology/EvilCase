@@ -16,8 +16,8 @@
 
 <body>
     <div id="app" class="ec">
-        <div class="ec-boot">
-            <div class="ec-brand">
+        <div class="ec-gate">
+            <div class="ec-brand ec-gate-brand">
                 <!-- AppIcons.Scale inlined; keep the two in sync. -->
                 <span class="ec-brand-mark">
                     <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24"
@@ -33,13 +33,20 @@
                 </span>
                 EvilCase
             </div>
-            <div class="ec-boot-step">
-                <span class="ec-boot-step-download">1/3 Stahování</span>
-                <span class="ec-boot-step-start">2/3 Spouštění aplikace</span>
-                <span class="ec-boot-percent"></span>
+            <div class="ec-gate-card">
+                <div class="ec-boot-step">
+                    <span class="ec-boot-step-download">1/3 Stahování</span>
+                    <span class="ec-boot-step-start">2/3 Spouštění aplikace</span>
+                    <span class="ec-boot-percent"></span>
+                </div>
+                <div class="ec-boot-track">
+                    <div class="ec-boot-bar"></div>
+                </div>
             </div>
-            <div class="ec-boot-track">
-                <div class="ec-boot-bar"></div>
+            <!-- GateFrame.razor carries the same facts; keep the two in sync. -->
+            <div class="ec-gate-facts">
+                <span>Česky · datum d. M. yyyy</span>
+                <span>Samostatná instalace</span>
             </div>
         </div>
     </div>

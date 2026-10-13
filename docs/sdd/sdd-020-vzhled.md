@@ -81,6 +81,10 @@ tlačítkem vedle hodnoty. Soubory a komentáře v bočním sloupci detailu spis
 soubor drží název na jednom řádku a velikost s okamžikem nahrání na druhém, stažení i smazání
 jsou tlačítka jen s ikonou a pole pro nový komentář má dva řádky.
 
+Načítání aplikace a přihlášení sdílejí jeden rám: tmavá stránka, uprostřed nahoře značka
+a pod ní jedna bílá karta s postupem načítání, nebo s přihlašovacím formulářem. Značka zůstává
+při přechodu na stejném místě, na desktopu i na mobilu.
+
 ### Stavy
 
 Každý seznam a každá karta má stav načítání, chyby, prázdna a plného obsahu. Prázdný stav nese

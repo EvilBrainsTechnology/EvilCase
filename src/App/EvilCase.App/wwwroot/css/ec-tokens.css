@@ -148,7 +148,6 @@
     --ec-popover-width: 320px;
     --ec-menu-width: 240px;
     --ec-viewport-height: 100vh;
-    --ec-boot-track-width: 260px;
     --ec-topbar-gap: 36px;
     --ec-topbar-mark: 32px;
     --ec-topbar-brand-size: 17px;
@@ -207,22 +206,25 @@
     --ec-stat-pad-x: 22px;
     --ec-stat-gap: 2px;
 
-    /* Značka a přihlašovací obrazovka (docs/design/prihlaseni.html) */
+    /* Značka a brána: přihlášení a zavádění (docs/design/prihlaseni.html, nacitani.html) */
     --ec-brand-size: 19px;
     --ec-brand-mark: 36px;
     --ec-brand-icon: 21px;
-    --ec-login-aside: 560px;
     --ec-login-form-width: 380px;
-    --ec-login-claim-width: 520px;
-    --ec-login-pad-y: 56px;
-    --ec-login-pad-x: 64px;
-    --ec-login-claim-size: 44px;
-    --ec-login-claim-leading: 1.12;
-    --ec-login-lead-size: 17px;
+    --ec-gate-card-pad: 40px;
+    --ec-gate-card-width: calc(var(--ec-login-form-width) + 2 * var(--ec-gate-card-pad) + 2px);
+    --ec-gate-card-radius: 20px;
+    --ec-gate-card-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+    --ec-gate-glow: rgba(59, 91, 219, 0.32);
+    --ec-gate-bg: radial-gradient(ellipse 70% 55% at 50% 30%, var(--ec-gate-glow), transparent 70%), var(--ec-login-panel-bg);
+    --ec-gate-anchor: 300px;
+    --ec-gate-card-height: 362px;
+    --ec-gate-brand-size: 28px;
+    --ec-gate-brand-mark: 60px;
+    --ec-gate-brand-icon: 32px;
     --ec-login-title-size: 26px;
     --ec-login-panel-bg: var(--ec-text);
     --ec-login-panel-text: var(--ec-surface);
-    --ec-login-panel-lead: #B7BCC6;
     --ec-login-panel-faint: #8C929D;
     --ec-boot-fill: var(--blazor-load-percentage, 0%);
 
