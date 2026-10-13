@@ -1840,8 +1840,31 @@ html {
         min-height: var(--ec-touch-row);
     }
 
-    .ec-label-add {
+    .ec-label-add,
+    .ec-label-create-button,
+    .ec-label-menu-foot {
         min-height: var(--ec-touch-min);
+    }
+
+    .ec-label-manage {
+        display: inline-flex;
+        align-items: center;
+        min-height: var(--ec-touch-min);
+    }
+
+    /* The cross stays small inside the chip; its hit area grows to the touch minimum. */
+    .ec-chip-remove {
+        position: relative;
+    }
+
+    .ec-chip-remove::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: var(--ec-touch-min);
+        height: var(--ec-touch-min);
+        transform: translate(-50%, -50%);
     }
 
     .ec-label-hint {
