@@ -217,6 +217,7 @@
     --ec-gate-glow: rgba(59, 91, 219, 0.32);
     --ec-gate-bg: radial-gradient(ellipse 70% 55% at 50% 30%, var(--ec-gate-glow), transparent 70%), var(--ec-login-panel-bg);
     --ec-gate-anchor: 300px;
+    --ec-gate-card-height: 386px;
     --ec-gate-brand-size: 28px;
     --ec-gate-brand-mark: 60px;
     --ec-gate-brand-icon: 32px;
