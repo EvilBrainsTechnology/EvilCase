@@ -158,6 +158,40 @@ public class FileWriterTests : TenantFixture
     }
 
     [Test]
+    public async Task AnUploadOntoAnActOfAnotherTenantIsRefused()
+    {
+        await using var other = await TestTenant.Create();
+        var otherCase = await other.AddCase(Day);
+        var otherAct = await other.AddAct(otherCase, Day);
+
+        var result = await this.writer.UploadActFile(otherAct.Id, Upload("a.txt"), CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.Outcome, Is.EqualTo(UploadFileOutcome.OwnerNotFound), "the act id alone never reaches another tenant's act");
+            Assert.That(await other.Context.FileAssets.AnyAsync(), Is.False);
+            Assert.That(this.blobs.WrittenByPath, Is.Empty);
+        }
+    }
+
+    [Test]
+    public async Task AFileOfAnotherTenantsActIsNotDeleted()
+    {
+        await using var other = await TestTenant.Create();
+        var otherCase = await other.AddCase(Day);
+        var otherAct = await other.AddAct(otherCase, Day);
+        var otherFile = await other.AddActFile(otherAct);
+
+        var outcome = await this.writer.DeleteActFile(otherAct.Id, otherFile.Id, CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome, Is.EqualTo(DeleteOutcome.NotFound), "the act id alone never reaches another tenant's file");
+            Assert.That(await other.Context.FileAssets.AsNoTracking().AnyAsync(file => file.Id == otherFile.Id), Is.True);
+        }
+    }
+
+    [Test]
     public async Task ADeletedActFileLeavesItsBlobOnDisk()
     {
         var @case = await this.Tenant.AddCase(Day);

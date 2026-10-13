@@ -108,4 +108,17 @@ public class FileListQueryTests : TenantFixture
 
         Assert.That(items, Is.Null);
     }
+
+    [Test]
+    public async Task ListingTheFilesOfAnActOfAnotherTenantAnswersWithNothing()
+    {
+        await using var other = await TestTenant.Create();
+        var otherCase = await other.AddCase(Day);
+        var otherAct = await other.AddAct(otherCase, Day);
+        await other.AddActFile(otherAct, "cizi.txt");
+
+        var items = await this.reader.ListActFiles(otherAct.Id, CancellationToken.None);
+
+        Assert.That(items, Is.Null, "the act id alone never reaches another tenant's files");
+    }
 }

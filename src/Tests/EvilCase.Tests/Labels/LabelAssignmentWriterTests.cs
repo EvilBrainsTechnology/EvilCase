@@ -120,6 +120,24 @@ public class LabelAssignmentWriterTests : TenantFixture
         }
     }
 
+    [Test]
+    public async Task AnActOfAnotherTenantIsNotFound()
+    {
+        await using var other = await TestTenant.Create();
+        var otherLabel = await other.AddLabel("Soud");
+        var otherCase = await other.AddCase(new DateOnly(2026, 1, 5));
+        var otherAct = await other.AddAct(otherCase, new DateOnly(2026, 1, 6));
+        await other.AddActLabel(otherAct, otherLabel);
+
+        var outcome = await this.writer.SetActLabels(otherAct.Id, new LabelAssignmentRequest(), CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome, Is.EqualTo(LabelAssignmentOutcome.OwnerNotFound), "the act id alone never reaches another tenant's act");
+            Assert.That(await other.Context.LabelAssignments.AsNoTracking().AnyAsync(assignment => assignment.ActId == otherAct.Id), Is.True);
+        }
+    }
+
     private async Task<List<Guid>> CarriedLabelIds()
     {
         return await this.Tenant.Context.LabelAssignments
