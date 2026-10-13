@@ -215,6 +215,7 @@
     --ec-gate-card-radius: 20px;
     --ec-gate-card-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
     --ec-gate-glow: rgba(59, 91, 219, 0.32);
+    --ec-gate-bg: radial-gradient(ellipse 70% 55% at 50% 30%, var(--ec-gate-glow), transparent 70%), var(--ec-login-panel-bg);
     --ec-gate-anchor: 300px;
     --ec-gate-brand-size: 28px;
     --ec-gate-brand-mark: 60px;

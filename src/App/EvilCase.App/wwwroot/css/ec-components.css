@@ -1884,9 +1884,7 @@ html {
     min-height: var(--ec-viewport-height);
     padding: max(var(--ec-space-7), calc(var(--ec-viewport-height) / 2 - var(--ec-gate-anchor))) var(--ec-space-6) var(--ec-space-7);
     box-sizing: border-box;
-    background:
-        radial-gradient(ellipse 70% 55% at 50% 30%, var(--ec-gate-glow), transparent 70%),
-        var(--ec-login-panel-bg);
+    background: var(--ec-gate-bg);
     font-family: var(--ec-font);
     color: var(--ec-text);
 }
