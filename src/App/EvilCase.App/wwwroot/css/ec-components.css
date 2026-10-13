@@ -2226,7 +2226,7 @@ html:has(.ec-gate) {
     flex: 0 0 auto;
     box-sizing: border-box;
     height: var(--ec-topbar-height);
-    padding: 0 var(--ec-content-padding);
+    padding: 0 max(var(--ec-content-padding), calc((100% - var(--ec-content-max)) / 2 + var(--ec-content-padding)));
     background: var(--ec-surface);
     border-bottom: 1px solid var(--ec-border);
 }
