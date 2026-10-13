@@ -327,7 +327,7 @@ public class CaseRenderTests
 
         var (casesClient, caseLabelsClient, _, labelsClient) = Serve(ctx, caseId, detail);
 
-        labelsClient.ListLabels(Arg.Any<CancellationToken>()).Returns(Task.FromResult(new LabelListResponse { Items = [label] }));
+        labelsClient.ListLabels(Arg.Any<CancellationToken>()).Returns(Task.FromResult(new LabelListResponse { Items = [LabelListItems.Of(label)] }));
         casesClient
             .GetCase(caseId, Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(detail), Task.FromResult(detail with { Labels = [label] }));

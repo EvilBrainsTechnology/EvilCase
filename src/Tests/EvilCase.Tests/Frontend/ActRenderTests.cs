@@ -199,7 +199,7 @@ public class ActRenderTests
 
         var (actsClient, actLabelsClient, labelsClient) = Serve(ctx, caseId, actId, detail);
 
-        labelsClient.ListLabels(Arg.Any<CancellationToken>()).Returns(Task.FromResult(new LabelListResponse { Items = [label] }));
+        labelsClient.ListLabels(Arg.Any<CancellationToken>()).Returns(Task.FromResult(new LabelListResponse { Items = [LabelListItems.Of(label)] }));
         actsClient
             .GetAct(caseId, actId, Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(detail), Task.FromResult(detail with { Labels = [label] }));
@@ -297,7 +297,7 @@ public class ActRenderTests
 
         var (_, actLabelsClient, labelsClient) = Serve(ctx, caseId, actId, detail);
 
-        labelsClient.ListLabels(Arg.Any<CancellationToken>()).Returns(Task.FromResult(new LabelListResponse { Items = [label] }));
+        labelsClient.ListLabels(Arg.Any<CancellationToken>()).Returns(Task.FromResult(new LabelListResponse { Items = [LabelListItems.Of(label)] }));
         actLabelsClient
             .SetActLabels(caseId, actId, Arg.Any<LabelAssignmentRequest>(), Arg.Any<CancellationToken>())
             .Returns(static _ => Task.FromException(new ApiException(HttpStatusCode.InternalServerError, responseBody: null)));

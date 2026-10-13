@@ -80,6 +80,34 @@
     --ec-label-cyan: #1B9BB8;
     --ec-label-gray: #6B7280;
 
+    /* Štítek jako chip: světlé pozadí, tmavý text a tečka */
+    --ec-label-blue-soft: #E1E9FD;
+    --ec-label-blue-strong: #2A48B8;
+    --ec-label-azure-soft: #DDEEFA;
+    --ec-label-azure-strong: #17608F;
+    --ec-label-indigo-soft: #E5E4FA;
+    --ec-label-indigo-strong: #3B34A3;
+    --ec-label-purple-soft: #EEE5FC;
+    --ec-label-purple-strong: #5B21B6;
+    --ec-label-pink-soft: #FCE3EC;
+    --ec-label-pink-strong: #A3234F;
+    --ec-label-red-soft: #FDE4E1;
+    --ec-label-red-strong: #9B2C1F;
+    --ec-label-orange-soft: #FDEFD8;
+    --ec-label-orange-strong: #8A5307;
+    --ec-label-yellow-soft: #FBF1CC;
+    --ec-label-yellow-strong: #755A03;
+    --ec-label-lime-soft: #EAF3D3;
+    --ec-label-lime-strong: #456412;
+    --ec-label-green-soft: #E0F3E6;
+    --ec-label-green-strong: #1D6B36;
+    --ec-label-teal-soft: #D9F2EF;
+    --ec-label-teal-strong: #0B6359;
+    --ec-label-cyan-soft: #D8F0F6;
+    --ec-label-cyan-strong: #0E6177;
+    --ec-label-gray-soft: #EAECF0;
+    --ec-label-gray-strong: #454B57;
+
     /* Typ souboru — EcFileChip */
     --ec-file-pdf-bg: #FDE4E1;
     --ec-file-pdf-text: #9B2C1F;
@@ -191,6 +219,11 @@
     --ec-timeline-line: 2px;
     --ec-timeline-radius: 8px;
     --ec-timeline-leading: 1.4;
+
+    /* Nastavení (docs/design/nastaveni.html) */
+    --ec-settings-col-color: 150px;
+    --ec-settings-col-count: 90px;
+    --ec-settings-col-actions: 96px;
 
     /* Detail spisu (docs/design/detail-spisu.html) */
     --ec-case-act-col-date: 96px;

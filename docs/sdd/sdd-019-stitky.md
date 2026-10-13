@@ -26,10 +26,10 @@ ničem. Tutéž dvojici nese nejvýše jednou. Spis ani úkon nemá počet ští
 ### Nastavení
 
 `/settings` je agenda nastavení tenantu; zatím nese jedinou sekci, Štítky. Sekce ukazuje štítky
-seřazené podle názvu a nechá štítek založit, přejmenovat, přebarvit a smazat. Název, který už
-nese jiný štítek, se odmítne 409 (SDD-004). Smazání štítku ho sejme ze všech spisů a úkonů, které
-ho nesly; spis ani úkon tím nezaniká. Potvrzuje se jako každé mazání a potvrzení jmenuje, že
-štítek zmizí i ze spisů a úkonů.
+seřazené podle názvu, u každého počet spisů a počet úkonů, které ho nesou, a nechá štítek
+založit, přejmenovat, přebarvit a smazat. Název, který už nese jiný štítek, se odmítne 409
+(SDD-004). Smazání štítku ho sejme ze všech spisů a úkonů, které ho nesly; spis ani úkon tím
+nezaniká. Potvrzuje se jako každé mazání a potvrzení jmenuje, kolik spisů a úkonů štítek nese.
 
 ### Přidělení
 

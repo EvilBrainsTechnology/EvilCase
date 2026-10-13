@@ -30,6 +30,18 @@ internal static class LabelQuery
         });
     }
 
+    public static IQueryable<LabelListItem> AsCountedListItems(this IQueryable<Label> labels)
+    {
+        return labels.Select(static label => new LabelListItem
+        {
+            LabelId = label.Id,
+            Name = label.Name,
+            Color = label.Color,
+            CaseCount = label.Assignments.Count(static assignment => assignment.CaseId != null),
+            ActCount = label.Assignments.Count(static assignment => assignment.ActId != null),
+        });
+    }
+
     /// <summary>
     /// Null where an id is unknown to the tenant; the foreign key alone would take another tenant's
     /// label, so this filtered read is what refuses it.

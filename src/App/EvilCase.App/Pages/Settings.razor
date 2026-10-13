@@ -18,11 +18,17 @@
         <EcCard>
             <Header>
                 <div class="ec-card-heading">
-                    <h2 class="ec-card-title">Štítky</h2>
+                    <h2 class="ec-card-title">
+                        Štítky
+                        @if (this.items.Count > 0)
+                        {
+                            <span class="ec-card-title-count">@this.items.Count</span>
+                        }
+                    </h2>
                     <span class="ec-card-subtitle">Jeden číselník pro spisy i úkony</span>
                 </div>
                 <div class="ec-card-header-actions">
-                    <EcButton Variant="EcButtonVariant.Primary" Icon="@AppIcons.Plus" OnClick="this.StartCreating">Nový štítek</EcButton>
+                    <EcButton Variant="EcButtonVariant.Primary" Icon="@AppIcons.Plus" OnClick="this.StartCreating"><span>Nový<span class="ec-settings-new-more"> štítek</span></span></EcButton>
                 </div>
             </Header>
             <ChildContent>
@@ -51,20 +57,27 @@
                     <div class="ec-settings-head" aria-hidden="true">
                         <span>Štítek</span>
                         <span>Barva</span>
+                        <span class="ec-settings-head-count">Spisy</span>
+                        <span class="ec-settings-head-count">Úkony</span>
                         <span></span>
                     </div>
                     <div class="ec-settings-list">
                         @foreach (var item in this.items)
                         {
                             <div class="ec-settings-row">
-                                <span class="@($"ec-chip ec-chip-{LabelColorDisplay.Css(item.Color)}")">
-                                    <span class="ec-chip-dot" aria-hidden="true"></span>@item.Name
+                                <span class="ec-settings-row-label">
+                                    <span class="@($"ec-chip ec-chip-{LabelColorDisplay.Css(item.Color)}")">
+                                        <span class="ec-chip-dot" aria-hidden="true"></span>@item.Name
+                                    </span>
+                                    <span class="ec-settings-row-usage">@LabelUsageDisplay.Line(item.CaseCount, item.ActCount)</span>
                                 </span>
                                 <span class="ec-settings-row-color">@LabelColorDisplay.Text(item.Color)</span>
+                                <span class="@CountClass(item.CaseCount)">@CountText(item.CaseCount)</span>
+                                <span class="@CountClass(item.ActCount)">@CountText(item.ActCount)</span>
                                 <span class="ec-settings-row-actions">
-                                    <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Pencil"
-                                              OnClick="() => this.StartEditing(item)">Upravit</EcButton>
-                                    <EcButton Variant="EcButtonVariant.Danger" Size="EcButtonSize.Compact" Icon="@AppIcons.Trash"
+                                    <EcButton Variant="EcButtonVariant.Quiet" Size="EcButtonSize.Compact" Icon="@AppIcons.Pencil"
+                                              AriaLabel="@($"Upravit štítek {item.Name}")" OnClick="() => this.StartEditing(item)" />
+                                    <EcButton Variant="EcButtonVariant.QuietDanger" Size="EcButtonSize.Compact" Icon="@AppIcons.Trash"
                                               AriaLabel="@($"Smazat štítek {item.Name}")" OnClick="() => this.StartDeleting(item)" />
                                 </span>
                             </div>
@@ -90,11 +103,11 @@
 }
 
 @code {
-    private IReadOnlyList<LabelItem> items = [];
+    private IReadOnlyList<LabelListItem> items = [];
 
     private LabelItem? editing;
 
-    private LabelItem? deleting;
+    private LabelListItem? deleting;
 
     private bool formOpen;
 
@@ -133,13 +146,23 @@
         this.formOpen = true;
     }
 
-    private void StartEditing(LabelItem label)
+    private static string CountClass(int count)
     {
-        this.editing = label;
+        return count == 0 ? "ec-settings-row-count ec-settings-row-count-zero" : "ec-settings-row-count";
+    }
+
+    private static string CountText(int count)
+    {
+        return count == 0 ? "–" : count.ToString(CultureInfo.CurrentCulture);
+    }
+
+    private void StartEditing(LabelListItem label)
+    {
+        this.editing = new LabelItem { LabelId = label.LabelId, Name = label.Name, Color = label.Color };
         this.formOpen = true;
     }
 
-    private void StartDeleting(LabelItem label)
+    private void StartDeleting(LabelListItem label)
     {
         this.deleting = label;
     }

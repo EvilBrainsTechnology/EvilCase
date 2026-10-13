@@ -12,9 +12,9 @@ namespace EvilBrains.EvilCase.Tests.Frontend;
 
 public class SettingsRenderTests
 {
-    private static readonly LabelItem InfZLabel = Label("InfZ", LabelColor.Blue);
+    private static readonly LabelListItem InfZLabel = Label("InfZ", LabelColor.Blue, caseCount: 4, actCount: 1);
 
-    private static readonly LabelItem RychlostLabel = Label("rychlost", LabelColor.Red);
+    private static readonly LabelListItem RychlostLabel = Label("rychlost", LabelColor.Red, caseCount: 0, actCount: 0);
 
     [Test]
     public void TheListShowsEveryLabelWithItsPaletteColour()
@@ -41,6 +41,37 @@ public class SettingsRenderTests
             Assert.That(
                 component.FindAll(".ec-settings-row-color").Select(static cell => cell.TextContent),
                 Is.EqualTo(["Modrá", "Červená"]));
+        }
+    }
+
+    [Test]
+    public void TheRowsCarryTheCaseAndActCountsAndTheHeadingTheLabelCount()
+    {
+        using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+
+        Serve(ctx, [InfZLabel, RychlostLabel]);
+
+        var component = Render(ctx);
+
+        component.WaitForElement(".ec-settings-row");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(
+                component.FindAll(".ec-settings-row-count").Select(static cell => cell.TextContent),
+                Is.EqualTo(["4", "1", "–", "–"]),
+                "a zero count shows a dash");
+            Assert.That(
+                component.FindAll(".ec-settings-row-usage").Select(static cell => cell.TextContent),
+                Is.EqualTo(["4 spisy · 1 úkon", "Nepoužitý"]));
+            Assert.That(component.Find(".ec-card-title-count").TextContent, Is.EqualTo("2"));
+            Assert.That(
+                component.Find(".ec-settings-row .ec-button-quiet").GetAttribute("aria-label"),
+                Is.EqualTo("Upravit štítek InfZ"));
+            Assert.That(
+                component.Find(".ec-settings-row .ec-button-quiet-danger").GetAttribute("aria-label"),
+                Is.EqualTo("Smazat štítek InfZ"));
         }
     }
 
@@ -141,7 +172,7 @@ public class SettingsRenderTests
         var component = Render(ctx);
 
         await component.WaitForElementAsync(".ec-settings-row");
-        await component.Find(".ec-settings-row:first-child .ec-button-secondary").ClickAsync(new MouseEventArgs());
+        await component.Find(".ec-settings-row:first-child .ec-button-quiet").ClickAsync(new MouseEventArgs());
 
         using (Assert.EnterMultipleScope())
         {
@@ -161,14 +192,14 @@ public class SettingsRenderTests
         var component = Render(ctx);
 
         await component.WaitForElementAsync(".ec-settings-row");
-        await component.Find(".ec-settings-row:first-child .ec-button-danger").ClickAsync(new MouseEventArgs());
+        await component.Find(".ec-settings-row:first-child .ec-button-quiet-danger").ClickAsync(new MouseEventArgs());
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(component.Find(".ec-modal-title").TextContent, Is.EqualTo("Smazat štítek"));
             Assert.That(
                 component.Find(".ec-confirm-text").TextContent,
-                Does.Contain("InfZ").And.Contain("spisů a úkonů"),
+                Does.Contain("InfZ").And.Contain("4 spisy a 1 úkon"),
                 "the confirmation names what the cascade takes (SDD-019)");
         }
     }
@@ -184,14 +215,14 @@ public class SettingsRenderTests
         var component = Render(ctx);
 
         await component.WaitForElementAsync(".ec-settings-row");
-        await component.Find(".ec-settings-row:first-child .ec-button-danger").ClickAsync(new MouseEventArgs());
+        await component.Find(".ec-settings-row:first-child .ec-button-quiet-danger").ClickAsync(new MouseEventArgs());
         await component.Find(".ec-modal-footer .ec-button-danger").ClickAsync(new MouseEventArgs());
 
         await labelsClient.Received(1).DeleteLabel(InfZLabel.LabelId, Arg.Any<CancellationToken>());
         await labelsClient.Received(2).ListLabels(Arg.Any<CancellationToken>());
     }
 
-    private static ILabelsClient Serve(BunitContext ctx, IReadOnlyList<LabelItem> items)
+    private static ILabelsClient Serve(BunitContext ctx, IReadOnlyList<LabelListItem> items)
     {
         var labelsClient = Substitute.For<ILabelsClient>();
         labelsClient
@@ -206,9 +237,9 @@ public class SettingsRenderTests
         return labelsClient;
     }
 
-    private static LabelItem Label(string name, LabelColor color)
+    private static LabelListItem Label(string name, LabelColor color, int caseCount, int actCount)
     {
-        return new LabelItem { LabelId = Guid.CreateVersion7(), Name = name, Color = color };
+        return new LabelListItem { LabelId = Guid.CreateVersion7(), Name = name, Color = color, CaseCount = caseCount, ActCount = actCount };
     }
 
     private static IRenderedComponent<Settings> Render(BunitContext ctx)

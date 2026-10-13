@@ -1,4 +1,6 @@
 using System.Net;
+using EvilBrains.EvilCase.App.Models;
+using EvilBrains.EvilCase.Domain.Labels;
 using EvilBrains.EvilCase.Tests.Hosting;
 
 namespace EvilBrains.EvilCase.Tests.Frontend;
@@ -156,6 +158,24 @@ public class EcStylesheetTests
                     || AllowedLiterals.Contains(value, StringComparer.OrdinalIgnoreCase);
 
                 Assert.That(isToken, Is.True, $"{property}: {value} is not a token");
+            }
+        }
+    }
+
+    [Test]
+    public async Task EveryLabelColourPaintsASoftChipWithStrongTextAndDot()
+    {
+        var components = await this.client.GetStringAsync(new Uri("/css/ec-components.css", UriKind.Relative));
+        var tokens = await this.client.GetStringAsync(new Uri("/css/ec-tokens.css", UriKind.Relative));
+
+        using (Assert.EnterMultipleScope())
+        {
+            foreach (var color in Enum.GetValues<LabelColor>().Select(LabelColorDisplay.Css))
+            {
+                Assert.That(tokens, Does.Contain($"--ec-label-{color}-soft:"), $"{color}: the chip background is its soft token");
+                Assert.That(tokens, Does.Contain($"--ec-label-{color}-strong:"), $"{color}: the chip text and dot are its strong token");
+                Assert.That(components, Does.Contain($"--ec-chip-soft: var(--ec-label-{color}-soft);"), $"{color}: ec-chip-{color} must set the soft token");
+                Assert.That(components, Does.Contain($"--ec-chip-strong: var(--ec-label-{color}-strong);"), $"{color}: ec-chip-{color} must set the strong token");
             }
         }
     }

@@ -4,5 +4,5 @@ namespace EvilBrains.EvilCase.Business.Labels;
 
 public interface ILabelReader
 {
-    public Task<IReadOnlyList<LabelItem>> ListLabels(CancellationToken token);
+    public Task<IReadOnlyList<LabelListItem>> ListLabels(CancellationToken token);
 }

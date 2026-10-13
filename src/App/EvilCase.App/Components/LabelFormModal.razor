@@ -10,20 +10,27 @@
         <CascadingValue Value="this.editContext">
             <DataAnnotationsValidator />
             <div class="ec-form">
+                <div class="ec-label-preview">
+                    <span class="ec-label-preview-caption">Náhled</span>
+                    <span class="@($"ec-chip ec-chip-{LabelColorDisplay.Css(this.model.Color)}")">
+                        <span class="ec-chip-dot" aria-hidden="true"></span>@this.PreviewName
+                    </span>
+                </div>
+
                 <EcField Label="Název" Required ControlId="label-name" Hint="Nejvýše 64 znaků">
                     <ChildContent>
-                        <InputText id="label-name" class="ec-input" @bind-Value="this.model.Name" />
+                        <InputText id="label-name" class="ec-input" @bind-Value="this.model.Name" @oninput="this.TypeName" />
                     </ChildContent>
                     <Error><ValidationMessage For="() => this.model.Name" /></Error>
                 </EcField>
 
-                <EcField Label="Barva">
+                <EcField Label="@this.ColorLabel">
                     <ChildContent>
                         <div class="ec-swatches" role="group" aria-label="Barva štítku">
                             @foreach (var color in LabelColorDisplay.Palette)
                             {
                                 <button type="button" class="@($"ec-swatch ec-chip-{LabelColorDisplay.Css(color)}")"
-                                        aria-label="@LabelColorDisplay.Text(color)"
+                                        title="@LabelColorDisplay.Text(color)" aria-label="@LabelColorDisplay.Text(color)"
                                         aria-pressed="@(this.model.Color == color ? "true" : "false")"
                                         @onclick="() => this.model.Color = color"></button>
                             }
@@ -68,6 +75,10 @@
 
     private string Title => this.Label is null ? "Nový štítek" : "Upravit štítek";
 
+    private string PreviewName => string.IsNullOrWhiteSpace(this.model.Name) ? "Nový štítek" : this.model.Name.Trim();
+
+    private string ColorLabel => $"Barva · {LabelColorDisplay.Text(this.model.Color)}";
+
     private string SaveText => this.Label is null ? "Založit štítek" : "Uložit";
 
     protected override void OnInitialized()
@@ -79,6 +90,12 @@
         }
 
         this.editContext = new EditContext(this.model);
+    }
+
+    private void TypeName(ChangeEventArgs args)
+    {
+        this.model.Name = args.Value?.ToString() ?? "";
+        this.editContext.NotifyFieldChanged(FieldIdentifier.Create(() => this.model.Name));
     }
 
     private async Task Cancel()
