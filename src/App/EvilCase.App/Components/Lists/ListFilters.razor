@@ -17,12 +17,12 @@
         {
             <div class="ec-filter-field">
                 <label class="ec-filter-name" for="@($"{this.InputPrefix}-from")">@this.FromLabel</label>
-                <input id="@($"{this.InputPrefix}-from")" type="date" class="ec-input ec-filter-date" aria-label="Datum od"
+                <input id="@($"{this.InputPrefix}-from")" type="date" class="ec-input ec-filter-date"
                        value="@this.From?.ToString("yyyy-MM-dd")" @onchange="args => this.FromChanged.InvokeAsync(args)" />
             </div>
             <div class="ec-filter-field">
                 <label class="ec-filter-name" for="@($"{this.InputPrefix}-to")">@this.ToLabel</label>
-                <input id="@($"{this.InputPrefix}-to")" type="date" class="ec-input ec-filter-date" aria-label="Datum do"
+                <input id="@($"{this.InputPrefix}-to")" type="date" class="ec-input ec-filter-date"
                        value="@this.To?.ToString("yyyy-MM-dd")" @onchange="args => this.ToChanged.InvokeAsync(args)" />
             </div>
         }

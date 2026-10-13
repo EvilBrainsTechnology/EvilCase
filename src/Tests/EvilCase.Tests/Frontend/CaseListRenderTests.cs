@@ -443,6 +443,10 @@ public class CaseListRenderTests
             Assert.That(
                 component.FindAll("#cases-filters .ec-filter-name").Select(static name => name.TextContent),
                 Is.EqualTo(["Datum spisu od", "do", "Štítek"]));
+            Assert.That(
+                component.FindAll("#cases-filters input[type=date]").Where(static input => input.HasAttribute("aria-label")),
+                Is.Empty,
+                "the visible label names the date input; an aria-label would replace it");
         }
 
         await component.Find("#cases-from").ChangeAsync(new ChangeEventArgs { Value = "2026-08-01" });
