@@ -573,12 +573,6 @@ html {
     color: var(--ec-text-muted);
 }
 
-.ec-combobox-option-mono {
-    font-family: var(--ec-font-mono);
-    font-size: var(--ec-text-sm);
-    color: var(--ec-text-muted);
-}
-
 .ec-chips {
     display: flex;
     flex-wrap: wrap;
@@ -1476,10 +1470,6 @@ html {
 
 .ec-detail-fact-labels {
     position: relative;
-    flex: 1 1 auto;
-}
-
-.ec-detail-fact-grow {
     flex: 1 1 auto;
 }
 
