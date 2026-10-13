@@ -1,4 +1,5 @@
 using Bunit;
+using EvilBrains.EvilCase.Api.Client;
 using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Labels;
