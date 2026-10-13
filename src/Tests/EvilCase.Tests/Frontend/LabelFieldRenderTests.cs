@@ -166,6 +166,66 @@ public class LabelFieldRenderTests
     }
 
     [Test]
+    public async Task EscapeInlineReturnsTheFocusToTheAddButton()
+    {
+        await using var ctx = new BunitContext();
+
+        var component = Render(ctx, out _, inline: true);
+
+        await component.Find(".ec-label-add").ClickAsync(new MouseEventArgs());
+        await component.Find("#labels").KeyDownAsync(new KeyboardEventArgs { Key = "Escape" });
+
+        var buttonId = component.Find(".ec-label-add").GetAttribute("blazor:elementReference");
+
+        var focused = ctx.JSInterop.VerifyFocusAsyncInvoke(calledTimes: 3);
+
+        Assert.That(((ElementReference)focused[2].Arguments[0]!).Id, Is.EqualTo(buttonId));
+    }
+
+    [Test]
+    public async Task AFormFieldLeavesThePageShortcutListening()
+    {
+        await using var ctx = new BunitContext();
+
+        var module = ctx.JSInterop.SetupModule("./js/ec-label-field.js");
+        module.Mode = JSRuntimeMode.Loose;
+
+        var component = Render(ctx, out _);
+
+        await component.Find("#labels").ClickAsync(new MouseEventArgs());
+
+        await component.WaitForAssertionAsync(
+            () => Assert.That(component.FindAll(".ec-label-option"), Has.Count.EqualTo(3)),
+            WaitTimeout);
+
+        await component.Find("#labels").KeyDownAsync(new KeyboardEventArgs { Key = "ArrowDown" });
+
+        await ctx.DisposeComponentsAsync();
+
+        using (Assert.EnterMultipleScope())
+        {
+            module.VerifyInvoke("scrollActiveIntoView");
+            module.VerifyNotInvoke("stop", "the L listener belongs to the inline field on the same page");
+        }
+    }
+
+    [Test]
+    public async Task AFilterFieldWithNoLabelsDoesNotSuggestFoundingOne()
+    {
+        await using var ctx = new BunitContext();
+
+        var component = Render(ctx, out var labelsClient, create: false);
+
+        labelsClient.ListLabels(Arg.Any<CancellationToken>()).Returns(Task.FromResult(new LabelListResponse { Items = [] }));
+
+        await component.Find("#labels").ClickAsync(new MouseEventArgs());
+
+        await component.WaitForAssertionAsync(
+            () => Assert.That(component.Find(".ec-label-empty").TextContent, Is.EqualTo("Zatím není žádný štítek.")),
+            WaitTimeout);
+    }
+
+    [Test]
     public async Task TextMatchingNoLabelOffersFoundingOneWithThePaletteAndAssignsItAtOnce()
     {
         await using var ctx = new BunitContext();

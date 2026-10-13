@@ -54,7 +54,7 @@ public class CaseRenderTests
             Assert.That(component.Find(".ec-badge-active").TextContent, Is.EqualTo("Aktivní"));
             Assert.That(component.Find(".ec-detail-text").TextContent, Is.EqualTo("Řízení o přestupku."));
             Assert.That(
-                component.FindAll(".ec-detail-fact-name").Select(static node => node.TextContent),
+                component.FindAll(".ec-detail-fact-name").Select(static node => node.FirstChild!.TextContent),
                 Is.EqualTo(["Datum spisu", "Spisová značka", "Externí spisová značka", "Protistrana", "Nadřízený spis", "Štítky"]),
                 "the row of data follows the design");
             Assert.That(
@@ -367,6 +367,55 @@ public class CaseRenderTests
                 }
             },
             TimeSpan.FromSeconds(2));
+    }
+
+    [Test]
+    public async Task ALabelAddedWhileTheLastOneIsSavingKeepsIt()
+    {
+        await using var ctx = new BunitContext();
+
+        var caseId = Guid.CreateVersion7();
+
+        var first = new LabelItem { LabelId = Guid.CreateVersion7(), Name = "InfZ", Color = LabelColor.Blue };
+        var second = new LabelItem { LabelId = Guid.CreateVersion7(), Name = "Priorita", Color = LabelColor.Red };
+
+        var detail = Detail(caseId);
+
+        var (casesClient, caseLabelsClient, _, labelsClient) = Serve(ctx, caseId, detail);
+
+        var saving = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        labelsClient
+            .ListLabels(Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new LabelListResponse { Items = [LabelListItems.Of(first), LabelListItems.Of(second)] }));
+        caseLabelsClient
+            .SetCaseLabels(caseId, Arg.Any<LabelAssignmentRequest>(), Arg.Any<CancellationToken>())
+            .Returns(saving.Task, Task.CompletedTask);
+        casesClient
+            .GetCase(caseId, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(detail), Task.FromResult(detail with { Labels = [first] }), Task.FromResult(detail with { Labels = [first, second] }));
+
+        var component = ctx.Render<Case>(parameters => parameters.Add(static page => page.CaseId, caseId));
+
+        await component.Find(".ec-label-add").ClickAsync(new MouseEventArgs());
+
+        await component.WaitForAssertionAsync(
+            () => Assert.That(component.FindAll(".ec-label-option"), Has.Count.EqualTo(2)),
+            TimeSpan.FromSeconds(2));
+
+        var addingFirst = component.FindAll(".ec-label-option")[0].ClickAsync(new MouseEventArgs());
+        var addingSecond = component.FindAll(".ec-label-option")[1].ClickAsync(new MouseEventArgs());
+
+        saving.SetResult();
+
+        await Task.WhenAll(addingFirst, addingSecond);
+
+        await caseLabelsClient
+            .Received(1)
+            .SetCaseLabels(
+                caseId,
+                Arg.Is<LabelAssignmentRequest>(request => request.LabelIds.SequenceEqual(new[] { first.LabelId, second.LabelId })),
+                Arg.Any<CancellationToken>());
     }
 
     [Test]

@@ -27,7 +27,7 @@
 
     @if (this.Inline && !this.open)
     {
-        <button type="button" class="ec-label-add" aria-label="Přidat štítek" aria-haspopup="listbox" aria-expanded="false"
+        <button @ref="this.addButton" type="button" class="ec-label-add" aria-label="Přidat štítek" aria-haspopup="listbox" aria-expanded="false"
                 aria-keyshortcuts="L" @onclick="this.OpenPicker">
             <EcIcon Paths="@AppIcons.Plus" Size="EcIconSize.Small" />Štítek
         </button>
@@ -128,7 +128,12 @@
 
     private readonly List<LabelItem> available = [];
 
+    // A change waits for the one before it, so it builds on the selection that one saved.
+    private readonly SemaphoreSlim changing = new(1, 1);
+
     private IReadOnlyList<LabelItem> rows = [];
+
+    private ElementReference addButton;
 
     private ElementReference input;
 
@@ -155,6 +160,8 @@
     private bool focusPending;
 
     private bool scrollPending;
+
+    private bool returnFocus;
 
     private int active;
 
@@ -189,7 +196,7 @@
                 return "Načítám štítky…";
 
             if (this.available.Count == 0)
-                return "Zatím není žádný štítek. Napište název a založte ho.";
+                return this.AllowCreate ? "Zatím není žádný štítek. Napište název a založte ho." : "Zatím není žádný štítek.";
 
             return this.available.All(label => this.Selected.Any(selected => selected.LabelId == label.LabelId))
                 ? "Všechny štítky už jsou přidané."
@@ -232,6 +239,13 @@
 
             await labels.InvokeVoidAsync("scrollActiveIntoView", this.list);
         }
+
+        if (!this.open && this.returnFocus)
+        {
+            this.returnFocus = false;
+
+            await this.addButton.FocusAsync();
+        }
     }
 
     [JSInvokable]
@@ -255,7 +269,10 @@
         {
             try
             {
-                await this.module.InvokeVoidAsync("stop");
+                // The listener belongs to the inline field; a form or filter field leaves it alone.
+                if (this.Inline)
+                    await this.module.InvokeVoidAsync("stop");
+
                 await this.module.DisposeAsync();
             }
             catch (JSDisconnectedException)
@@ -373,28 +390,45 @@
                 break;
             case "Escape":
                 this.Close();
+                this.returnFocus = this.Inline;
                 break;
         }
     }
 
     private async Task Add(LabelItem label)
     {
-        if (this.Selected.Any(selected => selected.LabelId == label.LabelId))
-            return;
-
         this.search = "";
         this.active = 0;
         this.createError = null;
         this.focusPending = true;
 
-        await this.SelectedChanged.InvokeAsync([.. this.Selected, label]);
+        await this.changing.WaitAsync();
+
+        try
+        {
+            if (!this.Selected.Any(selected => selected.LabelId == label.LabelId))
+                await this.SelectedChanged.InvokeAsync([.. this.Selected, label]);
+        }
+        finally
+        {
+            this.changing.Release();
+        }
 
         this.Refilter();
     }
 
     private async Task Remove(LabelItem label)
     {
-        await this.SelectedChanged.InvokeAsync([.. this.Selected.Where(selected => selected.LabelId != label.LabelId)]);
+        await this.changing.WaitAsync();
+
+        try
+        {
+            await this.SelectedChanged.InvokeAsync([.. this.Selected.Where(selected => selected.LabelId != label.LabelId)]);
+        }
+        finally
+        {
+            this.changing.Release();
+        }
     }
 
     private async Task CreateLabel()

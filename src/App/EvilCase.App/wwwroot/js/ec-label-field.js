@@ -4,7 +4,7 @@ let handler = null;
 export function listen(owner) {
     stop();
     handler = (event) => {
-        if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey || event.key.toLowerCase() !== 'l') return;
+        if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey || event.key?.toLowerCase() !== 'l') return;
         const target = event.target;
         if (target instanceof Element && target.closest('input, textarea, select, [contenteditable]')) return;
         if (document.querySelector('dialog[open]')) return;
