@@ -9,9 +9,9 @@ namespace EvilBrains.EvilCase.Tests.Frontend;
 
 public class TopBarRenderTests
 {
-    private static readonly string[] ExpectedHrefs = ["/", "/cases", "/contacts", "/settings"];
+    private static readonly string[] ExpectedHrefs = ["/", "/cases", "/acts", "/contacts", "/settings"];
 
-    private static readonly string[] ExpectedTexts = ["Přehled", "Spisy", "Kontakty", "Nastavení"];
+    private static readonly string[] ExpectedTexts = ["Přehled", "Spisy", "Úkony", "Kontakty", "Nastavení"];
 
     [Test]
     public async Task TheBarCarriesTheBrandTheMenuTheSearchAndTheUserMenu()
@@ -28,8 +28,8 @@ public class TopBarRenderTests
             Assert.That(component.FindAll(".ec-brand"), Is.Not.Empty);
             Assert.That(
                 links,
-                Has.Count.EqualTo(4),
-                "the bar carries Přehled, Spisy, Kontakty a Nastavení (SDD-016)");
+                Has.Count.EqualTo(5),
+                "the bar carries Přehled, Spisy, Úkony, Kontakty a Nastavení (SDD-016)");
             Assert.That(links.Select(static link => link.GetAttribute("href")), Is.EqualTo(ExpectedHrefs));
             Assert.That(links.Select(static link => link.TextContent.Trim()), Is.EqualTo(ExpectedTexts));
             Assert.That(component.FindAll(".ec-search-input"), Is.Not.Empty);
@@ -126,7 +126,7 @@ public class TopBarRenderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(component.Find(".ec-topbar-burger").GetAttribute("aria-expanded"), Is.EqualTo("true"));
-            Assert.That(component.FindAll(".ec-drawer .ec-nav-link"), Has.Count.EqualTo(4));
+            Assert.That(component.FindAll(".ec-drawer .ec-nav-link"), Has.Count.EqualTo(5));
         }
 
         await component.Find(".ec-drawer .ec-nav-link").ClickAsync(new MouseEventArgs());
