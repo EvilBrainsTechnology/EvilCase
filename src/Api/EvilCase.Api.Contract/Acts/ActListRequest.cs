@@ -1,3 +1,4 @@
+using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Lists;
 using EvilBrains.EvilCase.Domain.Acts;
 
@@ -20,4 +21,9 @@ public sealed record ActListRequest : SortableListRequest<ActSortKey>
     public Guid? CaseId { get; init; }
 
     public ActDirection? Direction { get; init; }
+
+    /// <summary>
+    /// Narrows the list to acts of cases in this status; <see cref="CaseStatusFilter.All"/> leaves it unnarrowed.
+    /// </summary>
+    public CaseStatusFilter CaseStatus { get; init; } = CaseStatusFilter.All;
 }

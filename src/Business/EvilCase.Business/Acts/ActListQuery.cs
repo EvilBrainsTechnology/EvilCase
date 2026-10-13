@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using EvilBrains.EvilCase.Api.Contract.Acts;
+using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.Api.Contract.Lists;
 using EvilBrains.EvilCase.Business.Entities;
@@ -7,6 +8,7 @@ using EvilBrains.EvilCase.Data;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Domain.Acts;
+using EvilBrains.EvilCase.Domain.Cases;
 using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Business.Acts;
@@ -29,6 +31,19 @@ internal static class ActListQuery
     public static IQueryable<Act> OfCase(this IQueryable<Act> acts, Guid? caseId)
     {
         return caseId is null ? acts : acts.Where(act => act.CaseId == caseId);
+    }
+
+    public static IQueryable<Act> OfCaseWithStatus(this IQueryable<Act> acts, CaseStatusFilter filter)
+    {
+        return filter switch
+        {
+            CaseStatusFilter.Open => acts.Where(static act => act.Case!.Status != CaseStatus.Closed),
+            CaseStatusFilter.All => acts,
+            CaseStatusFilter.Active => acts.Where(static act => act.Case!.Status == CaseStatus.Active),
+            CaseStatusFilter.WaitingOnAuthority => acts.Where(static act => act.Case!.Status == CaseStatus.WaitingOnAuthority),
+            CaseStatusFilter.Closed => acts.Where(static act => act.Case!.Status == CaseStatus.Closed),
+            _ => throw new UnreachableException(),
+        };
     }
 
     public static IQueryable<Act> WithContact(this IQueryable<Act> acts, Guid? contactId)

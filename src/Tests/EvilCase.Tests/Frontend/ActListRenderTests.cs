@@ -1,8 +1,8 @@
 using System.Net;
 using Bunit;
 using EvilBrains.ApiClient;
-using EvilBrains.EvilCase.Api.Client;
 using EvilBrains.EvilCase.Api.Contract.Acts;
+using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.Api.Contract.Lists;
 using EvilBrains.EvilCase.App.Components.Lists;
@@ -477,6 +477,47 @@ public class ActListRenderTests
             component.FindAll(".ec-cell-empty").Select(static dash => dash.TextContent),
             Is.EqualTo(["—", "—"]),
             "a missing value reads as a light dash (SDD-020)");
+    }
+
+    [Test]
+    public async Task TheOpenCasesBoxNarrowsTheListAndStartsItOver()
+    {
+        await using var ctx = new BunitContext();
+        Serve(ctx, out var requests);
+        ServeNoLabels(ctx);
+
+        var component = ctx.Render<ActList>(static parameters => parameters
+            .Add(static list => list.Columns, [ActColumn.ActWithLabels])
+            .Add(static list => list.Filter, new ActListRequest { CaseStatus = CaseStatusFilter.Open, Take = 20 })
+            .Add(static list => list.ShowCaseStatusFilter, value: true));
+
+        await component.WaitForElementAsync("a.ec-table-row");
+
+        Assert.That(component.Find("#acts-open-cases").HasAttribute("checked"), Is.True, "the host's open status checks the box");
+
+        await component.Find("#acts-open-cases").ChangeAsync(new ChangeEventArgs { Value = false });
+
+        await component.WaitForAssertionAsync(() =>
+        {
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(requests[^1].CaseStatus, Is.EqualTo(CaseStatusFilter.All), "clearing the box lists acts of every case");
+                Assert.That(requests[^1].Skip, Is.Zero);
+            }
+        });
+    }
+
+    [Test]
+    public void TheOpenCasesBoxIsHiddenUnlessTheHostAsksForIt()
+    {
+        using var ctx = new BunitContext();
+        Serve(ctx, out _);
+
+        var component = Render(ctx, [ActColumn.ActWithLabels]);
+
+        component.WaitForElement("a.ec-table-row");
+
+        Assert.That(component.FindAll("#acts-open-cases"), Is.Empty);
     }
 
     private static readonly Guid CaseId = Guid.CreateVersion7();

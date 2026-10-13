@@ -1,0 +1,69 @@
+@page "/acts"
+@using EvilBrains.EvilCase.Api.Contract.Acts
+@using EvilBrains.EvilCase.Api.Contract.Cases
+@using EvilBrains.EvilCase.Api.Contract.Lists
+@using EvilBrains.EvilCase.Domain.Acts
+
+<PageTitle>Úkony – EvilCase</PageTitle>
+
+<div class="ec-page">
+    <EcPageHeader Title="Úkony">
+        <Status><span class="ec-page-note">@RecordCountDisplay.Text(this.total)</span></Status>
+        <Actions>
+            <EcButton Variant="EcButtonVariant.Primary" Icon="@AppIcons.Plus" Href="/acts/new">Nový úkon</EcButton>
+        </Actions>
+    </EcPageHeader>
+
+    <ActList Columns="Columns" Filter="Filter" DateHeader="Datum úkonu"
+             ShowSearch="true" ShowDirectionFilter="true" ShowDates="true" ShowLabelFilter="true"
+             ShowCaseStatusFilter="true" ShowPaging="true"
+             TotalChanged="this.OnTotalChanged">
+        <EmptyAction>
+            <EcButton Variant="EcButtonVariant.Primary" Icon="@AppIcons.Plus" Href="/acts/new">Nový úkon</EcButton>
+        </EmptyAction>
+    </ActList>
+</div>
+
+@code {
+    private const int PageItems = 20;
+
+    private static readonly ActColumn[] Columns =
+    [
+        ActColumn.Date,
+        ActColumn.ActAndCase,
+        ActColumn.Direction,
+        ActColumn.Contact,
+        ActColumn.ActNumberInCase,
+    ];
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "q")]
+    public string? Query { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "direction")]
+    public string? DirectionQuery { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "open")]
+    public string? OpenQuery { get; set; }
+
+    private int total;
+
+    // A record, so a render that hands over the same values reloads nothing.
+    private ActListRequest Filter => new()
+    {
+        Direction = Enum.TryParse<ActDirection>(this.DirectionQuery, ignoreCase: true, out var direction) && Enum.IsDefined(direction)
+            ? direction
+            : null,
+        CaseStatus = bool.TryParse(this.OpenQuery, out var open) && !open ? CaseStatusFilter.All : CaseStatusFilter.Open,
+        Search = string.IsNullOrWhiteSpace(this.Query) ? null : this.Query,
+        SortDirection = ListSortDirection.Descending,
+        Take = PageItems,
+    };
+
+    private void OnTotalChanged(int count)
+    {
+        this.total = count;
+    }
+}

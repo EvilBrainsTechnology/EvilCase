@@ -58,7 +58,7 @@ public class TopBarRenderTests
     }
 
     [Test]
-    public async Task TheMenuMarksTheCaseAgendaOnAnActPage()
+    public async Task TheMenuMarksTheActsItemOnAnActPage()
     {
         await using var ctx = new BunitContext();
         Arrange(ctx, new StubAuthSession());
@@ -68,10 +68,11 @@ public class TopBarRenderTests
 
         var component = ctx.Render<TopBar>();
 
-        Assert.That(
-            component.Find(".ec-topbar-nav a[href='/cases']").GetAttribute("aria-current"),
-            Is.EqualTo("page"),
-            "an act belongs to the case agenda (SDD-016)");
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.Find(".ec-topbar-nav a[href='/acts']").GetAttribute("aria-current"), Is.EqualTo("page"));
+            Assert.That(component.Find(".ec-topbar-nav a[href='/cases']").GetAttribute("aria-current"), Is.Null);
+        }
     }
 
     [Test]

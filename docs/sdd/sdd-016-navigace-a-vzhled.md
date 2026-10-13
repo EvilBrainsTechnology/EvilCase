@@ -22,6 +22,7 @@ URL nesou UUID entit, nikdy jejich čísla:
 | `/cases/new` | založení spisu |
 | `/cases/{id}` | detail spisu |
 | `/cases/{id}/edit` | editace spisu |
+| `/acts` | seznam úkonů napříč spisy |
 | `/acts/new?case={id}` | založení úkonu |
 | `/acts/{actId}` | detail úkonu |
 | `/acts/{actId}/edit` | editace úkonu |
@@ -35,7 +36,7 @@ s tím, který záznam chybí.
 
 ### Menu a vzhled
 
-Menu nese Přehled, Spisy, Kontakty a Nastavení a zvýrazňuje položku i na podřízených routách;
+Menu nese Přehled, Spisy, Úkony, Kontakty a Nastavení a zvýrazňuje položku i na podřízených routách;
 menu je ve vodorovné liště nad obsahem. Vizuální jazyk drží [SDD-020](sdd-020-vzhled.md):
 tokeny, primitiva `Ec*` a předlohy obrazovek v [`docs/design/`](../design/README.md).
 Desktop je primární, každá denně používaná obrazovka je plnohodnotná
