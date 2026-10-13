@@ -32,7 +32,7 @@
             ActColumn.Case => new EcColumn<ActListItem>
             {
                 Header = "Spis",
-                Width = "minmax(0, 0.8fr)",
+                Width = "var(--ec-list-col-case)",
                 Cell = item =>@<span class="ec-cell-text" title="@item.CaseTitle">@item.CaseTitle</span>,
             },
             ActColumn.Act => new EcColumn<ActListItem>

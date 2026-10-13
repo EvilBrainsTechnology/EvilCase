@@ -2817,6 +2817,7 @@ html {
 
 /* Detail kontaktu (docs/design/detail-kontaktu.html): dva seznamy výskytů na půl šířky. */
 .ec-contact-occurrences {
+    --ec-list-col-case: minmax(0, 0.8fr);
     --ec-list-col-date: var(--ec-case-act-col-date);
     --ec-list-col-status: var(--ec-case-act-col-number);
     --ec-list-row-height: var(--ec-case-act-row-height);
