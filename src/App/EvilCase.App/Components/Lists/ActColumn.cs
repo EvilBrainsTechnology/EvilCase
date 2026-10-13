@@ -10,8 +10,6 @@ public enum ActColumn
 
     Contact = 5,
 
-    ExternalNumber = 8,
-
     ActWithLabels = 9,
 
     ActNumberInCase = 10,

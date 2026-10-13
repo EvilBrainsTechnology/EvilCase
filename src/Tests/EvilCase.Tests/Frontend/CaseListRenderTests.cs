@@ -288,7 +288,7 @@ public class CaseListRenderTests
         using var ctx = new BunitContext();
         Serve(ctx, out _);
 
-        var component = Render(ctx, [CaseColumn.Changed, CaseColumn.Date, CaseColumn.Case, CaseColumn.Status, CaseColumn.CaseNumber, CaseColumn.ExternalNumber]);
+        var component = Render(ctx, [CaseColumn.Changed, CaseColumn.Date, CaseColumn.Case, CaseColumn.Status, CaseColumn.CaseNumber]);
 
         Assert.That(
             component.Find(".ec-table").GetAttribute("style"),
