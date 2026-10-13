@@ -1,7 +1,9 @@
+@using System.Diagnostics
 @using System.Globalization
+@using EvilBrains.EvilCase.Api.Contract.Cases
 @using EvilBrains.EvilCase.Domain.Cases
 
-<a class="ec-stat" href="/cases">
+<a class="ec-stat" href="@this.Href">
     <span class="@($"ec-stat-icon {CaseStatusDisplay.Tile(this.Status)}")">
         <EcIcon Paths="@AppIcons.Folders" />
     </span>
@@ -9,6 +11,7 @@
         <span class="ec-stat-value">@(this.Count?.ToString(CultureInfo.CurrentCulture) ?? "—")</span>
         <span class="ec-stat-label">@CaseStatusDisplay.CountText(this.Status)</span>
     </span>
+    <span class="ec-stat-more">Zobrazit<EcIcon Paths="@AppIcons.ChevronRight" Size="EcIconSize.Small" /></span>
 </a>
 
 @code {
@@ -18,4 +21,21 @@
     /// <summary>Null while the counts load; the tile holds its height with a dash.</summary>
     [Parameter]
     public int? Count { get; set; }
+
+    // The counts are tenant-wide, so the list they lead to includes the sub-cases.
+    private string Href
+    {
+        get
+        {
+            var filter = this.Status switch
+            {
+                CaseStatus.Active => CaseStatusFilter.Active,
+                CaseStatus.WaitingOnAuthority => CaseStatusFilter.WaitingOnAuthority,
+                CaseStatus.Closed => CaseStatusFilter.Closed,
+                _ => throw new UnreachableException(),
+            };
+
+            return $"/cases?status={filter}&scope={CaseListScope.All}";
+        }
+    }
 }

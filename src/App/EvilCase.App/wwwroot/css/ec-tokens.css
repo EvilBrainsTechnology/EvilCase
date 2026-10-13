@@ -164,7 +164,7 @@
     --ec-list-min-height: 320px;
     --ec-list-col-date: 110px;
     --ec-list-col-case: minmax(0, 1fr);
-    --ec-list-col-moment: 150px;
+    --ec-list-col-moment: 120px;
     --ec-list-col-status: 130px;
     --ec-list-col-number: 230px;
     --ec-list-col-kind: 160px;
@@ -209,10 +209,17 @@
     --ec-comment-action-height: 24px;
 
     /* Přehled (docs/design/prehled.html) */
-    --ec-stat-icon: 48px;
+    --ec-stat-icon: 46px;
     --ec-stat-glyph: 22px;
     --ec-stat-pad-x: 22px;
-    --ec-stat-gap: 2px;
+    --ec-stat-pad-y: 18px;
+    --ec-stat-gap: 4px;
+    --ec-recent-col-date: 100px;
+    --ec-recent-col-number: 170px;
+    --ec-recent-col-direction: 110px;
+    --ec-recent-col-contact: 240px;
+    --ec-recent-case-row-height: 46px;
+    --ec-recent-act-row-height: 54px;
 
     /* Značka a brána: přihlášení a zavádění (docs/design/prihlaseni.html, nacitani.html) */
     --ec-brand-size: 19px;

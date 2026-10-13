@@ -19,7 +19,7 @@
                 Width = "var(--ec-list-col-moment)",
                 SortKey = nameof(ActSortKey.Changed),
                 CellClass = "ec-cell-num",
-                Cell = item =>@<text>@MomentDisplay.Text(item.Changed)</text>,
+                Cell = item =>@<span title="@MomentDisplay.Text(item.Changed)">@MomentDisplay.Relative(item.Changed, DateTime.Now)</span>,
             },
             ActColumn.Date => new EcColumn<ActListItem>
             {
@@ -97,6 +97,21 @@
                 Cell = item =>@<text>
                     <span class="ec-cell-text" title="@item.Title">@item.Title</span>
                     <LabelChips Labels="item.Labels" />
+                </text>,
+            },
+            ActColumn.ActAndCase => new EcColumn<ActListItem>
+            {
+                Header = "Úkon a spis",
+                Width = "minmax(0, 1fr)",
+                SortKey = nameof(ActSortKey.Title),
+                Primary = true,
+                CellClass = "ec-cell-stack",
+                Cell = item =>@<text>
+                    <span class="ec-cell-line">
+                        <span class="ec-cell-text" title="@item.Title">@item.Title</span>
+                        <LabelChips Labels="item.Labels" />
+                    </span>
+                    <span class="ec-cell-text ec-cell-sub" title="@item.CaseTitle">@item.CaseTitle</span>
                 </text>,
             },
             ActColumn.ActNumberInCase => new EcColumn<ActListItem>

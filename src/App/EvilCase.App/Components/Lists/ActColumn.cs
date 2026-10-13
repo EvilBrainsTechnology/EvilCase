@@ -21,4 +21,6 @@ public enum ActColumn
     ActWithLabels = 9,
 
     ActNumberInCase = 10,
+
+    ActAndCase = 11,
 }

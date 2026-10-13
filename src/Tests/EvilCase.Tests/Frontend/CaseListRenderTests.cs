@@ -6,6 +6,7 @@ using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.Api.Contract.Lists;
 using EvilBrains.EvilCase.App.Components.Lists;
+using EvilBrains.EvilCase.App.Models;
 using EvilBrains.EvilCase.Domain.Cases;
 using EvilBrains.EvilCase.Domain.Labels;
 using Microsoft.AspNetCore.Components;
@@ -355,6 +356,28 @@ public class CaseListRenderTests
             Assert.That(cells[0].ClassList, Does.Contain("ec-cell-stack"));
             Assert.That(cells[0].QuerySelector(".ec-cell-sub")!.TextContent, Is.EqualTo("VV41/2025/08464"));
             Assert.That(cells[1].QuerySelector(".ec-cell-sub"), Is.Null, "a case without an external number shows no empty line");
+        }
+    }
+
+    [Test]
+    public void TheChangeOfTodayReadsRelativelyAndTheTooltipKeepsTheMoment()
+    {
+        using var ctx = new BunitContext();
+
+        var today = DateTime.Now.AddMinutes(-1);
+
+        Serve(ctx, out _, items: [Row with { Changed = today }]);
+
+        var component = Render(ctx, [CaseColumn.Changed]);
+
+        component.WaitForElement("a.ec-table-row");
+
+        var moment = component.Find(".ec-table-cell span");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(moment.TextContent, Does.StartWith("dnes ").Or.StartWith("včera "), "a change of today reads as a word and the time");
+            Assert.That(moment.GetAttribute("title"), Is.EqualTo(MomentDisplay.Text(today)));
         }
     }
 

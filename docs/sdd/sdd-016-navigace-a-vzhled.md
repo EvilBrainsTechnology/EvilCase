@@ -40,10 +40,10 @@ menu je ve vodorovné liště nad obsahem. Vizuální jazyk drží [SDD-020](sdd
 tokeny, primitiva `Ec*` a předlohy obrazovek v [`docs/design/`](../design/README.md).
 Desktop je primární, každá denně používaná obrazovka je plnohodnotná
 i na mobilu a seznam se na mobilu nikdy neposouvá vodorovně. Datum se všude píše `d. M. yyyy`,
-okamžik `d. M. yyyy H:mm` v časovém pásmu prohlížeče. Řádek tabulky se seznamem záznamů je
-odkaz na detail záznamu po celé šířce a otevírá se na nové kartě nebo v novém okně jako
-kterýkoli jiný odkaz. Záhlaví sloupce pojmenovává entitu, které sloupec patří. Buňka nese
-odkaz jen tam, kde vede jinam než řádek.
+okamžik `d. M. yyyy H:mm` v časovém pásmu prohlížeče. Přehled píše dnešní a včerejší okamžik
+relativně (SDD-015). Řádek tabulky se seznamem záznamů je odkaz na detail záznamu po celé šířce
+a otevírá se na nové kartě nebo v novém okně jako kterýkoli jiný odkaz. Záhlaví sloupce
+pojmenovává entitu, které sloupec patří. Buňka nese odkaz jen tam, kde vede jinam než řádek.
 
 Každý seznam vypadá stejně; stránka volí jen sloupce, jejich pořadí a nabízené ovládání.
 Řaditelné záhlaví sloupce je tlačítko, na mobilu řadí select v liště. Stránkovaný seznam nese

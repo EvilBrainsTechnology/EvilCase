@@ -48,19 +48,23 @@
             </div>
         }
 
-        <CaseList Columns="CaseColumns" Filter="CaseTile" Title="Naposledy změněné spisy"
-                  EmptyText="Zatím tu není žádný spis.">
-            <Actions>
-                <EcButton Variant="EcButtonVariant.Ghost" Size="EcButtonSize.Compact" IconEnd="@AppIcons.ChevronRight"
-                          Href="/cases">Všechny spisy</EcButton>
-            </Actions>
-            <EmptyAction>
-                <EcButton Variant="EcButtonVariant.Primary" Icon="@AppIcons.Plus" Href="/cases/new">Založit spis</EcButton>
-            </EmptyAction>
-        </CaseList>
+        <div class="ec-recent-cases">
+            <CaseList Columns="CaseColumns" Filter="CaseTile" Title="Naposledy změněné spisy"
+                      EmptyText="Zatím tu není žádný spis.">
+                <Actions>
+                    <EcButton Variant="EcButtonVariant.Ghost" Size="EcButtonSize.Compact" IconEnd="@AppIcons.ChevronRight"
+                              Href="/cases">Všechny spisy</EcButton>
+                </Actions>
+                <EmptyAction>
+                    <EcButton Variant="EcButtonVariant.Primary" Icon="@AppIcons.Plus" Href="/cases/new">Založit spis</EcButton>
+                </EmptyAction>
+            </CaseList>
+        </div>
 
-        <ActList Columns="ActColumns" DateHeader="Datum úkonu" Filter="ActTile" Title="Naposledy změněné úkony"
-                 EmptyText="Zatím tu není žádný úkon." />
+        <div class="ec-recent-acts">
+            <ActList Columns="ActColumns" DateHeader="Datum úkonu" Filter="ActTile" Title="Naposledy změněné úkony"
+                     EmptyText="Zatím tu není žádný úkon." />
+        </div>
     }
 </div>
 
@@ -80,15 +84,16 @@
     [
         ActColumn.Changed,
         ActColumn.Date,
-        ActColumn.Case,
-        ActColumn.Act,
+        ActColumn.ActAndCase,
         ActColumn.Direction,
-        ActColumn.ActNumber,
+        ActColumn.Contact,
+        ActColumn.ActNumberInCase,
     ];
 
     private static readonly CaseListRequest CaseTile = new()
     {
         Status = CaseStatusFilter.All,
+        Scope = CaseListScope.All,
         Sort = CaseSortKey.Changed,
         Take = TileItems,
     };

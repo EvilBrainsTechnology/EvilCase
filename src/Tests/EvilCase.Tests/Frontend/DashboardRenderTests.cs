@@ -19,7 +19,7 @@ public class DashboardRenderTests
 
     private static readonly string[] CaseTileHeaders = ["Změněno ↓", "Datum spisu", "Spis", "Stav", "Spisová značka"];
 
-    private static readonly string[] ActTileHeaders = ["Změněno ↓", "Datum úkonu", "Spis", "Úkon", "Směr", "Číslo jednací"];
+    private static readonly string[] ActTileHeaders = ["Změněno ↓", "Datum úkonu", "Úkon a spis", "Směr", "Kontakt", "Číslo jednací"];
 
     [Test]
     public void BothListTilesReadFromTheLastChange()
@@ -47,6 +47,43 @@ public class DashboardRenderTests
         Render(ctx, caseRequests, actRequests);
 
         Assert.That(caseRequests[0].Status, Is.EqualTo(CaseStatusFilter.All), "the case tile shows the cases changed last whatever their status (SDD-015)");
+    }
+
+    [Test]
+    public void TheCaseTileIncludesTheSubordinateCases()
+    {
+        using var ctx = new BunitContext();
+
+        Serve(ctx, out var caseRequests, out var actRequests);
+        Render(ctx, caseRequests, actRequests);
+
+        Assert.That(caseRequests[0].Scope, Is.EqualTo(CaseListScope.All), "the case tile shows the cases changed last, sub-cases included (SDD-015)");
+    }
+
+    [Test]
+    public void TheActTileShowsTheActsOwnNumberAndItsCaseUnderTheTitle()
+    {
+        using var ctx = new BunitContext();
+
+        Serve(
+            ctx,
+            out var caseRequests,
+            out var actRequests,
+            actItems: FiveActs(),
+            actTotal: 5);
+        var component = Render(ctx, caseRequests, actRequests);
+
+        var row = component.FindAll(".ec-table")[1].QuerySelector("a.ec-table-row")!;
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(row.QuerySelector(".ec-cell-line .ec-cell-text")!.TextContent, Is.EqualTo("Výzva"));
+            Assert.That(row.QuerySelector(".ec-cell-sub")!.TextContent, Is.EqualTo("Přestupek"), "the case title sits under the act title");
+            Assert.That(
+                row.QuerySelectorAll(".ec-cell-mono .ec-cell-text").Select(static cell => cell.TextContent),
+                Is.EqualTo(["U/20260821-000"]),
+                "the act's own number closes the row");
+        }
     }
 
     [Test]

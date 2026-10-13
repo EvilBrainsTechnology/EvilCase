@@ -2638,7 +2638,7 @@ html:has(.ec-gate) {
     display: flex;
     align-items: center;
     gap: var(--ec-space-5);
-    padding: var(--ec-space-6) var(--ec-stat-pad-x);
+    padding: var(--ec-stat-pad-y) var(--ec-stat-pad-x);
     background: var(--ec-surface);
     border: 1px solid var(--ec-border);
     border-radius: var(--ec-radius-card);
@@ -2647,7 +2647,7 @@ html:has(.ec-gate) {
 }
 
 .ec-stat:hover {
-    background: var(--ec-surface-sunken);
+    border-color: var(--ec-border-dashed);
 }
 
 .ec-stat:focus-visible {
@@ -2687,6 +2687,7 @@ html:has(.ec-gate) {
 
 .ec-stat-text {
     display: flex;
+    flex: 1 1 auto;
     flex-direction: column;
     gap: var(--ec-stat-gap);
     min-width: 0;
@@ -2697,11 +2698,38 @@ html:has(.ec-gate) {
     font-weight: var(--ec-weight-semibold);
     letter-spacing: -0.02em;
     line-height: 1;
+    color: var(--ec-text);
+    font-variant-numeric: tabular-nums;
 }
 
 .ec-stat-label {
     font-size: var(--ec-text-md);
     color: var(--ec-text-muted);
+}
+
+.ec-stat-more {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-1);
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-muted);
+}
+
+.ec-stat:hover .ec-stat-more {
+    color: var(--ec-accent-text);
+}
+
+.ec-recent-cases {
+    --ec-list-col-date: var(--ec-recent-col-date);
+    --ec-list-col-number: var(--ec-recent-col-number);
+    --ec-list-row-height: var(--ec-recent-case-row-height);
+}
+
+.ec-recent-acts {
+    --ec-list-col-date: var(--ec-recent-col-date);
+    --ec-list-col-status: var(--ec-recent-col-direction);
+    --ec-list-col-contact: var(--ec-recent-col-contact);
+    --ec-list-row-height: var(--ec-recent-act-row-height);
 }
 
 @media (max-width: 991.98px) {
