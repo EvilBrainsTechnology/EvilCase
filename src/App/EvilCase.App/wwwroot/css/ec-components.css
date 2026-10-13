@@ -1677,6 +1677,12 @@ html {
     box-shadow: var(--ec-shadow-overlay);
 }
 
+/* The detail row's field sits in the last fact, so its menu opens towards the left. */
+.ec-label-field-inline .ec-label-menu {
+    right: 0;
+    left: auto;
+}
+
 .ec-label-field-box .ec-label-menu {
     width: auto;
     right: calc(var(--ec-space-3) * -1);
@@ -1790,6 +1796,7 @@ html {
     }
 
     .ec-label-menu,
+    .ec-label-field-inline .ec-label-menu,
     .ec-label-field-box .ec-label-menu {
         position: fixed;
         top: auto;
