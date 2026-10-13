@@ -25,7 +25,7 @@ public class LabelColorDisplayTests
         {
             foreach (var color in Enum.GetValues<LabelColor>())
             {
-                Assert.That(LabelColorDisplay.Css(color), Is.Not.Empty, $"{color}: ec-chip-{{name}} and ec-dot-{{name}} are what paint the chip and the dot");
+                Assert.That(LabelColorDisplay.Css(color), Is.Not.Empty, $"{color}: ec-chip-{{name}} is what paints the chip");
                 Assert.That(LabelColorDisplay.Text(color), Is.Not.Empty, $"{color}: the swatch is a colour square, so its name reaches the screen reader only from here");
             }
         }

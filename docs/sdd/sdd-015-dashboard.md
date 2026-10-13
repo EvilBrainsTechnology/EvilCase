@@ -13,12 +13,15 @@
 
 Dashboard stojí nad reálnými daty tenantu:
 
-- dlaždice počtů spisů podle stavu, za celý tenant,
-- naposledy změněné spisy, bez ohledu na stav, ve výchozím rozsahu výpisu spisů (SDD-009),
-- naposledy změněné úkony napříč spisy, s odkazem do detailu a jménem spisu, kterému úkon patří.
+- dlaždice počtů spisů podle stavu, za celý tenant; dlaždice vede na seznam spisů zúžený na svůj
+  stav včetně podřízených spisů (SDD-009),
+- naposledy změněné spisy, bez ohledu na stav, včetně podřízených spisů,
+- naposledy změněné úkony napříč spisy: datum úkonu, v jedné buňce název se štítky a pod ním
+  název spisu, směr, kontakt a číslo jednací bez spisové značky spisu; řádek vede do detailu úkonu.
 
 Obě seznamové dlaždice ukazují změnu jako první sloupec; dlaždice spisů je první, dlaždice
-úkonů druhá.
+úkonů druhá. Dnešní změnu píšou jako „dnes 21:45“, včerejší jako „včera 9:10“, starší jako
+okamžik (SDD-016); celý okamžik nese tooltip.
 
 Naposledy změněné spisy řadí vlastní `Updated` spisu; zápis úkonu, komentáře nebo souboru ho
 nemění. Spis, který nikdo neupravil, se řadí a zobrazuje podle svého `Created`. Naposledy
@@ -36,6 +39,8 @@ filtrů a stránkování a se stránkou o pěti položkách.
 ## Rozhodnutí
 
 - Obsah: konfigurovatelné widgety / pevná sestava výše. Platí pevná sestava.
+- Cíl dlaždice počtu: celý seznam spisů / seznam zúžený jejím stavem včetně podřízených spisů.
+  Platí zúžený seznam.
 - Data: vlastní dashboardový endpoint / skládání z API entit. Platí skládání z API entit.
 
 ## Dopady

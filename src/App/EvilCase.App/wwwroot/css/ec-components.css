@@ -291,16 +291,19 @@ html {
 }
 
 .ec-badge-active {
+    --ec-badge-dot-color: var(--ec-active-dot);
     background: var(--ec-active-bg);
     color: var(--ec-active-text);
 }
 
 .ec-badge-waiting {
+    --ec-badge-dot-color: var(--ec-waiting-dot);
     background: var(--ec-waiting-bg);
     color: var(--ec-waiting-text);
 }
 
 .ec-badge-closed {
+    --ec-badge-dot-color: var(--ec-closed-dot);
     background: var(--ec-closed-bg);
     color: var(--ec-closed-text);
 }
@@ -328,6 +331,19 @@ html {
 .ec-badge-person {
     background: var(--ec-person-bg);
     color: var(--ec-person-text);
+}
+
+.ec-badge-dot {
+    flex: 0 0 auto;
+    width: var(--ec-space-2);
+    height: var(--ec-space-2);
+    border-radius: var(--ec-radius-pill);
+    background: var(--ec-badge-dot-color, currentColor);
+}
+
+.ec-badge .ec-icon {
+    width: var(--ec-text-xs);
+    height: var(--ec-text-xs);
 }
 
 .ec-page {
@@ -1122,6 +1138,7 @@ html {
     font-size: var(--ec-text-md);
     color: var(--ec-text-soft);
     cursor: pointer;
+    white-space: nowrap;
 }
 
 .ec-segment:focus-visible {
@@ -2350,47 +2367,6 @@ html:has(.ec-gate) {
     }
 }
 
-/* Sada teček nad štítky (LabelDots), sdílená migrovaným i nemigrovaným seznamem (SDD-019). */
-.label-dots {
-    display: inline-flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--ec-space-1);
-}
-
-.ec-label-mark {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--ec-space-2);
-    min-width: 0;
-}
-
-.ec-label-name {
-    display: none;
-    font-size: var(--ec-text-xs);
-    color: var(--ec-text-muted);
-}
-
-.ec-dot {
-    width: var(--ec-space-3);
-    height: var(--ec-space-3);
-    border-radius: var(--ec-radius-pill);
-}
-
-.ec-dot-blue { background: var(--ec-label-blue); }
-.ec-dot-azure { background: var(--ec-label-azure); }
-.ec-dot-indigo { background: var(--ec-label-indigo); }
-.ec-dot-purple { background: var(--ec-label-purple); }
-.ec-dot-pink { background: var(--ec-label-pink); }
-.ec-dot-red { background: var(--ec-label-red); }
-.ec-dot-orange { background: var(--ec-label-orange); }
-.ec-dot-yellow { background: var(--ec-label-yellow); }
-.ec-dot-lime { background: var(--ec-label-lime); }
-.ec-dot-green { background: var(--ec-label-green); }
-.ec-dot-teal { background: var(--ec-label-teal); }
-.ec-dot-cyan { background: var(--ec-label-cyan); }
-.ec-dot-gray { background: var(--ec-label-gray); }
-
 /* Seznam podle SDD-016: řádek je odkaz po celé šířce, patička nese rozsah, počet a stránkování
    (docs/design/spisy.html). Nese hlavičku a patičku karty (ec-card-*, ec-card-header-actions). */
 .ec-table {
@@ -2411,11 +2387,23 @@ html:has(.ec-gate) {
 
 .ec-table-bar .ec-search {
     width: var(--ec-list-search-width);
+    height: var(--ec-control-md);
     margin-left: 0;
+    border-radius: var(--ec-radius-md);
+}
+
+.ec-table-bar .ec-search-input {
+    font-size: var(--ec-text-sm);
 }
 
 .ec-table-bar .ec-check {
     margin-left: auto;
+    font-size: var(--ec-text-sm);
+}
+
+.ec-table-bar .ec-check-box {
+    width: var(--ec-icon-md);
+    height: var(--ec-icon-md);
 }
 
 .ec-table-head {
@@ -2491,6 +2479,28 @@ html:has(.ec-gate) {
     color: var(--ec-text-soft);
 }
 
+.ec-table-cell .ec-badge {
+    box-sizing: border-box;
+    height: var(--ec-list-badge-height);
+    padding: 0 var(--ec-list-badge-pad);
+    font-size: var(--ec-text-xs);
+    font-weight: var(--ec-weight-medium);
+}
+
+.ec-table-cell.ec-cell-stack {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    gap: var(--ec-cell-stack-gap);
+}
+
+.ec-cell-line {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+    min-width: 0;
+}
+
 .ec-table-cell-primary {
     font-size: var(--ec-text-md);
     font-weight: var(--ec-weight-medium);
@@ -2510,7 +2520,28 @@ html:has(.ec-gate) {
 .ec-cell-mono {
     font-family: var(--ec-font-mono);
     font-size: var(--ec-text-xs);
+    color: var(--ec-text-number);
+}
+
+.ec-case-acts .ec-cell-mono {
     color: var(--ec-text-muted);
+}
+
+.ec-cell-sub {
+    font-size: var(--ec-text-xs);
+    font-weight: var(--ec-weight-regular);
+    color: var(--ec-text-muted);
+}
+
+.ec-cell-mono .ec-cell-sub {
+    font-size: var(--ec-text-2xs);
+    color: var(--ec-text-subtle);
+}
+
+.ec-cell-empty {
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-faint);
 }
 
 .ec-table-range {
@@ -2586,10 +2617,6 @@ html:has(.ec-gate) {
         order: -1;
     }
 
-    .ec-table .ec-label-name {
-        display: inline;
-    }
-
     .ec-table .ec-card-footer .ec-button {
         flex: 1 1 0;
         height: var(--ec-touch-min);
@@ -2598,16 +2625,6 @@ html:has(.ec-gate) {
     .ec-table .ec-card-error .ec-button {
         height: var(--ec-touch-min);
     }
-}
-
-/* Filtr štítků v liště seznamu: chipy nad polem, ne vedle něj. */
-.ec-toolbar-labels {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: var(--ec-space-2);
-    flex: 1 1 var(--ec-popover-width);
-    min-width: 0;
 }
 
 /* Přehled (docs/design/prehled.html): dlaždice počtů spisů. */
@@ -2621,7 +2638,7 @@ html:has(.ec-gate) {
     display: flex;
     align-items: center;
     gap: var(--ec-space-5);
-    padding: var(--ec-space-6) var(--ec-stat-pad-x);
+    padding: var(--ec-stat-pad-y) var(--ec-stat-pad-x);
     background: var(--ec-surface);
     border: 1px solid var(--ec-border);
     border-radius: var(--ec-radius-card);
@@ -2630,7 +2647,7 @@ html:has(.ec-gate) {
 }
 
 .ec-stat:hover {
-    background: var(--ec-surface-sunken);
+    border-color: var(--ec-border-dashed);
 }
 
 .ec-stat:focus-visible {
@@ -2670,6 +2687,7 @@ html:has(.ec-gate) {
 
 .ec-stat-text {
     display: flex;
+    flex: 1 1 auto;
     flex-direction: column;
     gap: var(--ec-stat-gap);
     min-width: 0;
@@ -2680,11 +2698,38 @@ html:has(.ec-gate) {
     font-weight: var(--ec-weight-semibold);
     letter-spacing: -0.02em;
     line-height: 1;
+    color: var(--ec-text);
+    font-variant-numeric: tabular-nums;
 }
 
 .ec-stat-label {
     font-size: var(--ec-text-md);
     color: var(--ec-text-muted);
+}
+
+.ec-stat-more {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-1);
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-muted);
+}
+
+.ec-stat:hover .ec-stat-more {
+    color: var(--ec-accent-text);
+}
+
+.ec-recent-cases {
+    --ec-list-col-date: var(--ec-recent-col-date);
+    --ec-list-col-number: var(--ec-recent-col-number);
+    --ec-list-row-height: var(--ec-recent-case-row-height);
+}
+
+.ec-recent-acts {
+    --ec-list-col-date: var(--ec-recent-col-date);
+    --ec-list-col-status: var(--ec-recent-col-direction);
+    --ec-list-col-contact: var(--ec-recent-col-contact);
+    --ec-list-row-height: var(--ec-recent-act-row-height);
 }
 
 @media (max-width: 991.98px) {
@@ -2781,7 +2826,8 @@ html:has(.ec-gate) {
 
 /* Detail kontaktu (docs/design/detail-kontaktu.html): dva seznamy výskytů na půl šířky. */
 .ec-contact-occurrences {
-    --ec-list-col-case: minmax(0, 0.8fr);
+    --ec-list-badge-height: var(--ec-case-act-badge-height);
+    --ec-list-badge-pad: var(--ec-space-3);
     --ec-list-col-date: var(--ec-case-act-col-date);
     --ec-list-col-status: var(--ec-case-act-col-number);
     --ec-list-row-height: var(--ec-case-act-row-height);
@@ -2803,6 +2849,8 @@ html:has(.ec-gate) {
 
 /* Detail spisu (docs/design/detail-spisu.html): úkony spisu, jejich lišta a filtry. */
 .ec-case-acts {
+    --ec-list-badge-height: var(--ec-case-act-badge-height);
+    --ec-list-badge-pad: var(--ec-space-3);
     --ec-list-col-date: var(--ec-case-act-col-date);
     --ec-list-col-status: var(--ec-case-act-col-direction);
     --ec-list-row-height: var(--ec-case-act-row-height);
@@ -2812,7 +2860,7 @@ html:has(.ec-gate) {
     padding-top: 0;
 }
 
-.ec-case-acts .ec-table-bar .ec-button-compact {
+.ec-table-bar .ec-button-compact {
     height: var(--ec-control-md);
 }
 
@@ -2851,6 +2899,7 @@ html:has(.ec-gate) {
 
 .ec-filter-panel {
     display: flex;
+    order: 1;
     flex: 1 1 100%;
     align-items: flex-end;
     gap: var(--ec-space-4);
@@ -2868,7 +2917,7 @@ html:has(.ec-gate) {
 
 .ec-filter-field-grow {
     position: relative;
-    flex: 1 1 auto;
+    flex: 0 1 var(--ec-filter-label-width);
     min-width: 0;
 }
 
@@ -2949,6 +2998,19 @@ html:has(.ec-gate) {
 
     .ec-filter-date {
         width: auto;
+    }
+
+    .ec-table-bar .ec-segmented {
+        flex: 1 1 100%;
+        flex-wrap: wrap;
+    }
+
+    .ec-table-bar .ec-segmented-compact .ec-segment {
+        flex: 1 1 auto;
+    }
+
+    .ec-filter-field-grow {
+        flex: 0 0 auto;
     }
 
     .ec-filter-clear {

@@ -41,13 +41,16 @@ kontakt. Zadává se na editaci spisu.
 
 ### Stránky
 
-- `/cases` — seznam spisů: datum, název, stav, číslo a tečky štítků (SDD-019). Výchozí řazení je
-  podle data spisu sestupně; záhlaví sloupce řadí podle sebe a druhý klik otočí směr. Seznam je
-  stránkovaný podle SDD-005 a nese celkový počet. Hledací pole hledá v názvu a popisu bez ohledu
-  na diakritiku; zúžit jde i rozsahem dat, kontaktem a štítky. Filtr stavu nabízí Otevřené (vše
-  kromě uzavřených), Všechny stavy a každý stav zvlášť; výchozí je Otevřené. Přepínač Jen
-  rodičovské spisy nechá v seznamu jen spisy bez rodiče; ve výchozím stavu je zapnutý a po vypnutí
-  seznam ukazuje i podřízené spisy.
+- `/cases` — seznam spisů: datum, název se štítky jako drobnými značkami s názvem (SDD-019), stav
+  s barevnou tečkou, spisová značka a pod ní šedě externí značka, je-li. Výchozí řazení je podle
+  data spisu sestupně; záhlaví sloupce řadí podle sebe a druhý klik otočí směr. Seznam je
+  stránkovaný podle SDD-005 a nese celkový počet. Lišta je na jednom řádku: hledání, přepínač
+  stavu, tlačítko Filtry a Jen rodičovské spisy. Hledací pole hledá v názvu a popisu bez ohledu na
+  diakritiku. Přepínač stavu nabízí Otevřené (vše kromě uzavřených), Aktivní, Čeká na úřad,
+  Uzavřené a Vše; výchozí je Otevřené. Rozsah dat a štítky jsou pod tlačítkem Filtry, které je ve
+  výchozím stavu sbalené a nese počet aktivních filtrů. Jen rodičovské spisy je ve výchozím stavu
+  zapnuté a po vypnutí seznam ukazuje i podřízené spisy. Stav i rozsah jde předat odkazem, jako to
+  dělají dlaždice přehledu (SDD-015).
 - `/cases/new` — založení, včetně kontaktu a štítků; `?parent={id}` zakládá podřízený spis.
 - `/cases/{id}` — detail: údaje, štítky, podřízené spisy, úkony (SDD-010), komentáře (SDD-013),
   soubory (SDD-012). Řádek údajů nese spisovou značku i externí značku a obě jde zkopírovat.
@@ -71,6 +74,7 @@ Mazání řídí matice v SDD-007. Potvrzení jednou větou jmenuje, co kaskáda
 
 - Podřízené spisy při smazání rodiče: kaskáda / osiření. Platí kaskáda — celý podstrom zaniká.
 - Hierarchie v UI: strom / ploché seznamy. Platí ploché seznamy.
+- Filtr stavu v seznamu `/cases`: select / přepínač. Platí přepínač.
 - Podřízené spisy v seznamu `/cases`: skryté / volitelný přepínač. Platí přepínač, výchozí
   zapnutý.
 - Datum spisu: datum založení záznamu / explicitní pole. Platí explicitní pole.

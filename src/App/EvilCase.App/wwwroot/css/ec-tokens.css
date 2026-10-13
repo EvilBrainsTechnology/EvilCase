@@ -15,6 +15,9 @@
     --ec-text-strong: #000000;
     --ec-text-muted: #5B6270;
     --ec-text-soft: #454B57;
+    --ec-text-faint: #A0A6B1;
+    --ec-text-number: #2E323B;
+    --ec-text-subtle: #6B7280;
     --ec-border: #E1E4EA;
     --ec-border-strong: #D5D9E1;
     --ec-border-subtle: #EDEFF3;
@@ -33,10 +36,10 @@
     --ec-active-dot: #3B9C5A;
     --ec-waiting-bg: #FDEFD8;
     --ec-waiting-text: #8A5307;
-    --ec-waiting-dot: #E8A33D;
+    --ec-waiting-dot: #D98A1B;
     --ec-closed-bg: #EDEFF3;
     --ec-closed-text: #454B57;
-    --ec-closed-dot: #8A909C;
+    --ec-closed-dot: #A0A6B1;
 
     /* Směr úkonu */
     --ec-incoming-bg: #E6EEFD;
@@ -156,17 +159,20 @@
     --ec-control-bar: 38px;
     --ec-search-width: 300px;
     --ec-drawer-width: 300px;
-    --ec-list-search-width: 280px;
-    --ec-list-row-height: 52px;
+    --ec-list-search-width: 340px;
+    --ec-list-row-height: 48px;
     --ec-list-min-height: 320px;
-    --ec-list-col-date: 120px;
-    --ec-list-col-case: minmax(0, 1fr);
-    --ec-list-col-moment: 150px;
-    --ec-list-col-status: 150px;
-    --ec-list-col-labels: 90px;
-    --ec-list-col-number: 200px;
-    --ec-list-col-kind: 160px;
-    --ec-list-col-databox: 160px;
+    --ec-list-col-date: 110px;
+    --ec-list-col-moment: 120px;
+    --ec-list-col-status: 130px;
+    --ec-list-col-number: 230px;
+    --ec-list-col-kind: 140px;
+    --ec-list-col-databox: 170px;
+    --ec-list-col-address: 300px;
+    --ec-list-col-contact: 200px;
+    --ec-list-badge-height: 24px;
+    --ec-list-badge-pad: 10px;
+    --ec-cell-stack-gap: 2px;
 
     /* Kontakty (docs/design/kontakty.html, docs/design/detail-kontaktu.html) */
     --ec-monogram-sm: 30px;
@@ -191,6 +197,8 @@
     --ec-case-act-col-direction: 96px;
     --ec-case-act-col-number: 112px;
     --ec-case-act-row-height: 48px;
+    --ec-case-act-badge-height: 22px;
+    --ec-filter-label-width: 360px;
     --ec-chip-sm-height: 18px;
     --ec-filter-count-size: 18px;
     --ec-filter-date-width: 140px;
@@ -201,10 +209,17 @@
     --ec-comment-action-height: 24px;
 
     /* Přehled (docs/design/prehled.html) */
-    --ec-stat-icon: 48px;
+    --ec-stat-icon: 46px;
     --ec-stat-glyph: 22px;
     --ec-stat-pad-x: 22px;
-    --ec-stat-gap: 2px;
+    --ec-stat-pad-y: 18px;
+    --ec-stat-gap: 4px;
+    --ec-recent-col-date: 100px;
+    --ec-recent-col-number: 170px;
+    --ec-recent-col-direction: 110px;
+    --ec-recent-col-contact: 240px;
+    --ec-recent-case-row-height: 46px;
+    --ec-recent-act-row-height: 54px;
 
     /* Značka a brána: přihlášení a zavádění (docs/design/prihlaseni.html, nacitani.html) */
     --ec-brand-size: 19px;

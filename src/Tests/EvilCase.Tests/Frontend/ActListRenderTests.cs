@@ -6,6 +6,7 @@ using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.Api.Contract.Lists;
 using EvilBrains.EvilCase.App.Components.Lists;
+using EvilBrains.EvilCase.App.Models;
 using EvilBrains.EvilCase.Domain.Acts;
 using EvilBrains.EvilCase.Domain.Labels;
 using Microsoft.AspNetCore.Components;
@@ -22,7 +23,7 @@ public class ActListRenderTests
         using var ctx = new BunitContext();
         Serve(ctx, out _);
 
-        var component = Render(ctx, [ActColumn.Act, ActColumn.Direction, ActColumn.Date]);
+        var component = Render(ctx, [ActColumn.ActWithLabels, ActColumn.Direction, ActColumn.Date]);
 
         component.WaitForElement("a.ec-table-row");
 
@@ -40,14 +41,14 @@ public class ActListRenderTests
         using var ctx = new BunitContext();
         Serve(ctx, out _);
 
-        var component = Render(ctx, [ActColumn.ActNumber]);
+        var component = Render(ctx, [ActColumn.ActWithLabels]);
 
         component.WaitForElement("a.ec-table-row");
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.Find(".ec-table-header").TextContent.Trim(), Is.EqualTo("Číslo jednací"));
-            Assert.That(component.Find(".ec-table-cell").TextContent, Does.Contain("EC/20260821-001/20260821-002"));
+            Assert.That(component.Find(".ec-table-header").TextContent.Trim().TrimEnd('↑', '↓').Trim(), Is.EqualTo("Úkon"));
+            Assert.That(component.Find(".ec-table-cell").TextContent, Does.Contain("Oznámení"));
         }
     }
 
@@ -57,7 +58,7 @@ public class ActListRenderTests
         using var ctx = new BunitContext();
         Serve(ctx, out _);
 
-        var component = Render(ctx, [ActColumn.Date, ActColumn.Act]);
+        var component = Render(ctx, [ActColumn.Date, ActColumn.ActWithLabels]);
 
         component.WaitForElement("a.ec-table-row");
 
@@ -136,7 +137,7 @@ public class ActListRenderTests
         await using var ctx = new BunitContext();
         Serve(ctx, out _);
 
-        var component = Render(ctx, [ActColumn.Act]);
+        var component = Render(ctx, [ActColumn.ActWithLabels]);
 
         await component.WaitForElementAsync("a.ec-table-row");
 
@@ -200,7 +201,7 @@ public class ActListRenderTests
 
         var component = Render(
             ctx,
-            [ActColumn.Changed, ActColumn.Date, ActColumn.Case, ActColumn.Act, ActColumn.Direction, ActColumn.Contact, ActColumn.Labels, ActColumn.ActNumber, ActColumn.ExternalNumber, ActColumn.ActWithLabels, ActColumn.ActNumberInCase]);
+            [ActColumn.Changed, ActColumn.Date, ActColumn.Direction, ActColumn.Contact, ActColumn.ExternalNumber, ActColumn.ActWithLabels, ActColumn.ActNumberInCase, ActColumn.ActAndCase]);
 
         Assert.That(
             component.Find(".ec-table").GetAttribute("style"),
@@ -255,6 +256,58 @@ public class ActListRenderTests
                 Is.EqualTo(["Priorita", "Hlídat lhůtu"]));
             Assert.That(component.FindAll(".ec-table-cell-primary .ec-chip-red"), Has.Count.EqualTo(1));
             Assert.That(component.Find(".ec-table-cell-primary .ec-cell-text").GetAttribute("title"), Is.EqualTo("Oznámení"));
+        }
+    }
+
+    [Test]
+    public void TheActAndItsCaseShareOneCellOnTwoLines()
+    {
+        using var ctx = new BunitContext();
+
+        var labelled = Row with
+        {
+            Labels = [new LabelItem { LabelId = Guid.CreateVersion7(), Name = "Priorita", Color = LabelColor.Red }],
+        };
+
+        Serve(ctx, out _, items: [labelled]);
+
+        var component = Render(ctx, [ActColumn.ActAndCase]);
+
+        component.WaitForElement("a.ec-table-row");
+
+        var cell = component.Find(".ec-table-cell");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(cell.ClassList, Does.Contain("ec-table-cell-primary"));
+            Assert.That(cell.ClassList, Does.Contain("ec-cell-stack"));
+            Assert.That(component.Find(".ec-table-header").TextContent.Trim().TrimEnd('↑', '↓').Trim(), Is.EqualTo("Úkon a spis"));
+            Assert.That(cell.QuerySelector(".ec-cell-line .ec-cell-text")!.TextContent, Is.EqualTo("Oznámení"));
+            Assert.That(cell.QuerySelector(".ec-cell-line .ec-chip-sm")!.TextContent.Trim(), Is.EqualTo("Priorita"));
+            Assert.That(cell.QuerySelector(".ec-cell-sub")!.TextContent, Is.EqualTo("Přestupek"));
+            Assert.That(cell.QuerySelector(".ec-cell-sub")!.GetAttribute("title"), Is.EqualTo("Přestupek"));
+        }
+    }
+
+    [Test]
+    public void TheChangeReadsRelativelyAndTheTooltipKeepsTheMoment()
+    {
+        using var ctx = new BunitContext();
+
+        var today = DateTime.Now.AddMinutes(-1);
+
+        Serve(ctx, out _, items: [Row with { Changed = today }]);
+
+        var component = Render(ctx, [ActColumn.Changed]);
+
+        component.WaitForElement("a.ec-table-row");
+
+        var moment = component.Find(".ec-table-cell span");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(moment.TextContent, Does.StartWith("dnes ").Or.StartWith("včera "), "a change of today reads as a word and the time");
+            Assert.That(moment.GetAttribute("title"), Is.EqualTo(MomentDisplay.Text(today)));
         }
     }
 
@@ -389,6 +442,41 @@ public class ActListRenderTests
         await component.Find("#acts-direction-all").ClickAsync(new MouseEventArgs());
 
         Assert.That(requests[^1].Direction, Is.Null);
+    }
+
+    [Test]
+    public void TheDirectionPillCarriesItsArrow()
+    {
+        using var ctx = new BunitContext();
+        Serve(ctx, out _);
+
+        var component = Render(ctx, [ActColumn.Direction]);
+
+        component.WaitForElement("a.ec-table-row");
+
+        var pill = component.Find(".ec-table-cell .ec-badge");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(pill.TextContent.Trim(), Is.EqualTo("Příchozí"));
+            Assert.That(pill.QuerySelectorAll("svg.ec-icon"), Has.Length.EqualTo(1), "the direction reads from its arrow as well as its word");
+        }
+    }
+
+    [Test]
+    public void AnActWithoutDirectionOrContactShowsALightDash()
+    {
+        using var ctx = new BunitContext();
+        Serve(ctx, out _, items: [Row with { Direction = null, ContactId = null, ContactName = null }]);
+
+        var component = Render(ctx, [ActColumn.Direction, ActColumn.Contact]);
+
+        component.WaitForElement("a.ec-table-row");
+
+        Assert.That(
+            component.FindAll(".ec-cell-empty").Select(static dash => dash.TextContent),
+            Is.EqualTo(["—", "—"]),
+            "a missing value reads as a light dash (SDD-020)");
     }
 
     private static readonly Guid CaseId = Guid.CreateVersion7();
