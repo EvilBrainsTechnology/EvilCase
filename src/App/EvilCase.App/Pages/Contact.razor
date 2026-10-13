@@ -5,6 +5,7 @@
 @using EvilBrains.EvilCase.Api.Contract.Acts
 @using EvilBrains.EvilCase.Api.Contract.Cases
 @using EvilBrains.EvilCase.Api.Contract.Contacts
+@using EvilBrains.EvilCase.Api.Contract.Lists
 @using Microsoft.JSInterop
 @inject IContactsClient ContactsClient
 @inject IClipboardWriter Clipboard
@@ -172,6 +173,7 @@
     private ActListRequest ActFilter => new()
     {
         ContactId = this.ContactId,
+        SortDirection = ListSortDirection.Descending,
         Take = OccurrenceItems,
     };
 

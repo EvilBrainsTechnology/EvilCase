@@ -5,7 +5,6 @@
 @using EvilBrains.EvilCase.Api.Contract.Comments
 @using EvilBrains.EvilCase.Api.Contract.Files
 @using EvilBrains.EvilCase.Api.Contract.Labels
-@using EvilBrains.EvilCase.Api.Contract.Lists
 @inherits DetailPage<CaseDetail>
 @inject ICasesClient CasesClient
 @inject ICaseLabelsClient CaseLabelsClient
@@ -180,7 +179,7 @@
 
     protected override string LinkPath => $"/cases/{this.CaseId}";
 
-    private ActListRequest ActFilter => new() { CaseId = this.CaseId, SortDirection = ListSortDirection.Ascending, Take = ActItems };
+    private ActListRequest ActFilter => new() { CaseId = this.CaseId, Take = ActItems };
 
     private IReadOnlyList<EcCrumb> Crumbs => this.Detail is null
         ? [new EcCrumb("Spisy", "/cases")]

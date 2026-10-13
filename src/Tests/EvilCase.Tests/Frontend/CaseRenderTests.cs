@@ -9,7 +9,6 @@ using EvilBrains.EvilCase.Api.Contract.Comments;
 using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Api.Contract.Labels;
-using EvilBrains.EvilCase.Api.Contract.Lists;
 using EvilBrains.EvilCase.App.Clipboard;
 using EvilBrains.EvilCase.App.Components;
 using EvilBrains.EvilCase.App.Files;
@@ -26,32 +25,6 @@ namespace EvilBrains.EvilCase.Tests.Frontend;
 
 public class CaseRenderTests
 {
-    [Test]
-    public async Task TheActsOfACaseReadOldestFirst()
-    {
-        await using var ctx = new BunitContext();
-
-        var caseId = Guid.CreateVersion7();
-
-        Serve(ctx, caseId, Detail(caseId));
-
-        var requests = new List<ActListRequest>();
-        var actsClient = ctx.Services.GetRequiredService<IActsClient>();
-        actsClient
-            .ListActs(Arg.Do<ActListRequest>(requests.Add), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(new ActListResponse { Items = [], TotalCount = 0 }));
-
-        var component = ctx.Render<Case>(parameters => parameters.Add(static page => page.CaseId, caseId));
-
-        await component.WaitForAssertionAsync(() => Assert.That(requests, Is.Not.Empty), TimeSpan.FromSeconds(2));
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(requests[0].CaseId, Is.EqualTo(caseId));
-            Assert.That(requests[0].SortDirection, Is.EqualTo(ListSortDirection.Ascending), "the acts of a case read as the case went, oldest first");
-        }
-    }
-
     [Test]
     public void TheHeadCardCarriesTheNameTheStatusTheDescriptionAndTheRowOfData()
     {
