@@ -32,8 +32,8 @@
             ActColumn.Case => new EcColumn<ActListItem>
             {
                 Header = "Spis",
-                Width = "minmax(0, 1fr)",
-                Cell = item =>@<span class="ec-cell-text">@item.CaseTitle</span>,
+                Width = "minmax(0, 0.8fr)",
+                Cell = item =>@<span class="ec-cell-text" title="@item.CaseTitle">@item.CaseTitle</span>,
             },
             ActColumn.Act => new EcColumn<ActListItem>
             {
@@ -114,7 +114,7 @@
 
 <EcTable TItem="ActListItem"
          Title="@this.Title" Actions="this.Actions"
-         ShowToolbar="this.HasFilters"
+         ShowToolbar="this.ToolbarShown"
          Columns="columns" Items="this.items" RowHref="RowHref"
          SortKey="@this.sort.ToString()"
          SortDescending="@(this.Direction == ListSortDirection.Descending)"
@@ -238,6 +238,12 @@
     [Parameter]
     public bool ShowPaging { get; set; }
 
+    /// <summary>
+    /// Hides the toolbar while the list is empty and no filter is set, so an empty card shows no filters.
+    /// </summary>
+    [Parameter]
+    public bool HideToolbarWhenEmpty { get; set; }
+
     [Parameter]
     public EventCallback<int> TotalChanged { get; set; }
 
@@ -266,6 +272,11 @@
     protected override string FailureText => "Seznam úkonů se nepodařilo načíst. Zkuste to za chvíli znovu.";
 
     private bool HasFilters => this.ShowSearch || this.ShowDates || this.ShowLabelFilter || this.ShowDirectionFilter;
+
+    private bool ToolbarShown => this.HasFilters && !(this.HideToolbarWhenEmpty && this.IsEmptyUnfiltered);
+
+    private bool IsEmptyUnfiltered => !this.Loading && this.Failure is null && this.Total == 0
+        && this.Search is null && this.direction == this.Filter.Direction && this.ActiveFilterCount == 0;
 
     private int ActiveFilterCount => (this.From is null ? 0 : 1) + (this.To is null ? 0 : 1) + this.SelectedLabels.Count;
 

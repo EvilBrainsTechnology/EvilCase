@@ -32,7 +32,11 @@ a edituje existující.
   datové schránky bez ohledu na diakritiku, filtr typu nechá v seznamu jen kontakty jednoho typu.
   Zakládá se odsud nový kontakt.
 - `/contacts/{id}` — detail s výskyty: spisy kontaktu a všechny jeho úkony, obojí od nejnovějšího
-  data; editace a smazání kontaktu.
+  data. Hlavička nese typ kontaktu vedle názvu, tlačítko Upravit kontakt a menu dalších akcí
+  (zkopírování odkazu na kontakt, smazání kontaktu). ID datové schránky a adresa mají každá
+  tlačítko pro zkopírování, je-li hodnota vyplněná. Seznam spisů se dá hledat a filtrovat podle
+  stavu, výchozí jsou všechny stavy včetně uzavřených; seznam úkonů se dá hledat a filtrovat podle
+  směru. Kontakt bez výskytů ukazuje dvě prázdné karty bez filtrů.
 
 Přehled i výskyty jsou stránkované podle SDD-005 a nesou celkový počet.
 

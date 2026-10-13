@@ -4,6 +4,7 @@ using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Api.Contract.Lists;
+using EvilBrains.EvilCase.App.Clipboard;
 using EvilBrains.EvilCase.App.Pages;
 using EvilBrains.EvilCase.Domain.Acts;
 using EvilBrains.EvilCase.Domain.Contacts;
@@ -94,7 +95,43 @@ public class ContactRenderTests
     }
 
     [Test]
-    public void TheHeaderCountsComeFromTheOccurrenceLists()
+    public void TheFactsCarryTheDataBoxAndTheAddressEachWithACopyButtonAndNoCounts()
+    {
+        using var ctx = new BunitContext();
+
+        var contactId = Serve(ctx, out var caseRequests, out var actRequests, dataBoxId: "vzorov1", address: "náměstí Míru 1, 100 00 Vzorov");
+
+        var component = Render(ctx, contactId, caseRequests, actRequests);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(
+                component.FindAll(".ec-detail-fact-name").Select(static name => name.TextContent),
+                Is.EqualTo(["ID datové schránky", "Adresa"]),
+                "the counts live in the list headers");
+            Assert.That(component.Find("button[aria-label='Zkopírovat ID datové schránky']"), Is.Not.Null);
+            Assert.That(component.Find("button[aria-label='Zkopírovat adresu']"), Is.Not.Null);
+        }
+    }
+
+    [Test]
+    public void AMissingDataBoxAndAddressShowADashWithoutACopyButton()
+    {
+        using var ctx = new BunitContext();
+
+        var contactId = Serve(ctx, out var caseRequests, out var actRequests);
+
+        var component = Render(ctx, contactId, caseRequests, actRequests);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.FindAll(".ec-detail-fact").Select(static fact => fact.QuerySelector(":scope > span:last-child")!.TextContent), Is.EqualTo(["—", "—"]));
+            Assert.That(component.FindAll(".ec-detail-facts .ec-copy"), Is.Empty);
+        }
+    }
+
+    [Test]
+    public void BothListsCarryTheirOwnFilterToolbarWithDistinctIds()
     {
         using var ctx = new BunitContext();
 
@@ -104,14 +141,31 @@ public class ContactRenderTests
 
         component.WaitForAssertion(() =>
         {
-            var facts = component.FindAll(".ec-detail-fact").ToList();
-            var caseFact = facts.First(static fact => string.Equals(fact.QuerySelector(".ec-detail-fact-name")!.TextContent, "Spisy", StringComparison.Ordinal));
-            var actFact = facts.First(static fact => string.Equals(fact.QuerySelector(".ec-detail-fact-name")!.TextContent, "Úkony", StringComparison.Ordinal));
-
             using (Assert.EnterMultipleScope())
             {
-                Assert.That(caseFact.QuerySelector(".ec-detail-fact-value")!.TextContent, Is.EqualTo("3"));
-                Assert.That(actFact.QuerySelector(".ec-detail-fact-value")!.TextContent, Is.EqualTo("5"));
+                Assert.That(component.Find("#contact-cases-search"), Is.Not.Null);
+                Assert.That(component.Find("#contact-cases-status"), Is.Not.Null);
+                Assert.That(component.Find("#contact-acts-search"), Is.Not.Null);
+                Assert.That(component.FindAll("#contact-acts-direction-all, #contact-acts-direction-incoming, #contact-acts-direction-outgoing"), Has.Count.EqualTo(3));
+            }
+        });
+    }
+
+    [Test]
+    public void AContactWithoutOccurrencesShowsTwoEmptyCardsWithoutToolbars()
+    {
+        using var ctx = new BunitContext();
+
+        var contactId = Serve(ctx, out var caseRequests, out var actRequests);
+
+        var component = Render(ctx, contactId, caseRequests, actRequests);
+
+        component.WaitForAssertion(() =>
+        {
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(component.FindAll(".ec-empty"), Has.Count.EqualTo(2));
+                Assert.That(component.FindAll(".ec-table-bar"), Is.Empty);
             }
         });
     }
@@ -133,7 +187,7 @@ public class ContactRenderTests
     }
 
     [Test]
-    public async Task TheEditAndTheDeleteButtonEachOpenTheirModal()
+    public async Task TheEditButtonAndTheMenuSDeleteEachOpenTheirModal()
     {
         await using var ctx = new BunitContext();
 
@@ -141,17 +195,43 @@ public class ContactRenderTests
 
         var component = Render(ctx, contactId, caseRequests, actRequests);
 
+        Assert.That(component.FindAll(".ec-page-actions .ec-button-danger"), Is.Empty, "delete lives in the menu");
+
         await component.Find("#contact-edit").ClickAsync(new MouseEventArgs());
 
         Assert.That(component.Find("dialog").TextContent, Does.Contain("Upravit kontakt"));
 
         await component.Find(".ec-modal-header .ec-button").ClickAsync(new MouseEventArgs());
-        await component.Find("#contact-delete").ClickAsync(new MouseEventArgs());
+        await component.Find("button[aria-label='Další akce s kontaktem']").ClickAsync(new MouseEventArgs());
+
+        Assert.That(component.FindAll("[role=menuitem]").Select(static item => item.TextContent.Trim()), Is.EqualTo(["Zkopírovat odkaz na kontakt", "Smazat kontakt…"]));
+
+        await component.FindAll("[role=menuitem]")[1].ClickAsync(new MouseEventArgs());
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(component.Find("dialog").TextContent, Does.Contain("Smazat kontakt"));
             Assert.That(component.Find("dialog").TextContent, Does.Contain("Městský úřad"));
+        }
+    }
+
+    [Test]
+    public async Task TheMenuCopiesAnAbsoluteLinkToTheContact()
+    {
+        await using var ctx = new BunitContext();
+
+        var contactId = Serve(ctx, out var caseRequests, out var actRequests);
+
+        var clipboard = (StubClipboardWriter)ctx.Services.GetRequiredService<IClipboardWriter>();
+        var component = Render(ctx, contactId, caseRequests, actRequests);
+
+        await component.Find("button[aria-label='Další akce s kontaktem']").ClickAsync(new MouseEventArgs());
+        await component.FindAll("[role=menuitem]")[0].ClickAsync(new MouseEventArgs());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(clipboard.Written, Is.EqualTo([$"http://localhost/contacts/{contactId}"]));
+            Assert.That(component.Find(".ec-page > span[role=status]").TextContent, Is.EqualTo("Odkaz na kontakt zkopírován."));
         }
     }
 
@@ -163,7 +243,9 @@ public class ContactRenderTests
         ContactKind kind = ContactKind.Authority,
         ActListItem? act = null,
         int caseTotal = 0,
-        int actTotal = 0)
+        int actTotal = 0,
+        string? dataBoxId = null,
+        string? address = null)
     {
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
@@ -175,6 +257,8 @@ public class ContactRenderTests
             ContactId = contactId,
             Name = name,
             Kind = kind,
+            DataBoxId = dataBoxId,
+            Address = address,
         }));
 
         var capturedCases = new List<CaseListRequest>();
@@ -199,6 +283,7 @@ public class ContactRenderTests
                 return Task.FromResult(new ActListResponse { Items = act is null ? [] : [act], TotalCount = actTotal });
             });
 
+        ctx.Services.AddSingleton<IClipboardWriter>(new StubClipboardWriter());
         ctx.Services.AddSingleton(contactsClient);
         ctx.Services.AddSingleton(casesClient);
         ctx.Services.AddSingleton(actsClient);

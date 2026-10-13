@@ -19,7 +19,7 @@
         </div>
     }
 
-    @if (this.ShowToolbar || this.Sortable.Count > 0)
+    @if (this.ShowToolbar || (this.Sortable.Count > 0 && this.Items.Count > 0))
     {
         <div class="@this.BarClass">
             @this.Toolbar

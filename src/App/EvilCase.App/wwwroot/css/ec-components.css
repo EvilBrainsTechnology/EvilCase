@@ -2787,13 +2787,53 @@ html {
 .ec-contact-header {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: var(--ec-space-5);
 }
 
 .ec-contact-header-name {
     display: flex;
-    flex-direction: column;
-    gap: var(--ec-space-1);
+    align-items: center;
+    flex-wrap: wrap;
+    flex: 0 1 auto;
+    gap: var(--ec-space-2) var(--ec-space-4);
+    min-width: 0;
+}
+
+.ec-contact-header .ec-page-title {
+    overflow-wrap: anywhere;
+}
+
+.ec-contact-facts {
+    align-self: flex-start;
+    max-width: 100%;
+}
+
+@media (max-width: 991.98px) {
+    .ec-contact-facts {
+        align-self: stretch;
+    }
+}
+
+/* Detail kontaktu (docs/design/detail-kontaktu.html): dva seznamy výskytů na půl šířky. */
+.ec-contact-occurrences {
+    --ec-list-col-date: var(--ec-case-act-col-date);
+    --ec-list-col-status: var(--ec-case-act-col-number);
+    --ec-list-row-height: var(--ec-case-act-row-height);
+}
+
+.ec-contact-occurrences .ec-table-bar {
+    padding: 0 var(--ec-space-6) var(--ec-space-4);
+}
+
+.ec-contact-occurrences .ec-table-bar .ec-search {
+    flex: 1 1 auto;
+    width: auto;
+    height: var(--ec-control-md);
+}
+
+.ec-contact-occurrences .ec-table-bar .ec-select {
+    height: var(--ec-control-md);
 }
 
 /* Detail spisu (docs/design/detail-spisu.html): úkony spisu, jejich lišta a filtry. */
