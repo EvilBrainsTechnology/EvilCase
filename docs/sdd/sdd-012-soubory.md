@@ -33,6 +33,8 @@ tentýž dokument ve dvou spisech jsou dva soubory.
 - Název souboru je povinný, nejvýše 256 znaků; ukládá se jen jeho poslední část, cesta se
   zahazuje. `MediaType` se bere z uploadu, nejvýše 128 znaků; příponě se nevěří. Delší hodnota
   nebo chybějící název je 400.
+- Soubor jde přejmenovat. Platí pro nové jméno stejná pravidla jako při uploadu; bajty, hash
+  a `MediaType` zůstávají. Soubor cizího vlastníka je 404.
 - Chybějící `MediaType` se stahuje jako `application/octet-stream`. Soubor bez blobu je 404.
 
 ### UI

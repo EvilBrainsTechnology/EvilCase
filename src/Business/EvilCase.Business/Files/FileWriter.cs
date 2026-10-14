@@ -37,6 +37,28 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
         return new UploadFileResult { Outcome = UploadFileOutcome.Uploaded, File = file };
     }
 
+    public async Task<FileRenameOutcome> RenameCaseFile(Guid caseId, Guid fileId, string fileName, CancellationToken token)
+    {
+        var files = dbSession.Current.FileAssets.OfCase(caseId).WithId(fileId);
+
+        var outcome = await RenameFile(files, fileName, token);
+        if (outcome == FileRenameOutcome.Renamed)
+            logger.LogInformation("File {FileAssetId} was renamed on case {CaseId}", fileId, caseId);
+
+        return outcome;
+    }
+
+    public async Task<FileRenameOutcome> RenameActFile(Guid actId, Guid fileId, string fileName, CancellationToken token)
+    {
+        var files = dbSession.Current.FileAssets.OfAct(actId).WithId(fileId);
+
+        var outcome = await RenameFile(files, fileName, token);
+        if (outcome == FileRenameOutcome.Renamed)
+            logger.LogInformation("File {FileAssetId} was renamed on act {ActId}", fileId, actId);
+
+        return outcome;
+    }
+
     public async Task<DeleteOutcome> DeleteCaseFile(Guid caseId, Guid fileId, CancellationToken token)
     {
         var files = dbSession.Current.FileAssets.OfCase(caseId).WithId(fileId);
@@ -57,6 +79,13 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
             logger.LogInformation("File {FileAssetId} was removed from act {ActId}", fileId, actId);
 
         return outcome;
+    }
+
+    private static async Task<FileRenameOutcome> RenameFile(IQueryable<FileAsset> files, string fileName, CancellationToken token)
+    {
+        var rows = await files.ExecuteUpdateAsync(setters => setters.SetProperty(static file => file.FileName, fileName), token);
+
+        return rows == 0 ? FileRenameOutcome.NotFound : FileRenameOutcome.Renamed;
     }
 
     private static async Task<DeleteOutcome> DeleteFile(IQueryable<FileAsset> files, CancellationToken token)

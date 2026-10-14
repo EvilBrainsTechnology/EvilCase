@@ -93,7 +93,7 @@ public class FileTransferController : ControllerBase
             return null;
         }
 
-        var fileName = Path.GetFileName(file.FileName);
+        var fileName = FileNameRules.LastSegment(file.FileName);
         var mediaType = NormalizeMediaType(file.ContentType);
         error = this.InvalidUploadMetadataProblem(fileName, mediaType);
 
@@ -110,15 +110,9 @@ public class FileTransferController : ControllerBase
 
     private ActionResult? InvalidUploadMetadataProblem(string fileName, string? mediaType)
     {
-        if (string.IsNullOrWhiteSpace(fileName))
+        if (FileNameRules.Violation(fileName) is { } violation)
         {
-            this.ModelState.AddModelError("fileName", "The file name must not be empty.");
-            return this.ValidationProblem(statusCode: StatusCodes.Status400BadRequest);
-        }
-
-        if (fileName.Length > FileLimits.MaxFileNameLength)
-        {
-            this.ModelState.AddModelError("fileName", $"The file name must not exceed {FileLimits.MaxFileNameLength} characters.");
+            this.ModelState.AddModelError("fileName", violation);
             return this.ValidationProblem(statusCode: StatusCodes.Status400BadRequest);
         }
 
