@@ -124,4 +124,11 @@ public abstract class DetailPage<TDetail> : ComponentBase
         var content = await this.FileTransfer.DownloadFileContent(file.FileId, token);
         await this.Downloader.SaveFile(file.FileName, content, token);
     }
+
+    protected async Task<Stream> LoadFileContent(FileListItem file, CancellationToken token)
+    {
+        var content = await this.FileTransfer.DownloadFileContent(file.FileId, token);
+
+        return content.Content;
+    }
 }

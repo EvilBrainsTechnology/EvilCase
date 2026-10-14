@@ -127,7 +127,10 @@
                            LoadFiles="this.LoadFiles"
                            UploadFile="this.UploadFile"
                            DownloadFile="this.DownloadFile"
-                           DeleteFile="this.DeleteFile" />
+                           LoadContent="this.LoadFileContent"
+                           RenameFile="this.RenameFile"
+                           DeleteFile="this.DeleteFile"
+                           UploadTarget="k úkonu" />
 
                 <CommentsCard @key="(nameof(CommentsCard), this.ActId)"
                               Title="Komentáře úkonu"
@@ -304,6 +307,11 @@
     private Task UploadFile(IBrowserFile file, CancellationToken token)
     {
         return this.FileTransfer.UploadActFile(this.ActId, file, token);
+    }
+
+    private Task RenameFile(FileListItem file, string fileName, CancellationToken token)
+    {
+        return this.ActFilesClient.RenameActFile(this.ActId, file.FileId, new FileRenameRequest { FileName = fileName }, token);
     }
 
     private Task DeleteFile(FileListItem file, CancellationToken token)

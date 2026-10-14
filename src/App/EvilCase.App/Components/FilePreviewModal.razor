@@ -1,0 +1,307 @@
+@using System.Text
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Contract.Files
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+@inject IBlobUrls BlobUrls
+@inject ILogger<FilePreviewModal> Logger
+
+@if (this.Current is { } file)
+{
+    var preview = FileTypeDisplay.Preview(file.FileName);
+
+    <EcModal Title="@file.FileName" Large Open="this.Open" OpenChanged="this.OpenChanged">
+        <Heading>
+            <EcFileIcon FileName="@file.FileName" />
+            @if (this.renaming)
+            {
+                <FileRenameField @key="file.FileId" FileName="@file.FileName" Rename="(name, token) => this.Rename(file, name, token)"
+                                 OnRenamed="this.Renamed" OnCancel="this.CancelRename" />
+            }
+            else
+            {
+                <div class="ec-preview-title">
+                    <h2 class="ec-preview-name" title="@file.FileName">@file.FileName</h2>
+                    <span class="ec-preview-meta">@FileSizeDisplay.Text(file.SizeBytes) · nahráno @MomentDisplay.Text(file.Created)</span>
+                </div>
+            }
+            <nav class="ec-preview-nav" aria-label="Soubory">
+                <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.ChevronLeft" AriaLabel="Předchozí soubor"
+                          Disabled="@(this.Files.Count < 2)" OnClick="() => this.Step(-1)" />
+                <span class="ec-preview-position"><strong>@(this.Position + 1)</strong> z @this.Files.Count</span>
+                <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.ChevronRight" AriaLabel="Další soubor"
+                          Disabled="@(this.Files.Count < 2)" OnClick="() => this.Step(1)" />
+            </nav>
+            <span class="ec-preview-divider" aria-hidden="true"></span>
+            <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Pencil" OnClick="this.StartRename">Přejmenovat</EcButton>
+            <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Download" OnClick="() => this.OnDownload.InvokeAsync(file)">Stáhnout</EcButton>
+        </Heading>
+        <ChildContent>
+            @if (preview == FilePreviewKind.None)
+            {
+                <div class="ec-preview-message">
+                    <EcFileIcon FileName="@file.FileName" Size="EcFileIconSize.Large" />
+                    <p class="ec-preview-message-title">Náhled tohoto typu souboru není k dispozici</p>
+                    <p class="ec-preview-message-text">Soubor si stáhněte a otevřete v aplikaci, která ho umí zobrazit.</p>
+                    <EcButton Variant="EcButtonVariant.Primary" Icon="@AppIcons.Download" OnClick="() => this.OnDownload.InvokeAsync(file)">Stáhnout soubor</EcButton>
+                </div>
+            }
+            else if (this.failed)
+            {
+                <div class="ec-preview-message">
+                    <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />Soubor se nepodařilo načíst. Zkuste to za chvíli znovu.</div>
+                    <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Refresh" OnClick="() => this.Reload(file)">Zkusit znovu</EcButton>
+                </div>
+            }
+            else if (this.loading)
+            {
+                <p class="ec-preview-message">Načítám…</p>
+            }
+            else if (preview == FilePreviewKind.Text)
+            {
+                <div class="ec-preview-stage ec-preview-stage-text">
+                    @if (this.truncated)
+                    {
+                        <p class="ec-preview-note">Soubor je delší, zobrazuje se jen jeho začátek.</p>
+                    }
+                    <div class="ec-preview-text" role="document" tabindex="0" aria-label="Obsah souboru @file.FileName">
+                        @for (var index = 0; index < this.lines.Count; index++)
+                        {
+                            <div class="ec-preview-line">
+                                <span class="ec-preview-line-number" aria-hidden="true">@(index + 1)</span>
+                                <span class="ec-preview-line-text">@this.lines[index]</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            else if (preview == FilePreviewKind.Pdf)
+            {
+                <iframe class="ec-preview-frame" src="@this.url" title="Náhled souboru @file.FileName"></iframe>
+            }
+            else if (preview == FilePreviewKind.Image)
+            {
+                <div class="ec-preview-stage">
+                    <img class="ec-preview-image" src="@this.url" alt="@file.FileName" />
+                </div>
+            }
+            else if (preview == FilePreviewKind.Audio)
+            {
+                <div class="ec-preview-stage">
+                    <audio class="ec-preview-audio" src="@this.url" controls></audio>
+                </div>
+            }
+            else
+            {
+                <div class="ec-preview-stage">
+                    <video class="ec-preview-video" src="@this.url" controls></video>
+                </div>
+            }
+        </ChildContent>
+    </EcModal>
+}
+
+@code {
+    private const int MaxTextBytes = 1024 * 1024;
+
+    private const int MaxTextLines = 5000;
+
+    [Parameter, EditorRequired]
+    public required IReadOnlyList<FileListItem> Files { get; set; }
+
+    [Parameter, EditorRequired]
+    public required Guid FileId { get; set; }
+
+    [Parameter]
+    public EventCallback<Guid> FileIdChanged { get; set; }
+
+    [Parameter, EditorRequired]
+    public required Func<FileListItem, CancellationToken, Task<Stream>> LoadContent { get; set; }
+
+    [Parameter, EditorRequired]
+    public required Func<FileListItem, string, CancellationToken, Task> Rename { get; set; }
+
+    [Parameter]
+    public EventCallback<FileListItem> OnDownload { get; set; }
+
+    [Parameter]
+    public EventCallback OnRenamed { get; set; }
+
+    [Parameter]
+    public bool Open { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    private CancellationTokenSource? loadToken;
+
+    private Guid? loadedFileId;
+
+    private string? url;
+
+    private IReadOnlyList<string> lines = [];
+
+    private bool truncated;
+
+    private bool loading;
+
+    private bool failed;
+
+    private bool renaming;
+
+    private FileListItem? Current => this.Files.FirstOrDefault(file => file.FileId == this.FileId);
+
+    private int Position => Enumerable.Range(0, this.Files.Count).Single(index => this.Files[index].FileId == this.FileId);
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (this.Current is not { } file || file.FileId == this.loadedFileId)
+            return;
+
+        this.renaming = false;
+
+        await this.Reload(file);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        this.loadToken?.Cancel();
+
+        await this.ReleaseUrl();
+    }
+
+    private async Task Reload(FileListItem file)
+    {
+        this.loadToken?.Cancel();
+        var token = (this.loadToken = new CancellationTokenSource()).Token;
+
+        this.loadedFileId = file.FileId;
+        this.loading = true;
+        this.failed = false;
+        this.lines = [];
+        this.truncated = false;
+
+        await this.ReleaseUrl();
+
+        var preview = FileTypeDisplay.Preview(file.FileName);
+
+        if (preview == FilePreviewKind.None)
+        {
+            this.loading = false;
+
+            return;
+        }
+
+        try
+        {
+            await using var content = await this.LoadContent(file, token);
+
+            if (preview == FilePreviewKind.Text)
+            {
+                var text = await ReadText(content, token);
+
+                if (token.IsCancellationRequested)
+                    return;
+
+                (this.lines, this.truncated) = text;
+            }
+            else
+            {
+                var created = await this.BlobUrls.CreateBlobUrl(FileTypeDisplay.PreviewMediaType(file.FileName), content, token);
+
+                if (token.IsCancellationRequested)
+                {
+                    await this.BlobUrls.RevokeBlobUrl(created);
+
+                    return;
+                }
+
+                this.url = created;
+            }
+
+            this.loading = false;
+        }
+        catch (OperationCanceledException)
+        {
+            // A later file took over.
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException or JSException)
+        {
+            this.Logger.LogWarning(exception, "Loading file {FileId} for the preview failed", file.FileId);
+
+            if (!token.IsCancellationRequested)
+            {
+                this.loading = false;
+                this.failed = true;
+            }
+        }
+    }
+
+    private async Task ReleaseUrl()
+    {
+        if (this.url is null)
+            return;
+
+        var released = this.url;
+        this.url = null;
+
+        await this.BlobUrls.RevokeBlobUrl(released);
+    }
+
+    private async Task Step(int direction)
+    {
+        var count = this.Files.Count;
+        var next = this.Files[((this.Position + direction) % count + count) % count];
+
+        await this.FileIdChanged.InvokeAsync(next.FileId);
+    }
+
+    private void StartRename()
+    {
+        this.renaming = true;
+    }
+
+    private void CancelRename()
+    {
+        this.renaming = false;
+    }
+
+    private async Task Renamed()
+    {
+        this.renaming = false;
+
+        await this.OnRenamed.InvokeAsync();
+    }
+
+    // Only the start of a long file is read; the cut may split a character, which shows as one replacement mark.
+    private static async Task<(IReadOnlyList<string> Lines, bool Truncated)> ReadText(Stream content, CancellationToken token)
+    {
+        var buffer = new byte[MaxTextBytes + 1];
+        var read = 0;
+
+        while (read < buffer.Length)
+        {
+            var count = await content.ReadAsync(buffer.AsMemory(read), token);
+
+            if (count == 0)
+                break;
+
+            read += count;
+        }
+
+        var truncated = read > MaxTextBytes;
+        var text = Encoding.UTF8.GetString(buffer, 0, Math.Min(read, MaxTextBytes)).TrimStart('﻿');
+        var all = text.Split('\n').Select(static line => line.TrimEnd('\r')).ToList();
+
+        if (all.Count > 1 && all[^1].Length == 0)
+            all.RemoveAt(all.Count - 1);
+
+        if (all.Count > MaxTextLines)
+        {
+            all = all.Take(MaxTextLines).ToList();
+            truncated = true;
+        }
+
+        return (all, truncated);
+    }
+}

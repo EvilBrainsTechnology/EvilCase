@@ -1,0 +1,66 @@
+@using System.Diagnostics
+@using EvilBrains.EvilCase.App.Models
+
+<span class="@this.CssClass" aria-hidden="true"><EcIcon Paths="@this.Glyph" /></span>
+
+@code {
+    [Parameter, EditorRequired]
+    public required string FileName { get; set; }
+
+    [Parameter]
+    public EcFileIconSize Size { get; set; } = EcFileIconSize.Standard;
+
+    private string CssClass
+    {
+        get
+        {
+            var size = this.Size switch
+            {
+                EcFileIconSize.Standard => "",
+                EcFileIconSize.Compact => " ec-file-icon-compact",
+                EcFileIconSize.Large => " ec-file-icon-large",
+                _ => throw new UnreachableException(),
+            };
+
+            var tone = FileTypeDisplay.Kind(this.FileName) switch
+            {
+                FileKind.Pdf => "pdf",
+                FileKind.Document => "document",
+                FileKind.Sheet => "sheet",
+                FileKind.Presentation => "presentation",
+                FileKind.Text => "text",
+                FileKind.Image => "image",
+                FileKind.Audio => "audio",
+                FileKind.Video => "video",
+                FileKind.Email => "email",
+                FileKind.DataMessage => "message",
+                FileKind.Signature => "signature",
+                FileKind.Code => "code",
+                FileKind.Archive => "archive",
+                FileKind.Other => "other",
+                _ => throw new UnreachableException(),
+            };
+
+            return $"ec-file-icon ec-file-icon-{tone}{size}";
+        }
+    }
+
+    private string Glyph => FileTypeDisplay.Kind(this.FileName) switch
+    {
+        FileKind.Pdf => AppIcons.FileTypePdf,
+        FileKind.Document => AppIcons.FileTypeDocument,
+        FileKind.Sheet => AppIcons.FileTypeSheet,
+        FileKind.Presentation => AppIcons.FileTypePresentation,
+        FileKind.Text => AppIcons.FileTypeText,
+        FileKind.Image => AppIcons.FileTypeImage,
+        FileKind.Audio => AppIcons.FileTypeAudio,
+        FileKind.Video => AppIcons.FileTypeVideo,
+        FileKind.Email => AppIcons.FileTypeEmail,
+        FileKind.DataMessage => AppIcons.FileTypeDataMessage,
+        FileKind.Signature => AppIcons.FileTypeSignature,
+        FileKind.Code => AppIcons.FileTypeCode,
+        FileKind.Archive => AppIcons.FileTypeArchive,
+        FileKind.Other => AppIcons.FileTypeOther,
+        _ => throw new UnreachableException(),
+    };
+}

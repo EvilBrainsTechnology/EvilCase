@@ -132,7 +132,10 @@
                            LoadFiles="this.LoadFiles"
                            UploadFile="this.UploadFile"
                            DownloadFile="this.DownloadFile"
+                           LoadContent="this.LoadFileContent"
+                           RenameFile="this.RenameFile"
                            DeleteFile="this.DeleteFile"
+                           UploadTarget="k spisu"
                            Compact="true" />
 
                 <CommentsCard @key="(nameof(CommentsCard), this.CaseId)"
@@ -249,6 +252,11 @@
     private Task UploadFile(IBrowserFile file, CancellationToken token)
     {
         return this.FileTransfer.UploadCaseFile(this.CaseId, file, token);
+    }
+
+    private Task RenameFile(FileListItem file, string fileName, CancellationToken token)
+    {
+        return this.CaseFilesClient.RenameCaseFile(this.CaseId, file.FileId, new FileRenameRequest { FileName = fileName }, token);
     }
 
     private Task DeleteFile(FileListItem file, CancellationToken token)

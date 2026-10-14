@@ -2,9 +2,16 @@
 @implements IAsyncDisposable
 @inject IJSRuntime JSRuntime
 
-<dialog class="ec-modal" @ref="this.dialog" aria-label="@this.Title">
+<dialog class="@(this.Large ? "ec-modal ec-modal-large" : "ec-modal")" @ref="this.dialog" aria-label="@this.Title">
     <div class="ec-modal-header">
-        <h2 class="ec-modal-title">@this.Title</h2>
+        @if (this.Heading is null)
+        {
+            <h2 class="ec-modal-title">@this.Title</h2>
+        }
+        else
+        {
+            @this.Heading
+        }
         <EcButton Variant="EcButtonVariant.Ghost" Size="EcButtonSize.Compact" Icon="@AppIcons.X"
                   AriaLabel="Zavřít" OnClick="this.Close" />
     </div>
@@ -18,6 +25,18 @@
 @code {
     [Parameter, EditorRequired]
     public required string Title { get; set; }
+
+    /// <summary>
+    /// Replaces the title in the header; <see cref="Title"/> still names the dialog.
+    /// </summary>
+    [Parameter]
+    public RenderFragment? Heading { get; set; }
+
+    /// <summary>
+    /// Fills most of the window, for a preview.
+    /// </summary>
+    [Parameter]
+    public bool Large { get; set; }
 
     [Parameter]
     public bool Open { get; set; }
