@@ -87,7 +87,7 @@
                                 else
                                 {
                                     <div class="ec-file-main">
-                                        <button type="button" class="ec-file-name"
+                                        <button type="button" class="ec-file-name" @ref="this.nameButtons[file.FileId]"
                                                 title="@(this.Compact ? file.FileName : this.OpenTitle(file))"
                                                 disabled="@busy" @onclick="() => this.Open(file)">@file.FileName</button>
                                         <span class="ec-file-meta">@FileSizeDisplay.Text(file.SizeBytes) · @(this.Compact ? "" : "nahráno ")@MomentDisplay.Text(file.Created)</span>
@@ -173,6 +173,8 @@
 
     private readonly List<string> failures = [];
 
+    private readonly Dictionary<Guid, ElementReference> nameButtons = [];
+
     private IReadOnlyList<FileListItem> items = [];
 
     private bool loading = true;
@@ -191,6 +193,8 @@
 
     private Guid? renamingFileId;
 
+    private Guid? focusFileId;
+
     private string? listFailure;
 
     private string? error;
@@ -205,6 +209,17 @@
     {
         await this.ReloadFiles();
         this.loading = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (this.focusFileId is not { } fileId)
+            return;
+
+        this.focusFileId = null;
+
+        if (this.nameButtons.TryGetValue(fileId, out var button))
+            await button.FocusAsync();
     }
 
     private IReadOnlyList<EcMenuItem> FileActions(FileListItem file)
@@ -315,13 +330,16 @@
         this.renamingFileId = file.FileId;
     }
 
+    // A finished rename hands the focus back to the row it replaced.
     private void CancelRename()
     {
+        this.focusFileId = this.renamingFileId;
         this.renamingFileId = null;
     }
 
     private async Task FileRenamed()
     {
+        this.focusFileId = this.renamingFileId;
         this.renamingFileId = null;
 
         await this.ReloadFiles();

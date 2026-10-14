@@ -12,7 +12,8 @@ internal sealed class BlobUrls(IJSRuntime jsRuntime) : IBlobUrls, IAsyncDisposab
 
         using var streamRef = new DotNetStreamReference(content);
 
-        return await files.InvokeAsync<string>("createObjectUrl", token, mediaType, streamRef);
+        // Never cancelled once started: a URL the browser made after a cancel must reach the caller to be revoked.
+        return await files.InvokeAsync<string>("createObjectUrl", CancellationToken.None, mediaType, streamRef);
     }
 
     public async Task RevokeBlobUrl(string url)
