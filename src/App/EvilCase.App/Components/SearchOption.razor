@@ -1,6 +1,6 @@
 @using EvilBrains.EvilCase.Api.Contract.Labels
 
-<a id="@this.Id" class="@this.CssClass" role="option" aria-selected="@(this.Active ? "true" : "false")" href="@this.Href"
+<a id="@this.Id" class="@this.CssClass" role="option" aria-selected="@(this.Active ? "true" : "false")" tabindex="-1" href="@this.Href"
    @onmouseenter="this.OnActivate" @onclick="this.OnOpen">
     <span class="@($"ec-sr-icon ec-sr-icon-{this.Kind}")">@this.Icon</span>
     <span class="ec-sr-body">

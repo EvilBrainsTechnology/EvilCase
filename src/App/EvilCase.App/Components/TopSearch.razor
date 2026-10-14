@@ -442,6 +442,8 @@
         {
             this.Logger.LogWarning(exception, "The search failed");
 
+            this.result = null;
+            this.hrefs = [];
             this.failure = "Hledání se nepodařilo. Zkuste to znovu.";
         }
     }

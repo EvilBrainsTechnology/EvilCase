@@ -235,6 +235,34 @@ public class TopSearchRenderTests
     }
 
     [Test]
+    public async Task AFailedSearchAfterAFoundOneLeavesNoRowForEnterToOpen()
+    {
+        await using var ctx = new BunitContext();
+        var client = Arrange(ctx, Nothing());
+        var found = Everything();
+        client
+            .Search(Arg.Any<SearchRequest>(), Arg.Any<CancellationToken>())
+            .Returns(_ => Task.FromResult(found), static _ => throw new HttpRequestException());
+
+        var navigation = ctx.Services.GetRequiredService<NavigationManager>();
+        var component = ctx.Render<TopSearch>();
+        var input = component.Find(".ec-topsearch-input");
+        await input.InputAsync(new ChangeEventArgs { Value = "poj" });
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll("[role=option]"), Is.Not.Empty));
+        await input.InputAsync(new ChangeEventArgs { Value = "pojx" });
+        await component.WaitForAssertionAsync(
+            () => Assert.That(component.Find(".ec-sr-state").TextContent, Does.Contain("Hledání se nepodařilo")));
+
+        await input.KeyDownAsync(new KeyboardEventArgs { Key = "Enter" });
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(navigation.Uri, Does.Not.Contain("/cases/"), "Enter opens no row the failure hid");
+            Assert.That(component.Find(".ec-topsearch-input").GetAttribute("aria-activedescendant"), Is.Null, "no hidden row stays active");
+        }
+    }
+
+    [Test]
     public async Task TheListboxCarriesTheComboboxContract()
     {
         await using var ctx = new BunitContext();
@@ -250,6 +278,10 @@ public class TopSearchRenderTests
             Assert.That(input.GetAttribute("role"), Is.EqualTo("combobox"));
             Assert.That(input.GetAttribute("aria-controls"), Is.EqualTo(component.Find("[role=listbox]").Id));
             Assert.That(component.FindAll("[role=listbox] [role=group]"), Has.Count.EqualTo(6));
+            Assert.That(
+                component.FindAll("[role=option]").Select(static row => row.GetAttribute("tabindex")),
+                Is.All.EqualTo("-1"),
+                "the focus stays in the field, so no row is a tab stop");
         }
     }
 
