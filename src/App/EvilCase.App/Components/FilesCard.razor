@@ -75,18 +75,17 @@
                         {
                             var busy = this.downloadingFileId == file.FileId;
 
-                            if (this.renamingFileId == file.FileId)
-                            {
-                                <div class="ec-file-row ec-file-row-renaming" @key="file.FileId">
-                                    <EcFileIcon FileName="@file.FileName" Size="@this.IconSize" />
+                            var renaming = this.renamingFileId == file.FileId;
+
+                            <div class="@(renaming ? "ec-file-row ec-file-row-renaming" : "ec-file-row")" @key="file.FileId">
+                                <EcFileIcon FileName="@file.FileName" Size="@this.IconSize" />
+                                @if (renaming)
+                                {
                                     <FileRenameField FileName="@file.FileName" Rename="(name, token) => this.RenameFile(file, name, token)"
                                                      OnRenamed="this.FileRenamed" OnCancel="this.CancelRename" />
-                                </div>
-                            }
-                            else
-                            {
-                                <div class="ec-file-row" @key="file.FileId">
-                                    <EcFileIcon FileName="@file.FileName" Size="@this.IconSize" />
+                                }
+                                else
+                                {
                                     <div class="ec-file-main">
                                         <button type="button" class="ec-file-name"
                                                 title="@(this.Compact ? file.FileName : this.OpenTitle(file))"
@@ -99,8 +98,8 @@
                                                   OnClick="() => this.Download(file)" />
                                         <EcMenu AriaLabel="@($"Další akce se souborem {file.FileName}")" Items="this.FileActions(file)" />
                                     </div>
-                                </div>
-                            }
+                                }
+                            </div>
                         }
                     </div>
                 }

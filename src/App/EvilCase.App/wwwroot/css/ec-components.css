@@ -979,6 +979,10 @@ html {
     gap: var(--ec-space-2);
 }
 
+.ec-file-actions:has([aria-expanded="true"]) {
+    z-index: 2;
+}
+
 .ec-file-actions .ec-button {
     height: var(--ec-control-md);
 }
