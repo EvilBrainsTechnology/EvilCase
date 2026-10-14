@@ -490,7 +490,7 @@ public class CaseListRenderTests
     }
 
     [Test]
-    public void ASubcaseShowsItsParentOnTheFirstLineAndItsOwnTitleOnTheSecond()
+    public void ASubcaseShowsItsOwnTitleOnTheFirstLineAndItsParentOnTheSecond()
     {
         using var ctx = new BunitContext();
         Serve(ctx, out _, items: [Row with { ParentCaseTitle = "Rodič", Title = "Podspis" }]);
@@ -504,9 +504,11 @@ public class CaseListRenderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(cell.ClassList, Does.Contain("ec-cell-stack"));
-            Assert.That(cell.Children[0].TextContent.Trim(), Is.EqualTo("Rodič"));
-            Assert.That(cell.Children[1].ClassList, Does.Contain("ec-cell-line"));
-            Assert.That(cell.Children[1].QuerySelector(".ec-cell-sub")!.TextContent.Trim(), Is.EqualTo("Podspis"));
+            Assert.That(cell.Children[0].ClassList, Does.Contain("ec-cell-line"));
+            Assert.That(cell.Children[0].QuerySelector(".ec-cell-sub"), Is.Null);
+            Assert.That(cell.Children[0].TextContent.Trim(), Is.EqualTo("Podspis"));
+            Assert.That(cell.Children[1].ClassList, Does.Contain("ec-cell-sub"));
+            Assert.That(cell.Children[1].TextContent.Trim(), Is.EqualTo("Rodič"));
         }
     }
 

@@ -41,7 +41,7 @@ kontakt. Zadává se na editaci spisu.
 
 ### Stránky
 
-- `/cases` — seznam spisů: datum, název se štítky jako drobnými značkami s názvem (SDD-019); podřízený spis ukazuje na prvním řádku název rodičovského spisu a pod ním vlastní název se štítky, jako spis v seznamu úkonů, stav
+- `/cases` — seznam spisů: datum, název se štítky jako drobnými značkami s názvem (SDD-019); podřízený spis ukazuje na prvním řádku vlastní název se štítky a pod ním šedě název rodičovského spisu, jako úkon v seznamu úkonů, stav
   s barevnou tečkou, spisová značka a pod ní šedě externí značka, je-li. Výchozí řazení je podle
   data spisu sestupně; záhlaví sloupce řadí podle sebe a druhý klik otočí směr. Seznam je
   stránkovaný podle SDD-005 a nese celkový počet. Lišta je na jednom řádku: hledání, přepínač
