@@ -1,6 +1,8 @@
 using EvilBrains.EvilCase.Api.Contract.Acts;
+using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Lists;
 using EvilBrains.EvilCase.Business.Acts;
+using EvilBrains.EvilCase.Domain.Cases;
 using EvilBrains.EvilCase.Tests.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -78,6 +80,29 @@ public class ActListAcrossCasesTests : TenantFixture
         {
             Assert.That(response.Items.Select(static item => item.ActId), Is.EqualTo([wanted.Id]), "the act list narrows to one case where the request names it");
             Assert.That(response.TotalCount, Is.EqualTo(1), "the total counts what the case filter leaves");
+        }
+    }
+
+    [Test]
+    public async Task TheOpenCaseStatusLeavesOutActsOfClosedCases()
+    {
+        var active = await this.Tenant.AddCase(new DateOnly(2026, 8, 20), "Aktivní", status: CaseStatus.Active);
+        var waiting = await this.Tenant.AddCase(new DateOnly(2026, 8, 20), "Čeká", status: CaseStatus.WaitingOnAuthority);
+        var closed = await this.Tenant.AddCase(new DateOnly(2026, 8, 20), "Uzavřený", status: CaseStatus.Closed);
+
+        var inActive = await this.Tenant.AddAct(active, new DateOnly(2026, 8, 21), "A");
+        var inWaiting = await this.Tenant.AddAct(waiting, new DateOnly(2026, 8, 22), "B");
+        var inClosed = await this.Tenant.AddAct(closed, new DateOnly(2026, 8, 23), "C");
+
+        var open = await this.List(new ActListRequest { Take = 20, CaseStatus = CaseStatusFilter.Open });
+        var all = await this.List(new ActListRequest { Take = 20 });
+        var onlyClosed = await this.List(new ActListRequest { Take = 20, CaseStatus = CaseStatusFilter.Closed });
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(open, Is.EquivalentTo([inActive.Id, inWaiting.Id]), "open means every case that is not closed");
+            Assert.That(all, Is.EquivalentTo([inActive.Id, inWaiting.Id, inClosed.Id]), "no case status leaves the list unnarrowed");
+            Assert.That(onlyClosed, Is.EqualTo([inClosed.Id]), "the closed status keeps only acts of closed cases");
         }
     }
 

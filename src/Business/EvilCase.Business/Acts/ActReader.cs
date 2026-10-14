@@ -15,6 +15,7 @@ internal sealed class ActReader(IDbSession dbSession) : IActReader
         var filtered = dbSession.Current.Acts
             .MatchingSearch(request.Search)
             .OfCase(request.CaseId)
+            .OfCaseWithStatus(request.CaseStatus)
             .WithContact(request.ContactId)
             .WithDirection(request.Direction)
             .WithLabels(request.LabelIds)

@@ -1,6 +1,7 @@
 @using System.Diagnostics
 @using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Acts
+@using EvilBrains.EvilCase.Api.Contract.Cases
 @using EvilBrains.EvilCase.Api.Contract.Lists
 @using EvilBrains.EvilCase.Domain.Acts
 @inherits FilteredListComponent<ActListRequest>
@@ -151,6 +152,15 @@
                          FromChanged="this.OnFromInput" ToChanged="this.OnToInput" LabelsChanged="this.OnLabelsChanged"
                          Cleared="this.ClearFilters" />
         }
+
+        @if (this.ShowCaseStatusFilter)
+        {
+            <label class="ec-check" for="@($"{this.InputPrefix}-open-cases")">
+                <input id="@($"{this.InputPrefix}-open-cases")" type="checkbox" class="ec-check-box"
+                       checked="@(this.caseStatus == CaseStatusFilter.Open)" @onchange="this.OnCaseStatusChanged" />
+                Jen z otevřených spisů
+            </label>
+        }
     </Toolbar>
     <Empty>
         <EcEmptyState Icon="@AppIcons.FileText" Text="@(this.IsFiltered ? FilteredEmptyText : this.EmptyText)" Action="this.EmptyAction" />
@@ -199,6 +209,9 @@
     public bool ShowDirectionFilter { get; set; }
 
     [Parameter]
+    public bool ShowCaseStatusFilter { get; set; }
+
+    [Parameter]
     public bool ShowPaging { get; set; }
 
     /// <summary>
@@ -228,27 +241,40 @@
 
     private ActDirection? direction;
 
+    private CaseStatusFilter caseStatus;
+
+    private ActListRequest? seeded;
+
     protected override int PageSize => this.Filter.Take;
 
     protected override string FailureText => "Seznam úkonů se nepodařilo načíst. Zkuste to za chvíli znovu.";
 
-    private bool HasFilters => this.ShowSearch || this.ShowDates || this.ShowLabelFilter || this.ShowDirectionFilter;
+    private bool HasFilters => this.ShowSearch || this.ShowDates || this.ShowLabelFilter || this.ShowDirectionFilter || this.ShowCaseStatusFilter;
 
     private bool ToolbarShown => this.HasFilters && !(this.HideToolbarWhenEmpty && this.IsEmptyUnfiltered);
 
     private bool IsEmptyUnfiltered => !this.Loading && this.Failure is null && this.Total == 0 && !this.IsFiltered;
 
-    private bool IsFiltered => this.Search is not null || this.direction != this.Filter.Direction || this.ActiveFilterCount > 0;
+    private bool IsFiltered => this.Search is not null || this.direction != this.Filter.Direction || this.caseStatus != this.Filter.CaseStatus
+        || this.ActiveFilterCount > 0;
 
     protected override void OnInitialized()
     {
         this.sort = this.Filter.Sort;
-        this.direction = this.Filter.Direction;
         this.Direction = this.Filter.SortDirection;
     }
 
+    // A host filter with another direction or case status, e.g. a new address, resets the toolbar to it.
     protected override Task OnParametersSetAsync()
     {
+        if (this.seeded?.Direction != this.Filter.Direction)
+            this.direction = this.Filter.Direction;
+
+        if (this.seeded?.CaseStatus != this.Filter.CaseStatus)
+            this.caseStatus = this.Filter.CaseStatus;
+
+        this.seeded = this.Filter;
+
         return this.ReloadOnFilterChange(this.Filter, this.Filter.Search);
     }
 
@@ -261,6 +287,7 @@
             To = this.To,
             LabelIds = this.LabelIds,
             Direction = this.direction,
+            CaseStatus = this.caseStatus,
             Sort = this.sort,
             SortDirection = this.Direction,
             Skip = this.Skip,
@@ -293,6 +320,13 @@
     private Task SetDirection(ActDirection? value)
     {
         this.direction = value;
+
+        return this.ReloadFirstPage();
+    }
+
+    private Task OnCaseStatusChanged(ChangeEventArgs args)
+    {
+        this.caseStatus = (bool)(args.Value ?? false) ? CaseStatusFilter.Open : CaseStatusFilter.All;
 
         return this.ReloadFirstPage();
     }

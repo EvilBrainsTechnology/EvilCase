@@ -37,17 +37,21 @@ kontakt. Zadává se na editaci úkonu.
 
 ### Stránky a řazení
 
+- `/acts` — seznam úkonů napříč spisy: datum úkonu, název se spisem, směr, kontakt a číslo
+  jednací. Zužuje se hledáním, směrem, rozsahem dat a štítkem; volba „Jen z otevřených spisů“ je
+  ve výchozím stavu zapnutá a vynechá úkony uzavřených spisů. Výchozí řazení je podle data úkonu
+  sestupně, 20 úkonů na stránku.
 - `/acts/new?case={id}` — založení, včetně štítků. Bez spisu v adrese formulář vyžaduje výběr spisu.
 - `/acts/{actId}` — detail: štítky, údaje, komentáře (SDD-013), soubory (SDD-012).
   Nese pořadí úkonu ve spisu s přechodem na předchozí a další úkon a průběh spisu: nejvýše dva
   úkony před ním a dva po něm v pořadí výchozího řazení. Upozornění na odlišný kontakt spisu
   stojí u kontaktu úkonu.
 - `/acts/{actId}/edit` — editace, včetně štítků.
-- Seznam úkonů jde napříč spisy a zužuje se spisem, kontaktem, štítkem, směrem a rozsahem dat;
-  v detailu spisu je zúžený tímto spisem. Ukazuje datum, název, směr, číslo jednací, kontakt
-  a štítky (SDD-019); podobu v detailu spisu řídí SDD-009. Výchozí řazení je podle data úkonu
-  vzestupně; záhlaví sloupce řadí podle sebe a druhý klik otočí směr. Seznam je stránkovaný podle
-  SDD-005 a nese celkový počet.
+- Seznam úkonů jde napříč spisy a zužuje se spisem, stavem spisu, kontaktem, štítkem, směrem
+  a rozsahem dat; v detailu spisu je zúžený tímto spisem. Ukazuje datum, název, směr, číslo
+  jednací, kontakt a štítky (SDD-019); podobu v detailu spisu řídí SDD-009. Výchozí řazení je
+  podle data úkonu vzestupně; záhlaví sloupce řadí podle sebe a druhý klik otočí směr. Seznam je
+  stránkovaný podle SDD-005 a nese celkový počet.
 
 ### Mazání
 
