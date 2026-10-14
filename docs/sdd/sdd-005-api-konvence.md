@@ -32,7 +32,7 @@ Tvary API a klienta.
 - Stránka je povinná: `Skip` od nuly, `Take` od 1 do 100. Výpis bez `Take` je 400. Odpověď nese
   vedle položek celkový počet všeho, co filtr nechal, bez ohledu na stránku.
 - Filtr štítků bere více štítků; položka musí nést všechny.
-- Výjimka je hledání napříč entitami: skupina má pevných 3 položky a celkový počet.
+- Výjimka je hledání napříč entitami: skupina nese nejvýše 3 položky a celkový počet.
 
 ### Limity požadavků
 
