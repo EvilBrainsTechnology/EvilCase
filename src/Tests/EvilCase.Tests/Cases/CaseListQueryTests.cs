@@ -156,6 +156,21 @@ public class CaseListQueryTests : TenantFixture
     }
 
     [Test]
+    public async Task ASubcaseRowCarriesTheParentTitleAndARootRowCarriesNone()
+    {
+        var parent = await this.Tenant.AddCase(Day, "Rodič");
+        var child = await this.Tenant.AddCase(Day, "Podspis", parentCaseId: parent.Id);
+
+        var rows = await this.Tenant.Context.Cases.AsListItems().ToListAsync();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(rows.Single(row => row.CaseId == child.Id).ParentCaseTitle, Is.EqualTo("Rodič"));
+            Assert.That(rows.Single(row => row.CaseId == parent.Id).ParentCaseTitle, Is.Null);
+        }
+    }
+
+    [Test]
     public async Task ACaseOfAnotherTenantNeverComesBack()
     {
         var mine = await this.Tenant.AddCase(Day, "Moje věc");

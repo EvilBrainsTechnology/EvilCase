@@ -100,6 +100,7 @@ internal static class CaseListQuery
             CaseNumber = @case.CaseNumber,
             ExternalCaseNumber = @case.ExternalCaseNumber,
             Title = @case.Title,
+            ParentCaseTitle = @case.ParentCase!.Title,
             Date = @case.Date,
             Status = @case.Status,
             Changed = @case.Updated ?? @case.Created,
