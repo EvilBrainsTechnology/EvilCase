@@ -559,6 +559,27 @@ public class FilesCardRenderTests
         Assert.That(renamed, Is.EqualTo(["Uložený.pdf"]), "only Enter saved");
     }
 
+    [TestCase("Escape")]
+    [TestCase("Enter")]
+    public async Task AFinishedRenameReturnsTheFocusToTheRow(string key)
+    {
+        await using var ctx = NewContext();
+
+        var component = new Card { Files = [PdfFile()] }.Render(ctx);
+
+        await OpenMenu(component);
+        await component.FindAll("[role=menuitem]")[0].ClickAsync(new MouseEventArgs());
+        await component.Find("input.ec-file-rename-input").InputAsync(new ChangeEventArgs { Value = "Nový" });
+        await component.Find("input.ec-file-rename-input").KeyDownAsync(new KeyboardEventArgs { Key = key });
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-file-rename"), Is.Empty));
+
+        var buttonId = component.Find("button.ec-file-name").GetAttribute("blazor:elementReference");
+        var focused = ctx.JSInterop.Invocations["Blazor._internal.domWrapper.focus"];
+
+        Assert.That(((ElementReference)focused[^1].Arguments[0]!).Id, Is.EqualTo(buttonId), "keyboard focus never drops to the page when the input goes away");
+    }
+
     [Test]
     public async Task ABlankNameIsRefusedBeforeTheCallAndAFailureShowsInTheRow()
     {
