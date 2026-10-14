@@ -32,6 +32,7 @@ Tvary API a klienta.
 - Stránka je povinná: `Skip` od nuly, `Take` od 1 do 100. Výpis bez `Take` je 400. Odpověď nese
   vedle položek celkový počet všeho, co filtr nechal, bez ohledu na stránku.
 - Filtr štítků bere více štítků; položka musí nést všechny.
+- Výjimka je hledání napříč entitami: skupina má pevných 3 položky a celkový počet.
 
 ### Limity požadavků
 
@@ -49,6 +50,7 @@ Vše ostatní je bez limitu, health checks včetně. Odmítnutí je 429 s `Retry
 | Kontakty | `/api/contacts`, `/api/contacts/{id}` |
 | Soubory | výpis a smazání na vlastníku; upload na vlastníku a download `/api/files/{id}/content` |
 | Komentáře | na vlastníku, `…/comments`, `…/comments/{id}` |
+| Hledání | `/api/search?q=`, viz [SDD-021](sdd-021-vyhledavani.md) |
 | Štítky | `/api/labels`, `/api/labels/{id}`; přidělení na vlastníku `…/labels` |
 
 - Id v routách je `Guid`.

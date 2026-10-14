@@ -68,7 +68,8 @@ v tlačítku, 18 px v menu. Ikona vždy doprovází text; samostatná stojí jen
 
 ### Skladba obrazovky
 
-Nad obsahem je tmavá vodorovná lišta s logem, menu, hledáním a uživatelským menu; aktivní
+Nad obsahem je tmavá vodorovná lišta s logem, menu, hledáním napříč entitami ([SDD-021](sdd-021-vyhledavani.md), předloha
+[`hledani.html`](../design/hledani.html)) a uživatelským menu; aktivní
 položka menu je zvýrazněná po celé výšce lišty. Obsah leží na
 šedém podkladu v bílých kartách; karta nikdy neleží v jiné kartě. Obsah stránky je nejvýše
 1680 px široký a zbytek okna zůstane prázdný; roste přitom hlavní sloupec, boční zůstává 380 px.
