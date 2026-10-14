@@ -23,7 +23,7 @@ Komponenta nikdy nepíše hodnotu přímo; sahá na proměnnou.
 
 Barvy: podklad stránky `--ec-bg` #F2F3F6, plocha karty `--ec-surface` #FFFFFF, text
 `--ec-text` #14161B, sekundární text `--ec-text-muted` #5B6270, linka `--ec-border` #E1E4EA,
-akcent `--ec-accent` #3B5BDB. Významové dvojice pozadí a textu nese stav (zelená, žlutá, šedá),
+akcent `--ec-accent` #1F3FAE. Významové dvojice pozadí a textu nese stav (zelená, žlutá, šedá),
 směr úkonu (modrá příchozí, zelená odchozí) a chyba (červená). Každá dvojice drží kontrast
 alespoň 4,5:1.
 
@@ -68,7 +68,8 @@ v tlačítku, 18 px v menu. Ikona vždy doprovází text; samostatná stojí jen
 
 ### Skladba obrazovky
 
-Nad obsahem je vodorovná lišta s logem, menu, hledáním a uživatelským menu. Obsah leží na
+Nad obsahem je tmavá vodorovná lišta s logem, menu, hledáním a uživatelským menu; aktivní
+položka menu je zvýrazněná po celé výšce lišty. Obsah leží na
 šedém podkladu v bílých kartách; karta nikdy neleží v jiné kartě. Obsah stránky je nejvýše
 1680 px široký a zbytek okna zůstane prázdný; roste přitom hlavní sloupec, boční zůstává 380 px.
 

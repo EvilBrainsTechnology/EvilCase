@@ -24,10 +24,10 @@
     --ec-border-dashed: #C9CFDA;
 
     /* Akcent */
-    --ec-accent: #3B5BDB;
-    --ec-accent-hover: #3050C8;
-    --ec-accent-text: #2F4FD1;
-    --ec-accent-soft: #EEF2FE;
+    --ec-accent: #1F3FAE;
+    --ec-accent-hover: #19338F;
+    --ec-accent-text: #1C3A9F;
+    --ec-accent-soft: #E9EDF9;
     --ec-on-accent: #FFFFFF;
 
     /* Stav spisu */
@@ -263,7 +263,7 @@
     --ec-gate-card-width: calc(var(--ec-login-form-width) + 2 * var(--ec-gate-card-pad) + 2px);
     --ec-gate-card-radius: 20px;
     --ec-gate-card-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
-    --ec-gate-glow: rgba(59, 91, 219, 0.32);
+    --ec-gate-glow: rgba(31, 63, 174, 0.32);
     --ec-gate-bg: radial-gradient(ellipse 70% 55% at 50% 30%, var(--ec-gate-glow), transparent 70%), var(--ec-login-panel-bg);
     --ec-gate-anchor: 300px;
     --ec-gate-card-height: 362px;
@@ -279,7 +279,20 @@
     /* Stíny a fokus */
     --ec-shadow-raised: 0 1px 2px rgba(20, 22, 27, 0.08);
     --ec-shadow-overlay: 0 12px 32px rgba(20, 22, 27, 0.16);
-    --ec-focus-ring: 0 0 0 3px rgba(59, 91, 219, 0.35);
+    --ec-focus-ring: 0 0 0 3px rgba(31, 63, 174, 0.35);
     --ec-overlay: rgba(20, 22, 27, 0.4);
     --ec-nav-marker: inset 0 -2px 0 var(--ec-accent);
+
+    /* Tmavá horní lišta */
+    --ec-accent-on-dark: #9DB0F2;
+    --ec-topbar-bg: var(--ec-text);
+    --ec-topbar-text: #FFFFFF;
+    --ec-topbar-nav-text: #B4BAC4;
+    --ec-topbar-nav-hover-bg: rgba(255, 255, 255, 0.06);
+    --ec-topbar-nav-active-bg: rgba(255, 255, 255, 0.10);
+    --ec-topbar-nav-marker: inset 0 -3px 0 var(--ec-accent-on-dark);
+    --ec-topbar-search-bg: #1F2229;
+    --ec-topbar-search-border: #2E323B;
+    --ec-topbar-search-muted: #A0A6B1;
+    --ec-topbar-avatar-ring: 0 0 0 2px var(--ec-topbar-bg), 0 0 0 3px var(--ec-accent-on-dark);
 }
