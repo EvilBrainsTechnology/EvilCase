@@ -45,22 +45,50 @@ function secureLinks(root) {
     }
 }
 
+// The blob URLs of each rendered document's pictures, revoked once its element has left the page.
+const documentUrls = new Map();
+
+function releaseDocuments() {
+    for (const [host, urls] of documentUrls) {
+        if (!host.isConnected) {
+            urls.forEach(url => URL.revokeObjectURL(url));
+            documentUrls.delete(host);
+        }
+    }
+}
+
+// The document renders in a shadow root, so the styles it carries apply to it alone.
 export async function renderDocument(host, contentStream) {
+    releaseDocuments();
+
     const buffer = await contentStream.arrayBuffer();
 
     await loadScript('jszip/jszip.min.js');
     await loadScript('docx-preview/docx-preview.min.js');
 
-    host.replaceChildren();
-    await window.docx.renderAsync(buffer, host, null, {
-        inWrapper: true,
-        breakPages: true,
-        ignoreLastRenderedPageBreak: true,
-    });
-    secureLinks(host);
+    (documentUrls.get(host) ?? []).forEach(url => URL.revokeObjectURL(url));
+
+    const page = document.createElement('div');
+    const root = page.attachShadow({ mode: 'closed' });
+
+    host.replaceChildren(page);
+
+    try {
+        await window.docx.renderAsync(buffer, root, null, {
+            inWrapper: true,
+            breakPages: true,
+            ignoreLastRenderedPageBreak: true,
+            renderAltChunks: false,
+        });
+        secureLinks(root);
+    } finally {
+        documentUrls.set(host, root.innerHTML.match(/blob:[^\s"'()<>]+/g) ?? []);
+    }
 }
 
 export async function readWorkbook(contentStream, maxRows) {
+    releaseDocuments();
+
     const buffer = await contentStream.arrayBuffer();
 
     // SheetJS also reads text and HTML as a sheet; only a ZIP or an OLE container is a workbook here.
@@ -177,6 +205,8 @@ async function readMsg(buffer) {
 }
 
 export async function readEmail(fileName, contentStream) {
+    releaseDocuments();
+
     const buffer = await contentStream.arrayBuffer();
 
     return extensionOf(fileName) === 'msg' ? readMsg(buffer) : readEml(buffer);
@@ -233,6 +263,8 @@ async function decodeTiff(buffer) {
 
 // The picture the browser cannot show becomes a PNG blob; the caller revokes the URL.
 export async function createPngUrl(fileName, contentStream) {
+    releaseDocuments();
+
     const buffer = await contentStream.arrayBuffer();
     const image = ['tif', 'tiff'].includes(extensionOf(fileName)) ? await decodeTiff(buffer) : await decodeHeic(buffer);
     const canvas = document.createElement('canvas');

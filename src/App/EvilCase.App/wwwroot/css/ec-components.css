@@ -1467,11 +1467,7 @@ html {
 .ec-preview-document {
     max-width: 100%;
     overflow-x: auto;
-}
-
-.ec-preview-document .docx-wrapper {
-    padding: 0;
-    background: transparent;
+    contain: paint;
 }
 
 .ec-preview-sheet-view {
