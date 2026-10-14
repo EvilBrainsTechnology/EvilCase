@@ -14,9 +14,9 @@ internal sealed class FileTransferClient(HttpClient httpClient) : IFileTransferC
         await this.Upload(new Uri($"api/cases/{caseId}/files", UriKind.Relative), file, token);
     }
 
-    public async Task UploadActFile(Guid caseId, Guid actId, IBrowserFile file, CancellationToken token)
+    public async Task UploadActFile(Guid actId, IBrowserFile file, CancellationToken token)
     {
-        await this.Upload(new Uri($"api/cases/{caseId}/acts/{actId}/files", UriKind.Relative), file, token);
+        await this.Upload(new Uri($"api/acts/{actId}/files", UriKind.Relative), file, token);
     }
 
     private async Task Upload(Uri route, IBrowserFile file, CancellationToken token)

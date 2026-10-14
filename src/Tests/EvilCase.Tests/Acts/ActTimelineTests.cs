@@ -17,9 +17,9 @@ public class ActTimelineTests : TenantFixture
     [Test]
     public async Task TheFirstActStandsFirstAndSeesTwoActsAhead()
     {
-        var (caseId, actIds) = await this.AddCaseOfSevenActs();
+        var actIds = await this.AddCaseOfSevenActs();
 
-        var detail = await this.ReadActDetail(caseId, actIds[0]);
+        var detail = await this.ReadActDetail(actIds[0]);
 
         using (Assert.EnterMultipleScope())
         {
@@ -39,9 +39,9 @@ public class ActTimelineTests : TenantFixture
     [Test]
     public async Task AnActInTheMiddleSeesTwoActsEitherSide()
     {
-        var (caseId, actIds) = await this.AddCaseOfSevenActs();
+        var actIds = await this.AddCaseOfSevenActs();
 
-        var detail = await this.ReadActDetail(caseId, actIds[3]);
+        var detail = await this.ReadActDetail(actIds[3]);
 
         using (Assert.EnterMultipleScope())
         {
@@ -55,9 +55,9 @@ public class ActTimelineTests : TenantFixture
     [Test]
     public async Task TheLastActStandsLastAndSeesTwoActsBehind()
     {
-        var (caseId, actIds) = await this.AddCaseOfSevenActs();
+        var actIds = await this.AddCaseOfSevenActs();
 
-        var detail = await this.ReadActDetail(caseId, actIds[6]);
+        var detail = await this.ReadActDetail(actIds[6]);
 
         using (Assert.EnterMultipleScope())
         {
@@ -81,7 +81,7 @@ public class ActTimelineTests : TenantFixture
             contact: await this.Tenant.AddContact("Městský úřad"),
             direction: ActDirection.Outgoing);
 
-        var detail = await this.ReadActDetail(@case.Id, act.Id);
+        var detail = await this.ReadActDetail(act.Id);
         var item = detail.CaseTimeline.Single();
 
         using (Assert.EnterMultipleScope())
@@ -107,7 +107,7 @@ public class ActTimelineTests : TenantFixture
         var second = await this.Tenant.AddAct(@case, Day, "Výzva", actId: actIds[0]);
         var third = await this.Tenant.AddAct(@case, Day, "Rozhodnutí", actId: actIds[1]);
 
-        var detail = await this.ReadActDetail(@case.Id, second.Id);
+        var detail = await this.ReadActDetail(second.Id);
 
         Guid[] expected = [first.Id, second.Id, third.Id];
 
@@ -134,7 +134,7 @@ public class ActTimelineTests : TenantFixture
         var foreignCase = await other.AddCase(Day);
         await other.AddAct(foreignCase, Day.AddDays(1));
 
-        var detail = await this.ReadActDetail(@case.Id, first.Id);
+        var detail = await this.ReadActDetail(first.Id);
 
         using (Assert.EnterMultipleScope())
         {
@@ -149,15 +149,14 @@ public class ActTimelineTests : TenantFixture
     [Test]
     public async Task TheReaderReturnsNothingForAnUnknownAct()
     {
-        var @case = await this.Tenant.AddCase(Day);
         var reader = new ActReader(new FixedDbSession(this.Tenant.Context));
 
-        var detail = await reader.GetActDetail(@case.Id, Guid.CreateVersion7(), CancellationToken.None);
+        var detail = await reader.GetActDetail(Guid.CreateVersion7(), CancellationToken.None);
 
         Assert.That(detail, Is.Null);
     }
 
-    private async Task<(Guid CaseId, Guid[] ActIds)> AddCaseOfSevenActs()
+    private async Task<Guid[]> AddCaseOfSevenActs()
     {
         var @case = await this.Tenant.AddCase(Day);
         var actIds = new Guid[WriteOrder.Length];
@@ -165,13 +164,13 @@ public class ActTimelineTests : TenantFixture
         foreach (var offset in WriteOrder)
             actIds[offset] = (await this.Tenant.AddAct(@case, Day.AddDays(offset))).Id;
 
-        return (@case.Id, actIds);
+        return actIds;
     }
 
-    private async Task<ActDetail> ReadActDetail(Guid caseId, Guid actId)
+    private async Task<ActDetail> ReadActDetail(Guid actId)
     {
         var reader = new ActReader(new FixedDbSession(this.Tenant.Context));
 
-        return (await reader.GetActDetail(caseId, actId, CancellationToken.None))!;
+        return (await reader.GetActDetail(actId, CancellationToken.None))!;
     }
 }

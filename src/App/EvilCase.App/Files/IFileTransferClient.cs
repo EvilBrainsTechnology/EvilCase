@@ -6,7 +6,7 @@ internal interface IFileTransferClient
 {
     public Task UploadCaseFile(Guid caseId, IBrowserFile file, CancellationToken token);
 
-    public Task UploadActFile(Guid caseId, Guid actId, IBrowserFile file, CancellationToken token);
+    public Task UploadActFile(Guid actId, IBrowserFile file, CancellationToken token);
 
     public Task<FileContent> DownloadFileContent(Guid fileId, CancellationToken token);
 }

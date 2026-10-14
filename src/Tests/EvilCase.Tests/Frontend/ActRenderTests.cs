@@ -43,13 +43,11 @@ public class ActRenderTests
             Title = "Úkon",
         };
 
-        Serve(ctx, caseId, actId, detail);
+        Serve(ctx, actId, detail);
 
         // The regression: FilesCard and CommentsCard shared the same @key, so a second render of
         // the batch threw from RenderTreeDiffBuilder and the whole batch was discarded.
-        var component = ctx.Render<Act>(parameters => parameters
-            .Add(static page => page.CaseId, caseId)
-            .Add(static page => page.ActId, actId));
+        var component = ctx.Render<Act>(parameters => parameters.Add(static page => page.ActId, actId));
 
         var empties = component.FindAll(".ec-empty-text").Select(static node => node.TextContent).ToArray();
 
@@ -86,11 +84,9 @@ public class ActRenderTests
             Labels = [new LabelItem { LabelId = Guid.CreateVersion7(), Name = "InfZ", Color = LabelColor.Blue }],
         };
 
-        Serve(ctx, caseId, actId, detail);
+        Serve(ctx, actId, detail);
 
-        var component = ctx.Render<Act>(parameters => parameters
-            .Add(static page => page.CaseId, caseId)
-            .Add(static page => page.ActId, actId));
+        var component = ctx.Render<Act>(parameters => parameters.Add(static page => page.ActId, actId));
 
         using (Assert.EnterMultipleScope())
         {
@@ -125,11 +121,9 @@ public class ActRenderTests
             Title = "Úkon",
         };
 
-        Serve(ctx, caseId, actId, detail);
+        Serve(ctx, actId, detail);
 
-        var component = ctx.Render<Act>(parameters => parameters
-            .Add(static page => page.CaseId, caseId)
-            .Add(static page => page.ActId, actId));
+        var component = ctx.Render<Act>(parameters => parameters.Add(static page => page.ActId, actId));
 
         var titles = component.FindAll(".ec-card-title").Select(static node => node.TextContent).ToArray();
 
@@ -159,14 +153,12 @@ public class ActRenderTests
             Title = "Úkon",
         };
 
-        var (actsClient, _, _) = Serve(ctx, caseId, actId, detail);
+        var (actsClient, _, _) = Serve(ctx, actId, detail);
         actsClient
-            .GetAct(caseId, actId, Arg.Any<CancellationToken>())
+            .GetAct(actId, Arg.Any<CancellationToken>())
             .Returns(static _ => Task.FromException<ActDetail>(new ApiException(HttpStatusCode.InternalServerError, responseBody: null)));
 
-        var component = ctx.Render<Act>(parameters => parameters
-            .Add(static page => page.CaseId, caseId)
-            .Add(static page => page.ActId, actId));
+        var component = ctx.Render<Act>(parameters => parameters.Add(static page => page.ActId, actId));
 
         using (Assert.EnterMultipleScope())
         {
@@ -188,18 +180,16 @@ public class ActRenderTests
 
         var detail = ActWith(caseId, actId, carried);
 
-        var (actsClient, actLabelsClient, labelsClient) = Serve(ctx, caseId, actId, detail);
+        var (actsClient, actLabelsClient, labelsClient) = Serve(ctx, actId, detail);
 
         labelsClient
             .ListLabels(Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(new LabelListResponse { Items = [LabelListItems.Of(carried), LabelListItems.Of(offered)] }));
         actsClient
-            .GetAct(caseId, actId, Arg.Any<CancellationToken>())
+            .GetAct(actId, Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(detail), Task.FromResult(detail with { Labels = [carried, offered] }));
 
-        var component = ctx.Render<Act>(parameters => parameters
-            .Add(static page => page.CaseId, caseId)
-            .Add(static page => page.ActId, actId));
+        var component = ctx.Render<Act>(parameters => parameters.Add(static page => page.ActId, actId));
 
         await component.Find(".ec-label-add").ClickAsync(new MouseEventArgs());
 
@@ -212,7 +202,6 @@ public class ActRenderTests
         await actLabelsClient
             .Received(1)
             .SetActLabels(
-                caseId,
                 actId,
                 Arg.Is<LabelAssignmentRequest>(request => request.LabelIds.SequenceEqual(new[] { carried.LabelId, offered.LabelId })),
                 Arg.Any<CancellationToken>());
@@ -240,18 +229,15 @@ public class ActRenderTests
         var kept = new LabelItem { LabelId = Guid.CreateVersion7(), Name = "Priorita", Color = LabelColor.Red };
         var removed = new LabelItem { LabelId = Guid.CreateVersion7(), Name = "InfZ", Color = LabelColor.Blue };
 
-        var (_, actLabelsClient, _) = Serve(ctx, caseId, actId, ActWith(caseId, actId, kept, removed));
+        var (_, actLabelsClient, _) = Serve(ctx, actId, ActWith(caseId, actId, kept, removed));
 
-        var component = ctx.Render<Act>(parameters => parameters
-            .Add(static page => page.CaseId, caseId)
-            .Add(static page => page.ActId, actId));
+        var component = ctx.Render<Act>(parameters => parameters.Add(static page => page.ActId, actId));
 
         await component.Find("button[aria-label='Odebrat štítek InfZ']").ClickAsync(new MouseEventArgs());
 
         await actLabelsClient
             .Received(1)
             .SetActLabels(
-                caseId,
                 actId,
                 Arg.Is<LabelAssignmentRequest>(request => request.LabelIds.SequenceEqual(new[] { kept.LabelId })),
                 Arg.Any<CancellationToken>());
@@ -267,16 +253,14 @@ public class ActRenderTests
 
         var label = new LabelItem { LabelId = Guid.CreateVersion7(), Name = "InfZ", Color = LabelColor.Blue };
 
-        var (_, actLabelsClient, labelsClient) = Serve(ctx, caseId, actId, ActWith(caseId, actId));
+        var (_, actLabelsClient, labelsClient) = Serve(ctx, actId, ActWith(caseId, actId));
 
         labelsClient.ListLabels(Arg.Any<CancellationToken>()).Returns(Task.FromResult(new LabelListResponse { Items = [LabelListItems.Of(label)] }));
         actLabelsClient
-            .SetActLabels(caseId, actId, Arg.Any<LabelAssignmentRequest>(), Arg.Any<CancellationToken>())
+            .SetActLabels(actId, Arg.Any<LabelAssignmentRequest>(), Arg.Any<CancellationToken>())
             .Returns(static _ => Task.FromException(new ApiException(HttpStatusCode.InternalServerError, responseBody: null)));
 
-        var component = ctx.Render<Act>(parameters => parameters
-            .Add(static page => page.CaseId, caseId)
-            .Add(static page => page.ActId, actId));
+        var component = ctx.Render<Act>(parameters => parameters.Add(static page => page.ActId, actId));
 
         await component.Find(".ec-label-add").ClickAsync(new MouseEventArgs());
 
@@ -301,15 +285,15 @@ public class ActRenderTests
         var previousId = Guid.CreateVersion7();
         var nextId = Guid.CreateVersion7();
 
-        Serve(ctx, caseId, actId, MiddleOfThree(caseId, actId, previousId, nextId));
+        Serve(ctx, actId, MiddleOfThree(caseId, actId, previousId, nextId));
 
-        var component = RenderAct(ctx, caseId, actId);
+        var component = RenderAct(ctx, actId);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(component.Find(".ec-page-header-top .ec-act-pager-text").TextContent, Is.EqualTo("Úkon 2 z 3"));
-            Assert.That(component.Find("a[aria-label='Předchozí úkon: Výzva']").GetAttribute("href"), Is.EqualTo($"/cases/{caseId}/act/{previousId}"));
-            Assert.That(component.Find("a[aria-label='Další úkon: Odvolání']").GetAttribute("href"), Is.EqualTo($"/cases/{caseId}/act/{nextId}"));
+            Assert.That(component.Find("a[aria-label='Předchozí úkon: Výzva']").GetAttribute("href"), Is.EqualTo($"/acts/{previousId}"));
+            Assert.That(component.Find("a[aria-label='Další úkon: Odvolání']").GetAttribute("href"), Is.EqualTo($"/acts/{nextId}"));
         }
     }
 
@@ -333,9 +317,9 @@ public class ActRenderTests
             ],
         };
 
-        Serve(ctx, caseId, actId, detail);
+        Serve(ctx, actId, detail);
 
-        var component = RenderAct(ctx, caseId, actId);
+        var component = RenderAct(ctx, actId);
 
         using (Assert.EnterMultipleScope())
         {
@@ -357,15 +341,15 @@ public class ActRenderTests
         var previousId = Guid.CreateVersion7();
         var nextId = Guid.CreateVersion7();
 
-        Serve(ctx, caseId, actId, MiddleOfThree(caseId, actId, previousId, nextId));
+        Serve(ctx, actId, MiddleOfThree(caseId, actId, previousId, nextId));
 
-        var component = RenderAct(ctx, caseId, actId);
+        var component = RenderAct(ctx, actId);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(
                 component.FindAll("a.ec-timeline-item").Select(static link => link.GetAttribute("href")),
-                Is.EqualTo([$"/cases/{caseId}/act/{previousId}", $"/cases/{caseId}/act/{actId}", $"/cases/{caseId}/act/{nextId}"]));
+                Is.EqualTo([$"/acts/{previousId}", $"/acts/{actId}", $"/acts/{nextId}"]));
             Assert.That(component.Find("a.ec-timeline-item[aria-current=page] .ec-timeline-title").TextContent, Is.EqualTo("Úkon"));
             Assert.That(component.Find(".ec-timeline-direction-outgoing").TextContent.Trim(), Is.EqualTo("Odchozí"));
             Assert.That(
@@ -392,9 +376,9 @@ public class ActRenderTests
             CaseContact = new ContactListItem { ContactId = Guid.CreateVersion7(), Name = "Městský úřad Vzorov", Kind = ContactKind.Authority },
         };
 
-        Serve(ctx, caseId, actId, detail);
+        Serve(ctx, actId, detail);
 
-        var component = RenderAct(ctx, caseId, actId);
+        var component = RenderAct(ctx, actId);
 
         var warning = component.Find(".ec-detail-fact-warning[role=alert]");
 
@@ -424,9 +408,9 @@ public class ActRenderTests
             CaseContact = new ContactListItem { ContactId = caseContactId, Name = "Městský úřad Vzorov", Kind = ContactKind.Authority },
         };
 
-        Serve(ctx, caseId, actId, detail);
+        Serve(ctx, actId, detail);
 
-        var component = RenderAct(ctx, caseId, actId);
+        var component = RenderAct(ctx, actId);
 
         using (Assert.EnterMultipleScope())
         {
@@ -445,10 +429,10 @@ public class ActRenderTests
         var actId = Guid.CreateVersion7();
         var detail = Detail(caseId, actId);
 
-        Serve(ctx, caseId, actId, detail);
+        Serve(ctx, actId, detail);
 
         var clipboard = (StubClipboardWriter)ctx.Services.GetRequiredService<IClipboardWriter>();
-        var component = RenderAct(ctx, caseId, actId);
+        var component = RenderAct(ctx, actId);
 
         Assert.That(
             component.FindAll("button[aria-label='Zkopírovat externí číslo jednací']"),
@@ -468,9 +452,9 @@ public class ActRenderTests
         var caseId = Guid.CreateVersion7();
         var actId = Guid.CreateVersion7();
 
-        Serve(ctx, caseId, actId, Detail(caseId, actId));
+        Serve(ctx, actId, Detail(caseId, actId));
 
-        var component = RenderAct(ctx, caseId, actId);
+        var component = RenderAct(ctx, actId);
 
         await component.Find("button[aria-label='Další akce s úkonem']").ClickAsync(new MouseEventArgs());
 
@@ -491,10 +475,10 @@ public class ActRenderTests
         var caseId = Guid.CreateVersion7();
         var actId = Guid.CreateVersion7();
 
-        Serve(ctx, caseId, actId, Detail(caseId, actId));
+        Serve(ctx, actId, Detail(caseId, actId));
 
         var clipboard = (StubClipboardWriter)ctx.Services.GetRequiredService<IClipboardWriter>();
-        var component = RenderAct(ctx, caseId, actId);
+        var component = RenderAct(ctx, actId);
 
         await component.Find("button[aria-label='Další akce s úkonem']").ClickAsync(new MouseEventArgs());
         await component.FindAll("[role=menuitem]")[1].ClickAsync(new MouseEventArgs());
@@ -503,7 +487,7 @@ public class ActRenderTests
         {
             Assert.That(
                 clipboard.Written,
-                Is.EqualTo([$"http://localhost/cases/{caseId}/act/{actId}"]),
+                Is.EqualTo([$"http://localhost/acts/{actId}"]),
                 "the link is absolute, so it opens outside the app");
             Assert.That(component.Find(".ec-page > span[role=status]").TextContent, Is.EqualTo("Odkaz na úkon zkopírován."));
         }
@@ -518,9 +502,9 @@ public class ActRenderTests
         var actId = Guid.CreateVersion7();
         var detail = Detail(caseId, actId);
 
-        Serve(ctx, caseId, actId, detail);
+        Serve(ctx, actId, detail);
 
-        var component = RenderAct(ctx, caseId, actId);
+        var component = RenderAct(ctx, actId);
 
         await component.Find("button[aria-label='Další akce s úkonem']").ClickAsync(new MouseEventArgs());
         await component.FindAll("[role=menuitem]")[2].ClickAsync(new MouseEventArgs());
@@ -536,22 +520,20 @@ public class ActRenderTests
         var caseId = Guid.CreateVersion7();
         var actId = Guid.CreateVersion7();
 
-        Serve(ctx, caseId, actId, Detail(caseId, actId));
+        Serve(ctx, actId, Detail(caseId, actId));
 
         var navigation = ctx.Services.GetRequiredService<NavigationManager>();
-        var component = RenderAct(ctx, caseId, actId);
+        var component = RenderAct(ctx, actId);
 
         await component.Find("button[aria-label='Další akce s úkonem']").ClickAsync(new MouseEventArgs());
         await component.FindAll("[role=menuitem]")[0].ClickAsync(new MouseEventArgs());
 
-        Assert.That(navigation.Uri, Does.EndWith($"/cases/{caseId}/act/new"));
+        Assert.That(navigation.Uri, Does.EndWith($"/acts/new?case={caseId}"));
     }
 
-    private static IRenderedComponent<Act> RenderAct(BunitContext ctx, Guid caseId, Guid actId)
+    private static IRenderedComponent<Act> RenderAct(BunitContext ctx, Guid actId)
     {
-        return ctx.Render<Act>(parameters => parameters
-            .Add(static page => page.CaseId, caseId)
-            .Add(static page => page.ActId, actId));
+        return ctx.Render<Act>(parameters => parameters.Add(static page => page.ActId, actId));
     }
 
     private static ActDetail Detail(Guid caseId, Guid actId)
@@ -600,7 +582,7 @@ public class ActRenderTests
         };
     }
 
-    private static (IActsClient Acts, IActLabelsClient ActLabels, ILabelsClient Labels) Serve(BunitContext ctx, Guid caseId, Guid actId, ActDetail detail)
+    private static (IActsClient Acts, IActLabelsClient ActLabels, ILabelsClient Labels) Serve(BunitContext ctx, Guid actId, ActDetail detail)
     {
         // FilesCard's drop zone imports its own module on first render from a path carrying a
         // version query string, which no SetupModule can name, and reads a property bUnit's
@@ -609,7 +591,7 @@ public class ActRenderTests
         ctx.Services.AddSingleton<IJSRuntime>(new PropertyReadingJSRuntime(ctx.JSInterop.JSRuntime));
 
         var actsClient = Substitute.For<IActsClient>();
-        actsClient.GetAct(caseId, actId, Arg.Any<CancellationToken>()).Returns(Task.FromResult(detail));
+        actsClient.GetAct(actId, Arg.Any<CancellationToken>()).Returns(Task.FromResult(detail));
 
         var actLabelsClient = Substitute.For<IActLabelsClient>();
 
@@ -617,10 +599,10 @@ public class ActRenderTests
         labelsClient.ListLabels(Arg.Any<CancellationToken>()).Returns(Task.FromResult(new LabelListResponse { Items = [] }));
 
         var actFilesClient = Substitute.For<IActFilesClient>();
-        actFilesClient.ListActFiles(caseId, actId, Arg.Any<CancellationToken>()).Returns(Task.FromResult(new FileListResponse { Items = [] }));
+        actFilesClient.ListActFiles(actId, Arg.Any<CancellationToken>()).Returns(Task.FromResult(new FileListResponse { Items = [] }));
 
         var actCommentsClient = Substitute.For<IActCommentsClient>();
-        actCommentsClient.ListActComments(caseId, actId, Arg.Any<CancellationToken>()).Returns(Task.FromResult(new CommentListResponse { Items = [] }));
+        actCommentsClient.ListActComments(actId, Arg.Any<CancellationToken>()).Returns(Task.FromResult(new CommentListResponse { Items = [] }));
 
         ctx.Services.AddSingleton(actsClient);
         ctx.Services.AddSingleton(actLabelsClient);

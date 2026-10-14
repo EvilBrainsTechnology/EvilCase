@@ -143,7 +143,7 @@ public class ActListRenderTests
 
         var row = component.Find("a.ec-table-row");
 
-        Assert.That(row.GetAttribute("href"), Is.EqualTo($"/cases/{CaseId}/act/{ActId}"));
+        Assert.That(row.GetAttribute("href"), Is.EqualTo($"/acts/{ActId}"));
     }
 
     [Test]

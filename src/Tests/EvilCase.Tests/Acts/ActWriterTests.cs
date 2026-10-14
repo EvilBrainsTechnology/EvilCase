@@ -20,13 +20,14 @@ public class ActWriterTests : TenantFixture
         var contactId = Guid.CreateVersion7();
         var request = new CreateActRequest
         {
+            CaseId = caseId,
             Direction = ActDirection.Outgoing,
             Date = new DateOnly(2026, 8, 25),
             Title = "Odvolání",
             ContactId = contactId,
         };
 
-        var act = ActWriter.BuildAct(caseId, request, "EC/20260821-001/20260825-001");
+        var act = ActWriter.BuildAct(request, "EC/20260821-001/20260825-001");
 
         using (Assert.EnterMultipleScope())
         {
@@ -44,7 +45,7 @@ public class ActWriterTests : TenantFixture
     {
         var request = Request() with { Title = "  Odvolání  ", Description = "  text  " };
 
-        var act = ActWriter.BuildAct(Guid.CreateVersion7(), request, "EC/20260821-001/20260825-001");
+        var act = ActWriter.BuildAct(request, "EC/20260821-001/20260825-001");
 
         using (Assert.EnterMultipleScope())
         {
@@ -61,8 +62,8 @@ public class ActWriterTests : TenantFixture
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(ActWriter.BuildAct(Guid.CreateVersion7(), blank, "EC/20260821-001/20260825-001").Description, Is.Null);
-            Assert.That(ActWriter.BuildAct(Guid.CreateVersion7(), withText, "EC/20260821-001/20260825-001").Description, Is.EqualTo("text"));
+            Assert.That(ActWriter.BuildAct(blank, "EC/20260821-001/20260825-001").Description, Is.Null);
+            Assert.That(ActWriter.BuildAct(withText, "EC/20260821-001/20260825-001").Description, Is.EqualTo("text"));
         }
     }
 
@@ -79,7 +80,7 @@ public class ActWriterTests : TenantFixture
 
         var request = Request() with { Date = new DateOnly(2026, 8, 25) };
 
-        var result = await writer.CreateAct(@case.Id, request, CancellationToken.None);
+        var result = await writer.CreateAct(request with { CaseId = @case.Id }, CancellationToken.None);
 
         var acts = await this.Tenant.Context.Acts.OfCase(@case.Id).ToListAsync();
 
@@ -96,7 +97,7 @@ public class ActWriterTests : TenantFixture
     {
         var writer = new ActWriter(new FixedDbSession(this.Tenant.Context), new QueuedActNumberIssuer([]), NullLogger<ActWriter>.Instance);
 
-        var result = await writer.CreateAct(Guid.CreateVersion7(), Request(), CancellationToken.None);
+        var result = await writer.CreateAct(Request(), CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -113,7 +114,7 @@ public class ActWriterTests : TenantFixture
 
         var request = Request() with { Direction = ActDirection.Incoming, ContactId = Guid.CreateVersion7() };
 
-        var result = await writer.CreateAct(@case.Id, request, CancellationToken.None);
+        var result = await writer.CreateAct(request with { CaseId = @case.Id }, CancellationToken.None);
 
         Assert.That(result.Outcome, Is.EqualTo(ActCreateOutcome.ContactNotFound), "a contact the tenant does not hold never reaches the row");
     }
@@ -124,7 +125,7 @@ public class ActWriterTests : TenantFixture
         var @case = await this.Tenant.AddCase(new DateOnly(2026, 8, 21));
         var writer = new ActWriter(new FixedDbSession(this.Tenant.Context), new QueuedActNumberIssuer(["EC/20260821-001/20260825-001"]), NullLogger<ActWriter>.Instance);
 
-        var result = await writer.CreateAct(@case.Id, Request(), CancellationToken.None);
+        var result = await writer.CreateAct(Request(@case.Id), CancellationToken.None);
 
         var reloaded = await this.Tenant.Context.Acts.SingleAsync(act => act.Id == result.Act!.ActId);
 
@@ -153,7 +154,7 @@ public class ActWriterTests : TenantFixture
 
         var request = Request() with { Direction = ActDirection.Incoming, ContactId = foreignContactId };
 
-        var result = await writer.CreateAct(@case.Id, request, CancellationToken.None);
+        var result = await writer.CreateAct(request with { CaseId = @case.Id }, CancellationToken.None);
 
         Assert.That(result.Outcome, Is.EqualTo(ActCreateOutcome.ContactNotFound), "an act never names a contact of another tenant");
     }
@@ -167,7 +168,7 @@ public class ActWriterTests : TenantFixture
 
         var request = Request() with { Direction = ActDirection.Outgoing, ContactId = contact.Id };
 
-        var result = await writer.CreateAct(@case.Id, request, CancellationToken.None);
+        var result = await writer.CreateAct(request with { CaseId = @case.Id }, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -176,9 +177,9 @@ public class ActWriterTests : TenantFixture
         }
     }
 
-    private static CreateActRequest Request()
+    private static CreateActRequest Request(Guid? caseId = null)
     {
-        return new CreateActRequest { Date = new DateOnly(2026, 8, 25), Title = "Podání" };
+        return new CreateActRequest { CaseId = caseId ?? Guid.CreateVersion7(), Date = new DateOnly(2026, 8, 25), Title = "Podání" };
     }
 
     private sealed class QueuedActNumberIssuer(IReadOnlyList<string> actNumbers) : IActNumberIssuer

@@ -70,7 +70,7 @@ Aplikace čísluje spisy a úkony sama, bez konfigurace; tvar čísel, ruční p
 
 ## Aplikace
 
-URL nesou UUID: `/cases`, `/cases/{id}`, `/cases/{id}/act/{actId}`, `/contacts`, `/settings`,
+URL nesou UUID: `/cases`, `/cases/{id}`, `/acts/{actId}`, `/contacts`, `/settings`,
 `/login`
 ([SDD-016](../sdd/sdd-016-navigace-a-vzhled.md)). Dashboard `/` stojí nad reálnými daty
 ([SDD-015](../sdd/sdd-015-dashboard.md)). Vzhled drží [SDD-020](../sdd/sdd-020-vzhled.md);

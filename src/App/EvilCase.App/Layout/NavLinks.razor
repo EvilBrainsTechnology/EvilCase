@@ -4,28 +4,31 @@
 @foreach (var item in Items)
 {
     <a class="ec-nav-link" href="@item.Href"
-       aria-current="@(this.IsCurrent(item.Href) ? "page" : null)" @onclick="this.OnNavigate">
+       aria-current="@(this.IsCurrent(item.Sections) ? "page" : null)" @onclick="this.OnNavigate">
         <EcIcon Paths="@item.Icon" Size="EcIconSize.Large" />
         <span>@item.Text</span>
     </a>
 }
 
 @code {
-    private static readonly (string Href, string Text, string Icon)[] Items =
+    // An act belongs to the case agenda although its routes stand beside /cases.
+    private static readonly (string Href, string Text, string Icon, string[] Sections)[] Items =
     [
-        ("/", "Přehled", AppIcons.LayoutDashboard),
-        ("/cases", "Spisy", AppIcons.Folders),
-        ("/contacts", "Kontakty", AppIcons.Users),
-        ("/settings", "Nastavení", AppIcons.Settings),
+        ("/", "Přehled", AppIcons.LayoutDashboard, ["/"]),
+        ("/cases", "Spisy", AppIcons.Folders, ["/cases", "/acts"]),
+        ("/contacts", "Kontakty", AppIcons.Users, ["/contacts"]),
+        ("/settings", "Nastavení", AppIcons.Settings, ["/settings"]),
     ];
 
     [Parameter]
     public EventCallback OnNavigate { get; set; }
 
-    private bool IsCurrent(string href)
+    private bool IsCurrent(string[] sections)
     {
-        return string.Equals(this.CurrentPath, href, StringComparison.OrdinalIgnoreCase)
-            || this.CurrentPath.StartsWith(href + "/", StringComparison.OrdinalIgnoreCase);
+        var path = this.CurrentPath;
+
+        return sections.Any(section => string.Equals(path, section, StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith(section + "/", StringComparison.OrdinalIgnoreCase));
     }
 
     private string CurrentPath => "/" + this.Navigation.ToBaseRelativePath(this.Navigation.Uri).Split('?', '#')[0].TrimEnd('/');

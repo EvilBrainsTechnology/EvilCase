@@ -9,10 +9,9 @@ namespace EvilBrains.EvilCase.Business.Acts;
 
 internal static class ActDetailQuery
 {
-    public static async Task<ActDetail?> DetailOf(this IQueryable<Act> acts, Guid caseId, Guid actId, CancellationToken token)
+    public static async Task<ActDetail?> DetailOf(this IQueryable<Act> acts, Guid actId, CancellationToken token)
     {
         return await acts
-            .OfCase(caseId)
             .WithId(actId)
             .Select(static act => new ActDetail
             {

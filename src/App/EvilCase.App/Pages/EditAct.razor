@@ -1,4 +1,4 @@
-@page "/cases/{CaseId:guid}/act/{ActId:guid}/edit"
+@page "/acts/{ActId:guid}/edit"
 @using System.Net
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Client
@@ -134,9 +134,6 @@
 
 @code {
     [Parameter]
-    public Guid CaseId { get; set; }
-
-    [Parameter]
     public Guid ActId { get; set; }
 
     private readonly ActEditModel model = new();
@@ -157,8 +154,8 @@
         ? [new EcCrumb("Spisy", "/cases")]
         : [
             new EcCrumb("Spisy", "/cases"),
-            new EcCrumb(this.act.CaseTitle, $"/cases/{this.CaseId}"),
-            new EcCrumb(this.act.Title, $"/cases/{this.CaseId}/act/{this.ActId}"),
+            new EcCrumb(this.act.CaseTitle, $"/cases/{this.act.CaseId}"),
+            new EcCrumb(this.act.Title, ActRoutes.Detail(this.ActId)),
             new EcCrumb("Upravit", null),
         ];
 
@@ -181,7 +178,7 @@
 
         try
         {
-            var detail = await this.ActsClient.GetAct(this.CaseId, this.ActId, CancellationToken.None);
+            var detail = await this.ActsClient.GetAct(this.ActId, CancellationToken.None);
 
             this.model.CopyFrom(ActEditModel.From(detail));
 
@@ -217,7 +214,7 @@
 
     private void Cancel()
     {
-        this.Navigation.NavigateTo($"/cases/{this.CaseId}/act/{this.ActId}");
+        this.Navigation.NavigateTo(ActRoutes.Detail(this.ActId));
     }
 
     private async Task SubmitAct()
@@ -242,9 +239,9 @@
                 LabelIds = [.. this.model.Labels.Select(static label => label.LabelId)],
             };
 
-            await this.ActsClient.EditAct(this.CaseId, this.ActId, request, CancellationToken.None);
+            await this.ActsClient.EditAct(this.ActId, request, CancellationToken.None);
 
-            this.Navigation.NavigateTo($"/cases/{this.CaseId}/act/{this.ActId}");
+            this.Navigation.NavigateTo(ActRoutes.Detail(this.ActId));
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
         {

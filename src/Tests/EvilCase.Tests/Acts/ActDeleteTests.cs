@@ -28,7 +28,7 @@ public class ActDeleteTests : TenantFixture
         var comment = await this.Tenant.AddActComment(act, "Poznámka k úkonu");
         var file = await this.Tenant.AddActFile(act);
 
-        var result = await this.writer.DeleteAct(seeded.Id, act.Id, CancellationToken.None);
+        var result = await this.writer.DeleteAct(act.Id, CancellationToken.None);
 
         this.Tenant.Context.ChangeTracker.Clear();
 
@@ -56,7 +56,7 @@ public class ActDeleteTests : TenantFixture
         var otherComment = await this.Tenant.AddActComment(otherAct, "Poznámka k druhému úkonu");
         var otherFile = await this.Tenant.AddActFile(otherAct);
 
-        await this.writer.DeleteAct(seeded.Id, act.Id, CancellationToken.None);
+        await this.writer.DeleteAct(act.Id, CancellationToken.None);
 
         this.Tenant.Context.ChangeTracker.Clear();
 
@@ -77,29 +77,9 @@ public class ActDeleteTests : TenantFixture
     [Test]
     public async Task AnUnknownActIsNotFound()
     {
-        var result = await this.writer.DeleteAct(Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
+        var result = await this.writer.DeleteAct(Guid.CreateVersion7(), CancellationToken.None);
 
         Assert.That(result, Is.EqualTo(DeleteOutcome.NotFound));
-    }
-
-    [Test]
-    public async Task AnActOfAnotherCaseIsNotFound()
-    {
-        var caseA = await this.Tenant.AddCase(Day, "Případ A");
-        var act = await this.Tenant.AddAct(caseA, Day);
-        var caseB = await this.Tenant.AddCase(Day, "Případ B");
-
-        var result = await this.writer.DeleteAct(caseB.Id, act.Id, CancellationToken.None);
-
-        this.Tenant.Context.ChangeTracker.Clear();
-
-        var actExists = await this.Tenant.Context.Acts.AnyAsync(row => row.Id == act.Id);
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(result, Is.EqualTo(DeleteOutcome.NotFound), "an act scoped to another case is not found");
-            Assert.That(actExists, Is.True);
-        }
     }
 
     [Test]
@@ -109,7 +89,7 @@ public class ActDeleteTests : TenantFixture
         var otherCase = await other.AddCase(Day, "Cizí spis");
         var otherAct = await other.AddAct(otherCase, Day);
 
-        var result = await this.writer.DeleteAct(otherCase.Id, otherAct.Id, CancellationToken.None);
+        var result = await this.writer.DeleteAct(otherAct.Id, CancellationToken.None);
 
         other.Context.ChangeTracker.Clear();
 

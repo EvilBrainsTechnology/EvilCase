@@ -19,9 +19,10 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
     /// </summary>
     private const int Attempts = 5;
 
-    public async Task<ActCreateResult> CreateAct(Guid caseId, CreateActRequest request, CancellationToken token)
+    public async Task<ActCreateResult> CreateAct(CreateActRequest request, CancellationToken token)
     {
         var context = dbSession.Current;
+        var caseId = request.CaseId;
 
         var @case = await context.Cases
             .WithId(caseId)
@@ -39,7 +40,7 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
         for (var attempt = 1; ; attempt++)
         {
             var actNumber = await numbers.NextActNumber(@case, request.Date, token);
-            var act = BuildAct(caseId, request, actNumber);
+            var act = BuildAct(request, actNumber);
 
             context.Acts.Add(act);
 
@@ -74,11 +75,11 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
     }
 
     // TenantId and UserId are stamped by UserWriteInterceptor.
-    internal static Act BuildAct(Guid caseId, CreateActRequest request, string actNumber)
+    internal static Act BuildAct(CreateActRequest request, string actNumber)
     {
         return new()
         {
-            CaseId = caseId,
+            CaseId = request.CaseId,
             ActNumber = actNumber,
             Direction = request.Direction,
             Title = request.Title.Trim(),
@@ -88,12 +89,11 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
         };
     }
 
-    public async Task<ActUpdateOutcome> UpdateAct(Guid caseId, Guid actId, ActEditRequest request, CancellationToken token)
+    public async Task<ActUpdateOutcome> UpdateAct(Guid actId, ActEditRequest request, CancellationToken token)
     {
         var context = dbSession.Current;
 
         var acts = context.Acts
-            .OfCase(caseId)
             .WithId(actId);
 
         // An act the tenant does not have is not found, whatever else the edit gets wrong.
@@ -145,14 +145,13 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
         return ActUpdateOutcome.Updated;
     }
 
-    public async Task<DeleteOutcome> DeleteAct(Guid caseId, Guid actId, CancellationToken token)
+    public async Task<DeleteOutcome> DeleteAct(Guid actId, CancellationToken token)
     {
         var context = dbSession.Current;
 
         // The comments and files go with the row: the database's foreign keys carry the cascade
         // (SDD-007). Their blobs stay on disk (SDD-012).
         var rows = await context.Acts
-            .OfCase(caseId)
             .WithId(actId)
             .ExecuteDeleteAsync(token);
 

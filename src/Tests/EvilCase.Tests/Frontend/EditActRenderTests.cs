@@ -20,9 +20,9 @@ public class EditActRenderTests
     {
         await using var ctx = new BunitContext();
 
-        var (_, detail) = Serve(ctx, out var caseId, out var actId);
+        var (_, detail) = Serve(ctx, out var actId);
 
-        var component = Render(ctx, caseId, actId);
+        var component = Render(ctx, actId);
 
         using (Assert.EnterMultipleScope())
         {
@@ -42,9 +42,9 @@ public class EditActRenderTests
     {
         await using var ctx = new BunitContext();
 
-        Serve(ctx, out var caseId, out var actId);
+        Serve(ctx, out var actId);
 
-        var component = Render(ctx, caseId, actId);
+        var component = Render(ctx, actId);
 
         using (Assert.EnterMultipleScope())
         {
@@ -58,9 +58,9 @@ public class EditActRenderTests
     {
         await using var ctx = new BunitContext();
 
-        var (_, detail) = Serve(ctx, out var caseId, out var actId);
+        var (_, detail) = Serve(ctx, out var actId);
 
-        var component = Render(ctx, caseId, actId);
+        var component = Render(ctx, actId);
 
         Assert.That(component.Find(".ec-warning").TextContent, Does.Contain(detail.CaseContact!.Name));
     }
@@ -70,9 +70,9 @@ public class EditActRenderTests
     {
         await using var ctx = new BunitContext();
 
-        var (actsClient, detail) = Serve(ctx, out var caseId, out var actId);
+        var (actsClient, detail) = Serve(ctx, out var actId);
 
-        var component = Render(ctx, caseId, actId);
+        var component = Render(ctx, actId);
 
         await component.Find("#act-title").ChangeAsync(new ChangeEventArgs { Value = "Odpor proti příkazu — doplnění" });
         await component.Find("#act-external-number").ChangeAsync(new ChangeEventArgs { Value = "MUV-2026/9999" });
@@ -82,7 +82,6 @@ public class EditActRenderTests
         await actsClient
             .Received(1)
             .EditAct(
-                caseId,
                 actId,
                 Arg.Is<ActEditRequest>(request => request.Title == "Odpor proti příkazu — doplnění"
                     && request.ActNumber == detail.ActNumber
@@ -97,14 +96,14 @@ public class EditActRenderTests
     {
         await using var ctx = new BunitContext();
 
-        var (actsClient, _) = Serve(ctx, out var caseId, out var actId);
+        var (actsClient, _) = Serve(ctx, out var actId);
 
-        var component = Render(ctx, caseId, actId);
+        var component = Render(ctx, actId);
 
         await component.Find("#act-title").ChangeAsync(new ChangeEventArgs { Value = "" });
         await component.Find(".ec-card-footer .ec-button-primary").ClickAsync(new MouseEventArgs());
 
-        await actsClient.DidNotReceive().EditAct(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<ActEditRequest>(), Arg.Any<CancellationToken>());
+        await actsClient.DidNotReceive().EditAct(Arg.Any<Guid>(), Arg.Any<ActEditRequest>(), Arg.Any<CancellationToken>());
 
         Assert.That(
             component.FindAll(".ec-field-error").Select(static node => node.TextContent),
@@ -112,9 +111,8 @@ public class EditActRenderTests
             "the form validates against the page's EditContext before it sends anything");
     }
 
-    private static (IActsClient Acts, ActDetail Detail) Serve(BunitContext ctx, out Guid caseId, out Guid actId)
+    private static (IActsClient Acts, ActDetail Detail) Serve(BunitContext ctx, out Guid actId)
     {
-        caseId = Guid.CreateVersion7();
         actId = Guid.CreateVersion7();
 
         var contactA = new ContactListItem { ContactId = Guid.CreateVersion7(), Kind = ContactKind.Authority, Name = "Městský úřad Vzorov" };
@@ -123,7 +121,7 @@ public class EditActRenderTests
         var detail = new ActDetail
         {
             ActId = actId,
-            CaseId = caseId,
+            CaseId = Guid.CreateVersion7(),
             CaseNumber = "EC/20260807-001",
             CaseTitle = "Překročení rychlosti",
             CaseStatus = CaseStatus.Active,
@@ -137,9 +135,9 @@ public class EditActRenderTests
         };
 
         var actsClient = Substitute.For<IActsClient>();
-        actsClient.GetAct(caseId, actId, Arg.Any<CancellationToken>()).Returns(Task.FromResult(detail));
+        actsClient.GetAct(actId, Arg.Any<CancellationToken>()).Returns(Task.FromResult(detail));
         actsClient
-            .EditAct(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<ActEditRequest>(), Arg.Any<CancellationToken>())
+            .EditAct(Arg.Any<Guid>(), Arg.Any<ActEditRequest>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
 
         var contactsClient = Substitute.For<IContactsClient>();
@@ -159,10 +157,8 @@ public class EditActRenderTests
         return (actsClient, detail);
     }
 
-    private static IRenderedComponent<EditAct> Render(BunitContext ctx, Guid caseId, Guid actId)
+    private static IRenderedComponent<EditAct> Render(BunitContext ctx, Guid actId)
     {
-        return ctx.Render<EditAct>(parameters => parameters
-            .Add(static page => page.CaseId, caseId)
-            .Add(static page => page.ActId, actId));
+        return ctx.Render<EditAct>(parameters => parameters.Add(static page => page.ActId, actId));
     }
 }

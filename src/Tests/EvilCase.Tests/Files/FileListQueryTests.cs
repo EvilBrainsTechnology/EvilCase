@@ -62,7 +62,7 @@ public class FileListQueryTests : TenantFixture
         await this.Tenant.AddActFile(act, "druhy.txt");
         await this.Tenant.AddActFile(act, "treti.txt");
 
-        var items = await this.reader.ListActFiles(@case.Id, act.Id, CancellationToken.None);
+        var items = await this.reader.ListActFiles(act.Id, CancellationToken.None);
 
         Assert.That(items!.Select(static item => item.FileName), Is.EqualTo(["prvni.txt", "druhy.txt", "treti.txt"]), "the files of an act come back oldest first");
     }
@@ -76,7 +76,7 @@ public class FileListQueryTests : TenantFixture
         await this.Tenant.AddCaseFile(@case, "spis.txt");
         await this.Tenant.AddActFile(act, "ukon.txt");
 
-        var actItems = await this.reader.ListActFiles(@case.Id, act.Id, CancellationToken.None);
+        var actItems = await this.reader.ListActFiles(act.Id, CancellationToken.None);
         var caseItems = await this.reader.ListCaseFiles(@case.Id, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
@@ -96,30 +96,29 @@ public class FileListQueryTests : TenantFixture
         await this.Tenant.AddActFile(actA, "a.txt");
         await this.Tenant.AddActFile(actB, "b.txt");
 
-        var items = await this.reader.ListActFiles(@case.Id, actA.Id, CancellationToken.None);
+        var items = await this.reader.ListActFiles(actA.Id, CancellationToken.None);
 
         Assert.That(items!.Select(static item => item.FileName), Is.EqualTo(["a.txt"]), "a file of another act must not be listed");
     }
 
     [Test]
-    public async Task ListingTheFilesOfAnActOfAnotherCaseAnswersWithNothing()
+    public async Task ListingTheFilesOfAMissingActAnswersWithNothing()
     {
-        var caseA = await this.Tenant.AddCase(Day);
-        var caseB = await this.Tenant.AddCase(Day);
-        var act = await this.Tenant.AddAct(caseA, Day);
+        var items = await this.reader.ListActFiles(Guid.CreateVersion7(), CancellationToken.None);
 
-        var items = await this.reader.ListActFiles(caseB.Id, act.Id, CancellationToken.None);
-
-        Assert.That(items, Is.Null, "an act reached through the wrong case must get nothing");
+        Assert.That(items, Is.Null);
     }
 
     [Test]
-    public async Task ListingTheFilesOfAMissingActAnswersWithNothing()
+    public async Task ListingTheFilesOfAnActOfAnotherTenantAnswersWithNothing()
     {
-        var @case = await this.Tenant.AddCase(Day);
+        await using var other = await TestTenant.Create();
+        var otherCase = await other.AddCase(Day);
+        var otherAct = await other.AddAct(otherCase, Day);
+        await other.AddActFile(otherAct, "cizi.txt");
 
-        var items = await this.reader.ListActFiles(@case.Id, Guid.CreateVersion7(), CancellationToken.None);
+        var items = await this.reader.ListActFiles(otherAct.Id, CancellationToken.None);
 
-        Assert.That(items, Is.Null);
+        Assert.That(items, Is.Null, "the act id alone never reaches another tenant's files");
     }
 }

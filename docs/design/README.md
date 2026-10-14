@@ -18,8 +18,8 @@ Otevři je v prohlížeči přímo ze souboru.
 | [`spisy.html`](spisy.html) | Seznam spisů | `/cases` |
 | [`novy-spis.html`](novy-spis.html) | Založení spisu, předloha i pro editaci | `/cases/new`, `/cases/{id}/edit` |
 | [`detail-spisu.html`](detail-spisu.html) | Detail spisu | `/cases/{id}` |
-| [`detail-ukonu.html`](detail-ukonu.html) | Detail úkonu | `/cases/{id}/act/{actId}` |
-| [`novy-ukon.html`](novy-ukon.html) | Založení úkonu, předloha i pro editaci | `/cases/{id}/act/new`, `/cases/{id}/act/{actId}/edit` |
+| [`detail-ukonu.html`](detail-ukonu.html) | Detail úkonu | `/acts/{actId}` |
+| [`novy-ukon.html`](novy-ukon.html) | Založení úkonu, předloha i pro editaci | `/acts/new?case={id}`, `/acts/{actId}/edit` |
 | [`kontakty.html`](kontakty.html) | Kontakty | `/contacts` |
 | [`detail-kontaktu.html`](detail-kontaktu.html) | Detail kontaktu | `/contacts/{id}` |
 | [`nastaveni.html`](nastaveni.html) | Nastavení, sekce štítků | `/settings` |

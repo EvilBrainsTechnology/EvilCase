@@ -6,5 +6,5 @@ public interface IActReader
 {
     public Task<ActListResponse> ListActs(ActListRequest request, CancellationToken token);
 
-    public Task<ActDetail?> GetActDetail(Guid caseId, Guid actId, CancellationToken token);
+    public Task<ActDetail?> GetActDetail(Guid actId, CancellationToken token);
 }

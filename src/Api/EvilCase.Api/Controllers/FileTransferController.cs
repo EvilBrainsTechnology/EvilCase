@@ -39,14 +39,14 @@ public class FileTransferController : ControllerBase
         };
     }
 
-    [HttpPost("cases/{caseId:guid}/acts/{actId:guid}/files")]
+    [HttpPost("acts/{actId:guid}/files")]
     [RequestSizeLimit(FileLimits.MaxUploadRequestBytes)]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status413PayloadTooLarge)]
     public async Task<ActionResult<FileListItem>> UploadActFile(
-        [FromServices] IFileWriter writer, [FromRoute] Guid caseId, [FromRoute] Guid actId, [FromForm] IFormFile file, CancellationToken token)
+        [FromServices] IFileWriter writer, [FromRoute] Guid actId, [FromForm] IFormFile file, CancellationToken token)
     {
         var upload = this.BuildFileUpload(file, out var error);
         if (error is not null)
@@ -54,7 +54,7 @@ public class FileTransferController : ControllerBase
 
         await using var content = upload!.Content;
 
-        var result = await writer.UploadActFile(caseId, actId, upload, token);
+        var result = await writer.UploadActFile(actId, upload, token);
 
         return result.Outcome switch
         {

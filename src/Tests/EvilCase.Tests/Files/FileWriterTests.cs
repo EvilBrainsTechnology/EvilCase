@@ -128,7 +128,7 @@ public class FileWriterTests : TenantFixture
         var @case = await this.Tenant.AddCase(Day);
         var act = await this.Tenant.AddAct(@case, Day);
 
-        var result = await this.writer.UploadActFile(@case.Id, act.Id, Upload("smlouva.pdf", "application/pdf", "abc"), CancellationToken.None);
+        var result = await this.writer.UploadActFile(act.Id, Upload("smlouva.pdf", "application/pdf", "abc"), CancellationToken.None);
 
         var stored = await this.Reload(result.File!.FileId);
 
@@ -146,9 +146,7 @@ public class FileWriterTests : TenantFixture
     [Test]
     public async Task AnUploadOntoAMissingActIsRefused()
     {
-        var @case = await this.Tenant.AddCase(Day);
-
-        var result = await this.writer.UploadActFile(@case.Id, Guid.CreateVersion7(), Upload("a.txt"), CancellationToken.None);
+        var result = await this.writer.UploadActFile(Guid.CreateVersion7(), Upload("a.txt"), CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -160,18 +158,36 @@ public class FileWriterTests : TenantFixture
     }
 
     [Test]
-    public async Task AnUploadOntoAnActOfAnotherCaseIsRefused()
+    public async Task AnUploadOntoAnActOfAnotherTenantIsRefused()
     {
-        var caseA = await this.Tenant.AddCase(Day);
-        var caseB = await this.Tenant.AddCase(Day);
-        var act = await this.Tenant.AddAct(caseA, Day);
+        await using var other = await TestTenant.Create();
+        var otherCase = await other.AddCase(Day);
+        var otherAct = await other.AddAct(otherCase, Day);
 
-        var result = await this.writer.UploadActFile(caseB.Id, act.Id, Upload("a.txt"), CancellationToken.None);
+        var result = await this.writer.UploadActFile(otherAct.Id, Upload("a.txt"), CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result.Outcome, Is.EqualTo(UploadFileOutcome.OwnerNotFound), "an act reached through the wrong case must not take an upload");
-            Assert.That(await this.Tenant.Context.FileAssets.AnyAsync(), Is.False, "an act reached through the wrong case must not take an upload");
+            Assert.That(result.Outcome, Is.EqualTo(UploadFileOutcome.OwnerNotFound), "the act id alone never reaches another tenant's act");
+            Assert.That(await other.Context.FileAssets.AnyAsync(), Is.False);
+            Assert.That(this.blobs.WrittenByPath, Is.Empty);
+        }
+    }
+
+    [Test]
+    public async Task AFileOfAnotherTenantsActIsNotDeleted()
+    {
+        await using var other = await TestTenant.Create();
+        var otherCase = await other.AddCase(Day);
+        var otherAct = await other.AddAct(otherCase, Day);
+        var otherFile = await other.AddActFile(otherAct);
+
+        var outcome = await this.writer.DeleteActFile(otherAct.Id, otherFile.Id, CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome, Is.EqualTo(DeleteOutcome.NotFound), "the act id alone never reaches another tenant's file");
+            Assert.That(await other.Context.FileAssets.AsNoTracking().AnyAsync(file => file.Id == otherFile.Id), Is.True);
         }
     }
 
@@ -180,10 +196,10 @@ public class FileWriterTests : TenantFixture
     {
         var @case = await this.Tenant.AddCase(Day);
         var act = await this.Tenant.AddAct(@case, Day);
-        var uploaded = await this.writer.UploadActFile(@case.Id, act.Id, Upload("a.txt"), CancellationToken.None);
+        var uploaded = await this.writer.UploadActFile(act.Id, Upload("a.txt"), CancellationToken.None);
         var storagePath = (await this.Reload(uploaded.File!.FileId)).StoragePath;
 
-        var outcome = await this.writer.DeleteActFile(@case.Id, act.Id, uploaded.File.FileId, CancellationToken.None);
+        var outcome = await this.writer.DeleteActFile(act.Id, uploaded.File.FileId, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -199,9 +215,9 @@ public class FileWriterTests : TenantFixture
         var @case = await this.Tenant.AddCase(Day);
         var actA = await this.Tenant.AddAct(@case, Day);
         var actB = await this.Tenant.AddAct(@case, Day);
-        var uploaded = await this.writer.UploadActFile(@case.Id, actA.Id, Upload("a.txt"), CancellationToken.None);
+        var uploaded = await this.writer.UploadActFile(actA.Id, Upload("a.txt"), CancellationToken.None);
 
-        var outcome = await this.writer.DeleteActFile(@case.Id, actB.Id, uploaded.File!.FileId, CancellationToken.None);
+        var outcome = await this.writer.DeleteActFile(actB.Id, uploaded.File!.FileId, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -216,9 +232,9 @@ public class FileWriterTests : TenantFixture
         var @case = await this.Tenant.AddCase(Day);
         var act = await this.Tenant.AddAct(@case, Day);
         var caseFile = await this.writer.UploadCaseFile(@case.Id, Upload("spis.txt"), CancellationToken.None);
-        var actFile = await this.writer.UploadActFile(@case.Id, act.Id, Upload("ukon.txt"), CancellationToken.None);
+        var actFile = await this.writer.UploadActFile(act.Id, Upload("ukon.txt"), CancellationToken.None);
 
-        var actDeleteOutcome = await this.writer.DeleteActFile(@case.Id, act.Id, caseFile.File!.FileId, CancellationToken.None);
+        var actDeleteOutcome = await this.writer.DeleteActFile(act.Id, caseFile.File!.FileId, CancellationToken.None);
         var caseDeleteOutcome = await this.writer.DeleteCaseFile(@case.Id, actFile.File!.FileId, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())

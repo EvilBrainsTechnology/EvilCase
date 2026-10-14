@@ -22,19 +22,19 @@ public class ActsController : ControllerBase
         return await acts.ListActs(request, token);
     }
 
-    [HttpPost("cases/{caseId:guid}/acts")]
+    [HttpPost("acts")]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<ActListItem>> CreateAct(
-        [FromServices] IActWriter writer, [FromRoute] Guid caseId, [FromBody] CreateActRequest request, CancellationToken token)
+        [FromServices] IActWriter writer, [FromBody] CreateActRequest request, CancellationToken token)
     {
-        var result = await writer.CreateAct(caseId, request, token);
+        var result = await writer.CreateAct(request, token);
 
         return result.Outcome switch
         {
-            ActCreateOutcome.Created => this.CreatedAtAction(nameof(this.GetAct), new { caseId, actId = result.Act!.ActId }, result.Act),
+            ActCreateOutcome.Created => this.CreatedAtAction(nameof(this.GetAct), new { actId = result.Act!.ActId }, result.Act),
             ActCreateOutcome.CaseNotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: CaseProblems.NotFound),
             ActCreateOutcome.ContactNotFound => this.Problem(
                 detail: "The contact named in the request does not exist.",
@@ -48,27 +48,27 @@ public class ActsController : ControllerBase
         };
     }
 
-    [HttpGet("cases/{caseId:guid}/acts/{actId:guid}")]
+    [HttpGet("acts/{actId:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ActDetail>> GetAct([FromServices] IActReader acts, [FromRoute] Guid caseId, [FromRoute] Guid actId, CancellationToken token)
+    public async Task<ActionResult<ActDetail>> GetAct([FromServices] IActReader acts, [FromRoute] Guid actId, CancellationToken token)
     {
-        var act = await acts.GetActDetail(caseId, actId, token);
+        var act = await acts.GetActDetail(actId, token);
 
         return act is null
             ? this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.ActNotFound)
             : this.Ok(act);
     }
 
-    [HttpPut("cases/{caseId:guid}/acts/{actId:guid}")]
+    [HttpPut("acts/{actId:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult> EditAct(
-        [FromServices] IActWriter writer, [FromRoute] Guid caseId, [FromRoute] Guid actId, [FromBody] ActEditRequest request, CancellationToken token)
+        [FromServices] IActWriter writer, [FromRoute] Guid actId, [FromBody] ActEditRequest request, CancellationToken token)
     {
-        var outcome = await writer.UpdateAct(caseId, actId, request, token);
+        var outcome = await writer.UpdateAct(actId, request, token);
 
         return outcome switch
         {
@@ -89,12 +89,12 @@ public class ActsController : ControllerBase
         };
     }
 
-    [HttpDelete("cases/{caseId:guid}/acts/{actId:guid}")]
+    [HttpDelete("acts/{actId:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult> DeleteAct([FromServices] IActWriter writer, [FromRoute] Guid caseId, [FromRoute] Guid actId, CancellationToken token)
+    public async Task<ActionResult> DeleteAct([FromServices] IActWriter writer, [FromRoute] Guid actId, CancellationToken token)
     {
-        var outcome = await writer.DeleteAct(caseId, actId, token);
+        var outcome = await writer.DeleteAct(actId, token);
 
         return outcome switch
         {

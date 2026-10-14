@@ -1,4 +1,4 @@
-@page "/cases/{CaseId:guid}/act/{ActId:guid}"
+@page "/acts/{ActId:guid}"
 @using System.Net
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Client
@@ -50,7 +50,7 @@
                             @if (this.Previous is { } previous)
                             {
                                 <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ChevronLeft"
-                                          Href="@this.ActHref(previous.ActId)" AriaLabel="@($"Předchozí úkon: {previous.Title}")" />
+                                          Href="@ActRoutes.Detail(previous.ActId)" AriaLabel="@($"Předchozí úkon: {previous.Title}")" />
                             }
                             else
                             {
@@ -61,7 +61,7 @@
                             @if (this.Next is { } next)
                             {
                                 <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ChevronRight"
-                                          Href="@this.ActHref(next.ActId)" AriaLabel="@($"Další úkon: {next.Title}")" />
+                                          Href="@ActRoutes.Detail(next.ActId)" AriaLabel="@($"Další úkon: {next.Title}")" />
                             }
                             else
                             {
@@ -193,7 +193,7 @@
 
                                 <li class="ec-timeline-entry">
                                     <a class="@(item.IsCurrent ? "ec-timeline-item ec-timeline-item-current" : "ec-timeline-item")"
-                                       href="@this.ActHref(item.ActId)" aria-current="@(item.IsCurrent ? "page" : null)">
+                                       href="@ActRoutes.Detail(item.ActId)" aria-current="@(item.IsCurrent ? "page" : null)">
                                         <span class="ec-timeline-rail" aria-hidden="true">
                                             <span class="@dot"></span>
                                             <span class="ec-timeline-line"></span>
@@ -230,9 +230,6 @@
 
 @code {
     [Parameter]
-    public Guid CaseId { get; set; }
-
-    [Parameter]
     public Guid ActId { get; set; }
 
     private ActDetail? act;
@@ -251,7 +248,7 @@
         ? [new EcCrumb("Spisy", "/cases")]
         : [
             new EcCrumb("Spisy", "/cases"),
-            new EcCrumb(this.act.CaseTitle, $"/cases/{this.CaseId}"),
+            new EcCrumb(this.act.CaseTitle, $"/cases/{this.act.CaseId}"),
             new EcCrumb(this.act.ActNumber, null),
         ];
 
@@ -287,7 +284,7 @@
 
         try
         {
-            this.act = await this.ActsClient.GetAct(this.CaseId, this.ActId, CancellationToken.None);
+            this.act = await this.ActsClient.GetAct(this.ActId, CancellationToken.None);
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
         {
@@ -309,9 +306,9 @@
         {
             var request = new LabelAssignmentRequest { LabelIds = [.. labels.Select(static label => label.LabelId)] };
 
-            await this.ActLabelsClient.SetActLabels(this.CaseId, this.ActId, request, CancellationToken.None);
+            await this.ActLabelsClient.SetActLabels(this.ActId, request, CancellationToken.None);
 
-            this.act = await this.ActsClient.GetAct(this.CaseId, this.ActId, CancellationToken.None);
+            this.act = await this.ActsClient.GetAct(this.ActId, CancellationToken.None);
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
         {
@@ -327,17 +324,17 @@
 
     private void EditAct()
     {
-        this.Navigation.NavigateTo($"/cases/{this.CaseId}/act/{this.ActId}/edit");
+        this.Navigation.NavigateTo(ActRoutes.Edit(this.ActId));
     }
 
     private void OpenNewAct()
     {
-        this.Navigation.NavigateTo($"/cases/{this.CaseId}/act/new");
+        this.Navigation.NavigateTo(ActRoutes.New(this.act?.CaseId));
     }
 
     private async Task CopyActLink()
     {
-        var link = this.Navigation.ToAbsoluteUri(this.ActHref(this.ActId)).AbsoluteUri;
+        var link = this.Navigation.ToAbsoluteUri(ActRoutes.Detail(this.ActId)).AbsoluteUri;
 
         try
         {
@@ -349,11 +346,6 @@
         {
             this.Logger.LogWarning(exception, "Copying the act link failed");
         }
-    }
-
-    private string ActHref(Guid actId)
-    {
-        return $"/cases/{this.CaseId}/act/{actId}";
     }
 
     private ActTimelineItem? Neighbour(int step)
@@ -383,17 +375,17 @@
     {
         this.deleting = false;
 
-        this.Navigation.NavigateTo($"/cases/{this.CaseId}");
+        this.Navigation.NavigateTo(this.act is { } deleted ? $"/cases/{deleted.CaseId}" : "/cases");
     }
 
     private async Task<IReadOnlyList<FileListItem>> LoadFiles(CancellationToken token)
     {
-        return (await this.ActFilesClient.ListActFiles(this.CaseId, this.ActId, token)).Items;
+        return (await this.ActFilesClient.ListActFiles(this.ActId, token)).Items;
     }
 
     private Task UploadFile(IBrowserFile file, CancellationToken token)
     {
-        return this.FileTransfer.UploadActFile(this.CaseId, this.ActId, file, token);
+        return this.FileTransfer.UploadActFile(this.ActId, file, token);
     }
 
     private async Task DownloadFile(FileListItem file, CancellationToken token)
@@ -404,27 +396,27 @@
 
     private Task DeleteFile(FileListItem file, CancellationToken token)
     {
-        return this.ActFilesClient.DeleteActFile(this.CaseId, this.ActId, file.FileId, token);
+        return this.ActFilesClient.DeleteActFile(this.ActId, file.FileId, token);
     }
 
     private async Task<IReadOnlyList<CommentItem>> LoadComments(CancellationToken token)
     {
-        var response = await this.ActCommentsClient.ListActComments(this.CaseId, this.ActId, token);
+        var response = await this.ActCommentsClient.ListActComments(this.ActId, token);
         return response.Items;
     }
 
     private Task AddComment(CommentEditRequest request, CancellationToken token)
     {
-        return this.ActCommentsClient.AddActComment(this.CaseId, this.ActId, request, token);
+        return this.ActCommentsClient.AddActComment(this.ActId, request, token);
     }
 
     private Task SaveComment(Guid commentId, CommentEditRequest request, CancellationToken token)
     {
-        return this.ActCommentsClient.EditActComment(this.CaseId, this.ActId, commentId, request, token);
+        return this.ActCommentsClient.EditActComment(this.ActId, commentId, request, token);
     }
 
     private Task DeleteComment(Guid commentId, CancellationToken token)
     {
-        return this.ActCommentsClient.DeleteActComment(this.CaseId, this.ActId, commentId, token);
+        return this.ActCommentsClient.DeleteActComment(this.ActId, commentId, token);
     }
 }

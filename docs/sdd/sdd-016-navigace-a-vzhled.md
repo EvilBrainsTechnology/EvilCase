@@ -22,9 +22,9 @@ URL nesou UUID entit, nikdy jejich čísla:
 | `/cases/new` | založení spisu |
 | `/cases/{id}` | detail spisu |
 | `/cases/{id}/edit` | editace spisu |
-| `/cases/{id}/act/new` | založení úkonu |
-| `/cases/{id}/act/{actId}` | detail úkonu |
-| `/cases/{id}/act/{actId}/edit` | editace úkonu |
+| `/acts/new?case={id}` | založení úkonu |
+| `/acts/{actId}` | detail úkonu |
+| `/acts/{actId}/edit` | editace úkonu |
 | `/contacts` | kontakty |
 | `/contacts/{id}` | detail kontaktu |
 | `/settings` | nastavení (SDD-019) |

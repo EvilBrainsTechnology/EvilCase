@@ -1,0 +1,64 @@
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.Cases
+@inject ICasesClient CasesClient
+@inject ILogger<CaseField> Logger
+
+<EcCombobox TItem="CaseListItem" InputId="@this.InputId" Placeholder="Hledat v názvu a čísle spisu"
+            SelectedLabel="Vybraný spis" EmptyText="@this.emptyText" ItemText="@(static @case => @case.Title)"
+            Search="this.SearchCases"
+            Selected="this.Selected" SelectedChanged="this.SelectedChanged">
+    <ItemTemplate>
+        <span>@context.Title</span>
+        <span class="ec-combobox-option-meta">@context.CaseNumber</span>
+    </ItemTemplate>
+</EcCombobox>
+
+@code {
+    private const int Matches = 8;
+
+    private const string NoMatch = "Žádný spis neodpovídá.";
+
+    [Parameter, EditorRequired]
+    public required string InputId { get; set; }
+
+    [Parameter]
+    public CaseListItem? Selected { get; set; }
+
+    [Parameter]
+    public EventCallback<CaseListItem?> SelectedChanged { get; set; }
+
+    private string emptyText = NoMatch;
+
+    private async Task<IReadOnlyList<CaseListItem>> SearchCases(string search, CancellationToken token)
+    {
+        try
+        {
+            var request = new CaseListRequest { Search = search, Take = Matches, Scope = CaseListScope.All, Status = CaseStatusFilter.All };
+            var response = await this.CasesClient.ListCases(request, token);
+
+            this.ShowEmptyText(NoMatch);
+
+            return response.Items;
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Loading the case matches failed");
+
+            this.ShowEmptyText("Hledání spisů se nezdařilo. Zkuste to za chvíli znovu.");
+
+            return [];
+        }
+    }
+
+    // The combobox reads the text as a parameter, so it reaches the screen only through a render of this component.
+    private void ShowEmptyText(string text)
+    {
+        if (string.Equals(this.emptyText, text, StringComparison.Ordinal))
+            return;
+
+        this.emptyText = text;
+
+        this.StateHasChanged();
+    }
+}

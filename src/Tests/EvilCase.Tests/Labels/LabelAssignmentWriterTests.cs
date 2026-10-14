@@ -107,7 +107,7 @@ public class LabelAssignmentWriterTests : TenantFixture
         var @case = await this.Tenant.AddCase(new DateOnly(2026, 1, 5));
         var act = await this.Tenant.AddAct(@case, new DateOnly(2026, 1, 6));
 
-        var outcome = await this.writer.SetActLabels(@case.Id, act.Id, new LabelAssignmentRequest { LabelIds = [label.Id] }, CancellationToken.None);
+        var outcome = await this.writer.SetActLabels(act.Id, new LabelAssignmentRequest { LabelIds = [label.Id] }, CancellationToken.None);
 
         var assignment = await this.Tenant.Context.LabelAssignments.SingleAsync();
 
@@ -121,15 +121,21 @@ public class LabelAssignmentWriterTests : TenantFixture
     }
 
     [Test]
-    public async Task AnActUnderAnotherCaseIsNotFound()
+    public async Task AnActOfAnotherTenantIsNotFound()
     {
-        var @case = await this.Tenant.AddCase(new DateOnly(2026, 1, 5));
-        var other = await this.Tenant.AddCase(new DateOnly(2026, 1, 7));
-        var act = await this.Tenant.AddAct(@case, new DateOnly(2026, 1, 6));
+        await using var other = await TestTenant.Create();
+        var otherLabel = await other.AddLabel("Soud");
+        var otherCase = await other.AddCase(new DateOnly(2026, 1, 5));
+        var otherAct = await other.AddAct(otherCase, new DateOnly(2026, 1, 6));
+        await other.AddActLabel(otherAct, otherLabel);
 
-        var outcome = await this.writer.SetActLabels(other.Id, act.Id, new LabelAssignmentRequest(), CancellationToken.None);
+        var outcome = await this.writer.SetActLabels(otherAct.Id, new LabelAssignmentRequest(), CancellationToken.None);
 
-        Assert.That(outcome, Is.EqualTo(LabelAssignmentOutcome.OwnerNotFound));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome, Is.EqualTo(LabelAssignmentOutcome.OwnerNotFound), "the act id alone never reaches another tenant's act");
+            Assert.That(await other.Context.LabelAssignments.AsNoTracking().AnyAsync(assignment => assignment.ActId == otherAct.Id), Is.True);
+        }
     }
 
     private async Task<List<Guid>> CarriedLabelIds()

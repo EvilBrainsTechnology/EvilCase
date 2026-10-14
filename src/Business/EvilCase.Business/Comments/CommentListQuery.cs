@@ -10,11 +10,9 @@ internal static class CommentListQuery
         return comments.Where(comment => comment.CaseId == caseId);
     }
 
-    public static IQueryable<Comment> OnAct(this IQueryable<Comment> comments, Guid caseId, Guid actId)
+    public static IQueryable<Comment> OnAct(this IQueryable<Comment> comments, Guid actId)
     {
-        return comments
-            .Where(comment => comment.ActId == actId)
-            .Where(comment => comment.Act!.CaseId == caseId);
+        return comments.Where(comment => comment.ActId == actId);
     }
 
     /// <summary>

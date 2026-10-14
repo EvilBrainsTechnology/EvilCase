@@ -277,7 +277,7 @@
 
     private static string RowHref(ActListItem item)
     {
-        return $"/cases/{item.CaseId}/act/{item.ActId}";
+        return ActRoutes.Detail(item.ActId);
     }
 
     private static ListSortDirection NaturalDirection(ActSortKey key)
