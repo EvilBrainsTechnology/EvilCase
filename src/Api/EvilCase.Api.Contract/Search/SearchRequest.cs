@@ -5,10 +5,10 @@ namespace EvilBrains.EvilCase.Api.Contract.Search;
 public sealed record SearchRequest
 {
     /// <summary>
-    /// The text to find, at least two characters once trimmed.
+    /// The text to find, with no space at either end.
     /// </summary>
     [Required]
     [StringLength(SearchLimits.TermMaxLength, MinimumLength = SearchLimits.TermMinLength)]
-    [RegularExpression(@"^\s*\S.*\S\s*$", ErrorMessage = "The term needs at least two characters besides surrounding spaces.")]
+    [RegularExpression(@"^\S.*\S$", ErrorMessage = "The term neither starts nor ends with a space.")]
     public required string Q { get; init; }
 }

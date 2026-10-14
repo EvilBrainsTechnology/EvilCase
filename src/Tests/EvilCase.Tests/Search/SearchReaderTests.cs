@@ -96,6 +96,30 @@ public class SearchReaderTests : TenantFixture
     }
 
     [Test]
+    public async Task TheGroupsWithoutADateShowTheNewestCreatedFirst()
+    {
+        var @case = await this.Tenant.AddCase(Day, "Spis");
+        var olderContact = await this.Tenant.AddContact("Archiv A");
+        var newerContact = await this.Tenant.AddContact("Archiv B");
+        var olderLabel = await this.Tenant.AddLabel("Archiv A");
+        var newerLabel = await this.Tenant.AddLabel("Archiv B");
+        await this.Tenant.AddCaseFile(@case, "archiv-a.pdf");
+        await this.Tenant.AddCaseFile(@case, "archiv-b.pdf");
+        await this.Tenant.AddCaseComment(@case, "Archiv A");
+        await this.Tenant.AddCaseComment(@case, "Archiv B");
+
+        var response = await this.Find("archiv");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(response.Contacts.Items.Select(static item => item.ContactId), Is.EqualTo([newerContact.Id, olderContact.Id]), "contacts go newest created first");
+            Assert.That(response.Labels.Items.Select(static item => item.LabelId), Is.EqualTo([newerLabel.Id, olderLabel.Id]), "labels go newest created first");
+            Assert.That(response.Files.Items.Select(static item => item.FileName), Is.EqualTo(["archiv-b.pdf", "archiv-a.pdf"]), "files go newest created first");
+            Assert.That(response.Comments.Items.Select(static item => item.Body), Is.EqualTo(["Archiv B", "Archiv A"]), "comments go newest created first");
+        }
+    }
+
+    [Test]
     public async Task ACaseRowCarriesItsStatusDateAndLabelsAndAnActRowItsDirectionAndCase()
     {
         var @case = await this.Tenant.AddCase(Day, "Odvolání");
@@ -217,34 +241,32 @@ public class SearchReaderTests : TenantFixture
     [Test]
     [TestCase("")]
     [TestCase("a")]
-    [TestCase("  a ")]
     [TestCase("   ")]
-    public void ATermUnderTwoCharactersBesideTheSpacesIsInvalid(string term)
+    [TestCase(" ab")]
+    [TestCase("ab ")]
+    [TestCase(" ab ")]
+    public void ATermUnderTwoCharactersOrWithASpaceAtEitherEndIsInvalid(string term)
     {
-        var request = new SearchRequest { Q = term };
-
-        var results = new List<ValidationResult>();
-        var valid = Validator.TryValidateObject(
-            request,
-            new ValidationContext(request),
-            results,
-            validateAllProperties: true);
-
-        Assert.That(valid, Is.False, "the term needs two characters besides the spaces around it");
+        Assert.That(IsValid(term), Is.False, "the term has two characters at least and no space at either end");
     }
 
     [Test]
-    public void ATwoCharacterTermWithSpacesAroundItIsValid()
+    [TestCase("ab")]
+    [TestCase("a b")]
+    public void ATermOfTwoCharactersWithSpacesOnlyInsideIsValid(string term)
     {
-        var request = new SearchRequest { Q = " ab " };
+        Assert.That(IsValid(term), Is.True);
+    }
 
-        var valid = Validator.TryValidateObject(
+    private static bool IsValid(string term)
+    {
+        var request = new SearchRequest { Q = term };
+
+        return Validator.TryValidateObject(
             request,
             new ValidationContext(request),
             [],
             validateAllProperties: true);
-
-        Assert.That(valid, Is.True);
     }
 
     private async Task<SearchResponse> Find(string term)

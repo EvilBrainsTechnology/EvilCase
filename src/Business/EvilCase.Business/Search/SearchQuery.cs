@@ -74,25 +74,15 @@ internal static class SearchQuery
             .ThenByDescending(static act => act.Id);
     }
 
-    public static IQueryable<Contact> InSearchOrder(this IQueryable<Contact> contacts)
+    /// <summary>
+    /// The groups without a date of their own: the newest created first.
+    /// </summary>
+    public static IQueryable<TEntity> InSearchOrder<TEntity>(this IQueryable<TEntity> entities)
+        where TEntity : IEntity
     {
-        return contacts
-            .OrderBy(static contact => contact.Name)
-            .ThenBy(static contact => contact.Id);
-    }
-
-    public static IQueryable<FileAsset> InSearchOrder(this IQueryable<FileAsset> files)
-    {
-        return files
-            .OrderByDescending(static file => file.Created)
-            .ThenByDescending(static file => file.Id);
-    }
-
-    public static IQueryable<Comment> InSearchOrder(this IQueryable<Comment> comments)
-    {
-        return comments
-            .OrderByDescending(static comment => comment.Created)
-            .ThenByDescending(static comment => comment.Id);
+        return entities
+            .OrderByDescending(static entity => entity.Created)
+            .ThenByDescending(static entity => entity.Id);
     }
 
     public static IQueryable<FileSearchItem> AsSearchItems(this IQueryable<FileAsset> files)

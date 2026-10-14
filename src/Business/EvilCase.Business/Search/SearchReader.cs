@@ -25,7 +25,7 @@ internal sealed class SearchReader(IDbSession dbSession) : ISearchReader
             Contacts = await ReadGroup(context.Contacts.MatchingTerm(pattern).InSearchOrder(), static contacts => contacts.AsListItems(), token),
             Files = await ReadGroup(context.FileAssets.MatchingTerm(pattern).InSearchOrder(), static files => files.AsSearchItems(), token),
             Comments = await ReadGroup(context.Comments.MatchingTerm(pattern).InSearchOrder(), static comments => comments.AsSearchItems(), token),
-            Labels = await ReadGroup(context.Labels.MatchingTerm(pattern).InListOrder(), static labels => labels.AsCountedListItems(), token),
+            Labels = await ReadGroup(context.Labels.MatchingTerm(pattern).InSearchOrder(), static labels => labels.AsCountedListItems(), token),
         };
     }
 
