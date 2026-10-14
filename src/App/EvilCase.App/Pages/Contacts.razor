@@ -43,9 +43,18 @@
         ContactColumn.Address,
     ];
 
-    private static readonly ContactListRequest Filter = new() { Take = PageItems };
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "q")]
+    public string? Query { get; set; }
 
     private ContactList? list;
+
+    // A record, so a render that hands over the same values reloads nothing.
+    private ContactListRequest Filter => new()
+    {
+        Search = string.IsNullOrWhiteSpace(this.Query) ? null : this.Query,
+        Take = PageItems,
+    };
 
     private bool formOpen;
 

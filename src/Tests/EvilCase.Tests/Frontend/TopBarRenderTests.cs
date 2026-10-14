@@ -1,4 +1,5 @@
 using Bunit;
+using EvilBrains.EvilCase.Api.Client;
 using EvilBrains.EvilCase.App.Auth;
 using EvilBrains.EvilCase.App.Layout;
 using Microsoft.AspNetCore.Components;
@@ -32,7 +33,7 @@ public class TopBarRenderTests
                 "the bar carries Přehled, Spisy, Úkony, Kontakty a Nastavení (SDD-016)");
             Assert.That(links.Select(static link => link.GetAttribute("href")), Is.EqualTo(ExpectedHrefs));
             Assert.That(links.Select(static link => link.TextContent.Trim()), Is.EqualTo(ExpectedTexts));
-            Assert.That(component.FindAll(".ec-search-input"), Is.Not.Empty);
+            Assert.That(component.FindAll(".ec-topsearch-input"), Is.Not.Empty);
             Assert.That(component.FindAll(".ec-avatar"), Is.Not.Empty);
         }
     }
@@ -72,39 +73,6 @@ public class TopBarRenderTests
         {
             Assert.That(component.Find(".ec-topbar-nav a[href='/acts']").GetAttribute("aria-current"), Is.EqualTo("page"));
             Assert.That(component.Find(".ec-topbar-nav a[href='/cases']").GetAttribute("aria-current"), Is.Null);
-        }
-    }
-
-    [Test]
-    public async Task SearchingInTheBarOpensTheCaseListNarrowedByTheText()
-    {
-        await using var ctx = new BunitContext();
-        Arrange(ctx, new StubAuthSession());
-
-        var navigation = ctx.Services.GetRequiredService<NavigationManager>();
-        var component = ctx.Render<TopBar>();
-
-        await component.Find(".ec-search-input").InputAsync(new ChangeEventArgs { Value = "rychlost" });
-        await component.Find("form.ec-search").SubmitAsync();
-
-        Assert.That(navigation.Uri, Does.EndWith("/cases?q=rychlost"));
-    }
-
-    [Test]
-    public async Task AnEmptySearchOpensTheCaseListUnnarrowed()
-    {
-        await using var ctx = new BunitContext();
-        Arrange(ctx, new StubAuthSession());
-
-        var navigation = ctx.Services.GetRequiredService<NavigationManager>();
-        var component = ctx.Render<TopBar>();
-
-        await component.Find("form.ec-search").SubmitAsync();
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(navigation.Uri, Does.EndWith("/cases"));
-            Assert.That(navigation.Uri, Does.Not.Contain('?'));
         }
     }
 
@@ -187,8 +155,8 @@ public class TopBarRenderTests
                 Is.EqualTo("Otevřít menu"),
                 "a control the keyboard reaches must say what it does (SDD-020)");
             Assert.That(
-                component.Find(".ec-search-input").GetAttribute("aria-label"),
-                Is.EqualTo("Hledat spis"),
+                component.Find(".ec-topsearch-input").GetAttribute("aria-label"),
+                Is.EqualTo("Hledat"),
                 "a control the keyboard reaches must say what it does (SDD-020)");
             Assert.That(
                 component.Find(".ec-avatar").GetAttribute("aria-label"),
@@ -215,6 +183,7 @@ public class TopBarRenderTests
     {
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         ctx.Services.AddSingleton<IAuthSession>(session);
+        ctx.Services.AddSingleton(Substitute.For<ISearchClient>());
         ctx.AddAuthorization().SetAuthorized("spravce@example.cz");
     }
 }

@@ -75,6 +75,23 @@ public class ContactsRenderTests
         await contactsClient.Received(2).ListContacts(Arg.Any<ContactListRequest>(), Arg.Any<CancellationToken>());
     }
 
+    [Test]
+    public async Task TheSearchFromTheAddressNarrowsTheList()
+    {
+        await using var ctx = new BunitContext();
+        var client = Serve(ctx);
+
+        ctx.Services.GetRequiredService<NavigationManager>().NavigateTo("/contacts?q=urad");
+
+        _ = ctx.Render<App.Pages.Contacts>();
+
+        await Assert.ThatAsync(
+            () => Task.FromResult(client.ReceivedCalls().Count()),
+            Is.GreaterThan(0).After(2000, 20));
+
+        await client.Received().ListContacts(Arg.Is<ContactListRequest>(static request => request.Search == "urad"), Arg.Any<CancellationToken>());
+    }
+
     private static IContactsClient Serve(BunitContext ctx, int total = 0)
     {
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;

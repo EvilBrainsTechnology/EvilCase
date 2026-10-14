@@ -1,0 +1,60 @@
+@using EvilBrains.EvilCase.Api.Contract.Labels
+
+<a id="@this.Id" class="@this.CssClass" role="option" aria-selected="@(this.Active ? "true" : "false")" href="@this.Href"
+   @onmouseenter="this.OnActivate" @onclick="this.OnOpen">
+    <span class="@($"ec-sr-icon ec-sr-icon-{this.Kind}")">@this.Icon</span>
+    <span class="ec-sr-body">
+        <span class="ec-sr-line">
+            <span class="ec-sr-title"><SearchMark Text="@this.Title" Term="@this.Term" /></span>
+            <LabelChips Labels="this.Labels" />
+        </span>
+        <span class="ec-sr-meta">@this.Details</span>
+    </span>
+    <span class="ec-sr-enter" aria-hidden="true"><EcIcon Paths="@AppIcons.CornerDownLeft" Size="EcIconSize.Small" /></span>
+</a>
+
+@code {
+    [Parameter, EditorRequired]
+    public required string Id { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string Href { get; set; }
+
+    /// <summary>
+    /// The name behind <c>ec-sr-icon-{name}</c>: case, act, contact, file, comment or label.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required string Kind { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string Title { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string Term { get; set; }
+
+    [Parameter]
+    public bool Active { get; set; }
+
+    /// <summary>
+    /// A title set in italics: the snippet of a comment.
+    /// </summary>
+    [Parameter]
+    public bool Quote { get; set; }
+
+    [Parameter]
+    public IReadOnlyList<LabelItem> Labels { get; set; } = [];
+
+    [Parameter]
+    public RenderFragment? Icon { get; set; }
+
+    [Parameter]
+    public RenderFragment? Details { get; set; }
+
+    [Parameter]
+    public EventCallback OnActivate { get; set; }
+
+    [Parameter]
+    public EventCallback OnOpen { get; set; }
+
+    private string CssClass => (this.Active ? "ec-sr-option ec-sr-option-active" : "ec-sr-option") + (this.Quote ? " ec-sr-option-quote" : "");
+}

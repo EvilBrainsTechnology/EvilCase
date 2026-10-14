@@ -295,4 +295,27 @@
     --ec-topbar-search-border: #2E323B;
     --ec-topbar-search-muted: #A0A6B1;
     --ec-topbar-avatar-ring: 0 0 0 2px var(--ec-topbar-bg), 0 0 0 3px var(--ec-accent-on-dark);
+    --ec-topbar-search-focus-bg: #262A33;
+    --ec-topbar-search-ring: 0 0 0 3px rgba(157, 176, 242, 0.25);
+    --ec-topbar-kbd-border: #3A3F49;
+    --ec-topbar-clear-bg: rgba(255, 255, 255, 0.08);
+
+    /* Hledání v horní liště (docs/design/hledani.html) */
+    --ec-search-width-open: 440px;
+    --ec-topsearch-clear: 24px;
+    --ec-accent-ring: #C9D3F3;
+    --ec-sr-width: 640px;
+    --ec-sr-max-height: 700px;
+    --ec-sr-shadow: 0 18px 48px rgba(20, 22, 27, 0.18), 0 2px 6px rgba(20, 22, 27, 0.08);
+    --ec-sr-icon: 34px;
+    --ec-sr-file-text: 9px;
+    --ec-sr-mono-text: 11.5px;
+    --ec-sr-row-height: 54px;
+    --ec-sr-row-height-touch: 56px;
+    --ec-sr-badge-height: 20px;
+    --ec-sr-enter-width: 26px;
+    --ec-sr-enter-height: 22px;
+    --ec-sr-hit-bg: #FFE58F;
+    --ec-sr-hit-radius: 3px;
+    --ec-sr-hit-pad: 1px;
 }

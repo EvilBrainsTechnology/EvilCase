@@ -1,5 +1,3 @@
-@inject NavigationManager Navigation
-
 <header class="ec-topbar">
     <button type="button" class="ec-topbar-burger" aria-label="Otevřít menu"
             aria-expanded="@(this.drawerOpen ? "true" : "false")" @onclick="this.OpenDrawer">
@@ -15,11 +13,7 @@
         <NavLinks />
     </nav>
 
-    <form class="ec-search" role="search" @onsubmit="this.SubmitSearch" @onsubmit:preventDefault>
-        <EcIcon Paths="@AppIcons.Search" Size="EcIconSize.Small" />
-        <input class="ec-search-input" type="search" aria-label="Hledat spis" placeholder="Hledat spis"
-               value="@this.query" @oninput="this.OnQueryInput" />
-    </form>
+    <TopSearch />
 
     <UserMenu />
 </header>
@@ -45,8 +39,6 @@
 @code {
     private bool drawerOpen;
 
-    private string query = "";
-
     private void OpenDrawer()
     {
         this.drawerOpen = true;
@@ -55,17 +47,5 @@
     private void CloseDrawer()
     {
         this.drawerOpen = false;
-    }
-
-    private void OnQueryInput(ChangeEventArgs args)
-    {
-        this.query = args.Value as string ?? "";
-    }
-
-    private void SubmitSearch()
-    {
-        var text = this.query.Trim();
-
-        this.Navigation.NavigateTo(text.Length == 0 ? "/cases" : $"/cases?q={Uri.EscapeDataString(text)}");
     }
 }

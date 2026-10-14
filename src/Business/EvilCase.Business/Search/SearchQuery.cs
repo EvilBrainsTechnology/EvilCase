@@ -1,5 +1,4 @@
 using EvilBrains.EvilCase.Api.Contract.Search;
-using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Data;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
