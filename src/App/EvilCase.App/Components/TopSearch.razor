@@ -48,7 +48,7 @@
                     <span class="ec-sr-state-icon"><EcIcon Paths="@AppIcons.Search" /></span>
                     <span class="ec-sr-state-text">
                         <span class="ec-sr-state-title">Napište alespoň @SearchLimits.TermMinLength znaky</span>
-                        <span>Hledá se ve spisech, úkonech, kontaktech, souborech, komentářích a štítcích, bez ohledu na diakritiku.</span>
+                        <span>Hledá se ve spisech, úkonech, kontaktech, souborech, komentářích, bez ohledu na diakritiku.</span>
                     </span>
                 </div>
             }
@@ -198,23 +198,6 @@
                             }
                         </div>
                     }
-
-                    @if (found.Labels.Items.Count > 0)
-                    {
-                        <div class="ec-sr-group" role="group" aria-label="Štítky">
-                            <SearchGroupHead Label="Štítky" Count="found.Labels.TotalCount" />
-                            @foreach (var item in found.Labels.Items)
-                            {
-                                var row = index++;
-
-                                <SearchOption Id="@this.OptionId(row)" Href="@($"/cases?label={item.LabelId}")" Kind="@($"label ec-chip-{LabelColorDisplay.Css(item.Color)}")"
-                                              Title="@item.Name" Term="@this.resultTerm" Active="@(row == this.active)" OnActivate="() => this.Activate(row)" OnOpen="this.Close">
-                                    <Icon><EcIcon Paths="@AppIcons.Tag" /></Icon>
-                                    <Details><span>@LabelUsageDisplay.Line(item.CaseCount, item.ActCount)</span></Details>
-                                </SearchOption>
-                            }
-                        </div>
-                    }
                 </div>
 
                 <div class="ec-sr-footer">
@@ -328,7 +311,6 @@
             .. response.Contacts.Items.Select(static item => $"/contacts/{item.ContactId}"),
             .. response.Files.Items.Select(static item => OwnerHref(item.CaseId, item.ActId)),
             .. response.Comments.Items.Select(static item => OwnerHref(item.CaseId, item.ActId)),
-            .. response.Labels.Items.Select(static item => $"/cases?label={item.LabelId}"),
         ];
     }
 
@@ -340,7 +322,7 @@
     private int TotalCount(SearchResponse response)
     {
         return response.Cases.TotalCount + response.Acts.TotalCount + response.Contacts.TotalCount
-            + response.Files.TotalCount + response.Comments.TotalCount + response.Labels.TotalCount;
+            + response.Files.TotalCount + response.Comments.TotalCount;
     }
 
     private void Open()

@@ -2816,11 +2816,6 @@ html:has(.ec-gate) {
     color: var(--ec-waiting-text);
 }
 
-.ec-sr-icon-label {
-    background: var(--ec-chip-soft);
-    color: var(--ec-chip-strong);
-}
-
 .ec-sr-icon .ec-file-chip {
     width: var(--ec-sr-icon);
     height: var(--ec-sr-icon);

@@ -66,7 +66,7 @@ public class TopSearchRenderTests
         var component = ctx.Render<TopSearch>();
         await component.Find(".ec-topsearch-input").InputAsync(new ChangeEventArgs { Value = " poj " });
 
-        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll("[role=option]"), Has.Count.EqualTo(6)));
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll("[role=option]"), Has.Count.EqualTo(5)));
 
         var heads = component.FindAll(".ec-sr-group-head").Select(static head => head.TextContent.Trim()).ToArray();
 
@@ -74,8 +74,8 @@ public class TopSearchRenderTests
         {
             await client.Received(1).Search(Arg.Is<SearchRequest>(static request => request.Q == "poj"), Arg.Any<CancellationToken>());
             Assert.That(heads[0], Does.StartWith("Spisy").And.Contain("5"), "a group header carries the total of its matches");
-            Assert.That(component.FindAll(".ec-sr-group").Select(static group => group.GetAttribute("aria-label")), Is.EqualTo(["Spisy", "Úkony", "Kontakty", "Soubory", "Komentáře", "Štítky"]));
-            Assert.That(component.Find(".ec-sr-footer").TextContent, Does.Contain("10 výsledků"));
+            Assert.That(component.FindAll(".ec-sr-group").Select(static group => group.GetAttribute("aria-label")), Is.EqualTo(["Spisy", "Úkony", "Kontakty", "Soubory", "Komentáře"]));
+            Assert.That(component.Find(".ec-sr-footer").TextContent, Does.Contain("9 výsledků"));
             Assert.That(component.FindAll(".ec-sr-all"), Has.Count.EqualTo(1), "only a group with more matches than rows links to the list");
             Assert.That(component.Find(".ec-sr-all").GetAttribute("href"), Is.EqualTo("/cases?q=poj"));
             Assert.That(component.Find(".ec-sr-all").TextContent, Does.Contain("Všechny ve Spisech (5)"));
@@ -108,7 +108,7 @@ public class TopSearchRenderTests
         var component = ctx.Render<TopSearch>();
         var input = component.Find(".ec-topsearch-input");
         await input.InputAsync(new ChangeEventArgs { Value = "poj" });
-        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll("[role=option]"), Has.Count.EqualTo(6)));
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll("[role=option]"), Has.Count.EqualTo(5)));
 
         var first = component.FindAll("[role=option]")[0].Id;
         Assert.That(input.GetAttribute("aria-activedescendant"), Is.EqualTo(first), "the first row is active when the results arrive");
@@ -119,7 +119,7 @@ public class TopSearchRenderTests
         await input.KeyDownAsync(new KeyboardEventArgs { Key = "ArrowUp" });
         await input.KeyDownAsync(new KeyboardEventArgs { Key = "ArrowUp" });
 
-        Assert.That(component.FindAll("[role=option]")[5].GetAttribute("aria-selected"), Is.EqualTo("true"), "the arrow up from the first row wraps to the last");
+        Assert.That(component.FindAll("[role=option]")[4].GetAttribute("aria-selected"), Is.EqualTo("true"), "the arrow up from the first row wraps to the last");
 
         await input.KeyDownAsync(new KeyboardEventArgs { Key = "ArrowDown" });
 
@@ -136,7 +136,7 @@ public class TopSearchRenderTests
         var component = ctx.Render<TopSearch>();
         var input = component.Find(".ec-topsearch-input");
         await input.InputAsync(new ChangeEventArgs { Value = "poj" });
-        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll("[role=option]"), Has.Count.EqualTo(6)));
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll("[role=option]"), Has.Count.EqualTo(5)));
 
         await input.KeyDownAsync(new KeyboardEventArgs { Key = "ArrowDown" });
         await input.KeyDownAsync(new KeyboardEventArgs { Key = "Enter" });
@@ -156,14 +156,14 @@ public class TopSearchRenderTests
 
         var component = ctx.Render<TopSearch>();
         await component.Find(".ec-topsearch-input").InputAsync(new ChangeEventArgs { Value = "poj" });
-        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll("[role=option]"), Has.Count.EqualTo(6)));
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll("[role=option]"), Has.Count.EqualTo(5)));
 
         var hrefs = component.FindAll("[role=option]").Select(static row => row.GetAttribute("href")).ToArray();
 
         Assert.That(
             hrefs,
-            Is.EqualTo([$"/cases/{CaseId}", $"/acts/{ActId}", $"/contacts/{ContactId}", $"/acts/{ActId}", $"/cases/{CaseId}", $"/cases?label={LabelId}"]),
-            "a file and a comment open the case or act they hang on, a label opens the cases it marks");
+            Is.EqualTo([$"/cases/{CaseId}", $"/acts/{ActId}", $"/contacts/{ContactId}", $"/acts/{ActId}", $"/cases/{CaseId}"]),
+            "a file and a comment open the case or act they hang on");
     }
 
     [Test]
@@ -277,7 +277,7 @@ public class TopSearchRenderTests
         {
             Assert.That(input.GetAttribute("role"), Is.EqualTo("combobox"));
             Assert.That(input.GetAttribute("aria-controls"), Is.EqualTo(component.Find("[role=listbox]").Id));
-            Assert.That(component.FindAll("[role=listbox] [role=group]"), Has.Count.EqualTo(6));
+            Assert.That(component.FindAll("[role=listbox] [role=group]"), Has.Count.EqualTo(5));
             Assert.That(
                 component.FindAll("[role=option]").Select(static row => row.GetAttribute("tabindex")),
                 Is.All.EqualTo("-1"),
@@ -313,7 +313,6 @@ public class TopSearchRenderTests
             Contacts = Group<ContactListItem>(0),
             Files = Group<FileSearchItem>(0),
             Comments = Group<CommentSearchItem>(0),
-            Labels = Group<LabelListItem>(0),
         };
     }
 
@@ -359,9 +358,6 @@ public class TopSearchRenderTests
                 }),
             Files = OneFile(),
             Comments = OneComment(),
-            Labels = Group(
-                1,
-                new LabelListItem { LabelId = LabelId, Name = "Pojištění", Color = LabelColor.Orange, CaseCount = 1, ActCount = 2 }),
         };
     }
 

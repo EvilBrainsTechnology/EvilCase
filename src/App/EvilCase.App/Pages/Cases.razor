@@ -1,9 +1,5 @@
 @page "/cases"
-@using EvilBrains.ApiClient
-@using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Cases
-@using EvilBrains.EvilCase.Api.Contract.Labels
-@inject ILabelsClient LabelsClient
 
 <PageTitle>Spisy – EvilCase</PageTitle>
 
@@ -15,17 +11,14 @@
         </Actions>
     </EcPageHeader>
 
-    @if (this.labelResolved)
-    {
-        <CaseList Columns="Columns" Filter="Filter" InitialLabels="this.labelFilter"
-                  ShowSearch="true" ShowDates="true" ShowLabelFilter="true"
-                  ShowStatusSwitch="true" ShowScopeFilter="true" ShowPaging="true"
-                  TotalChanged="this.OnTotalChanged">
-            <EmptyAction>
-                <EcButton Variant="EcButtonVariant.Primary" Icon="@AppIcons.Plus" Href="/cases/new">Založit spis</EcButton>
-            </EmptyAction>
-        </CaseList>
-    }
+    <CaseList Columns="Columns" Filter="Filter"
+              ShowSearch="true" ShowDates="true" ShowLabelFilter="true"
+              ShowStatusSwitch="true" ShowScopeFilter="true" ShowPaging="true"
+              TotalChanged="this.OnTotalChanged">
+        <EmptyAction>
+            <EcButton Variant="EcButtonVariant.Primary" Icon="@AppIcons.Plus" Href="/cases/new">Založit spis</EcButton>
+        </EmptyAction>
+    </CaseList>
 </div>
 
 @code {
@@ -51,16 +44,6 @@
     [SupplyParameterFromQuery(Name = "scope")]
     public string? ScopeQuery { get; set; }
 
-    [Parameter]
-    [SupplyParameterFromQuery(Name = "label")]
-    public Guid? LabelQuery { get; set; }
-
-    private IReadOnlyList<LabelItem> labelFilter = [];
-
-    private Guid? resolvedLabelId;
-
-    private bool labelResolved;
-
     private int total;
 
     // A record, so a render that hands over the same values reloads nothing (CaseListRenderTests).
@@ -75,36 +58,6 @@
         Search = string.IsNullOrWhiteSpace(this.Query) ? null : this.Query,
         Take = PageItems,
     };
-
-    // The list opens narrowed by the label the address names, e.g. from a search result.
-    protected override async Task OnParametersSetAsync()
-    {
-        if (this.labelResolved && this.resolvedLabelId == this.LabelQuery)
-            return;
-
-        var resolved = new List<LabelItem>();
-
-        if (this.LabelQuery is { } labelId)
-        {
-            try
-            {
-                var response = await this.LabelsClient.ListLabels(CancellationToken.None);
-
-                resolved.AddRange(
-                    response.Items
-                        .Where(label => label.LabelId == labelId)
-                        .Select(static label => new LabelItem { LabelId = label.LabelId, Name = label.Name, Color = label.Color }));
-            }
-            catch (Exception exception) when (exception is ApiException or HttpRequestException)
-            {
-                // The list opens unnarrowed.
-            }
-        }
-
-        this.labelFilter = resolved;
-        this.resolvedLabelId = this.LabelQuery;
-        this.labelResolved = true;
-    }
 
     private void OnTotalChanged(int count)
     {

@@ -27,7 +27,6 @@ public class SearchReaderTests : TenantFixture
         var contact = await this.Tenant.AddContact("Pojišťovna Alfa", dataBoxId: "pojvz12", address: "Hlavní 12, Praha");
         await this.Tenant.AddActFile(act, "pojistna-smlouva.pdf");
         await this.Tenant.AddCaseComment(@case, "Pojišťovna potvrdila přijetí");
-        await this.Tenant.AddLabel("Pojištění");
 
         var response = await this.Find("POJISTENI");
         var byTitle = await this.Find("pojišťovn");
@@ -35,7 +34,6 @@ public class SearchReaderTests : TenantFixture
         using (Assert.EnterMultipleScope())
         {
             Assert.That(response.Cases.Items.Select(static item => item.CaseId), Is.EqualTo([@case.Id]), "the case title is searched");
-            Assert.That(response.Labels.Items.Select(static item => item.Name), Is.EqualTo(["Pojištění"]), "the label name is searched");
             Assert.That(byTitle.Acts.Items.Select(static item => item.ActId), Is.EqualTo([act.Id]), "the act title is searched");
             Assert.That(byTitle.Contacts.Items.Select(static item => item.ContactId), Is.EqualTo([contact.Id]), "the contact name is searched");
             Assert.That(byTitle.Comments.Items, Has.Count.EqualTo(1), "the comment body is searched");
@@ -101,8 +99,6 @@ public class SearchReaderTests : TenantFixture
         var @case = await this.Tenant.AddCase(Day, "Spis");
         var olderContact = await this.Tenant.AddContact("Archiv A");
         var newerContact = await this.Tenant.AddContact("Archiv B");
-        var olderLabel = await this.Tenant.AddLabel("Archiv A");
-        var newerLabel = await this.Tenant.AddLabel("Archiv B");
         await this.Tenant.AddCaseFile(@case, "archiv-a.pdf");
         await this.Tenant.AddCaseFile(@case, "archiv-b.pdf");
         await this.Tenant.AddCaseComment(@case, "Archiv A");
@@ -113,7 +109,6 @@ public class SearchReaderTests : TenantFixture
         using (Assert.EnterMultipleScope())
         {
             Assert.That(response.Contacts.Items.Select(static item => item.ContactId), Is.EqualTo([newerContact.Id, olderContact.Id]), "contacts go newest created first");
-            Assert.That(response.Labels.Items.Select(static item => item.LabelId), Is.EqualTo([newerLabel.Id, olderLabel.Id]), "labels go newest created first");
             Assert.That(response.Files.Items.Select(static item => item.FileName), Is.EqualTo(["archiv-b.pdf", "archiv-a.pdf"]), "files go newest created first");
             Assert.That(response.Comments.Items.Select(static item => item.Body), Is.EqualTo(["Archiv B", "Archiv A"]), "comments go newest created first");
         }
@@ -168,25 +163,6 @@ public class SearchReaderTests : TenantFixture
     }
 
     [Test]
-    public async Task ALabelRowCarriesHowManyCasesAndActsItIsOn()
-    {
-        var @case = await this.Tenant.AddCase(Day);
-        var act = await this.Tenant.AddAct(@case, Day);
-        var label = await this.Tenant.AddLabel("Pojištění");
-        await this.Tenant.AddCaseLabel(@case, label);
-        await this.Tenant.AddActLabel(act, label);
-
-        var response = await this.Find("pojisteni");
-        var row = response.Labels.Items.Single();
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(row.CaseCount, Is.EqualTo(1));
-            Assert.That(row.ActCount, Is.EqualTo(1));
-        }
-    }
-
-    [Test]
     public async Task AWildcardInTheTermMatchesOnlyItself()
     {
         await this.Tenant.AddCase(Day, "Sleva 50%_a");
@@ -206,7 +182,6 @@ public class SearchReaderTests : TenantFixture
         {
             var otherCase = await other.AddCase(Day, "Cizí spis");
             await other.AddContact("Cizí kontakt");
-            await other.AddLabel("Cizí štítek");
             await other.AddCaseComment(otherCase, "Cizí komentář");
         }
 
@@ -216,7 +191,7 @@ public class SearchReaderTests : TenantFixture
         using (Assert.EnterMultipleScope())
         {
             Assert.That(
-                response.Cases.TotalCount + response.Contacts.TotalCount + response.Labels.TotalCount + response.Comments.TotalCount,
+                response.Cases.TotalCount + response.Contacts.TotalCount + response.Comments.TotalCount,
                 Is.Zero,
                 "the tenant query filter keeps another tenant's rows out of every group");
             Assert.That(mine.Cases.TotalCount, Is.EqualTo(1));
@@ -234,7 +209,6 @@ public class SearchReaderTests : TenantFixture
         {
             Assert.That(response.Cases.Items, Is.Empty);
             Assert.That(response.Cases.TotalCount, Is.Zero);
-            Assert.That(response.Labels.TotalCount, Is.Zero);
         }
     }
 

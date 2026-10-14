@@ -51,7 +51,7 @@ Každý seznam vypadá stejně; stránka volí jen sloupce, jejich pořadí a na
 v patičce zobrazený rozsah, celkový počet a předchozí/další.
 
 Hledání v horní liště prochází všechny entity ([SDD-021](sdd-021-vyhledavani.md)). Seznam spisů,
-úkonů a kontaktů bere hledaný text v `?q=`, seznam spisů štítek v `?label={id}`.
+úkonů a kontaktů bere hledaný text v `?q=`.
 
 Každý seznam má prázdný stav; kde jde záznam založit, nese výzvu k založení.
 

@@ -52,12 +52,6 @@ internal static class SearchQuery
             EF.Functions.ILike(DatabaseFunctions.Unaccent(comment.Body), DatabaseFunctions.Unaccent(pattern), LikeExtensions.LikeEscape));
     }
 
-    public static IQueryable<Label> MatchingTerm(this IQueryable<Label> labels, string pattern)
-    {
-        return labels.Where(label =>
-            EF.Functions.ILike(DatabaseFunctions.Unaccent(label.Name), DatabaseFunctions.Unaccent(pattern), LikeExtensions.LikeEscape));
-    }
-
     public static IQueryable<Case> InSearchOrder(this IQueryable<Case> cases)
     {
         return cases

@@ -11,7 +11,7 @@ public abstract class FilteredListComponent<TSortRequest> : ListComponent<TSortR
 
     protected DateOnly? To { get; private set; }
 
-    protected IReadOnlyList<LabelItem> SelectedLabels { get; set; } = [];
+    protected IReadOnlyList<LabelItem> SelectedLabels { get; private set; } = [];
 
     protected IReadOnlyList<Guid> LabelIds => [.. this.SelectedLabels.Select(static label => label.LabelId)];
 

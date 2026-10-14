@@ -1,7 +1,6 @@
 using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Contacts;
-using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.Api.Contract.Search;
 using EvilBrains.EvilCase.Api.Controllers;
 using EvilBrains.EvilCase.Business.Search;
@@ -20,7 +19,6 @@ public class SearchControllerTests
             Contacts = Empty<ContactListItem>(),
             Files = Empty<FileSearchItem>(),
             Comments = Empty<CommentSearchItem>(),
-            Labels = Empty<LabelListItem>(),
         };
         var reader = Substitute.For<ISearchReader>();
         var request = new SearchRequest { Q = "poj" };

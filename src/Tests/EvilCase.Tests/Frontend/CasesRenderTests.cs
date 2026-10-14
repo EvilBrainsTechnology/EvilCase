@@ -115,25 +115,7 @@ public class CasesRenderTests
         }
     }
 
-    [Test]
-    public async Task TheLabelFromTheAddressNarrowsTheList()
-    {
-        var labelId = Guid.NewGuid();
-        await using var ctx = new BunitContext();
-        Serve(ctx, out var requests, new LabelListItem { LabelId = labelId, Name = "Priorita", Color = Domain.Labels.LabelColor.Pink, CaseCount = 1, ActCount = 0 });
-
-        ctx.Services.GetRequiredService<NavigationManager>().NavigateTo($"/cases?label={labelId}");
-
-        _ = ctx.Render<App.Pages.Cases>();
-
-        await Assert.ThatAsync(
-            () => Task.FromResult(requests.Count),
-            Is.GreaterThan(0).After(2000, 20));
-
-        Assert.That(requests[0].LabelIds, Is.EqualTo([labelId]), "a search result for a label opens the cases it marks");
-    }
-
-    private static void Serve(BunitContext ctx, out List<CaseListRequest> requests, params LabelListItem[] labels)
+    private static void Serve(BunitContext ctx, out List<CaseListRequest> requests)
     {
         var captured = new List<CaseListRequest>();
         var response = new CaseListResponse { Items = [], TotalCount = 0 };
@@ -152,7 +134,7 @@ public class CasesRenderTests
         ctx.Services.AddSingleton(casesClient);
 
         var labelsClient = Substitute.For<ILabelsClient>();
-        labelsClient.ListLabels(Arg.Any<CancellationToken>()).Returns(Task.FromResult(new LabelListResponse { Items = labels }));
+        labelsClient.ListLabels(Arg.Any<CancellationToken>()).Returns(Task.FromResult(new LabelListResponse { Items = [] }));
         ctx.Services.AddSingleton(labelsClient);
 
         requests = captured;

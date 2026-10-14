@@ -1,7 +1,6 @@
 @using System.Diagnostics
 @using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Cases
-@using EvilBrains.EvilCase.Api.Contract.Labels
 @using EvilBrains.EvilCase.Api.Contract.Lists
 @inherits FilteredListComponent<CaseListRequest>
 @inject ICasesClient CasesClient
@@ -178,12 +177,6 @@
     [Parameter]
     public RenderFragment? EmptyAction { get; set; }
 
-    /// <summary>
-    /// The labels the list opens narrowed by; a new list of them narrows it again.
-    /// </summary>
-    [Parameter]
-    public IReadOnlyList<LabelItem> InitialLabels { get; set; } = [];
-
     [Parameter]
     public bool ShowSearch { get; set; }
 
@@ -230,8 +223,6 @@
 
     private CaseListRequest? seeded;
 
-    private IReadOnlyList<LabelItem>? seededLabels;
-
     protected override int PageSize => this.Filter.Take;
 
     protected override string FailureText => "Seznam spisů se nepodařilo načíst. Zkuste to za chvíli znovu.";
@@ -262,23 +253,7 @@
 
         this.seeded = this.Filter;
 
-        return this.SeedLabelsAndReload();
-    }
-
-    private async Task SeedLabelsAndReload()
-    {
-        var labelsChanged = this.seededLabels is not null && !ReferenceEquals(this.seededLabels, this.InitialLabels);
-
-        if (this.seededLabels is null || labelsChanged)
-        {
-            this.seededLabels = this.InitialLabels;
-            this.SelectedLabels = this.InitialLabels;
-        }
-
-        await this.ReloadOnFilterChange(this.Filter, this.Filter.Search);
-
-        if (labelsChanged)
-            await this.ReloadFirstPage();
+        return this.ReloadOnFilterChange(this.Filter, this.Filter.Search);
     }
 
     protected override async Task<int> LoadPage(CancellationToken token)
