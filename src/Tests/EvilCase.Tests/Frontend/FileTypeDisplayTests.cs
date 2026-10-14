@@ -38,7 +38,8 @@ public class FileTypeDisplayTests
     [TestCase("a.bmp", FilePreviewKind.Image)]
     [TestCase("a.svg", FilePreviewKind.Image)]
     [TestCase("a.txt", FilePreviewKind.Text)]
-    [TestCase("a.md", FilePreviewKind.Text)]
+    [TestCase("a.md", FilePreviewKind.Markdown)]
+    [TestCase("a.MARKDOWN", FilePreviewKind.Markdown)]
     [TestCase("a.csv", FilePreviewKind.Text)]
     [TestCase("a.tsv", FilePreviewKind.Text)]
     [TestCase("a.json", FilePreviewKind.Text)]
@@ -53,11 +54,22 @@ public class FileTypeDisplayTests
     [TestCase("a.mp4", FilePreviewKind.Video)]
     [TestCase("a.webm", FilePreviewKind.Video)]
     [TestCase("a.m4v", FilePreviewKind.Video)]
-    [TestCase("a.docx", FilePreviewKind.None)]
-    [TestCase("a.heic", FilePreviewKind.None)]
+    [TestCase("a.docx", FilePreviewKind.Document)]
+    [TestCase("a.xlsx", FilePreviewKind.Workbook)]
+    [TestCase("a.xls", FilePreviewKind.Workbook)]
+    [TestCase("a.ODS", FilePreviewKind.Workbook)]
+    [TestCase("a.eml", FilePreviewKind.Email)]
+    [TestCase("a.msg", FilePreviewKind.Email)]
+    [TestCase("a.heic", FilePreviewKind.ConvertedImage)]
+    [TestCase("a.heif", FilePreviewKind.ConvertedImage)]
+    [TestCase("a.tif", FilePreviewKind.ConvertedImage)]
+    [TestCase("a.TIFF", FilePreviewKind.ConvertedImage)]
+    [TestCase("a.doc", FilePreviewKind.None)]
+    [TestCase("a.odt", FilePreviewKind.None)]
+    [TestCase("a.pptx", FilePreviewKind.None)]
     [TestCase("a.zfo", FilePreviewKind.None)]
     [TestCase("README", FilePreviewKind.None)]
-    public void TheBrowserPreviewsOnlyTheFormatsItCanShow(string fileName, FilePreviewKind kind)
+    public void OnlyTheFormatsTheAppCanShowOpenInThePreview(string fileName, FilePreviewKind kind)
     {
         Assert.That(FileTypeDisplay.Preview(fileName), Is.EqualTo(kind));
     }
@@ -66,7 +78,7 @@ public class FileTypeDisplayTests
     [TestCase("a.SVG", "image/svg+xml")]
     [TestCase("a.m4a", "audio/mp4")]
     [TestCase("a.mp4", "video/mp4")]
-    [TestCase("a.docx", "application/octet-stream")]
+    [TestCase("a.zfo", "application/octet-stream")]
     public void TheBlobTypeComesFromTheExtension(string fileName, string mediaType)
     {
         Assert.That(FileTypeDisplay.PreviewMediaType(fileName), Is.EqualTo(mediaType));

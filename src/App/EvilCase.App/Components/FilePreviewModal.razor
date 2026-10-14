@@ -1,9 +1,12 @@
+@using System.Diagnostics
+@using System.Globalization
 @using System.Text
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Contract.Files
 @using Microsoft.JSInterop
 @implements IAsyncDisposable
 @inject IBlobUrls BlobUrls
+@inject IFilePreviews Previews
 @inject ILogger<FilePreviewModal> Logger
 
 @if (this.Current is { } file)
@@ -37,7 +40,7 @@
             <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Download" OnClick="() => this.OnDownload.InvokeAsync(file)">Stáhnout</EcButton>
         </Heading>
         <ChildContent>
-            @if (preview == FilePreviewKind.None)
+            @if (preview == FilePreviewKind.None || this.unsupported)
             {
                 <div class="ec-preview-message">
                     <EcFileIcon FileName="@file.FileName" Size="EcFileIconSize.Large" />
@@ -75,11 +78,125 @@
                     </div>
                 </div>
             }
+            else if (preview == FilePreviewKind.Markdown)
+            {
+                <div class="ec-preview-stage ec-preview-stage-text">
+                    @if (this.truncated)
+                    {
+                        <p class="ec-preview-note">Soubor je delší, zobrazuje se jen jeho začátek.</p>
+                    }
+                    <article class="ec-preview-markdown" role="document" tabindex="0" aria-label="Obsah souboru @file.FileName">@((MarkupString)this.markdownHtml)</article>
+                </div>
+            }
+            else if (preview == FilePreviewKind.Document)
+            {
+                <div class="ec-preview-stage ec-preview-stage-text">
+                    <p class="ec-preview-note"><EcIcon Paths="@AppIcons.Info" />Náhled dokumentu se může od originálu mírně lišit. Přesnou podobu ukáže stažený soubor.</p>
+                    <div @key="file.FileId" @ref="this.documentHost" class="ec-preview-document" role="document" tabindex="0" aria-label="Obsah souboru @file.FileName"></div>
+                </div>
+            }
+            else if (preview == FilePreviewKind.Workbook)
+            {
+                if (this.workbook.Count == 0)
+                {
+                    <p class="ec-preview-message">Sešit neobsahuje žádné listy.</p>
+                }
+                else
+                {
+                    var sheet = this.workbook[this.activeSheet];
+
+                    <div class="ec-preview-sheet-view">
+                        @if (sheet.RowCount > sheet.Rows.Count)
+                        {
+                            <p class="ec-preview-note">Zobrazuje se jen prvních @Count(sheet.Rows.Count) řádků z @Count(sheet.RowCount).</p>
+                        }
+                        <div class="ec-preview-sheet" role="document" tabindex="0" aria-label="Obsah listu @sheet.Name">
+                            <table class="ec-preview-sheet-table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col"></th>
+                                        @for (var column = 0; column < sheet.ColumnCount; column++)
+                                        {
+                                            <th scope="col">@ColumnName(column)</th>
+                                        }
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for (var row = 0; row < sheet.Rows.Count; row++)
+                                    {
+                                        <tr>
+                                            <th scope="row">@(row + 1)</th>
+                                            @foreach (var cell in sheet.Rows[row])
+                                            {
+                                                <td>@cell</td>
+                                            }
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="ec-preview-sheet-tabs" role="tablist" aria-label="Listy sešitu">
+                            @for (var index = 0; index < this.workbook.Count; index++)
+                            {
+                                var sheetIndex = index;
+
+                                <button type="button" role="tab" class="ec-preview-sheet-tab" aria-selected="@(sheetIndex == this.activeSheet ? "true" : "false")"
+                                        @onclick="() => this.activeSheet = sheetIndex">@this.workbook[sheetIndex].Name</button>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+            else if (preview == FilePreviewKind.Email)
+            {
+                var message = this.email!;
+
+                <div class="ec-preview-stage ec-preview-stage-text">
+                    <article class="ec-preview-email" role="document" tabindex="0" aria-label="Obsah zprávy @file.FileName">
+                        <dl class="ec-preview-email-headers">
+                            <dt>Od</dt>
+                            <dd>@Or(message.From)</dd>
+                            <dt>Komu</dt>
+                            <dd>@Or(string.Join(", ", message.To))</dd>
+                            @if (message.Cc.Count > 0)
+                            {
+                                <dt>Kopie</dt>
+                                <dd>@string.Join(", ", message.Cc)</dd>
+                            }
+                            <dt>Předmět</dt>
+                            <dd>@Or(message.Subject)</dd>
+                            <dt>Datum</dt>
+                            <dd>@(message.Date is { } sent ? MomentDisplay.Text(sent.UtcDateTime) : "—")</dd>
+                        </dl>
+                        @if (message.Truncated)
+                        {
+                            <p class="ec-preview-note">Zpráva je delší, zobrazuje se jen její začátek.</p>
+                        }
+                        <div class="ec-preview-email-body">@message.Body</div>
+                        @if (message.Attachments.Count > 0)
+                        {
+                            <section class="ec-preview-email-attachments" aria-label="Přílohy">
+                                <h3 class="ec-preview-email-attachments-title">Přílohy (@message.Attachments.Count)</h3>
+                                <ul class="ec-preview-email-attachment-list">
+                                    @foreach (var attachment in message.Attachments)
+                                    {
+                                        <li class="ec-preview-email-attachment">
+                                            <EcIcon Paths="@AppIcons.Paperclip" />
+                                            <span class="ec-preview-email-attachment-name">@attachment.Name</span>
+                                            <span class="ec-preview-email-attachment-size">@FileSizeDisplay.Text(attachment.Size)</span>
+                                        </li>
+                                    }
+                                </ul>
+                            </section>
+                        }
+                    </article>
+                </div>
+            }
             else if (preview == FilePreviewKind.Pdf)
             {
                 <iframe class="ec-preview-frame" src="@this.url" title="Náhled souboru @file.FileName"></iframe>
             }
-            else if (preview == FilePreviewKind.Image)
+            else if (preview == FilePreviewKind.Image || preview == FilePreviewKind.ConvertedImage)
             {
                 <div class="ec-preview-stage">
                     <img class="ec-preview-image" src="@this.url" alt="@file.FileName" />
@@ -105,6 +222,10 @@
     private const int MaxTextBytes = 1024 * 1024;
 
     private const int MaxTextLines = 5000;
+
+    private const int MaxSheetRows = 1000;
+
+    private static readonly NumberFormatInfo CzechNumbers = NumberFormatInfo.ReadOnly(new NumberFormatInfo { NumberGroupSeparator = "\u00A0" });
 
     [Parameter, EditorRequired]
     public required IReadOnlyList<FileListItem> Files { get; set; }
@@ -139,6 +260,18 @@
 
     private string? url;
 
+    private string markdownHtml = "";
+
+    private IReadOnlyList<SheetPreview> workbook = [];
+
+    private int activeSheet;
+
+    private EmailPreview? email;
+
+    private MemoryStream? documentContent;
+
+    private ElementReference documentHost;
+
     private IReadOnlyList<string> lines = [];
 
     private bool truncated;
@@ -146,6 +279,8 @@
     private bool loading;
 
     private bool failed;
+
+    private bool unsupported;
 
     private bool renaming;
 
@@ -170,6 +305,38 @@
         await this.ReleaseUrl();
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (this.documentContent is not { } content)
+            return;
+
+        this.documentContent = null;
+
+        var token = this.loadToken!.Token;
+
+        try
+        {
+            await using (content)
+            {
+                await this.Previews.RenderDocument(this.documentHost, content, token);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // A later file took over.
+        }
+        catch (JSException exception)
+        {
+            this.Logger.LogInformation(exception, "The library could not render the document for the preview");
+
+            if (!token.IsCancellationRequested)
+            {
+                this.unsupported = true;
+                this.StateHasChanged();
+            }
+        }
+    }
+
     private async Task Reload(FileListItem file)
     {
         this.loadToken?.Cancel();
@@ -178,8 +345,14 @@
         this.loadedFileId = file.FileId;
         this.loading = true;
         this.failed = false;
+        this.unsupported = false;
         this.lines = [];
         this.truncated = false;
+        this.markdownHtml = "";
+        this.workbook = [];
+        this.activeSheet = 0;
+        this.email = null;
+        this.documentContent = null;
 
         await this.ReleaseUrl();
 
@@ -196,34 +369,24 @@
         {
             await using var content = await this.LoadContent(file, token);
 
-            if (preview == FilePreviewKind.Text)
-            {
-                var text = await ReadText(content, token);
+            await this.Load(file, preview, content, token);
 
-                if (token.IsCancellationRequested)
-                    return;
-
-                (this.lines, this.truncated) = text;
-            }
-            else
-            {
-                var created = await this.BlobUrls.CreateBlobUrl(FileTypeDisplay.PreviewMediaType(file.FileName), content, token);
-
-                if (token.IsCancellationRequested)
-                {
-                    await this.BlobUrls.RevokeBlobUrl(created);
-
-                    return;
-                }
-
-                this.url = created;
-            }
-
-            this.loading = false;
+            if (!token.IsCancellationRequested)
+                this.loading = false;
         }
         catch (OperationCanceledException)
         {
             // A later file took over.
+        }
+        catch (JSException exception) when (UsesLibrary(preview))
+        {
+            this.Logger.LogInformation(exception, "The library could not read file {FileId} for the preview", file.FileId);
+
+            if (!token.IsCancellationRequested)
+            {
+                this.loading = false;
+                this.unsupported = true;
+            }
         }
         catch (Exception exception) when (exception is ApiException or HttpRequestException or JSException)
         {
@@ -235,6 +398,118 @@
                 this.failed = true;
             }
         }
+    }
+
+    // Each branch writes nothing once a later file took over, so a stale load never overwrites a newer one.
+    private async Task Load(FileListItem file, FilePreviewKind preview, Stream content, CancellationToken token)
+    {
+        switch (preview)
+        {
+            case FilePreviewKind.Text:
+            {
+                var (text, cut) = await ReadText(content, token);
+
+                if (!token.IsCancellationRequested)
+                    (this.lines, this.truncated) = SplitLines(text, cut);
+
+                break;
+            }
+
+            case FilePreviewKind.Markdown:
+            {
+                var (text, cut) = await ReadText(content, token);
+
+                if (!token.IsCancellationRequested)
+                    (this.markdownHtml, this.truncated) = (MarkdownHtml.Render(text), cut);
+
+                break;
+            }
+
+            case FilePreviewKind.Pdf:
+            case FilePreviewKind.Image:
+            case FilePreviewKind.Audio:
+            case FilePreviewKind.Video:
+                await this.ShowUrl(await this.BlobUrls.CreateBlobUrl(FileTypeDisplay.PreviewMediaType(file.FileName), content, token), token);
+
+                break;
+
+            case FilePreviewKind.ConvertedImage:
+                await this.ShowUrl(await this.Previews.CreatePngUrl(file.FileName, content, token), token);
+
+                break;
+
+            case FilePreviewKind.Document:
+            {
+                var bytes = new MemoryStream();
+
+                await content.CopyToAsync(bytes, token);
+                bytes.Position = 0;
+
+                if (!token.IsCancellationRequested)
+                    this.documentContent = bytes;
+
+                break;
+            }
+
+            case FilePreviewKind.Workbook:
+            {
+                var sheets = await this.Previews.ReadWorkbook(content, MaxSheetRows, token);
+
+                if (!token.IsCancellationRequested)
+                    this.workbook = sheets;
+
+                break;
+            }
+
+            case FilePreviewKind.Email:
+            {
+                var message = await this.Previews.ReadEmail(file.FileName, content, token);
+
+                if (!token.IsCancellationRequested)
+                    this.email = message;
+
+                break;
+            }
+
+            case FilePreviewKind.None:
+                throw new UnreachableException();
+
+            default:
+                throw new UnreachableException();
+        }
+    }
+
+    private async Task ShowUrl(string created, CancellationToken token)
+    {
+        if (token.IsCancellationRequested)
+            await this.BlobUrls.RevokeBlobUrl(created);
+        else
+            this.url = created;
+    }
+
+    private static bool UsesLibrary(FilePreviewKind preview)
+    {
+        return preview is FilePreviewKind.ConvertedImage or FilePreviewKind.Document or FilePreviewKind.Workbook or FilePreviewKind.Email;
+    }
+
+    private static string Count(int count)
+    {
+        return string.Create(CzechNumbers, $"{count:N0}");
+    }
+
+    private static string ColumnName(int index)
+    {
+        var name = "";
+
+        for (var number = index + 1; number > 0; number = (number - 1) / 26)
+            name = (char)('A' + (number - 1) % 26) + name;
+
+        return name;
+    }
+
+    private static string Or(string text)
+    {
+        return text.Length == 0 ? "—" : text;
     }
 
     private async Task ReleaseUrl()
@@ -274,7 +549,7 @@
     }
 
     // Only the start of a long file is read; the cut may split a character, which shows as one replacement mark.
-    private static async Task<(IReadOnlyList<string> Lines, bool Truncated)> ReadText(Stream content, CancellationToken token)
+    private static async Task<(string Text, bool Truncated)> ReadText(Stream content, CancellationToken token)
     {
         var buffer = new byte[MaxTextBytes + 1];
         var read = 0;
@@ -289,8 +564,11 @@
             read += count;
         }
 
-        var truncated = read > MaxTextBytes;
-        var text = Encoding.UTF8.GetString(buffer, 0, Math.Min(read, MaxTextBytes)).TrimStart('﻿');
+        return (Encoding.UTF8.GetString(buffer, 0, Math.Min(read, MaxTextBytes)).TrimStart('\uFEFF'), read > MaxTextBytes);
+    }
+
+    private static (IReadOnlyList<string> Lines, bool Truncated) SplitLines(string text, bool truncated)
+    {
         var all = text.Split('\n').Select(static line => line.TrimEnd('\r')).ToList();
 
         if (all.Count > 1 && all[^1].Length == 0)

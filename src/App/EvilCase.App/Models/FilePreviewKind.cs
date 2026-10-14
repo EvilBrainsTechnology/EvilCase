@@ -1,7 +1,7 @@
 namespace EvilBrains.EvilCase.App.Models;
 
 /// <summary>
-/// How the browser shows a file in the preview.
+/// How the preview shows a file: natively in the browser, or parsed by a library the browser loads on first use.
 /// </summary>
 public enum FilePreviewKind
 {
@@ -16,4 +16,14 @@ public enum FilePreviewKind
     Audio = 4,
 
     Video = 5,
+
+    Markdown = 6,
+
+    Document = 7,
+
+    Workbook = 8,
+
+    Email = 9,
+
+    ConvertedImage = 10,
 }
