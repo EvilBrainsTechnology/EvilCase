@@ -13,7 +13,8 @@ internal sealed class FilePreviews(IJSRuntime jsRuntime) : IFilePreviews, IAsync
 
         using var streamRef = new DotNetStreamReference(content);
 
-        return await previews.InvokeAsync<string>("createPngUrl", token, fileName, streamRef);
+        // Never cancelled once started: a URL the browser made after a cancel must reach the caller to be revoked.
+        return await previews.InvokeAsync<string>("createPngUrl", CancellationToken.None, fileName, streamRef);
     }
 
     public async Task RenderDocument(ElementReference host, Stream content, CancellationToken token)
