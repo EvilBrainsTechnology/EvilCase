@@ -4,7 +4,7 @@
 //   node .claude/skills/product-loop/screenshots.mjs /tmp/shots/<issue> targets.json
 //
 // targets.json is a list of { name, path, file, wait?, steps?, fullPage? }; each step is
-// { click?, fill?: [selector, value], wait? }. The width is appended to file: case-list-1440.png.
+// { click?, fill?: [selector, value], wait? }; anonymous: true shoots the page without a session. The width is appended to file: case-list-1440.png.
 // EVILCASE_WIDTHS takes a comma-separated list; 1440 alone is the default, 390 adds the mobile
 // side of the lg breakpoint.
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs';
@@ -63,6 +63,19 @@ for (const [width, height] of widths) {
 
     for (const target of targets) {
         screen = target.name;
+        if (target.anonymous) {
+            // A screen shown before sign-in gets a context of its own, without the session.
+            const anonymous = await browser.newContext({ viewport: { width, height }, ignoreHTTPSErrors: true, deviceScaleFactor: 2 });
+            const anonymousPage = await anonymous.newPage();
+            anonymousPage.on('pageerror', error => broken.push(`${screen} @${width}: ${error.message}`));
+            await anonymousPage.goto(origin + target.path, { waitUntil: 'networkidle' });
+            await anonymousPage.waitForTimeout(target.wait ?? 1_000);
+            const anonymousFile = `${outDir}/${target.file}-${width}.png`;
+            await anonymousPage.screenshot({ path: anonymousFile });
+            console.log(`saved ${anonymousFile}`);
+            await anonymous.close();
+            continue;
+        }
         await page.goto(origin + target.path, { waitUntil: 'networkidle' });
         await page.waitForTimeout(target.wait ?? 1_000);
 

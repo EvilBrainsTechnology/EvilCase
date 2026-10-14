@@ -2507,9 +2507,11 @@ html:has(.ec-gate) {
     height: var(--ec-topbar-height);
     padding: 0 max(var(--ec-content-padding), calc((100% - var(--ec-content-max)) / 2 + var(--ec-content-padding)));
     background: var(--ec-topbar-bg);
+    color: var(--ec-topbar-text);
 }
 
-.ec-topbar-brand {
+/* `.ec a` outranks a single class. */
+.ec .ec-topbar-brand {
     gap: var(--ec-space-4);
     font-size: var(--ec-topbar-brand-size);
     color: var(--ec-topbar-text);
@@ -2640,7 +2642,6 @@ html:has(.ec-gate) {
     font-family: var(--ec-font);
     font-size: var(--ec-text-sm);
     font-weight: var(--ec-weight-semibold);
-    color: var(--ec-on-accent);
     cursor: pointer;
 }
 
@@ -2741,7 +2742,6 @@ html:has(.ec-gate) {
     border: 0;
     border-radius: var(--ec-radius-lg);
     background: transparent;
-    color: var(--ec-topbar-text);
     cursor: pointer;
 }
 
