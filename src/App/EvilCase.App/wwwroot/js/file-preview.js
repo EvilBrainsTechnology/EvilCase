@@ -115,12 +115,14 @@ export async function readWorkbook(contentStream, maxRows) {
             continue;
         }
 
+        // The table starts at A1 whatever the used range says, so the row and column headings match Excel.
         const range = XLSX.utils.decode_range(ref);
-        const rowCount = range.e.r - range.s.r + 1;
-        const columnCount = Math.min(range.e.c - range.s.c + 1, maxColumns);
+        const rowCount = range.e.r + 1;
+        const columnCount = Math.min(range.e.c + 1, maxColumns);
 
-        range.e.r = Math.min(range.e.r, range.s.r + maxRows - 1);
-        range.e.c = range.s.c + columnCount - 1;
+        range.s = { r: 0, c: 0 };
+        range.e.r = Math.min(range.e.r, maxRows - 1);
+        range.e.c = columnCount - 1;
 
         const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, defval: '', blankrows: true, range, dateNF: 'd. m. yyyy' });
 
