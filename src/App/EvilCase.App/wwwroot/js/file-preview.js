@@ -254,11 +254,12 @@ async function decodeTiff(buffer) {
 
     const page = pages[0];
 
-    UTIF.decodeImage(buffer, page);
-
-    if (page.width * page.height > maxPixels) {
+    // Width and height tags, checked before the pixels are decoded.
+    if ((page.t256?.[0] ?? 0) * (page.t257?.[0] ?? 0) > maxPixels) {
         throw new Error('The image is too large.');
     }
+
+    UTIF.decodeImage(buffer, page);
 
     return new ImageData(new Uint8ClampedArray(UTIF.toRGBA8(page)), page.width, page.height);
 }
