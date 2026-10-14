@@ -113,15 +113,7 @@
 
             <aside class="ec-form-aside">
                 <EcCard Title="Nadřízený spis">
-                    <EcCombobox TItem="CaseListItem" InputId="case-parent" Placeholder="Hledat ve spisové značce a názvu"
-                                SelectedLabel="Vybraný nadřízený spis" EmptyText="@this.parentEmptyText"
-                                ItemText="@(static item => $"{item.CaseNumber} — {item.Title}")" Search="this.SearchParentCases"
-                                Selected="this.model.ParentCase" SelectedChanged="this.OnParentChanged">
-                        <ItemTemplate>
-                            <span class="ec-combobox-option-mono">@context.CaseNumber</span>
-                            <span>@context.Title</span>
-                        </ItemTemplate>
-                    </EcCombobox>
+                    <CaseField InputId="case-parent" ExcludedCaseId="this.CaseId" Selected="this.model.ParentCase" SelectedChanged="this.OnParentChanged" />
                 </EcCard>
             </aside>
         </div>
@@ -129,10 +121,6 @@
 </div>
 
 @code {
-    private const int Matches = 8;
-
-    private const string NoParentMatch = "Žádný spis neodpovídá.";
-
     [Parameter]
     public Guid CaseId { get; set; }
 
@@ -149,8 +137,6 @@
     private string? error;
 
     private bool busy;
-
-    private string parentEmptyText = NoParentMatch;
 
     private IReadOnlyList<EcCrumb> Crumbs => this.caseDetail is null
         ? [new EcCrumb("Spisy", "/cases")]
@@ -208,45 +194,6 @@
 
             this.failure = "Spis se nepodařilo načíst. Zkuste to za chvíli znovu.";
         }
-    }
-
-    private async Task<IReadOnlyList<CaseListItem>> SearchParentCases(string search, CancellationToken token)
-    {
-        var request = new CaseListRequest
-        {
-            Search = search,
-            Status = CaseStatusFilter.All,
-            Scope = CaseListScope.All,
-            Take = Matches,
-        };
-
-        try
-        {
-            var response = await this.CasesClient.ListCases(request, token);
-
-            this.ShowParentEmptyText(NoParentMatch);
-
-            return [.. response.Items.Where(item => item.CaseId != this.CaseId)];
-        }
-        catch (Exception exception) when (exception is ApiException or HttpRequestException)
-        {
-            this.Logger.LogWarning(exception, "Loading the parent case matches failed");
-
-            this.ShowParentEmptyText("Hledání spisů se nezdařilo. Zkuste to za chvíli znovu.");
-
-            return [];
-        }
-    }
-
-    // The combobox reads the text as a parameter, so it reaches the screen only through a render of this page.
-    private void ShowParentEmptyText(string text)
-    {
-        if (string.Equals(this.parentEmptyText, text, StringComparison.Ordinal))
-            return;
-
-        this.parentEmptyText = text;
-
-        this.StateHasChanged();
     }
 
     private async Task SubmitCase()

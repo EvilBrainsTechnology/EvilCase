@@ -59,13 +59,6 @@
                     }
                 </text>,
             },
-            CaseColumn.ExternalNumber => new EcColumn<CaseListItem>
-            {
-                Header = "Externí spisová značka",
-                Width = "var(--ec-list-col-number)",
-                CellClass = "ec-cell-mono",
-                Cell = item =>@<text>@item.ExternalCaseNumber</text>,
-            },
             _ => throw new UnreachableException(),
         });
     }

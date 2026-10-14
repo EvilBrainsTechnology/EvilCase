@@ -14,10 +14,16 @@ namespace EvilBrains.EvilCase.Api.Controllers;
 public class ActCommentsController : ControllerBase
 {
     [HttpGet("")]
-    public async Task<CommentListResponse> ListActComments(
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<CommentListResponse>> ListActComments(
         [FromServices] ICommentReader comments, [FromRoute] Guid actId, CancellationToken token)
     {
-        return new CommentListResponse { Items = await comments.ListActComments(actId, token) };
+        var items = await comments.ListActComments(actId, token);
+
+        return items is null
+            ? this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.ActNotFound)
+            : this.Ok(new CommentListResponse { Items = items });
     }
 
     [HttpPost("")]

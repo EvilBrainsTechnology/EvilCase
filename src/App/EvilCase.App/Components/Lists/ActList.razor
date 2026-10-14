@@ -60,13 +60,6 @@
                     }
                 </text>,
             },
-            ActColumn.ExternalNumber => new EcColumn<ActListItem>
-            {
-                Header = "Externí číslo",
-                Width = "var(--ec-list-col-number)",
-                CellClass = "ec-cell-mono",
-                Cell = item =>@<text>@item.ExternalActNumber</text>,
-            },
             ActColumn.ActWithLabels => new EcColumn<ActListItem>
             {
                 Header = "Úkon",

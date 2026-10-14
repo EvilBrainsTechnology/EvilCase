@@ -23,6 +23,9 @@
     public required string InputId { get; set; }
 
     [Parameter]
+    public Guid? ExcludedCaseId { get; set; }
+
+    [Parameter]
     public CaseListItem? Selected { get; set; }
 
     [Parameter]
@@ -39,7 +42,7 @@
 
             this.ShowEmptyText(NoMatch);
 
-            return response.Items;
+            return [.. response.Items.Where(item => item.CaseId != this.ExcludedCaseId)];
         }
         catch (Exception exception) when (exception is ApiException or HttpRequestException)
         {

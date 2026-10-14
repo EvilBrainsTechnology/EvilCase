@@ -35,7 +35,24 @@ public class CaseCommentsControllerTests
 
         var response = await controller.ListCaseComments(reader, Guid.CreateVersion7(), CancellationToken.None);
 
-        Assert.That(response.Items.Select(static item => item.Body), Is.EqualTo(["První", "Druhá"]));
+        var body = (CommentListResponse)((OkObjectResult)response.Result!).Value!;
+
+        Assert.That(body.Items.Select(static item => item.Body), Is.EqualTo(["První", "Druhá"]));
+    }
+
+    [Test]
+    public async Task AListOnAMissingCaseIsAProblemWithFourOhFour()
+    {
+        var reader = Substitute.For<ICommentReader>();
+        reader
+            .ListCaseComments(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns((IReadOnlyList<CommentItem>?)null);
+        var controller = new CaseCommentsController();
+
+        var response = await controller.ListCaseComments(reader, Guid.CreateVersion7(), CancellationToken.None);
+
+        var problem = AssertProblem(response.Result, 404);
+        Assert.That(problem.Title, Is.EqualTo(CaseProblems.NotFound));
     }
 
     [Test]

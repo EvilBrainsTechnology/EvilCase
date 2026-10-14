@@ -11,6 +11,4 @@ public enum CaseColumn
     Status = 3,
 
     CaseNumber = 5,
-
-    ExternalNumber = 6,
 }

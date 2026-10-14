@@ -1,0 +1,32 @@
+@if (this.NotFound)
+{
+    <EcCard><p class="ec-state">@this.NotFoundText</p></EcCard>
+}
+else if (this.Failure is not null)
+{
+    <EcCard>
+        <div class="ec-card-error">
+            <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.Failure</div>
+            <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Refresh"
+                      OnClick="this.Retry">Zkusit znovu</EcButton>
+        </div>
+    </EcCard>
+}
+else
+{
+    <EcCard><p class="ec-state">Načítám…</p></EcCard>
+}
+
+@code {
+    [Parameter]
+    public bool NotFound { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string NotFoundText { get; set; }
+
+    [Parameter]
+    public string? Failure { get; set; }
+
+    [Parameter]
+    public EventCallback Retry { get; set; }
+}

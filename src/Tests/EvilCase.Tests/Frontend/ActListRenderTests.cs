@@ -202,7 +202,7 @@ public class ActListRenderTests
 
         var component = Render(
             ctx,
-            [ActColumn.Changed, ActColumn.Date, ActColumn.Direction, ActColumn.Contact, ActColumn.ExternalNumber, ActColumn.ActWithLabels, ActColumn.ActNumberInCase, ActColumn.ActAndCase]);
+            [ActColumn.Changed, ActColumn.Date, ActColumn.Direction, ActColumn.Contact, ActColumn.ActWithLabels, ActColumn.ActNumberInCase, ActColumn.ActAndCase]);
 
         Assert.That(
             component.Find(".ec-table").GetAttribute("style"),
