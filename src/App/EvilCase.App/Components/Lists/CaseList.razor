@@ -34,9 +34,23 @@
                 Width = "minmax(0, 1fr)",
                 SortKey = nameof(CaseSortKey.Title),
                 Primary = true,
+                CellClass = "ec-cell-stack",
                 Cell = item =>@<text>
-                    <span class="ec-cell-text" title="@item.Title">@item.Title</span>
-                    <LabelChips Labels="item.Labels" />
+                    @if (item.ParentCaseTitle is not null)
+                    {
+                        <span class="ec-cell-text" title="@item.ParentCaseTitle">@item.ParentCaseTitle</span>
+                        <span class="ec-cell-line">
+                            <span class="ec-cell-text ec-cell-sub" title="@item.Title">@item.Title</span>
+                            <LabelChips Labels="item.Labels" />
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="ec-cell-line">
+                            <span class="ec-cell-text" title="@item.Title">@item.Title</span>
+                            <LabelChips Labels="item.Labels" />
+                        </span>
+                    }
                 </text>,
             },
             CaseColumn.Status => new EcColumn<CaseListItem>

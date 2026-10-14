@@ -13,6 +13,11 @@ public sealed record CaseListItem
 
     public required string Title { get; init; }
 
+    /// <summary>
+    /// The title of the parent case; null for a root case.
+    /// </summary>
+    public string? ParentCaseTitle { get; init; }
+
     public required DateOnly Date { get; init; }
 
     public required CaseStatus Status { get; init; }

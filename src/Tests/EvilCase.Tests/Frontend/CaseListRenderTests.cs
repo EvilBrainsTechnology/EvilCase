@@ -489,6 +489,47 @@ public class CaseListRenderTests
         });
     }
 
+    [Test]
+    public void ASubcaseShowsItsParentOnTheFirstLineAndItsOwnTitleOnTheSecond()
+    {
+        using var ctx = new BunitContext();
+        Serve(ctx, out _, items: [Row with { ParentCaseTitle = "Rodič", Title = "Podspis" }]);
+
+        var component = Render(ctx, [CaseColumn.Case]);
+
+        component.WaitForElement("a.ec-table-row");
+
+        var cell = component.Find(".ec-table-cell-primary");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(cell.ClassList, Does.Contain("ec-cell-stack"));
+            Assert.That(cell.Children[0].TextContent.Trim(), Is.EqualTo("Rodič"));
+            Assert.That(cell.Children[1].ClassList, Does.Contain("ec-cell-line"));
+            Assert.That(cell.Children[1].QuerySelector(".ec-cell-sub")!.TextContent.Trim(), Is.EqualTo("Podspis"));
+        }
+    }
+
+    [Test]
+    public void ARootCaseKeepsOneLine()
+    {
+        using var ctx = new BunitContext();
+        Serve(ctx, out _);
+
+        var component = Render(ctx, [CaseColumn.Case]);
+
+        component.WaitForElement("a.ec-table-row");
+
+        var cell = component.Find(".ec-table-cell-primary");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(cell.Children, Has.Count.EqualTo(1));
+            Assert.That(cell.QuerySelector(".ec-cell-sub"), Is.Null);
+            Assert.That(cell.TextContent.Trim(), Is.EqualTo("Přestupek"));
+        }
+    }
+
     private static readonly CaseListItem Row = new()
     {
         CaseId = Guid.CreateVersion7(),
