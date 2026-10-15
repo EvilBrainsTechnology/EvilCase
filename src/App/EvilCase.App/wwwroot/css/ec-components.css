@@ -3461,15 +3461,9 @@ html:has(.ec-gate) {
     color: var(--ec-waiting-text);
 }
 
-.ec-sr-icon .ec-file-chip {
+.ec-sr-icon .ec-file-icon {
     width: var(--ec-sr-icon);
     height: var(--ec-sr-icon);
-    border-radius: var(--ec-radius-md);
-    font-size: var(--ec-sr-file-text);
-}
-
-.ec-sr-icon .ec-file-chip .ec-icon {
-    display: none;
 }
 
 .ec-sr-body {
