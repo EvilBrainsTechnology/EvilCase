@@ -103,6 +103,32 @@ public class ActRenderTests
     }
 
     [Test]
+    public void AnActWithoutADescriptionShowsNothingUnderTheTitle()
+    {
+        using var ctx = new BunitContext();
+
+        var actId = Guid.CreateVersion7();
+
+        var detail = new ActDetail
+        {
+            ActId = actId,
+            CaseId = Guid.CreateVersion7(),
+            CaseNumber = "EC/20260807-001",
+            CaseTitle = "Spis",
+            CaseStatus = CaseStatus.Active,
+            ActNumber = "EC/20250528-001/20250902-001",
+            Date = new DateOnly(2025, 9, 2),
+            Title = "Rozhodnutí o přestupku",
+        };
+
+        Serve(ctx, actId, detail);
+
+        var component = ctx.Render<Act>(parameters => parameters.Add(static page => page.ActId, actId));
+
+        Assert.That(component.FindAll(".ec-detail-text"), Is.Empty, "the row of data follows the title when there is no description");
+    }
+
+    [Test]
     public void TheFilesAndCommentsCardsNameTheAct()
     {
         using var ctx = new BunitContext();

@@ -83,7 +83,7 @@ položka menu je zvýrazněná po celé výšce lišty. Obsah leží na
 řádky textu. Výjimkou jsou soubory, jejichž řádek nese dlaždici typu, a výsledky hledání.
 
 Detail spisu i úkonu začíná kartou se jménem, stavem, popisem a řádkem údajů. Popis je hned
-pod názvem, ne v postranním sloupci. Obsah, který patří spisu, je v pravém sloupci; obsah,
+pod názvem, ne v postranním sloupci; bez popisu jde pod název rovnou řádek údajů. Obsah, který patří spisu, je v pravém sloupci; obsah,
 který patří úkonu, je uvnitř úkonu. Soubory a komentáře proto existují dvakrát a název to
 vždycky říká: „Soubory spisu" a „Soubory úkonu".
 

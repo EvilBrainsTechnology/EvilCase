@@ -61,11 +61,7 @@
                     </Actions>
                 </EcPageHeader>
 
-                @if (string.IsNullOrWhiteSpace(this.Detail.Description))
-                {
-                    <p class="ec-detail-text"><span class="ec-cell-empty">—</span></p>
-                }
-                else
+                @if (!string.IsNullOrWhiteSpace(this.Detail.Description))
                 {
                     <p class="ec-detail-text">@CzechTypography.Text(this.Detail.Description)</p>
                 }

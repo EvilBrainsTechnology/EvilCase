@@ -67,6 +67,29 @@ public class CaseRenderTests
     }
 
     [Test]
+    public void ACaseWithoutADescriptionShowsNothingUnderTheTitle()
+    {
+        using var ctx = new BunitContext();
+
+        var caseId = Guid.CreateVersion7();
+
+        var detail = new CaseDetail
+        {
+            CaseId = caseId,
+            CaseNumber = "EC/20260821-001",
+            Date = new DateOnly(2026, 8, 21),
+            Title = "Přestupek",
+            Status = CaseStatus.Active,
+        };
+
+        Serve(ctx, caseId, detail);
+
+        var component = ctx.Render<Case>(parameters => parameters.Add(static page => page.CaseId, caseId));
+
+        Assert.That(component.FindAll(".ec-detail-text"), Is.Empty, "the row of data follows the title when there is no description");
+    }
+
+    [Test]
     public void WhatBelongsToTheCaseSitsInTheRightColumnAndTheActsInTheMainOne()
     {
         using var ctx = new BunitContext();
