@@ -4485,6 +4485,15 @@ html:has(.ec-gate) {
         display: none;
     }
 
+    /* Údaje kontaktu začínají pod jménem, ne pod monogramem. */
+    .ec-table-row:has(> .ec-table-cell-primary .ec-contact-monogram) {
+        padding-left: calc(var(--ec-space-5) + var(--ec-monogram-sm) + var(--ec-space-4));
+    }
+
+    .ec-table-row > .ec-table-cell-primary:has(.ec-contact-monogram) {
+        margin-left: calc(-1 * (var(--ec-monogram-sm) + var(--ec-space-4)));
+    }
+
     /* Kontakt sdílí řádek s číslem jednacím a bez místa se zkrátí. */
     .ec-table-row > .ec-cell-contact {
         flex: 1 1 var(--ec-list-col-contact);
