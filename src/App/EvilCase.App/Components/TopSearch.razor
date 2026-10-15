@@ -172,7 +172,7 @@
                                     <Icon><EcFileIcon FileName="@item.FileName" Size="EcFileIconSize.Compact" /></Icon>
                                     <Details>
                                         <span>@FileSizeDisplay.Text(item.SizeBytes)</span>
-                                        <span class="ec-sr-grow-text">@OwnerText(item.CaseId, item.OwnerTitle)</span>
+                                        <span class="ec-sr-grow-text">@OwnerKind(item.CaseId)<span class="ec-sep" aria-hidden="true">·</span>@item.OwnerTitle</span>
                                     </Details>
                                 </SearchOption>
                             }
@@ -191,7 +191,7 @@
                                               Term="@this.resultTerm" Quote="true" Active="@(row == this.active)" OnActivate="() => this.Activate(row)" OnOpen="this.Close">
                                     <Icon><EcIcon Paths="@AppIcons.Message" /></Icon>
                                     <Details>
-                                        <span class="ec-sr-grow-text">@OwnerText(item.CaseId, item.OwnerTitle)</span>
+                                        <span class="ec-sr-grow-text">@OwnerKind(item.CaseId)<span class="ec-sep" aria-hidden="true">·</span>@item.OwnerTitle</span>
                                         <span>@DateDisplay.Text(DateOnly.FromDateTime(item.Created.ToLocalTime()))</span>
                                     </Details>
                                 </SearchOption>
@@ -297,9 +297,9 @@
         return caseId is { } owner ? $"/cases/{owner}" : $"/acts/{actId}";
     }
 
-    private static string OwnerText(Guid? caseId, string ownerTitle)
+    private static string OwnerKind(Guid? caseId)
     {
-        return (caseId is null ? "Úkon" : "Spis") + "\u00A0· " + ownerTitle;
+        return caseId is null ? "Úkon" : "Spis";
     }
 
     private static IReadOnlyList<string> Flatten(SearchResponse response)

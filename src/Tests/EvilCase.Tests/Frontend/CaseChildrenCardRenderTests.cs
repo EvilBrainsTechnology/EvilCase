@@ -30,7 +30,8 @@ public class CaseChildrenCardRenderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(component.FindAll(".ec-child-title").Select(static title => title.TextContent), Is.EqualTo(["Předžalobní výzva", "Oznámení přestupku"]));
-            Assert.That(component.Find(".ec-child-counts").TextContent, Is.EqualTo("2\u00A0otevřené\u00A0· 1\u00A0uzavřený"));
+            Assert.That(component.Find(".ec-child-counts").TextContent, Is.EqualTo("2\u00A0otevřené·1\u00A0uzavřený"));
+            Assert.That(component.FindAll(".ec-child-counts .ec-sep"), Has.Count.EqualTo(1), "the counts take the one separator of the app");
             Assert.That(component.Find(".ec-child-toggle").TextContent, Is.EqualTo("Zobrazit i\u00A0uzavřené (1)"));
             Assert.That(component.Find(".ec-child-toggle").GetAttribute("aria-expanded"), Is.EqualTo("false"));
             Assert.That(component.Find(".ec-child-toggle").GetAttribute("aria-controls"), Is.EqualTo("case-children"));
@@ -82,7 +83,7 @@ public class CaseChildrenCardRenderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(component.FindAll(".ec-child-toggle"), Is.Empty);
-            Assert.That(component.Find(".ec-child-counts").TextContent, Is.EqualTo("2\u00A0otevřené\u00A0· 0\u00A0uzavřených"));
+            Assert.That(component.Find(".ec-child-counts").TextContent, Is.EqualTo("2\u00A0otevřené·0\u00A0uzavřených"));
         }
     }
 

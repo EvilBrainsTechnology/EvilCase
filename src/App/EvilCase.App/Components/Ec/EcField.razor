@@ -23,6 +23,10 @@
     {
         return @<text>
             @this.Label
+            @if (this.Detail is not null)
+            {
+                <span class="ec-sep" aria-hidden="true">·</span><span class="ec-field-detail">@this.Detail</span>
+            }
             @if (this.Required)
             {
                 <span class="ec-field-mark" aria-hidden="true">*</span>
@@ -39,6 +43,12 @@
     /// </summary>
     [Parameter]
     public string? ControlId { get; set; }
+
+    /// <summary>
+    /// A value the name shows after a separator, such as the chosen colour.
+    /// </summary>
+    [Parameter]
+    public string? Detail { get; set; }
 
     [Parameter]
     public bool Required { get; set; }

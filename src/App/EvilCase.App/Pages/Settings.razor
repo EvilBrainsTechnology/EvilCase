@@ -69,7 +69,7 @@
                                     <span class="@($"ec-chip ec-chip-{LabelColorDisplay.Css(item.Color)}")">
                                         <span class="ec-chip-dot" aria-hidden="true"></span>@item.Name
                                     </span>
-                                    <span class="ec-settings-row-usage">@LabelUsageDisplay.Line(item.CaseCount, item.ActCount)</span>
+                                    <span class="ec-settings-row-usage"><MetaLine Parts="@LabelUsageDisplay.Line(item.CaseCount, item.ActCount)" /></span>
                                 </span>
                                 <span class="ec-settings-row-color">@LabelColorDisplay.Text(item.Color)</span>
                                 <span class="@CountClass(item.CaseCount)">@CountText(item.CaseCount)</span>

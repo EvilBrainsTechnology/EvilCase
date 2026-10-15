@@ -64,7 +64,7 @@ public class SettingsRenderTests
                 "a zero count shows a dash");
             Assert.That(
                 component.FindAll(".ec-settings-row-usage").Select(static cell => cell.TextContent),
-                Is.EqualTo(["4\u00A0spisy\u00A0· 1\u00A0úkon", "Nepoužitý"]));
+                Is.EqualTo(["4\u00A0spisy·1\u00A0úkon", "Nepoužitý"]));
             Assert.That(component.Find(".ec-card-title .ec-card-count").TextContent, Is.EqualTo("2"));
             Assert.That(
                 component.Find(".ec-settings-row .ec-button-quiet").GetAttribute("aria-label"),

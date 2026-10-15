@@ -3,14 +3,14 @@ namespace EvilBrains.EvilCase.App.Models;
 public static class LabelUsageDisplay
 {
     /// <summary>
-    /// The usage line of a label row: "4 spisy · 1 úkon", or "Nepoužitý" for none.
+    /// The parts of the usage line of a label row: "4 spisy · 1 úkon", or "Nepoužitý" for none.
     /// </summary>
-    public static string Line(int caseCount, int actCount)
+    public static IReadOnlyList<string> Line(int caseCount, int actCount)
     {
         if (caseCount == 0 && actCount == 0)
-            return "Nepoužitý";
+            return ["Nepoužitý"];
 
-        return string.Join("\u00A0· ", Parts(caseCount, actCount));
+        return Parts(caseCount, actCount);
     }
 
     /// <summary>

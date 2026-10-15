@@ -1030,6 +1030,11 @@ html {
     font-variant-numeric: tabular-nums;
 }
 
+.ec-field-detail {
+    font-weight: var(--ec-weight-regular);
+    color: var(--ec-text-muted);
+}
+
 .ec-file-moment {
     white-space: nowrap;
 }
@@ -3661,7 +3666,7 @@ html:has(.ec-gate) {
 .ec-sr-meta {
     display: flex;
     align-items: center;
-    gap: var(--ec-space-3);
+    gap: var(--ec-space-2);
     min-width: 0;
     font-size: var(--ec-text-xs);
     color: var(--ec-text-muted);
@@ -3670,8 +3675,8 @@ html:has(.ec-gate) {
 
 .ec-sr-meta > * + *::before {
     content: "·";
-    margin-right: var(--ec-space-3);
-    color: var(--ec-topbar-nav-text);
+    margin-right: var(--ec-space-2);
+    color: var(--ec-text-faint);
 }
 
 .ec-sr-meta .ec-badge {
