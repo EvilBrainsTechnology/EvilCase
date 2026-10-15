@@ -4814,6 +4814,14 @@ html:has(.ec-gate) {
         scrollbar-width: none;
     }
 
+    /* Dokud jde přepínač posunout dál, jeho pravý okraj se ztrácí. */
+    @supports (animation-timeline: scroll()) {
+        .ec-table-bar .ec-segmented {
+            animation: ec-scroll-fade linear both;
+            animation-timeline: scroll(self inline);
+        }
+    }
+
     .ec-table-bar .ec-segmented-compact .ec-segment {
         flex: 1 0 auto;
     }
@@ -4829,5 +4837,16 @@ html:has(.ec-gate) {
     /* Pole má na mobilu písmo 16 px. */
     .ec :is(.ec-input, .ec-select, .ec-textarea, .ec-search-input, .ec-label-input, .ec-topsearch-input) {
         font-size: var(--ec-text-lg);
+    }
+}
+
+@keyframes ec-scroll-fade {
+    0%,
+    99% {
+        mask-image: linear-gradient(to right, var(--ec-text) calc(100% - var(--ec-scroll-fade)), transparent);
+    }
+
+    100% {
+        mask-image: none;
     }
 }
