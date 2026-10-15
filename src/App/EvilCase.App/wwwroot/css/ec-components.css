@@ -3098,8 +3098,9 @@ html {
     }
 
     /* Metadata souboru se lámou jen u oddělovače. */
-    .ec-file-card-compact .ec-file-meta {
-        white-space: normal;
+    .ec-file-meta {
+        display: flex;
+        flex-wrap: wrap;
     }
 
     .ec-modal-large {
