@@ -3411,6 +3411,7 @@ html:has(.ec-gate) {
     font-family: var(--ec-font);
     font-size: var(--ec-text-md);
     color: var(--ec-topbar-text);
+    text-overflow: ellipsis;
 }
 
 .ec-topsearch-input::placeholder {
