@@ -474,6 +474,15 @@ html {
     padding: 0 var(--ec-space-4);
 }
 
+.ec-select {
+    appearance: none;
+    padding-right: calc(var(--ec-space-4) + var(--ec-icon-md) + var(--ec-space-2));
+    background-image: var(--ec-select-chevron);
+    background-repeat: no-repeat;
+    background-position: right var(--ec-space-4) center;
+    background-size: var(--ec-icon-md);
+}
+
 .ec-textarea {
     padding: var(--ec-space-3) var(--ec-space-4);
     min-height: calc(var(--ec-control-form) * 3);
