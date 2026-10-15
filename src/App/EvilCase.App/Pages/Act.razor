@@ -52,7 +52,7 @@
                     <Status>
                         @if (this.Detail.Direction is { } direction)
                         {
-                            <EcBadge Text="@ActDirectionDisplay.Text(direction)" Tone="ActDirectionDisplay.Tone(direction)" />
+                            <EcBadge Text="@ActDirectionDisplay.Text(direction)" Tone="ActDirectionDisplay.Tone(direction)" Icon="@ActDirectionDisplay.Icon(direction)" />
                         }
                     </Status>
                     <Actions>

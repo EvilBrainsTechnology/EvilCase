@@ -26,7 +26,7 @@
             <div class="ec-detail">
                 <EcPageHeader Title="@this.Detail.Title" Breadcrumbs="this.Crumbs">
                     <Status>
-                        <EcBadge Text="@CaseStatusDisplay.Text(this.Detail.Status)" Tone="CaseStatusDisplay.Tone(this.Detail.Status)" />
+                        <EcBadge Text="@CaseStatusDisplay.Text(this.Detail.Status)" Tone="CaseStatusDisplay.Tone(this.Detail.Status)" ShowDot="true" />
                     </Status>
                     <Actions>
                         <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Pencil" OnClick="this.EditCase">Upravit spis</EcButton>

@@ -52,6 +52,7 @@ public class CaseRenderTests
         {
             Assert.That(component.Find("h1.ec-page-title").TextContent, Is.EqualTo("Přestupek"));
             Assert.That(component.Find(".ec-badge-active").TextContent, Is.EqualTo("Aktivní"));
+            Assert.That(component.FindAll(".ec-badge-active .ec-badge-dot"), Has.Count.EqualTo(1), "a status carries its dot (SDD-020)");
             Assert.That(component.Find(".ec-detail-text").TextContent, Is.EqualTo("Řízení o\u00A0přestupku."));
             Assert.That(
                 component.FindAll(".ec-detail-fact-name").Select(static node => node.FirstChild!.TextContent),

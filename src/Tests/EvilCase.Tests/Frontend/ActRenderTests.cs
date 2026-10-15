@@ -92,6 +92,7 @@ public class ActRenderTests
         {
             Assert.That(component.Find("h1.ec-page-title").TextContent, Is.EqualTo("Rozhodnutí o\u00A0přestupku"));
             Assert.That(component.Find(".ec-badge-incoming").TextContent, Is.EqualTo("Příchozí"));
+            Assert.That(component.FindAll(".ec-badge-incoming .ec-icon"), Has.Count.EqualTo(1), "a direction carries its arrow (SDD-020)");
             Assert.That(component.Find(".ec-detail-text").TextContent, Is.EqualTo("Vina a\u00A0pokuta."));
             Assert.That(
                 component.FindAll(".ec-detail-fact-name").Select(static node => node.FirstChild!.TextContent),
