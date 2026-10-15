@@ -4643,12 +4643,53 @@ html:has(.ec-gate) {
 }
 
 @media (max-width: 991.98px) {
+    /* Na mobilu jsou dlaždice jeden řádek tří stejných buněk: počet a popisek. */
     .ec-tiles {
-        grid-template-columns: minmax(0, 1fr);
+        gap: 0;
+        border: 1px solid var(--ec-border);
+        border-radius: var(--ec-radius-card);
+        background: var(--ec-surface);
+        overflow: hidden;
     }
 
     .ec-stat {
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
         min-height: var(--ec-touch-min);
+        padding: var(--ec-space-4);
+        border: 0;
+        border-radius: 0;
+    }
+
+    .ec-stat + .ec-stat {
+        border-left: 1px solid var(--ec-border-subtle);
+    }
+
+    .ec-stat:hover {
+        background: var(--ec-surface-sunken);
+    }
+
+    .ec-stat:focus-visible {
+        box-shadow: inset var(--ec-focus-ring);
+    }
+
+    .ec-stat-icon,
+    .ec-stat-more {
+        display: none;
+    }
+
+    .ec-stat-text {
+        flex: none;
+        max-width: 100%;
+    }
+
+    .ec-stat-value {
+        font-size: var(--ec-title-mobile);
+    }
+
+    .ec-stat-label {
+        font-size: var(--ec-text-sm);
     }
 }
 
