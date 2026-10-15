@@ -64,7 +64,7 @@ public class SettingsRenderTests
                 "a zero count shows a dash");
             Assert.That(
                 component.FindAll(".ec-settings-row-usage").Select(static cell => cell.TextContent),
-                Is.EqualTo(["4 spisy · 1 úkon", "Nepoužitý"]));
+                Is.EqualTo(["4\u00A0spisy\u00A0· 1\u00A0úkon", "Nepoužitý"]));
             Assert.That(component.Find(".ec-card-title-count").TextContent, Is.EqualTo("2"));
             Assert.That(
                 component.Find(".ec-settings-row .ec-button-quiet").GetAttribute("aria-label"),
@@ -199,7 +199,7 @@ public class SettingsRenderTests
             Assert.That(component.Find(".ec-modal-title").TextContent, Is.EqualTo("Smazat štítek"));
             Assert.That(
                 component.Find(".ec-confirm-text").TextContent,
-                Does.Contain("InfZ").And.Contain("4 spisy a 1 úkon"),
+                Does.Contain("InfZ").And.Contain("4\u00A0spisy a\u00A01\u00A0úkon"),
                 "the confirmation names what the cascade takes (SDD-019)");
         }
     }

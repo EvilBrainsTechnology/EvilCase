@@ -34,7 +34,7 @@
                     </Actions>
                 </EcPageHeader>
 
-                <p class="ec-detail-text">@(string.IsNullOrWhiteSpace(this.Detail.Description) ? "—" : this.Detail.Description)</p>
+                <p class="ec-detail-text">@(string.IsNullOrWhiteSpace(this.Detail.Description) ? "—" : CzechTypography.Text(this.Detail.Description))</p>
 
                 <div class="ec-detail-facts">
                     <div class="ec-detail-fact">
@@ -80,7 +80,7 @@
                         <span class="ec-detail-fact-name">Nadřízený spis</span>
                         @if (this.Detail.ParentCase is { } parent)
                         {
-                            <a class="ec-detail-fact-link" href="@($"/cases/{parent.CaseId}")">@parent.Title</a>
+                            <a class="ec-detail-fact-link" href="@($"/cases/{parent.CaseId}")">@CzechTypography.Text(parent.Title)</a>
                         }
                         else
                         {

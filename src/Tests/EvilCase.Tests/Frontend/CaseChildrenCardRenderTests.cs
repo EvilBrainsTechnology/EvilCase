@@ -30,8 +30,8 @@ public class CaseChildrenCardRenderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(component.FindAll(".ec-child-title").Select(static title => title.TextContent), Is.EqualTo(["Předžalobní výzva", "Oznámení přestupku"]));
-            Assert.That(component.Find(".ec-child-counts").TextContent, Is.EqualTo("2 otevřené · 1 uzavřený"));
-            Assert.That(component.Find(".ec-child-toggle").TextContent, Is.EqualTo("Zobrazit i uzavřené (1)"));
+            Assert.That(component.Find(".ec-child-counts").TextContent, Is.EqualTo("2\u00A0otevřené\u00A0· 1\u00A0uzavřený"));
+            Assert.That(component.Find(".ec-child-toggle").TextContent, Is.EqualTo("Zobrazit i\u00A0uzavřené (1)"));
             Assert.That(component.Find(".ec-child-toggle").GetAttribute("aria-expanded"), Is.EqualTo("false"));
             Assert.That(component.Find(".ec-child-toggle").GetAttribute("aria-controls"), Is.EqualTo("case-children"));
             Assert.That(component.FindAll("#case-children"), Has.Count.EqualTo(1));
@@ -62,7 +62,7 @@ public class CaseChildrenCardRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.Find(".ec-child-status").TextContent.Trim(), Is.EqualTo("Aktivní · 2. 10. 2025"));
+            Assert.That(component.Find(".ec-child-status").TextContent.Trim(), Is.EqualTo("Aktivní · 2.\u00A010.\u00A02025"));
             Assert.That(component.Find(".ec-child-title").GetAttribute("title"), Is.EqualTo("Předžalobní výzva"));
             Assert.That(component.Find("a.ec-child-row").GetAttribute("href"), Is.EqualTo($"/cases/{child.CaseId}"));
         }
@@ -82,7 +82,7 @@ public class CaseChildrenCardRenderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(component.FindAll(".ec-child-toggle"), Is.Empty);
-            Assert.That(component.Find(".ec-child-counts").TextContent, Is.EqualTo("2 otevřené · 0 uzavřených"));
+            Assert.That(component.Find(".ec-child-counts").TextContent, Is.EqualTo("2\u00A0otevřené\u00A0· 0\u00A0uzavřených"));
         }
     }
 

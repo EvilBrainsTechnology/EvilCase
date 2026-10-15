@@ -32,6 +32,9 @@ se dodává s aplikací, ne z cizí sítě. Velikosti 11, 12, 13, 14, 16, 18, 28
 stránky 32 px, nadpis karty 18 px, v bočním sloupci 16 px, tělo 14 px, popisek 12 px, drobná
 značka 11 px.
 
+Texty rozhraní i zapsané názvy a popisy drží českou typografii: nezlomitelná mezera po
+jednopísmenné předložce a spojce, mezi číslem a jednotkou, uvnitř data a před pomlčkou.
+
 Rozměry: rozestupy 4, 6, 8, 12, 16, 20, 24 a 32 px. Rádius karty 16 px, pole a tlačítka 10 px,
 drobné prvky 6 až 9 px, pilulka 999 px. Výška tlačítka a pole 40 px, na formuláři 44 px,
 drobné tlačítko 32 až 36 px. Cíl kliknutí nikdy pod 44 px na dotykovém zařízení.

@@ -5,7 +5,7 @@
 @inject IContactsClient ContactsClient
 @inject ILogger<ContactField> Logger
 
-<EcCombobox TItem="ContactListItem" InputId="@this.InputId" Placeholder="Hledat v názvu a ID datové schránky"
+<EcCombobox TItem="ContactListItem" InputId="@this.InputId" Placeholder="@("Hledat v\u00A0názvu a\u00A0ID datové schránky")"
             SelectedLabel="Vybraný kontakt" EmptyText="@this.emptyText" ItemText="@(static contact => contact.Name)"
             Search="this.SearchContacts" CreateText="Nový kontakt" OnCreate="this.OpenCreate"
             Selected="this.Selected" SelectedChanged="this.SelectedChanged">
@@ -172,7 +172,7 @@
         {
             this.Logger.LogWarning(exception, "Creating the contact failed");
 
-            this.error = "Kontakt se nepodařilo založit. Zkontrolujte zadané údaje a zkuste to znovu.";
+            this.error = "Kontakt se nepodařilo založit. Zkontrolujte zadané údaje a\u00A0zkuste to znovu.";
         }
         finally
         {

@@ -19,7 +19,7 @@ public class DashboardRenderTests
 
     private static readonly string[] CaseTileHeaders = ["Změněno ↓", "Datum spisu", "Spis", "Stav", "Spisová značka"];
 
-    private static readonly string[] ActTileHeaders = ["Změněno ↓", "Datum úkonu", "Úkon a spis", "Směr", "Kontakt", "Číslo jednací"];
+    private static readonly string[] ActTileHeaders = ["Změněno ↓", "Datum úkonu", "Úkon a\u00A0spis", "Směr", "Kontakt", "Číslo jednací"];
 
     [Test]
     public void BothListTilesReadFromTheLastChange()

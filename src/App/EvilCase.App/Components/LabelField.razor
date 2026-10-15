@@ -196,7 +196,7 @@
                 return "Načítám štítky…";
 
             if (this.available.Count == 0)
-                return this.AllowCreate ? "Zatím není žádný štítek. Napište název a založte ho." : "Zatím není žádný štítek.";
+                return this.AllowCreate ? "Zatím není žádný štítek. Napište název a\u00A0založte ho." : "Zatím není žádný štítek.";
 
             return this.available.All(label => this.Selected.Any(selected => selected.LabelId == label.LabelId))
                 ? "Všechny štítky už jsou přidané."
@@ -447,7 +447,7 @@
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
         {
-            this.createError = "Štítek s tímto názvem už existuje.";
+            this.createError = "Štítek s\u00A0tímto názvem už existuje.";
         }
         catch (Exception exception) when (exception is ApiException or HttpRequestException)
         {

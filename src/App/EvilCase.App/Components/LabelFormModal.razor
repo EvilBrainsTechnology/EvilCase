@@ -128,7 +128,7 @@
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
         {
-            this.error = "Štítek s tímto názvem už existuje. Zvolte jiný.";
+            this.error = "Štítek s\u00A0tímto názvem už existuje. Zvolte jiný.";
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
         {
@@ -139,8 +139,8 @@
             this.Logger.LogWarning(exception, "Saving the label failed");
 
             this.error = this.Label is null
-                ? "Štítek se nepodařilo založit. Zkontrolujte zadané údaje a zkuste to znovu."
-                : "Štítek se nepodařilo uložit. Zkontrolujte zadané údaje a zkuste to znovu.";
+                ? "Štítek se nepodařilo založit. Zkontrolujte zadané údaje a\u00A0zkuste to znovu."
+                : "Štítek se nepodařilo uložit. Zkontrolujte zadané údaje a\u00A0zkuste to znovu.";
         }
         finally
         {

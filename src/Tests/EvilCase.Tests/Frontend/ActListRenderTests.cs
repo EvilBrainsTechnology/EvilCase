@@ -282,7 +282,7 @@ public class ActListRenderTests
         {
             Assert.That(cell.ClassList, Does.Contain("ec-table-cell-primary"));
             Assert.That(cell.ClassList, Does.Contain("ec-cell-stack"));
-            Assert.That(component.Find(".ec-table-header").TextContent.Trim().TrimEnd('↑', '↓').Trim(), Is.EqualTo("Úkon a spis"));
+            Assert.That(component.Find(".ec-table-header").TextContent.Trim().TrimEnd('↑', '↓').Trim(), Is.EqualTo("Úkon a\u00A0spis"));
             Assert.That(cell.QuerySelector(".ec-cell-line .ec-cell-text")!.TextContent, Is.EqualTo("Oznámení"));
             Assert.That(cell.QuerySelector(".ec-cell-line .ec-chip-sm")!.TextContent.Trim(), Is.EqualTo("Priorita"));
             Assert.That(cell.QuerySelector(".ec-cell-sub")!.TextContent, Is.EqualTo("Přestupek"));

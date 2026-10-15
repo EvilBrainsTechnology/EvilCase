@@ -82,7 +82,7 @@
     @if (this.ShowPaging && this.Total > 0)
     {
         <div class="ec-card-footer">
-            <span class="ec-table-range">@(this.Skip + 1)–@Math.Min(this.Skip + this.Take, this.Total) z @this.Total</span>
+            <span class="ec-table-range">@(this.Skip + 1)–@Math.Min(this.Skip + this.Take, this.Total)&nbsp;z&nbsp;@this.Total</span>
             <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ChevronLeft"
                       Disabled="@(this.Skip == 0)" OnClick="this.Previous">Předchozí</EcButton>
             <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" IconEnd="@AppIcons.ChevronRight"

@@ -11,9 +11,9 @@ public static class SearchResultCountDisplay
 
         return count switch
         {
-            1 => "1 výsledek",
-            2 or 3 or 4 => $"{text} výsledky",
-            _ => $"{text} výsledků",
+            1 => "1\u00A0výsledek",
+            2 or 3 or 4 => $"{text}\u00A0výsledky",
+            _ => $"{text}\u00A0výsledků",
         };
     }
 }

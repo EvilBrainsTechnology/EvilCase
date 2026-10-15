@@ -10,7 +10,7 @@ public static class LabelUsageDisplay
         if (caseCount == 0 && actCount == 0)
             return "Nepoužitý";
 
-        return string.Join(" · ", Parts(caseCount, actCount));
+        return string.Join("\u00A0· ", Parts(caseCount, actCount));
     }
 
     /// <summary>
@@ -21,8 +21,8 @@ public static class LabelUsageDisplay
         if (caseCount == 0 && actCount == 0)
             return "Štítek nenese žádný spis ani úkon.";
 
-        var carriers = string.Join(" a ", Parts(caseCount, actCount));
-        var from = caseCount + actCount == 1 ? "z něj" : "z nich";
+        var carriers = string.Join(" a\u00A0", Parts(caseCount, actCount));
+        var from = caseCount + actCount == 1 ? "z\u00A0něj" : "z\u00A0nich";
 
         return $"Štítek nese {carriers}. Smazáním {from} zmizí; {Survives(caseCount, actCount)}.";
     }
@@ -32,10 +32,10 @@ public static class LabelUsageDisplay
         List<string> parts = [];
 
         if (caseCount > 0)
-            parts.Add($"{caseCount.ToString(CultureInfo.InvariantCulture)} {Plural(caseCount, "spis", "spisy", "spisů")}");
+            parts.Add($"{caseCount.ToString(CultureInfo.InvariantCulture)}\u00A0{Plural(caseCount, "spis", "spisy", "spisů")}");
 
         if (actCount > 0)
-            parts.Add($"{actCount.ToString(CultureInfo.InvariantCulture)} {Plural(actCount, "úkon", "úkony", "úkonů")}");
+            parts.Add($"{actCount.ToString(CultureInfo.InvariantCulture)}\u00A0{Plural(actCount, "úkon", "úkony", "úkonů")}");
 
         return parts;
     }

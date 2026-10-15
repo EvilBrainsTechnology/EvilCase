@@ -264,6 +264,7 @@ html {
     font-size: var(--ec-title-sm);
     font-weight: var(--ec-weight-semibold);
     letter-spacing: -0.02em;
+    text-wrap: pretty;
 }
 
 .ec-page-actions {
@@ -770,6 +771,7 @@ html {
     margin: var(--ec-space-3) 0 0;
     font-size: var(--ec-text-sm);
     color: var(--ec-text-muted);
+    text-wrap: pretty;
 }
 
 .ec-file-icon {
@@ -1707,6 +1709,7 @@ html {
     line-height: var(--ec-leading-body);
     white-space: pre-line;
     overflow-wrap: anywhere;
+    text-wrap: pretty;
 }
 
 .ec-comment-actions {

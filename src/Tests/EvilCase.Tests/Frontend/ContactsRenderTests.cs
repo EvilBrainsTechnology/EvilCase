@@ -18,7 +18,7 @@ public class ContactsRenderTests
 
         var component = ctx.Render<App.Pages.Contacts>();
 
-        component.WaitForAssertion(() => Assert.That(component.Markup, Does.Contain("11 záznamů")));
+        component.WaitForAssertion(() => Assert.That(component.Markup, Does.Contain("11\u00A0záznamů")));
     }
 
     [Test]

@@ -11,9 +11,9 @@ public static class ActCountDisplay
 
         return count switch
         {
-            1 => "1 úkon",
-            2 or 3 or 4 => $"{text} úkony",
-            _ => $"{text} úkonů",
+            1 => "1\u00A0úkon",
+            2 or 3 or 4 => $"{text}\u00A0úkony",
+            _ => $"{text}\u00A0úkonů",
         };
     }
 
@@ -27,8 +27,8 @@ public static class ActCountDisplay
         return count switch
         {
             1 => "Všechny úkony spisu",
-            2 or 3 or 4 => $"Všechny {text} úkony spisu",
-            _ => $"Všech {text} úkonů spisu",
+            2 or 3 or 4 => $"Všechny {text}\u00A0úkony spisu",
+            _ => $"Všech {text}\u00A0úkonů spisu",
         };
     }
 }

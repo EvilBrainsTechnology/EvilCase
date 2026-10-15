@@ -24,7 +24,7 @@ public class ActsRenderTests
 
         await component.WaitForAssertionAsync(() =>
         {
-            string[] headers = ["Datum úkonu", "Úkon a spis", "Směr", "Kontakt", "Číslo jednací"];
+            string[] headers = ["Datum úkonu", "Úkon a\u00A0spis", "Směr", "Kontakt", "Číslo jednací"];
 
             using (Assert.EnterMultipleScope())
             {

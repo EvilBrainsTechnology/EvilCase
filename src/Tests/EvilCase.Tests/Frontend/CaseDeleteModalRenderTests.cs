@@ -26,7 +26,7 @@ public class CaseDeleteModalRenderTests
 
         Assert.That(
             component.Find(".ec-confirm-text").TextContent,
-            Does.Contain(caseDetail.CaseNumber).And.Contain("podřízené spisy, úkony, komentáře a soubory"));
+            Does.Contain(caseDetail.CaseNumber).And.Contain("podřízené spisy, úkony, komentáře a\u00A0soubory"));
     }
 
     [Test]

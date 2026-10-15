@@ -53,7 +53,7 @@
                 @if (closedCount > 0)
                 {
                     <button type="button" class="ec-child-toggle" aria-expanded="@(this.showClosed ? "true" : "false")"
-                            aria-controls="case-children" @onclick="this.ToggleClosed">@(this.showClosed ? "Skrýt uzavřené" : $"Zobrazit i uzavřené ({closedCount})")</button>
+                            aria-controls="case-children" @onclick="this.ToggleClosed">@(this.showClosed ? "Skrýt uzavřené" : $"Zobrazit i\u00A0uzavřené ({closedCount})")</button>
                 }
             </div>
         }

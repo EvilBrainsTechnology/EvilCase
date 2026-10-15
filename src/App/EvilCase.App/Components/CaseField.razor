@@ -4,7 +4,7 @@
 @inject ICasesClient CasesClient
 @inject ILogger<CaseField> Logger
 
-<EcCombobox TItem="CaseListItem" InputId="@this.InputId" Placeholder="Hledat v názvu a čísle spisu"
+<EcCombobox TItem="CaseListItem" InputId="@this.InputId" Placeholder="@("Hledat v\u00A0názvu a\u00A0čísle spisu")"
             SelectedLabel="Vybraný spis" EmptyText="@this.emptyText" ItemText="@(static @case => @case.Title)"
             Search="this.SearchCases"
             Selected="this.Selected" SelectedChanged="this.SelectedChanged">

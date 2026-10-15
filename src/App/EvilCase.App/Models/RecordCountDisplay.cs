@@ -11,9 +11,9 @@ public static class RecordCountDisplay
 
         return count switch
         {
-            1 => "1 záznam",
-            2 or 3 or 4 => $"{text} záznamy",
-            _ => $"{text} záznamů",
+            1 => "1\u00A0záznam",
+            2 or 3 or 4 => $"{text}\u00A0záznamy",
+            _ => $"{text}\u00A0záznamů",
         };
     }
 }
