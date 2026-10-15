@@ -1,5 +1,6 @@
 using Bunit;
 using EvilBrains.EvilCase.App.Components.Ec;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 
 namespace EvilBrains.EvilCase.Tests.Frontend;
@@ -84,5 +85,68 @@ public class EcModalRenderTests
         await component.InvokeAsync(component.Instance.NotifyClosed);
 
         Assert.That(raised, Is.False, "Esc closes the dialog through its close event");
+    }
+
+    [Test]
+    public async Task AClickOnTheBackdropRaisesOpenChangedWithFalse()
+    {
+        await using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+
+        bool? raised = null;
+        var component = RenderOpen(ctx, value => raised = value);
+
+        await component.Find("dialog").TriggerEventAsync("onpointerdown", new PointerEventArgs());
+        await component.Find("dialog").ClickAsync(new MouseEventArgs());
+
+        Assert.That(raised, Is.False);
+    }
+
+    [Test]
+    public async Task AClickInTheContentKeepsTheDialogOpen()
+    {
+        await using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+
+        bool? raised = null;
+        var component = RenderOpen(ctx, value => raised = value);
+
+        await component.Find("button.content").TriggerEventAsync("onpointerdown", new PointerEventArgs());
+        await component.Find("button.content").ClickAsync(new MouseEventArgs());
+
+        Assert.That(raised, Is.Null);
+    }
+
+    [Test]
+    public async Task ADragFromTheContentToTheBackdropKeepsTheDialogOpen()
+    {
+        await using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+
+        bool? raised = null;
+        var component = RenderOpen(ctx, value => raised = value);
+
+        await component.Find("button.content").TriggerEventAsync("onpointerdown", new PointerEventArgs());
+        await component.Find("dialog").ClickAsync(new MouseEventArgs());
+
+        Assert.That(raised, Is.Null);
+    }
+
+    private static IRenderedComponent<EcModal> RenderOpen(BunitContext ctx, Action<bool> openChanged)
+    {
+        return ctx.Render<EcModal>(parameters => parameters
+            .Add(static modal => modal.Title, "Nový kontakt")
+            .Add(static modal => modal.Open, value: true)
+            .Add(
+                static modal => modal.ChildContent,
+                static builder =>
+                {
+                    builder.OpenElement(0, "button");
+                    builder.AddAttribute(1, "class", "content");
+                    builder.AddAttribute(2, "onpointerdown", static () => { });
+                    builder.AddAttribute(3, "onclick", static () => { });
+                    builder.CloseElement();
+                })
+            .Add(static modal => modal.OpenChanged, openChanged));
     }
 }
