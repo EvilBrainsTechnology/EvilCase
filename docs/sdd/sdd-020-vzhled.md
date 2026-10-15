@@ -28,9 +28,9 @@ směr úkonu (modrá příchozí, zelená odchozí) a chyba (červená). Každá
 alespoň 4,5:1.
 
 Písmo: `Instrument Sans` na text, `JetBrains Mono` na čísla, značky a přípony souborů. Obojí
-se dodává s aplikací, ne z cizí sítě. Velikosti 11, 12, 13, 14, 16, 18, 28 a 32 px; nadpis
-stránky 32 px, nadpis karty 18 px, v bočním sloupci 16 px, tělo 14 px, popisek 12 px, drobná
-značka 11 px.
+se dodává s aplikací, ne z cizí sítě. Velikosti 11, 12, 13, 14, 16, 18, 22, 28 a 32 px;
+nadpis detailu 32 px, seznamu a formuláře 28 px, na mobilu 22 px, nadpis karty 18 px,
+v bočním sloupci 16 px, tělo 14 px, popisek 12 px, drobná značka 11 px.
 
 Texty rozhraní i zapsané názvy a popisy drží českou typografii: nezlomitelná mezera po
 jednopísmenné předložce a spojce, mezi číslem a jednotkou, uvnitř data a před pomlčkou.
@@ -115,8 +115,7 @@ a nabídku opakování. Načítání drží výšku, aby obsah neposkakoval.
 
 Ovládací prvek má viditelný stav nad myší, při fokusu a zakázaný; fokus je vidět vždy
 a klávesnicí se dá projít celá obrazovka. Pole, které neprošlo kontrolou, má červený rámeček
-a chybu pod sebou. Destruktivní akce se potvrzuje a věta potvrzení
-jmenuje, co kaskáda bere.
+a chybu pod sebou. Destruktivní akce se potvrzuje a věta potvrzení jmenuje, co kaskáda bere.
 
 ### Mobil
 

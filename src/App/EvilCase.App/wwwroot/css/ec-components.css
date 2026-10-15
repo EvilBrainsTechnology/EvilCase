@@ -269,6 +269,13 @@ html {
     text-wrap: pretty;
 }
 
+.ec-detail .ec-page-title,
+.ec-contact-header .ec-page-title {
+    font-size: var(--ec-title);
+    line-height: var(--ec-leading-tight);
+    text-wrap: balance;
+}
+
 .ec-page-actions {
     display: flex;
     align-items: center;
@@ -2881,8 +2888,10 @@ html {
         min-width: var(--ec-touch-min);
     }
 
-    .ec-page-title {
-        font-size: var(--ec-text-xl);
+    .ec-page-title,
+    .ec-detail .ec-page-title,
+    .ec-contact-header .ec-page-title {
+        font-size: var(--ec-title-mobile);
     }
 
     .ec-page-actions {
