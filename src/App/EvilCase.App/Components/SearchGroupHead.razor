@@ -1,0 +1,29 @@
+<div class="ec-sr-group-head">
+    <span>@this.Label</span>
+    <span class="ec-sr-count">@this.Count</span>
+    <span class="ec-sr-grow"></span>
+    @if (this.AllText is not null && this.AllHref is not null)
+    {
+        <a class="ec-sr-all" href="@this.AllHref" @onclick="this.OnOpen">@this.AllText<EcIcon Paths="@AppIcons.ChevronRight" Size="EcIconSize.Small" /></a>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public required string Label { get; set; }
+
+    [Parameter, EditorRequired]
+    public required int Count { get; set; }
+
+    /// <summary>
+    /// The link to the whole list; absent while the group shows every match.
+    /// </summary>
+    [Parameter]
+    public string? AllText { get; set; }
+
+    [Parameter]
+    public string? AllHref { get; set; }
+
+    [Parameter]
+    public EventCallback OnOpen { get; set; }
+}

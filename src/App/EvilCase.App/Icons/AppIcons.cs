@@ -34,6 +34,9 @@ public static class AppIcons
         + "<path d='M7 7m0 2.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667z' />"
         + "<path d='M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1' />";
 
+    public const string CornerDownLeft = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M18 6v6a3 3 0 0 1 -3 3h-10l4 -4m0 8l-4 -4' />";
+
     public const string DeviceFloppy = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M6 4h10l4 4v10a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2' />"
         + "<path d='M12 14m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0' />"

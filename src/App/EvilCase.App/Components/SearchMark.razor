@@ -1,0 +1,21 @@
+@using EvilBrains.EvilCase.App.Search
+
+@foreach (var segment in SearchHighlight.Segments(this.Text, this.Term))
+{
+    @if (segment.Match)
+    {
+        <mark class="ec-hit">@segment.Text</mark>
+    }
+    else
+    {
+        @segment.Text
+    }
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public required string Text { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string Term { get; set; }
+}

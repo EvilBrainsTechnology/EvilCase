@@ -1,0 +1,432 @@
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.Search
+@using EvilBrains.EvilCase.App.Search
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+@inject ISearchClient SearchClient
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@inject ILogger<TopSearch> Logger
+
+@if (this.open)
+{
+    <div class="ec-topsearch-backdrop" @onclick="this.Close"></div>
+}
+
+<div class="@(this.open ? "ec-topsearch ec-topsearch-open" : "ec-topsearch")">
+    <button type="button" class="ec-topsearch-back" aria-label="Zavřít hledání" @onclick="this.Close">
+        <EcIcon Paths="@AppIcons.ChevronLeft" Size="EcIconSize.Large" />
+    </button>
+
+    <label class="ec-topsearch-field">
+        <EcIcon Paths="@AppIcons.Search" Size="EcIconSize.Small" />
+        <input @ref="this.input" class="ec-topsearch-input" type="text" role="combobox" autocomplete="off"
+               aria-label="Hledat" aria-autocomplete="list" aria-haspopup="listbox"
+               aria-expanded="@(this.open ? "true" : "false")" aria-controls="ec-search-results"
+               aria-activedescendant="@this.ActiveOptionId"
+               placeholder="Hledat spisy, úkony, kontakty…" value="@this.query"
+               @oninput="this.OnInput" @onkeydown="this.OnKeyDown" @onfocus="this.Open" />
+        @if (this.query.Length > 0)
+        {
+            <button type="button" class="ec-topsearch-clear" aria-label="Vymazat hledání" @onclick="this.Clear">
+                <EcIcon Paths="@AppIcons.X" Size="EcIconSize.Small" />
+            </button>
+        }
+        else
+        {
+            <kbd class="ec-topsearch-kbd">Ctrl K</kbd>
+        }
+    </label>
+
+    @if (this.open)
+    {
+        <div class="ec-sr-panel">
+            @if (this.TooShort)
+            {
+                <div class="ec-sr-state" role="status">
+                    <span class="ec-sr-state-icon"><EcIcon Paths="@AppIcons.Search" /></span>
+                    <span class="ec-sr-state-text">
+                        <span class="ec-sr-state-title">Napište alespoň @SearchLimits.TermMinLength znaky</span>
+                        <span>Hledá se ve spisech, úkonech, kontaktech, souborech, komentářích, bez ohledu na diakritiku.</span>
+                    </span>
+                </div>
+            }
+            else if (this.failure is not null)
+            {
+                <div class="ec-sr-state" role="status">
+                    <span class="ec-sr-state-icon"><EcIcon Paths="@AppIcons.AlertTriangle" /></span>
+                    <span class="ec-sr-state-text"><span class="ec-sr-state-title">@this.failure</span></span>
+                </div>
+            }
+            else if (this.result is not { } found)
+            {
+                <div class="ec-sr-state" role="status">
+                    <span class="ec-sr-state-icon"><EcIcon Paths="@AppIcons.Search" /></span>
+                    <span class="ec-sr-state-text"><span class="ec-sr-state-title">Hledám…</span></span>
+                </div>
+            }
+            else if (this.hrefs.Count == 0)
+            {
+                <div class="ec-sr-state ec-sr-state-empty" role="status">
+                    <span class="ec-sr-state-icon"><EcIcon Paths="@AppIcons.Search" /></span>
+                    <span class="ec-sr-state-title">Nic jsme nenašli pro „@this.resultTerm“</span>
+                    <span>Zkuste kratší výraz nebo číslo spisu či úkonu.</span>
+                </div>
+            }
+            else
+            {
+                var index = 0;
+                var all = Uri.EscapeDataString(this.resultTerm);
+
+                <div @ref="this.list" id="ec-search-results" class="ec-sr-list" role="listbox" aria-label="Výsledky hledání">
+                    @if (found.Cases.Items.Count > 0)
+                    {
+                        <div class="ec-sr-group" role="group" aria-label="Spisy">
+                            <SearchGroupHead Label="Spisy" Count="found.Cases.TotalCount" OnOpen="this.Close"
+                                             AllText="@(found.Cases.TotalCount > found.Cases.Items.Count ? $"Všechny ve Spisech ({found.Cases.TotalCount})" : null)"
+                                             AllHref="@($"/cases?q={all}")" />
+                            @foreach (var item in found.Cases.Items)
+                            {
+                                var row = index++;
+
+                                <SearchOption Id="@this.OptionId(row)" Href="@($"/cases/{item.CaseId}")" Kind="case" Title="@item.Title" Term="@this.resultTerm"
+                                              Labels="item.Labels" Active="@(row == this.active)" OnActivate="() => this.Activate(row)" OnOpen="this.Close">
+                                    <Icon><EcIcon Paths="@AppIcons.Folders" /></Icon>
+                                    <Details>
+                                        <span class="ec-sr-mono"><SearchMark Text="@item.CaseNumber" Term="@this.resultTerm" /></span>
+                                        <EcBadge Tone="CaseStatusDisplay.Tone(item.Status)" Text="@CaseStatusDisplay.Text(item.Status)" ShowDot="true" />
+                                        <span>@DateDisplay.Text(item.Date)</span>
+                                    </Details>
+                                </SearchOption>
+                            }
+                        </div>
+                    }
+
+                    @if (found.Acts.Items.Count > 0)
+                    {
+                        <div class="ec-sr-group" role="group" aria-label="Úkony">
+                            <SearchGroupHead Label="Úkony" Count="found.Acts.TotalCount" OnOpen="this.Close"
+                                             AllText="@(found.Acts.TotalCount > found.Acts.Items.Count ? $"Všechny v Úkonech ({found.Acts.TotalCount})" : null)"
+                                             AllHref="@($"/acts?q={all}")" />
+                            @foreach (var item in found.Acts.Items)
+                            {
+                                var row = index++;
+
+                                <SearchOption Id="@this.OptionId(row)" Href="@($"/acts/{item.ActId}")" Kind="act" Title="@item.Title" Term="@this.resultTerm"
+                                              Active="@(row == this.active)" OnActivate="() => this.Activate(row)" OnOpen="this.Close">
+                                    <Icon><EcIcon Paths="@AppIcons.FileText" /></Icon>
+                                    <Details>
+                                        <span class="ec-sr-mono"><SearchMark Text="@item.ActNumber" Term="@this.resultTerm" /></span>
+                                        @if (item.Direction is { } direction)
+                                        {
+                                            <EcBadge Tone="ActDirectionDisplay.Tone(direction)" Text="@ActDirectionDisplay.Text(direction)" Icon="@ActDirectionDisplay.Icon(direction)" />
+                                        }
+                                        <span>@DateDisplay.Text(item.Date)</span>
+                                        <span class="ec-sr-grow-text">ve spisu @item.CaseTitle</span>
+                                    </Details>
+                                </SearchOption>
+                            }
+                        </div>
+                    }
+
+                    @if (found.Contacts.Items.Count > 0)
+                    {
+                        <div class="ec-sr-group" role="group" aria-label="Kontakty">
+                            <SearchGroupHead Label="Kontakty" Count="found.Contacts.TotalCount" OnOpen="this.Close"
+                                             AllText="@(found.Contacts.TotalCount > found.Contacts.Items.Count ? $"Všechny v Kontaktech ({found.Contacts.TotalCount})" : null)"
+                                             AllHref="@($"/contacts?q={all}")" />
+                            @foreach (var item in found.Contacts.Items)
+                            {
+                                var row = index++;
+
+                                <SearchOption Id="@this.OptionId(row)" Href="@($"/contacts/{item.ContactId}")" Kind="contact" Title="@item.Name" Term="@this.resultTerm"
+                                              Active="@(row == this.active)" OnActivate="() => this.Activate(row)" OnOpen="this.Close">
+                                    <Icon><EcIcon Paths="@AppIcons.User" /></Icon>
+                                    <Details>
+                                        <EcBadge Tone="ContactKindDisplay.Tone(item.Kind)" Text="@ContactKindDisplay.Text(item.Kind)" />
+                                        @if (!string.IsNullOrWhiteSpace(item.Address))
+                                        {
+                                            <span class="ec-sr-grow-text"><SearchMark Text="@item.Address" Term="@this.resultTerm" /></span>
+                                        }
+                                        @if (!string.IsNullOrWhiteSpace(item.DataBoxId))
+                                        {
+                                            <span class="ec-sr-mono">DS <SearchMark Text="@item.DataBoxId" Term="@this.resultTerm" /></span>
+                                        }
+                                    </Details>
+                                </SearchOption>
+                            }
+                        </div>
+                    }
+
+                    @if (found.Files.Items.Count > 0)
+                    {
+                        <div class="ec-sr-group" role="group" aria-label="Soubory">
+                            <SearchGroupHead Label="Soubory" Count="found.Files.TotalCount" />
+                            @foreach (var item in found.Files.Items)
+                            {
+                                var row = index++;
+
+                                <SearchOption Id="@this.OptionId(row)" Href="@OwnerHref(item.CaseId, item.ActId)" Kind="file" Title="@item.FileName" Term="@this.resultTerm"
+                                              Active="@(row == this.active)" OnActivate="() => this.Activate(row)" OnOpen="this.Close">
+                                    <Icon><EcFileChip FileName="@item.FileName" /></Icon>
+                                    <Details>
+                                        <span>@FileSizeDisplay.Text(item.SizeBytes)</span>
+                                        <span class="ec-sr-grow-text">@OwnerText(item.CaseId, item.OwnerTitle)</span>
+                                    </Details>
+                                </SearchOption>
+                            }
+                        </div>
+                    }
+
+                    @if (found.Comments.Items.Count > 0)
+                    {
+                        <div class="ec-sr-group" role="group" aria-label="Komentáře">
+                            <SearchGroupHead Label="Komentáře" Count="found.Comments.TotalCount" />
+                            @foreach (var item in found.Comments.Items)
+                            {
+                                var row = index++;
+
+                                <SearchOption Id="@this.OptionId(row)" Href="@OwnerHref(item.CaseId, item.ActId)" Kind="comment" Title="@SearchHighlight.Snippet(item.Body, this.resultTerm)"
+                                              Term="@this.resultTerm" Quote="true" Active="@(row == this.active)" OnActivate="() => this.Activate(row)" OnOpen="this.Close">
+                                    <Icon><EcIcon Paths="@AppIcons.Message" /></Icon>
+                                    <Details>
+                                        <span class="ec-sr-grow-text">@OwnerText(item.CaseId, item.OwnerTitle)</span>
+                                        <span>@DateDisplay.Text(DateOnly.FromDateTime(item.Created.ToLocalTime()))</span>
+                                    </Details>
+                                </SearchOption>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <div class="ec-sr-footer">
+                    <span class="ec-sr-hint"><kbd class="ec-sr-kbd">↑</kbd><kbd class="ec-sr-kbd">↓</kbd>vybrat</span>
+                    <span class="ec-sr-hint"><kbd class="ec-sr-kbd">Enter</kbd>otevřít</span>
+                    <span class="ec-sr-hint"><kbd class="ec-sr-kbd">Esc</kbd>zavřít</span>
+                    <span class="ec-sr-grow"></span>
+                    <span>@SearchResultCountDisplay.Text(this.TotalCount(found))</span>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private const int AttachAttempts = 20;
+
+    private static readonly TimeSpan AttachDelay = TimeSpan.FromMilliseconds(100);
+
+    private readonly SearchDebouncer debouncer = new();
+
+    private ElementReference input;
+
+    private ElementReference list;
+
+    private IJSObjectReference? module;
+
+    private SearchResponse? result;
+
+    private IReadOnlyList<string> hrefs = [];
+
+    private string query = "";
+
+    private string resultTerm = "";
+
+    private string? failure;
+
+    private bool open;
+
+    private bool scrollPending;
+
+    private int active;
+
+    private string Term => this.query.Trim();
+
+    private bool TooShort => this.Term.Length < SearchLimits.TermMinLength;
+
+    private string? ActiveOptionId => this.open && this.hrefs.Count > 0 && !this.TooShort ? this.OptionId(this.active) : null;
+
+    public async ValueTask DisposeAsync()
+    {
+        this.debouncer.Dispose();
+
+        if (this.module is not null)
+        {
+            try
+            {
+                await this.module.InvokeVoidAsync("detach");
+                await this.module.DisposeAsync();
+            }
+            catch (JSDisconnectedException)
+            {
+                // The circuit is gone; the listeners went with the page.
+            }
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            await this.Attach();
+
+        if (this.scrollPending && this.module is not null)
+        {
+            this.scrollPending = false;
+
+            await this.module.InvokeVoidAsync("scrollActiveIntoView", this.list);
+        }
+    }
+
+    // The import answers null until the first render batch is applied, so the field retries a few times.
+    private async Task Attach()
+    {
+        for (var attempt = 0; attempt < AttachAttempts && this.module is null; attempt++)
+        {
+            await Task.Delay(AttachDelay);
+
+            this.module = await this.JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/ec-top-search.js");
+        }
+
+        if (this.module is not null)
+            await this.module.InvokeVoidAsync("attach", this.input);
+    }
+
+    private static string OwnerHref(Guid? caseId, Guid? actId)
+    {
+        return caseId is { } owner ? $"/cases/{owner}" : $"/acts/{actId}";
+    }
+
+    private static string OwnerText(Guid? caseId, string ownerTitle)
+    {
+        return (caseId is null ? "Úkon" : "Spis") + " · " + ownerTitle;
+    }
+
+    private static IReadOnlyList<string> Flatten(SearchResponse response)
+    {
+        return
+        [
+            .. response.Cases.Items.Select(static item => $"/cases/{item.CaseId}"),
+            .. response.Acts.Items.Select(static item => $"/acts/{item.ActId}"),
+            .. response.Contacts.Items.Select(static item => $"/contacts/{item.ContactId}"),
+            .. response.Files.Items.Select(static item => OwnerHref(item.CaseId, item.ActId)),
+            .. response.Comments.Items.Select(static item => OwnerHref(item.CaseId, item.ActId)),
+        ];
+    }
+
+    private string OptionId(int row)
+    {
+        return $"ec-search-option-{row}";
+    }
+
+    private int TotalCount(SearchResponse response)
+    {
+        return response.Cases.TotalCount + response.Acts.TotalCount + response.Contacts.TotalCount
+            + response.Files.TotalCount + response.Comments.TotalCount;
+    }
+
+    private void Open()
+    {
+        this.open = true;
+    }
+
+    private void Close()
+    {
+        this.open = false;
+    }
+
+    private void Activate(int row)
+    {
+        this.active = row;
+    }
+
+    private async Task Clear()
+    {
+        this.query = "";
+        this.open = true;
+
+        await this.Search();
+        await this.input.FocusAsync();
+    }
+
+    private async Task OnInput(ChangeEventArgs args)
+    {
+        this.query = args.Value as string ?? "";
+        this.open = true;
+
+        await this.Search();
+    }
+
+    private void OnKeyDown(KeyboardEventArgs args)
+    {
+        switch (args.Key)
+        {
+            case "ArrowDown":
+                this.Move(1);
+                break;
+            case "ArrowUp":
+                this.Move(-1);
+                break;
+            case "Enter" when this.open && !this.TooShort && this.hrefs.Count > 0:
+                var href = this.hrefs[this.active];
+
+                this.open = false;
+                this.Navigation.NavigateTo(href);
+                break;
+            case "Escape":
+                this.open = false;
+                break;
+        }
+    }
+
+    private void Move(int step)
+    {
+        this.open = true;
+
+        if (this.hrefs.Count == 0)
+            return;
+
+        this.active = (this.active + step + this.hrefs.Count) % this.hrefs.Count;
+        this.scrollPending = true;
+    }
+
+    private async Task Search()
+    {
+        var token = await this.debouncer.Start(debounce: !this.TooShort);
+        if (token is null)
+            return;
+
+        if (this.TooShort)
+        {
+            this.result = null;
+            this.hrefs = [];
+            this.failure = null;
+            return;
+        }
+
+        var term = this.Term;
+
+        try
+        {
+            var response = await this.SearchClient.Search(new SearchRequest { Q = term }, token.Value);
+
+            this.result = response;
+            this.resultTerm = term;
+            this.hrefs = Flatten(response);
+            this.active = 0;
+            this.failure = null;
+        }
+        catch (OperationCanceledException)
+        {
+            // Superseded by a newer search.
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "The search failed");
+
+            this.result = null;
+            this.hrefs = [];
+            this.failure = "Hledání se nepodařilo. Zkuste to znovu.";
+        }
+    }
+}
