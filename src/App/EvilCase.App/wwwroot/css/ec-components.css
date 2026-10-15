@@ -698,6 +698,10 @@ html {
     background: var(--ec-overlay);
 }
 
+.ec-modal-frame {
+    display: contents;
+}
+
 .ec-modal-header {
     display: flex;
     align-items: center;
