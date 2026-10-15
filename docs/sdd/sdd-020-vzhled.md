@@ -54,8 +54,8 @@ Aplikace má vlastní sadu komponent s prefixem `Ec`. Obrazovka skládá jen je,
 - `EcBadge` — pilulka pro stav spisu, směr úkonu a typ kontaktu; stav nese barevnou tečku, směr
   šipku.
 - `EcTable` — seznam podle SDD-016: řádek je odkaz po celé šířce, řaditelné záhlaví je
-  tlačítko, patička nese rozsah, počet a stránkování; tlačítka stránkování jen tam, kde je víc
-  než jedna stránka. Chybějící hodnota v buňce je světlá
+  tlačítko, patička nese rozsah, počet a stránkování; seznam na jednu stránku patičku nemá.
+  Chybějící hodnota v buňce je světlá
   pomlčka.
 - `EcField` — popisek, ovládací prvek a pod ním nápověda, kterou při neplatné hodnotě nahradí
   chyba; povinné pole značí hvězdička. Nápověda a chyba z jedné fráze končí bez tečky, celá věta

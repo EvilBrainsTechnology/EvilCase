@@ -79,17 +79,14 @@
         }
     }
 
-    @if (this.ShowPaging && this.Total > 0)
+    @if (this.ShowPaging && this.Total > this.Take)
     {
         <div class="ec-card-footer">
             <span class="ec-table-range">@(this.Skip + 1)–@Math.Min(this.Skip + this.Take, this.Total)&nbsp;z&nbsp;@this.Total</span>
-            @if (this.Total > this.Take)
-            {
-                <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ChevronLeft"
-                          Disabled="@(this.Skip == 0)" OnClick="this.Previous">Předchozí</EcButton>
-                <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" IconEnd="@AppIcons.ChevronRight"
-                          Disabled="@(this.Skip + this.Take >= this.Total)" OnClick="this.Next">Další</EcButton>
-            }
+            <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ChevronLeft"
+                      Disabled="@(this.Skip == 0)" OnClick="this.Previous">Předchozí</EcButton>
+            <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" IconEnd="@AppIcons.ChevronRight"
+                      Disabled="@(this.Skip + this.Take >= this.Total)" OnClick="this.Next">Další</EcButton>
         </div>
     }
 </div>

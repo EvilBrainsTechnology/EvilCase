@@ -4225,8 +4225,8 @@ html:has(.ec-gate) {
     }
 }
 
-/* Seznam podle SDD-016: řádek je odkaz po celé šířce, patička nese rozsah, počet a stránkování
-   (docs/design/spisy.html). Nese hlavičku a patičku karty (ec-card-*, ec-card-header-actions). */
+/* Seznam podle SDD-016 (docs/design/spisy.html): řádek je odkaz po celé šířce, patička seznamu na víc
+   stránek nese rozsah, počet a stránkování. Nese hlavičku a patičku karty (ec-card-*, ec-card-header-actions). */
 .ec-table {
     overflow: hidden;
 }
