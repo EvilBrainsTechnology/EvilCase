@@ -198,6 +198,23 @@ public class EcStylesheetTests
         }
     }
 
+    [Test]
+    public async Task TheFormActionsStayAtTheBottomOnMobile()
+    {
+        var css = await this.client.GetStringAsync(new Uri("/css/ec-components.css", UriKind.Relative));
+
+        var mobile = css[css.IndexOf("@media (max-width: 991.98px)", StringComparison.Ordinal)..];
+        var rule = mobile[mobile.IndexOf(".ec-form-layout .ec-card-footer {", StringComparison.Ordinal)..];
+        rule = rule[..rule.IndexOf('}', StringComparison.Ordinal)];
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(rule, Does.Contain("position: sticky;"));
+            Assert.That(rule, Does.Contain("bottom: 0;"));
+            Assert.That(rule, Does.Contain("env(safe-area-inset-bottom)"), "a fixed bottom element clears the safe area");
+        }
+    }
+
     private static IEnumerable<string> ExtractUrls(string css)
     {
         var urls = new List<string>();
