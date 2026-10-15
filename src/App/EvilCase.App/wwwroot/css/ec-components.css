@@ -425,6 +425,7 @@ html {
 }
 
 .ec-field-mark {
+    margin-left: calc(var(--ec-space-1) / 2);
     color: var(--ec-danger-text);
 }
 
