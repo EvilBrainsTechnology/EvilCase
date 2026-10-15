@@ -516,7 +516,7 @@ html {
 .ec-input::placeholder,
 .ec-select::placeholder,
 .ec-textarea::placeholder {
-    color: var(--ec-text-muted);
+    color: var(--ec-text-subtle);
 }
 
 .ec-input:read-only {
@@ -2340,7 +2340,7 @@ html {
 }
 
 .ec-label-input::placeholder {
-    color: var(--ec-text-muted);
+    color: var(--ec-text-subtle);
 }
 
 .ec-label-field-inline .ec-label-search {
@@ -3373,7 +3373,7 @@ html:has(.ec-gate) {
 }
 
 .ec-search-input::placeholder {
-    color: var(--ec-text-muted);
+    color: var(--ec-text-subtle);
 }
 
 /* Hledání v horní liště (docs/design/hledani.html, SDD-021). */
