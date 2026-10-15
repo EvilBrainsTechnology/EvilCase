@@ -4445,6 +4445,12 @@ html:has(.ec-gate) {
         display: none;
     }
 
+    /* Bez místa jde odkaz v záhlaví seznamu pod nadpis, místo aby ho zalomil. */
+    .ec-table > .ec-card-header {
+        flex-wrap: wrap;
+        row-gap: 0;
+    }
+
     .ec-table-row {
         display: flex;
         flex-wrap: wrap;
