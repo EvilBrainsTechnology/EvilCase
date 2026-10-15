@@ -1983,9 +1983,9 @@ html {
     padding: 0 var(--ec-space-6) var(--ec-space-5);
 }
 
-.ec-card-title-count {
+.ec-card-title > .ec-card-count {
+    margin-left: var(--ec-space-2);
     font-weight: var(--ec-weight-regular);
-    color: var(--ec-text-muted);
 }
 
 .ec-settings-head,
