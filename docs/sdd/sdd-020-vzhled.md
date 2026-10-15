@@ -57,7 +57,9 @@ Aplikace má vlastní sadu komponent s prefixem `Ec`. Obrazovka skládá jen je,
   tlačítko, patička nese rozsah, počet a stránkování; tlačítka stránkování jen tam, kde je víc
   než jedna stránka. Chybějící hodnota v buňce je světlá
   pomlčka.
-- `EcField` — popisek, ovládací prvek, nápověda a chyba pod sebou; povinné pole značí hvězdička.
+- `EcField` — popisek, ovládací prvek a pod ním nápověda, kterou při neplatné hodnotě nahradí
+  chyba; povinné pole značí hvězdička. Nápověda a chyba z jedné fráze končí bez tečky, celá věta
+  s tečkou.
 - `EcModal` — nad nativním `dialog`, se správou fokusu; zavře ho Esc i klik mimo okno.
 - `EcMenu` — tlačítko s nabídkou akcí; Esc i klik mimo ji zavřou, šipky chodí mezi položkami
   a fokus se vrací na tlačítko.

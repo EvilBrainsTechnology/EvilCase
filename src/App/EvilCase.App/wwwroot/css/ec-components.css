@@ -435,6 +435,11 @@ html:has(.ec-gate) {
     color: var(--ec-text-muted);
 }
 
+/* Chyba nahradí nápovědu, aby stála hned pod polem. */
+.ec-field:has(.ec-field-error > *) .ec-field-hint {
+    display: none;
+}
+
 .ec-field-error {
     font-size: var(--ec-text-xs);
     color: var(--ec-danger-text);

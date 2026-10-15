@@ -40,10 +40,10 @@ internal sealed class ActEditModel : IValidatableObject
     }
 
     [Required(ErrorMessage = "Zadejte číslo jednací")]
-    [StringLength(128, ErrorMessage = "Číslo jednací může mít nejvýše 128 znaků")]
+    [StringLength(128, ErrorMessage = "Číslo jednací může mít nejvýše 128 znaků.")]
     public string ActNumber { get; set; } = "";
 
-    [StringLength(128, ErrorMessage = "Externí číslo jednací může mít nejvýše 128 znaků")]
+    [StringLength(128, ErrorMessage = "Externí číslo jednací může mít nejvýše 128 znaků.")]
     public string? ExternalActNumber { get; set; }
 
     public ActDirection? Direction { get; set; }
@@ -51,10 +51,10 @@ internal sealed class ActEditModel : IValidatableObject
     public DateOnly Date { get; set; }
 
     [Required(ErrorMessage = "Zadejte název úkonu")]
-    [StringLength(256, ErrorMessage = "Název může mít nejvýše 256 znaků")]
+    [StringLength(256, ErrorMessage = "Název může mít nejvýše 256 znaků.")]
     public string Title { get; set; } = "";
 
-    [StringLength(4000, ErrorMessage = "Popis může mít nejvýše 4000 znaků")]
+    [StringLength(4000, ErrorMessage = "Popis může mít nejvýše 4000 znaků.")]
     public string? Description { get; set; }
 
     public ContactListItem? Contact { get; set; }

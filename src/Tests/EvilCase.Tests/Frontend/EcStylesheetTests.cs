@@ -230,6 +230,17 @@ public class EcStylesheetTests
         }
     }
 
+    [Test]
+    public async Task AnErrorTakesThePlaceOfTheHint()
+    {
+        var css = await this.client.GetStringAsync(new Uri("/css/ec-components.css", UriKind.Relative));
+
+        var rule = css[css.IndexOf(".ec-field:has(.ec-field-error > *) .ec-field-hint {", StringComparison.Ordinal)..];
+        rule = rule[..rule.IndexOf('}', StringComparison.Ordinal)];
+
+        Assert.That(rule, Does.Contain("display: none;"), "a field shows its error right under the control");
+    }
+
     private static IEnumerable<string> ExtractUrls(string css)
     {
         var urls = new List<string>();
