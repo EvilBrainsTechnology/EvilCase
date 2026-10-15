@@ -478,6 +478,7 @@ html:has(.ec-gate) {
 .ec-select {
     height: var(--ec-control-form);
     padding: 0 var(--ec-space-4);
+    text-overflow: ellipsis;
 }
 
 .ec-select {
@@ -3425,6 +3426,7 @@ html:has(.ec-gate) {
     font-family: var(--ec-font);
     font-size: var(--ec-text-md);
     color: var(--ec-text);
+    text-overflow: ellipsis;
 }
 
 .ec-search-input::placeholder {
