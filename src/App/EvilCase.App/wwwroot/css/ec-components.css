@@ -742,6 +742,18 @@ html {
     font-weight: var(--ec-weight-semibold);
 }
 
+/* Zavírací křížek je tichý, nečte se jako akce (docs/design/nastaveni.html). */
+.ec-modal-header .ec-button-ghost,
+.ec-drawer-head .ec-button-ghost {
+    color: var(--ec-text-soft);
+}
+
+.ec-modal-header .ec-button-ghost:hover:enabled,
+.ec-drawer-head .ec-button-ghost:hover:enabled {
+    background: var(--ec-surface-sunken);
+    color: var(--ec-text);
+}
+
 .ec-modal-body {
     padding: var(--ec-space-6);
     overflow-y: auto;
