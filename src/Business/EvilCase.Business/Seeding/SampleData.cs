@@ -91,7 +91,7 @@ internal static class SampleData
         {
             Key = "insurer",
             Kind = ContactKind.Authority,
-            Name = "Vzorová pojišťovna, a.s.",
+            Name = "Vzorová pojišťovna, a. s.",
             Address = "Pojišťovací 9, 110 00 Praha",
             DataBoxId = "pojvz12",
         },

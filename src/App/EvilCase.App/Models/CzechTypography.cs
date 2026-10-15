@@ -8,14 +8,14 @@ public static partial class CzechTypography
 
     /// <summary>
     /// The text with a no-break space where a Czech line may not break: after a one-letter
-    /// preposition or conjunction, between a number and its unit, inside a date, after § and
-    /// before a dash.
+    /// preposition or conjunction, between a number and its unit, inside a date, between digit
+    /// groups, after § and before a dash.
     /// </summary>
     public static string Text(string text)
     {
         return BreakableSpace.Replace(text, NoBreakSpace);
     }
 
-    [GeneratedRegex(@"(?<=(^|[\s(„""])[ksvzouaiKSVZOUAI]) |(?<=§) |(?<=\d\.) (?=\d)|(?<=\d) (?=[\p{L}%])| (?=[–—])", RegexOptions.ExplicitCapture, matchTimeoutMilliseconds: 1000)]
+    [GeneratedRegex(@"(?<=(^|[\s(„""])[ksvzouaiKSVZOUAI]) |(?<=§) |(?<=\d\.) (?=\d)|(?<=\d) (?=[\p{L}%])|(?<=\d) (?=\d{3}(?!\d))| (?=[–—])", RegexOptions.ExplicitCapture, matchTimeoutMilliseconds: 1000)]
     private static partial Regex BreakableSpace { get; }
 }
