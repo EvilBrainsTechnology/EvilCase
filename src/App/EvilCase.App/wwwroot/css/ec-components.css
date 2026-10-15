@@ -2969,6 +2969,29 @@ html:has(.ec-gate) {
         margin-left: 0;
     }
 
+    /* Drobečková navigace zůstane na jednom řádku; dlouhé položky se zkrátí. */
+    .ec-crumbs {
+        flex-wrap: nowrap;
+    }
+
+    .ec-crumb {
+        flex: 0 1 auto;
+        min-width: var(--ec-crumb-min);
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .ec-crumb:first-child,
+    .ec-crumb-separator {
+        flex: none;
+    }
+
+    .ec-crumb[aria-current="page"] {
+        flex-shrink: 0;
+        max-width: 50%;
+    }
+
     .ec-form-layout,
     .ec-form-row,
     .ec-form-group-row,
