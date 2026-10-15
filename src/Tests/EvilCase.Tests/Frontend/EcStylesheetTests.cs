@@ -105,6 +105,21 @@ public class EcStylesheetTests
     }
 
     [Test]
+    public async Task TheSelectChevronIsAnImageOfTheApp()
+    {
+        var tokens = await this.client.GetStringAsync(new Uri("/css/ec-tokens.css", UriKind.Relative));
+
+        using var response = await this.client.GetAsync(new Uri("/img/select-chevron.svg", UriKind.Relative));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(tokens, Does.Contain("--ec-select-chevron: url(\"../img/select-chevron.svg\");"));
+            Assert.That(tokens, Does.Not.Contain("data:"), "the content security policy blocks a data: image");
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        }
+    }
+
+    [Test]
     public async Task TheIconDrawingIsOneRuleForEveryIcon()
     {
         var css = await this.client.GetStringAsync(new Uri("/css/ec-components.css", UriKind.Relative));

@@ -176,7 +176,7 @@
     --ec-space-7: 24px;
     --ec-space-8: 32px;
     --ec-hairline: 1px;
-    --ec-select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235B6270' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    --ec-select-chevron: url("../img/select-chevron.svg");
 
     /* Rádiusy */
     --ec-radius-sm: 6px;
