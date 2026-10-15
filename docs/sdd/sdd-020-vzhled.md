@@ -103,7 +103,7 @@ zkrátí. Na mobilu záhlaví výzvu nenese a tlačítko je vždy Nahrát. Velik
 se zalomí jen mezi sebou. Pod seznamem žádný pruh není. Řádek souboru je jedno ovládací místo po celé šířce a otevírá náhled; stažení a nabídka ⋯ jsou ohraničená
 tlačítka jen s ikonou, v nabídce je Přejmenovat a oddělené, červené Smazat…. Při tažení
 souborů přes kartu ji přikryje přerušovaný akcentový rámeček s textem „Pusťte soubory
-a nahrají se k úkonu" (ve spisu „k spisu") a limity. Náhled souboru je velký modal; hlavička
+a nahrají se k úkonu" (ve spisu „ke spisu") a limity. Náhled souboru je velký modal; hlavička
 nese ikonu, název, velikost a okamžik nahrání, přechod mezi soubory karty s pořadím „2 z 5",
 Přejmenovat, Stáhnout a zavření.
 

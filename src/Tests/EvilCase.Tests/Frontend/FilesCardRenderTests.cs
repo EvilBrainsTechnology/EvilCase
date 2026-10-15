@@ -684,7 +684,7 @@ public class FilesCardRenderTests
     {
         public string Title { get; init; } = "Soubory spisu";
 
-        public string UploadTarget { get; init; } = "k spisu";
+        public string UploadTarget { get; init; } = "ke spisu";
 
         public bool Compact { get; init; }
 
