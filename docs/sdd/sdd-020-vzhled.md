@@ -128,7 +128,8 @@ se potvrzuje a věta potvrzení jmenuje, co kaskáda bere.
 Desktop je primární, každá denně používaná obrazovka je plnohodnotná i na mobilu. Menu se
 schová do zásuvky, boční sloupec se zařadí pod hlavní, formulář má jeden sloupec a jeho
 tlačítka zůstávají u spodního okraje okna. Pole má na mobilu písmo 16 px. Seznam se nikdy neposouvá vodorovně: na úzké šířce
-se řádek přeskládá na dva až tři řádky a řazení přebírá select v liště.
+se řádek přeskládá na dva až tři řádky a řazení přebírá select v liště. Název souboru v kartě má až dva
+řádky.
 
 ### Bez cizí knihovny
 

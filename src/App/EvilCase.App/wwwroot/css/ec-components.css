@@ -3088,7 +3088,6 @@ html:has(.ec-gate) {
         display: block;
     }
 
-    .ec-file-name,
     .ec-timeline-all,
     .ec-child-toggle,
     .ec-comment-action {
@@ -3100,10 +3099,26 @@ html:has(.ec-gate) {
         display: none;
     }
 
-    /* Metadata souboru se lámou jen u oddělovače. */
+    /* Metadata souboru se lámou mezi velikostí a časem; oddělovač nahradí mezera. */
     .ec-file-meta {
         display: flex;
         flex-wrap: wrap;
+        column-gap: var(--ec-space-3);
+    }
+
+    .ec-file-meta .ec-sep {
+        display: none;
+    }
+
+    /* Název souboru dostane až dva řádky a láme se kdekoli; dotykovou plochu dává celý řádek. */
+    .ec-file-name,
+    .ec-file-name-static {
+        display: -webkit-box;
+        overflow-wrap: anywhere;
+        white-space: normal;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
     }
 
     .ec-modal-large {
