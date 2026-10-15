@@ -1032,6 +1032,7 @@ html {
 .ec-file-meta {
     font-size: var(--ec-text-xs);
     color: var(--ec-text-muted);
+    font-variant-numeric: tabular-nums;
 }
 
 .ec-sep {
@@ -1317,6 +1318,7 @@ html {
 .ec-preview-meta {
     font-size: var(--ec-text-xs);
     color: var(--ec-text-muted);
+    font-variant-numeric: tabular-nums;
 }
 
 .ec-preview-nav {
@@ -1331,6 +1333,7 @@ html {
     color: var(--ec-text-muted);
     text-align: center;
     white-space: nowrap;
+    font-variant-numeric: tabular-nums;
 }
 
 .ec-preview-position strong {
@@ -1762,6 +1765,7 @@ html {
 .ec-comment-meta {
     font-size: var(--ec-text-sm);
     color: var(--ec-text-muted);
+    font-variant-numeric: tabular-nums;
 }
 
 .ec-comment-author {
@@ -2207,6 +2211,7 @@ html {
     font-size: var(--ec-text-md);
     font-weight: var(--ec-weight-medium);
     white-space: pre-line;
+    font-variant-numeric: tabular-nums;
 }
 
 .ec-detail-fact-mono {
@@ -2620,6 +2625,7 @@ html {
     color: var(--ec-text-muted);
     text-align: center;
     white-space: nowrap;
+    font-variant-numeric: tabular-nums;
 }
 
 .ec-act-pager-position {
@@ -2812,6 +2818,7 @@ html {
     gap: var(--ec-space-1);
     font-size: var(--ec-text-xs);
     color: var(--ec-text-muted);
+    font-variant-numeric: tabular-nums;
 }
 
 .ec-timeline-direction {
@@ -2899,6 +2906,7 @@ html {
     gap: var(--ec-space-2);
     font-size: var(--ec-text-xs);
     color: var(--ec-text-muted);
+    font-variant-numeric: tabular-nums;
 }
 
 .ec .ec-child-toggle {
@@ -4260,6 +4268,7 @@ html:has(.ec-gate) {
 
 .ec-table-range {
     margin-right: auto;
+    font-variant-numeric: tabular-nums;
 }
 
 .ec-check {
