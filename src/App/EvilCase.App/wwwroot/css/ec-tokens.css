@@ -334,6 +334,7 @@
     --ec-topbar-nav-hover-bg: rgba(255, 255, 255, 0.06);
     --ec-topbar-nav-active-bg: rgba(255, 255, 255, 0.10);
     --ec-topbar-nav-marker: inset 0 -3px 0 var(--ec-accent-on-dark);
+    --ec-topbar-focus-ring: inset 0 0 0 2px var(--ec-accent-on-dark);
     --ec-topbar-search-bg: #1F2229;
     --ec-topbar-search-border: #2E323B;
     --ec-topbar-search-muted: #A0A6B1;

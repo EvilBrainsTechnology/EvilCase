@@ -3386,6 +3386,14 @@ html:has(.ec-gate) {
     box-shadow: var(--ec-topbar-nav-marker);
 }
 
+.ec-topbar-nav .ec-nav-link:focus-visible {
+    box-shadow: var(--ec-topbar-focus-ring);
+}
+
+.ec-topbar-nav .ec-nav-link[aria-current="page"]:focus-visible {
+    box-shadow: var(--ec-topbar-nav-marker), var(--ec-topbar-focus-ring);
+}
+
 .ec-search {
     display: flex;
     align-items: center;
@@ -3930,7 +3938,7 @@ html:has(.ec-gate) {
 
 .ec-avatar:focus-visible {
     outline: none;
-    box-shadow: var(--ec-topbar-avatar-ring), var(--ec-focus-ring);
+    box-shadow: var(--ec-topbar-avatar-ring), var(--ec-topbar-focus-ring);
 }
 
 .ec-menu-backdrop {
@@ -4030,7 +4038,7 @@ html:has(.ec-gate) {
 
 .ec-topbar-burger:focus-visible {
     outline: none;
-    box-shadow: var(--ec-focus-ring);
+    box-shadow: var(--ec-topbar-focus-ring);
 }
 
 .ec-drawer-backdrop {
