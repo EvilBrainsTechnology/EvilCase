@@ -14,8 +14,10 @@
                 <span class="ec-card-count">@this.items.Count</span>
             }
             <div class="ec-card-header-actions">
-                <label class="ec-file-upload" for="files-upload-input">
-                    <EcIcon Paths="@AppIcons.Upload" />@(this.Compact ? "Nahrát" : "Nahrát soubory")
+                <span class="ec-file-drop-hint"><EcIcon Paths="@AppIcons.Hand" />@(this.Compact ? "Přetáhněte sem nebo" : "Přetáhněte soubory sem nebo")</span>
+                <label class="@(this.Compact ? "ec-button ec-button-secondary ec-button-compact ec-file-upload" : "ec-button ec-button-secondary ec-button-standard ec-file-upload")"
+                       for="files-upload-input">
+                    <EcIcon Paths="@AppIcons.Upload" />@this.UploadLabel
                 </label>
             </div>
         </Header>
@@ -34,7 +36,14 @@
 
                 @if (this.uploadTotal > 0)
                 {
-                    <p class="ec-card-state">Nahrávám @this.uploadIndex / @this.uploadTotal: @this.uploadName</p>
+                    <div class="ec-file-uploading">
+                        <EcFileIcon FileName="@this.uploadName" Size="@this.IconSize" />
+                        <div class="ec-file-main">
+                            <span class="ec-file-name-static">@this.uploadName</span>
+                            <progress class="ec-file-progress" aria-label="Nahrávání"></progress>
+                            <span class="ec-file-meta">Nahrávám @this.uploadIndex z @this.uploadTotal</span>
+                        </div>
+                    </div>
                 }
 
                 @if (this.error is not null)
@@ -56,7 +65,8 @@
                 }
                 else if (this.items.Count == 0)
                 {
-                    <EcEmptyState Icon="@AppIcons.Paperclip" Text="Zatím tu nejsou žádné soubory." />
+                    <EcEmptyState Icon="@AppIcons.Paperclip" Text="Zatím tu nejsou žádné soubory."
+                                  Hint="@($"Přetáhněte je kamkoli do panelu nebo použijte {this.UploadLabel}.")" />
                 }
                 else
                 {
@@ -65,45 +75,52 @@
                         {
                             var busy = this.downloadingFileId == file.FileId;
 
-                            <div class="ec-file-row">
-                                <EcFileChip FileName="@file.FileName" />
-                                <div class="ec-file-main">
-                                    <button type="button" class="ec-file-name" title="@file.FileName" disabled="@busy" @onclick="() => this.Download(file)">@file.FileName</button>
-                                    <span class="ec-file-meta">@FileSizeDisplay.Text(file.SizeBytes) · @(this.Compact ? "" : "nahráno ")@MomentDisplay.Text(file.Created)</span>
-                                </div>
-                                <div class="ec-file-actions">
-                                    @if (this.Compact)
-                                    {
+                            var renaming = this.renamingFileId == file.FileId;
+
+                            <div class="@(renaming ? "ec-file-row ec-file-row-renaming" : "ec-file-row")" @key="file.FileId">
+                                <EcFileIcon FileName="@file.FileName" Size="@this.IconSize" />
+                                @if (renaming)
+                                {
+                                    <FileRenameField FileName="@file.FileName" Rename="(name, token) => this.RenameFile(file, name, token)"
+                                                     OnRenamed="this.FileRenamed" OnCancel="this.CancelRename" />
+                                }
+                                else
+                                {
+                                    <div class="ec-file-main">
+                                        <button type="button" class="ec-file-name" @ref="this.nameButtons[file.FileId]"
+                                                title="@(this.Compact ? file.FileName : this.OpenTitle(file))"
+                                                disabled="@busy" @onclick="() => this.Open(file)">@file.FileName</button>
+                                        <span class="ec-file-meta">@FileSizeDisplay.Text(file.SizeBytes) · @(this.Compact ? "" : "nahráno ")@MomentDisplay.Text(file.Created)</span>
+                                    </div>
+                                    <div class="ec-file-actions">
                                         <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Download"
-                                                  AriaLabel="@($"Stáhnout {file.FileName}")" Disabled="@busy"
+                                                  AriaLabel="@($"Stáhnout {file.FileName}")" title="Stáhnout" Disabled="@busy"
                                                   OnClick="() => this.Download(file)" />
-                                    }
-                                    else
-                                    {
-                                        <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Download"
-                                                  AriaLabel="@($"Stáhnout {file.FileName}")" Disabled="@busy"
-                                                  OnClick="() => this.Download(file)">Stáhnout</EcButton>
-                                    }
-                                    <EcButton Variant="EcButtonVariant.Ghost" Size="EcButtonSize.Compact" Icon="@AppIcons.Trash"
-                                              AriaLabel="@($"Smazat soubor {file.FileName}")" OnClick="() => this.ConfirmDelete(file)" />
-                                </div>
+                                        <EcMenu AriaLabel="@($"Další akce se souborem {file.FileName}")" Items="this.FileActions(file)" />
+                                    </div>
+                                }
                             </div>
                         }
                     </div>
                 }
-
-                @if (this.items.Count > 0)
-                {
-                    <p class="ec-file-drop ec-file-drop-compact"><EcIcon Paths="@AppIcons.Upload" />Přetáhněte další soubory sem</p>
-                }
-                else
-                {
-                    <p class="ec-file-drop">Přetáhněte soubory sem, nebo je vyberte tlačítkem výše</p>
-                }
             </div>
         </ChildContent>
     </EcCard>
+
+    <div class="ec-file-drop-overlay" aria-hidden="true">
+        <span class="ec-file-drop-badge"><EcIcon Paths="@AppIcons.Upload" Size="EcIconSize.Large" /></span>
+        <span class="ec-file-drop-title">Pusťte soubory a nahrají se @this.UploadTarget</span>
+        <span class="ec-file-drop-limits">Nejvýše @FileBatchUploader.MaxBatchFiles souborů, každý do @FileSizeDisplay.Text(FileLimits.MaxUploadBytes)</span>
+    </div>
 </FileDropZone>
+
+@if (this.previewFileId is { } previewId)
+{
+    <FilePreviewModal Files="this.items" FileId="previewId" FileIdChanged="this.PreviewFile"
+                      LoadContent="this.LoadContent" Rename="this.RenameFile"
+                      OnDownload="this.Download" OnRenamed="this.FileRenamed"
+                      Open OpenChanged="this.ClosePreview" />
+}
 
 @if (this.deleting is { } file)
 {
@@ -124,6 +141,15 @@
     [Parameter, EditorRequired]
     public required Func<FileListItem, CancellationToken, Task> DownloadFile { get; set; }
 
+    /// <summary>
+    /// The bytes the preview shows.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required Func<FileListItem, CancellationToken, Task<Stream>> LoadContent { get; set; }
+
+    [Parameter, EditorRequired]
+    public required Func<FileListItem, string, CancellationToken, Task> RenameFile { get; set; }
+
     [Parameter, EditorRequired]
     public required Func<FileListItem, CancellationToken, Task> DeleteFile { get; set; }
 
@@ -134,12 +160,20 @@
     public required string OwnerGoneError { get; set; }
 
     /// <summary>
+    /// Follows "nahrají se": "k úkonu", "k spisu".
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required string UploadTarget { get; set; }
+
+    /// <summary>
     /// The 380 px side column: a short upload label and icon-only file actions.
     /// </summary>
     [Parameter]
     public bool Compact { get; set; }
 
     private readonly List<string> failures = [];
+
+    private readonly Dictionary<Guid, ElementReference> nameButtons = [];
 
     private IReadOnlyList<FileListItem> items = [];
 
@@ -155,16 +189,51 @@
 
     private Guid? downloadingFileId;
 
+    private Guid? previewFileId;
+
+    private Guid? renamingFileId;
+
+    private Guid? focusFileId;
+
     private string? listFailure;
 
     private string? error;
 
     private FileListItem? deleting;
 
+    private string UploadLabel => this.Compact ? "Nahrát" : "Nahrát soubory";
+
+    private EcFileIconSize IconSize => this.Compact ? EcFileIconSize.Compact : EcFileIconSize.Standard;
+
     protected override async Task OnInitializedAsync()
     {
         await this.ReloadFiles();
         this.loading = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (this.focusFileId is not { } fileId)
+            return;
+
+        this.focusFileId = null;
+
+        if (this.nameButtons.TryGetValue(fileId, out var button))
+            await button.FocusAsync();
+    }
+
+    private IReadOnlyList<EcMenuItem> FileActions(FileListItem file)
+    {
+        return
+        [
+            new EcMenuItem { Text = "Přejmenovat", Icon = AppIcons.Pencil, OnSelect = EventCallback.Factory.Create(this, () => this.StartRename(file)) },
+            new EcMenuItem { Text = "Smazat…", Icon = AppIcons.Trash, OnSelect = EventCallback.Factory.Create(this, () => this.ConfirmDelete(file)), Danger = true, DividerBefore = true },
+        ];
+    }
+
+    private string OpenTitle(FileListItem file)
+    {
+        return FileTypeDisplay.Preview(file.FileName) == FilePreviewKind.None ? "Stáhnout" : "Otevřít náhled";
     }
 
     private async Task ReloadFiles()
@@ -182,6 +251,13 @@
             this.items = [];
             this.listFailure = "Soubory se nepodařilo načíst. Zkuste to za chvíli znovu.";
         }
+
+        // A file removed elsewhere takes its open preview or rename with it.
+        if (this.previewFileId is { } previewId && this.items.All(file => file.FileId != previewId))
+            this.previewFileId = null;
+
+        if (this.renamingFileId is { } renamingId && this.items.All(file => file.FileId != renamingId))
+            this.renamingFileId = null;
     }
 
     private async Task OnFilesSelected(InputFileChangeEventArgs args)
@@ -209,6 +285,25 @@
         await this.ReloadFiles();
     }
 
+    private async Task Open(FileListItem file)
+    {
+        if (FileTypeDisplay.Preview(file.FileName) == FilePreviewKind.None)
+            await this.Download(file);
+        else
+            this.previewFileId = file.FileId;
+    }
+
+    private void PreviewFile(Guid fileId)
+    {
+        this.previewFileId = fileId;
+    }
+
+    private void ClosePreview(bool open)
+    {
+        if (!open)
+            this.previewFileId = null;
+    }
+
     private async Task Download(FileListItem file)
     {
         this.downloadingFileId = file.FileId;
@@ -228,6 +323,26 @@
         {
             this.downloadingFileId = null;
         }
+    }
+
+    private void StartRename(FileListItem file)
+    {
+        this.renamingFileId = file.FileId;
+    }
+
+    // A finished rename hands the focus back to the row it replaced.
+    private void CancelRename()
+    {
+        this.focusFileId = this.renamingFileId;
+        this.renamingFileId = null;
+    }
+
+    private async Task FileRenamed()
+    {
+        this.focusFileId = this.renamingFileId;
+        this.renamingFileId = null;
+
+        await this.ReloadFiles();
     }
 
     private void ConfirmDelete(FileListItem file)

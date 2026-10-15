@@ -246,6 +246,105 @@ public class FileWriterTests : TenantFixture
         }
     }
 
+    [Test]
+    public async Task ARenamedCaseFileKeepsItsBytesAndTakesTheNewName()
+    {
+        var @case = await this.Tenant.AddCase(Day);
+        var uploaded = await this.writer.UploadCaseFile(@case.Id, Upload("stary.txt", content: "abc"), CancellationToken.None);
+        var before = await this.Reload(uploaded.File!.FileId);
+
+        var outcome = await this.writer.RenameCaseFile(@case.Id, uploaded.File.FileId, "novy.txt", CancellationToken.None);
+
+        var after = await this.Tenant.Context.FileAssets.AsNoTracking().SingleAsync(file => file.Id == uploaded.File.FileId);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome, Is.EqualTo(FileRenameOutcome.Renamed));
+            Assert.That(after.FileName, Is.EqualTo("novy.txt"));
+            Assert.That(after.StoragePath, Is.EqualTo(before.StoragePath), "a rename never moves the blob");
+            Assert.That(after.ContentHash, Is.EqualTo(before.ContentHash));
+        }
+    }
+
+    [Test]
+    public async Task ARenamedActFileTakesTheNewName()
+    {
+        var @case = await this.Tenant.AddCase(Day);
+        var act = await this.Tenant.AddAct(@case, Day);
+        var uploaded = await this.writer.UploadActFile(act.Id, Upload("stary.txt"), CancellationToken.None);
+
+        var outcome = await this.writer.RenameActFile(act.Id, uploaded.File!.FileId, "novy.txt", CancellationToken.None);
+
+        var after = await this.Tenant.Context.FileAssets.AsNoTracking().SingleAsync(file => file.Id == uploaded.File.FileId);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome, Is.EqualTo(FileRenameOutcome.Renamed));
+            Assert.That(after.FileName, Is.EqualTo("novy.txt"));
+        }
+    }
+
+    [Test]
+    public async Task AFileOfAnotherCaseIsNotRenamed()
+    {
+        var caseA = await this.Tenant.AddCase(Day);
+        var caseB = await this.Tenant.AddCase(Day);
+        var uploaded = await this.writer.UploadCaseFile(caseA.Id, Upload("a.txt"), CancellationToken.None);
+
+        var outcome = await this.writer.RenameCaseFile(caseB.Id, uploaded.File!.FileId, "b.txt", CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome, Is.EqualTo(FileRenameOutcome.NotFound), "a file of another case must not be found for a rename");
+            Assert.That((await this.Reload(uploaded.File.FileId)).FileName, Is.EqualTo("a.txt"));
+        }
+    }
+
+    [Test]
+    public async Task AFileOfAnotherActIsNotRenamed()
+    {
+        var @case = await this.Tenant.AddCase(Day);
+        var actA = await this.Tenant.AddAct(@case, Day);
+        var actB = await this.Tenant.AddAct(@case, Day);
+        var uploaded = await this.writer.UploadActFile(actA.Id, Upload("a.txt"), CancellationToken.None);
+
+        var outcome = await this.writer.RenameActFile(actB.Id, uploaded.File!.FileId, "b.txt", CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome, Is.EqualTo(FileRenameOutcome.NotFound));
+            Assert.That((await this.Reload(uploaded.File.FileId)).FileName, Is.EqualTo("a.txt"));
+        }
+    }
+
+    [Test]
+    public async Task AFileOfAnotherTenantsActIsNotRenamed()
+    {
+        await using var other = await TestTenant.Create();
+        var otherCase = await other.AddCase(Day);
+        var otherAct = await other.AddAct(otherCase, Day);
+        var otherFile = await other.AddActFile(otherAct);
+        var name = otherFile.FileName;
+
+        var outcome = await this.writer.RenameActFile(otherAct.Id, otherFile.Id, "b.txt", CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome, Is.EqualTo(FileRenameOutcome.NotFound), "the act id alone never reaches another tenant's file");
+            Assert.That((await other.Context.FileAssets.AsNoTracking().SingleAsync(file => file.Id == otherFile.Id)).FileName, Is.EqualTo(name));
+        }
+    }
+
+    [Test]
+    public async Task RenamingAMissingFileIsNotFound()
+    {
+        var @case = await this.Tenant.AddCase(Day);
+
+        var outcome = await this.writer.RenameCaseFile(@case.Id, Guid.CreateVersion7(), "a.txt", CancellationToken.None);
+
+        Assert.That(outcome, Is.EqualTo(FileRenameOutcome.NotFound));
+    }
+
     private static FileUpload Upload(string fileName, string mediaType = "text/plain", string content = "a")
     {
         return new FileUpload { FileName = fileName, MediaType = mediaType, Content = new MemoryStream(Encoding.UTF8.GetBytes(content)) };

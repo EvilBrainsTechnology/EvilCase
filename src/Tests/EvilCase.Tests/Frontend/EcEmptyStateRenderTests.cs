@@ -23,6 +23,31 @@ public class EcEmptyStateRenderTests
     }
 
     [Test]
+    public void TheHintRendersUnderTheSentenceWhenGiven()
+    {
+        using var ctx = new BunitContext();
+
+        var component = ctx.Render<EcEmptyState>(static parameters => parameters
+            .Add(static state => state.Icon, AppIcons.Paperclip)
+            .Add(static state => state.Text, "Zatím tu nejsou žádné soubory.")
+            .Add(static state => state.Hint, "Přetáhněte je kamkoli."));
+
+        Assert.That(component.Find(".ec-empty-hint").TextContent, Is.EqualTo("Přetáhněte je kamkoli."));
+    }
+
+    [Test]
+    public void NoHintRendersNoHintElement()
+    {
+        using var ctx = new BunitContext();
+
+        var component = ctx.Render<EcEmptyState>(static parameters => parameters
+            .Add(static state => state.Icon, AppIcons.Paperclip)
+            .Add(static state => state.Text, "Zatím tu nejsou žádné soubory."));
+
+        Assert.That(component.FindAll(".ec-empty-hint"), Is.Empty);
+    }
+
+    [Test]
     public void TheCallToActionRendersWhenGiven()
     {
         using var ctx = new BunitContext();

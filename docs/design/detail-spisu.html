@@ -11,6 +11,11 @@
     .navlink:hover { color: #FFFFFF; background: rgba(255,255,255,0.06); }
     .dark-input::placeholder { color: #A0A6B1; }
     .iconbtn:hover { background: #F2F3F6; }
+    .frow { position: relative; cursor: pointer; }
+    .frow:hover { background: #F5F6F9; }
+    .frow:hover .fname { color: #1C3A9F; }
+    .stretch::after { content: ""; position: absolute; inset: 0; }
+    .acts { position: relative; z-index: 1; }
     .menuitem:hover { background: #F6F7FA; }
     .act:hover { background: #F5F6F9; }
     .sub:hover .sub-title { color: #1C3A9F; }
@@ -369,23 +374,27 @@
           <button type="button" aria-expanded="false" style="display: flex; align-items: center; gap: 6px; height: 36px; padding: 0; font: inherit; font-size: 13px; font-weight: 500; color: #1C3A9F; background: none; border: 0; border-top: 1px solid #EDEFF3; cursor: pointer;">Zobrazit i uzavřené (9)</button>
         </section>
 
-        <section style="background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px;">
+        <section aria-label="Soubory spisu" style="background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 12px;">
           <div style="display: flex; align-items: center; gap: 8px;">
             <h2 style="margin: 0; font-size: 16px; font-weight: 600;">Soubory spisu</h2>
             <span style="font-size: 13px; color: #5B6270;">1</span>
             <div style="flex-grow: 1;"></div>
-            <button type="button" style="display: flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; font: inherit; font-size: 13px; color: #1C3A9F; background: #E9EDF9; border: 0; border-radius: 8px; cursor: pointer;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M5 20h14"/></svg>Nahrát</button>
+            <span style="font-size: 12px; color: #5B6270;">Přetáhněte sem nebo</span>
+            <button type="button" class="iconbtn" style="display: flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; font: inherit; font-size: 13px; font-weight: 500; color: #14161B; background: #FFFFFF; border: 1px solid #D5D9E1; border-radius: 8px; cursor: pointer;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M5 20h14"/></svg>Nahrát</button>
           </div>
-          <div style="display: flex; align-items: center; gap: 10px; padding: 10px; border: 1px solid #E1E4EA; border-radius: 10px;">
-            <span style="height: 36px; width: 46px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 4px; flex-shrink: 0; font-size: 11px; font-weight: 700; background: #E1E9FD; color: #2A48B8;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/></svg>TXT</span>
-            <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0;">
-              <a href="#" title="EC-20250528-001.txt" style="font-size: 13px; font-weight: 500; color: #14161B; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">EC-20250528-001.txt</a>
-              <span style="font-size: 12px; color: #5B6270; white-space: nowrap;">184 B · 12. 10. 2026</span>
+          <div style="display: flex; flex-direction: column; border: 1px solid #E1E4EA; border-radius: 12px;">
+            <div class="frow" style="display: flex; align-items: center; gap: 10px; padding: 10px; min-height: 56px; box-sizing: border-box;">
+              <span style="width: 36px; height: 36px; flex-shrink: 0; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: #EDEFF3; color: #454B57;" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 12h6"/><path d="M9 15h6"/><path d="M9 18h4"/></svg></span>
+              <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0;">
+                <a href="#" class="fname stretch" title="Otevřít náhled" style="align-self: flex-start; max-width: 100%; font-size: 13px; font-weight: 500; color: #14161B; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">EC-20250528-001.txt</a>
+                <span style="font-size: 12px; color: #5B6270; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">184 B · 12. 10. 2026</span>
+              </div>
+              <div class="acts" style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+                <button type="button" aria-label="Stáhnout EC-20250528-001.txt" title="Stáhnout" class="iconbtn" style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 0; border: 1px solid #D5D9E1; border-radius: 8px; background: #FFFFFF; color: #14161B; cursor: pointer;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></svg></button>
+                <button type="button" aria-label="Další akce se souborem EC-20250528-001.txt" aria-haspopup="menu" aria-expanded="false" class="iconbtn" style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 0; border: 1px solid #D5D9E1; border-radius: 8px; background: #FFFFFF; color: #14161B; cursor: pointer;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+              </div>
             </div>
-            <button type="button" aria-label="Stáhnout EC-20250528-001.txt" class="iconbtn" style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; flex-shrink: 0; padding: 0; border: 1px solid #D5D9E1; border-radius: 8px; background: #FFFFFF; color: #14161B; cursor: pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></svg></button>
-            <button type="button" aria-label="Smazat EC-20250528-001.txt" class="iconbtn" style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; flex-shrink: 0; padding: 0; border: 0; border-radius: 8px; background: transparent; color: #5B6270; cursor: pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12"/><path d="M9 7V4h6v3"/></svg></button>
           </div>
-          <div style="display: flex; align-items: center; justify-content: center; gap: 8px; height: 44px; border: 1.5px dashed #C9CFDA; border-radius: 10px; font-size: 13px; color: #5B6270;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M5 20h14"/></svg>Přetáhněte soubory sem</div>
         </section>
 
         <section style="background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; padding: 16px 18px; display: flex; flex-direction: column; gap: 14px;">

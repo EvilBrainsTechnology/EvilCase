@@ -1,8 +1,13 @@
+using System.Net;
 using Bunit;
+using EvilBrains.ApiClient;
 using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.App.Components;
+using EvilBrains.EvilCase.App.Files;
 using EvilBrains.EvilCase.App.Models;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
@@ -14,12 +19,7 @@ public class FilesCardRenderTests
     [Test]
     public void FilesHandedToTheHiddenInputUploadAndReloadTheList()
     {
-        using var ctx = new BunitContext();
-
-        // FileDropZone imports its own module from a path carrying a version query string, which
-        // no SetupModule can name, and reads a property bUnit's runtime does not answer.
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-        ctx.Services.AddSingleton<IJSRuntime>(new PropertyReadingJSRuntime(ctx.JSInterop.JSRuntime));
+        using var ctx = NewContext();
 
         var logger = new CapturingLogger<FilesCard>();
         var uploaded = new List<string>();
@@ -27,27 +27,22 @@ public class FilesCardRenderTests
 
         ctx.Services.AddSingleton<ILogger<FilesCard>>(logger);
 
-        var component = ctx.Render<FilesCard>(parameters => parameters
-            .Add(static card => card.Title, "Soubory spisu")
-            .Add(
-                static card => card.LoadFiles,
-                _ =>
-                {
-                    loads++;
+        var component = new Card
+        {
+            LoadFiles = _ =>
+            {
+                loads++;
 
-                    return Task.FromResult<IReadOnlyList<FileListItem>>([]);
-                })
-            .Add(
-                static card => card.UploadFile,
-                (file, _) =>
-                {
-                    uploaded.Add(file.Name);
+                return Task.FromResult<IReadOnlyList<FileListItem>>([]);
+            },
+            UploadFile = (file, _) =>
+            {
+                uploaded.Add(file.Name);
 
-                    return Task.CompletedTask;
-                })
-            .Add(static card => card.DownloadFile, static (_, _) => Task.CompletedTask)
-            .Add(static card => card.DeleteFile, static (_, _) => Task.CompletedTask)
-            .Add(static card => card.OwnerGoneError, "spis už neexistuje."));
+                return Task.CompletedTask;
+            },
+        }
+            .Render(ctx);
 
         component.FindComponent<InputFile>().UploadFiles(
             InputFileContent.CreateFromText("a", "a.txt"),
@@ -66,35 +61,27 @@ public class FilesCardRenderTests
     [Test]
     public async Task ADropCarryingNoFileUploadsNothingAndShowsNoError()
     {
-        await using var ctx = new BunitContext();
-
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-        ctx.Services.AddSingleton<IJSRuntime>(new PropertyReadingJSRuntime(ctx.JSInterop.JSRuntime));
+        await using var ctx = NewContext();
 
         var uploaded = new List<string>();
         var loads = 0;
 
-        var component = ctx.Render<FilesCard>(parameters => parameters
-            .Add(static card => card.Title, "Soubory spisu")
-            .Add(
-                static card => card.LoadFiles,
-                _ =>
-                {
-                    loads++;
+        var component = new Card
+        {
+            LoadFiles = _ =>
+            {
+                loads++;
 
-                    return Task.FromResult<IReadOnlyList<FileListItem>>([]);
-                })
-            .Add(
-                static card => card.UploadFile,
-                (file, _) =>
-                {
-                    uploaded.Add(file.Name);
+                return Task.FromResult<IReadOnlyList<FileListItem>>([]);
+            },
+            UploadFile = (file, _) =>
+            {
+                uploaded.Add(file.Name);
 
-                    return Task.CompletedTask;
-                })
-            .Add(static card => card.DownloadFile, static (_, _) => Task.CompletedTask)
-            .Add(static card => card.DeleteFile, static (_, _) => Task.CompletedTask)
-            .Add(static card => card.OwnerGoneError, "spis už neexistuje."));
+                return Task.CompletedTask;
+            },
+        }
+            .Render(ctx);
 
         // Dropping dragged text or a link hands the input an empty file list, which the drop zone
         // reports like any other change. UploadFiles refuses to raise an empty one, so the input's
@@ -116,20 +103,9 @@ public class FilesCardRenderTests
     [Test]
     public void AFinishedBatchLeavesAFreshInputBehind()
     {
-        using var ctx = new BunitContext();
+        using var ctx = NewContext();
 
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-        ctx.Services.AddSingleton<IJSRuntime>(new PropertyReadingJSRuntime(ctx.JSInterop.JSRuntime));
-
-        ctx.Services.AddSingleton<ILogger<FilesCard>>(new CapturingLogger<FilesCard>());
-
-        var component = ctx.Render<FilesCard>(static parameters => parameters
-            .Add(static card => card.Title, "Soubory spisu")
-            .Add(static card => card.LoadFiles, static (_) => Task.FromResult<IReadOnlyList<FileListItem>>([]))
-            .Add(static card => card.UploadFile, static (_, _) => Task.CompletedTask)
-            .Add(static card => card.DownloadFile, static (_, _) => Task.CompletedTask)
-            .Add(static card => card.DeleteFile, static (_, _) => Task.CompletedTask)
-            .Add(static card => card.OwnerGoneError, "spis už neexistuje."));
+        var component = new Card().Render(ctx);
 
         var before = component.FindComponent<InputFile>().Instance;
 
@@ -144,18 +120,9 @@ public class FilesCardRenderTests
     [Test]
     public void TheHiddenFileInputSitsInsideTheDropZone()
     {
-        using var ctx = new BunitContext();
+        using var ctx = NewContext();
 
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-        ctx.Services.AddSingleton<IJSRuntime>(new PropertyReadingJSRuntime(ctx.JSInterop.JSRuntime));
-
-        var component = ctx.Render<FilesCard>(static parameters => parameters
-            .Add(static card => card.Title, "Soubory spisu")
-            .Add(static card => card.LoadFiles, static (_) => Task.FromResult<IReadOnlyList<FileListItem>>([]))
-            .Add(static card => card.UploadFile, static (_, _) => Task.CompletedTask)
-            .Add(static card => card.DownloadFile, static (_, _) => Task.CompletedTask)
-            .Add(static card => card.DeleteFile, static (_, _) => Task.CompletedTask)
-            .Add(static card => card.OwnerGoneError, "spis už neexistuje."));
+        var component = new Card().Render(ctx);
 
         // The drop zone hands a drop to the first file input inside its own div and nowhere else.
         var dropZone = component.Find("div.ec-file-card");
@@ -166,40 +133,25 @@ public class FilesCardRenderTests
     [Test]
     public void TheUploadButtonOpensTheInputADropGoesTo()
     {
-        using var ctx = new BunitContext();
+        using var ctx = NewContext();
 
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-        ctx.Services.AddSingleton<IJSRuntime>(new PropertyReadingJSRuntime(ctx.JSInterop.JSRuntime));
+        var component = new Card().Render(ctx);
 
-        var component = ctx.Render<FilesCard>(static parameters => parameters
-            .Add(static card => card.Title, "Soubory spisu")
-            .Add(static card => card.LoadFiles, static (_) => Task.FromResult<IReadOnlyList<FileListItem>>([]))
-            .Add(static card => card.UploadFile, static (_, _) => Task.CompletedTask)
-            .Add(static card => card.DownloadFile, static (_, _) => Task.CompletedTask)
-            .Add(static card => card.DeleteFile, static (_, _) => Task.CompletedTask)
-            .Add(static card => card.OwnerGoneError, "spis už neexistuje."));
+        var upload = component.Find("label.ec-file-upload");
 
-        Assert.That(
-            component.Find("label.ec-file-upload").GetAttribute("for"),
-            Is.EqualTo(component.Find("input[type=file]").Id),
-            "a picked and a dropped file take one input");
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(upload.GetAttribute("for"), Is.EqualTo(component.Find("input[type=file]").Id), "a picked and a dropped file take one input");
+            Assert.That(upload.ClassList, Does.Contain("ec-button-secondary").And.Not.Contain("ec-button-primary"), "the upload button looks like every other secondary button");
+        }
     }
 
     [Test]
     public void TheCardNamesWhatItBelongsTo()
     {
-        using var ctx = new BunitContext();
+        using var ctx = NewContext();
 
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-        ctx.Services.AddSingleton<IJSRuntime>(new PropertyReadingJSRuntime(ctx.JSInterop.JSRuntime));
-
-        var component = ctx.Render<FilesCard>(static parameters => parameters
-            .Add(static card => card.Title, "Soubory úkonu")
-            .Add(static card => card.LoadFiles, static (_) => Task.FromResult<IReadOnlyList<FileListItem>>([]))
-            .Add(static card => card.UploadFile, static (_, _) => Task.CompletedTask)
-            .Add(static card => card.DownloadFile, static (_, _) => Task.CompletedTask)
-            .Add(static card => card.DeleteFile, static (_, _) => Task.CompletedTask)
-            .Add(static card => card.OwnerGoneError, "úkon už neexistuje."));
+        var component = new Card { Title = "Soubory úkonu" }.Render(ctx);
 
         Assert.That(component.Find(".ec-card-title").TextContent.Trim(), Is.EqualTo("Soubory úkonu"));
     }
@@ -207,99 +159,227 @@ public class FilesCardRenderTests
     [Test]
     public void AnEmptyListShowsTheEmptyStateAndNoFileRow()
     {
-        using var ctx = new BunitContext();
+        using var ctx = NewContext();
 
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-        ctx.Services.AddSingleton<IJSRuntime>(new PropertyReadingJSRuntime(ctx.JSInterop.JSRuntime));
-
-        var component = ctx.Render<FilesCard>(static parameters => parameters
-            .Add(static card => card.Title, "Soubory spisu")
-            .Add(static card => card.LoadFiles, static (_) => Task.FromResult<IReadOnlyList<FileListItem>>([]))
-            .Add(static card => card.UploadFile, static (_, _) => Task.CompletedTask)
-            .Add(static card => card.DownloadFile, static (_, _) => Task.CompletedTask)
-            .Add(static card => card.DeleteFile, static (_, _) => Task.CompletedTask)
-            .Add(static card => card.OwnerGoneError, "spis už neexistuje."));
+        var component = new Card().Render(ctx);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(component.Find(".ec-empty-text").TextContent, Is.EqualTo("Zatím tu nejsou žádné soubory."));
+            Assert.That(component.Find(".ec-empty-hint").TextContent, Is.EqualTo("Přetáhněte je kamkoli do panelu nebo použijte Nahrát soubory."));
             Assert.That(component.FindAll(".ec-file-row"), Is.Empty);
-            Assert.That(component.Find(".ec-file-drop").TextContent, Is.EqualTo("Přetáhněte soubory sem, nebo je vyberte tlačítkem výše"));
+        }
+    }
+
+    [Test]
+    public void TheHeaderInvitesADropAndNoStripSitsBelowTheList()
+    {
+        using var ctx = NewContext();
+
+        var component = new Card { Files = [PdfFile()] }.Render(ctx);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.Find(".ec-card-header .ec-file-drop-hint").TextContent.Trim(), Is.EqualTo("Přetáhněte soubory sem nebo"));
+            Assert.That(component.Find(".ec-card-header label.ec-file-upload").TextContent.Trim(), Is.EqualTo("Nahrát soubory"));
+            Assert.That(component.FindAll(".ec-file-drop"), Is.Empty, "the drop strip below the list is gone");
             Assert.That(component.FindAll(".ec-file-drop-compact"), Is.Empty);
         }
     }
 
     [Test]
-    public void AFileRowShowsItsTypeAndDownloadsOnClick()
+    public void TheCompactHeaderKeepsTheDropHintShort()
     {
-        using var ctx = new BunitContext();
+        using var ctx = NewContext();
 
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-        ctx.Services.AddSingleton<IJSRuntime>(new PropertyReadingJSRuntime(ctx.JSInterop.JSRuntime));
-
-        var file = new FileListItem
-        {
-            FileId = Guid.NewGuid(),
-            FileName = "Rozhodnutí o přestupku.pdf",
-            SizeBytes = 1024,
-            Created = new DateTime(2025, 9, 2, 10, 0, 0, DateTimeKind.Utc),
-        };
-
-        var downloads = 0;
-
-        var component = ctx.Render<FilesCard>(parameters => parameters
-            .Add(static card => card.Title, "Soubory spisu")
-            .Add(static card => card.LoadFiles, _ => Task.FromResult<IReadOnlyList<FileListItem>>([file]))
-            .Add(static card => card.UploadFile, static (_, _) => Task.CompletedTask)
-            .Add(
-                static card => card.DownloadFile,
-                (_, _) =>
-                {
-                    downloads++;
-
-                    return Task.CompletedTask;
-                })
-            .Add(static card => card.DeleteFile, static (_, _) => Task.CompletedTask)
-            .Add(static card => card.OwnerGoneError, "spis už neexistuje."));
+        var component = new Card { Files = [PdfFile()], Compact = true }.Render(ctx);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.Find(".ec-file-chip").TextContent.Trim(), Is.EqualTo("PDF"));
-            Assert.That(component.Find("button.ec-file-name").TextContent, Is.EqualTo("Rozhodnutí o přestupku.pdf"), "the name is the download link");
-            Assert.That(component.Find(".ec-file-meta").TextContent, Is.EqualTo($"1 kB · nahráno {MomentDisplay.Text(file.Created)}"));
-            Assert.That(component.Find("button[aria-label='Stáhnout Rozhodnutí o přestupku.pdf']").TextContent.Trim(), Is.EqualTo("Stáhnout"));
+            Assert.That(component.Find(".ec-file-drop-hint").TextContent.Trim(), Is.EqualTo("Přetáhněte sem nebo"));
+            Assert.That(component.Find("label.ec-file-upload").TextContent.Trim(), Is.EqualTo("Nahrát"));
+        }
+    }
+
+    [Test]
+    public void TheDropOverlayNamesTheOwnerAndTheLimits()
+    {
+        using var ctx = NewContext();
+
+        var component = new Card { UploadTarget = "k úkonu" }.Render(ctx);
+
+        var overlay = component.Find(".ec-file-card .ec-file-drop-overlay");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(overlay.QuerySelector(".ec-file-drop-title")!.TextContent, Is.EqualTo("Pusťte soubory a nahrají se k úkonu"));
+            Assert.That(overlay.QuerySelector(".ec-file-drop-limits")!.TextContent, Is.EqualTo("Nejvýše 100 souborů, každý do 100 MB"));
+        }
+    }
+
+    [Test]
+    public void AFileRowShowsAnIconTileForItsTypeAndNoExtensionText()
+    {
+        using var ctx = NewContext();
+
+        (string FileName, string Tone)[] cases =
+        [
+            ("a.pdf", "pdf"),
+            ("a.docx", "document"),
+            ("a.xlsx", "sheet"),
+            ("a.pptx", "presentation"),
+            ("a.txt", "text"),
+            ("a.png", "image"),
+            ("a.mp3", "audio"),
+            ("a.mp4", "video"),
+            ("a.eml", "email"),
+            ("a.zfo", "message"),
+            ("a.p7s", "signature"),
+            ("a.json", "code"),
+            ("a.zip", "archive"),
+            ("a.bin", "other"),
+            ("README", "other"),
+        ];
+
+        var component = new Card { Files = [.. cases.Select(static item => File(item.FileName))] }.Render(ctx);
+
+        var tiles = component.FindAll(".ec-file-row .ec-file-icon");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(tiles, Has.Count.EqualTo(cases.Length));
+
+            for (var index = 0; index < cases.Length; index++)
+            {
+                Assert.That(tiles[index].ClassList, Does.Contain($"ec-file-icon-{cases[index].Tone}"), cases[index].FileName);
+                Assert.That(tiles[index].TextContent.Trim(), Is.Empty, "a tile carries a glyph and no extension text");
+                Assert.That(tiles[index].QuerySelector("svg path"), Is.Not.Null);
+            }
+        }
+    }
+
+    [Test]
+    public void TheWholeRowOpensThePreviewOfAPreviewableFile()
+    {
+        using var ctx = NewContext();
+
+        var blobs = new StubBlobUrls();
+        ctx.Services.AddSingleton<IBlobUrls>(blobs);
+
+        var downloads = 0;
+        var component = new Card
+        {
+            Files = [PdfFile()],
+            DownloadFile = (_, _) =>
+            {
+                downloads++;
+
+                return Task.CompletedTask;
+            },
+        }
+            .Render(ctx);
+
+        var open = component.Find(".ec-file-row button.ec-file-name");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(open.GetAttribute("title"), Is.EqualTo("Otevřít náhled"));
+            Assert.That(component.FindAll("dialog"), Is.Empty);
+            Assert.That(component.Find(".ec-file-actions").Closest(".ec-file-name"), Is.Null, "the row actions sit outside the control that opens the row");
         }
 
-        component.Find("button.ec-file-name").Click();
-        component.Find("button[aria-label='Stáhnout Rozhodnutí o přestupku.pdf']").Click();
+        open.Click();
 
-        Assert.That(downloads, Is.EqualTo(2), "the name and the Stáhnout button both download the file");
+        component.WaitForAssertion(() => Assert.That(component.FindAll("dialog iframe.ec-preview-frame"), Has.Count.EqualTo(1)));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(downloads, Is.Zero, "a previewable file opens in the preview and is not downloaded");
+            Assert.That(component.Find("dialog .ec-preview-name").TextContent, Is.EqualTo("Rozhodnutí o přestupku.pdf"));
+            Assert.That(blobs.Created, Is.EqualTo([("application/pdf", "blob:test/0")]));
+            Assert.That(component.Find("iframe.ec-preview-frame").GetAttribute("src"), Is.EqualTo("blob:test/0"));
+        }
+    }
+
+    [Test]
+    public void TheRowOfAFileWithoutPreviewDownloadsIt()
+    {
+        using var ctx = NewContext();
+
+        var downloaded = new List<string>();
+        var component = new Card
+        {
+            Files = [File("Doručenka.zfo")],
+            DownloadFile = (file, _) =>
+            {
+                downloaded.Add(file.FileName);
+
+                return Task.CompletedTask;
+            },
+        }
+            .Render(ctx);
+
+        var open = component.Find(".ec-file-row button.ec-file-name");
+
+        open.Click();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(open.GetAttribute("title"), Is.EqualTo("Stáhnout"));
+            Assert.That(downloaded, Is.EqualTo(["Doručenka.zfo"]));
+            Assert.That(component.FindAll("dialog"), Is.Empty, "a file without preview opens no preview");
+        }
+    }
+
+    [Test]
+    public void TheDownloadButtonDownloadsWithoutOpeningThePreview()
+    {
+        using var ctx = NewContext();
+
+        var downloads = 0;
+        var component = new Card
+        {
+            Files = [PdfFile()],
+            DownloadFile = (_, _) =>
+            {
+                downloads++;
+
+                return Task.CompletedTask;
+            },
+        }
+            .Render(ctx);
+
+        var download = component.Find("button[aria-label='Stáhnout Rozhodnutí o přestupku.pdf']");
+
+        download.Click();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(downloads, Is.EqualTo(1));
+            Assert.That(download.ClassList, Does.Contain("ec-button-secondary").And.Contain("ec-button-icon"));
+            Assert.That(download.TextContent.Trim(), Is.Empty);
+            Assert.That(component.FindAll("dialog"), Is.Empty);
+        }
+    }
+
+    [Test]
+    public void AFileRowShowsItsSizeAndWhenItWasUploaded()
+    {
+        using var ctx = NewContext();
+
+        var file = PdfFile();
+        var component = new Card { Files = [file] }.Render(ctx);
+
+        Assert.That(component.Find(".ec-file-meta").TextContent, Is.EqualTo($"1 kB · nahráno {MomentDisplay.Text(file.Created)}"));
     }
 
     [Test]
     public void TheCompactRowKeepsTheNameOnOneLineAndOffersIconButtons()
     {
-        using var ctx = new BunitContext();
+        using var ctx = NewContext();
 
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-        ctx.Services.AddSingleton<IJSRuntime>(new PropertyReadingJSRuntime(ctx.JSInterop.JSRuntime));
-
-        var file = new FileListItem
-        {
-            FileId = Guid.NewGuid(),
-            FileName = "Rozhodnutí o přestupku.pdf",
-            SizeBytes = 1024,
-            Created = new DateTime(2025, 9, 2, 10, 0, 0, DateTimeKind.Utc),
-        };
-
-        var component = ctx.Render<FilesCard>(parameters => parameters
-            .Add(static card => card.Title, "Soubory spisu")
-            .Add(static card => card.LoadFiles, _ => Task.FromResult<IReadOnlyList<FileListItem>>([file]))
-            .Add(static card => card.UploadFile, static (_, _) => Task.CompletedTask)
-            .Add(static card => card.DownloadFile, static (_, _) => Task.CompletedTask)
-            .Add(static card => card.DeleteFile, static (_, _) => Task.CompletedTask)
-            .Add(static card => card.OwnerGoneError, "spis už neexistuje.")
-            .Add(static card => card.Compact, value: true));
+        var file = PdfFile();
+        var component = new Card { Files = [file], Compact = true }.Render(ctx);
 
         var download = component.Find("button[aria-label='Stáhnout Rozhodnutí o přestupku.pdf']");
 
@@ -310,45 +390,30 @@ public class FilesCardRenderTests
             Assert.That(component.Find(".ec-file-meta").TextContent, Is.EqualTo($"1 kB · {MomentDisplay.Text(file.Created)}"));
             Assert.That(download.ClassList, Does.Contain("ec-button-icon"));
             Assert.That(download.TextContent.Trim(), Is.Empty);
-            Assert.That(component.Find("label.ec-file-upload").TextContent.Trim(), Is.EqualTo("Nahrát"));
+            Assert.That(component.Find(".ec-file-icon").ClassList, Does.Contain("ec-file-icon-compact"));
         }
     }
 
     [Test]
     public void AFailedListShowsTheErrorAndRetryingReloads()
     {
-        using var ctx = new BunitContext();
-
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-        ctx.Services.AddSingleton<IJSRuntime>(new PropertyReadingJSRuntime(ctx.JSInterop.JSRuntime));
-
-        var file = new FileListItem
-        {
-            FileId = Guid.NewGuid(),
-            FileName = "a.pdf",
-            SizeBytes = 1024,
-            Created = new DateTime(2025, 9, 2, 10, 0, 0, DateTimeKind.Utc),
-        };
+        using var ctx = NewContext();
 
         var calls = 0;
 
-        var component = ctx.Render<FilesCard>(parameters => parameters
-            .Add(static card => card.Title, "Soubory spisu")
-            .Add(
-                static card => card.LoadFiles,
-                _ =>
-                {
-                    calls++;
+        var component = new Card
+        {
+            LoadFiles = _ =>
+            {
+                calls++;
 
-                    if (calls == 1)
-                        throw new HttpRequestException();
+                if (calls == 1)
+                    throw new HttpRequestException();
 
-                    return Task.FromResult<IReadOnlyList<FileListItem>>([file]);
-                })
-            .Add(static card => card.UploadFile, static (_, _) => Task.CompletedTask)
-            .Add(static card => card.DownloadFile, static (_, _) => Task.CompletedTask)
-            .Add(static card => card.DeleteFile, static (_, _) => Task.CompletedTask)
-            .Add(static card => card.OwnerGoneError, "spis už neexistuje."));
+                return Task.FromResult<IReadOnlyList<FileListItem>>([PdfFile()]);
+            },
+        }
+            .Render(ctx);
 
         Assert.That(
             component.Find(".ec-card-error .ec-alert").TextContent,
@@ -363,30 +428,34 @@ public class FilesCardRenderTests
     }
 
     [Test]
-    public void DeletingAFileOpensTheConfirmationNamingIt()
+    public async Task TheMenuOffersRenameAndADangerDeleteAndNoDeleteButtonSitsInTheRow()
     {
-        using var ctx = new BunitContext();
+        await using var ctx = NewContext();
 
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-        ctx.Services.AddSingleton<IJSRuntime>(new PropertyReadingJSRuntime(ctx.JSInterop.JSRuntime));
+        var component = new Card { Files = [PdfFile()] }.Render(ctx);
 
-        var file = new FileListItem
+        Assert.That(component.FindAll(".ec-file-actions button"), Has.Count.EqualTo(2), "a row carries Stáhnout and the menu and nothing else");
+
+        await OpenMenu(component);
+
+        var items = component.FindAll("[role=menuitem]");
+
+        using (Assert.EnterMultipleScope())
         {
-            FileId = Guid.NewGuid(),
-            FileName = "a.pdf",
-            SizeBytes = 1024,
-            Created = new DateTime(2025, 9, 2, 10, 0, 0, DateTimeKind.Utc),
-        };
+            Assert.That(items.Select(static item => item.TextContent.Trim()), Is.EqualTo(["Přejmenovat", "Smazat…"]));
+            Assert.That(items[1].ClassList, Does.Contain("ec-menu-item-danger"));
+        }
+    }
 
-        var component = ctx.Render<FilesCard>(parameters => parameters
-            .Add(static card => card.Title, "Soubory spisu")
-            .Add(static card => card.LoadFiles, _ => Task.FromResult<IReadOnlyList<FileListItem>>([file]))
-            .Add(static card => card.UploadFile, static (_, _) => Task.CompletedTask)
-            .Add(static card => card.DownloadFile, static (_, _) => Task.CompletedTask)
-            .Add(static card => card.DeleteFile, static (_, _) => Task.CompletedTask)
-            .Add(static card => card.OwnerGoneError, "spis už neexistuje."));
+    [Test]
+    public async Task DeletingAFileFromTheMenuOpensTheConfirmationNamingIt()
+    {
+        await using var ctx = NewContext();
 
-        component.Find("button[aria-label='Smazat soubor a.pdf']").Click();
+        var component = new Card { Files = [File("a.pdf")] }.Render(ctx);
+
+        await OpenMenu(component);
+        await component.FindAll("[role=menuitem]")[1].ClickAsync(new MouseEventArgs());
 
         using (Assert.EnterMultipleScope())
         {
@@ -396,36 +465,248 @@ public class FilesCardRenderTests
     }
 
     [Test]
-    public void TheDropZoneShrinksToOneLineOnceFilesExist()
+    public async Task RenamingTurnsTheRowIntoAnInputWithTheExtensionFixed()
     {
-        using var ctx = new BunitContext();
+        await using var ctx = NewContext();
 
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-        ctx.Services.AddSingleton<IJSRuntime>(new PropertyReadingJSRuntime(ctx.JSInterop.JSRuntime));
+        var component = new Card { Files = [PdfFile()] }.Render(ctx);
 
-        var file = new FileListItem
-        {
-            FileId = Guid.NewGuid(),
-            FileName = "a.pdf",
-            SizeBytes = 1024,
-            Created = new DateTime(2025, 9, 2, 10, 0, 0, DateTimeKind.Utc),
-        };
-
-        var component = ctx.Render<FilesCard>(parameters => parameters
-            .Add(static card => card.Title, "Soubory spisu")
-            .Add(static card => card.LoadFiles, _ => Task.FromResult<IReadOnlyList<FileListItem>>([file]))
-            .Add(static card => card.UploadFile, static (_, _) => Task.CompletedTask)
-            .Add(static card => card.DownloadFile, static (_, _) => Task.CompletedTask)
-            .Add(static card => card.DeleteFile, static (_, _) => Task.CompletedTask)
-            .Add(static card => card.OwnerGoneError, "spis už neexistuje."));
+        await OpenMenu(component);
+        await component.FindAll("[role=menuitem]")[0].ClickAsync(new MouseEventArgs());
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(
-                component.Find(".ec-file-drop-compact").TextContent.Trim(),
-                Is.EqualTo("Přetáhněte další soubory sem"),
-                "with files listed the drop zone takes one line");
-            Assert.That(component.FindAll(".ec-file-drop"), Has.Count.EqualTo(1));
+            Assert.That(component.Find(".ec-file-row input.ec-file-rename-input").GetAttribute("value"), Is.EqualTo("Rozhodnutí o přestupku"));
+            Assert.That(component.Find(".ec-file-rename-ext").TextContent, Is.EqualTo(".pdf"));
+            Assert.That(component.FindAll(".ec-file-rename .ec-button").Select(static button => button.TextContent.Trim()), Is.EqualTo(["Uložit", "Zrušit"]));
+            Assert.That(component.FindAll("button.ec-file-name"), Is.Empty, "a row being renamed does not open the preview");
+        }
+    }
+
+    [Test]
+    public async Task SavingARenameSendsTheNameWithTheExtensionAndReloadsTheList()
+    {
+        await using var ctx = NewContext();
+
+        var renamed = new List<(Guid FileId, string FileName)>();
+        var loads = 0;
+        var file = PdfFile();
+
+        var component = new Card
+        {
+            Files = [file],
+            LoadFiles = _ =>
+            {
+                loads++;
+
+                return Task.FromResult<IReadOnlyList<FileListItem>>([file]);
+            },
+            RenameFile = (item, name, _) =>
+            {
+                renamed.Add((item.FileId, name));
+
+                return Task.CompletedTask;
+            },
+        }
+            .Render(ctx);
+
+        await OpenMenu(component);
+        await component.FindAll("[role=menuitem]")[0].ClickAsync(new MouseEventArgs());
+        await component.Find("input.ec-file-rename-input").InputAsync(new ChangeEventArgs { Value = "Nový název" });
+        await component.FindAll(".ec-file-rename .ec-button")[0].ClickAsync(new MouseEventArgs());
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-file-rename"), Is.Empty, "a saved rename leaves the input"));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(renamed, Is.EqualTo([(file.FileId, "Nový název.pdf")]));
+            Assert.That(loads, Is.EqualTo(2), "the list reloads after a rename");
+        }
+    }
+
+    [Test]
+    public async Task EnterSavesAndEscapeCancelsTheRename()
+    {
+        await using var ctx = NewContext();
+
+        var renamed = new List<string>();
+        var component = new Card
+        {
+            Files = [PdfFile()],
+            RenameFile = (_, name, _) =>
+            {
+                renamed.Add(name);
+
+                return Task.CompletedTask;
+            },
+        }
+            .Render(ctx);
+
+        await OpenMenu(component);
+        await component.FindAll("[role=menuitem]")[0].ClickAsync(new MouseEventArgs());
+        await component.Find("input.ec-file-rename-input").InputAsync(new ChangeEventArgs { Value = "Zrušený" });
+        await component.Find("input.ec-file-rename-input").KeyDownAsync(new KeyboardEventArgs { Key = "Escape" });
+
+        Assert.That(component.FindAll(".ec-file-rename"), Is.Empty, "Escape leaves the input");
+
+        await OpenMenu(component);
+        await component.FindAll("[role=menuitem]")[0].ClickAsync(new MouseEventArgs());
+        await component.Find("input.ec-file-rename-input").InputAsync(new ChangeEventArgs { Value = "Uložený" });
+        await component.Find("input.ec-file-rename-input").KeyDownAsync(new KeyboardEventArgs { Key = "Enter" });
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-file-rename"), Is.Empty));
+
+        Assert.That(renamed, Is.EqualTo(["Uložený.pdf"]), "only Enter saved");
+    }
+
+    [TestCase("Escape")]
+    [TestCase("Enter")]
+    public async Task AFinishedRenameReturnsTheFocusToTheRow(string key)
+    {
+        await using var ctx = NewContext();
+
+        var component = new Card { Files = [PdfFile()] }.Render(ctx);
+
+        await OpenMenu(component);
+        await component.FindAll("[role=menuitem]")[0].ClickAsync(new MouseEventArgs());
+        await component.Find("input.ec-file-rename-input").InputAsync(new ChangeEventArgs { Value = "Nový" });
+        await component.Find("input.ec-file-rename-input").KeyDownAsync(new KeyboardEventArgs { Key = key });
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-file-rename"), Is.Empty));
+
+        var buttonId = component.Find("button.ec-file-name").GetAttribute("blazor:elementReference");
+        var focused = ctx.JSInterop.Invocations["Blazor._internal.domWrapper.focus"];
+
+        Assert.That(((ElementReference)focused[^1].Arguments[0]!).Id, Is.EqualTo(buttonId), "keyboard focus never drops to the page when the input goes away");
+    }
+
+    [Test]
+    public async Task ABlankNameIsRefusedBeforeTheCallAndAFailureShowsInTheRow()
+    {
+        await using var ctx = NewContext();
+
+        var calls = 0;
+        var component = new Card
+        {
+            Files = [PdfFile()],
+            RenameFile = (_, _, _) =>
+            {
+                calls++;
+
+                throw new ApiException(HttpStatusCode.NotFound, responseBody: null);
+            },
+        }
+            .Render(ctx);
+
+        await OpenMenu(component);
+        await component.FindAll("[role=menuitem]")[0].ClickAsync(new MouseEventArgs());
+        await component.Find("input.ec-file-rename-input").InputAsync(new ChangeEventArgs { Value = "   " });
+        await component.FindAll(".ec-file-rename .ec-button")[0].ClickAsync(new MouseEventArgs());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.Find(".ec-file-rename .ec-alert").TextContent, Does.Contain("Zadejte název souboru"));
+            Assert.That(calls, Is.Zero, "a blank name never reaches the API");
+        }
+
+        await component.Find("input.ec-file-rename-input").InputAsync(new ChangeEventArgs { Value = "Nový" });
+        await component.FindAll(".ec-file-rename .ec-button")[0].ClickAsync(new MouseEventArgs());
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.Find(".ec-file-rename .ec-alert").TextContent, Does.Contain("Soubor už neexistuje")));
+        Assert.That(component.FindAll(".ec-file-rename"), Has.Count.EqualTo(1), "a failed rename keeps the input");
+    }
+
+    [Test]
+    public void ThePreviewStepsThroughEveryFileOfTheCard()
+    {
+        using var ctx = NewContext();
+
+        ctx.Services.AddSingleton<IBlobUrls>(new StubBlobUrls());
+
+        var component = new Card { Files = [PdfFile(), File("Doručenka.zfo"), File("Foto.jpg")] }.Render(ctx);
+
+        component.Find(".ec-file-row button.ec-file-name").Click();
+        component.WaitForAssertion(() => Assert.That(component.FindAll("dialog iframe"), Has.Count.EqualTo(1)));
+
+        Assert.That(component.Find(".ec-preview-position").TextContent, Is.EqualTo("1 z 3"));
+
+        component.Find("button[aria-label='Další soubor']").Click();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.Find(".ec-preview-position").TextContent, Is.EqualTo("2 z 3"));
+            Assert.That(component.Find(".ec-preview-name").TextContent, Is.EqualTo("Doručenka.zfo"));
+            Assert.That(component.Find(".ec-preview-message-title").TextContent, Is.EqualTo("Náhled tohoto typu souboru není k dispozici"));
+        }
+    }
+
+    private static BunitContext NewContext()
+    {
+        var ctx = new BunitContext();
+
+        // FileDropZone imports its own module from a path carrying a version query string, which
+        // no SetupModule can name, and reads a property bUnit's runtime does not answer.
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        ctx.Services.AddSingleton<IJSRuntime>(new PropertyReadingJSRuntime(ctx.JSInterop.JSRuntime));
+
+        return ctx;
+    }
+
+    private static async Task OpenMenu(IRenderedComponent<FilesCard> component)
+    {
+        await component.Find(".ec-file-actions button[aria-haspopup=menu]").ClickAsync(new MouseEventArgs());
+    }
+
+    private static FileListItem PdfFile()
+    {
+        return File("Rozhodnutí o přestupku.pdf");
+    }
+
+    private static FileListItem File(string fileName)
+    {
+        return new FileListItem
+        {
+            FileId = Guid.NewGuid(),
+            FileName = fileName,
+            SizeBytes = 1024,
+            Created = new DateTime(2025, 9, 2, 10, 0, 0, DateTimeKind.Utc),
+        };
+    }
+
+    private sealed class Card
+    {
+        public string Title { get; init; } = "Soubory spisu";
+
+        public string UploadTarget { get; init; } = "k spisu";
+
+        public bool Compact { get; init; }
+
+        public IReadOnlyList<FileListItem> Files { get; init; } = [];
+
+        public Func<CancellationToken, Task<IReadOnlyList<FileListItem>>>? LoadFiles { get; init; }
+
+        public Func<IBrowserFile, CancellationToken, Task> UploadFile { get; init; } = static (_, _) => Task.CompletedTask;
+
+        public Func<FileListItem, CancellationToken, Task> DownloadFile { get; init; } = static (_, _) => Task.CompletedTask;
+
+        public Func<FileListItem, string, CancellationToken, Task> RenameFile { get; init; } = static (_, _, _) => Task.CompletedTask;
+
+        public IRenderedComponent<FilesCard> Render(BunitContext ctx)
+        {
+            var files = this.Files;
+            var loadFiles = this.LoadFiles ?? (_ => Task.FromResult(files));
+
+            return ctx.Render<FilesCard>(parameters => parameters
+                .Add(static card => card.Title, this.Title)
+                .Add(static card => card.LoadFiles, loadFiles)
+                .Add(static card => card.UploadFile, this.UploadFile)
+                .Add(static card => card.DownloadFile, this.DownloadFile)
+                .Add(static card => card.LoadContent, static (_, _) => Task.FromResult<Stream>(new MemoryStream("abc"u8.ToArray())))
+                .Add(static card => card.RenameFile, this.RenameFile)
+                .Add(static card => card.DeleteFile, static (_, _) => Task.CompletedTask)
+                .Add(static card => card.OwnerGoneError, "spis už neexistuje.")
+                .Add(static card => card.UploadTarget, this.UploadTarget)
+                .Add(static card => card.Compact, this.Compact));
         }
     }
 }

@@ -12,3 +12,14 @@ export async function downloadBlob(fileName, mediaType, contentStream) {
     anchor.remove();
     URL.revokeObjectURL(url);
 }
+
+// The preview shows the bytes through a Blob URL of the type the app detected, never the stored one.
+export async function createObjectUrl(mediaType, contentStream) {
+    const buffer = await contentStream.arrayBuffer();
+
+    return URL.createObjectURL(new Blob([buffer], { type: mediaType }));
+}
+
+export function revokeObjectUrl(url) {
+    URL.revokeObjectURL(url);
+}

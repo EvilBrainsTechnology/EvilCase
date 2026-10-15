@@ -30,6 +30,27 @@ public class EcModalRenderTests
     }
 
     [Test]
+    public void AHeadingReplacesTheTitleInTheHeaderAndTheTitleStillNamesTheDialog()
+    {
+        using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+
+        var component = ctx.Render<EcModal>(static parameters => parameters
+            .Add(static modal => modal.Title, "Rozhodnutí.pdf")
+            .Add(static modal => modal.Heading, "Vlastní hlavička")
+            .Add(static modal => modal.Large, value: true));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.Find(".ec-modal-header").TextContent, Does.Contain("Vlastní hlavička"));
+            Assert.That(component.FindAll(".ec-modal-title"), Is.Empty);
+            Assert.That(component.Find("dialog").GetAttribute("aria-label"), Is.EqualTo("Rozhodnutí.pdf"));
+            Assert.That(component.Find("dialog").ClassList, Does.Contain("ec-modal-large"));
+            Assert.That(component.Find(".ec-modal-header button[aria-label=Zavřít]"), Is.Not.Null, "the close button stays");
+        }
+    }
+
+    [Test]
     public void TheCloseButtonRaisesOpenChangedWithFalse()
     {
         using var ctx = new BunitContext();

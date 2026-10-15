@@ -1,0 +1,139 @@
+@using System.Net
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Contract.Files
+@inject ILogger<FileRenameField> Logger
+
+@* Enter saves and Escape cancels; the marked wrapper keeps Escape from also closing a dialog around it. *@
+<div class="ec-file-rename" data-ec-keeps-escape>
+    <div class="ec-file-rename-line">
+        <label class="ec-file-rename-box">
+            <span class="ec-visually-hidden">Nový název souboru</span>
+            <input type="text" class="ec-file-rename-input" @ref="this.input" @bind="this.draft" @bind:event="oninput"
+                   @onkeydown="this.OnKeyDown" disabled="@this.busy" autocomplete="off" />
+            @if (this.extension.Length > 0)
+            {
+                <span class="ec-file-rename-ext">@this.extension</span>
+            }
+        </label>
+        <EcButton Variant="EcButtonVariant.Primary" Disabled="@this.busy" OnClick="this.Save">Uložit</EcButton>
+        <EcButton Variant="EcButtonVariant.Secondary" Disabled="@this.busy" OnClick="this.Cancel">Zrušit</EcButton>
+    </div>
+    @if (this.error is not null)
+    {
+        <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.error</div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public required string FileName { get; set; }
+
+    [Parameter, EditorRequired]
+    public required Func<string, CancellationToken, Task> Rename { get; set; }
+
+    [Parameter]
+    public EventCallback OnRenamed { get; set; }
+
+    [Parameter]
+    public EventCallback OnCancel { get; set; }
+
+    private ElementReference input;
+
+    private string draft = "";
+
+    private string extension = "";
+
+    private bool busy;
+
+    private string? error;
+
+    protected override void OnInitialized()
+    {
+        // The extension stays fixed; a name made of the extension alone, like ".gitignore", is all name.
+        var suffix = Path.GetExtension(this.FileName);
+        var stem = Path.GetFileNameWithoutExtension(this.FileName);
+
+        this.extension = stem.Length == 0 ? "" : suffix;
+        this.draft = stem.Length == 0 ? this.FileName : stem;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            await this.input.FocusAsync();
+    }
+
+    private async Task OnKeyDown(KeyboardEventArgs args)
+    {
+        switch (args.Key)
+        {
+            case "Enter":
+                await this.Save();
+                break;
+            case "Escape":
+                await this.Cancel();
+                break;
+        }
+    }
+
+    private async Task Cancel()
+    {
+        await this.OnCancel.InvokeAsync();
+    }
+
+    private async Task Save()
+    {
+        if (this.busy)
+            return;
+
+        var stem = this.draft.Trim();
+
+        if (stem.Length == 0)
+        {
+            this.error = "Zadejte název souboru.";
+            return;
+        }
+
+        var fileName = stem + this.extension;
+
+        if (fileName.Length > FileLimits.MaxFileNameLength)
+        {
+            this.error = $"Název souboru může mít nejvýše {FileLimits.MaxFileNameLength} znaků.";
+            return;
+        }
+
+        if (fileName == this.FileName)
+        {
+            await this.Cancel();
+            return;
+        }
+
+        this.busy = true;
+        this.error = null;
+
+        try
+        {
+            await this.Rename(fileName, CancellationToken.None);
+
+            await this.OnRenamed.InvokeAsync();
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+        {
+            this.error = "Soubor už neexistuje.";
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.BadRequest)
+        {
+            this.error = "Název souboru není platný.";
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Renaming the file failed");
+
+            this.error = "Soubor se nepodařilo přejmenovat. Zkuste to za chvíli znovu.";
+        }
+        finally
+        {
+            this.busy = false;
+        }
+    }
+}

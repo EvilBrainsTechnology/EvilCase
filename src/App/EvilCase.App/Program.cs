@@ -41,6 +41,7 @@ internal static class Program
             static client => client.AddRequestContextHeaders().AddRequestLogging().AddHttpMessageHandler<AuthTokenHandler>());
 
         builder.Services.AddSingleton<IFileDownloader, FileDownloader>();
+        builder.Services.AddSingleton<IBlobUrls, BlobUrls>();
         builder.Services.AddSingleton<IClipboardWriter, ClipboardWriter>();
 
         // The same handler chain as the generated clients, so the upload and the download carry the same authorization.

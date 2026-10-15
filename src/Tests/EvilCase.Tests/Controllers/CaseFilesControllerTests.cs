@@ -97,6 +97,96 @@ public class CaseFilesControllerTests
             "an outcome the endpoint does not name never turns into a status");
     }
 
+    [Test]
+    public async Task TheRenameReachesTheWriterWithEveryRouteIdAndTheNewName()
+    {
+        var caseId = Guid.CreateVersion7();
+        var fileId = Guid.CreateVersion7();
+        var writer = RenamingWriter(FileRenameOutcome.Renamed);
+        var controller = new CaseFilesController();
+
+        await controller.RenameCaseFile(writer, caseId, fileId, new FileRenameRequest { FileName = "novy.pdf" }, CancellationToken.None);
+
+        await writer
+            .Received(1)
+            .RenameCaseFile(caseId, fileId, "novy.pdf", Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task RenamingAFileAnswersWithNoContent()
+    {
+        var writer = RenamingWriter(FileRenameOutcome.Renamed);
+        var controller = new CaseFilesController();
+
+        var result = await controller.RenameCaseFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), new FileRenameRequest { FileName = "novy.pdf" }, CancellationToken.None);
+
+        Assert.That(result, Is.InstanceOf<NoContentResult>());
+    }
+
+    [Test]
+    public async Task RenamingKeepsOnlyTheLastPathSegment()
+    {
+        var writer = RenamingWriter(FileRenameOutcome.Renamed);
+        var controller = new CaseFilesController();
+
+        await controller.RenameCaseFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), new FileRenameRequest { FileName = "slozka/podslozka/novy.pdf" }, CancellationToken.None);
+
+        await writer
+            .Received(1)
+            .RenameCaseFile(Arg.Any<Guid>(), Arg.Any<Guid>(), "novy.pdf", Arg.Any<CancellationToken>());
+    }
+
+    [TestCase("")]
+    [TestCase("   ")]
+    [TestCase("slozka/")]
+    public async Task RenamingToABlankNameIsAProblemWithFourHundredAndTheWriterIsNotReached(string fileName)
+    {
+        var writer = RenamingWriter(FileRenameOutcome.Renamed);
+        var controller = new CaseFilesController();
+
+        var result = await controller.RenameCaseFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), new FileRenameRequest { FileName = fileName }, CancellationToken.None);
+
+        AssertProblem(result, 400);
+        await writer
+            .DidNotReceive()
+            .RenameCaseFile(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task RenamingToANameOverTheLimitIsAProblemWithFourHundred()
+    {
+        var writer = RenamingWriter(FileRenameOutcome.Renamed);
+        var controller = new CaseFilesController();
+        var tooLong = new string('a', FileLimits.MaxFileNameLength + 1);
+
+        var result = await controller.RenameCaseFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), new FileRenameRequest { FileName = tooLong }, CancellationToken.None);
+
+        AssertProblem(result, 400);
+    }
+
+    [Test]
+    public async Task RenamingAMissingFileIsAProblemWithFourOhFour()
+    {
+        var writer = RenamingWriter(FileRenameOutcome.NotFound);
+        var controller = new CaseFilesController();
+
+        var result = await controller.RenameCaseFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), new FileRenameRequest { FileName = "novy.pdf" }, CancellationToken.None);
+
+        AssertProblem(result, 404);
+    }
+
+    [Test]
+    public async Task ARenameOutcomeTheEndpointDoesNotKnowThrows()
+    {
+        var writer = RenamingWriter((FileRenameOutcome)99);
+        var controller = new CaseFilesController();
+
+        await Assert.ThatAsync(
+            async () => await controller.RenameCaseFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), new FileRenameRequest { FileName = "novy.pdf" }, CancellationToken.None),
+            Throws.InstanceOf<UnreachableException>(),
+            "an outcome the endpoint does not name never turns into a status");
+    }
+
     private static IFileReader ListingReader(IReadOnlyList<FileListItem>? items)
     {
         var reader = Substitute.For<IFileReader>();
@@ -112,6 +202,16 @@ public class CaseFilesControllerTests
         var writer = Substitute.For<IFileWriter>();
         writer
             .DeleteCaseFile(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(outcome);
+
+        return writer;
+    }
+
+    private static IFileWriter RenamingWriter(FileRenameOutcome outcome)
+    {
+        var writer = Substitute.For<IFileWriter>();
+        writer
+            .RenameCaseFile(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(outcome);
 
         return writer;

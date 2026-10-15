@@ -5,7 +5,9 @@ internal sealed class SecurityHeadersMiddleware(RequestDelegate next)
     /// <summary>
     /// Blazor WebAssembly compiles its runtime, which is what 'wasm-unsafe-eval' allows; the app carries
     /// no inline script, so the policy carries no hash. Inline styles are unavoidable: <c>EcTable</c>
-    /// passes its column template through a custom property on the style attribute.
+    /// passes its column template through a custom property on the style attribute. The file preview
+    /// shows downloaded bytes through a <c>blob:</c> URL in an image, a media element or a frame, which
+    /// is the only place <c>blob:</c> is allowed.
     /// </summary>
     private const string ContentSecurityPolicy =
         "default-src 'self'; "
@@ -13,7 +15,9 @@ internal sealed class SecurityHeadersMiddleware(RequestDelegate next)
             + "object-src 'none'; "
             + "frame-ancestors 'none'; "
             + "form-action 'self'; "
-            + "img-src 'self'; "
+            + "img-src 'self' blob:; "
+            + "media-src 'self' blob:; "
+            + "frame-src blob:; "
             + "font-src 'self'; "
             + "style-src 'self' 'unsafe-inline'; "
             + "script-src 'self' 'wasm-unsafe-eval'; "

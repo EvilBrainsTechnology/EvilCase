@@ -58,7 +58,8 @@ Aplikace má vlastní sadu komponent s prefixem `Ec`. Obrazovka skládá jen je,
 - `EcCombobox` — pole s hledáním bez ohledu na diakritiku a se založením záznamu přímo
   z nabídky; stojí na něm výběr kontaktu i štítku.
 - `EcEmptyState` — ikona, věta, volitelná výzva k založení.
-- `EcFileChip` — přípona souboru jako ikona dokumentu se zkratkou; barvu určuje typ.
+- `EcFileIcon` — dlaždice s ikonou typu souboru, bez textu přípony; ikonu i barvu určuje
+  přípona (SDD-012).
 
 ### Ikony
 
@@ -82,8 +83,17 @@ vždycky říká: „Soubory spisu" a „Soubory úkonu".
 Další akce detailu jsou v nabídce `EcMenu` vedle hlavní akce; smazání je v ní poslední
 a oddělené. Spisovou značku, číslo jednací i externí značky v řádku údajů jde zkopírovat
 tlačítkem vedle hodnoty. Soubory a komentáře v bočním sloupci detailu spisu jsou kompaktní:
-soubor drží název na jednom řádku a velikost s okamžikem nahrání na druhém, stažení i smazání
-jsou tlačítka jen s ikonou a pole pro nový komentář má dva řádky.
+soubor drží název na jednom řádku a velikost s okamžikem nahrání na druhém a pole pro nový
+komentář má dva řádky.
+
+Karta souborů nese v záhlaví výzvu „Přetáhněte soubory sem nebo" a tlačítko Nahrát soubory,
+v bočním sloupci „Přetáhněte sem nebo" a Nahrát; pod seznamem žádný pruh není. Řádek souboru
+je jedno ovládací místo po celé šířce a otevírá náhled; stažení a nabídka ⋯ jsou ohraničená
+tlačítka jen s ikonou, v nabídce je Přejmenovat a oddělené, červené Smazat…. Při tažení
+souborů přes kartu ji přikryje přerušovaný akcentový rámeček s textem „Pusťte soubory
+a nahrají se k úkonu" (ve spisu „k spisu") a limity. Náhled souboru je velký modal; hlavička
+nese ikonu, název, velikost a okamžik nahrání, přechod mezi soubory karty s pořadím „2 z 5",
+Přejmenovat, Stáhnout a zavření.
 
 Načítání aplikace a přihlášení sdílejí jeden rám: tmavá stránka, uprostřed nahoře značka
 a pod ní jedna bílá karta s postupem načítání, nebo s přihlašovacím formulářem. Značka zůstává

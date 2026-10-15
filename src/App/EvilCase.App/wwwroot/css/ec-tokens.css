@@ -108,21 +108,42 @@
     --ec-label-gray-soft: #EAECF0;
     --ec-label-gray-strong: #454B57;
 
-    /* Typ souboru — EcFileChip */
+    /* Typ souboru — EcFileIcon (docs/design/detail-ukonu.html) */
     --ec-file-pdf-bg: #FDE4E1;
-    --ec-file-pdf-text: #9B2C1F;
-    --ec-file-document-bg: #E6EEFD;
-    --ec-file-document-text: #2A48B8;
-    --ec-file-sheet-bg: #E3F4E8;
-    --ec-file-sheet-text: #1D6B36;
-    --ec-file-image-bg: #F3E8FD;
-    --ec-file-image-text: #6B21A8;
-    --ec-file-other-bg: #EDEFF3;
-    --ec-file-other-text: #454B57;
-    --ec-file-chip-width: 52px;
-    --ec-file-chip-height: 40px;
-    --ec-file-chip-radius: 8px;
-    --ec-file-chip-text: 11px;
+    --ec-file-pdf-text: #B42318;
+    --ec-file-document-bg: #E3EBFD;
+    --ec-file-document-text: #2346B8;
+    --ec-file-sheet-bg: var(--ec-active-bg);
+    --ec-file-sheet-text: var(--ec-active-text);
+    --ec-file-presentation-bg: #FDEBDD;
+    --ec-file-presentation-text: #B4501A;
+    --ec-file-text-bg: var(--ec-closed-bg);
+    --ec-file-text-text: var(--ec-closed-text);
+    --ec-file-image-bg: #EEE8FB;
+    --ec-file-image-text: #5B3BB5;
+    --ec-file-audio-bg: #FCE3EC;
+    --ec-file-audio-text: #A3234F;
+    --ec-file-video-bg: #DDF0F7;
+    --ec-file-video-text: #0B5F7E;
+    --ec-file-email-bg: #D9F2EF;
+    --ec-file-email-text: #0B6359;
+    --ec-file-message-bg: var(--ec-accent-soft);
+    --ec-file-message-text: var(--ec-accent);
+    --ec-file-signature-bg: #FFF2C6;
+    --ec-file-signature-text: #7A5C00;
+    --ec-file-code-bg: #E8EBF0;
+    --ec-file-code-text: #2E3A4F;
+    --ec-file-archive-bg: #F3ECE4;
+    --ec-file-archive-text: #6B4A2E;
+    --ec-file-other-bg: var(--ec-bg);
+    --ec-file-other-text: var(--ec-text-muted);
+    --ec-file-icon-size: 40px;
+    --ec-file-icon-glyph: 20px;
+    --ec-file-icon-compact-size: 36px;
+    --ec-file-icon-compact-glyph: 18px;
+    --ec-file-icon-large-size: 72px;
+    --ec-file-icon-large-glyph: 34px;
+    --ec-file-icon-large-radius: 18px;
 
     /* Písmo */
     --ec-font: 'Instrument Sans', 'Segoe UI', system-ui, sans-serif;
@@ -236,8 +257,23 @@
     --ec-filter-count-size: 18px;
     --ec-filter-date-width: 140px;
     --ec-segment-compact-height: 28px;
-    --ec-file-chip-compact-width: 46px;
-    --ec-file-chip-compact-height: 36px;
+    --ec-file-row-height: 64px;
+    --ec-file-row-compact-height: 56px;
+    --ec-drop-badge: 48px;
+    --ec-drop-overlay: rgba(233, 237, 249, 0.92);
+
+    /* Náhled souboru (docs/design/detail-ukonu.html) */
+    --ec-preview-width: 1320px;
+    --ec-preview-height: 920px;
+    --ec-preview-header-height: 68px;
+    --ec-preview-stage: #E6E8EC;
+    --ec-preview-text-width: 900px;
+    --ec-preview-gutter: 56px;
+    --ec-preview-text-leading: 1.7;
+    --ec-preview-audio-width: 480px;
+    --ec-preview-message-width: 420px;
+    --ec-preview-position-width: 64px;
+    --ec-overlay-strong: rgba(20, 22, 27, 0.6);
     --ec-comment-avatar-compact: 30px;
     --ec-comment-action-height: 24px;
 

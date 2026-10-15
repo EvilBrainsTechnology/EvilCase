@@ -51,11 +51,22 @@ public class SecurityHeadersTests
     }
 
     [Test]
-    public async Task ImagesComeFromTheOriginAlone()
+    public async Task ThePreviewMayShowBlobUrlsInImagesMediaAndFramesOnly()
     {
         using var response = await this.client.GetAsync(new Uri("/some/client/route", UriKind.Relative));
 
-        Assert.That(Header(response, "Content-Security-Policy"), Does.Contain("img-src 'self';"), "the policy allows an image source no page uses");
+        var directives = Header(response, "Content-Security-Policy")!.Split("; ");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(directives, Does.Contain("img-src 'self' blob:"), "an image preview is a blob URL");
+            Assert.That(directives, Does.Contain("media-src 'self' blob:"), "an audio and video preview is a blob URL");
+            Assert.That(directives, Does.Contain("frame-src blob:"), "the PDF viewer is a frame on a blob URL");
+            Assert.That(directives.Where(static directive => directive.Contains("blob:", StringComparison.Ordinal)), Has.Exactly(3).Items, "no other directive allows blob:");
+            Assert.That(directives, Does.Contain("object-src 'none'"));
+            Assert.That(directives, Does.Contain("frame-ancestors 'none'"));
+            Assert.That(directives, Does.Contain("script-src 'self' 'wasm-unsafe-eval'"), "a blob URL never runs script");
+        }
     }
 
     [Test]

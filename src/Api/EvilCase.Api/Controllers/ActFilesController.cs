@@ -26,6 +26,31 @@ public class ActFilesController : ControllerBase
             : this.Ok(new FileListResponse { Items = items });
     }
 
+    [HttpPut("{fileId:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> RenameActFile(
+        [FromServices] IFileWriter writer, [FromRoute] Guid actId, [FromRoute] Guid fileId, [FromBody] FileRenameRequest request, CancellationToken token)
+    {
+        var fileName = FileNameRules.LastSegment(request.FileName);
+
+        if (FileNameRules.Violation(fileName) is { } violation)
+        {
+            this.ModelState.AddModelError("fileName", violation);
+            return this.ValidationProblem(statusCode: StatusCodes.Status400BadRequest);
+        }
+
+        var outcome = await writer.RenameActFile(actId, fileId, fileName, token);
+
+        return outcome switch
+        {
+            FileRenameOutcome.Renamed => this.NoContent(),
+            FileRenameOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: FileProblems.NotFound),
+            _ => throw new UnreachableException(),
+        };
+    }
+
     [HttpDelete("{fileId:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

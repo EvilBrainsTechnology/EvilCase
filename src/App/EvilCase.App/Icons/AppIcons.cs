@@ -1,6 +1,6 @@
 namespace EvilBrains.EvilCase.App.Icons;
 
-// The path data is copied from Tabler icons.
+// The path data is copied from Tabler icons; the file type glyphs and the hand are drawn for the design.
 public static class AppIcons
 {
     public const string AlertTriangle = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
@@ -59,6 +59,66 @@ public static class AppIcons
         + "<path d='M9 13l6 0' />"
         + "<path d='M9 17l6 0' />";
 
+    public const string FileTypePdf = "<path d='M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z' />"
+        + "<path d='M14 3v5h5' />"
+        + "<path d='M8 18.5c2.5-1.5 4.2-5.3 4-7.4-.1-1-1.2-1-1.3 0-.3 2.6 2.4 5.5 5 5.6 1 0 1-.9 0-1.1-2.3-.5-6.3.7-7.7 2.9' />";
+
+    public const string FileTypeDocument = "<path d='M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z' />"
+        + "<path d='M14 3v5h5' />"
+        + "<path d='M8 12l1.3 6 2.7-4.5 2.7 4.5 1.3-6' />";
+
+    public const string FileTypeSheet = "<path d='M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z' />"
+        + "<path d='M14 3v5h5' />"
+        + "<path d='M8 11h8v8H8z' />"
+        + "<path d='M8 15h8' />"
+        + "<path d='M12 11v8' />";
+
+    public const string FileTypePresentation = "<path d='M3 4h18' />"
+        + "<path d='M5 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4' />"
+        + "<path d='M12 15v4' />"
+        + "<path d='M9 21l3-2 3 2' />"
+        + "<path d='M9 11l2-2 2 2 2-3' />";
+
+    public const string FileTypeText = "<path d='M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z' />"
+        + "<path d='M14 3v5h5' />"
+        + "<path d='M9 12h6' />"
+        + "<path d='M9 15h6' />"
+        + "<path d='M9 18h4' />";
+
+    public const string FileTypeImage = "<path d='M6 4h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z' />"
+        + "<path d='M4 16l4.5-4.5a1.5 1.5 0 0 1 2 0L16 17' />"
+        + "<path d='M14 15l1.5-1.5a1.5 1.5 0 0 1 2 0L20 16' />"
+        + "<path d='M15 8.5h.5' />";
+
+    public const string FileTypeAudio = "<path d='M9 18V6l11-2v12' />"
+        + "<path d='M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0z' />"
+        + "<path d='M20 16a3 3 0 1 1-6 0 3 3 0 0 1 6 0z' />";
+
+    public const string FileTypeVideo = "<path d='M4 6h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z' />"
+        + "<path d='M16 10l6-3v10l-6-3' />";
+
+    public const string FileTypeEmail = "<path d='M4 5h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z' />"
+        + "<path d='M22 7l-10 6L2 7' />";
+
+    public const string FileTypeDataMessage = "<path d='M3 13h5l1.5 3h5L16 13h5' />"
+        + "<path d='M5.5 5h13L21 13v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5z' />";
+
+    public const string FileTypeSignature = "<path d='M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z' />"
+        + "<path d='M8.5 12l2.5 2.5 4.5-5' />";
+
+    public const string FileTypeCode = "<path d='M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z' />"
+        + "<path d='M14 3v5h5' />"
+        + "<path d='M10 12l-2 2.5 2 2.5' />"
+        + "<path d='M14 12l2 2.5-2 2.5' />";
+
+    public const string FileTypeArchive = "<path d='M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z' />"
+        + "<path d='M14 3v5h5' />"
+        + "<path d='M10 3v2h2v2h-2v2h2v2h-2' />"
+        + "<path d='M10 14h2v3h-2z' />";
+
+    public const string FileTypeOther = "<path d='M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z' />"
+        + "<path d='M14 3v5h5' />";
+
     public const string Filter = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M4 6h16' />"
         + "<path d='M6 12h12' />"
@@ -72,6 +132,10 @@ public static class AppIcons
     public const string Folders = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M9 4h3l2 2h5a2 2 0 0 1 2 2v7a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2' />"
         + "<path d='M17 17v2a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2h2' />";
+
+    public const string Hand = "<path d='M9 11V5a1.5 1.5 0 0 1 3 0v5' />"
+        + "<path d='M12 10V4a1.5 1.5 0 0 1 3 0v6' />"
+        + "<path d='M15 10V6a1.5 1.5 0 0 1 3 0v8a6 6 0 0 1-6 6h-1a6 6 0 0 1-5-2.7L3.5 13a1.5 1.5 0 0 1 2.4-1.8L9 14' />";
 
     public const string LayoutDashboard = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M5 4h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1' />"
