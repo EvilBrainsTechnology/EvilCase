@@ -3905,6 +3905,24 @@ html:has(.ec-gate) {
         font-size: var(--ec-text-lg);
     }
 
+    /* Číslo jednací úkonu má vlastní řádek; „ve spisu…“ se zkrátí na konci druhého. */
+    .ec-sr-option:has(.ec-sr-icon-act) .ec-sr-meta {
+        flex-wrap: wrap;
+        row-gap: var(--ec-space-1);
+    }
+
+    .ec-sr-option:has(.ec-sr-icon-act) .ec-sr-mono {
+        flex-basis: 100%;
+    }
+
+    .ec-sr-option:has(.ec-sr-icon-act) .ec-sr-mono + *::before {
+        content: none;
+    }
+
+    .ec-sr-option:has(.ec-sr-icon-act) .ec-sr-grow-text {
+        flex: 1 1 0;
+    }
+
     .ec-sr-enter,
     .ec-sr-hint {
         display: none;
