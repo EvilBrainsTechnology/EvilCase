@@ -4241,6 +4241,26 @@ html:has(.ec-gate) {
         order: -1;
     }
 
+    .ec-table-row .ec-cell-stack {
+        flex: 1 0 100%;
+    }
+
+    /* Název dostane až dva řádky a štítky jdou pod něj, místo aby ho ořízly. */
+    .ec-table-cell-primary,
+    .ec-table-cell-primary .ec-cell-line {
+        flex-wrap: wrap;
+        row-gap: var(--ec-space-1);
+    }
+
+    .ec-table-cell-primary .ec-cell-text:not(.ec-cell-sub) {
+        display: -webkit-box;
+        flex: 1 0 100%;
+        white-space: normal;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+    }
+
     .ec-table .ec-card-footer .ec-button {
         flex: 1 1 0;
         height: var(--ec-touch-min);
