@@ -129,7 +129,7 @@ Desktop je primární, každá denně používaná obrazovka je plnohodnotná i 
 schová do zásuvky, boční sloupec se zařadí pod hlavní, formulář má jeden sloupec a jeho
 tlačítka zůstávají u spodního okraje okna. Pole má na mobilu písmo 16 px. Seznam se nikdy neposouvá vodorovně: na úzké šířce
 se řádek přeskládá na dva až tři řádky a řazení přebírá select v liště. Název souboru v kartě má až dva
-řádky.
+řádky. Hlavička náhledu souboru nese na prvním řádku název a zavření, akce pod nimi.
 
 ### Bez cizí knihovny
 

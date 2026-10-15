@@ -1324,6 +1324,11 @@ html:has(.ec-gate) {
     font-variant-numeric: tabular-nums;
 }
 
+/* Na širokém okně jsou akce náhledu přímo v hlavičce; na mobilu tvoří vlastní řádek. */
+.ec-preview-actions {
+    display: contents;
+}
+
 .ec-preview-nav {
     display: flex;
     align-items: center;
@@ -3131,8 +3136,17 @@ html:has(.ec-gate) {
         padding: var(--ec-space-3) var(--ec-space-4);
     }
 
-    .ec-preview-title {
-        flex: 1 1 calc(var(--ec-popover-width) / 2);
+    .ec-modal-large .ec-modal-header > :is(.ec-preview-title, .ec-file-rename) {
+        flex: 1 1 0;
+    }
+
+    .ec-preview-actions {
+        display: flex;
+        flex-wrap: wrap;
+        flex: 1 1 100%;
+        order: 1;
+        align-items: center;
+        gap: var(--ec-space-3);
     }
 
     .ec-preview-divider {
