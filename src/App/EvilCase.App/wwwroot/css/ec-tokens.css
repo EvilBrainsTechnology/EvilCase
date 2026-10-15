@@ -4,6 +4,7 @@
  * Předlohy obrazovek: docs/design/.
  */
 
+:root,
 .ec {
     /* Plochy a text */
     --ec-bg: #F2F3F6;

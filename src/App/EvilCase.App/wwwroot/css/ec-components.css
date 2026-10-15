@@ -12,6 +12,11 @@ body {
    podle toho, jestli je stránka delší než okno (docs/design/prehled.html). */
 html {
     scrollbar-gutter: stable;
+    background: var(--ec-bg);
+}
+
+html:has(.ec-gate) {
+    background: var(--ec-login-panel-bg);
 }
 
 .ec {
