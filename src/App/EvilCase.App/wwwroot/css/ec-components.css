@@ -4175,6 +4175,23 @@ html:has(.ec-gate) {
 
     .ec-topbar-burger {
         display: flex;
+        flex: none;
+    }
+
+    /* Značka zůstane malá; její dotyková plocha doroste na minimum. */
+    .ec-topbar > .ec-topbar-brand {
+        position: relative;
+        flex: none;
+    }
+
+    .ec-topbar > .ec-topbar-brand::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: var(--ec-touch-min);
+        height: var(--ec-touch-min);
+        transform: translate(-50%, -50%);
     }
 
     .ec-topbar-nav {
