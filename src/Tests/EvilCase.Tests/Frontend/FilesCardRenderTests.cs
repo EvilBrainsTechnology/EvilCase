@@ -265,6 +265,7 @@ public class FilesCardRenderTests
 
         var blobs = new StubBlobUrls();
         ctx.Services.AddSingleton<IBlobUrls>(blobs);
+        ctx.Services.AddSingleton<IFilePreviews>(new StubFilePreviews());
 
         var downloads = 0;
         var component = new Card
@@ -622,6 +623,7 @@ public class FilesCardRenderTests
         using var ctx = NewContext();
 
         ctx.Services.AddSingleton<IBlobUrls>(new StubBlobUrls());
+        ctx.Services.AddSingleton<IFilePreviews>(new StubFilePreviews());
 
         var component = new Card { Files = [PdfFile(), File("Doručenka.zfo"), File("Foto.jpg")] }.Render(ctx);
 

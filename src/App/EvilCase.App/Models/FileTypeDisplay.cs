@@ -21,6 +21,7 @@ public static class FileTypeDisplay
         ["odp"] = FileKind.Presentation,
         ["txt"] = FileKind.Text,
         ["md"] = FileKind.Text,
+        ["markdown"] = FileKind.Text,
         ["log"] = FileKind.Text,
         ["jpg"] = FileKind.Image,
         ["jpeg"] = FileKind.Image,
@@ -65,7 +66,8 @@ public static class FileTypeDisplay
         ["tar"] = FileKind.Archive,
     };
 
-    // The blob's type comes from here and never from the stored media type; a text is decoded, so its type is unused.
+    // The blob's type comes from here and never from the stored media type; a file the app decodes or a library
+    // parses is never shown as a blob of its own type, so its type is unused.
     private static readonly Dictionary<string, (FilePreviewKind Kind, string MediaType)> Previews = new(StringComparer.OrdinalIgnoreCase)
     {
         ["pdf"] = (FilePreviewKind.Pdf, "application/pdf"),
@@ -78,7 +80,8 @@ public static class FileTypeDisplay
         ["bmp"] = (FilePreviewKind.Image, "image/bmp"),
         ["svg"] = (FilePreviewKind.Image, "image/svg+xml"),
         ["txt"] = (FilePreviewKind.Text, "text/plain"),
-        ["md"] = (FilePreviewKind.Text, "text/plain"),
+        ["md"] = (FilePreviewKind.Markdown, "text/markdown"),
+        ["markdown"] = (FilePreviewKind.Markdown, "text/markdown"),
         ["csv"] = (FilePreviewKind.Text, "text/plain"),
         ["tsv"] = (FilePreviewKind.Text, "text/plain"),
         ["json"] = (FilePreviewKind.Text, "text/plain"),
@@ -86,6 +89,16 @@ public static class FileTypeDisplay
         ["log"] = (FilePreviewKind.Text, "text/plain"),
         ["isdoc"] = (FilePreviewKind.Text, "text/plain"),
         ["html"] = (FilePreviewKind.Text, "text/plain"),
+        ["docx"] = (FilePreviewKind.Document, "application/vnd.openxmlformats-officedocument.wordprocessingml.document"),
+        ["xlsx"] = (FilePreviewKind.Workbook, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
+        ["xls"] = (FilePreviewKind.Workbook, "application/vnd.ms-excel"),
+        ["ods"] = (FilePreviewKind.Workbook, "application/vnd.oasis.opendocument.spreadsheet"),
+        ["eml"] = (FilePreviewKind.Email, "message/rfc822"),
+        ["msg"] = (FilePreviewKind.Email, "application/vnd.ms-outlook"),
+        ["heic"] = (FilePreviewKind.ConvertedImage, "image/heic"),
+        ["heif"] = (FilePreviewKind.ConvertedImage, "image/heif"),
+        ["tif"] = (FilePreviewKind.ConvertedImage, "image/tiff"),
+        ["tiff"] = (FilePreviewKind.ConvertedImage, "image/tiff"),
         ["mp3"] = (FilePreviewKind.Audio, "audio/mpeg"),
         ["m4a"] = (FilePreviewKind.Audio, "audio/mp4"),
         ["wav"] = (FilePreviewKind.Audio, "audio/wav"),

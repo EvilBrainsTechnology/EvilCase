@@ -137,6 +137,10 @@ public static class AppIcons
         + "<path d='M12 10V4a1.5 1.5 0 0 1 3 0v6' />"
         + "<path d='M15 10V6a1.5 1.5 0 0 1 3 0v8a6 6 0 0 1-6 6h-1a6 6 0 0 1-5-2.7L3.5 13a1.5 1.5 0 0 1 2.4-1.8L9 14' />";
 
+    public const string Info = "<circle cx='12' cy='12' r='9' />"
+        + "<path d='M12 11v5' />"
+        + "<path d='M12 8h.01' />";
+
     public const string LayoutDashboard = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M5 4h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1' />"
         + "<path d='M5 16h4a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-2a1 1 0 0 1 1 -1' />"

@@ -56,11 +56,22 @@ Esc a Zrušit ho zahodí.
 
 - Náhled běží v prohlížeči nad staženými bajty; typ se pozná podle přípony, uložený
   `MediaType` se nepoužije.
-- Zobrazí se PDF, obrázky (jpg, jpeg, png, gif, webp, avif, bmp, svg), text (txt, md, csv, tsv,
-  json, xml, log, isdoc, html), zvuk (mp3, m4a, wav, ogg, oga) a video (mp4, webm, m4v, mov).
-  Jiný typ nabídne jen stažení.
+- Zobrazí se PDF, obrázky (jpg, jpeg, png, gif, webp, avif, bmp, svg, heic, heif, tif, tiff),
+  text (txt, csv, tsv, json, xml, log, isdoc, html), Markdown (md, markdown), dokument Word
+  (docx), sešit (xlsx, xls, ods), e-mail (eml, msg), zvuk (mp3, m4a, wav, ogg, oga) a video
+  (mp4, webm, m4v, mov). Jiný typ nabídne jen stažení. Soubor, který se nepodaří přečíst, nabídne
+  také jen stažení.
 - Text je vždy prostý text s čísly řádků, nikdy vykreslená stránka; ukáže se nejvýše první
   1 MB a nejvýše 5 000 řádků a náhled řekne, že je soubor delší. SVG je jen obrázek.
+- Markdown se ukáže formátovaně, nejvýše první 1 MB. Syrové HTML v něm se nevykoná, ukáže se
+  jako text; odkaz zůstane jen na webovou nebo e-mailovou adresu a otevře se v nové záložce;
+  obrázky se nenačítají.
+- Dokument Word se ukáže jako stránky a náhled upozorní, že se může od originálu mírně lišit.
+- Sešit se ukáže jako tabulka s kartami listů; z každého listu se ukáže nejvýše prvních
+  1 000 řádků a náhled řekne, že je list delší.
+- E-mail ukáže odesílatele, příjemce, předmět, datum, text zprávy a seznam příloh s velikostí;
+  zpráva nenačítá obrázky a nespouští skripty, HTML tělo se ukáže jako text.
+- HEIC, HEIF a TIFF se ukážou jako obrázek.
 - Náhled listuje mezi soubory karty, ze které se otevřel.
 
 ## Rozhodnutí
