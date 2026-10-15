@@ -1030,6 +1030,10 @@ html {
     font-variant-numeric: tabular-nums;
 }
 
+.ec-file-moment {
+    white-space: nowrap;
+}
+
 .ec-sep {
     margin-inline: var(--ec-space-2);
     color: var(--ec-text-faint);
@@ -1163,7 +1167,7 @@ html {
     gap: var(--ec-space-3);
 }
 
-.ec-file-card-compact .ec-card-title {
+.ec-file-card .ec-card-title {
     white-space: nowrap;
 }
 
@@ -3083,8 +3087,14 @@ html {
         min-height: var(--ec-touch-min);
     }
 
-    .ec-file-drop-hint {
+    .ec .ec-file-drop-hint,
+    .ec-file-upload-more {
         display: none;
+    }
+
+    /* Metadata souboru se lámou jen u oddělovače. */
+    .ec-file-card-compact .ec-file-meta {
+        white-space: normal;
     }
 
     .ec-modal-large {

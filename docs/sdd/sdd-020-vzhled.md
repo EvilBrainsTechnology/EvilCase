@@ -95,8 +95,8 @@ komentář má dva řádky.
 
 Karta souborů nese v záhlaví výzvu „Přetáhněte soubory sem nebo" a tlačítko Nahrát soubory,
 v bočním sloupci „Přetáhněte sem nebo" a Nahrát; záhlaví drží jeden řádek a výzva se bez místa
-zkrátí. Pod seznamem žádný pruh není. Řádek souboru
-je jedno ovládací místo po celé šířce a otevírá náhled; stažení a nabídka ⋯ jsou ohraničená
+zkrátí. Na mobilu záhlaví výzvu nenese a tlačítko je vždy Nahrát. Velikost a okamžik nahrání
+se zalomí jen mezi sebou. Pod seznamem žádný pruh není. Řádek souboru je jedno ovládací místo po celé šířce a otevírá náhled; stažení a nabídka ⋯ jsou ohraničená
 tlačítka jen s ikonou, v nabídce je Přejmenovat a oddělené, červené Smazat…. Při tažení
 souborů přes kartu ji přikryje přerušovaný akcentový rámeček s textem „Pusťte soubory
 a nahrají se k úkonu" (ve spisu „k spisu") a limity. Náhled souboru je velký modal; hlavička

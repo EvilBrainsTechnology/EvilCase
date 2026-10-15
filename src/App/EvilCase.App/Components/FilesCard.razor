@@ -17,7 +17,10 @@
                 <span class="ec-file-drop-hint"><EcIcon Paths="@AppIcons.Hand" />@(this.Compact ? "Přetáhněte sem nebo" : "Přetáhněte soubory sem nebo")</span>
                 <label class="@(this.Compact ? "ec-button ec-button-secondary ec-button-compact ec-file-upload" : "ec-button ec-button-secondary ec-button-standard ec-file-upload")"
                        for="files-upload-input">
-                    <EcIcon Paths="@AppIcons.Upload" />@this.UploadLabel
+                    <EcIcon Paths="@AppIcons.Upload" /><span>@("Nahrát")@if (!this.Compact)
+                    {
+                        <span class="ec-file-upload-more"> soubory</span>
+                    }</span>
                 </label>
             </div>
         </Header>
@@ -90,7 +93,7 @@
                                         <button type="button" class="ec-file-name" @ref="this.nameButtons[file.FileId]"
                                                 title="@(this.Compact ? file.FileName : this.OpenTitle(file))"
                                                 disabled="@busy" @onclick="() => this.Open(file)">@file.FileName</button>
-                                        <span class="ec-file-meta">@FileSizeDisplay.Text(file.SizeBytes)<span class="ec-sep" aria-hidden="true">·</span>@MomentDisplay.Text(file.Created)</span>
+                                        <span class="ec-file-meta">@FileSizeDisplay.Text(file.SizeBytes)<span class="ec-sep" aria-hidden="true">·</span><span class="ec-file-moment">@MomentDisplay.Text(file.Created)</span></span>
                                     </div>
                                     <div class="ec-file-actions">
                                         <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Download"

@@ -182,6 +182,7 @@ public class FilesCardRenderTests
         {
             Assert.That(component.Find(".ec-card-header .ec-file-drop-hint").TextContent.Trim(), Is.EqualTo("Přetáhněte soubory sem nebo"));
             Assert.That(component.Find(".ec-card-header label.ec-file-upload").TextContent.Trim(), Is.EqualTo("Nahrát soubory"));
+            Assert.That(component.Find("label.ec-file-upload .ec-file-upload-more").TextContent, Is.EqualTo(" soubory"), "the mobile button drops the word it wraps");
             Assert.That(component.FindAll(".ec-file-drop"), Is.Empty, "the drop strip below the list is gone");
             Assert.That(component.FindAll(".ec-file-drop-compact"), Is.Empty);
         }
@@ -371,7 +372,11 @@ public class FilesCardRenderTests
         var file = PdfFile();
         var component = new Card { Files = [file] }.Render(ctx);
 
-        Assert.That(component.Find(".ec-file-meta").TextContent, Is.EqualTo($"1\u00A0kB·{MomentDisplay.Text(file.Created)}"));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.Find(".ec-file-meta").TextContent, Is.EqualTo($"1\u00A0kB·{MomentDisplay.Text(file.Created)}"));
+            Assert.That(component.Find(".ec-file-meta .ec-file-moment").TextContent, Is.EqualTo(MomentDisplay.Text(file.Created)), "the moment never breaks inside");
+        }
     }
 
     [Test]
