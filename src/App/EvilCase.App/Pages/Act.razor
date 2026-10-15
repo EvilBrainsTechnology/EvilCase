@@ -236,7 +236,7 @@
         : [
             new EcCrumb("Spisy", "/cases"),
             new EcCrumb(this.Detail.CaseTitle, $"/cases/{this.Detail.CaseId}"),
-            new EcCrumb(this.Detail.ActNumber, null),
+            new EcCrumb(this.Detail.ActNumber, null, Mono: true),
         ];
 
     private IReadOnlyList<EcMenuItem> ActActions
