@@ -61,7 +61,14 @@
                     </Actions>
                 </EcPageHeader>
 
-                <p class="ec-detail-text">@(string.IsNullOrWhiteSpace(this.Detail.Description) ? "—" : CzechTypography.Text(this.Detail.Description))</p>
+                @if (string.IsNullOrWhiteSpace(this.Detail.Description))
+                {
+                    <p class="ec-detail-text"><span class="ec-cell-empty">—</span></p>
+                }
+                else
+                {
+                    <p class="ec-detail-text">@CzechTypography.Text(this.Detail.Description)</p>
+                }
 
                 <div class="ec-detail-facts">
                     <div class="ec-detail-fact">
@@ -79,7 +86,7 @@
                     {
                         <div class="ec-detail-fact">
                             <span class="ec-detail-fact-name">Externí číslo jednací</span>
-                            <span class="ec-detail-fact-mono">—</span>
+                            <span class="ec-detail-fact-value ec-cell-empty">—</span>
                         </div>
                     }
                     else
@@ -100,7 +107,7 @@
                         }
                         else
                         {
-                            <span class="ec-detail-fact-value">—</span>
+                            <span class="ec-detail-fact-value ec-cell-empty">—</span>
                         }
                         @if (ActContactRules.DifferingCaseContact(this.Detail.Contact, this.Detail.CaseContact) is { } differing)
                         {
@@ -159,7 +166,7 @@
                         }
                         else
                         {
-                            <span>—</span>
+                            <span class="ec-cell-empty">—</span>
                         }
                     </div>
                 </EcCard>

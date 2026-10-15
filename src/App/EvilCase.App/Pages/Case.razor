@@ -34,7 +34,14 @@
                     </Actions>
                 </EcPageHeader>
 
-                <p class="ec-detail-text">@(string.IsNullOrWhiteSpace(this.Detail.Description) ? "—" : CzechTypography.Text(this.Detail.Description))</p>
+                @if (string.IsNullOrWhiteSpace(this.Detail.Description))
+                {
+                    <p class="ec-detail-text"><span class="ec-cell-empty">—</span></p>
+                }
+                else
+                {
+                    <p class="ec-detail-text">@CzechTypography.Text(this.Detail.Description)</p>
+                }
 
                 <div class="ec-detail-facts">
                     <div class="ec-detail-fact">
@@ -52,7 +59,7 @@
                     {
                         <div class="ec-detail-fact">
                             <span class="ec-detail-fact-name">Externí spisová značka</span>
-                            <span class="ec-detail-fact-mono">—</span>
+                            <span class="ec-detail-fact-value ec-cell-empty">—</span>
                         </div>
                     }
                     else
@@ -73,7 +80,7 @@
                         }
                         else
                         {
-                            <span class="ec-detail-fact-value">—</span>
+                            <span class="ec-detail-fact-value ec-cell-empty">—</span>
                         }
                     </div>
                     <div class="ec-detail-fact">
@@ -84,7 +91,7 @@
                         }
                         else
                         {
-                            <span class="ec-detail-fact-value">—</span>
+                            <span class="ec-detail-fact-value ec-cell-empty">—</span>
                         }
                     </div>
                     <div class="ec-detail-fact ec-detail-fact-labels">

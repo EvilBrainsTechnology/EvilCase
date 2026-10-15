@@ -114,7 +114,7 @@ internal static class SampleData
         new()
         {
             Key = MainCaseKey,
-            Title = "Překročení rychlosti Vzorov — 121 km/h v úseku 110",
+            Title = "Překročení rychlosti Vzorov – 121 km/h v úseku 110",
             Status = CaseStatus.Active,
             Date = new DateOnly(2025, 5, 28),
             Description = "Řízení o odpovědnosti provozovatele vozidla za překročení nejvyšší dovolené "
@@ -133,7 +133,7 @@ internal static class SampleData
         {
             Key = "s01",
             ParentKey = MainCaseKey,
-            Title = "Žádost o informace — Ministerstvo dopravy",
+            Title = "Žádost o informace – Ministerstvo dopravy",
             Status = CaseStatus.Closed,
             Date = new DateOnly(2025, 6, 2),
             CounterpartyKey = "ministry-transport",
@@ -144,7 +144,7 @@ internal static class SampleData
         {
             Key = "s02",
             ParentKey = MainCaseKey,
-            Title = "Žádost o informace — Policie Vzorového kraje",
+            Title = "Žádost o informace – Policie Vzorového kraje",
             Status = CaseStatus.Closed,
             Date = new DateOnly(2025, 6, 3),
             CounterpartyKey = "police",
@@ -155,7 +155,7 @@ internal static class SampleData
         {
             Key = "s03",
             ParentKey = MainCaseKey,
-            Title = "Žádost o informace — Vzorov 1",
+            Title = "Žádost o informace – Vzorov 1",
             Status = CaseStatus.Closed,
             Date = new DateOnly(2025, 6, 4),
             CounterpartyKey = "first-instance",
@@ -165,7 +165,7 @@ internal static class SampleData
         {
             Key = "s04",
             ParentKey = MainCaseKey,
-            Title = "Žádost o informace — Vzorov 2, sběrný arch spisu",
+            Title = "Žádost o informace – Vzorov 2, sběrný arch spisu",
             Status = CaseStatus.Closed,
             Date = new DateOnly(2025, 6, 5),
             CounterpartyKey = "first-instance",
@@ -175,7 +175,7 @@ internal static class SampleData
         {
             Key = "s05",
             ParentKey = MainCaseKey,
-            Title = "Žádost o informace — Vzorov 3",
+            Title = "Žádost o informace – Vzorov 3",
             Status = CaseStatus.Closed,
             Date = new DateOnly(2025, 6, 6),
             CounterpartyKey = "first-instance",
@@ -185,7 +185,7 @@ internal static class SampleData
         {
             Key = "s06",
             ParentKey = MainCaseKey,
-            Title = "Žádost o informace — Vzorov 4, přípis",
+            Title = "Žádost o informace – Vzorov 4, přípis",
             Status = CaseStatus.Closed,
             Date = new DateOnly(2025, 6, 9),
             CounterpartyKey = "first-instance",
@@ -195,7 +195,7 @@ internal static class SampleData
         {
             Key = "s07",
             ParentKey = MainCaseKey,
-            Title = "Žádost o informace — Vzorov 4, přípis krajskému úřadu",
+            Title = "Žádost o informace – Vzorov 4, přípis krajskému úřadu",
             Status = CaseStatus.Closed,
             Date = new DateOnly(2025, 6, 10),
             CounterpartyKey = "appellate",
@@ -205,7 +205,7 @@ internal static class SampleData
         {
             Key = "s08",
             ParentKey = MainCaseKey,
-            Title = "Žádost o informace — Vzorov 5, pokyny pověřené úřední osobě",
+            Title = "Žádost o informace – Vzorov 5, pokyny pověřené úřední osobě",
             Status = CaseStatus.Closed,
             Date = new DateOnly(2025, 6, 11),
             CounterpartyKey = "first-instance",
@@ -215,7 +215,7 @@ internal static class SampleData
         {
             Key = "s09",
             ParentKey = MainCaseKey,
-            Title = "Žádost o informace — silniční správní úřad",
+            Title = "Žádost o informace – silniční správní úřad",
             Status = CaseStatus.Closed,
             Date = new DateOnly(2025, 6, 12),
             CounterpartyKey = "roads",
@@ -246,7 +246,7 @@ internal static class SampleData
         {
             Key = "s12",
             ParentKey = MainCaseKey,
-            Title = "Náhrada nemajetkové újmy — Ministerstvo vnitra",
+            Title = "Náhrada nemajetkové újmy – Ministerstvo vnitra",
             Status = CaseStatus.WaitingOnAuthority,
             Date = new DateOnly(2025, 9, 10),
             CounterpartyKey = "ministry-interior",
@@ -256,7 +256,7 @@ internal static class SampleData
         {
             Key = "s13",
             ParentKey = "s12",
-            Title = "Žádost o informace — Ministerstvo vnitra",
+            Title = "Žádost o informace – Ministerstvo vnitra",
             Status = CaseStatus.Closed,
             Date = new DateOnly(2025, 9, 15),
             CounterpartyKey = "ministry-interior",
@@ -404,7 +404,7 @@ internal static class SampleData
         new()
         {
             Direction = ActDirection.Outgoing,
-            Title = "Doplnění žaloby — materiální stránka přestupku",
+            Title = "Doplnění žaloby – materiální stránka přestupku",
             Date = new DateOnly(2025, 10, 13),
             CounterpartyKey = "court",
             ExternalActNumber = "10 A 1/2025",
@@ -412,7 +412,7 @@ internal static class SampleData
         new()
         {
             Direction = ActDirection.Outgoing,
-            Title = "Doplnění žaloby — nezákonnost měření rychlosti",
+            Title = "Doplnění žaloby – nezákonnost měření rychlosti",
             Date = new DateOnly(2025, 10, 14),
             CounterpartyKey = "court",
             ExternalActNumber = "10 A 1/2025",
@@ -452,7 +452,7 @@ internal static class SampleData
         new()
         {
             Direction = ActDirection.Outgoing,
-            Title = "Doplnění žaloby — rozpor mezi rozhodnutími a replika k vyjádření žalovaného",
+            Title = "Doplnění žaloby – rozpor mezi rozhodnutími a replika k vyjádření žalovaného",
             Date = new DateOnly(2025, 11, 3),
             CounterpartyKey = "court",
             ExternalActNumber = "10 A 1/2025",

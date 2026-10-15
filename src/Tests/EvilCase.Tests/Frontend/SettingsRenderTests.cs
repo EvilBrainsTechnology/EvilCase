@@ -60,7 +60,7 @@ public class SettingsRenderTests
         {
             Assert.That(
                 component.FindAll(".ec-settings-row-count").Select(static cell => cell.TextContent),
-                Is.EqualTo(["4", "1", "–", "–"]),
+                Is.EqualTo(["4", "1", "—", "—"]),
                 "a zero count shows a dash");
             Assert.That(
                 component.FindAll(".ec-settings-row-usage").Select(static cell => cell.TextContent),

@@ -4208,6 +4208,7 @@ html:has(.ec-gate) {
 .ec-cell-empty {
     font-family: var(--ec-font);
     font-size: var(--ec-text-sm);
+    font-weight: var(--ec-weight-regular);
     color: var(--ec-text-faint);
 }
 

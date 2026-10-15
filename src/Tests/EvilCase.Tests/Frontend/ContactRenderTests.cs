@@ -134,6 +134,7 @@ public class ContactRenderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(component.FindAll(".ec-detail-fact").Select(static fact => fact.QuerySelector(":scope > span:last-child")!.TextContent), Is.EqualTo(["—", "—"]));
+            Assert.That(component.FindAll(".ec-detail-facts .ec-cell-empty"), Has.Count.EqualTo(2), "a missing value reads as a light dash (SDD-020)");
             Assert.That(component.FindAll(".ec-detail-facts .ec-copy"), Is.Empty);
         }
     }
