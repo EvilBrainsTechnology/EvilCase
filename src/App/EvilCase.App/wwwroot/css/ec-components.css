@@ -4934,6 +4934,11 @@ html:has(.ec-gate) {
         flex: 1 0 auto;
     }
 
+    /* Lišta seznamu má na mobilu jednu velikost písma, jako její select. */
+    .ec-table-bar :is(.ec-button, .ec-segment, .ec-check) {
+        font-size: var(--ec-text-lg);
+    }
+
     .ec-filter-field-grow {
         flex: 0 0 auto;
     }
