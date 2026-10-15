@@ -2321,7 +2321,7 @@ html {
     position: relative;
     min-height: var(--ec-control-form);
     box-sizing: border-box;
-    padding: var(--ec-space-2) var(--ec-space-3);
+    padding: var(--ec-space-2) var(--ec-space-4);
     border: 1px solid var(--ec-border-strong);
     border-radius: var(--ec-radius-lg);
     background: var(--ec-surface);
@@ -2347,6 +2347,8 @@ html {
 .ec-label-field-box .ec-label-input {
     flex: 1 1 auto;
     width: auto;
+    height: auto;
+    padding: 0;
     border: 0;
     box-shadow: none;
     background: transparent;
