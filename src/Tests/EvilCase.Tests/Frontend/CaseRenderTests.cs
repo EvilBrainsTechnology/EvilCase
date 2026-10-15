@@ -150,6 +150,38 @@ public class CaseRenderTests
     }
 
     [Test]
+    public void AMissingCaseSaysSoAndLeadsBackToTheCases()
+    {
+        using var ctx = new BunitContext();
+
+        var caseId = Guid.CreateVersion7();
+
+        var detail = new CaseDetail
+        {
+            CaseId = caseId,
+            CaseNumber = "EC/20260821-001",
+            Date = new DateOnly(2026, 8, 21),
+            Title = "Přestupek",
+            Status = CaseStatus.Active,
+        };
+
+        var (casesClient, _, _, _) = Serve(ctx, caseId, detail);
+        casesClient
+            .GetCase(caseId, Arg.Any<CancellationToken>())
+            .Returns(static _ => Task.FromException<CaseDetail>(new ApiException(HttpStatusCode.NotFound, responseBody: null)));
+
+        var component = ctx.Render<Case>(parameters => parameters.Add(static page => page.CaseId, caseId));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.Find(".ec-empty .ec-icon"), Is.Not.Null, "a not-found state is an empty state with its icon (SDD-020)");
+            Assert.That(component.Find(".ec-empty-text").TextContent, Is.EqualTo("Spis nenalezen."));
+            Assert.That(component.Find(".ec-empty a.ec-button").GetAttribute("href"), Is.EqualTo("/cases"));
+            Assert.That(component.Find(".ec-empty a.ec-button").TextContent.Trim(), Is.EqualTo("Zpět na spisy"));
+        }
+    }
+
+    [Test]
     public async Task DeletingIsConfirmedAndTheSentenceNamesWhatTheCascadeTakes()
     {
         await using var ctx = new BunitContext();

@@ -19,7 +19,7 @@
 
     @if (this.contact is null)
     {
-        <DetailStatus NotFound="this.notFound" NotFoundText="Kontakt nenalezen." Failure="@this.failure" Retry="this.LoadContact" />
+        <DetailStatus NotFound="this.notFound" NotFoundText="Kontakt nenalezen." BackHref="/contacts" BackText="Zpět na kontakty" Failure="@this.failure" Retry="this.LoadContact" />
     }
     else
     {

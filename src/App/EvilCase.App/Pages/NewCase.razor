@@ -16,7 +16,7 @@
 
     @if (this.parentNotFound)
     {
-        <EcCard><p class="ec-state">Nadřízený spis nenalezen.</p></EcCard>
+        <NotFoundCard Text="Nadřízený spis nenalezen." BackHref="/cases" BackText="Zpět na spisy" />
     }
     else if (this.failure is not null)
     {

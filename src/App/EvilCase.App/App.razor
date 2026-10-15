@@ -20,7 +20,9 @@
         </Found>
         <NotFound>
             <LayoutView Layout="typeof(MainLayout)">
-                <p>Stránka nenalezena.</p>
+                <div class="ec-page">
+                    <NotFoundCard Text="Stránka nenalezena." BackHref="/" BackText="Zpět na přehled" />
+                </div>
             </LayoutView>
         </NotFound>
     </Router>

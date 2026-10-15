@@ -112,7 +112,8 @@ při přechodu na stejném místě, na desktopu i na mobilu.
 
 Každý seznam a každá karta má stav načítání, chyby, prázdna a plného obsahu. Prázdný stav nese
 ikonu, jednu větu a tam, kde jde záznam založit, i výzvu. Chyba nese větu, co se nepovedlo,
-a nabídku opakování. Načítání drží výšku, aby obsah neposkakoval.
+a nabídku opakování. Nenalezený záznam nebo stránka nese ikonu, větu a odkaz zpět na seznam.
+Načítání drží výšku, aby obsah neposkakoval.
 
 Ovládací prvek má viditelný stav nad myší, při fokusu a zakázaný; fokus je vidět vždy
 a klávesnicí se dá projít celá obrazovka. Pole, které neprošlo kontrolou, má červený rámeček

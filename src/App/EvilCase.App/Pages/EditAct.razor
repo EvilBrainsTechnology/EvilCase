@@ -17,7 +17,7 @@
 
     @if (this.notFound)
     {
-        <EcCard><p class="ec-state">Úkon nenalezen.</p></EcCard>
+        <NotFoundCard Text="Úkon nenalezen." BackHref="/acts" BackText="Zpět na úkony" />
     }
     else if (this.failure is not null)
     {

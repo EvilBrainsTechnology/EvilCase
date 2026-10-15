@@ -1,0 +1,18 @@
+<EcCard>
+    <EcEmptyState Icon="@AppIcons.Search" Text="@this.Text">
+        <Action>
+            <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.ChevronLeft" Href="@this.BackHref">@this.BackText</EcButton>
+        </Action>
+    </EcEmptyState>
+</EcCard>
+
+@code {
+    [Parameter, EditorRequired]
+    public required string Text { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string BackHref { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string BackText { get; set; }
+}

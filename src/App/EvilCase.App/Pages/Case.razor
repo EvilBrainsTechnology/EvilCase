@@ -18,7 +18,7 @@
 
     @if (this.Detail is null)
     {
-        <DetailStatus NotFound="this.NotFound" NotFoundText="Spis nenalezen." Failure="@this.Failure" Retry="this.Load" />
+        <DetailStatus NotFound="this.NotFound" NotFoundText="Spis nenalezen." BackHref="/cases" BackText="Zpět na spisy" Failure="@this.Failure" Retry="this.Load" />
     }
     else
     {
