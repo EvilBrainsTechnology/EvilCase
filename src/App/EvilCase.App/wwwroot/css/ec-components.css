@@ -397,6 +397,7 @@ html {
 
 .ec-form-note {
     font-size: var(--ec-text-sm);
+    line-height: var(--ec-leading-body);
     color: var(--ec-text-muted);
 }
 
@@ -425,6 +426,7 @@ html {
 
 .ec-field-hint {
     font-size: var(--ec-text-xs);
+    line-height: var(--ec-leading-body);
     color: var(--ec-text-muted);
 }
 
@@ -805,8 +807,13 @@ html {
 .ec-card-text {
     margin: var(--ec-space-3) 0 0;
     font-size: var(--ec-text-sm);
+    line-height: var(--ec-leading-body);
     color: var(--ec-text-muted);
     text-wrap: pretty;
+}
+
+.ec-card-text:first-child {
+    margin-top: 0;
 }
 
 .ec-file-icon {
@@ -875,6 +882,7 @@ html {
 .ec-empty-text {
     margin: 0;
     font-size: var(--ec-text-sm);
+    line-height: var(--ec-leading-body);
 }
 
 .ec-empty-hint {
