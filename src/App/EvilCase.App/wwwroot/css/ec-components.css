@@ -4834,6 +4834,10 @@ html:has(.ec-gate) {
         min-height: var(--ec-touch-min);
     }
 
+    .ec-kbd {
+        display: none;
+    }
+
     /* Pole má na mobilu písmo 16 px. */
     .ec :is(.ec-input, .ec-select, .ec-textarea, .ec-search-input, .ec-label-input, .ec-topsearch-input) {
         font-size: var(--ec-text-lg);
