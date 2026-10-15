@@ -1499,16 +1499,16 @@ html:has(.ec-gate) {
 }
 
 .ec-preview-markdown h1 {
-    font-size: calc(var(--ec-text-xl) * 1.5);
+    font-size: var(--ec-title-mobile);
 }
 
 .ec-preview-markdown h2 {
-    font-size: calc(var(--ec-text-xl) * 1.2);
+    font-size: var(--ec-text-xl);
 }
 
 .ec-preview-markdown h3,
 .ec-preview-markdown h4 {
-    font-size: var(--ec-text-xl);
+    font-size: var(--ec-text-lg);
 }
 
 .ec-preview-markdown p,

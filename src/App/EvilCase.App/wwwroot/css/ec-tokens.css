@@ -354,7 +354,7 @@
     --ec-sr-max-height: 700px;
     --ec-sr-shadow: 0 18px 48px rgba(20, 22, 27, 0.18), 0 2px 6px rgba(20, 22, 27, 0.08);
     --ec-sr-icon: 34px;
-    --ec-sr-mono-text: 11.5px;
+    --ec-sr-mono-text: var(--ec-text-2xs);
     --ec-sr-row-height: 54px;
     --ec-sr-row-height-touch: 56px;
     --ec-sr-badge-height: 20px;
