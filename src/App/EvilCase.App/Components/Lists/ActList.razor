@@ -49,6 +49,7 @@
             {
                 Header = "Kontakt",
                 Width = "var(--ec-list-col-contact)",
+                CellClass = "ec-cell-contact",
                 Cell = item =>@<text>
                     @if (string.IsNullOrEmpty(item.ContactName))
                     {

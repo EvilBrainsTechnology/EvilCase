@@ -4396,13 +4396,29 @@ html:has(.ec-gate) {
         row-gap: var(--ec-space-1);
     }
 
-    .ec-table-cell-primary .ec-cell-text:not(.ec-cell-sub) {
+    .ec-table-cell-primary .ec-cell-text:not(.ec-cell-sub),
+    .ec-table-cell-primary .ec-contact-name-text {
         display: -webkit-box;
         flex: 1 0 100%;
         white-space: normal;
         -webkit-box-orient: vertical;
         -webkit-line-clamp: 2;
         line-clamp: 2;
+    }
+
+    /* Prázdný údaj na mobilu řádek nenese. */
+    .ec-table-row > .ec-table-cell:has(> .ec-cell-empty:only-child) {
+        display: none;
+    }
+
+    /* Kontakt sdílí řádek s číslem jednacím a bez místa se zkrátí. */
+    .ec-table-row > .ec-cell-contact {
+        flex: 1 1 var(--ec-list-col-contact);
+        min-width: 0;
+    }
+
+    .ec-cell-contact .ec-cell-text {
+        min-width: 0;
     }
 
     .ec-table .ec-card-footer .ec-button {
