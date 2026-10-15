@@ -476,6 +476,20 @@ html {
     box-shadow: var(--ec-focus-ring);
 }
 
+/* Blazor značí pole, které neprošlo validací, třídou invalid a aria-invalid. */
+.ec-input:is(.invalid, [aria-invalid="true"]),
+.ec-select:is(.invalid, [aria-invalid="true"]),
+.ec-textarea:is(.invalid, [aria-invalid="true"]) {
+    border-color: var(--ec-danger-text);
+}
+
+.ec-input:is(.invalid, [aria-invalid="true"]):focus-visible,
+.ec-select:is(.invalid, [aria-invalid="true"]):focus-visible,
+.ec-textarea:is(.invalid, [aria-invalid="true"]):focus-visible {
+    border-color: var(--ec-danger-text);
+    box-shadow: var(--ec-focus-ring-danger);
+}
+
 .ec-input::placeholder,
 .ec-select::placeholder,
 .ec-textarea::placeholder {
@@ -2297,6 +2311,14 @@ html {
 .ec-label-field-box:focus-within {
     border-color: var(--ec-accent);
     box-shadow: var(--ec-focus-ring);
+}
+
+.ec-label-field-box:has(.invalid, [aria-invalid="true"]) {
+    border-color: var(--ec-danger-text);
+}
+
+.ec-label-field-box:has(.invalid, [aria-invalid="true"]):focus-within {
+    box-shadow: var(--ec-focus-ring-danger);
 }
 
 .ec-label-field-box .ec-label-search {

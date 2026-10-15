@@ -114,7 +114,8 @@ ikonu, jednu větu a tam, kde jde záznam založit, i výzvu. Chyba nese větu, 
 a nabídku opakování. Načítání drží výšku, aby obsah neposkakoval.
 
 Ovládací prvek má viditelný stav nad myší, při fokusu a zakázaný; fokus je vidět vždy
-a klávesnicí se dá projít celá obrazovka. Destruktivní akce se potvrzuje a věta potvrzení
+a klávesnicí se dá projít celá obrazovka. Pole, které neprošlo kontrolou, má červený rámeček
+a chybu pod sebou. Destruktivní akce se potvrzuje a věta potvrzení
 jmenuje, co kaskáda bere.
 
 ### Mobil

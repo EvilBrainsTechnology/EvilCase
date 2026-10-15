@@ -318,6 +318,7 @@
     --ec-shadow-raised: 0 1px 2px rgba(20, 22, 27, 0.08);
     --ec-shadow-overlay: 0 12px 32px rgba(20, 22, 27, 0.16);
     --ec-focus-ring: 0 0 0 3px rgba(31, 63, 174, 0.35);
+    --ec-focus-ring-danger: 0 0 0 3px rgba(155, 44, 31, 0.25);
     --ec-overlay: rgba(20, 22, 27, 0.4);
     --ec-nav-marker: inset 0 -2px 0 var(--ec-accent);
 
