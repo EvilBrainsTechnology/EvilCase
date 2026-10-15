@@ -121,7 +121,7 @@ a chybu pod sebou. Destruktivní akce se potvrzuje a věta potvrzení jmenuje, c
 
 Desktop je primární, každá denně používaná obrazovka je plnohodnotná i na mobilu. Menu se
 schová do zásuvky, boční sloupec se zařadí pod hlavní, formulář má jeden sloupec a jeho
-tlačítka zůstávají u spodního okraje okna. Seznam se nikdy neposouvá vodorovně: na úzké šířce
+tlačítka zůstávají u spodního okraje okna. Pole má na mobilu písmo 16 px. Seznam se nikdy neposouvá vodorovně: na úzké šířce
 se řádek přeskládá na dva až tři řádky a řazení přebírá select v liště.
 
 ### Bez cizí knihovny

@@ -31,18 +31,13 @@ html {
     color: var(--ec-accent-text);
 }
 
-.ec button,
-.ec input,
-.ec select,
-.ec textarea {
+/* Bez specificity, aby pravidlo s třídou pole vždy vyhrálo. */
+:where(.ec) :where(button, input, select, textarea) {
     font-family: inherit;
     font-size: inherit;
 }
 
-.ec button:where(:not(.ec-button)),
-.ec input,
-.ec select,
-.ec textarea {
+:where(.ec) :where(button:not(.ec-button), input, select, textarea) {
     color: inherit;
 }
 
@@ -4777,5 +4772,10 @@ html:has(.ec-gate) {
 
     .ec-filter-clear {
         min-height: var(--ec-touch-min);
+    }
+
+    /* Pole má na mobilu písmo 16 px. */
+    .ec :is(.ec-input, .ec-select, .ec-textarea, .ec-search-input, .ec-label-input, .ec-topsearch-input) {
+        font-size: var(--ec-text-lg);
     }
 }
