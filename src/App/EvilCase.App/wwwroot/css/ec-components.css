@@ -2696,6 +2696,7 @@ html:has(.ec-gate) {
 .ec-case-link-title {
     font-size: var(--ec-text-md);
     font-weight: var(--ec-weight-medium);
+    text-wrap: pretty;
 }
 
 .ec-case-link-number {
@@ -4475,6 +4476,7 @@ html:has(.ec-gate) {
         display: -webkit-box;
         flex: 1 0 100%;
         white-space: normal;
+        text-wrap: pretty;
         -webkit-box-orient: vertical;
         -webkit-line-clamp: 2;
         line-clamp: 2;
