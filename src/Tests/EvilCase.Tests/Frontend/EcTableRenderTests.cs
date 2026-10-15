@@ -38,6 +38,22 @@ public class EcTableRenderTests
     }
 
     [Test]
+    public void AnEmptyListThatPagesCountsZero()
+    {
+        using var emptyCtx = new BunitContext();
+        var empty = Render(emptyCtx, title: "Úkony", items: [], total: 0, showPaging: true);
+
+        using var loadingCtx = new BunitContext();
+        var loading = Render(loadingCtx, title: "Úkony", items: [], loading: true, total: 0, showPaging: true);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(empty.Find(".ec-card-count").TextContent, Is.EqualTo("0"));
+            Assert.That(loading.FindAll(".ec-card-count"), Is.Empty, "a list still loading has no count yet");
+        }
+    }
+
+    [Test]
     public void TheRowIsOneLinkAcrossEveryColumn()
     {
         using var ctx = new BunitContext();

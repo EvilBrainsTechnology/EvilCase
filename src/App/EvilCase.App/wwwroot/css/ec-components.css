@@ -4549,6 +4549,11 @@ html:has(.ec-gate) {
     --ec-list-col-status: var(--ec-case-act-col-number);
 }
 
+/* Prázdný seznam vedle plného je jen tak vysoký, jak potřebuje jeho věta. */
+.ec-contact-occurrences .ec-table .ec-empty {
+    min-height: 0;
+}
+
 .ec-contact-occurrences .ec-table-bar {
     padding: 0 var(--ec-space-6) var(--ec-space-4);
 }
