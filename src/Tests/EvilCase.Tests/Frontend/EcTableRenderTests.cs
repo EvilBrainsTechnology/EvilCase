@@ -246,6 +246,20 @@ public class EcTableRenderTests
     }
 
     [Test]
+    public void ASinglePageKeepsTheRangeButOffersNoPaging()
+    {
+        using var ctx = new BunitContext();
+
+        var component = Render(ctx, skip: 0, take: 20, total: 3, showPaging: true);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.Find(".ec-table-range").TextContent, Is.EqualTo("1–3\u00A0z\u00A03"));
+            Assert.That(component.FindAll(".ec-card-footer button"), Is.Empty, "one page has nowhere to page to");
+        }
+    }
+
+    [Test]
     public void TheFooterStaysAwayWhereTheHostAsksForNoPaging()
     {
         using var ctx = new BunitContext();
