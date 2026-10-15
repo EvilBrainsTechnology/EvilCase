@@ -4698,13 +4698,17 @@ html:has(.ec-gate) {
         width: auto;
     }
 
+    /* Přepínač drží jeden řádek; co se nevejde, odjede vodorovně. */
     .ec-table-bar .ec-segmented {
         flex: 1 1 100%;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
+        min-width: 0;
+        overflow-x: auto;
+        scrollbar-width: none;
     }
 
     .ec-table-bar .ec-segmented-compact .ec-segment {
-        flex: 1 1 auto;
+        flex: 1 0 auto;
     }
 
     .ec-filter-field-grow {
