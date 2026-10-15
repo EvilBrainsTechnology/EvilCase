@@ -811,18 +811,6 @@ html:has(.ec-gate) {
     color: var(--ec-text-muted);
 }
 
-.ec-parent-link {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ec-space-1);
-}
-
-.ec-parent-number {
-    font-family: var(--ec-font-mono);
-    font-size: var(--ec-text-sm);
-    color: var(--ec-text-muted);
-}
-
 .ec-card-text {
     margin: var(--ec-space-3) 0 0;
     font-size: var(--ec-text-sm);
@@ -2693,6 +2681,10 @@ html:has(.ec-gate) {
 
 .ec-case-link:hover {
     background: var(--ec-border-subtle);
+}
+
+.ec-case-link + .ec-card-text {
+    margin-top: var(--ec-space-4);
 }
 
 .ec-case-link-title {

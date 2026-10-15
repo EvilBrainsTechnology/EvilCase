@@ -121,9 +121,9 @@
 
             <aside class="ec-form-aside">
                 <EcCard Title="Spis">
-                    <a class="ec-parent-link" href="/cases/@this.act.CaseId">
-                        <span>@this.act.CaseTitle</span>
-                        <span class="ec-parent-number">@this.act.CaseNumber</span>
+                    <a class="ec-case-link" href="/cases/@this.act.CaseId">
+                        <span class="ec-case-link-title">@CzechTypography.Text(this.act.CaseTitle)</span>
+                        <span class="ec-case-link-number">@this.act.CaseNumber</span>
                     </a>
                     <p class="ec-card-text">Úkon patří pod tento spis. Přesunout ho jinam nejde.</p>
                 </EcCard>

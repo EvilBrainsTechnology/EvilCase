@@ -129,9 +129,9 @@
                 @if (this.caseDetail is not null)
                 {
                     <EcCard Title="Spis">
-                        <a class="ec-parent-link" href="/cases/@this.caseDetail.CaseId">
-                            <span>@this.caseDetail.Title</span>
-                            <span class="ec-parent-number">@this.caseDetail.CaseNumber</span>
+                        <a class="ec-case-link" href="/cases/@this.caseDetail.CaseId">
+                            <span class="ec-case-link-title">@CzechTypography.Text(this.caseDetail.Title)</span>
+                            <span class="ec-case-link-number">@this.caseDetail.CaseNumber</span>
                         </a>
                         <p class="ec-card-text">Úkon vzniká pod tímto spisem. Přesunout ho jinam nejde.</p>
                     </EcCard>
