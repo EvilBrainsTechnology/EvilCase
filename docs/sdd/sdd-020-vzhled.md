@@ -47,7 +47,7 @@ Aplikace má vlastní sadu komponent s prefixem `Ec`. Obrazovka skládá jen je,
 - `EcPageHeader` — drobečky, název, stav, akce vpravo.
 - `EcCard` — bílá plocha s linkou a rádiusem 16 px, volitelnou hlavičkou a patičkou.
 - `EcButton` — varianty `primary`, `secondary`, `ghost`, `danger`; každé tlačítko nese ikonu
-  vlevo od textu. Tlačítko jen s ikonou má `aria-label`. Tichá textová akce u položky nebo
+  vlevo od textu. `danger` je plné tmavě červené tlačítko s bílým textem a potvrzuje smazání. Tlačítko jen s ikonou má `aria-label`. Tichá textová akce u položky nebo
   v liště (Upravit a Smazat u komentáře, Zrušit filtry, Zobrazit i uzavřené) je výjimka: text
   bez ikony a bez plochy; mazání nese barvu chyby.
 - `EcBadge` — pilulka pro stav spisu, směr úkonu a typ kontaktu; stav nese barevnou tečku, směr

@@ -149,13 +149,15 @@ html {
 }
 
 .ec-button-danger {
-    background: var(--ec-danger-bg);
-    border-color: var(--ec-danger-border);
-    color: var(--ec-danger-text);
+    background: var(--ec-danger-solid);
+    border-color: var(--ec-danger-solid);
+    color: var(--ec-on-accent);
+    font-weight: var(--ec-weight-semibold);
 }
 
 .ec-button-danger:hover:enabled {
-    background: var(--ec-danger-border);
+    background: var(--ec-danger-solid-hover);
+    border-color: var(--ec-danger-solid-hover);
 }
 
 .ec-card {
