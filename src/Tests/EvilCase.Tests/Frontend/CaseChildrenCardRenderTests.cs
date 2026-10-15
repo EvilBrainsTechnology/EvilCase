@@ -62,7 +62,7 @@ public class CaseChildrenCardRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.Find(".ec-child-status").TextContent.Trim(), Is.EqualTo("Aktivní · 2.\u00A010.\u00A02025"));
+            Assert.That(component.Find(".ec-child-status").TextContent.Trim(), Is.EqualTo("Aktivní·2.\u00A010.\u00A02025"));
             Assert.That(component.Find(".ec-child-title").GetAttribute("title"), Is.EqualTo("Předžalobní výzva"));
             Assert.That(component.Find("a.ec-child-row").GetAttribute("href"), Is.EqualTo($"/cases/{child.CaseId}"));
         }

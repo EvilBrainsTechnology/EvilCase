@@ -37,7 +37,11 @@
                             <span class="ec-comment-avatar" aria-hidden="true">@AuthorInitialsDisplay.Text(item.AuthorEmail)</span>
                             <div class="ec-comment-main">
                                 <span class="ec-comment-meta">
-                                    <span class="ec-comment-author">@item.AuthorEmail</span> · @MomentDisplay.Text(item.Created)@(item.Updated is null ? "" : $" · upraveno {MomentDisplay.Text(item.Updated.Value)}")
+                                    <span class="ec-comment-author">@item.AuthorEmail</span><span class="ec-sep" aria-hidden="true">·</span>@MomentDisplay.Text(item.Created)
+                                    @if (item.Updated is { } updated)
+                                    {
+                                        <span class="ec-sep" aria-hidden="true">·</span>@($"upraveno {MomentDisplay.Text(updated)}")
+                                    }
                                 </span>
 
                                 @if (this.editingCommentId == item.CommentId)

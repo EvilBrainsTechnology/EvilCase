@@ -299,7 +299,7 @@
 
     private static string OwnerText(Guid? caseId, string ownerTitle)
     {
-        return (caseId is null ? "Úkon" : "Spis") + " · " + ownerTitle;
+        return (caseId is null ? "Úkon" : "Spis") + "\u00A0· " + ownerTitle;
     }
 
     private static IReadOnlyList<string> Flatten(SearchResponse response)

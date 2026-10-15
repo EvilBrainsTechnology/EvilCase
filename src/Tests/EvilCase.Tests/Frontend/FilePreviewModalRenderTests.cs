@@ -370,7 +370,7 @@ public class FilePreviewModalRenderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(component.Find(".ec-preview-name").TextContent, Is.EqualTo("b.png"));
-            Assert.That(component.Find(".ec-preview-meta").TextContent, Does.StartWith("1\u00A0kB · nahráno "));
+            Assert.That(component.Find(".ec-preview-meta").TextContent, Does.StartWith("1\u00A0kB·"));
             Assert.That(component.Find(".ec-preview-position").TextContent, Is.EqualTo("2\u00A0z\u00A03"));
             Assert.That(component.Find("dialog").GetAttribute("aria-label"), Is.EqualTo("b.png"));
         }
@@ -399,11 +399,7 @@ public class FilePreviewModalRenderTests
         var file = File("a.pdf");
         var component = Render(ctx, [file], file.FileId);
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(component.Find("button[aria-label='Další soubor']").HasAttribute("disabled"), Is.True);
-            Assert.That(component.Find("button[aria-label='Předchozí soubor']").HasAttribute("disabled"), Is.True);
-        }
+        Assert.That(component.FindAll(".ec-preview-nav"), Is.Empty, "a single file shows no pager");
     }
 
     [Test]

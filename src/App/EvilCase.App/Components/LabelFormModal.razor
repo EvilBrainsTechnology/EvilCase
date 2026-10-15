@@ -77,7 +77,7 @@
 
     private string PreviewName => string.IsNullOrWhiteSpace(this.model.Name) ? "Nový štítek" : this.model.Name.Trim();
 
-    private string ColorLabel => $"Barva · {LabelColorDisplay.Text(this.model.Color)}";
+    private string ColorLabel => $"Barva\u00A0· {LabelColorDisplay.Text(this.model.Color)}";
 
     private string SaveText => this.Label is null ? "Založit štítek" : "Uložit";
 

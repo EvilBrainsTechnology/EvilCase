@@ -25,17 +25,20 @@
             {
                 <div class="ec-preview-title">
                     <h2 class="ec-preview-name" title="@file.FileName">@file.FileName</h2>
-                    <span class="ec-preview-meta">@FileSizeDisplay.Text(file.SizeBytes) · nahráno @MomentDisplay.Text(file.Created)</span>
+                    <span class="ec-preview-meta">@FileSizeDisplay.Text(file.SizeBytes)<span class="ec-sep" aria-hidden="true">·</span>@MomentDisplay.Text(file.Created)</span>
                 </div>
             }
-            <nav class="ec-preview-nav" aria-label="Soubory">
-                <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.ChevronLeft" AriaLabel="Předchozí soubor"
-                          Disabled="@(this.Files.Count < 2)" OnClick="() => this.Step(-1)" />
-                <span class="ec-preview-position"><strong>@(this.Position + 1)</strong>&nbsp;z&nbsp;@this.Files.Count</span>
-                <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.ChevronRight" AriaLabel="Další soubor"
-                          Disabled="@(this.Files.Count < 2)" OnClick="() => this.Step(1)" />
-            </nav>
-            <span class="ec-preview-divider" aria-hidden="true"></span>
+            @if (this.Files.Count > 1)
+            {
+                <nav class="ec-preview-nav" aria-label="Soubory">
+                    <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.ChevronLeft" AriaLabel="Předchozí soubor"
+                              OnClick="() => this.Step(-1)" />
+                    <span class="ec-preview-position"><strong>@(this.Position + 1)</strong>&nbsp;z&nbsp;@this.Files.Count</span>
+                    <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.ChevronRight" AriaLabel="Další soubor"
+                              OnClick="() => this.Step(1)" />
+                </nav>
+                <span class="ec-preview-divider" aria-hidden="true"></span>
+            }
             <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Pencil" OnClick="this.StartRename">Přejmenovat</EcButton>
             <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Download" OnClick="() => this.OnDownload.InvokeAsync(file)">Stáhnout</EcButton>
         </Heading>

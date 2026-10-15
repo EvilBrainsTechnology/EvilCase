@@ -417,7 +417,7 @@ public class ActRenderTests
         {
             Assert.That(component.Find(".ec-case-contact a").GetAttribute("href"), Is.EqualTo($"/contacts/{caseContactId}"));
             Assert.That(component.Find(".ec-case-contact a").TextContent, Is.EqualTo("Městský úřad Vzorov"));
-            Assert.That(component.Find(".ec-case-meta").TextContent, Does.Contain("Aktivní · 3\u00A0úkony"));
+            Assert.That(component.Find(".ec-case-meta").TextContent, Does.Contain("Aktivní·3\u00A0úkony"));
         }
     }
 

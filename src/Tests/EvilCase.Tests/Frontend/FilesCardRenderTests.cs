@@ -371,7 +371,7 @@ public class FilesCardRenderTests
         var file = PdfFile();
         var component = new Card { Files = [file] }.Render(ctx);
 
-        Assert.That(component.Find(".ec-file-meta").TextContent, Is.EqualTo($"1\u00A0kB · nahráno {MomentDisplay.Text(file.Created)}"));
+        Assert.That(component.Find(".ec-file-meta").TextContent, Is.EqualTo($"1\u00A0kB·{MomentDisplay.Text(file.Created)}"));
     }
 
     [Test]
@@ -388,7 +388,7 @@ public class FilesCardRenderTests
         {
             Assert.That(component.FindAll("div.ec-file-card-compact"), Has.Count.EqualTo(1));
             Assert.That(component.Find("button.ec-file-name").GetAttribute("title"), Is.EqualTo("Rozhodnutí o přestupku.pdf"));
-            Assert.That(component.Find(".ec-file-meta").TextContent, Is.EqualTo($"1\u00A0kB · {MomentDisplay.Text(file.Created)}"));
+            Assert.That(component.Find(".ec-file-meta").TextContent, Is.EqualTo($"1\u00A0kB·{MomentDisplay.Text(file.Created)}"));
             Assert.That(download.ClassList, Does.Contain("ec-button-icon"));
             Assert.That(download.TextContent.Trim(), Is.Empty);
             Assert.That(component.Find(".ec-file-icon").ClassList, Does.Contain("ec-file-icon-compact"));

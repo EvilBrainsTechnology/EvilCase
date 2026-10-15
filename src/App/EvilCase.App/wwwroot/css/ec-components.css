@@ -1020,6 +1020,15 @@ html {
     color: var(--ec-text-muted);
 }
 
+.ec-sep {
+    margin-inline: var(--ec-space-2);
+    color: var(--ec-text-faint);
+}
+
+:is(.ec-case-meta, .ec-timeline-meta, .ec-child-status) > .ec-sep {
+    margin-inline: 0;
+}
+
 .ec-file-actions {
     position: relative;
     z-index: 1;
