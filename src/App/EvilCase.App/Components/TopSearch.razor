@@ -169,7 +169,7 @@
 
                                 <SearchOption Id="@this.OptionId(row)" Href="@OwnerHref(item.CaseId, item.ActId)" Kind="file" Title="@item.FileName" Term="@this.resultTerm"
                                               Active="@(row == this.active)" OnActivate="() => this.Activate(row)" OnOpen="this.Close">
-                                    <Icon><EcFileChip FileName="@item.FileName" /></Icon>
+                                    <Icon><EcFileIcon FileName="@item.FileName" Size="EcFileIconSize.Compact" /></Icon>
                                     <Details>
                                         <span>@FileSizeDisplay.Text(item.SizeBytes)</span>
                                         <span class="ec-sr-grow-text">@OwnerText(item.CaseId, item.OwnerTitle)</span>
