@@ -1100,11 +1100,29 @@ html {
 }
 
 .ec-file-card-compact .ec-card-title {
-    font-size: var(--ec-text-lg);
+    white-space: nowrap;
 }
 
+.ec-file-card-compact .ec-card-header-actions {
+    min-width: 0;
+}
+
+/* Bez místa se výzva zkrátí, nikdy nezalomí záhlaví. */
 .ec-file-card-compact .ec-file-drop-hint {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
     font-size: var(--ec-text-xs);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.ec-file-card-compact .ec-file-upload {
+    flex: 0 0 auto;
+    gap: var(--ec-space-2);
+    height: var(--ec-control-sm);
+    padding: 0 var(--ec-space-3);
+    font-size: var(--ec-text-sm);
 }
 
 .ec-file-card-compact .ec-file-drop-hint .ec-icon {
@@ -2543,6 +2561,12 @@ html {
     flex-direction: column;
     gap: var(--ec-space-6);
     min-width: 0;
+}
+
+/* Karta v bočním sloupci 380 px má menší nadpis (docs/design/detail-spisu.html). */
+.ec-detail-aside .ec-card-title,
+.ec-form-aside .ec-card-title {
+    font-size: var(--ec-text-lg);
 }
 
 .ec-contact-occurrences {

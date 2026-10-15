@@ -29,7 +29,8 @@ alespoň 4,5:1.
 
 Písmo: `Instrument Sans` na text, `JetBrains Mono` na čísla, značky a přípony souborů. Obojí
 se dodává s aplikací, ne z cizí sítě. Velikosti 11, 12, 13, 14, 16, 18, 28 a 32 px; nadpis
-stránky 32 px, nadpis karty 18 px, tělo 14 px, popisek 12 px, drobná značka 11 px.
+stránky 32 px, nadpis karty 18 px, v bočním sloupci 16 px, tělo 14 px, popisek 12 px, drobná
+značka 11 px.
 
 Rozměry: rozestupy 4, 6, 8, 12, 16, 20, 24 a 32 px. Rádius karty 16 px, pole a tlačítka 10 px,
 drobné prvky 6 až 9 px, pilulka 999 px. Výška tlačítka a pole 40 px, na formuláři 44 px,
@@ -90,7 +91,8 @@ soubor drží název na jednom řádku a velikost s okamžikem nahrání na druh
 komentář má dva řádky.
 
 Karta souborů nese v záhlaví výzvu „Přetáhněte soubory sem nebo" a tlačítko Nahrát soubory,
-v bočním sloupci „Přetáhněte sem nebo" a Nahrát; pod seznamem žádný pruh není. Řádek souboru
+v bočním sloupci „Přetáhněte sem nebo" a Nahrát; záhlaví drží jeden řádek a výzva se bez místa
+zkrátí. Pod seznamem žádný pruh není. Řádek souboru
 je jedno ovládací místo po celé šířce a otevírá náhled; stažení a nabídka ⋯ jsou ohraničená
 tlačítka jen s ikonou, v nabídce je Přejmenovat a oddělené, červené Smazat…. Při tažení
 souborů přes kartu ji přikryje přerušovaný akcentový rámeček s textem „Pusťte soubory
