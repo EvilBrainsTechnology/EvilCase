@@ -95,6 +95,8 @@ public class EditActRenderTests
     public async Task AnEmptyTitleBlocksSavingAndSaysSo()
     {
         await using var ctx = new BunitContext();
+        var form = ctx.JSInterop.SetupModule("./js/ec-form.js");
+        form.SetupVoid("focusFirstInvalid");
 
         var (actsClient, _) = Serve(ctx, out var actId);
 
@@ -109,6 +111,8 @@ public class EditActRenderTests
             component.FindAll(".ec-field-error").Select(static node => node.TextContent),
             Has.Some.Contain("Zadejte název úkonu"),
             "the form validates against the page's EditContext before it sends anything");
+
+        form.VerifyInvoke("focusFirstInvalid");
     }
 
     private static (IActsClient Acts, ActDetail Detail) Serve(BunitContext ctx, out Guid actId)

@@ -120,7 +120,8 @@ Načítání drží výšku, aby obsah neposkakoval.
 
 Ovládací prvek má viditelný stav nad myší, při fokusu a zakázaný; fokus je vidět vždy
 a klávesnicí se dá projít celá obrazovka. Pole, které neprošlo kontrolou, má červený rámeček
-a chybu pod sebou. Destruktivní akce se potvrzuje a věta potvrzení jmenuje, co kaskáda bere.
+a chybu pod sebou; po neúspěšném odeslání přejde fokus na první takové pole. Destruktivní akce
+se potvrzuje a věta potvrzení jmenuje, co kaskáda bere.
 
 ### Mobil
 
