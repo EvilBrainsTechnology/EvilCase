@@ -75,6 +75,9 @@ položka menu je zvýrazněná po celé výšce lišty. Obsah leží na
 šedém podkladu v bílých kartách; karta nikdy neleží v jiné kartě. Obsah stránky je nejvýše
 1680 px široký a zbytek okna zůstane prázdný; roste přitom hlavní sloupec, boční zůstává 380 px.
 
+Řádek seznamu má na desktopu ve všech seznamech stejnou výšku 48 px, ať nese jeden, nebo dva
+řádky textu. Výjimkou jsou soubory, jejichž řádek nese dlaždici typu, a výsledky hledání.
+
 Detail spisu i úkonu začíná kartou se jménem, stavem, popisem a řádkem údajů. Popis je hned
 pod názvem, ne v postranním sloupci. Obsah, který patří spisu, je v pravém sloupci; obsah,
 který patří úkonu, je uvnitř úkonu. Soubory a komentáře proto existují dvakrát a název to

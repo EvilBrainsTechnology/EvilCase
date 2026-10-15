@@ -1938,7 +1938,7 @@ html {
 }
 
 .ec-settings-row {
-    min-height: calc(var(--ec-control-form) + var(--ec-space-3));
+    min-height: var(--ec-list-row-height);
     border-bottom: 1px solid var(--ec-border-subtle);
 }
 
@@ -2763,8 +2763,9 @@ html {
 .ec .ec-child-row {
     display: flex;
     flex-direction: column;
+    justify-content: center;
     gap: var(--ec-space-1);
-    padding: var(--ec-space-3) 0;
+    min-height: var(--ec-list-row-height);
     border-top: 1px solid var(--ec-border-subtle);
     color: var(--ec-text);
     text-decoration: none;
@@ -4315,14 +4316,12 @@ html:has(.ec-gate) {
 .ec-recent-cases {
     --ec-list-col-date: var(--ec-recent-col-date);
     --ec-list-col-number: var(--ec-recent-col-number);
-    --ec-list-row-height: var(--ec-recent-case-row-height);
 }
 
 .ec-recent-acts {
     --ec-list-col-date: var(--ec-recent-col-date);
     --ec-list-col-status: var(--ec-recent-col-direction);
     --ec-list-col-contact: var(--ec-recent-col-contact);
-    --ec-list-row-height: var(--ec-recent-act-row-height);
 }
 
 @media (max-width: 991.98px) {
@@ -4423,7 +4422,6 @@ html:has(.ec-gate) {
     --ec-list-badge-pad: var(--ec-space-3);
     --ec-list-col-date: var(--ec-case-act-col-date);
     --ec-list-col-status: var(--ec-case-act-col-number);
-    --ec-list-row-height: var(--ec-case-act-row-height);
 }
 
 .ec-contact-occurrences .ec-table-bar {
@@ -4446,7 +4444,6 @@ html:has(.ec-gate) {
     --ec-list-badge-pad: var(--ec-space-3);
     --ec-list-col-date: var(--ec-case-act-col-date);
     --ec-list-col-status: var(--ec-case-act-col-direction);
-    --ec-list-row-height: var(--ec-case-act-row-height);
 }
 
 .ec-case-acts .ec-card-header + .ec-table-bar {

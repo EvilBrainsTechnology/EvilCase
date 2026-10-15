@@ -180,6 +180,24 @@ public class EcStylesheetTests
         }
     }
 
+    [Test]
+    public async Task EveryListRowIsOneHeight()
+    {
+        var css = await this.client.GetStringAsync(new Uri("/css/ec-components.css", UriKind.Relative));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(css, Does.Not.Contain("--ec-list-row-height:"), "no list sets a row height of its own");
+
+            foreach (var selector in new[] { ".ec-table-row", ".ec-settings-row", ".ec .ec-child-row" })
+            {
+                var rules = css.Split($"\n{selector} {{").Skip(1).Select(static rest => rest[..rest.IndexOf('}', StringComparison.Ordinal)]);
+
+                Assert.That(rules, Has.Some.Contains("min-height: var(--ec-list-row-height);"), $"{selector} takes the one list row height");
+            }
+        }
+    }
+
     private static IEnumerable<string> ExtractUrls(string css)
     {
         var urls = new List<string>();
