@@ -25,8 +25,9 @@ html {
     text-decoration: none;
 }
 
-/* Tlačítko EcButton, i v podobě odkazu, bere barvu ze své varianty. */
-.ec a:where(:not(.ec-button)) {
+/* Tlačítko EcButton, i v podobě odkazu, bere barvu ze své varianty; odkaz s vlastní třídou ze své
+   třídy. */
+:where(.ec) a:where(:not(.ec-button)) {
     color: var(--ec-accent-text);
 }
 
@@ -2741,6 +2742,7 @@ html {
     gap: var(--ec-space-1);
     font-size: var(--ec-text-sm);
     font-weight: var(--ec-weight-medium);
+    color: var(--ec-accent-text);
 }
 
 /* Detail spisu (docs/design/detail-spisu.html): podřízené spisy v postranním sloupci. */
@@ -3160,7 +3162,6 @@ html:has(.ec-gate) {
     color: var(--ec-topbar-text);
 }
 
-/* `.ec a` outranks a single class. */
 .ec .ec-topbar-brand {
     gap: var(--ec-space-4);
     font-size: var(--ec-topbar-brand-size);
