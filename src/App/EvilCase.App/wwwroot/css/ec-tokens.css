@@ -239,6 +239,7 @@
     /* Detail úkonu (docs/design/detail-ukonu.html) */
     --ec-act-pager-text: 92px;
     --ec-copy-size: 26px;
+    --ec-fact-line: 20px;
     --ec-label-search-width: 160px;
     --ec-touch-row: 48px;
     --ec-timeline-dot: 10px;

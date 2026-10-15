@@ -2204,6 +2204,7 @@ html {
 
 .ec-detail-fact-value {
     font-size: var(--ec-text-md);
+    line-height: var(--ec-fact-line);
     font-weight: var(--ec-weight-medium);
     white-space: pre-line;
     font-variant-numeric: tabular-nums;
@@ -2212,12 +2213,14 @@ html {
 .ec-detail-fact-mono {
     font-family: var(--ec-font-mono);
     font-size: var(--ec-text-sm);
+    line-height: var(--ec-fact-line);
     font-weight: var(--ec-weight-medium);
     overflow-wrap: anywhere;
 }
 
 .ec-detail-fact-link {
     font-size: var(--ec-text-md);
+    line-height: var(--ec-fact-line);
     font-weight: var(--ec-weight-medium);
     color: var(--ec-accent-text);
     text-decoration: none;
@@ -2230,7 +2233,9 @@ html {
     min-width: 0;
 }
 
+/* Tlačítko kopírování přesahuje řádek hodnoty, aby hodnota zůstala na účaří ostatních údajů. */
 .ec-detail-fact-copy .ec-copy {
+    margin-block: calc((var(--ec-fact-line) - var(--ec-copy-size)) / 2);
     color: var(--ec-text-muted);
 }
 
@@ -2970,14 +2975,21 @@ html {
         background: var(--ec-surface);
     }
 
+    /* Řádek sdílí jen krátké údaje; značka, odkaz a adresa mají celou šířku. */
     .ec-detail-fact-wide,
-    .ec-detail-fact-labels {
+    .ec-detail-fact-labels,
+    .ec-detail-fact-copyable,
+    .ec-detail-fact:has(.ec-detail-fact-link) {
         grid-column: 1 / -1;
+    }
+
+    .ec-detail-fact-mono {
+        overflow-wrap: break-word;
     }
 
     /* Tlačítko kopírování drží dotykovou plochu, ale řádek údaje nezvětší. */
     .ec-detail-fact-copy .ec-copy {
-        margin-block: calc((var(--ec-copy-size) - var(--ec-touch-min)) / 2);
+        margin-block: calc((var(--ec-fact-line) - var(--ec-touch-min)) / 2);
     }
 
     .ec-card-footer {
