@@ -13,7 +13,6 @@
     --ec-surface-track: #E9ECF1;
     --ec-surface-header: #F8F9FB;
     --ec-text: #14161B;
-    --ec-text-strong: #000000;
     --ec-text-muted: #5B6270;
     --ec-text-soft: #454B57;
     --ec-text-faint: #A0A6B1;
@@ -327,7 +326,6 @@
     --ec-focus-ring: 0 0 0 3px rgba(31, 63, 174, 0.35);
     --ec-focus-ring-danger: 0 0 0 3px rgba(155, 44, 31, 0.25);
     --ec-overlay: rgba(20, 22, 27, 0.4);
-    --ec-nav-marker: inset 0 -2px 0 var(--ec-accent);
 
     /* Tmavá horní lišta */
     --ec-accent-on-dark: #9DB0F2;
