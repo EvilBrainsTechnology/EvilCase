@@ -15,10 +15,6 @@ html {
     background: var(--ec-bg);
 }
 
-html:has(.ec-gate) {
-    background: var(--ec-login-panel-bg);
-}
-
 .ec {
     background: var(--ec-bg);
     font-family: var(--ec-font);
@@ -2381,14 +2377,6 @@ html:has(.ec-gate) {
     box-shadow: var(--ec-focus-ring);
 }
 
-.ec-label-field-box:has(.invalid, [aria-invalid="true"]) {
-    border-color: var(--ec-danger-text);
-}
-
-.ec-label-field-box:has(.invalid, [aria-invalid="true"]):focus-within {
-    box-shadow: var(--ec-focus-ring-danger);
-}
-
 .ec-label-field-box .ec-label-search {
     flex: 1 1 var(--ec-label-search-width);
 }
@@ -3225,6 +3213,7 @@ html:has(.ec-gate) {
 /* Rezervovaný posuvník by pod tmavou stránkou ukázal světlý pruh. */
 html:has(.ec-gate) {
     scrollbar-gutter: auto;
+    background: var(--ec-login-panel-bg);
 }
 
 .ec-gate-brand {
