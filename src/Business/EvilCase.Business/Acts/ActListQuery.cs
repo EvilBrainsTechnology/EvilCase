@@ -82,7 +82,7 @@ internal static class ActListQuery
             ActSortKey.Date => acts.InKeyOrder(static act => act.Date, direction).ThenInWriteOrder(direction),
             ActSortKey.Changed => acts.InKeyOrder(static act => act.Updated ?? act.Created, direction).ThenInWriteOrder(direction),
             ActSortKey.Title => acts.InKeyOrder(static act => EF.Functions.Collate(act.Title, DatabaseFunctions.CzechCollation), direction).ThenInWriteOrder(direction),
-            ActSortKey.ActNumber => acts.InKeyOrder(static act => EF.Functions.Collate(act.ActNumber, DatabaseFunctions.CzechCollation), direction).ThenInWriteOrder(direction),
+            ActSortKey.ActNumber => acts.InKeyOrder(static act => act.ActNumber, direction).ThenInWriteOrder(direction),
             _ => throw new UnreachableException(),
         };
     }

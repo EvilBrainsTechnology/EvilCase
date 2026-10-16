@@ -87,7 +87,7 @@ internal static class CaseListQuery
             CaseSortKey.Date => cases.InKeyOrder(static @case => @case.Date, direction).ThenInWriteOrder(direction),
             CaseSortKey.Changed => cases.InKeyOrder(static @case => @case.Updated ?? @case.Created, direction).ThenInWriteOrder(direction),
             CaseSortKey.Title => cases.InKeyOrder(static @case => EF.Functions.Collate(@case.Title, DatabaseFunctions.CzechCollation), direction).ThenInWriteOrder(direction),
-            CaseSortKey.CaseNumber => cases.InKeyOrder(static @case => EF.Functions.Collate(@case.CaseNumber, DatabaseFunctions.CzechCollation), direction).ThenInWriteOrder(direction),
+            CaseSortKey.CaseNumber => cases.InKeyOrder(static @case => @case.CaseNumber, direction).ThenInWriteOrder(direction),
             _ => throw new UnreachableException(),
         };
     }

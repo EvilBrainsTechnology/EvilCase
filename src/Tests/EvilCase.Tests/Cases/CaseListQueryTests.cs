@@ -251,6 +251,20 @@ public class CaseListQueryTests : TenantFixture
     }
 
     [Test]
+    public async Task TheCaseNumberOrderIsOrdinalNotCzech()
+    {
+        var d = await this.Tenant.AddCase(Day, "Alfa", caseNumber: "D-3");
+        var ch = await this.Tenant.AddCase(Day, "Beta", caseNumber: "CH-1");
+        var c = await this.Tenant.AddCase(Day, "Gama", caseNumber: "C-2");
+
+        var ids = await this.InSortOrder(CaseSortKey.CaseNumber, ListSortDirection.Ascending);
+
+        Guid[] expected = [c.Id, ch.Id, d.Id];
+
+        Assert.That(ids, Is.EqualTo(expected), "a case number is an identifier and sorts ordinally, so CH never follows D");
+    }
+
+    [Test]
     public async Task TheTitleOrderFollowsCzechAlphabeticalOrderIgnoringCase()
     {
         foreach (var title in new[] { "Zuzana", "Řehoř", "zeman", "Čížek", "Adam", "čeněk" })

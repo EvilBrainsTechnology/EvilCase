@@ -85,6 +85,23 @@ public class ActListQueryTests : TenantFixture
     }
 
     [Test]
+    public async Task TheActNumberOrderIsOrdinalNotCzech()
+    {
+        var @case = await this.Tenant.AddCase(new DateOnly(2026, 8, 20));
+        var sameDay = new DateOnly(2026, 8, 22);
+
+        var d = await this.Tenant.AddAct(@case, sameDay, "Alfa", actNumber: "D-3");
+        var ch = await this.Tenant.AddAct(@case, sameDay, "Beta", actNumber: "CH-1");
+        var c = await this.Tenant.AddAct(@case, sameDay, "Gama", actNumber: "C-2");
+
+        var ids = await this.InSortOrder(ActSortKey.ActNumber, ListSortDirection.Ascending);
+
+        Guid[] expected = [c.Id, ch.Id, d.Id];
+
+        Assert.That(ids, Is.EqualTo(expected), "an act number is an identifier and sorts ordinally, so CH never follows D");
+    }
+
+    [Test]
     public async Task TheTitleOrderFollowsCzechAlphabeticalOrderIgnoringCase()
     {
         var @case = await this.Tenant.AddCase(new DateOnly(2026, 8, 20));
