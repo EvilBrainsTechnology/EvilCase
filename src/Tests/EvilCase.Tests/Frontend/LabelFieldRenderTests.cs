@@ -38,7 +38,7 @@ public class LabelFieldRenderTests
                 {
                     Assert.That(component.FindAll(".ec-label-option").Select(static option => option.TextContent.Trim()), Is.EqualTo(["Odvolání", "Soud"]));
                     Assert.That(component.FindAll("input[type=checkbox]"), Is.Empty);
-                    Assert.That(component.Find(".ec-label-menu-foot").TextContent, Does.Contain("↑↓ pohyb\u00A0· Enter přidat\u00A0· Esc zavřít"));
+                    Assert.That(component.Find(".ec-label-menu-foot").TextContent, Does.Contain("↑↓ pohyb · Enter přidat · Esc zavřít"));
                     Assert.That(component.Find(".ec-label-manage").GetAttribute("href"), Is.EqualTo("/settings"));
                 }
             },

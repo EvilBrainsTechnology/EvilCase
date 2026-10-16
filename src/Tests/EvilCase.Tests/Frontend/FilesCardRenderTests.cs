@@ -213,8 +213,8 @@ public class FilesCardRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(overlay.QuerySelector(".ec-file-drop-title")!.TextContent, Is.EqualTo("Pusťte soubory a\u00A0nahrají se k\u00A0úkonu"));
-            Assert.That(overlay.QuerySelector(".ec-file-drop-limits")!.TextContent, Is.EqualTo("Nejvýše 100\u00A0souborů, každý do 100\u00A0MB"));
+            Assert.That(overlay.QuerySelector(".ec-file-drop-title")!.TextContent, Is.EqualTo("Pusťte soubory a nahrají se k úkonu"));
+            Assert.That(overlay.QuerySelector(".ec-file-drop-limits")!.TextContent, Is.EqualTo("Nejvýše 100 souborů, každý do 100 MB"));
         }
     }
 
@@ -374,7 +374,7 @@ public class FilesCardRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.Find(".ec-file-meta").TextContent, Is.EqualTo($"1\u00A0kB·{MomentDisplay.Text(file.Created)}"));
+            Assert.That(component.Find(".ec-file-meta").TextContent, Is.EqualTo($"1 kB·{MomentDisplay.Text(file.Created)}"));
             Assert.That(component.Find(".ec-file-meta .ec-file-moment").TextContent, Is.EqualTo(MomentDisplay.Text(file.Created)), "the moment never breaks inside");
         }
     }
@@ -393,7 +393,7 @@ public class FilesCardRenderTests
         {
             Assert.That(component.FindAll("div.ec-file-card-compact"), Has.Count.EqualTo(1));
             Assert.That(component.Find("button.ec-file-name").GetAttribute("title"), Is.EqualTo("Rozhodnutí o přestupku.pdf"));
-            Assert.That(component.Find(".ec-file-meta").TextContent, Is.EqualTo($"1\u00A0kB·{MomentDisplay.Text(file.Created)}"));
+            Assert.That(component.Find(".ec-file-meta").TextContent, Is.EqualTo($"1 kB·{MomentDisplay.Text(file.Created)}"));
             Assert.That(download.ClassList, Does.Contain("ec-button-icon"));
             Assert.That(download.TextContent.Trim(), Is.Empty);
             Assert.That(component.Find(".ec-file-icon").ClassList, Does.Contain("ec-file-icon-compact"));
@@ -635,15 +635,15 @@ public class FilesCardRenderTests
         component.Find(".ec-file-row button.ec-file-name").Click();
         component.WaitForAssertion(() => Assert.That(component.FindAll("dialog iframe"), Has.Count.EqualTo(1)));
 
-        Assert.That(component.Find(".ec-preview-position").TextContent, Is.EqualTo("1\u00A0z\u00A03"));
+        Assert.That(component.Find(".ec-preview-position").TextContent, Is.EqualTo("1 z 3"));
 
         component.Find("button[aria-label='Další soubor']").Click();
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.Find(".ec-preview-position").TextContent, Is.EqualTo("2\u00A0z\u00A03"));
+            Assert.That(component.Find(".ec-preview-position").TextContent, Is.EqualTo("2 z 3"));
             Assert.That(component.Find(".ec-preview-name").TextContent, Is.EqualTo("Doručenka.zfo"));
-            Assert.That(component.Find(".ec-preview-message-title").TextContent, Is.EqualTo("Náhled tohoto typu souboru není k\u00A0dispozici"));
+            Assert.That(component.Find(".ec-preview-message-title").TextContent, Is.EqualTo("Náhled tohoto typu souboru není k dispozici"));
         }
     }
 

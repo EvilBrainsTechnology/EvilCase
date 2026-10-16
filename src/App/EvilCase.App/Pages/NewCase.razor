@@ -87,14 +87,14 @@
                 {
                     <EcCard Title="Nadřízený spis">
                         <a class="ec-case-link" href="/cases/@this.parentCase.CaseId">
-                            <span class="ec-case-link-title">@CzechTypography.Text(this.parentCase.Title)</span>
+                            <span class="ec-case-link-title">@this.parentCase.Title</span>
                             <span class="ec-case-link-number">@this.parentCase.CaseNumber</span>
                         </a>
-                        <p class="ec-card-text">Zakládáte podřízený spis. Přiřadit ho jinam jde až v&nbsp;editaci spisu.</p>
+                        <p class="ec-card-text">Zakládáte podřízený spis. Přiřadit ho jinam jde až v editaci spisu.</p>
                     </EcCard>
                 }
                 <EcCard Title="Co přijde po uložení">
-                    <p class="ec-card-text">Spis se otevře na svém detailu, kde rovnou přidáte první úkon a&nbsp;jeho dokumenty. Soubory a&nbsp;komentáře spisu jsou v&nbsp;pravém sloupci detailu.</p>
+                    <p class="ec-card-text">Spis se otevře na svém detailu, kde rovnou přidáte první úkon a jeho dokumenty. Soubory a komentáře spisu jsou v pravém sloupci detailu.</p>
                 </EcCard>
             </aside>
         </div>
@@ -201,7 +201,7 @@
         {
             this.Logger.LogWarning(exception, "Filing a new case failed");
 
-            this.error = "Spis se nepodařilo založit. Zkontrolujte zadané údaje a\u00A0zkuste to znovu.";
+            this.error = "Spis se nepodařilo založit. Zkontrolujte zadané údaje a zkuste to znovu.";
         }
         finally
         {

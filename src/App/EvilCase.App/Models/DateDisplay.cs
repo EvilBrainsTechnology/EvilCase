@@ -2,7 +2,7 @@ namespace EvilBrains.EvilCase.App.Models;
 
 public static class DateDisplay
 {
-    private const string Format = "d.\u00A0M.\u00A0yyyy";
+    private const string Format = "d. M. yyyy";
 
     public static string Text(in DateOnly date)
     {

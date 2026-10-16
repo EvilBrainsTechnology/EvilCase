@@ -44,7 +44,7 @@
                         <div class="ec-file-main">
                             <span class="ec-file-name-static">@this.uploadName</span>
                             <progress class="ec-file-progress" aria-label="Nahrávání"></progress>
-                            <span class="ec-file-meta">Nahrávám @this.uploadIndex z&nbsp;@this.uploadTotal</span>
+                            <span class="ec-file-meta">Nahrávám @this.uploadIndex z @this.uploadTotal</span>
                         </div>
                     </div>
                 }
@@ -112,8 +112,8 @@
 
     <div class="ec-file-drop-overlay" aria-hidden="true">
         <span class="ec-file-drop-badge"><EcIcon Paths="@AppIcons.Upload" Size="EcIconSize.Large" /></span>
-        <span class="ec-file-drop-title">@CzechTypography.Text($"Pusťte soubory a nahrají se {this.UploadTarget}")</span>
-        <span class="ec-file-drop-limits">Nejvýše @FileBatchUploader.MaxBatchFiles&nbsp;souborů, každý do @FileSizeDisplay.Text(FileLimits.MaxUploadBytes)</span>
+        <span class="ec-file-drop-title">Pusťte soubory a nahrají se @this.UploadTarget</span>
+        <span class="ec-file-drop-limits">Nejvýše @FileBatchUploader.MaxBatchFiles souborů, každý do @FileSizeDisplay.Text(FileLimits.MaxUploadBytes)</span>
     </div>
 </FileDropZone>
 

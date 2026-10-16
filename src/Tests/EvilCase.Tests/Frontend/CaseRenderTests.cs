@@ -53,7 +53,7 @@ public class CaseRenderTests
             Assert.That(component.Find("h1.ec-page-title").TextContent, Is.EqualTo("Přestupek"));
             Assert.That(component.Find(".ec-badge-active").TextContent, Is.EqualTo("Aktivní"));
             Assert.That(component.FindAll(".ec-badge-active .ec-badge-dot"), Has.Count.EqualTo(1), "a status carries its dot (SDD-020)");
-            Assert.That(component.Find(".ec-detail-text").TextContent, Is.EqualTo("Řízení o\u00A0přestupku."));
+            Assert.That(component.Find(".ec-detail-text").TextContent, Is.EqualTo("Řízení o přestupku."));
             Assert.That(
                 component.FindAll(".ec-detail-fact-name").Select(static node => node.FirstChild!.TextContent),
                 Is.EqualTo(["Datum spisu", "Spisová značka", "Externí spisová značka", "Protistrana", "Nadřízený spis", "Štítky"]),
@@ -207,7 +207,7 @@ public class CaseRenderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(component.Find(".ec-confirm-text").TextContent, Does.Contain("EC/20260821-001"));
-            Assert.That(component.Find(".ec-confirm-text").TextContent, Does.Contain("podřízené spisy, úkony, komentáře a\u00A0soubory"));
+            Assert.That(component.Find(".ec-confirm-text").TextContent, Does.Contain("podřízené spisy, úkony, komentáře a soubory"));
         }
     }
 

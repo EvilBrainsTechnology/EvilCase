@@ -1,22 +1,14 @@
 @using EvilBrains.EvilCase.App.Search
 
-@{
-    // Typesetting keeps the length, so each segment is cut from the typeset text at its own place.
-    var typeset = CzechTypography.Text(this.Text);
-    var start = 0;
-}
 @foreach (var segment in SearchHighlight.Segments(this.Text, this.Term))
 {
-    var piece = typeset.Substring(start, segment.Text.Length);
-    start += segment.Text.Length;
-
     @if (segment.Match)
     {
-        <mark class="ec-hit">@piece</mark>
+        <mark class="ec-hit">@segment.Text</mark>
     }
     else
     {
-        @piece
+        @segment.Text
     }
 }
 

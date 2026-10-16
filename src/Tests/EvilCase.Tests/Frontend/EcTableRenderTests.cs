@@ -225,7 +225,7 @@ public class EcTableRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.Find(".ec-table-range").TextContent, Is.EqualTo("1–2\u00A0z\u00A05"));
+            Assert.That(component.Find(".ec-table-range").TextContent, Is.EqualTo("1–2 z 5"));
             Assert.That(component.FindAll(".ec-card-footer button")[0].HasAttribute("disabled"), Is.True);
             Assert.That(component.FindAll(".ec-card-footer button")[1].HasAttribute("disabled"), Is.False);
         }
@@ -240,7 +240,7 @@ public class EcTableRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.Find(".ec-table-range").TextContent, Is.EqualTo("5–5\u00A0z\u00A05"));
+            Assert.That(component.Find(".ec-table-range").TextContent, Is.EqualTo("5–5 z 5"));
             Assert.That(component.FindAll(".ec-card-footer button")[1].HasAttribute("disabled"), Is.True);
         }
     }

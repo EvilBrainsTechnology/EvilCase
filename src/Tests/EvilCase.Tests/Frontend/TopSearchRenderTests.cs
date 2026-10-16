@@ -37,7 +37,7 @@ public class TopSearchRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.Find(".ec-sr-state").TextContent, Does.Contain("Napište alespoň 2\u00A0znaky"));
+            Assert.That(component.Find(".ec-sr-state").TextContent, Does.Contain("Napište alespoň 2 znaky"));
             Assert.That(component.Find(".ec-topsearch-input").GetAttribute("aria-expanded"), Is.EqualTo("true"));
             Assert.That(component.FindAll(".ec-topsearch-kbd"), Is.Not.Empty, "an empty field shows the Ctrl K hint");
         }
@@ -52,7 +52,7 @@ public class TopSearchRenderTests
         var component = ctx.Render<TopSearch>();
         await component.Find(".ec-topsearch-input").InputAsync(new ChangeEventArgs { Value = "p" });
 
-        Assert.That(component.Find(".ec-sr-state").TextContent, Does.Contain("Napište alespoň 2\u00A0znaky"));
+        Assert.That(component.Find(".ec-sr-state").TextContent, Does.Contain("Napište alespoň 2 znaky"));
 
         await client.DidNotReceive().Search(Arg.Any<SearchRequest>(), Arg.Any<CancellationToken>());
     }
@@ -75,7 +75,7 @@ public class TopSearchRenderTests
             await client.Received(1).Search(Arg.Is<SearchRequest>(static request => request.Q == "poj"), Arg.Any<CancellationToken>());
             Assert.That(heads[0], Does.StartWith("Spisy").And.Contain("5"), "a group header carries the total of its matches");
             Assert.That(component.FindAll(".ec-sr-group").Select(static group => group.GetAttribute("aria-label")), Is.EqualTo(["Spisy", "Úkony", "Kontakty", "Soubory", "Komentáře"]));
-            Assert.That(component.Find(".ec-sr-footer").TextContent, Does.Contain("9\u00A0výsledků"));
+            Assert.That(component.Find(".ec-sr-footer").TextContent, Does.Contain("9 výsledků"));
             Assert.That(component.FindAll(".ec-sr-all"), Has.Count.EqualTo(1), "only a group with more matches than rows links to the list");
             Assert.That(component.Find(".ec-sr-all").GetAttribute("href"), Is.EqualTo("/cases?q=poj"));
             Assert.That(component.Find(".ec-sr-all").TextContent, Does.Contain("Všechny ve Spisech (5)"));
@@ -213,7 +213,7 @@ public class TopSearchRenderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(component.Find(".ec-topsearch-input").GetAttribute("value"), Is.Empty);
-            Assert.That(component.Find(".ec-sr-state").TextContent, Does.Contain("Napište alespoň 2\u00A0znaky"));
+            Assert.That(component.Find(".ec-sr-state").TextContent, Does.Contain("Napište alespoň 2 znaky"));
             Assert.That(component.FindAll(".ec-topsearch-clear"), Is.Empty);
         }
     }

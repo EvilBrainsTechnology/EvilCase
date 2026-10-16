@@ -37,7 +37,7 @@
                 CellClass = "ec-cell-stack",
                 Cell = item =>@<text>
                     <span class="ec-cell-line">
-                        <span class="ec-cell-text" title="@item.Title">@CzechTypography.Text(item.Title)</span>
+                        <span class="ec-cell-text" title="@item.Title">@item.Title</span>
                         <LabelChips Labels="item.Labels" />
                     </span>
                     @if (item.ParentCaseTitle is not null)
@@ -87,7 +87,7 @@
             <label class="ec-search" for="@($"{this.InputPrefix}-search")">
                 <EcIcon Paths="@AppIcons.Search" Size="EcIconSize.Small" />
                 <input id="@($"{this.InputPrefix}-search")" type="search" class="ec-search-input" aria-label="Hledat ve spisech"
-                       placeholder="@("Hledat v\u00A0názvu a\u00A0popisu")" value="@this.SearchText" @oninput="this.OnSearchInput" />
+                       placeholder="@("Hledat v názvu a popisu")" value="@this.SearchText" @oninput="this.OnSearchInput" />
             </label>
         }
 

@@ -9,8 +9,8 @@ public class DateDisplayTests
     {
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(DateDisplay.Text(new DateOnly(2026, 3, 9)), Is.EqualTo("9.\u00A03.\u00A02026"));
-            Assert.That(DateDisplay.Text(new DateOnly(2026, 12, 24)), Is.EqualTo("24.\u00A012.\u00A02026"));
+            Assert.That(DateDisplay.Text(new DateOnly(2026, 3, 9)), Is.EqualTo("9. 3. 2026"));
+            Assert.That(DateDisplay.Text(new DateOnly(2026, 12, 24)), Is.EqualTo("24. 12. 2026"));
         }
     }
 
@@ -22,7 +22,7 @@ public class DateDisplayTests
 
         try
         {
-            Assert.That(DateDisplay.Text(new DateOnly(2026, 3, 9)), Is.EqualTo("9.\u00A03.\u00A02026"), "one place decides how a date is rendered");
+            Assert.That(DateDisplay.Text(new DateOnly(2026, 3, 9)), Is.EqualTo("9. 3. 2026"), "one place decides how a date is rendered");
         }
         finally
         {

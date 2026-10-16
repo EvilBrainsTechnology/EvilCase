@@ -26,7 +26,7 @@ public class ActDeleteModalRenderTests
 
         Assert.That(
             component.Find(".ec-confirm-text").TextContent,
-            Does.Contain(act.ActNumber).And.Contain("komentáře a\u00A0soubory"));
+            Does.Contain(act.ActNumber).And.Contain("komentáře a soubory"));
     }
 
     [Test]

@@ -96,7 +96,7 @@ public class ContactRenderTests
             {
                 Assert.That(
                     component.FindAll(".ec-contact-occurrences .ec-table")[1].QuerySelectorAll(".ec-table-header").Select(static header => header.TextContent.Trim().TrimEnd('↑', '↓').Trim()),
-                    Is.EqualTo(["Datum úkonu", "Úkon a\u00A0spis", "Směr"]));
+                    Is.EqualTo(["Datum úkonu", "Úkon a spis", "Směr"]));
                 Assert.That(component.Find(".ec-cell-sub").TextContent, Is.EqualTo("Přestupek"));
             }
         });
@@ -213,7 +213,7 @@ public class ContactRenderTests
                 Assert.That(component.FindAll("#contact-acts-search"), Has.Count.EqualTo(1), "a set filter keeps the toolbar");
                 Assert.That(
                     component.FindAll(".ec-empty-text").Select(static text => text.TextContent),
-                    Is.EqualTo(["Kontakt nefiguruje v\u00A0žádném spisu.", "Filtru neodpovídá žádný úkon."]));
+                    Is.EqualTo(["Kontakt nefiguruje v žádném spisu.", "Filtru neodpovídá žádný úkon."]));
             }
         });
     }

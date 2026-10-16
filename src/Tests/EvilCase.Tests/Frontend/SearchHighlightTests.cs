@@ -68,10 +68,10 @@ public class SearchHighlightTests
     }
 
     [Test]
-    [TestCase(1, "1\u00A0výsledek")]
-    [TestCase(3, "3\u00A0výsledky")]
-    [TestCase(5, "5\u00A0výsledků")]
-    [TestCase(21, "21\u00A0výsledků")]
+    [TestCase(1, "1 výsledek")]
+    [TestCase(3, "3 výsledky")]
+    [TestCase(5, "5 výsledků")]
+    [TestCase(21, "21 výsledků")]
     public void TheResultCountAgreesWithItsNumberInCzech(int count, string expected)
     {
         Assert.That(SearchResultCountDisplay.Text(count), Is.EqualTo(expected));

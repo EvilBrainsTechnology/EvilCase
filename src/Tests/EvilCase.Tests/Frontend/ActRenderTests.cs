@@ -90,10 +90,10 @@ public class ActRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.Find("h1.ec-page-title").TextContent, Is.EqualTo("Rozhodnutí o\u00A0přestupku"));
+            Assert.That(component.Find("h1.ec-page-title").TextContent, Is.EqualTo("Rozhodnutí o přestupku"));
             Assert.That(component.Find(".ec-badge-incoming").TextContent, Is.EqualTo("Příchozí"));
             Assert.That(component.FindAll(".ec-badge-incoming .ec-icon"), Has.Count.EqualTo(1), "a direction carries its arrow (SDD-020)");
-            Assert.That(component.Find(".ec-detail-text").TextContent, Is.EqualTo("Vina a\u00A0pokuta."));
+            Assert.That(component.Find(".ec-detail-text").TextContent, Is.EqualTo("Vina a pokuta."));
             Assert.That(
                 component.FindAll(".ec-detail-fact-name").Select(static node => node.FirstChild!.TextContent),
                 Is.EqualTo(["Datum úkonu", "Číslo jednací", "Externí číslo jednací", "Odesílatel", "Štítky"]),
@@ -318,7 +318,7 @@ public class ActRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.Find(".ec-page-header-top .ec-act-pager-text").TextContent, Is.EqualTo("Úkon 2\u00A0z\u00A03"));
+            Assert.That(component.Find(".ec-page-header-top .ec-act-pager-text").TextContent, Is.EqualTo("Úkon 2 z 3"));
             Assert.That(component.Find("a[aria-label='Předchozí úkon: Výzva']").GetAttribute("href"), Is.EqualTo($"/acts/{previousId}"));
             Assert.That(component.Find("a[aria-label='Další úkon: Odvolání']").GetAttribute("href"), Is.EqualTo($"/acts/{nextId}"));
         }
@@ -384,7 +384,7 @@ public class ActRenderTests
                 Is.Empty,
                 "an act without a direction shows no direction");
             Assert.That(component.Find("a.ec-timeline-all").GetAttribute("href"), Is.EqualTo($"/cases/{caseId}"));
-            Assert.That(component.Find("a.ec-timeline-all").TextContent.Trim(), Is.EqualTo("Všechny 3\u00A0úkony spisu"));
+            Assert.That(component.Find("a.ec-timeline-all").TextContent.Trim(), Is.EqualTo("Všechny 3 úkony spisu"));
         }
     }
 
@@ -443,7 +443,7 @@ public class ActRenderTests
         {
             Assert.That(component.Find(".ec-case-contact a").GetAttribute("href"), Is.EqualTo($"/contacts/{caseContactId}"));
             Assert.That(component.Find(".ec-case-contact a").TextContent, Is.EqualTo("Městský úřad Vzorov"));
-            Assert.That(component.Find(".ec-case-meta").TextContent, Does.Contain("Aktivní·3\u00A0úkony"));
+            Assert.That(component.Find(".ec-case-meta").TextContent, Does.Contain("Aktivní·3 úkony"));
         }
     }
 

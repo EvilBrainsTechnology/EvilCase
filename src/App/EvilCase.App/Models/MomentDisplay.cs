@@ -2,7 +2,7 @@ namespace EvilBrains.EvilCase.App.Models;
 
 public static class MomentDisplay
 {
-    private const string Format = "d.\u00A0M.\u00A0yyyy H:mm";
+    private const string Format = "d. M. yyyy H:mm";
 
     private const string TimeFormat = "H:mm";
 

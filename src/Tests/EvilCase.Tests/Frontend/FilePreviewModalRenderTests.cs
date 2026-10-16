@@ -216,7 +216,7 @@ public class FilePreviewModalRenderTests
         var file = File("Velka.ods");
         var component = Render(ctx, [file], file.FileId);
 
-        Assert.That(component.Find(".ec-preview-note").TextContent, Is.EqualTo("Zobrazuje se jen prvních 2\u00A0řádků z\u00A05\u00A0432."));
+        Assert.That(component.Find(".ec-preview-note").TextContent, Is.EqualTo("Zobrazuje se jen prvních 2 řádků z 5\u00A0432."));
     }
 
     [Test]
@@ -256,7 +256,7 @@ public class FilePreviewModalRenderTests
             Assert.That(component.FindAll(".ec-preview-email-body b"), Is.Empty, "the body is text, never markup");
             Assert.That(component.Find(".ec-preview-email-attachments-title").TextContent, Is.EqualTo("Přílohy (1)"));
             Assert.That(component.Find(".ec-preview-email-attachment-name").TextContent, Is.EqualTo("Doplnění.pdf"));
-            Assert.That(component.Find(".ec-preview-email-attachment-size").TextContent, Is.EqualTo("1,8\u00A0kB"));
+            Assert.That(component.Find(".ec-preview-email-attachment-size").TextContent, Is.EqualTo("1,8 kB"));
             Assert.That(component.FindAll("img, iframe, script, a[href]"), Is.Empty, "a message loads and runs nothing");
         }
     }
@@ -309,7 +309,7 @@ public class FilePreviewModalRenderTests
         var file = File(fileName);
         var component = Render(ctx, [file], file.FileId, onDownload: item => downloaded.Add(item.FileName));
 
-        component.WaitForAssertion(() => Assert.That(component.Find(".ec-preview-message-title").TextContent, Is.EqualTo("Náhled tohoto typu souboru není k\u00A0dispozici")));
+        component.WaitForAssertion(() => Assert.That(component.Find(".ec-preview-message-title").TextContent, Is.EqualTo("Náhled tohoto typu souboru není k dispozici")));
 
         component.Find(".ec-preview-message .ec-button-primary").Click();
 
@@ -351,7 +351,7 @@ public class FilePreviewModalRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.Find(".ec-preview-message-title").TextContent, Is.EqualTo("Náhled tohoto typu souboru není k\u00A0dispozici"));
+            Assert.That(component.Find(".ec-preview-message-title").TextContent, Is.EqualTo("Náhled tohoto typu souboru není k dispozici"));
             Assert.That(component.Find(".ec-preview-message .ec-button-primary").TextContent.Trim(), Is.EqualTo("Stáhnout soubor"));
             Assert.That(component.Find(".ec-preview-message .ec-file-icon").ClassList, Does.Contain("ec-file-icon-large"));
             Assert.That(downloaded, Is.EqualTo(["Doručenka.zfo"]));
@@ -370,8 +370,8 @@ public class FilePreviewModalRenderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(component.Find(".ec-preview-name").TextContent, Is.EqualTo("b.png"));
-            Assert.That(component.Find(".ec-preview-meta").TextContent, Does.StartWith("1\u00A0kB·"));
-            Assert.That(component.Find(".ec-preview-position").TextContent, Is.EqualTo("2\u00A0z\u00A03"));
+            Assert.That(component.Find(".ec-preview-meta").TextContent, Does.StartWith("1 kB·"));
+            Assert.That(component.Find(".ec-preview-position").TextContent, Is.EqualTo("2 z 3"));
             Assert.That(component.Find("dialog").GetAttribute("aria-label"), Is.EqualTo("b.png"));
         }
     }

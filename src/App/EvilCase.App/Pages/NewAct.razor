@@ -77,7 +77,7 @@
 
                             <div class="ec-form-group">
                                 <div class="ec-form-group-head">
-                                    <h2 class="ec-form-group-title">Směr a&nbsp;kontakt</h2>
+                                    <h2 class="ec-form-group-title">Směr a kontakt</h2>
                                     <span class="ec-form-group-hint">Vyplňte obojí, nebo nic</span>
                                 </div>
                                 <div class="ec-form-group-row">
@@ -131,14 +131,14 @@
                 {
                     <EcCard Title="Spis">
                         <a class="ec-case-link" href="/cases/@this.caseDetail.CaseId">
-                            <span class="ec-case-link-title">@CzechTypography.Text(this.caseDetail.Title)</span>
+                            <span class="ec-case-link-title">@this.caseDetail.Title</span>
                             <span class="ec-case-link-number">@this.caseDetail.CaseNumber</span>
                         </a>
                         <p class="ec-card-text">Úkon vzniká pod tímto spisem. Přesunout ho jinam nejde.</p>
                     </EcCard>
                 }
                 <EcCard Title="Co přijde po uložení">
-                    <p class="ec-card-text">Otevře se detail spisu se založeným úkonem v&nbsp;seznamu. Dokumenty a&nbsp;komentáře k&nbsp;úkonu přidáte na jeho detailu.</p>
+                    <p class="ec-card-text">Otevře se detail spisu se založeným úkonem v seznamu. Dokumenty a komentáře k úkonu přidáte na jeho detailu.</p>
                 </EcCard>
             </aside>
         </div>
@@ -292,7 +292,7 @@
         {
             this.error = exception.ResponseBody?.Contains(ContactProblems.UnknownContact, StringComparison.Ordinal) == true
                 ? "Vybraný kontakt už neexistuje. Vyberte jiný."
-                : "Zkontrolujte zadané údaje a\u00A0zkuste to znovu.";
+                : "Zkontrolujte zadané údaje a zkuste to znovu.";
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
         {
@@ -302,7 +302,7 @@
         {
             this.Logger.LogWarning(exception, "Filing a new act failed");
 
-            this.error = "Úkon se nepodařilo založit. Zkontrolujte zadané údaje a\u00A0zkuste to znovu.";
+            this.error = "Úkon se nepodařilo založit. Zkontrolujte zadané údaje a zkuste to znovu.";
         }
         finally
         {

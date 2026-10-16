@@ -47,7 +47,7 @@
                 <div class="ec-sr-state" role="status">
                     <span class="ec-sr-state-icon"><EcIcon Paths="@AppIcons.Search" /></span>
                     <span class="ec-sr-state-text">
-                        <span class="ec-sr-state-title">Napište alespoň @SearchLimits.TermMinLength&nbsp;znaky</span>
+                        <span class="ec-sr-state-title">Napište alespoň @SearchLimits.TermMinLength znaky</span>
                         <span>Hledá se ve spisech, úkonech, kontaktech, souborech, komentářích, bez ohledu na diakritiku.</span>
                     </span>
                 </div>
@@ -107,7 +107,7 @@
                     {
                         <div class="ec-sr-group" role="group" aria-label="Úkony">
                             <SearchGroupHead Label="Úkony" Count="found.Acts.TotalCount" OnOpen="this.Close"
-                                             AllText="@(found.Acts.TotalCount > found.Acts.Items.Count ? $"Všechny v\u00A0Úkonech ({found.Acts.TotalCount})" : null)"
+                                             AllText="@(found.Acts.TotalCount > found.Acts.Items.Count ? $"Všechny v Úkonech ({found.Acts.TotalCount})" : null)"
                                              AllHref="@($"/acts?q={all}")" />
                             @foreach (var item in found.Acts.Items)
                             {
@@ -134,7 +134,7 @@
                     {
                         <div class="ec-sr-group" role="group" aria-label="Kontakty">
                             <SearchGroupHead Label="Kontakty" Count="found.Contacts.TotalCount" OnOpen="this.Close"
-                                             AllText="@(found.Contacts.TotalCount > found.Contacts.Items.Count ? $"Všechny v\u00A0Kontaktech ({found.Contacts.TotalCount})" : null)"
+                                             AllText="@(found.Contacts.TotalCount > found.Contacts.Items.Count ? $"Všechny v Kontaktech ({found.Contacts.TotalCount})" : null)"
                                              AllHref="@($"/contacts?q={all}")" />
                             @foreach (var item in found.Contacts.Items)
                             {

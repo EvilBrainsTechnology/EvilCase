@@ -34,7 +34,7 @@
                     <nav class="ec-preview-nav" aria-label="Soubory">
                         <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.ChevronLeft" AriaLabel="Předchozí soubor"
                                   OnClick="() => this.Step(-1)" />
-                        <span class="ec-preview-position"><strong>@(this.Position + 1)</strong>&nbsp;z&nbsp;@this.Files.Count</span>
+                        <span class="ec-preview-position"><strong>@(this.Position + 1)</strong> z @this.Files.Count</span>
                         <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.ChevronRight" AriaLabel="Další soubor"
                                   OnClick="() => this.Step(1)" />
                     </nav>
@@ -49,8 +49,8 @@
             {
                 <div class="ec-preview-message">
                     <EcFileIcon FileName="@file.FileName" Size="EcFileIconSize.Large" />
-                    <p class="ec-preview-message-title">Náhled tohoto typu souboru není k&nbsp;dispozici</p>
-                    <p class="ec-preview-message-text">Soubor si stáhněte a&nbsp;otevřete v&nbsp;aplikaci, která ho umí zobrazit.</p>
+                    <p class="ec-preview-message-title">Náhled tohoto typu souboru není k dispozici</p>
+                    <p class="ec-preview-message-text">Soubor si stáhněte a otevřete v aplikaci, která ho umí zobrazit.</p>
                     <EcButton Variant="EcButtonVariant.Primary" Icon="@AppIcons.Download" OnClick="() => this.OnDownload.InvokeAsync(file)">Stáhnout soubor</EcButton>
                 </div>
             }
@@ -113,7 +113,7 @@
                     <div class="ec-preview-sheet-view">
                         @if (sheet.RowCount > sheet.Rows.Count)
                         {
-                            <p class="ec-preview-note">Zobrazuje se jen prvních @Count(sheet.Rows.Count)&nbsp;řádků z&nbsp;@Count(sheet.RowCount).</p>
+                            <p class="ec-preview-note">Zobrazuje se jen prvních @Count(sheet.Rows.Count) řádků z @Count(sheet.RowCount).</p>
                         }
                         <div class="ec-preview-sheet" role="document" tabindex="0" aria-label="Obsah listu @sheet.Name">
                             <table class="ec-preview-sheet-table">

@@ -43,7 +43,7 @@
                     @foreach (var item in this.children.Where(item => this.showClosed || item.Status != CaseStatus.Closed))
                     {
                         <a class="ec-child-row" href="@($"/cases/{item.CaseId}")">
-                            <span class="ec-child-title" title="@item.Title">@CzechTypography.Text(item.Title)</span>
+                            <span class="ec-child-title" title="@item.Title">@item.Title</span>
                             <span class="ec-child-status">
                                 <span class="@($"ec-status-dot {CaseStatusDisplay.Dot(item.Status)}")" aria-hidden="true"></span>@CaseStatusDisplay.Text(item.Status)<span class="ec-sep" aria-hidden="true">·</span>@DateDisplay.Text(item.Date)
                             </span>
@@ -53,7 +53,7 @@
                 @if (closedCount > 0)
                 {
                     <button type="button" class="ec-child-toggle" aria-expanded="@(this.showClosed ? "true" : "false")"
-                            aria-controls="case-children" @onclick="this.ToggleClosed">@(this.showClosed ? "Skrýt uzavřené" : $"Zobrazit i\u00A0uzavřené ({closedCount})")</button>
+                            aria-controls="case-children" @onclick="this.ToggleClosed">@(this.showClosed ? "Skrýt uzavřené" : $"Zobrazit i uzavřené ({closedCount})")</button>
                 }
             </div>
         }

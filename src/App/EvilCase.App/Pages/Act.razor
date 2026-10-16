@@ -36,7 +36,7 @@
                                 <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ChevronLeft"
                                           AriaLabel="Předchozí úkon" Disabled />
                             }
-                            <span class="ec-act-pager-text">Úkon <span class="ec-act-pager-position">@this.Detail.ActPosition</span>&nbsp;z&nbsp;@this.Detail.CaseActCount</span>
+                            <span class="ec-act-pager-text">Úkon <span class="ec-act-pager-position">@this.Detail.ActPosition</span> z @this.Detail.CaseActCount</span>
                             @if (this.Next is { } next)
                             {
                                 <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ChevronRight"
@@ -63,7 +63,7 @@
 
                 @if (!string.IsNullOrWhiteSpace(this.Detail.Description))
                 {
-                    <p class="ec-detail-text">@CzechTypography.Text(this.Detail.Description)</p>
+                    <p class="ec-detail-text">@this.Detail.Description</p>
                 }
 
                 <div class="ec-detail-facts">
@@ -137,7 +137,7 @@
 
                 <CommentsCard @key="(nameof(CommentsCard), this.ActId)"
                               Title="Komentáře úkonu"
-                              Placeholder="@("Poznámka k\u00A0tomuto úkonu…")"
+                              Placeholder="@("Poznámka k tomuto úkonu…")"
                               LoadComments="this.LoadComments"
                               AddComment="this.AddComment"
                               SaveComment="this.SaveComment"
@@ -147,7 +147,7 @@
             <aside class="ec-detail-aside">
                 <EcCard Title="Spis">
                     <a class="ec-case-link" href="@($"/cases/{this.Detail.CaseId}")">
-                        <span class="ec-case-link-title">@CzechTypography.Text(this.Detail.CaseTitle)</span>
+                        <span class="ec-case-link-title">@this.Detail.CaseTitle</span>
                         <span class="ec-case-link-number">@this.Detail.CaseNumber</span>
                     </a>
                     <p class="ec-case-meta">
@@ -192,7 +192,7 @@
                                                     <span class="@($"ec-timeline-direction ec-timeline-direction-{ActDirectionDisplay.Css(itemDirection)}")"><EcIcon Paths="@ActDirectionDisplay.Icon(itemDirection)" Size="EcIconSize.Small" />@ActDirectionDisplay.Text(itemDirection)</span>
                                                 }
                                             </span>
-                                            <span class="ec-timeline-title">@CzechTypography.Text(item.Title)</span>
+                                            <span class="ec-timeline-title">@item.Title</span>
                                         </span>
                                     </a>
                                 </li>
