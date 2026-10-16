@@ -82,25 +82,25 @@
             <CaseList @key="(nameof(CaseList), this.ContactId)"
                       Columns="CaseColumns"
                       Filter="this.CaseFilter"
-                      Title="@("Spisy s tímto kontaktem")"
+                      Title="Spisy s tímto kontaktem"
                       InputPrefix="contact-cases"
                       ShowSearch="true"
                       ShowStatusFilter="true"
                       HideToolbarWhenEmpty="true"
                       ShowPaging="true"
-                      EmptyText="@("Kontakt nefiguruje v žádném spisu.")" />
+                      EmptyText="Kontakt nefiguruje v žádném spisu." />
 
             <ActList @key="(nameof(ActList), this.ContactId)"
                      Columns="ActColumns"
                      Filter="this.ActFilter"
-                     Title="@("Úkony s tímto kontaktem")"
+                     Title="Úkony s tímto kontaktem"
                      DateHeader="Datum úkonu"
                      InputPrefix="contact-acts"
                      ShowSearch="true"
                      ShowDirectionFilter="true"
                      HideToolbarWhenEmpty="true"
                      ShowPaging="true"
-                     EmptyText="@("Kontakt nefiguruje v žádném úkonu.")" />
+                     EmptyText="Kontakt nefiguruje v žádném úkonu." />
         </div>
     }
 </div>

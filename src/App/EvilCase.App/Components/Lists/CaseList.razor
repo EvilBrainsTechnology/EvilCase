@@ -87,7 +87,7 @@
             <label class="ec-search" for="@($"{this.InputPrefix}-search")">
                 <EcIcon Paths="@AppIcons.Search" Size="EcIconSize.Small" />
                 <input id="@($"{this.InputPrefix}-search")" type="search" class="ec-search-input" aria-label="Hledat ve spisech"
-                       placeholder="@("Hledat v názvu a popisu")" value="@this.SearchText" @oninput="this.OnSearchInput" />
+                       placeholder="Hledat v názvu a popisu" value="@this.SearchText" @oninput="this.OnSearchInput" />
             </label>
         }
 
