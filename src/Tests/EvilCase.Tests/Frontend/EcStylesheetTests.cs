@@ -204,7 +204,7 @@ public class EcStylesheetTests
         {
             Assert.That(css, Does.Not.Contain("--ec-list-row-height:"), "no list sets a row height of its own");
 
-            foreach (var selector in new[] { ".ec-table-row", ".ec-settings-row", ".ec .ec-child-row" })
+            foreach (var selector in new[] { ".ec-table-row", ".ec-settings-row", ".ec-child-row" })
             {
                 var rules = css.Split($"\n{selector} {{").Skip(1).Select(static rest => rest[..rest.IndexOf('}', StringComparison.Ordinal)]);
 
