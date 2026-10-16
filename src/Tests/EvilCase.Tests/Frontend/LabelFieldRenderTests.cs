@@ -46,6 +46,23 @@ public class LabelFieldRenderTests
     }
 
     [Test]
+    public async Task TheOfferFollowsCzechAlphabeticalOrderIgnoringCase()
+    {
+        await using var ctx = new BunitContext();
+
+        var names = new[] { "Zuzana", "Řehoř", "zeman", "Čížek", "Adam", "čeněk" };
+        var labels = names.Select(static name => new LabelItem { LabelId = Guid.CreateVersion7(), Name = name, Color = LabelColor.Blue }).ToList();
+
+        var component = Render(ctx, out _, available: labels);
+
+        await component.Find("#labels").ClickAsync(new MouseEventArgs());
+
+        await component.WaitForAssertionAsync(
+            () => Assert.That(component.FindAll(".ec-label-option").Select(static option => option.TextContent.Trim()), Is.EqualTo(["Adam", "čeněk", "Čížek", "Řehoř", "zeman", "Zuzana"])),
+            WaitTimeout);
+    }
+
+    [Test]
     public async Task TypingNarrowsTheOfferAndANonMatchSaysSo()
     {
         await using var ctx = new BunitContext();
@@ -356,14 +373,15 @@ public class LabelFieldRenderTests
         IReadOnlyList<LabelItem>? selected = null,
         Action<IReadOnlyList<LabelItem>>? onChanged = null,
         bool inline = false,
-        bool create = true)
+        bool create = true,
+        IReadOnlyList<LabelItem>? available = null)
     {
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         labelsClient = Substitute.For<ILabelsClient>();
         labelsClient
             .ListLabels(Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(new LabelListResponse { Items = [LabelListItems.Of(Deadline), LabelListItems.Of(Appeal), LabelListItems.Of(Court)] }));
+            .Returns(Task.FromResult(new LabelListResponse { Items = [.. (available ?? [Deadline, Appeal, Court]).Select(static label => LabelListItems.Of(label))] }));
 
         ctx.Services.AddSingleton(labelsClient);
 

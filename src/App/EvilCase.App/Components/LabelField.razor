@@ -294,6 +294,8 @@
         return this.module ??= await this.JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/ec-label-field.js");
     }
 
+    private static readonly StringComparer LabelOrder = StringComparer.Create(CultureInfo.GetCultureInfo("cs-CZ"), ignoreCase: true);
+
     private void Refilter()
     {
         this.rows =
@@ -301,7 +303,7 @@
             .. this.available
                 .Where(label => !this.Selected.Any(selected => selected.LabelId == label.LabelId))
                 .Where(label => SearchText.Matches(label.Name, this.search))
-                .OrderBy(static label => label.Name, StringComparer.CurrentCultureIgnoreCase),
+                .OrderBy(static label => label.Name, LabelOrder),
         ];
 
         this.active = Math.Clamp(this.active, 0, Math.Max(this.rows.Count - 1, 0));

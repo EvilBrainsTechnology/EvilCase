@@ -35,6 +35,19 @@ public class LabelListQueryTests : TenantFixture
     }
 
     [Test]
+    public async Task TheNameOrderFollowsCzechAlphabeticalOrderIgnoringCase()
+    {
+        foreach (var name in new[] { "Zuzana", "Řehoř", "zeman", "Čížek", "Adam", "čeněk" })
+            await this.Tenant.AddLabel(name);
+
+        var items = await this.reader.ListLabels(CancellationToken.None);
+
+        string[] expected = ["Adam", "čeněk", "Čížek", "Řehoř", "zeman", "Zuzana"];
+
+        Assert.That(items.Select(static item => item.Name), Is.EqualTo(expected), "the name order is Czech alphabetical, ignoring case");
+    }
+
+    [Test]
     public async Task EachLabelCountsTheCasesAndActsThatCarryIt()
     {
         var used = await this.Tenant.AddLabel("Soud");

@@ -85,6 +85,24 @@ public class ActListQueryTests : TenantFixture
     }
 
     [Test]
+    public async Task TheTitleOrderFollowsCzechAlphabeticalOrderIgnoringCase()
+    {
+        var @case = await this.Tenant.AddCase(new DateOnly(2026, 8, 20));
+
+        foreach (var title in new[] { "Zuzana", "Řehoř", "zeman", "Čížek", "Adam", "čeněk" })
+            await this.Tenant.AddAct(@case, new DateOnly(2026, 8, 22), title);
+
+        var titles = await this.Tenant.Context.Acts
+            .InSortOrder(ActSortKey.Title, ListSortDirection.Ascending)
+            .Select(static act => act.Title)
+            .ToListAsync();
+
+        string[] expected = ["Adam", "čeněk", "Čížek", "Řehoř", "zeman", "Zuzana"];
+
+        Assert.That(titles, Is.EqualTo(expected), "the title order is Czech alphabetical, ignoring case");
+    }
+
+    [Test]
     public async Task AnActOfAnotherTenantNeverComesBack()
     {
         var @case = await this.Tenant.AddCase(new DateOnly(2026, 8, 20));

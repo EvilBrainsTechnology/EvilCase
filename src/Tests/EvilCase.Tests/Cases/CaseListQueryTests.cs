@@ -251,6 +251,37 @@ public class CaseListQueryTests : TenantFixture
     }
 
     [Test]
+    public async Task TheTitleOrderFollowsCzechAlphabeticalOrderIgnoringCase()
+    {
+        foreach (var title in new[] { "Zuzana", "Řehoř", "zeman", "Čížek", "Adam", "čeněk" })
+            await this.Tenant.AddCase(Day, title);
+
+        var titles = await this.Tenant.Context.Cases
+            .InSortOrder(CaseSortKey.Title, ListSortDirection.Ascending)
+            .Select(static @case => @case.Title)
+            .ToListAsync();
+
+        string[] expected = ["Adam", "čeněk", "Čížek", "Řehoř", "zeman", "Zuzana"];
+
+        Assert.That(titles, Is.EqualTo(expected), "the title order is Czech alphabetical, ignoring case");
+    }
+
+    [Test]
+    public async Task TheLabelsOfARowFollowCzechAlphabeticalOrderIgnoringCase()
+    {
+        var @case = await this.Tenant.AddCase(Day, "Spis");
+
+        foreach (var name in new[] { "Zuzana", "Řehoř", "zeman", "Čížek", "Adam" })
+            await this.Tenant.AddCaseLabel(@case, await this.Tenant.AddLabel(name));
+
+        var row = await this.Tenant.Context.Cases.AsListItems().SingleAsync();
+
+        string[] expected = ["Adam", "Čížek", "Řehoř", "zeman", "Zuzana"];
+
+        Assert.That(row.Labels.Select(static label => label.Name), Is.EqualTo(expected), "a row's labels are Czech alphabetical, ignoring case");
+    }
+
+    [Test]
     public async Task ARowCarriesWhenTheCaseLastChanged()
     {
         var seeded = await this.Tenant.AddCase(Day, "Přestupek");

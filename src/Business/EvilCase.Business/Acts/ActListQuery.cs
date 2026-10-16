@@ -81,8 +81,8 @@ internal static class ActListQuery
         {
             ActSortKey.Date => acts.InKeyOrder(static act => act.Date, direction).ThenInWriteOrder(direction),
             ActSortKey.Changed => acts.InKeyOrder(static act => act.Updated ?? act.Created, direction).ThenInWriteOrder(direction),
-            ActSortKey.Title => acts.InKeyOrder(static act => act.Title, direction).ThenInWriteOrder(direction),
-            ActSortKey.ActNumber => acts.InKeyOrder(static act => act.ActNumber, direction).ThenInWriteOrder(direction),
+            ActSortKey.Title => acts.InKeyOrder(static act => EF.Functions.Collate(act.Title, DatabaseFunctions.CzechCollation), direction).ThenInWriteOrder(direction),
+            ActSortKey.ActNumber => acts.InKeyOrder(static act => EF.Functions.Collate(act.ActNumber, DatabaseFunctions.CzechCollation), direction).ThenInWriteOrder(direction),
             _ => throw new UnreachableException(),
         };
     }
@@ -104,7 +104,7 @@ internal static class ActListQuery
             ContactId = act.ContactId,
             ContactName = act.Contact!.Name,
             Labels = act.Labels
-                .OrderBy(static assignment => assignment.Label!.Name)
+                .OrderBy(static assignment => EF.Functions.Collate(assignment.Label!.Name, DatabaseFunctions.CzechCollation))
                 .Select(static assignment => new LabelItem
                 {
                     LabelId = assignment.LabelId,
