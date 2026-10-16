@@ -80,6 +80,26 @@ public class LoginRenderTests
     }
 
     [Test]
+    public async Task AnEmptySubmitFocusesTheFirstInvalidField()
+    {
+        await using var ctx = new BunitContext();
+        var form = ctx.JSInterop.SetupModule("./js/ec-form.js");
+        form.SetupVoid("focusFirstInvalid");
+
+        ctx.Services.AddSingleton<IAuthSession>(new StubAuthSession());
+
+        var component = ctx.Render<Login>();
+
+        await component.Find("button[type=\"submit\"]").ClickAsync(new MouseEventArgs());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.Find("#login-email").GetAttribute("aria-invalid"), Is.EqualTo("true"));
+            form.VerifyInvoke("focusFirstInvalid");
+        }
+    }
+
+    [Test]
     public async Task AReturnUrlOutsideTheApplicationIsIgnored()
     {
         var inside = await SignInReturningTo("/cases");
