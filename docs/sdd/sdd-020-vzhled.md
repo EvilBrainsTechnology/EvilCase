@@ -44,15 +44,15 @@ Aplikace má vlastní sadu komponent s prefixem `Ec`. Obrazovka skládá jen je,
 - `EcPageHeader` — drobečky, název, stav, akce vpravo.
 - `EcCard` — bílá plocha s linkou a rádiusem 16 px, volitelnou hlavičkou a patičkou.
 - `EcButton` — varianty `primary`, `secondary`, `ghost`, `danger`; každé tlačítko nese ikonu
-  vlevo od textu. `danger` je plné tmavě červené tlačítko s bílým textem a potvrzuje smazání. Tlačítko jen s ikonou má `aria-label`. Tichá textová akce u položky nebo
-  v liště (Upravit a Smazat u komentáře, Zrušit filtry, Zobrazit i uzavřené) je výjimka: text
-  bez ikony a bez plochy; mazání nese barvu chyby.
+  vlevo od textu. `danger` je plné tmavě červené tlačítko s bílým textem a potvrzuje smazání.
+  Tlačítko jen s ikonou má `aria-label`. Tichá textová akce u položky nebo v liště (Upravit
+  a Smazat u komentáře, Zrušit filtry, Zobrazit i uzavřené) je výjimka: text bez ikony a bez
+  plochy; mazání nese barvu chyby.
 - `EcBadge` — pilulka pro stav spisu, směr úkonu a typ kontaktu; stav nese barevnou tečku, směr
   šipku.
 - `EcTable` — seznam podle SDD-016: řádek je odkaz po celé šířce, řaditelné záhlaví je
   tlačítko, patička nese rozsah, počet a stránkování; seznam na jednu stránku patičku nemá.
-  Chybějící hodnota v buňce je světlá
-  pomlčka.
+  Chybějící hodnota v buňce je světlá pomlčka.
 - `EcField` — popisek, ovládací prvek a pod ním nápověda, kterou při neplatné hodnotě nahradí
   chyba; povinné pole značí hvězdička. Nápověda a chyba z jedné fráze končí bez tečky, celá věta
   s tečkou.
@@ -83,7 +83,8 @@ položka menu je zvýrazněná po celé výšce lišty. Obsah leží na
 řádky textu. Výjimkou jsou soubory, jejichž řádek nese dlaždici typu, a výsledky hledání.
 
 Detail spisu i úkonu začíná kartou se jménem, stavem, popisem a řádkem údajů. Popis je hned
-pod názvem, ne v postranním sloupci; bez popisu jde pod název rovnou řádek údajů. Obsah, který patří spisu, je v pravém sloupci; obsah,
+pod názvem, ne v postranním sloupci; bez popisu jde pod název rovnou řádek údajů. Chybějící
+údaj je světlá pomlčka jako v seznamu. Obsah, který patří spisu, je v pravém sloupci; obsah,
 který patří úkonu, je uvnitř úkonu. Soubory a komentáře proto existují dvakrát a název to
 vždycky říká: „Soubory spisu" a „Soubory úkonu".
 
@@ -96,12 +97,13 @@ komentář má dva řádky.
 Karta souborů nese v záhlaví výzvu „Přetáhněte soubory sem nebo" a tlačítko Nahrát soubory,
 v bočním sloupci „Přetáhněte sem nebo" a Nahrát; záhlaví drží jeden řádek a výzva se bez místa
 zkrátí. Na mobilu záhlaví výzvu nenese a tlačítko je vždy Nahrát. Velikost a okamžik nahrání
-se zalomí jen mezi sebou. Pod seznamem žádný pruh není. Řádek souboru je jedno ovládací místo po celé šířce a otevírá náhled; stažení a nabídka ⋯ jsou ohraničená
-tlačítka jen s ikonou, v nabídce je Přejmenovat a oddělené, červené Smazat…. Při tažení
-souborů přes kartu ji přikryje přerušovaný akcentový rámeček s textem „Pusťte soubory
-a nahrají se k úkonu" (ve spisu „ke spisu") a limity. Náhled souboru je velký modal; hlavička
-nese ikonu, název, velikost a okamžik nahrání, přechod mezi soubory karty s pořadím „2 z 5",
-Přejmenovat, Stáhnout a zavření.
+se zalomí jen mezi sebou. Pod seznamem žádný pruh není. Řádek souboru je jedno ovládací místo
+po celé šířce a otevírá náhled; stažení a nabídka ⋯ jsou ohraničená tlačítka jen s ikonou,
+v nabídce je Přejmenovat a oddělené, červené Smazat…. Při tažení souborů přes kartu ji přikryje
+přerušovaný akcentový rámeček s textem „Pusťte soubory a nahrají se k úkonu" (ve spisu „ke
+spisu") a limity. Náhled souboru je velký modal; hlavička nese ikonu, název, velikost
+a okamžik nahrání, u víc souborů karty přechod mezi nimi s pořadím „2 z 5", Přejmenovat,
+Stáhnout a zavření.
 
 Načítání aplikace a přihlášení sdílejí jeden rám: tmavá stránka, uprostřed nahoře značka
 a pod ní jedna bílá karta s postupem načítání, nebo s přihlašovacím formulářem. Značka zůstává
@@ -111,8 +113,8 @@ při přechodu na stejném místě, na desktopu i na mobilu.
 
 Každý seznam a každá karta má stav načítání, chyby, prázdna a plného obsahu. Prázdný stav nese
 ikonu, jednu větu a tam, kde jde záznam založit, i výzvu. Chyba nese větu, co se nepovedlo,
-a nabídku opakování. Nenalezený záznam nebo stránka nese ikonu, větu a odkaz zpět na seznam.
-Načítání drží výšku, aby obsah neposkakoval.
+a nabídku opakování. Nenalezený záznam nese ikonu, větu a odkaz zpět na svůj seznam, neznámá
+stránka odkaz na přehled. Načítání drží výšku, aby obsah neposkakoval.
 
 Ovládací prvek má viditelný stav nad myší, při fokusu a zakázaný; fokus je vidět vždy
 a klávesnicí se dá projít celá obrazovka. Pole, které neprošlo kontrolou, má červený rámeček
@@ -123,11 +125,12 @@ se potvrzuje a věta potvrzení jmenuje, co kaskáda bere.
 
 Desktop je primární, každá denně používaná obrazovka je plnohodnotná i na mobilu. Menu se
 schová do zásuvky, boční sloupec se zařadí pod hlavní, formulář má jeden sloupec a jeho
-tlačítka zůstávají u spodního okraje okna. Pole i celá lišta seznamu mají na mobilu písmo 16 px. Seznam se nikdy neposouvá vodorovně: na úzké šířce
-se řádek přeskládá na dva až tři řádky a řazení přebírá select v liště. Drobečky drží jeden
-řádek a dlouhé položky se zkrátí. Dlaždice počtů na přehledu tvoří jeden řádek tří stejných buněk
-jen s počtem a popiskem; každá buňka vede na svůj seznam. Název souboru v kartě má až dva řádky. Hlavička náhledu
-souboru nese na prvním řádku název a zavření, akce pod nimi.
+tlačítka zůstávají u spodního okraje okna. Pole i celá lišta seznamu mají na mobilu písmo
+16 px. Seznam se nikdy neposouvá vodorovně: na úzké šířce se řádek přeskládá na dva až tři
+řádky a řazení přebírá select v liště. Drobečky drží jeden řádek a dlouhé položky se zkrátí.
+Dlaždice počtů na přehledu tvoří jeden řádek tří stejných buněk jen s počtem a popiskem; každá
+buňka vede na svůj seznam. Název souboru v kartě má až dva řádky. Hlavička náhledu souboru
+nese na prvním řádku název a zavření, akce pod nimi.
 
 ### Bez cizí knihovny
 
