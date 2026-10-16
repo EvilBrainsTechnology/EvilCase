@@ -2,6 +2,7 @@ using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.Business.Entities;
+using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -45,7 +46,7 @@ internal static class CaseDetailQuery
                         Changed = @case.ParentCase.Updated ?? @case.ParentCase.Created,
                     },
                 Labels = @case.Labels
-                    .OrderBy(static assignment => assignment.Label!.Name)
+                    .OrderBy(static assignment => EF.Functions.Collate(assignment.Label!.Name, DatabaseFunctions.CzechCollation))
                     .Select(static assignment => new LabelItem
                     {
                         LabelId = assignment.LabelId,

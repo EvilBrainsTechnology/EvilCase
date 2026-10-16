@@ -34,7 +34,7 @@ internal static class ContactListQuery
     {
         return sort switch
         {
-            ContactSortKey.Name => contacts.InKeyOrder(static contact => contact.Name, direction).ThenInWriteOrder(direction),
+            ContactSortKey.Name => contacts.InKeyOrder(static contact => EF.Functions.Collate(contact.Name, DatabaseFunctions.CzechCollation), direction).ThenInWriteOrder(direction),
             ContactSortKey.Changed => contacts.InKeyOrder(static contact => contact.Updated ?? contact.Created, direction).ThenInWriteOrder(direction),
             _ => throw new UnreachableException(),
         };

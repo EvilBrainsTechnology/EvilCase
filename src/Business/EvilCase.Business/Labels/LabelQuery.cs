@@ -1,4 +1,5 @@
 using EvilBrains.EvilCase.Api.Contract.Labels;
+using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,7 +10,7 @@ internal static class LabelQuery
     public static IQueryable<Label> InListOrder(this IQueryable<Label> labels)
     {
         return labels
-            .OrderBy(static label => label.Name)
+            .OrderBy(static label => EF.Functions.Collate(label.Name, DatabaseFunctions.CzechCollation))
             .ThenBy(static label => label.Id);
     }
 

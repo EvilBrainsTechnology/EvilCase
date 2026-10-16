@@ -6,6 +6,11 @@ namespace EvilBrains.EvilCase.Data.DbContexts;
 public static class DatabaseFunctions
 {
     /// <summary>
+    /// ICU collation for every text sort a user sees: Czech alphabetical order, ignoring case.
+    /// </summary>
+    public const string CzechCollation = "cs-CZ-x-icu";
+
+    /// <summary>
     /// Folds diacritics through the IMMUTABLE wrapper the <c>Init</c> migration creates.
     /// </summary>
     public static string Unaccent(string value)
