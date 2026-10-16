@@ -12,6 +12,8 @@ namespace EvilBrains.EvilCase.Business.Contacts;
 
 internal static class ContactListQuery
 {
+    private const string CzechCollation = "cs-CZ-x-icu";
+
     public static IQueryable<Contact> MatchingSearch(this IQueryable<Contact> contacts, string? search)
     {
         if (string.IsNullOrWhiteSpace(search))
@@ -34,7 +36,7 @@ internal static class ContactListQuery
     {
         return sort switch
         {
-            ContactSortKey.Name => contacts.InKeyOrder(static contact => contact.Name, direction).ThenInWriteOrder(direction),
+            ContactSortKey.Name => contacts.InKeyOrder(static contact => EF.Functions.Collate(contact.Name, CzechCollation), direction).ThenInWriteOrder(direction),
             ContactSortKey.Changed => contacts.InKeyOrder(static contact => contact.Updated ?? contact.Created, direction).ThenInWriteOrder(direction),
             _ => throw new UnreachableException(),
         };

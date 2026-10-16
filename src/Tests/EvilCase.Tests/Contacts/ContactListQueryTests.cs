@@ -95,6 +95,22 @@ public class ContactListQueryTests : TenantFixture
     }
 
     [Test]
+    public async Task TheNameOrderFollowsCzechAlphabeticalOrderIgnoringCase()
+    {
+        foreach (var name in new[] { "Zuzana", "Řehoř", "zeman", "Čížek", "Adam", "čeněk" })
+            await this.Tenant.AddContact(name);
+
+        var names = await this.Tenant.Context.Contacts
+            .InSortOrder(ContactSortKey.Name, ListSortDirection.Ascending)
+            .Select(static contact => contact.Name)
+            .ToListAsync();
+
+        string[] expected = ["Adam", "čeněk", "Čížek", "Řehoř", "zeman", "Zuzana"];
+
+        Assert.That(names, Is.EqualTo(expected), "the name order is Czech alphabetical, ignoring case");
+    }
+
+    [Test]
     public async Task ARowCarriesTheKindTheNameTheDataBoxIdAndTheAddress()
     {
         var seeded = await this.Tenant.AddContact(
