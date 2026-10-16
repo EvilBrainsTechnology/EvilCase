@@ -1034,8 +1034,9 @@ html {
     white-space: nowrap;
 }
 
+/* Tečku obklopují mezery, aby čtečka nespojila části; okraj doplní mezeru na rozestup předlohy. */
 .ec-sep {
-    margin-inline: var(--ec-space-2);
+    margin-inline: var(--ec-space-1);
     color: var(--ec-text-faint);
 }
 

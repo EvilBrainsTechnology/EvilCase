@@ -45,7 +45,7 @@
                         <a class="ec-child-row" href="@($"/cases/{item.CaseId}")">
                             <span class="ec-child-title" title="@item.Title">@item.Title</span>
                             <span class="ec-child-status">
-                                <span class="@($"ec-status-dot {CaseStatusDisplay.Dot(item.Status)}")" aria-hidden="true"></span>@CaseStatusDisplay.Text(item.Status)<span class="ec-sep" aria-hidden="true">·</span>@DateDisplay.Text(item.Date)
+                                <span class="@($"ec-status-dot {CaseStatusDisplay.Dot(item.Status)}")" aria-hidden="true"></span>@CaseStatusDisplay.Text(item.Status) <span class="ec-sep" aria-hidden="true">·</span> @DateDisplay.Text(item.Date)
                             </span>
                         </a>
                     }

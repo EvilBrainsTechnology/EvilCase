@@ -56,7 +56,7 @@ public class LabelFormModalRenderTests
         {
             Assert.That(component.Find(".ec-label-preview .ec-chip").TextContent.Trim(), Is.EqualTo("Soud"));
             Assert.That(component.Find(".ec-label-preview .ec-chip").ClassList, Does.Contain("ec-chip-red"));
-            Assert.That(component.FindAll(".ec-field-name")[1].TextContent, Does.Contain("Barva").And.Contain("Červená"));
+            Assert.That(component.FindAll(".ec-field-name")[1].TextContent, Does.Contain("Barva · Červená"));
             Assert.That(component.Find(".ec-swatch[aria-label=\"Červená\"]").GetAttribute("title"), Is.EqualTo("Červená"));
         }
     }

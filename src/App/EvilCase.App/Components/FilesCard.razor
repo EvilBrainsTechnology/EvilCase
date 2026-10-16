@@ -93,7 +93,7 @@
                                         <button type="button" class="ec-file-name" @ref="this.nameButtons[file.FileId]"
                                                 title="@(this.Compact ? file.FileName : this.OpenTitle(file))"
                                                 disabled="@busy" @onclick="() => this.Open(file)">@file.FileName</button>
-                                        <span class="ec-file-meta">@FileSizeDisplay.Text(file.SizeBytes)<span class="ec-sep" aria-hidden="true">·</span><span class="ec-file-moment">@MomentDisplay.Text(file.Created)</span></span>
+                                        <span class="ec-file-meta">@FileSizeDisplay.Text(file.SizeBytes) <span class="ec-sep" aria-hidden="true">·</span> <span class="ec-file-moment">@MomentDisplay.Text(file.Created)</span></span>
                                     </div>
                                     <div class="ec-file-actions">
                                         <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Download"

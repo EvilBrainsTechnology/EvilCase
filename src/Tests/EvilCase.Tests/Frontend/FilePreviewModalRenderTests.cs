@@ -370,7 +370,7 @@ public class FilePreviewModalRenderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(component.Find(".ec-preview-name").TextContent, Is.EqualTo("b.png"));
-            Assert.That(component.Find(".ec-preview-meta").TextContent, Does.StartWith("1 kB·"));
+            Assert.That(component.Find(".ec-preview-meta").TextContent, Does.StartWith("1 kB · "));
             Assert.That(component.Find(".ec-preview-position").TextContent, Is.EqualTo("2 z 3"));
             Assert.That(component.Find("dialog").GetAttribute("aria-label"), Is.EqualTo("b.png"));
         }

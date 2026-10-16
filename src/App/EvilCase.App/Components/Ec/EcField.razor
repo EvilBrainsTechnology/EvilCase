@@ -25,7 +25,7 @@
             @this.Label
             @if (this.Detail is not null)
             {
-                <span class="ec-sep" aria-hidden="true">·</span><span class="ec-field-detail">@this.Detail</span>
+                @(" ")<span class="ec-sep" aria-hidden="true">·</span> <span class="ec-field-detail">@this.Detail</span>
             }
             @if (this.Required)
             {
