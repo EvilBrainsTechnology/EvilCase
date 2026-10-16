@@ -17,7 +17,7 @@
 
     @if (this.Detail is null)
     {
-        <DetailStatus NotFound="this.NotFound" NotFoundText="Úkon nenalezen." Failure="@this.Failure" Retry="this.Load" />
+        <DetailStatus NotFound="this.NotFound" NotFoundText="Úkon nenalezen." BackHref="/acts" BackText="Zpět na úkony" Failure="@this.Failure" Retry="this.Load" />
     }
     else
     {
@@ -52,7 +52,7 @@
                     <Status>
                         @if (this.Detail.Direction is { } direction)
                         {
-                            <EcBadge Text="@ActDirectionDisplay.Text(direction)" Tone="ActDirectionDisplay.Tone(direction)" />
+                            <EcBadge Text="@ActDirectionDisplay.Text(direction)" Tone="ActDirectionDisplay.Tone(direction)" Icon="@ActDirectionDisplay.Icon(direction)" />
                         }
                     </Status>
                     <Actions>
@@ -61,7 +61,10 @@
                     </Actions>
                 </EcPageHeader>
 
-                <p class="ec-detail-text">@(string.IsNullOrWhiteSpace(this.Detail.Description) ? "—" : this.Detail.Description)</p>
+                @if (!string.IsNullOrWhiteSpace(this.Detail.Description))
+                {
+                    <p class="ec-detail-text">@this.Detail.Description</p>
+                }
 
                 <div class="ec-detail-facts">
                     <div class="ec-detail-fact">
@@ -79,7 +82,7 @@
                     {
                         <div class="ec-detail-fact">
                             <span class="ec-detail-fact-name">Externí číslo jednací</span>
-                            <span class="ec-detail-fact-mono">—</span>
+                            <span class="ec-detail-fact-value ec-cell-empty">—</span>
                         </div>
                     }
                     else
@@ -100,7 +103,7 @@
                         }
                         else
                         {
-                            <span class="ec-detail-fact-value">—</span>
+                            <span class="ec-detail-fact-value ec-cell-empty">—</span>
                         }
                         @if (ActContactRules.DifferingCaseContact(this.Detail.Contact, this.Detail.CaseContact) is { } differing)
                         {
@@ -149,7 +152,7 @@
                     </a>
                     <p class="ec-case-meta">
                         <span class="@($"ec-status-dot {CaseStatusDisplay.Dot(this.Detail.CaseStatus)}")" aria-hidden="true"></span>
-                        @CaseStatusDisplay.Text(this.Detail.CaseStatus) · @ActCountDisplay.Text(this.Detail.CaseActCount)
+                        @CaseStatusDisplay.Text(this.Detail.CaseStatus) <span class="ec-sep" aria-hidden="true">·</span> @ActCountDisplay.Text(this.Detail.CaseActCount)
                     </p>
                     <div class="ec-case-contact">
                         <span class="ec-case-contact-label">Protistrana spisu</span>
@@ -159,7 +162,7 @@
                         }
                         else
                         {
-                            <span>—</span>
+                            <span class="ec-cell-empty">—</span>
                         }
                     </div>
                 </EcCard>
@@ -185,7 +188,7 @@
                                                 @DateDisplay.Text(item.Date)
                                                 @if (item.Direction is { } itemDirection)
                                                 {
-                                                    <span aria-hidden="true">·</span>
+                                                    <span class="ec-sep" aria-hidden="true">·</span>
                                                     <span class="@($"ec-timeline-direction ec-timeline-direction-{ActDirectionDisplay.Css(itemDirection)}")"><EcIcon Paths="@ActDirectionDisplay.Icon(itemDirection)" Size="EcIconSize.Small" />@ActDirectionDisplay.Text(itemDirection)</span>
                                                 }
                                             </span>
@@ -229,7 +232,7 @@
         : [
             new EcCrumb("Spisy", "/cases"),
             new EcCrumb(this.Detail.CaseTitle, $"/cases/{this.Detail.CaseId}"),
-            new EcCrumb(this.Detail.ActNumber, null),
+            new EcCrumb(this.Detail.ActNumber, null, Mono: true),
         ];
 
     private IReadOnlyList<EcMenuItem> ActActions

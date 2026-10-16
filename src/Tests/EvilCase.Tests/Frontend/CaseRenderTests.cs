@@ -52,6 +52,7 @@ public class CaseRenderTests
         {
             Assert.That(component.Find("h1.ec-page-title").TextContent, Is.EqualTo("Přestupek"));
             Assert.That(component.Find(".ec-badge-active").TextContent, Is.EqualTo("Aktivní"));
+            Assert.That(component.FindAll(".ec-badge-active .ec-badge-dot"), Has.Count.EqualTo(1), "a status carries its dot (SDD-020)");
             Assert.That(component.Find(".ec-detail-text").TextContent, Is.EqualTo("Řízení o přestupku."));
             Assert.That(
                 component.FindAll(".ec-detail-fact-name").Select(static node => node.FirstChild!.TextContent),
@@ -61,8 +62,31 @@ public class CaseRenderTests
                 component.Find(".ec-detail-facts").ChildNodes.OfType<IText>().Select(static node => node.Data.Trim()),
                 Is.All.Empty,
                 "the row of data holds only facts");
-            Assert.That(component.Find(".ec-crumb[aria-current=page]").TextContent, Is.EqualTo("EC/20260821-001"));
+            Assert.That(component.Find(".ec-crumb.ec-crumb-mono[aria-current=page]").TextContent, Is.EqualTo("EC/20260821-001"));
         }
+    }
+
+    [Test]
+    public void ACaseWithoutADescriptionShowsNothingUnderTheTitle()
+    {
+        using var ctx = new BunitContext();
+
+        var caseId = Guid.CreateVersion7();
+
+        var detail = new CaseDetail
+        {
+            CaseId = caseId,
+            CaseNumber = "EC/20260821-001",
+            Date = new DateOnly(2026, 8, 21),
+            Title = "Přestupek",
+            Status = CaseStatus.Active,
+        };
+
+        Serve(ctx, caseId, detail);
+
+        var component = ctx.Render<Case>(parameters => parameters.Add(static page => page.CaseId, caseId));
+
+        Assert.That(component.FindAll(".ec-detail-text"), Is.Empty, "the row of data follows the title when there is no description");
     }
 
     [Test]
@@ -122,6 +146,38 @@ public class CaseRenderTests
         {
             Assert.That(component.Find(".ec-alert").TextContent, Does.Contain("nepodařilo načíst"));
             Assert.That(component.Find(".ec-card-error .ec-button-secondary").TextContent, Does.Contain("Zkusit znovu"));
+        }
+    }
+
+    [Test]
+    public void AMissingCaseSaysSoAndLeadsBackToTheCases()
+    {
+        using var ctx = new BunitContext();
+
+        var caseId = Guid.CreateVersion7();
+
+        var detail = new CaseDetail
+        {
+            CaseId = caseId,
+            CaseNumber = "EC/20260821-001",
+            Date = new DateOnly(2026, 8, 21),
+            Title = "Přestupek",
+            Status = CaseStatus.Active,
+        };
+
+        var (casesClient, _, _, _) = Serve(ctx, caseId, detail);
+        casesClient
+            .GetCase(caseId, Arg.Any<CancellationToken>())
+            .Returns(static _ => Task.FromException<CaseDetail>(new ApiException(HttpStatusCode.NotFound, responseBody: null)));
+
+        var component = ctx.Render<Case>(parameters => parameters.Add(static page => page.CaseId, caseId));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.Find(".ec-empty .ec-icon"), Is.Not.Null, "a not-found state is an empty state with its icon (SDD-020)");
+            Assert.That(component.Find(".ec-empty-text").TextContent, Is.EqualTo("Spis nenalezen."));
+            Assert.That(component.Find(".ec-empty a.ec-button").GetAttribute("href"), Is.EqualTo("/cases"));
+            Assert.That(component.Find(".ec-empty a.ec-button").TextContent.Trim(), Is.EqualTo("Zpět na spisy"));
         }
     }
 

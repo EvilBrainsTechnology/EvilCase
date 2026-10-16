@@ -47,8 +47,8 @@ a otevírá se na nové kartě nebo v novém okně jako kterýkoli jiný odkaz. 
 pojmenovává entitu, které sloupec patří. Buňka nese odkaz jen tam, kde vede jinam než řádek.
 
 Každý seznam vypadá stejně; stránka volí jen sloupce, jejich pořadí a nabízené ovládání.
-Řaditelné záhlaví sloupce je tlačítko, na mobilu řadí select v liště. Stránkovaný seznam nese
-v patičce zobrazený rozsah, celkový počet a předchozí/další.
+Řaditelné záhlaví sloupce je tlačítko, na mobilu řadí select v liště. Seznam na víc stránek nese
+v patičce zobrazený rozsah, celkový počet a předchozí/další; seznam na jednu stránku patičku nemá.
 
 Hledání v horní liště prochází všechny entity ([SDD-021](sdd-021-vyhledavani.md)). Seznam spisů,
 úkonů a kontaktů bere hledaný text v `?q=`.

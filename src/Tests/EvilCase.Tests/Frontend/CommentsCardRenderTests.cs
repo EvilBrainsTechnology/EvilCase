@@ -214,7 +214,7 @@ public class CommentsCardRenderTests
             .Add(static card => card.SaveComment, static (_, _, _) => Task.CompletedTask)
             .Add(static card => card.DeleteComment, static (_, _) => Task.CompletedTask));
 
-        Assert.That(component.Find(".ec-comment-meta").TextContent, Does.Contain("upraveno"));
+        Assert.That(component.Find(".ec-comment-meta").TextContent, Does.Contain(" · upraveno "));
     }
 
     [Test]

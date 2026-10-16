@@ -38,6 +38,22 @@ public class EcTableRenderTests
     }
 
     [Test]
+    public void AnEmptyListThatPagesCountsZero()
+    {
+        using var emptyCtx = new BunitContext();
+        var empty = Render(emptyCtx, title: "Úkony", items: [], total: 0, showPaging: true);
+
+        using var loadingCtx = new BunitContext();
+        var loading = Render(loadingCtx, title: "Úkony", items: [], loading: true, total: 0, showPaging: true);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(empty.Find(".ec-card-count").TextContent, Is.EqualTo("0"));
+            Assert.That(loading.FindAll(".ec-card-count"), Is.Empty, "a list still loading has no count yet");
+        }
+    }
+
+    [Test]
     public void TheRowIsOneLinkAcrossEveryColumn()
     {
         using var ctx = new BunitContext();
@@ -227,6 +243,16 @@ public class EcTableRenderTests
             Assert.That(component.Find(".ec-table-range").TextContent, Is.EqualTo("5–5 z 5"));
             Assert.That(component.FindAll(".ec-card-footer button")[1].HasAttribute("disabled"), Is.True);
         }
+    }
+
+    [Test]
+    public void ASinglePageHasNoFooter()
+    {
+        using var ctx = new BunitContext();
+
+        var component = Render(ctx, skip: 0, take: 20, total: 20, showPaging: true);
+
+        Assert.That(component.FindAll(".ec-card-footer"), Is.Empty, "a list that fits one page needs neither range nor paging");
     }
 
     [Test]

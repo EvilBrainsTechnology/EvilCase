@@ -105,6 +105,21 @@ public class EcStylesheetTests
     }
 
     [Test]
+    public async Task TheSelectChevronIsAnImageOfTheApp()
+    {
+        var tokens = await this.client.GetStringAsync(new Uri("/css/ec-tokens.css", UriKind.Relative));
+
+        using var response = await this.client.GetAsync(new Uri("/img/select-chevron.svg", UriKind.Relative));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(tokens, Does.Contain("--ec-select-chevron: url(\"../img/select-chevron.svg\");"));
+            Assert.That(tokens, Does.Not.Contain("data:"), "the content security policy blocks a data: image");
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        }
+    }
+
+    [Test]
     public async Task TheIconDrawingIsOneRuleForEveryIcon()
     {
         var css = await this.client.GetStringAsync(new Uri("/css/ec-components.css", UriKind.Relative));
@@ -196,6 +211,34 @@ public class EcStylesheetTests
                 Assert.That(rules, Has.Some.Contains("min-height: var(--ec-list-row-height);"), $"{selector} takes the one list row height");
             }
         }
+    }
+
+    [Test]
+    public async Task TheFormActionsStayAtTheBottomOnMobile()
+    {
+        var css = await this.client.GetStringAsync(new Uri("/css/ec-components.css", UriKind.Relative));
+
+        var mobile = css[css.IndexOf("@media (max-width: 991.98px)", StringComparison.Ordinal)..];
+        var rule = mobile[mobile.IndexOf(".ec-form-layout .ec-card-footer {", StringComparison.Ordinal)..];
+        rule = rule[..rule.IndexOf('}', StringComparison.Ordinal)];
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(rule, Does.Contain("position: sticky;"));
+            Assert.That(rule, Does.Contain("bottom: 0;"));
+            Assert.That(rule, Does.Contain("env(safe-area-inset-bottom)"), "a fixed bottom element clears the safe area");
+        }
+    }
+
+    [Test]
+    public async Task AnErrorTakesThePlaceOfTheHint()
+    {
+        var css = await this.client.GetStringAsync(new Uri("/css/ec-components.css", UriKind.Relative));
+
+        var rule = css[css.IndexOf(".ec-field:has(.ec-field-error > *) .ec-field-hint {", StringComparison.Ordinal)..];
+        rule = rule[..rule.IndexOf('}', StringComparison.Ordinal)];
+
+        Assert.That(rule, Does.Contain("display: none;"), "a field shows its error right under the control");
     }
 
     private static IEnumerable<string> ExtractUrls(string css)

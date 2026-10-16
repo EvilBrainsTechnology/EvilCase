@@ -19,7 +19,7 @@
 
     @if (this.contact is null)
     {
-        <DetailStatus NotFound="this.notFound" NotFoundText="Kontakt nenalezen." Failure="@this.failure" Retry="this.LoadContact" />
+        <DetailStatus NotFound="this.notFound" NotFoundText="Kontakt nenalezen." BackHref="/contacts" BackText="Zpět na kontakty" Failure="@this.failure" Retry="this.LoadContact" />
     }
     else
     {
@@ -50,7 +50,7 @@
                         <span class="ec-detail-fact-name">ID datové schránky</span>
                         @if (string.IsNullOrWhiteSpace(this.contact.DataBoxId))
                         {
-                            <span class="ec-detail-fact-mono">—</span>
+                            <span class="ec-detail-fact-value ec-cell-empty">—</span>
                         }
                         else
                         {
@@ -64,7 +64,7 @@
                         <span class="ec-detail-fact-name">Adresa</span>
                         @if (string.IsNullOrWhiteSpace(this.contact.Address))
                         {
-                            <span class="ec-detail-fact-value">—</span>
+                            <span class="ec-detail-fact-value ec-cell-empty">—</span>
                         }
                         else
                         {

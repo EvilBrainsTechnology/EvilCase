@@ -37,6 +37,24 @@ public class NewActRenderTests
     }
 
     [Test]
+    public async Task TheCaseCardLinksTheCaseAsTheActDetailDoes()
+    {
+        await using var ctx = new BunitContext();
+
+        var (_, _, _, _, _) = Serve(ctx, out var caseId);
+
+        var component = Render(ctx, caseId);
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.Find(".ec-form-aside a.ec-case-link"), Is.Not.Null), WaitTimeout);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.Find(".ec-form-aside a.ec-case-link").GetAttribute("href"), Is.EqualTo($"/cases/{caseId}"));
+            Assert.That(component.FindAll(".ec-form-aside .ec-case-link-title"), Has.Count.EqualTo(1), "one look for the case card on every screen");
+        }
+    }
+
+    [Test]
     public async Task ClickingTheChosenDirectionAgainClearsIt()
     {
         await using var ctx = new BunitContext();

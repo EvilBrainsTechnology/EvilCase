@@ -3,9 +3,9 @@ namespace EvilBrains.EvilCase.App.Models;
 public static class ChildCaseCountDisplay
 {
     /// <summary>
-    /// "6 otevřených · 9 uzavřených", "1 otevřený · 2 uzavřené".
+    /// The two parts of "6 otevřených · 9 uzavřených", "1 otevřený · 2 uzavřené".
     /// </summary>
-    public static string Text(int openCount, int closedCount)
+    public static IReadOnlyList<string> Parts(int openCount, int closedCount)
     {
         var openText = openCount.ToString(CultureInfo.InvariantCulture);
         var closedText = closedCount.ToString(CultureInfo.InvariantCulture);
@@ -24,6 +24,6 @@ public static class ChildCaseCountDisplay
             _ => $"{closedText} uzavřených",
         };
 
-        return $"{open} · {closed}";
+        return [open, closed];
     }
 }

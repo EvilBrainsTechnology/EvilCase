@@ -9,6 +9,7 @@
     <ChildContent>
         <CascadingValue Value="this.editContext">
             <DataAnnotationsValidator />
+            <InvalidFieldFocus />
             <div class="ec-form">
                 <div class="ec-label-preview">
                     <span class="ec-label-preview-caption">Náhled</span>
@@ -24,7 +25,7 @@
                     <Error><ValidationMessage For="() => this.model.Name" /></Error>
                 </EcField>
 
-                <EcField Label="@this.ColorLabel">
+                <EcField Label="Barva" Detail="@LabelColorDisplay.Text(this.model.Color)">
                     <ChildContent>
                         <div class="ec-swatches" role="group" aria-label="Barva štítku">
                             @foreach (var color in LabelColorDisplay.Palette)
@@ -76,8 +77,6 @@
     private string Title => this.Label is null ? "Nový štítek" : "Upravit štítek";
 
     private string PreviewName => string.IsNullOrWhiteSpace(this.model.Name) ? "Nový štítek" : this.model.Name.Trim();
-
-    private string ColorLabel => $"Barva · {LabelColorDisplay.Text(this.model.Color)}";
 
     private string SaveText => this.Label is null ? "Založit štítek" : "Uložit";
 

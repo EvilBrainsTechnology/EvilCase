@@ -11,6 +11,6 @@ public class ChildCaseCountDisplayTests
     [TestCase(2, 0, "2 otevřené · 0 uzavřených")]
     public void TheCountsReadInCzechPlural(int openCount, int closedCount, string expected)
     {
-        Assert.That(ChildCaseCountDisplay.Text(openCount, closedCount), Is.EqualTo(expected));
+        Assert.That(string.Join(" · ", ChildCaseCountDisplay.Parts(openCount, closedCount)), Is.EqualTo(expected));
     }
 }

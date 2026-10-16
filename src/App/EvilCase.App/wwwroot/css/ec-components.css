@@ -12,6 +12,7 @@ body {
    podle toho, jestli je stránka delší než okno (docs/design/prehled.html). */
 html {
     scrollbar-gutter: stable;
+    background: var(--ec-bg);
 }
 
 .ec {
@@ -25,23 +26,19 @@ html {
     text-decoration: none;
 }
 
-/* Tlačítko EcButton, i v podobě odkazu, bere barvu ze své varianty. */
-.ec a:where(:not(.ec-button)) {
+/* Tlačítko EcButton, i v podobě odkazu, bere barvu ze své varianty; odkaz s vlastní třídou ze své
+   třídy. */
+:where(.ec) a:where(:not(.ec-button)) {
     color: var(--ec-accent-text);
 }
 
-.ec button,
-.ec input,
-.ec select,
-.ec textarea {
+/* Bez specificity, aby pravidlo s třídou pole vždy vyhrálo. */
+:where(.ec) :where(button, input, select, textarea) {
     font-family: inherit;
     font-size: inherit;
 }
 
-.ec button:where(:not(.ec-button)),
-.ec input,
-.ec select,
-.ec textarea {
+:where(.ec) :where(button:not(.ec-button), input, select, textarea) {
     color: inherit;
 }
 
@@ -148,13 +145,15 @@ html {
 }
 
 .ec-button-danger {
-    background: var(--ec-danger-bg);
-    border-color: var(--ec-danger-border);
-    color: var(--ec-danger-text);
+    background: var(--ec-danger-solid);
+    border-color: var(--ec-danger-solid);
+    color: var(--ec-on-accent);
+    font-weight: var(--ec-weight-semibold);
 }
 
 .ec-button-danger:hover:enabled {
-    background: var(--ec-danger-border);
+    background: var(--ec-danger-solid-hover);
+    border-color: var(--ec-danger-solid-hover);
 }
 
 .ec-card {
@@ -229,6 +228,10 @@ html {
     color: var(--ec-text);
 }
 
+.ec-crumb-mono {
+    font-family: var(--ec-font-mono);
+}
+
 .ec-crumb-separator {
     color: var(--ec-text-muted);
 }
@@ -263,6 +266,14 @@ html {
     font-size: var(--ec-title-sm);
     font-weight: var(--ec-weight-semibold);
     letter-spacing: -0.02em;
+    text-wrap: pretty;
+}
+
+.ec-detail .ec-page-title,
+.ec-contact-header .ec-page-title {
+    font-size: var(--ec-title);
+    line-height: var(--ec-leading-tight);
+    text-wrap: balance;
 }
 
 .ec-page-actions {
@@ -386,6 +397,7 @@ html {
 
 .ec-form-note {
     font-size: var(--ec-text-sm);
+    line-height: var(--ec-leading-body);
     color: var(--ec-text-muted);
 }
 
@@ -409,12 +421,19 @@ html {
 }
 
 .ec-field-mark {
+    margin-left: calc(var(--ec-space-1) / 2);
     color: var(--ec-danger-text);
 }
 
 .ec-field-hint {
     font-size: var(--ec-text-xs);
+    line-height: var(--ec-leading-body);
     color: var(--ec-text-muted);
+}
+
+/* Chyba nahradí nápovědu, aby stála hned pod polem. */
+.ec-field:has(.ec-field-error > *) .ec-field-hint {
+    display: none;
 }
 
 .ec-field-error {
@@ -455,6 +474,16 @@ html {
 .ec-select {
     height: var(--ec-control-form);
     padding: 0 var(--ec-space-4);
+    text-overflow: ellipsis;
+}
+
+.ec-select {
+    appearance: none;
+    padding-right: calc(var(--ec-space-4) + var(--ec-icon-md) + var(--ec-space-2));
+    background-image: var(--ec-select-chevron);
+    background-repeat: no-repeat;
+    background-position: right var(--ec-space-4) center;
+    background-size: var(--ec-icon-md);
 }
 
 .ec-textarea {
@@ -472,10 +501,24 @@ html {
     box-shadow: var(--ec-focus-ring);
 }
 
+/* Blazor značí pole, které neprošlo validací, třídou invalid a aria-invalid. */
+.ec-input:is(.invalid, [aria-invalid="true"]),
+.ec-select:is(.invalid, [aria-invalid="true"]),
+.ec-textarea:is(.invalid, [aria-invalid="true"]) {
+    border-color: var(--ec-danger-text);
+}
+
+.ec-input:is(.invalid, [aria-invalid="true"]):focus-visible,
+.ec-select:is(.invalid, [aria-invalid="true"]):focus-visible,
+.ec-textarea:is(.invalid, [aria-invalid="true"]):focus-visible {
+    border-color: var(--ec-danger-text);
+    box-shadow: var(--ec-focus-ring-danger);
+}
+
 .ec-input::placeholder,
 .ec-select::placeholder,
 .ec-textarea::placeholder {
-    color: var(--ec-text-muted);
+    color: var(--ec-text-subtle);
 }
 
 .ec-input:read-only {
@@ -717,6 +760,18 @@ html {
     font-weight: var(--ec-weight-semibold);
 }
 
+/* Zavírací křížek je tichý, nečte se jako akce (docs/design/nastaveni.html). */
+.ec-modal-header .ec-button-ghost,
+.ec-drawer-head .ec-button-ghost {
+    color: var(--ec-text-soft);
+}
+
+.ec-modal-header .ec-button-ghost:hover:enabled,
+.ec-drawer-head .ec-button-ghost:hover:enabled {
+    background: var(--ec-surface-sunken);
+    color: var(--ec-text);
+}
+
 .ec-modal-body {
     padding: var(--ec-space-6);
     overflow-y: auto;
@@ -753,22 +808,16 @@ html {
     color: var(--ec-text-muted);
 }
 
-.ec-parent-link {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ec-space-1);
-}
-
-.ec-parent-number {
-    font-family: var(--ec-font-mono);
-    font-size: var(--ec-text-sm);
-    color: var(--ec-text-muted);
-}
-
 .ec-card-text {
     margin: var(--ec-space-3) 0 0;
     font-size: var(--ec-text-sm);
+    line-height: var(--ec-leading-body);
     color: var(--ec-text-muted);
+    text-wrap: pretty;
+}
+
+.ec-card-text:first-child {
+    margin-top: 0;
 }
 
 .ec-file-icon {
@@ -837,6 +886,7 @@ html {
 .ec-empty-text {
     margin: 0;
     font-size: var(--ec-text-sm);
+    line-height: var(--ec-leading-body);
 }
 
 .ec-empty-hint {
@@ -972,6 +1022,26 @@ html {
 .ec-file-meta {
     font-size: var(--ec-text-xs);
     color: var(--ec-text-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.ec-field-detail {
+    font-weight: var(--ec-weight-regular);
+    color: var(--ec-text-muted);
+}
+
+.ec-file-moment {
+    white-space: nowrap;
+}
+
+/* Tečku obklopují mezery, aby čtečka nespojila části; okraj doplní mezeru na rozestup předlohy. */
+.ec-sep {
+    margin-inline: var(--ec-space-1);
+    color: var(--ec-text-faint);
+}
+
+:is(.ec-case-meta, .ec-timeline-meta, .ec-child-status) > .ec-sep {
+    margin-inline: 0;
 }
 
 .ec-file-actions {
@@ -1098,12 +1168,30 @@ html {
     gap: var(--ec-space-3);
 }
 
-.ec-file-card-compact .ec-card-title {
-    font-size: var(--ec-text-lg);
+.ec-file-card .ec-card-title {
+    white-space: nowrap;
 }
 
+.ec-file-card-compact .ec-card-header-actions {
+    min-width: 0;
+}
+
+/* Bez místa se výzva zkrátí, nikdy nezalomí záhlaví. */
 .ec-file-card-compact .ec-file-drop-hint {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
     font-size: var(--ec-text-xs);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.ec-file-card-compact .ec-file-upload {
+    flex: 0 0 auto;
+    gap: var(--ec-space-2);
+    height: var(--ec-control-sm);
+    padding: 0 var(--ec-space-3);
+    font-size: var(--ec-text-sm);
 }
 
 .ec-file-card-compact .ec-file-drop-hint .ec-icon {
@@ -1230,6 +1318,12 @@ html {
 .ec-preview-meta {
     font-size: var(--ec-text-xs);
     color: var(--ec-text-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+/* Na širokém okně jsou akce náhledu přímo v hlavičce; na mobilu tvoří vlastní řádek. */
+.ec-preview-actions {
+    display: contents;
 }
 
 .ec-preview-nav {
@@ -1244,6 +1338,7 @@ html {
     color: var(--ec-text-muted);
     text-align: center;
     white-space: nowrap;
+    font-variant-numeric: tabular-nums;
 }
 
 .ec-preview-position strong {
@@ -1395,16 +1490,16 @@ html {
 }
 
 .ec-preview-markdown h1 {
-    font-size: calc(var(--ec-text-xl) * 1.5);
+    font-size: var(--ec-title-mobile);
 }
 
 .ec-preview-markdown h2 {
-    font-size: calc(var(--ec-text-xl) * 1.2);
+    font-size: var(--ec-text-xl);
 }
 
 .ec-preview-markdown h3,
 .ec-preview-markdown h4 {
-    font-size: var(--ec-text-xl);
+    font-size: var(--ec-text-lg);
 }
 
 .ec-preview-markdown p,
@@ -1675,6 +1770,7 @@ html {
 .ec-comment-meta {
     font-size: var(--ec-text-sm);
     color: var(--ec-text-muted);
+    font-variant-numeric: tabular-nums;
 }
 
 .ec-comment-author {
@@ -1688,6 +1784,7 @@ html {
     line-height: var(--ec-leading-body);
     white-space: pre-line;
     overflow-wrap: anywhere;
+    text-wrap: pretty;
 }
 
 .ec-comment-actions {
@@ -1909,9 +2006,9 @@ html {
     padding: 0 var(--ec-space-6) var(--ec-space-5);
 }
 
-.ec-card-title-count {
+.ec-card-title > .ec-card-count {
+    margin-left: var(--ec-space-2);
     font-weight: var(--ec-weight-regular);
-    color: var(--ec-text-muted);
 }
 
 .ec-settings-head,
@@ -2117,19 +2214,23 @@ html {
 
 .ec-detail-fact-value {
     font-size: var(--ec-text-md);
+    line-height: var(--ec-fact-line);
     font-weight: var(--ec-weight-medium);
     white-space: pre-line;
+    font-variant-numeric: tabular-nums;
 }
 
 .ec-detail-fact-mono {
     font-family: var(--ec-font-mono);
     font-size: var(--ec-text-sm);
+    line-height: var(--ec-fact-line);
     font-weight: var(--ec-weight-medium);
     overflow-wrap: anywhere;
 }
 
 .ec-detail-fact-link {
     font-size: var(--ec-text-md);
+    line-height: var(--ec-fact-line);
     font-weight: var(--ec-weight-medium);
     color: var(--ec-accent-text);
     text-decoration: none;
@@ -2142,7 +2243,9 @@ html {
     min-width: 0;
 }
 
+/* Tlačítko kopírování přesahuje řádek hodnoty, aby hodnota zůstala na účaří ostatních údajů. */
 .ec-detail-fact-copy .ec-copy {
+    margin-block: calc((var(--ec-fact-line) - var(--ec-copy-size)) / 2);
     color: var(--ec-text-muted);
 }
 
@@ -2252,7 +2355,7 @@ html {
 }
 
 .ec-label-input::placeholder {
-    color: var(--ec-text-muted);
+    color: var(--ec-text-subtle);
 }
 
 .ec-label-field-inline .ec-label-search {
@@ -2264,7 +2367,7 @@ html {
     position: relative;
     min-height: var(--ec-control-form);
     box-sizing: border-box;
-    padding: var(--ec-space-2) var(--ec-space-3);
+    padding: var(--ec-space-2) var(--ec-space-4);
     border: 1px solid var(--ec-border-strong);
     border-radius: var(--ec-radius-lg);
     background: var(--ec-surface);
@@ -2282,6 +2385,8 @@ html {
 .ec-label-field-box .ec-label-input {
     flex: 1 1 auto;
     width: auto;
+    height: auto;
+    padding: 0;
     border: 0;
     box-shadow: none;
     background: transparent;
@@ -2522,6 +2627,7 @@ html {
     color: var(--ec-text-muted);
     text-align: center;
     white-space: nowrap;
+    font-variant-numeric: tabular-nums;
 }
 
 .ec-act-pager-position {
@@ -2542,6 +2648,12 @@ html {
     flex-direction: column;
     gap: var(--ec-space-6);
     min-width: 0;
+}
+
+/* Karta v bočním sloupci 380 px má menší nadpis (docs/design/detail-spisu.html). */
+.ec-detail-aside .ec-card-title,
+.ec-form-aside .ec-card-title {
+    font-size: var(--ec-text-lg);
 }
 
 .ec-contact-occurrences {
@@ -2566,9 +2678,14 @@ html {
     background: var(--ec-border-subtle);
 }
 
+.ec-case-link + .ec-card-text {
+    margin-top: var(--ec-space-4);
+}
+
 .ec-case-link-title {
     font-size: var(--ec-text-md);
     font-weight: var(--ec-weight-medium);
+    text-wrap: pretty;
 }
 
 .ec-case-link-number {
@@ -2708,6 +2825,7 @@ html {
     gap: var(--ec-space-1);
     font-size: var(--ec-text-xs);
     color: var(--ec-text-muted);
+    font-variant-numeric: tabular-nums;
 }
 
 .ec-timeline-direction {
@@ -2741,6 +2859,7 @@ html {
     gap: var(--ec-space-1);
     font-size: var(--ec-text-sm);
     font-weight: var(--ec-weight-medium);
+    color: var(--ec-accent-text);
 }
 
 /* Detail spisu (docs/design/detail-spisu.html): podřízené spisy v postranním sloupci. */
@@ -2794,6 +2913,7 @@ html {
     gap: var(--ec-space-2);
     font-size: var(--ec-text-xs);
     color: var(--ec-text-muted);
+    font-variant-numeric: tabular-nums;
 }
 
 .ec .ec-child-toggle {
@@ -2828,13 +2948,38 @@ html {
         min-width: var(--ec-touch-min);
     }
 
-    .ec-page-title {
-        font-size: var(--ec-text-xl);
+    .ec-page-title,
+    .ec-detail .ec-page-title,
+    .ec-contact-header .ec-page-title {
+        font-size: var(--ec-title-mobile);
     }
 
     .ec-page-actions {
         flex: 1 1 100%;
         margin-left: 0;
+    }
+
+    /* Drobečková navigace zůstane na jednom řádku; dlouhé položky se zkrátí. */
+    .ec-crumbs {
+        flex-wrap: nowrap;
+    }
+
+    .ec-crumb {
+        flex: 0 1 auto;
+        min-width: var(--ec-crumb-min);
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .ec-crumb:first-child,
+    .ec-crumb-separator {
+        flex: none;
+    }
+
+    .ec-crumb[aria-current="page"] {
+        flex-shrink: 0;
+        max-width: 50%;
     }
 
     .ec-form-layout,
@@ -2845,17 +2990,36 @@ html {
         grid-template-columns: minmax(0, 1fr);
     }
 
+    /* Údaje jdou do dvou sloupců; čáry mezi nimi kreslí mezera nad podkladem linky. */
     .ec-detail-facts {
-        flex-direction: column;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-auto-flow: row dense;
+        gap: var(--ec-hairline);
+        overflow: hidden;
+        background: var(--ec-border-subtle);
     }
 
     .ec-detail-fact {
         border-right: 0;
-        border-bottom: 1px solid var(--ec-border-subtle);
+        background: var(--ec-surface);
     }
 
-    .ec-detail-fact:last-child {
-        border-bottom: 0;
+    /* Řádek sdílí jen krátké údaje; značka, odkaz a adresa mají celou šířku. */
+    .ec-detail-fact-wide,
+    .ec-detail-fact-labels,
+    .ec-detail-fact-copyable,
+    .ec-detail-fact:has(.ec-detail-fact-link) {
+        grid-column: 1 / -1;
+    }
+
+    .ec-detail-fact-mono {
+        overflow-wrap: break-word;
+    }
+
+    /* Tlačítko kopírování drží dotykovou plochu, ale řádek údaje nezvětší. */
+    .ec-detail-fact-copy .ec-copy {
+        margin-block: calc((var(--ec-fact-line) - var(--ec-touch-min)) / 2);
     }
 
     .ec-card-footer {
@@ -2869,6 +3033,20 @@ html {
     .ec-form-actions {
         flex: 1 1 100%;
         margin-left: 0;
+    }
+
+    /* Akce formuláře zůstávají na mobilu u spodního okraje okna. */
+    .ec-form-layout .ec-card-footer {
+        position: sticky;
+        bottom: 0;
+        z-index: 1;
+        padding-bottom: calc(var(--ec-space-4) + env(safe-area-inset-bottom));
+        border-radius: 0 0 var(--ec-radius-card) var(--ec-radius-card);
+        background: var(--ec-surface);
+    }
+
+    .ec-form-layout .ec-form-actions .ec-button {
+        flex: 1 1 0;
     }
 
     .ec-page {
@@ -2928,15 +3106,37 @@ html {
         display: block;
     }
 
-    .ec-file-name,
     .ec-timeline-all,
     .ec-child-toggle,
     .ec-comment-action {
         min-height: var(--ec-touch-min);
     }
 
-    .ec-file-drop-hint {
+    .ec .ec-file-drop-hint,
+    .ec-file-upload-more {
         display: none;
+    }
+
+    /* Metadata souboru se lámou mezi velikostí a časem; oddělovač nahradí mezera. */
+    .ec-file-meta {
+        display: flex;
+        flex-wrap: wrap;
+        column-gap: var(--ec-space-3);
+    }
+
+    .ec-file-meta .ec-sep {
+        display: none;
+    }
+
+    /* Název souboru dostane až dva řádky a láme se kdekoli; dotykovou plochu dává celý řádek. */
+    .ec-file-name,
+    .ec-file-name-static {
+        display: -webkit-box;
+        overflow-wrap: anywhere;
+        white-space: normal;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
     }
 
     .ec-modal-large {
@@ -2949,8 +3149,17 @@ html {
         padding: var(--ec-space-3) var(--ec-space-4);
     }
 
-    .ec-preview-title {
-        flex: 1 1 calc(var(--ec-popover-width) / 2);
+    .ec-modal-large .ec-modal-header > :is(.ec-preview-title, .ec-file-rename) {
+        flex: 1 1 0;
+    }
+
+    .ec-preview-actions {
+        display: flex;
+        flex-wrap: wrap;
+        flex: 1 1 100%;
+        order: 1;
+        align-items: center;
+        gap: var(--ec-space-3);
     }
 
     .ec-preview-divider {
@@ -3005,6 +3214,7 @@ html {
 /* Rezervovaný posuvník by pod tmavou stránkou ukázal světlý pruh. */
 html:has(.ec-gate) {
     scrollbar-gutter: auto;
+    background: var(--ec-login-panel-bg);
 }
 
 .ec-gate-brand {
@@ -3160,7 +3370,6 @@ html:has(.ec-gate) {
     color: var(--ec-topbar-text);
 }
 
-/* `.ec a` outranks a single class. */
 .ec .ec-topbar-brand {
     gap: var(--ec-space-4);
     font-size: var(--ec-topbar-brand-size);
@@ -3224,6 +3433,14 @@ html:has(.ec-gate) {
     box-shadow: var(--ec-topbar-nav-marker);
 }
 
+.ec-topbar-nav .ec-nav-link:focus-visible {
+    box-shadow: var(--ec-topbar-focus-ring);
+}
+
+.ec-topbar-nav .ec-nav-link[aria-current="page"]:focus-visible {
+    box-shadow: var(--ec-topbar-nav-marker), var(--ec-topbar-focus-ring);
+}
+
 .ec-search {
     display: flex;
     align-items: center;
@@ -3252,10 +3469,11 @@ html:has(.ec-gate) {
     font-family: var(--ec-font);
     font-size: var(--ec-text-md);
     color: var(--ec-text);
+    text-overflow: ellipsis;
 }
 
 .ec-search-input::placeholder {
-    color: var(--ec-text-muted);
+    color: var(--ec-text-subtle);
 }
 
 /* Hledání v horní liště (docs/design/hledani.html, SDD-021). */
@@ -3303,6 +3521,7 @@ html:has(.ec-gate) {
     font-family: var(--ec-font);
     font-size: var(--ec-text-md);
     color: var(--ec-topbar-text);
+    text-overflow: ellipsis;
 }
 
 .ec-topsearch-input::placeholder {
@@ -3503,7 +3722,7 @@ html:has(.ec-gate) {
 .ec-sr-meta {
     display: flex;
     align-items: center;
-    gap: var(--ec-space-3);
+    gap: var(--ec-space-2);
     min-width: 0;
     font-size: var(--ec-text-xs);
     color: var(--ec-text-muted);
@@ -3512,8 +3731,8 @@ html:has(.ec-gate) {
 
 .ec-sr-meta > * + *::before {
     content: "·";
-    margin-right: var(--ec-space-3);
-    color: var(--ec-topbar-nav-text);
+    margin-right: var(--ec-space-2);
+    color: var(--ec-text-faint);
 }
 
 .ec-sr-meta .ec-badge {
@@ -3729,6 +3948,24 @@ html:has(.ec-gate) {
         font-size: var(--ec-text-lg);
     }
 
+    /* Číslo jednací úkonu má vlastní řádek; „ve spisu…“ se zkrátí na konci druhého. */
+    .ec-sr-option:has(.ec-sr-icon-act) .ec-sr-meta {
+        flex-wrap: wrap;
+        row-gap: var(--ec-space-1);
+    }
+
+    .ec-sr-option:has(.ec-sr-icon-act) .ec-sr-mono {
+        flex-basis: 100%;
+    }
+
+    .ec-sr-option:has(.ec-sr-icon-act) .ec-sr-mono + *::before {
+        content: none;
+    }
+
+    .ec-sr-option:has(.ec-sr-icon-act) .ec-sr-grow-text {
+        flex: 1 1 0;
+    }
+
     .ec-sr-enter,
     .ec-sr-hint {
         display: none;
@@ -3767,7 +4004,7 @@ html:has(.ec-gate) {
 
 .ec-avatar:focus-visible {
     outline: none;
-    box-shadow: var(--ec-topbar-avatar-ring), var(--ec-focus-ring);
+    box-shadow: var(--ec-topbar-avatar-ring), var(--ec-topbar-focus-ring);
 }
 
 .ec-menu-backdrop {
@@ -3867,7 +4104,7 @@ html:has(.ec-gate) {
 
 .ec-topbar-burger:focus-visible {
     outline: none;
-    box-shadow: var(--ec-focus-ring);
+    box-shadow: var(--ec-topbar-focus-ring);
 }
 
 .ec-drawer-backdrop {
@@ -3928,6 +4165,23 @@ html:has(.ec-gate) {
 
     .ec-topbar-burger {
         display: flex;
+        flex: none;
+    }
+
+    /* Značka zůstane malá; její dotyková plocha doroste na minimum. */
+    .ec-topbar > .ec-topbar-brand {
+        position: relative;
+        flex: none;
+    }
+
+    .ec-topbar > .ec-topbar-brand::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: var(--ec-touch-min);
+        height: var(--ec-touch-min);
+        transform: translate(-50%, -50%);
     }
 
     .ec-topbar-nav {
@@ -3961,8 +4215,8 @@ html:has(.ec-gate) {
     }
 }
 
-/* Seznam podle SDD-016: řádek je odkaz po celé šířce, patička nese rozsah, počet a stránkování
-   (docs/design/spisy.html). Nese hlavičku a patičku karty (ec-card-*, ec-card-header-actions). */
+/* Seznam podle SDD-016 (docs/design/spisy.html): řádek je odkaz po celé šířce, patička seznamu na víc
+   stránek nese rozsah, počet a stránkování. Nese hlavičku a patičku karty (ec-card-*, ec-card-header-actions). */
 .ec-table {
     overflow: hidden;
 }
@@ -4135,11 +4389,13 @@ html:has(.ec-gate) {
 .ec-cell-empty {
     font-family: var(--ec-font);
     font-size: var(--ec-text-sm);
+    font-weight: var(--ec-weight-regular);
     color: var(--ec-text-faint);
 }
 
 .ec-table-range {
     margin-right: auto;
+    font-variant-numeric: tabular-nums;
 }
 
 .ec-check {
@@ -4196,6 +4452,12 @@ html:has(.ec-gate) {
         display: none;
     }
 
+    /* Bez místa jde odkaz v záhlaví seznamu pod nadpis, místo aby ho zalomil. */
+    .ec-table > .ec-card-header {
+        flex-wrap: wrap;
+        row-gap: 0;
+    }
+
     .ec-table-row {
         display: flex;
         flex-wrap: wrap;
@@ -4209,6 +4471,52 @@ html:has(.ec-gate) {
     .ec-table-cell-primary {
         flex: 1 0 100%;
         order: -1;
+    }
+
+    .ec-table-row .ec-cell-stack {
+        flex: 1 0 100%;
+    }
+
+    /* Název dostane až dva řádky a štítky jdou pod něj, místo aby ho ořízly. */
+    .ec-table-cell-primary,
+    .ec-table-cell-primary .ec-cell-line {
+        flex-wrap: wrap;
+        row-gap: var(--ec-space-1);
+    }
+
+    .ec-table-cell-primary .ec-cell-text:not(.ec-cell-sub),
+    .ec-table-cell-primary .ec-contact-name-text {
+        display: -webkit-box;
+        flex: 1 0 100%;
+        white-space: normal;
+        text-wrap: pretty;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+    }
+
+    /* Prázdný údaj na mobilu řádek nenese. */
+    .ec-table-row > .ec-table-cell:has(> .ec-cell-empty:only-child) {
+        display: none;
+    }
+
+    /* Údaje kontaktu začínají pod jménem, ne pod monogramem. */
+    .ec-table-row:has(> .ec-table-cell-primary .ec-contact-monogram) {
+        padding-left: calc(var(--ec-space-5) + var(--ec-monogram-sm) + var(--ec-space-4));
+    }
+
+    .ec-table-row > .ec-table-cell-primary:has(.ec-contact-monogram) {
+        margin-left: calc(-1 * (var(--ec-monogram-sm) + var(--ec-space-4)));
+    }
+
+    /* Kontakt sdílí řádek s číslem jednacím a bez místa se zkrátí. */
+    .ec-table-row > .ec-cell-contact {
+        flex: 1 1 var(--ec-list-col-contact);
+        min-width: 0;
+    }
+
+    .ec-cell-contact .ec-cell-text {
+        min-width: 0;
     }
 
     .ec-table .ec-card-footer .ec-button {
@@ -4325,12 +4633,53 @@ html:has(.ec-gate) {
 }
 
 @media (max-width: 991.98px) {
+    /* Na mobilu jsou dlaždice jeden řádek tří stejných buněk: počet a popisek. */
     .ec-tiles {
-        grid-template-columns: minmax(0, 1fr);
+        gap: 0;
+        border: 1px solid var(--ec-border);
+        border-radius: var(--ec-radius-card);
+        background: var(--ec-surface);
+        overflow: hidden;
     }
 
     .ec-stat {
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
         min-height: var(--ec-touch-min);
+        padding: var(--ec-space-4);
+        border: 0;
+        border-radius: 0;
+    }
+
+    .ec-stat + .ec-stat {
+        border-left: 1px solid var(--ec-border-subtle);
+    }
+
+    .ec-stat:hover {
+        background: var(--ec-surface-sunken);
+    }
+
+    .ec-stat:focus-visible {
+        box-shadow: inset var(--ec-focus-ring);
+    }
+
+    .ec-stat-icon,
+    .ec-stat-more {
+        display: none;
+    }
+
+    .ec-stat-text {
+        flex: none;
+        max-width: 100%;
+    }
+
+    .ec-stat-value {
+        font-size: var(--ec-title-mobile);
+    }
+
+    .ec-stat-label {
+        font-size: var(--ec-text-sm);
     }
 }
 
@@ -4422,6 +4771,11 @@ html:has(.ec-gate) {
     --ec-list-badge-pad: var(--ec-space-3);
     --ec-list-col-date: var(--ec-case-act-col-date);
     --ec-list-col-status: var(--ec-case-act-col-number);
+}
+
+/* Prázdný seznam vedle plného je jen tak vysoký, jak potřebuje jeho věta. */
+.ec-contact-occurrences .ec-table .ec-empty {
+    min-height: 0;
 }
 
 .ec-contact-occurrences .ec-table-bar {
@@ -4590,13 +4944,30 @@ html:has(.ec-gate) {
         width: auto;
     }
 
+    /* Přepínač drží jeden řádek; co se nevejde, odjede vodorovně. */
     .ec-table-bar .ec-segmented {
         flex: 1 1 100%;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
+        min-width: 0;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    /* Dokud jde přepínač posunout dál, jeho pravý okraj se ztrácí. */
+    @supports (animation-timeline: scroll()) {
+        .ec-table-bar .ec-segmented {
+            animation: ec-scroll-fade linear both;
+            animation-timeline: scroll(self inline);
+        }
     }
 
     .ec-table-bar .ec-segmented-compact .ec-segment {
-        flex: 1 1 auto;
+        flex: 1 0 auto;
+    }
+
+    /* Lišta seznamu má na mobilu jednu velikost písma, jako její select. */
+    .ec-table-bar :is(.ec-button, .ec-segment, .ec-check) {
+        font-size: var(--ec-text-lg);
     }
 
     .ec-filter-field-grow {
@@ -4605,5 +4976,25 @@ html:has(.ec-gate) {
 
     .ec-filter-clear {
         min-height: var(--ec-touch-min);
+    }
+
+    .ec-kbd {
+        display: none;
+    }
+
+    /* Pole má na mobilu písmo 16 px. */
+    .ec :is(.ec-input, .ec-select, .ec-textarea, .ec-search-input, .ec-label-input, .ec-topsearch-input) {
+        font-size: var(--ec-text-lg);
+    }
+}
+
+@keyframes ec-scroll-fade {
+    0%,
+    99% {
+        mask-image: linear-gradient(to right, var(--ec-text) calc(100% - var(--ec-scroll-fade)), transparent);
+    }
+
+    100% {
+        mask-image: none;
     }
 }

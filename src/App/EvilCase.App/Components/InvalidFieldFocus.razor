@@ -1,0 +1,63 @@
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+@inject IJSRuntime JSRuntime
+
+@* After a submit that fails validation, focus moves to the first invalid control. *@
+
+@code {
+    [CascadingParameter]
+    public EditContext? EditContext { get; set; }
+
+    private EditContext? subscribed;
+
+    private bool requested;
+
+    private IJSObjectReference? module;
+
+    public async ValueTask DisposeAsync()
+    {
+        this.Unsubscribe();
+
+        if (this.module is not null)
+            await this.module.DisposeAsync();
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (ReferenceEquals(this.EditContext, this.subscribed))
+            return;
+
+        this.Unsubscribe();
+        this.subscribed = this.EditContext;
+
+        if (this.subscribed is not null)
+            this.subscribed.OnValidationRequested += this.OnValidationRequested;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!this.requested)
+            return;
+
+        this.requested = false;
+
+        if (this.subscribed is null || !this.subscribed.GetValidationMessages().Any())
+            return;
+
+        this.module ??= await this.JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/ec-form.js");
+
+        await this.module.InvokeVoidAsync("focusFirstInvalid");
+    }
+
+    private void OnValidationRequested(object? sender, ValidationRequestedEventArgs args)
+    {
+        this.requested = true;
+        this.StateHasChanged();
+    }
+
+    private void Unsubscribe()
+    {
+        if (this.subscribed is not null)
+            this.subscribed.OnValidationRequested -= this.OnValidationRequested;
+    }
+}

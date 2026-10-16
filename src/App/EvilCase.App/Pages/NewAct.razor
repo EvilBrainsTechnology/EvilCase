@@ -19,7 +19,7 @@
 
     @if (this.notFound)
     {
-        <EcCard><p class="ec-state">Spis nenalezen.</p></EcCard>
+        <NotFoundCard Text="Spis nenalezen." BackHref="/cases" BackText="Zpět na spisy" />
     }
     else if (this.failure is not null)
     {
@@ -34,6 +34,7 @@
         <div class="ec-form-layout">
             <CascadingValue Value="this.editContext">
                 <DataAnnotationsValidator />
+                <InvalidFieldFocus />
                 <EcCard>
                     <ChildContent>
                         <div class="ec-form">
@@ -129,9 +130,9 @@
                 @if (this.caseDetail is not null)
                 {
                     <EcCard Title="Spis">
-                        <a class="ec-parent-link" href="/cases/@this.caseDetail.CaseId">
-                            <span>@this.caseDetail.Title</span>
-                            <span class="ec-parent-number">@this.caseDetail.CaseNumber</span>
+                        <a class="ec-case-link" href="/cases/@this.caseDetail.CaseId">
+                            <span class="ec-case-link-title">@this.caseDetail.Title</span>
+                            <span class="ec-case-link-number">@this.caseDetail.CaseNumber</span>
                         </a>
                         <p class="ec-card-text">Úkon vzniká pod tímto spisem. Přesunout ho jinam nejde.</p>
                     </EcCard>

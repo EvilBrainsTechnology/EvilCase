@@ -30,7 +30,8 @@ public class CaseChildrenCardRenderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(component.FindAll(".ec-child-title").Select(static title => title.TextContent), Is.EqualTo(["Předžalobní výzva", "Oznámení přestupku"]));
-            Assert.That(component.Find(".ec-child-counts").TextContent, Is.EqualTo("2 otevřené · 1 uzavřený"));
+            Assert.That(component.Find(".ec-child-counts").TextContent, Is.EqualTo("2 otevřené · 1 uzavřený"), "spaces keep the parts apart where the dot is hidden from a screen reader");
+            Assert.That(component.FindAll(".ec-child-counts .ec-sep"), Has.Count.EqualTo(1), "the counts take the one separator of the app");
             Assert.That(component.Find(".ec-child-toggle").TextContent, Is.EqualTo("Zobrazit i uzavřené (1)"));
             Assert.That(component.Find(".ec-child-toggle").GetAttribute("aria-expanded"), Is.EqualTo("false"));
             Assert.That(component.Find(".ec-child-toggle").GetAttribute("aria-controls"), Is.EqualTo("case-children"));

@@ -1,6 +1,6 @@
 @if (this.NotFound)
 {
-    <EcCard><p class="ec-state">@this.NotFoundText</p></EcCard>
+    <NotFoundCard Text="@this.NotFoundText" BackHref="@this.BackHref" BackText="@this.BackText" />
 }
 else if (this.Failure is not null)
 {
@@ -23,6 +23,12 @@ else
 
     [Parameter, EditorRequired]
     public required string NotFoundText { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string BackHref { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string BackText { get; set; }
 
     [Parameter]
     public string? Failure { get; set; }

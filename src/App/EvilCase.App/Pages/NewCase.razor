@@ -16,7 +16,7 @@
 
     @if (this.parentNotFound)
     {
-        <EcCard><p class="ec-state">Nadřízený spis nenalezen.</p></EcCard>
+        <NotFoundCard Text="Nadřízený spis nenalezen." BackHref="/cases" BackText="Zpět na spisy" />
     }
     else if (this.failure is not null)
     {
@@ -27,6 +27,7 @@
         <div class="ec-form-layout">
             <CascadingValue Value="this.editContext">
                 <DataAnnotationsValidator />
+                <InvalidFieldFocus />
                 <EcCard>
                     <ChildContent>
                         <div class="ec-form">
@@ -85,9 +86,9 @@
                 @if (this.parentCase is not null)
                 {
                     <EcCard Title="Nadřízený spis">
-                        <a class="ec-parent-link" href="/cases/@this.parentCase.CaseId">
-                            <span>@this.parentCase.Title</span>
-                            <span class="ec-parent-number">@this.parentCase.CaseNumber</span>
+                        <a class="ec-case-link" href="/cases/@this.parentCase.CaseId">
+                            <span class="ec-case-link-title">@this.parentCase.Title</span>
+                            <span class="ec-case-link-number">@this.parentCase.CaseNumber</span>
                         </a>
                         <p class="ec-card-text">Zakládáte podřízený spis. Přiřadit ho jinam jde až v editaci spisu.</p>
                     </EcCard>

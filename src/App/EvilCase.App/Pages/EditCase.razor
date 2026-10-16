@@ -17,7 +17,7 @@
 
     @if (this.notFound)
     {
-        <EcCard><p class="ec-state">Spis nenalezen.</p></EcCard>
+        <NotFoundCard Text="Spis nenalezen." BackHref="/cases" BackText="Zpět na spisy" />
     }
     else if (this.failure is not null)
     {
@@ -32,6 +32,7 @@
         <div class="ec-form-layout">
             <CascadingValue Value="this.editContext">
                 <DataAnnotationsValidator />
+                <InvalidFieldFocus />
                 <EcCard>
                     <ChildContent>
                         <div class="ec-form">

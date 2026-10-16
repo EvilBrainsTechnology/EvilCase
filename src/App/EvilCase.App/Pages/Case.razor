@@ -18,7 +18,7 @@
 
     @if (this.Detail is null)
     {
-        <DetailStatus NotFound="this.NotFound" NotFoundText="Spis nenalezen." Failure="@this.Failure" Retry="this.Load" />
+        <DetailStatus NotFound="this.NotFound" NotFoundText="Spis nenalezen." BackHref="/cases" BackText="Zpět na spisy" Failure="@this.Failure" Retry="this.Load" />
     }
     else
     {
@@ -26,7 +26,7 @@
             <div class="ec-detail">
                 <EcPageHeader Title="@this.Detail.Title" Breadcrumbs="this.Crumbs">
                     <Status>
-                        <EcBadge Text="@CaseStatusDisplay.Text(this.Detail.Status)" Tone="CaseStatusDisplay.Tone(this.Detail.Status)" />
+                        <EcBadge Text="@CaseStatusDisplay.Text(this.Detail.Status)" Tone="CaseStatusDisplay.Tone(this.Detail.Status)" ShowDot="true" />
                     </Status>
                     <Actions>
                         <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Pencil" OnClick="this.EditCase">Upravit spis</EcButton>
@@ -34,7 +34,10 @@
                     </Actions>
                 </EcPageHeader>
 
-                <p class="ec-detail-text">@(string.IsNullOrWhiteSpace(this.Detail.Description) ? "—" : this.Detail.Description)</p>
+                @if (!string.IsNullOrWhiteSpace(this.Detail.Description))
+                {
+                    <p class="ec-detail-text">@this.Detail.Description</p>
+                }
 
                 <div class="ec-detail-facts">
                     <div class="ec-detail-fact">
@@ -52,7 +55,7 @@
                     {
                         <div class="ec-detail-fact">
                             <span class="ec-detail-fact-name">Externí spisová značka</span>
-                            <span class="ec-detail-fact-mono">—</span>
+                            <span class="ec-detail-fact-value ec-cell-empty">—</span>
                         </div>
                     }
                     else
@@ -65,7 +68,7 @@
                             </span>
                         </div>
                     }
-                    <div class="ec-detail-fact">
+                    <div class="ec-detail-fact ec-detail-fact-wide">
                         <span class="ec-detail-fact-name">Protistrana</span>
                         @if (this.Detail.Contact is { } contact)
                         {
@@ -73,7 +76,7 @@
                         }
                         else
                         {
-                            <span class="ec-detail-fact-value">—</span>
+                            <span class="ec-detail-fact-value ec-cell-empty">—</span>
                         }
                     </div>
                     <div class="ec-detail-fact">
@@ -84,7 +87,7 @@
                         }
                         else
                         {
-                            <span class="ec-detail-fact-value">—</span>
+                            <span class="ec-detail-fact-value ec-cell-empty">—</span>
                         }
                     </div>
                     <div class="ec-detail-fact ec-detail-fact-labels">
@@ -135,7 +138,7 @@
                            LoadContent="this.LoadFileContent"
                            RenameFile="this.RenameFile"
                            DeleteFile="this.DeleteFile"
-                           UploadTarget="k spisu"
+                           UploadTarget="ke spisu"
                            Compact="true" />
 
                 <CommentsCard @key="(nameof(CommentsCard), this.CaseId)"
@@ -185,7 +188,7 @@
 
     private IReadOnlyList<EcCrumb> Crumbs => this.Detail is null
         ? [new EcCrumb("Spisy", "/cases")]
-        : [new EcCrumb("Spisy", "/cases"), new EcCrumb(this.Detail.CaseNumber, null)];
+        : [new EcCrumb("Spisy", "/cases"), new EcCrumb(this.Detail.CaseNumber, null, Mono: true)];
 
     private IReadOnlyList<EcMenuItem> CaseActions
     {

@@ -92,13 +92,40 @@ public class ActRenderTests
         {
             Assert.That(component.Find("h1.ec-page-title").TextContent, Is.EqualTo("Rozhodnutí o přestupku"));
             Assert.That(component.Find(".ec-badge-incoming").TextContent, Is.EqualTo("Příchozí"));
+            Assert.That(component.FindAll(".ec-badge-incoming .ec-icon"), Has.Count.EqualTo(1), "a direction carries its arrow (SDD-020)");
             Assert.That(component.Find(".ec-detail-text").TextContent, Is.EqualTo("Vina a pokuta."));
             Assert.That(
                 component.FindAll(".ec-detail-fact-name").Select(static node => node.FirstChild!.TextContent),
                 Is.EqualTo(["Datum úkonu", "Číslo jednací", "Externí číslo jednací", "Odesílatel", "Štítky"]),
                 "the row of data follows the design");
-            Assert.That(component.Find(".ec-crumb[aria-current=page]").TextContent, Is.EqualTo("EC/20250528-001/20250902-001"));
+            Assert.That(component.Find(".ec-crumb.ec-crumb-mono[aria-current=page]").TextContent, Is.EqualTo("EC/20250528-001/20250902-001"));
         }
+    }
+
+    [Test]
+    public void AnActWithoutADescriptionShowsNothingUnderTheTitle()
+    {
+        using var ctx = new BunitContext();
+
+        var actId = Guid.CreateVersion7();
+
+        var detail = new ActDetail
+        {
+            ActId = actId,
+            CaseId = Guid.CreateVersion7(),
+            CaseNumber = "EC/20260807-001",
+            CaseTitle = "Spis",
+            CaseStatus = CaseStatus.Active,
+            ActNumber = "EC/20250528-001/20250902-001",
+            Date = new DateOnly(2025, 9, 2),
+            Title = "Rozhodnutí o přestupku",
+        };
+
+        Serve(ctx, actId, detail);
+
+        var component = ctx.Render<Act>(parameters => parameters.Add(static page => page.ActId, actId));
+
+        Assert.That(component.FindAll(".ec-detail-text"), Is.Empty, "the row of data follows the title when there is no description");
     }
 
     [Test]

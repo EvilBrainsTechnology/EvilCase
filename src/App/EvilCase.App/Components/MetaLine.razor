@@ -1,0 +1,14 @@
+@* The spaces keep the parts apart for a screen reader, which skips the hidden dot. *@
+@for (var index = 0; index < this.Parts.Count; index++)
+{
+    if (index > 0)
+    {
+        @(" ")<span class="ec-sep" aria-hidden="true">·</span>@(" ")
+    }
+    @this.Parts[index]
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public required IReadOnlyList<string> Parts { get; set; }
+}
