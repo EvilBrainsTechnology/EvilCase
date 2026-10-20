@@ -207,14 +207,11 @@ public class ActRenderTests
 
         var detail = ActWith(caseId, actId, carried);
 
-        var (actsClient, actLabelsClient, labelsClient) = Serve(ctx, actId, detail);
+        var (_, actLabelsClient, labelsClient) = Serve(ctx, actId, detail);
 
         labelsClient
             .ListLabels(Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(new LabelListResponse { Items = [LabelListItems.Of(carried), LabelListItems.Of(offered)] }));
-        actsClient
-            .GetAct(actId, Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(detail), Task.FromResult(detail with { Labels = [carried, offered] }));
 
         var component = ctx.Render<Act>(parameters => parameters.Add(static page => page.ActId, actId));
 

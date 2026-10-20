@@ -30,6 +30,12 @@ public abstract class DetailPage<TDetail> : ComponentBase
     [Inject]
     private IFileDownloader Downloader { get; set; } = null!;
 
+    private IReadOnlyList<LabelItem> latestLabels = [];
+
+    private IReadOnlyList<LabelItem> storedLabels = [];
+
+    private bool storingLabels;
+
     protected TDetail? Detail { get; private set; }
 
     protected bool NotFound { get; private set; }
@@ -52,6 +58,10 @@ public abstract class DetailPage<TDetail> : ComponentBase
 
     protected abstract Task StoreLabels(LabelAssignmentRequest request);
 
+    protected abstract IReadOnlyList<LabelItem> LabelsOf(TDetail detail);
+
+    protected abstract TDetail WithLabels(TDetail detail, IReadOnlyList<LabelItem> labels);
+
     protected override async Task OnParametersSetAsync()
     {
         await this.Load();
@@ -68,6 +78,8 @@ public abstract class DetailPage<TDetail> : ComponentBase
         try
         {
             this.Detail = await this.Fetch();
+            this.storedLabels = this.LabelsOf(this.Detail);
+            this.latestLabels = this.storedLabels;
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
         {
@@ -83,13 +95,26 @@ public abstract class DetailPage<TDetail> : ComponentBase
 
     protected async Task SaveLabels(IReadOnlyList<LabelItem> labels)
     {
+        // The page shows the change at once; one write runs at a time and sends the latest selection.
         this.LabelsError = null;
+        this.Detail = this.WithLabels(this.Detail!, labels);
+        this.latestLabels = labels;
+
+        if (this.storingLabels)
+            return;
+
+        this.storingLabels = true;
 
         try
         {
-            await this.StoreLabels(new LabelAssignmentRequest { LabelIds = [.. labels.Select(static label => label.LabelId)] });
+            while (!ReferenceEquals(this.storedLabels, this.latestLabels))
+            {
+                var writing = this.latestLabels;
 
-            this.Detail = await this.Fetch();
+                await this.StoreLabels(new LabelAssignmentRequest { LabelIds = [.. writing.Select(static label => label.LabelId)] });
+
+                this.storedLabels = writing;
+            }
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
         {
@@ -100,6 +125,14 @@ public abstract class DetailPage<TDetail> : ComponentBase
             this.Logger.LogWarning(exception, "Saving the labels failed");
 
             this.LabelsError = "Štítky se nepodařilo uložit. Zkuste to za chvíli znovu.";
+            this.latestLabels = this.storedLabels;
+
+            if (this.Detail is not null)
+                this.Detail = this.WithLabels(this.Detail, this.storedLabels);
+        }
+        finally
+        {
+            this.storingLabels = false;
         }
     }
 

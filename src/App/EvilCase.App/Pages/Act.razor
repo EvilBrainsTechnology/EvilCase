@@ -262,6 +262,16 @@
         return this.ActLabelsClient.SetActLabels(this.ActId, request, CancellationToken.None);
     }
 
+    protected override IReadOnlyList<LabelItem> LabelsOf(ActDetail detail)
+    {
+        return detail.Labels;
+    }
+
+    protected override ActDetail WithLabels(ActDetail detail, IReadOnlyList<LabelItem> labels)
+    {
+        return detail with { Labels = labels };
+    }
+
     private void EditAct()
     {
         this.Navigation.NavigateTo(ActRoutes.Edit(this.ActId));
