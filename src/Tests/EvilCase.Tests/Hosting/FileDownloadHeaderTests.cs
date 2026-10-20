@@ -19,6 +19,8 @@ public class FileDownloadHeaderTests
         [Guid.CreateVersion7()] = ("archiv.zip", "application/zip"),
         [Guid.CreateVersion7()] = ("schema.svg", "image/svg+xml"),
         [Guid.CreateVersion7()] = ("stranka.html", "text/html"),
+        [Guid.CreateVersion7()] = ("Příloha č. 1 – \"smlouva\".pdf", "application/pdf"),
+        [Guid.CreateVersion7()] = ("Účtenka přestupku.zip", "application/zip"),
     };
 
     private EvilCaseHost host = null!;
@@ -82,6 +84,24 @@ public class FileDownloadHeaderTests
             Assert.That(response.Content.Headers.ContentDisposition?.FileName, Is.EqualTo(fileName));
             Assert.That(response.Content.Headers.ContentType?.MediaType, Is.EqualTo(mediaType));
             Assert.That(Header(response, "X-Content-Type-Options"), Is.EqualTo("nosniff"));
+        }
+    }
+
+    [TestCase("Příloha č. 1 – \"smlouva\".pdf", "inline")]
+    [TestCase("Účtenka přestupku.zip", "attachment")]
+    public async Task ANonAsciiNameTravelsAsUtf8WithAnAsciiFallback(string fileName, string dispositionType)
+    {
+        using var response = await this.Get(fileName);
+
+        var disposition = response.Content.Headers.ContentDisposition;
+        var raw = response.Content.Headers.GetValues("Content-Disposition").Single();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(disposition?.DispositionType, Is.EqualTo(dispositionType));
+            Assert.That(disposition?.FileNameStar, Is.EqualTo(fileName), "filename* carries the name in UTF-8 (RFC 6266, RFC 5987)");
+            Assert.That(disposition?.FileName, Is.Not.Empty, "a client without filename* support still gets a name");
+            Assert.That(raw.All(char.IsAscii), Is.True, "a header value is ASCII");
         }
     }
 
