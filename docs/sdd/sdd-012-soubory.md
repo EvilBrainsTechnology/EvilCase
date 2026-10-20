@@ -43,9 +43,9 @@ Drag-and-drop multi-upload na detailu spisu i úkonu; soubory lze pustit kamkoli
 souborů a karta při tažení ukáže, kam se nahrají, a limity. Hromadné přetažení běží po
 souborech a odmítne jen soubor, který selže. Dávka nad 100 souborů se odmítá celá. Seznam
 souborů ukazuje ikonu typu, název, velikost a okamžik nahrání, od nejstaršího. Obsah souboru
-se vydává z jedné adresy a odpověď nese `X-Content-Type-Options: nosniff`. PDF, rastrové
+se vydává z jedné adresy a odpověď nese `X-Content-Type-Options: nosniff`. Rastrové
 obrázky, zvuk a video nesou `Content-Disposition: inline` a typ podle přípony; každý jiný typ,
-SVG a HTML také, nese `attachment` a typ `application/octet-stream`; uložený `MediaType` se
+PDF, SVG a HTML také, nese `attachment` a typ `application/octet-stream`; uložený `MediaType` se
 v odpovědi nikdy nevrací. Obsah souboru nikdy nespustí skript a vložit do stránky ho smí jen
 aplikace sama. Smazání je prosté, s potvrzením.
 
@@ -58,7 +58,7 @@ Esc a Zrušit ho zahodí.
 
 ### Náhled
 
-- PDF, rastrové obrázky (jpg, jpeg, png, gif, webp, avif, bmp), zvuk a video zobrazí
+- Rastrové obrázky (jpg, jpeg, png, gif, webp, avif, bmp), zvuk a video zobrazí
   prohlížeč sám z adresy obsahu; ostatní typy zobrazí aplikace. Typ se pozná podle přípony,
   uložený `MediaType` se nepoužije.
 - Zobrazí se PDF, obrázky (jpg, jpeg, png, gif, webp, avif, bmp, svg, heic, heif, tif, tiff),
@@ -66,6 +66,9 @@ Esc a Zrušit ho zahodí.
   (docx), sešit (xlsx, xls, ods), e-mail (eml, msg), zvuk (mp3, m4a, wav, ogg, oga) a video
   (mp4, webm, m4v, mov). Jiný typ nabídne jen stažení. Soubor, který se nepodaří přečíst, nabídne
   také jen stažení.
+- PDF se ukáže jako vykreslené stránky pod sebou, vždy na šířku náhledu, i v mobilním prohlížeči;
+  náhled řekne počet stran. Nejde v něm vybírat text a nefungují odkazy, formuláře ani skripty.
+  PDF chráněné heslem nebo nečitelné nabídne jen stažení.
 - Text je vždy prostý text s čísly řádků, nikdy vykreslená stránka; ukáže se nejvýše první
   1 MB a nejvýše 5 000 řádků a náhled řekne, že je soubor delší. SVG je jen obrázek.
 - Markdown se ukáže formátovaně, nejvýše první 1 MB. Syrové HTML v něm se nevykoná, ukáže se

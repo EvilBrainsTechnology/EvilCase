@@ -1,14 +1,13 @@
 namespace EvilBrains.EvilCase.Api.Contract.Files;
 
 /// <summary>
-/// The file types a browser shows natively: PDF, raster images, audio and video. Their content is served
+/// The file types a browser shows natively: raster images, audio and video. Their content is served
 /// inline under the type detected here, never under the stored one.
 /// </summary>
 public static class InlineFileTypes
 {
     private static readonly Dictionary<string, string> MediaTypes = new(StringComparer.OrdinalIgnoreCase)
     {
-        ["pdf"] = "application/pdf",
         ["jpg"] = "image/jpeg",
         ["jpeg"] = "image/jpeg",
         ["png"] = "image/png",

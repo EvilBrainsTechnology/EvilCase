@@ -14,6 +14,12 @@ internal sealed class StubFilePreviews : IFilePreviews
 
     public List<string> RenderedDocuments { get; } = [];
 
+    public List<string> RenderedPdfs { get; } = [];
+
+    public int PdfPages { get; set; } = 3;
+
+    public int DisposedPdfs { get; private set; }
+
     public List<int> RequestedRows { get; } = [];
 
     public IReadOnlyList<SheetPreview> Workbook { get; set; } = [];
@@ -41,6 +47,21 @@ internal sealed class StubFilePreviews : IFilePreviews
 
         using var reader = new StreamReader(content);
         this.RenderedDocuments.Add(await reader.ReadToEndAsync(token));
+    }
+
+    public Task<int> RenderPdf(ElementReference host, string url, CancellationToken token)
+    {
+        this.ThrowWhenFailing();
+        this.RenderedPdfs.Add(url);
+
+        return Task.FromResult(this.PdfPages);
+    }
+
+    public Task DisposePdf(ElementReference host)
+    {
+        this.DisposedPdfs++;
+
+        return Task.CompletedTask;
     }
 
     public Task<IReadOnlyList<SheetPreview>> ReadWorkbook(Stream content, int maxRows, CancellationToken token)

@@ -51,7 +51,7 @@ public class SecurityHeadersTests
     }
 
     [Test]
-    public async Task ThePreviewMayShowBlobUrlsInImagesOnlyAndFrameItsOwnContent()
+    public async Task ThePreviewMayShowBlobUrlsInImagesOnlyAndRunItsPdfWorkerFromTheApp()
     {
         using var response = await this.client.GetAsync(new Uri("/some/client/route", UriKind.Relative));
 
@@ -61,12 +61,15 @@ public class SecurityHeadersTests
         {
             Assert.That(directives, Does.Contain("img-src 'self' blob:"), "a converted picture is a blob URL");
             Assert.That(directives, Does.Contain("media-src 'self'"), "audio and video load from the content address");
-            Assert.That(directives, Does.Contain("frame-src 'self'"), "the PDF viewer is a frame on the content address");
+            Assert.That(directives, Does.Contain("worker-src 'self'"), "the PDF library runs its worker from the app");
+            Assert.That(directives.Where(static directive => directive.StartsWith("frame-src", StringComparison.Ordinal)), Is.Empty, "nothing is framed");
             Assert.That(directives.Where(static directive => directive.Contains("blob:", StringComparison.Ordinal)), Has.Exactly(1).Items, "no other directive allows blob:");
             Assert.That(directives, Does.Contain("object-src 'none'"));
             Assert.That(directives, Does.Contain("frame-ancestors 'none'"), "the app is framed by nobody");
             Assert.That(Header(response, "X-Frame-Options"), Is.EqualTo("DENY"));
             Assert.That(directives, Does.Contain("script-src 'self' 'wasm-unsafe-eval'"), "a blob URL never runs script");
+            Assert.That(directives, Does.Contain("connect-src 'self'"));
+            Assert.That(string.Join(' ', directives), Does.Not.Contain("'unsafe-eval'"), "no script is built from a string");
         }
     }
 

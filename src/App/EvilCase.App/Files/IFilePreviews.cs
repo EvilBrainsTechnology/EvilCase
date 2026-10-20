@@ -19,6 +19,17 @@ internal interface IFilePreviews
     public Task RenderDocument(ElementReference host, Stream content, CancellationToken token);
 
     /// <summary>
+    /// Draws the pages of the PDF at <paramref name="url"/> into the element and returns their count. A file the
+    /// library cannot open, a password-protected one included, throws a <c>JSException</c>.
+    /// </summary>
+    public Task<int> RenderPdf(ElementReference host, string url, CancellationToken token);
+
+    /// <summary>
+    /// Releases the PDF drawn into the element: its document, worker and canvases.
+    /// </summary>
+    public Task DisposePdf(ElementReference host);
+
+    /// <summary>
     /// Reads every sheet of a workbook, no more than <paramref name="maxRows"/> rows of each.
     /// </summary>
     public Task<IReadOnlyList<SheetPreview>> ReadWorkbook(Stream content, int maxRows, CancellationToken token);

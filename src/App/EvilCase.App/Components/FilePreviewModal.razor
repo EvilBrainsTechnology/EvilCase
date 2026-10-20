@@ -200,7 +200,17 @@
             }
             else if (preview == FilePreviewKind.Pdf)
             {
-                <iframe @key="file.FileId" class="ec-preview-frame" src="@this.url" title="Náhled souboru @file.FileName"></iframe>
+                <div class="ec-preview-stage ec-preview-stage-text ec-preview-stage-pdf">
+                    @if (this.pdfPages == 0)
+                    {
+                        <p class="ec-preview-message">Načítám…</p>
+                    }
+                    else
+                    {
+                        <p class="ec-preview-note">@PageCount(this.pdfPages)</p>
+                    }
+                    <div @key="file.FileId" @ref="this.pdfHost" class="ec-preview-pdf" role="document" tabindex="0" aria-label="Obsah souboru @file.FileName"></div>
+                </div>
             }
             else if (preview == FilePreviewKind.Image || preview == FilePreviewKind.ConvertedImage)
             {
@@ -280,6 +290,14 @@
 
     private ElementReference documentHost;
 
+    private string? pdfUrl;
+
+    private ElementReference pdfHost;
+
+    private bool pdfDrawn;
+
+    private int pdfPages;
+
     private IReadOnlyList<string> lines = [];
 
     private bool truncated;
@@ -310,11 +328,20 @@
     {
         this.loadToken?.Cancel();
 
+        await this.ReleasePdf();
         await this.ReleaseUrl();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (this.pdfUrl is { } pdfUrl)
+        {
+            this.pdfUrl = null;
+            await this.DrawPdf(pdfUrl);
+
+            return;
+        }
+
         if (this.documentContent is not { } content)
             return;
 
@@ -345,6 +372,55 @@
         }
     }
 
+    private async Task DrawPdf(string url)
+    {
+        var token = this.loadToken!.Token;
+
+        try
+        {
+            this.pdfDrawn = true;
+
+            var pages = await this.Previews.RenderPdf(this.pdfHost, url, token);
+
+            if (!token.IsCancellationRequested)
+            {
+                this.pdfPages = pages;
+                this.StateHasChanged();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // A later file took over.
+        }
+        catch (JSException exception)
+        {
+            this.Logger.LogInformation(exception, "The library could not draw the PDF for the preview");
+
+            if (!token.IsCancellationRequested)
+            {
+                this.unsupported = true;
+                this.StateHasChanged();
+            }
+        }
+    }
+
+    private async Task ReleasePdf()
+    {
+        if (!this.pdfDrawn)
+            return;
+
+        this.pdfDrawn = false;
+
+        try
+        {
+            await this.Previews.DisposePdf(this.pdfHost);
+        }
+        catch (JSException exception)
+        {
+            this.Logger.LogInformation(exception, "The PDF preview was already gone");
+        }
+    }
+
     private async Task Reload(FileListItem file)
     {
         this.loadToken?.Cancel();
@@ -361,7 +437,10 @@
         this.activeSheet = 0;
         this.email = null;
         this.documentContent = null;
+        this.pdfUrl = null;
+        this.pdfPages = 0;
 
+        await this.ReleasePdf();
         await this.ReleaseUrl();
 
         var preview = FileTypeDisplay.Preview(file.FileName);
@@ -375,13 +454,21 @@
 
         try
         {
-            // The browser requests what it shows natively itself; the rest is read here as bytes.
-            if (InlineFileTypes.MediaType(file.FileName) is not null)
+            // The browser requests what it shows natively itself, and the PDF library requests a PDF; the rest is
+            // read here as bytes.
+            if (preview == FilePreviewKind.Pdf || InlineFileTypes.MediaType(file.FileName) is not null)
             {
                 await this.Session.EnsureFresh(token);
 
                 if (!token.IsCancellationRequested)
-                    (this.url, this.loading) = (FileUrl.Content(file.FileId), false);
+                {
+                    this.loading = false;
+
+                    if (preview == FilePreviewKind.Pdf)
+                        this.pdfUrl = FileUrl.Content(file.FileId);
+                    else
+                        this.url = FileUrl.Content(file.FileId);
+                }
 
                 return;
             }
@@ -515,6 +602,18 @@
     private static bool UsesLibrary(FilePreviewKind preview)
     {
         return preview is FilePreviewKind.ConvertedImage or FilePreviewKind.Document or FilePreviewKind.Workbook or FilePreviewKind.Email;
+    }
+
+    private static string PageCount(int count)
+    {
+        var word = count switch
+        {
+            1 => "strana",
+            2 or 3 or 4 => "strany",
+            _ => "stran",
+        };
+
+        return $"{count} {word}";
     }
 
     private static string Count(int count)

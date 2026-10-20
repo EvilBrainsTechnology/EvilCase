@@ -13,9 +13,9 @@ namespace EvilBrains.EvilCase.Tests.Frontend;
 public class FilePreviewModalRenderTests
 {
     [Test]
-    public void APdfShowsInTheBrowsersViewerFromTheContentAddressWithoutReadingBytes()
+    public void APdfIsDrawnByTheLibraryFromTheContentAddressWithoutReadingBytes()
     {
-        using var ctx = NewContext(out var blobs);
+        using var ctx = NewContext(out var blobs, out var previews);
 
         var loads = 0;
         var file = File("Rozhodnutí.pdf");
@@ -32,11 +32,51 @@ public class FilePreviewModalRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.Find("iframe.ec-preview-frame").GetAttribute("src"), Is.EqualTo($"/api/files/{file.FileId}/content"));
-            Assert.That(component.Find("iframe.ec-preview-frame").HasAttribute("sandbox"), Is.False);
-            Assert.That(loads, Is.Zero, "the browser requests the file itself");
+            Assert.That(component.FindAll(".ec-preview-pdf"), Has.Count.EqualTo(1));
+            Assert.That(component.Find(".ec-preview-note").TextContent, Is.EqualTo("3 strany"));
+            Assert.That(previews.RenderedPdfs, Is.EqualTo([$"/api/files/{file.FileId}/content"]));
+            Assert.That(component.FindAll("iframe, object, embed"), Is.Empty, "no browser viewer shows the PDF");
+            Assert.That(loads, Is.Zero, "the library requests the file itself");
             Assert.That(blobs.Created, Is.Empty);
         }
+    }
+
+    [Test]
+    public void APdfTheLibraryCannotOpenShowsTheUnsupportedStateWithTheDownload()
+    {
+        using var ctx = NewContext(out _, out var previews);
+
+        previews.Fails = true;
+
+        var downloaded = new List<string>();
+        var file = File("Chráněný.pdf");
+        var component = Render(ctx, [file], file.FileId, onDownload: item => downloaded.Add(item.FileName));
+
+        component.WaitForAssertion(() => Assert.That(component.Find(".ec-preview-message-title").TextContent, Is.EqualTo("Náhled tohoto typu souboru není k dispozici")));
+
+        component.Find(".ec-preview-message .ec-button-primary").Click();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(downloaded, Is.EqualTo(["Chráněný.pdf"]));
+            Assert.That(component.FindAll(".ec-preview-pdf"), Is.Empty);
+        }
+    }
+
+    [Test]
+    public void SteppingToAnotherFileReleasesThePdf()
+    {
+        using var ctx = NewContext(out _, out var previews);
+
+        var pdf = File("a.pdf");
+        var text = File("b.txt");
+        var component = Render(ctx, [pdf, text], pdf.FileId, content: "řádek");
+
+        component.WaitForAssertion(() => Assert.That(previews.RenderedPdfs, Has.Count.EqualTo(1)));
+
+        component.Render(parameters => parameters.Add(static modal => modal.FileId, text.FileId));
+
+        Assert.That(previews.DisposedPdfs, Is.EqualTo(1));
     }
 
     [TestCase("a.pdf", 1)]

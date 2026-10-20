@@ -26,6 +26,20 @@ internal sealed class FilePreviews(IJSRuntime jsRuntime) : IFilePreviews, IAsync
         await previews.InvokeVoidAsync("renderDocument", token, host, streamRef);
     }
 
+    public async Task<int> RenderPdf(ElementReference host, string url, CancellationToken token)
+    {
+        var previews = await this.Module(token);
+
+        return await previews.InvokeAsync<int>("renderPdf", token, host, url);
+    }
+
+    public async Task DisposePdf(ElementReference host)
+    {
+        var previews = await this.Module(CancellationToken.None);
+
+        await previews.InvokeVoidAsync("disposePdf", host);
+    }
+
     public async Task<IReadOnlyList<SheetPreview>> ReadWorkbook(Stream content, int maxRows, CancellationToken token)
     {
         var previews = await this.Module(token);

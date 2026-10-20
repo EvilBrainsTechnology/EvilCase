@@ -280,13 +280,13 @@ public class FilesCardRenderTests
 
         open.Click();
 
-        component.WaitForAssertion(() => Assert.That(component.FindAll("dialog iframe.ec-preview-frame"), Has.Count.EqualTo(1)));
+        component.WaitForAssertion(() => Assert.That(component.FindAll("dialog .ec-preview-pdf"), Has.Count.EqualTo(1)));
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(downloader.Downloaded, Is.Empty, "a previewable file opens in the preview and is not downloaded");
             Assert.That(component.Find("dialog .ec-preview-name").TextContent, Is.EqualTo("Rozhodnutí o přestupku.pdf"));
-            Assert.That(component.Find("iframe.ec-preview-frame").GetAttribute("src"), Is.EqualTo($"/api/files/{file.FileId}/content"));
+            Assert.That(component.FindAll("iframe"), Is.Empty);
         }
     }
 
@@ -599,7 +599,7 @@ public class FilesCardRenderTests
         var component = new Card { Files = [PdfFile(), File("Doručenka.zfo"), File("Foto.jpg")] }.Render(ctx);
 
         component.Find(".ec-file-row button.ec-file-name").Click();
-        component.WaitForAssertion(() => Assert.That(component.FindAll("dialog iframe"), Has.Count.EqualTo(1)));
+        component.WaitForAssertion(() => Assert.That(component.FindAll("dialog .ec-preview-pdf"), Has.Count.EqualTo(1)));
 
         Assert.That(component.Find(".ec-preview-position").TextContent, Is.EqualTo("1 z 3"));
 

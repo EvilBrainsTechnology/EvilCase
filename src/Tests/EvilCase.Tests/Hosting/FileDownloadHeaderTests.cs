@@ -20,7 +20,7 @@ public class FileDownloadHeaderTests
         [Guid.CreateVersion7()] = ("schema.svg", "image/svg+xml"),
         [Guid.CreateVersion7()] = ("stranka.html", "text/html"),
         [Guid.CreateVersion7()] = ("skript.js", "text/javascript"),
-        [Guid.CreateVersion7()] = ("Příloha č. 1 – \"smlouva\".pdf", "application/pdf"),
+        [Guid.CreateVersion7()] = ("Příloha č. 1 – \"foto\".png", "image/png"),
         [Guid.CreateVersion7()] = ("Účtenka přestupku.zip", "application/zip"),
     };
 
@@ -54,7 +54,6 @@ public class FileDownloadHeaderTests
         this.host.Dispose();
     }
 
-    [TestCase("smlouva.pdf", "application/pdf")]
     [TestCase("foto.png", "image/png")]
     [TestCase("zaznam.mp4", "video/mp4")]
     public async Task AFileTheBrowserShowsNativelyIsInlineUnderTheDetectedType(string fileName, string mediaType)
@@ -75,6 +74,7 @@ public class FileDownloadHeaderTests
     [TestCase("schema.svg")]
     [TestCase("stranka.html")]
     [TestCase("skript.js")]
+    [TestCase("smlouva.pdf")]
     public async Task AnyOtherFileIsAnOctetStreamAttachment(string fileName)
     {
         using var response = await this.Get(fileName);
@@ -89,7 +89,7 @@ public class FileDownloadHeaderTests
         }
     }
 
-    [TestCase("Příloha č. 1 – \"smlouva\".pdf", "inline")]
+    [TestCase("Příloha č. 1 – \"foto\".png", "inline")]
     [TestCase("Účtenka přestupku.zip", "attachment")]
     public async Task ANonAsciiNameTravelsAsUtf8WithAnAsciiFallback(string fileName, string dispositionType)
     {
@@ -121,14 +121,14 @@ public class FileDownloadHeaderTests
     }
 
     [Test]
-    public async Task TheContentIsSandboxedAndFrameableByTheAppItself()
+    public async Task TheContentIsSandboxedAndFramedByNobody()
     {
-        using var response = await this.Get("smlouva.pdf");
+        using var response = await this.Get("foto.png");
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(Header(response, "X-Frame-Options"), Is.EqualTo("SAMEORIGIN"));
-            Assert.That(Header(response, "Content-Security-Policy"), Is.EqualTo("sandbox; frame-ancestors 'self'"), "no inline file runs script on the app's origin");
+            Assert.That(Header(response, "X-Frame-Options"), Is.EqualTo("DENY"));
+            Assert.That(Header(response, "Content-Security-Policy"), Is.EqualTo("sandbox; frame-ancestors 'none'"), "no inline file runs script on the app's origin");
         }
     }
 
@@ -136,14 +136,14 @@ public class FileDownloadHeaderTests
     [TestCase("/API/Files/{0}/CONTENT")]
     public async Task EveryPathTheRouteAcceptsIsSandboxed(string pathFormat)
     {
-        var fileId = Files.Single(static file => string.Equals(file.Value.FileName, "smlouva.pdf", StringComparison.Ordinal)).Key;
+        var fileId = Files.Single(static file => string.Equals(file.Value.FileName, "foto.png", StringComparison.Ordinal)).Key;
 
         using var response = await this.Send(string.Format(CultureInfo.InvariantCulture, pathFormat, fileId));
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(response.Content.Headers.ContentDisposition?.DispositionType, Is.EqualTo("inline"));
-            Assert.That(Header(response, "Content-Security-Policy"), Is.EqualTo("sandbox; frame-ancestors 'self'"), "an inline file served on any path the route accepts is sandboxed");
+            Assert.That(Header(response, "Content-Security-Policy"), Is.EqualTo("sandbox; frame-ancestors 'none'"), "an inline file served on any path the route accepts is sandboxed");
         }
     }
 
