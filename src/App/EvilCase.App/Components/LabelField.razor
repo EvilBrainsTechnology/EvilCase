@@ -118,7 +118,7 @@
     [Parameter]
     public EventCallback<IReadOnlyList<LabelItem>> SelectedChanged { get; set; }
 
-    /// <summary>The detail row: a "+ Štítek" button opens the input in place, and the key L opens it too; picking a label closes it.</summary>
+    /// <summary>The detail row: a "+ Štítek" button opens the input in place, and the key L opens it too.</summary>
     [Parameter]
     public bool Inline { get; set; }
 
@@ -396,19 +396,8 @@
 
     private async Task Add(LabelItem label)
     {
-        this.search = "";
-        this.active = 0;
-        this.createError = null;
-
-        if (this.Inline)
-        {
-            this.Close();
-            this.returnFocus = true;
-        }
-        else
-        {
-            this.focusPending = true;
-        }
+        this.Close();
+        this.returnFocus = this.Inline;
 
         if (!this.Selected.Any(selected => selected.LabelId == label.LabelId))
             await this.SelectedChanged.InvokeAsync([.. this.Selected, label]);
