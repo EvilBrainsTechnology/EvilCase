@@ -75,7 +75,7 @@ public class FileTypeDisplayTests
         Assert.That(FileTypeDisplay.Preview(fileName), Is.EqualTo(kind));
     }
 
-    [TestCase("a.pdf", "application/pdf")]
+    [TestCase("a.pdf", null)]
     [TestCase("a.PNG", "image/png")]
     [TestCase("a.m4a", "audio/mp4")]
     [TestCase("a.mp4", "video/mp4")]
@@ -91,9 +91,9 @@ public class FileTypeDisplayTests
     [Test]
     public void EveryInlineTypeHasAPreviewTheBrowserShowsItself()
     {
-        var nativePreviews = new[] { FilePreviewKind.Pdf, FilePreviewKind.Image, FilePreviewKind.Audio, FilePreviewKind.Video };
+        var nativePreviews = new[] { FilePreviewKind.Image, FilePreviewKind.Audio, FilePreviewKind.Video };
 
-        foreach (var extension in new[] { "pdf", "jpg", "jpeg", "png", "gif", "webp", "avif", "bmp", "mp3", "m4a", "wav", "ogg", "oga", "mp4", "webm", "m4v", "mov" })
+        foreach (var extension in new[] { "jpg", "jpeg", "png", "gif", "webp", "avif", "bmp", "mp3", "m4a", "wav", "ogg", "oga", "mp4", "webm", "m4v", "mov" })
             Assert.That(nativePreviews, Does.Contain(FileTypeDisplay.Preview($"a.{extension}")), extension);
     }
 }

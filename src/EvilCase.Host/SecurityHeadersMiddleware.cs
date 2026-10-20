@@ -6,8 +6,8 @@ internal sealed class SecurityHeadersMiddleware(RequestDelegate next)
     /// Blazor WebAssembly compiles its runtime, which is what 'wasm-unsafe-eval' allows; the app carries
     /// no inline script, so the policy carries no hash. Inline styles are unavoidable: <c>EcTable</c>
     /// passes its column template through a custom property on the style attribute. The file preview
-    /// frames, plays and shows file content by its same-origin URL; only a picture the app converts
-    /// itself is a <c>blob:</c> URL, the only place <c>blob:</c> is allowed.
+    /// plays and shows file content by its same-origin URL and reads a PDF with a same-origin module worker;
+    /// only a picture the app converts itself is a <c>blob:</c> URL, the only place <c>blob:</c> is allowed.
     /// </summary>
     private const string ContentSecurityPolicy =
         "default-src 'self'; "
@@ -17,27 +17,25 @@ internal sealed class SecurityHeadersMiddleware(RequestDelegate next)
             + "form-action 'self'; "
             + "img-src 'self' blob:; "
             + "media-src 'self'; "
-            + "frame-src 'self'; "
+            + "worker-src 'self'; "
             + "font-src 'self'; "
             + "style-src 'self' 'unsafe-inline'; "
             + "script-src 'self' 'wasm-unsafe-eval'; "
             + "connect-src 'self'";
 
     /// <summary>
-    /// The file content is the one response the app frames itself, for the PDF preview; sandboxed, so a
-    /// file served inline never runs script on the app's origin.
+    /// Sandboxed, so a file served inline never runs script on the app's origin.
     /// </summary>
-    private const string FileContentSecurityPolicy = "sandbox; frame-ancestors 'self'";
+    private const string FileContentSecurityPolicy = "sandbox; frame-ancestors 'none'";
 
     private static readonly Func<object, Task> WriteHeaders = static async state =>
     {
         var response = (HttpResponse)state;
         var headers = response.Headers;
-        var frameable = IsFileContent(response.HttpContext.Request.Path);
 
-        headers.ContentSecurityPolicy = frameable ? FileContentSecurityPolicy : ContentSecurityPolicy;
+        headers.ContentSecurityPolicy = IsFileContent(response.HttpContext.Request.Path) ? FileContentSecurityPolicy : ContentSecurityPolicy;
         headers.XContentTypeOptions = "nosniff";
-        headers.XFrameOptions = frameable ? "SAMEORIGIN" : "DENY";
+        headers.XFrameOptions = "DENY";
         headers["Referrer-Policy"] = "no-referrer";
         headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
     };

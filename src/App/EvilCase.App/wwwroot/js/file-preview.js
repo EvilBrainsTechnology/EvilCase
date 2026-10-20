@@ -127,6 +127,210 @@ export async function renderDocument(host, contentStream) {
     }
 }
 
+// PDF.js draws the pages of a PDF onto canvases; no text, annotation or form layer is created, so nothing in the
+// file is selectable, clickable or scripted. The document loads from its content URL with the session cookie.
+const maxPixelRatio = 2;
+const maxCanvasPixels = 16 * 1024 * 1024;
+const pdfs = new Map();
+let pdfjs;
+
+function pdfLib(name) {
+    return new URL(`../lib/pdfjs/${name}`, import.meta.url).href;
+}
+
+async function loadPdfjs() {
+    if (!pdfjs) {
+        pdfjs = await import(pdfLib('pdf.min.mjs'));
+        pdfjs.GlobalWorkerOptions.workerSrc = pdfLib('pdf.worker.min.mjs');
+    }
+
+    return pdfjs;
+}
+
+export function disposePdf(host) {
+    // The element is gone once its file left the page, and the caller then holds no reference to it.
+    if (!host) {
+        releasePdfs();
+
+        return;
+    }
+
+    const pdf = pdfs.get(host);
+
+    if (pdf) {
+        pdfs.delete(host);
+        pdf.dispose();
+    }
+}
+
+function releasePdfs() {
+    for (const host of pdfs.keys()) {
+        if (!host.isConnected) {
+            disposePdf(host);
+        }
+    }
+}
+
+// Pages draw as they come near the viewport and are freed once far away, so a long file holds few canvases.
+async function drawPage(pdf, page) {
+    if (page.task || page.drawn) {
+        return;
+    }
+
+    const generation = page.generation;
+    const ratio = Math.min(window.devicePixelRatio || 1, maxPixelRatio);
+    const cssWidth = page.box.clientWidth;
+    let scale = (cssWidth / page.width) * ratio;
+
+    scale = Math.min(scale, Math.sqrt(maxCanvasPixels / (page.width * page.height)));
+
+    const proxy = await pdf.document.getPage(page.number);
+    const viewport = proxy.getViewport({ scale });
+    const canvas = document.createElement('canvas');
+
+    canvas.width = Math.floor(viewport.width);
+    canvas.height = Math.floor(viewport.height);
+    page.task = proxy.render({ canvasContext: canvas.getContext('2d'), viewport });
+
+    try {
+        await page.task.promise;
+    } catch (error) {
+        if (error?.name !== 'RenderingCancelledException') {
+            throw error;
+        }
+    } finally {
+        page.task = null;
+        proxy.cleanup();
+    }
+
+    if (pdf.disposed) {
+        return;
+    }
+
+    // A page freed while its drawing finished keeps no canvas, and is drawn again if it is back in view.
+    if (page.generation === generation) {
+        page.box.replaceChildren(canvas);
+        page.drawn = true;
+    } else if (page.near) {
+        await drawPage(pdf, page);
+    }
+}
+
+function freePage(page) {
+    page.generation++;
+    page.task?.cancel();
+    page.drawn = false;
+    page.box.replaceChildren();
+}
+
+export async function renderPdf(host, url) {
+    releasePdfs();
+    disposePdf(host);
+
+    try {
+        return await openPdf(host, url);
+    } catch (error) {
+        disposePdf(host);
+
+        throw error;
+    }
+}
+
+async function openPdf(host, url) {
+    const lib = await loadPdfjs();
+    const task = lib.getDocument({
+        url,
+        withCredentials: true,
+        enableXfa: false,
+        verbosity: 0,
+        wasmUrl: pdfLib('wasm/'),
+        standardFontDataUrl: pdfLib('standard_fonts/'),
+        iccUrl: pdfLib('iccs/'),
+    });
+    const pdf = { disposed: false, list: [], document: null };
+    const observers = [];
+
+    pdf.dispose = () => {
+        pdf.disposed = true;
+        observers.forEach(observer => observer.disconnect());
+        pdf.list.forEach(page => page.task?.cancel());
+        host.replaceChildren();
+        task.destroy();
+    };
+    pdfs.set(host, pdf);
+
+    // A password-protected or damaged file rejects here, and nothing is shown of it.
+    pdf.document = await task.promise;
+
+    const column = document.createDocumentFragment();
+    const { numPages } = pdf.document;
+    // Asked for all at once: one round trip to the worker per page, in turn, takes seconds on a long file.
+    const proxies = await Promise.all(Array.from({ length: numPages }, (_, index) => pdf.document.getPage(index + 1)));
+
+    if (pdf.disposed) {
+        return 0;
+    }
+
+    for (const proxy of proxies) {
+        const number = proxy.pageNumber;
+        const { width, height } = proxy.getViewport({ scale: 1 });
+        const box = document.createElement('div');
+
+        box.className = 'ec-preview-pdf-page';
+        box.style.aspectRatio = `${width} / ${height}`;
+        box.setAttribute('role', 'img');
+        box.setAttribute('aria-label', `Strana ${number} z ${numPages}`);
+        pdf.list.push({ number, width, height, box, near: false, drawn: false, task: null, generation: 0 });
+        column.appendChild(box);
+    }
+
+    host.replaceChildren(column);
+
+    const byBox = new Map(pdf.list.map(page => [page.box, page]));
+    const near = new IntersectionObserver(entries => {
+        for (const entry of entries) {
+            const page = byBox.get(entry.target);
+
+            page.near = entry.isIntersecting;
+
+            if (page.near) {
+                drawPage(pdf, page).catch(error => console.warn('A PDF page did not render.', error));
+            } else {
+                freePage(page);
+            }
+        }
+    }, { root: host.parentElement, rootMargin: '150% 0px' });
+
+    observers.push(near);
+
+    // The first page is drawn before the preview opens, so a file that parses but does not render shows the fallback.
+    await drawPage(pdf, pdf.list[0]);
+
+    if (pdf.disposed) {
+        return 0;
+    }
+
+    pdf.list.forEach(page => near.observe(page.box));
+
+    let lastWidth = host.clientWidth;
+    const resize = new ResizeObserver(() => {
+        if (host.clientWidth !== lastWidth) {
+            lastWidth = host.clientWidth;
+            pdf.list.forEach(freePage);
+            // Re-observing reports every page again, which draws the ones in view.
+            pdf.list.forEach(page => {
+                near.unobserve(page.box);
+                near.observe(page.box);
+            });
+        }
+    });
+
+    resize.observe(host);
+    observers.push(resize);
+
+    return numPages;
+}
+
 export async function readWorkbook(contentStream, maxRows) {
     releaseDocuments();
 
