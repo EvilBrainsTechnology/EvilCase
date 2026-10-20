@@ -1,7 +1,7 @@
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Contract.Files
-@using Microsoft.JSInterop
 @using Toolbelt.Blazor.FileDropZone
+@inject IFileDownloader Downloader
 @inject ILogger<FilesCard> Logger
 
 @* The card is itself the drop zone (SDD-012): FileDropZone hands a card-wide drop to the input
@@ -49,11 +49,6 @@
                     </div>
                 }
 
-                @if (this.error is not null)
-                {
-                    <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.error</div>
-                }
-
                 @if (this.loading)
                 {
                     <p class="ec-card-state">Načítám…</p>
@@ -76,8 +71,6 @@
                     <div class="ec-file-list">
                         @foreach (var file in this.items)
                         {
-                            var busy = this.downloadingFileId == file.FileId;
-
                             var renaming = this.renamingFileId == file.FileId;
 
                             <div class="@(renaming ? "ec-file-row ec-file-row-renaming" : "ec-file-row")" @key="file.FileId">
@@ -91,13 +84,13 @@
                                 {
                                     <div class="ec-file-main">
                                         <button type="button" class="ec-file-name" @ref="this.nameButtons[file.FileId]"
-                                                title="@(this.Compact ? file.FileName : this.OpenTitle(file))"
-                                                disabled="@busy" @onclick="() => this.Open(file)">@file.FileName</button>
+                                                title="@(this.Compact ? file.FileName : "Otevřít náhled")"
+                                                @onclick="() => this.Open(file)">@file.FileName</button>
                                         <span class="ec-file-meta">@FileSizeDisplay.Text(file.SizeBytes) <span class="ec-sep" aria-hidden="true">·</span> <span class="ec-file-moment">@MomentDisplay.Text(file.Created)</span></span>
                                     </div>
                                     <div class="ec-file-actions">
                                         <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Download"
-                                                  AriaLabel="@($"Stáhnout {file.FileName}")" title="Stáhnout" Disabled="@busy"
+                                                  AriaLabel="@($"Stáhnout {file.FileName}")" title="Stáhnout"
                                                   OnClick="() => this.Download(file)" />
                                         <EcMenu AriaLabel="@($"Další akce se souborem {file.FileName}")" Items="this.FileActions(file)" />
                                     </div>
@@ -140,9 +133,6 @@
 
     [Parameter, EditorRequired]
     public required Func<IBrowserFile, CancellationToken, Task> UploadFile { get; set; }
-
-    [Parameter, EditorRequired]
-    public required Func<FileListItem, CancellationToken, Task> DownloadFile { get; set; }
 
     /// <summary>
     /// The bytes the preview shows.
@@ -190,8 +180,6 @@
 
     private int uploadRound;
 
-    private Guid? downloadingFileId;
-
     private Guid? previewFileId;
 
     private Guid? renamingFileId;
@@ -199,8 +187,6 @@
     private Guid? focusFileId;
 
     private string? listFailure;
-
-    private string? error;
 
     private FileListItem? deleting;
 
@@ -232,11 +218,6 @@
             new EcMenuItem { Text = "Přejmenovat", Icon = AppIcons.Pencil, OnSelect = EventCallback.Factory.Create(this, () => this.StartRename(file)) },
             new EcMenuItem { Text = "Smazat…", Icon = AppIcons.Trash, OnSelect = EventCallback.Factory.Create(this, () => this.ConfirmDelete(file)), Danger = true, DividerBefore = true },
         ];
-    }
-
-    private string OpenTitle(FileListItem file)
-    {
-        return FileTypeDisplay.Preview(file.FileName) == FilePreviewKind.None ? "Stáhnout" : "Otevřít náhled";
     }
 
     private async Task ReloadFiles()
@@ -288,12 +269,9 @@
         await this.ReloadFiles();
     }
 
-    private async Task Open(FileListItem file)
+    private void Open(FileListItem file)
     {
-        if (FileTypeDisplay.Preview(file.FileName) == FilePreviewKind.None)
-            await this.Download(file);
-        else
-            this.previewFileId = file.FileId;
+        this.previewFileId = file.FileId;
     }
 
     private void PreviewFile(Guid fileId)
@@ -309,23 +287,7 @@
 
     private async Task Download(FileListItem file)
     {
-        this.downloadingFileId = file.FileId;
-        this.error = null;
-
-        try
-        {
-            await this.DownloadFile(file, CancellationToken.None);
-        }
-        catch (Exception exception) when (exception is ApiException or HttpRequestException or JSException)
-        {
-            this.Logger.LogWarning(exception, "Downloading file {FileId} failed", file.FileId);
-
-            this.error = "Soubor se nepodařilo stáhnout. Zkuste to za chvíli znovu.";
-        }
-        finally
-        {
-            this.downloadingFileId = null;
-        }
+        await this.Downloader.DownloadFile(file.FileId, file.FileName, CancellationToken.None);
     }
 
     private void StartRename(FileListItem file)

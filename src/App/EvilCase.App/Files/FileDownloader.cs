@@ -6,13 +6,11 @@ internal sealed class FileDownloader(IJSRuntime jsRuntime) : IFileDownloader, IA
 {
     private IJSObjectReference? module;
 
-    public async Task SaveFile(string fileName, FileContent content, CancellationToken token)
+    public async Task DownloadFile(Guid fileId, string fileName, CancellationToken token)
     {
         this.module ??= await jsRuntime.InvokeAsync<IJSObjectReference>("import", token, "./js/files.js");
 
-        using var streamRef = new DotNetStreamReference(content.Content);
-
-        await this.module.InvokeVoidAsync("downloadBlob", token, fileName, content.MediaType, streamRef);
+        await this.module.InvokeVoidAsync("downloadFile", token, FileUrl.Content(fileId), fileName);
     }
 
     public async ValueTask DisposeAsync()

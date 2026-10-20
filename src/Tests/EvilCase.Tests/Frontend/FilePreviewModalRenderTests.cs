@@ -12,25 +12,35 @@ namespace EvilBrains.EvilCase.Tests.Frontend;
 public class FilePreviewModalRenderTests
 {
     [Test]
-    public void APdfShowsInTheBrowsersViewerFromABlobOfTheDetectedType()
+    public void APdfShowsInTheBrowsersViewerFromTheContentAddressWithoutReadingBytes()
     {
         using var ctx = NewContext(out var blobs);
 
+        var loads = 0;
         var file = File("Rozhodnutí.pdf");
-        var component = Render(ctx, [file], file.FileId);
+        var component = Render(
+            ctx,
+            [file],
+            file.FileId,
+            load: (_, _) =>
+            {
+                loads++;
+
+                return Task.FromResult<Stream>(new MemoryStream());
+            });
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(blobs.Created, Is.EqualTo([("application/pdf", "blob:test/0")]), "the blob type comes from the extension");
-            Assert.That(component.Find("iframe.ec-preview-frame").GetAttribute("src"), Is.EqualTo("blob:test/0"));
+            Assert.That(component.Find("iframe.ec-preview-frame").GetAttribute("src"), Is.EqualTo($"/api/files/{file.FileId}/content"));
             Assert.That(component.Find("iframe.ec-preview-frame").HasAttribute("sandbox"), Is.False);
+            Assert.That(loads, Is.Zero, "the browser requests the file itself");
+            Assert.That(blobs.Created, Is.Empty);
         }
     }
 
-    [TestCase("a.svg", "image/svg+xml")]
-    [TestCase("a.JPG", "image/jpeg")]
-    [TestCase("a.webp", "image/webp")]
-    public void AnImageShowsInAnImgElementAndNeverInAFrame(string fileName, string mediaType)
+    [TestCase("a.JPG")]
+    [TestCase("a.webp")]
+    public void ARasterImageShowsInAnImgElementFromTheContentAddress(string fileName)
     {
         using var ctx = NewContext(out var blobs);
 
@@ -39,14 +49,30 @@ public class FilePreviewModalRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.Find("img.ec-preview-image").GetAttribute("src"), Is.EqualTo("blob:test/0"));
+            Assert.That(component.Find("img.ec-preview-image").GetAttribute("src"), Is.EqualTo($"/api/files/{file.FileId}/content"));
             Assert.That(component.FindAll("iframe, object, embed"), Is.Empty);
-            Assert.That(blobs.Created.Single().MediaType, Is.EqualTo(mediaType));
+            Assert.That(blobs.Created, Is.Empty);
         }
     }
 
     [Test]
-    public void AudioAndVideoShowInNativeControls()
+    public void AnSvgShowsInAnImgElementFromABlobOfItsOwnType()
+    {
+        using var ctx = NewContext(out var blobs);
+
+        var file = File("Schéma.svg");
+        var component = Render(ctx, [file], file.FileId);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.Find("img.ec-preview-image").GetAttribute("src"), Is.EqualTo("blob:test/0"));
+            Assert.That(component.FindAll("iframe, object, embed"), Is.Empty);
+            Assert.That(blobs.Created.Single().MediaType, Is.EqualTo("image/svg+xml"));
+        }
+    }
+
+    [Test]
+    public void AudioAndVideoShowInNativeControlsFromTheContentAddress()
     {
         using var ctx = NewContext(out _);
 
@@ -59,7 +85,28 @@ public class FilePreviewModalRenderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(audioView.Find("audio.ec-preview-audio").HasAttribute("controls"), Is.True);
+            Assert.That(audioView.Find("audio.ec-preview-audio").GetAttribute("src"), Is.EqualTo($"/api/files/{audio.FileId}/content"));
             Assert.That(videoView.Find("video.ec-preview-video").HasAttribute("controls"), Is.True);
+            Assert.That(videoView.Find("video.ec-preview-video").GetAttribute("src"), Is.EqualTo($"/api/files/{video.FileId}/content"));
+        }
+    }
+
+    [TestCase("img.ec-preview-image", "a.png")]
+    [TestCase("audio.ec-preview-audio", "a.mp3")]
+    [TestCase("video.ec-preview-video", "a.mp4")]
+    public async Task AnElementThatCannotReadTheFileFallsBackToTheMessageWithTheDownload(string selector, string fileName)
+    {
+        await using var ctx = NewContext(out _);
+
+        var file = File(fileName);
+        var component = Render(ctx, [file], file.FileId);
+
+        await component.Find(selector).TriggerEventAsync("onerror", new Microsoft.AspNetCore.Components.Web.ErrorEventArgs());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.Find(".ec-preview-message-title").TextContent, Is.EqualTo("Náhled tohoto typu souboru není k dispozici"));
+            Assert.That(component.FindAll(selector), Is.Empty);
         }
     }
 
@@ -407,7 +454,7 @@ public class FilePreviewModalRenderTests
     {
         using var ctx = NewContext(out var blobs);
 
-        var files = new FileListItem[] { File("a.pdf"), File("b.png") };
+        var files = new FileListItem[] { File("a.svg"), File("b.svg") };
         var component = Render(ctx, files, files[0].FileId);
 
         component.Render(parameters => parameters.Add(static modal => modal.FileId, files[1].FileId));
@@ -420,11 +467,24 @@ public class FilePreviewModalRenderTests
     }
 
     [Test]
+    public void LeavingAFileShownByItsContentAddressRevokesNothing()
+    {
+        using var ctx = NewContext(out var blobs);
+
+        var files = new FileListItem[] { File("a.pdf"), File("b.png") };
+        var component = Render(ctx, files, files[0].FileId);
+
+        component.Render(parameters => parameters.Add(static modal => modal.FileId, files[1].FileId));
+
+        Assert.That(blobs.Revoked, Is.Empty, "a content address is no blob URL");
+    }
+
+    [Test]
     public async Task ClosingTheModalRevokesTheBlob()
     {
         await using var ctx = NewContext(out var blobs);
 
-        var file = File("a.pdf");
+        var file = File("a.svg");
         var component = Render(ctx, [file], file.FileId);
 
         await component.Instance.DisposeAsync();
@@ -438,7 +498,7 @@ public class FilePreviewModalRenderTests
         using var ctx = NewContext(out var blobs);
 
         var calls = 0;
-        var file = File("a.pdf");
+        var file = File("a.svg");
         var component = Render(
             ctx,
             [file],
@@ -459,7 +519,7 @@ public class FilePreviewModalRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.FindAll("iframe.ec-preview-frame"), Has.Count.EqualTo(1));
+            Assert.That(component.FindAll("img.ec-preview-image"), Has.Count.EqualTo(1));
             Assert.That(blobs.Created, Has.Count.EqualTo(1));
         }
     }

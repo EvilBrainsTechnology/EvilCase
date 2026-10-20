@@ -1,8 +1,6 @@
-// The bytes are already fetched with the authorization header, which an anchor cannot send; they become
-// a Blob URL and the anchor clicks that.
-export async function downloadBlob(fileName, mediaType, contentStream) {
-    const buffer = await contentStream.arrayBuffer();
-    const url = URL.createObjectURL(new Blob([buffer], { type: mediaType }));
+// An ordinary request: the session cookie authenticates it and the download attribute makes the browser
+// save the response even when the server sends it inline.
+export function downloadFile(url, fileName) {
     const anchor = document.createElement('a');
 
     anchor.href = url;
@@ -10,10 +8,9 @@ export async function downloadBlob(fileName, mediaType, contentStream) {
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();
-    URL.revokeObjectURL(url);
 }
 
-// The preview shows the bytes through a Blob URL of the type the app detected, never the stored one.
+// A preview the app renders itself from fetched bytes is shown through a Blob URL.
 export async function createObjectUrl(mediaType, contentStream) {
     const buffer = await contentStream.arrayBuffer();
 
