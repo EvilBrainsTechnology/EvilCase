@@ -245,6 +245,12 @@ function next(eventBus, name, signal) {
 
 async function openPdf(host, url, view) {
     const { lib, viewer: viewerLib } = await loadPdfViewer();
+
+    // A preview closed while the library loaded has nothing left to release it, so nothing is opened for it.
+    if (!host.isConnected) {
+        return 0;
+    }
+
     const abort = new AbortController();
     const { signal } = abort;
     const eventBus = new viewerLib.EventBus();
@@ -376,10 +382,16 @@ async function openPdf(host, url, view) {
 
         const fine = event.deltaMode === WheelEvent.DOM_DELTA_PIXEL && Math.abs(event.deltaY) < 50;
         const factor = fine ? Math.exp(-event.deltaY / 100) : event.deltaY < 0 ? 1.1 : 1 / 1.1;
-        const scale = Math.min(Math.max(viewer.currentScale * factor, pdfZoomSteps[0]), pdfZoomSteps.at(-1));
+        // A fit outside the steps' range is a bound of its own, so the wheel never zooms against its direction.
+        const current = viewer.currentScale;
+        const scale = Math.min(Math.max(current * factor, Math.min(pdfZoomSteps[0], current)), Math.max(pdfZoomSteps.at(-1), current));
         const box = host.getBoundingClientRect();
 
-        viewer.updateScale({ scaleFactor: scale / viewer.currentScale, origin: [event.clientX - box.left, event.clientY - box.top] });
+        if (scale === current) {
+            return;
+        }
+
+        viewer.updateScale({ scaleFactor: scale / current, origin: [event.clientX - box.left, event.clientY - box.top] });
     }, { passive: false, signal });
 
     return count;
