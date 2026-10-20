@@ -99,14 +99,14 @@ public class FileDownloadHeaderTests
     }
 
     [Test]
-    public async Task TheContentIsFrameableByTheAppItself()
+    public async Task TheContentIsSandboxedAndFrameableByTheAppItself()
     {
         using var response = await this.Get("smlouva.pdf");
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(Header(response, "X-Frame-Options"), Is.EqualTo("SAMEORIGIN"));
-            Assert.That(Header(response, "Content-Security-Policy"), Does.Contain("frame-ancestors 'self'").And.Not.Contain("frame-ancestors 'none'"));
+            Assert.That(Header(response, "Content-Security-Policy"), Is.EqualTo("sandbox; frame-ancestors 'self'"), "no inline file runs script on the app's origin");
         }
     }
 

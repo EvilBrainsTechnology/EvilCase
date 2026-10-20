@@ -24,9 +24,10 @@ internal sealed class SecurityHeadersMiddleware(RequestDelegate next)
             + "connect-src 'self'";
 
     /// <summary>
-    /// The file content is the one response the app frames itself, for the PDF preview.
+    /// The file content is the one response the app frames itself, for the PDF preview; sandboxed, so a
+    /// file served inline never runs script on the app's origin.
     /// </summary>
-    private static readonly string FileContentSecurityPolicy = ContentSecurityPolicy.Replace("frame-ancestors 'none'", "frame-ancestors 'self'", StringComparison.Ordinal);
+    private const string FileContentSecurityPolicy = "sandbox; frame-ancestors 'self'";
 
     private static readonly Func<object, Task> WriteHeaders = static async state =>
     {
