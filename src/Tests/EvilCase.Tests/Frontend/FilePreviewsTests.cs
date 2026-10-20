@@ -11,7 +11,7 @@ public class FilePreviewsTests
         await using var previews = new FilePreviews(runtime);
         using var cancel = new CancellationTokenSource();
 
-        var creating = previews.CreatePngUrl("Foto.heic", new MemoryStream([1]), cancel.Token);
+        var creating = previews.CreatePngUrl(new MemoryStream([1]), cancel.Token);
         await cancel.CancelAsync();
         runtime.Complete("blob:converted");
 

@@ -6,7 +6,7 @@
 // Exits 1 when node_modules is missing, a source file or license file is missing, or a package that
 // ships in the output has a license outside the allow-list.
 
-import { build, transform } from 'esbuild';
+import { build } from 'esbuild';
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -149,13 +149,6 @@ copyLicense('xlsx', join(lib, 'sheetjs', 'LICENSE.txt'));
 copy('libheif-js', 'libheif-wasm/libheif-bundle.js', join(lib, 'libheif', 'libheif-bundle.js'));
 copyLicense('libheif-js', join(lib, 'libheif', 'LICENSE-libheif-js.txt'));
 copyLicense('libheif-js', join(lib, 'libheif', 'LICENSE-libheif.txt'), 'libheif-wasm', 'LICENSE');
-
-copy('pako', 'dist/pako.min.js', join(lib, 'pako', 'pako.min.js'));
-copyLicense('pako', join(lib, 'pako', 'LICENSE.txt'));
-
-mkdirSync(join(lib, 'utif'), { recursive: true });
-writeFileSync(join(lib, 'utif', 'UTIF.min.js'), (await transform(readFileSync(source('utif', 'UTIF.js'), 'utf8'), { minify: true, target: 'es2022' })).code);
-copyLicense('utif', join(lib, 'utif', 'LICENSE.txt'));
 
 // The legacy build runs in browsers without the newest JavaScript features; the PDF scripting engine is not used.
 copy('pdfjs-dist', 'legacy/build/pdf.min.mjs', join(lib, 'pdfjs', 'pdf.min.mjs'));

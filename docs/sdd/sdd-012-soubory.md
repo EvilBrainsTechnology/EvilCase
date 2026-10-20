@@ -61,7 +61,7 @@ Esc a Zrušit ho zahodí.
 - Rastrové obrázky (jpg, jpeg, png, gif, webp, avif, bmp), zvuk a video zobrazí
   prohlížeč sám z adresy obsahu; ostatní typy zobrazí aplikace. Typ se pozná podle přípony,
   uložený `MediaType` se nepoužije.
-- Zobrazí se PDF, obrázky (jpg, jpeg, png, gif, webp, avif, bmp, svg, heic, heif, tif, tiff),
+- Zobrazí se PDF, obrázky (jpg, jpeg, png, gif, webp, avif, bmp, svg, heic, heif),
   text (txt, csv, tsv, json, xml, log, isdoc, html), Markdown (md, markdown), dokument Word
   (docx), sešit (xlsx, xls, ods), e-mail (eml, msg), zvuk (mp3, m4a, wav, ogg, oga) a video
   (mp4, webm, m4v, mov). Jiný typ nabídne jen stažení. Soubor, který se nepodaří přečíst, nabídne
@@ -80,7 +80,7 @@ Esc a Zrušit ho zahodí.
   1 000 řádků a náhled řekne, že je list delší.
 - E-mail ukáže odesílatele, příjemce, předmět, datum, text zprávy a seznam příloh s velikostí;
   zpráva nenačítá obrázky a nespouští skripty, HTML tělo se ukáže jako text.
-- HEIC, HEIF a TIFF se ukážou jako obrázek.
+- HEIC a HEIF se ukážou jako obrázek.
 - Náhled listuje mezi soubory karty, ze které se otevřel.
 
 ## Rozhodnutí

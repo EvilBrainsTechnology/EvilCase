@@ -93,8 +93,6 @@ public static class FileTypeDisplay
         ["msg"] = FilePreviewKind.Email,
         ["heic"] = FilePreviewKind.ConvertedImage,
         ["heif"] = FilePreviewKind.ConvertedImage,
-        ["tif"] = FilePreviewKind.ConvertedImage,
-        ["tiff"] = FilePreviewKind.ConvertedImage,
         ["mp3"] = FilePreviewKind.Audio,
         ["m4a"] = FilePreviewKind.Audio,
         ["wav"] = FilePreviewKind.Audio,

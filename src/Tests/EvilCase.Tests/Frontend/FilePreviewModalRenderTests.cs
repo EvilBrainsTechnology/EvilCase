@@ -377,9 +377,9 @@ public class FilePreviewModalRenderTests
         }
     }
 
-    [TestCase("Foto.heic", "image/heic")]
-    [TestCase("Sken.TIFF", "image/tiff")]
-    public void AConvertedPictureShowsInAnImgElementFromAConvertedBlob(string fileName, string unusedMediaType)
+    [TestCase("Foto.heic")]
+    [TestCase("Foto.HEIF")]
+    public void AConvertedPictureShowsInAnImgElementFromAConvertedBlob(string fileName)
     {
         using var ctx = NewContext(out var blobs, out var previews);
 
@@ -388,8 +388,8 @@ public class FilePreviewModalRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.Find("img.ec-preview-image").GetAttribute("src"), Is.EqualTo("blob:converted/0"), unusedMediaType);
-            Assert.That(previews.Converted, Is.EqualTo([(fileName, "blob:converted/0")]));
+            Assert.That(component.Find("img.ec-preview-image").GetAttribute("src"), Is.EqualTo("blob:converted/0"));
+            Assert.That(previews.Converted, Is.EqualTo(["blob:converted/0"]));
             Assert.That(blobs.Created, Is.Empty, "the original bytes are never shown as a blob");
         }
     }
@@ -399,7 +399,6 @@ public class FilePreviewModalRenderTests
     [TestCase("Zpráva.eml")]
     [TestCase("Zpráva.msg")]
     [TestCase("Foto.heif")]
-    [TestCase("Sken.tif")]
     public void AFileTheLibraryCannotParseShowsTheUnsupportedStateWithTheDownload(string fileName)
     {
         using var ctx = NewContext(out _, out var previews);
@@ -439,13 +438,15 @@ public class FilePreviewModalRenderTests
         Assert.That(component.Find(".ec-preview-line-text").TextContent, Is.EqualTo("řádek"));
     }
 
-    [Test]
-    public void AFileWithoutPreviewOffersTheDownloadInstead()
+    [TestCase("Doručenka.zfo")]
+    [TestCase("Sken.tif")]
+    [TestCase("Sken.TIFF")]
+    public void AFileWithoutPreviewOffersTheDownloadInstead(string fileName)
     {
-        using var ctx = NewContext(out var blobs);
+        using var ctx = NewContext(out var blobs, out var previews);
 
         var downloaded = new List<string>();
-        var file = File("Doručenka.zfo");
+        var file = File(fileName);
         var component = Render(ctx, [file], file.FileId, onDownload: item => downloaded.Add(item.FileName));
 
         component.Find(".ec-preview-message .ec-button-primary").Click();
@@ -455,8 +456,9 @@ public class FilePreviewModalRenderTests
             Assert.That(component.Find(".ec-preview-message-title").TextContent, Is.EqualTo("Náhled tohoto typu souboru není k dispozici"));
             Assert.That(component.Find(".ec-preview-message .ec-button-primary").TextContent.Trim(), Is.EqualTo("Stáhnout soubor"));
             Assert.That(component.Find(".ec-preview-message .ec-file-icon").ClassList, Does.Contain("ec-file-icon-large"));
-            Assert.That(downloaded, Is.EqualTo(["Doručenka.zfo"]));
+            Assert.That(downloaded, Is.EqualTo([fileName]));
             Assert.That(blobs.Created, Is.Empty);
+            Assert.That(previews.Converted, Is.Empty);
         }
     }
 
