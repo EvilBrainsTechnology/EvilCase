@@ -476,6 +476,69 @@ public class CaseRenderTests
     }
 
     [Test]
+    public async Task LeavingTheCaseMidSaveWritesTheLatestLabelsToThatCaseOnly()
+    {
+        await using var ctx = new BunitContext();
+
+        var caseId = Guid.CreateVersion7();
+        var nextCaseId = Guid.CreateVersion7();
+
+        var first = new LabelItem { LabelId = Guid.CreateVersion7(), Name = "InfZ", Color = LabelColor.Blue };
+        var second = new LabelItem { LabelId = Guid.CreateVersion7(), Name = "Priorita", Color = LabelColor.Red };
+        var carried = new LabelItem { LabelId = Guid.CreateVersion7(), Name = "Hlídat lhůtu", Color = LabelColor.Orange };
+
+        var (casesClient, caseLabelsClient, _, labelsClient) = Serve(ctx, caseId, Detail(caseId));
+
+        var saving = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        labelsClient
+            .ListLabels(Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new LabelListResponse { Items = [LabelListItems.Of(first), LabelListItems.Of(second)] }));
+        caseLabelsClient
+            .SetCaseLabels(Arg.Any<Guid>(), Arg.Any<LabelAssignmentRequest>(), Arg.Any<CancellationToken>())
+            .Returns(saving.Task, Task.CompletedTask);
+        casesClient
+            .GetCase(nextCaseId, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Detail(nextCaseId) with { Labels = [carried] }));
+
+        var component = ctx.Render<Case>(parameters => parameters.Add(static page => page.CaseId, caseId));
+
+        await component.Find(".ec-label-add").ClickAsync(new MouseEventArgs());
+
+        await component.WaitForAssertionAsync(
+            () => Assert.That(component.FindAll(".ec-label-option"), Has.Count.EqualTo(2)),
+            TimeSpan.FromSeconds(2));
+
+        _ = component.FindAll(".ec-label-option")[0].ClickAsync(new MouseEventArgs());
+
+        await component.Find(".ec-label-add").ClickAsync(new MouseEventArgs());
+
+        await component.WaitForAssertionAsync(
+            () => Assert.That(component.FindAll(".ec-label-option"), Has.Count.EqualTo(1)),
+            TimeSpan.FromSeconds(2));
+
+        await component.Find(".ec-label-option").ClickAsync(new MouseEventArgs());
+
+        component.Render(parameters => parameters.Add(static page => page.CaseId, nextCaseId));
+
+        saving.SetResult();
+
+        var chips = await component.WaitForElementsAsync(".ec-label-field-inline > .ec-chip", 1, TimeSpan.FromSeconds(2));
+
+        Assert.That(chips.Single().TextContent, Does.Contain(carried.Name), "the next case shows its own labels");
+
+        await caseLabelsClient
+            .Received(1)
+            .SetCaseLabels(
+                caseId,
+                Arg.Is<LabelAssignmentRequest>(request => request.LabelIds.SequenceEqual(new[] { first.LabelId, second.LabelId })),
+                Arg.Any<CancellationToken>());
+        await caseLabelsClient
+            .DidNotReceive()
+            .SetCaseLabels(nextCaseId, Arg.Any<LabelAssignmentRequest>(), Arg.Any<CancellationToken>());
+    }
+
+    [Test]
     public async Task AnAddedLabelShowsBeforeTheSaveAnswers()
     {
         await using var ctx = new BunitContext();
@@ -566,7 +629,6 @@ public class CaseRenderTests
 
         var (_, caseLabelsClient, _, _) = Serve(ctx, caseId, detail);
 
-
         var component = ctx.Render<Case>(parameters => parameters.Add(static page => page.CaseId, caseId));
 
         await component.Find("button[aria-label='Odebrat štítek InfZ']").ClickAsync(new MouseEventArgs());
@@ -627,11 +689,11 @@ public class CaseRenderTests
 
         var caseCommentsClient = Substitute.For<ICaseCommentsClient>();
         caseCommentsClient
-            .ListCaseComments(caseId, Arg.Any<CancellationToken>())
+            .ListCaseComments(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(new CommentListResponse { Items = [] }));
 
         var caseFilesClient = Substitute.For<ICaseFilesClient>();
-        caseFilesClient.ListCaseFiles(caseId, Arg.Any<CancellationToken>()).Returns(Task.FromResult(new FileListResponse { Items = [] }));
+        caseFilesClient.ListCaseFiles(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(new FileListResponse { Items = [] }));
 
         var actsClient = Substitute.For<IActsClient>();
         actsClient.ListActs(Arg.Any<ActListRequest>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(new ActListResponse { Items = [], TotalCount = 0 }));

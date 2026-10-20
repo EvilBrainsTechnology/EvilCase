@@ -209,9 +209,9 @@
         return this.CasesClient.GetCase(this.CaseId, CancellationToken.None);
     }
 
-    protected override Task StoreLabels(LabelAssignmentRequest request)
+    protected override Task StoreLabels(CaseDetail detail, LabelAssignmentRequest request)
     {
-        return this.CaseLabelsClient.SetCaseLabels(this.CaseId, request, CancellationToken.None);
+        return this.CaseLabelsClient.SetCaseLabels(detail.CaseId, request, CancellationToken.None);
     }
 
     protected override IReadOnlyList<LabelItem> LabelsOf(CaseDetail detail)

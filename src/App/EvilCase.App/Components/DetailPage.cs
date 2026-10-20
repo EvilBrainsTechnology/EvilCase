@@ -34,7 +34,7 @@ public abstract class DetailPage<TDetail> : ComponentBase
 
     private IReadOnlyList<LabelItem> storedLabels = [];
 
-    private bool storingLabels;
+    private Task labelsWrite = Task.CompletedTask;
 
     protected TDetail? Detail { get; private set; }
 
@@ -56,7 +56,7 @@ public abstract class DetailPage<TDetail> : ComponentBase
 
     protected abstract Task<TDetail> Fetch();
 
-    protected abstract Task StoreLabels(LabelAssignmentRequest request);
+    protected abstract Task StoreLabels(TDetail detail, LabelAssignmentRequest request);
 
     protected abstract IReadOnlyList<LabelItem> LabelsOf(TDetail detail);
 
@@ -72,8 +72,12 @@ public abstract class DetailPage<TDetail> : ComponentBase
         this.Announcement = null;
         this.NotFound = false;
         this.Failure = null;
-        this.LabelsError = null;
         this.Detail = null;
+
+        // A label write still running finishes on the detail it started on.
+        await this.labelsWrite;
+
+        this.LabelsError = null;
 
         try
         {
@@ -100,10 +104,13 @@ public abstract class DetailPage<TDetail> : ComponentBase
         this.Detail = this.WithLabels(this.Detail!, labels);
         this.latestLabels = labels;
 
-        if (this.storingLabels)
+        if (!this.labelsWrite.IsCompleted)
             return;
 
-        this.storingLabels = true;
+        var detail = this.Detail;
+        var written = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        this.labelsWrite = written.Task;
 
         try
         {
@@ -111,7 +118,7 @@ public abstract class DetailPage<TDetail> : ComponentBase
             {
                 var writing = this.latestLabels;
 
-                await this.StoreLabels(new LabelAssignmentRequest { LabelIds = [.. writing.Select(static label => label.LabelId)] });
+                await this.StoreLabels(detail, new LabelAssignmentRequest { LabelIds = [.. writing.Select(static label => label.LabelId)] });
 
                 this.storedLabels = writing;
             }
@@ -132,7 +139,7 @@ public abstract class DetailPage<TDetail> : ComponentBase
         }
         finally
         {
-            this.storingLabels = false;
+            written.SetResult();
         }
     }
 
