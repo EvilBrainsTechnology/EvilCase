@@ -3431,6 +3431,7 @@ html {
         display: none;
         flex: 1 1 100%;
         order: 1;
+        min-width: 0;
     }
 
     .ec-preview-pdf-search-open {
@@ -3438,8 +3439,9 @@ html {
     }
 
     .ec-preview-pdf-search-box {
-        flex: 1 1 auto;
+        flex: 1 1 0;
         width: auto;
+        min-width: 0;
     }
 }
 
