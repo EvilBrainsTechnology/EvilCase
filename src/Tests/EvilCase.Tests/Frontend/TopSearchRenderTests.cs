@@ -90,10 +90,10 @@ public class TopSearchRenderTests
         Arrange(
             ctx,
             everything with
-                {
-                    Acts = Group(3, everything.Acts.Items[0]),
-                    Contacts = Group(3, everything.Contacts.Items[0]),
-                });
+            {
+                Acts = Group(3, everything.Acts.Items[0]),
+                Contacts = Group(3, everything.Contacts.Items[0]),
+            });
 
         var component = ctx.Render<TopSearch>();
         await component.Find(".ec-topsearch-input").InputAsync(new ChangeEventArgs { Value = "pojišťovna" });
