@@ -177,6 +177,7 @@ async function drawPage(pdf, page) {
         return;
     }
 
+    const generation = page.generation;
     const ratio = Math.min(window.devicePixelRatio || 1, maxPixelRatio);
     const cssWidth = page.box.clientWidth;
     let scale = (cssWidth / page.width) * ratio;
@@ -193,11 +194,6 @@ async function drawPage(pdf, page) {
 
     try {
         await page.task.promise;
-
-        if (!pdf.disposed) {
-            page.box.replaceChildren(canvas);
-            page.drawn = true;
-        }
     } catch (error) {
         if (error?.name !== 'RenderingCancelledException') {
             throw error;
@@ -206,9 +202,22 @@ async function drawPage(pdf, page) {
         page.task = null;
         proxy.cleanup();
     }
+
+    if (pdf.disposed) {
+        return;
+    }
+
+    // A page freed while its drawing finished keeps no canvas, and is drawn again if it is back in view.
+    if (page.generation === generation) {
+        page.box.replaceChildren(canvas);
+        page.drawn = true;
+    } else if (page.near) {
+        await drawPage(pdf, page);
+    }
 }
 
 function freePage(page) {
+    page.generation++;
     page.task?.cancel();
     page.drawn = false;
     page.box.replaceChildren();
@@ -271,7 +280,7 @@ async function openPdf(host, url) {
         box.style.aspectRatio = `${width} / ${height}`;
         box.setAttribute('role', 'img');
         box.setAttribute('aria-label', `Strana ${number} z ${numPages}`);
-        pdf.list.push({ number, width, height, box, drawn: false, task: null });
+        pdf.list.push({ number, width, height, box, near: false, drawn: false, task: null, generation: 0 });
         column.appendChild(box);
     }
 
@@ -282,7 +291,9 @@ async function openPdf(host, url) {
         for (const entry of entries) {
             const page = byBox.get(entry.target);
 
-            if (entry.isIntersecting) {
+            page.near = entry.isIntersecting;
+
+            if (page.near) {
                 drawPage(pdf, page).catch(error => console.warn('A PDF page did not render.', error));
             } else {
                 freePage(page);
