@@ -76,8 +76,8 @@ public class FileTransferController : ControllerBase
         if (download is null)
             return this.Problem(statusCode: StatusCodes.Status404NotFound, title: FileProblems.NotFound);
 
-        // Only the types a browser shows natively (not PDF, which the app draws itself) are inline, under the type the extension gives; any other
-        // stored document is an opaque attachment (SDD-012). nosniff comes from SecurityHeadersMiddleware.
+        // Only the types a browser shows natively are inline, under the type the extension gives; any other
+        // stored document, PDF included, is an opaque attachment (SDD-012). nosniff comes from SecurityHeadersMiddleware.
         if (InlineFileTypes.MediaType(download.FileName) is not { } inlineMediaType)
             return this.File(download.Content, "application/octet-stream", download.FileName, enableRangeProcessing: true);
 
