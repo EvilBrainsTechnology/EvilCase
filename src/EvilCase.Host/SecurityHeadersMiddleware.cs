@@ -51,8 +51,10 @@ internal sealed class SecurityHeadersMiddleware(RequestDelegate next)
         await next(context);
     }
 
+    // Routing ignores a trailing slash, so the match does too.
     private static bool IsFileContent(PathString path)
     {
-        return path.StartsWithSegments("/api/files", StringComparison.OrdinalIgnoreCase) && path.Value!.EndsWith("/content", StringComparison.OrdinalIgnoreCase);
+        return path.StartsWithSegments("/api/files", StringComparison.OrdinalIgnoreCase)
+            && path.Value!.TrimEnd('/').EndsWith("/content", StringComparison.OrdinalIgnoreCase);
     }
 }

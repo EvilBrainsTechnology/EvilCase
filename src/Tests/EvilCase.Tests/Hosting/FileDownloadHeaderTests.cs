@@ -132,6 +132,21 @@ public class FileDownloadHeaderTests
         }
     }
 
+    [TestCase("/api/files/{0}/content/")]
+    [TestCase("/API/Files/{0}/CONTENT")]
+    public async Task EveryPathTheRouteAcceptsIsSandboxed(string pathFormat)
+    {
+        var fileId = Files.Single(static file => string.Equals(file.Value.FileName, "smlouva.pdf", StringComparison.Ordinal)).Key;
+
+        using var response = await this.Send(string.Format(CultureInfo.InvariantCulture, pathFormat, fileId));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(response.Content.Headers.ContentDisposition?.DispositionType, Is.EqualTo("inline"));
+            Assert.That(Header(response, "Content-Security-Policy"), Is.EqualTo("sandbox; frame-ancestors 'self'"), "an inline file served on any path the route accepts is sandboxed");
+        }
+    }
+
     private static string? Header(HttpResponseMessage response, string name)
     {
         return response.Headers.TryGetValues(name, out var values) ? values.Single() : null;
@@ -141,7 +156,12 @@ public class FileDownloadHeaderTests
     {
         var fileId = Files.Single(file => string.Equals(file.Value.FileName, fileName, StringComparison.Ordinal)).Key;
 
-        using var request = new HttpRequestMessage(HttpMethod.Get, new Uri($"/api/files/{fileId}/content", UriKind.Relative)) { Headers = { Authorization = TestTokens.BearerFrom(this.host), Range = range } };
+        return await this.Send($"/api/files/{fileId}/content", range);
+    }
+
+    private async Task<HttpResponseMessage> Send(string path, RangeHeaderValue? range = null)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, new Uri(path, UriKind.Relative)) { Headers = { Authorization = TestTokens.BearerFrom(this.host), Range = range } };
 
         return await this.client.SendAsync(request);
     }
