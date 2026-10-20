@@ -8,5 +8,5 @@ internal interface IFileTransferClient
 
     public Task UploadActFile(Guid actId, IBrowserFile file, CancellationToken token);
 
-    public Task<FileContent> DownloadFileContent(Guid fileId, CancellationToken token);
+    public Task<Stream> DownloadFileContent(Guid fileId, CancellationToken token);
 }

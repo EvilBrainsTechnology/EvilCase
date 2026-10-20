@@ -20,8 +20,8 @@ internal sealed class StubFileTransferClient : IFileTransferClient
         return Task.CompletedTask;
     }
 
-    public Task<FileContent> DownloadFileContent(Guid fileId, CancellationToken token)
+    public Task<Stream> DownloadFileContent(Guid fileId, CancellationToken token)
     {
-        return Task.FromResult(new FileContent { MediaType = "application/octet-stream", Content = Stream.Null });
+        return Task.FromResult(Stream.Null);
     }
 }

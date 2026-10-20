@@ -134,8 +134,6 @@ public abstract class DetailPage<TDetail> : ComponentBase
 
     protected async Task<Stream> LoadFileContent(FileListItem file, CancellationToken token)
     {
-        var content = await this.FileTransfer.DownloadFileContent(file.FileId, token);
-
-        return content.Content;
+        return await this.FileTransfer.DownloadFileContent(file.FileId, token);
     }
 }

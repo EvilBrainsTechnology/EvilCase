@@ -33,18 +33,12 @@ internal sealed class FileTransferClient(HttpClient httpClient) : IFileTransferC
         await EnsureSuccess(response, token);
     }
 
-    public async Task<FileContent> DownloadFileContent(Guid fileId, CancellationToken token)
+    public async Task<Stream> DownloadFileContent(Guid fileId, CancellationToken token)
     {
-        using var response = await httpClient.GetAsync(new Uri($"api/files/{fileId}/content", UriKind.Relative), token);
+        using var response = await httpClient.GetAsync(new Uri(FileUrl.Content(fileId), UriKind.Relative), token);
         await EnsureSuccess(response, token);
 
-        var bytes = await response.Content.ReadAsByteArrayAsync(token);
-
-        return new FileContent
-        {
-            MediaType = response.Content.Headers.ContentType?.MediaType ?? DefaultMediaType,
-            Content = new MemoryStream(bytes),
-        };
+        return new MemoryStream(await response.Content.ReadAsByteArrayAsync(token));
     }
 
     // The same failure the generated clients raise, so every screen catches one exception type.
