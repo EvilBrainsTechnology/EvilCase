@@ -66,6 +66,7 @@ public class FileTransferController : ControllerBase
     }
 
     [HttpGet("files/{fileId:guid}/content")]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DownloadFileContent([FromServices] IFileReader files, [FromRoute] Guid fileId, CancellationToken token)

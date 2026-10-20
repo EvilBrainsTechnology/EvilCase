@@ -147,6 +147,15 @@ public class FileDownloadHeaderTests
         }
     }
 
+    [TestCase("smlouva.pdf")]
+    [TestCase("archiv.zip")]
+    public async Task NoCacheStoresTheContent(string fileName)
+    {
+        using var response = await this.Get(fileName);
+
+        Assert.That(response.Headers.CacheControl?.NoStore, Is.True, "an authenticated file never stays in a browser or shared cache");
+    }
+
     private static string? Header(HttpResponseMessage response, string name)
     {
         return response.Headers.TryGetValues(name, out var values) ? values.Single() : null;
