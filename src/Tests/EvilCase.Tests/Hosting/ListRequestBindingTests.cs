@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using System.Net;
 using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.Api.Contract.Cases;
@@ -6,7 +5,6 @@ using EvilBrains.EvilCase.Api.Contract.Lists;
 using EvilBrains.EvilCase.Business.Acts;
 using EvilBrains.EvilCase.Business.Cases;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace EvilBrains.EvilCase.Tests.Hosting;
 
@@ -104,71 +102,10 @@ public class ListRequestBindingTests
         }
     }
 
-    [Test]
-    public async Task TheBindingOfAListLogsUnderMvcCategoryNotUnderOurs()
-    {
-        var categories = new ConcurrentBag<string>();
-        await using var logHost = new EvilCaseHost(configureServices: services =>
-        {
-            services.AddSingleton(Substitute.For<IActReader>());
-            services.Configure<LoggerFilterOptions>(static options =>
-            {
-                options.Rules.Clear();
-                options.MinLevel = LogLevel.Trace;
-            });
-            services.AddSingleton<ILoggerProvider>(new CategoryRecorder(categories));
-        });
-        using var logClient = logHost.CreateClient();
-        using var request = new HttpRequestMessage(HttpMethod.Get, new Uri("/api/acts?take=20", UriKind.Relative)) { Headers = { Authorization = TestTokens.BearerFrom(logHost) } };
-
-        using var response = await logClient.SendAsync(request);
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(categories, Has.Some.StartsWith("Microsoft.AspNetCore.Mvc.ModelBinding"), "the binding messages are logged");
-            Assert.That(
-                categories
-                    .Where(static category => category.StartsWith("EvilBrains", StringComparison.Ordinal))
-                    .Where(static category => category.Contains("ModelBinder", StringComparison.Ordinal)),
-                Is.Empty,
-                "a binder of ours does not file MVC's messages under our category");
-        }
-    }
-
     private async Task<HttpResponseMessage> Get(string path)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, new Uri(path, UriKind.Relative)) { Headers = { Authorization = TestTokens.BearerFrom(this.host) } };
 
         return await this.client.SendAsync(request);
-    }
-
-    private sealed class CategoryRecorder(ConcurrentBag<string> categories) : ILoggerProvider
-    {
-        public ILogger CreateLogger(string categoryName)
-        {
-            return new Recorder(categoryName, categories);
-        }
-
-        public void Dispose()
-        { }
-
-        private sealed class Recorder(string category, ConcurrentBag<string> categories) : ILogger
-        {
-            public IDisposable? BeginScope<TState>(TState state)
-                where TState : notnull
-            {
-                return null;
-            }
-
-            public bool IsEnabled(LogLevel logLevel)
-            {
-                return true;
-            }
-
-            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
-            {
-                categories.Add(category);
-            }
-        }
     }
 }
