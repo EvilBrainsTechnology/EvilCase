@@ -77,9 +77,37 @@ public class TopSearchRenderTests
             Assert.That(component.FindAll(".ec-sr-group").Select(static group => group.GetAttribute("aria-label")), Is.EqualTo(["Spisy", "Úkony", "Kontakty", "Soubory", "Komentáře"]));
             Assert.That(component.Find(".ec-sr-footer").TextContent, Does.Contain("9 výsledků"));
             Assert.That(component.FindAll(".ec-sr-all"), Has.Count.EqualTo(1), "only a group with more matches than rows links to the list");
-            Assert.That(component.Find(".ec-sr-all").GetAttribute("href"), Is.EqualTo("/cases?q=poj"));
+            Assert.That(component.Find(".ec-sr-all").GetAttribute("href"), Is.EqualTo("/cases?q=poj&status=all&scope=all"));
             Assert.That(component.Find(".ec-sr-all").TextContent, Does.Contain("Všechny ve Spisech (5)"));
         }
+    }
+
+    [Test]
+    public async Task EveryGroupLinkOpensItsListWithTheOtherFiltersOff()
+    {
+        await using var ctx = new BunitContext();
+        var everything = Everything();
+        Arrange(
+            ctx,
+            everything with
+                {
+                    Acts = Group(3, everything.Acts.Items[0]),
+                    Contacts = Group(3, everything.Contacts.Items[0]),
+                });
+
+        var component = ctx.Render<TopSearch>();
+        await component.Find(".ec-topsearch-input").InputAsync(new ChangeEventArgs { Value = "pojišťovna" });
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-sr-all"), Has.Count.EqualTo(3)));
+
+        Assert.That(
+            component.FindAll(".ec-sr-all").Select(static link => link.GetAttribute("href")),
+            Is.EqualTo(
+            [
+                "/cases?q=poji%C5%A1%C5%A5ovna&status=all&scope=all",
+                "/acts?q=poji%C5%A1%C5%A5ovna&open=false",
+                "/contacts?q=poji%C5%A1%C5%A5ovna",
+            ]));
     }
 
     [Test]

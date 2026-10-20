@@ -5,6 +5,7 @@ using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.Api.Contract.Lists;
 using EvilBrains.EvilCase.Domain.Cases;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EvilBrains.EvilCase.Tests.Frontend;
@@ -138,6 +139,41 @@ public class CasesRenderTests
             Assert.That(requests[0].Status, Is.EqualTo(CaseStatusFilter.Open));
             Assert.That(requests[0].Scope, Is.EqualTo(CaseListScope.RootOnly));
         }
+    }
+
+    [TestCase("/cases?q=lhuta&status=all&scope=all")]
+    [TestCase("/cases?q=rychlost&status=Closed&scope=All")]
+    public async Task ANavigationToTheListResetsEveryFilterToTheAddress(string target)
+    {
+        await using var ctx = new BunitContext();
+        Serve(ctx, out var requests);
+
+        var navigation = ctx.Services.GetRequiredService<NavigationManager>();
+        navigation.NavigateTo(target);
+
+        var component = ctx.Render<App.Pages.Cases>();
+
+        await component.WaitForElementAsync("#cases-status-All");
+        await component.Find("#cases-status-Active").ClickAsync(new MouseEventArgs());
+        await component.Find(".ec-check-box").ChangeAsync(new ChangeEventArgs { Value = true });
+        await component.Find("button[aria-controls=\"cases-filters\"]").ClickAsync(new MouseEventArgs());
+        await component.Find("#cases-from").ChangeAsync(new ChangeEventArgs { Value = "2026-01-01" });
+
+        await component.WaitForAssertionAsync(() => Assert.That(requests[^1].From, Is.EqualTo(new DateOnly(2026, 1, 1))));
+
+        navigation.NavigateTo(target);
+
+        await component.WaitForAssertionAsync(() =>
+        {
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(requests[^1].From, Is.Null, "the date range is off after the navigation");
+                Assert.That(requests[^1].Status, Is.EqualTo(target.Contains("status=all", StringComparison.Ordinal) ? CaseStatusFilter.All : CaseStatusFilter.Closed));
+                Assert.That(requests[^1].Scope, Is.EqualTo(CaseListScope.All));
+                Assert.That(component.Find("#cases-status-Active").GetAttribute("aria-pressed"), Is.EqualTo("false"));
+                Assert.That(component.Find(".ec-check-box").HasAttribute("checked"), Is.False);
+            }
+        });
     }
 
     private static readonly CaseListItem Row = new()

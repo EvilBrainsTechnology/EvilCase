@@ -43,7 +43,8 @@ Spisy a úkony jdou od nejnovějšího data, ostatní skupiny od nejnovějšího
 - Šipky procházejí řádky přes skupiny dokola, Enter řádek otevře, Esc nabídku zavře; zavře ji
   i klik mimo ni.
 - Spis, úkon a kontakt otevřou svůj detail; soubor a komentář detail vlastníka.
-- Skupina spisů, úkonů a kontaktů nabízí odkaz na seznam s předvyplněným hledáním (`?q=`).
+- Skupina spisů, úkonů a kontaktů nabízí odkaz na seznam s předvyplněným hledáním (`?q=`) a všemi
+  ostatními filtry vypnutými.
 - Na mobilu zabere nabídka obrazovku pod lištou a řádky mají dotykovou velikost.
 
 ## Rozhodnutí
