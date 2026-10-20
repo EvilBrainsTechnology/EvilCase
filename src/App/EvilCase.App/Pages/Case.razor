@@ -214,11 +214,6 @@
         return this.CaseLabelsClient.SetCaseLabels(detail.CaseId, request, CancellationToken.None);
     }
 
-    protected override IReadOnlyList<LabelItem> LabelsOf(CaseDetail detail)
-    {
-        return detail.Labels;
-    }
-
     protected override CaseDetail WithLabels(CaseDetail detail, IReadOnlyList<LabelItem> labels)
     {
         return detail with { Labels = labels };

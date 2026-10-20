@@ -517,11 +517,12 @@ public class CaseRenderTests
             () => Assert.That(component.FindAll(".ec-label-option"), Has.Count.EqualTo(1)),
             TimeSpan.FromSeconds(2));
 
-        await component.Find(".ec-label-option").ClickAsync(new MouseEventArgs());
+        var addingSecond = component.Find(".ec-label-option").ClickAsync(new MouseEventArgs());
 
         component.Render(parameters => parameters.Add(static page => page.CaseId, nextCaseId));
 
         saving.SetResult();
+        await addingSecond;
 
         var chips = await component.WaitForElementsAsync(".ec-label-field-inline > .ec-chip", 1, TimeSpan.FromSeconds(2));
 

@@ -262,11 +262,6 @@
         return this.ActLabelsClient.SetActLabels(detail.ActId, request, CancellationToken.None);
     }
 
-    protected override IReadOnlyList<LabelItem> LabelsOf(ActDetail detail)
-    {
-        return detail.Labels;
-    }
-
     protected override ActDetail WithLabels(ActDetail detail, IReadOnlyList<LabelItem> labels)
     {
         return detail with { Labels = labels };
