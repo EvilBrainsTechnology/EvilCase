@@ -9,12 +9,32 @@ namespace EvilBrains.EvilCase.Api.Binding;
 /// fill in place, which a read-only list refuses without a word.
 /// </summary>
 internal sealed class ReadOnlyListModelBinder<TElement>(IModelBinder elementBinder, ILoggerFactory loggerFactory)
-    : CollectionModelBinder<TElement>(elementBinder, loggerFactory)
+    : CollectionModelBinder<TElement>(elementBinder, new MvcCategoryLoggerFactory(loggerFactory))
 {
     public override async Task BindModelAsync(ModelBindingContext bindingContext)
     {
         bindingContext.Model = null;
 
         await base.BindModelAsync(bindingContext);
+    }
+
+    /// <summary>
+    /// The base binder names its logger after the runtime type; this files its messages under MVC's own category instead of ours.
+    /// </summary>
+    private sealed class MvcCategoryLoggerFactory(ILoggerFactory inner) : ILoggerFactory
+    {
+        public ILogger CreateLogger(string categoryName)
+        {
+            return inner.CreateLogger(typeof(CollectionModelBinder<TElement>));
+        }
+
+        public void AddProvider(ILoggerProvider provider)
+        {
+            throw new NotSupportedException();
+        }
+
+        public void Dispose()
+        {
+        }
     }
 }
