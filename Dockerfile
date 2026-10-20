@@ -14,6 +14,13 @@ RUN find /projects -type f \
         -delete \
     && find /projects -depth -type d -empty -delete
 
+# The frontend libraries and fonts the build stage would otherwise generate with its own Node.js.
+FROM node:22-alpine AS libs
+WORKDIR /libs
+COPY src/App/EvilCase.App/package.json src/App/EvilCase.App/package-lock.json src/App/EvilCase.App/build-libs.mjs ./
+RUN npm ci --ignore-scripts --no-audit --no-fund \
+    && node build-libs.mjs
+
 FROM mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION} AS build
 
 # The SDK is resolved from the working directory, not from the project, so this has to be the directory
@@ -25,6 +32,7 @@ COPY --from=projects /projects ./
 RUN dotnet restore EvilCase.Host/EvilCase.Host.csproj
 
 COPY src/ ./
+COPY --from=libs /libs/wwwroot/ ./App/EvilCase.App/wwwroot/
 
 ARG VERSION=0.0.0
 ARG SOURCE_REVISION=
@@ -32,6 +40,7 @@ RUN dotnet publish EvilCase.Host/EvilCase.Host.csproj \
         --configuration Release \
         --no-restore \
         --output /app \
+        -p:SkipFrontendLibs=true \
         -p:Version=${VERSION} \
         -p:SourceRevisionId=${SOURCE_REVISION}
 

@@ -1,0 +1,26 @@
+{
+  "name": "evilcase-app-libs",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Third-party browser libraries and fonts of the frontend, copied into wwwroot by build-libs.mjs.",
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@fontsource-variable/instrument-sans": "5.3.0",
+    "@fontsource-variable/jetbrains-mono": "5.3.0",
+    "@kenjiuno/msgreader": "1.29.0",
+    "docx-preview": "0.4.1",
+    "jszip": "3.10.2",
+    "libheif-js": "1.23.5",
+    "pako": "1.0.11",
+    "pdfjs-dist": "6.4.299",
+    "postal-mime": "4.0.6",
+    "utif": "3.1.0",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
+  },
+  "devDependencies": {
+    "buffer": "6.0.3",
+    "esbuild": "0.28.2"
+  }
+}

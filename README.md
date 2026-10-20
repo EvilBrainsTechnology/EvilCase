@@ -6,7 +6,7 @@ A case-file system for administrative and legal proceedings: a case accumulates 
 
 ## Stack
 
-.NET 10, PostgreSQL, Serilog. The frontend is Blazor WebAssembly on the application's own `Ec` components and stylesheet; the fonts are vendored — no CDN.
+.NET 10, PostgreSQL, Serilog. The frontend is Blazor WebAssembly on the application's own `Ec` components and stylesheet; the browser libraries and fonts are installed by npm at build time and served by the app — no CDN.
 
 One process serves everything: `/api/*` goes to the API, every other path returns the WebAssembly app.
 
@@ -21,6 +21,7 @@ Full project map: [CLAUDE.md](CLAUDE.md); conventions: `.claude/rules/`. Deploym
 ### Prerequisites
 
 - .NET SDK per `src/global.json`
+- Node.js 22 or newer with npm: the .NET build runs `npm ci` and generates `wwwroot/lib` and `wwwroot/fonts` from `src/App/EvilCase.App/package.json`. It needs network access to `registry.npmjs.org` and `cdn.sheetjs.com`.
 - Docker, for `dotnet r test`. The tests start their own PostgreSQL through Testcontainers, as a container named evilcase-test-db-<slug>, and take it down when the run ends.
 - A reachable PostgreSQL, for running the app. The host migrates the database on startup and does not retry, so an unreachable server stops it. Set `EvilBrains__EvilCase__Database__MigrateOnStartup=false` to start without one. A throwaway one, matching the connection string in `.env.example`:
 
@@ -54,7 +55,7 @@ Registration is closed, so signing in needs the administrator seeded from `EvilB
 
 ### Everything in Docker
 
-`dotnet r run-docker` builds the image from this repository and runs it with its own PostgreSQL at `http://localhost:8080`, seeding `admin@evilcase.local` / `DevPassword123!`. Of the prerequisites above only the SDK is needed, plus Docker — no `.env`, no certificate, no database of one's own. Details in [deploy/README.md](deploy/README.md).
+`dotnet r run-docker` builds the image from this repository and runs it with its own PostgreSQL at `http://localhost:8080`, seeding `admin@evilcase.local` / `DevPassword123!`. Of the prerequisites above only the SDK is needed, plus Docker (the image installs the npm packages in its own Node stage) — no `.env`, no certificate, no database of one's own. Details in [deploy/README.md](deploy/README.md).
 
 ### Tests
 

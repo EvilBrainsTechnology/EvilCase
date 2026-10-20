@@ -42,6 +42,14 @@ jobs:
         with:
           global-json-file: src/global.json
 
+      # Node.js builds the frontend libraries and fonts during the .NET build
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: src/App/EvilCase.App/package-lock.json
+
       # Restore tools
       - name: Restore .NET tools
         run: dotnet tool restore
