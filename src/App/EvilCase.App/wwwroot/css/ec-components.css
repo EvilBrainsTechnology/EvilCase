@@ -2190,7 +2190,7 @@ html {
     flex-direction: column;
     gap: var(--ec-space-1);
     min-width: 0;
-    padding: var(--ec-space-4) var(--ec-space-5);
+    padding: var(--ec-space-4) var(--ec-space-5) var(--ec-fact-pad-end);
     border-right: 1px solid var(--ec-border-subtle);
 }
 
@@ -2207,11 +2207,7 @@ html {
     flex: 1 1 auto;
 }
 
-/* The chips sit on the value line; the add button and the box overhang it, so the label fact is no taller than the others. */
-.ec-detail-fact-labels .ec-label-field {
-    margin-block: calc((var(--ec-fact-line) - var(--ec-space-7)) / 2);
-}
-
+/* The chips, the add button and the box sit on the value line, so the label fact is no taller than the others. */
 .ec-detail-fact-labels .ec-label-field > .ec-chip {
     height: var(--ec-fact-line);
     padding: 0 var(--ec-space-3);
@@ -2225,7 +2221,7 @@ html {
 
 .ec-detail-fact-labels .ec-label-add,
 .ec-detail-fact-labels .ec-label-input {
-    height: var(--ec-space-7);
+    height: var(--ec-fact-line);
     font-size: var(--ec-text-xs);
 }
 
@@ -3038,10 +3034,6 @@ html {
 
     .ec-detail-fact-mono {
         overflow-wrap: break-word;
-    }
-
-    .ec-detail-fact-labels .ec-label-field {
-        margin-block: 0;
     }
 
     .ec-detail-fact-labels .ec-label-field > .ec-chip {

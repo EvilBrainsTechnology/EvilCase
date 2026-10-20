@@ -241,6 +241,8 @@
     --ec-act-pager-text: 92px;
     --ec-copy-size: 26px;
     --ec-fact-line: 20px;
+    /* Less than the top padding by what the value line keeps under its baseline. */
+    --ec-fact-pad-end: 10px;
     --ec-label-search-width: 160px;
     --ec-touch-row: 48px;
     --ec-timeline-dot: 10px;
