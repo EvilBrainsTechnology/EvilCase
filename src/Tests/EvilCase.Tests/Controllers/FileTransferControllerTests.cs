@@ -189,7 +189,7 @@ public class FileTransferControllerTests
     }
 
     [Test]
-    public async Task AnyOtherFileIsAnAttachmentUnderTheStoredNameAndType()
+    public async Task AnyOtherFileIsAnOctetStreamAttachmentUnderTheStoredName()
     {
         var reader = DownloadingReader(new FileDownload { FileName = "stranka.html", MediaType = "text/html", Content = new MemoryStream("abc"u8.ToArray()) });
 
@@ -203,7 +203,7 @@ public class FileTransferControllerTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(fileResult.FileDownloadName, Is.EqualTo("stranka.html"));
-            Assert.That(fileResult.ContentType, Is.EqualTo("text/html"));
+            Assert.That(fileResult.ContentType, Is.EqualTo("application/octet-stream"), "the stored type is never served for an attachment");
             Assert.That(fileResult.EnableRangeProcessing, Is.True);
         }
     }

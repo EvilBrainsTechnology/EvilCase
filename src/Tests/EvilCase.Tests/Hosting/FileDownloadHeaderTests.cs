@@ -19,6 +19,7 @@ public class FileDownloadHeaderTests
         [Guid.CreateVersion7()] = ("archiv.zip", "application/zip"),
         [Guid.CreateVersion7()] = ("schema.svg", "image/svg+xml"),
         [Guid.CreateVersion7()] = ("stranka.html", "text/html"),
+        [Guid.CreateVersion7()] = ("skript.js", "text/javascript"),
         [Guid.CreateVersion7()] = ("Příloha č. 1 – \"smlouva\".pdf", "application/pdf"),
         [Guid.CreateVersion7()] = ("Účtenka přestupku.zip", "application/zip"),
     };
@@ -70,10 +71,11 @@ public class FileDownloadHeaderTests
         }
     }
 
-    [TestCase("archiv.zip", "application/zip")]
-    [TestCase("schema.svg", "image/svg+xml")]
-    [TestCase("stranka.html", "text/html")]
-    public async Task AnyOtherFileIsAnAttachmentUnderTheStoredType(string fileName, string mediaType)
+    [TestCase("archiv.zip")]
+    [TestCase("schema.svg")]
+    [TestCase("stranka.html")]
+    [TestCase("skript.js")]
+    public async Task AnyOtherFileIsAnOctetStreamAttachment(string fileName)
     {
         using var response = await this.Get(fileName);
 
@@ -82,7 +84,7 @@ public class FileDownloadHeaderTests
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
             Assert.That(response.Content.Headers.ContentDisposition?.DispositionType, Is.EqualTo("attachment"), "a stored document is never rendered in place");
             Assert.That(response.Content.Headers.ContentDisposition?.FileName, Is.EqualTo(fileName));
-            Assert.That(response.Content.Headers.ContentType?.MediaType, Is.EqualTo(mediaType));
+            Assert.That(response.Content.Headers.ContentType?.MediaType, Is.EqualTo("application/octet-stream"), "the stored type is never served for an attachment");
             Assert.That(Header(response, "X-Content-Type-Options"), Is.EqualTo("nosniff"));
         }
     }

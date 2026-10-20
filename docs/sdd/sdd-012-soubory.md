@@ -35,7 +35,7 @@ tentýž dokument ve dvou spisech jsou dva soubory.
   nebo chybějící název je 400.
 - Soubor jde přejmenovat. Platí pro nové jméno stejná pravidla jako při uploadu; bajty, hash
   a `MediaType` zůstávají. Soubor cizího vlastníka je 404.
-- Chybějící `MediaType` se stahuje jako `application/octet-stream`. Soubor bez blobu je 404.
+- Soubor bez blobu je 404.
 
 ### UI
 
@@ -45,8 +45,9 @@ souborech a odmítne jen soubor, který selže. Dávka nad 100 souborů se odmí
 souborů ukazuje ikonu typu, název, velikost a okamžik nahrání, od nejstaršího. Obsah souboru
 se vydává z jedné adresy a odpověď nese `X-Content-Type-Options: nosniff`. PDF, rastrové
 obrázky, zvuk a video nesou `Content-Disposition: inline` a typ podle přípony; každý jiný typ,
-SVG a HTML také, nese `attachment` a uložený typ. Obsah souboru nikdy nespustí skript a vložit
-do stránky ho smí jen aplikace sama. Smazání je prosté, s potvrzením.
+SVG a HTML také, nese `attachment` a typ `application/octet-stream`; uložený `MediaType` se
+v odpovědi nikdy nevrací. Obsah souboru nikdy nespustí skript a vložit do stránky ho smí jen
+aplikace sama. Smazání je prosté, s potvrzením.
 
 Klik na řádek souboru otevře náhled; u typu bez náhledu ten řekne, že není k dispozici, a
 nabídne stažení. Stažení je obyčejné stažení prohlížečem a uloží soubor vždy. Stažení,
