@@ -10,7 +10,7 @@ using Microsoft.JSInterop;
 namespace EvilBrains.EvilCase.App.Components;
 
 /// <summary>
-/// The load, label save, link copy and file download that the case and the act detail share.
+/// The load, label save, link copy and file content load that the case and the act detail share.
 /// </summary>
 public abstract class DetailPage<TDetail> : ComponentBase
     where TDetail : class
@@ -26,9 +26,6 @@ public abstract class DetailPage<TDetail> : ComponentBase
 
     [Inject]
     private IClipboardWriter Clipboard { get; set; } = null!;
-
-    [Inject]
-    private IFileDownloader Downloader { get; set; } = null!;
 
     private Task labelsWrite = Task.CompletedTask;
 
@@ -135,16 +132,8 @@ public abstract class DetailPage<TDetail> : ComponentBase
         }
     }
 
-    protected async Task DownloadFile(FileListItem file, CancellationToken token)
-    {
-        var content = await this.FileTransfer.DownloadFileContent(file.FileId, token);
-        await this.Downloader.SaveFile(file.FileName, content, token);
-    }
-
     protected async Task<Stream> LoadFileContent(FileListItem file, CancellationToken token)
     {
-        var content = await this.FileTransfer.DownloadFileContent(file.FileId, token);
-
-        return content.Content;
+        return await this.FileTransfer.DownloadFileContent(file.FileId, token);
     }
 }

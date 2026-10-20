@@ -1,18 +1,19 @@
+using EvilBrains.EvilCase.App.Auth;
 using Microsoft.JSInterop;
 
 namespace EvilBrains.EvilCase.App.Files;
 
-internal sealed class FileDownloader(IJSRuntime jsRuntime) : IFileDownloader, IAsyncDisposable
+internal sealed class FileDownloader(IJSRuntime jsRuntime, IAuthSession session) : IFileDownloader, IAsyncDisposable
 {
     private IJSObjectReference? module;
 
-    public async Task SaveFile(string fileName, FileContent content, CancellationToken token)
+    public async Task DownloadFile(Guid fileId, string fileName, CancellationToken token)
     {
         this.module ??= await jsRuntime.InvokeAsync<IJSObjectReference>("import", token, "./js/files.js");
 
-        using var streamRef = new DotNetStreamReference(content.Content);
+        await session.EnsureFresh(token);
 
-        await this.module.InvokeVoidAsync("downloadBlob", token, fileName, content.MediaType, streamRef);
+        await this.module.InvokeVoidAsync("downloadFile", token, FileUrl.Content(fileId), fileName);
     }
 
     public async ValueTask DisposeAsync()

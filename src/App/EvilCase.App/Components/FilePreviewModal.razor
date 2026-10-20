@@ -5,6 +5,7 @@
 @using EvilBrains.EvilCase.Api.Contract.Files
 @using Microsoft.JSInterop
 @implements IAsyncDisposable
+@inject IAuthSession Session
 @inject IBlobUrls BlobUrls
 @inject IFilePreviews Previews
 @inject ILogger<FilePreviewModal> Logger
@@ -199,24 +200,24 @@
             }
             else if (preview == FilePreviewKind.Pdf)
             {
-                <iframe class="ec-preview-frame" src="@this.url" title="Náhled souboru @file.FileName"></iframe>
+                <iframe @key="file.FileId" class="ec-preview-frame" src="@this.url" title="Náhled souboru @file.FileName"></iframe>
             }
             else if (preview == FilePreviewKind.Image || preview == FilePreviewKind.ConvertedImage)
             {
                 <div class="ec-preview-stage">
-                    <img class="ec-preview-image" src="@this.url" alt="@file.FileName" />
+                    <img @key="file.FileId" class="ec-preview-image" src="@this.url" alt="@file.FileName" @onerror="this.Unreadable" />
                 </div>
             }
             else if (preview == FilePreviewKind.Audio)
             {
                 <div class="ec-preview-stage">
-                    <audio class="ec-preview-audio" src="@this.url" controls></audio>
+                    <audio @key="file.FileId" class="ec-preview-audio" src="@this.url" controls @onerror="this.Unreadable"></audio>
                 </div>
             }
             else
             {
                 <div class="ec-preview-stage">
-                    <video class="ec-preview-video" src="@this.url" controls></video>
+                    <video @key="file.FileId" class="ec-preview-video" src="@this.url" controls @onerror="this.Unreadable"></video>
                 </div>
             }
         </ChildContent>
@@ -264,6 +265,8 @@
     private Guid? loadedFileId;
 
     private string? url;
+
+    private bool urlIsBlob;
 
     private string markdownHtml = "";
 
@@ -372,6 +375,17 @@
 
         try
         {
+            // The browser requests what it shows natively itself; the rest is read here as bytes.
+            if (InlineFileTypes.MediaType(file.FileName) is not null)
+            {
+                await this.Session.EnsureFresh(token);
+
+                if (!token.IsCancellationRequested)
+                    (this.url, this.loading) = (FileUrl.Content(file.FileId), false);
+
+                return;
+            }
+
             await using var content = await this.LoadContent(file, token);
 
             await this.Load(file, preview, content, token);
@@ -430,11 +444,9 @@
                 break;
             }
 
-            case FilePreviewKind.Pdf:
+            // Only SVG is a picture read as bytes: it is shown as an image blob, never as the stored type.
             case FilePreviewKind.Image:
-            case FilePreviewKind.Audio:
-            case FilePreviewKind.Video:
-                await this.ShowUrl(await this.BlobUrls.CreateBlobUrl(FileTypeDisplay.PreviewMediaType(file.FileName), content, token), token);
+                await this.ShowUrl(await this.BlobUrls.CreateBlobUrl("image/svg+xml", content, token), token);
 
                 break;
 
@@ -477,6 +489,9 @@
             }
 
             case FilePreviewKind.None:
+            case FilePreviewKind.Pdf:
+            case FilePreviewKind.Audio:
+            case FilePreviewKind.Video:
                 throw new UnreachableException();
 
             default:
@@ -489,7 +504,12 @@
         if (token.IsCancellationRequested)
             await this.BlobUrls.RevokeBlobUrl(created);
         else
-            this.url = created;
+            (this.url, this.urlIsBlob) = (created, true);
+    }
+
+    private void Unreadable()
+    {
+        this.unsupported = true;
     }
 
     private static bool UsesLibrary(FilePreviewKind preview)
@@ -525,7 +545,10 @@
         var released = this.url;
         this.url = null;
 
-        await this.BlobUrls.RevokeBlobUrl(released);
+        if (this.urlIsBlob)
+            await this.BlobUrls.RevokeBlobUrl(released);
+
+        this.urlIsBlob = false;
     }
 
     private async Task Step(int direction)

@@ -168,9 +168,30 @@ public class FileTransferControllerTests
     }
 
     [Test]
-    public async Task ADownloadIsAnAttachmentUnderTheStoredName()
+    public async Task AFileTheBrowserShowsNativelyIsInlineUnderTheDetectedTypeWithRanges()
     {
-        var reader = DownloadingReader(new FileDownload { FileName = "smlouva.pdf", MediaType = "application/pdf", Content = new MemoryStream("abc"u8.ToArray()) });
+        var reader = DownloadingReader(new FileDownload { FileName = "Záznam.MP4", MediaType = "text/html", Content = new MemoryStream("abc"u8.ToArray()) });
+
+        var controller = new FileTransferController { ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() } };
+
+        var result = await controller.DownloadFileContent(reader, Guid.CreateVersion7(), CancellationToken.None);
+
+        Assert.That(result, Is.InstanceOf<FileStreamResult>());
+        var fileResult = (FileStreamResult)result;
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(fileResult.FileDownloadName, Is.Empty, "the disposition is written by the action");
+            Assert.That(fileResult.ContentType, Is.EqualTo("video/mp4"), "the stored type is never used for an inline file");
+            Assert.That(fileResult.EnableRangeProcessing, Is.True);
+            Assert.That(controller.Response.Headers.ContentDisposition.ToString(), Does.StartWith("inline").And.Contain("filename"));
+        }
+    }
+
+    [Test]
+    public async Task AnyOtherFileIsAnOctetStreamAttachmentUnderTheStoredName()
+    {
+        var reader = DownloadingReader(new FileDownload { FileName = "stranka.html", MediaType = "text/html", Content = new MemoryStream("abc"u8.ToArray()) });
 
         var controller = new FileTransferController();
 
@@ -181,8 +202,9 @@ public class FileTransferControllerTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(fileResult.FileDownloadName, Is.EqualTo("smlouva.pdf"));
-            Assert.That(fileResult.ContentType, Is.EqualTo("application/pdf"));
+            Assert.That(fileResult.FileDownloadName, Is.EqualTo("stranka.html"));
+            Assert.That(fileResult.ContentType, Is.EqualTo("application/octet-stream"), "the stored type is never served for an attachment");
+            Assert.That(fileResult.EnableRangeProcessing, Is.True);
         }
     }
 

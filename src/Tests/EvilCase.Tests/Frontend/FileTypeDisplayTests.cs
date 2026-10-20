@@ -1,3 +1,4 @@
+using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.App.Models;
 
 namespace EvilBrains.EvilCase.Tests.Frontend;
@@ -75,12 +76,24 @@ public class FileTypeDisplayTests
     }
 
     [TestCase("a.pdf", "application/pdf")]
-    [TestCase("a.SVG", "image/svg+xml")]
+    [TestCase("a.PNG", "image/png")]
     [TestCase("a.m4a", "audio/mp4")]
     [TestCase("a.mp4", "video/mp4")]
-    [TestCase("a.zfo", "application/octet-stream")]
-    public void TheBlobTypeComesFromTheExtension(string fileName, string mediaType)
+    [TestCase("a.svg", null)]
+    [TestCase("a.html", null)]
+    [TestCase("a.heic", null)]
+    [TestCase("a.zip", null)]
+    public void OnlyWhatTheBrowserShowsNativelyHasAnInlineType(string fileName, string? mediaType)
     {
-        Assert.That(FileTypeDisplay.PreviewMediaType(fileName), Is.EqualTo(mediaType));
+        Assert.That(InlineFileTypes.MediaType(fileName), Is.EqualTo(mediaType));
+    }
+
+    [Test]
+    public void EveryInlineTypeHasAPreviewTheBrowserShowsItself()
+    {
+        var nativePreviews = new[] { FilePreviewKind.Pdf, FilePreviewKind.Image, FilePreviewKind.Audio, FilePreviewKind.Video };
+
+        foreach (var extension in new[] { "pdf", "jpg", "jpeg", "png", "gif", "webp", "avif", "bmp", "mp3", "m4a", "wav", "ogg", "oga", "mp4", "webm", "m4v", "mov" })
+            Assert.That(nativePreviews, Does.Contain(FileTypeDisplay.Preview($"a.{extension}")), extension);
     }
 }

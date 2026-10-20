@@ -5,6 +5,7 @@ using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Business.Files;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Net.Http.Headers;
 
 namespace EvilBrains.EvilCase.Api.Controllers;
 
@@ -65,6 +66,7 @@ public class FileTransferController : ControllerBase
     }
 
     [HttpGet("files/{fileId:guid}/content")]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DownloadFileContent([FromServices] IFileReader files, [FromRoute] Guid fileId, CancellationToken token)
@@ -74,9 +76,16 @@ public class FileTransferController : ControllerBase
         if (download is null)
             return this.Problem(statusCode: StatusCodes.Status404NotFound, title: FileProblems.NotFound);
 
-        // Always an attachment: a stored document is never rendered in place (SDD-012).
-        // X-Content-Type-Options: nosniff already comes from SecurityHeadersMiddleware on every response.
-        return this.File(download.Content, download.MediaType, download.FileName);
+        // Only the types a browser shows natively are inline, under the type the extension gives; any other
+        // stored document is an opaque attachment (SDD-012). nosniff comes from SecurityHeadersMiddleware.
+        if (InlineFileTypes.MediaType(download.FileName) is not { } inlineMediaType)
+            return this.File(download.Content, "application/octet-stream", download.FileName, enableRangeProcessing: true);
+
+        var disposition = new ContentDispositionHeaderValue("inline");
+        disposition.SetHttpFileName(download.FileName);
+        this.Response.Headers.ContentDisposition = disposition.ToString();
+
+        return this.File(download.Content, inlineMediaType, enableRangeProcessing: true);
     }
 
     // IFormFile.ContentType is never null, only empty, when a multipart part carries no Content-Type header.

@@ -2,6 +2,7 @@ using System.Net;
 using Bunit;
 using EvilBrains.ApiClient;
 using EvilBrains.EvilCase.Api.Contract.Files;
+using EvilBrains.EvilCase.App.Auth;
 using EvilBrains.EvilCase.App.Components;
 using EvilBrains.EvilCase.App.Files;
 using EvilBrains.EvilCase.App.Models;
@@ -264,22 +265,9 @@ public class FilesCardRenderTests
     {
         using var ctx = NewContext();
 
-        var blobs = new StubBlobUrls();
-        ctx.Services.AddSingleton<IBlobUrls>(blobs);
-        ctx.Services.AddSingleton<IFilePreviews>(new StubFilePreviews());
-
-        var downloads = 0;
-        var component = new Card
-        {
-            Files = [PdfFile()],
-            DownloadFile = (_, _) =>
-            {
-                downloads++;
-
-                return Task.CompletedTask;
-            },
-        }
-            .Render(ctx);
+        var downloader = ctx.Services.GetRequiredService<StubFileDownloader>();
+        var file = PdfFile();
+        var component = new Card { Files = [file] }.Render(ctx);
 
         var open = component.Find(".ec-file-row button.ec-file-name");
 
@@ -296,30 +284,19 @@ public class FilesCardRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(downloads, Is.Zero, "a previewable file opens in the preview and is not downloaded");
+            Assert.That(downloader.Downloaded, Is.Empty, "a previewable file opens in the preview and is not downloaded");
             Assert.That(component.Find("dialog .ec-preview-name").TextContent, Is.EqualTo("Rozhodnutí o přestupku.pdf"));
-            Assert.That(blobs.Created, Is.EqualTo([("application/pdf", "blob:test/0")]));
-            Assert.That(component.Find("iframe.ec-preview-frame").GetAttribute("src"), Is.EqualTo("blob:test/0"));
+            Assert.That(component.Find("iframe.ec-preview-frame").GetAttribute("src"), Is.EqualTo($"/api/files/{file.FileId}/content"));
         }
     }
 
     [Test]
-    public void TheRowOfAFileWithoutPreviewDownloadsIt()
+    public void TheRowOfAFileWithoutPreviewOpensTheModalThatSaysSo()
     {
         using var ctx = NewContext();
 
-        var downloaded = new List<string>();
-        var component = new Card
-        {
-            Files = [File("Doručenka.zfo")],
-            DownloadFile = (file, _) =>
-            {
-                downloaded.Add(file.FileName);
-
-                return Task.CompletedTask;
-            },
-        }
-            .Render(ctx);
+        var downloader = ctx.Services.GetRequiredService<StubFileDownloader>();
+        var component = new Card { Files = [File("Doručenka.zfo")] }.Render(ctx);
 
         var open = component.Find(".ec-file-row button.ec-file-name");
 
@@ -327,9 +304,10 @@ public class FilesCardRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(open.GetAttribute("title"), Is.EqualTo("Stáhnout"));
-            Assert.That(downloaded, Is.EqualTo(["Doručenka.zfo"]));
-            Assert.That(component.FindAll("dialog"), Is.Empty, "a file without preview opens no preview");
+            Assert.That(open.GetAttribute("title"), Is.EqualTo("Otevřít náhled"));
+            Assert.That(component.Find("dialog .ec-preview-name").TextContent, Is.EqualTo("Doručenka.zfo"));
+            Assert.That(component.Find("dialog .ec-preview-message-title").TextContent, Is.EqualTo("Náhled tohoto typu souboru není k dispozici"));
+            Assert.That(downloader.Downloaded, Is.Empty, "opening a file never downloads it");
         }
     }
 
@@ -338,18 +316,9 @@ public class FilesCardRenderTests
     {
         using var ctx = NewContext();
 
-        var downloads = 0;
-        var component = new Card
-        {
-            Files = [PdfFile()],
-            DownloadFile = (_, _) =>
-            {
-                downloads++;
-
-                return Task.CompletedTask;
-            },
-        }
-            .Render(ctx);
+        var downloader = ctx.Services.GetRequiredService<StubFileDownloader>();
+        var file = PdfFile();
+        var component = new Card { Files = [file] }.Render(ctx);
 
         var download = component.Find("button[aria-label='Stáhnout Rozhodnutí o přestupku.pdf']");
 
@@ -357,7 +326,7 @@ public class FilesCardRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(downloads, Is.EqualTo(1));
+            Assert.That(downloader.Downloaded, Is.EqualTo([(file.FileId, file.FileName)]));
             Assert.That(download.ClassList, Does.Contain("ec-button-secondary").And.Contain("ec-button-icon"));
             Assert.That(download.TextContent.Trim(), Is.Empty);
             Assert.That(component.FindAll("dialog"), Is.Empty);
@@ -627,9 +596,6 @@ public class FilesCardRenderTests
     {
         using var ctx = NewContext();
 
-        ctx.Services.AddSingleton<IBlobUrls>(new StubBlobUrls());
-        ctx.Services.AddSingleton<IFilePreviews>(new StubFilePreviews());
-
         var component = new Card { Files = [PdfFile(), File("Doručenka.zfo"), File("Foto.jpg")] }.Render(ctx);
 
         component.Find(".ec-file-row button.ec-file-name").Click();
@@ -655,6 +621,13 @@ public class FilesCardRenderTests
         // no SetupModule can name, and reads a property bUnit's runtime does not answer.
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         ctx.Services.AddSingleton<IJSRuntime>(new PropertyReadingJSRuntime(ctx.JSInterop.JSRuntime));
+
+        var downloader = new StubFileDownloader();
+        ctx.Services.AddSingleton(downloader);
+        ctx.Services.AddSingleton<IFileDownloader>(downloader);
+        ctx.Services.AddSingleton<IBlobUrls>(new StubBlobUrls());
+        ctx.Services.AddSingleton<IFilePreviews>(new StubFilePreviews());
+        ctx.Services.AddSingleton<IAuthSession>(new StubAuthSession());
 
         return ctx;
     }
@@ -694,8 +667,6 @@ public class FilesCardRenderTests
 
         public Func<IBrowserFile, CancellationToken, Task> UploadFile { get; init; } = static (_, _) => Task.CompletedTask;
 
-        public Func<FileListItem, CancellationToken, Task> DownloadFile { get; init; } = static (_, _) => Task.CompletedTask;
-
         public Func<FileListItem, string, CancellationToken, Task> RenameFile { get; init; } = static (_, _, _) => Task.CompletedTask;
 
         public IRenderedComponent<FilesCard> Render(BunitContext ctx)
@@ -707,7 +678,6 @@ public class FilesCardRenderTests
                 .Add(static card => card.Title, this.Title)
                 .Add(static card => card.LoadFiles, loadFiles)
                 .Add(static card => card.UploadFile, this.UploadFile)
-                .Add(static card => card.DownloadFile, this.DownloadFile)
                 .Add(static card => card.LoadContent, static (_, _) => Task.FromResult<Stream>(new MemoryStream("abc"u8.ToArray())))
                 .Add(static card => card.RenameFile, this.RenameFile)
                 .Add(static card => card.DeleteFile, static (_, _) => Task.CompletedTask)

@@ -1,7 +1,9 @@
 using System.Net;
 using EvilBrains.ApiClient;
 using EvilBrains.EvilCase.Api.Client;
+using EvilBrains.EvilCase.Api.Contract.User;
 using EvilBrains.EvilCase.App.Auth;
+using EvilBrains.EvilCase.Domain.Users;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute.ExceptionExtensions;
 
@@ -54,6 +56,28 @@ public class SessionRenewalTests
         {
             Assert.That(renewed, Is.False);
             Assert.That(tokens.Current, Is.Not.Null, "only a refusal ends the session, not any other status");
+        }
+    }
+
+    [Test]
+    public async Task OnlyASessionAboutToLapseIsRenewedForABrowserRequest()
+    {
+        var authClient = Substitute.For<IAuthClient>();
+        authClient
+            .Refresh(Arg.Any<CancellationToken>())
+            .Returns(new LoginResponse { ExpiresAt = DateTime.UtcNow.AddMinutes(10), Email = "user@example.com", Role = UserRole.User });
+
+        var tokens = ExpiringSession.Store();
+
+        using var provider = new EvilCaseAuthenticationStateProvider(tokens, authClient, NullLogger<EvilCaseAuthenticationStateProvider>.Instance);
+
+        await provider.EnsureFresh(CancellationToken.None);
+        await provider.EnsureFresh(CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(authClient.ReceivedCalls(), Has.Exactly(1).Items, "a fresh session is not renewed again");
+            Assert.That(tokens.Current?.ExpiresAt, Is.GreaterThan(DateTime.UtcNow.AddMinutes(5)));
         }
     }
 

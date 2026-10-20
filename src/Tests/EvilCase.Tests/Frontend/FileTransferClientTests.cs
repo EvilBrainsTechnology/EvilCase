@@ -1,5 +1,4 @@
 using System.Net;
-using System.Net.Http.Headers;
 using EvilBrains.ApiClient;
 using EvilBrains.EvilCase.App.Files;
 using Microsoft.AspNetCore.Components.Forms;
@@ -41,23 +40,23 @@ public class FileTransferClientTests
     }
 
     [Test]
-    public async Task ADownloadReadsTheBytesAndTheMediaTypeOfTheResponse()
+    public async Task ADownloadReadsTheBytesFromTheContentAddress()
     {
         var bytes = "the content"u8.ToArray();
         var response = new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(bytes) };
-        response.Content.Headers.ContentType = new MediaTypeHeaderValue("application/pdf");
 
         var handler = new CapturingHandler(response);
         var client = Client(handler);
 
-        var content = await client.DownloadFileContent(Guid.CreateVersion7(), CancellationToken.None);
+        var fileId = Guid.CreateVersion7();
+        await using var content = await client.DownloadFileContent(fileId, CancellationToken.None);
 
         await using var reader = new MemoryStream();
-        await content.Content.CopyToAsync(reader);
+        await content.CopyToAsync(reader);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(content.MediaType, Is.EqualTo("application/pdf"));
+            Assert.That(handler.Request?.RequestUri?.AbsolutePath, Is.EqualTo($"/api/files/{fileId}/content"));
             Assert.That(reader.ToArray(), Is.EqualTo(bytes));
         }
     }
