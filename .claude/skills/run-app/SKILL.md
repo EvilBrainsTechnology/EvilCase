@@ -43,9 +43,11 @@ pwsh .claude/skills/run-app/Start-EvilCase.ps1 -Stop -Port 41449
 
 - `curl -sk $url/health/ready` → `Healthy` with the `database` check; `503` is an unreachable
   database, and `/health/live` answers even then.
-- `POST /api/auth/login` with the seed values from `.env` → `accessToken`; `401` is bad
-  credentials, `423` a lockout (5 failures, 15 minutes).
-- `GET /api/cases` with the bearer → `{"items":[]}` until cases exist, without it `401`.
+- `curl -sk -c jar -X POST $url/api/auth/login` with the seed values from `.env` as JSON → `200`
+  and the `__Host-evilcase-access` cookie in `jar`; `401` is bad credentials, `423` a lockout
+  (5 failures, 15 minutes). curl sends neither `Sec-Fetch-Site` nor `Origin`, so the cross-site
+  write check passes.
+- `curl -sk -b jar $url/api/cases` → `{"items":[]}` until cases exist, without the cookie `401`.
 - `GET /api/nope` → `404`, never the app's HTML.
 - `$url` redirects to `/login`; sign in, open `/cases`. The first WebAssembly load takes a few
   seconds.

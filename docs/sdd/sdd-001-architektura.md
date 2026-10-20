@@ -22,7 +22,7 @@ a se serverem mluví jen přes API, typovaným klientem (SDD-005).
 
 Stav drží PostgreSQL; bajty souborů leží na souborovém systému, databáze nese jejich
 metadata (SDD-012). Mimo databázi server stav nedrží: přihlášení nese JWT access token
-v paměti prohlížeče a rotující refresh token v `__Host-` cookie (SDD-006).
+a rotující refresh token v `__Host-` cookie (SDD-006).
 
 Nasazení je jeden kontejnerový image v compose stacku. Databáze do stacku nepatří;
 connection string míří na existující PostgreSQL (`deploy/README.md`).

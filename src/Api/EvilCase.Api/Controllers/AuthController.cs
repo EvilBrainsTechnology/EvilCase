@@ -22,7 +22,11 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status423Locked)]
-    public async Task<ActionResult<LoginResponse>> Login([FromServices] IAuthService authService, [FromBody] LoginRequest request, CancellationToken token)
+    public async Task<ActionResult<LoginResponse>> Login(
+        [FromServices] IAuthService authService,
+        [FromServices] TimeProvider timeProvider,
+        [FromBody] LoginRequest request,
+        CancellationToken token)
     {
         var result = await authService.Login(request.Email, request.Password, this.DescribeClient(), token);
 
@@ -34,7 +38,7 @@ public class AuthController : ControllerBase
                 : this.Problem(statusCode: StatusCodes.Status401Unauthorized, title: "Invalid credentials");
         }
 
-        this.SetRefreshCookie(session);
+        this.SetCookies(session, timeProvider);
 
         return this.Ok(Describe(session));
     }
@@ -43,9 +47,9 @@ public class AuthController : ControllerBase
     [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult<LoginResponse>> Refresh([FromServices] IAuthService authService, CancellationToken token)
+    public async Task<ActionResult<LoginResponse>> Refresh([FromServices] IAuthService authService, [FromServices] TimeProvider timeProvider, CancellationToken token)
     {
-        var refreshToken = this.Request.Cookies[RefreshCookie.Name];
+        var refreshToken = HostCookie.Read(this.Request, RefreshCookie.Name);
 
         var result = refreshToken is { Length: > 0 }
             ? await authService.Refresh(refreshToken, this.DescribeClient(), token)
@@ -55,12 +59,12 @@ public class AuthController : ControllerBase
         {
             // Not on Raced: the cookie already holds another tab's replacement.
             if (result.Status != RefreshStatus.Raced)
-                this.ClearRefreshCookie();
+                this.ClearCookies();
 
             return this.Problem(statusCode: StatusCodes.Status401Unauthorized, title: "Invalid refresh token");
         }
 
-        this.SetRefreshCookie(session);
+        this.SetCookies(session, timeProvider);
 
         return this.Ok(Describe(session));
     }
@@ -72,12 +76,12 @@ public class AuthController : ControllerBase
     {
         // Anonymous on purpose: an expired access token must not stop someone from signing out, and the
         // cookie is the only thing this needs.
-        var refreshToken = this.Request.Cookies[RefreshCookie.Name];
+        var refreshToken = HostCookie.Read(this.Request, RefreshCookie.Name);
 
         if (refreshToken is { Length: > 0 })
             await authService.SignOut(refreshToken, token);
 
-        this.ClearRefreshCookie();
+        this.ClearCookies();
 
         return this.NoContent();
     }
@@ -89,7 +93,7 @@ public class AuthController : ControllerBase
     {
         await authService.SignOutEverywhere(this.UserId(), token);
 
-        this.ClearRefreshCookie();
+        this.ClearCookies();
 
         return this.NoContent();
     }
@@ -118,7 +122,6 @@ public class AuthController : ControllerBase
     {
         return new()
         {
-            AccessToken = session.AccessToken,
             ExpiresAt = session.AccessTokenExpires,
             Email = session.Email,
             Role = session.Role,
@@ -172,14 +175,21 @@ public class AuthController : ControllerBase
         };
     }
 
-    private void SetRefreshCookie(AuthSession session)
+    private void SetCookies(AuthSession session, TimeProvider timeProvider)
     {
         this.Response.Cookies.Append(RefreshCookie.Name, session.RefreshToken, CookieOptions(session.RefreshTokenExpires));
+
+        // Max-Age, not Expires: a browser whose clock runs ahead would drop the short-lived cookie on arrival.
+        var accessOptions = CookieOptions(expires: null);
+        accessOptions.MaxAge = session.AccessTokenExpires - timeProvider.GetUtcNow().UtcDateTime;
+
+        this.Response.Cookies.Append(AccessCookie.Name, session.AccessToken, accessOptions);
     }
 
-    private void ClearRefreshCookie()
+    private void ClearCookies()
     {
         this.Response.Cookies.Delete(RefreshCookie.Name, CookieOptions(expires: null));
+        this.Response.Cookies.Delete(AccessCookie.Name, CookieOptions(expires: null));
     }
 
     // Delete has to repeat these: a browser only drops a cookie whose attributes match.

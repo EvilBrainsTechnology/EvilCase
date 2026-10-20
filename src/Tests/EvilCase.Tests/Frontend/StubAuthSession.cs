@@ -25,7 +25,7 @@ internal sealed class StubAuthSession : IAuthSession
         return Task.CompletedTask;
     }
 
-    public Task<bool> Renew(CancellationToken token)
+    public Task<bool> Renew(SessionState? seen, CancellationToken token)
     {
         return Task.FromResult(true);
     }

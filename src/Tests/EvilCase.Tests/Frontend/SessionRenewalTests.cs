@@ -16,7 +16,7 @@ public class SessionRenewalTests
 
         using var provider = Provider(tokens, new HttpRequestException("the network is down"));
 
-        var renewed = await provider.Renew(CancellationToken.None);
+        var renewed = await provider.Renew(tokens.Current, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -32,7 +32,7 @@ public class SessionRenewalTests
 
         using var provider = Provider(tokens, new ApiException(HttpStatusCode.Unauthorized, responseBody: null));
 
-        var renewed = await provider.Renew(CancellationToken.None);
+        var renewed = await provider.Renew(tokens.Current, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -48,7 +48,7 @@ public class SessionRenewalTests
 
         using var provider = Provider(tokens, new ApiException(HttpStatusCode.InternalServerError, responseBody: null));
 
-        var renewed = await provider.Renew(CancellationToken.None);
+        var renewed = await provider.Renew(tokens.Current, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -57,7 +57,7 @@ public class SessionRenewalTests
         }
     }
 
-    private static EvilCaseAuthenticationStateProvider Provider(IAccessTokenStore tokens, Exception refreshFailure)
+    private static EvilCaseAuthenticationStateProvider Provider(ISessionStore tokens, Exception refreshFailure)
     {
         var authClient = Substitute.For<IAuthClient>();
         authClient

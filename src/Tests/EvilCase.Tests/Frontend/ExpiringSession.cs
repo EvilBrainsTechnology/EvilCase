@@ -5,18 +5,17 @@ namespace EvilBrains.EvilCase.Tests.Frontend;
 
 internal static class ExpiringSession
 {
-    public static AccessTokenStore Store()
+    public static SessionStore Store()
     {
-        var tokens = new AccessTokenStore();
+        var store = new SessionStore();
 
-        tokens.SetAccessToken(new()
+        store.Set(new()
         {
-            Token = "access",
             ExpiresAt = DateTime.UtcNow,
             Email = "user@example.com",
             Role = UserRole.User,
         });
 
-        return tokens;
+        return store;
     }
 }

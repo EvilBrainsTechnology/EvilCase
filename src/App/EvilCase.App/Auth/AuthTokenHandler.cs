@@ -6,21 +6,16 @@ using Microsoft.AspNetCore.Components.WebAssembly.Http;
 
 namespace EvilBrains.EvilCase.App.Auth;
 
-internal sealed class AuthTokenHandler(IAccessTokenStore tokens, IServiceProvider services) : DelegatingHandler
+internal sealed class AuthTokenHandler(ISessionStore store, IServiceProvider services) : DelegatingHandler
 {
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        // The refresh token is a cookie and fetch only sends one when it is asked to.
-        if (IsUnder(request, AuthRoute.Path))
-            request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
+        // Both tokens are cookies and fetch only sends or stores one when it is asked to.
+        request.SetBrowserRequestCredentials(BrowserRequestCredentials.Include);
 
-        // Renewing on behalf of these comes back here, so they carry whatever token is at hand and no more.
+        // Renewing on behalf of these comes back here, so they are sent as they are.
         if (IsExemptFromRenewal(request))
-        {
-            this.Authorize(request);
-
             return await base.SendAsync(request, cancellationToken);
-        }
 
         // Buffered before the first attempt: HttpClient disposes the content it sent, so a retry would
         // have nothing left to send.
@@ -28,23 +23,22 @@ internal sealed class AuthTokenHandler(IAccessTokenStore tokens, IServiceProvide
         var contentType = request.Content?.Headers.ContentType;
 
         if (this.IsExpiring())
-            await this.Session().Renew(cancellationToken);
+            await this.Session().Renew(store.Current, cancellationToken);
 
-        this.Authorize(request);
+        // A 401 on this session renews even while it looks fresh: another tab may have signed out.
+        var sent = store.Current;
 
         var response = await base.SendAsync(request, cancellationToken);
 
-        if (response.StatusCode != HttpStatusCode.Unauthorized || tokens.Current is null)
+        if (response.StatusCode != HttpStatusCode.Unauthorized || store.Current is null)
             return response;
 
-        if (!await this.Session().Renew(cancellationToken))
+        if (!await this.Session().Renew(sent, cancellationToken))
             return response;
 
         response.Dispose();
 
         using var retry = Clone(request, body, contentType);
-
-        this.Authorize(retry);
 
         return await base.SendAsync(retry, cancellationToken);
     }
@@ -77,7 +71,7 @@ internal sealed class AuthTokenHandler(IAccessTokenStore tokens, IServiceProvide
             clone.Headers.TryAddWithoutValidation(header.Key, header.Value);
 
         // Where the browser request options live, the fetch credentials among them: without them the
-        // retry would leave the refresh cookie behind and ignore the one coming back.
+        // retry would leave the renewed cookies behind.
         foreach (var option in (IDictionary<string, object?>)request.Options)
             clone.Options.Set(new HttpRequestOptionsKey<object?>(option.Key), option.Value);
 
@@ -99,13 +93,7 @@ internal sealed class AuthTokenHandler(IAccessTokenStore tokens, IServiceProvide
 
     private bool IsExpiring()
     {
-        return tokens.Current is { } current
+        return store.Current is { } current
             && current.ExpiresAt - DateTime.UtcNow <= EvilCaseAuthenticationStateProvider.RenewAhead;
-    }
-
-    private void Authorize(HttpRequestMessage request)
-    {
-        if (tokens.Current is { } current)
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", current.Token);
     }
 }

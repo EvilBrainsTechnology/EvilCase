@@ -10,8 +10,9 @@ internal interface IAuthSession
     public Task SignOut(bool everywhere, CancellationToken token);
 
     /// <summary>
-    /// Concurrent callers share one exchange. False where no access token came back; the session is only
-    /// dropped where the server rejected it.
+    /// Concurrent callers share one exchange: a caller whose <paramref name="seen"/> session has since been
+    /// replaced by a fresh one gets that one. False where no session came back; the session is only dropped
+    /// where the server rejected it.
     /// </summary>
-    public Task<bool> Renew(CancellationToken token);
+    public Task<bool> Renew(SessionState? seen, CancellationToken token);
 }

@@ -176,6 +176,9 @@ app.Use(
         await next(context);
     });
 
+// Ahead of routing, rate limiting and authentication: a rejected write signs nobody in.
+app.UseMiddleware<CrossSiteWriteMiddleware>();
+
 app.UseRouting();
 
 // Behind the forwarded headers, so a partition is the caller's address rather than the proxy's.

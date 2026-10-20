@@ -58,6 +58,9 @@ public static class Bootstrap
 
                 // Tokens are signed with HS256; without this a caller could pick the algorithm.
                 options.TokenValidationParameters.ValidAlgorithms = [SecurityAlgorithms.HmacSha256];
+
+                // The browser sends the token as a cookie; a caller with an Authorization header keeps using it.
+                options.Events = new() { OnMessageReceived = ReadAccessCookie };
             });
 
         // Default deny: an unattributed endpoint fails closed; open ones say [AllowAnonymous].
@@ -66,6 +69,17 @@ public static class Bootstrap
             .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
 
         return services;
+    }
+
+    private static Task ReadAccessCookie(MessageReceivedContext context)
+    {
+        if (string.IsNullOrEmpty(context.Request.Headers.Authorization)
+            && HostCookie.Read(context.Request, AccessCookie.Name) is { } token)
+        {
+            context.Token = token;
+        }
+
+        return Task.CompletedTask;
     }
 
     public static async Task SeedEvilCaseUser(this IHost host, CancellationToken token)

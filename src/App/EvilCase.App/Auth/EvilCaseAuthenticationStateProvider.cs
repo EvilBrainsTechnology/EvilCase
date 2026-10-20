@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 namespace EvilBrains.EvilCase.App.Auth;
 
 internal sealed class EvilCaseAuthenticationStateProvider(
-    IAccessTokenStore tokens,
+    ISessionStore store,
     IAuthClient authClient,
     ILogger<EvilCaseAuthenticationStateProvider> logger) : AuthenticationStateProvider, IAuthSession, IDisposable
 {
@@ -81,18 +81,18 @@ internal sealed class EvilCaseAuthenticationStateProvider(
             logger.LogWarning(exception, "Sign-out could not be completed on the server");
         }
 
-        tokens.ClearAccessToken();
+        store.Clear();
         this.Publish();
     }
 
-    public async Task<bool> Renew(CancellationToken token)
+    public async Task<bool> Renew(SessionState? seen, CancellationToken token)
     {
         await this.renewal.WaitAsync(token);
 
         try
         {
             // Whoever was ahead in the queue may have done the work already.
-            if (tokens.Current is { } current && current.ExpiresAt - DateTime.UtcNow > RenewAhead)
+            if (store.Current is { } current && current != seen && current.ExpiresAt - DateTime.UtcNow > RenewAhead)
                 return true;
 
             this.Apply(await authClient.Refresh(token));
@@ -101,9 +101,9 @@ internal sealed class EvilCaseAuthenticationStateProvider(
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.Unauthorized)
         {
-            var wasSignedIn = tokens.Current is not null;
+            var wasSignedIn = store.Current is not null;
 
-            tokens.ClearAccessToken();
+            store.Clear();
 
             if (wasSignedIn)
             {
@@ -125,7 +125,7 @@ internal sealed class EvilCaseAuthenticationStateProvider(
         }
     }
 
-    private static AuthenticationState BuildAuthenticationState(AccessTokenState? token)
+    private static AuthenticationState BuildAuthenticationState(SessionState? token)
     {
         if (token is null)
             return new(new ClaimsPrincipal(new ClaimsIdentity()));
@@ -141,18 +141,17 @@ internal sealed class EvilCaseAuthenticationStateProvider(
 
     private async Task<AuthenticationState> Restore()
     {
-        await this.Renew(CancellationToken.None);
+        await this.Renew(seen: null, CancellationToken.None);
 
         this.restored = true;
 
-        return BuildAuthenticationState(tokens.Current);
+        return BuildAuthenticationState(store.Current);
     }
 
     private void Apply(LoginResponse response)
     {
-        tokens.SetAccessToken(new()
+        store.Set(new()
         {
-            Token = response.AccessToken,
             ExpiresAt = response.ExpiresAt,
             Email = response.Email,
             Role = response.Role,
@@ -161,7 +160,7 @@ internal sealed class EvilCaseAuthenticationStateProvider(
 
     private void Publish()
     {
-        var next = Task.FromResult(BuildAuthenticationState(tokens.Current));
+        var next = Task.FromResult(BuildAuthenticationState(store.Current));
 
         this.state = next;
 
