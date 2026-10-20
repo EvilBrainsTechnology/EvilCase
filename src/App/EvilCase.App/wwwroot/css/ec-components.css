@@ -2293,6 +2293,7 @@ html {
     border-radius: var(--ec-radius-sm);
     font-family: var(--ec-font-mono);
     font-size: var(--ec-text-xs);
+    line-height: 1;
     color: var(--ec-text-muted);
 }
 
