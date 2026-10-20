@@ -15,4 +15,9 @@ internal interface IAuthSession
     /// where the server rejected it.
     /// </summary>
     public Task<bool> Renew(SessionState? seen, CancellationToken token);
+
+    /// <summary>
+    /// Renews a session about to lapse, so a request the browser makes on its own carries a live access cookie.
+    /// </summary>
+    public Task EnsureFresh(CancellationToken token);
 }

@@ -1,6 +1,7 @@
 using System.Text;
 using Bunit;
 using EvilBrains.EvilCase.Api.Contract.Files;
+using EvilBrains.EvilCase.App.Auth;
 using EvilBrains.EvilCase.App.Components;
 using EvilBrains.EvilCase.App.Files;
 using Microsoft.AspNetCore.Components;
@@ -36,6 +37,19 @@ public class FilePreviewModalRenderTests
             Assert.That(loads, Is.Zero, "the browser requests the file itself");
             Assert.That(blobs.Created, Is.Empty);
         }
+    }
+
+    [TestCase("a.pdf", 1)]
+    [TestCase("a.mp4", 1)]
+    [TestCase("a.svg", 0)]
+    public void APreviewTheBrowserRequestsItselfRenewsAnExpiringSessionFirst(string fileName, int checks)
+    {
+        using var ctx = NewContext(out _);
+
+        var file = File(fileName);
+        Render(ctx, [file], file.FileId);
+
+        Assert.That(ctx.Services.GetRequiredService<StubAuthSession>().FreshnessChecks, Is.EqualTo(checks), "a plain browser request carries no renewal of its own");
     }
 
     [TestCase("a.JPG")]
@@ -611,6 +625,8 @@ public class FilePreviewModalRenderTests
         previews = new StubFilePreviews();
         ctx.Services.AddSingleton<IBlobUrls>(blobs);
         ctx.Services.AddSingleton<IFilePreviews>(previews);
+        ctx.Services.AddSingleton(new StubAuthSession());
+        ctx.Services.AddSingleton<IAuthSession>(static services => services.GetRequiredService<StubAuthSession>());
 
         return ctx;
     }

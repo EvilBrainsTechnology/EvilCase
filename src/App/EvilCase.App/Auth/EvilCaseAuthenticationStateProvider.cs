@@ -17,7 +17,7 @@ internal sealed class EvilCaseAuthenticationStateProvider(
     /// <summary>
     /// The margin covers a request already on its way when the token runs out.
     /// </summary>
-    public static readonly TimeSpan RenewAhead = TimeSpan.FromSeconds(60);
+    private static readonly TimeSpan RenewAhead = TimeSpan.FromSeconds(60);
 
     private readonly SemaphoreSlim renewal = new(initialCount: 1, maxCount: 1);
 
@@ -123,6 +123,12 @@ internal sealed class EvilCaseAuthenticationStateProvider(
         {
             this.renewal.Release();
         }
+    }
+
+    public async Task EnsureFresh(CancellationToken token)
+    {
+        if (store.Current is { } current && current.ExpiresAt - DateTime.UtcNow <= RenewAhead)
+            await this.Renew(current, token);
     }
 
     private static AuthenticationState BuildAuthenticationState(SessionState? token)

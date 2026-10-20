@@ -22,8 +22,7 @@ internal sealed class AuthTokenHandler(ISessionStore store, IServiceProvider ser
         var body = request.Content is null ? null : await request.Content.ReadAsByteArrayAsync(cancellationToken);
         var contentType = request.Content?.Headers.ContentType;
 
-        if (this.IsExpiring())
-            await this.Session().Renew(store.Current, cancellationToken);
+        await this.Session().EnsureFresh(cancellationToken);
 
         // A 401 on this session renews even while it looks fresh: another tab may have signed out.
         var sent = store.Current;
@@ -89,11 +88,5 @@ internal sealed class AuthTokenHandler(ISessionStore store, IServiceProvider ser
     private IAuthSession Session()
     {
         return services.GetRequiredService<IAuthSession>();
-    }
-
-    private bool IsExpiring()
-    {
-        return store.Current is { } current
-            && current.ExpiresAt - DateTime.UtcNow <= EvilCaseAuthenticationStateProvider.RenewAhead;
     }
 }

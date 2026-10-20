@@ -2,6 +2,7 @@ using System.Net;
 using Bunit;
 using EvilBrains.ApiClient;
 using EvilBrains.EvilCase.Api.Contract.Files;
+using EvilBrains.EvilCase.App.Auth;
 using EvilBrains.EvilCase.App.Components;
 using EvilBrains.EvilCase.App.Files;
 using EvilBrains.EvilCase.App.Models;
@@ -626,6 +627,7 @@ public class FilesCardRenderTests
         ctx.Services.AddSingleton<IFileDownloader>(downloader);
         ctx.Services.AddSingleton<IBlobUrls>(new StubBlobUrls());
         ctx.Services.AddSingleton<IFilePreviews>(new StubFilePreviews());
+        ctx.Services.AddSingleton<IAuthSession>(new StubAuthSession());
 
         return ctx;
     }
