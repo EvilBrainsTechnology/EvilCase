@@ -20,6 +20,7 @@ Otevři je v prohlížeči přímo ze souboru.
 | [`detail-spisu.html`](detail-spisu.html) | Detail spisu | `/cases/{id}` |
 | [`detail-ukonu.html`](detail-ukonu.html) | Detail úkonu | `/acts/{actId}` |
 | [`novy-ukon.html`](novy-ukon.html) | Založení úkonu, předloha i pro editaci | `/acts/new?case={id}`, `/acts/{actId}/edit` |
+| [`nahled-dokumentu.html`](nahled-dokumentu.html) | Náhled dokumentu Word v modalu souborů | detail spisu a úkonu |
 | [`hledani.html`](hledani.html) | Hledání v horní liště, otevřená nabídka | všechny obrazovky |
 | [`kontakty.html`](kontakty.html) | Kontakty | `/contacts` |
 | [`detail-kontaktu.html`](detail-kontaktu.html) | Detail kontaktu | `/contacts/{id}` |
