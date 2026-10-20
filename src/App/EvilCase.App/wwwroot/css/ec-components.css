@@ -1352,39 +1352,24 @@ html {
     border-left: 1px solid var(--ec-border);
 }
 
-.ec-preview-stage-pdf {
-    align-items: stretch;
-}
-
-.ec-preview-stage-pdf > .ec-preview-note {
-    align-self: center;
-}
-
 .ec-preview-pdf {
     display: flex;
     flex-direction: column;
-    gap: var(--ec-space-4);
+    gap: var(--ec-preview-page-gap);
     width: var(--ec-preview-pdf-width);
     max-width: 100%;
-    align-self: center;
 }
 
 .ec-preview-pdf-page {
     flex: none;
     background: var(--ec-surface);
-    box-shadow: var(--ec-shadow-raised);
+    box-shadow: var(--ec-shadow-page);
 }
 
 .ec-preview-pdf-page canvas {
     display: block;
     width: var(--ec-preview-pdf-page-fill);
     height: var(--ec-preview-pdf-page-fill);
-}
-
-@media (max-width: 991.98px) {
-    .ec-preview-stage-pdf {
-        padding: var(--ec-space-3);
-    }
 }
 
 .ec-preview-stage {
