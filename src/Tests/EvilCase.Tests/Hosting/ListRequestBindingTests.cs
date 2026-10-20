@@ -127,7 +127,9 @@ public class ListRequestBindingTests
         {
             Assert.That(categories, Has.Some.StartsWith("Microsoft.AspNetCore.Mvc.ModelBinding"), "the binding messages are logged");
             Assert.That(
-                categories.Where(static category => category.StartsWith("EvilBrains", StringComparison.Ordinal) && category.Contains("ModelBinder", StringComparison.Ordinal)),
+                categories
+                    .Where(static category => category.StartsWith("EvilBrains", StringComparison.Ordinal))
+                    .Where(static category => category.Contains("ModelBinder", StringComparison.Ordinal)),
                 Is.Empty,
                 "a binder of ours does not file MVC's messages under our category");
         }
