@@ -254,23 +254,25 @@ async function openPdf(host, url) {
     pdf.document = await task.promise;
 
     const column = document.createDocumentFragment();
+    const { numPages } = pdf.document;
+    // Asked for all at once: one round trip to the worker per page, in turn, takes seconds on a long file.
+    const proxies = await Promise.all(Array.from({ length: numPages }, (_, index) => pdf.document.getPage(index + 1)));
 
-    for (let number = 1; number <= pdf.document.numPages; number++) {
-        const proxy = await pdf.document.getPage(number);
+    if (pdf.disposed) {
+        return 0;
+    }
+
+    for (const proxy of proxies) {
+        const number = proxy.pageNumber;
         const { width, height } = proxy.getViewport({ scale: 1 });
         const box = document.createElement('div');
 
         box.className = 'ec-preview-pdf-page';
         box.style.aspectRatio = `${width} / ${height}`;
         box.setAttribute('role', 'img');
-        box.setAttribute('aria-label', `Strana ${number} z ${pdf.document.numPages}`);
-        proxy.cleanup();
+        box.setAttribute('aria-label', `Strana ${number} z ${numPages}`);
         pdf.list.push({ number, width, height, box, drawn: false, task: null });
         column.appendChild(box);
-
-        if (pdf.disposed) {
-            return 0;
-        }
     }
 
     host.replaceChildren(column);
@@ -293,6 +295,10 @@ async function openPdf(host, url) {
     // The first page is drawn before the preview opens, so a file that parses but does not render shows the fallback.
     await drawPage(pdf, pdf.list[0]);
 
+    if (pdf.disposed) {
+        return 0;
+    }
+
     pdf.list.forEach(page => near.observe(page.box));
 
     let lastWidth = host.clientWidth;
@@ -311,7 +317,7 @@ async function openPdf(host, url) {
     resize.observe(host);
     observers.push(resize);
 
-    return pdf.document.numPages;
+    return numPages;
 }
 
 export async function readWorkbook(contentStream, maxRows) {
