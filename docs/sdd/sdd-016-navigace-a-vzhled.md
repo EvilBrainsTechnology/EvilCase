@@ -47,6 +47,8 @@ a otevírá se na nové kartě nebo v novém okně jako kterýkoli jiný odkaz. 
 pojmenovává entitu, které sloupec patří. Buňka nese odkaz jen tam, kde vede jinam než řádek.
 
 Každý seznam vypadá stejně; stránka volí jen sloupce, jejich pořadí a nabízené ovládání.
+Seznam spisů a úkonů má poslední sloupec Změněno; datum spisu
+a úkonu je v každém seznamu tučné. Žádný seznam nezobrazuje číslo jednací ani spisovou značku.
 Řaditelné záhlaví sloupce je tlačítko, na mobilu řadí select v liště. Seznam na víc stránek nese
 v patičce zobrazený rozsah, celkový počet a předchozí/další; seznam na jednu stránku patičku nemá.
 

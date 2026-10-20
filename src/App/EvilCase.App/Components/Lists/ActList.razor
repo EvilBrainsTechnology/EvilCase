@@ -27,7 +27,7 @@
                 Header = this.DateHeader,
                 Width = "var(--ec-list-col-date)",
                 SortKey = nameof(ActSortKey.Date),
-                CellClass = "ec-cell-num",
+                CellClass = "ec-cell-num ec-cell-date",
                 Cell = item =>@<text>@DateDisplay.Text(item.Date)</text>,
             },
             ActColumn.Direction => new EcColumn<ActListItem>
@@ -86,14 +86,6 @@
                     </span>
                     <span class="ec-cell-text ec-cell-sub" title="@item.CaseTitle">@item.CaseTitle</span>
                 </text>,
-            },
-            ActColumn.ActNumberInCase => new EcColumn<ActListItem>
-            {
-                Header = "Číslo jednací",
-                Width = "var(--ec-case-act-col-number)",
-                SortKey = nameof(ActSortKey.ActNumber),
-                CellClass = "ec-cell-mono",
-                Cell = item =>@<span class="ec-cell-text" title="@item.ActNumber">@ActNumberDisplay.WithinCase(item.ActNumber, item.CaseNumber)</span>,
             },
             _ => throw new UnreachableException(),
         });

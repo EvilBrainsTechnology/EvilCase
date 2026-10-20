@@ -17,9 +17,9 @@ public class DashboardRenderTests
 
     private static readonly string[] ExpectedLabels = ["Aktivní", "Čeká na úřad", "Uzavřené"];
 
-    private static readonly string[] CaseTileHeaders = ["Změněno ↓", "Datum spisu", "Spis", "Stav", "Spisová značka"];
+    private static readonly string[] CaseTileHeaders = ["Datum spisu", "Spis", "Stav", "Změněno ↓"];
 
-    private static readonly string[] ActTileHeaders = ["Změněno ↓", "Datum úkonu", "Úkon a spis", "Směr", "Kontakt", "Číslo jednací"];
+    private static readonly string[] ActTileHeaders = ["Datum úkonu", "Úkon a spis", "Směr", "Kontakt", "Změněno ↓"];
 
     [Test]
     public void BothListTilesReadFromTheLastChange()
@@ -61,7 +61,7 @@ public class DashboardRenderTests
     }
 
     [Test]
-    public void TheActTileShowsTheActsOwnNumberAndItsCaseUnderTheTitle()
+    public void TheActTileShowsTheCaseUnderTheTitle()
     {
         using var ctx = new BunitContext();
 
@@ -79,10 +79,7 @@ public class DashboardRenderTests
         {
             Assert.That(row.QuerySelector(".ec-cell-line .ec-cell-text")!.TextContent, Is.EqualTo("Výzva"));
             Assert.That(row.QuerySelector(".ec-cell-sub")!.TextContent, Is.EqualTo("Přestupek"), "the case title sits under the act title");
-            Assert.That(
-                row.QuerySelectorAll(".ec-cell-mono .ec-cell-text").Select(static cell => cell.TextContent),
-                Is.EqualTo(["U/20260821-000"]),
-                "the act's own number closes the row");
+            Assert.That(row.QuerySelector(".ec-cell-mono"), Is.Null, "no act number is shown");
         }
     }
 

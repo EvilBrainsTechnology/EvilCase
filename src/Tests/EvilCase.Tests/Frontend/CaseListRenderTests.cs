@@ -23,11 +23,11 @@ public class CaseListRenderTests
         using var ctx = new BunitContext();
         Serve(ctx, out _);
 
-        var component = Render(ctx, [CaseColumn.Status, CaseColumn.CaseNumber, CaseColumn.Date]);
+        var component = Render(ctx, [CaseColumn.Status, CaseColumn.Changed, CaseColumn.Date]);
 
         component.WaitForElement("a.ec-table-row");
 
-        string[] headers = ["Stav", "Spisová značka", "Datum spisu"];
+        string[] headers = ["Stav", "Změněno", "Datum spisu"];
 
         Assert.That(
             component.FindAll(".ec-table-header").Select(static header => header.TextContent.Trim().TrimEnd('↑', '↓').Trim()),
@@ -41,15 +41,28 @@ public class CaseListRenderTests
         using var ctx = new BunitContext();
         Serve(ctx, out _);
 
-        var component = Render(ctx, [CaseColumn.CaseNumber]);
+        var component = Render(ctx, [CaseColumn.Status]);
 
         component.WaitForElement("a.ec-table-row");
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.Find(".ec-table-header").TextContent.Trim(), Is.EqualTo("Spisová značka"));
-            Assert.That(component.Find(".ec-table-cell").TextContent, Does.Contain("EC/20260821-001"));
+            Assert.That(component.Find(".ec-table-header").TextContent.Trim(), Is.EqualTo("Stav"));
+            Assert.That(component.Find(".ec-table-cell").TextContent, Does.Contain("Aktivní"));
         }
+    }
+
+    [Test]
+    public void TheDateColumnIsBold()
+    {
+        using var ctx = new BunitContext();
+        Serve(ctx, out _);
+
+        var component = Render(ctx, [CaseColumn.Date]);
+
+        component.WaitForElement("a.ec-table-row");
+
+        Assert.That(component.Find(".ec-table-cell").ClassList, Does.Contain("ec-cell-date"), "the case date reads bold in every table");
     }
 
     [Test]
@@ -288,7 +301,7 @@ public class CaseListRenderTests
         using var ctx = new BunitContext();
         Serve(ctx, out _);
 
-        var component = Render(ctx, [CaseColumn.Changed, CaseColumn.Date, CaseColumn.Case, CaseColumn.Status, CaseColumn.CaseNumber]);
+        var component = Render(ctx, [CaseColumn.Changed, CaseColumn.Date, CaseColumn.Case, CaseColumn.Status]);
 
         Assert.That(
             component.Find(".ec-table").GetAttribute("style"),
@@ -337,26 +350,6 @@ public class CaseListRenderTests
         component.WaitForElement("a.ec-table-row");
 
         Assert.That(component.FindAll(".ec-table-cell .ec-badge .ec-badge-dot"), Has.Count.EqualTo(1), "a case status reads from its colour as well as its word");
-    }
-
-    [Test]
-    public void TheExternalCaseNumberSitsUnderTheCaseNumber()
-    {
-        using var ctx = new BunitContext();
-        Serve(ctx, out _, total: 2, items: [Row with { ExternalCaseNumber = "VV41/2025/08464" }, Row with { CaseId = Guid.CreateVersion7() }]);
-
-        var component = Render(ctx, [CaseColumn.CaseNumber]);
-
-        component.WaitForElement("a.ec-table-row");
-
-        var cells = component.FindAll(".ec-table-cell");
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(cells[0].ClassList, Does.Contain("ec-cell-stack"));
-            Assert.That(cells[0].QuerySelector(".ec-cell-sub")!.TextContent, Is.EqualTo("VV41/2025/08464"));
-            Assert.That(cells[1].QuerySelector(".ec-cell-sub"), Is.Null, "a case without an external number shows no empty line");
-        }
     }
 
     [Test]

@@ -202,7 +202,7 @@ public class ActListRenderTests
 
         var component = Render(
             ctx,
-            [ActColumn.Changed, ActColumn.Date, ActColumn.Direction, ActColumn.Contact, ActColumn.ActWithLabels, ActColumn.ActNumberInCase, ActColumn.ActAndCase]);
+            [ActColumn.Changed, ActColumn.Date, ActColumn.Direction, ActColumn.Contact, ActColumn.ActWithLabels, ActColumn.ActAndCase]);
 
         Assert.That(
             component.Find(".ec-table").GetAttribute("style"),
@@ -211,23 +211,16 @@ public class ActListRenderTests
     }
 
     [Test]
-    public void TheActNumberInTheCaseDropsTheCasePrefix()
+    public void TheDateColumnIsBold()
     {
         using var ctx = new BunitContext();
         Serve(ctx, out _);
 
-        var component = Render(ctx, [ActColumn.ActNumberInCase]);
+        var component = Render(ctx, [ActColumn.Date]);
 
         component.WaitForElement("a.ec-table-row");
 
-        var cell = component.Find(".ec-table-cell .ec-cell-text");
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(component.Find(".ec-table-header").TextContent.Trim().TrimEnd('↑', '↓').Trim(), Is.EqualTo("Číslo jednací"));
-            Assert.That(cell.TextContent, Is.EqualTo("20260821-002"));
-            Assert.That(cell.GetAttribute("title"), Is.EqualTo("EC/20260821-001/20260821-002"), "the title keeps the whole number");
-        }
+        Assert.That(component.Find(".ec-table-cell").ClassList, Does.Contain("ec-cell-date"), "the act date reads bold in every table");
     }
 
     [Test]

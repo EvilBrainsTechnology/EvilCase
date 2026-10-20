@@ -4406,14 +4406,15 @@ html:has(.ec-gate) {
     font-variant-numeric: tabular-nums;
 }
 
+.ec-cell-date {
+    font-weight: var(--ec-weight-semibold);
+    color: var(--ec-text);
+}
+
 .ec-cell-mono {
     font-family: var(--ec-font-mono);
     font-size: var(--ec-text-xs);
     color: var(--ec-text-number);
-}
-
-.ec-case-acts .ec-cell-mono {
-    color: var(--ec-text-muted);
 }
 
 .ec-cell-sub {
@@ -4550,7 +4551,7 @@ html:has(.ec-gate) {
         margin-left: calc(-1 * (var(--ec-monogram-sm) + var(--ec-space-4)));
     }
 
-    /* Kontakt sdílí řádek s číslem jednacím a bez místa se zkrátí. */
+    /* Kontakt sdílí řádek s dalšími údaji a bez místa se zkrátí. */
     .ec-table-row > .ec-cell-contact {
         flex: 1 1 var(--ec-list-col-contact);
         min-width: 0;
@@ -4664,7 +4665,6 @@ html:has(.ec-gate) {
 
 .ec-recent-cases {
     --ec-list-col-date: var(--ec-recent-col-date);
-    --ec-list-col-number: var(--ec-recent-col-number);
 }
 
 .ec-recent-acts {
@@ -4811,7 +4811,7 @@ html:has(.ec-gate) {
     --ec-list-badge-height: var(--ec-case-act-badge-height);
     --ec-list-badge-pad: var(--ec-space-3);
     --ec-list-col-date: var(--ec-case-act-col-date);
-    --ec-list-col-status: var(--ec-case-act-col-number);
+    --ec-list-col-status: var(--ec-case-act-col-status);
 }
 
 /* Prázdný seznam vedle plného je jen tak vysoký, jak potřebuje jeho věta. */

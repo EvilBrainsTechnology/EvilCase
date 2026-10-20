@@ -2,6 +2,7 @@ using Bunit;
 using EvilBrains.EvilCase.Api.Client;
 using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Labels;
+using EvilBrains.EvilCase.Api.Contract.Lists;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -21,6 +22,29 @@ public class CasesRenderTests
 
         await component.WaitForAssertionAsync(
             () => Assert.That(requests[0].Search, Is.EqualTo("rychlost"), "the bar's search opens the case list narrowed by the text"));
+    }
+
+    [Test]
+    public async Task ThePageListsTheCasesWithTheChangeMomentLast()
+    {
+        await using var ctx = new BunitContext();
+        Serve(ctx, out var requests);
+
+        ctx.Services.GetRequiredService<NavigationManager>().NavigateTo("/cases");
+
+        var component = ctx.Render<App.Pages.Cases>();
+
+        await component.WaitForAssertionAsync(() =>
+        {
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(
+                    component.FindAll(".ec-table-header").Select(static header => header.TextContent.Trim().TrimEnd('↑', '↓').Trim()),
+                    Is.EqualTo(["Datum spisu", "Spis", "Stav", "Změněno"]));
+                Assert.That(requests[0].Sort, Is.EqualTo(CaseSortKey.Date));
+                Assert.That(requests[0].SortDirection, Is.EqualTo(ListSortDirection.Descending), "the newest case comes first");
+            }
+        });
     }
 
     [Test]

@@ -220,7 +220,6 @@
     --ec-list-col-date: 110px;
     --ec-list-col-moment: 120px;
     --ec-list-col-status: 130px;
-    --ec-list-col-number: 230px;
     --ec-list-col-kind: 140px;
     --ec-list-col-databox: 170px;
     --ec-list-col-address: 300px;
@@ -256,7 +255,7 @@
     /* Detail spisu (docs/design/detail-spisu.html) */
     --ec-case-act-col-date: 96px;
     --ec-case-act-col-direction: 96px;
-    --ec-case-act-col-number: 112px;
+    --ec-case-act-col-status: 112px;
     --ec-case-act-badge-height: 22px;
     --ec-filter-label-width: 360px;
     --ec-chip-sm-height: 18px;
@@ -294,7 +293,6 @@
     --ec-stat-pad-y: 18px;
     --ec-stat-gap: 4px;
     --ec-recent-col-date: 100px;
-    --ec-recent-col-number: 170px;
     --ec-recent-col-direction: 110px;
     --ec-recent-col-contact: 240px;
 

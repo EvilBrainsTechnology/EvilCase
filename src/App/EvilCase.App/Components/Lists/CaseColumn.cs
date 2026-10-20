@@ -9,6 +9,4 @@ public enum CaseColumn
     Case = 2,
 
     Status = 3,
-
-    CaseNumber = 5,
 }
