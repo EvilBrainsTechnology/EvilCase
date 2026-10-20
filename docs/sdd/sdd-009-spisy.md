@@ -45,12 +45,13 @@ kontakt. Zadává se na editaci spisu.
   s barevnou tečkou a okamžik poslední změny. Výchozí řazení je podle
   data spisu sestupně; záhlaví sloupce řadí podle sebe a druhý klik otočí směr. Seznam je
   stránkovaný podle SDD-005 a nese celkový počet. Lišta je na jednom řádku: hledání, přepínač
-  stavu, tlačítko Filtry a Jen rodičovské spisy. Hledací pole hledá v názvu a popisu bez ohledu na
-  diakritiku. Přepínač stavu nabízí Otevřené (vše kromě uzavřených), Aktivní, Čeká na úřad,
+  stavu, tlačítko Filtry a Jen rodičovské spisy. Hledací pole hledá v názvu, popisu, spisové značce a
+  externí značce bez ohledu na diakritiku. Přepínač stavu nabízí Otevřené (vše kromě uzavřených), Aktivní, Čeká na úřad,
   Uzavřené a Vše; výchozí je Otevřené. Rozsah dat a štítky jsou pod tlačítkem Filtry, které je ve
   výchozím stavu sbalené a nese počet aktivních filtrů. Jen rodičovské spisy je ve výchozím stavu
   zapnuté a po vypnutí seznam ukazuje i podřízené spisy. Stav i rozsah jde předat odkazem, jako to
-  dělají dlaždice přehledu (SDD-015).
+  dělají dlaždice přehledu (SDD-015). Příchod na adresu seznamu nastaví všechny filtry podle
+  adresy; co adresa nezmiňuje, má výchozí hodnotu.
 - `/cases/new` — založení, včetně kontaktu a štítků; `?parent={id}` zakládá podřízený spis.
 - `/cases/{id}` — detail: údaje, štítky, podřízené spisy, úkony (SDD-010), komentáře (SDD-013),
   soubory (SDD-012). Řádek údajů nese spisovou značku i externí značku a obě jde zkopírovat.

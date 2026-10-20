@@ -224,7 +224,7 @@ public class ContactListRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.Find("input[type=search]").GetAttribute("placeholder"), Is.EqualTo("Hledat v názvu a ID schránky"));
+            Assert.That(component.Find("input[type=search]").GetAttribute("placeholder"), Is.EqualTo("Hledat v názvu, schránce a adrese"));
             Assert.That(component.Find(".ec-segmented").ClassList, Does.Contain("ec-segmented-compact"));
             Assert.That(
                 component.FindAll(".ec-segment").Select(static segment => segment.TextContent.Trim()),

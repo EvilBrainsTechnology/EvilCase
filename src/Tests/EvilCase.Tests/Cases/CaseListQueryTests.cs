@@ -51,6 +51,23 @@ public class CaseListQueryTests : TenantFixture
     }
 
     [Test]
+    public async Task TheSearchAlsoReachesTheCaseNumberAndTheExternalCaseNumber()
+    {
+        await this.Tenant.AddCase(Day, "Přestupek", caseNumber: "EC/20260824-777");
+        await this.Tenant.AddCase(Day, "Odvolání", externalCaseNumber: "VV41/2025/08464");
+        await this.Tenant.AddCase(Day, "Jiné");
+
+        var byNumber = await this.Titles("20260824-777");
+        var byExternalNumber = await this.Titles("vv41/2025");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(byNumber, Is.EqualTo(["Přestupek"]), "the case number is searched");
+            Assert.That(byExternalNumber, Is.EqualTo(["Odvolání"]), "the external case number is searched");
+        }
+    }
+
+    [Test]
     public async Task AWildcardInTheTermMatchesOnlyItself()
     {
         await this.Tenant.AddCase(Day, @"Sleva 50%_a\b");

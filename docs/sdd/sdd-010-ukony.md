@@ -38,9 +38,11 @@ kontakt. Zadává se na editaci úkonu.
 ### Stránky a řazení
 
 - `/acts` — seznam úkonů napříč spisy: datum úkonu, název se spisem, směr, kontakt a okamžik
-  poslední změny. Zužuje se hledáním, směrem, rozsahem dat a štítkem; volba „Jen z otevřených spisů“ je
+  poslední změny. Hledací pole hledá v názvu, popisu, čísle úkonu a externím čísle úkonu.
+  Zužuje se hledáním, směrem, rozsahem dat a štítkem; volba „Jen z otevřených spisů“ je
   ve výchozím stavu zapnutá a vynechá úkony uzavřených spisů. Výchozí řazení je podle data úkonu
-  sestupně, 20 úkonů na stránku.
+  sestupně, 20 úkonů na stránku. Příchod na adresu seznamu nastaví všechny filtry podle adresy;
+  co adresa nezmiňuje, má výchozí hodnotu.
 - `/acts/new?case={id}` — založení, včetně štítků. Bez spisu v adrese formulář vyžaduje výběr spisu.
 - `/acts/{actId}` — detail: štítky, údaje, komentáře (SDD-013), soubory (SDD-012).
   Nese pořadí úkonu ve spisu s přechodem na předchozí a další úkon a průběh spisu: nejvýše dva

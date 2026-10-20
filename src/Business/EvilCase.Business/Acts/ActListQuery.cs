@@ -25,7 +25,10 @@ internal static class ActListQuery
         return acts.Where(act =>
             EF.Functions.ILike(DatabaseFunctions.Unaccent(act.Title), DatabaseFunctions.Unaccent(pattern), LikeExtensions.LikeEscape)
                 || (act.Description != null
-                    && EF.Functions.ILike(DatabaseFunctions.Unaccent(act.Description), DatabaseFunctions.Unaccent(pattern), LikeExtensions.LikeEscape)));
+                    && EF.Functions.ILike(DatabaseFunctions.Unaccent(act.Description), DatabaseFunctions.Unaccent(pattern), LikeExtensions.LikeEscape))
+                || EF.Functions.ILike(DatabaseFunctions.Unaccent(act.ActNumber), DatabaseFunctions.Unaccent(pattern), LikeExtensions.LikeEscape)
+                || (act.ExternalActNumber != null
+                    && EF.Functions.ILike(DatabaseFunctions.Unaccent(act.ExternalActNumber), DatabaseFunctions.Unaccent(pattern), LikeExtensions.LikeEscape)));
     }
 
     public static IQueryable<Act> OfCase(this IQueryable<Act> acts, Guid? caseId)
