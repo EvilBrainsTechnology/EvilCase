@@ -25,6 +25,7 @@ internal static class Program
 
         // One instance behind all three registrations.
         builder.Services.AddSingleton<ISessionStore, SessionStore>();
+        builder.Services.AddSingleton<IEarlyRefresh, EarlyRefresh>();
         builder.Services.AddSingleton<EvilCaseAuthenticationStateProvider>();
         builder.Services.AddSingleton<AuthenticationStateProvider>(static services => services.GetRequiredService<EvilCaseAuthenticationStateProvider>());
         builder.Services.AddSingleton<IAuthSession>(static services => services.GetRequiredService<EvilCaseAuthenticationStateProvider>());

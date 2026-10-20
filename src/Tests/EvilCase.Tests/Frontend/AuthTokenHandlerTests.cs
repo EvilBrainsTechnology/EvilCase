@@ -124,7 +124,7 @@ public class AuthTokenHandlerTests
 
     private static async Task<HttpResponseMessage> Send(IAuthClient authClient, SessionStore store, HttpMessageHandler inner, string path)
     {
-        using var session = new EvilCaseAuthenticationStateProvider(store, authClient, NullLogger<EvilCaseAuthenticationStateProvider>.Instance);
+        using var session = new EvilCaseAuthenticationStateProvider(store, authClient, new StubEarlyRefresh(), NullLogger<EvilCaseAuthenticationStateProvider>.Instance);
         await using var services = new ServiceCollection()
             .AddSingleton<IAuthSession>(session)
             .BuildServiceProvider();
