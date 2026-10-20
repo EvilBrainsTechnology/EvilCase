@@ -2207,9 +2207,26 @@ html {
     flex: 1 1 auto;
 }
 
-/* The chips overhang the value line, so the label fact is no taller than the others. */
+/* The chips sit on the value line; the add button and the box overhang it, so the label fact is no taller than the others. */
 .ec-detail-fact-labels .ec-label-field {
-    margin-block: calc((var(--ec-fact-line) - var(--ec-space-7) - var(--ec-space-1)) / 2);
+    margin-block: calc((var(--ec-fact-line) - var(--ec-space-7)) / 2);
+}
+
+.ec-detail-fact-labels .ec-label-field > .ec-chip {
+    height: var(--ec-fact-line);
+    padding: 0 var(--ec-space-3);
+    font-size: var(--ec-text-xs);
+}
+
+.ec-detail-fact-labels .ec-label-field > .ec-chip .ec-chip-dot {
+    width: var(--ec-space-2);
+    height: var(--ec-space-2);
+}
+
+.ec-detail-fact-labels .ec-label-add,
+.ec-detail-fact-labels .ec-label-input {
+    height: var(--ec-space-7);
+    font-size: var(--ec-text-xs);
 }
 
 .ec-detail-fact-name {
@@ -3025,6 +3042,11 @@ html {
 
     .ec-detail-fact-labels .ec-label-field {
         margin-block: 0;
+    }
+
+    .ec-detail-fact-labels .ec-label-field > .ec-chip {
+        height: calc(var(--ec-space-7) + var(--ec-space-1));
+        font-size: var(--ec-text-sm);
     }
 
     /* Tlačítko kopírování drží dotykovou plochu, ale řádek údaje nezvětší. */
