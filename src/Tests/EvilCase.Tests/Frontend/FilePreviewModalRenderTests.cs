@@ -32,8 +32,9 @@ public class FilePreviewModalRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.FindAll(".ec-preview-pdf"), Has.Count.EqualTo(1));
-            Assert.That(component.Find(".ec-preview-note").TextContent, Is.EqualTo("3 strany"));
+            Assert.That(component.FindAll(".ec-modal-body .ec-preview-pdf"), Has.Count.EqualTo(1));
+            Assert.That(component.FindAll(".ec-modal-body .ec-preview-pdf-toolbar"), Has.Count.EqualTo(1), "the PDF toolbar stands in the body, not in the header");
+            Assert.That(component.Find(".ec-preview-pdf-page-count").TextContent, Is.EqualTo("z 3"));
             Assert.That(previews.RenderedPdfs, Is.EqualTo([$"/api/files/{file.FileId}/content"]));
             Assert.That(component.FindAll("iframe, object, embed"), Is.Empty, "no browser viewer shows the PDF");
             Assert.That(loads, Is.Zero, "the library requests the file itself");
@@ -77,6 +78,30 @@ public class FilePreviewModalRenderTests
         component.Render(parameters => parameters.Add(static modal => modal.FileId, text.FileId));
 
         Assert.That(previews.DisposedPdfs, Is.EqualTo(1));
+    }
+
+    [Test]
+    public void SteppingFromOnePdfToAnotherReleasesTheFirstAndOpensTheSecond()
+    {
+        using var ctx = NewContext(out _, out var previews);
+
+        var first = File("a.pdf");
+        var second = File("b.pdf");
+        var component = Render(ctx, [first, second], first.FileId);
+
+        component.WaitForAssertion(() => Assert.That(previews.RenderedPdfs, Has.Count.EqualTo(1)));
+
+        component.Render(parameters => parameters.Add(static modal => modal.FileId, second.FileId));
+
+        component.WaitForAssertion(() =>
+        {
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(previews.DisposedPdfs, Is.EqualTo(1));
+                Assert.That(previews.RenderedPdfs, Is.EqualTo([$"/api/files/{first.FileId}/content", $"/api/files/{second.FileId}/content"]));
+                Assert.That(component.FindAll(".ec-preview-pdf"), Has.Count.EqualTo(1));
+            }
+        });
     }
 
     [TestCase("a.pdf", 1)]

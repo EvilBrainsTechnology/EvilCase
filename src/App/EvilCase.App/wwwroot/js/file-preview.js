@@ -127,12 +127,18 @@ export async function renderDocument(host, contentStream) {
     }
 }
 
-// PDF.js draws the pages of a PDF onto canvases; no text, annotation or form layer is created, so nothing in the
-// file is selectable, clickable or scripted. The document loads from its content URL with the session cookie.
-const maxPixelRatio = 2;
-const maxCanvasPixels = 16 * 1024 * 1024;
+// PDF.js shows a PDF in its viewer component: pages drawn as they come near the viewport, a text layer to select
+// and search, and links. Forms, scripts and the editor stay off. The document loads from its content URL with the
+// session cookie; the view reports its page, zoom and search matches to `view`, a .NET object reference.
+const pdfZoomSteps = [0.5, 0.67, 0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4];
+const pdfFitModes = ['page-width', 'page-fit'];
+// The canvas limit PDF.js sets itself on phones and tablets, whose browsers fail on larger canvases.
+const pdfCanvasPixels = /Android|\b(?:iPad|iPhone|iPod)(?=;)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+    ? 5242880
+    : 16 * 1024 * 1024;
 const pdfs = new Map();
 let pdfjs;
+let pdfViewerModule;
 
 function pdfLib(name) {
     return new URL(`../lib/pdfjs/${name}`, import.meta.url).href;
@@ -146,6 +152,51 @@ async function loadPdfjs() {
 
     return pdfjs;
 }
+
+// The stylesheet goes before the app's own, so a rule of the app wins over one of the viewer.
+function loadStylesheet(href) {
+    if (!loading.has(href)) {
+        const promise = new Promise((resolve, reject) => {
+            const link = document.createElement('link');
+
+            link.rel = 'stylesheet';
+            link.href = href;
+            link.onload = () => resolve();
+            link.onerror = () => {
+                loading.delete(href);
+                link.remove();
+                reject(new Error(`The stylesheet ${href} did not load.`));
+            };
+            document.head.insertBefore(link, document.head.querySelector('link[rel="stylesheet"]'));
+        });
+
+        loading.set(href, promise);
+    }
+
+    return loading.get(href);
+}
+
+// The library module sets the global pdfjsLib the viewer module reads when it loads.
+async function loadPdfViewer() {
+    const lib = await loadPdfjs();
+
+    await loadStylesheet(pdfLib('pdf_viewer.css'));
+    pdfViewerModule ??= await import(pdfLib('pdf_viewer.mjs'));
+
+    return { lib, viewer: pdfViewerModule };
+}
+
+// The viewer's labels; it fetches no locale files when it is given its own.
+const czechL10n = {
+    getLanguage: () => 'cs',
+    getDirection: () => 'ltr',
+    get: async ids => (Array.isArray(ids) ? ids.map(() => '') : ''),
+    translate: async () => {},
+    translateOnce: async () => {},
+    destroy: async () => {},
+    pause: () => {},
+    resume: () => {},
+};
 
 export function disposePdf(host) {
     // The element is gone once its file left the page, and the caller then holds no reference to it.
@@ -171,64 +222,12 @@ function releasePdfs() {
     }
 }
 
-// Pages draw as they come near the viewport and are freed once far away, so a long file holds few canvases.
-async function drawPage(pdf, page) {
-    if (page.task || page.drawn) {
-        return;
-    }
-
-    const generation = page.generation;
-    const ratio = Math.min(window.devicePixelRatio || 1, maxPixelRatio);
-    const cssWidth = page.box.clientWidth;
-    let scale = (cssWidth / page.width) * ratio;
-
-    scale = Math.min(scale, Math.sqrt(maxCanvasPixels / (page.width * page.height)));
-
-    const proxy = await pdf.document.getPage(page.number);
-    const viewport = proxy.getViewport({ scale });
-    const canvas = document.createElement('canvas');
-
-    canvas.width = Math.floor(viewport.width);
-    canvas.height = Math.floor(viewport.height);
-    page.task = proxy.render({ canvasContext: canvas.getContext('2d'), viewport });
-
-    try {
-        await page.task.promise;
-    } catch (error) {
-        if (error?.name !== 'RenderingCancelledException') {
-            throw error;
-        }
-    } finally {
-        page.task = null;
-        proxy.cleanup();
-    }
-
-    if (pdf.disposed) {
-        return;
-    }
-
-    // A page freed while its drawing finished keeps no canvas, and is drawn again if it is back in view.
-    if (page.generation === generation) {
-        page.box.replaceChildren(canvas);
-        page.drawn = true;
-    } else if (page.near) {
-        await drawPage(pdf, page);
-    }
-}
-
-function freePage(page) {
-    page.generation++;
-    page.task?.cancel();
-    page.drawn = false;
-    page.box.replaceChildren();
-}
-
-export async function renderPdf(host, url) {
+export async function renderPdf(host, url, view) {
     releasePdfs();
     disposePdf(host);
 
     try {
-        return await openPdf(host, url);
+        return await openPdf(host, url, view);
     } catch (error) {
         disposePdf(host);
 
@@ -236,8 +235,51 @@ export async function renderPdf(host, url) {
     }
 }
 
-async function openPdf(host, url) {
-    const lib = await loadPdfjs();
+function on(eventBus, name, signal, listener) {
+    eventBus.on(name, listener, { signal });
+}
+
+function next(eventBus, name, signal) {
+    return new Promise(resolve => eventBus.on(name, resolve, { once: true, signal }));
+}
+
+async function openPdf(host, url, view) {
+    const { lib, viewer: viewerLib } = await loadPdfViewer();
+    const abort = new AbortController();
+    const { signal } = abort;
+    const eventBus = new viewerLib.EventBus();
+
+    // Only a web or mail address stays a link, and it opens in a new tab; any other address is no link at all.
+    const linkService = new (class extends viewerLib.PDFLinkService {
+        addLinkAttributes(link, address) {
+            if (safeLink.test(address)) {
+                super.addLinkAttributes(link, address, true);
+            }
+        }
+    })({ eventBus, externalLinkTarget: viewerLib.LinkTarget.BLANK, externalLinkRel: 'noopener noreferrer nofollow' });
+    const findController = new viewerLib.PDFFindController({ eventBus, linkService });
+    const pages = document.createElement('div');
+
+    pages.className = 'pdfViewer';
+    host.replaceChildren(pages);
+
+    const viewer = new viewerLib.PDFViewer({
+        container: host,
+        viewer: pages,
+        eventBus,
+        linkService,
+        findController,
+        l10n: czechL10n,
+        textLayerMode: 1,
+        annotationMode: lib.AnnotationMode.ENABLE,
+        annotationEditorMode: lib.AnnotationEditorType.DISABLE,
+        imageResourcesPath: pdfLib('images/'),
+        maxCanvasPixels: pdfCanvasPixels,
+        abortSignal: signal,
+    });
+
+    linkService.setViewer(viewer);
+
     const task = lib.getDocument({
         url,
         withCredentials: true,
@@ -247,88 +289,155 @@ async function openPdf(host, url) {
         standardFontDataUrl: pdfLib('standard_fonts/'),
         iccUrl: pdfLib('iccs/'),
     });
-    const pdf = { disposed: false, list: [], document: null };
-    const observers = [];
+    const pdf = { disposed: false, ready: false, viewer, eventBus, document: null };
+    const frame = host.parentElement;
 
     pdf.dispose = () => {
         pdf.disposed = true;
-        observers.forEach(observer => observer.disconnect());
-        pdf.list.forEach(page => page.task?.cancel());
+        abort.abort();
+        viewer.setDocument(null);
+        linkService.setDocument(null);
         host.replaceChildren();
+        pdf.document?.destroy();
         task.destroy();
     };
     pdfs.set(host, pdf);
 
+    const notify = (method, ...args) => {
+        if (!pdf.disposed) {
+            view.invokeMethodAsync(method, ...args).catch(() => {});
+        }
+    };
+
+    on(eventBus, 'pagechanging', signal, ({ pageNumber }) => notify('PageChanged', pageNumber));
+    on(eventBus, 'scalechanging', signal, ({ scale, presetValue }) => notify('ZoomChanged', Math.round(scale * 100), presetValue ?? ''));
+    on(eventBus, 'updatefindmatchescount', signal, ({ matchesCount }) => notify('MatchesChanged', matchesCount.current, matchesCount.total, false));
+    on(eventBus, 'updatefindcontrolstate', signal, ({ state, matchesCount }) =>
+        notify('MatchesChanged', matchesCount.current, matchesCount.total, state === viewerLib.FindState.PENDING));
+
     // A password-protected or damaged file rejects here, and nothing is shown of it.
     pdf.document = await task.promise;
 
-    const column = document.createDocumentFragment();
-    const { numPages } = pdf.document;
-    // Asked for all at once: one round trip to the worker per page, in turn, takes seconds on a long file.
-    const proxies = await Promise.all(Array.from({ length: numPages }, (_, index) => pdf.document.getPage(index + 1)));
+    if (pdf.disposed) {
+        return 0;
+    }
+
+    const initialized = next(eventBus, 'pagesinit', signal);
+    const firstRendered = next(eventBus, 'pagerendered', signal);
+
+    viewer.setDocument(pdf.document);
+    linkService.setDocument(pdf.document, null);
+    await initialized;
 
     if (pdf.disposed) {
         return 0;
     }
 
-    for (const proxy of proxies) {
-        const number = proxy.pageNumber;
-        const { width, height } = proxy.getViewport({ scale: 1 });
-        const box = document.createElement('div');
+    const count = pdf.document.numPages;
 
-        box.className = 'ec-preview-pdf-page';
-        box.style.aspectRatio = `${width} / ${height}`;
-        box.setAttribute('role', 'img');
-        box.setAttribute('aria-label', `Strana ${number} z ${numPages}`);
-        pdf.list.push({ number, width, height, box, near: false, drawn: false, task: null, generation: 0 });
-        column.appendChild(box);
+    for (const page of pages.querySelectorAll('.page[data-page-number]')) {
+        page.setAttribute('aria-label', `Strana ${page.dataset.pageNumber} z ${count}`);
     }
 
-    host.replaceChildren(column);
-
-    const byBox = new Map(pdf.list.map(page => [page.box, page]));
-    const near = new IntersectionObserver(entries => {
-        for (const entry of entries) {
-            const page = byBox.get(entry.target);
-
-            page.near = entry.isIntersecting;
-
-            if (page.near) {
-                drawPage(pdf, page).catch(error => console.warn('A PDF page did not render.', error));
-            } else {
-                freePage(page);
-            }
-        }
-    }, { root: host.parentElement, rootMargin: '150% 0px' });
-
-    observers.push(near);
+    viewer.currentScaleValue = 'page-width';
 
     // The first page is drawn before the preview opens, so a file that parses but does not render shows the fallback.
-    await drawPage(pdf, pdf.list[0]);
+    const { error } = await firstRendered;
+
+    if (error) {
+        throw error;
+    }
 
     if (pdf.disposed) {
         return 0;
     }
 
-    pdf.list.forEach(page => near.observe(page.box));
+    pdf.ready = true;
 
-    let lastWidth = host.clientWidth;
+    // A fitted zoom follows the size of the preview; any other zoom only draws the pages that came into view.
     const resize = new ResizeObserver(() => {
-        if (host.clientWidth !== lastWidth) {
-            lastWidth = host.clientWidth;
-            pdf.list.forEach(freePage);
-            // Re-observing reports every page again, which draws the ones in view.
-            pdf.list.forEach(page => {
-                near.unobserve(page.box);
-                near.observe(page.box);
-            });
+        if (pdfFitModes.includes(viewer.currentScaleValue)) {
+            viewer.currentScaleValue = viewer.currentScaleValue;
+        } else {
+            viewer.update();
         }
     });
 
-    resize.observe(host);
-    observers.push(resize);
+    resize.observe(frame);
+    signal.addEventListener('abort', () => resize.disconnect(), { once: true });
 
-    return numPages;
+    // Ctrl or Cmd with the wheel, and a pinch on a touchpad, zoom around the pointer.
+    host.addEventListener('wheel', event => {
+        if (!event.ctrlKey && !event.metaKey) {
+            return;
+        }
+
+        event.preventDefault();
+
+        const fine = event.deltaMode === WheelEvent.DOM_DELTA_PIXEL && Math.abs(event.deltaY) < 50;
+        const factor = fine ? Math.exp(-event.deltaY / 100) : event.deltaY < 0 ? 1.1 : 1 / 1.1;
+        const scale = Math.min(Math.max(viewer.currentScale * factor, pdfZoomSteps[0]), pdfZoomSteps.at(-1));
+        const box = host.getBoundingClientRect();
+
+        viewer.updateScale({ scaleFactor: scale / viewer.currentScale, origin: [event.clientX - box.left, event.clientY - box.top] });
+    }, { passive: false, signal });
+
+    return count;
+}
+
+export function zoomPdf(host, zoom) {
+    const pdf = pdfs.get(host);
+
+    if (!pdf?.ready) {
+        return;
+    }
+
+    if (pdfFitModes.includes(zoom)) {
+        pdf.viewer.currentScaleValue = zoom;
+
+        return;
+    }
+
+    const current = pdf.viewer.currentScale;
+    const scale = zoom === 'in'
+        ? pdfZoomSteps.find(step => step > current + 0.005) ?? pdfZoomSteps.at(-1)
+        : pdfZoomSteps.findLast(step => step < current - 0.005) ?? pdfZoomSteps[0];
+
+    pdf.viewer.currentScale = scale;
+}
+
+export function goToPdfPage(host, page) {
+    const pdf = pdfs.get(host);
+
+    if (pdf?.ready) {
+        pdf.viewer.currentPageNumber = Math.min(Math.max(page, 1), pdf.viewer.pagesCount);
+    }
+}
+
+// An empty query clears the highlights. Matches ignore case and diacritics.
+export function findInPdf(host, query, again, previous) {
+    const pdf = pdfs.get(host);
+
+    if (!pdf?.ready) {
+        return;
+    }
+
+    if (query.length === 0) {
+        pdf.eventBus.dispatch('findbarclose', { source: null });
+
+        return;
+    }
+
+    pdf.eventBus.dispatch('find', {
+        source: null,
+        type: again ? 'again' : '',
+        query,
+        caseSensitive: false,
+        entireWord: false,
+        highlightAll: true,
+        findPrevious: previous,
+        matchDiacritics: false,
+    });
 }
 
 export async function readWorkbook(contentStream, maxRows) {

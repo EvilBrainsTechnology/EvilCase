@@ -1352,24 +1352,171 @@ html {
     border-left: 1px solid var(--ec-border);
 }
 
-.ec-preview-pdf {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ec-preview-page-gap);
-    width: var(--ec-preview-pdf-width);
-    max-width: 100%;
+/* Náhled PDF: lišta nad jedinou posuvnou plochou; plochu vlastní prohlížeč PDF.js, jehož styl se načte až s ním. */
+:root {
+    color-scheme: light;
 }
 
-.ec-preview-pdf-page {
-    flex: none;
+.ec-preview-pdf-view {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+}
+
+.ec-preview-pdf-toolbar {
+    display: flex;
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ec-space-3) var(--ec-space-6);
+    padding: var(--ec-space-3) var(--ec-space-5);
+    border-bottom: 1px solid var(--ec-border);
     background: var(--ec-surface);
+}
+
+.ec-preview-pdf-pages,
+.ec-preview-pdf-zoom,
+.ec-preview-pdf-search {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-2);
+}
+
+.ec-preview-pdf-pages {
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-muted);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.ec-preview-pdf-page-input {
+    box-sizing: border-box;
+    width: var(--ec-preview-pdf-page-input);
+    height: var(--ec-control-sm);
+    padding: 0 var(--ec-space-2);
+    border: 1px solid var(--ec-border-strong);
+    border-radius: var(--ec-radius-md);
+    background: var(--ec-surface);
+    color: var(--ec-text);
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-sm);
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.ec-preview-pdf-page-input:focus-visible {
+    outline: none;
+    border-color: var(--ec-accent);
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-preview-pdf-zoom-value {
+    min-width: var(--ec-preview-pdf-zoom-value);
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-muted);
+    text-align: center;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.ec-preview-pdf-fit {
+    display: contents;
+}
+
+.ec-preview-pdf-zoom .ec-button[aria-pressed="true"] {
+    background: var(--ec-accent-soft);
+    border-color: var(--ec-accent-ring);
+    color: var(--ec-accent-text);
+}
+
+.ec-preview-pdf-search-toggle {
+    display: none;
+}
+
+.ec-preview-pdf-search {
+    margin-left: auto;
+}
+
+.ec-preview-pdf-search-box {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+    box-sizing: border-box;
+    width: var(--ec-preview-pdf-search-width);
+    height: var(--ec-control-sm);
+    padding: 0 var(--ec-space-4);
+    border: 1px solid var(--ec-border-strong);
+    border-radius: var(--ec-radius-lg);
+    background: var(--ec-surface-sunken);
+    color: var(--ec-text-muted);
+}
+
+.ec-preview-pdf-search-box:focus-within {
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-preview-pdf-search-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    border: 0;
+    outline: none;
+    background: transparent;
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text);
+}
+
+.ec-preview-pdf-search-input::placeholder {
+    color: var(--ec-text-subtle);
+}
+
+.ec-preview-pdf-matches {
+    min-width: var(--ec-preview-pdf-matches);
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-muted);
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.ec-preview-pdf-frame {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+/* PDF.js chce svůj kontejner absolutně umístěný; je to jediná posuvná plocha náhledu. */
+.ec-preview-pdf {
+    position: absolute;
+    inset: 0;
+    overflow: auto;
+}
+
+.ec-preview-pdf-loading {
+    position: absolute;
+    inset: 0;
+}
+
+.ec-preview-pdf .pdfViewer {
+    --page-margin: var(--ec-preview-pdf-page-margin);
+    --page-border: var(--ec-preview-pdf-page-border);
+    padding-top: var(--ec-space-3);
+}
+
+.ec-preview-pdf .pdfViewer .canvasWrapper {
     box-shadow: var(--ec-shadow-page);
 }
 
-.ec-preview-pdf-page canvas {
-    display: block;
-    width: var(--ec-preview-pdf-page-fill);
-    height: var(--ec-preview-pdf-page-fill);
+.ec-preview-pdf .textLayer .highlight {
+    --highlight-bg-color: var(--ec-preview-pdf-hit);
+    --highlight-selected-bg-color: var(--ec-preview-pdf-hit-current);
+}
+
+/* Vložené video nebo zvuk z PDF se nepřehrává. */
+.ec-preview-pdf .mediaAnnotation {
+    display: none;
 }
 
 .ec-preview-stage {
@@ -3249,6 +3396,50 @@ html {
 
     .ec-preview-stage {
         padding: var(--ec-space-4);
+    }
+
+    /* Na mobilu zůstane lupa, stránka a ikona hledání; pole hledání se otevře na vlastním řádku. */
+    .ec-preview-pdf-toolbar {
+        gap: var(--ec-space-2) var(--ec-space-3);
+        padding: var(--ec-space-2) var(--ec-space-4);
+    }
+
+    .ec-preview-pdf-toolbar .ec-button {
+        width: var(--ec-touch-min);
+        height: var(--ec-touch-min);
+        padding: 0;
+    }
+
+    .ec-preview-pdf-page-input,
+    .ec-preview-pdf-search-box {
+        height: var(--ec-touch-min);
+    }
+
+    .ec-preview-pdf-page-word,
+    .ec-preview-pdf-zoom-value,
+    .ec-preview-pdf-fit-page,
+    .ec-preview-pdf-label {
+        display: none;
+    }
+
+    .ec-preview-pdf-search-toggle {
+        display: block;
+        margin-left: auto;
+    }
+
+    .ec-preview-pdf-search {
+        display: none;
+        flex: 1 1 100%;
+        order: 1;
+    }
+
+    .ec-preview-pdf-search-open {
+        display: flex;
+    }
+
+    .ec-preview-pdf-search-box {
+        flex: 1 1 auto;
+        width: auto;
     }
 }
 

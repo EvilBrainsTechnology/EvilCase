@@ -9,6 +9,20 @@ public static class AppIcons
         + "h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z' />"
         + "<path d='M12 16h.01' />";
 
+    public const string ArrowAutofitHeight = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M12 20h-6a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h6' />"
+        + "<path d='M18 14v7' />"
+        + "<path d='M18 3v7' />"
+        + "<path d='M15 18l3 3l3 -3' />"
+        + "<path d='M15 6l3 -3l3 3' />";
+
+    public const string ArrowAutofitWidth = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M4 12v-6a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v6' />"
+        + "<path d='M10 18h-7' />"
+        + "<path d='M21 18h-7' />"
+        + "<path d='M6 15l-3 3l3 3' />"
+        + "<path d='M18 15l3 3l-3 3' />";
+
     public const string ArrowDownLeft = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M17 7l-10 10' />"
         + "<path d='M16 17h-9v-9' />";
@@ -24,11 +38,17 @@ public static class AppIcons
     public const string Check = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M5 12l5 5l10 -10' />";
 
+    public const string ChevronDown = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M6 9l6 6l6 -6' />";
+
     public const string ChevronLeft = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M15 6l-6 6l6 6' />";
 
     public const string ChevronRight = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M9 6l6 6l-6 6' />";
+
+    public const string ChevronUp = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M6 15l6 -6l6 6' />";
 
     public const string Copy = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M7 7m0 2.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667z' />"
@@ -179,6 +199,9 @@ public static class AppIcons
         + "<path d='M8 9h8' />"
         + "<path d='M8 13h6' />"
         + "<path d='M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-5l-5 3v-3h-2a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12z' />";
+
+    public const string Minus = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M5 12l14 0' />";
 
     public const string Paperclip = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M15 7l-6.5 6.5a1.5 1.5 0 0 0 3 3l6.5 -6.5a3 3 0 0 0 -6 -6l-6.5 6.5a4.5 4.5 0 0 0 9 9l6.5 -6.5' />";

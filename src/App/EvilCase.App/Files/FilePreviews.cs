@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using EvilBrains.EvilCase.App.Components;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 
@@ -26,11 +28,41 @@ internal sealed class FilePreviews(IJSRuntime jsRuntime) : IFilePreviews, IAsync
         await previews.InvokeVoidAsync("renderDocument", token, host, streamRef);
     }
 
-    public async Task<int> RenderPdf(ElementReference host, string url, CancellationToken token)
+    public async Task<int> RenderPdf(ElementReference host, string url, DotNetObjectReference<PdfPreview> view, CancellationToken token)
     {
         var previews = await this.Module(token);
 
-        return await previews.InvokeAsync<int>("renderPdf", token, host, url);
+        return await previews.InvokeAsync<int>("renderPdf", token, host, url, view);
+    }
+
+    public async Task ZoomPdf(ElementReference host, PdfZoom zoom)
+    {
+        var previews = await this.Module(CancellationToken.None);
+
+        var value = zoom switch
+        {
+            PdfZoom.In => "in",
+            PdfZoom.Out => "out",
+            PdfZoom.PageWidth => "page-width",
+            PdfZoom.PageFit => "page-fit",
+            _ => throw new UnreachableException(),
+        };
+
+        await previews.InvokeVoidAsync("zoomPdf", host, value);
+    }
+
+    public async Task GoToPdfPage(ElementReference host, int page)
+    {
+        var previews = await this.Module(CancellationToken.None);
+
+        await previews.InvokeVoidAsync("goToPdfPage", host, page);
+    }
+
+    public async Task FindInPdf(ElementReference host, string query, PdfFind find)
+    {
+        var previews = await this.Module(CancellationToken.None);
+
+        await previews.InvokeVoidAsync("findInPdf", host, query, find != PdfFind.New, find == PdfFind.Previous);
     }
 
     public async Task DisposePdf(ElementReference host)

@@ -1,3 +1,4 @@
+using EvilBrains.EvilCase.App.Components;
 using EvilBrains.EvilCase.App.Files;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
@@ -19,6 +20,17 @@ internal sealed class StubFilePreviews : IFilePreviews
     public int PdfPages { get; set; } = 3;
 
     public int DisposedPdfs { get; private set; }
+
+    /// <summary>
+    /// The view the last PDF reports its page, zoom and matches to, as the library would.
+    /// </summary>
+    public DotNetObjectReference<PdfPreview>? PdfView { get; private set; }
+
+    public List<PdfZoom> Zooms { get; } = [];
+
+    public List<int> PdfPagesGoneTo { get; } = [];
+
+    public List<(string Query, PdfFind Find)> Finds { get; } = [];
 
     public List<int> RequestedRows { get; } = [];
 
@@ -49,12 +61,34 @@ internal sealed class StubFilePreviews : IFilePreviews
         this.RenderedDocuments.Add(await reader.ReadToEndAsync(token));
     }
 
-    public Task<int> RenderPdf(ElementReference host, string url, CancellationToken token)
+    public Task<int> RenderPdf(ElementReference host, string url, DotNetObjectReference<PdfPreview> view, CancellationToken token)
     {
         this.ThrowWhenFailing();
         this.RenderedPdfs.Add(url);
+        this.PdfView = view;
 
         return Task.FromResult(this.PdfPages);
+    }
+
+    public Task ZoomPdf(ElementReference host, PdfZoom zoom)
+    {
+        this.Zooms.Add(zoom);
+
+        return Task.CompletedTask;
+    }
+
+    public Task GoToPdfPage(ElementReference host, int page)
+    {
+        this.PdfPagesGoneTo.Add(page);
+
+        return Task.CompletedTask;
+    }
+
+    public Task FindInPdf(ElementReference host, string query, PdfFind find)
+    {
+        this.Finds.Add((query, find));
+
+        return Task.CompletedTask;
     }
 
     public Task DisposePdf(ElementReference host)
