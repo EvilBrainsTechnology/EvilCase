@@ -3,6 +3,7 @@ using EvilBrains.EvilCase.Api.Client;
 using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.Api.Contract.Lists;
+using EvilBrains.EvilCase.Domain.Cases;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -28,7 +29,7 @@ public class CasesRenderTests
     public async Task ThePageListsTheCasesWithTheChangeMomentLast()
     {
         await using var ctx = new BunitContext();
-        Serve(ctx, out var requests);
+        Serve(ctx, out var requests, withRow: true);
 
         ctx.Services.GetRequiredService<NavigationManager>().NavigateTo("/cases");
 
@@ -139,10 +140,20 @@ public class CasesRenderTests
         }
     }
 
-    private static void Serve(BunitContext ctx, out List<CaseListRequest> requests)
+    private static readonly CaseListItem Row = new()
+    {
+        CaseId = Guid.CreateVersion7(),
+        CaseNumber = "EC/20260821-001",
+        Title = "Přestupek",
+        Date = new DateOnly(2026, 8, 21),
+        Status = CaseStatus.Active,
+        Changed = new DateTime(2026, 8, 21, 0, 0, 0, DateTimeKind.Utc),
+    };
+
+    private static void Serve(BunitContext ctx, out List<CaseListRequest> requests, bool withRow = false)
     {
         var captured = new List<CaseListRequest>();
-        var response = new CaseListResponse { Items = [], TotalCount = 0 };
+        var response = withRow ? new CaseListResponse { Items = [Row], TotalCount = 1 } : new CaseListResponse { Items = [], TotalCount = 0 };
 
         var casesClient = Substitute.For<ICasesClient>();
         casesClient
