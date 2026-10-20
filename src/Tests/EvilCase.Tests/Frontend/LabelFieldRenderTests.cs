@@ -95,7 +95,7 @@ public class LabelFieldRenderTests
     }
 
     [Test]
-    public async Task ClickingALabelAddsItAndTheBoxStaysOpenForTheNext()
+    public async Task ClickingALabelAddsItAndClosesTheBox()
     {
         await using var ctx = new BunitContext();
 
@@ -114,7 +114,7 @@ public class LabelFieldRenderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(raised!.Select(static label => label.Name), Is.EqualTo(["Odvolání"]));
-            Assert.That(component.FindAll("#labels"), Has.Count.EqualTo(1), "the box stays open");
+            Assert.That(component.FindAll(".ec-label-menu"), Is.Empty, "picking a label closes the box");
         }
     }
 
@@ -197,6 +197,35 @@ public class LabelFieldRenderTests
         var focused = ctx.JSInterop.VerifyFocusAsyncInvoke(calledTimes: 3);
 
         Assert.That(((ElementReference)focused[2].Arguments[0]!).Id, Is.EqualTo(buttonId));
+    }
+
+    [Test]
+    public async Task PickingALabelInlineClosesTheBoxAndReturnsTheFocusToTheAddButton()
+    {
+        await using var ctx = new BunitContext();
+
+        IReadOnlyList<LabelItem>? raised = null;
+
+        var component = Render(ctx, out _, selected: [], onChanged: labels => raised = labels, inline: true);
+
+        await component.Find(".ec-label-add").ClickAsync(new MouseEventArgs());
+
+        await component.WaitForAssertionAsync(
+            () => Assert.That(component.FindAll(".ec-label-option"), Has.Count.EqualTo(3)),
+            WaitTimeout);
+
+        await component.FindAll(".ec-label-option")[1].ClickAsync(new MouseEventArgs());
+
+        var buttonId = component.Find(".ec-label-add").GetAttribute("blazor:elementReference");
+
+        var focused = ctx.JSInterop.VerifyFocusAsyncInvoke(calledTimes: 3);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(raised!.Select(static label => label.Name), Is.EqualTo(["Odvolání"]));
+            Assert.That(component.FindAll(".ec-label-menu"), Is.Empty);
+            Assert.That(((ElementReference)focused[2].Arguments[0]!).Id, Is.EqualTo(buttonId));
+        }
     }
 
     [Test]

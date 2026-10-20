@@ -257,9 +257,14 @@
         return this.ActsClient.GetAct(this.ActId, CancellationToken.None);
     }
 
-    protected override Task StoreLabels(LabelAssignmentRequest request)
+    protected override Task StoreLabels(ActDetail detail, LabelAssignmentRequest request)
     {
-        return this.ActLabelsClient.SetActLabels(this.ActId, request, CancellationToken.None);
+        return this.ActLabelsClient.SetActLabels(detail.ActId, request, CancellationToken.None);
+    }
+
+    protected override ActDetail WithLabels(ActDetail detail, IReadOnlyList<LabelItem> labels)
+    {
+        return detail with { Labels = labels };
     }
 
     private void EditAct()

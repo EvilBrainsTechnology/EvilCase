@@ -128,9 +128,6 @@
 
     private readonly List<LabelItem> available = [];
 
-    // A change waits for the one before it, so it builds on the selection that one saved.
-    private readonly SemaphoreSlim changing = new(1, 1);
-
     private IReadOnlyList<LabelItem> rows = [];
 
     private ElementReference addButton;
@@ -399,38 +396,18 @@
 
     private async Task Add(LabelItem label)
     {
-        this.search = "";
-        this.active = 0;
-        this.createError = null;
-        this.focusPending = true;
+        this.Close();
+        this.returnFocus = this.Inline;
 
-        await this.changing.WaitAsync();
-
-        try
-        {
-            if (!this.Selected.Any(selected => selected.LabelId == label.LabelId))
-                await this.SelectedChanged.InvokeAsync([.. this.Selected, label]);
-        }
-        finally
-        {
-            this.changing.Release();
-        }
+        if (!this.Selected.Any(selected => selected.LabelId == label.LabelId))
+            await this.SelectedChanged.InvokeAsync([.. this.Selected, label]);
 
         this.Refilter();
     }
 
     private async Task Remove(LabelItem label)
     {
-        await this.changing.WaitAsync();
-
-        try
-        {
-            await this.SelectedChanged.InvokeAsync([.. this.Selected.Where(selected => selected.LabelId != label.LabelId)]);
-        }
-        finally
-        {
-            this.changing.Release();
-        }
+        await this.SelectedChanged.InvokeAsync([.. this.Selected.Where(selected => selected.LabelId != label.LabelId)]);
     }
 
     private async Task CreateLabel()

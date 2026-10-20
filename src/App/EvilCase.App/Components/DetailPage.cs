@@ -30,6 +30,8 @@ public abstract class DetailPage<TDetail> : ComponentBase
     [Inject]
     private IFileDownloader Downloader { get; set; } = null!;
 
+    private Task labelsWrite = Task.CompletedTask;
+
     protected TDetail? Detail { get; private set; }
 
     protected bool NotFound { get; private set; }
@@ -50,7 +52,9 @@ public abstract class DetailPage<TDetail> : ComponentBase
 
     protected abstract Task<TDetail> Fetch();
 
-    protected abstract Task StoreLabels(LabelAssignmentRequest request);
+    protected abstract Task StoreLabels(TDetail detail, LabelAssignmentRequest request);
+
+    protected abstract TDetail WithLabels(TDetail detail, IReadOnlyList<LabelItem> labels);
 
     protected override async Task OnParametersSetAsync()
     {
@@ -83,13 +87,19 @@ public abstract class DetailPage<TDetail> : ComponentBase
 
     protected async Task SaveLabels(IReadOnlyList<LabelItem> labels)
     {
+        // The page shows the change at once; the writes follow one after another, each to the detail it was made on.
+        var detail = this.Detail!;
+        var previous = this.labelsWrite;
+        var written = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        this.labelsWrite = written.Task;
         this.LabelsError = null;
+        this.Detail = this.WithLabels(detail, labels);
 
         try
         {
-            await this.StoreLabels(new LabelAssignmentRequest { LabelIds = [.. labels.Select(static label => label.LabelId)] });
-
-            this.Detail = await this.Fetch();
+            await previous;
+            await this.StoreLabels(detail, new LabelAssignmentRequest { LabelIds = [.. labels.Select(static label => label.LabelId)] });
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
         {
@@ -99,7 +109,13 @@ public abstract class DetailPage<TDetail> : ComponentBase
         {
             this.Logger.LogWarning(exception, "Saving the labels failed");
 
+            await this.Load();
+
             this.LabelsError = "Štítky se nepodařilo uložit. Zkuste to za chvíli znovu.";
+        }
+        finally
+        {
+            written.SetResult();
         }
     }
 

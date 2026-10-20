@@ -376,14 +376,11 @@ public class CaseRenderTests
 
         var detail = Detail(caseId) with { Labels = [carried] };
 
-        var (casesClient, caseLabelsClient, _, labelsClient) = Serve(ctx, caseId, detail);
+        var (_, caseLabelsClient, _, labelsClient) = Serve(ctx, caseId, detail);
 
         labelsClient
             .ListLabels(Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(new LabelListResponse { Items = [LabelListItems.Of(carried), LabelListItems.Of(offered)] }));
-        casesClient
-            .GetCase(caseId, Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(detail), Task.FromResult(detail with { Labels = [carried, offered] }));
 
         var component = ctx.Render<Case>(parameters => parameters.Add(static page => page.CaseId, caseId));
 
@@ -418,8 +415,8 @@ public class CaseRenderTests
                 using (Assert.EnterMultipleScope())
                 {
                     Assert.That(component.FindAll(".ec-label-field-inline > .ec-chip"), Has.Count.EqualTo(2));
-                    Assert.That(component.FindAll(".ec-label-option"), Is.Empty, "the added label leaves the offer");
-                    Assert.That(component.FindAll("#case-labels"), Has.Count.EqualTo(1), "the box stays open");
+                    Assert.That(component.FindAll(".ec-label-menu"), Is.Empty, "picking a label closes the box");
+                    Assert.That(component.FindAll(".ec-label-add"), Has.Count.EqualTo(1), "the add button returns");
                 }
             },
             TimeSpan.FromSeconds(2));
@@ -437,7 +434,7 @@ public class CaseRenderTests
 
         var detail = Detail(caseId);
 
-        var (casesClient, caseLabelsClient, _, labelsClient) = Serve(ctx, caseId, detail);
+        var (_, caseLabelsClient, _, labelsClient) = Serve(ctx, caseId, detail);
 
         var saving = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -447,9 +444,6 @@ public class CaseRenderTests
         caseLabelsClient
             .SetCaseLabels(caseId, Arg.Any<LabelAssignmentRequest>(), Arg.Any<CancellationToken>())
             .Returns(saving.Task, Task.CompletedTask);
-        casesClient
-            .GetCase(caseId, Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(detail), Task.FromResult(detail with { Labels = [first] }), Task.FromResult(detail with { Labels = [first, second] }));
 
         var component = ctx.Render<Case>(parameters => parameters.Add(static page => page.CaseId, caseId));
 
@@ -460,7 +454,14 @@ public class CaseRenderTests
             TimeSpan.FromSeconds(2));
 
         var addingFirst = component.FindAll(".ec-label-option")[0].ClickAsync(new MouseEventArgs());
-        var addingSecond = component.FindAll(".ec-label-option")[1].ClickAsync(new MouseEventArgs());
+
+        await component.Find(".ec-label-add").ClickAsync(new MouseEventArgs());
+
+        await component.WaitForAssertionAsync(
+            () => Assert.That(component.FindAll(".ec-label-option"), Has.Count.EqualTo(1), "the added label leaves the offer before its save answers"),
+            TimeSpan.FromSeconds(2));
+
+        var addingSecond = component.Find(".ec-label-option").ClickAsync(new MouseEventArgs());
 
         saving.SetResult();
 
@@ -475,6 +476,147 @@ public class CaseRenderTests
     }
 
     [Test]
+    public async Task LeavingTheCaseMidSaveWritesTheLatestLabelsToThatCaseOnly()
+    {
+        await using var ctx = new BunitContext();
+
+        var caseId = Guid.CreateVersion7();
+        var nextCaseId = Guid.CreateVersion7();
+
+        var first = new LabelItem { LabelId = Guid.CreateVersion7(), Name = "InfZ", Color = LabelColor.Blue };
+        var second = new LabelItem { LabelId = Guid.CreateVersion7(), Name = "Priorita", Color = LabelColor.Red };
+        var carried = new LabelItem { LabelId = Guid.CreateVersion7(), Name = "Hlídat lhůtu", Color = LabelColor.Orange };
+
+        var (casesClient, caseLabelsClient, _, labelsClient) = Serve(ctx, caseId, Detail(caseId));
+
+        var saving = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        labelsClient
+            .ListLabels(Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new LabelListResponse { Items = [LabelListItems.Of(first), LabelListItems.Of(second)] }));
+        caseLabelsClient
+            .SetCaseLabels(Arg.Any<Guid>(), Arg.Any<LabelAssignmentRequest>(), Arg.Any<CancellationToken>())
+            .Returns(saving.Task, Task.CompletedTask);
+        casesClient
+            .GetCase(nextCaseId, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Detail(nextCaseId) with { Labels = [carried] }));
+
+        var component = ctx.Render<Case>(parameters => parameters.Add(static page => page.CaseId, caseId));
+
+        await component.Find(".ec-label-add").ClickAsync(new MouseEventArgs());
+
+        await component.WaitForAssertionAsync(
+            () => Assert.That(component.FindAll(".ec-label-option"), Has.Count.EqualTo(2)),
+            TimeSpan.FromSeconds(2));
+
+        _ = component.FindAll(".ec-label-option")[0].ClickAsync(new MouseEventArgs());
+
+        await component.Find(".ec-label-add").ClickAsync(new MouseEventArgs());
+
+        await component.WaitForAssertionAsync(
+            () => Assert.That(component.FindAll(".ec-label-option"), Has.Count.EqualTo(1)),
+            TimeSpan.FromSeconds(2));
+
+        var addingSecond = component.Find(".ec-label-option").ClickAsync(new MouseEventArgs());
+
+        component.Render(parameters => parameters.Add(static page => page.CaseId, nextCaseId));
+
+        saving.SetResult();
+        await addingSecond;
+
+        var chips = await component.WaitForElementsAsync(".ec-label-field-inline > .ec-chip", 1, TimeSpan.FromSeconds(2));
+
+        Assert.That(chips.Single().TextContent, Does.Contain(carried.Name), "the next case shows its own labels");
+
+        await caseLabelsClient
+            .Received(1)
+            .SetCaseLabels(
+                caseId,
+                Arg.Is<LabelAssignmentRequest>(request => request.LabelIds.SequenceEqual(new[] { first.LabelId, second.LabelId })),
+                Arg.Any<CancellationToken>());
+        await caseLabelsClient
+            .DidNotReceive()
+            .SetCaseLabels(nextCaseId, Arg.Any<LabelAssignmentRequest>(), Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task AnAddedLabelShowsBeforeTheSaveAnswers()
+    {
+        await using var ctx = new BunitContext();
+
+        var caseId = Guid.CreateVersion7();
+
+        var added = new LabelItem { LabelId = Guid.CreateVersion7(), Name = "InfZ", Color = LabelColor.Blue };
+
+        var (_, caseLabelsClient, _, labelsClient) = Serve(ctx, caseId, Detail(caseId));
+
+        var saving = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        labelsClient
+            .ListLabels(Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new LabelListResponse { Items = [LabelListItems.Of(added)] }));
+        caseLabelsClient
+            .SetCaseLabels(caseId, Arg.Any<LabelAssignmentRequest>(), Arg.Any<CancellationToken>())
+            .Returns(saving.Task);
+
+        var component = ctx.Render<Case>(parameters => parameters.Add(static page => page.CaseId, caseId));
+
+        await component.Find(".ec-label-add").ClickAsync(new MouseEventArgs());
+
+        await component.WaitForAssertionAsync(
+            () => Assert.That(component.FindAll(".ec-label-option"), Has.Count.EqualTo(1)),
+            TimeSpan.FromSeconds(2));
+
+        var adding = component.Find(".ec-label-option").ClickAsync(new MouseEventArgs());
+
+        await component.WaitForAssertionAsync(
+            () =>
+            {
+                using (Assert.EnterMultipleScope())
+                {
+                    Assert.That(component.FindAll(".ec-label-field-inline > .ec-chip"), Has.Count.EqualTo(1), "the chip shows while the save runs");
+                    Assert.That(component.FindAll(".ec-label-menu"), Is.Empty, "the box closes without waiting for the save");
+                }
+            },
+            TimeSpan.FromSeconds(2));
+
+        saving.SetResult();
+
+        await adding;
+    }
+
+    [Test]
+    public async Task AFailedSaveTakesTheChangeBackAndSaysSo()
+    {
+        await using var ctx = new BunitContext();
+
+        var caseId = Guid.CreateVersion7();
+
+        var kept = new LabelItem { LabelId = Guid.CreateVersion7(), Name = "Priorita", Color = LabelColor.Red };
+
+        var (_, caseLabelsClient, _, _) = Serve(ctx, caseId, Detail(caseId) with { Labels = [kept] });
+
+        caseLabelsClient
+            .SetCaseLabels(caseId, Arg.Any<LabelAssignmentRequest>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromException(new HttpRequestException()));
+
+        var component = ctx.Render<Case>(parameters => parameters.Add(static page => page.CaseId, caseId));
+
+        await component.Find("button[aria-label='Odebrat štítek Priorita']").ClickAsync(new MouseEventArgs());
+
+        await component.WaitForAssertionAsync(
+            () =>
+            {
+                using (Assert.EnterMultipleScope())
+                {
+                    Assert.That(component.FindAll(".ec-label-field-inline > .ec-chip"), Has.Count.EqualTo(1), "the label the save did not take off returns");
+                    Assert.That(component.Find(".ec-detail-fact-labels .ec-alert").TextContent, Does.Contain("Štítky se nepodařilo uložit"));
+                }
+            },
+            TimeSpan.FromSeconds(2));
+    }
+
+    [Test]
     public async Task TheCrossOnAChipTakesTheLabelOffAtOnce()
     {
         await using var ctx = new BunitContext();
@@ -486,11 +628,7 @@ public class CaseRenderTests
 
         var detail = Detail(caseId) with { Labels = [kept, removed] };
 
-        var (casesClient, caseLabelsClient, _, _) = Serve(ctx, caseId, detail);
-
-        casesClient
-            .GetCase(caseId, Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(detail), Task.FromResult(detail with { Labels = [kept] }));
+        var (_, caseLabelsClient, _, _) = Serve(ctx, caseId, detail);
 
         var component = ctx.Render<Case>(parameters => parameters.Add(static page => page.CaseId, caseId));
 
@@ -552,11 +690,11 @@ public class CaseRenderTests
 
         var caseCommentsClient = Substitute.For<ICaseCommentsClient>();
         caseCommentsClient
-            .ListCaseComments(caseId, Arg.Any<CancellationToken>())
+            .ListCaseComments(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(new CommentListResponse { Items = [] }));
 
         var caseFilesClient = Substitute.For<ICaseFilesClient>();
-        caseFilesClient.ListCaseFiles(caseId, Arg.Any<CancellationToken>()).Returns(Task.FromResult(new FileListResponse { Items = [] }));
+        caseFilesClient.ListCaseFiles(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(new FileListResponse { Items = [] }));
 
         var actsClient = Substitute.For<IActsClient>();
         actsClient.ListActs(Arg.Any<ActListRequest>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(new ActListResponse { Items = [], TotalCount = 0 }));
