@@ -21,15 +21,17 @@ id datové schránky 16, adresa 1024.
 
 Jedna inline komponenta všude, kde kontakt jmenuje spis nebo úkon: vybrat existující, nebo
 založit nový bez opuštění formuláře. Vyžaduje ji kontakt spisu (SDD-009) i kontakt úkonu
-(SDD-010). Našeptávač hledá podle názvu a id datové schránky, nabízí nejvýše osm shod a nabídne
+(SDD-010). Našeptávač hledá podle názvu, id datové schránky a adresy, nabízí nejvýše osm shod a nabídne
 založení nového kontaktu, když neodpovídá žádný. Týž formulář zakládá kontakt i v agendě
 a edituje existující.
 
 ### Agenda
 
 - `/contacts` — přehled kontaktů: název, typ, id datové schránky, adresa. Výchozí řazení je podle
-  názvu; záhlaví sloupce řadí podle sebe a druhý klik otočí směr. Hledací pole hledá v názvu a id
-  datové schránky bez ohledu na diakritiku, filtr typu nechá v seznamu jen kontakty jednoho typu.
+  názvu; záhlaví sloupce řadí podle sebe a druhý klik otočí směr. Hledací pole hledá v názvu, id
+  datové schránky a adrese bez ohledu na diakritiku, filtr typu nechá v seznamu jen kontakty
+  jednoho typu. Příchod na adresu seznamu nastaví filtry podle adresy; co adresa nezmiňuje, má
+  výchozí hodnotu.
   Zakládá se odsud nový kontakt.
 - `/contacts/{id}` — detail s výskyty: spisy kontaktu a všechny jeho úkony, obojí od nejnovějšího
   data. Hlavička nese typ kontaktu vedle názvu, tlačítko Upravit kontakt a menu dalších akcí

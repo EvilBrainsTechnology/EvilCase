@@ -32,6 +32,25 @@ public class ActFilterTests : TenantFixture
     }
 
     [Test]
+    public async Task TheSearchAlsoReachesTheActNumberAndTheExternalActNumber()
+    {
+        var @case = await this.Tenant.AddCase(Day);
+
+        await this.Tenant.AddAct(@case, Day, "Výzva", actNumber: "EC/20260824-001/777");
+        await this.Tenant.AddAct(@case, Day, "Oznámení", externalActNumber: "ČJ 123/2026");
+        await this.Tenant.AddAct(@case, Day, "Jiný");
+
+        var byNumber = await this.Titles("001/777");
+        var byExternalNumber = await this.Titles("cj 123");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(byNumber, Is.EqualTo(["Výzva"]), "the act number is searched");
+            Assert.That(byExternalNumber, Is.EqualTo(["Oznámení"]), "the external act number is searched");
+        }
+    }
+
+    [Test]
     public async Task OnlyTheActsOfTheCaseComeBack()
     {
         var first = await this.Tenant.AddCase(Day);

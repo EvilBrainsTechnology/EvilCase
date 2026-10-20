@@ -23,7 +23,10 @@ internal static class CaseListQuery
         return cases.Where(@case =>
             EF.Functions.ILike(DatabaseFunctions.Unaccent(@case.Title), DatabaseFunctions.Unaccent(pattern), LikeExtensions.LikeEscape)
                 || (@case.Description != null
-                    && EF.Functions.ILike(DatabaseFunctions.Unaccent(@case.Description), DatabaseFunctions.Unaccent(pattern), LikeExtensions.LikeEscape)));
+                    && EF.Functions.ILike(DatabaseFunctions.Unaccent(@case.Description), DatabaseFunctions.Unaccent(pattern), LikeExtensions.LikeEscape))
+                || EF.Functions.ILike(DatabaseFunctions.Unaccent(@case.CaseNumber), DatabaseFunctions.Unaccent(pattern), LikeExtensions.LikeEscape)
+                || (@case.ExternalCaseNumber != null
+                    && EF.Functions.ILike(DatabaseFunctions.Unaccent(@case.ExternalCaseNumber), DatabaseFunctions.Unaccent(pattern), LikeExtensions.LikeEscape)));
     }
 
     public static IQueryable<Case> WithStatus(this IQueryable<Case> cases, CaseStatusFilter filter)

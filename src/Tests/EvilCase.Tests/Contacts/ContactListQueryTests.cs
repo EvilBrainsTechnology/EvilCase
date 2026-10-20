@@ -31,6 +31,18 @@ public class ContactListQueryTests : TenantFixture
     }
 
     [Test]
+    public async Task TheSearchAlsoReachesTheAddress()
+    {
+        await this.Tenant.AddContact("Okresní soud", address: "Náměstí Míru 5, Beroun");
+        await this.Tenant.AddContact("Městský úřad", address: "Hlavní 1, Kladno");
+        await this.Tenant.AddContact("Bez adresy");
+
+        var names = await this.Search("namesti miru");
+
+        Assert.That(names, Is.EqualTo(["Okresní soud"]), "the address is searched, ignoring diacritics");
+    }
+
+    [Test]
     public async Task ABlankSearchReturnsEveryContactOfTheTenant()
     {
         await this.Tenant.AddContact("Městský úřad");

@@ -85,7 +85,7 @@
                         <div class="ec-sr-group" role="group" aria-label="Spisy">
                             <SearchGroupHead Label="Spisy" Count="found.Cases.TotalCount" OnOpen="this.Close"
                                              AllText="@(found.Cases.TotalCount > found.Cases.Items.Count ? $"Všechny ve Spisech ({found.Cases.TotalCount})" : null)"
-                                             AllHref="@($"/cases?q={all}")" />
+                                             AllHref="@($"/cases?q={all}&status=all&scope=all")" />
                             @foreach (var item in found.Cases.Items)
                             {
                                 var row = index++;
@@ -108,7 +108,7 @@
                         <div class="ec-sr-group" role="group" aria-label="Úkony">
                             <SearchGroupHead Label="Úkony" Count="found.Acts.TotalCount" OnOpen="this.Close"
                                              AllText="@(found.Acts.TotalCount > found.Acts.Items.Count ? $"Všechny v Úkonech ({found.Acts.TotalCount})" : null)"
-                                             AllHref="@($"/acts?q={all}")" />
+                                             AllHref="@($"/acts?q={all}&open=false")" />
                             @foreach (var item in found.Acts.Items)
                             {
                                 var row = index++;

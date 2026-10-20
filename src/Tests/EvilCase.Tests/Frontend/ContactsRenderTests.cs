@@ -92,6 +92,30 @@ public class ContactsRenderTests
         await client.Received().ListContacts(Arg.Is<ContactListRequest>(static request => request.Search == "urad"), Arg.Any<CancellationToken>());
     }
 
+    [Test]
+    public async Task ANavigationToTheListResetsTheKindFilter()
+    {
+        await using var ctx = new BunitContext();
+        Serve(ctx);
+
+        var navigation = ctx.Services.GetRequiredService<NavigationManager>();
+        navigation.NavigateTo("/contacts?q=urad");
+
+        var component = ctx.Render<App.Pages.Contacts>();
+
+        await component.WaitForElementAsync(".ec-segment");
+        await component.FindAll(".ec-segment")[1].ClickAsync(new MouseEventArgs());
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-segment")[1].GetAttribute("aria-pressed"), Is.EqualTo("true")));
+
+        navigation.NavigateTo("/contacts?q=urad");
+
+        await component.WaitForAssertionAsync(() =>
+        {
+            Assert.That(component.FindAll(".ec-segment")[0].GetAttribute("aria-pressed"), Is.EqualTo("true"));
+        });
+    }
+
     private static IContactsClient Serve(BunitContext ctx, int total = 0)
     {
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;

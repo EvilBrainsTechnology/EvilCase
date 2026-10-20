@@ -6,6 +6,7 @@ using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.Api.Contract.Lists;
 using EvilBrains.EvilCase.Domain.Acts;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EvilBrains.EvilCase.Tests.Frontend;
@@ -129,6 +130,37 @@ public class ActsRenderTests
             {
                 Assert.That(component.Find("#acts-open-cases").HasAttribute("checked"), Is.False);
                 Assert.That(requests[^1].CaseStatus, Is.EqualTo(CaseStatusFilter.All));
+            }
+        });
+    }
+
+    [Test]
+    public async Task ANavigationToTheListResetsEveryFilterToTheAddress()
+    {
+        await using var ctx = new BunitContext();
+        Serve(ctx, out var requests);
+
+        var navigation = ctx.Services.GetRequiredService<NavigationManager>();
+        navigation.NavigateTo("/acts?q=lhuta&open=false");
+
+        var component = ctx.Render<App.Pages.Acts>();
+
+        await component.WaitForElementAsync("#acts-open-cases");
+        await component.Find("#acts-open-cases").ChangeAsync(new ChangeEventArgs { Value = true });
+        await component.Find("button[aria-controls=\"acts-filters\"]").ClickAsync(new MouseEventArgs());
+        await component.Find("#acts-from").ChangeAsync(new ChangeEventArgs { Value = "2026-01-01" });
+
+        await component.WaitForAssertionAsync(() => Assert.That(requests[^1].From, Is.EqualTo(new DateOnly(2026, 1, 1))));
+
+        navigation.NavigateTo("/acts?q=lhuta&open=false");
+
+        await component.WaitForAssertionAsync(() =>
+        {
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(requests[^1].From, Is.Null, "the date range is off after the navigation");
+                Assert.That(requests[^1].CaseStatus, Is.EqualTo(CaseStatusFilter.All));
+                Assert.That(component.Find("#acts-open-cases").HasAttribute("checked"), Is.False);
             }
         });
     }

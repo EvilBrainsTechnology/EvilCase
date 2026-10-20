@@ -1,4 +1,5 @@
 @page "/cases"
+@inherits ListPage
 @using EvilBrains.EvilCase.Api.Contract.Cases
 
 <PageTitle>Spisy – EvilCase</PageTitle>
@@ -11,7 +12,7 @@
         </Actions>
     </EcPageHeader>
 
-    <CaseList Columns="Columns" Filter="Filter"
+    <CaseList @key="this.ListKey" Columns="Columns" Filter="Filter"
               ShowSearch="true" ShowDates="true" ShowLabelFilter="true"
               ShowStatusSwitch="true" ShowScopeFilter="true" ShowPaging="true"
               TotalChanged="this.OnTotalChanged">

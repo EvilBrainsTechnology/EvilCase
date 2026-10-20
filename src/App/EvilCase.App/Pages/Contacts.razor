@@ -1,4 +1,5 @@
 @page "/contacts"
+@inherits ListPage
 @using EvilBrains.EvilCase.Api.Contract.Contacts
 
 <PageTitle>Kontakty – EvilCase</PageTitle>
@@ -16,7 +17,7 @@
         </Actions>
     </EcPageHeader>
 
-    <ContactList @ref="this.list"
+    <ContactList @key="this.ListKey" @ref="this.list"
                  Columns="Columns" Filter="Filter"
                  ShowSearch="true" ShowKindFilter="true" ShowPaging="true"
                  TotalChanged="this.OnTotalChanged"

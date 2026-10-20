@@ -21,6 +21,8 @@ internal static class ContactListQuery
 
         return contacts.Where(contact =>
             EF.Functions.ILike(DatabaseFunctions.Unaccent(contact.Name), DatabaseFunctions.Unaccent(pattern), LikeExtensions.LikeEscape)
+                || (contact.Address != null
+                    && EF.Functions.ILike(DatabaseFunctions.Unaccent(contact.Address), DatabaseFunctions.Unaccent(pattern), LikeExtensions.LikeEscape))
                 || (contact.DataBoxId != null
                     && EF.Functions.ILike(DatabaseFunctions.Unaccent(contact.DataBoxId), DatabaseFunctions.Unaccent(pattern), LikeExtensions.LikeEscape)));
     }
