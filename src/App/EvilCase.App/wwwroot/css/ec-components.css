@@ -1579,13 +1579,13 @@ html {
     zoom: var(--ec-document-scale, 1);
 }
 
-.ec-preview-document::part(document-wrapper) {
+.ec-preview-document > div::part(document-wrapper) {
     gap: var(--ec-preview-page-gap);
     padding: 0;
     background: transparent;
 }
 
-.ec-preview-document::part(document-page) {
+.ec-preview-document > div::part(document-page) {
     margin: 0;
     box-shadow: var(--ec-shadow-page);
 }
