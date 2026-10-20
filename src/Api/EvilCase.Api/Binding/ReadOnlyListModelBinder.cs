@@ -25,7 +25,7 @@ internal sealed class ReadOnlyListModelBinder<TElement>(IModelBinder elementBind
     {
         public ILogger CreateLogger(string categoryName)
         {
-            return inner.CreateLogger(typeof(CollectionModelBinder<TElement>));
+            return inner.CreateLogger<CollectionModelBinder<TElement>>();
         }
 
         public void AddProvider(ILoggerProvider provider)
@@ -34,7 +34,6 @@ internal sealed class ReadOnlyListModelBinder<TElement>(IModelBinder elementBind
         }
 
         public void Dispose()
-        {
-        }
+        { }
     }
 }

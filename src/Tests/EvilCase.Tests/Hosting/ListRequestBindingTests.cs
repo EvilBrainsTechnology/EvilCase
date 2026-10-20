@@ -108,10 +108,10 @@ public class ListRequestBindingTests
     public async Task TheBindingOfAListLogsUnderMvcCategoryNotUnderOurs()
     {
         var categories = new ConcurrentBag<string>();
-        using var logHost = new EvilCaseHost(configureServices: services =>
+        await using var logHost = new EvilCaseHost(configureServices: services =>
         {
             services.AddSingleton(Substitute.For<IActReader>());
-            services.Configure<LoggerFilterOptions>(options =>
+            services.Configure<LoggerFilterOptions>(static options =>
             {
                 options.Rules.Clear();
                 options.MinLevel = LogLevel.Trace;
@@ -127,7 +127,7 @@ public class ListRequestBindingTests
         {
             Assert.That(categories, Has.Some.StartsWith("Microsoft.AspNetCore.Mvc.ModelBinding"), "the binding messages are logged");
             Assert.That(
-                categories.Where(category => category.StartsWith("EvilBrains", StringComparison.Ordinal) && category.Contains("ModelBinder", StringComparison.Ordinal)),
+                categories.Where(static category => category.StartsWith("EvilBrains", StringComparison.Ordinal) && category.Contains("ModelBinder", StringComparison.Ordinal)),
                 Is.Empty,
                 "a binder of ours does not file MVC's messages under our category");
         }
@@ -148,8 +148,7 @@ public class ListRequestBindingTests
         }
 
         public void Dispose()
-        {
-        }
+        { }
 
         private sealed class Recorder(string category, ConcurrentBag<string> categories) : ILogger
         {
