@@ -3049,6 +3049,15 @@ html {
         font-size: var(--ec-text-sm);
     }
 
+    .ec-detail-fact-labels .ec-label-field > .ec-chip .ec-chip-dot {
+        width: var(--ec-space-3);
+        height: var(--ec-space-3);
+    }
+
+    .ec-detail-fact-labels .ec-label-add {
+        font-size: var(--ec-text-sm);
+    }
+
     /* Tlačítko kopírování drží dotykovou plochu, ale řádek údaje nezvětší. */
     .ec-detail-fact-copy .ec-copy {
         margin-block: calc((var(--ec-fact-line) - var(--ec-touch-min)) / 2);
