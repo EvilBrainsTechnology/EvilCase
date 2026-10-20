@@ -45,7 +45,8 @@ souborech a odmítne jen soubor, který selže. Dávka nad 100 souborů se odmí
 souborů ukazuje ikonu typu, název, velikost a okamžik nahrání, od nejstaršího. Obsah souboru
 se vydává z jedné adresy a odpověď nese `X-Content-Type-Options: nosniff`. PDF, rastrové
 obrázky, zvuk a video nesou `Content-Disposition: inline` a typ podle přípony; každý jiný typ,
-SVG a HTML také, nese `attachment` a uložený typ. Smazání je prosté, s potvrzením.
+SVG a HTML také, nese `attachment` a uložený typ. Obsah souboru nikdy nespustí skript a vložit
+do stránky ho smí jen aplikace sama. Smazání je prosté, s potvrzením.
 
 Klik na řádek souboru otevře náhled; u typu bez náhledu ten řekne, že není k dispozici, a
 nabídne stažení. Stažení je obyčejné stažení prohlížečem a uloží soubor vždy. Stažení,
@@ -56,9 +57,9 @@ Esc a Zrušit ho zahodí.
 
 ### Náhled
 
-- PDF, rastrové obrázky (jpg, jpeg, png, gif, webp, avif, bmp), zvuk a video načte prohlížeč
-  přímo z adresy obsahu; ostatní typy se čtou jako bajty z téže adresy a skládá je aplikace.
-  Typ se pozná podle přípony, uložený `MediaType` se nepoužije.
+- PDF, rastrové obrázky (jpg, jpeg, png, gif, webp, avif, bmp), zvuk a video zobrazí
+  prohlížeč sám z adresy obsahu; ostatní typy zobrazí aplikace. Typ se pozná podle přípony,
+  uložený `MediaType` se nepoužije.
 - Zobrazí se PDF, obrázky (jpg, jpeg, png, gif, webp, avif, bmp, svg, heic, heif, tif, tiff),
   text (txt, csv, tsv, json, xml, log, isdoc, html), Markdown (md, markdown), dokument Word
   (docx), sešit (xlsx, xls, ods), e-mail (eml, msg), zvuk (mp3, m4a, wav, ogg, oga) a video
