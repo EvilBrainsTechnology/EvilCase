@@ -298,7 +298,7 @@ async function openPdf(host, url, view) {
         viewer.setDocument(null);
         linkService.setDocument(null);
         host.replaceChildren();
-        pdf.document?.destroy();
+        // Destroys the document and terminates its worker.
         task.destroy();
     };
     pdfs.set(host, pdf);
