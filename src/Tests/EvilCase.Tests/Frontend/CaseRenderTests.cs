@@ -415,8 +415,8 @@ public class CaseRenderTests
                 using (Assert.EnterMultipleScope())
                 {
                     Assert.That(component.FindAll(".ec-label-field-inline > .ec-chip"), Has.Count.EqualTo(2));
-                    Assert.That(component.FindAll(".ec-label-option"), Is.Empty, "the added label leaves the offer");
-                    Assert.That(component.FindAll("#case-labels"), Has.Count.EqualTo(1), "the box stays open");
+                    Assert.That(component.FindAll(".ec-label-menu"), Is.Empty, "picking a label closes the box");
+                    Assert.That(component.FindAll(".ec-label-add"), Has.Count.EqualTo(1), "the add button returns");
                 }
             },
             TimeSpan.FromSeconds(2));
@@ -454,6 +454,8 @@ public class CaseRenderTests
             TimeSpan.FromSeconds(2));
 
         var addingFirst = component.FindAll(".ec-label-option")[0].ClickAsync(new MouseEventArgs());
+
+        await component.Find(".ec-label-add").ClickAsync(new MouseEventArgs());
 
         await component.WaitForAssertionAsync(
             () => Assert.That(component.FindAll(".ec-label-option"), Has.Count.EqualTo(1), "the added label leaves the offer before its save answers"),
@@ -509,7 +511,7 @@ public class CaseRenderTests
                 using (Assert.EnterMultipleScope())
                 {
                     Assert.That(component.FindAll(".ec-label-field-inline > .ec-chip"), Has.Count.EqualTo(1), "the chip shows while the save runs");
-                    Assert.That(component.FindAll("#case-labels"), Has.Count.EqualTo(1), "the box stays open");
+                    Assert.That(component.FindAll(".ec-label-menu"), Is.Empty, "the box closes without waiting for the save");
                 }
             },
             TimeSpan.FromSeconds(2));
