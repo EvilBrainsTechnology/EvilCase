@@ -8,6 +8,8 @@
 **/bin
 **/obj
 **/node_modules
+src/App/EvilCase.App/wwwroot/lib
+src/App/EvilCase.App/wwwroot/fonts
 **/.env*
 **/.vs
 **/.idea

@@ -18,9 +18,8 @@
   </ItemGroup>
 
   <!--
-    wwwroot/lib and wwwroot/fonts are generated from package.json by build-libs.mjs and are not committed.
-    SkipFrontendLibs=true leaves generation to the caller (the Dockerfile has a Node stage for it).
-    The generated files are added to Content here because the wwwroot glob was evaluated before they existed.
+    SkipFrontendLibs=true leaves wwwroot/lib and wwwroot/fonts to the caller (the Dockerfile's Node stage).
+    IncludeFrontendLibs adds them to Content again because the wwwroot glob may predate them.
   -->
   <ItemGroup>
     <FrontendLibsInput Include="package.json;package-lock.json" />
@@ -41,6 +40,7 @@
 
   <Target Name="IncludeFrontendLibs" DependsOnTargets="GenerateFrontendLibs" BeforeTargets="ResolveProjectStaticWebAssets;AssignTargetPaths">
     <ItemGroup>
+      <Content Remove="wwwroot\lib\**;wwwroot\fonts\**" />
       <Content Include="wwwroot\lib\**;wwwroot\fonts\**" />
     </ItemGroup>
   </Target>
