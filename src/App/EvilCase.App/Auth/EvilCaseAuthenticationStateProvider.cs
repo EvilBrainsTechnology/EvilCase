@@ -1,5 +1,6 @@
 using System.Net;
 using System.Security.Claims;
+using System.Text.Json;
 using EvilBrains.ApiClient;
 using EvilBrains.EvilCase.Api.Client;
 using EvilBrains.EvilCase.Api.Contract.User;
@@ -10,6 +11,7 @@ namespace EvilBrains.EvilCase.App.Auth;
 internal sealed class EvilCaseAuthenticationStateProvider(
     ISessionStore store,
     IAuthClient authClient,
+    IEarlyRefresh earlyRefresh,
     ILogger<EvilCaseAuthenticationStateProvider> logger) : AuthenticationStateProvider, IAuthSession, IDisposable
 {
     private const string AuthenticationType = "EvilCase";
@@ -147,11 +149,49 @@ internal sealed class EvilCaseAuthenticationStateProvider(
 
     private async Task<AuthenticationState> Restore()
     {
-        await this.Renew(seen: null, CancellationToken.None);
+        if (!await this.ApplyEarlyRefresh())
+            await this.Renew(seen: null, CancellationToken.None);
 
         this.restored = true;
 
         return BuildAuthenticationState(store.Current);
+    }
+
+    /// <summary>
+    /// The refresh token rotates, so a refresh that completed with 200 or 401 is never repeated.
+    /// </summary>
+    private async Task<bool> ApplyEarlyRefresh()
+    {
+        var early = await earlyRefresh.Take();
+
+        if (early is null)
+            return false;
+
+        if (early.Status == (int)HttpStatusCode.Unauthorized)
+        {
+            store.Clear();
+
+            return true;
+        }
+
+        if (early.Status != (int)HttpStatusCode.OK || early.Body is null)
+            return false;
+
+        try
+        {
+            if (JsonSerializer.Deserialize<LoginResponse>(early.Body, JsonSerializerOptions.Web) is not { } response)
+                return false;
+
+            this.Apply(response);
+
+            return true;
+        }
+        catch (JsonException exception)
+        {
+            logger.LogWarning(exception, "The early refresh response could not be read");
+
+            return false;
+        }
     }
 
     private void Apply(LoginResponse response)

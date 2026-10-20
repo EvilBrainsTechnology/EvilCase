@@ -69,7 +69,7 @@ public class SessionRenewalTests
 
         var tokens = ExpiringSession.Store();
 
-        using var provider = new EvilCaseAuthenticationStateProvider(tokens, authClient, NullLogger<EvilCaseAuthenticationStateProvider>.Instance);
+        using var provider = new EvilCaseAuthenticationStateProvider(tokens, authClient, new StubEarlyRefresh(), NullLogger<EvilCaseAuthenticationStateProvider>.Instance);
 
         await provider.EnsureFresh(CancellationToken.None);
         await provider.EnsureFresh(CancellationToken.None);
@@ -88,6 +88,6 @@ public class SessionRenewalTests
             .Refresh(Arg.Any<CancellationToken>())
             .ThrowsAsync(refreshFailure);
 
-        return new EvilCaseAuthenticationStateProvider(tokens, authClient, NullLogger<EvilCaseAuthenticationStateProvider>.Instance);
+        return new EvilCaseAuthenticationStateProvider(tokens, authClient, new StubEarlyRefresh(), NullLogger<EvilCaseAuthenticationStateProvider>.Instance);
     }
 }
