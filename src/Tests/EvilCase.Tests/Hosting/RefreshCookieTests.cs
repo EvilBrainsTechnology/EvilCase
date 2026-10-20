@@ -143,6 +143,55 @@ public class RefreshCookieTests
     }
 
     [Test]
+    public async Task AnAccessCookieNamedInAnotherCaseIsUnauthorized()
+    {
+        using var signIn = await this.SignIn(Password);
+
+        using var response = await this.GetUserInfo($"{AccessCookie.Name.ToUpperInvariant()}={ValueOf(AccessCookieOf(signIn))}");
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized), "a browser does not hold __HOST- to the prefix, so a sibling subdomain can plant it");
+    }
+
+    [Test]
+    public async Task TwoAccessCookiesUnderTheExactNameAreUnauthorized()
+    {
+        using var signIn = await this.SignIn(Password);
+        var token = ValueOf(AccessCookieOf(signIn));
+
+        using var response = await this.GetUserInfo($"{AccessCookie.Name}={token}; {AccessCookie.Name}={token}");
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized), "a host-only cookie exists once, so the second one was planted");
+    }
+
+    [TestCase("Bearer not-a-token")]
+    [TestCase("Bearer")]
+    public async Task AnAuthorizationHeaderWinsOverTheAccessCookie(string authorization)
+    {
+        using var signIn = await this.SignIn(Password);
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, new Uri(AuthRoute.Path + "/user-info", UriKind.Relative));
+        request.Headers.Add("Cookie", $"{AccessCookie.Name}={ValueOf(AccessCookieOf(signIn))}");
+        request.Headers.TryAddWithoutValidation("Authorization", authorization);
+
+        using var response = await this.client.SendAsync(request);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized), "a caller that sends a header chose it over the cookie");
+    }
+
+    [Test]
+    public async Task ARefreshCookieNamedInAnotherCaseIsRefused()
+    {
+        using var signIn = await this.SignIn(Password);
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(AuthRoute.RefreshPath, UriKind.Relative));
+        request.Headers.Add("Cookie", $"{RefreshCookie.Name.ToUpperInvariant()}={ValueOf(RefreshCookieOf(signIn))}");
+
+        using var response = await this.client.SendAsync(request);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized), "a planted refresh cookie would sign the browser in as someone else");
+    }
+
+    [Test]
     public async Task TheCookieCarriesTheHostPrefix()
     {
         using var response = await this.SignIn(Password);
@@ -297,6 +346,14 @@ public class RefreshCookieTests
         return await this.client.PostAsJsonAsync(
             new Uri(AuthRoute.LoginPath, UriKind.Relative),
             new LoginRequest { Email = Email, Password = password });
+    }
+
+    private async Task<HttpResponseMessage> GetUserInfo(string cookieHeader)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, new Uri(AuthRoute.Path + "/user-info", UriKind.Relative));
+        request.Headers.Add("Cookie", cookieHeader);
+
+        return await this.client.SendAsync(request);
     }
 
     private async Task<HttpResponseMessage> Refresh(string cookie)

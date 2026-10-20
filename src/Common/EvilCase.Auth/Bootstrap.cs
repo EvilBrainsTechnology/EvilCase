@@ -74,7 +74,7 @@ public static class Bootstrap
     private static Task ReadAccessCookie(MessageReceivedContext context)
     {
         if (string.IsNullOrEmpty(context.Request.Headers.Authorization)
-            && context.Request.Cookies[AccessCookie.Name] is { Length: > 0 } token)
+            && HostCookie.Read(context.Request, AccessCookie.Name) is { } token)
         {
             context.Token = token;
         }

@@ -49,7 +49,7 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<LoginResponse>> Refresh([FromServices] IAuthService authService, [FromServices] TimeProvider timeProvider, CancellationToken token)
     {
-        var refreshToken = this.Request.Cookies[RefreshCookie.Name];
+        var refreshToken = HostCookie.Read(this.Request, RefreshCookie.Name);
 
         var result = refreshToken is { Length: > 0 }
             ? await authService.Refresh(refreshToken, this.DescribeClient(), token)
@@ -76,7 +76,7 @@ public class AuthController : ControllerBase
     {
         // Anonymous on purpose: an expired access token must not stop someone from signing out, and the
         // cookie is the only thing this needs.
-        var refreshToken = this.Request.Cookies[RefreshCookie.Name];
+        var refreshToken = HostCookie.Read(this.Request, RefreshCookie.Name);
 
         if (refreshToken is { Length: > 0 })
             await authService.SignOut(refreshToken, token);
