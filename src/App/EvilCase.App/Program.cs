@@ -24,7 +24,7 @@ internal static class Program
         builder.AddClientLogging("ClientLogging", "evilcase.machine-id", ClientLogRoute.Path);
 
         // One instance behind all three registrations.
-        builder.Services.AddSingleton<IAccessTokenStore, AccessTokenStore>();
+        builder.Services.AddSingleton<ISessionStore, SessionStore>();
         builder.Services.AddSingleton<EvilCaseAuthenticationStateProvider>();
         builder.Services.AddSingleton<AuthenticationStateProvider>(static services => services.GetRequiredService<EvilCaseAuthenticationStateProvider>());
         builder.Services.AddSingleton<IAuthSession>(static services => services.GetRequiredService<EvilCaseAuthenticationStateProvider>());

@@ -51,10 +51,12 @@ Data nesmí utéct mezi tenanty; únik je kritická chyba.
 
 ### Autentizace
 
-JWT access token v paměti prohlížeče, rotující refresh token v `__Host-` cookie, heslo uložené
-jako hash odolný proti hrubé síle. Access token nese tenant claim odvozený z řádku uživatele
-při každém vydání, obnovu tokenu včetně. CSRF obranu drží `SameSite=Strict` a same-origin;
-antiforgery token není.
+JWT access token i rotující refresh token v HttpOnly `__Host-` cookie (`SameSite=Strict`), takže
+prohlížeč je k API přihlášený i odkazem (`<a>`, `<img>`, `<iframe>`); JavaScript token nevidí.
+Heslo je uložené jako hash odolný proti hrubé síle. Access token nese tenant claim odvozený z řádku uživatele
+při každém vydání, obnovu tokenu včetně. CSRF obranu drží `SameSite=Strict`, same-origin a kontrola
+`Sec-Fetch-Site` (případně `Origin`) na zápisech do `/api`: zápis mimo vlastní origin odpoví 403.
+Antiforgery token není. Hlavička `Authorization: Bearer` zůstává přijatá pro klienty mimo prohlížeč.
 
 Pět po sobě jdoucích neúspěšných přihlášení účet na 15 minut uzamkne; uzamčený účet odpovídá
 423 (SDD-004) a úspěšné přihlášení počitadlo vynuluje.

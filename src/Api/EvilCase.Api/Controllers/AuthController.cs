@@ -34,7 +34,7 @@ public class AuthController : ControllerBase
                 : this.Problem(statusCode: StatusCodes.Status401Unauthorized, title: "Invalid credentials");
         }
 
-        this.SetRefreshCookie(session);
+        this.SetCookies(session);
 
         return this.Ok(Describe(session));
     }
@@ -55,12 +55,12 @@ public class AuthController : ControllerBase
         {
             // Not on Raced: the cookie already holds another tab's replacement.
             if (result.Status != RefreshStatus.Raced)
-                this.ClearRefreshCookie();
+                this.ClearCookies();
 
             return this.Problem(statusCode: StatusCodes.Status401Unauthorized, title: "Invalid refresh token");
         }
 
-        this.SetRefreshCookie(session);
+        this.SetCookies(session);
 
         return this.Ok(Describe(session));
     }
@@ -77,7 +77,7 @@ public class AuthController : ControllerBase
         if (refreshToken is { Length: > 0 })
             await authService.SignOut(refreshToken, token);
 
-        this.ClearRefreshCookie();
+        this.ClearCookies();
 
         return this.NoContent();
     }
@@ -89,7 +89,7 @@ public class AuthController : ControllerBase
     {
         await authService.SignOutEverywhere(this.UserId(), token);
 
-        this.ClearRefreshCookie();
+        this.ClearCookies();
 
         return this.NoContent();
     }
@@ -118,7 +118,6 @@ public class AuthController : ControllerBase
     {
         return new()
         {
-            AccessToken = session.AccessToken,
             ExpiresAt = session.AccessTokenExpires,
             Email = session.Email,
             Role = session.Role,
@@ -172,14 +171,16 @@ public class AuthController : ControllerBase
         };
     }
 
-    private void SetRefreshCookie(AuthSession session)
+    private void SetCookies(AuthSession session)
     {
         this.Response.Cookies.Append(RefreshCookie.Name, session.RefreshToken, CookieOptions(session.RefreshTokenExpires));
+        this.Response.Cookies.Append(AccessCookie.Name, session.AccessToken, CookieOptions(session.AccessTokenExpires));
     }
 
-    private void ClearRefreshCookie()
+    private void ClearCookies()
     {
         this.Response.Cookies.Delete(RefreshCookie.Name, CookieOptions(expires: null));
+        this.Response.Cookies.Delete(AccessCookie.Name, CookieOptions(expires: null));
     }
 
     // Delete has to repeat these: a browser only drops a cookie whose attributes match.
