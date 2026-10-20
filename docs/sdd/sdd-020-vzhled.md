@@ -130,7 +130,8 @@ tlačítka zůstávají u spodního okraje okna. Pole i celá lišta seznamu maj
 řádky a řazení přebírá select v liště. Drobečky drží jeden řádek a dlouhé položky se zkrátí.
 Dlaždice počtů na přehledu tvoří jeden řádek tří stejných buněk jen s počtem a popiskem; každá
 buňka vede na svůj seznam. Název souboru v kartě má až dva řádky. Hlavička náhledu souboru
-nese na prvním řádku název a zavření, akce pod nimi.
+nese na prvním řádku název a zavření, akce pod nimi na jednom řádku; na mobilu jsou Přejmenovat
+a Stáhnout tlačítka jen s ikonou.
 
 ### Bez cizí knihovny
 

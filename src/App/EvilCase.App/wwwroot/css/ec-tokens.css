@@ -283,6 +283,7 @@
     --ec-preview-sheet-gutter: 48px;
     --ec-preview-sheet-cell: 320px;
     --ec-preview-email-label: 72px;
+    --ec-preview-page-gap: 20px;
     --ec-overlay-strong: rgba(20, 22, 27, 0.6);
     --ec-comment-avatar-compact: 30px;
     --ec-comment-action-height: 24px;
@@ -322,6 +323,7 @@
 
     /* Stíny a fokus */
     --ec-shadow-raised: 0 1px 2px rgba(20, 22, 27, 0.08);
+    --ec-shadow-page: 0 2px 10px rgba(20, 22, 27, 0.12);
     --ec-shadow-overlay: 0 12px 32px rgba(20, 22, 27, 0.16);
     --ec-focus-ring: 0 0 0 3px rgba(31, 63, 174, 0.35);
     --ec-focus-ring-danger: 0 0 0 3px rgba(155, 44, 31, 0.25);

@@ -55,6 +55,46 @@ function releaseDocuments() {
             documentUrls.delete(host);
         }
     }
+
+    for (const [host, observer] of documentObservers) {
+        if (!host.isConnected) {
+            observer.disconnect();
+            documentObservers.delete(host);
+        }
+    }
+}
+
+// The observers that keep a rendered document scaled to the width it has.
+const documentObservers = new Map();
+
+// The pages shrink to the width of the stage and never grow past their own.
+function fitDocument(host, root) {
+    documentObservers.get(host)?.disconnect();
+
+    const pages = [...root.querySelectorAll('section.docx')];
+
+    root.querySelector('.docx-wrapper')?.setAttribute('part', 'document-wrapper');
+    pages.forEach(page => page.setAttribute('part', 'document-page'));
+
+    const naturalWidth = Math.max(0, ...pages.map(page => page.offsetWidth));
+    const stage = host.parentElement;
+
+    if (naturalWidth === 0 || !stage) {
+        return;
+    }
+
+    const fit = () => {
+        const style = getComputedStyle(stage);
+        const available = stage.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+
+        host.style.setProperty('--ec-document-scale', String(Math.min(1, available / naturalWidth)));
+    };
+
+    const observer = new ResizeObserver(fit);
+
+    observer.observe(stage);
+    documentObservers.set(host, observer);
+    fit();
 }
 
 // The document renders in a shadow root, so the styles it carries apply to it alone.
@@ -81,6 +121,7 @@ export async function renderDocument(host, contentStream) {
             renderAltChunks: false,
         });
         secureLinks(root);
+        fitDocument(host, root);
     } finally {
         documentUrls.set(host, root.innerHTML.match(/blob:[^\s"'()<>]+/g) ?? []);
     }

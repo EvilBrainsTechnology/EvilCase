@@ -71,7 +71,8 @@ Esc a Zrušit ho zahodí.
 - Markdown se ukáže formátovaně, nejvýše první 1 MB. Syrové HTML v něm se nevykoná, ukáže se
   jako text; odkaz zůstane jen na webovou nebo e-mailovou adresu a otevře se v nové záložce;
   obrázky se nenačítají.
-- Dokument Word se ukáže jako stránky a náhled upozorní, že se může od originálu mírně lišit.
+- Dokument Word se ukáže jako stránky přes celou šířku náhledu s jedním posuvníkem; na úzké
+  obrazovce se stránka zmenší na šířku okna. Náhled upozorní, že se může od originálu mírně lišit.
 - Sešit se ukáže jako tabulka s kartami listů; z každého listu se ukáže nejvýše prvních
   1 000 řádků a náhled řekne, že je list delší.
 - E-mail ukáže odesílatele, příjemce, předmět, datum, text zprávy a seznam příloh s velikostí;
