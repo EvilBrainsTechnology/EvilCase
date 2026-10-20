@@ -2207,6 +2207,11 @@ html {
     flex: 1 1 auto;
 }
 
+/* The chips overhang the value line, so the label fact is no taller than the others. */
+.ec-detail-fact-labels .ec-label-field {
+    margin-block: calc((var(--ec-fact-line) - var(--ec-space-7) - var(--ec-space-1)) / 2);
+}
+
 .ec-detail-fact-name {
     font-size: var(--ec-text-xs);
     color: var(--ec-text-muted);
@@ -3015,6 +3020,10 @@ html {
 
     .ec-detail-fact-mono {
         overflow-wrap: break-word;
+    }
+
+    .ec-detail-fact-labels .ec-label-field {
+        margin-block: 0;
     }
 
     /* Tlačítko kopírování drží dotykovou plochu, ale řádek údaje nezvětší. */
