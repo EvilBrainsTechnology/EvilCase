@@ -77,18 +77,19 @@ else
     log ".NET SDK $(dotnet --version) installed"
 fi
 
+# The App build runs npm and node, so /opt/node22/bin joins the PATH.
 # run-script (the `r` tool) targets net8.0 and the SDK image carries only the 10.0 runtime.
 export DOTNET_ROLL_FORWARD=LatestMajor
 export DOTNET_CLI_TELEMETRY_OPTOUT=1
 export DOTNET_NOLOGO=1
-export PATH="$PATH:/root/.dotnet/tools"
+export PATH="$PATH:/root/.dotnet/tools:/opt/node22/bin"
 
 if [ -n "${CLAUDE_ENV_FILE:-}" ]; then
     {
         echo 'export DOTNET_ROLL_FORWARD=LatestMajor'
         echo 'export DOTNET_CLI_TELEMETRY_OPTOUT=1'
         echo 'export DOTNET_NOLOGO=1'
-        echo 'export PATH="$PATH:/root/.dotnet/tools"'
+        echo 'export PATH="$PATH:/root/.dotnet/tools:/opt/node22/bin"'
     } >> "$CLAUDE_ENV_FILE"
 fi
 

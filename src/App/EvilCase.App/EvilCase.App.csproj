@@ -17,4 +17,32 @@
     <ProjectReference Include="..\..\Utils\EvilBrains.Logging.WebAssembly\EvilBrains.Logging.WebAssembly.csproj" />
   </ItemGroup>
 
+  <!--
+    wwwroot/lib and wwwroot/fonts are generated from package.json by build-libs.mjs and are not committed.
+    SkipFrontendLibs=true leaves generation to the caller (the Dockerfile has a Node stage for it).
+    The generated files are added to Content here because the wwwroot glob was evaluated before they existed.
+  -->
+  <ItemGroup>
+    <FrontendLibsInput Include="package.json;package-lock.json" />
+    <FrontendLibsOutput Include="node_modules\.package-lock.json" />
+    <FrontendLibsBuildInput Include="package-lock.json;build-libs.mjs" />
+    <FrontendLibsBuildOutput Include="node_modules\.build-libs.stamp;wwwroot\lib\pdfjs\pdf.min.mjs;wwwroot\fonts\instrument-sans-latin.woff2" />
+  </ItemGroup>
+
+  <Target Name="InstallFrontendLibs" Condition="'$(SkipFrontendLibs)' != 'true'" Inputs="@(FrontendLibsInput)" Outputs="@(FrontendLibsOutput)">
+    <Exec Command="npm ci --ignore-scripts --no-audit --no-fund" WorkingDirectory="$(MSBuildProjectDirectory)" />
+    <Touch Files="@(FrontendLibsOutput)" />
+  </Target>
+
+  <Target Name="GenerateFrontendLibs" Condition="'$(SkipFrontendLibs)' != 'true'" DependsOnTargets="InstallFrontendLibs" Inputs="@(FrontendLibsBuildInput);@(FrontendLibsOutput)" Outputs="@(FrontendLibsBuildOutput)">
+    <Exec Command="node build-libs.mjs" WorkingDirectory="$(MSBuildProjectDirectory)" />
+    <Touch Files="node_modules\.build-libs.stamp" AlwaysCreate="true" />
+  </Target>
+
+  <Target Name="IncludeFrontendLibs" DependsOnTargets="GenerateFrontendLibs" BeforeTargets="ResolveProjectStaticWebAssets;AssignTargetPaths">
+    <ItemGroup>
+      <Content Include="wwwroot\lib\**;wwwroot\fonts\**" />
+    </ItemGroup>
+  </Target>
+
 </Project>
