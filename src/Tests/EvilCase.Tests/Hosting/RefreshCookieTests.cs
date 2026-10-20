@@ -96,7 +96,8 @@ public class RefreshCookieTests
             Assert.That(cookie, Does.Contain("secure").IgnoreCase);
             Assert.That(cookie, Does.Contain("samesite=strict").IgnoreCase);
             Assert.That(cookie, Does.Contain("path=/"));
-            Assert.That(cookie, Does.Contain("expires=").IgnoreCase, "the cookie lapses with the token");
+            Assert.That(MaxAgeOf(cookie), Is.InRange(1, 15 * 60), "the cookie lapses with the token");
+            Assert.That(cookie, Does.Not.Contain("expires=").IgnoreCase, "a browser clock that runs ahead would drop the cookie on arrival");
             Assert.That(cookie, Does.Not.Contain("domain=").IgnoreCase, "the host prefix forbids a domain");
         }
     }
@@ -207,6 +208,24 @@ public class RefreshCookieTests
     }
 
     [Test]
+    public async Task SigningOutEverywhereWithOnlyTheAccessCookieClearsBothCookies()
+    {
+        using var signIn = await this.SignIn(Password);
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(AuthRoute.Path + "/logout-all", UriKind.Relative));
+        request.Headers.Add("Cookie", $"{AccessCookie.Name}={ValueOf(AccessCookieOf(signIn))}");
+
+        using var signOut = await this.client.SendAsync(request);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(signOut.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
+            Assert.That(ValueOf(RefreshCookieOf(signOut)), Is.Empty, "the refresh cookie would renew a revoked session");
+            Assert.That(ValueOf(AccessCookieOf(signOut)), Is.Empty, "the access cookie would keep the browser signed in");
+        }
+    }
+
+    [Test]
     public async Task ASpentRefreshTokenIsRefusedButLeavesTheReplacementCookieAlone()
     {
         using var signIn = await this.SignIn(Password);
@@ -252,6 +271,20 @@ public class RefreshCookieTests
         return response.Headers.TryGetValues("Set-Cookie", out var values)
             ? values.Single(value => value.StartsWith(name + "=", StringComparison.Ordinal))
             : throw new AssertionException("The response carries no Set-Cookie header");
+    }
+
+    private static int MaxAgeOf(string setCookie)
+    {
+        const string attribute = "max-age=";
+
+        var start = setCookie.IndexOf(attribute, StringComparison.OrdinalIgnoreCase);
+
+        if (start < 0)
+            throw new AssertionException("The cookie carries no Max-Age");
+
+        var digits = setCookie[(start + attribute.Length)..].TakeWhile(char.IsAsciiDigit).ToArray();
+
+        return int.Parse(digits, CultureInfo.InvariantCulture);
     }
 
     private static string ValueOf(string setCookie)

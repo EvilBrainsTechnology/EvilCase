@@ -22,7 +22,11 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status423Locked)]
-    public async Task<ActionResult<LoginResponse>> Login([FromServices] IAuthService authService, [FromBody] LoginRequest request, CancellationToken token)
+    public async Task<ActionResult<LoginResponse>> Login(
+        [FromServices] IAuthService authService,
+        [FromServices] TimeProvider timeProvider,
+        [FromBody] LoginRequest request,
+        CancellationToken token)
     {
         var result = await authService.Login(request.Email, request.Password, this.DescribeClient(), token);
 
@@ -34,7 +38,7 @@ public class AuthController : ControllerBase
                 : this.Problem(statusCode: StatusCodes.Status401Unauthorized, title: "Invalid credentials");
         }
 
-        this.SetCookies(session);
+        this.SetCookies(session, timeProvider);
 
         return this.Ok(Describe(session));
     }
@@ -43,7 +47,7 @@ public class AuthController : ControllerBase
     [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult<LoginResponse>> Refresh([FromServices] IAuthService authService, CancellationToken token)
+    public async Task<ActionResult<LoginResponse>> Refresh([FromServices] IAuthService authService, [FromServices] TimeProvider timeProvider, CancellationToken token)
     {
         var refreshToken = this.Request.Cookies[RefreshCookie.Name];
 
@@ -60,7 +64,7 @@ public class AuthController : ControllerBase
             return this.Problem(statusCode: StatusCodes.Status401Unauthorized, title: "Invalid refresh token");
         }
 
-        this.SetCookies(session);
+        this.SetCookies(session, timeProvider);
 
         return this.Ok(Describe(session));
     }
@@ -171,10 +175,15 @@ public class AuthController : ControllerBase
         };
     }
 
-    private void SetCookies(AuthSession session)
+    private void SetCookies(AuthSession session, TimeProvider timeProvider)
     {
         this.Response.Cookies.Append(RefreshCookie.Name, session.RefreshToken, CookieOptions(session.RefreshTokenExpires));
-        this.Response.Cookies.Append(AccessCookie.Name, session.AccessToken, CookieOptions(session.AccessTokenExpires));
+
+        // Max-Age, not Expires: a browser whose clock runs ahead would drop the short-lived cookie on arrival.
+        var accessOptions = CookieOptions(expires: null);
+        accessOptions.MaxAge = session.AccessTokenExpires - timeProvider.GetUtcNow().UtcDateTime;
+
+        this.Response.Cookies.Append(AccessCookie.Name, session.AccessToken, accessOptions);
     }
 
     private void ClearCookies()
