@@ -1,6 +1,4 @@
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
-using Microsoft.Extensions.Logging;
 
 namespace EvilBrains.EvilCase.Api.Binding;
 
@@ -8,13 +6,12 @@ namespace EvilBrains.EvilCase.Api.Binding;
 /// Binds the values into a new list. MVC hands a property's current value to a collection binder to
 /// fill in place, which a read-only list refuses without a word.
 /// </summary>
-internal sealed class ReadOnlyListModelBinder<TElement>(IModelBinder elementBinder, ILoggerFactory loggerFactory)
-    : CollectionModelBinder<TElement>(elementBinder, loggerFactory)
+internal sealed class ReadOnlyListModelBinder(IModelBinder collectionBinder) : IModelBinder
 {
-    public override async Task BindModelAsync(ModelBindingContext bindingContext)
+    public async Task BindModelAsync(ModelBindingContext bindingContext)
     {
         bindingContext.Model = null;
 
-        await base.BindModelAsync(bindingContext);
+        await collectionBinder.BindModelAsync(bindingContext);
     }
 }

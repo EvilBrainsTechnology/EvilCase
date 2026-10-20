@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -24,9 +25,11 @@ internal sealed class ReadOnlyListModelBinderProvider : IModelBinderProvider
         var elementBinder = context.CreateBinder(context.MetadataProvider.GetMetadataForType(elementType));
         var loggerFactory = context.Services.GetRequiredService<ILoggerFactory>();
 
-        return (IModelBinder)Activator.CreateInstance(
-            typeof(ReadOnlyListModelBinder<>).MakeGenericType(elementType),
+        var collectionBinder = (IModelBinder)Activator.CreateInstance(
+            typeof(CollectionModelBinder<>).MakeGenericType(elementType),
             elementBinder,
             loggerFactory)!;
+
+        return new ReadOnlyListModelBinder(collectionBinder);
     }
 }
