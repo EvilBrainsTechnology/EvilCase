@@ -23,14 +23,17 @@ internal sealed class AuthTokenHandler(ISessionStore store, IServiceProvider ser
         var contentType = request.Content?.Headers.ContentType;
 
         if (this.IsExpiring())
-            await this.Session().Renew(cancellationToken);
+            await this.Session().Renew(store.Current, cancellationToken);
+
+        // A 401 on this session renews even while it looks fresh: another tab may have signed out.
+        var sent = store.Current;
 
         var response = await base.SendAsync(request, cancellationToken);
 
         if (response.StatusCode != HttpStatusCode.Unauthorized || store.Current is null)
             return response;
 
-        if (!await this.Session().Renew(cancellationToken))
+        if (!await this.Session().Renew(sent, cancellationToken))
             return response;
 
         response.Dispose();
@@ -68,7 +71,7 @@ internal sealed class AuthTokenHandler(ISessionStore store, IServiceProvider ser
             clone.Headers.TryAddWithoutValidation(header.Key, header.Value);
 
         // Where the browser request options live, the fetch credentials among them: without them the
-        // retry would leave the refresh cookie behind and ignore the one coming back.
+        // retry would leave the renewed cookies behind.
         foreach (var option in (IDictionary<string, object?>)request.Options)
             clone.Options.Set(new HttpRequestOptionsKey<object?>(option.Key), option.Value);
 

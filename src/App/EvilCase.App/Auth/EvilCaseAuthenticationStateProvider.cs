@@ -85,14 +85,14 @@ internal sealed class EvilCaseAuthenticationStateProvider(
         this.Publish();
     }
 
-    public async Task<bool> Renew(CancellationToken token)
+    public async Task<bool> Renew(SessionState? seen, CancellationToken token)
     {
         await this.renewal.WaitAsync(token);
 
         try
         {
             // Whoever was ahead in the queue may have done the work already.
-            if (store.Current is { } current && current.ExpiresAt - DateTime.UtcNow > RenewAhead)
+            if (store.Current is { } current && current != seen && current.ExpiresAt - DateTime.UtcNow > RenewAhead)
                 return true;
 
             this.Apply(await authClient.Refresh(token));
@@ -141,7 +141,7 @@ internal sealed class EvilCaseAuthenticationStateProvider(
 
     private async Task<AuthenticationState> Restore()
     {
-        await this.Renew(CancellationToken.None);
+        await this.Renew(seen: null, CancellationToken.None);
 
         this.restored = true;
 
