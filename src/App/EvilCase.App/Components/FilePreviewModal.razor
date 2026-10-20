@@ -41,8 +41,8 @@
                     </nav>
                     <span class="ec-preview-divider" aria-hidden="true"></span>
                 }
-                <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Pencil" OnClick="this.StartRename">Přejmenovat</EcButton>
-                <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Download" OnClick="() => this.OnDownload.InvokeAsync(file)">Stáhnout</EcButton>
+                <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Pencil" AriaLabel="Přejmenovat" OnClick="this.StartRename"><span class="ec-preview-action-label">Přejmenovat</span></EcButton>
+                <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Download" AriaLabel="Stáhnout" OnClick="() => this.OnDownload.InvokeAsync(file)"><span class="ec-preview-action-label">Stáhnout</span></EcButton>
             </div>
         </Heading>
         <ChildContent>
@@ -96,7 +96,7 @@
             }
             else if (preview == FilePreviewKind.Document)
             {
-                <div class="ec-preview-stage ec-preview-stage-text">
+                <div class="ec-preview-stage ec-preview-stage-text ec-preview-stage-document">
                     <p class="ec-preview-note"><EcIcon Paths="@AppIcons.Info" />Náhled dokumentu se může od originálu mírně lišit. Přesnou podobu ukáže stažený soubor.</p>
                     <div @key="file.FileId" @ref="this.documentHost" class="ec-preview-document" role="document" tabindex="0" aria-label="Obsah souboru @file.FileName"></div>
                 </div>

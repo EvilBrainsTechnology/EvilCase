@@ -453,6 +453,21 @@ public class FilePreviewModalRenderTests
     }
 
     [Test]
+    public void TheHeaderActionsKeepTheirNameWhenTheLabelIsHidden()
+    {
+        using var ctx = NewContext(out _);
+
+        var file = File("a.pdf");
+        var component = Render(ctx, [file], file.FileId);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.Find(".ec-modal-header button[aria-label='Přejmenovat'] .ec-preview-action-label").TextContent, Is.EqualTo("Přejmenovat"));
+            Assert.That(component.Find(".ec-modal-header button[aria-label='Stáhnout'] .ec-preview-action-label").TextContent, Is.EqualTo("Stáhnout"));
+        }
+    }
+
+    [Test]
     public void ASingleFileHasNothingToStepTo()
     {
         using var ctx = NewContext(out _);

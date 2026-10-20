@@ -1563,10 +1563,31 @@ html {
     font-weight: var(--ec-weight-semibold);
 }
 
+.ec-preview-stage-document {
+    align-items: stretch;
+    overflow-x: hidden;
+    scrollbar-gutter: stable;
+}
+
+.ec-preview-stage-document > .ec-preview-note {
+    align-self: center;
+}
+
 .ec-preview-document {
-    max-width: 100%;
-    overflow-x: auto;
-    contain: paint;
+    flex: 0 0 auto;
+    min-width: 0;
+    zoom: var(--ec-document-scale, 1);
+}
+
+.ec-preview-document > div::part(document-wrapper) {
+    gap: var(--ec-preview-page-gap);
+    padding: 0;
+    background: transparent;
+}
+
+.ec-preview-document > div::part(document-page) {
+    margin: 0;
+    box-shadow: var(--ec-shadow-page);
 }
 
 .ec-preview-sheet-view {
@@ -3188,11 +3209,25 @@ html {
 
     .ec-preview-actions {
         display: flex;
-        flex-wrap: wrap;
         flex: 1 1 100%;
         order: 1;
         align-items: center;
+        justify-content: flex-end;
         gap: var(--ec-space-3);
+    }
+
+    .ec-modal-large .ec-modal-header .ec-preview-actions .ec-button {
+        width: var(--ec-touch-min);
+        height: var(--ec-touch-min);
+        padding: 0;
+    }
+
+    .ec-preview-nav {
+        margin-right: auto;
+    }
+
+    .ec-preview-action-label {
+        display: none;
     }
 
     .ec-preview-divider {
