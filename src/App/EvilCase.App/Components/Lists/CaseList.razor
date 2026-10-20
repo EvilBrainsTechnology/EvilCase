@@ -25,7 +25,7 @@
                 Header = "Datum spisu",
                 Width = "var(--ec-list-col-date)",
                 SortKey = nameof(CaseSortKey.Date),
-                CellClass = "ec-cell-num",
+                CellClass = "ec-cell-num ec-cell-date",
                 Cell = item =>@<text>@DateDisplay.Text(item.Date)</text>,
             },
             CaseColumn.Case => new EcColumn<CaseListItem>
@@ -51,20 +51,6 @@
                 Header = "Stav",
                 Width = "var(--ec-list-col-status)",
                 Cell = item =>@<EcBadge Tone="CaseStatusDisplay.Tone(item.Status)" Text="@CaseStatusDisplay.Text(item.Status)" ShowDot="true" />,
-            },
-            CaseColumn.CaseNumber => new EcColumn<CaseListItem>
-            {
-                Header = "Spisová značka",
-                Width = "var(--ec-list-col-number)",
-                SortKey = nameof(CaseSortKey.CaseNumber),
-                CellClass = "ec-cell-mono ec-cell-stack",
-                Cell = item =>@<text>
-                    <span class="ec-cell-text">@item.CaseNumber</span>
-                    @if (!string.IsNullOrEmpty(item.ExternalCaseNumber))
-                    {
-                        <span class="ec-cell-text ec-cell-sub">@item.ExternalCaseNumber</span>
-                    }
-                </text>,
             },
             _ => throw new UnreachableException(),
         });

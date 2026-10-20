@@ -15,11 +15,12 @@ Dashboard stojí nad reálnými daty tenantu:
 
 - dlaždice počtů spisů podle stavu, za celý tenant; dlaždice vede na seznam spisů zúžený na svůj
   stav včetně podřízených spisů (SDD-009),
-- naposledy změněné spisy, bez ohledu na stav, včetně podřízených spisů,
+- naposledy změněné spisy, bez ohledu na stav, včetně podřízených spisů: datum spisu, název,
+  stav a změna,
 - naposledy změněné úkony napříč spisy: datum úkonu, v jedné buňce název se štítky a pod ním
-  název spisu, směr, kontakt a číslo jednací bez spisové značky spisu; řádek vede do detailu úkonu.
+  název spisu, směr, kontakt a změna; řádek vede do detailu úkonu.
 
-Obě seznamové dlaždice ukazují změnu jako první sloupec; dlaždice spisů je první, dlaždice
+Obě seznamové dlaždice ukazují změnu jako poslední sloupec; dlaždice spisů je první, dlaždice
 úkonů druhá. Dnešní změnu píšou jako „dnes 21:45“, včerejší jako „včera 9:10“, starší jako
 okamžik (SDD-016); celý okamžik nese tooltip.
 

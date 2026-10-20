@@ -2,6 +2,8 @@ using Bunit;
 using EvilBrains.EvilCase.Api.Client;
 using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Labels;
+using EvilBrains.EvilCase.Api.Contract.Lists;
+using EvilBrains.EvilCase.Domain.Cases;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -21,6 +23,29 @@ public class CasesRenderTests
 
         await component.WaitForAssertionAsync(
             () => Assert.That(requests[0].Search, Is.EqualTo("rychlost"), "the bar's search opens the case list narrowed by the text"));
+    }
+
+    [Test]
+    public async Task ThePageListsTheCasesWithTheChangeMomentLast()
+    {
+        await using var ctx = new BunitContext();
+        Serve(ctx, out var requests, withRow: true);
+
+        ctx.Services.GetRequiredService<NavigationManager>().NavigateTo("/cases");
+
+        var component = ctx.Render<App.Pages.Cases>();
+
+        await component.WaitForAssertionAsync(() =>
+        {
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(
+                    component.FindAll(".ec-table-header").Select(static header => header.TextContent.Trim().TrimEnd('↑', '↓').Trim()),
+                    Is.EqualTo(["Datum spisu", "Spis", "Stav", "Změněno"]));
+                Assert.That(requests[0].Sort, Is.EqualTo(CaseSortKey.Date));
+                Assert.That(requests[0].SortDirection, Is.EqualTo(ListSortDirection.Descending), "the newest case comes first");
+            }
+        });
     }
 
     [Test]
@@ -115,10 +140,20 @@ public class CasesRenderTests
         }
     }
 
-    private static void Serve(BunitContext ctx, out List<CaseListRequest> requests)
+    private static readonly CaseListItem Row = new()
+    {
+        CaseId = Guid.CreateVersion7(),
+        CaseNumber = "EC/20260821-001",
+        Title = "Přestupek",
+        Date = new DateOnly(2026, 8, 21),
+        Status = CaseStatus.Active,
+        Changed = new DateTime(2026, 8, 21, 0, 0, 0, DateTimeKind.Utc),
+    };
+
+    private static void Serve(BunitContext ctx, out List<CaseListRequest> requests, bool withRow = false)
     {
         var captured = new List<CaseListRequest>();
-        var response = new CaseListResponse { Items = [], TotalCount = 0 };
+        var response = withRow ? new CaseListResponse { Items = [Row], TotalCount = 1 } : new CaseListResponse { Items = [], TotalCount = 0 };
 
         var casesClient = Substitute.For<ICasesClient>();
         casesClient

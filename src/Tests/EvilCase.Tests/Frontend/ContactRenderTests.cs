@@ -96,7 +96,7 @@ public class ContactRenderTests
             {
                 Assert.That(
                     component.FindAll(".ec-contact-occurrences .ec-table")[1].QuerySelectorAll(".ec-table-header").Select(static header => header.TextContent.Trim().TrimEnd('↑', '↓').Trim()),
-                    Is.EqualTo(["Datum úkonu", "Úkon a spis", "Směr"]));
+                    Is.EqualTo(["Datum úkonu", "Úkon a spis", "Směr", "Změněno"]));
                 Assert.That(component.Find(".ec-cell-sub").TextContent, Is.EqualTo("Přestupek"));
             }
         });

@@ -358,8 +358,7 @@ public class CaseRenderTests
         {
             Assert.That(
                 component.FindAll(".ec-detail-main .ec-table-header").Select(static header => header.TextContent.Trim().TrimEnd('↑', '↓').Trim()),
-                Is.EqualTo(["Datum", "Úkon", "Směr", "Kontakt", "Číslo jednací"]));
-            Assert.That(component.Find(".ec-detail-main .ec-cell-mono .ec-cell-text").TextContent, Is.EqualTo("20260822-001"));
+                Is.EqualTo(["Datum", "Úkon", "Směr", "Kontakt", "Změněno"]));
             Assert.That(component.Find(".ec-detail-main .ec-cell-muted").TextContent, Is.EqualTo("Jan Novák"));
         }
     }

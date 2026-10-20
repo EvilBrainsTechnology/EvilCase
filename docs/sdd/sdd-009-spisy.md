@@ -42,7 +42,7 @@ kontakt. Zadává se na editaci spisu.
 ### Stránky
 
 - `/cases` — seznam spisů: datum, název se štítky jako drobnými značkami s názvem (SDD-019); podřízený spis ukazuje na prvním řádku vlastní název se štítky a pod ním šedě název rodičovského spisu, jako úkon v seznamu úkonů, stav
-  s barevnou tečkou, spisová značka a pod ní šedě externí značka, je-li. Výchozí řazení je podle
+  s barevnou tečkou a okamžik poslední změny. Výchozí řazení je podle
   data spisu sestupně; záhlaví sloupce řadí podle sebe a druhý klik otočí směr. Seznam je
   stránkovaný podle SDD-005 a nese celkový počet. Lišta je na jednom řádku: hledání, přepínač
   stavu, tlačítko Filtry a Jen rodičovské spisy. Hledací pole hledá v názvu a popisu bez ohledu na
@@ -58,7 +58,7 @@ kontakt. Zadává se na editaci spisu.
   a Smazat spis.
 - `/cases/{id}/edit` — editace, včetně kontaktu, štítků a rodiče.
 - Úkony v detailu spisu ukazují datum, název se štítky jako drobnými značkami s názvem, směr,
-  kontakt a číslo jednací bez úvodní spisové značky spisu. Kontakt, který je protistranou
+  kontakt a okamžik poslední změny. Kontakt, který je protistranou
   spisu, je potlačený; jiný kontakt je zvýrazněný. Lišta nese hledání a směr; rozsah dat
   a štítky jsou pod tlačítkem Filtry, které je ve výchozím stavu sbalené a nese počet
   aktivních filtrů.
@@ -84,8 +84,8 @@ Mazání řídí matice v SDD-007. Potvrzení jednou větou jmenuje, co kaskáda
 - Zadání kontaktu: jen editace / založení i editace. Platí obojí.
 - Podřízené spisy v detailu spisu: všechny / jen otevřené s přepínačem. Platí jen otevřené
   s přepínačem.
-- Číslo jednací v úkonech detailu spisu: celé / bez spisové značky spisu. Platí bez spisové
-  značky; číslo, které jí nezačíná, se ukáže celé.
+- Číslo jednací a spisová značka v seznamech: ukázat / vynechat. Platí vynechat; ukazuje je
+  detail.
 
 ## Dopady
 
