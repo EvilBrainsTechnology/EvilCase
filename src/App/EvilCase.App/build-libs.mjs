@@ -6,7 +6,7 @@
 // Exits 1 when node_modules is missing, a source file or license file is missing, or a package that
 // ships in the output has a license outside the allow-list.
 
-import { build } from 'esbuild';
+import { build, transform } from 'esbuild';
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -156,6 +156,10 @@ copy('pdfjs-dist', 'legacy/build/pdf.worker.min.mjs', join(lib, 'pdfjs', 'pdf.wo
 copy('pdfjs-dist', 'iccs', join(lib, 'pdfjs', 'iccs'));
 copy('pdfjs-dist', 'standard_fonts', join(lib, 'pdfjs', 'standard_fonts'));
 copy('pdfjs-dist', 'wasm', join(lib, 'pdfjs', 'wasm'), (file) => !basename(file).startsWith('quickjs-eval'));
+// The viewer component of the same build, without the viewer application; its stylesheet reads the images beside it.
+writeFileSync(join(lib, 'pdfjs', 'pdf_viewer.mjs'), (await transform(readFileSync(source('pdfjs-dist', 'legacy', 'web', 'pdf_viewer.mjs'), 'utf8'), { minify: true, format: 'esm', target: 'es2022' })).code);
+writeFileSync(join(lib, 'pdfjs', 'pdf_viewer.css'), (await transform(readFileSync(source('pdfjs-dist', 'legacy', 'web', 'pdf_viewer.css'), 'utf8'), { loader: 'css', minify: true })).code);
+copy('pdfjs-dist', 'legacy/web/images', join(lib, 'pdfjs', 'images'));
 copyLicense('pdfjs-dist', join(lib, 'pdfjs', 'LICENSE'));
 
 await bundle("export { default } from 'postal-mime';", join(lib, 'postal-mime'), 'postal-mime.min.js', { format: 'esm' });

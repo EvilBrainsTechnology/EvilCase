@@ -66,8 +66,13 @@ Esc a Zrušit ho zahodí.
   (docx), sešit (xlsx, xls, ods), e-mail (eml, msg), zvuk (mp3, m4a, wav, ogg, oga) a video
   (mp4, webm, m4v, mov). Jiný typ nabídne jen stažení. Soubor, který se nepodaří přečíst, nabídne
   také jen stažení.
-- PDF se ukáže jako vykreslené stránky pod sebou, vždy na šířku náhledu, i v mobilním prohlížeči;
-  náhled řekne počet stran. Nejde v něm vybírat text a nefungují odkazy, formuláře ani skripty.
+- PDF se ukáže jako stránky pod sebou, zpočátku na šířku náhledu, i v mobilním prohlížeči. Lišta
+  nad stránkami ukáže stránku z počtu stran s polem pro skok na stránku, zvětšení a zmenšení
+  (50 až 400 %), přizpůsobení na šířku a na celou stránku a hledání. Hledání zvýrazní všechny
+  výskyty a ukáže pořadí z počtu (3 z 12), nebo Nenalezeno; Enter přejde na další výskyt,
+  Shift+Enter na předchozí. Text jde vybrat a zkopírovat.
+- Odkaz v PDF na místo v dokumentu přejde na jeho stránku, odkaz na webovou nebo e-mailovou adresu
+  se otevře v nové záložce, jiný odkaz nefunguje. Formuláře, skripty a vložená média nefungují.
   PDF chráněné heslem nebo nečitelné nabídne jen stažení.
 - Text je vždy prostý text s čísly řádků, nikdy vykreslená stránka; ukáže se nejvýše první
   1 MB a nejvýše 5 000 řádků a náhled řekne, že je soubor delší. SVG je jen obrázek.

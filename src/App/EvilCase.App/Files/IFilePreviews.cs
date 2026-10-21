@@ -1,4 +1,6 @@
+using EvilBrains.EvilCase.App.Components;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 
 namespace EvilBrains.EvilCase.App.Files;
 
@@ -19,13 +21,24 @@ internal interface IFilePreviews
     public Task RenderDocument(ElementReference host, Stream content, CancellationToken token);
 
     /// <summary>
-    /// Draws the pages of the PDF at <paramref name="url"/> into the element and returns their count. A file the
-    /// library cannot open, a password-protected one included, throws a <c>JSException</c>.
+    /// Shows the PDF at <paramref name="url"/> in the element, fitted to its width, and returns its page count. The
+    /// view then hears of the page, the zoom and the search matches as they change. A file the library cannot open, a
+    /// password-protected one included, throws a <c>JSException</c>.
     /// </summary>
-    public Task<int> RenderPdf(ElementReference host, string url, CancellationToken token);
+    public Task<int> RenderPdf(ElementReference host, string url, DotNetObjectReference<PdfPreview> view, CancellationToken token);
+
+    public Task ZoomPdf(ElementReference host, PdfZoom zoom);
+
+    public Task GoToPdfPage(ElementReference host, int page);
 
     /// <summary>
-    /// Releases the PDF drawn into the element: its document, worker and canvases.
+    /// Highlights every match of <paramref name="query"/> in the PDF and scrolls to the one <paramref name="find"/>
+    /// names; an empty query clears the highlights.
+    /// </summary>
+    public Task FindInPdf(ElementReference host, string query, PdfFind find);
+
+    /// <summary>
+    /// Releases the PDF shown in the element: its document, worker, canvases and listeners.
     /// </summary>
     public Task DisposePdf(ElementReference host);
 
