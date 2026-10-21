@@ -326,7 +326,6 @@
     --ec-login-title-size: 26px;
     --ec-login-panel-bg: var(--ec-text);
     --ec-login-panel-text: var(--ec-surface);
-    --ec-login-panel-faint: #8C929D;
     --ec-boot-fill: var(--blazor-load-percentage, 0%);
 
     /* Stíny a fokus */

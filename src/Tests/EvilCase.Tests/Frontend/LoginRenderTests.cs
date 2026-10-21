@@ -48,7 +48,8 @@ public class LoginRenderTests
             Assert.That(login.Find(".ec-gate > .ec-brand").TextContent.Trim(), Is.EqualTo("EvilCase"));
             Assert.That(loading.Find(".ec-gate > .ec-brand").TextContent.Trim(), Is.EqualTo("EvilCase"));
             Assert.That(loading.Find(".ec-gate-card .ec-boot-track"), Is.Not.Null);
-            Assert.That(loading.Find(".ec-gate-facts").InnerHtml, Is.EqualTo(login.Find(".ec-gate-facts").InnerHtml));
+            Assert.That(login.FindAll(".ec-gate-facts"), Is.Empty);
+            Assert.That(loading.FindAll(".ec-gate-facts"), Is.Empty);
         }
     }
 
