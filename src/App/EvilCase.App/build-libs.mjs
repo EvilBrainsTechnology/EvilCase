@@ -6,7 +6,7 @@
 // Exits 1 when node_modules is missing, a source file or license file is missing, or a package that
 // ships in the output has a license outside the allow-list.
 
-import { build } from 'esbuild';
+import { build, transform } from 'esbuild';
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
