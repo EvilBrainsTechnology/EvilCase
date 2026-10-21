@@ -24,13 +24,26 @@ internal sealed class StubFilePreviews : IFilePreviews
     /// <summary>
     /// The view the last PDF reports its page, zoom and matches to, as the library would.
     /// </summary>
-    public DotNetObjectReference<PdfPreview>? PdfView { get; private set; }
+    public DotNetObjectReference<PreviewToolbar>? PdfView { get; private set; }
 
-    public List<PdfZoom> Zooms { get; } = [];
+    public List<PreviewZoom> Zooms { get; } = [];
 
     public List<int> PdfPagesGoneTo { get; } = [];
 
-    public List<(string Query, PdfFind Find)> Finds { get; } = [];
+    public List<(string Query, PreviewFind Find)> Finds { get; } = [];
+
+    /// <summary>
+    /// The view the last text or document reports its zoom and matches to, as the library would.
+    /// </summary>
+    public DotNetObjectReference<PreviewToolbar>? TextView { get; private set; }
+
+    public int OpenedTextViews { get; private set; }
+
+    public int DisposedViews { get; private set; }
+
+    public List<PreviewZoom> ViewZooms { get; } = [];
+
+    public List<(string Query, PreviewFind Find)> ViewFinds { get; } = [];
 
     public List<int> RequestedRows { get; } = [];
 
@@ -53,15 +66,45 @@ internal sealed class StubFilePreviews : IFilePreviews
         return Task.FromResult(url);
     }
 
-    public async Task RenderDocument(ElementReference host, Stream content, CancellationToken token)
+    public async Task RenderDocument(ElementReference host, Stream content, DotNetObjectReference<PreviewToolbar> view, CancellationToken token)
     {
         this.ThrowWhenFailing();
 
         using var reader = new StreamReader(content);
         this.RenderedDocuments.Add(await reader.ReadToEndAsync(token));
+        this.TextView = view;
     }
 
-    public Task<int> RenderPdf(ElementReference host, string url, DotNetObjectReference<PdfPreview> view, CancellationToken token)
+    public Task OpenTextView(ElementReference stage, DotNetObjectReference<PreviewToolbar> view)
+    {
+        this.OpenedTextViews++;
+        this.TextView = view;
+
+        return Task.CompletedTask;
+    }
+
+    public Task ZoomView(ElementReference element, PreviewZoom zoom)
+    {
+        this.ViewZooms.Add(zoom);
+
+        return Task.CompletedTask;
+    }
+
+    public Task FindInView(ElementReference element, string query, PreviewFind find)
+    {
+        this.ViewFinds.Add((query, find));
+
+        return Task.CompletedTask;
+    }
+
+    public Task DisposeView(ElementReference element)
+    {
+        this.DisposedViews++;
+
+        return Task.CompletedTask;
+    }
+
+    public Task<int> RenderPdf(ElementReference host, string url, DotNetObjectReference<PreviewToolbar> view, CancellationToken token)
     {
         this.ThrowWhenFailing();
         this.RenderedPdfs.Add(url);
@@ -70,7 +113,7 @@ internal sealed class StubFilePreviews : IFilePreviews
         return Task.FromResult(this.PdfPages);
     }
 
-    public Task ZoomPdf(ElementReference host, PdfZoom zoom)
+    public Task ZoomPdf(ElementReference host, PreviewZoom zoom)
     {
         this.Zooms.Add(zoom);
 
@@ -84,7 +127,7 @@ internal sealed class StubFilePreviews : IFilePreviews
         return Task.CompletedTask;
     }
 
-    public Task FindInPdf(ElementReference host, string query, PdfFind find)
+    public Task FindInPdf(ElementReference host, string query, PreviewFind find)
     {
         this.Finds.Add((query, find));
 

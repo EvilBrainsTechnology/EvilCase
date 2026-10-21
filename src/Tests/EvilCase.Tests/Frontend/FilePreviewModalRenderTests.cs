@@ -33,8 +33,8 @@ public class FilePreviewModalRenderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(component.FindAll(".ec-modal-body .ec-preview-pdf"), Has.Count.EqualTo(1));
-            Assert.That(component.FindAll(".ec-modal-body .ec-preview-pdf-toolbar"), Has.Count.EqualTo(1), "the PDF toolbar stands in the body, not in the header");
-            Assert.That(component.Find(".ec-preview-pdf-page-count").TextContent, Is.EqualTo("z 3"));
+            Assert.That(component.FindAll(".ec-modal-body .ec-preview-toolbar"), Has.Count.EqualTo(1), "the PDF toolbar stands in the body, not in the header");
+            Assert.That(component.Find(".ec-preview-toolbar-page-count").TextContent, Is.EqualTo("z 3"));
             Assert.That(previews.RenderedPdfs, Is.EqualTo([$"/api/files/{file.FileId}/content"]));
             Assert.That(component.FindAll("iframe, object, embed"), Is.Empty, "no browser viewer shows the PDF");
             Assert.That(loads, Is.Zero, "the library requests the file itself");
@@ -402,6 +402,116 @@ public class FilePreviewModalRenderTests
         }
     }
 
+    [TestCase("Poznámky.txt")]
+    [TestCase("Poznámky.md")]
+    [TestCase("Zpráva.eml")]
+    [TestCase("Zpráva.msg")]
+    public void AReflowingPreviewHasTheZoomAndSearchOfThePdfWithoutPagesOrFits(string fileName)
+    {
+        using var ctx = NewContext(out _, out var previews);
+
+        var file = File(fileName);
+        var component = Render(ctx, [file], file.FileId);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(previews.OpenedTextViews, Is.EqualTo(1));
+            Assert.That(component.Find(".ec-modal-body .ec-preview-toolbar").GetAttribute("role"), Is.EqualTo("toolbar"));
+            Assert.That(
+                component.FindAll(".ec-preview-toolbar button").Select(static button => button.GetAttribute("aria-label")),
+                Is.EqualTo(["Zmenšit", "Zvětšit", "100 %", "Hledat v dokumentu", "Předchozí výskyt", "Další výskyt"]));
+            Assert.That(component.FindAll(".ec-preview-toolbar-pages"), Is.Empty, "a reflowing text has no pages");
+            Assert.That(component.Find(".ec-preview-toolbar-zoom-value").TextContent, Is.EqualTo("100 %"));
+            Assert.That(component.FindAll(".ec-preview-stage [role='document']"), Has.Count.EqualTo(1), "the zoom and search apply to the one document element");
+        }
+    }
+
+    [Test]
+    public async Task TheTextToolbarZoomsAndSearchesTheText()
+    {
+        await using var ctx = NewContext(out _, out var previews);
+
+        var file = File("Poznámky.txt");
+        var component = Render(ctx, [file], file.FileId, content: "Lhůta běží.");
+
+        await ToolbarButton(component, "Zvětšit").ClickAsync(new MouseEventArgs());
+        await ToolbarButton(component, "Zmenšit").ClickAsync(new MouseEventArgs());
+        await ToolbarButton(component, "100 %").ClickAsync(new MouseEventArgs());
+        await previews.TextView!.Value.ZoomChanged(125, "");
+        await component.Find(".ec-preview-toolbar-search-input").InputAsync(new() { Value = "lhuta" });
+        await previews.TextView.Value.MatchesChanged(1, 2, pending: false);
+        await component.Find(".ec-preview-toolbar-search-input").KeyDownAsync(new KeyboardEventArgs { Key = "Enter" });
+        await component.Find(".ec-preview-toolbar-search-input").KeyDownAsync(new KeyboardEventArgs { Key = "Enter", ShiftKey = true });
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(previews.ViewZooms, Is.EqualTo([PreviewZoom.In, PreviewZoom.Out, PreviewZoom.Actual]));
+            Assert.That(component.Find(".ec-preview-toolbar-zoom-value").TextContent, Is.EqualTo("125 %"));
+            Assert.That(component.Find(".ec-preview-toolbar-matches").TextContent, Is.EqualTo("1 z 2"));
+            Assert.That(previews.ViewFinds, Is.EqualTo([("lhuta", PreviewFind.New), ("lhuta", PreviewFind.Next), ("lhuta", PreviewFind.Previous)]));
+            Assert.That(previews.Finds, Is.Empty, "a text is searched apart from a PDF");
+        }
+
+        await component.Find(".ec-preview-toolbar-search-input").KeyDownAsync(new KeyboardEventArgs { Key = "Escape" });
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(previews.ViewFinds[^1], Is.EqualTo(("", PreviewFind.New)), "an empty query clears the highlights");
+            Assert.That(component.Find(".ec-preview-toolbar-search").HasAttribute("data-ec-keeps-escape"), Is.True, "Escape clears the search and leaves the dialog open");
+            Assert.That(component.Find(".ec-preview-toolbar-matches").TextContent, Is.Empty);
+        }
+    }
+
+    [Test]
+    public async Task ADocxHasTheZoomFitsAndSearchButNoPages()
+    {
+        await using var ctx = NewContext(out _, out var previews);
+
+        var file = File("Vyjádření.docx");
+        var component = Render(ctx, [file], file.FileId, content: "bajty dokumentu");
+
+        await component.WaitForAssertionAsync(() => Assert.That(previews.TextView, Is.Not.Null));
+        await previews.TextView!.Value.ZoomChanged(82, "page-width");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(
+                component.FindAll(".ec-preview-toolbar button").Select(static button => button.GetAttribute("aria-label")),
+                Is.EqualTo(["Zmenšit", "Zvětšit", "Na šířku", "Celá stránka", "100 %", "Hledat v dokumentu", "Předchozí výskyt", "Další výskyt"]));
+            Assert.That(component.FindAll(".ec-preview-toolbar-pages"), Is.Empty, "the rendered pages are not the pages of the original");
+            Assert.That(component.Find(".ec-preview-toolbar-zoom-value").TextContent, Is.EqualTo("82 %"));
+            Assert.That(ToolbarButton(component, "Na šířku").GetAttribute("aria-pressed"), Is.EqualTo("true"));
+            Assert.That(ToolbarButton(component, "Zvětšit").HasAttribute("disabled"), Is.False);
+        }
+
+        await ToolbarButton(component, "Celá stránka").ClickAsync(new MouseEventArgs());
+        await ToolbarButton(component, "Na šířku").ClickAsync(new MouseEventArgs());
+        await component.Find(".ec-preview-toolbar-search-input").InputAsync(new() { Value = "lhůta" });
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(previews.ViewZooms, Is.EqualTo([PreviewZoom.PageFit, PreviewZoom.PageWidth]));
+            Assert.That(previews.ViewFinds, Is.EqualTo([("lhůta", PreviewFind.New)]));
+        }
+    }
+
+    [TestCase("a.txt")]
+    [TestCase("a.docx")]
+    public void SteppingToAnotherFileReleasesTheZoomAndSearch(string fileName)
+    {
+        using var ctx = NewContext(out _, out var previews);
+
+        var first = File(fileName);
+        var second = File("b.png");
+        var component = Render(ctx, [first, second], first.FileId);
+
+        component.WaitForAssertion(() => Assert.That(previews.TextView, Is.Not.Null));
+
+        component.Render(parameters => parameters.Add(static modal => modal.FileId, second.FileId));
+
+        Assert.That(previews.DisposedViews, Is.EqualTo(1));
+    }
+
     [TestCase("Foto.heic")]
     [TestCase("Foto.HEIF")]
     public void AConvertedPictureShowsInAnImgElementFromAConvertedBlob(string fileName)
@@ -691,6 +801,11 @@ public class FilePreviewModalRenderTests
         var component = Render(ctx, [file], file.FileId);
 
         Assert.That(component.Find("dialog").ClassList, Does.Contain("ec-modal-large"));
+    }
+
+    private static AngleSharp.Dom.IElement ToolbarButton(IRenderedComponent<FilePreviewModal> component, string label)
+    {
+        return component.Find($".ec-preview-toolbar button[aria-label='{label}']");
     }
 
     private static BunitContext NewContext(out StubBlobUrls blobs)

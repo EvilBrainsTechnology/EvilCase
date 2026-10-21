@@ -1,56 +1,12 @@
-@using System.Globalization
 @using Microsoft.JSInterop
 @implements IAsyncDisposable
 @inject IFilePreviews Previews
 @inject ILogger<PdfPreview> Logger
 
 @* The toolbar stays above the one scrolling region; PDF.js owns everything inside the host element. *@
-<div class="ec-preview-pdf-view">
-    <div class="ec-preview-pdf-toolbar" role="toolbar" aria-label="Ovládání náhledu PDF">
-        <div class="ec-preview-pdf-pages">
-            <span class="ec-preview-pdf-page-word" aria-hidden="true">Stránka</span>
-            <input type="text" class="ec-preview-pdf-page-input" inputmode="numeric" autocomplete="off" aria-label="Stránka"
-                   disabled="@(!this.Ready)" @bind="this.pageText" @bind:after="this.GoToPage" />
-            <span class="ec-preview-pdf-page-count">z @this.pages</span>
-        </div>
-        <div class="ec-preview-pdf-zoom" role="group" aria-label="Lupa">
-            <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Minus" AriaLabel="Zmenšit"
-                      Disabled="@(!this.Ready || this.zoom <= MinZoom)" OnClick="() => this.Zoom(PdfZoom.Out)" />
-            <span class="ec-preview-pdf-zoom-value">@this.zoom %</span>
-            <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Plus" AriaLabel="Zvětšit"
-                      Disabled="@(!this.Ready || this.zoom >= MaxZoom)" OnClick="() => this.Zoom(PdfZoom.In)" />
-            <span class="ec-preview-pdf-fit ec-preview-pdf-fit-width">
-                <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ArrowAutofitWidth" AriaLabel="Na šířku"
-                          Disabled="@(!this.Ready)" aria-pressed="@Pressed(this.fit == PageWidth)" OnClick="() => this.Zoom(PdfZoom.PageWidth)"><span class="ec-preview-pdf-label">Na šířku</span></EcButton>
-            </span>
-            <span class="ec-preview-pdf-fit ec-preview-pdf-fit-page">
-                <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ArrowAutofitHeight" AriaLabel="Celá stránka"
-                          Disabled="@(!this.Ready)" aria-pressed="@Pressed(this.fit == PageFit)" OnClick="() => this.Zoom(PdfZoom.PageFit)"><span class="ec-preview-pdf-label">Celá stránka</span></EcButton>
-            </span>
-            <span class="ec-preview-pdf-fit ec-preview-pdf-fit-actual">
-                <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" AriaLabel="100 %"
-                          Disabled="@(!this.Ready)" aria-pressed="@Pressed(this.zoom == ActualZoom)" OnClick="() => this.Zoom(PdfZoom.Actual)">100 %</EcButton>
-            </span>
-        </div>
-        <span class="ec-preview-pdf-search-toggle">
-            <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Search" AriaLabel="Hledat v dokumentu"
-                      Disabled="@(!this.Ready)" aria-expanded="@Pressed(this.searchOpen)" OnClick="this.ToggleSearch" />
-        </span>
-        @* Escape clears the search and does not close the dialog. *@
-        <div class="ec-preview-pdf-search @(this.searchOpen ? "ec-preview-pdf-search-open" : null)" role="search" data-ec-keeps-escape>
-            <label class="ec-preview-pdf-search-box">
-                <EcIcon Paths="@AppIcons.Search" />
-                <input type="search" class="ec-preview-pdf-search-input" placeholder="Hledat v dokumentu" aria-label="Hledat v dokumentu"
-                       autocomplete="off" disabled="@(!this.Ready)" value="@this.query" @ref="this.searchInput"
-                       @oninput="this.Search" @onkeydown="this.SearchKey" />
-            </label>
-            <span class="ec-preview-pdf-matches" role="status">@this.MatchesText</span>
-            <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ChevronUp" AriaLabel="Předchozí výskyt"
-                      Disabled="@(this.matches == 0)" OnClick="() => this.Find(PdfFind.Previous)" />
-            <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ChevronDown" AriaLabel="Další výskyt"
-                      Disabled="@(this.matches == 0)" OnClick="() => this.Find(PdfFind.Next)" />
-        </div>
-    </div>
+<div class="ec-preview-view">
+    <PreviewToolbar @ref="this.toolbar" Label="Ovládání náhledu PDF" Ready="this.Ready" Paged Pages="this.pages" Fits
+                    OnZoom="this.Zoom" OnGoToPage="this.GoToPage" OnSearch="this.Search" />
     <div class="ec-preview-pdf-frame">
         <div @ref="this.host" class="ec-preview-pdf" role="document" tabindex="0" aria-label="Obsah souboru @this.FileName"></div>
         @if (!this.Ready)
@@ -61,45 +17,15 @@
 </div>
 
 @code {
-    private const int MinZoom = 50;
-
-    private const int MaxZoom = 400;
-
-    private const int ActualZoom = 100;
-
-    private const string PageWidth = "page-width";
-
-    private const string PageFit = "page-fit";
-
     private readonly CancellationTokenSource cancel = new();
 
-    private DotNetObjectReference<PdfPreview>? self;
+    private PreviewToolbar? toolbar;
 
     private ElementReference host;
-
-    private ElementReference searchInput;
 
     private bool rendering;
 
     private int pages;
-
-    private int page = 1;
-
-    private string? pageText = "1";
-
-    private int zoom = 100;
-
-    private string fit = PageWidth;
-
-    private string query = "";
-
-    private bool searchOpen;
-
-    private int match;
-
-    private int matches;
-
-    private bool searching;
 
     /// <summary>
     /// The content address the library requests the PDF from.
@@ -118,58 +44,6 @@
 
     private bool Ready => this.pages > 0;
 
-    private string MatchesText
-    {
-        get
-        {
-            if (this.query.Length == 0)
-                return "";
-
-            if (this.matches > 0)
-                return string.Create(CultureInfo.InvariantCulture, $"{this.match} z {this.matches}");
-
-            return this.searching ? "Hledám…" : "Nenalezeno";
-        }
-    }
-
-    [JSInvokable]
-    public Task PageChanged(int number)
-    {
-        return this.InvokeAsync(() =>
-        {
-            this.page = number;
-            this.pageText = number.ToString(CultureInfo.InvariantCulture);
-            this.StateHasChanged();
-        });
-    }
-
-    [JSInvokable]
-    public Task ZoomChanged(int percent, string preset)
-    {
-        return this.InvokeAsync(() =>
-        {
-            this.zoom = percent;
-            this.fit = preset;
-            this.StateHasChanged();
-        });
-    }
-
-    [JSInvokable]
-    public Task MatchesChanged(int current, int total, bool pending)
-    {
-        return this.InvokeAsync(() =>
-        {
-            // Closing a search reports the count of the closed query once more.
-            if (this.query.Length == 0)
-                return;
-
-            this.match = current;
-            this.matches = total;
-            this.searching = pending;
-            this.StateHasChanged();
-        });
-    }
-
     public async ValueTask DisposeAsync()
     {
         await this.cancel.CancelAsync();
@@ -186,7 +60,6 @@
             }
         }
 
-        this.self?.Dispose();
         this.cancel.Dispose();
     }
 
@@ -197,12 +70,11 @@
 
         var token = this.cancel.Token;
 
-        this.self = DotNetObjectReference.Create(this);
         this.rendering = true;
 
         try
         {
-            var count = await this.Previews.RenderPdf(this.host, this.Url, this.self, token);
+            var count = await this.Previews.RenderPdf(this.host, this.Url, this.toolbar!.View, token);
 
             if (!token.IsCancellationRequested)
             {
@@ -223,84 +95,18 @@
         }
     }
 
-    private static string Pressed(bool value)
+    private async Task Zoom(PreviewZoom zoom)
     {
-        return value ? "true" : "false";
+        await this.Previews.ZoomPdf(this.host, zoom);
     }
 
-    private async Task Zoom(PdfZoom step)
+    private async Task GoToPage(int page)
     {
-        await this.Previews.ZoomPdf(this.host, step);
+        await this.Previews.GoToPdfPage(this.host, page);
     }
 
-    // A number outside the document goes to its first or last page; anything else puts the current page back.
-    private async Task GoToPage()
+    private async Task Search(PreviewSearch search)
     {
-        if (!int.TryParse(this.pageText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number))
-        {
-            this.pageText = this.page.ToString(CultureInfo.InvariantCulture);
-
-            return;
-        }
-
-        number = Math.Clamp(number, 1, this.pages);
-        this.pageText = number.ToString(CultureInfo.InvariantCulture);
-
-        await this.Previews.GoToPdfPage(this.host, number);
-    }
-
-    private async Task ToggleSearch()
-    {
-        this.searchOpen = !this.searchOpen;
-
-        if (this.searchOpen)
-        {
-            this.StateHasChanged();
-            await Task.Yield();
-            await this.searchInput.FocusAsync();
-        }
-        else
-        {
-            await this.ClearSearch();
-        }
-    }
-
-    private async Task Search(ChangeEventArgs args)
-    {
-        this.query = args.Value as string ?? "";
-
-        if (this.query.Length == 0)
-        {
-            await this.ClearSearch();
-
-            return;
-        }
-
-        this.searching = true;
-
-        await this.Previews.FindInPdf(this.host, this.query, PdfFind.New);
-    }
-
-    private async Task SearchKey(KeyboardEventArgs args)
-    {
-        if (args.Key == "Enter" && this.query.Length > 0)
-            await this.Find(args.ShiftKey ? PdfFind.Previous : PdfFind.Next);
-        else if (args.Key == "Escape")
-            await this.ClearSearch();
-    }
-
-    private async Task Find(PdfFind find)
-    {
-        await this.Previews.FindInPdf(this.host, this.query, find);
-    }
-
-    private async Task ClearSearch()
-    {
-        this.query = "";
-        this.match = 0;
-        this.matches = 0;
-        this.searching = false;
-
-        await this.Previews.FindInPdf(this.host, "", PdfFind.New);
+        await this.Previews.FindInPdf(this.host, search.Query, search.Find);
     }
 }

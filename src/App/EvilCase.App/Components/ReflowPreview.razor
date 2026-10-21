@@ -1,0 +1,72 @@
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+@inject IFilePreviews Previews
+@inject ILogger<ReflowPreview> Logger
+
+@* A text, Markdown or e-mail: the zoom changes the size of the text, which reflows to the width of the stage. *@
+<div class="ec-preview-view">
+    <PreviewToolbar @ref="this.toolbar" Ready="this.ready" OnZoom="this.Zoom" OnSearch="this.Search" />
+    <div @ref="this.stage" class="ec-preview-stage ec-preview-stage-text">
+        @this.ChildContent
+    </div>
+</div>
+
+@code {
+    private PreviewToolbar? toolbar;
+
+    private ElementReference stage;
+
+    private bool ready;
+
+    /// <summary>
+    /// The notes and the one element of role <c>document</c> the zoom and the search apply to.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required RenderFragment ChildContent { get; set; }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (!this.ready)
+            return;
+
+        try
+        {
+            await this.Previews.DisposeView(this.stage);
+        }
+        catch (JSException exception)
+        {
+            this.Logger.LogInformation(exception, "The text preview was already gone");
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        try
+        {
+            await this.Previews.OpenTextView(this.stage, this.toolbar!.View);
+        }
+        catch (JSException exception)
+        {
+            // The text stays readable without its zoom and search.
+            this.Logger.LogWarning(exception, "The zoom and search of the text preview did not start");
+
+            return;
+        }
+
+        this.ready = true;
+        this.StateHasChanged();
+    }
+
+    private async Task Zoom(PreviewZoom zoom)
+    {
+        await this.Previews.ZoomView(this.stage, zoom);
+    }
+
+    private async Task Search(PreviewSearch search)
+    {
+        await this.Previews.FindInView(this.stage, search.Query, search.Find);
+    }
+}

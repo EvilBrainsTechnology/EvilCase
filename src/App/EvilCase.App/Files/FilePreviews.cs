@@ -19,37 +19,55 @@ internal sealed class FilePreviews(IJSRuntime jsRuntime) : IFilePreviews, IAsync
         return await previews.InvokeAsync<string>("createPngUrl", CancellationToken.None, streamRef);
     }
 
-    public async Task RenderDocument(ElementReference host, Stream content, CancellationToken token)
+    public async Task RenderDocument(ElementReference host, Stream content, DotNetObjectReference<PreviewToolbar> view, CancellationToken token)
     {
         var previews = await this.Module(token);
 
         using var streamRef = new DotNetStreamReference(content);
 
-        await previews.InvokeVoidAsync("renderDocument", token, host, streamRef);
+        await previews.InvokeVoidAsync("renderDocument", token, host, streamRef, view);
     }
 
-    public async Task<int> RenderPdf(ElementReference host, string url, DotNetObjectReference<PdfPreview> view, CancellationToken token)
+    public async Task OpenTextView(ElementReference stage, DotNetObjectReference<PreviewToolbar> view)
+    {
+        var previews = await this.Module(CancellationToken.None);
+
+        await previews.InvokeVoidAsync("openTextView", stage, view);
+    }
+
+    public async Task ZoomView(ElementReference element, PreviewZoom zoom)
+    {
+        var previews = await this.Module(CancellationToken.None);
+
+        await previews.InvokeVoidAsync("zoomView", element, ZoomValue(zoom));
+    }
+
+    public async Task FindInView(ElementReference element, string query, PreviewFind find)
+    {
+        var previews = await this.Module(CancellationToken.None);
+
+        await previews.InvokeVoidAsync("findInView", element, query, find != PreviewFind.New, find == PreviewFind.Previous);
+    }
+
+    public async Task DisposeView(ElementReference element)
+    {
+        var previews = await this.Module(CancellationToken.None);
+
+        await previews.InvokeVoidAsync("disposeView", element);
+    }
+
+    public async Task<int> RenderPdf(ElementReference host, string url, DotNetObjectReference<PreviewToolbar> view, CancellationToken token)
     {
         var previews = await this.Module(token);
 
         return await previews.InvokeAsync<int>("renderPdf", token, host, url, view);
     }
 
-    public async Task ZoomPdf(ElementReference host, PdfZoom zoom)
+    public async Task ZoomPdf(ElementReference host, PreviewZoom zoom)
     {
         var previews = await this.Module(CancellationToken.None);
 
-        var value = zoom switch
-        {
-            PdfZoom.In => "in",
-            PdfZoom.Out => "out",
-            PdfZoom.PageWidth => "page-width",
-            PdfZoom.PageFit => "page-fit",
-            PdfZoom.Actual => "actual",
-            _ => throw new UnreachableException(),
-        };
-
-        await previews.InvokeVoidAsync("zoomPdf", host, value);
+        await previews.InvokeVoidAsync("zoomPdf", host, ZoomValue(zoom));
     }
 
     public async Task GoToPdfPage(ElementReference host, int page)
@@ -59,11 +77,11 @@ internal sealed class FilePreviews(IJSRuntime jsRuntime) : IFilePreviews, IAsync
         await previews.InvokeVoidAsync("goToPdfPage", host, page);
     }
 
-    public async Task FindInPdf(ElementReference host, string query, PdfFind find)
+    public async Task FindInPdf(ElementReference host, string query, PreviewFind find)
     {
         var previews = await this.Module(CancellationToken.None);
 
-        await previews.InvokeVoidAsync("findInPdf", host, query, find != PdfFind.New, find == PdfFind.Previous);
+        await previews.InvokeVoidAsync("findInPdf", host, query, find != PreviewFind.New, find == PreviewFind.Previous);
     }
 
     public async Task DisposePdf(ElementReference host)
@@ -95,6 +113,19 @@ internal sealed class FilePreviews(IJSRuntime jsRuntime) : IFilePreviews, IAsync
     {
         if (this.module is not null)
             await this.module.DisposeAsync();
+    }
+
+    private static string ZoomValue(PreviewZoom zoom)
+    {
+        return zoom switch
+        {
+            PreviewZoom.In => "in",
+            PreviewZoom.Out => "out",
+            PreviewZoom.PageWidth => "page-width",
+            PreviewZoom.PageFit => "page-fit",
+            PreviewZoom.Actual => "actual",
+            _ => throw new UnreachableException(),
+        };
     }
 
     private async Task<IJSObjectReference> Module(CancellationToken token)

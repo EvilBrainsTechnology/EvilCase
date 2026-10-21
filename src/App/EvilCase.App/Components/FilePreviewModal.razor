@@ -68,7 +68,7 @@
             }
             else if (preview == FilePreviewKind.Text)
             {
-                <div class="ec-preview-stage ec-preview-stage-text">
+                <ReflowPreview @key="file.FileId">
                     @if (this.truncated)
                     {
                         <p class="ec-preview-note">Soubor je delší, zobrazuje se jen jeho začátek.</p>
@@ -82,24 +82,21 @@
                             </div>
                         }
                     </div>
-                </div>
+                </ReflowPreview>
             }
             else if (preview == FilePreviewKind.Markdown)
             {
-                <div class="ec-preview-stage ec-preview-stage-text">
+                <ReflowPreview @key="file.FileId">
                     @if (this.truncated)
                     {
                         <p class="ec-preview-note">Soubor je delší, zobrazuje se jen jeho začátek.</p>
                     }
                     <article class="ec-preview-markdown" role="document" tabindex="0" aria-label="Obsah souboru @file.FileName">@((MarkupString)this.markdownHtml)</article>
-                </div>
+                </ReflowPreview>
             }
             else if (preview == FilePreviewKind.Document)
             {
-                <div class="ec-preview-stage ec-preview-stage-text ec-preview-stage-document">
-                    <p class="ec-preview-note"><EcIcon Paths="@AppIcons.Info" />Náhled dokumentu se může od originálu mírně lišit. Přesnou podobu ukáže stažený soubor.</p>
-                    <div @key="file.FileId" @ref="this.documentHost" class="ec-preview-document" role="document" tabindex="0" aria-label="Obsah souboru @file.FileName"></div>
-                </div>
+                <DocumentPreview @key="file.FileId" Content="this.document!" FileName="@file.FileName" OnUnreadable="this.Unreadable" />
             }
             else if (preview == FilePreviewKind.Workbook)
             {
@@ -157,7 +154,7 @@
             {
                 var message = this.email!;
 
-                <div class="ec-preview-stage ec-preview-stage-text">
+                <ReflowPreview @key="file.FileId">
                     <article class="ec-preview-email" role="document" tabindex="0" aria-label="Obsah zprávy @file.FileName">
                         <dl class="ec-preview-email-headers">
                             <dt>Od</dt>
@@ -196,7 +193,7 @@
                             </section>
                         }
                     </article>
-                </div>
+                </ReflowPreview>
             }
             else if (preview == FilePreviewKind.Pdf)
             {
@@ -276,9 +273,7 @@
 
     private EmailPreview? email;
 
-    private MemoryStream? documentContent;
-
-    private ElementReference documentHost;
+    private byte[]? document;
 
     private IReadOnlyList<string> lines = [];
 
@@ -313,38 +308,6 @@
         await this.ReleaseUrl();
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (this.documentContent is not { } content)
-            return;
-
-        this.documentContent = null;
-
-        var token = this.loadToken!.Token;
-
-        try
-        {
-            await using (content)
-            {
-                await this.Previews.RenderDocument(this.documentHost, content, token);
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            // A later file took over.
-        }
-        catch (JSException exception)
-        {
-            this.Logger.LogInformation(exception, "The library could not render the document for the preview");
-
-            if (!token.IsCancellationRequested)
-            {
-                this.unsupported = true;
-                this.StateHasChanged();
-            }
-        }
-    }
-
     private async Task Reload(FileListItem file)
     {
         this.loadToken?.Cancel();
@@ -360,7 +323,7 @@
         this.workbook = [];
         this.activeSheet = 0;
         this.email = null;
-        this.documentContent = null;
+        this.document = null;
 
         await this.ReleaseUrl();
 
@@ -461,13 +424,12 @@
 
             case FilePreviewKind.Document:
             {
-                var bytes = new MemoryStream();
+                using var bytes = new MemoryStream();
 
                 await content.CopyToAsync(bytes, token);
-                bytes.Position = 0;
 
                 if (!token.IsCancellationRequested)
-                    this.documentContent = bytes;
+                    this.document = bytes.ToArray();
 
                 break;
             }

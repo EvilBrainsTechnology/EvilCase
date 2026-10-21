@@ -242,11 +242,11 @@ public class EcStylesheetTests
     }
 
     [Test]
-    public async Task ThePdfActualSizeButtonIsLeftOutOnMobile()
+    public async Task TheActualSizeButtonIsLeftOutOnMobile()
     {
         var css = await this.client.GetStringAsync(new Uri("/css/ec-components.css", UriKind.Relative));
 
-        var start = css.IndexOf("\n    .ec-preview-pdf-fit-actual,", StringComparison.Ordinal);
+        var start = css.IndexOf("\n    .ec-preview-toolbar-fit-actual,", StringComparison.Ordinal);
         var media = css[css.LastIndexOf("@media", start, StringComparison.Ordinal)..];
         var rule = css[start..];
         rule = rule[..rule.IndexOf('}', StringComparison.Ordinal)];
