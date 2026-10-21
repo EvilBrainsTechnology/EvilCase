@@ -100,7 +100,8 @@
                             <span class="ec-detail-fact-name">@ActDirectionDisplay.ContactLabel(this.Detail.Direction)</span>
                             @if (ActContactRules.DifferingCaseContact(this.Detail.Contact, this.Detail.CaseContact) is { } differing)
                             {
-                                <span class="ec-detail-fact-warning" role="alert" title="Spis vede protistranu @differing.Name"><EcIcon Paths="@AppIcons.AlertTriangle" Size="EcIconSize.Small" /><span aria-hidden="true">Jiný než ve spisu</span><span class="ec-visually-hidden">Spis vede protistranu @differing.Name</span></span>
+                                <span class="ec-detail-fact-warning" aria-hidden="true" title="Spis vede protistranu @differing.Name"><EcIcon Paths="@AppIcons.AlertTriangle" Size="EcIconSize.Small" />Jiný než ve spisu</span>
+                                <span class="ec-visually-hidden">Spis vede protistranu @differing.Name</span>
                             }
                         </span>
                         @if (this.Detail.Contact is { } contact)

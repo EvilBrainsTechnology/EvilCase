@@ -404,21 +404,39 @@ public class ActRenderTests
 
         var component = RenderAct(ctx, actId);
 
-        var warning = component.Find(".ec-detail-fact-warning[role=alert]");
+        var head = component.Find(".ec-detail-fact-head");
+        var warning = head.QuerySelector(".ec-detail-fact-warning");
+        var spoken = head.QuerySelector(".ec-visually-hidden");
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(warning.QuerySelector("span[aria-hidden=true]")!.TextContent, Is.EqualTo("Jiný než ve spisu"));
-            Assert.That(warning.GetAttribute("title"), Is.EqualTo("Spis vede protistranu Městský úřad Vzorov"));
-            Assert.That(
-                warning.QuerySelector(".ec-visually-hidden")!.TextContent,
-                Is.EqualTo("Spis vede protistranu Městský úřad Vzorov"));
-            Assert.That(warning.ParentElement!.ClassList, Does.Contain("ec-detail-fact-head"), "the warning sits on the heading row");
-            Assert.That(
-                warning.ParentElement!.QuerySelector(".ec-detail-fact-name")!.TextContent,
-                Is.EqualTo("Odesílatel"),
-                "the warning sits in the contact fact");
+            Assert.That(head.QuerySelector(".ec-detail-fact-name")?.TextContent, Is.EqualTo("Odesílatel"));
+            Assert.That(warning?.TextContent.Trim(), Is.EqualTo("Jiný než ve spisu"));
+            Assert.That(warning?.GetAttribute("aria-hidden"), Is.EqualTo("true"));
+            Assert.That(warning?.GetAttribute("title"), Is.EqualTo("Spis vede protistranu Městský úřad Vzorov"));
+            Assert.That(spoken?.TextContent, Is.EqualTo("Spis vede protistranu Městský úřad Vzorov"));
             Assert.That(component.FindAll(".ec-warning"), Is.Empty);
+        }
+    }
+
+    [Test]
+    public void TheCaseContactIsNotFlaggedWhenItMatchesTheActsContact()
+    {
+        using var ctx = new BunitContext();
+
+        var caseId = Guid.CreateVersion7();
+        var actId = Guid.CreateVersion7();
+        var contact = new ContactListItem { ContactId = Guid.CreateVersion7(), Name = "Městský úřad Vzorov", Kind = ContactKind.Authority };
+
+        Serve(ctx, actId, Detail(caseId, actId) with { Direction = ActDirection.Incoming, Contact = contact, CaseContact = contact });
+
+        var component = RenderAct(ctx, actId);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.Find(".ec-detail-fact-head .ec-detail-fact-name").TextContent, Is.EqualTo("Odesílatel"));
+            Assert.That(component.FindAll(".ec-detail-fact-warning"), Is.Empty);
+            Assert.That(component.FindAll(".ec-detail-fact-head .ec-visually-hidden"), Is.Empty);
         }
     }
 
