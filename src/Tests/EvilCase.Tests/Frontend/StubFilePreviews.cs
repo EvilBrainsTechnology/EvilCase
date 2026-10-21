@@ -10,7 +10,7 @@ namespace EvilBrains.EvilCase.Tests.Frontend;
 /// </summary>
 internal sealed class StubFilePreviews : IFilePreviews
 {
-    public List<(string FileName, string Url)> Converted { get; } = [];
+    public List<string> Converted { get; } = [];
 
     public List<string> RenderedDocuments { get; } = [];
 
@@ -31,12 +31,12 @@ internal sealed class StubFilePreviews : IFilePreviews
     /// </summary>
     public bool Fails { get; set; }
 
-    public Task<string> CreatePngUrl(string fileName, Stream content, CancellationToken token)
+    public Task<string> CreatePngUrl(Stream content, CancellationToken token)
     {
         this.ThrowWhenFailing();
 
         var url = $"blob:converted/{this.Converted.Count}";
-        this.Converted.Add((fileName, url));
+        this.Converted.Add(url);
 
         return Task.FromResult(url);
     }

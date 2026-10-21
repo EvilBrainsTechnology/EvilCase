@@ -9,9 +9,9 @@ namespace EvilBrains.EvilCase.App.Files;
 internal interface IFilePreviews
 {
     /// <summary>
-    /// Converts a HEIC or TIFF picture to PNG and returns the blob URL the browser shows it by.
+    /// Converts a HEIC or HEIF picture to PNG and returns the blob URL the browser shows it by.
     /// </summary>
-    public Task<string> CreatePngUrl(string fileName, Stream content, CancellationToken token);
+    public Task<string> CreatePngUrl(Stream content, CancellationToken token);
 
     /// <summary>
     /// Renders a DOCX document as pages into the element.

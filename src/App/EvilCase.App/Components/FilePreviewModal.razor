@@ -538,7 +538,7 @@
                 break;
 
             case FilePreviewKind.ConvertedImage:
-                await this.ShowUrl(await this.Previews.CreatePngUrl(file.FileName, content, token), token);
+                await this.ShowUrl(await this.Previews.CreatePngUrl(content, token), token);
 
                 break;
 

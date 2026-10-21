@@ -486,35 +486,12 @@ async function decodeHeic(buffer) {
     return target;
 }
 
-async function decodeTiff(buffer) {
-    await loadScript('pako/pako.min.js');
-    await loadScript('utif/UTIF.min.js');
-
-    const UTIF = window.UTIF;
-    const pages = UTIF.decode(buffer);
-
-    if (pages.length === 0) {
-        throw new Error('The file holds no image.');
-    }
-
-    const page = pages[0];
-
-    // Width and height tags, checked before the pixels are decoded.
-    if ((page.t256?.[0] ?? 0) * (page.t257?.[0] ?? 0) > maxPixels) {
-        throw new Error('The image is too large.');
-    }
-
-    UTIF.decodeImage(buffer, page);
-
-    return new ImageData(new Uint8ClampedArray(UTIF.toRGBA8(page)), page.width, page.height);
-}
-
 // The picture the browser cannot show becomes a PNG blob; the caller revokes the URL.
-export async function createPngUrl(fileName, contentStream) {
+export async function createPngUrl(contentStream) {
     releaseDocuments();
 
     const buffer = await contentStream.arrayBuffer();
-    const image = ['tif', 'tiff'].includes(extensionOf(fileName)) ? await decodeTiff(buffer) : await decodeHeic(buffer);
+    const image = await decodeHeic(buffer);
     const canvas = document.createElement('canvas');
 
     canvas.width = image.width;
