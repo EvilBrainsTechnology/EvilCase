@@ -19,6 +19,10 @@
         <span class="ec-preview-toolbar-zoom-value">@this.zoom %</span>
         <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Plus" AriaLabel="Zvětšit"
                   Disabled="@(!this.Ready || this.zoom >= MaxZoom)" OnClick="() => this.OnZoom.InvokeAsync(PreviewZoom.In)" />
+        <span class="ec-preview-toolbar-fit ec-preview-toolbar-fit-actual">
+            <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" AriaLabel="100 %"
+                      Disabled="@(!this.Ready)" aria-pressed="@Pressed(this.zoom == ActualZoom)" OnClick="() => this.OnZoom.InvokeAsync(PreviewZoom.Actual)">100 %</EcButton>
+        </span>
         @if (this.Fits)
         {
             <span class="ec-preview-toolbar-fit ec-preview-toolbar-fit-width">
@@ -30,10 +34,6 @@
                           Disabled="@(!this.Ready)" aria-pressed="@Pressed(this.fit == PageFit)" OnClick="() => this.OnZoom.InvokeAsync(PreviewZoom.PageFit)"><span class="ec-preview-toolbar-label">Celá stránka</span></EcButton>
             </span>
         }
-        <span class="ec-preview-toolbar-fit ec-preview-toolbar-fit-actual">
-            <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" AriaLabel="100 %"
-                      Disabled="@(!this.Ready)" aria-pressed="@Pressed(this.zoom == ActualZoom)" OnClick="() => this.OnZoom.InvokeAsync(PreviewZoom.Actual)">100 %</EcButton>
-        </span>
     </div>
     <span class="ec-preview-toolbar-search-toggle">
         <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Search" AriaLabel="Hledat v dokumentu"

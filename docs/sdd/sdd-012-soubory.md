@@ -87,8 +87,7 @@ Esc a Zrušit ho zahodí.
   obrázky se nenačítají.
 - Dokument Word se ukáže jako stránky pod sebou, zpočátku na šířku náhledu, nejvýš však ve 100 %.
   Lišta navíc nabídne přizpůsobení na šířku a na celou stránku podle velikosti papíru; počet
-  stran neukáže, protože stránky náhledu neodpovídají stránkám originálu. Náhled upozorní, že se
-  může od originálu mírně lišit.
+  stran neukáže, protože stránky náhledu neodpovídají stránkám originálu.
 - Sešit se ukáže jako tabulka s kartami listů; z každého listu se ukáže nejvýše prvních
   1 000 řádků a náhled řekne, že je list delší.
 - E-mail ukáže odesílatele, příjemce, předmět, datum, text zprávy a seznam příloh s velikostí;

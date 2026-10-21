@@ -7,7 +7,6 @@
 <div class="ec-preview-view">
     <PreviewToolbar @ref="this.toolbar" Ready="this.ready" Fits OnZoom="this.Zoom" OnSearch="this.Search" />
     <div class="ec-preview-stage ec-preview-stage-text ec-preview-stage-document">
-        <p class="ec-preview-note"><EcIcon Paths="@AppIcons.Info" />Náhled dokumentu se může od originálu mírně lišit. Přesnou podobu ukáže stažený soubor.</p>
         <div @ref="this.host" class="ec-preview-document" role="document" tabindex="0" aria-label="Obsah souboru @this.FileName"></div>
     </div>
 </div>

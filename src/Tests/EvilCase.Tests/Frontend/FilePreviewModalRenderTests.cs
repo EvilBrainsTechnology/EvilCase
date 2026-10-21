@@ -283,7 +283,7 @@ public class FilePreviewModalRenderTests
     }
 
     [Test]
-    public void ADocxShowsTheNoticeAndHandsTheBytesToTheLibrary()
+    public void ADocxShowsNoNoticeAndHandsTheBytesToTheLibrary()
     {
         using var ctx = NewContext(out _, out var previews);
 
@@ -294,7 +294,7 @@ public class FilePreviewModalRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.Find(".ec-preview-note").TextContent, Is.EqualTo("Náhled dokumentu se může od originálu mírně lišit. Přesnou podobu ukáže stažený soubor."));
+            Assert.That(component.FindAll(".ec-preview-note"), Is.Empty);
             Assert.That(component.Find(".ec-preview-document"), Is.Not.Null);
         }
     }
@@ -477,7 +477,7 @@ public class FilePreviewModalRenderTests
         {
             Assert.That(
                 component.FindAll(".ec-preview-toolbar button").Select(static button => button.GetAttribute("aria-label")),
-                Is.EqualTo(["Zmenšit", "Zvětšit", "Na šířku", "Celá stránka", "100 %", "Hledat v dokumentu", "Předchozí výskyt", "Další výskyt"]));
+                Is.EqualTo(["Zmenšit", "Zvětšit", "100 %", "Na šířku", "Celá stránka", "Hledat v dokumentu", "Předchozí výskyt", "Další výskyt"]));
             Assert.That(component.FindAll(".ec-preview-toolbar-pages"), Is.Empty, "the rendered pages are not the pages of the original");
             Assert.That(component.Find(".ec-preview-toolbar-zoom-value").TextContent, Is.EqualTo("82 %"));
             Assert.That(ToolbarButton(component, "Na šířku").GetAttribute("aria-pressed"), Is.EqualTo("true"));
