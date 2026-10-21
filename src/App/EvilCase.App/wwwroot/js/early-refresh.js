@@ -1,8 +1,9 @@
 // index.html loads this module so the session refresh runs while Blazor downloads; Blazor imports
 // the same module instance. The body carries no token: both stay in HttpOnly cookies.
 
+// The timeout bounds how long a stalled request holds the lock every tab waits on.
 async function post() {
-    const response = await fetch(new URL('api/auth/refresh', document.baseURI), { method: 'POST', credentials: 'include' });
+    const response = await fetch(new URL('api/auth/refresh', document.baseURI), { method: 'POST', credentials: 'include', signal: AbortSignal.timeout(30000) });
     return { status: response.status, body: response.status === 200 ? await response.text() : null };
 }
 
