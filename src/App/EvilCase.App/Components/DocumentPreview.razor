@@ -5,7 +5,8 @@
 
 @* A Word document keeps its page layout; the zoom scales its pages. *@
 <div class="ec-preview-view">
-    <PreviewToolbar @ref="this.toolbar" Ready="this.ready" Fits OnZoom="this.Zoom" OnSearch="this.Search" />
+    <PreviewToolbar @ref="this.toolbar" Ready="this.Ready" Paged Pages="this.pages" Fits
+                    OnZoom="this.Zoom" OnGoToPage="this.GoToPage" OnSearch="this.Search" />
     <div class="ec-preview-stage ec-preview-stage-text ec-preview-stage-document">
         <div @ref="this.host" class="ec-preview-document" role="document" tabindex="0" aria-label="Obsah souboru @this.FileName"></div>
     </div>
@@ -20,7 +21,7 @@
 
     private bool rendering;
 
-    private bool ready;
+    private int pages;
 
     /// <summary>
     /// The bytes of the DOCX file.
@@ -36,6 +37,8 @@
     /// </summary>
     [Parameter]
     public EventCallback OnUnreadable { get; set; }
+
+    private bool Ready => this.pages > 0;
 
     public async ValueTask DisposeAsync()
     {
@@ -69,11 +72,11 @@
         {
             await using var content = new MemoryStream(this.Content, writable: false);
 
-            await this.Previews.RenderDocument(this.host, content, this.toolbar!.View, token);
+            var count = await this.Previews.RenderDocument(this.host, content, this.toolbar!.View, token);
 
             if (!token.IsCancellationRequested)
             {
-                this.ready = true;
+                this.pages = count;
                 this.StateHasChanged();
             }
         }
@@ -93,6 +96,11 @@
     private async Task Zoom(PreviewZoom zoom)
     {
         await this.Previews.ZoomView(this.host, zoom);
+    }
+
+    private async Task GoToPage(int page)
+    {
+        await this.Previews.GoToViewPage(this.host, page);
     }
 
     private async Task Search(PreviewSearch search)

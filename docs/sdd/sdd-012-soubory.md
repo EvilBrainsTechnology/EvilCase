@@ -86,8 +86,11 @@ Esc a Zrušit ho zahodí.
   jako text; odkaz zůstane jen na webovou nebo e-mailovou adresu a otevře se v nové záložce;
   obrázky se nenačítají.
 - Dokument Word se ukáže jako stránky pod sebou, zpočátku na šířku náhledu, nejvýš však ve 100 %.
-  Lišta navíc nabídne přizpůsobení na šířku a na celou stránku podle velikosti papíru; počet
-  stran neukáže, protože stránky náhledu neodpovídají stránkám originálu.
+  Stránka končí tam, kde ji Word ukončil při posledním uložení, nebo na ručním zlomu stránky či
+  oddílu; dokument bez těchto údajů se ukáže jako jedna stránka. Tabulka, kterou Word rozdělil
+  mezi stránky, zůstane na jedné stránce, a prázdná stránka se neukáže. Lišta navíc ukáže
+  stránku z počtu stran s polem pro skok na stránku a přizpůsobení na šířku a na celou stránku
+  podle velikosti papíru.
 - Sešit se ukáže jako tabulka s kartami listů; z každého listu se ukáže nejvýše prvních
   1 000 řádků a náhled řekne, že je list delší.
 - E-mail ukáže odesílatele, příjemce, předmět, datum, text zprávy a seznam příloh s velikostí;

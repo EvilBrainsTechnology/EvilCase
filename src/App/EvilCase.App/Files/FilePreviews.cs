@@ -19,13 +19,13 @@ internal sealed class FilePreviews(IJSRuntime jsRuntime) : IFilePreviews, IAsync
         return await previews.InvokeAsync<string>("createPngUrl", CancellationToken.None, streamRef);
     }
 
-    public async Task RenderDocument(ElementReference host, Stream content, DotNetObjectReference<PreviewToolbar> view, CancellationToken token)
+    public async Task<int> RenderDocument(ElementReference host, Stream content, DotNetObjectReference<PreviewToolbar> view, CancellationToken token)
     {
         var previews = await this.Module(token);
 
         using var streamRef = new DotNetStreamReference(content);
 
-        await previews.InvokeVoidAsync("renderDocument", token, host, streamRef, view);
+        return await previews.InvokeAsync<int>("renderDocument", token, host, streamRef, view);
     }
 
     public async Task OpenTextView(ElementReference stage, DotNetObjectReference<PreviewToolbar> view)
@@ -40,6 +40,13 @@ internal sealed class FilePreviews(IJSRuntime jsRuntime) : IFilePreviews, IAsync
         var previews = await this.Module(CancellationToken.None);
 
         await previews.InvokeVoidAsync("zoomView", element, ZoomValue(zoom));
+    }
+
+    public async Task GoToViewPage(ElementReference element, int page)
+    {
+        var previews = await this.Module(CancellationToken.None);
+
+        await previews.InvokeVoidAsync("goToViewPage", element, page);
     }
 
     public async Task FindInView(ElementReference element, string query, PreviewFind find)
