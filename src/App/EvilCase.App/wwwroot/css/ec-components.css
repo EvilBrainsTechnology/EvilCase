@@ -3418,6 +3418,7 @@ html {
     .ec-preview-pdf-page-word,
     .ec-preview-pdf-zoom-value,
     .ec-preview-pdf-fit-page,
+    .ec-preview-pdf-fit-actual,
     .ec-preview-pdf-label {
         display: none;
     }

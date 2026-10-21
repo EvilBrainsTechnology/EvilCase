@@ -241,6 +241,23 @@ public class EcStylesheetTests
         Assert.That(rule, Does.Contain("display: none;"), "a field shows its error right under the control");
     }
 
+    [Test]
+    public async Task ThePdfActualSizeButtonIsLeftOutOnMobile()
+    {
+        var css = await this.client.GetStringAsync(new Uri("/css/ec-components.css", UriKind.Relative));
+
+        var start = css.IndexOf("\n    .ec-preview-pdf-fit-actual,", StringComparison.Ordinal);
+        var media = css[css.LastIndexOf("@media", start, StringComparison.Ordinal)..];
+        var rule = css[start..];
+        rule = rule[..rule.IndexOf('}', StringComparison.Ordinal)];
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(media, Does.StartWith("@media (max-width: 991.98px)"));
+            Assert.That(rule, Does.Contain("display: none;"));
+        }
+    }
+
     private static IEnumerable<string> ExtractUrls(string css)
     {
         var urls = new List<string>();

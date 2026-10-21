@@ -27,6 +27,10 @@
                 <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ArrowAutofitHeight" AriaLabel="Celá stránka"
                           Disabled="@(!this.Ready)" aria-pressed="@Pressed(this.fit == PageFit)" OnClick="() => this.Zoom(PdfZoom.PageFit)"><span class="ec-preview-pdf-label">Celá stránka</span></EcButton>
             </span>
+            <span class="ec-preview-pdf-fit ec-preview-pdf-fit-actual">
+                <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" AriaLabel="100 %"
+                          Disabled="@(!this.Ready)" aria-pressed="@Pressed(this.zoom == ActualZoom)" OnClick="() => this.Zoom(PdfZoom.Actual)">100 %</EcButton>
+            </span>
         </div>
         <span class="ec-preview-pdf-search-toggle">
             <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Search" AriaLabel="Hledat v dokumentu"
@@ -60,6 +64,8 @@
     private const int MinZoom = 50;
 
     private const int MaxZoom = 400;
+
+    private const int ActualZoom = 100;
 
     private const string PageWidth = "page-width";
 

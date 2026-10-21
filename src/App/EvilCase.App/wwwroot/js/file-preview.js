@@ -295,7 +295,8 @@ async function openPdf(host, url, view) {
         standardFontDataUrl: pdfLib('standard_fonts/'),
         iccUrl: pdfLib('iccs/'),
     });
-    const pdf = { disposed: false, ready: false, viewer, eventBus, document: null };
+    // The opening zoom is the page width, at most 100 %; it follows the preview's size until the zoom changes.
+    const pdf = { disposed: false, ready: false, opening: true, viewer, eventBus, document: null };
     const frame = host.parentElement;
 
     pdf.dispose = () => {
@@ -345,7 +346,7 @@ async function openPdf(host, url, view) {
         page.setAttribute('aria-label', `Strana ${page.dataset.pageNumber} z ${count}`);
     }
 
-    viewer.currentScaleValue = 'page-width';
+    fitOpening(viewer);
 
     // The first page is drawn before the preview opens, so a file that parses but does not render shows the fallback.
     const { error } = await firstRendered;
@@ -362,7 +363,9 @@ async function openPdf(host, url, view) {
 
     // A fitted zoom follows the size of the preview; any other zoom only draws the pages that came into view.
     const resize = new ResizeObserver(() => {
-        if (pdfFitModes.includes(viewer.currentScaleValue)) {
+        if (pdf.opening) {
+            fitOpening(viewer);
+        } else if (pdfFitModes.includes(viewer.currentScaleValue)) {
             viewer.currentScaleValue = viewer.currentScaleValue;
         } else {
             viewer.update();
@@ -391,10 +394,19 @@ async function openPdf(host, url, view) {
             return;
         }
 
+        pdf.opening = false;
         viewer.updateScale({ scaleFactor: scale / current, origin: [event.clientX - box.left, event.clientY - box.top] });
     }, { passive: false, signal });
 
     return count;
+}
+
+function fitOpening(viewer) {
+    viewer.currentScaleValue = 'page-width';
+
+    if (viewer.currentScale > 1) {
+        viewer.currentScale = 1;
+    }
 }
 
 export function zoomPdf(host, zoom) {
@@ -404,8 +416,16 @@ export function zoomPdf(host, zoom) {
         return;
     }
 
+    pdf.opening = false;
+
     if (pdfFitModes.includes(zoom)) {
         pdf.viewer.currentScaleValue = zoom;
+
+        return;
+    }
+
+    if (zoom === 'actual') {
+        pdf.viewer.currentScale = 1;
 
         return;
     }
