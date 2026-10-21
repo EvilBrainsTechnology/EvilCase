@@ -153,6 +153,10 @@
     {
         return this.InvokeAsync(() =>
         {
+            // Closing a search reports the count of the closed query once more.
+            if (this.query.Length == 0)
+                return;
+
             this.match = current;
             this.matches = total;
             this.searching = pending;

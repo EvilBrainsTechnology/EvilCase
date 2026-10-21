@@ -173,6 +173,25 @@ public class PdfPreviewRenderTests
     }
 
     [Test]
+    public async Task ACountReportedAfterTheSearchClosedLeavesTheStepButtonsDisabled()
+    {
+        await using var ctx = NewContext(out var previews);
+
+        var component = Render(ctx);
+
+        await component.Find(".ec-preview-pdf-search-input").InputAsync(new() { Value = "lhůta" });
+        await previews.PdfView!.Value.MatchesChanged(3, 12, pending: false);
+        await component.Find(".ec-preview-pdf-search-input").KeyDownAsync(new KeyboardEventArgs { Key = "Escape" });
+        await previews.PdfView.Value.MatchesChanged(3, 12, pending: false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(Button(component, "Další výskyt").HasAttribute("disabled"), Is.True);
+            Assert.That(Button(component, "Předchozí výskyt").HasAttribute("disabled"), Is.True);
+        }
+    }
+
+    [Test]
     public void TheSearchIconOpensTheSearchField()
     {
         using var ctx = NewContext(out _);
