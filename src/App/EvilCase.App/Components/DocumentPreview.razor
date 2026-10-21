@@ -1,0 +1,103 @@
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+@inject IFilePreviews Previews
+@inject ILogger<DocumentPreview> Logger
+
+@* A Word document keeps its page layout; the zoom scales its pages. *@
+<div class="ec-preview-view">
+    <PreviewToolbar @ref="this.toolbar" Ready="this.ready" Fits OnZoom="this.Zoom" OnSearch="this.Search" />
+    <div class="ec-preview-stage ec-preview-stage-text ec-preview-stage-document">
+        <p class="ec-preview-note"><EcIcon Paths="@AppIcons.Info" />Náhled dokumentu se může od originálu mírně lišit. Přesnou podobu ukáže stažený soubor.</p>
+        <div @ref="this.host" class="ec-preview-document" role="document" tabindex="0" aria-label="Obsah souboru @this.FileName"></div>
+    </div>
+</div>
+
+@code {
+    private readonly CancellationTokenSource cancel = new();
+
+    private PreviewToolbar? toolbar;
+
+    private ElementReference host;
+
+    private bool rendering;
+
+    private bool ready;
+
+    /// <summary>
+    /// The bytes of the DOCX file.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required byte[] Content { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string FileName { get; set; }
+
+    /// <summary>
+    /// Raised when the library cannot read the file.
+    /// </summary>
+    [Parameter]
+    public EventCallback OnUnreadable { get; set; }
+
+    public async ValueTask DisposeAsync()
+    {
+        await this.cancel.CancelAsync();
+
+        if (this.rendering)
+        {
+            try
+            {
+                await this.Previews.DisposeView(this.host);
+            }
+            catch (JSException exception)
+            {
+                this.Logger.LogInformation(exception, "The document preview was already gone");
+            }
+        }
+
+        this.cancel.Dispose();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        var token = this.cancel.Token;
+
+        this.rendering = true;
+
+        try
+        {
+            await using var content = new MemoryStream(this.Content, writable: false);
+
+            await this.Previews.RenderDocument(this.host, content, this.toolbar!.View, token);
+
+            if (!token.IsCancellationRequested)
+            {
+                this.ready = true;
+                this.StateHasChanged();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // The preview closed or moved on to another file.
+        }
+        catch (JSException exception)
+        {
+            this.Logger.LogInformation(exception, "The library could not render the document for the preview");
+
+            if (!token.IsCancellationRequested)
+                await this.OnUnreadable.InvokeAsync();
+        }
+    }
+
+    private async Task Zoom(PreviewZoom zoom)
+    {
+        await this.Previews.ZoomView(this.host, zoom);
+    }
+
+    private async Task Search(PreviewSearch search)
+    {
+        await this.Previews.FindInView(this.host, search.Query, search.Find);
+    }
+}

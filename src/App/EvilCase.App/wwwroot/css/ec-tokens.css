@@ -278,12 +278,12 @@
     --ec-preview-text-width: 900px;
     --ec-preview-pdf-page-margin: 0 auto 12px;
     --ec-preview-pdf-page-border: 2px solid transparent;
-    --ec-preview-pdf-page-input: 48px;
-    --ec-preview-pdf-zoom-value: 48px;
-    --ec-preview-pdf-search-width: 260px;
-    --ec-preview-pdf-matches: 72px;
-    --ec-preview-pdf-hit: rgba(255, 196, 0, 0.35);
-    --ec-preview-pdf-hit-current: rgba(255, 112, 0, 0.45);
+    --ec-preview-toolbar-page-input: 48px;
+    --ec-preview-toolbar-zoom-value: 48px;
+    --ec-preview-toolbar-search-width: 260px;
+    --ec-preview-toolbar-matches: 72px;
+    --ec-preview-hit: rgba(255, 196, 0, 0.35);
+    --ec-preview-hit-current: rgba(255, 112, 0, 0.45);
     --ec-preview-gutter: 56px;
     --ec-preview-text-leading: 1.7;
     --ec-preview-audio-width: 480px;

@@ -1,0 +1,264 @@
+@using System.Globalization
+@using Microsoft.JSInterop
+@implements IDisposable
+
+@* The library behind a preview reports its page, zoom and search matches to this toolbar through View. *@
+<div class="ec-preview-toolbar" role="toolbar" aria-label="@this.Label">
+    @if (this.Paged)
+    {
+        <div class="ec-preview-toolbar-pages">
+            <span class="ec-preview-toolbar-page-word" aria-hidden="true">Stránka</span>
+            <input type="text" class="ec-preview-toolbar-page-input" inputmode="numeric" autocomplete="off" aria-label="Stránka"
+                   disabled="@(!this.Ready)" @bind="this.pageText" @bind:after="this.GoToPage" />
+            <span class="ec-preview-toolbar-page-count">z @this.Pages</span>
+        </div>
+    }
+    <div class="ec-preview-toolbar-zoom" role="group" aria-label="Lupa">
+        <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Minus" AriaLabel="Zmenšit"
+                  Disabled="@(!this.Ready || this.zoom <= MinZoom)" OnClick="() => this.OnZoom.InvokeAsync(PreviewZoom.Out)" />
+        <span class="ec-preview-toolbar-zoom-value">@this.zoom %</span>
+        <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Plus" AriaLabel="Zvětšit"
+                  Disabled="@(!this.Ready || this.zoom >= MaxZoom)" OnClick="() => this.OnZoom.InvokeAsync(PreviewZoom.In)" />
+        @if (this.Fits)
+        {
+            <span class="ec-preview-toolbar-fit ec-preview-toolbar-fit-width">
+                <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ArrowAutofitWidth" AriaLabel="Na šířku"
+                          Disabled="@(!this.Ready)" aria-pressed="@Pressed(this.fit == PageWidth)" OnClick="() => this.OnZoom.InvokeAsync(PreviewZoom.PageWidth)"><span class="ec-preview-toolbar-label">Na šířku</span></EcButton>
+            </span>
+            <span class="ec-preview-toolbar-fit ec-preview-toolbar-fit-page">
+                <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ArrowAutofitHeight" AriaLabel="Celá stránka"
+                          Disabled="@(!this.Ready)" aria-pressed="@Pressed(this.fit == PageFit)" OnClick="() => this.OnZoom.InvokeAsync(PreviewZoom.PageFit)"><span class="ec-preview-toolbar-label">Celá stránka</span></EcButton>
+            </span>
+        }
+        <span class="ec-preview-toolbar-fit ec-preview-toolbar-fit-actual">
+            <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" AriaLabel="100 %"
+                      Disabled="@(!this.Ready)" aria-pressed="@Pressed(this.zoom == ActualZoom)" OnClick="() => this.OnZoom.InvokeAsync(PreviewZoom.Actual)">100 %</EcButton>
+        </span>
+    </div>
+    <span class="ec-preview-toolbar-search-toggle">
+        <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Search" AriaLabel="Hledat v dokumentu"
+                  Disabled="@(!this.Ready)" aria-expanded="@Pressed(this.searchOpen)" OnClick="this.ToggleSearch" />
+    </span>
+    @* Escape clears the search and does not close the dialog. *@
+    <div class="ec-preview-toolbar-search @(this.searchOpen ? "ec-preview-toolbar-search-open" : null)" role="search" data-ec-keeps-escape>
+        <label class="ec-preview-toolbar-search-box">
+            <EcIcon Paths="@AppIcons.Search" />
+            <input type="search" class="ec-preview-toolbar-search-input" placeholder="Hledat v dokumentu" aria-label="Hledat v dokumentu"
+                   autocomplete="off" disabled="@(!this.Ready)" value="@this.query" @ref="this.searchInput"
+                   @oninput="this.Search" @onkeydown="this.SearchKey" />
+        </label>
+        <span class="ec-preview-toolbar-matches" role="status">@this.MatchesText</span>
+        <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ChevronUp" AriaLabel="Předchozí výskyt"
+                  Disabled="@(this.matches == 0)" OnClick="() => this.Find(PreviewFind.Previous)" />
+        <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ChevronDown" AriaLabel="Další výskyt"
+                  Disabled="@(this.matches == 0)" OnClick="() => this.Find(PreviewFind.Next)" />
+    </div>
+</div>
+
+@code {
+    private const int MinZoom = 50;
+
+    private const int MaxZoom = 400;
+
+    private const int ActualZoom = 100;
+
+    private const string PageWidth = "page-width";
+
+    private const string PageFit = "page-fit";
+
+    private DotNetObjectReference<PreviewToolbar>? view;
+
+    private ElementReference searchInput;
+
+    private int page = 1;
+
+    private string? pageText = "1";
+
+    private int zoom = ActualZoom;
+
+    private string fit = "";
+
+    private string query = "";
+
+    private bool searchOpen;
+
+    private int match;
+
+    private int matches;
+
+    private bool searching;
+
+    [Parameter]
+    public string Label { get; set; } = "Ovládání náhledu";
+
+    /// <summary>
+    /// Whether the preview is shown and takes the toolbar's commands; until then every control is disabled.
+    /// </summary>
+    [Parameter]
+    public bool Ready { get; set; }
+
+    /// <summary>
+    /// Whether the toolbar shows the page in view out of <see cref="Pages"/> with a field to go to a page.
+    /// </summary>
+    [Parameter]
+    public bool Paged { get; set; }
+
+    [Parameter]
+    public int Pages { get; set; }
+
+    /// <summary>
+    /// Whether the zoom offers the fits to the width and to the whole page.
+    /// </summary>
+    [Parameter]
+    public bool Fits { get; set; }
+
+    [Parameter]
+    public EventCallback<PreviewZoom> OnZoom { get; set; }
+
+    /// <summary>
+    /// Raised with a page within the document.
+    /// </summary>
+    [Parameter]
+    public EventCallback<int> OnGoToPage { get; set; }
+
+    [Parameter]
+    public EventCallback<PreviewSearch> OnSearch { get; set; }
+
+    /// <summary>
+    /// The reference the library reports the page, the zoom and the search matches to.
+    /// </summary>
+    public DotNetObjectReference<PreviewToolbar> View => this.view ??= DotNetObjectReference.Create(this);
+
+    private string MatchesText
+    {
+        get
+        {
+            if (this.query.Length == 0)
+                return "";
+
+            if (this.matches > 0)
+                return string.Create(CultureInfo.InvariantCulture, $"{this.match} z {this.matches}");
+
+            return this.searching ? "Hledám…" : "Nenalezeno";
+        }
+    }
+
+    [JSInvokable]
+    public Task PageChanged(int number)
+    {
+        return this.InvokeAsync(() =>
+        {
+            this.page = number;
+            this.pageText = number.ToString(CultureInfo.InvariantCulture);
+            this.StateHasChanged();
+        });
+    }
+
+    [JSInvokable]
+    public Task ZoomChanged(int percent, string preset)
+    {
+        return this.InvokeAsync(() =>
+        {
+            this.zoom = percent;
+            this.fit = preset;
+            this.StateHasChanged();
+        });
+    }
+
+    [JSInvokable]
+    public Task MatchesChanged(int current, int total, bool pending)
+    {
+        return this.InvokeAsync(() =>
+        {
+            // Closing a search reports the count of the closed query once more.
+            if (this.query.Length == 0)
+                return;
+
+            this.match = current;
+            this.matches = total;
+            this.searching = pending;
+            this.StateHasChanged();
+        });
+    }
+
+    public void Dispose()
+    {
+        this.view?.Dispose();
+    }
+
+    private static string Pressed(bool value)
+    {
+        return value ? "true" : "false";
+    }
+
+    // A number outside the document goes to its first or last page; anything else puts the current page back.
+    private async Task GoToPage()
+    {
+        if (!int.TryParse(this.pageText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number))
+        {
+            this.pageText = this.page.ToString(CultureInfo.InvariantCulture);
+
+            return;
+        }
+
+        number = Math.Clamp(number, 1, this.Pages);
+        this.pageText = number.ToString(CultureInfo.InvariantCulture);
+
+        await this.OnGoToPage.InvokeAsync(number);
+    }
+
+    private async Task ToggleSearch()
+    {
+        this.searchOpen = !this.searchOpen;
+
+        if (this.searchOpen)
+        {
+            this.StateHasChanged();
+            await Task.Yield();
+            await this.searchInput.FocusAsync();
+        }
+        else
+        {
+            await this.ClearSearch();
+        }
+    }
+
+    private async Task Search(ChangeEventArgs args)
+    {
+        this.query = args.Value as string ?? "";
+
+        if (this.query.Length == 0)
+        {
+            await this.ClearSearch();
+
+            return;
+        }
+
+        this.searching = true;
+
+        await this.OnSearch.InvokeAsync(new PreviewSearch(this.query, PreviewFind.New));
+    }
+
+    private async Task SearchKey(KeyboardEventArgs args)
+    {
+        if (args.Key == "Enter" && this.query.Length > 0)
+            await this.Find(args.ShiftKey ? PreviewFind.Previous : PreviewFind.Next);
+        else if (args.Key == "Escape")
+            await this.ClearSearch();
+    }
+
+    private async Task Find(PreviewFind find)
+    {
+        await this.OnSearch.InvokeAsync(new PreviewSearch(this.query, find));
+    }
+
+    private async Task ClearSearch()
+    {
+        this.query = "";
+        this.match = 0;
+        this.matches = 0;
+        this.searching = false;
+
+        await this.OnSearch.InvokeAsync(new PreviewSearch("", PreviewFind.New));
+    }
+}

@@ -48,7 +48,21 @@ function secureLinks(root) {
 // The blob URLs of each rendered document's pictures, revoked once its element has left the page.
 const documentUrls = new Map();
 
-function releaseDocuments() {
+// The previews laid out here rather than by PDF.js: a text, Markdown or e-mail reflows at its zoom, a document keeps
+// its pages and scales them. Each reports its zoom and search matches to `view`, a .NET object reference.
+const zoomSteps = [0.5, 0.67, 0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4];
+const fitModes = ['page-width', 'page-fit'];
+const views = new Map();
+const highlights = globalThis.CSS?.highlights;
+const hitName = 'ec-preview-hit';
+const currentHitName = 'ec-preview-hit-current';
+const highlightRules = `::highlight(${hitName}) { background-color: var(--ec-preview-hit); }
+::highlight(${currentHitName}) { background-color: var(--ec-preview-hit-current); }`;
+// Text in two of these never forms one match.
+const blocks = 'address, article, blockquote, dd, div, dl, dt, figcaption, h1, h2, h3, h4, h5, h6, li, ol, p, pre, section, table, td, th, tr, ul';
+let highlighted = null;
+
+function release() {
     for (const [host, urls] of documentUrls) {
         if (!host.isConnected) {
             urls.forEach(url => URL.revokeObjectURL(url));
@@ -56,50 +70,109 @@ function releaseDocuments() {
         }
     }
 
-    for (const [host, observer] of documentObservers) {
-        if (!host.isConnected) {
-            observer.disconnect();
-            documentObservers.delete(host);
+    for (const element of views.keys()) {
+        if (!element.isConnected) {
+            disposeView(element);
         }
     }
 }
 
-// The observers that keep a rendered document scaled to the width it has.
-const documentObservers = new Map();
+export function disposeView(element) {
+    // The element is gone once its file left the page, and the caller then holds no reference to it.
+    if (!element) {
+        release();
 
-// The pages shrink to the width of the stage and never grow past their own.
-function fitDocument(host, root) {
-    documentObservers.get(host)?.disconnect();
-
-    const pages = [...root.querySelectorAll('section.docx')];
-
-    root.querySelector('.docx-wrapper')?.setAttribute('part', 'document-wrapper');
-    pages.forEach(page => page.setAttribute('part', 'document-page'));
-
-    const naturalWidth = Math.max(0, ...pages.map(page => page.offsetWidth));
-    const stage = host.parentElement;
-
-    if (naturalWidth === 0 || !stage) {
         return;
     }
 
-    const fit = () => {
-        const style = getComputedStyle(stage);
-        const available = stage.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+    const state = views.get(element);
 
-        host.style.setProperty('--ec-document-scale', String(Math.min(1, available / naturalWidth)));
-    };
+    if (state) {
+        views.delete(element);
+        state.abort.abort();
+        clearSearch(state);
+    }
+}
 
-    const observer = new ResizeObserver(fit);
+function openView(element, stage, content, root, view, page) {
+    disposeView(element);
 
-    observer.observe(stage);
-    documentObservers.set(host, observer);
-    fit();
+    const abort = new AbortController();
+    const state = { element, stage, content, root, view, page, abort, zoom: 1, fit: null, index: null, search: null };
+
+    views.set(element, state);
+
+    // Ctrl or Cmd with the wheel, and a pinch on a touchpad, zoom around the pointer.
+    stage.addEventListener('wheel', event => {
+        if (!event.ctrlKey && !event.metaKey) {
+            return;
+        }
+
+        event.preventDefault();
+
+        const fine = event.deltaMode === WheelEvent.DOM_DELTA_PIXEL && Math.abs(event.deltaY) < 50;
+        const factor = fine ? Math.exp(-event.deltaY / 100) : event.deltaY < 0 ? 1.1 : 1 / 1.1;
+        // A fit outside the steps' range is a bound of its own, so the wheel never zooms against its direction.
+        const current = state.zoom;
+        const zoom = Math.min(Math.max(current * factor, Math.min(zoomSteps[0], current)), Math.max(zoomSteps.at(-1), current));
+        const box = stage.getBoundingClientRect();
+
+        if (zoom !== current) {
+            setZoom(state, zoom, null, event.clientX - box.left, event.clientY - box.top);
+        }
+    }, { passive: false, signal: abort.signal });
+
+    return state;
+}
+
+// The point of the content at x, y of the stage stays in place.
+function setZoom(state, zoom, fit, x = 0, y = 0) {
+    const { stage } = state;
+    const height = stage.scrollHeight;
+    const width = stage.scrollWidth;
+    const top = stage.scrollTop + y;
+    const left = stage.scrollLeft + x;
+
+    state.zoom = zoom;
+    state.fit = fit;
+    state.content.style.setProperty('--ec-preview-zoom', String(zoom));
+    stage.scrollTop = (top * stage.scrollHeight) / Math.max(height, 1) - y;
+    stage.scrollLeft = (left * stage.scrollWidth) / Math.max(width, 1) - x;
+
+    const preset = fit === 'opening' ? (zoom < 1 ? 'page-width' : '') : fit ?? '';
+
+    if (views.get(state.element) === state) {
+        state.view.invokeMethodAsync('ZoomChanged', Math.round(zoom * 100), preset).catch(() => {});
+    }
+}
+
+// The opening zoom of a document is the page width, at most 100 %; it follows the stage's size until the zoom changes.
+function fitPage(state, fit) {
+    const { stage, page } = state;
+    const style = getComputedStyle(stage);
+    const width = stage.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+    const height = stage.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+    const toWidth = width / page.width;
+    const zoom = fit === 'page-fit' ? Math.min(toWidth, height / page.height) : fit === 'opening' ? Math.min(toWidth, 1) : toWidth;
+
+    if (zoom > 0) {
+        setZoom(state, zoom, fit);
+    }
+}
+
+export function openTextView(stage, view) {
+    release();
+
+    const content = stage.querySelector('[role="document"]');
+
+    if (content) {
+        openView(stage, stage, content, content, view, null);
+    }
 }
 
 // The document renders in a shadow root, so the styles it carries apply to it alone.
-export async function renderDocument(host, contentStream) {
-    releaseDocuments();
+export async function renderDocument(host, contentStream, view) {
+    release();
 
     const buffer = await contentStream.arrayBuffer();
 
@@ -121,17 +194,257 @@ export async function renderDocument(host, contentStream) {
             renderAltChunks: false,
         });
         secureLinks(root);
-        fitDocument(host, root);
     } finally {
         documentUrls.set(host, root.innerHTML.match(/blob:[^\s"'()<>]+/g) ?? []);
     }
+
+    const style = document.createElement('style');
+
+    style.textContent = highlightRules;
+    root.append(style);
+    root.querySelector('.docx-wrapper')?.setAttribute('part', 'document-wrapper');
+
+    // A page is as wide as its paper and at least as tall; its paper size is what a fit fits.
+    const pages = [...root.querySelectorAll('section.docx')];
+    const size = {
+        width: Math.max(0, ...pages.map(section => section.offsetWidth)),
+        height: Math.max(0, ...pages.map(section => parseFloat(getComputedStyle(section).minHeight) || section.offsetHeight)),
+    };
+
+    pages.forEach(section => section.setAttribute('part', 'document-page'));
+
+    const stage = host.parentElement;
+
+    if (!host.isConnected || !stage || size.width === 0 || size.height === 0) {
+        return;
+    }
+
+    const state = openView(host, stage, host, root, view, size);
+    const resize = new ResizeObserver(() => {
+        if (state.fit) {
+            fitPage(state, state.fit);
+        }
+    });
+
+    resize.observe(stage);
+    state.abort.signal.addEventListener('abort', () => resize.disconnect(), { once: true });
+    fitPage(state, 'opening');
+}
+
+export function zoomView(element, zoom) {
+    const state = views.get(element);
+
+    if (!state) {
+        return;
+    }
+
+    if (fitModes.includes(zoom)) {
+        if (state.page) {
+            fitPage(state, zoom);
+        }
+
+        return;
+    }
+
+    const current = state.zoom;
+    const next = zoom === 'actual'
+        ? 1
+        : zoom === 'in'
+            ? zoomSteps.find(step => step > current + 0.005) ?? zoomSteps.at(-1)
+            : zoomSteps.findLast(step => step < current - 0.005) ?? zoomSteps[0];
+
+    setZoom(state, next, null);
+}
+
+// Case, diacritics and the kind of space make no difference to a match.
+function fold(text) {
+    let folded = '';
+
+    for (const char of text) {
+        const code = char.codePointAt(0);
+
+        if (code < 0x80) {
+            folded += code >= 65 && code <= 90 ? String.fromCharCode(code + 32) : code === 9 || code === 10 || code === 13 ? ' ' : char;
+        } else {
+            folded += /\s/.test(char) ? ' ' : char.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+        }
+    }
+
+    return folded;
+}
+
+// The folded text of the content, with the text node and offsets of each of its characters.
+function indexText(root) {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+        acceptNode: node => (node.parentElement?.closest('style, script, [aria-hidden="true"]') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT),
+    });
+    const index = { text: '', textNodes: [], nodes: [], starts: [], ends: [] };
+    const parts = [];
+    let block;
+
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+        const owner = node.parentElement?.closest(blocks) ?? null;
+
+        if (index.nodes.length > 0 && owner !== block) {
+            parts.push('\n');
+            index.nodes.push(-1);
+            index.starts.push(0);
+            index.ends.push(0);
+        }
+
+        block = owner;
+
+        const number = index.textNodes.push(node) - 1;
+        const value = node.data;
+
+        for (let offset = 0; offset < value.length;) {
+            const size = value.codePointAt(offset) > 0xffff ? 2 : 1;
+            const folded = fold(value.slice(offset, offset + size));
+
+            for (let char = 0; char < folded.length; char++) {
+                index.nodes.push(number);
+                index.starts.push(offset);
+                index.ends.push(offset + size);
+            }
+
+            parts.push(folded);
+            offset += size;
+        }
+    }
+
+    index.text = parts.join('');
+
+    return index;
+}
+
+function rangeOf(index, start, end) {
+    const range = new Range();
+
+    range.setStart(index.textNodes[index.nodes[start]], index.starts[start]);
+    range.setEnd(index.textNodes[index.nodes[end - 1]], index.ends[end - 1]);
+
+    return range;
+}
+
+function clearSearch(state) {
+    state.search = null;
+
+    if (highlighted === state) {
+        highlights?.delete(hitName);
+        highlights?.delete(currentHitName);
+        highlighted = null;
+    }
+}
+
+// The match shown is drawn apart from the rest and scrolled to the middle of the stage when it is out of view.
+function showMatch(state, number) {
+    const { search, stage } = state;
+    const previous = search.ranges[search.current];
+    const range = search.ranges[number];
+
+    search.current = number;
+
+    if (highlights) {
+        if (highlighted !== state) {
+            highlights.set(hitName, new Highlight());
+            highlights.set(currentHitName, new Highlight());
+            highlighted = state;
+        }
+
+        const hits = highlights.get(hitName);
+
+        if (search.painted) {
+            hits.add(previous);
+        } else {
+            hits.clear();
+            search.ranges.forEach(each => hits.add(each));
+            search.painted = true;
+        }
+
+        hits.delete(range);
+        highlights.get(currentHitName).clear();
+        highlights.get(currentHitName).add(range);
+    }
+
+    const box = range.getBoundingClientRect();
+    const view = stage.getBoundingClientRect();
+
+    if (box.top < view.top || box.bottom > view.bottom) {
+        stage.scrollTop += box.top - view.top - (view.height - box.height) / 2;
+    }
+
+    if (box.left < view.left || box.right > view.right) {
+        stage.scrollLeft += box.left - view.left - (view.width - box.width) / 2;
+    }
+}
+
+// The first match of a new query is the first one not above the top of the stage.
+function firstInView(state) {
+    const { ranges } = state.search;
+    const top = state.stage.getBoundingClientRect().top;
+    let low = 0;
+    let high = ranges.length;
+
+    while (low < high) {
+        const middle = (low + high) >> 1;
+
+        if (ranges[middle].getBoundingClientRect().bottom < top) {
+            low = middle + 1;
+        } else {
+            high = middle;
+        }
+    }
+
+    return low < ranges.length ? low : 0;
+}
+
+// An empty query clears the highlights. A match ignores case and diacritics; the search wraps around.
+export function findInView(element, query, again, previous) {
+    const state = views.get(element);
+
+    if (!state) {
+        return;
+    }
+
+    if (query.length === 0) {
+        clearSearch(state);
+
+        return;
+    }
+
+    if (!again || state.search?.query !== query) {
+        if (!state.index || !state.index.textNodes.every(node => node.isConnected)) {
+            state.index = indexText(state.root);
+        }
+
+        const { index } = state;
+        const needle = fold(query);
+        const ranges = [];
+
+        for (let start = index.text.indexOf(needle); needle.length > 0 && start >= 0; start = index.text.indexOf(needle, start + needle.length)) {
+            ranges.push(rangeOf(index, start, start + needle.length));
+        }
+
+        clearSearch(state);
+        state.search = { query, ranges, current: 0, painted: false };
+
+        if (ranges.length > 0) {
+            showMatch(state, firstInView(state));
+        }
+    } else if (state.search.ranges.length > 0) {
+        const { ranges, current } = state.search;
+
+        showMatch(state, (current + (previous ? ranges.length - 1 : 1)) % ranges.length);
+    }
+
+    const { ranges, current } = state.search;
+
+    state.view.invokeMethodAsync('MatchesChanged', ranges.length > 0 ? current + 1 : 0, ranges.length, false).catch(() => {});
 }
 
 // PDF.js shows a PDF in its viewer component: pages drawn as they come near the viewport, a text layer to select
 // and search, and links. Forms, scripts and the editor stay off. The document loads from its content URL with the
 // session cookie; the view reports its page, zoom and search matches to `view`, a .NET object reference.
-const pdfZoomSteps = [0.5, 0.67, 0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4];
-const pdfFitModes = ['page-width', 'page-fit'];
 // The canvas limit PDF.js sets itself on phones and tablets, whose browsers fail on larger canvases.
 const pdfCanvasPixels = /Android|\b(?:iPad|iPhone|iPod)(?=;)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
     ? 5242880
@@ -365,7 +678,7 @@ async function openPdf(host, url, view) {
     const resize = new ResizeObserver(() => {
         if (pdf.opening) {
             fitOpening(viewer);
-        } else if (pdfFitModes.includes(viewer.currentScaleValue)) {
+        } else if (fitModes.includes(viewer.currentScaleValue)) {
             viewer.currentScaleValue = viewer.currentScaleValue;
         } else {
             viewer.update();
@@ -387,7 +700,7 @@ async function openPdf(host, url, view) {
         const factor = fine ? Math.exp(-event.deltaY / 100) : event.deltaY < 0 ? 1.1 : 1 / 1.1;
         // A fit outside the steps' range is a bound of its own, so the wheel never zooms against its direction.
         const current = viewer.currentScale;
-        const scale = Math.min(Math.max(current * factor, Math.min(pdfZoomSteps[0], current)), Math.max(pdfZoomSteps.at(-1), current));
+        const scale = Math.min(Math.max(current * factor, Math.min(zoomSteps[0], current)), Math.max(zoomSteps.at(-1), current));
         const box = host.getBoundingClientRect();
 
         if (scale === current) {
@@ -418,7 +731,7 @@ export function zoomPdf(host, zoom) {
 
     pdf.opening = false;
 
-    if (pdfFitModes.includes(zoom)) {
+    if (fitModes.includes(zoom)) {
         pdf.viewer.currentScaleValue = zoom;
 
         return;
@@ -432,8 +745,8 @@ export function zoomPdf(host, zoom) {
 
     const current = pdf.viewer.currentScale;
     const scale = zoom === 'in'
-        ? pdfZoomSteps.find(step => step > current + 0.005) ?? pdfZoomSteps.at(-1)
-        : pdfZoomSteps.findLast(step => step < current - 0.005) ?? pdfZoomSteps[0];
+        ? zoomSteps.find(step => step > current + 0.005) ?? zoomSteps.at(-1)
+        : zoomSteps.findLast(step => step < current - 0.005) ?? zoomSteps[0];
 
     pdf.viewer.currentScale = scale;
 }
@@ -473,7 +786,7 @@ export function findInPdf(host, query, again, previous) {
 }
 
 export async function readWorkbook(contentStream, maxRows) {
-    releaseDocuments();
+    release();
 
     const buffer = await contentStream.arrayBuffer();
 
@@ -593,7 +906,7 @@ async function readMsg(buffer) {
 }
 
 export async function readEmail(fileName, contentStream) {
-    releaseDocuments();
+    release();
 
     const buffer = await contentStream.arrayBuffer();
 
@@ -629,7 +942,7 @@ async function decodeHeic(buffer) {
 
 // The picture the browser cannot show becomes a PNG blob; the caller revokes the URL.
 export async function createPngUrl(contentStream) {
-    releaseDocuments();
+    release();
 
     const buffer = await contentStream.arrayBuffer();
     const image = await decodeHeic(buffer);

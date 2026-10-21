@@ -66,12 +66,17 @@ Esc a Zrušit ho zahodí.
   (docx), sešit (xlsx, xls, ods), e-mail (eml, msg), zvuk (mp3, m4a, wav, ogg, oga) a video
   (mp4, webm, m4v, mov). Jiný typ nabídne jen stažení. Soubor, který se nepodaří přečíst, nabídne
   také jen stažení.
+- PDF, text, Markdown, e-mail a dokument Word mají nad obsahem stejnou lištu se zvětšením
+  a zmenšením (50 až 400 %, také Ctrl nebo Cmd s kolečkem myši), na počítači i se skutečnou
+  velikostí 100 %, a s hledáním. Hledání nerozlišuje velikost písmen ani diakritiku, zvýrazní
+  všechny výskyty, aktuální odliší a posune do zobrazení a ukáže pořadí z počtu (3 z 12), nebo
+  Nenalezeno; Enter přejde na další výskyt, Shift+Enter na předchozí, Esc hledání vymaže a náhled
+  nezavře.
 - PDF se ukáže jako stránky pod sebou, zpočátku na šířku náhledu, nejvýš však ve 100 %, i
-  v mobilním prohlížeči. Lišta nad stránkami ukáže stránku z počtu stran s polem pro skok na
-  stránku, zvětšení a zmenšení (50 až 400 %), přizpůsobení na šířku a na celou stránku, na počítači
-  i skutečnou velikost 100 %, a hledání. Hledání zvýrazní všechny
-  výskyty a ukáže pořadí z počtu (3 z 12), nebo Nenalezeno; Enter přejde na další výskyt,
-  Shift+Enter na předchozí. Text jde vybrat a zkopírovat.
+  v mobilním prohlížeči. Lišta navíc ukáže stránku z počtu stran s polem pro skok na stránku
+  a přizpůsobení na šířku a na celou stránku. Text jde vybrat a zkopírovat.
+- U textu, Markdownu a e-mailu zvětšení mění velikost písma a text se zalomí do šířky náhledu;
+  zpočátku je 100 %.
 - Odkaz v PDF na místo v dokumentu přejde na jeho stránku, odkaz na webovou nebo e-mailovou adresu
   se otevře v nové záložce, jiný odkaz nefunguje. Formuláře, skripty a vložená média nefungují.
   PDF chráněné heslem nebo nečitelné nabídne jen stažení.
@@ -80,8 +85,10 @@ Esc a Zrušit ho zahodí.
 - Markdown se ukáže formátovaně, nejvýše první 1 MB. Syrové HTML v něm se nevykoná, ukáže se
   jako text; odkaz zůstane jen na webovou nebo e-mailovou adresu a otevře se v nové záložce;
   obrázky se nenačítají.
-- Dokument Word se ukáže jako stránky přes celou šířku náhledu s jedním posuvníkem; na úzké
-  obrazovce se stránka zmenší na šířku okna. Náhled upozorní, že se může od originálu mírně lišit.
+- Dokument Word se ukáže jako stránky pod sebou, zpočátku na šířku náhledu, nejvýš však ve 100 %.
+  Lišta navíc nabídne přizpůsobení na šířku a na celou stránku podle velikosti papíru; počet
+  stran neukáže, protože stránky náhledu neodpovídají stránkám originálu. Náhled upozorní, že se
+  může od originálu mírně lišit.
 - Sešit se ukáže jako tabulka s kartami listů; z každého listu se ukáže nejvýše prvních
   1 000 řádků a náhled řekne, že je list delší.
 - E-mail ukáže odesílatele, příjemce, předmět, datum, text zprávy a seznam příloh s velikostí;
