@@ -1562,9 +1562,6 @@ html {
 }
 
 .ec-preview-note {
-    display: flex;
-    align-items: center;
-    gap: var(--ec-space-3);
     margin: 0;
     padding: var(--ec-space-3) var(--ec-space-4);
     border-radius: var(--ec-radius-lg);

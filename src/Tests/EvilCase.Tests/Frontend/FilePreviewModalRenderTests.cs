@@ -283,7 +283,7 @@ public class FilePreviewModalRenderTests
     }
 
     [Test]
-    public void ADocxShowsTheNoticeAndHandsTheBytesToTheLibrary()
+    public void ADocxShowsNoNoticeAndHandsTheBytesToTheLibrary()
     {
         using var ctx = NewContext(out _, out var previews);
 
@@ -294,7 +294,7 @@ public class FilePreviewModalRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.Find(".ec-preview-note").TextContent, Is.EqualTo("Náhled dokumentu se může od originálu mírně lišit. Přesnou podobu ukáže stažený soubor."));
+            Assert.That(component.FindAll(".ec-preview-note"), Is.Empty);
             Assert.That(component.Find(".ec-preview-document"), Is.Not.Null);
         }
     }
