@@ -1758,19 +1758,21 @@ html {
     display: flex;
     flex: 1 1 auto;
     flex-direction: column;
-    gap: var(--ec-space-4);
     min-width: 0;
     min-height: 0;
-    box-sizing: border-box;
-    padding: var(--ec-space-7) var(--ec-space-7) 0;
+    background: var(--ec-surface);
+}
+
+.ec-preview-sheet-view > .ec-preview-note {
+    flex: 0 0 auto;
+    padding: var(--ec-space-3) var(--ec-space-7);
+    border-bottom: 1px solid var(--ec-border);
+    border-radius: 0;
 }
 
 .ec-preview-sheet {
     flex: 1 1 auto;
     min-height: 0;
-    border-radius: var(--ec-radius-md) var(--ec-radius-md) 0 0;
-    background: var(--ec-surface);
-    box-shadow: var(--ec-shadow-raised);
     overflow: auto;
 }
 
@@ -1819,7 +1821,6 @@ html {
     display: flex;
     flex: 0 0 auto;
     gap: var(--ec-space-1);
-    margin: 0 calc(-1 * var(--ec-space-7));
     padding: var(--ec-space-3) var(--ec-space-7);
     border-top: 1px solid var(--ec-border);
     background: var(--ec-surface);
@@ -3410,6 +3411,11 @@ html {
 
     .ec-preview-stage {
         padding: var(--ec-space-4);
+    }
+
+    .ec-preview-sheet-view > .ec-preview-note,
+    .ec-preview-sheet-tabs {
+        padding-inline: var(--ec-space-4);
     }
 
     /* Na mobilu zůstane lupa, stránka a ikona hledání; pole hledání se otevře na vlastním řádku. */
