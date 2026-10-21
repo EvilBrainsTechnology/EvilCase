@@ -366,6 +366,19 @@ function showMatch(state, number) {
         highlights.get(currentHitName).add(range);
     }
 
+    // A code block scrolls sideways on its own, so the match first comes into its view; its scroll offset is
+    // measured unzoomed.
+    const block = range.startContainer.parentElement?.closest('pre');
+
+    if (block && block.scrollWidth > block.clientWidth) {
+        const inner = range.getBoundingClientRect();
+        const outer = block.getBoundingClientRect();
+
+        if (inner.left < outer.left || inner.right > outer.right) {
+            block.scrollLeft += ((inner.left - outer.left - (outer.width - inner.width) / 2) * block.offsetWidth) / outer.width;
+        }
+    }
+
     const box = range.getBoundingClientRect();
     const view = stage.getBoundingClientRect();
 
