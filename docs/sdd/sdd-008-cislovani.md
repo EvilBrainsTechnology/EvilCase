@@ -22,8 +22,8 @@ Natvrdo, bez konfigurace:
 ### Pravidla
 
 - Datum ve značce je explicitní datum spisu, resp. úkonu, ne okamžik založení záznamu.
-- `seq` spisu počítá per tenant a den, `seq` úkonu per spis a den; start `001`, přetečení
-  přidá cifru. Pořadí se čte podle délky a pak podle znaků, takže `1000` následuje po `999`.
+- `seq` spisu počítá per tenant a den, `seq` úkonu per tenant, spisovou značku a den, ať
+  úkon s tou značkou patří kterémukoli spisu; start `001`, přetečení přidá cifru. Pořadí se čte podle délky a pak podle znaků, takže `1000` následuje po `999`.
 - Zpětně datovaný spis dostane další volné pořadí svého dne.
 - `CaseNumber` i `ActNumber` jsou unikátní v tenantu.
 - Číslo vzniká při založení entity k jejímu datu; založení číslo nepřebírá od volajícího.

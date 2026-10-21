@@ -10,7 +10,7 @@ internal sealed class ActNumberIssuer(IDbSession dbSession) : IActNumberIssuer
     public async Task<string> NextActNumber(Case @case, DateOnly date, CancellationToken token)
     {
         var highest = await dbSession.Current.Acts
-            .OfCaseWithNumberPrefix(@case.Id, ActNumberFormat.Prefix(@case.CaseNumber, date))
+            .WithNumberPrefix(ActNumberFormat.Prefix(@case.CaseNumber, date))
             .OrderByNumberDescending()
             .Select(static act => act.ActNumber)
             .FirstOrDefaultAsync(token);

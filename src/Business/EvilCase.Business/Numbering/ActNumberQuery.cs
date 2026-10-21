@@ -7,14 +7,14 @@ namespace EvilBrains.EvilCase.Business.Numbering;
 internal static class ActNumberQuery
 {
     /// <summary>
+    /// Every act of the tenant under the prefix counts, whichever case holds it now.
     /// A hand-edited number outside the format drops out here.
     /// </summary>
-    public static IQueryable<Act> OfCaseWithNumberPrefix(this IQueryable<Act> acts, Guid caseId, string prefix)
+    public static IQueryable<Act> WithNumberPrefix(this IQueryable<Act> acts, string prefix)
     {
         var pattern = prefix.EscapeLikeWildcards() + "%";
 
         return acts
-            .Where(act => act.CaseId == caseId)
             .Where(act => EF.Functions.Like(act.ActNumber, pattern, LikeExtensions.LikeEscape));
     }
 
