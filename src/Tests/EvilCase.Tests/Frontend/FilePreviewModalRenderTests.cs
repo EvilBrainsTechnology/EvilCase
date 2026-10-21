@@ -463,7 +463,7 @@ public class FilePreviewModalRenderTests
     }
 
     [Test]
-    public async Task ADocxHasTheZoomFitsAndSearchButNoPages()
+    public async Task ADocxHasThePagesZoomFitsAndSearch()
     {
         await using var ctx = NewContext(out _, out var previews);
 
@@ -478,7 +478,8 @@ public class FilePreviewModalRenderTests
             Assert.That(
                 component.FindAll(".ec-preview-toolbar button").Select(static button => button.GetAttribute("aria-label")),
                 Is.EqualTo(["Zmenšit", "Zvětšit", "100 %", "Na šířku", "Celá stránka", "Hledat v dokumentu", "Předchozí výskyt", "Další výskyt"]));
-            Assert.That(component.FindAll(".ec-preview-toolbar-pages"), Is.Empty, "the rendered pages are not the pages of the original");
+            Assert.That(component.Find(".ec-preview-toolbar-page-input").GetAttribute("value"), Is.EqualTo("1"));
+            Assert.That(component.Find(".ec-preview-toolbar-page-count").TextContent, Is.EqualTo("z 4"));
             Assert.That(component.Find(".ec-preview-toolbar-zoom-value").TextContent, Is.EqualTo("82 %"));
             Assert.That(ToolbarButton(component, "Na šířku").GetAttribute("aria-pressed"), Is.EqualTo("true"));
             Assert.That(ToolbarButton(component, "Zvětšit").HasAttribute("disabled"), Is.False);
@@ -487,12 +488,19 @@ public class FilePreviewModalRenderTests
         await ToolbarButton(component, "Celá stránka").ClickAsync(new MouseEventArgs());
         await ToolbarButton(component, "Na šířku").ClickAsync(new MouseEventArgs());
         await component.Find(".ec-preview-toolbar-search-input").InputAsync(new() { Value = "lhůta" });
+        await component.Find(".ec-preview-toolbar-page-input").ChangeAsync(new() { Value = "3" });
+        await component.Find(".ec-preview-toolbar-page-input").ChangeAsync(new() { Value = "9" });
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(previews.ViewZooms, Is.EqualTo([PreviewZoom.PageFit, PreviewZoom.PageWidth]));
             Assert.That(previews.ViewFinds, Is.EqualTo([("lhůta", PreviewFind.New)]));
+            Assert.That(previews.ViewPagesGoneTo, Is.EqualTo([3, 4]), "a page past the end is the last one");
         }
+
+        await previews.TextView.Value.PageChanged(2);
+
+        Assert.That(component.Find(".ec-preview-toolbar-page-input").GetAttribute("value"), Is.EqualTo("2"));
     }
 
     [TestCase("a.txt")]

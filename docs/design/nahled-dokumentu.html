@@ -31,23 +31,42 @@
       <button type="button" class="btn2" style="display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; font: inherit; font-size: 14px; font-weight: 500; color: #14161B; background: #FFFFFF; border: 1px solid #D5D9E1; border-radius: 9px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></svg>Stáhnout</button>
       <button type="button" aria-label="Zavřít" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 9px; background: transparent; color: #5B6270;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></svg></button>
     </header>
+    <div role="toolbar" aria-label="Ovládání náhledu" style="display: flex; align-items: center; gap: 8px 24px; flex-shrink: 0; padding: 8px 16px; border-bottom: 1px solid #E1E4EA; background: #FFFFFF; font-size: 13px; color: #5B6270;">
+      <div style="display: flex; align-items: center; gap: 8px; white-space: nowrap;">
+        <span aria-hidden="true">Stránka</span>
+        <input type="text" value="2" aria-label="Stránka" style="box-sizing: border-box; width: 48px; height: 32px; padding: 0 8px; border: 1px solid #D5D9E1; border-radius: 9px; background: #FFFFFF; color: #14161B; font: inherit; font-size: 13px; text-align: center;">
+        <span>z 4</span>
+      </div>
+      <div role="group" aria-label="Lupa" style="display: flex; align-items: center; gap: 8px;">
+        <button type="button" aria-label="Zmenšit" class="btn2" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 1px solid #D5D9E1; border-radius: 9px; background: #FFFFFF; color: #14161B;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+        <span style="min-width: 48px; text-align: center;">100 %</span>
+        <button type="button" aria-label="Zvětšit" class="btn2" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 1px solid #D5D9E1; border-radius: 9px; background: #FFFFFF; color: #14161B;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button>
+        <button type="button" aria-pressed="true" style="height: 32px; padding: 0 12px; font: inherit; font-size: 13px; font-weight: 500; border: 1px solid #C9D3F3; border-radius: 9px; background: #E9EDF9; color: #1C3A9F;">100 %</button>
+        <button type="button" aria-pressed="true" style="display: flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; font: inherit; font-size: 13px; font-weight: 500; border: 1px solid #C9D3F3; border-radius: 9px; background: #E9EDF9; color: #1C3A9F;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h16"/><path d="M7 9l-3 3 3 3"/><path d="M17 9l3 3-3 3"/></svg>Na šířku</button>
+        <button type="button" aria-pressed="false" class="btn2" style="display: flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; font: inherit; font-size: 13px; font-weight: 500; border: 1px solid #D5D9E1; border-radius: 9px; background: #FFFFFF; color: #14161B;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v16"/><path d="M9 7l3-3 3 3"/><path d="M9 17l3 3 3-3"/></svg>Celá stránka</button>
+      </div>
+      <label style="margin-left: auto; display: flex; align-items: center; gap: 8px; box-sizing: border-box; width: 260px; height: 32px; padding: 0 12px; border: 1px solid #D5D9E1; border-radius: 9px; background: #FFFFFF;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></svg><input type="search" placeholder="Hledat v dokumentu" aria-label="Hledat v dokumentu" style="flex-grow: 1; min-width: 0; border: 0; outline: none; background: transparent; font: inherit; font-size: 13px;"></label>
+    </div>
     <div style="position: relative; flex-grow: 1; min-height: 0; background: #E6E8EC; overflow: hidden;">
-      <div style="display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 28px 28px 0;">
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 0 28px;">
+        <div aria-hidden="true" style="width: 794px; height: 140px; flex-shrink: 0; margin-top: -40px; background: #FFFFFF; box-shadow: 0 2px 10px rgba(20, 22, 27, 0.12); display: flex; flex-direction: column; justify-content: flex-end; gap: 9px; box-sizing: border-box; padding: 0 94px 60px;">
+          <span style="height: 9px; width: 100%; background: #E3E5EA; border-radius: 2px;"></span>
+          <span style="height: 9px; width: 54%; background: #E3E5EA; border-radius: 2px;"></span>
+        </div>
         <article style="width: 794px; height: 1123px; flex-shrink: 0; box-sizing: border-box; padding: 94px 94px; background: #FFFFFF; box-shadow: 0 2px 10px rgba(20, 22, 27, 0.12); display: flex; flex-direction: column; gap: 14px; font-family: 'Times New Roman', Georgia, serif; font-size: 16px; line-height: 1.35; color: #1E2128;">
-          <div><strong>Adresát:</strong><br>Krajský úřad [KRAJ]<br>odbor právní<br>[ULICE A ČÍSLO], [PSČ] [OBEC]</div>
-          <div style="margin-top: 10px;"><strong>Stěžovatel:</strong><br>[JMÉNO A PŘÍJMENÍ]<br>[ADRESA]</div>
-          <div style="margin-top: 10px;">V [MÍSTO] dne 1. 10. 2026</div>
-          <div style="margin-top: 10px; font-weight: 700;">Věc: Stížnost podle § 175 správního řádu na postup správního orgánu, sp. zn. [SPISOVÁ ZNAČKA]</div>
-          <div style="margin-top: 10px; font-weight: 700;">I. Předmět stížnosti</div>
+          <div style="font-weight: 700;">II. Odůvodnění</div>
           <div style="display: flex; flex-direction: column; gap: 9px;">
             <span style="height: 9px; width: 100%; background: #E3E5EA; border-radius: 2px;"></span>
             <span style="height: 9px; width: 98%; background: #E3E5EA; border-radius: 2px;"></span>
+            <span style="height: 9px; width: 100%; background: #E3E5EA; border-radius: 2px;"></span>
+            <span style="height: 9px; width: 100%; background: #E3E5EA; border-radius: 2px;"></span>
+            <span style="height: 9px; width: 96%; background: #E3E5EA; border-radius: 2px;"></span>
             <span style="height: 9px; width: 100%; background: #E3E5EA; border-radius: 2px;"></span>
             <span style="height: 9px; width: 72%; background: #E3E5EA; border-radius: 2px;"></span>
           </div>
         </article>
       </div>
-      <div aria-hidden="true" style="position: absolute; top: 4px; right: 3px; width: 8px; height: 280px; border-radius: 4px; background: #B7BCC6;"></div>
+      <div aria-hidden="true" style="position: absolute; top: 200px; right: 3px; width: 8px; height: 180px; border-radius: 4px; background: #B7BCC6;"></div>
     </div>
   </div>
 </div>

@@ -19,6 +19,8 @@ internal sealed class StubFilePreviews : IFilePreviews
 
     public int PdfPages { get; set; } = 3;
 
+    public int DocumentPages { get; set; } = 4;
+
     public int DisposedPdfs { get; private set; }
 
     /// <summary>
@@ -43,6 +45,8 @@ internal sealed class StubFilePreviews : IFilePreviews
 
     public List<PreviewZoom> ViewZooms { get; } = [];
 
+    public List<int> ViewPagesGoneTo { get; } = [];
+
     public List<(string Query, PreviewFind Find)> ViewFinds { get; } = [];
 
     public List<int> RequestedRows { get; } = [];
@@ -66,13 +70,15 @@ internal sealed class StubFilePreviews : IFilePreviews
         return Task.FromResult(url);
     }
 
-    public async Task RenderDocument(ElementReference host, Stream content, DotNetObjectReference<PreviewToolbar> view, CancellationToken token)
+    public async Task<int> RenderDocument(ElementReference host, Stream content, DotNetObjectReference<PreviewToolbar> view, CancellationToken token)
     {
         this.ThrowWhenFailing();
 
         using var reader = new StreamReader(content);
         this.RenderedDocuments.Add(await reader.ReadToEndAsync(token));
         this.TextView = view;
+
+        return this.DocumentPages;
     }
 
     public Task OpenTextView(ElementReference stage, DotNetObjectReference<PreviewToolbar> view)
@@ -86,6 +92,13 @@ internal sealed class StubFilePreviews : IFilePreviews
     public Task ZoomView(ElementReference element, PreviewZoom zoom)
     {
         this.ViewZooms.Add(zoom);
+
+        return Task.CompletedTask;
+    }
+
+    public Task GoToViewPage(ElementReference element, int page)
+    {
+        this.ViewPagesGoneTo.Add(page);
 
         return Task.CompletedTask;
     }

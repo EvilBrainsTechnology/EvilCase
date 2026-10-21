@@ -16,11 +16,11 @@ internal interface IFilePreviews
     public Task<string> CreatePngUrl(Stream content, CancellationToken token);
 
     /// <summary>
-    /// Renders a DOCX document as pages into the element, fitted to the width of its parent and at most at 100 %.
-    /// The element then takes <see cref="ZoomView"/> and <see cref="FindInView"/>, and the view hears of the zoom
-    /// and the search matches as they change.
+    /// Renders a DOCX document as pages into the element, fitted to the width of its parent and at most at 100 %, and
+    /// returns its page count. The element then takes <see cref="ZoomView"/>, <see cref="GoToViewPage"/> and
+    /// <see cref="FindInView"/>, and the view hears of the page, the zoom and the search matches as they change.
     /// </summary>
-    public Task RenderDocument(ElementReference host, Stream content, DotNetObjectReference<PreviewToolbar> view, CancellationToken token);
+    public Task<int> RenderDocument(ElementReference host, Stream content, DotNetObjectReference<PreviewToolbar> view, CancellationToken token);
 
     /// <summary>
     /// Lets the text, Markdown or e-mail shown in the scrolling element reflow at a zoom and be searched through
@@ -29,6 +29,8 @@ internal interface IFilePreviews
     public Task OpenTextView(ElementReference stage, DotNetObjectReference<PreviewToolbar> view);
 
     public Task ZoomView(ElementReference element, PreviewZoom zoom);
+
+    public Task GoToViewPage(ElementReference element, int page);
 
     /// <summary>
     /// Highlights every match of <paramref name="query"/> in the text or document and scrolls to the one

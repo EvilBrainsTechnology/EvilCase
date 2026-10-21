@@ -49,7 +49,8 @@ function secureLinks(root) {
 const documentUrls = new Map();
 
 // The previews laid out here rather than by PDF.js: a text, Markdown or e-mail reflows at its zoom, a document keeps
-// its pages and scales them. Each reports its zoom and search matches to `view`, a .NET object reference.
+// its pages and scales them. Each reports its zoom and search matches to `view`, a .NET object reference, and a
+// document also the page in view.
 const zoomSteps = [0.5, 0.67, 0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4];
 const fitModes = ['page-width', 'page-fit'];
 const views = new Map();
@@ -99,7 +100,7 @@ function openView(element, stage, content, root, view, page) {
     disposeView(element);
 
     const abort = new AbortController();
-    const state = { element, stage, content, root, view, page, abort, zoom: 1, fit: null, index: null, search: null, typing: null };
+    const state = { element, stage, content, root, view, page, abort, zoom: 1, fit: null, index: null, search: null, typing: null, sections: [], current: 0 };
 
     views.set(element, state);
 
@@ -171,7 +172,43 @@ export function openTextView(stage, view) {
     }
 }
 
-// The document renders in a shadow root, so the styles it carries apply to it alone.
+// The page in view is the one that fills most of the stage; of two that fill it alike, the upper one. Scrolled to the
+// end, it is the last page, which may never fill the stage.
+function pageInView(state) {
+    const { stage } = state;
+
+    if (stage.scrollTop > 0 && stage.scrollTop + stage.clientHeight >= stage.scrollHeight - 1) {
+        return state.sections.length;
+    }
+
+    const view = stage.getBoundingClientRect();
+    let best = 0;
+    let shown = -1;
+
+    state.sections.forEach((section, number) => {
+        const box = section.getBoundingClientRect();
+        const visible = Math.min(box.bottom, view.bottom) - Math.max(box.top, view.top);
+
+        if (visible > shown) {
+            best = number;
+            shown = visible;
+        }
+    });
+
+    return best + 1;
+}
+
+function reportPage(state) {
+    const number = pageInView(state);
+
+    if (number !== state.current && views.get(state.element) === state) {
+        state.current = number;
+        state.view.invokeMethodAsync('PageChanged', number).catch(() => {});
+    }
+}
+
+// The document renders in a shadow root, so the styles it carries apply to it alone. A page ends where Word ended it
+// when it last laid the document out, or at a page or section break. Returns the page count, or 0 when nothing shows.
 export async function renderDocument(host, contentStream, view) {
     release();
 
@@ -191,7 +228,7 @@ export async function renderDocument(host, contentStream, view) {
         await window.docx.renderAsync(buffer, root, null, {
             inWrapper: true,
             breakPages: true,
-            ignoreLastRenderedPageBreak: true,
+            ignoreLastRenderedPageBreak: false,
             renderAltChunks: false,
         });
         secureLinks(root);
@@ -217,10 +254,18 @@ export async function renderDocument(host, contentStream, view) {
     const stage = host.parentElement;
 
     if (!host.isConnected || !stage || size.width === 0 || size.height === 0) {
-        return;
+        return 0;
     }
 
     const state = openView(host, stage, host, root, view, size);
+    let frame = 0;
+
+    state.sections = pages;
+    stage.addEventListener('scroll', () => {
+        cancelAnimationFrame(frame);
+        frame = requestAnimationFrame(() => reportPage(state));
+    }, { passive: true, signal: state.abort.signal });
+    state.abort.signal.addEventListener('abort', () => cancelAnimationFrame(frame), { once: true });
     const resize = new ResizeObserver(() => {
         if (state.fit) {
             fitPage(state, state.fit);
@@ -230,6 +275,21 @@ export async function renderDocument(host, contentStream, view) {
     resize.observe(stage);
     state.abort.signal.addEventListener('abort', () => resize.disconnect(), { once: true });
     fitPage(state, 'opening');
+    reportPage(state);
+
+    return pages.length;
+}
+
+// The top of the page comes to the top of the stage.
+export function goToViewPage(element, page) {
+    const state = views.get(element);
+    const section = state?.sections[Math.min(Math.max(page, 1), state.sections.length) - 1];
+
+    if (section) {
+        const { stage } = state;
+
+        stage.scrollTop += section.getBoundingClientRect().top - stage.getBoundingClientRect().top - parseFloat(getComputedStyle(stage).paddingTop);
+    }
 }
 
 export function zoomView(element, zoom) {
