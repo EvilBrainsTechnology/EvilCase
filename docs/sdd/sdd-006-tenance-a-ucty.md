@@ -59,6 +59,10 @@ same-origin a kontrola `Sec-Fetch-Site` (případně `Origin`) na zápisech do `
 vlastní origin odpoví 403. Antiforgery token není. Hlavička `Authorization: Bearer` zůstává
 přijatá pro klienty mimo prohlížeč.
 
+Přihlášení vydrží 30 dní od posledního použití a nejdéle 90 dní od přihlášení. Access token
+platí 15 minut a aplikace ho obnovuje sama; obnova z více záložek téhož prohlížeče uživatele
+neodhlásí.
+
 Pět po sobě jdoucích neúspěšných přihlášení účet na 15 minut uzamkne; uzamčený účet odpovídá
 423 (SDD-004) a úspěšné přihlášení počitadlo vynuluje.
 
