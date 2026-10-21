@@ -27,5 +27,5 @@ merged or closed ends the run with a report; otherwise check out `origin/<branch
 push with `git push origin HEAD:<branch>` (`--force-with-lease` when the task is a rebase),
 answer every thread, open no new pull request.
 
-Either path: `agent-in-progress` on the pull request while you work; switch it to `agent-done`
-only on the fast lane — no plan before you, no reviewer after — whatever the prompt says.
+Either path: `agent-in-progress` on the pull request while you work. Only on the fast lane, after
+the review `.claude/rules/github.md` asks for, switch it to `agent-done`, whatever the prompt says.

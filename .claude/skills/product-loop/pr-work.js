@@ -47,7 +47,7 @@ const results = await pipeline(
   (plan, item) => {
     if (item.fast) {
       return agent(
-        `Fast lane: you are the only agent on this change — no plan, no review.\n\n` +
+        `Fast lane: you are the only agent on this change — no plan, no reviewer agent; the review .claude/rules/github.md asks for is yours.\n\n` +
           `Work on the existing pull request #${item.pr}, branch ${item.branch}.\n\n${item.instructions}${META}`,
         {
           agentType: 'coder', isolation: 'worktree', phase: 'Work',

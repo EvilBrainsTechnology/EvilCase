@@ -7,11 +7,13 @@
   every commit as it is made.
 - A change in behaviour carries a test. Documentation changes in the same commit as the code.
 - A pull request is one topic, opened ready for review. The body fills
-  `.github/pull_request_template.md`; its comments are the instructions and stay out of the
-  body. Title and description match the diff.
+  `.github/pull_request_template.md`. Title and description match the diff.
 - An issue fills its matching template in `.github/ISSUE_TEMPLATE/`; the front matter is its
   title and labels. An agent's bug issue also carries `loop`.
 - The gate is CI on GitHub. Nobody runs a local gate before a pull request.
+- A pull request that changes behaviour goes to the owner only reviewed — by the slice's reviewer
+  agent, otherwise `/code-review high` — with `/security-review` too where authentication or file
+  storage change. Findings are fixed first; a `.github/code_review_template.md` comment records it.
 - A pull request carries exactly one state label — `agent-in-progress` (an agent works on it),
   `agent-done` (waiting for the owner), `waiting-for-agent` (waiting for an agent) — and
   setting one removes the rest. Autonomous work switches to `agent-in-progress` before the

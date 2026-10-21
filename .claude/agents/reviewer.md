@@ -23,6 +23,4 @@ to part of it.
   fix needs it — the branch's CI is the check.
 - The description is the coder's: add only a record of your fixes and, where you are unsure,
   one sentence for the owner.
-- Close out: comment `.github/code_review_template.md` with what your review changed, or that
-  it changed nothing — not a recap of the pull request; switch the label `agent-in-progress` →
-  `agent-done`.
+- Close out: comment `.github/code_review_template.md`; switch `agent-in-progress` → `agent-done`.

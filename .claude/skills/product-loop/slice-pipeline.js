@@ -42,7 +42,7 @@ const results = await pipeline(
     // The fast lane skips the plan and raises the coder above its own model and effort.
     if (slice.fast) {
       return agent(
-        `Fast lane: you are the only agent on this change — no plan, no review.\n\n` +
+        `Fast lane: you are the only agent on this change — no plan, no reviewer agent; the review .claude/rules/github.md asks for is yours.\n\n` +
           `Implement issue #${slice.issue} "${slice.title}" on branch loop/${slice.issue}-${slice.slug}.\n\n${slice.body}${META}`,
         {
           agentType: 'coder', isolation: 'worktree', phase: 'Implement',
