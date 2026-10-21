@@ -100,7 +100,7 @@ function openView(element, stage, content, root, view, page) {
     disposeView(element);
 
     const abort = new AbortController();
-    const state = { element, stage, content, root, view, page, abort, zoom: 1, fit: null, index: null, search: null, typing: null, sections: [], current: 0 };
+    const state = { element, stage, content, root, view, page, abort, zoom: 1, fit: null, index: null, search: null, typing: null, sections: [], current: 0, pinned: null };
 
     views.set(element, state);
 
@@ -172,39 +172,74 @@ export function openTextView(stage, view) {
     }
 }
 
-// The page in view is the one that fills most of the stage; of two that fill it alike, the upper one. Scrolled to the
-// end, it is the last page, which may never fill the stage.
+// The page in view is the one that fills most of the stage; of two that fill it alike, the one shown before, else
+// the upper one. A page gone to stays the page in view until the next scroll, even when it cannot reach the top.
 function pageInView(state) {
-    const { stage } = state;
+    const { sections } = state;
+    const view = state.stage.getBoundingClientRect();
+    let low = 0;
+    let high = sections.length - 1;
 
-    if (stage.scrollTop > 0 && stage.scrollTop + stage.clientHeight >= stage.scrollHeight - 1) {
-        return state.sections.length;
+    while (low < high) {
+        const middle = (low + high) >> 1;
+
+        if (sections[middle].getBoundingClientRect().bottom <= view.top) {
+            low = middle + 1;
+        } else {
+            high = middle;
+        }
     }
 
-    const view = stage.getBoundingClientRect();
-    let best = 0;
+    let best = low;
     let shown = -1;
 
-    state.sections.forEach((section, number) => {
-        const box = section.getBoundingClientRect();
+    for (let number = low; number < sections.length; number++) {
+        const box = sections[number].getBoundingClientRect();
+
+        if (box.top >= view.bottom) {
+            break;
+        }
+
         const visible = Math.min(box.bottom, view.bottom) - Math.max(box.top, view.top);
 
-        if (visible > shown) {
+        if (visible > shown + 1 || (visible > shown - 1 && number + 1 === state.current)) {
             best = number;
             shown = visible;
         }
-    });
+    }
 
     return best + 1;
 }
 
 function reportPage(state) {
-    const number = pageInView(state);
+    const number = state.pinned ?? pageInView(state);
+
+    state.pinned = null;
 
     if (number !== state.current && views.get(state.element) === state) {
         state.current = number;
         state.view.invokeMethodAsync('PageChanged', number).catch(() => {});
     }
+}
+
+// The library keeps a section that starts on a new page on the page before unless the paper changes, so such a
+// section ends with a page break.
+function breakSections(parsed) {
+    for (const element of parsed.documentPart?.body?.children ?? []) {
+        const type = element.sectionProps?.type;
+
+        if (element.sectionProps && type !== 'continuous' && type !== 'nextColumn') {
+            element.children = [...(element.children ?? []), { type: 'run', children: [{ type: 'break', break: 'page' }] }];
+        }
+    }
+}
+
+// A page with nothing on it comes from two breaks in a row: Word marks where its page began right after a page
+// break, and the library breaks at both.
+function isBlank(section) {
+    const article = section.querySelector(':scope > article');
+
+    return article !== null && article.textContent.trim() === '' && article.querySelector('img, svg, table, canvas') === null;
 }
 
 // The document renders in a shadow root, so the styles it carries apply to it alone. A page ends where Word ended it
@@ -225,12 +260,11 @@ export async function renderDocument(host, contentStream, view) {
     host.replaceChildren(page);
 
     try {
-        await window.docx.renderAsync(buffer, root, null, {
-            inWrapper: true,
-            breakPages: true,
-            ignoreLastRenderedPageBreak: false,
-            renderAltChunks: false,
-        });
+        const options = { inWrapper: true, breakPages: true, ignoreLastRenderedPageBreak: false, renderAltChunks: false };
+        const parsed = await window.docx.parseAsync(buffer, options);
+
+        breakSections(parsed);
+        root.append(...await window.docx.renderDocument(parsed, options));
         secureLinks(root);
     } finally {
         documentUrls.set(host, root.innerHTML.match(/blob:[^\s"'()<>]+/g) ?? []);
@@ -243,7 +277,14 @@ export async function renderDocument(host, contentStream, view) {
     root.querySelector('.docx-wrapper')?.setAttribute('part', 'document-wrapper');
 
     // A page is as wide as its paper and at least as tall; its paper size is what a fit fits.
-    const pages = [...root.querySelectorAll('section.docx')];
+    const sections = [...root.querySelectorAll('section.docx')];
+    const pages = sections.filter(section => !isBlank(section));
+
+    if (pages.length === 0) {
+        pages.push(...sections.slice(0, 1));
+    }
+
+    sections.filter(section => !pages.includes(section)).forEach(section => section.remove());
     const size = {
         width: Math.max(0, ...pages.map(section => section.offsetWidth)),
         height: Math.max(0, ...pages.map(section => parseFloat(getComputedStyle(section).minHeight) || section.offsetHeight)),
@@ -280,15 +321,24 @@ export async function renderDocument(host, contentStream, view) {
     return pages.length;
 }
 
-// The top of the page comes to the top of the stage.
+// The top of the page comes to the top of the stage, as far as the stage scrolls.
 export function goToViewPage(element, page) {
     const state = views.get(element);
-    const section = state?.sections[Math.min(Math.max(page, 1), state.sections.length) - 1];
+    const section = state?.sections[page - 1];
 
-    if (section) {
-        const { stage } = state;
+    if (!section) {
+        return;
+    }
 
-        stage.scrollTop += section.getBoundingClientRect().top - stage.getBoundingClientRect().top - parseFloat(getComputedStyle(stage).paddingTop);
+    const { stage } = state;
+    const top = stage.scrollTop;
+
+    stage.scrollTop += section.getBoundingClientRect().top - stage.getBoundingClientRect().top - parseFloat(getComputedStyle(stage).paddingTop);
+    state.pinned = page;
+
+    // Without a scroll there is no scroll event to report the page.
+    if (stage.scrollTop === top) {
+        reportPage(state);
     }
 }
 
