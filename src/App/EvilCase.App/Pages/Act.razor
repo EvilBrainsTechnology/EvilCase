@@ -96,7 +96,14 @@
                         </div>
                     }
                     <div class="ec-detail-fact">
-                        <span class="ec-detail-fact-name">@ActDirectionDisplay.ContactLabel(this.Detail.Direction)</span>
+                        <span class="ec-detail-fact-head">
+                            <span class="ec-detail-fact-name">@ActDirectionDisplay.ContactLabel(this.Detail.Direction)</span>
+                            @if (ActContactRules.DifferingCaseContact(this.Detail.Contact, this.Detail.CaseContact) is { } differing)
+                            {
+                                <span class="ec-detail-fact-warning" aria-hidden="true" title="Spis vede protistranu @differing.Name"><EcIcon Paths="@AppIcons.AlertTriangle" Size="EcIconSize.Small" />Jiný než ve spisu</span>
+                                <span class="ec-visually-hidden">Spis vede protistranu @differing.Name</span>
+                            }
+                        </span>
                         @if (this.Detail.Contact is { } contact)
                         {
                             <a class="ec-detail-fact-link" href="@($"/contacts/{contact.ContactId}")">@contact.Name</a>
@@ -104,10 +111,6 @@
                         else
                         {
                             <span class="ec-detail-fact-value ec-cell-empty">—</span>
-                        }
-                        @if (ActContactRules.DifferingCaseContact(this.Detail.Contact, this.Detail.CaseContact) is { } differing)
-                        {
-                            <span class="ec-detail-fact-warning" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" Size="EcIconSize.Small" />Spis vede protistranu @differing.Name</span>
                         }
                     </div>
                     <div class="ec-detail-fact ec-detail-fact-labels">
