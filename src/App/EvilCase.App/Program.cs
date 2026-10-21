@@ -23,8 +23,6 @@ internal static class Program
 
         builder.AddClientLogging("ClientLogging", "evilcase.machine-id", ClientLogRoute.Path);
 
-        builder.Services.AddSingleton(TimeProvider.System);
-
         // One instance behind all three registrations.
         builder.Services.AddSingleton<ISessionStore, SessionStore>();
         builder.Services.AddSingleton<IEarlyRefresh, EarlyRefresh>();

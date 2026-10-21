@@ -7,4 +7,9 @@ internal interface IEarlyRefresh
     /// failed. Returns the result once.
     /// </summary>
     public Task<EarlyRefreshResult?> Take();
+
+    /// <summary>
+    /// A refresh serialized with every other tab's, or null when it did not complete.
+    /// </summary>
+    public Task<EarlyRefreshResult?> Refresh(CancellationToken token);
 }

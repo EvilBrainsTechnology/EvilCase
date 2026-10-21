@@ -12,7 +12,6 @@ internal sealed class EvilCaseAuthenticationStateProvider(
     ISessionStore store,
     IAuthClient authClient,
     IEarlyRefresh earlyRefresh,
-    TimeProvider timeProvider,
     ILogger<EvilCaseAuthenticationStateProvider> logger) : AuthenticationStateProvider, IAuthSession, IDisposable
 {
     private const string AuthenticationType = "EvilCase";
@@ -21,16 +20,6 @@ internal sealed class EvilCaseAuthenticationStateProvider(
     /// The margin covers a request already on its way when the token runs out.
     /// </summary>
     private static readonly TimeSpan RenewAhead = TimeSpan.FromSeconds(60);
-
-    /// <summary>
-    /// A 409 means another tab spent the cookie moments ago and the browser is about to hold its replacement.
-    /// </summary>
-    private static readonly TimeSpan[] SupersededRetryDelays =
-    [
-        TimeSpan.FromMilliseconds(250),
-        TimeSpan.FromMilliseconds(500),
-        TimeSpan.FromMilliseconds(1000),
-    ];
 
     private readonly SemaphoreSlim renewal = new(initialCount: 1, maxCount: 1);
 
@@ -108,35 +97,35 @@ internal sealed class EvilCaseAuthenticationStateProvider(
             if (store.Current is { } current && current != seen && current.ExpiresAt - DateTime.UtcNow > RenewAhead)
                 return true;
 
-            for (var attempt = 0; ; attempt++)
+            var result = await earlyRefresh.Refresh(token);
+
+            if (result is not null && Refused(result))
             {
-                try
-                {
-                    this.Apply(await authClient.Refresh(token));
+                var wasSignedIn = store.Current is not null;
 
-                    return true;
-                }
-                catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.Conflict && attempt < SupersededRetryDelays.Length)
+                store.Clear();
+
+                if (wasSignedIn)
                 {
-                    await Task.Delay(SupersededRetryDelays[attempt], timeProvider, token);
+                    logger.LogInformation("The session was refused with status {Status} and was ended", result.Status);
+                    this.Publish();
                 }
+
+                return false;
             }
-        }
-        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.Unauthorized)
-        {
-            var wasSignedIn = store.Current is not null;
 
-            store.Clear();
-
-            if (wasSignedIn)
+            if (result is not null && this.Read(result) is { } response)
             {
-                logger.LogInformation(exception, "The session was rejected and was ended");
-                this.Publish();
+                this.Apply(response);
+
+                return true;
             }
+
+            logger.LogWarning("The session could not be renewed, status {Status}", result?.Status);
 
             return false;
         }
-        catch (Exception exception) when (exception is ApiException or HttpRequestException or TaskCanceledException)
+        catch (TaskCanceledException exception)
         {
             logger.LogWarning(exception, "The session could not be renewed");
 
@@ -179,8 +168,15 @@ internal sealed class EvilCaseAuthenticationStateProvider(
     }
 
     /// <summary>
-    /// The refresh token rotates, so a refresh that completed with 200 or 401 is never repeated; any other
-    /// status, 409 included, falls back to <see cref="Renew"/>.
+    /// A 409 survived the retry under the cross-tab lock, so the replacement cookie is not coming.
+    /// </summary>
+    private static bool Refused(EarlyRefreshResult result)
+    {
+        return result.Status is (int)HttpStatusCode.Unauthorized or (int)HttpStatusCode.Conflict;
+    }
+
+    /// <summary>
+    /// The refresh token rotates, so a refresh that completed with 200, 401 or 409 is never repeated.
     /// </summary>
     private async Task<bool> ApplyEarlyRefresh()
     {
@@ -189,30 +185,35 @@ internal sealed class EvilCaseAuthenticationStateProvider(
         if (early is null)
             return false;
 
-        if (early.Status == (int)HttpStatusCode.Unauthorized)
+        if (Refused(early))
         {
             store.Clear();
 
             return true;
         }
 
-        if (early.Status != (int)HttpStatusCode.OK || early.Body is null)
+        if (this.Read(early) is not { } response)
             return false;
+
+        this.Apply(response);
+
+        return true;
+    }
+
+    private LoginResponse? Read(EarlyRefreshResult result)
+    {
+        if (result.Status != (int)HttpStatusCode.OK || result.Body is null)
+            return null;
 
         try
         {
-            if (JsonSerializer.Deserialize<LoginResponse>(early.Body, JsonSerializerOptions.Web) is not { } response)
-                return false;
-
-            this.Apply(response);
-
-            return true;
+            return JsonSerializer.Deserialize<LoginResponse>(result.Body, JsonSerializerOptions.Web);
         }
         catch (JsonException exception)
         {
-            logger.LogWarning(exception, "The early refresh response could not be read");
+            logger.LogWarning(exception, "The refresh response could not be read");
 
-            return false;
+            return null;
         }
     }
 
