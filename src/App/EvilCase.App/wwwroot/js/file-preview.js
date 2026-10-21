@@ -56,6 +56,7 @@ const views = new Map();
 const highlights = globalThis.CSS?.highlights;
 const hitName = 'ec-preview-hit';
 const currentHitName = 'ec-preview-hit-current';
+const typingDelay = 250;
 const highlightRules = `::highlight(${hitName}) { background-color: var(--ec-preview-hit); }
 ::highlight(${currentHitName}) { background-color: var(--ec-preview-hit-current); }`;
 // Text in two of these never forms one match.
@@ -98,7 +99,7 @@ function openView(element, stage, content, root, view, page) {
     disposeView(element);
 
     const abort = new AbortController();
-    const state = { element, stage, content, root, view, page, abort, zoom: 1, fit: null, index: null, search: null };
+    const state = { element, stage, content, root, view, page, abort, zoom: 1, fit: null, index: null, search: null, typing: null };
 
     views.set(element, state);
 
@@ -327,6 +328,7 @@ function rangeOf(index, start, end) {
 }
 
 function clearSearch(state) {
+    clearTimeout(state.typing);
     state.search = null;
 
     if (highlighted === state) {
@@ -411,7 +413,8 @@ function firstInView(state) {
     return low < ranges.length ? low : 0;
 }
 
-// An empty query clears the highlights. A match ignores case and diacritics; the search wraps around.
+// An empty query clears the highlights at once; a new query waits for the typing to pause, as in PDF.js. A match
+// ignores case and diacritics; the search wraps around.
 export function findInView(element, query, again, previous) {
     const state = views.get(element);
 
@@ -419,12 +422,18 @@ export function findInView(element, query, again, previous) {
         return;
     }
 
+    clearTimeout(state.typing);
+
     if (query.length === 0) {
         clearSearch(state);
-
-        return;
+    } else if (again) {
+        search(state, query, true, previous);
+    } else {
+        state.typing = setTimeout(() => search(state, query, false, false), typingDelay);
     }
+}
 
+function search(state, query, again, previous) {
     if (!again || state.search?.query !== query) {
         if (!state.index || !state.index.textNodes.every(node => node.isConnected)) {
             state.index = indexText(state.root);
