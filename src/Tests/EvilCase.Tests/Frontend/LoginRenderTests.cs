@@ -105,6 +105,9 @@ public class LoginRenderTests
     {
         var inside = await SignInReturningTo("/cases");
         var outside = await SignInReturningTo("//evil.example");
+        var backslashed = await SignInReturningTo("/\\evil.example/");
+        var tabbed = await SignInReturningTo("/\t/evil.example/");
+        var absolute = await SignInReturningTo("https://evil.example/");
 
         using (Assert.EnterMultipleScope())
         {
@@ -113,6 +116,12 @@ public class LoginRenderTests
                 outside.Uri,
                 Is.EqualTo(outside.BaseUri),
                 "a protocol-relative target leads out of the application (SDD-016)");
+            Assert.That(
+                backslashed.Uri,
+                Is.EqualTo(backslashed.BaseUri),
+                "the browser reads a backslash after the leading slash as a second slash (SDD-016)");
+            Assert.That(tabbed.Uri, Is.EqualTo(tabbed.BaseUri), "the browser drops a tab between the two slashes (SDD-016)");
+            Assert.That(absolute.Uri, Is.EqualTo(absolute.BaseUri), "an absolute target on another host leads out of the application (SDD-016)");
         }
     }
 
