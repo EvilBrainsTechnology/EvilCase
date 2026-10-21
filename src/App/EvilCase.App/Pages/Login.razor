@@ -94,11 +94,15 @@
         };
     }
 
-    // A single leading slash and no second one: "//evil.example" is a protocol-relative absolute URL.
+    // Read as the browser reads it, which drops tabs and line breaks and takes a backslash for a slash:
+    // a single leading slash and no second one, as "//evil.example" is a protocol-relative absolute URL.
     private string SafeReturnUrl()
     {
-        return this.ReturnUrl is { } target && target.StartsWith('/') && !target.StartsWith("//", StringComparison.Ordinal)
-            ? target
-            : "/";
+        if (this.ReturnUrl is null)
+            return "/";
+
+        var target = string.Concat(this.ReturnUrl.Where(static c => c is not ('\t' or '\n' or '\r'))).Replace('\\', '/');
+
+        return target.StartsWith('/') && !target.StartsWith("//", StringComparison.Ordinal) ? target : "/";
     }
 }
