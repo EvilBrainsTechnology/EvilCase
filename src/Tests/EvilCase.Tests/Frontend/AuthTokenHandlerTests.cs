@@ -1,14 +1,11 @@
 using System.Net;
-using EvilBrains.ApiClient;
 using EvilBrains.EvilCase.Api.Client;
 using EvilBrains.EvilCase.Api.Contract.Logging;
-using EvilBrains.EvilCase.Api.Contract.User;
 using EvilBrains.EvilCase.App.Auth;
 using EvilBrains.EvilCase.Domain.Users;
 using Microsoft.AspNetCore.Components.WebAssembly.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
-using NSubstitute.ExceptionExtensions;
 
 namespace EvilBrains.EvilCase.Tests.Frontend;
 
@@ -17,13 +14,13 @@ public class AuthTokenHandlerTests
     [Test]
     public async Task AnExpiringSessionIsRenewedBeforeTheRequestAndTheRequestCarriesNoToken()
     {
-        var authClient = RenewingAuthClient();
+        var refresh = Renewing();
 
-        using var response = await Send(authClient, ExpiringSession.Store(), new OkHandler(), "/api/cases");
+        using var response = await Send(refresh, ExpiringSession.Store(), new OkHandler(), "/api/cases");
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(authClient.ReceivedCalls(), Has.Exactly(1).Items, "a request goes out on a session that has been renewed");
+            Assert.That(refresh.Refreshes, Is.EqualTo(1), "a request goes out on a session that has been renewed");
             Assert.That(response.RequestMessage?.Headers.Authorization, Is.Null, "the token travels as a cookie, never as a header");
             Assert.That(OptionsOf(response.RequestMessage!), Is.EqualTo(IncludingCredentials()), "fetch sends the cookies only when asked to");
         }
@@ -32,14 +29,14 @@ public class AuthTokenHandlerTests
     [Test]
     public async Task AnUnauthorizedRequestOnAFreshLookingSessionIsRenewedAndRetried()
     {
-        var authClient = RenewingAuthClient();
+        var refresh = Renewing();
         var inner = new UnauthorizedOnceHandler();
 
-        using var response = await Send(authClient, FreshSession(), inner, "/api/cases");
+        using var response = await Send(refresh, FreshSession(), inner, "/api/cases");
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(authClient.ReceivedCalls(), Has.Exactly(1).Items, "another tab may have cleared the cookies the session looks fresh on");
+            Assert.That(refresh.Refreshes, Is.EqualTo(1), "another tab may have cleared the cookies the session looks fresh on");
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
             Assert.That(inner.Sent, Has.Count.EqualTo(2));
             Assert.That(inner.Sent[^1].Body, Is.EqualTo(inner.Sent[0].Body), "the retry resends the original body");
@@ -50,15 +47,10 @@ public class AuthTokenHandlerTests
     [Test]
     public async Task AnUnauthorizedRequestWhoseRenewalIsRefusedEndsTheSession()
     {
-        var authClient = Substitute.For<IAuthClient>();
-        authClient
-            .Refresh(Arg.Any<CancellationToken>())
-            .ThrowsAsync(new ApiException(HttpStatusCode.Unauthorized, responseBody: null));
-
         var store = FreshSession();
         var inner = new UnauthorizedOnceHandler();
 
-        using var response = await Send(authClient, store, inner, "/api/cases");
+        using var response = await Send(new StubEarlyRefresh(refreshed: new EarlyRefreshResult(401, Body: null)), store, inner, "/api/cases");
 
         using (Assert.EnterMultipleScope())
         {
@@ -71,29 +63,16 @@ public class AuthTokenHandlerTests
     [Test]
     public async Task AClientLogUploadNeverRenews()
     {
-        var authClient = Substitute.For<IAuthClient>();
-        authClient
-            .Refresh(Arg.Any<CancellationToken>())
-            .ThrowsAsync(new ApiException(HttpStatusCode.InternalServerError, responseBody: null));
+        var refresh = new StubEarlyRefresh(refreshed: new EarlyRefreshResult(500, Body: null));
 
-        using var response = await Send(authClient, ExpiringSession.Store(), new OkHandler(), ClientLogRoute.Path);
+        using var response = await Send(refresh, ExpiringSession.Store(), new OkHandler(), ClientLogRoute.Path);
 
-        Assert.That(authClient.ReceivedCalls(), Is.Empty, "a renewal logs when it fails, and that log is what the next upload ships");
+        Assert.That(refresh.Refreshes, Is.Zero, "a renewal logs when it fails, and that log is what the next upload ships");
     }
 
-    private static IAuthClient RenewingAuthClient()
+    private static StubEarlyRefresh Renewing()
     {
-        var authClient = Substitute.For<IAuthClient>();
-        authClient
-            .Refresh(Arg.Any<CancellationToken>())
-            .Returns(new LoginResponse
-            {
-                ExpiresAt = DateTime.UtcNow.AddMinutes(10),
-                Email = "user@example.com",
-                Role = UserRole.User,
-            });
-
-        return authClient;
+        return new StubEarlyRefresh(refreshed: StubEarlyRefresh.Renewed("user@example.com"));
     }
 
     private static SessionStore FreshSession()
@@ -122,9 +101,9 @@ public class AuthTokenHandlerTests
         return new Dictionary<string, object?>(request.Options);
     }
 
-    private static async Task<HttpResponseMessage> Send(IAuthClient authClient, SessionStore store, HttpMessageHandler inner, string path)
+    private static async Task<HttpResponseMessage> Send(StubEarlyRefresh refresh, SessionStore store, HttpMessageHandler inner, string path)
     {
-        using var session = new EvilCaseAuthenticationStateProvider(store, authClient, new StubEarlyRefresh(), NullLogger<EvilCaseAuthenticationStateProvider>.Instance);
+        using var session = new EvilCaseAuthenticationStateProvider(store, Substitute.For<IAuthClient>(), refresh, NullLogger<EvilCaseAuthenticationStateProvider>.Instance);
         await using var services = new ServiceCollection()
             .AddSingleton<IAuthSession>(session)
             .BuildServiceProvider();

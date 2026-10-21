@@ -275,7 +275,7 @@ public class RefreshCookieTests
     }
 
     [Test]
-    public async Task ASpentRefreshTokenIsRefusedButLeavesTheReplacementCookieAlone()
+    public async Task ARefreshTokenAnotherTabJustSpentIsSupersededAndLeavesTheReplacementCookieAlone()
     {
         using var signIn = await this.SignIn(Password);
         var first = ValueOf(RefreshCookieOf(signIn));
@@ -287,7 +287,7 @@ public class RefreshCookieTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(replayed.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+            Assert.That(replayed.StatusCode, Is.EqualTo(HttpStatusCode.Conflict), "a raced tab retries with the replacement instead of signing out");
             Assert.That(replayed.Headers.Contains("Set-Cookie"), Is.False, "a delete matches by name alone, so it would take the replacement the cookie already holds");
         }
     }

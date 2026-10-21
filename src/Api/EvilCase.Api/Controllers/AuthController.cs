@@ -47,6 +47,7 @@ public class AuthController : ControllerBase
     [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<LoginResponse>> Refresh([FromServices] IAuthService authService, [FromServices] TimeProvider timeProvider, CancellationToken token)
     {
         var refreshToken = HostCookie.Read(this.Request, RefreshCookie.Name);
@@ -57,9 +58,11 @@ public class AuthController : ControllerBase
 
         if (result.Session is not { } session)
         {
-            // Not on Raced: the cookie already holds another tab's replacement.
-            if (result.Status != RefreshStatus.Raced)
-                this.ClearCookies();
+            // The cookie already holds, or is about to hold, another tab's replacement; the caller retries.
+            if (result.Status == RefreshStatus.Raced)
+                return this.Problem(statusCode: StatusCodes.Status409Conflict, title: "Refresh superseded");
+
+            this.ClearCookies();
 
             return this.Problem(statusCode: StatusCodes.Status401Unauthorized, title: "Invalid refresh token");
         }
