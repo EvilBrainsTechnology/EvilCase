@@ -40,7 +40,7 @@ public class PdfPreviewRenderTests
 
         Assert.That(
             component.FindAll(".ec-preview-pdf-toolbar button").Select(static button => button.GetAttribute("aria-label")),
-            Is.EqualTo(["Zmenšit", "Zvětšit", "Na šířku", "Celá stránka", "Hledat v dokumentu", "Předchozí výskyt", "Další výskyt"]));
+            Is.EqualTo(["Zmenšit", "Zvětšit", "Na šířku", "Celá stránka", "100 %", "Hledat v dokumentu", "Předchozí výskyt", "Další výskyt"]));
     }
 
     [Test]
@@ -54,8 +54,9 @@ public class PdfPreviewRenderTests
         Button(component, "Zmenšit").Click();
         Button(component, "Na šířku").Click();
         Button(component, "Celá stránka").Click();
+        Button(component, "100 %").Click();
 
-        Assert.That(previews.Zooms, Is.EqualTo([PdfZoom.In, PdfZoom.Out, PdfZoom.PageWidth, PdfZoom.PageFit]));
+        Assert.That(previews.Zooms, Is.EqualTo([PdfZoom.In, PdfZoom.Out, PdfZoom.PageWidth, PdfZoom.PageFit, PdfZoom.Actual]));
     }
 
     [Test]
@@ -72,6 +73,7 @@ public class PdfPreviewRenderTests
             Assert.That(component.Find(".ec-preview-pdf-zoom-value").TextContent, Is.EqualTo("137 %"));
             Assert.That(Button(component, "Na šířku").GetAttribute("aria-pressed"), Is.EqualTo("true"));
             Assert.That(Button(component, "Celá stránka").GetAttribute("aria-pressed"), Is.EqualTo("false"));
+            Assert.That(Button(component, "100 %").GetAttribute("aria-pressed"), Is.EqualTo("false"));
         }
 
         await previews.PdfView.Value.ZoomChanged(150, "");
@@ -79,6 +81,14 @@ public class PdfPreviewRenderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(component.Find(".ec-preview-pdf-zoom-value").TextContent, Is.EqualTo("150 %"));
+            Assert.That(Button(component, "Na šířku").GetAttribute("aria-pressed"), Is.EqualTo("false"));
+        }
+
+        await previews.PdfView.Value.ZoomChanged(100, "");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(Button(component, "100 %").GetAttribute("aria-pressed"), Is.EqualTo("true"));
             Assert.That(Button(component, "Na šířku").GetAttribute("aria-pressed"), Is.EqualTo("false"));
         }
     }

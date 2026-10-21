@@ -45,6 +45,7 @@ internal sealed class FilePreviews(IJSRuntime jsRuntime) : IFilePreviews, IAsync
             PdfZoom.Out => "out",
             PdfZoom.PageWidth => "page-width",
             PdfZoom.PageFit => "page-fit",
+            PdfZoom.Actual => "actual",
             _ => throw new UnreachableException(),
         };
 

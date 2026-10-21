@@ -1,7 +1,7 @@
 namespace EvilBrains.EvilCase.App.Files;
 
 /// <summary>
-/// A zoom of the PDF preview: a step in or out, or a fit to the preview.
+/// A zoom of the PDF preview: a step in or out, a fit to the preview, or the actual size.
 /// </summary>
 internal enum PdfZoom
 {
@@ -12,4 +12,6 @@ internal enum PdfZoom
     PageWidth = 2,
 
     PageFit = 3,
+
+    Actual = 4,
 }
