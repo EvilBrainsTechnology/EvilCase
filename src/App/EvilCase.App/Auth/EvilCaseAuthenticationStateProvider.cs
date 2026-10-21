@@ -12,6 +12,7 @@ internal sealed class EvilCaseAuthenticationStateProvider(
     ISessionStore store,
     IAuthClient authClient,
     IEarlyRefresh earlyRefresh,
+    TimeProvider timeProvider,
     ILogger<EvilCaseAuthenticationStateProvider> logger) : AuthenticationStateProvider, IAuthSession, IDisposable
 {
     private const string AuthenticationType = "EvilCase";
@@ -20,6 +21,16 @@ internal sealed class EvilCaseAuthenticationStateProvider(
     /// The margin covers a request already on its way when the token runs out.
     /// </summary>
     private static readonly TimeSpan RenewAhead = TimeSpan.FromSeconds(60);
+
+    /// <summary>
+    /// A 409 means another tab spent the cookie moments ago and the browser is about to hold its replacement.
+    /// </summary>
+    private static readonly TimeSpan[] SupersededRetryDelays =
+    [
+        TimeSpan.FromMilliseconds(250),
+        TimeSpan.FromMilliseconds(500),
+        TimeSpan.FromMilliseconds(1000),
+    ];
 
     private readonly SemaphoreSlim renewal = new(initialCount: 1, maxCount: 1);
 
@@ -97,9 +108,19 @@ internal sealed class EvilCaseAuthenticationStateProvider(
             if (store.Current is { } current && current != seen && current.ExpiresAt - DateTime.UtcNow > RenewAhead)
                 return true;
 
-            this.Apply(await authClient.Refresh(token));
+            for (var attempt = 0; ; attempt++)
+            {
+                try
+                {
+                    this.Apply(await authClient.Refresh(token));
 
-            return true;
+                    return true;
+                }
+                catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.Conflict && attempt < SupersededRetryDelays.Length)
+                {
+                    await Task.Delay(SupersededRetryDelays[attempt], timeProvider, token);
+                }
+            }
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.Unauthorized)
         {
@@ -158,7 +179,8 @@ internal sealed class EvilCaseAuthenticationStateProvider(
     }
 
     /// <summary>
-    /// The refresh token rotates, so a refresh that completed with 200 or 401 is never repeated.
+    /// The refresh token rotates, so a refresh that completed with 200 or 401 is never repeated; any other
+    /// status, 409 included, falls back to <see cref="Renew"/>.
     /// </summary>
     private async Task<bool> ApplyEarlyRefresh()
     {

@@ -47,6 +47,7 @@ public class EarlyRefreshRestoreTests
     }
 
     [TestCase(null, null)]
+    [TestCase(409, null)]
     [TestCase(429, null)]
     [TestCase(500, null)]
     [TestCase(200, "not json")]
@@ -76,7 +77,7 @@ public class EarlyRefreshRestoreTests
             .Returns(new LoginResponse { ExpiresAt = DateTime.UtcNow.AddMinutes(10), Email = "late@example.com", Role = UserRole.User });
 
         var tokens = new SessionStore();
-        var provider = new EvilCaseAuthenticationStateProvider(tokens, authClient, new StubEarlyRefresh(early), NullLogger<EvilCaseAuthenticationStateProvider>.Instance);
+        var provider = new EvilCaseAuthenticationStateProvider(tokens, authClient, new StubEarlyRefresh(early), TimeProvider.System, NullLogger<EvilCaseAuthenticationStateProvider>.Instance);
 
         return (provider, tokens, authClient);
     }

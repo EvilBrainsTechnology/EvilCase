@@ -10,8 +10,8 @@ public enum RefreshStatus
     Rejected = 1,
 
     /// <summary>
-    /// Spent moments ago by another tab of the same browser. Refused like any other spent token, but the
-    /// cookie already holds the replacement — taking it away would end the session that tab just renewed.
+    /// Spent moments ago by another tab of the same browser. The cookie already holds the replacement —
+    /// taking it away would end the session that tab just renewed.
     /// </summary>
     Raced = 2,
 }

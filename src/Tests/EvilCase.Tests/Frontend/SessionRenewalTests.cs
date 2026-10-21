@@ -60,6 +60,55 @@ public class SessionRenewalTests
     }
 
     [Test]
+    public async Task ASupersededRefreshIsRetriedUntilItSucceeds()
+    {
+        var authClient = Substitute.For<IAuthClient>();
+        authClient
+            .Refresh(Arg.Any<CancellationToken>())
+            .Returns(
+                Superseded(),
+                Superseded(),
+                Task.FromResult(new LoginResponse { ExpiresAt = DateTime.UtcNow.AddMinutes(10), Email = "renewed@example.com", Role = UserRole.User }));
+
+        var tokens = ExpiringSession.Store();
+        var time = new InstantTimeProvider();
+
+        using var provider = new EvilCaseAuthenticationStateProvider(tokens, authClient, new StubEarlyRefresh(), time, NullLogger<EvilCaseAuthenticationStateProvider>.Instance);
+
+        var renewed = await provider.Renew(tokens.Current, CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(renewed, Is.True);
+            Assert.That(tokens.Current?.Email, Is.EqualTo("renewed@example.com"));
+            Assert.That(authClient.ReceivedCalls(), Has.Exactly(3).Items);
+            Assert.That(time.Delays, Is.EqualTo([TimeSpan.FromMilliseconds(250), TimeSpan.FromMilliseconds(500)]), "a retry waits for the browser to store the other tab's cookie");
+        }
+    }
+
+    [Test]
+    public async Task ARefreshStillSupersededAfterTheRetriesLeavesTheSessionAlone()
+    {
+        var authClient = Substitute.For<IAuthClient>();
+        authClient
+            .Refresh(Arg.Any<CancellationToken>())
+            .ThrowsAsync(new ApiException(HttpStatusCode.Conflict, responseBody: null));
+
+        var tokens = ExpiringSession.Store();
+
+        using var provider = new EvilCaseAuthenticationStateProvider(tokens, authClient, new StubEarlyRefresh(), new InstantTimeProvider(), NullLogger<EvilCaseAuthenticationStateProvider>.Instance);
+
+        var renewed = await provider.Renew(tokens.Current, CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(renewed, Is.False);
+            Assert.That(tokens.Current, Is.Not.Null, "another tab holds the session, so a superseded refresh never ends it");
+            Assert.That(authClient.ReceivedCalls(), Has.Exactly(4).Items, "the retries are bounded");
+        }
+    }
+
+    [Test]
     public async Task OnlyASessionAboutToLapseIsRenewedForABrowserRequest()
     {
         var authClient = Substitute.For<IAuthClient>();
@@ -69,7 +118,7 @@ public class SessionRenewalTests
 
         var tokens = ExpiringSession.Store();
 
-        using var provider = new EvilCaseAuthenticationStateProvider(tokens, authClient, new StubEarlyRefresh(), NullLogger<EvilCaseAuthenticationStateProvider>.Instance);
+        using var provider = new EvilCaseAuthenticationStateProvider(tokens, authClient, new StubEarlyRefresh(), TimeProvider.System, NullLogger<EvilCaseAuthenticationStateProvider>.Instance);
 
         await provider.EnsureFresh(CancellationToken.None);
         await provider.EnsureFresh(CancellationToken.None);
@@ -88,6 +137,11 @@ public class SessionRenewalTests
             .Refresh(Arg.Any<CancellationToken>())
             .ThrowsAsync(refreshFailure);
 
-        return new EvilCaseAuthenticationStateProvider(tokens, authClient, new StubEarlyRefresh(), NullLogger<EvilCaseAuthenticationStateProvider>.Instance);
+        return new EvilCaseAuthenticationStateProvider(tokens, authClient, new StubEarlyRefresh(), TimeProvider.System, NullLogger<EvilCaseAuthenticationStateProvider>.Instance);
+    }
+
+    private static Task<LoginResponse> Superseded()
+    {
+        return Task.FromException<LoginResponse>(new ApiException(HttpStatusCode.Conflict, responseBody: null));
     }
 }
