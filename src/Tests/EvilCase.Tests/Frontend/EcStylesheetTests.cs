@@ -67,7 +67,7 @@ public class EcStylesheetTests
         {
             Assert.That(html, Does.Contain("class=\"ec-gate\""));
             Assert.That(html, Does.Contain("class=\"ec-gate-card\""));
-            Assert.That(html, Does.Contain("class=\"ec-gate-facts\""));
+            Assert.That(html, Does.Not.Contain("ec-gate-facts"));
             Assert.That(html, Does.Contain("class=\"ec-brand ec-gate-brand\""));
             Assert.That(html, Does.Contain("class=\"ec-brand-mark\""));
             Assert.That(html, Does.Not.Contain("page-center"), "the boot screen carries no Tabler class (SDD-020)");
