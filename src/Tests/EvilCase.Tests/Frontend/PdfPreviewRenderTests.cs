@@ -40,7 +40,7 @@ public class PdfPreviewRenderTests
 
         Assert.That(
             component.FindAll(".ec-preview-toolbar button").Select(static button => button.GetAttribute("aria-label")),
-            Is.EqualTo(["Zmenšit", "Zvětšit", "Na šířku", "Celá stránka", "100 %", "Hledat v dokumentu", "Předchozí výskyt", "Další výskyt"]));
+            Is.EqualTo(["Zmenšit", "Zvětšit", "100 %", "Na šířku", "Celá stránka", "Hledat v dokumentu", "Předchozí výskyt", "Další výskyt"]));
     }
 
     [Test]

@@ -477,7 +477,7 @@ public class FilePreviewModalRenderTests
         {
             Assert.That(
                 component.FindAll(".ec-preview-toolbar button").Select(static button => button.GetAttribute("aria-label")),
-                Is.EqualTo(["Zmenšit", "Zvětšit", "Na šířku", "Celá stránka", "100 %", "Hledat v dokumentu", "Předchozí výskyt", "Další výskyt"]));
+                Is.EqualTo(["Zmenšit", "Zvětšit", "100 %", "Na šířku", "Celá stránka", "Hledat v dokumentu", "Předchozí výskyt", "Další výskyt"]));
             Assert.That(component.FindAll(".ec-preview-toolbar-pages"), Is.Empty, "the rendered pages are not the pages of the original");
             Assert.That(component.Find(".ec-preview-toolbar-zoom-value").TextContent, Is.EqualTo("82 %"));
             Assert.That(ToolbarButton(component, "Na šířku").GetAttribute("aria-pressed"), Is.EqualTo("true"));
