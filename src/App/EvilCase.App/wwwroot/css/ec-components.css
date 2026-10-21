@@ -2453,12 +2453,20 @@ html {
     color: var(--ec-text);
 }
 
+.ec-detail-fact-head {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-4);
+    min-width: 0;
+}
+
 .ec-detail-fact-warning {
     display: flex;
     align-items: center;
     gap: var(--ec-space-1);
     font-size: var(--ec-text-xs);
     color: var(--ec-warning-text);
+    white-space: nowrap;
 }
 
 .ec-copy {

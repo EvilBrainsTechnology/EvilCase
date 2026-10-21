@@ -408,7 +408,12 @@ public class ActRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(warning.TextContent.Trim(), Is.EqualTo("Spis vede protistranu Městský úřad Vzorov"));
+            Assert.That(warning.QuerySelector("span[aria-hidden=true]")!.TextContent, Is.EqualTo("Jiný než ve spisu"));
+            Assert.That(warning.GetAttribute("title"), Is.EqualTo("Spis vede protistranu Městský úřad Vzorov"));
+            Assert.That(
+                warning.QuerySelector(".ec-visually-hidden")!.TextContent,
+                Is.EqualTo("Spis vede protistranu Městský úřad Vzorov"));
+            Assert.That(warning.ParentElement!.ClassList, Does.Contain("ec-detail-fact-head"), "the warning sits on the heading row");
             Assert.That(
                 warning.ParentElement!.QuerySelector(".ec-detail-fact-name")!.TextContent,
                 Is.EqualTo("Odesílatel"),
