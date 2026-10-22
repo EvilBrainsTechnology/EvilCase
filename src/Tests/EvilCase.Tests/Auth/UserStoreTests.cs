@@ -13,6 +13,8 @@ public class UserStoreTests
 
     private static readonly DateTime LockoutEnd = new(2026, 8, 1, 12, 15, 0, DateTimeKind.Utc);
 
+    private static readonly DateTime Now = new(2026, 8, 1, 12, 0, 0, DateTimeKind.Utc);
+
     private static readonly DateTime EarlierLockoutEnd = new(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
     [Test]
@@ -39,14 +41,14 @@ public class UserStoreTests
     }
 
     [Test]
-    public async Task EveryFailureCountsEvenWhenNothingIsReadBetweenThem()
+    public async Task EveryAttemptCountsEvenWhenNothingIsReadBetweenThem()
     {
         await using var context = TestDatabase.CreateMigrated();
         var store = new UserStore(new FixedDbSession(context));
         var user = await SeedUser(context);
 
-        await store.RecordFailedLogin(user.Id, MaxFailedAttempts, LockoutEnd, CancellationToken.None);
-        var lockout = await store.RecordFailedLogin(user.Id, MaxFailedAttempts, LockoutEnd, CancellationToken.None);
+        await store.CountLoginAttempt(user.Id, MaxFailedAttempts, Now, LockoutEnd, CancellationToken.None);
+        await store.CountLoginAttempt(user.Id, MaxFailedAttempts, Now, LockoutEnd, CancellationToken.None);
         var stored = await context.Users.IgnoreQueryFilters().SingleAsync(candidate => candidate.Id == user.Id);
 
         using (Assert.EnterMultipleScope())
@@ -54,8 +56,8 @@ public class UserStoreTests
             Assert.That(
                 stored.FailedLoginAttempts,
                 Is.EqualTo(2),
-                "the database counts the failures, so a second miss cannot write the first one's number again");
-            Assert.That(lockout, Is.Null, "a failure below the ceiling locks nothing");
+                "the database counts the attempts, so a second one cannot write the first one's number again");
+            Assert.That(stored.LockoutEnd, Is.Null, "an attempt below the ceiling locks nothing");
         }
     }
 
@@ -66,37 +68,57 @@ public class UserStoreTests
         var store = new UserStore(new FixedDbSession(context));
         var user = await SeedUser(context, MaxFailedAttempts - 1);
 
-        var lockout = await store.RecordFailedLogin(user.Id, MaxFailedAttempts, LockoutEnd, CancellationToken.None);
+        var counted = await store.CountLoginAttempt(user.Id, MaxFailedAttempts, Now, LockoutEnd, CancellationToken.None);
         var stored = await context.Users.IgnoreQueryFilters().SingleAsync(candidate => candidate.Id == user.Id);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(lockout, Is.EqualTo(LockoutEnd), "the attempt that reaches the ceiling is the one that locks the account");
+            Assert.That(counted, Is.True, "the attempt that reaches the ceiling still gets to verify");
+            Assert.That(stored.LockoutEnd, Is.EqualTo(LockoutEnd), "the attempt that reaches the ceiling is the one that locks the account");
             Assert.That(stored.FailedLoginAttempts, Is.Zero, "the counter starts over with the lockout, or the first miss after it elapsed would lock the account again");
         }
     }
 
     [Test]
-    public async Task AFailureBelowTheCeilingLeavesTheLockoutAlone()
+    public async Task AnAttemptBelowTheCeilingLeavesAnElapsedLockoutAlone()
     {
         await using var context = TestDatabase.CreateMigrated();
         var store = new UserStore(new FixedDbSession(context));
         var user = await SeedUser(context, 0, EarlierLockoutEnd);
 
-        var lockout = await store.RecordFailedLogin(user.Id, MaxFailedAttempts, LockoutEnd, CancellationToken.None);
+        await store.CountLoginAttempt(user.Id, MaxFailedAttempts, Now, LockoutEnd, CancellationToken.None);
+        var stored = await context.Users.IgnoreQueryFilters().SingleAsync(candidate => candidate.Id == user.Id);
 
-        Assert.That(lockout, Is.EqualTo(EarlierLockoutEnd), "only the attempt that reaches the ceiling moves the lockout");
+        Assert.That(stored.LockoutEnd, Is.EqualTo(EarlierLockoutEnd), "only the attempt that reaches the ceiling moves the lockout");
     }
 
     [Test]
-    public async Task AFailureAgainstARowThatIsGoneLocksNothing()
+    public async Task ALockedAccountCountsNoAttempt()
+    {
+        await using var context = TestDatabase.CreateMigrated();
+        var store = new UserStore(new FixedDbSession(context));
+        var user = await SeedUser(context, 0, LockoutEnd);
+
+        var counted = await store.CountLoginAttempt(user.Id, MaxFailedAttempts, Now, LockoutEnd.AddMinutes(15), CancellationToken.None);
+        var stored = await context.Users.IgnoreQueryFilters().SingleAsync(candidate => candidate.Id == user.Id);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(counted, Is.False, "an attempt against a locked account must not verify the password");
+            Assert.That(stored.FailedLoginAttempts, Is.Zero);
+            Assert.That(stored.LockoutEnd, Is.EqualTo(LockoutEnd), "a refused attempt does not extend the lockout");
+        }
+    }
+
+    [Test]
+    public async Task AnAttemptAgainstARowThatIsGoneCountsNothing()
     {
         await using var context = TestDatabase.CreateMigrated();
         var store = new UserStore(new FixedDbSession(context));
 
-        var lockout = await store.RecordFailedLogin(Guid.CreateVersion7(), MaxFailedAttempts, LockoutEnd, CancellationToken.None);
+        var counted = await store.CountLoginAttempt(Guid.CreateVersion7(), MaxFailedAttempts, Now, LockoutEnd, CancellationToken.None);
 
-        Assert.That(lockout, Is.Null, "a user deleted between the read and the write is not locked out");
+        Assert.That(counted, Is.False, "a user deleted between the read and the write is not counted");
     }
 
     [Test]

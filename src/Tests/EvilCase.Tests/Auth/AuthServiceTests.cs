@@ -105,6 +105,24 @@ public class AuthServiceTests
     }
 
     [Test]
+    public async Task AnAttemptThatReadTheAccountBeforeItLockedDoesNotGetToVerify()
+    {
+        var beforeTheLockout = this.harness.Users.GetUser(this.harness.User.Id);
+
+        for (var attempt = 0; attempt < AuthTestHarness.MaxFailedAttempts; attempt++)
+            await this.harness.Login(WrongPassword);
+
+        this.harness.Users.StaleRead = beforeTheLockout;
+
+        var result = await this.harness.Login(AuthTestHarness.Password);
+
+        Assert.That(
+            result.Status,
+            Is.EqualTo(LoginStatus.LockedOut),
+            "a burst read the row before its fifth miss locked it, and the right password in it must not sign in");
+    }
+
+    [Test]
     public async Task TheLockoutElapsesOnItsOwn()
     {
         for (var attempt = 0; attempt < AuthTestHarness.MaxFailedAttempts; attempt++)
