@@ -48,6 +48,7 @@ internal sealed class CaseWriter(
             var @case = BuildCase(request, caseNumber);
 
             context.Cases.Add(@case);
+            LabelAssignmentWrites.AddCaseLabels(context, @case.Id, labels);
 
             try
             {
@@ -55,17 +56,11 @@ internal sealed class CaseWriter(
             }
             catch (DbUpdateException exception) when (attempt < Attempts && exception.IsUniqueViolation())
             {
-                context.Entry(@case).State = EntityState.Detached;
+                context.ChangeTracker.Clear();
 
                 logger.LogWarning("The case number {CaseNumber} was taken while the case was being filed", caseNumber);
 
                 continue;
-            }
-
-            if (labels.Count != 0)
-            {
-                LabelAssignmentWrites.AddCaseLabels(context, @case.Id, labels);
-                await context.SaveChangesAsync(token);
             }
 
             logger.LogInformation("Case {CaseId} was filed under {CaseNumber}", @case.Id, @case.CaseNumber);
@@ -124,6 +119,8 @@ internal sealed class CaseWriter(
         if (await context.Labels.ReadLabels(edit.LabelIds, token) is not { } labels)
             return CaseUpdateOutcome.LabelNotFound;
 
+        await using var transaction = await dbSession.BeginTransaction(token);
+
         var rows = await context.Cases
             .WithId(caseId)
             .ExecuteUpdateAsync(
@@ -142,6 +139,8 @@ internal sealed class CaseWriter(
             return CaseUpdateOutcome.NotFound;
 
         await LabelAssignmentWrites.ReplaceCaseLabels(context, caseId, labels, token);
+
+        await transaction.CommitAsync(token);
 
         logger.LogInformation("Case {CaseId} was edited", caseId);
 

@@ -32,11 +32,20 @@ internal sealed class AuthService(
             return LoginResult.Failed(LoginStatus.InvalidCredentials);
         }
 
-        if (user.LockoutEnd > now)
+        var lockout = options.Value.Lockout;
+
+        if (!await userStore.CountLoginAttempt(user.Id, lockout.MaxFailedAttempts, now, now.Add(lockout.Duration), token))
             return LoginResult.Failed(LoginStatus.LockedOut);
 
         if (!PasswordHasher.Verify(password, user.PasswordHash))
-            return await this.RecordFailure(user, now, token);
+        {
+            var lockedOut = user.FailedLoginAttempts + 1 >= lockout.MaxFailedAttempts;
+
+            if (lockedOut)
+                logger.LogWarning("User {UserId} was locked out after {Attempts} failed sign-in attempts", user.Id, lockout.MaxFailedAttempts);
+
+            return LoginResult.Failed(lockedOut ? LoginStatus.LockedOut : LoginStatus.InvalidCredentials);
+        }
 
         await userStore.RecordSuccessfulLogin(user.Id, token);
 
@@ -63,7 +72,7 @@ internal sealed class AuthService(
             return RefreshResult.Failed(RefreshStatus.Rejected);
 
         var user = await userStore.FindById(stored.UserId, token);
-        if (user is null || user.LockoutEnd > now)
+        if (user is null)
             return RefreshResult.Failed(RefreshStatus.Rejected);
 
         // The revoke settles the race, not the read above: only the caller whose update finds
@@ -111,24 +120,6 @@ internal sealed class AuthService(
                     UserAgent = token.UserAgent,
                 }),
         ];
-    }
-
-    private async Task<LoginResult> RecordFailure(User user, DateTime now, CancellationToken token)
-    {
-        var lockout = options.Value.Lockout;
-
-        var lockedUntil = await userStore.RecordFailedLogin(
-            user.Id,
-            lockout.MaxFailedAttempts,
-            now.Add(lockout.Duration),
-            token);
-
-        var lockedOut = lockedUntil > now;
-
-        if (lockedOut)
-            logger.LogWarning("User {UserId} was locked out after {Attempts} failed sign-in attempts", user.Id, lockout.MaxFailedAttempts);
-
-        return LoginResult.Failed(lockedOut ? LoginStatus.LockedOut : LoginStatus.InvalidCredentials);
     }
 
     private async Task<RefreshResult> HandleReplay(RefreshToken stored, DateTime revokedAt, DateTime now, CancellationToken token)

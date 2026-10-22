@@ -31,7 +31,7 @@ public class ActNumberQueryTests : TenantFixture
         var otherCase = await this.Tenant.AddCase(CaseDay);
         await this.Tenant.AddAct(otherCase, ActDay);
 
-        var numbers = await this.NumbersOfCaseWithPrefix(this.ownCase, ActNumberFormat.Prefix(this.ownCase.CaseNumber, ActDay));
+        var numbers = await this.NumbersWithPrefix(ActNumberFormat.Prefix(this.ownCase.CaseNumber, ActDay));
 
         string[] expected =
         [
@@ -46,6 +46,20 @@ public class ActNumberQueryTests : TenantFixture
     }
 
     [Test]
+    public async Task AnActOfAnotherCaseUnderThePrefixCounts()
+    {
+        var prefix = ActNumberFormat.Prefix(this.ownCase.CaseNumber, ActDay);
+        var otherCase = await this.Tenant.AddCase(CaseDay);
+        var moved = ActNumberFormat.Compose(this.ownCase.CaseNumber, ActDay, 7);
+
+        await this.Tenant.AddAct(otherCase, ActDay, actNumber: moved);
+
+        var numbers = await this.NumbersWithPrefix(prefix);
+
+        Assert.That(numbers, Is.EqualTo([moved]), "the number is unique in the tenant, so an act of any case under the prefix takes its place");
+    }
+
+    [Test]
     public async Task AWildcardInAHandWrittenCaseNumberMatchesOnlyItself()
     {
         var written = await this.Tenant.AddCase(CaseDay, caseNumber: @"EC/100%_1-a\b");
@@ -54,7 +68,7 @@ public class ActNumberQueryTests : TenantFixture
 
         await this.Tenant.AddAct(written, ActDay, actNumber: "EC/100ZZZ_1-ab/20260812-777");
 
-        var numbers = await this.NumbersOfCaseWithPrefix(written, ActNumberFormat.Prefix(written.CaseNumber, ActDay));
+        var numbers = await this.NumbersWithPrefix(ActNumberFormat.Prefix(written.CaseNumber, ActDay));
 
         string[] expected = [ActNumberFormat.Compose(written.CaseNumber, ActDay, 1)];
 
@@ -69,7 +83,7 @@ public class ActNumberQueryTests : TenantFixture
         await this.AddNumberedAct(998);
 
         var numbers = await this.Tenant.Context.Acts
-            .OfCaseWithNumberPrefix(this.ownCase.Id, ActNumberFormat.Prefix(this.ownCase.CaseNumber, ActDay))
+            .WithNumberPrefix(ActNumberFormat.Prefix(this.ownCase.CaseNumber, ActDay))
             .OrderByNumberDescending()
             .Select(static act => act.ActNumber)
             .ToListAsync();
@@ -120,10 +134,10 @@ public class ActNumberQueryTests : TenantFixture
         }
     }
 
-    private async Task<List<string>> NumbersOfCaseWithPrefix(Case @case, string prefix)
+    private async Task<List<string>> NumbersWithPrefix(string prefix)
     {
         return await this.Tenant.Context.Acts
-            .OfCaseWithNumberPrefix(@case.Id, prefix)
+            .WithNumberPrefix(prefix)
             .Select(static act => act.ActNumber)
             .ToListAsync();
     }

@@ -3,6 +3,7 @@ using EvilBrains.EvilCase.Business.Acts;
 using EvilBrains.EvilCase.Business.Numbering;
 using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Domain.Acts;
+using EvilBrains.EvilCase.Domain.Numbering;
 using EvilBrains.EvilCase.Tests.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -89,6 +90,38 @@ public class ActWriterTests : TenantFixture
             Assert.That(result.Outcome, Is.EqualTo(ActCreateOutcome.Created));
             Assert.That(result.Act!.ActNumber, Is.EqualTo(free), "the loser of the race files under the next free number");
             Assert.That(acts, Has.Count.EqualTo(2));
+        }
+    }
+
+    [Test]
+    public async Task AnActInACaseHoldingAFreedNumberSkipsTheNumbersStillHeldByTheRenumberedCase()
+    {
+        var caseDay = new DateOnly(2026, 8, 7);
+        var actDay = new DateOnly(2026, 8, 12);
+        var session = new FixedDbSession(this.Tenant.Context);
+
+        var renumbered = await this.Tenant.AddCase(caseDay);
+        var held = await this.Tenant.AddAct(renumbered, actDay);
+
+        await this.Tenant.Context.Cases
+            .Where(@case => @case.Id == renumbered.Id)
+            .ExecuteUpdateAsync(static setters => setters.SetProperty(static @case => @case.CaseNumber, "EC/20260806-001"));
+
+        var freed = await new CaseNumberIssuer(session).NextCaseNumber(caseDay, CancellationToken.None);
+        var reissued = await this.Tenant.AddCase(caseDay, caseNumber: freed);
+
+        var writer = new ActWriter(session, new ActNumberIssuer(session), NullLogger<ActWriter>.Instance);
+
+        var result = await writer.CreateAct(Request(reissued.Id) with { Date = actDay }, CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(freed, Is.EqualTo(renumbered.CaseNumber), "the rewrite frees the case number for a new case");
+            Assert.That(result.Outcome, Is.EqualTo(ActCreateOutcome.Created));
+            Assert.That(
+                result.Act!.ActNumber,
+                Is.EqualTo(ActNumberFormat.Compose(freed, actDay, 2)),
+                $"the act of the renumbered case keeps {held.ActNumber}, so the new case takes the next one");
         }
     }
 

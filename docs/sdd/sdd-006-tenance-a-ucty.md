@@ -64,7 +64,8 @@ platí 15 minut a aplikace ho obnovuje sama; obnova z více záložek téhož pr
 neodhlásí.
 
 Pět po sobě jdoucích neúspěšných přihlášení účet na 15 minut uzamkne; uzamčený účet odpovídá
-423 (SDD-004) a úspěšné přihlášení počitadlo vynuluje.
+423 (SDD-004) a úspěšné přihlášení počitadlo vynuluje. Uzamčení blokuje jen přihlášení heslem;
+živá přihlášení neukončí a jejich obnova běží dál.
 
 ## Rozhodnutí
 

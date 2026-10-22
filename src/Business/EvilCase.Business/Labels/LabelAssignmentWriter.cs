@@ -18,7 +18,11 @@ internal sealed class LabelAssignmentWriter(IDbSession dbSession, ILogger<LabelA
         if (await context.Labels.ReadLabels(request.LabelIds, token) is not { } labels)
             return LabelAssignmentOutcome.LabelNotFound;
 
+        await using var transaction = await dbSession.BeginTransaction(token);
+
         await LabelAssignmentWrites.ReplaceCaseLabels(context, caseId, labels, token);
+
+        await transaction.CommitAsync(token);
 
         logger.LogInformation("Labels of case {CaseId} were set", caseId);
 
@@ -35,7 +39,11 @@ internal sealed class LabelAssignmentWriter(IDbSession dbSession, ILogger<LabelA
         if (await context.Labels.ReadLabels(request.LabelIds, token) is not { } labels)
             return LabelAssignmentOutcome.LabelNotFound;
 
+        await using var transaction = await dbSession.BeginTransaction(token);
+
         await LabelAssignmentWrites.ReplaceActLabels(context, actId, labels, token);
+
+        await transaction.CommitAsync(token);
 
         logger.LogInformation("Labels of act {ActId} were set", actId);
 
