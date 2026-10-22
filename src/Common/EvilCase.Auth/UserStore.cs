@@ -23,11 +23,12 @@ internal sealed class UserStore(IDbSession dbSession) : IUserStore
             .SingleOrDefaultAsync(user => user.Id == userId, token);
     }
 
-    public async Task<DateTime?> RecordFailedLogin(Guid userId, int maxAttempts, DateTime lockoutEnd, CancellationToken token)
+    public async Task<bool> CountLoginAttempt(Guid userId, int maxAttempts, DateTime now, DateTime lockoutEnd, CancellationToken token)
     {
-        await dbSession.Current.Users
+        return await dbSession.Current.Users
             .IgnoreQueryFilters()
             .Where(user => user.Id == userId)
+            .Where(user => user.LockoutEnd == null || user.LockoutEnd <= now)
             .ExecuteUpdateAsync(
                 setters => setters
                     .SetProperty(
@@ -36,13 +37,7 @@ internal sealed class UserStore(IDbSession dbSession) : IUserStore
                     .SetProperty(
                         static user => user.LockoutEnd,
                         user => user.FailedLoginAttempts + 1 >= maxAttempts ? lockoutEnd : user.LockoutEnd),
-                token);
-
-        return await dbSession.Current.Users
-            .IgnoreQueryFilters()
-            .Where(user => user.Id == userId)
-            .Select(static user => user.LockoutEnd)
-            .SingleOrDefaultAsync(token);
+                token) > 0;
     }
 
     public async Task RecordSuccessfulLogin(Guid userId, CancellationToken token)
