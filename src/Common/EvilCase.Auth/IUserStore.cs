@@ -9,10 +9,10 @@ internal interface IUserStore
     public Task<User?> FindById(Guid userId, CancellationToken token);
 
     /// <summary>
-    /// Reaching maxAttempts sets the lockout and resets the counter; returns the row's lockout afterwards,
-    /// null where the row is gone.
+    /// Counts a sign-in attempt in one statement unless the account is locked at now; reaching maxAttempts
+    /// sets the lockout and resets the counter. False where the account is locked or the row is gone.
     /// </summary>
-    public Task<DateTime?> RecordFailedLogin(Guid userId, int maxAttempts, DateTime lockoutEnd, CancellationToken token);
+    public Task<bool> CountLoginAttempt(Guid userId, int maxAttempts, DateTime now, DateTime lockoutEnd, CancellationToken token);
 
     public Task RecordSuccessfulLogin(Guid userId, CancellationToken token);
 
