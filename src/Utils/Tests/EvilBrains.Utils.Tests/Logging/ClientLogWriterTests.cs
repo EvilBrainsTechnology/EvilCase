@@ -189,6 +189,14 @@ public class ClientLogWriterTests
         }
     }
 
+    [Test]
+    public void ClientUrlKeepsOnlyThePath()
+    {
+        this.writer.Write(Entry("On a page", properties: null) with { Url = "https://host/cases?q=Jan%20Nov%C3%A1k&status=all#top" });
+
+        Assert.That(Value(this.sink.Single(), "ClientUrl"), Is.EqualTo("https://host/cases"));
+    }
+
     private static ClientLogEntry Entry(string messageTemplate, IReadOnlyDictionary<string, string>? properties)
     {
         return new()
