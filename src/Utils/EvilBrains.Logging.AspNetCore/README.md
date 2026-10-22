@@ -46,4 +46,5 @@ Rebuilds a Serilog `LogEvent` from a `ClientLogEntry`. The endpoint is anonymous
 - The event timestamp is the server clock; the browser value is kept as `ClientTimestamp`. Browser clocks are arbitrary and would corrupt the Seq timeline.
 - `AppSource = Client` is set on the event.
 - `RequestId` and `CorrelationId` from the entry are accepted only as GUIDs and re-formatted. An entry written while an API call was in flight therefore shares an identifier with the server side of that call. An entry written outside a call has none and inherits the identifiers of the upload that carried it — correlate those through `SessionId`, `MachineId`, `ClientUrl` and `ClientTimestamp`.
+- `ClientUrl` keeps the path and drops the query and fragment, which carry search text.
 - Browser exception text arrives as a `ClientLogException`.
