@@ -69,22 +69,21 @@ internal sealed class ClientLogWriter : IClientLogWriter
         }
 
         var properties = new List<LogEventProperty>();
-        if (values is null || values.Count == 0)
-            return (template, properties);
-
         var bound = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var token in template.Tokens)
+        foreach (var property in template.Tokens.OfType<PropertyToken>())
         {
-            if (properties.Count == ClientLogEntry.MaxProperties)
-                break;
-
-            // A wide alignment renders as that many characters, so an unbound hole is the cheap way out.
-            if (token is not PropertyToken property || property.Alignment is { Width: > MaxAlignmentWidth })
-                continue;
-
             var name = property.PropertyName;
-            if (ReservedLogPropertyNames.Contains(name) || !bound.Add(name) || !values.TryGetValue(name, out var value))
-                continue;
+
+            // A hole without a client value of its own would render a server property, a value again, or wide padding.
+            if (values is null
+                || properties.Count == ClientLogEntry.MaxProperties
+                || property.Alignment is { Width: > MaxAlignmentWidth }
+                || ReservedLogPropertyNames.Contains(name)
+                || !bound.Add(name)
+                || !values.TryGetValue(name, out var value))
+            {
+                return (FallbackTemplate, [new("ClientMessage", new ScalarValue(text))]);
+            }
 
             properties.Add(new(name, new ScalarValue(Sanitize(value, ClientLogEntry.PropertyValueMaxLength))));
         }
