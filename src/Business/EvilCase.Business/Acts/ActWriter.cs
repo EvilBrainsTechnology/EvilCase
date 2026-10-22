@@ -43,6 +43,7 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
             var act = BuildAct(request, actNumber);
 
             context.Acts.Add(act);
+            LabelAssignmentWrites.AddActLabels(context, act.Id, labels);
 
             try
             {
@@ -50,17 +51,11 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
             }
             catch (DbUpdateException exception) when (attempt < Attempts && exception.IsUniqueViolation())
             {
-                context.Entry(act).State = EntityState.Detached;
+                context.ChangeTracker.Clear();
 
                 logger.LogWarning("The act number {ActNumber} was taken while the act was being filed", actNumber);
 
                 continue;
-            }
-
-            if (labels.Count != 0)
-            {
-                LabelAssignmentWrites.AddActLabels(context, act.Id, labels);
-                await context.SaveChangesAsync(token);
             }
 
             logger.LogInformation("Act {ActId} was filed in case {CaseId} under {ActNumber}", act.Id, caseId, act.ActNumber);
@@ -124,6 +119,8 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
         if (await context.Labels.ReadLabels(edit.LabelIds, token) is not { } labels)
             return ActUpdateOutcome.LabelNotFound;
 
+        await using var transaction = await dbSession.BeginTransaction(token);
+
         var rows = await acts.ExecuteUpdateAsync(
             setters => setters
                 .SetProperty(static act => act.ActNumber, edit.ActNumber)
@@ -139,6 +136,8 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
             return ActUpdateOutcome.NotFound;
 
         await LabelAssignmentWrites.ReplaceActLabels(context, actId, labels, token);
+
+        await transaction.CommitAsync(token);
 
         logger.LogInformation("Act {ActId} was edited", actId);
 
