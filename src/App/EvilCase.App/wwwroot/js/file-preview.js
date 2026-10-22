@@ -234,6 +234,102 @@ function breakSections(parsed) {
     }
 }
 
+function hasRenderedBreaks(element) {
+    return (element.type === 'break' && element.break === 'lastRenderedPageBreak') || (element.children ?? []).some(hasRenderedBreaks);
+}
+
+// A page taller than its paper splits between blocks, and a table between rows; a block taller than a page stays
+// whole. The pages that follow take the header and footer of the page split.
+function paginate(page) {
+    const pages = [page];
+
+    for (let current = page; current;) {
+        const paper = parseFloat(getComputedStyle(current).minHeight);
+
+        current = paper > 0 && current.offsetHeight > paper + 1 ? splitPage(current, paper) : null;
+
+        if (current) {
+            pages.push(current);
+        }
+    }
+
+    return pages;
+}
+
+function splitPage(page, paper) {
+    const blocks = [...page.querySelectorAll(':scope > article > *')];
+    const footer = page.querySelector(':scope > footer');
+    const footerSpace = footer ? Math.max(0, footer.offsetHeight + parseFloat(getComputedStyle(footer).marginBottom)) : 0;
+    const bottom = paper - parseFloat(getComputedStyle(page).paddingBottom) - footerSpace;
+    let first = blocks.findIndex(block => block.offsetTop + block.offsetHeight > bottom);
+
+    if (first < 0) {
+        return null;
+    }
+
+    const moved = blocks.slice(first);
+    const rest = splitTable(blocks[first], bottom);
+
+    if (rest) {
+        moved[0] = rest;
+    } else if (first === 0) {
+        moved.shift();
+    }
+
+    if (moved.length === 0) {
+        return null;
+    }
+
+    const next = page.cloneNode(false);
+    const header = page.querySelector(':scope > header');
+    const articles = new Map();
+
+    if (header) {
+        next.append(header.cloneNode(true));
+    }
+
+    for (const block of moved) {
+        const source = block.parentElement;
+
+        if (!articles.has(source)) {
+            articles.set(source, next.appendChild(source.cloneNode(false)));
+        }
+
+        articles.get(source).append(block);
+    }
+
+    if (footer) {
+        next.append(footer.cloneNode(true));
+    }
+
+    page.after(next);
+
+    return next;
+}
+
+// The rows from the first one that crosses the bottom move to a copy of the table, unless that is the first row.
+function splitTable(table, bottom) {
+    if (table.tagName !== 'TABLE') {
+        return null;
+    }
+
+    const rows = [...table.querySelectorAll(':scope > tbody > tr, :scope > tr')];
+    const first = rows.findIndex(row => table.offsetTop + row.offsetTop + row.offsetHeight > bottom);
+
+    if (first <= 0) {
+        return null;
+    }
+
+    const rest = table.cloneNode(false);
+    const body = rest.appendChild(document.createElement('tbody'));
+
+    table.querySelectorAll(':scope > colgroup').forEach(group => rest.prepend(group.cloneNode(true)));
+    body.append(...rows.slice(first));
+    table.after(rest);
+
+    return rest;
+}
+
 // A page with nothing on it comes from two breaks in a row: Word marks where its page began right after a page
 // break, and the library breaks at both.
 function isBlank(section) {
@@ -259,11 +355,14 @@ export async function renderDocument(host, contentStream, view) {
 
     host.replaceChildren(page);
 
+    let wordBreaks = false;
+
     try {
         const options = { inWrapper: true, breakPages: true, ignoreLastRenderedPageBreak: false, renderAltChunks: false };
         const parsed = await window.docx.parseAsync(buffer, options);
 
         breakSections(parsed);
+        wordBreaks = hasRenderedBreaks(parsed.documentPart?.body ?? {});
         root.append(...await window.docx.renderDocument(parsed, options));
         secureLinks(root);
     } finally {
@@ -277,14 +376,19 @@ export async function renderDocument(host, contentStream, view) {
     root.querySelector('.docx-wrapper')?.setAttribute('part', 'document-wrapper');
 
     // A page is as wide as its paper and at least as tall; its paper size is what a fit fits.
-    const sections = [...root.querySelectorAll('section.docx')];
-    const pages = sections.filter(section => !isBlank(section));
+    await document.fonts?.ready;
 
-    if (pages.length === 0) {
-        pages.push(...sections.slice(0, 1));
+    const sections = [...root.querySelectorAll('section.docx')];
+    const shown = sections.filter(section => !isBlank(section));
+
+    if (shown.length === 0) {
+        shown.push(...sections.slice(0, 1));
     }
 
-    sections.filter(section => !pages.includes(section)).forEach(section => section.remove());
+    sections.filter(section => !shown.includes(section)).forEach(section => section.remove());
+
+    // Without the pages Word laid out, the pages are counted from the paper's height.
+    const pages = wordBreaks ? shown : shown.flatMap(paginate);
     const size = {
         width: Math.max(0, ...pages.map(section => section.offsetWidth)),
         height: Math.max(0, ...pages.map(section => parseFloat(getComputedStyle(section).minHeight) || section.offsetHeight)),
