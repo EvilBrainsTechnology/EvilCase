@@ -60,6 +60,70 @@ public class FilesCardRenderTests
     }
 
     [Test]
+    public async Task ADropDuringAnUploadGoesToAFreshInputAndIsRejected()
+    {
+        await using var ctx = NewContext();
+
+        var gate = new TaskCompletionSource();
+        var uploaded = new List<string>();
+        var loads = 0;
+
+        var component = new Card
+        {
+            LoadFiles = _ =>
+            {
+                loads++;
+
+                return Task.FromResult<IReadOnlyList<FileListItem>>([]);
+            },
+            UploadFile = async (file, _) =>
+            {
+                uploaded.Add(file.Name);
+
+                if (string.Equals(file.Name, "a.txt", StringComparison.Ordinal))
+                    await gate.Task;
+            },
+        }
+            .Render(ctx);
+
+        var first = component.FindComponent<InputFile>().Instance;
+        var firstBatch = component.InvokeAsync(async () => await first.OnChange.InvokeAsync(Change("a.txt", "b.txt")));
+
+        // InvokeAsync queues behind work the renderer has not finished, so the change can run after it returns.
+        await component.WaitForAssertionAsync(() => Assert.That(uploaded, Is.EqualTo(["a.txt"])));
+
+        var inputs = component.FindComponents<InputFile>();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(inputs, Has.Count.EqualTo(2));
+            Assert.That(inputs[1].Instance, Is.SameAs(first), "a change empties the input's file list, so a batch keeps its own input");
+            Assert.That(component.Find("label.ec-file-upload").GetAttribute("for"), Is.EqualTo(component.FindAll("input[type=file]")[0].Id), "the next pick goes to the fresh input");
+        }
+
+        await Drop(component);
+
+        Assert.That(component.FindAll(".ec-alert"), Is.Empty, "dragged text or a paste carries no file and asks nothing of the user");
+
+        await Drop(component, "c.txt");
+        await Drop(component, "d.txt");
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-alert").Select(static alert => alert.TextContent), Is.EqualTo(["Počkejte, až se dokončí nahrávání."]), "a repeated drop asks to wait once"));
+
+        gate.SetResult();
+        await firstBatch;
+
+        await component.WaitForAssertionAsync(() => Assert.That(loads, Is.EqualTo(2), "the list reloads once the batch finishes"));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(uploaded, Is.EqualTo(["a.txt", "b.txt"]), "a drop during an upload uploads nothing and leaves the batch in flight whole");
+            Assert.That(component.FindComponents<InputFile>(), Has.Count.EqualTo(1), "a finished batch takes its input with it");
+            Assert.That(component.FindAll(".ec-file-uploading"), Is.Empty);
+        }
+    }
+
+    [Test]
     public async Task ADropCarryingNoFileUploadsNothingAndShowsNoError()
     {
         await using var ctx = NewContext();
@@ -637,6 +701,19 @@ public class FilesCardRenderTests
         await component.Find(".ec-file-actions button[aria-haspopup=menu]").ClickAsync(new MouseEventArgs());
     }
 
+    private static InputFileChangeEventArgs Change(params string[] fileNames)
+    {
+        return new InputFileChangeEventArgs([.. fileNames.Select(static name => new NamedFile(name))]);
+    }
+
+    /// <summary>
+    /// Drops onto the first input, the fresh one the drop zone hands a drop to.
+    /// </summary>
+    private static async Task Drop(IRenderedComponent<FilesCard> component, params string[] fileNames)
+    {
+        await component.InvokeAsync(async () => await component.FindComponents<InputFile>()[0].Instance.OnChange.InvokeAsync(Change(fileNames)));
+    }
+
     private static FileListItem PdfFile()
     {
         return File("Rozhodnutí o přestupku.pdf");
@@ -651,6 +728,22 @@ public class FilesCardRenderTests
             SizeBytes = 1024,
             Created = new DateTime(2025, 9, 2, 10, 0, 0, DateTimeKind.Utc),
         };
+    }
+
+    private sealed class NamedFile(string name) : IBrowserFile
+    {
+        public string Name { get; } = name;
+
+        public DateTimeOffset LastModified { get; } = DateTimeOffset.UtcNow;
+
+        public long Size => 1;
+
+        public string ContentType => "text/plain";
+
+        public Stream OpenReadStream(long maxAllowedSize = 512000, CancellationToken cancellationToken = default)
+        {
+            return new MemoryStream("a"u8.ToArray());
+        }
     }
 
     private sealed class Card

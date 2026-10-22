@@ -41,8 +41,10 @@ tentýž dokument ve dvou spisech jsou dva soubory.
 
 Drag-and-drop multi-upload na detailu spisu i úkonu; soubory lze pustit kamkoli na kartu
 souborů a karta při tažení ukáže, kam se nahrají, a limity. Hromadné přetažení běží po
-souborech a odmítne jen soubor, který selže. Dávka nad 100 souborů se odmítá celá. Seznam
-souborů ukazuje ikonu typu, název, velikost a okamžik nahrání, od nejstaršího. Obsah souboru
+souborech a odmítne jen soubor, který selže. Dávka nad 100 souborů se odmítá celá. Soubory
+přetažené nebo vybrané během nahrávání se odmítnou s hláškou a nenahrají se; rozběhlá dávka
+doběhne. Seznam souborů ukazuje ikonu typu, název, velikost a okamžik nahrání, od
+nejstaršího. Obsah souboru
 se vydává z jedné adresy a odpověď nese `X-Content-Type-Options: nosniff`. Rastrové
 obrázky, zvuk a video nesou `Content-Disposition: inline` a typ podle přípony; každý jiný typ,
 PDF, SVG a HTML také, nese `attachment` a typ `application/octet-stream`; uložený `MediaType` se
