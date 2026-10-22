@@ -117,6 +117,44 @@ public class FilePreviewModalRenderTests
         Assert.That(ctx.Services.GetRequiredService<StubAuthSession>().FreshnessChecks, Is.EqualTo(checks), "a plain browser request carries no renewal of its own");
     }
 
+    [TestCase("a.pdf")]
+    [TestCase("a.mp3")]
+    [TestCase("a.mp4")]
+    public void APreviewTheBrowserStreamsKeepsTheSessionFreshUntilAnotherFileTakesOver(string fileName)
+    {
+        using var ctx = NewContext(out _);
+
+        var streamed = File(fileName);
+        var text = File("b.txt");
+        var component = Render(ctx, [streamed, text], streamed.FileId);
+        var session = ctx.Services.GetRequiredService<StubAuthSession>();
+
+        Assert.That(session.KeptFresh, Has.Count.EqualTo(1));
+        Assert.That(session.KeptFresh[0].IsCancellationRequested, Is.False);
+
+        component.Render(parameters => parameters.Add(static modal => modal.FileId, text.FileId));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(session.KeptFresh, Has.Count.EqualTo(1), "a file read as bytes needs no renewal while shown");
+            Assert.That(session.KeptFresh[0].IsCancellationRequested, Is.True);
+        }
+    }
+
+    [Test]
+    public async Task ClosingAStreamedPreviewStopsKeepingTheSessionFresh()
+    {
+        await using var ctx = NewContext(out _);
+
+        var file = File("a.mp4");
+        var component = Render(ctx, [file], file.FileId);
+        var session = ctx.Services.GetRequiredService<StubAuthSession>();
+
+        await component.Instance.DisposeAsync();
+
+        Assert.That(session.KeptFresh.Single().IsCancellationRequested, Is.True);
+    }
+
     [TestCase("a.JPG")]
     [TestCase("a.webp")]
     public void ARasterImageShowsInAnImgElementFromTheContentAddress(string fileName)

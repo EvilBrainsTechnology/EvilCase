@@ -143,6 +143,26 @@ internal sealed class EvilCaseAuthenticationStateProvider(
             await this.Renew(current, token);
     }
 
+    public async Task KeepFresh(CancellationToken token)
+    {
+        try
+        {
+            while (true)
+            {
+                await this.EnsureFresh(token);
+
+                if (store.Current is null)
+                    return;
+
+                await Task.Delay(RenewAhead / 2, token);
+            }
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+            // The stream it kept alive has closed.
+        }
+    }
+
     private static AuthenticationState BuildAuthenticationState(SessionState? token)
     {
         if (token is null)
