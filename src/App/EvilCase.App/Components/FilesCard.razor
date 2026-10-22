@@ -26,10 +26,14 @@
         </Header>
         <ChildContent>
             <div class="ec-card-stack">
-                @* Keyed on the batch: a browser raises no change event for a file already in the
-                   input, so a fresh element is what lets the same file be picked again. *@
+                @* Keyed on the batch, so the same file can be picked again; a batch in flight keeps
+                   its own input and the next drop goes to the first, fresh one. *@
                 <div class="ec-visually-hidden">
                     <InputFile @key="this.uploadRound" id="files-upload-input" multiple OnChange="this.OnFilesSelected" />
+                    @if (this.busyRound is { } busy)
+                    {
+                        <InputFile @key="busy" multiple OnChange="this.OnFilesSelected" />
+                    }
                 </div>
 
                 @foreach (var failure in this.failures)
@@ -125,6 +129,8 @@
 }
 
 @code {
+    private const string WaitForUpload = "Počkejte, až se dokončí nahrávání.";
+
     [Parameter, EditorRequired]
     public required string Title { get; set; }
 
@@ -179,6 +185,11 @@
     private string uploadName = "";
 
     private int uploadRound;
+
+    /// <summary>
+    /// The input whose batch is uploading.
+    /// </summary>
+    private int? busyRound;
 
     private Guid? previewFileId;
 
@@ -246,6 +257,20 @@
 
     private async Task OnFilesSelected(InputFileChangeEventArgs args)
     {
+        if (this.busyRound is not null)
+        {
+            if (args.FileCount == 0)
+                return;
+
+            if (!this.failures.Contains(WaitForUpload))
+                this.failures.Add(WaitForUpload);
+
+            this.uploadRound++;
+
+            return;
+        }
+
+        this.busyRound = this.uploadRound++;
         this.failures.Clear();
         this.uploadIndex = 0;
         this.uploadTotal = args.FileCount;
@@ -263,8 +288,8 @@
             },
             this.Logger);
 
+        this.busyRound = null;
         this.uploadTotal = 0;
-        this.uploadRound++;
 
         await this.ReloadFiles();
     }
