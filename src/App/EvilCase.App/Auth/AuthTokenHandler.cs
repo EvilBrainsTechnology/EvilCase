@@ -17,9 +17,12 @@ internal sealed class AuthTokenHandler(ISessionStore store, IServiceProvider ser
         if (IsExemptFromRenewal(request))
             return await base.SendAsync(request, cancellationToken);
 
+        // A file upload is too large to hold in memory for a retry, so it goes out once.
+        var upload = request.Content is MultipartContent;
+
         // Buffered before the first attempt: HttpClient disposes the content it sent, so a retry would
         // have nothing left to send.
-        var body = request.Content is null ? null : await request.Content.ReadAsByteArrayAsync(cancellationToken);
+        var body = upload || request.Content is null ? null : await request.Content.ReadAsByteArrayAsync(cancellationToken);
         var contentType = request.Content?.Headers.ContentType;
 
         await this.Session().EnsureFresh(cancellationToken);
@@ -32,7 +35,7 @@ internal sealed class AuthTokenHandler(ISessionStore store, IServiceProvider ser
         if (response.StatusCode != HttpStatusCode.Unauthorized || store.Current is null)
             return response;
 
-        if (!await this.Session().Renew(sent, cancellationToken))
+        if (!await this.Session().Renew(sent, cancellationToken) || upload)
             return response;
 
         response.Dispose();
