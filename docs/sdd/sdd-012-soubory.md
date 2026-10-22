@@ -87,8 +87,9 @@ Esc a Zrušit ho zahodí.
   obrázky se nenačítají.
 - Dokument Word se ukáže jako stránky pod sebou, zpočátku na šířku náhledu, nejvýš však ve 100 %.
   Stránka končí tam, kde ji Word ukončil při posledním uložení, nebo na ručním zlomu stránky či
-  oddílu; dokument bez těchto údajů se ukáže jako jedna stránka. Tabulka, kterou Word rozdělil
-  mezi stránky, zůstane na jedné stránce, a prázdná stránka se neukáže. Lišta navíc ukáže
+  oddílu. Dokument bez údajů od Wordu a stránka, která je i tak o víc než desetinu vyšší než
+  papír, se rozdělí podle výšky papíru mezi odstavci a řádky tabulek; takové stránky se mohou od
+  Wordu o několik řádků lišit. Prázdná stránka se neukáže. Lišta navíc ukáže
   stránku z počtu stran s polem pro skok na stránku a přizpůsobení na šířku a na celou stránku
   podle velikosti papíru.
 - Sešit se ukáže jako tabulka s kartami listů; z každého listu se ukáže nejvýše prvních
