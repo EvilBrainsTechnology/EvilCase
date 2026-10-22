@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text;
 using EvilBrains.EvilCase.Api.Client;
 using EvilBrains.EvilCase.Api.Contract.Logging;
 using EvilBrains.EvilCase.App.Auth;
@@ -41,6 +42,28 @@ public class AuthTokenHandlerTests
             Assert.That(inner.Sent, Has.Count.EqualTo(2));
             Assert.That(inner.Sent[^1].Body, Is.EqualTo(inner.Sent[0].Body), "the retry resends the original body");
             Assert.That(inner.Sent[^1].Options, Is.EqualTo(IncludingCredentials()), "the retry without credentials would leave the renewed cookies behind");
+        }
+    }
+
+    [Test]
+    public async Task AnUploadIsSentOnceAndNeverReadBeforehand()
+    {
+        var inner = new UnauthorizedOnceHandler();
+        var file = new TrackedContent("the file");
+        var checking = new ReadCheckingHandler(file, inner);
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, "https://localhost/api/cases") { Content = new MultipartFormDataContent { { file, "file", "smlouva.pdf" } } };
+
+        var refresh = Renewing();
+
+        using var response = await Send(refresh, FreshSession(), checking, request);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(checking.ReadBeforeSent, Is.False, "an upload is not held in memory for a retry");
+            Assert.That(refresh.Refreshes, Is.EqualTo(1), "the next upload goes out on the renewed session");
+            Assert.That(inner.Sent, Has.Count.EqualTo(1), "an upload has no copy to retry from");
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
         }
     }
 
@@ -103,6 +126,13 @@ public class AuthTokenHandlerTests
 
     private static async Task<HttpResponseMessage> Send(StubEarlyRefresh refresh, SessionStore store, HttpMessageHandler inner, string path)
     {
+        using var request = new HttpRequestMessage(HttpMethod.Post, "https://localhost" + path) { Content = new StringContent("{\"title\":\"x\"}") };
+
+        return await Send(refresh, store, inner, request);
+    }
+
+    private static async Task<HttpResponseMessage> Send(StubEarlyRefresh refresh, SessionStore store, HttpMessageHandler inner, HttpRequestMessage request)
+    {
         using var session = new EvilCaseAuthenticationStateProvider(store, Substitute.For<IAuthClient>(), refresh, NullLogger<EvilCaseAuthenticationStateProvider>.Instance);
         await using var services = new ServiceCollection()
             .AddSingleton<IAuthSession>(session)
@@ -110,8 +140,41 @@ public class AuthTokenHandlerTests
 
         using var handler = new AuthTokenHandler(store, services) { InnerHandler = inner };
         using var invoker = new HttpMessageInvoker(handler, disposeHandler: false);
-        using var request = new HttpRequestMessage(HttpMethod.Post, "https://localhost" + path) { Content = new StringContent("{\"title\":\"x\"}") };
 
         return await invoker.SendAsync(request, CancellationToken.None);
+    }
+
+    private sealed class TrackedContent(string text) : HttpContent
+    {
+        public bool Read { get; private set; }
+
+        protected override async Task SerializeToStreamAsync(Stream stream, TransportContext? context)
+        {
+            this.Read = true;
+
+            await stream.WriteAsync(Encoding.UTF8.GetBytes(text));
+        }
+
+        protected override bool TryComputeLength(out long length)
+        {
+            length = -1;
+
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Notes whether the body was read before it reached the network.
+    /// </summary>
+    private sealed class ReadCheckingHandler(TrackedContent body, HttpMessageHandler inner) : DelegatingHandler(inner)
+    {
+        public bool ReadBeforeSent { get; private set; }
+
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            this.ReadBeforeSent |= body.Read;
+
+            return await base.SendAsync(request, cancellationToken);
+        }
     }
 }
