@@ -15,6 +15,8 @@ internal sealed class StubAuthSession : IAuthSession
 
     public int FreshnessChecks { get; private set; }
 
+    public List<CancellationToken> KeptFresh { get; } = [];
+
     public Task<SignInOutcome> SignIn(string email, string password, CancellationToken token)
     {
         return Task.FromResult(this.Outcome);
@@ -35,6 +37,13 @@ internal sealed class StubAuthSession : IAuthSession
     public Task EnsureFresh(CancellationToken token)
     {
         this.FreshnessChecks++;
+
+        return Task.CompletedTask;
+    }
+
+    public Task KeepFresh(CancellationToken token)
+    {
+        this.KeptFresh.Add(token);
 
         return Task.CompletedTask;
     }
