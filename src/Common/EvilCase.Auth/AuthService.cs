@@ -72,7 +72,7 @@ internal sealed class AuthService(
             return RefreshResult.Failed(RefreshStatus.Rejected);
 
         var user = await userStore.FindById(stored.UserId, token);
-        if (user is null || user.LockoutEnd > now)
+        if (user is null)
             return RefreshResult.Failed(RefreshStatus.Rejected);
 
         // The revoke settles the race, not the read above: only the caller whose update finds

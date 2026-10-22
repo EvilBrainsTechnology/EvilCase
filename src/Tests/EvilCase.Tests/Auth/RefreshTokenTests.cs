@@ -193,14 +193,21 @@ public class RefreshTokenTests
     }
 
     [Test]
-    public async Task ALockedOutAccountCannotRenew()
+    public async Task ALockedOutAccountKeepsRenewingItsLiveSessionButCannotSignIn()
     {
         var session = await this.harness.SignIn();
 
         for (var attempt = 0; attempt < AuthTestHarness.MaxFailedAttempts; attempt++)
             await this.harness.Login("not-the-password");
 
-        Assert.That(await this.harness.Refresh(session.RefreshToken), Is.Null);
+        var renewed = await this.harness.Refresh(session.RefreshToken);
+        var signIn = await this.harness.Login(AuthTestHarness.Password);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(renewed, Is.Not.Null, "a lockout leaves live sessions alone");
+            Assert.That(signIn.Status, Is.EqualTo(LoginStatus.LockedOut));
+        }
     }
 
     [Test]
