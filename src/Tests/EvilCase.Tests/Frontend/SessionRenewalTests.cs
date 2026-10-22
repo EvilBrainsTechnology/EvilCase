@@ -90,6 +90,45 @@ public class SessionRenewalTests
         }
     }
 
+    [Test]
+    public async Task AKeptSessionIsRenewedAsItLapsesAndStopsWhenTheStreamCloses()
+    {
+        var refresh = new StubEarlyRefresh(refreshed: StubEarlyRefresh.Renewed("user@example.com"));
+        var tokens = ExpiringSession.Store();
+
+        using var provider = Provider(tokens, refresh);
+        using var stream = new CancellationTokenSource();
+
+        var kept = provider.KeepFresh(stream.Token);
+
+        await stream.CancelAsync();
+        await kept;
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(refresh.Refreshes, Is.EqualTo(1));
+            Assert.That(tokens.Current?.ExpiresAt, Is.GreaterThan(DateTime.UtcNow.AddMinutes(5)));
+            Assert.That(kept.IsCompletedSuccessfully, Is.True, "a closed stream ends the renewal without an error");
+        }
+    }
+
+    [Test]
+    public async Task AKeptSessionTheServerRefusesStopsBeingRenewed()
+    {
+        var refresh = new StubEarlyRefresh(refreshed: new EarlyRefreshResult(401, Body: null));
+        var tokens = ExpiringSession.Store();
+
+        using var provider = Provider(tokens, refresh);
+
+        await provider.KeepFresh(CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(refresh.Refreshes, Is.EqualTo(1));
+            Assert.That(tokens.Current, Is.Null);
+        }
+    }
+
     private static EvilCaseAuthenticationStateProvider Provider(ISessionStore tokens, StubEarlyRefresh refresh)
     {
         return new EvilCaseAuthenticationStateProvider(tokens, Substitute.For<IAuthClient>(), refresh, NullLogger<EvilCaseAuthenticationStateProvider>.Instance);
