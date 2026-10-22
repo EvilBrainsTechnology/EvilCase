@@ -46,7 +46,7 @@ internal sealed class ClientLogWriter : IClientLogWriter
             properties.Add(new("ClientCategory", new ScalarValue(Sanitize(entry.Category, ClientLogEntry.CategoryMaxLength))));
 
         if (entry.Url is not null)
-            properties.Add(new("ClientUrl", new ScalarValue(Sanitize(entry.Url, ClientLogEntry.UrlMaxLength))));
+            properties.Add(new("ClientUrl", new ScalarValue(Sanitize(entry.Url.Split('?', '#')[0], ClientLogEntry.UrlMaxLength))));
 
         var exception = entry.Exception is null
             ? null
