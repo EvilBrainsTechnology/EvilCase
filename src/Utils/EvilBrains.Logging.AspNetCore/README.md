@@ -40,8 +40,8 @@ The `X` prefix is load-bearing. `RequestId` belongs to ASP.NET Core: it opens a 
 Rebuilds a Serilog `LogEvent` from a `ClientLogEntry`. The endpoint is anonymous, so the whole payload is hostile input:
 
 - The parsed message template is the allow-list of property names. A property the template does not reference is dropped, and so is any name in `ReservedLogPropertyNames` — properties carried on an event beat enrichers, so a browser entry must not be able to shadow one.
-- At most `ClientLogEntry.MaxProperties` (16) properties are bound; a name binds once.
-- `MessageTemplateParser.Parse` degrades malformed templates to plain text, but throws on alignments that overflow; that failure falls back to logging the raw text under `{ClientMessage:l}`. An alignment wider than 64 stays unbound — padding is only rendered for bound properties.
+- A template renders only when each of its holes binds a client value of its own, at most `ClientLogEntry.MaxProperties` (16) and none aligned wider than 64; any other template logs its raw text under `{ClientMessage:l}`.
+- `MessageTemplateParser.Parse` degrades malformed templates to plain text, but throws on alignments that overflow; that failure falls back to the same raw text.
 - Every string is sanitized — template, property values, category, URL and exception text — truncated to its contract maximum and stripped of control characters, so the plain text console sink cannot be forged. `Sanitize` accepts null: the payload is JSON, and a null inside the property dictionary passes model validation, which covers properties and never dictionary values.
 - The event timestamp is the server clock; the browser value is kept as `ClientTimestamp`. Browser clocks are arbitrary and would corrupt the Seq timeline.
 - `AppSource = Client` is set on the event.
