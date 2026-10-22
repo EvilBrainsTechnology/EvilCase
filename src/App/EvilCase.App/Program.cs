@@ -47,8 +47,13 @@ internal static class Program
         builder.Services.AddSingleton<IClipboardWriter, ClipboardWriter>();
 
         // The same handler chain as the generated clients, so the upload and the download carry the same authorization.
+        // No timeout: the largest file takes longer than the default 100 s on a slow line.
         builder.Services
-            .AddHttpClient<IFileTransferClient, FileTransferClient>(client => client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress))
+            .AddHttpClient<IFileTransferClient, FileTransferClient>(client =>
+            {
+                client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress);
+                client.Timeout = Timeout.InfiniteTimeSpan;
+            })
             .AddRequestContextHeaders()
             .AddRequestLogging()
             .AddHttpMessageHandler<AuthTokenHandler>();
