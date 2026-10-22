@@ -116,6 +116,38 @@ public class ClientLogWriterTests
     }
 
     [Test]
+    public void RepeatedHoleLogsTheRawText()
+    {
+        this.writer.Write(Entry("{Foo} {Foo} {{Foo}}", new Dictionary<string, string>(StringComparer.Ordinal) { ["Foo"] = "bar" }));
+
+        Assert.That(this.sink.Single().RenderMessage(CultureInfo.InvariantCulture), Is.EqualTo("{Foo} {Foo} {{Foo}}"));
+    }
+
+    [Test]
+    public void WideAlignmentOfABoundNameLogsTheRawText()
+    {
+        this.writer.Write(Entry("{Foo,100000}{Foo}", new Dictionary<string, string>(StringComparer.Ordinal) { ["Foo"] = "bar" }));
+
+        Assert.That(this.sink.Single().RenderMessage(CultureInfo.InvariantCulture), Is.EqualTo("{Foo,100000}{Foo}"));
+    }
+
+    [Test]
+    public void HoleOfAServerPropertyLogsTheRawText()
+    {
+        this.writer.Write(Entry("{ClientTimestamp,1000000000}{ClientUrl}{ClientUrl}", properties: null) with { Url = "https://host/cases" });
+
+        Assert.That(this.sink.Single().RenderMessage(CultureInfo.InvariantCulture), Is.EqualTo("{ClientTimestamp,1000000000}{ClientUrl}{ClientUrl}"));
+    }
+
+    [Test]
+    public void HoleOfAReservedNameLogsTheRawText()
+    {
+        this.writer.Write(Entry("{Foo} {AppSource}", new Dictionary<string, string>(StringComparer.Ordinal) { ["Foo"] = "bar" }));
+
+        Assert.That(this.sink.Single().RenderMessage(CultureInfo.InvariantCulture), Is.EqualTo("{Foo} {AppSource}"));
+    }
+
+    [Test]
     public void ControlCharactersAreStripped()
     {
         this.writer.Write(Entry("{Foo}", new Dictionary<string, string>(StringComparer.Ordinal) { ["Foo"] = "first\n[ERR] forged" }));
@@ -162,7 +194,7 @@ public class ClientLogWriterTests
     }
 
     [Test]
-    public void PropertyCountIsClamped()
+    public void MoreHolesThanThePropertyLimitLogTheRawText()
     {
         var names = Enumerable.Range(0, ClientLogEntry.MaxProperties + 4).Select(static x => "P" + x.ToString(CultureInfo.InvariantCulture)).ToList();
         var template = string.Concat(names.Select(static x => "{" + x + "}"));
@@ -170,7 +202,13 @@ public class ClientLogWriterTests
 
         this.writer.Write(Entry(template, properties));
 
-        Assert.That(this.sink.Single().Properties.Keys.Count(static x => x.StartsWith('P')), Is.EqualTo(ClientLogEntry.MaxProperties));
+        var logEvent = this.sink.Single();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(logEvent.Properties.Keys.Count(static x => x.StartsWith('P')), Is.Zero);
+            Assert.That(logEvent.RenderMessage(CultureInfo.InvariantCulture), Is.EqualTo(template));
+        }
     }
 
     [Test]
