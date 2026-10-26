@@ -23,7 +23,7 @@ internal interface IFilePreviews
     public Task<int> RenderDocument(ElementReference host, Stream content, DotNetObjectReference<PreviewToolbar> view, CancellationToken token);
 
     /// <summary>
-    /// Lets the text, Markdown or e-mail shown in the scrolling element reflow at a zoom and be searched through
+    /// Lets the text, Markdown, e-mail or data message shown in the scrolling element reflow at a zoom and be searched through
     /// <see cref="ZoomView"/> and <see cref="FindInView"/>; the view hears of the zoom and the search matches.
     /// </summary>
     public Task OpenTextView(ElementReference stage, DotNetObjectReference<PreviewToolbar> view);
@@ -49,6 +49,12 @@ internal interface IFilePreviews
     /// password-protected one included, throws a <c>JSException</c>.
     /// </summary>
     public Task<int> RenderPdf(ElementReference host, string url, DotNetObjectReference<PreviewToolbar> view, CancellationToken token);
+
+    /// <summary>
+    /// Shows a PDF held in memory, an attachment of a data message, as
+    /// <see cref="RenderPdf(ElementReference, string, DotNetObjectReference{PreviewToolbar}, CancellationToken)"/> does.
+    /// </summary>
+    public Task<int> RenderPdf(ElementReference host, Stream content, DotNetObjectReference<PreviewToolbar> view, CancellationToken token);
 
     public Task ZoomPdf(ElementReference host, PreviewZoom zoom);
 

@@ -20,3 +20,12 @@ export async function createObjectUrl(mediaType, contentStream) {
 export function revokeObjectUrl(url) {
     URL.revokeObjectURL(url);
 }
+
+// Content the app holds in memory is saved through a Blob URL of an opaque type, so the browser never shows it.
+export async function downloadContent(fileName, contentStream) {
+    const url = URL.createObjectURL(new Blob([await contentStream.arrayBuffer()], { type: 'application/octet-stream' }));
+
+    downloadFile(url, fileName);
+    // The download has taken the URL long before.
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+}

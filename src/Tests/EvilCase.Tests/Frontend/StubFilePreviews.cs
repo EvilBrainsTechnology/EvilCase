@@ -17,6 +17,8 @@ internal sealed class StubFilePreviews : IFilePreviews
 
     public List<string> RenderedPdfs { get; } = [];
 
+    public List<byte[]> RenderedPdfContents { get; } = [];
+
     public int PdfPages { get; set; } = 3;
 
     public int DocumentPages { get; set; } = 4;
@@ -124,6 +126,19 @@ internal sealed class StubFilePreviews : IFilePreviews
         this.PdfView = view;
 
         return Task.FromResult(this.PdfPages);
+    }
+
+    public async Task<int> RenderPdf(ElementReference host, Stream content, DotNetObjectReference<PreviewToolbar> view, CancellationToken token)
+    {
+        this.ThrowWhenFailing();
+
+        await using var bytes = new MemoryStream();
+
+        await content.CopyToAsync(bytes, token);
+        this.RenderedPdfContents.Add(bytes.ToArray());
+        this.PdfView = view;
+
+        return this.PdfPages;
     }
 
     public Task ZoomPdf(ElementReference host, PreviewZoom zoom)

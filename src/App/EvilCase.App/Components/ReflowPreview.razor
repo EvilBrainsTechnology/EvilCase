@@ -3,7 +3,7 @@
 @inject IFilePreviews Previews
 @inject ILogger<ReflowPreview> Logger
 
-@* A text, Markdown or e-mail: the zoom changes the size of the text, which reflows to the width of the stage. *@
+@* A text, Markdown, e-mail or data message:the zoom changes the size of the text, which reflows to the width of the stage. *@
 <div class="ec-preview-view">
     <PreviewToolbar @ref="this.toolbar" Ready="this.ready" OnZoom="this.Zoom" OnSearch="this.Search" />
     <div @ref="this.stage" class="ec-preview-stage ec-preview-stage-text">

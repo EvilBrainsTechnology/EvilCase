@@ -1352,6 +1352,11 @@ html {
     border-left: 1px solid var(--ec-border);
 }
 
+.ec-preview-back {
+    display: flex;
+    flex: 0 0 auto;
+}
+
 /* Lišta náhledu nad jedinou posuvnou plochou; plochu PDF vlastní prohlížeč PDF.js, jehož styl se načte až s ním. */
 :root {
     color-scheme: light;
@@ -1918,6 +1923,129 @@ html {
     flex: 0 0 auto;
     color: var(--ec-text-muted);
     font-size: var(--ec-text-xs);
+}
+
+.ec-preview-data-message .ec-preview-email-headers {
+    grid-template-columns: var(--ec-preview-data-message-label) minmax(0, 1fr);
+}
+
+.ec-preview-data-message-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ec-space-2) var(--ec-space-3);
+}
+
+.ec-preview-data-message-subject {
+    margin: 0;
+    font-size: var(--ec-text-lg);
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-preview-data-message-party {
+    display: flex;
+    flex-direction: column;
+}
+
+.ec-preview-data-message-box,
+.ec-preview-data-message-address {
+    color: var(--ec-text-muted);
+    font-size: var(--ec-text-sm);
+}
+
+.ec-preview-data-message-attachments {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border: 1px solid var(--ec-border);
+    border-radius: var(--ec-radius-md);
+}
+
+.ec-preview-data-message-attachment {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+    padding: var(--ec-space-2) var(--ec-space-3);
+    border-bottom: 1px solid var(--ec-border-subtle);
+    font-size: var(--ec-text-md);
+}
+
+.ec-preview-data-message-attachment:last-child {
+    border-bottom: 0;
+}
+
+.ec-preview-data-message-attachment:hover {
+    background: var(--ec-surface-sunken);
+}
+
+.ec-preview-data-message-attachment-open {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+/* The whole row opens the attachment. */
+.ec-preview-data-message-attachment-open::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+}
+
+.ec-preview-data-message-attachment:hover .ec-preview-data-message-attachment-open {
+    color: var(--ec-accent-text);
+}
+
+.ec-preview-data-message-attachment-open:focus-visible {
+    outline: none;
+}
+
+.ec-preview-data-message-attachment-open:focus-visible::after {
+    border-radius: var(--ec-radius-md);
+    box-shadow: inset 0 0 0 2px var(--ec-accent);
+}
+
+.ec-preview-data-message-attachment-size {
+    flex: 0 0 auto;
+    color: var(--ec-text-muted);
+    font-size: var(--ec-text-xs);
+    font-variant-numeric: tabular-nums;
+}
+
+/* The download sits above the row's open overlay. */
+.ec-preview-data-message-attachment .ec-button {
+    position: relative;
+    z-index: 1;
+}
+
+.ec-preview-data-message-events {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ec-preview-data-message-event {
+    display: grid;
+    grid-template-columns: var(--ec-preview-data-message-label) minmax(0, 1fr);
+    gap: var(--ec-space-4);
+    font-size: var(--ec-text-md);
+}
+
+.ec-preview-data-message-event-time {
+    color: var(--ec-text-muted);
+    font-variant-numeric: tabular-nums;
 }
 
 .ec-comment-list {
@@ -3403,6 +3531,35 @@ html {
 
     .ec-preview-action-label {
         display: none;
+    }
+
+    .ec-modal-large .ec-modal-header .ec-preview-back .ec-button {
+        width: var(--ec-touch-min);
+        height: var(--ec-touch-min);
+        padding: 0;
+    }
+
+    .ec-preview-data-message .ec-preview-email-headers {
+        grid-template-columns: minmax(0, 1fr);
+        row-gap: var(--ec-space-1);
+    }
+
+    .ec-preview-data-message .ec-preview-email-headers dd {
+        margin-bottom: var(--ec-space-2);
+    }
+
+    .ec-preview-data-message-attachment {
+        min-height: var(--ec-touch-min);
+    }
+
+    .ec-preview-data-message-attachment .ec-button {
+        width: var(--ec-touch-min);
+        height: var(--ec-touch-min);
+    }
+
+    .ec-preview-data-message-event {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0;
     }
 
     .ec-preview-divider {

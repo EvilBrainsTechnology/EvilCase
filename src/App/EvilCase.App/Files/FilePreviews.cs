@@ -70,6 +70,15 @@ internal sealed class FilePreviews(IJSRuntime jsRuntime) : IFilePreviews, IAsync
         return await previews.InvokeAsync<int>("renderPdf", token, host, url, view);
     }
 
+    public async Task<int> RenderPdf(ElementReference host, Stream content, DotNetObjectReference<PreviewToolbar> view, CancellationToken token)
+    {
+        var previews = await this.Module(token);
+
+        using var streamRef = new DotNetStreamReference(content);
+
+        return await previews.InvokeAsync<int>("renderPdfContent", token, host, streamRef, view);
+    }
+
     public async Task ZoomPdf(ElementReference host, PreviewZoom zoom)
     {
         var previews = await this.Module(CancellationToken.None);

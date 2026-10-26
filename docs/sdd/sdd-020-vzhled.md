@@ -103,7 +103,9 @@ v nabídce je Přejmenovat a oddělené, červené Smazat…. Při tažení soub
 přerušovaný akcentový rámeček s textem „Pusťte soubory a nahrají se k úkonu" (ve spisu „ke
 spisu") a limity. Náhled souboru je velký modal; hlavička nese ikonu, název, velikost
 a okamžik nahrání, u víc souborů karty přechod mezi nimi s pořadím „2 z 5", Přejmenovat,
-Stáhnout a zavření.
+Stáhnout a zavření. Náhled přílohy datové zprávy nese v hlavičce návrat „← Zpráva", ikonu, název
+a velikost přílohy, u víc příloh přechod mezi nimi s pořadím „příloha 2 z 5", Stáhnout přílohu
+a zavření; Přejmenovat nenese.
 
 Načítání aplikace a přihlášení sdílejí jeden rám: tmavá stránka, uprostřed nahoře značka
 a pod ní jedna bílá karta s postupem načítání, nebo s přihlašovacím formulářem. Značka zůstává
@@ -130,8 +132,8 @@ tlačítka zůstávají u spodního okraje okna. Pole i celá lišta seznamu maj
 řádky a řazení přebírá select v liště. Drobečky drží jeden řádek a dlouhé položky se zkrátí.
 Dlaždice počtů na přehledu tvoří jeden řádek tří stejných buněk jen s počtem a popiskem; každá
 buňka vede na svůj seznam. Název souboru v kartě má až dva řádky. Hlavička náhledu souboru
-nese na prvním řádku název a zavření, akce pod nimi na jednom řádku; na mobilu jsou Přejmenovat
-a Stáhnout tlačítka jen s ikonou.
+nese na prvním řádku název a zavření, akce pod nimi na jednom řádku; na mobilu jsou Přejmenovat,
+Stáhnout, návrat na zprávu a Stáhnout přílohu tlačítka jen s ikonou.
 
 ### Bez cizí knihovny
 

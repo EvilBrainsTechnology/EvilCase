@@ -26,4 +26,6 @@ public enum FilePreviewKind
     Email = 9,
 
     ConvertedImage = 10,
+
+    DataMessage = 11,
 }

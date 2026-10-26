@@ -797,11 +797,20 @@ function releasePdfs() {
 }
 
 export async function renderPdf(host, url, view) {
+    return await showPdf(host, { url, withCredentials: true }, view);
+}
+
+// An attachment of a data message is held in memory; the library reads its bytes rather than a URL.
+export async function renderPdfContent(host, contentStream, view) {
+    return await showPdf(host, { data: new Uint8Array(await contentStream.arrayBuffer()) }, view);
+}
+
+async function showPdf(host, source, view) {
     releasePdfs();
     disposePdf(host);
 
     try {
-        return await openPdf(host, url, view);
+        return await openPdf(host, source, view);
     } catch (error) {
         disposePdf(host);
 
@@ -817,7 +826,7 @@ function next(eventBus, name, signal) {
     return new Promise(resolve => eventBus.on(name, resolve, { once: true, signal }));
 }
 
-async function openPdf(host, url, view) {
+async function openPdf(host, source, view) {
     const { lib, viewer: viewerLib } = await loadPdfViewer();
 
     // A preview closed while the library loaded has nothing left to release it, so nothing is opened for it.
@@ -861,8 +870,7 @@ async function openPdf(host, url, view) {
     linkService.setViewer(viewer);
 
     const task = lib.getDocument({
-        url,
-        withCredentials: true,
+        ...source,
         enableXfa: false,
         verbosity: 0,
         wasmUrl: pdfLib('wasm/'),

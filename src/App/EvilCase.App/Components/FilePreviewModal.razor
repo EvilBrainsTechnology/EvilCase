@@ -8,51 +8,84 @@
 @inject IAuthSession Session
 @inject IBlobUrls BlobUrls
 @inject IFilePreviews Previews
+@inject IFileDownloader Downloader
 @inject ILogger<FilePreviewModal> Logger
 
 @if (this.Current is { } file)
 {
-    var preview = FileTypeDisplay.Preview(file.FileName);
+    var attachment = this.ShownAttachment;
+    var shownName = attachment?.Name ?? file.FileName;
+    var preview = FileTypeDisplay.Preview(shownName);
 
-    <EcModal Title="@file.FileName" Large Open="this.Open" OpenChanged="this.OpenChanged">
+    <EcModal Title="@shownName" Large Open="this.Open" OpenChanged="this.OpenChanged">
         <Heading>
-            <EcFileIcon FileName="@file.FileName" />
-            @if (this.renaming)
+            @if (attachment is not null)
             {
-                <FileRenameField @key="file.FileId" FileName="@file.FileName" Rename="(name, token) => this.Rename(file, name, token)"
-                                 OnRenamed="this.Renamed" OnCancel="this.CancelRename" />
+                var (owner, ownerName, position) = this.trail[^1];
+
+                <div class="ec-preview-back">
+                    <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.ArrowLeft" AriaLabel="Zpět na zprávu" OnClick="this.BackToMessage"><span class="ec-preview-action-label">Zpráva</span></EcButton>
+                </div>
+                <EcFileIcon FileName="@attachment.Name" />
+                <div class="ec-preview-title">
+                    <h2 class="ec-preview-name" title="@attachment.Name">@attachment.Name</h2>
+                    <span class="ec-preview-meta">@FileSizeDisplay.Text(attachment.Content.Length) <span class="ec-sep" aria-hidden="true">·</span> příloha zprávy @ownerName</span>
+                </div>
+                <div class="ec-preview-actions">
+                    @if (owner.Attachments.Count > 1)
+                    {
+                        <nav class="ec-preview-nav" aria-label="Přílohy">
+                            <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.ChevronLeft" AriaLabel="Předchozí příloha"
+                                      OnClick="() => this.StepAttachment(-1)" />
+                            <span class="ec-preview-position">příloha <strong>@(position + 1)</strong> z @owner.Attachments.Count</span>
+                            <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.ChevronRight" AriaLabel="Další příloha"
+                                      OnClick="() => this.StepAttachment(1)" />
+                        </nav>
+                        <span class="ec-preview-divider" aria-hidden="true"></span>
+                    }
+                    <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Download" AriaLabel="Stáhnout přílohu" OnClick="() => this.DownloadAttachment(attachment)"><span class="ec-preview-action-label">Stáhnout přílohu</span></EcButton>
+                </div>
             }
             else
             {
-                <div class="ec-preview-title">
-                    <h2 class="ec-preview-name" title="@file.FileName">@file.FileName</h2>
-                    <span class="ec-preview-meta">@FileSizeDisplay.Text(file.SizeBytes) <span class="ec-sep" aria-hidden="true">·</span> @MomentDisplay.Text(file.Created)</span>
+                <EcFileIcon FileName="@file.FileName" />
+                if (this.renaming)
+                {
+                    <FileRenameField @key="file.FileId" FileName="@file.FileName" Rename="(name, token) => this.Rename(file, name, token)"
+                                     OnRenamed="this.Renamed" OnCancel="this.CancelRename" />
+                }
+                else
+                {
+                    <div class="ec-preview-title">
+                        <h2 class="ec-preview-name" title="@file.FileName">@file.FileName</h2>
+                        <span class="ec-preview-meta">@FileSizeDisplay.Text(file.SizeBytes) <span class="ec-sep" aria-hidden="true">·</span> @MomentDisplay.Text(file.Created)</span>
+                    </div>
+                }
+                <div class="ec-preview-actions">
+                    @if (this.Files.Count > 1)
+                    {
+                        <nav class="ec-preview-nav" aria-label="Soubory">
+                            <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.ChevronLeft" AriaLabel="Předchozí soubor"
+                                      OnClick="() => this.Step(-1)" />
+                            <span class="ec-preview-position"><strong>@(this.Position + 1)</strong> z @this.Files.Count</span>
+                            <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.ChevronRight" AriaLabel="Další soubor"
+                                      OnClick="() => this.Step(1)" />
+                        </nav>
+                        <span class="ec-preview-divider" aria-hidden="true"></span>
+                    }
+                    <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Pencil" AriaLabel="Přejmenovat" OnClick="this.StartRename"><span class="ec-preview-action-label">Přejmenovat</span></EcButton>
+                    <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Download" AriaLabel="Stáhnout" OnClick="() => this.OnDownload.InvokeAsync(file)"><span class="ec-preview-action-label">Stáhnout</span></EcButton>
                 </div>
             }
-            <div class="ec-preview-actions">
-                @if (this.Files.Count > 1)
-                {
-                    <nav class="ec-preview-nav" aria-label="Soubory">
-                        <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.ChevronLeft" AriaLabel="Předchozí soubor"
-                                  OnClick="() => this.Step(-1)" />
-                        <span class="ec-preview-position"><strong>@(this.Position + 1)</strong> z @this.Files.Count</span>
-                        <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.ChevronRight" AriaLabel="Další soubor"
-                                  OnClick="() => this.Step(1)" />
-                    </nav>
-                    <span class="ec-preview-divider" aria-hidden="true"></span>
-                }
-                <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Pencil" AriaLabel="Přejmenovat" OnClick="this.StartRename"><span class="ec-preview-action-label">Přejmenovat</span></EcButton>
-                <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Download" AriaLabel="Stáhnout" OnClick="() => this.OnDownload.InvokeAsync(file)"><span class="ec-preview-action-label">Stáhnout</span></EcButton>
-            </div>
         </Heading>
         <ChildContent>
             @if (preview == FilePreviewKind.None || this.unsupported)
             {
                 <div class="ec-preview-message">
-                    <EcFileIcon FileName="@file.FileName" Size="EcFileIconSize.Large" />
+                    <EcFileIcon FileName="@shownName" Size="EcFileIconSize.Large" />
                     <p class="ec-preview-message-title">Náhled tohoto typu souboru není k dispozici</p>
                     <p class="ec-preview-message-text">Soubor si stáhněte a otevřete v aplikaci, která ho umí zobrazit.</p>
-                    <EcButton Variant="EcButtonVariant.Primary" Icon="@AppIcons.Download" OnClick="() => this.OnDownload.InvokeAsync(file)">Stáhnout soubor</EcButton>
+                    <EcButton Variant="EcButtonVariant.Primary" Icon="@AppIcons.Download" OnClick="() => this.DownloadShown(file)">Stáhnout soubor</EcButton>
                 </div>
             }
             else if (this.failed)
@@ -68,12 +101,12 @@
             }
             else if (preview == FilePreviewKind.Text)
             {
-                <ReflowPreview @key="file.FileId">
+                <ReflowPreview @key="this.shownKey">
                     @if (this.truncated)
                     {
                         <p class="ec-preview-note">Soubor je delší, zobrazuje se jen jeho začátek.</p>
                     }
-                    <div class="ec-preview-text" role="document" tabindex="0" aria-label="Obsah souboru @file.FileName">
+                    <div class="ec-preview-text" role="document" tabindex="0" aria-label="Obsah souboru @shownName">
                         @for (var index = 0; index < this.lines.Count; index++)
                         {
                             <div class="ec-preview-line">
@@ -86,17 +119,17 @@
             }
             else if (preview == FilePreviewKind.Markdown)
             {
-                <ReflowPreview @key="file.FileId">
+                <ReflowPreview @key="this.shownKey">
                     @if (this.truncated)
                     {
                         <p class="ec-preview-note">Soubor je delší, zobrazuje se jen jeho začátek.</p>
                     }
-                    <article class="ec-preview-markdown" role="document" tabindex="0" aria-label="Obsah souboru @file.FileName">@((MarkupString)this.markdownHtml)</article>
+                    <article class="ec-preview-markdown" role="document" tabindex="0" aria-label="Obsah souboru @shownName">@((MarkupString)this.markdownHtml)</article>
                 </ReflowPreview>
             }
             else if (preview == FilePreviewKind.Document)
             {
-                <DocumentPreview @key="file.FileId" Content="this.document!" FileName="@file.FileName" OnUnreadable="this.Unreadable" />
+                <DocumentPreview @key="this.shownKey" Content="this.document!" FileName="@shownName" OnUnreadable="this.Unreadable" />
             }
             else if (preview == FilePreviewKind.Workbook)
             {
@@ -154,8 +187,8 @@
             {
                 var message = this.email!;
 
-                <ReflowPreview @key="file.FileId">
-                    <article class="ec-preview-email" role="document" tabindex="0" aria-label="Obsah zprávy @file.FileName">
+                <ReflowPreview @key="this.shownKey">
+                    <article class="ec-preview-email" role="document" tabindex="0" aria-label="Obsah zprávy @shownName">
                         <dl class="ec-preview-email-headers">
                             <dt>Od</dt>
                             <dd>@Or(message.From)</dd>
@@ -169,7 +202,7 @@
                             <dt>Předmět</dt>
                             <dd>@Or(message.Subject)</dd>
                             <dt>Datum</dt>
-                            <dd>@(message.Date is { } sent ? MomentDisplay.Text(sent.UtcDateTime) : "—")</dd>
+                            <dd>@Moment(message.Date)</dd>
                         </dl>
                         @if (message.Truncated)
                         {
@@ -195,26 +228,111 @@
                     </article>
                 </ReflowPreview>
             }
+            else if (preview == FilePreviewKind.DataMessage)
+            {
+                var message = this.dataMessage!;
+
+                <ReflowPreview @key="this.shownKey">
+                    <article class="ec-preview-email ec-preview-data-message" role="document" tabindex="0" aria-label="Obsah datové zprávy @shownName">
+                        <div class="ec-preview-data-message-head">
+                            <h3 class="ec-preview-data-message-subject">@Or(message.Subject)</h3>
+                            <EcBadge Text="@(message.Kind == DataMessageKind.Message ? "Datová zpráva" : "Doručenka")" Tone="EcBadgeTone.Official" />
+                        </div>
+                        <dl class="ec-preview-email-headers">
+                            @foreach (var (label, party) in new[] { ("Odesílatel", message.Sender), ("Adresát", message.Recipient) })
+                            {
+                                <dt>@label</dt>
+                                <dd class="ec-preview-data-message-party">
+                                    <span>@Or(party.Name)</span>
+                                    @if (party.BoxId.Length > 0)
+                                    {
+                                        <span class="ec-preview-data-message-box">ID schránky @party.BoxId</span>
+                                    }
+                                    @if (party.Address.Length > 0)
+                                    {
+                                        <span class="ec-preview-data-message-address">@party.Address</span>
+                                    }
+                                </dd>
+                            }
+                            @foreach (var (label, value) in new[]
+                                      {
+                                          ("Č. j. odesílatele", message.SenderRefNumber), ("Sp. zn. odesílatele", message.SenderIdent),
+                                          ("Č. j. adresáta", message.RecipientRefNumber), ("Sp. zn. adresáta", message.RecipientIdent),
+                                      })
+                            {
+                                if (value.Length > 0)
+                                {
+                                    <dt>@label</dt>
+                                    <dd>@value</dd>
+                                }
+                            }
+                            <dt>ID zprávy</dt>
+                            <dd>@Or(message.MessageId)</dd>
+                            <dt>Dodáno</dt>
+                            <dd>@Moment(message.Delivered)</dd>
+                            <dt>Doručeno</dt>
+                            <dd>@Moment(message.Accepted)</dd>
+                        </dl>
+                        @if (message.Attachments.Count > 0)
+                        {
+                            <section class="ec-preview-email-attachments" aria-label="Přílohy">
+                                <h3 class="ec-preview-email-attachments-title">Přílohy (@message.Attachments.Count)</h3>
+                                <ul class="ec-preview-data-message-attachments">
+                                    @for (var index = 0; index < message.Attachments.Count; index++)
+                                    {
+                                        var attachmentIndex = index;
+                                        var item = message.Attachments[index];
+
+                                        <li class="ec-preview-data-message-attachment">
+                                            <EcFileIcon FileName="@item.Name" Size="EcFileIconSize.Compact" />
+                                            <button type="button" class="ec-preview-data-message-attachment-open" title="Otevřít náhled"
+                                                    @onclick="() => this.OpenAttachment(shownName, attachmentIndex)">@item.Name</button>
+                                            <span class="ec-preview-data-message-attachment-size">@FileSizeDisplay.Text(item.Content.Length)</span>
+                                            <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Download"
+                                                      AriaLabel="@($"Stáhnout {item.Name}")" title="Stáhnout" OnClick="() => this.DownloadAttachment(item)" />
+                                        </li>
+                                    }
+                                </ul>
+                            </section>
+                        }
+                        @if (message.Events.Count > 0)
+                        {
+                            <section class="ec-preview-email-attachments" aria-label="Události">
+                                <h3 class="ec-preview-email-attachments-title">Události (@message.Events.Count)</h3>
+                                <ol class="ec-preview-data-message-events">
+                                    @foreach (var item in message.Events)
+                                    {
+                                        <li class="ec-preview-data-message-event">
+                                            <span class="ec-preview-data-message-event-time">@Moment(item.Time)</span>
+                                            <span class="ec-preview-data-message-event-description">@item.Description</span>
+                                        </li>
+                                    }
+                                </ol>
+                            </section>
+                        }
+                    </article>
+                </ReflowPreview>
+            }
             else if (preview == FilePreviewKind.Pdf)
             {
-                <PdfPreview @key="file.FileId" Url="@(this.url!)" FileName="@file.FileName" OnUnreadable="this.Unreadable" />
+                <PdfPreview @key="this.shownKey" Url="@(this.url ?? "")" Content="this.pdf" FileName="@shownName" OnUnreadable="this.Unreadable" />
             }
             else if (preview == FilePreviewKind.Image || preview == FilePreviewKind.ConvertedImage)
             {
                 <div class="ec-preview-stage">
-                    <img @key="file.FileId" class="ec-preview-image" src="@this.url" alt="@file.FileName" @onerror="this.Unreadable" />
+                    <img @key="this.shownKey" class="ec-preview-image" src="@this.url" alt="@shownName" @onerror="this.Unreadable" />
                 </div>
             }
             else if (preview == FilePreviewKind.Audio)
             {
                 <div class="ec-preview-stage">
-                    <audio @key="file.FileId" class="ec-preview-audio" src="@this.url" controls @onerror="this.Unreadable"></audio>
+                    <audio @key="this.shownKey" class="ec-preview-audio" src="@this.url" controls @onerror="this.Unreadable"></audio>
                 </div>
             }
             else
             {
                 <div class="ec-preview-stage">
-                    <video @key="file.FileId" class="ec-preview-video" src="@this.url" controls @onerror="this.Unreadable"></video>
+                    <video @key="this.shownKey" class="ec-preview-video" src="@this.url" controls @onerror="this.Unreadable"></video>
                 </div>
             }
         </ChildContent>
@@ -257,6 +375,9 @@
     [Parameter]
     public EventCallback<bool> OpenChanged { get; set; }
 
+    // The attachments opened, outermost first; empty shows the stored file.
+    private readonly List<(DataMessagePreview Message, string MessageName, int Index)> trail = [];
+
     private CancellationTokenSource? loadToken;
 
     private Guid? loadedFileId;
@@ -275,6 +396,12 @@
 
     private byte[]? document;
 
+    private byte[]? pdf;
+
+    private DataMessagePreview? dataMessage;
+
+    private int shownKey;
+
     private IReadOnlyList<string> lines = [];
 
     private bool truncated;
@@ -290,6 +417,8 @@
     private FileListItem? Current => this.Files.FirstOrDefault(file => file.FileId == this.FileId);
 
     private int Position => Enumerable.Range(0, this.Files.Count).Single(index => this.Files[index].FileId == this.FileId);
+
+    private DataMessageAttachment? ShownAttachment => this.trail.Count == 0 ? null : this.trail[^1].Message.Attachments[this.trail[^1].Index];
 
     protected override async Task OnParametersSetAsync()
     {
@@ -308,12 +437,11 @@
         await this.ReleaseUrl();
     }
 
-    private async Task Reload(FileListItem file)
+    // Cancels what is loading and clears what is shown, so a stale load never overwrites a newer one.
+    private CancellationToken Reset()
     {
         this.loadToken?.Cancel();
-        var token = (this.loadToken = new CancellationTokenSource()).Token;
-
-        this.loadedFileId = file.FileId;
+        this.shownKey++;
         this.loading = true;
         this.failed = false;
         this.unsupported = false;
@@ -324,6 +452,18 @@
         this.activeSheet = 0;
         this.email = null;
         this.document = null;
+        this.pdf = null;
+        this.dataMessage = null;
+
+        return (this.loadToken = new CancellationTokenSource()).Token;
+    }
+
+    private async Task Reload(FileListItem file)
+    {
+        var token = this.Reset();
+
+        this.loadedFileId = file.FileId;
+        this.trail.Clear();
 
         await this.ReleaseUrl();
 
@@ -332,6 +472,14 @@
         if (preview == FilePreviewKind.None)
         {
             this.loading = false;
+
+            return;
+        }
+
+        if (preview == FilePreviewKind.DataMessage && file.SizeBytes > DataMessageZfo.MaxBytes)
+        {
+            this.loading = false;
+            this.unsupported = true;
 
             return;
         }
@@ -358,7 +506,7 @@
 
             await using var content = await this.LoadContent(file, token);
 
-            await this.Load(file, preview, content, token);
+            await this.Load(file.FileName, preview, content, token);
 
             if (!token.IsCancellationRequested)
                 this.loading = false;
@@ -390,7 +538,7 @@
     }
 
     // Each branch writes nothing once a later file took over, so a stale load never overwrites a newer one.
-    private async Task Load(FileListItem file, FilePreviewKind preview, Stream content, CancellationToken token)
+    private async Task Load(string fileName, FilePreviewKind preview, Stream content, CancellationToken token)
     {
         switch (preview)
         {
@@ -449,7 +597,7 @@
 
             case FilePreviewKind.Email:
             {
-                var message = await this.Previews.ReadEmail(file.FileName, content, token);
+                var message = await this.Previews.ReadEmail(fileName, content, token);
 
                 if (!token.IsCancellationRequested)
                     this.email = message;
@@ -457,8 +605,37 @@
                 break;
             }
 
-            case FilePreviewKind.None:
+            // A stored PDF is requested by the library itself; only an attachment held in memory comes here.
             case FilePreviewKind.Pdf:
+            {
+                using var bytes = new MemoryStream();
+
+                await content.CopyToAsync(bytes, token);
+
+                if (!token.IsCancellationRequested)
+                    this.pdf = bytes.ToArray();
+
+                break;
+            }
+
+            case FilePreviewKind.DataMessage:
+            {
+                using var bytes = new MemoryStream();
+
+                await content.CopyToAsync(bytes, token);
+
+                if (token.IsCancellationRequested)
+                    break;
+
+                if (DataMessageZfo.ParseOrDefault(bytes.ToArray()) is { } message)
+                    this.dataMessage = message;
+                else
+                    this.unsupported = true;
+
+                break;
+            }
+
+            case FilePreviewKind.None:
             case FilePreviewKind.Audio:
             case FilePreviewKind.Video:
                 throw new UnreachableException();
@@ -476,9 +653,108 @@
             (this.url, this.urlIsBlob) = (created, true);
     }
 
+    private async Task ShowAttachment(DataMessageAttachment attachment)
+    {
+        var token = this.Reset();
+
+        await this.ReleaseUrl();
+
+        var preview = FileTypeDisplay.Preview(attachment.Name);
+
+        if (preview == FilePreviewKind.None)
+        {
+            this.loading = false;
+
+            return;
+        }
+
+        try
+        {
+            await using var content = new MemoryStream(attachment.Content, writable: false);
+
+            // What the browser shows natively is a blob of the type the extension gives.
+            if (InlineFileTypes.MediaType(attachment.Name) is { } mediaType)
+                await this.ShowUrl(await this.BlobUrls.CreateBlobUrl(mediaType, content, token), token);
+            else
+                await this.Load(attachment.Name, preview, content, token);
+
+            if (!token.IsCancellationRequested)
+                this.loading = false;
+        }
+        catch (OperationCanceledException)
+        {
+            // A later attachment or file took over.
+        }
+        catch (JSException exception)
+        {
+            this.Logger.LogInformation(exception, "The library could not read an attachment of a data message for the preview");
+
+            if (!token.IsCancellationRequested)
+            {
+                this.loading = false;
+                this.unsupported = true;
+            }
+        }
+    }
+
+    private async Task OpenAttachment(string messageName, int index)
+    {
+        var message = this.dataMessage!;
+
+        this.renaming = false;
+        this.trail.Add((message, messageName, index));
+
+        await this.ShowAttachment(message.Attachments[index]);
+    }
+
+    private async Task StepAttachment(int direction)
+    {
+        var (message, messageName, index) = this.trail[^1];
+        var count = message.Attachments.Count;
+        var next = ((index + direction) % count + count) % count;
+
+        this.trail[^1] = (message, messageName, next);
+
+        await this.ShowAttachment(message.Attachments[next]);
+    }
+
+    // The message was parsed when it was opened, so it shows again without a load.
+    private async Task BackToMessage()
+    {
+        var message = this.trail[^1].Message;
+
+        this.trail.RemoveAt(this.trail.Count - 1);
+        _ = this.Reset();
+
+        await this.ReleaseUrl();
+
+        this.dataMessage = message;
+        this.loading = false;
+    }
+
+    private async Task DownloadAttachment(DataMessageAttachment attachment)
+    {
+        await using var content = new MemoryStream(attachment.Content, writable: false);
+
+        await this.Downloader.DownloadContent(attachment.Name, content, CancellationToken.None);
+    }
+
+    private async Task DownloadShown(FileListItem file)
+    {
+        if (this.ShownAttachment is { } attachment)
+            await this.DownloadAttachment(attachment);
+        else
+            await this.OnDownload.InvokeAsync(file);
+    }
+
     private void Unreadable()
     {
         this.unsupported = true;
+    }
+
+    private static string Moment(DateTimeOffset? moment)
+    {
+        return moment is { } value ? MomentDisplay.Text(value.UtcDateTime) : "—";
     }
 
     private static bool UsesLibrary(FilePreviewKind preview)

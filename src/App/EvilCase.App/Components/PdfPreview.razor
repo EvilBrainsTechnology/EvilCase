@@ -28,10 +28,17 @@
     private int pages;
 
     /// <summary>
-    /// The content address the library requests the PDF from.
+    /// The content address the library requests the PDF from; unused when <see cref="Content"/> is given.
     /// </summary>
-    [Parameter, EditorRequired]
-    public required string Url { get; set; }
+    [Parameter]
+    public string Url { get; set; } = "";
+
+    /// <summary>
+    /// The bytes of a PDF held in memory, an attachment of a data message; the library reads them instead of
+    /// requesting <see cref="Url"/>.
+    /// </summary>
+    [Parameter]
+    public byte[]? Content { get; set; }
 
     [Parameter, EditorRequired]
     public required string FileName { get; set; }
@@ -74,7 +81,16 @@
 
         try
         {
-            var count = await this.Previews.RenderPdf(this.host, this.Url, this.toolbar!.View, token);
+            int count;
+
+            if (this.Content is { } content)
+            {
+                await using var stream = new MemoryStream(content, writable: false);
+
+                count = await this.Previews.RenderPdf(this.host, stream, this.toolbar!.View, token);
+            }
+            else
+                count = await this.Previews.RenderPdf(this.host, this.Url, this.toolbar!.View, token);
 
             if (!token.IsCancellationRequested)
             {

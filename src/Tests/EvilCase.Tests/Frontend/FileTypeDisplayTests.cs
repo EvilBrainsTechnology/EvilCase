@@ -68,7 +68,8 @@ public class FileTypeDisplayTests
     [TestCase("a.doc", FilePreviewKind.None)]
     [TestCase("a.odt", FilePreviewKind.None)]
     [TestCase("a.pptx", FilePreviewKind.None)]
-    [TestCase("a.zfo", FilePreviewKind.None)]
+    [TestCase("a.zfo", FilePreviewKind.DataMessage)]
+    [TestCase("a.ZFO", FilePreviewKind.DataMessage)]
     [TestCase("README", FilePreviewKind.None)]
     public void OnlyTheFormatsTheAppCanShowOpenInThePreview(string fileName, FilePreviewKind kind)
     {
