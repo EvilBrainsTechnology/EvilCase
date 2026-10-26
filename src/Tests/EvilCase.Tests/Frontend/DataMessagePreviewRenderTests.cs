@@ -75,6 +75,26 @@ public class DataMessagePreviewRenderTests
     }
 
     [Test]
+    public void AnEmptyPartyValueShowsADash()
+    {
+        using var ctx = NewContext(out _, out _, out _);
+
+        var xml = SyntheticZfo.MessageXml(SyntheticZfo.Namespace, [])
+            .Replace("<p:dbIDSender>tst0001</p:dbIDSender>", "<p:dbIDSender/>", StringComparison.Ordinal)
+            .Replace("<p:dmSenderAddress>Náměstí 1, 100 00 Praha 1</p:dmSenderAddress>", "", StringComparison.Ordinal);
+        var file = File("Zpráva.zfo");
+        var component = Render(ctx, [file], file.FileId, _ => SyntheticZfo.Sign(xml));
+
+        component.WaitForAssertion(() => Assert.That(component.FindAll(".ec-preview-data-message"), Has.Count.EqualTo(1)));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.FindAll(".ec-preview-data-message-box")[0].TextContent, Is.EqualTo("ID schránky —"));
+            Assert.That(component.FindAll(".ec-preview-data-message-address")[0].TextContent, Is.EqualTo("—"));
+        }
+    }
+
+    [Test]
     public void OpeningAnAttachmentShowsItsOwnPreviewUnderAnAttachmentHeader()
     {
         using var ctx = NewContext(out _, out var previews, out _);

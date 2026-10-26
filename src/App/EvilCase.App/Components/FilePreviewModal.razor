@@ -244,14 +244,8 @@
                                 <dt>@label</dt>
                                 <dd class="ec-preview-data-message-party">
                                     <span>@Or(party.Name)</span>
-                                    @if (party.BoxId.Length > 0)
-                                    {
-                                        <span class="ec-preview-data-message-box">ID schránky @party.BoxId</span>
-                                    }
-                                    @if (party.Address.Length > 0)
-                                    {
-                                        <span class="ec-preview-data-message-address">@party.Address</span>
-                                    }
+                                    <span class="ec-preview-data-message-box">ID schránky @Or(party.BoxId)</span>
+                                    <span class="ec-preview-data-message-address">@Or(party.Address)</span>
                                 </dd>
                             }
                             @foreach (var (label, value) in new[]
