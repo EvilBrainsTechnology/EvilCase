@@ -1925,8 +1925,11 @@ html {
     font-size: var(--ec-text-xs);
 }
 
+/* The attachments or events below draw the one divider. */
 .ec-preview-data-message .ec-preview-email-headers {
     grid-template-columns: var(--ec-preview-data-message-label) minmax(0, 1fr);
+    padding-bottom: 0;
+    border-bottom: 0;
 }
 
 .ec-preview-data-message-head {
