@@ -7,7 +7,8 @@ internal sealed class SecurityHeadersMiddleware(RequestDelegate next)
     /// no inline script, so the policy carries no hash. Inline styles are unavoidable: <c>EcTable</c>
     /// passes its column template through a custom property on the style attribute. The file preview
     /// plays and shows file content by its same-origin URL and reads a PDF with a same-origin module worker;
-    /// only a picture the app converts itself is a <c>blob:</c> URL, the only place <c>blob:</c> is allowed.
+    /// a picture the app converts itself and an attachment of a data message shown as a picture, audio or video
+    /// are <c>blob:</c> URLs, which only img-src and media-src allow; a PDF attachment reaches PDF.js as bytes.
     /// </summary>
     private const string ContentSecurityPolicy =
         "default-src 'self'; "
@@ -16,7 +17,7 @@ internal sealed class SecurityHeadersMiddleware(RequestDelegate next)
             + "frame-ancestors 'none'; "
             + "form-action 'self'; "
             + "img-src 'self' blob:; "
-            + "media-src 'self'; "
+            + "media-src 'self' blob:; "
             + "worker-src 'self'; "
             + "font-src 'self'; "
             + "style-src 'self' 'unsafe-inline'; "

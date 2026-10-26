@@ -1,0 +1,129 @@
+@inject IFileDownloader Downloader
+
+@if (this.message is { } message)
+{
+    <ReflowPreview>
+        <article class="ec-preview-email ec-preview-data-message" role="document" tabindex="0" aria-label="Obsah datové zprávy @this.FileName">
+            <div class="ec-preview-data-message-head">
+                <h3 class="ec-preview-data-message-subject">@Or(message.Subject)</h3>
+                <EcBadge Text="@(message.Kind == DataMessageKind.Message ? "Datová zpráva" : "Doručenka")" Tone="EcBadgeTone.Official" />
+            </div>
+            <dl class="ec-preview-email-headers">
+                @foreach (var (label, party) in new[] { ("Odesílatel", message.Sender), ("Adresát", message.Recipient) })
+                {
+                    <dt>@label</dt>
+                    <dd class="ec-preview-data-message-party">
+                        <span>@Or(party.Name)</span>
+                        <span class="ec-preview-data-message-box">ID schránky @Or(party.BoxId)</span>
+                        <span class="ec-preview-data-message-address">@Or(party.Address)</span>
+                    </dd>
+                }
+                @foreach (var (label, value) in new[]
+                          {
+                              ("Č. j. odesílatele", message.SenderRefNumber), ("Sp. zn. odesílatele", message.SenderIdent),
+                              ("Č. j. adresáta", message.RecipientRefNumber), ("Sp. zn. adresáta", message.RecipientIdent),
+                          })
+                {
+                    if (value.Length > 0)
+                    {
+                        <dt>@label</dt>
+                        <dd>@value</dd>
+                    }
+                }
+                <dt>ID zprávy</dt>
+                <dd>@Or(message.MessageId)</dd>
+                <dt>Dodáno</dt>
+                <dd>@Moment(message.Delivered)</dd>
+                <dt>Doručeno</dt>
+                <dd>@Moment(message.Accepted)</dd>
+            </dl>
+            @if (message.Attachments.Count > 0)
+            {
+                <section class="ec-preview-email-attachments" aria-label="Přílohy">
+                    <h3 class="ec-preview-email-attachments-title">Přílohy (@message.Attachments.Count)</h3>
+                    <ul class="ec-preview-data-message-attachments">
+                        @for (var index = 0; index < message.Attachments.Count; index++)
+                        {
+                            var attachmentIndex = index;
+                            var item = message.Attachments[index];
+
+                            <li class="ec-preview-data-message-attachment">
+                                <EcFileIcon FileName="@item.Name" Size="EcFileIconSize.Compact" />
+                                <button type="button" class="ec-preview-data-message-attachment-open" title="Otevřít náhled"
+                                        @onclick="() => this.OnOpenAttachment.InvokeAsync((message, attachmentIndex))">@item.Name</button>
+                                <span class="ec-preview-data-message-attachment-size">@FileSizeDisplay.Text(item.Content.Length)</span>
+                                <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Download"
+                                          AriaLabel="@($"Stáhnout {item.Name}")" title="Stáhnout" OnClick="() => this.DownloadAttachment(item)" />
+                            </li>
+                        }
+                    </ul>
+                </section>
+            }
+            @if (message.Events.Count > 0)
+            {
+                <section class="ec-preview-email-attachments" aria-label="Události">
+                    <h3 class="ec-preview-email-attachments-title">Události (@message.Events.Count)</h3>
+                    <ol class="ec-preview-data-message-events">
+                        @foreach (var item in message.Events)
+                        {
+                            <li class="ec-preview-data-message-event">
+                                <span class="ec-preview-data-message-event-time">@Moment(item.Time)</span>
+                                <span class="ec-preview-data-message-event-description">@item.Description</span>
+                            </li>
+                        }
+                    </ol>
+                </section>
+            }
+        </article>
+    </ReflowPreview>
+}
+
+@code {
+    private DataMessage? message;
+
+    /// <summary>
+    /// The bytes of the ZFO, a stored file or an attachment of another data message.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required byte[] Content { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string FileName { get; set; }
+
+    /// <summary>
+    /// Raised with the parsed message and the index of the attachment to preview.
+    /// </summary>
+    [Parameter]
+    public EventCallback<(DataMessage Message, int Index)> OnOpenAttachment { get; set; }
+
+    /// <summary>
+    /// Raised when the file is no ISDS data message or delivery receipt.
+    /// </summary>
+    [Parameter]
+    public EventCallback OnUnreadable { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        this.message = DataMessageZfo.ParseOrDefault(this.Content);
+
+        if (this.message is null)
+            await this.OnUnreadable.InvokeAsync();
+    }
+
+    private async Task DownloadAttachment(DataMessageAttachment attachment)
+    {
+        await using var content = new MemoryStream(attachment.Content, writable: false);
+
+        await this.Downloader.DownloadContent(attachment.Name, content, CancellationToken.None);
+    }
+
+    private static string Moment(DateTimeOffset? moment)
+    {
+        return moment is { } value ? MomentDisplay.Text(value.UtcDateTime) : "—";
+    }
+
+    private static string Or(string text)
+    {
+        return text.Length == 0 ? "—" : text;
+    }
+}

@@ -23,6 +23,11 @@ public static class AppIcons
         + "<path d='M6 15l-3 3l3 3' />"
         + "<path d='M18 15l3 3l-3 3' />";
 
+    public const string ArrowLeft = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M5 12l14 0' />"
+        + "<path d='M5 12l6 6' />"
+        + "<path d='M5 12l6 -6' />";
+
     public const string ArrowDownLeft = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M17 7l-10 10' />"
         + "<path d='M16 17h-9v-9' />";

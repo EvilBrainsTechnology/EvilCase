@@ -619,7 +619,7 @@ public class FilePreviewModalRenderTests
         Assert.That(component.Find(".ec-preview-line-text").TextContent, Is.EqualTo("řádek"));
     }
 
-    [TestCase("Doručenka.zfo")]
+    [TestCase("Smlouva.doc")]
     [TestCase("Sken.tif")]
     [TestCase("Sken.TIFF")]
     public void AFileWithoutPreviewOffersTheDownloadInstead(string fileName)
@@ -868,6 +868,7 @@ public class FilePreviewModalRenderTests
         previews = new StubFilePreviews();
         ctx.Services.AddSingleton<IBlobUrls>(blobs);
         ctx.Services.AddSingleton<IFilePreviews>(previews);
+        ctx.Services.AddSingleton<IFileDownloader>(new StubFileDownloader());
         ctx.Services.AddSingleton(new StubAuthSession());
         ctx.Services.AddSingleton<IAuthSession>(static services => services.GetRequiredService<StubAuthSession>());
 

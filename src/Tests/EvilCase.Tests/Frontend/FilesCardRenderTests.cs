@@ -360,7 +360,7 @@ public class FilesCardRenderTests
         using var ctx = NewContext();
 
         var downloader = ctx.Services.GetRequiredService<StubFileDownloader>();
-        var component = new Card { Files = [File("Doručenka.zfo")] }.Render(ctx);
+        var component = new Card { Files = [File("Smlouva.doc")] }.Render(ctx);
 
         var open = component.Find(".ec-file-row button.ec-file-name");
 
@@ -369,7 +369,7 @@ public class FilesCardRenderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(open.GetAttribute("title"), Is.EqualTo("Otevřít náhled"));
-            Assert.That(component.Find("dialog .ec-preview-name").TextContent, Is.EqualTo("Doručenka.zfo"));
+            Assert.That(component.Find("dialog .ec-preview-name").TextContent, Is.EqualTo("Smlouva.doc"));
             Assert.That(component.Find("dialog .ec-preview-message-title").TextContent, Is.EqualTo("Náhled tohoto typu souboru není k dispozici"));
             Assert.That(downloader.Downloaded, Is.Empty, "opening a file never downloads it");
         }
@@ -660,7 +660,7 @@ public class FilesCardRenderTests
     {
         using var ctx = NewContext();
 
-        var component = new Card { Files = [PdfFile(), File("Doručenka.zfo"), File("Foto.jpg")] }.Render(ctx);
+        var component = new Card { Files = [PdfFile(), File("Smlouva.doc"), File("Foto.jpg")] }.Render(ctx);
 
         component.Find(".ec-file-row button.ec-file-name").Click();
         component.WaitForAssertion(() => Assert.That(component.FindAll("dialog .ec-preview-pdf"), Has.Count.EqualTo(1)));
@@ -672,7 +672,7 @@ public class FilesCardRenderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(component.Find(".ec-preview-position").TextContent, Is.EqualTo("2 z 3"));
-            Assert.That(component.Find(".ec-preview-name").TextContent, Is.EqualTo("Doručenka.zfo"));
+            Assert.That(component.Find(".ec-preview-name").TextContent, Is.EqualTo("Smlouva.doc"));
             Assert.That(component.Find(".ec-preview-message-title").TextContent, Is.EqualTo("Náhled tohoto typu souboru není k dispozici"));
         }
     }

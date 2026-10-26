@@ -249,6 +249,22 @@ public class PdfPreviewRenderTests
         Assert.That(previews.DisposedPdfs, Is.EqualTo(1));
     }
 
+    [Test]
+    public void APdfHeldInMemoryIsHandedToTheLibraryAsItsBytes()
+    {
+        using var ctx = NewContext(out var previews);
+
+        ctx.Render<PdfPreview>(static parameters => parameters
+            .Add(static preview => preview.Content, [1, 2, 3])
+            .Add(static preview => preview.FileName, "Rozhodnutí.pdf"));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(previews.RenderedPdfContents, Is.EqualTo([new byte[] { 1, 2, 3 }]));
+            Assert.That(previews.RenderedPdfs, Is.Empty, "nothing is requested");
+        }
+    }
+
     private static AngleSharp.Dom.IElement Button(IRenderedComponent<PdfPreview> component, string label)
     {
         return component.Find($".ec-preview-toolbar button[aria-label='{label}']");

@@ -292,6 +292,7 @@
     --ec-preview-sheet-gutter: 48px;
     --ec-preview-sheet-cell: 320px;
     --ec-preview-email-label: 72px;
+    --ec-preview-data-message-label: 160px;
     --ec-preview-page-gap: 20px;
     --ec-overlay-strong: rgba(20, 22, 27, 0.6);
     --ec-comment-avatar-compact: 30px;

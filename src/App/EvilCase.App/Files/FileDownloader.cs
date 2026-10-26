@@ -9,16 +9,32 @@ internal sealed class FileDownloader(IJSRuntime jsRuntime, IAuthSession session)
 
     public async Task DownloadFile(Guid fileId, string fileName, CancellationToken token)
     {
-        this.module ??= await jsRuntime.InvokeAsync<IJSObjectReference>("import", token, "./js/files.js");
+        var files = await this.Module(token);
 
         await session.EnsureFresh(token);
 
-        await this.module.InvokeVoidAsync("downloadFile", token, FileUrl.Content(fileId), fileName);
+        await files.InvokeVoidAsync("downloadFile", token, FileUrl.Content(fileId), fileName);
+    }
+
+    public async Task DownloadContent(string fileName, Stream content, CancellationToken token)
+    {
+        var files = await this.Module(token);
+
+        using var streamRef = new DotNetStreamReference(content);
+
+        await files.InvokeVoidAsync("downloadContent", token, fileName, streamRef);
     }
 
     public async ValueTask DisposeAsync()
     {
         if (this.module is not null)
             await this.module.DisposeAsync();
+    }
+
+    private async Task<IJSObjectReference> Module(CancellationToken token)
+    {
+        this.module ??= await jsRuntime.InvokeAsync<IJSObjectReference>("import", token, "./js/files.js");
+
+        return this.module;
     }
 }

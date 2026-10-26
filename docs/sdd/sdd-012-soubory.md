@@ -62,13 +62,13 @@ Esc a Zrušit ho zahodí.
 
 - Rastrové obrázky (jpg, jpeg, png, gif, webp, avif, bmp), zvuk a video zobrazí
   prohlížeč sám z adresy obsahu; ostatní typy zobrazí aplikace. Typ se pozná podle přípony,
-  uložený `MediaType` se nepoužije.
+  uložený `MediaType` se nepoužije. Příloha datové zprávy se ukáže ze zprávy samé.
 - Zobrazí se PDF, obrázky (jpg, jpeg, png, gif, webp, avif, bmp, svg, heic, heif),
   text (txt, csv, tsv, json, xml, log, isdoc, html), Markdown (md, markdown), dokument Word
-  (docx), sešit (xlsx, xls, ods), e-mail (eml, msg), zvuk (mp3, m4a, wav, ogg, oga) a video
+  (docx), sešit (xlsx, xls, ods), e-mail (eml, msg), datovou zprávu a doručenku ISDS (zfo), zvuk (mp3, m4a, wav, ogg, oga) a video
   (mp4, webm, m4v, mov). Jiný typ nabídne jen stažení. Soubor, který se nepodaří přečíst, nabídne
   také jen stažení.
-- PDF, text, Markdown, e-mail a dokument Word mají nad obsahem stejnou lištu se zvětšením
+- PDF, text, Markdown, e-mail, datová zpráva a dokument Word mají nad obsahem stejnou lištu se zvětšením
   a zmenšením (50 až 400 %, také Ctrl nebo Cmd s kolečkem myši), na počítači i se skutečnou
   velikostí 100 %, a s hledáním. Hledání nerozlišuje velikost písmen ani diakritiku, zvýrazní
   všechny výskyty, aktuální odliší a posune do zobrazení a ukáže pořadí z počtu (3 z 12), nebo
@@ -77,7 +77,7 @@ Esc a Zrušit ho zahodí.
 - PDF se ukáže jako stránky pod sebou, zpočátku na šířku náhledu, nejvýš však ve 100 %, i
   v mobilním prohlížeči. Lišta navíc ukáže stránku z počtu stran s polem pro skok na stránku
   a přizpůsobení na šířku a na celou stránku. Text jde vybrat a zkopírovat.
-- U textu, Markdownu a e-mailu zvětšení mění velikost písma a text se zalomí do šířky náhledu;
+- U textu, Markdownu, e-mailu a datové zprávy zvětšení mění velikost písma a text se zalomí do šířky náhledu;
   zpočátku je 100 %.
 - Odkaz v PDF na místo v dokumentu přejde na jeho stránku, odkaz na webovou nebo e-mailovou adresu
   se otevře v nové záložce, jiný odkaz nefunguje. Formuláře, skripty a vložená média nefungují.
@@ -98,6 +98,21 @@ Esc a Zrušit ho zahodí.
   1 000 řádků a náhled řekne, že je list delší.
 - E-mail ukáže odesílatele, příjemce, předmět, datum, text zprávy a seznam příloh s velikostí;
   zpráva nenačítá obrázky a nespouští skripty, HTML tělo se ukáže jako text.
+- Datová zpráva ukáže předmět se štítkem Datová zpráva, odesílatele a adresáta se jménem, ID
+  schránky a adresou, vyplněná čísla jednací a spisové značky odesílatele i adresáta, ID zprávy,
+  okamžik dodání a doručení a seznam příloh s ikonou, jménem, velikostí a stažením. Doručenka
+  ukáže štítek Doručenka, tutéž obálku a místo příloh události s okamžikem a popisem bez kódu
+  události. Prázdný údaj obálky ukáže pomlčku, prázdné číslo jednací a spisová značka se
+  vynechají. Podpis zprávy náhled neověřuje ani neukazuje.
+- Soubor zfo, který není datovou zprávou ani doručenkou ISDS (třeba formulář Software602), nebo
+  je větší než 30 MB, nabídne jen stažení.
+- Klik na přílohu ukáže v tomtéž náhledu její náhled podle přípony, stejně jako u souboru karty,
+  vnořenou datovou zprávu nevyjímaje. Hlavička pak nese návrat na zprávu, ikonu, jméno a velikost
+  přílohy s textem „příloha zprávy" a jménem zprávy, u víc příloh přechod mezi nimi s pořadím
+  „příloha 2 z 5", Stáhnout přílohu a zavření; příloha se nepřejmenovává. Příloha bez náhledu
+  nabídne jen své stažení.
+- Příloha vložená do zprávy jako XML se ukáže jako text. Příloha se stáhne pod svým jménem bez
+  cesty a bez znaků, které jméno souboru nesmí obsahovat; prázdné jméno nahradí „příloha".
 - HEIC a HEIF se ukážou jako obrázek.
 - Náhled listuje mezi soubory karty, ze které se otevřel.
 
@@ -107,6 +122,7 @@ Esc a Zrušit ho zahodí.
 - Limit velikosti: bez limitu / 100 MB. Platí 100 MB.
 - Úložiště: databáze / souborový systém. Platí souborový systém, metadata v databázi.
 - Smazání blobu: fyzické / žádné. Platí žádné — bajty přežívají smazaný záznam.
+- Limit náhledu datové zprávy: bez limitu / 30 MB. Platí 30 MB.
 
 ## Dopady
 
