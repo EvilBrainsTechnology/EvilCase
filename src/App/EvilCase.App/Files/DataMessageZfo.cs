@@ -19,6 +19,9 @@ internal static partial class DataMessageZfo
 
     private const string SignedDataOid = "1.2.840.113549.1.7.2";
 
+    // Deeper than any ISDS message; loading XML slows quadratically with its nesting.
+    private const int MaxXmlDepth = 100;
+
     private const string InvalidNameCharacters = "<>:\"|?*";
 
     private static readonly Asn1Tag ExplicitZero = new(TagClass.ContextSpecific, 0, isConstructed: true);
@@ -64,6 +67,15 @@ internal static partial class DataMessageZfo
 
     private static DataMessagePreview? Read(byte[] xml)
     {
+        using (var scan = XmlReader.Create(new MemoryStream(xml, writable: false), XmlSettings))
+        {
+            while (scan.Read())
+            {
+                if (scan.Depth > MaxXmlDepth)
+                    return null;
+            }
+        }
+
         using var stream = new MemoryStream(xml, writable: false);
         using var reader = XmlReader.Create(stream, XmlSettings);
         var root = XDocument.Load(reader).Root!;
@@ -127,7 +139,10 @@ internal static partial class DataMessageZfo
 
     private static bool IsInvalidInName(char character)
     {
-        return char.IsControl(character) || InvalidNameCharacters.Contains(character, StringComparison.Ordinal);
+        // A format character such as a right-to-left override would disguise the extension.
+        return char.IsControl(character)
+            || char.GetUnicodeCategory(character) == UnicodeCategory.Format
+            || InvalidNameCharacters.Contains(character, StringComparison.Ordinal);
     }
 
     private static IEnumerable<XElement> Children(XElement parent, string localName)

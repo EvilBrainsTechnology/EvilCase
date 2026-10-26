@@ -84,6 +84,8 @@ public class DataMessageZfoTests
     [TestCase("složka/a:b?.pdf", "a_b_.pdf")]
     [TestCase(" . ", "příloha")]
     [TestCase("<skript>.txt", "_skript_.txt")]
+    [TestCase("faktura\u202Efdp.exe", "faktura_fdp.exe")]
+    [TestCase("a\u2066b\u200F.pdf", "a_b_.pdf")]
     public void AnAttachmentNameKeepsNothingAFileNameCannotCarry(string description, string name)
     {
         var message = DataMessageZfo.ParseOrDefault(SyntheticZfo.Message((description, [1])));
@@ -97,6 +99,39 @@ public class DataMessageZfoTests
     public void AnythingButACmsSignedDataIsNotRead(string content)
     {
         Assert.That(DataMessageZfo.ParseOrDefault(Encoding.UTF8.GetBytes(content)), Is.Null);
+    }
+
+    [Test]
+    public void ALengthBeyondTheContentIsNotRead()
+    {
+        byte[] zfo = [0x30, 0x84, 0x7F, 0xFF, 0xFF, 0xFF, 0x06, 0x01, 0x00];
+
+        Assert.That(DataMessageZfo.ParseOrDefault(zfo), Is.Null);
+    }
+
+    [Test]
+    public void ADeeplyNestedStructureIsNotRead()
+    {
+        const int depth = 100_000;
+        byte[] head = [0x30, 0x80, 0x06, 0x09, 0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x07, 0x02, 0xA0, 0x80, 0x30, 0x80, 0x02, 0x01, 0x01, 0x31, 0x80];
+        var zfo = new List<byte>(head);
+
+        for (var level = 0; level < depth; level++)
+            zfo.AddRange([0x30, 0x80]);
+
+        for (var level = 0; level < depth + 4; level++)
+            zfo.AddRange([0x00, 0x00]);
+
+        Assert.That(DataMessageZfo.ParseOrDefault([.. zfo]), Is.Null);
+    }
+
+    [Test]
+    public void ADeeplyNestedXmlIsNotRead()
+    {
+        var nested = string.Concat(Enumerable.Repeat("<a>", 100_000)) + string.Concat(Enumerable.Repeat("</a>", 100_000));
+        var xml = SyntheticZfo.MessageXml(SyntheticZfo.Namespace, []).Replace("Rozhodnutí o přestupku", nested, StringComparison.Ordinal);
+
+        Assert.That(DataMessageZfo.ParseOrDefault(SyntheticZfo.Sign(xml)), Is.Null, "a nesting deeper than any message is refused before the load");
     }
 
     [TestCase("Toto není XML")]
