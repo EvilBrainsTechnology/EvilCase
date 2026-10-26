@@ -1,6 +1,6 @@
 namespace EvilBrains.EvilCase.App.Files;
 
-internal enum DataMessageKind
+public enum DataMessageKind
 {
     Message = 0,
 

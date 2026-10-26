@@ -37,7 +37,7 @@ internal static partial class DataMessageZfo
     /// <summary>
     /// The message or receipt, or <see langword="null"/> for anything else, a Software602 form included.
     /// </summary>
-    public static DataMessagePreview? ParseOrDefault(byte[] zfo)
+    public static DataMessage? ParseOrDefault(byte[] zfo)
     {
         try
         {
@@ -65,7 +65,7 @@ internal static partial class DataMessageZfo
         return encapsulated.HasData ? encapsulated.ReadSequence(ExplicitZero).ReadOctetString() : null;
     }
 
-    private static DataMessagePreview? Read(byte[] xml)
+    private static DataMessage? Read(byte[] xml)
     {
         using (var scan = XmlReader.Create(new MemoryStream(xml, writable: false), XmlSettings))
         {
@@ -85,7 +85,7 @@ internal static partial class DataMessageZfo
 
         var receipt = string.Equals(envelope.Name.LocalName, "dmDelivery", StringComparison.Ordinal);
 
-        return new DataMessagePreview(
+        return new DataMessage(
             receipt ? DataMessageKind.Receipt : DataMessageKind.Message,
             Text(dm, "dmAnnotation"),
             new DataMessageParty(Text(dm, "dmSender"), Text(dm, "dbIDSender"), Text(dm, "dmSenderAddress")),

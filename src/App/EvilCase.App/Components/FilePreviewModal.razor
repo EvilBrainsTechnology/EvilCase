@@ -21,7 +21,7 @@
         <Heading>
             @if (attachment is not null)
             {
-                var (owner, ownerName, position) = this.trail[^1];
+                var (_, owner, ownerName, position) = this.trail[^1];
 
                 <div class="ec-preview-back">
                     <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.ArrowLeft" AriaLabel="Zpět na zprávu" OnClick="this.BackToMessage"><span class="ec-preview-action-label">Zpráva</span></EcButton>
@@ -230,82 +230,8 @@
             }
             else if (preview == FilePreviewKind.DataMessage)
             {
-                var message = this.dataMessage!;
-
-                <ReflowPreview @key="this.shownKey">
-                    <article class="ec-preview-email ec-preview-data-message" role="document" tabindex="0" aria-label="Obsah datové zprávy @shownName">
-                        <div class="ec-preview-data-message-head">
-                            <h3 class="ec-preview-data-message-subject">@Or(message.Subject)</h3>
-                            <EcBadge Text="@(message.Kind == DataMessageKind.Message ? "Datová zpráva" : "Doručenka")" Tone="EcBadgeTone.Official" />
-                        </div>
-                        <dl class="ec-preview-email-headers">
-                            @foreach (var (label, party) in new[] { ("Odesílatel", message.Sender), ("Adresát", message.Recipient) })
-                            {
-                                <dt>@label</dt>
-                                <dd class="ec-preview-data-message-party">
-                                    <span>@Or(party.Name)</span>
-                                    <span class="ec-preview-data-message-box">ID schránky @Or(party.BoxId)</span>
-                                    <span class="ec-preview-data-message-address">@Or(party.Address)</span>
-                                </dd>
-                            }
-                            @foreach (var (label, value) in new[]
-                                      {
-                                          ("Č. j. odesílatele", message.SenderRefNumber), ("Sp. zn. odesílatele", message.SenderIdent),
-                                          ("Č. j. adresáta", message.RecipientRefNumber), ("Sp. zn. adresáta", message.RecipientIdent),
-                                      })
-                            {
-                                if (value.Length > 0)
-                                {
-                                    <dt>@label</dt>
-                                    <dd>@value</dd>
-                                }
-                            }
-                            <dt>ID zprávy</dt>
-                            <dd>@Or(message.MessageId)</dd>
-                            <dt>Dodáno</dt>
-                            <dd>@Moment(message.Delivered)</dd>
-                            <dt>Doručeno</dt>
-                            <dd>@Moment(message.Accepted)</dd>
-                        </dl>
-                        @if (message.Attachments.Count > 0)
-                        {
-                            <section class="ec-preview-email-attachments" aria-label="Přílohy">
-                                <h3 class="ec-preview-email-attachments-title">Přílohy (@message.Attachments.Count)</h3>
-                                <ul class="ec-preview-data-message-attachments">
-                                    @for (var index = 0; index < message.Attachments.Count; index++)
-                                    {
-                                        var attachmentIndex = index;
-                                        var item = message.Attachments[index];
-
-                                        <li class="ec-preview-data-message-attachment">
-                                            <EcFileIcon FileName="@item.Name" Size="EcFileIconSize.Compact" />
-                                            <button type="button" class="ec-preview-data-message-attachment-open" title="Otevřít náhled"
-                                                    @onclick="() => this.OpenAttachment(shownName, attachmentIndex)">@item.Name</button>
-                                            <span class="ec-preview-data-message-attachment-size">@FileSizeDisplay.Text(item.Content.Length)</span>
-                                            <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Download"
-                                                      AriaLabel="@($"Stáhnout {item.Name}")" title="Stáhnout" OnClick="() => this.DownloadAttachment(item)" />
-                                        </li>
-                                    }
-                                </ul>
-                            </section>
-                        }
-                        @if (message.Events.Count > 0)
-                        {
-                            <section class="ec-preview-email-attachments" aria-label="Události">
-                                <h3 class="ec-preview-email-attachments-title">Události (@message.Events.Count)</h3>
-                                <ol class="ec-preview-data-message-events">
-                                    @foreach (var item in message.Events)
-                                    {
-                                        <li class="ec-preview-data-message-event">
-                                            <span class="ec-preview-data-message-event-time">@Moment(item.Time)</span>
-                                            <span class="ec-preview-data-message-event-description">@item.Description</span>
-                                        </li>
-                                    }
-                                </ol>
-                            </section>
-                        }
-                    </article>
-                </ReflowPreview>
+                <DataMessagePreview @key="this.shownKey" Content="this.dataMessage!" FileName="@shownName"
+                                    OnOpenAttachment="opened => this.OpenAttachment(shownName, opened.Message, opened.Index)" OnUnreadable="this.Unreadable" />
             }
             else if (preview == FilePreviewKind.Pdf)
             {
@@ -370,7 +296,7 @@
     public EventCallback<bool> OpenChanged { get; set; }
 
     // The attachments opened, outermost first; empty shows the stored file.
-    private readonly List<(DataMessagePreview Message, string MessageName, int Index)> trail = [];
+    private readonly List<(byte[] Content, DataMessage Message, string MessageName, int Index)> trail = [];
 
     private CancellationTokenSource? loadToken;
 
@@ -392,7 +318,7 @@
 
     private byte[]? pdf;
 
-    private DataMessagePreview? dataMessage;
+    private byte[]? dataMessage;
 
     private int shownKey;
 
@@ -618,13 +544,8 @@
 
                 await content.CopyToAsync(bytes, token);
 
-                if (token.IsCancellationRequested)
-                    break;
-
-                if (DataMessageZfo.ParseOrDefault(bytes.ToArray()) is { } message)
-                    this.dataMessage = message;
-                else
-                    this.unsupported = true;
+                if (!token.IsCancellationRequested)
+                    this.dataMessage = bytes.ToArray();
 
                 break;
             }
@@ -691,31 +612,29 @@
         }
     }
 
-    private async Task OpenAttachment(string messageName, int index)
+    private async Task OpenAttachment(string messageName, DataMessage message, int index)
     {
-        var message = this.dataMessage!;
-
         this.renaming = false;
-        this.trail.Add((message, messageName, index));
+        this.trail.Add((this.dataMessage!, message, messageName, index));
 
         await this.ShowAttachment(message.Attachments[index]);
     }
 
     private async Task StepAttachment(int direction)
     {
-        var (message, messageName, index) = this.trail[^1];
+        var (content, message, messageName, index) = this.trail[^1];
         var count = message.Attachments.Count;
         var next = ((index + direction) % count + count) % count;
 
-        this.trail[^1] = (message, messageName, next);
+        this.trail[^1] = (content, message, messageName, next);
 
         await this.ShowAttachment(message.Attachments[next]);
     }
 
-    // The message was parsed when it was opened, so it shows again without a load.
+    // The message's bytes were kept when it was opened, so it shows again without a load.
     private async Task BackToMessage()
     {
-        var message = this.trail[^1].Message;
+        var message = this.trail[^1].Content;
 
         this.trail.RemoveAt(this.trail.Count - 1);
         _ = this.Reset();

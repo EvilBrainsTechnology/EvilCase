@@ -3,7 +3,7 @@ namespace EvilBrains.EvilCase.App.Files;
 /// <summary>
 /// An ISDS data message or delivery receipt as the preview shows it.
 /// </summary>
-internal sealed record DataMessagePreview(
+public sealed record DataMessage(
     DataMessageKind Kind,
     string Subject,
     DataMessageParty Sender,
