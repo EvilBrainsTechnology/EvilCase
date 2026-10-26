@@ -14,7 +14,7 @@
     "jszip": "3.10.2",
     "libheif-js": "1.23.5",
     "pdfjs-dist": "6.4.299",
-    "postal-mime": "4.0.6",
+    "postal-mime": "4.0.11",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "devDependencies": {
