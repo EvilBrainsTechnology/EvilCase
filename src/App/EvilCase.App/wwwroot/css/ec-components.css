@@ -344,6 +344,11 @@ html {
     color: var(--ec-person-text);
 }
 
+.ec-badge-danger {
+    background: var(--ec-danger-bg);
+    color: var(--ec-danger-text);
+}
+
 .ec-badge-dot {
     flex: 0 0 auto;
     width: var(--ec-space-2);
@@ -4530,6 +4535,80 @@ html:has(.ec-gate) {
     background: var(--ec-danger-bg);
 }
 
+.ec-popover-anchor {
+    position: relative;
+    display: inline-flex;
+}
+
+.ec-popover-trigger {
+    display: inline-flex;
+    padding: 0;
+    border: 0;
+    border-radius: var(--ec-radius-pill);
+    background: transparent;
+    font: inherit;
+    cursor: pointer;
+}
+
+.ec-popover-trigger:focus-visible {
+    outline: none;
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-popover-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+}
+
+.ec-popover {
+    position: absolute;
+    top: calc(100% + var(--ec-space-2));
+    left: 0;
+    z-index: 20;
+    box-sizing: border-box;
+    width: var(--ec-popover-width);
+    max-width: calc(100vw - 2 * var(--ec-space-5));
+    padding: var(--ec-space-4);
+    border: 1px solid var(--ec-border);
+    border-radius: var(--ec-radius-xl);
+    background: var(--ec-surface);
+    box-shadow: var(--ec-shadow-overlay);
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-md);
+    color: var(--ec-text);
+}
+
+.ec-popover:focus-visible {
+    outline: none;
+}
+
+.ec-signature-title {
+    margin: 0 0 var(--ec-space-3);
+    font-size: var(--ec-text-md);
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-signature-details {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--ec-space-2) var(--ec-space-4);
+    margin: 0;
+}
+
+.ec-signature-details dt {
+    color: var(--ec-text-muted);
+}
+
+.ec-signature-details dd {
+    margin: 0;
+}
+
+.ec-signature-text {
+    margin: 0 0 var(--ec-space-3);
+    color: var(--ec-text-muted);
+}
+
 .ec-menu-divider {
     margin: var(--ec-space-1) 0;
     border-top: 1px solid var(--ec-border-subtle);
@@ -4658,6 +4737,21 @@ html:has(.ec-gate) {
         bottom: calc(var(--ec-space-5) + env(safe-area-inset-bottom));
         left: var(--ec-space-5);
         min-width: 0;
+    }
+
+    .ec-popover {
+        position: fixed;
+        top: auto;
+        right: var(--ec-space-5);
+        bottom: calc(var(--ec-space-5) + env(safe-area-inset-bottom));
+        left: var(--ec-space-5);
+        width: auto;
+        max-width: none;
+    }
+
+    .ec-popover-trigger {
+        min-height: var(--ec-touch-min);
+        align-items: center;
     }
 }
 

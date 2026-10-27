@@ -48,8 +48,9 @@ Aplikace má vlastní sadu komponent s prefixem `Ec`. Obrazovka skládá jen je,
   Tlačítko jen s ikonou má `aria-label`. Tichá textová akce u položky nebo v liště (Upravit
   a Smazat u komentáře, Zrušit filtry, Zobrazit i uzavřené) je výjimka: text bez ikony a bez
   plochy; mazání nese barvu chyby.
-- `EcBadge` — pilulka pro stav spisu, směr úkonu a typ kontaktu; stav nese barevnou tečku, směr
-  šipku.
+- `EcBadge` — pilulka pro stav spisu, směr úkonu, typ kontaktu a stav podpisu datové zprávy; stav
+  spisu nese barevnou tečku, směr šipku, stav podpisu ikonu štítu. Neplatný podpis nese barvu
+  chyby.
 - `EcTable` — seznam podle SDD-016: řádek je odkaz po celé šířce, řaditelné záhlaví je
   tlačítko, patička nese rozsah, počet a stránkování; seznam na jednu stránku patičku nemá.
   Chybějící hodnota v buňce je světlá pomlčka.
@@ -59,6 +60,8 @@ Aplikace má vlastní sadu komponent s prefixem `Ec`. Obrazovka skládá jen je,
 - `EcModal` — nad nativním `dialog`, se správou fokusu; zavře ho Esc i klik mimo okno.
 - `EcMenu` — tlačítko s nabídkou akcí; Esc i klik mimo ji zavřou, šipky chodí mezi položkami
   a fokus se vrací na tlačítko.
+- `EcPopover` — prvek, který po kliku ukáže panel s podrobnostmi; Esc i klik mimo ho zavřou
+  a fokus se vrací na prvek. Pod `lg` je panel přes šířku dole na obrazovce.
 - `EcCombobox` — pole s hledáním bez ohledu na diakritiku a se založením záznamu přímo
   z nabídky; stojí na něm výběr kontaktu i štítku.
 - `EcEmptyState` — ikona, věta, volitelná výzva k založení.

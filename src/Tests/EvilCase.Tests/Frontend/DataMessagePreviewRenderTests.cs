@@ -1,5 +1,7 @@
 using System.Text;
 using Bunit;
+using EvilBrains.EvilCase.Api.Client;
+using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.App.Components;
 using EvilBrains.EvilCase.App.Files;
 using EvilBrains.EvilCase.App.Models;
@@ -129,6 +131,35 @@ public class DataMessagePreviewRenderTests
             Assert.That(unreadable, Is.EqualTo(1));
             Assert.That(component.FindAll(".ec-preview-data-message"), Is.Empty);
         }
+    }
+
+    [Test]
+    public void WithoutAStoredFileThereIsNoSignature()
+    {
+        using var ctx = NewContext(out _, out _);
+
+        var component = Render(ctx, DefaultMessage());
+
+        Assert.That(component.FindAll(".ec-popover-trigger"), Is.Empty);
+    }
+
+    [Test]
+    public void AStoredFileShowsItsSignatureNextToTheKind()
+    {
+        using var ctx = NewContext(out _, out _);
+        var signatures = Substitute.For<IFileSignaturesClient>();
+        var fileId = Guid.CreateVersion7();
+        signatures.ReadFileSignature(fileId, Arg.Any<CancellationToken>()).Returns(new FileSignatureResponse { State = FileSignatureState.Unverifiable });
+        ctx.Services.AddSingleton(signatures);
+
+        var component = ctx.Render<DataMessagePreview>(parameters => parameters
+            .Add(static preview => preview.Content, DefaultMessage())
+            .Add(static preview => preview.FileName, "Zpráva.zfo")
+            .Add(static preview => preview.FileId, fileId));
+
+        component.WaitForAssertion(() => Assert.That(
+            component.FindAll(".ec-preview-data-message-head .ec-badge").Select(static badge => badge.TextContent.Trim()),
+            Is.EqualTo(["Datová zpráva", "Podpis nelze ověřit"])));
     }
 
     private static byte[] DefaultMessage()

@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
+using EvilBrains.EvilCase.Api.Contract.Files;
 
 namespace EvilBrains.EvilCase.App.Files;
 
@@ -12,10 +13,7 @@ namespace EvilBrains.EvilCase.App.Files;
 /// </summary>
 internal static partial class DataMessageZfo
 {
-    /// <summary>
-    /// The largest ZFO the preview reads: a standard message of 20 MB of attachments, in base64.
-    /// </summary>
-    public const long MaxBytes = 30 * 1024 * 1024;
+    public const long MaxBytes = FileLimits.MaxDataMessageBytes;
 
     private const string SignedDataOid = "1.2.840.113549.1.7.2";
 

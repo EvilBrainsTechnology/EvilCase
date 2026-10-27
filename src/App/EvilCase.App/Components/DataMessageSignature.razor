@@ -1,0 +1,112 @@
+@using System.Diagnostics
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.Files
+@inject IFileSignaturesClient SignaturesClient
+@inject ILogger<DataMessageSignature> Logger
+
+@* One trigger through every state, so the focus stays on it while a retry loads. *@
+<EcPopover @ref="this.popover" AriaLabel="Podpis datové zprávy">
+    <Trigger>
+        @if (this.loading)
+        {
+            <EcBadge Text="Ověřuji podpis…" Tone="EcBadgeTone.Closed" />
+        }
+        else
+        {
+            switch (this.signature?.State ?? FileSignatureState.Unverifiable)
+            {
+                case FileSignatureState.Valid:
+                    <EcBadge Text="Podpis ISDS platný" Tone="EcBadgeTone.Active" Icon="@AppIcons.ShieldCheck" />
+                    break;
+                case FileSignatureState.Invalid:
+                    <EcBadge Text="Podpis neplatný" Tone="EcBadgeTone.Danger" Icon="@AppIcons.ShieldX" />
+                    break;
+                case FileSignatureState.Unverifiable:
+                    <EcBadge Text="Podpis nelze ověřit" Tone="EcBadgeTone.Waiting" Icon="@AppIcons.ShieldQuestion" />
+                    break;
+                default:
+                    throw new UnreachableException();
+            }
+        }
+    </Trigger>
+    <ChildContent>
+        @if (this.loading)
+        {
+            <p class="ec-signature-text">Ověřuji podpis…</p>
+        }
+        else if (this.signature is { State: FileSignatureState.Valid } valid)
+        {
+            <h3 class="ec-signature-title">Podpis ISDS platný</h3>
+            <dl class="ec-signature-details">
+                <dt>Podepsal</dt>
+                <dd>Informační systém datových schránek</dd>
+                <dt>Certifikát</dt>
+                <dd>@valid.CertificateIssuer, platný @Moment(valid.CertificateValidFrom) – @Moment(valid.CertificateValidTo)</dd>
+                <dt>Časové razítko</dt>
+                <dd>@Moment(valid.Timestamped)</dd>
+                <dt>Zneplatnění ověřeno</dt>
+                <dd>@Moment(valid.RevocationChecked)</dd>
+            </dl>
+        }
+        else if (this.signature is { State: FileSignatureState.Invalid, Problem: { } problem })
+        {
+            <h3 class="ec-signature-title">Podpis neplatný</h3>
+            <p class="ec-signature-text">@FileSignatureDisplay.Reason(problem)</p>
+        }
+        else
+        {
+            <h3 class="ec-signature-title">Podpis nelze ověřit</h3>
+            <p class="ec-signature-text">
+                @(this.signature is null
+                    ? "Výsledek ověření podpisu se nepodařilo načíst."
+                    : "Podpis odpovídá obsahu a certifikátu ISDS, ale PostSignum teď neodpověděl, zda certifikát nebyl zneplatněn.")
+            </p>
+            <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Refresh" OnClick="this.Retry">Zkusit znovu</EcButton>
+        }
+    </ChildContent>
+</EcPopover>
+
+@code {
+    private EcPopover? popover;
+
+    private FileSignatureResponse? signature;
+
+    private bool loading = true;
+
+    [Parameter, EditorRequired]
+    public required Guid FileId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await this.Load();
+    }
+
+    private async Task Load()
+    {
+        this.loading = true;
+        this.signature = null;
+
+        try
+        {
+            this.signature = await this.SignaturesClient.ReadFileSignature(this.FileId, CancellationToken.None);
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Loading the signature of file {FileAssetId} failed", this.FileId);
+        }
+
+        this.loading = false;
+    }
+
+    private async Task Retry()
+    {
+        await this.popover!.CloseToTrigger();
+        await this.Load();
+    }
+
+    private static string Moment(DateTime? moment)
+    {
+        return moment is { } value ? MomentDisplay.Text(value) : "—";
+    }
+}

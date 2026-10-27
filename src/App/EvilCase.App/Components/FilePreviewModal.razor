@@ -230,7 +230,7 @@
             }
             else if (preview == FilePreviewKind.DataMessage)
             {
-                <DataMessagePreview @key="this.shownKey" Content="this.dataMessage!" FileName="@shownName"
+                <DataMessagePreview @key="this.shownKey" Content="this.dataMessage!" FileName="@shownName" FileId="@(attachment is null ? file.FileId : null)"
                                     OnOpenAttachment="opened => this.OpenAttachment(shownName, opened.Message, opened.Index)" OnUnreadable="this.Unreadable" />
             }
             else if (preview == FilePreviewKind.Pdf)
