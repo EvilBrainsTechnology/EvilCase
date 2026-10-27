@@ -57,6 +57,8 @@ public static class FileTypeDisplay
         ["json"] = FileKind.Code,
         ["isdoc"] = FileKind.Code,
         ["html"] = FileKind.Code,
+        ["yaml"] = FileKind.Code,
+        ["yml"] = FileKind.Code,
         ["zip"] = FileKind.Archive,
         ["7z"] = FileKind.Archive,
         ["rar"] = FileKind.Archive,
@@ -80,11 +82,13 @@ public static class FileTypeDisplay
         ["markdown"] = FilePreviewKind.Markdown,
         ["csv"] = FilePreviewKind.Text,
         ["tsv"] = FilePreviewKind.Text,
-        ["json"] = FilePreviewKind.Text,
-        ["xml"] = FilePreviewKind.Text,
         ["log"] = FilePreviewKind.Text,
-        ["isdoc"] = FilePreviewKind.Text,
-        ["html"] = FilePreviewKind.Text,
+        ["json"] = FilePreviewKind.Code,
+        ["xml"] = FilePreviewKind.Code,
+        ["isdoc"] = FilePreviewKind.Code,
+        ["yaml"] = FilePreviewKind.Code,
+        ["yml"] = FilePreviewKind.Code,
+        ["html"] = FilePreviewKind.Code,
         ["docx"] = FilePreviewKind.Document,
         ["xlsx"] = FilePreviewKind.Workbook,
         ["xls"] = FilePreviewKind.Workbook,
@@ -107,6 +111,16 @@ public static class FileTypeDisplay
         ["mov"] = FilePreviewKind.Video,
     };
 
+    private static readonly Dictionary<string, CodeLanguage> Languages = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["json"] = CodeLanguage.Json,
+        ["xml"] = CodeLanguage.Xml,
+        ["isdoc"] = CodeLanguage.Xml,
+        ["yaml"] = CodeLanguage.Yaml,
+        ["yml"] = CodeLanguage.Yaml,
+        ["html"] = CodeLanguage.Html,
+    };
+
     public static FileKind Kind(string fileName)
     {
         return Kinds.GetValueOrDefault(Extension(fileName), FileKind.Other);
@@ -115,6 +129,14 @@ public static class FileTypeDisplay
     public static FilePreviewKind Preview(string fileName)
     {
         return Previews.GetValueOrDefault(Extension(fileName));
+    }
+
+    /// <summary>
+    /// The language of a file whose preview is <see cref="FilePreviewKind.Code"/>.
+    /// </summary>
+    public static CodeLanguage Language(string fileName)
+    {
+        return Languages[Extension(fileName)];
     }
 
     /// <summary>

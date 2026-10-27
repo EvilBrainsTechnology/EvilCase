@@ -133,6 +133,10 @@
                     </div>
                 </ReflowPreview>
             }
+            else if (preview == FilePreviewKind.Code)
+            {
+                <CodePreview @key="this.shownKey" Text="@this.code" Truncated="this.truncated" FileName="@stagedName" OnUnreadable="this.Unreadable" />
+            }
             else if (preview == FilePreviewKind.Markdown)
             {
                 <ReflowPreview @key="this.shownKey">
@@ -349,6 +353,8 @@
 
     private IReadOnlyList<string> lines = [];
 
+    private string code = "";
+
     private bool truncated;
 
     private bool loading;
@@ -391,6 +397,7 @@
         this.failed = false;
         this.unsupported = false;
         this.lines = [];
+        this.code = "";
         this.truncated = false;
         this.markdownHtml = "";
         this.workbook = [];
@@ -496,6 +503,16 @@
 
                 if (!token.IsCancellationRequested)
                     (this.lines, this.truncated) = SplitLines(text, cut);
+
+                break;
+            }
+
+            case FilePreviewKind.Code:
+            {
+                var (text, cut) = await ReadText(content, token);
+
+                if (!token.IsCancellationRequested)
+                    (this.code, this.truncated) = (text, cut);
 
                 break;
             }

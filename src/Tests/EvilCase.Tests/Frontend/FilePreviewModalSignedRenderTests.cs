@@ -4,6 +4,7 @@ using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.App.Auth;
 using EvilBrains.EvilCase.App.Components;
 using EvilBrains.EvilCase.App.Files;
+using EvilBrains.EvilCase.App.Models;
 using EvilBrains.EvilCase.Tests.Files.Signatures;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -98,6 +99,18 @@ public class FilePreviewModalSignedRenderTests
                 Assert.That(component.Find(".ec-modal-body img").GetAttribute("src"), Is.EqualTo("blob:test/0"));
             }
         });
+    }
+
+    [Test]
+    public async Task CodeInsideASignatureIsHighlightedInTheLanguageOfItsDocument()
+    {
+        await using var ctx = NewContext(out _, out var previews, out _, out _);
+
+        var file = File("Faktura.isdoc.p7m");
+        var component = Render(ctx, [file], file.FileId, static _ => SignedFile.Sign("<Invoice/>"u8.ToArray(), detached: false));
+
+        await component.WaitForAssertionAsync(() =>
+            Assert.That(previews.RenderedCode, Is.EqualTo([("<Invoice/>", CodeLanguage.Xml, false)])));
     }
 
     [Test]

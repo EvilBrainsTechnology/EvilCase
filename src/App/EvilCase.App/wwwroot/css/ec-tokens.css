@@ -298,6 +298,12 @@
     --ec-preview-signature-label: 150px;
     --ec-preview-signers-height: 160px;
     --ec-preview-page-gap: 20px;
+    --ec-code-name: #1F3FAE;
+    --ec-code-attribute: #7A3592;
+    --ec-code-string: #0F6B3A;
+    --ec-code-literal: #9A4300;
+    --ec-code-punctuation: #5B6270;
+    --ec-code-comment: #5F6673;
     --ec-overlay-strong: rgba(20, 22, 27, 0.6);
     --ec-comment-avatar-compact: 30px;
     --ec-comment-action-height: 24px;

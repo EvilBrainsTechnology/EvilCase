@@ -1,0 +1,134 @@
+@using System.Diagnostics
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+@inject IFilePreviews Previews
+@inject ILogger<CodePreview> Logger
+
+@* A JSON, XML, YAML or HTML source: highlighted, formatted unless the toolbar switches to the original. HTML never renders. *@
+<ReflowPreview Formats Formatted="this.formatted" CanFormat="this.view?.Formatted == true" OnFormat="this.ToggleFormat">
+    @if (this.Truncated)
+    {
+        <p class="ec-preview-note">Soubor je delší, zobrazuje se jen jeho začátek a nejde naformátovat.</p>
+    }
+    else if (this.view is { Formatted: false, Invalid: true })
+    {
+        <p class="ec-preview-note">Soubor není platný @LanguageName(FileTypeDisplay.Language(this.FileName)), proto se ukazuje jen originál.</p>
+    }
+    else if (this.view is { Formatted: false })
+    {
+        <p class="ec-preview-note">Soubor se nepodařilo naformátovat, ukazuje se originál.</p>
+    }
+    @if (!this.Truncated && this.linesCut)
+    {
+        <p class="ec-preview-note">Soubor je delší, zobrazuje se jen jeho začátek.</p>
+    }
+    <div @ref="this.content" class="ec-preview-text ec-preview-code" role="document" tabindex="0" aria-label="Obsah souboru @this.FileName"></div>
+</ReflowPreview>
+
+@code {
+    private readonly CancellationTokenSource cancel = new();
+
+    private ElementReference content;
+
+    private bool rendering;
+
+    private CodeView? view;
+
+    private bool formatted;
+
+    private bool linesCut;
+
+    /// <summary>
+    /// The text of the file, its start when it was <see cref="Truncated"/>.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required string Text { get; set; }
+
+    [Parameter]
+    public bool Truncated { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string FileName { get; set; }
+
+    /// <summary>
+    /// Raised when the preview's script does not run.
+    /// </summary>
+    [Parameter]
+    public EventCallback OnUnreadable { get; set; }
+
+    public async ValueTask DisposeAsync()
+    {
+        await this.cancel.CancelAsync();
+
+        if (this.rendering)
+        {
+            try
+            {
+                await this.Previews.DisposeCode(this.content);
+            }
+            catch (JSException exception)
+            {
+                this.Logger.LogInformation(exception, "The code preview was already gone");
+            }
+        }
+
+        this.cancel.Dispose();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        var token = this.cancel.Token;
+
+        this.rendering = true;
+
+        try
+        {
+            var shown = await this.Previews.RenderCode(this.content, this.Text, FileTypeDisplay.Language(this.FileName), this.Truncated, token);
+
+            if (!token.IsCancellationRequested)
+            {
+                (this.view, this.formatted, this.linesCut) = (shown, shown.Formatted, shown.LinesCut);
+                this.StateHasChanged();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // The preview closed or moved on to another file.
+        }
+        catch (JSException exception)
+        {
+            this.Logger.LogInformation(exception, "The code preview did not start");
+
+            if (!token.IsCancellationRequested)
+                await this.OnUnreadable.InvokeAsync();
+        }
+    }
+
+    private static string LanguageName(CodeLanguage language)
+    {
+        return language switch
+        {
+            CodeLanguage.Json => "JSON",
+            CodeLanguage.Xml => "XML",
+            CodeLanguage.Yaml => "YAML",
+            CodeLanguage.Html => "HTML",
+            _ => throw new UnreachableException(),
+        };
+    }
+
+    // A second switch before the first one's text shows wins.
+    private async Task ToggleFormat()
+    {
+        var formatted = !this.formatted;
+
+        this.formatted = formatted;
+
+        var cut = await this.Previews.ShowCode(this.content, formatted);
+
+        if (this.formatted == formatted)
+            this.linesCut = cut;
+    }
+}
