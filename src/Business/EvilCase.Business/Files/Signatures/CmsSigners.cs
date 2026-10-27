@@ -1,8 +1,9 @@
-using System.Formats.Asn1;
 using System.Security.Cryptography;
 using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
 using EvilBrains.EvilCase.Api.Contract.Files;
+using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.X509;
 
 namespace EvilBrains.EvilCase.Business.Files.Signatures;
 
@@ -119,21 +120,18 @@ internal static class CmsSigners
         if (extension is null)
             return [];
 
-        // certificatePolicies ::= SEQUENCE OF PolicyInformation, PolicyInformation ::= SEQUENCE { policyIdentifier, qualifiers OPTIONAL }.
-        var oids = new List<string>();
-
         try
         {
-            var policies = new AsnReader(extension.RawData, AsnEncodingRules.DER).ReadSequence();
-            while (policies.HasData)
-                oids.Add(policies.ReadSequence().ReadObjectIdentifier());
+            // An empty extension reads as no object.
+            if (CertificatePolicies.GetInstance(Asn1Object.FromByteArray(extension.RawData)) is not { } policies)
+                return [];
+
+            return [.. policies.GetPolicyInformation().Select(static policy => policy.PolicyIdentifier.Id)];
         }
-        catch (AsnContentException)
+        catch (Exception exception) when (exception is IOException or ArgumentException or InvalidOperationException)
         {
             return [];
         }
-
-        return oids;
     }
 
     private static string Authority(string commonName)
