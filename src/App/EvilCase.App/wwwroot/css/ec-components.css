@@ -1623,8 +1623,8 @@ html {
     white-space: pre-wrap;
 }
 
-/* Zvýraznění kódu: třídy, které highlight.js dává tokenům JSON, XML, YAML a HTML. Ligatury písma by měnily
-   podobu zdroje. */
+/* Code highlighting: the classes highlight.js gives the tokens of JSON, XML, YAML and HTML. Font ligatures would change
+   how the source reads. */
 .ec-preview-code {
     font-variant-ligatures: none;
 }
