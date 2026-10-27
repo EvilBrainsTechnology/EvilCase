@@ -119,15 +119,15 @@ Esc a Zrušit ho zahodí.
 ### Podpis datové zprávy
 
 - Server ověří podpis uložené datové zprávy i doručenky. Podpis je platný, když obsah odpovídá
-  podpisu, zapečetil ho Informační systém datových schránek, který provozuje Digitální
-  a informační agentura a dříve provozovalo Ministerstvo vnitra, kvalifikovaným certifikátem PostSignum pro elektronickou pečeť platným v okamžiku
-  kvalifikovaného časového razítka nad podpisem a certifikát není zneplatněný. Certifikát smí
-  vypršet později. Zpráva bez certifikátu pečeti není podepsanou datovou zprávou.
+  podpisu, zapečetil ho Informační systém datových schránek v produkčním prostředí, který
+  provozuje Digitální a informační agentura nebo dříve Ministerstvo vnitra, kvalifikovaným
+  certifikátem PostSignum pro elektronickou pečeť platným v okamžiku kvalifikovaného časového
+  razítka nad podpisem a certifikát není zneplatněný. Certifikát smí vypršet později. Zpráva bez
+  certifikátu pečeti není podepsanou datovou zprávou.
 - Certifikáty autorit PostSignum jsou součástí aplikace, i těch, které už PostSignum nepoužívá;
   certifikáty, které soubor nese, se k ověření autority nepoužijí.
-- Zneplatnění se ověřuje online u PostSignum. Když PostSignum neodpoví, podpis nelze ověřit.
-  Starší zprávy zapečetěné certifikátem z vyřazené hierarchie PostSignum ukážou „Podpis nelze
-  ověřit“, protože jejich zneplatnění už ověřit nejde.
+- Zneplatnění se ověřuje online u PostSignum. Když PostSignum neodpoví nebo zneplatnění
+  certifikátu už ověřit nejde, štítek ukáže „Podpis nelze ověřit“.
 - Vedle štítku Datová zpráva nebo Doručenka stojí štítek podpisu: „Ověřuji podpis…“, „Podpis
   ISDS platný“, „Podpis neplatný“ nebo „Podpis nelze ověřit“. Klik na něj ukáže podrobnosti:
   u platného podpisu podepsaného, vydavatele a platnost certifikátu, časové razítko a okamžik
