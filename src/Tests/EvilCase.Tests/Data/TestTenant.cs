@@ -232,14 +232,14 @@ internal sealed class TestTenant : IAsyncDisposable
         return await this.Save(this.Context.Comments, comment);
     }
 
-    public async Task<FileAsset> AddCaseFile(Case @case, string fileName = "dokument.pdf")
+    public async Task<FileAsset> AddCaseFile(Case @case, string fileName = "dokument.pdf", long sizeBytes = 1)
     {
-        return await this.AddFile(@case.Id, actId: null, fileName);
+        return await this.AddFile(@case.Id, actId: null, fileName, sizeBytes);
     }
 
     public async Task<FileAsset> AddActFile(Act act, string fileName = "dokument.pdf")
     {
-        return await this.AddFile(caseId: null, act.Id, fileName);
+        return await this.AddFile(caseId: null, act.Id, fileName, sizeBytes: 1);
     }
 
     public async ValueTask DisposeAsync()
@@ -261,7 +261,7 @@ internal sealed class TestTenant : IAsyncDisposable
         return await this.Save(this.Context.LabelAssignments, assignment);
     }
 
-    private async Task<FileAsset> AddFile(Guid? caseId, Guid? actId, string fileName)
+    private async Task<FileAsset> AddFile(Guid? caseId, Guid? actId, string fileName, long sizeBytes)
     {
         var fileAssetId = Guid.CreateVersion7();
 
@@ -274,7 +274,7 @@ internal sealed class TestTenant : IAsyncDisposable
             ActId = actId,
             FileName = fileName,
             ContentHash = new string('a', 64),
-            SizeBytes = 1,
+            SizeBytes = sizeBytes,
             MediaType = "application/pdf",
             StoragePath = $"{this.tenantId}/{fileAssetId}",
         };

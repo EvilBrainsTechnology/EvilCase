@@ -1,0 +1,125 @@
+using System.Formats.Asn1;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
+using EvilBrains.EvilCase.Business.Files.Signatures;
+
+namespace EvilBrains.EvilCase.Tests.Files.Signatures;
+
+/// <summary>
+/// A root and an intermediate CA that issue seals and timestamp units, all ECDsa P-256.
+/// </summary>
+internal sealed class TestPki : IDisposable
+{
+    public const string IsdsOrganizationIdentifier = "NTRCZ-17651921";
+
+    private const string TimeStampingOid = "1.3.6.1.5.5.7.3.8";
+
+    private static readonly DateTimeOffset CaFrom = new(2020, 1, 1, 0, 0, 0, TimeSpan.Zero);
+
+    private static readonly DateTimeOffset CaTo = new(2040, 1, 1, 0, 0, 0, TimeSpan.Zero);
+
+    private readonly List<X509Certificate2> issued = [];
+
+    private int serial;
+
+    private TestPki(string name)
+    {
+        this.Root = this.Track(CreateRoot($"CN={name} Root"));
+        this.Intermediate = this.Track(this.IssueCa($"CN={name} Qualified CA", this.Root));
+        this.Trust = new SignatureTrust([this.Root], [this.Intermediate]);
+    }
+
+    public X509Certificate2 Root { get; }
+
+    public X509Certificate2 Intermediate { get; }
+
+    public SignatureTrust Trust { get; }
+
+    public static TestPki Create(string name = "Test")
+    {
+        return new TestPki(name);
+    }
+
+    /// <summary>
+    /// A seal certificate whose subject carries the organizationIdentifier given.
+    /// </summary>
+    public X509Certificate2 IssueSeal(DateTimeOffset notBefore, DateTimeOffset notAfter, string organizationIdentifier = IsdsOrganizationIdentifier)
+    {
+        var subject = new X500DistinguishedNameBuilder();
+        subject.AddCountryOrRegion("CZ");
+        subject.Add("2.5.4.97", organizationIdentifier, UniversalTagNumber.UTF8String);
+        subject.AddOrganizationName("Testovací agentura");
+        subject.AddCommonName("Testovací informační systém");
+
+        using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        var request = new CertificateRequest(subject.Build(), key, HashAlgorithmName.SHA256);
+        request.CertificateExtensions.Add(new X509BasicConstraintsExtension(certificateAuthority: false, hasPathLengthConstraint: false, pathLengthConstraint: 0, critical: true));
+        request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.NonRepudiation, critical: true));
+        request.CertificateExtensions.Add(X509AuthorityKeyIdentifierExtension.CreateFromCertificate(this.Intermediate, includeKeyIdentifier: true, includeIssuerAndSerial: false));
+
+        return this.Track(this.Issue(request, key, this.Intermediate, notBefore, notAfter));
+    }
+
+    /// <summary>
+    /// A timestamp unit certificate, valid as long as the CAs.
+    /// </summary>
+    public X509Certificate2 IssueTsa()
+    {
+        using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        var request = new CertificateRequest("CN=Testovací TSA", key, HashAlgorithmName.SHA256);
+        request.CertificateExtensions.Add(new X509BasicConstraintsExtension(certificateAuthority: false, hasPathLengthConstraint: false, pathLengthConstraint: 0, critical: true));
+        request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.NonRepudiation, critical: true));
+        request.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension([new Oid(TimeStampingOid)], critical: true));
+        request.CertificateExtensions.Add(X509AuthorityKeyIdentifierExtension.CreateFromCertificate(this.Intermediate, includeKeyIdentifier: true, includeIssuerAndSerial: false));
+
+        return this.Track(this.Issue(request, key, this.Intermediate, CaFrom, CaTo));
+    }
+
+    public void Dispose()
+    {
+        foreach (var certificate in this.issued)
+            certificate.Dispose();
+    }
+
+    private static X509Certificate2 CreateRoot(string subject)
+    {
+        using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        var request = new CertificateRequest(subject, key, HashAlgorithmName.SHA256);
+        AddCaExtensions(request);
+
+        return request.CreateSelfSigned(CaFrom, CaTo);
+    }
+
+    private static void AddCaExtensions(CertificateRequest request)
+    {
+        request.CertificateExtensions.Add(new X509BasicConstraintsExtension(certificateAuthority: true, hasPathLengthConstraint: false, pathLengthConstraint: 0, critical: true));
+        request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign, critical: true));
+        request.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(request.PublicKey, critical: false));
+    }
+
+    private X509Certificate2 IssueCa(string subject, X509Certificate2 issuer)
+    {
+        using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        var request = new CertificateRequest(subject, key, HashAlgorithmName.SHA256);
+        AddCaExtensions(request);
+        request.CertificateExtensions.Add(X509AuthorityKeyIdentifierExtension.CreateFromCertificate(issuer, includeKeyIdentifier: true, includeIssuerAndSerial: false));
+
+        return this.Issue(request, key, issuer, CaFrom, CaTo);
+    }
+
+    private X509Certificate2 Issue(CertificateRequest request, ECDsa key, X509Certificate2 issuer, DateTimeOffset notBefore, DateTimeOffset notAfter)
+    {
+        this.serial++;
+
+        using var certificate = request.Create(issuer, notBefore, notAfter, [0x01, (byte)this.serial]);
+
+        return certificate.CopyWithPrivateKey(key);
+    }
+
+    private X509Certificate2 Track(X509Certificate2 certificate)
+    {
+        this.issued.Add(certificate);
+
+        return certificate;
+    }
+}

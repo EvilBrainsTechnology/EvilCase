@@ -5,6 +5,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="System.Security.Cryptography.Pkcs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Files\Signatures\PostSignum\**\*.cer" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\Api\EvilCase.Api.Contract\EvilCase.Api.Contract.csproj" />
     <ProjectReference Include="..\..\Common\EvilCase.Files\EvilCase.Files.csproj" />
     <ProjectReference Include="..\..\Data\EvilCase.Data\EvilCase.Data.csproj" />

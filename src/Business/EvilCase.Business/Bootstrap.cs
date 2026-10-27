@@ -3,6 +3,7 @@ using EvilBrains.EvilCase.Business.Cases;
 using EvilBrains.EvilCase.Business.Comments;
 using EvilBrains.EvilCase.Business.Contacts;
 using EvilBrains.EvilCase.Business.Files;
+using EvilBrains.EvilCase.Business.Files.Signatures;
 using EvilBrains.EvilCase.Business.Labels;
 using EvilBrains.EvilCase.Business.Numbering;
 using EvilBrains.EvilCase.Business.Search;
@@ -11,6 +12,7 @@ using EvilBrains.EvilCase.Data;
 using EvilBrains.EvilCase.Data.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -35,6 +37,11 @@ public static class Bootstrap
         services.AddScoped<ILabelAssignmentWriter, LabelAssignmentWriter>();
         services.AddScoped<IFileReader, FileReader>();
         services.AddScoped<IFileWriter, FileWriter>();
+        services.AddMemoryCache();
+        services.TryAddSingleton(TimeProvider.System);
+        services.AddSingleton(static _ => SignatureTrust.LoadPostSignum());
+        services.AddSingleton<ISignatureRevocation, OnlineSignatureRevocation>();
+        services.AddScoped<IFileSignatureReader, FileSignatureReader>();
         services.AddScoped<ISearchReader, SearchReader>();
         services.AddScoped<ISampleDataSeeder, SampleDataSeeder>();
         services.AddScoped<ICaseNumberIssuer, CaseNumberIssuer>();
