@@ -70,10 +70,20 @@ public class FileTypeDisplayTests
     [TestCase("a.pptx", FilePreviewKind.None)]
     [TestCase("a.zfo", FilePreviewKind.DataMessage)]
     [TestCase("a.ZFO", FilePreviewKind.DataMessage)]
+    [TestCase("a.p7m", FilePreviewKind.SignedDocument)]
+    [TestCase("a.P7S", FilePreviewKind.SignedDocument)]
+    [TestCase("a.cer", FilePreviewKind.None)]
     [TestCase("README", FilePreviewKind.None)]
     public void OnlyTheFormatsTheAppCanShowOpenInThePreview(string fileName, FilePreviewKind kind)
     {
         Assert.That(FileTypeDisplay.Preview(fileName), Is.EqualTo(kind));
+    }
+
+    [TestCase("Smlouva o dílo.pdf.p7m", "Smlouva o dílo.pdf")]
+    [TestCase("Podpis.P7S", "Podpis")]
+    public void TheSignedContentDropsTheSignatureSuffix(string fileName, string contentName)
+    {
+        Assert.That(FileTypeDisplay.SignedContentName(fileName), Is.EqualTo(contentName));
     }
 
     [TestCase("a.pdf", null)]

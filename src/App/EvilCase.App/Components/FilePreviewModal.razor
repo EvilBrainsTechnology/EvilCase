@@ -15,7 +15,9 @@
 {
     var attachment = this.ShownAttachment;
     var shownName = attachment?.Name ?? file.FileName;
-    var preview = FileTypeDisplay.Preview(shownName);
+    // A signed document shows what it carries, by the name without the signature suffix.
+    var stagedName = this.signedContentName ?? shownName;
+    var preview = FileTypeDisplay.Preview(stagedName);
 
     <EcModal Title="@shownName" Large Open="this.Open" OpenChanged="this.OpenChanged">
         <Heading>
@@ -58,7 +60,7 @@
                 {
                     <div class="ec-preview-title">
                         <h2 class="ec-preview-name" title="@file.FileName">@file.FileName</h2>
-                        <span class="ec-preview-meta">@FileSizeDisplay.Text(file.SizeBytes) <span class="ec-sep" aria-hidden="true">·</span> @MomentDisplay.Text(file.Created)</span>
+                        <span class="ec-preview-meta">@FileSizeDisplay.Text(file.SizeBytes) <span class="ec-sep" aria-hidden="true">·</span> @(this.signedContentName is { } documentName ? $"podepsaný dokument {documentName}" : MomentDisplay.Text(file.Created))</span>
                     </div>
                 }
                 <div class="ec-preview-actions">
@@ -74,15 +76,29 @@
                         <span class="ec-preview-divider" aria-hidden="true"></span>
                     }
                     <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Pencil" AriaLabel="Přejmenovat" OnClick="this.StartRename"><span class="ec-preview-action-label">Přejmenovat</span></EcButton>
-                    <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Download" AriaLabel="Stáhnout" OnClick="() => this.OnDownload.InvokeAsync(file)"><span class="ec-preview-action-label">Stáhnout</span></EcButton>
+                    @if (this.signedContentName is not null)
+                    {
+                        var extension = Path.GetExtension(file.FileName);
+
+                        <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Download" AriaLabel="Stáhnout dokument" OnClick="this.DownloadSignedContent"><span class="ec-preview-action-label">Stáhnout dokument</span></EcButton>
+                        <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Download" AriaLabel="@($"Stáhnout {extension}")" OnClick="() => this.OnDownload.InvokeAsync(file)"><span class="ec-preview-action-label">Stáhnout @extension</span></EcButton>
+                    }
+                    else
+                    {
+                        <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Download" AriaLabel="Stáhnout" OnClick="() => this.OnDownload.InvokeAsync(file)"><span class="ec-preview-action-label">Stáhnout</span></EcButton>
+                    }
                 </div>
             }
         </Heading>
         <ChildContent>
+            @if (this.signedContentName is not null)
+            {
+                <FileSigners @key="file.FileId" FileId="file.FileId" FileName="@file.FileName" />
+            }
             @if (preview == FilePreviewKind.None || this.unsupported)
             {
                 <div class="ec-preview-message">
-                    <EcFileIcon FileName="@shownName" Size="EcFileIconSize.Large" />
+                    <EcFileIcon FileName="@stagedName" Size="EcFileIconSize.Large" />
                     <p class="ec-preview-message-title">Náhled tohoto typu souboru není k dispozici</p>
                     <p class="ec-preview-message-text">Soubor si stáhněte a otevřete v aplikaci, která ho umí zobrazit.</p>
                     <EcButton Variant="EcButtonVariant.Primary" Icon="@AppIcons.Download" OnClick="() => this.DownloadShown(file)">Stáhnout soubor</EcButton>
@@ -106,7 +122,7 @@
                     {
                         <p class="ec-preview-note">Soubor je delší, zobrazuje se jen jeho začátek.</p>
                     }
-                    <div class="ec-preview-text" role="document" tabindex="0" aria-label="Obsah souboru @shownName">
+                    <div class="ec-preview-text" role="document" tabindex="0" aria-label="Obsah souboru @stagedName">
                         @for (var index = 0; index < this.lines.Count; index++)
                         {
                             <div class="ec-preview-line">
@@ -124,12 +140,12 @@
                     {
                         <p class="ec-preview-note">Soubor je delší, zobrazuje se jen jeho začátek.</p>
                     }
-                    <article class="ec-preview-markdown" role="document" tabindex="0" aria-label="Obsah souboru @shownName">@((MarkupString)this.markdownHtml)</article>
+                    <article class="ec-preview-markdown" role="document" tabindex="0" aria-label="Obsah souboru @stagedName">@((MarkupString)this.markdownHtml)</article>
                 </ReflowPreview>
             }
             else if (preview == FilePreviewKind.Document)
             {
-                <DocumentPreview @key="this.shownKey" Content="this.document!" FileName="@shownName" OnUnreadable="this.Unreadable" />
+                <DocumentPreview @key="this.shownKey" Content="this.document!" FileName="@stagedName" OnUnreadable="this.Unreadable" />
             }
             else if (preview == FilePreviewKind.Workbook)
             {
@@ -188,7 +204,7 @@
                 var message = this.email!;
 
                 <ReflowPreview @key="this.shownKey">
-                    <article class="ec-preview-email" role="document" tabindex="0" aria-label="Obsah zprávy @shownName">
+                    <article class="ec-preview-email" role="document" tabindex="0" aria-label="Obsah zprávy @stagedName">
                         <dl class="ec-preview-email-headers">
                             <dt>Od</dt>
                             <dd>@Or(message.From)</dd>
@@ -230,17 +246,21 @@
             }
             else if (preview == FilePreviewKind.DataMessage)
             {
-                <DataMessagePreview @key="this.shownKey" Content="this.dataMessage!" FileName="@shownName" FileId="@(attachment is null ? file.FileId : null)"
-                                    OnOpenAttachment="opened => this.OpenAttachment(shownName, opened.Message, opened.Index)" OnUnreadable="this.Unreadable" />
+                <DataMessagePreview @key="this.shownKey" Content="this.dataMessage!" FileName="@stagedName" FileId="@(attachment is null ? file.FileId : null)"
+                                    OnOpenAttachment="opened => this.OpenAttachment(stagedName, opened.Message, opened.Index)" OnUnreadable="this.Unreadable" />
+            }
+            else if (preview == FilePreviewKind.SignedDocument)
+            {
+                <FileSigners @key="file.FileId" FileId="file.FileId" FileName="@file.FileName" Detached />
             }
             else if (preview == FilePreviewKind.Pdf)
             {
-                <PdfPreview @key="this.shownKey" Url="@(this.url ?? "")" Content="this.pdf" FileName="@shownName" OnUnreadable="this.Unreadable" />
+                <PdfPreview @key="this.shownKey" Url="@(this.url ?? "")" Content="this.pdf" FileName="@stagedName" OnUnreadable="this.Unreadable" />
             }
             else if (preview == FilePreviewKind.Image || preview == FilePreviewKind.ConvertedImage)
             {
                 <div class="ec-preview-stage">
-                    <img @key="this.shownKey" class="ec-preview-image" src="@this.url" alt="@shownName" @onerror="this.Unreadable" />
+                    <img @key="this.shownKey" class="ec-preview-image" src="@this.url" alt="@stagedName" @onerror="this.Unreadable" />
                 </div>
             }
             else if (preview == FilePreviewKind.Audio)
@@ -320,6 +340,11 @@
 
     private byte[]? dataMessage;
 
+    // The document a stored signed file carries and the name it is shown and saved under; null for any other file.
+    private byte[]? signedContent;
+
+    private string? signedContentName;
+
     private int shownKey;
 
     private IReadOnlyList<string> lines = [];
@@ -374,6 +399,8 @@
         this.document = null;
         this.pdf = null;
         this.dataMessage = null;
+        this.signedContent = null;
+        this.signedContentName = null;
 
         return (this.loadToken = new CancellationTokenSource()).Token;
     }
@@ -396,7 +423,8 @@
             return;
         }
 
-        if (preview == FilePreviewKind.DataMessage && file.SizeBytes > DataMessageZfo.MaxBytes)
+        if ((preview == FilePreviewKind.DataMessage && file.SizeBytes > DataMessageZfo.MaxBytes)
+            || (preview == FilePreviewKind.SignedDocument && file.SizeBytes > FileLimits.MaxSignedFileBytes))
         {
             this.loading = false;
             this.unsupported = true;
@@ -550,6 +578,46 @@
                 break;
             }
 
+            case FilePreviewKind.SignedDocument:
+            {
+                using var bytes = new MemoryStream();
+
+                await content.CopyToAsync(bytes, token);
+
+                if (token.IsCancellationRequested)
+                    break;
+
+                var signed = SignedData.ParseOrDefault(bytes.ToArray());
+
+                if (signed is null)
+                {
+                    this.unsupported = true;
+
+                    break;
+                }
+
+                // A detached signature carries no document; the stage shows its signers instead.
+                if (signed.Content is not { } document)
+                    break;
+
+                var documentName = FileTypeDisplay.SignedContentName(fileName);
+                var documentPreview = FileTypeDisplay.Preview(documentName);
+
+                (this.signedContent, this.signedContentName) = (document, documentName);
+
+                await using var documentContent = new MemoryStream(document, writable: false);
+
+                // A signature or data message inside the signature would need a stored file of its own.
+                if (documentPreview is FilePreviewKind.SignedDocument or FilePreviewKind.DataMessage)
+                    this.unsupported = true;
+                else if (InlineFileTypes.MediaType(documentName) is { } mediaType)
+                    await this.ShowUrl(await this.BlobUrls.CreateBlobUrl(mediaType, documentContent, token), token);
+                else if (documentPreview != FilePreviewKind.None)
+                    await this.Load(documentName, documentPreview, documentContent, token);
+
+                break;
+            }
+
             case FilePreviewKind.None:
             case FilePreviewKind.Audio:
             case FilePreviewKind.Video:
@@ -579,6 +647,15 @@
         if (preview == FilePreviewKind.None)
         {
             this.loading = false;
+
+            return;
+        }
+
+        // A signed file inside a data message has no stored file whose signers the server reads.
+        if (preview == FilePreviewKind.SignedDocument)
+        {
+            this.loading = false;
+            this.unsupported = true;
 
             return;
         }
@@ -656,8 +733,17 @@
     {
         if (this.ShownAttachment is { } attachment)
             await this.DownloadAttachment(attachment);
+        else if (this.signedContent is not null)
+            await this.DownloadSignedContent();
         else
             await this.OnDownload.InvokeAsync(file);
+    }
+
+    private async Task DownloadSignedContent()
+    {
+        await using var content = new MemoryStream(this.signedContent!, writable: false);
+
+        await this.Downloader.DownloadContent(this.signedContentName!, content, CancellationToken.None);
     }
 
     private void Unreadable()
@@ -670,9 +756,11 @@
         return moment is { } value ? MomentDisplay.Text(value.UtcDateTime) : "—";
     }
 
+    // A signed document's content is read by the library of its own type.
     private static bool UsesLibrary(FilePreviewKind preview)
     {
-        return preview is FilePreviewKind.ConvertedImage or FilePreviewKind.Document or FilePreviewKind.Workbook or FilePreviewKind.Email;
+        return preview is FilePreviewKind.ConvertedImage or FilePreviewKind.Document or FilePreviewKind.Workbook or FilePreviewKind.Email
+            or FilePreviewKind.SignedDocument;
     }
 
     private static string Count(int count)

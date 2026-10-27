@@ -1,0 +1,177 @@
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.Files
+@inject IFileSignersClient SignersClient
+@inject ILogger<FileSigners> Logger
+@implements IDisposable
+
+@if (this.Detached)
+{
+    <div class="ec-preview-stage ec-preview-stage-text">
+        <article class="ec-preview-email ec-preview-signature" role="document" tabindex="0" aria-label="Podpis @this.FileName">
+            <div class="ec-preview-signature-head">
+                <EcBadge Text="Samostatný podpis" Tone="EcBadgeTone.Signature" />
+                <h3 class="ec-preview-signature-title">Podpis souboru @FileTypeDisplay.SignedContentName(this.FileName)</h3>
+            </div>
+            <section class="ec-preview-signature-signers" aria-label="Podpisy">
+                @if (this.loading)
+                {
+                    <p class="ec-preview-signers-status">Načítám podpisy…</p>
+                }
+                else if (this.problem is { } readProblem)
+                {
+                    <p class="ec-preview-signers-status">@FileSignerDisplay.Problem(readProblem)</p>
+                }
+                else if (this.signers is null)
+                {
+                    <div class="ec-preview-signers-status">
+                        <span>Podpisy se nepodařilo načíst.</span>
+                        <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Refresh" OnClick="this.Load">Zkusit znovu</EcButton>
+                    </div>
+                }
+                else
+                {
+                    <h4 class="ec-preview-signature-count">Podpisy (@this.signers.Count)</h4>
+                    @if (this.signers.Count == 0)
+                    {
+                        <p class="ec-preview-signers-status">Soubor nenese žádný podpis.</p>
+                    }
+                    else
+                    {
+                        <ul class="ec-preview-signature-list">
+                            @foreach (var signer in this.signers)
+                            {
+                                <li class="ec-preview-signature-signer">
+                                    <span class="ec-preview-signature-name">@FileSignerDisplay.Name(signer)</span>
+                                    <dl class="ec-preview-signature-details">
+                                        <dt>Druh</dt>
+                                        <dd>@FileSignerDisplay.Kind(signer.Kind)</dd>
+                                        <dt>Certifikát</dt>
+                                        <dd>@FileSignerDisplay.Certificate(signer)</dd>
+                                        @if (signer.Timestamped is { } timestamped)
+                                        {
+                                            <dt>Časové razítko</dt>
+                                            <dd>@MomentDisplay.Text(timestamped)</dd>
+                                        }
+                                        else if (signer.SigningTime is { } signingTime)
+                                        {
+                                            <dt>Čas podpisu</dt>
+                                            <dd>@MomentDisplay.Text(signingTime) <span class="ec-preview-signature-note">· bez časového razítka, uvádí ho podepisující</span></dd>
+                                        }
+                                        else
+                                        {
+                                            <dt>Čas podpisu</dt>
+                                            <dd>neuveden <span class="ec-preview-signature-note">· bez časového razítka</span></dd>
+                                        }
+                                    </dl>
+                                </li>
+                            }
+                        </ul>
+                    }
+                }
+            </section>
+        </article>
+    </div>
+}
+else
+{
+    <section class="ec-preview-signers" aria-label="Podpisy">
+        @if (this.loading)
+        {
+            <p class="ec-preview-signers-status">Načítám podpisy…</p>
+        }
+        else if (this.problem is { } readProblem)
+        {
+            <p class="ec-preview-signers-status">@FileSignerDisplay.Problem(readProblem)</p>
+        }
+        else if (this.signers is null)
+        {
+            <div class="ec-preview-signers-status">
+                <span>Podpisy se nepodařilo načíst.</span>
+                <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Refresh" OnClick="this.Load">Zkusit znovu</EcButton>
+            </div>
+        }
+        else if (this.signers.Count == 0)
+        {
+            <p class="ec-preview-signers-status">Soubor nenese žádný podpis.</p>
+        }
+        else
+        {
+            <ul class="ec-preview-signers-list">
+                @foreach (var signer in this.signers)
+                {
+                    <li class="ec-preview-signer">
+                        <span class="ec-preview-signer-name">@FileSignerDisplay.Name(signer)</span>
+                        <span class="ec-preview-signer-summary">@FileSignerDisplay.Summary(signer)</span>
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+}
+
+@code {
+    private readonly CancellationTokenSource disposed = new();
+
+    private IReadOnlyList<FileSigner>? signers;
+
+    private FileSignersProblem? problem;
+
+    private bool loading = true;
+
+    /// <summary>
+    /// The stored signed file whose signers the server reads.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required Guid FileId { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string FileName { get; set; }
+
+    /// <summary>
+    /// Shows the signature card in the stage instead of the strip above the document.
+    /// </summary>
+    [Parameter]
+    public bool Detached { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await this.Load();
+    }
+
+    public void Dispose()
+    {
+        if (this.disposed.IsCancellationRequested)
+            return;
+
+        this.disposed.Cancel();
+        this.disposed.Dispose();
+    }
+
+    private async Task Load()
+    {
+        this.loading = true;
+        this.signers = null;
+        this.problem = null;
+
+        try
+        {
+            var response = await this.SignersClient.ListFileSigners(this.FileId, this.disposed.Token);
+
+            if (response.Problem is { } readProblem)
+                this.problem = readProblem;
+            else
+                this.signers = response.Signers;
+        }
+        catch (OperationCanceledException) when (this.disposed.IsCancellationRequested)
+        {
+            return;
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Loading the signers of file {FileAssetId} failed", this.FileId);
+        }
+
+        this.loading = false;
+    }
+}

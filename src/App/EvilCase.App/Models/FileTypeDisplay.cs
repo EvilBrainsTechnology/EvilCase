@@ -92,6 +92,8 @@ public static class FileTypeDisplay
         ["eml"] = FilePreviewKind.Email,
         ["msg"] = FilePreviewKind.Email,
         ["zfo"] = FilePreviewKind.DataMessage,
+        ["p7m"] = FilePreviewKind.SignedDocument,
+        ["p7s"] = FilePreviewKind.SignedDocument,
         ["heic"] = FilePreviewKind.ConvertedImage,
         ["heif"] = FilePreviewKind.ConvertedImage,
         ["mp3"] = FilePreviewKind.Audio,
@@ -113,6 +115,14 @@ public static class FileTypeDisplay
     public static FilePreviewKind Preview(string fileName)
     {
         return Previews.GetValueOrDefault(Extension(fileName));
+    }
+
+    /// <summary>
+    /// The name of the document a signed file (p7m, p7s) carries: its own name without the signature suffix.
+    /// </summary>
+    public static string SignedContentName(string fileName)
+    {
+        return Path.GetFileNameWithoutExtension(fileName);
     }
 
     private static string Extension(string fileName)
