@@ -128,8 +128,9 @@ internal static class CmsSigners
 
             return [.. policies.GetPolicyInformation().Select(static policy => policy.PolicyIdentifier.Id)];
         }
-        catch (Exception exception) when (exception is IOException or ArgumentException or InvalidOperationException)
+        catch (Exception exception) when (exception is not OutOfMemoryException)
         {
+            // BouncyCastle reports malformed input through assorted exception types.
             return [];
         }
     }

@@ -251,6 +251,7 @@ public class CmsSignersTests
     [TestCase(new byte[] { 0x30, 0x03, 0x02, 0x01, 0x01 }, TestName = "no policy information")]
     [TestCase(new byte[] { 0x30, 0x02, 0x30, 0x00 }, TestName = "policy information without identifier")]
     [TestCase(new byte[] { 0x30, 0x05, 0x30, 0x03, 0x02, 0x01, 0x01 }, TestName = "identifier that is no OID")]
+    [TestCase(new byte[] { 0x30, 0x05, 0x30, 0x03, 0x06, 0x01, 0x2A, 0x00 }, TestName = "trailing bytes")]
     public void AMalformedPolicyExtensionDeclaresNone(byte[] extension)
     {
         using var certificate = WithPolicies(extension);

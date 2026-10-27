@@ -1,7 +1,6 @@
 using System.Runtime.InteropServices;
 using EvilBrains.EvilCase.Api.Contract.Files;
-using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Asn1.Cms;
+using Org.BouncyCastle.Cms;
 
 namespace EvilBrains.EvilCase.Business.Files.Signatures;
 
@@ -62,18 +61,14 @@ internal static class DetachedSignatures
 
         try
         {
-            // One object is read and trailing bytes are left alone, as SignedCms leaves them.
-            using var input = new Asn1InputStream(new MemoryStream(bytes.Array!, bytes.Offset, bytes.Count, writable: false), bytes.Count);
-            if (input.ReadObject() is not { } read)
-                return false;
+            // The parser streams: it stops at the encapsulated content and ignores what follows.
+            using var stream = new MemoryStream(bytes.Array!, bytes.Offset, bytes.Count, writable: false);
 
-            var contentInfo = ContentInfo.GetInstance(read);
-
-            return contentInfo.ContentType.Equals(CmsObjectIdentifiers.SignedData)
-                && SignedData.GetInstance(contentInfo.Content).EncapContentInfo.Content is null;
+            return new CmsSignedDataParser(stream).GetSignedContent() is null;
         }
-        catch (Exception exception) when (exception is IOException or ArgumentException or InvalidOperationException)
+        catch (Exception exception) when (exception is not OutOfMemoryException)
         {
+            // BouncyCastle reports malformed input through assorted exception types.
             return false;
         }
     }

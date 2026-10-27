@@ -167,6 +167,16 @@ public class DetachedSignaturesTests
     }
 
     [Test]
+    public void ASignedDataContentInfoWithoutContentIsNotDetached()
+    {
+        var writer = new AsnWriter(AsnEncodingRules.DER);
+        using (writer.PushSequence())
+            writer.WriteObjectIdentifier("1.2.840.113549.1.7.2");
+
+        Assert.That(DetachedSignatures.IsDetached(writer.Encode()), Is.False);
+    }
+
+    [Test]
     public void BytesThatAreNoCmsAreNotDetached()
     {
         Assert.That(DetachedSignatures.IsDetached("no cms"u8.ToArray()), Is.False);
