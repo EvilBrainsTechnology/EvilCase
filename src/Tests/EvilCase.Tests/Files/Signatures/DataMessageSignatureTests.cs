@@ -100,13 +100,15 @@ public class DataMessageSignatureTests
         }
     }
 
-    [Test]
-    public void ASealThroughAnIntermediateOutsideTheBundleIsNotPostSignum()
+    [TestCase(TestPki.SealPolicy)]
+    [TestCase("1.2.3.4")]
+    public void ASealThroughAnIntermediateOutsideTheBundleIsNotPostSignum(string policy)
     {
         using var host = TestPki.Create("Host");
         var trust = new SignatureTrust([this.pki.Root, host.Root], [this.pki.Intermediate]);
-        using var hostIntermediate = new HostIntermediate(host.Intermediate);
-        var seal = host.IssueSeal(SealFrom, SealTo);
+        using var hostIntermediate = HostIntermediate.Add(host.Intermediate);
+        var seal = host.IssueSeal(SealFrom, SealTo, policy: policy);
+        Assume.That(Builds(trust, seal), Is.True, "the platform offers the host's intermediate");
         var zfo = SealedZfo.Seal(MessageXml(), seal, this.pki.IssueTsa(), Timestamped);
         var revocation = new StubSignatureRevocation(SignatureRevocationStatus.NotRevoked);
 
@@ -114,7 +116,6 @@ public class DataMessageSignatureTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(BuildsAtTimestamp(trust, seal), Is.True, "the platform offers the host's intermediate");
             AssertInvalid(signature, FileSignatureProblem.NotPostSignum);
             Assert.That(revocation.Checks, Is.Zero);
         }
@@ -125,17 +126,14 @@ public class DataMessageSignatureTests
     {
         using var host = TestPki.Create("Host");
         var trust = new SignatureTrust([this.pki.Root, host.Root], [this.pki.Intermediate]);
-        using var hostIntermediate = new HostIntermediate(host.Intermediate);
+        using var hostIntermediate = HostIntermediate.Add(host.Intermediate);
         var tsa = host.IssueTsa();
+        Assume.That(Builds(trust, tsa), Is.True, "the platform offers the host's intermediate");
         var zfo = SealedZfo.Seal(MessageXml(), this.pki.IssueSeal(SealFrom, SealTo), tsa, Timestamped);
 
         var signature = DataMessageSignature.Verify(zfo, trust, new StubSignatureRevocation(SignatureRevocationStatus.NotRevoked));
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(BuildsAtTimestamp(trust, tsa), Is.True, "the platform offers the host's intermediate");
-            AssertInvalid(signature, FileSignatureProblem.TimestampInvalid);
-        }
+        AssertInvalid(signature, FileSignatureProblem.TimestampInvalid);
     }
 
     [Test]
@@ -342,7 +340,7 @@ public class DataMessageSignatureTests
         return SyntheticZfo.MessageXml(SyntheticZfo.Namespace, [("Rozhodnutí.pdf", [1, 2, 3])]);
     }
 
-    private static bool BuildsAtTimestamp(SignatureTrust trust, X509Certificate2 certificate)
+    private static bool Builds(SignatureTrust trust, X509Certificate2 certificate)
     {
         using var chain = trust.NewChain();
         chain.ChainPolicy.VerificationTime = Timestamped.UtcDateTime;

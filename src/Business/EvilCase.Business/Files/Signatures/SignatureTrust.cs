@@ -62,9 +62,16 @@ internal sealed class SignatureTrust(X509Certificate2Collection roots, X509Certi
     /// </summary>
     public bool BuildsWithinBundle(X509Chain chain, X509Certificate2 certificate)
     {
+        return chain.Build(certificate) && this.IsWithinBundle(chain);
+    }
+
+    /// <summary>
+    /// Whether every certificate <paramref name="chain"/> found above its first element is bundled, built or not.
+    /// </summary>
+    public bool IsWithinBundle(X509Chain chain)
+    {
         // The platform also offers intermediates of the machine's and the user's stores as candidates.
-        return chain.Build(certificate)
-            && chain.ChainElements.Skip(1).All(element => this.Bundled.Contains(element.Certificate.GetCertHashString(HashAlgorithmName.SHA256)));
+        return chain.ChainElements.Skip(1).All(element => this.Bundled.Contains(element.Certificate.GetCertHashString(HashAlgorithmName.SHA256)));
     }
 
     private static SignatureTrust Load(string[] providers)
