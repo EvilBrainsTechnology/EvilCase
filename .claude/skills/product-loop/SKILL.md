@@ -47,12 +47,13 @@ from an issue whose `Blocked by #` issues have all merged or closed.
 
 ## 3. Tend the open pull requests
 
+- Tend only `loop/*` pull requests; the session that opened any other one tends it.
 - A `waiting-for-agent` or `ci-failed` pull request on a free branch comes first (Between rounds).
 - Answer every thread with no agent reply — read the threads, never filter by timestamp or
   count; a reply says what changed, or why not, in at most three sentences.
 - A conflict is rebased onto `master` through a `pr-work.js` Workflow, never in the main thread.
-- A `loop/*` pull request labelled `agent-in-progress` with no running workflow is taken over
-  through a `pr-work.js` Workflow: finish the work and the threads, switch the label at the end.
+- A pull request labelled `agent-in-progress` with no running workflow is taken over through
+  a `pr-work.js` Workflow: finish the work and the threads, switch the label at the end.
 - Never merge, however green or approved. Say nothing about waiting for one.
 - Review another author's pull request only when it carries `request-code-review`.
 
