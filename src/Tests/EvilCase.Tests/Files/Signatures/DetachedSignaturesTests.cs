@@ -147,6 +147,26 @@ public class DetachedSignaturesTests
     }
 
     [Test]
+    public void ContentOfAnotherTypeIsNotDetached()
+    {
+        var writer = new AsnWriter(AsnEncodingRules.DER);
+        using (writer.PushSequence())
+        {
+            writer.WriteObjectIdentifier("1.2.840.113549.1.7.1");
+            using (writer.PushSequence(new Asn1Tag(TagClass.ContextSpecific, 0)))
+                writer.WriteOctetString([]);
+        }
+
+        Assert.That(DetachedSignatures.IsDetached(writer.Encode()), Is.False);
+    }
+
+    [Test]
+    public void ADetachedSignatureFollowedByOtherBytesIsDetached()
+    {
+        Assert.That(DetachedSignatures.IsDetached((byte[])[.. SignedFile.Sign("%PDF"u8.ToArray(), detached: true), 0x00, 0x00]), Is.True);
+    }
+
+    [Test]
     public void BytesThatAreNoCmsAreNotDetached()
     {
         Assert.That(DetachedSignatures.IsDetached("no cms"u8.ToArray()), Is.False);

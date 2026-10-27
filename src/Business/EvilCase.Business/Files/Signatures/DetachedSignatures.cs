@@ -1,5 +1,7 @@
-using System.Formats.Asn1;
+using System.Runtime.InteropServices;
 using EvilBrains.EvilCase.Api.Contract.Files;
+using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Cms;
 
 namespace EvilBrains.EvilCase.Business.Files.Signatures;
 
@@ -8,10 +10,6 @@ namespace EvilBrains.EvilCase.Business.Files.Signatures;
 /// </summary>
 internal static class DetachedSignatures
 {
-    private const string SignedDataOid = "1.2.840.113549.1.7.2";
-
-    private static readonly Asn1Tag ExplicitZero = new(TagClass.ContextSpecific, 0, isConstructed: true);
-
     /// <summary>
     /// The name a signature file signs: its name without the .p7s or .p7m extension; null for any other name.
     /// </summary>
@@ -59,21 +57,22 @@ internal static class DetachedSignatures
     /// </summary>
     public static bool IsDetached(ReadOnlyMemory<byte> cms)
     {
+        if (!MemoryMarshal.TryGetArray(cms, out var bytes))
+            bytes = cms.ToArray();
+
         try
         {
-            var contentInfo = new AsnReader(cms, AsnEncodingRules.BER).ReadSequence();
-            if (!string.Equals(contentInfo.ReadObjectIdentifier(), SignedDataOid, StringComparison.Ordinal))
+            // One object is read and trailing bytes are left alone, as SignedCms leaves them.
+            using var input = new Asn1InputStream(new MemoryStream(bytes.Array!, bytes.Offset, bytes.Count, writable: false), bytes.Count);
+            if (input.ReadObject() is not { } read)
                 return false;
 
-            var signedData = contentInfo.ReadSequence(ExplicitZero).ReadSequence();
-            signedData.ReadEncodedValue(); // version
-            signedData.ReadEncodedValue(); // digestAlgorithms
-            var encapsulated = signedData.ReadSequence();
-            encapsulated.ReadObjectIdentifier();
+            var contentInfo = ContentInfo.GetInstance(read);
 
-            return !encapsulated.HasData;
+            return contentInfo.ContentType.Equals(CmsObjectIdentifiers.SignedData)
+                && SignedData.GetInstance(contentInfo.Content).EncapContentInfo.Content is null;
         }
-        catch (AsnContentException)
+        catch (Exception exception) when (exception is IOException or ArgumentException or InvalidOperationException)
         {
             return false;
         }
