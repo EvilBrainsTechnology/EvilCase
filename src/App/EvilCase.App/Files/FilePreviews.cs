@@ -36,24 +36,25 @@ internal sealed class FilePreviews(IJSRuntime jsRuntime) : IFilePreviews, IAsync
         await previews.InvokeVoidAsync("openTextView", stage, view);
     }
 
-    public async Task<CodeView> OpenCodeView(
-        ElementReference stage,
-        string text,
-        CodeLanguage language,
-        bool truncated,
-        DotNetObjectReference<PreviewToolbar> view,
-        CancellationToken token)
+    public async Task<CodeView> RenderCode(ElementReference content, string text, CodeLanguage language, bool truncated, CancellationToken token)
     {
         var previews = await this.Module(token);
 
-        return await previews.InvokeAsync<CodeView>("openCodeView", token, stage, view, text, LanguageValue(language), truncated);
+        return await previews.InvokeAsync<CodeView>("renderCode", token, content, text, LanguageValue(language), truncated);
     }
 
-    public async Task<bool> ShowCode(ElementReference stage, bool formatted)
+    public async Task<bool> ShowCode(ElementReference content, bool formatted)
     {
         var previews = await this.Module(CancellationToken.None);
 
-        return await previews.InvokeAsync<bool>("showCode", stage, formatted);
+        return await previews.InvokeAsync<bool>("showCode", content, formatted);
+    }
+
+    public async Task DisposeCode(ElementReference content)
+    {
+        var previews = await this.Module(CancellationToken.None);
+
+        await previews.InvokeVoidAsync("disposeCode", content);
     }
 
     public async Task ZoomView(ElementReference element, PreviewZoom zoom)

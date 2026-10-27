@@ -89,7 +89,9 @@ Esc a Zrušit ho zahodí.
   Zpočátku je kód naformátovaný; tlačítko Formátovat na liště přepíná mezi naformátovaným
   a původním textem a každý nově zobrazený soubor začne naformátovaný. Soubor delší než 1 MB
   ukáže jen svůj začátek v původní podobě, soubor neplatný ve svém jazyce (ISDOC jako XML) celý
-  v původní podobě; tlačítko je pak vypnuté a náhled řekne proč.
+  v původní podobě; tlačítko je pak vypnuté a náhled řekne proč. Totéž platí, když se soubor
+  nepodaří naformátovat z jiného důvodu. Když zvýraznění není k dispozici, ukáže se kód jako
+  prostý text. Řádek delší než 10 000 znaků se ukáže bez zvýraznění.
 - Markdown se ukáže formátovaně, nejvýše první 1 MB. Syrové HTML v něm se nevykoná, ukáže se
   jako text; odkaz zůstane jen na webovou nebo e-mailovou adresu a otevře se v nové záložce;
   obrázky se nenačítají.

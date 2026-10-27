@@ -77,6 +77,12 @@ function release() {
             disposeView(element);
         }
     }
+
+    for (const content of codes.keys()) {
+        if (!content.isConnected) {
+            disposeCode(content);
+        }
+    }
 }
 
 export function disposeView(element) {
@@ -703,58 +709,154 @@ function search(state, query, again, previous) {
     state.view.invokeMethodAsync('MatchesChanged', ranges.length > 0 ? current + 1 : 0, ranges.length, false).catch(() => {});
 }
 
-// A JSON, XML, YAML or HTML source shows highlighted in numbered lines, formatted unless it cannot be or was cut; the
-// formatted and the original text stay to switch between. Returns whether it formatted and whether lines were cut.
+// A JSON, XML, YAML or HTML source shows in numbered lines, formatted and highlighted by a worker; without the worker
+// it shows as plain text. The original and the formatted version are each laid out once and kept for the switch.
 const maxCodeLines = 5000;
+// A longer line shows without colours; its highlighted markup takes seconds to lay out.
+const maxColouredLine = 10000;
+const codes = new Map();
 
-function codeLib() {
-    return import(new URL('../lib/code-preview/code-preview.min.js', import.meta.url).href);
+export function disposeCode(content) {
+    const code = codes.get(content);
+
+    if (code) {
+        codes.delete(content);
+        stopCodeWorker(code);
+    }
 }
 
-export async function openCodeView(stage, view, text, language, cut) {
-    const { formatCode } = await codeLib();
-    let formatted = null;
+function stopCodeWorker(code) {
+    code.worker?.terminate();
+    code.worker = null;
+    code.pending.forEach(answer => answer({ failed: true }));
+    code.pending.clear();
+}
 
-    if (!cut) {
-        try {
-            formatted = await formatCode(text, language);
-        } catch {
-            // Not valid in its language: the original shows.
-        }
+// Answers { failed: true } once the worker is gone or did not load.
+function askCodeWorker(code, message) {
+    if (!code.worker) {
+        return Promise.resolve({ failed: true });
     }
 
+    const id = ++code.asked;
+
+    return new Promise(answer => {
+        code.pending.set(id, answer);
+        code.worker.postMessage({ id, language: code.language, ...message });
+    });
+}
+
+// Returns whether the text formatted, whether it is not valid in its language, and whether its lines were cut. A cut
+// text never formats.
+export async function renderCode(content, text, language, cut) {
     release();
+    disposeCode(content);
 
-    const content = stage.querySelector('[role="document"]');
+    const code = { text, language, formatted: null, worker: null, asked: 0, pending: new Map(), shown: new Map(), showing: null };
 
-    if (!stage.isConnected || !content) {
-        return { formatted: false, linesCut: false };
+    codes.set(content, code);
+
+    try {
+        code.worker = new Worker(new URL('./code-preview-worker.js', import.meta.url), { type: 'module' });
+        code.worker.onmessage = ({ data }) => {
+            code.pending.get(data.id)?.(data);
+            code.pending.delete(data.id);
+        };
+        code.worker.onerror = () => stopCodeWorker(code);
+    } catch {
+        // The text shows plain.
     }
 
-    const state = openView(stage, stage, content, content, view, null);
+    const answer = cut ? {} : await askCodeWorker(code, { format: text });
 
-    state.code = { text, formatted, language };
+    if (codes.get(content) !== code) {
+        return { formatted: false, invalid: false, linesCut: false };
+    }
 
-    return { formatted: formatted !== null, linesCut: await showCode(stage, formatted !== null) };
+    code.formatted = answer.formatted ?? null;
+
+    return { formatted: code.formatted !== null, invalid: answer.invalid === true, linesCut: await showCode(content, code.formatted !== null) };
 }
 
-// Shows the formatted or the original text again and runs an open search over it; returns whether lines were cut.
-export async function showCode(stage, formatted) {
-    const state = views.get(stage);
+// Shows the formatted or the original text and runs an open search over it again; returns whether lines were cut.
+export async function showCode(content, formatted) {
+    const code = codes.get(content);
 
-    if (!state?.code) {
+    if (!code) {
         return false;
     }
 
-    const { highlightCode } = await codeLib();
-    const { code } = state;
-    const source = (formatted ? code.formatted : code.text).replace(/\r\n/g, '\n');
-    const count = source.split('\n').length - (source.endsWith('\n') ? 1 : 0);
-    const template = document.createElement('template');
+    code.showing = formatted;
 
-    // highlight.js escapes all of the text; the template keeps its markup inert.
-    template.innerHTML = highlightCode(source, code.language);
-    state.content.replaceChildren(...highlightedLines(template.content, maxCodeLines).map((line, index) => {
+    let shown = code.shown.get(formatted);
+
+    if (!shown) {
+        shown = await layOutCode(code, formatted ? code.formatted : code.text);
+        code.shown.set(formatted, shown);
+    }
+
+    if (codes.get(content) !== code || code.showing !== formatted) {
+        return shown.cut;
+    }
+
+    content.replaceChildren(...shown.rows);
+
+    const state = [...views.values()].find(each => each.content === content);
+
+    if (state) {
+        state.index = null;
+
+        if (state.search) {
+            search(state, state.search.query, false, false);
+        }
+    }
+
+    return shown.cut;
+}
+
+// At most maxCodeLines numbered lines; each run of shorter lines is highlighted as one text.
+async function layOutCode(code, source) {
+    const lines = source.replace(/\r\n/g, '\n').split('\n');
+
+    if (lines.length > 1 && lines.at(-1) === '') {
+        lines.pop();
+    }
+
+    const cut = lines.length > maxCodeLines;
+
+    lines.length = Math.min(lines.length, maxCodeLines);
+
+    const runs = [];
+
+    for (const line of lines) {
+        if (line.length > maxColouredLine) {
+            runs.push(line);
+        } else if (Array.isArray(runs.at(-1))) {
+            runs.at(-1).push(line);
+        } else {
+            runs.push([line]);
+        }
+    }
+
+    const coloured = runs.filter(run => Array.isArray(run));
+    const { html } = await askCodeWorker(code, { highlight: coloured.map(run => run.join('\n')) });
+    const template = document.createElement('template');
+    let next = 0;
+
+    const rows = runs.flatMap(run => {
+        if (!Array.isArray(run)) {
+            return [document.createTextNode(run)];
+        }
+
+        if (!html) {
+            return run.map(line => document.createTextNode(line));
+        }
+
+        // highlight.js escapes all of the text; the template keeps its markup inert.
+        template.innerHTML = html[next++];
+
+        return highlightedLines(template.content);
+    }).map((line, index) => {
         const row = document.createElement('div');
         const number = document.createElement('span');
         const text = document.createElement('span');
@@ -768,19 +870,14 @@ export async function showCode(stage, formatted) {
         row.append(number, text);
 
         return row;
-    }));
-    state.index = null;
+    });
 
-    if (state.search) {
-        search(state, state.search.query, false, false);
-    }
-
-    return count > maxCodeLines;
+    return { rows, cut };
 }
 
-// Splits highlighted markup at its line ends into at most `max` lines; a span that crosses a line end closes there
-// and opens again on the next line. A final line end starts no line.
-function highlightedLines(fragment, max) {
+// Splits highlighted markup at its line ends; a span that crosses a line end closes there and opens again on the next
+// line.
+function highlightedLines(fragment) {
     const lines = [];
     let line = document.createDocumentFragment();
     let open = [];
@@ -795,22 +892,16 @@ function highlightedLines(fragment, max) {
 
     function walk(node) {
         for (const child of node.childNodes) {
-            if (lines.length >= max) {
-                return;
-            }
-
             if (child.nodeType === Node.TEXT_NODE) {
-                const parts = child.data.split('\n');
-
-                for (let index = 0; index < parts.length && lines.length < max; index++) {
+                child.data.split('\n').forEach((part, index) => {
                     if (index > 0) {
                         nextLine();
                     }
 
-                    if (parts[index]) {
-                        parent.append(parts[index]);
+                    if (part) {
+                        parent.append(part);
                     }
-                }
+                });
             } else {
                 parent = parent.appendChild(child.cloneNode(false));
                 open.push(parent);
@@ -822,10 +913,7 @@ function highlightedLines(fragment, max) {
     }
 
     walk(fragment);
-
-    if (lines.length < max && (line.textContent.length > 0 || lines.length === 0)) {
-        lines.push(line);
-    }
+    lines.push(line);
 
     return lines;
 }

@@ -5,42 +5,34 @@
 @inject ILogger<CodePreview> Logger
 
 @* A JSON, XML, YAML or HTML source: highlighted, formatted unless the toolbar switches to the original. HTML never renders. *@
-<div class="ec-preview-view">
-    <PreviewToolbar @ref="this.toolbar" Ready="this.ready" Formats Formatted="this.formatted" CanFormat="this.formattable"
-                    OnFormat="this.ToggleFormat" OnZoom="this.Zoom" OnSearch="this.Search" />
-    <div @ref="this.stage" class="ec-preview-stage ec-preview-stage-text">
-        @if (this.Truncated)
-        {
-            <p class="ec-preview-note">Soubor je delší, zobrazuje se jen jeho začátek a nejde naformátovat.</p>
-        }
-        else
-        {
-            if (this.ready && !this.formattable)
-            {
-                <p class="ec-preview-note">Soubor není platný @LanguageName(FileTypeDisplay.Language(this.FileName)), proto se ukazuje jen originál.</p>
-            }
-
-            if (this.linesCut)
-            {
-                <p class="ec-preview-note">Soubor je delší, zobrazuje se jen jeho začátek.</p>
-            }
-        }
-        <div class="ec-preview-text ec-preview-code" role="document" tabindex="0" aria-label="Obsah souboru @this.FileName"></div>
-    </div>
-</div>
+<ReflowPreview Formats Formatted="this.formatted" CanFormat="this.view?.Formatted == true" OnFormat="this.ToggleFormat">
+    @if (this.Truncated)
+    {
+        <p class="ec-preview-note">Soubor je delší, zobrazuje se jen jeho začátek a nejde naformátovat.</p>
+    }
+    else if (this.view is { Formatted: false, Invalid: true })
+    {
+        <p class="ec-preview-note">Soubor není platný @LanguageName(FileTypeDisplay.Language(this.FileName)), proto se ukazuje jen originál.</p>
+    }
+    else if (this.view is { Formatted: false })
+    {
+        <p class="ec-preview-note">Soubor se nepodařilo naformátovat, ukazuje se originál.</p>
+    }
+    @if (!this.Truncated && this.linesCut)
+    {
+        <p class="ec-preview-note">Soubor je delší, zobrazuje se jen jeho začátek.</p>
+    }
+    <div @ref="this.content" class="ec-preview-text ec-preview-code" role="document" tabindex="0" aria-label="Obsah souboru @this.FileName"></div>
+</ReflowPreview>
 
 @code {
     private readonly CancellationTokenSource cancel = new();
 
-    private PreviewToolbar? toolbar;
+    private ElementReference content;
 
-    private ElementReference stage;
+    private bool rendering;
 
-    private bool opened;
-
-    private bool ready;
-
-    private bool formattable;
+    private CodeView? view;
 
     private bool formatted;
 
@@ -59,7 +51,7 @@
     public required string FileName { get; set; }
 
     /// <summary>
-    /// Raised when the library does not load.
+    /// Raised when the preview's script does not run.
     /// </summary>
     [Parameter]
     public EventCallback OnUnreadable { get; set; }
@@ -68,11 +60,11 @@
     {
         await this.cancel.CancelAsync();
 
-        if (this.opened)
+        if (this.rendering)
         {
             try
             {
-                await this.Previews.DisposeView(this.stage);
+                await this.Previews.DisposeCode(this.content);
             }
             catch (JSException exception)
             {
@@ -90,15 +82,15 @@
 
         var token = this.cancel.Token;
 
-        this.opened = true;
+        this.rendering = true;
 
         try
         {
-            var view = await this.Previews.OpenCodeView(this.stage, this.Text, FileTypeDisplay.Language(this.FileName), this.Truncated, this.toolbar!.View, token);
+            var shown = await this.Previews.RenderCode(this.content, this.Text, FileTypeDisplay.Language(this.FileName), this.Truncated, token);
 
             if (!token.IsCancellationRequested)
             {
-                (this.formattable, this.formatted, this.linesCut, this.ready) = (view.Formatted, view.Formatted, view.LinesCut, true);
+                (this.view, this.formatted, this.linesCut) = (shown, shown.Formatted, shown.LinesCut);
                 this.StateHasChanged();
             }
         }
@@ -108,7 +100,7 @@
         }
         catch (JSException exception)
         {
-            this.Logger.LogInformation(exception, "The code preview library did not load");
+            this.Logger.LogInformation(exception, "The code preview did not start");
 
             if (!token.IsCancellationRequested)
                 await this.OnUnreadable.InvokeAsync();
@@ -127,19 +119,16 @@
         };
     }
 
+    // A second switch before the first one's text shows wins.
     private async Task ToggleFormat()
     {
-        this.formatted = !this.formatted;
-        this.linesCut = await this.Previews.ShowCode(this.stage, this.formatted);
-    }
+        var formatted = !this.formatted;
 
-    private async Task Zoom(PreviewZoom zoom)
-    {
-        await this.Previews.ZoomView(this.stage, zoom);
-    }
+        this.formatted = formatted;
 
-    private async Task Search(PreviewSearch search)
-    {
-        await this.Previews.FindInView(this.stage, search.Query, search.Find);
+        var cut = await this.Previews.ShowCode(this.content, formatted);
+
+        if (this.formatted == formatted)
+            this.linesCut = cut;
     }
 }

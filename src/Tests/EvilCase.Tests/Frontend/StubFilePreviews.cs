@@ -52,16 +52,16 @@ internal sealed class StubFilePreviews : IFilePreviews
 
     public List<(string Query, PreviewFind Find)> ViewFinds { get; } = [];
 
-    public List<(string Text, CodeLanguage Language, bool Truncated)> OpenedCode { get; } = [];
+    public List<(string Text, CodeLanguage Language, bool Truncated)> RenderedCode { get; } = [];
 
     /// <summary>
-    /// Whether the library formats the code it is given; a cut text never formats.
+    /// What the library makes of the code it is given; a cut text never formats.
     /// </summary>
-    public bool Formattable { get; set; } = true;
-
-    public bool CodeLinesCut { get; set; }
+    public CodeView Code { get; set; } = new(Formatted: true, Invalid: false, LinesCut: false);
 
     public List<bool> ShownCode { get; } = [];
+
+    public int DisposedCode { get; private set; }
 
     public List<int> RequestedRows { get; } = [];
 
@@ -103,26 +103,26 @@ internal sealed class StubFilePreviews : IFilePreviews
         return Task.CompletedTask;
     }
 
-    public Task<CodeView> OpenCodeView(
-        ElementReference stage,
-        string text,
-        CodeLanguage language,
-        bool truncated,
-        DotNetObjectReference<PreviewToolbar> view,
-        CancellationToken token)
+    public Task<CodeView> RenderCode(ElementReference content, string text, CodeLanguage language, bool truncated, CancellationToken token)
     {
         this.ThrowWhenFailing();
-        this.OpenedCode.Add((text, language, truncated));
-        this.TextView = view;
+        this.RenderedCode.Add((text, language, truncated));
 
-        return Task.FromResult(new CodeView(Formatted: this.Formattable && !truncated, this.CodeLinesCut));
+        return Task.FromResult(truncated ? this.Code with { Formatted = false, Invalid = false } : this.Code);
     }
 
-    public Task<bool> ShowCode(ElementReference stage, bool formatted)
+    public Task<bool> ShowCode(ElementReference content, bool formatted)
     {
         this.ShownCode.Add(formatted);
 
-        return Task.FromResult(this.CodeLinesCut);
+        return Task.FromResult(this.Code.LinesCut);
+    }
+
+    public Task DisposeCode(ElementReference content)
+    {
+        this.DisposedCode++;
+
+        return Task.CompletedTask;
     }
 
     public Task ZoomView(ElementReference element, PreviewZoom zoom)

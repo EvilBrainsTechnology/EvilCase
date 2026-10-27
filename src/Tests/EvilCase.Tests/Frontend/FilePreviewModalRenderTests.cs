@@ -260,7 +260,7 @@ public class FilePreviewModalRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(previews.OpenedCode, Is.EqualTo([("<script>alert(1)</script>", language, false)]));
+            Assert.That(previews.RenderedCode, Is.EqualTo([("<script>alert(1)</script>", language, false)]));
             Assert.That(
                 component.FindAll(".ec-preview-toolbar button").Select(static button => button.GetAttribute("aria-label")),
                 Is.EqualTo(["Zmenšit", "Zvětšit", "100 %", "Formátovat", "Hledat v dokumentu", "Předchozí výskyt", "Další výskyt"]));
@@ -288,7 +288,7 @@ public class FilePreviewModalRenderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(previews.ShownCode, Is.EqualTo([false, true]));
-            Assert.That(previews.OpenedCode, Has.Count.EqualTo(1), "the switch shows the text again without reading the file");
+            Assert.That(previews.RenderedCode, Has.Count.EqualTo(1), "the switch shows the text again without reading the file");
             Assert.That(ToolbarButton(component, "Formátovat").GetAttribute("aria-pressed"), Is.EqualTo("true"));
         }
     }
@@ -302,7 +302,7 @@ public class FilePreviewModalRenderTests
     {
         using var ctx = NewContext(out _, out var previews);
 
-        previews.Formattable = false;
+        previews.Code = new CodeView(Formatted: false, Invalid: true, LinesCut: false);
 
         var file = File(fileName);
         var component = Render(ctx, [file], file.FileId);
@@ -316,6 +316,23 @@ public class FilePreviewModalRenderTests
     }
 
     [Test]
+    public void ACodeFileThatFailsToFormatForAnotherReasonShowsTheOriginalWithTheSwitchDisabled()
+    {
+        using var ctx = NewContext(out _, out var previews);
+
+        previews.Code = new CodeView(Formatted: false, Invalid: false, LinesCut: false);
+
+        var file = File("data.json");
+        var component = Render(ctx, [file], file.FileId);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.Find(".ec-preview-note").TextContent, Is.EqualTo("Soubor se nepodařilo naformátovat, ukazuje se originál."));
+            Assert.That(ToolbarButton(component, "Formátovat").HasAttribute("disabled"), Is.True);
+        }
+    }
+
+    [Test]
     public void ALongCodeFileIsCutShownAsTheOriginalAndSaysSo()
     {
         using var ctx = NewContext(out _, out var previews);
@@ -325,8 +342,8 @@ public class FilePreviewModalRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(previews.OpenedCode.Single().Text, Has.Length.EqualTo(1024 * 1024));
-            Assert.That(previews.OpenedCode.Single().Truncated, Is.True);
+            Assert.That(previews.RenderedCode.Single().Text, Has.Length.EqualTo(1024 * 1024));
+            Assert.That(previews.RenderedCode.Single().Truncated, Is.True);
             Assert.That(component.Find(".ec-preview-note").TextContent, Is.EqualTo("Soubor je delší, zobrazuje se jen jeho začátek a nejde naformátovat."));
             Assert.That(ToolbarButton(component, "Formátovat").HasAttribute("disabled"), Is.True);
         }
@@ -337,7 +354,7 @@ public class FilePreviewModalRenderTests
     {
         using var ctx = NewContext(out _, out var previews);
 
-        previews.CodeLinesCut = true;
+        previews.Code = new CodeView(Formatted: true, Invalid: false, LinesCut: true);
 
         var file = File("data.yaml");
         var component = Render(ctx, [file], file.FileId);
@@ -645,6 +662,22 @@ public class FilePreviewModalRenderTests
         component.Render(parameters => parameters.Add(static modal => modal.FileId, second.FileId));
 
         Assert.That(previews.DisposedViews, Is.EqualTo(1));
+    }
+
+    [Test]
+    public void SteppingFromACodeFileReleasesItsCode()
+    {
+        using var ctx = NewContext(out _, out var previews);
+
+        var first = File("a.xml");
+        var second = File("b.png");
+        var component = Render(ctx, [first, second], first.FileId);
+
+        component.WaitForAssertion(() => Assert.That(previews.RenderedCode, Is.Not.Empty));
+
+        component.Render(parameters => parameters.Add(static modal => modal.FileId, second.FileId));
+
+        Assert.That(previews.DisposedCode, Is.EqualTo(1), "a formatting still running for the left file stops");
     }
 
     [TestCase("Foto.heic")]

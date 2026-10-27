@@ -1629,6 +1629,12 @@ html {
     font-variant-ligatures: none;
 }
 
+/* Lines out of view skip layout; thousands of highlighted lines otherwise freeze the page on every switch. */
+.ec-preview-code .ec-preview-line {
+    content-visibility: auto;
+    contain-intrinsic-size: auto calc(var(--ec-text-sm) * var(--ec-preview-text-leading));
+}
+
 .ec-preview-code .hljs-name,
 .ec-preview-code .hljs-attr {
     color: var(--ec-code-name);

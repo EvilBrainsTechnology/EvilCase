@@ -30,22 +30,17 @@ internal interface IFilePreviews
     public Task OpenTextView(ElementReference stage, DotNetObjectReference<PreviewToolbar> view);
 
     /// <summary>
-    /// Shows the source in the stage's element of role <c>document</c> as numbered, highlighted lines, formatted unless it
-    /// is <paramref name="truncated"/> or not valid in its language, and opens its zoom and search as
-    /// <see cref="OpenTextView"/> does.
+    /// Shows the source in <paramref name="content"/> as numbered, highlighted lines, formatted unless it is
+    /// <paramref name="truncated"/> or cannot be formatted.
     /// </summary>
-    public Task<CodeView> OpenCodeView(
-        ElementReference stage,
-        string text,
-        CodeLanguage language,
-        bool truncated,
-        DotNetObjectReference<PreviewToolbar> view,
-        CancellationToken token);
+    public Task<CodeView> RenderCode(ElementReference content, string text, CodeLanguage language, bool truncated, CancellationToken token);
 
     /// <summary>
-    /// Shows the formatted or the original source of an open code view again and returns whether its lines were cut.
+    /// Shows the formatted or the original source of a rendered code again and returns whether its lines were cut.
     /// </summary>
-    public Task<bool> ShowCode(ElementReference stage, bool formatted);
+    public Task<bool> ShowCode(ElementReference content, bool formatted);
+
+    public Task DisposeCode(ElementReference content);
 
     public Task ZoomView(ElementReference element, PreviewZoom zoom);
 
