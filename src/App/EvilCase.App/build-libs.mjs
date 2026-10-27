@@ -166,8 +166,8 @@ copyLicense('pdfjs-dist', join(lib, 'pdfjs', 'LICENSE'));
 await bundle("export { default } from 'postal-mime';", join(lib, 'postal-mime'), 'postal-mime.min.js', { format: 'esm' });
 await bundle("export { default as MsgReader } from '@kenjiuno/msgreader';", join(lib, 'msgreader'), 'msgreader.min.js', { format: 'iife', globalName: 'EcMsg' });
 
-// Formats and highlights JSON, XML, YAML and HTML. A JSON number keeps its literal; XML keeps its whitespace; HTML
-// leaves its embedded scripts and styles as they are.
+// Formats and highlights JSON, XML, YAML and HTML. `json-stringify` keeps every JSON number literal and escape as
+// written; XML keeps its whitespace; HTML leaves its embedded scripts and styles as they are.
 const codePreview = `
 import { format } from 'prettier/standalone';
 import * as babel from 'prettier/plugins/babel';
@@ -176,10 +176,14 @@ import * as html from 'prettier/plugins/html';
 import * as yaml from 'prettier/plugins/yaml';
 import xml from '@prettier/plugin-xml';
 import hljs from 'highlight.js/lib/core';
+import css from 'highlight.js/lib/languages/css';
+import javascript from 'highlight.js/lib/languages/javascript';
 import json from 'highlight.js/lib/languages/json';
 import markup from 'highlight.js/lib/languages/xml';
 import yamlLanguage from 'highlight.js/lib/languages/yaml';
 
+hljs.registerLanguage('css', css);
+hljs.registerLanguage('javascript', javascript);
 hljs.registerLanguage('json', json);
 hljs.registerLanguage('xml', markup);
 hljs.registerLanguage('yaml', yamlLanguage);
@@ -191,8 +195,22 @@ const options = {
     html: { parser: 'html', embeddedLanguageFormatting: 'off' },
 };
 
-export function formatCode(text, language) {
-    return format(text, { ...options[language], plugins: [babel, estree, html, yaml, xml] });
+// Returns the formatted text, or null when the text is not valid in its language; any other failure throws.
+// json-stringify also accepts JSON5, so JSON is first checked by JSON.parse.
+export async function formatCode(text, language) {
+    try {
+        if (language === 'json') {
+            JSON.parse(text);
+        }
+
+        return await format(text, { ...options[language], plugins: [babel, estree, html, yaml, xml] });
+    } catch (error) {
+        if (error instanceof SyntaxError) {
+            return null;
+        }
+
+        throw error;
+    }
 }
 
 export function highlightCode(text, language) {
