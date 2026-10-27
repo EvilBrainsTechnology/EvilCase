@@ -43,6 +43,7 @@ jobs:
             let target;
             if (context.eventName === 'issue_comment') {
               const comment = payload.comment;
+              if (comment.user.login === 'vdolek') return;
               if (!['OWNER', 'MEMBER', 'COLLABORATOR'].includes(comment.author_association)) return;
               if (!/^## Code Review\s*$/m.test(comment.body ?? '')) return;
               if (labels.includes('ci-failed')) return;
