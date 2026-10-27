@@ -168,12 +168,38 @@ Esc a Zrušit ho zahodí.
   elektronická pečeť založená na kvalifikovaném certifikátu, jinak elektronický podpis.
   Vydavatel PostSignum, I.CA a eIdentity se ukáže zkratkou, jiný jménem z certifikátu.
   Podepisující, jehož certifikát soubor nenese, je Neznámý podepisující.
-- Podpis podepsaného souboru se neověřuje; údaje jsou takové, jak je soubor uvádí.
 - Podepisující vydává samostatná adresa, bez obsahu souboru. Když se je nepodaří načíst, pruh
   i karta to řeknou a nabídnou Zkusit znovu; dokument je k dispozici i bez nich. Podpis, který
   nejde přečíst, a soubor s více než 50 podepisujícími pruh i karta ohlásí bez Zkusit znovu.
 - Soubor p7m nebo p7s, který není podpisem CMS nebo je větší než 30 MB, nabídne jen stažení.
   Podepsaný soubor v příloze datové zprávy nabídne jen stažení.
+
+### Samostatný podpis a jeho soubor
+
+- Samostatný podpis patří k souboru téhož spisu nebo úkonu, jehož jméno je jméno podpisu bez
+  koncovky p7s nebo p7m (Smlouva.pdf.p7s ke Smlouva.pdf). Koncovka smí mít velká písmena, zbytek
+  jména se musí shodovat přesně. Když to jméno nesou dva soubory, nebo k témuž jménu patří dva
+  soubory s koncovkou p7s či p7m, podpis nepatří k žádnému. Přejmenování, nahrání i smazání
+  souboru párování změní. Soubor p7m s dokumentem uvnitř samostatným podpisem není.
+
+### Ověření podepsaného souboru
+
+- Server ověří každý podpis podepsaného souboru zvlášť, nad dokumentem uvnitř, u samostatného
+  podpisu nad jeho souborem. Podpis je platný, když obsah odpovídá podpisu, certifikát
+  podepisujícího je kvalifikovaný certifikát pro podpis nebo pečeť od PostSignum, I.CA nebo
+  eIdentity a není odvolán. S časovým razítkem nad podpisem musí certifikát platit v okamžiku
+  razítka a smí vypršet později; razítko musí vydat kvalifikovaná služba týchž autorit. Bez
+  razítka musí certifikát platit dnes.
+- Podpis je neplatný, když obsah neodpovídá podpisu, certifikát neplatil v okamžiku razítka,
+  razítko není platné nebo je certifikát odvolán.
+- Podpis nelze ověřit, když certifikát nevydala česká kvalifikovaná autorita, soubor certifikát
+  podepisujícího nenese, certifikát bez razítka dnes neplatí, autorita neodpoví na dotaz na
+  odvolání, samostatný podpis nemá svůj soubor nebo je jeho soubor větší než 30 MB.
+- Certifikáty autorit PostSignum, I.CA a eIdentity jsou součástí aplikace; certifikáty, které
+  soubor nese, se k ověření autority nepoužijí. Druh podpisu se jen zobrazí, o platnosti
+  nerozhoduje.
+- Odvolání se ověřuje online u autority, která certifikát vydala.
+- Výsledek ověření vydává samostatná adresa, bez obsahu souboru.
 
 ## Rozhodnutí
 
@@ -187,7 +213,12 @@ Esc a Zrušit ho zahodí.
 - Limit náhledu podepsaného souboru: bez limitu / 30 MB. Platí 30 MB.
 - Limit podepisujících podepsaného souboru: bez limitu / 50. Platí 50.
 - Čtení podepisujících: v prohlížeči / na serveru. Platí na serveru.
-- Ověření podpisu podepsaného souboru: hned / později. Platí později; zatím se neověřuje.
+- Ověření podpisu podepsaného souboru: hned / později. Platí hned, na serveru.
+- Autority podepsaného souboru: jen PostSignum / české kvalifikované autority / evropský seznam
+  důvěryhodných služeb. Platí PostSignum, I.CA a eIdentity.
+- Podpis bez časového razítka: neověřovat / ověřit k dnešku. Platí k dnešku.
+- Soubor samostatného podpisu: podle jména / ruční přiřazení. Platí podle jména.
+- Limit souboru samostatného podpisu: 100 MB / 30 MB. Platí 30 MB.
 
 ## Dopady
 

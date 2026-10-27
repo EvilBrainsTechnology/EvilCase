@@ -7,7 +7,7 @@ using EvilBrains.EvilCase.Api.Contract.Files;
 namespace EvilBrains.EvilCase.Business.Files.Signatures;
 
 /// <summary>
-/// Lists the signers of a CMS SignedData, attached or detached, as the file states them. Nothing is verified.
+/// Lists the signers of a CMS SignedData, attached or detached, as the file states them; SignedFileSignature adds the verdicts.
 /// </summary>
 internal static class CmsSigners
 {
@@ -77,9 +77,8 @@ internal static class CmsSigners
         }
     }
 
-    private static FileSigner Signer(SignerInfo signer, X509Certificate2? certificate)
+    public static FileSigner Signer(SignerInfo signer, X509Certificate2? certificate)
     {
-
         return new FileSigner
         {
             Name = certificate?.GetNameInfo(X509NameType.SimpleName, forIssuer: false) ?? "",
@@ -111,13 +110,16 @@ internal static class CmsSigners
         return FileSignerKind.Other;
     }
 
-    private static List<string> Policies(X509Certificate2 certificate)
+    /// <summary>
+    /// The policy OIDs the certificate itself declares.
+    /// </summary>
+    public static List<string> Policies(X509Certificate2 certificate)
     {
         var extension = certificate.Extensions[CertificatePoliciesOid];
         if (extension is null)
             return [];
 
-        // certificatePolicies ::= SEQUENCE OF PolicyInformation, PolicyInformation ::= SEQUENCE { policyIdentifier, qualifiers OPTIONAL }; read for display only.
+        // certificatePolicies ::= SEQUENCE OF PolicyInformation, PolicyInformation ::= SEQUENCE { policyIdentifier, qualifiers OPTIONAL }.
         var oids = new List<string>();
 
         try

@@ -44,6 +44,7 @@ public static class Bootstrap
         services.AddSingleton<ISignatureRevocation, OnlineSignatureRevocation>();
         services.AddScoped<IFileSignatureReader, FileSignatureReader>();
         services.AddScoped<IFileSignerReader, FileSignerReader>();
+        services.AddScoped<IFileSignerVerifier, FileSignerVerifier>();
         services.AddScoped<ISearchReader, SearchReader>();
         services.AddScoped<ISampleDataSeeder, SampleDataSeeder>();
         services.AddScoped<ICaseNumberIssuer, CaseNumberIssuer>();

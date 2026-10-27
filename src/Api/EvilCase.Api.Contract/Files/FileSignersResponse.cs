@@ -1,7 +1,7 @@
 namespace EvilBrains.EvilCase.Api.Contract.Files;
 
 /// <summary>
-/// The signers of a stored signed file (p7m, p7s).
+/// The signers of a stored signed file (p7m, p7s), verified where the verification answers.
 /// </summary>
 public sealed record FileSignersResponse
 {

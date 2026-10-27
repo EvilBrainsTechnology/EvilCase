@@ -26,7 +26,8 @@ public static class FileLimits
     public const long MaxDataMessageBytes = 30 * 1024 * 1024;
 
     /// <summary>
-    /// The largest signed file (p7m, p7s) whose document and signers are read.
+    /// The largest signed file (p7m, p7s) whose document and signers are read, and the largest file a detached signature is
+    /// verified against.
     /// </summary>
     public const long MaxSignedFileBytes = 30 * 1024 * 1024;
 

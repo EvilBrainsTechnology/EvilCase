@@ -45,10 +45,6 @@ internal static class DataMessageSignature
     private const X509ChainStatusFlags PolicyFlags =
         X509ChainStatusFlags.NotValidForUsage | X509ChainStatusFlags.InvalidPolicyConstraints | X509ChainStatusFlags.NoIssuanceChainPolicy;
 
-    private const string TimestampTokenOid = "1.2.840.113549.1.9.16.2.14";
-
-    private const string TimeStampingOid = "1.3.6.1.5.5.7.3.8";
-
     private static readonly XmlReaderSettings XmlSettings = new()
     {
         DtdProcessing = DtdProcessing.Prohibit,
@@ -89,7 +85,7 @@ internal static class DataMessageSignature
         if (!IsEnvelope(cms.ContentInfo.Content))
             return Invalid(FileSignatureProblem.NotDataMessage);
 
-        if (TrustedTime(signer, trust) is not { } timestamped)
+        if (SignatureTimestamp.TrustedTime(signer, trust) is not { } timestamped)
             return Invalid(FileSignatureProblem.TimestampInvalid);
 
         using (var chain = trust.NewChain())
@@ -127,34 +123,6 @@ internal static class DataMessageSignature
             return FileSignatureProblem.NotPostSignum;
 
         return flags.HasFlag(X509ChainStatusFlags.NotTimeValid) ? FileSignatureProblem.NotValidAtTimestamp : FileSignatureProblem.NotIsdsSigner;
-    }
-
-    /// <summary>
-    /// The time of the timestamp token over the signature, or null where the token is missing, does not cover this signature,
-    /// or its TSA does not chain to the trust's roots at that time.
-    /// </summary>
-    private static DateTime? TrustedTime(SignerInfo signer, SignatureTrust trust)
-    {
-        var attribute = signer.UnsignedAttributes
-            .Cast<CryptographicAttributeObject>()
-            .FirstOrDefault(static attribute => string.Equals(attribute.Oid.Value, TimestampTokenOid, StringComparison.Ordinal));
-
-        if (attribute is not { Values.Count: > 0 })
-            return null;
-
-        if (!Rfc3161TimestampToken.TryDecode(attribute.Values[0].RawData, out var token, out _))
-            return null;
-
-        if (!token.VerifySignatureForSignerInfo(signer, out var tsaCertificate, trust.Intermediates) || tsaCertificate is null)
-            return null;
-
-        var timestamped = token.TokenInfo.Timestamp.UtcDateTime;
-
-        using var chain = trust.NewChain();
-        chain.ChainPolicy.VerificationTime = timestamped;
-        chain.ChainPolicy.ApplicationPolicy.Add(new Oid(TimeStampingOid));
-
-        return chain.Build(tsaCertificate) ? timestamped : null;
     }
 
     /// <summary>
