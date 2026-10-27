@@ -2287,12 +2287,16 @@ html {
 }
 
 .ec-preview-signature-file-size {
+    flex: none;
     font-size: var(--ec-text-sm);
     color: var(--ec-text-muted);
+    white-space: nowrap;
 }
 
 .ec-preview-signature-file-open {
     display: inline-flex;
+    flex: none;
+    white-space: nowrap;
     align-items: center;
     gap: var(--ec-space-1);
     color: var(--ec-accent-text);
