@@ -24,4 +24,19 @@ public class OnlineSignatureRevocationTests
             Assert.That(logger.LoggedWarningOrAbove, Is.True, "an unknown status is logged as a warning");
         }
     }
+
+    [Test]
+    public void ARevocationListThatCannotBeFetchedLeavesTheStatusUnknown()
+    {
+        using var pki = TestPki.Create();
+        var seal = pki.IssueSeal(
+            new DateTimeOffset(2021, 1, 1, 0, 0, 0, TimeSpan.Zero),
+            new DateTimeOffset(2022, 1, 1, 0, 0, 0, TimeSpan.Zero),
+            revocationListUrl: "http://127.0.0.1:9/retired.crl");
+        var revocation = new OnlineSignatureRevocation(new TestTimeProvider(new DateTime(2026, 10, 27, 8, 0, 0, DateTimeKind.Utc)), new CapturingLogger<OnlineSignatureRevocation>());
+
+        var result = revocation.CheckRevocation(seal, pki.Trust);
+
+        Assert.That(result.Status, Is.EqualTo(SignatureRevocationStatus.Unknown), "a retired hierarchy whose list no longer answers is unverifiable, never revoked");
+    }
 }

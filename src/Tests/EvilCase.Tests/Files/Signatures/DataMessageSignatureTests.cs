@@ -121,6 +121,17 @@ public class DataMessageSignatureTests
     }
 
     [Test]
+    public void ASealOfTheFormerIsdsOperatorIsValid()
+    {
+        var seal = this.pki.IssueSeal(SealFrom, SealTo, organizationIdentifier: "NTRCZ-00007064");
+        var zfo = SealedZfo.Seal(MessageXml(), seal, this.pki.IssueTsa(), Timestamped);
+
+        var signature = DataMessageSignature.Verify(zfo, this.pki.Trust, new StubSignatureRevocation(SignatureRevocationStatus.NotRevoked));
+
+        Assert.That(signature.State, Is.EqualTo(FileSignatureState.Valid), "Ministerstvo vnitra operated the ISDS before DIA and sealed the older messages");
+    }
+
+    [Test]
     public void ASealOfAnotherOrganizationIsNotTheIsds()
     {
         var seal = this.pki.IssueSeal(SealFrom, SealTo, organizationIdentifier: "NTRCZ-00000001");

@@ -57,7 +57,8 @@ internal sealed class TestPki : IDisposable
         DateTimeOffset notAfter,
         string organizationIdentifier = IsdsOrganizationIdentifier,
         string commonName = IsdsCommonName,
-        string policy = SealPolicy)
+        string policy = SealPolicy,
+        string? revocationListUrl = null)
     {
         var subject = new X500DistinguishedNameBuilder();
         subject.AddCountryOrRegion("CZ");
@@ -71,6 +72,8 @@ internal sealed class TestPki : IDisposable
         request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.NonRepudiation, critical: true));
         request.CertificateExtensions.Add(X509AuthorityKeyIdentifierExtension.CreateFromCertificate(this.Intermediate, includeKeyIdentifier: true, includeIssuerAndSerial: false));
         request.CertificateExtensions.Add(CertificatePolicies(policy));
+        if (revocationListUrl is not null)
+            request.CertificateExtensions.Add(CertificateRevocationListBuilder.BuildCrlDistributionPointExtension([revocationListUrl]));
 
         return this.Track(this.Issue(request, key, this.Intermediate, notBefore, notAfter));
     }
