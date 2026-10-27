@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Business.Entities;
@@ -21,6 +22,8 @@ internal sealed class FileSignatureReader(
 
     private static readonly TimeSpan InvalidLifetime = TimeSpan.FromHours(24);
 
+    private static readonly ConcurrentDictionary<Guid, Lazy<Task<FileSignatureResponse?>>> InFlight = new();
+
     public async Task<FileSignatureResponse?> ReadFileSignature(Guid fileId, CancellationToken token)
     {
         // The tenant-filtered row comes first, so a cached verdict never reaches another tenant.
@@ -31,41 +34,66 @@ internal sealed class FileSignatureReader(
         if (file is null)
             return null;
 
-        var cacheKey = (nameof(FileSignatureReader), fileId);
-        if (cache.TryGetValue(cacheKey, out FileSignatureResponse? cached))
+        if (cache.TryGetValue(CacheKey(fileId), out FileSignatureResponse? cached))
             return cached;
 
-        FileSignatureResponse signature;
+        // Concurrent reads of one file share one verification; it outlives a caller that gives up.
+        var flight = InFlight.GetOrAdd(
+            fileId,
+            static (id, verification) => new Lazy<Task<FileSignatureResponse?>>(
+                async () => await verification.Reader.VerifyFile(id, verification.StoragePath, verification.SizeBytes)),
+            (Reader: this, file.StoragePath, file.SizeBytes));
 
-        if (file.SizeBytes > FileLimits.MaxDataMessageBytes)
+        return await flight.Value.WaitAsync(token);
+    }
+
+    private static (string, Guid) CacheKey(Guid fileId)
+    {
+        return (nameof(FileSignatureReader), fileId);
+    }
+
+    private async Task<FileSignatureResponse?> VerifyFile(Guid fileId, string storagePath, long sizeBytes)
+    {
+        try
         {
-            signature = new FileSignatureResponse { State = FileSignatureState.Invalid, Problem = FileSignatureProblem.TooLarge };
-        }
-        else
-        {
-            await using var content = blobStore.ReadFileBlob(file.StoragePath);
-            if (content is null)
+            var signature = await this.ReadAndVerify(storagePath, sizeBytes);
+            if (signature is null)
                 return null;
 
-            await using var buffer = new MemoryStream(capacity: (int)file.SizeBytes);
-            await content.CopyToAsync(buffer, token);
+            logger.LogInformation("Signature of file {FileAssetId} verified as {SignatureState} {SignatureProblem}", fileId, signature.State, signature.Problem);
 
-            signature = DataMessageSignature.Verify(buffer.GetBuffer().AsSpan(0, (int)buffer.Length), trust, revocation);
+            TimeSpan? lifetime = signature.State switch
+            {
+                FileSignatureState.Valid => ValidLifetime,
+                FileSignatureState.Invalid => InvalidLifetime,
+                FileSignatureState.Unverifiable => null,
+                _ => throw new UnreachableException(),
+            };
+
+            if (lifetime is { } cacheLifetime)
+                cache.Set(CacheKey(fileId), signature, cacheLifetime);
+
+            return signature;
         }
-
-        logger.LogInformation("Signature of file {FileAssetId} verified as {SignatureState} {SignatureProblem}", fileId, signature.State, signature.Problem);
-
-        TimeSpan? lifetime = signature.State switch
+        finally
         {
-            FileSignatureState.Valid => ValidLifetime,
-            FileSignatureState.Invalid => InvalidLifetime,
-            FileSignatureState.Unverifiable => null,
-            _ => throw new UnreachableException(),
-        };
+            // A finished verification leaves, so the next read of an unverifiable file asks again.
+            InFlight.TryRemove(fileId, out _);
+        }
+    }
 
-        if (lifetime is { } cacheLifetime)
-            cache.Set(cacheKey, signature, cacheLifetime);
+    private async Task<FileSignatureResponse?> ReadAndVerify(string storagePath, long sizeBytes)
+    {
+        if (sizeBytes > FileLimits.MaxDataMessageBytes)
+            return new FileSignatureResponse { State = FileSignatureState.Invalid, Problem = FileSignatureProblem.TooLarge };
 
-        return signature;
+        await using var content = blobStore.ReadFileBlob(storagePath);
+        if (content is null)
+            return null;
+
+        await using var buffer = new MemoryStream(capacity: (int)sizeBytes);
+        await content.CopyToAsync(buffer, CancellationToken.None);
+
+        return DataMessageSignature.Verify(buffer.GetBuffer().AsSpan(0, (int)buffer.Length), trust, revocation);
     }
 }

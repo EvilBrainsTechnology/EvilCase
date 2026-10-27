@@ -129,6 +129,47 @@ public class FileSignatureReaderTests : TenantFixture
         }
     }
 
+    [Test]
+    public async Task ConcurrentReadsOfOneFileShareOneVerification()
+    {
+        var file = await this.AddSealedFile();
+        var zfo = await ReadAll(this.blobs.ReadFileBlob(file.StoragePath)!);
+        var gate = new TaskCompletionSource();
+        var reading = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        this.blobs.ReadFileBlob(file.StoragePath).Returns(_ => new GatedStream(zfo, gate.Task, reading));
+        var revocation = new StubSignatureRevocation(SignatureRevocationStatus.Unknown);
+        var reader = this.Reader(revocation);
+
+        var first = reader.ReadFileSignature(file.Id, CancellationToken.None);
+
+        // The second read starts once the first is past the database, which one context serves one query at a time.
+        await reading.Task;
+        var second = reader.ReadFileSignature(file.Id, CancellationToken.None);
+        gate.SetResult();
+        await Task.WhenAll(first, second);
+
+        var afterwards = await reader.ReadFileSignature(file.Id, CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That((await first)?.State, Is.EqualTo(FileSignatureState.Unverifiable));
+            Assert.That((await second)?.State, Is.EqualTo(FileSignatureState.Unverifiable));
+            Assert.That(afterwards?.State, Is.EqualTo(FileSignatureState.Unverifiable));
+            Assert.That(revocation.Checks, Is.EqualTo(2), "two reads in flight share one verification, and a finished one leaves so a retry asks again");
+        }
+    }
+
+    private static async Task<byte[]> ReadAll(Stream stream)
+    {
+        await using (stream)
+        {
+            await using var buffer = new MemoryStream();
+            await stream.CopyToAsync(buffer);
+
+            return buffer.ToArray();
+        }
+    }
+
     private FileSignatureReader Reader(StubSignatureRevocation revocation)
     {
         return new FileSignatureReader(new FixedDbSession(this.Tenant.Context), this.blobs, this.pki.Trust, revocation, this.cache, NullLogger<FileSignatureReader>.Instance);
