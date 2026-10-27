@@ -27,6 +27,17 @@ internal sealed class FileSignerReader(IDbSession dbSession, IFileBlobStore blob
         await using var buffer = new MemoryStream(capacity: (int)file.SizeBytes);
         await content.CopyToAsync(buffer, token);
 
-        return CmsSigners.Read(buffer.GetBuffer().AsSpan(0, (int)buffer.Length));
+        var response = CmsSigners.Read(buffer.GetBuffer().AsSpan(0, (int)buffer.Length));
+        if (response.Problem is not null || !DetachedSignatures.IsDetached(buffer.GetBuffer().AsMemory(0, (int)buffer.Length)))
+            return response;
+
+        var ownerFiles = await dbSession.Current.FileAssets
+            .OfSameOwner(file)
+            .AsListItems()
+            .ToListAsync(token);
+
+        var (signedFile, problem) = DetachedSignatures.Pair(file.Id, file.FileName, ownerFiles);
+
+        return response with { SignedFile = signedFile, SignedFileProblem = problem };
     }
 }

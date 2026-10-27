@@ -121,4 +121,43 @@ public class FileListQueryTests : TenantFixture
 
         Assert.That(items, Is.Null, "the act id alone never reaches another tenant's files");
     }
+
+    [Test]
+    public async Task ACaseFileCarriesTheDetachedSignatureOfItsName()
+    {
+        var @case = await this.Tenant.AddCase(Day);
+        await this.Tenant.AddCaseFile(@case, "Smlouva.pdf");
+        var signature = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf.p7s");
+        await this.Tenant.AddCaseFile(@case, "Jiny.pdf");
+
+        var items = await this.reader.ListCaseFiles(@case.Id, CancellationToken.None);
+
+        Assert.That(items!.Select(static item => item.SignatureFileId), Is.EqualTo(new Guid?[] { signature.Id, null, null }), "only the file of the signed name carries the signature");
+    }
+
+    [Test]
+    public async Task AnActFileCarriesTheDetachedSignatureOfItsName()
+    {
+        var @case = await this.Tenant.AddCase(Day);
+        var act = await this.Tenant.AddAct(@case, Day);
+        await this.Tenant.AddActFile(act, "Smlouva.pdf");
+        var signature = await this.Tenant.AddActFile(act, "Smlouva.pdf.p7s");
+
+        var items = await this.reader.ListActFiles(act.Id, CancellationToken.None);
+
+        Assert.That(items!.Select(static item => item.SignatureFileId), Is.EqualTo(new Guid?[] { signature.Id, null }));
+    }
+
+    [Test]
+    public async Task ASignatureOnAnotherCaseDoesNotPair()
+    {
+        var caseA = await this.Tenant.AddCase(Day);
+        var caseB = await this.Tenant.AddCase(Day);
+        await this.Tenant.AddCaseFile(caseA, "Smlouva.pdf");
+        await this.Tenant.AddCaseFile(caseB, "Smlouva.pdf.p7s");
+
+        var items = await this.reader.ListCaseFiles(caseA.Id, CancellationToken.None);
+
+        Assert.That(items!.Single().SignatureFileId, Is.Null, "a signature pairs only within its own case or act");
+    }
 }

@@ -11,4 +11,14 @@ public sealed record FileSignersResponse
     public FileSignersProblem? Problem { get; init; }
 
     public required IReadOnlyList<FileSigner> Signers { get; init; }
+
+    /// <summary>
+    /// For a detached signature, the file it signs.
+    /// </summary>
+    public FileListItem? SignedFile { get; init; }
+
+    /// <summary>
+    /// For a detached signature without the file it signs.
+    /// </summary>
+    public DetachedSignatureProblem? SignedFileProblem { get; init; }
 }

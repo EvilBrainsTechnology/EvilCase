@@ -1,5 +1,6 @@
 using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Business.Entities;
+using EvilBrains.EvilCase.Business.Files.Signatures;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Files;
 using Microsoft.EntityFrameworkCore;
@@ -18,11 +19,13 @@ internal sealed class FileReader(IDbSession dbSession, IFileBlobStore blobStore)
         if (!caseExists)
             return null;
 
-        return await context.FileAssets
+        var files = await context.FileAssets
             .OfCase(caseId)
             .InUploadOrder()
             .AsListItems()
             .ToListAsync(token);
+
+        return DetachedSignatures.WithSignatureFiles(files);
     }
 
     public async Task<IReadOnlyList<FileListItem>?> ListActFiles(Guid actId, CancellationToken token)
@@ -33,11 +36,13 @@ internal sealed class FileReader(IDbSession dbSession, IFileBlobStore blobStore)
         if (!actExists)
             return null;
 
-        return await context.FileAssets
+        var files = await context.FileAssets
             .OfAct(actId)
             .InUploadOrder()
             .AsListItems()
             .ToListAsync(token);
+
+        return DetachedSignatures.WithSignatureFiles(files);
     }
 
     public async Task<FileDownload?> OpenFileContent(Guid fileId, CancellationToken token)
