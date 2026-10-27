@@ -47,7 +47,10 @@ internal static class SealedZfo
         return cms.Encode();
     }
 
-    private static byte[] TimestampToken(X509Certificate2 tsa, byte[] data, DateTimeOffset timestamped)
+    /// <summary>
+    /// An RFC 3161 token by <paramref name="tsa"/> over <paramref name="data"/> at <paramref name="timestamped"/>.
+    /// </summary>
+    public static byte[] TimestampToken(X509Certificate2 tsa, byte[] data, DateTimeOffset timestamped)
     {
         var info = new Rfc3161TimestampTokenInfo(
             new Oid("1.2.3.4"),
