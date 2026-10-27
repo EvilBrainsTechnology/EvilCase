@@ -65,7 +65,7 @@ Esc a Zrušit ho zahodí.
   uložený `MediaType` se nepoužije. Příloha datové zprávy se ukáže ze zprávy samé.
 - Zobrazí se PDF, obrázky (jpg, jpeg, png, gif, webp, avif, bmp, svg, heic, heif),
   text (txt, csv, tsv, json, xml, log, isdoc, html), Markdown (md, markdown), dokument Word
-  (docx), sešit (xlsx, xls, ods), e-mail (eml, msg), datovou zprávu a doručenku ISDS (zfo), zvuk (mp3, m4a, wav, ogg, oga) a video
+  (docx), sešit (xlsx, xls, ods), e-mail (eml, msg), datovou zprávu a doručenku ISDS (zfo), podepsaný soubor (p7m, p7s), zvuk (mp3, m4a, wav, ogg, oga) a video
   (mp4, webm, m4v, mov). Jiný typ nabídne jen stažení. Soubor, který se nepodaří přečíst, nabídne
   také jen stažení.
 - PDF, text, Markdown, e-mail, datová zpráva a dokument Word mají nad obsahem stejnou lištu se zvětšením
@@ -136,6 +136,34 @@ Esc a Zrušit ho zahodí.
 - Výsledek ověření vydává samostatná adresa, jen výsledek bez obsahu souboru. Soubor nad 30 MB
   je neplatný bez čtení.
 
+### Podepsaný soubor
+
+- Soubor p7m nebo p7s je elektronický podpis ve formátu CMS. Podepsaný dokument v něm náhled
+  ukáže podle přípony jména bez koncovky p7m nebo p7s (Smlouva.pdf.p7m jako PDF), stejně jako
+  soubor karty. Dokument bez náhledu, vnořený podepsaný soubor a vnořená datová zpráva nabídnou
+  jen stažení dokumentu.
+- Hlavička podepsaného dokumentu ukáže u velikosti „podepsaný dokument“ se jménem dokumentu
+  a nese Přejmenovat, Stáhnout dokument a Stáhnout s příponou souboru (Stáhnout .p7m). Dokument
+  se stáhne pod jménem bez koncovky podpisu, soubor celý pod svým jménem.
+- Pod hlavičkou je pruh Podpisy: u každého podepisujícího jméno, druh podpisu, vydavatel
+  certifikátu a čas. Čas je čas časového razítka nad podpisem („časové razítko 12. 10. 2026
+  10:14“), bez razítka čas, který uvádí podepisující („bez časového razítka, uvedeno
+  12. 10. 2026 15:40“).
+- Samostatný podpis, soubor p7m nebo p7s bez dokumentu, ukáže kartu se štítkem Samostatný
+  podpis, nadpisem „Podpis souboru“ se jménem bez koncovky podpisu a oddílem Podpisy s počtem.
+  U každého podepisujícího ukáže jméno, druh, vydavatele a platnost certifikátu a časové
+  razítko, bez něj čas podpisu s poznámkou, že ho uvádí podepisující.
+- Druh podpisu určí certifikát: kvalifikovaný elektronický podpis, zaručený elektronický podpis
+  založený na kvalifikovaném certifikátu, kvalifikovaná elektronická pečeť, zaručená
+  elektronická pečeť založená na kvalifikovaném certifikátu, jinak elektronický podpis.
+  Vydavatel PostSignum, I.CA a eIdentity se ukáže zkratkou, jiný jménem z certifikátu.
+  Podepisující, jehož certifikát soubor nenese, je Neznámý podepisující.
+- Podpis podepsaného souboru se neověřuje; údaje jsou takové, jak je soubor uvádí.
+- Podepisující vydává samostatná adresa, bez obsahu souboru. Když se je nepodaří načíst, pruh
+  i karta to řeknou a nabídnou Zkusit znovu; dokument je k dispozici i bez nich.
+- Soubor p7m nebo p7s, který není podpisem CMS nebo je větší než 30 MB, nabídne jen stažení.
+  Podepsaný soubor v příloze datové zprávy nabídne jen stažení.
+
 ## Rozhodnutí
 
 - Deduplikace hashem: ano / ne. Ne.
@@ -145,6 +173,9 @@ Esc a Zrušit ho zahodí.
 - Limit náhledu datové zprávy: bez limitu / 30 MB. Platí 30 MB.
 - Zneplatnění certifikátu podpisu: neověřovat / ověřit online. Platí online; bez odpovědi
   PostSignum podpis nelze ověřit.
+- Limit náhledu podepsaného souboru: bez limitu / 30 MB. Platí 30 MB.
+- Čtení podepisujících: v prohlížeči / na serveru. Platí na serveru.
+- Ověření podpisu podepsaného souboru: hned / později. Platí později; zatím se neověřuje.
 
 ## Dopady
 

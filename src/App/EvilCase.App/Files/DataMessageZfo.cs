@@ -1,4 +1,3 @@
-using System.Formats.Asn1;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
@@ -15,14 +14,10 @@ internal static partial class DataMessageZfo
 {
     public const long MaxBytes = FileLimits.MaxDataMessageBytes;
 
-    private const string SignedDataOid = "1.2.840.113549.1.7.2";
-
     // Deeper than any ISDS message; loading XML slows quadratically with its nesting.
     private const int MaxXmlDepth = 100;
 
     private const string InvalidNameCharacters = "<>:\"|?*";
-
-    private static readonly Asn1Tag ExplicitZero = new(TagClass.ContextSpecific, 0, isConstructed: true);
 
     private static readonly XmlReaderSettings XmlSettings = new()
     {
@@ -39,28 +34,12 @@ internal static partial class DataMessageZfo
     {
         try
         {
-            return SignedContent(zfo) is { } xml ? Read(xml) : null;
+            return SignedData.ParseOrDefault(zfo)?.Content is { } xml ? Read(xml) : null;
         }
-        catch (Exception exception) when (exception is AsnContentException or XmlException or FormatException)
+        catch (Exception exception) when (exception is XmlException or FormatException)
         {
             return null;
         }
-    }
-
-    private static byte[]? SignedContent(byte[] zfo)
-    {
-        var contentInfo = new AsnReader(zfo, AsnEncodingRules.BER).ReadSequence();
-        if (!string.Equals(contentInfo.ReadObjectIdentifier(), SignedDataOid, StringComparison.Ordinal))
-            return null;
-
-        var signedData = contentInfo.ReadSequence(ExplicitZero).ReadSequence();
-        signedData.ReadEncodedValue(); // version
-        signedData.ReadEncodedValue(); // digestAlgorithms
-        var encapsulated = signedData.ReadSequence();
-        encapsulated.ReadObjectIdentifier();
-
-        // A detached signature carries no content.
-        return encapsulated.HasData ? encapsulated.ReadSequence(ExplicitZero).ReadOctetString() : null;
     }
 
     private static DataMessage? Read(byte[] xml)
