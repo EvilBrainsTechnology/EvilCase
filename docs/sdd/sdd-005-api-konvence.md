@@ -48,7 +48,7 @@ Vše ostatní je bez limitu, health checks včetně. Odmítnutí je 429 s `Retry
 | Spisy | `/api/cases`, `/api/cases/{id}`; počty podle stavu `/api/cases/counts` |
 | Úkony | výpis a založení `/api/acts` (spis v těle), detail `/api/acts/{actId}` |
 | Kontakty | `/api/contacts`, `/api/contacts/{id}` |
-| Soubory | výpis, přejmenování a smazání na vlastníku; upload na vlastníku a download `/api/files/{id}/content` |
+| Soubory | výpis, přejmenování a smazání na vlastníku; upload na vlastníku, download `/api/files/{id}/content` a ověření podpisu datové zprávy `/api/files/{id}/signature` |
 | Komentáře | na vlastníku, `…/comments`, `…/comments/{id}` |
 | Hledání | `/api/search?q=`, viz [SDD-021](sdd-021-vyhledavani.md) |
 | Štítky | `/api/labels`, `/api/labels/{id}`; přidělení na vlastníku `…/labels` |

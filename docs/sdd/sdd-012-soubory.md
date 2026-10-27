@@ -103,7 +103,7 @@ Esc a Zrušit ho zahodí.
   okamžik dodání a doručení a seznam příloh s ikonou, jménem, velikostí a stažením. Doručenka
   ukáže štítek Doručenka, tutéž obálku a místo příloh události s okamžikem a popisem bez kódu
   události. Prázdný údaj obálky ukáže pomlčku, prázdné číslo jednací a spisová značka se
-  vynechají. Podpis zprávy náhled neověřuje ani neukazuje.
+  vynechají.
 - Soubor zfo, který není datovou zprávou ani doručenkou ISDS (třeba formulář Software602), nebo
   je větší než 30 MB, nabídne jen stažení.
 - Klik na přílohu ukáže v tomtéž náhledu její náhled podle přípony, stejně jako u souboru karty,
@@ -116,6 +116,24 @@ Esc a Zrušit ho zahodí.
 - HEIC a HEIF se ukážou jako obrázek.
 - Náhled listuje mezi soubory karty, ze které se otevřel.
 
+### Podpis datové zprávy
+
+- Server ověří podpis uložené datové zprávy i doručenky. Podpis je platný, když obsah odpovídá
+  podpisu, podepsal ho Informační systém datových schránek (Digitální a informační agentura)
+  certifikátem PostSignum platným v okamžiku kvalifikovaného časového razítka nad podpisem a
+  certifikát není zneplatněný. Certifikát smí vypršet později.
+- Certifikáty autorit PostSignum jsou součástí aplikace; certifikáty, které soubor nese, se
+  k ověření autority nepoužijí.
+- Zneplatnění se ověřuje online u PostSignum. Když PostSignum neodpoví, podpis nelze ověřit.
+- Vedle štítku Datová zpráva nebo Doručenka stojí štítek podpisu: „Ověřuji podpis…“, „Podpis
+  ISDS platný“, „Podpis neplatný“ nebo „Podpis nelze ověřit“. Klik na něj ukáže podrobnosti:
+  u platného podpisu podepsaného, vydavatele a platnost certifikátu, časové razítko a okamžik
+  ověření zneplatnění; u neplatného důvod; u neověřitelného vysvětlení a Zkusit znovu. Chyba
+  načtení výsledku se ukáže jako Podpis nelze ověřit.
+- Vnořená datová zpráva z přílohy štítek podpisu nemá.
+- Výsledek ověření vydává samostatná adresa, jen výsledek bez obsahu souboru. Soubor nad 30 MB
+  je neplatný bez čtení.
+
 ## Rozhodnutí
 
 - Deduplikace hashem: ano / ne. Ne.
@@ -123,6 +141,8 @@ Esc a Zrušit ho zahodí.
 - Úložiště: databáze / souborový systém. Platí souborový systém, metadata v databázi.
 - Smazání blobu: fyzické / žádné. Platí žádné — bajty přežívají smazaný záznam.
 - Limit náhledu datové zprávy: bez limitu / 30 MB. Platí 30 MB.
+- Zneplatnění certifikátu podpisu: neověřovat / ověřit online. Platí online; bez odpovědi
+  PostSignum podpis nelze ověřit.
 
 ## Dopady
 
