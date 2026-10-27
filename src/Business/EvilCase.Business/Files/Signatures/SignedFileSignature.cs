@@ -7,8 +7,9 @@ using EvilBrains.EvilCase.Api.Contract.Files;
 namespace EvilBrains.EvilCase.Business.Files.Signatures;
 
 /// <summary>
-/// Verifies each signer of a signed file against the qualified trust: the content, the signed reference to the certificate,
-/// a qualified certificate of a bundled authority, the timestamp where there is one, the time and the revocation.
+/// Verifies each signer of a signed file against the qualified trust: the content, the signed reference to the certificate
+/// the signature is checked against, a qualified certificate of a bundled authority, the timestamp where there is one, the
+/// time and the revocation.
 /// </summary>
 internal static class SignedFileSignature
 {
@@ -40,9 +41,6 @@ internal static class SignedFileSignature
 
         try
         {
-            // Parsed once: SignerInfo.Certificate parses every certificate the file carries on each call.
-            var certificates = signed.Certificates;
-
             // One revocation query per certificate, however many signers share it.
             var revocations = new Dictionary<string, SignatureRevocation>(StringComparer.Ordinal);
 
@@ -64,7 +62,7 @@ internal static class SignedFileSignature
                 [
                     .. signerInfos
                         .Cast<SignerInfo>()
-                        .Select(info => Verified(info, SignerCertificate(info, certificates), trust, Revocation, now)),
+                        .Select(info => Verified(info, trust, Revocation, now)),
                 ],
             };
         }
@@ -88,22 +86,12 @@ internal static class SignedFileSignature
         };
     }
 
-    /// <summary>
-    /// The first carried certificate the signer identifies, preferring one its signing-certificate attribute names: a key
-    /// identifier can match a renewed certificate too.
-    /// </summary>
-    private static X509Certificate2? SignerCertificate(SignerInfo info, X509Certificate2Collection certificates)
+    private static FileSigner Verified(SignerInfo info, SignatureTrust trust, Func<X509Certificate2, SignatureRevocation> revocation, DateTime now)
     {
-        var matching = certificates.Where(info.SignerIdentifier.MatchesCertificate).ToList();
+        var signer = CmsSigners.Signer(info);
 
-        return matching.Find(certificate => SigningCertificateReference.RefersTo(info, certificate)) ?? matching.FirstOrDefault();
-    }
-
-    private static FileSigner Verified(SignerInfo info, X509Certificate2? certificate, SignatureTrust trust, Func<X509Certificate2, SignatureRevocation> revocation, DateTime now)
-    {
-        var signer = CmsSigners.Signer(info, certificate);
-
-        if (certificate is null)
+        // The certificate the signature is checked against; the signed reference below must name this one and no other.
+        if (info.Certificate is not { } certificate)
             return signer with { State = FileSignatureState.Unverifiable, Problem = FileSignerProblem.CertificateMissing };
 
         try

@@ -59,18 +59,7 @@ internal static class CmsSigners
 
         try
         {
-            // Parsed once: SignerInfo.Certificate parses every certificate the file carries on each call.
-            var certificates = signed.Certificates;
-
-            return new FileSignersResponse
-            {
-                Signers =
-                [
-                    .. signerInfos
-                        .Cast<SignerInfo>()
-                        .Select(signer => Signer(signer, certificates.FirstOrDefault(signer.SignerIdentifier.MatchesCertificate))),
-                ],
-            };
+            return new FileSignersResponse { Signers = [.. signerInfos.Cast<SignerInfo>().Select(Signer)] };
         }
         catch (CryptographicException)
         {
@@ -78,8 +67,13 @@ internal static class CmsSigners
         }
     }
 
-    public static FileSigner Signer(SignerInfo signer, X509Certificate2? certificate)
+    /// <summary>
+    /// The signer as the file states it, by the first carried certificate its identifier matches — the certificate the signature is checked against.
+    /// </summary>
+    public static FileSigner Signer(SignerInfo signer)
     {
+        var certificate = signer.Certificate;
+
         return new FileSigner
         {
             Name = certificate?.GetNameInfo(X509NameType.SimpleName, forIssuer: false) ?? "",

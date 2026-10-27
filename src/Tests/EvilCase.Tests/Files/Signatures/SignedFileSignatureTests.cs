@@ -236,6 +236,26 @@ public class SignedFileSignatureTests
     }
 
     [Test]
+    public void ACarriedCertificateOfAnotherKeyThatTheIdentifierAlsoMatchesIsNotTheSigner()
+    {
+        var victim = this.Signer(YearStart, YearEnd);
+        using var forged = Forged(victim);
+        var attribute = SigningCertificateV2(new EssCertIDv2(SHA256.HashData(victim.RawData)));
+        var cms = SignedFile.Sign(Content, detached: false, [forged], includeCertificates: false, carried: [forged, victim], signedAttribute: attribute);
+
+        // The shorter certificate sorts first in the DER set, so the forged one is the first match of the identifier.
+        Assume.That(CarriedFirst(cms), Is.EqualTo(forged.RawData));
+
+        var signer = this.VerifyOne(cms);
+
+        using (Assert.EnterMultipleScope())
+        {
+            AssertVerdict(signer, FileSignatureState.Invalid, FileSignerProblem.SigningCertificateMismatch);
+            Assert.That(signer.Name, Is.EqualTo("Útočník"), "the verdict names the certificate that verified the signature, never one the attribute only points at");
+        }
+    }
+
+    [Test]
     public void ASigningCertificateNamingTheSignerIsValid()
     {
         var certificate = this.Signer(YearStart, YearEnd);
@@ -280,35 +300,6 @@ public class SignedFileSignatureTests
         var signer = this.VerifyOne(SignedFile.Sign(Content, detached: false, [certificate], signedAttribute: attribute));
 
         AssertVerdict(signer, FileSignatureState.Invalid, FileSignerProblem.SigningCertificateMismatch);
-    }
-
-    [Test]
-    public void OfRenewedCertificatesTheOneTheAttributeNamesIsTheSigners()
-    {
-        using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
-
-        // Both certificates share the key and so the key identifier; the file is kept where it lists the older one first.
-        X509Certificate2 renewed;
-        byte[] cms;
-        var attempts = 0;
-        do
-        {
-            var older = this.pki.IssueSeal(YearStart, YearEnd, commonName: "Jan Testovací", policy: QualifiedSignaturePolicy, key: key);
-            renewed = this.pki.IssueSeal(YearStart, YearEnd, commonName: "Jan Testovací", policy: QualifiedSignaturePolicy, key: key);
-            cms = SignedFile.Sign(
-                Content,
-                detached: false,
-                [renewed],
-                includeCertificates: false,
-                identifier: System.Security.Cryptography.Pkcs.SubjectIdentifierType.SubjectKeyIdentifier,
-                carried: [older, renewed],
-                signedAttribute: SigningCertificateV2(new EssCertIDv2(SHA256.HashData(renewed.RawData))));
-        }
-        while (CarriedFirst(cms).AsSpan().SequenceEqual(renewed.RawData) && ++attempts < 32);
-
-        Assume.That(CarriedFirst(cms), Is.Not.EqualTo(renewed.RawData));
-
-        Assert.That(this.VerifyOne(cms).State, Is.EqualTo(FileSignatureState.Valid));
     }
 
     [TestCase("1.2.840.113549.1.9.16.2.47")]
@@ -451,6 +442,18 @@ public class SignedFileSignatureTests
         signed.Decode(cms);
 
         return signed.Certificates[0].RawData;
+    }
+
+    /// <summary>
+    /// A certificate over another key whose issuer and serial are <paramref name="victim"/>'s, so a signer identifier of the victim matches it.
+    /// </summary>
+    private static X509Certificate2 Forged(X509Certificate2 victim)
+    {
+        using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        var request = new CertificateRequest("CN=Útočník", key, HashAlgorithmName.SHA256);
+        using var certificate = request.Create(victim.IssuerName, X509SignatureGenerator.CreateForECDsa(key), YearStart, YearEnd, victim.SerialNumberBytes.Span);
+
+        return certificate.CopyWithPrivateKey(key);
     }
 
     private static byte[] Sha1(X509Certificate2 certificate)
