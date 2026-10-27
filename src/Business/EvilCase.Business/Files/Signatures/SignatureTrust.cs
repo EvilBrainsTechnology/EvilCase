@@ -28,12 +28,12 @@ internal sealed class SignatureTrust(X509Certificate2Collection roots, X509Certi
     }
 
     /// <summary>
-    /// The roots and intermediates of the Czech qualified trust service providers PostSignum, I.CA and eIdentity bundled
-    /// with the application.
+    /// The roots and intermediates of the Czech qualified trust service providers PostSignum, the retired PostSignum
+    /// hierarchy included, I.CA and eIdentity bundled with the application.
     /// </summary>
     public static SignatureTrust LoadQualified()
     {
-        return Load(["PostSignum", "ICA", "eIdentity"]);
+        return Load(["PostSignum", "PostSignumRetired", "ICA", "eIdentity"]);
     }
 
     /// <summary>

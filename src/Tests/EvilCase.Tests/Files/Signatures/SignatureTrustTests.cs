@@ -75,6 +75,7 @@ public class SignatureTrustTests
                 "D279C01A12E8DD9A6230E459FAA447CEB336998477338C2EE4135C96737418EB", // I.CA Root CA/RSA 05/2022
                 "3808CE3E961CA532682FFB8708B544E8F175AA065601A45902DF92128FC38532", // I.CA Root CA/ECC 05/2022
                 "095DBC3E4E160664149682B044F5FCF3AC45040F1F14D0C0B91ED34577DA7277", // ACAeID3 - Root Certificate
+                "AD016F958050E0E7E46FAE7DCC50197ED8E3FF0A4B262E5DDCDB3EDDDC7D6578", // PostSignum Root QCA 2, retired
             ]),
             "the qualified roots are exactly the bundled roots of PostSignum, I.CA and eIdentity");
     }
@@ -103,6 +104,9 @@ public class SignatureTrustTests
                 "B891934AC432D91FD40484A60A253F6FD041ECF0256ED52660A0C4200D1AE6CC", // ACAeID3.1 - Issuing Certificate
                 "6D66FC4E8BF3BB3679FE047290ED45B69462DC17880D9996AC8AEC509C701D84", // ACAeID3.2 - Issuing Certificate
                 "922B74719EEACCCEA9CF5014F7AFE53826E359CE26E210D473DFE1433AB6CCE9", // ACAeID3.3 - Issuing Certificate
+                "3AE4F4DE5F3E2070A11845BDFE6DCA6E412BB7E4ED84FD4F1B7B496CADFF2CAC", // PostSignum Qualified CA 2, retired
+                "D35E250CB02E27BB3FC52D1F1A0DFD88FA9813BE1B777320AAE912B54E3B1F02", // PostSignum Qualified CA 3, retired
+                "270B33EFCDE50E45211CC4DBC21E92813EB9CBD6882B973373D671C33F8DDB07", // PostSignum Qualified CA 3-TSA, retired
             ]),
             "the qualified intermediates are exactly the bundled CAs of PostSignum, I.CA and eIdentity");
     }
