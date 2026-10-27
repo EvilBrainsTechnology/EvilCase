@@ -42,6 +42,7 @@ public static class Bootstrap
         services.AddSingleton(static _ => SignatureTrust.LoadPostSignum());
         services.AddSingleton<ISignatureRevocation, OnlineSignatureRevocation>();
         services.AddScoped<IFileSignatureReader, FileSignatureReader>();
+        services.AddScoped<IFileSignerReader, FileSignerReader>();
         services.AddScoped<ISearchReader, SearchReader>();
         services.AddScoped<ISampleDataSeeder, SampleDataSeeder>();
         services.AddScoped<ICaseNumberIssuer, CaseNumberIssuer>();

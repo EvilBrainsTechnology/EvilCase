@@ -349,6 +349,11 @@ html {
     color: var(--ec-danger-text);
 }
 
+.ec-badge-signature {
+    background: var(--ec-file-signature-bg);
+    color: var(--ec-file-signature-text);
+}
+
 .ec-badge-dot {
     flex: 0 0 auto;
     width: var(--ec-space-2);
@@ -2113,6 +2118,119 @@ html {
     font-variant-numeric: tabular-nums;
 }
 
+/* A signed document's signers sit between the header and its preview. */
+.ec-modal-large .ec-modal-body:has(> .ec-preview-signers) {
+    flex-direction: column;
+}
+
+.ec-preview-signers {
+    flex: 0 0 auto;
+    max-height: var(--ec-preview-signers-height);
+    padding: var(--ec-space-4) var(--ec-space-6);
+    border-bottom: 1px solid var(--ec-border);
+    background: var(--ec-surface);
+    font-size: var(--ec-text-sm);
+    overflow-y: auto;
+}
+
+.ec-preview-signers-list,
+.ec-preview-signature-list {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ec-preview-signers-list {
+    gap: var(--ec-space-3);
+}
+
+.ec-preview-signature-list {
+    gap: var(--ec-space-4);
+}
+
+.ec-preview-signer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ec-space-1) var(--ec-space-4);
+}
+
+.ec-preview-signer-name,
+.ec-preview-signature-name {
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-preview-signer-summary,
+.ec-preview-signature-note {
+    color: var(--ec-text-muted);
+}
+
+.ec-preview-signers-status {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ec-space-3);
+    margin: 0;
+    color: var(--ec-text-muted);
+}
+
+.ec-preview-signature {
+    width: min(var(--ec-preview-signature-width), 100%);
+}
+
+.ec-preview-signature-head {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--ec-space-3);
+}
+
+.ec-preview-signature-title {
+    margin: 0;
+    font-size: var(--ec-text-xl);
+    font-weight: var(--ec-weight-semibold);
+    line-height: var(--ec-leading-tight);
+}
+
+.ec-preview-signature-signers {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-4);
+}
+
+.ec-preview-signature-count {
+    margin: 0;
+    font-size: var(--ec-text-sm);
+    font-weight: var(--ec-weight-semibold);
+    color: var(--ec-text-muted);
+}
+
+.ec-preview-signature-signer {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-3);
+    padding: var(--ec-space-5);
+    border: 1px solid var(--ec-border);
+    border-radius: var(--ec-radius-lg);
+}
+
+.ec-preview-signature-details {
+    display: grid;
+    grid-template-columns: var(--ec-preview-signature-label) minmax(0, 1fr);
+    gap: var(--ec-space-2) var(--ec-space-5);
+    margin: 0;
+}
+
+.ec-preview-signature-details dt {
+    color: var(--ec-text-muted);
+}
+
+.ec-preview-signature-details dd {
+    margin: 0;
+}
+
 .ec-comment-list {
     display: flex;
     flex-direction: column;
@@ -3625,6 +3743,38 @@ html {
     .ec-preview-data-message-event {
         grid-template-columns: minmax(0, 1fr);
         gap: 0;
+    }
+
+    .ec-preview-signers {
+        padding: var(--ec-space-3) var(--ec-space-4);
+    }
+
+    .ec-preview-signer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0;
+    }
+
+    .ec-preview-signature {
+        padding: var(--ec-space-5);
+        gap: var(--ec-space-4);
+    }
+
+    .ec-preview-signature-title {
+        font-size: var(--ec-text-lg);
+    }
+
+    .ec-preview-signature-signer {
+        padding: var(--ec-space-4);
+    }
+
+    .ec-preview-signature-details {
+        grid-template-columns: minmax(0, 1fr);
+        row-gap: var(--ec-space-1);
+    }
+
+    .ec-preview-signature-details dd {
+        margin-bottom: var(--ec-space-2);
     }
 
     .ec-preview-divider {

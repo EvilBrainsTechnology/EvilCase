@@ -19,9 +19,19 @@ internal static class DataMessageSignature
     private const string IsdsOrganizationIdentifier = "NTRCZ-17651921";
 
     /// <summary>
-    /// The seal's common name; ISDS writes the environment after it, with either dash.
+    /// The former ISDS operator, Ministerstvo vnitra, which sealed the older messages.
+    /// </summary>
+    private const string FormerIsdsOrganizationIdentifier = "NTRCZ-00007064";
+
+    /// <summary>
+    /// The start of the seal's common name; ISDS writes the environment after it, with either dash.
     /// </summary>
     private const string IsdsCommonNamePrefix = "Informační systém datových schránek";
+
+    /// <summary>
+    /// The end of the seal's common name in the production environment.
+    /// </summary>
+    private const string IsdsCommonNameSuffix = "produkční prostředí";
 
     private const string CommonNameOid = "2.5.4.3";
 
@@ -171,13 +181,15 @@ internal static class DataMessageSignature
     }
 
     /// <summary>
-    /// Whether the subject's only organizationIdentifier names the ISDS operator and its only common name the ISDS.
+    /// Whether the subject's only organizationIdentifier names the ISDS operator, present or former, and its only common name
+    /// the ISDS in production.
     /// </summary>
     private static bool IsIsds(X509Certificate2 certificate)
     {
-        return SubjectValues(certificate, OrganizationIdentifierOid) is [IsdsOrganizationIdentifier]
+        return SubjectValues(certificate, OrganizationIdentifierOid) is [IsdsOrganizationIdentifier or FormerIsdsOrganizationIdentifier]
             && SubjectValues(certificate, CommonNameOid) is [{ } commonName]
-            && commonName.StartsWith(IsdsCommonNamePrefix, StringComparison.Ordinal);
+            && commonName.StartsWith(IsdsCommonNamePrefix, StringComparison.Ordinal)
+            && commonName.EndsWith(IsdsCommonNameSuffix, StringComparison.Ordinal);
     }
 
     private static List<string?> SubjectValues(X509Certificate2 certificate, string oid)

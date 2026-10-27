@@ -24,4 +24,14 @@ public static class FileLimits
     /// The largest ZFO whose content is read: a standard message of 20 MB of attachments, in base64.
     /// </summary>
     public const long MaxDataMessageBytes = 30 * 1024 * 1024;
+
+    /// <summary>
+    /// The largest signed file (p7m, p7s) whose document and signers are read.
+    /// </summary>
+    public const long MaxSignedFileBytes = 30 * 1024 * 1024;
+
+    /// <summary>
+    /// The most signers a signed file may carry for them to be listed.
+    /// </summary>
+    public const int MaxSigners = 50;
 }

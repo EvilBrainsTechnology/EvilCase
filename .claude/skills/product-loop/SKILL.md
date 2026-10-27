@@ -47,6 +47,7 @@ from an issue whose `Blocked by #` issues have all merged or closed.
 
 ## 3. Tend the open pull requests
 
+- Tend only `loop/*` pull requests; the session that opened any other one tends it.
 - A `waiting-for-agent` or `ci-failed` pull request on a free branch comes first (Between rounds).
 - Answer every thread with no agent reply — read the threads, never filter by timestamp or
   count; a reply says what changed, or why not, in at most three sentences.

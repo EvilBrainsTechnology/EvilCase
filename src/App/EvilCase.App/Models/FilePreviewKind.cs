@@ -29,5 +29,10 @@ public enum FilePreviewKind
 
     DataMessage = 11,
 
-    Code = 12,
+    /// <summary>
+    /// A CMS signature (p7m, p7s): the document it carries, or its signers where detached.
+    /// </summary>
+    SignedDocument = 12,
+
+    Code = 13,
 }

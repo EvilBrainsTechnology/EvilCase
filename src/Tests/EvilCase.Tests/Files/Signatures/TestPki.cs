@@ -12,7 +12,7 @@ internal sealed class TestPki : IDisposable
 {
     public const string IsdsOrganizationIdentifier = "NTRCZ-17651921";
 
-    public const string IsdsCommonName = "Informační systém datových schránek – testovací prostředí";
+    public const string IsdsCommonName = "Informační systém datových schránek – produkční prostředí";
 
     /// <summary>
     /// ETSI QCP-l, the policy of a qualified seal.
