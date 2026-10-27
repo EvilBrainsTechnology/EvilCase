@@ -53,7 +53,7 @@ internal sealed class SignatureTrust(X509Certificate2Collection roots, X509Certi
     /// </summary>
     public bool Chains(X509Certificate2 certificate, DateTime at, string? certificatePolicy = null, string? applicationPolicy = null)
     {
-        return this.Chains(new Org.BouncyCastle.X509.X509Certificate(certificate.RawData), at, certificatePolicy, applicationPolicy);
+        return Parsed(certificate) is { } target && this.Chains(target, at, certificatePolicy, applicationPolicy);
     }
 
     /// <summary>
@@ -62,14 +62,12 @@ internal sealed class SignatureTrust(X509Certificate2Collection roots, X509Certi
     /// </summary>
     public bool ChainsAtIssuance(X509Certificate2 certificate)
     {
-        var target = new Org.BouncyCastle.X509.X509Certificate(certificate.RawData);
-
-        return this.Chains(target, target.NotBefore, certificatePolicy: null, applicationPolicy: null);
+        return Parsed(certificate) is { } target && this.Chains(target, target.NotBefore, certificatePolicy: null, applicationPolicy: null);
     }
 
     /// <summary>
-    /// A chain against the bundled certificates with no download, for an online revocation check. The platform adds the
-    /// host's intermediates as candidates; the caller checks the result with <see cref="IsWithinBundle"/>.
+    /// A chain against the bundled certificates with no download and no revocation check. The platform adds the host's
+    /// intermediates as candidates; the caller checks the result with <see cref="IsWithinBundle"/>.
     /// </summary>
     public X509Chain NewChain()
     {
@@ -80,6 +78,7 @@ internal sealed class SignatureTrust(X509Certificate2Collection roots, X509Certi
         policy.CustomTrustStore.AddRange(this.Roots);
         policy.ExtraStore.AddRange(this.Intermediates);
         policy.DisableCertificateDownloads = true;
+        policy.RevocationMode = X509RevocationMode.NoCheck;
 
         return chain;
     }
@@ -94,7 +93,6 @@ internal sealed class SignatureTrust(X509Certificate2Collection roots, X509Certi
 
     private bool Chains(Org.BouncyCastle.X509.X509Certificate target, DateTime at, string? certificatePolicy, string? applicationPolicy)
     {
-        // Not X509Chain: on Linux it takes the user's and the system's intermediates as candidates ahead of the bundled ones.
         var parameters = new PkixBuilderParameters(this.Anchors, new X509CertStoreSelector { Certificate = target })
         {
             Date = at,
@@ -115,13 +113,31 @@ internal sealed class SignatureTrust(X509Certificate2Collection roots, X509Certi
         {
             result = new PkixCertPathBuilder().Build(parameters);
         }
-        catch (PkixCertPathBuilderException)
+        catch (Exception exception) when (exception is not OutOfMemoryException)
         {
+            // No path, or a certificate on it that BouncyCastle cannot read.
             return false;
         }
 
-        return this.IsBundled(result.TrustAnchor.TrustedCert.GetEncoded())
+        // PKIX leaves the anchor's own validity unchecked.
+        var root = result.TrustAnchor.TrustedCert;
+
+        return root.IsValid(at)
+            && this.IsBundled(root.GetEncoded())
             && result.CertPath.Certificates.Skip(1).All(element => this.IsBundled(element.GetEncoded()));
+    }
+
+    private static Org.BouncyCastle.X509.X509Certificate? Parsed(X509Certificate2 certificate)
+    {
+        try
+        {
+            return new Org.BouncyCastle.X509.X509Certificate(certificate.RawData);
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            // BouncyCastle reports malformed input through assorted exception types.
+            return null;
+        }
     }
 
     private bool IsBundled(byte[] certificate)

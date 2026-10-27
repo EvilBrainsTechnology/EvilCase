@@ -6,7 +6,7 @@ namespace EvilBrains.EvilCase.Business.Files.Signatures;
 
 /// <summary>
 /// Handles the extended key usage of every certificate in a path: where <paramref name="purpose"/> is given, a certificate
-/// that restricts its usage must list it.
+/// that restricts its usage must list it or any usage.
 /// </summary>
 internal sealed class ExtendedKeyUsageChecker(string? purpose) : PkixCertPathChecker
 {
@@ -29,7 +29,7 @@ internal sealed class ExtendedKeyUsageChecker(string? purpose) : PkixCertPathChe
         if (purpose is null || cert.GetExtendedKeyUsage() is not { } usages)
             return;
 
-        if (!usages.Any(usage => string.Equals(usage.Id, purpose, StringComparison.Ordinal)))
+        if (!usages.Any(usage => usage.Equals(KeyPurposeID.AnyExtendedKeyUsage) || string.Equals(usage.Id, purpose, StringComparison.Ordinal)))
             throw new PkixCertPathValidatorException($"The certificate's extended key usage does not list {purpose}.");
     }
 }

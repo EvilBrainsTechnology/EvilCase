@@ -59,7 +59,7 @@ public class OnlineSignatureRevocationTests
         }
     }
 
-    private static readonly DateTimeOffset Now = new(DateTime.UtcNow.Date, TimeSpan.Zero);
+    private static readonly DateTimeOffset Now = new(2026, 10, 27, 8, 0, 0, TimeSpan.Zero);
 
     /// <summary>
     /// A PKI of its own name, so no CRL the platform cached for another test applies, with its CRLs published.
@@ -76,7 +76,6 @@ public class OnlineSignatureRevocationTests
     private static bool BuildsOutsideTheBundle(SignatureTrust trust, X509Certificate2 certificate)
     {
         using var chain = trust.NewChain();
-        chain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
 
         return chain.Build(certificate) && !trust.IsWithinBundle(chain);
     }

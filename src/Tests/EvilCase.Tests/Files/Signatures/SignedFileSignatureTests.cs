@@ -367,7 +367,10 @@ public class SignedFileSignatureTests
 
         var response = this.Verify(SignedFile.Sign(Content, detached: false, [trusted, untrusted]));
 
-        Assert.That(response.Signers.Select(static signer => signer.State), Is.EqualTo(new FileSignatureState?[] { FileSignatureState.Valid, FileSignatureState.Unverifiable }));
+        // DER sorts the signer infos by their encoding, which the signature's length changes.
+        Assert.That(
+            response.Signers.Select(static signer => (signer.Name, signer.State)),
+            Is.EquivalentTo(new (string?, FileSignatureState?)[] { ("Jan Testovací", FileSignatureState.Valid), ("Petra Testovací", FileSignatureState.Unverifiable) }));
     }
 
     [Test]

@@ -357,7 +357,6 @@ public class DataMessageSignatureTests
     {
         using var chain = trust.NewChain();
         chain.ChainPolicy.VerificationTime = Timestamped.UtcDateTime;
-        chain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
 
         return chain.Build(certificate);
     }

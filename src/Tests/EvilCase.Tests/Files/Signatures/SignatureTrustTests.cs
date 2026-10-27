@@ -10,6 +10,8 @@ public class SignatureTrustTests
 
     private const string ClientAuthentication = "1.3.6.1.5.5.7.3.2";
 
+    private const string AnyExtendedKeyUsage = "2.5.29.37.0";
+
     private static readonly DateTimeOffset Within = new(2026, 6, 1, 0, 0, 0, TimeSpan.Zero);
 
     [Test]
@@ -204,6 +206,31 @@ public class SignatureTrustTests
             Assert.That(pki.Trust.Chains(client, Within.UtcDateTime, applicationPolicy: TimeStamping), Is.False);
             Assert.That(pki.Trust.Chains(seal, Within.UtcDateTime, applicationPolicy: TimeStamping), Is.True, "a certificate without a usage restriction serves any");
             Assert.That(pki.Trust.Chains(client, Within.UtcDateTime), Is.True, "a critical usage restriction is understood");
+        }
+    }
+
+    [Test]
+    public void AnyUsageServesEveryUsage()
+    {
+        using var pki = TestPki.Create();
+        using var any = pki.IssueTsa(purpose: AnyExtendedKeyUsage);
+
+        Assert.That(pki.Trust.Chains(any, Within.UtcDateTime, applicationPolicy: TimeStamping), Is.True);
+    }
+
+    [Test]
+    public void ACertificateBouncyCastleCannotReadDoesNotChain()
+    {
+        using var pki = TestPki.Create();
+        using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        var request = new CertificateRequest("CN=Nečitelný", key, HashAlgorithmName.SHA256);
+        request.CertificateExtensions.Add(new X509Extension("2.5.29.19", [0x04, 0x00], critical: false));
+        using var unreadable = request.CreateSelfSigned(Within.AddYears(-1), Within.AddYears(1));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(pki.Trust.Chains(unreadable, Within.UtcDateTime), Is.False);
+            Assert.That(pki.Trust.ChainsAtIssuance(unreadable), Is.False);
         }
     }
 
