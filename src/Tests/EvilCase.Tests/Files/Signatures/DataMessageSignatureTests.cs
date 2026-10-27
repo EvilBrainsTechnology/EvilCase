@@ -136,6 +136,55 @@ public class DataMessageSignatureTests
         }
     }
 
+    [TestCase("Informační systém datových schránek – produkční prostředí")]
+    [TestCase("Informační systém datových schránek - produkční prostředí")]
+    public void TheIsdsNameIsMatchedByItsBeginning(string commonName)
+    {
+        var seal = this.pki.IssueSeal(SealFrom, SealTo, commonName: commonName);
+        var zfo = SealedZfo.Seal(MessageXml(), seal, this.pki.IssueTsa(), Timestamped);
+
+        var signature = DataMessageSignature.Verify(zfo, this.pki.Trust, new StubSignatureRevocation(SignatureRevocationStatus.NotRevoked));
+
+        Assert.That(signature.State, Is.EqualTo(FileSignatureState.Valid), "ISDS writes the environment after its name with either dash");
+    }
+
+    [Test]
+    public void ACertificateWithoutTheSealPolicyIsNotTheIsds()
+    {
+        var seal = this.pki.IssueSeal(SealFrom, SealTo, policy: "1.2.3.4");
+        var zfo = SealedZfo.Seal(MessageXml(), seal, this.pki.IssueTsa(), Timestamped);
+        var revocation = new StubSignatureRevocation(SignatureRevocationStatus.NotRevoked);
+
+        var signature = DataMessageSignature.Verify(zfo, this.pki.Trust, revocation);
+
+        using (Assert.EnterMultipleScope())
+        {
+            AssertInvalid(signature, FileSignatureProblem.NotIsdsSigner);
+            Assert.That(revocation.Checks, Is.Zero, "a person's certificate of the ISDS operator is no seal");
+        }
+    }
+
+    [Test]
+    public void ASealWithAnotherCommonNameIsNotTheIsds()
+    {
+        var seal = this.pki.IssueSeal(SealFrom, SealTo, commonName: "Jan Testovací");
+        var zfo = SealedZfo.Seal(MessageXml(), seal, this.pki.IssueTsa(), Timestamped);
+
+        var signature = DataMessageSignature.Verify(zfo, this.pki.Trust, new StubSignatureRevocation(SignatureRevocationStatus.NotRevoked));
+
+        AssertInvalid(signature, FileSignatureProblem.NotIsdsSigner);
+    }
+
+    [Test]
+    public void ACmsWithoutTheSealCertificateIsNoDataMessage()
+    {
+        var zfo = SealedZfo.Seal(MessageXml(), this.pki.IssueSeal(SealFrom, SealTo), this.pki.IssueTsa(), Timestamped, includeSealCertificate: false);
+
+        var signature = DataMessageSignature.Verify(zfo, this.pki.Trust, new StubSignatureRevocation(SignatureRevocationStatus.NotRevoked));
+
+        AssertInvalid(signature, FileSignatureProblem.NotDataMessage);
+    }
+
     [Test]
     public void ARevokedSealIsInvalid()
     {

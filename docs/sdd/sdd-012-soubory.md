@@ -119,9 +119,10 @@ Esc a Zrušit ho zahodí.
 ### Podpis datové zprávy
 
 - Server ověří podpis uložené datové zprávy i doručenky. Podpis je platný, když obsah odpovídá
-  podpisu, podepsal ho Informační systém datových schránek (Digitální a informační agentura)
-  certifikátem PostSignum platným v okamžiku kvalifikovaného časového razítka nad podpisem a
-  certifikát není zneplatněný. Certifikát smí vypršet později.
+  podpisu, zapečetil ho Informační systém datových schránek (Digitální a informační agentura)
+  kvalifikovaným certifikátem PostSignum pro elektronickou pečeť platným v okamžiku
+  kvalifikovaného časového razítka nad podpisem a certifikát není zneplatněný. Certifikát smí
+  vypršet později. Zpráva bez certifikátu pečeti není podepsanou datovou zprávou.
 - Certifikáty autorit PostSignum jsou součástí aplikace; certifikáty, které soubor nese, se
   k ověření autority nepoužijí.
 - Zneplatnění se ověřuje online u PostSignum. Když PostSignum neodpoví, podpis nelze ověřit.

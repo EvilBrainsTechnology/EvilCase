@@ -12,6 +12,15 @@ internal sealed class TestPki : IDisposable
 {
     public const string IsdsOrganizationIdentifier = "NTRCZ-17651921";
 
+    public const string IsdsCommonName = "Informační systém datových schránek – testovací prostředí";
+
+    /// <summary>
+    /// ETSI QCP-l, the policy of a qualified seal.
+    /// </summary>
+    public const string SealPolicy = "0.4.0.194112.1.1";
+
+    private const string AnyPolicy = "2.5.29.32.0";
+
     private const string TimeStampingOid = "1.3.6.1.5.5.7.3.8";
 
     private static readonly DateTimeOffset CaFrom = new(2020, 1, 1, 0, 0, 0, TimeSpan.Zero);
@@ -41,21 +50,27 @@ internal sealed class TestPki : IDisposable
     }
 
     /// <summary>
-    /// A seal certificate whose subject carries the organizationIdentifier given.
+    /// A seal certificate with the subject and the certificate policy given.
     /// </summary>
-    public X509Certificate2 IssueSeal(DateTimeOffset notBefore, DateTimeOffset notAfter, string organizationIdentifier = IsdsOrganizationIdentifier)
+    public X509Certificate2 IssueSeal(
+        DateTimeOffset notBefore,
+        DateTimeOffset notAfter,
+        string organizationIdentifier = IsdsOrganizationIdentifier,
+        string commonName = IsdsCommonName,
+        string policy = SealPolicy)
     {
         var subject = new X500DistinguishedNameBuilder();
         subject.AddCountryOrRegion("CZ");
         subject.Add("2.5.4.97", organizationIdentifier, UniversalTagNumber.UTF8String);
         subject.AddOrganizationName("Testovací agentura");
-        subject.AddCommonName("Testovací informační systém");
+        subject.AddCommonName(commonName);
 
         using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
         var request = new CertificateRequest(subject.Build(), key, HashAlgorithmName.SHA256);
         request.CertificateExtensions.Add(new X509BasicConstraintsExtension(certificateAuthority: false, hasPathLengthConstraint: false, pathLengthConstraint: 0, critical: true));
         request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.NonRepudiation, critical: true));
         request.CertificateExtensions.Add(X509AuthorityKeyIdentifierExtension.CreateFromCertificate(this.Intermediate, includeKeyIdentifier: true, includeIssuerAndSerial: false));
+        request.CertificateExtensions.Add(CertificatePolicies(policy));
 
         return this.Track(this.Issue(request, key, this.Intermediate, notBefore, notAfter));
     }
@@ -95,6 +110,19 @@ internal sealed class TestPki : IDisposable
         request.CertificateExtensions.Add(new X509BasicConstraintsExtension(certificateAuthority: true, hasPathLengthConstraint: false, pathLengthConstraint: 0, critical: true));
         request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign, critical: true));
         request.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(request.PublicKey, critical: false));
+        request.CertificateExtensions.Add(CertificatePolicies(AnyPolicy));
+    }
+
+    // certificatePolicies ::= SEQUENCE OF PolicyInformation, PolicyInformation ::= SEQUENCE { policyIdentifier OBJECT IDENTIFIER }
+    private static X509Extension CertificatePolicies(string policy)
+    {
+        var writer = new AsnWriter(AsnEncodingRules.DER);
+
+        using (writer.PushSequence())
+        using (writer.PushSequence())
+            writer.WriteObjectIdentifier(policy);
+
+        return new X509Extension("2.5.29.32", writer.Encode(), critical: false);
     }
 
     private X509Certificate2 IssueCa(string subject, X509Certificate2 issuer)

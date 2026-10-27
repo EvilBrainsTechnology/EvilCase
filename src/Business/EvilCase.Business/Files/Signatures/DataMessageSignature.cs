@@ -18,7 +18,22 @@ internal static class DataMessageSignature
     /// </summary>
     private const string IsdsOrganizationIdentifier = "NTRCZ-17651921";
 
+    /// <summary>
+    /// The seal's common name; ISDS writes the environment after it, with either dash.
+    /// </summary>
+    private const string IsdsCommonNamePrefix = "Informační systém datových schránek";
+
+    private const string CommonNameOid = "2.5.4.3";
+
     private const string OrganizationIdentifierOid = "2.5.4.97";
+
+    /// <summary>
+    /// ETSI QCP-l: a qualified certificate of a legal person, which a seal is and a person's certificate is not.
+    /// </summary>
+    private const string QualifiedLegalPersonPolicyOid = "0.4.0.194112.1.1";
+
+    private const X509ChainStatusFlags PolicyFlags =
+        X509ChainStatusFlags.NotValidForUsage | X509ChainStatusFlags.InvalidPolicyConstraints | X509ChainStatusFlags.NoIssuanceChainPolicy;
 
     private const string TimestampTokenOid = "1.2.840.113549.1.9.16.2.14";
 
@@ -30,7 +45,7 @@ internal static class DataMessageSignature
         XmlResolver = null,
     };
 
-    public static FileSignatureResponse Verify(byte[] zfo, SignatureTrust trust, ISignatureRevocation revocation)
+    public static FileSignatureResponse Verify(ReadOnlySpan<byte> zfo, SignatureTrust trust, ISignatureRevocation revocation)
     {
         var cms = new SignedCms();
 
@@ -48,6 +63,10 @@ internal static class DataMessageSignature
 
         var signer = cms.SignerInfos[0];
 
+        // ISDS always carries the seal certificate; without it nothing says who sealed.
+        if (signer.Certificate is not { } certificate)
+            return Invalid(FileSignatureProblem.NotDataMessage);
+
         try
         {
             signer.CheckSignature(verifySignatureOnly: true);
@@ -63,19 +82,13 @@ internal static class DataMessageSignature
         if (TrustedTime(signer, trust) is not { } timestamped)
             return Invalid(FileSignatureProblem.TimestampInvalid);
 
-        // CheckSignature has found the certificate.
-        var certificate = signer.Certificate!;
-
         using (var chain = trust.NewChain())
         {
             chain.ChainPolicy.VerificationTime = timestamped;
+            chain.ChainPolicy.CertificatePolicy.Add(new Oid(QualifiedLegalPersonPolicyOid));
 
             if (!chain.Build(certificate))
-            {
-                var flags = chain.ChainStatus.Aggregate(X509ChainStatusFlags.NoError, static (all, status) => all | status.Status);
-
-                return Invalid(flags == X509ChainStatusFlags.NotTimeValid ? FileSignatureProblem.NotValidAtTimestamp : FileSignatureProblem.NotPostSignum);
-            }
+                return Invalid(ChainProblem(chain));
         }
 
         if (!IsIsds(certificate))
@@ -90,6 +103,20 @@ internal static class DataMessageSignature
             SignatureRevocationStatus.Unknown => Verified(FileSignatureState.Unverifiable, certificate, timestamped, revocationChecked: null),
             _ => throw new UnreachableException(),
         };
+    }
+
+    /// <summary>
+    /// A chain that leaves the bundled hierarchy is not PostSignum's; inside it, a certificate out of its validity, then one
+    /// without the seal policy.
+    /// </summary>
+    private static FileSignatureProblem ChainProblem(X509Chain chain)
+    {
+        var flags = chain.ChainStatus.Aggregate(X509ChainStatusFlags.NoError, static (all, status) => all | status.Status);
+
+        if ((flags & ~(X509ChainStatusFlags.NotTimeValid | PolicyFlags)) != X509ChainStatusFlags.NoError)
+            return FileSignatureProblem.NotPostSignum;
+
+        return flags.HasFlag(X509ChainStatusFlags.NotTimeValid) ? FileSignatureProblem.NotValidAtTimestamp : FileSignatureProblem.NotIsdsSigner;
     }
 
     /// <summary>
@@ -144,18 +171,25 @@ internal static class DataMessageSignature
     }
 
     /// <summary>
-    /// Whether the subject's only organizationIdentifier names the ISDS operator.
+    /// Whether the subject's only organizationIdentifier names the ISDS operator and its only common name the ISDS.
     /// </summary>
     private static bool IsIsds(X509Certificate2 certificate)
     {
-        var identifiers = certificate.SubjectName
-            .EnumerateRelativeDistinguishedNames()
-            .Where(static name => !name.HasMultipleElements)
-            .Where(static name => string.Equals(name.GetSingleElementType().Value, OrganizationIdentifierOid, StringComparison.Ordinal))
-            .Select(static name => name.GetSingleElementValue())
-            .ToList();
+        return SubjectValues(certificate, OrganizationIdentifierOid) is [IsdsOrganizationIdentifier]
+            && SubjectValues(certificate, CommonNameOid) is [{ } commonName]
+            && commonName.StartsWith(IsdsCommonNamePrefix, StringComparison.Ordinal);
+    }
 
-        return identifiers is [IsdsOrganizationIdentifier];
+    private static List<string?> SubjectValues(X509Certificate2 certificate, string oid)
+    {
+        return
+        [
+            .. certificate.SubjectName
+                .EnumerateRelativeDistinguishedNames()
+                .Where(static name => !name.HasMultipleElements)
+                .Where(name => string.Equals(name.GetSingleElementType().Value, oid, StringComparison.Ordinal))
+                .Select(static name => name.GetSingleElementValue()),
+        ];
     }
 
     private static FileSignatureResponse Verified(FileSignatureState state, X509Certificate2 certificate, DateTime timestamped, DateTime? revocationChecked)

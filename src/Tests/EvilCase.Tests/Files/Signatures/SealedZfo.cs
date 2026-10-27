@@ -22,12 +22,17 @@ internal static class SealedZfo
 
     /// <summary>
     /// The CMS sealed by <paramref name="seal"/>; a timestamp token over the signature where <paramref name="tsa"/> is
-    /// given, over <paramref name="timestampedData"/> instead where that is given.
+    /// given, over <paramref name="timestampedData"/> instead where that is given. ISDS always carries the seal certificate.
     /// </summary>
-    public static byte[] Seal(string xml, X509Certificate2 seal, X509Certificate2? tsa, DateTimeOffset timestamped, byte[]? timestampedData = null)
+    public static byte[] Seal(
+        string xml, X509Certificate2 seal, X509Certificate2? tsa, DateTimeOffset timestamped, byte[]? timestampedData = null, bool includeSealCertificate = true)
     {
         var cms = new SignedCms(new ContentInfo(Encoding.UTF8.GetBytes(xml)));
-        var signer = new CmsSigner(seal) { IncludeOption = X509IncludeOption.EndCertOnly, DigestAlgorithm = new Oid(Sha256Oid) };
+        var signer = new CmsSigner(seal)
+        {
+            IncludeOption = includeSealCertificate ? X509IncludeOption.EndCertOnly : X509IncludeOption.None,
+            DigestAlgorithm = new Oid(Sha256Oid),
+        };
         signer.SignedAttributes.Add(new Pkcs9SigningTime(timestamped.UtcDateTime));
         cms.ComputeSignature(signer);
 

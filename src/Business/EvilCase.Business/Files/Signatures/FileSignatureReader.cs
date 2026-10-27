@@ -47,10 +47,10 @@ internal sealed class FileSignatureReader(
             if (content is null)
                 return null;
 
-            await using var buffer = new MemoryStream();
+            await using var buffer = new MemoryStream(capacity: (int)file.SizeBytes);
             await content.CopyToAsync(buffer, token);
 
-            signature = DataMessageSignature.Verify(buffer.ToArray(), trust, revocation);
+            signature = DataMessageSignature.Verify(buffer.GetBuffer().AsSpan(0, (int)buffer.Length), trust, revocation);
         }
 
         logger.LogInformation("Signature of file {FileAssetId} verified as {SignatureState} {SignatureProblem}", fileId, signature.State, signature.Problem);
