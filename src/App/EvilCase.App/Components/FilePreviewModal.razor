@@ -624,21 +624,15 @@
 
                 var documentName = FileTypeDisplay.SignedContentName(fileName);
 
-                (this.signedContent, this.signedContentName) = (document, documentName);
-
                 // A name without a known extension takes the one of the type its content shows.
-                if (!FileTypeDisplay.HasKnownExtension(documentName))
-                {
-                    await using var sniffed = new MemoryStream(document, writable: false);
+                if (!FileTypeDisplay.HasKnownExtension(documentName)
+                    && await this.DetectExtension(document, token) is { } detected && FileTypeDisplay.IsKnownExtension(detected))
+                    documentName = $"{documentName}.{detected}";
 
-                    var detected = await this.Previews.DetectExtension(sniffed, token);
+                if (token.IsCancellationRequested)
+                    break;
 
-                    if (token.IsCancellationRequested)
-                        break;
-
-                    if (detected is not null && FileTypeDisplay.HasKnownExtension($"{documentName}.{detected}"))
-                        this.signedContentName = documentName = $"{documentName}.{detected}";
-                }
+                (this.signedContent, this.signedContentName) = (document, documentName);
 
                 var documentPreview = FileTypeDisplay.Preview(documentName);
 
@@ -662,6 +656,23 @@
 
             default:
                 throw new UnreachableException();
+        }
+    }
+
+    // A library that fails leaves the type undetected.
+    private async Task<string?> DetectExtension(byte[] content, CancellationToken token)
+    {
+        await using var stream = new MemoryStream(content, writable: false);
+
+        try
+        {
+            return await this.Previews.DetectExtension(stream, token);
+        }
+        catch (JSException exception)
+        {
+            this.Logger.LogInformation(exception, "The library could not detect the type of a signed document");
+
+            return null;
         }
     }
 

@@ -133,7 +133,15 @@ public static class FileTypeDisplay
 
     public static bool HasKnownExtension(string fileName)
     {
-        return Kinds.ContainsKey(Extension(fileName));
+        return IsKnownExtension(Extension(fileName));
+    }
+
+    /// <summary>
+    /// Whether an extension, given without the dot, is one of a known type.
+    /// </summary>
+    public static bool IsKnownExtension(string extension)
+    {
+        return Kinds.ContainsKey(extension);
     }
 
     /// <summary>

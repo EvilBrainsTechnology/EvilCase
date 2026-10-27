@@ -93,8 +93,8 @@ internal interface IFilePreviews
     public Task<EmailPreview> ReadEmail(string fileName, Stream content, CancellationToken token);
 
     /// <summary>
-    /// The extension, without the dot, of the type the leading bytes of the content show, or <see langword="null"/>
-    /// when they show none, as for plain text.
+    /// The extension, without the dot, of the type the content shows, or <see langword="null"/> when it shows none, as
+    /// for plain text.
     /// </summary>
     public Task<string?> DetectExtension(Stream content, CancellationToken token);
 }

@@ -128,6 +128,25 @@ public class FilePreviewModalSignedRenderTests
     }
 
     [Test]
+    public async Task ADetectionThatFailsKeepsTheDocumentUnderItsName()
+    {
+        await using var ctx = NewContext(out _, out var previews, out var downloader, out _);
+
+        previews.Fails = true;
+        var file = File("Potvrzení.p7s");
+        var component = Render(ctx, [file], file.FileId, static _ => SignedFile.Sign(XmlBytes, detached: false));
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.Find(".ec-preview-message-title").TextContent, Is.EqualTo(Unsupported)));
+        await component.Find("button[aria-label='Stáhnout dokument']").ClickAsync(new());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.FindAll(".ec-preview-signers"), Has.Count.EqualTo(1));
+            Assert.That(downloader.DownloadedContents.Select(static content => content.FileName), Is.EqualTo(["Potvrzení"]));
+        }
+    }
+
+    [Test]
     public async Task APictureInsideASignatureShowsFromABlobOfItsType()
     {
         await using var ctx = NewContext(out var blobs, out _, out _, out _);
