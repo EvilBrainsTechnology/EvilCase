@@ -160,7 +160,8 @@ Esc a Zrušit ho zahodí.
   Podepisující, jehož certifikát soubor nenese, je Neznámý podepisující.
 - Podpis podepsaného souboru se neověřuje; údaje jsou takové, jak je soubor uvádí.
 - Podepisující vydává samostatná adresa, bez obsahu souboru. Když se je nepodaří načíst, pruh
-  i karta to řeknou a nabídnou Zkusit znovu; dokument je k dispozici i bez nich.
+  i karta to řeknou a nabídnou Zkusit znovu; dokument je k dispozici i bez nich. Podpis, který
+  nejde přečíst, a soubor s více než 50 podepisujícími pruh i karta ohlásí bez Zkusit znovu.
 - Soubor p7m nebo p7s, který není podpisem CMS nebo je větší než 30 MB, nabídne jen stažení.
   Podepsaný soubor v příloze datové zprávy nabídne jen stažení.
 
@@ -174,6 +175,7 @@ Esc a Zrušit ho zahodí.
 - Zneplatnění certifikátu podpisu: neověřovat / ověřit online. Platí online; bez odpovědi
   PostSignum podpis nelze ověřit.
 - Limit náhledu podepsaného souboru: bez limitu / 30 MB. Platí 30 MB.
+- Limit podepisujících podepsaného souboru: bez limitu / 50. Platí 50.
 - Čtení podepisujících: v prohlížeči / na serveru. Platí na serveru.
 - Ověření podpisu podepsaného souboru: hned / později. Platí později; zatím se neověřuje.
 

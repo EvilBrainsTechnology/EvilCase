@@ -12,4 +12,6 @@ public enum FileSignersProblem
     NotSigned = 0,
 
     TooLarge = 1,
+
+    TooManySigners = 2,
 }

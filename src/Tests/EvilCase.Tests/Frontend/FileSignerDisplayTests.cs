@@ -10,6 +10,12 @@ public class FileSignerDisplayTests
     private static readonly DateTime SigningTime = new(2026, 10, 12, 13, 40, 0, DateTimeKind.Utc);
 
     [Test]
+    public void EveryProblemHasItsOwnText()
+    {
+        Assert.That(Enum.GetValues<FileSignersProblem>().Select(FileSignerDisplay.Problem), Is.Unique);
+    }
+
+    [Test]
     public void EveryKindHasItsOwnText()
     {
         var kinds = Enum.GetValues<FileSignerKind>();

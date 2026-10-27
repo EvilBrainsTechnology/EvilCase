@@ -22,13 +22,18 @@ internal static class SignedFile
     /// signature where <paramref name="tsa"/> is given.
     /// </summary>
     public static byte[] Sign(
-        byte[] content, bool detached, IReadOnlyList<X509Certificate2> signers, X509Certificate2? tsa = null, bool includeCertificates = true)
+        byte[] content,
+        bool detached,
+        IReadOnlyList<X509Certificate2> signers,
+        X509Certificate2? tsa = null,
+        bool includeCertificates = true,
+        SubjectIdentifierType identifier = SubjectIdentifierType.IssuerAndSerialNumber)
     {
         var cms = new SignedCms(new ContentInfo(content), detached);
 
         foreach (var certificate in signers)
         {
-            var signer = new CmsSigner(certificate)
+            var signer = new CmsSigner(identifier, certificate)
             {
                 IncludeOption = includeCertificates ? X509IncludeOption.EndCertOnly : X509IncludeOption.None,
                 DigestAlgorithm = new Oid(Sha256Oid),
@@ -45,6 +50,23 @@ internal static class SignedFile
         }
 
         return cms.Encode();
+    }
+
+    /// <summary>
+    /// <paramref name="signed"/> with the carried <paramref name="certificate"/> overwritten by a DER sequence of the
+    /// same length that is no certificate.
+    /// </summary>
+    public static byte[] WithCertificateReplaced(byte[] signed, byte[] certificate)
+    {
+        var at = signed.AsSpan().IndexOf(certificate);
+        var replaced = signed.ToArray();
+        var length = certificate.Length;
+        byte[] noCertificate = [0x30, 0x82, (byte)((length - 4) >> 8), (byte)(length - 4), 0x04, 0x82, (byte)((length - 8) >> 8), (byte)(length - 8)];
+
+        noCertificate.CopyTo(replaced, at);
+        replaced.AsSpan(at + noCertificate.Length, length - noCertificate.Length).Clear();
+
+        return replaced;
     }
 
     /// <summary>

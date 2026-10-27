@@ -31,6 +31,17 @@ public static class FileSignerDisplay
         };
     }
 
+    public static string Problem(FileSignersProblem problem)
+    {
+        return problem switch
+        {
+            FileSignersProblem.NotSigned => "Podpisy souboru nelze přečíst.",
+            FileSignersProblem.TooLarge => "Soubor je větší než 30 MB, podpisy se nečtou.",
+            FileSignersProblem.TooManySigners => $"Soubor nese víc než {FileLimits.MaxSigners} podpisů, podpisy se nezobrazí.",
+            _ => throw new UnreachableException(),
+        };
+    }
+
     public static string Name(FileSigner signer)
     {
         return signer.Name.Length == 0 ? "Neznámý podepisující" : signer.Name;

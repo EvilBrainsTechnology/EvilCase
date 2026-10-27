@@ -1,3 +1,4 @@
+using System.Security.Cryptography.Pkcs;
 using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Business.Files.Signatures;
 
@@ -141,6 +142,55 @@ public class CmsSignersTests
             Assert.That(read.Name, Is.Empty);
             Assert.That(read.Kind, Is.EqualTo(FileSignerKind.Other), "without the certificate nothing states a policy");
             Assert.That(read.CertificateIssuer, Is.Null);
+        }
+    }
+
+    [Test]
+    public void ASignerNamedByItsKeyIdentifierFindsItsCertificate()
+    {
+        var signer = this.pki.IssueSeal(ValidFrom, ValidTo, commonName: "Jan Testovací");
+
+        var read = CmsSigners.Read(SignedFile.Sign(Content, detached: false, [signer], identifier: SubjectIdentifierType.SubjectKeyIdentifier)).Signers.Single();
+
+        Assert.That(read.Name, Is.EqualTo("Jan Testovací"));
+    }
+
+    [Test]
+    public void AFileWithMoreSignersThanTheLimitListsNone()
+    {
+        var signer = this.pki.IssueSeal(ValidFrom, ValidTo, commonName: "Jan Testovací");
+
+        var response = CmsSigners.Read(SignedFile.Sign(Content, detached: true, [.. Enumerable.Repeat(signer, FileLimits.MaxSigners + 1)]));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(response.Problem, Is.EqualTo(FileSignersProblem.TooManySigners));
+            Assert.That(response.Signers, Is.Empty);
+        }
+    }
+
+    [Test]
+    public void AFileWithSignersUpToTheLimitListsThemAll()
+    {
+        var signer = this.pki.IssueSeal(ValidFrom, ValidTo, commonName: "Jan Testovací");
+
+        var response = CmsSigners.Read(SignedFile.Sign(Content, detached: true, [.. Enumerable.Repeat(signer, FileLimits.MaxSigners)]));
+
+        Assert.That(response.Signers, Has.Count.EqualTo(FileLimits.MaxSigners));
+    }
+
+    [Test]
+    public void ACarriedCertificateThatIsNoCertificateIsNotSigned()
+    {
+        var signer = this.pki.IssueSeal(ValidFrom, ValidTo, commonName: "Jan Testovací");
+        var signed = SignedFile.Sign(Content, detached: false, [signer]);
+
+        var response = CmsSigners.Read(SignedFile.WithCertificateReplaced(signed, signer.RawData));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(response.Problem, Is.EqualTo(FileSignersProblem.NotSigned));
+            Assert.That(response.Signers, Is.Empty);
         }
     }
 

@@ -52,20 +52,33 @@ internal static class CmsSigners
             return new FileSignersResponse { Problem = FileSignersProblem.NotSigned, Signers = [] };
         }
 
-        return new FileSignersResponse
+        var signerInfos = signed.SignerInfos;
+        if (signerInfos.Count > FileLimits.MaxSigners)
+            return new FileSignersResponse { Problem = FileSignersProblem.TooManySigners, Signers = [] };
+
+        try
         {
-            Signers =
-            [
-                .. signed.SignerInfos
-                    .Cast<SignerInfo>()
-                    .Select(Signer),
-            ],
-        };
+            // Parsed once: SignerInfo.Certificate parses every certificate the file carries on each call.
+            var certificates = signed.Certificates;
+
+            return new FileSignersResponse
+            {
+                Signers =
+                [
+                    .. signerInfos
+                        .Cast<SignerInfo>()
+                        .Select(signer => Signer(signer, certificates.FirstOrDefault(signer.SignerIdentifier.MatchesCertificate))),
+                ],
+            };
+        }
+        catch (CryptographicException)
+        {
+            return new FileSignersResponse { Problem = FileSignersProblem.NotSigned, Signers = [] };
+        }
     }
 
-    private static FileSigner Signer(SignerInfo signer)
+    private static FileSigner Signer(SignerInfo signer, X509Certificate2? certificate)
     {
-        var certificate = signer.Certificate;
 
         return new FileSigner
         {

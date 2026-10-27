@@ -88,15 +88,29 @@ public class FileSignersRenderTests
     }
 
     [Test]
-    public async Task AProblemFromTheServerShowsAsAFailure()
+    public async Task AProblemFromTheServerSaysWhyWithoutARetry()
     {
         await using var ctx = NewContext(out var client);
         client.ListFileSigners(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-            .Returns(new FileSignersResponse { Problem = FileSignersProblem.NotSigned, Signers = [] });
+            .Returns(new FileSignersResponse { Problem = FileSignersProblem.TooManySigners, Signers = [] });
+
+        var component = Render(ctx, Guid.CreateVersion7(), "Smlouva.pdf.p7s", detached: true);
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.Find(".ec-preview-signers-status").TextContent, Is.EqualTo("Soubor nese víc než 50 podpisů, podpisy se nezobrazí.")));
+        Assert.That(component.FindAll(".ec-preview-signers-status button"), Is.Empty, "the same file answers the same again");
+    }
+
+    [Test]
+    public async Task ClosingThePreviewCancelsTheLoad()
+    {
+        await using var ctx = NewContext(out var client);
+        var token = CancellationToken.None;
+        client.ListFileSigners(Arg.Any<Guid>(), Arg.Do<CancellationToken>(given => token = given)).Returns(new TaskCompletionSource<FileSignersResponse>().Task);
 
         var component = Render(ctx, Guid.CreateVersion7(), "Smlouva.pdf.p7m");
+        component.Instance.Dispose();
 
-        await component.WaitForAssertionAsync(() => Assert.That(component.Find(".ec-preview-signers-status span").TextContent, Is.EqualTo("Podpisy se nepodařilo načíst.")));
+        Assert.That(token.IsCancellationRequested, Is.True);
     }
 
     [Test]

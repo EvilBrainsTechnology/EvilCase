@@ -3,6 +3,7 @@
 @using EvilBrains.EvilCase.Api.Contract.Files
 @inject IFileSignersClient SignersClient
 @inject ILogger<FileSigners> Logger
+@implements IDisposable
 
 @if (this.Detached)
 {
@@ -16,6 +17,10 @@
                 @if (this.loading)
                 {
                     <p class="ec-preview-signers-status">Načítám podpisy…</p>
+                }
+                else if (this.problem is { } readProblem)
+                {
+                    <p class="ec-preview-signers-status">@FileSignerDisplay.Problem(readProblem)</p>
                 }
                 else if (this.signers is null)
                 {
@@ -75,6 +80,10 @@ else
         {
             <p class="ec-preview-signers-status">Načítám podpisy…</p>
         }
+        else if (this.problem is { } readProblem)
+        {
+            <p class="ec-preview-signers-status">@FileSignerDisplay.Problem(readProblem)</p>
+        }
         else if (this.signers is null)
         {
             <div class="ec-preview-signers-status">
@@ -102,7 +111,11 @@ else
 }
 
 @code {
+    private readonly CancellationTokenSource disposed = new();
+
     private IReadOnlyList<FileSigner>? signers;
+
+    private FileSignersProblem? problem;
 
     private bool loading = true;
 
@@ -126,19 +139,33 @@ else
         await this.Load();
     }
 
+    public void Dispose()
+    {
+        if (this.disposed.IsCancellationRequested)
+            return;
+
+        this.disposed.Cancel();
+        this.disposed.Dispose();
+    }
+
     private async Task Load()
     {
         this.loading = true;
         this.signers = null;
+        this.problem = null;
 
         try
         {
-            var response = await this.SignersClient.ListFileSigners(this.FileId, CancellationToken.None);
+            var response = await this.SignersClient.ListFileSigners(this.FileId, this.disposed.Token);
 
-            if (response.Problem is { } problem)
-                this.Logger.LogWarning("The server read no signers of file {FileAssetId}: {SignersProblem}", this.FileId, problem);
+            if (response.Problem is { } readProblem)
+                this.problem = readProblem;
             else
                 this.signers = response.Signers;
+        }
+        catch (OperationCanceledException) when (this.disposed.IsCancellationRequested)
+        {
+            return;
         }
         catch (Exception exception) when (exception is ApiException or HttpRequestException)
         {
