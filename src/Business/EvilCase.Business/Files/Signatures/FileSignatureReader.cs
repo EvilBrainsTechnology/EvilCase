@@ -94,6 +94,6 @@ internal sealed class FileSignatureReader(
         await using var buffer = new MemoryStream(capacity: (int)sizeBytes);
         await content.CopyToAsync(buffer, CancellationToken.None);
 
-        return DataMessageSignature.Verify(buffer.GetBuffer().AsSpan(0, (int)buffer.Length), trust, revocation);
+        return DataMessageSignature.Verify(buffer.GetBuffer().AsMemory(0, (int)buffer.Length), trust, revocation);
     }
 }

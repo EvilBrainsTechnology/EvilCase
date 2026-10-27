@@ -1,3 +1,5 @@
+using System.Security.Cryptography.Pkcs;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Business.Files.Signatures;
@@ -95,6 +97,44 @@ public class DataMessageSignatureTests
         {
             AssertInvalid(signature, FileSignatureProblem.NotPostSignum);
             Assert.That(revocation.Checks, Is.Zero, "only a certificate that chained to the bundled roots is checked online");
+        }
+    }
+
+    [Test]
+    public void ASealThroughAnIntermediateOutsideTheBundleIsNotPostSignum()
+    {
+        using var host = TestPki.Create("Host");
+        var trust = new SignatureTrust([this.pki.Root, host.Root], [this.pki.Intermediate]);
+        using var hostIntermediate = new HostIntermediate(host.Intermediate);
+        var seal = host.IssueSeal(SealFrom, SealTo);
+        var zfo = SealedZfo.Seal(MessageXml(), seal, this.pki.IssueTsa(), Timestamped);
+        var revocation = new StubSignatureRevocation(SignatureRevocationStatus.NotRevoked);
+
+        var signature = DataMessageSignature.Verify(zfo, trust, revocation);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(BuildsAtTimestamp(trust, seal), Is.True, "the platform offers the host's intermediate");
+            AssertInvalid(signature, FileSignatureProblem.NotPostSignum);
+            Assert.That(revocation.Checks, Is.Zero);
+        }
+    }
+
+    [Test]
+    public void ATimestampThroughAnIntermediateOutsideTheBundleIsInvalid()
+    {
+        using var host = TestPki.Create("Host");
+        var trust = new SignatureTrust([this.pki.Root, host.Root], [this.pki.Intermediate]);
+        using var hostIntermediate = new HostIntermediate(host.Intermediate);
+        var tsa = host.IssueTsa();
+        var zfo = SealedZfo.Seal(MessageXml(), this.pki.IssueSeal(SealFrom, SealTo), tsa, Timestamped);
+
+        var signature = DataMessageSignature.Verify(zfo, trust, new StubSignatureRevocation(SignatureRevocationStatus.NotRevoked));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(BuildsAtTimestamp(trust, tsa), Is.True, "the platform offers the host's intermediate");
+            AssertInvalid(signature, FileSignatureProblem.TimestampInvalid);
         }
     }
 
@@ -208,6 +248,17 @@ public class DataMessageSignatureTests
     }
 
     [Test]
+    public void ADetachedCmsIsNoDataMessage()
+    {
+        var cms = new SignedCms(new ContentInfo(Encoding.UTF8.GetBytes(MessageXml())), detached: true);
+        cms.ComputeSignature(new CmsSigner(this.pki.IssueSeal(SealFrom, SealTo)) { IncludeOption = X509IncludeOption.EndCertOnly });
+
+        var signature = DataMessageSignature.Verify(cms.Encode(), this.pki.Trust, new StubSignatureRevocation(SignatureRevocationStatus.NotRevoked));
+
+        AssertInvalid(signature, FileSignatureProblem.NotDataMessage);
+    }
+
+    [Test]
     public void ARevokedSealIsInvalid()
     {
         var signature = DataMessageSignature.Verify(this.SealedMessage(), this.pki.Trust, new StubSignatureRevocation(SignatureRevocationStatus.Revoked));
@@ -289,6 +340,14 @@ public class DataMessageSignatureTests
     private static string MessageXml()
     {
         return SyntheticZfo.MessageXml(SyntheticZfo.Namespace, [("Rozhodnutí.pdf", [1, 2, 3])]);
+    }
+
+    private static bool BuildsAtTimestamp(SignatureTrust trust, X509Certificate2 certificate)
+    {
+        using var chain = trust.NewChain();
+        chain.ChainPolicy.VerificationTime = Timestamped.UtcDateTime;
+
+        return chain.Build(certificate);
     }
 
     private static void AssertInvalid(FileSignatureResponse signature, FileSignatureProblem problem)
