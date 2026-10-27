@@ -21,6 +21,16 @@ internal static class SignatureTimestamp
     }
 
     /// <summary>
+    /// The time the token states, trusted or not; null without a decodable token.
+    /// </summary>
+    public static DateTime? StatedTime(SignerInfo signer)
+    {
+        return Token(signer) is { } attribute && Rfc3161TimestampToken.TryDecode(attribute.Values[0].RawData, out var token, out _)
+            ? token.TokenInfo.Timestamp.UtcDateTime
+            : null;
+    }
+
+    /// <summary>
     /// The time of the timestamp token over the signature, or null where the token is missing, does not cover this signature,
     /// or its TSA does not chain to the trust's roots at that time through bundled certificates only.
     /// </summary>

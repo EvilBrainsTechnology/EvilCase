@@ -34,8 +34,6 @@ internal static class CmsSigners
     /// </summary>
     private const string QualifiedLegalPersonDeviceOid = "0.4.0.194112.1.3";
 
-    private const string TimestampTokenOid = "1.2.840.113549.1.9.16.2.14";
-
     private const string SigningTimeOid = "1.2.840.113549.1.9.5";
 
     private static readonly string[] KnownAuthorities = ["PostSignum", "I.CA", "eIdentity"];
@@ -81,7 +79,7 @@ internal static class CmsSigners
             CertificateIssuer = certificate is null ? null : Authority(certificate.GetNameInfo(X509NameType.SimpleName, forIssuer: true)),
             CertificateValidFrom = certificate?.NotBefore.ToUniversalTime(),
             CertificateValidTo = certificate?.NotAfter.ToUniversalTime(),
-            Timestamped = Timestamp(signer),
+            Timestamped = SignatureTimestamp.StatedTime(signer),
             SigningTime = SigningTime(signer),
         };
     }
@@ -132,20 +130,6 @@ internal static class CmsSigners
     private static string Authority(string commonName)
     {
         return KnownAuthorities.FirstOrDefault(authority => commonName.StartsWith(authority, StringComparison.Ordinal)) ?? commonName;
-    }
-
-    private static DateTime? Timestamp(SignerInfo signer)
-    {
-        var attribute = signer.UnsignedAttributes
-            .Cast<CryptographicAttributeObject>()
-            .FirstOrDefault(static attribute => string.Equals(attribute.Oid.Value, TimestampTokenOid, StringComparison.Ordinal));
-
-        if (attribute is not { Values.Count: > 0 })
-            return null;
-
-        return Rfc3161TimestampToken.TryDecode(attribute.Values[0].RawData, out var token, out _)
-            ? token.TokenInfo.Timestamp.UtcDateTime
-            : null;
     }
 
     private static DateTime? SigningTime(SignerInfo signer)
