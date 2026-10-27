@@ -1,7 +1,7 @@
 name: Pull request state
 
-# Keep one state label on an agent's open pull request and the ci-failed flag on any pull request.
-# pull_request_target only reads the payload and writes labels; nothing from the head ref runs.
+# One state label on an agent's open pull request, ci-failed on any of this repository's. The
+# pull_request_target events only read the payload and write labels; nothing from the head runs.
 on:
   pull_request_target:
     types: [opened, reopened, ready_for_review, labeled, closed]
@@ -17,10 +17,6 @@ on:
     workflows: [CI]
     types: [completed]
 
-concurrency:
-  group: pr-state-${{ github.event.pull_request.number || github.event.issue.number || github.event.workflow_run.pull_requests[0].number || github.event.workflow_run.head_branch }}
-  cancel-in-progress: false
-
 permissions:
   pull-requests: write
   issues: write
@@ -32,7 +28,7 @@ jobs:
         || contains(fromJSON('["agent-in-progress","agent-done","waiting-for-agent"]'), github.event.label.name))
       && (github.event_name != 'issue_comment' || github.event.issue.pull_request)
       && (github.event_name != 'workflow_run'
-        || contains(fromJSON('["success","failure"]'), github.event.workflow_run.conclusion))
+        || contains(fromJSON('["success","failure","timed_out"]'), github.event.workflow_run.conclusion))
     runs-on: ubuntu-latest
     steps:
       - name: Update the labels
