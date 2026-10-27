@@ -3,12 +3,17 @@ using System.Security.Cryptography.X509Certificates;
 namespace EvilBrains.EvilCase.Business.Files.Signatures;
 
 /// <summary>
-/// The certificates a data message seal is trusted against: the roots anchor every chain, the intermediates are the only
+/// The certificates a signature is trusted against: the roots anchor every chain, the intermediates are the only
 /// candidates between a root and the seal. Certificates a signed file carries are never candidates.
 /// </summary>
 internal sealed class SignatureTrust(X509Certificate2Collection roots, X509Certificate2Collection intermediates)
 {
-    private const string ResourcePrefix = "EvilBrains.EvilCase.Business.Files.Signatures.PostSignum.";
+    /// <summary>
+    /// The DI key of the trust a signed file is verified against.
+    /// </summary>
+    public const string QualifiedKey = "Qualified";
+
+    private const string ResourcePrefix = "EvilBrains.EvilCase.Business.Files.Signatures.Trust.";
 
     public X509Certificate2Collection Roots { get; } = roots;
 
@@ -19,7 +24,16 @@ internal sealed class SignatureTrust(X509Certificate2Collection roots, X509Certi
     /// </summary>
     public static SignatureTrust LoadPostSignum()
     {
-        return new SignatureTrust(LoadResources("Roots."), LoadResources("Intermediates."));
+        return Load(["PostSignum", "PostSignumRetired"]);
+    }
+
+    /// <summary>
+    /// The roots and intermediates of the Czech qualified trust service providers PostSignum, I.CA and eIdentity bundled
+    /// with the application.
+    /// </summary>
+    public static SignatureTrust LoadQualified()
+    {
+        return Load(["PostSignum", "ICA", "eIdentity"]);
     }
 
     /// <summary>
@@ -40,12 +54,18 @@ internal sealed class SignatureTrust(X509Certificate2Collection roots, X509Certi
         return chain;
     }
 
-    private static X509Certificate2Collection LoadResources(string folder)
+    private static SignatureTrust Load(string[] providers)
+    {
+        return new SignatureTrust(LoadResources(providers, "Roots"), LoadResources(providers, "Intermediates"));
+    }
+
+    private static X509Certificate2Collection LoadResources(string[] providers, string folder)
     {
         var assembly = typeof(SignatureTrust).Assembly;
+        var prefixes = providers.Select(provider => $"{ResourcePrefix}{provider}.{folder}.").ToList();
         var certificates = new X509Certificate2Collection();
 
-        foreach (var name in assembly.GetManifestResourceNames().Where(name => name.StartsWith(ResourcePrefix + folder, StringComparison.Ordinal)))
+        foreach (var name in assembly.GetManifestResourceNames().Where(name => prefixes.Exists(prefix => name.StartsWith(prefix, StringComparison.Ordinal))))
         {
             using var stream = assembly.GetManifestResourceStream(name)!;
             using var buffer = new MemoryStream();

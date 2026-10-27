@@ -9,7 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Files\Signatures\PostSignum\**\*.cer" />
+    <EmbeddedResource Include="Files\Signatures\Trust\**\*.cer" />
   </ItemGroup>
 
   <ItemGroup>
