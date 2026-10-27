@@ -25,9 +25,7 @@ internal static class SignatureTimestamp
     /// </summary>
     public static DateTime? StatedTime(SignerInfo signer)
     {
-        return Token(signer) is { } attribute && Rfc3161TimestampToken.TryDecode(attribute.Values[0].RawData, out var token, out _)
-            ? token.TokenInfo.Timestamp.UtcDateTime
-            : null;
+        return Decoded(signer)?.TokenInfo.Timestamp.UtcDateTime;
     }
 
     /// <summary>
@@ -36,10 +34,7 @@ internal static class SignatureTimestamp
     /// </summary>
     public static DateTime? TrustedTime(SignerInfo signer, SignatureTrust trust)
     {
-        if (Token(signer) is not { } attribute)
-            return null;
-
-        if (!Rfc3161TimestampToken.TryDecode(attribute.Values[0].RawData, out var token, out _))
+        if (Decoded(signer) is not { } token)
             return null;
 
         if (!token.VerifySignatureForSignerInfo(signer, out var tsaCertificate, trust.Intermediates) || tsaCertificate is null)
@@ -48,6 +43,13 @@ internal static class SignatureTimestamp
         var timestamped = token.TokenInfo.Timestamp.UtcDateTime;
 
         return trust.Chains(tsaCertificate, timestamped, applicationPolicy: TimeStampingOid) ? timestamped : null;
+    }
+
+    private static Rfc3161TimestampToken? Decoded(SignerInfo signer)
+    {
+        return Token(signer) is { } attribute && Rfc3161TimestampToken.TryDecode(attribute.Values[0].RawData, out var token, out _)
+            ? token
+            : null;
     }
 
     private static CryptographicAttributeObject? Token(SignerInfo signer)
