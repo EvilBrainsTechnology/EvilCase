@@ -244,7 +244,7 @@ public class SignedFileSignatureTests
         var cms = SignedFile.Sign(Content, detached: false, [forged], includeCertificates: false, carried: [forged, victim], signedAttribute: attribute);
 
         // The shorter certificate sorts first in the DER set, so the forged one is the first match of the identifier.
-        Assume.That(CarriedFirst(cms), Is.EqualTo(forged.RawData));
+        Assert.That(CarriedFirst(cms), Is.EqualTo(forged.RawData), "the forged certificate is the first the identifier matches");
 
         var signer = this.VerifyOne(cms);
 
@@ -300,6 +300,35 @@ public class SignedFileSignatureTests
         var signer = this.VerifyOne(SignedFile.Sign(Content, detached: false, [certificate], signedAttribute: attribute));
 
         AssertVerdict(signer, FileSignatureState.Invalid, FileSignerProblem.SigningCertificateMismatch);
+    }
+
+    [Test]
+    public void OfRenewedCertificatesTheOneTheAttributeNamesIsTheSigners()
+    {
+        using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+
+        // Both certificates share the key and so the key identifier; the file is kept where it lists the older one first.
+        X509Certificate2 renewed;
+        byte[] cms;
+        var attempts = 0;
+        do
+        {
+            var older = this.pki.IssueSeal(YearStart, YearEnd, commonName: "Jan Testovací", policy: QualifiedSignaturePolicy, key: key);
+            renewed = this.pki.IssueSeal(YearStart, YearEnd, commonName: "Jan Testovací", policy: QualifiedSignaturePolicy, key: key);
+            cms = SignedFile.Sign(
+                Content,
+                detached: false,
+                [renewed],
+                includeCertificates: false,
+                identifier: System.Security.Cryptography.Pkcs.SubjectIdentifierType.SubjectKeyIdentifier,
+                carried: [older, renewed],
+                signedAttribute: SigningCertificateV2(new EssCertIDv2(SHA256.HashData(renewed.RawData))));
+        }
+        while (CarriedFirst(cms).AsSpan().SequenceEqual(renewed.RawData) && ++attempts < 32);
+
+        Assume.That(CarriedFirst(cms), Is.Not.EqualTo(renewed.RawData));
+
+        Assert.That(this.VerifyOne(cms).State, Is.EqualTo(FileSignatureState.Valid));
     }
 
     [TestCase("1.2.840.113549.1.9.16.2.47")]

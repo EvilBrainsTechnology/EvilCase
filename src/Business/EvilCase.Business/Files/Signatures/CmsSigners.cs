@@ -57,7 +57,18 @@ internal static class CmsSigners
 
         try
         {
-            return new FileSignersResponse { Signers = [.. signerInfos.Cast<SignerInfo>().Select(Signer)] };
+            // Parsed once: SignedCms.Certificates parses every certificate the file carries on each call.
+            var certificates = signed.Certificates;
+
+            return new FileSignersResponse
+            {
+                Signers =
+                [
+                    .. signerInfos
+                        .Cast<SignerInfo>()
+                        .Select(signer => Signer(signer, SignerCertificate(signer, certificates))),
+                ],
+            };
         }
         catch (CryptographicException)
         {
@@ -66,12 +77,25 @@ internal static class CmsSigners
     }
 
     /// <summary>
-    /// The signer as the file states it, by the first carried certificate its identifier matches — the certificate the signature is checked against.
+    /// Of the carried certificates the identifier matches, the one the signing-certificate attribute names over the key that
+    /// verifies the signature; otherwise the certificate that verifies it.
     /// </summary>
-    public static FileSigner Signer(SignerInfo signer)
+    public static X509Certificate2? SignerCertificate(SignerInfo signer, X509Certificate2Collection certificates)
     {
-        var certificate = signer.Certificate;
+        if (signer.Certificate is not { } verifying)
+            return null;
 
+        var key = verifying.PublicKey.ExportSubjectPublicKeyInfo();
+
+        return certificates.FirstOrDefault(
+            certificate => signer.SignerIdentifier.MatchesCertificate(certificate)
+                && key.SequenceEqual(certificate.PublicKey.ExportSubjectPublicKeyInfo())
+                && SigningCertificateReference.RefersTo(signer, certificate))
+            ?? verifying;
+    }
+
+    public static FileSigner Signer(SignerInfo signer, X509Certificate2? certificate)
+    {
         return new FileSigner
         {
             Name = certificate?.GetNameInfo(X509NameType.SimpleName, forIssuer: false) ?? "",
