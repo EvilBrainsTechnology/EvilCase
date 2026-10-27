@@ -43,13 +43,28 @@ internal static class SignedFileSignature
             // Parsed once: SignerInfo.Certificate parses every certificate the file carries on each call.
             var certificates = signed.Certificates;
 
+            // One revocation query per certificate, however many signers share it.
+            var revocations = new Dictionary<string, SignatureRevocation>(StringComparer.Ordinal);
+
+            SignatureRevocation Revocation(X509Certificate2 certificate)
+            {
+                var hash = certificate.GetCertHashString(HashAlgorithmName.SHA256);
+                if (!revocations.TryGetValue(hash, out var status))
+                {
+                    status = revocation.CheckRevocation(certificate, trust);
+                    revocations[hash] = status;
+                }
+
+                return status;
+            }
+
             return new FileSignersResponse
             {
                 Signers =
                 [
                     .. signerInfos
                         .Cast<SignerInfo>()
-                        .Select(info => Verified(info, certificates.FirstOrDefault(info.SignerIdentifier.MatchesCertificate), trust, revocation, now)),
+                        .Select(info => Verified(info, certificates.FirstOrDefault(info.SignerIdentifier.MatchesCertificate), trust, Revocation, now)),
                 ],
             };
         }
@@ -73,7 +88,7 @@ internal static class SignedFileSignature
         };
     }
 
-    private static FileSigner Verified(SignerInfo info, X509Certificate2? certificate, SignatureTrust trust, ISignatureRevocation revocation, DateTime now)
+    private static FileSigner Verified(SignerInfo info, X509Certificate2? certificate, SignatureTrust trust, Func<X509Certificate2, SignatureRevocation> revocation, DateTime now)
     {
         var signer = CmsSigners.Signer(info, certificate);
 
@@ -95,7 +110,7 @@ internal static class SignedFileSignature
         DateTime? timestamped = null;
         if (SignatureTimestamp.IsPresent(info))
         {
-            timestamped = SignatureTimestamp.TrustedTime(info, trust);
+            timestamped = SignatureTimestamp.TrustedTime(info, trust, withinBundle: true);
             if (timestamped is null)
                 return signer with { State = FileSignatureState.Invalid, Problem = FileSignerProblem.TimestampInvalid };
         }
@@ -104,7 +119,7 @@ internal static class SignedFileSignature
         {
             chain.ChainPolicy.VerificationTime = timestamped ?? now;
 
-            if (!chain.Build(certificate))
+            if (!trust.BuildsWithinBundle(chain, certificate))
             {
                 return timestamped is null
                     ? signer with { State = FileSignatureState.Unverifiable, Problem = FileSignerProblem.NotValidNow }
@@ -112,7 +127,7 @@ internal static class SignedFileSignature
             }
         }
 
-        var status = revocation.CheckRevocation(certificate, trust);
+        var status = revocation(certificate);
 
         return status.Status switch
         {
@@ -124,8 +139,8 @@ internal static class SignedFileSignature
     }
 
     /// <summary>
-    /// Whether the certificate declares a qualified policy and chains to a bundled root through the bundled intermediates, at
-    /// any time.
+    /// Whether the certificate declares a qualified policy and chains to a bundled root only through the bundled intermediates,
+    /// at any time.
     /// </summary>
     private static bool IsQualified(X509Certificate2 certificate, SignatureTrust trust)
     {
@@ -136,6 +151,6 @@ internal static class SignedFileSignature
         using var chain = trust.NewChain();
         chain.ChainPolicy.VerificationFlags = X509VerificationFlags.IgnoreNotTimeValid;
 
-        return chain.Build(certificate);
+        return trust.BuildsWithinBundle(chain, certificate);
     }
 }

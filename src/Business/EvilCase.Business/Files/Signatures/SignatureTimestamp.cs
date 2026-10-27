@@ -22,9 +22,10 @@ internal static class SignatureTimestamp
 
     /// <summary>
     /// The time of the timestamp token over the signature, or null where the token is missing, does not cover this signature,
-    /// or its TSA does not chain to the trust's roots at that time.
+    /// or its TSA does not chain to the trust's roots at that time; with <paramref name="withinBundle"/> only through bundled
+    /// certificates.
     /// </summary>
-    public static DateTime? TrustedTime(SignerInfo signer, SignatureTrust trust)
+    public static DateTime? TrustedTime(SignerInfo signer, SignatureTrust trust, bool withinBundle = false)
     {
         if (Token(signer) is not { } attribute)
             return null;
@@ -41,7 +42,9 @@ internal static class SignatureTimestamp
         chain.ChainPolicy.VerificationTime = timestamped;
         chain.ChainPolicy.ApplicationPolicy.Add(new Oid(TimeStampingOid));
 
-        return chain.Build(tsaCertificate) ? timestamped : null;
+        var trusted = withinBundle ? trust.BuildsWithinBundle(chain, tsaCertificate) : chain.Build(tsaCertificate);
+
+        return trusted ? timestamped : null;
     }
 
     private static CryptographicAttributeObject? Token(SignerInfo signer)

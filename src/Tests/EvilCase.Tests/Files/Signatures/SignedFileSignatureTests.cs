@@ -145,6 +145,17 @@ public class SignedFileSignatureTests
     }
 
     [Test]
+    public void AnIntermediateTheFileCarriesIsNoTrustedCa()
+    {
+        var rootOnly = new SignatureTrust([this.pki.Root], []);
+        var cms = SignedFile.Sign(Content, detached: false, [this.Signer(YearStart, YearEnd)], carried: [this.pki.Intermediate]);
+
+        var response = SignedFileSignature.Verify(cms, signedContent: null, rootOnly, new StubSignatureRevocation(SignatureRevocationStatus.NotRevoked), Now);
+
+        AssertVerdict(response.Signers.Single(), FileSignatureState.Unverifiable, FileSignerProblem.UntrustedIssuer);
+    }
+
+    [Test]
     public void ChangedContentIsInvalid()
     {
         var cms = SignedFile.Sign(Content, detached: true, [this.Signer(YearStart, YearEnd)]);
@@ -210,6 +221,21 @@ public class SignedFileSignatureTests
         var response = this.Verify(SignedFile.Sign(Content, detached: false, [trusted, untrusted]));
 
         Assert.That(response.Signers.Select(static signer => signer.State), Is.EqualTo(new FileSignatureState?[] { FileSignatureState.Valid, FileSignatureState.Unverifiable }));
+    }
+
+    [Test]
+    public void SignersOfOneCertificateAskForItsRevocationOnce()
+    {
+        var certificate = this.Signer(YearStart, YearEnd);
+        var revocation = new StubSignatureRevocation(SignatureRevocationStatus.NotRevoked);
+
+        var response = this.Verify(SignedFile.Sign(Content, detached: false, [certificate, certificate]), revocation: revocation);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(response.Signers.Select(static signer => signer.State), Is.All.EqualTo(FileSignatureState.Valid));
+            Assert.That(revocation.Checks, Is.EqualTo(1));
+        }
     }
 
     [Test]

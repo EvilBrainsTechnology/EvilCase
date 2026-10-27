@@ -6,6 +6,8 @@ namespace EvilBrains.EvilCase.Tests.Files.Signatures;
 
 public class SignatureTrustTests
 {
+    private static readonly DateTimeOffset Within = new(2026, 6, 1, 0, 0, 0, TimeSpan.Zero);
+
     [Test]
     public void TheBundledRootsAreThePostSignumQualifiedRoots()
     {
@@ -126,6 +128,30 @@ public class SignatureTrustTests
                 Assert.That(chain.Build(intermediate), Is.True, $"{intermediate.Subject} must chain to a bundled root");
             }
         }
+    }
+
+    [Test]
+    public void AChainThroughABundledIntermediateIsWithinTheBundle()
+    {
+        using var pki = TestPki.Create();
+        using var seal = pki.IssueSeal(Within.AddYears(-1), Within.AddYears(1));
+        using var chain = pki.Trust.NewChain();
+        chain.ChainPolicy.VerificationTime = Within.UtcDateTime;
+
+        Assert.That(pki.Trust.BuildsWithinBundle(chain, seal), Is.True);
+    }
+
+    [Test]
+    public void AChainThroughAnIntermediateOutsideTheBundleIsRefused()
+    {
+        using var pki = TestPki.Create();
+        using var seal = pki.IssueSeal(Within.AddYears(-1), Within.AddYears(1));
+        var rootOnly = new SignatureTrust([pki.Root], []);
+        using var chain = rootOnly.NewChain();
+        chain.ChainPolicy.VerificationTime = Within.UtcDateTime;
+        chain.ChainPolicy.ExtraStore.Add(pki.Intermediate);
+
+        Assert.That(rootOnly.BuildsWithinBundle(chain, seal), Is.False, "an intermediate from outside the bundle, as a machine store offers it, is no trusted CA");
     }
 
     private static IEnumerable<string> Fingerprints(X509Certificate2Collection certificates)

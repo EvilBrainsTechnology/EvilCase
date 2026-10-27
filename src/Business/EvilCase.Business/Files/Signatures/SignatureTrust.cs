@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 
 namespace EvilBrains.EvilCase.Business.Files.Signatures;
@@ -18,6 +19,8 @@ internal sealed class SignatureTrust(X509Certificate2Collection roots, X509Certi
     public X509Certificate2Collection Roots { get; } = roots;
 
     public X509Certificate2Collection Intermediates { get; } = intermediates;
+
+    private HashSet<string> Bundled { get; } = [.. roots.Concat(intermediates).Select(static certificate => certificate.GetCertHashString(HashAlgorithmName.SHA256))];
 
     /// <summary>
     /// The PostSignum qualified roots and intermediates bundled with the application.
@@ -52,6 +55,16 @@ internal sealed class SignatureTrust(X509Certificate2Collection roots, X509Certi
         policy.RevocationMode = X509RevocationMode.NoCheck;
 
         return chain;
+    }
+
+    /// <summary>
+    /// Whether <paramref name="chain"/> builds for <paramref name="certificate"/> with every certificate above it bundled.
+    /// </summary>
+    public bool BuildsWithinBundle(X509Chain chain, X509Certificate2 certificate)
+    {
+        // The platform also offers intermediates of the machine's and the user's stores as candidates.
+        return chain.Build(certificate)
+            && chain.ChainElements.Skip(1).All(element => this.Bundled.Contains(element.Certificate.GetCertHashString(HashAlgorithmName.SHA256)));
     }
 
     private static SignatureTrust Load(string[] providers)

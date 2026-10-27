@@ -273,6 +273,19 @@ public class FileSignersRenderTests
     }
 
     [Test]
+    public async Task APairedStripWhoseSignersFailToLoadOffersARetry()
+    {
+        await using var ctx = NewContext(out var client);
+        client.ListFileSigners(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(static _ => Task.FromException<FileSignersResponse>(new HttpRequestException("offline")));
+
+        var component = Render(ctx, Guid.CreateVersion7(), "Smlouva o dílo.pdf.p7s", signedFileId: Guid.CreateVersion7());
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.Find(".ec-preview-signers-status span").TextContent, Is.EqualTo("Podpisy se nepodařilo načíst.")));
+        Assert.That(component.FindAll(".ec-preview-signers-status button"), Has.Count.EqualTo(1));
+    }
+
+    [Test]
     public async Task AnAttachedSignatureLeavesNoPairedStrip()
     {
         await using var ctx = NewContext(out var client);
