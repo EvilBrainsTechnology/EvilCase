@@ -91,4 +91,10 @@ internal interface IFilePreviews
     public Task<IReadOnlyList<SheetPreview>> ReadWorkbook(Stream content, int maxRows, CancellationToken token);
 
     public Task<EmailPreview> ReadEmail(string fileName, Stream content, CancellationToken token);
+
+    /// <summary>
+    /// The extension, without the dot, of the type the leading bytes of the content show, or <see langword="null"/>
+    /// when they show none, as for plain text.
+    /// </summary>
+    public Task<string?> DetectExtension(Stream content, CancellationToken token);
 }

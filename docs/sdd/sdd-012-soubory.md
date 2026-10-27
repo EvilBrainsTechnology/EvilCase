@@ -150,8 +150,9 @@ Esc a Zrušit ho zahodí.
 
 - Soubor p7m nebo p7s je elektronický podpis ve formátu CMS. Podepsaný dokument v něm náhled
   ukáže podle přípony jména bez koncovky p7m nebo p7s (Smlouva.pdf.p7m jako PDF), stejně jako
-  soubor karty. Dokument bez náhledu, vnořený podepsaný soubor a vnořená datová zpráva nabídnou
-  jen stažení dokumentu.
+  soubor karty. Jméno bez známé přípony dostane příponu typu, který ukáže obsah dokumentu
+  (Potvrzení.p7s s XML jako Potvrzení.xml); s ní se dokument zobrazí i stáhne. Dokument bez
+  náhledu, vnořený podepsaný soubor a vnořená datová zpráva nabídnou jen stažení dokumentu.
 - Hlavička podepsaného dokumentu ukáže u velikosti „podepsaný dokument“ se jménem dokumentu
   a nese Přejmenovat, Stáhnout dokument a Stáhnout s příponou souboru (Stáhnout .p7m). Dokument
   se stáhne pod jménem bez koncovky podpisu, soubor celý pod svým jménem.

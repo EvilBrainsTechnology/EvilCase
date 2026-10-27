@@ -15,7 +15,7 @@
 {
     var attachment = this.ShownAttachment;
     var shownName = attachment?.Name ?? file.FileName;
-    // A signed document shows what it carries, by the name without the signature suffix.
+    // A signed document shows what it carries, by the name without the signature suffix or by the type its content shows.
     var stagedName = this.signedContentName ?? shownName;
     var preview = FileTypeDisplay.Preview(stagedName);
 
@@ -623,9 +623,24 @@
                     break;
 
                 var documentName = FileTypeDisplay.SignedContentName(fileName);
-                var documentPreview = FileTypeDisplay.Preview(documentName);
 
                 (this.signedContent, this.signedContentName) = (document, documentName);
+
+                // A name without a known extension takes the one of the type its content shows.
+                if (!FileTypeDisplay.HasKnownExtension(documentName))
+                {
+                    await using var sniffed = new MemoryStream(document, writable: false);
+
+                    var detected = await this.Previews.DetectExtension(sniffed, token);
+
+                    if (token.IsCancellationRequested)
+                        break;
+
+                    if (detected is not null && FileTypeDisplay.HasKnownExtension($"{documentName}.{detected}"))
+                        this.signedContentName = documentName = $"{documentName}.{detected}";
+                }
+
+                var documentPreview = FileTypeDisplay.Preview(documentName);
 
                 await using var documentContent = new MemoryStream(document, writable: false);
 

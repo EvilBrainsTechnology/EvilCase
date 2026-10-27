@@ -1397,6 +1397,14 @@ export async function readEmail(fileName, contentStream) {
     return extensionOf(fileName) === 'msg' ? readMsg(buffer) : readEml(buffer);
 }
 
+// The extension of the type the content's signature shows, or null; plain text has none.
+export async function detectExtension(contentStream) {
+    const { fileTypeFromBuffer } = await import(new URL('../lib/file-type/file-type.min.js', import.meta.url).href);
+    const type = await fileTypeFromBuffer(new Uint8Array(await contentStream.arrayBuffer()));
+
+    return type?.ext ?? null;
+}
+
 async function decodeHeic(buffer) {
     await loadScript('libheif/libheif-bundle.js');
 

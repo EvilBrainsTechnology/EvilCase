@@ -1,6 +1,6 @@
 // Generates wwwroot/lib and wwwroot/fonts from node_modules: copies the browser builds and their
-// license files, and bundles postal-mime, @kenjiuno/msgreader and the code preview (Prettier with
-// @prettier/plugin-xml, and highlight.js) with esbuild.
+// license files, and bundles postal-mime, @kenjiuno/msgreader, file-type and the code preview (Prettier
+// with @prettier/plugin-xml, and highlight.js) with esbuild.
 //
 // Usage: node build-libs.mjs        (after `npm ci`; no parameters, any working directory)
 // Replaces wwwroot/lib and wwwroot/fonts; both are gitignored.
@@ -18,7 +18,7 @@ const lib = join(root, 'wwwroot', 'lib');
 const fonts = join(root, 'wwwroot', 'fonts');
 
 const allowedLicenses = [/^MIT(-0)?$/, /^Apache-2\.0$/, /^BSD-/, /^ISC$/, /^OFL-1\.1$/, /^LGPL-3\.0(-only|-or-later)?$/, /^Zlib$/];
-const licenseFiles = ['LICENSE', 'LICENSE.txt', 'LICENSE.md', 'LICENSE.markdown', 'LICENCE'];
+const licenseFiles = ['LICENSE', 'LICENSE.txt', 'LICENSE.md', 'LICENSE.markdown', 'LICENCE', 'license', 'license.md'];
 
 function fail(message) {
     console.error(`build-libs: ${message}`);
@@ -165,6 +165,7 @@ copyLicense('pdfjs-dist', join(lib, 'pdfjs', 'LICENSE'));
 
 await bundle("export { default } from 'postal-mime';", join(lib, 'postal-mime'), 'postal-mime.min.js', { format: 'esm' });
 await bundle("export { default as MsgReader } from '@kenjiuno/msgreader';", join(lib, 'msgreader'), 'msgreader.min.js', { format: 'iife', globalName: 'EcMsg' });
+await bundle("export { fileTypeFromBuffer } from 'file-type';", join(lib, 'file-type'), 'file-type.min.js', { format: 'esm' });
 
 // Formats and highlights JSON, XML, YAML and HTML. `json-stringify` keeps every JSON number literal and escape as
 // written; XML keeps its whitespace; HTML leaves its embedded scripts and styles as they are.

@@ -131,6 +131,11 @@ public static class FileTypeDisplay
         return Previews.GetValueOrDefault(Extension(fileName));
     }
 
+    public static bool HasKnownExtension(string fileName)
+    {
+        return Kinds.ContainsKey(Extension(fileName));
+    }
+
     /// <summary>
     /// The language of a file whose preview is <see cref="FilePreviewKind.Code"/>.
     /// </summary>
