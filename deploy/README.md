@@ -35,6 +35,13 @@ Two keys under `EvilBrains:EvilCase:Hosting` adapt the pipeline to what sits in 
 - `BehindReverseProxy` (default `false`) calls `UseForwardedHeaders` first, with `KnownIPNetworks` and `KnownProxies` cleared and `ForwardLimit = 1`. The single trusted hop is the whole defence: a deployment that turns it on must not be reachable except through that proxy.
 - `HttpsRedirection` (default `true`) turns `UseHttpsRedirection` off where something in front already redirects. `/health/*` is excluded from redirection either way.
 
+## Outbound network
+
+Verifying the seal of an ISDS data message asks PostSignum for the revocation status of its
+certificate: OCSP and CRL over plain HTTP at the URLs the PostSignum certificates name
+(`ocsp.postsignum.cz`, `crl.postsignum.cz`, `crl2.postsignum.cz`, `crl.postsignum.eu`), with a
+10 s timeout per request. Without that egress every seal reads as unverifiable.
+
 ## Compose stack
 
 `docker-compose.yml` runs the application; `.env` next to it (gitignored, `.env.example` documents the keys) holds the variables.

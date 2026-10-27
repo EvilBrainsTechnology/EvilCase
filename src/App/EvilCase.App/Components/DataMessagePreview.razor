@@ -7,6 +7,10 @@
             <div class="ec-preview-data-message-head">
                 <h3 class="ec-preview-data-message-subject">@Or(message.Subject)</h3>
                 <EcBadge Text="@(message.Kind == DataMessageKind.Message ? "Datová zpráva" : "Doručenka")" Tone="EcBadgeTone.Official" />
+                @if (this.FileId is { } fileId)
+                {
+                    <DataMessageSignature FileId="fileId" />
+                }
             </div>
             <dl class="ec-preview-email-headers">
                 @foreach (var (label, party) in new[] { ("Odesílatel", message.Sender), ("Adresát", message.Recipient) })
@@ -89,6 +93,12 @@
 
     [Parameter, EditorRequired]
     public required string FileName { get; set; }
+
+    /// <summary>
+    /// The stored file the ZFO is, whose signature the server verifies; null for an attachment of another data message.
+    /// </summary>
+    [Parameter]
+    public Guid? FileId { get; set; }
 
     /// <summary>
     /// Raised with the parsed message and the index of the attachment to preview.

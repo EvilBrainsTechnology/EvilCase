@@ -19,4 +19,9 @@ public static class FileLimits
     /// Mirrors <c>FileAsset.MediaType</c>'s <c>MaxLength</c>.
     /// </summary>
     public const int MaxMediaTypeLength = 128;
+
+    /// <summary>
+    /// The largest ZFO whose content is read: a standard message of 20 MB of attachments, in base64.
+    /// </summary>
+    public const long MaxDataMessageBytes = 30 * 1024 * 1024;
 }

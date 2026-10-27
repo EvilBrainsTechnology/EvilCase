@@ -1,0 +1,136 @@
+@using System.Diagnostics
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.Files
+@inject IFileSignaturesClient SignaturesClient
+@inject ILogger<DataMessageSignature> Logger
+
+@* One trigger through every state, so the focus stays on it while a retry loads. *@
+<EcPopover @ref="this.popover" AriaLabel="Podrobnosti podpisu" PanelClass="@this.PanelClass">
+    <Trigger>
+        @if (this.loading)
+        {
+            <span class="ec-signature-loading"><EcBadge Text="Ověřuji podpis…" Tone="EcBadgeTone.Closed" Icon="@AppIcons.Loader" /></span>
+        }
+        else
+        {
+            switch (this.signature?.State ?? FileSignatureState.Unverifiable)
+            {
+                case FileSignatureState.Valid:
+                    <EcBadge Text="Podpis ISDS platný" Tone="EcBadgeTone.Active" Icon="@AppIcons.ShieldCheck" />
+                    break;
+                case FileSignatureState.Invalid:
+                    <EcBadge Text="Podpis neplatný" Tone="EcBadgeTone.Danger" Icon="@AppIcons.ShieldX" />
+                    break;
+                case FileSignatureState.Unverifiable:
+                    <EcBadge Text="Podpis nelze ověřit" Tone="EcBadgeTone.Waiting" Icon="@AppIcons.ShieldQuestion" />
+                    break;
+                default:
+                    throw new UnreachableException();
+            }
+        }
+    </Trigger>
+    <ChildContent>
+        @if (this.loading)
+        {
+            <p class="ec-signature-text">Ověřuji podpis…</p>
+        }
+        else if (this.signature is { State: FileSignatureState.Valid } valid)
+        {
+            <dl class="ec-signature-details">
+                <dt>Podepsal</dt>
+                <dd>Informační systém datových schránek</dd>
+                <dt>Certifikát</dt>
+                <dd>
+                    PostSignum, platný k času razítka
+                    <span class="ec-signature-note">@valid.CertificateIssuer, @Day(valid.CertificateValidFrom) – @Day(valid.CertificateValidTo)</span>
+                </dd>
+                <dt>Časové razítko</dt>
+                <dd>@Moment(valid.Timestamped)</dd>
+                <dt>Odvolání</dt>
+                <dd>neodvolán, ověřeno @Moment(valid.RevocationChecked)</dd>
+            </dl>
+        }
+        else if (this.signature is { State: FileSignatureState.Invalid, Problem: { } problem })
+        {
+            <p class="ec-signature-reason">@FileSignatureDisplay.Reason(problem)</p>
+        }
+        else
+        {
+            <div class="ec-signature-unverifiable">
+                <p class="ec-signature-text">
+                    @(this.signature is null
+                        ? "Výsledek ověření podpisu se nepodařilo načíst."
+                        : "Kontrola odvolání certifikátu u PostSignum není dostupná. Podpis i řetězec certifikátů jsou v pořádku.")
+                </p>
+                <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Refresh" OnClick="this.Retry">Zkusit znovu</EcButton>
+            </div>
+        }
+    </ChildContent>
+</EcPopover>
+
+@code {
+    private EcPopover? popover;
+
+    private FileSignatureResponse? signature;
+
+    private bool loading = true;
+
+    [Parameter, EditorRequired]
+    public required Guid FileId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await this.Load();
+    }
+
+    private async Task Load()
+    {
+        this.loading = true;
+        this.signature = null;
+
+        try
+        {
+            this.signature = await this.SignaturesClient.ReadFileSignature(this.FileId, CancellationToken.None);
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Loading the signature of file {FileAssetId} failed", this.FileId);
+        }
+
+        this.loading = false;
+    }
+
+    private async Task Retry()
+    {
+        await this.popover!.CloseToTrigger();
+        await this.Load();
+    }
+
+    private string? PanelClass
+    {
+        get
+        {
+            if (this.loading)
+                return null;
+
+            return this.signature?.State switch
+            {
+                FileSignatureState.Valid => null,
+                FileSignatureState.Invalid => "ec-popover-danger",
+                FileSignatureState.Unverifiable or null => "ec-popover-waiting",
+                _ => throw new UnreachableException(),
+            };
+        }
+    }
+
+    private static string Day(DateTime? moment)
+    {
+        return moment is { } value ? DateDisplay.Text(DateOnly.FromDateTime(value.ToLocalTime())) : "—";
+    }
+
+    private static string Moment(DateTime? moment)
+    {
+        return moment is { } value ? MomentDisplay.Text(value) : "—";
+    }
+}

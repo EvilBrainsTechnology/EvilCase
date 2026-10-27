@@ -47,6 +47,14 @@ public class AuthorizationFallbackTests
     }
 
     [Test]
+    public async Task ReadingAFileSignatureNeedsAToken()
+    {
+        using var response = await this.client.GetAsync(new Uri($"/api/files/{Guid.CreateVersion7()}/signature", UriKind.Relative));
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+    }
+
+    [Test]
     public async Task HealthProbesStayAnonymous()
     {
         using var live = await this.client.GetAsync(new Uri("/health/live", UriKind.Relative));

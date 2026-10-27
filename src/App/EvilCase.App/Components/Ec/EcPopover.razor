@@ -1,0 +1,75 @@
+@* The trigger is a bare button around the given content; the focus returns to it, which needs its element reference. *@
+<div class="ec-popover-anchor">
+    <button type="button" class="ec-popover-trigger" aria-haspopup="dialog" aria-expanded="@(this.open ? "true" : "false")"
+            @ref="this.trigger" @onclick="this.Open">
+        @this.Trigger
+    </button>
+    @if (this.open)
+    {
+        <div class="ec-popover-backdrop" @onclick="this.CloseToTrigger"></div>
+        @* Tab or Shift+Tab out of the panel lands on a guard, which closes it. Escape stays with the panel, not a dialog around it. *@
+        <span class="ec-popover-guard ec-visually-hidden" tabindex="0" aria-hidden="true" @onfocus="this.CloseToTrigger"></span>
+        <div class="@(this.PanelClass is null ? "ec-popover" : $"ec-popover {this.PanelClass}")" role="dialog" aria-label="@this.AriaLabel" tabindex="-1" data-ec-keeps-escape
+             @ref="this.panel" @onkeydown="this.OnKeyDown">
+            @this.ChildContent
+            <span class="ec-popover-guard ec-visually-hidden" tabindex="0" aria-hidden="true" @onfocus="this.CloseToTrigger"></span>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public required string AriaLabel { get; set; }
+
+    [Parameter, EditorRequired]
+    public required RenderFragment Trigger { get; set; }
+
+    [Parameter, EditorRequired]
+    public required RenderFragment ChildContent { get; set; }
+
+    /// <summary>
+    /// A modifier of the panel, such as its tone.
+    /// </summary>
+    [Parameter]
+    public string? PanelClass { get; set; }
+
+    private ElementReference trigger;
+
+    private ElementReference panel;
+
+    private bool open;
+
+    private bool focusPanel;
+
+    /// <summary>
+    /// Closes the popover and returns the focus to its trigger.
+    /// </summary>
+    public async Task CloseToTrigger()
+    {
+        this.open = false;
+
+        await this.trigger.FocusAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!this.focusPanel)
+            return;
+
+        this.focusPanel = false;
+
+        await this.panel.FocusAsync();
+    }
+
+    private void Open()
+    {
+        this.focusPanel = true;
+        this.open = true;
+    }
+
+    private async Task OnKeyDown(KeyboardEventArgs args)
+    {
+        if (args.Key == "Escape")
+            await this.CloseToTrigger();
+    }
+}

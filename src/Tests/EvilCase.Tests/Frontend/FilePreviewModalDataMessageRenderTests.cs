@@ -1,5 +1,6 @@
 using System.Text;
 using Bunit;
+using EvilBrains.EvilCase.Api.Client;
 using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.App.Auth;
 using EvilBrains.EvilCase.App.Components;
@@ -305,6 +306,46 @@ public class FilePreviewModalDataMessageRenderTests
         });
     }
 
+    [Test]
+    public async Task TheStoredMessageShowsTheSignatureOfItsFile()
+    {
+        await using var ctx = NewContext(out _, out _, out _);
+        var signatures = ctx.Services.GetRequiredService<IFileSignaturesClient>();
+        signatures.ReadFileSignature(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new FileSignatureResponse { State = FileSignatureState.Valid });
+
+        var file = File("Zpráva.zfo");
+        var component = Render(ctx, [file], file.FileId, static _ => DefaultMessage());
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.Find(".ec-popover-trigger").TextContent.Trim(), Is.EqualTo("Podpis ISDS platný")));
+
+        await signatures
+            .Received(1)
+            .ReadFileSignature(file.FileId, Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task ANestedMessageCarriesNoSignature()
+    {
+        await using var ctx = NewContext(out _, out _, out _);
+        var signatures = ctx.Services.GetRequiredService<IFileSignaturesClient>();
+
+        var file = File("Zpráva.zfo");
+        var component = Render(ctx, [file], file.FileId, static _ => SyntheticZfo.Message(("Vnořená.zfo", DefaultMessage())));
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-preview-data-message-attachment-open"), Has.Count.EqualTo(1)));
+        await component.Find(".ec-preview-data-message-attachment-open").ClickAsync(new());
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.Find(".ec-preview-meta").TextContent, Does.Contain("příloha zprávy Zpráva.zfo")));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.FindAll(".ec-popover-trigger"), Is.Empty, "a nested message has no stored file whose signature the server could verify");
+            await signatures
+                .Received(1)
+                .ReadFileSignature(file.FileId, Arg.Any<CancellationToken>());
+        }
+    }
+
     private static string Position(IRenderedComponent<FilePreviewModal> component)
     {
         return string.Join(' ', component.Find(".ec-preview-position").TextContent.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
@@ -328,6 +369,7 @@ public class FilePreviewModalDataMessageRenderTests
         ctx.Services.AddSingleton<IFileDownloader>(downloader);
         ctx.Services.AddSingleton(new StubAuthSession());
         ctx.Services.AddSingleton<IAuthSession>(static services => services.GetRequiredService<StubAuthSession>());
+        ctx.Services.AddSingleton(Substitute.For<IFileSignaturesClient>());
 
         return ctx;
     }

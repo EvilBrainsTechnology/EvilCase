@@ -17,4 +17,6 @@ public enum EcBadgeTone
     Official = 6,
 
     Person = 7,
+
+    Danger = 8,
 }
