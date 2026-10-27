@@ -195,6 +195,69 @@ public class FilePreviewModalSignedRenderTests
         }
     }
 
+    [Test]
+    public async Task AFileWithADetachedSignatureShowsThePairedStrip()
+    {
+        await using var ctx = NewContext(out _, out _, out _, out var signers);
+
+        var (pdf, signature) = DetachedPair();
+        ServePair(signers, pdf, signature);
+        var component = Render(ctx, [pdf, signature], pdf.FileId, static _ => PdfBytes);
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-preview-signers-source"), Has.Count.EqualTo(1)));
+
+        await signers
+            .Received(1)
+            .ListFileSigners(signature.FileId, Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task TheSignatureButtonOpensTheSignature()
+    {
+        await using var ctx = NewContext(out _, out _, out _, out var signers);
+
+        var opened = new List<Guid>();
+        var (pdf, signature) = DetachedPair();
+        ServePair(signers, pdf, signature);
+        var component = Render(ctx, [pdf, signature], pdf.FileId, static _ => PdfBytes, onFileIdChanged: opened.Add);
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-preview-signers-source button"), Has.Count.EqualTo(1)));
+        await component.Find(".ec-preview-signers-source button").ClickAsync(new());
+
+        Assert.That(opened, Is.EqualTo([signature.FileId]));
+    }
+
+    [Test]
+    public async Task TheCardOpensTheSignedFile()
+    {
+        await using var ctx = NewContext(out _, out _, out _, out var signers);
+
+        var opened = new List<Guid>();
+        var (pdf, signature) = DetachedPair();
+        ServePair(signers, pdf, signature);
+        var component = Render(ctx, [pdf, signature], signature.FileId, static _ => SignedFile.Sign(PdfBytes, detached: true), onFileIdChanged: opened.Add);
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-preview-signature-file"), Has.Count.EqualTo(1)));
+        await component.Find(".ec-preview-signature-file").ClickAsync(new());
+
+        Assert.That(opened, Is.EqualTo([pdf.FileId]));
+    }
+
+    private static (FileListItem Pdf, FileListItem Signature) DetachedPair()
+    {
+        var signature = File("Smlouva.pdf.p7s");
+        var pdf = File("Smlouva.pdf") with { SignatureFileId = signature.FileId };
+
+        return (pdf, signature);
+    }
+
+    private static void ServePair(IFileSignersClient signers, FileListItem pdf, FileListItem signature)
+    {
+        var signer = new FileSigner { Name = "Jan Testovací", Kind = FileSignerKind.QualifiedSignature, CertificateIssuer = "I.CA" };
+
+        signers.ListFileSigners(signature.FileId, Arg.Any<CancellationToken>()).Returns(new FileSignersResponse { Signers = [signer], SignedFile = pdf });
+    }
+
     private static BunitContext NewContext(
         out StubBlobUrls blobs, out StubFilePreviews previews, out StubFileDownloader downloader, out IFileSignersClient signers)
     {
@@ -207,6 +270,7 @@ public class FilePreviewModalSignedRenderTests
         signers = Substitute.For<IFileSignersClient>();
         var signer = new FileSigner { Name = "Jan Testovací", Kind = FileSignerKind.QualifiedSignature, CertificateIssuer = "I.CA" };
         signers.ListFileSigners(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new FileSignersResponse { Signers = [signer] });
+        signers.VerifyFileSigners(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new TaskCompletionSource<FileSignersResponse>().Task);
         ctx.Services.AddSingleton<IBlobUrls>(blobs);
         ctx.Services.AddSingleton<IFilePreviews>(previews);
         ctx.Services.AddSingleton<IFileDownloader>(downloader);
@@ -223,7 +287,8 @@ public class FilePreviewModalSignedRenderTests
         IReadOnlyList<FileListItem> files,
         Guid fileId,
         Func<FileListItem, byte[]> content,
-        Action<FileListItem>? onDownload = null)
+        Action<FileListItem>? onDownload = null,
+        Action<Guid>? onFileIdChanged = null)
     {
         return ctx.Render<FilePreviewModal>(parameters => parameters
             .Add(static modal => modal.Files, files)
@@ -231,6 +296,7 @@ public class FilePreviewModalSignedRenderTests
             .Add(static modal => modal.LoadContent, (item, _) => Task.FromResult<Stream>(new MemoryStream(content(item))))
             .Add(static modal => modal.Rename, static (_, _, _) => Task.CompletedTask)
             .Add(static modal => modal.OnDownload, item => onDownload?.Invoke(item))
+            .Add(static modal => modal.FileIdChanged, changed => onFileIdChanged?.Invoke(changed))
             .Add(static modal => modal.Open, value: true));
     }
 

@@ -42,6 +42,68 @@ public static class FileSignerDisplay
         };
     }
 
+    public static string ProblemTitle(FileSignerProblem problem, string signatureFileName, FileSigner signer)
+    {
+        var signedName = FileTypeDisplay.SignedContentName(signatureFileName);
+
+        return problem switch
+        {
+            FileSignerProblem.ContentMismatch => $"Soubor {signedName} neodpovídá podpisu.",
+            FileSignerProblem.NotValidAtTimestamp => "Certifikát podpisu neplatil v okamžiku časového razítka.",
+            FileSignerProblem.TimestampInvalid => "Časové razítko podpisu není platné.",
+            FileSignerProblem.Revoked => "Certifikát podpisu byl odvolán.",
+            FileSignerProblem.UntrustedIssuer => "Certifikát nevydala česká kvalifikovaná autorita.",
+            FileSignerProblem.NotValidNow => "Certifikát podpisu dnes neplatí a podpis nemá časové razítko.",
+            FileSignerProblem.CertificateMissing => "Soubor nenese certifikát podepisujícího.",
+            FileSignerProblem.RevocationUnknown => $"Kontrola odvolání certifikátu u {signer.CertificateIssuer ?? "vydavatele"} není dostupná. Podpis i řetězec certifikátů jsou v pořádku.",
+            FileSignerProblem.SignedFileMissing => "Podepsaný soubor nenalezen.",
+            FileSignerProblem.SignedFileAmbiguous => "Podepsaný soubor nelze určit.",
+            FileSignerProblem.SignedFileTooLarge => "Podepsaný soubor je větší než 30 MB, podpis se neověřuje.",
+            _ => throw new UnreachableException(),
+        };
+    }
+
+    public static string? ProblemNote(FileSignerProblem problem, string signatureFileName)
+    {
+        var signedName = FileTypeDisplay.SignedContentName(signatureFileName);
+
+        return problem switch
+        {
+            FileSignerProblem.UntrustedIssuer => "Obsah odpovídá podpisu. Kdo certifikát vydal, aplikace neověří.",
+            FileSignerProblem.NotValidNow => "Bez časového razítka nelze určit, zda certifikát platil v okamžiku podpisu.",
+            FileSignerProblem.SignedFileMissing => $"Samostatný podpis {signatureFileName} patří k souboru {signedName}, který mezi soubory není. Nahrajte ho pod tímto jménem.",
+            FileSignerProblem.SignedFileAmbiguous => $"K souboru {signedName} patří víc samostatných podpisů, nebo je souborů tohoto jména víc. Ponechte jen jeden.",
+            FileSignerProblem.ContentMismatch
+                or FileSignerProblem.NotValidAtTimestamp
+                or FileSignerProblem.TimestampInvalid
+                or FileSignerProblem.Revoked
+                or FileSignerProblem.CertificateMissing
+                or FileSignerProblem.RevocationUnknown
+                or FileSignerProblem.SignedFileTooLarge => null,
+            _ => throw new UnreachableException(),
+        };
+    }
+
+    public static string SignedFileProblem(DetachedSignatureProblem problem, string signatureFileName)
+    {
+        var signedName = FileTypeDisplay.SignedContentName(signatureFileName);
+
+        return problem switch
+        {
+            DetachedSignatureProblem.Missing => $"Soubor {signedName} mezi soubory není. Nahrajte ho pod tímto jménem.",
+            DetachedSignatureProblem.Ambiguous => $"Soubor {signedName} nelze určit: souborů tohoto jména nebo samostatných podpisů k němu je víc.",
+            _ => throw new UnreachableException(),
+        };
+    }
+
+    /// <summary>
+    /// The issuer and the moment the certificate is judged valid at.
+    /// </summary>
+    public static string ValidCertificate(FileSigner signer)
+    {
+        return $"{signer.CertificateIssuer ?? "—"}, {(signer.Timestamped is null ? "platný ke dni ověření" : "platný k času razítka")}";
+    }
+
     public static string Name(FileSigner signer)
     {
         return signer.Name.Length == 0 ? "Neznámý podepisující" : signer.Name;

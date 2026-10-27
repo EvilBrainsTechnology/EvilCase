@@ -155,14 +155,15 @@ Esc a Zrušit ho zahodí.
 - Hlavička podepsaného dokumentu ukáže u velikosti „podepsaný dokument“ se jménem dokumentu
   a nese Přejmenovat, Stáhnout dokument a Stáhnout s příponou souboru (Stáhnout .p7m). Dokument
   se stáhne pod jménem bez koncovky podpisu, soubor celý pod svým jménem.
-- Pod hlavičkou je pruh Podpisy: u každého podepisujícího jméno, druh podpisu, vydavatel
-  certifikátu a čas. Čas je čas časového razítka nad podpisem („časové razítko 12. 10. 2026
+- Pod hlavičkou je pruh Podpisy: u každého podepisujícího štítek podpisu, jméno, druh podpisu,
+  vydavatel certifikátu a čas. Čas je čas časového razítka nad podpisem („časové razítko 12. 10. 2026
   10:14“), bez razítka čas, který uvádí podepisující („bez časového razítka, uvedeno
   12. 10. 2026 15:40“).
 - Samostatný podpis, soubor p7m nebo p7s bez dokumentu, ukáže kartu se štítkem Samostatný
-  podpis, nadpisem „Podpis souboru“ se jménem bez koncovky podpisu a oddílem Podpisy s počtem.
-  U každého podepisujícího ukáže jméno, druh, vydavatele a platnost certifikátu a časové
-  razítko, bez něj čas podpisu s poznámkou, že ho uvádí podepisující.
+  podpis, nadpisem „Podpis souboru“ se jménem bez koncovky podpisu, oddílem Podepsaný soubor
+  a oddílem Podpisy s počtem. U každého podepisujícího ukáže štítek podpisu, jméno, druh,
+  vydavatele a platnost certifikátu a časové razítko, bez něj čas podpisu s poznámkou, že ho
+  uvádí podepisující, a u platného podpisu okamžik ověření, že certifikát není odvolán.
 - Druh podpisu určí certifikát: kvalifikovaný elektronický podpis, zaručený elektronický podpis
   založený na kvalifikovaném certifikátu, kvalifikovaná elektronická pečeť, zaručená
   elektronická pečeť založená na kvalifikovaném certifikátu, jinak elektronický podpis.
@@ -181,6 +182,12 @@ Esc a Zrušit ho zahodí.
   jména se musí shodovat přesně. Když to jméno nesou dva soubory, nebo k témuž jménu patří dva
   soubory s koncovkou p7s či p7m, podpis nepatří k žádnému. Přejmenování, nahrání i smazání
   souboru párování změní. Soubor p7m s dokumentem uvnitř samostatným podpisem není.
+- Oddíl Podepsaný soubor na kartě ukáže ikonu, jméno a velikost souboru a Otevřít, které soubor
+  ukáže v témže náhledu. Bez souboru řekne, že soubor tohoto jména mezi soubory není, a vyzve
+  k nahrání pod tímto jménem; nejednoznačný soubor ohlásí.
+- Soubor, ke kterému patří samostatný podpis, ukáže pod hlavičkou pruh Podpisy s textem
+  „Podepsáno samostatným podpisem“ a tlačítkem se jménem podpisu, které podpis ukáže v témže
+  náhledu, a s podepisujícími jako u podepsaného dokumentu.
 
 ### Ověření podepsaného souboru
 
@@ -199,6 +206,16 @@ Esc a Zrušit ho zahodí.
   soubor nese, se k ověření autority nepoužijí. Druh podpisu se jen zobrazí, o platnosti
   nerozhoduje.
 - Odvolání se ověřuje online u autority, která certifikát vydala.
+- Štítek podpisu je „Ověřuji podpis…“, „Podpis platný“, „Podpis neplatný“ nebo „Podpis nelze
+  ověřit“. Klik na štítek v pruhu ukáže podrobnosti: u platného podepsaného, druh, vydavatele
+  s „platný k času razítka“, bez razítka „platný ke dni ověření“ s poznámkou, že čas uvádí
+  podepisující a podpis je ověřen k dnešku, čas razítka nebo podpisu a okamžik ověření, že
+  certifikát není odvolán. U neplatného ukáže důvod, u neověřitelného vysvětlení, u certifikátu
+  jiné autority i podepsaného a vydavatele. Nedostupná kontrola odvolání a chyba načtení
+  výsledku nabídnou Zkusit znovu. Karta samostatného podpisu ukáže důvod a Zkusit znovu přímo
+  u podepisujícího.
+- Podepisující a dokument jsou vidět, i než ověření doběhne. Chyba načtení výsledku se ukáže
+  jako Podpis nelze ověřit.
 - Výsledek ověření vydává samostatná adresa, bez obsahu souboru.
 
 ## Rozhodnutí

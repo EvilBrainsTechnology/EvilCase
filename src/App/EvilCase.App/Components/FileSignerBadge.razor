@@ -1,0 +1,35 @@
+@using System.Diagnostics
+@using EvilBrains.EvilCase.Api.Contract.Files
+
+@if (this.Verifying)
+{
+    <span class="ec-signature-loading"><EcBadge Text="Ověřuji podpis…" Tone="EcBadgeTone.Closed" Icon="@AppIcons.Loader" /></span>
+}
+else
+{
+    switch (this.State ?? FileSignatureState.Unverifiable)
+    {
+        case FileSignatureState.Valid:
+            <EcBadge Text="Podpis platný" Tone="EcBadgeTone.Active" Icon="@AppIcons.ShieldCheck" />
+            break;
+        case FileSignatureState.Invalid:
+            <EcBadge Text="Podpis neplatný" Tone="EcBadgeTone.Danger" Icon="@AppIcons.ShieldX" />
+            break;
+        case FileSignatureState.Unverifiable:
+            <EcBadge Text="Podpis nelze ověřit" Tone="EcBadgeTone.Waiting" Icon="@AppIcons.ShieldQuestion" />
+            break;
+        default:
+            throw new UnreachableException();
+    }
+}
+
+@code {
+    /// <summary>
+    /// Null where the verdict did not load.
+    /// </summary>
+    [Parameter]
+    public FileSignatureState? State { get; set; }
+
+    [Parameter]
+    public bool Verifying { get; set; }
+}

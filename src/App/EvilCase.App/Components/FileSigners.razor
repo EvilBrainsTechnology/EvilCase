@@ -13,6 +13,25 @@
                 <EcBadge Text="Samostatný podpis" Tone="EcBadgeTone.Signature" />
                 <h3 class="ec-preview-signature-title">Podpis souboru @FileTypeDisplay.SignedContentName(this.FileName)</h3>
             </div>
+            @if (this.signedFile is { } signed)
+            {
+                <section class="ec-preview-signature-file-section" aria-label="Podepsaný soubor">
+                    <h4 class="ec-preview-signature-count">Podepsaný soubor</h4>
+                    <button type="button" class="ec-preview-signature-file" @onclick="() => this.OnOpenFile.InvokeAsync(signed.FileId)">
+                        <EcFileIcon FileName="@signed.FileName" />
+                        <span class="ec-preview-signature-file-name">@signed.FileName</span>
+                        <span class="ec-preview-signature-file-size">@FileSizeDisplay.Text(signed.SizeBytes)</span>
+                        <span class="ec-preview-signature-file-open">Otevřít<EcIcon Paths="@AppIcons.ChevronRight" /></span>
+                    </button>
+                </section>
+            }
+            else if (this.signedFileProblem is { } pairing)
+            {
+                <section class="ec-preview-signature-file-section" aria-label="Podepsaný soubor">
+                    <h4 class="ec-preview-signature-count">Podepsaný soubor</h4>
+                    <p class="ec-preview-signers-status">@FileSignerDisplay.SignedFileProblem(pairing, this.FileName)</p>
+                </section>
+            }
             <section class="ec-preview-signature-signers" aria-label="Podpisy">
                 @if (this.loading)
                 {
@@ -42,7 +61,10 @@
                             @foreach (var signer in this.signers)
                             {
                                 <li class="ec-preview-signature-signer">
-                                    <span class="ec-preview-signature-name">@FileSignerDisplay.Name(signer)</span>
+                                    <div class="ec-preview-signature-signer-head">
+                                        <FileSignerBadge State="signer.State" Verifying="this.verifying" />
+                                        <span class="ec-preview-signature-name">@FileSignerDisplay.Name(signer)</span>
+                                    </div>
                                     <dl class="ec-preview-signature-details">
                                         <dt>Druh</dt>
                                         <dd>@FileSignerDisplay.Kind(signer.Kind)</dd>
@@ -63,7 +85,37 @@
                                             <dt>Čas podpisu</dt>
                                             <dd>neuveden <span class="ec-preview-signature-note">· bez časového razítka</span></dd>
                                         }
+                                        @if (signer is { State: FileSignatureState.Valid, RevocationChecked: { } checkedAt })
+                                        {
+                                            <dt>Odvolání</dt>
+                                            <dd>neodvolán, ověřeno @MomentDisplay.Text(checkedAt)</dd>
+                                        }
                                     </dl>
+                                    @if (!this.verifying && signer.State is not FileSignatureState.Valid)
+                                    {
+                                        <div class="ec-preview-signature-problem">
+                                            @if (signer is { State: FileSignatureState.Invalid, Problem: { } invalid })
+                                            {
+                                                <p class="ec-signature-reason">@FileSignerDisplay.ProblemTitle(invalid, this.FileName, signer)</p>
+                                            }
+                                            else
+                                            {
+                                                <p class="ec-signature-title">
+                                                    @(signer.Problem is { } problem
+                                                        ? FileSignerDisplay.ProblemTitle(problem, this.FileName, signer)
+                                                        : "Výsledek ověření podpisu se nepodařilo načíst.")
+                                                </p>
+                                                @if (signer.Problem is { } noted && FileSignerDisplay.ProblemNote(noted, this.FileName) is { } note)
+                                                {
+                                                    <p class="ec-signature-note">@note</p>
+                                                }
+                                                @if (signer.Problem is null or FileSignerProblem.RevocationUnknown)
+                                                {
+                                                    <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Refresh" OnClick="this.Verify">Zkusit znovu</EcButton>
+                                                }
+                                            }
+                                        </div>
+                                    }
                                 </li>
                             }
                         </ul>
@@ -73,9 +125,16 @@
         </article>
     </div>
 }
-else
+else if (this.SignedFileId is null || (this.signers is not null && this.signedFile?.FileId == this.SignedFileId))
 {
     <section class="ec-preview-signers" aria-label="Podpisy">
+        @if (this.SignedFileId is not null)
+        {
+            <div class="ec-preview-signers-source">
+                <span>Podepsáno samostatným podpisem</span>
+                <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.FileTypeSignature" OnClick="() => this.OnOpenFile.InvokeAsync(this.FileId)">@this.FileName</EcButton>
+            </div>
+        }
         @if (this.loading)
         {
             <p class="ec-preview-signers-status">Načítám podpisy…</p>
@@ -101,6 +160,7 @@ else
                 @foreach (var signer in this.signers)
                 {
                     <li class="ec-preview-signer">
+                        <FileSignerVerdict Signer="signer" Verifying="this.verifying" SignatureFileName="@this.FileName" OnRetry="this.Verify" />
                         <span class="ec-preview-signer-name">@FileSignerDisplay.Name(signer)</span>
                         <span class="ec-preview-signer-summary">@FileSignerDisplay.Summary(signer)</span>
                     </li>
@@ -119,6 +179,12 @@ else
 
     private bool loading = true;
 
+    private FileListItem? signedFile;
+
+    private DetachedSignatureProblem? signedFileProblem;
+
+    private bool verifying;
+
     /// <summary>
     /// The stored signed file whose signers the server reads.
     /// </summary>
@@ -133,6 +199,19 @@ else
     /// </summary>
     [Parameter]
     public bool Detached { get; set; }
+
+    /// <summary>
+    /// For the strip above a file this detached signature signs: that file; the strip shows only where the server pairs
+    /// them.
+    /// </summary>
+    [Parameter]
+    public Guid? SignedFileId { get; set; }
+
+    /// <summary>
+    /// Shows another stored file of the same list in the preview.
+    /// </summary>
+    [Parameter]
+    public EventCallback<Guid> OnOpenFile { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -153,15 +232,13 @@ else
         this.loading = true;
         this.signers = null;
         this.problem = null;
+        this.signedFile = null;
+        this.signedFileProblem = null;
+        this.verifying = false;
 
         try
         {
-            var response = await this.SignersClient.ListFileSigners(this.FileId, this.disposed.Token);
-
-            if (response.Problem is { } readProblem)
-                this.problem = readProblem;
-            else
-                this.signers = response.Signers;
+            this.Show(await this.SignersClient.ListFileSigners(this.FileId, this.disposed.Token));
         }
         catch (OperationCanceledException) when (this.disposed.IsCancellationRequested)
         {
@@ -173,5 +250,43 @@ else
         }
 
         this.loading = false;
+        this.verifying = this.signers is { Count: > 0 } && (this.SignedFileId is null || this.signedFile?.FileId == this.SignedFileId);
+
+        if (this.verifying)
+        {
+            this.StateHasChanged();
+            await this.Verify();
+        }
+    }
+
+    private async Task Verify()
+    {
+        this.verifying = true;
+
+        try
+        {
+            this.Show(await this.SignersClient.VerifyFileSigners(this.FileId, this.disposed.Token));
+        }
+        catch (OperationCanceledException) when (this.disposed.IsCancellationRequested)
+        {
+            return;
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Verifying the signers of file {FileAssetId} failed", this.FileId);
+        }
+
+        this.verifying = false;
+    }
+
+    private void Show(FileSignersResponse response)
+    {
+        if (response.Problem is { } readProblem)
+            (this.problem, this.signers) = (readProblem, null);
+        else
+            this.signers = response.Signers;
+
+        this.signedFile = response.SignedFile;
+        this.signedFileProblem = response.SignedFileProblem;
     }
 }

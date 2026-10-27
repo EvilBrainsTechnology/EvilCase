@@ -81,4 +81,59 @@ public class FileSignerDisplayTests
 
         Assert.That(FileSignerDisplay.Certificate(signer), Is.EqualTo("—"));
     }
+
+    [TestCaseSource(nameof(SignerProblems))]
+    public void EveryProblemHasATitle(FileSignerProblem problem)
+    {
+        var signer = new FileSigner { Name = "Jan Testovací", Kind = FileSignerKind.QualifiedSignature };
+
+        Assert.That(FileSignerDisplay.ProblemTitle(problem, "Smlouva.pdf.p7s", signer), Is.Not.Empty);
+    }
+
+    [Test]
+    public void AContentMismatchNamesTheSignedFile()
+    {
+        var signer = new FileSigner { Name = "Jan Testovací", Kind = FileSignerKind.QualifiedSignature };
+
+        Assert.That(FileSignerDisplay.ProblemTitle(FileSignerProblem.ContentMismatch, "Smlouva o dílo.pdf.p7s", signer), Is.EqualTo("Soubor Smlouva o dílo.pdf neodpovídá podpisu."));
+    }
+
+    [Test]
+    public void AnUnreachableRevocationNamesTheIssuer()
+    {
+        var signer = new FileSigner { Name = "Jan Testovací", Kind = FileSignerKind.QualifiedSignature, CertificateIssuer = "I.CA" };
+
+        Assert.That(
+            FileSignerDisplay.ProblemTitle(FileSignerProblem.RevocationUnknown, "Smlouva.pdf.p7s", signer),
+            Is.EqualTo("Kontrola odvolání certifikátu u I.CA není dostupná. Podpis i řetězec certifikátů jsou v pořádku."));
+    }
+
+    [Test]
+    public void AMissingSignedFileAsksForTheUpload()
+    {
+        Assert.That(
+            FileSignerDisplay.ProblemNote(FileSignerProblem.SignedFileMissing, "Smlouva o dílo.pdf.p7s"),
+            Is.EqualTo("Samostatný podpis Smlouva o dílo.pdf.p7s patří k souboru Smlouva o dílo.pdf, který mezi soubory není. Nahrajte ho pod tímto jménem."));
+    }
+
+    [Test]
+    public void AMissingSignedFileOnTheCardAsksForTheUpload()
+    {
+        Assert.That(
+            FileSignerDisplay.SignedFileProblem(DetachedSignatureProblem.Missing, "Smlouva o dílo.pdf.p7s"),
+            Is.EqualTo("Soubor Smlouva o dílo.pdf mezi soubory není. Nahrajte ho pod tímto jménem."));
+    }
+
+    [Test]
+    public void AnAmbiguousSignedFileOnTheCardSaysWhy()
+    {
+        Assert.That(
+            FileSignerDisplay.SignedFileProblem(DetachedSignatureProblem.Ambiguous, "Smlouva o dílo.pdf.p7s"),
+            Is.EqualTo("Soubor Smlouva o dílo.pdf nelze určit: souborů tohoto jména nebo samostatných podpisů k němu je víc."));
+    }
+
+    private static FileSignerProblem[] SignerProblems()
+    {
+        return Enum.GetValues<FileSignerProblem>();
+    }
 }
