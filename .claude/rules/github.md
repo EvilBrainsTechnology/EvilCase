@@ -16,11 +16,11 @@
   storage change. Findings are fixed first; a `.github/code_review_template.md` comment records it.
 - A pull request carries exactly one state label — `agent-in-progress` (an agent works on it),
   `agent-done` (waiting for the owner), `waiting-for-agent` (waiting for an agent) — and
-  setting one removes the rest. Autonomous work switches to `agent-in-progress` before the
+  setting one removes the rest. Every session switches to `agent-in-progress` before the
   work — on the issue until the pull request exists, on the pull request from its opening —
-  and to `agent-done` when it finishes. A session under the owner's live instruction leaves
-  the state labels alone. `ci-failed` sits beside the state as a flag: a red CI run adds it,
-  a green one removes it. A close strips the state labels and the flag; a workflow does it.
+  and to `agent-done` when it finishes. `ci-failed` sits beside the state as a flag: a red CI
+  run adds it, a green one removes it. A close strips the state labels and the flag; a
+  workflow does it.
 - Never merge and never resolve a review conversation. The owner does both.
 - The repository is public. No real case content, names, file marks or personal data anywhere.
   Real case folders on the owner's disk are read-only reference.

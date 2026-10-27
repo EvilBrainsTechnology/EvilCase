@@ -1,0 +1,59 @@
+name: State label
+
+# Keep exactly one state label on an open pull request. An opened pull request without one gets
+# agent-in-progress, the agent's code review comment switches it to agent-done, and setting one
+# state label removes the others. Dependabot pull requests carry none. pull_request_target only
+# reads the payload and writes labels; nothing from the head ref is checked out or executed.
+on:
+  pull_request_target:
+    types: [opened, reopened, ready_for_review, labeled]
+  issue_comment:
+    types: [created]
+
+concurrency:
+  group: state-label-${{ github.event.pull_request.number || github.event.issue.number }}
+  cancel-in-progress: false
+
+permissions:
+  pull-requests: write
+  issues: write
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set the state label
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const state = ['agent-in-progress', 'agent-done', 'waiting-for-agent'];
+            const payload = context.payload;
+            if (payload.issue && !payload.issue.pull_request) return;
+            const number = (payload.pull_request ?? payload.issue).number;
+            const repo = { owner: context.repo.owner, repo: context.repo.repo };
+            const { data: pr } = await github.rest.pulls.get({ ...repo, pull_number: number });
+            if (pr.state !== 'open' || pr.user.login === 'dependabot[bot]') return;
+            const present = pr.labels.map((label) => label.name).filter((name) => state.includes(name));
+
+            let target;
+            if (context.eventName === 'issue_comment') {
+              const comment = payload.comment;
+              if (comment.user.login === 'vdolek') return;
+              if (!/^## Code Review\s*$/m.test(comment.body ?? '')) return;
+              target = 'agent-done';
+            } else if (payload.action === 'labeled') {
+              if (!state.includes(payload.label.name)) return;
+              if (!present.includes(payload.label.name)) return;
+              target = payload.label.name;
+            } else {
+              if (present.length > 0) return;
+              target = 'agent-in-progress';
+            }
+
+            for (const name of present.filter((name) => name !== target)) {
+              await github.rest.issues.removeLabel({ ...repo, issue_number: number, name })
+                .catch((error) => { if (error.status !== 404) throw error; });
+            }
+            if (!present.includes(target)) {
+              await github.rest.issues.addLabels({ ...repo, issue_number: number, labels: [target] });
+            }
