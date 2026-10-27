@@ -6,9 +6,13 @@
     </button>
     @if (this.open)
     {
-        <div class="ec-popover-backdrop" @onclick="this.Close"></div>
-        <div class="ec-popover" role="dialog" aria-label="@this.AriaLabel" tabindex="-1" @ref="this.panel" @onkeydown="this.OnKeyDown">
+        <div class="ec-popover-backdrop" @onclick="this.CloseToTrigger"></div>
+        @* Tab or Shift+Tab out of the panel lands on a guard, which closes it. Escape stays with the panel, not a dialog around it. *@
+        <span class="ec-popover-guard ec-visually-hidden" tabindex="0" aria-hidden="true" @onfocus="this.CloseToTrigger"></span>
+        <div class="ec-popover" role="dialog" aria-label="@this.AriaLabel" tabindex="-1" data-ec-keeps-escape
+             @ref="this.panel" @onkeydown="this.OnKeyDown">
             @this.ChildContent
+            <span class="ec-popover-guard ec-visually-hidden" tabindex="0" aria-hidden="true" @onfocus="this.CloseToTrigger"></span>
         </div>
     }
 </div>
@@ -55,11 +59,6 @@
     {
         this.focusPanel = true;
         this.open = true;
-    }
-
-    private void Close()
-    {
-        this.open = false;
     }
 
     private async Task OnKeyDown(KeyboardEventArgs args)

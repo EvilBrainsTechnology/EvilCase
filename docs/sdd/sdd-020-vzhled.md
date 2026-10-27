@@ -60,8 +60,8 @@ Aplikace má vlastní sadu komponent s prefixem `Ec`. Obrazovka skládá jen je,
 - `EcModal` — nad nativním `dialog`, se správou fokusu; zavře ho Esc i klik mimo okno.
 - `EcMenu` — tlačítko s nabídkou akcí; Esc i klik mimo ji zavřou, šipky chodí mezi položkami
   a fokus se vrací na tlačítko.
-- `EcPopover` — prvek, který po kliku ukáže panel s podrobnostmi; Esc i klik mimo ho zavřou
-  a fokus se vrací na prvek. Pod `lg` je panel přes šířku dole na obrazovce.
+- `EcPopover` — prvek, který po kliku ukáže panel s podrobnostmi; Esc, klik mimo i Tab ven z panelu
+  ho zavřou a fokus se vrací na prvek. Esc v panelu nezavře okno, ve kterém panel leží. Pod `lg` je panel přes šířku dole na obrazovce.
 - `EcCombobox` — pole s hledáním bez ohledu na diakritiku a se založením záznamu přímo
   z nabídky; stojí na něm výběr kontaktu i štítku.
 - `EcEmptyState` — ikona, věta, volitelná výzva k založení.

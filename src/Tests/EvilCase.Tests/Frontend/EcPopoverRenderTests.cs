@@ -68,7 +68,7 @@ public class EcPopoverRenderTests
     }
 
     [Test]
-    public async Task AClickOutsideClosesThePopover()
+    public async Task EscapeIsKeptFromADialogAroundThePopover()
     {
         await using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
@@ -76,9 +76,47 @@ public class EcPopoverRenderTests
         var component = Render(ctx);
 
         await component.Find("button[aria-haspopup=dialog]").ClickAsync(new MouseEventArgs());
+
+        Assert.That(component.Find("[role=dialog]").HasAttribute("data-ec-keeps-escape"), Is.True, "Escape closes the popover and leaves the preview dialog open");
+    }
+
+    [Test]
+    public async Task AClickOutsideClosesThePopoverAndReturnsTheFocusToTheTrigger()
+    {
+        await using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+
+        var component = Render(ctx);
+        var triggerId = component.Find("button[aria-haspopup=dialog]").GetAttribute("blazor:elementReference");
+
+        await component.Find("button[aria-haspopup=dialog]").ClickAsync(new MouseEventArgs());
         await component.Find(".ec-popover-backdrop").ClickAsync(new MouseEventArgs());
 
         Assert.That(component.FindAll("[role=dialog]"), Is.Empty);
+
+        var focused = ctx.JSInterop.VerifyFocusAsyncInvoke(calledTimes: 2);
+
+        Assert.That(((ElementReference)focused[1].Arguments[0]!).Id, Is.EqualTo(triggerId));
+    }
+
+    [TestCase(0, TestName = "ShiftTabOutOfThePanelClosesIt")]
+    [TestCase(1, TestName = "TabOutOfThePanelClosesIt")]
+    public async Task LeavingThePanelByKeyboardClosesIt(int guard)
+    {
+        await using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+
+        var component = Render(ctx);
+        var triggerId = component.Find("button[aria-haspopup=dialog]").GetAttribute("blazor:elementReference");
+
+        await component.Find("button[aria-haspopup=dialog]").ClickAsync(new MouseEventArgs());
+        await component.FindAll(".ec-popover-guard")[guard].FocusAsync(new FocusEventArgs());
+
+        Assert.That(component.FindAll("[role=dialog]"), Is.Empty, "no invisible backdrop stays behind the focus");
+
+        var focused = ctx.JSInterop.VerifyFocusAsyncInvoke(calledTimes: 2);
+
+        Assert.That(((ElementReference)focused[1].Arguments[0]!).Id, Is.EqualTo(triggerId));
     }
 
     private static IRenderedComponent<EcPopover> Render(BunitContext ctx)
