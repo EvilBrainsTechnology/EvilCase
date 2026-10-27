@@ -42,9 +42,6 @@ internal static class DataMessageSignature
     /// </summary>
     private const string QualifiedLegalPersonPolicyOid = "0.4.0.194112.1.1";
 
-    private const X509ChainStatusFlags PolicyFlags =
-        X509ChainStatusFlags.NotValidForUsage | X509ChainStatusFlags.InvalidPolicyConstraints | X509ChainStatusFlags.NoIssuanceChainPolicy;
-
     private static readonly XmlReaderSettings XmlSettings = new()
     {
         DtdProcessing = DtdProcessing.Prohibit,
@@ -109,32 +106,19 @@ internal static class DataMessageSignature
     /// Why the seal does not chain at <paramref name="timestamped"/> through bundled certificates to a bundled root with the
     /// seal policy, or null where it does.
     /// </summary>
+    /// <remarks>
+    /// A seal that does not chain to the bundled hierarchy is not PostSignum's; inside it, one out of its validity, then one
+    /// without the seal policy.
+    /// </remarks>
     private static FileSignatureProblem? ChainProblem(X509Certificate2 certificate, DateTime timestamped, SignatureTrust trust)
     {
-        using var chain = trust.NewChain();
-        chain.ChainPolicy.VerificationTime = timestamped;
-        chain.ChainPolicy.CertificatePolicy.Add(new Oid(QualifiedLegalPersonPolicyOid));
+        if (trust.Chains(certificate, timestamped, certificatePolicy: QualifiedLegalPersonPolicyOid))
+            return null;
 
-        var built = chain.Build(certificate);
-
-        if (!trust.IsWithinBundle(chain))
+        if (!trust.ChainsAtIssuance(certificate))
             return FileSignatureProblem.NotPostSignum;
 
-        return built ? null : ChainStatusProblem(chain);
-    }
-
-    /// <summary>
-    /// A chain that leaves the bundled hierarchy is not PostSignum's; inside it, a certificate out of its validity, then one
-    /// without the seal policy.
-    /// </summary>
-    private static FileSignatureProblem ChainStatusProblem(X509Chain chain)
-    {
-        var flags = chain.ChainStatus.Aggregate(X509ChainStatusFlags.NoError, static (all, status) => all | status.Status);
-
-        if ((flags & ~(X509ChainStatusFlags.NotTimeValid | PolicyFlags)) != X509ChainStatusFlags.NoError)
-            return FileSignatureProblem.NotPostSignum;
-
-        return flags.HasFlag(X509ChainStatusFlags.NotTimeValid) ? FileSignatureProblem.NotValidAtTimestamp : FileSignatureProblem.NotIsdsSigner;
+        return trust.Chains(certificate, timestamped) ? FileSignatureProblem.NotIsdsSigner : FileSignatureProblem.NotValidAtTimestamp;
     }
 
     /// <summary>

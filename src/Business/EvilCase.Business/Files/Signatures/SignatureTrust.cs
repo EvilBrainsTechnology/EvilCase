@@ -1,5 +1,8 @@
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using Org.BouncyCastle.Pkix;
+using Org.BouncyCastle.Utilities.Collections;
+using Org.BouncyCastle.X509.Store;
 
 namespace EvilBrains.EvilCase.Business.Files.Signatures;
 
@@ -22,6 +25,10 @@ internal sealed class SignatureTrust(X509Certificate2Collection roots, X509Certi
 
     private HashSet<string> Bundled { get; } = [.. roots.Concat(intermediates).Select(static certificate => certificate.GetCertHashString(HashAlgorithmName.SHA256))];
 
+    private HashSet<TrustAnchor> Anchors { get; } = [.. roots.Select(static root => new TrustAnchor(new Org.BouncyCastle.X509.X509Certificate(root.RawData), nameConstraints: null))];
+
+    private List<Org.BouncyCastle.X509.X509Certificate> BundledIntermediates { get; } = [.. intermediates.Select(static intermediate => new Org.BouncyCastle.X509.X509Certificate(intermediate.RawData))];
+
     /// <summary>
     /// The PostSignum qualified roots and intermediates bundled with the application.
     /// </summary>
@@ -40,8 +47,29 @@ internal sealed class SignatureTrust(X509Certificate2Collection roots, X509Certi
     }
 
     /// <summary>
-    /// An offline chain against the bundled certificates: no download, no revocation check. The caller sets the
-    /// verification time.
+    /// Whether <paramref name="certificate"/> chains to a bundled root through bundled intermediates only, every certificate
+    /// valid at <paramref name="at"/>; where given, the path carries <paramref name="certificatePolicy"/> and every
+    /// certificate that restricts its usage lists <paramref name="applicationPolicy"/>.
+    /// </summary>
+    public bool Chains(X509Certificate2 certificate, DateTime at, string? certificatePolicy = null, string? applicationPolicy = null)
+    {
+        return this.Chains(new Org.BouncyCastle.X509.X509Certificate(certificate.RawData), at, certificatePolicy, applicationPolicy);
+    }
+
+    /// <summary>
+    /// Whether <paramref name="certificate"/> chains to a bundled root through bundled intermediates only, every certificate
+    /// valid when <paramref name="certificate"/> became valid.
+    /// </summary>
+    public bool ChainsAtIssuance(X509Certificate2 certificate)
+    {
+        var target = new Org.BouncyCastle.X509.X509Certificate(certificate.RawData);
+
+        return this.Chains(target, target.NotBefore, certificatePolicy: null, applicationPolicy: null);
+    }
+
+    /// <summary>
+    /// A chain against the bundled certificates with no download, for an online revocation check. The platform adds the
+    /// host's intermediates as candidates; the caller checks the result with <see cref="IsWithinBundle"/>.
     /// </summary>
     public X509Chain NewChain()
     {
@@ -52,17 +80,8 @@ internal sealed class SignatureTrust(X509Certificate2Collection roots, X509Certi
         policy.CustomTrustStore.AddRange(this.Roots);
         policy.ExtraStore.AddRange(this.Intermediates);
         policy.DisableCertificateDownloads = true;
-        policy.RevocationMode = X509RevocationMode.NoCheck;
 
         return chain;
-    }
-
-    /// <summary>
-    /// Whether <paramref name="chain"/> builds for <paramref name="certificate"/> with every certificate above it bundled.
-    /// </summary>
-    public bool BuildsWithinBundle(X509Chain chain, X509Certificate2 certificate)
-    {
-        return chain.Build(certificate) && this.IsWithinBundle(chain);
     }
 
     /// <summary>
@@ -70,8 +89,44 @@ internal sealed class SignatureTrust(X509Certificate2Collection roots, X509Certi
     /// </summary>
     public bool IsWithinBundle(X509Chain chain)
     {
-        // The platform also offers intermediates of the machine's and the user's stores as candidates.
-        return chain.ChainElements.Skip(1).All(element => this.Bundled.Contains(element.Certificate.GetCertHashString(HashAlgorithmName.SHA256)));
+        return chain.ChainElements.Skip(1).All(element => this.IsBundled(element.Certificate.RawData));
+    }
+
+    private bool Chains(Org.BouncyCastle.X509.X509Certificate target, DateTime at, string? certificatePolicy, string? applicationPolicy)
+    {
+        // Not X509Chain: on Linux it takes the user's and the system's intermediates as candidates ahead of the bundled ones.
+        var parameters = new PkixBuilderParameters(this.Anchors, new X509CertStoreSelector { Certificate = target })
+        {
+            Date = at,
+            IsRevocationEnabled = false,
+        };
+
+        parameters.AddStoreCert(CollectionUtilities.CreateStore([target, .. this.BundledIntermediates]));
+        parameters.AddCertPathChecker(new ExtendedKeyUsageChecker(applicationPolicy));
+
+        if (certificatePolicy is not null)
+        {
+            parameters.SetInitialPolicies(new HashSet<string>(StringComparer.Ordinal) { certificatePolicy });
+            parameters.IsExplicitPolicyRequired = true;
+        }
+
+        PkixCertPathBuilderResult result;
+        try
+        {
+            result = new PkixCertPathBuilder().Build(parameters);
+        }
+        catch (PkixCertPathBuilderException)
+        {
+            return false;
+        }
+
+        return this.IsBundled(result.TrustAnchor.TrustedCert.GetEncoded())
+            && result.CertPath.Certificates.Skip(1).All(element => this.IsBundled(element.GetEncoded()));
+    }
+
+    private bool IsBundled(byte[] certificate)
+    {
+        return this.Bundled.Contains(Convert.ToHexString(SHA256.HashData(certificate)));
     }
 
     private static SignatureTrust Load(string[] providers)

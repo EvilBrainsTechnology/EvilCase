@@ -24,8 +24,18 @@ internal sealed class OnlineSignatureRevocation(TimeProvider timeProvider, ILogg
         policy.RevocationFlag = X509RevocationFlag.ExcludeRoot;
         policy.UrlRetrievalTimeout = UrlRetrievalTimeout;
 
+        var built = chain.Build(certificate);
+
+        // A status read through a host intermediate is not the bundled hierarchy's.
+        if (!trust.IsWithinBundle(chain))
+        {
+            logger.LogWarning("Revocation status of certificate {Thumbprint} is unknown, the chain left the bundled certificates", certificate.Thumbprint);
+
+            return new SignatureRevocation { Status = SignatureRevocationStatus.Unknown, Checked = now };
+        }
+
         // ChainStatus still lists NotTimeValid under IgnoreNotTimeValid; only Build's answer applies the flag.
-        if (chain.Build(certificate))
+        if (built)
             return new SignatureRevocation { Status = SignatureRevocationStatus.NotRevoked, Checked = now };
 
         var flags = chain.ChainStatus.Aggregate(X509ChainStatusFlags.NoError, static (all, status) => all | status.Status);

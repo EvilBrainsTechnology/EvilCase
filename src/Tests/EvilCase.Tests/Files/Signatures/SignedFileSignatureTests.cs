@@ -162,6 +162,18 @@ public class SignedFileSignatureTests
         AssertVerdict(response.Signers.Single(), FileSignatureState.Unverifiable, FileSignerProblem.UntrustedIssuer);
     }
 
+    [TestCase(false)]
+    [TestCase(true)]
+    public void ASignatureIsValidThroughTheBundledIntermediateWhileTheHostOffersAnotherOfTheSameName(bool reissuedByTheBundledRoot)
+    {
+        using var host = TestPki.Create("Host");
+        using var hostIntermediate = HostIntermediate.Add(this.pki.ReissueIntermediate(reissuedByTheBundledRoot ? this.pki : host));
+
+        var signer = this.VerifyOne(SignedFile.Sign(Content, detached: false, [this.Signer(YearStart, YearEnd)], this.pki.IssueTsa()));
+
+        Assert.That(signer.State, Is.EqualTo(FileSignatureState.Valid));
+    }
+
     [Test]
     public void ChangedContentIsInvalid()
     {
