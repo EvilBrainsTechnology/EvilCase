@@ -19,7 +19,8 @@ internal static class SignedFile
 
     /// <summary>
     /// The CMS over <paramref name="content"/> by <paramref name="signers"/> in order; a timestamp token over the first
-    /// signature where <paramref name="tsa"/> is given; the file also carries <paramref name="carried"/>.
+    /// signature where <paramref name="tsa"/> is given; each signer also signs <paramref name="signedAttribute"/> where it is
+    /// given; the file also carries <paramref name="carried"/>.
     /// </summary>
     public static byte[] Sign(
         byte[] content,
@@ -28,7 +29,8 @@ internal static class SignedFile
         X509Certificate2? tsa = null,
         bool includeCertificates = true,
         SubjectIdentifierType identifier = SubjectIdentifierType.IssuerAndSerialNumber,
-        IReadOnlyList<X509Certificate2>? carried = null)
+        IReadOnlyList<X509Certificate2>? carried = null,
+        AsnEncodedData? signedAttribute = null)
     {
         var cms = new SignedCms(new ContentInfo(content), detached);
 
@@ -40,6 +42,9 @@ internal static class SignedFile
                 DigestAlgorithm = new Oid(Sha256Oid),
             };
             signer.SignedAttributes.Add(new Pkcs9SigningTime(SigningTime.UtcDateTime));
+            if (signedAttribute is not null)
+                signer.SignedAttributes.Add(signedAttribute);
+
             cms.ComputeSignature(signer);
         }
 

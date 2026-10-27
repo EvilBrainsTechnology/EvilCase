@@ -197,8 +197,10 @@ Esc a Zrušit ho zahodí.
   eIdentity a není odvolán. S časovým razítkem nad podpisem musí certifikát platit v okamžiku
   razítka a smí vypršet později; razítko musí vydat kvalifikovaná služba týchž autorit. Bez
   razítka musí certifikát platit dnes.
-- Podpis je neplatný, když obsah neodpovídá podpisu, certifikát neplatil v okamžiku razítka,
-  razítko není platné nebo je certifikát odvolán.
+- Podpis je neplatný, když obsah neodpovídá podpisu, podepsaný odkaz na certifikát
+  podepisujícího ukazuje na jiný certifikát nebo je nečitelný, certifikát neplatil v okamžiku
+  razítka, razítko není platné nebo je certifikát odvolán. Podpis bez odkazu na certifikát se
+  posoudí bez něj.
 - Podpis nelze ověřit, když certifikát nevydala česká kvalifikovaná autorita, soubor certifikát
   podepisujícího nenese, certifikát bez razítka dnes neplatí, autorita neodpoví na dotaz na
   odvolání, samostatný podpis nemá svůj soubor nebo je jeho soubor větší než 30 MB.

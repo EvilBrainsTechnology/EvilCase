@@ -99,6 +99,14 @@ public class FileSignerDisplayTests
     }
 
     [Test]
+    public void ASigningCertificateMismatchSaysTheSignatureNamesAnotherCertificate()
+    {
+        var signer = new FileSigner { Name = "Jan Testovací", Kind = FileSignerKind.QualifiedSignature };
+
+        Assert.That(FileSignerDisplay.ProblemTitle(FileSignerProblem.SigningCertificateMismatch, "Smlouva.pdf.p7s", signer), Is.EqualTo("Podpis neodkazuje na certifikát podepisujícího."));
+    }
+
+    [Test]
     public void AnUnreachableRevocationNamesTheIssuer()
     {
         var signer = new FileSigner { Name = "Jan Testovací", Kind = FileSignerKind.QualifiedSignature, CertificateIssuer = "I.CA" };

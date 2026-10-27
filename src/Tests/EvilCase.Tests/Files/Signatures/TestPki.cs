@@ -53,14 +53,15 @@ internal sealed class TestPki : IDisposable
     }
 
     /// <summary>
-    /// A seal certificate with the subject and the certificate policy given.
+    /// A seal certificate with the subject and the certificate policy given, over <paramref name="key"/> where it is given.
     /// </summary>
     public X509Certificate2 IssueSeal(
         DateTimeOffset notBefore,
         DateTimeOffset notAfter,
         string organizationIdentifier = IsdsOrganizationIdentifier,
         string commonName = IsdsCommonName,
-        string policy = SealPolicy)
+        string policy = SealPolicy,
+        ECDsa? key = null)
     {
         var subject = new X500DistinguishedNameBuilder();
         subject.AddCountryOrRegion("CZ");
@@ -68,7 +69,8 @@ internal sealed class TestPki : IDisposable
         subject.AddOrganizationName("Testovací agentura");
         subject.AddCommonName(commonName);
 
-        using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        using var created = key is null ? ECDsa.Create(ECCurve.NamedCurves.nistP256) : null;
+        key ??= created!;
         var request = new CertificateRequest(subject.Build(), key, HashAlgorithmName.SHA256);
         request.CertificateExtensions.Add(new X509BasicConstraintsExtension(certificateAuthority: false, hasPathLengthConstraint: false, pathLengthConstraint: 0, critical: true));
         request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.NonRepudiation, critical: true));

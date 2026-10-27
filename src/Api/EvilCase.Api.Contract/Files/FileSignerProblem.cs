@@ -42,4 +42,9 @@ public enum FileSignerProblem
     SignedFileAmbiguous = 9,
 
     SignedFileTooLarge = 10,
+
+    /// <summary>
+    /// The signer's signed signing-certificate attribute names another certificate or does not parse.
+    /// </summary>
+    SigningCertificateMismatch = 11,
 }

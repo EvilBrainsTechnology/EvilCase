@@ -7,8 +7,8 @@ using EvilBrains.EvilCase.Api.Contract.Files;
 namespace EvilBrains.EvilCase.Business.Files.Signatures;
 
 /// <summary>
-/// Verifies each signer of a signed file against the qualified trust: the content, a qualified certificate of a bundled
-/// authority, the timestamp where there is one, the time and the revocation.
+/// Verifies each signer of a signed file against the qualified trust: the content, the signed reference to the certificate,
+/// a qualified certificate of a bundled authority, the timestamp where there is one, the time and the revocation.
 /// </summary>
 internal static class SignedFileSignature
 {
@@ -64,7 +64,7 @@ internal static class SignedFileSignature
                 [
                     .. signerInfos
                         .Cast<SignerInfo>()
-                        .Select(info => Verified(info, certificates.FirstOrDefault(info.SignerIdentifier.MatchesCertificate), trust, Revocation, now)),
+                        .Select(info => Verified(info, SignerCertificate(info, certificates), trust, Revocation, now)),
                 ],
             };
         }
@@ -88,6 +88,17 @@ internal static class SignedFileSignature
         };
     }
 
+    /// <summary>
+    /// The first carried certificate the signer identifies, preferring one its signing-certificate attribute names: a key
+    /// identifier can match a renewed certificate too.
+    /// </summary>
+    private static X509Certificate2? SignerCertificate(SignerInfo info, X509Certificate2Collection certificates)
+    {
+        var matching = certificates.Where(info.SignerIdentifier.MatchesCertificate).ToList();
+
+        return matching.Find(certificate => SigningCertificateReference.RefersTo(info, certificate)) ?? matching.FirstOrDefault();
+    }
+
     private static FileSigner Verified(SignerInfo info, X509Certificate2? certificate, SignatureTrust trust, Func<X509Certificate2, SignatureRevocation> revocation, DateTime now)
     {
         var signer = CmsSigners.Signer(info, certificate);
@@ -103,6 +114,9 @@ internal static class SignedFileSignature
         {
             return signer with { State = FileSignatureState.Invalid, Problem = FileSignerProblem.ContentMismatch };
         }
+
+        if (!SigningCertificateReference.RefersTo(info, certificate))
+            return signer with { State = FileSignatureState.Invalid, Problem = FileSignerProblem.SigningCertificateMismatch };
 
         if (!IsQualified(certificate, trust))
             return signer with { State = FileSignatureState.Unverifiable, Problem = FileSignerProblem.UntrustedIssuer };

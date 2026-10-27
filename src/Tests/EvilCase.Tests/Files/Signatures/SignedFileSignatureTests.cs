@@ -1,6 +1,13 @@
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Business.Files.Signatures;
+using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Ess;
+using Org.BouncyCastle.Asn1.Nist;
+using Org.BouncyCastle.Asn1.Oiw;
+using Org.BouncyCastle.Asn1.X509;
+using Org.BouncyCastle.Security;
 
 namespace EvilBrains.EvilCase.Tests.Files.Signatures;
 
@@ -176,6 +183,134 @@ public class SignedFileSignatureTests
     }
 
     [Test]
+    public void ASignerWithoutASigningCertificateAttributeIsUnaffected()
+    {
+        var signer = this.VerifyOne(SignedFile.Sign(Content, detached: false, [this.Signer(YearStart, YearEnd)]));
+
+        Assert.That(signer.State, Is.EqualTo(FileSignatureState.Valid));
+    }
+
+    [Test]
+    public void ASigningCertificateV2NamingTheSignerIsValid()
+    {
+        var certificate = this.Signer(YearStart, YearEnd);
+        var attribute = SigningCertificateV2(new EssCertIDv2(SHA256.HashData(certificate.RawData), IssuerSerialOf(certificate)));
+
+        var signer = this.VerifyOne(SignedFile.Sign(Content, detached: false, [certificate], signedAttribute: attribute));
+
+        Assert.That(signer.State, Is.EqualTo(FileSignatureState.Valid));
+    }
+
+    [Test]
+    public void ASigningCertificateV2HashesWithItsOwnAlgorithm()
+    {
+        var certificate = this.Signer(YearStart, YearEnd);
+        var attribute = SigningCertificateV2(new EssCertIDv2(new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512), SHA512.HashData(certificate.RawData)));
+
+        var signer = this.VerifyOne(SignedFile.Sign(Content, detached: false, [certificate], signedAttribute: attribute));
+
+        Assert.That(signer.State, Is.EqualTo(FileSignatureState.Valid));
+    }
+
+    [Test]
+    public void ASigningCertificateV2NamingAnotherCertificateIsInvalid()
+    {
+        var other = this.Signer(YearStart, YearEnd);
+        var attribute = SigningCertificateV2(new EssCertIDv2(SHA256.HashData(other.RawData)));
+
+        var signer = this.VerifyOne(SignedFile.Sign(Content, detached: false, [this.Signer(YearStart, YearEnd)], signedAttribute: attribute));
+
+        AssertVerdict(signer, FileSignatureState.Invalid, FileSignerProblem.SigningCertificateMismatch);
+    }
+
+    [Test]
+    public void ASigningCertificateNamingTheSignerIsValid()
+    {
+        var certificate = this.Signer(YearStart, YearEnd);
+        var attribute = SigningCertificate(new EssCertID(Sha1(certificate), IssuerSerialOf(certificate)));
+
+        var signer = this.VerifyOne(SignedFile.Sign(Content, detached: false, [certificate], signedAttribute: attribute));
+
+        Assert.That(signer.State, Is.EqualTo(FileSignatureState.Valid));
+    }
+
+    [Test]
+    public void ASigningCertificateNamingAnotherCertificateIsInvalid()
+    {
+        var other = this.Signer(YearStart, YearEnd);
+        var attribute = SigningCertificate(new EssCertID(Sha1(other)));
+
+        var signer = this.VerifyOne(SignedFile.Sign(Content, detached: false, [this.Signer(YearStart, YearEnd)], signedAttribute: attribute));
+
+        AssertVerdict(signer, FileSignatureState.Invalid, FileSignerProblem.SigningCertificateMismatch);
+    }
+
+    [Test]
+    public void AnIssuerSerialOfAnotherCertificateIsInvalid()
+    {
+        var certificate = this.Signer(YearStart, YearEnd);
+        var other = this.Signer(YearStart, YearEnd);
+        var attribute = SigningCertificateV2(new EssCertIDv2(SHA256.HashData(certificate.RawData), IssuerSerialOf(other)));
+
+        var signer = this.VerifyOne(SignedFile.Sign(Content, detached: false, [certificate], signedAttribute: attribute));
+
+        AssertVerdict(signer, FileSignatureState.Invalid, FileSignerProblem.SigningCertificateMismatch);
+    }
+
+    [Test]
+    public void AnIssuerSerialOfAnotherIssuerIsInvalid()
+    {
+        var certificate = this.Signer(YearStart, YearEnd);
+        var serial = X509CertificateStructure.GetInstance(certificate.RawData).SerialNumber;
+        var otherIssuer = new GeneralNames(new GeneralName(new X509Name("CN=Cizí Qualified CA")));
+        var attribute = SigningCertificateV2(new EssCertIDv2(SHA256.HashData(certificate.RawData), new IssuerSerial(otherIssuer, serial)));
+
+        var signer = this.VerifyOne(SignedFile.Sign(Content, detached: false, [certificate], signedAttribute: attribute));
+
+        AssertVerdict(signer, FileSignatureState.Invalid, FileSignerProblem.SigningCertificateMismatch);
+    }
+
+    [Test]
+    public void OfRenewedCertificatesTheOneTheAttributeNamesIsTheSigners()
+    {
+        using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+
+        // Both certificates share the key and so the key identifier; the file is kept where it lists the older one first.
+        X509Certificate2 renewed;
+        byte[] cms;
+        var attempts = 0;
+        do
+        {
+            var older = this.pki.IssueSeal(YearStart, YearEnd, commonName: "Jan Testovací", policy: QualifiedSignaturePolicy, key: key);
+            renewed = this.pki.IssueSeal(YearStart, YearEnd, commonName: "Jan Testovací", policy: QualifiedSignaturePolicy, key: key);
+            cms = SignedFile.Sign(
+                Content,
+                detached: false,
+                [renewed],
+                includeCertificates: false,
+                identifier: System.Security.Cryptography.Pkcs.SubjectIdentifierType.SubjectKeyIdentifier,
+                carried: [older, renewed],
+                signedAttribute: SigningCertificateV2(new EssCertIDv2(SHA256.HashData(renewed.RawData))));
+        }
+        while (CarriedFirst(cms).AsSpan().SequenceEqual(renewed.RawData) && ++attempts < 32);
+
+        Assume.That(CarriedFirst(cms), Is.Not.EqualTo(renewed.RawData));
+
+        Assert.That(this.VerifyOne(cms).State, Is.EqualTo(FileSignatureState.Valid));
+    }
+
+    [TestCase("1.2.840.113549.1.9.16.2.47")]
+    [TestCase("1.2.840.113549.1.9.16.2.12")]
+    public void AMalformedSigningCertificateAttributeIsInvalid(string oid)
+    {
+        var attribute = new AsnEncodedData(new Oid(oid), new DerOctetString([1, 2, 3]).GetEncoded());
+
+        var signer = this.VerifyOne(SignedFile.Sign(Content, detached: false, [this.Signer(YearStart, YearEnd)], signedAttribute: attribute));
+
+        AssertVerdict(signer, FileSignatureState.Invalid, FileSignerProblem.SigningCertificateMismatch);
+    }
+
+    [Test]
     public void ARevokedCertificateIsInvalid()
     {
         var signer = this.VerifyOne(
@@ -283,6 +418,36 @@ public class SignedFileSignatureTests
     private static void AssertVerdict(FileSigner signer, FileSignatureState state, FileSignerProblem problem)
     {
         Assert.That((signer.State, signer.Problem), Is.EqualTo(((FileSignatureState?)state, (FileSignerProblem?)problem)));
+    }
+
+    private static AsnEncodedData SigningCertificateV2(EssCertIDv2 named)
+    {
+        return new AsnEncodedData(new Oid(Org.BouncyCastle.Asn1.Pkcs.PkcsObjectIdentifiers.IdAASigningCertificateV2.Id), new SigningCertificateV2(named).GetEncoded());
+    }
+
+    private static AsnEncodedData SigningCertificate(EssCertID named)
+    {
+        return new AsnEncodedData(new Oid(Org.BouncyCastle.Asn1.Pkcs.PkcsObjectIdentifiers.IdAASigningCertificate.Id), new SigningCertificate(named).GetEncoded());
+    }
+
+    private static byte[] CarriedFirst(byte[] cms)
+    {
+        var signed = new System.Security.Cryptography.Pkcs.SignedCms();
+        signed.Decode(cms);
+
+        return signed.Certificates[0].RawData;
+    }
+
+    private static byte[] Sha1(X509Certificate2 certificate)
+    {
+        return DigestUtilities.CalculateDigest(OiwObjectIdentifiers.IdSha1, certificate.RawData);
+    }
+
+    private static IssuerSerial IssuerSerialOf(X509Certificate2 certificate)
+    {
+        var structure = X509CertificateStructure.GetInstance(certificate.RawData);
+
+        return new IssuerSerial(new GeneralNames(new GeneralName(structure.Issuer)), structure.SerialNumber);
     }
 
     private X509Certificate2 Signer(DateTimeOffset notBefore, DateTimeOffset notAfter, string policy = QualifiedSignaturePolicy)

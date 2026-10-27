@@ -59,6 +59,7 @@ public static class FileSignerDisplay
             FileSignerProblem.SignedFileMissing => "Podepsaný soubor nenalezen.",
             FileSignerProblem.SignedFileAmbiguous => "Podepsaný soubor nelze určit.",
             FileSignerProblem.SignedFileTooLarge => "Podepsaný soubor je větší než 30 MB, podpis se neověřuje.",
+            FileSignerProblem.SigningCertificateMismatch => "Podpis neodkazuje na certifikát podepisujícího.",
             _ => throw new UnreachableException(),
         };
     }
@@ -79,7 +80,8 @@ public static class FileSignerDisplay
                 or FileSignerProblem.Revoked
                 or FileSignerProblem.CertificateMissing
                 or FileSignerProblem.RevocationUnknown
-                or FileSignerProblem.SignedFileTooLarge => null,
+                or FileSignerProblem.SignedFileTooLarge
+                or FileSignerProblem.SigningCertificateMismatch => null,
             _ => throw new UnreachableException(),
         };
     }
