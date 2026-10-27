@@ -81,14 +81,64 @@ public class FileSignerReaderTests : TenantFixture
         }
     }
 
+    [Test]
+    public async Task ADetachedSignatureNamesItsSignedFile()
+    {
+        var @case = await this.Tenant.AddCase(Day);
+        var pdf = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf");
+        var signature = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf.p7s");
+        this.ServeSignedFile(signature.StoragePath, detached: true);
+
+        var response = await this.Reader().ListFileSigners(signature.Id, CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(response?.SignedFile?.FileId, Is.EqualTo(pdf.Id));
+            Assert.That(response?.SignedFileProblem, Is.Null);
+        }
+    }
+
+    [Test]
+    public async Task ADetachedSignatureWithoutItsFileSaysSo()
+    {
+        var @case = await this.Tenant.AddCase(Day);
+        var signature = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf.p7s");
+        this.ServeSignedFile(signature.StoragePath, detached: true);
+
+        var response = await this.Reader().ListFileSigners(signature.Id, CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(response?.SignedFile, Is.Null);
+            Assert.That(response?.SignedFileProblem, Is.EqualTo(DetachedSignatureProblem.Missing));
+        }
+    }
+
+    [Test]
+    public async Task AnAttachedSignatureHasNoSignedFile()
+    {
+        var @case = await this.Tenant.AddCase(Day);
+        await this.Tenant.AddCaseFile(@case, "Smlouva.pdf");
+        var signature = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf.p7m");
+        this.ServeSignedFile(signature.StoragePath);
+
+        var response = await this.Reader().ListFileSigners(signature.Id, CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(response?.SignedFile, Is.Null, "a signature with its document inside signs no other file");
+            Assert.That(response?.SignedFileProblem, Is.Null);
+        }
+    }
+
     private FileSignerReader Reader()
     {
         return new FileSignerReader(new FixedDbSession(this.Tenant.Context), this.blobs);
     }
 
-    private void ServeSignedFile(string storagePath)
+    private void ServeSignedFile(string storagePath, bool detached = false)
     {
-        var signed = SignedFile.Sign("%PDF"u8.ToArray(), detached: false);
+        var signed = SignedFile.Sign("%PDF"u8.ToArray(), detached);
 
         this.blobs.ReadFileBlob(storagePath).Returns(_ => new MemoryStream(signed, writable: false));
     }

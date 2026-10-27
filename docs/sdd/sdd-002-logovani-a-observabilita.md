@@ -29,6 +29,8 @@ entit, v každé agendě stejně. Výjimkou je seed vzorových dat, který loguj
 - Souborové úložiště: zápis blobu s cestou a velikostí, smazání s cestou (SDD-012).
 - Ověření podpisu datové zprávy: id souboru a výsledek; neznámý stav zneplatnění jako varování
   s otiskem certifikátu (SDD-012).
+- Ověření podpisů podepsaného souboru: id souboru, id podepsaného souboru a výsledek každého
+  podpisu; neznámý stav zneplatnění jako varování s otiskem certifikátu (SDD-012).
 - Seed vzorových dat: začátek, výsledek a počty založených entit (SDD-017).
 
 ### Nikdy

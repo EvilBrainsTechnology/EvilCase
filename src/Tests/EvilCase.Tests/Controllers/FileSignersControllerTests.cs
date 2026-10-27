@@ -34,4 +34,32 @@ public class FileSignersControllerTests
         var problem = AssertProblem(response.Result, 404);
         Assert.That(problem.Title, Is.EqualTo(FileProblems.NotFound));
     }
+
+    [Test]
+    public async Task TheVerifiedSignersOfTheFileInTheRouteComeBack()
+    {
+        var fileId = Guid.CreateVersion7();
+        var signer = new FileSigner { Name = "Jan Testovací", Kind = FileSignerKind.QualifiedSignature, State = FileSignatureState.Valid };
+        var signers = new FileSignersResponse { Signers = [signer] };
+        var verifier = Substitute.For<IFileSignerVerifier>();
+        verifier.VerifyFileSigners(fileId, Arg.Any<CancellationToken>()).Returns(signers);
+        var controller = new FileSignersController();
+
+        var response = await controller.VerifyFileSigners(verifier, fileId, CancellationToken.None);
+
+        Assert.That(((OkObjectResult)response.Result!).Value, Is.EqualTo(signers));
+    }
+
+    [Test]
+    public async Task VerifyingAnUnknownFileIsAProblemWithFourOhFour()
+    {
+        var verifier = Substitute.For<IFileSignerVerifier>();
+        verifier.VerifyFileSigners(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns((FileSignersResponse?)null);
+        var controller = new FileSignersController();
+
+        var response = await controller.VerifyFileSigners(verifier, Guid.CreateVersion7(), CancellationToken.None);
+
+        var problem = AssertProblem(response.Result, 404);
+        Assert.That(problem.Title, Is.EqualTo(FileProblems.NotFound));
+    }
 }

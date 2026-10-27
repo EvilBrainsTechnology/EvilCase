@@ -15,6 +15,14 @@ internal static class FileListQuery
         return files.Where(file => file.ActId == actId);
     }
 
+    /// <summary>
+    /// The files of the case or act the file belongs to, itself included.
+    /// </summary>
+    public static IQueryable<FileAsset> OfSameOwner(this IQueryable<FileAsset> files, FileAsset file)
+    {
+        return file.CaseId is { } caseId ? files.OfCase(caseId) : files.OfAct(file.ActId!.Value);
+    }
+
     public static IQueryable<FileAsset> InUploadOrder(this IQueryable<FileAsset> files)
     {
         return files.OrderBy(static file => file.Created).ThenBy(static file => file.Id);

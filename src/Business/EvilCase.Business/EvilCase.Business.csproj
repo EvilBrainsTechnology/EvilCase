@@ -5,11 +5,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="BouncyCastle.Cryptography" />
     <PackageReference Include="System.Security.Cryptography.Pkcs" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Files\Signatures\PostSignum\**\*.cer" />
+    <EmbeddedResource Include="Files\Signatures\Trust\**\*.cer" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,7 +1,7 @@
 namespace EvilBrains.EvilCase.Api.Contract.Files;
 
 /// <summary>
-/// One signer of a CMS signature as the file states it; nothing is verified. Every time is UTC.
+/// One signer of a CMS signature as the file states it, with the verdict where verified. Every time is UTC.
 /// </summary>
 public sealed record FileSigner
 {
@@ -30,4 +30,19 @@ public sealed record FileSigner
     /// The signing time the signer states in a signed attribute.
     /// </summary>
     public DateTime? SigningTime { get; init; }
+
+    /// <summary>
+    /// The verdict; null in a listing that does not verify.
+    /// </summary>
+    public FileSignatureState? State { get; init; }
+
+    /// <summary>
+    /// Set where the state is Invalid or Unverifiable.
+    /// </summary>
+    public FileSignerProblem? Problem { get; init; }
+
+    /// <summary>
+    /// When the revocation status was obtained; set where the state is Valid.
+    /// </summary>
+    public DateTime? RevocationChecked { get; init; }
 }

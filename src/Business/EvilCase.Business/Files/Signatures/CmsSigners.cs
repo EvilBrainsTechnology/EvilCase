@@ -1,13 +1,14 @@
-using System.Formats.Asn1;
 using System.Security.Cryptography;
 using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
 using EvilBrains.EvilCase.Api.Contract.Files;
+using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.X509;
 
 namespace EvilBrains.EvilCase.Business.Files.Signatures;
 
 /// <summary>
-/// Lists the signers of a CMS SignedData, attached or detached, as the file states them. Nothing is verified.
+/// Lists the signers of a CMS SignedData, attached or detached, as the file states them; SignedFileSignature adds the verdicts.
 /// </summary>
 internal static class CmsSigners
 {
@@ -77,9 +78,8 @@ internal static class CmsSigners
         }
     }
 
-    private static FileSigner Signer(SignerInfo signer, X509Certificate2? certificate)
+    public static FileSigner Signer(SignerInfo signer, X509Certificate2? certificate)
     {
-
         return new FileSigner
         {
             Name = certificate?.GetNameInfo(X509NameType.SimpleName, forIssuer: false) ?? "",
@@ -111,27 +111,28 @@ internal static class CmsSigners
         return FileSignerKind.Other;
     }
 
-    private static List<string> Policies(X509Certificate2 certificate)
+    /// <summary>
+    /// The policy OIDs the certificate itself declares.
+    /// </summary>
+    public static List<string> Policies(X509Certificate2 certificate)
     {
         var extension = certificate.Extensions[CertificatePoliciesOid];
         if (extension is null)
             return [];
 
-        // certificatePolicies ::= SEQUENCE OF PolicyInformation, PolicyInformation ::= SEQUENCE { policyIdentifier, qualifiers OPTIONAL }; read for display only.
-        var oids = new List<string>();
-
         try
         {
-            var policies = new AsnReader(extension.RawData, AsnEncodingRules.DER).ReadSequence();
-            while (policies.HasData)
-                oids.Add(policies.ReadSequence().ReadObjectIdentifier());
+            // An empty extension reads as no object.
+            if (CertificatePolicies.GetInstance(Asn1Object.FromByteArray(extension.RawData)) is not { } policies)
+                return [];
+
+            return [.. policies.GetPolicyInformation().Select(static policy => policy.PolicyIdentifier.Id)];
         }
-        catch (AsnContentException)
+        catch (Exception exception) when (exception is not OutOfMemoryException)
         {
+            // BouncyCastle reports malformed input through assorted exception types.
             return [];
         }
-
-        return oids;
     }
 
     private static string Authority(string commonName)

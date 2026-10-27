@@ -23,4 +23,17 @@ public class FileSignersController : ControllerBase
             ? this.Problem(statusCode: StatusCodes.Status404NotFound, title: FileProblems.NotFound)
             : this.Ok(response);
     }
+
+    [HttpGet("verification")]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<FileSignersResponse>> VerifyFileSigners([FromServices] IFileSignerVerifier verifier, [FromRoute] Guid fileId, CancellationToken token)
+    {
+        var response = await verifier.VerifyFileSigners(fileId, token);
+
+        return response is null
+            ? this.Problem(statusCode: StatusCodes.Status404NotFound, title: FileProblems.NotFound)
+            : this.Ok(response);
+    }
 }

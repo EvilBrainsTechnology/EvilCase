@@ -48,8 +48,8 @@ Aplikace má vlastní sadu komponent s prefixem `Ec`. Obrazovka skládá jen je,
   Tlačítko jen s ikonou má `aria-label`. Tichá textová akce u položky nebo v liště (Upravit
   a Smazat u komentáře, Zrušit filtry, Zobrazit i uzavřené) je výjimka: text bez ikony a bez
   plochy; mazání nese barvu chyby.
-- `EcBadge` — pilulka pro stav spisu, směr úkonu, typ kontaktu, stav podpisu datové zprávy a
-  samostatný podpis; stav spisu nese barevnou tečku, směr šipku, stav podpisu ikonu štítu.
+- `EcBadge` — pilulka pro stav spisu, směr úkonu, typ kontaktu, stav podpisu datové zprávy
+  a podepsaného souboru a samostatný podpis; stav spisu nese barevnou tečku, směr šipku, stav podpisu ikonu štítu.
   Neplatný podpis nese barvu chyby, samostatný podpis barvu podpisového souboru.
 - `EcTable` — seznam podle SDD-016: řádek je odkaz po celé šířce, řaditelné záhlaví je
   tlačítko, patička nese rozsah, počet a stránkování; seznam na jednu stránku patičku nemá.

@@ -1,0 +1,128 @@
+@using System.Diagnostics
+@using EvilBrains.EvilCase.Api.Contract.Files
+
+@* One trigger through every state, so the focus stays on it while a retry loads. *@
+<EcPopover @ref="this.popover" AriaLabel="Podrobnosti podpisu" PanelClass="@this.PanelClass">
+    <Trigger>
+        <FileSignerBadge State="this.Signer.State" Verifying="this.Verifying" />
+    </Trigger>
+    <ChildContent>
+        @if (this.Verifying)
+        {
+            <p class="ec-signature-text">Ověřuji podpis…</p>
+        }
+        else if (this.Signer.State == FileSignatureState.Valid)
+        {
+            <dl class="ec-signature-details">
+                <dt>Podepsal</dt>
+                <dd>@FileSignerDisplay.Name(this.Signer)</dd>
+                <dt>Druh</dt>
+                <dd>@FileSignerDisplay.Kind(this.Signer.Kind)</dd>
+                <dt>Certifikát</dt>
+                <dd>@FileSignerDisplay.ValidCertificate(this.Signer)</dd>
+                @this.SignedAt
+                <dt>Odvolání</dt>
+                <dd>neodvolán, ověřeno @(this.Signer.RevocationChecked is { } checkedAt ? MomentDisplay.Text(checkedAt) : "—")</dd>
+            </dl>
+            @if (this.Signer.Timestamped is null)
+            {
+                <p class="ec-signature-note">Bez časového razítka. Čas uvádí podepisující, podpis je ověřen k dnešku.</p>
+            }
+        }
+        else if (this.Signer is { State: FileSignatureState.Invalid, Problem: { } invalid })
+        {
+            <p class="ec-signature-reason">@FileSignerDisplay.ProblemTitle(invalid, this.SignatureFileName, this.Signer)</p>
+        }
+        else if (this.Signer.State is null || this.Signer.Problem is FileSignerProblem.RevocationUnknown or null)
+        {
+            <div class="ec-signature-unverifiable">
+                <p class="ec-signature-text">
+                    @(this.Signer.Problem is { } problem
+                        ? FileSignerDisplay.ProblemTitle(problem, this.SignatureFileName, this.Signer)
+                        : "Výsledek ověření podpisu se nepodařilo načíst.")
+                </p>
+                <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Refresh" OnClick="this.Retry">Zkusit znovu</EcButton>
+            </div>
+        }
+        else if (this.Signer.Problem is { } unverifiable)
+        {
+            <div class="ec-signature-problem">
+                <p class="ec-signature-title">@FileSignerDisplay.ProblemTitle(unverifiable, this.SignatureFileName, this.Signer)</p>
+                @if (FileSignerDisplay.ProblemNote(unverifiable, this.SignatureFileName) is { } note)
+                {
+                    <p class="ec-signature-note">@note</p>
+                }
+                @if (unverifiable == FileSignerProblem.UntrustedIssuer)
+                {
+                    <dl class="ec-signature-details">
+                        <dt>Podepsal</dt>
+                        <dd>@FileSignerDisplay.Name(this.Signer)</dd>
+                        <dt>Vydavatel</dt>
+                        <dd>@(this.Signer.CertificateIssuer ?? "—")</dd>
+                        @this.SignedAt
+                    </dl>
+                }
+            </div>
+        }
+    </ChildContent>
+</EcPopover>
+
+@code {
+    private EcPopover? popover;
+
+    [Parameter, EditorRequired]
+    public required FileSigner Signer { get; set; }
+
+    [Parameter]
+    public bool Verifying { get; set; }
+
+    /// <summary>
+    /// The signature file, whose name without the extension names the signed file.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required string SignatureFileName { get; set; }
+
+    [Parameter]
+    public EventCallback OnRetry { get; set; }
+
+    private string? PanelClass
+    {
+        get
+        {
+            if (this.Verifying)
+                return null;
+
+            return this.Signer.State switch
+            {
+                FileSignatureState.Valid => null,
+                FileSignatureState.Invalid => "ec-popover-danger",
+                FileSignatureState.Unverifiable or null => "ec-popover-waiting",
+                _ => throw new UnreachableException(),
+            };
+        }
+    }
+
+    private RenderFragment SignedAt => builder =>
+    {
+        if (this.Signer.Timestamped is { } timestamped)
+        {
+            builder.AddMarkupContent(0, "<dt>Časové razítko</dt>");
+            builder.OpenElement(1, "dd");
+            builder.AddContent(2, MomentDisplay.Text(timestamped));
+            builder.CloseElement();
+        }
+        else
+        {
+            builder.AddMarkupContent(3, "<dt>Čas podpisu</dt>");
+            builder.OpenElement(4, "dd");
+            builder.AddContent(5, this.Signer.SigningTime is { } signingTime ? MomentDisplay.Text(signingTime) : "neuveden");
+            builder.CloseElement();
+        }
+    };
+
+    private async Task Retry()
+    {
+        await this.popover!.CloseToTrigger();
+        await this.OnRetry.InvokeAsync();
+    }
+}

@@ -95,6 +95,11 @@
             {
                 <FileSigners @key="file.FileId" FileId="file.FileId" FileName="@file.FileName" />
             }
+            else if (attachment is null && preview != FilePreviewKind.SignedDocument && file.SignatureFileId is { } signatureFileId
+                     && this.Files.FirstOrDefault(item => item.FileId == signatureFileId) is { } signature)
+            {
+                <FileSigners @key="(file.FileId, signatureFileId)" FileId="signatureFileId" FileName="@signature.FileName" SignedFileId="file.FileId" OnOpenFile="this.OpenFile" />
+            }
             @if (preview == FilePreviewKind.None || this.unsupported)
             {
                 <div class="ec-preview-message">
@@ -255,7 +260,7 @@
             }
             else if (preview == FilePreviewKind.SignedDocument)
             {
-                <FileSigners @key="file.FileId" FileId="file.FileId" FileName="@file.FileName" Detached />
+                <FileSigners @key="file.FileId" FileId="file.FileId" FileName="@file.FileName" Detached OnOpenFile="this.OpenFile" />
             }
             else if (preview == FilePreviewKind.Pdf)
             {
@@ -820,6 +825,11 @@
         var next = this.Files[((this.Position + direction) % count + count) % count];
 
         await this.FileIdChanged.InvokeAsync(next.FileId);
+    }
+
+    private async Task OpenFile(Guid fileId)
+    {
+        await this.FileIdChanged.InvokeAsync(fileId);
     }
 
     private void StartRename()

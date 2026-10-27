@@ -1,4 +1,7 @@
+using System.Formats.Asn1;
+using System.Security.Cryptography;
 using System.Security.Cryptography.Pkcs;
+using System.Security.Cryptography.X509Certificates;
 using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Business.Files.Signatures;
 
@@ -204,5 +207,74 @@ public class CmsSignersTests
             Assert.That(response.Problem, Is.EqualTo(FileSignersProblem.NotSigned));
             Assert.That(response.Signers, Is.Empty);
         }
+    }
+
+    [Test]
+    public void EveryPolicyTheCertificateDeclaresIsRead()
+    {
+        // Two PolicyInformation entries, the second with a CPS qualifier.
+        var writer = new AsnWriter(AsnEncodingRules.DER);
+        using (writer.PushSequence())
+        {
+            using (writer.PushSequence())
+                writer.WriteObjectIdentifier("1.2.3.4");
+
+            using (writer.PushSequence())
+            {
+                writer.WriteObjectIdentifier(QualifiedSignaturePolicy);
+                using (writer.PushSequence())
+                using (writer.PushSequence())
+                {
+                    writer.WriteObjectIdentifier("1.3.6.1.5.5.7.2.1");
+                    writer.WriteCharacterString(UniversalTagNumber.IA5String, "https://example.test/cps");
+                }
+            }
+        }
+
+        using var certificate = WithPolicies(writer.Encode());
+
+        Assert.That(CmsSigners.Policies(certificate), Is.EqualTo(["1.2.3.4", QualifiedSignaturePolicy]));
+    }
+
+    [Test]
+    public void ACertificateWithoutPoliciesDeclaresNone()
+    {
+        using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        using var certificate = new CertificateRequest("CN=Jan Testovací", key, HashAlgorithmName.SHA256).CreateSelfSigned(ValidFrom, ValidTo);
+
+        Assert.That(CmsSigners.Policies(certificate), Is.Empty);
+    }
+
+    [TestCase(new byte[0], TestName = "empty")]
+    [TestCase(new byte[] { 0x30, 0x05, 0x30, 0x03, 0x06 }, TestName = "truncated")]
+    [TestCase(new byte[] { 0x04, 0x01, 0x00 }, TestName = "no sequence")]
+    [TestCase(new byte[] { 0x30, 0x03, 0x02, 0x01, 0x01 }, TestName = "no policy information")]
+    [TestCase(new byte[] { 0x30, 0x02, 0x30, 0x00 }, TestName = "policy information without identifier")]
+    [TestCase(new byte[] { 0x30, 0x05, 0x30, 0x03, 0x02, 0x01, 0x01 }, TestName = "identifier that is no OID")]
+    [TestCase(new byte[] { 0x30, 0x05, 0x30, 0x03, 0x06, 0x01, 0x2A, 0x00 }, TestName = "trailing bytes")]
+    public void AMalformedPolicyExtensionDeclaresNone(byte[] extension)
+    {
+        using var certificate = WithPolicies(extension);
+
+        Assert.That(CmsSigners.Policies(certificate), Is.Empty);
+    }
+
+    [Test]
+    public void ASignerWithAMalformedPolicyExtensionIsOfAnotherKind()
+    {
+        using var certificate = WithPolicies([0x30, 0x05, 0x30, 0x03, 0x06]);
+
+        var response = CmsSigners.Read(SignedFile.Sign(Content, detached: false, [certificate]));
+
+        Assert.That(response.Signers.Single().Kind, Is.EqualTo(FileSignerKind.Other));
+    }
+
+    private static X509Certificate2 WithPolicies(byte[] extension)
+    {
+        using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        var request = new CertificateRequest("CN=Jan Testovací", key, HashAlgorithmName.SHA256);
+        request.CertificateExtensions.Add(new X509Extension("2.5.29.32", extension, critical: false));
+
+        return request.CreateSelfSigned(ValidFrom, ValidTo);
     }
 }

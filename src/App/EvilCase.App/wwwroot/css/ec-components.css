@@ -2231,6 +2231,98 @@ html {
     margin: 0;
 }
 
+/* An open popover would be clipped by the scrolling strip. */
+.ec-preview-signers:has(.ec-popover) {
+    position: relative;
+    z-index: 1;
+    max-height: none;
+    overflow: visible;
+}
+
+.ec-preview-signers-source {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ec-space-2);
+    margin-bottom: var(--ec-space-3);
+    color: var(--ec-text-muted);
+}
+
+.ec-preview-signature-file-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-2);
+}
+
+.ec-preview-signature-file {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+    min-height: var(--ec-preview-signature-file-height);
+    padding: 0 var(--ec-space-3);
+    border: 1px solid var(--ec-border);
+    border-radius: var(--ec-radius-lg);
+    background: transparent;
+    font: inherit;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.ec-preview-signature-file:hover {
+    background: var(--ec-surface-sunken);
+}
+
+.ec-preview-signature-file:focus-visible {
+    outline: none;
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-preview-signature-file-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.ec-preview-signature-file-size {
+    flex: none;
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-muted);
+    white-space: nowrap;
+}
+
+.ec-preview-signature-file-open {
+    display: inline-flex;
+    flex: none;
+    white-space: nowrap;
+    align-items: center;
+    gap: var(--ec-space-1);
+    color: var(--ec-accent-text);
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-preview-signature-signer-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ec-space-3);
+}
+
+.ec-preview-signature-problem,
+.ec-signature-problem {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--ec-space-2);
+}
+
+.ec-signature-title {
+    margin: 0;
+    font-weight: var(--ec-weight-semibold);
+}
+
 .ec-comment-list {
     display: flex;
     flex-direction: column;
@@ -3775,6 +3867,11 @@ html {
 
     .ec-preview-signature-details dd {
         margin-bottom: var(--ec-space-2);
+    }
+
+    .ec-preview-signers-source .ec-button,
+    .ec-preview-signature-problem .ec-button {
+        min-height: var(--ec-touch-min);
     }
 
     .ec-preview-divider {

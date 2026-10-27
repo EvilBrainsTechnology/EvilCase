@@ -11,7 +11,8 @@ public enum FileSignatureState
     Invalid = 1,
 
     /// <summary>
-    /// The signature checked out offline, but the revocation status could not be obtained.
+    /// The signature could not be judged: for a data message the revocation status could not be obtained, for a signed file
+    /// the problem says why.
     /// </summary>
     Unverifiable = 2,
 }

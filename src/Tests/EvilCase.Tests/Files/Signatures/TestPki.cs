@@ -31,10 +31,10 @@ internal sealed class TestPki : IDisposable
 
     private int serial;
 
-    private TestPki(string name)
+    private TestPki(string name, string caPolicy)
     {
-        this.Root = this.Track(CreateRoot($"CN={name} Root"));
-        this.Intermediate = this.Track(this.IssueCa($"CN={name} Qualified CA", this.Root));
+        this.Root = this.Track(CreateRoot($"CN={name} Root", caPolicy));
+        this.Intermediate = this.Track(this.IssueCa($"CN={name} Qualified CA", this.Root, caPolicy));
         this.Trust = new SignatureTrust([this.Root], [this.Intermediate]);
     }
 
@@ -44,20 +44,24 @@ internal sealed class TestPki : IDisposable
 
     public SignatureTrust Trust { get; }
 
-    public static TestPki Create(string name = "Test")
+    /// <summary>
+    /// A PKI whose CAs declare <paramref name="caPolicy"/>, any policy by default.
+    /// </summary>
+    public static TestPki Create(string name = "Test", string caPolicy = AnyPolicy)
     {
-        return new TestPki(name);
+        return new TestPki(name, caPolicy);
     }
 
     /// <summary>
-    /// A seal certificate with the subject and the certificate policy given.
+    /// A seal certificate with the subject and the certificate policy given, over <paramref name="key"/> where it is given.
     /// </summary>
     public X509Certificate2 IssueSeal(
         DateTimeOffset notBefore,
         DateTimeOffset notAfter,
         string organizationIdentifier = IsdsOrganizationIdentifier,
         string commonName = IsdsCommonName,
-        string policy = SealPolicy)
+        string policy = SealPolicy,
+        ECDsa? key = null)
     {
         var subject = new X500DistinguishedNameBuilder();
         subject.AddCountryOrRegion("CZ");
@@ -65,7 +69,8 @@ internal sealed class TestPki : IDisposable
         subject.AddOrganizationName("Testovací agentura");
         subject.AddCommonName(commonName);
 
-        using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        using var created = key is null ? ECDsa.Create(ECCurve.NamedCurves.nistP256) : null;
+        key ??= created!;
         var request = new CertificateRequest(subject.Build(), key, HashAlgorithmName.SHA256);
         request.CertificateExtensions.Add(new X509BasicConstraintsExtension(certificateAuthority: false, hasPathLengthConstraint: false, pathLengthConstraint: 0, critical: true));
         request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.NonRepudiation, critical: true));
@@ -96,21 +101,21 @@ internal sealed class TestPki : IDisposable
             certificate.Dispose();
     }
 
-    private static X509Certificate2 CreateRoot(string subject)
+    private static X509Certificate2 CreateRoot(string subject, string policy)
     {
         using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
         var request = new CertificateRequest(subject, key, HashAlgorithmName.SHA256);
-        AddCaExtensions(request);
+        AddCaExtensions(request, policy);
 
         return request.CreateSelfSigned(CaFrom, CaTo);
     }
 
-    private static void AddCaExtensions(CertificateRequest request)
+    private static void AddCaExtensions(CertificateRequest request, string policy)
     {
         request.CertificateExtensions.Add(new X509BasicConstraintsExtension(certificateAuthority: true, hasPathLengthConstraint: false, pathLengthConstraint: 0, critical: true));
         request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign | X509KeyUsageFlags.CrlSign, critical: true));
         request.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(request.PublicKey, critical: false));
-        request.CertificateExtensions.Add(CertificatePolicies(AnyPolicy));
+        request.CertificateExtensions.Add(CertificatePolicies(policy));
     }
 
     // certificatePolicies ::= SEQUENCE OF PolicyInformation, PolicyInformation ::= SEQUENCE { policyIdentifier OBJECT IDENTIFIER }
@@ -125,11 +130,11 @@ internal sealed class TestPki : IDisposable
         return new X509Extension("2.5.29.32", writer.Encode(), critical: false);
     }
 
-    private X509Certificate2 IssueCa(string subject, X509Certificate2 issuer)
+    private X509Certificate2 IssueCa(string subject, X509Certificate2 issuer, string policy)
     {
         using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
         var request = new CertificateRequest(subject, key, HashAlgorithmName.SHA256);
-        AddCaExtensions(request);
+        AddCaExtensions(request, policy);
         request.CertificateExtensions.Add(X509AuthorityKeyIdentifierExtension.CreateFromCertificate(issuer, includeKeyIdentifier: true, includeIssuerAndSerial: false));
 
         return this.Issue(request, key, issuer, CaFrom, CaTo);
