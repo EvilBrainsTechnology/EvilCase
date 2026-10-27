@@ -35,6 +35,14 @@
             </span>
         }
     </div>
+    @if (this.Formats)
+    {
+        <span class="ec-preview-toolbar-separator" aria-hidden="true"></span>
+        <span class="ec-preview-toolbar-format">
+            <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Braces" AriaLabel="Formátovat"
+                      Disabled="@(!this.Ready || !this.CanFormat)" aria-pressed="@Pressed(this.Formatted)" OnClick="this.OnFormat"><span class="ec-preview-toolbar-label">Formátovat</span></EcButton>
+        </span>
+    }
     <span class="ec-preview-toolbar-search-toggle">
         <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Search" AriaLabel="Hledat v dokumentu"
                   Disabled="@(!this.Ready)" aria-expanded="@Pressed(this.searchOpen)" OnClick="this.ToggleSearch" />
@@ -111,6 +119,27 @@
     /// </summary>
     [Parameter]
     public bool Fits { get; set; }
+
+    /// <summary>
+    /// Whether the toolbar offers to switch between the formatted and the original text.
+    /// </summary>
+    [Parameter]
+    public bool Formats { get; set; }
+
+    /// <summary>
+    /// Whether the formatted text is shown.
+    /// </summary>
+    [Parameter]
+    public bool Formatted { get; set; }
+
+    /// <summary>
+    /// Whether the text could be formatted; otherwise the switch is disabled.
+    /// </summary>
+    [Parameter]
+    public bool CanFormat { get; set; }
+
+    [Parameter]
+    public EventCallback OnFormat { get; set; }
 
     [Parameter]
     public EventCallback<PreviewZoom> OnZoom { get; set; }

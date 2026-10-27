@@ -1,0 +1,145 @@
+@using System.Diagnostics
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+@inject IFilePreviews Previews
+@inject ILogger<CodePreview> Logger
+
+@* A JSON, XML, YAML or HTML source: highlighted, formatted unless the toolbar switches to the original. HTML never renders. *@
+<div class="ec-preview-view">
+    <PreviewToolbar @ref="this.toolbar" Ready="this.ready" Formats Formatted="this.formatted" CanFormat="this.formattable"
+                    OnFormat="this.ToggleFormat" OnZoom="this.Zoom" OnSearch="this.Search" />
+    <div @ref="this.stage" class="ec-preview-stage ec-preview-stage-text">
+        @if (this.Truncated)
+        {
+            <p class="ec-preview-note">Soubor je delší, zobrazuje se jen jeho začátek a nejde naformátovat.</p>
+        }
+        else
+        {
+            if (this.ready && !this.formattable)
+            {
+                <p class="ec-preview-note">Soubor není platný @LanguageName(FileTypeDisplay.Language(this.FileName)), proto se ukazuje jen originál.</p>
+            }
+
+            if (this.linesCut)
+            {
+                <p class="ec-preview-note">Soubor je delší, zobrazuje se jen jeho začátek.</p>
+            }
+        }
+        <div class="ec-preview-text ec-preview-code" role="document" tabindex="0" aria-label="Obsah souboru @this.FileName"></div>
+    </div>
+</div>
+
+@code {
+    private readonly CancellationTokenSource cancel = new();
+
+    private PreviewToolbar? toolbar;
+
+    private ElementReference stage;
+
+    private bool opened;
+
+    private bool ready;
+
+    private bool formattable;
+
+    private bool formatted;
+
+    private bool linesCut;
+
+    /// <summary>
+    /// The text of the file, its start when it was <see cref="Truncated"/>.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required string Text { get; set; }
+
+    [Parameter]
+    public bool Truncated { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string FileName { get; set; }
+
+    /// <summary>
+    /// Raised when the library does not load.
+    /// </summary>
+    [Parameter]
+    public EventCallback OnUnreadable { get; set; }
+
+    public async ValueTask DisposeAsync()
+    {
+        await this.cancel.CancelAsync();
+
+        if (this.opened)
+        {
+            try
+            {
+                await this.Previews.DisposeView(this.stage);
+            }
+            catch (JSException exception)
+            {
+                this.Logger.LogInformation(exception, "The code preview was already gone");
+            }
+        }
+
+        this.cancel.Dispose();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        var token = this.cancel.Token;
+
+        this.opened = true;
+
+        try
+        {
+            var view = await this.Previews.OpenCodeView(this.stage, this.Text, FileTypeDisplay.Language(this.FileName), this.Truncated, this.toolbar!.View, token);
+
+            if (!token.IsCancellationRequested)
+            {
+                (this.formattable, this.formatted, this.linesCut, this.ready) = (view.Formatted, view.Formatted, view.LinesCut, true);
+                this.StateHasChanged();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // The preview closed or moved on to another file.
+        }
+        catch (JSException exception)
+        {
+            this.Logger.LogInformation(exception, "The code preview library did not load");
+
+            if (!token.IsCancellationRequested)
+                await this.OnUnreadable.InvokeAsync();
+        }
+    }
+
+    private static string LanguageName(CodeLanguage language)
+    {
+        return language switch
+        {
+            CodeLanguage.Json => "JSON",
+            CodeLanguage.Xml => "XML",
+            CodeLanguage.Yaml => "YAML",
+            CodeLanguage.Html => "HTML",
+            _ => throw new UnreachableException(),
+        };
+    }
+
+    private async Task ToggleFormat()
+    {
+        this.formatted = !this.formatted;
+        this.linesCut = await this.Previews.ShowCode(this.stage, this.formatted);
+    }
+
+    private async Task Zoom(PreviewZoom zoom)
+    {
+        await this.Previews.ZoomView(this.stage, zoom);
+    }
+
+    private async Task Search(PreviewSearch search)
+    {
+        await this.Previews.FindInView(this.stage, search.Query, search.Find);
+    }
+}

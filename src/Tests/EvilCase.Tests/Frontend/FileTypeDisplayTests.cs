@@ -21,6 +21,8 @@ public class FileTypeDisplayTests
     [TestCase("a.p7m", FileKind.Signature)]
     [TestCase("a.crt", FileKind.Signature)]
     [TestCase("a.isdoc", FileKind.Code)]
+    [TestCase("a.yaml", FileKind.Code)]
+    [TestCase("a.YML", FileKind.Code)]
     [TestCase("a.7z", FileKind.Archive)]
     [TestCase("a.unknown", FileKind.Other)]
     [TestCase("README", FileKind.Other)]
@@ -43,11 +45,13 @@ public class FileTypeDisplayTests
     [TestCase("a.MARKDOWN", FilePreviewKind.Markdown)]
     [TestCase("a.csv", FilePreviewKind.Text)]
     [TestCase("a.tsv", FilePreviewKind.Text)]
-    [TestCase("a.json", FilePreviewKind.Text)]
-    [TestCase("a.xml", FilePreviewKind.Text)]
     [TestCase("a.log", FilePreviewKind.Text)]
-    [TestCase("a.isdoc", FilePreviewKind.Text)]
-    [TestCase("a.html", FilePreviewKind.Text)]
+    [TestCase("a.json", FilePreviewKind.Code)]
+    [TestCase("a.xml", FilePreviewKind.Code)]
+    [TestCase("a.isdoc", FilePreviewKind.Code)]
+    [TestCase("a.yaml", FilePreviewKind.Code)]
+    [TestCase("a.YML", FilePreviewKind.Code)]
+    [TestCase("a.html", FilePreviewKind.Code)]
     [TestCase("a.mp3", FilePreviewKind.Audio)]
     [TestCase("a.m4a", FilePreviewKind.Audio)]
     [TestCase("a.wav", FilePreviewKind.Audio)]
@@ -74,6 +78,17 @@ public class FileTypeDisplayTests
     public void OnlyTheFormatsTheAppCanShowOpenInThePreview(string fileName, FilePreviewKind kind)
     {
         Assert.That(FileTypeDisplay.Preview(fileName), Is.EqualTo(kind));
+    }
+
+    [TestCase("a.JSON", CodeLanguage.Json)]
+    [TestCase("a.xml", CodeLanguage.Xml)]
+    [TestCase("a.isdoc", CodeLanguage.Xml)]
+    [TestCase("a.yaml", CodeLanguage.Yaml)]
+    [TestCase("a.yml", CodeLanguage.Yaml)]
+    [TestCase("a.html", CodeLanguage.Html)]
+    public void ACodeFileIsHighlightedInTheLanguageOfItsExtension(string fileName, CodeLanguage language)
+    {
+        Assert.That(FileTypeDisplay.Language(fileName), Is.EqualTo(language));
     }
 
     [TestCase("a.pdf", null)]

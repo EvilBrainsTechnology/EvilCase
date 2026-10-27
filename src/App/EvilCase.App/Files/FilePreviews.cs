@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using EvilBrains.EvilCase.App.Components;
+using EvilBrains.EvilCase.App.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 
@@ -33,6 +34,26 @@ internal sealed class FilePreviews(IJSRuntime jsRuntime) : IFilePreviews, IAsync
         var previews = await this.Module(CancellationToken.None);
 
         await previews.InvokeVoidAsync("openTextView", stage, view);
+    }
+
+    public async Task<CodeView> OpenCodeView(
+        ElementReference stage,
+        string text,
+        CodeLanguage language,
+        bool truncated,
+        DotNetObjectReference<PreviewToolbar> view,
+        CancellationToken token)
+    {
+        var previews = await this.Module(token);
+
+        return await previews.InvokeAsync<CodeView>("openCodeView", token, stage, view, text, LanguageValue(language), truncated);
+    }
+
+    public async Task<bool> ShowCode(ElementReference stage, bool formatted)
+    {
+        var previews = await this.Module(CancellationToken.None);
+
+        return await previews.InvokeAsync<bool>("showCode", stage, formatted);
     }
 
     public async Task ZoomView(ElementReference element, PreviewZoom zoom)
@@ -129,6 +150,18 @@ internal sealed class FilePreviews(IJSRuntime jsRuntime) : IFilePreviews, IAsync
     {
         if (this.module is not null)
             await this.module.DisposeAsync();
+    }
+
+    private static string LanguageValue(CodeLanguage language)
+    {
+        return language switch
+        {
+            CodeLanguage.Json => "json",
+            CodeLanguage.Xml => "xml",
+            CodeLanguage.Yaml => "yaml",
+            CodeLanguage.Html => "html",
+            _ => throw new UnreachableException(),
+        };
     }
 
     private static string ZoomValue(PreviewZoom zoom)

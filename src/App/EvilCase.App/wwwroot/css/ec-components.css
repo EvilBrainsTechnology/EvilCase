@@ -1435,7 +1435,18 @@ html {
     display: contents;
 }
 
-.ec-preview-toolbar-zoom .ec-button[aria-pressed="true"] {
+.ec-preview-toolbar-separator {
+    align-self: center;
+    height: var(--ec-space-7);
+    border-left: 1px solid var(--ec-border);
+}
+
+.ec-preview-toolbar-format {
+    display: contents;
+}
+
+.ec-preview-toolbar-zoom .ec-button[aria-pressed="true"],
+.ec-preview-toolbar-format .ec-button[aria-pressed="true"] {
     background: var(--ec-accent-soft);
     border-color: var(--ec-accent-ring);
     color: var(--ec-accent-text);
@@ -1610,6 +1621,41 @@ html {
     padding-right: var(--ec-space-7);
     overflow-wrap: anywhere;
     white-space: pre-wrap;
+}
+
+/* Zvýraznění kódu: třídy, které highlight.js dává tokenům JSON, XML, YAML a HTML. */
+.ec-preview-code .hljs-name,
+.ec-preview-code .hljs-attr {
+    color: var(--ec-code-name);
+}
+
+.ec-preview-code .hljs-tag .hljs-attr,
+.ec-preview-code .hljs-attribute,
+.ec-preview-code .hljs-type {
+    color: var(--ec-code-attribute);
+}
+
+.ec-preview-code .hljs-string {
+    color: var(--ec-code-string);
+}
+
+.ec-preview-code .hljs-number,
+.ec-preview-code .hljs-literal,
+.ec-preview-code .hljs-keyword,
+.ec-preview-code .hljs-symbol {
+    color: var(--ec-code-literal);
+}
+
+.ec-preview-code .hljs-tag,
+.ec-preview-code .hljs-punctuation,
+.ec-preview-code .hljs-meta,
+.ec-preview-code .hljs-bullet {
+    color: var(--ec-code-punctuation);
+}
+
+.ec-preview-code .hljs-comment {
+    color: var(--ec-code-comment);
+    font-style: italic;
 }
 
 .ec-preview-message {

@@ -1,4 +1,5 @@
 using EvilBrains.EvilCase.App.Components;
+using EvilBrains.EvilCase.App.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 
@@ -27,6 +28,24 @@ internal interface IFilePreviews
     /// <see cref="ZoomView"/> and <see cref="FindInView"/>; the view hears of the zoom and the search matches.
     /// </summary>
     public Task OpenTextView(ElementReference stage, DotNetObjectReference<PreviewToolbar> view);
+
+    /// <summary>
+    /// Shows the source in the stage's element of role <c>document</c> as numbered, highlighted lines, formatted unless it
+    /// is <paramref name="truncated"/> or not valid in its language, and opens its zoom and search as
+    /// <see cref="OpenTextView"/> does.
+    /// </summary>
+    public Task<CodeView> OpenCodeView(
+        ElementReference stage,
+        string text,
+        CodeLanguage language,
+        bool truncated,
+        DotNetObjectReference<PreviewToolbar> view,
+        CancellationToken token);
+
+    /// <summary>
+    /// Shows the formatted or the original source of an open code view again and returns whether its lines were cut.
+    /// </summary>
+    public Task<bool> ShowCode(ElementReference stage, bool formatted);
 
     public Task ZoomView(ElementReference element, PreviewZoom zoom);
 

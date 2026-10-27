@@ -1,5 +1,6 @@
 // Generates wwwroot/lib and wwwroot/fonts from node_modules: copies the browser builds and their
-// license files, and bundles postal-mime and @kenjiuno/msgreader with esbuild.
+// license files, and bundles postal-mime, @kenjiuno/msgreader and the code preview (Prettier with
+// @prettier/plugin-xml, and highlight.js) with esbuild.
 //
 // Usage: node build-libs.mjs        (after `npm ci`; no parameters, any working directory)
 // Replaces wwwroot/lib and wwwroot/fonts; both are gitignored.
@@ -164,6 +165,42 @@ copyLicense('pdfjs-dist', join(lib, 'pdfjs', 'LICENSE'));
 
 await bundle("export { default } from 'postal-mime';", join(lib, 'postal-mime'), 'postal-mime.min.js', { format: 'esm' });
 await bundle("export { default as MsgReader } from '@kenjiuno/msgreader';", join(lib, 'msgreader'), 'msgreader.min.js', { format: 'iife', globalName: 'EcMsg' });
+
+// Formats and highlights JSON, XML, YAML and HTML. A JSON number keeps its literal; XML keeps its whitespace; HTML
+// leaves its embedded scripts and styles as they are.
+const codePreview = `
+import { format } from 'prettier/standalone';
+import * as babel from 'prettier/plugins/babel';
+import * as estree from 'prettier/plugins/estree';
+import * as html from 'prettier/plugins/html';
+import * as yaml from 'prettier/plugins/yaml';
+import xml from '@prettier/plugin-xml';
+import hljs from 'highlight.js/lib/core';
+import json from 'highlight.js/lib/languages/json';
+import markup from 'highlight.js/lib/languages/xml';
+import yamlLanguage from 'highlight.js/lib/languages/yaml';
+
+hljs.registerLanguage('json', json);
+hljs.registerLanguage('xml', markup);
+hljs.registerLanguage('yaml', yamlLanguage);
+
+const options = {
+    json: { parser: 'json-stringify' },
+    xml: { parser: 'xml', xmlWhitespaceSensitivity: 'preserve' },
+    yaml: { parser: 'yaml' },
+    html: { parser: 'html', embeddedLanguageFormatting: 'off' },
+};
+
+export function formatCode(text, language) {
+    return format(text, { ...options[language], plugins: [babel, estree, html, yaml, xml] });
+}
+
+export function highlightCode(text, language) {
+    return hljs.highlight(text, { language: language === 'html' ? 'xml' : language, ignoreIllegals: true }).value;
+}
+`;
+
+await bundle(codePreview, join(lib, 'code-preview'), 'code-preview.min.js', { format: 'esm' });
 
 for (const [family, name] of [['instrument-sans', '@fontsource-variable/instrument-sans'], ['jetbrains-mono', '@fontsource-variable/jetbrains-mono']]) {
     for (const subset of ['latin', 'latin-ext']) {

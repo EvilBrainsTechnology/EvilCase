@@ -4,6 +4,7 @@ using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.App.Auth;
 using EvilBrains.EvilCase.App.Components;
 using EvilBrains.EvilCase.App.Files;
+using EvilBrains.EvilCase.App.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
@@ -246,18 +247,105 @@ public class FilePreviewModalRenderTests
         }
     }
 
-    [Test]
-    public void AnHtmlFileShowsItsSourceAsTextAndRendersNothing()
+    [TestCase("data.json", CodeLanguage.Json)]
+    [TestCase("faktura.isdoc", CodeLanguage.Xml)]
+    [TestCase("config.yml", CodeLanguage.Yaml)]
+    [TestCase("stranka.html", CodeLanguage.Html)]
+    public void ACodeFileOpensFormattedWithTheFormatSwitchPressed(string fileName, CodeLanguage language)
     {
-        using var ctx = NewContext(out _);
+        using var ctx = NewContext(out _, out var previews);
 
-        var file = File("stranka.html");
-        var component = Render(ctx, [file], file.FileId, content: "<script>alert(1)</script><b>x</b>");
+        var file = File(fileName);
+        var component = Render(ctx, [file], file.FileId, content: "﻿<script>alert(1)</script>");
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.Find(".ec-preview-line-text").TextContent, Is.EqualTo("<script>alert(1)</script><b>x</b>"));
-            Assert.That(component.FindAll(".ec-preview-text script, .ec-preview-text b"), Is.Empty, "the markup is text, never elements");
+            Assert.That(previews.OpenedCode, Is.EqualTo([("<script>alert(1)</script>", language, false)]));
+            Assert.That(
+                component.FindAll(".ec-preview-toolbar button").Select(static button => button.GetAttribute("aria-label")),
+                Is.EqualTo(["Zmenšit", "Zvětšit", "100 %", "Formátovat", "Hledat v dokumentu", "Předchozí výskyt", "Další výskyt"]));
+            Assert.That(ToolbarButton(component, "Formátovat").GetAttribute("aria-pressed"), Is.EqualTo("true"));
+            Assert.That(ToolbarButton(component, "Formátovat").HasAttribute("disabled"), Is.False);
+            Assert.That(component.FindAll(".ec-preview-note"), Is.Empty);
+            Assert.That(component.Find(".ec-preview-stage [role='document']").ChildElementCount, Is.Zero, "the source is never markup of the page");
+        }
+    }
+
+    [Test]
+    public async Task TheFormatSwitchTurnsBetweenTheOriginalAndTheFormattedText()
+    {
+        await using var ctx = NewContext(out _, out var previews);
+
+        var file = File("data.json");
+        var component = Render(ctx, [file], file.FileId, content: "{\"a\":1}");
+
+        await ToolbarButton(component, "Formátovat").ClickAsync(new MouseEventArgs());
+
+        Assert.That(ToolbarButton(component, "Formátovat").GetAttribute("aria-pressed"), Is.EqualTo("false"));
+
+        await ToolbarButton(component, "Formátovat").ClickAsync(new MouseEventArgs());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(previews.ShownCode, Is.EqualTo([false, true]));
+            Assert.That(previews.OpenedCode, Has.Count.EqualTo(1), "the switch shows the text again without reading the file");
+            Assert.That(ToolbarButton(component, "Formátovat").GetAttribute("aria-pressed"), Is.EqualTo("true"));
+        }
+    }
+
+    [TestCase("data.json", "JSON")]
+    [TestCase("data.xml", "XML")]
+    [TestCase("faktura.isdoc", "XML")]
+    [TestCase("config.yaml", "YAML")]
+    [TestCase("stranka.html", "HTML")]
+    public void AnInvalidCodeFileShowsTheOriginalWithTheSwitchDisabledAndSaysWhy(string fileName, string language)
+    {
+        using var ctx = NewContext(out _, out var previews);
+
+        previews.Formattable = false;
+
+        var file = File(fileName);
+        var component = Render(ctx, [file], file.FileId);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.Find(".ec-preview-note").TextContent, Is.EqualTo($"Soubor není platný {language}, proto se ukazuje jen originál."));
+            Assert.That(ToolbarButton(component, "Formátovat").HasAttribute("disabled"), Is.True);
+            Assert.That(ToolbarButton(component, "Formátovat").GetAttribute("aria-pressed"), Is.EqualTo("false"));
+        }
+    }
+
+    [Test]
+    public void ALongCodeFileIsCutShownAsTheOriginalAndSaysSo()
+    {
+        using var ctx = NewContext(out _, out var previews);
+
+        var file = File("data.json");
+        var component = Render(ctx, [file], file.FileId, content: new string('a', (1024 * 1024) + 10));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(previews.OpenedCode.Single().Text, Has.Length.EqualTo(1024 * 1024));
+            Assert.That(previews.OpenedCode.Single().Truncated, Is.True);
+            Assert.That(component.Find(".ec-preview-note").TextContent, Is.EqualTo("Soubor je delší, zobrazuje se jen jeho začátek a nejde naformátovat."));
+            Assert.That(ToolbarButton(component, "Formátovat").HasAttribute("disabled"), Is.True);
+        }
+    }
+
+    [Test]
+    public void ACodeFileWithManyLinesSaysItIsCut()
+    {
+        using var ctx = NewContext(out _, out var previews);
+
+        previews.CodeLinesCut = true;
+
+        var file = File("data.yaml");
+        var component = Render(ctx, [file], file.FileId);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.Find(".ec-preview-note").TextContent, Is.EqualTo("Soubor je delší, zobrazuje se jen jeho začátek."));
+            Assert.That(ToolbarButton(component, "Formátovat").HasAttribute("disabled"), Is.False, "a file cut at the line cap still formats");
         }
     }
 
@@ -543,6 +631,7 @@ public class FilePreviewModalRenderTests
 
     [TestCase("a.txt")]
     [TestCase("a.docx")]
+    [TestCase("a.json")]
     public void SteppingToAnotherFileReleasesTheZoomAndSearch(string fileName)
     {
         using var ctx = NewContext(out _, out var previews);
@@ -580,6 +669,7 @@ public class FilePreviewModalRenderTests
     [TestCase("Zpráva.eml")]
     [TestCase("Zpráva.msg")]
     [TestCase("Foto.heif")]
+    [TestCase("data.json")]
     public void AFileTheLibraryCannotParseShowsTheUnsupportedStateWithTheDownload(string fileName)
     {
         using var ctx = NewContext(out _, out var previews);

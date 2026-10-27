@@ -28,4 +28,6 @@ public enum FilePreviewKind
     ConvertedImage = 10,
 
     DataMessage = 11,
+
+    Code = 12,
 }

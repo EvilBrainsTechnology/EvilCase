@@ -40,6 +40,10 @@ public static class AppIcons
         + "<path d='M7 10h14l-4 -4' />"
         + "<path d='M17 14h-14l4 4' />";
 
+    public const string Braces = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M7 4a2 2 0 0 0 -2 2v3a2 3 0 0 1 -2 3a2 3 0 0 1 2 3v3a2 2 0 0 0 2 2' />"
+        + "<path d='M17 4a2 2 0 0 1 2 2v3a2 3 0 0 0 2 3a2 3 0 0 0 -2 3v3a2 2 0 0 1 -2 2' />";
+
     public const string Check = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M5 12l5 5l10 -10' />";
 

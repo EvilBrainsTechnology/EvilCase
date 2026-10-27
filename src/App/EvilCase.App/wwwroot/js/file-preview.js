@@ -703,6 +703,133 @@ function search(state, query, again, previous) {
     state.view.invokeMethodAsync('MatchesChanged', ranges.length > 0 ? current + 1 : 0, ranges.length, false).catch(() => {});
 }
 
+// A JSON, XML, YAML or HTML source shows highlighted in numbered lines, formatted unless it cannot be or was cut; the
+// formatted and the original text stay to switch between. Returns whether it formatted and whether lines were cut.
+const maxCodeLines = 5000;
+
+function codeLib() {
+    return import(new URL('../lib/code-preview/code-preview.min.js', import.meta.url).href);
+}
+
+export async function openCodeView(stage, view, text, language, cut) {
+    const { formatCode } = await codeLib();
+    let formatted = null;
+
+    if (!cut) {
+        try {
+            formatted = await formatCode(text, language);
+        } catch {
+            // Not valid in its language: the original shows.
+        }
+    }
+
+    release();
+
+    const content = stage.querySelector('[role="document"]');
+
+    if (!stage.isConnected || !content) {
+        return { formatted: false, linesCut: false };
+    }
+
+    const state = openView(stage, stage, content, content, view, null);
+
+    state.code = { text, formatted, language };
+
+    return { formatted: formatted !== null, linesCut: await showCode(stage, formatted !== null) };
+}
+
+// Shows the formatted or the original text again and runs an open search over it; returns whether lines were cut.
+export async function showCode(stage, formatted) {
+    const state = views.get(stage);
+
+    if (!state?.code) {
+        return false;
+    }
+
+    const { highlightCode } = await codeLib();
+    const { code } = state;
+    const source = (formatted ? code.formatted : code.text).replace(/\r\n/g, '\n');
+    const count = source.split('\n').length - (source.endsWith('\n') ? 1 : 0);
+    const template = document.createElement('template');
+
+    // highlight.js escapes all of the text; the template keeps its markup inert.
+    template.innerHTML = highlightCode(source, code.language);
+    state.content.replaceChildren(...highlightedLines(template.content, maxCodeLines).map((line, index) => {
+        const row = document.createElement('div');
+        const number = document.createElement('span');
+        const text = document.createElement('span');
+
+        row.className = 'ec-preview-line';
+        number.className = 'ec-preview-line-number';
+        number.setAttribute('aria-hidden', 'true');
+        number.textContent = String(index + 1);
+        text.className = 'ec-preview-line-text';
+        text.append(line);
+        row.append(number, text);
+
+        return row;
+    }));
+    state.index = null;
+
+    if (state.search) {
+        search(state, state.search.query, false, false);
+    }
+
+    return count > maxCodeLines;
+}
+
+// Splits highlighted markup at its line ends into at most `max` lines; a span that crosses a line end closes there
+// and opens again on the next line. A final line end starts no line.
+function highlightedLines(fragment, max) {
+    const lines = [];
+    let line = document.createDocumentFragment();
+    let open = [];
+    let parent = line;
+
+    function nextLine() {
+        lines.push(line);
+        line = document.createDocumentFragment();
+        parent = line;
+        open = open.map(span => (parent = parent.appendChild(span.cloneNode(false))));
+    }
+
+    function walk(node) {
+        for (const child of node.childNodes) {
+            if (lines.length >= max) {
+                return;
+            }
+
+            if (child.nodeType === Node.TEXT_NODE) {
+                const parts = child.data.split('\n');
+
+                for (let index = 0; index < parts.length && lines.length < max; index++) {
+                    if (index > 0) {
+                        nextLine();
+                    }
+
+                    if (parts[index]) {
+                        parent.append(parts[index]);
+                    }
+                }
+            } else {
+                parent = parent.appendChild(child.cloneNode(false));
+                open.push(parent);
+                walk(child);
+                open.pop();
+                parent = open.at(-1) ?? line;
+            }
+        }
+    }
+
+    walk(fragment);
+
+    if (lines.length < max && (line.textContent.length > 0 || lines.length === 0)) {
+        lines.push(line);
+    }
+
+    return lines;
+}
+
 // PDF.js shows a PDF in its viewer component: pages drawn as they come near the viewport, a text layer to select
 // and search, and links. Forms, scripts and the editor stay off. The document loads from its content URL with the
 // session cookie; the view reports its page, zoom and search matches to `view`, a .NET object reference.

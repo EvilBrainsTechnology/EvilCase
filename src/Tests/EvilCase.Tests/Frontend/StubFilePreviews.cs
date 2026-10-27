@@ -1,5 +1,6 @@
 using EvilBrains.EvilCase.App.Components;
 using EvilBrains.EvilCase.App.Files;
+using EvilBrains.EvilCase.App.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 
@@ -51,6 +52,17 @@ internal sealed class StubFilePreviews : IFilePreviews
 
     public List<(string Query, PreviewFind Find)> ViewFinds { get; } = [];
 
+    public List<(string Text, CodeLanguage Language, bool Truncated)> OpenedCode { get; } = [];
+
+    /// <summary>
+    /// Whether the library formats the code it is given; a cut text never formats.
+    /// </summary>
+    public bool Formattable { get; set; } = true;
+
+    public bool CodeLinesCut { get; set; }
+
+    public List<bool> ShownCode { get; } = [];
+
     public List<int> RequestedRows { get; } = [];
 
     public IReadOnlyList<SheetPreview> Workbook { get; set; } = [];
@@ -89,6 +101,28 @@ internal sealed class StubFilePreviews : IFilePreviews
         this.TextView = view;
 
         return Task.CompletedTask;
+    }
+
+    public Task<CodeView> OpenCodeView(
+        ElementReference stage,
+        string text,
+        CodeLanguage language,
+        bool truncated,
+        DotNetObjectReference<PreviewToolbar> view,
+        CancellationToken token)
+    {
+        this.ThrowWhenFailing();
+        this.OpenedCode.Add((text, language, truncated));
+        this.TextView = view;
+
+        return Task.FromResult(new CodeView(Formatted: this.Formattable && !truncated, this.CodeLinesCut));
+    }
+
+    public Task<bool> ShowCode(ElementReference stage, bool formatted)
+    {
+        this.ShownCode.Add(formatted);
+
+        return Task.FromResult(this.CodeLinesCut);
     }
 
     public Task ZoomView(ElementReference element, PreviewZoom zoom)
