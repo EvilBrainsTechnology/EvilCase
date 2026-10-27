@@ -6,6 +6,12 @@ namespace EvilBrains.EvilCase.Tests.Files.Signatures;
 
 public class SignatureTrustTests
 {
+    private const string TimeStamping = "1.3.6.1.5.5.7.3.8";
+
+    private const string ClientAuthentication = "1.3.6.1.5.5.7.3.2";
+
+    private const string AnyExtendedKeyUsage = "2.5.29.37.0";
+
     private static readonly DateTimeOffset Within = new(2026, 6, 1, 0, 0, 0, TimeSpan.Zero);
 
     [Test]
@@ -52,12 +58,7 @@ public class SignatureTrustTests
         using (Assert.EnterMultipleScope())
         {
             foreach (var intermediate in trust.Intermediates)
-            {
-                using var chain = trust.NewChain();
-                chain.ChainPolicy.VerificationTime = intermediate.NotBefore.AddDays(1);
-
-                Assert.That(chain.Build(intermediate), Is.True, $"{intermediate.Subject} must chain to a bundled root");
-            }
+                Assert.That(trust.ChainsAtIssuance(intermediate), Is.True, $"{intermediate.Subject} must chain to a bundled root");
         }
     }
 
@@ -121,37 +122,116 @@ public class SignatureTrustTests
         using (Assert.EnterMultipleScope())
         {
             foreach (var intermediate in trust.Intermediates)
-            {
-                using var chain = trust.NewChain();
-                chain.ChainPolicy.VerificationTime = intermediate.NotBefore.AddDays(1);
-
-                Assert.That(chain.Build(intermediate), Is.True, $"{intermediate.Subject} must chain to a bundled root");
-            }
+                Assert.That(trust.ChainsAtIssuance(intermediate), Is.True, $"{intermediate.Subject} must chain to a bundled root");
         }
     }
 
     [Test]
-    public void AChainThroughABundledIntermediateIsWithinTheBundle()
+    public void ACertificateChainsThroughABundledIntermediate()
     {
         using var pki = TestPki.Create();
         using var seal = pki.IssueSeal(Within.AddYears(-1), Within.AddYears(1));
-        using var chain = pki.Trust.NewChain();
-        chain.ChainPolicy.VerificationTime = Within.UtcDateTime;
 
-        Assert.That(pki.Trust.BuildsWithinBundle(chain, seal), Is.True);
+        Assert.That(pki.Trust.Chains(seal, Within.UtcDateTime), Is.True);
     }
 
     [Test]
-    public void AChainThroughAnIntermediateOutsideTheBundleIsRefused()
+    public void AnIntermediateTheHostOffersIsNoTrustedCa()
     {
         using var pki = TestPki.Create();
         using var seal = pki.IssueSeal(Within.AddYears(-1), Within.AddYears(1));
         var rootOnly = new SignatureTrust([pki.Root], []);
-        using var chain = rootOnly.NewChain();
-        chain.ChainPolicy.VerificationTime = Within.UtcDateTime;
-        chain.ChainPolicy.ExtraStore.Add(pki.Intermediate);
+        using var hostIntermediate = HostIntermediate.Add(pki.Intermediate);
 
-        Assert.That(rootOnly.BuildsWithinBundle(chain, seal), Is.False, "an intermediate from outside the bundle, as a machine store offers it, is no trusted CA");
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(rootOnly.Chains(seal, Within.UtcDateTime), Is.False, "an intermediate from outside the bundle is no trusted CA");
+            Assert.That(rootOnly.ChainsAtIssuance(seal), Is.False);
+        }
+    }
+
+    [TestCase(false)]
+    [TestCase(true)]
+    public void ACertificateChainsThroughTheBundledIntermediateWhileTheHostOffersAnotherOfTheSameName(bool reissuedByTheBundledRoot)
+    {
+        using var pki = TestPki.Create();
+        using var host = TestPki.Create("Host");
+        using var seal = pki.IssueSeal(Within.AddYears(-1), Within.AddYears(1));
+        using var hostIntermediate = HostIntermediate.Add(pki.ReissueIntermediate(reissuedByTheBundledRoot ? pki : host));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(pki.Trust.Chains(seal, Within.UtcDateTime), Is.True);
+            Assert.That(pki.Trust.ChainsAtIssuance(seal), Is.True);
+        }
+    }
+
+    [Test]
+    public void ACertificateChainsOnlyWithinItsValidity()
+    {
+        using var pki = TestPki.Create();
+        using var seal = pki.IssueSeal(Within.AddYears(-1), Within.AddYears(1));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(pki.Trust.Chains(seal, Within.AddYears(2).UtcDateTime), Is.False);
+            Assert.That(pki.Trust.ChainsAtIssuance(seal), Is.True, "at issuance it was valid");
+        }
+    }
+
+    [Test]
+    public void ARequiredPolicyMustBeTheCertificates()
+    {
+        using var pki = TestPki.Create();
+        using var seal = pki.IssueSeal(Within.AddYears(-1), Within.AddYears(1));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(pki.Trust.Chains(seal, Within.UtcDateTime, certificatePolicy: TestPki.SealPolicy), Is.True);
+            Assert.That(pki.Trust.Chains(seal, Within.UtcDateTime, certificatePolicy: "1.2.3.4"), Is.False);
+        }
+    }
+
+    [Test]
+    public void ACertificateRestrictedToAnotherUsageDoesNotChainForIt()
+    {
+        using var pki = TestPki.Create();
+        using var tsa = pki.IssueTsa();
+        using var client = pki.IssueTsa(purpose: ClientAuthentication);
+        using var seal = pki.IssueSeal(Within.AddYears(-1), Within.AddYears(1));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(pki.Trust.Chains(tsa, Within.UtcDateTime, applicationPolicy: TimeStamping), Is.True);
+            Assert.That(pki.Trust.Chains(client, Within.UtcDateTime, applicationPolicy: TimeStamping), Is.False);
+            Assert.That(pki.Trust.Chains(seal, Within.UtcDateTime, applicationPolicy: TimeStamping), Is.True, "a certificate without a usage restriction serves any");
+            Assert.That(pki.Trust.Chains(client, Within.UtcDateTime), Is.True, "a critical usage restriction is understood");
+        }
+    }
+
+    [Test]
+    public void AnyUsageServesEveryUsage()
+    {
+        using var pki = TestPki.Create();
+        using var any = pki.IssueTsa(purpose: AnyExtendedKeyUsage);
+
+        Assert.That(pki.Trust.Chains(any, Within.UtcDateTime, applicationPolicy: TimeStamping), Is.True);
+    }
+
+    [Test]
+    public void ACertificateBouncyCastleCannotReadDoesNotChain()
+    {
+        using var pki = TestPki.Create();
+        using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        var request = new CertificateRequest("CN=Nečitelný", key, HashAlgorithmName.SHA256);
+        request.CertificateExtensions.Add(new X509Extension("2.5.29.19", [0x04, 0x00], critical: false));
+        using var unreadable = request.CreateSelfSigned(Within.AddYears(-1), Within.AddYears(1));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(pki.Trust.Chains(unreadable, Within.UtcDateTime), Is.False);
+            Assert.That(pki.Trust.ChainsAtIssuance(unreadable), Is.False);
+        }
     }
 
     private static IEnumerable<string> Fingerprints(X509Certificate2Collection certificates)

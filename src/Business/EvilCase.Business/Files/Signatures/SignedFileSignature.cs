@@ -129,16 +129,11 @@ internal static class SignedFileSignature
                 return signer with { State = FileSignatureState.Invalid, Problem = FileSignerProblem.TimestampInvalid };
         }
 
-        using (var chain = trust.NewChain())
+        if (!trust.Chains(certificate, timestamped ?? now))
         {
-            chain.ChainPolicy.VerificationTime = timestamped ?? now;
-
-            if (!trust.BuildsWithinBundle(chain, certificate))
-            {
-                return timestamped is null
-                    ? signer with { State = FileSignatureState.Unverifiable, Problem = FileSignerProblem.NotValidNow }
-                    : signer with { State = FileSignatureState.Invalid, Problem = FileSignerProblem.NotValidAtTimestamp };
-            }
+            return timestamped is null
+                ? signer with { State = FileSignatureState.Unverifiable, Problem = FileSignerProblem.NotValidNow }
+                : signer with { State = FileSignatureState.Invalid, Problem = FileSignerProblem.NotValidAtTimestamp };
         }
 
         var status = revocation(certificate);
@@ -154,7 +149,7 @@ internal static class SignedFileSignature
 
     /// <summary>
     /// Whether the certificate declares a qualified policy and chains to a bundled root only through the bundled intermediates,
-    /// at any time.
+    /// as issued.
     /// </summary>
     private static bool IsQualified(X509Certificate2 certificate, SignatureTrust trust)
     {
@@ -162,9 +157,6 @@ internal static class SignedFileSignature
             return false;
 
         // The policy is read from the certificate, not required of the chain: eIdentity's CAs declare only their own policy.
-        using var chain = trust.NewChain();
-        chain.ChainPolicy.VerificationFlags = X509VerificationFlags.IgnoreNotTimeValid;
-
-        return trust.BuildsWithinBundle(chain, certificate);
+        return trust.ChainsAtIssuance(certificate);
     }
 }

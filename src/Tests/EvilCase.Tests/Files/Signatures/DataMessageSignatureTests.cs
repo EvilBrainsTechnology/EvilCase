@@ -136,6 +136,19 @@ public class DataMessageSignatureTests
         AssertInvalid(signature, FileSignatureProblem.TimestampInvalid);
     }
 
+    [TestCase(false)]
+    [TestCase(true)]
+    public void ASealIsValidThroughTheBundledIntermediateWhileTheHostOffersAnotherOfTheSameName(bool reissuedByTheBundledRoot)
+    {
+        using var host = TestPki.Create("Host");
+        using var hostIntermediate = HostIntermediate.Add(this.pki.ReissueIntermediate(reissuedByTheBundledRoot ? this.pki : host));
+        var revocation = new StubSignatureRevocation(SignatureRevocationStatus.NotRevoked);
+
+        var signature = DataMessageSignature.Verify(this.SealedMessage(), this.pki.Trust, revocation);
+
+        Assert.That(signature.State, Is.EqualTo(FileSignatureState.Valid));
+    }
+
     [Test]
     public void ASealNotYetValidAtItsTimestampIsInvalid()
     {

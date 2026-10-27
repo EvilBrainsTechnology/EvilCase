@@ -162,6 +162,18 @@ public class SignedFileSignatureTests
         AssertVerdict(response.Signers.Single(), FileSignatureState.Unverifiable, FileSignerProblem.UntrustedIssuer);
     }
 
+    [TestCase(false)]
+    [TestCase(true)]
+    public void ASignatureIsValidThroughTheBundledIntermediateWhileTheHostOffersAnotherOfTheSameName(bool reissuedByTheBundledRoot)
+    {
+        using var host = TestPki.Create("Host");
+        using var hostIntermediate = HostIntermediate.Add(this.pki.ReissueIntermediate(reissuedByTheBundledRoot ? this.pki : host));
+
+        var signer = this.VerifyOne(SignedFile.Sign(Content, detached: false, [this.Signer(YearStart, YearEnd)], this.pki.IssueTsa()));
+
+        Assert.That(signer.State, Is.EqualTo(FileSignatureState.Valid));
+    }
+
     [Test]
     public void ChangedContentIsInvalid()
     {
@@ -355,7 +367,10 @@ public class SignedFileSignatureTests
 
         var response = this.Verify(SignedFile.Sign(Content, detached: false, [trusted, untrusted]));
 
-        Assert.That(response.Signers.Select(static signer => signer.State), Is.EqualTo(new FileSignatureState?[] { FileSignatureState.Valid, FileSignatureState.Unverifiable }));
+        // DER sorts the signer infos by their encoding, which the signature's length changes.
+        Assert.That(
+            response.Signers.Select(static signer => (signer.Name, signer.State)),
+            Is.EquivalentTo(new (string?, FileSignatureState?)[] { ("Jan Testovací", FileSignatureState.Valid), ("Petra Testovací", FileSignatureState.Unverifiable) }));
     }
 
     [Test]

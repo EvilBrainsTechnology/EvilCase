@@ -37,11 +37,7 @@ internal static class SignatureTimestamp
 
         var timestamped = token.TokenInfo.Timestamp.UtcDateTime;
 
-        using var chain = trust.NewChain();
-        chain.ChainPolicy.VerificationTime = timestamped;
-        chain.ChainPolicy.ApplicationPolicy.Add(new Oid(TimeStampingOid));
-
-        return trust.BuildsWithinBundle(chain, tsaCertificate) ? timestamped : null;
+        return trust.Chains(tsaCertificate, timestamped, applicationPolicy: TimeStampingOid) ? timestamped : null;
     }
 
     private static CryptographicAttributeObject? Token(SignerInfo signer)
