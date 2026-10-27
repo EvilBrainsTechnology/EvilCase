@@ -124,7 +124,7 @@ internal static class SignedFileSignature
         DateTime? timestamped = null;
         if (SignatureTimestamp.IsPresent(info))
         {
-            timestamped = SignatureTimestamp.TrustedTime(info, trust, withinBundle: true);
+            timestamped = SignatureTimestamp.TrustedTime(info, trust);
             if (timestamped is null)
                 return signer with { State = FileSignatureState.Invalid, Problem = FileSignerProblem.TimestampInvalid };
         }

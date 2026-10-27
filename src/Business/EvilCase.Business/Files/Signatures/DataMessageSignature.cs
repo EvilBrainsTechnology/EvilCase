@@ -51,20 +51,20 @@ internal static class DataMessageSignature
         XmlResolver = null,
     };
 
-    public static FileSignatureResponse Verify(ReadOnlySpan<byte> zfo, SignatureTrust trust, ISignatureRevocation revocation)
+    public static FileSignatureResponse Verify(ReadOnlyMemory<byte> zfo, SignatureTrust trust, ISignatureRevocation revocation)
     {
         var cms = new SignedCms();
 
         try
         {
-            cms.Decode(zfo);
+            cms.Decode(zfo.Span);
         }
         catch (CryptographicException)
         {
             return Invalid(FileSignatureProblem.NotDataMessage);
         }
 
-        if (cms.Detached || cms.SignerInfos.Count != 1)
+        if (cms.SignerInfos.Count != 1 || DetachedSignatures.IsDetached(zfo))
             return Invalid(FileSignatureProblem.NotDataMessage);
 
         var signer = cms.SignerInfos[0];
@@ -88,14 +88,8 @@ internal static class DataMessageSignature
         if (SignatureTimestamp.TrustedTime(signer, trust) is not { } timestamped)
             return Invalid(FileSignatureProblem.TimestampInvalid);
 
-        using (var chain = trust.NewChain())
-        {
-            chain.ChainPolicy.VerificationTime = timestamped;
-            chain.ChainPolicy.CertificatePolicy.Add(new Oid(QualifiedLegalPersonPolicyOid));
-
-            if (!chain.Build(certificate))
-                return Invalid(ChainProblem(chain));
-        }
+        if (ChainProblem(certificate, timestamped, trust) is { } chainProblem)
+            return Invalid(chainProblem);
 
         if (!IsIsds(certificate))
             return Invalid(FileSignatureProblem.NotIsdsSigner);
@@ -112,10 +106,28 @@ internal static class DataMessageSignature
     }
 
     /// <summary>
+    /// Why the seal does not chain at <paramref name="timestamped"/> through bundled certificates to a bundled root with the
+    /// seal policy, or null where it does.
+    /// </summary>
+    private static FileSignatureProblem? ChainProblem(X509Certificate2 certificate, DateTime timestamped, SignatureTrust trust)
+    {
+        using var chain = trust.NewChain();
+        chain.ChainPolicy.VerificationTime = timestamped;
+        chain.ChainPolicy.CertificatePolicy.Add(new Oid(QualifiedLegalPersonPolicyOid));
+
+        var built = chain.Build(certificate);
+
+        if (!trust.IsWithinBundle(chain))
+            return FileSignatureProblem.NotPostSignum;
+
+        return built ? null : ChainStatusProblem(chain);
+    }
+
+    /// <summary>
     /// A chain that leaves the bundled hierarchy is not PostSignum's; inside it, a certificate out of its validity, then one
     /// without the seal policy.
     /// </summary>
-    private static FileSignatureProblem ChainProblem(X509Chain chain)
+    private static FileSignatureProblem ChainStatusProblem(X509Chain chain)
     {
         var flags = chain.ChainStatus.Aggregate(X509ChainStatusFlags.NoError, static (all, status) => all | status.Status);
 
