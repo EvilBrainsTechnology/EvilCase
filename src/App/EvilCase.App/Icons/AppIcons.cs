@@ -191,6 +191,9 @@ public static class AppIcons
         + "<path d='M21 12h-13l3 -3' />"
         + "<path d='M11 15l-3 -3' />";
 
+    public const string Loader = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M12 3a9 9 0 1 0 9 9' />";
+
     public const string Logout = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2' />"
         + "<path d='M9 12h12l-3 -3' />"

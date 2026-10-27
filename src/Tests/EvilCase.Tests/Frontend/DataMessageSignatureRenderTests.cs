@@ -28,7 +28,11 @@ public class DataMessageSignatureRenderTests
 
         var component = Render(ctx);
 
-        Assert.That(Chip(component), Is.EqualTo("Ověřuji podpis…"));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(Chip(component), Is.EqualTo("Ověřuji podpis…"));
+            Assert.That(component.FindAll(".ec-signature-loading .ec-icon"), Has.Count.EqualTo(1), "the loading chip turns a spinner");
+        }
     }
 
     [Test]
@@ -61,8 +65,11 @@ public class DataMessageSignatureRenderTests
             Assert.That(details, Does.Contain("Podepsal"));
             Assert.That(details, Does.Contain("Informační systém datových schránek"));
             Assert.That(details, Does.Contain("Testovací kvalifikovaná CA"));
+            Assert.That(details, Does.Contain("PostSignum, platný k času razítka"));
             Assert.That(details, Does.Contain("Časové razítko"));
-            Assert.That(details, Does.Contain("Zneplatnění ověřeno"));
+            Assert.That(details, Does.Contain("Odvolání"));
+            Assert.That(details, Does.Contain("neodvolán, ověřeno"));
+            Assert.That(component.Find("[role=dialog]").ClassList, Is.EquivalentTo(["ec-popover"]));
             Assert.That(component.Find(".ec-popover-trigger").GetAttribute("aria-expanded"), Is.EqualTo("true"));
         }
     }
@@ -82,7 +89,8 @@ public class DataMessageSignatureRenderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(component.Find(".ec-badge").ClassList, Does.Contain("ec-badge-danger"));
-            Assert.That(component.Find("[role=dialog]").TextContent, Does.Contain("Obsah zprávy neodpovídá podpisu"));
+            Assert.That(component.Find(".ec-signature-reason").TextContent, Does.Contain("Obsah zprávy neodpovídá podpisu"));
+            Assert.That(component.Find("[role=dialog]").ClassList, Does.Contain("ec-popover-danger"));
             Assert.That(component.FindAll("[role=dialog] button"), Is.Empty, "an invalid verdict offers no retry");
         }
     }
@@ -99,7 +107,9 @@ public class DataMessageSignatureRenderTests
 
         await component.Find(".ec-popover-trigger").ClickAsync(new());
 
-        Assert.That(component.Find("[role=dialog]").TextContent, Does.Contain("PostSignum"));
+        Assert.That(
+            component.Find(".ec-signature-text").TextContent.Trim(),
+            Is.EqualTo("Kontrola odvolání certifikátu u PostSignum není dostupná. Podpis i řetězec certifikátů jsou v pořádku."));
 
         await component.Find("[role=dialog] button").ClickAsync(new());
 
@@ -128,7 +138,8 @@ public class DataMessageSignatureRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.Find("[role=dialog]").TextContent, Does.Contain("nepodařilo načíst"));
+            Assert.That(component.Find(".ec-signature-text").TextContent.Trim(), Is.EqualTo("Výsledek ověření podpisu se nepodařilo načíst."), "a failed load claims nothing about the signature");
+            Assert.That(component.Find("[role=dialog]").ClassList, Does.Contain("ec-popover-waiting"));
             Assert.That(component.Find("[role=dialog] button").TextContent.Trim(), Is.EqualTo("Zkusit znovu"));
         }
     }

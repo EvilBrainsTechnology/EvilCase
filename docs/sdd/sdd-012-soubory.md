@@ -129,7 +129,8 @@ Esc a Zrušit ho zahodí.
 - Vedle štítku Datová zpráva nebo Doručenka stojí štítek podpisu: „Ověřuji podpis…“, „Podpis
   ISDS platný“, „Podpis neplatný“ nebo „Podpis nelze ověřit“. Klik na něj ukáže podrobnosti:
   u platného podpisu podepsaného, vydavatele a platnost certifikátu, časové razítko a okamžik
-  ověření zneplatnění; u neplatného důvod; u neověřitelného vysvětlení a Zkusit znovu. Chyba
+  ověření, že certifikát není odvolán; u neplatného důvod; u neověřitelného vysvětlení a Zkusit
+  znovu. Zpráva a přílohy jsou k dispozici, i než ověření doběhne. Chyba
   načtení výsledku se ukáže jako Podpis nelze ověřit.
 - Vnořená datová zpráva z přílohy štítek podpisu nemá.
 - Výsledek ověření vydává samostatná adresa, jen výsledek bez obsahu souboru. Soubor nad 30 MB

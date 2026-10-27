@@ -9,7 +9,7 @@
         <div class="ec-popover-backdrop" @onclick="this.CloseToTrigger"></div>
         @* Tab or Shift+Tab out of the panel lands on a guard, which closes it. Escape stays with the panel, not a dialog around it. *@
         <span class="ec-popover-guard ec-visually-hidden" tabindex="0" aria-hidden="true" @onfocus="this.CloseToTrigger"></span>
-        <div class="ec-popover" role="dialog" aria-label="@this.AriaLabel" tabindex="-1" data-ec-keeps-escape
+        <div class="@(this.PanelClass is null ? "ec-popover" : $"ec-popover {this.PanelClass}")" role="dialog" aria-label="@this.AriaLabel" tabindex="-1" data-ec-keeps-escape
              @ref="this.panel" @onkeydown="this.OnKeyDown">
             @this.ChildContent
             <span class="ec-popover-guard ec-visually-hidden" tabindex="0" aria-hidden="true" @onfocus="this.CloseToTrigger"></span>
@@ -26,6 +26,12 @@
 
     [Parameter, EditorRequired]
     public required RenderFragment ChildContent { get; set; }
+
+    /// <summary>
+    /// A modifier of the panel, such as its tone.
+    /// </summary>
+    [Parameter]
+    public string? PanelClass { get; set; }
 
     private ElementReference trigger;
 

@@ -4583,10 +4583,16 @@ html:has(.ec-gate) {
     outline: none;
 }
 
-.ec-signature-title {
-    margin: 0 0 var(--ec-space-3);
-    font-size: var(--ec-text-md);
-    font-weight: var(--ec-weight-semibold);
+.ec-signature-loading .ec-icon {
+    animation: ec-spin 1s linear infinite;
+}
+
+.ec-popover-danger {
+    border-color: var(--ec-danger-border);
+}
+
+.ec-popover-waiting {
+    border-color: var(--ec-waiting-border);
 }
 
 .ec-signature-details {
@@ -4604,9 +4610,31 @@ html:has(.ec-gate) {
     margin: 0;
 }
 
-.ec-signature-text {
-    margin: 0 0 var(--ec-space-3);
+.ec-signature-note {
+    display: block;
+    font-size: var(--ec-text-sm);
     color: var(--ec-text-muted);
+}
+
+.ec-signature-reason {
+    margin: 0;
+    font-weight: var(--ec-weight-semibold);
+    color: var(--ec-danger-text);
+}
+
+.ec-signature-unverifiable {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-4);
+}
+
+.ec-signature-text {
+    flex: 1 1 auto;
+    margin: 0;
+}
+
+.ec-signature-unverifiable .ec-button {
+    flex: 0 0 auto;
 }
 
 .ec-menu-divider {
@@ -5525,6 +5553,18 @@ html:has(.ec-gate) {
     /* Pole má na mobilu písmo 16 px. */
     .ec :is(.ec-input, .ec-select, .ec-textarea, .ec-search-input, .ec-label-input, .ec-topsearch-input) {
         font-size: var(--ec-text-lg);
+    }
+}
+
+@keyframes ec-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ec-signature-loading .ec-icon {
+        animation: none;
     }
 }
 

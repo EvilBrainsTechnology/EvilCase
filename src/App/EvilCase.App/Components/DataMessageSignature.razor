@@ -6,11 +6,11 @@
 @inject ILogger<DataMessageSignature> Logger
 
 @* One trigger through every state, so the focus stays on it while a retry loads. *@
-<EcPopover @ref="this.popover" AriaLabel="Podpis datové zprávy">
+<EcPopover @ref="this.popover" AriaLabel="Podrobnosti podpisu" PanelClass="@this.PanelClass">
     <Trigger>
         @if (this.loading)
         {
-            <EcBadge Text="Ověřuji podpis…" Tone="EcBadgeTone.Closed" />
+            <span class="ec-signature-loading"><EcBadge Text="Ověřuji podpis…" Tone="EcBadgeTone.Closed" Icon="@AppIcons.Loader" /></span>
         }
         else
         {
@@ -37,32 +37,34 @@
         }
         else if (this.signature is { State: FileSignatureState.Valid } valid)
         {
-            <h3 class="ec-signature-title">Podpis ISDS platný</h3>
             <dl class="ec-signature-details">
                 <dt>Podepsal</dt>
                 <dd>Informační systém datových schránek</dd>
                 <dt>Certifikát</dt>
-                <dd>@valid.CertificateIssuer, platný @Moment(valid.CertificateValidFrom) – @Moment(valid.CertificateValidTo)</dd>
+                <dd>
+                    PostSignum, platný k času razítka
+                    <span class="ec-signature-note">@valid.CertificateIssuer, @Day(valid.CertificateValidFrom) – @Day(valid.CertificateValidTo)</span>
+                </dd>
                 <dt>Časové razítko</dt>
                 <dd>@Moment(valid.Timestamped)</dd>
-                <dt>Zneplatnění ověřeno</dt>
-                <dd>@Moment(valid.RevocationChecked)</dd>
+                <dt>Odvolání</dt>
+                <dd>neodvolán, ověřeno @Moment(valid.RevocationChecked)</dd>
             </dl>
         }
         else if (this.signature is { State: FileSignatureState.Invalid, Problem: { } problem })
         {
-            <h3 class="ec-signature-title">Podpis neplatný</h3>
-            <p class="ec-signature-text">@FileSignatureDisplay.Reason(problem)</p>
+            <p class="ec-signature-reason">@FileSignatureDisplay.Reason(problem)</p>
         }
         else
         {
-            <h3 class="ec-signature-title">Podpis nelze ověřit</h3>
-            <p class="ec-signature-text">
-                @(this.signature is null
-                    ? "Výsledek ověření podpisu se nepodařilo načíst."
-                    : "Podpis odpovídá obsahu a certifikátu ISDS, ale PostSignum teď neodpověděl, zda certifikát nebyl zneplatněn.")
-            </p>
-            <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Refresh" OnClick="this.Retry">Zkusit znovu</EcButton>
+            <div class="ec-signature-unverifiable">
+                <p class="ec-signature-text">
+                    @(this.signature is null
+                        ? "Výsledek ověření podpisu se nepodařilo načíst."
+                        : "Kontrola odvolání certifikátu u PostSignum není dostupná. Podpis i řetězec certifikátů jsou v pořádku.")
+                </p>
+                <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Refresh" OnClick="this.Retry">Zkusit znovu</EcButton>
+            </div>
         }
     </ChildContent>
 </EcPopover>
@@ -103,6 +105,28 @@
     {
         await this.popover!.CloseToTrigger();
         await this.Load();
+    }
+
+    private string? PanelClass
+    {
+        get
+        {
+            if (this.loading)
+                return null;
+
+            return this.signature?.State switch
+            {
+                FileSignatureState.Valid => null,
+                FileSignatureState.Invalid => "ec-popover-danger",
+                FileSignatureState.Unverifiable or null => "ec-popover-waiting",
+                _ => throw new UnreachableException(),
+            };
+        }
+    }
+
+    private static string Day(DateTime? moment)
+    {
+        return moment is { } value ? DateDisplay.Text(DateOnly.FromDateTime(value.ToLocalTime())) : "—";
     }
 
     private static string Moment(DateTime? moment)
