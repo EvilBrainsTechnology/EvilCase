@@ -131,6 +131,19 @@ public static class FileTypeDisplay
         return Previews.GetValueOrDefault(Extension(fileName));
     }
 
+    public static bool HasKnownExtension(string fileName)
+    {
+        return IsKnownExtension(Extension(fileName));
+    }
+
+    /// <summary>
+    /// Whether an extension, given without the dot, is one of a known type.
+    /// </summary>
+    public static bool IsKnownExtension(string extension)
+    {
+        return Kinds.ContainsKey(extension);
+    }
+
     /// <summary>
     /// The language of a file whose preview is <see cref="FilePreviewKind.Code"/>.
     /// </summary>

@@ -147,6 +147,15 @@ internal sealed class FilePreviews(IJSRuntime jsRuntime) : IFilePreviews, IAsync
         return await previews.InvokeAsync<EmailPreview>("readEmail", token, fileName, streamRef);
     }
 
+    public async Task<string?> DetectExtension(Stream content, CancellationToken token)
+    {
+        var previews = await this.Module(token);
+
+        using var streamRef = new DotNetStreamReference(content);
+
+        return await previews.InvokeAsync<string?>("detectExtension", token, streamRef);
+    }
+
     public async ValueTask DisposeAsync()
     {
         if (this.module is not null)

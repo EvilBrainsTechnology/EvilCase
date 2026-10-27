@@ -1,18 +1,11 @@
-using System.Diagnostics;
 using System.Net;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using EvilBrains.EvilCase.Tests.Hosting;
 
 namespace EvilBrains.EvilCase.Tests.Frontend;
 
-/// <summary>
-/// Runs the code preview library the app serves in Node.js, a build prerequisite of the app.
-/// </summary>
 public partial class CodePreviewLibraryTests
 {
-    private const string Library = "/lib/code-preview/code-preview.min.js";
-
     // Prints every call of the library as one JSON array: { value } or { error }.
     private const string Calls = """
         const { formatCode, highlightCode } = await import(process.argv[1]);
@@ -28,26 +21,18 @@ public partial class CodePreviewLibraryTests
         console.log(JSON.stringify(results));
         """;
 
-    private EvilCaseHost host = null!;
-
-    private HttpClient client = null!;
-
-    private string directory = null!;
+    private ServedLibrary library = null!;
 
     [OneTimeSetUp]
     public void SetUp()
     {
-        this.host = new EvilCaseHost();
-        this.client = this.host.CreateClient();
-        this.directory = Directory.CreateTempSubdirectory("evilcase-code-preview-").FullName;
+        this.library = new ServedLibrary("/lib/code-preview/code-preview.min.js");
     }
 
     [OneTimeTearDown]
     public void TearDown()
     {
-        this.client.Dispose();
-        this.host.Dispose();
-        Directory.Delete(this.directory, recursive: true);
+        this.library.Dispose();
     }
 
     [TestCase("<script>alert(1)</script><img src=x onerror=alert(1)><b>x</b>", "html")]
@@ -110,28 +95,8 @@ public partial class CodePreviewLibraryTests
 
     private async Task<JsonElement[]> Run(params (string Name, string Text, string Language)[] calls)
     {
-        var library = Path.Combine(this.directory, "code-preview.mjs");
+        var output = await this.library.Run(Calls, JsonSerializer.Serialize(calls.Select(static call => new[] { call.Name, call.Text, call.Language })));
 
-        if (!File.Exists(library))
-            await File.WriteAllBytesAsync(library, await this.client.GetByteArrayAsync(new Uri(Library, UriKind.Relative)));
-
-        var start = new ProcessStartInfo("node") { UseShellExecute = false, RedirectStandardOutput = true, RedirectStandardError = true };
-
-        start.ArgumentList.Add("--input-type=module");
-        start.ArgumentList.Add("--eval");
-        start.ArgumentList.Add(Calls);
-        start.ArgumentList.Add(new Uri(library).AbsoluteUri);
-        start.ArgumentList.Add(JsonSerializer.Serialize(calls.Select(static call => new[] { call.Name, call.Text, call.Language })));
-
-        using var node = Process.Start(start)!;
-
-        var output = node.StandardOutput.ReadToEndAsync();
-        var error = node.StandardError.ReadToEndAsync();
-
-        await node.WaitForExitAsync();
-
-        Assert.That(node.ExitCode, Is.Zero, await error);
-
-        return JsonSerializer.Deserialize<JsonElement[]>(await output)!;
+        return JsonSerializer.Deserialize<JsonElement[]>(output)!;
     }
 }

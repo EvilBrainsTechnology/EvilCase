@@ -70,6 +70,13 @@ internal sealed class StubFilePreviews : IFilePreviews
     public EmailPreview Email { get; set; } = new(From: "", To: [], Cc: [], Subject: "", Date: null, Body: "", Truncated: false, Attachments: []);
 
     /// <summary>
+    /// The extension the library finds in any content.
+    /// </summary>
+    public string? DetectedExtension { get; set; }
+
+    public List<byte[]> Detected { get; } = [];
+
+    /// <summary>
     /// What a library does with a file it cannot parse.
     /// </summary>
     public bool Fails { get; set; }
@@ -216,6 +223,18 @@ internal sealed class StubFilePreviews : IFilePreviews
         this.ThrowWhenFailing();
 
         return Task.FromResult(this.Email);
+    }
+
+    public async Task<string?> DetectExtension(Stream content, CancellationToken token)
+    {
+        this.ThrowWhenFailing();
+
+        await using var bytes = new MemoryStream();
+
+        await content.CopyToAsync(bytes, token);
+        this.Detected.Add(bytes.ToArray());
+
+        return this.DetectedExtension;
     }
 
     private void ThrowWhenFailing()

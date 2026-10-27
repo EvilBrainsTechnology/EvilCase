@@ -16,6 +16,8 @@ public class FilePreviewModalSignedRenderTests
 
     private static readonly byte[] PdfBytes = "%PDF-1.4"u8.ToArray();
 
+    private static readonly byte[] XmlBytes = "<?xml version=\"1.0\"?><a/>"u8.ToArray();
+
     [Test]
     public async Task AnAttachedSignatureShowsItsDocumentWithTheSignersAbove()
     {
@@ -30,6 +32,7 @@ public class FilePreviewModalSignedRenderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(previews.RenderedPdfs, Is.Empty, "the document is read from the signature, never requested");
+            Assert.That(previews.Detected, Is.Empty, "a known extension decides the type");
             Assert.That(component.Find(".ec-preview-signer-name").TextContent, Is.EqualTo("Jan Testovací"));
             Assert.That(component.Find(".ec-preview-meta").TextContent, Does.Contain("podepsaný dokument Smlouva.pdf"));
             Assert.That(component.FindAll("[aria-label='Stáhnout dokument']"), Has.Count.EqualTo(1));
@@ -80,6 +83,66 @@ public class FilePreviewModalSignedRenderTests
             Assert.That(downloader.DownloadedContents.Select(static content => content.FileName), Is.EqualTo(["Smlouva.doc"]));
             Assert.That(downloader.DownloadedContents.Select(static content => content.Content), Is.EqualTo([new byte[] { 7, 7 }]));
             Assert.That(downloaded, Is.Empty, "the stored file is not the one downloaded");
+        }
+    }
+
+    [Test]
+    public async Task ADocumentNamedWithoutAnExtensionShowsAndDownloadsAsTheTypeItsContentShows()
+    {
+        await using var ctx = NewContext(out _, out var previews, out var downloader, out _);
+
+        previews.DetectedExtension = "xml";
+        var file = File("Potvrzení.p7s");
+        var component = Render(ctx, [file], file.FileId, static _ => SignedFile.Sign(XmlBytes, detached: false));
+
+        await component.WaitForAssertionAsync(() =>
+            Assert.That(previews.RenderedCode, Is.EqualTo([("<?xml version=\"1.0\"?><a/>", CodeLanguage.Xml, false)])));
+        await component.Find("button[aria-label='Stáhnout dokument']").ClickAsync(new());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(previews.Detected, Is.EqualTo([XmlBytes]));
+            Assert.That(component.Find(".ec-preview-meta").TextContent, Does.Contain("podepsaný dokument Potvrzení.xml"));
+            Assert.That(downloader.DownloadedContents.Select(static content => content.FileName), Is.EqualTo(["Potvrzení.xml"]));
+        }
+    }
+
+    [TestCase(null)]
+    [TestCase("exe")]
+    public async Task ADocumentWhoseTypeIsNotKnownFromItsContentOffersItsDownloadUnderItsName(string? detected)
+    {
+        await using var ctx = NewContext(out _, out var previews, out var downloader, out _);
+
+        previews.DetectedExtension = detected;
+        var file = File("Potvrzení.v2.p7m");
+        var component = Render(ctx, [file], file.FileId, static _ => SignedFile.Sign("text"u8.ToArray(), detached: false));
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.Find(".ec-preview-message-title").TextContent, Is.EqualTo(Unsupported)));
+        await component.Find(".ec-preview-message .ec-button-primary").ClickAsync(new());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(previews.Detected, Has.Count.EqualTo(1));
+            Assert.That(downloader.DownloadedContents.Select(static content => content.FileName), Is.EqualTo(["Potvrzení.v2"]));
+        }
+    }
+
+    [Test]
+    public async Task ADetectionThatFailsKeepsTheDocumentUnderItsName()
+    {
+        await using var ctx = NewContext(out _, out var previews, out var downloader, out _);
+
+        previews.Fails = true;
+        var file = File("Potvrzení.p7s");
+        var component = Render(ctx, [file], file.FileId, static _ => SignedFile.Sign(XmlBytes, detached: false));
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.Find(".ec-preview-message-title").TextContent, Is.EqualTo(Unsupported)));
+        await component.Find("button[aria-label='Stáhnout dokument']").ClickAsync(new());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.FindAll(".ec-preview-signers"), Has.Count.EqualTo(1));
+            Assert.That(downloader.DownloadedContents.Select(static content => content.FileName), Is.EqualTo(["Potvrzení"]));
         }
     }
 
