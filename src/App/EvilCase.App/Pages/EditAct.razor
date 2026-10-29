@@ -154,7 +154,7 @@
     private IReadOnlyList<EcCrumb> Crumbs => this.act is null
         ? [new EcCrumb("Spisy", "/cases")]
         : [
-            new EcCrumb("Spisy", "/cases"),
+            .. CaseCrumbs.Through(this.act.CaseAncestors),
             new EcCrumb(this.act.CaseTitle, $"/cases/{this.act.CaseId}"),
             new EcCrumb(this.act.Title, ActRoutes.Detail(this.ActId)),
             new EcCrumb("Upravit", null),

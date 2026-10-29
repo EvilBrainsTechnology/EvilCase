@@ -1,4 +1,5 @@
 using EvilBrains.EvilCase.Api.Contract.Acts;
+using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.Business.Entities;
@@ -20,6 +21,10 @@ internal static class ActDetailQuery
                 CaseId = act.CaseId,
                 CaseNumber = act.Case!.CaseNumber,
                 CaseTitle = act.Case.Title,
+                CaseAncestors = DatabaseFunctions.CaseAncestors(act.CaseId)
+                    .OrderByDescending(static ancestor => ancestor.Depth)
+                    .Select(static ancestor => new CaseCrumb { CaseId = ancestor.CaseId, Title = ancestor.Title })
+                    .ToList(),
                 CaseStatus = act.Case.Status,
                 ActNumber = act.ActNumber,
                 ExternalActNumber = act.ExternalActNumber,

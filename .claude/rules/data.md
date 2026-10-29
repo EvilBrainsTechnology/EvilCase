@@ -15,7 +15,7 @@ an entity; below is what neither says.
 - An index only where a query the code issues needs it; a unique index stands as a constraint.
 - A test reads check constraints from `IDesignTimeModel`; `context.Model` has dropped them.
 - The application reads and writes through `IDbSession.Current`, always through the entity's
-  typed `DbSet`; a `DbContext` never leaves its DI scope.
+  typed `DbSet` or a mapped SQL function; a `DbContext` never leaves its DI scope.
 - A read of one row ends in `Single` or `SingleOrDefault`; `First` only where more rows may match.
 - A change to an entity changes the sample-data seeder in the same commit.
 

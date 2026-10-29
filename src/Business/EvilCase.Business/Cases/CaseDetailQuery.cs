@@ -45,6 +45,10 @@ internal static class CaseDetailQuery
                         Status = @case.ParentCase.Status,
                         Changed = @case.ParentCase.Updated ?? @case.ParentCase.Created,
                     },
+                Ancestors = DatabaseFunctions.CaseAncestors(@case.Id)
+                    .OrderByDescending(static ancestor => ancestor.Depth)
+                    .Select(static ancestor => new CaseCrumb { CaseId = ancestor.CaseId, Title = ancestor.Title })
+                    .ToList(),
                 Labels = @case.Labels
                     .OrderBy(static assignment => EF.Functions.Collate(assignment.Label!.Name, DatabaseFunctions.CzechCollation))
                     .Select(static assignment => new LabelItem

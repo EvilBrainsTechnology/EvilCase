@@ -32,7 +32,7 @@ název, datum a stav, v editaci i spisová značka; ostatní pole jsou nepovinn�
   jde rodič vybrat z kterýchkoli spisů tenantu kromě samotného spisu. Cyklus se pozná až při
   uložení.
 - UI zobrazuje jen ploché seznamy: detail spisu ukazuje odkaz na rodiče a seznam přímých
-  podřízených spisů. Žádný strom.
+  podřízených spisů, drobečky celou cestu od kořenového spisu (SDD-016). Žádný strom.
 
 ### Externí spisová značka
 

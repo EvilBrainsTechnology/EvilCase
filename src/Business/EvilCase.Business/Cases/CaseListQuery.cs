@@ -43,7 +43,7 @@ internal static class CaseListQuery
     }
 
     /// <summary>
-    /// A named parent takes precedence over the scope and leaves its direct children only; no read
+    /// A named parent takes precedence over the scope and leaves its direct children only; no list
     /// walks deeper (SDD-009).
     /// </summary>
     public static IQueryable<Case> UnderParent(this IQueryable<Case> cases, Guid? parentCaseId, CaseListScope scope)

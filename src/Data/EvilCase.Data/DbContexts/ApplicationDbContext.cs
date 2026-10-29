@@ -53,6 +53,17 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         modelBuilder
             .HasDbFunction(typeof(DatabaseFunctions).GetMethod(nameof(DatabaseFunctions.Unaccent), [typeof(string)])!)
             .HasName("immutable_unaccent");
+
+        modelBuilder
+            .HasDbFunction(typeof(DatabaseFunctions).GetMethod(nameof(DatabaseFunctions.CaseAncestors), [typeof(Guid)])!)
+            .HasName("case_ancestors");
+
+        // A case stands on a path once, so its id keys the row.
+        modelBuilder.Entity<CaseAncestor>()
+            .HasKey(static ancestor => ancestor.CaseId);
+
+        modelBuilder.Entity<CaseAncestor>()
+            .ToTable((string?)null);
     }
 
     private static void ConfigureExtensions(ModelBuilder modelBuilder)

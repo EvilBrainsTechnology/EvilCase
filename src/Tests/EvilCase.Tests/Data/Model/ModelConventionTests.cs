@@ -20,7 +20,10 @@ public class ModelConventionTests : ModelFixture
             .Select(static property => property.PropertyType.GetGenericArguments()[0])
             .ToList();
 
-        var entities = Model.GetEntityTypes().Select(static entityType => entityType.ClrType).ToList();
+        var entities = Model.GetEntityTypes()
+            .Select(static entityType => entityType.ClrType)
+            .Where(static entity => entity != typeof(CaseAncestor)) // read through the case_ancestors function
+            .ToList();
 
         Assert.That(entities, Is.Not.Empty);
 

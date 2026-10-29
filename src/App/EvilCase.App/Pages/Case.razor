@@ -187,7 +187,10 @@
 
     private IReadOnlyList<EcCrumb> Crumbs => this.Detail is null
         ? [new EcCrumb("Spisy", "/cases")]
-        : [new EcCrumb("Spisy", "/cases"), new EcCrumb(this.Detail.Title, null)];
+        : [
+            .. CaseCrumbs.Through(this.Detail.Ancestors),
+            new EcCrumb(this.Detail.Title, null),
+        ];
 
     private IReadOnlyList<EcMenuItem> CaseActions
     {

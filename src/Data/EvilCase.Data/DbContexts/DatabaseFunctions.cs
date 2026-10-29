@@ -1,3 +1,5 @@
+using EvilBrains.EvilCase.Data.Entities;
+
 namespace EvilBrains.EvilCase.Data.DbContexts;
 
 /// <summary>
@@ -16,5 +18,13 @@ public static class DatabaseFunctions
     public static string Unaccent(string value)
     {
         throw new NotSupportedException($"{nameof(Unaccent)} runs in the database and has no in-memory form.");
+    }
+
+    /// <summary>
+    /// The cases above the case, through the function the <c>CaseAncestors</c> migration creates.
+    /// </summary>
+    public static IQueryable<CaseAncestor> CaseAncestors(Guid caseId)
+    {
+        throw new NotSupportedException($"{nameof(CaseAncestors)} runs in the database and has no in-memory form.");
     }
 }

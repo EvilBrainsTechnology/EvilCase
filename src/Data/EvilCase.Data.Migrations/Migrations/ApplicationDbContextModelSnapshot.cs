@@ -17,7 +17,7 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.12")
+                .HasAnnotation("ProductVersion", "10.0.14")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "pg_trgm");
@@ -175,6 +175,24 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                         .IsUnique();
 
                     b.ToTable("Cases");
+                });
+
+            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.CaseAncestor", b =>
+                {
+                    b.Property<Guid>("CaseId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Depth")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.HasKey("CaseId");
+
+                    b.ToTable((string)null);
                 });
 
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Comment", b =>
