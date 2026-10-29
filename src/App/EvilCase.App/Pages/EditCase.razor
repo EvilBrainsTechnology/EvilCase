@@ -141,7 +141,11 @@
 
     private IReadOnlyList<EcCrumb> Crumbs => this.caseDetail is null
         ? [new EcCrumb("Spisy", "/cases")]
-        : [.. CaseCrumbs.Through(this.caseDetail.Ancestors), new EcCrumb(this.caseDetail.Title, $"/cases/{this.CaseId}"), new EcCrumb("Upravit", null)];
+        : [
+            .. CaseCrumbs.Through(this.caseDetail.Ancestors),
+            new EcCrumb(this.caseDetail.Title, $"/cases/{this.CaseId}"),
+            new EcCrumb("Upravit", null),
+        ];
 
     protected override void OnInitialized()
     {

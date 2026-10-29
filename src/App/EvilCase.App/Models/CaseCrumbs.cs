@@ -10,6 +10,10 @@ public static class CaseCrumbs
     /// </summary>
     public static IReadOnlyList<EcCrumb> Through(IEnumerable<CaseCrumb> path)
     {
-        return [new EcCrumb("Spisy", "/cases"), .. path.Select(static @case => new EcCrumb(@case.Title, $"/cases/{@case.CaseId}"))];
+        return
+        [
+            new EcCrumb("Spisy", "/cases"),
+            .. path.Select(static @case => new EcCrumb(@case.Title, $"/cases/{@case.CaseId}")),
+        ];
     }
 }
