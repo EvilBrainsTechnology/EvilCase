@@ -830,7 +830,13 @@ public class CaseRenderTests
 
         var card = component.FindComponent<FilesCard>().Instance;
 
-        component.FindComponent<InputFile>().UploadFiles(InputFileContent.CreateFromText("b", "b.pdf"));
+        var picked = Substitute.For<IBrowserFile>();
+        picked.Name.Returns("b.pdf");
+        picked.Size.Returns(1);
+
+        // UploadFiles blocks until the upload ends, so the change is raised without waiting for it.
+        var input = component.FindComponent<InputFile>().Instance;
+        var upload = component.InvokeAsync(async () => await input.OnChange.InvokeAsync(new InputFileChangeEventArgs([picked])));
 
         await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-file-uploading"), Has.Count.EqualTo(1)));
 
@@ -848,10 +854,37 @@ public class CaseRenderTests
 
         stored.Add(File("b.pdf"));
         gate.SetResult();
+        await upload;
 
         await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-file-uploading"), Is.Empty));
 
         Assert.That(component.FindComponent<FilesCard>().Instance, Is.SameAs(card), "the list holds a file again, so the card stays wide");
+    }
+
+    [Test]
+    public async Task AnotherCaseGetsItsOwnFilesCard()
+    {
+        await using var ctx = new BunitContext();
+
+        var caseId = Guid.CreateVersion7();
+        var otherId = Guid.CreateVersion7();
+
+        var (cases, _, _, _) = Serve(ctx, caseId, Detail(caseId));
+        cases.GetCase(otherId, Arg.Any<CancellationToken>()).Returns(Task.FromResult(Detail(otherId)));
+
+        var files = ctx.Services.GetRequiredService<ICaseFilesClient>();
+        files.ListCaseFiles(caseId, Arg.Any<CancellationToken>()).Returns(Task.FromResult(new FileListResponse { Items = [File("a.pdf")] }));
+        files.ListCaseFiles(otherId, Arg.Any<CancellationToken>()).Returns(Task.FromResult(new FileListResponse { Items = [] }));
+
+        var component = ctx.Render<Case>(parameters => parameters.Add(static page => page.CaseId, caseId));
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-detail-main .ec-file-card"), Has.Count.EqualTo(1)));
+
+        component.Render(parameters => parameters.Add(static page => page.CaseId, otherId));
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-detail-aside .ec-file-card-compact"), Has.Count.EqualTo(1)));
+
+        Assert.That(component.FindAll(".ec-detail-main .ec-file-card"), Is.Empty);
     }
 
     private static ICaseFilesClient ServeFiles(BunitContext ctx, IReadOnlyList<FileListItem> files)
