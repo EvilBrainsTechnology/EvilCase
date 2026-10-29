@@ -62,7 +62,7 @@ public class CaseRenderTests
                 component.Find(".ec-detail-facts").ChildNodes.OfType<IText>().Select(static node => node.Data.Trim()),
                 Is.All.Empty,
                 "the row of data holds only facts");
-            Assert.That(component.Find(".ec-crumb.ec-crumb-mono[aria-current=page]").TextContent, Is.EqualTo("EC/20260821-001"));
+            Assert.That(component.Find(".ec-crumb[aria-current=page]").TextContent, Is.EqualTo("Přestupek"), "the current crumb names the case");
         }
     }
 

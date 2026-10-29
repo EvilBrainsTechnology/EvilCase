@@ -16,11 +16,11 @@
 
                         if (crumb.Href is null)
                         {
-                            <span class="ec-crumb @(crumb.Mono ? "ec-crumb-mono" : null)" aria-current="page">@crumb.Text</span>
+                            <span class="ec-crumb" aria-current="page">@crumb.Text</span>
                         }
                         else
                         {
-                            <a class="ec-crumb @(crumb.Mono ? "ec-crumb-mono" : null)" href="@crumb.Href">@crumb.Text</a>
+                            <a class="ec-crumb" href="@crumb.Href">@crumb.Text</a>
                         }
                     }
                 </nav>

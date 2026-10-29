@@ -98,7 +98,7 @@ public class ActRenderTests
                 component.FindAll(".ec-detail-fact-name").Select(static node => node.FirstChild!.TextContent),
                 Is.EqualTo(["Datum úkonu", "Číslo jednací", "Externí číslo jednací", "Odesílatel", "Štítky"]),
                 "the row of data follows the design");
-            Assert.That(component.Find(".ec-crumb.ec-crumb-mono[aria-current=page]").TextContent, Is.EqualTo("EC/20250528-001/20250902-001"));
+            Assert.That(component.Find(".ec-crumb[aria-current=page]").TextContent, Is.EqualTo("Rozhodnutí o přestupku"), "the current crumb names the act");
         }
     }
 

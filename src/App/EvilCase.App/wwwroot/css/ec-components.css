@@ -228,10 +228,6 @@ html {
     color: var(--ec-text);
 }
 
-.ec-crumb-mono {
-    font-family: var(--ec-font-mono);
-}
-
 .ec-crumb-separator {
     color: var(--ec-text-muted);
 }

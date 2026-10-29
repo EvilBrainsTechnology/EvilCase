@@ -29,7 +29,7 @@ public class EcPageHeaderRenderTests
         EcCrumb[] crumbs =
         [
             new EcCrumb("Spisy", "/spisy"),
-            new EcCrumb("EC/20260821-001", "/spisy/1"),
+            new EcCrumb("Přestupek", "/spisy/1"),
             new EcCrumb("Úkon", Href: null),
         ];
 
