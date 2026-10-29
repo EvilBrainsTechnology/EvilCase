@@ -21,8 +21,8 @@ public class ModelConventionTests : ModelFixture
             .ToList();
 
         var entities = Model.GetEntityTypes()
-            .Where(static entityType => entityType.GetTableName() is not null)
             .Select(static entityType => entityType.ClrType)
+            .Where(static entity => entity != typeof(CaseAncestor)) // read through the case_ancestors function
             .ToList();
 
         Assert.That(entities, Is.Not.Empty);

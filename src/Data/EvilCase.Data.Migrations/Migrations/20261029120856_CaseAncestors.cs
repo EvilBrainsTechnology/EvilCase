@@ -8,26 +8,28 @@ public partial class CaseAncestors : Migration
 {
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        // CYCLE stops the walk at a case already on its path; the case asked for never counts as its own ancestor.
+        // The walk stays in the tenant of the case asked for, and CYCLE stops it at a case already
+        // on its path; the case asked for never counts as its own ancestor.
         migrationBuilder.Sql(
             """
             CREATE FUNCTION case_ancestors(case_id uuid)
-            RETURNS TABLE ("CaseId" uuid, "Depth" integer)
+            RETURNS TABLE ("CaseId" uuid, "Title" character varying(256), "Depth" integer)
             LANGUAGE sql
             STABLE
             AS $$
-                WITH RECURSIVE ancestors ("CaseId", "Depth") AS (
-                    SELECT c."ParentCaseId", 1
+                WITH RECURSIVE ancestors ("CaseId", "TenantId", "Depth") AS (
+                    SELECT c."ParentCaseId", c."TenantId", 1
                     FROM "Cases" c
                     WHERE c."Id" = case_id AND c."ParentCaseId" IS NOT NULL
                     UNION ALL
-                    SELECT c."ParentCaseId", a."Depth" + 1
+                    SELECT c."ParentCaseId", a."TenantId", a."Depth" + 1
                     FROM ancestors a
-                    JOIN "Cases" c ON c."Id" = a."CaseId"
+                    JOIN "Cases" c ON c."Id" = a."CaseId" AND c."TenantId" = a."TenantId"
                     WHERE c."ParentCaseId" IS NOT NULL AND a."CaseId" <> case_id
                 ) CYCLE "CaseId" SET "IsCycle" USING "Path"
-                SELECT a."CaseId", a."Depth"
+                SELECT a."CaseId", c."Title", a."Depth"
                 FROM ancestors a
+                JOIN "Cases" c ON c."Id" = a."CaseId" AND c."TenantId" = a."TenantId"
                 WHERE NOT a."IsCycle" AND a."CaseId" <> case_id;
             $$;
             """);

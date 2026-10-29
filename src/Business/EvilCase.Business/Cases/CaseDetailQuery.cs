@@ -9,7 +9,7 @@ namespace EvilBrains.EvilCase.Business.Cases;
 
 internal static class CaseDetailQuery
 {
-    public static async Task<CaseDetail?> CaseDetailOf(this ApplicationDbContext context, Guid caseId, CancellationToken token)
+    public static async Task<CaseDetail?> DetailOf(ApplicationDbContext context, Guid caseId, CancellationToken token)
     {
         return await context.Cases
             .WithId(caseId)
@@ -45,9 +45,8 @@ internal static class CaseDetailQuery
                         Changed = @case.ParentCase.Updated ?? @case.ParentCase.Created,
                     },
                 Ancestors = context.CaseAncestors(@case.Id)
-                    .Join(context.Cases, static ancestor => ancestor.CaseId, static parent => parent.Id, static (ancestor, parent) => new { ancestor.Depth, parent.Id, parent.Title })
-                    .OrderByDescending(static step => step.Depth)
-                    .Select(static step => new CaseCrumb { CaseId = step.Id, Title = step.Title })
+                    .OrderByDescending(static ancestor => ancestor.Depth)
+                    .Select(static ancestor => new CaseCrumb { CaseId = ancestor.CaseId, Title = ancestor.Title })
                     .ToList(),
                 Labels = @case.Labels
                     .OrderBy(static assignment => EF.Functions.Collate(assignment.Label!.Name, DatabaseFunctions.CzechCollation))

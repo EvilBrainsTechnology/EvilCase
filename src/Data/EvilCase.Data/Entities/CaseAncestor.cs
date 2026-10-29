@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace EvilBrains.EvilCase.Data.Entities;
 
 /// <summary>
@@ -6,6 +8,9 @@ namespace EvilBrains.EvilCase.Data.Entities;
 public sealed record CaseAncestor
 {
     public Guid CaseId { get; init; }
+
+    [MaxLength(256)]
+    public required string Title { get; init; }
 
     public int Depth { get; init; }
 }

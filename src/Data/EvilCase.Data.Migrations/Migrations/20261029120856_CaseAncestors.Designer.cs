@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EvilBrains.EvilCase.Data.Migrations.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20261029115748_CaseAncestors")]
+    [Migration("20261029120856_CaseAncestors")]
     partial class CaseAncestors
     {
         /// <inheritdoc />
@@ -187,6 +187,11 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
 
                     b.Property<int>("Depth")
                         .HasColumnType("integer");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.HasKey("CaseId");
 

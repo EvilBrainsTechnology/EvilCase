@@ -62,4 +62,22 @@ public class CasePathTests : TenantFixture
 
         Assert.That(detail!.Ancestors.Select(static crumb => crumb.CaseId), Is.EqualTo([second.Id]));
     }
+
+    [Test]
+    public async Task TheAncestorsAndTheLabelsOfOneCaseStandSideBySide()
+    {
+        var root = await this.Tenant.AddCase(Day, "Kořen");
+        var middle = await this.Tenant.AddCase(Day, "Prostřední", parentCaseId: root.Id);
+        var leaf = await this.Tenant.AddCase(Day, "List", parentCaseId: middle.Id);
+        await this.Tenant.AddCaseLabel(leaf, await this.Tenant.AddLabel("InfZ"));
+        await this.Tenant.AddCaseLabel(leaf, await this.Tenant.AddLabel("Soud"));
+
+        var detail = await new CaseReader(new FixedDbSession(this.Tenant.Context)).GetCaseDetail(leaf.Id, CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(detail!.Ancestors.Select(static crumb => crumb.Title), Is.EqualTo(["Kořen", "Prostřední"]));
+            Assert.That(detail.Labels.Select(static label => label.Name), Is.EqualTo(["InfZ", "Soud"]));
+        }
+    }
 }

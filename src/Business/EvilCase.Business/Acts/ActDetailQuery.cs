@@ -11,7 +11,7 @@ namespace EvilBrains.EvilCase.Business.Acts;
 
 internal static class ActDetailQuery
 {
-    public static async Task<ActDetail?> ActDetailOf(this ApplicationDbContext context, Guid actId, CancellationToken token)
+    public static async Task<ActDetail?> DetailOf(ApplicationDbContext context, Guid actId, CancellationToken token)
     {
         return await context.Acts
             .WithId(actId)
@@ -22,9 +22,8 @@ internal static class ActDetailQuery
                 CaseNumber = act.Case!.CaseNumber,
                 CaseTitle = act.Case.Title,
                 CaseAncestors = context.CaseAncestors(act.CaseId)
-                    .Join(context.Cases, static ancestor => ancestor.CaseId, static parent => parent.Id, static (ancestor, parent) => new { ancestor.Depth, parent.Id, parent.Title })
-                    .OrderByDescending(static step => step.Depth)
-                    .Select(static step => new CaseCrumb { CaseId = step.Id, Title = step.Title })
+                    .OrderByDescending(static ancestor => ancestor.Depth)
+                    .Select(static ancestor => new CaseCrumb { CaseId = ancestor.CaseId, Title = ancestor.Title })
                     .ToList(),
                 CaseStatus = act.Case.Status,
                 ActNumber = act.ActNumber,

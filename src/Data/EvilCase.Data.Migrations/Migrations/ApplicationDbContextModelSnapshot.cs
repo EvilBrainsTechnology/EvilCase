@@ -185,6 +185,11 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.Property<int>("Depth")
                         .HasColumnType("integer");
 
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
                     b.HasKey("CaseId");
 
                     b.ToTable((string)null);

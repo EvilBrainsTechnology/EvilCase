@@ -34,7 +34,7 @@ internal sealed class ActReader(IDbSession dbSession) : IActReader
 
     public async Task<ActDetail?> GetActDetail(Guid actId, CancellationToken token)
     {
-        var detail = await dbSession.Current.ActDetailOf(actId, token);
+        var detail = await ActDetailQuery.DetailOf(dbSession.Current, actId, token);
 
         if (detail is null)
             return null;
