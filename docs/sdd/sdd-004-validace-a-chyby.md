@@ -29,7 +29,7 @@ Každá chybová odpověď je Problem Details (RFC 9457).
 | 401 | bez přihlášení |
 | 403 | úprava nebo smazání komentáře, který napsal jiný uživatel |
 | 404 | neexistující id v routě — i id z cizího tenantu |
-| 409 | konflikt stavu: obsazené číslo, odkazovaný kontakt, cyklus v hierarchii; neexistující id v těle požadavku; obnova přihlášení, kterou právě provedla jiná záložka |
+| 409 | konflikt stavu: obsazené číslo nebo jméno, odkazovaný kontakt, cyklus v hierarchii, jediná verze souboru; neexistující id v těle požadavku; obnova přihlášení, kterou právě provedla jiná záložka |
 | 413 | upload nad limit velikosti |
 | 423 | uzamčený účet |
 | 429 | překročený limit požadavků |

@@ -17,13 +17,14 @@ Komentáře spisů a úkonů.
   (SDD-004) a UI mu ovládací prvky nenabízí.
 - UI: chronologický seznam na detailu spisu a úkonu, přidání a editace inline, mazání
   s potvrzením. Každý komentář nese autora, okamžik vzniku a u upraveného i okamžik úpravy.
-- Autor se zobrazuje jen u komentářů, e-mailem uživatele — User jiné jméno nemá; jinde v UI
-  `UserId` nefiguruje.
+- Autor se zobrazuje jen u komentářů a u verzí souborů (SDD-012), e-mailem uživatele — User jiné
+  jméno nemá; jinde v UI `UserId` nefiguruje.
 
 ## Rozhodnutí
 
 - Editace cizího komentáře: kdokoli v tenantu / jen autor. Platí jen autor.
-- Zobrazení autora: všude / jen u komentářů. Platí jen u komentářů.
+- Zobrazení autora: všude / jen u komentářů a verzí souborů. Platí jen u komentářů a verzí
+  souborů.
 
 ## Dopady
 

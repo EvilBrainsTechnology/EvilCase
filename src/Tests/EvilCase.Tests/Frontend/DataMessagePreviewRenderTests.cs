@@ -149,7 +149,7 @@ public class DataMessagePreviewRenderTests
         using var ctx = NewContext(out _, out _);
         var signatures = Substitute.For<IFileSignaturesClient>();
         var fileId = Guid.CreateVersion7();
-        signatures.ReadFileSignature(fileId, Arg.Any<CancellationToken>()).Returns(new FileSignatureResponse { State = FileSignatureState.Unverifiable });
+        signatures.ReadFileSignature(fileId, Arg.Any<int?>(), Arg.Any<CancellationToken>()).Returns(new FileSignatureResponse { State = FileSignatureState.Unverifiable });
         ctx.Services.AddSingleton(signatures);
 
         var component = ctx.Render<DataMessagePreview>(parameters => parameters

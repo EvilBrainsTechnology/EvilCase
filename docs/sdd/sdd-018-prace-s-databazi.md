@@ -41,7 +41,7 @@ a refresh tokeny filtr nemají a jmenují řádku jejím id.
 ### Historizace
 
 - Každý zápis do historizované tabulky — `Accounts`, `Tenants`, `Users`, `Contacts`, `Cases`,
-  `Acts`, `FileAssets`, `Comments` — zůstává navždy jako řádek se svým operátorem a časem, i po
+  `Acts`, `FileAssets`, `FileVersions`, `Comments` — zůstává navždy jako řádek se svým operátorem a časem, i po
   smazání původního řádku. `RefreshTokens` historii nemá: rotují při každém refreshi a nesou hash
   tokenu.
 - Historický řádek je jen k čtení, žádný zápis ho nezmění ani nesmaže.

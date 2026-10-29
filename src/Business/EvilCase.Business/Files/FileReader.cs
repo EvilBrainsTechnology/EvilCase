@@ -45,24 +45,36 @@ internal sealed class FileReader(IDbSession dbSession, IFileBlobStore blobStore)
         return DetachedSignatures.WithSignatureFiles(files);
     }
 
-    public async Task<FileDownload?> OpenFileContent(Guid fileId, CancellationToken token)
+    public async Task<FileDownload?> OpenFileContent(Guid fileId, int? version, CancellationToken token)
     {
-        var file = await dbSession.Current.FileAssets
-            .WithId(fileId)
-            .SingleOrDefaultAsync(token);
-
-        if (file is null)
+        var fileVersion = await dbSession.Current.FileVersions.ReadFileVersion(fileId, version, token);
+        if (fileVersion is null)
             return null;
 
-        var content = blobStore.ReadFileBlob(file.StoragePath);
+        var content = blobStore.ReadFileBlob(fileVersion.StoragePath);
         if (content is null)
             return null;
 
         return new FileDownload
         {
-            FileName = file.FileName,
-            MediaType = file.MediaType ?? DefaultMediaType,
+            FileName = fileVersion.FileAsset!.FileName,
+            MediaType = fileVersion.MediaType ?? DefaultMediaType,
             Content = content,
         };
+    }
+
+    public async Task<IReadOnlyList<FileVersionItem>?> ListFileVersions(Guid fileId, CancellationToken token)
+    {
+        var context = dbSession.Current;
+
+        var fileExists = await context.FileAssets.Exists(fileId, token);
+        if (!fileExists)
+            return null;
+
+        return await context.FileVersions
+            .OfFile(fileId)
+            .AsVersionItems(context.Users)
+            .InNewestFirstOrder()
+            .ToListAsync(token);
     }
 }

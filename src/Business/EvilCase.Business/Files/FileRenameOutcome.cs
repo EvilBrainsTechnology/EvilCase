@@ -5,4 +5,6 @@ public enum FileRenameOutcome
     Renamed = 0,
 
     NotFound = 1,
+
+    NameTaken = 2,
 }

@@ -41,9 +41,57 @@ public class FileSignatureReaderTests : TenantFixture
     {
         var file = await this.AddSealedFile();
 
-        var signature = await this.Reader(new StubSignatureRevocation(SignatureRevocationStatus.NotRevoked)).ReadFileSignature(file.Id, CancellationToken.None);
+        var signature = await this.Reader(new StubSignatureRevocation(SignatureRevocationStatus.NotRevoked)).ReadFileSignature(file.Id, version: null, CancellationToken.None);
 
         Assert.That(signature?.State, Is.EqualTo(FileSignatureState.Valid));
+    }
+
+    [Test]
+    public async Task AnOlderVersionIsReadWhenTheRequestNamesIt()
+    {
+        var file = await this.AddSealedFile();
+        var firstVersion = file.Versions.Single();
+        var secondVersion = await this.Tenant.AddFileVersion(file);
+        this.ServeSealedMessage(secondVersion.StoragePath);
+
+        var signature = await this.Reader(new StubSignatureRevocation(SignatureRevocationStatus.NotRevoked)).ReadFileSignature(file.Id, version: 1, CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(signature?.State, Is.EqualTo(FileSignatureState.Valid));
+            this.blobs.Received(1).ReadFileBlob(firstVersion.StoragePath);
+            this.blobs.DidNotReceive().ReadFileBlob(secondVersion.StoragePath);
+        }
+    }
+
+    [Test]
+    public async Task AMissingVersionIsNotFound()
+    {
+        var file = await this.AddSealedFile();
+
+        var signature = await this.Reader(new StubSignatureRevocation(SignatureRevocationStatus.NotRevoked)).ReadFileSignature(file.Id, version: 2, CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(signature, Is.Null);
+            this.blobs.DidNotReceiveWithAnyArgs().ReadFileBlob(default!);
+        }
+    }
+
+    [Test]
+    public async Task ANewVersionIsNeverAnsweredFromTheVerdictBeforeIt()
+    {
+        var file = await this.AddSealedFile();
+        var reader = this.Reader(new StubSignatureRevocation(SignatureRevocationStatus.NotRevoked));
+
+        await reader.ReadFileSignature(file.Id, version: null, CancellationToken.None);
+
+        var secondVersion = await this.Tenant.AddFileVersion(file);
+        this.ServeSealedMessage(secondVersion.StoragePath);
+
+        await reader.ReadFileSignature(file.Id, version: null, CancellationToken.None);
+
+        this.blobs.Received(1).ReadFileBlob(secondVersion.StoragePath);
     }
 
     [Test]
@@ -52,9 +100,9 @@ public class FileSignatureReaderTests : TenantFixture
         await using var other = await TestTenant.Create();
         var otherCase = await other.AddCase(Day);
         var otherFile = await other.AddCaseFile(otherCase, "cizi.zfo");
-        this.ServeSealedMessage(otherFile.StoragePath);
+        this.ServeSealedMessage(otherFile.Versions.Single().StoragePath);
 
-        var signature = await this.Reader(new StubSignatureRevocation(SignatureRevocationStatus.NotRevoked)).ReadFileSignature(otherFile.Id, CancellationToken.None);
+        var signature = await this.Reader(new StubSignatureRevocation(SignatureRevocationStatus.NotRevoked)).ReadFileSignature(otherFile.Id, version: null, CancellationToken.None);
 
         Assert.That(signature, Is.Null, "the file id alone never reaches another tenant's file");
     }
@@ -62,7 +110,7 @@ public class FileSignatureReaderTests : TenantFixture
     [Test]
     public async Task AnUnknownFileIsNotFound()
     {
-        var signature = await this.Reader(new StubSignatureRevocation(SignatureRevocationStatus.NotRevoked)).ReadFileSignature(Guid.CreateVersion7(), CancellationToken.None);
+        var signature = await this.Reader(new StubSignatureRevocation(SignatureRevocationStatus.NotRevoked)).ReadFileSignature(Guid.CreateVersion7(), version: null, CancellationToken.None);
 
         Assert.That(signature, Is.Null);
     }
@@ -73,7 +121,7 @@ public class FileSignatureReaderTests : TenantFixture
         var @case = await this.Tenant.AddCase(Day);
         var file = await this.Tenant.AddCaseFile(@case, "zprava.zfo");
 
-        var signature = await this.Reader(new StubSignatureRevocation(SignatureRevocationStatus.NotRevoked)).ReadFileSignature(file.Id, CancellationToken.None);
+        var signature = await this.Reader(new StubSignatureRevocation(SignatureRevocationStatus.NotRevoked)).ReadFileSignature(file.Id, version: null, CancellationToken.None);
 
         Assert.That(signature, Is.Null);
     }
@@ -84,7 +132,7 @@ public class FileSignatureReaderTests : TenantFixture
         var @case = await this.Tenant.AddCase(Day);
         var file = await this.Tenant.AddCaseFile(@case, "zprava.zfo", sizeBytes: FileLimits.MaxDataMessageBytes + 1);
 
-        var signature = await this.Reader(new StubSignatureRevocation(SignatureRevocationStatus.NotRevoked)).ReadFileSignature(file.Id, CancellationToken.None);
+        var signature = await this.Reader(new StubSignatureRevocation(SignatureRevocationStatus.NotRevoked)).ReadFileSignature(file.Id, version: null, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -101,14 +149,14 @@ public class FileSignatureReaderTests : TenantFixture
         var revocation = new StubSignatureRevocation(SignatureRevocationStatus.NotRevoked);
         var reader = this.Reader(revocation);
 
-        await reader.ReadFileSignature(file.Id, CancellationToken.None);
-        var second = await reader.ReadFileSignature(file.Id, CancellationToken.None);
+        await reader.ReadFileSignature(file.Id, version: null, CancellationToken.None);
+        var second = await reader.ReadFileSignature(file.Id, version: null, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(second?.State, Is.EqualTo(FileSignatureState.Valid));
             Assert.That(revocation.Checks, Is.EqualTo(1), "a verified signature is not verified again while cached");
-            this.blobs.Received(1).ReadFileBlob(file.StoragePath);
+            this.blobs.Received(1).ReadFileBlob(file.Versions.Single().StoragePath);
         }
     }
 
@@ -119,8 +167,8 @@ public class FileSignatureReaderTests : TenantFixture
         var revocation = new StubSignatureRevocation(SignatureRevocationStatus.Unknown);
         var reader = this.Reader(revocation);
 
-        await reader.ReadFileSignature(file.Id, CancellationToken.None);
-        var second = await reader.ReadFileSignature(file.Id, CancellationToken.None);
+        await reader.ReadFileSignature(file.Id, version: null, CancellationToken.None);
+        var second = await reader.ReadFileSignature(file.Id, version: null, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -133,22 +181,22 @@ public class FileSignatureReaderTests : TenantFixture
     public async Task ConcurrentReadsOfOneFileShareOneVerification()
     {
         var file = await this.AddSealedFile();
-        var zfo = await ReadAll(this.blobs.ReadFileBlob(file.StoragePath)!);
+        var zfo = await ReadAll(this.blobs.ReadFileBlob(file.Versions.Single().StoragePath)!);
         var gate = new TaskCompletionSource();
         var reading = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        this.blobs.ReadFileBlob(file.StoragePath).Returns(_ => new GatedStream(zfo, gate.Task, reading));
+        this.blobs.ReadFileBlob(file.Versions.Single().StoragePath).Returns(_ => new GatedStream(zfo, gate.Task, reading));
         var revocation = new StubSignatureRevocation(SignatureRevocationStatus.Unknown);
         var reader = this.Reader(revocation);
 
-        var first = reader.ReadFileSignature(file.Id, CancellationToken.None);
+        var first = reader.ReadFileSignature(file.Id, version: null, CancellationToken.None);
 
         // The second read starts once the first is past the database, which one context serves one query at a time.
         await reading.Task;
-        var second = reader.ReadFileSignature(file.Id, CancellationToken.None);
+        var second = reader.ReadFileSignature(file.Id, version: null, CancellationToken.None);
         gate.SetResult();
         await Task.WhenAll(first, second);
 
-        var afterwards = await reader.ReadFileSignature(file.Id, CancellationToken.None);
+        var afterwards = await reader.ReadFileSignature(file.Id, version: null, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -179,7 +227,7 @@ public class FileSignatureReaderTests : TenantFixture
     {
         var @case = await this.Tenant.AddCase(Day);
         var file = await this.Tenant.AddCaseFile(@case, "zprava.zfo");
-        this.ServeSealedMessage(file.StoragePath);
+        this.ServeSealedMessage(file.Versions.Single().StoragePath);
 
         return file;
     }

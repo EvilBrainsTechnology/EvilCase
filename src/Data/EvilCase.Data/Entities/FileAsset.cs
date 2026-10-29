@@ -4,7 +4,8 @@ using Microsoft.EntityFrameworkCore;
 namespace EvilBrains.EvilCase.Data.Entities;
 
 /// <summary>
-/// Exactly one of CaseId and ActId is set (check constraint).
+/// Exactly one of CaseId and ActId is set (check constraint). Its name is unique within its case or act, ignoring
+/// case, through indexes the FileVersions migration creates.
 /// </summary>
 [Index(nameof(TenantId))]
 [Index(nameof(CaseId))]
@@ -25,20 +26,6 @@ public sealed record FileAsset : IUserOwnedEntity
     [MaxLength(256)]
     public required string FileName { get; init; }
 
-    /// <summary>
-    /// SHA-256 of the content, lower-case hex.
-    /// </summary>
-    [MaxLength(64)]
-    public required string ContentHash { get; init; }
-
-    public required long SizeBytes { get; init; }
-
-    [MaxLength(128)]
-    public string? MediaType { get; init; }
-
-    [MaxLength(256)]
-    public required string StoragePath { get; init; }
-
     public DateTime Created { get; init; }
 
     public DateTime? Updated { get; init; }
@@ -46,4 +33,6 @@ public sealed record FileAsset : IUserOwnedEntity
     public Case? Case { get; init; }
 
     public Act? Act { get; init; }
+
+    public ICollection<FileVersion> Versions { get; init; } = [];
 }

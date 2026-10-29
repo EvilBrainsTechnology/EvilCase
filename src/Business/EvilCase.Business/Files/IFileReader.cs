@@ -15,7 +15,12 @@ public interface IFileReader
     public Task<IReadOnlyList<FileListItem>?> ListActFiles(Guid actId, CancellationToken token);
 
     /// <summary>
-    /// Null where the file is unknown or its blob is gone.
+    /// The current version where none is named; null where the file or the version is unknown or its blob is gone.
     /// </summary>
-    public Task<FileDownload?> OpenFileContent(Guid fileId, CancellationToken token);
+    public Task<FileDownload?> OpenFileContent(Guid fileId, int? version, CancellationToken token);
+
+    /// <summary>
+    /// Null where the file is unknown.
+    /// </summary>
+    public Task<IReadOnlyList<FileVersionItem>?> ListFileVersions(Guid fileId, CancellationToken token);
 }

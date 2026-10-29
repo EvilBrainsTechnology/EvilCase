@@ -30,6 +30,7 @@ public class ActFilesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult> RenameActFile(
         [FromServices] IFileWriter writer, [FromRoute] Guid actId, [FromRoute] Guid fileId, [FromBody] FileRenameRequest request, CancellationToken token)
     {
@@ -47,6 +48,7 @@ public class ActFilesController : ControllerBase
         {
             FileRenameOutcome.Renamed => this.NoContent(),
             FileRenameOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: FileProblems.NotFound),
+            FileRenameOutcome.NameTaken => this.Problem(detail: "Another file of the act already carries the name.", statusCode: StatusCodes.Status409Conflict, title: FileProblems.NameTaken),
             _ => throw new UnreachableException(),
         };
     }

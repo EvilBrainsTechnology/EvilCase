@@ -38,6 +38,7 @@ public class CaseDeleteTests : TenantFixture
         var actExists = await this.Tenant.Context.Acts.AnyAsync(row => row.Id == act.Id);
         var commentsExist = await this.Tenant.Context.Comments.AnyAsync(row => row.Id == caseComment.Id || row.Id == actComment.Id);
         var filesExist = await this.Tenant.Context.FileAssets.AnyAsync(row => row.Id == caseFile.Id || row.Id == actFile.Id);
+        var versionsExist = await this.Tenant.Context.FileVersions.AnyAsync(row => row.FileAssetId == caseFile.Id || row.FileAssetId == actFile.Id);
 
         using (Assert.EnterMultipleScope())
         {
@@ -46,6 +47,7 @@ public class CaseDeleteTests : TenantFixture
             Assert.That(actExists, Is.False, "the cascade takes the case's acts");
             Assert.That(commentsExist, Is.False, "the cascade takes the comments of the case and of its acts");
             Assert.That(filesExist, Is.False, "the cascade takes the files of the case and of its acts");
+            Assert.That(versionsExist, Is.False, "the cascade takes the files' versions");
         }
     }
 

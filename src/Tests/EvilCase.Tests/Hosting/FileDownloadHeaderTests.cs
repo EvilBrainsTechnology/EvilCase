@@ -35,7 +35,7 @@ public class FileDownloadHeaderTests
         {
             var reader = Substitute.For<IFileReader>();
             reader
-                .OpenFileContent(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+                .OpenFileContent(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>())
                 .Returns(static call =>
                 {
                     var (fileName, mediaType) = Files[call.Arg<Guid>()];

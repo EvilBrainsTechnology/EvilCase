@@ -83,18 +83,22 @@ public class SampleDataSeederTests
         var (context, blobs, _, _) = await RunSampleDataSeeder();
 
         var assets = context.Added<FileAsset>().ToList();
+        var versions = context.Added<FileVersion>().ToList();
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(assets, Has.Count.EqualTo(57), "55 act files, one main-case file and one evidence bundle");
-            Assert.That(blobs.Written, Has.Count.EqualTo(57), "every asset row is backed by exactly one written blob");
-            Assert.That(assets.TrueForAll(asset => blobs.Written.ContainsKey(asset.Id)), Is.True, "every asset id has a blob");
-            Assert.That(assets.TrueForAll(static asset => asset.SizeBytes > 0), Is.True, "every blob has content");
-            Assert.That(assets.TrueForAll(static asset => asset.ContentHash.Length == 64), Is.True, "every asset carries a SHA-256 hash");
-            Assert.That(assets.TrueForAll(static asset => !string.IsNullOrEmpty(asset.StoragePath)), Is.True, "every asset knows where it landed");
-            Assert.That(assets.TrueForAll(static asset => string.Equals(asset.MediaType, "text/plain", StringComparison.Ordinal)), Is.True, "every seeded file is plain text");
+            Assert.That(versions, Has.Count.EqualTo(58), "every file has a first version and the main-case file a second");
+            Assert.That(blobs.Written, Has.Count.EqualTo(58), "every version row is backed by exactly one written blob");
+            Assert.That(versions.TrueForAll(version => blobs.Written.ContainsKey(version.Id)), Is.True, "every version id has a blob");
+            Assert.That(versions.TrueForAll(static version => version.SizeBytes > 0), Is.True, "every blob has content");
+            Assert.That(versions.TrueForAll(static version => version.ContentHash.Length == 64), Is.True, "every version carries a SHA-256 hash");
+            Assert.That(versions.TrueForAll(static version => !string.IsNullOrEmpty(version.StoragePath)), Is.True, "every version knows where it landed");
+            Assert.That(versions.TrueForAll(static version => string.Equals(version.MediaType, "text/plain", StringComparison.Ordinal)), Is.True, "every seeded file is plain text");
             Assert.That(assets.TrueForAll(static asset => asset.FileName.EndsWith(".txt", StringComparison.Ordinal)), Is.True, "every seeded file name ends in .txt");
             Assert.That(assets.TrueForAll(static asset => (asset.CaseId is null) != (asset.ActId is null)), Is.True, "every file belongs to exactly one case or act");
+            Assert.That(assets.TrueForAll(asset => versions.Exists(version => version.FileAssetId == asset.Id && version.Number == 1)), Is.True, "every file has a first version");
+            Assert.That(versions.Count(static version => version.Number == 2), Is.EqualTo(1), "exactly one file has a second version");
         }
     }
 

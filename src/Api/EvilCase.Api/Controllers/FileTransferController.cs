@@ -18,6 +18,7 @@ public class FileTransferController : ControllerBase
 {
     [HttpPost("cases/{caseId:guid}/files")]
     [RequestSizeLimit(FileLimits.MaxUploadRequestBytes)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -34,7 +35,8 @@ public class FileTransferController : ControllerBase
 
         return result.Outcome switch
         {
-            UploadFileOutcome.Uploaded => this.CreatedAtAction(nameof(this.DownloadFileContent), new { fileId = result.File!.FileId }, result.File),
+            UploadFileOutcome.Uploaded or UploadFileOutcome.VersionAdded => this.CreatedAtAction(nameof(this.DownloadFileContent), new { fileId = result.File!.FileId }, result.File),
+            UploadFileOutcome.Unchanged => this.Ok(result.File),
             UploadFileOutcome.OwnerNotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: CaseProblems.NotFound),
             _ => throw new UnreachableException(),
         };
@@ -42,6 +44,7 @@ public class FileTransferController : ControllerBase
 
     [HttpPost("acts/{actId:guid}/files")]
     [RequestSizeLimit(FileLimits.MaxUploadRequestBytes)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -59,8 +62,37 @@ public class FileTransferController : ControllerBase
 
         return result.Outcome switch
         {
-            UploadFileOutcome.Uploaded => this.CreatedAtAction(nameof(this.DownloadFileContent), new { fileId = result.File!.FileId }, result.File),
+            UploadFileOutcome.Uploaded or UploadFileOutcome.VersionAdded => this.CreatedAtAction(nameof(this.DownloadFileContent), new { fileId = result.File!.FileId }, result.File),
+            UploadFileOutcome.Unchanged => this.Ok(result.File),
             UploadFileOutcome.OwnerNotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.ActNotFound),
+            _ => throw new UnreachableException(),
+        };
+    }
+
+    [HttpPost("files/{fileId:guid}/versions")]
+    [RequestSizeLimit(FileLimits.MaxUploadRequestBytes)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status413PayloadTooLarge)]
+    public async Task<ActionResult<FileListItem>> UploadFileVersion(
+        [FromServices] IFileWriter writer, [FromRoute] Guid fileId, [FromForm] IFormFile file, CancellationToken token)
+    {
+        var upload = this.BuildFileUpload(file, out var error);
+        if (error is not null)
+            return error;
+
+        await using var content = upload!.Content;
+
+        var result = await writer.UploadFileVersion(fileId, upload, token);
+
+        return result.Outcome switch
+        {
+            FileVersionUploadOutcome.VersionAdded => this.CreatedAtAction(nameof(this.DownloadFileContent), new { fileId, version = result.File!.Version }, result.File),
+            FileVersionUploadOutcome.Unchanged => this.Ok(result.File),
+            FileVersionUploadOutcome.FileNotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: FileProblems.NotFound),
+            FileVersionUploadOutcome.ExtensionMismatch => this.ExtensionMismatchProblem(),
             _ => throw new UnreachableException(),
         };
     }
@@ -69,9 +101,9 @@ public class FileTransferController : ControllerBase
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult> DownloadFileContent([FromServices] IFileReader files, [FromRoute] Guid fileId, CancellationToken token)
+    public async Task<ActionResult> DownloadFileContent([FromServices] IFileReader files, [FromRoute] Guid fileId, [FromQuery] int? version, CancellationToken token)
     {
-        var download = await files.OpenFileContent(fileId, token);
+        var download = await files.OpenFileContent(fileId, version, token);
 
         if (download is null)
             return this.Problem(statusCode: StatusCodes.Status404NotFound, title: FileProblems.NotFound);
@@ -115,6 +147,13 @@ public class FileTransferController : ControllerBase
             MediaType = mediaType,
             Content = file.OpenReadStream(),
         };
+    }
+
+    private ActionResult ExtensionMismatchProblem()
+    {
+        this.ModelState.AddModelError("fileName", "The new version must keep the extension of the file.");
+
+        return this.ValidationProblem(statusCode: StatusCodes.Status400BadRequest);
     }
 
     private ActionResult? InvalidUploadMetadataProblem(string fileName, string? mediaType)

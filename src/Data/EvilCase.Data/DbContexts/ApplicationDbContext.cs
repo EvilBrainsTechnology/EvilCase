@@ -25,6 +25,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     public DbSet<FileAsset> FileAssets => this.Set<FileAsset>();
 
+    public DbSet<FileVersion> FileVersions => this.Set<FileVersion>();
+
     public DbSet<Comment> Comments => this.Set<Comment>();
 
     public DbSet<Label> Labels => this.Set<Label>();
@@ -53,6 +55,10 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         modelBuilder
             .HasDbFunction(typeof(DatabaseFunctions).GetMethod(nameof(DatabaseFunctions.Unaccent), [typeof(string)])!)
             .HasName("immutable_unaccent");
+
+        modelBuilder
+            .HasDbFunction(typeof(DatabaseFunctions).GetMethod(nameof(DatabaseFunctions.FileNameKey), [typeof(string)])!)
+            .HasName("file_name_key");
 
         modelBuilder
             .HasDbFunction(typeof(DatabaseFunctions).GetMethod(nameof(DatabaseFunctions.CaseAncestors), [typeof(Guid)])!)
@@ -120,6 +126,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         modelBuilder.Entity<Case>().HasQueryFilter(@case => @case.TenantId == this.userContext.TenantIdOrDefault);
         modelBuilder.Entity<Act>().HasQueryFilter(act => act.TenantId == this.userContext.TenantIdOrDefault);
         modelBuilder.Entity<FileAsset>().HasQueryFilter(file => file.TenantId == this.userContext.TenantIdOrDefault);
+        modelBuilder.Entity<FileVersion>().HasQueryFilter(version => version.TenantId == this.userContext.TenantIdOrDefault);
         modelBuilder.Entity<Comment>().HasQueryFilter(comment => comment.TenantId == this.userContext.TenantIdOrDefault);
         modelBuilder.Entity<Label>().HasQueryFilter(label => label.TenantId == this.userContext.TenantIdOrDefault);
         modelBuilder.Entity<LabelAssignment>().HasQueryFilter(assignment => assignment.TenantId == this.userContext.TenantIdOrDefault);
@@ -218,6 +225,12 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasOne(static asset => asset.Act)
             .WithMany(static act => act.Files)
             .HasForeignKey(static asset => asset.ActId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<FileVersion>()
+            .HasOne(static version => version.FileAsset)
+            .WithMany(static asset => asset.Versions)
+            .HasForeignKey(static version => version.FileAssetId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 

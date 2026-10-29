@@ -292,28 +292,11 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.Property<Guid?>("CaseId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("ContentHash")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
-
                     b.Property<DateTime>("Created")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("FileName")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<string>("MediaType")
-                        .HasMaxLength(128)
-                        .HasColumnType("character varying(128)");
-
-                    b.Property<long>("SizeBytes")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("StoragePath")
                         .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
@@ -342,6 +325,60 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                         {
                             t.HasCheckConstraint("CK_FileAssets_OnACaseOrAnAct", "(\"CaseId\" IS NULL) <> (\"ActId\" IS NULL)");
                         });
+                });
+
+            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.FileVersion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ContentHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime>("Created")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("FileAssetId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("MediaType")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<int>("Number")
+                        .HasColumnType("integer");
+
+                    b.Property<long>("SizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("StoragePath")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("Updated")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FileAssetId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("TenantId", "FileAssetId", "Number")
+                        .IsUnique();
+
+                    b.ToTable("FileVersions");
                 });
 
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Label", b =>
@@ -680,6 +717,29 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.Navigation("Case");
                 });
 
+            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.FileVersion", b =>
+                {
+                    b.HasOne("EvilBrains.EvilCase.Data.Entities.FileAsset", "FileAsset")
+                        .WithMany("Versions")
+                        .HasForeignKey("FileAssetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("EvilBrains.EvilCase.Data.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("FileAsset");
+                });
+
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Label", b =>
                 {
                     b.HasOne("EvilBrains.EvilCase.Data.Entities.Tenant", null)
@@ -776,6 +836,11 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.Navigation("Acts");
 
                     b.Navigation("Cases");
+                });
+
+            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.FileAsset", b =>
+                {
+                    b.Navigation("Versions");
                 });
 
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Label", b =>

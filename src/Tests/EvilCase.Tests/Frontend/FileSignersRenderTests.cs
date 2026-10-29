@@ -38,7 +38,7 @@ public class FileSignersRenderTests
     public async Task WhileTheSignersLoadTheStripSaysSo()
     {
         await using var ctx = NewContext(out var client);
-        client.ListFileSigners(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new TaskCompletionSource<FileSignersResponse>().Task);
+        client.ListFileSigners(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>()).Returns(new TaskCompletionSource<FileSignersResponse>().Task);
 
         var component = Render(ctx, Guid.CreateVersion7(), "Smlouva.pdf.p7m");
 
@@ -50,7 +50,7 @@ public class FileSignersRenderTests
     {
         await using var ctx = NewContext(out var client);
         var fileId = Guid.CreateVersion7();
-        client.ListFileSigners(fileId, Arg.Any<CancellationToken>()).Returns(new FileSignersResponse { Signers = [Person] });
+        client.ListFileSigners(fileId, Arg.Any<int?>(), Arg.Any<CancellationToken>()).Returns(new FileSignersResponse { Signers = [Person] });
 
         var component = Render(ctx, fileId, "Smlouva.pdf.p7m");
 
@@ -62,7 +62,7 @@ public class FileSignersRenderTests
             Assert.That(component.Find(".ec-preview-signer-summary").TextContent, Is.EqualTo("kvalifikovaný podpis · I.CA · časové razítko " + MomentDisplay.Text(Timestamped)));
             await client
                 .Received(1)
-                .ListFileSigners(fileId, Arg.Any<CancellationToken>());
+                .ListFileSigners(fileId, Arg.Any<int?>(), Arg.Any<CancellationToken>());
         }
     }
 
@@ -70,13 +70,13 @@ public class FileSignersRenderTests
     public async Task AFailedLoadOffersARetry()
     {
         await using var ctx = NewContext(out var client);
-        client.ListFileSigners(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        client.ListFileSigners(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>())
             .Returns(
                 static _ => Task.FromException<FileSignersResponse>(new HttpRequestException("offline")),
                 static _ => Task.FromResult(new FileSignersResponse { Signers = [Person] }));
 
         // The retry runs on through the verification, so the verification answers at once.
-        client.VerifyFileSigners(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new FileSignersResponse { Signers = [Person] });
+        client.VerifyFileSigners(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>()).Returns(new FileSignersResponse { Signers = [Person] });
 
         var component = Render(ctx, Guid.CreateVersion7(), "Smlouva.pdf.p7m");
 
@@ -87,14 +87,14 @@ public class FileSignersRenderTests
 
         await client
             .Received(2)
-            .ListFileSigners(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+            .ListFileSigners(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>());
     }
 
     [Test]
     public async Task AProblemFromTheServerSaysWhyWithoutARetry()
     {
         await using var ctx = NewContext(out var client);
-        client.ListFileSigners(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        client.ListFileSigners(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>())
             .Returns(new FileSignersResponse { Problem = FileSignersProblem.TooManySigners, Signers = [] });
 
         var component = Render(ctx, Guid.CreateVersion7(), "Smlouva.pdf.p7s", detached: true);
@@ -108,7 +108,7 @@ public class FileSignersRenderTests
     {
         await using var ctx = NewContext(out var client);
         var token = CancellationToken.None;
-        client.ListFileSigners(Arg.Any<Guid>(), Arg.Do<CancellationToken>(given => token = given)).Returns(new TaskCompletionSource<FileSignersResponse>().Task);
+        client.ListFileSigners(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Do<CancellationToken>(given => token = given)).Returns(new TaskCompletionSource<FileSignersResponse>().Task);
 
         var component = Render(ctx, Guid.CreateVersion7(), "Smlouva.pdf.p7m");
         component.Instance.Dispose();
@@ -120,7 +120,7 @@ public class FileSignersRenderTests
     public async Task TheCardNamesTheSignedFileAndEverySigner()
     {
         await using var ctx = NewContext(out var client);
-        client.ListFileSigners(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new FileSignersResponse { Signers = [Person, Company] });
+        client.ListFileSigners(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>()).Returns(new FileSignersResponse { Signers = [Person, Company] });
 
         var component = Render(ctx, Guid.CreateVersion7(), "Smlouva o dílo.pdf.p7s", detached: true);
 
@@ -148,8 +148,8 @@ public class FileSignersRenderTests
         await using var ctx = NewContext(out var client);
         var fileId = Guid.CreateVersion7();
         var verification = new TaskCompletionSource<FileSignersResponse>();
-        client.ListFileSigners(fileId, Arg.Any<CancellationToken>()).Returns(new FileSignersResponse { Signers = [Person] });
-        client.VerifyFileSigners(fileId, Arg.Any<CancellationToken>()).Returns(verification.Task);
+        client.ListFileSigners(fileId, Arg.Any<int?>(), Arg.Any<CancellationToken>()).Returns(new FileSignersResponse { Signers = [Person] });
+        client.VerifyFileSigners(fileId, Arg.Any<int?>(), Arg.Any<CancellationToken>()).Returns(verification.Task);
 
         var component = Render(ctx, fileId, "Smlouva.pdf.p7m");
 
@@ -163,8 +163,8 @@ public class FileSignersRenderTests
     public async Task AFailedVerificationRetriesOnlyTheVerification()
     {
         await using var ctx = NewContext(out var client);
-        client.ListFileSigners(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new FileSignersResponse { Signers = [Person] });
-        client.VerifyFileSigners(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        client.ListFileSigners(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>()).Returns(new FileSignersResponse { Signers = [Person] });
+        client.VerifyFileSigners(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>())
             .Returns(
                 static _ => Task.FromException<FileSignersResponse>(new HttpRequestException("offline")),
                 static _ => Task.FromResult(new FileSignersResponse { Signers = [Valid(Person)] }));
@@ -181,10 +181,10 @@ public class FileSignersRenderTests
         {
             await client
                 .Received(1)
-                .ListFileSigners(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+                .ListFileSigners(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>());
             await client
                 .Received(2)
-                .VerifyFileSigners(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+                .VerifyFileSigners(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>());
         }
     }
 
@@ -193,8 +193,8 @@ public class FileSignersRenderTests
     {
         await using var ctx = NewContext(out var client);
         var opened = new List<Guid>();
-        var pdf = new FileListItem { FileId = Guid.CreateVersion7(), FileName = "Smlouva o dílo.pdf", SizeBytes = 186_778, Created = SigningTime };
-        client.ListFileSigners(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new FileSignersResponse { Signers = [Person], SignedFile = pdf });
+        var pdf = new FileListItem { FileId = Guid.CreateVersion7(), FileName = "Smlouva o dílo.pdf", SizeBytes = 186_778, Created = SigningTime, Version = 1, VersionCount = 1 };
+        client.ListFileSigners(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>()).Returns(new FileSignersResponse { Signers = [Person], SignedFile = pdf });
 
         var component = Render(ctx, Guid.CreateVersion7(), "Smlouva o dílo.pdf.p7s", detached: true, onOpenFile: opened.Add);
 
@@ -215,7 +215,7 @@ public class FileSignersRenderTests
     public async Task TheCardWithoutItsSignedFileSaysSo()
     {
         await using var ctx = NewContext(out var client);
-        client.ListFileSigners(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        client.ListFileSigners(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>())
             .Returns(new FileSignersResponse { Signers = [Person], SignedFileProblem = DetachedSignatureProblem.Missing });
 
         var component = Render(ctx, Guid.CreateVersion7(), "Smlouva o dílo.pdf.p7s", detached: true);
@@ -230,8 +230,8 @@ public class FileSignersRenderTests
     {
         await using var ctx = NewContext(out var client);
         var untrusted = Person with { State = FileSignatureState.Unverifiable, Problem = FileSignerProblem.UntrustedIssuer };
-        client.ListFileSigners(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new FileSignersResponse { Signers = [Person, Company] });
-        client.VerifyFileSigners(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new FileSignersResponse { Signers = [untrusted, Valid(Company)] });
+        client.ListFileSigners(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>()).Returns(new FileSignersResponse { Signers = [Person, Company] });
+        client.VerifyFileSigners(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>()).Returns(new FileSignersResponse { Signers = [untrusted, Valid(Company)] });
 
         var component = Render(ctx, Guid.CreateVersion7(), "Smlouva o dílo.pdf.p7s", detached: true);
 
@@ -254,8 +254,8 @@ public class FileSignersRenderTests
         await using var ctx = NewContext(out var client);
         var opened = new List<Guid>();
         var signatureId = Guid.CreateVersion7();
-        var pdf = new FileListItem { FileId = Guid.CreateVersion7(), FileName = "Smlouva o dílo.pdf", SizeBytes = 1, Created = SigningTime };
-        client.ListFileSigners(signatureId, Arg.Any<CancellationToken>()).Returns(new FileSignersResponse { Signers = [Person], SignedFile = pdf });
+        var pdf = new FileListItem { FileId = Guid.CreateVersion7(), FileName = "Smlouva o dílo.pdf", SizeBytes = 1, Created = SigningTime, Version = 1, VersionCount = 1 };
+        client.ListFileSigners(signatureId, Arg.Any<int?>(), Arg.Any<CancellationToken>()).Returns(new FileSignersResponse { Signers = [Person], SignedFile = pdf });
 
         var component = Render(ctx, signatureId, "Smlouva o dílo.pdf.p7s", signedFileId: pdf.FileId, onOpenFile: opened.Add);
 
@@ -276,7 +276,7 @@ public class FileSignersRenderTests
     public async Task APairedStripWhoseSignersFailToLoadOffersARetry()
     {
         await using var ctx = NewContext(out var client);
-        client.ListFileSigners(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        client.ListFileSigners(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>())
             .Returns(static _ => Task.FromException<FileSignersResponse>(new HttpRequestException("offline")));
 
         var component = Render(ctx, Guid.CreateVersion7(), "Smlouva o dílo.pdf.p7s", signedFileId: Guid.CreateVersion7());
@@ -289,20 +289,20 @@ public class FileSignersRenderTests
     public async Task AnAttachedSignatureLeavesNoPairedStrip()
     {
         await using var ctx = NewContext(out var client);
-        client.ListFileSigners(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new FileSignersResponse { Signers = [Person] });
+        client.ListFileSigners(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>()).Returns(new FileSignersResponse { Signers = [Person] });
 
         var component = Render(ctx, Guid.CreateVersion7(), "Smlouva.pdf.p7m", signedFileId: Guid.CreateVersion7());
 
         await client
             .Received(1)
-            .ListFileSigners(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+            .ListFileSigners(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>());
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(component.FindAll(".ec-preview-signers"), Is.Empty, "a signature that signs no other file shows no strip there");
             await client
                 .DidNotReceiveWithAnyArgs()
-                .VerifyFileSigners(default, default);
+                .VerifyFileSigners(default, default, default);
         }
     }
 
@@ -322,7 +322,7 @@ public class FileSignersRenderTests
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         client = Substitute.For<IFileSignersClient>();
-        client.VerifyFileSigners(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new TaskCompletionSource<FileSignersResponse>().Task);
+        client.VerifyFileSigners(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>()).Returns(new TaskCompletionSource<FileSignersResponse>().Task);
         ctx.Services.AddSingleton(client);
 
         return ctx;

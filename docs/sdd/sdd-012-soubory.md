@@ -7,35 +7,60 @@
 
 ## Rozsah
 
-Ukládání souborů, vlastnictví, upload, download a mazání.
+Ukládání souborů a jejich verzí, vlastnictví, upload, download a mazání.
 
 ## Popis
 
 ### Vlastnictví
 
 FileAsset patří právě jednomu spisu XOR úkonu. Žádné vazby mezi soubory a jinými entitami;
-tentýž dokument ve dvou spisech jsou dva soubory.
+tentýž dokument ve dvou spisech jsou dva soubory. Jméno souboru je u jeho spisu nebo úkonu
+jedinečné bez ohledu na velikost písmen.
 
 ### Úložiště
 
 - Bajty leží na souborovém systému pod kořenem z konfigurace
-  (`EvilBrains__EvilCase__Files__RootPath`, povinný); databáze nese jen metadata: název,
-  velikost, `MediaType`, SHA-256 hash, cestu k blobu. Blob se jmenuje podle id souboru,
-  bez přípony.
-- Blob se nikdy fyzicky nemaže. Neúspěšný upload i smazaný záznam (SDD-007) zanechají osiřelý
-  blob; osiřelé blob nejde ani vypsat, ani uklidit — úložiště jen roste.
+  (`EvilBrains__EvilCase__Files__RootPath`, povinný); databáze nese jen metadata: název
+  souboru a u každé verze velikost, `MediaType`, SHA-256 hash a cestu k blobu. Blob se jmenuje
+  podle id verze, bez přípony.
+- Blob se nikdy fyzicky nemaže. Neúspěšný upload, upload beze změny i smazaný soubor nebo verze
+  (SDD-007) zanechají osiřelý blob; osiřelé blob nejde ani vypsat, ani uklidit — úložiště jen
+  roste.
 
 ### Pravidla
 
-- SHA-256 je uložený kontrolní součet, ne deduplikace; nic ho neověřuje.
+- SHA-256 je uložený kontrolní součet, ne deduplikace; porovnává se jen s aktuální verzí téhož
+  souboru.
 - Limit velikosti souboru je 100 MB; větší upload vrací 413 a prohlížeč ho odmítne dřív, než
   ho odešle.
 - Název souboru je povinný, nejvýše 256 znaků; ukládá se jen jeho poslední část, cesta se
   zahazuje. `MediaType` se bere z uploadu, nejvýše 128 znaků; příponě se nevěří. Delší hodnota
   nebo chybějící název je 400.
-- Soubor jde přejmenovat. Platí pro nové jméno stejná pravidla jako při uploadu; bajty, hash
-  a `MediaType` zůstávají. Soubor cizího vlastníka je 404.
-- Soubor bez blobu je 404.
+- Soubor jde přejmenovat. Platí pro nové jméno stejná pravidla jako při uploadu; jméno, které
+  bez ohledu na velikost písmen nese jiný soubor téhož spisu nebo úkonu, je 409, změna jen
+  velikosti písmen vlastního jména projde. Verze, jejich bajty, hash a `MediaType` zůstávají.
+  Soubor cizího vlastníka je 404.
+- Verze bez blobu je 404.
+
+### Verze
+
+- Soubor má verze od 1, aktuální je verze s nejvyšším číslem. Obsah, velikost a `MediaType` nese
+  verze, jméno soubor.
+- Upload jména, které spis nebo úkon už má (bez ohledu na velikost písmen), přidá souboru verzi
+  a soubor si nechá své jméno. Shoda platí jen u téhož spisu nebo úkonu, ne u podřízených spisů
+  ani u úkonů spisu; v dávce se druhý soubor téhož jména stane další verzí prvního.
+- Upload nové verze konkrétního souboru jeho jméno nepoužije. Jiná přípona (bez ohledu na
+  velikost písmen) je 400, limity platí jako u uploadu.
+- Obsah shodný s aktuální verzí (stejný SHA-256) verzi nevytvoří a upload odpoví 200 s aktuální
+  verzí; nový soubor nebo nová verze je 201.
+- Nová verze má číslo nejvyšší existující verze + 1, čísla se nepřečíslovávají.
+- Verzi jde smazat; po smazání aktuální verze je aktuální nejvyšší zbývající. Jediná zbývající
+  verze se samostatně smazat nedá (409). Smazání souboru smaže všechny jeho verze.
+- Obsah, podpis datové zprávy a podepisující se čtou z aktuální verze, nebo z verze, kterou
+  požadavek jmenuje číslem; verze, která neexistuje nebo patří cizímu souboru, je 404.
+- Výpis verzí jde od nejnovější: číslo, velikost, okamžik nahrání a e-mail toho, kdo verzi
+  nahrál.
+- Novou verzi nahrát, verzi smazat i soubor přejmenovat a smazat smí kdokoli z tenantu.
 
 ### UI
 
@@ -43,8 +68,8 @@ Drag-and-drop multi-upload na detailu spisu i úkonu; soubory lze pustit kamkoli
 souborů a karta při tažení ukáže, kam se nahrají, a limity. Hromadné přetažení běží po
 souborech a odmítne jen soubor, který selže. Dávka nad 100 souborů se odmítá celá. Soubory
 přetažené nebo vybrané během nahrávání se odmítnou s hláškou a nenahrají se; rozběhlá dávka
-doběhne. Seznam souborů ukazuje ikonu typu, název, velikost a okamžik nahrání, od
-nejstaršího. Obsah souboru
+doběhne. Seznam souborů ukazuje každý soubor jednou: ikonu typu, název a velikost
+a okamžik nahrání aktuální verze, v pořadí prvního nahrání od nejstaršího. Obsah souboru
 se vydává z jedné adresy a odpověď nese `X-Content-Type-Options: nosniff`. Rastrové
 obrázky, zvuk a video nesou `Content-Disposition: inline` a typ podle přípony; každý jiný typ,
 PDF, SVG a HTML také, nese `attachment` a typ `application/octet-stream`; uložený `MediaType` se
@@ -56,7 +81,7 @@ nabídne stažení. Stažení je obyčejné stažení prohlížečem a uloží s
 přejmenování a smazání jsou akce řádku vedle toho.
 
 Přejmenování mění jen jméno bez přípony, přípona zůstává. Potvrzuje se Enterem nebo Uložit,
-Esc a Zrušit ho zahodí.
+Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor tohoto jména už existuje“.
 
 ### Náhled
 
@@ -180,9 +205,10 @@ Esc a Zrušit ho zahodí.
 
 - Samostatný podpis patří k souboru téhož spisu nebo úkonu, jehož jméno je jméno podpisu bez
   koncovky p7s nebo p7m (Smlouva.pdf.p7s ke Smlouva.pdf). Koncovka smí mít velká písmena, zbytek
-  jména se musí shodovat přesně. Když to jméno nesou dva soubory, nebo k témuž jménu patří dva
-  soubory s koncovkou p7s či p7m, podpis nepatří k žádnému. Přejmenování, nahrání i smazání
-  souboru párování změní. Soubor p7m s dokumentem uvnitř samostatným podpisem není.
+  jména se musí shodovat přesně. Když k témuž jménu patří dva soubory s koncovkou p7s či p7m,
+  podpis nepatří k žádnému. Přejmenování, nahrání i smazání souboru párování změní. Soubor p7m
+  s dokumentem uvnitř samostatným podpisem není. Podpis se ověřuje proti aktuální verzi souboru,
+  i u starší verze podpisu; nová verze souboru bez nového podpisu tak ukáže Podpis neplatný.
 - Oddíl Podepsaný soubor na kartě ukáže ikonu, jméno a velikost souboru a Otevřít, které soubor
   ukáže v témže náhledu. Bez souboru řekne, že soubor tohoto jména mezi soubory není, a vyzve
   k nahrání pod tímto jménem; nejednoznačný soubor ohlásí.
@@ -239,7 +265,16 @@ Esc a Zrušit ho zahodí.
 - Podpis bez časového razítka: neověřovat / ověřit k dnešku. Platí k dnešku.
 - Soubor samostatného podpisu: podle jména / ruční přiřazení. Platí podle jména.
 - Limit souboru samostatného podpisu: 100 MB / 30 MB. Platí 30 MB.
+- Shoda jména při uploadu: s velikostí písmen / bez ní. Platí bez ní.
+- Nová verze s jinou příponou: přijmout / odmítnout. Platí odmítnout.
+- Upload shodný s aktuální verzí: nová verze / beze změny. Platí beze změny.
+- Číslo nové verze: počítadlo souboru / nejvyšší existující + 1. Platí nejvyšší existující + 1;
+  čísla se nepřečíslovávají.
+- Smazání jediné verze: smaže soubor / odmítne se. Platí odmítne se.
+- Přejmenování na jméno jiného souboru: povolit / odmítnout. Platí odmítnout.
+- Datum v seznamu: první nahrání / aktuální verze. Platí aktuální verze; pořadí podle prvního
+  nahrání.
 
 ## Dopady
 
-Zápis blobu se loguje, obsah nikdy (SDD-002).
+Zápis blobu, uložení a smazání verze se logují, obsah nikdy (SDD-002).

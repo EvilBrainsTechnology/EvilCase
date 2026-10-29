@@ -44,6 +44,7 @@ public class SampleDataSeedDatabaseTests
             var actCount = await context.Acts.CountAsync();
             var contactCount = await context.Contacts.CountAsync();
             var fileAssetCount = await context.FileAssets.CountAsync();
+            var fileVersionCount = await context.FileVersions.CountAsync();
             var commentCount = await context.Comments.CountAsync();
             var mainCase = cases.Single(static @case => @case.ParentCaseId is null);
             var actsWithExternalNumber = await context.Acts.CountAsync(static act => act.ExternalActNumber != null);
@@ -58,6 +59,7 @@ public class SampleDataSeedDatabaseTests
                 Assert.That(actCount, Is.EqualTo(55), "23 main-case acts plus two on each of the sixteen sub-cases");
                 Assert.That(contactCount, Is.EqualTo(11), "the eleven sample contacts");
                 Assert.That(fileAssetCount, Is.EqualTo(57), "55 act files, one main-case file and one evidence bundle");
+                Assert.That(fileVersionCount, Is.EqualTo(58), "every file has a first version and the main-case file a second");
                 Assert.That(commentCount, Is.EqualTo(6), "the six sample comments");
                 Assert.That(mainCase.ExternalCaseNumber, Is.EqualTo("VV41/2025/08464"), "the main case carries its external mark");
                 Assert.That(actsWithExternalNumber, Is.GreaterThan(0), "acts carry their external reference numbers");

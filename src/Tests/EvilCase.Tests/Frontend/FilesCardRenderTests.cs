@@ -656,6 +656,27 @@ public class FilesCardRenderTests
     }
 
     [Test]
+    public async Task ARenameOntoATakenNameSaysSo()
+    {
+        await using var ctx = NewContext();
+
+        var component = new Card
+        {
+            Files = [PdfFile()],
+            RenameFile = static (_, _, _) => throw new ApiException(HttpStatusCode.Conflict, responseBody: null),
+        }
+            .Render(ctx);
+
+        await OpenMenu(component);
+        await component.FindAll("[role=menuitem]")[0].ClickAsync(new MouseEventArgs());
+        await component.Find("input.ec-file-rename-input").InputAsync(new ChangeEventArgs { Value = "Obsazený" });
+        await component.FindAll(".ec-file-rename .ec-button")[0].ClickAsync(new MouseEventArgs());
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.Find(".ec-file-rename .ec-alert").TextContent, Does.Contain("Soubor tohoto jména už existuje")));
+        Assert.That(component.FindAll(".ec-file-rename-input"), Has.Count.EqualTo(1), "a refused rename keeps the input");
+    }
+
+    [Test]
     public void ThePreviewStepsThroughEveryFileOfTheCard()
     {
         using var ctx = NewContext();
@@ -727,6 +748,8 @@ public class FilesCardRenderTests
             FileName = fileName,
             SizeBytes = 1024,
             Created = new DateTime(2025, 9, 2, 10, 0, 0, DateTimeKind.Utc),
+            Version = 1,
+            VersionCount = 1,
         };
     }
 

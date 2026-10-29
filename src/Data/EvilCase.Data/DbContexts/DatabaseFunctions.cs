@@ -21,6 +21,15 @@ public static class DatabaseFunctions
     }
 
     /// <summary>
+    /// The key a file name is unique by within its case or act: lower case under the Czech collation, through the
+    /// function the <c>FileVersions</c> migration creates.
+    /// </summary>
+    public static string FileNameKey(string fileName)
+    {
+        throw new NotSupportedException($"{nameof(FileNameKey)} runs in the database and has no in-memory form.");
+    }
+
+    /// <summary>
     /// The cases above the case, through the function the <c>CaseAncestors</c> migration creates.
     /// </summary>
     public static IQueryable<CaseAncestor> CaseAncestors(Guid caseId)

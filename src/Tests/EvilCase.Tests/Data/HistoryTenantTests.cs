@@ -36,13 +36,50 @@ public class HistoryTenantTests : TenantFixture
         var equal = await this.Tenant.Context.Database
             .SqlQuery<bool>(
                 $"""
-                SELECT (to_jsonb(h) - 'HistoryId' - 'Operation' - 'OperationAt' - 'OperationUserId' = to_jsonb(p)) AS "Value"
+                SELECT (to_jsonb(h) - 'HistoryId' - 'Operation' - 'OperationAt' - 'OperationUserId' - 'ContentHash' - 'SizeBytes' - 'MediaType' - 'StoragePath' = to_jsonb(p)) AS "Value"
                 FROM history."FileAssets" h, public."FileAssets" p
                 WHERE h."Id" = {file.Id} AND p."Id" = {file.Id} AND h."Operation" = 'INSERT'
                 """)
             .SingleAsync();
 
+        Assert.That(equal, Is.True, "a recorded row carries the same values as the row it mirrors, aside from the history columns and the blob columns the file no longer has");
+    }
+
+    [Test]
+    public async Task ARecordedFileVersionRowEqualsTheRowItCameFrom()
+    {
+        var @case = await this.Tenant.AddCase(Day);
+        var file = await this.Tenant.AddCaseFile(@case);
+        var versionId = file.Versions.Single().Id;
+
+        var equal = await this.Tenant.Context.Database
+            .SqlQuery<bool>(
+                $"""
+                SELECT (to_jsonb(h) - 'HistoryId' - 'Operation' - 'OperationAt' - 'OperationUserId' = to_jsonb(p)) AS "Value"
+                FROM history."FileVersions" h, public."FileVersions" p
+                WHERE h."Id" = {versionId} AND p."Id" = {versionId} AND h."Operation" = 'INSERT'
+                """)
+            .SingleAsync();
+
         Assert.That(equal, Is.True, "a recorded row carries the same values as the row it mirrors, aside from the history columns");
+    }
+
+    [Test]
+    public async Task ARecordedFileAssetRowLeavesTheDroppedColumnsEmpty()
+    {
+        var @case = await this.Tenant.AddCase(Day);
+        var file = await this.Tenant.AddCaseFile(@case);
+
+        var empty = await this.Tenant.Context.Database
+            .SqlQuery<bool>(
+                $"""
+                SELECT (h."ContentHash" IS NULL AND h."SizeBytes" IS NULL AND h."StoragePath" IS NULL) AS "Value"
+                FROM history."FileAssets" h
+                WHERE h."Id" = {file.Id} AND h."Operation" = 'INSERT'
+                """)
+            .SingleAsync();
+
+        Assert.That(empty, Is.True, "the blob columns moved to the version, so the mirror's copies stay empty");
     }
 
     [Test]
@@ -74,6 +111,9 @@ public class HistoryTenantTests : TenantFixture
         var actFileOperation = await context.Database
             .SqlQuery<string>($"""SELECT "Operation" AS "Value" FROM history."FileAssets" WHERE "Id" = {actFile.Id} ORDER BY "OperationAt" DESC LIMIT 1""")
             .SingleAsync();
+        var caseFileVersionOperation = await context.Database
+            .SqlQuery<string>($"""SELECT "Operation" AS "Value" FROM history."FileVersions" WHERE "FileAssetId" = {caseFile.Id} ORDER BY "OperationAt" DESC LIMIT 1""")
+            .SingleAsync();
 
         using (Assert.EnterMultipleScope())
         {
@@ -82,6 +122,7 @@ public class HistoryTenantTests : TenantFixture
             Assert.That(actCommentOperation, Is.EqualTo("DELETE"), "the cascade takes an act's comments with it");
             Assert.That(caseFileOperation, Is.EqualTo("DELETE"), "the cascade takes the case's own files with it");
             Assert.That(actFileOperation, Is.EqualTo("DELETE"), "the cascade takes an act's files with it");
+            Assert.That(caseFileVersionOperation, Is.EqualTo("DELETE"), "the cascade takes a file's versions with it");
         }
     }
 

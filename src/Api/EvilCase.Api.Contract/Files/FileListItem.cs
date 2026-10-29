@@ -8,7 +8,17 @@ public sealed record FileListItem
 
     public required long SizeBytes { get; init; }
 
+    /// <summary>
+    /// When the current version was uploaded.
+    /// </summary>
     public required DateTime Created { get; init; }
+
+    /// <summary>
+    /// The number of the file's current version, its highest.
+    /// </summary>
+    public required int Version { get; init; }
+
+    public required int VersionCount { get; init; }
 
     /// <summary>
     /// The signature (p7s, p7m) that by name signs this file: the only file of the same case or act named this file's name

@@ -4,6 +4,7 @@ using EvilBrains.EvilCase.Data.Interceptors;
 using EvilBrains.EvilCase.Data.Migrations.DbContexts;
 using EvilBrains.EvilCase.Domain.Users;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using Testcontainers.PostgreSql;
 
 namespace EvilBrains.EvilCase.Tests.Data;
@@ -63,6 +64,29 @@ internal static class TestDatabase
         Migrate(context);
 
         return context;
+    }
+
+    /// <summary>
+    /// An empty database beside the tests' own, for a test that walks the migrations itself.
+    /// </summary>
+    public static async Task<string> CreateScratchDatabase(string name)
+    {
+        await using var connection = new NpgsqlConnection(ConnectionString.Value);
+        await connection.OpenAsync();
+
+        await using var command = new NpgsqlCommand($"CREATE DATABASE \"{name}\"", connection);
+        await command.ExecuteNonQueryAsync();
+
+        return new NpgsqlConnectionStringBuilder(ConnectionString.Value) { Database = name }.ConnectionString;
+    }
+
+    public static async Task DropScratchDatabase(string name)
+    {
+        await using var connection = new NpgsqlConnection(ConnectionString.Value);
+        await connection.OpenAsync();
+
+        await using var command = new NpgsqlCommand($"DROP DATABASE \"{name}\" WITH (FORCE)", connection);
+        await command.ExecuteNonQueryAsync();
     }
 
     public static async Task Remove()

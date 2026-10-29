@@ -46,7 +46,7 @@ public class FileSignerVerifierTests : TenantFixture
         var signature = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf.p7m");
         this.Serve(signature, this.Sign(Pdf, detached: false));
 
-        var response = await this.Verifier().VerifyFileSigners(signature.Id, CancellationToken.None);
+        var response = await this.Verifier().VerifyFileSigners(signature.Id, version: null, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -60,7 +60,7 @@ public class FileSignerVerifierTests : TenantFixture
     {
         var (pdf, signature) = await this.AddDetachedPair();
 
-        var response = await this.Verifier().VerifyFileSigners(signature.Id, CancellationToken.None);
+        var response = await this.Verifier().VerifyFileSigners(signature.Id, version: null, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -75,7 +75,7 @@ public class FileSignerVerifierTests : TenantFixture
         var (pdf, signature) = await this.AddDetachedPair();
         this.Serve(pdf, "%PDF-1.5"u8.ToArray());
 
-        var response = await this.Verifier().VerifyFileSigners(signature.Id, CancellationToken.None);
+        var response = await this.Verifier().VerifyFileSigners(signature.Id, version: null, CancellationToken.None);
 
         Assert.That(response?.Signers.Single().Problem, Is.EqualTo(FileSignerProblem.ContentMismatch));
     }
@@ -87,7 +87,7 @@ public class FileSignerVerifierTests : TenantFixture
         var signature = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf.p7s");
         this.Serve(signature, this.Sign(Pdf, detached: true));
 
-        var response = await this.Verifier().VerifyFileSigners(signature.Id, CancellationToken.None);
+        var response = await this.Verifier().VerifyFileSigners(signature.Id, version: null, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -98,12 +98,12 @@ public class FileSignerVerifierTests : TenantFixture
     }
 
     [Test]
-    public async Task TwoFilesOfTheSignedNameAreAmbiguous()
+    public async Task TwoSignaturesOfTheSignedNameAreAmbiguous()
     {
         var (_, signature) = await this.AddDetachedPair();
-        await this.Tenant.AddCaseFile(await this.Tenant.Context.Cases.SingleAsync(), "Smlouva.pdf");
+        await this.Tenant.AddCaseFile(await this.Tenant.Context.Cases.SingleAsync(), "Smlouva.pdf.p7m");
 
-        var response = await this.Verifier().VerifyFileSigners(signature.Id, CancellationToken.None);
+        var response = await this.Verifier().VerifyFileSigners(signature.Id, version: null, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -122,7 +122,7 @@ public class FileSignerVerifierTests : TenantFixture
         this.Serve(pdf, Pdf);
         this.Serve(signature, this.Sign(Pdf, detached: true));
 
-        var response = await this.Verifier().VerifyFileSigners(signature.Id, CancellationToken.None);
+        var response = await this.Verifier().VerifyFileSigners(signature.Id, version: null, CancellationToken.None);
 
         Assert.That(response?.Signers.Single().Problem, Is.EqualTo(FileSignerProblem.SignedFileMissing), "a signature pairs only within its own case or act");
     }
@@ -136,13 +136,13 @@ public class FileSignerVerifierTests : TenantFixture
         this.Serve(pdf, Pdf);
         this.Serve(signature, this.Sign(Pdf, detached: true));
 
-        var response = await this.Verifier().VerifyFileSigners(signature.Id, CancellationToken.None);
+        var response = await this.Verifier().VerifyFileSigners(signature.Id, version: null, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(response?.Signers.Single().Problem, Is.EqualTo(FileSignerProblem.SignedFileTooLarge));
             Assert.That(response?.SignedFile?.FileId, Is.EqualTo(pdf.Id));
-            this.blobs.DidNotReceive().ReadFileBlob(pdf.StoragePath);
+            this.blobs.DidNotReceive().ReadFileBlob(pdf.Versions.Single().StoragePath);
         }
     }
 
@@ -153,14 +153,14 @@ public class FileSignerVerifierTests : TenantFixture
         var revocation = new StubSignatureRevocation(SignatureRevocationStatus.NotRevoked);
         var verifier = this.Verifier(revocation);
 
-        await verifier.VerifyFileSigners(signature.Id, CancellationToken.None);
-        var second = await verifier.VerifyFileSigners(signature.Id, CancellationToken.None);
+        await verifier.VerifyFileSigners(signature.Id, version: null, CancellationToken.None);
+        var second = await verifier.VerifyFileSigners(signature.Id, version: null, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(second?.Signers.Single().State, Is.EqualTo(FileSignatureState.Valid));
             Assert.That(revocation.Checks, Is.EqualTo(1), "a verified signature is not verified again while cached");
-            this.blobs.Received(1).ReadFileBlob(signature.StoragePath);
+            this.blobs.Received(1).ReadFileBlob(signature.Versions.Single().StoragePath);
         }
     }
 
@@ -170,7 +170,7 @@ public class FileSignerVerifierTests : TenantFixture
         var (pdf, signature) = await this.AddDetachedPair();
         var verifier = this.Verifier();
 
-        var first = await verifier.VerifyFileSigners(signature.Id, CancellationToken.None);
+        var first = await verifier.VerifyFileSigners(signature.Id, version: null, CancellationToken.None);
 
         await this.Tenant.Context.FileAssets
             .Where(file => file.Id == pdf.Id)
@@ -179,12 +179,32 @@ public class FileSignerVerifierTests : TenantFixture
         var replacement = await this.Tenant.AddCaseFile(await this.Tenant.Context.Cases.SingleAsync(), "Smlouva.pdf");
         this.Serve(replacement, "%PDF-1.5"u8.ToArray());
 
-        var second = await verifier.VerifyFileSigners(signature.Id, CancellationToken.None);
+        var second = await verifier.VerifyFileSigners(signature.Id, version: null, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(first?.Signers.Single().State, Is.EqualTo(FileSignatureState.Valid));
             Assert.That(second?.Signers.Single().Problem, Is.EqualTo(FileSignerProblem.ContentMismatch), "the cached verdict belongs to the pair, not the signature alone");
+        }
+    }
+
+    [Test]
+    public async Task ANewVersionOfTheSignedFileIsVerifiedAgain()
+    {
+        var (pdf, signature) = await this.AddDetachedPair();
+        var verifier = this.Verifier();
+
+        var first = await verifier.VerifyFileSigners(signature.Id, version: null, CancellationToken.None);
+
+        var newVersion = await this.Tenant.AddFileVersion(pdf);
+        this.blobs.ReadFileBlob(newVersion.StoragePath).Returns(static _ => new MemoryStream("%PDF-1.5"u8.ToArray(), writable: false));
+
+        var second = await verifier.VerifyFileSigners(signature.Id, version: null, CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(first?.Signers.Single().State, Is.EqualTo(FileSignatureState.Valid));
+            Assert.That(second?.Signers.Single().Problem, Is.EqualTo(FileSignerProblem.ContentMismatch), "the verdict belongs to the signed file's current version");
         }
     }
 
@@ -195,8 +215,8 @@ public class FileSignerVerifierTests : TenantFixture
         var revocation = new StubSignatureRevocation(SignatureRevocationStatus.Unknown);
         var verifier = this.Verifier(revocation);
 
-        await verifier.VerifyFileSigners(signature.Id, CancellationToken.None);
-        var second = await verifier.VerifyFileSigners(signature.Id, CancellationToken.None);
+        await verifier.VerifyFileSigners(signature.Id, version: null, CancellationToken.None);
+        var second = await verifier.VerifyFileSigners(signature.Id, version: null, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -213,16 +233,16 @@ public class FileSignerVerifierTests : TenantFixture
         var signed = this.Sign(Pdf, detached: false);
         var gate = new TaskCompletionSource();
         var reading = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        this.blobs.ReadFileBlob(signature.StoragePath).Returns(_ => new GatedStream(signed, gate.Task, reading));
+        this.blobs.ReadFileBlob(signature.Versions.Single().StoragePath).Returns(_ => new GatedStream(signed, gate.Task, reading));
         var revocation = new StubSignatureRevocation(SignatureRevocationStatus.NotRevoked);
         var verifier = this.Verifier(revocation);
 
-        var first = verifier.VerifyFileSigners(signature.Id, CancellationToken.None);
+        var first = verifier.VerifyFileSigners(signature.Id, version: null, CancellationToken.None);
 
         // The second read starts once the first is past the database, which one context serves one query at a time; it
         // joins the flight or, where the first already finished, reads the cached verdict.
         await reading.Task;
-        var second = verifier.VerifyFileSigners(signature.Id, CancellationToken.None);
+        var second = verifier.VerifyFileSigners(signature.Id, version: null, CancellationToken.None);
         gate.SetResult();
         await Task.WhenAll(first, second);
 
@@ -231,7 +251,7 @@ public class FileSignerVerifierTests : TenantFixture
             Assert.That((await first)?.Signers.Single().State, Is.EqualTo(FileSignatureState.Valid));
             Assert.That((await second)?.Signers.Single().State, Is.EqualTo(FileSignatureState.Valid));
             Assert.That(revocation.Checks, Is.EqualTo(1), "two reads in flight share one verification");
-            this.blobs.Received(1).ReadFileBlob(signature.StoragePath);
+            this.blobs.Received(1).ReadFileBlob(signature.Versions.Single().StoragePath);
         }
     }
 
@@ -243,7 +263,7 @@ public class FileSignerVerifierTests : TenantFixture
         var otherFile = await other.AddCaseFile(otherCase, "cizi.pdf.p7m");
         this.Serve(otherFile, this.Sign(Pdf, detached: false));
 
-        var response = await this.Verifier().VerifyFileSigners(otherFile.Id, CancellationToken.None);
+        var response = await this.Verifier().VerifyFileSigners(otherFile.Id, version: null, CancellationToken.None);
 
         Assert.That(response, Is.Null, "the file id alone never reaches another tenant's file");
     }
@@ -251,7 +271,7 @@ public class FileSignerVerifierTests : TenantFixture
     [Test]
     public async Task AnUnknownFileIsNotFound()
     {
-        var response = await this.Verifier().VerifyFileSigners(Guid.CreateVersion7(), CancellationToken.None);
+        var response = await this.Verifier().VerifyFileSigners(Guid.CreateVersion7(), version: null, CancellationToken.None);
 
         Assert.That(response, Is.Null);
     }
@@ -262,7 +282,7 @@ public class FileSignerVerifierTests : TenantFixture
         var @case = await this.Tenant.AddCase(Day);
         var signature = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf.p7m");
 
-        var response = await this.Verifier().VerifyFileSigners(signature.Id, CancellationToken.None);
+        var response = await this.Verifier().VerifyFileSigners(signature.Id, version: null, CancellationToken.None);
 
         Assert.That(response, Is.Null);
     }
@@ -273,7 +293,7 @@ public class FileSignerVerifierTests : TenantFixture
         var @case = await this.Tenant.AddCase(Day);
         var signature = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf.p7m", sizeBytes: FileLimits.MaxSignedFileBytes + 1);
 
-        var response = await this.Verifier().VerifyFileSigners(signature.Id, CancellationToken.None);
+        var response = await this.Verifier().VerifyFileSigners(signature.Id, version: null, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -318,6 +338,6 @@ public class FileSignerVerifierTests : TenantFixture
 
     private void Serve(FileAsset file, byte[] content)
     {
-        this.blobs.ReadFileBlob(file.StoragePath).Returns(_ => new MemoryStream(content, writable: false));
+        this.blobs.ReadFileBlob(file.Versions.Single().StoragePath).Returns(_ => new MemoryStream(content, writable: false));
     }
 }

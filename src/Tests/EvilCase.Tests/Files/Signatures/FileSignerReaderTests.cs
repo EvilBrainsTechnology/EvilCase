@@ -22,9 +22,9 @@ public class FileSignerReaderTests : TenantFixture
     {
         var @case = await this.Tenant.AddCase(Day);
         var file = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf.p7m");
-        this.ServeSignedFile(file.StoragePath);
+        this.ServeSignedFile(file.Versions.Single().StoragePath);
 
-        var response = await this.Reader().ListFileSigners(file.Id, CancellationToken.None);
+        var response = await this.Reader().ListFileSigners(file.Id, version: null, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -39,9 +39,9 @@ public class FileSignerReaderTests : TenantFixture
         await using var other = await TestTenant.Create();
         var otherCase = await other.AddCase(Day);
         var otherFile = await other.AddCaseFile(otherCase, "cizi.pdf.p7m");
-        this.ServeSignedFile(otherFile.StoragePath);
+        this.ServeSignedFile(otherFile.Versions.Single().StoragePath);
 
-        var response = await this.Reader().ListFileSigners(otherFile.Id, CancellationToken.None);
+        var response = await this.Reader().ListFileSigners(otherFile.Id, version: null, CancellationToken.None);
 
         Assert.That(response, Is.Null, "the file id alone never reaches another tenant's file");
     }
@@ -49,7 +49,7 @@ public class FileSignerReaderTests : TenantFixture
     [Test]
     public async Task AnUnknownFileIsNotFound()
     {
-        var response = await this.Reader().ListFileSigners(Guid.CreateVersion7(), CancellationToken.None);
+        var response = await this.Reader().ListFileSigners(Guid.CreateVersion7(), version: null, CancellationToken.None);
 
         Assert.That(response, Is.Null);
     }
@@ -60,7 +60,7 @@ public class FileSignerReaderTests : TenantFixture
         var @case = await this.Tenant.AddCase(Day);
         var file = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf.p7m");
 
-        var response = await this.Reader().ListFileSigners(file.Id, CancellationToken.None);
+        var response = await this.Reader().ListFileSigners(file.Id, version: null, CancellationToken.None);
 
         Assert.That(response, Is.Null);
     }
@@ -71,7 +71,7 @@ public class FileSignerReaderTests : TenantFixture
         var @case = await this.Tenant.AddCase(Day);
         var file = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf.p7m", sizeBytes: FileLimits.MaxSignedFileBytes + 1);
 
-        var response = await this.Reader().ListFileSigners(file.Id, CancellationToken.None);
+        var response = await this.Reader().ListFileSigners(file.Id, version: null, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -87,9 +87,9 @@ public class FileSignerReaderTests : TenantFixture
         var @case = await this.Tenant.AddCase(Day);
         var pdf = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf");
         var signature = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf.p7s");
-        this.ServeSignedFile(signature.StoragePath, detached: true);
+        this.ServeSignedFile(signature.Versions.Single().StoragePath, detached: true);
 
-        var response = await this.Reader().ListFileSigners(signature.Id, CancellationToken.None);
+        var response = await this.Reader().ListFileSigners(signature.Id, version: null, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -103,9 +103,9 @@ public class FileSignerReaderTests : TenantFixture
     {
         var @case = await this.Tenant.AddCase(Day);
         var signature = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf.p7s");
-        this.ServeSignedFile(signature.StoragePath, detached: true);
+        this.ServeSignedFile(signature.Versions.Single().StoragePath, detached: true);
 
-        var response = await this.Reader().ListFileSigners(signature.Id, CancellationToken.None);
+        var response = await this.Reader().ListFileSigners(signature.Id, version: null, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -120,14 +120,32 @@ public class FileSignerReaderTests : TenantFixture
         var @case = await this.Tenant.AddCase(Day);
         await this.Tenant.AddCaseFile(@case, "Smlouva.pdf");
         var signature = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf.p7m");
-        this.ServeSignedFile(signature.StoragePath);
+        this.ServeSignedFile(signature.Versions.Single().StoragePath);
 
-        var response = await this.Reader().ListFileSigners(signature.Id, CancellationToken.None);
+        var response = await this.Reader().ListFileSigners(signature.Id, version: null, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(response?.SignedFile, Is.Null, "a signature with its document inside signs no other file");
             Assert.That(response?.SignedFileProblem, Is.Null);
+        }
+    }
+
+    [Test]
+    public async Task TheSignersOfTheVersionTheRequestNamesAreRead()
+    {
+        var @case = await this.Tenant.AddCase(Day);
+        var file = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf.p7m");
+        this.ServeSignedFile(file.Versions.Single().StoragePath);
+        await this.Tenant.AddFileVersion(file);
+
+        var named = await this.Reader().ListFileSigners(file.Id, version: 1, CancellationToken.None);
+        var current = await this.Reader().ListFileSigners(file.Id, version: null, CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(named?.Signers.Select(static signer => signer.Name), Is.EqualTo(["Testovací podepisující"]));
+            Assert.That(current, Is.Null, "the current version is the second one, whose blob is gone");
         }
     }
 

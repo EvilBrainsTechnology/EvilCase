@@ -167,6 +167,18 @@ public class ActFilesControllerTests
     }
 
     [Test]
+    public async Task RenamingOntoATakenNameIsAProblemWithFourOhNine()
+    {
+        var writer = RenamingWriter(FileRenameOutcome.NameTaken);
+        var controller = new ActFilesController();
+
+        var result = await controller.RenameActFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), new FileRenameRequest { FileName = "novy.pdf" }, CancellationToken.None);
+
+        var problem = AssertProblem(result, 409);
+        Assert.That(problem.Title, Is.EqualTo(FileProblems.NameTaken));
+    }
+
+    [Test]
     public async Task RenamingAMissingFileIsAProblemWithFourOhFour()
     {
         var writer = RenamingWriter(FileRenameOutcome.NotFound);
@@ -221,6 +233,6 @@ public class ActFilesControllerTests
 
     private static FileListItem Item(string fileName)
     {
-        return new() { FileId = Guid.CreateVersion7(), FileName = fileName, SizeBytes = 1, Created = DateTime.UtcNow };
+        return new() { FileId = Guid.CreateVersion7(), FileName = fileName, SizeBytes = 1, Created = DateTime.UtcNow, Version = 1, VersionCount = 1 };
     }
 }

@@ -15,9 +15,9 @@ public class FileSignersController : ControllerBase
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<FileSignersResponse>> ListFileSigners([FromServices] IFileSignerReader signers, [FromRoute] Guid fileId, CancellationToken token)
+    public async Task<ActionResult<FileSignersResponse>> ListFileSigners([FromServices] IFileSignerReader signers, [FromRoute] Guid fileId, [FromQuery] int? version, CancellationToken token)
     {
-        var response = await signers.ListFileSigners(fileId, token);
+        var response = await signers.ListFileSigners(fileId, version, token);
 
         return response is null
             ? this.Problem(statusCode: StatusCodes.Status404NotFound, title: FileProblems.NotFound)
@@ -28,9 +28,9 @@ public class FileSignersController : ControllerBase
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<FileSignersResponse>> VerifyFileSigners([FromServices] IFileSignerVerifier verifier, [FromRoute] Guid fileId, CancellationToken token)
+    public async Task<ActionResult<FileSignersResponse>> VerifyFileSigners([FromServices] IFileSignerVerifier verifier, [FromRoute] Guid fileId, [FromQuery] int? version, CancellationToken token)
     {
-        var response = await verifier.VerifyFileSigners(fileId, token);
+        var response = await verifier.VerifyFileSigners(fileId, version, token);
 
         return response is null
             ? this.Problem(statusCode: StatusCodes.Status404NotFound, title: FileProblems.NotFound)
