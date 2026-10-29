@@ -102,18 +102,7 @@
 
         <div class="ec-detail-layout">
             <div class="ec-detail-main">
-                <FilesCard @key="(nameof(FilesCard), this.ActId)"
-                           Title="Soubory úkonu"
-                           OwnerGoneError="úkon už neexistuje."
-                           LoadFiles="this.LoadFiles"
-                           UploadFile="this.UploadFile"
-                           LoadContent="this.LoadFileContent"
-                           UploadFileVersion="this.UploadFileVersion"
-                           LoadFileVersions="this.LoadFileVersions"
-                           DeleteFileVersion="this.DeleteFileVersion"
-                           RenameFile="this.RenameFile"
-                           DeleteFile="this.DeleteFile"
-                           UploadTarget="k úkonu" />
+                <FilesSlot State="this.Files" Wide Card="this.FilesCardContent" />
 
                 <CommentsCard @key="(nameof(CommentsCard), this.ActId)"
                               Title="Komentáře úkonu"
@@ -146,6 +135,8 @@
                         }
                     </div>
                 </EcCard>
+
+                <FilesSlot State="this.Files" Card="this.FilesCardContent" />
 
                 <EcCard Title="Průběh spisu">
                     <Header>
@@ -223,6 +214,21 @@
     public Guid ActId { get; set; }
 
     private bool deleting;
+
+    private RenderFragment<bool> FilesCardContent => compact =>
+        @<FilesCard @key="this.Files"
+                    State="this.Files"
+                    Title="Soubory úkonu"
+                    OwnerGoneError="úkon už neexistuje."
+                    UploadFile="this.UploadFile"
+                    LoadContent="this.LoadFileContent"
+                    UploadFileVersion="this.UploadFileVersion"
+                    LoadFileVersions="this.LoadFileVersions"
+                    DeleteFileVersion="this.DeleteFileVersion"
+                    RenameFile="this.RenameFile"
+                    DeleteFile="this.DeleteFile"
+                    UploadTarget="k úkonu"
+                    Compact="compact" />;
 
     protected override string LoadFailedText => "Úkon se nepodařilo načíst. Zkuste to za chvíli znovu.";
 
@@ -312,7 +318,7 @@
         this.Navigation.NavigateTo(this.Detail is { } deleted ? $"/cases/{deleted.CaseId}" : "/cases");
     }
 
-    private async Task<IReadOnlyList<FileListItem>> LoadFiles(CancellationToken token)
+    protected override async Task<IReadOnlyList<FileListItem>> LoadFiles(CancellationToken token)
     {
         return (await this.ActFilesClient.ListActFiles(this.ActId, token)).Items;
     }

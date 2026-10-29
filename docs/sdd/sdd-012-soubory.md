@@ -64,6 +64,15 @@ jedinečné bez ohledu na velikost písmen.
 
 ### UI
 
+Karta souborů leží na detailu spisu i úkonu podle toho, zda nese soubor. Bez souborů je
+kompaktní v pravém sloupci: ve spisu pod Podřízenými spisy nad komentáři, v úkonu pod kartou
+Spis nad Průběhem spisu. S aspoň jedním souborem je široká v hlavním sloupci: ve spisu nad
+úkony, v úkonu nad komentáři. Karta se přesune hned po prvním nahraném souboru a po smazání
+posledního, bez obnovení stránky; během nahrávání zůstane na místě a přesune se, až nahrávání
+skončí. Přesunutá karta ukazuje dál zvýraznění, hlášky a chyby. Dokud se seznam nenačte, karta
+není v žádném sloupci; seznam, který se načíst nepodaří, ukáže karta v pravém sloupci
+s nabídkou opakování. Na mobilu jde hlavní sloupec před bočním.
+
 Drag-and-drop multi-upload na detailu spisu i úkonu; soubory lze pustit kamkoli na kartu
 souborů a karta při tažení ukáže, kam se nahrají, a limity. Hromadné přetažení běží po
 souborech a odmítne jen soubor, který selže. Dávka nad 100 souborů se odmítá celá. Soubory
@@ -304,6 +313,7 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   čísla se nepřečíslovávají.
 - Smazání jediné verze: smaže soubor / odmítne se. Platí odmítne se.
 - Přejmenování na jméno jiného souboru: povolit / odmítnout. Platí odmítnout.
+- Místo karty souborů: pevné / podle toho, zda nese soubor. Platí podle toho, zda nese soubor.
 - Datum v seznamu: první nahrání / aktuální verze. Platí aktuální verze; pořadí podle prvního
   nahrání.
 

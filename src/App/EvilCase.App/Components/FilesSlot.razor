@@ -1,0 +1,56 @@
+@implements IDisposable
+@inject ILogger<FilesSlot> Logger
+
+@* A detail places one slot in each column (SDD-012): the files card shows in the main column once
+   the list holds a file, otherwise compact in the side column. *@
+@if (this.State.Loaded && this.State.Wide == this.Wide)
+{
+    @this.Card(!this.Wide)
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public required FilesCardState State { get; set; }
+
+    /// <summary>
+    /// The slot in the main column.
+    /// </summary>
+    [Parameter]
+    public bool Wide { get; set; }
+
+    /// <summary>
+    /// The card, given whether it is compact.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required RenderFragment<bool> Card { get; set; }
+
+    private FilesCardState? watched;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (ReferenceEquals(this.watched, this.State))
+            return;
+
+        this.Unwatch();
+        this.watched = this.State;
+        this.watched.Placed += this.Redraw;
+
+        await this.State.EnsureLoaded(this.Logger);
+    }
+
+    public void Dispose()
+    {
+        this.Unwatch();
+    }
+
+    private void Unwatch()
+    {
+        if (this.watched is not null)
+            this.watched.Placed -= this.Redraw;
+    }
+
+    private void Redraw(object? sender, EventArgs args)
+    {
+        _ = this.InvokeAsync(this.StateHasChanged);
+    }
+}

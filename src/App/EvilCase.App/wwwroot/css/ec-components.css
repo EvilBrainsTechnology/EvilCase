@@ -1189,26 +1189,12 @@ html {
     min-width: 0;
 }
 
-/* Bez místa se výzva zkrátí, nikdy nezalomí záhlaví. */
-.ec-file-card-compact .ec-file-drop-hint {
-    display: block;
-    min-width: 0;
-    overflow: hidden;
-    font-size: var(--ec-text-xs);
-    white-space: nowrap;
-    text-overflow: ellipsis;
-}
-
 .ec-file-card-compact .ec-file-upload {
     flex: 0 0 auto;
     gap: var(--ec-space-2);
     height: var(--ec-control-sm);
     padding: 0 var(--ec-space-3);
     font-size: var(--ec-text-sm);
-}
-
-.ec-file-card-compact .ec-file-drop-hint .ec-icon {
-    display: none;
 }
 
 /* Přejmenování souboru v řádku i v hlavičce náhledu. */

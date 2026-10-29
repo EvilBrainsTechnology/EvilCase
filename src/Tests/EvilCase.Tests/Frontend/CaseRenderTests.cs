@@ -17,6 +17,7 @@ using EvilBrains.EvilCase.Domain.Cases;
 using EvilBrains.EvilCase.Domain.Contacts;
 using EvilBrains.EvilCase.Domain.Labels;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
@@ -693,6 +694,178 @@ public class CaseRenderTests
         await component.InvokeAsync(component.FindComponent<LabelField>().Instance.OpenFromShortcut);
 
         Assert.That(component.FindAll("#case-labels"), Has.Count.EqualTo(1));
+    }
+
+    [Test]
+    public void ACaseWithAFileShowsItsFilesWideAboveTheActs()
+    {
+        using var ctx = new BunitContext();
+
+        var caseId = Guid.CreateVersion7();
+
+        Serve(ctx, caseId, Detail(caseId));
+        ServeFiles(ctx, [File("a.pdf")]);
+
+        var component = ctx.Render<Case>(parameters => parameters.Add(static page => page.CaseId, caseId));
+
+        component.WaitForAssertion(() => Assert.That(component.FindAll(".ec-file-card"), Has.Count.EqualTo(1)));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.FindAll(".ec-detail-main .ec-card-title").Select(static node => node.TextContent), Is.EqualTo(["Soubory spisu", "Úkony"]));
+            Assert.That(component.FindAll(".ec-detail-aside .ec-card-title").Select(static node => node.TextContent), Is.EqualTo(["Podřízené spisy", "Komentáře spisu"]));
+            Assert.That(component.FindAll(".ec-file-card-compact"), Is.Empty);
+        }
+    }
+
+    [Test]
+    public async Task TheFilesCardShowsInNeitherColumnBeforeItsListIsKnown()
+    {
+        await using var ctx = new BunitContext();
+
+        var caseId = Guid.CreateVersion7();
+        var list = new TaskCompletionSource<FileListResponse>();
+
+        Serve(ctx, caseId, Detail(caseId));
+        ctx.Services.GetRequiredService<ICaseFilesClient>().ListCaseFiles(caseId, Arg.Any<CancellationToken>()).Returns(list.Task);
+
+        var component = ctx.Render<Case>(parameters => parameters.Add(static page => page.CaseId, caseId));
+
+        Assert.That(component.FindAll(".ec-file-card"), Is.Empty, "the card never jumps between the columns on load");
+
+        list.SetResult(new FileListResponse { Items = [File("a.pdf")] });
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-detail-main .ec-file-card"), Has.Count.EqualTo(1)));
+    }
+
+    [Test]
+    public void AListThatFailsToLoadShowsCompactWithTheRetry()
+    {
+        using var ctx = new BunitContext();
+
+        var caseId = Guid.CreateVersion7();
+
+        Serve(ctx, caseId, Detail(caseId));
+        ctx.Services.GetRequiredService<ICaseFilesClient>()
+            .ListCaseFiles(caseId, Arg.Any<CancellationToken>())
+            .Returns<Task<FileListResponse>>(static _ => throw new ApiException(HttpStatusCode.InternalServerError, responseBody: null));
+
+        var component = ctx.Render<Case>(parameters => parameters.Add(static page => page.CaseId, caseId));
+
+        component.WaitForAssertion(() => Assert.That(component.FindAll(".ec-detail-aside .ec-file-card-compact .ec-card-error"), Has.Count.EqualTo(1)));
+    }
+
+    [Test]
+    public async Task TheFirstUploadMovesTheCardToTheMainColumnAndTheLastDeleteBack()
+    {
+        await using var ctx = new BunitContext();
+
+        var caseId = Guid.CreateVersion7();
+
+        Serve(ctx, caseId, Detail(caseId));
+
+        var transfer = (StubFileTransferClient)ctx.Services.GetRequiredService<IFileTransferClient>();
+        var files = ServeFiles(ctx, transfer.Uploaded);
+
+        files.DeleteCaseFile(caseId, Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(_ =>
+        {
+            transfer.Uploaded.Clear();
+
+            return Task.CompletedTask;
+        });
+
+        var component = ctx.Render<Case>(parameters => parameters.Add(static page => page.CaseId, caseId));
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-detail-aside .ec-file-card-compact"), Has.Count.EqualTo(1)));
+
+        component.FindComponent<InputFile>().UploadFiles(InputFileContent.CreateFromText("a", "a.pdf"));
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-detail-main .ec-file-card"), Has.Count.EqualTo(1)));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.FindAll(".ec-detail-aside .ec-file-card"), Is.Empty);
+            Assert.That(component.Find(".ec-detail-main .ec-file-row-fresh .ec-badge").TextContent, Is.EqualTo("nový"), "the moved card keeps the highlight");
+            Assert.That(files.ReceivedCalls().Count(static call => string.Equals(call.GetMethodInfo().Name, nameof(ICaseFilesClient.ListCaseFiles), StringComparison.Ordinal)), Is.EqualTo(2), "the move fetches nothing");
+        }
+
+        await component.Find(".ec-file-actions button[aria-haspopup=menu]").ClickAsync(new MouseEventArgs());
+        await component.FindAll("[role=menuitem]").Single(static item => string.Equals(item.TextContent.Trim(), "Smazat", StringComparison.Ordinal)).ClickAsync(new MouseEventArgs());
+        await component.Find("dialog .ec-button-danger").ClickAsync(new MouseEventArgs());
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-detail-aside .ec-file-card-compact"), Has.Count.EqualTo(1)));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.FindAll(".ec-detail-main .ec-file-card"), Is.Empty);
+            Assert.That(component.FindComponents<FileDeleteModal>(), Is.Empty);
+        }
+    }
+
+    [Test]
+    public async Task TheCardStaysPutWhileAnUploadRuns()
+    {
+        await using var ctx = new BunitContext();
+
+        var caseId = Guid.CreateVersion7();
+
+        Serve(ctx, caseId, Detail(caseId));
+
+        var transfer = (StubFileTransferClient)ctx.Services.GetRequiredService<IFileTransferClient>();
+        var gate = new TaskCompletionSource();
+        var stored = new List<FileListItem> { File("a.pdf") };
+        var files = ServeFiles(ctx, stored);
+
+        transfer.Gate = gate.Task;
+        files.DeleteCaseFile(caseId, Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(_ =>
+        {
+            stored.Clear();
+
+            return Task.CompletedTask;
+        });
+
+        var component = ctx.Render<Case>(parameters => parameters.Add(static page => page.CaseId, caseId));
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-detail-main .ec-file-card"), Has.Count.EqualTo(1)));
+
+        var card = component.FindComponent<FilesCard>().Instance;
+
+        component.FindComponent<InputFile>().UploadFiles(InputFileContent.CreateFromText("b", "b.pdf"));
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-file-uploading"), Has.Count.EqualTo(1)));
+
+        await component.Find(".ec-file-actions button[aria-haspopup=menu]").ClickAsync(new MouseEventArgs());
+        await component.FindAll("[role=menuitem]").Single(static item => string.Equals(item.TextContent.Trim(), "Smazat", StringComparison.Ordinal)).ClickAsync(new MouseEventArgs());
+        await component.Find("dialog .ec-button-danger").ClickAsync(new MouseEventArgs());
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-file-row"), Is.Empty));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.FindComponent<FilesCard>().Instance, Is.SameAs(card), "an empty list mid-upload keeps the card and its inputs");
+            Assert.That(component.FindAll(".ec-detail-main .ec-file-uploading"), Has.Count.EqualTo(1));
+        }
+
+        stored.Add(File("b.pdf"));
+        gate.SetResult();
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-file-uploading"), Is.Empty));
+
+        Assert.That(component.FindComponent<FilesCard>().Instance, Is.SameAs(card), "the list holds a file again, so the card stays wide");
+    }
+
+    private static ICaseFilesClient ServeFiles(BunitContext ctx, IReadOnlyList<FileListItem> files)
+    {
+        var client = ctx.Services.GetRequiredService<ICaseFilesClient>();
+
+        client.ListCaseFiles(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(_ => Task.FromResult(new FileListResponse { Items = [.. files] }));
+
+        return client;
+    }
+
+    private static FileListItem File(string fileName)
+    {
+        return new FileListItem { FileId = Guid.CreateVersion7(), FileName = fileName, SizeBytes = 1, Created = DateTime.UtcNow, Version = 1, VersionCount = 1 };
     }
 
     private static CaseDetail Detail(Guid caseId)

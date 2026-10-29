@@ -621,6 +621,53 @@ public class ActRenderTests
         return ctx.Render<Act>(parameters => parameters.Add(static page => page.ActId, actId));
     }
 
+    [Test]
+    public void AnActWithoutFilesShowsTheFilesCompactUnderTheCase()
+    {
+        using var ctx = new BunitContext();
+
+        var caseId = Guid.CreateVersion7();
+        var actId = Guid.CreateVersion7();
+
+        Serve(ctx, actId, Detail(caseId, actId));
+
+        var component = ctx.Render<Act>(parameters => parameters.Add(static page => page.ActId, actId));
+
+        component.WaitForAssertion(() => Assert.That(component.FindAll(".ec-file-card"), Has.Count.EqualTo(1)));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.FindAll(".ec-detail-aside .ec-card-title").Select(static node => node.TextContent), Is.EqualTo(["Spis", "Soubory úkonu", "Průběh spisu"]));
+            Assert.That(component.FindAll(".ec-detail-main .ec-card-title").Select(static node => node.TextContent), Is.EqualTo(["Komentáře úkonu"]));
+            Assert.That(component.FindAll(".ec-file-card-compact"), Has.Count.EqualTo(1));
+        }
+    }
+
+    [Test]
+    public void AnActWithAFileShowsItsFilesWideAboveTheComments()
+    {
+        using var ctx = new BunitContext();
+
+        var caseId = Guid.CreateVersion7();
+        var actId = Guid.CreateVersion7();
+
+        Serve(ctx, actId, Detail(caseId, actId));
+        ctx.Services.GetRequiredService<IActFilesClient>()
+            .ListActFiles(actId, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new FileListResponse { Items = [new FileListItem { FileId = Guid.CreateVersion7(), FileName = "a.pdf", SizeBytes = 1, Created = DateTime.UtcNow, Version = 1, VersionCount = 1 }] }));
+
+        var component = ctx.Render<Act>(parameters => parameters.Add(static page => page.ActId, actId));
+
+        component.WaitForAssertion(() => Assert.That(component.FindAll(".ec-file-card"), Has.Count.EqualTo(1)));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.FindAll(".ec-detail-main .ec-card-title").Select(static node => node.TextContent), Is.EqualTo(["Soubory úkonu", "Komentáře úkonu"]));
+            Assert.That(component.FindAll(".ec-detail-aside .ec-card-title").Select(static node => node.TextContent), Is.EqualTo(["Spis", "Průběh spisu"]));
+            Assert.That(component.FindAll(".ec-file-card-compact"), Is.Empty);
+        }
+    }
+
     private static ActDetail Detail(Guid caseId, Guid actId)
     {
         return new ActDetail

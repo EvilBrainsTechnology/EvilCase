@@ -88,19 +88,18 @@ položka menu je zvýrazněná po celé výšce lišty. Obsah leží na
 
 Detail spisu i úkonu začíná kartou se jménem, stavem, popisem a řádkem údajů. Popis je hned
 pod názvem, ne v postranním sloupci; bez popisu jde pod název rovnou řádek údajů. Chybějící
-údaj je světlá pomlčka jako v seznamu. Obsah, který patří spisu, je v pravém sloupci; obsah,
-který patří úkonu, je uvnitř úkonu. Soubory a komentáře proto existují dvakrát a název to
+údaj je světlá pomlčka jako v seznamu. Obsah, který patří spisu, je v pravém sloupci, kromě
+karty souborů, která se soubory leží v hlavním sloupci (SDD-012); obsah, který patří úkonu, je
+uvnitř úkonu. Soubory a komentáře proto existují dvakrát a název to
 vždycky říká: „Soubory spisu" a „Soubory úkonu".
 
 Další akce detailu jsou v nabídce `EcMenu` vedle hlavní akce; smazání je v ní poslední
 a oddělené. Spisovou značku, číslo jednací i externí značky v řádku údajů jde zkopírovat
-tlačítkem vedle hodnoty. Soubory a komentáře v bočním sloupci detailu spisu jsou kompaktní:
-soubor drží název na jednom řádku a velikost s okamžikem nahrání na druhém a pole pro nový
+tlačítkem vedle hodnoty. Soubory a komentáře v bočním sloupci jsou kompaktní: pole pro nový
 komentář má dva řádky.
 
-Karta souborů nese v záhlaví výzvu „Přetáhněte soubory sem nebo" a tlačítko Nahrát soubory,
-v bočním sloupci „Přetáhněte sem nebo" a Nahrát; záhlaví drží jeden řádek a výzva se bez místa
-zkrátí. Na mobilu záhlaví výzvu nenese a tlačítko je vždy Nahrát. Velikost a okamžik nahrání
+Karta souborů nese v záhlaví počet, výzvu „Přetáhněte soubory sem nebo" a tlačítko Nahrát
+soubory, v bočním sloupci jen název a Nahrát; záhlaví drží jeden řádek. Na mobilu záhlaví výzvu nenese a tlačítko je vždy Nahrát. Velikost a okamžik nahrání
 se zalomí jen mezi sebou. Pod seznamem žádný pruh není. Řádek souboru je jedno ovládací místo
 po celé šířce a otevírá náhled; stažení a nabídka ⋯ jsou ohraničená tlačítka jen s ikonou,
 v nabídce je Nahrát novou verzi, Verze (3), Přejmenovat a oddělené, červené Smazat. Soubor s více

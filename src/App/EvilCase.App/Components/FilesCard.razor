@@ -13,12 +13,15 @@
 <FileDropZone class="@(this.Compact ? "ec-file-card ec-file-card-compact" : "ec-file-card")">
     <EcCard Title="@this.Title">
         <Header>
-            @if (!this.loading && this.listFailure is null)
+            @if (!this.Compact && this.State.Loaded && this.State.ListFailure is null)
             {
-                <span class="ec-card-count">@this.items.Count</span>
+                <span class="ec-card-count">@this.State.Items.Count</span>
             }
             <div class="ec-card-header-actions">
-                <span class="ec-file-drop-hint"><EcIcon Paths="@AppIcons.Hand" />@(this.Compact ? "Přetáhněte sem nebo" : "Přetáhněte soubory sem nebo")</span>
+                @if (!this.Compact)
+                {
+                    <span class="ec-file-drop-hint"><EcIcon Paths="@AppIcons.Hand" />Přetáhněte soubory sem nebo</span>
+                }
                 <label class="@(this.Compact ? "ec-button ec-button-secondary ec-button-compact ec-file-upload" : "ec-button ec-button-secondary ec-button-standard ec-file-upload")"
                        for="files-upload-input">
                     <EcIcon Paths="@AppIcons.Upload" /><span>@("Nahrát")@if (!this.Compact)
@@ -40,17 +43,17 @@
                     }
                 </div>
 
-                @if (this.notices.Count > 0)
+                @if (this.State.Notices.Count > 0)
                 {
                     <div class="ec-file-notice" role="status">
-                        @foreach (var notice in this.notices)
+                        @foreach (var notice in this.State.Notices)
                         {
                             <span>@notice</span>
                         }
                     </div>
                 }
 
-                @foreach (var failure in this.failures)
+                @foreach (var failure in this.State.Failures)
                 {
                     <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@failure</div>
                 }
@@ -67,19 +70,19 @@
                     </div>
                 }
 
-                @if (this.loading)
+                @if (!this.State.Loaded)
                 {
                     <p class="ec-card-state">Načítám…</p>
                 }
-                else if (this.listFailure is not null)
+                else if (this.State.ListFailure is not null)
                 {
                     <div class="ec-card-error">
-                        <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.listFailure</div>
+                        <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.State.ListFailure</div>
                         <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Refresh"
                                   OnClick="this.ReloadFiles">Zkusit znovu</EcButton>
                     </div>
                 }
-                else if (this.items.Count == 0)
+                else if (this.State.Items.Count == 0)
                 {
                     <EcEmptyState Icon="@AppIcons.Paperclip" Text="Zatím tu nejsou žádné soubory."
                                   Hint="@($"Přetáhněte je kamkoli do panelu nebo použijte {this.UploadLabel}.")" />
@@ -87,10 +90,10 @@
                 else
                 {
                     <div class="ec-file-list">
-                        @foreach (var file in this.items)
+                        @foreach (var file in this.State.Items)
                         {
                             var renaming = this.renamingFileId == file.FileId;
-                            var stored = this.fresh.TryGetValue(file.FileId, out var outcome) ? outcome : (FileUploadOutcome?)null;
+                            var stored = this.State.Fresh.TryGetValue(file.FileId, out var outcome) ? outcome : (FileUploadOutcome?)null;
 
                             <div class="@(renaming ? "ec-file-row ec-file-row-renaming" : stored is null ? "ec-file-row" : "ec-file-row ec-file-row-fresh")" @key="file.FileId">
                                 <EcFileIcon FileName="@file.FileName" Size="@this.IconSize" />
@@ -134,7 +137,7 @@
 
 @if (this.previewFileId is { } previewId)
 {
-    <FilePreviewModal Files="this.items" FileId="previewId" FileIdChanged="this.PreviewFile"
+    <FilePreviewModal Files="this.State.Items" FileId="previewId" FileIdChanged="this.PreviewFile"
                       Version="this.previewVersion" VersionChanged="this.PreviewVersion"
                       LoadContent="this.LoadContent" Rename="this.RenameFile"
                       LoadVersions="this.LoadFileVersions" UploadVersion="this.UploadVersion" OnManageVersions="this.ManageVersions"
@@ -142,7 +145,7 @@
                       Open OpenChanged="this.ClosePreview" />
 }
 
-@if (this.versionsFileId is { } versionsId && this.items.FirstOrDefault(item => item.FileId == versionsId) is { } versionsFile)
+@if (this.versionsFileId is { } versionsId && this.State.Items.FirstOrDefault(item => item.FileId == versionsId) is { } versionsFile)
 {
     <FileVersionsModal File="versionsFile" LoadVersions="this.LoadFileVersions" DeleteVersion="this.DeleteFileVersion" UploadVersion="this.UploadVersion"
                        OnPreview="number => this.ShowVersion(versionsFile, number)" OnDownload="number => this.DownloadVersion(versionsFile, number)"
@@ -161,8 +164,11 @@
     [Parameter, EditorRequired]
     public required string Title { get; set; }
 
+    /// <summary>
+    /// The list, its highlights, notices and errors; they outlive the card when it moves.
+    /// </summary>
     [Parameter, EditorRequired]
-    public required Func<CancellationToken, Task<IReadOnlyList<FileListItem>>> LoadFiles { get; set; }
+    public required FilesCardState State { get; set; }
 
     [Parameter, EditorRequired]
     public required Func<IBrowserFile, CancellationToken, Task<FileUploadResult>> UploadFile { get; set; }
@@ -206,18 +212,7 @@
     [Parameter]
     public bool Compact { get; set; }
 
-    private readonly List<string> failures = [];
-
-    private readonly List<string> notices = [];
-
-    // The files and versions this card stored since it loaded.
-    private readonly Dictionary<Guid, FileUploadOutcome> fresh = [];
-
     private readonly Dictionary<Guid, ElementReference> nameButtons = [];
-
-    private IReadOnlyList<FileListItem> items = [];
-
-    private bool loading = true;
 
     private int uploadIndex;
 
@@ -237,8 +232,6 @@
     private Guid? renamingFileId;
 
     private Guid? focusFileId;
-
-    private string? listFailure;
 
     private FileListItem? deleting;
 
@@ -260,8 +253,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await this.ReloadFiles();
-        this.loading = false;
+        await this.State.EnsureLoaded(this.Logger);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -288,28 +280,16 @@
 
     private async Task ReloadFiles()
     {
-        this.listFailure = null;
-
-        try
-        {
-            this.items = await this.LoadFiles(CancellationToken.None);
-        }
-        catch (Exception exception) when (exception is ApiException or HttpRequestException)
-        {
-            this.Logger.LogWarning(exception, "Loading the files failed");
-
-            this.items = [];
-            this.listFailure = "Soubory se nepodařilo načíst. Zkuste to za chvíli znovu.";
-        }
+        await this.State.Reload(this.Logger);
 
         // A file removed elsewhere takes its open preview or rename with it.
-        if (this.previewFileId is { } previewId && this.items.All(file => file.FileId != previewId))
+        if (this.previewFileId is { } previewId && this.State.Items.All(file => file.FileId != previewId))
             this.previewFileId = null;
 
-        if (this.renamingFileId is { } renamingId && this.items.All(file => file.FileId != renamingId))
+        if (this.renamingFileId is { } renamingId && this.State.Items.All(file => file.FileId != renamingId))
             this.renamingFileId = null;
 
-        if (this.versionsFileId is { } versionsId && this.items.All(file => file.FileId != versionsId))
+        if (this.versionsFileId is { } versionsId && this.State.Items.All(file => file.FileId != versionsId))
             this.versionsFileId = null;
     }
 
@@ -320,8 +300,8 @@
             if (args.FileCount == 0)
                 return;
 
-            if (!this.failures.Contains(WaitForUpload))
-                this.failures.Add(WaitForUpload);
+            if (!this.State.Failures.Contains(WaitForUpload))
+                this.State.Failures.Add(WaitForUpload);
 
             this.uploadRound++;
 
@@ -329,8 +309,9 @@
         }
 
         this.busyRound = this.uploadRound++;
-        this.failures.Clear();
-        this.notices.Clear();
+        this.State.Busy = true;
+        this.State.Failures.Clear();
+        this.State.Notices.Clear();
         this.uploadIndex = 0;
         this.uploadTotal = args.FileCount;
 
@@ -338,7 +319,7 @@
             args,
             this.UploadFile,
             this.OwnerGoneError,
-            this.failures,
+            this.State.Failures,
             (index, name) =>
             {
                 this.uploadIndex = index;
@@ -349,6 +330,7 @@
             this.Logger);
 
         this.busyRound = null;
+        this.State.Busy = false;
         this.uploadTotal = 0;
 
         await this.ReloadFiles();
@@ -370,8 +352,8 @@
 
         var (failure, _) = await this.UploadVersion(file, args.File);
 
-        if (failure is not null && !this.failures.Contains(failure))
-            this.failures.Add(failure);
+        if (failure is not null && !this.State.Failures.Contains(failure))
+            this.State.Failures.Add(failure);
     }
 
     // Called from the modals through a plain delegate, so it redraws the card itself.
@@ -391,8 +373,9 @@
             return (TooLarge(picked.Name), null);
 
         this.versionUploading = true;
-        this.failures.Clear();
-        this.notices.Clear();
+        this.State.Busy = true;
+        this.State.Failures.Clear();
+        this.State.Notices.Clear();
         this.uploadIndex = 1;
         this.uploadTotal = 1;
         this.uploadName = picked.Name;
@@ -425,6 +408,7 @@
         }
 
         this.versionUploading = false;
+        this.State.Busy = false;
         this.uploadTotal = 0;
 
         await this.ReloadFiles();
@@ -441,18 +425,18 @@
         switch (result.Outcome)
         {
             case FileUploadOutcome.NewFile:
-                this.fresh[file.FileId] = FileUploadOutcome.NewFile;
+                this.State.Fresh[file.FileId] = FileUploadOutcome.NewFile;
 
                 return null;
 
             case FileUploadOutcome.NewVersion:
             {
-                if (!this.fresh.TryGetValue(file.FileId, out var known) || known != FileUploadOutcome.NewFile)
-                    this.fresh[file.FileId] = FileUploadOutcome.NewVersion;
+                if (!this.State.Fresh.TryGetValue(file.FileId, out var known) || known != FileUploadOutcome.NewFile)
+                    this.State.Fresh[file.FileId] = FileUploadOutcome.NewVersion;
 
                 var added = $"{file.FileName}: nahráno jako verze {file.Version}.";
 
-                this.notices.Add(added);
+                this.State.Notices.Add(added);
 
                 return added;
             }
@@ -461,7 +445,7 @@
             {
                 var same = $"{file.FileName}: obsah je stejný jako poslední verze, nová verze nevznikla.";
 
-                this.notices.Add(same);
+                this.State.Notices.Add(same);
 
                 return same;
             }
