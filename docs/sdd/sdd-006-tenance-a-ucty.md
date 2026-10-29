@@ -79,8 +79,6 @@ Pět po sobě jdoucích neúspěšných přihlášení účet na 15 minut uzamkn
 - Plnění `TenantId` a `UserId`: volající / zápis sám. Platí zápis sám, jen na nové řádce.
 - Změna a smazání cizího záznamu uvnitř tenantu: jen vlastník / kdokoli z tenantu. Platí kdokoli
   z tenantu, komentář jen jeho autor (SDD-013).
-- Zápis cizí řádky uvnitř tenantu: povolený / odmítnutý. Platí odmítnutý; jeden uživatel na
-  tenant znamená, že k němu nedojde.
 
 ## Dopady
 
