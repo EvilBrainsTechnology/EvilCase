@@ -315,7 +315,7 @@ public class ActRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.Find(".ec-page-header-top .ec-act-pager-text").TextContent, Is.EqualTo("Úkon 2 z 3"));
+            Assert.That(component.Find("aside .ec-card-header .ec-act-pager-text").TextContent, Is.EqualTo("Úkon 2 z 3"), "the pager heads the case timeline");
             Assert.That(component.Find("a[aria-label='Předchozí úkon: Výzva']").GetAttribute("href"), Is.EqualTo($"/acts/{previousId}"));
             Assert.That(component.Find("a[aria-label='Další úkon: Odvolání']").GetAttribute("href"), Is.EqualTo($"/acts/{nextId}"));
         }

@@ -232,24 +232,6 @@ html {
     color: var(--ec-text-muted);
 }
 
-.ec-page-header-top {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: var(--ec-space-3);
-}
-
-.ec-page-header-top .ec-crumbs {
-    flex: 1 1 auto;
-    min-width: 0;
-}
-
-.ec-page-header-end {
-    display: flex;
-    align-items: center;
-    margin-left: auto;
-}
-
 .ec-page-header-row {
     display: flex;
     align-items: center;
@@ -3229,6 +3211,7 @@ html {
     display: flex;
     align-items: center;
     gap: var(--ec-space-2);
+    margin-left: auto;
 }
 
 .ec-act-pager .ec-button {
