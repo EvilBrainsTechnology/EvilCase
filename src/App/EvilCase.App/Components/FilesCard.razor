@@ -309,29 +309,34 @@
         }
 
         this.busyRound = this.uploadRound++;
-        this.State.Busy = true;
+        this.State.UploadStarted();
         this.State.Failures.Clear();
         this.State.Notices.Clear();
         this.uploadIndex = 0;
         this.uploadTotal = args.FileCount;
 
-        await FileBatchUploader.Run(
-            args,
-            this.UploadFile,
-            this.OwnerGoneError,
-            this.State.Failures,
-            (index, name) =>
-            {
-                this.uploadIndex = index;
-                this.uploadName = name;
-                this.StateHasChanged();
-            },
-            result => this.Record(result),
-            this.Logger);
-
-        this.busyRound = null;
-        this.State.Busy = false;
-        this.uploadTotal = 0;
+        try
+        {
+            await FileBatchUploader.Run(
+                args,
+                this.UploadFile,
+                this.OwnerGoneError,
+                this.State.Failures,
+                (index, name) =>
+                {
+                    this.uploadIndex = index;
+                    this.uploadName = name;
+                    this.StateHasChanged();
+                },
+                result => this.Record(result),
+                this.Logger);
+        }
+        finally
+        {
+            this.busyRound = null;
+            this.State.UploadEnded();
+            this.uploadTotal = 0;
+        }
 
         await this.ReloadFiles();
     }
@@ -373,7 +378,7 @@
             return (TooLarge(picked.Name), null);
 
         this.versionUploading = true;
-        this.State.Busy = true;
+        this.State.UploadStarted();
         this.State.Failures.Clear();
         this.State.Notices.Clear();
         this.uploadIndex = 1;
@@ -406,10 +411,12 @@
 
             failure = $"{picked.Name}: nahrání se nezdařilo.";
         }
-
-        this.versionUploading = false;
-        this.State.Busy = false;
-        this.uploadTotal = 0;
+        finally
+        {
+            this.versionUploading = false;
+            this.State.UploadEnded();
+            this.uploadTotal = 0;
+        }
 
         await this.ReloadFiles();
 

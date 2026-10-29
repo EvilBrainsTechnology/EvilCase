@@ -12,6 +12,8 @@ public sealed class FilesCardState(Func<CancellationToken, Task<IReadOnlyList<Fi
 {
     private Task? firstLoad;
 
+    private int uploads;
+
     public event EventHandler? Placed;
 
     public IReadOnlyList<FileListItem> Items { get; private set; } = [];
@@ -30,9 +32,9 @@ public sealed class FilesCardState(Func<CancellationToken, Task<IReadOnlyList<Fi
     public Dictionary<Guid, FileUploadOutcome> Fresh { get; } = [];
 
     /// <summary>
-    /// An upload runs: the card keeps its place until it ends.
+    /// An upload runs: the card keeps its place until every upload ends.
     /// </summary>
-    public bool Busy { get; set; }
+    public bool Busy => this.uploads > 0;
 
     /// <summary>
     /// The card sits in the main column: the list holds a file.
@@ -62,6 +64,16 @@ public sealed class FilesCardState(Func<CancellationToken, Task<IReadOnlyList<Fi
 
         this.Loaded = true;
         this.Place();
+    }
+
+    public void UploadStarted()
+    {
+        this.uploads++;
+    }
+
+    public void UploadEnded()
+    {
+        this.uploads--;
     }
 
     /// <summary>

@@ -42,7 +42,7 @@ public class FilesCardStateTests
 
         await state.EnsureLoaded(NullLogger.Instance);
 
-        state.Busy = true;
+        state.UploadStarted();
         files = [File()];
         await state.Reload(NullLogger.Instance);
 
@@ -52,7 +52,7 @@ public class FilesCardStateTests
             Assert.That(placed, Is.Zero);
         }
 
-        state.Busy = false;
+        state.UploadEnded();
         state.Place();
 
         using (Assert.EnterMultipleScope())
@@ -60,6 +60,28 @@ public class FilesCardStateTests
             Assert.That(state.Wide, Is.True);
             Assert.That(placed, Is.EqualTo(1));
         }
+    }
+
+    [Test]
+    public async Task TheCardMovesOnlyWhenEveryUploadEnds()
+    {
+        IReadOnlyList<FileListItem> files = [];
+        var state = new FilesCardState(_ => Task.FromResult(files));
+
+        await state.EnsureLoaded(NullLogger.Instance);
+
+        state.UploadStarted();
+        state.UploadStarted();
+        files = [File()];
+        state.UploadEnded();
+        await state.Reload(NullLogger.Instance);
+
+        Assert.That(state.Wide, Is.False);
+
+        state.UploadEnded();
+        await state.Reload(NullLogger.Instance);
+
+        Assert.That(state.Wide, Is.True);
     }
 
     [Test]
