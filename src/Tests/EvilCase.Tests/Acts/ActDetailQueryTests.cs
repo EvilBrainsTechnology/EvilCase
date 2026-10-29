@@ -22,7 +22,7 @@ public class ActDetailQueryTests : TenantFixture
             direction: ActDirection.Outgoing,
             description: "Popis úkonu");
 
-        var detail = await ActDetailQuery.DetailOf(this.Tenant.Context, act.Id, CancellationToken.None);
+        var detail = await this.Tenant.Context.Acts.DetailOf(act.Id, CancellationToken.None);
 
         Assert.That(detail, Is.Not.Null);
 
@@ -43,7 +43,7 @@ public class ActDetailQueryTests : TenantFixture
         var @case = await this.Tenant.AddCase(Day, status: CaseStatus.WaitingOnAuthority);
         var act = await this.Tenant.AddAct(@case, Day);
 
-        var detail = await ActDetailQuery.DetailOf(this.Tenant.Context, act.Id, CancellationToken.None);
+        var detail = await this.Tenant.Context.Acts.DetailOf(act.Id, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -61,7 +61,7 @@ public class ActDetailQueryTests : TenantFixture
         var @case = await this.Tenant.AddCase(Day, contact: caseContact);
         var act = await this.Tenant.AddAct(@case, Day, contact: actContact);
 
-        var detail = await ActDetailQuery.DetailOf(this.Tenant.Context, act.Id, CancellationToken.None);
+        var detail = await this.Tenant.Context.Acts.DetailOf(act.Id, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -78,7 +78,7 @@ public class ActDetailQueryTests : TenantFixture
         var @case = await this.Tenant.AddCase(Day);
         var act = await this.Tenant.AddAct(@case, Day);
 
-        var detail = await ActDetailQuery.DetailOf(this.Tenant.Context, act.Id, CancellationToken.None);
+        var detail = await this.Tenant.Context.Acts.DetailOf(act.Id, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -94,7 +94,7 @@ public class ActDetailQueryTests : TenantFixture
         var @case = await this.Tenant.AddCase(Day, contact: caseContact);
         var act = await this.Tenant.AddAct(@case, Day);
 
-        var detail = await ActDetailQuery.DetailOf(this.Tenant.Context, act.Id, CancellationToken.None);
+        var detail = await this.Tenant.Context.Acts.DetailOf(act.Id, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -106,7 +106,7 @@ public class ActDetailQueryTests : TenantFixture
     [Test]
     public async Task AnUnknownIdIsNoDetail()
     {
-        var detail = await ActDetailQuery.DetailOf(this.Tenant.Context, Guid.CreateVersion7(), CancellationToken.None);
+        var detail = await this.Tenant.Context.Acts.DetailOf(Guid.CreateVersion7(), CancellationToken.None);
 
         Assert.That(detail, Is.Null);
     }
@@ -118,7 +118,7 @@ public class ActDetailQueryTests : TenantFixture
         var otherCase = await other.AddCase(Day);
         var otherAct = await other.AddAct(otherCase, Day);
 
-        var detail = await ActDetailQuery.DetailOf(this.Tenant.Context, otherAct.Id, CancellationToken.None);
+        var detail = await this.Tenant.Context.Acts.DetailOf(otherAct.Id, CancellationToken.None);
 
         Assert.That(detail, Is.Null, "the tenant query filter is what turns another tenant's id into nothing");
     }
@@ -141,7 +141,7 @@ public class ActDetailQueryTests : TenantFixture
         var @case = await this.Tenant.AddCase(Day);
         var act = await this.Tenant.AddAct(@case, Day, externalActNumber: "1 T 45/2026");
 
-        var detail = await ActDetailQuery.DetailOf(this.Tenant.Context, act.Id, CancellationToken.None);
+        var detail = await this.Tenant.Context.Acts.DetailOf(act.Id, CancellationToken.None);
 
         Assert.That(detail!.ExternalActNumber, Is.EqualTo("1 T 45/2026"));
     }
@@ -152,7 +152,7 @@ public class ActDetailQueryTests : TenantFixture
         var @case = await this.Tenant.AddCase(Day);
         var act = await this.Tenant.AddAct(@case, Day);
 
-        var detail = await ActDetailQuery.DetailOf(this.Tenant.Context, act.Id, CancellationToken.None);
+        var detail = await this.Tenant.Context.Acts.DetailOf(act.Id, CancellationToken.None);
 
         Assert.That(detail!.ExternalActNumber, Is.Null, "the number is optional and its absence is no number, not a failed read");
     }

@@ -17,7 +17,7 @@ public class CaseDetailQueryTests : TenantFixture
             description: "Popis přestupku",
             status: CaseStatus.WaitingOnAuthority);
 
-        var detail = await CaseDetailQuery.DetailOf(this.Tenant.Context, @case.Id, CancellationToken.None);
+        var detail = await this.Tenant.Context.Cases.DetailOf(@case.Id, CancellationToken.None);
 
         Assert.That(detail, Is.Not.Null);
 
@@ -37,7 +37,7 @@ public class CaseDetailQueryTests : TenantFixture
     {
         var @case = await this.Tenant.AddCase(Day);
 
-        var detail = await CaseDetailQuery.DetailOf(this.Tenant.Context, @case.Id, CancellationToken.None);
+        var detail = await this.Tenant.Context.Cases.DetailOf(@case.Id, CancellationToken.None);
 
         Assert.That(detail!.ParentCase, Is.Null);
     }
@@ -48,7 +48,7 @@ public class CaseDetailQueryTests : TenantFixture
         var contact = await this.Tenant.AddContact("Městský úřad Vzorov");
         var @case = await this.Tenant.AddCase(Day, contact: contact);
 
-        var detail = await CaseDetailQuery.DetailOf(this.Tenant.Context, @case.Id, CancellationToken.None);
+        var detail = await this.Tenant.Context.Cases.DetailOf(@case.Id, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -63,7 +63,7 @@ public class CaseDetailQueryTests : TenantFixture
     {
         var @case = await this.Tenant.AddCase(Day);
 
-        var detail = await CaseDetailQuery.DetailOf(this.Tenant.Context, @case.Id, CancellationToken.None);
+        var detail = await this.Tenant.Context.Cases.DetailOf(@case.Id, CancellationToken.None);
 
         Assert.That(detail!.Contact, Is.Null, "a contact is optional and its absence is no contact, not a failed read");
     }
@@ -74,7 +74,7 @@ public class CaseDetailQueryTests : TenantFixture
         var parent = await this.Tenant.AddCase(Day, "Nadřízený");
         var child = await this.Tenant.AddCase(Day, "Podřízený", parentCaseId: parent.Id);
 
-        var detail = await CaseDetailQuery.DetailOf(this.Tenant.Context, child.Id, CancellationToken.None);
+        var detail = await this.Tenant.Context.Cases.DetailOf(child.Id, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -89,7 +89,7 @@ public class CaseDetailQueryTests : TenantFixture
     {
         var @case = await this.Tenant.AddCase(Day, externalCaseNumber: "VV41/2025/08464");
 
-        var detail = await CaseDetailQuery.DetailOf(this.Tenant.Context, @case.Id, CancellationToken.None);
+        var detail = await this.Tenant.Context.Cases.DetailOf(@case.Id, CancellationToken.None);
 
         Assert.That(detail!.ExternalCaseNumber, Is.EqualTo("VV41/2025/08464"));
     }
@@ -99,7 +99,7 @@ public class CaseDetailQueryTests : TenantFixture
     {
         var @case = await this.Tenant.AddCase(Day);
 
-        var detail = await CaseDetailQuery.DetailOf(this.Tenant.Context, @case.Id, CancellationToken.None);
+        var detail = await this.Tenant.Context.Cases.DetailOf(@case.Id, CancellationToken.None);
 
         Assert.That(detail!.ExternalCaseNumber, Is.Null, "the mark is optional and its absence is no mark, not a failed read");
     }
@@ -107,7 +107,7 @@ public class CaseDetailQueryTests : TenantFixture
     [Test]
     public async Task AnUnknownIdIsNoDetail()
     {
-        var detail = await CaseDetailQuery.DetailOf(this.Tenant.Context, Guid.CreateVersion7(), CancellationToken.None);
+        var detail = await this.Tenant.Context.Cases.DetailOf(Guid.CreateVersion7(), CancellationToken.None);
 
         Assert.That(detail, Is.Null);
     }
@@ -118,7 +118,7 @@ public class CaseDetailQueryTests : TenantFixture
         await using var other = await TestTenant.Create();
         var otherCase = await other.AddCase(Day);
 
-        var detail = await CaseDetailQuery.DetailOf(this.Tenant.Context, otherCase.Id, CancellationToken.None);
+        var detail = await this.Tenant.Context.Cases.DetailOf(otherCase.Id, CancellationToken.None);
 
         Assert.That(detail, Is.Null, "the tenant query filter is what turns another tenant's id into nothing");
     }

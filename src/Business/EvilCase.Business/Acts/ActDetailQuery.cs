@@ -11,17 +11,17 @@ namespace EvilBrains.EvilCase.Business.Acts;
 
 internal static class ActDetailQuery
 {
-    public static async Task<ActDetail?> DetailOf(ApplicationDbContext context, Guid actId, CancellationToken token)
+    public static async Task<ActDetail?> DetailOf(this IQueryable<Act> acts, Guid actId, CancellationToken token)
     {
-        return await context.Acts
+        return await acts
             .WithId(actId)
-            .Select(act => new ActDetail
+            .Select(static act => new ActDetail
             {
                 ActId = act.Id,
                 CaseId = act.CaseId,
                 CaseNumber = act.Case!.CaseNumber,
                 CaseTitle = act.Case.Title,
-                CaseAncestors = context.CaseAncestors(act.CaseId)
+                CaseAncestors = DatabaseFunctions.CaseAncestors(act.CaseId)
                     .OrderByDescending(static ancestor => ancestor.Depth)
                     .Select(static ancestor => new CaseCrumb { CaseId = ancestor.CaseId, Title = ancestor.Title })
                     .ToList(),

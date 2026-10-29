@@ -3,17 +3,18 @@ using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Data.DbContexts;
+using EvilBrains.EvilCase.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Business.Cases;
 
 internal static class CaseDetailQuery
 {
-    public static async Task<CaseDetail?> DetailOf(ApplicationDbContext context, Guid caseId, CancellationToken token)
+    public static async Task<CaseDetail?> DetailOf(this IQueryable<Case> cases, Guid caseId, CancellationToken token)
     {
-        return await context.Cases
+        return await cases
             .WithId(caseId)
-            .Select(@case => new CaseDetail
+            .Select(static @case => new CaseDetail
             {
                 CaseId = @case.Id,
                 CaseNumber = @case.CaseNumber,
@@ -44,7 +45,7 @@ internal static class CaseDetailQuery
                         Status = @case.ParentCase.Status,
                         Changed = @case.ParentCase.Updated ?? @case.ParentCase.Created,
                     },
-                Ancestors = context.CaseAncestors(@case.Id)
+                Ancestors = DatabaseFunctions.CaseAncestors(@case.Id)
                     .OrderByDescending(static ancestor => ancestor.Depth)
                     .Select(static ancestor => new CaseCrumb { CaseId = ancestor.CaseId, Title = ancestor.Title })
                     .ToList(),
