@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using System.Text;
 using EvilBrains.EvilCase.Files;
 
@@ -9,20 +10,20 @@ internal sealed class FakeFileBlobStore : IFileBlobStore
 
     public Dictionary<string, string> WrittenByPath { get; } = [];
 
-    public async Task<FileBlobInfo> WriteFileBlob(Guid tenantId, Guid fileAssetId, Stream content, CancellationToken token)
+    public async Task<FileBlobInfo> WriteFileBlob(Guid tenantId, Guid fileVersionId, Stream content, CancellationToken token)
     {
         using var reader = new StreamReader(content, Encoding.UTF8);
         var text = await reader.ReadToEndAsync(token);
 
-        this.Written[fileAssetId] = text;
+        this.Written[fileVersionId] = text;
 
-        var storagePath = $"{tenantId}/{fileAssetId}";
+        var storagePath = $"{tenantId}/{fileVersionId}";
         this.WrittenByPath[storagePath] = text;
 
         return new FileBlobInfo
         {
             StoragePath = storagePath,
-            ContentHash = new string('a', 64),
+            ContentHash = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(text))),
             SizeBytes = Encoding.UTF8.GetByteCount(text),
         };
     }

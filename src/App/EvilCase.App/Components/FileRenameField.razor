@@ -125,6 +125,10 @@
         {
             this.error = "Název souboru není platný.";
         }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
+        {
+            this.error = "Soubor tohoto jména už existuje.";
+        }
         catch (Exception exception) when (exception is ApiException or HttpRequestException)
         {
             this.Logger.LogWarning(exception, "Renaming the file failed");

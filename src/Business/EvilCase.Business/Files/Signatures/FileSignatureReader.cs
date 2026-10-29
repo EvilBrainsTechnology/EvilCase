@@ -1,10 +1,9 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using EvilBrains.EvilCase.Api.Contract.Files;
-using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Data.DbContexts;
+using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Files;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
@@ -24,43 +23,40 @@ internal sealed class FileSignatureReader(
 
     private static readonly ConcurrentDictionary<Guid, Lazy<Task<FileSignatureResponse?>>> InFlight = new();
 
-    public async Task<FileSignatureResponse?> ReadFileSignature(Guid fileId, CancellationToken token)
+    public async Task<FileSignatureResponse?> ReadFileSignature(Guid fileId, int? version, CancellationToken token)
     {
         // The tenant-filtered row comes first, so a cached verdict never reaches another tenant.
-        var file = await dbSession.Current.FileAssets
-            .WithId(fileId)
-            .SingleOrDefaultAsync(token);
-
-        if (file is null)
+        var fileVersion = await dbSession.Current.FileVersions.ReadFileVersion(fileId, version, token);
+        if (fileVersion is null)
             return null;
 
-        if (cache.TryGetValue(CacheKey(fileId), out FileSignatureResponse? cached))
+        if (cache.TryGetValue(CacheKey(fileVersion.Id), out FileSignatureResponse? cached))
             return cached;
 
-        // Concurrent reads of one file share one verification; it outlives a caller that gives up.
+        // Concurrent reads of one version share one verification; it outlives a caller that gives up.
         var flight = InFlight.GetOrAdd(
-            fileId,
-            static (id, verification) => new Lazy<Task<FileSignatureResponse?>>(
-                async () => await verification.Reader.VerifyFile(id, verification.StoragePath, verification.SizeBytes)),
-            (Reader: this, file.StoragePath, file.SizeBytes));
+            fileVersion.Id,
+            static (_, verification) => new Lazy<Task<FileSignatureResponse?>>(
+                async () => await verification.Reader.VerifyFile(verification.FileVersion)),
+            (Reader: this, FileVersion: fileVersion));
 
         return await flight.Value.WaitAsync(token);
     }
 
-    private static (string, Guid) CacheKey(Guid fileId)
+    private static (string, Guid) CacheKey(Guid fileVersionId)
     {
-        return (nameof(FileSignatureReader), fileId);
+        return (nameof(FileSignatureReader), fileVersionId);
     }
 
-    private async Task<FileSignatureResponse?> VerifyFile(Guid fileId, string storagePath, long sizeBytes)
+    private async Task<FileSignatureResponse?> VerifyFile(FileVersion fileVersion)
     {
         try
         {
-            var signature = await this.ReadAndVerify(storagePath, sizeBytes);
+            var signature = await this.ReadAndVerify(fileVersion.StoragePath, fileVersion.SizeBytes);
             if (signature is null)
                 return null;
 
-            logger.LogInformation("Signature of file {FileAssetId} verified as {SignatureState} {SignatureProblem}", fileId, signature.State, signature.Problem);
+            logger.LogInformation("Signature of file {FileAssetId} version {FileVersionNumber} verified as {SignatureState} {SignatureProblem}", fileVersion.FileAssetId, fileVersion.Number, signature.State, signature.Problem);
 
             TimeSpan? lifetime = signature.State switch
             {
@@ -71,14 +67,14 @@ internal sealed class FileSignatureReader(
             };
 
             if (lifetime is { } cacheLifetime)
-                cache.Set(CacheKey(fileId), signature, cacheLifetime);
+                cache.Set(CacheKey(fileVersion.Id), signature, cacheLifetime);
 
             return signature;
         }
         finally
         {
             // A finished verification leaves, so the next read of an unverifiable file asks again.
-            InFlight.TryRemove(fileId, out _);
+            InFlight.TryRemove(fileVersion.Id, out _);
         }
     }
 

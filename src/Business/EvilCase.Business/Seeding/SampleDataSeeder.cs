@@ -36,14 +36,15 @@ internal sealed class SampleDataSeeder(
 
         logger.LogInformation(
             "Sample data seeded into tenant {TenantId}: {LabelCount} labels, {ContactCount} contacts, {CaseCount} cases, "
-                + "{ActCount} acts, {CommentCount} comments, {FileCount} files",
+                + "{ActCount} acts, {CommentCount} comments, {FileCount} files, {FileVersionCount} file versions",
             tenantId,
             labelsByKey.Count,
             contactsByKey.Count,
             casesByKey.Count,
             counters.ActCount,
             counters.CommentCount,
-            counters.FileCount);
+            counters.FileCount,
+            counters.FileVersionCount);
     }
 
     private async Task<Dictionary<string, Label>> SeedLabels(CancellationToken token)
@@ -129,15 +130,17 @@ internal sealed class SampleDataSeeder(
 
         if (string.Equals(sampleCase.Key, SampleData.MainCaseKey, StringComparison.Ordinal))
         {
+            var body = FileBody(sampleCase.Title, "Spisová značka", caseNumber, sampleCase.Date);
+
+            // The main case's file carries a second version.
             await this.AddFile(
                 tenantId,
                 @case.Id,
                 actId: null,
                 caseNumber.Replace('/', '-') + ".txt",
-                FileBody(sampleCase.Title, "Spisová značka", caseNumber, sampleCase.Date),
+                [body, body + "\n\nDoplněné znění, druhá verze dokumentu."],
+                counters,
                 token);
-
-            counters.FileCount++;
         }
 
         await dbSession.Current.SaveChangesAsync(token);
@@ -187,15 +190,13 @@ internal sealed class SampleDataSeeder(
             counters.CommentCount++;
         }
 
-        await this.AddFile(tenantId, caseId: null, act.Id, actNumber.Replace('/', '-') + ".txt", FileBody(sampleAct.Title, "Číslo jednací", actNumber, sampleAct.Date), token);
-        counters.FileCount++;
+        await this.AddFile(tenantId, caseId: null, act.Id, actNumber.Replace('/', '-') + ".txt", [FileBody(sampleAct.Title, "Číslo jednací", actNumber, sampleAct.Date)], counters, token);
 
         if (sampleAct.ExtraFileSuffix is not null)
         {
             var fileName = actNumber.Replace('/', '-') + "-" + sampleAct.ExtraFileSuffix + ".txt";
 
-            await this.AddFile(tenantId, caseId: null, act.Id, fileName, FileBody(sampleAct.Title, "Číslo jednací", actNumber, sampleAct.Date), token);
-            counters.FileCount++;
+            await this.AddFile(tenantId, caseId: null, act.Id, fileName, [FileBody(sampleAct.Title, "Číslo jednací", actNumber, sampleAct.Date)], counters, token);
         }
 
         await dbSession.Current.SaveChangesAsync(token);
@@ -226,24 +227,41 @@ internal sealed class SampleDataSeeder(
         ];
     }
 
-    private async Task AddFile(Guid tenantId, Guid? caseId, Guid? actId, string fileName, string content, CancellationToken token)
+    private async Task AddFile(
+        Guid tenantId,
+        Guid? caseId,
+        Guid? actId,
+        string fileName,
+        IReadOnlyList<string> versionContents,
+        SeedCounters counters,
+        CancellationToken token)
     {
-        var fileAssetId = Guid.CreateVersion7();
+        var context = dbSession.Current;
 
-        await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(content));
-        var blob = await fileBlobStore.WriteFileBlob(tenantId, fileAssetId, stream, token);
+        var file = new FileAsset { CaseId = caseId, ActId = actId, FileName = fileName };
 
-        dbSession.Current.FileAssets.Add(new FileAsset
+        context.FileAssets.Add(file);
+        counters.FileCount++;
+
+        for (var index = 0; index < versionContents.Count; index++)
         {
-            Id = fileAssetId,
-            CaseId = caseId,
-            ActId = actId,
-            FileName = fileName,
-            ContentHash = blob.ContentHash,
-            SizeBytes = blob.SizeBytes,
-            MediaType = "text/plain",
-            StoragePath = blob.StoragePath,
-        });
+            var fileVersionId = Guid.CreateVersion7();
+
+            await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(versionContents[index]));
+            var blob = await fileBlobStore.WriteFileBlob(tenantId, fileVersionId, stream, token);
+
+            context.FileVersions.Add(new FileVersion
+            {
+                Id = fileVersionId,
+                FileAssetId = file.Id,
+                Number = index + 1,
+                ContentHash = blob.ContentHash,
+                SizeBytes = blob.SizeBytes,
+                MediaType = "text/plain",
+                StoragePath = blob.StoragePath,
+            });
+            counters.FileVersionCount++;
+        }
     }
 
     private static string FileBody(string title, string numberLabel, string number, in DateOnly date)
@@ -266,5 +284,7 @@ internal sealed class SampleDataSeeder(
         public int CommentCount { get; set; }
 
         public int FileCount { get; set; }
+
+        public int FileVersionCount { get; set; }
     }
 }

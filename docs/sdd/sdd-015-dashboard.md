@@ -24,8 +24,8 @@ Obě seznamové dlaždice ukazují změnu jako poslední sloupec; dlaždice spis
 úkonů druhá. Dnešní změnu píšou jako „dnes 21:45“, včerejší jako „včera 9:10“, starší jako
 okamžik (SDD-016); celý okamžik nese tooltip.
 
-Naposledy změněné spisy řadí vlastní `Updated` spisu; zápis úkonu, komentáře nebo souboru ho
-nemění. Spis, který nikdo neupravil, se řadí a zobrazuje podle svého `Created`. Naposledy
+Naposledy změněné spisy řadí vlastní `Updated` spisu; zápis úkonu, komentáře, souboru nebo verze
+souboru ho nemění. Spis, který nikdo neupravil, se řadí a zobrazuje podle svého `Created`. Naposledy
 změněné úkony řadí stejně vlastní `Updated` úkonu, nebo `Created` u úkonu, který nikdo
 neupravil. Seznamové dlaždice ukazují nejvýše 5 položek.
 

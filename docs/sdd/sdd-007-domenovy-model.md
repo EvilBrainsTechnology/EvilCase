@@ -19,7 +19,8 @@ Account → Tenant → User (SDD-006). Tenantová data:
 - **Case** — spis, volitelný rodič `ParentCaseId`, nepovinný kontakt (SDD-009).
 - **Act** — úkon spisu, nepovinný kontakt se směrem (SDD-010).
 - **Contact** — kontakt (SDD-011).
-- **FileAsset** — soubor spisu XOR úkonu (SDD-012).
+- **FileAsset** — soubor spisu XOR úkonu, jméno jedinečné u vlastníka (SDD-012).
+- **FileVersion** — verze souboru: obsah, velikost, hash a kdo ji nahrál (SDD-012).
 - **Comment** — komentář spisu XOR úkonu (SDD-013).
 - **Label** — štítek tenantu (SDD-019).
 - **LabelAssignment** — štítek na spisu XOR úkonu (SDD-019).
@@ -37,14 +38,15 @@ Account → Tenant → User (SDD-006). Tenantová data:
 
 | Entita | Smazání |
 | --- | --- |
-| Case | kaskáda: úkony, komentáře, soubory, přidělené štítky; podřízené spisy do libovolné hloubky se vším, co k nim patří |
-| Act | kaskáda: komentáře, soubory, přidělené štítky |
+| Case | kaskáda: úkony, komentáře, soubory s jejich verzemi, přidělené štítky; podřízené spisy do libovolné hloubky se vším, co k nim patří |
+| Act | kaskáda: komentáře, soubory s jejich verzemi, přidělené štítky |
 | Contact | jen ten, na který neodkazuje žádný spis ani úkon (SDD-011) |
-| FileAsset | prosté; blob přežívá záznam (SDD-012) |
+| FileAsset | kaskáda: všechny jeho verze; bloby přežívají záznam (SDD-012) |
+| FileVersion | prosté; jediná verze souboru jen se souborem; blob přežívá záznam (SDD-012) |
 | Comment | prosté; jen autor (SDD-013) |
 | Label | kaskáda: jen jeho přidělení; spisy a úkony, které ho nesly, zůstávají (SDD-019) |
 
-Kaskáda maže záznamy souborů; jejich bajty na disku zůstávají, blob se nikdy nemaže.
+Kaskáda maže záznamy souborů a verzí; jejich bajty na disku zůstávají, blob se nikdy nemaže.
 Každé smazání se v UI potvrzuje (SDD-004).
 
 ### Migrace

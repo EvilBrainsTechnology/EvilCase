@@ -15,9 +15,9 @@ public class FileSignaturesController : ControllerBase
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<FileSignatureResponse>> ReadFileSignature([FromServices] IFileSignatureReader signatures, [FromRoute] Guid fileId, CancellationToken token)
+    public async Task<ActionResult<FileSignatureResponse>> ReadFileSignature([FromServices] IFileSignatureReader signatures, [FromRoute] Guid fileId, [FromQuery] int? version, CancellationToken token)
     {
-        var signature = await signatures.ReadFileSignature(fileId, token);
+        var signature = await signatures.ReadFileSignature(fileId, version, token);
 
         return signature is null
             ? this.Problem(statusCode: StatusCodes.Status404NotFound, title: FileProblems.NotFound)

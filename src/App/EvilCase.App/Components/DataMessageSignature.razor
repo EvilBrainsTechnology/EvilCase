@@ -91,7 +91,7 @@
 
         try
         {
-            this.signature = await this.SignaturesClient.ReadFileSignature(this.FileId, CancellationToken.None);
+            this.signature = await this.SignaturesClient.ReadFileSignature(this.FileId, version: null, CancellationToken.None);
         }
         catch (Exception exception) when (exception is ApiException or HttpRequestException)
         {

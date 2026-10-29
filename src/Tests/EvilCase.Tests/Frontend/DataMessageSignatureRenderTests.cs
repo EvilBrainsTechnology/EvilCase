@@ -24,7 +24,7 @@ public class DataMessageSignatureRenderTests
     public async Task WhileTheVerdictLoadsTheChipSaysSo()
     {
         await using var ctx = NewContext(out var client);
-        client.ReadFileSignature(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new TaskCompletionSource<FileSignatureResponse>().Task);
+        client.ReadFileSignature(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>()).Returns(new TaskCompletionSource<FileSignatureResponse>().Task);
 
         var component = Render(ctx);
 
@@ -40,7 +40,7 @@ public class DataMessageSignatureRenderTests
     {
         await using var ctx = NewContext(out var client);
         var fileId = Guid.CreateVersion7();
-        client.ReadFileSignature(fileId, Arg.Any<CancellationToken>()).Returns(Valid);
+        client.ReadFileSignature(fileId, Arg.Any<int?>(), Arg.Any<CancellationToken>()).Returns(Valid);
 
         var component = Render(ctx, fileId);
 
@@ -51,7 +51,7 @@ public class DataMessageSignatureRenderTests
     public async Task AValidSignatureOpensItsDetails()
     {
         await using var ctx = NewContext(out var client);
-        client.ReadFileSignature(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(Valid);
+        client.ReadFileSignature(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>()).Returns(Valid);
 
         var component = Render(ctx);
         await component.WaitForAssertionAsync(() => Assert.That(component.Find(".ec-badge").ClassList, Does.Contain("ec-badge-active")));
@@ -78,7 +78,7 @@ public class DataMessageSignatureRenderTests
     public async Task AnInvalidSignatureNamesItsReason()
     {
         await using var ctx = NewContext(out var client);
-        client.ReadFileSignature(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        client.ReadFileSignature(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>())
             .Returns(new FileSignatureResponse { State = FileSignatureState.Invalid, Problem = FileSignatureProblem.ContentMismatch });
 
         var component = Render(ctx);
@@ -99,7 +99,7 @@ public class DataMessageSignatureRenderTests
     public async Task AnUnverifiableSignatureRetriesOnRequest()
     {
         await using var ctx = NewContext(out var client);
-        client.ReadFileSignature(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        client.ReadFileSignature(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>())
             .Returns(new FileSignatureResponse { State = FileSignatureState.Unverifiable }, Valid);
 
         var component = Render(ctx);
@@ -120,7 +120,7 @@ public class DataMessageSignatureRenderTests
             Assert.That(component.FindAll("[role=dialog]"), Is.Empty, "the retry closes the details");
             await client
                 .Received(2)
-                .ReadFileSignature(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+                .ReadFileSignature(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>());
         }
     }
 
@@ -128,7 +128,7 @@ public class DataMessageSignatureRenderTests
     public async Task AFailedLoadIsUnverifiableWithARetry()
     {
         await using var ctx = NewContext(out var client);
-        client.ReadFileSignature(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        client.ReadFileSignature(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>())
             .Returns(static _ => Task.FromException<FileSignatureResponse>(new ApiException(HttpStatusCode.InternalServerError, responseBody: null)));
 
         var component = Render(ctx);

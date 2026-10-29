@@ -40,7 +40,7 @@ public class FilePreviewModalSignedRenderTests
             Assert.That(component.FindAll("[aria-label='Přejmenovat']"), Has.Count.EqualTo(1));
             await signers
                 .Received(1)
-                .ListFileSigners(file.FileId, Arg.Any<CancellationToken>());
+                .ListFileSigners(file.FileId, Arg.Any<int?>(), Arg.Any<CancellationToken>());
         }
     }
 
@@ -207,7 +207,7 @@ public class FilePreviewModalSignedRenderTests
 
         await signers
             .DidNotReceiveWithAnyArgs()
-            .ListFileSigners(default, default);
+            .ListFileSigners(default, default, default);
     }
 
     [Test]
@@ -254,7 +254,7 @@ public class FilePreviewModalSignedRenderTests
             Assert.That(component.FindAll(".ec-preview-signers"), Is.Empty, "an attachment has no stored file whose signers the server reads");
             await signers
                 .DidNotReceiveWithAnyArgs()
-                .ListFileSigners(default, default);
+                .ListFileSigners(default, default, default);
         }
     }
 
@@ -271,7 +271,7 @@ public class FilePreviewModalSignedRenderTests
 
         await signers
             .Received(1)
-            .ListFileSigners(signature.FileId, Arg.Any<CancellationToken>());
+            .ListFileSigners(signature.FileId, Arg.Any<int?>(), Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -318,7 +318,7 @@ public class FilePreviewModalSignedRenderTests
     {
         var signer = new FileSigner { Name = "Jan Testovací", Kind = FileSignerKind.QualifiedSignature, CertificateIssuer = "I.CA" };
 
-        signers.ListFileSigners(signature.FileId, Arg.Any<CancellationToken>()).Returns(new FileSignersResponse { Signers = [signer], SignedFile = pdf });
+        signers.ListFileSigners(signature.FileId, Arg.Any<int?>(), Arg.Any<CancellationToken>()).Returns(new FileSignersResponse { Signers = [signer], SignedFile = pdf });
     }
 
     private static BunitContext NewContext(
@@ -332,8 +332,8 @@ public class FilePreviewModalSignedRenderTests
         downloader = new StubFileDownloader();
         signers = Substitute.For<IFileSignersClient>();
         var signer = new FileSigner { Name = "Jan Testovací", Kind = FileSignerKind.QualifiedSignature, CertificateIssuer = "I.CA" };
-        signers.ListFileSigners(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new FileSignersResponse { Signers = [signer] });
-        signers.VerifyFileSigners(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new TaskCompletionSource<FileSignersResponse>().Task);
+        signers.ListFileSigners(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>()).Returns(new FileSignersResponse { Signers = [signer] });
+        signers.VerifyFileSigners(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>()).Returns(new TaskCompletionSource<FileSignersResponse>().Task);
         ctx.Services.AddSingleton<IBlobUrls>(blobs);
         ctx.Services.AddSingleton<IFilePreviews>(previews);
         ctx.Services.AddSingleton<IFileDownloader>(downloader);
@@ -371,6 +371,8 @@ public class FilePreviewModalSignedRenderTests
             FileName = name,
             SizeBytes = size,
             Created = new DateTime(2026, 3, 2, 10, 0, 0, DateTimeKind.Utc),
+            Version = 1,
+            VersionCount = 1,
         };
     }
 }

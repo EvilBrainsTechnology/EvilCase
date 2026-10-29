@@ -85,7 +85,10 @@ internal static class SearchQuery
         {
             FileId = file.Id,
             FileName = file.FileName,
-            SizeBytes = file.SizeBytes,
+            SizeBytes = file.Versions
+                .OrderByDescending(static version => version.Number)
+                .Select(static version => version.SizeBytes)
+                .First(),
             CaseId = file.CaseId,
             ActId = file.ActId,
             OwnerTitle = file.CaseId != null ? file.Case!.Title : file.Act!.Title,

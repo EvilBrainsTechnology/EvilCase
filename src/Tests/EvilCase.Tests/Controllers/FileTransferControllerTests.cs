@@ -174,7 +174,7 @@ public class FileTransferControllerTests
 
         var controller = new FileTransferController { ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() } };
 
-        var result = await controller.DownloadFileContent(reader, Guid.CreateVersion7(), CancellationToken.None);
+        var result = await controller.DownloadFileContent(reader, Guid.CreateVersion7(), version: null, CancellationToken.None);
 
         Assert.That(result, Is.InstanceOf<FileStreamResult>());
         var fileResult = (FileStreamResult)result;
@@ -195,7 +195,7 @@ public class FileTransferControllerTests
 
         var controller = new FileTransferController();
 
-        var result = await controller.DownloadFileContent(reader, Guid.CreateVersion7(), CancellationToken.None);
+        var result = await controller.DownloadFileContent(reader, Guid.CreateVersion7(), version: null, CancellationToken.None);
 
         Assert.That(result, Is.InstanceOf<FileStreamResult>());
         var fileResult = (FileStreamResult)result;
@@ -214,7 +214,7 @@ public class FileTransferControllerTests
         var reader = DownloadingReader(download: null);
         var controller = new FileTransferController();
 
-        var result = await controller.DownloadFileContent(reader, Guid.CreateVersion7(), CancellationToken.None);
+        var result = await controller.DownloadFileContent(reader, Guid.CreateVersion7(), version: null, CancellationToken.None);
 
         AssertProblem(result, 404);
     }
@@ -358,9 +358,173 @@ public class FileTransferControllerTests
             "Kestrel's 30 MB default would cap the upload below the product limit");
     }
 
-    private static IFileWriter UploadingWriter(UploadFileResult result, Action<FileUpload>? capture = null)
+    [Test]
+    public async Task AnUploadThatAddsAVersionAnswersCreatedAtTheContentOfTheFile()
+    {
+        var current = Item();
+        var writer = UploadingWriter(new UploadFileResult { Outcome = UploadFileOutcome.VersionAdded, File = current });
+        var controller = new FileTransferController();
+
+        var response = await controller.UploadCaseFile(writer, Guid.CreateVersion7(), FormFile(1), CancellationToken.None);
+
+        Assert.That(response.Result, Is.InstanceOf<CreatedAtActionResult>());
+        var result = (CreatedAtActionResult)response.Result!;
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.StatusCode, Is.EqualTo(201));
+            Assert.That(result.RouteValues?["fileId"], Is.EqualTo(current.FileId));
+            Assert.That(result.Value, Is.SameAs(current));
+        }
+    }
+
+    [Test]
+    public async Task AnUploadEqualToTheCurrentVersionAnswersOkWithTheCurrentFile()
+    {
+        var current = Item();
+        var writer = UploadingWriter(new UploadFileResult { Outcome = UploadFileOutcome.Unchanged, File = current });
+        var controller = new FileTransferController();
+
+        var response = await controller.UploadActFile(writer, Guid.CreateVersion7(), FormFile(1), CancellationToken.None);
+
+        Assert.That(response.Result, Is.InstanceOf<OkObjectResult>());
+        var result = (OkObjectResult)response.Result!;
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.StatusCode, Is.EqualTo(200), "an upload that stores nothing answers 200, not 201");
+            Assert.That(result.Value, Is.SameAs(current));
+        }
+    }
+
+    [Test]
+    public async Task AVersionUploadReachesTheWriterWithTheFileId()
+    {
+        var fileId = Guid.CreateVersion7();
+        var writer = UploadingWriter(Uploaded(Item()));
+        var controller = new FileTransferController();
+
+        await controller.UploadFileVersion(writer, fileId, FormFile(1), CancellationToken.None);
+
+        await writer
+            .Received(1)
+            .UploadFileVersion(fileId, Arg.Any<FileUpload>(), Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task AVersionUploadAnswersCreatedAtTheContentOfThatVersion()
+    {
+        var current = Item() with { Version = 3, VersionCount = 3 };
+        var fileId = Guid.CreateVersion7();
+        var writer = UploadingWriter(Uploaded(Item()), versionResult: new FileVersionUploadResult { Outcome = FileVersionUploadOutcome.VersionAdded, File = current });
+        var controller = new FileTransferController();
+
+        var response = await controller.UploadFileVersion(writer, fileId, FormFile(1), CancellationToken.None);
+
+        Assert.That(response.Result, Is.InstanceOf<CreatedAtActionResult>());
+        var result = (CreatedAtActionResult)response.Result!;
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.StatusCode, Is.EqualTo(201));
+            Assert.That(result.ActionName, Is.EqualTo(nameof(FileTransferController.DownloadFileContent)));
+            Assert.That(result.RouteValues?["fileId"], Is.EqualTo(fileId));
+            Assert.That(result.RouteValues?["version"], Is.EqualTo(3), "the Location names the version the upload made");
+            Assert.That(result.Value, Is.SameAs(current));
+        }
+    }
+
+    [Test]
+    public async Task AVersionUploadEqualToTheCurrentAnswersOk()
+    {
+        var current = Item();
+        var writer = UploadingWriter(Uploaded(Item()), versionResult: new FileVersionUploadResult { Outcome = FileVersionUploadOutcome.Unchanged, File = current });
+        var controller = new FileTransferController();
+
+        var response = await controller.UploadFileVersion(writer, Guid.CreateVersion7(), FormFile(1), CancellationToken.None);
+
+        Assert.That((response.Result as OkObjectResult)?.Value, Is.SameAs(current));
+    }
+
+    [Test]
+    public async Task AVersionUploadOfAnotherExtensionIsAProblemWithFourHundred()
+    {
+        var writer = UploadingWriter(Uploaded(Item()), versionResult: new FileVersionUploadResult { Outcome = FileVersionUploadOutcome.ExtensionMismatch });
+        var controller = new FileTransferController();
+
+        var response = await controller.UploadFileVersion(writer, Guid.CreateVersion7(), FormFile(1), CancellationToken.None);
+
+        Assert.That((response.Result as ObjectResult)?.StatusCode, Is.EqualTo(400));
+    }
+
+    [Test]
+    public async Task AVersionUploadOntoAMissingFileIsAProblemWithFourOhFour()
+    {
+        var writer = UploadingWriter(Uploaded(Item()), versionResult: new FileVersionUploadResult { Outcome = FileVersionUploadOutcome.FileNotFound });
+        var controller = new FileTransferController();
+
+        var response = await controller.UploadFileVersion(writer, Guid.CreateVersion7(), FormFile(1), CancellationToken.None);
+
+        var problem = AssertProblem(response.Result, 404);
+        Assert.That(problem.Title, Is.EqualTo(FileProblems.NotFound));
+    }
+
+    [Test]
+    public async Task AVersionUploadOverTheLimitIsRefusedWithFourThirteen()
     {
         var writer = Substitute.For<IFileWriter>();
+        var controller = new FileTransferController();
+
+        var response = await controller.UploadFileVersion(writer, Guid.CreateVersion7(), FormFile(FileLimits.MaxUploadBytes + 1), CancellationToken.None);
+
+        AssertProblem(response.Result, 413);
+        Assert.That(writer.ReceivedCalls(), Is.Empty, "an upload over the limit must never reach the writer");
+    }
+
+    [Test]
+    public async Task AVersionUploadOutcomeTheEndpointDoesNotKnowThrows()
+    {
+        var writer = UploadingWriter(Uploaded(Item()), versionResult: new FileVersionUploadResult { Outcome = (FileVersionUploadOutcome)99 });
+        var controller = new FileTransferController();
+
+        await Assert.ThrowsAsync<UnreachableException>(
+            async () => await controller.UploadFileVersion(writer, Guid.CreateVersion7(), FormFile(1), CancellationToken.None),
+            "an outcome the endpoint does not name never turns into a status");
+    }
+
+    [Test]
+    public void TheVersionUploadDeclaresItsOwnRequestSizeLimit()
+    {
+        var method = typeof(FileTransferController).GetMethod(nameof(FileTransferController.UploadFileVersion))!;
+        var attribute = method.GetCustomAttributes(typeof(RequestSizeLimitAttribute), inherit: false).Single();
+
+        Assert.That(
+            ((IRequestSizeLimitMetadata)attribute).MaxRequestBodySize,
+            Is.EqualTo(FileLimits.MaxUploadRequestBytes),
+            "Kestrel's 30 MB default would cap the upload below the product limit");
+    }
+
+    [Test]
+    public async Task ADownloadPassesTheVersionTheRequestNames()
+    {
+        var fileId = Guid.CreateVersion7();
+        var reader = DownloadingReader(download: null);
+        var controller = new FileTransferController();
+
+        await controller.DownloadFileContent(reader, fileId, version: 2, CancellationToken.None);
+
+        await reader
+            .Received(1)
+            .OpenFileContent(fileId, 2, Arg.Any<CancellationToken>());
+    }
+
+    private static IFileWriter UploadingWriter(UploadFileResult result, Action<FileUpload>? capture = null, FileVersionUploadResult? versionResult = null)
+    {
+        var writer = Substitute.For<IFileWriter>();
+        writer
+            .UploadFileVersion(Arg.Any<Guid>(), Arg.Any<FileUpload>(), Arg.Any<CancellationToken>())
+            .Returns(versionResult ?? new FileVersionUploadResult { Outcome = FileVersionUploadOutcome.VersionAdded, File = result.File })
+            .AndDoes(call => capture?.Invoke(call.Arg<FileUpload>()));
         writer
             .UploadCaseFile(Arg.Any<Guid>(), Arg.Any<FileUpload>(), Arg.Any<CancellationToken>())
             .Returns(result)
@@ -377,7 +541,7 @@ public class FileTransferControllerTests
     {
         var reader = Substitute.For<IFileReader>();
         reader
-            .OpenFileContent(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .OpenFileContent(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>())
             .Returns(download);
 
         return reader;
@@ -385,7 +549,7 @@ public class FileTransferControllerTests
 
     private static FileListItem Item()
     {
-        return new() { FileId = Guid.CreateVersion7(), FileName = "a.pdf", SizeBytes = 1, Created = DateTime.UtcNow };
+        return new() { FileId = Guid.CreateVersion7(), FileName = "a.pdf", SizeBytes = 1, Created = DateTime.UtcNow, Version = 1, VersionCount = 1 };
     }
 
     private static UploadFileResult Uploaded(FileListItem file)

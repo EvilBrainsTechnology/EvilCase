@@ -5,7 +5,7 @@ namespace EvilBrains.EvilCase.Business.Files.Signatures;
 public interface IFileSignerVerifier
 {
     /// <summary>
-    /// The signers of a stored signed file with their verdicts; null where the file is unknown or its blob is gone.
+    /// The signers of a stored signed file with their verdicts; the current version where none is named; null where the file or the version is unknown or its blob is gone.
     /// </summary>
-    public Task<FileSignersResponse?> VerifyFileSigners(Guid fileId, CancellationToken token);
+    public Task<FileSignersResponse?> VerifyFileSigners(Guid fileId, int? version, CancellationToken token);
 }

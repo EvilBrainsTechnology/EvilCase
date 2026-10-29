@@ -21,8 +21,9 @@ Tvary API a klienta.
 - Endpoint bez výslovné výjimky vyžaduje přihlášení. Anonymní jsou přihlášení, obnova tokenu,
   odhlášení, health checks, upload klientských logů, 404 pod `/api` a v Development `/openapi`
   a `/scalar`.
-- Založení odpovídá 201 s hlavičkou `Location` na detail nového záznamu; u souboru míří na
-  stažení obsahu, detail souboru není. Komentář odpovídá 204 i na založení. Editace a smazání
+- Založení odpovídá 201 s hlavičkou `Location` na detail nového záznamu; u souboru a verze míří na
+  stažení obsahu, detail souboru není. Upload, který nic neuloží, protože se obsah shoduje
+  s aktuální verzí, odpovídá 200. Komentář odpovídá 204 i na založení. Editace a smazání
   odpovídají 204.
 - V těle jde hodnota výčtu jako název; číslo ani neznámý název se nepřijme (400). V query
   stringu ji váže framework, který číslo bere.
@@ -48,7 +49,7 @@ Vše ostatní je bez limitu, health checks včetně. Odmítnutí je 429 s `Retry
 | Spisy | `/api/cases`, `/api/cases/{id}`; počty podle stavu `/api/cases/counts` |
 | Úkony | výpis a založení `/api/acts` (spis v těle), detail `/api/acts/{actId}` |
 | Kontakty | `/api/contacts`, `/api/contacts/{id}` |
-| Soubory | výpis, přejmenování a smazání na vlastníku; upload na vlastníku, download `/api/files/{id}/content`, ověření podpisu datové zprávy `/api/files/{id}/signature` a podepisující podepsaného souboru `/api/files/{id}/signers` a jejich ověření `/api/files/{id}/signers/verification` |
+| Soubory | výpis, přejmenování a smazání na vlastníku; upload na vlastníku, download `/api/files/{id}/content`, verze `/api/files/{id}/versions` (výpis, upload nové verze) a `/api/files/{id}/versions/{number}` (smazání), ověření podpisu datové zprávy `/api/files/{id}/signature` a podepisující podepsaného souboru `/api/files/{id}/signers` a jejich ověření `/api/files/{id}/signers/verification`; obsah, podpis i podepisující a jejich ověření berou volitelné `?version=` |
 | Komentáře | na vlastníku, `…/comments`, `…/comments/{id}` |
 | Hledání | `/api/search?q=`, viz [SDD-021](sdd-021-vyhledavani.md) |
 | Štítky | `/api/labels`, `/api/labels/{id}`; přidělení na vlastníku `…/labels` |
@@ -57,7 +58,8 @@ Vše ostatní je bez limitu, health checks včetně. Odmítnutí je 429 s `Retry
 - Tenanta i uživatele dodává kontext požadavku; endpoint ani dotaz nikdy neberou id tenanta
   parametrem (SDD-006).
 - Upload a download jdou přes ručně psaný klient, ne přes generovaný: generátor neumí
-  multipart formulář ani proud bajtů. Výpis, přejmenování a smazání souboru jdou přes generovaný.
+  multipart formulář ani proud bajtů. Upload nové verze také. Výpis, přejmenování a smazání souboru
+  a výpis a smazání verzí jdou přes generovaný.
 
 ## Rozhodnutí
 

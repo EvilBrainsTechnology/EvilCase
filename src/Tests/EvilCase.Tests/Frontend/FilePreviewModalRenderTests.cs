@@ -1031,6 +1031,8 @@ public class FilePreviewModalRenderTests
             FileName = fileName,
             SizeBytes = 1024,
             Created = new DateTime(2025, 9, 2, 10, 0, 0, DateTimeKind.Utc),
+            Version = 1,
+            VersionCount = 1,
         };
     }
 }

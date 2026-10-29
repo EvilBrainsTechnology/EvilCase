@@ -240,7 +240,7 @@ else if (this.SignedFileId is null || this.LoadFailed || (this.signers is not nu
 
         try
         {
-            this.Show(await this.SignersClient.ListFileSigners(this.FileId, this.disposed.Token));
+            this.Show(await this.SignersClient.ListFileSigners(this.FileId, version: null, this.disposed.Token));
         }
         catch (OperationCanceledException) when (this.disposed.IsCancellationRequested)
         {
@@ -267,7 +267,7 @@ else if (this.SignedFileId is null || this.LoadFailed || (this.signers is not nu
 
         try
         {
-            this.Show(await this.SignersClient.VerifyFileSigners(this.FileId, this.disposed.Token));
+            this.Show(await this.SignersClient.VerifyFileSigners(this.FileId, version: null, this.disposed.Token));
         }
         catch (OperationCanceledException) when (this.disposed.IsCancellationRequested)
         {

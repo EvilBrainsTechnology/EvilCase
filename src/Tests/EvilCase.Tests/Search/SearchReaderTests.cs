@@ -41,6 +41,20 @@ public class SearchReaderTests : TenantFixture
     }
 
     [Test]
+    public async Task AFileIsFoundOnceWithTheSizeOfItsCurrentVersion()
+    {
+        var @case = await this.Tenant.AddCase(Day);
+        var file = await this.Tenant.AddCaseFile(@case, "verzovany-dokument.pdf", sizeBytes: 1);
+        await this.Tenant.AddFileVersion(file, sizeBytes: 7);
+
+        var response = await this.Find("verzovany");
+
+        var item = response.Files.Items.Single();
+
+        Assert.That(item.SizeBytes, Is.EqualTo(7), "a file is found once, with the size of its current version");
+    }
+
+    [Test]
     public async Task TheNumbersTheAddressTheDataBoxIdAndTheFileNameAreSearchedToo()
     {
         var @case = await this.Tenant.AddCase(Day, "Spis", caseNumber: "EC/20260824-007", externalCaseNumber: "JID-55/2026");

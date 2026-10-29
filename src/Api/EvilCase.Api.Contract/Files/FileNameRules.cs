@@ -19,4 +19,12 @@ public static class FileNameRules
             ? $"The file name must not exceed {FileLimits.MaxFileNameLength} characters."
             : null;
     }
+
+    /// <summary>
+    /// Whether a new version keeps the file's extension, ignoring case (SDD-012).
+    /// </summary>
+    public static bool SameExtension(string fileName, string otherFileName)
+    {
+        return string.Equals(Path.GetExtension(fileName), Path.GetExtension(otherFileName), StringComparison.OrdinalIgnoreCase);
+    }
 }

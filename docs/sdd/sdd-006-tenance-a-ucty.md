@@ -23,9 +23,9 @@ Mimo tenant stojí jen Account, Tenant a refresh token; každá jiná entita nes
 Vlastníka `UserId` nese každá kromě kontaktu; kontakt patří tenantu (SDD-011). Obojí plní
 zápis, ne volající. Tenanta ani uživatele nelze smazat, dokud drží řádky.
 
-Uvnitř tenantu je záznam vidět bez ohledu na to, kdo ho založil; změnit a smazat ho smí jen
-uživatel, kterého jmenuje jeho `UserId`. U komentáře to nese API jako 403 (SDD-013), u ostatních
-entit to odmítne až zápis.
+Uvnitř tenantu je záznam vidět bez ohledu na to, kdo ho založil, a změnit i smazat ho smí kdokoli
+z tenantu. Výjimkou je komentář: změnit a smazat ho smí jen jeho autor, jinak API odpoví 403
+(SDD-013).
 
 Account, Tenant a první administrátor vznikají jen seedem při startu
 (`EvilBrains__EvilCase__Auth__Seed__*`, jen do prázdné tabulky uživatelů). Žádné UI pro
@@ -77,8 +77,8 @@ Pět po sobě jdoucích neúspěšných přihlášení účet na 15 minut uzamkn
 - Access token v prohlížeči: v paměti stránky / v HttpOnly cookie. Platí cookie; soubor se
   otevře i prostým odkazem.
 - Plnění `TenantId` a `UserId`: volající / zápis sám. Platí zápis sám, jen na nové řádce.
-- Zápis cizí řádky uvnitř tenantu: povolený / odmítnutý. Platí odmítnutý; jeden uživatel na
-  tenant znamená, že k němu nedojde.
+- Změna a smazání cizího záznamu uvnitř tenantu: jen vlastník / kdokoli z tenantu. Platí kdokoli
+  z tenantu, komentář jen jeho autor (SDD-013).
 
 ## Dopady
 

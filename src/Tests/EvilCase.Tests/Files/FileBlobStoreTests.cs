@@ -10,7 +10,7 @@ public class FileBlobStoreTests
 
     private readonly Guid tenantId = Guid.CreateVersion7();
 
-    private readonly Guid fileAssetId = Guid.CreateVersion7();
+    private readonly Guid fileVersionId = Guid.CreateVersion7();
 
     private string root = "";
 
@@ -35,7 +35,7 @@ public class FileBlobStoreTests
     {
         var content = "abc"u8.ToArray();
 
-        var info = await this.store.WriteFileBlob(this.tenantId, this.fileAssetId, new MemoryStream(content), CancellationToken.None);
+        var info = await this.store.WriteFileBlob(this.tenantId, this.fileVersionId, new MemoryStream(content), CancellationToken.None);
         var path = Path.Combine(this.root, info.StoragePath);
 
         using (Assert.EnterMultipleScope())
@@ -48,18 +48,18 @@ public class FileBlobStoreTests
     [Test]
     public async Task TheBlobIsNamedByItsIdAlone()
     {
-        var info = await this.store.WriteFileBlob(this.tenantId, this.fileAssetId, new MemoryStream("abc"u8.ToArray()), CancellationToken.None);
+        var info = await this.store.WriteFileBlob(this.tenantId, this.fileVersionId, new MemoryStream("abc"u8.ToArray()), CancellationToken.None);
 
         Assert.That(
             Path.GetFileName(info.StoragePath),
-            Is.EqualTo(this.fileAssetId.ToString("D", CultureInfo.InvariantCulture)),
+            Is.EqualTo(this.fileVersionId.ToString("D", CultureInfo.InvariantCulture)),
             "the blob carries no extension: its name is the file asset id alone");
     }
 
     [Test]
     public async Task TheWriteReturnsAPathRelativeToTheRoot()
     {
-        var info = await this.store.WriteFileBlob(this.tenantId, this.fileAssetId, new MemoryStream("abc"u8.ToArray()), CancellationToken.None);
+        var info = await this.store.WriteFileBlob(this.tenantId, this.fileVersionId, new MemoryStream("abc"u8.ToArray()), CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -71,11 +71,11 @@ public class FileBlobStoreTests
     [Test]
     public async Task TheBlobLandsUnderTwoDirectoryLevels()
     {
-        var info = await this.store.WriteFileBlob(this.tenantId, this.fileAssetId, new MemoryStream("abc"u8.ToArray()), CancellationToken.None);
+        var info = await this.store.WriteFileBlob(this.tenantId, this.fileVersionId, new MemoryStream("abc"u8.ToArray()), CancellationToken.None);
         var path = Path.Combine(this.root, info.StoragePath);
 
         var directory = new DirectoryInfo(Path.GetDirectoryName(path)!);
-        var hex = this.fileAssetId.ToString("N", CultureInfo.InvariantCulture);
+        var hex = this.fileVersionId.ToString("N", CultureInfo.InvariantCulture);
 
         using (Assert.EnterMultipleScope())
         {
@@ -89,7 +89,7 @@ public class FileBlobStoreTests
     {
         var content = "abc"u8.ToArray();
 
-        var info = await this.store.WriteFileBlob(this.tenantId, this.fileAssetId, new MemoryStream(content), CancellationToken.None);
+        var info = await this.store.WriteFileBlob(this.tenantId, this.fileVersionId, new MemoryStream(content), CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -103,9 +103,9 @@ public class FileBlobStoreTests
     {
         var failing = new FailingStream("ab"u8.ToArray());
 
-        await Assert.ThatAsync(async () => await this.store.WriteFileBlob(this.tenantId, this.fileAssetId, failing, CancellationToken.None), Throws.InstanceOf<IOException>());
+        await Assert.ThatAsync(async () => await this.store.WriteFileBlob(this.tenantId, this.fileVersionId, failing, CancellationToken.None), Throws.InstanceOf<IOException>());
 
-        var storagePath = FileBlobPathFor(this.tenantId, this.fileAssetId);
+        var storagePath = FileBlobPathFor(this.tenantId, this.fileVersionId);
         var directory = Path.GetDirectoryName(Path.Combine(this.root, storagePath));
 
         using (Assert.EnterMultipleScope())
@@ -119,10 +119,10 @@ public class FileBlobStoreTests
     public async Task AWriteAfterAFailedOneStillLands()
     {
         var failing = new FailingStream("ab"u8.ToArray());
-        await Assert.ThatAsync(async () => await this.store.WriteFileBlob(this.tenantId, this.fileAssetId, failing, CancellationToken.None), Throws.InstanceOf<IOException>());
+        await Assert.ThatAsync(async () => await this.store.WriteFileBlob(this.tenantId, this.fileVersionId, failing, CancellationToken.None), Throws.InstanceOf<IOException>());
 
         var content = "abc"u8.ToArray();
-        var info = await this.store.WriteFileBlob(this.tenantId, this.fileAssetId, new MemoryStream(content), CancellationToken.None);
+        var info = await this.store.WriteFileBlob(this.tenantId, this.fileVersionId, new MemoryStream(content), CancellationToken.None);
 
         var path = Path.Combine(this.root, info.StoragePath);
         var bytesOnDisk = await File.ReadAllBytesAsync(path);
@@ -139,7 +139,7 @@ public class FileBlobStoreTests
     public async Task AWrittenBlobReadsBackByteForByte()
     {
         var content = "abc"u8.ToArray();
-        var info = await this.store.WriteFileBlob(this.tenantId, this.fileAssetId, new MemoryStream(content), CancellationToken.None);
+        var info = await this.store.WriteFileBlob(this.tenantId, this.fileVersionId, new MemoryStream(content), CancellationToken.None);
 
         await using var stream = this.store.ReadFileBlob(info.StoragePath);
         await using var reader = new MemoryStream();
@@ -151,7 +151,7 @@ public class FileBlobStoreTests
     [Test]
     public void ReadingAMissingBlobAnswersWithNothing()
     {
-        Assert.That(this.store.ReadFileBlob(FileBlobPathFor(this.tenantId, this.fileAssetId)), Is.Null, "a path with no blob behind it must not throw");
+        Assert.That(this.store.ReadFileBlob(FileBlobPathFor(this.tenantId, this.fileVersionId)), Is.Null, "a path with no blob behind it must not throw");
     }
 
     [Test]
@@ -166,7 +166,7 @@ public class FileBlobStoreTests
         var settings = new FileSettings { RootPath = this.root + Path.DirectorySeparatorChar };
         var trailing = new FileBlobStore(Options.Create(settings), NullLogger<FileBlobStore>.Instance);
 
-        var info = await trailing.WriteFileBlob(this.tenantId, this.fileAssetId, new MemoryStream("abc"u8.ToArray()), CancellationToken.None);
+        var info = await trailing.WriteFileBlob(this.tenantId, this.fileVersionId, new MemoryStream("abc"u8.ToArray()), CancellationToken.None);
 
         Assert.That(File.Exists(Path.Combine(this.root, info.StoragePath)), Is.True, "a separator the operator typed must not make every path leave the root");
     }
@@ -181,7 +181,7 @@ public class FileBlobStoreTests
         {
             var relative = new FileBlobStore(Options.Create(new FileSettings { RootPath = relativeRoot }), NullLogger<FileBlobStore>.Instance);
 
-            var info = await relative.WriteFileBlob(this.tenantId, this.fileAssetId, new MemoryStream("abc"u8.ToArray()), CancellationToken.None);
+            var info = await relative.WriteFileBlob(this.tenantId, this.fileVersionId, new MemoryStream("abc"u8.ToArray()), CancellationToken.None);
 
             Assert.That(File.Exists(Path.Combine(fullRoot, info.StoragePath)), Is.True, "a relative root must resolve against the application directory, not the working directory");
         }
@@ -192,10 +192,10 @@ public class FileBlobStoreTests
         }
     }
 
-    private static string FileBlobPathFor(in Guid tenantId, in Guid fileAssetId)
+    private static string FileBlobPathFor(in Guid tenantId, in Guid fileVersionId)
     {
-        var hex = fileAssetId.ToString("N", CultureInfo.InvariantCulture);
+        var hex = fileVersionId.ToString("N", CultureInfo.InvariantCulture);
 
-        return $"{tenantId:D}/{hex[^2..]}/{hex[^4..^2]}/{fileAssetId:D}";
+        return $"{tenantId:D}/{hex[^2..]}/{hex[^4..^2]}/{fileVersionId:D}";
     }
 }

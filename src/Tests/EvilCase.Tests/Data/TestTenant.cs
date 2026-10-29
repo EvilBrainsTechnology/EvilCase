@@ -242,6 +242,40 @@ internal sealed class TestTenant : IAsyncDisposable
         return await this.AddFile(caseId: null, act.Id, fileName, sizeBytes: 1);
     }
 
+    /// <summary>
+    /// The next number after the file's highest, uploaded by <paramref name="uploaderId"/> or the tenant's own user.
+    /// </summary>
+    public async Task<FileVersion> AddFileVersion(FileAsset file, long sizeBytes = 1, Guid? uploaderId = null)
+    {
+        var versionId = Guid.CreateVersion7();
+
+        var highest = await this.Context.FileVersions
+            .Where(row => row.FileAssetId == file.Id)
+            .MaxAsync(static row => row.Number);
+
+        var version = new FileVersion
+        {
+            Id = versionId,
+            TenantId = this.tenantId,
+            UserId = uploaderId ?? this.UserId,
+            FileAssetId = file.Id,
+            Number = highest + 1,
+            ContentHash = Guid.CreateVersion7().ToString("N").PadRight(64, 'b'),
+            SizeBytes = sizeBytes,
+            MediaType = "application/pdf",
+            StoragePath = $"{this.tenantId}/{versionId}",
+        };
+
+        using var scope = this.stubUserContext.Enter(this.tenantId, version.UserId);
+
+        return await this.Save(this.Context.FileVersions, version);
+    }
+
+    public IDisposable EnterAs(Guid userId)
+    {
+        return this.stubUserContext.Enter(this.tenantId, userId);
+    }
+
     public async ValueTask DisposeAsync()
     {
         await this.Context.DisposeAsync();
@@ -264,6 +298,20 @@ internal sealed class TestTenant : IAsyncDisposable
     private async Task<FileAsset> AddFile(Guid? caseId, Guid? actId, string fileName, long sizeBytes)
     {
         var fileAssetId = Guid.CreateVersion7();
+        var fileVersionId = Guid.CreateVersion7();
+
+        var version = new FileVersion
+        {
+            Id = fileVersionId,
+            TenantId = this.tenantId,
+            UserId = this.UserId,
+            FileAssetId = fileAssetId,
+            Number = 1,
+            ContentHash = new string('a', 64),
+            SizeBytes = sizeBytes,
+            MediaType = "application/pdf",
+            StoragePath = $"{this.tenantId}/{fileVersionId}",
+        };
 
         var file = new FileAsset
         {
@@ -273,10 +321,7 @@ internal sealed class TestTenant : IAsyncDisposable
             CaseId = caseId,
             ActId = actId,
             FileName = fileName,
-            ContentHash = new string('a', 64),
-            SizeBytes = sizeBytes,
-            MediaType = "application/pdf",
-            StoragePath = $"{this.tenantId}/{fileAssetId}",
+            Versions = [version],
         };
 
         return await this.Save(this.Context.FileAssets, file);

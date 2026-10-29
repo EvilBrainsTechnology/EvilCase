@@ -29,15 +29,15 @@ Každá chybová odpověď je Problem Details (RFC 9457).
 | 401 | bez přihlášení |
 | 403 | úprava nebo smazání komentáře, který napsal jiný uživatel |
 | 404 | neexistující id v routě — i id z cizího tenantu |
-| 409 | konflikt stavu: obsazené číslo, odkazovaný kontakt, cyklus v hierarchii; neexistující id v těle požadavku; obnova přihlášení, kterou právě provedla jiná záložka |
+| 409 | konflikt stavu: obsazené číslo nebo jméno, odkazovaný kontakt, cyklus v hierarchii, jediná verze souboru; neexistující id v těle požadavku; obnova přihlášení, kterou právě provedla jiná záložka |
 | 413 | upload nad limit velikosti |
 | 423 | uzamčený účet |
 | 429 | překročený limit požadavků |
 | 500 | bez detailů |
 
-Cizí tenant nikdy nevrací 403 — existence cizích dat nesmí uniknout. Uvnitř tenantu píše svůj
-záznam jen jeho vlastník (SDD-006); jediné 403 nese komentář, který smí upravit a smazat jen jeho
-autor (SDD-013).
+Cizí tenant nikdy nevrací 403 — existence cizích dat nesmí uniknout. Uvnitř tenantu smí záznam změnit
+a smazat kdokoli (SDD-006); jediné 403 nese komentář, který smí upravit a smazat jen jeho autor
+(SDD-013).
 
 Id, které požadavek jmenuje a které neexistuje: v routě 404, v těle 409. Platí pro odkazovaný
 kontakt v těle úkonu stejně jako pro chybějící spis nebo úkon v routě.

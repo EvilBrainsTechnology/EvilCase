@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using EvilBrains.EvilCase.Api.Contract.Files;
-using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Files;
@@ -26,20 +25,19 @@ internal sealed class FileSignerVerifier(
 
     private static readonly ConcurrentDictionary<(Guid, Guid?), Lazy<Task<FileSignersResponse?>>> InFlight = new();
 
-    public async Task<FileSignersResponse?> VerifyFileSigners(Guid fileId, CancellationToken token)
+    public async Task<FileSignersResponse?> VerifyFileSigners(Guid fileId, int? version, CancellationToken token)
     {
         var context = dbSession.Current;
 
         // The tenant-filtered row comes first, so a cached verdict never reaches another tenant.
-        var file = await context.FileAssets
-            .WithId(fileId)
-            .SingleOrDefaultAsync(token);
-
-        if (file is null)
+        var fileVersion = await context.FileVersions.ReadFileVersion(fileId, version, token);
+        if (fileVersion is null)
             return null;
 
-        if (file.SizeBytes > FileLimits.MaxSignedFileBytes)
+        if (fileVersion.SizeBytes > FileLimits.MaxSignedFileBytes)
             return new FileSignersResponse { Problem = FileSignersProblem.TooLarge, Signers = [] };
+
+        var file = fileVersion.FileAsset!;
 
         var ownerFiles = await context.FileAssets
             .OfSameOwner(file)
@@ -48,26 +46,25 @@ internal sealed class FileSignerVerifier(
 
         var (signedFile, pairingProblem) = DetachedSignatures.Pair(file.Id, file.FileName, ownerFiles);
 
-        // A rename or an upload that pairs the signature with another file makes another key.
-        var key = (file.Id, signedFile?.FileId);
+        // A detached signature is verified against the current version of the file it signs.
+        var signedVersion = signedFile is null
+            ? null
+            : await context.FileVersions.ReadFileVersion(signedFile.FileId, version: null, token);
+
+        if (signedFile is not null && signedVersion is null)
+            (signedFile, pairingProblem) = (null, DetachedSignatureProblem.Missing);
+
+        // A rename, an upload or a new version that pairs the signature with other content makes another key.
+        var key = (fileVersion.Id, signedVersion?.Id);
         if (cache.TryGetValue(CacheKey(key), out FileSignersResponse? cached))
             return cached;
-
-        var signedRow = signedFile is null
-            ? null
-            : await context.FileAssets
-                .WithId(signedFile.FileId)
-                .SingleOrDefaultAsync(token);
-
-        if (signedFile is not null && signedRow is null)
-            (signedFile, pairingProblem) = (null, DetachedSignatureProblem.Missing);
 
         // Concurrent reads of one pair share one verification; it outlives a caller that gives up.
         var flight = InFlight.GetOrAdd(
             key,
             static (pair, verification) => new Lazy<Task<FileSignersResponse?>>(
-                async () => await verification.Verifier.VerifyFile(pair, verification.StoragePath, verification.SignedRow, verification.SignedFile, verification.PairingProblem)),
-            (Verifier: this, file.StoragePath, SignedRow: signedRow, SignedFile: signedFile, PairingProblem: pairingProblem));
+                async () => await verification.Verifier.VerifyFile(pair, verification.FileAssetId, verification.StoragePath, verification.SignedVersion, verification.SignedFile, verification.PairingProblem)),
+            (Verifier: this, FileAssetId: file.Id, fileVersion.StoragePath, SignedVersion: signedVersion, SignedFile: signedFile, PairingProblem: pairingProblem));
 
         return await flight.Value.WaitAsync(token);
     }
@@ -79,21 +76,22 @@ internal sealed class FileSignerVerifier(
 
     private async Task<FileSignersResponse?> VerifyFile(
         (Guid, Guid?) key,
+        Guid fileAssetId,
         string storagePath,
-        FileAsset? signedRow,
+        FileVersion? signedVersion,
         FileListItem? signedFile,
         DetachedSignatureProblem? pairingProblem)
     {
         try
         {
-            var response = await this.ReadAndVerify(storagePath, signedRow, signedFile, pairingProblem);
+            var response = await this.ReadAndVerify(storagePath, signedVersion, signedFile, pairingProblem);
             if (response is null)
                 return null;
 
             var verdicts = response.Problem?.ToString()
                 ?? string.Join(", ", response.Signers.Select(static signer => signer.Problem is { } problem ? $"{signer.State} {problem}" : $"{signer.State}"));
 
-            logger.LogInformation("Signers of file {FileAssetId} verified against file {SignedFileAssetId} as {SignerVerdicts}", key.Item1, key.Item2, verdicts);
+            logger.LogInformation("Signers of file {FileAssetId} verified against file {SignedFileAssetId} as {SignerVerdicts}", fileAssetId, signedFile?.FileId, verdicts);
 
             // An unverifiable signer is asked for again on the next read.
             if (!response.Signers.Any(static signer => signer.State == FileSignatureState.Unverifiable))
@@ -111,7 +109,7 @@ internal sealed class FileSignerVerifier(
         }
     }
 
-    private async Task<FileSignersResponse?> ReadAndVerify(string storagePath, FileAsset? signedRow, FileListItem? signedFile, DetachedSignatureProblem? pairingProblem)
+    private async Task<FileSignersResponse?> ReadAndVerify(string storagePath, FileVersion? signedVersion, FileListItem? signedFile, DetachedSignatureProblem? pairingProblem)
     {
         await using var content = blobStore.ReadFileBlob(storagePath);
         if (content is null)
@@ -135,10 +133,10 @@ internal sealed class FileSignerVerifier(
             return SignedFileSignature.Unverifiable(listed, signerProblem) with { SignedFileProblem = problem };
         }
 
-        if (signedRow!.SizeBytes > FileLimits.MaxSignedFileBytes)
+        if (signedVersion!.SizeBytes > FileLimits.MaxSignedFileBytes)
             return SignedFileSignature.Unverifiable(listed, FileSignerProblem.SignedFileTooLarge) with { SignedFile = signedFile };
 
-        await using var signedContent = blobStore.ReadFileBlob(signedRow.StoragePath);
+        await using var signedContent = blobStore.ReadFileBlob(signedVersion.StoragePath);
         if (signedContent is null)
             return SignedFileSignature.Unverifiable(listed, FileSignerProblem.SignedFileMissing) with { SignedFileProblem = DetachedSignatureProblem.Missing };
 

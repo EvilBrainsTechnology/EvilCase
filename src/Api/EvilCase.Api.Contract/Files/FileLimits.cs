@@ -16,7 +16,7 @@ public static class FileLimits
     public const int MaxFileNameLength = 256;
 
     /// <summary>
-    /// Mirrors <c>FileAsset.MediaType</c>'s <c>MaxLength</c>.
+    /// Mirrors <c>FileVersion.MediaType</c>'s <c>MaxLength</c>.
     /// </summary>
     public const int MaxMediaTypeLength = 128;
 

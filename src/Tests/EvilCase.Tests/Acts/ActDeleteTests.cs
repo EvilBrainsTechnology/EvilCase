@@ -35,6 +35,7 @@ public class ActDeleteTests : TenantFixture
         var actExists = await this.Tenant.Context.Acts.AnyAsync(row => row.Id == act.Id);
         var commentExists = await this.Tenant.Context.Comments.AnyAsync(row => row.Id == comment.Id);
         var fileExists = await this.Tenant.Context.FileAssets.AnyAsync(row => row.Id == file.Id);
+        var versionsExist = await this.Tenant.Context.FileVersions.AnyAsync(row => row.FileAssetId == file.Id);
 
         using (Assert.EnterMultipleScope())
         {
@@ -42,6 +43,7 @@ public class ActDeleteTests : TenantFixture
             Assert.That(actExists, Is.False, "the cascade takes the act itself");
             Assert.That(commentExists, Is.False, "the cascade takes the act's comments");
             Assert.That(fileExists, Is.False, "the cascade takes the act's files");
+            Assert.That(versionsExist, Is.False, "the cascade takes the files' versions");
         }
     }
 

@@ -13,9 +13,9 @@ internal sealed class FileBlobStore(IOptions<FileSettings> settings, ILogger<Fil
     private readonly string rootFullPath =
         Path.TrimEndingDirectorySeparator(Path.GetFullPath(settings.Value.RootPath, AppContext.BaseDirectory)) + Path.DirectorySeparatorChar;
 
-    public async Task<FileBlobInfo> WriteFileBlob(Guid tenantId, Guid fileAssetId, Stream content, CancellationToken token)
+    public async Task<FileBlobInfo> WriteFileBlob(Guid tenantId, Guid fileVersionId, Stream content, CancellationToken token)
     {
-        var storagePath = FileBlobPath.For(tenantId, fileAssetId);
+        var storagePath = FileBlobPath.For(tenantId, fileVersionId);
         var fullPath = this.FullPath(storagePath);
 
         var temporaryPath = fullPath + ".tmp";

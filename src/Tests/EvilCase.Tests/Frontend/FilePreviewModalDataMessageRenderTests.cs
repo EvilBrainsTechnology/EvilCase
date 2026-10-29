@@ -311,7 +311,7 @@ public class FilePreviewModalDataMessageRenderTests
     {
         await using var ctx = NewContext(out _, out _, out _);
         var signatures = ctx.Services.GetRequiredService<IFileSignaturesClient>();
-        signatures.ReadFileSignature(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(new FileSignatureResponse { State = FileSignatureState.Valid });
+        signatures.ReadFileSignature(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>()).Returns(new FileSignatureResponse { State = FileSignatureState.Valid });
 
         var file = File("Zpráva.zfo");
         var component = Render(ctx, [file], file.FileId, static _ => DefaultMessage());
@@ -320,7 +320,7 @@ public class FilePreviewModalDataMessageRenderTests
 
         await signatures
             .Received(1)
-            .ReadFileSignature(file.FileId, Arg.Any<CancellationToken>());
+            .ReadFileSignature(file.FileId, Arg.Any<int?>(), Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -342,7 +342,7 @@ public class FilePreviewModalDataMessageRenderTests
             Assert.That(component.FindAll(".ec-popover-trigger"), Is.Empty, "a nested message has no stored file whose signature the server could verify");
             await signatures
                 .Received(1)
-                .ReadFileSignature(file.FileId, Arg.Any<CancellationToken>());
+                .ReadFileSignature(file.FileId, Arg.Any<int?>(), Arg.Any<CancellationToken>());
         }
     }
 
@@ -398,6 +398,8 @@ public class FilePreviewModalDataMessageRenderTests
             FileName = name,
             SizeBytes = size,
             Created = new DateTime(2026, 3, 2, 10, 0, 0, DateTimeKind.Utc),
+            Version = 1,
+            VersionCount = 1,
         };
     }
 }

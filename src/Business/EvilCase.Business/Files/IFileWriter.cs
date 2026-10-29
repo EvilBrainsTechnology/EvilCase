@@ -8,6 +8,10 @@ public interface IFileWriter
 
     public Task<UploadFileResult> UploadActFile(Guid actId, FileUpload upload, CancellationToken token);
 
+    public Task<FileVersionUploadResult> UploadFileVersion(Guid fileId, FileUpload upload, CancellationToken token);
+
+    public Task<FileVersionDeleteOutcome> DeleteFileVersion(Guid fileId, int number, CancellationToken token);
+
     public Task<FileRenameOutcome> RenameCaseFile(Guid caseId, Guid fileId, string fileName, CancellationToken token);
 
     public Task<FileRenameOutcome> RenameActFile(Guid actId, Guid fileId, string fileName, CancellationToken token);

@@ -4,14 +4,14 @@ internal static class FileBlobPath
 {
     /// <summary>
     /// Two levels of fan-out so one directory never holds every blob of a tenant. The characters come from
-    /// the end of the asset's UUIDv7: its front is a timestamp and would put a day's uploads together.
+    /// the end of the version's UUIDv7: its front is a timestamp and would put a day's uploads together.
     /// </summary>
-    public static string For(in Guid tenantId, in Guid fileAssetId)
+    public static string For(in Guid tenantId, in Guid fileVersionId)
     {
         var tenant = tenantId.ToString("D", CultureInfo.InvariantCulture);
-        var fileAsset = fileAssetId.ToString("D", CultureInfo.InvariantCulture);
-        var hex = fileAssetId.ToString("N", CultureInfo.InvariantCulture);
+        var fileVersion = fileVersionId.ToString("D", CultureInfo.InvariantCulture);
+        var hex = fileVersionId.ToString("N", CultureInfo.InvariantCulture);
 
-        return $"{tenant}/{hex[^2..]}/{hex[^4..^2]}/{fileAsset}";
+        return $"{tenant}/{hex[^2..]}/{hex[^4..^2]}/{fileVersion}";
     }
 }

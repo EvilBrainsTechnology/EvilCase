@@ -190,6 +190,8 @@ public class DetachedSignaturesTests
             FileName = fileName,
             SizeBytes = 1,
             Created = new DateTime(2026, 10, 27, 9, 0, 0, DateTimeKind.Utc),
+            Version = 1,
+            VersionCount = 1,
         };
     }
 }

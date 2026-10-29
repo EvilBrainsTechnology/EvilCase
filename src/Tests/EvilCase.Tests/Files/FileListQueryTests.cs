@@ -149,6 +149,39 @@ public class FileListQueryTests : TenantFixture
     }
 
     [Test]
+    public async Task AFileWithSeveralVersionsIsListedOnceInItsCurrentVersion()
+    {
+        var @case = await this.Tenant.AddCase(Day);
+        var file = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf", sizeBytes: 3);
+        var second = await this.Tenant.AddFileVersion(file, sizeBytes: 5);
+
+        var items = await this.reader.ListCaseFiles(@case.Id, CancellationToken.None);
+
+        var item = items!.Single();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(item.SizeBytes, Is.EqualTo(5), "the list shows the size of the current version");
+            Assert.That(item.Version, Is.EqualTo(2));
+            Assert.That(item.VersionCount, Is.EqualTo(2));
+            Assert.That(item.Created, Is.EqualTo(second.Created), "the list shows when the current version was uploaded");
+        }
+    }
+
+    [Test]
+    public async Task ANewVersionLeavesTheFileWhereItsFirstUploadPutIt()
+    {
+        var @case = await this.Tenant.AddCase(Day);
+        var first = await this.Tenant.AddCaseFile(@case, "A.txt");
+        await this.Tenant.AddCaseFile(@case, "B.txt");
+        await this.Tenant.AddFileVersion(first);
+
+        var items = await this.reader.ListCaseFiles(@case.Id, CancellationToken.None);
+
+        Assert.That(items!.Select(static item => item.FileName), Is.EqualTo(["A.txt", "B.txt"]), "the list stays in the order of the first uploads");
+    }
+
+    [Test]
     public async Task ASignatureOnAnotherCaseDoesNotPair()
     {
         var caseA = await this.Tenant.AddCase(Day);
