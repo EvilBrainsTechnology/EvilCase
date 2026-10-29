@@ -144,7 +144,7 @@ public class FileVersionsModalRenderTests
         // The button lays its children out with a gap, so the label and its ellipsis sit in one element.
         var label = component.Find(".ec-versions-delete-file button > span");
 
-        Assert.That(label.TextContent, Is.EqualTo("Smazat soubor se všemi verzemi…"));
+        Assert.That(label.TextContent, Is.EqualTo("Smazat soubor se všemi verzemi"));
     }
 
     [Test]

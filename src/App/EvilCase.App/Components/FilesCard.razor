@@ -279,10 +279,10 @@
     {
         return
         [
-            new EcMenuItem { Text = "Nahrát novou verzi…", Icon = AppIcons.Upload, OnSelect = EventCallback.Factory.Create(this, () => this.PickVersion(file)) },
-            new EcMenuItem { Text = $"Verze ({file.VersionCount})…", Icon = AppIcons.Clock, OnSelect = EventCallback.Factory.Create(this, () => this.OpenVersions(file)) },
+            new EcMenuItem { Text = "Nahrát novou verzi", Icon = AppIcons.Upload, OnSelect = EventCallback.Factory.Create(this, () => this.PickVersion(file)) },
+            new EcMenuItem { Text = $"Verze ({file.VersionCount})", Icon = AppIcons.Clock, OnSelect = EventCallback.Factory.Create(this, () => this.OpenVersions(file)) },
             new EcMenuItem { Text = "Přejmenovat", Icon = AppIcons.Pencil, OnSelect = EventCallback.Factory.Create(this, () => this.StartRename(file)) },
-            new EcMenuItem { Text = "Smazat…", Icon = AppIcons.Trash, OnSelect = EventCallback.Factory.Create(this, () => this.ConfirmDelete(file)), Danger = true, DividerBefore = true },
+            new EcMenuItem { Text = "Smazat", Icon = AppIcons.Trash, OnSelect = EventCallback.Factory.Create(this, () => this.ConfirmDelete(file)), Danger = true, DividerBefore = true },
         ];
     }
 

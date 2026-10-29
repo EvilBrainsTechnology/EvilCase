@@ -547,7 +547,7 @@ public class ActRenderTests
         {
             Assert.That(
                 component.FindAll("[role=menuitem]").Select(static item => item.TextContent.Trim()),
-                Is.EqualTo(["Nový úkon ve spisu", "Zkopírovat odkaz na úkon", "Smazat úkon…"]));
+                Is.EqualTo(["Nový úkon ve spisu", "Zkopírovat odkaz na úkon", "Smazat úkon"]));
             Assert.That(component.FindAll(".ec-page-actions .ec-button-danger"), Is.Empty, "delete lives in the menu");
         }
     }

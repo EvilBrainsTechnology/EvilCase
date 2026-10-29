@@ -481,7 +481,7 @@ public class FilesCardRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(items.Select(static item => item.TextContent.Trim()), Is.EqualTo(["Nahrát novou verzi…", "Verze (1)…", "Přejmenovat", "Smazat…"]));
+            Assert.That(items.Select(static item => item.TextContent.Trim()), Is.EqualTo(["Nahrát novou verzi", "Verze (1)", "Přejmenovat", "Smazat"]));
             Assert.That(items[3].ClassList, Does.Contain("ec-menu-item-danger"));
         }
     }

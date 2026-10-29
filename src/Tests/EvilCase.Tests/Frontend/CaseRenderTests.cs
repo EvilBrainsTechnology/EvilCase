@@ -262,7 +262,7 @@ public class CaseRenderTests
         {
             Assert.That(
                 component.FindAll("[role=menuitem]").Select(static item => item.TextContent.Trim()),
-                Is.EqualTo(["Nový úkon", "Nový podřízený spis", "Zkopírovat odkaz na spis", "Smazat spis…"]));
+                Is.EqualTo(["Nový úkon", "Nový podřízený spis", "Zkopírovat odkaz na spis", "Smazat spis"]));
             Assert.That(component.FindAll(".ec-page-actions .ec-button-danger"), Is.Empty, "delete lives in the menu");
         }
     }

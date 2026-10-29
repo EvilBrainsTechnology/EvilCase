@@ -79,7 +79,7 @@ aplikace sama. Smazání je prosté, s potvrzením.
 Klik na řádek souboru otevře náhled aktuální verze; u typu bez náhledu ten řekne, že není
 k dispozici, a nabídne stažení. Stažení je obyčejné stažení prohlížečem a uloží soubor vždy,
 i starší verzi pod jménem souboru. Vedle toho nese řádek stažení aktuální verze a nabídku
-Nahrát novou verzi…, Verze (3)…, Přejmenovat a Smazat…. Potvrzení smazání souboru s více
+Nahrát novou verzi, Verze (3), Přejmenovat a Smazat. Potvrzení smazání souboru s více
 verzemi řekne, kolik verzí se smaže.
 
 U souboru s více verzemi nese řádek štítek „verze 3“ s číslem aktuální verze, kompaktní karta
@@ -89,15 +89,15 @@ nahrání karta vypíše soubory, které se nahrály jako nová verze („Smlouv
 verze 3.“), a soubory, jejichž obsah je stejný jako poslední verze („Smlouva.pdf: obsah je
 stejný jako poslední verze, nová verze nevznikla.“).
 
-Nahrát novou verzi… otevře výběr jednoho souboru, jehož jméno se nepoužije. Soubor s jinou
+Nahrát novou verzi otevře výběr jednoho souboru, jehož jméno se nepoužije. Soubor s jinou
 příponou karta odmítne hláškou „Návrh.docx: nová verze souboru Smlouva.pdf musí mít příponu
 .pdf.“ a nic neodešle.
 
-Verze (3)… otevře okno Verze souboru se jménem souboru, počtem verzí a Nahrát novou verzi.
+Verze (3) otevře okno Verze souboru se jménem souboru, počtem verzí a Nahrát novou verzi.
 Verze jdou od nejnovější; každá ukáže číslo, u aktuální štítek „aktuální“, okamžik nahrání,
 e-mail toho, kdo ji nahrál, a velikost a nabídne Náhled, Stáhnout a Smazat. Smazání verze
 potvrzuje okno, které jmenuje číslo verze a soubor. Jediná verze Smazat nenabízí; okno nese
-Smazat soubor…, které otevře potvrzení smazání souboru. Na mobilu je okno vysunuté od spodního
+Smazat soubor, které otevře potvrzení smazání souboru. Na mobilu je okno vysunuté od spodního
 okraje a klik na verzi otevře její náhled.
 
 Přejmenování mění jen jméno bez přípony, přípona zůstává. Potvrzuje se Enterem nebo Uložit,
@@ -173,7 +173,7 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   aktuální verzi, a u souboru s více verzemi tlačítko Verze s počtem verzí, které ukáže a schová
   pruh verzí pod hlavičkou.
 - Pruh verzí nese výběr verze („Verze 2 z 3 · okamžik · e-mail“, za „z“ stojí číslo aktuální
-  verze) se seznamem verzí od nejnovější a se Spravovat verze…, které otevře okno Verze souboru.
+  verze) se seznamem verzí od nejnovější a se Spravovat verze, které otevře okno Verze souboru.
 - Starší verze se ukáže vždy s pruhem verzí v barvě upozornění, s textem „Starší verze. Stáhnout
   stáhne tuto verzi.“ a se Zobrazit aktuální verzi. Hlavička ukáže velikost a okamžik nahrání té
   verze; obsah, podpis datové zprávy, podepisující i stažení jsou té verze. Pruh samostatného
