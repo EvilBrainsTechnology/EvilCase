@@ -135,6 +135,9 @@
                            LoadFiles="this.LoadFiles"
                            UploadFile="this.UploadFile"
                            LoadContent="this.LoadFileContent"
+                           UploadFileVersion="this.UploadFileVersion"
+                           LoadFileVersions="this.LoadFileVersions"
+                           DeleteFileVersion="this.DeleteFileVersion"
                            RenameFile="this.RenameFile"
                            DeleteFile="this.DeleteFile"
                            UploadTarget="ke spisu"
@@ -201,7 +204,7 @@
                 new EcMenuItem { Text = "Nový úkon", Icon = AppIcons.Plus, OnSelect = EventCallback.Factory.Create(this, this.OpenNewAct) },
                 new EcMenuItem { Text = "Nový podřízený spis", Icon = AppIcons.FolderPlus, OnSelect = EventCallback.Factory.Create(this, this.OpenNewChildCase) },
                 new EcMenuItem { Text = "Zkopírovat odkaz na spis", Icon = AppIcons.Link, OnSelect = EventCallback.Factory.Create(this, this.CopyLink) },
-                new EcMenuItem { Text = "Smazat spis…", Icon = AppIcons.Trash, OnSelect = EventCallback.Factory.Create(this, this.StartDeleting), Danger = true, DividerBefore = true },
+                new EcMenuItem { Text = "Smazat spis", Icon = AppIcons.Trash, OnSelect = EventCallback.Factory.Create(this, this.StartDeleting), Danger = true, DividerBefore = true },
             ];
         }
     }
@@ -259,7 +262,7 @@
         return (await this.CaseFilesClient.ListCaseFiles(this.CaseId, token)).Items;
     }
 
-    private Task UploadFile(IBrowserFile file, CancellationToken token)
+    private Task<FileUploadResult> UploadFile(IBrowserFile file, CancellationToken token)
     {
         return this.FileTransfer.UploadCaseFile(this.CaseId, file, token);
     }

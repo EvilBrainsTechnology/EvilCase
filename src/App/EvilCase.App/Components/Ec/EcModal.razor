@@ -2,7 +2,7 @@
 @implements IAsyncDisposable
 @inject IJSRuntime JSRuntime
 
-<dialog class="@(this.Large ? "ec-modal ec-modal-large" : "ec-modal")" @ref="this.dialog" aria-label="@this.Title"
+<dialog class="@(this.Large ? "ec-modal ec-modal-large" : this.Sheet ? "ec-modal ec-modal-sheet" : "ec-modal")" @ref="this.dialog" aria-label="@this.Title"
         @onpointerdown="this.PressBackdrop" @onclick="this.ClickBackdrop">
     @* Events from the content stop here, so the dialog only sees presses and clicks on its backdrop. *@
     <div class="ec-modal-frame" @onpointerdown:stopPropagation @onclick:stopPropagation>
@@ -41,6 +41,12 @@
     /// </summary>
     [Parameter]
     public bool Large { get; set; }
+
+    /// <summary>
+    /// A list in a window: 680 px wide on desktop, docked to the bottom edge as a sheet below lg.
+    /// </summary>
+    [Parameter]
+    public bool Sheet { get; set; }
 
     [Parameter]
     public bool Open { get; set; }

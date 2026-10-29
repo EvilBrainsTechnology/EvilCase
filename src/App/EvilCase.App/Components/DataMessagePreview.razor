@@ -9,7 +9,7 @@
                 <EcBadge Text="@(message.Kind == DataMessageKind.Message ? "Datová zpráva" : "Doručenka")" Tone="EcBadgeTone.Official" />
                 @if (this.FileId is { } fileId)
                 {
-                    <DataMessageSignature FileId="fileId" />
+                    <DataMessageSignature FileId="fileId" Version="this.Version" />
                 }
             </div>
             <dl class="ec-preview-email-headers">
@@ -99,6 +99,12 @@
     /// </summary>
     [Parameter]
     public Guid? FileId { get; set; }
+
+    /// <summary>
+    /// The version of the stored file; null is the current one.
+    /// </summary>
+    [Parameter]
+    public int? Version { get; set; }
 
     /// <summary>
     /// Raised with the parsed message and the index of the attachment to preview.

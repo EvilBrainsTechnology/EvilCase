@@ -1,0 +1,29 @@
+@* A label around a hidden input, so a click opens the browser's picker with no script; the input carries the name. *@
+<label class="@(this.Disabled ? "ec-button ec-button-secondary ec-button-standard ec-file-pick ec-file-pick-disabled" : "ec-button ec-button-secondary ec-button-standard ec-file-pick")">
+    <EcIcon Paths="@AppIcons.Upload" /><span class="ec-file-pick-label">@this.Text</span>
+    <InputFile @key="this.round" class="ec-visually-hidden" aria-label="@this.Text" disabled="@this.Disabled" OnChange="this.Picked" />
+</label>
+
+@code {
+    [Parameter, EditorRequired]
+    public required string Text { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    [Parameter]
+    public EventCallback<IBrowserFile> OnPicked { get; set; }
+
+    private int round;
+
+    private async Task Picked(InputFileChangeEventArgs args)
+    {
+        if (args.FileCount == 0)
+            return;
+
+        // A fresh input, so the same file can be picked again.
+        this.round++;
+
+        await this.OnPicked.InvokeAsync(args.File);
+    }
+}

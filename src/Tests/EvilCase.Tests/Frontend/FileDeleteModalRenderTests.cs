@@ -25,6 +25,21 @@ public class FileDeleteModalRenderTests
     }
 
     [Test]
+    public void AFileWithMoreVersionsSaysHowManyGo()
+    {
+        using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+
+        var component = ctx.Render<FileDeleteModal>(static parameters => parameters
+            .Add(static modal => modal.Open, value: true)
+            .Add(static modal => modal.FileName, "a.pdf")
+            .Add(static modal => modal.VersionCount, 3)
+            .Add(static modal => modal.Delete, static _ => Task.CompletedTask));
+
+        Assert.That(component.Find(".ec-confirm-text").TextContent, Is.EqualTo("Opravdu smazat soubor a.pdf se všemi 3 verzemi? Akci nelze vrátit zpět."));
+    }
+
+    [Test]
     public async Task ConfirmingCallsTheDeleteAndRaisesOnDeleted()
     {
         await using var ctx = new BunitContext();

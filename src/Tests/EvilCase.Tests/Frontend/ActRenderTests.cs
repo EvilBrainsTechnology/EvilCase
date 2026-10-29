@@ -547,7 +547,7 @@ public class ActRenderTests
         {
             Assert.That(
                 component.FindAll("[role=menuitem]").Select(static item => item.TextContent.Trim()),
-                Is.EqualTo(["Nový úkon ve spisu", "Zkopírovat odkaz na úkon", "Smazat úkon…"]));
+                Is.EqualTo(["Nový úkon ve spisu", "Zkopírovat odkaz na úkon", "Smazat úkon"]));
             Assert.That(component.FindAll(".ec-page-actions .ec-button-danger"), Is.Empty, "delete lives in the menu");
         }
     }
@@ -695,6 +695,8 @@ public class ActRenderTests
         ctx.Services.AddSingleton(actFilesClient);
         ctx.Services.AddSingleton<IFileTransferClient>(new StubFileTransferClient());
         ctx.Services.AddSingleton<IFileDownloader>(new StubFileDownloader());
+        ctx.Services.AddSingleton<IFilePicker>(new StubFilePicker());
+        ctx.Services.AddSingleton(Substitute.For<IFileVersionsClient>());
         ctx.Services.AddSingleton<IClipboardWriter>(new StubClipboardWriter());
         ctx.Services.AddSingleton(labelsClient);
         ctx.Services.AddSingleton(Substitute.For<IContactsClient>());

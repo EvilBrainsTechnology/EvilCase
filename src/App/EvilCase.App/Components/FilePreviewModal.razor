@@ -3,6 +3,7 @@
 @using System.Text
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Contract.Files
+@using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.JSInterop
 @implements IAsyncDisposable
 @inject IAuthSession Session
@@ -18,6 +19,7 @@
     // A signed document shows what it carries, by the name without the signature suffix or by the type its content shows.
     var stagedName = this.signedContentName ?? shownName;
     var preview = FileTypeDisplay.Preview(stagedName);
+    var shownVersion = this.ShownVersionItem;
 
     <EcModal Title="@shownName" Large Open="this.Open" OpenChanged="this.OpenChanged">
         <Heading>
@@ -60,7 +62,7 @@
                 {
                     <div class="ec-preview-title">
                         <h2 class="ec-preview-name" title="@file.FileName">@file.FileName</h2>
-                        <span class="ec-preview-meta">@FileSizeDisplay.Text(file.SizeBytes) <span class="ec-sep" aria-hidden="true">·</span> @(this.signedContentName is { } documentName ? $"podepsaný dokument {documentName}" : MomentDisplay.Text(file.Created))</span>
+                        <span class="ec-preview-meta">@FileSizeDisplay.Text(shownVersion?.SizeBytes ?? file.SizeBytes) <span class="ec-sep" aria-hidden="true">·</span> @(this.signedContentName is { } documentName ? $"podepsaný dokument {documentName}" : MomentDisplay.Text(shownVersion?.Created ?? file.Created))</span>
                     </div>
                 }
                 <div class="ec-preview-actions">
@@ -69,33 +71,92 @@
                         <nav class="ec-preview-nav" aria-label="Soubory">
                             <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.ChevronLeft" AriaLabel="Předchozí soubor"
                                       OnClick="() => this.Step(-1)" />
-                            <span class="ec-preview-position"><strong>@(this.Position + 1)</strong> z @this.Files.Count</span>
+                            <span class="ec-preview-position">Soubor <strong>@(this.Position + 1)</strong> z @this.Files.Count</span>
                             <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.ChevronRight" AriaLabel="Další soubor"
                                       OnClick="() => this.Step(1)" />
                         </nav>
                         <span class="ec-preview-divider" aria-hidden="true"></span>
                     }
+                    @if (file.VersionCount > 1)
+                    {
+                        <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Clock" AriaLabel="@($"Verze, {file.VersionCount}")"
+                                  aria-pressed="@(this.OlderVersion is not null || this.versionsOpen ? "true" : "false")" OnClick="this.ToggleVersions">
+                            <span class="ec-preview-action-label">Verze<span class="ec-preview-versions-count">@file.VersionCount</span></span>
+                        </EcButton>
+                    }
+                    <FileVersionPicker Text="Nová verze" Disabled="this.uploadingVersion" OnPicked="picked => this.UploadNewVersion(file, picked)" />
                     <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Pencil" AriaLabel="Přejmenovat" OnClick="this.StartRename"><span class="ec-preview-action-label">Přejmenovat</span></EcButton>
                     @if (this.signedContentName is not null)
                     {
                         var extension = Path.GetExtension(file.FileName);
 
                         <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Download" AriaLabel="Stáhnout dokument" OnClick="this.DownloadSignedContent"><span class="ec-preview-action-label">Stáhnout dokument</span></EcButton>
-                        <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Download" AriaLabel="@($"Stáhnout {extension}")" OnClick="() => this.OnDownload.InvokeAsync(file)"><span class="ec-preview-action-label">Stáhnout @extension</span></EcButton>
+                        <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Download" AriaLabel="@($"Stáhnout {extension}")" OnClick="() => this.DownloadStored(file)"><span class="ec-preview-action-label">Stáhnout @extension</span></EcButton>
                     }
                     else
                     {
-                        <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Download" AriaLabel="Stáhnout" OnClick="() => this.OnDownload.InvokeAsync(file)"><span class="ec-preview-action-label">Stáhnout</span></EcButton>
+                        <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Download" AriaLabel="Stáhnout" OnClick="() => this.DownloadStored(file)"><span class="ec-preview-action-label">Stáhnout</span></EcButton>
                     }
                 </div>
             }
         </Heading>
         <ChildContent>
+            @if (attachment is null && file.VersionCount > 1 && (this.OlderVersion is not null || this.versionsOpen))
+            {
+                var shown = this.OlderVersion ?? file.Version;
+                var shownItem = this.versions?.FirstOrDefault(version => version.Number == shown);
+                var title = $"Verze {shown} z {file.Version}" + (shownItem is null ? "" : $" · {MomentDisplay.Text(shownItem.Created)} · {shownItem.UploaderEmail}");
+
+                <div class="@(this.OlderVersion is null ? "ec-preview-versions" : "ec-preview-versions ec-preview-versions-old")" role="group" aria-label="Verze souboru">
+                    <span class="ec-preview-versions-label"><EcIcon Paths="@AppIcons.Clock" />Verze</span>
+                    <EcPopover @ref="this.versionsPopover" AriaLabel="Výběr verze" PanelClass="ec-preview-versions-panel">
+                        <Trigger><span class="ec-preview-versions-trigger">@title<EcIcon Paths="@AppIcons.ChevronDown" /></span></Trigger>
+                        <ChildContent>
+                            @if (this.versions is null)
+                            {
+                                <p class="ec-preview-versions-error">Verze se nepodařilo načíst.</p>
+                            }
+                            else
+                            {
+                                <ul class="ec-preview-versions-list">
+                                    @foreach (var version in this.versions)
+                                    {
+                                        var number = version.Number;
+
+                                        <li>
+                                            <button type="button" class="ec-preview-versions-option" aria-current="@(number == shown ? "true" : null)"
+                                                    @onclick="() => this.SelectVersion(file, number)">
+                                                <span class="ec-preview-versions-option-title">Verze @number@(number == file.Version ? " " : "")@if (number == file.Version) { <EcBadge Text="aktuální" Tone="EcBadgeTone.Current" /> }</span>
+                                                <span class="ec-preview-versions-option-meta">@MomentDisplay.Text(version.Created) · @version.UploaderEmail</span>
+                                            </button>
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                            <div class="ec-preview-versions-divider" role="separator"></div>
+                            <button type="button" class="ec-preview-versions-manage" @onclick="() => this.ManageVersions(file)">Spravovat verze</button>
+                        </ChildContent>
+                    </EcPopover>
+                    @if (this.OlderVersion is not null)
+                    {
+                        <span class="ec-preview-versions-note">Starší verze. Stáhnout stáhne tuto verzi.</span>
+                        <EcButton Variant="EcButtonVariant.Quiet" Size="EcButtonSize.Compact" OnClick="this.ShowCurrentVersion">Zobrazit aktuální verzi</EcButton>
+                    }
+                </div>
+            }
+            @if (this.versionFailure is not null)
+            {
+                <div class="ec-alert ec-preview-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.versionFailure</div>
+            }
+            @if (this.versionNotice is not null)
+            {
+                <div class="ec-file-notice ec-preview-alert" role="status">@this.versionNotice</div>
+            }
             @if (this.signedContentName is not null)
             {
-                <FileSigners @key="file.FileId" FileId="file.FileId" FileName="@file.FileName" />
+                <FileSigners @key="(file.FileId, this.OlderVersion)" FileId="file.FileId" FileName="@file.FileName" Version="this.OlderVersion" />
             }
-            else if (attachment is null && preview != FilePreviewKind.SignedDocument && file.SignatureFileId is { } signatureFileId
+            else if (attachment is null && preview != FilePreviewKind.SignedDocument && this.OlderVersion is null && file.SignatureFileId is { } signatureFileId
                      && this.Files.FirstOrDefault(item => item.FileId == signatureFileId) is { } signature)
             {
                 <FileSigners @key="(file.FileId, signatureFileId)" FileId="signatureFileId" FileName="@signature.FileName" SignedFileId="file.FileId" OnOpenFile="this.OpenFile" />
@@ -255,12 +316,12 @@
             }
             else if (preview == FilePreviewKind.DataMessage)
             {
-                <DataMessagePreview @key="this.shownKey" Content="this.dataMessage!" FileName="@stagedName" FileId="@(attachment is null ? file.FileId : null)"
+                <DataMessagePreview @key="this.shownKey" Content="this.dataMessage!" FileName="@stagedName" FileId="@(attachment is null ? file.FileId : null)" Version="@(attachment is null ? this.OlderVersion : null)"
                                     OnOpenAttachment="opened => this.OpenAttachment(stagedName, opened.Message, opened.Index)" OnUnreadable="this.Unreadable" />
             }
             else if (preview == FilePreviewKind.SignedDocument)
             {
-                <FileSigners @key="file.FileId" FileId="file.FileId" FileName="@file.FileName" Detached OnOpenFile="this.OpenFile" />
+                <FileSigners @key="(file.FileId, this.OlderVersion)" FileId="file.FileId" FileName="@file.FileName" Version="this.OlderVersion" Detached OnOpenFile="this.OpenFile" />
             }
             else if (preview == FilePreviewKind.Pdf)
             {
@@ -307,7 +368,28 @@
     public EventCallback<Guid> FileIdChanged { get; set; }
 
     [Parameter, EditorRequired]
-    public required Func<FileListItem, CancellationToken, Task<Stream>> LoadContent { get; set; }
+    public required Func<FileListItem, int?, CancellationToken, Task<Stream>> LoadContent { get; set; }
+
+    /// <summary>
+    /// The version shown; null shows the current one.
+    /// </summary>
+    [Parameter]
+    public int? Version { get; set; }
+
+    [Parameter]
+    public EventCallback<int?> VersionChanged { get; set; }
+
+    [Parameter, EditorRequired]
+    public required Func<FileListItem, CancellationToken, Task<IReadOnlyList<FileVersionItem>>> LoadVersions { get; set; }
+
+    /// <summary>
+    /// Uploads the picked file as a new version; answers the failure or the notice to show.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required Func<FileListItem, IBrowserFile, Task<(string? Failure, string? Notice)>> UploadVersion { get; set; }
+
+    [Parameter]
+    public EventCallback<FileListItem> OnManageVersions { get; set; }
 
     [Parameter, EditorRequired]
     public required Func<FileListItem, string, CancellationToken, Task> Rename { get; set; }
@@ -330,6 +412,22 @@
     private CancellationTokenSource? loadToken;
 
     private Guid? loadedFileId;
+
+    private int? loadedNumber;
+
+    private IReadOnlyList<FileVersionItem>? versions;
+
+    private (Guid, int, int)? versionsKey;
+
+    private bool versionsOpen;
+
+    private bool uploadingVersion;
+
+    private string? versionFailure;
+
+    private string? versionNotice;
+
+    private EcPopover? versionsPopover;
 
     private string? url;
 
@@ -374,16 +472,64 @@
 
     private int Position => Enumerable.Range(0, this.Files.Count).Single(index => this.Files[index].FileId == this.FileId);
 
+    // The number of the version shown when it is not the current one.
+    private int? OlderVersion => this.Version is { } number && this.Current is { } file && number != file.Version ? number : null;
+
+    private FileVersionItem? ShownVersionItem => this.OlderVersion is { } number ? this.versions?.FirstOrDefault(version => version.Number == number) : null;
+
     private DataMessageAttachment? ShownAttachment => this.trail.Count == 0 ? null : this.trail[^1].Message.Attachments[this.trail[^1].Index];
 
     protected override async Task OnParametersSetAsync()
     {
-        if (this.Current is not { } file || file.FileId == this.loadedFileId)
+        if (this.Current is not { } file)
             return;
+
+        await this.LoadVersionList(file);
+
+        var number = this.OlderVersion ?? file.Version;
+
+        if (file.FileId == this.loadedFileId && number == this.loadedNumber)
+            return;
+
+        if (file.FileId != this.loadedFileId)
+        {
+            this.versionsOpen = false;
+            this.versionFailure = null;
+            this.versionNotice = null;
+        }
 
         this.renaming = false;
 
         await this.Reload(file);
+    }
+
+    private async Task LoadVersionList(FileListItem file)
+    {
+        var key = (file.FileId, file.Version, file.VersionCount);
+
+        if (file.VersionCount < 2)
+        {
+            this.versions = null;
+            this.versionsKey = null;
+
+            return;
+        }
+
+        if (key == this.versionsKey)
+            return;
+
+        this.versionsKey = key;
+
+        try
+        {
+            this.versions = await this.LoadVersions(file, CancellationToken.None);
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Loading the versions of file {FileAssetId} failed", file.FileId);
+
+            this.versions = null;
+        }
     }
 
     public async ValueTask DisposeAsync()
@@ -422,6 +568,7 @@
         var token = this.Reset();
 
         this.loadedFileId = file.FileId;
+        this.loadedNumber = this.OlderVersion ?? file.Version;
         this.trail.Clear();
 
         await this.ReleaseUrl();
@@ -435,8 +582,10 @@
             return;
         }
 
-        if ((preview == FilePreviewKind.DataMessage && file.SizeBytes > DataMessageZfo.MaxBytes)
-            || (preview == FilePreviewKind.SignedDocument && file.SizeBytes > FileLimits.MaxSignedFileBytes))
+        var size = this.ShownVersionItem?.SizeBytes ?? file.SizeBytes;
+
+        if ((preview == FilePreviewKind.DataMessage && size > DataMessageZfo.MaxBytes)
+            || (preview == FilePreviewKind.SignedDocument && size > FileLimits.MaxSignedFileBytes))
         {
             this.loading = false;
             this.unsupported = true;
@@ -455,7 +604,7 @@
                 if (!token.IsCancellationRequested)
                 {
                     this.loading = false;
-                    this.url = FileUrl.Content(file.FileId);
+                    this.url = FileUrl.Content(file.FileId, this.OlderVersion);
 
                     // The browser keeps requesting ranges while the file is shown; the next file or the close ends it.
                     _ = this.Session.KeepFresh(token);
@@ -464,7 +613,7 @@
                 return;
             }
 
-            await using var content = await this.LoadContent(file, token);
+            await using var content = await this.LoadContent(file, this.OlderVersion, token);
 
             await this.Load(file.FileName, preview, content, token);
 
@@ -784,7 +933,60 @@
         else if (this.signedContent is not null)
             await this.DownloadSignedContent();
         else
+            await this.DownloadStored(file);
+    }
+
+    // An older version is saved under the file's name by the same request the preview makes.
+    private async Task DownloadStored(FileListItem file)
+    {
+        if (this.OlderVersion is { } number)
+            await this.Downloader.DownloadFile(file.FileId, number, file.FileName, CancellationToken.None);
+        else
             await this.OnDownload.InvokeAsync(file);
+    }
+
+    private async Task ToggleVersions()
+    {
+        if (this.OlderVersion is null)
+            this.versionsOpen = !this.versionsOpen;
+        else
+            await this.ShowCurrentVersion();
+    }
+
+    private async Task ShowCurrentVersion()
+    {
+        this.versionsOpen = false;
+
+        await this.VersionChanged.InvokeAsync(null);
+    }
+
+    private async Task SelectVersion(FileListItem file, int number)
+    {
+        await this.versionsPopover!.CloseToTrigger();
+
+        this.versionsOpen = true;
+
+        await this.VersionChanged.InvokeAsync(number == file.Version ? null : number);
+    }
+
+    private async Task ManageVersions(FileListItem file)
+    {
+        await this.versionsPopover!.CloseToTrigger();
+        await this.OnManageVersions.InvokeAsync(file);
+    }
+
+    private async Task UploadNewVersion(FileListItem file, IBrowserFile picked)
+    {
+        this.uploadingVersion = true;
+        this.versionFailure = null;
+        this.versionNotice = null;
+
+        (this.versionFailure, this.versionNotice) = await this.UploadVersion(file, picked);
+
+        this.uploadingVersion = false;
+
+        if (this.versionFailure is null)
+            await this.VersionChanged.InvokeAsync(null);
     }
 
     private async Task DownloadSignedContent()

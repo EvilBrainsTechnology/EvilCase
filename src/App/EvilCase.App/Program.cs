@@ -42,6 +42,7 @@ internal static class Program
             static client => client.AddRequestContextHeaders().AddRequestLogging().AddHttpMessageHandler<AuthTokenHandler>());
 
         builder.Services.AddSingleton<IFileDownloader, FileDownloader>();
+        builder.Services.AddSingleton<IFilePicker, FilePicker>();
         builder.Services.AddSingleton<IBlobUrls, BlobUrls>();
         builder.Services.AddSingleton<IFilePreviews, FilePreviews>();
         builder.Services.AddSingleton<IClipboardWriter, ClipboardWriter>();

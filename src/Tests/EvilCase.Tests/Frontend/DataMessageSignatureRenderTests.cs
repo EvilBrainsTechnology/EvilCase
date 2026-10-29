@@ -144,6 +144,22 @@ public class DataMessageSignatureRenderTests
         }
     }
 
+    [Test]
+    public async Task TheVersionIsPassedToTheServer()
+    {
+        await using var ctx = NewContext(out var client);
+        var fileId = Guid.CreateVersion7();
+        client.ReadFileSignature(fileId, 2, Arg.Any<CancellationToken>()).Returns(Valid);
+
+        var component = ctx.Render<DataMessageSignature>(parameters => parameters
+            .Add(static signature => signature.FileId, fileId)
+            .Add(static signature => signature.Version, 2));
+
+        await component.WaitForAssertionAsync(() => Assert.That(Chip(component), Is.Not.EqualTo("Ověřuji podpis…")));
+
+        await client.Received(1).ReadFileSignature(fileId, 2, Arg.Any<CancellationToken>());
+    }
+
     private static string Chip(IRenderedComponent<DataMessageSignature> component)
     {
         return component.Find(".ec-badge").TextContent.Trim();

@@ -76,9 +76,29 @@ PDF, SVG a HTML také, nese `attachment` a typ `application/octet-stream`; ulož
 v odpovědi nikdy nevrací. Obsah souboru nikdy nespustí skript a vložit do stránky ho smí jen
 aplikace sama. Smazání je prosté, s potvrzením.
 
-Klik na řádek souboru otevře náhled; u typu bez náhledu ten řekne, že není k dispozici, a
-nabídne stažení. Stažení je obyčejné stažení prohlížečem a uloží soubor vždy. Stažení,
-přejmenování a smazání jsou akce řádku vedle toho.
+Klik na řádek souboru otevře náhled aktuální verze; u typu bez náhledu ten řekne, že není
+k dispozici, a nabídne stažení. Stažení je obyčejné stažení prohlížečem a uloží soubor vždy,
+i starší verzi pod jménem souboru. Vedle toho nese řádek stažení aktuální verze a nabídku
+Nahrát novou verzi, Verze (3), Přejmenovat a Smazat. Potvrzení smazání souboru s více
+verzemi řekne, kolik verzí se smaže.
+
+U souboru s více verzemi nese řádek štítek „verze 3“ s číslem aktuální verze, kompaktní karta
+ho uvádí textem před velikostí; soubor s jedinou verzí štítek nemá. Soubory a verze nahrané od
+načtení stránky jsou zvýrazněné se štítkem „nový“ nebo „nová verze“ do obnovení stránky. Po
+nahrání karta vypíše soubory, které se nahrály jako nová verze („Smlouva.pdf: nahráno jako
+verze 3.“), a soubory, jejichž obsah je stejný jako poslední verze („Smlouva.pdf: obsah je
+stejný jako poslední verze, nová verze nevznikla.“).
+
+Nahrát novou verzi otevře výběr jednoho souboru, jehož jméno se nepoužije. Soubor s jinou
+příponou karta odmítne hláškou „Návrh.docx: nová verze souboru Smlouva.pdf musí mít příponu
+.pdf.“ a nic neodešle.
+
+Verze (3) otevře okno Verze souboru se jménem souboru, počtem verzí a Nahrát novou verzi.
+Verze jdou od nejnovější; každá ukáže číslo, u aktuální štítek „aktuální“, okamžik nahrání,
+e-mail toho, kdo ji nahrál, a velikost a nabídne Náhled, Stáhnout a Smazat. Smazání verze
+potvrzuje okno, které jmenuje číslo verze a soubor. Jediná verze Smazat nenabízí; okno nese
+Smazat soubor, které otevře potvrzení smazání souboru. Na mobilu je okno vysunuté od spodního
+okraje a klik na verzi otevře její náhled.
 
 Přejmenování mění jen jméno bez přípony, přípona zůstává. Potvrzuje se Enterem nebo Uložit,
 Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor tohoto jména už existuje“.
@@ -147,7 +167,17 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
 - Příloha se stáhne pod svým jménem bez
   cesty a bez znaků, které jméno souboru nesmí obsahovat; prázdné jméno nahradí „příloha".
 - HEIC a HEIF se ukážou jako obrázek.
-- Náhled listuje mezi soubory karty, ze které se otevřel.
+- Náhled listuje mezi soubory karty, ze které se otevřel, vždy v jejich aktuální verzi; hlavička
+  ukáže pořadí „Soubor 2 z 5“.
+- Hlavička souboru karty nese Nová verze, která nahraje novou verzi jako akce řádku a pak ukáže
+  aktuální verzi, a u souboru s více verzemi tlačítko Verze s počtem verzí, které ukáže a schová
+  pruh verzí pod hlavičkou.
+- Pruh verzí nese výběr verze („Verze 2 z 3 · okamžik · e-mail“, za „z“ stojí číslo aktuální
+  verze) se seznamem verzí od nejnovější a se Spravovat verze, které otevře okno Verze souboru.
+- Starší verze se ukáže vždy s pruhem verzí v barvě upozornění, s textem „Starší verze. Stáhnout
+  stáhne tuto verzi.“ a se Zobrazit aktuální verzi. Hlavička ukáže velikost a okamžik nahrání té
+  verze; obsah, podpis datové zprávy, podepisující i stažení jsou té verze. Pruh samostatného
+  podpisu u starší verze není.
 
 ### Podpis datové zprávy
 
@@ -268,6 +298,8 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
 - Shoda jména při uploadu: s velikostí písmen / bez ní. Platí bez ní.
 - Nová verze s jinou příponou: přijmout / odmítnout. Platí odmítnout.
 - Upload shodný s aktuální verzí: nová verze / beze změny. Platí beze změny.
+- Zvýraznění nově nahraných souborů: trvale / do obnovení stránky. Platí do obnovení stránky.
+- Potvrzení smazání verze: v řádku / samostatné okno. Platí samostatné okno.
 - Číslo nové verze: počítadlo souboru / nejvyšší existující + 1. Platí nejvyšší existující + 1;
   čísla se nepřečíslovávají.
 - Smazání jediné verze: smaže soubor / odmítne se. Platí odmítne se.

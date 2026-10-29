@@ -138,6 +138,8 @@
     --ec-file-code-text: #2E3A4F;
     --ec-file-archive-bg: #F3ECE4;
     --ec-file-archive-text: #6B4A2E;
+    --ec-file-fresh-bg: #DCE5FA;
+    --ec-file-row-fresh-bg: #F1F5FE;
     --ec-file-other-bg: var(--ec-bg);
     --ec-file-other-text: var(--ec-text-muted);
     --ec-file-icon-size: 40px;
@@ -273,6 +275,7 @@
 
     /* Náhled souboru (docs/design/detail-ukonu.html) */
     --ec-preview-width: 1320px;
+    --ec-modal-sheet-width: 680px;
     --ec-preview-height: 920px;
     --ec-preview-header-height: 68px;
     --ec-preview-stage: #E6E8EC;
@@ -289,7 +292,7 @@
     --ec-preview-text-leading: 1.7;
     --ec-preview-audio-width: 480px;
     --ec-preview-message-width: 420px;
-    --ec-preview-position-width: 64px;
+    --ec-preview-position-width: 84px;
     --ec-preview-sheet-gutter: 48px;
     --ec-preview-sheet-cell: 320px;
     --ec-preview-email-label: 72px;
@@ -297,6 +300,9 @@
     --ec-preview-signature-width: 760px;
     --ec-preview-signature-label: 150px;
     --ec-preview-signers-height: 160px;
+    --ec-preview-version-old-bg: #FFF8E1;
+    --ec-preview-version-old-border: #F0D98A;
+    --ec-preview-version-old-text: #5C4500;
     --ec-preview-signature-file-height: 52px;
     --ec-preview-page-gap: 20px;
     --ec-code-name: #1F3FAE;

@@ -301,7 +301,7 @@ public class FilePreviewModalDataMessageRenderTests
             {
                 Assert.That(component.Find(".ec-preview-name").TextContent, Is.EqualTo("Poznámky.txt"));
                 Assert.That(component.FindAll("[aria-label='Zpět na zprávu']"), Is.Empty);
-                Assert.That(Position(component), Is.EqualTo("2 z 2"));
+                Assert.That(Position(component), Is.EqualTo("Soubor 2 z 2"));
             }
         });
     }
@@ -346,6 +346,22 @@ public class FilePreviewModalDataMessageRenderTests
         }
     }
 
+    [Test]
+    public async Task AnOlderMessageIsVerifiedByItsNumber()
+    {
+        await using var ctx = NewContext(out _, out _, out _);
+
+        var signatures = ctx.Services.GetRequiredService<IFileSignaturesClient>();
+        signatures.ReadFileSignature(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>()).Returns(new FileSignatureResponse { State = FileSignatureState.Valid });
+
+        var file = File("Zpráva.zfo") with { Version = 3, VersionCount = 3 };
+        var component = Render(ctx, [file], file.FileId, static _ => DefaultMessage(), version: 2);
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-popover-trigger"), Is.Not.Empty));
+
+        await signatures.Received(1).ReadFileSignature(file.FileId, 2, Arg.Any<CancellationToken>());
+    }
+
     private static string Position(IRenderedComponent<FilePreviewModal> component)
     {
         return string.Join(' ', component.Find(".ec-preview-position").TextContent.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
@@ -379,12 +395,16 @@ public class FilePreviewModalDataMessageRenderTests
         IReadOnlyList<FileListItem> files,
         Guid fileId,
         Func<FileListItem, byte[]> content,
-        Action<FileListItem>? onDownload = null)
+        Action<FileListItem>? onDownload = null,
+        int? version = null)
     {
         return ctx.Render<FilePreviewModal>(parameters => parameters
             .Add(static modal => modal.Files, files)
             .Add(static modal => modal.FileId, fileId)
-            .Add(static modal => modal.LoadContent, (item, _) => Task.FromResult<Stream>(new MemoryStream(content(item))))
+            .Add(static modal => modal.LoadContent, (item, _, _) => Task.FromResult<Stream>(new MemoryStream(content(item))))
+            .Add(static modal => modal.Version, version)
+            .Add(static modal => modal.LoadVersions, static (_, _) => Task.FromResult<IReadOnlyList<FileVersionItem>>([]))
+            .Add(static modal => modal.UploadVersion, static (_, _) => Task.FromResult<(string?, string?)>((null, null)))
             .Add(static modal => modal.Rename, static (_, _, _) => Task.CompletedTask)
             .Add(static modal => modal.OnDownload, item => onDownload?.Invoke(item))
             .Add(static modal => modal.Open, value: true));

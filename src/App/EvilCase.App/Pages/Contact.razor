@@ -168,7 +168,7 @@
     private IReadOnlyList<EcMenuItem> ContactActions =>
     [
         new EcMenuItem { Text = "Zkopírovat odkaz na kontakt", Icon = AppIcons.Link, OnSelect = EventCallback.Factory.Create(this, this.CopyContactLink) },
-        new EcMenuItem { Text = "Smazat kontakt…", Icon = AppIcons.Trash, OnSelect = EventCallback.Factory.Create(this, this.StartDeleting), Danger = true, DividerBefore = true },
+        new EcMenuItem { Text = "Smazat kontakt", Icon = AppIcons.Trash, OnSelect = EventCallback.Factory.Create(this, this.StartDeleting), Danger = true, DividerBefore = true },
     ];
 
     private static string FactClass(string? value)

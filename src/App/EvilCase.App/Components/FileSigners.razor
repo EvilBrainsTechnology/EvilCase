@@ -195,6 +195,12 @@ else if (this.SignedFileId is null || this.LoadFailed || (this.signers is not nu
     public required string FileName { get; set; }
 
     /// <summary>
+    /// The version of the stored file; null is the current one.
+    /// </summary>
+    [Parameter]
+    public int? Version { get; set; }
+
+    /// <summary>
     /// Shows the signature card in the stage instead of the strip above the document.
     /// </summary>
     [Parameter]
@@ -240,7 +246,7 @@ else if (this.SignedFileId is null || this.LoadFailed || (this.signers is not nu
 
         try
         {
-            this.Show(await this.SignersClient.ListFileSigners(this.FileId, version: null, this.disposed.Token));
+            this.Show(await this.SignersClient.ListFileSigners(this.FileId, version: this.Version, this.disposed.Token));
         }
         catch (OperationCanceledException) when (this.disposed.IsCancellationRequested)
         {
@@ -267,7 +273,7 @@ else if (this.SignedFileId is null || this.LoadFailed || (this.signers is not nu
 
         try
         {
-            this.Show(await this.SignersClient.VerifyFileSigners(this.FileId, version: null, this.disposed.Token));
+            this.Show(await this.SignersClient.VerifyFileSigners(this.FileId, version: this.Version, this.disposed.Token));
         }
         catch (OperationCanceledException) when (this.disposed.IsCancellationRequested)
         {

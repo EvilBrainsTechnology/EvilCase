@@ -31,6 +31,20 @@ public class EcModalRenderTests
     }
 
     [Test]
+    public void ASheetCarriesItsClass()
+    {
+        using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+
+        var component = ctx.Render<EcModal>(static parameters => parameters
+            .Add(static modal => modal.Title, "Verze souboru")
+            .Add(static modal => modal.Sheet, value: true)
+            .Add(static modal => modal.Open, value: false));
+
+        Assert.That(component.Find("dialog").ClassList, Does.Contain("ec-modal-sheet"));
+    }
+
+    [Test]
     public void AHeadingReplacesTheTitleInTheHeaderAndTheTitleStillNamesTheDialog()
     {
         using var ctx = new BunitContext();

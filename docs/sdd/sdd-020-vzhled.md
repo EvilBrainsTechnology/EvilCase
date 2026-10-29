@@ -49,7 +49,7 @@ Aplikace má vlastní sadu komponent s prefixem `Ec`. Obrazovka skládá jen je,
   a Smazat u komentáře, Zrušit filtry, Zobrazit i uzavřené) je výjimka: text bez ikony a bez
   plochy; mazání nese barvu chyby.
 - `EcBadge` — pilulka pro stav spisu, směr úkonu, typ kontaktu, stav podpisu datové zprávy
-  a podepsaného souboru a samostatný podpis; stav spisu nese barevnou tečku, směr šipku, stav podpisu ikonu štítu.
+  a podepsaného souboru a samostatný podpis, číslo verze souboru, nově nahraný soubor či verzi a aktuální verzi; stav spisu nese barevnou tečku, směr šipku, stav podpisu ikonu štítu.
   Neplatný podpis nese barvu chyby, samostatný podpis barvu podpisového souboru.
 - `EcTable` — seznam podle SDD-016: řádek je odkaz po celé šířce, řaditelné záhlaví je
   tlačítko, patička nese rozsah, počet a stránkování; seznam na jednu stránku patičku nemá.
@@ -57,7 +57,8 @@ Aplikace má vlastní sadu komponent s prefixem `Ec`. Obrazovka skládá jen je,
 - `EcField` — popisek, ovládací prvek a pod ním nápověda, kterou při neplatné hodnotě nahradí
   chyba; povinné pole značí hvězdička. Nápověda a chyba z jedné fráze končí bez tečky, celá věta
   s tečkou.
-- `EcModal` — nad nativním `dialog`, se správou fokusu; zavře ho Esc i klik mimo okno.
+- `EcModal` — nad nativním `dialog`, se správou fokusu; zavře ho Esc i klik mimo okno. Okno se seznamem
+  verzí je pod `lg` vysunuté od spodního okraje přes celou šířku.
 - `EcMenu` — tlačítko s nabídkou akcí; Esc i klik mimo ji zavřou, šipky chodí mezi položkami
   a fokus se vrací na tlačítko.
 - `EcPopover` — prvek, který po kliku ukáže panel s podrobnostmi; Esc, klik mimo i Tab ven z panelu
@@ -102,11 +103,14 @@ v bočním sloupci „Přetáhněte sem nebo" a Nahrát; záhlaví drží jeden 
 zkrátí. Na mobilu záhlaví výzvu nenese a tlačítko je vždy Nahrát. Velikost a okamžik nahrání
 se zalomí jen mezi sebou. Pod seznamem žádný pruh není. Řádek souboru je jedno ovládací místo
 po celé šířce a otevírá náhled; stažení a nabídka ⋯ jsou ohraničená tlačítka jen s ikonou,
-v nabídce je Přejmenovat a oddělené, červené Smazat…. Při tažení souborů přes kartu ji přikryje
+v nabídce je Nahrát novou verzi, Verze (3), Přejmenovat a oddělené, červené Smazat. Soubor s více
+verzemi nese štítek „verze 3“, nově nahraný soubor nebo verze světle modrý řádek se štítkem „nový“
+nebo „nová verze“. Při tažení souborů přes kartu ji přikryje
 přerušovaný akcentový rámeček s textem „Pusťte soubory a nahrají se k úkonu" (ve spisu „ke
 spisu") a limity. Náhled souboru je velký modal; hlavička nese ikonu, název, velikost
-a okamžik nahrání, u víc souborů karty přechod mezi nimi s pořadím „2 z 5", Přejmenovat,
-Stáhnout a zavření. Náhled přílohy datové zprávy nese v hlavičce návrat „← Zpráva", ikonu, název
+a okamžik nahrání, u víc souborů karty přechod mezi nimi s pořadím „Soubor 2 z 5", u souboru s více verzemi přepínač
+Verze s počtem, Nová verze, Přejmenovat, Stáhnout a zavření; pruh verzí leží pod hlavičkou a u starší
+verze má barvu upozornění. Náhled přílohy datové zprávy nese v hlavičce návrat „← Zpráva", ikonu, název
 a velikost přílohy, u víc příloh přechod mezi nimi s pořadím „příloha 2 z 5", Stáhnout přílohu
 a zavření; Přejmenovat nenese.
 
@@ -135,7 +139,7 @@ tlačítka zůstávají u spodního okraje okna. Pole i celá lišta seznamu maj
 řádky a řazení přebírá select v liště. Drobečky drží jeden řádek a dlouhé položky se zkrátí.
 Dlaždice počtů na přehledu tvoří jeden řádek tří stejných buněk jen s počtem a popiskem; každá
 buňka vede na svůj seznam. Název souboru v kartě má až dva řádky. Hlavička náhledu souboru
-nese na prvním řádku název a zavření, akce pod nimi na jednom řádku; na mobilu jsou Přejmenovat,
+nese na prvním řádku název a zavření, akce pod nimi na jednom řádku; na mobilu jsou Verze, Nová verze, Přejmenovat,
 Stáhnout, návrat na zprávu a Stáhnout přílohu tlačítka jen s ikonou.
 
 ### Bez cizí knihovny

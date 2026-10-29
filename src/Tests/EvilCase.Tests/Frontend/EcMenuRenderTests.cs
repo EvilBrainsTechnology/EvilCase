@@ -43,7 +43,7 @@ public class EcMenuRenderTests
             Assert.That(component.Find("button[aria-haspopup=menu]").GetAttribute("aria-expanded"), Is.EqualTo("true"));
             Assert.That(
                 items.Select(static item => item.TextContent.Trim()),
-                Is.EqualTo(["Nový úkon ve spisu", "Zkopírovat odkaz na úkon", "Smazat úkon…"]));
+                Is.EqualTo(["Nový úkon ve spisu", "Zkopírovat odkaz na úkon", "Smazat úkon"]));
             Assert.That(component.FindAll("[role=separator]"), Has.Count.EqualTo(1));
             Assert.That(items[2].ClassList, Does.Contain("ec-menu-item-danger"));
         }
@@ -167,7 +167,7 @@ public class EcMenuRenderTests
         [
             new EcMenuItem { Text = "Nový úkon ve spisu", Icon = AppIcons.Plus, OnSelect = EventCallback.Factory.Create(chosen, () => chosen.Add("new")) },
             new EcMenuItem { Text = "Zkopírovat odkaz na úkon", Icon = AppIcons.Link, OnSelect = EventCallback.Factory.Create(chosen, () => chosen.Add("link")) },
-            new EcMenuItem { Text = "Smazat úkon…", Icon = AppIcons.Trash, OnSelect = EventCallback.Factory.Create(chosen, () => chosen.Add("delete")), Danger = true, DividerBefore = true },
+            new EcMenuItem { Text = "Smazat úkon", Icon = AppIcons.Trash, OnSelect = EventCallback.Factory.Create(chosen, () => chosen.Add("delete")), Danger = true, DividerBefore = true },
         ];
 
         return ctx.Render<EcMenu>(parameters => parameters

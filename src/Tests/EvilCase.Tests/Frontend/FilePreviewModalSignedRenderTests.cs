@@ -351,16 +351,52 @@ public class FilePreviewModalSignedRenderTests
         Guid fileId,
         Func<FileListItem, byte[]> content,
         Action<FileListItem>? onDownload = null,
-        Action<Guid>? onFileIdChanged = null)
+        Action<Guid>? onFileIdChanged = null,
+        int? version = null)
     {
         return ctx.Render<FilePreviewModal>(parameters => parameters
             .Add(static modal => modal.Files, files)
             .Add(static modal => modal.FileId, fileId)
-            .Add(static modal => modal.LoadContent, (item, _) => Task.FromResult<Stream>(new MemoryStream(content(item))))
+            .Add(static modal => modal.LoadContent, (item, _, _) => Task.FromResult<Stream>(new MemoryStream(content(item))))
+            .Add(static modal => modal.Version, version)
+            .Add(static modal => modal.LoadVersions, static (_, _) => Task.FromResult<IReadOnlyList<FileVersionItem>>([]))
+            .Add(static modal => modal.UploadVersion, static (_, _) => Task.FromResult<(string?, string?)>((null, null)))
             .Add(static modal => modal.Rename, static (_, _, _) => Task.CompletedTask)
             .Add(static modal => modal.OnDownload, item => onDownload?.Invoke(item))
             .Add(static modal => modal.FileIdChanged, changed => onFileIdChanged?.Invoke(changed))
             .Add(static modal => modal.Open, value: true));
+    }
+
+    [Test]
+    public async Task TheSignersOfAnOlderVersionAreReadFromThatVersion()
+    {
+        await using var ctx = NewContext(out _, out var previews, out _, out var signers);
+
+        var file = File("Smlouva.pdf.p7m") with { Version = 3, VersionCount = 3 };
+        var component = Render(ctx, [file], file.FileId, static _ => SignedFile.Sign(PdfBytes, detached: false), version: 2);
+
+        await component.WaitForAssertionAsync(() => Assert.That(previews.RenderedPdfContents, Is.EqualTo([PdfBytes])));
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-preview-signer-name"), Has.Count.EqualTo(1)));
+
+        await signers.Received(1).ListFileSigners(file.FileId, 2, Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task AnOlderVersionShowsNoDetachedSignatureStrip()
+    {
+        await using var ctx = NewContext(out _, out _, out _, out var signers);
+
+        var signature = File("Smlouva.pdf.p7s");
+        var file = File("Smlouva.pdf") with { Version = 3, VersionCount = 3, SignatureFileId = signature.FileId };
+        var component = Render(ctx, [file, signature], file.FileId, static _ => PdfBytes, version: 2);
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-preview-pdf"), Has.Count.EqualTo(1)));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.FindAll(".ec-preview-signers"), Is.Empty);
+            await signers.DidNotReceiveWithAnyArgs().ListFileSigners(default, default, default);
+        }
     }
 
     private static FileListItem File(string name, long size = 4096)

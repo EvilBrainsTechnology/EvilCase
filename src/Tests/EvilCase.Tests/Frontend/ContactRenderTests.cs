@@ -236,7 +236,7 @@ public class ContactRenderTests
         await component.Find(".ec-modal-header .ec-button").ClickAsync(new MouseEventArgs());
         await component.Find("button[aria-label='Další akce s kontaktem']").ClickAsync(new MouseEventArgs());
 
-        Assert.That(component.FindAll("[role=menuitem]").Select(static item => item.TextContent.Trim()), Is.EqualTo(["Zkopírovat odkaz na kontakt", "Smazat kontakt…"]));
+        Assert.That(component.FindAll("[role=menuitem]").Select(static item => item.TextContent.Trim()), Is.EqualTo(["Zkopírovat odkaz na kontakt", "Smazat kontakt"]));
 
         await component.FindAll("[role=menuitem]")[1].ClickAsync(new MouseEventArgs());
 

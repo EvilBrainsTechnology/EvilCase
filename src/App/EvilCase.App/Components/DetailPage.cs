@@ -1,16 +1,18 @@
 using System.Net;
 using EvilBrains.ApiClient;
+using EvilBrains.EvilCase.Api.Client;
 using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.App.Clipboard;
 using EvilBrains.EvilCase.App.Files;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.JSInterop;
 
 namespace EvilBrains.EvilCase.App.Components;
 
 /// <summary>
-/// The load, label save, link copy and file content load that the case and the act detail share.
+/// The load, label save, link copy, file content load and file version operations that the case and the act detail share.
 /// </summary>
 public abstract class DetailPage<TDetail> : ComponentBase
     where TDetail : class
@@ -20,6 +22,9 @@ public abstract class DetailPage<TDetail> : ComponentBase
 
     [Inject]
     private protected IFileTransferClient FileTransfer { get; set; } = null!;
+
+    [Inject]
+    private IFileVersionsClient FileVersions { get; set; } = null!;
 
     [Inject]
     private ILogger<DetailPage<TDetail>> Logger { get; set; } = null!;
@@ -132,8 +137,23 @@ public abstract class DetailPage<TDetail> : ComponentBase
         }
     }
 
-    protected async Task<Stream> LoadFileContent(FileListItem file, CancellationToken token)
+    protected async Task<Stream> LoadFileContent(FileListItem file, int? version, CancellationToken token)
     {
-        return await this.FileTransfer.DownloadFileContent(file.FileId, token);
+        return await this.FileTransfer.DownloadFileContent(file.FileId, version, token);
+    }
+
+    protected async Task<FileUploadResult> UploadFileVersion(FileListItem file, IBrowserFile picked, CancellationToken token)
+    {
+        return await this.FileTransfer.UploadFileVersion(file.FileId, picked, token);
+    }
+
+    protected async Task<IReadOnlyList<FileVersionItem>> LoadFileVersions(FileListItem file, CancellationToken token)
+    {
+        return (await this.FileVersions.ListFileVersions(file.FileId, token)).Items;
+    }
+
+    protected async Task DeleteFileVersion(FileListItem file, int number, CancellationToken token)
+    {
+        await this.FileVersions.DeleteFileVersion(file.FileId, number, token);
     }
 }

@@ -3,10 +3,12 @@ namespace EvilBrains.EvilCase.App.Files;
 internal static class FileUrl
 {
     /// <summary>
-    /// The one address the file content is served from.
+    /// The one address the file content is served from; a version number names an older version.
     /// </summary>
-    public static string Content(Guid fileId)
+    public static string Content(Guid fileId, int? version)
     {
-        return $"/api/files/{fileId}/content";
+        return version is null
+            ? $"/api/files/{fileId}/content"
+            : $"/api/files/{fileId}/content?version={version.Value.ToString(CultureInfo.InvariantCulture)}";
     }
 }

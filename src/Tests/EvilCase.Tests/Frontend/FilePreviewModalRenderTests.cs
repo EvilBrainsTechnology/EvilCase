@@ -6,6 +6,7 @@ using EvilBrains.EvilCase.App.Components;
 using EvilBrains.EvilCase.App.Files;
 using EvilBrains.EvilCase.App.Models;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -778,7 +779,7 @@ public class FilePreviewModalRenderTests
         {
             Assert.That(component.Find(".ec-preview-name").TextContent, Is.EqualTo("b.png"));
             Assert.That(component.Find(".ec-preview-meta").TextContent, Does.StartWith("1 kB · "));
-            Assert.That(component.Find(".ec-preview-position").TextContent, Is.EqualTo("2 z 3"));
+            Assert.That(component.Find(".ec-preview-position").TextContent, Is.EqualTo("Soubor 2 z 3"));
             Assert.That(component.Find("dialog").GetAttribute("aria-label"), Is.EqualTo("b.png"));
         }
     }
@@ -972,6 +973,247 @@ public class FilePreviewModalRenderTests
         Assert.That(component.Find("dialog").ClassList, Does.Contain("ec-modal-large"));
     }
 
+    [Test]
+    public void ASingleVersionFileHasNoVersionToggleAndLoadsNoVersions()
+    {
+        using var ctx = NewContext(out _);
+
+        var loads = 0;
+        var file = File("a.txt");
+        var component = Render(
+            ctx,
+            [file],
+            file.FileId,
+            loadVersions: (_, _) =>
+            {
+                loads++;
+
+                return Task.FromResult<IReadOnlyList<FileVersionItem>>([]);
+            });
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.FindAll("button[aria-label^='Verze']"), Is.Empty);
+            Assert.That(component.FindAll(".ec-preview-versions"), Is.Empty);
+            Assert.That(loads, Is.Zero);
+        }
+    }
+
+    [Test]
+    public void TheCurrentVersionHidesTheBarUntilTheToggle()
+    {
+        using var ctx = NewContext(out _);
+
+        var file = Versioned("a.txt", 3, 3);
+        var component = Render(ctx, [file], file.FileId, loadVersions: static (_, _) => Task.FromResult(VersionItems()));
+
+        var toggle = component.Find("button[aria-label='Verze, 3']");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.FindAll(".ec-preview-versions"), Is.Empty);
+            Assert.That(toggle.GetAttribute("aria-pressed"), Is.EqualTo("false"));
+            Assert.That(toggle.QuerySelector(".ec-preview-versions-count")!.TextContent, Is.EqualTo("3"));
+        }
+
+        toggle.Click();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(Normalize(component.Find(".ec-preview-versions-trigger").TextContent), Is.EqualTo($"Verze 3 z 3 · {MomentDisplay.Text(VersionItems()[0].Created)} · jan.priklad@example.cz"));
+            Assert.That(component.FindAll(".ec-preview-versions-old"), Is.Empty);
+            Assert.That(component.Find("button[aria-label='Verze, 3']").GetAttribute("aria-pressed"), Is.EqualTo("true"));
+        }
+    }
+
+    [Test]
+    public void AnOlderPdfIsDrawnFromItsVersionAddressUnderTheYellowBar()
+    {
+        using var ctx = NewContext(out _, out var previews);
+
+        var file = Versioned("a.pdf", 3, 3);
+        var component = Render(ctx, [file], file.FileId, version: 2, loadVersions: static (_, _) => Task.FromResult(VersionItems()));
+
+        component.WaitForAssertion(() => Assert.That(previews.RenderedPdfs, Is.EqualTo([$"/api/files/{file.FileId}/content?version=2"])));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.FindAll(".ec-preview-versions-old"), Has.Count.EqualTo(1));
+            Assert.That(component.Find(".ec-preview-versions-note").TextContent, Is.EqualTo("Starší verze. Stáhnout stáhne tuto verzi."));
+            Assert.That(Normalize(component.Find(".ec-preview-meta").TextContent), Is.EqualTo($"2 kB · {MomentDisplay.Text(VersionItems()[1].Created)}"));
+            Assert.That(component.Find("button[aria-label='Verze, 3']").GetAttribute("aria-pressed"), Is.EqualTo("true"));
+        }
+    }
+
+    [Test]
+    public void AnOlderTextFileIsReadFromItsVersion()
+    {
+        using var ctx = NewContext(out _);
+
+        var requested = new List<int?>();
+        var file = Versioned("a.txt", 3, 3);
+
+        Render(
+            ctx,
+            [file],
+            file.FileId,
+            loadVersion: (_, number, _) =>
+            {
+                requested.Add(number);
+
+                return Task.FromResult<Stream>(new MemoryStream("starší"u8.ToArray()));
+            },
+            version: 2);
+
+        Assert.That(requested, Is.EqualTo(new int?[] { 2 }));
+    }
+
+    [Test]
+    public async Task TheDownloadOfAnOlderVersionDownloadsThatVersion()
+    {
+        await using var ctx = NewContext(out _);
+
+        var downloaded = new List<string>();
+        var file = Versioned("a.txt", 3, 3);
+        var component = Render(ctx, [file], file.FileId, onDownload: item => downloaded.Add(item.FileName), version: 2);
+
+        await component.Find("button[aria-label='Stáhnout']").ClickAsync(new MouseEventArgs());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(ctx.Services.GetRequiredService<StubFileDownloader>().Downloaded.Single(), Is.EqualTo((file.FileId, (int?)2, "a.txt")));
+            Assert.That(downloaded, Is.Empty);
+        }
+    }
+
+    [Test]
+    public async Task ShowingTheCurrentVersionRaisesNull()
+    {
+        await using var ctx = NewContext(out _);
+
+        var changed = new List<int?>();
+        var file = Versioned("a.txt", 3, 3);
+        var component = Render(ctx, [file], file.FileId, version: 2, onVersionChanged: changed.Add);
+
+        await component.Find(".ec-preview-versions .ec-button-quiet").ClickAsync(new MouseEventArgs());
+        await component.Find("button[aria-label='Verze, 3']").ClickAsync(new MouseEventArgs());
+
+        Assert.That(changed, Is.EqualTo(new int?[] { null, null }), "the bar button and the pressed toggle both return to the current version");
+    }
+
+    [Test]
+    public async Task PickingAVersionFromTheListRaisesItsNumberAndTheCurrentRaisesNull()
+    {
+        await using var ctx = NewContext(out _);
+
+        var changed = new List<int?>();
+        var file = Versioned("a.txt", 3, 3);
+        var component = Render(ctx, [file], file.FileId, onVersionChanged: changed.Add, loadVersions: static (_, _) => Task.FromResult(VersionItems()));
+
+        await component.Find("button[aria-label='Verze, 3']").ClickAsync(new MouseEventArgs());
+        await component.Find(".ec-preview-versions .ec-popover-trigger").ClickAsync(new MouseEventArgs());
+
+        var options = component.FindAll(".ec-preview-versions-option");
+
+        Assert.That(options.Select(static option => Normalize(option.QuerySelector(".ec-preview-versions-option-title")!.TextContent)), Is.EqualTo(["Verze 3 aktuální", "Verze 2", "Verze 1"]));
+
+        await options[1].ClickAsync(new MouseEventArgs());
+        await component.Find(".ec-preview-versions .ec-popover-trigger").ClickAsync(new MouseEventArgs());
+        await component.FindAll(".ec-preview-versions-option")[0].ClickAsync(new MouseEventArgs());
+
+        Assert.That(changed, Is.EqualTo(new int?[] { 2, null }));
+    }
+
+    [Test]
+    public async Task ManageVersionsRaisesOnManageVersions()
+    {
+        await using var ctx = NewContext(out _);
+
+        var managed = new List<Guid>();
+        var file = Versioned("a.txt", 3, 3);
+        var component = Render(ctx, [file], file.FileId, loadVersions: static (_, _) => Task.FromResult(VersionItems()), onManageVersions: item => managed.Add(item.FileId));
+
+        await component.Find("button[aria-label='Verze, 3']").ClickAsync(new MouseEventArgs());
+        await component.Find(".ec-preview-versions .ec-popover-trigger").ClickAsync(new MouseEventArgs());
+        await component.Find(".ec-preview-versions-manage").ClickAsync(new MouseEventArgs());
+
+        Assert.That(managed, Is.EqualTo([file.FileId]));
+    }
+
+    [Test]
+    public async Task ANewVersionFromTheHeaderUploadsAndShowsTheCurrent()
+    {
+        await using var ctx = NewContext(out _);
+
+        var uploaded = new List<string>();
+        var changed = new List<int?>();
+        var file = Versioned("a.txt", 3, 3);
+        var component = Render(
+            ctx,
+            [file],
+            file.FileId,
+            version: 2,
+            onVersionChanged: changed.Add,
+            uploadVersion: (_, picked) =>
+            {
+                uploaded.Add(picked.Name);
+
+                return Task.FromResult<(string?, string?)>((null, "a.txt: nahráno jako verze 4."));
+            });
+
+        component.FindComponent<FileVersionPicker>().FindComponent<InputFile>().UploadFiles(InputFileContent.CreateFromText("x", "b.txt"));
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.Find(".ec-file-notice").TextContent, Is.EqualTo("a.txt: nahráno jako verze 4.")));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(uploaded, Is.EqualTo(["b.txt"]));
+            Assert.That(changed, Is.EqualTo(new int?[] { null }));
+        }
+    }
+
+    [Test]
+    public async Task AFailedNewVersionShowsItsReasonInThePreview()
+    {
+        await using var ctx = NewContext(out _);
+
+        var changed = new List<int?>();
+        var file = Versioned("a.txt", 3, 3);
+        var component = Render(
+            ctx,
+            [file],
+            file.FileId,
+            onVersionChanged: changed.Add,
+            uploadVersion: static (_, _) => Task.FromResult<(string?, string?)>(("b.docx: nová verze souboru a.txt musí mít příponu .txt.", null)));
+
+        component.FindComponent<FileVersionPicker>().FindComponent<InputFile>().UploadFiles(InputFileContent.CreateFromText("x", "b.docx"));
+
+        await component.WaitForAssertionAsync(
+            () => Assert.That(component.Find(".ec-preview-alert.ec-alert").TextContent, Is.EqualTo("b.docx: nová verze souboru a.txt musí mít příponu .txt.")));
+
+        Assert.That(changed, Is.Empty, "a failed upload leaves the shown version");
+    }
+
+    private static string Normalize(string text)
+    {
+        return string.Join(' ', text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+    }
+
+    private static FileListItem Versioned(string fileName, int version, int count)
+    {
+        return File(fileName) with { Version = version, VersionCount = count };
+    }
+
+    private static IReadOnlyList<FileVersionItem> VersionItems()
+    {
+        return
+        [
+            new FileVersionItem { Number = 3, SizeBytes = 3072, Created = new DateTime(2025, 9, 4, 10, 0, 0, DateTimeKind.Utc), UploaderEmail = "jan.priklad@example.cz" },
+            new FileVersionItem { Number = 2, SizeBytes = 2048, Created = new DateTime(2025, 9, 3, 10, 0, 0, DateTimeKind.Utc), UploaderEmail = "jana.ukazkova@example.cz" },
+            new FileVersionItem { Number = 1, SizeBytes = 1024, Created = new DateTime(2025, 9, 2, 10, 0, 0, DateTimeKind.Utc), UploaderEmail = "jan.priklad@example.cz" },
+        ];
+    }
+
     private static AngleSharp.Dom.IElement ToolbarButton(IRenderedComponent<FilePreviewModal> component, string label)
     {
         return component.Find($".ec-preview-toolbar button[aria-label='{label}']");
@@ -991,7 +1233,9 @@ public class FilePreviewModalRenderTests
         previews = new StubFilePreviews();
         ctx.Services.AddSingleton<IBlobUrls>(blobs);
         ctx.Services.AddSingleton<IFilePreviews>(previews);
-        ctx.Services.AddSingleton<IFileDownloader>(new StubFileDownloader());
+        var downloader = new StubFileDownloader();
+        ctx.Services.AddSingleton(downloader);
+        ctx.Services.AddSingleton<IFileDownloader>(downloader);
         ctx.Services.AddSingleton(new StubAuthSession());
         ctx.Services.AddSingleton<IAuthSession>(static services => services.GetRequiredService<StubAuthSession>());
 
@@ -1007,15 +1251,29 @@ public class FilePreviewModalRenderTests
         Func<FileListItem, string, CancellationToken, Task>? rename = null,
         Action<FileListItem>? onDownload = null,
         Action? onRenamed = null,
-        Action<Guid>? onFileIdChanged = null)
+        Action<Guid>? onFileIdChanged = null,
+        Func<FileListItem, int?, CancellationToken, Task<Stream>>? loadVersion = null,
+        int? version = null,
+        Action<int?>? onVersionChanged = null,
+        Func<FileListItem, CancellationToken, Task<IReadOnlyList<FileVersionItem>>>? loadVersions = null,
+        Func<FileListItem, IBrowserFile, Task<(string?, string?)>>? uploadVersion = null,
+        Action<FileListItem>? onManageVersions = null)
     {
         var loadContent = load ?? ((_, _) => Task.FromResult<Stream>(new MemoryStream(Encoding.UTF8.GetBytes(content))));
+        var loadNumbered = loadVersion ?? (async (item, _, token) => await loadContent(item, token));
         var renameFile = rename ?? (static (_, _, _) => Task.CompletedTask);
+        var listVersions = loadVersions ?? (static (_, _) => Task.FromResult<IReadOnlyList<FileVersionItem>>([]));
+        var upload = uploadVersion ?? (static (_, _) => Task.FromResult<(string?, string?)>((null, null)));
 
         return ctx.Render<FilePreviewModal>(parameters => parameters
             .Add(static modal => modal.Files, files)
             .Add(static modal => modal.FileId, fileId)
-            .Add(static modal => modal.LoadContent, loadContent)
+            .Add(static modal => modal.LoadContent, loadNumbered)
+            .Add(static modal => modal.Version, version)
+            .Add(static modal => modal.VersionChanged, changed => onVersionChanged?.Invoke(changed))
+            .Add(static modal => modal.LoadVersions, listVersions)
+            .Add(static modal => modal.UploadVersion, upload)
+            .Add(static modal => modal.OnManageVersions, item => onManageVersions?.Invoke(item))
             .Add(static modal => modal.Rename, renameFile)
             .Add(static modal => modal.OnDownload, item => onDownload?.Invoke(item))
             .Add(static modal => modal.OnRenamed, () => onRenamed?.Invoke())

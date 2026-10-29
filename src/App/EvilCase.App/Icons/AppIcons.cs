@@ -59,6 +59,10 @@ public static class AppIcons
     public const string ChevronUp = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M6 15l6 -6l6 6' />";
 
+    public const string Clock = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0' />"
+        + "<path d='M12 7v5l3 3' />";
+
     public const string Copy = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M7 7m0 2.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667z' />"
         + "<path d='M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1' />";
@@ -80,6 +84,10 @@ public static class AppIcons
         + "<path d='M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2' />"
         + "<path d='M7 11l5 5l5 -5' />"
         + "<path d='M12 4l0 12' />";
+
+    public const string Eye = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0' />"
+        + "<path d='M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6' />";
 
     public const string FileText = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M14 3v4a1 1 0 0 0 1 1h4' />"
