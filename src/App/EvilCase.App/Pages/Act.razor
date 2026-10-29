@@ -24,31 +24,6 @@
         <EcCard>
             <div class="ec-detail">
                 <EcPageHeader Title="@this.Detail.Title" Breadcrumbs="this.Crumbs">
-                    <CrumbsEnd>
-                        <nav class="ec-act-pager" aria-label="Úkony spisu">
-                            @if (this.Previous is { } previous)
-                            {
-                                <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ChevronLeft"
-                                          Href="@ActRoutes.Detail(previous.ActId)" AriaLabel="@($"Předchozí úkon: {previous.Title}")" />
-                            }
-                            else
-                            {
-                                <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ChevronLeft"
-                                          AriaLabel="Předchozí úkon" Disabled />
-                            }
-                            <span class="ec-act-pager-text">Úkon <span class="ec-act-pager-position">@this.Detail.ActPosition</span> z @this.Detail.CaseActCount</span>
-                            @if (this.Next is { } next)
-                            {
-                                <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ChevronRight"
-                                          Href="@ActRoutes.Detail(next.ActId)" AriaLabel="@($"Další úkon: {next.Title}")" />
-                            }
-                            else
-                            {
-                                <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ChevronRight"
-                                          AriaLabel="Další úkon" Disabled />
-                            }
-                        </nav>
-                    </CrumbsEnd>
                     <Status>
                         @if (this.Detail.Direction is { } direction)
                         {
@@ -170,6 +145,31 @@
                 </EcCard>
 
                 <EcCard Title="Průběh spisu">
+                    <Header>
+                        <nav class="ec-card-header-actions ec-act-pager" aria-label="Úkony spisu">
+                            @if (this.Previous is { } previous)
+                            {
+                                <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ChevronLeft"
+                                          Href="@ActRoutes.Detail(previous.ActId)" AriaLabel="@($"Předchozí úkon: {previous.Title}")" />
+                            }
+                            else
+                            {
+                                <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ChevronLeft"
+                                          AriaLabel="Předchozí úkon" Disabled />
+                            }
+                            <span class="ec-act-pager-text">Úkon <span class="ec-act-pager-position">@this.Detail.ActPosition</span> z @this.Detail.CaseActCount</span>
+                            @if (this.Next is { } next)
+                            {
+                                <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ChevronRight"
+                                          Href="@ActRoutes.Detail(next.ActId)" AriaLabel="@($"Další úkon: {next.Title}")" />
+                            }
+                            else
+                            {
+                                <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ChevronRight"
+                                          AriaLabel="Další úkon" Disabled />
+                            }
+                        </nav>
+                    </Header>
                     <ChildContent>
                         <ol class="ec-timeline">
                             @foreach (var item in this.Detail.CaseTimeline)
@@ -234,7 +234,7 @@
         : [
             new EcCrumb("Spisy", "/cases"),
             new EcCrumb(this.Detail.CaseTitle, $"/cases/{this.Detail.CaseId}"),
-            new EcCrumb(this.Detail.ActNumber, null, Mono: true),
+            new EcCrumb(this.Detail.Title, null),
         ];
 
     private IReadOnlyList<EcMenuItem> ActActions

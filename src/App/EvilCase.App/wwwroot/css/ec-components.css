@@ -169,6 +169,7 @@ html {
 
 .ec-card-header {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: var(--ec-space-4);
     padding: var(--ec-space-5) var(--ec-space-6);
@@ -228,30 +229,8 @@ html {
     color: var(--ec-text);
 }
 
-.ec-crumb-mono {
-    font-family: var(--ec-font-mono);
-}
-
 .ec-crumb-separator {
     color: var(--ec-text-muted);
-}
-
-.ec-page-header-top {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: var(--ec-space-3);
-}
-
-.ec-page-header-top .ec-crumbs {
-    flex: 1 1 auto;
-    min-width: 0;
-}
-
-.ec-page-header-end {
-    display: flex;
-    align-items: center;
-    margin-left: auto;
 }
 
 .ec-page-header-row {
@@ -3230,8 +3209,6 @@ html {
 }
 
 .ec-act-pager {
-    display: flex;
-    align-items: center;
     gap: var(--ec-space-2);
 }
 
