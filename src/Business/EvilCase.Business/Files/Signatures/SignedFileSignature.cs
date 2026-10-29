@@ -40,7 +40,7 @@ internal static class SignedFileSignature
 
         try
         {
-            // Parsed once: SignerInfo.Certificate parses every certificate the file carries on each call.
+            // Parsed once: SignedCms.Certificates parses every certificate the file carries on each call.
             var certificates = signed.Certificates;
 
             // One revocation query per certificate, however many signers share it.
@@ -64,7 +64,7 @@ internal static class SignedFileSignature
                 [
                     .. signerInfos
                         .Cast<SignerInfo>()
-                        .Select(info => Verified(info, SignerCertificate(info, certificates), trust, Revocation, now)),
+                        .Select(info => Verified(info, CmsSigners.SignerCertificate(info, certificates), trust, Revocation, now)),
                 ],
             };
         }
@@ -86,17 +86,6 @@ internal static class SignedFileSignature
         {
             Signers = [.. response.Signers.Select(signer => signer with { State = FileSignatureState.Unverifiable, Problem = problem })],
         };
-    }
-
-    /// <summary>
-    /// The first carried certificate the signer identifies, preferring one its signing-certificate attribute names: a key
-    /// identifier can match a renewed certificate too.
-    /// </summary>
-    private static X509Certificate2? SignerCertificate(SignerInfo info, X509Certificate2Collection certificates)
-    {
-        var matching = certificates.Where(info.SignerIdentifier.MatchesCertificate).ToList();
-
-        return matching.Find(certificate => SigningCertificateReference.RefersTo(info, certificate)) ?? matching.FirstOrDefault();
     }
 
     private static FileSigner Verified(SignerInfo info, X509Certificate2? certificate, SignatureTrust trust, Func<X509Certificate2, SignatureRevocation> revocation, DateTime now)

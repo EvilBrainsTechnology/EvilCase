@@ -88,7 +88,7 @@ internal sealed class SignatureTrust(X509Certificate2Collection roots, X509Certi
     /// </summary>
     public bool IsWithinBundle(X509Chain chain)
     {
-        return chain.ChainElements.Skip(1).All(element => this.IsBundled(element.Certificate.RawData));
+        return chain.ChainElements.Skip(1).All(element => this.Bundled.Contains(element.Certificate.GetCertHashString(HashAlgorithmName.SHA256)));
     }
 
     private bool Chains(Org.BouncyCastle.X509.X509Certificate target, DateTime at, string? certificatePolicy, string? applicationPolicy)
@@ -119,12 +119,8 @@ internal sealed class SignatureTrust(X509Certificate2Collection roots, X509Certi
             return false;
         }
 
-        // PKIX leaves the anchor's own validity unchecked.
-        var root = result.TrustAnchor.TrustedCert;
-
-        return root.IsValid(at)
-            && this.IsBundled(root.GetEncoded())
-            && result.CertPath.Certificates.Skip(1).All(element => this.IsBundled(element.GetEncoded()));
+        // PKIX leaves the anchor's own validity unchecked; the anchors and the store hold bundled certificates only.
+        return result.TrustAnchor.TrustedCert.IsValid(at);
     }
 
     private static Org.BouncyCastle.X509.X509Certificate? Parsed(X509Certificate2 certificate)
@@ -138,11 +134,6 @@ internal sealed class SignatureTrust(X509Certificate2Collection roots, X509Certi
             // BouncyCastle reports malformed input through assorted exception types.
             return null;
         }
-    }
-
-    private bool IsBundled(byte[] certificate)
-    {
-        return this.Bundled.Contains(Convert.ToHexString(SHA256.HashData(certificate)));
     }
 
     private static SignatureTrust Load(string[] providers)

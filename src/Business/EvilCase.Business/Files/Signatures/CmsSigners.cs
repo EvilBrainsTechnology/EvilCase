@@ -34,8 +34,6 @@ internal static class CmsSigners
     /// </summary>
     private const string QualifiedLegalPersonDeviceOid = "0.4.0.194112.1.3";
 
-    private const string TimestampTokenOid = "1.2.840.113549.1.9.16.2.14";
-
     private const string SigningTimeOid = "1.2.840.113549.1.9.5";
 
     private static readonly string[] KnownAuthorities = ["PostSignum", "I.CA", "eIdentity"];
@@ -59,7 +57,7 @@ internal static class CmsSigners
 
         try
         {
-            // Parsed once: SignerInfo.Certificate parses every certificate the file carries on each call.
+            // Parsed once: SignedCms.Certificates parses every certificate the file carries on each call.
             var certificates = signed.Certificates;
 
             return new FileSignersResponse
@@ -68,7 +66,7 @@ internal static class CmsSigners
                 [
                     .. signerInfos
                         .Cast<SignerInfo>()
-                        .Select(signer => Signer(signer, certificates.FirstOrDefault(signer.SignerIdentifier.MatchesCertificate))),
+                        .Select(signer => Signer(signer, SignerCertificate(signer, certificates))),
                 ],
             };
         }
@@ -76,6 +74,24 @@ internal static class CmsSigners
         {
             return new FileSignersResponse { Problem = FileSignersProblem.NotSigned, Signers = [] };
         }
+    }
+
+    /// <summary>
+    /// Of the carried certificates the identifier matches, the one the signing-certificate attribute names over the key that
+    /// verifies the signature; otherwise the certificate that verifies it.
+    /// </summary>
+    public static X509Certificate2? SignerCertificate(SignerInfo signer, X509Certificate2Collection certificates)
+    {
+        if (signer.Certificate is not { } verifying)
+            return null;
+
+        var key = verifying.PublicKey.ExportSubjectPublicKeyInfo();
+
+        return certificates.FirstOrDefault(
+            certificate => signer.SignerIdentifier.MatchesCertificate(certificate)
+                && key.SequenceEqual(certificate.PublicKey.ExportSubjectPublicKeyInfo())
+                && SigningCertificateReference.RefersTo(signer, certificate))
+            ?? verifying;
     }
 
     public static FileSigner Signer(SignerInfo signer, X509Certificate2? certificate)
@@ -87,7 +103,7 @@ internal static class CmsSigners
             CertificateIssuer = certificate is null ? null : Authority(certificate.GetNameInfo(X509NameType.SimpleName, forIssuer: true)),
             CertificateValidFrom = certificate?.NotBefore.ToUniversalTime(),
             CertificateValidTo = certificate?.NotAfter.ToUniversalTime(),
-            Timestamped = Timestamp(signer),
+            Timestamped = SignatureTimestamp.StatedTime(signer),
             SigningTime = SigningTime(signer),
         };
     }
@@ -138,20 +154,6 @@ internal static class CmsSigners
     private static string Authority(string commonName)
     {
         return KnownAuthorities.FirstOrDefault(authority => commonName.StartsWith(authority, StringComparison.Ordinal)) ?? commonName;
-    }
-
-    private static DateTime? Timestamp(SignerInfo signer)
-    {
-        var attribute = signer.UnsignedAttributes
-            .Cast<CryptographicAttributeObject>()
-            .FirstOrDefault(static attribute => string.Equals(attribute.Oid.Value, TimestampTokenOid, StringComparison.Ordinal));
-
-        if (attribute is not { Values.Count: > 0 })
-            return null;
-
-        return Rfc3161TimestampToken.TryDecode(attribute.Values[0].RawData, out var token, out _)
-            ? token.TokenInfo.Timestamp.UtcDateTime
-            : null;
     }
 
     private static DateTime? SigningTime(SignerInfo signer)

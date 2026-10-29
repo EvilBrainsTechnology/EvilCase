@@ -236,6 +236,26 @@ public class SignedFileSignatureTests
     }
 
     [Test]
+    public void ACarriedCertificateOfAnotherKeyThatTheIdentifierAlsoMatchesIsNotTheSigner()
+    {
+        var victim = this.Signer(YearStart, YearEnd);
+        using var forged = Forged(victim);
+        var attribute = SigningCertificateV2(new EssCertIDv2(SHA256.HashData(victim.RawData)));
+        var cms = SignedFile.Sign(Content, detached: false, [forged], includeCertificates: false, carried: [forged, victim], signedAttribute: attribute);
+
+        // The shorter certificate sorts first in the DER set, so the forged one is the first match of the identifier.
+        Assert.That(CarriedFirst(cms), Is.EqualTo(forged.RawData), "the forged certificate is the first the identifier matches");
+
+        var signer = this.VerifyOne(cms);
+
+        using (Assert.EnterMultipleScope())
+        {
+            AssertVerdict(signer, FileSignatureState.Invalid, FileSignerProblem.SigningCertificateMismatch);
+            Assert.That(signer.Name, Is.EqualTo("Útočník"), "the verdict names the certificate that verified the signature, never one the attribute only points at");
+        }
+    }
+
+    [Test]
     public void ASigningCertificateNamingTheSignerIsValid()
     {
         var certificate = this.Signer(YearStart, YearEnd);
@@ -451,6 +471,18 @@ public class SignedFileSignatureTests
         signed.Decode(cms);
 
         return signed.Certificates[0].RawData;
+    }
+
+    /// <summary>
+    /// A certificate over another key whose issuer and serial are <paramref name="victim"/>'s, so a signer identifier of the victim matches it.
+    /// </summary>
+    private static X509Certificate2 Forged(X509Certificate2 victim)
+    {
+        using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        var request = new CertificateRequest("CN=Útočník", key, HashAlgorithmName.SHA256);
+        using var certificate = request.Create(victim.IssuerName, X509SignatureGenerator.CreateForECDsa(key), YearStart, YearEnd, victim.SerialNumberBytes.Span);
+
+        return certificate.CopyWithPrivateKey(key);
     }
 
     private static byte[] Sha1(X509Certificate2 certificate)
