@@ -8,26 +8,30 @@ namespace EvilBrains.EvilCase.Business.Cases;
 internal static class CasePathQuery
 {
     /// <summary>
-    /// The case and every case above it, the root first.
+    /// The cases above the case, the root first.
     /// </summary>
-    public static async Task<IReadOnlyList<CaseCrumb>> PathTo(this IQueryable<Case> cases, Guid caseId, CancellationToken token)
+    public static async Task<IReadOnlyList<CaseCrumb>> AncestorsOf(this IQueryable<Case> cases, Guid caseId, CancellationToken token)
     {
-        var path = new List<CaseCrumb>();
+        var ancestors = new List<CaseCrumb>();
+        var next = await cases.WithId(caseId).Select(static @case => @case.ParentCaseId).SingleOrDefaultAsync(token);
 
-        // A case already on the path ends the walk: a loop already in the data would otherwise never end.
-        for (Guid? next = caseId; next is { } id && path.TrueForAll(crumb => crumb.CaseId != id);)
+        // A case already seen ends the walk: a loop already in the data would otherwise never end.
+        while (next is { } id && id != caseId && ancestors.TrueForAll(crumb => crumb.CaseId != id))
         {
             var step = await cases
                 .WithId(id)
                 .Select(static @case => new { @case.Title, @case.ParentCaseId })
-                .SingleAsync(token);
+                .SingleOrDefaultAsync(token);
 
-            path.Add(new CaseCrumb { CaseId = id, Title = step.Title });
+            if (step is null)
+                break;
+
+            ancestors.Add(new CaseCrumb { CaseId = id, Title = step.Title });
             next = step.ParentCaseId;
         }
 
-        path.Reverse();
+        ancestors.Reverse();
 
-        return path;
+        return ancestors;
     }
 }

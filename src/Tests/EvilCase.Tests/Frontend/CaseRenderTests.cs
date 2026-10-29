@@ -100,7 +100,6 @@ public class CaseRenderTests
         }
     }
 
-
     [Test]
     public void ACaseWithoutADescriptionShowsNothingUnderTheTitle()
     {

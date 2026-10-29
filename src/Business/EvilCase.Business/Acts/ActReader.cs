@@ -52,7 +52,7 @@ internal sealed class ActReader(IDbSession dbSession) : IActReader
 
         return detail with
         {
-            Ancestors = await dbSession.Current.Cases.PathTo(detail.CaseId, token),
+            CaseAncestors = await dbSession.Current.Cases.AncestorsOf(detail.CaseId, token),
             ActPosition = index + 1,
             CaseActCount = caseActs.Count,
             CaseTimeline = caseActs.GetRange(first, last - first + 1),

@@ -122,7 +122,9 @@
 
     private string Heading => this.ParentCaseId is null ? "Nový spis" : "Nový podřízený spis";
 
-    private IReadOnlyList<EcCrumb> Crumbs => [new EcCrumb("Spisy", "/cases"), new EcCrumb(this.Heading, null)];
+    private IReadOnlyList<EcCrumb> Crumbs => this.parentCase is null
+        ? [new EcCrumb("Spisy", "/cases"), new EcCrumb(this.Heading, null)]
+        : [.. CaseCrumbs.Through(this.parentCase.Ancestors), new EcCrumb(this.parentCase.Title, $"/cases/{this.parentCase.CaseId}"), new EcCrumb(this.Heading, null)];
 
     protected override void OnInitialized()
     {

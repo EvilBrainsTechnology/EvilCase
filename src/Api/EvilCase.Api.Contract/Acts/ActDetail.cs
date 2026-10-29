@@ -17,9 +17,9 @@ public sealed record ActDetail
     public required string CaseTitle { get; init; }
 
     /// <summary>
-    /// The act's case and every case above it, the root first.
+    /// The cases above the act's case, the root first; empty for an act of a root case.
     /// </summary>
-    public IReadOnlyList<CaseCrumb> Ancestors { get; init; } = [];
+    public IReadOnlyList<CaseCrumb> CaseAncestors { get; init; } = [];
 
     public required CaseStatus CaseStatus { get; init; }
 

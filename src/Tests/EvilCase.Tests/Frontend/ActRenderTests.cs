@@ -319,7 +319,7 @@ public class ActRenderTests
             ActNumber = "EC/20260807-001/20260807-001",
             Date = new DateOnly(2026, 8, 7),
             Title = "Podání",
-            Ancestors = [new CaseCrumb { CaseId = rootId, Title = "Přestupek" }, new CaseCrumb { CaseId = caseId, Title = "Žádost o informace" }],
+            CaseAncestors = [new CaseCrumb { CaseId = rootId, Title = "Přestupek" }],
         };
 
         Serve(ctx, actId, detail);
@@ -336,7 +336,6 @@ public class ActRenderTests
                 Is.EqualTo(["/cases", $"/cases/{rootId}", $"/cases/{caseId}"]));
         }
     }
-
 
     [Test]
     public void ThePagerNamesThePositionAndLinksTheNeighbours()

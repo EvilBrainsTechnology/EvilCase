@@ -48,9 +48,9 @@ internal sealed class CaseReader(IDbSession dbSession) : ICaseReader
     {
         var detail = await dbSession.Current.Cases.DetailOf(caseId, token);
 
-        if (detail?.ParentCase is not { } parent)
+        if (detail?.ParentCase is null)
             return detail;
 
-        return detail with { Ancestors = await dbSession.Current.Cases.PathTo(parent.CaseId, token) };
+        return detail with { Ancestors = await dbSession.Current.Cases.AncestorsOf(caseId, token) };
     }
 }

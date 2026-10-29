@@ -35,7 +35,7 @@ public class CasePathTests : TenantFixture
     }
 
     [Test]
-    public async Task AnActNamesItsCaseAndEveryCaseAboveItTheRootFirst()
+    public async Task AnActNamesEveryCaseAboveItsCaseTheRootFirst()
     {
         var root = await this.Tenant.AddCase(Day, "Kořen");
         var middle = await this.Tenant.AddCase(Day, "Prostřední", parentCaseId: root.Id);
@@ -44,6 +44,6 @@ public class CasePathTests : TenantFixture
 
         var detail = await new ActReader(new FixedDbSession(this.Tenant.Context)).GetActDetail(act.Id, CancellationToken.None);
 
-        Assert.That(detail!.Ancestors.Select(static crumb => crumb.CaseId), Is.EqualTo([root.Id, middle.Id, leaf.Id]));
+        Assert.That(detail!.CaseAncestors.Select(static crumb => crumb.CaseId), Is.EqualTo([root.Id, middle.Id]));
     }
 }
