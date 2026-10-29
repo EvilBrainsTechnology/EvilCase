@@ -1095,6 +1095,28 @@ html {
     color: var(--ec-text-muted);
 }
 
+/* Stáhnout vše a šipka jeho nabídky jsou jedno tlačítko o dvou částech. */
+.ec-split-button {
+    display: flex;
+}
+
+.ec-split-button .ec-button {
+    height: var(--ec-control-md);
+}
+
+.ec-split-button > .ec-button {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.ec-split-button .ec-menu-anchor > .ec-button {
+    aspect-ratio: auto;
+    padding: 0 var(--ec-space-2);
+    border-left-width: 0;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
 .ec-file-uploading {
     display: flex;
     align-items: center;
@@ -4039,8 +4061,13 @@ html {
     }
 
     .ec .ec-file-drop-hint,
-    .ec-file-upload-more {
+    .ec-file-upload-more,
+    .ec-split-button-text {
         display: none;
+    }
+
+    .ec-split-button > .ec-button {
+        padding: 0;
     }
 
     /* Metadata souboru se lámou mezi velikostí a časem; oddělovač nahradí mezera. */

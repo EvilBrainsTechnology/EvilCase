@@ -85,6 +85,25 @@ PDF, SVG a HTML také, nese `attachment` a typ `application/octet-stream`; ulož
 v odpovědi nikdy nevrací. Obsah souboru nikdy nespustí skript a vložit do stránky ho smí jen
 aplikace sama. Smazání je prosté, s potvrzením.
 
+Široká karta nese v záhlaví vedle Nahrát soubory dělené tlačítko: Stáhnout vše stáhne aktuální
+verze všech souborů karty jako jeden archiv zip, šipka vedle něj otevře nabídku se Stáhnout vše
+včetně verzí. Kompaktní karta ho nenese. Na mobilu nese Stáhnout vše jen ikonu. Stažení je
+obyčejné stažení prohlížečem.
+
+- Archiv nese jen soubory spisu nebo úkonu samého, ne podřízených spisů ani úkonů spisu. Spis
+  nebo úkon bez souborů vydá prázdný archiv; neznámý nebo cizí je 404.
+- Archiv se jmenuje podle názvu spisu nebo úkonu, „Přestupek.zip“, s verzemi „Přestupek (včetně
+  verzí).zip“. Název ztratí znaky, které jméno souboru nesmí obsahovat, jako příloha datové
+  zprávy; prázdný nahradí „Soubory spisu“ nebo „Soubory úkonu“.
+- Archiv je plochý: aktuální verze souboru leží pod jeho jménem, starší verze vedle něj jako
+  „Smlouva (verze 2).pdf“, jméno bez přípony dostane číslo verze na konec. Jméno položky nenese
+  cestu ani dvě tečky za sebou. Položky jdou v pořadí seznamu, verze souboru podle čísla; každá
+  nese okamžik nahrání své verze v UTC.
+- Jméno, které už v archivu je (bez ohledu na velikost písmen), dostane před příponou „ (2)“,
+  „ (3)“ a další volné číslo. Jména aktuálních verzí mají přednost před jmény starších verzí.
+- Archiv se posílá průběžně, bez sestavení předem, i nad 4 GB. Soubor, který se nepodaří
+  přečíst, stažení přeruší; prohlížeč nikdy neuloží useknutý archiv jako celý.
+
 Klik na řádek souboru otevře náhled aktuální verze; u typu bez náhledu ten řekne, že není
 k dispozici, a nabídne stažení. Stažení je obyčejné stažení prohlížečem a uloží soubor vždy,
 i starší verzi pod jménem souboru. Vedle toho nese řádek stažení aktuální verze a nabídku
@@ -316,6 +335,8 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
 - Místo karty souborů: pevné / podle toho, zda nese soubor. Platí podle toho, zda nese soubor.
 - Datum v seznamu: první nahrání / aktuální verze. Platí aktuální verze; pořadí podle prvního
   nahrání.
+- Archiv vlastníka bez souborů: 404 / prázdný archiv. Platí prázdný archiv.
+- Archiv souborů: sestavit předem / posílat průběžně. Platí průběžně.
 
 ## Dopady
 

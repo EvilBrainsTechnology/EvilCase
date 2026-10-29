@@ -16,6 +16,15 @@ internal sealed class FileDownloader(IJSRuntime jsRuntime, IAuthSession session)
         await files.InvokeVoidAsync("downloadFile", token, FileUrl.Content(fileId, version), fileName);
     }
 
+    public async Task DownloadArchive(string archiveUrl, CancellationToken token)
+    {
+        var files = await this.Module(token);
+
+        await session.EnsureFresh(token);
+
+        await files.InvokeVoidAsync("downloadFile", token, archiveUrl, "");
+    }
+
     public async Task DownloadContent(string fileName, Stream content, CancellationToken token)
     {
         var files = await this.Module(token);

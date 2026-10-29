@@ -98,21 +98,21 @@ a oddělené. Spisovou značku, číslo jednací i externí značky v řádku ú
 tlačítkem vedle hodnoty. Soubory a komentáře v bočním sloupci jsou kompaktní: pole pro nový
 komentář má dva řádky.
 
-Karta souborů nese v záhlaví počet, výzvu „Přetáhněte soubory sem nebo" a tlačítko Nahrát
-soubory, v bočním sloupci jen název a Nahrát; záhlaví drží jeden řádek. Na mobilu záhlaví výzvu
-nenese a tlačítko je vždy Nahrát. Velikost a okamžik nahrání se zalomí jen mezi sebou. Pod
-seznamem žádný pruh není. Řádek souboru je jedno ovládací místo po celé šířce a otevírá náhled;
-stažení a nabídka ⋯ jsou ohraničená tlačítka jen s ikonou, v nabídce je Nahrát novou verzi,
-Verze (3), Přejmenovat a oddělené, červené Smazat. Soubor s více verzemi nese štítek „verze 3“,
-nově nahraný soubor nebo verze světle modrý řádek se štítkem „nový“ nebo „nová verze“. Při
-tažení souborů přes kartu ji přikryje přerušovaný akcentový rámeček s textem „Pusťte soubory
-a nahrají se k úkonu" (ve spisu „ke spisu") a limity. Náhled souboru je velký modal; hlavička
-nese ikonu, název, velikost a okamžik nahrání, u víc souborů karty přechod mezi nimi s pořadím
-„Soubor 2 z 5", u souboru s více verzemi přepínač Verze s počtem, Nová verze, Přejmenovat,
-Stáhnout a zavření; pruh verzí leží pod hlavičkou a u starší verze má barvu upozornění. Náhled
-přílohy datové zprávy nese v hlavičce návrat „← Zpráva", ikonu, název a velikost přílohy, u víc
-příloh přechod mezi nimi s pořadím „příloha 2 z 5", Stáhnout přílohu a zavření; Přejmenovat
-nenese.
+Karta souborů nese v záhlaví počet, výzvu „Přetáhněte soubory sem nebo", tlačítko Nahrát soubory
+a dělené tlačítko Stáhnout vše se šipkou nabídky, v bočním sloupci jen název a Nahrát; záhlaví
+drží jeden řádek. Na mobilu záhlaví výzvu nenese, tlačítko je vždy Nahrát a Stáhnout vše nese
+jen ikonu. Velikost a okamžik nahrání se zalomí jen mezi sebou. Pod seznamem žádný pruh není.
+Řádek souboru je jedno ovládací místo po celé šířce a otevírá náhled; stažení a nabídka ⋯ jsou
+ohraničená tlačítka jen s ikonou, v nabídce je Nahrát novou verzi, Verze (3), Přejmenovat
+a oddělené, červené Smazat. Soubor s více verzemi nese štítek „verze 3“, nově nahraný soubor
+nebo verze světle modrý řádek se štítkem „nový“ nebo „nová verze“. Při tažení souborů přes kartu
+ji přikryje přerušovaný akcentový rámeček s textem „Pusťte soubory a nahrají se k úkonu" (ve
+spisu „ke spisu") a limity. Náhled souboru je velký modal; hlavička nese ikonu, název, velikost
+a okamžik nahrání, u víc souborů karty přechod mezi nimi s pořadím „Soubor 2 z 5", u souboru
+s více verzemi přepínač Verze s počtem, Nová verze, Přejmenovat, Stáhnout a zavření; pruh verzí
+leží pod hlavičkou a u starší verze má barvu upozornění. Náhled přílohy datové zprávy nese
+v hlavičce návrat „← Zpráva", ikonu, název a velikost přílohy, u víc příloh přechod mezi nimi
+s pořadím „příloha 2 z 5", Stáhnout přílohu a zavření; Přejmenovat nenese.
 
 Načítání aplikace a přihlášení sdílejí jeden rám: tmavá stránka, uprostřed nahoře značka
 a pod ní jedna bílá karta s postupem načítání, nebo s přihlašovacím formulářem. Značka zůstává

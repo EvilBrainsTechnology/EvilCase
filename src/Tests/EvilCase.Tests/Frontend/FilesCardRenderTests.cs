@@ -489,6 +489,49 @@ public class FilesCardRenderTests
     }
 
     [Test]
+    public async Task TheWideCardDownloadsAllFilesAndOffersAllVersionsBehindItsArrow()
+    {
+        await using var ctx = NewContext();
+
+        var downloader = ctx.Services.GetRequiredService<StubFileDownloader>();
+        var component = new Card { Files = [PdfFile()], ArchiveUrl = "/api/acts/7/files/archive" }.Render(ctx);
+
+        var parts = component.FindAll(".ec-card-header .ec-split-button .ec-button");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(parts.Select(static part => part.TextContent.Trim()), Is.EqualTo(["Stáhnout vše", ""]));
+            Assert.That(parts[1].GetAttribute("aria-label"), Is.EqualTo("Další možnosti stažení"));
+        }
+
+        await parts[0].ClickAsync(new MouseEventArgs());
+        await component.Find(".ec-split-button button[aria-haspopup=menu]").ClickAsync(new MouseEventArgs());
+
+        var items = component.FindAll(".ec-split-button [role=menuitem]");
+
+        Assert.That(items.Select(static item => item.TextContent.Trim()), Is.EqualTo(["Stáhnout vše včetně verzí"]));
+
+        await items[0].ClickAsync(new MouseEventArgs());
+
+        Assert.That(downloader.DownloadedArchives, Is.EqualTo(["/api/acts/7/files/archive", "/api/acts/7/files/archive?includeVersions=true"]));
+    }
+
+    [Test]
+    public void OnlyTheWideCardWithAFileOffersToDownloadAll()
+    {
+        using var ctx = NewContext();
+
+        var compact = new Card { Files = [PdfFile()], Compact = true }.Render(ctx);
+        var empty = new Card().Render(ctx);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(compact.FindAll(".ec-split-button"), Is.Empty, "the side column keeps its header to the title and Nahrát");
+            Assert.That(empty.FindAll(".ec-split-button"), Is.Empty, "a card without files has nothing to download");
+        }
+    }
+
+    [Test]
     public async Task DeletingAFileFromTheMenuOpensTheConfirmationNamingIt()
     {
         await using var ctx = NewContext();
@@ -1017,6 +1060,8 @@ public class FilesCardRenderTests
 
         public bool Compact { get; init; }
 
+        public string ArchiveUrl { get; init; } = "/api/cases/1/files/archive";
+
         public IReadOnlyList<FileListItem> Files { get; init; } = [];
 
         public Func<CancellationToken, Task<IReadOnlyList<FileListItem>>>? LoadFiles { get; init; }
@@ -1050,6 +1095,7 @@ public class FilesCardRenderTests
                 .Add(static card => card.DeleteFile, static (_, _) => Task.CompletedTask)
                 .Add(static card => card.OwnerGoneError, "spis už neexistuje.")
                 .Add(static card => card.UploadTarget, this.UploadTarget)
+                .Add(static card => card.ArchiveUrl, this.ArchiveUrl)
                 .Add(static card => card.Compact, this.Compact));
         }
     }

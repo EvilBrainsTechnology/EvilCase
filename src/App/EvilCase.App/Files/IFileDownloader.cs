@@ -8,6 +8,11 @@ internal interface IFileDownloader
     public Task DownloadFile(Guid fileId, int? version, string fileName, CancellationToken token);
 
     /// <summary>
+    /// Has the browser download an archive by an ordinary request to its address, under the name the server gives.
+    /// </summary>
+    public Task DownloadArchive(string archiveUrl, CancellationToken token);
+
+    /// <summary>
     /// Has the browser save content the app holds in memory under the name, never shown inline.
     /// </summary>
     public Task DownloadContent(string fileName, Stream content, CancellationToken token);
