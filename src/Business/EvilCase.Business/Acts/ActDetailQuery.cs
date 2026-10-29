@@ -1,4 +1,5 @@
 using EvilBrains.EvilCase.Api.Contract.Acts;
+using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.Business.Entities;
@@ -10,16 +11,21 @@ namespace EvilBrains.EvilCase.Business.Acts;
 
 internal static class ActDetailQuery
 {
-    public static async Task<ActDetail?> DetailOf(this IQueryable<Act> acts, Guid actId, CancellationToken token)
+    public static async Task<ActDetail?> ActDetailOf(this ApplicationDbContext context, Guid actId, CancellationToken token)
     {
-        return await acts
+        return await context.Acts
             .WithId(actId)
-            .Select(static act => new ActDetail
+            .Select(act => new ActDetail
             {
                 ActId = act.Id,
                 CaseId = act.CaseId,
                 CaseNumber = act.Case!.CaseNumber,
                 CaseTitle = act.Case.Title,
+                CaseAncestors = context.CaseAncestors(act.CaseId)
+                    .Join(context.Cases, static ancestor => ancestor.CaseId, static parent => parent.Id, static (ancestor, parent) => new { ancestor.Depth, parent.Id, parent.Title })
+                    .OrderByDescending(static step => step.Depth)
+                    .Select(static step => new CaseCrumb { CaseId = step.Id, Title = step.Title })
+                    .ToList(),
                 CaseStatus = act.Case.Status,
                 ActNumber = act.ActNumber,
                 ExternalActNumber = act.ExternalActNumber,

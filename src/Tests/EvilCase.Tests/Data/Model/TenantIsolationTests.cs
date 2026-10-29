@@ -1,4 +1,5 @@
 using EvilBrains.EvilCase.Data.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace EvilBrains.EvilCase.Tests.Data.Model;
@@ -99,7 +100,9 @@ public class TenantIsolationTests : ModelFixture
     [Test]
     public void TheOnlyRowsOutsideATenantAreAccountsTenantsAndTokens()
     {
+        // A function row with no table, such as CaseAncestor, reaches case data only through the filtered Cases.
         var untenanted = Model.GetEntityTypes()
+            .Where(static entityType => entityType.GetTableName() is not null)
             .Where(static entityType => !typeof(ITenantEntity).IsAssignableFrom(entityType.ClrType))
             .Select(static entityType => entityType.ShortName())
             .ToList();

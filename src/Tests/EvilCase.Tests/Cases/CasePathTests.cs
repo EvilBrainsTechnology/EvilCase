@@ -1,6 +1,7 @@
 using EvilBrains.EvilCase.Business.Acts;
 using EvilBrains.EvilCase.Business.Cases;
 using EvilBrains.EvilCase.Tests.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Tests.Cases;
 
@@ -45,5 +46,20 @@ public class CasePathTests : TenantFixture
         var detail = await new ActReader(new FixedDbSession(this.Tenant.Context)).GetActDetail(act.Id, CancellationToken.None);
 
         Assert.That(detail!.CaseAncestors.Select(static crumb => crumb.CaseId), Is.EqualTo([root.Id, middle.Id]));
+    }
+
+    [Test]
+    public async Task ALoopInTheDataEndsTheWalkWithoutTheCaseItself()
+    {
+        var first = await this.Tenant.AddCase(Day, "První");
+        var second = await this.Tenant.AddCase(Day, "Druhý", parentCaseId: first.Id);
+
+        await this.Tenant.Context.Cases
+            .Where(@case => @case.Id == first.Id)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(static @case => @case.ParentCaseId, second.Id));
+
+        var detail = await new CaseReader(new FixedDbSession(this.Tenant.Context)).GetCaseDetail(first.Id, CancellationToken.None);
+
+        Assert.That(detail!.Ancestors.Select(static crumb => crumb.CaseId), Is.EqualTo([second.Id]));
     }
 }

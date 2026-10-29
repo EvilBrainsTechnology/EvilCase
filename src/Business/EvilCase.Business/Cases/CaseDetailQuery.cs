@@ -3,18 +3,17 @@ using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Data.DbContexts;
-using EvilBrains.EvilCase.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace EvilBrains.EvilCase.Business.Cases;
 
 internal static class CaseDetailQuery
 {
-    public static async Task<CaseDetail?> DetailOf(this IQueryable<Case> cases, Guid caseId, CancellationToken token)
+    public static async Task<CaseDetail?> CaseDetailOf(this ApplicationDbContext context, Guid caseId, CancellationToken token)
     {
-        return await cases
+        return await context.Cases
             .WithId(caseId)
-            .Select(static @case => new CaseDetail
+            .Select(@case => new CaseDetail
             {
                 CaseId = @case.Id,
                 CaseNumber = @case.CaseNumber,
@@ -45,6 +44,11 @@ internal static class CaseDetailQuery
                         Status = @case.ParentCase.Status,
                         Changed = @case.ParentCase.Updated ?? @case.ParentCase.Created,
                     },
+                Ancestors = context.CaseAncestors(@case.Id)
+                    .Join(context.Cases, static ancestor => ancestor.CaseId, static parent => parent.Id, static (ancestor, parent) => new { ancestor.Depth, parent.Id, parent.Title })
+                    .OrderByDescending(static step => step.Depth)
+                    .Select(static step => new CaseCrumb { CaseId = step.Id, Title = step.Title })
+                    .ToList(),
                 Labels = @case.Labels
                     .OrderBy(static assignment => EF.Functions.Collate(assignment.Label!.Name, DatabaseFunctions.CzechCollation))
                     .Select(static assignment => new LabelItem

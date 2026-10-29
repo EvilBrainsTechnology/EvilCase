@@ -46,11 +46,6 @@ internal sealed class CaseReader(IDbSession dbSession) : ICaseReader
 
     public async Task<CaseDetail?> GetCaseDetail(Guid caseId, CancellationToken token)
     {
-        var detail = await dbSession.Current.Cases.DetailOf(caseId, token);
-
-        if (detail?.ParentCase is null)
-            return detail;
-
-        return detail with { Ancestors = await dbSession.Current.Cases.AncestorsOf(caseId, token) };
+        return await dbSession.Current.CaseDetailOf(caseId, token);
     }
 }

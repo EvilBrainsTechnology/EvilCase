@@ -72,6 +72,7 @@ public class DatabaseHistoryTests
 
         var historized = context.Model.GetEntityTypes()
             .Select(static entityType => entityType.GetTableName())
+            .OfType<string>()
             .Distinct(StringComparer.Ordinal)
             .Where(static table => !string.Equals(table, "RefreshTokens", StringComparison.Ordinal))
             .ToList();

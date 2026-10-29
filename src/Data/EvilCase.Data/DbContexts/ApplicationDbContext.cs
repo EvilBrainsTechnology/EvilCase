@@ -31,6 +31,14 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     public DbSet<LabelAssignment> LabelAssignments => this.Set<LabelAssignment>();
 
+    /// <summary>
+    /// The cases above the case, through the case_ancestors function the CaseAncestors migration creates.
+    /// </summary>
+    public IQueryable<CaseAncestor> CaseAncestors(Guid caseId)
+    {
+        return this.FromExpression(() => this.CaseAncestors(caseId));
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -53,6 +61,17 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         modelBuilder
             .HasDbFunction(typeof(DatabaseFunctions).GetMethod(nameof(DatabaseFunctions.Unaccent), [typeof(string)])!)
             .HasName("immutable_unaccent");
+
+        modelBuilder
+            .HasDbFunction(typeof(ApplicationDbContext).GetMethod(nameof(CaseAncestors), [typeof(Guid)])!)
+            .HasName("case_ancestors");
+
+        // A case stands on a path once, so its id keys the row.
+        modelBuilder.Entity<CaseAncestor>()
+            .HasKey(static ancestor => ancestor.CaseId);
+
+        modelBuilder.Entity<CaseAncestor>()
+            .ToTable((string?)null);
     }
 
     private static void ConfigureExtensions(ModelBuilder modelBuilder)
