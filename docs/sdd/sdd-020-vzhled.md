@@ -86,12 +86,12 @@ položka menu je zvýrazněná po celé výšce lišty. Obsah leží na
 Řádek seznamu má na desktopu ve všech seznamech stejnou výšku 48 px, ať nese jeden, nebo dva
 řádky textu. Výjimkou jsou soubory, jejichž řádek nese dlaždici typu, a výsledky hledání.
 
-Detail spisu i úkonu začíná kartou se jménem, stavem, popisem a řádkem údajů. Popis je hned
-pod názvem, ne v postranním sloupci; bez popisu jde pod název rovnou řádek údajů. Chybějící
-údaj je světlá pomlčka jako v seznamu. Obsah, který patří spisu, je v pravém sloupci, kromě
-karty souborů, která se soubory leží v hlavním sloupci (SDD-012); obsah, který patří úkonu, je
-uvnitř úkonu. Soubory a komentáře proto existují dvakrát a název to
-vždycky říká: „Soubory spisu" a „Soubory úkonu".
+Detail spisu i úkonu začíná kartou se jménem, stavem, popisem a řádkem údajů. Popis je hned pod
+názvem, ne v postranním sloupci; bez popisu jde pod název rovnou řádek údajů. Chybějící údaj je
+světlá pomlčka jako v seznamu. Obsah, který patří spisu, je v pravém sloupci, kromě karty
+souborů, která se soubory leží v hlavním sloupci (SDD-012); obsah, který patří úkonu, je uvnitř
+úkonu. Soubory a komentáře proto existují dvakrát a název to vždycky říká: „Soubory spisu"
+a „Soubory úkonu".
 
 Další akce detailu jsou v nabídce `EcMenu` vedle hlavní akce; smazání je v ní poslední
 a oddělené. Spisovou značku, číslo jednací i externí značky v řádku údajů jde zkopírovat
@@ -99,19 +99,20 @@ tlačítkem vedle hodnoty. Soubory a komentáře v bočním sloupci jsou kompakt
 komentář má dva řádky.
 
 Karta souborů nese v záhlaví počet, výzvu „Přetáhněte soubory sem nebo" a tlačítko Nahrát
-soubory, v bočním sloupci jen název a Nahrát; záhlaví drží jeden řádek. Na mobilu záhlaví výzvu nenese a tlačítko je vždy Nahrát. Velikost a okamžik nahrání
-se zalomí jen mezi sebou. Pod seznamem žádný pruh není. Řádek souboru je jedno ovládací místo
-po celé šířce a otevírá náhled; stažení a nabídka ⋯ jsou ohraničená tlačítka jen s ikonou,
-v nabídce je Nahrát novou verzi, Verze (3), Přejmenovat a oddělené, červené Smazat. Soubor s více
-verzemi nese štítek „verze 3“, nově nahraný soubor nebo verze světle modrý řádek se štítkem „nový“
-nebo „nová verze“. Při tažení souborů přes kartu ji přikryje
-přerušovaný akcentový rámeček s textem „Pusťte soubory a nahrají se k úkonu" (ve spisu „ke
-spisu") a limity. Náhled souboru je velký modal; hlavička nese ikonu, název, velikost
-a okamžik nahrání, u víc souborů karty přechod mezi nimi s pořadím „Soubor 2 z 5", u souboru s více verzemi přepínač
-Verze s počtem, Nová verze, Přejmenovat, Stáhnout a zavření; pruh verzí leží pod hlavičkou a u starší
-verze má barvu upozornění. Náhled přílohy datové zprávy nese v hlavičce návrat „← Zpráva", ikonu, název
-a velikost přílohy, u víc příloh přechod mezi nimi s pořadím „příloha 2 z 5", Stáhnout přílohu
-a zavření; Přejmenovat nenese.
+soubory, v bočním sloupci jen název a Nahrát; záhlaví drží jeden řádek. Na mobilu záhlaví výzvu
+nenese a tlačítko je vždy Nahrát. Velikost a okamžik nahrání se zalomí jen mezi sebou. Pod
+seznamem žádný pruh není. Řádek souboru je jedno ovládací místo po celé šířce a otevírá náhled;
+stažení a nabídka ⋯ jsou ohraničená tlačítka jen s ikonou, v nabídce je Nahrát novou verzi,
+Verze (3), Přejmenovat a oddělené, červené Smazat. Soubor s více verzemi nese štítek „verze 3“,
+nově nahraný soubor nebo verze světle modrý řádek se štítkem „nový“ nebo „nová verze“. Při
+tažení souborů přes kartu ji přikryje přerušovaný akcentový rámeček s textem „Pusťte soubory
+a nahrají se k úkonu" (ve spisu „ke spisu") a limity. Náhled souboru je velký modal; hlavička
+nese ikonu, název, velikost a okamžik nahrání, u víc souborů karty přechod mezi nimi s pořadím
+„Soubor 2 z 5", u souboru s více verzemi přepínač Verze s počtem, Nová verze, Přejmenovat,
+Stáhnout a zavření; pruh verzí leží pod hlavičkou a u starší verze má barvu upozornění. Náhled
+přílohy datové zprávy nese v hlavičce návrat „← Zpráva", ikonu, název a velikost přílohy, u víc
+příloh přechod mezi nimi s pořadím „příloha 2 z 5", Stáhnout přílohu a zavření; Přejmenovat
+nenese.
 
 Načítání aplikace a přihlášení sdílejí jeden rám: tmavá stránka, uprostřed nahoře značka
 a pod ní jedna bílá karta s postupem načítání, nebo s přihlašovacím formulářem. Značka zůstává
