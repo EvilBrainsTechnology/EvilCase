@@ -169,6 +169,7 @@ html {
 
 .ec-card-header {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: var(--ec-space-4);
     padding: var(--ec-space-5) var(--ec-space-6);
@@ -3208,10 +3209,7 @@ html {
 }
 
 .ec-act-pager {
-    display: flex;
-    align-items: center;
     gap: var(--ec-space-2);
-    margin-left: auto;
 }
 
 .ec-act-pager .ec-button {
