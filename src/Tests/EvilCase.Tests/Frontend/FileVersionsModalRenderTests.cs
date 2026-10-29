@@ -135,6 +135,19 @@ public class FileVersionsModalRenderTests
     }
 
     [Test]
+    public async Task TheDeleteFileLabelIsOneRunOfText()
+    {
+        await using var ctx = NewContext();
+
+        var component = Render(ctx);
+
+        // The button lays its children out with a gap, so the label and its ellipsis sit in one element.
+        var label = component.Find(".ec-versions-delete-file button > span");
+
+        Assert.That(label.TextContent, Is.EqualTo("Smazat soubor se všemi verzemi…"));
+    }
+
+    [Test]
     public async Task AFailedLoadOffersARetry()
     {
         await using var ctx = NewContext();
