@@ -1,7 +1,11 @@
+@using System.Diagnostics
+@using System.Net
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Contract.Files
+@using Microsoft.JSInterop
 @using Toolbelt.Blazor.FileDropZone
 @inject IFileDownloader Downloader
+@inject IFilePicker Picker
 @inject ILogger<FilesCard> Logger
 
 @* The card is itself the drop zone (SDD-012): FileDropZone hands a card-wide drop to the input
@@ -35,6 +39,16 @@
                         <InputFile @key="busy" multiple OnChange="this.OnFilesSelected" />
                     }
                 </div>
+
+                @if (this.notices.Count > 0)
+                {
+                    <div class="ec-file-notice" role="status">
+                        @foreach (var notice in this.notices)
+                        {
+                            <span>@notice</span>
+                        }
+                    </div>
+                }
 
                 @foreach (var failure in this.failures)
                 {
@@ -76,8 +90,9 @@
                         @foreach (var file in this.items)
                         {
                             var renaming = this.renamingFileId == file.FileId;
+                            var stored = this.fresh.TryGetValue(file.FileId, out var outcome) ? outcome : (FileUploadOutcome?)null;
 
-                            <div class="@(renaming ? "ec-file-row ec-file-row-renaming" : "ec-file-row")" @key="file.FileId">
+                            <div class="@(renaming ? "ec-file-row ec-file-row-renaming" : stored is null ? "ec-file-row" : "ec-file-row ec-file-row-fresh")" @key="file.FileId">
                                 <EcFileIcon FileName="@file.FileName" Size="@this.IconSize" />
                                 @if (renaming)
                                 {
@@ -90,7 +105,7 @@
                                         <button type="button" class="ec-file-name" @ref="this.nameButtons[file.FileId]"
                                                 title="@(this.Compact ? file.FileName : "Otevřít náhled")"
                                                 @onclick="() => this.Open(file)">@file.FileName</button>
-                                        <span class="ec-file-meta">@FileSizeDisplay.Text(file.SizeBytes) <span class="ec-sep" aria-hidden="true">·</span> <span class="ec-file-moment">@MomentDisplay.Text(file.Created)</span></span>
+                                        <span class="ec-file-meta">@if (stored is { } freshOutcome && this.Compact) { <EcBadge Text="@FreshText(freshOutcome)" Tone="EcBadgeTone.Fresh" /> }@if (file.VersionCount > 1 && this.Compact) { <span class="ec-file-version">verze @file.Version</span>@(" ")<span class="ec-sep" aria-hidden="true">·</span>@(" ") }@if (file.VersionCount > 1 && !this.Compact) { <EcBadge Text="@($"verze {file.Version}")" Tone="EcBadgeTone.FileVersion" /> }@if (stored is { } wideOutcome && !this.Compact) { <EcBadge Text="@FreshText(wideOutcome)" Tone="EcBadgeTone.Fresh" /> }@FileSizeDisplay.Text(file.SizeBytes) <span class="ec-sep" aria-hidden="true">·</span> <span class="ec-file-moment">@MomentDisplay.Text(file.Created)</span></span>
                                     </div>
                                     <div class="ec-file-actions">
                                         <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Download"
@@ -114,17 +129,29 @@
     </div>
 </FileDropZone>
 
+@* Outside the drop zone, so a drop never goes to it. *@
+<div class="ec-visually-hidden"><InputFile @ref="this.versionInput" @key="this.versionRound" id="files-version-input" tabindex="-1" aria-label="Nová verze souboru" OnChange="this.OnVersionSelected" /></div>
+
 @if (this.previewFileId is { } previewId)
 {
     <FilePreviewModal Files="this.items" FileId="previewId" FileIdChanged="this.PreviewFile"
+                      Version="this.previewVersion" VersionChanged="this.PreviewVersion"
                       LoadContent="this.LoadContent" Rename="this.RenameFile"
+                      LoadVersions="this.LoadFileVersions" UploadVersion="this.UploadVersion" OnManageVersions="this.ManageVersions"
                       OnDownload="this.Download" OnRenamed="this.FileRenamed"
                       Open OpenChanged="this.ClosePreview" />
 }
 
+@if (this.versionsFileId is { } versionsId && this.items.FirstOrDefault(item => item.FileId == versionsId) is { } versionsFile)
+{
+    <FileVersionsModal File="versionsFile" LoadVersions="this.LoadFileVersions" DeleteVersion="this.DeleteFileVersion" UploadVersion="this.UploadVersion"
+                       OnPreview="number => this.ShowVersion(versionsFile, number)" OnDownload="number => this.DownloadVersion(versionsFile, number)"
+                       OnDeleteFile="() => this.DeleteFromVersions(versionsFile)" OnChanged="this.ReloadFiles" Open OpenChanged="this.CloseVersions" />
+}
+
 @if (this.deleting is { } file)
 {
-    <FileDeleteModal FileName="@file.FileName" Delete="token => this.DeleteFile(file, token)"
+    <FileDeleteModal FileName="@file.FileName" VersionCount="file.VersionCount" Delete="token => this.DeleteFile(file, token)"
                      Open OpenChanged="this.CloseDelete" OnDeleted="this.FileDeleted" />
 }
 
@@ -145,6 +172,15 @@
     /// </summary>
     [Parameter, EditorRequired]
     public required Func<FileListItem, int?, CancellationToken, Task<Stream>> LoadContent { get; set; }
+
+    [Parameter, EditorRequired]
+    public required Func<FileListItem, IBrowserFile, CancellationToken, Task<FileUploadResult>> UploadFileVersion { get; set; }
+
+    [Parameter, EditorRequired]
+    public required Func<FileListItem, CancellationToken, Task<IReadOnlyList<FileVersionItem>>> LoadFileVersions { get; set; }
+
+    [Parameter, EditorRequired]
+    public required Func<FileListItem, int, CancellationToken, Task> DeleteFileVersion { get; set; }
 
     [Parameter, EditorRequired]
     public required Func<FileListItem, string, CancellationToken, Task> RenameFile { get; set; }
@@ -171,6 +207,11 @@
     public bool Compact { get; set; }
 
     private readonly List<string> failures = [];
+
+    private readonly List<string> notices = [];
+
+    // The files and versions this card stored since it loaded.
+    private readonly Dictionary<Guid, FileUploadOutcome> fresh = [];
 
     private readonly Dictionary<Guid, ElementReference> nameButtons = [];
 
@@ -201,6 +242,18 @@
 
     private FileListItem? deleting;
 
+    private InputFile? versionInput;
+
+    private int versionRound;
+
+    private FileListItem? versionTarget;
+
+    private bool versionUploading;
+
+    private int? previewVersion;
+
+    private Guid? versionsFileId;
+
     private string UploadLabel => this.Compact ? "Nahrát" : "Nahrát soubory";
 
     private EcFileIconSize IconSize => this.Compact ? EcFileIconSize.Compact : EcFileIconSize.Standard;
@@ -226,6 +279,8 @@
     {
         return
         [
+            new EcMenuItem { Text = "Nahrát novou verzi…", Icon = AppIcons.Upload, OnSelect = EventCallback.Factory.Create(this, () => this.PickVersion(file)) },
+            new EcMenuItem { Text = $"Verze ({file.VersionCount})…", Icon = AppIcons.Clock, OnSelect = EventCallback.Factory.Create(this, () => this.OpenVersions(file)) },
             new EcMenuItem { Text = "Přejmenovat", Icon = AppIcons.Pencil, OnSelect = EventCallback.Factory.Create(this, () => this.StartRename(file)) },
             new EcMenuItem { Text = "Smazat…", Icon = AppIcons.Trash, OnSelect = EventCallback.Factory.Create(this, () => this.ConfirmDelete(file)), Danger = true, DividerBefore = true },
         ];
@@ -253,11 +308,14 @@
 
         if (this.renamingFileId is { } renamingId && this.items.All(file => file.FileId != renamingId))
             this.renamingFileId = null;
+
+        if (this.versionsFileId is { } versionsId && this.items.All(file => file.FileId != versionsId))
+            this.versionsFileId = null;
     }
 
     private async Task OnFilesSelected(InputFileChangeEventArgs args)
     {
-        if (this.busyRound is not null)
+        if (this.busyRound is not null || this.versionUploading)
         {
             if (args.FileCount == 0)
                 return;
@@ -272,6 +330,7 @@
 
         this.busyRound = this.uploadRound++;
         this.failures.Clear();
+        this.notices.Clear();
         this.uploadIndex = 0;
         this.uploadTotal = args.FileCount;
 
@@ -286,7 +345,7 @@
                 this.uploadName = name;
                 this.StateHasChanged();
             },
-            _ => { },
+            result => this.Record(result),
             this.Logger);
 
         this.busyRound = null;
@@ -295,20 +354,193 @@
         await this.ReloadFiles();
     }
 
+    private async Task PickVersion(FileListItem file)
+    {
+        this.versionTarget = file;
+
+        await this.Picker.PickFile(this.versionInput!.Element!.Value, CancellationToken.None);
+    }
+
+    private async Task OnVersionSelected(InputFileChangeEventArgs args)
+    {
+        if (args.FileCount == 0 || this.versionTarget is not { } file)
+            return;
+
+        this.versionRound++;
+
+        var (failure, _) = await this.UploadVersion(file, args.File);
+
+        if (failure is not null && !this.failures.Contains(failure))
+            this.failures.Add(failure);
+    }
+
+    // Called from the modals through a plain delegate, so it redraws the card itself.
+    private async Task<(string? Failure, string? Notice)> UploadVersion(FileListItem file, IBrowserFile picked)
+    {
+        if (this.busyRound is not null || this.versionUploading)
+            return (WaitForUpload, null);
+
+        if (!FileNameRules.SameExtension(file.FileName, picked.Name))
+        {
+            var extension = Path.GetExtension(file.FileName);
+
+            return ($"{picked.Name}: nová verze souboru {file.FileName} musí {(extension.Length == 0 ? "být bez přípony" : $"mít příponu {extension}")}.", null);
+        }
+
+        if (picked.Size > FileLimits.MaxUploadBytes)
+            return (TooLarge(picked.Name), null);
+
+        this.versionUploading = true;
+        this.failures.Clear();
+        this.notices.Clear();
+        this.uploadIndex = 1;
+        this.uploadTotal = 1;
+        this.uploadName = picked.Name;
+        this.StateHasChanged();
+
+        string? failure = null;
+        string? notice = null;
+
+        try
+        {
+            notice = this.Record(await this.UploadFileVersion(file, picked, CancellationToken.None));
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.RequestEntityTooLarge)
+        {
+            this.Logger.LogWarning(exception, "Uploading a file version failed: too large");
+
+            failure = TooLarge(picked.Name);
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+        {
+            this.Logger.LogWarning(exception, "Uploading a file version failed: the file is gone");
+
+            failure = $"{picked.Name}: soubor {file.FileName} už neexistuje.";
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException or IOException or JSException)
+        {
+            this.Logger.LogWarning(exception, "Uploading a file version failed");
+
+            failure = $"{picked.Name}: nahrání se nezdařilo.";
+        }
+
+        this.versionUploading = false;
+        this.uploadTotal = 0;
+
+        await this.ReloadFiles();
+
+        this.StateHasChanged();
+
+        return (failure, notice);
+    }
+
+    private string? Record(FileUploadResult result)
+    {
+        var file = result.File;
+
+        switch (result.Outcome)
+        {
+            case FileUploadOutcome.NewFile:
+                this.fresh[file.FileId] = FileUploadOutcome.NewFile;
+
+                return null;
+
+            case FileUploadOutcome.NewVersion:
+            {
+                if (!this.fresh.TryGetValue(file.FileId, out var known) || known != FileUploadOutcome.NewFile)
+                    this.fresh[file.FileId] = FileUploadOutcome.NewVersion;
+
+                var added = $"{file.FileName}: nahráno jako verze {file.Version}.";
+
+                this.notices.Add(added);
+
+                return added;
+            }
+
+            case FileUploadOutcome.Unchanged:
+            {
+                var same = $"{file.FileName}: obsah je stejný jako poslední verze, nová verze nevznikla.";
+
+                this.notices.Add(same);
+
+                return same;
+            }
+
+            default:
+                throw new UnreachableException();
+        }
+    }
+
+    private static string TooLarge(string name)
+    {
+        return $"{name}: soubor je větší než {FileSizeDisplay.Text(FileLimits.MaxUploadBytes)}.";
+    }
+
+    private static string FreshText(FileUploadOutcome outcome)
+    {
+        return outcome == FileUploadOutcome.NewFile ? "nový" : "nová verze";
+    }
+
     private void Open(FileListItem file)
     {
         this.previewFileId = file.FileId;
+        this.previewVersion = null;
     }
 
     private void PreviewFile(Guid fileId)
     {
         this.previewFileId = fileId;
+        this.previewVersion = null;
+    }
+
+    private void PreviewVersion(int? version)
+    {
+        this.previewVersion = version;
     }
 
     private void ClosePreview(bool open)
     {
+        if (open)
+            return;
+
+        this.previewFileId = null;
+        this.previewVersion = null;
+    }
+
+    private void OpenVersions(FileListItem file)
+    {
+        this.versionsFileId = file.FileId;
+    }
+
+    private void CloseVersions(bool open)
+    {
         if (!open)
-            this.previewFileId = null;
+            this.versionsFileId = null;
+    }
+
+    private void ShowVersion(FileListItem file, int number)
+    {
+        this.versionsFileId = null;
+        this.previewFileId = file.FileId;
+        this.previewVersion = number == file.Version ? null : number;
+    }
+
+    private async Task DownloadVersion(FileListItem file, int number)
+    {
+        await this.Downloader.DownloadFile(file.FileId, number == file.Version ? null : number, file.FileName, CancellationToken.None);
+    }
+
+    private void DeleteFromVersions(FileListItem file)
+    {
+        this.versionsFileId = null;
+        this.deleting = file;
+    }
+
+    private void ManageVersions(FileListItem file)
+    {
+        this.previewFileId = null;
+        this.previewVersion = null;
+        this.versionsFileId = file.FileId;
     }
 
     private async Task Download(FileListItem file)

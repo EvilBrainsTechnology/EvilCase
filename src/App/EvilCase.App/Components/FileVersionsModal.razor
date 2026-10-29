@@ -1,0 +1,188 @@
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Contract.Files
+@inject ILogger<FileVersionsModal> Logger
+
+<EcModal Title="Verze souboru" Sheet Open="this.Open" OpenChanged="this.OpenChanged">
+    <Heading>
+        <div class="ec-versions-heading">
+            <h2 class="ec-modal-title">Verze souboru</h2>
+            <span class="ec-versions-subtitle">@this.File.FileName · @CountText(this.File.VersionCount)</span>
+        </div>
+        <FileVersionPicker Text="Nahrát novou verzi" Disabled="this.uploading" OnPicked="this.Upload" />
+    </Heading>
+    <ChildContent>
+        @if (this.notice is not null)
+        {
+            <div class="ec-file-notice" role="status">@this.notice</div>
+        }
+        @if (this.failure is not null)
+        {
+            <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.failure</div>
+        }
+        @if (this.versions is null)
+        {
+            if (this.loadFailed)
+            {
+                <div class="ec-card-error">
+                    <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />Verze se nepodařilo načíst. Zkuste to za chvíli znovu.</div>
+                    <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Refresh"
+                              OnClick="this.Reload">Zkusit znovu</EcButton>
+                </div>
+            }
+            else
+            {
+                <p class="ec-card-state">Načítám…</p>
+            }
+        }
+        else
+        {
+            <ul class="ec-versions-list">
+                @foreach (var version in this.versions)
+                {
+                    var number = version.Number;
+
+                    <li class="ec-versions-row" @key="number">
+                        <button type="button" class="ec-versions-main" @onclick="() => this.OnPreview.InvokeAsync(number)">
+                            <span class="ec-versions-title">Verze @number@(number == this.File.Version ? " " : "")@if (number == this.File.Version) { <EcBadge Text="aktuální" Tone="EcBadgeTone.Current" /> }</span>
+                            <span class="ec-versions-meta">@MomentDisplay.Text(version.Created) <span class="ec-sep" aria-hidden="true">·</span> @version.UploaderEmail <span class="ec-sep" aria-hidden="true">·</span> @FileSizeDisplay.Text(version.SizeBytes)</span>
+                        </button>
+                        <div class="ec-versions-actions">
+                            <span class="ec-versions-preview"><EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Eye"
+                                                                        OnClick="() => this.OnPreview.InvokeAsync(number)">Náhled</EcButton></span>
+                            <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Download"
+                                      AriaLabel="@($"Stáhnout verzi {number}")" OnClick="() => this.OnDownload.InvokeAsync(number)" />
+                            @if (this.versions.Count > 1)
+                            {
+                                <span class="ec-versions-delete"><EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Trash"
+                                                                           AriaLabel="@($"Smazat verzi {number}")" OnClick="() => this.ConfirmDelete(number)" /></span>
+                            }
+                        </div>
+                    </li>
+                }
+            </ul>
+        }
+    </ChildContent>
+    <Footer>
+        <p class="ec-versions-note"><span class="ec-versions-tap-hint">Klik na verzi otevře její náhled. </span>Smazání aktuální verze udělá aktuální předchozí verzi. Poslední zbývající verzi smaže jen Smazat soubor.</p>
+        <span class="ec-versions-delete-file"><EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Trash" OnClick="this.OnDeleteFile">Smazat soubor<span class="ec-versions-delete-more"> se všemi verzemi</span>…</EcButton></span>
+    </Footer>
+</EcModal>
+
+@if (this.deleting is { } deletingNumber)
+{
+    <FileVersionDeleteModal FileName="@this.File.FileName" Number="deletingNumber" Delete="token => this.DeleteVersion(this.File, deletingNumber, token)"
+                            Open OpenChanged="this.CloseDelete" OnDeleted="this.VersionDeleted" />
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public required FileListItem File { get; set; }
+
+    [Parameter, EditorRequired]
+    public required Func<FileListItem, CancellationToken, Task<IReadOnlyList<FileVersionItem>>> LoadVersions { get; set; }
+
+    [Parameter, EditorRequired]
+    public required Func<FileListItem, int, CancellationToken, Task> DeleteVersion { get; set; }
+
+    /// <summary>
+    /// Uploads the picked file as a new version; answers the failure or the notice to show.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required Func<FileListItem, IBrowserFile, Task<(string? Failure, string? Notice)>> UploadVersion { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OnPreview { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OnDownload { get; set; }
+
+    [Parameter]
+    public EventCallback OnDeleteFile { get; set; }
+
+    [Parameter]
+    public EventCallback OnChanged { get; set; }
+
+    [Parameter]
+    public bool Open { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    private IReadOnlyList<FileVersionItem>? versions;
+
+    private bool loadFailed;
+
+    private (Guid, int, int)? loadedKey;
+
+    private int? deleting;
+
+    private bool uploading;
+
+    private string? failure;
+
+    private string? notice;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var key = (this.File.FileId, this.File.Version, this.File.VersionCount);
+
+        if (key == this.loadedKey)
+            return;
+
+        this.loadedKey = key;
+
+        await this.Reload();
+    }
+
+    private async Task Reload()
+    {
+        this.loadFailed = false;
+
+        try
+        {
+            this.versions = await this.LoadVersions(this.File, CancellationToken.None);
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Loading the versions of file {FileAssetId} failed", this.File.FileId);
+
+            this.versions = null;
+            this.loadFailed = true;
+        }
+    }
+
+    private async Task Upload(IBrowserFile picked)
+    {
+        this.uploading = true;
+        this.failure = null;
+        this.notice = null;
+
+        (this.failure, this.notice) = await this.UploadVersion(this.File, picked);
+
+        this.uploading = false;
+    }
+
+    private void ConfirmDelete(int number)
+    {
+        this.deleting = number;
+    }
+
+    private void CloseDelete(bool open)
+    {
+        if (!open)
+            this.deleting = null;
+    }
+
+    private async Task VersionDeleted()
+    {
+        this.deleting = null;
+
+        await this.OnChanged.InvokeAsync();
+    }
+
+    // 1 až 4 verze, 5 a více verzí.
+    private static string CountText(int count)
+    {
+        return count is >= 1 and <= 4 ? $"{count} verze" : $"{count} verzí";
+    }
+}

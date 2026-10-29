@@ -9,7 +9,7 @@ export function openModal(dialog, owner) {
     dialog.addEventListener('keydown', keepEscape);
     dialog.addEventListener('close', () => owner.invokeMethodAsync('NotifyClosed'), { once: true });
     dialog.showModal();
-    dialog.querySelector('input, select, textarea, button')?.focus();
+    dialog.querySelector('input:not([type=file]), select, textarea, button')?.focus();
 }
 
 export function closeModal(dialog) {

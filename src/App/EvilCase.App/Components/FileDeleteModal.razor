@@ -4,7 +4,14 @@
 
 <EcModal Title="Smazat soubor" Open="this.Open" OpenChanged="this.OpenChanged">
     <ChildContent>
-        <p class="ec-confirm-text">Opravdu smazat soubor <strong>@this.FileName</strong>? Akci nelze vrátit zpět.</p>
+        @if (this.VersionCount > 1)
+        {
+            <p class="ec-confirm-text">Opravdu smazat soubor <strong>@this.FileName</strong> se všemi @this.VersionCount verzemi? Akci nelze vrátit zpět.</p>
+        }
+        else
+        {
+            <p class="ec-confirm-text">Opravdu smazat soubor <strong>@this.FileName</strong>? Akci nelze vrátit zpět.</p>
+        }
         @if (this.error is not null)
         {
             <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.error</div>
@@ -20,6 +27,9 @@
 @code {
     [Parameter, EditorRequired]
     public required string FileName { get; set; }
+
+    [Parameter]
+    public int VersionCount { get; set; } = 1;
 
     [Parameter, EditorRequired]
     public required Func<CancellationToken, Task> Delete { get; set; }

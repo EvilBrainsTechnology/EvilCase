@@ -30,6 +30,9 @@ public class EcBadgeRenderTests
                 EcBadgeTone.Person => "ec-badge-person",
                 EcBadgeTone.Danger => "ec-badge-danger",
                 EcBadgeTone.Signature => "ec-badge-signature",
+                EcBadgeTone.FileVersion => "ec-badge-file-version",
+                EcBadgeTone.Fresh => "ec-badge-fresh",
+                EcBadgeTone.Current => "ec-badge-current",
                 _ => throw new InvalidOperationException($"unexpected tone {tone}"),
             };
 

@@ -21,4 +21,10 @@ public enum EcBadgeTone
     Danger = 8,
 
     Signature = 9,
+
+    FileVersion = 10,
+
+    Fresh = 11,
+
+    Current = 12,
 }

@@ -96,8 +96,8 @@ public class FilesCardRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(inputs, Has.Count.EqualTo(2));
-            Assert.That(inputs[1].Instance, Is.SameAs(first), "a change empties the input's file list, so a batch keeps its own input");
+            Assert.That(inputs, Has.Count.EqualTo(3));
+            Assert.That(inputs[1].Instance, Is.SameAs(first), "a change empties the input's file list, so a batch keeps its own input, beside the version input");
             Assert.That(component.Find("label.ec-file-upload").GetAttribute("for"), Is.EqualTo(component.FindAll("input[type=file]")[0].Id), "the next pick goes to the fresh input");
         }
 
@@ -118,7 +118,7 @@ public class FilesCardRenderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(uploaded, Is.EqualTo(["a.txt", "b.txt"]), "a drop during an upload uploads nothing and leaves the batch in flight whole");
-            Assert.That(component.FindComponents<InputFile>(), Has.Count.EqualTo(1), "a finished batch takes its input with it");
+            Assert.That(component.FindComponents<InputFile>(), Has.Count.EqualTo(2), "a finished batch takes its input with it, beside the version input");
             Assert.That(component.FindAll(".ec-file-uploading"), Is.Empty);
         }
     }
@@ -467,7 +467,7 @@ public class FilesCardRenderTests
     }
 
     [Test]
-    public async Task TheMenuOffersRenameAndADangerDeleteAndNoDeleteButtonSitsInTheRow()
+    public async Task TheMenuOffersANewVersionTheVersionsRenameAndADangerDelete()
     {
         await using var ctx = NewContext();
 
@@ -481,8 +481,8 @@ public class FilesCardRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(items.Select(static item => item.TextContent.Trim()), Is.EqualTo(["Přejmenovat", "Smazat…"]));
-            Assert.That(items[1].ClassList, Does.Contain("ec-menu-item-danger"));
+            Assert.That(items.Select(static item => item.TextContent.Trim()), Is.EqualTo(["Nahrát novou verzi…", "Verze (1)…", "Přejmenovat", "Smazat…"]));
+            Assert.That(items[3].ClassList, Does.Contain("ec-menu-item-danger"));
         }
     }
 
@@ -494,7 +494,7 @@ public class FilesCardRenderTests
         var component = new Card { Files = [File("a.pdf")] }.Render(ctx);
 
         await OpenMenu(component);
-        await component.FindAll("[role=menuitem]")[1].ClickAsync(new MouseEventArgs());
+        await component.FindAll("[role=menuitem]")[3].ClickAsync(new MouseEventArgs());
 
         using (Assert.EnterMultipleScope())
         {
@@ -511,7 +511,7 @@ public class FilesCardRenderTests
         var component = new Card { Files = [PdfFile()] }.Render(ctx);
 
         await OpenMenu(component);
-        await component.FindAll("[role=menuitem]")[0].ClickAsync(new MouseEventArgs());
+        await component.FindAll("[role=menuitem]")[2].ClickAsync(new MouseEventArgs());
 
         using (Assert.EnterMultipleScope())
         {
@@ -550,7 +550,7 @@ public class FilesCardRenderTests
             .Render(ctx);
 
         await OpenMenu(component);
-        await component.FindAll("[role=menuitem]")[0].ClickAsync(new MouseEventArgs());
+        await component.FindAll("[role=menuitem]")[2].ClickAsync(new MouseEventArgs());
         await component.Find("input.ec-file-rename-input").InputAsync(new ChangeEventArgs { Value = "Nový název" });
         await component.FindAll(".ec-file-rename .ec-button")[0].ClickAsync(new MouseEventArgs());
 
@@ -582,14 +582,14 @@ public class FilesCardRenderTests
             .Render(ctx);
 
         await OpenMenu(component);
-        await component.FindAll("[role=menuitem]")[0].ClickAsync(new MouseEventArgs());
+        await component.FindAll("[role=menuitem]")[2].ClickAsync(new MouseEventArgs());
         await component.Find("input.ec-file-rename-input").InputAsync(new ChangeEventArgs { Value = "Zrušený" });
         await component.Find("input.ec-file-rename-input").KeyDownAsync(new KeyboardEventArgs { Key = "Escape" });
 
         Assert.That(component.FindAll(".ec-file-rename"), Is.Empty, "Escape leaves the input");
 
         await OpenMenu(component);
-        await component.FindAll("[role=menuitem]")[0].ClickAsync(new MouseEventArgs());
+        await component.FindAll("[role=menuitem]")[2].ClickAsync(new MouseEventArgs());
         await component.Find("input.ec-file-rename-input").InputAsync(new ChangeEventArgs { Value = "Uložený" });
         await component.Find("input.ec-file-rename-input").KeyDownAsync(new KeyboardEventArgs { Key = "Enter" });
 
@@ -607,7 +607,7 @@ public class FilesCardRenderTests
         var component = new Card { Files = [PdfFile()] }.Render(ctx);
 
         await OpenMenu(component);
-        await component.FindAll("[role=menuitem]")[0].ClickAsync(new MouseEventArgs());
+        await component.FindAll("[role=menuitem]")[2].ClickAsync(new MouseEventArgs());
         await component.Find("input.ec-file-rename-input").InputAsync(new ChangeEventArgs { Value = "Nový" });
         await component.Find("input.ec-file-rename-input").KeyDownAsync(new KeyboardEventArgs { Key = key });
 
@@ -638,7 +638,7 @@ public class FilesCardRenderTests
             .Render(ctx);
 
         await OpenMenu(component);
-        await component.FindAll("[role=menuitem]")[0].ClickAsync(new MouseEventArgs());
+        await component.FindAll("[role=menuitem]")[2].ClickAsync(new MouseEventArgs());
         await component.Find("input.ec-file-rename-input").InputAsync(new ChangeEventArgs { Value = "   " });
         await component.FindAll(".ec-file-rename .ec-button")[0].ClickAsync(new MouseEventArgs());
 
@@ -668,7 +668,7 @@ public class FilesCardRenderTests
             .Render(ctx);
 
         await OpenMenu(component);
-        await component.FindAll("[role=menuitem]")[0].ClickAsync(new MouseEventArgs());
+        await component.FindAll("[role=menuitem]")[2].ClickAsync(new MouseEventArgs());
         await component.Find("input.ec-file-rename-input").InputAsync(new ChangeEventArgs { Value = "Obsazený" });
         await component.FindAll(".ec-file-rename .ec-button")[0].ClickAsync(new MouseEventArgs());
 
@@ -686,16 +686,41 @@ public class FilesCardRenderTests
         component.Find(".ec-file-row button.ec-file-name").Click();
         component.WaitForAssertion(() => Assert.That(component.FindAll("dialog .ec-preview-pdf"), Has.Count.EqualTo(1)));
 
-        Assert.That(component.Find(".ec-preview-position").TextContent, Is.EqualTo("1 z 3"));
+        Assert.That(component.Find(".ec-preview-position").TextContent, Is.EqualTo("Soubor 1 z 3"));
 
         component.Find("button[aria-label='Další soubor']").Click();
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.Find(".ec-preview-position").TextContent, Is.EqualTo("2 z 3"));
+            Assert.That(component.Find(".ec-preview-position").TextContent, Is.EqualTo("Soubor 2 z 3"));
             Assert.That(component.Find(".ec-preview-name").TextContent, Is.EqualTo("Smlouva.doc"));
             Assert.That(component.Find(".ec-preview-message-title").TextContent, Is.EqualTo("Náhled tohoto typu souboru není k dispozici"));
         }
+    }
+
+    private static FileUploadResult Stored(FileListItem file, FileUploadOutcome outcome)
+    {
+        return new FileUploadResult { File = file with { Version = file.Version + 1, VersionCount = file.VersionCount + 1 }, Outcome = outcome };
+    }
+
+    private static FileListItem Versioned(string fileName, int version, int count)
+    {
+        return File(fileName) with { Version = version, VersionCount = count };
+    }
+
+    private static IReadOnlyList<FileVersionItem> VersionItems()
+    {
+        return
+        [
+            new FileVersionItem { Number = 3, SizeBytes = 3072, Created = new DateTime(2025, 9, 4, 10, 0, 0, DateTimeKind.Utc), UploaderEmail = "jan.priklad@example.cz" },
+            new FileVersionItem { Number = 2, SizeBytes = 2048, Created = new DateTime(2025, 9, 3, 10, 0, 0, DateTimeKind.Utc), UploaderEmail = "jana.ukazkova@example.cz" },
+            new FileVersionItem { Number = 1, SizeBytes = 1024, Created = new DateTime(2025, 9, 2, 10, 0, 0, DateTimeKind.Utc), UploaderEmail = "jan.priklad@example.cz" },
+        ];
+    }
+
+    private static string Normalize(string text)
+    {
+        return string.Join(' ', text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
     }
 
     private static FileUploadResult Stored(string name)
@@ -719,11 +744,215 @@ public class FilesCardRenderTests
         var downloader = new StubFileDownloader();
         ctx.Services.AddSingleton(downloader);
         ctx.Services.AddSingleton<IFileDownloader>(downloader);
+        ctx.Services.AddSingleton(new StubFilePicker());
+        ctx.Services.AddSingleton<IFilePicker>(static sp => sp.GetRequiredService<StubFilePicker>());
         ctx.Services.AddSingleton<IBlobUrls>(new StubBlobUrls());
         ctx.Services.AddSingleton<IFilePreviews>(new StubFilePreviews());
         ctx.Services.AddSingleton<IAuthSession>(new StubAuthSession());
 
         return ctx;
+    }
+
+    [Test]
+    public void AMultiVersionRowCarriesItsVersionChipAndASingleVersionRowNone()
+    {
+        using var ctx = NewContext();
+
+        var component = new Card { Files = [PdfFile(), Versioned("a.txt", 3, 3)] }.Render(ctx);
+
+        var rows = component.FindAll(".ec-file-row");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(rows[0].QuerySelector(".ec-file-meta .ec-badge"), Is.Null);
+            Assert.That(rows[1].QuerySelector(".ec-file-meta .ec-badge-file-version")!.TextContent.Trim(), Is.EqualTo("verze 3"));
+        }
+    }
+
+    [Test]
+    public void TheCompactRowNamesTheVersionInItsMetaLine()
+    {
+        using var ctx = NewContext();
+
+        var file = Versioned("a.txt", 2, 2);
+        var component = new Card { Files = [file], Compact = true }.Render(ctx);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(Normalize(component.Find(".ec-file-meta").TextContent), Is.EqualTo($"verze 2 · 1 kB · {MomentDisplay.Text(file.Created)}"));
+            Assert.That(component.FindAll(".ec-file-meta .ec-badge"), Is.Empty);
+        }
+    }
+
+    [Test]
+    public async Task ABatchReportsNewVersionsAndUnchangedFilesAndHighlightsWhatItStored()
+    {
+        await using var ctx = NewContext();
+
+        var stored = File("nový.txt");
+        var same = Versioned("stejný.txt", 2, 2);
+        var added = Versioned("další.txt", 3, 3);
+        var component = new Card
+        {
+            Files = [stored, same, added],
+            UploadFile = (picked, _) => Task.FromResult(picked.Name switch
+            {
+                "nový.txt" => new FileUploadResult { File = stored, Outcome = FileUploadOutcome.NewFile },
+                "stejný.txt" => new FileUploadResult { File = same, Outcome = FileUploadOutcome.Unchanged },
+                _ => new FileUploadResult { File = added, Outcome = FileUploadOutcome.NewVersion },
+            }),
+        }
+            .Render(ctx);
+
+        component.FindComponent<InputFile>().UploadFiles(
+            InputFileContent.CreateFromText("a", "nový.txt"),
+            InputFileContent.CreateFromText("b", "stejný.txt"),
+            InputFileContent.CreateFromText("c", "další.txt"));
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-file-notice span"), Has.Count.EqualTo(2)));
+
+        var rows = component.FindAll(".ec-file-row");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(
+                component.FindAll(".ec-file-notice span").Select(static notice => notice.TextContent),
+                Is.EqualTo(["stejný.txt: obsah je stejný jako poslední verze, nová verze nevznikla.", "další.txt: nahráno jako verze 3."]));
+            Assert.That(rows[0].ClassList, Does.Contain("ec-file-row-fresh"));
+            Assert.That(rows[0].QuerySelector(".ec-badge-fresh")!.TextContent.Trim(), Is.EqualTo("nový"));
+            Assert.That(rows[1].ClassList, Does.Not.Contain("ec-file-row-fresh"), "an unchanged file marks nothing");
+            Assert.That(rows[1].QuerySelector(".ec-badge-fresh"), Is.Null);
+            Assert.That(rows[2].ClassList, Does.Contain("ec-file-row-fresh"));
+            Assert.That(rows[2].QuerySelector(".ec-badge-fresh")!.TextContent.Trim(), Is.EqualTo("nová verze"));
+        }
+    }
+
+    [Test]
+    public async Task ANewVersionFromTheMenuOpensThePickerAndUploadsTheFile()
+    {
+        await using var ctx = NewContext();
+
+        var picker = ctx.Services.GetRequiredService<StubFilePicker>();
+        var uploaded = new List<(string File, string Picked)>();
+        var file = File("a.pdf");
+        var component = new Card
+        {
+            Files = [file],
+            UploadFileVersion = (target, picked, _) =>
+            {
+                uploaded.Add((target.FileName, picked.Name));
+
+                return Task.FromResult(Stored(target, FileUploadOutcome.NewVersion));
+            },
+        }
+            .Render(ctx);
+
+        await OpenMenu(component);
+        await component.FindAll("[role=menuitem]")[0].ClickAsync(new MouseEventArgs());
+
+        Assert.That(picker.Picked, Has.Count.EqualTo(1));
+
+        VersionInput(component).UploadFiles(InputFileContent.CreateFromText("x", "nová.pdf"));
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.Find(".ec-file-notice").TextContent.Trim(), Is.EqualTo("a.pdf: nahráno jako verze 2.")));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(uploaded, Is.EqualTo([("a.pdf", "nová.pdf")]));
+            Assert.That(component.Find(".ec-file-row .ec-badge-fresh").TextContent.Trim(), Is.EqualTo("nová verze"));
+        }
+    }
+
+    [Test]
+    public async Task ANewVersionWithAnotherExtensionIsRefusedWithoutAnUpload()
+    {
+        await using var ctx = NewContext();
+
+        var calls = 0;
+        var component = new Card
+        {
+            Files = [File("a.pdf")],
+            UploadFileVersion = (target, _, _) =>
+            {
+                calls++;
+
+                return Task.FromResult(Stored(target, FileUploadOutcome.NewVersion));
+            },
+        }
+            .Render(ctx);
+
+        await OpenMenu(component);
+        await component.FindAll("[role=menuitem]")[0].ClickAsync(new MouseEventArgs());
+
+        VersionInput(component).UploadFiles(InputFileContent.CreateFromText("x", "návrh.docx"));
+
+        await component.WaitForAssertionAsync(
+            () => Assert.That(component.Find(".ec-alert").TextContent, Is.EqualTo("návrh.docx: nová verze souboru a.pdf musí mít příponu .pdf.")));
+
+        Assert.That(calls, Is.Zero);
+    }
+
+    [Test]
+    public async Task TheVersionsItemOpensTheVersionsOfTheFile()
+    {
+        await using var ctx = NewContext();
+
+        var component = new Card { Files = [Versioned("a.pdf", 3, 3)], LoadFileVersions = static (_, _) => Task.FromResult(VersionItems()) }.Render(ctx);
+
+        await OpenMenu(component);
+        await component.FindAll("[role=menuitem]")[1].ClickAsync(new MouseEventArgs());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(Normalize(component.Find(".ec-versions-subtitle").TextContent), Is.EqualTo("a.pdf · 3 verze"));
+            Assert.That(component.FindAll(".ec-versions-row"), Has.Count.EqualTo(3));
+        }
+    }
+
+    [Test]
+    public async Task DeletingAMultiVersionFileSaysHowManyVersionsGo()
+    {
+        await using var ctx = NewContext();
+
+        var component = new Card { Files = [Versioned("a.pdf", 3, 3)] }.Render(ctx);
+
+        await OpenMenu(component);
+        await component.FindAll("[role=menuitem]")[3].ClickAsync(new MouseEventArgs());
+
+        Assert.That(component.Find(".ec-confirm-text").TextContent, Does.Contain("se všemi 3 verzemi"));
+    }
+
+    [Test]
+    public async Task AVersionPreviewedFromTheVersionsOpensThatVersion()
+    {
+        await using var ctx = NewContext();
+
+        var loaded = new List<int?>();
+        var component = new Card
+        {
+            Files = [Versioned("a.txt", 3, 3)],
+            LoadFileVersions = static (_, _) => Task.FromResult(VersionItems()),
+            LoadContent = (_, version, _) =>
+            {
+                loaded.Add(version);
+
+                return Task.FromResult<Stream>(new MemoryStream("abc"u8.ToArray()));
+            },
+        }
+            .Render(ctx);
+
+        await OpenMenu(component);
+        await component.FindAll("[role=menuitem]")[1].ClickAsync(new MouseEventArgs());
+        await component.FindAll(".ec-versions-row")[1].QuerySelector(".ec-versions-preview button")!.ClickAsync(new MouseEventArgs());
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-preview-versions-old"), Has.Count.EqualTo(1)));
+
+        Assert.That(loaded, Is.EqualTo(new int?[] { 2 }));
+    }
+
+    private static IRenderedComponent<InputFile> VersionInput(IRenderedComponent<FilesCard> component)
+    {
+        return component.FindComponents<InputFile>().Single(static input => input.Instance.AdditionalAttributes is { } attributes && attributes.TryGetValue("id", out var id) && Equals(id, "files-version-input"));
     }
 
     private static async Task OpenMenu(IRenderedComponent<FilesCard> component)
@@ -794,6 +1023,14 @@ public class FilesCardRenderTests
 
         public Func<FileListItem, string, CancellationToken, Task> RenameFile { get; init; } = static (_, _, _) => Task.CompletedTask;
 
+        public Func<FileListItem, IBrowserFile, CancellationToken, Task<FileUploadResult>> UploadFileVersion { get; init; } = static (file, _, _) => Task.FromResult(Stored(file, FileUploadOutcome.NewVersion));
+
+        public Func<FileListItem, CancellationToken, Task<IReadOnlyList<FileVersionItem>>> LoadFileVersions { get; init; } = static (_, _) => Task.FromResult<IReadOnlyList<FileVersionItem>>([]);
+
+        public Func<FileListItem, int, CancellationToken, Task> DeleteFileVersion { get; init; } = static (_, _, _) => Task.CompletedTask;
+
+        public Func<FileListItem, int?, CancellationToken, Task<Stream>> LoadContent { get; init; } = static (_, _, _) => Task.FromResult<Stream>(new MemoryStream("abc"u8.ToArray()));
+
         public IRenderedComponent<FilesCard> Render(BunitContext ctx)
         {
             var files = this.Files;
@@ -803,7 +1040,10 @@ public class FilesCardRenderTests
                 .Add(static card => card.Title, this.Title)
                 .Add(static card => card.LoadFiles, loadFiles)
                 .Add(static card => card.UploadFile, this.UploadFile)
-                .Add(static card => card.LoadContent, static (_, _, _) => Task.FromResult<Stream>(new MemoryStream("abc"u8.ToArray())))
+                .Add(static card => card.LoadContent, this.LoadContent)
+                .Add(static card => card.UploadFileVersion, this.UploadFileVersion)
+                .Add(static card => card.LoadFileVersions, this.LoadFileVersions)
+                .Add(static card => card.DeleteFileVersion, this.DeleteFileVersion)
                 .Add(static card => card.RenameFile, this.RenameFile)
                 .Add(static card => card.DeleteFile, static (_, _) => Task.CompletedTask)
                 .Add(static card => card.OwnerGoneError, "spis už neexistuje.")

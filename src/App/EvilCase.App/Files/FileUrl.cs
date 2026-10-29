@@ -1,5 +1,3 @@
-using System.Globalization;
-
 namespace EvilBrains.EvilCase.App.Files;
 
 internal static class FileUrl

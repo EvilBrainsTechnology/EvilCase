@@ -79,6 +79,12 @@
     [Parameter, EditorRequired]
     public required Guid FileId { get; set; }
 
+    /// <summary>
+    /// The version of the stored file; null is the current one.
+    /// </summary>
+    [Parameter]
+    public int? Version { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         await this.Load();
@@ -91,7 +97,7 @@
 
         try
         {
-            this.signature = await this.SignaturesClient.ReadFileSignature(this.FileId, version: null, CancellationToken.None);
+            this.signature = await this.SignaturesClient.ReadFileSignature(this.FileId, version: this.Version, CancellationToken.None);
         }
         catch (Exception exception) when (exception is ApiException or HttpRequestException)
         {

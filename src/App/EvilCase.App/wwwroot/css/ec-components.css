@@ -333,6 +333,21 @@ html {
     color: var(--ec-file-signature-text);
 }
 
+.ec-badge-file-version {
+    background: var(--ec-closed-bg);
+    color: var(--ec-closed-text);
+}
+
+.ec-badge-fresh {
+    background: var(--ec-file-fresh-bg);
+    color: var(--ec-accent-text);
+}
+
+.ec-badge-current {
+    background: var(--ec-accent-soft);
+    color: var(--ec-accent-text);
+}
+
 .ec-badge-dot {
     flex: 0 0 auto;
     width: var(--ec-space-2);
@@ -956,6 +971,15 @@ html {
 .ec-file-row-renaming,
 .ec-file-row-renaming:hover {
     background: var(--ec-surface-header);
+}
+
+.ec-file-row-fresh {
+    background: var(--ec-file-row-fresh-bg);
+}
+
+.ec-file-meta .ec-badge {
+    margin-right: var(--ec-space-3);
+    vertical-align: middle;
 }
 
 .ec-file-main {
@@ -2097,9 +2121,316 @@ html {
     font-variant-numeric: tabular-nums;
 }
 
-/* A signed document's signers sit between the header and its preview. */
-.ec-modal-large .ec-modal-body:has(> .ec-preview-signers) {
+/* Seznam verzí souboru (docs/design/verze-souboru.html). */
+.ec-modal-sheet {
+    width: min(var(--ec-modal-sheet-width), calc(100vw - 2 * var(--ec-space-5)));
+}
+
+.ec-versions-heading {
+    display: flex;
+    flex: 1 1 auto;
     flex-direction: column;
+    gap: calc(var(--ec-space-1) / 2);
+    min-width: 0;
+}
+
+.ec-versions-subtitle {
+    overflow: hidden;
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-muted);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.ec-versions-list {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ec-versions-row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-4);
+    padding: var(--ec-space-4) 0;
+    border-bottom: 1px solid var(--ec-border-subtle);
+}
+
+.ec-versions-row:last-child {
+    border-bottom: 0;
+}
+
+/* The row's main button stretches over the whole row; the actions sit above it. */
+.ec-versions-main {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: calc(var(--ec-space-1) / 2);
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--ec-text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.ec-versions-main::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+}
+
+.ec-versions-main:focus-visible {
+    outline: none;
+}
+
+.ec-versions-main:focus-visible::after {
+    border-radius: var(--ec-radius-lg);
+    box-shadow: inset 0 0 0 2px var(--ec-accent);
+}
+
+.ec-versions-title {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-versions-meta {
+    font-size: var(--ec-text-xs);
+    color: var(--ec-text-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.ec-versions-actions {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: var(--ec-space-2);
+}
+
+.ec-versions-delete .ec-button,
+.ec-versions-delete-file .ec-button {
+    color: var(--ec-danger-solid);
+}
+
+.ec-versions-delete-file .ec-button {
+    border-color: var(--ec-danger-border);
+}
+
+.ec-versions-note {
+    flex: 1 1 auto;
+    margin: 0;
+    font-size: var(--ec-text-xs);
+    line-height: var(--ec-leading-body);
+    color: var(--ec-text-muted);
+}
+
+.ec-modal-sheet .ec-modal-footer {
+    align-items: center;
+}
+
+.ec-versions-tap-hint,
+.ec-versions-delete-more {
+    display: none;
+}
+
+/* A button that is a label of a hidden file input. */
+.ec-file-pick {
+    flex: 0 0 auto;
+    cursor: pointer;
+}
+
+.ec-file-pick:has(input:focus-visible) {
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-file-pick-disabled {
+    cursor: default;
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* A notice about what an upload stored. */
+.ec-file-notice {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-1);
+    padding: var(--ec-space-4) var(--ec-space-5);
+    border-radius: var(--ec-radius-lg);
+    background: var(--ec-accent-soft);
+    color: var(--ec-accent-text);
+    font-size: var(--ec-text-sm);
+    line-height: var(--ec-leading-body);
+}
+
+/* The version bar, a notice and a signed document's signers sit between the header and the preview. */
+.ec-modal-large .ec-modal-body:has(> :is(.ec-preview-signers, .ec-preview-versions, .ec-preview-alert)) {
+    flex-direction: column;
+}
+
+.ec-preview-alert {
+    flex: 0 0 auto;
+    margin: var(--ec-space-4) var(--ec-space-6) 0;
+}
+
+.ec-preview-actions .ec-button[aria-pressed="true"] {
+    background: var(--ec-accent-soft);
+    border-color: var(--ec-accent-ring);
+    color: var(--ec-accent-text);
+}
+
+.ec-preview-versions-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-width: var(--ec-space-6);
+    height: var(--ec-space-6);
+    margin-left: var(--ec-space-2);
+    padding: 0 var(--ec-space-2);
+    border-radius: var(--ec-radius-pill);
+    background: var(--ec-closed-bg);
+    font-size: var(--ec-text-xs);
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-preview-actions .ec-button[aria-pressed="true"] .ec-preview-versions-count {
+    background: var(--ec-surface);
+}
+
+.ec-preview-versions {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ec-space-3) var(--ec-space-4);
+    padding: var(--ec-space-3) var(--ec-space-6);
+    border-bottom: 1px solid var(--ec-border);
+    background: var(--ec-surface-header);
+    color: var(--ec-text-soft);
+    font-size: var(--ec-text-sm);
+}
+
+.ec-preview-versions-old {
+    border-bottom-color: var(--ec-preview-version-old-border);
+    background: var(--ec-preview-version-old-bg);
+    color: var(--ec-preview-version-old-text);
+}
+
+.ec-preview-versions-label {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-2);
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-preview-versions-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+    box-sizing: border-box;
+    min-height: var(--ec-control-sm);
+    padding: 0 var(--ec-space-3) 0 var(--ec-space-4);
+    border: 1px solid var(--ec-border-strong);
+    border-radius: var(--ec-radius-md);
+    background: var(--ec-surface);
+    color: var(--ec-text);
+    font-size: var(--ec-text-sm);
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-preview-versions-old .ec-preview-versions-trigger {
+    border-color: var(--ec-preview-version-old-border);
+    color: inherit;
+}
+
+.ec-preview-versions-note {
+    flex: 1 1 auto;
+}
+
+.ec-preview-versions .ec-button-quiet {
+    color: var(--ec-accent-text);
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-preview-versions-panel {
+    padding: var(--ec-space-2);
+}
+
+.ec-preview-versions-list {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ec-preview-versions-option,
+.ec-preview-versions-manage {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    align-self: stretch;
+    gap: calc(var(--ec-space-1) / 2);
+    box-sizing: border-box;
+    min-height: var(--ec-control-md);
+    min-width: 0;
+    padding: var(--ec-space-3) var(--ec-space-4);
+    border: 0;
+    border-radius: var(--ec-radius-md);
+    background: transparent;
+    color: var(--ec-text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.ec-preview-versions-manage {
+    justify-content: center;
+}
+
+.ec-preview-versions-option:hover,
+.ec-preview-versions-manage:hover {
+    background: var(--ec-surface-sunken);
+}
+
+.ec-preview-versions-option[aria-current="true"] {
+    background: var(--ec-accent-soft);
+    color: var(--ec-accent-text);
+}
+
+.ec-preview-versions-option-title {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-preview-versions-option-meta {
+    font-size: var(--ec-text-xs);
+    color: var(--ec-text-muted);
+}
+
+.ec-preview-versions-divider {
+    height: var(--ec-hairline);
+    margin: var(--ec-space-2) var(--ec-space-1);
+    background: var(--ec-border-subtle);
+}
+
+.ec-preview-versions-error {
+    margin: 0;
+    padding: var(--ec-space-3) var(--ec-space-4);
+    color: var(--ec-danger-text);
 }
 
 .ec-preview-signers {
@@ -3783,6 +4114,78 @@ html {
 
     .ec-preview-action-label {
         display: none;
+    }
+
+    .ec-file-pick-label {
+        display: none;
+    }
+
+    .ec-modal-header .ec-file-pick {
+        width: var(--ec-touch-min);
+        height: var(--ec-touch-min);
+        padding: 0;
+        justify-content: center;
+    }
+
+    .ec-file-meta .ec-badge {
+        margin-right: 0;
+    }
+
+    .ec-modal-sheet {
+        width: auto;
+        max-width: none;
+        max-height: calc(100vh - var(--ec-space-8));
+        margin: auto 0 0;
+        border-bottom: 0;
+        border-radius: var(--ec-radius-card) var(--ec-radius-card) 0 0;
+    }
+
+    .ec-modal-sheet .ec-modal-footer {
+        flex-direction: column;
+        align-items: stretch;
+        padding-bottom: calc(var(--ec-space-5) + env(safe-area-inset-bottom));
+    }
+
+    .ec-versions-preview {
+        display: none;
+    }
+
+    .ec-versions-tap-hint,
+    .ec-versions-delete-more {
+        display: inline;
+    }
+
+    .ec-versions-row {
+        padding: var(--ec-space-3) 0;
+    }
+
+    .ec-versions-actions .ec-button,
+    .ec-versions-delete-file .ec-button {
+        min-height: var(--ec-touch-min);
+    }
+
+    .ec-versions-actions .ec-button {
+        width: var(--ec-touch-min);
+        height: var(--ec-touch-min);
+        padding: 0;
+    }
+
+    .ec-versions-delete-file .ec-button {
+        justify-content: center;
+    }
+
+    .ec-versions-delete-file {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .ec-preview-versions {
+        padding: var(--ec-space-3) var(--ec-space-4);
+    }
+
+    .ec-preview-versions-option,
+    .ec-preview-versions-manage {
+        min-height: var(--ec-touch-min);
     }
 
     .ec-modal-large .ec-modal-header .ec-preview-back .ec-button {

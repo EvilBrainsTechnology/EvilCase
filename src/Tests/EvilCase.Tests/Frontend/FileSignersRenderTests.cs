@@ -306,6 +306,23 @@ public class FileSignersRenderTests
         }
     }
 
+    [Test]
+    public async Task TheVersionIsPassedToTheServer()
+    {
+        await using var ctx = NewContext(out var client);
+        var fileId = Guid.CreateVersion7();
+        client.ListFileSigners(fileId, 2, Arg.Any<CancellationToken>()).Returns(new FileSignersResponse { Signers = [Person] });
+
+        var component = ctx.Render<FileSigners>(parameters => parameters
+            .Add(static signers => signers.FileId, fileId)
+            .Add(static signers => signers.FileName, "Smlouva.pdf.p7m")
+            .Add(static signers => signers.Version, 2));
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-preview-signer"), Has.Count.EqualTo(1)));
+
+        await client.Received(1).ListFileSigners(fileId, 2, Arg.Any<CancellationToken>());
+    }
+
     private static string Chip(IRenderedComponent<FileSigners> component)
     {
         return component.Find(".ec-preview-signer .ec-badge").TextContent.Trim();

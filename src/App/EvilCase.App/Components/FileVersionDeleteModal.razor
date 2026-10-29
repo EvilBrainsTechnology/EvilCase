@@ -1,0 +1,78 @@
+@using System.Net
+@using EvilBrains.ApiClient
+@inject ILogger<FileVersionDeleteModal> Logger
+
+<EcModal Title="Smazat verzi" Open="this.Open" OpenChanged="this.OpenChanged">
+    <ChildContent>
+        <p class="ec-confirm-text">Opravdu smazat verzi @this.Number souboru <strong>@this.FileName</strong>? Ostatní verze zůstanou. Akci nelze vrátit zpět.</p>
+        @if (this.error is not null)
+        {
+            <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.error</div>
+        }
+    </ChildContent>
+    <Footer>
+        <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Form" Icon="@AppIcons.X" OnClick="this.Cancel">Zrušit</EcButton>
+        <EcButton Variant="EcButtonVariant.Danger" Size="EcButtonSize.Form" Icon="@AppIcons.Trash"
+                  Disabled="@this.busy" OnClick="this.DeleteVersion">Smazat verzi</EcButton>
+    </Footer>
+</EcModal>
+
+@code {
+    [Parameter, EditorRequired]
+    public required string FileName { get; set; }
+
+    [Parameter, EditorRequired]
+    public required int Number { get; set; }
+
+    [Parameter, EditorRequired]
+    public required Func<CancellationToken, Task> Delete { get; set; }
+
+    [Parameter]
+    public bool Open { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    [Parameter]
+    public EventCallback OnDeleted { get; set; }
+
+    private string? error;
+
+    private bool busy;
+
+    private async Task Cancel()
+    {
+        await this.OpenChanged.InvokeAsync(false);
+    }
+
+    private async Task DeleteVersion()
+    {
+        this.busy = true;
+        this.error = null;
+
+        try
+        {
+            await this.Delete(CancellationToken.None);
+
+            await this.OnDeleted.InvokeAsync();
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+        {
+            this.error = "Verze už neexistuje.";
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
+        {
+            this.error = "Jedinou verzi nejde smazat samostatně. Smažte celý soubor.";
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Deleting the file version failed");
+
+            this.error = "Verzi se nepodařilo smazat. Zkuste to za chvíli znovu.";
+        }
+        finally
+        {
+            this.busy = false;
+        }
+    }
+}
