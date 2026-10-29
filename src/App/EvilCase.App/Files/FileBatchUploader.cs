@@ -17,10 +17,11 @@ internal static class FileBatchUploader
 
     public static async Task Run(
         InputFileChangeEventArgs args,
-        Func<IBrowserFile, CancellationToken, Task> uploadFile,
+        Func<IBrowserFile, CancellationToken, Task<FileUploadResult>> uploadFile,
         string ownerGoneError,
         List<string> failures,
         Action<int, string> reportProgress,
+        Action<FileUploadResult> reportUploaded,
         ILogger logger)
     {
         if (args.FileCount > MaxBatchFiles)
@@ -45,7 +46,7 @@ internal static class FileBatchUploader
 
             try
             {
-                await uploadFile(file, CancellationToken.None);
+                reportUploaded(await uploadFile(file, CancellationToken.None));
             }
             catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.RequestEntityTooLarge)
             {

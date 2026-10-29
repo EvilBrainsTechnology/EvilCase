@@ -307,7 +307,7 @@
     public EventCallback<Guid> FileIdChanged { get; set; }
 
     [Parameter, EditorRequired]
-    public required Func<FileListItem, CancellationToken, Task<Stream>> LoadContent { get; set; }
+    public required Func<FileListItem, int?, CancellationToken, Task<Stream>> LoadContent { get; set; }
 
     [Parameter, EditorRequired]
     public required Func<FileListItem, string, CancellationToken, Task> Rename { get; set; }
@@ -455,7 +455,7 @@
                 if (!token.IsCancellationRequested)
                 {
                     this.loading = false;
-                    this.url = FileUrl.Content(file.FileId);
+                    this.url = FileUrl.Content(file.FileId, null);
 
                     // The browser keeps requesting ranges while the file is shown; the next file or the close ends it.
                     _ = this.Session.KeepFresh(token);
@@ -464,7 +464,7 @@
                 return;
             }
 
-            await using var content = await this.LoadContent(file, token);
+            await using var content = await this.LoadContent(file, null, token);
 
             await this.Load(file.FileName, preview, content, token);
 

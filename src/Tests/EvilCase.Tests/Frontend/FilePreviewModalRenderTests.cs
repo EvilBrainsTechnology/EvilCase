@@ -1015,7 +1015,7 @@ public class FilePreviewModalRenderTests
         return ctx.Render<FilePreviewModal>(parameters => parameters
             .Add(static modal => modal.Files, files)
             .Add(static modal => modal.FileId, fileId)
-            .Add(static modal => modal.LoadContent, loadContent)
+            .Add(static modal => modal.LoadContent, async (item, _, token) => await loadContent(item, token))
             .Add(static modal => modal.Rename, renameFile)
             .Add(static modal => modal.OnDownload, item => onDownload?.Invoke(item))
             .Add(static modal => modal.OnRenamed, () => onRenamed?.Invoke())

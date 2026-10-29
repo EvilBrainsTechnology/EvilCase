@@ -29,3 +29,8 @@ export async function downloadContent(fileName, contentStream) {
     // The download has taken the URL long before.
     setTimeout(() => URL.revokeObjectURL(url), 10000);
 }
+
+// A menu item cannot be the label of a file input, so it opens the input's picker itself.
+export function pickFile(input) {
+    input.click();
+}

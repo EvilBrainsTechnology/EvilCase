@@ -9,13 +9,13 @@ namespace EvilBrains.EvilCase.Tests.Frontend;
 /// </summary>
 internal sealed class StubFileDownloader : IFileDownloader
 {
-    public List<(Guid FileId, string FileName)> Downloaded { get; } = [];
+    public List<(Guid FileId, int? Version, string FileName)> Downloaded { get; } = [];
 
     public List<(string FileName, byte[] Content)> DownloadedContents { get; } = [];
 
-    public Task DownloadFile(Guid fileId, string fileName, CancellationToken token)
+    public Task DownloadFile(Guid fileId, int? version, string fileName, CancellationToken token)
     {
-        this.Downloaded.Add((fileId, fileName));
+        this.Downloaded.Add((fileId, version, fileName));
 
         return Task.CompletedTask;
     }

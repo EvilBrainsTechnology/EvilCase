@@ -138,13 +138,13 @@
     public required Func<CancellationToken, Task<IReadOnlyList<FileListItem>>> LoadFiles { get; set; }
 
     [Parameter, EditorRequired]
-    public required Func<IBrowserFile, CancellationToken, Task> UploadFile { get; set; }
+    public required Func<IBrowserFile, CancellationToken, Task<FileUploadResult>> UploadFile { get; set; }
 
     /// <summary>
-    /// The bytes the preview shows.
+    /// The bytes the preview shows, of the numbered version or the current one.
     /// </summary>
     [Parameter, EditorRequired]
-    public required Func<FileListItem, CancellationToken, Task<Stream>> LoadContent { get; set; }
+    public required Func<FileListItem, int?, CancellationToken, Task<Stream>> LoadContent { get; set; }
 
     [Parameter, EditorRequired]
     public required Func<FileListItem, string, CancellationToken, Task> RenameFile { get; set; }
@@ -286,6 +286,7 @@
                 this.uploadName = name;
                 this.StateHasChanged();
             },
+            _ => { },
             this.Logger);
 
         this.busyRound = null;
@@ -312,7 +313,7 @@
 
     private async Task Download(FileListItem file)
     {
-        await this.Downloader.DownloadFile(file.FileId, file.FileName, CancellationToken.None);
+        await this.Downloader.DownloadFile(file.FileId, null, file.FileName, CancellationToken.None);
     }
 
     private void StartRename(FileListItem file)

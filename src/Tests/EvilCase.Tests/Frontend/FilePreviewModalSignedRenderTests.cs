@@ -356,7 +356,7 @@ public class FilePreviewModalSignedRenderTests
         return ctx.Render<FilePreviewModal>(parameters => parameters
             .Add(static modal => modal.Files, files)
             .Add(static modal => modal.FileId, fileId)
-            .Add(static modal => modal.LoadContent, (item, _) => Task.FromResult<Stream>(new MemoryStream(content(item))))
+            .Add(static modal => modal.LoadContent, (item, _, _) => Task.FromResult<Stream>(new MemoryStream(content(item))))
             .Add(static modal => modal.Rename, static (_, _, _) => Task.CompletedTask)
             .Add(static modal => modal.OnDownload, item => onDownload?.Invoke(item))
             .Add(static modal => modal.FileIdChanged, changed => onFileIdChanged?.Invoke(changed))

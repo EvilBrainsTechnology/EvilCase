@@ -40,7 +40,7 @@ public class FilesCardRenderTests
             {
                 uploaded.Add(file.Name);
 
-                return Task.CompletedTask;
+                return Task.FromResult(Stored(file.Name));
             },
         }
             .Render(ctx);
@@ -79,9 +79,9 @@ public class FilesCardRenderTests
             UploadFile = async (file, _) =>
             {
                 uploaded.Add(file.Name);
+                await (string.Equals(file.Name, "a.txt", StringComparison.Ordinal) ? gate.Task : Task.CompletedTask);
 
-                if (string.Equals(file.Name, "a.txt", StringComparison.Ordinal))
-                    await gate.Task;
+                return Stored(file.Name);
             },
         }
             .Render(ctx);
@@ -143,7 +143,7 @@ public class FilesCardRenderTests
             {
                 uploaded.Add(file.Name);
 
-                return Task.CompletedTask;
+                return Task.FromResult(Stored(file.Name));
             },
         }
             .Render(ctx);
@@ -390,7 +390,7 @@ public class FilesCardRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(downloader.Downloaded, Is.EqualTo([(file.FileId, file.FileName)]));
+            Assert.That(downloader.Downloaded.Single(), Is.EqualTo((file.FileId, (int?)null, file.FileName)));
             Assert.That(download.ClassList, Does.Contain("ec-button-secondary").And.Contain("ec-button-icon"));
             Assert.That(download.TextContent.Trim(), Is.Empty);
             Assert.That(component.FindAll("dialog"), Is.Empty);
@@ -698,6 +698,15 @@ public class FilesCardRenderTests
         }
     }
 
+    private static FileUploadResult Stored(string name)
+    {
+        return new FileUploadResult
+        {
+            File = new FileListItem { FileId = Guid.CreateVersion7(), FileName = name, SizeBytes = 1, Created = DateTime.UtcNow, Version = 1, VersionCount = 1 },
+            Outcome = FileUploadOutcome.NewFile,
+        };
+    }
+
     private static BunitContext NewContext()
     {
         var ctx = new BunitContext();
@@ -781,7 +790,7 @@ public class FilesCardRenderTests
 
         public Func<CancellationToken, Task<IReadOnlyList<FileListItem>>>? LoadFiles { get; init; }
 
-        public Func<IBrowserFile, CancellationToken, Task> UploadFile { get; init; } = static (_, _) => Task.CompletedTask;
+        public Func<IBrowserFile, CancellationToken, Task<FileUploadResult>> UploadFile { get; init; } = static (file, _) => Task.FromResult(Stored(file.Name));
 
         public Func<FileListItem, string, CancellationToken, Task> RenameFile { get; init; } = static (_, _, _) => Task.CompletedTask;
 
@@ -794,7 +803,7 @@ public class FilesCardRenderTests
                 .Add(static card => card.Title, this.Title)
                 .Add(static card => card.LoadFiles, loadFiles)
                 .Add(static card => card.UploadFile, this.UploadFile)
-                .Add(static card => card.LoadContent, static (_, _) => Task.FromResult<Stream>(new MemoryStream("abc"u8.ToArray())))
+                .Add(static card => card.LoadContent, static (_, _, _) => Task.FromResult<Stream>(new MemoryStream("abc"u8.ToArray())))
                 .Add(static card => card.RenameFile, this.RenameFile)
                 .Add(static card => card.DeleteFile, static (_, _) => Task.CompletedTask)
                 .Add(static card => card.OwnerGoneError, "spis už neexistuje.")

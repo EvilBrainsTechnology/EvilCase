@@ -695,6 +695,8 @@ public class ActRenderTests
         ctx.Services.AddSingleton(actFilesClient);
         ctx.Services.AddSingleton<IFileTransferClient>(new StubFileTransferClient());
         ctx.Services.AddSingleton<IFileDownloader>(new StubFileDownloader());
+        ctx.Services.AddSingleton<IFilePicker>(new StubFilePicker());
+        ctx.Services.AddSingleton(Substitute.For<IFileVersionsClient>());
         ctx.Services.AddSingleton<IClipboardWriter>(new StubClipboardWriter());
         ctx.Services.AddSingleton(labelsClient);
         ctx.Services.AddSingleton(Substitute.For<IContactsClient>());

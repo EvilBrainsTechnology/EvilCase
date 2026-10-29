@@ -314,7 +314,7 @@
         return (await this.ActFilesClient.ListActFiles(this.ActId, token)).Items;
     }
 
-    private Task UploadFile(IBrowserFile file, CancellationToken token)
+    private Task<FileUploadResult> UploadFile(IBrowserFile file, CancellationToken token)
     {
         return this.FileTransfer.UploadActFile(this.ActId, file, token);
     }

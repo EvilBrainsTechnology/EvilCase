@@ -259,7 +259,7 @@
         return (await this.CaseFilesClient.ListCaseFiles(this.CaseId, token)).Items;
     }
 
-    private Task UploadFile(IBrowserFile file, CancellationToken token)
+    private Task<FileUploadResult> UploadFile(IBrowserFile file, CancellationToken token)
     {
         return this.FileTransfer.UploadCaseFile(this.CaseId, file, token);
     }
