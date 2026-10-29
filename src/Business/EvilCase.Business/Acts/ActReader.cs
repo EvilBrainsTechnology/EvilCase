@@ -1,5 +1,6 @@
 using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.Api.Contract.Lists;
+using EvilBrains.EvilCase.Business.Cases;
 using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Data.DbContexts;
 using Microsoft.EntityFrameworkCore;
@@ -51,6 +52,7 @@ internal sealed class ActReader(IDbSession dbSession) : IActReader
 
         return detail with
         {
+            Ancestors = await dbSession.Current.Cases.PathTo(detail.CaseId, token),
             ActPosition = index + 1,
             CaseActCount = caseActs.Count,
             CaseTimeline = caseActs.GetRange(first, last - first + 1),

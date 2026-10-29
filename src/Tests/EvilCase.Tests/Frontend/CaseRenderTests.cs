@@ -67,6 +67,41 @@ public class CaseRenderTests
     }
 
     [Test]
+    public void TheCrumbsLinkEveryCaseAboveTheCaseTheRootFirst()
+    {
+        using var ctx = new BunitContext();
+
+        var rootId = Guid.CreateVersion7();
+        var parentId = Guid.CreateVersion7();
+        var caseId = Guid.CreateVersion7();
+
+        var detail = new CaseDetail
+        {
+            CaseId = caseId,
+            CaseNumber = "EC/20260821-001",
+            Date = new DateOnly(2026, 8, 21),
+            Title = "Žádost o informace",
+            Status = CaseStatus.Active,
+            Ancestors = [new CaseCrumb { CaseId = rootId, Title = "Přestupek" }, new CaseCrumb { CaseId = parentId, Title = "Náhrada újmy" }],
+        };
+
+        Serve(ctx, caseId, detail);
+
+        var component = ctx.Render<Case>(parameters => parameters.Add(static page => page.CaseId, caseId));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(
+                component.FindAll(".ec-crumb").Select(static crumb => crumb.TextContent),
+                Is.EqualTo(["Spisy", "Přestupek", "Náhrada újmy", "Žádost o informace"]));
+            Assert.That(
+                component.FindAll("a.ec-crumb").Select(static crumb => crumb.GetAttribute("href")),
+                Is.EqualTo(["/cases", $"/cases/{rootId}", $"/cases/{parentId}"]));
+        }
+    }
+
+
+    [Test]
     public void ACaseWithoutADescriptionShowsNothingUnderTheTitle()
     {
         using var ctx = new BunitContext();

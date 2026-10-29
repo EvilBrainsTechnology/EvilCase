@@ -3,6 +3,7 @@ using Bunit;
 using EvilBrains.ApiClient;
 using EvilBrains.EvilCase.Api.Client;
 using EvilBrains.EvilCase.Api.Contract.Acts;
+using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Comments;
 using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Api.Contract.Files;
@@ -298,6 +299,44 @@ public class ActRenderTests
             () => Assert.That(component.Find(".ec-detail-fact .ec-alert").TextContent, Does.Contain("nepodařilo uložit")),
             TimeSpan.FromSeconds(2));
     }
+
+    [Test]
+    public void TheCrumbsLinkTheActsCaseAndEveryCaseAboveItTheRootFirst()
+    {
+        using var ctx = new BunitContext();
+
+        var rootId = Guid.CreateVersion7();
+        var caseId = Guid.CreateVersion7();
+        var actId = Guid.CreateVersion7();
+
+        var detail = new ActDetail
+        {
+            ActId = actId,
+            CaseId = caseId,
+            CaseNumber = "EC/20260807-001",
+            CaseTitle = "Žádost o informace",
+            CaseStatus = CaseStatus.Active,
+            ActNumber = "EC/20260807-001/20260807-001",
+            Date = new DateOnly(2026, 8, 7),
+            Title = "Podání",
+            Ancestors = [new CaseCrumb { CaseId = rootId, Title = "Přestupek" }, new CaseCrumb { CaseId = caseId, Title = "Žádost o informace" }],
+        };
+
+        Serve(ctx, actId, detail);
+
+        var component = RenderAct(ctx, actId);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(
+                component.FindAll(".ec-crumb").Select(static crumb => crumb.TextContent),
+                Is.EqualTo(["Spisy", "Přestupek", "Žádost o informace", "Podání"]));
+            Assert.That(
+                component.FindAll("a.ec-crumb").Select(static crumb => crumb.GetAttribute("href")),
+                Is.EqualTo(["/cases", $"/cases/{rootId}", $"/cases/{caseId}"]));
+        }
+    }
+
 
     [Test]
     public void ThePagerNamesThePositionAndLinksTheNeighbours()

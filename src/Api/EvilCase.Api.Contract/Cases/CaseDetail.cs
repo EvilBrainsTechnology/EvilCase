@@ -24,5 +24,10 @@ public sealed record CaseDetail
 
     public CaseListItem? ParentCase { get; init; }
 
+    /// <summary>
+    /// The cases above this one, the root first; empty for a root case.
+    /// </summary>
+    public IReadOnlyList<CaseCrumb> Ancestors { get; init; } = [];
+
     public IReadOnlyList<LabelItem> Labels { get; init; } = [];
 }

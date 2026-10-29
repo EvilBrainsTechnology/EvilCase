@@ -1,3 +1,4 @@
+using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.Domain.Acts;
@@ -14,6 +15,11 @@ public sealed record ActDetail
     public required string CaseNumber { get; init; }
 
     public required string CaseTitle { get; init; }
+
+    /// <summary>
+    /// The act's case and every case above it, the root first.
+    /// </summary>
+    public IReadOnlyList<CaseCrumb> Ancestors { get; init; } = [];
 
     public required CaseStatus CaseStatus { get; init; }
 
