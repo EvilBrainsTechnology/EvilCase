@@ -63,6 +63,14 @@ public class AuthorizationFallbackTests
     }
 
     [Test]
+    public async Task ExportingTheTenantNeedsAToken()
+    {
+        using var response = await this.client.GetAsync(new Uri("/api/export", UriKind.Relative));
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+    }
+
+    [Test]
     public async Task VerifyingFileSignersNeedsAToken()
     {
         using var response = await this.client.GetAsync(new Uri($"/api/files/{Guid.CreateVersion7()}/signers/verification", UriKind.Relative));

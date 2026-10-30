@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "EvilCase export v1, !spis.json of a case",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "type", "caseId", "caseNumber", "externalCaseNumber", "date", "title", "description", "status", "parentCaseId",
+    "contact", "labels", "comments", "files", "created", "updated", "path"
+  ],
+  "properties": {
+    "type": { "enum": ["case"] },
+    "caseId": { "$ref": "common.schema.json#/definitions/id" },
+    "caseNumber": { "type": "string" },
+    "externalCaseNumber": { "$ref": "common.schema.json#/definitions/optionalText" },
+    "date": { "type": "string", "format": "date" },
+    "title": { "type": "string" },
+    "description": { "description": "Markdown.", "$ref": "common.schema.json#/definitions/optionalText" },
+    "status": { "enum": ["Active", "WaitingOnAuthority", "Closed"] },
+    "parentCaseId": { "description": "Null for a root case.", "type": ["string", "null"], "format": "uuid" },
+    "contact": {
+      "description": "The counterpart.",
+      "oneOf": [{ "type": "null" }, { "$ref": "common.schema.json#/definitions/contactReference" }]
+    },
+    "labels": { "type": "array", "items": { "$ref": "common.schema.json#/definitions/labelReference" } },
+    "comments": { "type": "array", "items": { "$ref": "common.schema.json#/definitions/comment" } },
+    "files": { "description": "The case's own files, not those of its sub-cases or acts.", "type": "array", "items": { "$ref": "common.schema.json#/definitions/file" } },
+    "created": { "$ref": "common.schema.json#/definitions/moment" },
+    "updated": { "$ref": "common.schema.json#/definitions/optionalMoment" },
+    "path": { "description": "The case's folder in the archive.", "type": "string" }
+  }
+}

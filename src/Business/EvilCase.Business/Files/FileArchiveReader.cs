@@ -63,10 +63,7 @@ internal sealed class FileArchiveReader(IDbSession dbSession, IFileBlobStore blo
 
     public async Task WriteFileArchive(FileArchive archive, Stream target, CancellationToken token)
     {
-        await using var output = new DeferredSyncWriteStream(target);
-
-        // Not disposed on a failure: disposing writes the central directory, which would make a cut archive look whole.
-        var zip = await ZipArchive.CreateAsync(output, ZipArchiveMode.Create, leaveOpen: true, entryNameEncoding: null, token);
+        await using var zip = await ZipStreamWriter.Create(target, token);
 
         foreach (var entry in archive.Entries)
         {
@@ -74,17 +71,10 @@ internal sealed class FileArchiveReader(IDbSession dbSession, IFileBlobStore blo
                 ?? throw new IOException($"The blob at {entry.StoragePath} is missing.");
 
             // Stored documents are mostly compressed already; the fastest level still shrinks text and XML.
-            var zipEntry = zip.CreateEntry(entry.EntryName, CompressionLevel.Fastest);
-            zipEntry.LastWriteTime = entry.Created;
-
-            await using (var entryStream = await zipEntry.OpenAsync(token))
-                await content.CopyToAsync(entryStream, token);
-
-            await output.FlushAsync(token);
+            await zip.WriteEntry(entry.EntryName, entry.Created, CompressionLevel.Fastest, async entryStream => await content.CopyToAsync(entryStream, token), token);
         }
 
-        await zip.DisposeAsync();
-        await output.FlushAsync(token);
+        await zip.Complete(token);
 
         logger.LogInformation("File archive of {OwnerId} was written, {EntryCount} entries", archive.OwnerId, archive.Entries.Count);
     }

@@ -2,6 +2,7 @@ using System.Diagnostics;
 using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Files;
+using EvilBrains.EvilCase.Business.Export;
 using EvilBrains.EvilCase.Business.Files;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -164,6 +165,25 @@ public class FileTransferController : ControllerBase
         return new EmptyResult();
     }
 
+    /// <summary>
+    /// Everything the caller's tenant holds (SDD-022).
+    /// </summary>
+    [HttpGet("export")]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult> DownloadTenantExport([FromServices] ITenantExporter exporter, [FromServices] ILogger<FileTransferController> logger, CancellationToken token)
+    {
+        var export = exporter.CreateTenantExport();
+
+        await this.SendZip(
+            export.FileName,
+            async target => await exporter.WriteTenantExport(export, target, token),
+            exception => logger.LogError(exception, "The tenant export was cut short"),
+            token);
+
+        return new EmptyResult();
+    }
+
     // IFormFile.ContentType is never null, only empty, when a multipart part carries no Content-Type header.
     private static string? NormalizeMediaType(string mediaType)
     {
@@ -193,25 +213,34 @@ public class FileTransferController : ControllerBase
         };
     }
 
+    private async Task SendFileArchive(IFileArchiveReader archives, ILogger logger, FileArchive archive, CancellationToken token)
+    {
+        await this.SendZip(
+            archive.FileName,
+            async target => await archives.WriteFileArchive(archive, target, token),
+            exception => logger.LogError(exception, "File archive of {OwnerId} was cut short", archive.OwnerId),
+            token);
+    }
+
     /// <summary>
     /// A failure before the first byte is an ordinary error response. A failure after it aborts the response, so the
     /// browser fails the download instead of saving a cut archive.
     /// </summary>
-    private async Task SendFileArchive(IFileArchiveReader archives, ILogger logger, FileArchive archive, CancellationToken token)
+    private async Task SendZip(string fileName, Func<Stream, Task> write, Action<Exception> logCut, CancellationToken token)
     {
         var disposition = new ContentDispositionHeaderValue("attachment");
-        disposition.SetHttpFileName(archive.FileName);
+        disposition.SetHttpFileName(fileName);
         this.Response.Headers.ContentDisposition = disposition.ToString();
         this.Response.ContentType = "application/zip";
 
         try
         {
-            await archives.WriteFileArchive(archive, this.Response.Body, token);
+            await write(this.Response.Body);
         }
         catch (Exception exception) when (this.Response.HasStarted)
         {
             if (!token.IsCancellationRequested)
-                logger.LogError(exception, "File archive of {OwnerId} was cut short", archive.OwnerId);
+                logCut(exception);
 
             this.HttpContext.Abort();
         }

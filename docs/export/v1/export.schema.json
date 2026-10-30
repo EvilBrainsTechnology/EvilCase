@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "EvilCase export v1, export.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["type", "formatVersion", "exported", "applicationVersion", "tenantId", "tenantName"],
+  "properties": {
+    "type": { "enum": ["export"] },
+    "formatVersion": { "enum": [1] },
+    "exported": { "description": "When the export started; the archive holds the data as it stood then.", "$ref": "common.schema.json#/definitions/moment" },
+    "applicationVersion": { "type": "string" },
+    "tenantId": { "$ref": "common.schema.json#/definitions/id" },
+    "tenantName": { "type": "string" }
+  }
+}

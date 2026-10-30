@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "EvilCase export v1, Štítky/!stitky.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["type", "labels"],
+  "properties": {
+    "type": { "enum": ["labels"] },
+    "labels": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["labelId", "name", "color"],
+        "properties": {
+          "labelId": { "$ref": "common.schema.json#/definitions/id" },
+          "name": { "type": "string" },
+          "color": { "enum": ["Blue", "Azure", "Indigo", "Purple", "Pink", "Red", "Orange", "Yellow", "Lime", "Green", "Teal", "Cyan", "Gray"] }
+        }
+      }
+    }
+  }
+}

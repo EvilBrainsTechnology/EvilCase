@@ -16,6 +16,14 @@ internal static partial class FileArchiveLayout
     /// </summary>
     public static TimeZoneInfo Prague { get; } = TimeZoneInfo.FindSystemTimeZoneById("Europe/Prague");
 
+    /// <summary>
+    /// The UTC moment as it stood on Prague clocks.
+    /// </summary>
+    public static DateTimeOffset PragueTime(DateTime utc)
+    {
+        return TimeZoneInfo.ConvertTime(new DateTimeOffset(utc.Ticks, TimeSpan.Zero), Prague);
+    }
+
     public static string ArchiveName(string title, string fallback, bool includeVersions)
     {
         var name = FileNameRules.SafeFileName(title, fallback);
@@ -26,18 +34,19 @@ internal static partial class FileArchiveLayout
     /// <summary>
     /// Each file under its name, its older versions beside it as "Name (verze N).ext" where they are included. The
     /// versions come in file order, those of each file by number. The current versions claim their names first, in
-    /// file order, then the older ones; a name already claimed gets " (2)", " (3)" and on before its extension.
+    /// file order, then the older ones; a name already claimed, also one in <paramref name="claimed"/>, gets " (2)",
+    /// " (3)" and on before its extension.
     /// </summary>
-    public static List<FileArchiveEntry> Entries(IReadOnlyList<ArchivedVersion> versions, bool includeVersions)
+    public static List<FileArchiveEntry> Entries(IReadOnlyList<ArchivedVersion> versions, bool includeVersions, HashSet<string>? claimed = null)
     {
         var files = versions
             .GroupBy(static version => version.FileId)
             .Select(static file => file.ToList())
             .ToList();
 
-        var claimed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var names = files.ConvertAll(static file => SafeEntryName(file[^1].FileName));
-        var currentNames = names.ConvertAll(name => Claim(claimed, name));
+        claimed ??= ClaimedNames();
+        var names = files.ConvertAll(static file => SafeEntryName(file[^1].FileName, EntryFallback));
+        var currentNames = names.ConvertAll(name => ClaimFileName(claimed, name));
 
         var entries = new List<FileArchiveEntry>();
 
@@ -49,7 +58,7 @@ internal static partial class FileArchiveLayout
             {
                 var number = older.Number.ToString(CultureInfo.InvariantCulture);
 
-                entries.Add(Entry(older, Claim(claimed, Suffixed(names[index], $" (verze {number})"))));
+                entries.Add(Entry(older, ClaimFileName(claimed, Suffixed(names[index], $" (verze {number})"))));
             }
 
             entries.Add(Entry(file[^1], currentNames[index]));
@@ -58,18 +67,44 @@ internal static partial class FileArchiveLayout
         return entries;
     }
 
-    // No separator remains, and no run of dots another tool could read as a path step.
-    private static string SafeEntryName(string fileName)
+    /// <summary>
+    /// The names one folder of an archive holds.
+    /// </summary>
+    public static HashSet<string> ClaimedNames()
     {
-        return DotRun.Replace(FileNameRules.SafeFileName(fileName, EntryFallback), ".");
+        return new HashSet<string>(StringComparer.OrdinalIgnoreCase);
     }
 
-    private static string Claim(HashSet<string> claimed, string name)
+    /// <summary>
+    /// The folder's name, or where it is claimed already, the name with " (2)", " (3)" and on at its end.
+    /// </summary>
+    public static string ClaimFolderName(HashSet<string> claimed, string name)
+    {
+        return Claim(claimed, name, static (folder, suffix) => folder + suffix);
+    }
+
+    /// <summary>
+    /// The file's name, or where it is claimed already, the name with " (2)", " (3)" and on before its extension.
+    /// </summary>
+    public static string ClaimFileName(HashSet<string> claimed, string name)
+    {
+        return Claim(claimed, name, Suffixed);
+    }
+
+    /// <summary>
+    /// No separator remains, and no run of dots another tool could read as a path step.
+    /// </summary>
+    public static string SafeEntryName(string name, string fallback)
+    {
+        return DotRun.Replace(FileNameRules.SafeFileName(name, fallback), ".");
+    }
+
+    private static string Claim(HashSet<string> claimed, string name, Func<string, string, string> suffixed)
     {
         var candidate = name;
 
         for (var copy = 2; !claimed.Add(candidate); copy++)
-            candidate = Suffixed(name, $" ({copy.ToString(CultureInfo.InvariantCulture)})");
+            candidate = suffixed(name, $" ({copy.ToString(CultureInfo.InvariantCulture)})");
 
         return candidate;
     }
@@ -86,7 +121,7 @@ internal static partial class FileArchiveLayout
         return new FileArchiveEntry
         {
             EntryName = entryName,
-            Created = TimeZoneInfo.ConvertTime(new DateTimeOffset(version.Created.Ticks, TimeSpan.Zero), Prague),
+            Created = PragueTime(version.Created),
             StoragePath = version.StoragePath,
         };
     }
