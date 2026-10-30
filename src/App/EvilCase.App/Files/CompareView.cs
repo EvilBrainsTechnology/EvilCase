@@ -1,0 +1,6 @@
+namespace EvilBrains.EvilCase.App.Files;
+
+/// <summary>
+/// How a compare of two texts shows: whether the texts formatted, the lines added and removed and the number of changes.
+/// </summary>
+public sealed record CompareView(bool Formatted, int Added, int Removed, int Changes);

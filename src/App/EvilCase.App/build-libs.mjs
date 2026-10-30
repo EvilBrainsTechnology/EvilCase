@@ -205,11 +205,13 @@ export async function formatCode(text, language) {
 
 await bundle(codePreview, join(lib, 'code-preview'), 'code-preview.min.js', { format: 'esm' });
 
-// The text editor and its read-only view (CodeMirror): line numbers, changed-line marks, history, search marks and the
-// highlighting of JSON, XML, YAML, HTML and Markdown. It neither formats nor completes what is typed.
+// The text editor, its read-only view and the compare of two texts (CodeMirror): line numbers, changed-line marks,
+// history, search marks and the highlighting of JSON, XML, YAML, HTML and Markdown. It neither formats nor completes what
+// is typed.
 const textEditor = `
-import { Compartment, EditorState, RangeSet, StateEffect, StateField } from '@codemirror/state';
-import { Decoration, EditorView, GutterMarker, drawSelection, gutter, highlightActiveLine, highlightActiveLineGutter, highlightSpecialChars, keymap, lineNumbers } from '@codemirror/view';
+import { Compartment, EditorState, RangeSet, RangeSetBuilder, StateEffect, StateField, Text } from '@codemirror/state';
+import { Decoration, EditorView, GutterMarker, WidgetType, drawSelection, gutter, gutterLineClass, gutterWidgetClass, highlightActiveLine, highlightActiveLineGutter, highlightSpecialChars, keymap, lineNumbers } from '@codemirror/view';
+import { Chunk, MergeView, getChunks, unifiedMergeView } from '@codemirror/merge';
 import { defaultKeymap, history, historyKeymap, indentLess, indentMore, insertNewlineKeepIndent, redo, redoDepth, selectAll, undo, undoDepth } from '@codemirror/commands';
 import { SearchQuery, findNext, findPrevious, openSearchPanel, search, setSearchQuery } from '@codemirror/search';
 import { HighlightStyle, bracketMatching, indentUnit, syntaxHighlighting } from '@codemirror/language';
@@ -464,37 +466,42 @@ const shownMatchMarks = marks(setShownMatch, 'ec-text-editor-hit-current');
 const measure = new Compartment();
 const measureThemes = [EditorView.theme({}), EditorView.theme({})];
 
-// Opens a read-only view of the text in parent, highlighted as by createEditor: the text is selected and copied but
-// never changed, shows no cursor and opens no keyboard on a touch. scroller is the element the view scrolls in; onFind
-// runs on Ctrl+F or Cmd+F.
+// A read-only text, in a view and in a compare: highlighted as by createEditor, selected and copied but never changed,
+// with no cursor and no keyboard on a touch, and with the marks of the app's search.
+function readOnly(doc, language, label, onFind) {
+    return [
+        shared(label, onFind),
+        EditorState.readOnly.of(true),
+        EditorState.transactionFilter.of((transaction) => (transaction.docChanged ? [] : transaction)),
+        EditorView.editable.of(false),
+        // Focusable, so after a click the keys select all, copy, find and scroll the text.
+        EditorView.contentAttributes.of({ tabindex: '0' }),
+        EditorView.theme({ '.cm-cursorLayer': { display: 'none' } }),
+        keymap.of([{ key: 'Mod-a', run: selectAll }]),
+        colours(doc, language),
+        matchMarks,
+        shownMatchMarks,
+    ];
+}
+
+// Whether the range of view stands whole inside the box of scroller.
+function inView(view, scroller, from, to) {
+    const box = scroller.getBoundingClientRect();
+    const start = view.coordsAtPos(from, 1);
+    const end = view.coordsAtPos(to, -1);
+
+    return start !== null && end !== null && start.top >= box.top && end.bottom <= box.bottom;
+}
+
+// Opens a read-only view of the text in parent, highlighted as by createEditor. scroller is the element the view scrolls
+// in; onFind runs on Ctrl+F or Cmd+F.
 export function createViewer(parent, scroller, text, language, label, onFind) {
     const state = (doc) => EditorState.create({
         doc,
-        extensions: [
-            gutter({ class: 'ec-text-editor-changes' }),
-            shared(label, onFind),
-            EditorState.readOnly.of(true),
-            EditorState.transactionFilter.of((transaction) => (transaction.docChanged ? [] : transaction)),
-            EditorView.editable.of(false),
-            // Focusable, so after a click the keys select all, copy, find and scroll the text.
-            EditorView.contentAttributes.of({ tabindex: '0' }),
-            EditorView.theme({ '.cm-cursorLayer': { display: 'none' } }),
-            keymap.of([{ key: 'Mod-a', run: selectAll }]),
-            colours(doc, language),
-            matchMarks,
-            shownMatchMarks,
-            measure.of([]),
-        ],
+        extensions: [gutter({ class: 'ec-text-editor-changes' }), readOnly(doc, language, label, onFind), measure.of([])],
     });
     const view = new EditorView({ parent, state: state(text) });
     let measured = 0;
-    const inView = (from, to) => {
-        const box = scroller.getBoundingClientRect();
-        const start = view.coordsAtPos(from, 1);
-        const end = view.coordsAtPos(to, -1);
-
-        return start !== null && end !== null && start.top >= box.top && end.bottom <= box.bottom;
-    };
 
     return {
         text: () => view.state.doc.toString(),
@@ -504,10 +511,210 @@ export function createViewer(parent, scroller, text, language, label, onFind) {
         setMatches: (ranges) => view.dispatch({ effects: [setMatches.of(ranges), setShownMatch.of([])] }),
         // The match shown scrolls to the middle of the view when it is out of view.
         showMatch: ([from, to]) => view.dispatch({
-            effects: [setShownMatch.of([[from, to]]), ...(inView(from, to) ? [] : [EditorView.scrollIntoView(from, { y: 'center' })])],
+            effects: [setShownMatch.of([[from, to]]), ...(inView(view, scroller, from, to) ? [] : [EditorView.scrollIntoView(from, { y: 'center' })])],
         }),
         remeasure: (anchor) => view.dispatch({ effects: [measure.reconfigure(measureThemes[measured++ % 2]), EditorView.scrollIntoView(anchor, { y: 'start', yMargin: 0 })] }),
         destroy: () => view.destroy(),
+    };
+}
+
+// The diff of a compare and of its summary; the merge view's own default.
+const diffConfig = { scanLimit: 500 };
+
+// The unchanged lines kept beside a change, and the fewest a collapsed run hides.
+const keptLines = 3;
+const collapsedLines = 5;
+
+const setRuns = StateEffect.define();
+const expandRun = StateEffect.define();
+const setChangedLines = StateEffect.define();
+
+// A collapsed run of unchanged lines; a click shows them in every view of the compare.
+class CollapsedRun extends WidgetType {
+    constructor(run, lines, expand) {
+        super();
+        this.run = run;
+        this.lines = lines;
+        this.expand = expand;
+    }
+
+    eq(other) {
+        return other.run === this.run && other.lines === this.lines;
+    }
+
+    toDOM() {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'ec-text-compare-run';
+        button.textContent = '… ' + this.lines + ' nezměněných řádků';
+        button.setAttribute('aria-label', 'Zobrazit ' + this.lines + ' nezměněných řádků');
+        button.addEventListener('click', () => this.expand(this.run));
+        return button;
+    }
+
+    ignoreEvent() {
+        return true;
+    }
+
+    get estimatedHeight() {
+        return 32;
+    }
+}
+
+const runs = StateField.define({
+    create: () => Decoration.none,
+    update(value, transaction) {
+        for (const effect of transaction.effects) {
+            if (effect.is(setRuns)) value = effect.value;
+            if (effect.is(expandRun)) value = value.update({ filter: (from, to, decoration) => decoration.spec.run !== effect.value });
+        }
+
+        return value;
+    },
+    provide: (field) => EditorView.decorations.from(field),
+});
+
+const compareLines = StateField.define({
+    create: () => RangeSet.empty,
+    update(value, transaction) {
+        for (const effect of transaction.effects) {
+            if (effect.is(setChangedLines)) value = effect.value;
+        }
+
+        return value;
+    },
+    provide: (field) => gutterLineClass.from(field),
+});
+
+class LineClass extends GutterMarker {
+    constructor(elementClass) {
+        super();
+        this.elementClass = elementClass;
+    }
+}
+
+const removedLine = new LineClass('ec-text-compare-removed');
+const addedLine = new LineClass('ec-text-compare-added');
+const gapLine = new LineClass('ec-text-compare-gap');
+// A line of a chunk the other side has no text for: it is wholly added or removed, with no word marked.
+const wholeLine = Decoration.line({ class: 'ec-text-compare-whole' });
+
+// The positions of a chunk on one side of the compare.
+function range(chunk, older) {
+    return older ? [chunk.fromA, chunk.toA, chunk.endA] : [chunk.fromB, chunk.toB, chunk.endB];
+}
+
+// The runs of unchanged lines between the chunks that collapse, numbered in order on each side alike, the lines wholly
+// added or removed, and the changed lines' marks for the gutters.
+function compareMarks(doc, chunks, older, expand) {
+    const collapsed = new RangeSetBuilder();
+    const changed = new RangeSetBuilder();
+    let previous = 1;
+
+    for (let index = 0; ; index++) {
+        const chunk = index < chunks.length ? chunks[index] : null;
+        const first = index > 0 ? previous + keptLines : 1;
+        const last = chunk ? doc.lineAt(range(chunk, older)[0]).number - 1 - keptLines : doc.lines;
+
+        if (last - first + 1 >= collapsedLines) {
+            collapsed.add(doc.line(first).from, doc.line(last).to, Decoration.replace({
+                widget: new CollapsedRun(index, last - first + 1, expand), block: true, run: index,
+            }));
+        }
+
+        if (!chunk) break;
+
+        const [from, to, end] = range(chunk, older);
+        const [otherFrom, otherTo] = range(chunk, !older);
+
+        if (to > from) {
+            for (let line = doc.lineAt(from).number; line <= doc.lineAt(end).number; line++) {
+                if (otherTo === otherFrom) collapsed.add(doc.line(line).from, doc.line(line).from, wholeLine);
+                changed.add(doc.line(line).from, doc.line(line).from, older ? removedLine : addedLine);
+            }
+        }
+
+        previous = doc.lineAt(Math.min(doc.length, to)).number;
+    }
+
+    return [setRuns.of(collapsed.finish()), setChangedLines.of(changed.finish())];
+}
+
+// Counts the changed lines of newer against older as a compare shows them: { added, removed, changes }. A difference in
+// line breaks alone is none.
+export function compareSummary(older, newer) {
+    const a = Text.of(older.split(/\\r\\n?|\\n/));
+    const b = Text.of(newer.split(/\\r\\n?|\\n/));
+    const lines = (doc, from, to, end) => (to > from ? doc.lineAt(end).number - doc.lineAt(from).number + 1 : 0);
+    const chunks = Chunk.build(a, b, diffConfig);
+
+    return {
+        added: chunks.reduce((sum, chunk) => sum + lines(b, chunk.fromB, chunk.toB, chunk.endB), 0),
+        removed: chunks.reduce((sum, chunk) => sum + lines(a, chunk.fromA, chunk.toA, chunk.endA), 0),
+        changes: chunks.length,
+    };
+}
+
+// Opens a read-only compare of older and newer in parent: side by side, or with unified in one column with the removed
+// lines above the added ones. Both texts are highlighted as by createViewer; changed words are marked and long runs of
+// unchanged lines collapse. labels names the older, the newer and the one-column text; scroller is the element the
+// compare scrolls in; onFind runs on Ctrl+F or Cmd+F.
+export function createCompare(parent, scroller, older, newer, language, unified, labels, onFind) {
+    const views = [];
+    const expand = (run) => {
+        for (const view of views) view.dispatch({ effects: expandRun.of(run) });
+    };
+    // The block widgets beside the text are the removed lines in one column and the gaps facing them side by side.
+    const widgetClass = (widgetLine) => gutterWidgetClass.of((view, widget) => (widget instanceof CollapsedRun ? null : widgetLine));
+    let merge = null;
+
+    if (unified) {
+        views.push(new EditorView({
+            parent,
+            state: EditorState.create({
+                doc: newer,
+                extensions: [
+                    readOnly(newer, language, labels[2], onFind),
+                    unifiedMergeView({ original: older, mergeControls: false, gutter: false, diffConfig }),
+                    runs,
+                    compareLines,
+                    widgetClass(removedLine),
+                ],
+            }),
+        }));
+    } else {
+        const side = (doc, label) => ({ doc, extensions: [readOnly(doc, language, label, onFind), runs, compareLines, widgetClass(gapLine)] });
+        merge = new MergeView({ parent, a: side(older, labels[0]), b: side(newer, labels[1]), gutter: false, diffConfig });
+        views.push(merge.a, merge.b);
+    }
+
+    for (const view of views) {
+        const { chunks, side } = getChunks(view.state);
+        view.dispatch({ effects: compareMarks(view.state.doc, chunks, side === 'a', expand) });
+    }
+
+    // The view that shows the newer text, where a change is gone to.
+    const newest = views.at(-1);
+
+    return {
+        // The texts the search goes through, one for each view: the older and the newer side by side, the newer alone in
+        // one column.
+        texts: () => views.map((view) => view.state.doc.toString()),
+        // How far down the text a position of a view stands; the views of a compare stand level.
+        top: (index, pos) => views[index].lineBlockAt(pos).top,
+        setMatches: (ranges) => views.forEach((view, index) => view.dispatch({ effects: [setMatches.of(ranges[index]), setShownMatch.of([])] })),
+        // A match inside a collapsed run shows the run first; the match comes to the middle of the view when it is out of view.
+        showMatch(index, [from, to]) {
+            const view = views[index];
+            view.state.field(runs).between(from, from, (start, end, decoration) => {
+                if (decoration.spec.run !== undefined) expand(decoration.spec.run);
+            });
+            views.forEach((each, other) => each.dispatch({ effects: setShownMatch.of(other === index ? [[from, to]] : []) }));
+            if (!inView(view, scroller, from, to)) view.dispatch({ effects: EditorView.scrollIntoView(from, { y: 'center' }) });
+        },
+        changes: () => getChunks(newest.state).chunks.length,
+        showChange: (number) => newest.dispatch({ effects: EditorView.scrollIntoView(getChunks(newest.state).chunks[number].fromB, { y: 'center' }) }),
+        destroy: () => (merge ?? views[0]).destroy(),
     };
 }
 `;

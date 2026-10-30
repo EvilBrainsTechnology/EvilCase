@@ -1,0 +1,234 @@
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+@inject ITextCompares Compares
+@inject ILogger<TextCompare> Logger
+
+@* The read-only compare of two texts: side by side or in one column, below a toolbar with the layout, the formatting,
+   the steps between the changes, their summary and the search. Versions stands above the texts. *@
+<div class="@(this.Unified ? "ec-preview-view ec-text-compare-view ec-text-compare-view-unified" : "ec-preview-view ec-text-compare-view")">
+    <div class="ec-preview-toolbar ec-text-compare-toolbar" role="toolbar" aria-label="Ovládání porovnání">
+        <div class="ec-segmented ec-segmented-compact ec-text-compare-layout" role="group" aria-label="Rozložení">
+            <button type="button" class="ec-segment" aria-pressed="@Pressed(!this.Unified)" @onclick="() => this.UnifiedChanged.InvokeAsync(false)">Vedle sebe</button>
+            <button type="button" class="ec-segment" aria-pressed="@Pressed(this.Unified)" @onclick="() => this.UnifiedChanged.InvokeAsync(true)">V jednom sloupci</button>
+        </div>
+        @if (this.Formats)
+        {
+            <span class="ec-preview-toolbar-separator ec-text-compare-layout" aria-hidden="true"></span>
+            <div class="ec-segmented ec-segmented-compact" role="group" aria-label="Podoba textu">
+                <button type="button" class="ec-segment" aria-pressed="@Pressed(!this.formatted)" disabled="@(!this.canFormat)"
+                        @onclick="() => this.ShowFormatted(false)">Původní</button>
+                <button type="button" class="ec-segment" aria-label="Formátovaně" aria-pressed="@Pressed(this.formatted)" disabled="@(!this.canFormat)"
+                        @onclick="() => this.ShowFormatted(true)">
+                    <span class="ec-markdown-mode-long">Formátovaně</span><span class="ec-markdown-mode-short" aria-hidden="true">Formát</span>
+                </button>
+            </div>
+        }
+        <span class="ec-preview-toolbar-separator" aria-hidden="true"></span>
+        <div class="ec-text-compare-changes" role="group" aria-label="Změny">
+            <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ArrowUp" AriaLabel="Předchozí změna"
+                      Disabled="@(this.view.Changes == 0)" OnClick="() => this.Step(previous: true)"><span class="ec-preview-toolbar-label">Předchozí změna</span></EcButton>
+            <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ArrowDown" AriaLabel="Další změna"
+                      Disabled="@(this.view.Changes == 0)" OnClick="() => this.Step(previous: false)"><span class="ec-preview-toolbar-label">Další změna</span></EcButton>
+            @if (this.ready)
+            {
+                <span class="ec-text-compare-summary"><span class="ec-text-compare-summary-added">+@this.view.Added</span> <span class="ec-text-compare-summary-removed">−@this.view.Removed</span><span class="ec-text-compare-summary-unit">@(" " + LinesWord(this.view.Removed))</span></span>
+            }
+        </div>
+        @if (this.Notes is not null || (this.Formats && this.ready && !this.canFormat))
+        {
+            <div class="ec-toolbar-notes">
+                @this.Notes
+                @if (this.Formats && this.ready && !this.canFormat)
+                {
+                    <ToolbarNote Text="Některou z verzí nejde naformátovat, porovnává se původní text." />
+                }
+            </div>
+        }
+        <ToolbarSearch @ref="this.search" Label="Hledat v dokumentu" Disabled="@(!this.ready)" Collapsible OnSearch="this.Search" />
+    </div>
+    <div class="ec-preview-stage ec-text-editor-stage ec-text-compare-stage">
+        <div class="ec-text-compare-card">
+            @this.Versions
+            <div @ref="this.host" class="ec-text-editor ec-text-compare"></div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private readonly CancellationTokenSource cancel = new();
+
+    private ElementReference host;
+
+    private DotNetObjectReference<TextCompare>? self;
+
+    private ToolbarSearch? search;
+
+    private bool ready;
+
+    private bool opened;
+
+    private bool formatted;
+
+    private bool canFormat;
+
+    private CompareView view = new(Formatted: false, Added: 0, Removed: 0, Changes: 0);
+
+    /// <summary>
+    /// The older text, the left one side by side.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required string Older { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string Newer { get; set; }
+
+    /// <summary>
+    /// The language both texts are highlighted in; null for plain text.
+    /// </summary>
+    [Parameter]
+    public CodeLanguage? Language { get; set; }
+
+    /// <summary>
+    /// The names of the older, the newer and the one-column text for assistive technology. Fixed for the compare's life.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required IReadOnlyList<string> Labels { get; set; }
+
+    /// <summary>
+    /// Whether both texts are formatted in <see cref="Language"/>, compare formatted when both format and offer the
+    /// switch to the original. Fixed for the compare's life.
+    /// </summary>
+    [Parameter]
+    public bool Formats { get; set; }
+
+    /// <summary>
+    /// Whether the texts show in one column; a narrow screen always shows them so.
+    /// </summary>
+    [Parameter]
+    public bool Unified { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> UnifiedChanged { get; set; }
+
+    /// <summary>
+    /// What stands above the texts, such as the choice of the versions.
+    /// </summary>
+    [Parameter]
+    public RenderFragment? Versions { get; set; }
+
+    [Parameter]
+    public RenderFragment? Notes { get; set; }
+
+    /// <summary>
+    /// Raised when the compare's script did not start.
+    /// </summary>
+    [Parameter]
+    public EventCallback OnUnavailable { get; set; }
+
+    [JSInvokable]
+    public void NotifyMatches(int current, int total)
+    {
+        this.search?.MatchesChanged(current, total, pending: false);
+    }
+
+    /// <summary>
+    /// Ctrl+F or Cmd+F in a text.
+    /// </summary>
+    [JSInvokable]
+    public async Task NotifyFind()
+    {
+        if (this.search is not null)
+            await this.search.Focus();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await this.cancel.CancelAsync();
+
+        if (this.opened)
+        {
+            try
+            {
+                await this.Compares.CloseCompare(this.host);
+            }
+            catch (JSException exception)
+            {
+                this.Logger.LogInformation(exception, "The compare was already gone");
+            }
+        }
+
+        this.self?.Dispose();
+        this.cancel.Dispose();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        this.self = DotNetObjectReference.Create(this);
+
+        // Set first: a close while the texts format stops the formatting.
+        this.opened = true;
+
+        try
+        {
+            var shown = await this.Compares.OpenCompare(this.host, this.Older, this.Newer, this.Language, this.Formats, this.Labels, this.self);
+
+            if (this.cancel.IsCancellationRequested)
+            {
+                await this.Compares.CloseCompare(this.host);
+
+                return;
+            }
+
+            (this.view, this.formatted, this.canFormat, this.ready) = (shown, shown.Formatted, shown.Formatted, true);
+            this.StateHasChanged();
+        }
+        catch (JSException exception)
+        {
+            this.Logger.LogWarning(exception, "The compare did not start");
+
+            if (!this.cancel.IsCancellationRequested)
+                await this.OnUnavailable.InvokeAsync();
+        }
+    }
+
+    private async Task ShowFormatted(bool shown)
+    {
+        if (shown == this.formatted)
+            return;
+
+        this.formatted = shown;
+
+        var changes = await this.Compares.ShowCompareFormatted(this.host, shown);
+
+        this.view = changes with { Formatted = shown };
+    }
+
+    private async Task Step(bool previous)
+    {
+        await this.Compares.StepCompareChange(this.host, previous);
+    }
+
+    private async Task Search(PreviewSearch search)
+    {
+        await this.Compares.FindInCompare(this.host, search.Query, search.Find);
+    }
+
+    private static string Pressed(bool value)
+    {
+        return value ? "true" : "false";
+    }
+
+    // 1 řádek, 2 až 4 řádky, 0 a 5 a více řádků.
+    private static string LinesWord(int count)
+    {
+        return count switch
+        {
+            1 => "řádek",
+            >= 2 and <= 4 => "řádky",
+            _ => "řádků",
+        };
+    }
+}

@@ -7,7 +7,7 @@ const zoomSteps = [0.5, 0.67, 0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3
 const typingDelay = 250;
 let library = null;
 
-function loadLibrary() {
+export function loadLibrary() {
     library ??= import(new URL('../lib/codemirror/codemirror.min.js', import.meta.url).href).catch((error) => {
         library = null;
         throw error;
@@ -77,11 +77,11 @@ export async function openViewer(host, text, language, format, label, view) {
     closeEditor(host);
 
     const stop = new AbortController();
-    const entry = { viewer: null, stop, stopFormat: null, view, original: text, formatted: null, zoom: 1, folded: null, query: '', matches: [], current: 0, typing: null };
+    const entry = { viewer: null, stop, view, original: text, formatted: null, zoom: 1, folded: null, query: '', matches: [], current: 0, typing: null };
 
     editors.set(host, entry);
 
-    const answer = format ? await formatInWorker(entry, text, language) : {};
+    const answer = format ? await formatInWorker(text, language, stop.signal) : {};
 
     // Closed while the text formatted.
     if (editors.get(host) !== entry) return { formatted: false, invalid: false };
@@ -105,8 +105,9 @@ export async function openViewer(host, text, language, format, label, view) {
     return { formatted: entry.formatted !== null, invalid: answer.invalid === true };
 }
 
-// Answers { formatted }, { invalid: true } or { failed: true }; closing the view stops the worker.
-function formatInWorker(entry, text, language) {
+// Formats text in its language off the page's thread; answers { formatted }, { invalid: true } or { failed: true }. An
+// abort of signal stops the worker.
+export function formatInWorker(text, language, signal) {
     return new Promise((answer) => {
         let worker;
 
@@ -118,13 +119,14 @@ function formatInWorker(entry, text, language) {
             return;
         }
 
+        const stop = () => finish({ failed: true });
         const finish = (data) => {
             worker.terminate();
-            entry.stopFormat = null;
+            signal.removeEventListener('abort', stop);
             answer(data);
         };
 
-        entry.stopFormat = () => finish({ failed: true });
+        signal.addEventListener('abort', stop);
         worker.onmessage = ({ data }) => finish(data);
         worker.onerror = () => finish({ failed: true });
         worker.postMessage({ text, language });
@@ -260,6 +262,5 @@ export function closeEditor(host) {
     editors.delete(host);
     entry.stop.abort();
     clearTimeout(entry.typing);
-    entry.stopFormat?.();
     (entry.editor ?? entry.viewer)?.destroy();
 }

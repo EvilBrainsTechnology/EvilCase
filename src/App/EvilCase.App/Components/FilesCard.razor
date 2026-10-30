@@ -147,13 +147,14 @@
                       LoadContent="this.LoadContent" Rename="this.RenameFile"
                       LoadVersions="this.LoadFileVersions" UploadVersion="this.UploadVersion" OnManageVersions="this.ManageVersions"
                       OnDownload="this.Download" OnRenamed="this.FileRenamed"
-                      EditOnOpen="this.previewEdits" Open OpenChanged="this.ClosePreview" />
+                      EditOnOpen="this.previewEdits" CompareOnOpen="this.previewCompares" Open OpenChanged="this.ClosePreview" />
 }
 
 @if (this.versionsFileId is { } versionsId && this.State.Items.FirstOrDefault(item => item.FileId == versionsId) is { } versionsFile)
 {
     <FileVersionsModal File="versionsFile" LoadVersions="this.LoadFileVersions" DeleteVersion="this.DeleteFileVersion" UploadVersion="this.UploadVersion"
                        OnPreview="number => this.ShowVersion(versionsFile, number)" OnDownload="number => this.DownloadVersion(versionsFile, number)"
+                       OnCompare="number => this.CompareVersion(versionsFile, number)"
                        OnDeleteFile="() => this.DeleteFromVersions(versionsFile)" OnChanged="this.ReloadFiles" Open OpenChanged="this.CloseVersions" />
 }
 
@@ -258,6 +259,9 @@
 
     // The preview opened by Upravit: it opens the editor once the file loads.
     private bool previewEdits;
+
+    // The preview opened by Porovnat s předchozí: it opens comparing.
+    private bool previewCompares;
 
     private Guid? versionsFileId;
 
@@ -515,6 +519,7 @@
         this.previewFileId = file.FileId;
         this.previewVersion = null;
         this.previewEdits = false;
+        this.previewCompares = false;
     }
 
     private void Edit(FileListItem file)
@@ -522,6 +527,7 @@
         this.previewFileId = file.FileId;
         this.previewVersion = null;
         this.previewEdits = true;
+        this.previewCompares = false;
     }
 
     private void PreviewFile(Guid fileId)
@@ -560,7 +566,14 @@
         this.versionsFileId = null;
         this.previewFileId = file.FileId;
         this.previewEdits = false;
+        this.previewCompares = false;
         this.previewVersion = number == file.Version ? null : number;
+    }
+
+    private void CompareVersion(FileListItem file, int number)
+    {
+        this.ShowVersion(file, number);
+        this.previewCompares = true;
     }
 
     private async Task DownloadVersion(FileListItem file, int number)
