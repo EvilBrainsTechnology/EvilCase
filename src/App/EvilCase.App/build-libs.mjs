@@ -205,8 +205,7 @@ export async function formatCode(text, language) {
 
 await bundle(codePreview, join(lib, 'code-preview'), 'code-preview.min.js', { format: 'esm' });
 
-// The text editor and its read-only view: CodeMirror with line numbers, marks of the lines changed since the editor
-// opened, history, a search driven from the app's own field, the marks of the app's search in the view, and the
+// The text editor and its read-only view (CodeMirror): line numbers, changed-line marks, history, search marks and the
 // highlighting of JSON, XML, YAML, HTML and Markdown. It neither formats nor completes what is typed.
 const textEditor = `
 import { Compartment, EditorState, RangeSet, StateEffect, StateField } from '@codemirror/state';
@@ -411,8 +410,9 @@ function marks(effect, className) {
 
 const matchMarks = marks(setMatches, 'ec-text-editor-hit');
 const shownMatchMarks = marks(setShownMatch, 'ec-text-editor-hit-current');
-// A changed theme makes CodeMirror measure the size of its text again, as a zoom needs.
+// A changed theme makes CodeMirror measure the size of its text again, as a zoom needs; two themes take turns.
 const measure = new Compartment();
+const measureThemes = [EditorView.theme({}), EditorView.theme({})];
 
 // Opens a read-only view of the text in parent, highlighted as by createEditor: the text is selected and copied but
 // never changed, and a touch opens no keyboard. onFind runs on Ctrl+F or Cmd+F.
@@ -433,7 +433,14 @@ export function createViewer(parent, text, language, label, onFind) {
         ],
     });
     const view = new EditorView({ parent, state: state(text) });
-    const inView = (from, to) => view.visibleRanges.some((range) => range.from <= from && to <= range.to);
+    let measured = 0;
+    const inView = (from, to) => {
+        const box = view.scrollDOM.getBoundingClientRect();
+        const start = view.coordsAtPos(from, 1);
+        const end = view.coordsAtPos(to, -1);
+
+        return start !== null && end !== null && start.top >= box.top && end.bottom <= box.bottom;
+    };
 
     return {
         text: () => view.state.doc.toString(),
@@ -445,7 +452,7 @@ export function createViewer(parent, text, language, label, onFind) {
         showMatch: ([from, to]) => view.dispatch({
             effects: [setShownMatch.of([[from, to]]), ...(inView(from, to) ? [] : [EditorView.scrollIntoView(from, { y: 'center' })])],
         }),
-        remeasure: (anchor) => view.dispatch({ effects: [measure.reconfigure(EditorView.theme({})), EditorView.scrollIntoView(anchor, { y: 'start', yMargin: 0 })] }),
+        remeasure: (anchor) => view.dispatch({ effects: [measure.reconfigure(measureThemes[measured++ % 2]), EditorView.scrollIntoView(anchor, { y: 'start', yMargin: 0 })] }),
         destroy: () => view.destroy(),
     };
 }

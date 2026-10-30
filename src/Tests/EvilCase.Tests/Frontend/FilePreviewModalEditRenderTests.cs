@@ -671,6 +671,20 @@ public class FilePreviewModalEditRenderTests
     }
 
     [Test]
+    public async Task AnEditOfCodeSwitchedToItsOriginalHasNoNoteOfIt()
+    {
+        await using var ctx = NewContext(out _);
+
+        var file = File("data.json");
+        var component = Render(ctx, [file], file.FileId, "{\"a\":1}"u8.ToArray());
+
+        await component.Find(".ec-preview-toolbar button[aria-label='Formátovat']").ClickAsync(new MouseEventArgs());
+        await component.Find("button[aria-label='Upravit']").ClickAsync(new MouseEventArgs());
+
+        Assert.That(component.FindAll(".ec-preview-note"), Is.Empty, "the preview showed the original when the edit began");
+    }
+
+    [Test]
     public async Task CancelShowsTheCodeFormattedAgain()
     {
         await using var ctx = NewContext(out var editors);

@@ -32,6 +32,9 @@ export function foldText(text) {
             ends.push(offset + size);
         }
 
+        // A mark that folds away belongs to the match of the character before it.
+        if (folded.length === 0 && ends.length > 0) ends[ends.length - 1] = offset + size;
+
         parts.push(folded);
         offset += size;
     }

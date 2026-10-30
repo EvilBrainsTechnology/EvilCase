@@ -51,6 +51,12 @@ public class TextSearchLibraryTests
     }
 
     [Test]
+    public async Task AMatchTakesTheMarksAfterItsLastLetter()
+    {
+        Assert.That(await this.Find("Lhu\u030Ata", 1, "lhu"), Is.EqualTo(Matches([0, 4])));
+    }
+
+    [Test]
     public async Task MatchesNeverOverlap()
     {
         Assert.That(await this.Find("aaaaa", 1, "aa"), Is.EqualTo(Matches([0, 2], [2, 4])));

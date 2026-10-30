@@ -75,9 +75,8 @@ export async function openEditor(host, searchInput, text, language, indentUnit, 
     editor.focus();
 }
 
-// Opens a read-only view of the text in host. With format the text first goes through the formatting worker and shows
-// formatted when it formats. view, the .NET reference of the preview's toolbar, hears ZoomChanged, MatchesChanged and
-// FocusSearch. Answers { formatted, invalid }.
+// Opens a read-only view of the text in host, formatted by the worker first with format; answers { formatted, invalid }.
+// view, the preview toolbar's .NET reference, hears ZoomChanged, MatchesChanged and FocusSearch.
 export async function openViewer(host, text, language, format, label, view) {
     const { createViewer } = await loadLibrary();
 
@@ -100,7 +99,7 @@ export async function openViewer(host, text, language, format, label, view) {
     entry.viewer = createViewer(host, entry.formatted ?? text, language, label, () => view.invokeMethodAsync('FocusSearch').catch(() => {}));
 
     // Ctrl or Cmd with the wheel, and a pinch on a touchpad, zoom the text.
-    host.addEventListener('wheel', (event) => {
+    (host.parentElement ?? host).addEventListener('wheel', (event) => {
         if (!event.ctrlKey && !event.metaKey) return;
 
         event.preventDefault();

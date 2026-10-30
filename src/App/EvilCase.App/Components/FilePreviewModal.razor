@@ -153,7 +153,7 @@
                             OnDirtyChanged="this.EditorDirtyChanged" OnSave="this.Save" OnUnavailable="this.EditorUnavailable">
                     <Notes>
                         @this.SignatureNote(file)
-                        @if (this.codeView is { Formatted: true })
+                        @if (this.editsFormattedCode)
                         {
                             <p class="ec-preview-note">Upravuje se originál souboru, ne jeho naformátovaná podoba.</p>
                         }
@@ -246,7 +246,7 @@
                 {
                     var language = preview == FilePreviewKind.Code ? FileTypeDisplay.Language(stagedName) : (CodeLanguage?)null;
 
-                    <TextEditor @key="this.shownKey" Text="@this.text" Language="language" FileName="@stagedName" ReadOnly Formats="language is not null"
+                    <TextEditor @key="this.shownKey" @ref="this.viewer" Text="@this.text" Language="language" FileName="@stagedName" ReadOnly Formats="language is not null"
                                 Partial="this.truncated" OnFormatted="view => this.codeView = view" OnUnavailable="this.Unreadable">
                         <Notes>
                             @if (this.NotUtf8)
@@ -593,6 +593,11 @@
     private string? saveFailure;
 
     private TextEditor? editor;
+
+    // The read-only view of a text or code, and whether it showed the code formatted when the edit began.
+    private TextEditor? viewer;
+
+    private bool editsFormattedCode;
 
     // What a confirmed discard of unsaved changes goes on to do; set while the question shows.
     private Func<Task>? afterDiscard;
@@ -1165,6 +1170,7 @@
         this.versionNotice = null;
         this.saveFailure = null;
         this.dirty = false;
+        this.editsFormattedCode = this.viewer?.ShowsFormatted == true;
         this.editing = this.editable;
 
         try

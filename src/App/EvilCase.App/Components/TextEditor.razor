@@ -140,6 +140,11 @@
     public EventCallback OnUnavailable { get; set; }
 
     /// <summary>
+    /// Whether the read-only view shows its text formatted.
+    /// </summary>
+    public bool ShowsFormatted => this.formatted;
+
+    /// <summary>
     /// The edited text, its lines joined with "\n".
     /// </summary>
     public async Task<string> ReadText()
@@ -252,7 +257,6 @@
         }
     }
 
-    // A second switch before the first one's text shows wins.
     private async Task ToggleFormat()
     {
         this.formatted = !this.formatted;
