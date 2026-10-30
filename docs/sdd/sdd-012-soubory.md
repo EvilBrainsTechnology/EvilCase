@@ -125,7 +125,8 @@ příponou karta odmítne hláškou „Návrh.docx: nová verze souboru Smlouva.
 
 Verze (3) otevře okno Verze souboru se jménem souboru, počtem verzí a Nahrát novou verzi.
 Verze jdou od nejnovější; každá ukáže číslo, u aktuální štítek „aktuální“, okamžik nahrání,
-e-mail toho, kdo ji nahrál, a velikost a nabídne Stáhnout a Smazat. Klik na verzi otevře její
+e-mail toho, kdo ji nahrál, a velikost a nabídne Stáhnout a Smazat, všechny kromě nejstarší
+i Porovnat s předchozí (Porovnání verzí). Klik na verzi otevře její
 náhled. Smazání verze potvrzuje okno, které jmenuje číslo verze a soubor. Jediná verze Smazat
 nenabízí; okno nese Smazat soubor, které otevře potvrzení smazání souboru. Na mobilu je okno
 vysunuté od spodního okraje.
@@ -258,11 +259,11 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   Přeškrtnout, Odrážky, Číslovaný seznam, Seznam úkolů, Citace, Kód, Odkaz, Tabulka a na pravém
   konci hledání Hledat v textu uspořádané jako v náhledu: pořadí výskytu z počtu, pole
   a předchozí a další výskyt. Tlačítko formátu, který platí v místě kurzoru, je zvýrazněné
-  a druhý stisk formát zruší: nadpis vrátí na odstavec, seznam a citaci zruší. Jiný seznam převede seznam na stisknutý druh. Tlačítko, které
-  v místě kurzoru nejde použít, je neaktivní. Kód udělá z označeného textu v jednom odstavci kód
-  v řádku, jinak z odstavce blok kódu; v bloku kódu ho vrátí na odstavec. Tabulka vloží tabulku
-  3 × 3 se záhlavím; v tabulce a v bloku kódu je neaktivní. Zaškrtávací políčko úkolu jde během
-  úprav přepnout.
+  a druhý stisk formát zruší: nadpis vrátí na odstavec, seznam a citaci zruší. Jiný seznam
+  převede seznam na stisknutý druh. Tlačítko, které v místě kurzoru nejde použít, je neaktivní.
+  Kód udělá z označeného textu v jednom odstavci kód v řádku, jinak z odstavce blok kódu; v bloku
+  kódu ho vrátí na odstavec. Tabulka vloží tabulku 3 × 3 se záhlavím; v tabulce a v bloku kódu je
+  neaktivní. Zaškrtávací políčko úkolu jde během úprav přepnout.
 - Odkaz otevře okno „Odkaz“ s polem Adresa a nápovědou „Začíná https://, http:// nebo
   mailto:“. Jinou adresu okno odmítne textem „Zadejte adresu, která začíná https://, http://
   nebo mailto:.“ Vložit odkaz propojí označený text, odkaz v místě kurzoru, nebo bez výběru vloží
@@ -272,10 +273,10 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   výskyty a vybere další; pořadí je pořadí výskytu u kurzoru a výskyty sledují úpravy textu.
   Enter přejde na další výskyt, Shift+Enter na předchozí, Esc hledání vymaže, vrátí kurzor do
   textu a náhled nezavře. Ctrl+F nebo Cmd+F v textu přejde do hledání. Formátované úpravy nemají
-  zvětšení; zvětšení náhledu se při Upravit vrátí na 100 %. Ctrl+B a Cmd+B je tučně, Ctrl+I a Cmd+I kurzíva, zpět a znovu jako v editoru textu,
-  Ctrl+S nebo Cmd+S uloží. Psaní značek Markdownu (# na začátku řádku, -, 1., >, ``` a dvojice
-  ** nebo `) formát rovnou použije. Tab v seznamu odsadí položku a Shift+Tab ji vrátí, jinde Tab
-  přesune fokus.
+  zvětšení; zvětšení náhledu se při Upravit vrátí na 100 %. Ctrl+B a Cmd+B je tučně, Ctrl+I
+  a Cmd+I kurzíva, zpět a znovu jako v editoru textu, Ctrl+S nebo Cmd+S uloží. Psaní značek
+  Markdownu (# na začátku řádku, -, 1., >, ``` a dvojice ** nebo `) formát rovnou použije. Tab
+  v seznamu odsadí položku a Shift+Tab ji vrátí, jinde Tab přesune fokus.
 - Formátovaně uložený Markdown se zapíše jednotně: značky, odrážky a odsazení mohou v souboru
   vypadat jinak než předtím, i mimo změněné místo. Uložit je aktivní, jen když uživatel obsah
   změnil; vrácení všech změn přes Zpět ho znovu vypne a úpravy otevřené a zavřené beze změny
@@ -301,6 +302,39 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   ukáže jen „Neuložené změny“; lišta se při nedostatku místa posouvá do strany. Lišta
   formátovaných úprav je i na mobilu v jednom řádku a posouvá se do strany; přepínač nese
   Formát / Zdroj.
+
+### Porovnání verzí
+
+- Verze textu, kódu a Markdownu jde porovnat v náhledu. Hlavička náhledu souboru karty s více
+  verzemi nese za Verze tlačítko Porovnat, které porovná zobrazenou verzi s předchozí, nejstarší
+  verzi s následující. Porovnat s předchozí v okně Verze souboru otevře náhled s porovnáním té
+  verze s předchozí; na mobilu nese jen ikonu.
+- Během porovnání nese hlavička ikonu a jméno souboru, „Porovnání verze 2 s verzí 3“, Zavřít
+  porovnání, Stáhnout a listování soubory; Upravit, Verze, Nová verze a Přejmenovat se skryjí.
+  Stáhnout stáhne novější z porovnávaných verzí. Zavřít porovnání vrátí náhled k verzi, kterou
+  ukazoval předtím; přechod na jiný soubor porovnání ukončí.
+- Nad texty stojí výběr Starší a Novější verze s číslem, dnem nahrání, štítkem „aktuální“,
+  velikostí a e-mailem toho, kdo verzi nahrál. Starší nabízí jen verze před novější, Novější jen
+  verze po starší; ostatní jsou v seznamu neaktivní.
+- Vedle sebe stojí starší verze vlevo a novější vpravo a oba texty se posouvají spolu. V jednom
+  sloupci stojí odebrané řádky nad přidanými a čísla řádků jsou čísla novější verze. Na mobilu je
+  porovnání vždy v jednom sloupci a výběr verzí ukáže jen číslo verze. Texty mají čísla řádků,
+  zalomené dlouhé řádky a zvýraznění syntaxe jako náhled a nejdou měnit.
+- Odebraný řádek je červený se znaménkem −, přidaný zelený se znaménkem +; v řádku, který se
+  změnil, jsou změněná slova zvýrazněná. Úsek aspoň pěti nezměněných řádků dál než tři řádky od
+  změny se sbalí do „… 40 nezměněných řádků“, které ho klikem rozbalí.
+- Lišta nese přepínač Vedle sebe / V jednom sloupci (na mobilu ne), u kódu Původní / Formátovaně
+  (na mobilu Formát), Předchozí změna a Další změna, které přecházejí dokola, souhrn „+12 −5
+  řádků“ a hledání. Kód se porovnává naformátovaný; když některou z verzí naformátovat nejde,
+  porovná se původní text, přepínač je neaktivní a lišta to řekne. Markdown se porovnává ve
+  zdrojovém kódu.
+- Hledání v porovnání nerozlišuje velikost písmen ani diakritiku a ukáže pořadí výskytu z počtu;
+  výskyt ve sbaleném úseku úsek rozbalí. V jednom sloupci hledá jen v novější verzi. Porovnání
+  nemá zvětšení.
+- Rozdíl jen v koncích řádků (CRLF, LF nebo CR) se nepočítá; verze, které se jinak neliší, ukážou
+  jen „Verze jsou shodné“. Verze větší než 1 MB nebo neplatná v UTF-8 se neporovná a porovnání
+  řekne proč („Verzi 3 nelze porovnat: soubor je větší než 1 MB“); Porovnat zůstává aktivní.
+  Verze, kterou se nepodaří načíst, ukáže chybu se Zkusit znovu.
 
 ### Podpis datové zprávy
 
@@ -443,6 +477,9 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
 - Seznam úkolů v náhledu: políčka měnitelná / neměnná. Platí neměnná.
 - Úprava naformátovaného kódu: naformátovaný text / originál. Platí originál.
 - Řádky náhledu textu a kódu: nejvýše 5 000 / bez limitu. Platí bez limitu, jen první 1 MB.
+- Limit porovnání verzí: bez limitu / 1 MB. Platí 1 MB na verzi.
+- Porovnání kódu: původní / naformátovaný. Platí naformátovaný, když jdou naformátovat obě verze.
+- Konce řádků v porovnání: rozdíl / žádný rozdíl. Platí žádný rozdíl.
 
 ## Dopady
 
