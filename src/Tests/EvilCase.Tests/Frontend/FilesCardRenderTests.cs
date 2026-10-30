@@ -254,16 +254,18 @@ public class FilesCardRenderTests
     }
 
     [Test]
-    public void TheCompactHeaderKeepsTheDropHintShort()
+    public void TheCompactHeaderCarriesOnlyTheTitleAndTheUploadButton()
     {
         using var ctx = NewContext();
 
-        var component = new Card { Files = [PdfFile()], Compact = true }.Render(ctx);
+        var component = new Card { Compact = true }.Render(ctx);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.Find(".ec-file-drop-hint").TextContent.Trim(), Is.EqualTo("Přetáhněte sem nebo"));
+            Assert.That(component.FindAll(".ec-card-count"), Is.Empty);
+            Assert.That(component.FindAll(".ec-file-drop-hint"), Is.Empty);
             Assert.That(component.Find("label.ec-file-upload").TextContent.Trim(), Is.EqualTo("Nahrát"));
+            Assert.That(component.Find(".ec-empty-text").TextContent, Is.EqualTo("Zatím tu nejsou žádné soubory."));
         }
     }
 
@@ -1038,7 +1040,7 @@ public class FilesCardRenderTests
 
             return ctx.Render<FilesCard>(parameters => parameters
                 .Add(static card => card.Title, this.Title)
-                .Add(static card => card.LoadFiles, loadFiles)
+                .Add(static card => card.State, new FilesCardState(loadFiles))
                 .Add(static card => card.UploadFile, this.UploadFile)
                 .Add(static card => card.LoadContent, this.LoadContent)
                 .Add(static card => card.UploadFileVersion, this.UploadFileVersion)
