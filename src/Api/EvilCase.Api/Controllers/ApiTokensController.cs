@@ -38,7 +38,7 @@ public class ApiTokensController : ControllerBase
 
         return result.Outcome switch
         {
-            ApiTokenCreateOutcome.Created => this.CreatedAtAction(nameof(this.ListApiTokens), routeValues: null, result.Created),
+            ApiTokenCreateOutcome.Created => this.StatusCode(StatusCodes.Status201Created, result.Created),
             ApiTokenCreateOutcome.LimitReached => this.Problem(
                 detail: $"At most {ApiTokenLimits.MaxActive} unexpired tokens per user.",
                 statusCode: StatusCodes.Status400BadRequest,
