@@ -139,24 +139,19 @@
             }
         </Heading>
         <ChildContent>
-            @if (this.editing is { } edited)
+            @if (this.saveFailure is not null)
             {
-                @if (this.saveFailure is not null)
-                {
-                    <div class="ec-alert ec-preview-alert" role="alert">
-                        <EcIcon Paths="@AppIcons.AlertTriangle" /><p class="ec-alert-text">@this.saveFailure</p>
-                        <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Refresh" Disabled="@this.saving" OnClick="this.Save">Zkusit znovu</EcButton>
-                    </div>
-                }
+                <div class="ec-alert ec-preview-alert" role="alert">
+                    <EcIcon Paths="@AppIcons.AlertTriangle" /><p class="ec-alert-text">@this.saveFailure</p>
+                    <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Refresh" Disabled="@this.saving" OnClick="this.Save">Zkusit znovu</EcButton>
+                </div>
+            }
+            @if (this.editing is { } edited && preview != FilePreviewKind.Markdown)
+            {
                 <TextEditor @ref="this.editor" Text="@edited.Text" FileName="@file.FileName" Locked="this.saving"
                             Language="@(preview == FilePreviewKind.Code ? FileTypeDisplay.Language(file.FileName) : (CodeLanguage?)null)"
                             OnDirtyChanged="this.EditorDirtyChanged" OnSave="this.Save" OnUnavailable="this.EditorUnavailable">
-                    <Notes>
-                        @if (file.SignatureFileId is { } signatureId && this.Files.FirstOrDefault(item => item.FileId == signatureId) is { } signature)
-                        {
-                            <p class="ec-text-editor-note" role="note"><EcIcon Paths="@AppIcons.AlertTriangle" />Soubor má samostatný podpis @signature.FileName. Nová verze ho zneplatní.</p>
-                        }
-                    </Notes>
+                    <Notes>@this.SignatureNote(file)</Notes>
                 </TextEditor>
             }
             else
@@ -216,7 +211,7 @@
                 {
                     <FileSigners @key="(file.FileId, this.OlderVersion)" FileId="file.FileId" FileName="@file.FileName" Version="this.OlderVersion" />
                 }
-                else if (attachment is null && preview != FilePreviewKind.SignedDocument && this.OlderVersion is null && file.SignatureFileId is { } signatureFileId
+                else if (this.editing is null && attachment is null && preview != FilePreviewKind.SignedDocument && this.OlderVersion is null && file.SignatureFileId is { } signatureFileId
                          && this.Files.FirstOrDefault(item => item.FileId == signatureFileId) is { } signature)
                 {
                     <FileSigners @key="(file.FileId, signatureFileId)" FileId="signatureFileId" FileName="@signature.FileName" SignedFileId="file.FileId" OnOpenFile="this.OpenFile" />
@@ -270,13 +265,29 @@
                 }
                 else if (preview == FilePreviewKind.Markdown)
                 {
-                    <ReflowPreview @key="this.shownKey">
-                        @if (this.truncated)
-                        {
-                            <p class="ec-preview-note">Soubor je delší, zobrazuje se jen jeho začátek.</p>
-                        }
-                        <article class="ec-preview-markdown" role="document" tabindex="0" aria-label="Obsah souboru @stagedName">@((MarkupString)this.markdownHtml)</article>
-                    </ReflowPreview>
+                    <MarkdownView @key="this.shownKey" @ref="this.markdownView" Text="@this.markdown" FileName="@stagedName"
+                                  Editing="this.editing is not null" Locked="this.saving"
+                                  Source="this.markdownSource" SourceChanged="source => this.markdownSource = source"
+                                  OnDirtyChanged="this.EditorDirtyChanged" OnSave="this.Save" OnUnavailable="this.MarkdownUnavailable"
+                                  OnLinkRequest="href => this.linkHref = href">
+                        <Notes>
+                            @if (this.editing is not null)
+                            {
+                                @this.SignatureNote(file)
+                            }
+                            else
+                            {
+                                @if (this.truncated)
+                                {
+                                    <p class="ec-preview-note">Soubor je delší, zobrazuje se jen jeho začátek.</p>
+                                }
+                                @if (this.NotUtf8)
+                                {
+                                    <p class="ec-preview-note">@NotUtf8Note</p>
+                                }
+                            }
+                        </Notes>
+                    </MarkdownView>
                 }
                 else if (preview == FilePreviewKind.Document)
                 {
@@ -421,6 +432,10 @@
     {
         <DiscardChangesModal FileName="@file.FileName" OnDiscard="this.Discard" Open OpenChanged="this.KeepEditing" />
     }
+    @if (this.linkHref is not null)
+    {
+        <MarkdownLinkModal Href="@this.linkHref" Open OpenChanged="() => this.linkHref = null" OnApply="this.ApplyLink" />
+    }
 }
 
 @code {
@@ -513,7 +528,15 @@
 
     private bool urlIsBlob;
 
-    private string markdownHtml = "";
+    private string markdown = "";
+
+    // Zdrojový kód chosen; holds until the preview closes.
+    private bool markdownSource;
+
+    private MarkdownView? markdownView;
+
+    // The link window is open while set.
+    private string? linkHref;
 
     private IReadOnlyList<SheetPreview> workbook = [];
 
@@ -688,7 +711,7 @@
         this.lines = [];
         this.code = "";
         this.truncated = false;
-        this.markdownHtml = "";
+        this.markdown = "";
         this.workbook = [];
         this.activeSheet = 0;
         this.email = null;
@@ -822,10 +845,13 @@
 
             case FilePreviewKind.Markdown:
             {
-                var (text, cut, _) = await ReadText(content, token);
+                var (text, cut, editable) = await ReadText(content, token);
 
                 if (!token.IsCancellationRequested)
-                    (this.markdownHtml, this.truncated) = (MarkdownHtml.Render(text), cut);
+                {
+                    (this.markdown, this.truncated) = (text, cut);
+                    (this.editable, this.notUtf8) = (editable, !cut && editable is null);
+                }
 
                 break;
             }
@@ -1185,6 +1211,22 @@
         await this.ShowCurrent();
     }
 
+    // The formatted or source view of a Markdown file did not start: the edit ends and says so, a preview offers the download.
+    private async Task MarkdownUnavailable()
+    {
+        if (this.editing is not null)
+            await this.EditorUnavailable();
+        else
+            this.Unreadable();
+    }
+
+    private async Task ApplyLink(string href)
+    {
+        this.linkHref = null;
+
+        await this.markdownView!.SetLink(href);
+    }
+
     private async Task CancelEdit()
     {
         if (this.saving)
@@ -1281,7 +1323,10 @@
 
         try
         {
-            var content = edited.Encode(await this.editor!.ReadText());
+            var text = FileTypeDisplay.Preview(file.FileName) == FilePreviewKind.Markdown
+                ? await this.markdownView!.ReadText()
+                : await this.editor!.ReadText();
+            var content = edited.Encode(text);
 
             (failure, notice) = await this.UploadVersion(file, new EditedFile(file.FileName, content));
         }
@@ -1320,6 +1365,17 @@
     private void Unreadable()
     {
         this.unsupported = true;
+    }
+
+    // The warning that a new version invalidates the file's detached signature, in either editor.
+    private RenderFragment SignatureNote(FileListItem file)
+    {
+        return @<text>
+            @if (file.SignatureFileId is { } signatureId && this.Files.FirstOrDefault(item => item.FileId == signatureId) is { } signature)
+            {
+                <p class="ec-text-editor-note" role="note"><EcIcon Paths="@AppIcons.AlertTriangle" />Soubor má samostatný podpis @signature.FileName. Nová verze ho zneplatní.</p>
+            }
+        </text>;
     }
 
     private static string Moment(DateTimeOffset? moment)

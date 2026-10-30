@@ -1,6 +1,7 @@
 // Generates wwwroot/lib and wwwroot/fonts from node_modules: copies the browser builds and their
 // license files, and bundles postal-mime, @kenjiuno/msgreader, file-type, the code preview (Prettier
-// with @prettier/plugin-xml, and highlight.js) and the text editor (CodeMirror) with esbuild.
+// with @prettier/plugin-xml, and highlight.js), the text editor (CodeMirror) and the Markdown view and editor (Milkdown)
+// with esbuild.
 //
 // Usage: node build-libs.mjs        (after `npm ci`; no parameters, any working directory)
 // Replaces wwwroot/lib and wwwroot/fonts; both are gitignored.
@@ -222,7 +223,8 @@ export function highlightCode(text, language) {
 await bundle(codePreview, join(lib, 'code-preview'), 'code-preview.min.js', { format: 'esm' });
 
 // The text editor: CodeMirror with line numbers, marks of the lines changed since it opened, history, a search driven
-// from the app's own field and the highlighting of JSON, XML, YAML and HTML. It neither formats nor completes what is typed.
+// from the app's own field and the highlighting of JSON, XML, YAML, HTML and Markdown. It neither formats nor completes what
+// is typed; a read-only editor takes no input.
 const textEditor = `
 import { EditorState, RangeSet, StateField } from '@codemirror/state';
 import { EditorView, GutterMarker, drawSelection, gutter, highlightActiveLine, highlightActiveLineGutter, highlightSpecialChars, keymap, lineNumbers } from '@codemirror/view';
@@ -234,6 +236,7 @@ import { json } from '@codemirror/lang-json';
 import { xml } from '@codemirror/lang-xml';
 import { yaml } from '@codemirror/lang-yaml';
 import { html } from '@codemirror/lang-html';
+import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
 
 // The classes are the app's; its stylesheet colours them like the code preview.
 const highlighting = HighlightStyle.define([
@@ -245,11 +248,24 @@ const highlighting = HighlightStyle.define([
     { tag: tags.comment, class: 'ec-code-comment' },
 ]);
 
+// Markdown's own marks: the HTML inside it keeps the classes above.
+const markdownHighlighting = HighlightStyle.define([
+    { tag: tags.heading, class: 'ec-code-heading' },
+    { tag: tags.strong, class: 'ec-code-strong' },
+    { tag: tags.emphasis, class: 'ec-code-emphasis' },
+    { tag: tags.strikethrough, class: 'ec-code-strikethrough' },
+    { tag: [tags.link, tags.url], class: 'ec-code-string' },
+    { tag: tags.monospace, class: 'ec-code-literal' },
+    { tag: [tags.processingInstruction, tags.contentSeparator, tags.labelName], class: 'ec-code-punctuation' },
+    { tag: tags.quote, class: 'ec-code-comment' },
+]);
+
 const languages = {
     json: () => json(),
     xml: () => xml({ autoCloseTags: false }),
     yaml: () => yaml(),
     html: () => html({ autoCloseTags: false }),
+    markdown: () => markdown({ base: markdownLanguage, addKeymap: false }),
 };
 
 class ChangedLine extends GutterMarker {
@@ -292,10 +308,10 @@ const changedLines = StateField.define({
     },
 });
 
-// Opens an editor of the text in parent. language is json, xml, yaml, html or null for plain text; unit is what Tab
-// types and indents by. onChange(dirty, canUndo, canRedo) hears when any of the three changes; onFind runs on Ctrl+F or
-// Cmd+F.
-export function createEditor(parent, text, language, unit, label, onChange, onFind) {
+// Opens an editor of the text in parent. language is json, xml, yaml, html, markdown or null for plain text; unit is
+// what Tab types and indents by; a readOnly editor takes no input. onChange(dirty, canUndo, canRedo) hears when any of
+// the three changes; onFind runs on Ctrl+F or Cmd+F.
+export function createEditor(parent, text, language, unit, readOnly, label, onChange, onFind) {
     let initial = null;
     let reported = [false, false, false];
 
@@ -313,6 +329,7 @@ export function createEditor(parent, text, language, unit, label, onChange, onFi
                 drawSelection(),
                 highlightActiveLine(),
                 EditorView.lineWrapping,
+                readOnly ? [EditorState.readOnly.of(true), EditorState.transactionFilter.of((transaction) => (transaction.docChanged ? [] : transaction))] : [],
                 indentUnit.of(unit),
                 EditorView.contentAttributes.of({ 'aria-label': label }),
                 // An empty panel: the search runs from the app's field; the open panel only turns the highlights on.
@@ -320,12 +337,14 @@ export function createEditor(parent, text, language, unit, label, onChange, onFi
                 // Enter keeps the indentation of the line as typed; it never indents by the syntax.
                 keymap.of([
                     { key: 'Mod-f', preventDefault: true, run: () => { onFind(); return true; } },
-                    { key: 'Enter', run: insertNewlineKeepIndent, shift: insertNewlineKeepIndent },
-                    { key: 'Tab', run: indentOrInsert, shift: indentLess },
+                    ...(readOnly ? [] : [
+                        { key: 'Enter', run: insertNewlineKeepIndent, shift: insertNewlineKeepIndent },
+                        { key: 'Tab', run: indentOrInsert, shift: indentLess },
+                    ]),
                     ...defaultKeymap,
                     ...historyKeymap,
                 ]),
-                language ? [languages[language](), bracketMatching(), syntaxHighlighting(highlighting)] : [],
+                language ? [languages[language](), bracketMatching(), syntaxHighlighting(highlighting), language === 'markdown' ? syntaxHighlighting(markdownHighlighting) : []] : [],
                 EditorView.updateListener.of((update) => {
                     if (!update.docChanged) return;
                     const state = [!update.state.doc.eq(initial), undoDepth(update.state) > 0, redoDepth(update.state) > 0];
@@ -363,6 +382,385 @@ export function createEditor(parent, text, language, unit, label, onChange, onFi
 `;
 
 await bundle(textEditor, join(lib, 'codemirror'), 'codemirror.min.js', { format: 'esm' });
+
+// The Markdown view and editor: Milkdown with CommonMark, GFM, history and the clipboard, never Crepe. A link stays a link only
+// to a web or e-mail address, images are never loaded, raw HTML never runs and a heading carries no id.
+const markdownEditor = `
+import { Editor, commandsCtx, defaultValueCtx, editorViewCtx, editorViewOptionsCtx, rootCtx, serializerCtx } from '@milkdown/kit/core';
+import { commonmark, headingSchema, htmlSchema, imageSchema, linkSchema, remarkPreserveEmptyLinePlugin } from '@milkdown/kit/preset/commonmark';
+import { gfm, insertTableCommand } from '@milkdown/kit/preset/gfm';
+import { history } from '@milkdown/kit/plugin/history';
+import { clipboard } from '@milkdown/kit/plugin/clipboard';
+import { $prose, replaceAll } from '@milkdown/kit/utils';
+import { Plugin } from '@milkdown/kit/prose/state';
+import { redo, undo, undoDepth } from '@milkdown/kit/prose/history';
+import { lift, setBlockType, toggleMark, wrapIn } from '@milkdown/kit/prose/commands';
+import { liftListItem, wrapInList } from '@milkdown/kit/prose/schema-list';
+
+// A link stays a link only to a web or e-mail address; any other shows as its text.
+const safeLink = /^(https?:|mailto:)/i;
+
+// Pasted HTML keeps only safe links; a Markdown link to anything else keeps its address in the file and shows as text.
+const links = linkSchema.extendSchema((prev) => (ctx) => ({
+    ...prev(ctx),
+    parseDOM: [{
+        tag: 'a[href]',
+        getAttrs: (dom) => (safeLink.test(dom.getAttribute('href') || '') ? { href: dom.getAttribute('href'), title: dom.getAttribute('title') } : false),
+    }],
+    toDOM: (mark) => (safeLink.test(mark.attrs.href)
+        ? ['a', { href: mark.attrs.href, title: mark.attrs.title || null, target: '_blank', rel: 'noopener noreferrer' }, 0]
+        : ['span', 0]),
+}));
+
+// An image is never loaded: it shows its description, or the word obrázek, and keeps its address in the file. A pasted
+// img is dropped.
+const images = imageSchema.extendSchema((prev) => (ctx) => ({
+    ...prev(ctx),
+    parseDOM: [{
+        tag: 'span[data-type="image"]',
+        getAttrs: (dom) => ({ src: dom.getAttribute('data-src') || '', alt: dom.getAttribute('data-alt') || '', title: dom.getAttribute('data-title') || '' }),
+    }],
+    toDOM: (node) => ['span', {
+        class: 'ec-markdown-image', 'data-type': 'image', 'data-src': node.attrs.src, 'data-alt': node.attrs.alt,
+        'data-title': node.attrs.title, title: node.attrs.title || null,
+    }, node.attrs.alt || 'obrázek'],
+}));
+
+// Raw HTML never runs: it shows as its text and stays in the file as written; pasted HTML never becomes raw HTML.
+const html = htmlSchema.extendSchema((prev) => (ctx) => ({
+    ...prev(ctx),
+    parseDOM: [],
+    toDOM: (node) => ['span', { class: 'ec-markdown-html' }, node.attrs.value],
+}));
+
+// A heading carries no id, so the text of a file never names an element of the page.
+const headings = headingSchema.extendSchema((prev) => (ctx) => ({
+    ...prev(ctx),
+    toDOM: (node) => ['h' + node.attrs.level, 0],
+}));
+
+function within(state, name) {
+    const { $from } = state.selection;
+    for (let depth = $from.depth; depth >= 0; depth--) {
+        if ($from.node(depth).type.name === name) return true;
+    }
+    return false;
+}
+
+function headingLevel(state) {
+    const { parent } = state.selection.$from;
+    return parent.type.name === 'heading' ? parent.attrs.level : 0;
+}
+
+function markOn(name) {
+    return (state) => {
+        const type = state.schema.marks[name];
+        const { from, to, empty, $from } = state.selection;
+        return empty ? Boolean(type.isInSet(state.storedMarks || $from.marks())) : state.doc.rangeHasMark(from, to, type);
+    };
+}
+
+// The nearest list around the selection and its kind: bullet, ordered or task.
+function listAt(state) {
+    const { $from } = state.selection;
+    for (let depth = $from.depth; depth > 0; depth--) {
+        const node = $from.node(depth);
+        if (node.type.name === 'ordered_list') return { node, pos: $from.before(depth), kind: 'ordered' };
+        if (node.type.name === 'bullet_list') {
+            return { node, pos: $from.before(depth), kind: node.firstChild && node.firstChild.attrs.checked != null ? 'task' : 'bullet' };
+        }
+    }
+    return null;
+}
+
+// Turns the nearest list around the selection of tr into a list of kind, its items with it.
+function retype(tr, kind) {
+    const found = listAt(tr);
+    if (!found) return;
+    const { nodes } = tr.doc.type.schema;
+    tr.setNodeMarkup(found.pos, kind === 'ordered' ? nodes.ordered_list : nodes.bullet_list, { spread: found.node.attrs.spread });
+    let pos = found.pos + 1;
+    found.node.forEach((item) => {
+        tr.setNodeMarkup(pos, undefined, {
+            ...item.attrs,
+            listType: kind === 'ordered' ? 'ordered' : 'bullet',
+            checked: kind === 'task' ? item.attrs.checked === true : null,
+        });
+        pos += item.nodeSize;
+    });
+}
+
+// The link around the cursor: its range and its address.
+function linkAt(state) {
+    const type = state.schema.marks.link;
+    const { $from } = state.selection;
+    const parent = $from.parent;
+    let index = $from.index();
+    let found = index < parent.childCount ? type.isInSet(parent.child(index).marks) : null;
+    if (!found && $from.textOffset === 0 && index > 0) {
+        index -= 1;
+        found = type.isInSet(parent.child(index).marks);
+    }
+    if (!found) return null;
+    let first = index;
+    let last = index;
+    while (first > 0 && found.isInSet(parent.child(first - 1).marks)) first -= 1;
+    while (last + 1 < parent.childCount && found.isInSet(parent.child(last + 1).marks)) last += 1;
+    let from = $from.start();
+    for (let i = 0; i < first; i++) from += parent.child(i).nodeSize;
+    let to = from;
+    for (let i = first; i <= last; i++) to += parent.child(i).nodeSize;
+    return { from, to, href: found.attrs.href };
+}
+
+function heading(level) {
+    return (state, dispatch) => (headingLevel(state) === level
+        ? setBlockType(state.schema.nodes.paragraph)(state, dispatch)
+        : setBlockType(state.schema.nodes.heading, { level })(state, dispatch));
+}
+
+function mark(name) {
+    return (state, dispatch) => toggleMark(state.schema.marks[name])(state, dispatch);
+}
+
+// A second press of the same list undoes it; another list turns into the pressed one.
+function list(kind) {
+    return (state, dispatch) => {
+        const found = listAt(state);
+        if (found && found.kind === kind) return liftListItem(state.schema.nodes.list_item)(state, dispatch);
+        if (found) {
+            if (dispatch) {
+                const tr = state.tr;
+                retype(tr, kind);
+                dispatch(tr.scrollIntoView());
+            }
+            return true;
+        }
+        const type = kind === 'ordered' ? state.schema.nodes.ordered_list : state.schema.nodes.bullet_list;
+        return wrapInList(type)(state, dispatch && ((tr) => {
+            retype(tr, kind);
+            dispatch(tr);
+        }));
+    };
+}
+
+function quote(state, dispatch) {
+    return within(state, 'blockquote') ? lift(state, dispatch) : wrapIn(state.schema.nodes.blockquote)(state, dispatch);
+}
+
+// A selection within one paragraph becomes inline code, any other place a code block; a code block goes back to a paragraph.
+function code(state, dispatch) {
+    const { $from, $to, empty } = state.selection;
+    if ($from.parent.type.name === 'code_block') return setBlockType(state.schema.nodes.paragraph)(state, dispatch);
+    if (!empty && $from.sameParent($to)) return toggleMark(state.schema.marks.inlineCode)(state, dispatch);
+    return setBlockType(state.schema.nodes.code_block)(state, dispatch);
+}
+
+// Which toolbar commands are on at the cursor.
+const checks = {
+    heading1: (state) => headingLevel(state) === 1,
+    heading2: (state) => headingLevel(state) === 2,
+    heading3: (state) => headingLevel(state) === 3,
+    strong: markOn('strong'),
+    emphasis: markOn('emphasis'),
+    strike: markOn('strike_through'),
+    bulletList: (state) => listAt(state)?.kind === 'bullet',
+    orderedList: (state) => listAt(state)?.kind === 'ordered',
+    taskList: (state) => listAt(state)?.kind === 'task',
+    quote: (state) => within(state, 'blockquote'),
+    code: (state) => within(state, 'code_block') || markOn('inlineCode')(state),
+    link: (state) => linkAt(state) !== null,
+};
+
+// Opens the Markdown text in parent, read-only unless editable. While editable, onChange(dirty, active, disabled) hears
+// whether the text changed since the edit began and which toolbar commands are on and unavailable at the cursor.
+export async function createMarkdown(parent, text, editable, label, onChange) {
+    const state = { editable, view: null, initial: null, reported: '', commands: null };
+
+    const commands = {
+        undo,
+        redo,
+        heading1: heading(1),
+        heading2: heading(2),
+        heading3: heading(3),
+        strong: mark('strong'),
+        emphasis: mark('emphasis'),
+        strike: mark('strike_through'),
+        bulletList: list('bullet'),
+        orderedList: list('ordered'),
+        taskList: list('task'),
+        quote,
+        code,
+        // The address is asked by the app; here only whether a link can stand at the cursor.
+        link: (s) => !within(s, 'code_block'),
+        table: (s, dispatch) => {
+            if (within(s, 'table') || within(s, 'code_block')) return false;
+            if (!dispatch) return true;
+            return state.commands.get(insertTableCommand.key)({ row: 3, col: 3 })(s, dispatch);
+        },
+    };
+
+    const report = (force) => {
+        const { view } = state;
+        if (!view || !state.editable) return;
+        const s = view.state;
+        const dirty = undoDepth(s) > 0 && !s.doc.eq(state.initial);
+        const active = Object.keys(checks).filter((name) => checks[name](s));
+        const disabled = Object.keys(commands).filter((name) => !commands[name](s));
+        const next = JSON.stringify([dirty, active, disabled]);
+        if (!force && next === state.reported) return;
+        state.reported = next;
+        onChange(dirty, active, disabled);
+    };
+
+    const markBox = (box) => {
+        box.tabIndex = state.editable ? 0 : -1;
+        if (state.editable) box.removeAttribute('aria-readonly');
+        else box.setAttribute('aria-readonly', 'true');
+    };
+
+    // A task item: a real checkbox, which only an edit can change.
+    const taskItem = (node, view, getPos) => {
+        if (node.attrs.checked == null) return null;
+        let current = node;
+        const dom = document.createElement('li');
+        const holder = document.createElement('span');
+        const box = document.createElement('input');
+        const contentDOM = document.createElement('div');
+        dom.className = 'ec-markdown-task';
+        holder.className = 'ec-markdown-task-mark';
+        holder.contentEditable = 'false';
+        box.type = 'checkbox';
+        box.className = 'ec-markdown-task-box';
+        box.setAttribute('aria-label', 'Splněno');
+        contentDOM.className = 'ec-markdown-task-text';
+        holder.append(box);
+        dom.append(holder, contentDOM);
+        const paint = () => {
+            box.checked = current.attrs.checked === true;
+            dom.setAttribute('data-checked', String(current.attrs.checked === true));
+            markBox(box);
+        };
+        box.addEventListener('mousedown', (event) => event.preventDefault());
+        box.addEventListener('click', (event) => {
+            if (!state.editable) event.preventDefault();
+        });
+        box.addEventListener('change', () => {
+            const pos = getPos();
+            if (!state.editable || typeof pos !== 'number') return;
+            view.dispatch(view.state.tr.setNodeMarkup(pos, undefined, { ...current.attrs, checked: box.checked }));
+        });
+        paint();
+        return {
+            dom,
+            contentDOM,
+            update: (next) => {
+                if (next.type !== current.type || next.attrs.checked == null) return false;
+                current = next;
+                paint();
+                return true;
+            },
+            stopEvent: (event) => holder.contains(event.target),
+            ignoreMutation: (mutation) => mutation.type !== 'selection'
+                && (holder.contains(mutation.target) || (mutation.type === 'attributes' && mutation.target === dom)),
+        };
+    };
+
+    const editor = await Editor.make()
+        .config((ctx) => {
+            ctx.set(rootCtx, parent);
+            ctx.set(defaultValueCtx, text);
+            ctx.update(editorViewOptionsCtx, (options) => ({
+                ...options,
+                editable: () => state.editable,
+                attributes: () => (state.editable
+                    ? { class: 'ec-markdown-content', role: 'textbox', 'aria-multiline': 'true', 'aria-label': label }
+                    : { class: 'ec-markdown-content' }),
+                nodeViews: { list_item: taskItem },
+                // A dropped file is not inserted.
+                handleDrop: (view, event) => Boolean(event.dataTransfer && event.dataTransfer.files.length > 0),
+            }));
+        })
+        // An empty paragraph is not written as raw HTML.
+        .use(commonmark.filter((plugin) => !remarkPreserveEmptyLinePlugin.includes(plugin)))
+        .use(gfm)
+        .use(history)
+        .use(clipboard)
+        .use(links)
+        .use(images)
+        .use(html)
+        .use(headings)
+        .use($prose(() => new Plugin({ view: () => ({ update: () => report(false) }) })))
+        .create();
+
+    const [view, serialize, manager] = editor.action((ctx) => [ctx.get(editorViewCtx), ctx.get(serializerCtx), ctx.get(commandsCtx)]);
+    const markBoxes = () => {
+        for (const box of view.dom.querySelectorAll('.ec-markdown-task-box')) markBox(box);
+    };
+
+    state.commands = manager;
+    state.view = view;
+    // Plugins have settled the document by now; a change is what comes after.
+    state.initial = view.state.doc;
+    // The read-only view is a document, not a text field.
+    if (!state.editable) view.dom.removeAttribute('role');
+    report(true);
+
+    return {
+        editable: () => state.editable,
+        text: () => serialize(view.state.doc),
+        focus: () => view.focus(),
+        // Turns the shown text editable in place; a change is what comes after.
+        edit() {
+            state.editable = true;
+            view.setProps({});
+            markBoxes();
+            state.initial = view.state.doc;
+            report(true);
+            view.focus();
+        },
+        // Shows the text read-only, without history.
+        show(markdown) {
+            state.editable = false;
+            editor.action(replaceAll(markdown, true));
+            view.setProps({});
+            view.dom.removeAttribute('role');
+            markBoxes();
+            state.initial = view.state.doc;
+        },
+        run(name) {
+            if (!Object.hasOwn(commands, name)) return;
+            commands[name](view.state, view.dispatch);
+            view.focus();
+        },
+        link() {
+            const found = linkAt(view.state);
+            return found ? found.href : '';
+        },
+        // Links the selection, the link at the cursor or, with nothing selected, the address itself; empty removes the link.
+        setLink(href) {
+            if (href && !safeLink.test(href)) return;
+            const s = view.state;
+            const type = s.schema.marks.link;
+            const found = linkAt(s);
+            const { from, to } = found && s.selection.empty ? found : s.selection;
+            const tr = s.tr.removeMark(from, to, type);
+            if (href && from === to) {
+                tr.insertText(href, from);
+                tr.addMark(from, from + href.length, type.create({ href }));
+            } else if (href) {
+                tr.addMark(from, to, type.create({ href }));
+            }
+            view.dispatch(tr.scrollIntoView());
+        },
+        destroy: () => editor.destroy(),
+    };
+}
+`;
+
+await bundle(markdownEditor, join(lib, 'milkdown'), 'milkdown.min.js', { format: 'esm' });
+// The base rules of an editable ProseMirror text; the app's stylesheet loads after it and wins. tables.css is not used.
+copy('@milkdown/prose', 'lib/style/prosemirror.css', join(lib, 'milkdown', 'prosemirror.css'));
 
 for (const [family, name] of [['instrument-sans', '@fontsource-variable/instrument-sans'], ['jetbrains-mono', '@fontsource-variable/jetbrains-mono']]) {
     for (const subset of ['latin', 'latin-ext']) {

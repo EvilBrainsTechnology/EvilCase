@@ -1,0 +1,76 @@
+@* Asks for the address of a link; only an absolute web or e-mail address is taken. *@
+<EcModal Title="Odkaz" Open="this.Open" OpenChanged="this.OpenChanged">
+    <ChildContent>
+        <EcField Label="Adresa" ControlId="markdown-link-href" Hint="Začíná https://, http:// nebo mailto:" Error="@(this.invalid ? InvalidError : null)">
+            <input id="markdown-link-href" class="ec-input" type="url" inputmode="url" autocomplete="off" autofocus
+                   aria-invalid="@(this.invalid ? "true" : null)" value="@this.href" @oninput="this.Input" @onkeydown="this.Key" />
+        </EcField>
+    </ChildContent>
+    <Footer>
+        @if (this.Href.Length > 0)
+        {
+            <EcButton Variant="EcButtonVariant.QuietDanger" Size="EcButtonSize.Form" OnClick="() => this.OnApply.InvokeAsync(string.Empty)">Odebrat odkaz</EcButton>
+        }
+        <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Form" OnClick="() => this.OpenChanged.InvokeAsync(false)">Zrušit</EcButton>
+        <EcButton Variant="EcButtonVariant.Primary" Size="EcButtonSize.Form" OnClick="this.Apply">Vložit odkaz</EcButton>
+    </Footer>
+</EcModal>
+
+@code {
+    private static readonly RenderFragment InvalidError = @<span>Zadejte adresu, která začíná https://, http:// nebo mailto:.</span>;
+
+    private string href = "";
+
+    private bool invalid;
+
+    /// <summary>
+    /// The address of the link at the cursor, or empty.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required string Href { get; set; }
+
+    [Parameter]
+    public bool Open { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    /// <summary>
+    /// Raised with the address to link; an empty one removes the link.
+    /// </summary>
+    [Parameter]
+    public EventCallback<string> OnApply { get; set; }
+
+    protected override void OnInitialized()
+    {
+        this.href = this.Href;
+    }
+
+    private void Input(ChangeEventArgs args)
+    {
+        this.href = args.Value as string ?? "";
+        this.invalid = false;
+    }
+
+    private async Task Key(KeyboardEventArgs args)
+    {
+        if (args.Key == "Enter")
+            await this.Apply();
+    }
+
+    private async Task Apply()
+    {
+        var address = this.href.Trim();
+
+        if (!Uri.TryCreate(address, UriKind.Absolute, out var uri)
+            || uri.Scheme is not ("http" or "https" or "mailto")
+            || (uri.Scheme != "mailto" && uri.Host.Length == 0))
+        {
+            this.invalid = true;
+
+            return;
+        }
+
+        await this.OnApply.InvokeAsync(address);
+    }
+}

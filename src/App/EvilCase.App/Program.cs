@@ -47,6 +47,7 @@ internal static class Program
         builder.Services.AddSingleton<IBlobUrls, BlobUrls>();
         builder.Services.AddSingleton<IFilePreviews, FilePreviews>();
         builder.Services.AddSingleton<ITextEditors, TextEditors>();
+        builder.Services.AddSingleton<IMarkdownEditors, MarkdownEditors>();
         builder.Services.AddSingleton<IBrowserHistory, BrowserHistory>();
         builder.Services.AddSingleton<IClipboardWriter, ClipboardWriter>();
 

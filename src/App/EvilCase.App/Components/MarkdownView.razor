@@ -1,0 +1,467 @@
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+@inject IMarkdownEditors Editors
+@inject IFilePreviews Previews
+@inject ILogger<MarkdownView> Logger
+
+@* A Markdown file shown formatted or as its source and edited in the view shown; the formatted text turns editable in
+   place. Notes stand between the toolbar and the text. *@
+@if (this.Source)
+{
+    <TextEditor @key="this.sourceKey" @ref="this.sourceEditor" Text="@this.start" Language="CodeLanguage.Markdown" ReadOnly="!this.Editing"
+                FileName="@this.FileName" Notes="this.Notes" Locked="this.Locked"
+                OnDirtyChanged="this.SourceDirtyChanged" OnSave="this.OnSave" OnUnavailable="this.OnUnavailable">
+        <Modes>
+            <MarkdownModeSwitch Editing="this.Editing" Source OnSwitch="this.Switch" />
+        </Modes>
+    </TextEditor>
+}
+else
+{
+    <div class="ec-preview-view">
+        @if (this.Editing)
+        {
+            <div class="ec-preview-toolbar ec-markdown-toolbar" role="toolbar" aria-label="Úpravy" inert="@this.Locked">
+                <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ArrowBackUp" AriaLabel="Zpět"
+                          Disabled="@(this.disabled.Contains("undo"))" OnClick="@(() => this.Run("undo"))" />
+                <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ArrowForwardUp" AriaLabel="Znovu"
+                          Disabled="@(this.disabled.Contains("redo"))" OnClick="@(() => this.Run("redo"))" />
+                <span class="ec-preview-toolbar-separator" aria-hidden="true"></span>
+                <MarkdownModeSwitch Editing Source="false" OnSwitch="this.Switch" />
+                @foreach (var group in Groups)
+                {
+                    <span class="ec-preview-toolbar-separator" aria-hidden="true"></span>
+                    @foreach (var (command, label, icon, text) in group)
+                    {
+                        <EcButton Variant="EcButtonVariant.Ghost" Size="EcButtonSize.Compact" Icon="@icon" AriaLabel="@label" title="@label"
+                                  Disabled="@(this.disabled.Contains(command))"
+                                  aria-pressed="@(command == "table" ? null : this.active.Contains(command) ? "true" : "false")"
+                                  OnClick="@(() => this.Run(command))">
+                            @if (text is not null)
+                            {
+                                <span class="ec-markdown-toolbar-text" aria-hidden="true">@text</span>
+                            }
+                        </EcButton>
+                    }
+                }
+            </div>
+        }
+        else
+        {
+            <PreviewToolbar @ref="this.viewToolbar" Ready="this.ready" OnZoom="this.Zoom" OnSearch="this.Search">
+                <Modes>
+                    <MarkdownModeSwitch Editing="false" Source="false" OnSwitch="this.Switch" />
+                </Modes>
+            </PreviewToolbar>
+        }
+        @this.Notes
+        <div @ref="this.stage" class="ec-preview-stage ec-preview-stage-text" inert="@this.Locked">
+            <article @ref="this.host" class="@(this.Editing ? "ec-preview-markdown ec-markdown-editing" : "ec-preview-markdown")" role="document"
+                     tabindex="@(this.Editing ? null : "0")" aria-label="Obsah souboru @this.FileName"></article>
+        </div>
+    </div>
+}
+
+@code {
+    // The format buttons by group; a separator stands before each group. Text stands in for an icon.
+    private static readonly (string Command, string Label, string Icon, string? Text)[][] Groups =
+    [
+        [("heading1", "Nadpis 1", "", "H1"), ("heading2", "Nadpis 2", "", "H2"), ("heading3", "Nadpis 3", "", "H3")],
+        [("strong", "Tučně", AppIcons.Bold, null), ("emphasis", "Kurzíva", AppIcons.Italic, null), ("strike", "Přeškrtnout", AppIcons.Strikethrough, null)],
+        [("bulletList", "Odrážky", AppIcons.List, null), ("orderedList", "Číslovaný seznam", AppIcons.ListNumbers, null), ("taskList", "Seznam úkolů", AppIcons.ListCheck, null)],
+        [("quote", "Citace", AppIcons.Blockquote, null), ("code", "Kód", AppIcons.Code, null), ("link", "Odkaz", AppIcons.Link, null), ("table", "Tabulka", AppIcons.Table, null)],
+    ];
+
+    private readonly CancellationTokenSource cancel = new();
+
+    private ElementReference host;
+
+    private ElementReference stage;
+
+    private PreviewToolbar? viewToolbar;
+
+    // The toolbar the zoom and search report to; null while there is none.
+    private PreviewToolbar? wiredToolbar;
+
+    private TextEditor? sourceEditor;
+
+    private DotNetObjectReference<MarkdownView>? self;
+
+    // The Editing the parameters last gave.
+    private bool? editingShown;
+
+    // The text the view shown opened with.
+    private string start = "";
+
+    private int sourceKey;
+
+    // A formatted view exists in host.
+    private bool formattedOpen;
+
+    // Whether the formatted view is editable.
+    private bool formattedEditing;
+
+    private bool syncing;
+
+    // A render came while a pass ran; another pass follows it.
+    private bool resync;
+
+    private bool switching;
+
+    private bool ready;
+
+    // The view shown has changed its text.
+    private bool editorDirty;
+
+    private bool dirty;
+
+    private HashSet<string> active = [];
+
+    private HashSet<string> disabled = ["undo", "redo"];
+
+    /// <summary>
+    /// The text as read, without its byte order mark.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required string Text { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string FileName { get; set; }
+
+    /// <summary>
+    /// Whether the text is edited; entering or leaving the edit starts again from <see cref="Text"/>.
+    /// </summary>
+    [Parameter]
+    public bool Editing { get; set; }
+
+    /// <summary>
+    /// Whether the source is shown rather than the formatted text.
+    /// </summary>
+    [Parameter]
+    public bool Source { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> SourceChanged { get; set; }
+
+    [Parameter]
+    public RenderFragment? Notes { get; set; }
+
+    /// <summary>
+    /// Takes no input while set, so nothing is typed into a text being saved.
+    /// </summary>
+    [Parameter]
+    public bool Locked { get; set; }
+
+    /// <summary>
+    /// Raised with whether the user changed the text.
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> OnDirtyChanged { get; set; }
+
+    /// <summary>
+    /// Raised on Ctrl+S or Cmd+S while editing.
+    /// </summary>
+    [Parameter]
+    public EventCallback OnSave { get; set; }
+
+    /// <summary>
+    /// Raised when the formatted view's or the source view's script did not start.
+    /// </summary>
+    [Parameter]
+    public EventCallback OnUnavailable { get; set; }
+
+    /// <summary>
+    /// Raised by Odkaz with the address of the link at the cursor, or empty.
+    /// </summary>
+    [Parameter]
+    public EventCallback<string> OnLinkRequest { get; set; }
+
+    /// <summary>
+    /// The text to save, its lines joined with "\n": the text carried across a switch unless the view shown has changed it.
+    /// </summary>
+    public async Task<string> ReadText()
+    {
+        if (!this.editorDirty)
+            return this.start;
+
+        return this.Source ? await this.sourceEditor!.ReadText() : await this.Editors.ReadMarkdown(this.host);
+    }
+
+    /// <summary>
+    /// Links the selection to <paramref name="href"/>, an address checked by the caller; empty removes the link.
+    /// </summary>
+    public async Task SetLink(string href)
+    {
+        try
+        {
+            await this.Editors.SetMarkdownLink(this.host, href);
+        }
+        catch (JSException exception)
+        {
+            this.Logger.LogWarning(exception, "Setting a Markdown link failed");
+        }
+    }
+
+    [JSInvokable]
+    public async Task NotifyChanged(bool dirty, string[] active, string[] disabled)
+    {
+        // A report from a view that has since left the edit.
+        if (!this.Editing || this.Source)
+            return;
+
+        this.active = [.. active];
+        this.disabled = [.. disabled];
+        this.editorDirty = dirty;
+
+        await this.ReportDirty();
+        this.StateHasChanged();
+    }
+
+    [JSInvokable]
+    public async Task NotifySave()
+    {
+        await this.OnSave.InvokeAsync();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await this.cancel.CancelAsync();
+
+        if (this.wiredToolbar is not null)
+        {
+            try
+            {
+                await this.Previews.DisposeView(this.stage);
+            }
+            catch (JSException exception)
+            {
+                this.Logger.LogInformation(exception, "The Markdown preview was already gone");
+            }
+        }
+
+        if (this.formattedOpen)
+        {
+            try
+            {
+                await this.Editors.CloseMarkdown(this.host);
+            }
+            catch (JSException exception)
+            {
+                this.Logger.LogInformation(exception, "The Markdown view was already gone");
+            }
+        }
+
+        this.self?.Dispose();
+        this.cancel.Dispose();
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (this.editingShown == this.Editing)
+            return;
+
+        // Entering or leaving the edit starts again from the text as read.
+        this.editingShown = this.Editing;
+        this.start = this.Text;
+        this.editorDirty = false;
+        this.dirty = false;
+        this.active = [];
+        this.disabled = ["undo", "redo"];
+        this.sourceKey++;
+    }
+
+    // Brings the formatted view in line with the parameters, one pass at a time.
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        this.self ??= DotNetObjectReference.Create(this);
+
+        if (this.syncing)
+        {
+            this.resync = true;
+
+            return;
+        }
+
+        this.syncing = true;
+
+        try
+        {
+            while (!this.Source && !this.switching && !this.cancel.IsCancellationRequested)
+            {
+                if (!this.formattedOpen)
+                {
+                    this.formattedOpen = true;
+                    this.formattedEditing = this.Editing;
+                    await this.Editors.OpenMarkdown(this.host, this.start, this.Editing, $"Obsah souboru {this.FileName}", this.self);
+                }
+                else if (this.formattedEditing != this.Editing)
+                {
+                    this.formattedEditing = this.Editing;
+
+                    if (this.Editing)
+                    {
+                        await this.ReleaseView();
+                        await this.Editors.EditMarkdown(this.host);
+                    }
+                    else
+                    {
+                        await this.Editors.ShowMarkdown(this.host, this.start);
+                    }
+                }
+                else if (!this.Editing && this.viewToolbar is { } toolbar && toolbar != this.wiredToolbar)
+                {
+                    this.wiredToolbar = toolbar;
+
+                    try
+                    {
+                        await this.Previews.OpenTextView(this.stage, toolbar.View);
+                        this.ready = true;
+                        this.StateHasChanged();
+                    }
+                    catch (JSException exception)
+                    {
+                        // The text stays readable without its zoom and search.
+                        this.Logger.LogWarning(exception, "The zoom and search of the Markdown preview did not start");
+                    }
+                    catch (ObjectDisposedException exception)
+                    {
+                        // The toolbar left while the script loaded.
+                        this.Logger.LogInformation(exception, "The Markdown preview's toolbar was already gone");
+                    }
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+        catch (JSException exception)
+        {
+            this.Logger.LogWarning(exception, "The Markdown view did not start");
+
+            if (!this.cancel.IsCancellationRequested)
+                await this.OnUnavailable.InvokeAsync();
+        }
+        catch (ObjectDisposedException exception) when (this.cancel.IsCancellationRequested)
+        {
+            this.Logger.LogInformation(exception, "The Markdown view closed while it opened");
+        }
+        finally
+        {
+            this.syncing = false;
+        }
+
+        if (this.resync && !this.cancel.IsCancellationRequested)
+        {
+            this.resync = false;
+            this.StateHasChanged();
+        }
+    }
+
+    // The switch carries the text across: a changed text is read from the view shown and the other view opens with it.
+    private async Task Switch(bool source)
+    {
+        if (source == this.Source || this.switching)
+            return;
+
+        this.switching = true;
+
+        try
+        {
+            if (this.Editing && this.editorDirty)
+                this.start = await this.ReadText();
+
+            if (!this.Source)
+            {
+                await this.ReleaseView();
+
+                if (this.formattedOpen)
+                {
+                    this.formattedOpen = false;
+                    await this.Editors.CloseMarkdown(this.host);
+                }
+            }
+
+            this.editorDirty = false;
+            this.active = [];
+            this.disabled = ["undo", "redo"];
+            this.sourceKey++;
+
+            await this.SourceChanged.InvokeAsync(source);
+            await this.ReportDirty();
+        }
+        catch (JSException exception)
+        {
+            this.Logger.LogWarning(exception, "Switching the Markdown view failed");
+        }
+        finally
+        {
+            this.switching = false;
+        }
+    }
+
+    private async Task SourceDirtyChanged(bool changed)
+    {
+        this.editorDirty = changed;
+
+        await this.ReportDirty();
+    }
+
+    // Changed means the user changed the text: in the view shown, or before a switch carried it across.
+    private async Task ReportDirty()
+    {
+        var changed = this.editorDirty || !string.Equals(this.start, this.Text, StringComparison.Ordinal);
+
+        if (changed == this.dirty)
+            return;
+
+        this.dirty = changed;
+
+        await this.OnDirtyChanged.InvokeAsync(changed);
+    }
+
+    // The editor and the source view have no zoom: the text goes back to its true size and the search ends.
+    private async Task ReleaseView()
+    {
+        if (this.wiredToolbar is null)
+            return;
+
+        this.wiredToolbar = null;
+        this.ready = false;
+
+        try
+        {
+            await this.Previews.ZoomView(this.stage, PreviewZoom.Actual);
+            await this.Previews.DisposeView(this.stage);
+        }
+        catch (JSException exception)
+        {
+            this.Logger.LogInformation(exception, "The Markdown preview's zoom and search were already gone");
+        }
+    }
+
+    private async Task Run(string command)
+    {
+        try
+        {
+            if (command == "link")
+                await this.OnLinkRequest.InvokeAsync(await this.Editors.ReadMarkdownLink(this.host));
+            else
+                await this.Editors.RunMarkdownCommand(this.host, command);
+        }
+        catch (JSException exception)
+        {
+            this.Logger.LogWarning(exception, "The Markdown command {Command} failed", command);
+        }
+    }
+
+    private async Task Zoom(PreviewZoom zoom)
+    {
+        await this.Previews.ZoomView(this.stage, zoom);
+    }
+
+    private async Task Search(PreviewSearch search)
+    {
+        await this.Previews.FindInView(this.stage, search.Query, search.Find);
+    }
+}

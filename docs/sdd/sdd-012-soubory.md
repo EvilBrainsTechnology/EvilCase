@@ -141,7 +141,7 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   (docx), sešit (xlsx, xls, ods), e-mail (eml, msg), datovou zprávu a doručenku ISDS (zfo), podepsaný soubor (p7m, p7s), zvuk (mp3, m4a, wav, ogg, oga) a video
   (mp4, webm, m4v, mov). Jiný typ nabídne jen stažení. Soubor, který se nepodaří přečíst, nabídne
   také jen stažení.
-- PDF, text, kód, Markdown, e-mail, datová zpráva a dokument Word mají nad obsahem stejnou lištu se zvětšením
+- PDF, text, kód, formátovaný Markdown, e-mail, datová zpráva a dokument Word mají nad obsahem stejnou lištu se zvětšením
   a zmenšením (50 až 400 %, také Ctrl nebo Cmd s kolečkem myši), na počítači i se skutečnou
   velikostí 100 %, a s hledáním. Hledání nerozlišuje velikost písmen ani diakritiku, zvýrazní
   všechny výskyty, aktuální odliší a posune do zobrazení a ukáže pořadí z počtu (3 z 12), nebo
@@ -150,7 +150,7 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
 - PDF se ukáže jako stránky pod sebou, zpočátku na šířku náhledu, nejvýš však ve 100 %, i
   v mobilním prohlížeči. Lišta navíc ukáže stránku z počtu stran s polem pro skok na stránku
   a přizpůsobení na šířku a na celou stránku. Text jde vybrat a zkopírovat.
-- U textu, kódu, Markdownu, e-mailu a datové zprávy zvětšení mění velikost písma a text se zalomí do šířky náhledu;
+- U textu, kódu, formátovaného Markdownu, e-mailu a datové zprávy zvětšení mění velikost písma a text se zalomí do šířky náhledu;
   zpočátku je 100 %.
 - Odkaz v PDF na místo v dokumentu přejde na jeho stránku, odkaz na webovou nebo e-mailovou adresu
   se otevře v nové záložce, jiný odkaz nefunguje. Formuláře, skripty a vložená média nefungují.
@@ -165,9 +165,16 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   v původní podobě; tlačítko je pak vypnuté a náhled řekne proč. Totéž platí, když se soubor
   nepodaří naformátovat z jiného důvodu. Když zvýraznění není k dispozici, ukáže se kód jako
   prostý text. Řádek delší než 10 000 znaků se ukáže bez zvýraznění.
-- Markdown se ukáže formátovaně, nejvýše první 1 MB. Syrové HTML v něm se nevykoná, ukáže se
-  jako text; odkaz zůstane jen na webovou nebo e-mailovou adresu a otevře se v nové záložce;
-  obrázky se nenačítají.
+- Markdown se ukáže formátovaně, nejvýše první 1 MB, včetně tabulek, přeškrtnutí a seznamů
+  úkolů; zaškrtávací políčka úkolů v náhledu nejdou měnit. Syrové HTML v něm se nevykoná, ukáže
+  se jako text. Odkaz zůstane jen na webovou (http, https) nebo e-mailovou adresu a otevře se
+  v nové záložce; jiný odkaz se ukáže jako prostý text. Obrázky se nenačítají: místo obrázku se
+  ukáže jeho popis, bez popisu slovo „obrázek“.
+- Lišta náhledu Markdownu nese přepínač Formátovaně / Zdrojový kód, na mobilu Formát / Zdroj.
+  Zdrojový kód ukáže text s čísly řádků a barevně zvýrazněnými značkami Markdownu; jeho lišta
+  nese jen přepínač a Hledat v textu, bez zvětšení, a hledá se v něm jako v editoru textu. Zvolené
+  zobrazení platí pro každý další soubor Markdown, dokud se náhled nezavře; nově otevřený náhled
+  začne formátovaně.
 - Dokument Word se ukáže jako stránky pod sebou, zpočátku na šířku náhledu, nejvýš však ve 100 %.
   Stránka končí tam, kde ji Word ukončil při posledním uložení, nebo na ručním zlomu stránky či
   oddílu. Dokument bez údajů od Wordu a stránka, která je i tak o víc než desetinu vyšší než
@@ -210,9 +217,9 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
 
 ### Úpravy textu
 
-- Text (txt, csv, tsv, log) a kód (json, xml, isdoc, yaml, yml, html) jde upravit přímo v náhledu.
-  Hlavička náhledu nese Upravit před Verze jen u aktuální verze souboru karty, který se celý vejde
-  do 1 MB a je platné UTF-8, s BOM i bez něj. Starší verze, obsah podepsaného dokumentu a příloha
+- Text (txt, csv, tsv, log), kód (json, xml, isdoc, yaml, yml, html) a Markdown (md, markdown) jde
+  upravit přímo v náhledu. Hlavička náhledu nese Upravit před Verze jen u aktuální verze souboru
+  karty, který se celý vejde do 1 MB a je platné UTF-8, s BOM i bez něj. Starší verze, obsah podepsaného dokumentu a příloha
   datové zprávy se neupravují. U souboru, který není platné UTF-8, náhled řekne „Soubor není
   v kódování UTF-8, proto ho nejde upravit.“
 - Editor ukáže celý text s čísly řádků, dlouhé řádky zalomí a kód barevně zvýrazní stejně jako
@@ -227,6 +234,34 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   mezer; když žádný odsazený není, v YAML dvě mezery, jinak tabulátor. Výběr přes více řádků Tab
   odsadí a Shift+Tab odsazení ubere. První Esc v textu náhled nezavře a následující Tab přesune
   fokus z textu; další Esc se chová jako Esc kdekoli v náhledu.
+- Markdown se upravuje v zobrazení, které náhled právě ukazuje: formátovaně přímo v náhledu,
+  nebo ve zdrojovém kódu stejným editorem jako text, se zvýrazněnými značkami Markdownu.
+  Přepínač Formátovaně / Zdrojový kód zůstává na liště i během úprav. Přepnutí přenese text
+  i s neuloženými změnami do druhého zobrazení a historii Zpět a Znovu začne znovu.
+- Lišta formátovaných úprav nese Zpět, Znovu, přepínač, Nadpis 1, 2 a 3, Tučně, Kurzíva,
+  Přeškrtnout, Odrážky, Číslovaný seznam, Seznam úkolů, Citace, Kód, Odkaz a Tabulka. Tlačítko
+  formátu, který platí v místě kurzoru, je zvýrazněné a druhý stisk formát zruší: nadpis vrátí na
+  odstavec, seznam a citaci zruší. Jiný seznam převede seznam na stisknutý druh. Tlačítko, které
+  v místě kurzoru nejde použít, je neaktivní. Kód udělá z označeného textu v jednom odstavci kód
+  v řádku, jinak z odstavce blok kódu; v bloku kódu ho vrátí na odstavec. Tabulka vloží tabulku
+  3 × 3 se záhlavím; v tabulce a v bloku kódu je neaktivní. Zaškrtávací políčko úkolu jde během
+  úprav přepnout.
+- Odkaz otevře okno „Odkaz“ s polem Adresa a nápovědou „Začíná https://, http:// nebo
+  mailto:“. Jinou adresu okno odmítne textem „Zadejte adresu, která začíná https://, http://
+  nebo mailto:.“ Vložit odkaz propojí označený text, odkaz v místě kurzoru, nebo bez výběru vloží
+  adresu samu jako odkaz; u existujícího odkazu okno nabídne i Odebrat odkaz. Enter odkaz vloží,
+  Esc a Zrušit okno zavřou.
+- Formátované úpravy nemají hledání ani zvětšení; zvětšení náhledu se při Upravit vrátí na
+  100 %. Ctrl+B a Cmd+B je tučně, Ctrl+I a Cmd+I kurzíva, zpět a znovu jako v editoru textu,
+  Ctrl+S nebo Cmd+S uloží. Psaní značek Markdownu (# na začátku řádku, -, 1., >, ``` a dvojice
+  ** nebo `) formát rovnou použije. Tab v seznamu odsadí položku a Shift+Tab ji vrátí, jinde Tab
+  přesune fokus.
+- Formátovaně uložený Markdown se zapíše jednotně: značky, odrážky a odsazení mohou v souboru
+  vypadat jinak než předtím, i mimo změněné místo. Uložit je aktivní, jen když uživatel obsah
+  změnil; vrácení všech změn přes Zpět ho znovu vypne a úpravy otevřené a zavřené beze změny
+  soubor nezmění. Syrové HTML a obrázky v souboru zůstanou. Vložený obsah z jiné aplikace si
+  ponechá nadpisy, odstavce, seznamy, citace, tabulky, kód, formát písma a odkazy na webové
+  a e-mailové adresy; obrázky a ostatní HTML vynechá.
 - Uložit, i Ctrl+S nebo Cmd+S, nahraje text jako novou verzi souboru pod jeho jménem stejně jako
   Nová verze a náhled se vrátí ke čtení aktuální verze. Dokud se text neliší od načteného, je
   Uložit neaktivní. Uložení zachová UTF-8, BOM, pokud ho soubor měl, a konce řádků souboru; konce
@@ -243,7 +278,9 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   udělá Zpět nebo Vpřed prohlížeče krok v historii a nový záznam do ní nepřidá. Zavření nebo
   obnovení záložky a přechod mimo aplikaci ohlásí vlastní dotaz prohlížeče.
 - Na mobilu nese hlavička pod jménem Zrušit a Uložit vedle sebe přes celou šířku a po změně
-  ukáže jen „Neuložené změny“; lišta se při nedostatku místa posouvá do strany.
+  ukáže jen „Neuložené změny“; lišta se při nedostatku místa posouvá do strany. Lišta
+  formátovaných úprav je i na mobilu v jednom řádku a posouvá se do strany; přepínač nese
+  Formát / Zdroj.
 
 ### Podpis datové zprávy
 
@@ -380,6 +417,10 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
 - Kódování upravovaného textu: jakékoli / jen UTF-8. Platí jen UTF-8.
 - Po uložení úprav: zůstat v editoru / náhled ke čtení. Platí náhled ke čtení.
 - Archiv souborů: sestavit předem / posílat průběžně. Platí průběžně.
+- Zápis Markdownu po formátované úpravě: zachovat původní zápis / jednotný. Platí jednotný.
+- Režim úpravy Markdownu: vždy formátovaně / podle zobrazení náhledu. Platí podle zobrazení
+  náhledu.
+- Seznam úkolů v náhledu: políčka měnitelná / neměnná. Platí neměnná.
 
 ## Dopady
 

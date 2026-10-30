@@ -170,6 +170,7 @@ internal sealed class FilePreviews(IJSRuntime jsRuntime) : IFilePreviews, IAsync
             CodeLanguage.Xml => "xml",
             CodeLanguage.Yaml => "yaml",
             CodeLanguage.Html => "html",
+            CodeLanguage.Markdown => "markdown",
             _ => throw new UnreachableException(),
         };
     }
