@@ -1363,8 +1363,8 @@ function element(name, className, text) {
     return dom;
 }
 
-// The decorations of the differences of one document. A change of format is named on a tooltip and, for assistive
-// technology, in a hidden note after it; a block of another type also on a label after its text.
+// The decorations of the differences of one document. A block names its changes of type and format on a label after its
+// text; a stretch in another format also on a tooltip and, for assistive technology, in a hidden note after it.
 function differenceMarks(doc, marks) {
     const decorations = [];
     for (const mark of marks) {
@@ -1378,7 +1378,9 @@ function differenceMarks(doc, marks) {
             decorations.push(node.isTextblock && node.content.size > 0
                 ? Decoration.inline(mark.node + 1, mark.end - 1, { class: 'ec-markdown-compare-format' })
                 : Decoration.node(mark.node, mark.end, { class: 'ec-markdown-compare-format' }));
-            decorations.push(Decoration.widget(node.isTextblock ? mark.end - 1 : mark.end, () => element('span', 'ec-markdown-compare-chip', mark.title), { side: 1, ignoreSelection: true }));
+        } else if (mark.type === 'named') {
+            const at = doc.nodeAt(mark.node).isTextblock ? mark.end - 1 : mark.end;
+            decorations.push(Decoration.widget(at, () => element('span', 'ec-markdown-compare-chip', mark.title), { side: 1, ignoreSelection: true }));
         } else {
             decorations.push(Decoration.node(mark.node, mark.end, { class: 'ec-markdown-compare-' + mark.type }));
         }

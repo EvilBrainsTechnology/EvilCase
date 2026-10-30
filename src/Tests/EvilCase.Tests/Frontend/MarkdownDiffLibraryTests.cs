@@ -111,54 +111,73 @@ public class MarkdownDiffLibraryTests
     }
 
     [Test]
-    public async Task AChangeOfFormatAloneIsNamedOverTheTextItCovers()
+    public async Task AChangeOfFormatAloneIsNamedOverTheTextItCoversAndOnceAfterItsBlock()
     {
         var lines = await this.Diff("""
             [
               [["p", "Splatnost je 14 dní."], ["p", "Platba převodem.", { "marks": [[7, 15, { "emphasis": true }]] }],
-               ["p", "Podle ceníku.", { "marks": [[6, 12, { "link": "https://a.example" }]] }], ["p", "Kód ABC a text."]],
+               ["p", "Podle ceníku.", { "marks": [[6, 12, { "link": "https://a.example" }]] }], ["p", "Kód ABC a text."],
+               ["p", "Záloha a doplatek."]],
               [["p", "Splatnost je 14 dní.", { "marks": [[13, 19, { "strong": true }]] }], ["p", "Platba převodem."],
                ["p", "Podle ceníku.", { "marks": [[6, 12, { "link": "https://b.example" }]] }],
-               ["p", "Kód ABC a text.", { "marks": [[4, 7, { "inlineCode": true, "strike_through": true }]] }]]
+               ["p", "Kód ABC a text.", { "marks": [[4, 7, { "inlineCode": true, "strike_through": true }]] }],
+               ["p", "Záloha a doplatek.", { "marks": [[0, 6, { "strong": true }], [9, 17, { "strong": true }]] }]]
             ]
             """);
 
         string[] expected =
         [
             "newer format \"14 dní\": nově tučně",
+            "newer named \"Splatnost je 14 dní.\": nově tučně",
             "newer format \"převodem\": dříve kurzívou",
+            "newer named \"Platba převodem.\": dříve kurzívou",
             "newer format \"ceníku\": adresa odkazu https://a.example → https://b.example",
+            "newer named \"Podle ceníku.\": adresa odkazu https://a.example → https://b.example",
             "newer format \"ABC\": nově přeškrtnuto, nově jako kód",
-            "summary +4 −4 in 1",
+            "newer named \"Kód ABC a text.\": nově přeškrtnuto; nově jako kód",
+            "newer format \"Záloha\": nově tučně",
+            "newer format \"doplatek\": nově tučně",
+            "newer named \"Záloha a doplatek.\": nově tučně",
+            "summary +5 −5 in 1",
         ];
 
-        Assert.That(lines, Is.EqualTo(expected));
+        Assert.That(lines, Is.EqualTo(expected), "a block names each change of format once on its label");
     }
 
     [Test]
-    public async Task AChangeOfBlockTypeNamesBothTypes()
+    public async Task AChangeOfBlockTypeNamesBothTypesOnTheBlocksLabel()
     {
         var lines = await this.Diff("""
             [
               [["h2", "Poznámka"], ["p", "Bod"], ["p", "Úkol", { "in": ["task"] }], ["p", "Citát", { "in": ["quote"] }],
-               ["code", "x = 1"], ["p", "Vnořený", { "in": ["bullet"] }]],
+               ["code", "x = 1"], ["p", "Vnořený", { "in": ["bullet"] }], ["h3", "Termíny"]],
               [["p", "Poznámka"], ["p", "Bod", { "in": ["bullet"] }], ["p", "Úkol", { "in": ["done"] }], ["p", "Citát"],
-               ["p", "x = 1"], ["p", "Vnořený", { "in": ["bullet", "bullet"] }]]
+               ["p", "x = 1"], ["p", "Vnořený", { "in": ["bullet", "bullet"] }],
+               ["p", "Termíny", { "marks": [[0, 7, { "strong": true }]] }]]
             ]
             """);
 
         string[] expected =
         [
-            "newer restyled \"Poznámka\": nadpis 2 → odstavec",
-            "newer restyled \"Bod\": odstavec → odrážka",
-            "newer restyled \"Úkol\": úkol → splněný úkol",
-            "newer restyled \"Citát\": citace → odstavec",
-            "newer restyled \"x = 1\": blok kódu → odstavec",
-            "newer restyled \"Vnořený\": odrážka → odrážka 2. úrovně",
-            "summary +6 −6 in 1",
+            "newer restyled \"Poznámka\"",
+            "newer named \"Poznámka\": nadpis 2 → odstavec",
+            "newer restyled \"Bod\"",
+            "newer named \"Bod\": odstavec → odrážka",
+            "newer restyled \"Úkol\"",
+            "newer named \"Úkol\": úkol → splněný úkol",
+            "newer restyled \"Citát\"",
+            "newer named \"Citát\": citace → odstavec",
+            "newer restyled \"x = 1\"",
+            "newer named \"x = 1\": blok kódu → odstavec",
+            "newer restyled \"Vnořený\"",
+            "newer named \"Vnořený\": odrážka → odrážka 2. úrovně",
+            "newer restyled \"Termíny\"",
+            "newer format \"Termíny\": nově tučně",
+            "newer named \"Termíny\": nadpis 3 → odstavec; nově tučně",
+            "summary +7 −7 in 1",
         ];
 
-        Assert.That(lines, Is.EqualTo(expected));
+        Assert.That(lines, Is.EqualTo(expected), "a block of another type and format names both changes on one label");
     }
 
     [Test]

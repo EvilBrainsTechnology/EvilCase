@@ -333,13 +333,14 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   volba platí, dokud se porovnání nezavře. Verze, které se formátovaně neliší, se porovnají ve
   zdrojovém kódu.
 - Formátované porovnání ukáže obě verze jako náhled Markdownu, které nejdou měnit. Vložený text je
-  zelený a podtržený, smazaný červený a přeškrtnutý. Text, kterému se změnil jen formát, je
-  fialový s čárkovaným rámečkem a tooltip změnu pojmenuje („nově tučně“, „adresa odkazu A → B“);
-  blok jiného typu nese štítek se změnou („nadpis 2 → odstavec“). Přidaný blok je celý zelený,
-  odebraný celý červený. Tabulka se porovná po buňkách; řádky se poznají podle první buňky, když
+  zelený a podtržený, smazaný červený a přeškrtnutý. Text, kterému se změnil jen formát, a blok
+  jiného typu jsou fialové s čárkovaným rámečkem. Blok, kterému se změnil typ nebo formát, nese za
+  textem štítek, který změny pojmenuje („nadpis 2 → odstavec; nově tučně“, „adresa odkazu A → B“);
+  změnu formátu pojmenuje i tooltip nad textem. Přidaný blok je celý zelený, odebraný celý
+  červený. Tabulka se porovná po buňkách; řádky se poznají podle první buňky, když
   se první buňky v každé z tabulek liší. Pod porovnáním stojí legenda barev.
 - Vedle sebe stojí protější bloky na stejné výšce. V jednom sloupci stojí odebraný obsah tam, kde
-  byl, i odebrané řádky tabulky a položky seznamu. Souhrn počítá bloky („+3 −2 bloků“): změněný
+  byl, i odebrané řádky tabulky a položky seznamu. Souhrn počítá bloky („+3 −2 bloky“): změněný
   blok na obou stranách, řádek tabulky jako blok. Nezměněné úseky se nesbalují. Obrázky se
   nenačítají a HTML se nevykoná.
 - Hledání v porovnání nerozlišuje velikost písmen ani diakritiku a ukáže pořadí výskytu z počtu;

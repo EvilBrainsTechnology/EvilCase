@@ -2500,14 +2500,13 @@ html.ec-scroll-locked {
     pointer-events: none;
 }
 
-/* A block of another type carries the change on a label after its text. */
+/* A block names its changes of type and format on a label after its text; a long label wraps inside itself. */
 .ec-markdown-compare-chip {
-    display: inline-flex;
-    align-items: center;
-    height: var(--ec-compare-chip-height);
+    display: inline-block;
+    max-width: 100%;
     margin-left: var(--ec-space-3);
     padding: 0 var(--ec-space-3);
-    border-radius: var(--ec-radius-pill);
+    border-radius: calc(var(--ec-compare-chip-height) / 2);
     background: var(--ec-compare-format-bg);
     color: var(--ec-compare-format-text);
     outline: var(--ec-compare-format-outline);
@@ -2515,8 +2514,8 @@ html.ec-scroll-locked {
     font-size: var(--ec-text-xs);
     font-style: normal;
     font-weight: var(--ec-weight-semibold);
-    line-height: 1;
-    white-space: nowrap;
+    line-height: var(--ec-compare-chip-height);
+    overflow-wrap: anywhere;
     vertical-align: middle;
     user-select: none;
 }
