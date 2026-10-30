@@ -111,7 +111,7 @@ nese štítek „verze 3“, nově nahraný soubor nebo verze světle modrý ř�
 modal; hlavička nese ikonu, název, velikost a okamžik nahrání, u víc souborů karty přechod mezi
 nimi s pořadím „Soubor 2 z 5", u souboru s více verzemi přepínač Verze s počtem, Nová verze,
 Přejmenovat, Stáhnout a zavření; pruh verzí leží pod hlavičkou a u starší verze má barvu
-upozornění. Náhled přílohy datové zprávy nese v hlavičce návrat „← Zpráva", ikonu, název
+upozornění, hlavička starší verze nese vedle názvu štítek „verze 2“ a neaktivní Verze. Náhled přílohy datové zprávy nese v hlavičce návrat „← Zpráva", ikonu, název
 a velikost přílohy, u víc příloh přechod mezi nimi s pořadím „příloha 2 z 5", Stáhnout přílohu
 a zavření; Přejmenovat nenese.
 

@@ -123,10 +123,10 @@ příponou karta odmítne hláškou „Návrh.docx: nová verze souboru Smlouva.
 
 Verze (3) otevře okno Verze souboru se jménem souboru, počtem verzí a Nahrát novou verzi.
 Verze jdou od nejnovější; každá ukáže číslo, u aktuální štítek „aktuální“, okamžik nahrání,
-e-mail toho, kdo ji nahrál, a velikost a nabídne Náhled, Stáhnout a Smazat. Smazání verze
-potvrzuje okno, které jmenuje číslo verze a soubor. Jediná verze Smazat nenabízí; okno nese
-Smazat soubor, které otevře potvrzení smazání souboru. Na mobilu je okno vysunuté od spodního
-okraje a klik na verzi otevře její náhled.
+e-mail toho, kdo ji nahrál, a velikost a nabídne Stáhnout a Smazat. Klik na verzi otevře její
+náhled. Smazání verze potvrzuje okno, které jmenuje číslo verze a soubor. Jediná verze Smazat
+nenabízí; okno nese Smazat soubor, které otevře potvrzení smazání souboru. Na mobilu je okno
+vysunuté od spodního okraje.
 
 Přejmenování mění jen jméno bez přípony, přípona zůstává. Potvrzuje se Enterem nebo Uložit,
 Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor tohoto jména už existuje“.
@@ -205,7 +205,8 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
 - Starší verze se ukáže vždy s pruhem verzí v barvě upozornění, s textem „Starší verze. Stáhnout
   stáhne tuto verzi.“ a se Zobrazit aktuální verzi. Hlavička ukáže velikost a okamžik nahrání té
   verze; obsah, podpis datové zprávy, podepisující i stažení jsou té verze. Pruh samostatného
-  podpisu u starší verze není.
+  podpisu u starší verze není. Hlavička nese vedle názvu štítek „verze 2“ a tlačítko Verze je
+  neaktivní; k aktuální verzi vede pruh verzí.
 
 ### Podpis datové zprávy
 
