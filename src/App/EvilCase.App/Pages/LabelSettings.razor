@@ -1,0 +1,190 @@
+@page "/settings/labels"
+@layout SettingsLayout
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.Labels
+@inject ILabelsClient LabelsClient
+@inject ILogger<LabelSettings> Logger
+
+<PageTitle>Štítky – Nastavení – EvilCase</PageTitle>
+
+<EcCard>
+    <Header>
+        <div class="ec-card-heading">
+            <h2 class="ec-card-title">
+                Štítky
+                @if (this.items.Count > 0)
+                {
+                    <span class="ec-card-count">@this.items.Count</span>
+                }
+            </h2>
+            <span class="ec-card-subtitle">Jeden číselník pro spisy i úkony</span>
+        </div>
+        <div class="ec-card-header-actions">
+            <EcButton Variant="EcButtonVariant.Primary" Icon="@AppIcons.Plus" OnClick="this.StartCreating"><span>Nový<span class="ec-settings-new-more"> štítek</span></span></EcButton>
+        </div>
+    </Header>
+    <ChildContent>
+        @if (this.loading)
+        {
+            <p class="ec-card-state">Načítám…</p>
+        }
+        else if (this.listFailure is not null)
+        {
+            <div class="ec-card-error">
+                <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.listFailure</div>
+                <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Refresh"
+                          OnClick="this.ReloadLabels">Zkusit znovu</EcButton>
+            </div>
+        }
+        else if (this.items.Count == 0)
+        {
+            <EcEmptyState Icon="@AppIcons.Tag" Text="Zatím tu není žádný štítek.">
+                <Action>
+                    <EcButton Variant="EcButtonVariant.Primary" Icon="@AppIcons.Plus" OnClick="this.StartCreating">Založit štítek</EcButton>
+                </Action>
+            </EcEmptyState>
+        }
+        else
+        {
+            <div class="ec-settings-head" aria-hidden="true">
+                <span>Štítek</span>
+                <span>Barva</span>
+                <span class="ec-settings-head-count">Spisy</span>
+                <span class="ec-settings-head-count">Úkony</span>
+                <span></span>
+            </div>
+            <div class="ec-settings-list">
+                @foreach (var item in this.items)
+                {
+                    <div class="ec-settings-row">
+                        <span class="ec-settings-row-label">
+                            <span class="@($"ec-chip ec-chip-{LabelColorDisplay.Css(item.Color)}")">
+                                <span class="ec-chip-dot" aria-hidden="true"></span>@item.Name
+                            </span>
+                            <span class="ec-settings-row-usage"><MetaLine Parts="@LabelUsageDisplay.Line(item.CaseCount, item.ActCount)" /></span>
+                        </span>
+                        <span class="ec-settings-row-color">@LabelColorDisplay.Text(item.Color)</span>
+                        <span class="@CountClass(item.CaseCount)">@CountText(item.CaseCount)</span>
+                        <span class="@CountClass(item.ActCount)">@CountText(item.ActCount)</span>
+                        <span class="ec-settings-row-actions">
+                            <EcButton Variant="EcButtonVariant.Quiet" Size="EcButtonSize.Compact" Icon="@AppIcons.Pencil"
+                                      AriaLabel="@($"Upravit štítek {item.Name}")" OnClick="() => this.StartEditing(item)" />
+                            <EcButton Variant="EcButtonVariant.QuietDanger" Size="EcButtonSize.Compact" Icon="@AppIcons.Trash"
+                                      AriaLabel="@($"Smazat štítek {item.Name}")" OnClick="() => this.StartDeleting(item)" />
+                        </span>
+                    </div>
+                }
+            </div>
+        }
+    </ChildContent>
+    <Footer>
+        Smazání štítku ho sejme ze všech spisů a úkonů, které ho nesou.
+    </Footer>
+</EcCard>
+
+@if (this.formOpen)
+{
+    <LabelFormModal Label="this.editing" Open OpenChanged="this.CloseForm" OnSaved="this.LabelSaved" />
+}
+
+@if (this.deleting is not null)
+{
+    <LabelDeleteModal Label="this.deleting" Open OpenChanged="this.CloseDelete" OnDeleted="this.LabelDeleted" />
+}
+
+@code {
+    private IReadOnlyList<LabelListItem> items = [];
+
+    private LabelItem? editing;
+
+    private LabelListItem? deleting;
+
+    private bool formOpen;
+
+    private bool loading = true;
+
+    private string? listFailure;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await this.ReloadLabels();
+        this.loading = false;
+    }
+
+    private async Task ReloadLabels()
+    {
+        this.listFailure = null;
+
+        try
+        {
+            var response = await this.LabelsClient.ListLabels(CancellationToken.None);
+
+            this.items = response.Items;
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Loading the label list failed");
+
+            this.items = [];
+            this.listFailure = "Seznam štítků se nepodařilo načíst. Zkuste to za chvíli znovu.";
+        }
+    }
+
+    private void StartCreating()
+    {
+        this.editing = null;
+        this.formOpen = true;
+    }
+
+    private static string CountClass(int count)
+    {
+        return count == 0 ? "ec-settings-row-count ec-settings-row-count-zero" : "ec-settings-row-count";
+    }
+
+    private static string CountText(int count)
+    {
+        return count == 0 ? "—" : count.ToString(CultureInfo.CurrentCulture);
+    }
+
+    private void StartEditing(LabelListItem label)
+    {
+        this.editing = new LabelItem { LabelId = label.LabelId, Name = label.Name, Color = label.Color };
+        this.formOpen = true;
+    }
+
+    private void StartDeleting(LabelListItem label)
+    {
+        this.deleting = label;
+    }
+
+    private void CloseForm(bool open)
+    {
+        if (open)
+            return;
+
+        this.formOpen = false;
+        this.editing = null;
+    }
+
+    private void CloseDelete(bool open)
+    {
+        if (!open)
+            this.deleting = null;
+    }
+
+    private async Task LabelSaved()
+    {
+        this.formOpen = false;
+        this.editing = null;
+
+        await this.ReloadLabels();
+    }
+
+    private async Task LabelDeleted()
+    {
+        this.deleting = null;
+
+        await this.ReloadLabels();
+    }
+}

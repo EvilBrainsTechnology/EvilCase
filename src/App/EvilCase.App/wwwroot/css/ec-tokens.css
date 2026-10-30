@@ -257,6 +257,26 @@
     --ec-settings-col-color: 150px;
     --ec-settings-col-count: 90px;
     --ec-settings-col-actions: 96px;
+    --ec-settings-nav-gap: 10px;
+
+    /* API tokeny (docs/design/nastaveni-api-tokeny.html) */
+    --ec-token-col-scope: 140px;
+    --ec-token-col-created: 120px;
+    --ec-token-col-expires: 130px;
+    --ec-token-col-used: 160px;
+    --ec-token-col-actions: 88px;
+    --ec-token-row-height: 52px;
+    --ec-token-chip-height: 24px;
+    --ec-token-chip-sm-height: 20px;
+    --ec-token-option-pad: 14px;
+    --ec-token-read-bg: #EEF0F3;
+    --ec-token-read-text: var(--ec-text-soft);
+    --ec-token-write-bg: var(--ec-accent-soft);
+    --ec-token-write-text: #2A48B8;
+    --ec-token-expired-bg: #FDE4E1;
+    --ec-token-expired-text: var(--ec-danger-text);
+    --ec-token-unused-text: #9AA0AB;
+    --ec-token-option-checked-bg: #F5F7FD;
 
     /* Detail spisu (docs/design/detail-spisu.html) */
     --ec-case-act-col-date: 96px;

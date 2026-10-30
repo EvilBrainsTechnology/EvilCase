@@ -1,0 +1,37 @@
+@inherits LayoutComponentBase
+@layout MainLayout
+@inject NavigationManager Navigation
+
+@* Every settings section is a page under /settings/ with this layout and one entry below. *@
+<div class="ec-page">
+    <EcPageHeader Title="Nastavení" />
+
+    <div class="ec-settings-layout">
+        <nav class="ec-settings-nav" aria-label="Sekce nastavení">
+            @foreach (var section in Sections)
+            {
+                <a class="ec-settings-nav-item" href="@section.Href" aria-current="@(this.IsCurrent(section.Href) ? "page" : null)">
+                    <EcIcon Paths="@section.Icon" />@section.Text
+                </a>
+            }
+        </nav>
+
+        @this.Body
+    </div>
+</div>
+
+@code {
+    private static readonly (string Href, string Text, string Icon)[] Sections =
+    [
+        ("/settings/labels", "Štítky", AppIcons.Tag),
+        ("/settings/api-tokens", "API tokeny", AppIcons.Key),
+        ("/settings/export", "Export", AppIcons.ArrowBarToDown),
+    ];
+
+    private bool IsCurrent(string href)
+    {
+        var path = "/" + this.Navigation.ToBaseRelativePath(this.Navigation.Uri).Split('?', '#')[0].TrimEnd('/');
+
+        return string.Equals(path, href, StringComparison.OrdinalIgnoreCase);
+    }
+}

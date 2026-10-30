@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace EvilBrains.EvilCase.Tests.Frontend;
 
-public class SettingsRenderTests
+public class LabelSettingsRenderTests
 {
     [Test]
     public void TheLabelSettingsRender()
@@ -25,7 +25,7 @@ public class SettingsRenderTests
 
         ctx.Services.AddSingleton(labelsClient);
 
-        var component = ctx.Render<Settings>();
+        var component = ctx.Render<LabelSettings>();
 
         component.WaitForAssertion(() => Assert.That(component.FindComponents<MetaLine>(), Has.Count.EqualTo(1)));
     }
