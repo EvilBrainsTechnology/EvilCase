@@ -399,35 +399,6 @@ public class FilePreviewModalRenderTests
     }
 
     [Test]
-    public void AMarkdownFileShowsFormattedAndNeverAsSource()
-    {
-        using var ctx = NewContext(out var blobs);
-
-        var file = File("Poznámky.md");
-        var component = Render(ctx, [file], file.FileId, content: "# Nadpis\n\nText **tučně** <script>alert(1)</script>");
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(component.Find(".ec-preview-markdown h1").TextContent, Is.EqualTo("Nadpis"));
-            Assert.That(component.Find(".ec-preview-markdown strong").TextContent, Is.EqualTo("tučně"));
-            Assert.That(component.FindAll(".ec-preview-markdown script"), Is.Empty, "raw HTML is text, never an element");
-            Assert.That(component.FindAll(".ec-preview-line"), Is.Empty);
-            Assert.That(blobs.Created, Is.Empty);
-        }
-    }
-
-    [Test]
-    public void ALongMarkdownIsCutAndSaysSo()
-    {
-        using var ctx = NewContext(out _);
-
-        var file = File("Velky.markdown");
-        var component = Render(ctx, [file], file.FileId, content: new string('a', (1024 * 1024) + 10));
-
-        Assert.That(component.Find(".ec-preview-note").TextContent, Does.Contain("jen jeho začátek"));
-    }
-
-    [Test]
     public void ADocxShowsNoNoticeAndHandsTheBytesToTheLibrary()
     {
         using var ctx = NewContext(out _, out var previews);
@@ -548,7 +519,6 @@ public class FilePreviewModalRenderTests
     }
 
     [TestCase("Poznámky.txt")]
-    [TestCase("Poznámky.md")]
     [TestCase("Zpráva.eml")]
     [TestCase("Zpráva.msg")]
     public void AReflowingPreviewHasTheZoomAndSearchOfThePdfWithoutPagesOrFits(string fileName)

@@ -711,6 +711,7 @@ public class FilePreviewModalEditRenderTests
         ctx.Services.AddSingleton(new StubAuthSession());
         ctx.Services.AddSingleton<IAuthSession>(static services => services.GetRequiredService<StubAuthSession>());
         ctx.Services.AddSingleton<ITextEditors>(editors);
+        ctx.Services.AddSingleton<IMarkdownEditors>(new StubMarkdownEditors());
         ctx.Services.AddSingleton(new StubBrowserHistory());
         ctx.Services.AddSingleton<IBrowserHistory>(static services => services.GetRequiredService<StubBrowserHistory>());
         ctx.Services.AddSingleton(Substitute.For<IFileSignaturesClient>());

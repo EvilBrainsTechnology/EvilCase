@@ -3,13 +3,25 @@
 @inject ITextEditors Editors
 @inject ILogger<TextEditor> Logger
 
-@* The source editor of a text file: undo, redo and search over the text; Notes stand between the toolbar and the text. *@
+@* The source editor of a text file, or its read-only source view: undo, redo and search over the text; Notes stand
+   between the toolbar and the text. *@
 <div class="ec-preview-view">
-    <div class="ec-preview-toolbar ec-text-editor-toolbar" role="toolbar" aria-label="Úpravy" inert="@this.Locked">
-        <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ArrowBackUp" AriaLabel="Zpět"
-                  Disabled="@(!this.canUndo)" OnClick="this.Undo" />
-        <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ArrowForwardUp" AriaLabel="Znovu"
-                  Disabled="@(!this.canRedo)" OnClick="this.Redo" />
+    <div class="ec-preview-toolbar ec-text-editor-toolbar" role="toolbar" aria-label="@(this.ReadOnly ? "Ovládání náhledu" : "Úpravy")" inert="@this.Locked">
+        @if (!this.ReadOnly)
+        {
+            <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ArrowBackUp" AriaLabel="Zpět"
+                      Disabled="@(!this.canUndo)" OnClick="this.Undo" />
+            <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ArrowForwardUp" AriaLabel="Znovu"
+                      Disabled="@(!this.canRedo)" OnClick="this.Redo" />
+        }
+        @if (this.Modes is not null)
+        {
+            @if (!this.ReadOnly)
+            {
+                <span class="ec-preview-toolbar-separator" aria-hidden="true"></span>
+            }
+            @this.Modes
+        }
         @* Escape clears the search and does not close the dialog. *@
         <div class="ec-text-editor-search" role="search" data-ec-keeps-escape>
             <label class="ec-preview-toolbar-search-box">
@@ -59,6 +71,18 @@
 
     [Parameter]
     public RenderFragment? Notes { get; set; }
+
+    /// <summary>
+    /// Shows the text without taking input: no Zpět, Znovu or Ctrl+S. Fixed for the editor's life.
+    /// </summary>
+    [Parameter]
+    public bool ReadOnly { get; set; }
+
+    /// <summary>
+    /// The view switch on the toolbar, after Zpět and Znovu.
+    /// </summary>
+    [Parameter]
+    public RenderFragment? Modes { get; set; }
 
     /// <summary>
     /// Takes no input while set, so nothing is typed into a text being saved.
@@ -160,7 +184,7 @@
                 }
             }
 
-            await this.Editors.OpenEditor(this.host, this.searchInput, this.Text, this.Language, indentUnit, false, $"Obsah souboru {this.FileName}", this.self);
+            await this.Editors.OpenEditor(this.host, this.searchInput, this.Text, this.Language, indentUnit, this.ReadOnly, $"Obsah souboru {this.FileName}", this.self);
             this.opened = true;
 
             // Closed while it opened.

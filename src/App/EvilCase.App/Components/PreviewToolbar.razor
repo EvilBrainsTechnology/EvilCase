@@ -43,6 +43,11 @@
                       Disabled="@(!this.Ready || !this.CanFormat)" aria-pressed="@Pressed(this.Formatted)" OnClick="this.OnFormat"><span class="ec-preview-toolbar-label">Formátovat</span></EcButton>
         </span>
     }
+    @if (this.Modes is not null)
+    {
+        <span class="ec-preview-toolbar-separator" aria-hidden="true"></span>
+        @this.Modes
+    }
     <span class="ec-preview-toolbar-search-toggle">
         <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Search" AriaLabel="Hledat v dokumentu"
                   Disabled="@(!this.Ready)" aria-expanded="@Pressed(this.searchOpen)" OnClick="this.ToggleSearch" />
@@ -140,6 +145,12 @@
 
     [Parameter]
     public EventCallback OnFormat { get; set; }
+
+    /// <summary>
+    /// A view switch after the zoom and the format button.
+    /// </summary>
+    [Parameter]
+    public RenderFragment? Modes { get; set; }
 
     [Parameter]
     public EventCallback<PreviewZoom> OnZoom { get; set; }

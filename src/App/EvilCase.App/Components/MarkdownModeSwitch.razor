@@ -1,0 +1,25 @@
+@* Shows a Markdown file formatted or as its source, in the preview and in the editor alike. *@
+<div class="ec-segmented ec-segmented-compact ec-markdown-modes" role="group" aria-label="@(this.Editing ? "Režim úprav" : "Zobrazení")">
+    <button type="button" class="ec-segment" aria-label="Formátovaně" aria-pressed="@(this.Source ? "false" : "true")"
+            @onclick="() => this.OnSwitch.InvokeAsync(false)">
+        <span class="ec-markdown-mode-long">Formátovaně</span><span class="ec-markdown-mode-short" aria-hidden="true">Formát</span>
+    </button>
+    <button type="button" class="ec-segment" aria-label="Zdrojový kód" aria-pressed="@(this.Source ? "true" : "false")"
+            @onclick="() => this.OnSwitch.InvokeAsync(true)">
+        <span class="ec-markdown-mode-long">Zdrojový kód</span><span class="ec-markdown-mode-short" aria-hidden="true">Zdroj</span>
+    </button>
+</div>
+
+@code {
+    [Parameter]
+    public bool Editing { get; set; }
+
+    [Parameter]
+    public bool Source { get; set; }
+
+    /// <summary>
+    /// Raised with true for the source, false for the formatted text.
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> OnSwitch { get; set; }
+}

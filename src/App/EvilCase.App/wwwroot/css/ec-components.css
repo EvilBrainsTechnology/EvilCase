@@ -1892,11 +1892,11 @@ html {
     zoom: var(--ec-preview-zoom, 1);
 }
 
-.ec-preview-markdown > :first-child {
+.ec-markdown-content > :first-child {
     margin-top: 0;
 }
 
-.ec-preview-markdown > :last-child {
+.ec-markdown-content > :last-child {
     margin-bottom: 0;
 }
 
@@ -1981,6 +1981,156 @@ html {
 .ec-preview-markdown th {
     background: var(--ec-surface-header);
     font-weight: var(--ec-weight-semibold);
+}
+
+/* Markdown: formátovaný náhled i úpravy. */
+.ec-markdown-content {
+    outline: none;
+}
+
+.ec-markdown-content li > p {
+    margin: 0;
+}
+
+.ec-markdown-content li + li,
+.ec-markdown-content li > ul,
+.ec-markdown-content li > ol {
+    margin-top: var(--ec-space-1);
+}
+
+.ec-markdown-content li > ul,
+.ec-markdown-content li > ol {
+    margin-bottom: 0;
+}
+
+.ec-markdown-task {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--ec-space-3);
+    margin-left: calc(-1 * var(--ec-space-6));
+    list-style: none;
+}
+
+.ec-markdown-task-mark {
+    display: inline-flex;
+    flex: 0 0 auto;
+    padding-top: var(--ec-space-1);
+}
+
+.ec-markdown-task-box {
+    width: var(--ec-markdown-task-box);
+    height: var(--ec-markdown-task-box);
+    margin: 0;
+    accent-color: var(--ec-accent);
+}
+
+.ec-markdown-task-box[aria-readonly="true"] {
+    cursor: default;
+}
+
+.ec-markdown-task-text {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.ec-markdown-image {
+    padding: 0 var(--ec-space-1);
+    border: 1px dashed var(--ec-border-strong);
+    border-radius: var(--ec-radius-sm);
+    color: var(--ec-text-soft);
+    font-style: italic;
+}
+
+.ec-markdown-html {
+    color: var(--ec-text-soft);
+    font-family: var(--ec-font-mono);
+    font-size: var(--ec-text-sm);
+}
+
+.ec-markdown-content .tableWrapper {
+    margin: 0 0 var(--ec-space-5);
+    overflow-x: auto;
+}
+
+.ec-markdown-content .tableWrapper > table {
+    margin: 0;
+}
+
+.ec-markdown-content th,
+.ec-markdown-content td {
+    position: relative;
+}
+
+.ec-markdown-content .selectedCell::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--ec-accent-soft);
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.ec-markdown-content .column-resize-handle {
+    position: absolute;
+    top: 0;
+    right: -2px;
+    bottom: 0;
+    width: var(--ec-space-1);
+    background: var(--ec-accent);
+    pointer-events: none;
+}
+
+.ec-markdown-content .ProseMirror-selectednode {
+    outline: 2px solid var(--ec-accent-ring);
+}
+
+.ec-preview-markdown.ec-markdown-editing:focus-within {
+    outline: var(--ec-text-editor-focus-outline);
+    outline-offset: var(--ec-text-editor-focus-offset);
+}
+
+.ec-markdown-toolbar {
+    flex-wrap: nowrap;
+    gap: var(--ec-space-2);
+    overflow-x: auto;
+}
+
+.ec-markdown-toolbar > * {
+    flex: 0 0 auto;
+}
+
+.ec-markdown-toolbar .ec-button[aria-pressed="true"] {
+    background: var(--ec-accent-soft);
+    color: var(--ec-accent-text);
+}
+
+.ec-markdown-toolbar-text {
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-markdown-modes {
+    flex: 0 0 auto;
+}
+
+.ec-markdown-mode-short {
+    display: none;
+}
+
+.ec-text-editor .ec-code-heading {
+    color: var(--ec-code-name);
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-text-editor .ec-code-strong {
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-text-editor .ec-code-emphasis {
+    font-style: italic;
+}
+
+.ec-text-editor .ec-code-strikethrough {
+    text-decoration: line-through;
 }
 
 .ec-preview-stage-document {
@@ -4539,6 +4689,14 @@ html {
 
     .ec-text-editor-toolbar {
         overflow-x: auto;
+    }
+
+    .ec-markdown-mode-long {
+        display: none;
+    }
+
+    .ec-markdown-mode-short {
+        display: inline;
     }
 
     .ec-text-editor-search {

@@ -48,6 +48,18 @@ public static class AppIcons
         + "<path d='M7 10h14l-4 -4' />"
         + "<path d='M17 14h-14l4 4' />";
 
+    public const string Blockquote = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M6 15h15' />"
+        + "<path d='M21 19h-15' />"
+        + "<path d='M15 11h6' />"
+        + "<path d='M21 7h-6' />"
+        + "<path d='M9 9h1a1 1 0 1 1 -1 1v-2.5a2 2 0 0 1 2 -2' />"
+        + "<path d='M3 9h1a1 1 0 1 1 -1 1v-2.5a2 2 0 0 1 2 -2' />";
+
+    public const string Bold = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M7 5h6a3.5 3.5 0 0 1 0 7h-6l0 -7' />"
+        + "<path d='M13 12h1a3.5 3.5 0 0 1 0 7h-7v-7' />";
+
     public const string Braces = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M7 4a2 2 0 0 0 -2 2v3a2 3 0 0 1 -2 3a2 3 0 0 1 2 3v3a2 2 0 0 0 2 2' />"
         + "<path d='M17 4a2 2 0 0 1 2 2v3a2 3 0 0 0 2 3a2 3 0 0 0 -2 3v3a2 2 0 0 1 -2 2' />";
@@ -70,6 +82,11 @@ public static class AppIcons
     public const string Clock = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0' />"
         + "<path d='M12 7v5l3 3' />";
+
+    public const string Code = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M7 8l-4 4l4 4' />"
+        + "<path d='M17 8l4 4l-4 4' />"
+        + "<path d='M14 4l-4 16' />";
 
     public const string Copy = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M7 7m0 2.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667z' />"
@@ -187,6 +204,11 @@ public static class AppIcons
         + "<path d='M12 10V4a1.5 1.5 0 0 1 3 0v6' />"
         + "<path d='M15 10V6a1.5 1.5 0 0 1 3 0v8a6 6 0 0 1-6 6h-1a6 6 0 0 1-5-2.7L3.5 13a1.5 1.5 0 0 1 2.4-1.8L9 14' />";
 
+    public const string Italic = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M11 5l6 0' />"
+        + "<path d='M7 19l6 0' />"
+        + "<path d='M14 5l-4 14' />";
+
     public const string LayoutDashboard = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M5 4h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1' />"
         + "<path d='M5 16h4a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-2a1 1 0 0 1 1 -1' />"
@@ -210,6 +232,29 @@ public static class AppIcons
         + "<path d='M13 19h5' />"
         + "<path d='M3 4m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z' />"
         + "<path d='M3 14m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z' />";
+
+    public const string List = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M9 6l11 0' />"
+        + "<path d='M9 12l11 0' />"
+        + "<path d='M9 18l11 0' />"
+        + "<path d='M5 6l0 .01' />"
+        + "<path d='M5 12l0 .01' />"
+        + "<path d='M5 18l0 .01' />";
+
+    public const string ListCheck = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M3.5 5.5l1.5 1.5l2.5 -2.5' />"
+        + "<path d='M3.5 11.5l1.5 1.5l2.5 -2.5' />"
+        + "<path d='M3.5 17.5l1.5 1.5l2.5 -2.5' />"
+        + "<path d='M11 6l9 0' />"
+        + "<path d='M11 12l9 0' />"
+        + "<path d='M11 18l9 0' />";
+
+    public const string ListNumbers = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M11 6h9' />"
+        + "<path d='M11 12h9' />"
+        + "<path d='M12 18h8' />"
+        + "<path d='M4 16a2 2 0 1 1 4 0c0 .591 -.5 1 -1 1.5l-3 2.5h4' />"
+        + "<path d='M6 10v-6l-2 2' />";
 
     public const string Login = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M15 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2' />"
@@ -281,6 +326,15 @@ public static class AppIcons
         + "a12 12 0 0 1 -.19 7.357' />"
         + "<path d='M22 22l-5 -5' />"
         + "<path d='M17 22l5 -5' />";
+
+    public const string Strikethrough = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M5 12l14 0' />"
+        + "<path d='M16 6.5a4 2 0 0 0 -4 -1.5h-1a3.5 3.5 0 0 0 0 7h2a3.5 3.5 0 0 1 0 7h-1.5a4 2 0 0 1 -4 -1.5' />";
+
+    public const string Table = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M3 5a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14' />"
+        + "<path d='M3 10h18' />"
+        + "<path d='M10 3v18' />";
 
     public const string Tag = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M7.5 7.5m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0' />"
