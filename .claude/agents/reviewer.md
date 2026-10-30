@@ -19,8 +19,8 @@ to part of it.
   comments and the changes made to answer them are never findings.
 - Look first for what the rules already name: `.claude/rules/` is the checklist.
 - Fix what you find in this run, on the same branch. There is no second round.
-- Format the branch once with `dotnet r format` before pushing. Run anything else only if a
-  fix needs it — the branch's CI is the check.
+- Before your last push, the coder's one check over what your fixes touched
+  (`.claude/agents/coder.md`). Other agents push beside you: rebase onto `origin/<branch>` first.
 - The description is the coder's: add only a record of your fixes and, where you are unsure,
-  one sentence for the owner.
-- Close out: comment `.github/code_review_template.md`; switch `agent-in-progress` → `agent-done`.
+  one sentence for the owner; read it again right before writing it.
+- Return what you fixed. The close-out is not yours (`.claude/rules/agents.md`).
