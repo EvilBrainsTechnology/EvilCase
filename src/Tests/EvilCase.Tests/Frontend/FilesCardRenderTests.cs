@@ -322,7 +322,7 @@ public class FilesCardRenderTests
             .Render(ctx);
 
         await OpenMenu(component);
-        await component.FindAll("[role=menuitem]")[1].ClickAsync(new MouseEventArgs());
+        await component.FindAll("[role=menuitem]").Single(static item => string.Equals(item.TextContent.Trim(), "Verze (3)", StringComparison.Ordinal)).ClickAsync(new MouseEventArgs());
         await component.FindAll(".ec-versions-row")[1].QuerySelector(".ec-versions-main")!.ClickAsync(new MouseEventArgs());
 
         await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-preview-versions-old"), Has.Count.EqualTo(1)));

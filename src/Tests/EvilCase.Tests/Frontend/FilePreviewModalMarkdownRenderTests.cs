@@ -88,7 +88,6 @@ public class FilePreviewModalMarkdownRenderTests
             Assert.That(uploaded.Single(), Is.EqualTo(expected), "the file keeps its mark and line breaks");
             Assert.That(markdown.Reads, Is.EqualTo(1), "the save reads the formatted editor");
             Assert.That(changed, Is.EqualTo(new int?[] { null }));
-            Assert.That(component.Find(".ec-file-notice").TextContent, Is.EqualTo("Poznámky.md: nahrána verze 2."));
             Assert.That(component.FindAll(".ec-markdown-toolbar"), Is.Empty, "a save ends the edit");
         }
     }

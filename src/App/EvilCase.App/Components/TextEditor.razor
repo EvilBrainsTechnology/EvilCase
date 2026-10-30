@@ -3,13 +3,13 @@
 @inject ITextEditors Editors
 @inject ILogger<TextEditor> Logger
 
-@* The source editor of a text file, or its read-only view with the zoom and the search of a preview; Notes stand
-   between the toolbar and the text. *@
+@* The source editor of a text file, or its read-only view with the zoom and the search of a preview; Notes stand on the
+   toolbar before the search. *@
 <div class="ec-preview-view">
     @if (this.ReadOnly)
     {
         <PreviewToolbar @ref="this.toolbar" Ready="this.ready" Formats="this.Formats" Formatted="this.formatted" CanFormat="this.canFormat"
-                        OnFormat="this.ToggleFormat" Modes="this.Modes" OnZoom="this.Zoom" OnSearch="this.Search" />
+                        OnFormat="this.ToggleFormat" Modes="this.Modes" Notes="this.Notes" OnZoom="this.Zoom" OnSearch="this.Search" />
     }
     else
     {
@@ -23,17 +23,13 @@
                 <span class="ec-preview-toolbar-separator" aria-hidden="true"></span>
                 @this.Modes
             }
-            @* Escape clears the search and does not close the dialog. *@
-            <div class="ec-text-editor-search" role="search" data-ec-keeps-escape>
-                <label class="ec-preview-toolbar-search-box">
-                    <EcIcon Paths="@AppIcons.Search" />
-                    <input type="search" class="ec-preview-toolbar-search-input" placeholder="Hledat v textu" aria-label="Hledat v textu"
-                           autocomplete="off" @ref="this.searchInput" />
-                </label>
-            </div>
+            @if (this.Notes is not null)
+            {
+                <div class="ec-toolbar-notes">@this.Notes</div>
+            }
+            <ToolbarSearch @ref="this.search" Label="Hledat v textu" OnSearch="this.SearchEdit" OnEscape="this.FocusText" />
         </div>
     }
-    @this.Notes
     <div class="ec-preview-stage ec-text-editor-stage" inert="@this.Locked">
         <div @ref="this.host" class="ec-text-editor"></div>
     </div>
@@ -44,11 +40,11 @@
 
     private ElementReference host;
 
-    private ElementReference searchInput;
-
     private DotNetObjectReference<TextEditor>? self;
 
     private PreviewToolbar? toolbar;
+
+    private ToolbarSearch? search;
 
     private bool ready;
 
@@ -169,6 +165,22 @@
     }
 
     [JSInvokable]
+    public void NotifyMatches(int current, int total)
+    {
+        this.search?.MatchesChanged(current, total, pending: false);
+    }
+
+    /// <summary>
+    /// Ctrl+F or Cmd+F in the text.
+    /// </summary>
+    [JSInvokable]
+    public async Task NotifyFind()
+    {
+        if (this.search is not null)
+            await this.search.Focus();
+    }
+
+    [JSInvokable]
     public async Task NotifySave()
     {
         await this.OnSave.InvokeAsync();
@@ -241,7 +253,7 @@
                     }
                 }
 
-                await this.Editors.OpenEditor(this.host, this.searchInput, this.Text, this.Language, indentUnit, label, this.self);
+                await this.Editors.OpenEditor(this.host, this.Text, this.Language, indentUnit, label, this.self);
             }
 
             // Closed while it opened.
@@ -272,6 +284,16 @@
     private async Task Search(PreviewSearch search)
     {
         await this.Editors.FindInViewer(this.host, search.Query, search.Find);
+    }
+
+    private async Task SearchEdit(PreviewSearch search)
+    {
+        await this.Editors.FindInEditor(this.host, search.Query, search.Find);
+    }
+
+    private async Task FocusText()
+    {
+        await this.Editors.FocusEditor(this.host);
     }
 
     private async Task Undo()

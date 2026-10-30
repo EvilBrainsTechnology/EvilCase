@@ -1522,6 +1522,7 @@ html {
 }
 
 .ec-preview-toolbar-matches {
+    flex: 0 0 auto;
     min-width: var(--ec-preview-toolbar-matches);
     font-size: var(--ec-text-sm);
     color: var(--ec-text-muted);
@@ -1619,12 +1620,46 @@ html {
     color: var(--ec-text-soft);
 }
 
-/* A note between a view's toolbar and its text runs across the view. */
-.ec-preview-view > .ec-preview-note {
+/* Notes on a toolbar take the room before the search; a note too long for it ends in an ellipsis. */
+.ec-toolbar-notes {
+    display: flex;
+    flex: 1 1 0;
+    align-items: center;
+    gap: var(--ec-space-4);
+    min-width: var(--ec-toolbar-notes-min);
+}
+
+.ec-toolbar-notes:empty {
+    display: none;
+}
+
+.ec-toolbar-note {
+    display: inline-flex;
+    flex: 0 1 auto;
+    align-items: center;
+    gap: var(--ec-space-2);
+    min-width: 0;
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-soft);
+}
+
+.ec-toolbar-note .ec-icon {
     flex: 0 0 auto;
-    padding: var(--ec-space-3) var(--ec-space-7);
-    border-bottom: 1px solid var(--ec-border);
-    border-radius: 0;
+}
+
+.ec-toolbar-note-text {
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.ec-toolbar-note-warning {
+    padding: var(--ec-space-1) var(--ec-space-3);
+    border: 1px solid var(--ec-warning-border);
+    border-radius: var(--ec-radius-md);
+    background: var(--ec-warning-bg);
+    color: var(--ec-warning-text);
 }
 
 /* The text editor (CodeMirror): its own classes styled only inside the editor; the token classes are the app's. */
@@ -1657,26 +1692,14 @@ html {
     gap: var(--ec-space-2);
 }
 
-.ec-text-editor-search {
-    display: flex;
-    margin-left: auto;
+.ec-text-editor-toolbar > .ec-toolbar-notes {
+    margin-left: var(--ec-space-4);
 }
 
-.ec-text-editor-note {
-    display: flex;
-    flex: 0 0 auto;
-    align-items: center;
-    gap: var(--ec-space-3);
-    margin: 0;
-    padding: var(--ec-space-3) var(--ec-space-6);
-    border-bottom: 1px solid var(--ec-warning-border);
-    background: var(--ec-warning-bg);
-    color: var(--ec-warning-text);
-    font-size: var(--ec-text-sm);
-}
-
+/* The text grows to its full height and the stage scrolls it, so the scrollbar stands at the edge of the preview. */
 .ec-text-editor-stage {
-    align-items: stretch;
+    align-items: flex-start;
+    overflow: auto;
 }
 
 .ec-text-editor {
@@ -1684,14 +1707,18 @@ html {
     flex: 0 1 calc(var(--ec-preview-text-width) * var(--ec-preview-zoom, 1));
     flex-direction: column;
     min-width: 0;
+    min-height: 100%;
 }
 
 .ec-text-editor .cm-editor {
     flex: 1 1 auto;
-    min-height: 0;
     border-radius: var(--ec-radius-md);
     background: var(--ec-surface);
     box-shadow: var(--ec-shadow-raised);
+}
+
+.ec-text-editor .cm-editor .cm-scroller {
+    flex: 1 1 auto;
 }
 
 .ec-text-editor .cm-editor.cm-focused {
@@ -1731,7 +1758,12 @@ html {
     padding: 0 var(--ec-space-3) 0 var(--ec-space-5);
 }
 
-/* Lines changed since the editor opened: a bar left of their numbers. */
+/* Lines changed since the editor opened: a bar left of their numbers. The bar's column keeps its width without a bar,
+   so the text stands in the same place in the view and the editor. */
+.ec-text-editor .cm-editor .ec-text-editor-changes {
+    min-width: var(--ec-text-editor-changed-width);
+}
+
 .ec-text-editor .cm-editor .ec-text-editor-changes .cm-gutterElement {
     width: var(--ec-text-editor-changed-width);
 }
@@ -2040,6 +2072,11 @@ html {
 
 .ec-markdown-toolbar > * {
     flex: 0 0 auto;
+}
+
+.ec-markdown-toolbar > .ec-toolbar-notes {
+    flex: 1 1 0;
+    margin-left: var(--ec-space-4);
 }
 
 .ec-markdown-toolbar .ec-button[aria-pressed="true"] {
@@ -4400,20 +4437,23 @@ html {
     .ec-preview-actions {
         display: flex;
         flex: 1 1 100%;
+        flex-wrap: wrap;
         order: 1;
         align-items: center;
         justify-content: flex-end;
         gap: var(--ec-space-3);
     }
 
+    /* The actions and the stepping through files do not fit one row: the stepping takes the next row, at its right end. */
+    .ec-preview-nav {
+        flex: 1 1 100%;
+        justify-content: flex-end;
+    }
+
     .ec-modal-large .ec-modal-header .ec-preview-actions .ec-button {
         width: var(--ec-touch-min);
         height: var(--ec-touch-min);
         padding: 0;
-    }
-
-    .ec-preview-nav {
-        margin-right: auto;
     }
 
     .ec-preview-action-label {
@@ -4578,7 +4618,6 @@ html {
         padding: var(--ec-space-4);
     }
 
-    .ec-preview-view > .ec-preview-note,
     .ec-preview-sheet-view > .ec-preview-note,
     .ec-preview-sheet-tabs {
         padding-inline: var(--ec-space-4);
@@ -4614,7 +4653,7 @@ html {
         margin-left: auto;
     }
 
-    .ec-preview-toolbar-search {
+    .ec-preview-toolbar-search-collapsible {
         display: none;
         flex: 1 1 100%;
         order: 1;
@@ -4631,8 +4670,30 @@ html {
         min-width: 0;
     }
 
+    .ec-preview-toolbar-matches {
+        min-width: 0;
+    }
+
+    /* The editor's toolbar stays one row: what does not fit scrolls sideways. */
     .ec-text-editor-toolbar {
         overflow-x: auto;
+    }
+
+    .ec-text-editor-toolbar > * {
+        flex: 0 0 auto;
+    }
+
+    .ec-text-editor-toolbar > .ec-toolbar-notes {
+        flex: 1 1 0;
+    }
+
+    .ec-text-editor-toolbar > .ec-preview-toolbar-search {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .ec-text-editor-toolbar .ec-preview-toolbar-search-box {
+        min-width: var(--ec-preview-toolbar-search-mobile);
     }
 
     .ec-markdown-mode-long {
@@ -4641,11 +4702,6 @@ html {
 
     .ec-markdown-mode-short {
         display: inline;
-    }
-
-    .ec-text-editor-search {
-        flex: 1 1 0;
-        min-width: 0;
     }
 }
 

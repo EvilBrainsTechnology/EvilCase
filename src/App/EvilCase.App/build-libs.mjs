@@ -324,11 +324,49 @@ const changedLines = StateField.define({
 
 // Opens an editor of the text in parent. language is json, xml, yaml, html, markdown or null for plain text; unit is
 // what Tab types and indents by. onChange(dirty, canUndo, canRedo) hears when any of the three changes; onFind runs on
-// Ctrl+F or Cmd+F.
-export function createEditor(parent, text, language, unit, label, onChange, onFind) {
+// Ctrl+F or Cmd+F; onMatches(current, total) hears the search's position and count while a query is set.
+export function createEditor(parent, text, language, unit, label, onChange, onFind, onMatches) {
     const highlighted = colours(text, language);
     let initial = null;
     let reported = [false, false, false];
+    let query = null;
+    // The starts of the query's matches in the text; null until counted.
+    let starts = null;
+    let counted = [0, 0];
+
+    // The current match is the last one starting at or before the selection. A new query is reported even unchanged:
+    // the field waits for its count.
+    const report = (always) => {
+        let total = 0;
+        let current = 0;
+
+        if (query) {
+            if (starts === null) {
+                starts = [];
+                for (const cursor = query.getCursor(view.state); ;) {
+                    const next = cursor.next();
+                    if (next.done) break;
+                    starts.push(next.value.from);
+                }
+            }
+
+            const at = view.state.selection.main.from;
+            let low = 0;
+            let high = starts.length;
+            while (low < high) {
+                const middle = (low + high) >> 1;
+                if (starts[middle] <= at) low = middle + 1; else high = middle;
+            }
+
+            total = starts.length;
+            current = total > 0 ? Math.max(low, 1) : 0;
+        }
+
+        if (always || current !== counted[0] || total !== counted[1]) {
+            counted = [current, total];
+            onMatches(current, total);
+        }
+    };
 
     const view = new EditorView({
         parent,
@@ -354,6 +392,8 @@ export function createEditor(parent, text, language, unit, label, onChange, onFi
                 highlighted,
                 highlighted.length > 0 ? bracketMatching() : [],
                 EditorView.updateListener.of((update) => {
+                    if (update.docChanged) starts = null;
+                    if (query && (update.docChanged || update.selectionSet)) report();
                     if (!update.docChanged) return;
                     const state = [!update.state.doc.eq(initial), undoDepth(update.state) > 0, redoDepth(update.state) > 0];
                     if (state.some((value, index) => value !== reported[index])) {
@@ -375,15 +415,25 @@ export function createEditor(parent, text, language, unit, label, onChange, onFi
         focus: () => view.focus(),
         // While on, Tab moves the focus out of the editor.
         tabFocus: (on) => view.setTabFocusMode(on),
-        search(query) {
-            view.dispatch({ effects: setSearchQuery.of(new SearchQuery({ search: query, literal: true })) });
+        search(text) {
+            const next = new SearchQuery({ search: text, literal: true });
+            query = next.valid ? next : null;
+            starts = null;
+            view.dispatch({ effects: setSearchQuery.of(next) });
             if (query) {
                 view.dispatch({ selection: { anchor: view.state.selection.main.from } });
                 findNext(view);
             }
+            report(true);
         },
-        findNext: () => findNext(view),
-        findPrevious: () => findPrevious(view),
+        findNext() {
+            findNext(view);
+            report();
+        },
+        findPrevious() {
+            findPrevious(view);
+            report();
+        },
         destroy: () => view.destroy(),
     };
 }
@@ -415,8 +465,9 @@ const measure = new Compartment();
 const measureThemes = [EditorView.theme({}), EditorView.theme({})];
 
 // Opens a read-only view of the text in parent, highlighted as by createEditor: the text is selected and copied but
-// never changed, and a touch opens no keyboard. onFind runs on Ctrl+F or Cmd+F.
-export function createViewer(parent, text, language, label, onFind) {
+// never changed, and a touch opens no keyboard. scroller is the element the view scrolls in; onFind runs on Ctrl+F or
+// Cmd+F.
+export function createViewer(parent, scroller, text, language, label, onFind) {
     const state = (doc) => EditorState.create({
         doc,
         extensions: [
@@ -435,7 +486,7 @@ export function createViewer(parent, text, language, label, onFind) {
     const view = new EditorView({ parent, state: state(text) });
     let measured = 0;
     const inView = (from, to) => {
-        const box = view.scrollDOM.getBoundingClientRect();
+        const box = scroller.getBoundingClientRect();
         const start = view.coordsAtPos(from, 1);
         const end = view.coordsAtPos(to, -1);
 
@@ -446,7 +497,7 @@ export function createViewer(parent, text, language, label, onFind) {
         text: () => view.state.doc.toString(),
         setText: (doc) => view.setState(state(doc)),
         // The start of the line at the top of the scrolled view; the drawn ranges reach above it.
-        firstVisible: () => view.lineBlockAtHeight(Math.max(view.scrollDOM.getBoundingClientRect().top - view.documentTop, 0)).from,
+        firstVisible: () => view.lineBlockAtHeight(Math.max(scroller.getBoundingClientRect().top - view.documentTop, 0)).from,
         setMatches: (ranges) => view.dispatch({ effects: [setMatches.of(ranges), setShownMatch.of([])] }),
         // The match shown scrolls to the middle of the view when it is out of view.
         showMatch: ([from, to]) => view.dispatch({

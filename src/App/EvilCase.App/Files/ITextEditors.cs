@@ -13,11 +13,11 @@ internal interface ITextEditors
 {
     /// <summary>
     /// Opens an editor of <paramref name="text"/> in <paramref name="host"/>, highlighted in <paramref name="language"/>
-    /// or plain where it is null; Tab types and indents by <paramref name="indentUnit"/>. <paramref name="searchInput"/>
-    /// drives its search and <paramref name="owner"/> hears of its changes and of Ctrl+S. A library that does not load
-    /// throws a <c>JSException</c>.
+    /// or plain where it is null; Tab types and indents by <paramref name="indentUnit"/>. <paramref name="owner"/> hears
+    /// of its changes, of its search matches, of Ctrl+F and of Ctrl+S. A library that does not load throws a
+    /// <c>JSException</c>.
     /// </summary>
-    public Task OpenEditor(ElementReference host, ElementReference searchInput, string text, CodeLanguage? language, string indentUnit, string label, DotNetObjectReference<TextEditor> owner);
+    public Task OpenEditor(ElementReference host, string text, CodeLanguage? language, string indentUnit, string label, DotNetObjectReference<TextEditor> owner);
 
     /// <summary>
     /// Opens a read-only view of <paramref name="text"/> in <paramref name="host"/>, highlighted as by
@@ -40,6 +40,14 @@ internal interface ITextEditors
     /// names; an empty query clears the highlights.
     /// </summary>
     public Task FindInViewer(ElementReference host, string query, PreviewFind find);
+
+    /// <summary>
+    /// Highlights every match of <paramref name="query"/> in the editor's text and selects the one <paramref name="find"/>
+    /// names; an empty query clears the highlights.
+    /// </summary>
+    public Task FindInEditor(ElementReference host, string query, PreviewFind find);
+
+    public Task FocusEditor(ElementReference host);
 
     /// <summary>
     /// The edited text, its lines joined with "\n".

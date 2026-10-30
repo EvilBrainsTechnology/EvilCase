@@ -107,8 +107,10 @@ ikonu. Stažení je obyčejné stažení prohlížečem.
 Klik na řádek souboru otevře náhled aktuální verze; u typu bez náhledu ten řekne, že není
 k dispozici, a nabídne stažení. Stažení je obyčejné stažení prohlížečem a uloží soubor vždy,
 i starší verzi pod jménem souboru. Vedle toho nese řádek stažení aktuální verze a nabídku
-Nahrát novou verzi, Verze (3), Přejmenovat a Smazat. Potvrzení smazání souboru s více
-verzemi řekne, kolik verzí se smaže.
+Upravit, Nahrát novou verzi, Verze (3), Přejmenovat a Smazat. Upravit nese jen soubor, který
+náhled podle přípony upravuje (Úpravy textu) a který má nejvýše 1 MB; otevře náhled rovnou
+v úpravách, Markdown formátovaně. Soubor, který po načtení upravit nejde, zůstane v náhledu ke
+čtení s jeho poznámkou. Potvrzení smazání souboru s více verzemi řekne, kolik verzí se smaže.
 
 U souboru s více verzemi nese řádek štítek „verze 3“ s číslem aktuální verze, kompaktní karta
 ho uvádí textem před velikostí; soubor s jedinou verzí štítek nemá. Soubory a verze nahrané od
@@ -143,10 +145,17 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   také jen stažení.
 - PDF, text, kód, Markdown, e-mail, datová zpráva a dokument Word mají nad obsahem stejnou lištu se zvětšením
   a zmenšením (50 až 400 %, také Ctrl nebo Cmd s kolečkem myši), na počítači i se skutečnou
-  velikostí 100 %, a s hledáním. Hledání nerozlišuje velikost písmen ani diakritiku, zvýrazní
-  všechny výskyty, aktuální odliší a posune do zobrazení a ukáže pořadí z počtu (3 z 12), nebo
-  Nenalezeno; Enter přejde na další výskyt, Shift+Enter na předchozí, Esc hledání vymaže a náhled
-  nezavře.
+  velikostí 100 %, a s hledáním. Hledání stojí na pravém konci lišty a zleva nese pořadí výskytu
+  z počtu (3 z 12), Hledám… nebo Nenalezeno, pole hledání a předchozí a další výskyt; na mobilu
+  ho otevře ikona na vlastním řádku. Hledání nerozlišuje velikost písmen ani diakritiku, zvýrazní
+  všechny výskyty, aktuální odliší a posune do zobrazení; Enter přejde na další výskyt,
+  Shift+Enter na předchozí, Esc hledání vymaže a náhled nezavře.
+- Poznámky náhledu i editoru textu, kódu a Markdownu (soubor je delší, není platný ve svém jazyce,
+  nejde naformátovat, není v kódování UTF-8, upravuje se originál, samostatný podpis) stojí na
+  liště za přepínačem, tlačítkem Formátovat nebo tlačítky formátu, před hledáním. Text, který se
+  nevejde, končí výpustkou a celé znění ukáže tooltip.
+- Text, kód a Markdown, formátovaně i ve zdrojovém kódu, v náhledu i v úpravách, se pod lištou
+  posouvají celé a posuvník stojí u pravého okraje náhledu.
 - PDF se ukáže jako stránky pod sebou, zpočátku na šířku náhledu, nejvýš však ve 100 %, i
   v mobilním prohlížeči. Lišta navíc ukáže stránku z počtu stran s polem pro skok na stránku
   a přizpůsobení na šířku a na celou stránku. Text jde vybrat a zkopírovat.
@@ -198,17 +207,18 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   je větší než 30 MB, nabídne jen stažení.
 - Klik na přílohu ukáže v tomtéž náhledu její náhled podle přípony, stejně jako u souboru karty,
   vnořenou datovou zprávu nevyjímaje. Hlavička pak nese návrat na zprávu, ikonu, jméno a velikost
-  přílohy s textem „příloha zprávy" a jménem zprávy, u víc příloh přechod mezi nimi s pořadím
-  „příloha 2 z 5", Stáhnout přílohu a zavření; příloha se nepřejmenovává. Příloha bez náhledu
+  přílohy s textem „příloha zprávy" a jménem zprávy, Stáhnout přílohu, u víc příloh přechod mezi
+  nimi s pořadím „příloha 2 z 5" a zavření; příloha se nepřejmenovává. Příloha bez náhledu
   nabídne jen své stažení.
 - Příloha se stáhne pod svým jménem bez
   cesty a bez znaků, které jméno souboru nesmí obsahovat; prázdné jméno nahradí „příloha".
 - HEIC a HEIF se ukážou jako obrázek.
 - Náhled listuje mezi soubory karty, ze které se otevřel, vždy v jejich aktuální verzi; hlavička
-  ukáže pořadí „Soubor 2 z 5“.
+  ukáže pořadí „Soubor 2 z 5“. Listování souborů i příloh stojí v hlavičce vpravo za Stáhnout,
+  hned před zavřením; na mobilu na vlastním řádku pod tlačítky, u pravého okraje.
 - Hlavička souboru karty nese Nová verze, která nahraje novou verzi jako akce řádku a pak ukáže
   aktuální verzi, a u souboru s více verzemi tlačítko Verze s počtem verzí, které ukáže a schová
-  pruh verzí pod hlavičkou.
+  pruh verzí pod hlavičkou. Náhled hlášku o nahrané verzi neukazuje, vypíše ji karta.
 - Pruh verzí nese výběr verze („Verze 2 z 3 · okamžik · e-mail“, za „z“ stojí číslo aktuální
   verze) se seznamem verzí od nejnovější a se Spravovat verze, které otevře okno Verze souboru.
 - Starší verze se ukáže vždy s pruhem verzí v barvě upozornění, s textem „Starší verze. Stáhnout
@@ -226,14 +236,16 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   v kódování UTF-8, proto ho nejde upravit.“
 - Editor ukáže celý text s čísly řádků, dlouhé řádky zalomí a kód barevně zvýrazní stejně jako
   náhled. Text sám neformátuje ani nedoplňuje. Upravit vymění náhled za editor na témže místě,
-  ve 100 %. Kód se upravuje vždy v původní podobě; když ho náhled ukazoval naformátovaný, editor
+  stejně velký a ve 100 %. Kód se upravuje vždy v původní podobě; když ho náhled ukazoval naformátovaný, editor
   řekne „Upravuje se originál souboru, ne jeho naformátovaná podoba.“ Hlavička nese jen ikonu
   a jméno souboru, „Upravujete verzi 3“, po změně „Neuložené změny · upravujete verzi 3“, Zrušit, Uložit
   a zavření; listování soubory, Verze, Nová verze, Přejmenovat a Stáhnout se během úprav skryjí.
-- Lišta nad textem nese Zpět a Znovu, neaktivní, když není co vrátit, a Hledat v textu. Zpět
+- Lišta nad textem nese Zpět a Znovu, neaktivní, když není co vrátit, a hledání Hledat v textu
+  uspořádané jako v náhledu: pořadí výskytu z počtu, pole a předchozí a další výskyt. Zpět
   a znovu jde i Ctrl+Z a Ctrl+Y, Cmd+Z a Cmd+Shift+Z. Hledání nerozlišuje velikost písmen,
-  zvýrazní všechny výskyty a vybere další; Enter přejde na další výskyt, Shift+Enter na
-  předchozí, Esc hledání vymaže a náhled nezavře. Ctrl+F nebo Cmd+F v textu přejde do hledání.
+  zvýrazní všechny výskyty a vybere další; pořadí je pořadí výskytu u kurzoru. Enter přejde na
+  další výskyt, Shift+Enter na předchozí, Esc hledání vymaže, vrátí kurzor do textu a náhled
+  nezavře. Ctrl+F nebo Cmd+F v textu přejde do hledání.
 - Tab vloží do textu tabulátor, do kódu odsazení jeho prvního odsazeného řádku, nejvýše osm
   mezer; když žádný odsazený není, v YAML dvě mezery, jinak tabulátor. Výběr přes více řádků Tab
   odsadí a Shift+Tab odsazení ubere. První Esc v textu náhled nezavře a následující Tab přesune
@@ -267,13 +279,13 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   ponechá nadpisy, odstavce, seznamy, citace, tabulky, kód, formát písma a odkazy na webové
   a e-mailové adresy; obrázky a ostatní HTML vynechá.
 - Uložit, i Ctrl+S nebo Cmd+S, nahraje text jako novou verzi souboru pod jeho jménem stejně jako
-  Nová verze a náhled se vrátí ke čtení aktuální verze. Dokud se text neliší od načteného, je
+  Nová verze a náhled se vrátí ke čtení aktuální verze, bez hlášky o nahrané verzi. Dokud se text neliší od načteného, je
   Uložit neaktivní. Uložení zachová UTF-8, BOM, pokud ho soubor měl, a konce řádků souboru; konce
   řádků určí první konec řádku v souboru (CRLF, LF nebo CR), soubor bez konce řádku dostane LF.
 - Uložení se nekontroluje proti souběžné změně: nová verze vznikne nad tou, která je v tu chvíli
   aktuální. Text shodný s aktuální verzí verzi nevytvoří a náhled se vrátí ke čtení. Selhané
   uložení nechá text v editoru a ukáže důvod se Zkusit znovu.
-- Soubor se samostatným podpisem ukáže nad textem „Soubor má samostatný podpis
+- Soubor se samostatným podpisem ukáže na liště v barvě upozornění „Soubor má samostatný podpis
   Smlouva.xml.p7s. Nová verze ho zneplatní.“
 - Zrušit bez změn vrátí náhled ke čtení hned. Neuložené změny hlídá okno „Zahodit neuložené
   změny?“ s textem „Úpravy souboru Smlouva.xml nejsou uložené. Po zahození se nedají vrátit.“,

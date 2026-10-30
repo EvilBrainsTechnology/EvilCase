@@ -45,7 +45,7 @@ internal sealed class StubTextEditors : ITextEditors
     /// </summary>
     public bool ReadFails { get; set; }
 
-    public Task OpenEditor(ElementReference host, ElementReference searchInput, string text, CodeLanguage? language, string indentUnit, string label, DotNetObjectReference<TextEditor> owner)
+    public Task OpenEditor(ElementReference host, string text, CodeLanguage? language, string indentUnit, string label, DotNetObjectReference<TextEditor> owner)
     {
         if (this.Fails)
             throw new JSException("The editor did not load.");
@@ -78,6 +78,16 @@ internal sealed class StubTextEditors : ITextEditors
     }
 
     public Task FindInViewer(ElementReference host, string query, PreviewFind find)
+    {
+        return Task.CompletedTask;
+    }
+
+    public Task FindInEditor(ElementReference host, string query, PreviewFind find)
+    {
+        return Task.CompletedTask;
+    }
+
+    public Task FocusEditor(ElementReference host)
     {
         return Task.CompletedTask;
     }

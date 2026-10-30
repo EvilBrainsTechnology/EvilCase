@@ -147,7 +147,7 @@
                       LoadContent="this.LoadContent" Rename="this.RenameFile"
                       LoadVersions="this.LoadFileVersions" UploadVersion="this.UploadVersion" OnManageVersions="this.ManageVersions"
                       OnDownload="this.Download" OnRenamed="this.FileRenamed"
-                      Open OpenChanged="this.ClosePreview" />
+                      EditOnOpen="this.previewEdits" Open OpenChanged="this.ClosePreview" />
 }
 
 @if (this.versionsFileId is { } versionsId && this.State.Items.FirstOrDefault(item => item.FileId == versionsId) is { } versionsFile)
@@ -256,6 +256,9 @@
 
     private int? previewVersion;
 
+    // The preview opened by Upravit: it opens the editor once the file loads.
+    private bool previewEdits;
+
     private Guid? versionsFileId;
 
     private string UploadLabel => this.Compact ? "Nahrát" : "Nahrát soubory";
@@ -280,8 +283,14 @@
 
     private IReadOnlyList<EcMenuItem> FileActions(FileListItem file)
     {
+        var actions = new List<EcMenuItem>();
+
+        if (FileTypeDisplay.Editable(file.FileName, file.SizeBytes))
+            actions.Add(new EcMenuItem { Text = "Upravit", Icon = AppIcons.Edit, OnSelect = EventCallback.Factory.Create(this, () => this.Edit(file)) });
+
         return
         [
+            .. actions,
             new EcMenuItem { Text = "Nahrát novou verzi", Icon = AppIcons.Upload, OnSelect = EventCallback.Factory.Create(this, () => this.PickVersion(file)) },
             new EcMenuItem { Text = $"Verze ({file.VersionCount})", Icon = AppIcons.Clock, OnSelect = EventCallback.Factory.Create(this, () => this.OpenVersions(file)) },
             new EcMenuItem { Text = "Přejmenovat", Icon = AppIcons.Pencil, OnSelect = EventCallback.Factory.Create(this, () => this.StartRename(file)) },
@@ -505,6 +514,14 @@
     {
         this.previewFileId = file.FileId;
         this.previewVersion = null;
+        this.previewEdits = false;
+    }
+
+    private void Edit(FileListItem file)
+    {
+        this.previewFileId = file.FileId;
+        this.previewVersion = null;
+        this.previewEdits = true;
     }
 
     private void PreviewFile(Guid fileId)
@@ -542,6 +559,7 @@
     {
         this.versionsFileId = null;
         this.previewFileId = file.FileId;
+        this.previewEdits = false;
         this.previewVersion = number == file.Version ? null : number;
     }
 
