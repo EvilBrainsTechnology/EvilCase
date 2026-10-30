@@ -14,7 +14,7 @@ internal interface ITextCompares
     /// <summary>
     /// Opens the compare of <paramref name="older"/> and <paramref name="newer"/> in <paramref name="host"/>, highlighted
     /// in <paramref name="language"/> or plain where it is null. With <paramref name="format"/> both texts are formatted
-    /// first and compare formatted when both format. <paramref name="labels"/> names the older, the newer and the
+    /// first and compare formatted when both format and differ formatted. <paramref name="labels"/> names the older, the newer and the
     /// one-column text; <paramref name="owner"/> hears of the search matches and of Ctrl+F. A library that does not load
     /// throws a <c>JSException</c>.
     /// </summary>

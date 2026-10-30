@@ -15,18 +15,23 @@ internal sealed class StubTextCompares : ITextCompares
 
     public int Closed { get; private set; }
 
+    /// <summary>
+    /// What a compare answers when it opens; by default it shows formatted what it was asked to format.
+    /// </summary>
+    public CompareView? Shown { get; set; }
+
     public Task<CompareView> OpenCompare(ElementReference host, string older, string newer, CodeLanguage? language, bool format, IReadOnlyList<string> labels, DotNetObjectReference<TextCompare> owner)
     {
         // Hands the owner to the script as the interop would, which a disposed one refuses.
         _ = owner.Value;
         this.Opened.Add((older, newer, language, format));
 
-        return Task.FromResult(new CompareView(Formatted: format, Added: 1, Removed: 1, Changes: 1));
+        return Task.FromResult(this.Shown ?? new CompareView(Formatted: format, Formattable: format, Added: 1, Removed: 1, Changes: 1));
     }
 
     public Task<CompareView> ShowCompareFormatted(ElementReference host, bool formatted)
     {
-        return Task.FromResult(new CompareView(formatted, Added: 1, Removed: 1, Changes: 1));
+        return Task.FromResult(new CompareView(formatted, Formattable: true, Added: 1, Removed: 1, Changes: 1));
     }
 
     public Task StepCompareChange(ElementReference host, bool previous)

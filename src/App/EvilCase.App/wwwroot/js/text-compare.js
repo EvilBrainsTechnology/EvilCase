@@ -7,14 +7,14 @@ const compares = new Map();
 const typingDelay = 250;
 
 // Opens the compare of older and newer in host, both formatted in language by the worker first with format; answers
-// { formatted, added, removed, changes }. The compare stands in two children of host, side by side and in one column;
-// the stylesheet shows one of them, and each is built when it first shows. labels names the older, the newer and the
-// one-column text. owner hears NotifyMatches(current, total) of the search and NotifyFind on Ctrl+F.
+// { formatted, formattable, added, removed, changes }. The compare stands in two children of host, side by side and in
+// one column; the stylesheet shows one of them, and each is built when it first shows. labels names the older, the newer
+// and the one-column text. owner hears NotifyMatches(current, total) of the search and NotifyFind on Ctrl+F.
 export async function openCompare(host, older, newer, language, format, labels, owner) {
     const library = await loadLibrary();
 
     // Closed while the library loaded.
-    if (!host.isConnected) return { formatted: false, added: 0, removed: 0, changes: 0 };
+    if (!host.isConnected) return { formatted: false, formattable: false, added: 0, removed: 0, changes: 0 };
 
     closeCompare(host);
 
@@ -30,13 +30,16 @@ export async function openCompare(host, older, newer, language, format, labels, 
         const answers = await Promise.all([older, newer].map((text) => formatInWorker(text, language, stop.signal)));
 
         // Closed while the texts formatted.
-        if (compares.get(host) !== entry) return { formatted: false, added: 0, removed: 0, changes: 0 };
+        if (compares.get(host) !== entry) return { formatted: false, formattable: false, added: 0, removed: 0, changes: 0 };
 
         // Both sides compare formatted or neither does.
         if (answers.every((answer) => typeof answer.formatted === 'string')) entry.formatted = answers.map((answer) => answer.formatted);
     }
 
-    entry.texts = entry.formatted ?? entry.original;
+    // Versions equal formatted show their original difference.
+    const formattedSummary = entry.formatted && library.compareSummary(...entry.formatted);
+    const shownFormatted = formattedSummary?.changes > 0;
+    entry.texts = shownFormatted ? entry.formatted : entry.original;
 
     entry.layouts = [false, true].map((unified) => {
         const parent = host.appendChild(document.createElement('div'));
@@ -50,7 +53,7 @@ export async function openCompare(host, older, newer, language, format, labels, 
 
     build(entry);
 
-    return { formatted: entry.formatted !== null, ...library.compareSummary(...entry.texts) };
+    return { formatted: shownFormatted, formattable: entry.formatted !== null, ...(shownFormatted ? formattedSummary : library.compareSummary(...entry.texts)) };
 }
 
 // Builds the layout the stylesheet shows, unless it is built; a search runs again in the layout that came into view.
@@ -67,6 +70,7 @@ function build(entry) {
     entry.folded = null;
 
     if (entry.query) search(entry);
+    else layout.compare.setMatches(layout.compare.texts().map(() => []));
 }
 
 // Shows the formatted or the original texts; the layout is built again and an open search runs over it again. Answers
@@ -131,6 +135,8 @@ export function findInCompare(host, query, again, previous) {
 }
 
 function search(entry) {
+    if (!entry.active) return;
+
     const { compare } = entry.active;
 
     entry.folded ??= compare.texts().map(foldText);

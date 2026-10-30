@@ -326,8 +326,8 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
 - Lišta nese přepínač Vedle sebe / V jednom sloupci (na mobilu ne), u kódu Původní / Formátovaně
   (na mobilu Formát), Předchozí změna a Další změna, které přecházejí dokola, souhrn „+12 −5
   řádků“ a hledání. Kód se porovnává naformátovaný; když některou z verzí naformátovat nejde,
-  porovná se původní text, přepínač je neaktivní a lišta to řekne. Markdown se porovnává ve
-  zdrojovém kódu.
+  porovná se původní text, přepínač je neaktivní a lišta to řekne. Verze, které se naformátované
+  neliší, se porovnají v původním textu. Markdown se porovnává ve zdrojovém kódu.
 - Hledání v porovnání nerozlišuje velikost písmen ani diakritiku a ukáže pořadí výskytu z počtu;
   výskyt ve sbaleném úseku úsek rozbalí. V jednom sloupci hledá jen v novější verzi. Porovnání
   nemá zvětšení.
@@ -478,7 +478,8 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
 - Úprava naformátovaného kódu: naformátovaný text / originál. Platí originál.
 - Řádky náhledu textu a kódu: nejvýše 5 000 / bez limitu. Platí bez limitu, jen první 1 MB.
 - Limit porovnání verzí: bez limitu / 1 MB. Platí 1 MB na verzi.
-- Porovnání kódu: původní / naformátovaný. Platí naformátovaný, když jdou naformátovat obě verze.
+- Porovnání kódu: původní / naformátovaný. Platí naformátovaný, když jdou naformátovat obě verze
+  a naformátované se liší.
 - Konce řádků v porovnání: rozdíl / žádný rozdíl. Platí žádný rozdíl.
 
 ## Dopady

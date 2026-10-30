@@ -61,6 +61,24 @@ public class FilePreviewModalCompareRenderTests
     }
 
     [Test]
+    public void CodeEqualFormattedComparesTheOriginalAndKeepsTheToggle()
+    {
+        using var ctx = NewContext(out var compares, out _);
+
+        compares.Shown = new CompareView(Formatted: false, Formattable: true, Added: 1, Removed: 1, Changes: 1);
+
+        var file = File("a.json", 2);
+        var component = Render(ctx, file, Texts("{\"a\":1}", "{ \"a\": 1 }"), compareOnOpen: true);
+        var toggle = component.FindAll("[aria-label='Podoba textu'] button");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(toggle.Select(static button => (button.GetAttribute("aria-pressed"), button.HasAttribute("disabled"))), Is.EqualTo([("true", false), ("false", false)]), "versions equal formatted show the original and still format");
+            Assert.That(component.FindAll(".ec-toolbar-notes"), Is.Empty, "both versions format");
+        }
+    }
+
+    [Test]
     public async Task VersionsDifferingOnlyInLineBreaksAreEqual()
     {
         await using var ctx = NewContext(out var compares, out _);

@@ -34,14 +34,10 @@
                 <span class="ec-text-compare-summary"><span class="ec-text-compare-summary-added">+@this.view.Added</span> <span class="ec-text-compare-summary-removed">−@this.view.Removed</span><span class="ec-text-compare-summary-unit">@(" " + LinesWord(this.view.Removed))</span></span>
             }
         </div>
-        @if (this.Notes is not null || (this.Formats && this.ready && !this.canFormat))
+        @if (this.Formats && this.ready && !this.canFormat)
         {
             <div class="ec-toolbar-notes">
-                @this.Notes
-                @if (this.Formats && this.ready && !this.canFormat)
-                {
-                    <ToolbarNote Text="Některou z verzí nejde naformátovat, porovnává se původní text." />
-                }
+                <ToolbarNote Text="Některou z verzí nejde naformátovat, porovnává se původní text." />
             </div>
         }
         <ToolbarSearch @ref="this.search" Label="Hledat v dokumentu" Disabled="@(!this.ready)" Collapsible OnSearch="this.Search" />
@@ -71,7 +67,7 @@
 
     private bool canFormat;
 
-    private CompareView view = new(Formatted: false, Added: 0, Removed: 0, Changes: 0);
+    private CompareView view = new(Formatted: false, Formattable: false, Added: 0, Removed: 0, Changes: 0);
 
     /// <summary>
     /// The older text, the left one side by side.
@@ -115,9 +111,6 @@
     /// </summary>
     [Parameter]
     public RenderFragment? Versions { get; set; }
-
-    [Parameter]
-    public RenderFragment? Notes { get; set; }
 
     /// <summary>
     /// Raised when the compare's script did not start.
@@ -182,7 +175,7 @@
                 return;
             }
 
-            (this.view, this.formatted, this.canFormat, this.ready) = (shown, shown.Formatted, shown.Formatted, true);
+            (this.view, this.formatted, this.canFormat, this.ready) = (shown, shown.Formatted, shown.Formattable, true);
             this.StateHasChanged();
         }
         catch (JSException exception)
