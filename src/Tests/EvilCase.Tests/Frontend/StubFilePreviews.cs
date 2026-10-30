@@ -44,6 +44,11 @@ internal sealed class StubFilePreviews : IFilePreviews
 
     public int OpenedTextViews { get; private set; }
 
+    /// <summary>
+    /// When set, a text view opens once it completes, as a script still loading would.
+    /// </summary>
+    public TaskCompletionSource? TextViewLoading { get; set; }
+
     public int DisposedViews { get; private set; }
 
     public List<PreviewZoom> ViewZooms { get; } = [];
@@ -102,12 +107,15 @@ internal sealed class StubFilePreviews : IFilePreviews
         return this.DocumentPages;
     }
 
-    public Task OpenTextView(ElementReference stage, DotNetObjectReference<PreviewToolbar> view)
+    public async Task OpenTextView(ElementReference stage, DotNetObjectReference<PreviewToolbar> view)
     {
+        if (this.TextViewLoading is { } loading)
+            await loading.Task;
+
+        // Hands the view to the script as the interop would, which a disposed view refuses.
+        _ = view.Value;
         this.OpenedTextViews++;
         this.TextView = view;
-
-        return Task.CompletedTask;
     }
 
     public Task<CodeView> RenderCode(ElementReference content, string text, CodeLanguage language, bool truncated, CancellationToken token)

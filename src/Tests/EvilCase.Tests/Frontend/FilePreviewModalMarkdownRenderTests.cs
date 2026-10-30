@@ -197,6 +197,25 @@ public class FilePreviewModalMarkdownRenderTests
     }
 
     [Test]
+    public async Task UpravitWhileTheZoomScriptLoadsStillEditsInPlace()
+    {
+        await using var ctx = NewContext(out var markdown, out _, out var previews);
+
+        previews.TextViewLoading = new TaskCompletionSource();
+
+        var file = File("Poznámky.md");
+        var component = Render(ctx, [file], file.FileId);
+
+        await component.WaitForAssertionAsync(() => Assert.That(markdown.Opened, Has.Count.EqualTo(1)));
+        await component.Find("button[aria-label='Upravit']").ClickAsync(new MouseEventArgs());
+        await component.InvokeAsync(previews.TextViewLoading.SetResult);
+
+        await component.WaitForAssertionAsync(() => Assert.That(markdown.Edits, Is.EqualTo(1), "the edit starts once the preview's toolbar is gone"));
+
+        Assert.That(component.FindAll(".ec-markdown-toolbar"), Has.Count.EqualTo(1));
+    }
+
+    [Test]
     public async Task TheToolbarShowsWhatTheEditorReports()
     {
         await using var ctx = NewContext(out _, out _, out _);
