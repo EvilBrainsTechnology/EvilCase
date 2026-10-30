@@ -102,6 +102,21 @@ public class CaseRenderTests
     }
 
     [Test]
+    public void TheBrowserTitleNamesTheCaseByItsTitle()
+    {
+        using var ctx = new BunitContext();
+
+        var caseId = Guid.CreateVersion7();
+
+        Serve(ctx, caseId, Detail(caseId));
+
+        var component = ctx.Render<Case>(parameters => parameters.Add(static page => page.CaseId, caseId));
+        var title = ctx.Render(component.FindComponent<PageTitle>().Instance.ChildContent!);
+
+        Assert.That(string.Concat(title.Nodes.Select(static node => node.TextContent)), Is.EqualTo("Přestupek – EvilCase"));
+    }
+
+    [Test]
     public void ACaseWithoutADescriptionShowsNothingUnderTheTitle()
     {
         using var ctx = new BunitContext();

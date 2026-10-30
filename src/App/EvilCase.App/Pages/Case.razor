@@ -11,7 +11,7 @@
 @inject ICaseCommentsClient CaseCommentsClient
 @inject ICaseFilesClient CaseFilesClient
 
-<PageTitle>@(this.Detail is null ? "Spis" : this.Detail.CaseNumber) – EvilCase</PageTitle>
+<PageTitle>@(this.Detail is null ? "Spis" : this.Detail.Title) – EvilCase</PageTitle>
 
 <div class="ec-page">
     <span class="ec-visually-hidden" role="status">@this.Announcement</span>

@@ -40,6 +40,19 @@ public class EditCaseRenderTests
     }
 
     [Test]
+    public async Task TheBrowserTitleNamesTheCaseByItsTitle()
+    {
+        await using var ctx = new BunitContext();
+
+        var served = Serve(ctx);
+
+        var component = Render(ctx, served.Offered[0].CaseId);
+        var title = ctx.Render(component.FindComponent<PageTitle>().Instance.ChildContent!);
+
+        Assert.That(string.Concat(title.Nodes.Select(static node => node.TextContent)), Is.EqualTo("Přestupek – EvilCase"));
+    }
+
+    [Test]
     public async Task TheCaseIsNeverOfferedAsItsOwnParent()
     {
         await using var ctx = new BunitContext();

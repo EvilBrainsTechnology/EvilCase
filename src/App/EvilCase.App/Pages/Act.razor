@@ -10,7 +10,7 @@
 @inject IActCommentsClient ActCommentsClient
 @inject IActFilesClient ActFilesClient
 
-<PageTitle>@(this.Detail is null ? "Úkon" : this.Detail.ActNumber) – EvilCase</PageTitle>
+<PageTitle>@(this.Detail is null ? "Úkon" : this.Detail.Title) – EvilCase</PageTitle>
 
 <div class="ec-page">
     <span class="ec-visually-hidden" role="status">@this.Announcement</span>

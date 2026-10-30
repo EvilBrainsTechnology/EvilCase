@@ -60,6 +60,33 @@ public class ActRenderTests
     }
 
     [Test]
+    public void TheBrowserTitleNamesTheActByItsTitle()
+    {
+        using var ctx = new BunitContext();
+
+        var actId = Guid.CreateVersion7();
+
+        var detail = new ActDetail
+        {
+            ActId = actId,
+            CaseId = Guid.CreateVersion7(),
+            CaseNumber = "EC/20260807-001",
+            CaseTitle = "Spis",
+            CaseStatus = CaseStatus.Active,
+            ActNumber = "EC/20260807-001/20260812-001",
+            Date = new DateOnly(2026, 8, 7),
+            Title = "Odpor proti příkazu",
+        };
+
+        Serve(ctx, actId, detail);
+
+        var component = ctx.Render<Act>(parameters => parameters.Add(static page => page.ActId, actId));
+        var title = ctx.Render(component.FindComponent<PageTitle>().Instance.ChildContent!);
+
+        Assert.That(string.Concat(title.Nodes.Select(static node => node.TextContent)), Is.EqualTo("Odpor proti příkazu – EvilCase"));
+    }
+
+    [Test]
     public void TheHeadCardCarriesTheNameTheDirectionTheDescriptionAndTheRowOfData()
     {
         using var ctx = new BunitContext();
