@@ -126,7 +126,7 @@
                             <span class="ec-preview-action-label">Verze<span class="ec-preview-versions-count">@file.VersionCount</span></span>
                         </button>
                     }
-                    @if (file.VersionCount > 1 && attachment is null && Compares(file.FileName))
+                    @if (file.VersionCount > 1 && attachment is null && FileTypeDisplay.Compares(file.FileName))
                     {
                         <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Compare" AriaLabel="Porovnat" OnClick="() => this.StartCompare(file)"><span class="ec-preview-action-label">Porovnat</span></EcButton>
                     }
@@ -1259,12 +1259,6 @@
             return (previous.Number, number);
 
         return versions.LastOrDefault(version => version.Number > number) is { } next ? (number, next.Number) : null;
-    }
-
-    // A text, code or Markdown file compares its versions.
-    private static bool Compares(string fileName)
-    {
-        return FileTypeDisplay.Preview(fileName) is FilePreviewKind.Text or FilePreviewKind.Code or FilePreviewKind.Markdown;
     }
 
     private RenderFragment FileSteps()

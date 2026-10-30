@@ -142,7 +142,15 @@ public static class FileTypeDisplay
     /// </summary>
     public static bool Editable(string fileName, long sizeBytes)
     {
-        return Preview(fileName) is FilePreviewKind.Text or FilePreviewKind.Code or FilePreviewKind.Markdown && sizeBytes <= MaxTextBytes;
+        return Compares(fileName) && sizeBytes <= MaxTextBytes;
+    }
+
+    /// <summary>
+    /// Whether the versions of a file of this name compare: a text, code or Markdown file.
+    /// </summary>
+    public static bool Compares(string fileName)
+    {
+        return Preview(fileName) is FilePreviewKind.Text or FilePreviewKind.Code or FilePreviewKind.Markdown;
     }
 
     public static bool HasKnownExtension(string fileName)

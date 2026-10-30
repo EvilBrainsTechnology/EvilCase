@@ -47,7 +47,7 @@
                             <span class="ec-versions-meta">@MomentDisplay.Text(version.Created) <span class="ec-sep" aria-hidden="true">·</span> @version.UploaderEmail <span class="ec-sep" aria-hidden="true">·</span> @FileSizeDisplay.Text(version.SizeBytes)</span>
                         </button>
                         <div class="ec-versions-actions">
-                            @if (this.Compares && number != this.versions[^1].Number)
+                            @if (FileTypeDisplay.Compares(this.File.FileName) && number != this.versions[^1].Number)
                             {
                                 <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Compare"
                                           AriaLabel="@($"Porovnat s předchozí, verze {number}")" OnClick="() => this.OnCompare.InvokeAsync(number)"><span class="ec-versions-action-label">Porovnat s předchozí</span></EcButton>
@@ -130,9 +130,6 @@
     private string? failure;
 
     private string? notice;
-
-    // A text, code or Markdown file compares its versions.
-    private bool Compares => FileTypeDisplay.Preview(this.File.FileName) is FilePreviewKind.Text or FilePreviewKind.Code or FilePreviewKind.Markdown;
 
     protected override async Task OnParametersSetAsync()
     {
