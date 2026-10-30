@@ -173,15 +173,15 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   jako XML) celý v původní podobě; tlačítko je pak vypnuté a náhled řekne proč. Totéž platí, když
   se soubor nepodaří naformátovat z jiného důvodu. Text s řádkem delším než 10 000 znaků se ukáže
   celý bez zvýraznění, v náhledu i v editoru.
-- Text, kód a zdrojový kód Markdownu ukáže náhled stejně jako editor, jen ho nejde měnit:
-  s čísly řádků a se zalomenými dlouhými řádky. Text jde vybrat a zkopírovat, Ctrl+A nebo Cmd+A
-  vybere celý text. Ctrl+F nebo Cmd+F v textu přejde do hledání na liště. Hledání počítá výskyty
-  v celém textu.
+- Text, kód a zdrojový kód Markdownu ukáže náhled stejně jako editor, jen ho nejde měnit a nemá
+  kurzor: s čísly řádků a se zalomenými dlouhými řádky. Text jde vybrat a zkopírovat, Ctrl+A
+  nebo Cmd+A vybere celý text. Ctrl+F nebo Cmd+F v textu přejde do hledání na liště. Hledání
+  počítá výskyty v celém textu.
 - Markdown se ukáže formátovaně, nejvýše první 1 MB, včetně tabulek, přeškrtnutí a seznamů
-  úkolů; zaškrtávací políčka úkolů v náhledu nejdou měnit. Syrové HTML v něm se nevykoná, ukáže
-  se jako text. Odkaz zůstane jen na webovou (http, https) nebo e-mailovou adresu a otevře se
-  v nové záložce; jiný odkaz se ukáže jako prostý text. Obrázky se nenačítají: místo obrázku se
-  ukáže jeho popis, bez popisu slovo „obrázek“.
+  úkolů; v náhledu nemá kurzor a zaškrtávací políčka úkolů nejdou měnit. Syrové HTML v něm se
+  nevykoná, ukáže se jako text. Odkaz zůstane jen na webovou (http, https) nebo e-mailovou
+  adresu a otevře se v nové záložce; jiný odkaz se ukáže jako prostý text. Obrázky se
+  nenačítají: místo obrázku se ukáže jeho popis, bez popisu slovo „obrázek“.
 - Lišta náhledu Markdownu nese přepínač Formátovaně / Zdrojový kód, na mobilu Formát / Zdroj.
   Zdrojový kód ukáže text s čísly řádků a barevně zvýrazněnými značkami Markdownu, se stejnou
   lištou jako formátované zobrazení. Zvolené zobrazení platí pro každý další soubor Markdown,

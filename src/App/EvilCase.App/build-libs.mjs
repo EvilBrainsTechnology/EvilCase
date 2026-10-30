@@ -210,7 +210,7 @@ await bundle(codePreview, join(lib, 'code-preview'), 'code-preview.min.js', { fo
 const textEditor = `
 import { Compartment, EditorState, RangeSet, StateEffect, StateField } from '@codemirror/state';
 import { Decoration, EditorView, GutterMarker, drawSelection, gutter, highlightActiveLine, highlightActiveLineGutter, highlightSpecialChars, keymap, lineNumbers } from '@codemirror/view';
-import { defaultKeymap, history, historyKeymap, indentLess, indentMore, insertNewlineKeepIndent, redo, redoDepth, undo, undoDepth } from '@codemirror/commands';
+import { defaultKeymap, history, historyKeymap, indentLess, indentMore, insertNewlineKeepIndent, redo, redoDepth, selectAll, undo, undoDepth } from '@codemirror/commands';
 import { SearchQuery, findNext, findPrevious, openSearchPanel, search, setSearchQuery } from '@codemirror/search';
 import { HighlightStyle, bracketMatching, indentUnit, syntaxHighlighting } from '@codemirror/language';
 import { tags } from '@lezer/highlight';
@@ -465,8 +465,8 @@ const measure = new Compartment();
 const measureThemes = [EditorView.theme({}), EditorView.theme({})];
 
 // Opens a read-only view of the text in parent, highlighted as by createEditor: the text is selected and copied but
-// never changed, and a touch opens no keyboard. scroller is the element the view scrolls in; onFind runs on Ctrl+F or
-// Cmd+F.
+// never changed, shows no cursor and opens no keyboard on a touch. scroller is the element the view scrolls in; onFind
+// runs on Ctrl+F or Cmd+F.
 export function createViewer(parent, scroller, text, language, label, onFind) {
     const state = (doc) => EditorState.create({
         doc,
@@ -475,8 +475,11 @@ export function createViewer(parent, scroller, text, language, label, onFind) {
             shared(label, onFind),
             EditorState.readOnly.of(true),
             EditorState.transactionFilter.of((transaction) => (transaction.docChanged ? [] : transaction)),
-            EditorView.contentAttributes.of({ 'aria-readonly': 'true', inputmode: 'none' }),
-            keymap.of(defaultKeymap),
+            EditorView.editable.of(false),
+            // Focusable, so after a click the keys select all, copy, find and scroll the text.
+            EditorView.contentAttributes.of({ tabindex: '0' }),
+            EditorView.theme({ '.cm-cursorLayer': { display: 'none' } }),
+            keymap.of([{ key: 'Mod-a', run: selectAll }]),
             colours(doc, language),
             matchMarks,
             shownMatchMarks,
