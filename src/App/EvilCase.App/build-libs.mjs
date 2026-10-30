@@ -1364,7 +1364,7 @@ function element(name, className, text) {
 }
 
 // The decorations of the differences of one document. A block names its changes of type and format on a label after its
-// text; a stretch in another format also on a tooltip and, for assistive technology, in a hidden note after it.
+// text; a stretch in another format also on a tooltip.
 function differenceMarks(doc, marks) {
     const decorations = [];
     for (const mark of marks) {
@@ -1372,7 +1372,6 @@ function differenceMarks(doc, marks) {
             decorations.push(Decoration.inline(mark.from, mark.to, { nodeName: mark.type === 'deleted' ? 'del' : 'ins', class: 'ec-markdown-compare-' + mark.type }));
         } else if (mark.type === 'format') {
             decorations.push(Decoration.inline(mark.from, mark.to, { class: 'ec-markdown-compare-format', 'data-format': mark.title }));
-            decorations.push(Decoration.widget(mark.to, () => element('span', 'ec-visually-hidden', ' (' + mark.title + ')'), { side: 1, ignoreSelection: true }));
         } else if (mark.type === 'restyled') {
             const node = doc.nodeAt(mark.node);
             decorations.push(node.isTextblock && node.content.size > 0

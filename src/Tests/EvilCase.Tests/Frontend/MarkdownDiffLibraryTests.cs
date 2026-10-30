@@ -134,7 +134,7 @@ public class MarkdownDiffLibraryTests
             "newer format \"ceníku\": adresa odkazu https://a.example → https://b.example",
             "newer named \"Podle ceníku.\": adresa odkazu https://a.example → https://b.example",
             "newer format \"ABC\": nově přeškrtnuto, nově jako kód",
-            "newer named \"Kód ABC a text.\": nově přeškrtnuto; nově jako kód",
+            "newer named \"Kód ABC a text.\": nově přeškrtnuto, nově jako kód",
             "newer format \"Záloha\": nově tučně",
             "newer format \"doplatek\": nově tučně",
             "newer named \"Záloha a doplatek.\": nově tučně",

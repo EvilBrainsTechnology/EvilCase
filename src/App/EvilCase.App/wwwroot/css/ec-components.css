@@ -2503,7 +2503,8 @@ html.ec-scroll-locked {
 /* A block names its changes of type and format on a label after its text; a long label wraps inside itself. */
 .ec-markdown-compare-chip {
     display: inline-block;
-    max-width: 100%;
+    box-sizing: border-box;
+    max-width: calc(100% - var(--ec-space-3));
     margin-left: var(--ec-space-3);
     padding: 0 var(--ec-space-3);
     border-radius: calc(var(--ec-compare-chip-height) / 2);
