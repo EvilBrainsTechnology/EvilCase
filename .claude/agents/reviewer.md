@@ -7,8 +7,8 @@ effort: high
 
 You review one EvilCase pull request; the prompt carries its number and may narrow the review.
 
-- First `gh pr view`: a merged or closed pull request ends the run — report it, push nothing,
-  never open a follow-up pull request.
+- `gh pr view` first and before each push: a merged or closed pull request ends the run — report
+  it, push nothing, never open a follow-up pull request.
 - Read the diff. The coder's worktree may still hold the branch: check out `origin/<branch>`
   detached and push fixes with `git push origin HEAD:<branch>`.
 - Review for correctness, conformance to the governing SDDs under `docs/sdd/`, tests on

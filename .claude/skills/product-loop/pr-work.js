@@ -38,13 +38,24 @@ const SHOTS_SCHEMA = {
   required: ['ok'],
 }
 
+const LABEL = 'Then switch agent-in-progress to agent-done, or to waiting-for-agent where ci-failed is on it. '
+
 const OPEN =
   'First `gh pr view`: a merged or closed pull request ends the run — change nothing, report it. '
 
 const DONE_SCHEMA = {
   type: 'object',
-  properties: { done: { type: 'boolean', description: 'Whether the comment and the label are on the pull request' } },
-  required: ['done'],
+  properties: {
+    done: { type: 'boolean', description: 'Whether the comment and the label are on the pull request' },
+    closed: { type: 'boolean', description: 'Whether the pull request was already merged or closed' },
+  },
+  required: ['done', 'closed'],
+}
+
+// A sonnet agent that did not land its comment and label gets one more try.
+async function landed(run) {
+  const once = await run()
+  return once?.done || once?.closed ? once : run()
 }
 
 const META =
@@ -52,8 +63,11 @@ const META =
   'this pull request explicitly asks for such a change: run `touch .claude/allow-meta-edits`, ' +
   'edit, then delete the flag. Otherwise open an issue for the owner instead.'
 
+// args may arrive as a JSON string.
+const items = typeof args === 'string' ? JSON.parse(args) : args
+
 const results = await pipeline(
-  args,
+  items,
   async (item) => {
     // The fast lane has no plan; the work stage ignores it. Returning null here would
     // drop the item and skip the work stage.
@@ -69,7 +83,8 @@ const results = await pipeline(
     if (item.fast) {
       return agent(
         `Fast lane: you are the only agent on this change — no plan, no reviewer agent; the review .claude/rules/github.md asks for ` +
-          `is yours, /code-review medium on the rework's diff. The screenshots where a screen changes are yours too.\n\n` +
+          `is yours: /code-review medium on the rework's diff, or what the instructions name as missing. The screenshots ` +
+          `where a screen changes are yours too.\n\n` +
           `Work on the existing pull request #${item.pr}, branch ${item.branch}.\n\n${item.instructions}${META}`,
         {
           agentType: 'coder', isolation: 'worktree', phase: 'Work',
@@ -93,7 +108,7 @@ const results = await pipeline(
       () => agent(
         `Review the rework just pushed to pull request #${item.pr}, branch ${item.branch}: ` +
           `${work.fixed}\n\nFix what you find. The rest of the pull request is not yours to ` +
-          `review.${META}`,
+          `review.${work.security ? ' The security review runs beside you, another agent\'s: skip it.' : ''}${META}`,
         {
           agentType: 'reviewer', isolation: 'worktree', phase: 'Review',
           label: `review:#${item.pr}`, schema: REVIEW_SCHEMA,
@@ -112,33 +127,36 @@ const results = await pipeline(
         : null,
       () => screenshots(item, work),
     ]).then(async ([review, security, shots]) => {
+      // Each item names what the next agent runs, so the hand-off comment is its instructions.
       const missing = [
-        !review && 'the code review',
-        work.security && !security && 'the security review',
-        work.screens && !shots?.ok && `the screenshots (${shots?.error || 'the agent died'})`,
-      ].filter(Boolean).join(', ')
+        !review && 'the code review: /code-review high on the rework',
+        work.security && !security && 'the security review: /security-review on the rework',
+        work.screens && !shots?.ok && `the screenshots per docs/loop/visual-proof.md (${shots?.error || 'the agent died'})`,
+      ].filter(Boolean).join('; ')
       const fixed = [review?.fixed, security?.fixed].filter(Boolean).join(' ') || 'nothing'
       const uncertainty = [review?.uncertainty, security?.uncertainty].filter(Boolean).join(' ') || null
       // A failed stage hands the pull request to the next round; the comment comes before the label,
       // pr-state.yml sets agent-done from it even when the label switch is lost.
-      const closed = missing
-        ? await agent(
-          `${OPEN}Pull request #${item.pr} did not get its full review; missing: ${missing}. Comment that ` +
-            `on it in one sentence, then switch agent-in-progress to waiting-for-agent. Change nothing else.`,
+      const closed = await landed(() => missing
+        ? agent(
+          `${OPEN}Pull request #${item.pr} did not get its full review. Comment on it, without a heading: ` +
+            `"Review of the rework not finished; missing: ${missing}." Add what the finished part fixed: ${fixed}.` +
+            `${uncertainty ? ` Add for the owner: ${uncertainty}.` : ''} ` +
+            `Then switch agent-in-progress to waiting-for-agent. Change nothing else.`,
           { phase: 'Close', label: `handoff:#${item.pr}`, schema: DONE_SCHEMA, model: 'sonnet', effort: 'low' },
         )
-        : await agent(
+        : agent(
           `${OPEN}Close out pull request #${item.pr}. Comment .github/code_review_template.md recording what ` +
             `the review of the rework fixed: ${fixed}. Where a fix made the description wrong, correct that part` +
-            `${uncertainty ? `, and add this sentence for the owner to it: ${uncertainty}` : ''}. Then switch ` +
-            `agent-in-progress to agent-done. Change no code.`,
+            `${uncertainty ? `, and add this sentence for the owner to it: ${uncertainty}` : ''}. ` +
+            `${LABEL}Change no code.`,
           { phase: 'Close', label: `close:#${item.pr}`, schema: DONE_SCHEMA, model: 'sonnet', effort: 'low' },
-        )
+        ))
       return {
         pr: item.pr,
         fixed: work.fixed,
         uncertainty,
-        status: missing ? 'review-failed' : closed?.done ? 'reviewed' : 'close-failed',
+        status: closed?.closed ? 'closed' : missing ? 'review-failed' : closed?.done ? 'reviewed' : 'close-failed',
         missing: missing || null,
       }
     })
@@ -159,4 +177,4 @@ function screenshots(item, work) {
   )
 }
 
-return args.map((item, i) => results[i] ?? { pr: item.pr, status: 'failed' })
+return items.map((item, i) => results[i] ?? { pr: item.pr, status: 'failed' })

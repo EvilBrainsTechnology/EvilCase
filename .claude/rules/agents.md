@@ -5,7 +5,8 @@
   architect plans, coder implements through to the pull request, reviewer reviews and fixes.
   One review, no second round.
 - An owner-approved proposal is the plan (`plan` arg): no architect, coder on Opus, effort high.
-- The review runs beside the screenshots (`docs/loop/visual-proof.md`) and any security review.
+- The review runs beside any security review and the screenshots (`docs/loop/visual-proof.md`),
+  which the coder's prompt then names as not its own.
   Once all succeeded, the orchestrator records the fixes (`.github/code_review_template.md`, the
   description where a fix made it wrong), then sets `agent-done`. One failed: a comment naming
   what is missing and `waiting-for-agent`; the next round finishes it on the fast lane.

@@ -48,49 +48,64 @@ const SHOTS_SCHEMA = {
   required: ['ok'],
 }
 
+const LABEL = 'Then switch agent-in-progress to agent-done, or to waiting-for-agent where ci-failed is on it. '
+
 const OPEN =
   'First `gh pr view`: a merged or closed pull request ends the run — change nothing, report it. '
 
 const DONE_SCHEMA = {
   type: 'object',
-  properties: { done: { type: 'boolean', description: 'Whether the comment and the label are on the pull request' } },
-  required: ['done'],
+  properties: {
+    done: { type: 'boolean', description: 'Whether the comment and the label are on the pull request' },
+    closed: { type: 'boolean', description: 'Whether the pull request was already merged or closed' },
+  },
+  required: ['done', 'closed'],
+}
+
+// A sonnet agent that did not land its comment and label gets one more try.
+async function landed(run) {
+  const once = await run()
+  return once?.done || once?.closed ? once : run()
 }
 
 const results = await pipeline(
   slices,
   async (slice) => {
+    // A thread's slice has no issue and its own branch; the loop's is loop/<issue>-<slug>.
+    const branch = slice.branch || `loop/${slice.issue}-${slice.slug}`
+    const what = slice.issue ? `issue #${slice.issue} "${slice.title}"` : `"${slice.title}"`
+    const tag = slice.issue ? `#${slice.issue}` : slice.slug
     // The fast lane skips the plan and raises the coder above its own model and effort.
     if (slice.fast) {
       return agent(
         `Fast lane: you are the only agent on this change — no plan, no reviewer agent; the review .claude/rules/github.md asks for ` +
           `is yours, and so are the screenshots where a screen changes.\n\n` +
-          `Implement issue #${slice.issue} "${slice.title}" on branch loop/${slice.issue}-${slice.slug}.\n\n${slice.body}` +
+          `Implement ${what} on branch ${branch}.\n\n${slice.body}` +
           `${slice.plan ? `\n\nThe proposal the owner approved:\n\n${slice.plan}` : ''}${META}`,
         {
           agentType: 'coder', isolation: 'worktree', phase: 'Implement',
-          label: `fast:#${slice.issue}`, schema: PR_SCHEMA, model: 'opus', effort: 'high',
+          label: `fast:${tag}`, schema: PR_SCHEMA, model: 'opus', effort: 'high',
         },
       )
     }
     // A proposal the owner approved is the plan; the coder then runs on Opus.
-    const plan = slice.plan ?? await agent(
-      `Plan the slice for issue #${slice.issue} "${slice.title}" (branch loop/${slice.issue}-${slice.slug}).\n\n${slice.body}`,
-      { agentType: 'architect', phase: 'Plan', label: `plan:#${slice.issue}` },
+    const plan = slice.plan || await agent(
+      `Plan the slice for ${what} (branch ${branch}).\n\n${slice.body}`,
+      { agentType: 'architect', phase: 'Plan', label: `plan:${tag}` },
     )
-    if (!plan) throw new Error(`slice #${slice.issue}: no plan`)
+    if (!plan) throw new Error(`slice ${tag}: no plan`)
     const prompt =
-      `Implement issue #${slice.issue} "${slice.title}" on branch loop/${slice.issue}-${slice.slug}.\n\n${slice.body}\n\n` +
+      `Implement ${what} on branch ${branch}.\n\n${slice.body}\n\n` +
       `${slice.plan ? 'The proposal the owner approved' : "The architect's plan"}:\n\n${plan}\n\n` +
       `The screenshots are taken beside the review: return their targets only.${META}`
     return agent(prompt, {
       agentType: 'coder', isolation: 'worktree', phase: 'Implement',
-      label: `code:#${slice.issue}`, schema: PR_SCHEMA,
+      label: `code:${tag}`, schema: PR_SCHEMA,
       ...(slice.plan ? { model: 'opus', effort: 'high' } : {}),
     })
   },
   (pr, slice) => {
-    if (!pr) throw new Error(`slice #${slice.issue}: no pull request`)
+    if (!pr) throw new Error(`slice ${slice.issue ? `#${slice.issue}` : slice.slug}: no pull request`)
     if (slice.fast) {
       return {
         issue: slice.issue, pr: pr.pr, branch: pr.branch, summary: pr.summary,
@@ -101,7 +116,9 @@ const results = await pipeline(
       const missing = whatIsMissing(pr, review, security, shots)
       const fixed = [review?.fixed, security?.fixed].filter(Boolean).join(' ') || null
       const uncertainty = [review?.uncertainty, security?.uncertainty].filter(Boolean).join(' ') || null
-      const closed = missing ? await handOff(pr.pr, missing) : await closeOut(pr.pr, fixed, uncertainty)
+      const closed = await landed(() => missing
+        ? handOff(pr.pr, missing, fixed, uncertainty)
+        : closeOut(pr.pr, fixed, uncertainty))
       return {
         issue: slice.issue,
         pr: pr.pr,
@@ -109,7 +126,7 @@ const results = await pipeline(
         summary: pr.summary,
         fixed,
         uncertainty,
-        status: missing ? 'review-failed' : closed?.done ? 'reviewed' : 'close-failed',
+        status: closed?.closed ? 'closed' : missing ? 'review-failed' : closed?.done ? 'reviewed' : 'close-failed',
         missing: missing || null,
       }
     })
@@ -119,10 +136,14 @@ const results = await pipeline(
 // The review, the security review and the screenshots run side by side on one branch.
 function reviewSideBySide(pr) {
   return parallel([
-    () => agent(`Review pull request #${pr.pr} and fix what you find.${META}`, {
-      agentType: 'reviewer', isolation: 'worktree', phase: 'Review',
-      label: `review:#${pr.pr}`, schema: REVIEW_SCHEMA,
-    }),
+    () => agent(
+      `Review pull request #${pr.pr} and fix what you find.` +
+        `${pr.security ? ' The security review runs beside you, another agent\'s: skip it.' : ''}${META}`,
+      {
+        agentType: 'reviewer', isolation: 'worktree', phase: 'Review',
+        label: `review:#${pr.pr}`, schema: REVIEW_SCHEMA,
+      },
+    ),
     () => pr.security
       ? agent(
         `Security review only: run /security-review on the diff of pull request #${pr.pr} and fix what it finds. Skip the checklist review, another agent runs it; the coder's check only where you pushed.${META}`,
@@ -147,18 +168,22 @@ function reviewSideBySide(pr) {
 }
 
 // A review stage that failed hands the pull request to the next round instead of closing it out.
+// Each item names what the next agent runs, so the hand-off comment is its instructions.
 function whatIsMissing(pr, review, security, shots) {
   return [
-    !review && 'the code review',
-    pr.security && !security && 'the security review',
-    pr.screens && !shots?.ok && `the screenshots (${shots?.error || 'the agent died'})`,
-  ].filter(Boolean).join(', ')
+    !review && 'the code review: /code-review high on the whole diff',
+    pr.security && !security && 'the security review: /security-review on the whole diff',
+    pr.screens && !shots?.ok && `the screenshots per docs/loop/visual-proof.md (${shots?.error || 'the agent died'})`,
+  ].filter(Boolean).join('; ')
 }
 
-function handOff(number, missing) {
+function handOff(number, missing, fixed, uncertainty) {
   return agent(
-    `${OPEN}Pull request #${number} did not get its full review; missing: ${missing}. Comment that on it ` +
-      `in one sentence, then switch agent-in-progress to waiting-for-agent. Change nothing else.`,
+    `${OPEN}Pull request #${number} did not get its full review. Comment on it, without a heading: ` +
+      `"Review not finished; missing: ${missing}."` +
+      `${fixed ? ` Add what the finished part fixed: ${fixed}.` : ''}` +
+      `${uncertainty ? ` Add for the owner: ${uncertainty}.` : ''} ` +
+      `Then switch agent-in-progress to waiting-for-agent. Change nothing else.`,
     { phase: 'Close', label: `handoff:#${number}`, schema: DONE_SCHEMA, model: 'sonnet', effort: 'low' },
   )
 }
@@ -168,8 +193,8 @@ function closeOut(number, fixed, uncertainty) {
   return agent(
     `${OPEN}Close out pull request #${number}. Comment .github/code_review_template.md recording what the review ` +
       `fixed: ${fixed ?? 'nothing'}. Where a fix made the description wrong, correct that part` +
-      `${uncertainty ? `, and add this sentence for the owner to it: ${uncertainty}` : ''}. Then switch ` +
-      `agent-in-progress to agent-done. Change no code.`,
+      `${uncertainty ? `, and add this sentence for the owner to it: ${uncertainty}` : ''}. ` +
+      `${LABEL}Change no code.`,
     { phase: 'Close', label: `close:#${number}`, schema: DONE_SCHEMA, model: 'sonnet', effort: 'low' },
   )
 }

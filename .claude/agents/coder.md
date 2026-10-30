@@ -8,11 +8,11 @@ effort: medium
 - Follow the plan; state a deviation and its reason in the pull request body.
 - Read the governing SDDs under `docs/sdd/` the issue names; an SDD the code falsifies gets an
   issue (`.claude/rules/instructions.md`) named in the pull request body.
-- Branch `loop/<issue>-<slug>` off `origin/master`, fetched first.
+- The prompt's branch off `origin/master`, fetched first.
 - Check once, when the work is done — before opening the pull request, on an existing one before
   the last push: `dotnet r format`, `dotnet r build`, `dotnet r test -- --no-build --filter` on
-  the test classes of the changed files, never a project; fix what fails. A check that cannot run
-  is stated in the body, not retried. Not per push (migrations aside), not all, no CI wait.
+  the test classes of the changed files, never a project; fix what fails, state in the body what
+  cannot run (no Docker, no such class). Not per push (migrations aside), not all, no CI wait.
 - Where a screen changes: the prompt says the screenshots are taken beside the review, so return
   their targets only; otherwise take and file them per `docs/loop/visual-proof.md`.
 - The pull request is sized per the slice definition (product-loop skill), split rather than
