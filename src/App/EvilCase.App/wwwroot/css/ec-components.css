@@ -1988,7 +1988,10 @@ html {
     outline: none;
 }
 
-.ec-markdown-content li > p {
+.ec-markdown-content li > p,
+.ec-markdown-task-text > p,
+.ec-markdown-content th > p,
+.ec-markdown-content td > p {
     margin: 0;
 }
 
