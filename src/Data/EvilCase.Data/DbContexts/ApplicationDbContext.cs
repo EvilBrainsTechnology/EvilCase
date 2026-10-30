@@ -17,6 +17,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     public DbSet<RefreshToken> RefreshTokens => this.Set<RefreshToken>();
 
+    public DbSet<ApiToken> ApiTokens => this.Set<ApiToken>();
+
     public DbSet<Contact> Contacts => this.Set<Contact>();
 
     public DbSet<Case> Cases => this.Set<Case>();
@@ -167,6 +169,12 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<RefreshToken>()
+            .HasOne(static token => token.User)
+            .WithMany()
+            .HasForeignKey(static token => token.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ApiToken>()
             .HasOne(static token => token.User)
             .WithMany()
             .HasForeignKey(static token => token.UserId)

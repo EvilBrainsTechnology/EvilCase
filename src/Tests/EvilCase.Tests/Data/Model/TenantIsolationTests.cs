@@ -106,7 +106,7 @@ public class TenantIsolationTests : ModelFixture
 
         Assert.That(
             untenanted,
-            Is.EquivalentTo(["Account", "Tenant", "RefreshToken", "CaseAncestor"]),
+            Is.EquivalentTo(["Account", "Tenant", "RefreshToken", "ApiToken", "CaseAncestor"]),
             "a new entity outside the tenant is a leak until someone says otherwise");
     }
 

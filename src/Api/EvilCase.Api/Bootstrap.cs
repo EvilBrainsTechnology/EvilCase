@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.OpenApi;
 using Scalar.AspNetCore;
 
 namespace EvilBrains.EvilCase.Api;
@@ -19,6 +20,8 @@ public static class Bootstrap
 {
     // The name browser logs are recorded under; it identifies the deployment, not the library.
     private const string ClientSourceContext = "EvilBrains.EvilCase.App.Client";
+
+    private const string BearerSecurityScheme = "Bearer";
 
     // A RequestDelegate: a minimal-API handler would have to bind the unused {**path}.
     private static readonly RequestDelegate NotFound = static async context =>
@@ -60,6 +63,17 @@ public static class Bootstrap
             options.AddDocumentTransformer(static async (document, _, _) =>
             {
                 document.Info.Title = "EvilCase API";
+
+                document.Components ??= new OpenApiComponents();
+                document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>(StringComparer.Ordinal);
+                document.Components.SecuritySchemes[BearerSecurityScheme] = new OpenApiSecurityScheme
+                {
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer",
+                    Description = "A personal API token (evc_…) created in Nastavení → API tokeny.",
+                };
+
+                document.Security = [new OpenApiSecurityRequirement { [new OpenApiSecuritySchemeReference(BearerSecurityScheme, document)] = [] }];
             });
         });
 
@@ -83,6 +97,11 @@ public static class Bootstrap
     public static IEndpointRouteBuilder MapEvilCaseApi(this IEndpointRouteBuilder endpoints)
     {
         endpoints.MapControllers();
+
+        // Anonymous in every environment, so an integration reads the contract before it holds a token.
+        endpoints
+            .MapOpenApi()
+            .AllowAnonymous();
 
         // Liveness runs no check: the process answering is the signal. A database check here would
         // restart every instance at once on a brief outage.
@@ -114,10 +133,6 @@ public static class Bootstrap
     public static IEndpointRouteBuilder MapEvilCaseApiReference(this IEndpointRouteBuilder endpoints)
     {
         // Anonymous, so mapped in Development only.
-        endpoints
-            .MapOpenApi()
-            .AllowAnonymous();
-
         endpoints
             .MapScalarApiReference()
             .AllowAnonymous();

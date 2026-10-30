@@ -187,6 +187,7 @@ app.UseRateLimiter();
 // Explicit: the builder's implicit UseAuthentication runs ahead of the whole pipeline,
 // before forwarded headers and request logging.
 app.UseAuthentication();
+app.UseEvilCaseApiTokenBoundary();
 app.UseAuthorization();
 
 // Replaces UseBlazorFrameworkFiles, whose /_framework branch would terminate ahead of it.
