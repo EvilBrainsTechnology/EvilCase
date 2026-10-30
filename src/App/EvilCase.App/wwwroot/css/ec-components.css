@@ -1327,7 +1327,19 @@ html {
     min-width: 0;
 }
 
+.ec-preview-name-row {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+    min-width: 0;
+}
+
+.ec-preview-name-row .ec-badge {
+    flex: 0 0 auto;
+}
+
 .ec-preview-name {
+    min-width: 0;
     margin: 0;
     overflow: hidden;
     font-size: var(--ec-text-lg);
@@ -2376,8 +2388,9 @@ html {
     font-weight: var(--ec-weight-semibold);
 }
 
-.ec-preview-versions-panel {
-    padding: var(--ec-space-2);
+/* The options span the panel, so their highlight reaches its edges. */
+.ec-popover.ec-preview-versions-panel {
+    padding: var(--ec-space-2) 0;
 }
 
 .ec-preview-versions-list {
@@ -2396,11 +2409,12 @@ html {
     align-self: stretch;
     gap: calc(var(--ec-space-1) / 2);
     box-sizing: border-box;
+    width: 100%;
     min-height: var(--ec-control-md);
     min-width: 0;
     padding: var(--ec-space-3) var(--ec-space-4);
     border: 0;
-    border-radius: var(--ec-radius-md);
+    border-radius: 0;
     background: transparent;
     color: var(--ec-text);
     font: inherit;
@@ -2436,7 +2450,7 @@ html {
 
 .ec-preview-versions-divider {
     height: var(--ec-hairline);
-    margin: var(--ec-space-2) var(--ec-space-1);
+    margin: var(--ec-space-2) 0;
     background: var(--ec-border-subtle);
 }
 

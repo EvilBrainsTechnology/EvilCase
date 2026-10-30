@@ -61,7 +61,13 @@
                 else
                 {
                     <div class="ec-preview-title">
-                        <h2 class="ec-preview-name" title="@file.FileName">@file.FileName</h2>
+                        <div class="ec-preview-name-row">
+                            <h2 class="ec-preview-name" title="@file.FileName">@file.FileName</h2>
+                            @if (this.OlderVersion is { } olderNumber)
+                            {
+                                <EcBadge Text="@($"verze {olderNumber}")" Tone="EcBadgeTone.FileVersion" />
+                            }
+                        </div>
                         <span class="ec-preview-meta">@FileSizeDisplay.Text(shownVersion?.SizeBytes ?? file.SizeBytes) <span class="ec-sep" aria-hidden="true">·</span> @(this.signedContentName is { } documentName ? $"podepsaný dokument {documentName}" : MomentDisplay.Text(shownVersion?.Created ?? file.Created))</span>
                     </div>
                 }
@@ -80,7 +86,8 @@
                     @if (file.VersionCount > 1)
                     {
                         <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Clock" AriaLabel="@($"Verze, {file.VersionCount}")"
-                                  aria-pressed="@(this.OlderVersion is not null || this.versionsOpen ? "true" : "false")" OnClick="this.ToggleVersions">
+                                  aria-pressed="@(this.OlderVersion is not null || this.versionsOpen ? "true" : "false")"
+                                  Disabled="this.OlderVersion is not null" OnClick="this.ToggleVersions">
                             <span class="ec-preview-action-label">Verze<span class="ec-preview-versions-count">@file.VersionCount</span></span>
                         </EcButton>
                     }
@@ -945,12 +952,9 @@
             await this.OnDownload.InvokeAsync(file);
     }
 
-    private async Task ToggleVersions()
+    private void ToggleVersions()
     {
-        if (this.OlderVersion is null)
-            this.versionsOpen = !this.versionsOpen;
-        else
-            await this.ShowCurrentVersion();
+        this.versionsOpen = !this.versionsOpen;
     }
 
     private async Task ShowCurrentVersion()
