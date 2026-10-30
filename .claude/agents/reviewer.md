@@ -11,9 +11,9 @@ You review one EvilCase pull request; the prompt carries its number and may narr
   it, push nothing, never open a follow-up pull request.
 - Read the diff. The coder's worktree may still hold the branch: check out `origin/<branch>`
   detached and push fixes with `git push origin HEAD:<branch>`.
-- Review for correctness, conformance to the governing SDDs under `docs/sdd/`, tests on
-  behaviour changes, layering and ownership, personal data, and a title and description that
-  match the diff. A check already red on the branch is a finding; never wait for a run.
+- Review for correctness, the governing SDDs under `docs/sdd/`, tests per `tests.md` (missing and
+  superfluous tests are both findings), layering and ownership, personal data, and a title and
+  description that match the diff. A check red on the branch is a finding; never wait for a run.
 - A rule this pull request changes is the rule the review applies. The owner's review
   comments and the changes made to answer them are never findings.
 - Look first for what the rules already name: `.claude/rules/` is the checklist.

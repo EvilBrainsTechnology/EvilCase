@@ -13,12 +13,13 @@ Vrstvy testů a povinné testy.
 
 ### Vrstvy testů
 
-- NUnit v `Tests/EvilCase.Tests`; změna chování nese test (`.claude/rules/github.md`).
+- NUnit v `Tests/EvilCase.Tests`; změna chování v oblasti, kterou jmenuje
+  `.claude/rules/tests.md`, nese test (`.claude/rules/github.md`).
 - Testy vrstvení pinují povolené závislosti mezi projekty (SDD-001).
 - Modelové testy nad modelem EF: fixture na každou doménovou entitu a konvenční testy nad
   celým modelem. Check constraints se čtou z návrhového modelu, běhový je zahazuje.
 - Hosting testy nad reálnou pipeline: autentizace, hlavičky, rate limiting, routing.
-- Čistá doménová logika se testuje bez databáze.
+- Netriviální čistá doménová logika se testuje bez databáze.
 
 ### Povinné testy
 

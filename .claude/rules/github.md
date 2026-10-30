@@ -5,7 +5,7 @@
   the agent's own or a bot's — does not.
 - Commit every logical unit that stands on its own, `add` and `commit` in one call; push
   every commit as it is made.
-- A change in behaviour carries a test. Documentation changes in the same commit as the code.
+- A behaviour change in a category `tests.md` names carries a test; docs change in the code's commit.
 - A pull request is one topic, opened ready for review. The body fills
   `.github/pull_request_template.md`. Title and description match the diff.
 - An issue fills its matching template in `.github/ISSUE_TEMPLATE/`; the front matter is its

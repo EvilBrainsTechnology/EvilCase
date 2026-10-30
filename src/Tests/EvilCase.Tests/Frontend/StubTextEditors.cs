@@ -23,21 +23,12 @@ internal sealed class StubTextEditors : ITextEditors
     /// </summary>
     public string Text { get; set; } = "";
 
-    public int Undos { get; private set; }
-
-    public int Redos { get; private set; }
-
     public int Closed { get; private set; }
 
     /// <summary>
     /// When set, the editor does not start.
     /// </summary>
     public bool Fails { get; set; }
-
-    /// <summary>
-    /// When set, a read-only view does not start.
-    /// </summary>
-    public bool ViewFails { get; set; }
 
     /// <summary>
     /// What formatting makes of a text a view formats.
@@ -48,17 +39,6 @@ internal sealed class StubTextEditors : ITextEditors
     /// Whether each view opened was asked to format.
     /// </summary>
     public List<bool> Formatting { get; } = [];
-
-    public List<bool> ShownFormatted { get; } = [];
-
-    public List<PreviewZoom> Zooms { get; } = [];
-
-    public List<(string Query, PreviewFind Find)> Finds { get; } = [];
-
-    /// <summary>
-    /// The toolbar the last view reports its zoom and matches to, as the library would.
-    /// </summary>
-    public DotNetObjectReference<PreviewToolbar>? View { get; private set; }
 
     /// <summary>
     /// When set, the editor's text cannot be read.
@@ -78,37 +58,27 @@ internal sealed class StubTextEditors : ITextEditors
 
     public Task<CodeView> OpenViewer(ElementReference host, string text, CodeLanguage? language, bool format, string label, DotNetObjectReference<PreviewToolbar> view)
     {
-        if (this.ViewFails)
-            throw new JSException("The view did not load.");
-
         // Hands the toolbar to the script as the interop would, which a disposed one refuses.
         _ = view.Value;
         this.Opened.Add((text, language, "", label));
         this.OpenedReadOnly.Add(true);
         this.Formatting.Add(format);
-        this.View = view;
 
         return Task.FromResult(format ? this.Code : new CodeView(Formatted: false, Invalid: false));
     }
 
     public Task ShowFormatted(ElementReference host, bool formatted)
     {
-        this.ShownFormatted.Add(formatted);
-
         return Task.CompletedTask;
     }
 
     public Task ZoomViewer(ElementReference host, PreviewZoom zoom)
     {
-        this.Zooms.Add(zoom);
-
         return Task.CompletedTask;
     }
 
     public Task FindInViewer(ElementReference host, string query, PreviewFind find)
     {
-        this.Finds.Add((query, find));
-
         return Task.CompletedTask;
     }
 
@@ -122,15 +92,11 @@ internal sealed class StubTextEditors : ITextEditors
 
     public Task UndoEdit(ElementReference host)
     {
-        this.Undos++;
-
         return Task.CompletedTask;
     }
 
     public Task RedoEdit(ElementReference host)
     {
-        this.Redos++;
-
         return Task.CompletedTask;
     }
 

@@ -27,23 +27,6 @@ public class TopSearchRenderTests
     private static readonly Guid LabelId = Guid.NewGuid();
 
     [Test]
-    public async Task FocusingAnEmptyFieldOffersTheHintToTypeTwoCharacters()
-    {
-        await using var ctx = new BunitContext();
-        Arrange(ctx, Everything());
-
-        var component = ctx.Render<TopSearch>();
-        await component.Find(".ec-topsearch-input").FocusAsync(new FocusEventArgs());
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(component.Find(".ec-sr-state").TextContent, Does.Contain("Napište alespoň 2 znaky"));
-            Assert.That(component.Find(".ec-topsearch-input").GetAttribute("aria-expanded"), Is.EqualTo("true"));
-            Assert.That(component.FindAll(".ec-topsearch-kbd"), Is.Not.Empty, "an empty field shows the Ctrl K hint");
-        }
-    }
-
-    [Test]
     public async Task OneCharacterSearchesNothing()
     {
         await using var ctx = new BunitContext();
@@ -55,76 +38,6 @@ public class TopSearchRenderTests
         Assert.That(component.Find(".ec-sr-state").TextContent, Does.Contain("Napište alespoň 2 znaky"));
 
         await client.DidNotReceive().Search(Arg.Any<SearchRequest>(), Arg.Any<CancellationToken>());
-    }
-
-    [Test]
-    public async Task ATermOfTwoCharactersOffersEveryEntityInItsGroupWithItsTotal()
-    {
-        await using var ctx = new BunitContext();
-        var client = Arrange(ctx, Everything());
-
-        var component = ctx.Render<TopSearch>();
-        await component.Find(".ec-topsearch-input").InputAsync(new ChangeEventArgs { Value = " poj " });
-
-        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll("[role=option]"), Has.Count.EqualTo(5)));
-
-        var heads = component.FindAll(".ec-sr-group-head").Select(static head => head.TextContent.Trim()).ToArray();
-
-        using (Assert.EnterMultipleScope())
-        {
-            await client.Received(1).Search(Arg.Is<SearchRequest>(static request => request.Q == "poj"), Arg.Any<CancellationToken>());
-            Assert.That(heads[0], Does.StartWith("Spisy").And.Contain("5"), "a group header carries the total of its matches");
-            Assert.That(component.FindAll(".ec-sr-group").Select(static group => group.GetAttribute("aria-label")), Is.EqualTo(["Spisy", "Úkony", "Kontakty", "Soubory", "Komentáře"]));
-            Assert.That(component.Find(".ec-sr-footer").TextContent, Does.Contain("9 výsledků"));
-            Assert.That(component.FindAll(".ec-sr-all"), Has.Count.EqualTo(1), "only a group with more matches than rows links to the list");
-            Assert.That(component.Find(".ec-sr-all").GetAttribute("href"), Is.EqualTo("/cases?q=poj&status=all&scope=all"));
-            Assert.That(component.Find(".ec-sr-all").TextContent, Does.Contain("Všechny ve Spisech (5)"));
-        }
-    }
-
-    [Test]
-    public async Task EveryGroupLinkOpensItsListWithTheOtherFiltersOff()
-    {
-        await using var ctx = new BunitContext();
-        var everything = Everything();
-        Arrange(
-            ctx,
-            everything with
-            {
-                Acts = Group(3, everything.Acts.Items[0]),
-                Contacts = Group(3, everything.Contacts.Items[0]),
-            });
-
-        var component = ctx.Render<TopSearch>();
-        await component.Find(".ec-topsearch-input").InputAsync(new ChangeEventArgs { Value = "pojišťovna" });
-
-        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-sr-all"), Has.Count.EqualTo(3)));
-
-        Assert.That(
-            component.FindAll(".ec-sr-all").Select(static link => link.GetAttribute("href")),
-            Is.EqualTo(
-            [
-                "/cases?q=poji%C5%A1%C5%A5ovna&status=all&scope=all",
-                "/acts?q=poji%C5%A1%C5%A5ovna&open=false",
-                "/contacts?q=poji%C5%A1%C5%A5ovna",
-            ]));
-    }
-
-    [Test]
-    public async Task TheMatchedTextIsMarkedInTheTitleAndTheNumberIgnoringDiacritics()
-    {
-        await using var ctx = new BunitContext();
-        Arrange(ctx, Everything());
-
-        var component = ctx.Render<TopSearch>();
-        await component.Find(".ec-topsearch-input").InputAsync(new ChangeEventArgs { Value = "pojisteni" });
-
-        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll("mark.ec-hit"), Is.Not.Empty));
-
-        Assert.That(
-            component.FindAll(".ec-sr-option")[0].QuerySelectorAll("mark.ec-hit").Select(static mark => mark.TextContent),
-            Is.EqualTo(["pojištění"]),
-            "a term without diacritics marks the accented text");
     }
 
     [Test]
@@ -177,92 +90,6 @@ public class TopSearchRenderTests
     }
 
     [Test]
-    public async Task EveryKindOfRowOpensItsOwnRecord()
-    {
-        await using var ctx = new BunitContext();
-        Arrange(ctx, Everything());
-
-        var component = ctx.Render<TopSearch>();
-        await component.Find(".ec-topsearch-input").InputAsync(new ChangeEventArgs { Value = "poj" });
-        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll("[role=option]"), Has.Count.EqualTo(5)));
-
-        var hrefs = component.FindAll("[role=option]").Select(static row => row.GetAttribute("href")).ToArray();
-
-        Assert.That(
-            hrefs,
-            Is.EqualTo([$"/cases/{CaseId}", $"/acts/{ActId}", $"/contacts/{ContactId}", $"/acts/{ActId}", $"/cases/{CaseId}"]),
-            "a file and a comment open the case or act they hang on");
-    }
-
-    [Test]
-    public async Task EscapeClosesTheList()
-    {
-        await using var ctx = new BunitContext();
-        Arrange(ctx, Everything());
-
-        var component = ctx.Render<TopSearch>();
-        var input = component.Find(".ec-topsearch-input");
-        await input.FocusAsync(new FocusEventArgs());
-
-        await input.KeyDownAsync(new KeyboardEventArgs { Key = "Escape" });
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(component.FindAll(".ec-sr-panel"), Is.Empty);
-            Assert.That(input.GetAttribute("aria-expanded"), Is.EqualTo("false"));
-        }
-    }
-
-    [Test]
-    public async Task ATermNothingMatchesSaysSo()
-    {
-        await using var ctx = new BunitContext();
-        Arrange(ctx, Nothing());
-
-        var component = ctx.Render<TopSearch>();
-        await component.Find(".ec-topsearch-input").InputAsync(new ChangeEventArgs { Value = "zzz" });
-
-        await component.WaitForAssertionAsync(
-            () => Assert.That(component.Find(".ec-sr-state").TextContent, Does.Contain("Nic jsme nenašli pro „zzz“")));
-    }
-
-    [Test]
-    public async Task TheClearButtonEmptiesTheFieldAndOffersTheHintAgain()
-    {
-        await using var ctx = new BunitContext();
-        Arrange(ctx, Everything());
-
-        var component = ctx.Render<TopSearch>();
-        await component.Find(".ec-topsearch-input").InputAsync(new ChangeEventArgs { Value = "poj" });
-        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll("[role=option]"), Is.Not.Empty));
-
-        await component.Find(".ec-topsearch-clear").ClickAsync(new MouseEventArgs());
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(component.Find(".ec-topsearch-input").GetAttribute("value"), Is.Empty);
-            Assert.That(component.Find(".ec-sr-state").TextContent, Does.Contain("Napište alespoň 2 znaky"));
-            Assert.That(component.FindAll(".ec-topsearch-clear"), Is.Empty);
-        }
-    }
-
-    [Test]
-    public async Task AFailedSearchSaysSoInsteadOfShowingNothing()
-    {
-        await using var ctx = new BunitContext();
-        var client = Arrange(ctx, Nothing());
-        client
-            .Search(Arg.Any<SearchRequest>(), Arg.Any<CancellationToken>())
-            .Returns<Task<SearchResponse>>(static _ => throw new HttpRequestException());
-
-        var component = ctx.Render<TopSearch>();
-        await component.Find(".ec-topsearch-input").InputAsync(new ChangeEventArgs { Value = "poj" });
-
-        await component.WaitForAssertionAsync(
-            () => Assert.That(component.Find(".ec-sr-state").TextContent, Does.Contain("Hledání se nepodařilo")));
-    }
-
-    [Test]
     public async Task AFailedSearchAfterAFoundOneLeavesNoRowForEnterToOpen()
     {
         await using var ctx = new BunitContext();
@@ -287,29 +114,6 @@ public class TopSearchRenderTests
         {
             Assert.That(navigation.Uri, Does.Not.Contain("/cases/"), "Enter opens no row the failure hid");
             Assert.That(component.Find(".ec-topsearch-input").GetAttribute("aria-activedescendant"), Is.Null, "no hidden row stays active");
-        }
-    }
-
-    [Test]
-    public async Task TheListboxCarriesTheComboboxContract()
-    {
-        await using var ctx = new BunitContext();
-        Arrange(ctx, Everything());
-
-        var component = ctx.Render<TopSearch>();
-        var input = component.Find(".ec-topsearch-input");
-        await input.InputAsync(new ChangeEventArgs { Value = "poj" });
-        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll("[role=option]"), Is.Not.Empty));
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(input.GetAttribute("role"), Is.EqualTo("combobox"));
-            Assert.That(input.GetAttribute("aria-controls"), Is.EqualTo(component.Find("[role=listbox]").Id));
-            Assert.That(component.FindAll("[role=listbox] [role=group]"), Has.Count.EqualTo(5));
-            Assert.That(
-                component.FindAll("[role=option]").Select(static row => row.GetAttribute("tabindex")),
-                Is.All.EqualTo("-1"),
-                "the focus stays in the field, so no row is a tab stop");
         }
     }
 

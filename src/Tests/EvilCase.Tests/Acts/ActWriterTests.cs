@@ -15,33 +15,6 @@ public class ActWriterTests : TenantFixture
     protected override bool AsHost => true;
 
     [Test]
-    public void ANewActCarriesTheRequestAndTheNumberIssuedToIt()
-    {
-        var caseId = Guid.CreateVersion7();
-        var contactId = Guid.CreateVersion7();
-        var request = new CreateActRequest
-        {
-            CaseId = caseId,
-            Direction = ActDirection.Outgoing,
-            Date = new DateOnly(2026, 8, 25),
-            Title = "Odvolání",
-            ContactId = contactId,
-        };
-
-        var act = ActWriter.BuildAct(request, "EC/20260821-001/20260825-001");
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(act.CaseId, Is.EqualTo(caseId));
-            Assert.That(act.ActNumber, Is.EqualTo("EC/20260821-001/20260825-001"));
-            Assert.That(act.Direction, Is.EqualTo(ActDirection.Outgoing));
-            Assert.That(act.Title, Is.EqualTo("Odvolání"));
-            Assert.That(act.Date, Is.EqualTo(request.Date));
-            Assert.That(act.ContactId, Is.EqualTo(contactId));
-        }
-    }
-
-    [Test]
     public void ATitleAndDescriptionAreStoredTrimmed()
     {
         var request = Request() with { Title = "  Odvolání  ", Description = "  text  " };

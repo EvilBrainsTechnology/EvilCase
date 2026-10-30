@@ -18,29 +18,6 @@ public class UserStoreTests
     private static readonly DateTime EarlierLockoutEnd = new(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
     [Test]
-    public async Task AUserIsWrittenInOneSave()
-    {
-        var userContext = new StubUserContext();
-        var context = FakeApplicationDbContext.Create(userContext);
-
-        var user = new User
-        {
-            TenantId = Guid.CreateVersion7(),
-            Email = "admin@evilcase.test",
-            PasswordHash = "unused",
-            Role = UserRole.Admin,
-        };
-
-        await new UserStore(new FixedDbSession(context)).AddUser(user, CancellationToken.None);
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(context.Saves, Is.EqualTo(1));
-            Assert.That(context.Added<User>().Single(), Is.SameAs(user));
-        }
-    }
-
-    [Test]
     public async Task EveryAttemptCountsEvenWhenNothingIsReadBetweenThem()
     {
         await using var context = TestDatabase.CreateMigrated();

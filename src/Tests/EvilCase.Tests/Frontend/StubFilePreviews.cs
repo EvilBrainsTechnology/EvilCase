@@ -11,17 +11,11 @@ namespace EvilBrains.EvilCase.Tests.Frontend;
 /// </summary>
 internal sealed class StubFilePreviews : IFilePreviews
 {
-    public List<string> Converted { get; } = [];
-
-    public List<string> RenderedDocuments { get; } = [];
+    private int converted;
 
     public List<string> RenderedPdfs { get; } = [];
 
     public List<byte[]> RenderedPdfContents { get; } = [];
-
-    public int PdfPages { get; set; } = 3;
-
-    public int DocumentPages { get; set; } = 4;
 
     public int DisposedPdfs { get; private set; }
 
@@ -29,12 +23,6 @@ internal sealed class StubFilePreviews : IFilePreviews
     /// The view the last PDF reports its page, zoom and matches to, as the library would.
     /// </summary>
     public DotNetObjectReference<PreviewToolbar>? PdfView { get; private set; }
-
-    public List<PreviewZoom> Zooms { get; } = [];
-
-    public List<int> PdfPagesGoneTo { get; } = [];
-
-    public List<(string Query, PreviewFind Find)> Finds { get; } = [];
 
     /// <summary>
     /// The view the last text or document reports its zoom and matches to, as the library would.
@@ -49,18 +37,6 @@ internal sealed class StubFilePreviews : IFilePreviews
     public TaskCompletionSource? TextViewLoading { get; set; }
 
     public int DisposedViews { get; private set; }
-
-    public List<PreviewZoom> ViewZooms { get; } = [];
-
-    public List<int> ViewPagesGoneTo { get; } = [];
-
-    public List<(string Query, PreviewFind Find)> ViewFinds { get; } = [];
-
-    public List<int> RequestedRows { get; } = [];
-
-    public IReadOnlyList<SheetPreview> Workbook { get; set; } = [];
-
-    public EmailPreview Email { get; set; } = new(From: "", To: [], Cc: [], Subject: "", Date: null, Body: "", Truncated: false, Attachments: []);
 
     /// <summary>
     /// The extension the library finds in any content.
@@ -78,21 +54,15 @@ internal sealed class StubFilePreviews : IFilePreviews
     {
         this.ThrowWhenFailing();
 
-        var url = $"blob:converted/{this.Converted.Count}";
-        this.Converted.Add(url);
-
-        return Task.FromResult(url);
+        return Task.FromResult(string.Create(CultureInfo.InvariantCulture, $"blob:converted/{this.converted++}"));
     }
 
-    public async Task<int> RenderDocument(ElementReference host, Stream content, DotNetObjectReference<PreviewToolbar> view, CancellationToken token)
+    public Task<int> RenderDocument(ElementReference host, Stream content, DotNetObjectReference<PreviewToolbar> view, CancellationToken token)
     {
         this.ThrowWhenFailing();
-
-        using var reader = new StreamReader(content);
-        this.RenderedDocuments.Add(await reader.ReadToEndAsync(token));
         this.TextView = view;
 
-        return this.DocumentPages;
+        return Task.FromResult(4);
     }
 
     public async Task OpenTextView(ElementReference stage, DotNetObjectReference<PreviewToolbar> view)
@@ -108,22 +78,16 @@ internal sealed class StubFilePreviews : IFilePreviews
 
     public Task ZoomView(ElementReference element, PreviewZoom zoom)
     {
-        this.ViewZooms.Add(zoom);
-
         return Task.CompletedTask;
     }
 
     public Task GoToViewPage(ElementReference element, int page)
     {
-        this.ViewPagesGoneTo.Add(page);
-
         return Task.CompletedTask;
     }
 
     public Task FindInView(ElementReference element, string query, PreviewFind find)
     {
-        this.ViewFinds.Add((query, find));
-
         return Task.CompletedTask;
     }
 
@@ -140,7 +104,7 @@ internal sealed class StubFilePreviews : IFilePreviews
         this.RenderedPdfs.Add(url);
         this.PdfView = view;
 
-        return Task.FromResult(this.PdfPages);
+        return Task.FromResult(3);
     }
 
     public async Task<int> RenderPdf(ElementReference host, Stream content, DotNetObjectReference<PreviewToolbar> view, CancellationToken token)
@@ -153,27 +117,21 @@ internal sealed class StubFilePreviews : IFilePreviews
         this.RenderedPdfContents.Add(bytes.ToArray());
         this.PdfView = view;
 
-        return this.PdfPages;
+        return 3;
     }
 
     public Task ZoomPdf(ElementReference host, PreviewZoom zoom)
     {
-        this.Zooms.Add(zoom);
-
         return Task.CompletedTask;
     }
 
     public Task GoToPdfPage(ElementReference host, int page)
     {
-        this.PdfPagesGoneTo.Add(page);
-
         return Task.CompletedTask;
     }
 
     public Task FindInPdf(ElementReference host, string query, PreviewFind find)
     {
-        this.Finds.Add((query, find));
-
         return Task.CompletedTask;
     }
 
@@ -187,16 +145,15 @@ internal sealed class StubFilePreviews : IFilePreviews
     public Task<IReadOnlyList<SheetPreview>> ReadWorkbook(Stream content, int maxRows, CancellationToken token)
     {
         this.ThrowWhenFailing();
-        this.RequestedRows.Add(maxRows);
 
-        return Task.FromResult(this.Workbook);
+        return Task.FromResult<IReadOnlyList<SheetPreview>>([]);
     }
 
     public Task<EmailPreview> ReadEmail(string fileName, Stream content, CancellationToken token)
     {
         this.ThrowWhenFailing();
 
-        return Task.FromResult(this.Email);
+        return Task.FromResult(new EmailPreview(From: "", To: [], Cc: [], Subject: "", Date: null, Body: "", Truncated: false, Attachments: []));
     }
 
     public async Task<string?> DetectExtension(Stream content, CancellationToken token)
