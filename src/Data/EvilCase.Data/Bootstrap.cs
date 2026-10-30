@@ -22,7 +22,6 @@ public static class Bootstrap
                 var connectionStringSection = configuration.GetRequiredSection("EvilBrains:EvilCase:ConnectionString");
                 var connectionString = connectionStringSection.Value ?? throw new InvalidOperationException("Connection string not found");
 
-                // The app never uses GSS, and the probe loads a native library the Alpine image lacks.
                 var connectionStringBuilder = new NpgsqlConnectionStringBuilder(connectionString) { GssEncryptionMode = GssEncryptionMode.Disable };
 
                 options.UseNpgsql(connectionStringBuilder.ConnectionString, static npgsql => npgsql.UseEvilCaseMigrations());

@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Hosting.Internal;
 using Npgsql;
 
 namespace EvilBrains.EvilCase.Tests.Data;
@@ -22,7 +21,7 @@ public class ConnectionStringTests
 
         var services = new ServiceCollection()
             .AddSingleton<IConfiguration>(configuration)
-            .AddSingleton<IHostEnvironment>(new HostingEnvironment { EnvironmentName = "Testing" })
+            .AddSingleton(Substitute.For<IHostEnvironment>())
             .AddScoped<IUserContext, StubUserContext>()
             .AddEvilCaseData();
 
