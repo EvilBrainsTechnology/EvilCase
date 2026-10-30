@@ -7,7 +7,7 @@ paths:
 # API and hosting
 
 `EvilCase.Host` is the composition root. One process serves everything: `/api/**` is the API,
-every other path returns the frontend's `index.html`.
+`/mcp` the MCP server (SDD-023), every other path returns the frontend's `index.html`.
 
 - Same-origin only. No CORS anywhere.
 - Security headers including the CSP come from `SecurityHeadersMiddleware`. Changing an inline
