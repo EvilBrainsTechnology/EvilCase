@@ -39,18 +39,22 @@ function markdownOf(host) {
 // Opens the text in host, read-only unless editable. While editable, Ctrl+S or Cmd+S anywhere in the dialog asks the owner
 // to save. The owner hears NotifyChanged(dirty, active, disabled) and NotifySave.
 export async function openMarkdown(host, text, editable, label, owner) {
-    const { createMarkdown } = await loadLibrary();
-
-    // Closed while the library loaded.
-    if (!host.isConnected) return;
-
     closeMarkdown(host);
 
+    // Registered before the library loads, so a close while it loads is heard.
     const entry = { markdown: null, stop: new AbortController() };
     views.set(host, entry);
 
     let markdown;
     try {
+        const { createMarkdown } = await loadLibrary();
+
+        // Closed while the library loaded.
+        if (views.get(host) !== entry || !host.isConnected) {
+            if (views.get(host) === entry) views.delete(host);
+            return;
+        }
+
         markdown = await createMarkdown(host, text, editable, label,
             (dirty, active, disabled) => owner.invokeMethodAsync('NotifyChanged', dirty, active, disabled));
     } catch (error) {
@@ -60,6 +64,7 @@ export async function openMarkdown(host, text, editable, label, owner) {
 
     // Closed while it opened.
     if (views.get(host) !== entry || !host.isConnected) {
+        if (views.get(host) === entry) views.delete(host);
         markdown.destroy();
         return;
     }
