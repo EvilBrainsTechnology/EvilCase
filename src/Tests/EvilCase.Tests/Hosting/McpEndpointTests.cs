@@ -255,6 +255,16 @@ public class McpEndpointTests
                     || string.Equals(tool.Name, "create_file_download_link", StringComparison.Ordinal);
 
                 Assert.That(tool.Description, Is.Not.Empty, $"{tool.Name}: every tool says what it does");
+
+                if (tool.ProtocolTool.InputSchema.TryGetProperty("properties", out var parameters))
+                {
+                    foreach (var parameter in parameters.EnumerateObject())
+                    {
+                        var described = parameter.Value.TryGetProperty("description", out var description) && !string.IsNullOrWhiteSpace(description.GetString());
+                        Assert.That(described, Is.True, $"{tool.Name}.{parameter.Name}: every parameter says what it is");
+                    }
+                }
+
                 Assert.That(annotations?.ReadOnlyHint == true, Is.EqualTo(reads), $"{tool.Name}: a read tool, and only a read tool, carries readOnlyHint");
 
                 if (tool.Name.StartsWith("delete_", StringComparison.Ordinal))
