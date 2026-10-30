@@ -3261,6 +3261,7 @@ html.ec-scroll-locked {
 
 .ec-export-file {
     font-family: var(--ec-font-mono);
+    white-space: nowrap;
 }
 
 .ec-card-heading {
