@@ -73,6 +73,8 @@
 
     private DotNetObjectReference<EcModal>? self;
 
+    private IJSObjectReference? scrollLock;
+
     private bool shown;
 
     private bool backdropPressed;
@@ -106,6 +108,12 @@
 
     public async ValueTask DisposeAsync()
     {
+        if (this.scrollLock is not null)
+        {
+            await this.scrollLock.InvokeVoidAsync("release");
+            await this.scrollLock.DisposeAsync();
+        }
+
         if (this.module is not null)
             await this.module.DisposeAsync();
 
@@ -123,7 +131,12 @@
         {
             this.self ??= DotNetObjectReference.Create(this);
 
-            await this.module.InvokeVoidAsync("openModal", this.dialog, this.self);
+            var scrollLock = await this.module.InvokeAsync<IJSObjectReference>("openModal", this.dialog, this.self);
+
+            if (this.scrollLock is not null)
+                await this.scrollLock.DisposeAsync();
+
+            this.scrollLock = scrollLock;
         }
         else
         {

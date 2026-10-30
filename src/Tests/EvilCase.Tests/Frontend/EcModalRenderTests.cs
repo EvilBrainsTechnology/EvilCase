@@ -101,6 +101,22 @@ public class EcModalRenderTests
         }
     }
 
+    [Test]
+    public async Task ADialogRemovedWhileOpenLetsThePageScroll()
+    {
+        await using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+
+        var scrollLock = ctx.JSInterop
+            .SetupModule("./js/ec-modal.js")
+            .SetupModule("openModal", static _ => true);
+        RenderOpen(ctx, static _ => { });
+
+        await ctx.DisposeComponentsAsync();
+
+        scrollLock.VerifyInvoke("release");
+    }
+
     private static IRenderedComponent<EcModal> RenderGuarded(BunitContext ctx, Action<bool> openChanged, Action closeRequest)
     {
         return ctx.Render<EcModal>(parameters => parameters

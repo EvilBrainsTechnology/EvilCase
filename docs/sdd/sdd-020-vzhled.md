@@ -57,7 +57,8 @@ Aplikace má vlastní sadu komponent s prefixem `Ec`. Obrazovka skládá jen je,
 - `EcField` — popisek, ovládací prvek a pod ním nápověda, kterou při neplatné hodnotě nahradí
   chyba; povinné pole značí hvězdička. Nápověda a chyba z jedné fráze končí bez tečky, celá věta
   s tečkou.
-- `EcModal` — nad nativním `dialog`, se správou fokusu; zavře ho Esc i klik mimo okno. Okno se seznamem
+- `EcModal` — nad nativním `dialog`, se správou fokusu; zavře ho Esc i klik mimo okno. Stránka pod
+  otevřeným oknem se neposouvá ani na mobilu a po zavření zůstane, kde byla. Okno se seznamem
   verzí je pod `lg` vysunuté od spodního okraje přes celou šířku.
 - `EcMenu` — tlačítko s nabídkou akcí; Esc i klik mimo ji zavřou, šipky chodí mezi položkami
   a fokus se vrací na tlačítko.
