@@ -11,4 +11,9 @@ internal sealed class FixedDbSession(ApplicationDbContext context) : IDbSession
     {
         return new FakeDbContextTransaction();
     }
+
+    public async Task<IDbContextTransaction> BeginSnapshot(CancellationToken token)
+    {
+        return new FakeDbContextTransaction();
+    }
 }

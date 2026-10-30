@@ -205,6 +205,7 @@
     --ec-content-padding: 32px;
     --ec-sidebar-width: 380px;
     --ec-settings-rail: 220px;
+    --ec-settings-export-max: 760px;
     --ec-popover-width: 320px;
     --ec-menu-width: 240px;
     --ec-viewport-height: 100vh;

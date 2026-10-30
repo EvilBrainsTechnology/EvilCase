@@ -2,6 +2,7 @@ using EvilBrains.EvilCase.Business.Acts;
 using EvilBrains.EvilCase.Business.Cases;
 using EvilBrains.EvilCase.Business.Comments;
 using EvilBrains.EvilCase.Business.Contacts;
+using EvilBrains.EvilCase.Business.Export;
 using EvilBrains.EvilCase.Business.Files;
 using EvilBrains.EvilCase.Business.Files.Signatures;
 using EvilBrains.EvilCase.Business.Labels;
@@ -41,6 +42,7 @@ public static class Bootstrap
         services.AddScoped<IFileReader, FileReader>();
         services.AddScoped<IFileWriter, FileWriter>();
         services.AddScoped<IFileArchiveReader, FileArchiveReader>();
+        services.AddScoped<ITenantExporter, TenantExporter>();
         services.AddMemoryCache();
         services.TryAddSingleton(TimeProvider.System);
         services.AddSingleton(static _ => SignatureTrust.LoadPostSignum());

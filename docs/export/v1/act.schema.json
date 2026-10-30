@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "EvilCase export v1, !ukon.json of an act",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "type", "actId", "actNumber", "externalActNumber", "date", "title", "description", "direction", "caseId",
+    "contact", "labels", "comments", "files", "created", "updated", "path"
+  ],
+  "properties": {
+    "type": { "enum": ["act"] },
+    "actId": { "$ref": "common.schema.json#/definitions/id" },
+    "actNumber": { "type": "string" },
+    "externalActNumber": { "$ref": "common.schema.json#/definitions/optionalText" },
+    "date": { "type": "string", "format": "date" },
+    "title": { "type": "string" },
+    "description": { "description": "Markdown.", "$ref": "common.schema.json#/definitions/optionalText" },
+    "direction": { "description": "From the case owner's point of view; null exactly where contact is.", "enum": ["Incoming", "Outgoing", null] },
+    "caseId": { "$ref": "common.schema.json#/definitions/id" },
+    "contact": {
+      "oneOf": [{ "type": "null" }, { "$ref": "common.schema.json#/definitions/contactReference" }]
+    },
+    "labels": { "type": "array", "items": { "$ref": "common.schema.json#/definitions/labelReference" } },
+    "comments": { "type": "array", "items": { "$ref": "common.schema.json#/definitions/comment" } },
+    "files": { "type": "array", "items": { "$ref": "common.schema.json#/definitions/file" } },
+    "created": { "$ref": "common.schema.json#/definitions/moment" },
+    "updated": { "$ref": "common.schema.json#/definitions/optionalMoment" },
+    "path": { "description": "The act's folder in the archive.", "type": "string" }
+  }
+}

@@ -29,6 +29,7 @@ URL nesou UUID entit, nikdy jejich čísla:
 | `/contacts` | kontakty |
 | `/contacts/{id}` | detail kontaktu |
 | `/settings` | nastavení (SDD-019) |
+| `/settings/export` | export dat tenanta (SDD-019, SDD-022) |
 | `/login` | přihlášení |
 
 Neznámá routa vykreslí stav nenalezeno uvnitř aplikace, neznámé id v routě prázdný stav

@@ -13,6 +13,7 @@
     <PackageReference Include="bunit" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="NJsonSchema" />
     <PackageReference Include="NSubstitute" />
     <PackageReference Include="NSubstitute.Analyzers.CSharp">
       <PrivateAssets>all</PrivateAssets>
@@ -33,6 +34,10 @@
     <ProjectReference Include="..\..\Business\EvilCase.Business\EvilCase.Business.csproj" />
     <ProjectReference Include="..\..\Business\EvilCase.Domain\EvilCase.Domain.csproj" />
     <ProjectReference Include="..\..\EvilCase.Host\EvilCase.Host.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\..\docs\export\**\*.schema.json" LinkBase="ExportSchemas" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

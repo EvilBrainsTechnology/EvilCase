@@ -1,4 +1,6 @@
+using System.Data;
 using EvilBrains.EvilCase.Data.DbContexts;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace EvilBrains.EvilCase.Tests.Data;
@@ -13,5 +15,10 @@ internal sealed class TransactionalDbSession(ApplicationDbContext context) : IDb
     public async Task<IDbContextTransaction> BeginTransaction(CancellationToken token)
     {
         return await context.Database.BeginTransactionAsync(token);
+    }
+
+    public async Task<IDbContextTransaction> BeginSnapshot(CancellationToken token)
+    {
+        return await context.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead, token);
     }
 }

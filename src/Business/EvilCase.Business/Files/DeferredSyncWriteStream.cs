@@ -9,6 +9,11 @@ internal sealed class DeferredSyncWriteStream(Stream target) : Stream
 {
     private readonly MemoryStream deferred = new();
 
+    /// <summary>
+    /// What has reached the target.
+    /// </summary>
+    public long BytesWritten { get; private set; }
+
     public override bool CanRead => false;
 
     public override bool CanSeek => false;
@@ -48,6 +53,7 @@ internal sealed class DeferredSyncWriteStream(Stream target) : Stream
     {
         await this.WriteDeferred(cancellationToken);
         await target.WriteAsync(buffer, cancellationToken);
+        this.BytesWritten += buffer.Length;
     }
 
     public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
@@ -84,6 +90,7 @@ internal sealed class DeferredSyncWriteStream(Stream target) : Stream
             return;
 
         await target.WriteAsync(this.deferred.GetBuffer().AsMemory(0, (int)this.deferred.Length), token);
+        this.BytesWritten += this.deferred.Length;
         this.deferred.SetLength(0);
     }
 }
