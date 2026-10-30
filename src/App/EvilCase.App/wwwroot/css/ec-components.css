@@ -2609,7 +2609,9 @@ html.ec-scroll-locked {
 
 /* The buttons scroll sideways in a strip; the search stays whole after them and takes a row of its own when it does not
    fit beside them. */
+/* The format buttons scroll before the search leaves the row. */
 .ec-markdown-toolbar {
+    flex-wrap: nowrap;
     gap: var(--ec-space-2);
 }
 
@@ -2636,6 +2638,10 @@ html.ec-scroll-locked {
 .ec-markdown-toolbar > .ec-preview-toolbar-search {
     flex: 1 0 auto;
     justify-content: flex-end;
+}
+
+.ec-markdown-toolbar .ec-preview-toolbar-matches {
+    min-width: 0;
 }
 
 .ec-markdown-toolbar .ec-preview-toolbar-search-box {
@@ -5529,19 +5535,36 @@ html.ec-scroll-locked {
         min-width: var(--ec-preview-toolbar-search-mobile);
     }
 
+    .ec-markdown-toolbar {
+        flex-wrap: wrap;
+    }
+
+    /* The version, the steps and the summary on one row, the legend on a short row below. */
     .ec-editor-changes-bar {
-        gap: var(--ec-space-2) var(--ec-space-3);
+        gap: var(--ec-space-2);
         padding: var(--ec-space-2) var(--ec-space-4);
     }
 
     .ec-editor-changes-bar .ec-text-compare-version-label {
-        white-space: nowrap;
+        display: none;
     }
 
     .ec-editor-changes-bar .ec-markdown-compare-legend {
         flex: 1 1 100%;
-        gap: var(--ec-space-2) var(--ec-space-4);
+        flex-wrap: nowrap;
+        gap: var(--ec-space-3);
         margin-left: 0;
+        overflow-x: auto;
+        font-size: var(--ec-text-xs);
+        white-space: nowrap;
+    }
+
+    .ec-editor-changes-bar .ec-markdown-compare-legend-item {
+        gap: var(--ec-space-1);
+    }
+
+    .ec-editor-changes-bar .ec-markdown-compare-legend-item > :first-child {
+        padding: 0 var(--ec-space-1);
     }
 
     .ec-markdown-mode-long {
