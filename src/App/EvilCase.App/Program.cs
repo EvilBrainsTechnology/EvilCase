@@ -4,6 +4,7 @@ using EvilBrains.EvilCase.App.Auth;
 using EvilBrains.EvilCase.App.Clipboard;
 using EvilBrains.EvilCase.App.Files;
 using EvilBrains.EvilCase.App.Logging;
+using EvilBrains.EvilCase.App.Navigation;
 using EvilBrains.Logging.WebAssembly;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
@@ -46,6 +47,7 @@ internal static class Program
         builder.Services.AddSingleton<IBlobUrls, BlobUrls>();
         builder.Services.AddSingleton<IFilePreviews, FilePreviews>();
         builder.Services.AddSingleton<ITextEditors, TextEditors>();
+        builder.Services.AddSingleton<IBrowserHistory, BrowserHistory>();
         builder.Services.AddSingleton<IClipboardWriter, ClipboardWriter>();
 
         // The same handler chain as the generated clients, so the upload and the download carry the same authorization.

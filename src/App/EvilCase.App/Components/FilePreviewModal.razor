@@ -3,6 +3,7 @@
 @using System.Text
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Contract.Files
+@using EvilBrains.EvilCase.App.Navigation
 @using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.JSInterop
 @implements IAsyncDisposable
@@ -11,6 +12,7 @@
 @inject IFilePreviews Previews
 @inject IFileDownloader Downloader
 @inject ILogger<FilePreviewModal> Logger
+@inject IBrowserHistory History
 @inject NavigationManager Navigation
 
 @if (this.Current is { } file)
@@ -1136,7 +1138,7 @@
             await this.VersionChanged.InvokeAsync(null);
     }
 
-    private void StartEdit()
+    private async Task StartEdit()
     {
         this.renaming = false;
         this.versionsOpen = false;
@@ -1145,6 +1147,15 @@
         this.saveFailure = null;
         this.dirty = false;
         this.editing = this.editable;
+
+        try
+        {
+            await this.History.TrackSteps();
+        }
+        catch (JSException exception)
+        {
+            this.Logger.LogInformation(exception, "The browser's history steps are not tracked");
+        }
     }
 
     private void LeaveEdit()
@@ -1204,21 +1215,39 @@
             await this.OpenChanged.InvokeAsync(false);
     }
 
-    // Covers links and the browser's Back; leaving the site is asked by the browser through ConfirmExternalNavigation.
-    private void ConfirmNavigation(LocationChangingContext context)
+    // Covers links and the browser's Back and Forward; leaving the site is asked by the browser through
+    // ConfirmExternalNavigation. A Back or Forward goes on after the discard as the same step through the history.
+    private async Task ConfirmNavigation(LocationChangingContext context)
     {
-        if (!this.dirty)
-            return;
+        var held = this.dirty;
 
-        context.PreventNavigation();
+        if (held)
+            context.PreventNavigation();
 
         var target = context.TargetLocation;
+        var distance = 0;
 
-        this.afterDiscard = () =>
+        if (!context.IsNavigationIntercepted)
         {
-            this.Navigation.NavigateTo(target);
+            try
+            {
+                distance = await this.History.TakeStep(target);
+            }
+            catch (JSException exception)
+            {
+                this.Logger.LogInformation(exception, "The browser's history step is not known");
+            }
+        }
 
-            return Task.CompletedTask;
+        if (!held)
+            return;
+
+        this.afterDiscard = async () =>
+        {
+            if (distance == 0)
+                this.Navigation.NavigateTo(target);
+            else
+                await this.History.Go(distance);
         };
     }
 

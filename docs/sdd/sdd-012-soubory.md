@@ -239,8 +239,9 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
 - Zrušit bez změn vrátí náhled ke čtení hned. Neuložené změny hlídá okno „Zahodit neuložené
   změny?“ s textem „Úpravy souboru Smlouva.xml nejsou uložené. Po zahození se nedají vrátit.“,
   Pokračovat v úpravách a Zahodit změny. Okno se ukáže při Zrušit, při zavření náhledu křížkem,
-  Esc i klikem mimo a při přechodu v aplikaci, i tlačítkem Zpět prohlížeče. Zavření nebo obnovení
-  záložky a přechod mimo aplikaci ohlásí vlastní dotaz prohlížeče.
+  Esc i klikem mimo a při přechodu v aplikaci, i tlačítkem Zpět prohlížeče. Po zahození změn
+  udělá Zpět nebo Vpřed prohlížeče krok v historii a nový záznam do ní nepřidá. Zavření nebo
+  obnovení záložky a přechod mimo aplikaci ohlásí vlastní dotaz prohlížeče.
 - Na mobilu nese hlavička pod jménem Zrušit a Uložit vedle sebe přes celou šířku a po změně
   ukáže jen „Neuložené změny“; lišta se při nedostatku místa posouvá do strany.
 

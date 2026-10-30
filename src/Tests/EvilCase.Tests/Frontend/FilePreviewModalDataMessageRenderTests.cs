@@ -5,6 +5,7 @@ using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.App.Auth;
 using EvilBrains.EvilCase.App.Components;
 using EvilBrains.EvilCase.App.Files;
+using EvilBrains.EvilCase.App.Navigation;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EvilBrains.EvilCase.Tests.Frontend;
@@ -391,6 +392,7 @@ public class FilePreviewModalDataMessageRenderTests
     {
         var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        ctx.Services.AddSingleton<IBrowserHistory>(new StubBrowserHistory());
 
         blobs = new StubBlobUrls();
         previews = new StubFilePreviews();

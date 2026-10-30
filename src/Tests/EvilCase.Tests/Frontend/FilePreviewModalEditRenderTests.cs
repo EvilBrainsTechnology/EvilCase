@@ -8,6 +8,7 @@ using EvilBrains.EvilCase.App.Components;
 using EvilBrains.EvilCase.App.Components.Ec;
 using EvilBrains.EvilCase.App.Files;
 using EvilBrains.EvilCase.App.Models;
+using EvilBrains.EvilCase.App.Navigation;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.AspNetCore.Components.Web;
@@ -568,6 +569,32 @@ public class FilePreviewModalEditRenderTests
     }
 
     [Test]
+    public async Task BackAfterDiscardTakesTheHistoryStepInsteadOfANewEntry()
+    {
+        await using var ctx = NewContext(out _);
+
+        var navigation = ctx.Services.GetRequiredService<BunitNavigationManager>();
+        var history = ctx.Services.GetRequiredService<StubBrowserHistory>();
+        history.Distance = -1;
+        var file = File("Poznámky.txt");
+        var component = await RenderEditing(ctx, [file], file.FileId);
+        var start = navigation.Uri;
+
+        await Dirty(component);
+        await component.InvokeAsync(() => navigation.NavigateTo("/cases"));
+        await QuestionButton(component, "Zahodit změny").ClickAsync(new MouseEventArgs());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(history.Tracked, Is.EqualTo(1));
+            Assert.That(history.Taken.Single(), Does.EndWith("/cases"));
+            Assert.That(history.Moves, Is.EqualTo([-1]), "the browser takes the step again");
+            Assert.That(navigation.Uri, Is.EqualTo(start), "the app adds no entry");
+            Assert.That(navigation.History, Has.Count.EqualTo(1));
+        }
+    }
+
+    [Test]
     public async Task LeavingThePageWithoutChangesGoesOn()
     {
         await using var ctx = NewContext(out _);
@@ -684,6 +711,8 @@ public class FilePreviewModalEditRenderTests
         ctx.Services.AddSingleton(new StubAuthSession());
         ctx.Services.AddSingleton<IAuthSession>(static services => services.GetRequiredService<StubAuthSession>());
         ctx.Services.AddSingleton<ITextEditors>(editors);
+        ctx.Services.AddSingleton(new StubBrowserHistory());
+        ctx.Services.AddSingleton<IBrowserHistory>(static services => services.GetRequiredService<StubBrowserHistory>());
         ctx.Services.AddSingleton(Substitute.For<IFileSignaturesClient>());
 
         var signers = Substitute.For<IFileSignersClient>();
