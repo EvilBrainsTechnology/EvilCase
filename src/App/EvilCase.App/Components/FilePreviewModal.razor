@@ -793,6 +793,8 @@
     public async ValueTask DisposeAsync()
     {
         this.loadToken?.Cancel();
+        this.changesToken?.Cancel();
+        this.changesToken?.Dispose();
 
         await this.ReleaseUrl();
     }
@@ -1340,6 +1342,7 @@
     private void LeaveEdit()
     {
         this.changesToken?.Cancel();
+        this.changesTexts.Clear();
         this.editing = null;
         this.dirty = false;
         this.saveFailure = null;
@@ -1348,16 +1351,18 @@
     // The Změny of the edited text against the version edited or the one chosen; a version that cannot compare says why.
     private EditorChanges Changes(FileListItem file, EditableText edited)
     {
-        var number = this.changesNumber ?? this.loadedNumber ?? file.Version;
-        var selected = this.versions?.FirstOrDefault(version => version.Number == number);
-        var original = this.changesNumber is null ? edited.Text : null;
+        // A chosen version no longer listed gives way to the version edited.
+        var picked = this.changesNumber is { } chosen ? this.versions?.FirstOrDefault(version => version.Number == chosen) : null;
+        var number = picked?.Number ?? this.loadedNumber ?? file.Version;
+        var selected = picked ?? this.versions?.FirstOrDefault(version => version.Number == number);
+        var original = picked is null ? edited.Text : null;
         RenderFragment? status = null;
 
-        if (this.changesNumber is not null && selected is not null)
+        if (picked is not null)
         {
-            if (selected.SizeBytes > MaxTextBytes)
+            if (picked.SizeBytes > MaxTextBytes)
                 status = ChangesProblem($"Verzi {number} nelze porovnat: soubor je větší než {FileSizeDisplay.Text(MaxTextBytes)}");
-            else if (this.changesTexts.TryGetValue((file.FileId, number, selected.Created), out var text))
+            else if (this.changesTexts.TryGetValue((file.FileId, number, picked.Created), out var text))
                 (original, status) = (text, text is null ? ChangesProblem($"Verzi {number} nelze porovnat: soubor není v kódování UTF-8") : null);
             else if (this.changesFailed)
                 status = @<div class="ec-alert ec-preview-alert" role="alert">
@@ -1388,6 +1393,8 @@
 
         if (shown)
             await this.ReadChangesVersion();
+        else
+            this.changesToken?.Cancel();
     }
 
     private async Task PickChangesVersion(int number)
@@ -1407,6 +1414,7 @@
             return;
 
         this.changesToken?.Cancel();
+        this.changesToken?.Dispose();
 
         var token = (this.changesToken = new CancellationTokenSource()).Token;
 

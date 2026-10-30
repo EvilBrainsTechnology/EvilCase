@@ -132,6 +132,35 @@ public class FilePreviewModalEditorChangesRenderTests
         Assert.That(compares.MarkdownOpened[^1], Is.EqualTo(("# b\n", "# b\n")), "Zpět changes the text compared");
     }
 
+    [Test]
+    public async Task FormattedMarkdownComparesTheTextTypedWhileTheVersionCouldNotShow()
+    {
+        await using var ctx = NewContext(out _, out var markdown, out var compares);
+
+        var fails = true;
+        var component = await RenderEditing(ctx, File("a.md", 3), Texts("# a\n", "# b\n", "# c\n"), onRead: Read);
+
+        await ChangesButton(component).ClickAsync(new MouseEventArgs());
+        await Pick(component, "Verze 1");
+
+        markdown.Text = "# d\n";
+        await component.InvokeAsync(async () => await component.FindComponent<MarkdownView>().Instance.NotifyChanged(dirty: true, [], []));
+
+        fails = false;
+        await component
+            .FindAll(".ec-alert button")
+            .Single(static button => button.TextContent.Contains("Zkusit znovu", StringComparison.Ordinal))
+            .ClickAsync(new MouseEventArgs());
+
+        Assert.That(compares.MarkdownOpened[^1], Is.EqualTo(("# a\n", "# d\n")), "the compare shows the text typed while the version could not show");
+
+        void Read(int? version)
+        {
+            if (version == 1 && fails)
+                throw new HttpRequestException("The server is away.");
+        }
+    }
+
     private static AngleSharp.Dom.IElement ChangesButton(IRenderedComponent<FilePreviewModal> component)
     {
         return component.Find("button[aria-label='Změny']");

@@ -344,6 +344,9 @@
         catch (JSException exception)
         {
             this.Logger.LogWarning(exception, "Showing the changes in the text editor failed");
+
+            // The text stays editable without its changes; the next render does not try again.
+            this.shownOriginal = this.ChangesOriginal;
         }
         finally
         {

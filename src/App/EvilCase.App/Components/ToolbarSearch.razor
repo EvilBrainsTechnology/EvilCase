@@ -107,6 +107,19 @@
         await this.input.FocusAsync();
     }
 
+    /// <summary>
+    /// Searches the query again from its start, for a text that took the place of the one searched.
+    /// </summary>
+    public async Task Repeat()
+    {
+        if (this.query.Length == 0)
+            return;
+
+        this.searching = true;
+
+        await this.OnSearch.InvokeAsync(new PreviewSearch(this.query, PreviewFind.New));
+    }
+
     private async Task Toggle()
     {
         if (this.open)

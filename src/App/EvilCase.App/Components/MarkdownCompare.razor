@@ -187,6 +187,10 @@ else
             (this.view, this.ready) = (shown, true);
             this.StateHasChanged();
 
+            // The editor's search carries its query over to the compare.
+            if (this.EditorSearch is { } search)
+                await search.Repeat();
+
             if (shown.Changes == 0)
                 await this.OnSame.InvokeAsync();
         }

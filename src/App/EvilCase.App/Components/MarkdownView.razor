@@ -64,7 +64,7 @@ else
                 {
                     <MarkdownCompare @key="(shownChanges.Original, this.compared)" @ref="this.compare" Older="@(shownChanges.Original!)" Newer="@(this.compared!)" EditorSearch="this.search"
                                      Labels="@([$"Verze {shownChanges.Number} souboru {this.FileName}", $"Upravený text souboru {this.FileName}", $"Upravený text souboru {this.FileName} se změnami proti verzi {shownChanges.Number}"])"
-                                     Versions="@shownChanges.Version("Změny proti")" OnUnavailable="() => this.compareFailed = true" />
+                                     Versions="@shownChanges.Version("Změny proti")" OnUnavailable="() => (this.compared, this.compareFailed) = (null, true)" />
                 }
                 else
                 {
@@ -123,6 +123,9 @@ else
     private bool compareFailed;
 
     private ToolbarSearch? search;
+
+    // The toolbar's search last searched the formatted Změny.
+    private bool searchedCompare;
 
     private DotNetObjectReference<MarkdownView>? self;
 
@@ -326,9 +329,12 @@ else
 
     protected override void OnParametersSet()
     {
-        // The formatted Změny read the edited text again when they show again.
+        // The formatted Změny read the edited text again when they show again; while they cannot show, the text stays
+        // editable and is read again once they can.
         if (!this.Editing || this.Source || this.Changes is not { Shown: true })
             (this.compared, this.compareFailed) = (null, false);
+        else if (this.Changes is { Original: null })
+            this.compared = null;
 
         if (this.editingShown == this.Editing)
             return;
@@ -347,6 +353,13 @@ else
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         this.self ??= DotNetObjectReference.Create(this);
+
+        // The search goes back to the edited text when the formatted Změny close.
+        if (this.searchedCompare && !this.Comparing && this.Editing && !this.Source && this.search is { } search)
+        {
+            this.searchedCompare = false;
+            await search.Repeat();
+        }
 
         if (this.syncing)
         {
@@ -402,7 +415,7 @@ else
                         this.Logger.LogInformation(exception, "The Markdown preview's toolbar was already gone");
                     }
                 }
-                else if (this.Editing && this.Changes is { Shown: true } && this.compared is null)
+                else if (this.Editing && this.Changes is { Shown: true, Original: not null } && !this.compareFailed && this.compared is null)
                 {
                     this.compared = await this.ReadText();
                     this.StateHasChanged();
@@ -550,8 +563,10 @@ else
 
     private async Task SearchEdit(PreviewSearch search)
     {
-        if (this.Comparing && this.compare is not null)
-            await this.compare.Search(search);
+        this.searchedCompare = this.Comparing && this.compare is not null;
+
+        if (this.searchedCompare)
+            await this.compare!.Search(search);
         else
             await this.Editors.FindInMarkdown(this.host, search.Query, search.Find);
     }
