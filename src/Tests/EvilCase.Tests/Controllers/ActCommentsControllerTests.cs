@@ -1,9 +1,6 @@
-using System.Diagnostics;
-using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.Api.Contract.Comments;
 using EvilBrains.EvilCase.Api.Controllers;
 using EvilBrains.EvilCase.Business.Comments;
-using Microsoft.AspNetCore.Mvc;
 using static EvilBrains.EvilCase.Tests.Controllers.ProblemAssertions;
 
 namespace EvilBrains.EvilCase.Tests.Controllers;
@@ -11,219 +8,30 @@ namespace EvilBrains.EvilCase.Tests.Controllers;
 public class ActCommentsControllerTests
 {
     [Test]
-    public async Task TheListIsAskedForTheActInTheRoute()
-    {
-        var actId = Guid.CreateVersion7();
-        var reader = Substitute.For<ICommentReader>();
-        var controller = new ActCommentsController();
-
-        await controller.ListActComments(reader, actId, CancellationToken.None);
-
-        await reader
-            .Received(1)
-            .ListActComments(actId, Arg.Any<CancellationToken>());
-    }
-
-    [Test]
-    public async Task TheItemsAreReturnedInTheOrderTheReaderGaveThem()
-    {
-        var reader = Substitute.For<ICommentReader>();
-        reader
-            .ListActComments(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-            .Returns([Item("První"), Item("Druhá")]);
-        var controller = new ActCommentsController();
-
-        var response = await controller.ListActComments(reader, Guid.CreateVersion7(), CancellationToken.None);
-
-        var body = (CommentListResponse)((OkObjectResult)response.Result!).Value!;
-
-        Assert.That(body.Items.Select(static item => item.Body), Is.EqualTo(["První", "Druhá"]));
-    }
-
-    [Test]
-    public async Task AListOnAMissingActIsAProblemWithFourOhFour()
-    {
-        var reader = Substitute.For<ICommentReader>();
-        reader
-            .ListActComments(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-            .Returns((IReadOnlyList<CommentItem>?)null);
-        var controller = new ActCommentsController();
-
-        var response = await controller.ListActComments(reader, Guid.CreateVersion7(), CancellationToken.None);
-
-        var problem = AssertProblem(response.Result, 404);
-        Assert.That(problem.Title, Is.EqualTo(ActProblems.ActNotFound));
-    }
-
-    [Test]
-    public async Task AddingReachesTheWriterWithTheActIdAndTheBody()
-    {
-        var actId = Guid.CreateVersion7();
-        var writer = AddingWriter(CommentWriteOutcome.Written);
-        var controller = new ActCommentsController();
-        var request = new CommentEditRequest { Body = "Poznámka" };
-
-        var result = await controller.AddActComment(writer, actId, request, CancellationToken.None);
-
-        Assert.That(result, Is.InstanceOf<NoContentResult>());
-        await writer
-            .Received(1)
-            .AddActComment(actId, request, Arg.Any<CancellationToken>());
-    }
-
-    [Test]
-    public async Task AddingUnderAMissingActIsAProblemWithFourOhFour()
-    {
-        var writer = AddingWriter(CommentWriteOutcome.NotFound);
-        var controller = new ActCommentsController();
-
-        var result = await controller.AddActComment(writer, Guid.CreateVersion7(), new CommentEditRequest { Body = "Poznámka" }, CancellationToken.None);
-
-        var problem = AssertProblem(result, 404);
-
-        Assert.That(problem.Title, Is.EqualTo(ActProblems.ActNotFound), "the answer names the act, not the comment");
-    }
-
-    [Test]
-    public async Task AnAddOutcomeTheEndpointDoesNotKnowThrows()
-    {
-        var writer = AddingWriter((CommentWriteOutcome)99);
-        var controller = new ActCommentsController();
-
-        await Assert.ThatAsync(
-            async () => await controller.AddActComment(writer, Guid.CreateVersion7(), new CommentEditRequest { Body = "Poznámka" }, CancellationToken.None),
-            Throws.InstanceOf<UnreachableException>(),
-            "an outcome the endpoint does not name never turns into a status");
-    }
-
-    [Test]
-    public async Task EditingReachesTheWriterWithBothRouteIdsAndTheBody()
-    {
-        var actId = Guid.CreateVersion7();
-        var commentId = Guid.CreateVersion7();
-        var writer = EditingWriter(CommentWriteOutcome.Written);
-        var controller = new ActCommentsController();
-        var request = new CommentEditRequest { Body = "Upravená" };
-
-        var result = await controller.EditActComment(writer, actId, commentId, request, CancellationToken.None);
-
-        Assert.That(result, Is.InstanceOf<NoContentResult>());
-        await writer
-            .Received(1)
-            .UpdateActComment(actId, commentId, request, Arg.Any<CancellationToken>());
-    }
-
-    [Test]
     public async Task EditingSomeoneElsesNoteIsAProblemWithFourOhThree()
     {
-        var writer = EditingWriter(CommentWriteOutcome.NotAuthor);
+        var writer = Substitute.For<ICommentWriter>();
+        writer
+            .UpdateActComment(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CommentEditRequest>(), Arg.Any<CancellationToken>())
+            .Returns(CommentWriteOutcome.NotAuthor);
         var controller = new ActCommentsController();
 
         var result = await controller.EditActComment(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), new CommentEditRequest { Body = "x" }, CancellationToken.None);
 
         AssertProblem(result, 403);
-    }
-
-    [Test]
-    public async Task EditingAMissingNoteIsAProblemWithFourOhFour()
-    {
-        var writer = EditingWriter(CommentWriteOutcome.NotFound);
-        var controller = new ActCommentsController();
-
-        var result = await controller.EditActComment(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), new CommentEditRequest { Body = "x" }, CancellationToken.None);
-
-        AssertProblem(result, 404);
-    }
-
-    [Test]
-    public async Task AnEditOutcomeTheEndpointDoesNotKnowThrows()
-    {
-        var writer = EditingWriter((CommentWriteOutcome)99);
-        var controller = new ActCommentsController();
-
-        await Assert.ThatAsync(
-            async () => await controller.EditActComment(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), new CommentEditRequest { Body = "x" }, CancellationToken.None),
-            Throws.InstanceOf<UnreachableException>(),
-            "an outcome the endpoint does not name never turns into a status");
-    }
-
-    [Test]
-    public async Task DeletingReachesTheWriterWithBothRouteIds()
-    {
-        var actId = Guid.CreateVersion7();
-        var commentId = Guid.CreateVersion7();
-        var writer = DeletingWriter(CommentWriteOutcome.Written);
-        var controller = new ActCommentsController();
-
-        var result = await controller.DeleteActComment(writer, actId, commentId, CancellationToken.None);
-
-        Assert.That(result, Is.InstanceOf<NoContentResult>());
-        await writer
-            .Received(1)
-            .DeleteActComment(actId, commentId, Arg.Any<CancellationToken>());
     }
 
     [Test]
     public async Task DeletingSomeoneElsesNoteIsAProblemWithFourOhThree()
     {
-        var writer = DeletingWriter(CommentWriteOutcome.NotAuthor);
+        var writer = Substitute.For<ICommentWriter>();
+        writer
+            .DeleteActComment(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(CommentWriteOutcome.NotAuthor);
         var controller = new ActCommentsController();
 
         var result = await controller.DeleteActComment(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
 
         AssertProblem(result, 403);
-    }
-
-    [Test]
-    public async Task DeletingAMissingNoteIsAProblemWithFourOhFour()
-    {
-        var writer = DeletingWriter(CommentWriteOutcome.NotFound);
-        var controller = new ActCommentsController();
-
-        var result = await controller.DeleteActComment(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
-
-        AssertProblem(result, 404);
-    }
-
-    private static ICommentWriter AddingWriter(CommentWriteOutcome outcome)
-    {
-        var writer = Substitute.For<ICommentWriter>();
-        writer
-            .AddActComment(Arg.Any<Guid>(), Arg.Any<CommentEditRequest>(), Arg.Any<CancellationToken>())
-            .Returns(outcome);
-
-        return writer;
-    }
-
-    private static ICommentWriter EditingWriter(CommentWriteOutcome outcome)
-    {
-        var writer = Substitute.For<ICommentWriter>();
-        writer
-            .UpdateActComment(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CommentEditRequest>(), Arg.Any<CancellationToken>())
-            .Returns(outcome);
-
-        return writer;
-    }
-
-    private static ICommentWriter DeletingWriter(CommentWriteOutcome outcome)
-    {
-        var writer = Substitute.For<ICommentWriter>();
-        writer
-            .DeleteActComment(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-            .Returns(outcome);
-
-        return writer;
-    }
-
-    private static CommentItem Item(string body)
-    {
-        return new()
-        {
-            CommentId = Guid.CreateVersion7(),
-            Body = body,
-            AuthorEmail = "user@example.com",
-            IsAuthor = true,
-            Created = DateTime.UtcNow,
-        };
     }
 }

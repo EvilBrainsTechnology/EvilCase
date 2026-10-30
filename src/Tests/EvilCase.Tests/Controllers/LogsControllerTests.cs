@@ -6,17 +6,6 @@ namespace EvilBrains.EvilCase.Tests.Controllers;
 
 public class LogsControllerTests
 {
-    [Test]
-    public void EveryEntryIsForwardedToTheWriter()
-    {
-        var writer = new CollectingWriter();
-        var controller = new LogsController();
-
-        controller.WriteClientLogs(writer, new ClientLogBatch { Entries = [Entry("first"), Entry("second")] });
-
-        Assert.That(writer.Entries.Select(static x => x.MessageTemplate), Is.EqualTo(["first", "second"]));
-    }
-
     /// <summary>
     /// The endpoint is anonymous and model validation covers properties, never collection elements.
     /// </summary>

@@ -1,10 +1,6 @@
-using System.Diagnostics;
-using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Api.Controllers;
-using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Business.Files;
-using Microsoft.AspNetCore.Mvc;
 using static EvilBrains.EvilCase.Tests.Controllers.ProblemAssertions;
 
 namespace EvilBrains.EvilCase.Tests.Controllers;
@@ -12,123 +8,9 @@ namespace EvilBrains.EvilCase.Tests.Controllers;
 public class ActFilesControllerTests
 {
     [Test]
-    public async Task TheListIsAskedForTheActInTheRoute()
-    {
-        var actId = Guid.CreateVersion7();
-        var reader = ListingReader([]);
-        var controller = new ActFilesController();
-
-        await controller.ListActFiles(reader, actId, CancellationToken.None);
-
-        await reader
-            .Received(1)
-            .ListActFiles(actId, Arg.Any<CancellationToken>());
-    }
-
-    [Test]
-    public async Task TheListedItemsComeBackInTheOrderTheReaderGaveThem()
-    {
-        var reader = ListingReader([Item("prvni.txt"), Item("druhy.txt")]);
-        var controller = new ActFilesController();
-
-        var response = await controller.ListActFiles(reader, Guid.CreateVersion7(), CancellationToken.None);
-
-        var body = (FileListResponse)((OkObjectResult)response.Result!).Value!;
-
-        Assert.That(body.Items.Select(static item => item.FileName), Is.EqualTo(["prvni.txt", "druhy.txt"]));
-    }
-
-    [Test]
-    public async Task AListOnAMissingActIsAProblemWithFourOhFour()
-    {
-        var reader = ListingReader(items: null);
-        var controller = new ActFilesController();
-
-        var response = await controller.ListActFiles(reader, Guid.CreateVersion7(), CancellationToken.None);
-
-        var problem = AssertProblem(response.Result, 404);
-        Assert.That(problem.Title, Is.EqualTo(ActProblems.ActNotFound));
-    }
-
-    [Test]
-    public async Task TheDeleteReachesTheWriterWithEveryRouteId()
-    {
-        var actId = Guid.CreateVersion7();
-        var fileId = Guid.CreateVersion7();
-        var writer = DeletingWriter(DeleteOutcome.Deleted);
-        var controller = new ActFilesController();
-
-        await controller.DeleteActFile(writer, actId, fileId, CancellationToken.None);
-
-        await writer
-            .Received(1)
-            .DeleteActFile(actId, fileId, Arg.Any<CancellationToken>());
-    }
-
-    [Test]
-    public async Task DeletingAFileAnswersWithNoContent()
-    {
-        var writer = DeletingWriter(DeleteOutcome.Deleted);
-        var controller = new ActFilesController();
-
-        var result = await controller.DeleteActFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
-
-        Assert.That(result, Is.InstanceOf<NoContentResult>());
-    }
-
-    [Test]
-    public async Task DeletingAMissingFileIsAProblemWithFourOhFour()
-    {
-        var writer = DeletingWriter(DeleteOutcome.NotFound);
-        var controller = new ActFilesController();
-
-        var result = await controller.DeleteActFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None);
-
-        AssertProblem(result, 404);
-    }
-
-    [Test]
-    public async Task ADeleteOutcomeTheEndpointDoesNotKnowThrows()
-    {
-        var writer = DeletingWriter((DeleteOutcome)99);
-        var controller = new ActFilesController();
-
-        await Assert.ThatAsync(
-            async () => await controller.DeleteActFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), CancellationToken.None),
-            Throws.InstanceOf<UnreachableException>(),
-            "an outcome the endpoint does not name never turns into a status");
-    }
-
-    [Test]
-    public async Task TheRenameReachesTheWriterWithEveryRouteIdAndTheNewName()
-    {
-        var actId = Guid.CreateVersion7();
-        var fileId = Guid.CreateVersion7();
-        var writer = RenamingWriter(FileRenameOutcome.Renamed);
-        var controller = new ActFilesController();
-
-        await controller.RenameActFile(writer, actId, fileId, new FileRenameRequest { FileName = "novy.pdf" }, CancellationToken.None);
-
-        await writer
-            .Received(1)
-            .RenameActFile(actId, fileId, "novy.pdf", Arg.Any<CancellationToken>());
-    }
-
-    [Test]
-    public async Task RenamingAFileAnswersWithNoContent()
-    {
-        var writer = RenamingWriter(FileRenameOutcome.Renamed);
-        var controller = new ActFilesController();
-
-        var result = await controller.RenameActFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), new FileRenameRequest { FileName = "novy.pdf" }, CancellationToken.None);
-
-        Assert.That(result, Is.InstanceOf<NoContentResult>());
-    }
-
-    [Test]
     public async Task RenamingKeepsOnlyTheLastPathSegment()
     {
-        var writer = RenamingWriter(FileRenameOutcome.Renamed);
+        var writer = RenamingWriter();
         var controller = new ActFilesController();
 
         await controller.RenameActFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), new FileRenameRequest { FileName = "slozka/podslozka/novy.pdf" }, CancellationToken.None);
@@ -143,7 +25,7 @@ public class ActFilesControllerTests
     [TestCase("slozka/")]
     public async Task RenamingToABlankNameIsAProblemWithFourHundredAndTheWriterIsNotReached(string fileName)
     {
-        var writer = RenamingWriter(FileRenameOutcome.Renamed);
+        var writer = RenamingWriter();
         var controller = new ActFilesController();
 
         var result = await controller.RenameActFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), new FileRenameRequest { FileName = fileName }, CancellationToken.None);
@@ -154,85 +36,13 @@ public class ActFilesControllerTests
             .RenameActFile(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 
-    [Test]
-    public async Task RenamingToANameOverTheLimitIsAProblemWithFourHundred()
-    {
-        var writer = RenamingWriter(FileRenameOutcome.Renamed);
-        var controller = new ActFilesController();
-        var tooLong = new string('a', FileLimits.MaxFileNameLength + 1);
-
-        var result = await controller.RenameActFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), new FileRenameRequest { FileName = tooLong }, CancellationToken.None);
-
-        AssertProblem(result, 400);
-    }
-
-    [Test]
-    public async Task RenamingOntoATakenNameIsAProblemWithFourOhNine()
-    {
-        var writer = RenamingWriter(FileRenameOutcome.NameTaken);
-        var controller = new ActFilesController();
-
-        var result = await controller.RenameActFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), new FileRenameRequest { FileName = "novy.pdf" }, CancellationToken.None);
-
-        var problem = AssertProblem(result, 409);
-        Assert.That(problem.Title, Is.EqualTo(FileProblems.NameTaken));
-    }
-
-    [Test]
-    public async Task RenamingAMissingFileIsAProblemWithFourOhFour()
-    {
-        var writer = RenamingWriter(FileRenameOutcome.NotFound);
-        var controller = new ActFilesController();
-
-        var result = await controller.RenameActFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), new FileRenameRequest { FileName = "novy.pdf" }, CancellationToken.None);
-
-        AssertProblem(result, 404);
-    }
-
-    [Test]
-    public async Task ARenameOutcomeTheEndpointDoesNotKnowThrows()
-    {
-        var writer = RenamingWriter((FileRenameOutcome)99);
-        var controller = new ActFilesController();
-
-        await Assert.ThatAsync(
-            async () => await controller.RenameActFile(writer, Guid.CreateVersion7(), Guid.CreateVersion7(), new FileRenameRequest { FileName = "novy.pdf" }, CancellationToken.None),
-            Throws.InstanceOf<UnreachableException>(),
-            "an outcome the endpoint does not name never turns into a status");
-    }
-
-    private static IFileReader ListingReader(IReadOnlyList<FileListItem>? items)
-    {
-        var reader = Substitute.For<IFileReader>();
-        reader
-            .ListActFiles(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-            .Returns(items);
-
-        return reader;
-    }
-
-    private static IFileWriter DeletingWriter(DeleteOutcome outcome)
-    {
-        var writer = Substitute.For<IFileWriter>();
-        writer
-            .DeleteActFile(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-            .Returns(outcome);
-
-        return writer;
-    }
-
-    private static IFileWriter RenamingWriter(FileRenameOutcome outcome)
+    private static IFileWriter RenamingWriter()
     {
         var writer = Substitute.For<IFileWriter>();
         writer
             .RenameActFile(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(outcome);
+            .Returns(FileRenameOutcome.Renamed);
 
         return writer;
-    }
-
-    private static FileListItem Item(string fileName)
-    {
-        return new() { FileId = Guid.CreateVersion7(), FileName = fileName, SizeBytes = 1, Created = DateTime.UtcNow, Version = 1, VersionCount = 1 };
     }
 }

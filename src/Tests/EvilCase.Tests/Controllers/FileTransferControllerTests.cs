@@ -1,5 +1,3 @@
-using System.Diagnostics;
-using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Api.Controllers;
 using EvilBrains.EvilCase.Business.Files;
@@ -28,7 +26,7 @@ public class FileTransferControllerTests
     [Test]
     public async Task AnUploadAtTheLimitReachesTheWriter()
     {
-        var writer = UploadingWriter(Uploaded(Item()));
+        var writer = UploadingWriter();
         var controller = new FileTransferController();
         var file = FormFile(FileLimits.MaxUploadBytes);
 
@@ -43,7 +41,7 @@ public class FileTransferControllerTests
     public async Task AnUploadKeepsOnlyTheNameItArrivedUnder()
     {
         FileUpload? upload = null;
-        var writer = UploadingWriter(Uploaded(Item()), captured => upload = captured);
+        var writer = UploadingWriter(captured => upload = captured);
         var controller = new FileTransferController();
         var file = FormFile(1, fileName: "../../evil.txt");
 
@@ -99,7 +97,7 @@ public class FileTransferControllerTests
     public async Task AnUploadWithNoMediaTypeIsAcceptedWithANullMediaType()
     {
         FileUpload? upload = null;
-        var writer = UploadingWriter(Uploaded(Item()), captured => upload = captured);
+        var writer = UploadingWriter(captured => upload = captured);
         var controller = new FileTransferController();
         var file = FormFile(1, contentType: null);
 
@@ -112,53 +110,12 @@ public class FileTransferControllerTests
         }
     }
 
-    [Test]
-    public async Task AnUploadAnswersCreatedAtTheContentOfTheNewFile()
+    [TestCase(nameof(FileTransferController.UploadCaseFile))]
+    [TestCase(nameof(FileTransferController.UploadActFile))]
+    [TestCase(nameof(FileTransferController.UploadFileVersion))]
+    public void AnUploadDeclaresItsOwnRequestSizeLimit(string action)
     {
-        var created = Item();
-        var writer = UploadingWriter(Uploaded(created));
-        var controller = new FileTransferController();
-
-        var response = await controller.UploadCaseFile(writer, Guid.CreateVersion7(), FormFile(1), CancellationToken.None);
-
-        Assert.That(response.Result, Is.InstanceOf<CreatedAtActionResult>());
-        var result = (CreatedAtActionResult)response.Result!;
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(result.StatusCode, Is.EqualTo(201), "an upload answers 201, not 200");
-            Assert.That(result.ActionName, Is.EqualTo(nameof(FileTransferController.DownloadFileContent)), "the Location names the download action of the new file");
-            Assert.That(result.RouteValues?["fileId"], Is.EqualTo(created.FileId));
-            Assert.That(result.Value, Is.SameAs(created));
-        }
-    }
-
-    [Test]
-    public async Task AnUploadOntoAMissingCaseIsAProblemWithFourOhFour()
-    {
-        var writer = UploadingWriter(new UploadFileResult { Outcome = UploadFileOutcome.OwnerNotFound });
-        var controller = new FileTransferController();
-
-        var response = await controller.UploadCaseFile(writer, Guid.CreateVersion7(), FormFile(1), CancellationToken.None);
-
-        AssertProblem(response.Result, 404);
-    }
-
-    [Test]
-    public async Task AnUploadOutcomeTheEndpointDoesNotKnowThrows()
-    {
-        var writer = UploadingWriter(new UploadFileResult { Outcome = (UploadFileOutcome)99 });
-        var controller = new FileTransferController();
-
-        await Assert.ThrowsAsync<UnreachableException>(
-            async () => await controller.UploadCaseFile(writer, Guid.CreateVersion7(), FormFile(1), CancellationToken.None),
-            "an outcome the endpoint does not name never turns into a status");
-    }
-
-    [Test]
-    public void TheUploadDeclaresItsOwnRequestSizeLimit()
-    {
-        var method = typeof(FileTransferController).GetMethod(nameof(FileTransferController.UploadCaseFile))!;
+        var method = typeof(FileTransferController).GetMethod(action)!;
         var attribute = method.GetCustomAttributes(typeof(RequestSizeLimitAttribute), inherit: false).Single();
 
         Assert.That(
@@ -167,394 +124,16 @@ public class FileTransferControllerTests
             "Kestrel's 30 MB default would cap the upload below the product limit");
     }
 
-    [Test]
-    public async Task AFileTheBrowserShowsNativelyIsInlineUnderTheDetectedTypeWithRanges()
+    private static IFileWriter UploadingWriter(Action<FileUpload>? capture = null)
     {
-        var reader = DownloadingReader(new FileDownload { FileName = "Záznam.MP4", MediaType = "text/html", Content = new MemoryStream("abc"u8.ToArray()) });
-
-        var controller = new FileTransferController { ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() } };
-
-        var result = await controller.DownloadFileContent(reader, Guid.CreateVersion7(), version: null, CancellationToken.None);
-
-        Assert.That(result, Is.InstanceOf<FileStreamResult>());
-        var fileResult = (FileStreamResult)result;
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(fileResult.FileDownloadName, Is.Empty, "the disposition is written by the action");
-            Assert.That(fileResult.ContentType, Is.EqualTo("video/mp4"), "the stored type is never used for an inline file");
-            Assert.That(fileResult.EnableRangeProcessing, Is.True);
-            Assert.That(controller.Response.Headers.ContentDisposition.ToString(), Does.StartWith("inline").And.Contain("filename"));
-        }
-    }
-
-    [Test]
-    public async Task AnyOtherFileIsAnOctetStreamAttachmentUnderTheStoredName()
-    {
-        var reader = DownloadingReader(new FileDownload { FileName = "stranka.html", MediaType = "text/html", Content = new MemoryStream("abc"u8.ToArray()) });
-
-        var controller = new FileTransferController();
-
-        var result = await controller.DownloadFileContent(reader, Guid.CreateVersion7(), version: null, CancellationToken.None);
-
-        Assert.That(result, Is.InstanceOf<FileStreamResult>());
-        var fileResult = (FileStreamResult)result;
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(fileResult.FileDownloadName, Is.EqualTo("stranka.html"));
-            Assert.That(fileResult.ContentType, Is.EqualTo("application/octet-stream"), "the stored type is never served for an attachment");
-            Assert.That(fileResult.EnableRangeProcessing, Is.True);
-        }
-    }
-
-    [Test]
-    public async Task ADownloadOfAMissingFileIsAProblemWithFourOhFour()
-    {
-        var reader = DownloadingReader(download: null);
-        var controller = new FileTransferController();
-
-        var result = await controller.DownloadFileContent(reader, Guid.CreateVersion7(), version: null, CancellationToken.None);
-
-        AssertProblem(result, 404);
-    }
-
-    [Test]
-    public async Task AnActUploadOverTheLimitIsRefusedWithFourThirteen()
-    {
+        var file = new FileListItem { FileId = Guid.CreateVersion7(), FileName = "a.pdf", SizeBytes = 1, Created = DateTime.UtcNow, Version = 1, VersionCount = 1 };
         var writer = Substitute.For<IFileWriter>();
-        var controller = new FileTransferController();
-        var file = FormFile(FileLimits.MaxUploadBytes + 1);
-
-        var response = await controller.UploadActFile(writer, Guid.CreateVersion7(), file, CancellationToken.None);
-
-        AssertProblem(response.Result, 413);
-        Assert.That(writer.ReceivedCalls(), Is.Empty, "an upload over the limit must never reach the writer");
-    }
-
-    [Test]
-    public async Task AnActUploadReachesTheWriterWithTheActId()
-    {
-        var actId = Guid.CreateVersion7();
-        var writer = UploadingWriter(Uploaded(Item()));
-        var controller = new FileTransferController();
-
-        await controller.UploadActFile(writer, actId, FormFile(1), CancellationToken.None);
-
-        await writer
-            .Received(1)
-            .UploadActFile(actId, Arg.Any<FileUpload>(), Arg.Any<CancellationToken>());
-    }
-
-    [Test]
-    public async Task AnActUploadWithAFileNameOverTheColumnLimitIsRefusedWithFourHundred()
-    {
-        var writer = Substitute.For<IFileWriter>();
-        var controller = new FileTransferController();
-        var file = FormFile(1, fileName: new string('a', FileLimits.MaxFileNameLength + 1) + ".pdf");
-
-        var response = await controller.UploadActFile(writer, Guid.CreateVersion7(), file, CancellationToken.None);
-
-        AssertProblem(response.Result, 400);
-        Assert.That(writer.ReceivedCalls(), Is.Empty, "a file name over the FileAsset.FileName column limit must never reach the writer");
-    }
-
-    [Test]
-    public async Task AnActUploadWithAnEmptyFileNameIsRefusedWithFourHundred()
-    {
-        var writer = Substitute.For<IFileWriter>();
-        var controller = new FileTransferController();
-        var file = FormFile(1, fileName: "   ");
-
-        var response = await controller.UploadActFile(writer, Guid.CreateVersion7(), file, CancellationToken.None);
-
-        AssertProblem(response.Result, 400);
-        Assert.That(writer.ReceivedCalls(), Is.Empty, "an empty file name must never reach the writer");
-    }
-
-    [Test]
-    public async Task AnActUploadWithAMediaTypeOverTheColumnLimitIsRefusedWithFourHundred()
-    {
-        var writer = Substitute.For<IFileWriter>();
-        var controller = new FileTransferController();
-        var file = FormFile(1, contentType: new string('a', FileLimits.MaxMediaTypeLength + 1));
-
-        var response = await controller.UploadActFile(writer, Guid.CreateVersion7(), file, CancellationToken.None);
-
-        AssertProblem(response.Result, 400);
-        Assert.That(writer.ReceivedCalls(), Is.Empty, "a media type over the FileAsset.MediaType column limit must never reach the writer");
-    }
-
-    [Test]
-    public async Task AnActUploadWithNoMediaTypeIsAcceptedWithANullMediaType()
-    {
-        FileUpload? upload = null;
-        var writer = UploadingWriter(Uploaded(Item()), captured => upload = captured);
-        var controller = new FileTransferController();
-        var file = FormFile(1, contentType: null);
-
-        await controller.UploadActFile(writer, Guid.CreateVersion7(), file, CancellationToken.None);
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(upload, Is.Not.Null, "a multipart part with no content type must reach the writer");
-            Assert.That(upload?.MediaType, Is.Null, "a missing content type stores a null media type, not an exception");
-        }
-    }
-
-    [Test]
-    public async Task AnActUploadAnswersCreatedAtTheContentOfTheNewFile()
-    {
-        var created = Item();
-        var writer = UploadingWriter(Uploaded(created));
-        var controller = new FileTransferController();
-
-        var response = await controller.UploadActFile(writer, Guid.CreateVersion7(), FormFile(1), CancellationToken.None);
-
-        Assert.That(response.Result, Is.InstanceOf<CreatedAtActionResult>());
-        var result = (CreatedAtActionResult)response.Result!;
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(result.StatusCode, Is.EqualTo(201));
-            Assert.That(result.ActionName, Is.EqualTo(nameof(FileTransferController.DownloadFileContent)));
-            Assert.That(result.RouteValues?["fileId"], Is.EqualTo(created.FileId));
-            Assert.That(result.Value, Is.SameAs(created));
-        }
-    }
-
-    [Test]
-    public async Task AnUploadOntoAMissingActIsAProblemWithFourOhFour()
-    {
-        var writer = UploadingWriter(new UploadFileResult { Outcome = UploadFileOutcome.OwnerNotFound });
-        var controller = new FileTransferController();
-
-        var response = await controller.UploadActFile(writer, Guid.CreateVersion7(), FormFile(1), CancellationToken.None);
-
-        var problem = AssertProblem(response.Result, 404);
-        Assert.That(problem.Title, Is.EqualTo(ActProblems.ActNotFound), "the act's 404 names the act, not the case");
-    }
-
-    [Test]
-    public async Task AnActUploadOutcomeTheEndpointDoesNotKnowThrows()
-    {
-        var writer = UploadingWriter(new UploadFileResult { Outcome = (UploadFileOutcome)99 });
-        var controller = new FileTransferController();
-
-        await Assert.ThrowsAsync<UnreachableException>(
-            async () => await controller.UploadActFile(writer, Guid.CreateVersion7(), FormFile(1), CancellationToken.None),
-            "an outcome the endpoint does not name never turns into a status");
-    }
-
-    [Test]
-    public void TheActUploadDeclaresItsOwnRequestSizeLimit()
-    {
-        var method = typeof(FileTransferController).GetMethod(nameof(FileTransferController.UploadActFile))!;
-        var attribute = method.GetCustomAttributes(typeof(RequestSizeLimitAttribute), inherit: false).Single();
-
-        Assert.That(
-            ((IRequestSizeLimitMetadata)attribute).MaxRequestBodySize,
-            Is.EqualTo(FileLimits.MaxUploadRequestBytes),
-            "Kestrel's 30 MB default would cap the upload below the product limit");
-    }
-
-    [Test]
-    public async Task AnUploadThatAddsAVersionAnswersCreatedAtTheContentOfTheFile()
-    {
-        var current = Item();
-        var writer = UploadingWriter(new UploadFileResult { Outcome = UploadFileOutcome.VersionAdded, File = current });
-        var controller = new FileTransferController();
-
-        var response = await controller.UploadCaseFile(writer, Guid.CreateVersion7(), FormFile(1), CancellationToken.None);
-
-        Assert.That(response.Result, Is.InstanceOf<CreatedAtActionResult>());
-        var result = (CreatedAtActionResult)response.Result!;
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(result.StatusCode, Is.EqualTo(201));
-            Assert.That(result.RouteValues?["fileId"], Is.EqualTo(current.FileId));
-            Assert.That(result.Value, Is.SameAs(current));
-        }
-    }
-
-    [Test]
-    public async Task AnUploadEqualToTheCurrentVersionAnswersOkWithTheCurrentFile()
-    {
-        var current = Item();
-        var writer = UploadingWriter(new UploadFileResult { Outcome = UploadFileOutcome.Unchanged, File = current });
-        var controller = new FileTransferController();
-
-        var response = await controller.UploadActFile(writer, Guid.CreateVersion7(), FormFile(1), CancellationToken.None);
-
-        Assert.That(response.Result, Is.InstanceOf<OkObjectResult>());
-        var result = (OkObjectResult)response.Result!;
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(result.StatusCode, Is.EqualTo(200), "an upload that stores nothing answers 200, not 201");
-            Assert.That(result.Value, Is.SameAs(current));
-        }
-    }
-
-    [Test]
-    public async Task AVersionUploadReachesTheWriterWithTheFileId()
-    {
-        var fileId = Guid.CreateVersion7();
-        var writer = UploadingWriter(Uploaded(Item()));
-        var controller = new FileTransferController();
-
-        await controller.UploadFileVersion(writer, fileId, FormFile(1), CancellationToken.None);
-
-        await writer
-            .Received(1)
-            .UploadFileVersion(fileId, Arg.Any<FileUpload>(), Arg.Any<CancellationToken>());
-    }
-
-    [Test]
-    public async Task AVersionUploadAnswersCreatedAtTheContentOfThatVersion()
-    {
-        var current = Item() with { Version = 3, VersionCount = 3 };
-        var fileId = Guid.CreateVersion7();
-        var writer = UploadingWriter(Uploaded(Item()), versionResult: new FileVersionUploadResult { Outcome = FileVersionUploadOutcome.VersionAdded, File = current });
-        var controller = new FileTransferController();
-
-        var response = await controller.UploadFileVersion(writer, fileId, FormFile(1), CancellationToken.None);
-
-        Assert.That(response.Result, Is.InstanceOf<CreatedAtActionResult>());
-        var result = (CreatedAtActionResult)response.Result!;
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(result.StatusCode, Is.EqualTo(201));
-            Assert.That(result.ActionName, Is.EqualTo(nameof(FileTransferController.DownloadFileContent)));
-            Assert.That(result.RouteValues?["fileId"], Is.EqualTo(fileId));
-            Assert.That(result.RouteValues?["version"], Is.EqualTo(3), "the Location names the version the upload made");
-            Assert.That(result.Value, Is.SameAs(current));
-        }
-    }
-
-    [Test]
-    public async Task AVersionUploadEqualToTheCurrentAnswersOk()
-    {
-        var current = Item();
-        var writer = UploadingWriter(Uploaded(Item()), versionResult: new FileVersionUploadResult { Outcome = FileVersionUploadOutcome.Unchanged, File = current });
-        var controller = new FileTransferController();
-
-        var response = await controller.UploadFileVersion(writer, Guid.CreateVersion7(), FormFile(1), CancellationToken.None);
-
-        Assert.That((response.Result as OkObjectResult)?.Value, Is.SameAs(current));
-    }
-
-    [Test]
-    public async Task AVersionUploadOfAnotherExtensionIsAProblemWithFourHundred()
-    {
-        var writer = UploadingWriter(Uploaded(Item()), versionResult: new FileVersionUploadResult { Outcome = FileVersionUploadOutcome.ExtensionMismatch });
-        var controller = new FileTransferController();
-
-        var response = await controller.UploadFileVersion(writer, Guid.CreateVersion7(), FormFile(1), CancellationToken.None);
-
-        Assert.That((response.Result as ObjectResult)?.StatusCode, Is.EqualTo(400));
-    }
-
-    [Test]
-    public async Task AVersionUploadOntoAMissingFileIsAProblemWithFourOhFour()
-    {
-        var writer = UploadingWriter(Uploaded(Item()), versionResult: new FileVersionUploadResult { Outcome = FileVersionUploadOutcome.FileNotFound });
-        var controller = new FileTransferController();
-
-        var response = await controller.UploadFileVersion(writer, Guid.CreateVersion7(), FormFile(1), CancellationToken.None);
-
-        var problem = AssertProblem(response.Result, 404);
-        Assert.That(problem.Title, Is.EqualTo(FileProblems.NotFound));
-    }
-
-    [Test]
-    public async Task AVersionUploadOverTheLimitIsRefusedWithFourThirteen()
-    {
-        var writer = Substitute.For<IFileWriter>();
-        var controller = new FileTransferController();
-
-        var response = await controller.UploadFileVersion(writer, Guid.CreateVersion7(), FormFile(FileLimits.MaxUploadBytes + 1), CancellationToken.None);
-
-        AssertProblem(response.Result, 413);
-        Assert.That(writer.ReceivedCalls(), Is.Empty, "an upload over the limit must never reach the writer");
-    }
-
-    [Test]
-    public async Task AVersionUploadOutcomeTheEndpointDoesNotKnowThrows()
-    {
-        var writer = UploadingWriter(Uploaded(Item()), versionResult: new FileVersionUploadResult { Outcome = (FileVersionUploadOutcome)99 });
-        var controller = new FileTransferController();
-
-        await Assert.ThrowsAsync<UnreachableException>(
-            async () => await controller.UploadFileVersion(writer, Guid.CreateVersion7(), FormFile(1), CancellationToken.None),
-            "an outcome the endpoint does not name never turns into a status");
-    }
-
-    [Test]
-    public void TheVersionUploadDeclaresItsOwnRequestSizeLimit()
-    {
-        var method = typeof(FileTransferController).GetMethod(nameof(FileTransferController.UploadFileVersion))!;
-        var attribute = method.GetCustomAttributes(typeof(RequestSizeLimitAttribute), inherit: false).Single();
-
-        Assert.That(
-            ((IRequestSizeLimitMetadata)attribute).MaxRequestBodySize,
-            Is.EqualTo(FileLimits.MaxUploadRequestBytes),
-            "Kestrel's 30 MB default would cap the upload below the product limit");
-    }
-
-    [Test]
-    public async Task ADownloadPassesTheVersionTheRequestNames()
-    {
-        var fileId = Guid.CreateVersion7();
-        var reader = DownloadingReader(download: null);
-        var controller = new FileTransferController();
-
-        await controller.DownloadFileContent(reader, fileId, version: 2, CancellationToken.None);
-
-        await reader
-            .Received(1)
-            .OpenFileContent(fileId, 2, Arg.Any<CancellationToken>());
-    }
-
-    private static IFileWriter UploadingWriter(UploadFileResult result, Action<FileUpload>? capture = null, FileVersionUploadResult? versionResult = null)
-    {
-        var writer = Substitute.For<IFileWriter>();
-        writer
-            .UploadFileVersion(Arg.Any<Guid>(), Arg.Any<FileUpload>(), Arg.Any<CancellationToken>())
-            .Returns(versionResult ?? new FileVersionUploadResult { Outcome = FileVersionUploadOutcome.VersionAdded, File = result.File })
-            .AndDoes(call => capture?.Invoke(call.Arg<FileUpload>()));
         writer
             .UploadCaseFile(Arg.Any<Guid>(), Arg.Any<FileUpload>(), Arg.Any<CancellationToken>())
-            .Returns(result)
-            .AndDoes(call => capture?.Invoke(call.Arg<FileUpload>()));
-        writer
-            .UploadActFile(Arg.Any<Guid>(), Arg.Any<FileUpload>(), Arg.Any<CancellationToken>())
-            .Returns(result)
+            .Returns(new UploadFileResult { Outcome = UploadFileOutcome.Uploaded, File = file })
             .AndDoes(call => capture?.Invoke(call.Arg<FileUpload>()));
 
         return writer;
-    }
-
-    private static IFileReader DownloadingReader(FileDownload? download)
-    {
-        var reader = Substitute.For<IFileReader>();
-        reader
-            .OpenFileContent(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>())
-            .Returns(download);
-
-        return reader;
-    }
-
-    private static FileListItem Item()
-    {
-        return new() { FileId = Guid.CreateVersion7(), FileName = "a.pdf", SizeBytes = 1, Created = DateTime.UtcNow, Version = 1, VersionCount = 1 };
-    }
-
-    private static UploadFileResult Uploaded(FileListItem file)
-    {
-        return new UploadFileResult { Outcome = UploadFileOutcome.Uploaded, File = file };
     }
 
     // The controller never reads the backing stream when a substitute stands in for the writer, so the

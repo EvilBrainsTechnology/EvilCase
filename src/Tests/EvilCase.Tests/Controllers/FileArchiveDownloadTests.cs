@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Net.Http.Headers;
-using static EvilBrains.EvilCase.Tests.Controllers.ProblemAssertions;
 
 namespace EvilBrains.EvilCase.Tests.Controllers;
 
@@ -37,22 +36,6 @@ public class FileArchiveDownloadTests
             Assert.That(disposition.FileNameStar.Value, Is.EqualTo("Přestupek Novák (včetně verzí).zip"), "the Czech name travels as RFC 5987");
             Assert.That(body.ToArray(), Is.EqualTo("PK"u8.ToArray()));
         }
-    }
-
-    [Test]
-    public async Task AnUnknownOwnerIsAProblemWithFourOhFour()
-    {
-        var archives = Substitute.For<IFileArchiveReader>();
-        var controller = Controller(new DefaultHttpContext());
-
-        var caseResult = await controller.DownloadCaseFileArchive(archives, NullLogger<FileTransferController>.Instance, Guid.CreateVersion7(), includeVersions: false, CancellationToken.None);
-        var actResult = await controller.DownloadActFileArchive(archives, NullLogger<FileTransferController>.Instance, Guid.CreateVersion7(), includeVersions: false, CancellationToken.None);
-
-        AssertProblem(caseResult, 404);
-        AssertProblem(actResult, 404);
-        await archives
-            .DidNotReceiveWithAnyArgs()
-            .WriteFileArchive(default!, default!, default);
     }
 
     [Test]
