@@ -5,12 +5,10 @@ paths:
 
 # Data
 
-`EvilCase.Data` holds the schema and the way to reach the database (SDD-018). Read the model
-SDDs under `docs/sdd/` and the fixtures under `Tests/EvilCase.Tests/Data/Model/` before changing
-an entity; below is what neither says.
+`EvilCase.Data` holds the schema and the way to the database (SDD-018). Before changing an entity
+read its SDDs under `docs/sdd/` and the fixtures under `Tests/EvilCase.Tests/Data/Model/`.
 
-- The domain's word wins over a language keyword: the type is `Case`, with `@case` where it
-  collides.
+- The domain's word beats a language keyword: the type `Case`, `@case` where it collides.
 - A calendar date is `DateOnly` mapped to `date`; a moment in time stays `DateTime`.
 - An index only where a query the code issues needs it; a unique index stands as a constraint.
 - A test reads check constraints from `IDesignTimeModel`; `context.Model` has dropped them.

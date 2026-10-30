@@ -12,7 +12,7 @@ SDDs under `docs/sdd/` the slice touches, and the code. Write nothing, run nothi
 Return the plan as your final text — it goes verbatim to the coder:
 
 - Scope: one slice per the definition in the product-loop skill.
-- The files to change, whether a migration is needed, the tests to add.
+- The files to change, whether a migration is needed, the tests `tests.md` asks for.
 - Screenshot targets where a screen changes.
 - Each decision point with the chosen answer, or a flag that a `[DECISION]` issue is needed
   (criteria: the product-loop skill).
