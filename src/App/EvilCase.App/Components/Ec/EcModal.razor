@@ -3,7 +3,7 @@
 @inject IJSRuntime JSRuntime
 
 <dialog class="@(this.Large ? "ec-modal ec-modal-large" : this.Sheet ? "ec-modal ec-modal-sheet" : "ec-modal")" @ref="this.dialog" aria-label="@this.Title"
-        @onpointerdown="this.PressBackdrop" @onclick="this.ClickBackdrop">
+        data-ec-guarded="@this.OnCloseRequest.HasDelegate" @onpointerdown="this.PressBackdrop" @onclick="this.ClickBackdrop">
     @* Events from the content stop here, so the dialog only sees presses and clicks on its backdrop. *@
     <div class="ec-modal-frame" @onpointerdown:stopPropagation @onclick:stopPropagation>
         <div class="ec-modal-header">
@@ -54,6 +54,13 @@
     [Parameter]
     public EventCallback<bool> OpenChanged { get; set; }
 
+    /// <summary>
+    /// When set, a close by the X, a click outside or Escape raises this instead of closing; the owner closes the dialog
+    /// through <see cref="Open"/>.
+    /// </summary>
+    [Parameter]
+    public EventCallback OnCloseRequest { get; set; }
+
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
@@ -71,12 +78,28 @@
     private bool backdropPressed;
 
     [JSInvokable]
+    public async Task NotifyCloseRequested()
+    {
+        if (this.Open)
+            await this.Close();
+    }
+
+    [JSInvokable]
     public async Task NotifyClosed()
     {
         if (!this.Open)
             return;
 
         this.shown = false;
+
+        // A guarded dialog the browser closed anyway opens again on the next render and asks its owner.
+        if (this.OnCloseRequest.HasDelegate)
+        {
+            await this.OnCloseRequest.InvokeAsync();
+            this.StateHasChanged();
+
+            return;
+        }
 
         await this.OpenChanged.InvokeAsync(false);
     }
@@ -127,6 +150,13 @@
 
     private async Task Close()
     {
-        await this.OpenChanged.InvokeAsync(false);
+        if (this.OnCloseRequest.HasDelegate)
+        {
+            await this.OnCloseRequest.InvokeAsync();
+        }
+        else
+        {
+            await this.OpenChanged.InvokeAsync(false);
+        }
     }
 }
