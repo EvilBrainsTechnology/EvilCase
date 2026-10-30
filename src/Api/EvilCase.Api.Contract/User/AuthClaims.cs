@@ -17,4 +17,13 @@ public static class AuthClaims
     public const string AuthSessionId = "sid";
 
     public const string Tenant = "tenant";
+
+    /// <summary>
+    /// Only a principal an API token authenticated carries this and the two below.
+    /// </summary>
+    public const string ApiTokenId = "api_token_id";
+
+    public const string ApiTokenName = "api_token_name";
+
+    public const string ApiTokenScope = "api_token_scope";
 }

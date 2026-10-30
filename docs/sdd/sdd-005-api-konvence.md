@@ -19,12 +19,14 @@ Tvary API a klienta.
   jako Problem Details, nikdy `index.html` frontendu.
 - Business služba vrací kontraktní DTO; žádná druhá sada modelů.
 - Endpoint bez výslovné výjimky vyžaduje přihlášení. Anonymní jsou přihlášení, obnova tokenu,
-  odhlášení, health checks, upload klientských logů, 404 pod `/api` a v Development `/openapi`
-  a `/scalar`.
+  odhlášení, health checks, upload klientských logů, 404 pod `/api`, v každém prostředí
+  `/openapi/v1.json` a v Development `/scalar`.
+- Přihlášení nese cookie, nebo API token v hlavičce `Authorization: Bearer` (SDD-006). OpenAPI
+  dokument deklaruje schéma Bearer.
 - Založení odpovídá 201 s hlavičkou `Location` na detail nového záznamu; u souboru a verze míří na
-  stažení obsahu, detail souboru není. Upload, který nic neuloží, protože se obsah shoduje
-  s aktuální verzí, odpovídá 200. Komentář odpovídá 204 i na založení. Editace a smazání
-  odpovídají 204.
+  stažení obsahu, detail souboru není. Založení API tokenu odpovídá 201 bez `Location`, protože
+  token nemá detail. Upload, který nic neuloží, protože se obsah shoduje s aktuální verzí,
+  odpovídá 200. Komentář odpovídá 204 i na založení. Editace a smazání odpovídají 204.
 - V těle jde hodnota výčtu jako název; číslo ani neznámý název se nepřijme (400). V query
   stringu ji váže framework, který číslo bere.
 - Každý výpis bere stránku, směr řazení, svůj řadicí klíč a hledaný text; k tomu zúžení své
@@ -40,7 +42,8 @@ Tvary API a klienta.
 Limitem prochází celé `/api/auth/**`, přihlášené endpointy včetně, a upload klientských logů;
 partition je adresa volajícího: přihlášení 5 za minutu, obnova tokenu 60, zbytek `/api/auth/**` 10,
 upload klientských logů 120.
-Vše ostatní je bez limitu, health checks včetně. Odmítnutí je 429 s `Retry-After`.
+Vše ostatní je bez limitu, health checks a požadavky s API tokenem včetně. Odmítnutí je 429
+s `Retry-After`.
 
 ### Zdroje
 
@@ -53,6 +56,7 @@ Vše ostatní je bez limitu, health checks včetně. Odmítnutí je 429 s `Retry
 | Komentáře | na vlastníku, `…/comments`, `…/comments/{id}` |
 | Hledání | `/api/search?q=`, viz [SDD-021](sdd-021-vyhledavani.md) |
 | Štítky | `/api/labels`, `/api/labels/{id}`; přidělení na vlastníku `…/labels` |
+| API tokeny | `/api/api-tokens`, zrušení `/api/api-tokens/{id}`; jen přihlášení v prohlížeči (SDD-006) |
 
 - Id v routách je `Guid`.
 - Tenanta i uživatele dodává kontext požadavku; endpoint ani dotaz nikdy neberou id tenanta

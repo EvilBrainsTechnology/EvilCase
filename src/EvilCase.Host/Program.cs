@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Threading.RateLimiting;
 using DotNetEnv;
 using EvilBrains.Collections;
@@ -187,6 +188,23 @@ app.UseRateLimiter();
 // Explicit: the builder's implicit UseAuthentication runs ahead of the whole pipeline,
 // before forwarded headers and request logging.
 app.UseAuthentication();
+
+// The request completion event is written outside the token's log scope, so it takes the token here.
+app.Use(
+    static async (context, next) =>
+    {
+        if (context.User.FindFirstValue(AuthClaims.ApiTokenId) is { } apiTokenId)
+        {
+            var diagnosticContext = context.RequestServices.GetRequiredService<IDiagnosticContext>();
+
+            diagnosticContext.Set("ApiTokenId", apiTokenId);
+            diagnosticContext.Set("ApiTokenName", context.User.FindFirstValue(AuthClaims.ApiTokenName));
+        }
+
+        await next(context);
+    });
+
+app.UseEvilCaseApiTokenBoundary();
 app.UseAuthorization();
 
 // Replaces UseBlazorFrameworkFiles, whose /_framework branch would terminate ahead of it.

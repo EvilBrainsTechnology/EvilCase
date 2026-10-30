@@ -73,3 +73,13 @@ A clone logs to the console and ships nothing anywhere. The server URL is the on
 ## Frontend–API communication
 
 Typed clients in `EvilCase.Api.Client` are generated at build time from the API controller sources by a source generator, so client and server cannot drift. Controllers are the single source of truth, DTOs are shared through `EvilCase.Api.Contract`, and controller conventions are enforced by analyzers at error severity. The app is served by the API host, so calls are same-origin and no CORS is involved.
+
+## Integrations over REST
+
+An integration authenticates with a personal API token. Create one in Nastavení → API tokeny (`/settings/api-tokens`) with a name, a scope (Jen čtení or Čtení i zápis) and an expiry of 30, 90 or 365 days; the token is shown once. Send it on every request:
+
+```
+curl -H "Authorization: Bearer evc_…" "https://localhost:5000/api/cases?take=20"
+```
+
+The token acts as its user, tenant included. A read-only token gets 403 on every write, and an unknown, revoked or expired token gets 401. `/api/auth/**` and token management accept the browser session only. `/openapi/v1.json` describes every endpoint and the Bearer scheme, and is anonymous in every environment.

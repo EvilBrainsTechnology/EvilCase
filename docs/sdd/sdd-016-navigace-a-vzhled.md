@@ -28,8 +28,10 @@ URL nesou UUID entit, nikdy jejich čísla:
 | `/acts/{actId}/edit` | editace úkonu |
 | `/contacts` | kontakty |
 | `/contacts/{id}` | detail kontaktu |
-| `/settings` | nastavení (SDD-019) |
-| `/settings/export` | export dat tenanta (SDD-019, SDD-022) |
+| `/settings` | přesměruje na `/settings/labels` |
+| `/settings/labels` | nastavení, štítky (SDD-019) |
+| `/settings/api-tokens` | nastavení, API tokeny (SDD-019) |
+| `/settings/export` | nastavení, export dat tenanta (SDD-019, SDD-022) |
 | `/login` | přihlášení |
 
 Neznámá routa vykreslí stav nenalezeno uvnitř aplikace, neznámé id v routě prázdný stav

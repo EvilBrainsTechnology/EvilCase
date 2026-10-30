@@ -1,0 +1,120 @@
+@using System.Net
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.ApiTokens
+@using EvilBrains.EvilCase.Domain.ApiTokens
+@inject IApiTokensClient ApiTokensClient
+@inject ILogger<ApiTokenFormModal> Logger
+
+<EcModal Title="Nový token" Open="this.Open" OpenChanged="this.OpenChanged">
+    <ChildContent>
+        <CascadingValue Value="this.editContext">
+            <DataAnnotationsValidator />
+            <InvalidFieldFocus />
+            <div class="ec-form">
+                <EcField Label="Název" Required ControlId="api-token-name" Hint="Podle čeho token poznáte, nejvýše 64 znaků">
+                    <ChildContent>
+                        <InputText id="api-token-name" class="ec-input" @bind-Value="this.model.Name" />
+                    </ChildContent>
+                    <Error><ValidationMessage For="() => this.model.Name" /></Error>
+                </EcField>
+
+                <fieldset class="ec-token-scopes">
+                    <legend class="ec-field-name">Oprávnění</legend>
+                    @foreach (var scope in Enum.GetValues<ApiTokenScope>())
+                    {
+                        <label class="ec-token-scope-option">
+                            <input type="radio" name="api-token-scope" checked="@(this.model.Scope == scope)" @onchange="() => this.model.Scope = scope" />
+                            <span class="ec-token-scope-copy">
+                                <span class="ec-token-scope-title">@ApiTokenDisplay.ScopeText(scope)</span>
+                                <span class="ec-token-scope-hint">@ApiTokenDisplay.ScopeHint(scope)</span>
+                            </span>
+                        </label>
+                    }
+                </fieldset>
+
+                <EcField Label="Platnost" Hint="@($"Platí do {ApiTokenDisplay.DayText(DateTime.UtcNow.AddDays(this.model.ExpiresInDays))}")">
+                    <div class="ec-segmented ec-segmented-inline" role="group" aria-label="Platnost tokenu">
+                        @foreach (var days in ApiTokenLimits.LifetimeDays)
+                        {
+                            <button type="button" class="ec-segment" aria-pressed="@(this.model.ExpiresInDays == days ? "true" : "false")"
+                                    @onclick="() => this.model.ExpiresInDays = days">@days dní</button>
+                        }
+                    </div>
+                </EcField>
+
+                @if (this.error is not null)
+                {
+                    <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.error</div>
+                }
+            </div>
+        </CascadingValue>
+    </ChildContent>
+    <Footer>
+        <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Form" Icon="@AppIcons.X" OnClick="this.Cancel">Zrušit</EcButton>
+        <EcButton Variant="EcButtonVariant.Primary" Size="EcButtonSize.Form" Icon="@AppIcons.Check"
+                  Disabled="@this.busy" OnClick="this.CreateToken">Vytvořit token</EcButton>
+    </Footer>
+</EcModal>
+
+@code {
+    [Parameter]
+    public bool Open { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<ApiTokenCreated> OnCreated { get; set; }
+
+    private readonly ApiTokenEditModel model = new();
+
+    private EditContext editContext = null!;
+
+    private string? error;
+
+    private bool busy;
+
+    protected override void OnInitialized()
+    {
+        this.editContext = new EditContext(this.model);
+    }
+
+    private async Task Cancel()
+    {
+        await this.OpenChanged.InvokeAsync(false);
+    }
+
+    private async Task CreateToken()
+    {
+        if (!this.editContext.Validate())
+            return;
+
+        this.busy = true;
+        this.error = null;
+
+        try
+        {
+            var request = new ApiTokenCreateRequest { Name = this.model.Name, Scope = this.model.Scope, ExpiresInDays = this.model.ExpiresInDays };
+            var created = await this.ApiTokensClient.CreateApiToken(request, CancellationToken.None);
+
+            await this.OnCreated.InvokeAsync(created);
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.BadRequest)
+        {
+            this.Logger.LogWarning(exception, "Creating the API token was refused");
+
+            this.error = $"Token se nepodařilo vytvořit. Platných tokenů můžete mít nejvýše {ApiTokenLimits.MaxActive}; nejdřív některý zrušte.";
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Creating the API token failed");
+
+            this.error = "Token se nepodařilo vytvořit. Zkuste to za chvíli znovu.";
+        }
+        finally
+        {
+            this.busy = false;
+        }
+    }
+}

@@ -1,0 +1,212 @@
+@page "/settings/api-tokens"
+@layout SettingsLayout
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.ApiTokens
+@inject IApiTokensClient ApiTokensClient
+@inject ILogger<ApiTokenSettings> Logger
+
+<PageTitle>API tokeny – Nastavení – EvilCase</PageTitle>
+
+<EcCard>
+    <Header>
+        <div class="ec-card-heading">
+            <h2 class="ec-card-title">
+                API tokeny
+                @if (this.items.Count > 0)
+                {
+                    <span class="ec-card-count">@this.items.Count</span>
+                }
+            </h2>
+            <span class="ec-card-subtitle">
+                <span class="ec-token-subtitle-long">Přístup pro integrace a AI agenty, kteří jednají vaším jménem</span>
+                <span class="ec-token-subtitle-short">Pro integrace a AI agenty</span>
+            </span>
+        </div>
+        <div class="ec-card-header-actions">
+            <EcButton Variant="EcButtonVariant.Primary" Icon="@AppIcons.Plus" OnClick="this.StartCreating"><span>Nový<span class="ec-settings-new-more"> token</span></span></EcButton>
+        </div>
+    </Header>
+    <ChildContent>
+        @if (this.loading)
+        {
+            <p class="ec-card-state">Načítám…</p>
+        }
+        else if (this.listFailure is not null)
+        {
+            <div class="ec-card-error">
+                <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.listFailure</div>
+                <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Refresh"
+                          OnClick="this.ReloadTokens">Zkusit znovu</EcButton>
+            </div>
+        }
+        else if (this.items.Count == 0)
+        {
+            <EcEmptyState Icon="@AppIcons.Key" Text="Zatím tu není žádný token.">
+                <Action>
+                    <EcButton Variant="EcButtonVariant.Primary" Icon="@AppIcons.Plus" OnClick="this.StartCreating">Vytvořit token</EcButton>
+                </Action>
+            </EcEmptyState>
+        }
+        else
+        {
+            <div class="ec-settings-head ec-token-row" aria-hidden="true">
+                <span>Název</span>
+                <span>Oprávnění</span>
+                <span>Vytvořen</span>
+                <span>Platí do</span>
+                <span>Naposledy použit</span>
+                <span></span>
+            </div>
+            <div class="ec-settings-list">
+                @foreach (var item in this.items)
+                {
+                    var expired = item.Expires <= this.now;
+
+                    <div class="ec-settings-row ec-token-row">
+                        <span class="ec-token-main">
+                            <span class="@(expired ? "ec-token-name ec-token-name-expired" : "ec-token-name")">@item.Name</span>
+                            <span class="ec-token-meta">
+                                <span class="ec-token-meta-line">
+                                    <span class="@ApiTokenDisplay.ScopeCss(item.Scope)">@ApiTokenDisplay.ScopeText(item.Scope)</span>
+                                    @if (expired)
+                                    {
+                                        <span class="ec-token-chip ec-token-expired">Vypršel</span>
+                                    }
+                                    else
+                                    {
+                                        <span>do @ApiTokenDisplay.DayText(item.Expires)</span>
+                                    }
+                                </span>
+                                <span>@(item.LastUsed is { } used ? $"Použit {MomentDisplay.Text(used)}" : "Nepoužit")</span>
+                            </span>
+                        </span>
+                        <span class="ec-token-cell-wide"><span class="@ApiTokenDisplay.ScopeCss(item.Scope)">@ApiTokenDisplay.ScopeText(item.Scope)</span></span>
+                        <span class="ec-token-cell ec-token-cell-wide">@ApiTokenDisplay.DayText(item.Created)</span>
+                        <span class="ec-token-cell ec-token-cell-wide">
+                            @if (expired)
+                            {
+                                <span class="ec-token-chip ec-token-expired">Vypršel</span>
+                            }
+                            else
+                            {
+                                @ApiTokenDisplay.DayText(item.Expires)
+                            }
+                        </span>
+                        <span class="@(item.LastUsed is null ? "ec-token-cell ec-token-cell-wide ec-token-cell-unused" : "ec-token-cell ec-token-cell-wide")">@ApiTokenDisplay.LastUsedText(item.LastUsed)</span>
+                        <span class="ec-settings-row-actions">
+                            <EcButton Variant="EcButtonVariant.QuietDanger" Size="EcButtonSize.Compact"
+                                      AriaLabel="@($"Zrušit token {item.Name}")" OnClick="() => this.StartRevoking(item)">Zrušit</EcButton>
+                        </span>
+                    </div>
+                }
+            </div>
+        }
+    </ChildContent>
+    <Footer>
+        Token jedná vaším jménem a vidí totéž co vy. Zrušený token přestane platit okamžitě.
+    </Footer>
+</EcCard>
+
+@if (this.formOpen)
+{
+    <ApiTokenFormModal Open OpenChanged="this.CloseForm" OnCreated="this.TokenCreated" />
+}
+
+@if (this.created is not null)
+{
+    <ApiTokenCreatedModal Created="this.created" Open OpenChanged="this.CloseCreated" />
+}
+
+@if (this.revoking is not null)
+{
+    <ApiTokenRevokeModal Token="this.revoking" Open OpenChanged="this.CloseRevoke" OnRevoked="this.TokenRevoked" />
+}
+
+@code {
+    private IReadOnlyList<ApiTokenItem> items = [];
+
+    private ApiTokenItem? revoking;
+
+    // Held only while its modal is open; the secret is shown once.
+    private ApiTokenCreated? created;
+
+    private bool formOpen;
+
+    private bool loading = true;
+
+    private string? listFailure;
+
+    private DateTime now = DateTime.UtcNow;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await this.ReloadTokens();
+        this.loading = false;
+    }
+
+    private async Task ReloadTokens()
+    {
+        this.listFailure = null;
+
+        try
+        {
+            var response = await this.ApiTokensClient.ListApiTokens(CancellationToken.None);
+
+            this.items = response.Items;
+            this.now = DateTime.UtcNow;
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Loading the API token list failed");
+
+            this.items = [];
+            this.listFailure = "Seznam tokenů se nepodařilo načíst. Zkuste to za chvíli znovu.";
+        }
+    }
+
+    private void StartCreating()
+    {
+        this.formOpen = true;
+    }
+
+    private void StartRevoking(ApiTokenItem item)
+    {
+        this.revoking = item;
+    }
+
+    private void CloseForm(bool open)
+    {
+        if (!open)
+            this.formOpen = false;
+    }
+
+    private async Task CloseCreated(bool open)
+    {
+        if (open)
+            return;
+
+        this.created = null;
+
+        await this.ReloadTokens();
+    }
+
+    private void CloseRevoke(bool open)
+    {
+        if (!open)
+            this.revoking = null;
+    }
+
+    private void TokenCreated(ApiTokenCreated token)
+    {
+        this.formOpen = false;
+        this.created = token;
+    }
+
+    private async Task TokenRevoked()
+    {
+        this.revoking = null;
+
+        await this.ReloadTokens();
+    }
+}

@@ -1,0 +1,73 @@
+@using EvilBrains.EvilCase.Api.Contract.ApiTokens
+@using Microsoft.JSInterop
+@inject IClipboardWriter Clipboard
+@inject ILogger<ApiTokenCreatedModal> Logger
+
+<EcModal Title="Token vytvořen" Open="this.Open" OpenChanged="this.OpenChanged">
+    <ChildContent>
+        <div class="ec-form">
+            <div class="ec-warning" role="status">
+                <EcIcon Paths="@AppIcons.AlertTriangle" />
+                <p class="ec-warning-text">Zkopírujte si token teď. Po zavření okna už ho znovu neuvidíte.</p>
+            </div>
+
+            <EcField Label="@this.Created.Token.Name" ControlId="api-token-secret"
+                     Hint="@($"{ApiTokenDisplay.ScopeText(this.Created.Token.Scope)} · platí do {ApiTokenDisplay.DayText(this.Created.Token.Expires)}")">
+                <div class="ec-token-secret">
+                    <input id="api-token-secret" class="ec-input ec-input-mono" readonly value="@this.Created.Secret" />
+                    <EcButton Variant="EcButtonVariant.Primary" Size="EcButtonSize.Form" Icon="@(this.copied ? AppIcons.Check : AppIcons.Copy)"
+                              OnClick="this.Copy">@(this.copied ? "Zkopírováno" : "Kopírovat")</EcButton>
+                </div>
+            </EcField>
+        </div>
+    </ChildContent>
+    <Footer>
+        <EcButton Variant="EcButtonVariant.Primary" Size="EcButtonSize.Form" OnClick="this.Done">Hotovo</EcButton>
+    </Footer>
+</EcModal>
+
+@code {
+    private static readonly TimeSpan CopiedShown = TimeSpan.FromSeconds(2);
+
+    [Parameter, EditorRequired]
+    public required ApiTokenCreated Created { get; set; }
+
+    [Parameter]
+    public bool Open { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    private bool copied;
+
+    private int round;
+
+    private async Task Done()
+    {
+        await this.OpenChanged.InvokeAsync(false);
+    }
+
+    private async Task Copy()
+    {
+        try
+        {
+            await this.Clipboard.WriteText(this.Created.Secret, CancellationToken.None);
+        }
+        catch (JSException exception)
+        {
+            this.Logger.LogWarning(exception, "Copying the API token to the clipboard failed");
+
+            return;
+        }
+
+        // A later copy owns the label; an earlier copy's delay must not reset it.
+        var current = ++this.round;
+        this.copied = true;
+        this.StateHasChanged();
+
+        await Task.Delay(CopiedShown);
+
+        if (current == this.round)
+            this.copied = false;
+    }
+}

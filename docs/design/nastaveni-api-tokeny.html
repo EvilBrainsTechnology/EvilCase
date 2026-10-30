@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>nastaveni-api-tokeny – EvilCase</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+  <style>
+    body { margin: 0; font-family: 'Instrument Sans', 'Segoe UI', sans-serif; background: #ECEEF2; color: #14161B; }
+    a { color: #1C3A9F; text-decoration: none; } a:hover { color: #1F3AA8; }
+    .row:hover { background: #F8F9FB; }
+    .navlink:hover { color: #FFFFFF; background: rgba(255,255,255,0.06); }
+    .setlink:hover { background: #F1F2F5; }
+    .dark-input::placeholder { color: #A0A6B1; }
+    .quietdanger:hover { background: #FDECEA; }
+  </style>
+</head>
+<body>
+<div style="width: 1440px; min-height: 2060px; box-sizing: border-box; background: #F2F3F6; display: flex; flex-direction: column; font-family: 'Instrument Sans', 'Segoe UI', sans-serif; color: #14161B;">
+
+  <header style="height: 60px; flex-shrink: 0; box-sizing: border-box; padding: 0 32px; display: flex; align-items: center; gap: 36px; background: #14161B;">
+    <a href="prehled.html" style="display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 700; color: #FFFFFF; letter-spacing: -0.01em;">
+      <span style="width: 32px; height: 32px; border-radius: 9px; background: #1F3FAE; display: flex; align-items: center; justify-content: center;">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 20h10"/><path d="M6 6l6-1 6 1"/><path d="M12 3v17"/><path d="M9 12L6 6l-3 6a3 3 0 0 0 6 0"/><path d="M21 12l-3-6-3 6a3 3 0 0 0 6 0"/></svg>
+      </span>
+      EvilCase
+    </a>
+    <nav aria-label="Hlavní menu" style="display: flex; align-items: stretch; align-self: stretch; gap: 0;">
+      <a href="prehled.html" class="navlink" style="display: flex; align-items: center; gap: 8px; padding: 0 16px; font-size: 14px; font-weight: 500; color: #B4BAC4;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="6" height="8" rx="1"/><rect x="4" y="16" width="6" height="4" rx="1"/><rect x="14" y="12" width="6" height="8" rx="1"/><rect x="14" y="4" width="6" height="4" rx="1"/></svg>Přehled
+      </a>
+      <a href="spisy.html" class="navlink" style="display: flex; align-items: center; gap: 8px; padding: 0 16px; font-size: 14px; font-weight: 500; color: #B4BAC4;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4h3l2 2h5a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2"/><path d="M17 17v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2h2"/></svg>Spisy
+      </a>
+      <a href="kontakty.html" class="navlink" style="display: flex; align-items: center; gap: 8px; padding: 0 16px; font-size: 14px; font-weight: 500; color: #B4BAC4;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0-3-3.85"/></svg>Kontakty
+      </a>
+      <a href="nastaveni-api-tokeny.html" aria-current="page" style="display: flex; align-items: center; gap: 8px; padding: 0 16px; font-size: 14px; font-weight: 600; color: #FFFFFF; background: rgba(255,255,255,0.10); box-shadow: inset 0 -3px 0 #9DB0F2;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>Nastavení
+      </a>
+    </nav>
+    <div style="flex-grow: 1;"></div>
+    <label for="t-global" style="display: flex; align-items: center; gap: 8px; width: 300px; height: 38px; box-sizing: border-box; padding: 0 12px; border: 1px solid #2E323B; border-radius: 10px; background: #1F2229; color: #A0A6B1;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="10" cy="10" r="7"/><path d="M21 21l-6-6"/></svg>
+      <input id="t-global" placeholder="Hledat spisy, úkony, kontakty…" class="dark-input" style="border: 0; outline: none; font: inherit; font-size: 14px; width: 100%; background: transparent; color: #FFFFFF;">
+    </label>
+    <button type="button" aria-label="Uživatelské menu" style="width: 38px; height: 38px; border-radius: 50%; border: 0; background: #1F3FAE; color: #FFFFFF; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: 0 0 0 2px #14161B, 0 0 0 3px #9DB0F2;">MV</button>
+  </header>
+
+  <div style="box-sizing: border-box; padding: 24px 32px 40px; display: flex; flex-direction: column; gap: 20px;">
+    <h1 style="margin: 0; font-size: 28px; font-weight: 600; letter-spacing: -0.02em;">Nastavení</h1>
+
+    <div style="display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 20px; align-items: start;">
+      <nav aria-label="Sekce nastavení" style="background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; padding: 10px; display: flex; flex-direction: column; gap: 2px;">
+        <a href="nastaveni.html" class="setlink" style="display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 12px; border-radius: 10px; font-size: 14px; font-weight: 500; color: #454B57;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9-9-9"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>Štítky
+        </a>
+        <a href="nastaveni-api-tokeny.html" aria-current="page" style="display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 12px; border-radius: 10px; font-size: 14px; font-weight: 600; background: #E9EDF9; color: #2A48B8;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="M10.8 12.2L20 3"/><path d="M17 6l3 3"/><path d="M14 9l2 2"/></svg>API tokeny
+        </a>
+        <a href="#" class="setlink" style="display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 12px; border-radius: 10px; font-size: 14px; font-weight: 500; color: #454B57;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16"/><path d="M12 14V4"/><path d="M12 14l4-4"/><path d="M12 14l-4-4"/></svg>Export
+        </a>
+      </nav>
+
+      <section style="background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden;">
+        <div style="display: flex; align-items: center; gap: 12px; padding: 18px 20px;">
+          <div style="display: flex; flex-direction: column; gap: 2px;">
+            <h2 style="margin: 0; font-size: 18px; font-weight: 600;">API tokeny <span style="margin-left: 6px; font-size: 13px; font-weight: 400; color: #5B6270;">3</span></h2>
+            <span style="font-size: 13px; color: #5B6270;">Přístup pro integrace a AI agenty, kteří jednají vaším jménem</span>
+          </div>
+          <div style="flex-grow: 1;"></div>
+          <button type="button" style="display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; font: inherit; font-size: 14px; font-weight: 600; color: #FFFFFF; background: #1F3FAE; border: 0; border-radius: 10px; cursor: pointer;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>Nový token
+          </button>
+        </div>
+        <div style="display: grid; grid-template-columns: minmax(0, 1fr) 140px 120px 130px 160px 88px; column-gap: 16px; align-items: center; height: 36px; padding: 0 20px; font-size: 12px; color: #5B6270; background: #F8F9FB; border-top: 1px solid #EDEFF3; border-bottom: 1px solid #EDEFF3;">
+          <span>Název</span><span>Oprávnění</span><span>Vytvořen</span><span>Platí do</span><span>Naposledy použit</span><span></span>
+        </div>
+
+        <div class="row" style="display: grid; grid-template-columns: minmax(0, 1fr) 140px 120px 130px 160px 88px; column-gap: 16px; align-items: center; min-height: 52px; padding: 0 20px; border-bottom: 1px solid #EDEFF3;">
+          <span style="font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Claude Code – pracovní notebook</span>
+          <span><span style="display: inline-flex; align-items: center; height: 24px; padding: 0 8px; border-radius: 6px; background: #E9EDF9; font-size: 12px; font-weight: 500; color: #2A48B8; white-space: nowrap;">Čtení i zápis</span></span>
+          <span style="font-size: 14px; color: #454B57; font-variant-numeric: tabular-nums;">30. 10. 2026</span>
+          <span style="font-size: 14px; color: #454B57; font-variant-numeric: tabular-nums;">28. 1. 2027</span>
+          <span style="font-size: 14px; color: #454B57; font-variant-numeric: tabular-nums;">30. 10. 2026 17:42</span>
+          <span style="display: flex; justify-content: flex-end;">
+            <button type="button" class="quietdanger" aria-label="Zrušit token Claude Code – pracovní notebook" style="height: 36px; padding: 0 12px; font: inherit; font-size: 14px; font-weight: 500; color: #B42318; background: transparent; border: 0; border-radius: 8px; cursor: pointer;">Zrušit</button>
+          </span>
+        </div>
+
+        <div class="row" style="display: grid; grid-template-columns: minmax(0, 1fr) 140px 120px 130px 160px 88px; column-gap: 16px; align-items: center; min-height: 52px; padding: 0 20px; border-bottom: 1px solid #EDEFF3;">
+          <span style="font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Přehled lhůt do kalendáře</span>
+          <span><span style="display: inline-flex; align-items: center; height: 24px; padding: 0 8px; border-radius: 6px; background: #EEF0F3; font-size: 12px; font-weight: 500; color: #454B57; white-space: nowrap;">Jen čtení</span></span>
+          <span style="font-size: 14px; color: #454B57; font-variant-numeric: tabular-nums;">2. 9. 2026</span>
+          <span style="font-size: 14px; color: #454B57; font-variant-numeric: tabular-nums;">2. 9. 2027</span>
+          <span style="font-size: 14px; color: #9AA0AB;">Nepoužit</span>
+          <span style="display: flex; justify-content: flex-end;">
+            <button type="button" class="quietdanger" aria-label="Zrušit token Přehled lhůt do kalendáře" style="height: 36px; padding: 0 12px; font: inherit; font-size: 14px; font-weight: 500; color: #B42318; background: transparent; border: 0; border-radius: 8px; cursor: pointer;">Zrušit</button>
+          </span>
+        </div>
+
+        <div class="row" style="display: grid; grid-template-columns: minmax(0, 1fr) 140px 120px 130px 160px 88px; column-gap: 16px; align-items: center; min-height: 52px; padding: 0 20px; border-bottom: 1px solid #EDEFF3;">
+          <span style="font-size: 14px; font-weight: 600; color: #5B6270; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Zkušební skript</span>
+          <span><span style="display: inline-flex; align-items: center; height: 24px; padding: 0 8px; border-radius: 6px; background: #EEF0F3; font-size: 12px; font-weight: 500; color: #454B57; white-space: nowrap;">Jen čtení</span></span>
+          <span style="font-size: 14px; color: #454B57; font-variant-numeric: tabular-nums;">1. 7. 2026</span>
+          <span><span style="display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 8px; border-radius: 6px; background: #FDE4E1; font-size: 12px; font-weight: 600; color: #9B2C1F; white-space: nowrap;"><span style="width: 8px; height: 8px; border-radius: 50%; background: #9B2C1F;"></span>Vypršel</span></span>
+          <span style="font-size: 14px; color: #454B57; font-variant-numeric: tabular-nums;">29. 7. 2026 09:15</span>
+          <span style="display: flex; justify-content: flex-end;">
+            <button type="button" class="quietdanger" aria-label="Zrušit token Zkušební skript" style="height: 36px; padding: 0 12px; font: inherit; font-size: 14px; font-weight: 500; color: #B42318; background: transparent; border: 0; border-radius: 8px; cursor: pointer;">Zrušit</button>
+          </span>
+        </div>
+
+        <div style="padding: 14px 20px; font-size: 13px; color: #5B6270;">Token jedná vaším jménem a vidí totéž co vy. Zrušený token přestane platit okamžitě.</div>
+      </section>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 520px 520px 300px; gap: 48px; align-items: start; margin-top: 40px;">
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <span style="font-size: 13px; font-weight: 600; color: #5B6270;">Nový token</span>
+        <div role="dialog" aria-label="Nový token" style="background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; box-shadow: 0 12px 32px rgba(20, 22, 27, 0.12); display: flex; flex-direction: column;">
+          <div style="display: flex; align-items: center; padding: 18px 20px; border-bottom: 1px solid #EDEFF3;">
+            <h2 style="margin: 0; font-size: 18px; font-weight: 600; flex-grow: 1;">Nový token</h2>
+            <button type="button" aria-label="Zavřít" style="width: 36px; height: 36px; border: 0; background: transparent; color: #454B57; cursor: pointer;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 20px; padding: 20px;">
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <label for="t-name" style="font-size: 13px; font-weight: 600;">Název <span style="color: #B42318;">*</span></label>
+              <input id="t-name" value="Claude Code – pracovní notebook" style="height: 44px; padding: 0 12px; font: inherit; font-size: 15px; border: 1px solid #D5D9E1; border-radius: 10px;">
+              <span style="font-size: 12px; color: #5B6270;">Podle čeho token poznáte, nejvýše 64 znaků</span>
+            </div>
+            <fieldset style="margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 8px;">
+              <legend style="padding: 0; margin-bottom: 8px; font-size: 13px; font-weight: 600;">Oprávnění</legend>
+              <label style="display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border: 1px solid #D5D9E1; border-radius: 10px; cursor: pointer;">
+                <input type="radio" name="t-scope" style="margin: 3px 0 0; width: 16px; height: 16px; accent-color: #1F3FAE;">
+                <span style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 14px; font-weight: 600;">Jen čtení</span><span style="font-size: 13px; color: #5B6270;">Čte spisy, úkony, kontakty, štítky a soubory</span></span>
+              </label>
+              <label style="display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border: 2px solid #1F3FAE; border-radius: 10px; background: #F5F7FD; cursor: pointer;">
+                <input type="radio" name="t-scope" checked style="margin: 3px 0 0; width: 16px; height: 16px; accent-color: #1F3FAE;">
+                <span style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 14px; font-weight: 600;">Čtení i zápis</span><span style="font-size: 13px; color: #5B6270;">Navíc zakládá, mění a maže</span></span>
+              </label>
+            </fieldset>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <span id="t-exp" style="font-size: 13px; font-weight: 600;">Platnost</span>
+              <div role="radiogroup" aria-labelledby="t-exp" style="display: inline-flex; align-self: flex-start; padding: 3px; gap: 2px; background: #EEF0F3; border-radius: 10px;">
+                <button type="button" role="radio" aria-checked="false" style="height: 38px; padding: 0 16px; font: inherit; font-size: 14px; color: #454B57; background: transparent; border: 0; border-radius: 8px; cursor: pointer;">30 dní</button>
+                <button type="button" role="radio" aria-checked="true" style="height: 38px; padding: 0 16px; font: inherit; font-size: 14px; font-weight: 600; color: #14161B; background: #FFFFFF; border: 0; border-radius: 8px; box-shadow: 0 1px 2px rgba(20, 22, 27, 0.12); cursor: pointer;">90 dní</button>
+                <button type="button" role="radio" aria-checked="false" style="height: 38px; padding: 0 16px; font: inherit; font-size: 14px; color: #454B57; background: transparent; border: 0; border-radius: 8px; cursor: pointer;">365 dní</button>
+              </div>
+              <span style="font-size: 12px; color: #5B6270;">Platí do 28. 1. 2027</span>
+            </div>
+          </div>
+          <div style="display: flex; justify-content: flex-end; gap: 10px; padding: 16px 20px; border-top: 1px solid #EDEFF3;">
+            <button type="button" style="height: 44px; padding: 0 18px; font: inherit; font-size: 14px; background: #FFFFFF; border: 1px solid #D5D9E1; border-radius: 10px; cursor: pointer;">Zrušit</button>
+            <button type="button" style="height: 44px; padding: 0 18px; font: inherit; font-size: 14px; font-weight: 600; color: #FFFFFF; background: #1F3FAE; border: 0; border-radius: 10px; cursor: pointer;">Vytvořit token</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 48px;">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <span style="font-size: 13px; font-weight: 600; color: #5B6270;">Token vytvořen · zobrazí se jen jednou</span>
+          <div role="dialog" aria-label="Token vytvořen" style="background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; box-shadow: 0 12px 32px rgba(20, 22, 27, 0.12); display: flex; flex-direction: column;">
+            <div style="padding: 18px 20px; border-bottom: 1px solid #EDEFF3;">
+              <h2 style="margin: 0; font-size: 18px; font-weight: 600;">Token vytvořen</h2>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 16px; padding: 20px;">
+              <div role="status" style="display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; background: #FDEFD8; border-radius: 10px; font-size: 14px; color: #6B3F05; line-height: 1.45;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0; margin-top: 1px;"><path d="M12 3l9.5 17h-19z"/><path d="M12 10v4"/><path d="M12 17.5v.01"/></svg>
+                <span>Zkopírujte si token teď. Po zavření okna už ho znovu neuvidíte.</span>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 6px;">
+                <label for="t-secret" style="font-size: 13px; font-weight: 600;">Claude Code – pracovní notebook</label>
+                <div style="display: flex; gap: 8px;">
+                  <input id="t-secret" readonly value="evc_7Qm2xT9vLk4pR8sWc1nB6yHd3fJz0aGe5uXo2iNq" style="flex-grow: 1; min-width: 0; height: 44px; padding: 0 12px; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #14161B; background: #F8F9FB; border: 1px solid #D5D9E1; border-radius: 10px;">
+                  <button type="button" style="display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 16px; font: inherit; font-size: 14px; font-weight: 600; color: #FFFFFF; background: #1F3FAE; border: 0; border-radius: 10px; cursor: pointer; flex-shrink: 0;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a1 1 0 0 1 1-1h10"/></svg>Kopírovat
+                  </button>
+                </div>
+                <span style="font-size: 12px; color: #5B6270;">Čtení i zápis<span aria-hidden="true" style="margin: 0 6px; color: #A0A6B1;">·</span>platí do 28. 1. 2027</span>
+              </div>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px; padding: 16px 20px; border-top: 1px solid #EDEFF3;">
+              <button type="button" style="height: 44px; padding: 0 18px; font: inherit; font-size: 14px; font-weight: 600; color: #FFFFFF; background: #1F3FAE; border: 0; border-radius: 10px; cursor: pointer;">Hotovo</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <span style="font-size: 13px; font-weight: 600; color: #5B6270;">Zrušit token</span>
+          <div role="dialog" aria-label="Zrušit token" style="background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; box-shadow: 0 12px 32px rgba(20, 22, 27, 0.12); display: flex; flex-direction: column;">
+            <div style="padding: 18px 20px; border-bottom: 1px solid #EDEFF3;">
+              <h2 style="margin: 0; font-size: 18px; font-weight: 600;">Zrušit token</h2>
+            </div>
+            <p style="margin: 0; padding: 20px; font-size: 15px; line-height: 1.5;">Opravdu zrušit token <strong>Claude Code – pracovní notebook</strong>? Integrace, která ho používá, ztratí přístup hned. Zrušení nejde vrátit.</p>
+            <div style="display: flex; justify-content: flex-end; gap: 10px; padding: 16px 20px; border-top: 1px solid #EDEFF3;">
+              <button type="button" style="height: 44px; padding: 0 18px; font: inherit; font-size: 14px; background: #FFFFFF; border: 1px solid #D5D9E1; border-radius: 10px; cursor: pointer;">Ponechat</button>
+              <button type="button" style="height: 44px; padding: 0 18px; font: inherit; font-size: 14px; font-weight: 600; color: #FFFFFF; background: #B42318; border: 0; border-radius: 10px; cursor: pointer;">Zrušit token</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <span style="font-size: 13px; font-weight: 600; color: #5B6270;">Prázdný seznam</span>
+        <div style="background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 32px 20px; text-align: center;">
+          <span style="width: 44px; height: 44px; border-radius: 12px; background: #F1F2F5; color: #5B6270; display: flex; align-items: center; justify-content: center;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="M10.8 12.2L20 3"/><path d="M17 6l3 3"/><path d="M14 9l2 2"/></svg>
+          </span>
+          <span style="font-size: 14px; color: #454B57;">Zatím tu není žádný token.</span>
+          <button type="button" style="display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; font: inherit; font-size: 14px; font-weight: 600; color: #FFFFFF; background: #1F3FAE; border: 0; border-radius: 10px; cursor: pointer;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>Vytvořit token
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 40px;">
+      <span style="font-size: 13px; font-weight: 600; color: #5B6270;">Mobil · 390 px</span>
+      <div style="width: 390px; box-sizing: border-box; background: #F2F3F6; border: 1px solid #E1E4EA; border-radius: 20px; overflow: hidden; display: flex; flex-direction: column; gap: 14px; padding: 18px 16px 24px;">
+        <h1 style="margin: 0; font-size: 22px; font-weight: 600;">Nastavení</h1>
+        <nav aria-label="Sekce nastavení (mobil)" style="display: flex; gap: 6px; overflow-x: auto;">
+          <a href="nastaveni.html" style="display: flex; align-items: center; height: 44px; padding: 0 14px; border-radius: 999px; font-size: 14px; font-weight: 500; color: #454B57; white-space: nowrap;">Štítky</a>
+          <a href="nastaveni-api-tokeny.html" aria-current="page" style="display: flex; align-items: center; height: 44px; padding: 0 14px; border-radius: 999px; font-size: 14px; font-weight: 600; background: #E9EDF9; color: #2A48B8; white-space: nowrap;">API tokeny</a>
+          <a href="#" style="display: flex; align-items: center; height: 44px; padding: 0 14px; border-radius: 999px; font-size: 14px; font-weight: 500; color: #454B57; white-space: nowrap;">Export</a>
+        </nav>
+        <section style="background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; overflow: hidden;">
+          <div style="display: flex; align-items: center; gap: 10px; padding: 14px 16px;">
+            <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0;">
+              <h2 style="margin: 0; font-size: 17px; font-weight: 600;">API tokeny <span style="margin-left: 6px; font-size: 13px; font-weight: 400; color: #5B6270;">3</span></h2>
+              <span style="font-size: 12px; color: #5B6270;">Pro integrace a AI agenty</span>
+            </div>
+            <button type="button" style="display: flex; align-items: center; gap: 6px; height: 44px; padding: 0 14px; font: inherit; font-size: 14px; font-weight: 600; color: #FFFFFF; background: #1F3FAE; border: 0; border-radius: 10px; flex-shrink: 0;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>Nový
+            </button>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 10px 8px 10px 16px; border-top: 1px solid #EDEFF3;">
+            <div style="display: flex; flex-direction: column; gap: 4px; flex-grow: 1; min-width: 0;">
+              <span style="font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Claude Code – pracovní notebook</span>
+              <span style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #5B6270;"><span style="display: inline-flex; align-items: center; height: 20px; padding: 0 6px; border-radius: 5px; background: #E9EDF9; color: #2A48B8; font-weight: 500;">Čtení i zápis</span>do 28. 1. 2027</span>
+              <span style="font-size: 12px; color: #5B6270;">Použit 30. 10. 2026 17:42</span>
+            </div>
+            <button type="button" aria-label="Zrušit token Claude Code – pracovní notebook" style="height: 44px; padding: 0 12px; font: inherit; font-size: 14px; font-weight: 500; color: #B42318; background: transparent; border: 0;">Zrušit</button>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 10px 8px 10px 16px; border-top: 1px solid #EDEFF3;">
+            <div style="display: flex; flex-direction: column; gap: 4px; flex-grow: 1; min-width: 0;">
+              <span style="font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Přehled lhůt do kalendáře</span>
+              <span style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #5B6270;"><span style="display: inline-flex; align-items: center; height: 20px; padding: 0 6px; border-radius: 5px; background: #EEF0F3; color: #454B57; font-weight: 500;">Jen čtení</span>do 2. 9. 2027</span>
+              <span style="font-size: 12px; color: #5B6270;">Nepoužit</span>
+            </div>
+            <button type="button" aria-label="Zrušit token Přehled lhůt do kalendáře" style="height: 44px; padding: 0 12px; font: inherit; font-size: 14px; font-weight: 500; color: #B42318; background: transparent; border: 0;">Zrušit</button>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 10px 8px 10px 16px; border-top: 1px solid #EDEFF3;">
+            <div style="display: flex; flex-direction: column; gap: 4px; flex-grow: 1; min-width: 0;">
+              <span style="font-size: 14px; font-weight: 600; color: #5B6270; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Zkušební skript</span>
+              <span style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #5B6270;"><span style="display: inline-flex; align-items: center; height: 20px; padding: 0 6px; border-radius: 5px; background: #EEF0F3; color: #454B57; font-weight: 500;">Jen čtení</span><span style="display: inline-flex; align-items: center; height: 20px; padding: 0 6px; border-radius: 5px; background: #FDE4E1; color: #9B2C1F; font-weight: 600;">Vypršel</span></span>
+              <span style="font-size: 12px; color: #5B6270;">Použit 29. 7. 2026 09:15</span>
+            </div>
+            <button type="button" aria-label="Zrušit token Zkušební skript" style="height: 44px; padding: 0 12px; font: inherit; font-size: 14px; font-weight: 500; color: #B42318; background: transparent; border: 0;">Zrušit</button>
+          </div>
+          <div style="padding: 12px 16px; font-size: 12px; color: #5B6270; border-top: 1px solid #EDEFF3;">Token jedná vaším jménem a vidí totéž co vy. Zrušený token přestane platit okamžitě.</div>
+        </section>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -29,7 +29,8 @@ Otevři je v prohlížeči přímo ze souboru.
 | [`hledani.html`](hledani.html) | Hledání v horní liště, otevřená nabídka | všechny obrazovky |
 | [`kontakty.html`](kontakty.html) | Kontakty | `/contacts` |
 | [`detail-kontaktu.html`](detail-kontaktu.html) | Detail kontaktu | `/contacts/{id}` |
-| [`nastaveni.html`](nastaveni.html) | Nastavení, sekce štítků | `/settings` |
+| [`nastaveni.html`](nastaveni.html) | Nastavení, sekce štítků | `/settings/labels` |
+| [`nastaveni-api-tokeny.html`](nastaveni-api-tokeny.html) | Nastavení, sekce API tokenů | `/settings/api-tokens` |
 
 Text v hranatých závorkách je zástupný: vzorová data pro něj hodnotu nemají. Implementace na
 jeho místě ukazuje skutečnou hodnotu, nebo prázdný stav podle SDD dané agendy.

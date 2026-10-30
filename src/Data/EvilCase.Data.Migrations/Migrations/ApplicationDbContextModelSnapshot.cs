@@ -113,6 +113,53 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                         });
                 });
 
+            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.ApiToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("Created")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("Expires")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("LastUsed")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("Scope")
+                        .IsRequired()
+                        .HasMaxLength(9)
+                        .HasColumnType("character varying(9)");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime?>("Updated")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ApiTokens");
+                });
+
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Case", b =>
                 {
                     b.Property<Guid>("Id")
@@ -619,6 +666,17 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.Navigation("Case");
 
                     b.Navigation("Contact");
+                });
+
+            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.ApiToken", b =>
+                {
+                    b.HasOne("EvilBrains.EvilCase.Data.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Case", b =>

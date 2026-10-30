@@ -1,40 +1,33 @@
 @page "/settings/export"
+@layout SettingsLayout
 @inject IFileDownloader Downloader
 
-<PageTitle>Export – EvilCase</PageTitle>
+<PageTitle>Export – Nastavení – EvilCase</PageTitle>
 
-<div class="ec-page">
-    <EcPageHeader Title="Nastavení" />
-
-    <div class="ec-settings-layout">
-        <SettingsNav />
-
-        <div class="ec-settings-export">
-            <EcCard>
-                <Header>
-                    <div class="ec-card-heading">
-                        <h2 class="ec-card-title">Export</h2>
-                        <span class="ec-card-subtitle">Všechna data v jednom archivu ZIP</span>
-                    </div>
-                </Header>
-                <ChildContent>
-                    <div class="ec-export">
-                        <p class="ec-export-text">
-                            Archiv obsahuje spisy s podspisy a úkony, komentáře, soubory se všemi verzemi, kontakty a štítky.
-                            Každý spis, úkon a kontakt má vlastní soubor JSON, takže se archiv dá číst i bez aplikace.
-                        </p>
-                        <p class="ec-export-note">
-                            Historie změn, smazané záznamy a uživatelé se neexportují. Export zachytí stav ve chvíli, kdy začne stahování.
-                        </p>
-                        <div class="ec-export-action">
-                            <EcButton Variant="EcButtonVariant.Primary" Icon="@AppIcons.ArrowBarToDown" OnClick="this.Export">Exportovat vše</EcButton>
-                            <span class="ec-export-hint">Stáhne se jako <span class="ec-export-file">@this.FileName</span></span>
-                        </div>
-                    </div>
-                </ChildContent>
-            </EcCard>
-        </div>
-    </div>
+<div class="ec-settings-export">
+    <EcCard>
+        <Header>
+            <div class="ec-card-heading">
+                <h2 class="ec-card-title">Export</h2>
+                <span class="ec-card-subtitle">Všechna data v jednom archivu ZIP</span>
+            </div>
+        </Header>
+        <ChildContent>
+            <div class="ec-export">
+                <p class="ec-export-text">
+                    Archiv obsahuje spisy s podspisy a úkony, komentáře, soubory se všemi verzemi, kontakty a štítky.
+                    Každý spis, úkon a kontakt má vlastní soubor JSON, takže se archiv dá číst i bez aplikace.
+                </p>
+                <p class="ec-export-note">
+                    Historie změn, smazané záznamy a uživatelé se neexportují. Export zachytí stav ve chvíli, kdy začne stahování.
+                </p>
+                <div class="ec-export-action">
+                    <EcButton Variant="EcButtonVariant.Primary" Icon="@AppIcons.ArrowBarToDown" OnClick="this.Export">Exportovat vše</EcButton>
+                    <span class="ec-export-hint">Stáhne se jako <span class="ec-export-file">@this.FileName</span></span>
+                </div>
+            </div>
+        </ChildContent>
+    </EcCard>
 </div>
 
 @code {

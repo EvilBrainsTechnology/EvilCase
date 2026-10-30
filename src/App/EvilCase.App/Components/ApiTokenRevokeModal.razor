@@ -1,0 +1,74 @@
+@using System.Net
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.ApiTokens
+@inject IApiTokensClient ApiTokensClient
+@inject ILogger<ApiTokenRevokeModal> Logger
+
+<EcModal Title="Zrušit token" Open="this.Open" OpenChanged="this.OpenChanged">
+    <ChildContent>
+        <p class="ec-confirm-text">
+            Opravdu zrušit token <strong>@this.Token.Name</strong>? Integrace, která ho používá, ztratí přístup hned.
+            Zrušení nejde vrátit.
+        </p>
+        @if (this.error is not null)
+        {
+            <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.error</div>
+        }
+    </ChildContent>
+    <Footer>
+        <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Form" Icon="@AppIcons.X" OnClick="this.Cancel">Ponechat</EcButton>
+        <EcButton Variant="EcButtonVariant.Danger" Size="EcButtonSize.Form" Icon="@AppIcons.Trash"
+                  Disabled="@this.busy" OnClick="this.RevokeToken">Zrušit token</EcButton>
+    </Footer>
+</EcModal>
+
+@code {
+    [Parameter, EditorRequired]
+    public required ApiTokenItem Token { get; set; }
+
+    [Parameter]
+    public bool Open { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    [Parameter]
+    public EventCallback OnRevoked { get; set; }
+
+    private string? error;
+
+    private bool busy;
+
+    private async Task Cancel()
+    {
+        await this.OpenChanged.InvokeAsync(false);
+    }
+
+    private async Task RevokeToken()
+    {
+        this.busy = true;
+        this.error = null;
+
+        try
+        {
+            await this.ApiTokensClient.RevokeApiToken(this.Token.ApiTokenId, CancellationToken.None);
+
+            await this.OnRevoked.InvokeAsync();
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+        {
+            this.error = "Token už neexistuje.";
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Revoking the API token failed");
+
+            this.error = "Token se nepodařilo zrušit. Zkuste to za chvíli znovu.";
+        }
+        finally
+        {
+            this.busy = false;
+        }
+    }
+}
