@@ -35,13 +35,13 @@ tenancy, security, an API contract, a screen, a test or a second project keep al
 ## 2. Ask, then wait
 
 Every unclear point and every `question` a workflow returns goes to the owner in this chat
-(`.claude/rules/agents.md`). The held-up issue swaps `agent-in-progress` for `waiting-for-owner`,
-which frees the start; a held-up pull request gets it beside `agent-done`. Nothing works on a
-`waiting-for-owner` item until the answer, a red CI run and a hand-off included.
+(`.claude/rules/agents.md`) and as a comment on the issue or pull request it holds up. That issue
+swaps `agent-in-progress` for `waiting-for-owner`, freeing the start; that pull request gets
+`agent-done` and `waiting-for-owner`. Nothing works on a `waiting-for-owner` item until the answer.
 
-An answer is the owner's reply here or a comment on the item. Comment the question, the answer and
-what the stopped work pushed on the item, remove `waiting-for-owner`: an issue rejoins the backlog
-with that comment in `body`; a pull request starts `pr-work.js` at once with it and what came
+An answer is the owner's reply here or a comment on the item that answers it. Comment the answer and
+what the stopped work pushed, remove `waiting-for-owner`: an issue rejoins the backlog with the
+question and answer in `body`; a pull request starts `pr-work.js` at once with them and what came
 meanwhile in `instructions`. An answer changing the vision or a governing SDD is an owner request,
 edited in the code's commit. A round unblocks an issue once its `Blocked by #` all closed.
 

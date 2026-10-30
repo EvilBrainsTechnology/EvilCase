@@ -16,7 +16,7 @@ const asked = (q) => q?.trim() || null
 const WORK_SCHEMA = {
   type: 'object',
   properties: {
-    fixed: { type: 'string', description: 'One sentence on what changed' },
+    fixed: { type: 'string', description: 'One sentence on what changed, a stopped earlier push included' },
     replies: { type: 'integer', description: 'Threads answered' },
     screens: { type: 'string', description: 'The screenshot targets where a screen changes, or empty' },
     security: { type: 'boolean', description: 'Whether authentication or file storage changed' },
