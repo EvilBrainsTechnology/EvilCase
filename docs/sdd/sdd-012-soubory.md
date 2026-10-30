@@ -208,6 +208,43 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   podpisu u starší verze není. Hlavička nese vedle názvu štítek „verze 2“ a tlačítko Verze je
   neaktivní; k aktuální verzi vede pruh verzí.
 
+### Úpravy textu
+
+- Text (txt, csv, tsv, log) a kód (json, xml, isdoc, yaml, yml, html) jde upravit přímo v náhledu.
+  Hlavička náhledu nese Upravit před Verze jen u aktuální verze souboru karty, který se celý vejde
+  do 1 MB a je platné UTF-8, s BOM i bez něj. Starší verze, obsah podepsaného dokumentu a příloha
+  datové zprávy se neupravují. U souboru, který není platné UTF-8, náhled řekne „Soubor není
+  v kódování UTF-8, proto ho nejde upravit.“
+- Editor ukáže celý text s čísly řádků, dlouhé řádky zalomí a kód barevně zvýrazní stejně jako
+  náhled. Text sám neformátuje ani nedoplňuje. Hlavička nese jen ikonu a jméno souboru,
+  „Upravujete verzi 3“, po změně „Neuložené změny · upravujete verzi 3“, Zrušit, Uložit
+  a zavření; listování soubory, Verze, Nová verze, Přejmenovat a Stáhnout se během úprav skryjí.
+- Lišta nad textem nese Zpět a Znovu, neaktivní, když není co vrátit, a Hledat v textu. Zpět
+  a znovu jde i Ctrl+Z a Ctrl+Y, Cmd+Z a Cmd+Shift+Z. Hledání nerozlišuje velikost písmen,
+  zvýrazní všechny výskyty a vybere další; Enter přejde na další výskyt, Shift+Enter na
+  předchozí, Esc hledání vymaže a náhled nezavře. Ctrl+F nebo Cmd+F v textu přejde do hledání.
+- Tab vloží do textu tabulátor, do kódu odsazení jeho prvního odsazeného řádku, nejvýše osm
+  mezer; když žádný odsazený není, v YAML dvě mezery, jinak tabulátor. Výběr přes více řádků Tab
+  odsadí a Shift+Tab odsazení ubere. První Esc v textu náhled nezavře a následující Tab přesune
+  fokus z textu; další Esc se chová jako Esc kdekoli v náhledu.
+- Uložit, i Ctrl+S nebo Cmd+S, nahraje text jako novou verzi souboru pod jeho jménem stejně jako
+  Nová verze a náhled se vrátí ke čtení aktuální verze. Dokud se text neliší od načteného, je
+  Uložit neaktivní. Uložení zachová UTF-8, BOM, pokud ho soubor měl, a konce řádků souboru; konce
+  řádků určí první konec řádku v souboru (CRLF, LF nebo CR), soubor bez konce řádku dostane LF.
+- Uložení se nekontroluje proti souběžné změně: nová verze vznikne nad tou, která je v tu chvíli
+  aktuální. Text shodný s aktuální verzí verzi nevytvoří a náhled se vrátí ke čtení. Selhané
+  uložení nechá text v editoru a ukáže důvod se Zkusit znovu.
+- Soubor se samostatným podpisem ukáže nad textem „Soubor má samostatný podpis
+  Smlouva.xml.p7s. Nová verze ho zneplatní.“
+- Zrušit bez změn vrátí náhled ke čtení hned. Neuložené změny hlídá okno „Zahodit neuložené
+  změny?“ s textem „Úpravy souboru Smlouva.xml nejsou uložené. Po zahození se nedají vrátit.“,
+  Pokračovat v úpravách a Zahodit změny. Okno se ukáže při Zrušit, při zavření náhledu křížkem,
+  Esc i klikem mimo a při přechodu v aplikaci, i tlačítkem Zpět prohlížeče. Po zahození změn
+  udělá Zpět nebo Vpřed prohlížeče krok v historii a nový záznam do ní nepřidá. Zavření nebo
+  obnovení záložky a přechod mimo aplikaci ohlásí vlastní dotaz prohlížeče.
+- Na mobilu nese hlavička pod jménem Zrušit a Uložit vedle sebe přes celou šířku a po změně
+  ukáže jen „Neuložené změny“; lišta se při nedostatku místa posouvá do strany.
+
 ### Podpis datové zprávy
 
 - Server ověří podpis uložené datové zprávy i doručenky. Podpis je platný, když obsah odpovídá
@@ -337,6 +374,11 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
 - Datum v seznamu: první nahrání / aktuální verze. Platí aktuální verze; pořadí podle prvního
   nahrání.
 - Archiv vlastníka bez souborů: 404 / prázdný archiv. Platí prázdný archiv.
+- Úprava starší verze: povolit / jen aktuální verze. Platí jen aktuální verze.
+- Souběžná úprava: kontrolovat / nekontrolovat. Platí nekontrolovat; uložení vytvoří verzi nad
+  aktuální.
+- Kódování upravovaného textu: jakékoli / jen UTF-8. Platí jen UTF-8.
+- Po uložení úprav: zůstat v editoru / náhled ke čtení. Platí náhled ke čtení.
 - Archiv souborů: sestavit předem / posílat průběžně. Platí průběžně.
 
 ## Dopady

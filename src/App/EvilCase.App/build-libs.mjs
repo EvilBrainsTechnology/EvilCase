@@ -1,6 +1,6 @@
 // Generates wwwroot/lib and wwwroot/fonts from node_modules: copies the browser builds and their
-// license files, and bundles postal-mime, @kenjiuno/msgreader, file-type and the code preview (Prettier
-// with @prettier/plugin-xml, and highlight.js) with esbuild.
+// license files, and bundles postal-mime, @kenjiuno/msgreader, file-type, the code preview (Prettier
+// with @prettier/plugin-xml, and highlight.js) and the text editor (CodeMirror) with esbuild.
 //
 // Usage: node build-libs.mjs        (after `npm ci`; no parameters, any working directory)
 // Replaces wwwroot/lib and wwwroot/fonts; both are gitignored.
@@ -220,6 +220,149 @@ export function highlightCode(text, language) {
 `;
 
 await bundle(codePreview, join(lib, 'code-preview'), 'code-preview.min.js', { format: 'esm' });
+
+// The text editor: CodeMirror with line numbers, marks of the lines changed since it opened, history, a search driven
+// from the app's own field and the highlighting of JSON, XML, YAML and HTML. It neither formats nor completes what is typed.
+const textEditor = `
+import { EditorState, RangeSet, StateField } from '@codemirror/state';
+import { EditorView, GutterMarker, drawSelection, gutter, highlightActiveLine, highlightActiveLineGutter, highlightSpecialChars, keymap, lineNumbers } from '@codemirror/view';
+import { defaultKeymap, history, historyKeymap, indentLess, indentMore, insertNewlineKeepIndent, redo, redoDepth, undo, undoDepth } from '@codemirror/commands';
+import { SearchQuery, findNext, findPrevious, openSearchPanel, search, setSearchQuery } from '@codemirror/search';
+import { HighlightStyle, bracketMatching, indentUnit, syntaxHighlighting } from '@codemirror/language';
+import { tags } from '@lezer/highlight';
+import { json } from '@codemirror/lang-json';
+import { xml } from '@codemirror/lang-xml';
+import { yaml } from '@codemirror/lang-yaml';
+import { html } from '@codemirror/lang-html';
+
+// The classes are the app's; its stylesheet colours them like the code preview.
+const highlighting = HighlightStyle.define([
+    { tag: [tags.propertyName, tags.tagName], class: 'ec-code-name' },
+    { tag: [tags.attributeName, tags.typeName], class: 'ec-code-attribute' },
+    { tag: [tags.string, tags.attributeValue], class: 'ec-code-string' },
+    { tag: [tags.number, tags.bool, tags.null, tags.keyword, tags.atom], class: 'ec-code-literal' },
+    { tag: [tags.punctuation, tags.meta], class: 'ec-code-punctuation' },
+    { tag: tags.comment, class: 'ec-code-comment' },
+]);
+
+const languages = {
+    json: () => json(),
+    xml: () => xml({ autoCloseTags: false }),
+    yaml: () => yaml(),
+    html: () => html({ autoCloseTags: false }),
+};
+
+class ChangedLine extends GutterMarker {
+    elementClass = 'ec-text-editor-changed';
+}
+
+const changedLine = new ChangedLine();
+
+// Tab indents the lines of a selection over more than one line; otherwise it types the unit in place of the selection.
+function indentOrInsert(view) {
+    const { state } = view;
+    if (state.selection.ranges.some((range) => state.doc.lineAt(range.from).number !== state.doc.lineAt(range.to).number)) {
+        return indentMore(view);
+    }
+
+    view.dispatch(state.update(state.replaceSelection(state.facet(indentUnit)), { scrollIntoView: true, userEvent: 'input.type' }));
+    return true;
+}
+
+// The starts of the lines changed since the editor opened; a line edited back to its original text stays marked.
+const changedLines = StateField.define({
+    create: () => RangeSet.empty,
+    update(lines, transaction) {
+        if (!transaction.docChanged) return lines;
+
+        const { doc } = transaction.state;
+        const added = [];
+        let marked = lines.map(transaction.changes);
+
+        transaction.changes.iterChangedRanges((fromA, toA, fromB, toB) => {
+            const first = doc.lineAt(fromB);
+            const last = doc.lineAt(toB);
+            marked = marked.update({ filterFrom: first.from, filterTo: last.to, filter: () => false });
+            for (let number = first.number; number <= last.number; number++) {
+                added.push(changedLine.range(doc.line(number).from));
+            }
+        });
+
+        return marked.update({ add: added, sort: true });
+    },
+});
+
+// Opens an editor of the text in parent. language is json, xml, yaml, html or null for plain text; unit is what Tab
+// types and indents by. onChange(dirty, canUndo, canRedo) hears when any of the three changes; onFind runs on Ctrl+F or
+// Cmd+F.
+export function createEditor(parent, text, language, unit, label, onChange, onFind) {
+    let initial = null;
+    let reported = [false, false, false];
+
+    const view = new EditorView({
+        parent,
+        state: EditorState.create({
+            doc: text,
+            extensions: [
+                changedLines,
+                gutter({ class: 'ec-text-editor-changes', markers: (editor) => editor.state.field(changedLines) }),
+                lineNumbers(),
+                highlightActiveLineGutter(),
+                highlightSpecialChars(),
+                history(),
+                drawSelection(),
+                highlightActiveLine(),
+                EditorView.lineWrapping,
+                indentUnit.of(unit),
+                EditorView.contentAttributes.of({ 'aria-label': label }),
+                // An empty panel: the search runs from the app's field; the open panel only turns the highlights on.
+                search({ createPanel: () => ({ dom: document.createElement('div'), top: true }) }),
+                // Enter keeps the indentation of the line as typed; it never indents by the syntax.
+                keymap.of([
+                    { key: 'Mod-f', preventDefault: true, run: () => { onFind(); return true; } },
+                    { key: 'Enter', run: insertNewlineKeepIndent, shift: insertNewlineKeepIndent },
+                    { key: 'Tab', run: indentOrInsert, shift: indentLess },
+                    ...defaultKeymap,
+                    ...historyKeymap,
+                ]),
+                language ? [languages[language](), bracketMatching(), syntaxHighlighting(highlighting)] : [],
+                EditorView.updateListener.of((update) => {
+                    if (!update.docChanged) return;
+                    const state = [!update.state.doc.eq(initial), undoDepth(update.state) > 0, redoDepth(update.state) > 0];
+                    if (state.some((value, index) => value !== reported[index])) {
+                        reported = state;
+                        onChange(...state);
+                    }
+                }),
+            ],
+        }),
+    });
+
+    initial = view.state.doc;
+    openSearchPanel(view);
+
+    return {
+        text: () => view.state.doc.toString(),
+        undo: () => undo(view),
+        redo: () => redo(view),
+        focus: () => view.focus(),
+        // While on, Tab moves the focus out of the editor.
+        tabFocus: (on) => view.setTabFocusMode(on),
+        search(query) {
+            view.dispatch({ effects: setSearchQuery.of(new SearchQuery({ search: query, literal: true })) });
+            if (query) {
+                view.dispatch({ selection: { anchor: view.state.selection.main.from } });
+                findNext(view);
+            }
+        },
+        findNext: () => findNext(view),
+        findPrevious: () => findPrevious(view),
+        destroy: () => view.destroy(),
+    };
+}
+`;
+
+await bundle(textEditor, join(lib, 'codemirror'), 'codemirror.min.js', { format: 'esm' });
 
 for (const [family, name] of [['instrument-sans', '@fontsource-variable/instrument-sans'], ['jetbrains-mono', '@fontsource-variable/jetbrains-mono']]) {
     for (const subset of ['latin', 'latin-ext']) {

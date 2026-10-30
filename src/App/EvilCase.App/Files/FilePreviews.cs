@@ -162,7 +162,7 @@ internal sealed class FilePreviews(IJSRuntime jsRuntime) : IFilePreviews, IAsync
             await this.module.DisposeAsync();
     }
 
-    private static string LanguageValue(CodeLanguage language)
+    internal static string LanguageValue(CodeLanguage language)
     {
         return language switch
         {

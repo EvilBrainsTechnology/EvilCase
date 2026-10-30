@@ -6,6 +6,10 @@
 
 @* A JSON, XML, YAML or HTML source: highlighted, formatted unless the toolbar switches to the original. HTML never renders. *@
 <ReflowPreview Formats Formatted="this.formatted" CanFormat="this.view?.Formatted == true" OnFormat="this.ToggleFormat">
+    @if (this.Note is not null)
+    {
+        <p class="ec-preview-note">@this.Note</p>
+    }
     @if (this.Truncated)
     {
         <p class="ec-preview-note">Soubor je delší, zobrazuje se jen jeho začátek a nejde naformátovat.</p>
@@ -49,6 +53,12 @@
 
     [Parameter, EditorRequired]
     public required string FileName { get; set; }
+
+    /// <summary>
+    /// A note on the file shown above the others.
+    /// </summary>
+    [Parameter]
+    public string? Note { get; set; }
 
     /// <summary>
     /// Raised when the preview's script does not run.

@@ -1,0 +1,28 @@
+<EcModal Title="Zahodit neuložené změny?" Open="this.Open" OpenChanged="this.OpenChanged">
+    <ChildContent>
+        <p class="ec-confirm-text">Úpravy souboru @this.FileName nejsou uložené. Po zahození se nedají vrátit.</p>
+    </ChildContent>
+    <Footer>
+        <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Form" OnClick="this.Cancel">Pokračovat v úpravách</EcButton>
+        <EcButton Variant="EcButtonVariant.Danger" Size="EcButtonSize.Form" OnClick="this.OnDiscard">Zahodit změny</EcButton>
+    </Footer>
+</EcModal>
+
+@code {
+    [Parameter, EditorRequired]
+    public required string FileName { get; set; }
+
+    [Parameter]
+    public bool Open { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    [Parameter]
+    public EventCallback OnDiscard { get; set; }
+
+    private async Task Cancel()
+    {
+        await this.OpenChanged.InvokeAsync(false);
+    }
+}

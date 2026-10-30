@@ -6,6 +6,7 @@ using EvilBrains.EvilCase.App.Auth;
 using EvilBrains.EvilCase.App.Components;
 using EvilBrains.EvilCase.App.Files;
 using EvilBrains.EvilCase.App.Models;
+using EvilBrains.EvilCase.App.Navigation;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Web;
@@ -793,6 +794,7 @@ public class FilesCardRenderTests
         ctx.Services.AddSingleton<IFilePicker>(static sp => sp.GetRequiredService<StubFilePicker>());
         ctx.Services.AddSingleton<IBlobUrls>(new StubBlobUrls());
         ctx.Services.AddSingleton<IFilePreviews>(new StubFilePreviews());
+        ctx.Services.AddSingleton<IBrowserHistory>(new StubBrowserHistory());
         ctx.Services.AddSingleton<IAuthSession>(new StubAuthSession());
 
         return ctx;

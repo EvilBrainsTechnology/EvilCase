@@ -1,0 +1,188 @@
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+@inject ITextEditors Editors
+@inject ILogger<TextEditor> Logger
+
+@* The source editor of a text file: undo, redo and search over the text; Notes stand between the toolbar and the text. *@
+<div class="ec-preview-view">
+    <div class="ec-preview-toolbar ec-text-editor-toolbar" role="toolbar" aria-label="Úpravy" inert="@this.Locked">
+        <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ArrowBackUp" AriaLabel="Zpět"
+                  Disabled="@(!this.canUndo)" OnClick="this.Undo" />
+        <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ArrowForwardUp" AriaLabel="Znovu"
+                  Disabled="@(!this.canRedo)" OnClick="this.Redo" />
+        @* Escape clears the search and does not close the dialog. *@
+        <div class="ec-text-editor-search" role="search" data-ec-keeps-escape>
+            <label class="ec-preview-toolbar-search-box">
+                <EcIcon Paths="@AppIcons.Search" />
+                <input type="search" class="ec-preview-toolbar-search-input" placeholder="Hledat v textu" aria-label="Hledat v textu"
+                       autocomplete="off" @ref="this.searchInput" />
+            </label>
+        </div>
+    </div>
+    @this.Notes
+    <div class="ec-preview-stage ec-text-editor-stage" inert="@this.Locked">
+        <div @ref="this.host" class="ec-text-editor"></div>
+    </div>
+</div>
+
+@code {
+    private readonly CancellationTokenSource cancel = new();
+
+    private ElementReference host;
+
+    private ElementReference searchInput;
+
+    private DotNetObjectReference<TextEditor>? self;
+
+    private bool opened;
+
+    private bool canUndo;
+
+    private bool canRedo;
+
+    private bool dirty;
+
+    /// <summary>
+    /// The text as read, without its byte order mark.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required string Text { get; set; }
+
+    /// <summary>
+    /// The language the text is highlighted in; null for plain text.
+    /// </summary>
+    [Parameter]
+    public CodeLanguage? Language { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string FileName { get; set; }
+
+    [Parameter]
+    public RenderFragment? Notes { get; set; }
+
+    /// <summary>
+    /// Takes no input while set, so nothing is typed into a text being saved.
+    /// </summary>
+    [Parameter]
+    public bool Locked { get; set; }
+
+    /// <summary>
+    /// Raised with whether the text differs from the one given.
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> OnDirtyChanged { get; set; }
+
+    /// <summary>
+    /// Raised on Ctrl+S or Cmd+S.
+    /// </summary>
+    [Parameter]
+    public EventCallback OnSave { get; set; }
+
+    /// <summary>
+    /// Raised when the editor's script did not start.
+    /// </summary>
+    [Parameter]
+    public EventCallback OnUnavailable { get; set; }
+
+    /// <summary>
+    /// The edited text, its lines joined with "\n".
+    /// </summary>
+    public async Task<string> ReadText()
+    {
+        return await this.Editors.ReadEditorText(this.host);
+    }
+
+    [JSInvokable]
+    public async Task NotifyChanged(bool dirty, bool canUndo, bool canRedo)
+    {
+        this.canUndo = canUndo;
+        this.canRedo = canRedo;
+
+        if (dirty != this.dirty)
+        {
+            this.dirty = dirty;
+
+            await this.OnDirtyChanged.InvokeAsync(dirty);
+        }
+
+        this.StateHasChanged();
+    }
+
+    [JSInvokable]
+    public async Task NotifySave()
+    {
+        await this.OnSave.InvokeAsync();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await this.cancel.CancelAsync();
+
+        if (this.opened)
+        {
+            try
+            {
+                await this.Editors.CloseEditor(this.host);
+            }
+            catch (JSException exception)
+            {
+                this.Logger.LogInformation(exception, "The text editor was already gone");
+            }
+        }
+
+        this.self?.Dispose();
+        this.cancel.Dispose();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        this.self = DotNetObjectReference.Create(this);
+
+        try
+        {
+            // Tab types a tab into text. Into code it types the indentation of the first indented line, at most eight
+            // spaces; without one two spaces in YAML, which takes no tabs, and a tab elsewhere.
+            var indentUnit = this.Language is CodeLanguage.Yaml ? "  " : "\t";
+
+            if (this.Language is not null)
+            {
+                foreach (var line in this.Text.AsSpan().EnumerateLines())
+                {
+                    if (line.IndexOfAnyExcept(' ', '\t') > 0)
+                    {
+                        indentUnit = line[0] == '\t' ? "\t" : new string(' ', Math.Min(line.IndexOfAnyExcept(' '), 8));
+
+                        break;
+                    }
+                }
+            }
+
+            await this.Editors.OpenEditor(this.host, this.searchInput, this.Text, this.Language, indentUnit, $"Obsah souboru {this.FileName}", this.self);
+            this.opened = true;
+
+            // Closed while it opened.
+            if (this.cancel.IsCancellationRequested)
+                await this.Editors.CloseEditor(this.host);
+        }
+        catch (JSException exception)
+        {
+            this.Logger.LogWarning(exception, "The text editor did not start");
+
+            if (!this.cancel.IsCancellationRequested)
+                await this.OnUnavailable.InvokeAsync();
+        }
+    }
+
+    private async Task Undo()
+    {
+        await this.Editors.UndoEdit(this.host);
+    }
+
+    private async Task Redo()
+    {
+        await this.Editors.RedoEdit(this.host);
+    }
+}

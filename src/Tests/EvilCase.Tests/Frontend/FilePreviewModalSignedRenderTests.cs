@@ -5,6 +5,7 @@ using EvilBrains.EvilCase.App.Auth;
 using EvilBrains.EvilCase.App.Components;
 using EvilBrains.EvilCase.App.Files;
 using EvilBrains.EvilCase.App.Models;
+using EvilBrains.EvilCase.App.Navigation;
 using EvilBrains.EvilCase.Tests.Files.Signatures;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -326,6 +327,7 @@ public class FilePreviewModalSignedRenderTests
     {
         var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        ctx.Services.AddSingleton<IBrowserHistory>(new StubBrowserHistory());
 
         blobs = new StubBlobUrls();
         previews = new StubFilePreviews();
@@ -365,6 +367,19 @@ public class FilePreviewModalSignedRenderTests
             .Add(static modal => modal.OnDownload, item => onDownload?.Invoke(item))
             .Add(static modal => modal.FileIdChanged, changed => onFileIdChanged?.Invoke(changed))
             .Add(static modal => modal.Open, value: true));
+    }
+
+    [Test]
+    public async Task TheTextOfASignedDocumentOffersNoEditing()
+    {
+        await using var ctx = NewContext(out _, out _, out _, out _);
+
+        var file = File("Poznámka.txt.p7m");
+        var component = Render(ctx, [file], file.FileId, static _ => SignedFile.Sign("a"u8.ToArray(), detached: false));
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-preview-line"), Has.Count.EqualTo(1)));
+
+        Assert.That(component.FindAll("[aria-label='Upravit']"), Is.Empty, "the content of a signed document is not edited");
     }
 
     [Test]

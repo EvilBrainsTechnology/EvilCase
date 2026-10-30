@@ -146,6 +146,110 @@ public class EcModalRenderTests
         Assert.That(raised, Is.Null);
     }
 
+    [Test]
+    public void OnlyAGuardedDialogIsMarked()
+    {
+        using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+
+        var guarded = RenderGuarded(ctx, static _ => { }, static () => { });
+        var plain = RenderOpen(ctx, static _ => { });
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(guarded.Find("dialog").HasAttribute("data-ec-guarded"), Is.True);
+            Assert.That(plain.Find("dialog").HasAttribute("data-ec-guarded"), Is.False);
+        }
+    }
+
+    [Test]
+    public async Task TheCloseButtonOfAGuardedDialogAsksItsOwnerAndLeavesItOpen()
+    {
+        await using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+
+        bool? raised = null;
+        var requested = 0;
+        var component = RenderGuarded(ctx, value => raised = value, () => requested++);
+
+        await component.Find(".ec-modal-header button[aria-label=Zavřít]").ClickAsync(new MouseEventArgs());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(requested, Is.EqualTo(1));
+            Assert.That(raised, Is.Null, "the owner closes a guarded dialog");
+        }
+    }
+
+    [Test]
+    public async Task AClickOnTheBackdropOfAGuardedDialogAsksItsOwner()
+    {
+        await using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+
+        bool? raised = null;
+        var requested = 0;
+        var component = RenderGuarded(ctx, value => raised = value, () => requested++);
+
+        await component.Find("dialog").TriggerEventAsync("onpointerdown", new PointerEventArgs());
+        await component.Find("dialog").ClickAsync(new MouseEventArgs());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(requested, Is.EqualTo(1));
+            Assert.That(raised, Is.Null, "the owner closes a guarded dialog");
+        }
+    }
+
+    [Test]
+    public async Task EscapeOnAGuardedDialogAsksItsOwner()
+    {
+        await using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+
+        bool? raised = null;
+        var requested = 0;
+        var component = RenderGuarded(ctx, value => raised = value, () => requested++);
+
+        await component.InvokeAsync(component.Instance.NotifyCloseRequested);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(requested, Is.EqualTo(1));
+            Assert.That(raised, Is.Null, "the owner closes a guarded dialog");
+        }
+    }
+
+    [Test]
+    public async Task AGuardedDialogTheBrowserClosedAnywayAsksItsOwnerAndOpensAgain()
+    {
+        await using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+
+        var module = ctx.JSInterop.SetupModule("./js/ec-modal.js");
+        bool? raised = null;
+        var requested = 0;
+        var component = RenderGuarded(ctx, value => raised = value, () => requested++);
+
+        await component.InvokeAsync(component.Instance.NotifyClosed);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(requested, Is.EqualTo(1));
+            Assert.That(raised, Is.Null, "the owner closes a guarded dialog");
+            Assert.That(module.Invocations["openModal"], Has.Count.EqualTo(2), "the dialog opens again until its owner closes it");
+        }
+    }
+
+    private static IRenderedComponent<EcModal> RenderGuarded(BunitContext ctx, Action<bool> openChanged, Action closeRequest)
+    {
+        return ctx.Render<EcModal>(parameters => parameters
+            .Add(static modal => modal.Title, "Poznámky.txt")
+            .Add(static modal => modal.Open, value: true)
+            .Add(static modal => modal.OpenChanged, openChanged)
+            .Add(static modal => modal.OnCloseRequest, closeRequest));
+    }
+
     private static IRenderedComponent<EcModal> RenderOpen(BunitContext ctx, Action<bool> openChanged)
     {
         return ctx.Render<EcModal>(parameters => parameters

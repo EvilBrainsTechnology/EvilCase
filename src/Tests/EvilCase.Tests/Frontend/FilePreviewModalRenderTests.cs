@@ -5,6 +5,7 @@ using EvilBrains.EvilCase.App.Auth;
 using EvilBrains.EvilCase.App.Components;
 using EvilBrains.EvilCase.App.Files;
 using EvilBrains.EvilCase.App.Models;
+using EvilBrains.EvilCase.App.Navigation;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Web;
@@ -1274,6 +1275,7 @@ public class FilePreviewModalRenderTests
     {
         var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        ctx.Services.AddSingleton<IBrowserHistory>(new StubBrowserHistory());
 
         blobs = new StubBlobUrls();
         previews = new StubFilePreviews();

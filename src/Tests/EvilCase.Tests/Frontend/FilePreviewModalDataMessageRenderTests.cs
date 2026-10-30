@@ -5,6 +5,7 @@ using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.App.Auth;
 using EvilBrains.EvilCase.App.Components;
 using EvilBrains.EvilCase.App.Files;
+using EvilBrains.EvilCase.App.Navigation;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EvilBrains.EvilCase.Tests.Frontend;
@@ -362,6 +363,21 @@ public class FilePreviewModalDataMessageRenderTests
         await signatures.Received(1).ReadFileSignature(file.FileId, 2, Arg.Any<CancellationToken>());
     }
 
+    [Test]
+    public void ATextAttachmentOffersNoEditing()
+    {
+        using var ctx = NewContext(out _, out _, out _);
+
+        var file = File("Zpráva.zfo");
+        var component = Render(ctx, [file], file.FileId, static _ => DefaultMessage());
+
+        component.WaitForAssertion(() => Assert.That(component.FindAll(".ec-preview-data-message-attachment-open"), Has.Count.EqualTo(2)));
+        component.FindAll(".ec-preview-data-message-attachment-open")[1].Click();
+        component.WaitForAssertion(() => Assert.That(component.Find(".ec-preview-name").TextContent, Is.EqualTo("Poučení.txt")));
+
+        Assert.That(component.FindAll("[aria-label='Upravit']"), Is.Empty, "an attachment is not edited");
+    }
+
     private static string Position(IRenderedComponent<FilePreviewModal> component)
     {
         return string.Join(' ', component.Find(".ec-preview-position").TextContent.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
@@ -376,6 +392,7 @@ public class FilePreviewModalDataMessageRenderTests
     {
         var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        ctx.Services.AddSingleton<IBrowserHistory>(new StubBrowserHistory());
 
         blobs = new StubBlobUrls();
         previews = new StubFilePreviews();

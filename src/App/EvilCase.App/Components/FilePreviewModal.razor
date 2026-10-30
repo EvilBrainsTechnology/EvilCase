@@ -3,6 +3,7 @@
 @using System.Text
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Contract.Files
+@using EvilBrains.EvilCase.App.Navigation
 @using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.JSInterop
 @implements IAsyncDisposable
@@ -11,6 +12,8 @@
 @inject IFilePreviews Previews
 @inject IFileDownloader Downloader
 @inject ILogger<FilePreviewModal> Logger
+@inject IBrowserHistory History
+@inject NavigationManager Navigation
 
 @if (this.Current is { } file)
 {
@@ -21,7 +24,7 @@
     var preview = FileTypeDisplay.Preview(stagedName);
     var shownVersion = this.ShownVersionItem;
 
-    <EcModal Title="@shownName" Large Open="this.Open" OpenChanged="this.OpenChanged">
+    <EcModal Title="@shownName" Large Open="this.Open" OpenChanged="this.OpenChanged" OnCloseRequest="this.CloseRequest">
         <Heading>
             @if (attachment is not null)
             {
@@ -48,6 +51,27 @@
                         <span class="ec-preview-divider" aria-hidden="true"></span>
                     }
                     <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Download" AriaLabel="Stáhnout přílohu" OnClick="() => this.DownloadAttachment(attachment)"><span class="ec-preview-action-label">Stáhnout přílohu</span></EcButton>
+                </div>
+            }
+            else if (this.editing is not null)
+            {
+                <EcFileIcon FileName="@file.FileName" />
+                <div class="ec-preview-title">
+                    <h2 class="ec-preview-name" title="@file.FileName">@file.FileName</h2>
+                    <span class="ec-preview-meta">
+                        @if (this.dirty)
+                        {
+                            <span class="ec-preview-unsaved">Neuložené změny</span><span class="ec-preview-edit-version">@(" ")<span class="ec-sep" aria-hidden="true">·</span> upravujete verzi @file.Version</span>
+                        }
+                        else
+                        {
+                            @($"Upravujete verzi {file.Version}")
+                        }
+                    </span>
+                </div>
+                <div class="ec-preview-edit-actions">
+                    <EcButton Variant="EcButtonVariant.Secondary" Disabled="@this.saving" OnClick="this.CancelEdit">Zrušit</EcButton>
+                    <EcButton Variant="EcButtonVariant.Primary" Icon="@AppIcons.Check" Disabled="@(!this.dirty || this.saving)" OnClick="this.Save">Uložit</EcButton>
                 </div>
             }
             else
@@ -83,6 +107,10 @@
                         </nav>
                         <span class="ec-preview-divider" aria-hidden="true"></span>
                     }
+                    @if (this.CanEdit)
+                    {
+                        <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Edit" AriaLabel="Upravit" OnClick="this.StartEdit"><span class="ec-preview-action-label">Upravit</span></EcButton>
+                    }
                     @if (file.VersionCount > 1)
                     {
                         @* Not an EcButton: the focus returns to it, which needs its element reference. *@
@@ -111,252 +139,288 @@
             }
         </Heading>
         <ChildContent>
-            @if (attachment is null && file.VersionCount > 1 && (this.OlderVersion is not null || this.versionsOpen))
+            @if (this.editing is { } edited)
             {
-                var shown = this.OlderVersion ?? file.Version;
-                var shownItem = this.versions?.FirstOrDefault(version => version.Number == shown);
-                var title = $"Verze {shown} z {file.Version}" + (shownItem is null ? "" : $" · {MomentDisplay.Text(shownItem.Created)} · {shownItem.UploaderEmail}");
-
-                <div class="@(this.OlderVersion is null ? "ec-preview-versions" : "ec-preview-versions ec-preview-versions-old")" role="group" aria-label="Verze souboru">
-                    <span class="ec-preview-versions-label"><EcIcon Paths="@AppIcons.Clock" />Verze</span>
-                    <EcPopover @ref="this.versionsPopover" AriaLabel="Výběr verze" PanelClass="ec-preview-versions-panel">
-                        <Trigger><span class="ec-preview-versions-trigger">@title<EcIcon Paths="@AppIcons.ChevronDown" /></span></Trigger>
-                        <ChildContent>
-                            @if (this.versions is null)
-                            {
-                                <p class="ec-preview-versions-error">Verze se nepodařilo načíst.</p>
-                            }
-                            else
-                            {
-                                <ul class="ec-preview-versions-list">
-                                    @foreach (var version in this.versions)
-                                    {
-                                        var number = version.Number;
-
-                                        <li>
-                                            <button type="button" class="ec-preview-versions-option" aria-current="@(number == shown ? "true" : null)"
-                                                    @onclick="() => this.SelectVersion(file, number)">
-                                                <span class="ec-preview-versions-option-title">Verze @number@(number == file.Version ? " " : "")@if (number == file.Version) { <EcBadge Text="aktuální" Tone="EcBadgeTone.Current" /> }</span>
-                                                <span class="ec-preview-versions-option-meta">@MomentDisplay.Text(version.Created) · @version.UploaderEmail</span>
-                                            </button>
-                                        </li>
-                                    }
-                                </ul>
-                            }
-                            <div class="ec-preview-versions-divider" role="separator"></div>
-                            <button type="button" class="ec-preview-versions-manage" @onclick="() => this.ManageVersions(file)">Spravovat verze</button>
-                        </ChildContent>
-                    </EcPopover>
-                    @if (this.OlderVersion is not null)
-                    {
-                        <span class="ec-preview-versions-note">Starší verze. Stáhnout stáhne tuto verzi.</span>
-                        <EcButton Variant="EcButtonVariant.Quiet" Size="EcButtonSize.Compact" OnClick="this.ShowCurrentVersion">Zobrazit aktuální verzi</EcButton>
-                    }
-                </div>
-            }
-            @if (this.versionFailure is not null)
-            {
-                <div class="ec-alert ec-preview-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.versionFailure</div>
-            }
-            @if (this.versionNotice is not null)
-            {
-                <div class="ec-file-notice ec-preview-alert" role="status">@this.versionNotice</div>
-            }
-            @if (this.signedContentName is not null)
-            {
-                <FileSigners @key="(file.FileId, this.OlderVersion)" FileId="file.FileId" FileName="@file.FileName" Version="this.OlderVersion" />
-            }
-            else if (attachment is null && preview != FilePreviewKind.SignedDocument && this.OlderVersion is null && file.SignatureFileId is { } signatureFileId
-                     && this.Files.FirstOrDefault(item => item.FileId == signatureFileId) is { } signature)
-            {
-                <FileSigners @key="(file.FileId, signatureFileId)" FileId="signatureFileId" FileName="@signature.FileName" SignedFileId="file.FileId" OnOpenFile="this.OpenFile" />
-            }
-            @if (preview == FilePreviewKind.None || this.unsupported)
-            {
-                <div class="ec-preview-message">
-                    <EcFileIcon FileName="@stagedName" Size="EcFileIconSize.Large" />
-                    <p class="ec-preview-message-title">Náhled tohoto typu souboru není k dispozici</p>
-                    <p class="ec-preview-message-text">Soubor si stáhněte a otevřete v aplikaci, která ho umí zobrazit.</p>
-                    <EcButton Variant="EcButtonVariant.Primary" Icon="@AppIcons.Download" OnClick="() => this.DownloadShown(file)">Stáhnout soubor</EcButton>
-                </div>
-            }
-            else if (this.failed)
-            {
-                <div class="ec-preview-message">
-                    <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />Soubor se nepodařilo načíst. Zkuste to za chvíli znovu.</div>
-                    <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Refresh" OnClick="() => this.Reload(file)">Zkusit znovu</EcButton>
-                </div>
-            }
-            else if (this.loading)
-            {
-                <p class="ec-preview-message">Načítám…</p>
-            }
-            else if (preview == FilePreviewKind.Text)
-            {
-                <ReflowPreview @key="this.shownKey">
-                    @if (this.truncated)
-                    {
-                        <p class="ec-preview-note">Soubor je delší, zobrazuje se jen jeho začátek.</p>
-                    }
-                    <div class="ec-preview-text" role="document" tabindex="0" aria-label="Obsah souboru @stagedName">
-                        @for (var index = 0; index < this.lines.Count; index++)
-                        {
-                            <div class="ec-preview-line">
-                                <span class="ec-preview-line-number" aria-hidden="true">@(index + 1)</span>
-                                <span class="ec-preview-line-text">@this.lines[index]</span>
-                            </div>
-                        }
-                    </div>
-                </ReflowPreview>
-            }
-            else if (preview == FilePreviewKind.Code)
-            {
-                <CodePreview @key="this.shownKey" Text="@this.code" Truncated="this.truncated" FileName="@stagedName" OnUnreadable="this.Unreadable" />
-            }
-            else if (preview == FilePreviewKind.Markdown)
-            {
-                <ReflowPreview @key="this.shownKey">
-                    @if (this.truncated)
-                    {
-                        <p class="ec-preview-note">Soubor je delší, zobrazuje se jen jeho začátek.</p>
-                    }
-                    <article class="ec-preview-markdown" role="document" tabindex="0" aria-label="Obsah souboru @stagedName">@((MarkupString)this.markdownHtml)</article>
-                </ReflowPreview>
-            }
-            else if (preview == FilePreviewKind.Document)
-            {
-                <DocumentPreview @key="this.shownKey" Content="this.document!" FileName="@stagedName" OnUnreadable="this.Unreadable" />
-            }
-            else if (preview == FilePreviewKind.Workbook)
-            {
-                if (this.workbook.Count == 0)
+                @if (this.saveFailure is not null)
                 {
-                    <p class="ec-preview-message">Sešit neobsahuje žádné listy.</p>
-                }
-                else
-                {
-                    var sheet = this.workbook[this.activeSheet];
-
-                    <div class="ec-preview-sheet-view">
-                        @if (sheet.RowCount > sheet.Rows.Count)
-                        {
-                            <p class="ec-preview-note">Zobrazuje se jen prvních @Count(sheet.Rows.Count) řádků z @Count(sheet.RowCount).</p>
-                        }
-                        <div class="ec-preview-sheet" role="document" tabindex="0" aria-label="Obsah listu @sheet.Name">
-                            <table class="ec-preview-sheet-table">
-                                <thead>
-                                    <tr>
-                                        <th scope="col"></th>
-                                        @for (var column = 0; column < sheet.ColumnCount; column++)
-                                        {
-                                            <th scope="col">@ColumnName(column)</th>
-                                        }
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @for (var row = 0; row < sheet.Rows.Count; row++)
-                                    {
-                                        <tr>
-                                            <th scope="row">@(row + 1)</th>
-                                            @foreach (var cell in sheet.Rows[row])
-                                            {
-                                                <td>@cell</td>
-                                            }
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="ec-preview-sheet-tabs" role="tablist" aria-label="Listy sešitu">
-                            @for (var index = 0; index < this.workbook.Count; index++)
-                            {
-                                var sheetIndex = index;
-
-                                <button type="button" role="tab" class="ec-preview-sheet-tab" aria-selected="@(sheetIndex == this.activeSheet ? "true" : "false")"
-                                        @onclick="() => this.activeSheet = sheetIndex">@this.workbook[sheetIndex].Name</button>
-                            }
-                        </div>
+                    <div class="ec-alert ec-preview-alert" role="alert">
+                        <EcIcon Paths="@AppIcons.AlertTriangle" /><p class="ec-alert-text">@this.saveFailure</p>
+                        <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Refresh" Disabled="@this.saving" OnClick="this.Save">Zkusit znovu</EcButton>
                     </div>
                 }
-            }
-            else if (preview == FilePreviewKind.Email)
-            {
-                var message = this.email!;
-
-                <ReflowPreview @key="this.shownKey">
-                    <article class="ec-preview-email" role="document" tabindex="0" aria-label="Obsah zprávy @stagedName">
-                        <dl class="ec-preview-email-headers">
-                            <dt>Od</dt>
-                            <dd>@Or(message.From)</dd>
-                            <dt>Komu</dt>
-                            <dd>@Or(string.Join(", ", message.To))</dd>
-                            @if (message.Cc.Count > 0)
-                            {
-                                <dt>Kopie</dt>
-                                <dd>@string.Join(", ", message.Cc)</dd>
-                            }
-                            <dt>Předmět</dt>
-                            <dd>@Or(message.Subject)</dd>
-                            <dt>Datum</dt>
-                            <dd>@Moment(message.Date)</dd>
-                        </dl>
-                        @if (message.Truncated)
+                <TextEditor @ref="this.editor" Text="@edited.Text" FileName="@file.FileName" Locked="this.saving"
+                            Language="@(preview == FilePreviewKind.Code ? FileTypeDisplay.Language(file.FileName) : (CodeLanguage?)null)"
+                            OnDirtyChanged="this.EditorDirtyChanged" OnSave="this.Save" OnUnavailable="this.EditorUnavailable">
+                    <Notes>
+                        @if (file.SignatureFileId is { } signatureId && this.Files.FirstOrDefault(item => item.FileId == signatureId) is { } signature)
                         {
-                            <p class="ec-preview-note">Zpráva je delší, zobrazuje se jen její začátek.</p>
+                            <p class="ec-text-editor-note" role="note"><EcIcon Paths="@AppIcons.AlertTriangle" />Soubor má samostatný podpis @signature.FileName. Nová verze ho zneplatní.</p>
                         }
-                        <div class="ec-preview-email-body">@message.Body</div>
-                        @if (message.Attachments.Count > 0)
-                        {
-                            <section class="ec-preview-email-attachments" aria-label="Přílohy">
-                                <h3 class="ec-preview-email-attachments-title">Přílohy (@message.Attachments.Count)</h3>
-                                <ul class="ec-preview-email-attachment-list">
-                                    @foreach (var attachment in message.Attachments)
-                                    {
-                                        <li class="ec-preview-email-attachment">
-                                            <EcIcon Paths="@AppIcons.Paperclip" />
-                                            <span class="ec-preview-email-attachment-name">@attachment.Name</span>
-                                            <span class="ec-preview-email-attachment-size">@FileSizeDisplay.Text(attachment.Size)</span>
-                                        </li>
-                                    }
-                                </ul>
-                            </section>
-                        }
-                    </article>
-                </ReflowPreview>
-            }
-            else if (preview == FilePreviewKind.DataMessage)
-            {
-                <DataMessagePreview @key="this.shownKey" Content="this.dataMessage!" FileName="@stagedName" FileId="@(attachment is null ? file.FileId : null)" Version="@(attachment is null ? this.OlderVersion : null)"
-                                    OnOpenAttachment="opened => this.OpenAttachment(stagedName, opened.Message, opened.Index)" OnUnreadable="this.Unreadable" />
-            }
-            else if (preview == FilePreviewKind.SignedDocument)
-            {
-                <FileSigners @key="(file.FileId, this.OlderVersion)" FileId="file.FileId" FileName="@file.FileName" Version="this.OlderVersion" Detached OnOpenFile="this.OpenFile" />
-            }
-            else if (preview == FilePreviewKind.Pdf)
-            {
-                <PdfPreview @key="this.shownKey" Url="@(this.url ?? "")" Content="this.pdf" FileName="@stagedName" OnUnreadable="this.Unreadable" />
-            }
-            else if (preview == FilePreviewKind.Image || preview == FilePreviewKind.ConvertedImage)
-            {
-                <div class="ec-preview-stage">
-                    <img @key="this.shownKey" class="ec-preview-image" src="@this.url" alt="@stagedName" @onerror="this.Unreadable" />
-                </div>
-            }
-            else if (preview == FilePreviewKind.Audio)
-            {
-                <div class="ec-preview-stage">
-                    <audio @key="this.shownKey" class="ec-preview-audio" src="@this.url" controls @onerror="this.Unreadable"></audio>
-                </div>
+                    </Notes>
+                </TextEditor>
             }
             else
             {
-                <div class="ec-preview-stage">
-                    <video @key="this.shownKey" class="ec-preview-video" src="@this.url" controls @onerror="this.Unreadable"></video>
-                </div>
+                @if (attachment is null && file.VersionCount > 1 && (this.OlderVersion is not null || this.versionsOpen))
+                {
+                    var shown = this.OlderVersion ?? file.Version;
+                    var shownItem = this.versions?.FirstOrDefault(version => version.Number == shown);
+                    var title = $"Verze {shown} z {file.Version}" + (shownItem is null ? "" : $" · {MomentDisplay.Text(shownItem.Created)} · {shownItem.UploaderEmail}");
+
+                    <div class="@(this.OlderVersion is null ? "ec-preview-versions" : "ec-preview-versions ec-preview-versions-old")" role="group" aria-label="Verze souboru">
+                        <span class="ec-preview-versions-label"><EcIcon Paths="@AppIcons.Clock" />Verze</span>
+                        <EcPopover @ref="this.versionsPopover" AriaLabel="Výběr verze" PanelClass="ec-preview-versions-panel">
+                            <Trigger><span class="ec-preview-versions-trigger">@title<EcIcon Paths="@AppIcons.ChevronDown" /></span></Trigger>
+                            <ChildContent>
+                                @if (this.versions is null)
+                                {
+                                    <p class="ec-preview-versions-error">Verze se nepodařilo načíst.</p>
+                                }
+                                else
+                                {
+                                    <ul class="ec-preview-versions-list">
+                                        @foreach (var version in this.versions)
+                                        {
+                                            var number = version.Number;
+
+                                            <li>
+                                                <button type="button" class="ec-preview-versions-option" aria-current="@(number == shown ? "true" : null)"
+                                                        @onclick="() => this.SelectVersion(file, number)">
+                                                    <span class="ec-preview-versions-option-title">Verze @number@(number == file.Version ? " " : "")@if (number == file.Version) { <EcBadge Text="aktuální" Tone="EcBadgeTone.Current" /> }</span>
+                                                    <span class="ec-preview-versions-option-meta">@MomentDisplay.Text(version.Created) · @version.UploaderEmail</span>
+                                                </button>
+                                            </li>
+                                        }
+                                    </ul>
+                                }
+                                <div class="ec-preview-versions-divider" role="separator"></div>
+                                <button type="button" class="ec-preview-versions-manage" @onclick="() => this.ManageVersions(file)">Spravovat verze</button>
+                            </ChildContent>
+                        </EcPopover>
+                        @if (this.OlderVersion is not null)
+                        {
+                            <span class="ec-preview-versions-note">Starší verze. Stáhnout stáhne tuto verzi.</span>
+                            <EcButton Variant="EcButtonVariant.Quiet" Size="EcButtonSize.Compact" OnClick="this.ShowCurrentVersion">Zobrazit aktuální verzi</EcButton>
+                        }
+                    </div>
+                }
+                @if (this.versionFailure is not null)
+                {
+                    <div class="ec-alert ec-preview-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.versionFailure</div>
+                }
+                @if (this.versionNotice is not null)
+                {
+                    <div class="ec-file-notice ec-preview-alert" role="status">@this.versionNotice</div>
+                }
+                @if (this.signedContentName is not null)
+                {
+                    <FileSigners @key="(file.FileId, this.OlderVersion)" FileId="file.FileId" FileName="@file.FileName" Version="this.OlderVersion" />
+                }
+                else if (attachment is null && preview != FilePreviewKind.SignedDocument && this.OlderVersion is null && file.SignatureFileId is { } signatureFileId
+                         && this.Files.FirstOrDefault(item => item.FileId == signatureFileId) is { } signature)
+                {
+                    <FileSigners @key="(file.FileId, signatureFileId)" FileId="signatureFileId" FileName="@signature.FileName" SignedFileId="file.FileId" OnOpenFile="this.OpenFile" />
+                }
+                @if (preview == FilePreviewKind.None || this.unsupported)
+                {
+                    <div class="ec-preview-message">
+                        <EcFileIcon FileName="@stagedName" Size="EcFileIconSize.Large" />
+                        <p class="ec-preview-message-title">Náhled tohoto typu souboru není k dispozici</p>
+                        <p class="ec-preview-message-text">Soubor si stáhněte a otevřete v aplikaci, která ho umí zobrazit.</p>
+                        <EcButton Variant="EcButtonVariant.Primary" Icon="@AppIcons.Download" OnClick="() => this.DownloadShown(file)">Stáhnout soubor</EcButton>
+                    </div>
+                }
+                else if (this.failed)
+                {
+                    <div class="ec-preview-message">
+                        <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />Soubor se nepodařilo načíst. Zkuste to za chvíli znovu.</div>
+                        <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Refresh" OnClick="() => this.Reload(file)">Zkusit znovu</EcButton>
+                    </div>
+                }
+                else if (this.loading)
+                {
+                    <p class="ec-preview-message">Načítám…</p>
+                }
+                else if (preview == FilePreviewKind.Text)
+                {
+                    <ReflowPreview @key="this.shownKey">
+                        @if (this.truncated)
+                        {
+                            <p class="ec-preview-note">Soubor je delší, zobrazuje se jen jeho začátek.</p>
+                        }
+                        @if (this.NotUtf8)
+                        {
+                            <p class="ec-preview-note">@NotUtf8Note</p>
+                        }
+                        <div class="ec-preview-text" role="document" tabindex="0" aria-label="Obsah souboru @stagedName">
+                            @for (var index = 0; index < this.lines.Count; index++)
+                            {
+                                <div class="ec-preview-line">
+                                    <span class="ec-preview-line-number" aria-hidden="true">@(index + 1)</span>
+                                    <span class="ec-preview-line-text">@this.lines[index]</span>
+                                </div>
+                            }
+                        </div>
+                    </ReflowPreview>
+                }
+                else if (preview == FilePreviewKind.Code)
+                {
+                    <CodePreview @key="this.shownKey" Text="@this.code" Truncated="this.truncated" FileName="@stagedName" Note="@(this.NotUtf8 ? NotUtf8Note : null)"
+                                 OnUnreadable="this.Unreadable" />
+                }
+                else if (preview == FilePreviewKind.Markdown)
+                {
+                    <ReflowPreview @key="this.shownKey">
+                        @if (this.truncated)
+                        {
+                            <p class="ec-preview-note">Soubor je delší, zobrazuje se jen jeho začátek.</p>
+                        }
+                        <article class="ec-preview-markdown" role="document" tabindex="0" aria-label="Obsah souboru @stagedName">@((MarkupString)this.markdownHtml)</article>
+                    </ReflowPreview>
+                }
+                else if (preview == FilePreviewKind.Document)
+                {
+                    <DocumentPreview @key="this.shownKey" Content="this.document!" FileName="@stagedName" OnUnreadable="this.Unreadable" />
+                }
+                else if (preview == FilePreviewKind.Workbook)
+                {
+                    if (this.workbook.Count == 0)
+                    {
+                        <p class="ec-preview-message">Sešit neobsahuje žádné listy.</p>
+                    }
+                    else
+                    {
+                        var sheet = this.workbook[this.activeSheet];
+
+                        <div class="ec-preview-sheet-view">
+                            @if (sheet.RowCount > sheet.Rows.Count)
+                            {
+                                <p class="ec-preview-note">Zobrazuje se jen prvních @Count(sheet.Rows.Count) řádků z @Count(sheet.RowCount).</p>
+                            }
+                            <div class="ec-preview-sheet" role="document" tabindex="0" aria-label="Obsah listu @sheet.Name">
+                                <table class="ec-preview-sheet-table">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col"></th>
+                                            @for (var column = 0; column < sheet.ColumnCount; column++)
+                                            {
+                                                <th scope="col">@ColumnName(column)</th>
+                                            }
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (var row = 0; row < sheet.Rows.Count; row++)
+                                        {
+                                            <tr>
+                                                <th scope="row">@(row + 1)</th>
+                                                @foreach (var cell in sheet.Rows[row])
+                                                {
+                                                    <td>@cell</td>
+                                                }
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="ec-preview-sheet-tabs" role="tablist" aria-label="Listy sešitu">
+                                @for (var index = 0; index < this.workbook.Count; index++)
+                                {
+                                    var sheetIndex = index;
+
+                                    <button type="button" role="tab" class="ec-preview-sheet-tab" aria-selected="@(sheetIndex == this.activeSheet ? "true" : "false")"
+                                            @onclick="() => this.activeSheet = sheetIndex">@this.workbook[sheetIndex].Name</button>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+                else if (preview == FilePreviewKind.Email)
+                {
+                    var message = this.email!;
+
+                    <ReflowPreview @key="this.shownKey">
+                        <article class="ec-preview-email" role="document" tabindex="0" aria-label="Obsah zprávy @stagedName">
+                            <dl class="ec-preview-email-headers">
+                                <dt>Od</dt>
+                                <dd>@Or(message.From)</dd>
+                                <dt>Komu</dt>
+                                <dd>@Or(string.Join(", ", message.To))</dd>
+                                @if (message.Cc.Count > 0)
+                                {
+                                    <dt>Kopie</dt>
+                                    <dd>@string.Join(", ", message.Cc)</dd>
+                                }
+                                <dt>Předmět</dt>
+                                <dd>@Or(message.Subject)</dd>
+                                <dt>Datum</dt>
+                                <dd>@Moment(message.Date)</dd>
+                            </dl>
+                            @if (message.Truncated)
+                            {
+                                <p class="ec-preview-note">Zpráva je delší, zobrazuje se jen její začátek.</p>
+                            }
+                            <div class="ec-preview-email-body">@message.Body</div>
+                            @if (message.Attachments.Count > 0)
+                            {
+                                <section class="ec-preview-email-attachments" aria-label="Přílohy">
+                                    <h3 class="ec-preview-email-attachments-title">Přílohy (@message.Attachments.Count)</h3>
+                                    <ul class="ec-preview-email-attachment-list">
+                                        @foreach (var attachment in message.Attachments)
+                                        {
+                                            <li class="ec-preview-email-attachment">
+                                                <EcIcon Paths="@AppIcons.Paperclip" />
+                                                <span class="ec-preview-email-attachment-name">@attachment.Name</span>
+                                                <span class="ec-preview-email-attachment-size">@FileSizeDisplay.Text(attachment.Size)</span>
+                                            </li>
+                                        }
+                                    </ul>
+                                </section>
+                            }
+                        </article>
+                    </ReflowPreview>
+                }
+                else if (preview == FilePreviewKind.DataMessage)
+                {
+                    <DataMessagePreview @key="this.shownKey" Content="this.dataMessage!" FileName="@stagedName" FileId="@(attachment is null ? file.FileId : null)" Version="@(attachment is null ? this.OlderVersion : null)"
+                                        OnOpenAttachment="opened => this.OpenAttachment(stagedName, opened.Message, opened.Index)" OnUnreadable="this.Unreadable" />
+                }
+                else if (preview == FilePreviewKind.SignedDocument)
+                {
+                    <FileSigners @key="(file.FileId, this.OlderVersion)" FileId="file.FileId" FileName="@file.FileName" Version="this.OlderVersion" Detached OnOpenFile="this.OpenFile" />
+                }
+                else if (preview == FilePreviewKind.Pdf)
+                {
+                    <PdfPreview @key="this.shownKey" Url="@(this.url ?? "")" Content="this.pdf" FileName="@stagedName" OnUnreadable="this.Unreadable" />
+                }
+                else if (preview == FilePreviewKind.Image || preview == FilePreviewKind.ConvertedImage)
+                {
+                    <div class="ec-preview-stage">
+                        <img @key="this.shownKey" class="ec-preview-image" src="@this.url" alt="@stagedName" @onerror="this.Unreadable" />
+                    </div>
+                }
+                else if (preview == FilePreviewKind.Audio)
+                {
+                    <div class="ec-preview-stage">
+                        <audio @key="this.shownKey" class="ec-preview-audio" src="@this.url" controls @onerror="this.Unreadable"></audio>
+                    </div>
+                }
+                else
+                {
+                    <div class="ec-preview-stage">
+                        <video @key="this.shownKey" class="ec-preview-video" src="@this.url" controls @onerror="this.Unreadable"></video>
+                    </div>
+                }
             }
         </ChildContent>
     </EcModal>
+    @if (this.editing is not null)
+    {
+        <NavigationLock OnBeforeInternalNavigation="this.ConfirmNavigation" ConfirmExternalNavigation="this.dirty" />
+    }
+    @if (this.afterDiscard is not null)
+    {
+        <DiscardChangesModal FileName="@file.FileName" OnDiscard="this.Discard" Open OpenChanged="this.KeepEditing" />
+    }
 }
 
 @code {
@@ -365,6 +429,8 @@
     private const int MaxTextLines = 5000;
 
     private const int MaxSheetRows = 1000;
+
+    private const string NotUtf8Note = "Soubor není v kódování UTF-8, proto ho nejde upravit.";
 
     private static readonly NumberFormatInfo CzechNumbers = NumberFormatInfo.ReadOnly(new NumberFormatInfo { NumberGroupSeparator = "\u00A0" });
 
@@ -482,6 +548,27 @@
 
     private bool renaming;
 
+    // The shown text or code as the editor takes it; null when it was not read whole or is not valid UTF-8.
+    private EditableText? editable;
+
+    // The text in the editor as read; null while the preview only shows.
+    private EditableText? editing;
+
+    // Whether the editor's text differs from the one read.
+    private bool dirty;
+
+    // Whether the text or code was read whole and is not valid UTF-8.
+    private bool notUtf8;
+
+    private bool saving;
+
+    private string? saveFailure;
+
+    private TextEditor? editor;
+
+    // What a confirmed discard of unsaved changes goes on to do; set while the question shows.
+    private Func<Task>? afterDiscard;
+
     private FileListItem? Current => this.Files.FirstOrDefault(file => file.FileId == this.FileId);
 
     private int Position => Enumerable.Range(0, this.Files.Count).Single(index => this.Files[index].FileId == this.FileId);
@@ -493,6 +580,33 @@
 
     private DataMessageAttachment? ShownAttachment => this.trail.Count == 0 ? null : this.trail[^1].Message.Attachments[this.trail[^1].Index];
 
+    // Only the current version of a stored text or code file, read whole and valid UTF-8, is edited.
+    private bool CanEdit
+    {
+        get
+        {
+            return this.editable is not null && this.trail.Count == 0 && this.signedContentName is null && this.OlderVersion is null
+                && !this.loading && !this.failed && !this.unsupported && !this.uploadingVersion;
+        }
+    }
+
+    private bool NotUtf8
+    {
+        get
+        {
+            return this.notUtf8 && this.trail.Count == 0 && this.signedContentName is null && this.OlderVersion is null;
+        }
+    }
+
+    // Only the editor guards the close.
+    private EventCallback CloseRequest
+    {
+        get
+        {
+            return this.editing is null ? default : EventCallback.Factory.Create(this, this.RequestClose);
+        }
+    }
+
     protected override async Task OnParametersSetAsync()
     {
         if (this.Current is not { } file)
@@ -502,7 +616,7 @@
 
         var number = this.OlderVersion ?? file.Version;
 
-        if (file.FileId == this.loadedFileId && number == this.loadedNumber)
+        if (file.FileId == this.loadedFileId && (number == this.loadedNumber || this.editing is not null))
             return;
 
         if (file.FileId != this.loadedFileId)
@@ -583,6 +697,11 @@
         this.dataMessage = null;
         this.signedContent = null;
         this.signedContentName = null;
+        this.editable = null;
+        this.notUtf8 = false;
+        this.editing = null;
+        this.dirty = false;
+        this.saveFailure = null;
 
         return (this.loadToken = new CancellationTokenSource()).Token;
     }
@@ -677,27 +796,33 @@
         {
             case FilePreviewKind.Text:
             {
-                var (text, cut) = await ReadText(content, token);
+                var (text, cut, editable) = await ReadText(content, token);
 
                 if (!token.IsCancellationRequested)
+                {
                     (this.lines, this.truncated) = SplitLines(text, cut);
+                    (this.editable, this.notUtf8) = (editable, !cut && editable is null);
+                }
 
                 break;
             }
 
             case FilePreviewKind.Code:
             {
-                var (text, cut) = await ReadText(content, token);
+                var (text, cut, editable) = await ReadText(content, token);
 
                 if (!token.IsCancellationRequested)
+                {
                     (this.code, this.truncated) = (text, cut);
+                    (this.editable, this.notUtf8) = (editable, !cut && editable is null);
+                }
 
                 break;
             }
 
             case FilePreviewKind.Markdown:
             {
-                var (text, cut) = await ReadText(content, token);
+                var (text, cut, _) = await ReadText(content, token);
 
                 if (!token.IsCancellationRequested)
                     (this.markdownHtml, this.truncated) = (MarkdownHtml.Render(text), cut);
@@ -1013,6 +1138,178 @@
             await this.VersionChanged.InvokeAsync(null);
     }
 
+    private async Task StartEdit()
+    {
+        this.renaming = false;
+        this.versionsOpen = false;
+        this.versionFailure = null;
+        this.versionNotice = null;
+        this.saveFailure = null;
+        this.dirty = false;
+        this.editing = this.editable;
+
+        try
+        {
+            await this.History.TrackSteps();
+        }
+        catch (JSException exception)
+        {
+            this.Logger.LogInformation(exception, "The browser's history steps are not tracked");
+        }
+    }
+
+    private void LeaveEdit()
+    {
+        this.editing = null;
+        this.dirty = false;
+        this.saveFailure = null;
+    }
+
+    private void EditorDirtyChanged(bool changed)
+    {
+        this.dirty = changed;
+    }
+
+    // A version that came while the editor was open shows once it closes.
+    private async Task ShowCurrent()
+    {
+        if (this.editing is null && this.Current is { } file && file.FileId == this.loadedFileId && this.OlderVersion is null && file.Version != this.loadedNumber)
+            await this.Reload(file);
+    }
+
+    private async Task EditorUnavailable()
+    {
+        this.LeaveEdit();
+        this.versionFailure = "Úpravy se nepodařilo spustit. Zkuste to za chvíli znovu.";
+
+        await this.ShowCurrent();
+    }
+
+    private async Task CancelEdit()
+    {
+        if (this.saving)
+            return;
+
+        if (this.dirty)
+        {
+            this.afterDiscard = this.ShowCurrent;
+        }
+        else
+        {
+            this.LeaveEdit();
+
+            await this.ShowCurrent();
+        }
+    }
+
+    // The X, a click outside or Escape while editing: unsaved changes are confirmed before the preview closes. A save
+    // under way finishes first.
+    private async Task RequestClose()
+    {
+        if (this.saving)
+            return;
+
+        if (this.dirty)
+            this.afterDiscard = () => this.OpenChanged.InvokeAsync(false);
+        else
+            await this.OpenChanged.InvokeAsync(false);
+    }
+
+    // Covers links and the browser's Back and Forward; leaving the site is asked by the browser through
+    // ConfirmExternalNavigation. A Back or Forward goes on after the discard as the same step through the history.
+    private async Task ConfirmNavigation(LocationChangingContext context)
+    {
+        var held = this.dirty;
+
+        if (held)
+            context.PreventNavigation();
+
+        var target = context.TargetLocation;
+        var distance = 0;
+
+        if (!context.IsNavigationIntercepted)
+        {
+            try
+            {
+                distance = await this.History.TakeStep(target);
+            }
+            catch (JSException exception)
+            {
+                this.Logger.LogInformation(exception, "The browser's history step is not known");
+            }
+        }
+
+        if (!held)
+            return;
+
+        this.afterDiscard = async () =>
+        {
+            if (distance == 0)
+                this.Navigation.NavigateTo(target);
+            else
+                await this.History.Go(distance);
+        };
+    }
+
+    private async Task Discard()
+    {
+        var next = this.afterDiscard!;
+
+        this.afterDiscard = null;
+        this.LeaveEdit();
+
+        await next();
+    }
+
+    private void KeepEditing(bool open)
+    {
+        if (!open)
+            this.afterDiscard = null;
+    }
+
+    // The text goes up as a new version by the same call as Nová verze; a success shows the current version.
+    private async Task Save()
+    {
+        if (this.editing is not { } edited || !this.dirty || this.saving || this.Current is not { } file)
+            return;
+
+        this.saving = true;
+        this.saveFailure = null;
+
+        string? failure;
+        string? notice;
+
+        try
+        {
+            var content = edited.Encode(await this.editor!.ReadText());
+
+            (failure, notice) = await this.UploadVersion(file, new EditedFile(file.FileName, content));
+        }
+        catch (JSException exception)
+        {
+            this.Logger.LogWarning(exception, "Reading the edited text of file {FileAssetId} failed", file.FileId);
+
+            (failure, notice) = ("Text se nepodařilo přečíst z editoru. Zkuste to znovu.", null);
+        }
+        finally
+        {
+            this.saving = false;
+        }
+
+        if (failure is not null)
+        {
+            this.saveFailure = failure;
+
+            return;
+        }
+
+        this.LeaveEdit();
+        this.versionNotice = notice;
+
+        await this.ShowCurrent();
+        await this.VersionChanged.InvokeAsync(null);
+    }
+
     private async Task DownloadSignedContent()
     {
         await using var content = new MemoryStream(this.signedContent!, writable: false);
@@ -1101,8 +1398,9 @@
         await this.OnRenamed.InvokeAsync();
     }
 
-    // Only the start of a long file is read; the cut may split a character, which shows as one replacement mark.
-    private static async Task<(string Text, bool Truncated)> ReadText(Stream content, CancellationToken token)
+    // Only the start of a long file is read; the cut may split a character, which shows as one replacement mark. The text
+    // is editable only when read whole and valid UTF-8.
+    private static async Task<(string Text, bool Truncated, EditableText? Editable)> ReadText(Stream content, CancellationToken token)
     {
         var buffer = new byte[MaxTextBytes + 1];
         var read = 0;
@@ -1117,7 +1415,11 @@
             read += count;
         }
 
-        return (Encoding.UTF8.GetString(buffer, 0, Math.Min(read, MaxTextBytes)).TrimStart('\uFEFF'), read > MaxTextBytes);
+        var truncated = read > MaxTextBytes;
+        var shown = buffer.AsSpan(0, Math.Min(read, MaxTextBytes));
+        var editable = truncated ? null : EditableText.ParseOrDefault(shown);
+
+        return (editable?.Text ?? Encoding.UTF8.GetString(shown).TrimStart('\uFEFF'), truncated, editable);
     }
 
     private static (IReadOnlyList<string> Lines, bool Truncated) SplitLines(string text, bool truncated)
