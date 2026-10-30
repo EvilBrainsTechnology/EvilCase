@@ -3,8 +3,8 @@
 Zdroj pravdy o tom, co se z EvilCase staví. Produktový loop čte tento soubor na začátku každého
 kola; labely, milníky a backlog z něj jednorázově zakládá skill `bootstrap-backlog`. Závazný
 detail návrhu žije v SDD pod
-[`docs/sdd/`](../sdd/README.md); každý milník jmenuje SDD, která ho řídí. Roadmapa a otevřené
-otázky žijí v GitHub Issues, ne tady.
+[`docs/sdd/`](../sdd/README.md); každý milník jmenuje SDD, která ho řídí. Roadmapa žije v GitHub
+Issues, ne tady.
 
 ## Co je EvilCase
 

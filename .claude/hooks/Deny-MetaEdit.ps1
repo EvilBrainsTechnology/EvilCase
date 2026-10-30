@@ -39,7 +39,7 @@ try {
     [Console]::Error.WriteLine(
         'CLAUDE.md, .claude/**, docs/sdd/** and docs/product/vision.md are owner-only. If the owner ' +
         'explicitly requested this change, run `touch .claude/allow-meta-edits`, retry the edit, and ' +
-        'delete the flag afterwards. Otherwise open an issue for the owner instead of editing.')
+        'delete the flag afterwards. Otherwise ask the owner instead of editing (.claude/rules/agents.md).')
     exit 2
 }
 catch {

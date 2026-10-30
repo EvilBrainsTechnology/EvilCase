@@ -76,7 +76,7 @@ jobs:
             const target = payload.pull_request ?? payload.issue;
             if (payload.action === 'closed') {
               for (const name of target.labels.map((label) => label.name)) {
-                if ([...STATE, 'ci-failed'].includes(name)) await remove(target.number, name);
+                if ([...STATE, 'ci-failed', 'waiting-for-owner'].includes(name)) await remove(target.number, name);
               }
               return;
             }
