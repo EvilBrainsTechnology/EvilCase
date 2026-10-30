@@ -438,13 +438,14 @@ export function createViewer(parent, text, language, label, onFind) {
     return {
         text: () => view.state.doc.toString(),
         setText: (doc) => view.setState(state(doc)),
-        firstVisible: () => view.visibleRanges[0]?.from ?? 0,
+        // The start of the line at the top of the scrolled view; the drawn ranges reach above it.
+        firstVisible: () => view.lineBlockAtHeight(Math.max(view.scrollDOM.getBoundingClientRect().top - view.documentTop, 0)).from,
         setMatches: (ranges) => view.dispatch({ effects: [setMatches.of(ranges), setShownMatch.of([])] }),
         // The match shown scrolls to the middle of the view when it is out of view.
         showMatch: ([from, to]) => view.dispatch({
             effects: [setShownMatch.of([[from, to]]), ...(inView(from, to) ? [] : [EditorView.scrollIntoView(from, { y: 'center' })])],
         }),
-        remeasure: (anchor) => view.dispatch({ effects: [measure.reconfigure(EditorView.theme({})), EditorView.scrollIntoView(anchor, { y: 'start' })] }),
+        remeasure: (anchor) => view.dispatch({ effects: [measure.reconfigure(EditorView.theme({})), EditorView.scrollIntoView(anchor, { y: 'start', yMargin: 0 })] }),
         destroy: () => view.destroy(),
     };
 }
