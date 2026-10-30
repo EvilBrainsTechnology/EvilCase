@@ -18,7 +18,7 @@ public class FileArchiveLayoutTests
         {
             Assert.That(entries.Select(static entry => entry.EntryName), Is.EqualTo(["Smlouva.pdf", "Návrh.docx"]));
             Assert.That(entries[0].StoragePath, Is.EqualTo(StoragePathOf(smlouva, 2)), "the current version is the highest number");
-            Assert.That(entries[0].Created, Is.EqualTo(Moment.AddDays(2)), "an entry carries the upload moment of its version");
+            Assert.That(entries[0].Created, Is.EqualTo(new DateTimeOffset(Moment.AddDays(2))), "an entry carries the upload moment of its version");
         }
     }
 
@@ -86,6 +86,24 @@ public class FileArchiveLayoutTests
     public void TheArchiveIsNamedAfterItsOwner(string title, bool includeVersions, string expected)
     {
         Assert.That(FileArchiveLayout.ArchiveName(title, "Soubory spisu", includeVersions), Is.EqualTo(expected));
+    }
+
+    [Test]
+    public void AnEntryCarriesItsUploadInPragueTimeForItsOwnMoment()
+    {
+        var smlouva = Guid.NewGuid();
+        var summer = new DateTime(2026, 7, 15, 8, 30, 0, DateTimeKind.Utc);
+        var winter = new DateTime(2026, 1, 15, 8, 30, 0, DateTimeKind.Utc);
+
+        var entries = FileArchiveLayout.Entries(
+            [Version(smlouva, "Smlouva.pdf", 1) with { Created = summer }, Version(smlouva, "Smlouva.pdf", 2) with { Created = winter }],
+            includeVersions: true);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(entries[0].Created, Is.EqualTo(new DateTimeOffset(2026, 7, 15, 10, 30, 0, TimeSpan.FromHours(2))).WithSameOffset, "summer time is two hours ahead of UTC");
+            Assert.That(entries[1].Created, Is.EqualTo(new DateTimeOffset(2026, 1, 15, 9, 30, 0, TimeSpan.FromHours(1))).WithSameOffset, "winter time is one hour ahead of UTC");
+        }
     }
 
     [Test]

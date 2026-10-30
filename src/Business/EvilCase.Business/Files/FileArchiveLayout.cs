@@ -11,6 +11,11 @@ internal static partial class FileArchiveLayout
 {
     private const string EntryFallback = "soubor";
 
+    /// <summary>
+    /// The zone an entry's time is written in: a zip entry's time carries no zone, and an archive is unpacked in Czechia.
+    /// </summary>
+    public static TimeZoneInfo Prague { get; } = TimeZoneInfo.FindSystemTimeZoneById("Europe/Prague");
+
     public static string ArchiveName(string title, string fallback, bool includeVersions)
     {
         var name = FileNameRules.SafeFileName(title, fallback);
@@ -81,7 +86,7 @@ internal static partial class FileArchiveLayout
         return new FileArchiveEntry
         {
             EntryName = entryName,
-            Created = version.Created,
+            Created = TimeZoneInfo.ConvertTime(new DateTimeOffset(version.Created.Ticks, TimeSpan.Zero), Prague),
             StoragePath = version.StoragePath,
         };
     }

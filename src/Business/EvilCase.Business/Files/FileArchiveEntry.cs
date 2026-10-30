@@ -8,9 +8,9 @@ public sealed record FileArchiveEntry
     public required string EntryName { get; init; }
 
     /// <summary>
-    /// The moment the version was uploaded, in UTC.
+    /// The moment the version was uploaded, in Prague time.
     /// </summary>
-    public required DateTime Created { get; init; }
+    public required DateTimeOffset Created { get; init; }
 
     public required string StoragePath { get; init; }
 }
