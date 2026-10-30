@@ -5,7 +5,7 @@
 @inject ILogger<MarkdownView> Logger
 
 @* A Markdown file shown formatted or as its source and edited in the view shown; the formatted text turns editable in
-   place. Notes stand between the toolbar and the text. *@
+   place. Notes stand on the toolbar after its switches and buttons. *@
 @if (this.Source)
 {
     <TextEditor @key="this.sourceKey" @ref="this.sourceEditor" Text="@this.start" Language="CodeLanguage.Markdown" ReadOnly="!this.Editing"
@@ -44,17 +44,20 @@ else
                         </EcButton>
                     }
                 }
+                @if (this.Notes is not null)
+                {
+                    <div class="ec-toolbar-notes">@this.Notes</div>
+                }
             </div>
         }
         else
         {
-            <PreviewToolbar @ref="this.viewToolbar" Ready="this.ready" OnZoom="this.Zoom" OnSearch="this.Search">
+            <PreviewToolbar @ref="this.viewToolbar" Ready="this.ready" Notes="this.Notes" OnZoom="this.Zoom" OnSearch="this.Search">
                 <Modes>
                     <MarkdownModeSwitch Editing="false" Source="false" OnSwitch="this.Switch" />
                 </Modes>
             </PreviewToolbar>
         }
-        @this.Notes
         <div @ref="this.stage" class="ec-preview-stage ec-preview-stage-text" inert="@this.Locked">
             <article @ref="this.host" class="@(this.Editing ? "ec-preview-markdown ec-markdown-editing" : "ec-preview-markdown")" role="document"
                      tabindex="@(this.Editing ? null : "0")" aria-label="Obsah souboru @this.FileName"></article>

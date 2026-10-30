@@ -2,6 +2,11 @@ namespace EvilBrains.EvilCase.App.Models;
 
 public static class FileTypeDisplay
 {
+    /// <summary>
+    /// The start of a text, code or Markdown file the preview reads; a file within it is read whole.
+    /// </summary>
+    public const int MaxTextBytes = 1024 * 1024;
+
     private static readonly Dictionary<string, FileKind> Kinds = new(StringComparer.OrdinalIgnoreCase)
     {
         ["pdf"] = FileKind.Pdf,
@@ -129,6 +134,15 @@ public static class FileTypeDisplay
     public static FilePreviewKind Preview(string fileName)
     {
         return Previews.GetValueOrDefault(Extension(fileName));
+    }
+
+    /// <summary>
+    /// Whether the preview edits a file of this name and size: a text, code or Markdown file within
+    /// <see cref="MaxTextBytes"/>. Its content decides the rest.
+    /// </summary>
+    public static bool Editable(string fileName, long sizeBytes)
+    {
+        return Preview(fileName) is FilePreviewKind.Text or FilePreviewKind.Code or FilePreviewKind.Markdown && sizeBytes <= MaxTextBytes;
     }
 
     public static bool HasKnownExtension(string fileName)

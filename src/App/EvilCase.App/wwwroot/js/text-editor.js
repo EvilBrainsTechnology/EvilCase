@@ -16,9 +16,10 @@ function loadLibrary() {
     return library;
 }
 
-// Opens an editor of the text in host. The search field drives its search. Ctrl+S or Cmd+S anywhere in the dialog asks
-// the owner to save. The owner hears NotifyChanged(dirty, canUndo, canRedo) and NotifySave.
-export async function openEditor(host, searchInput, text, language, indentUnit, label, owner) {
+// Opens an editor of the text in host. Ctrl+S or Cmd+S anywhere in the dialog asks the owner to save. The owner hears
+// NotifyChanged(dirty, canUndo, canRedo), NotifyMatches(current, total) of its search, NotifyFind on Ctrl+F and
+// NotifySave.
+export async function openEditor(host, text, language, indentUnit, label, owner) {
     const { createEditor } = await loadLibrary();
 
     // Closed while the library loaded.
@@ -28,21 +29,11 @@ export async function openEditor(host, searchInput, text, language, indentUnit, 
 
     const editor = createEditor(host, text, language, indentUnit, label,
         (dirty, canUndo, canRedo) => owner.invokeMethodAsync('NotifyChanged', dirty, canUndo, canRedo),
-        () => { searchInput.focus(); searchInput.select(); });
+        () => owner.invokeMethodAsync('NotifyFind'),
+        (current, total) => owner.invokeMethodAsync('NotifyMatches', current, total));
     const stop = new AbortController();
     const { signal } = stop;
 
-    searchInput.addEventListener('input', () => editor.search(searchInput.value), { signal });
-    searchInput.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            if (event.shiftKey) editor.findPrevious(); else editor.findNext();
-        } else if (event.key === 'Escape') {
-            searchInput.value = '';
-            editor.search('');
-            editor.focus();
-        }
-    }, { signal });
     // The first Escape in the text keeps the dialog open and lets Tab leave the editor until another key; a second
     // Escape reaches the dialog.
     let escaped = false;
@@ -96,7 +87,8 @@ export async function openViewer(host, text, language, format, label, view) {
     if (editors.get(host) !== entry) return { formatted: false, invalid: false };
 
     entry.formatted = answer.formatted ?? null;
-    entry.viewer = createViewer(host, entry.formatted ?? text, language, label, () => view.invokeMethodAsync('FocusSearch').catch(() => {}));
+    entry.viewer = createViewer(host, host.parentElement ?? host, entry.formatted ?? text, language, label,
+        () => view.invokeMethodAsync('FocusSearch').catch(() => {}));
 
     // Ctrl or Cmd with the wheel, and a pinch on a touchpad, zoom the text.
     (host.parentElement ?? host).addEventListener('wheel', (event) => {
@@ -232,6 +224,21 @@ function report(entry) {
     const count = entry.matches.length;
 
     entry.view.invokeMethodAsync('MatchesChanged', count > 0 ? entry.current + 1 : 0, count, false).catch(() => {});
+}
+
+// A new query selects its first match from the cursor on; again steps to the next or, with previous, the previous match.
+export function findInEditor(host, query, again, previous) {
+    const editor = editors.get(host)?.editor;
+
+    if (!editor) return;
+
+    if (!again) editor.search(query);
+    else if (previous) editor.findPrevious();
+    else editor.findNext();
+}
+
+export function focusEditor(host) {
+    editors.get(host)?.editor?.focus();
 }
 
 export function readEditorText(host) {

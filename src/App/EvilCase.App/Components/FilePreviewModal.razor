@@ -39,8 +39,10 @@
                     <span class="ec-preview-meta">@FileSizeDisplay.Text(attachment.Content.Length) <span class="ec-sep" aria-hidden="true">·</span> příloha zprávy @ownerName</span>
                 </div>
                 <div class="ec-preview-actions">
+                    <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Download" AriaLabel="Stáhnout přílohu" OnClick="() => this.DownloadAttachment(attachment)"><span class="ec-preview-action-label">Stáhnout přílohu</span></EcButton>
                     @if (owner.Attachments.Count > 1)
                     {
+                        <span class="ec-preview-divider" aria-hidden="true"></span>
                         <nav class="ec-preview-nav" aria-label="Přílohy">
                             <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.ChevronLeft" AriaLabel="Předchozí příloha"
                                       OnClick="() => this.StepAttachment(-1)" />
@@ -48,9 +50,7 @@
                             <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.ChevronRight" AriaLabel="Další příloha"
                                       OnClick="() => this.StepAttachment(1)" />
                         </nav>
-                        <span class="ec-preview-divider" aria-hidden="true"></span>
                     }
-                    <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Download" AriaLabel="Stáhnout přílohu" OnClick="() => this.DownloadAttachment(attachment)"><span class="ec-preview-action-label">Stáhnout přílohu</span></EcButton>
                 </div>
             }
             else if (this.editing is not null)
@@ -96,17 +96,6 @@
                     </div>
                 }
                 <div class="ec-preview-actions">
-                    @if (this.Files.Count > 1)
-                    {
-                        <nav class="ec-preview-nav" aria-label="Soubory">
-                            <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.ChevronLeft" AriaLabel="Předchozí soubor"
-                                      OnClick="() => this.Step(-1)" />
-                            <span class="ec-preview-position">Soubor <strong>@(this.Position + 1)</strong> z @this.Files.Count</span>
-                            <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.ChevronRight" AriaLabel="Další soubor"
-                                      OnClick="() => this.Step(1)" />
-                        </nav>
-                        <span class="ec-preview-divider" aria-hidden="true"></span>
-                    }
                     @if (this.CanEdit)
                     {
                         <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Edit" AriaLabel="Upravit" OnClick="this.StartEdit"><span class="ec-preview-action-label">Upravit</span></EcButton>
@@ -135,6 +124,17 @@
                     {
                         <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Download" AriaLabel="Stáhnout" OnClick="() => this.DownloadStored(file)"><span class="ec-preview-action-label">Stáhnout</span></EcButton>
                     }
+                    @if (this.Files.Count > 1)
+                    {
+                        <span class="ec-preview-divider" aria-hidden="true"></span>
+                        <nav class="ec-preview-nav" aria-label="Soubory">
+                            <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.ChevronLeft" AriaLabel="Předchozí soubor"
+                                      OnClick="() => this.Step(-1)" />
+                            <span class="ec-preview-position">Soubor <strong>@(this.Position + 1)</strong> z @this.Files.Count</span>
+                            <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.ChevronRight" AriaLabel="Další soubor"
+                                      OnClick="() => this.Step(1)" />
+                        </nav>
+                    }
                 </div>
             }
         </Heading>
@@ -155,7 +155,7 @@
                         @this.SignatureNote(file)
                         @if (this.editsFormattedCode)
                         {
-                            <p class="ec-preview-note">Upravuje se originál souboru, ne jeho naformátovaná podoba.</p>
+                            <ToolbarNote Text="Upravuje se originál souboru, ne jeho naformátovaná podoba." />
                         }
                     </Notes>
                 </TextEditor>
@@ -209,10 +209,6 @@
                 {
                     <div class="ec-alert ec-preview-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.versionFailure</div>
                 }
-                @if (this.versionNotice is not null)
-                {
-                    <div class="ec-file-notice ec-preview-alert" role="status">@this.versionNotice</div>
-                }
                 @if (this.signedContentName is not null)
                 {
                     <FileSigners @key="(file.FileId, this.OlderVersion)" FileId="file.FileId" FileName="@file.FileName" Version="this.OlderVersion" />
@@ -251,19 +247,19 @@
                         <Notes>
                             @if (this.NotUtf8)
                             {
-                                <p class="ec-preview-note">@NotUtf8Note</p>
+                                <ToolbarNote Text="@NotUtf8Note" />
                             }
                             @if (this.truncated)
                             {
-                                <p class="ec-preview-note">@(language is null ? "Soubor je delší, zobrazuje se jen jeho začátek." : "Soubor je delší, zobrazuje se jen jeho začátek a nejde naformátovat.")</p>
+                                <ToolbarNote Text="@(language is null ? "Soubor je delší, zobrazuje se jen jeho začátek." : "Soubor je delší, zobrazuje se jen jeho začátek a nejde naformátovat.")" />
                             }
                             else if (language is { } shownLanguage && this.codeView is { Formatted: false, Invalid: true })
                             {
-                                <p class="ec-preview-note">Soubor není platný @LanguageName(shownLanguage), proto se ukazuje jen originál.</p>
+                                <ToolbarNote Text="@($"Soubor není platný {LanguageName(shownLanguage)}, proto se ukazuje jen originál.")" />
                             }
                             else if (this.codeView is { Formatted: false })
                             {
-                                <p class="ec-preview-note">Soubor se nepodařilo naformátovat, ukazuje se originál.</p>
+                                <ToolbarNote Text="Soubor se nepodařilo naformátovat, ukazuje se originál." />
                             }
                         </Notes>
                     </TextEditor>
@@ -284,11 +280,11 @@
                             {
                                 @if (this.truncated)
                                 {
-                                    <p class="ec-preview-note">Soubor je delší, zobrazuje se jen jeho začátek.</p>
+                                    <ToolbarNote Text="Soubor je delší, zobrazuje se jen jeho začátek." />
                                 }
                                 @if (this.NotUtf8)
                                 {
-                                    <p class="ec-preview-note">@NotUtf8Note</p>
+                                    <ToolbarNote Text="@NotUtf8Note" />
                                 }
                             }
                         </Notes>
@@ -444,7 +440,7 @@
 }
 
 @code {
-    private const int MaxTextBytes = 1024 * 1024;
+    private const int MaxTextBytes = FileTypeDisplay.MaxTextBytes;
 
     private const int MaxSheetRows = 1000;
 
@@ -477,7 +473,7 @@
     public required Func<FileListItem, CancellationToken, Task<IReadOnlyList<FileVersionItem>>> LoadVersions { get; set; }
 
     /// <summary>
-    /// Uploads the picked file as a new version; answers the failure or the notice to show.
+    /// Uploads the picked file as a new version; answers the failure to show, or none, and the card's notice.
     /// </summary>
     [Parameter, EditorRequired]
     public required Func<FileListItem, IBrowserFile, Task<(string? Failure, string? Notice)>> UploadVersion { get; set; }
@@ -493,6 +489,12 @@
 
     [Parameter]
     public EventCallback OnRenamed { get; set; }
+
+    /// <summary>
+    /// Opens the editor once the file first shown has loaded, when it can be edited; read when the preview opens.
+    /// </summary>
+    [Parameter]
+    public bool EditOnOpen { get; set; }
 
     [Parameter]
     public bool Open { get; set; }
@@ -518,8 +520,6 @@
     private bool uploadingVersion;
 
     private string? versionFailure;
-
-    private string? versionNotice;
 
     private EcPopover? versionsPopover;
 
@@ -602,6 +602,9 @@
     // What a confirmed discard of unsaved changes goes on to do; set while the question shows.
     private Func<Task>? afterDiscard;
 
+    // The editor is to open once the first file loads.
+    private bool editOnLoad;
+
     private FileListItem? Current => this.Files.FirstOrDefault(file => file.FileId == this.FileId);
 
     private int Position => Enumerable.Range(0, this.Files.Count).Single(index => this.Files[index].FileId == this.FileId);
@@ -640,6 +643,11 @@
         }
     }
 
+    protected override void OnInitialized()
+    {
+        this.editOnLoad = this.EditOnOpen;
+    }
+
     protected override async Task OnParametersSetAsync()
     {
         if (this.Current is not { } file)
@@ -656,7 +664,6 @@
         {
             this.versionsOpen = false;
             this.versionFailure = null;
-            this.versionNotice = null;
         }
 
         this.renaming = false;
@@ -742,6 +749,9 @@
     private async Task Reload(FileListItem file)
     {
         var token = this.Reset();
+        var edit = this.editOnLoad;
+
+        this.editOnLoad = false;
 
         this.loadedFileId = file.FileId;
         this.loadedNumber = this.OlderVersion ?? file.Version;
@@ -794,7 +804,13 @@
             await this.Load(file.FileName, preview, content, token);
 
             if (!token.IsCancellationRequested)
+            {
                 this.loading = false;
+
+                // A file that turned out not editable stays in the preview with its note.
+                if (edit && this.CanEdit)
+                    await this.StartEdit();
+            }
         }
         catch (OperationCanceledException)
         {
@@ -1152,9 +1168,8 @@
     {
         this.uploadingVersion = true;
         this.versionFailure = null;
-        this.versionNotice = null;
 
-        (this.versionFailure, this.versionNotice) = await this.UploadVersion(file, picked);
+        this.versionFailure = (await this.UploadVersion(file, picked)).Failure;
 
         this.uploadingVersion = false;
 
@@ -1167,7 +1182,6 @@
         this.renaming = false;
         this.versionsOpen = false;
         this.versionFailure = null;
-        this.versionNotice = null;
         this.saveFailure = null;
         this.dirty = false;
         this.editsFormattedCode = this.viewer?.ShowsFormatted == true;
@@ -1318,7 +1332,6 @@
         this.saveFailure = null;
 
         string? failure;
-        string? notice;
 
         try
         {
@@ -1327,13 +1340,13 @@
                 : await this.editor!.ReadText();
             var content = edited.Encode(text);
 
-            (failure, notice) = await this.UploadVersion(file, new EditedFile(file.FileName, content));
+            failure = (await this.UploadVersion(file, new EditedFile(file.FileName, content))).Failure;
         }
         catch (JSException exception)
         {
             this.Logger.LogWarning(exception, "Reading the edited text of file {FileAssetId} failed", file.FileId);
 
-            (failure, notice) = ("Text se nepodařilo přečíst z editoru. Zkuste to znovu.", null);
+            failure = "Text se nepodařilo přečíst z editoru. Zkuste to znovu.";
         }
         finally
         {
@@ -1348,7 +1361,6 @@
         }
 
         this.LeaveEdit();
-        this.versionNotice = notice;
 
         await this.ShowCurrent();
         await this.VersionChanged.InvokeAsync(null);
@@ -1372,7 +1384,7 @@
         return @<text>
             @if (file.SignatureFileId is { } signatureId && this.Files.FirstOrDefault(item => item.FileId == signatureId) is { } signature)
             {
-                <p class="ec-text-editor-note" role="note"><EcIcon Paths="@AppIcons.AlertTriangle" />Soubor má samostatný podpis @signature.FileName. Nová verze ho zneplatní.</p>
+                <ToolbarNote Text="@($"Soubor má samostatný podpis {signature.FileName}. Nová verze ho zneplatní.")" Warning />
             }
         </text>;
     }

@@ -1,0 +1,167 @@
+@using System.Globalization
+
+@* The search at the right end of a preview or editor toolbar: the matches, the field and the steps to the previous and
+   next match. Escape clears the search and does not close the dialog. *@
+@if (this.Collapsible)
+{
+    <span class="ec-preview-toolbar-search-toggle">
+        <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Search" AriaLabel="@this.Label"
+                  Disabled="@this.Disabled" aria-expanded="@(this.open ? "true" : "false")" OnClick="this.Toggle" />
+    </span>
+}
+<div class="@this.SearchClass" role="search" data-ec-keeps-escape>
+    <span class="ec-preview-toolbar-matches" role="status">@this.MatchesText</span>
+    <label class="ec-preview-toolbar-search-box">
+        <EcIcon Paths="@AppIcons.Search" />
+        <input type="search" class="ec-preview-toolbar-search-input" placeholder="@this.Label" aria-label="@this.Label"
+               autocomplete="off" disabled="@this.Disabled" value="@this.query" @ref="this.input"
+               @oninput="this.Search" @onkeydown="this.SearchKey" />
+    </label>
+    <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ChevronUp" AriaLabel="Předchozí výskyt"
+              Disabled="@(this.matches == 0)" OnClick="() => this.Find(PreviewFind.Previous)" />
+    <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ChevronDown" AriaLabel="Další výskyt"
+              Disabled="@(this.matches == 0)" OnClick="() => this.Find(PreviewFind.Next)" />
+</div>
+
+@code {
+    private ElementReference input;
+
+    private string query = "";
+
+    private bool open;
+
+    private int match;
+
+    private int matches;
+
+    private bool searching;
+
+    [Parameter, EditorRequired]
+    public required string Label { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    /// <summary>
+    /// Whether a narrow screen shows only a toggle that opens the search on a row of its own.
+    /// </summary>
+    [Parameter]
+    public bool Collapsible { get; set; }
+
+    [Parameter]
+    public EventCallback<PreviewSearch> OnSearch { get; set; }
+
+    /// <summary>
+    /// Raised after Escape cleared the search.
+    /// </summary>
+    [Parameter]
+    public EventCallback OnEscape { get; set; }
+
+    private string SearchClass
+    {
+        get
+        {
+            return this.Collapsible
+                ? this.open ? "ec-preview-toolbar-search ec-preview-toolbar-search-collapsible ec-preview-toolbar-search-open" : "ec-preview-toolbar-search ec-preview-toolbar-search-collapsible"
+                : "ec-preview-toolbar-search";
+        }
+    }
+
+    private string MatchesText
+    {
+        get
+        {
+            if (this.query.Length == 0)
+                return "";
+
+            if (this.matches > 0)
+                return string.Create(CultureInfo.InvariantCulture, $"{this.match} z {this.matches}");
+
+            return this.searching ? "Hledám…" : "Nenalezeno";
+        }
+    }
+
+    /// <summary>
+    /// Shows the position of the current match among the matches of the query, or that the search still runs.
+    /// </summary>
+    public void MatchesChanged(int current, int total, bool pending)
+    {
+        // Closing a search reports the count of the closed query once more.
+        if (this.query.Length == 0)
+            return;
+
+        this.match = current;
+        this.matches = total;
+        this.searching = pending;
+        this.StateHasChanged();
+    }
+
+    /// <summary>
+    /// Opens the search and puts the focus in its field, as Ctrl+F in a text does.
+    /// </summary>
+    public async Task Focus()
+    {
+        this.open = true;
+        this.StateHasChanged();
+        await Task.Yield();
+        await this.input.FocusAsync();
+    }
+
+    private async Task Toggle()
+    {
+        if (this.open)
+        {
+            this.open = false;
+
+            await this.Clear();
+        }
+        else
+        {
+            await this.Focus();
+        }
+    }
+
+    private async Task Search(ChangeEventArgs args)
+    {
+        this.query = args.Value as string ?? "";
+
+        if (this.query.Length == 0)
+        {
+            await this.Clear();
+
+            return;
+        }
+
+        this.searching = true;
+
+        await this.OnSearch.InvokeAsync(new PreviewSearch(this.query, PreviewFind.New));
+    }
+
+    private async Task SearchKey(KeyboardEventArgs args)
+    {
+        if (args.Key == "Enter" && this.query.Length > 0)
+        {
+            await this.Find(args.ShiftKey ? PreviewFind.Previous : PreviewFind.Next);
+        }
+        else if (args.Key == "Escape")
+        {
+            await this.Clear();
+            await this.OnEscape.InvokeAsync();
+        }
+    }
+
+    private async Task Find(PreviewFind find)
+    {
+        await this.OnSearch.InvokeAsync(new PreviewSearch(this.query, find));
+    }
+
+    private async Task Clear()
+    {
+        this.query = "";
+        this.match = 0;
+        this.matches = 0;
+        this.searching = false;
+
+        await this.OnSearch.InvokeAsync(new PreviewSearch("", PreviewFind.New));
+    }
+}

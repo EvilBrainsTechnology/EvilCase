@@ -135,7 +135,7 @@ public class FilePreviewModalRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.Find(".ec-preview-note").TextContent, Is.EqualTo("Soubor se nepodařilo naformátovat, ukazuje se originál."));
+            Assert.That(component.Find(".ec-toolbar-note").TextContent.Trim(), Is.EqualTo("Soubor se nepodařilo naformátovat, ukazuje se originál."));
             Assert.That(ToolbarButton(component, "Formátovat").HasAttribute("disabled"), Is.True);
         }
     }

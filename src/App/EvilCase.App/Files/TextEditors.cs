@@ -9,12 +9,12 @@ internal sealed class TextEditors(IJSRuntime jsRuntime) : ITextEditors, IAsyncDi
 {
     private IJSObjectReference? module;
 
-    public async Task OpenEditor(ElementReference host, ElementReference searchInput, string text, CodeLanguage? language, string indentUnit, string label, DotNetObjectReference<TextEditor> owner)
+    public async Task OpenEditor(ElementReference host, string text, CodeLanguage? language, string indentUnit, string label, DotNetObjectReference<TextEditor> owner)
     {
         var editors = await this.Module();
 
         // Never cancelled: an editor the browser made must reach the caller to be closed.
-        await editors.InvokeVoidAsync("openEditor", host, searchInput, text, language is { } value ? FilePreviews.LanguageValue(value) : null, indentUnit, label, owner);
+        await editors.InvokeVoidAsync("openEditor", host, text, language is { } value ? FilePreviews.LanguageValue(value) : null, indentUnit, label, owner);
     }
 
     public async Task<CodeView> OpenViewer(ElementReference host, string text, CodeLanguage? language, bool format, string label, DotNetObjectReference<PreviewToolbar> view)
@@ -44,6 +44,20 @@ internal sealed class TextEditors(IJSRuntime jsRuntime) : ITextEditors, IAsyncDi
         var editors = await this.Module();
 
         await editors.InvokeVoidAsync("findInViewer", host, query, find != PreviewFind.New, find == PreviewFind.Previous);
+    }
+
+    public async Task FindInEditor(ElementReference host, string query, PreviewFind find)
+    {
+        var editors = await this.Module();
+
+        await editors.InvokeVoidAsync("findInEditor", host, query, find != PreviewFind.New, find == PreviewFind.Previous);
+    }
+
+    public async Task FocusEditor(ElementReference host)
+    {
+        var editors = await this.Module();
+
+        await editors.InvokeVoidAsync("focusEditor", host);
     }
 
     public async Task<string> ReadEditorText(ElementReference host)

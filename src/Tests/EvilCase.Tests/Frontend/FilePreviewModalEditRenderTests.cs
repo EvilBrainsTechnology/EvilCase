@@ -353,6 +353,24 @@ public class FilePreviewModalEditRenderTests
         }
     }
 
+    [Test]
+    public void EditOnOpenEditsAFileThatCanBeEditedAndShowsAnotherForReading()
+    {
+        using var ctx = NewContext(out var editors);
+
+        var text = File("a.txt");
+        var latin2 = File("b.txt");
+
+        Render(ctx, [text], text.FileId, "a\n"u8.ToArray(), editOnOpen: true);
+        var notUtf8 = Render(ctx, [latin2], latin2.FileId, [0x9E, 0x0A], editOnOpen: true);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(editors.OpenedReadOnly, Is.EqualTo([false, true]), "the editor opens without the view, a file not in UTF-8 opens for reading");
+            Assert.That(notUtf8.FindAll("[aria-label='Upravit']"), Is.Empty);
+        }
+    }
+
     private static async Task Dirty(IRenderedComponent<FilePreviewModal> component)
     {
         await component.InvokeAsync(async () => await component.FindComponent<TextEditor>().Instance.NotifyChanged(dirty: true, canUndo: true, canRedo: false));
@@ -431,11 +449,13 @@ public class FilePreviewModalEditRenderTests
         int? version = null,
         Func<FileListItem, IBrowserFile, Task<(string?, string?)>>? uploadVersion = null,
         Action<int?>? onVersionChanged = null,
-        Action<bool>? onOpenChanged = null)
+        Action<bool>? onOpenChanged = null,
+        bool editOnOpen = false)
     {
         var upload = uploadVersion ?? (static (_, _) => Task.FromResult<(string?, string?)>((null, null)));
 
         return ctx.Render<FilePreviewModal>(parameters => parameters
+            .Add(static modal => modal.EditOnOpen, editOnOpen)
             .Add(static modal => modal.Files, files)
             .Add(static modal => modal.FileId, fileId)
             .Add(static modal => modal.LoadContent, (_, _, _) => Task.FromResult<Stream>(new MemoryStream(content)))

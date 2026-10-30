@@ -1,0 +1,16 @@
+@* A note on a preview or editor toolbar; a narrow toolbar cuts it short and its title carries the whole wording. *@
+<span class="@(this.Warning ? "ec-toolbar-note ec-toolbar-note-warning" : "ec-toolbar-note")" role="note" title="@this.Text">
+    @if (this.Warning)
+    {
+        <EcIcon Paths="@AppIcons.AlertTriangle" />
+    }
+    <span class="ec-toolbar-note-text">@this.Text</span>
+</span>
+
+@code {
+    [Parameter, EditorRequired]
+    public required string Text { get; set; }
+
+    [Parameter]
+    public bool Warning { get; set; }
+}
