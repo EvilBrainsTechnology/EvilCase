@@ -4,7 +4,7 @@
 - A comment waits for an answer only when its author is the owner, `vdolek`.
 - Commit every logical unit that stands on its own, `add` and `commit` in one call; push
   every commit as it is made.
-- A behaviour change carries the test `tests.md` asks for; docs change in the code's commit.
+- A behaviour change in a category `tests.md` names carries a test; docs change in the code's commit.
 - A pull request is one topic, opened ready for review. The body fills
   `.github/pull_request_template.md`. Title and description match the diff.
 - An issue fills its matching template in `.github/ISSUE_TEMPLATE/`; the front matter is its
