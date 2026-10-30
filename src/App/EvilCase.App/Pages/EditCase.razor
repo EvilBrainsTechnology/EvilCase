@@ -10,7 +10,7 @@
 @inject NavigationManager Navigation
 @inject ILogger<EditCase> Logger
 
-<PageTitle>@(this.caseDetail is null ? "Upravit spis" : this.caseDetail.CaseNumber) – EvilCase</PageTitle>
+<PageTitle>@(this.caseDetail is null ? "Upravit spis" : this.caseDetail.Title) – EvilCase</PageTitle>
 
 <div class="ec-page">
     <EcPageHeader Title="Upravit spis" Breadcrumbs="this.Crumbs" />

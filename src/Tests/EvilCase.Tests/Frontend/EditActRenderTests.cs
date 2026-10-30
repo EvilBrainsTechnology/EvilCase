@@ -38,6 +38,19 @@ public class EditActRenderTests
     }
 
     [Test]
+    public async Task TheBrowserTitleNamesTheActByItsTitle()
+    {
+        await using var ctx = new BunitContext();
+
+        Serve(ctx, out var actId);
+
+        var component = Render(ctx, actId);
+        var title = ctx.Render(component.FindComponent<PageTitle>().Instance.ChildContent!);
+
+        Assert.That(string.Concat(title.Nodes.Select(static node => node.TextContent)), Is.EqualTo("Odpor proti příkazu – EvilCase"));
+    }
+
+    [Test]
     public async Task TheActSDirectionIsThePressedSegment()
     {
         await using var ctx = new BunitContext();

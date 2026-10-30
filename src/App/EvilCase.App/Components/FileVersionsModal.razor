@@ -47,8 +47,6 @@
                             <span class="ec-versions-meta">@MomentDisplay.Text(version.Created) <span class="ec-sep" aria-hidden="true">·</span> @version.UploaderEmail <span class="ec-sep" aria-hidden="true">·</span> @FileSizeDisplay.Text(version.SizeBytes)</span>
                         </button>
                         <div class="ec-versions-actions">
-                            <span class="ec-versions-preview"><EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Eye"
-                                                                        OnClick="() => this.OnPreview.InvokeAsync(number)">Náhled</EcButton></span>
                             <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Download"
                                       AriaLabel="@($"Stáhnout verzi {number}")" OnClick="() => this.OnDownload.InvokeAsync(number)" />
                             @if (this.versions.Count > 1)
@@ -63,7 +61,7 @@
         }
     </ChildContent>
     <Footer>
-        <p class="ec-versions-note"><span class="ec-versions-tap-hint">Klik na verzi otevře její náhled. </span>Smazání aktuální verze udělá aktuální předchozí verzi. Poslední zbývající verzi smaže jen Smazat soubor.</p>
+        <p class="ec-versions-note">Klik na verzi otevře její náhled. Smazání aktuální verze udělá aktuální předchozí verzi. Poslední zbývající verzi smaže jen Smazat soubor.</p>
         <span class="ec-versions-delete-file"><EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Trash" OnClick="this.OnDeleteFile"><span>Smazat soubor<span class="ec-versions-delete-more"> se všemi verzemi</span></span></EcButton></span>
     </Footer>
 </EcModal>

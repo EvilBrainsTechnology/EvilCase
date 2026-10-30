@@ -1327,7 +1327,19 @@ html {
     min-width: 0;
 }
 
+.ec-preview-name-row {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+    min-width: 0;
+}
+
+.ec-preview-name-row .ec-badge {
+    flex: 0 0 auto;
+}
+
 .ec-preview-name {
+    min-width: 0;
     margin: 0;
     overflow: hidden;
     font-size: var(--ec-text-lg);
@@ -2158,13 +2170,20 @@ html {
     list-style: none;
 }
 
+/* A row spans the body's padding, so its hover reaches the window's edges. */
 .ec-versions-row {
     position: relative;
     display: flex;
     align-items: center;
     gap: var(--ec-space-4);
-    padding: var(--ec-space-4) 0;
+    margin: 0 calc(-1 * var(--ec-space-6));
+    padding: var(--ec-space-4) var(--ec-space-6);
     border-bottom: 1px solid var(--ec-border-subtle);
+}
+
+.ec-versions-row:has(.ec-versions-main:hover),
+.ec-versions-row:has(.ec-versions-main:focus-visible) {
+    background: var(--ec-surface-sunken);
 }
 
 .ec-versions-row:last-child {
@@ -2198,7 +2217,6 @@ html {
 }
 
 .ec-versions-main:focus-visible::after {
-    border-radius: var(--ec-radius-lg);
     box-shadow: inset 0 0 0 2px var(--ec-accent);
 }
 
@@ -2245,7 +2263,6 @@ html {
     align-items: center;
 }
 
-.ec-versions-tap-hint,
 .ec-versions-delete-more {
     display: none;
 }
@@ -2293,6 +2310,11 @@ html {
     background: var(--ec-accent-soft);
     border-color: var(--ec-accent-ring);
     color: var(--ec-accent-text);
+}
+
+.ec-preview-actions .ec-button[aria-disabled="true"] {
+    cursor: default;
+    opacity: 0.6;
 }
 
 .ec-preview-versions-count {
@@ -2371,8 +2393,11 @@ html {
     font-weight: var(--ec-weight-semibold);
 }
 
-.ec-preview-versions-panel {
-    padding: var(--ec-space-2);
+/* The options span the panel, so their highlight reaches its edges. */
+.ec-popover.ec-preview-versions-panel {
+    display: flex;
+    flex-direction: column;
+    padding: var(--ec-space-2) 0;
 }
 
 .ec-preview-versions-list {
@@ -2381,6 +2406,11 @@ html {
     margin: 0;
     padding: 0;
     list-style: none;
+}
+
+.ec-preview-versions-list > li {
+    display: flex;
+    flex-direction: column;
 }
 
 .ec-preview-versions-option,
@@ -2395,7 +2425,7 @@ html {
     min-width: 0;
     padding: var(--ec-space-3) var(--ec-space-4);
     border: 0;
-    border-radius: var(--ec-radius-md);
+    border-radius: 0;
     background: transparent;
     color: var(--ec-text);
     font: inherit;
@@ -2431,7 +2461,7 @@ html {
 
 .ec-preview-versions-divider {
     height: var(--ec-hairline);
-    margin: var(--ec-space-2) var(--ec-space-1);
+    margin: var(--ec-space-2) 0;
     background: var(--ec-border-subtle);
 }
 
@@ -4159,17 +4189,12 @@ html {
         padding-bottom: calc(var(--ec-space-5) + env(safe-area-inset-bottom));
     }
 
-    .ec-versions-preview {
-        display: none;
-    }
-
-    .ec-versions-tap-hint,
     .ec-versions-delete-more {
         display: inline;
     }
 
     .ec-versions-row {
-        padding: var(--ec-space-3) 0;
+        padding: var(--ec-space-3) var(--ec-space-6);
     }
 
     .ec-versions-actions .ec-button,
