@@ -141,7 +141,7 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   (docx), sešit (xlsx, xls, ods), e-mail (eml, msg), datovou zprávu a doručenku ISDS (zfo), podepsaný soubor (p7m, p7s), zvuk (mp3, m4a, wav, ogg, oga) a video
   (mp4, webm, m4v, mov). Jiný typ nabídne jen stažení. Soubor, který se nepodaří přečíst, nabídne
   také jen stažení.
-- PDF, text, kód, formátovaný Markdown, e-mail, datová zpráva a dokument Word mají nad obsahem stejnou lištu se zvětšením
+- PDF, text, kód, Markdown, e-mail, datová zpráva a dokument Word mají nad obsahem stejnou lištu se zvětšením
   a zmenšením (50 až 400 %, také Ctrl nebo Cmd s kolečkem myši), na počítači i se skutečnou
   velikostí 100 %, a s hledáním. Hledání nerozlišuje velikost písmen ani diakritiku, zvýrazní
   všechny výskyty, aktuální odliší a posune do zobrazení a ukáže pořadí z počtu (3 z 12), nebo
@@ -150,31 +150,33 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
 - PDF se ukáže jako stránky pod sebou, zpočátku na šířku náhledu, nejvýš však ve 100 %, i
   v mobilním prohlížeči. Lišta navíc ukáže stránku z počtu stran s polem pro skok na stránku
   a přizpůsobení na šířku a na celou stránku. Text jde vybrat a zkopírovat.
-- U textu, kódu, formátovaného Markdownu, e-mailu a datové zprávy zvětšení mění velikost písma a text se zalomí do šířky náhledu;
+- U textu, kódu, Markdownu, e-mailu a datové zprávy zvětšení mění velikost písma a text se zalomí do šířky náhledu;
   zpočátku je 100 %.
 - Odkaz v PDF na místo v dokumentu přejde na jeho stránku, odkaz na webovou nebo e-mailovou adresu
   se otevře v nové záložce, jiný odkaz nefunguje. Formuláře, skripty a vložená média nefungují.
   PDF chráněné heslem nebo nečitelné nabídne jen stažení.
 - Text je vždy prostý text s čísly řádků, nikdy vykreslená stránka; ukáže se nejvýše první
-  1 MB a nejvýše 5 000 řádků a náhled řekne, že je soubor delší. SVG je jen obrázek.
+  1 MB a náhled řekne, že je soubor delší. SVG je jen obrázek.
 - Kód se ukáže jako text s čísly řádků a barevně zvýrazněnou syntaxí, nikdy jako vykreslená
-  stránka; HTML se nevykoná. Ukáže se nejvýše 5 000 řádků a náhled řekne, že je soubor delší.
-  Zpočátku je kód naformátovaný; tlačítko Formátovat na liště přepíná mezi naformátovaným
-  a původním textem a každý nově zobrazený soubor začne naformátovaný. Soubor delší než 1 MB
-  ukáže jen svůj začátek v původní podobě, soubor neplatný ve svém jazyce (ISDOC jako XML) celý
-  v původní podobě; tlačítko je pak vypnuté a náhled řekne proč. Totéž platí, když se soubor
-  nepodaří naformátovat z jiného důvodu. Když zvýraznění není k dispozici, ukáže se kód jako
-  prostý text. Řádek delší než 10 000 znaků se ukáže bez zvýraznění.
+  stránka; HTML se nevykoná. Zpočátku je kód naformátovaný; tlačítko Formátovat na liště přepíná
+  mezi naformátovaným a původním textem a každý nově zobrazený soubor začne naformátovaný. Soubor
+  delší než 1 MB ukáže jen svůj začátek v původní podobě, soubor neplatný ve svém jazyce (ISDOC
+  jako XML) celý v původní podobě; tlačítko je pak vypnuté a náhled řekne proč. Totéž platí, když
+  se soubor nepodaří naformátovat z jiného důvodu. Text s řádkem delším než 10 000 znaků se ukáže
+  celý bez zvýraznění, v náhledu i v editoru.
+- Text, kód a zdrojový kód Markdownu ukáže náhled stejně jako editor, jen ho nejde měnit:
+  s čísly řádků a se zalomenými dlouhými řádky. Text jde vybrat a zkopírovat, Ctrl+A nebo Cmd+A
+  vybere celý text. Ctrl+F nebo Cmd+F v textu přejde do hledání na liště. Hledání počítá výskyty
+  v celém textu.
 - Markdown se ukáže formátovaně, nejvýše první 1 MB, včetně tabulek, přeškrtnutí a seznamů
   úkolů; zaškrtávací políčka úkolů v náhledu nejdou měnit. Syrové HTML v něm se nevykoná, ukáže
   se jako text. Odkaz zůstane jen na webovou (http, https) nebo e-mailovou adresu a otevře se
   v nové záložce; jiný odkaz se ukáže jako prostý text. Obrázky se nenačítají: místo obrázku se
   ukáže jeho popis, bez popisu slovo „obrázek“.
 - Lišta náhledu Markdownu nese přepínač Formátovaně / Zdrojový kód, na mobilu Formát / Zdroj.
-  Zdrojový kód ukáže text s čísly řádků a barevně zvýrazněnými značkami Markdownu; jeho lišta
-  nese jen přepínač a Hledat v textu, bez zvětšení, a hledá se v něm jako v editoru textu. Zvolené
-  zobrazení platí pro každý další soubor Markdown, dokud se náhled nezavře; nově otevřený náhled
-  začne formátovaně.
+  Zdrojový kód ukáže text s čísly řádků a barevně zvýrazněnými značkami Markdownu, se stejnou
+  lištou jako formátované zobrazení. Zvolené zobrazení platí pro každý další soubor Markdown,
+  dokud se náhled nezavře; nově otevřený náhled začne formátovaně.
 - Dokument Word se ukáže jako stránky pod sebou, zpočátku na šířku náhledu, nejvýš však ve 100 %.
   Stránka končí tam, kde ji Word ukončil při posledním uložení, nebo na ručním zlomu stránky či
   oddílu. Dokument bez údajů od Wordu a stránka, která je i tak o víc než desetinu vyšší než
@@ -223,8 +225,10 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   datové zprávy se neupravují. U souboru, který není platné UTF-8, náhled řekne „Soubor není
   v kódování UTF-8, proto ho nejde upravit.“
 - Editor ukáže celý text s čísly řádků, dlouhé řádky zalomí a kód barevně zvýrazní stejně jako
-  náhled. Text sám neformátuje ani nedoplňuje. Hlavička nese jen ikonu a jméno souboru,
-  „Upravujete verzi 3“, po změně „Neuložené změny · upravujete verzi 3“, Zrušit, Uložit
+  náhled. Text sám neformátuje ani nedoplňuje. Upravit vymění náhled za editor na témže místě,
+  ve 100 %. Kód se upravuje vždy v původní podobě; když ho náhled ukazoval naformátovaný, editor
+  řekne „Upravuje se originál souboru, ne jeho naformátovaná podoba.“ Hlavička nese jen ikonu
+  a jméno souboru, „Upravujete verzi 3“, po změně „Neuložené změny · upravujete verzi 3“, Zrušit, Uložit
   a zavření; listování soubory, Verze, Nová verze, Přejmenovat a Stáhnout se během úprav skryjí.
 - Lišta nad textem nese Zpět a Znovu, neaktivní, když není co vrátit, a Hledat v textu. Zpět
   a znovu jde i Ctrl+Z a Ctrl+Y, Cmd+Z a Cmd+Shift+Z. Hledání nerozlišuje velikost písmen,
@@ -421,6 +425,8 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
 - Režim úpravy Markdownu: vždy formátovaně / podle zobrazení náhledu. Platí podle zobrazení
   náhledu.
 - Seznam úkolů v náhledu: políčka měnitelná / neměnná. Platí neměnná.
+- Úprava naformátovaného kódu: naformátovaný text / originál. Platí originál.
+- Řádky náhledu textu a kódu: nejvýše 5 000 / bez limitu. Platí bez limitu, jen první 1 MB.
 
 ## Dopady
 

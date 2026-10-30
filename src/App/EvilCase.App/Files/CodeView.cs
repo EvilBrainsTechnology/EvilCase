@@ -1,7 +1,7 @@
 namespace EvilBrains.EvilCase.App.Files;
 
 /// <summary>
-/// A code preview as shown: whether its text formatted, whether it is not valid in its language, and whether its lines
-/// were cut at the line cap. A text neither formatted nor invalid failed to format for another reason.
+/// How a read-only view formatted its code: whether the text formatted and whether it is not valid in its language. A
+/// text asked to format that is neither failed for another reason.
 /// </summary>
-internal sealed record CodeView(bool Formatted, bool Invalid, bool LinesCut);
+public sealed record CodeView(bool Formatted, bool Invalid);

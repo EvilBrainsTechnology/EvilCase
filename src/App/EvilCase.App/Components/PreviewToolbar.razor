@@ -221,6 +221,21 @@
         });
     }
 
+    /// <summary>
+    /// Opens the search and puts the focus in its field, as Ctrl+F in a text does.
+    /// </summary>
+    [JSInvokable]
+    public Task FocusSearch()
+    {
+        return this.InvokeAsync(async () =>
+        {
+            this.searchOpen = true;
+            this.StateHasChanged();
+            await Task.Yield();
+            await this.searchInput.FocusAsync();
+        });
+    }
+
     public void Dispose()
     {
         this.view?.Dispose();

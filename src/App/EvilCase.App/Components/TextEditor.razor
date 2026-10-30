@@ -3,34 +3,36 @@
 @inject ITextEditors Editors
 @inject ILogger<TextEditor> Logger
 
-@* The source editor of a text file, or its read-only source view: undo, redo and search over the text; Notes stand
+@* The source editor of a text file, or its read-only view with the zoom and the search of a preview; Notes stand
    between the toolbar and the text. *@
 <div class="ec-preview-view">
-    <div class="ec-preview-toolbar ec-text-editor-toolbar" role="toolbar" aria-label="@(this.ReadOnly ? "Ovládání náhledu" : "Úpravy")" inert="@this.Locked">
-        @if (!this.ReadOnly)
-        {
+    @if (this.ReadOnly)
+    {
+        <PreviewToolbar @ref="this.toolbar" Ready="this.ready" Formats="this.Formats" Formatted="this.formatted" CanFormat="this.canFormat"
+                        OnFormat="this.ToggleFormat" Modes="this.Modes" OnZoom="this.Zoom" OnSearch="this.Search" />
+    }
+    else
+    {
+        <div class="ec-preview-toolbar ec-text-editor-toolbar" role="toolbar" aria-label="Úpravy" inert="@this.Locked">
             <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ArrowBackUp" AriaLabel="Zpět"
                       Disabled="@(!this.canUndo)" OnClick="this.Undo" />
             <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ArrowForwardUp" AriaLabel="Znovu"
                       Disabled="@(!this.canRedo)" OnClick="this.Redo" />
-        }
-        @if (this.Modes is not null)
-        {
-            @if (!this.ReadOnly)
+            @if (this.Modes is not null)
             {
                 <span class="ec-preview-toolbar-separator" aria-hidden="true"></span>
+                @this.Modes
             }
-            @this.Modes
-        }
-        @* Escape clears the search and does not close the dialog. *@
-        <div class="ec-text-editor-search" role="search" data-ec-keeps-escape>
-            <label class="ec-preview-toolbar-search-box">
-                <EcIcon Paths="@AppIcons.Search" />
-                <input type="search" class="ec-preview-toolbar-search-input" placeholder="Hledat v textu" aria-label="Hledat v textu"
-                       autocomplete="off" @ref="this.searchInput" />
-            </label>
+            @* Escape clears the search and does not close the dialog. *@
+            <div class="ec-text-editor-search" role="search" data-ec-keeps-escape>
+                <label class="ec-preview-toolbar-search-box">
+                    <EcIcon Paths="@AppIcons.Search" />
+                    <input type="search" class="ec-preview-toolbar-search-input" placeholder="Hledat v textu" aria-label="Hledat v textu"
+                           autocomplete="off" @ref="this.searchInput" />
+                </label>
+            </div>
         </div>
-    </div>
+    }
     @this.Notes
     <div class="ec-preview-stage ec-text-editor-stage" inert="@this.Locked">
         <div @ref="this.host" class="ec-text-editor"></div>
@@ -45,6 +47,15 @@
     private ElementReference searchInput;
 
     private DotNetObjectReference<TextEditor>? self;
+
+    private PreviewToolbar? toolbar;
+
+    private bool ready;
+
+    // Whether the view shows the formatted text, and whether its text formatted.
+    private bool formatted;
+
+    private bool canFormat;
 
     private bool opened;
 
@@ -73,16 +84,36 @@
     public RenderFragment? Notes { get; set; }
 
     /// <summary>
-    /// Shows the text without taking input: no Zpět, Znovu or Ctrl+S. Fixed for the editor's life.
+    /// Shows the text without taking input, with the zoom and the search of a preview and no Zpět, Znovu or Ctrl+S. Fixed
+    /// for the editor's life.
     /// </summary>
     [Parameter]
     public bool ReadOnly { get; set; }
 
     /// <summary>
-    /// The view switch on the toolbar, after Zpět and Znovu.
+    /// The view switch on the toolbar: after Zpět and Znovu, or after the zoom in the read-only view.
     /// </summary>
     [Parameter]
     public RenderFragment? Modes { get; set; }
+
+    /// <summary>
+    /// Whether the read-only view formats the text in its Language, opens formatted when it formats and offers the switch
+    /// to the original on its toolbar.
+    /// </summary>
+    [Parameter]
+    public bool Formats { get; set; }
+
+    /// <summary>
+    /// The text is only the start of the file: it is not formatted and the switch stays disabled.
+    /// </summary>
+    [Parameter]
+    public bool Partial { get; set; }
+
+    /// <summary>
+    /// Raised with how the text formatted once a read-only view that <see cref="Formats"/> shows.
+    /// </summary>
+    [Parameter]
+    public EventCallback<CodeView> OnFormatted { get; set; }
 
     /// <summary>
     /// Takes no input while set, so nothing is typed into a text being saved.
@@ -163,29 +194,50 @@
         if (!firstRender)
             return;
 
-        this.self = DotNetObjectReference.Create(this);
+        var label = $"Obsah souboru {this.FileName}";
+
+        // Set first: a close while the view formats stops the formatting.
+        this.opened = true;
 
         try
         {
-            // Tab types a tab into text. Into code it types the indentation of the first indented line, at most eight
-            // spaces; without one two spaces in YAML, which takes no tabs, and a tab elsewhere.
-            var indentUnit = this.Language is CodeLanguage.Yaml ? "  " : "\t";
-
-            if (this.Language is not null)
+            if (this.ReadOnly)
             {
-                foreach (var line in this.Text.AsSpan().EnumerateLines())
-                {
-                    if (line.IndexOfAnyExcept(' ', '\t') > 0)
-                    {
-                        indentUnit = line[0] == '\t' ? "\t" : new string(' ', Math.Min(line.IndexOfAnyExcept(' '), 8));
+                var shown = await this.Editors.OpenViewer(this.host, this.Text, this.Language, this.Formats && !this.Partial, label, this.toolbar!.View);
 
-                        break;
-                    }
+                if (!this.cancel.IsCancellationRequested)
+                {
+                    (this.formatted, this.canFormat, this.ready) = (shown.Formatted, shown.Formatted, true);
+
+                    if (this.Formats)
+                        await this.OnFormatted.InvokeAsync(shown);
+
+                    this.StateHasChanged();
                 }
             }
+            else
+            {
+                this.self = DotNetObjectReference.Create(this);
 
-            await this.Editors.OpenEditor(this.host, this.searchInput, this.Text, this.Language, indentUnit, this.ReadOnly, $"Obsah souboru {this.FileName}", this.self);
-            this.opened = true;
+                // Tab types a tab into text. Into code it types the indentation of the first indented line, at most eight
+                // spaces; without one two spaces in YAML, which takes no tabs, and a tab elsewhere.
+                var indentUnit = this.Language is CodeLanguage.Yaml ? "  " : "\t";
+
+                if (this.Language is not null)
+                {
+                    foreach (var line in this.Text.AsSpan().EnumerateLines())
+                    {
+                        if (line.IndexOfAnyExcept(' ', '\t') > 0)
+                        {
+                            indentUnit = line[0] == '\t' ? "\t" : new string(' ', Math.Min(line.IndexOfAnyExcept(' '), 8));
+
+                            break;
+                        }
+                    }
+                }
+
+                await this.Editors.OpenEditor(this.host, this.searchInput, this.Text, this.Language, indentUnit, label, this.self);
+            }
 
             // Closed while it opened.
             if (this.cancel.IsCancellationRequested)
@@ -198,6 +250,24 @@
             if (!this.cancel.IsCancellationRequested)
                 await this.OnUnavailable.InvokeAsync();
         }
+    }
+
+    // A second switch before the first one's text shows wins.
+    private async Task ToggleFormat()
+    {
+        this.formatted = !this.formatted;
+
+        await this.Editors.ShowFormatted(this.host, this.formatted);
+    }
+
+    private async Task Zoom(PreviewZoom zoom)
+    {
+        await this.Editors.ZoomViewer(this.host, zoom);
+    }
+
+    private async Task Search(PreviewSearch search)
+    {
+        await this.Editors.FindInViewer(this.host, search.Query, search.Find);
     }
 
     private async Task Undo()

@@ -51,6 +51,7 @@ public class FilePreviewModalDataMessageRenderTests
 
         var file = File("Zpráva.zfo");
         var component = Render(ctx, [file], file.FileId, static _ => DefaultMessage());
+        var editors = ctx.Services.GetRequiredService<StubTextEditors>();
 
         component.WaitForAssertion(() => Assert.That(component.FindAll(".ec-preview-data-message-attachment-open"), Has.Count.EqualTo(2)));
         component.FindAll(".ec-preview-data-message-attachment-open")[0].Click();
@@ -63,7 +64,7 @@ public class FilePreviewModalDataMessageRenderTests
             using (Assert.EnterMultipleScope())
             {
                 Assert.That(component.Find(".ec-preview-name").TextContent, Is.EqualTo("Poučení.txt"));
-                Assert.That(component.Find(".ec-preview-line-text").TextContent, Is.EqualTo("Poučení o odvolání."));
+                Assert.That(editors.Opened[^1].Text, Is.EqualTo("Poučení o odvolání."));
                 Assert.That(Position(component), Is.EqualTo("příloha 2 z 2"));
                 Assert.That(previews.DisposedPdfs, Is.EqualTo(1));
             }
@@ -399,6 +400,8 @@ public class FilePreviewModalDataMessageRenderTests
         downloader = new StubFileDownloader();
         ctx.Services.AddSingleton<IBlobUrls>(blobs);
         ctx.Services.AddSingleton<IFilePreviews>(previews);
+        ctx.Services.AddSingleton(new StubTextEditors());
+        ctx.Services.AddSingleton<ITextEditors>(static services => services.GetRequiredService<StubTextEditors>());
         ctx.Services.AddSingleton<IFileDownloader>(downloader);
         ctx.Services.AddSingleton(new StubAuthSession());
         ctx.Services.AddSingleton<IAuthSession>(static services => services.GetRequiredService<StubAuthSession>());

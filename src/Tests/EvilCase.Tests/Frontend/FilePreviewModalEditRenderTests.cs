@@ -22,6 +22,8 @@ public class FilePreviewModalEditRenderTests
 
     private const string DiscardQuestion = "dialog[aria-label='Zahodit neuložené změny?']";
 
+    private const string OriginalNote = "Upravuje se originál souboru, ne jeho naformátovaná podoba.";
+
     private static readonly byte[] Mark = [0xEF, 0xBB, 0xBF];
 
     [TestCase("a.txt")]
@@ -79,7 +81,7 @@ public class FilePreviewModalEditRenderTests
     }
 
     [Test]
-    public void ATextWithMoreLinesThanTheViewShowsIsStillEditable()
+    public void ATextOfManyLinesIsEditable()
     {
         using var ctx = NewContext(out _);
 
@@ -106,17 +108,6 @@ public class FilePreviewModalEditRenderTests
         }
     }
 
-    [Test]
-    public void ANonUtf8TextWithMoreLinesThanTheViewShowsSaysWhy()
-    {
-        using var ctx = NewContext(out _);
-
-        var file = File("a.log");
-        var component = Render(ctx, [file], file.FileId, [.. Enumerable.Repeat<byte>(0x0A, 6000), 0xF8]);
-
-        Assert.That(component.FindAll(".ec-preview-note").Select(static note => note.TextContent), Does.Contain(NotUtf8Note));
-    }
-
     [TestCase("data.tsv", "a\n  b\n", "\t")]
     [TestCase("data.json", "{}", "\t")]
     [TestCase("data.json", "{\n\t\n  \"a\": 1\n}", "  ")]
@@ -134,7 +125,7 @@ public class FilePreviewModalEditRenderTests
 
         await component.Find("button[aria-label='Upravit']").ClickAsync(new MouseEventArgs());
 
-        Assert.That(editors.Opened.Single().IndentUnit, Is.EqualTo(indentUnit));
+        Assert.That(editors.Opened[^1].IndentUnit, Is.EqualTo(indentUnit));
     }
 
     [TestCase("data.json", CodeLanguage.Json)]
@@ -150,7 +141,9 @@ public class FilePreviewModalEditRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(editors.Opened, Is.EqualTo([("{}", language, "\t", $"Obsah souboru {fileName}")]));
+            Assert.That(editors.Opened[^1], Is.EqualTo(("{}", language, "\t", $"Obsah souboru {fileName}")));
+            Assert.That(editors.OpenedReadOnly, Is.EqualTo([true, false]), "Upravit opens the editor in place of the read-only view");
+            Assert.That(editors.Closed, Is.EqualTo(1), "the read-only view closes");
             Assert.That(HeaderButtons(component), Is.EqualTo(["Zrušit", "Uložit", "Zavřít"]));
             Assert.That(SaveButton(component).HasAttribute("disabled"), Is.True, "nothing changed yet");
             Assert.That(component.FindAll(".ec-preview-nav"), Is.Empty);
@@ -235,7 +228,7 @@ public class FilePreviewModalEditRenderTests
             Assert.That(uploaded.Select(static upload => upload.Name), Is.EqualTo(["Poznámky.txt"]));
             Assert.That(uploaded.Single().Content, Is.EqualTo(expected), "the file keeps its mark and line breaks");
             Assert.That(changed, Is.EqualTo(new int?[] { null }));
-            Assert.That(component.FindAll(".ec-text-editor"), Is.Empty);
+            Assert.That(component.FindComponent<TextEditor>().Instance.ReadOnly, Is.True, "the preview shows the text read-only again");
             Assert.That(component.Find(".ec-file-notice").TextContent, Is.EqualTo("Poznámky.txt: nahrána verze 2."));
         }
     }
@@ -259,7 +252,7 @@ public class FilePreviewModalEditRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.FindAll(".ec-text-editor"), Is.Empty);
+            Assert.That(component.FindComponent<TextEditor>().Instance.ReadOnly, Is.True, "the preview shows the text read-only again");
             Assert.That(changed, Is.EqualTo(new int?[] { null }));
         }
     }
@@ -319,7 +312,7 @@ public class FilePreviewModalEditRenderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(component.Find(".ec-preview-alert .ec-alert-text").TextContent, Is.EqualTo("Poznámky.txt: nahrání se nezdařilo."));
-            Assert.That(component.FindAll(".ec-text-editor"), Has.Count.EqualTo(1), "a failed save keeps the text");
+            Assert.That(component.FindComponent<TextEditor>().Instance.ReadOnly, Is.False, "a failed save keeps the text");
             Assert.That(changed, Is.Empty);
         }
 
@@ -386,7 +379,7 @@ public class FilePreviewModalEditRenderTests
         {
             Assert.That(uploads, Is.Zero);
             Assert.That(component.Find(".ec-preview-alert .ec-alert-text").TextContent, Is.EqualTo("Text se nepodařilo přečíst z editoru. Zkuste to znovu."));
-            Assert.That(component.FindAll(".ec-text-editor"), Has.Count.EqualTo(1));
+            Assert.That(component.FindComponent<TextEditor>().Instance.ReadOnly, Is.False, "the editor stays");
         }
     }
 
@@ -401,7 +394,7 @@ public class FilePreviewModalEditRenderTests
         await Dirty(component);
         component.Render(parameters => parameters.Add(static modal => modal.Files, [file with { Version = 2, VersionCount = 2 }]));
 
-        Assert.That(component.FindAll(".ec-text-editor"), Has.Count.EqualTo(1), "the unsaved text stays");
+        Assert.That(component.FindComponent<TextEditor>().Instance.ReadOnly, Is.False, "the unsaved text stays");
 
         await HeaderButton(component, "Zrušit").ClickAsync(new MouseEventArgs());
         await QuestionButton(component, "Zahodit změny").ClickAsync(new MouseEventArgs());
@@ -422,7 +415,7 @@ public class FilePreviewModalEditRenderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(component.FindAll(DiscardQuestion), Is.Empty);
-            Assert.That(component.FindAll(".ec-text-editor"), Is.Empty);
+            Assert.That(component.FindComponent<TextEditor>().Instance.ReadOnly, Is.True, "the preview shows the text read-only again");
             Assert.That(component.FindAll("[aria-label='Upravit']"), Has.Count.EqualTo(1));
         }
     }
@@ -451,7 +444,7 @@ public class FilePreviewModalEditRenderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(component.FindAll(DiscardQuestion), Is.Empty);
-            Assert.That(component.FindAll(".ec-text-editor"), Is.Empty);
+            Assert.That(component.FindComponent<TextEditor>().Instance.ReadOnly, Is.True, "the preview shows the text read-only again");
         }
     }
 
@@ -470,7 +463,7 @@ public class FilePreviewModalEditRenderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(component.FindAll(DiscardQuestion), Is.Empty);
-            Assert.That(component.FindAll(".ec-text-editor"), Has.Count.EqualTo(1));
+            Assert.That(component.FindComponent<TextEditor>().Instance.ReadOnly, Is.False, "the editor stays");
             Assert.That(Normalize(component.Find(".ec-preview-meta").TextContent), Does.StartWith("Neuložené změny"));
         }
     }
@@ -629,7 +622,7 @@ public class FilePreviewModalEditRenderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(component.Find(".ec-preview-alert").TextContent, Is.EqualTo("Úpravy se nepodařilo spustit. Zkuste to za chvíli znovu."));
-            Assert.That(component.FindAll(".ec-text-editor"), Is.Empty);
+            Assert.That(component.FindComponent<TextEditor>().Instance.ReadOnly, Is.True, "the preview shows the text read-only again");
         }
     }
 
@@ -644,7 +637,55 @@ public class FilePreviewModalEditRenderTests
         await component.Instance.DisposeAsync();
         await ctx.DisposeAsync();
 
-        Assert.That(editors.Closed, Is.EqualTo(1));
+        Assert.That(editors.Closed, Is.EqualTo(2), "the view closes for the edit and the editor with the preview");
+    }
+
+    [Test]
+    public async Task UpravitOnFormattedCodeEditsTheOriginalAndSaysSo()
+    {
+        await using var ctx = NewContext(out var editors);
+
+        var file = File("data.json");
+        var component = await RenderEditing(ctx, [file], file.FileId, "{\"a\":1}"u8.ToArray());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(editors.Formatting, Is.EqualTo([true]), "only the preview formats");
+            Assert.That(editors.OpenedReadOnly, Is.EqualTo([true, false]));
+            Assert.That(editors.Opened[^1].Text, Is.EqualTo("{\"a\":1}"), "the edit starts from the original, never the formatted text");
+            Assert.That(component.FindAll(".ec-preview-note").Select(static note => note.TextContent), Does.Contain(OriginalNote));
+        }
+    }
+
+    [Test]
+    public async Task AnEditOfCodeShownAsItsOriginalHasNoNoteOfIt()
+    {
+        await using var ctx = NewContext(out var editors);
+
+        editors.Code = new CodeView(Formatted: false, Invalid: true);
+
+        var file = File("data.json");
+        var component = await RenderEditing(ctx, [file], file.FileId);
+
+        Assert.That(component.FindAll(".ec-preview-note"), Is.Empty, "the preview already showed the original");
+    }
+
+    [Test]
+    public async Task CancelShowsTheCodeFormattedAgain()
+    {
+        await using var ctx = NewContext(out var editors);
+
+        var file = File("data.json");
+        var component = await RenderEditing(ctx, [file], file.FileId);
+
+        await HeaderButton(component, "Zrušit").ClickAsync(new MouseEventArgs());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(editors.OpenedReadOnly, Is.EqualTo([true, false, true]));
+            Assert.That(editors.Formatting, Is.EqualTo([true, true]), "the preview formats the text again");
+            Assert.That(component.Find(".ec-preview-toolbar button[aria-label='Formátovat']").GetAttribute("aria-pressed"), Is.EqualTo("true"));
+        }
     }
 
     private static async Task Dirty(IRenderedComponent<FilePreviewModal> component)
