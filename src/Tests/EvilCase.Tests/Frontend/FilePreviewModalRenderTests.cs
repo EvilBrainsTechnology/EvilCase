@@ -1042,7 +1042,9 @@ public class FilePreviewModalRenderTests
             Assert.That(component.Find(".ec-preview-versions-note").TextContent, Is.EqualTo("Starší verze. Stáhnout stáhne tuto verzi."));
             Assert.That(Normalize(component.Find(".ec-preview-meta").TextContent), Is.EqualTo($"2 kB · {MomentDisplay.Text(VersionItems()[1].Created)}"));
             Assert.That(component.Find("button[aria-label='Verze, 3']").GetAttribute("aria-pressed"), Is.EqualTo("true"));
-            Assert.That(component.Find("button[aria-label='Verze, 3']").HasAttribute("disabled"), Is.True, "only the version bar returns to the current version");
+            Assert.That(component.Find("button[aria-label='Verze, 3']").GetAttribute("aria-disabled"), Is.EqualTo("true"), "only the version bar returns to the current version");
+            Assert.That(component.Find("button[aria-label='Verze, 3']").HasAttribute("disabled"), Is.False, "the toggle stays focusable");
+            Assert.That(component.Find("button[aria-label='Verze, 3']").GetAttribute("title"), Is.EqualTo("Zobrazena je starší verze"));
             Assert.That(component.Find(".ec-preview-name-row .ec-badge-file-version").TextContent.Trim(), Is.EqualTo("verze 2"));
         }
     }
@@ -1058,7 +1060,7 @@ public class FilePreviewModalRenderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(component.FindAll(".ec-preview-name-row .ec-badge"), Is.Empty);
-            Assert.That(component.Find("button[aria-label='Verze, 3']").HasAttribute("disabled"), Is.False);
+            Assert.That(component.Find("button[aria-label='Verze, 3']").HasAttribute("aria-disabled"), Is.False);
         }
     }
 
@@ -1112,9 +1114,37 @@ public class FilePreviewModalRenderTests
         var file = Versioned("a.txt", 3, 3);
         var component = Render(ctx, [file], file.FileId, version: 2, onVersionChanged: changed.Add);
 
+        await component.Find("button[aria-label='Verze, 3']").ClickAsync(new MouseEventArgs());
+
+        Assert.That(component.FindAll(".ec-preview-versions-old"), Has.Count.EqualTo(1), "the toggle does nothing while an older version is shown");
+
         await component.Find(".ec-preview-versions .ec-button-quiet").ClickAsync(new MouseEventArgs());
 
         Assert.That(changed, Is.EqualTo(new int?[] { null }));
+    }
+
+    [Test]
+    public async Task ReturningToTheCurrentVersionFocusesTheVersionToggle()
+    {
+        await using var ctx = NewContext(out _);
+
+        var file = Versioned("a.txt", 3, 3);
+        var component = Render(ctx, [file], file.FileId, version: 2);
+
+        // bUnit drops the element reference from the markup once an element renders again, so the id is read first.
+        var toggleId = component.Find("button[aria-label='Verze, 3']").GetAttribute("blazor:elementReference");
+
+        await component.Find(".ec-preview-versions .ec-button-quiet").ClickAsync(new MouseEventArgs());
+        component.Render(static parameters => parameters.Add(static modal => modal.Version, value: null));
+
+        var focused = ctx.JSInterop.Invocations.Where(static invocation => string.Equals(invocation.Identifier, "Blazor._internal.domWrapper.focus", StringComparison.Ordinal)).ToList();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.FindAll(".ec-preview-versions"), Is.Empty);
+            Assert.That(focused, Is.Not.Empty);
+            Assert.That(((ElementReference)focused[^1].Arguments[0]!).Id, Is.EqualTo(toggleId));
+        }
     }
 
     [Test]

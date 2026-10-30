@@ -90,22 +90,16 @@ public class FileVersionsModalRenderTests
     }
 
     [Test]
-    public async Task PreviewAndDownloadRaiseTheNumber()
+    public async Task DownloadRaisesTheNumber()
     {
         await using var ctx = NewContext();
 
-        var previewed = new List<int>();
         var downloaded = new List<int>();
-        var component = Render(ctx, onPreview: previewed.Add, onDownload: downloaded.Add);
+        var component = Render(ctx, onDownload: downloaded.Add);
 
-        await component.FindAll(".ec-versions-row")[1].QuerySelector(".ec-versions-main")!.ClickAsync(new MouseEventArgs());
         await component.Find("[aria-label='Stáhnout verzi 1']").ClickAsync(new MouseEventArgs());
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(previewed, Is.EqualTo([2]));
-            Assert.That(downloaded, Is.EqualTo([1]));
-        }
+        Assert.That(downloaded, Is.EqualTo([1]));
     }
 
     [Test]

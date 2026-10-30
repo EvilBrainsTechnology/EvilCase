@@ -85,11 +85,14 @@
                     }
                     @if (file.VersionCount > 1)
                     {
-                        <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Clock" AriaLabel="@($"Verze, {file.VersionCount}")"
-                                  aria-pressed="@(this.OlderVersion is not null || this.versionsOpen ? "true" : "false")"
-                                  Disabled="this.OlderVersion is not null" OnClick="this.ToggleVersions">
+                        @* Not an EcButton: the focus returns to it, which needs its element reference. *@
+                        <button type="button" class="ec-button ec-button-secondary ec-button-standard" @ref="this.versionsToggle"
+                                aria-label="@($"Verze, {file.VersionCount}")" aria-pressed="@(this.OlderVersion is not null || this.versionsOpen ? "true" : "false")"
+                                aria-disabled="@(this.OlderVersion is not null ? "true" : null)" title="@(this.OlderVersion is not null ? "Zobrazena je starší verze" : null)"
+                                @onclick="this.ToggleVersions">
+                            <EcIcon Paths="@AppIcons.Clock" />
                             <span class="ec-preview-action-label">Verze<span class="ec-preview-versions-count">@file.VersionCount</span></span>
-                        </EcButton>
+                        </button>
                     }
                     <FileVersionPicker Text="Nová verze" Disabled="this.uploadingVersion" OnPicked="picked => this.UploadNewVersion(file, picked)" />
                     <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Pencil" AriaLabel="Přejmenovat" OnClick="this.StartRename"><span class="ec-preview-action-label">Přejmenovat</span></EcButton>
@@ -436,6 +439,10 @@
 
     private EcPopover? versionsPopover;
 
+    private ElementReference versionsToggle;
+
+    private bool focusVersionsToggle;
+
     private string? url;
 
     private bool urlIsBlob;
@@ -537,6 +544,16 @@
 
             this.versions = null;
         }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!this.focusVersionsToggle || this.OlderVersion is not null)
+            return;
+
+        this.focusVersionsToggle = false;
+
+        await this.versionsToggle.FocusAsync();
     }
 
     public async ValueTask DisposeAsync()
@@ -954,12 +971,15 @@
 
     private void ToggleVersions()
     {
-        this.versionsOpen = !this.versionsOpen;
+        if (this.OlderVersion is null)
+            this.versionsOpen = !this.versionsOpen;
     }
 
+    // The bar holding the focused button goes away, so the focus moves to the toggle once the current version shows.
     private async Task ShowCurrentVersion()
     {
         this.versionsOpen = false;
+        this.focusVersionsToggle = true;
 
         await this.VersionChanged.InvokeAsync(null);
     }
