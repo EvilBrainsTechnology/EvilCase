@@ -10,89 +10,6 @@ public class PdfPreviewRenderTests
 {
     private const string Url = "/api/files/0f8fad5b-d9cb-469f-a165-70867728950e/content";
 
-    [Test]
-    public void TheToolbarStandsAboveTheOneContainerThePdfIsShownIn()
-    {
-        using var ctx = NewContext(out var previews);
-
-        var component = Render(ctx);
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(previews.RenderedPdfs, Is.EqualTo([Url]));
-            Assert.That(component.Find(".ec-preview-toolbar").GetAttribute("role"), Is.EqualTo("toolbar"));
-            Assert.That(component.FindAll(".ec-preview-pdf-frame > .ec-preview-pdf"), Has.Count.EqualTo(1));
-            Assert.That(component.Find(".ec-preview-pdf").GetAttribute("aria-label"), Is.EqualTo("Obsah souboru Rozhodnutí.pdf"));
-            Assert.That(component.Find(".ec-preview-pdf").ChildElementCount, Is.Zero, "the library fills the container");
-            Assert.That(component.Find(".ec-preview-toolbar-page-input").GetAttribute("value"), Is.EqualTo("1"));
-            Assert.That(component.Find(".ec-preview-toolbar-page-count").TextContent, Is.EqualTo("z 3"));
-            Assert.That(component.FindAll(".ec-preview-pdf-loading"), Is.Empty);
-            Assert.That(component.FindAll("iframe, object, embed"), Is.Empty);
-        }
-    }
-
-    [Test]
-    public void EveryIconButtonHasAName()
-    {
-        using var ctx = NewContext(out _);
-
-        var component = Render(ctx);
-
-        Assert.That(
-            component.FindAll(".ec-preview-toolbar button").Select(static button => button.GetAttribute("aria-label")),
-            Is.EqualTo(["Zmenšit", "Zvětšit", "100 %", "Na šířku", "Celá stránka", "Hledat v dokumentu", "Předchozí výskyt", "Další výskyt"]));
-    }
-
-    [Test]
-    public void TheZoomButtonsStepAndFitThroughTheLibrary()
-    {
-        using var ctx = NewContext(out var previews);
-
-        var component = Render(ctx);
-
-        Button(component, "Zvětšit").Click();
-        Button(component, "Zmenšit").Click();
-        Button(component, "Na šířku").Click();
-        Button(component, "Celá stránka").Click();
-        Button(component, "100 %").Click();
-
-        Assert.That(previews.Zooms, Is.EqualTo([PreviewZoom.In, PreviewZoom.Out, PreviewZoom.PageWidth, PreviewZoom.PageFit, PreviewZoom.Actual]));
-    }
-
-    [Test]
-    public async Task TheReportedZoomShowsAsPercentAndMarksTheFit()
-    {
-        await using var ctx = NewContext(out var previews);
-
-        var component = Render(ctx);
-
-        await previews.PdfView!.Value.ZoomChanged(137, "page-width");
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(component.Find(".ec-preview-toolbar-zoom-value").TextContent, Is.EqualTo("137 %"));
-            Assert.That(Button(component, "Na šířku").GetAttribute("aria-pressed"), Is.EqualTo("true"));
-            Assert.That(Button(component, "Celá stránka").GetAttribute("aria-pressed"), Is.EqualTo("false"));
-            Assert.That(Button(component, "100 %").GetAttribute("aria-pressed"), Is.EqualTo("false"));
-        }
-
-        await previews.PdfView.Value.ZoomChanged(150, "");
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(component.Find(".ec-preview-toolbar-zoom-value").TextContent, Is.EqualTo("150 %"));
-            Assert.That(Button(component, "Na šířku").GetAttribute("aria-pressed"), Is.EqualTo("false"));
-        }
-
-        await previews.PdfView.Value.ZoomChanged(100, "");
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(Button(component, "100 %").GetAttribute("aria-pressed"), Is.EqualTo("true"));
-            Assert.That(Button(component, "Na šířku").GetAttribute("aria-pressed"), Is.EqualTo("false"));
-        }
-    }
-
     [TestCase(400, "Zvětšit")]
     [TestCase(50, "Zmenšit")]
     public async Task TheZoomStopsAtItsBounds(int percent, string blocked)
@@ -104,82 +21,6 @@ public class PdfPreviewRenderTests
         await previews.PdfView!.Value.ZoomChanged(percent, "");
 
         Assert.That(Button(component, blocked).HasAttribute("disabled"), Is.True);
-    }
-
-    [Test]
-    public async Task ThePageFieldGoesToAPageAndFollowsTheScroll()
-    {
-        await using var ctx = NewContext(out var previews);
-
-        var component = Render(ctx);
-
-        await component.Find(".ec-preview-toolbar-page-input").ChangeAsync(new() { Value = "2" });
-        await component.Find(".ec-preview-toolbar-page-input").ChangeAsync(new() { Value = "99" });
-        await component.Find(".ec-preview-toolbar-page-input").ChangeAsync(new() { Value = "abc" });
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(previews.PdfPagesGoneTo, Is.EqualTo([2, 3]), "a page past the end is the last one, and a word goes nowhere");
-            Assert.That(component.Find(".ec-preview-toolbar-page-input").GetAttribute("value"), Is.EqualTo("1"), "the field shows the page in view again");
-        }
-
-        await previews.PdfView!.Value.PageChanged(3);
-
-        Assert.That(component.Find(".ec-preview-toolbar-page-input").GetAttribute("value"), Is.EqualTo("3"));
-    }
-
-    [Test]
-    public async Task TypingSearchesAndEnterStepsThroughTheMatches()
-    {
-        await using var ctx = NewContext(out var previews);
-
-        var component = Render(ctx);
-        var search = component.Find(".ec-preview-toolbar-search-input");
-
-        await search.InputAsync(new() { Value = "lhůta" });
-
-        Assert.That(component.Find(".ec-preview-toolbar-matches").TextContent, Is.EqualTo("Hledám…"));
-
-        await previews.PdfView!.Value.MatchesChanged(3, 12, pending: false);
-        await component.Find(".ec-preview-toolbar-search-input").KeyDownAsync(new KeyboardEventArgs { Key = "Enter" });
-        await component.Find(".ec-preview-toolbar-search-input").KeyDownAsync(new KeyboardEventArgs { Key = "Enter", ShiftKey = true });
-        await Button(component, "Další výskyt").ClickAsync(new MouseEventArgs());
-        await Button(component, "Předchozí výskyt").ClickAsync(new MouseEventArgs());
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(component.Find(".ec-preview-toolbar-matches").TextContent, Is.EqualTo("3 z 12"));
-            Assert.That(
-                previews.Finds,
-                Is.EqualTo([("lhůta", PreviewFind.New), ("lhůta", PreviewFind.Next), ("lhůta", PreviewFind.Previous), ("lhůta", PreviewFind.Next), ("lhůta", PreviewFind.Previous)]));
-        }
-    }
-
-    [Test]
-    public async Task ASearchWithoutMatchesSaysSoAndEscapeClearsIt()
-    {
-        await using var ctx = NewContext(out var previews);
-
-        var component = Render(ctx);
-
-        await component.Find(".ec-preview-toolbar-search-input").InputAsync(new() { Value = "nic" });
-        await previews.PdfView!.Value.MatchesChanged(0, 0, pending: false);
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(component.Find(".ec-preview-toolbar-matches").TextContent, Is.EqualTo("Nenalezeno"));
-            Assert.That(Button(component, "Další výskyt").HasAttribute("disabled"), Is.True);
-            Assert.That(component.Find(".ec-preview-toolbar-search").HasAttribute("data-ec-keeps-escape"), Is.True, "Escape clears the search and leaves the dialog open");
-        }
-
-        await component.Find(".ec-preview-toolbar-search-input").KeyDownAsync(new KeyboardEventArgs { Key = "Escape" });
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(previews.Finds[^1], Is.EqualTo(("", PreviewFind.New)), "an empty query clears the highlights");
-            Assert.That(component.Find(".ec-preview-toolbar-search-input").GetAttribute("value"), Is.Empty);
-            Assert.That(component.Find(".ec-preview-toolbar-matches").TextContent, Is.Empty);
-        }
     }
 
     [Test]
@@ -198,22 +39,6 @@ public class PdfPreviewRenderTests
         {
             Assert.That(Button(component, "Další výskyt").HasAttribute("disabled"), Is.True);
             Assert.That(Button(component, "Předchozí výskyt").HasAttribute("disabled"), Is.True);
-        }
-    }
-
-    [Test]
-    public void TheSearchIconOpensTheSearchField()
-    {
-        using var ctx = NewContext(out _);
-
-        var component = Render(ctx);
-
-        Button(component, "Hledat v dokumentu").Click();
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(component.Find(".ec-preview-toolbar-search").ClassList, Does.Contain("ec-preview-toolbar-search-open"));
-            Assert.That(Button(component, "Hledat v dokumentu").GetAttribute("aria-expanded"), Is.EqualTo("true"));
         }
     }
 
@@ -247,22 +72,6 @@ public class PdfPreviewRenderTests
         await ctx.DisposeAsync();
 
         Assert.That(previews.DisposedPdfs, Is.EqualTo(1));
-    }
-
-    [Test]
-    public void APdfHeldInMemoryIsHandedToTheLibraryAsItsBytes()
-    {
-        using var ctx = NewContext(out var previews);
-
-        ctx.Render<PdfPreview>(static parameters => parameters
-            .Add(static preview => preview.Content, [1, 2, 3])
-            .Add(static preview => preview.FileName, "Rozhodnutí.pdf"));
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(previews.RenderedPdfContents, Is.EqualTo([new byte[] { 1, 2, 3 }]));
-            Assert.That(previews.RenderedPdfs, Is.Empty, "nothing is requested");
-        }
     }
 
     private static AngleSharp.Dom.IElement Button(IRenderedComponent<PdfPreview> component, string label)

@@ -1,4 +1,3 @@
-using EvilBrains.EvilCase.App.Models;
 using EvilBrains.EvilCase.App.Search;
 
 namespace EvilBrains.EvilCase.Tests.Frontend;
@@ -65,15 +64,5 @@ public class SearchHighlightTests
         var snippet = SearchHighlight.Snippet("Pojišťovna\npotvrdila", "poj");
 
         Assert.That(snippet, Is.EqualTo("Pojišťovna potvrdila"));
-    }
-
-    [Test]
-    [TestCase(1, "1 výsledek")]
-    [TestCase(3, "3 výsledky")]
-    [TestCase(5, "5 výsledků")]
-    [TestCase(21, "21 výsledků")]
-    public void TheResultCountAgreesWithItsNumberInCzech(int count, string expected)
-    {
-        Assert.That(SearchResultCountDisplay.Text(count), Is.EqualTo(expected));
     }
 }

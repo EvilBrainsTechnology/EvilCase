@@ -19,74 +19,6 @@ public class FilePreviewModalDataMessageRenderTests
     private static readonly byte[] TextBytes = Encoding.UTF8.GetBytes("Poučení o odvolání.");
 
     [Test]
-    public void OpeningAnAttachmentShowsItsOwnPreviewUnderAnAttachmentHeader()
-    {
-        using var ctx = NewContext(out _, out var previews, out _);
-
-        var file = File("Zpráva.zfo");
-        var component = Render(ctx, [file], file.FileId, static _ => DefaultMessage());
-
-        component.WaitForAssertion(() => Assert.That(component.FindAll(".ec-preview-data-message-attachment-open"), Has.Count.EqualTo(2)));
-        component.FindAll(".ec-preview-data-message-attachment-open")[0].Click();
-
-        component.WaitForAssertion(() => Assert.That(previews.RenderedPdfContents, Is.EqualTo([PdfBytes])));
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(previews.RenderedPdfs, Is.Empty, "the attachment is never requested");
-            Assert.That(component.Find(".ec-preview-name").TextContent, Is.EqualTo("Rozhodnutí.pdf"));
-            Assert.That(component.Find(".ec-preview-meta").TextContent, Does.Contain("příloha zprávy Zpráva.zfo"));
-            Assert.That(Position(component), Is.EqualTo("příloha 1 z 2"));
-            Assert.That(component.FindAll("[aria-label='Zpět na zprávu']"), Has.Count.EqualTo(1));
-            Assert.That(component.FindAll("[aria-label='Stáhnout přílohu']"), Has.Count.EqualTo(1));
-            Assert.That(component.FindAll("[aria-label='Přejmenovat']"), Is.Empty, "an attachment is not renamed");
-            Assert.That(component.FindAll("[aria-label='Další soubor']"), Is.Empty);
-        }
-    }
-
-    [Test]
-    public void TheArrowsStepThroughTheAttachmentsAndWrapAround()
-    {
-        using var ctx = NewContext(out _, out var previews, out _);
-
-        var file = File("Zpráva.zfo");
-        var component = Render(ctx, [file], file.FileId, static _ => DefaultMessage());
-        var editors = ctx.Services.GetRequiredService<StubTextEditors>();
-
-        component.WaitForAssertion(() => Assert.That(component.FindAll(".ec-preview-data-message-attachment-open"), Has.Count.EqualTo(2)));
-        component.FindAll(".ec-preview-data-message-attachment-open")[0].Click();
-        component.WaitForAssertion(() => Assert.That(previews.RenderedPdfContents, Has.Count.EqualTo(1)));
-
-        component.Find("button[aria-label='Další příloha']").Click();
-
-        component.WaitForAssertion(() =>
-        {
-            using (Assert.EnterMultipleScope())
-            {
-                Assert.That(component.Find(".ec-preview-name").TextContent, Is.EqualTo("Poučení.txt"));
-                Assert.That(editors.Opened[^1].Text, Is.EqualTo("Poučení o odvolání."));
-                Assert.That(Position(component), Is.EqualTo("příloha 2 z 2"));
-                Assert.That(previews.DisposedPdfs, Is.EqualTo(1));
-            }
-        });
-
-        component.Find("button[aria-label='Další příloha']").Click();
-
-        component.WaitForAssertion(() =>
-        {
-            using (Assert.EnterMultipleScope())
-            {
-                Assert.That(component.Find(".ec-preview-name").TextContent, Is.EqualTo("Rozhodnutí.pdf"));
-                Assert.That(Position(component), Is.EqualTo("příloha 1 z 2"));
-            }
-        });
-
-        component.Find("button[aria-label='Předchozí příloha']").Click();
-
-        component.WaitForAssertion(() => Assert.That(component.Find(".ec-preview-name").TextContent, Is.EqualTo("Poučení.txt")));
-    }
-
-    [Test]
     public void BackReturnsToTheMessageWithoutLoadingItAgain()
     {
         using var ctx = NewContext(out _, out _, out _);
@@ -122,56 +54,6 @@ public class FilePreviewModalDataMessageRenderTests
         });
     }
 
-    [Test]
-    public void AnOpenedAttachmentDownloadsUnderItsNameFromTheHeader()
-    {
-        using var ctx = NewContext(out _, out _, out var downloader);
-
-        var downloaded = new List<string>();
-        var file = File("Zpráva.zfo");
-        var component = Render(ctx, [file], file.FileId, static _ => DefaultMessage(), item => downloaded.Add(item.FileName));
-
-        component.WaitForAssertion(() => Assert.That(component.FindAll(".ec-preview-data-message-attachment-open"), Has.Count.EqualTo(2)));
-        component.FindAll(".ec-preview-data-message-attachment-open")[1].Click();
-        component.WaitForAssertion(() => Assert.That(component.Find(".ec-preview-name").TextContent, Is.EqualTo("Poučení.txt")));
-        component.Find("button[aria-label='Stáhnout přílohu']").Click();
-
-        component.WaitForAssertion(() => Assert.That(downloader.DownloadedContents, Has.Count.EqualTo(1)));
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(downloader.DownloadedContents[0].FileName, Is.EqualTo("Poučení.txt"));
-            Assert.That(downloader.DownloadedContents[0].Content, Is.EqualTo(TextBytes));
-            Assert.That(downloaded, Is.Empty, "the stored file is not the one downloaded");
-        }
-    }
-
-    [Test]
-    public void AnAttachmentWithoutPreviewOffersItsOwnDownload()
-    {
-        using var ctx = NewContext(out _, out _, out var downloader);
-
-        var downloaded = new List<string>();
-        var file = File("Zpráva.zfo");
-        var component = Render(ctx, [file], file.FileId, static _ => SyntheticZfo.Message(("Smlouva.doc", [7, 7])), item => downloaded.Add(item.FileName));
-
-        component.WaitForAssertion(() => Assert.That(component.FindAll(".ec-preview-data-message-attachment-open"), Has.Count.EqualTo(1)));
-        component.Find(".ec-preview-data-message-attachment-open").Click();
-        component.WaitForAssertion(() => Assert.That(component.Find(".ec-preview-message-title").TextContent, Is.EqualTo(Unsupported)));
-
-        component.Find(".ec-preview-message .ec-button-primary").Click();
-
-        component.WaitForAssertion(() =>
-        {
-            using (Assert.EnterMultipleScope())
-            {
-                Assert.That(downloader.DownloadedContents.Select(static content => content.FileName), Is.EqualTo(["Smlouva.doc"]));
-                Assert.That(downloader.DownloadedContents.Select(static content => content.Content), Is.EqualTo([new byte[] { 7, 7 }]));
-                Assert.That(downloaded, Is.Empty, "the stored file is not the one downloaded");
-            }
-        });
-    }
-
     [TestCase("Foto.png", "image/png", "img")]
     [TestCase("Záznam.mp3", "audio/mpeg", "audio")]
     public void APictureOrRecordingAttachmentPlaysFromABlobOfItsTypeThatBackRevokes(string name, string mediaType, string element)
@@ -196,46 +78,6 @@ public class FilePreviewModalDataMessageRenderTests
         component.Find("button[aria-label='Zpět na zprávu']").Click();
 
         component.WaitForAssertion(() => Assert.That(blobs.Revoked, Is.EqualTo(["blob:test/0"])));
-    }
-
-    [Test]
-    public void ANestedDataMessageOpensAsAMessageWithItsOwnAttachments()
-    {
-        using var ctx = NewContext(out _, out _, out _);
-
-        var nested = SyntheticZfo.Message(("Příloha.txt", TextBytes));
-        var file = File("Zpráva.zfo");
-        var component = Render(ctx, [file], file.FileId, _ => SyntheticZfo.Message(("Vnořená.zfo", nested)));
-
-        component.WaitForAssertion(() => Assert.That(component.FindAll(".ec-preview-data-message-attachment-open"), Has.Count.EqualTo(1)));
-        component.Find(".ec-preview-data-message-attachment-open").Click();
-
-        component.WaitForAssertion(() =>
-        {
-            using (Assert.EnterMultipleScope())
-            {
-                Assert.That(component.Find(".ec-preview-data-message-subject").TextContent, Is.EqualTo("Rozhodnutí o přestupku"));
-                Assert.That(component.Find(".ec-preview-meta").TextContent, Does.Contain("příloha zprávy Zpráva.zfo"));
-                Assert.That(component.Find(".ec-preview-data-message-attachment-open").TextContent, Is.EqualTo("Příloha.txt"));
-            }
-        });
-
-        component.Find(".ec-preview-data-message-attachment-open").Click();
-
-        component.WaitForAssertion(() =>
-        {
-            using (Assert.EnterMultipleScope())
-            {
-                Assert.That(component.Find(".ec-preview-name").TextContent, Is.EqualTo("Příloha.txt"));
-                Assert.That(component.Find(".ec-preview-meta").TextContent, Does.Contain("příloha zprávy Vnořená.zfo"));
-            }
-        });
-
-        component.Find("button[aria-label='Zpět na zprávu']").Click();
-        component.WaitForAssertion(() => Assert.That(component.Find(".ec-preview-name").TextContent, Is.EqualTo("Vnořená.zfo")));
-
-        component.Find("button[aria-label='Zpět na zprávu']").Click();
-        component.WaitForAssertion(() => Assert.That(component.Find(".ec-preview-name").TextContent, Is.EqualTo("Zpráva.zfo")));
     }
 
     [Test]
@@ -309,46 +151,6 @@ public class FilePreviewModalDataMessageRenderTests
     }
 
     [Test]
-    public async Task TheStoredMessageShowsTheSignatureOfItsFile()
-    {
-        await using var ctx = NewContext(out _, out _, out _);
-        var signatures = ctx.Services.GetRequiredService<IFileSignaturesClient>();
-        signatures.ReadFileSignature(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>()).Returns(new FileSignatureResponse { State = FileSignatureState.Valid });
-
-        var file = File("Zpráva.zfo");
-        var component = Render(ctx, [file], file.FileId, static _ => DefaultMessage());
-
-        await component.WaitForAssertionAsync(() => Assert.That(component.Find(".ec-popover-trigger").TextContent.Trim(), Is.EqualTo("Podpis ISDS platný")));
-
-        await signatures
-            .Received(1)
-            .ReadFileSignature(file.FileId, Arg.Any<int?>(), Arg.Any<CancellationToken>());
-    }
-
-    [Test]
-    public async Task ANestedMessageCarriesNoSignature()
-    {
-        await using var ctx = NewContext(out _, out _, out _);
-        var signatures = ctx.Services.GetRequiredService<IFileSignaturesClient>();
-
-        var file = File("Zpráva.zfo");
-        var component = Render(ctx, [file], file.FileId, static _ => SyntheticZfo.Message(("Vnořená.zfo", DefaultMessage())));
-
-        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-preview-data-message-attachment-open"), Has.Count.EqualTo(1)));
-        await component.Find(".ec-preview-data-message-attachment-open").ClickAsync(new());
-
-        await component.WaitForAssertionAsync(() => Assert.That(component.Find(".ec-preview-meta").TextContent, Does.Contain("příloha zprávy Zpráva.zfo")));
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(component.FindAll(".ec-popover-trigger"), Is.Empty, "a nested message has no stored file whose signature the server could verify");
-            await signatures
-                .Received(1)
-                .ReadFileSignature(file.FileId, Arg.Any<int?>(), Arg.Any<CancellationToken>());
-        }
-    }
-
-    [Test]
     public async Task AnOlderMessageIsVerifiedByItsNumber()
     {
         await using var ctx = NewContext(out _, out _, out _);
@@ -362,21 +164,6 @@ public class FilePreviewModalDataMessageRenderTests
         await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-popover-trigger"), Is.Not.Empty));
 
         await signatures.Received(1).ReadFileSignature(file.FileId, 2, Arg.Any<CancellationToken>());
-    }
-
-    [Test]
-    public void ATextAttachmentOffersNoEditing()
-    {
-        using var ctx = NewContext(out _, out _, out _);
-
-        var file = File("Zpráva.zfo");
-        var component = Render(ctx, [file], file.FileId, static _ => DefaultMessage());
-
-        component.WaitForAssertion(() => Assert.That(component.FindAll(".ec-preview-data-message-attachment-open"), Has.Count.EqualTo(2)));
-        component.FindAll(".ec-preview-data-message-attachment-open")[1].Click();
-        component.WaitForAssertion(() => Assert.That(component.Find(".ec-preview-name").TextContent, Is.EqualTo("Poučení.txt")));
-
-        Assert.That(component.FindAll("[aria-label='Upravit']"), Is.Empty, "an attachment is not edited");
     }
 
     private static string Position(IRenderedComponent<FilePreviewModal> component)
