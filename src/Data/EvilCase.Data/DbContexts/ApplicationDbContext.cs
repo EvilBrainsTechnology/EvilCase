@@ -19,6 +19,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     public DbSet<ApiToken> ApiTokens => this.Set<ApiToken>();
 
+    public DbSet<FileLink> FileLinks => this.Set<FileLink>();
+
     public DbSet<Contact> Contacts => this.Set<Contact>();
 
     public DbSet<Case> Cases => this.Set<Case>();
@@ -178,6 +180,25 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasOne(static token => token.User)
             .WithMany()
             .HasForeignKey(static token => token.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // A link lives ten minutes; whatever it hangs on takes it along.
+        modelBuilder.Entity<FileLink>()
+            .HasOne(typeof(Tenant))
+            .WithMany()
+            .HasForeignKey(nameof(FileLink.TenantId))
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<FileLink>()
+            .HasOne(typeof(User))
+            .WithMany()
+            .HasForeignKey(nameof(FileLink.UserId))
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<FileLink>()
+            .HasOne(typeof(ApiToken))
+            .WithMany()
+            .HasForeignKey(nameof(FileLink.ApiTokenId))
             .OnDelete(DeleteBehavior.Cascade);
     }
 

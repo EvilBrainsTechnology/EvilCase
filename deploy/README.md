@@ -36,6 +36,8 @@ Two keys under `EvilBrains:EvilCase:Hosting` adapt the pipeline to what sits in 
 - `BehindReverseProxy` (default `false`) calls `UseForwardedHeaders` first, with `KnownIPNetworks` and `KnownProxies` cleared and `ForwardLimit = 1`. The single trusted hop is the whole defence: a deployment that turns it on must not be reachable except through that proxy.
 - `HttpsRedirection` (default `true`) turns `UseHttpsRedirection` off where something in front already redirects. `/health/*` is excluded from redirection either way.
 
+The one-time file links the MCP server hands out are absolute URLs built from the scheme and host of the `/mcp` request. `AllowedHosts` (top-level key) lists the hosts the application answers to; production sets it to the public host plus `localhost`, which the container health check calls. Behind a proxy, `BehindReverseProxy` supplies the scheme from `X-Forwarded-Proto`; the host is the `Host` header, so the proxy forwards the original one.
+
 ## Outbound network
 
 Verifying the seal of an ISDS data message asks PostSignum for the revocation status of its
@@ -49,7 +51,7 @@ certificate: OCSP and CRL over plain HTTP at the URLs the PostSignum certificate
 
 The database is not part of the stack — `EVILCASE_CONNECTION_STRING` points at an existing PostgreSQL, version 18 or later. The schema is migrated on startup unless `EvilBrains__EvilCase__Database__MigrateOnStartup=false` is added to the service environment; where more than one instance starts at once, roll it out separately from the idempotent `database.sql` artifact CI publishes. The role in the connection string must be able to `CREATE EXTENSION`, for `unaccent` and `pg_trgm`, and `CREATE SCHEMA`, for the `history` schema.
 
-The service is published over plain HTTP for a reverse proxy that terminates TLS, so it sets `BehindReverseProxy=true` and `HttpsRedirection=false`; the port is published on `127.0.0.1` only (`EVILCASE_PORT` picks the host port), keeping the service unreachable except through the proxy.
+The service is published over plain HTTP for a reverse proxy that terminates TLS, so it sets `BehindReverseProxy=true` and `HttpsRedirection=false`. `EVILCASE_HOST` is the public host name; the stack sets `AllowedHosts` to it and `localhost`. The port is published on `127.0.0.1` only (`EVILCASE_PORT` picks the host port), keeping the service unreachable except through the proxy.
 
 Seq is driven by `EVILCASE_SEQ_URL` alone — an empty one logs to the console only.
 

@@ -108,19 +108,9 @@ public class FileTransferController : ControllerBase
     {
         var download = await files.OpenFileContent(fileId, version, token);
 
-        if (download is null)
-            return this.Problem(statusCode: StatusCodes.Status404NotFound, title: FileProblems.NotFound);
-
-        // Only the types a browser shows natively are inline, under the type the extension gives; any other
-        // stored document, PDF included, is an opaque attachment (SDD-012). nosniff comes from SecurityHeadersMiddleware.
-        if (InlineFileTypes.MediaType(download.FileName) is not { } inlineMediaType)
-            return this.File(download.Content, "application/octet-stream", download.FileName, enableRangeProcessing: true);
-
-        var disposition = new ContentDispositionHeaderValue("inline");
-        disposition.SetHttpFileName(download.FileName);
-        this.Response.Headers.ContentDisposition = disposition.ToString();
-
-        return this.File(download.Content, inlineMediaType, enableRangeProcessing: true);
+        return download is null
+            ? this.Problem(statusCode: StatusCodes.Status404NotFound, title: FileProblems.NotFound)
+            : this.FileContent(download);
     }
 
     [HttpGet("cases/{caseId:guid}/files/archive")]
@@ -194,7 +184,7 @@ public class FileTransferController : ControllerBase
     {
         if (file.Length > FileLimits.MaxUploadBytes)
         {
-            error = this.Problem(detail: "The file exceeds the 100 MB upload limit.", statusCode: StatusCodes.Status413PayloadTooLarge, title: "File too large");
+            error = this.FileTooLargeProblem();
             return null;
         }
 
@@ -244,29 +234,5 @@ public class FileTransferController : ControllerBase
 
             this.HttpContext.Abort();
         }
-    }
-
-    private ActionResult ExtensionMismatchProblem()
-    {
-        this.ModelState.AddModelError("fileName", "The new version must keep the extension of the file.");
-
-        return this.ValidationProblem(statusCode: StatusCodes.Status400BadRequest);
-    }
-
-    private ActionResult? InvalidUploadMetadataProblem(string fileName, string? mediaType)
-    {
-        if (FileNameRules.Violation(fileName) is { } violation)
-        {
-            this.ModelState.AddModelError("fileName", violation);
-            return this.ValidationProblem(statusCode: StatusCodes.Status400BadRequest);
-        }
-
-        if (mediaType is { Length: > FileLimits.MaxMediaTypeLength })
-        {
-            this.ModelState.AddModelError("mediaType", $"The media type must not exceed {FileLimits.MaxMediaTypeLength} characters.");
-            return this.ValidationProblem(statusCode: StatusCodes.Status400BadRequest);
-        }
-
-        return null;
     }
 }

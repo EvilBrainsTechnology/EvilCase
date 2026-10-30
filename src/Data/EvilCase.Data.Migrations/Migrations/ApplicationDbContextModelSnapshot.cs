@@ -374,6 +374,63 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                         });
                 });
 
+            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.FileLink", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ApiTokenId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("Created")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("Expires")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)");
+
+                    b.Property<string>("SecretHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<Guid>("TargetId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("Updated")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("Version")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApiTokenId");
+
+                    b.HasIndex("Expires");
+
+                    b.HasIndex("SecretHash")
+                        .IsUnique();
+
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("FileLinks");
+                });
+
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.FileVersion", b =>
                 {
                     b.Property<Guid>("Id")
@@ -773,6 +830,27 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.Navigation("Act");
 
                     b.Navigation("Case");
+                });
+
+            modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.FileLink", b =>
+                {
+                    b.HasOne("EvilBrains.EvilCase.Data.Entities.ApiToken", null)
+                        .WithMany()
+                        .HasForeignKey("ApiTokenId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EvilBrains.EvilCase.Data.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.FileVersion", b =>

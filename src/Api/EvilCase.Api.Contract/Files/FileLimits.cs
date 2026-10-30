@@ -32,6 +32,16 @@ public static class FileLimits
     public const long MaxSignedFileBytes = 30 * 1024 * 1024;
 
     /// <summary>
+    /// The largest file whose text is read.
+    /// </summary>
+    public const long MaxTextFileBytes = 30 * 1024 * 1024;
+
+    /// <summary>
+    /// The characters one page of a file's text carries.
+    /// </summary>
+    public const int TextPageLength = 50_000;
+
+    /// <summary>
     /// The most signers a signed file may carry for them to be listed.
     /// </summary>
     public const int MaxSigners = 50;

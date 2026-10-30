@@ -10,8 +10,8 @@ namespace EvilBrains.EvilCase.Tests.Data;
 /// </summary>
 public class DatabaseHistoryTests
 {
-    // Both carry a token hash and change on every use.
-    private static readonly string[] Unhistorized = ["RefreshTokens", "ApiTokens"];
+    // Each carries a secret hash and changes or dies on use.
+    private static readonly string[] Unhistorized = ["RefreshTokens", "ApiTokens", "FileLinks"];
 
     [Test]
     public async Task InsertUpdateAndDeleteWriteThreeHistoryRowsInOrder()
@@ -69,7 +69,7 @@ public class DatabaseHistoryTests
     }
 
     [Test]
-    public async Task EveryMappedTableExceptTheTokenTablesCarriesTheRecordTrigger()
+    public async Task EveryMappedTableExceptTheSecretTablesCarriesTheRecordTrigger()
     {
         await using var context = TestDatabase.CreateMigrated();
 
@@ -94,13 +94,13 @@ public class DatabaseHistoryTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(historized, Is.Not.Empty, "the model maps entities carrying history at all, or this test passes vacuously");
-            Assert.That(triggered, Is.SupersetOf(historized), "a mapped table other than the token tables has no record_history trigger, so its rows would be written with no history");
-            Assert.That(triggered, Has.None.AnyOf(Unhistorized), "the token tables carry the token hash and change on every use, so they stay out of history");
+            Assert.That(triggered, Is.SupersetOf(historized), "a mapped table other than the token and link tables has no record_history trigger, so its rows would be written with no history");
+            Assert.That(triggered, Has.None.AnyOf(Unhistorized), "the token and link tables carry a secret hash and change or die on use, so they stay out of history");
         }
     }
 
     [Test]
-    public async Task TheTokenTablesHaveNoMirrorTable()
+    public async Task TheSecretTablesHaveNoMirrorTable()
     {
         await using var context = TestDatabase.CreateMigrated();
 
@@ -114,7 +114,7 @@ public class DatabaseHistoryTests
                 """)
             .ToListAsync();
 
-        Assert.That(mirrors, Has.None.AnyOf(Unhistorized), "the token tables carry the token hash and change on every use, so they carry no mirror table");
+        Assert.That(mirrors, Has.None.AnyOf(Unhistorized), "the token and link tables carry a secret hash and change or die on use, so they carry no mirror table");
     }
 
     [Test]

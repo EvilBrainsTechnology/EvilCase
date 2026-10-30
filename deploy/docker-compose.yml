@@ -16,6 +16,8 @@ services:
       # unset means no account is created, and an existing user means none is created either way.
       EvilBrains__EvilCase__Auth__Seed__Email: ${EVILCASE_SEED_EMAIL:-}
       EvilBrains__EvilCase__Auth__Seed__Password: ${EVILCASE_SEED_PASSWORD:-}
+      # The public host, which the file links of the MCP server name, and the one the health check calls.
+      AllowedHosts: "${EVILCASE_HOST:?};localhost"
       EvilBrains__EvilCase__Hosting__BehindReverseProxy: "true"
       # The proxy owns the redirect. Kestrel serves plain HTTP here, so the middleware could not
       # resolve a target port anyway and would only log a warning per request.

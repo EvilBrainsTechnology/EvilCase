@@ -9,4 +9,6 @@ public static class FileProblems
     public const string VersionNotFound = "File version not found";
 
     public const string LastVersion = "Last file version";
+
+    public const string LinkNotFound = "File link not found";
 }

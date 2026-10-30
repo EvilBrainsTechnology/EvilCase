@@ -97,7 +97,7 @@ public class TenantIsolationTests : ModelFixture
     }
 
     [Test]
-    public void TheOnlyRowsOutsideATenantAreAccountsTenantsAndTokens()
+    public void TheOnlyRowsOutsideATenantAreAccountsTenantsTokensAndFileLinks()
     {
         var untenanted = Model.GetEntityTypes()
             .Where(static entityType => !typeof(ITenantEntity).IsAssignableFrom(entityType.ClrType))
@@ -106,7 +106,7 @@ public class TenantIsolationTests : ModelFixture
 
         Assert.That(
             untenanted,
-            Is.EquivalentTo(["Account", "Tenant", "RefreshToken", "ApiToken", "CaseAncestor"]),
+            Is.EquivalentTo(["Account", "Tenant", "RefreshToken", "ApiToken", "FileLink", "CaseAncestor"]),
             "a new entity outside the tenant is a leak until someone says otherwise");
     }
 

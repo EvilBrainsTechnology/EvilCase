@@ -16,8 +16,8 @@ SDD-012. `.claude/rules/` nese z tohoto návrhu invarianty pro práci s kódem.
 
 ### Běhový model
 
-Jedna aplikace, jeden proces. `EvilCase.Host` obsluhuje `/api/**` jako REST API a na každé
-jiné cestě vrací `index.html` frontendu. Frontend je Blazor WebAssembly: běží v prohlížeči
+Jedna aplikace, jeden proces. `EvilCase.Host` obsluhuje `/api/**` jako REST API, `/mcp` jako
+MCP server pro AI agenty (SDD-023) a na každé jiné cestě vrací `index.html` frontendu. Frontend je Blazor WebAssembly: běží v prohlížeči
 a se serverem mluví jen přes API, typovaným klientem (SDD-005).
 
 Stav drží PostgreSQL; bajty souborů leží na souborovém systému, databáze nese jejich
