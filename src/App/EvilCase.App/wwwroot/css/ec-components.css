@@ -2158,13 +2158,19 @@ html {
     list-style: none;
 }
 
+/* A row spans the body's padding, so its hover reaches the window's edges. */
 .ec-versions-row {
     position: relative;
     display: flex;
     align-items: center;
     gap: var(--ec-space-4);
-    padding: var(--ec-space-4) 0;
+    margin: 0 calc(-1 * var(--ec-space-6));
+    padding: var(--ec-space-4) var(--ec-space-6);
     border-bottom: 1px solid var(--ec-border-subtle);
+}
+
+.ec-versions-row:hover {
+    background: var(--ec-surface-sunken);
 }
 
 .ec-versions-row:last-child {
@@ -2245,7 +2251,6 @@ html {
     align-items: center;
 }
 
-.ec-versions-tap-hint,
 .ec-versions-delete-more {
     display: none;
 }
@@ -4159,17 +4164,12 @@ html {
         padding-bottom: calc(var(--ec-space-5) + env(safe-area-inset-bottom));
     }
 
-    .ec-versions-preview {
-        display: none;
-    }
-
-    .ec-versions-tap-hint,
     .ec-versions-delete-more {
         display: inline;
     }
 
     .ec-versions-row {
-        padding: var(--ec-space-3) 0;
+        padding: var(--ec-space-3) var(--ec-space-6);
     }
 
     .ec-versions-actions .ec-button,

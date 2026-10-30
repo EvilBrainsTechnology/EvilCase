@@ -98,7 +98,7 @@ public class FileVersionsModalRenderTests
         var downloaded = new List<int>();
         var component = Render(ctx, onPreview: previewed.Add, onDownload: downloaded.Add);
 
-        await component.FindAll(".ec-versions-row")[1].QuerySelector(".ec-versions-preview button")!.ClickAsync(new MouseEventArgs());
+        await component.FindAll(".ec-versions-row")[1].QuerySelector(".ec-versions-main")!.ClickAsync(new MouseEventArgs());
         await component.Find("[aria-label='Stáhnout verzi 1']").ClickAsync(new MouseEventArgs());
 
         using (Assert.EnterMultipleScope())
@@ -119,6 +119,24 @@ public class FileVersionsModalRenderTests
         await component.FindAll(".ec-versions-row")[2].QuerySelector(".ec-versions-main")!.ClickAsync(new MouseEventArgs());
 
         Assert.That(previewed, Is.EqualTo([1]));
+    }
+
+    [Test]
+    public void ARowOffersNoPreviewButtonAndTheNoteSaysTheRowOpensIt()
+    {
+        using var ctx = NewContext();
+
+        var component = Render(ctx);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(
+                component.FindAll(".ec-versions-actions button").Select(static button => button.GetAttribute("aria-label")),
+                Is.EqualTo(["Stáhnout verzi 3", "Smazat verzi 3", "Stáhnout verzi 2", "Smazat verzi 2", "Stáhnout verzi 1", "Smazat verzi 1"]));
+            Assert.That(component.FindAll("button").Where(static button => button.TextContent.Contains("Náhled", StringComparison.Ordinal)), Is.Empty);
+            Assert.That(component.Find(".ec-versions-note").TextContent, Does.StartWith("Klik na verzi otevře její náhled. "));
+            Assert.That(component.FindAll(".ec-versions-note span"), Is.Empty, "the hint holds on every width");
+        }
     }
 
     [Test]
