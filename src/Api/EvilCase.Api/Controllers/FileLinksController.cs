@@ -34,7 +34,7 @@ public class FileLinksController : ControllerBase
         [FromQuery(Name = FileLinkRoute.SecretParameter)] string secret,
         CancellationToken token)
     {
-        var link = await links.ConsumeFileLink(secret, token);
+        var link = Consumed(await links.ConsumeFileLink(secret, token));
 
         if (link is not { Kind: FileLinkKind.Download })
             return this.LinkNotFoundProblem();
@@ -72,7 +72,7 @@ public class FileLinksController : ControllerBase
         if (this.InvalidUploadMetadataProblem(lastSegment, mediaType) is { } problem)
             return problem;
 
-        var link = await links.ConsumeFileLink(secret, token);
+        var link = Consumed(await links.ConsumeFileLink(secret, token));
 
         if (link is null or { Kind: FileLinkKind.Download })
             return this.LinkNotFoundProblem();
@@ -87,6 +87,19 @@ public class FileLinksController : ControllerBase
             FileLinkKind.ActUpload => this.Answer(await writer.UploadActFile(link.TargetId, upload, token), ActProblems.ActNotFound),
             FileLinkKind.VersionUpload => this.Answer(await writer.UploadFileVersion(link.TargetId, upload, token)),
             FileLinkKind.Download => throw new UnreachableException(),
+            _ => throw new UnreachableException(),
+        };
+    }
+
+    /// <summary>
+    /// Null where no live link answers the secret.
+    /// </summary>
+    private static ConsumedFileLink? Consumed(FileLinkConsumeResult result)
+    {
+        return result.Outcome switch
+        {
+            FileLinkConsumeOutcome.Consumed => result.Link,
+            FileLinkConsumeOutcome.NotFound => null,
             _ => throw new UnreachableException(),
         };
     }

@@ -40,7 +40,9 @@ public class FileLinkEndpointTests
         this.links = Substitute.For<IFileLinkWriter>();
         this.links
             .ConsumeFileLink(Secret, Arg.Any<CancellationToken>())
-            .Returns(_ => this.link);
+            .Returns(_ => this.link is null
+                ? new FileLinkConsumeResult { Outcome = FileLinkConsumeOutcome.NotFound }
+                : new FileLinkConsumeResult { Outcome = FileLinkConsumeOutcome.Consumed, Link = this.link });
 
         this.host = new EvilCaseHost(configureServices: services =>
         {
@@ -200,7 +202,6 @@ public class FileLinkEndpointTests
         {
             TenantId = this.tenantId,
             UserId = this.userId,
-            ApiTokenId = Guid.CreateVersion7(),
             Kind = kind,
             TargetId = this.targetId,
         };

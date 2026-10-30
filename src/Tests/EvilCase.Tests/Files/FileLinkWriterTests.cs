@@ -55,11 +55,12 @@ public class FileLinkWriterTests : TenantFixture
         {
             Assert.That(created.Outcome, Is.EqualTo(FileLinkCreateOutcome.Created));
             Assert.That(created.Expires, Is.EqualTo(this.time.UtcNow.AddMinutes(10)), "a link is valid ten minutes");
-            Assert.That(first?.TenantId, Is.EqualTo(this.Tenant.UserContext.TenantId), "the use runs in the tenant that created the link, found before any tenant is known");
-            Assert.That(first?.UserId, Is.EqualTo(this.Tenant.UserId), "the use runs as the user that created the link");
-            Assert.That(first?.Kind, Is.EqualTo(FileLinkKind.CaseUpload));
-            Assert.That(first?.TargetId, Is.EqualTo(@case.Id));
-            Assert.That(second, Is.Null, "a link is spent by its first use");
+            Assert.That(first.Outcome, Is.EqualTo(FileLinkConsumeOutcome.Consumed));
+            Assert.That(first.Link?.TenantId, Is.EqualTo(this.Tenant.UserContext.TenantId), "the use runs in the tenant that created the link, found before any tenant is known");
+            Assert.That(first.Link?.UserId, Is.EqualTo(this.Tenant.UserId), "the use runs as the user that created the link");
+            Assert.That(first.Link?.Kind, Is.EqualTo(FileLinkKind.CaseUpload));
+            Assert.That(first.Link?.TargetId, Is.EqualTo(@case.Id));
+            Assert.That(second.Outcome, Is.EqualTo(FileLinkConsumeOutcome.NotFound), "a link is spent by its first use");
         }
     }
 
@@ -76,7 +77,7 @@ public class FileLinkWriterTests : TenantFixture
             this.WriterOn(one).ConsumeFileLink(created.Secret!, CancellationToken.None),
             this.WriterOn(two).ConsumeFileLink(created.Secret!, CancellationToken.None));
 
-        Assert.That(uses.Count(static use => use is not null), Is.EqualTo(1), "one statement finds and deletes the link, so only one of two concurrent uses gets it");
+        Assert.That(uses.Count(static use => use.Outcome == FileLinkConsumeOutcome.Consumed), Is.EqualTo(1), "one statement finds and deletes the link, so only one of two concurrent uses gets it");
     }
 
     [Test]
@@ -88,7 +89,7 @@ public class FileLinkWriterTests : TenantFixture
         this.time.Advance(TimeSpan.FromMinutes(10));
         var used = await this.writer.ConsumeFileLink(created.Secret!, CancellationToken.None);
 
-        Assert.That(used, Is.Null, "a link is never usable once expired, removed or not");
+        Assert.That(used.Outcome, Is.EqualTo(FileLinkConsumeOutcome.NotFound), "a link is never usable once expired, removed or not");
     }
 
     [Test]
@@ -171,7 +172,7 @@ public class FileLinkWriterTests : TenantFixture
 
         var used = await this.writer.ConsumeFileLink(created.Secret!, CancellationToken.None);
 
-        Assert.That(used, Is.Null, "a revoked token's links stop working with it");
+        Assert.That(used.Outcome, Is.EqualTo(FileLinkConsumeOutcome.NotFound), "a revoked token's links stop working with it");
     }
 
     private FileLinkWriter WriterOn(ApplicationDbContext context)

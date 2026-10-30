@@ -11,8 +11,6 @@ public sealed record ConsumedFileLink
 
     public required Guid UserId { get; init; }
 
-    public required Guid ApiTokenId { get; init; }
-
     public required FileLinkKind Kind { get; init; }
 
     public required Guid TargetId { get; init; }

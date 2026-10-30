@@ -61,7 +61,7 @@ internal sealed class FileLinkWriter(IDbSession dbSession, IUserContext userCont
         return new FileLinkCreateResult { Outcome = FileLinkCreateOutcome.Created, Secret = secret, Expires = expires };
     }
 
-    public async Task<ConsumedFileLink?> ConsumeFileLink(string secret, CancellationToken token)
+    public async Task<FileLinkConsumeResult> ConsumeFileLink(string secret, CancellationToken token)
     {
         var now = timeProvider.GetUtcNow().UtcDateTime;
 
@@ -72,18 +72,21 @@ internal sealed class FileLinkWriter(IDbSession dbSession, IUserContext userCont
             .ToListAsync(token);
 
         if (consumed.SingleOrDefault() is not { } link || link.Expires <= now)
-            return null;
+            return new FileLinkConsumeResult { Outcome = FileLinkConsumeOutcome.NotFound };
 
         logger.LogInformation("File link {FileLinkId} ({FileLinkKind}) was used for {TargetId}", link.Id, link.Kind, link.TargetId);
 
-        return new ConsumedFileLink
+        return new FileLinkConsumeResult
         {
-            TenantId = link.TenantId,
-            UserId = link.UserId,
-            ApiTokenId = link.ApiTokenId,
-            Kind = link.Kind,
-            TargetId = link.TargetId,
-            Version = link.Version,
+            Outcome = FileLinkConsumeOutcome.Consumed,
+            Link = new ConsumedFileLink
+            {
+                TenantId = link.TenantId,
+                UserId = link.UserId,
+                Kind = link.Kind,
+                TargetId = link.TargetId,
+                Version = link.Version,
+            },
         };
     }
 

@@ -11,9 +11,9 @@ public interface IFileLinkWriter
     public Task<FileLinkCreateResult> CreateFileLink(FileLinkKind kind, Guid targetId, int? version, Guid apiTokenId, CancellationToken token);
 
     /// <summary>
-    /// The link the secret names, deleted by the same statement that reads it; null where it is unknown, used or expired.
+    /// The link the secret names, deleted by the same statement that reads it.
     /// </summary>
-    public Task<ConsumedFileLink?> ConsumeFileLink(string secret, CancellationToken token);
+    public Task<FileLinkConsumeResult> ConsumeFileLink(string secret, CancellationToken token);
 
     public Task DeleteExpiredFileLinks(CancellationToken token);
 }
