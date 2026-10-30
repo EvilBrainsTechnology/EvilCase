@@ -247,7 +247,7 @@ public class FilesCardRenderTests
         {
             Assert.That(component.Find(".ec-card-header .ec-file-drop-hint").TextContent.Trim(), Is.EqualTo("Přetáhněte soubory sem nebo"));
             Assert.That(component.Find(".ec-card-header label.ec-file-upload").TextContent.Trim(), Is.EqualTo("Nahrát soubory"));
-            Assert.That(component.Find("label.ec-file-upload .ec-file-upload-more").TextContent, Is.EqualTo(" soubory"), "the mobile button drops the word it wraps");
+            Assert.That(component.Find("label.ec-file-upload .ec-file-upload-text").TextContent, Is.EqualTo("Nahrát soubory"), "the icon-only mobile button keeps its whole text as its name");
             Assert.That(component.FindAll(".ec-file-drop"), Is.Empty, "the drop strip below the list is gone");
             Assert.That(component.FindAll(".ec-file-drop-compact"), Is.Empty);
         }
@@ -264,7 +264,7 @@ public class FilesCardRenderTests
         {
             Assert.That(component.FindAll(".ec-card-count"), Is.Empty);
             Assert.That(component.FindAll(".ec-file-drop-hint"), Is.Empty);
-            Assert.That(component.Find("label.ec-file-upload").TextContent.Trim(), Is.EqualTo("Nahrát"));
+            Assert.That(component.Find("label.ec-file-upload .ec-file-upload-text").TextContent, Is.EqualTo("Nahrát"));
             Assert.That(component.Find(".ec-empty-text").TextContent, Is.EqualTo("Zatím tu nejsou žádné soubory."));
         }
     }

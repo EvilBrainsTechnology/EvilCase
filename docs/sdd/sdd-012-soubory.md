@@ -87,8 +87,8 @@ aplikace sama. Smazání je prosté, s potvrzením.
 
 Široká karta nese v záhlaví vedle Nahrát soubory dělené tlačítko: Stáhnout vše stáhne aktuální
 verze všech souborů karty jako jeden archiv zip, šipka vedle něj otevře nabídku se Stáhnout vše
-včetně verzí. Kompaktní karta ho nenese. Na mobilu nese Stáhnout vše jen ikonu. Stažení je
-obyčejné stažení prohlížečem.
+včetně verzí. Kompaktní karta ho nenese. Na mobilu nesou Nahrát soubory i Stáhnout vše jen
+ikonu. Stažení je obyčejné stažení prohlížečem.
 
 - Archiv nese jen soubory spisu nebo úkonu samého, ne podřízených spisů ani úkonů spisu. Spis
   nebo úkon bez souborů vydá prázdný archiv; neznámý nebo cizí je 404.

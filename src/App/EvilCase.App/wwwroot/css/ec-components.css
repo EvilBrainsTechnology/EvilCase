@@ -4091,12 +4091,23 @@ html {
     }
 
     .ec .ec-file-drop-hint,
-    .ec-file-upload-more,
     .ec-split-button-text {
         display: none;
     }
 
-    .ec-split-button > .ec-button {
+    /* Nahrát soubory široké karty nese jen ikonu; text zůstává jménem pro čtečku. */
+    .ec-file-card:not(.ec-file-card-compact) .ec-file-upload-text {
+        position: absolute;
+        width: calc(var(--ec-space-1) / 4);
+        height: calc(var(--ec-space-1) / 4);
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+    }
+
+    .ec-split-button > .ec-button,
+    .ec-file-card:not(.ec-file-card-compact) .ec-file-upload {
         padding: 0;
     }
 
