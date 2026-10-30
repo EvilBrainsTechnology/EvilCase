@@ -160,7 +160,7 @@
                 }
             }
 
-            await this.Editors.OpenEditor(this.host, this.searchInput, this.Text, this.Language, indentUnit, $"Obsah souboru {this.FileName}", this.self);
+            await this.Editors.OpenEditor(this.host, this.searchInput, this.Text, this.Language, indentUnit, false, $"Obsah souboru {this.FileName}", this.self);
             this.opened = true;
 
             // Closed while it opened.

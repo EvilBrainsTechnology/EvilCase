@@ -9,12 +9,12 @@ internal sealed class TextEditors(IJSRuntime jsRuntime) : ITextEditors, IAsyncDi
 {
     private IJSObjectReference? module;
 
-    public async Task OpenEditor(ElementReference host, ElementReference searchInput, string text, CodeLanguage? language, string indentUnit, string label, DotNetObjectReference<TextEditor> owner)
+    public async Task OpenEditor(ElementReference host, ElementReference searchInput, string text, CodeLanguage? language, string indentUnit, bool readOnly, string label, DotNetObjectReference<TextEditor> owner)
     {
         var editors = await this.Module();
 
         // Never cancelled: an editor the browser made must reach the caller to be closed.
-        await editors.InvokeVoidAsync("openEditor", host, searchInput, text, language is { } value ? FilePreviews.LanguageValue(value) : null, indentUnit, label, owner);
+        await editors.InvokeVoidAsync("openEditor", host, searchInput, text, language is { } value ? FilePreviews.LanguageValue(value) : null, indentUnit, readOnly, label, owner);
     }
 
     public async Task<string> ReadEditorText(ElementReference host)

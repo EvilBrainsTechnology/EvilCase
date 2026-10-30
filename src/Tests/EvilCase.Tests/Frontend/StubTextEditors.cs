@@ -10,6 +10,8 @@ internal sealed class StubTextEditors : ITextEditors
 {
     public List<(string Text, CodeLanguage? Language, string IndentUnit, string Label)> Opened { get; } = [];
 
+    public List<bool> OpenedReadOnly { get; } = [];
+
     /// <summary>
     /// What the editor answers as its text.
     /// </summary>
@@ -31,12 +33,13 @@ internal sealed class StubTextEditors : ITextEditors
     /// </summary>
     public bool ReadFails { get; set; }
 
-    public Task OpenEditor(ElementReference host, ElementReference searchInput, string text, CodeLanguage? language, string indentUnit, string label, DotNetObjectReference<TextEditor> owner)
+    public Task OpenEditor(ElementReference host, ElementReference searchInput, string text, CodeLanguage? language, string indentUnit, bool readOnly, string label, DotNetObjectReference<TextEditor> owner)
     {
         if (this.Fails)
             throw new JSException("The editor did not load.");
 
         this.Opened.Add((text, language, indentUnit, label));
+        this.OpenedReadOnly.Add(readOnly);
 
         return Task.CompletedTask;
     }
