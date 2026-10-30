@@ -59,7 +59,7 @@
                     <span class="ec-preview-meta">
                         @if (this.dirty)
                         {
-                            <span class="ec-preview-unsaved">Neuložené změny</span><span class="ec-preview-edit-version"> <span class="ec-sep" aria-hidden="true">·</span> upravujete verzi @file.Version</span>
+                            <span class="ec-preview-unsaved">Neuložené změny</span><span class="ec-preview-edit-version">@(" ")<span class="ec-sep" aria-hidden="true">·</span> upravujete verzi @file.Version</span>
                         }
                         else
                         {
@@ -68,7 +68,7 @@
                     </span>
                 </div>
                 <div class="ec-preview-edit-actions">
-                    <EcButton Variant="EcButtonVariant.Secondary" OnClick="this.CancelEdit">Zrušit</EcButton>
+                    <EcButton Variant="EcButtonVariant.Secondary" Disabled="@this.saving" OnClick="this.CancelEdit">Zrušit</EcButton>
                     <EcButton Variant="EcButtonVariant.Primary" Icon="@AppIcons.Check" Disabled="@(!this.dirty || this.saving)" OnClick="this.Save">Uložit</EcButton>
                 </div>
             }
@@ -146,7 +146,7 @@
                         <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Refresh" Disabled="@this.saving" OnClick="this.Save">Zkusit znovu</EcButton>
                     </div>
                 }
-                <TextEditor @ref="this.editor" Text="@edited.Text" FileName="@file.FileName"
+                <TextEditor @ref="this.editor" Text="@edited.Text" FileName="@file.FileName" Locked="this.saving"
                             Language="@(preview == FilePreviewKind.Code ? FileTypeDisplay.Language(file.FileName) : (CodeLanguage?)null)"
                             OnDirtyChanged="this.EditorDirtyChanged" OnSave="this.Save" OnUnavailable="this.EditorUnavailable">
                     <Notes>
@@ -555,6 +555,9 @@
     // Whether the editor's text differs from the one read.
     private bool dirty;
 
+    // Whether the text or code was read whole and is not valid UTF-8.
+    private bool notUtf8;
+
     private bool saving;
 
     private string? saveFailure;
@@ -589,7 +592,7 @@
     {
         get
         {
-            return this.editable is null && !this.truncated && this.trail.Count == 0 && this.signedContentName is null && this.OlderVersion is null;
+            return this.notUtf8 && this.trail.Count == 0 && this.signedContentName is null && this.OlderVersion is null;
         }
     }
 
@@ -611,7 +614,7 @@
 
         var number = this.OlderVersion ?? file.Version;
 
-        if (file.FileId == this.loadedFileId && number == this.loadedNumber)
+        if (file.FileId == this.loadedFileId && (number == this.loadedNumber || this.editing is not null))
             return;
 
         if (file.FileId != this.loadedFileId)
@@ -693,6 +696,7 @@
         this.signedContent = null;
         this.signedContentName = null;
         this.editable = null;
+        this.notUtf8 = false;
         this.editing = null;
         this.dirty = false;
         this.saveFailure = null;
@@ -795,7 +799,7 @@
                 if (!token.IsCancellationRequested)
                 {
                     (this.lines, this.truncated) = SplitLines(text, cut);
-                    this.editable = editable;
+                    (this.editable, this.notUtf8) = (editable, !cut && editable is null);
                 }
 
                 break;
@@ -808,7 +812,7 @@
                 if (!token.IsCancellationRequested)
                 {
                     (this.code, this.truncated) = (text, cut);
-                    this.editable = editable;
+                    (this.editable, this.notUtf8) = (editable, !cut && editable is null);
                 }
 
                 break;
@@ -1155,23 +1159,45 @@
         this.dirty = changed;
     }
 
-    private void EditorUnavailable()
+    // A version that came while the editor was open shows once it closes.
+    private async Task ShowCurrent()
+    {
+        if (this.editing is null && this.Current is { } file && file.FileId == this.loadedFileId && this.OlderVersion is null && file.Version != this.loadedNumber)
+            await this.Reload(file);
+    }
+
+    private async Task EditorUnavailable()
     {
         this.LeaveEdit();
         this.versionFailure = "Úpravy se nepodařilo spustit. Zkuste to za chvíli znovu.";
+
+        await this.ShowCurrent();
     }
 
-    private void CancelEdit()
+    private async Task CancelEdit()
     {
+        if (this.saving)
+            return;
+
         if (this.dirty)
-            this.afterDiscard = static () => Task.CompletedTask;
+        {
+            this.afterDiscard = this.ShowCurrent;
+        }
         else
+        {
             this.LeaveEdit();
+
+            await this.ShowCurrent();
+        }
     }
 
-    // The X, a click outside or Escape while editing: unsaved changes are confirmed before the preview closes.
+    // The X, a click outside or Escape while editing: unsaved changes are confirmed before the preview closes. A save
+    // under way finishes first.
     private async Task RequestClose()
     {
+        if (this.saving)
+            return;
+
         if (this.dirty)
             this.afterDiscard = () => this.OpenChanged.InvokeAsync(false);
         else
@@ -1221,10 +1247,25 @@
         this.saving = true;
         this.saveFailure = null;
 
-        var content = edited.Encode(await this.editor!.ReadText());
-        var (failure, notice) = await this.UploadVersion(file, new EditedFile(file.FileName, content));
+        string? failure;
+        string? notice;
 
-        this.saving = false;
+        try
+        {
+            var content = edited.Encode(await this.editor!.ReadText());
+
+            (failure, notice) = await this.UploadVersion(file, new EditedFile(file.FileName, content));
+        }
+        catch (JSException exception)
+        {
+            this.Logger.LogWarning(exception, "Reading the edited text of file {FileAssetId} failed", file.FileId);
+
+            (failure, notice) = ("Text se nepodařilo přečíst z editoru. Zkuste to znovu.", null);
+        }
+        finally
+        {
+            this.saving = false;
+        }
 
         if (failure is not null)
         {
@@ -1236,6 +1277,7 @@
         this.LeaveEdit();
         this.versionNotice = notice;
 
+        await this.ShowCurrent();
         await this.VersionChanged.InvokeAsync(null);
     }
 

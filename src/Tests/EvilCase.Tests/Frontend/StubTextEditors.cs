@@ -26,6 +26,11 @@ internal sealed class StubTextEditors : ITextEditors
     /// </summary>
     public bool Fails { get; set; }
 
+    /// <summary>
+    /// When set, the editor's text cannot be read.
+    /// </summary>
+    public bool ReadFails { get; set; }
+
     public Task OpenEditor(ElementReference host, ElementReference searchInput, string text, CodeLanguage? language, string label, DotNetObjectReference<TextEditor> owner)
     {
         if (this.Fails)
@@ -38,6 +43,9 @@ internal sealed class StubTextEditors : ITextEditors
 
     public Task<string> ReadEditorText(ElementReference host)
     {
+        if (this.ReadFails)
+            throw new JSException("The editor is gone.");
+
         return Task.FromResult(this.Text);
     }
 

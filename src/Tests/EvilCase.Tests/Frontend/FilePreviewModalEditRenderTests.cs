@@ -113,6 +113,17 @@ public class FilePreviewModalEditRenderTests
         }
     }
 
+    [Test]
+    public void ANonUtf8TextWithMoreLinesThanTheViewShowsSaysWhy()
+    {
+        using var ctx = NewContext(out _);
+
+        var file = File("a.log");
+        var component = Render(ctx, [file], file.FileId, [.. Enumerable.Repeat<byte>(0x0A, 6000), 0xF8]);
+
+        Assert.That(component.FindAll(".ec-preview-note").Select(static note => note.TextContent), Does.Contain(NotUtf8Note));
+    }
+
     [TestCase("data.json", CodeLanguage.Json)]
     [TestCase("Poznámky.txt", null)]
     public async Task UpravitOpensTheEditorWithTheTextAndItsLanguage(string fileName, CodeLanguage? language)
@@ -305,6 +316,84 @@ public class FilePreviewModalEditRenderTests
             .ClickAsync(new MouseEventArgs());
 
         Assert.That(uploads, Is.EqualTo(2));
+    }
+
+    [Test]
+    public async Task ASaveUnderWayTakesNoInputAndCannotBeCancelled()
+    {
+        await using var ctx = NewContext(out _);
+
+        var upload = new TaskCompletionSource<(string?, string?)>();
+        var file = File("Poznámky.txt");
+        var component = await RenderEditing(ctx, [file], file.FileId, uploadVersion: async (_, _) => await upload.Task);
+
+        await Dirty(component);
+
+        var saving = SaveButton(component).ClickAsync(new MouseEventArgs());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.Find(".ec-text-editor-stage").HasAttribute("inert"), Is.True);
+            Assert.That(HeaderButton(component, "Zrušit").HasAttribute("disabled"), Is.True);
+        }
+
+        await component.Find(".ec-modal-large .ec-modal-header button[aria-label='Zavřít']").ClickAsync(new MouseEventArgs());
+
+        Assert.That(component.FindAll(DiscardQuestion), Is.Empty, "the save finishes first");
+
+        upload.SetResult(("Poznámky.txt: nahrání se nezdařilo.", null));
+        await saving;
+
+        Assert.That(component.Find(".ec-text-editor-stage").HasAttribute("inert"), Is.False);
+    }
+
+    [Test]
+    public async Task AnUnreadableEditorFailsTheSaveAndKeepsTheText()
+    {
+        await using var ctx = NewContext(out var editors);
+
+        var uploads = 0;
+        var file = File("Poznámky.txt");
+        var component = await RenderEditing(
+            ctx,
+            [file],
+            file.FileId,
+            uploadVersion: (_, _) =>
+            {
+                uploads++;
+
+                return Task.FromResult<(string?, string?)>((null, null));
+            });
+
+        editors.ReadFails = true;
+        await Dirty(component);
+        await SaveButton(component).ClickAsync(new MouseEventArgs());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(uploads, Is.Zero);
+            Assert.That(component.Find(".ec-preview-alert .ec-alert-text").TextContent, Is.EqualTo("Text se nepodařilo přečíst z editoru. Zkuste to znovu."));
+            Assert.That(component.FindAll(".ec-text-editor"), Has.Count.EqualTo(1));
+        }
+    }
+
+    [Test]
+    public async Task AVersionThatArrivesWhileEditingKeepsTheEditorAndShowsAfterIt()
+    {
+        await using var ctx = NewContext(out _);
+
+        var file = File("Poznámky.txt");
+        var component = await RenderEditing(ctx, [file], file.FileId);
+
+        await Dirty(component);
+        component.Render(parameters => parameters.Add(static modal => modal.Files, [file with { Version = 2, VersionCount = 2 }]));
+
+        Assert.That(component.FindAll(".ec-text-editor"), Has.Count.EqualTo(1), "the unsaved text stays");
+
+        await HeaderButton(component, "Zrušit").ClickAsync(new MouseEventArgs());
+        await QuestionButton(component, "Zahodit změny").ClickAsync(new MouseEventArgs());
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-preview-actions button[aria-label='Verze, 2']"), Has.Count.EqualTo(1)));
     }
 
     [Test]

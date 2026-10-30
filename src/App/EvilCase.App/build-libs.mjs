@@ -226,7 +226,7 @@ await bundle(codePreview, join(lib, 'code-preview'), 'code-preview.min.js', { fo
 const textEditor = `
 import { EditorState, RangeSet, StateField } from '@codemirror/state';
 import { EditorView, GutterMarker, drawSelection, gutter, highlightActiveLine, highlightActiveLineGutter, highlightSpecialChars, keymap, lineNumbers } from '@codemirror/view';
-import { defaultKeymap, history, historyKeymap, redo, redoDepth, undo, undoDepth } from '@codemirror/commands';
+import { defaultKeymap, history, historyKeymap, insertNewlineKeepIndent, redo, redoDepth, undo, undoDepth } from '@codemirror/commands';
 import { SearchQuery, findNext, findPrevious, openSearchPanel, search, setSearchQuery } from '@codemirror/search';
 import { HighlightStyle, bracketMatching, syntaxHighlighting } from '@codemirror/language';
 import { tags } from '@lezer/highlight';
@@ -304,7 +304,13 @@ export function createEditor(parent, text, language, label, onChange, onFind) {
                 EditorView.contentAttributes.of({ 'aria-label': label }),
                 // An empty panel: the search runs from the app's field; the open panel only turns the highlights on.
                 search({ createPanel: () => ({ dom: document.createElement('div'), top: true }) }),
-                keymap.of([{ key: 'Mod-f', preventDefault: true, run: () => { onFind(); return true; } }, ...defaultKeymap, ...historyKeymap]),
+                // Enter keeps the indentation of the line as typed; it never indents by the syntax.
+                keymap.of([
+                    { key: 'Mod-f', preventDefault: true, run: () => { onFind(); return true; } },
+                    { key: 'Enter', run: insertNewlineKeepIndent, shift: insertNewlineKeepIndent },
+                    ...defaultKeymap,
+                    ...historyKeymap,
+                ]),
                 language ? [languages[language](), bracketMatching(), syntaxHighlighting(highlighting)] : [],
                 EditorView.updateListener.of((update) => {
                     if (!update.docChanged) return;

@@ -5,7 +5,7 @@
 
 @* The source editor of a text file: undo, redo and search over the text; Notes stand between the toolbar and the text. *@
 <div class="ec-preview-view">
-    <div class="ec-preview-toolbar ec-text-editor-toolbar" role="toolbar" aria-label="Úpravy">
+    <div class="ec-preview-toolbar ec-text-editor-toolbar" role="toolbar" aria-label="Úpravy" inert="@this.Locked">
         <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ArrowBackUp" AriaLabel="Zpět"
                   Disabled="@(!this.canUndo)" OnClick="this.Undo" />
         <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ArrowForwardUp" AriaLabel="Znovu"
@@ -20,7 +20,7 @@
         </div>
     </div>
     @this.Notes
-    <div class="ec-preview-stage ec-text-editor-stage">
+    <div class="ec-preview-stage ec-text-editor-stage" inert="@this.Locked">
         <div @ref="this.host" class="ec-text-editor"></div>
     </div>
 </div>
@@ -59,6 +59,12 @@
 
     [Parameter]
     public RenderFragment? Notes { get; set; }
+
+    /// <summary>
+    /// Takes no input while set, so nothing is typed into a text being saved.
+    /// </summary>
+    [Parameter]
+    public bool Locked { get; set; }
 
     /// <summary>
     /// Raised with whether the text differs from the one given.

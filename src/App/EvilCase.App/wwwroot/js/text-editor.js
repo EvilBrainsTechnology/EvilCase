@@ -17,6 +17,9 @@ function loadLibrary() {
 export async function openEditor(host, searchInput, text, language, label, owner) {
     const { createEditor } = await loadLibrary();
 
+    // Closed while the library loaded.
+    if (!host.isConnected) return;
+
     closeEditor(host);
 
     const editor = createEditor(host, text, language, label,
