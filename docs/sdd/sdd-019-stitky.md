@@ -3,7 +3,7 @@
 - **Stav:** platí
 - **Milníky:** M8
 - **Související SDD:** [007](sdd-007-domenovy-model.md), [009](sdd-009-spisy.md),
-  [010](sdd-010-ukony.md), [016](sdd-016-navigace-a-vzhled.md)
+  [010](sdd-010-ukony.md), [016](sdd-016-navigace-a-vzhled.md), [022](sdd-022-export.md)
 
 ## Rozsah
 
@@ -25,7 +25,13 @@ ničem. Tutéž dvojici nese nejvýše jednou. Spis ani úkon nemá počet ští
 
 ### Nastavení
 
-`/settings` je agenda nastavení tenantu; zatím nese jedinou sekci, Štítky. Sekce ukazuje štítky
+`/settings` je agenda nastavení tenantu se sekcemi Štítky (`/settings`) a Export
+(`/settings/export`). Na desktopu je mezi sekcemi svislý panel, na mobilu řada pilulek.
+
+Sekce Export popíše, co archiv nese a co ne, a nese tlačítko Exportovat vše s názvem souboru,
+pod kterým se archiv stáhne. Export řídí [SDD-022](sdd-022-export.md).
+
+Sekce Štítky ukazuje štítky
 seřazené podle názvu, u každého počet spisů a počet úkonů, které ho nesou, a nechá štítek
 založit, přejmenovat, přebarvit a smazat. Název, který už nese jiný štítek, se odmítne 409
 (SDD-004). Smazání štítku ho sejme ze všech spisů a úkonů, které ho nesly; spis ani úkon tím

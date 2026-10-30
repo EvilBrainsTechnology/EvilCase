@@ -27,6 +27,12 @@ public static class AppIcons
         + "<path d='M9 14l-4 -4l4 -4' />"
         + "<path d='M5 10h11a4 4 0 1 1 0 8h-1' />";
 
+    public const string ArrowBarToDown = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M4 20l16 0' />"
+        + "<path d='M12 14l0 -10' />"
+        + "<path d='M12 14l4 -4' />"
+        + "<path d='M12 14l-4 -4' />";
+
     public const string ArrowForwardUp = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M15 14l4 -4l-4 -4' />"
         + "<path d='M19 10h-11a4 4 0 1 0 0 8h1' />";

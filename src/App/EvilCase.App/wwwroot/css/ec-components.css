@@ -3210,6 +3210,7 @@ html.ec-scroll-locked {
 .ec-settings-nav-item {
     display: flex;
     align-items: center;
+    gap: var(--ec-space-3);
     height: var(--ec-control-lg);
     padding: 0 var(--ec-space-4);
     border-radius: var(--ec-radius-lg);
@@ -3218,10 +3219,48 @@ html.ec-scroll-locked {
     text-decoration: none;
 }
 
+.ec-settings-nav-item:hover {
+    background: var(--ec-surface-header);
+}
+
 .ec-settings-nav-item[aria-current="page"] {
     background: var(--ec-accent-soft);
     color: var(--ec-accent-text);
     font-weight: var(--ec-weight-semibold);
+}
+
+.ec-settings-export {
+    max-width: var(--ec-settings-export-max);
+}
+
+.ec-export {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-4);
+    padding: 0 var(--ec-space-6) var(--ec-space-6);
+}
+
+.ec-export-text,
+.ec-export-note {
+    margin: 0;
+    line-height: var(--ec-leading-body);
+}
+
+.ec-export-note,
+.ec-export-hint {
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-muted);
+}
+
+.ec-export-action {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-4);
+    margin-top: var(--ec-space-2);
+}
+
+.ec-export-file {
+    font-family: var(--ec-font-mono);
 }
 
 .ec-card-heading {
@@ -4341,6 +4380,7 @@ html.ec-scroll-locked {
 
     .ec-settings-nav {
         flex-direction: row;
+        flex-wrap: wrap;
         gap: var(--ec-space-3);
         padding: 0;
         border: 0;
@@ -4349,7 +4389,23 @@ html.ec-scroll-locked {
 
     .ec-settings-nav-item {
         height: var(--ec-touch-min);
+        border: 1px solid var(--ec-border);
         border-radius: var(--ec-radius-pill);
+        background: var(--ec-surface);
+    }
+
+    .ec-settings-nav-item[aria-current="page"] {
+        border-color: transparent;
+    }
+
+    .ec-export-action {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+    }
+
+    .ec-export-action .ec-button {
+        min-height: var(--ec-touch-min);
     }
 
     .ec-settings-layout .ec-card-heading {
