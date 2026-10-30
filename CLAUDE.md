@@ -1,6 +1,7 @@
 # EvilCase
 
-A case-file system for administrative and legal proceedings, built towards `docs/product/vision.md`.
+A case-file system for administrative and legal proceedings; `docs/product/vision.md` is the
+product it is built towards.
 
 .NET 10, PostgreSQL, secrets from environment variables. `src/global.json` pins the SDK version
 and `.claude/hooks/session-start.sh` hardcodes its image tag — a major-version bump changes both.
@@ -28,8 +29,9 @@ Run everything from `src/`; `r` is a local tool, `dotnet tool restore` once per 
 
 - `dotnet r build` — build solution (Release, warnings as errors)
 - `dotnet r test` — run tests; iterate with `dotnet r test -- --no-build --filter FullyQualifiedName~<type>`
-- `dotnet r format` / `format-check` / `ai-check` — format / verify formatting / AI instruction limits
-- `dotnet r ci` — the four checks above in one command
+- `dotnet r format` / `format-check` — format / verify formatting
+- `dotnet r ai-check` — verify the AI instruction length limits
+- `dotnet r ci` — the four above in one command
 - `dotnet r run` — run at `https://localhost:5000` (Scalar at `/scalar` in dev); needs a reachable PostgreSQL and a seeded administrator — `README.md` has both
 - `dotnet r run-docker` — the same in Docker with its own PostgreSQL
 - `dotnet r add-migration` / `remove-migration` / `generate-sql-script` — EF migrations

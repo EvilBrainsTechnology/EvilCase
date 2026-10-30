@@ -1,7 +1,8 @@
 # GitHub
 
 - Never push to `master`. Work goes through a pull request from a branch.
-- A comment waits for an answer only when its author is the owner, `vdolek`.
+- A comment waits for an answer when its author is the owner, `vdolek`. Every other comment —
+  the agent's own or a bot's — does not.
 - Commit every logical unit that stands on its own, `add` and `commit` in one call; push
   every commit as it is made.
 - A behaviour change in a category `tests.md` names carries a test; docs change in the code's commit.

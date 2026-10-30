@@ -8,7 +8,8 @@ paths:
 # Authentication
 
 Browser API auth is the HttpOnly `__Host-evilcase-access` cookie; the login response carries no
-access token, and an `Authorization: Bearer` header is still accepted.
+access token, and an `Authorization: Bearer` header is still accepted. All of it sits behind
+`IAuthService`.
 
 - `AuthSessionId`, never `SessionId` — entity, column, contract, log templates.
 - A write a decision rests on is one statement against the stored row, never a value from the

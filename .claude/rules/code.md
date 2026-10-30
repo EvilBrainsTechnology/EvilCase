@@ -9,6 +9,7 @@ paths:
   `try`/`catch` that only rethrows, no argument validation inside an internal method.
 - No type or method for a single call site; a helper folds into its only consumer.
 - No machinery before a caller needs it; a one-line comment marks what is deferred.
+- `ArgumentNullException.ThrowIfNull` never guards a non-nullable parameter.
 - No suffix that repeats what the name or its type already says, `Async` included. Exceptions: a
   genuine sync/async pair on one surface, and names not ours to choose (`SendAsync`,
   `DisposeAsync`, `OnAfterRenderAsync`).
@@ -18,7 +19,8 @@ paths:
 - A method name carries its entity: `ListCases`, `WriteFileBlob`. A static class already naming it
   keeps the short name.
 - `Parse` throws on invalid input; `ParseOrDefault` returns the default.
-- A switch over an enum of ours names every member; the default arm throws `UnreachableException`.
+- A default arm over one of our enums throws `UnreachableException`.
+- A switch over an enum of ours names every member; the default arm throws.
 - Every class resolved from DI is `internal sealed` and consumed through an interface; a public
   consumer gets a public interface with an internal implementation. Exceptions: types the framework
   instantiates by concrete type or with no service role — controllers, `DelegatingHandler`

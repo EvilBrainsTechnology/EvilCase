@@ -13,7 +13,8 @@ App → Api.Client → (HTTP) → Api → Business → Data
                        Api.Contract → Domain ←─┘
 ```
 
-`Tests/EvilCase.Tests/Architecture/LayerTests` pins every arrow and its purpose; it cannot see:
+`Tests/EvilCase.Tests/Architecture/LayerTests` pins every arrow and says what each one is for.
+What it cannot see:
 
 - The frontend renders and collects input. It never decides.
 - A business service returns the contract DTO — no second model set, no mapping layer.

@@ -12,5 +12,6 @@
   handling or state to clean up is a script beside the instruction that calls it, with a header
   stating parameters and failures; a pwsh one sets `Set-StrictMode` and `$ErrorActionPreference`.
 - Detail needed only occasionally goes to `docs/**` or a README and is referenced from the rule.
-- Shorten elsewhere to fit a limit in `.claude/instruction-limits.json`; never raise one.
+- A new rule file raises `maxLinesTotal` in `.claude/instruction-limits.json` by its own length.
+  Otherwise shorten elsewhere to fit a limit; never raise one.
 - No `@path` imports.
