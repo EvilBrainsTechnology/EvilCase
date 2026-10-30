@@ -6,6 +6,8 @@
 
   <ItemGroup>
     <PackageReference Include="BouncyCastle.Cryptography" />
+    <PackageReference Include="DocumentFormat.OpenXml" />
+    <PackageReference Include="PdfPig" />
     <PackageReference Include="System.Security.Cryptography.Pkcs" />
   </ItemGroup>
 
