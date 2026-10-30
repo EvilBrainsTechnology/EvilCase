@@ -30,14 +30,7 @@
         }
         <span class="ec-preview-toolbar-separator" aria-hidden="true"></span>
         <div class="ec-text-compare-changes" role="group" aria-label="Změny">
-            <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ArrowUp" AriaLabel="Předchozí změna"
-                      Disabled="@(this.view.Changes == 0)" OnClick="() => this.Step(previous: true)"><span class="ec-preview-toolbar-label">Předchozí změna</span></EcButton>
-            <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ArrowDown" AriaLabel="Další změna"
-                      Disabled="@(this.view.Changes == 0)" OnClick="() => this.Step(previous: false)"><span class="ec-preview-toolbar-label">Další změna</span></EcButton>
-            @if (this.ready)
-            {
-                <span class="ec-text-compare-summary"><span class="ec-text-compare-summary-added">+@this.view.Added</span> <span class="ec-text-compare-summary-removed">−@this.view.Removed</span><span class="ec-text-compare-summary-unit">@(" " + LinesWord(this.view.Removed))</span></span>
-            }
+            <CompareChanges View="@(this.ready ? this.view : null)" OnStep="this.Step" />
         </div>
         @if (this.Formats && this.ready && !this.canFormat)
         {
@@ -223,16 +216,5 @@
     private static string Pressed(bool value)
     {
         return value ? "true" : "false";
-    }
-
-    // 1 řádek, 2 až 4 řádky, 0 a 5 a více řádků.
-    private static string LinesWord(int count)
-    {
-        return count switch
-        {
-            1 => "řádek",
-            >= 2 and <= 4 => "řádky",
-            _ => "řádků",
-        };
     }
 }

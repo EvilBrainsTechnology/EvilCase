@@ -4,10 +4,10 @@
    offered disabled. *@
 <div class="ec-text-compare-version">
     <span class="ec-text-compare-version-label">@this.Label</span>
-    <EcPopover @ref="this.popover" AriaLabel="@($"{this.Label} verze")" PanelClass="ec-preview-versions-panel">
+    <EcPopover @ref="this.popover" AriaLabel="@this.ShownName" PanelClass="ec-preview-versions-panel">
         <Trigger>
             <span class="ec-preview-versions-trigger">
-                <span class="ec-visually-hidden">@this.Label verze: </span>
+                <span class="ec-visually-hidden">@this.ShownName: </span>
                 <span class="ec-text-compare-version-title">Verze @this.Selected.Number<span class="ec-text-compare-version-day"> · @Day(this.Selected.Created)</span></span>
                 @if (this.Selected.Number == this.CurrentNumber)
                 {
@@ -40,10 +40,18 @@
     private EcPopover? popover;
 
     /// <summary>
-    /// Starší or Novější.
+    /// Starší, Novější or what stands before the version.
     /// </summary>
     [Parameter, EditorRequired]
     public required string Label { get; set; }
+
+    /// <summary>
+    /// The name of the choice for assistive technology; the label with "verze" unless set.
+    /// </summary>
+    [Parameter]
+    public string? Name { get; set; }
+
+    private string ShownName => this.Name ?? $"{this.Label} verze";
 
     /// <summary>
     /// The versions of the file, newest first.

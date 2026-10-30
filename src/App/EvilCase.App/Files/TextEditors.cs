@@ -53,6 +53,20 @@ internal sealed class TextEditors(IJSRuntime jsRuntime) : ITextEditors, IAsyncDi
         await editors.InvokeVoidAsync("findInEditor", host, query, find != PreviewFind.New, find == PreviewFind.Previous);
     }
 
+    public async Task<CompareView> ShowEditorChanges(ElementReference host, string? original)
+    {
+        var editors = await this.Module();
+
+        return await editors.InvokeAsync<CompareView>("showEditorChanges", host, original);
+    }
+
+    public async Task StepEditorChange(ElementReference host, bool previous)
+    {
+        var editors = await this.Module();
+
+        await editors.InvokeVoidAsync("stepEditorChange", host, previous);
+    }
+
     public async Task FocusEditor(ElementReference host)
     {
         var editors = await this.Module();

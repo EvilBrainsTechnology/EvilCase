@@ -9,7 +9,7 @@
 @if (this.Source)
 {
     <TextEditor @key="this.sourceKey" @ref="this.sourceEditor" Text="@this.start" Language="CodeLanguage.Markdown" ReadOnly="!this.Editing"
-                FileName="@this.FileName" Notes="this.Notes" Locked="this.Locked"
+                FileName="@this.FileName" Notes="this.Notes" Locked="this.Locked" Changes="@(this.Editing ? this.Changes : null)"
                 OnDirtyChanged="this.SourceDirtyChanged" OnSave="this.OnSave" OnUnavailable="this.OnUnavailable">
         <Modes>
             <MarkdownModeSwitch Editing="this.Editing" Source OnSwitch="this.Switch" />
@@ -35,7 +35,7 @@ else
                         @foreach (var (command, label, icon, text) in group)
                         {
                             <EcButton Variant="EcButtonVariant.Ghost" Size="EcButtonSize.Compact" Icon="@icon" AriaLabel="@label" title="@label"
-                                      Disabled="@(this.disabled.Contains(command))"
+                                      Disabled="@(this.disabled.Contains(command) || this.Comparing)"
                                       aria-pressed="@(command == "table" ? null : this.active.Contains(command) ? "true" : "false")"
                                       OnClick="@(() => this.Run(command))">
                                 @if (text is not null)
@@ -45,6 +45,12 @@ else
                             </EcButton>
                         }
                     }
+                    @if (this.Changes is { } changes)
+                    {
+                        <span class="ec-preview-toolbar-separator" aria-hidden="true"></span>
+                        <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.PlusMinus" aria-pressed="@(changes.Shown ? "true" : "false")"
+                                  AriaLabel="Změny" OnClick="() => changes.OnShow.InvokeAsync(!changes.Shown)"><span class="ec-preview-toolbar-label">Změny</span></EcButton>
+                    }
                     @if (this.Notes is not null)
                     {
                         <div class="ec-toolbar-notes">@this.Notes</div>
@@ -52,6 +58,24 @@ else
                 </div>
                 <ToolbarSearch @ref="this.search" Label="Hledat v textu" OnSearch="this.SearchEdit" OnEscape="this.FocusText" />
             </div>
+            @if (this.Changes is { Shown: true } shownChanges)
+            {
+                if (this.Comparing)
+                {
+                    <MarkdownCompare @key="(shownChanges.Original, this.compared)" @ref="this.compare" Older="@(shownChanges.Original!)" Newer="@(this.compared!)" EditorSearch="this.search"
+                                     Labels="@([$"Verze {shownChanges.Number} souboru {this.FileName}", $"Upravený text souboru {this.FileName}", $"Upravený text souboru {this.FileName} se změnami proti verzi {shownChanges.Number}"])"
+                                     Versions="@shownChanges.Version("Změny proti")" OnUnavailable="() => this.compareFailed = true" />
+                }
+                else
+                {
+                    <div class="ec-editor-changes-bar" role="group" aria-label="Změny">@shownChanges.Version("Změny proti")</div>
+                    @if (this.compareFailed)
+                    {
+                        <div class="ec-alert ec-preview-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />Změny se nepodařilo zobrazit. Zkuste to za chvíli znovu.</div>
+                    }
+                    @shownChanges.Status
+                }
+            }
         }
         else
         {
@@ -61,7 +85,7 @@ else
                 </Modes>
             </PreviewToolbar>
         }
-        <div @ref="this.stage" class="ec-preview-stage ec-preview-stage-text" inert="@this.Locked">
+        <div @ref="this.stage" class="ec-preview-stage ec-preview-stage-text" inert="@this.Locked" hidden="@this.Comparing">
             <article @ref="this.host" class="@(this.Editing ? "ec-preview-markdown ec-markdown-editing" : "ec-preview-markdown")" role="document"
                      tabindex="@(this.Editing ? null : "0")" aria-label="Obsah souboru @this.FileName"></article>
         </div>
@@ -90,6 +114,13 @@ else
     private PreviewToolbar? wiredToolbar;
 
     private TextEditor? sourceEditor;
+
+    private MarkdownCompare? compare;
+
+    // The edited text the formatted Změny compare; null while they do not show.
+    private string? compared;
+
+    private bool compareFailed;
 
     private ToolbarSearch? search;
 
@@ -153,6 +184,16 @@ else
 
     [Parameter]
     public RenderFragment? Notes { get; set; }
+
+    /// <summary>
+    /// The Změny on the toolbar while editing: the source edited with its changes, the formatted text read-only with them
+    /// and its format buttons disabled; null leaves them out.
+    /// </summary>
+    [Parameter]
+    public EditorChanges? Changes { get; set; }
+
+    // The formatted text shows its changes in place of the edited text.
+    private bool Comparing => this.Changes is { Shown: true, Original: not null } && this.compared is not null && !this.compareFailed;
 
     /// <summary>
     /// Takes no input while set, so nothing is typed into a text being saved.
@@ -285,6 +326,10 @@ else
 
     protected override void OnParametersSet()
     {
+        // The formatted Změny read the edited text again when they show again.
+        if (!this.Editing || this.Source || this.Changes is not { Shown: true })
+            (this.compared, this.compareFailed) = (null, false);
+
         if (this.editingShown == this.Editing)
             return;
 
@@ -356,6 +401,11 @@ else
                         // The toolbar left while the script loaded.
                         this.Logger.LogInformation(exception, "The Markdown preview's toolbar was already gone");
                     }
+                }
+                else if (this.Editing && this.Changes is { Shown: true } && this.compared is null)
+                {
+                    this.compared = await this.ReadText();
+                    this.StateHasChanged();
                 }
                 else
                 {
@@ -477,6 +527,10 @@ else
                 await this.OnLinkRequest.InvokeAsync(await this.Editors.ReadMarkdownLink(this.host));
             else
                 await this.Editors.RunMarkdownCommand(this.host, command);
+
+            // Zpět and Znovu change the text the Změny compare.
+            if (this.compared is not null)
+                this.compared = await this.Editors.ReadMarkdown(this.host);
         }
         catch (JSException exception)
         {
@@ -496,7 +550,10 @@ else
 
     private async Task SearchEdit(PreviewSearch search)
     {
-        await this.Editors.FindInMarkdown(this.host, search.Query, search.Find);
+        if (this.Comparing && this.compare is not null)
+            await this.compare.Search(search);
+        else
+            await this.Editors.FindInMarkdown(this.host, search.Query, search.Find);
     }
 
     private async Task FocusText()

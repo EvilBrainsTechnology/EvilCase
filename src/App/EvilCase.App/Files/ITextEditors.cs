@@ -47,6 +47,17 @@ internal interface ITextEditors
     /// </summary>
     public Task FindInEditor(ElementReference host, string query, PreviewFind find);
 
+    /// <summary>
+    /// Shows in one column the changes of the edited text against <paramref name="original"/>, the text staying editable;
+    /// null hides them. Answers their summary; the editor's owner hears of it as it changes.
+    /// </summary>
+    public Task<CompareView> ShowEditorChanges(ElementReference host, string? original);
+
+    /// <summary>
+    /// Moves the cursor to the next or, with <paramref name="previous"/>, the previous change shown; both wrap around.
+    /// </summary>
+    public Task StepEditorChange(ElementReference host, bool previous);
+
     public Task FocusEditor(ElementReference host);
 
     /// <summary>

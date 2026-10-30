@@ -350,6 +350,20 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   jen „Verze jsou shodné“. Verze větší než 1 MB nebo neplatná v UTF-8 se neporovná a porovnání
   řekne proč („Verzi 3 nelze porovnat: soubor je větší než 1 MB“); Porovnat zůstává aktivní.
   Verze, kterou se nepodaří načíst, ukáže chybu se Zkusit znovu.
+- Lišta úprav textu, kódu a Markdownu nese přepínač Změny, na začátku úprav vypnutý. Změny
+  porovnají upravený text s verzí, která se upravuje, vždy v původní podobě a v jednom sloupci jako
+  porovnání verzí. Za Změny stojí „proti“ s výběrem kterékoli verze souboru, Předchozí změna
+  a Další změna jen s ikonou a souhrn „+12 −5 řádků“, který sleduje úpravy. Zapnuté Změny a zvolená
+  verze platí až do konce úprav, i přes přepnutí Formátovaně / Zdrojový kód.
+- Text, kód a zdrojový kód Markdownu jde ve Změnách dál upravovat; odebrané řádky nejdou měnit.
+  Zpět, Znovu, hledání v upraveném textu, Ctrl+S a hlídání neuložených změn platí jako bez Změn.
+  Sbalený úsek se rozbalí, když do něj zasáhne úprava nebo výskyt hledání.
+- Formátované úpravy Markdownu ukážou se Změnami místo upravovaného textu jeho formátované
+  porovnání v jednom sloupci, které nejde měnit. Pod lištou stojí „Změny proti“ s výběrem verze,
+  Předchozí změna, Další změna, souhrn v blocích a legenda barev. Tlačítka formátu jsou neaktivní;
+  Zpět, Znovu, přepínač, Uložit a hledání, které hledá v porovnání, fungují.
+- Verze větší než 1 MB nebo neplatná v UTF-8 se ve Změnách neporovná a řekne proč; verze, kterou
+  se nepodaří načíst, ukáže chybu se Zkusit znovu. Upravovaný text zůstává vidět a jde měnit.
 
 ### Podpis datové zprávy
 
@@ -496,6 +510,7 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
 - Porovnání kódu: původní / naformátovaný. Platí naformátovaný, když jdou naformátovat obě verze
   a naformátované se liší.
 - Konce řádků v porovnání: rozdíl / žádný rozdíl. Platí žádný rozdíl.
+- Změny formátovaných úprav Markdownu: upravitelné / jen ke čtení. Platí jen ke čtení.
 
 ## Dopady
 
