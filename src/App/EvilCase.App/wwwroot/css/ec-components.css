@@ -2086,19 +2086,41 @@ html.ec-scroll-locked {
     outline-offset: var(--ec-text-editor-focus-offset);
 }
 
+/* The buttons scroll sideways in a strip; the search stays whole after them and takes a row of its own when it does not
+   fit beside them. */
 .ec-markdown-toolbar {
-    flex-wrap: nowrap;
     gap: var(--ec-space-2);
+}
+
+.ec-markdown-toolbar-buttons {
+    display: flex;
+    flex: 0 1 auto;
+    align-items: center;
+    gap: var(--ec-space-2);
+    min-width: 0;
+    margin: calc(-1 * var(--ec-space-1));
+    padding: var(--ec-space-1);
     overflow-x: auto;
 }
 
-.ec-markdown-toolbar > * {
+.ec-markdown-toolbar-buttons > * {
     flex: 0 0 auto;
 }
 
-.ec-markdown-toolbar > .ec-toolbar-notes {
+.ec-markdown-toolbar-buttons > .ec-toolbar-notes {
     flex: 1 1 0;
     margin-left: var(--ec-space-4);
+}
+
+.ec-markdown-toolbar > .ec-preview-toolbar-search {
+    flex: 1 0 auto;
+    justify-content: flex-end;
+}
+
+.ec-markdown-toolbar .ec-preview-toolbar-search-box {
+    flex: 1 1 auto;
+    width: var(--ec-preview-toolbar-search-mobile);
+    max-width: var(--ec-preview-toolbar-search-width);
 }
 
 .ec-markdown-toolbar .ec-button[aria-pressed="true"] {
@@ -4961,14 +4983,12 @@ html.ec-scroll-locked {
         flex: 1 1 0;
     }
 
-    .ec-text-editor-toolbar > .ec-preview-toolbar-search,
-    .ec-markdown-toolbar > .ec-preview-toolbar-search {
+    .ec-text-editor-toolbar > .ec-preview-toolbar-search {
         flex: 1 1 auto;
         min-width: 0;
     }
 
-    .ec-text-editor-toolbar .ec-preview-toolbar-search-box,
-    .ec-markdown-toolbar .ec-preview-toolbar-search-box {
+    .ec-text-editor-toolbar .ec-preview-toolbar-search-box {
         min-width: var(--ec-preview-toolbar-search-mobile);
     }
 

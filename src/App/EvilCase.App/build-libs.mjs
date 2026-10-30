@@ -514,8 +514,9 @@ export function createViewer(parent, scroller, text, language, label, onFind) {
 
 await bundle(textEditor, join(lib, 'codemirror'), 'codemirror.min.js', { format: 'esm' });
 
-// The Markdown view and editor: Milkdown with CommonMark, GFM, history, the clipboard and the marks of the app's search, never Crepe. A link stays a link only
-// to a web or e-mail address, images are never loaded, raw HTML never runs and a heading carries no id.
+// The Markdown view and editor: Milkdown with CommonMark, GFM, history, the clipboard and the marks of the app's search,
+// never Crepe. A link stays a link only to a web or e-mail address, images are never loaded, raw HTML never runs and a
+// heading carries no id.
 const markdownEditor = `
 import { Editor, commandsCtx, defaultValueCtx, editorViewCtx, editorViewOptionsCtx, rootCtx, serializerCtx } from '@milkdown/kit/core';
 import { commonmark, headingSchema, htmlSchema, imageSchema, linkSchema, remarkPreserveEmptyLinePlugin } from '@milkdown/kit/preset/commonmark';
@@ -763,6 +764,8 @@ export async function createMarkdown(parent, text, editable, label, onChange, on
     const scroller = parent.parentElement ?? parent;
     let counted = [0, 0];
     let recount = 0;
+    // While find runs, its own steps report nothing.
+    let finding = false;
 
     // The matches of query in doc as [from, to] positions. A match stays within one block; an image, raw HTML or a line
     // break inside a block is a character no query matches.
@@ -779,6 +782,19 @@ export async function createMarkdown(parent, text, editable, label, onChange, on
         return found;
     };
 
+    // The number of matches starting at or before at.
+    const startingBy = (matches, at) => {
+        let low = 0;
+        let high = matches.length;
+        while (low < high) {
+            const middle = (low + high) >> 1;
+            if (matches[middle][0] <= at) low = middle + 1; else high = middle;
+        }
+        return low;
+    };
+
+    const marked = (doc, matches) => DecorationSet.create(doc, matches.map(([from, to]) => Decoration.inline(from, to, { class: 'ec-markdown-hit' })));
+
     // The current match is the last one starting at or before the selection. always reports even an unchanged count:
     // the field waits for the count of a new query.
     const reportMatches = (view, always) => {
@@ -787,15 +803,8 @@ export async function createMarkdown(parent, text, editable, label, onChange, on
             counted = [0, 0];
             return;
         }
-        const at = view.state.selection.from;
-        let low = 0;
-        let high = matches.length;
-        while (low < high) {
-            const middle = (low + high) >> 1;
-            if (matches[middle][0] <= at) low = middle + 1; else high = middle;
-        }
         const total = matches.length;
-        const current = total > 0 ? Math.max(low, 1) : 0;
+        const current = total > 0 ? Math.max(startingBy(matches, view.state.selection.from), 1) : 0;
         if (always || current !== counted[0] || total !== counted[1]) {
             counted = [current, total];
             onMatches(current, total);
@@ -805,10 +814,13 @@ export async function createMarkdown(parent, text, editable, label, onChange, on
     const search = new Plugin({
         key: searchKey,
         state: {
-            init: () => ({ query: '', matches: [], stale: false }),
+            init: () => ({ query: '', matches: [], marks: DecorationSet.empty, stale: false }),
             apply(tr, value, previous, next) {
                 const query = tr.getMeta(searchKey);
-                if (query !== undefined) return { query, matches: matchesIn(next.doc, query), stale: false };
+                if (query !== undefined) {
+                    const matches = matchesIn(next.doc, query);
+                    return { query, matches, marks: marked(next.doc, matches), stale: false };
+                }
                 if (!tr.docChanged || !value.query) return value;
                 const matches = [];
                 for (const [from, to] of value.matches) {
@@ -816,31 +828,36 @@ export async function createMarkdown(parent, text, editable, label, onChange, on
                     const end = tr.mapping.map(to, -1);
                     if (start < end) matches.push([start, end]);
                 }
-                return { query: value.query, matches, stale: true };
+                return { query: value.query, matches, marks: value.marks.map(tr.mapping, tr.doc), stale: true };
             },
         },
         props: {
             // The match the selection covers is drawn apart from the rest.
             decorations(editorState) {
-                const { matches } = searchKey.getState(editorState);
-                if (matches.length === 0) return null;
+                const { matches, marks } = searchKey.getState(editorState);
                 const { from, to } = editorState.selection;
-                return DecorationSet.create(editorState.doc, matches.map(([start, end]) => Decoration.inline(start, end, {
-                    class: start === from && end === to ? 'ec-markdown-hit ec-markdown-hit-current' : 'ec-markdown-hit',
-                })));
+                const shown = matches[startingBy(matches, from) - 1];
+                if (!shown || shown[0] !== from || shown[1] !== to) return marks;
+                return marks.add(editorState.doc, [Decoration.inline(from, to, { class: 'ec-markdown-hit-current' })]);
             },
         },
-        // An edit counts the query again once the typing pauses.
-        view: () => ({
-            update(view) {
-                if (searchKey.getState(view.state).stale) {
-                    clearTimeout(recount);
-                    recount = setTimeout(() => view.dispatch(view.state.tr.setMeta(searchKey, searchKey.getState(view.state).query)), recountDelay);
-                }
-                reportMatches(view, false);
-            },
-            destroy: () => clearTimeout(recount),
-        }),
+        // An edit counts the query again once the typing pauses and no composition is under way.
+        view: () => {
+            const recountLater = (view) => {
+                clearTimeout(recount);
+                recount = setTimeout(() => {
+                    if (view.composing) recountLater(view);
+                    else view.dispatch(view.state.tr.setMeta(searchKey, searchKey.getState(view.state).query));
+                }, recountDelay);
+            };
+            return {
+                update(view) {
+                    if (searchKey.getState(view.state).stale) recountLater(view);
+                    if (!finding) reportMatches(view, false);
+                },
+                destroy: () => clearTimeout(recount),
+            };
+        },
     });
 
     // A task item: a real checkbox, which only an edit can change.
@@ -1005,17 +1022,23 @@ export async function createMarkdown(parent, text, editable, label, onChange, on
         find(query, again, previous) {
             const { from, to } = view.state.selection;
             const shown = searchKey.getState(view.state);
-            if (!again || shown.query !== query) {
-                view.dispatch(view.state.tr.setMeta(searchKey, query));
-                const { matches } = searchKey.getState(view.state);
-                if (matches.length > 0) selectMatch(matches.find(([start]) => start >= from) ?? matches[0]);
-                reportMatches(view, true);
-            } else if (shown.matches.length > 0) {
-                const { matches } = shown;
-                selectMatch(previous
-                    ? matches.findLast(([, end]) => end <= from) ?? matches.at(-1)
-                    : matches.find(([start]) => start >= to) ?? matches[0]);
+            const fresh = !again || shown.query !== query;
+            finding = true;
+            try {
+                if (fresh) {
+                    view.dispatch(view.state.tr.setMeta(searchKey, query));
+                    const { matches } = searchKey.getState(view.state);
+                    if (matches.length > 0) selectMatch(matches.find(([start]) => start >= from) ?? matches[0]);
+                } else if (shown.matches.length > 0) {
+                    const { matches } = shown;
+                    selectMatch(previous
+                        ? matches.findLast(([, end]) => end <= from) ?? matches.at(-1)
+                        : matches.find(([start]) => start >= to) ?? matches[0]);
+                }
+            } finally {
+                finding = false;
             }
+            reportMatches(view, fresh);
         },
         destroy: () => editor.destroy(),
     };

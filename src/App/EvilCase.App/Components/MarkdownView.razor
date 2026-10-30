@@ -22,32 +22,34 @@ else
         @if (this.Editing)
         {
             <div class="ec-preview-toolbar ec-markdown-toolbar" role="toolbar" aria-label="Úpravy" inert="@this.Locked">
-                <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ArrowBackUp" AriaLabel="Zpět"
-                          Disabled="@(this.disabled.Contains("undo"))" OnClick="@(() => this.Run("undo"))" />
-                <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ArrowForwardUp" AriaLabel="Znovu"
-                          Disabled="@(this.disabled.Contains("redo"))" OnClick="@(() => this.Run("redo"))" />
-                <span class="ec-preview-toolbar-separator" aria-hidden="true"></span>
-                <MarkdownModeSwitch Editing Source="false" OnSwitch="this.Switch" />
-                @foreach (var group in Groups)
-                {
+                <div class="ec-markdown-toolbar-buttons">
+                    <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ArrowBackUp" AriaLabel="Zpět"
+                              Disabled="@(this.disabled.Contains("undo"))" OnClick="@(() => this.Run("undo"))" />
+                    <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ArrowForwardUp" AriaLabel="Znovu"
+                              Disabled="@(this.disabled.Contains("redo"))" OnClick="@(() => this.Run("redo"))" />
                     <span class="ec-preview-toolbar-separator" aria-hidden="true"></span>
-                    @foreach (var (command, label, icon, text) in group)
+                    <MarkdownModeSwitch Editing Source="false" OnSwitch="this.Switch" />
+                    @foreach (var group in Groups)
                     {
-                        <EcButton Variant="EcButtonVariant.Ghost" Size="EcButtonSize.Compact" Icon="@icon" AriaLabel="@label" title="@label"
-                                  Disabled="@(this.disabled.Contains(command))"
-                                  aria-pressed="@(command == "table" ? null : this.active.Contains(command) ? "true" : "false")"
-                                  OnClick="@(() => this.Run(command))">
-                            @if (text is not null)
-                            {
-                                <span class="ec-markdown-toolbar-text" aria-hidden="true">@text</span>
-                            }
-                        </EcButton>
+                        <span class="ec-preview-toolbar-separator" aria-hidden="true"></span>
+                        @foreach (var (command, label, icon, text) in group)
+                        {
+                            <EcButton Variant="EcButtonVariant.Ghost" Size="EcButtonSize.Compact" Icon="@icon" AriaLabel="@label" title="@label"
+                                      Disabled="@(this.disabled.Contains(command))"
+                                      aria-pressed="@(command == "table" ? null : this.active.Contains(command) ? "true" : "false")"
+                                      OnClick="@(() => this.Run(command))">
+                                @if (text is not null)
+                                {
+                                    <span class="ec-markdown-toolbar-text" aria-hidden="true">@text</span>
+                                }
+                            </EcButton>
+                        }
                     }
-                }
-                @if (this.Notes is not null)
-                {
-                    <div class="ec-toolbar-notes">@this.Notes</div>
-                }
+                    @if (this.Notes is not null)
+                    {
+                        <div class="ec-toolbar-notes">@this.Notes</div>
+                    }
+                </div>
                 <ToolbarSearch @ref="this.search" Label="Hledat v textu" OnSearch="this.SearchEdit" OnEscape="this.FocusText" />
             </div>
         }

@@ -44,8 +44,8 @@ function markdownOf(host) {
 export async function openMarkdown(host, text, editable, label, owner) {
     closeMarkdown(host);
 
-    // Registered before the library loads, so a close while it loads is heard.
-    const entry = { markdown: null, stop: new AbortController() };
+    // Registered before the library loads, so a close or a query while it loads is heard.
+    const entry = { markdown: null, query: '', stop: new AbortController() };
     views.set(host, entry);
 
     let markdown;
@@ -84,6 +84,7 @@ export async function openMarkdown(host, text, editable, label, owner) {
     }, { signal: entry.stop.signal });
 
     if (editable) markdown.focus();
+    if (entry.query) markdown.find(entry.query, false, false);
 }
 
 export function readMarkdown(host) {
@@ -114,8 +115,12 @@ export function setMarkdownLink(host, href) {
 }
 
 // A new query selects its first match from the cursor on; again steps to the next or, with previous, the previous match.
+// A query that comes while the view opens is searched once it is open.
 export function findInMarkdown(host, query, again, previous) {
-    views.get(host)?.markdown?.find(query, again, previous);
+    const entry = views.get(host);
+    if (!entry) return;
+    if (entry.markdown) entry.markdown.find(query, again, previous);
+    else entry.query = query;
 }
 
 export function focusMarkdown(host) {
