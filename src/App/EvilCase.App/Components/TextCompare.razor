@@ -3,14 +3,19 @@
 @inject ITextCompares Compares
 @inject ILogger<TextCompare> Logger
 
-@* The read-only compare of two texts: side by side or in one column, below a toolbar with the layout, the formatting,
-   the steps between the changes, their summary and the search. Versions stands above the texts. *@
+@* The read-only compare of two texts: side by side or in one column, below a toolbar with the layout, the modes or the
+   formatting, the steps between the changes, their summary and the search. Versions stands above the texts. *@
 <div class="@(this.Unified ? "ec-preview-view ec-text-compare-view ec-text-compare-view-unified" : "ec-preview-view ec-text-compare-view")">
     <div class="ec-preview-toolbar ec-text-compare-toolbar" role="toolbar" aria-label="Ovládání porovnání">
         <div class="ec-segmented ec-segmented-compact ec-text-compare-layout" role="group" aria-label="Rozložení">
             <button type="button" class="ec-segment" aria-pressed="@Pressed(!this.Unified)" @onclick="() => this.UnifiedChanged.InvokeAsync(false)">Vedle sebe</button>
             <button type="button" class="ec-segment" aria-pressed="@Pressed(this.Unified)" @onclick="() => this.UnifiedChanged.InvokeAsync(true)">V jednom sloupci</button>
         </div>
+        @if (this.Modes is not null)
+        {
+            <span class="ec-preview-toolbar-separator ec-text-compare-layout" aria-hidden="true"></span>
+            @this.Modes
+        }
         @if (this.Formats)
         {
             <span class="ec-preview-toolbar-separator ec-text-compare-layout" aria-hidden="true"></span>
@@ -105,6 +110,12 @@
 
     [Parameter]
     public EventCallback<bool> UnifiedChanged { get; set; }
+
+    /// <summary>
+    /// A switch between views of the texts, after the layout.
+    /// </summary>
+    [Parameter]
+    public RenderFragment? Modes { get; set; }
 
     /// <summary>
     /// What stands above the texts, such as the choice of the versions.

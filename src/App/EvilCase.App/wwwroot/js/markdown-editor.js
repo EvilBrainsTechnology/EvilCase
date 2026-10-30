@@ -20,7 +20,7 @@ function loadStylesheet(href) {
     });
 }
 
-function loadLibrary() {
+export function loadLibrary() {
     library ??= Promise.all([
         import(new URL('../lib/milkdown/milkdown.min.js', import.meta.url).href),
         loadStylesheet(new URL('../lib/milkdown/prosemirror.css', import.meta.url).href),

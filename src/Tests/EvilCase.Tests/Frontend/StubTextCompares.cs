@@ -13,7 +13,17 @@ internal sealed class StubTextCompares : ITextCompares
     /// </summary>
     public List<(string Older, string Newer, CodeLanguage? Language, bool Format)> Opened { get; } = [];
 
+    /// <summary>
+    /// Every formatted Markdown compare opened, in order.
+    /// </summary>
+    public List<(string Older, string Newer)> MarkdownOpened { get; } = [];
+
     public int Closed { get; private set; }
+
+    /// <summary>
+    /// The changes a formatted Markdown compare answers when it opens.
+    /// </summary>
+    public int MarkdownChanges { get; set; } = 1;
 
     /// <summary>
     /// What a compare answers when it opens; by default it shows formatted what it was asked to format.
@@ -27,6 +37,14 @@ internal sealed class StubTextCompares : ITextCompares
         this.Opened.Add((older, newer, language, format));
 
         return Task.FromResult(this.Shown ?? new CompareView(Formatted: format, Formattable: format, Added: 1, Removed: 1, Changes: 1));
+    }
+
+    public Task<CompareView> OpenMarkdownCompare(ElementReference host, string older, string newer, IReadOnlyList<string> labels, DotNetObjectReference<MarkdownCompare> owner)
+    {
+        _ = owner.Value;
+        this.MarkdownOpened.Add((older, newer));
+
+        return Task.FromResult(new CompareView(Formatted: true, Formattable: true, Added: this.MarkdownChanges, Removed: this.MarkdownChanges, Changes: this.MarkdownChanges));
     }
 
     public Task<CompareView> ShowCompareFormatted(ElementReference host, bool formatted)

@@ -327,7 +327,21 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   (na mobilu Formát), Předchozí změna a Další změna, které přecházejí dokola, souhrn „+12 −5
   řádků“ a hledání. Kód se porovnává naformátovaný; když některou z verzí naformátovat nejde,
   porovná se původní text, přepínač je neaktivní a lišta to řekne. Verze, které se naformátované
-  neliší, se porovnají v původním textu. Markdown se porovnává ve zdrojovém kódu.
+  neliší, se porovnají v původním textu.
+- Markdown se porovnává formátovaně. Přepínač Formátovaně / Zdrojový kód (na mobilu Formát /
+  Zdroj) za přepínačem sloupců přejde na porovnání zdrojového kódu, které je stejné jako u textu;
+  volba platí, dokud se porovnání nezavře. Verze, které se formátovaně neliší, se porovnají ve
+  zdrojovém kódu.
+- Formátované porovnání ukáže obě verze jako náhled Markdownu, které nejdou měnit. Vložený text je
+  zelený a podtržený, smazaný červený a přeškrtnutý. Text, kterému se změnil jen formát, je
+  fialový s čárkovaným rámečkem a tooltip změnu pojmenuje („nově tučně“, „adresa odkazu A → B“);
+  blok jiného typu nese štítek se změnou („nadpis 2 → odstavec“). Přidaný blok je celý zelený,
+  odebraný celý červený. Tabulka se porovná po buňkách; řádky se poznají podle první buňky, když
+  se první buňky v každé z tabulek liší. Pod porovnáním stojí legenda barev.
+- Vedle sebe stojí protější bloky na stejné výšce. V jednom sloupci stojí odebraný obsah tam, kde
+  byl, i odebrané řádky tabulky a položky seznamu. Souhrn počítá bloky („+3 −2 bloků“): změněný
+  blok na obou stranách, řádek tabulky jako blok. Nezměněné úseky se nesbalují. Obrázky se
+  nenačítají a HTML se nevykoná.
 - Hledání v porovnání nerozlišuje velikost písmen ani diakritiku a ukáže pořadí výskytu z počtu;
   výskyt ve sbaleném úseku úsek rozbalí. V jednom sloupci hledá jen v novější verzi. Porovnání
   nemá zvětšení.

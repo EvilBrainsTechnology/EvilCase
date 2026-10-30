@@ -79,6 +79,42 @@ public class FilePreviewModalCompareRenderTests
     }
 
     [Test]
+    public async Task MarkdownComparesFormattedAndSwitchesToItsSource()
+    {
+        await using var ctx = NewContext(out var compares, out _);
+
+        var file = File("a.md", 2);
+        var component = Render(ctx, file, Texts("# a\n", "# b\n"), compareOnOpen: true);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(compares.MarkdownOpened, Is.EqualTo([("# a\n", "# b\n")]), "Markdown compares formatted first");
+            Assert.That(compares.Opened, Is.Empty);
+        }
+
+        await component.Find("[aria-label='Zobrazení'] button[aria-label='Zdrojový kód']").ClickAsync(new MouseEventArgs());
+
+        Assert.That(compares.Opened.Select(static opened => (opened.Older, opened.Newer)), Is.EqualTo([("# a\n", "# b\n")]), "the source compares as text");
+    }
+
+    [Test]
+    public void MarkdownEqualFormattedComparesItsSource()
+    {
+        using var ctx = NewContext(out var compares, out _);
+
+        compares.MarkdownChanges = 0;
+
+        var file = File("a.md", 2);
+        var component = Render(ctx, file, Texts("*a*\n", "_a_\n"), compareOnOpen: true);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(compares.Opened.Select(static opened => (opened.Older, opened.Newer)), Is.EqualTo([("*a*\n", "_a_\n")]), "versions equal formatted compare their source");
+            Assert.That(component.Find("[aria-label='Zobrazení'] button[aria-label='Zdrojový kód']").GetAttribute("aria-pressed"), Is.EqualTo("true"));
+        }
+    }
+
+    [Test]
     public async Task VersionsDifferingOnlyInLineBreaksAreEqual()
     {
         await using var ctx = NewContext(out var compares, out _);

@@ -17,6 +17,14 @@ internal sealed class TextCompares(IJSRuntime jsRuntime) : ITextCompares, IAsync
         return await compares.InvokeAsync<CompareView>("openCompare", host, older, newer, language is { } value ? FilePreviews.LanguageValue(value) : null, format, labels, owner);
     }
 
+    public async Task<CompareView> OpenMarkdownCompare(ElementReference host, string older, string newer, IReadOnlyList<string> labels, DotNetObjectReference<MarkdownCompare> owner)
+    {
+        var compares = await this.Module();
+
+        // Never cancelled: a compare the browser made must reach the caller to be closed.
+        return await compares.InvokeAsync<CompareView>("openMarkdownCompare", host, older, newer, labels, owner);
+    }
+
     public async Task<CompareView> ShowCompareFormatted(ElementReference host, bool formatted)
     {
         var compares = await this.Module();

@@ -3,8 +3,9 @@
 @implements IDisposable
 @inject ILogger<VersionCompare> Logger
 
-@* The compare of two versions of a text, code or Markdown file, the older on the left. A side over 1 MB or not in UTF-8
-   says why it does not compare; versions equal but for their line breaks say only that they are equal. *@
+@* The compare of two versions of a text, code or Markdown file, the older on the left; Markdown formatted or as its
+   source. A side over 1 MB or not in UTF-8 says why it does not compare; versions equal but for their line breaks say
+   only that they are equal. *@
 @if (this.Versions is null || this.Item(this.Older) is not { } older || this.Item(this.Newer) is not { } newer)
 {
     <div class="ec-preview-stage ec-text-compare-stage">
@@ -31,10 +32,21 @@ else if (this.Texts(older, newer) is ({ } olderText, { } newerText) && !this.una
         _ => (CodeLanguage?)null,
     };
 
-    <TextCompare @key="(this.Older, this.Newer, this.round)" Older="@olderText" Newer="@newerText" Language="language" Formats="preview == FilePreviewKind.Code"
-                 Labels="@([$"Verze {this.Older} souboru {this.File.FileName}", $"Verze {this.Newer} souboru {this.File.FileName}", $"Rozdíly mezi verzí {this.Older} a verzí {this.Newer}"])"
-                 Unified="this.unified" UnifiedChanged="unified => this.unified = unified" Versions="this.Pickers(older, newer)"
-                 OnUnavailable="() => this.unavailable = true" />
+    IReadOnlyList<string> labels = [$"Verze {this.Older} souboru {this.File.FileName}", $"Verze {this.Newer} souboru {this.File.FileName}", $"Rozdíly mezi verzí {this.Older} a verzí {this.Newer}"];
+
+    if (preview == FilePreviewKind.Markdown && !this.ShowsSource(older, newer))
+    {
+        <MarkdownCompare @key="(this.Older, this.Newer, this.round)" Older="@olderText" Newer="@newerText" Labels="labels"
+                         Unified="this.unified" UnifiedChanged="unified => this.unified = unified" Modes="this.MarkdownModes(source: false)"
+                         Versions="this.Pickers(older, newer)" OnSame="() => this.SameFormatted(older, newer)" OnUnavailable="() => this.unavailable = true" />
+    }
+    else
+    {
+        <TextCompare @key="(this.Older, this.Newer, this.round)" Older="@olderText" Newer="@newerText" Language="language" Formats="preview == FilePreviewKind.Code"
+                     Labels="labels" Unified="this.unified" UnifiedChanged="unified => this.unified = unified"
+                     Modes="@(preview == FilePreviewKind.Markdown ? this.MarkdownModes(source: true) : null)" Versions="this.Pickers(older, newer)"
+                     OnUnavailable="() => this.unavailable = true" />
+    }
 }
 else
 {
@@ -81,6 +93,10 @@ else
     // The versions whose last read failed.
     private readonly HashSet<int> failed = [];
 
+    // The pairs of versions, by number and upload, whose Markdown texts formatted do not differ; they compare their source
+    // until a choice says otherwise.
+    private readonly HashSet<(int, DateTime, int, DateTime)> sameFormatted = [];
+
     private CancellationTokenSource? loadToken;
 
     private (int, int)? loadedPair;
@@ -88,6 +104,9 @@ else
     private bool loading;
 
     private bool unified;
+
+    // Whether a Markdown file compares its source; null until chosen.
+    private bool? source;
 
     // The compare's script did not start; a retry opens it anew.
     private bool unavailable;
@@ -223,6 +242,21 @@ else
     {
         this.unavailable = false;
         this.round++;
+    }
+
+    private bool ShowsSource(FileVersionItem older, FileVersionItem newer)
+    {
+        return this.source ?? this.sameFormatted.Contains((older.Number, older.Created, newer.Number, newer.Created));
+    }
+
+    private void SameFormatted(FileVersionItem older, FileVersionItem newer)
+    {
+        this.sameFormatted.Add((older.Number, older.Created, newer.Number, newer.Created));
+    }
+
+    private RenderFragment MarkdownModes(bool source)
+    {
+        return @<MarkdownModeSwitch Editing="false" Source="source" OnSwitch="shown => this.source = shown" />;
     }
 
     private RenderFragment Pickers(FileVersionItem older, FileVersionItem newer)

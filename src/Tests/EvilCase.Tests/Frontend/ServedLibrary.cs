@@ -4,11 +4,11 @@ using EvilBrains.EvilCase.Tests.Hosting;
 namespace EvilBrains.EvilCase.Tests.Frontend;
 
 /// <summary>
-/// A library the app serves, run in Node.js, a build prerequisite of the app.
+/// Libraries the app serves, run in Node.js, a build prerequisite of the app.
 /// </summary>
 internal sealed class ServedLibrary : IDisposable
 {
-    private readonly string path;
+    private readonly string[] paths;
 
     private readonly EvilCaseHost host = new();
 
@@ -16,29 +16,36 @@ internal sealed class ServedLibrary : IDisposable
 
     private readonly string directory = Directory.CreateTempSubdirectory("evilcase-library-").FullName;
 
-    public ServedLibrary(string path)
+    public ServedLibrary(params string[] paths)
     {
-        this.path = path;
+        this.paths = paths;
         this.client = this.host.CreateClient();
     }
 
     /// <summary>
-    /// Runs the module script with the library's file URL as <c>process.argv[1]</c> and the arguments after it, and
-    /// returns what it printed.
+    /// Runs the module script with the libraries' file URLs as <c>process.argv[1]</c> onwards and the arguments after
+    /// them, and returns what it printed.
     /// </summary>
     public async Task<string> Run(string script, params string[] arguments)
     {
-        var library = Path.Combine(this.directory, "library.mjs");
+        var libraries = this.paths
+            .Select((_, index) => Path.Combine(this.directory, string.Create(CultureInfo.InvariantCulture, $"library{index}.mjs")))
+            .ToList();
 
-        if (!File.Exists(library))
-            await File.WriteAllBytesAsync(library, await this.client.GetByteArrayAsync(new Uri(this.path, UriKind.Relative)));
+        for (var index = 0; index < libraries.Count; index++)
+        {
+            if (!File.Exists(libraries[index]))
+                await File.WriteAllBytesAsync(libraries[index], await this.client.GetByteArrayAsync(new Uri(this.paths[index], UriKind.Relative)));
+        }
 
         var start = new ProcessStartInfo("node") { UseShellExecute = false, RedirectStandardOutput = true, RedirectStandardError = true };
 
         start.ArgumentList.Add("--input-type=module");
         start.ArgumentList.Add("--eval");
         start.ArgumentList.Add(script);
-        start.ArgumentList.Add(new Uri(library).AbsoluteUri);
+
+        foreach (var library in libraries)
+            start.ArgumentList.Add(new Uri(library).AbsoluteUri);
 
         foreach (var argument in arguments)
             start.ArgumentList.Add(argument);
