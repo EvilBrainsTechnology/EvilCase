@@ -845,10 +845,13 @@
 
             case FilePreviewKind.Markdown:
             {
-                var (text, cut, _) = await ReadText(content, token);
+                var (text, cut, editable) = await ReadText(content, token);
 
                 if (!token.IsCancellationRequested)
+                {
                     (this.markdown, this.truncated) = (text, cut);
+                    (this.editable, this.notUtf8) = (editable, !cut && editable is null);
+                }
 
                 break;
             }

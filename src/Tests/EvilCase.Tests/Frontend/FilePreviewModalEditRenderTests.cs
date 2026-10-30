@@ -34,6 +34,8 @@ public class FilePreviewModalEditRenderTests
     [TestCase("a.yaml")]
     [TestCase("a.yml")]
     [TestCase("a.html")]
+    [TestCase("a.md")]
+    [TestCase("a.markdown")]
     public void AnEditableFileOffersUpravitBeforeTheVersions(string fileName)
     {
         using var ctx = NewContext(out _);
@@ -52,17 +54,6 @@ public class FilePreviewModalEditRenderTests
             Assert.That(edit, Is.GreaterThanOrEqualTo(0));
             Assert.That(labels.ElementAtOrDefault(edit + 1), Is.EqualTo("Verze, 3"), "Upravit stands right before Verze");
         }
-    }
-
-    [Test]
-    public void MarkdownOffersNoEditing()
-    {
-        using var ctx = NewContext(out _);
-
-        var file = File("a.md");
-        var component = Render(ctx, [file], file.FileId, "# a"u8.ToArray());
-
-        Assert.That(component.FindAll("[aria-label='Upravit']"), Is.Empty);
     }
 
     [Test]
@@ -100,6 +91,7 @@ public class FilePreviewModalEditRenderTests
 
     [TestCase("a.txt")]
     [TestCase("a.json")]
+    [TestCase("a.md")]
     public void AFileThatIsNotUtf8OffersNoEditingAndSaysWhy(string fileName)
     {
         using var ctx = NewContext(out _);
