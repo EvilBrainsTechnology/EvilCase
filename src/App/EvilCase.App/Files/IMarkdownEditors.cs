@@ -11,7 +11,8 @@ internal interface IMarkdownEditors
 {
     /// <summary>
     /// Opens <paramref name="text"/> formatted in <paramref name="host"/>, editable or read-only; <paramref name="owner"/>
-    /// hears of changes while editable and of Ctrl+S. A library that does not load throws a <c>JSException</c>.
+    /// hears of changes, of the search's matches and of Ctrl+F while editable, and of Ctrl+S. A library that does not load
+    /// throws a <c>JSException</c>.
     /// </summary>
     public Task OpenMarkdown(ElementReference host, string text, bool editable, string label, DotNetObjectReference<MarkdownView> owner);
 
@@ -45,6 +46,14 @@ internal interface IMarkdownEditors
     /// Links the selection to <paramref name="href"/>; empty removes the link.
     /// </summary>
     public Task SetMarkdownLink(ElementReference host, string href);
+
+    /// <summary>
+    /// Highlights every match of <paramref name="query"/> in the edited text and selects the one <paramref name="find"/>
+    /// names; an empty query clears the highlights.
+    /// </summary>
+    public Task FindInMarkdown(ElementReference host, string query, PreviewFind find);
+
+    public Task FocusMarkdown(ElementReference host);
 
     public Task CloseMarkdown(ElementReference host);
 }

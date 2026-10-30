@@ -2072,6 +2072,15 @@ html.ec-scroll-locked {
     outline: 2px solid var(--ec-accent-ring);
 }
 
+/* The matches of the formatted editor's search; the selected match is drawn apart. */
+.ec-markdown-content .ec-markdown-hit {
+    background: var(--ec-preview-hit);
+}
+
+.ec-markdown-content .ec-markdown-hit-current {
+    background: var(--ec-preview-hit-current);
+}
+
 .ec-preview-markdown.ec-markdown-editing:focus-within {
     outline: var(--ec-text-editor-focus-outline);
     outline-offset: var(--ec-text-editor-focus-offset);
@@ -4952,12 +4961,14 @@ html.ec-scroll-locked {
         flex: 1 1 0;
     }
 
-    .ec-text-editor-toolbar > .ec-preview-toolbar-search {
+    .ec-text-editor-toolbar > .ec-preview-toolbar-search,
+    .ec-markdown-toolbar > .ec-preview-toolbar-search {
         flex: 1 1 auto;
         min-width: 0;
     }
 
-    .ec-text-editor-toolbar .ec-preview-toolbar-search-box {
+    .ec-text-editor-toolbar .ec-preview-toolbar-search-box,
+    .ec-markdown-toolbar .ec-preview-toolbar-search-box {
         min-width: var(--ec-preview-toolbar-search-mobile);
     }
 
