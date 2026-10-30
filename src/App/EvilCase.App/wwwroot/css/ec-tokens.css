@@ -311,6 +311,14 @@
     --ec-code-literal: #9A4300;
     --ec-code-punctuation: #5B6270;
     --ec-code-comment: #5F6673;
+    --ec-unsaved-dot: 8px;
+    --ec-unsaved-dot-color: #C25E00;
+    --ec-unsaved-text: #8A4500;
+    --ec-text-editor-active-line: rgba(31, 63, 174, 0.05);
+    --ec-text-editor-focus-outline: 2px solid var(--ec-accent-ring);
+    --ec-text-editor-focus-offset: -2px;
+    --ec-text-editor-changed: #E0A33A;
+    --ec-text-editor-changed-width: 3px;
     --ec-overlay-strong: rgba(20, 22, 27, 0.6);
     --ec-comment-avatar-compact: 30px;
     --ec-comment-action-height: 24px;

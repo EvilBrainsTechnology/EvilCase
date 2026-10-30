@@ -45,6 +45,7 @@ internal static class Program
         builder.Services.AddSingleton<IFilePicker, FilePicker>();
         builder.Services.AddSingleton<IBlobUrls, BlobUrls>();
         builder.Services.AddSingleton<IFilePreviews, FilePreviews>();
+        builder.Services.AddSingleton<ITextEditors, TextEditors>();
         builder.Services.AddSingleton<IClipboardWriter, ClipboardWriter>();
 
         // The same handler chain as the generated clients, so the upload and the download carry the same authorization.

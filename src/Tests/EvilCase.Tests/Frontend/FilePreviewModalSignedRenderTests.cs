@@ -368,6 +368,19 @@ public class FilePreviewModalSignedRenderTests
     }
 
     [Test]
+    public async Task TheTextOfASignedDocumentOffersNoEditing()
+    {
+        await using var ctx = NewContext(out _, out _, out _, out _);
+
+        var file = File("Poznámka.txt.p7m");
+        var component = Render(ctx, [file], file.FileId, static _ => SignedFile.Sign("a"u8.ToArray(), detached: false));
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-preview-line"), Has.Count.EqualTo(1)));
+
+        Assert.That(component.FindAll("[aria-label='Upravit']"), Is.Empty, "the content of a signed document is not edited");
+    }
+
+    [Test]
     public async Task TheSignersOfAnOlderVersionAreReadFromThatVersion()
     {
         await using var ctx = NewContext(out _, out var previews, out _, out var signers);

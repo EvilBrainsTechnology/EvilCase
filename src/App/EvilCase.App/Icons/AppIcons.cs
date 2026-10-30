@@ -23,6 +23,14 @@ public static class AppIcons
         + "<path d='M6 15l-3 3l3 3' />"
         + "<path d='M18 15l3 3l-3 3' />";
 
+    public const string ArrowBackUp = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M9 14l-4 -4l4 -4' />"
+        + "<path d='M5 10h11a4 4 0 1 1 0 8h-1' />";
+
+    public const string ArrowForwardUp = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M15 14l4 -4l-4 -4' />"
+        + "<path d='M19 10h-11a4 4 0 1 0 0 8h1' />";
+
     public const string ArrowLeft = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M5 12l14 0' />"
         + "<path d='M5 12l6 6' />"
@@ -84,6 +92,11 @@ public static class AppIcons
         + "<path d='M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2' />"
         + "<path d='M7 11l5 5l5 -5' />"
         + "<path d='M12 4l0 12' />";
+
+    public const string Edit = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1' />"
+        + "<path d='M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.415 -8.415z' />"
+        + "<path d='M16 5l3 3' />";
 
     public const string Eye = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0' />"
