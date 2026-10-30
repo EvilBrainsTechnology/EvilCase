@@ -13,8 +13,6 @@ internal sealed class StubFileDownloader : IFileDownloader
 
     public List<(string FileName, byte[] Content)> DownloadedContents { get; } = [];
 
-    public List<string> DownloadedArchives { get; } = [];
-
     public Task DownloadFile(Guid fileId, int? version, string fileName, CancellationToken token)
     {
         this.Downloaded.Add((fileId, version, fileName));
@@ -24,8 +22,6 @@ internal sealed class StubFileDownloader : IFileDownloader
 
     public Task DownloadArchive(string archiveUrl, CancellationToken token)
     {
-        this.DownloadedArchives.Add(archiveUrl);
-
         return Task.CompletedTask;
     }
 

@@ -11,10 +11,6 @@ internal sealed class StubMarkdownEditors : IMarkdownEditors
 
     public int Edits { get; private set; }
 
-    public List<string> Shown { get; } = [];
-
-    public List<string> Commands { get; } = [];
-
     public List<string> Links { get; } = [];
 
     public int Reads { get; private set; }
@@ -27,19 +23,9 @@ internal sealed class StubMarkdownEditors : IMarkdownEditors
     public string Text { get; set; } = "";
 
     /// <summary>
-    /// What the editor answers as the link at the cursor.
-    /// </summary>
-    public string Link { get; set; } = "";
-
-    /// <summary>
     /// When set, the library does not load.
     /// </summary>
     public bool Fails { get; set; }
-
-    /// <summary>
-    /// When set, the shown text does not turn editable.
-    /// </summary>
-    public bool EditFails { get; set; }
 
     /// <summary>
     /// When set, the editor's text cannot be read.
@@ -68,9 +54,6 @@ internal sealed class StubMarkdownEditors : IMarkdownEditors
 
     public Task EditMarkdown(ElementReference host)
     {
-        if (this.EditFails)
-            throw new JSException("The Markdown view did not turn editable.");
-
         this.Edits++;
 
         return Task.CompletedTask;
@@ -78,21 +61,17 @@ internal sealed class StubMarkdownEditors : IMarkdownEditors
 
     public Task ShowMarkdown(ElementReference host, string text)
     {
-        this.Shown.Add(text);
-
         return Task.CompletedTask;
     }
 
     public Task RunMarkdownCommand(ElementReference host, string command)
     {
-        this.Commands.Add(command);
-
         return Task.CompletedTask;
     }
 
     public Task<string> ReadMarkdownLink(ElementReference host)
     {
-        return Task.FromResult(this.Link);
+        return Task.FromResult("");
     }
 
     public Task SetMarkdownLink(ElementReference host, string href)
