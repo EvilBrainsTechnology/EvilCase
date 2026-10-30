@@ -14,7 +14,8 @@ SDD (software design document) závazně popisuje jednu oblast návrhu EvilCase.
 ## Pořadí čtení
 
 Architektura 001 jako první. Průřezová 002–005 a 018 platí pro každou změnu ve své oblasti;
-základ 006–008 (tenance, model, číslování), agendy 009–013 a 019, aplikace 015–017, 020–022.
+základ 006–008 (tenance, model, číslování), agendy 009–013 a 019, aplikace 015–017, 020–022,
+MCP server 023.
 
 ## Mapa SDD ↔ milník
 
@@ -41,3 +42,4 @@ základ 006–008 (tenance, model, číslování), agendy 009–013 a 019, aplik
 | [020](sdd-020-vzhled.md) | Vzhled | M9 |
 | [021](sdd-021-vyhledavani.md) | Vyhledávání | M9 |
 | [022](sdd-022-export.md) | Export | — |
+| [023](sdd-023-mcp-server.md) | MCP server | průřez |

@@ -3,7 +3,7 @@
 - **Stav:** platí
 - **Milníky:** průřez
 - **Související SDD:** [004](sdd-004-validace-a-chyby.md), [006](sdd-006-tenance-a-ucty.md),
-  [016](sdd-016-navigace-a-vzhled.md)
+  [016](sdd-016-navigace-a-vzhled.md), [023](sdd-023-mcp-server.md)
 
 ## Rozsah
 
@@ -15,11 +15,12 @@ Tvary API a klienta.
 
 - Kontrolery jsou jediný zdroj pravdy; klient se generuje z jejich zdrojů; DTOs žijí
   v `EvilCase.Api.Contract`.
-- Jeden proces, API pod `/api/**`, same-origin, bez CORS. Neznámá cesta pod `/api` je 404
-  jako Problem Details, nikdy `index.html` frontendu.
+- Jeden proces, API pod `/api/**`, MCP server na `/mcp` (SDD-023), same-origin, bez CORS.
+  Neznámá cesta pod `/api` je 404 jako Problem Details, nikdy `index.html` frontendu.
 - Business služba vrací kontraktní DTO; žádná druhá sada modelů.
 - Endpoint bez výslovné výjimky vyžaduje přihlášení. Anonymní jsou přihlášení, obnova tokenu,
-  odhlášení, health checks, upload klientských logů, 404 pod `/api`, v každém prostředí
+  odhlášení, health checks, upload klientských logů, upload a download jednorázovým odkazem
+  `/api/file-links` (přihlášením je odkaz sám, SDD-023), 404 pod `/api`, v každém prostředí
   `/openapi/v1.json` a v Development `/scalar`.
 - Přihlášení nese cookie, nebo API token v hlavičce `Authorization: Bearer` (SDD-006). OpenAPI
   dokument deklaruje schéma Bearer.
@@ -57,13 +58,19 @@ s `Retry-After`.
 | Hledání | `/api/search?q=`, viz [SDD-021](sdd-021-vyhledavani.md) |
 | Štítky | `/api/labels`, `/api/labels/{id}`; přidělení na vlastníku `…/labels` |
 | API tokeny | `/api/api-tokens`, zrušení `/api/api-tokens/{id}`; jen přihlášení v prohlížeči (SDD-006) |
+| Jednorázové odkazy | `/api/file-links?secret=`: GET stáhne obsah, PUT s `&fileName=` nahraje surové bajty; bez přihlášení (SDD-023) |
+| MCP | `/mcp`, nástroje nad všemi zdroji výše kromě API tokenů a archivu souborů; jen API token (SDD-023) |
 
 - Id v routách je `Guid`.
 - Tenanta i uživatele dodává kontext požadavku; endpoint ani dotaz nikdy neberou id tenanta
   parametrem (SDD-006).
 - Upload a download jdou přes ručně psaný klient, ne přes generovaný: generátor neumí
   multipart formulář ani proud bajtů. Upload nové verze také. Výpis, přejmenování a smazání souboru
-  a výpis a smazání verzí jdou přes generovaný.
+  a výpis a smazání verzí jdou přes generovaný. Jednorázové odkazy generovaný klient nemá; vydávají
+  je nástroje MCP.
+- Upload jednorázovým odkazem drží pravidla uploadu (SDD-012) a odpovídá jako upload na vlastníku.
+  Download jednorázovým odkazem odpovídá jako download obsahu a nese `Cache-Control: no-store`.
+  Neznámý, použitý nebo prošlý odkaz je 404.
 
 ## Rozhodnutí
 

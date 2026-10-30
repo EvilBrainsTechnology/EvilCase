@@ -1,6 +1,9 @@
 using EvilBrains.EvilCase.Api.Auth;
 using EvilBrains.EvilCase.Api.Binding;
+using EvilBrains.EvilCase.Api.Contract.Mcp;
 using EvilBrains.EvilCase.Api.HealthChecks;
+using EvilBrains.EvilCase.Api.Mcp;
+using EvilBrains.EvilCase.Auth;
 using EvilBrains.EvilCase.Business;
 using EvilBrains.EvilCase.Domain.Users;
 using EvilBrains.Logging.AspNetCore;
@@ -12,6 +15,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.OpenApi;
+using ModelContextProtocol.Protocol;
 using Scalar.AspNetCore;
 
 namespace EvilBrains.EvilCase.Api;
@@ -22,6 +26,20 @@ public static class Bootstrap
     private const string ClientSourceContext = "EvilBrains.EvilCase.App.Client";
 
     private const string BearerSecurityScheme = "Bearer";
+
+    // IEnumerable, not an array: WithTools would take an array as the target instance of WithTools<T>.
+    private static readonly IEnumerable<Type> McpToolTypes =
+    [
+        typeof(CaseTools),
+        typeof(ActTools),
+        typeof(ContactTools),
+        typeof(LabelTools),
+        typeof(CommentTools),
+        typeof(FileTools),
+        typeof(FileLinkTools),
+        typeof(SignatureTools),
+        typeof(SearchTools),
+    ];
 
     // A RequestDelegate: a minimal-API handler would have to bind the unused {**path}.
     private static readonly RequestDelegate NotFound = static async context =>
@@ -84,6 +102,15 @@ public static class Bootstrap
         services.AddHttpContextAccessor();
         services.AddScoped<IUserContext, PrincipalUserContext>();
 
+        // Stateless: every request stands alone, so no session outlives a revoked token.
+        services
+            .AddMcpServer(static options => options.ServerInfo = new Implementation { Name = "EvilCase", Version = "1.0" })
+            .WithHttpTransport(static options => options.Stateless = true)
+            .WithTools(McpToolTypes)
+            .WithRequestFilters(static filters => filters
+                .AddListToolsFilter(McpScopeFilters.ListTools)
+                .AddCallToolFilter(McpScopeFilters.CallTool));
+
         return services;
     }
 
@@ -97,6 +124,10 @@ public static class Bootstrap
     public static IEndpointRouteBuilder MapEvilCaseApi(this IEndpointRouteBuilder endpoints)
     {
         endpoints.MapControllers();
+
+        endpoints
+            .MapMcp(McpRoute.Path)
+            .RequireAuthorization(ApiTokenPolicy.Name);
 
         // Anonymous in every environment, so an integration reads the contract before it holds a token.
         endpoints

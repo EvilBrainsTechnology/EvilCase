@@ -56,7 +56,13 @@ public static class Bootstrap
         // Default deny: an unattributed endpoint fails closed; open ones say [AllowAnonymous].
         services
             .AddAuthorizationBuilder()
-            .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
+            .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build())
+            .AddPolicy(
+                ApiTokenPolicy.Name,
+                static policy => policy
+                    .AddAuthenticationSchemes(ApiTokenAuthenticationHandler.SchemeName)
+                    .RequireAuthenticatedUser()
+                    .RequireClaim(AuthClaims.ApiTokenId));
 
         return services;
     }

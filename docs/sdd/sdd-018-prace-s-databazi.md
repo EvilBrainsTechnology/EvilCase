@@ -43,7 +43,8 @@ a refresh tokeny filtr nemají a jmenují řádku jejím id.
 - Každý zápis do historizované tabulky — `Accounts`, `Tenants`, `Users`, `Contacts`, `Cases`,
   `Acts`, `FileAssets`, `FileVersions`, `Comments` — zůstává navždy jako řádek se svým
   operátorem a časem, i po smazání původního řádku. `RefreshTokens` historii nemá: rotují při
-  každém refreshi a nesou hash tokenu.
+  každém refreshi a nesou hash tokenu. `FileLinks` také ne: žijí deset minut a nesou hash
+  odkazu (SDD-023).
 - Historický řádek je jen k čtení, žádný zápis ho nezmění ani nesmaže.
 - Operátor je ten, kdo byl přihlášený v okamžiku zápisu, ne vlastník řádku.
 

@@ -1,9 +1,11 @@
+using EvilBrains.EvilCase.Api.Contract.Mcp;
+
 namespace EvilBrains.EvilCase.Host;
 
 /// <summary>
-/// Rejects an API write the browser says came from another origin. The auth cookies are SameSite=Strict;
-/// this is the second line. A request with neither <c>Sec-Fetch-Site</c> nor <c>Origin</c> is not from a
-/// browser and passes.
+/// Rejects an API write, and any request to the MCP endpoint, that the browser says came from another origin. The auth
+/// cookies are SameSite=Strict; this is the second line. A request with neither <c>Sec-Fetch-Site</c> nor <c>Origin</c> is
+/// not from a browser and passes.
 /// </summary>
 internal sealed class CrossSiteWriteMiddleware(RequestDelegate next)
 {
@@ -11,7 +13,7 @@ internal sealed class CrossSiteWriteMiddleware(RequestDelegate next)
 
     public async Task Invoke(HttpContext context)
     {
-        if (IsApiWrite(context.Request) && !IsSameOrigin(context.Request))
+        if ((IsApiWrite(context.Request) || IsMcp(context.Request)) && !IsSameOrigin(context.Request))
         {
             context.Response.StatusCode = StatusCodes.Status403Forbidden;
 
@@ -40,6 +42,11 @@ internal sealed class CrossSiteWriteMiddleware(RequestDelegate next)
             && !HttpMethods.IsGet(request.Method)
             && !HttpMethods.IsHead(request.Method)
             && !HttpMethods.IsOptions(request.Method);
+    }
+
+    private static bool IsMcp(HttpRequest request)
+    {
+        return request.Path.StartsWithSegments(McpRoute.Path, StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool IsSameOrigin(HttpRequest request)

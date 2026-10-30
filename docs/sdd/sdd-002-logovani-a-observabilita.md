@@ -14,8 +14,8 @@ Co se loguje a co nikdy.
 ### Pipeline
 
 Logování jde přes `EvilBrains.Logging.*` na serveru i ve WebAssembly. Seq zapíná URL
-z prostředí; bez ní se loguje jen do konzole. Logují se požadavky na `/api/**` kromě úspěšného
-uploadu klientských logů — ten by se sám sebou zalogoval do dalšího uploadu. Mimo `/api/**` se
+z prostředí; bez ní se loguje jen do konzole. Logují se požadavky na `/api/**` a `/mcp` kromě
+úspěšného uploadu klientských logů — ten by se sám sebou zalogoval do dalšího uploadu. Mimo ně se
 nikde neloguje nic, health checks včetně; výjimka je výjimka nebo odpověď 5xx, ta se loguje vždy.
 
 ### Co loguje každá agenda
@@ -39,7 +39,8 @@ entit, v každé agendě stejně. Výjimkou je seed vzorových dat, který loguj
 
 ### Nikdy
 
-Obsah souborů, těla komentářů, obsah reálných spisů. Log nese identifikátory, ne obsah.
+Obsah souborů, těla komentářů, obsah reálných spisů, adresa jednorázového odkazu na soubor
+(SDD-023). Log nese identifikátory, ne obsah.
 
 ## Rozhodnutí
 

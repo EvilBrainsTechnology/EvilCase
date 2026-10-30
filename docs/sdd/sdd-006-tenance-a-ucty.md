@@ -4,7 +4,7 @@
 - **Milníky:** M2
 - **Související SDD:** [002](sdd-002-logovani-a-observabilita.md), [003](sdd-003-testovani.md),
   [004](sdd-004-validace-a-chyby.md), [005](sdd-005-api-konvence.md),
-  [007](sdd-007-domenovy-model.md), [019](sdd-019-stitky.md)
+  [007](sdd-007-domenovy-model.md), [019](sdd-019-stitky.md), [023](sdd-023-mcp-server.md)
 
 ## Rozsah
 
@@ -20,7 +20,8 @@ popisuje SDD-007.
 - **User** — tenantová entita, patří právě jednomu tenantu: e-mail, hash hesla, role, lockout
   a `TenantId`.
 
-Mimo tenant stojí jen Account, Tenant, refresh token a API token; každá jiná entita nese
+Mimo tenant stojí jen Account, Tenant, refresh token, API token a jednorázový odkaz na soubor
+(SDD-023); každá jiná entita nese
 `TenantId`.
 Vlastníka `UserId` nese každá kromě kontaktu; kontakt patří tenantu (SDD-011). Obojí plní
 zápis, ne volající. Tenanta ani uživatele nelze smazat, dokud drží řádky.
@@ -39,7 +40,7 @@ Data nesmí utéct mezi tenanty; únik je kritická chyba.
 
 - Čtení nikdy nevidí řádek cizího tenantu; tenanta i uživatele dodává kontext požadavku.
   Výjimka je hledání uživatele, které tenanta ještě znát nemůže — přihlášení, obnova tokenu,
-  ověření API tokenu a oba seedy.
+  ověření API tokenu, použití jednorázového odkazu a oba seedy.
 - Access token nese tenant claim i subject claim.
 - Zápis doplní `TenantId` a `UserId` nové entity z kontextu a odmítne řádek, který jmenuje
   cizího tenanta nebo cizího uživatele.
@@ -49,7 +50,7 @@ Data nesmí utéct mezi tenanty; únik je kritická chyba.
   přes celé nasazení a ukládá se oříznutý a malými písmeny, takže přihlášení nerozlišuje
   velikost písmen.
 - Konvenční test hlídá, že žádná tenantová entita filtr nepostrádá a že mimo tenant stojí jen
-  Account, Tenant, refresh token a API token (SDD-003).
+  Account, Tenant, refresh token, API token a jednorázový odkaz na soubor (SDD-003).
 
 ### Autentizace
 
@@ -81,7 +82,9 @@ jeho hash. Posílá se v hlavičce `Authorization: Bearer` a schéma vybere jeho
 v hlavičce vyhraje nad cookie přihlášení. Neznámý, zrušený nebo prošlý token odpoví 401. Zrušení
 token smaže a platí od dalšího požadavku, nic token necachuje.
 
-- Token jen pro čtení odpoví 403 na každý zápis: POST, PUT, PATCH, DELETE.
+- Token jen pro čtení odpoví 403 na každý zápis: POST, PUT, PATCH, DELETE. Na `/mcp` vidí
+  a volá jen nástroje pro čtení (SDD-023).
+- `/mcp` přijme jen API token; cookie ani access token tam neplatí (SDD-023).
 - Na `/api/auth/**` a na správu tokenů odpoví token 403; obojí zůstává přihlášení v prohlížeči.
 - Uzamčení účtu token nezastaví, stejně jako živé přihlášení.
 - Požadavky s tokenem limit požadavků nemají (SDD-005).

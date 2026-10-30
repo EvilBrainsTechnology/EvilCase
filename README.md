@@ -83,3 +83,13 @@ curl -H "Authorization: Bearer evc_…" "https://localhost:5000/api/cases?take=2
 ```
 
 The token acts as its user, tenant included. A read-only token gets 403 on every write, and an unknown, revoked or expired token gets 401. `/api/auth/**` and token management accept the browser session only. `/openapi/v1.json` describes every endpoint and the Bearer scheme, and is anonymous in every environment.
+
+## AI agents over MCP
+
+`/mcp` is an MCP server (Streamable HTTP) for AI agents, with a tool for every REST resource except token management and the file archive. It accepts an API token only; the browser session and an access token get 401. Connect Claude Code:
+
+```
+claude mcp add --transport http evilcase https://<host>/mcp --header "Authorization: Bearer <token>"
+```
+
+A read-only token lists and calls only the read tools. File bytes never travel through a tool: `create_file_upload_link` and `create_file_download_link` return a one-time URL, valid 10 minutes, with a curl example; the upload is a PUT of the raw bytes. `read_file_text` returns the text of a text file, PDF or DOCX in pages of 50,000 characters.

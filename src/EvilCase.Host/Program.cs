@@ -4,6 +4,7 @@ using DotNetEnv;
 using EvilBrains.Collections;
 using EvilBrains.EvilCase.Api;
 using EvilBrains.EvilCase.Api.Contract.Logging;
+using EvilBrains.EvilCase.Api.Contract.Mcp;
 using EvilBrains.EvilCase.Api.Contract.User;
 using EvilBrains.EvilCase.Api.HealthChecks;
 using EvilBrains.EvilCase.Auth;
@@ -15,6 +16,7 @@ using EvilBrains.Logging.AspNetCore;
 using EvilBrains.Logging.Contract;
 using Microsoft.AspNetCore.HttpOverrides;
 using Serilog;
+using Serilog.Events;
 
 CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
 CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
@@ -32,7 +34,12 @@ var loggerConfiguration = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
     .Enrich.WithProperty(AppSource.PropertyName, AppSource.Server)
-    .Enrich.WithProperty("Environment", builder.Environment.EnvironmentName);
+    .Enrich.WithProperty("Environment", builder.Environment.EnvironmentName)
+
+    // Pinned over the configuration: below Warning, hosting logs the query string a file link's secret travels in,
+    // and the MCP server the tool results that carry the link.
+    .MinimumLevel.Override("Microsoft.AspNetCore.Hosting.Diagnostics", LogEventLevel.Warning)
+    .MinimumLevel.Override("ModelContextProtocol", LogEventLevel.Warning);
 #pragma warning restore RCS0054
 
 // In code: the Serilog section cannot leave a sink out when no ServerUrl is set.
@@ -157,7 +164,7 @@ app.UseWhen(
     static branch => branch.UseMiddleware<SecurityHeadersMiddleware>());
 
 // Quiet on the log upload: logging it would be shipped by the next upload.
-app.UseRequestLogging(loggedPaths: ["/api"], quietPaths: [ClientLogRoute.Path]);
+app.UseRequestLogging(loggedPaths: ["/api", McpRoute.Path], quietPaths: [ClientLogRoute.Path]);
 
 if (app.Configuration.GetValue("EvilBrains:EvilCase:Hosting:HttpsRedirection", defaultValue: true))
 {
