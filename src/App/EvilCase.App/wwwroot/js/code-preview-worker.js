@@ -1,21 +1,13 @@
-// Formats and highlights the source of a code preview off the page's thread. A message { id, format, language } with
-// `format` a text answers { id, formatted } or { id, invalid: true }; a message { id, highlight, language } with
-// `highlight` a list of texts answers { id, html } with their escaped, highlighted markup. Any other failure answers
-// { id, failed: true }.
-import { formatCode, highlightCode } from '../lib/code-preview/code-preview.min.js';
+// Formats the source of a code view off the page's thread: a message { text, language } answers { formatted },
+// { invalid: true } when the text is not valid in its language, or { failed: true } on any other failure.
+import { formatCode } from '../lib/code-preview/code-preview.min.js';
 
 self.onmessage = async ({ data }) => {
-    const { id, language } = data;
-
     try {
-        if (data.highlight) {
-            self.postMessage({ id, html: data.highlight.map(text => highlightCode(text, language)) });
-        } else {
-            const formatted = await formatCode(data.format, language);
+        const formatted = await formatCode(data.text, data.language);
 
-            self.postMessage(formatted === null ? { id, invalid: true } : { id, formatted });
-        }
+        self.postMessage(formatted === null ? { invalid: true } : { formatted });
     } catch {
-        self.postMessage({ id, failed: true });
+        self.postMessage({ failed: true });
     }
 };

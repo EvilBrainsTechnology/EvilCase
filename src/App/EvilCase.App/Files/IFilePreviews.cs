@@ -1,5 +1,4 @@
 using EvilBrains.EvilCase.App.Components;
-using EvilBrains.EvilCase.App.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 
@@ -24,23 +23,10 @@ internal interface IFilePreviews
     public Task<int> RenderDocument(ElementReference host, Stream content, DotNetObjectReference<PreviewToolbar> view, CancellationToken token);
 
     /// <summary>
-    /// Lets the text, Markdown, e-mail or data message shown in the scrolling element reflow at a zoom and be searched through
-    /// <see cref="ZoomView"/> and <see cref="FindInView"/>; the view hears of the zoom and the search matches.
+    /// Lets the formatted Markdown, e-mail or data message shown in the scrolling element reflow at a zoom and be searched
+    /// through <see cref="ZoomView"/> and <see cref="FindInView"/>; the view hears of the zoom and the search matches.
     /// </summary>
     public Task OpenTextView(ElementReference stage, DotNetObjectReference<PreviewToolbar> view);
-
-    /// <summary>
-    /// Shows the source in <paramref name="content"/> as numbered, highlighted lines, formatted unless it is
-    /// <paramref name="truncated"/> or cannot be formatted.
-    /// </summary>
-    public Task<CodeView> RenderCode(ElementReference content, string text, CodeLanguage language, bool truncated, CancellationToken token);
-
-    /// <summary>
-    /// Shows the formatted or the original source of a rendered code again and returns whether its lines were cut.
-    /// </summary>
-    public Task<bool> ShowCode(ElementReference content, bool formatted);
-
-    public Task DisposeCode(ElementReference content);
 
     public Task ZoomView(ElementReference element, PreviewZoom zoom);
 

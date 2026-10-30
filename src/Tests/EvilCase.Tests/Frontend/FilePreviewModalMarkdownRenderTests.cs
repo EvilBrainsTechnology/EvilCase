@@ -88,7 +88,7 @@ public class FilePreviewModalMarkdownRenderTests
     }
 
     [Test]
-    public async Task TheSourceViewShowsTheTextReadOnlyWithItsSearch()
+    public async Task TheSourceViewShowsTheTextReadOnlyWithTheToolbarOfThePreview()
     {
         await using var ctx = NewContext(out var markdown, out var editors, out var previews);
 
@@ -102,12 +102,35 @@ public class FilePreviewModalMarkdownRenderTests
             Assert.That(editors.Opened.Select(static opened => (opened.Text, opened.Language, opened.Label)), Is.EqualTo([(Original, (CodeLanguage?)CodeLanguage.Markdown, Label)]), "the source is the text as read, highlighted as Markdown");
             Assert.That(editors.OpenedReadOnly, Is.EqualTo([true]), "the source preview takes no input");
             Assert.That(markdown.Closed, Is.EqualTo(1), "the formatted view closes");
-            Assert.That(previews.ViewZooms, Is.EqualTo([PreviewZoom.Actual]), "the text goes back to its true size");
-            Assert.That(previews.DisposedViews, Is.EqualTo(1), "the source view has no zoom");
-            Assert.That(component.Find(".ec-text-editor-toolbar").GetAttribute("aria-label"), Is.EqualTo("Ovládání náhledu"));
+            Assert.That(previews.ViewZooms, Is.EqualTo([PreviewZoom.Actual]), "the formatted view goes back to its true size");
+            Assert.That(previews.DisposedViews, Is.EqualTo(1), "the formatted view's zoom and search end");
+            Assert.That(editors.Formatting, Is.EqualTo([false]), "Markdown source is never formatted");
+            Assert.That(
+                ToolbarLabels(component, ".ec-preview-toolbar"),
+                Is.EqualTo(["Zmenšit", "Zvětšit", "100 %", "Formátovaně", "Zdrojový kód", "Hledat v dokumentu", "Předchozí výskyt", "Další výskyt"]),
+                "the source view has the toolbar of the formatted view");
             Assert.That(component.FindAll("button[aria-label='Zpět'], button[aria-label='Znovu']"), Is.Empty, "a preview has no undo");
             Assert.That(ModeButton(component, "Zdrojový kód").GetAttribute("aria-pressed"), Is.EqualTo("true"));
-            Assert.That(component.FindAll("input[aria-label='Hledat v textu']"), Has.Count.EqualTo(1), "the source view searches like the editor");
+        }
+    }
+
+    [Test]
+    public async Task TheSourceViewZoomsAndSearchesInItsOwnView()
+    {
+        await using var ctx = NewContext(out _, out var editors, out var previews);
+
+        var file = File("Poznámky.md");
+        var component = Render(ctx, [file], file.FileId);
+
+        await ModeButton(component, "Zdrojový kód").ClickAsync(new MouseEventArgs());
+        await component.Find(".ec-preview-toolbar button[aria-label='Zvětšit']").ClickAsync(new MouseEventArgs());
+        await component.Find(".ec-preview-toolbar-search-input").InputAsync(new() { Value = "nadpis" });
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(editors.Zooms, Is.EqualTo([PreviewZoom.In]));
+            Assert.That(editors.Finds, Is.EqualTo([("nadpis", PreviewFind.New)]));
+            Assert.That(previews.ViewFinds, Is.Empty, "the formatted view's search is gone");
         }
     }
 

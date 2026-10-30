@@ -1,7 +1,6 @@
 // Generates wwwroot/lib and wwwroot/fonts from node_modules: copies the browser builds and their
-// license files, and bundles postal-mime, @kenjiuno/msgreader, file-type, the code preview (Prettier
-// with @prettier/plugin-xml, and highlight.js), the text editor (CodeMirror) and the Markdown view and editor (Milkdown)
-// with esbuild.
+// license files, and bundles postal-mime, @kenjiuno/msgreader, file-type, the code formatting (Prettier
+// with @prettier/plugin-xml), the text editor (CodeMirror) and the Markdown view and editor (Milkdown) with esbuild.
 //
 // Usage: node build-libs.mjs        (after `npm ci`; no parameters, any working directory)
 // Replaces wwwroot/lib and wwwroot/fonts; both are gitignored.
@@ -168,7 +167,7 @@ await bundle("export { default } from 'postal-mime';", join(lib, 'postal-mime'),
 await bundle("export { default as MsgReader } from '@kenjiuno/msgreader';", join(lib, 'msgreader'), 'msgreader.min.js', { format: 'iife', globalName: 'EcMsg' });
 await bundle("export { fileTypeFromBuffer } from 'file-type';", join(lib, 'file-type'), 'file-type.min.js', { format: 'esm' });
 
-// Formats and highlights JSON, XML, YAML and HTML. `json-stringify` keeps every JSON number literal and escape as
+// Formats JSON, XML, YAML and HTML. `json-stringify` keeps every JSON number literal and escape as
 // written; XML keeps its whitespace; HTML leaves its embedded scripts and styles as they are.
 const codePreview = `
 import { format } from 'prettier/standalone';
@@ -177,18 +176,6 @@ import * as estree from 'prettier/plugins/estree';
 import * as html from 'prettier/plugins/html';
 import * as yaml from 'prettier/plugins/yaml';
 import xml from '@prettier/plugin-xml';
-import hljs from 'highlight.js/lib/core';
-import css from 'highlight.js/lib/languages/css';
-import javascript from 'highlight.js/lib/languages/javascript';
-import json from 'highlight.js/lib/languages/json';
-import markup from 'highlight.js/lib/languages/xml';
-import yamlLanguage from 'highlight.js/lib/languages/yaml';
-
-hljs.registerLanguage('css', css);
-hljs.registerLanguage('javascript', javascript);
-hljs.registerLanguage('json', json);
-hljs.registerLanguage('xml', markup);
-hljs.registerLanguage('yaml', yamlLanguage);
 
 const options = {
     json: { parser: 'json-stringify' },
@@ -214,20 +201,15 @@ export async function formatCode(text, language) {
         throw error;
     }
 }
-
-export function highlightCode(text, language) {
-    return hljs.highlight(text, { language: language === 'html' ? 'xml' : language, ignoreIllegals: true }).value;
-}
 `;
 
 await bundle(codePreview, join(lib, 'code-preview'), 'code-preview.min.js', { format: 'esm' });
 
-// The text editor: CodeMirror with line numbers, marks of the lines changed since it opened, history, a search driven
-// from the app's own field and the highlighting of JSON, XML, YAML, HTML and Markdown. It neither formats nor completes what
-// is typed; a read-only editor takes no input.
+// The text editor and its read-only view (CodeMirror): line numbers, changed-line marks, history, search marks and the
+// highlighting of JSON, XML, YAML, HTML and Markdown. It neither formats nor completes what is typed.
 const textEditor = `
-import { EditorState, RangeSet, StateField } from '@codemirror/state';
-import { EditorView, GutterMarker, drawSelection, gutter, highlightActiveLine, highlightActiveLineGutter, highlightSpecialChars, keymap, lineNumbers } from '@codemirror/view';
+import { Compartment, EditorState, RangeSet, StateEffect, StateField } from '@codemirror/state';
+import { Decoration, EditorView, GutterMarker, drawSelection, gutter, highlightActiveLine, highlightActiveLineGutter, highlightSpecialChars, keymap, lineNumbers } from '@codemirror/view';
 import { defaultKeymap, history, historyKeymap, indentLess, indentMore, insertNewlineKeepIndent, redo, redoDepth, undo, undoDepth } from '@codemirror/commands';
 import { SearchQuery, findNext, findPrevious, openSearchPanel, search, setSearchQuery } from '@codemirror/search';
 import { HighlightStyle, bracketMatching, indentUnit, syntaxHighlighting } from '@codemirror/language';
@@ -238,7 +220,7 @@ import { yaml } from '@codemirror/lang-yaml';
 import { html } from '@codemirror/lang-html';
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
 
-// The classes are the app's; its stylesheet colours them like the code preview.
+// The classes are the app's; the app's stylesheet colours them.
 const highlighting = HighlightStyle.define([
     { tag: [tags.propertyName, tags.tagName], class: 'ec-code-name' },
     { tag: [tags.attributeName, tags.typeName], class: 'ec-code-attribute' },
@@ -267,6 +249,38 @@ const languages = {
     html: () => html({ autoCloseTags: false }),
     markdown: () => markdown({ base: markdownLanguage, addKeymap: false }),
 };
+
+// A line longer than this leaves the whole text without colours: its highlighted markup takes seconds to lay out.
+const maxColouredLine = 10000;
+
+function hasLongLine(text) {
+    for (let start = 0; ;) {
+        const end = text.indexOf('\\n', start);
+
+        if ((end < 0 ? text.length : end) - start > maxColouredLine) return true;
+        if (end < 0) return false;
+        start = end + 1;
+    }
+}
+
+// The highlighting of language; none for plain text or a text with a long line.
+function colours(text, language) {
+    if (!language || hasLongLine(text)) return [];
+
+    return [languages[language](), syntaxHighlighting(highlighting), language === 'markdown' ? syntaxHighlighting(markdownHighlighting) : []];
+}
+
+// What the editor and the read-only view share; onFind runs on Ctrl+F or Cmd+F.
+function shared(label, onFind) {
+    return [
+        lineNumbers(),
+        highlightSpecialChars(),
+        drawSelection(),
+        EditorView.lineWrapping,
+        EditorView.contentAttributes.of({ 'aria-label': label }),
+        keymap.of([{ key: 'Mod-f', preventDefault: true, run: () => { onFind(); return true; } }]),
+    ];
+}
 
 class ChangedLine extends GutterMarker {
     elementClass = 'ec-text-editor-changed';
@@ -309,9 +323,10 @@ const changedLines = StateField.define({
 });
 
 // Opens an editor of the text in parent. language is json, xml, yaml, html, markdown or null for plain text; unit is
-// what Tab types and indents by; a readOnly editor takes no input. onChange(dirty, canUndo, canRedo) hears when any of
-// the three changes; onFind runs on Ctrl+F or Cmd+F.
-export function createEditor(parent, text, language, unit, readOnly, label, onChange, onFind) {
+// what Tab types and indents by. onChange(dirty, canUndo, canRedo) hears when any of the three changes; onFind runs on
+// Ctrl+F or Cmd+F.
+export function createEditor(parent, text, language, unit, label, onChange, onFind) {
+    const highlighted = colours(text, language);
     let initial = null;
     let reported = [false, false, false];
 
@@ -322,29 +337,22 @@ export function createEditor(parent, text, language, unit, readOnly, label, onCh
             extensions: [
                 changedLines,
                 gutter({ class: 'ec-text-editor-changes', markers: (editor) => editor.state.field(changedLines) }),
-                lineNumbers(),
+                shared(label, onFind),
                 highlightActiveLineGutter(),
-                highlightSpecialChars(),
                 history(),
-                drawSelection(),
                 highlightActiveLine(),
-                EditorView.lineWrapping,
-                readOnly ? [EditorState.readOnly.of(true), EditorState.transactionFilter.of((transaction) => (transaction.docChanged ? [] : transaction))] : [],
                 indentUnit.of(unit),
-                EditorView.contentAttributes.of({ 'aria-label': label }),
                 // An empty panel: the search runs from the app's field; the open panel only turns the highlights on.
                 search({ createPanel: () => ({ dom: document.createElement('div'), top: true }) }),
                 // Enter keeps the indentation of the line as typed; it never indents by the syntax.
                 keymap.of([
-                    { key: 'Mod-f', preventDefault: true, run: () => { onFind(); return true; } },
-                    ...(readOnly ? [] : [
-                        { key: 'Enter', run: insertNewlineKeepIndent, shift: insertNewlineKeepIndent },
-                        { key: 'Tab', run: indentOrInsert, shift: indentLess },
-                    ]),
+                    { key: 'Enter', run: insertNewlineKeepIndent, shift: insertNewlineKeepIndent },
+                    { key: 'Tab', run: indentOrInsert, shift: indentLess },
                     ...defaultKeymap,
                     ...historyKeymap,
                 ]),
-                language ? [languages[language](), bracketMatching(), syntaxHighlighting(highlighting), language === 'markdown' ? syntaxHighlighting(markdownHighlighting) : []] : [],
+                highlighted,
+                highlighted.length > 0 ? bracketMatching() : [],
                 EditorView.updateListener.of((update) => {
                     if (!update.docChanged) return;
                     const state = [!update.state.doc.eq(initial), undoDepth(update.state) > 0, redoDepth(update.state) > 0];
@@ -376,6 +384,75 @@ export function createEditor(parent, text, language, unit, readOnly, label, onCh
         },
         findNext: () => findNext(view),
         findPrevious: () => findPrevious(view),
+        destroy: () => view.destroy(),
+    };
+}
+
+// The marks of the app's search in a read-only view: every match, and the match shown.
+const setMatches = StateEffect.define();
+const setShownMatch = StateEffect.define();
+
+function marks(effect, className) {
+    const mark = Decoration.mark({ class: className });
+
+    return StateField.define({
+        create: () => Decoration.none,
+        update(value, transaction) {
+            for (const each of transaction.effects) {
+                if (each.is(effect)) value = Decoration.set(each.value.map(([from, to]) => mark.range(from, to)));
+            }
+
+            return value;
+        },
+        provide: (field) => EditorView.decorations.from(field),
+    });
+}
+
+const matchMarks = marks(setMatches, 'ec-text-editor-hit');
+const shownMatchMarks = marks(setShownMatch, 'ec-text-editor-hit-current');
+// A changed theme makes CodeMirror measure the size of its text again, as a zoom needs; two themes take turns.
+const measure = new Compartment();
+const measureThemes = [EditorView.theme({}), EditorView.theme({})];
+
+// Opens a read-only view of the text in parent, highlighted as by createEditor: the text is selected and copied but
+// never changed, and a touch opens no keyboard. onFind runs on Ctrl+F or Cmd+F.
+export function createViewer(parent, text, language, label, onFind) {
+    const state = (doc) => EditorState.create({
+        doc,
+        extensions: [
+            gutter({ class: 'ec-text-editor-changes' }),
+            shared(label, onFind),
+            EditorState.readOnly.of(true),
+            EditorState.transactionFilter.of((transaction) => (transaction.docChanged ? [] : transaction)),
+            EditorView.contentAttributes.of({ 'aria-readonly': 'true', inputmode: 'none' }),
+            keymap.of(defaultKeymap),
+            colours(doc, language),
+            matchMarks,
+            shownMatchMarks,
+            measure.of([]),
+        ],
+    });
+    const view = new EditorView({ parent, state: state(text) });
+    let measured = 0;
+    const inView = (from, to) => {
+        const box = view.scrollDOM.getBoundingClientRect();
+        const start = view.coordsAtPos(from, 1);
+        const end = view.coordsAtPos(to, -1);
+
+        return start !== null && end !== null && start.top >= box.top && end.bottom <= box.bottom;
+    };
+
+    return {
+        text: () => view.state.doc.toString(),
+        setText: (doc) => view.setState(state(doc)),
+        // The start of the line at the top of the scrolled view; the drawn ranges reach above it.
+        firstVisible: () => view.lineBlockAtHeight(Math.max(view.scrollDOM.getBoundingClientRect().top - view.documentTop, 0)).from,
+        setMatches: (ranges) => view.dispatch({ effects: [setMatches.of(ranges), setShownMatch.of([])] }),
+        // The match shown scrolls to the middle of the view when it is out of view.
+        showMatch: ([from, to]) => view.dispatch({
+            effects: [setShownMatch.of([[from, to]]), ...(inView(from, to) ? [] : [EditorView.scrollIntoView(from, { y: 'center' })])],
+        }),
+        remeasure: (anchor) => view.dispatch({ effects: [measure.reconfigure(measureThemes[measured++ % 2]), EditorView.scrollIntoView(anchor, { y: 'start', yMargin: 0 })] }),
         destroy: () => view.destroy(),
     };
 }

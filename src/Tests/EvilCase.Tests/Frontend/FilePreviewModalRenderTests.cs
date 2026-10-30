@@ -231,21 +231,24 @@ public class FilePreviewModalRenderTests
     }
 
     [Test]
-    public void ATextShowsAsNumberedPlainLines()
+    public void ATextShowsInAReadOnlyViewWithTheZoomAndSearch()
     {
-        using var ctx = NewContext(out var blobs);
+        using var ctx = NewContext(out var blobs, out var previews, out var editors);
 
         var file = File("Poznámky.txt");
         var component = Render(ctx, [file], file.FileId, content: "první\r\n\r\ntřetí\n");
 
-        var lines = component.FindAll(".ec-preview-line");
-
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(lines.Select(static line => line.QuerySelector(".ec-preview-line-number")!.TextContent), Is.EqualTo(["1", "2", "3"]));
-            Assert.That(lines.Select(static line => line.QuerySelector(".ec-preview-line-text")!.TextContent), Is.EqualTo(["první", "", "třetí"]));
+            Assert.That(editors.Opened, Is.EqualTo([("první\r\n\r\ntřetí\n", (CodeLanguage?)null, "", "Obsah souboru Poznámky.txt")]));
+            Assert.That(editors.OpenedReadOnly, Is.EqualTo([true]));
+            Assert.That(editors.Formatting, Is.EqualTo([false]), "a text is never formatted");
+            Assert.That(
+                component.FindAll(".ec-preview-toolbar button").Select(static button => button.GetAttribute("aria-label")),
+                Is.EqualTo(["Zmenšit", "Zvětšit", "100 %", "Hledat v dokumentu", "Předchozí výskyt", "Další výskyt"]));
             Assert.That(component.FindAll(".ec-preview-note"), Is.Empty);
             Assert.That(blobs.Created, Is.Empty, "a text is decoded and needs no blob");
+            Assert.That(previews.OpenedTextViews, Is.Zero, "the view zooms and searches on its own");
         }
     }
 
@@ -255,28 +258,28 @@ public class FilePreviewModalRenderTests
     [TestCase("stranka.html", CodeLanguage.Html)]
     public void ACodeFileOpensFormattedWithTheFormatSwitchPressed(string fileName, CodeLanguage language)
     {
-        using var ctx = NewContext(out _, out var previews);
+        using var ctx = NewContext(out _, out _, out var editors);
 
         var file = File(fileName);
         var component = Render(ctx, [file], file.FileId, content: "﻿<script>alert(1)</script>");
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(previews.RenderedCode, Is.EqualTo([("<script>alert(1)</script>", language, false)]));
+            Assert.That(editors.Opened.Select(static opened => (opened.Text, opened.Language)), Is.EqualTo([("<script>alert(1)</script>", (CodeLanguage?)language)]));
+            Assert.That(editors.Formatting, Is.EqualTo([true]));
             Assert.That(
                 component.FindAll(".ec-preview-toolbar button").Select(static button => button.GetAttribute("aria-label")),
                 Is.EqualTo(["Zmenšit", "Zvětšit", "100 %", "Formátovat", "Hledat v dokumentu", "Předchozí výskyt", "Další výskyt"]));
             Assert.That(ToolbarButton(component, "Formátovat").GetAttribute("aria-pressed"), Is.EqualTo("true"));
             Assert.That(ToolbarButton(component, "Formátovat").HasAttribute("disabled"), Is.False);
             Assert.That(component.FindAll(".ec-preview-note"), Is.Empty);
-            Assert.That(component.Find(".ec-preview-stage [role='document']").ChildElementCount, Is.Zero, "the source is never markup of the page");
         }
     }
 
     [Test]
     public async Task TheFormatSwitchTurnsBetweenTheOriginalAndTheFormattedText()
     {
-        await using var ctx = NewContext(out _, out var previews);
+        await using var ctx = NewContext(out _, out _, out var editors);
 
         var file = File("data.json");
         var component = Render(ctx, [file], file.FileId, content: "{\"a\":1}");
@@ -289,8 +292,8 @@ public class FilePreviewModalRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(previews.ShownCode, Is.EqualTo([false, true]));
-            Assert.That(previews.RenderedCode, Has.Count.EqualTo(1), "the switch shows the text again without reading the file");
+            Assert.That(editors.ShownFormatted, Is.EqualTo([false, true]));
+            Assert.That(editors.Opened, Has.Count.EqualTo(1), "the switch shows the other text in the same view without reading the file");
             Assert.That(ToolbarButton(component, "Formátovat").GetAttribute("aria-pressed"), Is.EqualTo("true"));
         }
     }
@@ -302,9 +305,9 @@ public class FilePreviewModalRenderTests
     [TestCase("stranka.html", "HTML")]
     public void AnInvalidCodeFileShowsTheOriginalWithTheSwitchDisabledAndSaysWhy(string fileName, string language)
     {
-        using var ctx = NewContext(out _, out var previews);
+        using var ctx = NewContext(out _, out _, out var editors);
 
-        previews.Code = new CodeView(Formatted: false, Invalid: true, LinesCut: false);
+        editors.Code = new CodeView(Formatted: false, Invalid: true);
 
         var file = File(fileName);
         var component = Render(ctx, [file], file.FileId);
@@ -320,9 +323,9 @@ public class FilePreviewModalRenderTests
     [Test]
     public void ACodeFileThatFailsToFormatForAnotherReasonShowsTheOriginalWithTheSwitchDisabled()
     {
-        using var ctx = NewContext(out _, out var previews);
+        using var ctx = NewContext(out _, out _, out var editors);
 
-        previews.Code = new CodeView(Formatted: false, Invalid: false, LinesCut: false);
+        editors.Code = new CodeView(Formatted: false, Invalid: false);
 
         var file = File("data.json");
         var component = Render(ctx, [file], file.FileId);
@@ -337,41 +340,24 @@ public class FilePreviewModalRenderTests
     [Test]
     public void ALongCodeFileIsCutShownAsTheOriginalAndSaysSo()
     {
-        using var ctx = NewContext(out _, out var previews);
+        using var ctx = NewContext(out _, out _, out var editors);
 
         var file = File("data.json");
         var component = Render(ctx, [file], file.FileId, content: new string('a', (1024 * 1024) + 10));
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(previews.RenderedCode.Single().Text, Has.Length.EqualTo(1024 * 1024));
-            Assert.That(previews.RenderedCode.Single().Truncated, Is.True);
+            Assert.That(editors.Opened.Single().Text, Has.Length.EqualTo(1024 * 1024));
+            Assert.That(editors.Formatting, Is.EqualTo([false]), "a file read only in part is never formatted");
             Assert.That(component.Find(".ec-preview-note").TextContent, Is.EqualTo("Soubor je delší, zobrazuje se jen jeho začátek a nejde naformátovat."));
             Assert.That(ToolbarButton(component, "Formátovat").HasAttribute("disabled"), Is.True);
         }
     }
 
     [Test]
-    public void ACodeFileWithManyLinesSaysItIsCut()
-    {
-        using var ctx = NewContext(out _, out var previews);
-
-        previews.Code = new CodeView(Formatted: true, Invalid: false, LinesCut: true);
-
-        var file = File("data.yaml");
-        var component = Render(ctx, [file], file.FileId);
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(component.Find(".ec-preview-note").TextContent, Is.EqualTo("Soubor je delší, zobrazuje se jen jeho začátek."));
-            Assert.That(ToolbarButton(component, "Formátovat").HasAttribute("disabled"), Is.False, "a file cut at the line cap still formats");
-        }
-    }
-
-    [Test]
     public void ALongTextIsCutAndSaysSo()
     {
-        using var ctx = NewContext(out _);
+        using var ctx = NewContext(out _, out _, out var editors);
 
         var file = File("Velky.log");
         var component = Render(ctx, [file], file.FileId, content: new string('a', (1024 * 1024) + 10));
@@ -379,22 +365,24 @@ public class FilePreviewModalRenderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(component.Find(".ec-preview-note").TextContent, Does.Contain("jen jeho začátek"));
-            Assert.That(component.Find(".ec-preview-line-text").TextContent, Has.Length.EqualTo(1024 * 1024));
+            Assert.That(editors.Opened.Single().Text, Has.Length.EqualTo(1024 * 1024));
         }
     }
 
-    [Test]
-    public void ATextWithManyLinesIsCutAtTheLineCap()
+    [TestCase("Radky.log")]
+    [TestCase("data.yaml")]
+    public void ATextOrCodeOfManyLinesShowsWhole(string fileName)
     {
-        using var ctx = NewContext(out _);
+        using var ctx = NewContext(out _, out _, out var editors);
 
-        var file = File("Radky.log");
-        var component = Render(ctx, [file], file.FileId, content: string.Join('\n', Enumerable.Repeat("x", 6000)));
+        var content = string.Join('\n', Enumerable.Repeat("x", 6000));
+        var file = File(fileName);
+        var component = Render(ctx, [file], file.FileId, content: content);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.FindAll(".ec-preview-line"), Has.Count.EqualTo(5000));
-            Assert.That(component.FindAll(".ec-preview-note"), Has.Count.EqualTo(1));
+            Assert.That(editors.Opened.Single().Text, Is.EqualTo(content));
+            Assert.That(component.FindAll(".ec-preview-note"), Is.Empty, "only the 1 MB limit cuts a file");
         }
     }
 
@@ -518,7 +506,6 @@ public class FilePreviewModalRenderTests
         }
     }
 
-    [TestCase("Poznámky.txt")]
     [TestCase("Zpráva.eml")]
     [TestCase("Zpráva.msg")]
     public void AReflowingPreviewHasTheZoomAndSearchOfThePdfWithoutPagesOrFits(string fileName)
@@ -544,7 +531,7 @@ public class FilePreviewModalRenderTests
     [Test]
     public async Task TheTextToolbarZoomsAndSearchesTheText()
     {
-        await using var ctx = NewContext(out _, out var previews);
+        await using var ctx = NewContext(out _, out var previews, out var editors);
 
         var file = File("Poznámky.txt");
         var component = Render(ctx, [file], file.FileId, content: "Lhůta běží.");
@@ -552,26 +539,26 @@ public class FilePreviewModalRenderTests
         await ToolbarButton(component, "Zvětšit").ClickAsync(new MouseEventArgs());
         await ToolbarButton(component, "Zmenšit").ClickAsync(new MouseEventArgs());
         await ToolbarButton(component, "100 %").ClickAsync(new MouseEventArgs());
-        await previews.TextView!.Value.ZoomChanged(125, "");
+        await editors.View!.Value.ZoomChanged(125, "");
         await component.Find(".ec-preview-toolbar-search-input").InputAsync(new() { Value = "lhuta" });
-        await previews.TextView.Value.MatchesChanged(1, 2, pending: false);
+        await editors.View.Value.MatchesChanged(1, 2, pending: false);
         await component.Find(".ec-preview-toolbar-search-input").KeyDownAsync(new KeyboardEventArgs { Key = "Enter" });
         await component.Find(".ec-preview-toolbar-search-input").KeyDownAsync(new KeyboardEventArgs { Key = "Enter", ShiftKey = true });
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(previews.ViewZooms, Is.EqualTo([PreviewZoom.In, PreviewZoom.Out, PreviewZoom.Actual]));
+            Assert.That(editors.Zooms, Is.EqualTo([PreviewZoom.In, PreviewZoom.Out, PreviewZoom.Actual]));
             Assert.That(component.Find(".ec-preview-toolbar-zoom-value").TextContent, Is.EqualTo("125 %"));
             Assert.That(component.Find(".ec-preview-toolbar-matches").TextContent, Is.EqualTo("1 z 2"));
-            Assert.That(previews.ViewFinds, Is.EqualTo([("lhuta", PreviewFind.New), ("lhuta", PreviewFind.Next), ("lhuta", PreviewFind.Previous)]));
-            Assert.That(previews.Finds, Is.Empty, "a text is searched apart from a PDF");
+            Assert.That(editors.Finds, Is.EqualTo([("lhuta", PreviewFind.New), ("lhuta", PreviewFind.Next), ("lhuta", PreviewFind.Previous)]));
+            Assert.That(previews.ViewFinds, Is.Empty, "a text is searched in its own view");
         }
 
         await component.Find(".ec-preview-toolbar-search-input").KeyDownAsync(new KeyboardEventArgs { Key = "Escape" });
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(previews.ViewFinds[^1], Is.EqualTo(("", PreviewFind.New)), "an empty query clears the highlights");
+            Assert.That(editors.Finds[^1], Is.EqualTo(("", PreviewFind.New)), "an empty query clears the highlights");
             Assert.That(component.Find(".ec-preview-toolbar-search").HasAttribute("data-ec-keeps-escape"), Is.True, "Escape clears the search and leaves the dialog open");
             Assert.That(component.Find(".ec-preview-toolbar-matches").TextContent, Is.Empty);
         }
@@ -618,9 +605,7 @@ public class FilePreviewModalRenderTests
         Assert.That(component.Find(".ec-preview-toolbar-page-input").GetAttribute("value"), Is.EqualTo("2"));
     }
 
-    [TestCase("a.txt")]
     [TestCase("a.docx")]
-    [TestCase("a.json")]
     public void SteppingToAnotherFileReleasesTheZoomAndSearch(string fileName)
     {
         using var ctx = NewContext(out _, out var previews);
@@ -636,20 +621,21 @@ public class FilePreviewModalRenderTests
         Assert.That(previews.DisposedViews, Is.EqualTo(1));
     }
 
-    [Test]
-    public void SteppingFromACodeFileReleasesItsCode()
+    [TestCase("a.txt")]
+    [TestCase("a.json")]
+    public void SteppingFromATextOrCodeFileClosesItsView(string fileName)
     {
-        using var ctx = NewContext(out _, out var previews);
+        using var ctx = NewContext(out _, out _, out var editors);
 
-        var first = File("a.xml");
+        var first = File(fileName);
         var second = File("b.png");
         var component = Render(ctx, [first, second], first.FileId);
 
-        component.WaitForAssertion(() => Assert.That(previews.RenderedCode, Is.Not.Empty));
+        component.WaitForAssertion(() => Assert.That(editors.Opened, Has.Count.EqualTo(1)));
 
         component.Render(parameters => parameters.Add(static modal => modal.FileId, second.FileId));
 
-        Assert.That(previews.DisposedCode, Is.EqualTo(1), "a formatting still running for the left file stops");
+        Assert.That(editors.Closed, Is.EqualTo(1), "the view closes and a formatting still running for the left file stops");
     }
 
     [TestCase("Foto.heic")]
@@ -674,7 +660,6 @@ public class FilePreviewModalRenderTests
     [TestCase("Zpráva.eml")]
     [TestCase("Zpráva.msg")]
     [TestCase("Foto.heif")]
-    [TestCase("data.json")]
     public void AFileTheLibraryCannotParseShowsTheUnsupportedStateWithTheDownload(string fileName)
     {
         using var ctx = NewContext(out _, out var previews);
@@ -696,10 +681,33 @@ public class FilePreviewModalRenderTests
         }
     }
 
+    [TestCase("Poznámky.txt")]
+    [TestCase("data.json")]
+    public void AViewThatDoesNotStartOffersTheDownload(string fileName)
+    {
+        using var ctx = NewContext(out _, out _, out var editors);
+
+        editors.ViewFails = true;
+
+        var downloaded = new List<string>();
+        var file = File(fileName);
+        var component = Render(ctx, [file], file.FileId, onDownload: item => downloaded.Add(item.FileName));
+
+        component.WaitForAssertion(() => Assert.That(component.Find(".ec-preview-message-title").TextContent, Is.EqualTo("Náhled tohoto typu souboru není k dispozici")));
+
+        component.Find(".ec-preview-message .ec-button-primary").Click();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(downloaded, Is.EqualTo([fileName]));
+            Assert.That(component.FindAll(".ec-alert"), Is.Empty, "a file nobody can parse is no loading failure to retry");
+        }
+    }
+
     [Test]
     public void SteppingFromAFailedFileToAnotherShowsTheOtherAsUsual()
     {
-        using var ctx = NewContext(out _, out var previews);
+        using var ctx = NewContext(out _, out var previews, out var editors);
 
         previews.Fails = true;
 
@@ -711,7 +719,20 @@ public class FilePreviewModalRenderTests
 
         component.Render(parameters => parameters.Add(static modal => modal.FileId, text.FileId));
 
-        Assert.That(component.Find(".ec-preview-line-text").TextContent, Is.EqualTo("řádek"));
+        Assert.That(editors.Opened.Single().Text, Is.EqualTo("řádek"));
+    }
+
+    [Test]
+    public async Task CtrlFInTheTextOpensTheToolbarSearch()
+    {
+        await using var ctx = NewContext(out _, out _, out var editors);
+
+        var file = File("Poznámky.txt");
+        var component = Render(ctx, [file], file.FileId);
+
+        await editors.View!.Value.FocusSearch();
+
+        Assert.That(component.Find(".ec-preview-toolbar-search").ClassList, Does.Contain("ec-preview-toolbar-search-open"), "on a phone the search field opens too");
     }
 
     [TestCase("Smlouva.doc")]
@@ -1243,6 +1264,11 @@ public class FilePreviewModalRenderTests
 
     private static BunitContext NewContext(out StubBlobUrls blobs, out StubFilePreviews previews)
     {
+        return NewContext(out blobs, out previews, out _);
+    }
+
+    private static BunitContext NewContext(out StubBlobUrls blobs, out StubFilePreviews previews, out StubTextEditors editors)
+    {
         var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         ctx.Services.AddSingleton<IBrowserHistory>(new StubBrowserHistory());
@@ -1251,6 +1277,8 @@ public class FilePreviewModalRenderTests
         previews = new StubFilePreviews();
         ctx.Services.AddSingleton<IBlobUrls>(blobs);
         ctx.Services.AddSingleton<IFilePreviews>(previews);
+        editors = new StubTextEditors();
+        ctx.Services.AddSingleton<ITextEditors>(editors);
         var downloader = new StubFileDownloader();
         ctx.Services.AddSingleton(downloader);
         ctx.Services.AddSingleton<IFileDownloader>(downloader);

@@ -95,9 +95,10 @@ public class FilePreviewModalSignedRenderTests
         previews.DetectedExtension = "xml";
         var file = File("Potvrzení.p7s");
         var component = Render(ctx, [file], file.FileId, static _ => SignedFile.Sign(XmlBytes, detached: false));
+        var editors = ctx.Services.GetRequiredService<StubTextEditors>();
 
         await component.WaitForAssertionAsync(() =>
-            Assert.That(previews.RenderedCode, Is.EqualTo([("<?xml version=\"1.0\"?><a/>", CodeLanguage.Xml, false)])));
+            Assert.That(editors.Opened.Select(static opened => (opened.Text, opened.Language)), Is.EqualTo([("<?xml version=\"1.0\"?><a/>", (CodeLanguage?)CodeLanguage.Xml)])));
         await component.Find("button[aria-label='Stáhnout dokument']").ClickAsync(new());
 
         using (Assert.EnterMultipleScope())
@@ -168,13 +169,16 @@ public class FilePreviewModalSignedRenderTests
     [Test]
     public async Task CodeInsideASignatureIsHighlightedInTheLanguageOfItsDocument()
     {
-        await using var ctx = NewContext(out _, out var previews, out _, out _);
+        await using var ctx = NewContext(out _, out _, out _, out _);
 
         var file = File("Faktura.isdoc.p7m");
         var component = Render(ctx, [file], file.FileId, static _ => SignedFile.Sign("<Invoice/>"u8.ToArray(), detached: false));
+        var editors = ctx.Services.GetRequiredService<StubTextEditors>();
 
         await component.WaitForAssertionAsync(() =>
-            Assert.That(previews.RenderedCode, Is.EqualTo([("<Invoice/>", CodeLanguage.Xml, false)])));
+            Assert.That(editors.Opened.Select(static opened => (opened.Text, opened.Language)), Is.EqualTo([("<Invoice/>", (CodeLanguage?)CodeLanguage.Xml)])));
+
+        Assert.That(editors.Formatting, Is.EqualTo([true]));
     }
 
     [Test]
@@ -338,6 +342,8 @@ public class FilePreviewModalSignedRenderTests
         signers.VerifyFileSigners(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>()).Returns(new TaskCompletionSource<FileSignersResponse>().Task);
         ctx.Services.AddSingleton<IBlobUrls>(blobs);
         ctx.Services.AddSingleton<IFilePreviews>(previews);
+        ctx.Services.AddSingleton(new StubTextEditors());
+        ctx.Services.AddSingleton<ITextEditors>(static services => services.GetRequiredService<StubTextEditors>());
         ctx.Services.AddSingleton<IFileDownloader>(downloader);
         ctx.Services.AddSingleton(new StubAuthSession());
         ctx.Services.AddSingleton<IAuthSession>(static services => services.GetRequiredService<StubAuthSession>());
@@ -376,8 +382,9 @@ public class FilePreviewModalSignedRenderTests
 
         var file = File("Poznámka.txt.p7m");
         var component = Render(ctx, [file], file.FileId, static _ => SignedFile.Sign("a"u8.ToArray(), detached: false));
+        var editors = ctx.Services.GetRequiredService<StubTextEditors>();
 
-        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-preview-line"), Has.Count.EqualTo(1)));
+        await component.WaitForAssertionAsync(() => Assert.That(editors.OpenedReadOnly, Is.EqualTo([true])));
 
         Assert.That(component.FindAll("[aria-label='Upravit']"), Is.Empty, "the content of a signed document is not edited");
     }

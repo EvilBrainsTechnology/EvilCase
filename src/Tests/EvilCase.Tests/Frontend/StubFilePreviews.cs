@@ -1,6 +1,5 @@
 using EvilBrains.EvilCase.App.Components;
 using EvilBrains.EvilCase.App.Files;
-using EvilBrains.EvilCase.App.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 
@@ -57,17 +56,6 @@ internal sealed class StubFilePreviews : IFilePreviews
 
     public List<(string Query, PreviewFind Find)> ViewFinds { get; } = [];
 
-    public List<(string Text, CodeLanguage Language, bool Truncated)> RenderedCode { get; } = [];
-
-    /// <summary>
-    /// What the library makes of the code it is given; a cut text never formats.
-    /// </summary>
-    public CodeView Code { get; set; } = new(Formatted: true, Invalid: false, LinesCut: false);
-
-    public List<bool> ShownCode { get; } = [];
-
-    public int DisposedCode { get; private set; }
-
     public List<int> RequestedRows { get; } = [];
 
     public IReadOnlyList<SheetPreview> Workbook { get; set; } = [];
@@ -116,28 +104,6 @@ internal sealed class StubFilePreviews : IFilePreviews
         _ = view.Value;
         this.OpenedTextViews++;
         this.TextView = view;
-    }
-
-    public Task<CodeView> RenderCode(ElementReference content, string text, CodeLanguage language, bool truncated, CancellationToken token)
-    {
-        this.ThrowWhenFailing();
-        this.RenderedCode.Add((text, language, truncated));
-
-        return Task.FromResult(truncated ? this.Code with { Formatted = false, Invalid = false } : this.Code);
-    }
-
-    public Task<bool> ShowCode(ElementReference content, bool formatted)
-    {
-        this.ShownCode.Add(formatted);
-
-        return Task.FromResult(this.Code.LinesCut);
-    }
-
-    public Task DisposeCode(ElementReference content)
-    {
-        this.DisposedCode++;
-
-        return Task.CompletedTask;
     }
 
     public Task ZoomView(ElementReference element, PreviewZoom zoom)

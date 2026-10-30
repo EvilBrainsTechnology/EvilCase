@@ -151,7 +151,13 @@
                 <TextEditor @ref="this.editor" Text="@edited.Text" FileName="@file.FileName" Locked="this.saving"
                             Language="@(preview == FilePreviewKind.Code ? FileTypeDisplay.Language(file.FileName) : (CodeLanguage?)null)"
                             OnDirtyChanged="this.EditorDirtyChanged" OnSave="this.Save" OnUnavailable="this.EditorUnavailable">
-                    <Notes>@this.SignatureNote(file)</Notes>
+                    <Notes>
+                        @this.SignatureNote(file)
+                        @if (this.editsFormattedCode)
+                        {
+                            <p class="ec-preview-note">Upravuje se originál souboru, ne jeho naformátovaná podoba.</p>
+                        }
+                    </Notes>
                 </TextEditor>
             }
             else
@@ -236,32 +242,31 @@
                 {
                     <p class="ec-preview-message">Načítám…</p>
                 }
-                else if (preview == FilePreviewKind.Text)
+                else if (preview is FilePreviewKind.Text or FilePreviewKind.Code)
                 {
-                    <ReflowPreview @key="this.shownKey">
-                        @if (this.truncated)
-                        {
-                            <p class="ec-preview-note">Soubor je delší, zobrazuje se jen jeho začátek.</p>
-                        }
-                        @if (this.NotUtf8)
-                        {
-                            <p class="ec-preview-note">@NotUtf8Note</p>
-                        }
-                        <div class="ec-preview-text" role="document" tabindex="0" aria-label="Obsah souboru @stagedName">
-                            @for (var index = 0; index < this.lines.Count; index++)
+                    var language = preview == FilePreviewKind.Code ? FileTypeDisplay.Language(stagedName) : (CodeLanguage?)null;
+
+                    <TextEditor @key="this.shownKey" @ref="this.viewer" Text="@this.text" Language="language" FileName="@stagedName" ReadOnly Formats="language is not null"
+                                Partial="this.truncated" OnFormatted="view => this.codeView = view" OnUnavailable="this.Unreadable">
+                        <Notes>
+                            @if (this.NotUtf8)
                             {
-                                <div class="ec-preview-line">
-                                    <span class="ec-preview-line-number" aria-hidden="true">@(index + 1)</span>
-                                    <span class="ec-preview-line-text">@this.lines[index]</span>
-                                </div>
+                                <p class="ec-preview-note">@NotUtf8Note</p>
                             }
-                        </div>
-                    </ReflowPreview>
-                }
-                else if (preview == FilePreviewKind.Code)
-                {
-                    <CodePreview @key="this.shownKey" Text="@this.code" Truncated="this.truncated" FileName="@stagedName" Note="@(this.NotUtf8 ? NotUtf8Note : null)"
-                                 OnUnreadable="this.Unreadable" />
+                            @if (this.truncated)
+                            {
+                                <p class="ec-preview-note">@(language is null ? "Soubor je delší, zobrazuje se jen jeho začátek." : "Soubor je delší, zobrazuje se jen jeho začátek a nejde naformátovat.")</p>
+                            }
+                            else if (language is { } shownLanguage && this.codeView is { Formatted: false, Invalid: true })
+                            {
+                                <p class="ec-preview-note">Soubor není platný @LanguageName(shownLanguage), proto se ukazuje jen originál.</p>
+                            }
+                            else if (this.codeView is { Formatted: false })
+                            {
+                                <p class="ec-preview-note">Soubor se nepodařilo naformátovat, ukazuje se originál.</p>
+                            }
+                        </Notes>
+                    </TextEditor>
                 }
                 else if (preview == FilePreviewKind.Markdown)
                 {
@@ -441,8 +446,6 @@
 @code {
     private const int MaxTextBytes = 1024 * 1024;
 
-    private const int MaxTextLines = 5000;
-
     private const int MaxSheetRows = 1000;
 
     private const string NotUtf8Note = "Soubor není v kódování UTF-8, proto ho nejde upravit.";
@@ -557,9 +560,11 @@
 
     private int shownKey;
 
-    private IReadOnlyList<string> lines = [];
+    // The text or code shown, its start when it was cut.
+    private string text = "";
 
-    private string code = "";
+    // How the code shown formatted; null for a text and until the code shows.
+    private CodeView? codeView;
 
     private bool truncated;
 
@@ -588,6 +593,11 @@
     private string? saveFailure;
 
     private TextEditor? editor;
+
+    // The read-only view of a text or code, and whether it showed the code formatted when the edit began.
+    private TextEditor? viewer;
+
+    private bool editsFormattedCode;
 
     // What a confirmed discard of unsaved changes goes on to do; set while the question shows.
     private Func<Task>? afterDiscard;
@@ -708,8 +718,8 @@
         this.loading = true;
         this.failed = false;
         this.unsupported = false;
-        this.lines = [];
-        this.code = "";
+        this.text = "";
+        this.codeView = null;
         this.truncated = false;
         this.markdown = "";
         this.workbook = [];
@@ -818,25 +828,13 @@
         switch (preview)
         {
             case FilePreviewKind.Text:
-            {
-                var (text, cut, editable) = await ReadText(content, token);
-
-                if (!token.IsCancellationRequested)
-                {
-                    (this.lines, this.truncated) = SplitLines(text, cut);
-                    (this.editable, this.notUtf8) = (editable, !cut && editable is null);
-                }
-
-                break;
-            }
-
             case FilePreviewKind.Code:
             {
                 var (text, cut, editable) = await ReadText(content, token);
 
                 if (!token.IsCancellationRequested)
                 {
-                    (this.code, this.truncated) = (text, cut);
+                    (this.text, this.truncated) = (text, cut);
                     (this.editable, this.notUtf8) = (editable, !cut && editable is null);
                 }
 
@@ -1172,6 +1170,7 @@
         this.versionNotice = null;
         this.saveFailure = null;
         this.dirty = false;
+        this.editsFormattedCode = this.viewer?.ShowsFormatted == true;
         this.editing = this.editable;
 
         try
@@ -1383,6 +1382,19 @@
         return moment is { } value ? MomentDisplay.Text(value.UtcDateTime) : "—";
     }
 
+    private static string LanguageName(CodeLanguage language)
+    {
+        return language switch
+        {
+            CodeLanguage.Json => "JSON",
+            CodeLanguage.Xml => "XML",
+            CodeLanguage.Yaml => "YAML",
+            CodeLanguage.Html => "HTML",
+            CodeLanguage.Markdown => "Markdown",
+            _ => throw new UnreachableException(),
+        };
+    }
+
     // A signed document's content is read by the library of its own type.
     private static bool UsesLibrary(FilePreviewKind preview)
     {
@@ -1476,21 +1488,5 @@
         var editable = truncated ? null : EditableText.ParseOrDefault(shown);
 
         return (editable?.Text ?? Encoding.UTF8.GetString(shown).TrimStart('\uFEFF'), truncated, editable);
-    }
-
-    private static (IReadOnlyList<string> Lines, bool Truncated) SplitLines(string text, bool truncated)
-    {
-        var all = text.Split('\n').Select(static line => line.TrimEnd('\r')).ToList();
-
-        if (all.Count > 1 && all[^1].Length == 0)
-            all.RemoveAt(all.Count - 1);
-
-        if (all.Count > MaxTextLines)
-        {
-            all = all.Take(MaxTextLines).ToList();
-            truncated = true;
-        }
-
-        return (all, truncated);
     }
 }

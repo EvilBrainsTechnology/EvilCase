@@ -1619,82 +1619,12 @@ html {
     color: var(--ec-text-soft);
 }
 
-.ec-preview-text {
-    width: min(var(--ec-preview-text-width), 100%);
-    box-sizing: border-box;
-    padding: var(--ec-space-6) 0;
-    border-radius: var(--ec-radius-md);
-    background: var(--ec-surface);
-    box-shadow: var(--ec-shadow-raised);
-    font-family: var(--ec-font-mono);
-    font-size: var(--ec-text-sm);
-    line-height: var(--ec-preview-text-leading);
-    zoom: var(--ec-preview-zoom, 1);
-}
-
-.ec-preview-line {
-    display: grid;
-    grid-template-columns: var(--ec-preview-gutter) minmax(0, 1fr);
-    column-gap: var(--ec-space-5);
-}
-
-.ec-preview-line-number {
-    color: var(--ec-text-faint);
-    text-align: right;
-    user-select: none;
-}
-
-.ec-preview-line-text {
-    min-height: calc(var(--ec-text-sm) * var(--ec-preview-text-leading));
-    padding-right: var(--ec-space-7);
-    overflow-wrap: anywhere;
-    white-space: pre-wrap;
-}
-
-/* Code highlighting: the classes highlight.js gives the tokens of JSON, XML, YAML and HTML. Font ligatures would change
-   how the source reads. */
-.ec-preview-code {
-    font-variant-ligatures: none;
-}
-
-/* Lines out of view skip layout; thousands of highlighted lines otherwise freeze the page on every switch. */
-.ec-preview-code .ec-preview-line {
-    content-visibility: auto;
-    contain-intrinsic-size: auto calc(var(--ec-text-sm) * var(--ec-preview-text-leading));
-}
-
-.ec-preview-code .hljs-name,
-.ec-preview-code .hljs-attr {
-    color: var(--ec-code-name);
-}
-
-.ec-preview-code .hljs-tag .hljs-attr,
-.ec-preview-code .hljs-attribute,
-.ec-preview-code .hljs-type {
-    color: var(--ec-code-attribute);
-}
-
-.ec-preview-code .hljs-string {
-    color: var(--ec-code-string);
-}
-
-.ec-preview-code .hljs-number,
-.ec-preview-code .hljs-literal,
-.ec-preview-code .hljs-keyword,
-.ec-preview-code .hljs-symbol {
-    color: var(--ec-code-literal);
-}
-
-.ec-preview-code .hljs-tag,
-.ec-preview-code .hljs-punctuation,
-.ec-preview-code .hljs-meta,
-.ec-preview-code .hljs-bullet {
-    color: var(--ec-code-punctuation);
-}
-
-.ec-preview-code .hljs-comment {
-    color: var(--ec-code-comment);
-    font-style: italic;
+/* A note between a view's toolbar and its text runs across the view. */
+.ec-preview-view > .ec-preview-note {
+    flex: 0 0 auto;
+    padding: var(--ec-space-3) var(--ec-space-7);
+    border-bottom: 1px solid var(--ec-border);
+    border-radius: 0;
 }
 
 /* The text editor (CodeMirror): its own classes styled only inside the editor; the token classes are the app's. */
@@ -1751,7 +1681,7 @@ html {
 
 .ec-text-editor {
     display: flex;
-    flex: 0 1 var(--ec-preview-text-width);
+    flex: 0 1 calc(var(--ec-preview-text-width) * var(--ec-preview-zoom, 1));
     flex-direction: column;
     min-width: 0;
 }
@@ -1771,7 +1701,7 @@ html {
 
 .ec-text-editor .cm-editor .cm-scroller {
     font-family: var(--ec-font-mono);
-    font-size: var(--ec-text-sm);
+    font-size: calc(var(--ec-text-sm) * var(--ec-preview-zoom, 1));
     line-height: var(--ec-preview-text-leading);
     font-variant-ligatures: none;
 }
@@ -1821,6 +1751,16 @@ html {
 }
 
 .ec-text-editor .cm-editor .cm-searchMatch-selected {
+    background: var(--ec-preview-hit-current);
+}
+
+/* The matches of the read-only view's search; the match shown wins over a match around or inside it. */
+.ec-text-editor .cm-editor .ec-text-editor-hit {
+    background: var(--ec-preview-hit);
+}
+
+.ec-text-editor .cm-editor .ec-text-editor-hit-current,
+.ec-text-editor .cm-editor .ec-text-editor-hit-current .ec-text-editor-hit {
     background: var(--ec-preview-hit-current);
 }
 
@@ -4638,6 +4578,7 @@ html {
         padding: var(--ec-space-4);
     }
 
+    .ec-preview-view > .ec-preview-note,
     .ec-preview-sheet-view > .ec-preview-note,
     .ec-preview-sheet-tabs {
         padding-inline: var(--ec-space-4);

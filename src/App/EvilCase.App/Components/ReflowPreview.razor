@@ -3,10 +3,9 @@
 @inject IFilePreviews Previews
 @inject ILogger<ReflowPreview> Logger
 
-@* A text, code, e-mail or data message: the zoom changes the size of the text, which reflows to the width of the stage. *@
+@* An e-mail or data message: the zoom changes the size of the text, which reflows to the width of the stage. *@
 <div class="ec-preview-view">
-    <PreviewToolbar @ref="this.toolbar" Ready="this.ready" Formats="this.Formats" Formatted="this.Formatted" CanFormat="this.CanFormat"
-                    OnFormat="this.OnFormat" OnZoom="this.Zoom" OnSearch="this.Search" />
+    <PreviewToolbar @ref="this.toolbar" Ready="this.ready" OnZoom="this.Zoom" OnSearch="this.Search" />
     <div @ref="this.stage" class="ec-preview-stage ec-preview-stage-text">
         @this.ChildContent
     </div>
@@ -24,21 +23,6 @@
     /// </summary>
     [Parameter, EditorRequired]
     public required RenderFragment ChildContent { get; set; }
-
-    /// <summary>
-    /// Whether the toolbar offers to switch between the formatted and the original text.
-    /// </summary>
-    [Parameter]
-    public bool Formats { get; set; }
-
-    [Parameter]
-    public bool Formatted { get; set; }
-
-    [Parameter]
-    public bool CanFormat { get; set; }
-
-    [Parameter]
-    public EventCallback OnFormat { get; set; }
 
     public async ValueTask DisposeAsync()
     {

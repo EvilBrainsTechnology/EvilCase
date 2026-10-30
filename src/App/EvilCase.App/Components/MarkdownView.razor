@@ -420,7 +420,8 @@ else
         await this.OnDirtyChanged.InvokeAsync(changed);
     }
 
-    // The editor and the source view have no zoom: the text goes back to its true size and the search ends.
+    // The editor and the source view zoom and search on their own: the formatted text goes back to its true size and its
+    // search ends.
     private async Task ReleaseView()
     {
         if (this.wiredToolbar is null)

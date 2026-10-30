@@ -794,6 +794,7 @@ public class FilesCardRenderTests
         ctx.Services.AddSingleton<IFilePicker>(static sp => sp.GetRequiredService<StubFilePicker>());
         ctx.Services.AddSingleton<IBlobUrls>(new StubBlobUrls());
         ctx.Services.AddSingleton<IFilePreviews>(new StubFilePreviews());
+        ctx.Services.AddSingleton<ITextEditors>(new StubTextEditors());
         ctx.Services.AddSingleton<IBrowserHistory>(new StubBrowserHistory());
         ctx.Services.AddSingleton<IAuthSession>(new StubAuthSession());
 
