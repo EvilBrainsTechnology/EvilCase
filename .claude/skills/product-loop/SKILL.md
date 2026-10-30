@@ -26,7 +26,7 @@ The round runs one slice at a time. An open pull request on a `loop/*` branch or
 labelled `agent-in-progress` stops the start: the round tends what is open and starts nothing. A
 pull request on another branch never stops it. Otherwise take the first candidate, label it
 `agent-in-progress`, and start one Workflow (`.claude/skills/product-loop/slice-pipeline.js`,
-`args: [{issue, slug, title, body, fast}]`); it runs in the background — tend open pull requests
+`args: [{issue, slug, title, body, fast, plan?}]`); it runs in the background — tend open pull requests
 meanwhile. One slice is one pull request from database to UI leaving the app usable, small enough
 to review on a phone, on `loop/<issue>-<slug>` off `master`. `fast: true` is the coder alone: no
 behaviour change, no new test — a rename, doc wording, a sweep an analyzer verifies. Schema,

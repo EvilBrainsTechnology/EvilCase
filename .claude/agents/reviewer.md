@@ -19,8 +19,7 @@ to part of it.
   comments and the changes made to answer them are never findings.
 - Look first for what the rules already name: `.claude/rules/` is the checklist.
 - Fix what you find in this run, on the same branch. There is no second round.
-- Before your last push, the coder's one check over what your fixes touched
-  (`.claude/agents/coder.md`). Other agents push beside you: rebase onto `origin/<branch>` first.
-- The description is the coder's: add only a record of your fixes and, where you are unsure,
-  one sentence for the owner; read it again right before writing it.
-- Return what you fixed. The close-out is not yours (`.claude/rules/agents.md`).
+- Before your last push, the coder's one check over what your fixes touched. Others push beside
+  you: rebase onto `origin/<branch>` before a push and again after a rejected one.
+- Never edit the description. Return what you fixed and, where unsure, one sentence for the
+  owner; the close-out records both (`.claude/rules/agents.md`).

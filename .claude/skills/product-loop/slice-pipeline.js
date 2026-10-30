@@ -39,6 +39,15 @@ const REVIEW_SCHEMA = {
   required: ['fixed'],
 }
 
+const SHOTS_SCHEMA = {
+  type: 'object',
+  properties: {
+    ok: { type: 'boolean', description: 'Whether the screenshots are filed in the body' },
+    error: { type: 'string', description: 'What failed, or empty' },
+  },
+  required: ['ok'],
+}
+
 const results = await pipeline(
   slices,
   async (slice) => {
@@ -46,7 +55,8 @@ const results = await pipeline(
     if (slice.fast) {
       return agent(
         `Fast lane: you are the only agent on this change — no plan, no reviewer agent; the review .claude/rules/github.md asks for is yours.\n\n` +
-          `Implement issue #${slice.issue} "${slice.title}" on branch loop/${slice.issue}-${slice.slug}.\n\n${slice.body}${META}`,
+          `Implement issue #${slice.issue} "${slice.title}" on branch loop/${slice.issue}-${slice.slug}.\n\n${slice.body}` +
+          `${slice.plan ? `\n\nThe proposal the owner approved:\n\n${slice.plan}` : ''}${META}`,
         {
           agentType: 'coder', isolation: 'worktree', phase: 'Implement',
           label: `fast:#${slice.issue}`, schema: PR_SCHEMA, model: 'opus', effort: 'high',
@@ -76,18 +86,20 @@ const results = await pipeline(
         fixed: null, uncertainty: null, status: 'fast',
       }
     }
-    return reviewSideBySide(pr).then(async ([review, security]) => {
-      const reviewed = review && (security || !pr.security)
+    return reviewSideBySide(pr).then(async ([review, security, shots]) => {
+      const reviewed = review && (security || !pr.security) && (shots?.ok || !pr.screens)
       const fixed = [review?.fixed, security?.fixed].filter(Boolean).join(' ') || null
-      if (reviewed) await closeOut(pr, fixed)
+      const uncertainty = [review?.uncertainty, security?.uncertainty].filter(Boolean).join(' ') || null
+      if (reviewed) await closeOut(pr.pr, fixed, uncertainty)
       return {
         issue: slice.issue,
         pr: pr.pr,
         branch: pr.branch,
         summary: pr.summary,
         fixed,
-        uncertainty: [review?.uncertainty, security?.uncertainty].filter(Boolean).join(' ') || null,
+        uncertainty,
         status: reviewed ? 'reviewed' : 'review-failed',
+        screenshots: shots?.error || null,
       }
     })
   },
@@ -112,19 +124,24 @@ function reviewSideBySide(pr) {
     () => pr.screens
       ? agent(
         `Take the screenshots of pull request #${pr.pr} (branch ${pr.branch}) per docs/loop/visual-proof.md ` +
-          `and file them in its body; read the body again right before writing it. Push no code.\n\n` +
-          `Targets: ${pr.screens}${META}`,
-        { isolation: 'worktree', phase: 'Review', label: `screens:#${pr.pr}`, model: 'sonnet', effort: 'medium' },
+          `and file them in its body; read the body again right before writing it. Push no code; a page ` +
+          `that throws is reported, not fixed.\n\nTargets: ${pr.screens}${META}`,
+        {
+          isolation: 'worktree', phase: 'Review', label: `screens:#${pr.pr}`,
+          schema: SHOTS_SCHEMA, model: 'sonnet', effort: 'medium',
+        },
       )
       : null,
   ])
 }
 
-function closeOut(pr, fixed) {
+function closeOut(number, fixed, uncertainty) {
   return agent(
-    `Close out pull request #${pr.pr}: comment .github/code_review_template.md recording what the review ` +
-      `fixed: ${fixed ?? 'nothing'}. Then switch agent-in-progress to agent-done. Change nothing else.`,
-    { phase: 'Close', label: `close:#${pr.pr}`, model: 'sonnet', effort: 'low' },
+    `Close out pull request #${number}. Comment .github/code_review_template.md recording what the review ` +
+      `fixed: ${fixed ?? 'nothing'}. Where a fix made the description wrong, correct that part` +
+      `${uncertainty ? `, and add this sentence for the owner to it: ${uncertainty}` : ''}. Then switch ` +
+      `agent-in-progress to agent-done. Change no code.`,
+    { phase: 'Close', label: `close:#${number}`, model: 'sonnet', effort: 'low' },
   )
 }
 

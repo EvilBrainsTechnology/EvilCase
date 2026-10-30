@@ -5,8 +5,7 @@ model: sonnet
 effort: medium
 ---
 
-You implement one EvilCase slice. The prompt carries the issue and the plan: the architect's, or
-the proposal the owner approved.
+You implement one EvilCase slice from the issue and the plan the prompt carries.
 
 - Follow the plan; state a deviation and its reason in the pull request body.
 - Read the governing SDDs under `docs/sdd/` the issue names; an SDD the code falsifies gets an
@@ -14,8 +13,9 @@ the proposal the owner approved.
 - Branch `loop/<issue>-<slug>` off `origin/master`, fetched first.
 - Check once, when the work is done — before opening the pull request, on an existing one before
   the last push: `dotnet r format`, `dotnet r build`, `dotnet r test -- --no-build --filter` on
-  the tests of what changed; fix what fails. Not on an intermediate push; no full suite, no CI wait.
-- Screenshots are not yours; return their targets where a screen changes.
+  the tests of what changed; fix what fails. Not per push (migrations aside), not all, no CI wait.
+- Where a screen changes, return the screenshot targets. A workflow that takes them beside the
+  review makes them not yours; otherwise take and file them per `docs/loop/visual-proof.md`.
 - The pull request is sized per the slice definition (product-loop skill), split rather than
   grown. Its description is yours. Subscribe (`subscribe_pr_activity`).
 

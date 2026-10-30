@@ -29,6 +29,15 @@ const REVIEW_SCHEMA = {
   required: ['fixed'],
 }
 
+const SHOTS_SCHEMA = {
+  type: 'object',
+  properties: {
+    ok: { type: 'boolean', description: 'Whether the screenshots are filed in the body' },
+    error: { type: 'string', description: 'What failed, or empty' },
+  },
+  required: ['ok'],
+}
+
 const META =
   '\n\nA hook blocks edits under .claude/** and docs/sdd/**. Only where an owner comment on ' +
   'this pull request explicitly asks for such a change: run `touch .claude/allow-meta-edits`, ' +
@@ -50,7 +59,8 @@ const results = await pipeline(
   (plan, item) => {
     if (item.fast) {
       return agent(
-        `Fast lane: you are the only agent on this change — no plan, no reviewer agent; the review .claude/rules/github.md asks for is yours.\n\n` +
+        `Fast lane: you are the only agent on this change — no plan, no reviewer agent; the review .claude/rules/github.md asks for ` +
+          `is yours, /code-review medium on the rework's diff. The screenshots where a screen changes are yours too.\n\n` +
           `Work on the existing pull request #${item.pr}, branch ${item.branch}.\n\n${item.instructions}${META}`,
         {
           agentType: 'coder', isolation: 'worktree', phase: 'Work',
@@ -68,9 +78,7 @@ const results = await pipeline(
   },
   (work, item) => {
     if (!work) throw new Error(`pull request #${item.pr}: work failed`)
-    if (item.fast) {
-      return screenshots(item, work).then(() => ({ pr: item.pr, fixed: work.fixed, uncertainty: null, status: 'fast' }))
-    }
+    if (item.fast) return { pr: item.pr, fixed: work.fixed, uncertainty: null, status: 'fast' }
     return parallel([
       () => agent(
         `Review the rework just pushed to pull request #${item.pr}, branch ${item.branch}: ` +
@@ -92,22 +100,25 @@ const results = await pipeline(
         )
         : null,
       () => screenshots(item, work),
-    ]).then(async ([review, security]) => {
-      const reviewed = review && (security || !work.security)
+    ]).then(async ([review, security, shots]) => {
+      const reviewed = review && (security || !work.security) && (shots?.ok || !work.screens)
       const fixed = [review?.fixed, security?.fixed].filter(Boolean).join(' ') || 'nothing'
+      const uncertainty = [review?.uncertainty, security?.uncertainty].filter(Boolean).join(' ') || null
       if (reviewed) {
         await agent(
-          `Close out pull request #${item.pr}: comment .github/code_review_template.md recording what ` +
-            `the review of the rework fixed: ${fixed}. Then switch agent-in-progress to agent-done. ` +
-            `Change nothing else.`,
+          `Close out pull request #${item.pr}. Comment .github/code_review_template.md recording what the ` +
+            `review of the rework fixed: ${fixed}. Where a fix made the description wrong, correct that part` +
+            `${uncertainty ? `, and add this sentence for the owner to it: ${uncertainty}` : ''}. Then switch ` +
+            `agent-in-progress to agent-done. Change no code.`,
           { phase: 'Close', label: `close:#${item.pr}`, model: 'sonnet', effort: 'low' },
         )
       }
       return {
         pr: item.pr,
         fixed: work.fixed,
-        uncertainty: [review?.uncertainty, security?.uncertainty].filter(Boolean).join(' ') || null,
+        uncertainty,
         status: reviewed ? 'reviewed' : 'review-failed',
+        screenshots: shots?.error || null,
       }
     })
   },
@@ -115,12 +126,15 @@ const results = await pipeline(
 
 // Screenshots only where the rework changed a screen.
 function screenshots(item, work) {
-  if (!work.screens) return Promise.resolve(null)
+  if (!work.screens) return null
   return agent(
     `Take the screenshots of pull request #${item.pr} (branch ${item.branch}) per docs/loop/visual-proof.md ` +
       `and replace the Screenshots section of its body; read the body again right before writing it. ` +
-      `Push no code.\n\nTargets: ${work.screens}${META}`,
-    { isolation: 'worktree', phase: 'Review', label: `screens:#${item.pr}`, model: 'sonnet', effort: 'medium' },
+      `Push no code; a page that throws is reported, not fixed.\n\nTargets: ${work.screens}${META}`,
+    {
+      isolation: 'worktree', phase: 'Review', label: `screens:#${item.pr}`,
+      schema: SHOTS_SCHEMA, model: 'sonnet', effort: 'medium',
+    },
   )
 }
 
