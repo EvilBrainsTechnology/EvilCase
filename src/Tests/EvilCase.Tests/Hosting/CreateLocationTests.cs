@@ -2,10 +2,13 @@ using System.Net;
 using System.Net.Http.Json;
 using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Contacts;
+using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.Business.Cases;
 using EvilBrains.EvilCase.Business.Contacts;
+using EvilBrains.EvilCase.Business.Labels;
 using EvilBrains.EvilCase.Domain.Cases;
 using EvilBrains.EvilCase.Domain.Contacts;
+using EvilBrains.EvilCase.Domain.Labels;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EvilBrains.EvilCase.Tests.Hosting;
@@ -56,6 +59,21 @@ public class CreateLocationTests
                     Name = call.Arg<ContactEditRequest>().Name,
                 });
             services.AddSingleton(contactWriter);
+
+            var labelWriter = Substitute.For<ILabelWriter>();
+            labelWriter
+                .CreateLabel(Arg.Any<LabelEditRequest>(), Arg.Any<CancellationToken>())
+                .Returns(static call => new LabelCreateResult
+                {
+                    Outcome = LabelCreateOutcome.Created,
+                    Label = new LabelItem
+                    {
+                        LabelId = Guid.CreateVersion7(),
+                        Name = call.Arg<LabelEditRequest>().Name,
+                        Color = call.Arg<LabelEditRequest>().Color,
+                    },
+                });
+            services.AddSingleton(labelWriter);
         });
         this.client = this.host.CreateClient();
     }
@@ -106,6 +124,24 @@ public class CreateLocationTests
                 response.Headers.Location?.ToString(),
                 Is.EqualTo($"http://localhost/api/contacts/{FiledContactId}"),
                 "the Location names the detail route of the contact that was filed");
+        }
+    }
+
+    [Test]
+    public async Task ACreatedLabelCarriesNoLocation()
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Post, new Uri("/api/labels", UriKind.Relative))
+        {
+            Headers = { Authorization = TestTokens.BearerFrom(this.host) },
+            Content = JsonContent.Create(new LabelEditRequest { Name = "Nový štítek", Color = LabelColor.Blue }),
+        };
+
+        using var response = await this.client.SendAsync(request);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Created));
+            Assert.That(response.Headers.Location, Is.Null, "a label has no detail route for a Location to name");
         }
     }
 }
