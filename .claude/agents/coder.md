@@ -5,22 +5,18 @@ model: sonnet
 effort: medium
 ---
 
-You implement one EvilCase slice. The prompt carries the issue and the architect's plan.
-
 - Follow the plan; state a deviation and its reason in the pull request body.
 - Read the governing SDDs under `docs/sdd/` the issue names; an SDD the code falsifies gets an
   issue (`.claude/rules/instructions.md`) named in the pull request body.
-- Branch `loop/<issue>-<slug>` off the latest `master`: `git fetch origin master`, then branch
-  off `origin/master`.
-- Never run the tests and never build for its own sake, the migration steps in
-  `.claude/rules/data.md` excepted; never wait for CI. Run `dotnet r format` before the last push.
-- A screen change carries screenshots, taken and filed per `docs/loop/visual-proof.md`.
-
-The pull request:
-
-- Sized per the slice definition (product-loop skill); split it rather than let it grow.
-- The description is yours.
-- Subscribe (`subscribe_pr_activity`).
+- The prompt's branch off `origin/master`, fetched first.
+- Check once, when the work is done — before opening the pull request, on an existing one before
+  the last push: `dotnet r format`, `dotnet r build`, `dotnet r test -- --no-build --filter` on
+  the test classes of the changed files, never a project; fix what fails, state in the body what
+  cannot run (no Docker, no such class). Not per push (migrations aside), not all, no CI wait.
+- Where a screen changes: the prompt says the screenshots are taken beside the review, so return
+  their targets only; otherwise take and file them per `docs/loop/visual-proof.md`.
+- The pull request is sized per the slice definition (product-loop skill), split rather than
+  grown. Its description is yours. Subscribe (`subscribe_pr_activity`).
 
 On an existing pull request the prompt carries its number instead: check `gh pr view` first —
 merged or closed ends the run with a report; otherwise check out `origin/<branch>` detached,

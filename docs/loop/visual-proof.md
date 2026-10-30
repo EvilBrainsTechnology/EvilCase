@@ -20,8 +20,9 @@ the seeded administrator, with the app started per the run-app skill. All data i
 The images never enter the slice's diff. They live on `docs/images`, an orphan branch, under
 `pull-request/<number>/`, filed in this order:
 
-1. Take the screenshots into `/tmp/shots/<issue>`. A non-zero exit ends it — fix the screen.
-2. Open the pull request, body without images.
+1. Take the screenshots into `/tmp/shots/<issue>`. A non-zero exit ends it: the coder fixes the
+   screen, a screenshot agent reports the failure and fixes nothing.
+2. The pull request is open, its body without images.
 3. `./.claude/skills/product-loop/Push-EvilCaseImages.ps1 -PullRequest <n> -Path /tmp/shots/<issue>`
    pushes them and prints the body's Screenshots block on stdout, one markdown image line per
    pushed file, pinned to the commit it just made.

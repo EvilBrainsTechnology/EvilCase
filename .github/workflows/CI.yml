@@ -14,11 +14,18 @@ permissions:
   actions: read
   checks: write
 
+# A new push to a pull request cancels the run of the one before; master and release runs finish.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 # Define the jobs for the workflow
 jobs:
   lint-and-build-test:
     name: Lint, Build, and Test Solution
     runs-on: ubuntu-latest
+    # A run takes about four minutes; a hung test fails it instead of holding the runner for hours
+    timeout-minutes: 20
 
     steps:
       # Checkout the repository
@@ -50,6 +57,14 @@ jobs:
           cache: npm
           cache-dependency-path: src/App/EvilCase.App/package-lock.json
 
+      # NuGet packages from the previous run with the same package versions
+      - name: Cache NuGet packages
+        uses: actions/cache@v6
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('src/Directory.Packages.props', 'src/**/*.csproj', 'src/.config/dotnet-tools.json') }}
+          restore-keys: nuget-${{ runner.os }}-
+
       # Restore tools
       - name: Restore .NET tools
         run: dotnet tool restore
@@ -60,19 +75,14 @@ jobs:
         run: dotnet restore
         working-directory: ./src
 
-      # Lint the code
-      - name: Lint the code with dotnet-format
-        run: dotnet r format-check
-        working-directory: ./src
-
-      # Build the solution
+      # Build the solution; it enforces formatting and analyzers as errors, so no separate format check
       - name: Build the solution
         run: dotnet r build -- --no-restore
         working-directory: ./src
 
       # Test the solution
       - name: Run tests
-        run: dotnet r test -- --no-build --logger "trx;LogFileName=test-results.trx"
+        run: dotnet r test -- --no-build --logger "trx;LogFileName=test-results.trx" --blame-hang-timeout 10m
         working-directory: ./src
 
       # Upload test results

@@ -10,10 +10,11 @@
   `.github/pull_request_template.md`. Title and description match the diff.
 - An issue fills its matching template in `.github/ISSUE_TEMPLATE/`; the front matter is its
   title and labels. An agent's bug issue also carries `loop`.
-- The gate is CI on GitHub. Nobody runs a local gate before a pull request.
-- A pull request that changes behaviour goes to the owner only reviewed — by the slice's reviewer
-  agent, otherwise `/code-review high` — with `/security-review` too where authentication or file
-  storage change. Findings are fixed first; a `.github/code_review_template.md` comment records it.
+- The full gate is CI on GitHub; locally runs only the coder's one check.
+- A pull request that changes behaviour goes to the owner only reviewed: by the slice's reviewer
+  agent, otherwise `/code-review high`, a rework on its own diff `/code-review medium`; plus
+  `/security-review` where authentication or file storage change. Findings are fixed first; a
+  `.github/code_review_template.md` comment records it.
 - An agent's pull request carries exactly one state label — `agent-in-progress` (an agent works on
   it), `agent-done` (waiting for the owner), `waiting-for-agent` (waiting for an agent) — and
   setting one removes the rest. Every session switches to `agent-in-progress` before the work — on

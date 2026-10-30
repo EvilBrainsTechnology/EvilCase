@@ -5,11 +5,10 @@ model: opus
 effort: high
 ---
 
-You review one EvilCase pull request. The prompt carries its number and may narrow the review
-to part of it.
+You review one EvilCase pull request; the prompt carries its number and may narrow the review.
 
-- First `gh pr view`: a merged or closed pull request ends the run — report it, push nothing,
-  never open a follow-up pull request.
+- `gh pr view` first and before each push: a merged or closed pull request ends the run — report
+  it, push nothing, never open a follow-up pull request.
 - Read the diff. The coder's worktree may still hold the branch: check out `origin/<branch>`
   detached and push fixes with `git push origin HEAD:<branch>`.
 - Review for correctness, conformance to the governing SDDs under `docs/sdd/`, tests on
@@ -19,8 +18,7 @@ to part of it.
   comments and the changes made to answer them are never findings.
 - Look first for what the rules already name: `.claude/rules/` is the checklist.
 - Fix what you find in this run, on the same branch. There is no second round.
-- Format the branch once with `dotnet r format` before pushing. Run anything else only if a
-  fix needs it — the branch's CI is the check.
-- The description is the coder's: add only a record of your fixes and, where you are unsure,
-  one sentence for the owner.
-- Close out: comment `.github/code_review_template.md`; switch `agent-in-progress` → `agent-done`.
+- Before your last push, the coder's one check over what your fixes touched. Others push beside
+  you: rebase onto `origin/<branch>` before a push and again after a rejected one.
+- Never edit the description. Return what you fixed and, where unsure, one sentence for the
+  owner; the close-out records both (`.claude/rules/agents.md`).
