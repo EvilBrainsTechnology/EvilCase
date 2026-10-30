@@ -25,6 +25,14 @@ public class TenantExportLayoutTests
     }
 
     [Test]
+    public void TheCutNeverSplitsACharacterOfTwoHalves()
+    {
+        var title = new string('a', 79) + "\U0001F4C4";
+
+        Assert.That(TenantExportLayout.FolderName(Day, title, TenantExportLayout.CaseFallback), Is.EqualTo("2026-08-21 " + new string('a', 79)));
+    }
+
+    [Test]
     public void ANameLeftEmptyTakesTheNameOfItsKind()
     {
         using (Assert.EnterMultipleScope())

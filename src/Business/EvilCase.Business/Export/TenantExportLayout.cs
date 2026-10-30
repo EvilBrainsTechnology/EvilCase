@@ -59,6 +59,12 @@ internal static class TenantExportLayout
     {
         var safe = FileArchiveLayout.SafeEntryName(title, fallback);
 
-        return safe.Length > MaxTitleLength ? safe[..MaxTitleLength].TrimEnd(' ', '.') : safe;
+        if (safe.Length <= MaxTitleLength)
+            return safe;
+
+        // A cut between the two halves of a surrogate pair would leave a character no encoding can write.
+        var length = char.IsHighSurrogate(safe[MaxTitleLength - 1]) ? MaxTitleLength - 1 : MaxTitleLength;
+
+        return safe[..length].TrimEnd(' ', '.');
     }
 }
