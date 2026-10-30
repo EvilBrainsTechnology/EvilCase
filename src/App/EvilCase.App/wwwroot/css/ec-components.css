@@ -745,6 +745,19 @@ html {
     background: var(--ec-overlay);
 }
 
+/* The page behind an open dialog does not scroll; the reserved scrollbar gutter keeps its width. */
+html.ec-scroll-locked {
+    overflow: hidden;
+    overscroll-behavior: none;
+}
+
+/* A scroll that reaches the end of the dialog stops there. */
+.ec-modal,
+.ec-modal-body,
+.ec-modal .ec-preview-stage {
+    overscroll-behavior: contain;
+}
+
 .ec-modal-frame {
     display: contents;
 }
