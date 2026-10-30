@@ -24,10 +24,7 @@
                 }
                 <label class="@(this.Compact ? "ec-button ec-button-secondary ec-button-compact ec-file-upload" : "ec-button ec-button-secondary ec-button-standard ec-file-upload")"
                        for="files-upload-input">
-                    <EcIcon Paths="@AppIcons.Upload" /><span>@("Nahrát")@if (!this.Compact)
-                    {
-                        <span class="ec-file-upload-more"> soubory</span>
-                    }</span>
+                    <EcIcon Paths="@AppIcons.Upload" /><span class="ec-file-upload-text">@this.UploadLabel</span>
                 </label>
                 @if (!this.Compact && this.State.Loaded && this.State.ListFailure is null && this.State.Items.Count > 0)
                 {

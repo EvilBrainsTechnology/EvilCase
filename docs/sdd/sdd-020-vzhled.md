@@ -100,10 +100,10 @@ komentář má dva řádky.
 
 Karta souborů nese v záhlaví počet, výzvu „Přetáhněte soubory sem nebo", tlačítko Nahrát soubory
 a dělené tlačítko Stáhnout vše se šipkou nabídky, v bočním sloupci jen název a Nahrát; záhlaví
-drží jeden řádek. Na mobilu záhlaví výzvu nenese, tlačítko je vždy Nahrát a Stáhnout vše nese
-jen ikonu; tlačítka široké karty se tam zalomí pod název. Velikost a okamžik nahrání se zalomí
-jen mezi sebou. Pod seznamem žádný pruh není. Řádek souboru je jedno ovládací místo po celé
-šířce a otevírá náhled; stažení a nabídka ⋯ jsou ohraničená tlačítka jen s ikonou, v nabídce je
+drží jeden řádek i na mobilu. Na mobilu záhlaví výzvu nenese a Nahrát soubory i Stáhnout vše
+široké karty nesou jen ikonu. Velikost a okamžik nahrání se zalomí jen mezi sebou. Pod seznamem
+žádný pruh není. Řádek souboru je jedno ovládací místo po celé šířce a otevírá náhled; stažení
+a nabídka ⋯ jsou ohraničená tlačítka jen s ikonou, v nabídce je
 Nahrát novou verzi, Verze (3), Přejmenovat a oddělené, červené Smazat. Soubor s více verzemi
 nese štítek „verze 3“, nově nahraný soubor nebo verze světle modrý řádek se štítkem „nový“ nebo
 „nová verze“. Při tažení souborů přes kartu ji přikryje přerušovaný akcentový rámeček s textem
