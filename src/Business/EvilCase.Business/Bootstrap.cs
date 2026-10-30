@@ -24,6 +24,9 @@ public static class Bootstrap
     {
         services.AddEvilCaseData();
 
+        // Read at startup: a host without the IANA time-zone data fails here, not on the first archive.
+        _ = FileArchiveLayout.Prague;
+
         services.AddScoped<ICaseReader, CaseReader>();
         services.AddScoped<ICaseWriter, CaseWriter>();
         services.AddScoped<IActReader, ActReader>();

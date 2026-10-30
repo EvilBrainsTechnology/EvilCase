@@ -98,7 +98,7 @@ ikonu. Stažení je obyčejné stažení prohlížečem.
 - Archiv je plochý: aktuální verze souboru leží pod jeho jménem, starší verze vedle něj jako
   „Smlouva (verze 2).pdf“, jméno bez přípony dostane číslo verze na konec. Jméno položky nenese
   cestu ani dvě tečky za sebou. Položky jdou v pořadí seznamu, verze souboru podle čísla; každá
-  nese okamžik nahrání své verze v UTC.
+  nese okamžik nahrání své verze v pražském čase platném v tom okamžiku.
 - Jméno, které už v archivu je (bez ohledu na velikost písmen), dostane před příponou „ (2)“,
   „ (3)“ a další volné číslo. Jména aktuálních verzí mají přednost před jmény starších verzí.
 - Archiv se posílá průběžně, bez sestavení předem, i nad 4 GB. Soubor, který se nepodaří

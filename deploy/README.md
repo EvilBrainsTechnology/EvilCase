@@ -9,6 +9,7 @@ Built from the repository root `Dockerfile`; the build context is the root and t
 - `sdk:10.0` restores and publishes `EvilCase.Host`. The Blazor WebAssembly bundle comes with it, there is no separate frontend step.
 - `aspnet:10.0-alpine` runs it as the image's non-root user on port 8080. Entry point `EvilBrains.EvilCase.Host.dll` — `src/Directory.Build.props` renames the assembly.
 - `HEALTHCHECK` calls `/health/live` through `curl`.
+- `tzdata` carries `Europe/Prague`, the zone of the times in a file archive; the host does not start without it.
 - The storage root for uploaded files, `/var/lib/evilcase/files`, is created for the image's user and is fixed there.
 
 ## Registry tags

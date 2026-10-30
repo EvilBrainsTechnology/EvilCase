@@ -75,7 +75,7 @@ internal sealed class FileArchiveReader(IDbSession dbSession, IFileBlobStore blo
 
             // Stored documents are mostly compressed already; the fastest level still shrinks text and XML.
             var zipEntry = zip.CreateEntry(entry.EntryName, CompressionLevel.Fastest);
-            zipEntry.LastWriteTime = new DateTimeOffset(entry.Created.Ticks, TimeSpan.Zero);
+            zipEntry.LastWriteTime = entry.Created;
 
             await using (var entryStream = await zipEntry.OpenAsync(token))
                 await content.CopyToAsync(entryStream, token);

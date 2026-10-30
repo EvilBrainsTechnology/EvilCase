@@ -71,8 +71,8 @@ public class FileArchiveReaderTests : TenantFixture
         {
             Assert.That(archive!.FileName, Is.EqualTo("Přestupek (včetně verzí).zip"));
             Assert.That(zip.Entries.Select(static entry => entry.FullName), Is.EqualTo(["Smlouva (verze 1).pdf", "Smlouva.pdf"]));
-            Assert.That(zip.Entries[0].LastWriteTime.DateTime, Is.EqualTo(uploads[0]).Within(TimeSpan.FromSeconds(2)), "an entry carries its version's upload moment");
-            Assert.That(zip.Entries[1].LastWriteTime.DateTime, Is.EqualTo(uploads[1]).Within(TimeSpan.FromSeconds(2)));
+            Assert.That(zip.Entries[0].LastWriteTime.DateTime, Is.EqualTo(PragueTime(uploads[0])).Within(TimeSpan.FromSeconds(2)), "an entry carries its version's upload moment in Prague time");
+            Assert.That(zip.Entries[1].LastWriteTime.DateTime, Is.EqualTo(PragueTime(uploads[1])).Within(TimeSpan.FromSeconds(2)));
         }
     }
 
@@ -163,6 +163,11 @@ public class FileArchiveReaderTests : TenantFixture
             Assert.That(written, Is.Not.Empty, "the first file was already on its way");
             Assert.That(() => new ZipArchive(new MemoryStream(written)), Throws.InstanceOf<InvalidDataException>(), "a cut archive must never read as whole");
         }
+    }
+
+    private static DateTime PragueTime(DateTime utc)
+    {
+        return TimeZoneInfo.ConvertTimeFromUtc(utc, FileArchiveLayout.Prague);
     }
 
     private FileAsset Stored(FileAsset file, string content)
