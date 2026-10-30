@@ -29,6 +29,14 @@
                         <span class="ec-file-upload-more"> soubory</span>
                     }</span>
                 </label>
+                @if (!this.Compact && this.State.Loaded && this.State.ListFailure is null && this.State.Items.Count > 0)
+                {
+                    <div class="ec-split-button">
+                        <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Download" AriaLabel="Stáhnout vše"
+                                  OnClick="() => this.DownloadArchive(this.ArchiveUrl)"><span class="ec-split-button-text">Stáhnout vše</span></EcButton>
+                        <EcMenu AriaLabel="Další možnosti stažení" Icon="@AppIcons.ChevronDown" Items="this.ArchiveActions()" />
+                    </div>
+                }
             </div>
         </Header>
         <ChildContent>
@@ -207,6 +215,12 @@
     public required string UploadTarget { get; set; }
 
     /// <summary>
+    /// The archive of the card's files, current versions only (<see cref="FileUrl"/>).
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required string ArchiveUrl { get; set; }
+
+    /// <summary>
     /// The 380 px side column: a short upload label and icon-only file actions.
     /// </summary>
     [Parameter]
@@ -276,6 +290,24 @@
             new EcMenuItem { Text = "Přejmenovat", Icon = AppIcons.Pencil, OnSelect = EventCallback.Factory.Create(this, () => this.StartRename(file)) },
             new EcMenuItem { Text = "Smazat", Icon = AppIcons.Trash, OnSelect = EventCallback.Factory.Create(this, () => this.ConfirmDelete(file)), Danger = true, DividerBefore = true },
         ];
+    }
+
+    private IReadOnlyList<EcMenuItem> ArchiveActions()
+    {
+        return
+        [
+            new EcMenuItem
+            {
+                Text = "Stáhnout vše včetně verzí",
+                Icon = AppIcons.Download,
+                OnSelect = EventCallback.Factory.Create(this, () => this.DownloadArchive(FileUrl.WithAllVersions(this.ArchiveUrl))),
+            },
+        ];
+    }
+
+    private async Task DownloadArchive(string archiveUrl)
+    {
+        await this.Downloader.DownloadArchive(archiveUrl, CancellationToken.None);
     }
 
     private async Task ReloadFiles()

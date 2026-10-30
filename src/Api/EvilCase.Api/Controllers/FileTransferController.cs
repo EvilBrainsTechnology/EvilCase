@@ -5,12 +5,14 @@ using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Business.Files;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 
 namespace EvilBrains.EvilCase.Api.Controllers;
 
 /// <summary>
-/// No [GenerateApiClient]: the generator cannot express multipart or a byte stream.
+/// No [GenerateApiClient]: the generator cannot express multipart or a byte stream. The browser downloads by an
+/// ordinary request, which the session cookie authenticates.
 /// </summary>
 [ApiController]
 [Route("api")]
@@ -120,6 +122,48 @@ public class FileTransferController : ControllerBase
         return this.File(download.Content, inlineMediaType, enableRangeProcessing: true);
     }
 
+    [HttpGet("cases/{caseId:guid}/files/archive")]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> DownloadCaseFileArchive(
+        [FromServices] IFileArchiveReader archives,
+        [FromServices] ILogger<FileTransferController> logger,
+        [FromRoute] Guid caseId,
+        [FromQuery] bool includeVersions,
+        CancellationToken token)
+    {
+        var archive = await archives.ReadCaseFileArchive(caseId, includeVersions, token);
+
+        if (archive is null)
+            return this.Problem(statusCode: StatusCodes.Status404NotFound, title: CaseProblems.NotFound);
+
+        await this.SendFileArchive(archives, logger, archive, token);
+
+        return new EmptyResult();
+    }
+
+    [HttpGet("acts/{actId:guid}/files/archive")]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> DownloadActFileArchive(
+        [FromServices] IFileArchiveReader archives,
+        [FromServices] ILogger<FileTransferController> logger,
+        [FromRoute] Guid actId,
+        [FromQuery] bool includeVersions,
+        CancellationToken token)
+    {
+        var archive = await archives.ReadActFileArchive(actId, includeVersions, token);
+
+        if (archive is null)
+            return this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.ActNotFound);
+
+        await this.SendFileArchive(archives, logger, archive, token);
+
+        return new EmptyResult();
+    }
+
     // IFormFile.ContentType is never null, only empty, when a multipart part carries no Content-Type header.
     private static string? NormalizeMediaType(string mediaType)
     {
@@ -147,6 +191,30 @@ public class FileTransferController : ControllerBase
             MediaType = mediaType,
             Content = file.OpenReadStream(),
         };
+    }
+
+    /// <summary>
+    /// A failure before the first byte is an ordinary error response. A failure after it aborts the response, so the
+    /// browser fails the download instead of saving a cut archive.
+    /// </summary>
+    private async Task SendFileArchive(IFileArchiveReader archives, ILogger logger, FileArchive archive, CancellationToken token)
+    {
+        var disposition = new ContentDispositionHeaderValue("attachment");
+        disposition.SetHttpFileName(archive.FileName);
+        this.Response.Headers.ContentDisposition = disposition.ToString();
+        this.Response.ContentType = "application/zip";
+
+        try
+        {
+            await archives.WriteFileArchive(archive, this.Response.Body, token);
+        }
+        catch (Exception exception) when (this.Response.HasStarted)
+        {
+            if (!token.IsCancellationRequested)
+                logger.LogError(exception, "File archive of {OwnerId} was cut short", archive.OwnerId);
+
+            this.HttpContext.Abort();
+        }
     }
 
     private ActionResult ExtensionMismatchProblem()

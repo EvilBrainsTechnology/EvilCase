@@ -37,6 +37,7 @@ public static class Bootstrap
         services.AddScoped<ILabelAssignmentWriter, LabelAssignmentWriter>();
         services.AddScoped<IFileReader, FileReader>();
         services.AddScoped<IFileWriter, FileWriter>();
+        services.AddScoped<IFileArchiveReader, FileArchiveReader>();
         services.AddMemoryCache();
         services.TryAddSingleton(TimeProvider.System);
         services.AddSingleton(static _ => SignatureTrust.LoadPostSignum());

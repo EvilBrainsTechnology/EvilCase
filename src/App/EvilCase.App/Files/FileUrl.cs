@@ -11,4 +11,28 @@ internal static class FileUrl
             ? $"/api/files/{fileId}/content"
             : $"/api/files/{fileId}/content?version={version.Value.ToString(CultureInfo.InvariantCulture)}";
     }
+
+    /// <summary>
+    /// The archive of the case's own files, current versions only.
+    /// </summary>
+    public static string CaseArchive(Guid caseId)
+    {
+        return $"/api/cases/{caseId}/files/archive";
+    }
+
+    /// <summary>
+    /// The archive of the act's files, current versions only.
+    /// </summary>
+    public static string ActArchive(Guid actId)
+    {
+        return $"/api/acts/{actId}/files/archive";
+    }
+
+    /// <summary>
+    /// The same archive with every version of each file.
+    /// </summary>
+    public static string WithAllVersions(string archiveUrl)
+    {
+        return archiveUrl + "?includeVersions=true";
+    }
 }

@@ -719,6 +719,27 @@ public class CaseRenderTests
     }
 
     [Test]
+    public async Task TheWideFilesCardDownloadsTheArchiveOfTheCase()
+    {
+        await using var ctx = new BunitContext();
+
+        var caseId = Guid.CreateVersion7();
+
+        Serve(ctx, caseId, Detail(caseId));
+        ServeFiles(ctx, [File("a.pdf")]);
+
+        var component = ctx.Render<Case>(parameters => parameters.Add(static page => page.CaseId, caseId));
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-detail-main .ec-split-button"), Has.Count.EqualTo(1)));
+
+        await component.Find(".ec-split-button > .ec-button").ClickAsync(new MouseEventArgs());
+
+        var downloader = (StubFileDownloader)ctx.Services.GetRequiredService<IFileDownloader>();
+
+        Assert.That(downloader.DownloadedArchives, Is.EqualTo([$"/api/cases/{caseId}/files/archive"]));
+    }
+
+    [Test]
     public async Task TheFilesCardShowsInNeitherColumnBeforeItsListIsKnown()
     {
         await using var ctx = new BunitContext();

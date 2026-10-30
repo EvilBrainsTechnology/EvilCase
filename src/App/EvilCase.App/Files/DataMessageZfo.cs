@@ -17,8 +17,6 @@ internal static partial class DataMessageZfo
     // Deeper than any ISDS message; loading XML slows quadratically with its nesting.
     private const int MaxXmlDepth = 100;
 
-    private const string InvalidNameCharacters = "<>:\"|?*";
-
     private static readonly XmlReaderSettings XmlSettings = new()
     {
         DtdProcessing = DtdProcessing.Prohibit,
@@ -105,21 +103,10 @@ internal static partial class DataMessageZfo
         ];
     }
 
-    // The name the attachment is shown and saved under: its last path segment without what a file name cannot carry.
+    // The name the attachment is shown and saved under: its last path segment, safe to save.
     private static string SafeFileName(string description)
     {
-        var lastSegment = description[(description.LastIndexOfAny(['/', '\\']) + 1)..];
-        var safe = new string([.. lastSegment.Select(static character => IsInvalidInName(character) ? '_' : character)]).Trim(' ', '.');
-
-        return safe.Length == 0 ? "příloha" : safe;
-    }
-
-    private static bool IsInvalidInName(char character)
-    {
-        // A format character such as a right-to-left override would disguise the extension.
-        return char.IsControl(character)
-            || char.GetUnicodeCategory(character) == UnicodeCategory.Format
-            || InvalidNameCharacters.Contains(character, StringComparison.Ordinal);
+        return FileNameRules.SafeFileName(description[(description.LastIndexOfAny(['/', '\\']) + 1)..], "příloha");
     }
 
     private static IEnumerable<XElement> Children(XElement parent, string localName)

@@ -3,7 +3,7 @@
     <button type="button" class="ec-button ec-button-secondary ec-button-standard ec-button-icon"
             aria-label="@this.AriaLabel" aria-haspopup="menu" aria-expanded="@(this.open ? "true" : "false")"
             @ref="this.trigger" @onclick="this.Open">
-        <EcIcon Paths="@AppIcons.DotsVertical" />
+        <EcIcon Paths="@this.Icon" />
     </button>
     @if (this.open)
     {
@@ -36,6 +36,9 @@
 
     [Parameter, EditorRequired]
     public required IReadOnlyList<EcMenuItem> Items { get; set; }
+
+    [Parameter]
+    public string Icon { get; set; } = AppIcons.DotsVertical;
 
     private ElementReference trigger;
 

@@ -1,5 +1,5 @@
 // An ordinary request: the session cookie authenticates it and the download attribute makes the browser
-// save the response even when the server sends it inline.
+// save the response even when the server sends it inline. An empty name keeps the one the server gives.
 export function downloadFile(url, fileName) {
     const anchor = document.createElement('a');
 
