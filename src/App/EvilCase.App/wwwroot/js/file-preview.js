@@ -1,5 +1,6 @@
 // Previews of the formats the browser cannot show itself. Each library under ../lib is loaded the first time
 // a file of its type opens; the bytes are parsed here and never leave the browser.
+import { fold } from './text-search.js';
 
 const maxPixels = 64 * 1024 * 1024;
 const maxBodyLength = 200000;
@@ -500,23 +501,6 @@ export function zoomView(element, zoom) {
             : zoomSteps.findLast(step => step < current - 0.005) ?? zoomSteps[0];
 
     setZoom(state, next, null);
-}
-
-// Case, diacritics and the kind of space make no difference to a match.
-function fold(text) {
-    let folded = '';
-
-    for (const char of text) {
-        const code = char.codePointAt(0);
-
-        if (code < 0x80) {
-            folded += code >= 65 && code <= 90 ? String.fromCharCode(code + 32) : code === 9 || code === 10 || code === 13 ? ' ' : char;
-        } else {
-            folded += /\s/.test(char) ? ' ' : char.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
-        }
-    }
-
-    return folded;
 }
 
 // The folded text of the content, with the text node and offsets of each of its characters.
