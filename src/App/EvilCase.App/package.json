@@ -25,7 +25,6 @@
     "@prettier/plugin-xml": "3.4.2",
     "docx-preview": "0.4.1",
     "file-type": "22.2.0",
-    "highlight.js": "11.11.1",
     "jszip": "3.10.2",
     "libheif-js": "1.23.5",
     "pdfjs-dist": "6.4.299",

@@ -1,7 +1,6 @@
 // Generates wwwroot/lib and wwwroot/fonts from node_modules: copies the browser builds and their
-// license files, and bundles postal-mime, @kenjiuno/msgreader, file-type, the code preview (Prettier
-// with @prettier/plugin-xml, and highlight.js), the text editor (CodeMirror) and the Markdown view and editor (Milkdown)
-// with esbuild.
+// license files, and bundles postal-mime, @kenjiuno/msgreader, file-type, the code formatting (Prettier
+// with @prettier/plugin-xml), the text editor (CodeMirror) and the Markdown view and editor (Milkdown) with esbuild.
 //
 // Usage: node build-libs.mjs        (after `npm ci`; no parameters, any working directory)
 // Replaces wwwroot/lib and wwwroot/fonts; both are gitignored.
@@ -168,7 +167,7 @@ await bundle("export { default } from 'postal-mime';", join(lib, 'postal-mime'),
 await bundle("export { default as MsgReader } from '@kenjiuno/msgreader';", join(lib, 'msgreader'), 'msgreader.min.js', { format: 'iife', globalName: 'EcMsg' });
 await bundle("export { fileTypeFromBuffer } from 'file-type';", join(lib, 'file-type'), 'file-type.min.js', { format: 'esm' });
 
-// Formats and highlights JSON, XML, YAML and HTML. `json-stringify` keeps every JSON number literal and escape as
+// Formats JSON, XML, YAML and HTML. `json-stringify` keeps every JSON number literal and escape as
 // written; XML keeps its whitespace; HTML leaves its embedded scripts and styles as they are.
 const codePreview = `
 import { format } from 'prettier/standalone';
@@ -177,18 +176,6 @@ import * as estree from 'prettier/plugins/estree';
 import * as html from 'prettier/plugins/html';
 import * as yaml from 'prettier/plugins/yaml';
 import xml from '@prettier/plugin-xml';
-import hljs from 'highlight.js/lib/core';
-import css from 'highlight.js/lib/languages/css';
-import javascript from 'highlight.js/lib/languages/javascript';
-import json from 'highlight.js/lib/languages/json';
-import markup from 'highlight.js/lib/languages/xml';
-import yamlLanguage from 'highlight.js/lib/languages/yaml';
-
-hljs.registerLanguage('css', css);
-hljs.registerLanguage('javascript', javascript);
-hljs.registerLanguage('json', json);
-hljs.registerLanguage('xml', markup);
-hljs.registerLanguage('yaml', yamlLanguage);
 
 const options = {
     json: { parser: 'json-stringify' },
@@ -213,10 +200,6 @@ export async function formatCode(text, language) {
 
         throw error;
     }
-}
-
-export function highlightCode(text, language) {
-    return hljs.highlight(text, { language: language === 'html' ? 'xml' : language, ignoreIllegals: true }).value;
 }
 `;
 
