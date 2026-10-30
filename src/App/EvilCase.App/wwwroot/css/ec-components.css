@@ -1791,7 +1791,7 @@ html {
 
 .ec-text-editor .cm-editor .cm-gutters {
     border-right: 0;
-    background: var(--ec-surface);
+    background: transparent;
     color: var(--ec-text-faint);
 }
 
