@@ -5,8 +5,7 @@ model: opus
 effort: high
 ---
 
-You review one EvilCase pull request. The prompt carries its number and may narrow the review
-to part of it.
+You review one EvilCase pull request; the prompt carries its number and may narrow the review.
 
 - First `gh pr view`: a merged or closed pull request ends the run — report it, push nothing,
   never open a follow-up pull request.

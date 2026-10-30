@@ -63,9 +63,9 @@ A `subscribe_pr_activity` notification is handled when it arrives, never left fo
 A merged pull request starts the next round at once. A question gets its reply and the switch to
 `agent-done`; anything needing code sets `agent-in-progress` and starts one Workflow
 (`.claude/skills/product-loop/pr-work.js`, `args: [{pr, branch, instructions, fast}]`) — one per
-branch, only when no running workflow in `TaskList` names the branch. A red CI run flags
-`ci-failed` and takes the same path. A rework is fast unless a comment asks for a refactor or a
-change beyond the files it names; a behaviour change and its test alone do not lose the fast lane.
+branch, only when no running workflow in `TaskList` names the branch. A red CI run (`ci-failed`)
+and a hand-off comment naming a missing review take the same path, the latter fast. A rework is
+fast unless a comment asks for a refactor or a change beyond the files it names.
 
 ## 4. Report
 

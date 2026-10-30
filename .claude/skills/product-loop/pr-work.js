@@ -38,6 +38,15 @@ const SHOTS_SCHEMA = {
   required: ['ok'],
 }
 
+const OPEN =
+  'First `gh pr view`: a merged or closed pull request ends the run — change nothing, report it. '
+
+const DONE_SCHEMA = {
+  type: 'object',
+  properties: { done: { type: 'boolean', description: 'Whether the comment and the label are on the pull request' } },
+  required: ['done'],
+}
+
 const META =
   '\n\nA hook blocks edits under .claude/** and docs/sdd/**. Only where an owner comment on ' +
   'this pull request explicitly asks for such a change: run `touch .claude/allow-meta-edits`, ' +
@@ -70,7 +79,8 @@ const results = await pipeline(
     }
     const prompt =
       `Work on the existing pull request #${item.pr}, branch ${item.branch}.\n\n${item.instructions}\n\n` +
-      `The architect's plan:\n\n${plan}${META}`
+      `The architect's plan:\n\n${plan}\n\n` +
+      `The screenshots are taken beside the review: return their targets only.${META}`
     return agent(prompt, {
       agentType: 'coder', isolation: 'worktree', phase: 'Work',
       label: `work:#${item.pr}`, schema: WORK_SCHEMA,
@@ -92,7 +102,8 @@ const results = await pipeline(
       () => work.security
         ? agent(
           `Security review only: run /security-review on the rework just pushed to pull request ` +
-            `#${item.pr}, branch ${item.branch}, and fix what it finds.${META}`,
+            `#${item.pr}, branch ${item.branch}, and fix what it finds. Skip the checklist review, another ` +
+            `agent runs it; the coder's check only where you pushed.${META}`,
           {
             agentType: 'reviewer', isolation: 'worktree', phase: 'Review',
             label: `security:#${item.pr}`, schema: REVIEW_SCHEMA,
@@ -101,24 +112,34 @@ const results = await pipeline(
         : null,
       () => screenshots(item, work),
     ]).then(async ([review, security, shots]) => {
-      const reviewed = review && (security || !work.security) && (shots?.ok || !work.screens)
+      const missing = [
+        !review && 'the code review',
+        work.security && !security && 'the security review',
+        work.screens && !shots?.ok && `the screenshots (${shots?.error || 'the agent died'})`,
+      ].filter(Boolean).join(', ')
       const fixed = [review?.fixed, security?.fixed].filter(Boolean).join(' ') || 'nothing'
       const uncertainty = [review?.uncertainty, security?.uncertainty].filter(Boolean).join(' ') || null
-      if (reviewed) {
-        await agent(
-          `Close out pull request #${item.pr}. Comment .github/code_review_template.md recording what the ` +
-            `review of the rework fixed: ${fixed}. Where a fix made the description wrong, correct that part` +
+      // A failed stage hands the pull request to the next round; the comment comes before the label,
+      // pr-state.yml sets agent-done from it even when the label switch is lost.
+      const closed = missing
+        ? await agent(
+          `${OPEN}Pull request #${item.pr} did not get its full review; missing: ${missing}. Comment that ` +
+            `on it in one sentence, then switch agent-in-progress to waiting-for-agent. Change nothing else.`,
+          { phase: 'Close', label: `handoff:#${item.pr}`, schema: DONE_SCHEMA, model: 'sonnet', effort: 'low' },
+        )
+        : await agent(
+          `${OPEN}Close out pull request #${item.pr}. Comment .github/code_review_template.md recording what ` +
+            `the review of the rework fixed: ${fixed}. Where a fix made the description wrong, correct that part` +
             `${uncertainty ? `, and add this sentence for the owner to it: ${uncertainty}` : ''}. Then switch ` +
             `agent-in-progress to agent-done. Change no code.`,
-          { phase: 'Close', label: `close:#${item.pr}`, model: 'sonnet', effort: 'low' },
+          { phase: 'Close', label: `close:#${item.pr}`, schema: DONE_SCHEMA, model: 'sonnet', effort: 'low' },
         )
-      }
       return {
         pr: item.pr,
         fixed: work.fixed,
         uncertainty,
-        status: reviewed ? 'reviewed' : 'review-failed',
-        screenshots: shots?.error || null,
+        status: missing ? 'review-failed' : closed?.done ? 'reviewed' : 'close-failed',
+        missing: missing || null,
       }
     })
   },
@@ -128,7 +149,7 @@ const results = await pipeline(
 function screenshots(item, work) {
   if (!work.screens) return null
   return agent(
-    `Take the screenshots of pull request #${item.pr} (branch ${item.branch}) per docs/loop/visual-proof.md ` +
+    `${OPEN}Take the screenshots of pull request #${item.pr} (branch ${item.branch}) per docs/loop/visual-proof.md ` +
       `and replace the Screenshots section of its body; read the body again right before writing it. ` +
       `Push no code; a page that throws is reported, not fixed.\n\nTargets: ${work.screens}${META}`,
     {
