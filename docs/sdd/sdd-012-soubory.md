@@ -223,6 +223,10 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   a znovu jde i Ctrl+Z a Ctrl+Y, Cmd+Z a Cmd+Shift+Z. Hledání nerozlišuje velikost písmen,
   zvýrazní všechny výskyty a vybere další; Enter přejde na další výskyt, Shift+Enter na
   předchozí, Esc hledání vymaže a náhled nezavře. Ctrl+F nebo Cmd+F v textu přejde do hledání.
+- Tab vloží do textu tabulátor, do kódu odsazení jeho prvního odsazeného řádku, nejvýše osm
+  mezer; když žádný odsazený není, v YAML dvě mezery, jinak tabulátor. Výběr přes více řádků Tab
+  odsadí a Shift+Tab odsazení ubere. První Esc v textu náhled nezavře a následující Tab přesune
+  fokus z textu; další Esc se chová jako Esc kdekoli v náhledu.
 - Uložit, i Ctrl+S nebo Cmd+S, nahraje text jako novou verzi souboru pod jeho jménem stejně jako
   Nová verze a náhled se vrátí ke čtení aktuální verze. Dokud se text neliší od načteného, je
   Uložit neaktivní. Uložení zachová UTF-8, BOM, pokud ho soubor měl, a konce řádků souboru; konce

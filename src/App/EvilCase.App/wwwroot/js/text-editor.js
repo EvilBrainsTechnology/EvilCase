@@ -14,7 +14,7 @@ function loadLibrary() {
 
 // Opens an editor of the text in host. The search field drives its search; Ctrl+S or Cmd+S anywhere in the dialog asks
 // the owner to save. The owner hears NotifyChanged(dirty, canUndo, canRedo) and NotifySave.
-export async function openEditor(host, searchInput, text, language, label, owner) {
+export async function openEditor(host, searchInput, text, language, indentUnit, label, owner) {
     const { createEditor } = await loadLibrary();
 
     // Closed while the library loaded.
@@ -22,7 +22,7 @@ export async function openEditor(host, searchInput, text, language, label, owner
 
     closeEditor(host);
 
-    const editor = createEditor(host, text, language, label,
+    const editor = createEditor(host, text, language, indentUnit, label,
         (dirty, canUndo, canRedo) => owner.invokeMethodAsync('NotifyChanged', dirty, canUndo, canRedo),
         () => { searchInput.focus(); searchInput.select(); });
     const stop = new AbortController();
@@ -37,6 +37,27 @@ export async function openEditor(host, searchInput, text, language, label, owner
             searchInput.value = '';
             editor.search('');
             editor.focus();
+        }
+    }, { signal });
+    // The first Escape in the text keeps the dialog open and lets Tab leave the editor until another key; a second
+    // Escape reaches the dialog.
+    let escaped = false;
+    const release = () => {
+        if (!escaped) return;
+        escaped = false;
+        editor.tabFocus(false);
+    };
+    host.addEventListener('focusin', release, { signal });
+    host.addEventListener('keydown', (event) => {
+        if (event.isComposing) return;
+        if (event.key !== 'Escape') {
+            if (!['Shift', 'Control', 'Alt', 'Meta'].includes(event.key)) release();
+        } else if (!escaped || event.repeat) {
+            escaped = true;
+            editor.tabFocus(true);
+            event.preventDefault();
+        } else {
+            release();
         }
     }, { signal });
     host.closest('dialog')?.addEventListener('keydown', (event) => {

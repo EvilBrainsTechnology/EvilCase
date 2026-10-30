@@ -143,7 +143,24 @@
 
         try
         {
-            await this.Editors.OpenEditor(this.host, this.searchInput, this.Text, this.Language, $"Obsah souboru {this.FileName}", this.self);
+            // Tab types a tab into text. Into code it types the indentation of the first indented line, at most eight
+            // spaces; without one two spaces in YAML, which takes no tabs, and a tab elsewhere.
+            var indentUnit = this.Language is CodeLanguage.Yaml ? "  " : "\t";
+
+            if (this.Language is not null)
+            {
+                foreach (var line in this.Text.AsSpan().EnumerateLines())
+                {
+                    if (line.IndexOfAnyExcept(' ', '\t') > 0)
+                    {
+                        indentUnit = line[0] == '\t' ? "\t" : new string(' ', Math.Min(line.IndexOfAnyExcept(' '), 8));
+
+                        break;
+                    }
+                }
+            }
+
+            await this.Editors.OpenEditor(this.host, this.searchInput, this.Text, this.Language, indentUnit, $"Obsah souboru {this.FileName}", this.self);
             this.opened = true;
 
             // Closed while it opened.

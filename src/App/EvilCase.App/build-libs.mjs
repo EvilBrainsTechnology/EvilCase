@@ -226,9 +226,9 @@ await bundle(codePreview, join(lib, 'code-preview'), 'code-preview.min.js', { fo
 const textEditor = `
 import { EditorState, RangeSet, StateField } from '@codemirror/state';
 import { EditorView, GutterMarker, drawSelection, gutter, highlightActiveLine, highlightActiveLineGutter, highlightSpecialChars, keymap, lineNumbers } from '@codemirror/view';
-import { defaultKeymap, history, historyKeymap, insertNewlineKeepIndent, redo, redoDepth, undo, undoDepth } from '@codemirror/commands';
+import { defaultKeymap, history, historyKeymap, indentLess, indentMore, insertNewlineKeepIndent, redo, redoDepth, undo, undoDepth } from '@codemirror/commands';
 import { SearchQuery, findNext, findPrevious, openSearchPanel, search, setSearchQuery } from '@codemirror/search';
-import { HighlightStyle, bracketMatching, syntaxHighlighting } from '@codemirror/language';
+import { HighlightStyle, bracketMatching, indentUnit, syntaxHighlighting } from '@codemirror/language';
 import { tags } from '@lezer/highlight';
 import { json } from '@codemirror/lang-json';
 import { xml } from '@codemirror/lang-xml';
@@ -258,6 +258,17 @@ class ChangedLine extends GutterMarker {
 
 const changedLine = new ChangedLine();
 
+// Tab indents the lines of a selection over more than one line; otherwise it types the unit in place of the selection.
+function indentOrInsert(view) {
+    const { state } = view;
+    if (state.selection.ranges.some((range) => state.doc.lineAt(range.from).number !== state.doc.lineAt(range.to).number)) {
+        return indentMore(view);
+    }
+
+    view.dispatch(state.update(state.replaceSelection(state.facet(indentUnit)), { scrollIntoView: true, userEvent: 'input.type' }));
+    return true;
+}
+
 // The starts of the lines changed since the editor opened; a line edited back to its original text stays marked.
 const changedLines = StateField.define({
     create: () => RangeSet.empty,
@@ -281,9 +292,10 @@ const changedLines = StateField.define({
     },
 });
 
-// Opens an editor of the text in parent. language is json, xml, yaml, html or null for plain text. onChange(dirty,
-// canUndo, canRedo) hears when any of the three changes; onFind runs on Ctrl+F or Cmd+F.
-export function createEditor(parent, text, language, label, onChange, onFind) {
+// Opens an editor of the text in parent. language is json, xml, yaml, html or null for plain text; unit is what Tab
+// types and indents by. onChange(dirty, canUndo, canRedo) hears when any of the three changes; onFind runs on Ctrl+F or
+// Cmd+F.
+export function createEditor(parent, text, language, unit, label, onChange, onFind) {
     let initial = null;
     let reported = [false, false, false];
 
@@ -301,6 +313,7 @@ export function createEditor(parent, text, language, label, onChange, onFind) {
                 drawSelection(),
                 highlightActiveLine(),
                 EditorView.lineWrapping,
+                indentUnit.of(unit),
                 EditorView.contentAttributes.of({ 'aria-label': label }),
                 // An empty panel: the search runs from the app's field; the open panel only turns the highlights on.
                 search({ createPanel: () => ({ dom: document.createElement('div'), top: true }) }),
@@ -308,6 +321,7 @@ export function createEditor(parent, text, language, label, onChange, onFind) {
                 keymap.of([
                     { key: 'Mod-f', preventDefault: true, run: () => { onFind(); return true; } },
                     { key: 'Enter', run: insertNewlineKeepIndent, shift: insertNewlineKeepIndent },
+                    { key: 'Tab', run: indentOrInsert, shift: indentLess },
                     ...defaultKeymap,
                     ...historyKeymap,
                 ]),
@@ -332,6 +346,8 @@ export function createEditor(parent, text, language, label, onChange, onFind) {
         undo: () => undo(view),
         redo: () => redo(view),
         focus: () => view.focus(),
+        // While on, Tab moves the focus out of the editor.
+        tabFocus: (on) => view.setTabFocusMode(on),
         search(query) {
             view.dispatch({ effects: setSearchQuery.of(new SearchQuery({ search: query, literal: true })) });
             if (query) {

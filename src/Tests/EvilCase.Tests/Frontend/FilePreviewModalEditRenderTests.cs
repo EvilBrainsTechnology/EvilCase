@@ -124,6 +124,26 @@ public class FilePreviewModalEditRenderTests
         Assert.That(component.FindAll(".ec-preview-note").Select(static note => note.TextContent), Does.Contain(NotUtf8Note));
     }
 
+    [TestCase("data.tsv", "a\n  b\n", "\t")]
+    [TestCase("data.json", "{}", "\t")]
+    [TestCase("data.json", "{\n\t\n  \"a\": 1\n}", "  ")]
+    [TestCase("data.xml", "<a>\r\n    <b/>\r\n  <c/>\r\n</a>", "    ")]
+    [TestCase("data.xml", "<a>\n\t<b/>\n</a>", "\t")]
+    [TestCase("data.html", "<p>\n            a</p>", "        ")]
+    [TestCase("data.yaml", "a:\n  b: c\n", "  ")]
+    [TestCase("data.yaml", "a: 1\nb: 2\n", "  ")]
+    public async Task TabTypesTheIndentationOfCodeAndATabInText(string fileName, string text, string indentUnit)
+    {
+        await using var ctx = NewContext(out var editors);
+
+        var file = File(fileName);
+        var component = Render(ctx, [file], file.FileId, Encoding.UTF8.GetBytes(text));
+
+        await component.Find("button[aria-label='Upravit']").ClickAsync(new MouseEventArgs());
+
+        Assert.That(editors.Opened.Single().IndentUnit, Is.EqualTo(indentUnit));
+    }
+
     [TestCase("data.json", CodeLanguage.Json)]
     [TestCase("Poznámky.txt", null)]
     public async Task UpravitOpensTheEditorWithTheTextAndItsLanguage(string fileName, CodeLanguage? language)
@@ -137,7 +157,7 @@ public class FilePreviewModalEditRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(editors.Opened, Is.EqualTo([("{}", language, $"Obsah souboru {fileName}")]));
+            Assert.That(editors.Opened, Is.EqualTo([("{}", language, "\t", $"Obsah souboru {fileName}")]));
             Assert.That(HeaderButtons(component), Is.EqualTo(["Zrušit", "Uložit", "Zavřít"]));
             Assert.That(SaveButton(component).HasAttribute("disabled"), Is.True, "nothing changed yet");
             Assert.That(component.FindAll(".ec-preview-nav"), Is.Empty);
