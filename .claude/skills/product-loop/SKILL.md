@@ -1,11 +1,11 @@
 ---
 name: product-loop
-description: Run one round of the EvilCase product loop — start one slice, tend the open pull requests, report. Use for every round started from `.claude/loop.md`, the loop's entry point in this repository, and whenever the loop's schedule or its decision issues are in question. Unrelated to the global `loop` skill.
+description: Run one round of the EvilCase product loop — start one slice, tend the open pull requests, report. Use for every round started from `.claude/loop.md`, the loop's entry point in this repository, and whenever the loop's schedule or its questions to the owner are in question. Unrelated to the global `loop` skill.
 ---
 
 # EvilCase product loop
 
-Move EvilCase toward `docs/product/vision.md`; never ask permission and never wait for the owner.
+Move EvilCase toward `docs/product/vision.md`; ask the owner whatever is unclear, never permission.
 
 ## 1. Start the work, before anything else in the round
 
@@ -19,7 +19,7 @@ commit over 3 hours old — merged and closed pull requests' branches included. 
 it. A failed run comments its issue; two such comments in a row label it `blocked`.
 
 The backlog is the open issues labelled `loop` and none of `agent-in-progress` (taken),
-`blocked` or `needs-decision`: highest `Priority` (`Urgent`, `High`, `Medium`, `Low`, then none),
+`blocked` or `waiting-for-owner`: highest `Priority` (`Urgent`, `High`, `Medium`, `Low`, then none),
 the lowest milestone breaking a tie, honouring a focus argument. Empty backlog: do nothing.
 
 The round runs one slice at a time. An open pull request on a `loop/*` branch or a `loop` issue
@@ -32,16 +32,15 @@ to review on a phone, on `loop/<issue>-<slug>` off `master`. `fast: true` is the
 behaviour change, no new test — a rename, doc wording, a sweep an analyzer verifies. Schema,
 tenancy, security, an API contract, a screen, a test or a second project keep all three phases.
 
-## 2. Decide, do not ask
+## 2. Ask, then wait
 
-Choose the reasonable answer yourself and state it in the pull request description as one
-sentence. Open a decision issue, filling `.github/ISSUE_TEMPLATE/decision.md`, only where being
-wrong is expensive to undo: the database schema, the domain model, security. Label the
-dependent issue `blocked` and take something else.
+Every unclear point and every `question` a workflow returns goes to the owner in this chat
+(`.claude/rules/agents.md`), with the issue or pull request it holds up. Its issue switches
+`agent-in-progress` to `waiting-for-owner`, its pull request to `agent-done`; take something else.
 
-An answer is a comment from the owner, `vdolek`, on an open `needs-decision` issue. Apply it:
-say what was chosen, label `decided`, close it, and unblock what referenced it. A decision that
-changes the vision or a governing SDD is an owner request: `touch .claude/allow-meta-edits`,
+An answer is the owner's reply in this chat. Apply it at once: remove `waiting-for-owner`, restart
+the work with the question and the answer appended to its `body` or `instructions`. An answer
+changing the vision or a governing SDD is an owner request: `touch .claude/allow-meta-edits`,
 update it in the same commit as the code it governs, delete the flag. A round removes `blocked`
 from an issue whose `Blocked by #` issues have all merged or closed.
 
@@ -70,7 +69,8 @@ fast unless a comment asks for a refactor or a change beyond the files it names.
 ## 4. Report
 
 One short Czech chat message for the whole round, Prague times (`TZ=Europe/Prague date`): what is
-open for review, what was fixed, what waits on the owner. One line each, never a question.
+open for review, what was fixed, which question waits on the owner. One line each; a question
+is asked on its own (step 2), never in the report.
 
 ## The schedule
 

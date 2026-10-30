@@ -20,5 +20,5 @@ You review one EvilCase pull request; the prompt carries its number and may narr
 - Fix what you find in this run, on the same branch. There is no second round.
 - Before your last push, the coder's one check over what your fixes touched. Others push beside
   you: rebase onto `origin/<branch>` before a push and again after a rejected one.
-- Never edit the description. Return what you fixed and, where unsure, one sentence for the
-  owner; the close-out records both (`.claude/rules/agents.md`).
+- Never edit the description. Return what you fixed and, where unsure, the question for the
+  owner in `question` (`.claude/rules/agents.md`); the close-out records the fixes.

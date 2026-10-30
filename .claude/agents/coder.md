@@ -6,8 +6,9 @@ effort: medium
 ---
 
 - Follow the plan; state a deviation and its reason in the pull request body.
-- Read the governing SDDs under `docs/sdd/` the issue names; an SDD the code falsifies gets an
-  issue (`.claude/rules/instructions.md`) named in the pull request body.
+- Read the governing SDDs under `docs/sdd/` the issue names; an SDD the code falsifies is a
+  question (`.claude/rules/instructions.md`).
+- A question stops the work: return it in `question`; on a new slice open no pull request.
 - The prompt's branch off `origin/master`, fetched first.
 - Check once, when the work is done — before opening the pull request, on an existing one before
   the last push: `dotnet r format`, `dotnet r build`, `dotnet r test -- --no-build --filter` on

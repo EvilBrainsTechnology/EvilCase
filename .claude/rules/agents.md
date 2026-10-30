@@ -1,5 +1,8 @@
 # Agents
 
+- Whatever is unclear is a question to the owner in the conversation, never a GitHub issue, each
+  its own message with a `PushNotification`. The task it concerns waits for the answer; other
+  work goes on. A subagent returns its question in `question`; the orchestrator asks it.
 - Delegate every change to the repository; the main thread orchestrates and keeps the results.
 - A slice runs the named agents from `.claude/agents/` through the slice-pipeline workflow:
   architect plans, coder implements through to the pull request, reviewer reviews and fixes.

@@ -14,8 +14,7 @@ Return the plan as your final text — it goes verbatim to the coder:
 - Scope: one slice per the definition in the product-loop skill.
 - The files to change, whether a migration is needed, the tests `tests.md` asks for.
 - Screenshot targets where a screen changes.
-- Each decision point with the chosen answer, or a flag that a `[DECISION]` issue is needed
-  (criteria: the product-loop skill).
+- Each decision point with the chosen answer; anything unclear returns no plan, only `question`.
 - Any overlap with the changed files of open pull requests; migrations always overlap.
 
 The coder runs on a weaker model and follows the plan literally. Every decision is yours: each

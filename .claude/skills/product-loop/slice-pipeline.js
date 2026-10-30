@@ -16,25 +16,38 @@ const META =
   '\n\nNever edit .claude/** and never create .claude/allow-meta-edits. One exception: where ' +
   'the plan or issue body carries an applied owner decision changing a governing SDD or the ' +
   'vision, run `touch .claude/allow-meta-edits` in your worktree, make that edit, delete the ' +
-  'flag. Any other code that falsifies an instruction or an SDD opens an issue for the owner.'
+  'flag. Any other code that falsifies an instruction or an SDD, and anything unclear, is a ' +
+  'question for the owner: return it in `question` (.claude/rules/agents.md).'
+
+const QUESTION = { type: 'string', description: 'The question for the owner, or empty' }
+
+const PLAN_SCHEMA = {
+  type: 'object',
+  properties: {
+    plan: { type: 'string', description: 'The plan, or empty where a question stops it' },
+    question: QUESTION,
+  },
+  required: ['plan', 'question'],
+}
 
 const PR_SCHEMA = {
   type: 'object',
   properties: {
-    pr: { type: 'integer', description: 'The opened pull request number' },
+    pr: { type: 'integer', description: 'The opened pull request number, or 0 where a question stopped the work' },
     branch: { type: 'string' },
     summary: { type: 'string', description: 'One sentence on what the slice changed' },
     screens: { type: 'string', description: 'The screenshot targets where a screen changes, or empty' },
     security: { type: 'boolean', description: 'Whether authentication or file storage changed' },
+    question: QUESTION,
   },
-  required: ['pr', 'branch', 'summary', 'screens', 'security'],
+  required: ['pr', 'branch', 'summary', 'screens', 'security', 'question'],
 }
 
 const REVIEW_SCHEMA = {
   type: 'object',
   properties: {
     fixed: { type: 'string', description: 'One sentence on what the review fixed, or "nothing"' },
-    uncertainty: { type: 'string', description: 'The one sentence left for the owner, or empty' },
+    question: QUESTION,
   },
   required: ['fixed'],
 }
@@ -89,10 +102,12 @@ const results = await pipeline(
       )
     }
     // A proposal the owner approved is the plan; the coder then runs on Opus.
-    const plan = slice.plan || await agent(
+    const planned = slice.plan ? null : await agent(
       `Plan the slice for ${what} (branch ${branch}).\n\n${slice.body}`,
-      { agentType: 'architect', phase: 'Plan', label: `plan:${tag}` },
+      { agentType: 'architect', phase: 'Plan', label: `plan:${tag}`, schema: PLAN_SCHEMA },
     )
+    if (planned?.question) return { pr: 0, question: planned.question }
+    const plan = slice.plan || planned?.plan
     if (!plan) throw new Error(`slice ${tag}: no plan`)
     const prompt =
       `Implement ${what} on branch ${branch}.\n\n${slice.body}\n\n` +
@@ -105,27 +120,29 @@ const results = await pipeline(
     })
   },
   (pr, slice) => {
-    if (!pr) throw new Error(`slice ${slice.issue ? `#${slice.issue}` : slice.slug}: no pull request`)
+    // A question stops the slice before its pull request; the orchestrator asks it.
+    if (pr?.question && !pr.pr) return { issue: slice.issue, status: 'question', question: pr.question }
+    if (!pr?.pr) throw new Error(`slice ${slice.issue ? `#${slice.issue}` : slice.slug}: no pull request`)
     if (slice.fast) {
       return {
         issue: slice.issue, pr: pr.pr, branch: pr.branch, summary: pr.summary,
-        fixed: null, uncertainty: null, status: 'fast',
+        fixed: null, question: pr.question || null, status: 'fast',
       }
     }
     return reviewSideBySide(pr).then(async ([review, security, shots]) => {
       const missing = whatIsMissing(pr, review, security, shots)
       const fixed = [review?.fixed, security?.fixed].filter(Boolean).join(' ') || null
-      const uncertainty = [review?.uncertainty, security?.uncertainty].filter(Boolean).join(' ') || null
+      const question = [pr.question, review?.question, security?.question].filter(Boolean).join(' ') || null
       const closed = await landed(() => missing
-        ? handOff(pr.pr, missing, fixed, uncertainty)
-        : closeOut(pr.pr, fixed, uncertainty))
+        ? handOff(pr.pr, missing, fixed)
+        : closeOut(pr.pr, fixed))
       return {
         issue: slice.issue,
         pr: pr.pr,
         branch: pr.branch,
         summary: pr.summary,
         fixed,
-        uncertainty,
+        question,
         status: closed?.closed ? 'closed' : missing ? 'review-failed' : closed?.done ? 'reviewed' : 'close-failed',
         missing: missing || null,
       }
@@ -177,23 +194,21 @@ function whatIsMissing(pr, review, security, shots) {
   ].filter(Boolean).join('; ')
 }
 
-function handOff(number, missing, fixed, uncertainty) {
+function handOff(number, missing, fixed) {
   return agent(
     `${OPEN}Pull request #${number} did not get its full review. Comment on it, without a heading: ` +
       `"Review not finished; missing: ${missing}."` +
-      `${fixed ? ` Add what the finished part fixed: ${fixed}.` : ''}` +
-      `${uncertainty ? ` Add for the owner: ${uncertainty}.` : ''} ` +
+      `${fixed ? ` Add what the finished part fixed: ${fixed}.` : ''} ` +
       `Then switch agent-in-progress to waiting-for-agent. Change nothing else.`,
     { phase: 'Close', label: `handoff:#${number}`, schema: DONE_SCHEMA, model: 'sonnet', effort: 'low' },
   )
 }
 
 // The comment comes first: pr-state.yml sets agent-done from it even when the label switch is lost.
-function closeOut(number, fixed, uncertainty) {
+function closeOut(number, fixed) {
   return agent(
     `${OPEN}Close out pull request #${number}. Comment .github/code_review_template.md recording what the review ` +
-      `fixed: ${fixed ?? 'nothing'}. Where a fix made the description wrong, correct that part` +
-      `${uncertainty ? `, and add this sentence for the owner to it: ${uncertainty}` : ''}. ` +
+      `fixed: ${fixed ?? 'nothing'}. Where a fix made the description wrong, correct that part. ` +
       `${LABEL}Change no code.`,
     { phase: 'Close', label: `close:#${number}`, schema: DONE_SCHEMA, model: 'sonnet', effort: 'low' },
   )
