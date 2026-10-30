@@ -10,6 +10,9 @@ namespace EvilBrains.EvilCase.Tests.Data;
 /// </summary>
 public class DatabaseHistoryTests
 {
+    // Both carry a token hash and change on every use.
+    private static readonly string[] Unhistorized = ["RefreshTokens", "ApiTokens"];
+
     [Test]
     public async Task InsertUpdateAndDeleteWriteThreeHistoryRowsInOrder()
     {
@@ -66,7 +69,7 @@ public class DatabaseHistoryTests
     }
 
     [Test]
-    public async Task EveryMappedTableExceptRefreshTokensCarriesTheRecordTrigger()
+    public async Task EveryMappedTableExceptTheTokenTablesCarriesTheRecordTrigger()
     {
         await using var context = TestDatabase.CreateMigrated();
 
@@ -74,7 +77,7 @@ public class DatabaseHistoryTests
             .Select(static entityType => entityType.GetTableName())
             .OfType<string>()
             .Distinct(StringComparer.Ordinal)
-            .Where(static table => !string.Equals(table, "RefreshTokens", StringComparison.Ordinal))
+            .Except(Unhistorized, StringComparer.Ordinal)
             .ToList();
 
         var triggered = await context.Database
@@ -91,13 +94,13 @@ public class DatabaseHistoryTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(historized, Is.Not.Empty, "the model maps entities carrying history at all, or this test passes vacuously");
-            Assert.That(triggered, Is.SupersetOf(historized), "a mapped table other than RefreshTokens has no record_history trigger, so its rows would be written with no history");
-            Assert.That(triggered, Does.Not.Contain("RefreshTokens"), "RefreshTokens rotates on every refresh and carries the token hash, so it stays out of history");
+            Assert.That(triggered, Is.SupersetOf(historized), "a mapped table other than the token tables has no record_history trigger, so its rows would be written with no history");
+            Assert.That(triggered, Has.None.AnyOf(Unhistorized), "the token tables carry the token hash and change on every use, so they stay out of history");
         }
     }
 
     [Test]
-    public async Task RefreshTokensHasNoMirrorTable()
+    public async Task TheTokenTablesHaveNoMirrorTable()
     {
         await using var context = TestDatabase.CreateMigrated();
 
@@ -111,7 +114,7 @@ public class DatabaseHistoryTests
                 """)
             .ToListAsync();
 
-        Assert.That(mirrors, Does.Not.Contain("RefreshTokens"), "RefreshTokens rotates on every refresh and carries the token hash, so it carries no mirror table");
+        Assert.That(mirrors, Has.None.AnyOf(Unhistorized), "the token tables carry the token hash and change on every use, so they carry no mirror table");
     }
 
     [Test]
@@ -122,7 +125,7 @@ public class DatabaseHistoryTests
         var historized = context.Model.GetEntityTypes()
             .Select(static entityType => entityType.GetTableName()!)
             .Distinct(StringComparer.Ordinal)
-            .Where(static table => !string.Equals(table, "RefreshTokens", StringComparison.Ordinal))
+            .Except(Unhistorized, StringComparer.Ordinal)
             .ToList();
 
         using (Assert.EnterMultipleScope())
