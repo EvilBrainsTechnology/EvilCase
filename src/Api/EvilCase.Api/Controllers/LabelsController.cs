@@ -31,7 +31,7 @@ public class LabelsController : ControllerBase
 
         return result.Outcome switch
         {
-            LabelCreateOutcome.Created => this.CreatedAtAction(nameof(this.ListLabels), routeValues: null, result.Label),
+            LabelCreateOutcome.Created => this.StatusCode(StatusCodes.Status201Created, result.Label),
             LabelCreateOutcome.NameTaken => this.NameTakenProblem(),
             _ => throw new UnreachableException(),
         };

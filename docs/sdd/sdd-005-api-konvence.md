@@ -25,9 +25,9 @@ Tvary API a klienta.
 - Přihlášení nese cookie, nebo API token v hlavičce `Authorization: Bearer` (SDD-006). OpenAPI
   dokument deklaruje schéma Bearer.
 - Založení odpovídá 201 s hlavičkou `Location` na detail nového záznamu; u souboru a verze míří na
-  stažení obsahu, detail souboru není. Založení API tokenu odpovídá 201 bez `Location`, protože
-  token nemá detail. Upload, který nic neuloží, protože se obsah shoduje s aktuální verzí,
-  odpovídá 200. Komentář odpovídá 204 i na založení. Editace a smazání odpovídají 204.
+  stažení obsahu, detail souboru není. Založení záznamu, který nemá detail, odpovídá 201 bez
+  `Location`: API token a štítek. Upload, který nic neuloží, protože se obsah shoduje s aktuální
+  verzí, odpovídá 200. Komentář odpovídá 204 i na založení. Editace a smazání odpovídají 204.
 - V těle jde hodnota výčtu jako název; číslo ani neznámý název se nepřijme (400). V query
   stringu ji váže framework, který číslo bere.
 - Každý výpis bere stránku, směr řazení, svůj řadicí klíč a hledaný text; k tomu zúžení své
