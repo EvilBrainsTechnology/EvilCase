@@ -64,10 +64,8 @@ function indexAt(starts, offset) {
     return low - 1;
 }
 
-// How the items of two lists face each other, in order: [a, b] with -1 for an item only one side has, the older's
-// before the newer's. keys are the items' texts. Equal items face each other where the fewest changes keep them;
-// between those, two items face each other when the diff of the joined texts keeps more of their text alike than of
-// any other item's, on both sides, and two empty items where the diff keeps them in place.
+// How two lists of item texts face each other in order: [a, b], -1 for an item only one side has. Equal items pair
+// first; between them, items pair with the item they share the most text with on both sides.
 function align(keysA, keysB, diff) {
     const codes = new Map();
     const code = (key) => {
@@ -288,17 +286,9 @@ function compareTables(a, b, out, diff) {
     return found;
 }
 
-// The differences of newer against older, both { size, blocks } as blocksOf reads a document. diff(older, newer) answers
-// the changes of one string against another as [{ fromA, toA, fromB, toB }]. Answers:
-// - older, newer: the marks of each document: text deleted or inserted { from, to, type }, a stretch of text in another
-//   format { from, to, type: 'format', title }, a block of another type { node, end, type: 'restyled', title }, and
-//   blocks, rows and cells removed, added or changed { node, end, type }.
-// - deletions: what one column shows of the older document in the newer at { at }: deleted text { from, to } or a
-//   removed block, row or cell { node } wrapped in the older's blocks at the positions wrap.
-// - pairs: the [older, newer] positions of the blocks that face each other side by side.
-// - changes: the runs of blocks that differ in order, each with its first block in the older, in the newer, and where
-//   one column shows it; added and removed: the blocks of the newer and of the older that differ, a table row counted
-//   as a block.
+// The differences of newer against older ({ size, blocks } of blocksOf), diff(a, b) answering [{ fromA, toA, fromB, toB }].
+// Answers the marks of each document (older, newer: { from, to } of text, { node, end } of a block, row or cell), the
+// deletions one column shows at { at }, the facing blocks' pairs, the changes in order and the blocks added and removed.
 export function diffMarkdown(older, newer, diff) {
     const out = { older: [], newer: [], deletions: [], pairs: [], changes: [], added: 0, removed: 0 };
     const key = (block) => (block.type === 'table' ? block.rows.map((row) => row.cells.map((cell) => cell.block.text).join(' ')).join(' ') : block.text);

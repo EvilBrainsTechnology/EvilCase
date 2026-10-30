@@ -49,7 +49,11 @@ export async function openCompare(host, older, newer, language, format, labels, 
     const entry = start(host, owner, (layout, onFind) => {
         const compare = library.createCompare(layout.parent, scroller(host), ...texts, language, layout.unified, labels, onFind);
         let folded = null;
-        compare.matches = (query) => (folded ??= compare.texts().map(foldText)).map((text) => findMatches(text, query));
+        compare.matches = (query) => {
+            if (!query) return compare.texts().map(() => []);
+            folded ??= compare.texts().map(foldText);
+            return folded.map((text) => findMatches(text, query));
+        };
         return compare;
     });
 
@@ -166,20 +170,24 @@ export function stepCompareChange(host, previous) {
 }
 
 // An empty query clears the matches at once; a new query waits for the typing to pause. The search counts the matches
-// in every text the layout shows, in their order down the compare, and wraps around.
+// in every text the layout shows, in their order down the compare, and wraps around. A layout still being built searches
+// the last query once it is built.
 export function findInCompare(host, query, again, previous) {
     const entry = compares.get(host);
-    const compare = entry?.active?.compare;
 
-    if (!compare) return;
+    if (!entry?.active) return;
+
+    const { compare } = entry.active;
 
     clearTimeout(entry.typing);
 
     if (query.length === 0) {
         entry.query = '';
         entry.matches = [];
-        compare.setMatches(compare.matches(''));
+        compare?.setMatches(compare.matches(''));
     } else if (again && entry.query === query) {
+        if (!compare) return;
+
         const count = entry.matches.length;
 
         if (count > 0) show(entry, (entry.current + (previous ? count - 1 : 1)) % count);
