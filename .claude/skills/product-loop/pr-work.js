@@ -9,7 +9,9 @@ export const meta = {
   ],
 }
 
-const QUESTION = { type: 'string', description: 'The question for the owner, or empty' }
+const QUESTION = { type: 'string', description: 'Only where a question stops the work: the question for the owner' }
+
+const asked = (q) => q?.trim() || null
 
 const WORK_SCHEMA = {
   type: 'object',
@@ -20,7 +22,7 @@ const WORK_SCHEMA = {
     security: { type: 'boolean', description: 'Whether authentication or file storage changed' },
     question: QUESTION,
   },
-  required: ['fixed', 'screens', 'security', 'question'],
+  required: ['fixed', 'screens', 'security'],
 }
 
 const REVIEW_SCHEMA = {
@@ -73,7 +75,7 @@ const PLAN_SCHEMA = {
     plan: { type: 'string', description: 'The plan, or empty where a question stops it' },
     question: QUESTION,
   },
-  required: ['plan', 'question'],
+  required: [],
 }
 
 // args may arrive as a JSON string.
@@ -89,7 +91,7 @@ const results = await pipeline(
       `Plan the rework of pull request #${item.pr} (branch ${item.branch}).\n\n${item.instructions}`,
       { agentType: 'architect', phase: 'Plan', label: `plan:#${item.pr}`, schema: PLAN_SCHEMA },
     )
-    if (planned?.question) return { question: planned.question }
+    if (asked(planned?.question)) return { question: asked(planned.question) }
     if (!planned?.plan) throw new Error(`pull request #${item.pr}: no plan`)
     return planned.plan
   },
@@ -119,7 +121,7 @@ const results = await pipeline(
   (work, item) => {
     if (!work) throw new Error(`pull request #${item.pr}: work failed`)
     // A question stops the rework before its review; the orchestrator asks it.
-    if (work.question) return { pr: item.pr, fixed: work.fixed, question: work.question, status: 'question' }
+    if (asked(work.question)) return { pr: item.pr, fixed: work.fixed, question: asked(work.question), status: 'question' }
     if (item.fast) return { pr: item.pr, fixed: work.fixed, question: null, status: 'fast' }
     return parallel([
       () => agent(
@@ -151,7 +153,7 @@ const results = await pipeline(
         work.screens && !shots?.ok && `the screenshots per docs/loop/visual-proof.md (${shots?.error || 'the agent died'})`,
       ].filter(Boolean).join('; ')
       const fixed = [review?.fixed, security?.fixed].filter(Boolean).join(' ') || 'nothing'
-      const question = [review?.question, security?.question].filter(Boolean).join(' ') || null
+      const question = [review?.question, security?.question].map(asked).filter(Boolean).join(' ') || null
       // A failed stage hands the pull request to the next round; the comment comes before the label,
       // pr-state.yml sets agent-done from it even when the label switch is lost.
       const closed = await landed(() => missing

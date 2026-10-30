@@ -35,14 +35,15 @@ tenancy, security, an API contract, a screen, a test or a second project keep al
 ## 2. Ask, then wait
 
 Every unclear point and every `question` a workflow returns goes to the owner in this chat
-(`.claude/rules/agents.md`), with the issue or pull request it holds up. Its issue switches
-`agent-in-progress` to `waiting-for-owner`, its pull request to `agent-done`; take something else.
+(`.claude/rules/agents.md`). The held-up issue swaps `agent-in-progress` for `waiting-for-owner`,
+which frees the start; a held-up pull request gets it beside `agent-done`. Nothing works on a
+`waiting-for-owner` item until the answer, a red CI run and a hand-off included.
 
-An answer is the owner's reply in this chat. Apply it at once: remove `waiting-for-owner`, restart
-the work with the question and the answer appended to its `body` or `instructions`. An answer
-changing the vision or a governing SDD is an owner request: `touch .claude/allow-meta-edits`,
-update it in the same commit as the code it governs, delete the flag. A round removes `blocked`
-from an issue whose `Blocked by #` issues have all merged or closed.
+An answer is the owner's reply here or a comment on the item. Comment the question, the answer and
+what the stopped work pushed on the item, remove `waiting-for-owner`: an issue rejoins the backlog
+with that comment in `body`; a pull request starts `pr-work.js` at once with it and what came
+meanwhile in `instructions`. An answer changing the vision or a governing SDD is an owner request,
+edited in the code's commit. A round unblocks an issue once its `Blocked by #` all closed.
 
 ## 3. Tend the open pull requests
 
@@ -59,7 +60,7 @@ from an issue whose `Blocked by #` issues have all merged or closed.
 ## Between rounds
 
 A `subscribe_pr_activity` notification is handled when it arrives, never left for the next round.
-A merged pull request starts the next round at once. A question gets its reply and the switch to
+A merged pull request starts the next round at once. An owner's question gets its reply and
 `agent-done`; anything needing code sets `agent-in-progress` and starts one Workflow
 (`.claude/skills/product-loop/pr-work.js`, `args: [{pr, branch, instructions, fast}]`) — one per
 branch, only when no running workflow in `TaskList` names the branch. A red CI run (`ci-failed`)
@@ -69,8 +70,7 @@ fast unless a comment asks for a refactor or a change beyond the files it names.
 ## 4. Report
 
 One short Czech chat message for the whole round, Prague times (`TZ=Europe/Prague date`): what is
-open for review, what was fixed, which question waits on the owner. One line each; a question
-is asked on its own (step 2), never in the report.
+open for review, what was fixed, which question waits on the owner. One line each, asking nothing.
 
 ## The schedule
 

@@ -19,7 +19,9 @@ const META =
   'flag. Any other code that falsifies an instruction or an SDD, and anything unclear, is a ' +
   'question for the owner: return it in `question` (.claude/rules/agents.md).'
 
-const QUESTION = { type: 'string', description: 'The question for the owner, or empty' }
+const QUESTION = { type: 'string', description: 'Only where a question stops the work: the question for the owner' }
+
+const asked = (q) => q?.trim() || null
 
 const PLAN_SCHEMA = {
   type: 'object',
@@ -27,7 +29,7 @@ const PLAN_SCHEMA = {
     plan: { type: 'string', description: 'The plan, or empty where a question stops it' },
     question: QUESTION,
   },
-  required: ['plan', 'question'],
+  required: [],
 }
 
 const PR_SCHEMA = {
@@ -40,7 +42,7 @@ const PR_SCHEMA = {
     security: { type: 'boolean', description: 'Whether authentication or file storage changed' },
     question: QUESTION,
   },
-  required: ['pr', 'branch', 'summary', 'screens', 'security', 'question'],
+  required: ['pr', 'branch', 'summary', 'screens', 'security'],
 }
 
 const REVIEW_SCHEMA = {
@@ -106,7 +108,7 @@ const results = await pipeline(
       `Plan the slice for ${what} (branch ${branch}).\n\n${slice.body}`,
       { agentType: 'architect', phase: 'Plan', label: `plan:${tag}`, schema: PLAN_SCHEMA },
     )
-    if (planned?.question) return { pr: 0, question: planned.question }
+    if (asked(planned?.question)) return { pr: 0, question: asked(planned.question) }
     const plan = slice.plan || planned?.plan
     if (!plan) throw new Error(`slice ${tag}: no plan`)
     const prompt =
@@ -121,18 +123,18 @@ const results = await pipeline(
   },
   (pr, slice) => {
     // A question stops the slice before its pull request; the orchestrator asks it.
-    if (pr?.question && !pr.pr) return { issue: slice.issue, status: 'question', question: pr.question }
+    if (asked(pr?.question) && !pr.pr) return { issue: slice.issue, status: 'question', question: asked(pr.question) }
     if (!pr?.pr) throw new Error(`slice ${slice.issue ? `#${slice.issue}` : slice.slug}: no pull request`)
     if (slice.fast) {
       return {
         issue: slice.issue, pr: pr.pr, branch: pr.branch, summary: pr.summary,
-        fixed: null, question: pr.question || null, status: 'fast',
+        fixed: null, question: asked(pr.question), status: 'fast',
       }
     }
     return reviewSideBySide(pr).then(async ([review, security, shots]) => {
       const missing = whatIsMissing(pr, review, security, shots)
       const fixed = [review?.fixed, security?.fixed].filter(Boolean).join(' ') || null
-      const question = [pr.question, review?.question, security?.question].filter(Boolean).join(' ') || null
+      const question = [pr.question, review?.question, security?.question].map(asked).filter(Boolean).join(' ') || null
       const closed = await landed(() => missing
         ? handOff(pr.pr, missing, fixed)
         : closeOut(pr.pr, fixed))
