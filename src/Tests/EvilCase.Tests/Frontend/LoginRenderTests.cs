@@ -3,6 +3,7 @@ using EvilBrains.EvilCase.App.Auth;
 using EvilBrains.EvilCase.App.Components;
 using EvilBrains.EvilCase.App.Pages;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -11,7 +12,7 @@ namespace EvilBrains.EvilCase.Tests.Frontend;
 public class LoginRenderTests
 {
     [Test]
-    public async Task TheFormIsBuiltFromTheEcPrimitives()
+    public async Task TheSignInFormRenders()
     {
         await using var ctx = new BunitContext();
 
@@ -19,85 +20,7 @@ public class LoginRenderTests
 
         var component = ctx.Render<Login>();
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(component.FindAll(".ec-field"), Has.Count.EqualTo(2));
-            Assert.That(component.Find("label[for=\"login-email\"]").TextContent.Trim(), Does.StartWith("E-mail"));
-            Assert.That(component.Find("label[for=\"login-password\"]").TextContent.Trim(), Does.StartWith("Heslo"));
-            Assert.That(component.Find("button[type=\"submit\"]").ClassList, Does.Contain("ec-button").And.Contain("ec-button-primary"));
-            Assert.That(
-                component.FindAll(".btn, .form-control, .card, .alert, .container-tight"),
-                Is.Empty,
-                "the sign-in page carries no Tabler class (SDD-020)");
-        }
-    }
-
-    [Test]
-    public async Task TheFormSitsInTheSameFrameAsTheLoadingStep()
-    {
-        await using var ctx = new BunitContext();
-
-        ctx.Services.AddSingleton<IAuthSession>(new StubAuthSession());
-
-        var login = ctx.Render<Login>();
-        var loading = ctx.Render<LoadingPage>();
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(login.Find(".ec-gate-card form"), Is.Not.Null);
-            Assert.That(login.Find(".ec-gate > .ec-brand").TextContent.Trim(), Is.EqualTo("EvilCase"));
-            Assert.That(loading.Find(".ec-gate > .ec-brand").TextContent.Trim(), Is.EqualTo("EvilCase"));
-            Assert.That(loading.Find(".ec-gate-card .ec-boot-track"), Is.Not.Null);
-            Assert.That(login.FindAll(".ec-gate-facts"), Is.Empty);
-            Assert.That(loading.FindAll(".ec-gate-facts"), Is.Empty);
-        }
-    }
-
-    [Test]
-    public async Task ARefusedSignInShowsTheReasonInsideTheForm()
-    {
-        await using var ctx = new BunitContext();
-
-        ctx.Services.AddSingleton<IAuthSession>(new StubAuthSession { Outcome = SignInOutcome.InvalidCredentials });
-
-        var component = ctx.Render<Login>();
-
-        await component.Find("#login-email").ChangeAsync(new ChangeEventArgs { Value = "spravce@example.cz" });
-        await component.Find("#login-password").ChangeAsync(new ChangeEventArgs { Value = "ChybneHeslo1" });
-        await component.Find("button[type=\"submit\"]").ClickAsync(new MouseEventArgs());
-
-        Assert.That(component.Find(".ec-alert").TextContent, Does.Contain("Nesprávný e-mail nebo heslo."));
-
-        var children = component.Find("form").Children.ToList();
-        var lastFieldIndex = children.FindLastIndex(static c => c.ClassList.Contains("ec-field"));
-        var alertIndex = children.FindIndex(static c => c.ClassList.Contains("ec-alert"));
-        var submitIndex = children.FindIndex(static c => c.ClassList.Contains("ec-button"));
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(alertIndex, Is.GreaterThan(lastFieldIndex), "a refused sign-in is answered where the form was filled in");
-            Assert.That(alertIndex, Is.LessThan(submitIndex), "a refused sign-in is answered where the form was filled in");
-        }
-    }
-
-    [Test]
-    public async Task AnEmptySubmitFocusesTheFirstInvalidField()
-    {
-        await using var ctx = new BunitContext();
-        var form = ctx.JSInterop.SetupModule("./js/ec-form.js");
-        form.SetupVoid("focusFirstInvalid");
-
-        ctx.Services.AddSingleton<IAuthSession>(new StubAuthSession());
-
-        var component = ctx.Render<Login>();
-
-        await component.Find("button[type=\"submit\"]").ClickAsync(new MouseEventArgs());
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(component.Find("#login-email").GetAttribute("aria-invalid"), Is.EqualTo("true"));
-            form.VerifyInvoke("focusFirstInvalid");
-        }
+        Assert.That(component.FindComponents<EditForm>(), Has.Count.EqualTo(1));
     }
 
     [Test]

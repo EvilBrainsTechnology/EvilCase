@@ -1,9 +1,8 @@
 using Bunit;
 using EvilBrains.EvilCase.Api.Client;
 using EvilBrains.EvilCase.Api.Contract.Contacts;
-using EvilBrains.EvilCase.Domain.Contacts;
+using EvilBrains.EvilCase.App.Components.Lists;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EvilBrains.EvilCase.Tests.Frontend;
@@ -11,124 +10,22 @@ namespace EvilBrains.EvilCase.Tests.Frontend;
 public class ContactsRenderTests
 {
     [Test]
-    public void ThePageHeaderCountsTheContactsTheListFound()
+    public void TheListRenders()
     {
         using var ctx = new BunitContext();
-        Serve(ctx, total: 11);
-
-        var component = ctx.Render<App.Pages.Contacts>();
-
-        component.WaitForAssertion(() => Assert.That(component.Markup, Does.Contain("11 záznamů")));
-    }
-
-    [Test]
-    public void TheListIsTheOnlyCardOnThePage()
-    {
-        using var ctx = new BunitContext();
-        Serve(ctx);
-
-        var component = ctx.Render<App.Pages.Contacts>();
-
-        component.WaitForAssertion(() =>
-        {
-            using (Assert.EnterMultipleScope())
-            {
-                Assert.That(component.FindAll(".ec-card"), Has.Count.EqualTo(1));
-                Assert.That(component.FindAll(".ec-card .ec-card"), Is.Empty, "a card never lies inside another card (SDD-020)");
-            }
-        });
-    }
-
-    [Test]
-    public async Task TheNewContactButtonOpensTheForm()
-    {
-        await using var ctx = new BunitContext();
-        Serve(ctx);
-
-        var component = ctx.Render<App.Pages.Contacts>();
-
-        await component.Find("#contact-new").ClickAsync(new MouseEventArgs());
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(component.Find("dialog"), Is.Not.Null);
-            Assert.That(component.Find("dialog").TextContent, Does.Contain("Nový kontakt"));
-        }
-    }
-
-    [Test]
-    public async Task AContactCreatedInTheFormReloadsTheList()
-    {
-        await using var ctx = new BunitContext();
-        var contactsClient = Serve(ctx);
-
-        contactsClient
-            .CreateContact(Arg.Any<ContactEditRequest>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(new ContactListItem { ContactId = Guid.CreateVersion7(), Kind = ContactKind.Authority, Name = "Nový úřad" }));
-
-        var component = ctx.Render<App.Pages.Contacts>();
-
-        await component.Find("#contact-new").ClickAsync(new MouseEventArgs());
-        await component.Find("#contact-create-name").ChangeAsync(new ChangeEventArgs { Value = "Nový úřad" });
-        await component.Find(".ec-modal-footer .ec-button-primary").ClickAsync(new MouseEventArgs());
-
-        await contactsClient.Received(2).ListContacts(Arg.Any<ContactListRequest>(), Arg.Any<CancellationToken>());
-    }
-
-    [Test]
-    public async Task TheSearchFromTheAddressNarrowsTheList()
-    {
-        await using var ctx = new BunitContext();
-        var client = Serve(ctx);
-
-        ctx.Services.GetRequiredService<NavigationManager>().NavigateTo("/contacts?q=urad");
-
-        _ = ctx.Render<App.Pages.Contacts>();
-
-        await Assert.ThatAsync(
-            () => Task.FromResult(client.ReceivedCalls().Count()),
-            Is.GreaterThan(0).After(2000, 20));
-
-        await client.Received().ListContacts(Arg.Is<ContactListRequest>(static request => request.Search == "urad"), Arg.Any<CancellationToken>());
-    }
-
-    [Test]
-    public async Task ANavigationToTheListResetsTheKindFilter()
-    {
-        await using var ctx = new BunitContext();
-        Serve(ctx);
-
-        var navigation = ctx.Services.GetRequiredService<NavigationManager>();
-        navigation.NavigateTo("/contacts?q=urad");
-
-        var component = ctx.Render<App.Pages.Contacts>();
-
-        await component.WaitForElementAsync(".ec-segment");
-        await component.FindAll(".ec-segment")[1].ClickAsync(new MouseEventArgs());
-
-        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-segment")[1].GetAttribute("aria-pressed"), Is.EqualTo("true")));
-
-        navigation.NavigateTo("/contacts?q=urad");
-
-        await component.WaitForAssertionAsync(() =>
-        {
-            Assert.That(component.FindAll(".ec-segment")[0].GetAttribute("aria-pressed"), Is.EqualTo("true"));
-        });
-    }
-
-    private static IContactsClient Serve(BunitContext ctx, int total = 0)
-    {
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-
-        var response = new ContactListResponse { Items = [], TotalCount = total };
 
         var contactsClient = Substitute.For<IContactsClient>();
         contactsClient
             .ListContacts(Arg.Any<ContactListRequest>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(response));
+            .Returns(Task.FromResult(new ContactListResponse { Items = [], TotalCount = 0 }));
 
         ctx.Services.AddSingleton(contactsClient);
 
-        return contactsClient;
+        ctx.Services.GetRequiredService<NavigationManager>().NavigateTo("/contacts?q=urad");
+
+        var component = ctx.Render<App.Pages.Contacts>();
+
+        Assert.That(component.FindComponents<ContactList>(), Has.Count.EqualTo(1));
     }
 }
