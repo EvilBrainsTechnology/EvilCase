@@ -13,8 +13,8 @@ public interface IFileArchiveReader
     public Task<FileArchive?> ReadActFileArchive(Guid actId, bool includeVersions, CancellationToken token);
 
     /// <summary>
-    /// Streams the archive to the target, writing only asynchronously and holding no more than a few kilobytes. A blob
-    /// that cannot be read throws, and what was written then lacks the archive's end.
+    /// Streams the archive to the target, writing only asynchronously and holding no more than tens of kilobytes. A
+    /// blob that cannot be read throws, and what was written then lacks the archive's end.
     /// </summary>
     public Task WriteFileArchive(FileArchive archive, Stream target, CancellationToken token);
 }

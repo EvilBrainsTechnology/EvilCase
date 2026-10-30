@@ -21,6 +21,11 @@ internal sealed class AsyncOnlyStream : Stream
         set => throw new NotSupportedException();
     }
 
+    /// <summary>
+    /// The most bytes one write has carried.
+    /// </summary>
+    public int LargestWrite { get; private set; }
+
     public byte[] Written()
     {
         return this.written.ToArray();
@@ -43,12 +48,14 @@ internal sealed class AsyncOnlyStream : Stream
 
     public override async ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default)
     {
+        this.LargestWrite = Math.Max(this.LargestWrite, buffer.Length);
+
         await this.written.WriteAsync(buffer, cancellationToken);
     }
 
     public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
     {
-        await this.written.WriteAsync(buffer.AsMemory(offset, count), cancellationToken);
+        await this.WriteAsync(buffer.AsMemory(offset, count), cancellationToken);
     }
 
     public override int Read(byte[] buffer, int offset, int count)

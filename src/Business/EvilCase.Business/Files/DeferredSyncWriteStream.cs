@@ -2,8 +2,8 @@ namespace EvilBrains.EvilCase.Business.Files;
 
 /// <summary>
 /// Holds what is written synchronously until the next asynchronous write or flush, so the target never sees a
-/// synchronous write. A zip entry's stream writes its end synchronously, also when it is disposed asynchronously;
-/// that end is a few kilobytes.
+/// synchronous write. A zip entry's stream writes its end, the compressor's last output, synchronously, also when it is
+/// disposed asynchronously; that end is tens of kilobytes at most.
 /// </summary>
 internal sealed class DeferredSyncWriteStream(Stream target) : Stream
 {

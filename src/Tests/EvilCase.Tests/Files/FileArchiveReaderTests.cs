@@ -1,4 +1,5 @@
 using System.IO.Compression;
+using System.Security.Cryptography;
 using System.Text;
 using EvilBrains.EvilCase.Business.Files;
 using EvilBrains.EvilCase.Data.Entities;
@@ -119,6 +120,28 @@ public class FileArchiveReaderTests : TenantFixture
         var archive = await this.reader.ReadCaseFileArchive(@case.Id, includeVersions: false, CancellationToken.None);
 
         Assert.That(await this.Unpack(archive!), Is.Empty);
+    }
+
+    [Test]
+    public async Task ALargeFileStreamsThroughWithoutBeingHeldWhole()
+    {
+        var @case = await this.Tenant.AddCase(Day);
+        var content = RandomNumberGenerator.GetString("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", 4 * 1024 * 1024);
+        this.Stored(await this.Tenant.AddCaseFile(@case, "velký.txt"), content);
+
+        var archive = await this.reader.ReadCaseFileArchive(@case.Id, includeVersions: false, CancellationToken.None);
+        var target = new AsyncOnlyStream();
+        await this.reader.WriteFileArchive(archive!, target, CancellationToken.None);
+
+        await using var zip = new ZipArchive(new MemoryStream(target.Written()));
+        await using var entry = await zip.Entries.Single().OpenAsync();
+        using var text = new StreamReader(entry, Encoding.UTF8);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(target.LargestWrite, Is.LessThan(256 * 1024), "what the entry's end writes synchronously is held only until the next write");
+            Assert.That(await text.ReadToEndAsync(), Is.EqualTo(content));
+        }
     }
 
     [Test]
