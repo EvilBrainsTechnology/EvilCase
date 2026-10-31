@@ -167,7 +167,7 @@
             {
                 <TextEditor @ref="this.editor" Text="@edited.Text" FileName="@file.FileName" Locked="this.saving"
                             Language="@(preview == FilePreviewKind.Code ? FileTypeDisplay.Language(file.FileName) : (CodeLanguage?)null)"
-                            OnDirtyChanged="this.EditorDirtyChanged" OnSave="this.Save" OnUnavailable="this.EditorUnavailable">
+                            Changes="this.Changes(file, edited)" OnDirtyChanged="this.EditorDirtyChanged" OnSave="this.Save" OnUnavailable="this.EditorUnavailable">
                     <Notes>
                         @this.SignatureNote(file)
                         @if (this.editsFormattedCode)
@@ -284,7 +284,7 @@
                 else if (preview == FilePreviewKind.Markdown)
                 {
                     <MarkdownView @key="this.shownKey" @ref="this.markdownView" Text="@this.markdown" FileName="@stagedName"
-                                  Editing="this.editing is not null" Locked="this.saving"
+                                  Editing="this.editing is not null" Locked="this.saving" Changes="@(this.editing is { } markdownEdited ? this.Changes(file, markdownEdited) : null)"
                                   Source="this.markdownSource" SourceChanged="source => this.markdownSource = source"
                                   OnDirtyChanged="this.EditorDirtyChanged" OnSave="this.Save" OnUnavailable="this.MarkdownUnavailable"
                                   OnLinkRequest="href => this.linkHref = href">
@@ -630,6 +630,19 @@
 
     private bool editsFormattedCode;
 
+    // Whether the editor shows its Změny, and the version they compare with; null compares with the version edited.
+    private bool changesShown;
+
+    private int? changesNumber;
+
+    // The texts of the versions read for the Změny, by file, number and upload; null for a version not in UTF-8.
+    private readonly Dictionary<(Guid FileId, int Number, DateTime Created), string?> changesTexts = [];
+
+    // The last read of a version for the Změny failed.
+    private bool changesFailed;
+
+    private CancellationTokenSource? changesToken;
+
     // What a confirmed discard of unsaved changes goes on to do; set while the question shows.
     private Func<Task>? afterDiscard;
 
@@ -780,6 +793,8 @@
     public async ValueTask DisposeAsync()
     {
         this.loadToken?.Cancel();
+        this.changesToken?.Cancel();
+        this.changesToken?.Dispose();
 
         await this.ReleaseUrl();
     }
@@ -1310,6 +1325,9 @@
         this.dirty = false;
         this.editsFormattedCode = this.viewer?.ShowsFormatted == true;
         this.editing = this.editable;
+        this.changesShown = false;
+        this.changesNumber = null;
+        this.changesFailed = false;
 
         try
         {
@@ -1323,9 +1341,111 @@
 
     private void LeaveEdit()
     {
+        this.changesToken?.Cancel();
+        this.changesTexts.Clear();
         this.editing = null;
         this.dirty = false;
         this.saveFailure = null;
+    }
+
+    // The Změny of the edited text against the version edited or the one chosen; a version that cannot compare says why.
+    private EditorChanges Changes(FileListItem file, EditableText edited)
+    {
+        // A chosen version no longer listed gives way to the version edited.
+        var picked = this.changesNumber is { } chosen ? this.versions?.FirstOrDefault(version => version.Number == chosen) : null;
+        var number = picked?.Number ?? this.loadedNumber ?? file.Version;
+        var selected = picked ?? this.versions?.FirstOrDefault(version => version.Number == number);
+        var original = picked is null ? edited.Text : null;
+        RenderFragment? status = null;
+
+        if (picked is not null)
+        {
+            if (picked.SizeBytes > MaxTextBytes)
+                status = ChangesProblem($"Verzi {number} nelze porovnat: soubor je větší než {FileSizeDisplay.Text(MaxTextBytes)}");
+            else if (this.changesTexts.TryGetValue((file.FileId, number, picked.Created), out var text))
+                (original, status) = (text, text is null ? ChangesProblem($"Verzi {number} nelze porovnat: soubor není v kódování UTF-8") : null);
+            else if (this.changesFailed)
+                status = @<div class="ec-alert ec-preview-alert" role="alert">
+                    <EcIcon Paths="@AppIcons.AlertTriangle" /><p class="ec-alert-text">Verzi @number se nepodařilo načíst. Zkuste to za chvíli znovu.</p>
+                    <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Refresh" OnClick="this.ReadChangesVersion">Zkusit znovu</EcButton>
+                </div>;
+        }
+
+        // The label stands before the version; a file with one version has no other to choose.
+        RenderFragment<string> version = label => @<text>
+            @if (selected is not null)
+            {
+                <CompareVersionPicker Label="@label" Name="Porovnávaná verze" Versions="this.versions!" Selected="selected" CurrentNumber="file.Version"
+                                      Allowed="_ => true" OnPick="this.PickChangesVersion" />
+            }
+            else
+            {
+                <span class="ec-editor-changes-version">@label verze @number</span>
+            }
+        </text>;
+
+        return new EditorChanges(this.changesShown, number, original, version, status, EventCallback.Factory.Create<bool>(this, this.ShowChanges));
+    }
+
+    private async Task ShowChanges(bool shown)
+    {
+        this.changesShown = shown;
+
+        if (shown)
+            await this.ReadChangesVersion();
+        else
+            this.changesToken?.Cancel();
+    }
+
+    private async Task PickChangesVersion(int number)
+    {
+        this.changesNumber = number == this.loadedNumber ? null : number;
+        this.changesFailed = false;
+
+        await this.ReadChangesVersion();
+    }
+
+    // Reads the version the Změny compare with, unless it is the one edited, read already or over the limit.
+    private async Task ReadChangesVersion()
+    {
+        if (this.Current is not { } file || this.changesNumber is not { } number
+            || this.versions?.FirstOrDefault(version => version.Number == number) is not { } version
+            || version.SizeBytes > MaxTextBytes || this.changesTexts.ContainsKey((file.FileId, number, version.Created)))
+            return;
+
+        this.changesToken?.Cancel();
+        this.changesToken?.Dispose();
+
+        var token = (this.changesToken = new CancellationTokenSource()).Token;
+
+        this.changesFailed = false;
+
+        try
+        {
+            await using var content = await this.LoadContent(file, number == file.Version ? null : number, token);
+            using var bytes = new MemoryStream();
+
+            await content.CopyToAsync(bytes, token);
+
+            if (!token.IsCancellationRequested)
+                this.changesTexts[(file.FileId, number, version.Created)] = EditableText.ParseOrDefault(bytes.GetBuffer().AsSpan(0, (int)bytes.Length))?.Text;
+        }
+        catch (OperationCanceledException)
+        {
+            // Another version or the end of the edit took over.
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Loading version {Version} of file {FileId} for the changes failed", number, file.FileId);
+
+            if (!token.IsCancellationRequested)
+                this.changesFailed = true;
+        }
+    }
+
+    private static RenderFragment ChangesProblem(string problem)
+    {
+        return @<div class="ec-warning ec-preview-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@problem</div>;
     }
 
     private void EditorDirtyChanged(bool changed)

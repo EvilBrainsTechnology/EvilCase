@@ -1,0 +1,54 @@
+@* The steps between the changes of a compare, with their names or as icons alone, and their summary in lines or in blocks. *@
+<EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ArrowUp" AriaLabel="Předchozí změna"
+          Disabled="@(this.View is not { Changes: > 0 })" OnClick="() => this.OnStep.InvokeAsync(true)">@this.Label("Předchozí změna")</EcButton>
+<EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ArrowDown" AriaLabel="Další změna"
+          Disabled="@(this.View is not { Changes: > 0 })" OnClick="() => this.OnStep.InvokeAsync(false)">@this.Label("Další změna")</EcButton>
+@if (this.View is { } view)
+{
+    <span class="ec-text-compare-summary"><span class="ec-text-compare-summary-added">+@view.Added</span> <span class="ec-text-compare-summary-removed">−@view.Removed</span><span class="ec-text-compare-summary-unit">@(" " + this.Unit(view.Removed))</span></span>
+}
+
+@code {
+    /// <summary>
+    /// The changes shown; null until the compare shows.
+    /// </summary>
+    [Parameter]
+    public CompareView? View { get; set; }
+
+    /// <summary>
+    /// Whether the summary counts blocks rather than lines.
+    /// </summary>
+    [Parameter]
+    public bool Blocks { get; set; }
+
+    /// <summary>
+    /// Whether the steps show as icons alone.
+    /// </summary>
+    [Parameter]
+    public bool IconsOnly { get; set; }
+
+    /// <summary>
+    /// Raised with true for the previous change, false for the next one.
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> OnStep { get; set; }
+
+    private RenderFragment? Label(string name)
+    {
+        return this.IconsOnly ? null : @<span class="ec-preview-toolbar-label">@name</span>;
+    }
+
+    // 1 řádek, 2 až 4 řádky, 0 a 5 a více řádků; bloky alike.
+    private string Unit(int count)
+    {
+        return (count, this.Blocks) switch
+        {
+            (1, false) => "řádek",
+            (>= 2 and <= 4, false) => "řádky",
+            (_, false) => "řádků",
+            (1, true) => "blok",
+            (>= 2 and <= 4, true) => "bloky",
+            (_, true) => "bloků",
+        };
+    }
+}

@@ -87,6 +87,23 @@ internal sealed class StubTextEditors : ITextEditors
         return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// Every text the editor was asked to show its changes against, null for hiding them, in order.
+    /// </summary>
+    public List<string?> Compared { get; } = [];
+
+    public Task<CompareView> ShowEditorChanges(ElementReference host, string? original)
+    {
+        this.Compared.Add(original);
+
+        return Task.FromResult(new CompareView(Formatted: false, Formattable: false, Added: 0, Removed: 0, Changes: 0));
+    }
+
+    public Task StepEditorChange(ElementReference host, bool previous)
+    {
+        return Task.CompletedTask;
+    }
+
     public Task FocusEditor(ElementReference host)
     {
         return Task.CompletedTask;

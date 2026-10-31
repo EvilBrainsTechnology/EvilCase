@@ -1709,6 +1709,62 @@ html.ec-scroll-locked {
     margin-left: var(--ec-space-4);
 }
 
+/* The editor's Změny: the switch, the version compared with, the steps between the changes and their summary. */
+.ec-editor-changes {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-2);
+    color: var(--ec-text-soft);
+    font-size: var(--ec-text-sm);
+}
+
+.ec-editor-changes .ec-button[aria-pressed="true"],
+.ec-markdown-toolbar .ec-button.ec-button-secondary[aria-pressed="true"] {
+    background: var(--ec-accent-soft);
+    border-color: var(--ec-accent-ring);
+    color: var(--ec-accent-text);
+}
+
+.ec-editor-changes .ec-text-compare-version,
+.ec-editor-changes-bar .ec-text-compare-version {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--ec-space-2);
+}
+
+.ec-editor-changes .ec-text-compare-version-label {
+    font-weight: var(--ec-weight-regular);
+}
+
+.ec-editor-changes-version {
+    white-space: nowrap;
+}
+
+/* Below the toolbar of formatted Markdown editing: the version compared with, the steps, the summary and the legend. */
+.ec-editor-changes-bar {
+    display: flex;
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ec-space-3) var(--ec-space-4);
+    padding: var(--ec-space-3) var(--ec-space-6);
+    border-bottom: 1px solid var(--ec-border);
+    background: var(--ec-surface-header);
+    color: var(--ec-text-soft);
+    font-size: var(--ec-text-sm);
+}
+
+.ec-editor-changes-bar .ec-markdown-compare-legend {
+    margin-left: auto;
+    padding: 0;
+    border: 0;
+    background: none;
+}
+
+.ec-preview-stage[hidden] {
+    display: none;
+}
+
 /* The text grows to its full height and the stage scrolls it, so the scrollbar stands at the edge of the preview. */
 .ec-text-editor-stage {
     align-items: flex-start;
@@ -1994,15 +2050,17 @@ html.ec-scroll-locked {
     border-left: 1px solid var(--ec-border);
 }
 
-/* Every line keeps a column before its text for the sign of its change. */
+/* Every line of a compare, and of an editor showing its changes, keeps a column before its text for the sign of its
+   change. */
 .ec-text-compare .cm-editor .cm-line,
-.ec-text-compare .cm-editor .cm-deletedChunk .cm-deletedLine {
+.ec-text-editor .cm-editor.cm-merge-b .cm-line,
+.ec-text-editor .cm-editor .cm-deletedChunk .cm-deletedLine {
     position: relative;
     padding: 0 var(--ec-space-7) 0 calc(var(--ec-space-3) + var(--ec-compare-sign-width));
 }
 
-.ec-text-compare .cm-editor .cm-changedLine::before,
-.ec-text-compare .cm-editor .cm-deletedChunk .cm-deletedLine::before {
+.ec-text-editor .cm-editor .cm-changedLine::before,
+.ec-text-editor .cm-editor .cm-deletedChunk .cm-deletedLine::before {
     position: absolute;
     left: var(--ec-space-1);
     width: var(--ec-compare-sign-width);
@@ -2010,64 +2068,64 @@ html.ec-scroll-locked {
     text-align: center;
 }
 
-.ec-text-compare .cm-editor.cm-merge-a .cm-changedLine,
-.ec-text-compare .cm-editor .cm-deletedChunk,
-.ec-text-compare .cm-editor .cm-gutterElement.ec-text-compare-removed {
+.ec-text-editor .cm-editor.cm-merge-a .cm-changedLine,
+.ec-text-editor .cm-editor .cm-deletedChunk,
+.ec-text-editor .cm-editor .cm-gutterElement.ec-text-compare-removed {
     background: var(--ec-compare-removed-bg);
 }
 
-.ec-text-compare .cm-editor.cm-merge-a .cm-changedLine::before,
-.ec-text-compare .cm-editor .cm-deletedChunk .cm-deletedLine::before {
+.ec-text-editor .cm-editor.cm-merge-a .cm-changedLine::before,
+.ec-text-editor .cm-editor .cm-deletedChunk .cm-deletedLine::before {
     content: "−";
     color: var(--ec-compare-removed-sign);
 }
 
-.ec-text-compare .cm-editor.cm-merge-b .cm-changedLine,
-.ec-text-compare .cm-editor .cm-gutterElement.ec-text-compare-added {
+.ec-text-editor .cm-editor.cm-merge-b .cm-changedLine,
+.ec-text-editor .cm-editor .cm-gutterElement.ec-text-compare-added {
     background: var(--ec-compare-added-bg);
 }
 
-.ec-text-compare .cm-editor.cm-merge-b .cm-changedLine::before {
+.ec-text-editor .cm-editor.cm-merge-b .cm-changedLine::before {
     content: "+";
     color: var(--ec-compare-added-sign);
 }
 
-.ec-text-compare .cm-editor .cm-deletedChunk {
+.ec-text-editor .cm-editor .cm-deletedChunk {
     padding-left: 0;
 }
 
-.ec-text-compare .cm-editor.cm-merge-a .cm-line .cm-changedText,
-.ec-text-compare .cm-editor .cm-deletedChunk .cm-deletedLine .cm-deletedText {
+.ec-text-editor .cm-editor.cm-merge-a .cm-line .cm-changedText,
+.ec-text-editor .cm-editor .cm-deletedChunk .cm-deletedLine .cm-deletedText {
     border-radius: var(--ec-compare-word-radius);
     background: var(--ec-compare-removed-word);
 }
 
-.ec-text-compare .cm-editor.cm-merge-b .cm-line .cm-changedText {
+.ec-text-editor .cm-editor.cm-merge-b .cm-line .cm-changedText {
     border-radius: var(--ec-compare-word-radius);
     background: var(--ec-compare-added-word);
 }
 
 /* A line wholly added or removed marks no word. */
-.ec-text-compare .cm-editor .cm-line.ec-text-compare-whole .cm-changedText,
-.ec-text-compare .cm-editor .cm-deletedChunk:not(:has(+ .cm-changedLine)) .cm-deletedLine .cm-deletedText {
+.ec-text-editor .cm-editor .cm-line.ec-text-compare-whole .cm-changedText,
+.ec-text-editor .cm-editor .cm-deletedChunk:not(:has(+ .cm-changedLine)) .cm-deletedLine .cm-deletedText {
     background: none;
 }
 
 /* A match of the search shows over a changed word. */
-.ec-text-compare .cm-editor .cm-line .ec-text-editor-hit .cm-changedText {
+.ec-text-editor .cm-editor .cm-line .ec-text-editor-hit .cm-changedText {
     background: var(--ec-preview-hit);
 }
 
-.ec-text-compare .cm-editor .cm-line .ec-text-editor-hit-current .cm-changedText {
+.ec-text-editor .cm-editor .cm-line .ec-text-editor-hit-current .cm-changedText {
     background: var(--ec-preview-hit-current);
 }
 
-.ec-text-compare .cm-editor .cm-mergeSpacer,
-.ec-text-compare .cm-editor .cm-gutterElement.ec-text-compare-gap {
+.ec-text-editor .cm-editor .cm-mergeSpacer,
+.ec-text-editor .cm-editor .cm-gutterElement.ec-text-compare-gap {
     background: var(--ec-compare-gap);
 }
 
-.ec-text-compare .ec-text-compare-run {
+.ec-text-editor .ec-text-compare-run {
     display: flex;
     align-items: center;
     box-sizing: border-box;
@@ -2085,11 +2143,11 @@ html.ec-scroll-locked {
     cursor: pointer;
 }
 
-.ec-text-compare .ec-text-compare-run:hover {
+.ec-text-editor .ec-text-compare-run:hover {
     background: var(--ec-compare-run-hover);
 }
 
-.ec-text-compare .ec-text-compare-run:focus-visible {
+.ec-text-editor .ec-text-compare-run:focus-visible {
     outline: none;
     box-shadow: var(--ec-focus-ring);
 }
@@ -2551,7 +2609,9 @@ html.ec-scroll-locked {
 
 /* The buttons scroll sideways in a strip; the search stays whole after them and takes a row of its own when it does not
    fit beside them. */
+/* The format buttons scroll before the search leaves the row. */
 .ec-markdown-toolbar {
+    flex-wrap: nowrap;
     gap: var(--ec-space-2);
 }
 
@@ -2578,6 +2638,10 @@ html.ec-scroll-locked {
 .ec-markdown-toolbar > .ec-preview-toolbar-search {
     flex: 1 0 auto;
     justify-content: flex-end;
+}
+
+.ec-markdown-toolbar .ec-preview-toolbar-matches {
+    min-width: 0;
 }
 
 .ec-markdown-toolbar .ec-preview-toolbar-search-box {
@@ -5471,6 +5535,38 @@ html.ec-scroll-locked {
         min-width: var(--ec-preview-toolbar-search-mobile);
     }
 
+    .ec-markdown-toolbar {
+        flex-wrap: wrap;
+    }
+
+    /* The version, the steps and the summary on one row, the legend on a short row below. */
+    .ec-editor-changes-bar {
+        gap: var(--ec-space-2);
+        padding: var(--ec-space-2) var(--ec-space-4);
+    }
+
+    .ec-editor-changes-bar .ec-text-compare-version-label {
+        display: none;
+    }
+
+    .ec-editor-changes-bar .ec-markdown-compare-legend {
+        flex: 1 1 100%;
+        flex-wrap: nowrap;
+        gap: var(--ec-space-3);
+        margin-left: 0;
+        overflow-x: auto;
+        font-size: var(--ec-text-xs);
+        white-space: nowrap;
+    }
+
+    .ec-editor-changes-bar .ec-markdown-compare-legend-item {
+        gap: var(--ec-space-1);
+    }
+
+    .ec-editor-changes-bar .ec-markdown-compare-legend-item > :first-child {
+        padding: 0 var(--ec-space-1);
+    }
+
     .ec-markdown-mode-long {
         display: none;
     }
@@ -5531,7 +5627,8 @@ html.ec-scroll-locked {
     }
 
     .ec-text-compare .cm-editor .cm-line,
-    .ec-text-compare .cm-editor .cm-deletedChunk .cm-deletedLine {
+    .ec-text-editor .cm-editor.cm-merge-b .cm-line,
+    .ec-text-editor .cm-editor .cm-deletedChunk .cm-deletedLine {
         padding-right: var(--ec-space-4);
     }
 

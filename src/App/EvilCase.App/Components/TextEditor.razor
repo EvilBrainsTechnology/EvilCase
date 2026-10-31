@@ -23,12 +23,29 @@
                 <span class="ec-preview-toolbar-separator" aria-hidden="true"></span>
                 @this.Modes
             }
+            @if (this.Changes is { } changes)
+            {
+                <span class="ec-preview-toolbar-separator" aria-hidden="true"></span>
+                <div class="ec-editor-changes" role="group" aria-label="Změny">
+                    <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.PlusMinus" aria-pressed="@(changes.Shown ? "true" : "false")"
+                              AriaLabel="Změny" OnClick="() => changes.OnShow.InvokeAsync(!changes.Shown)"><span class="ec-preview-toolbar-label">Změny</span></EcButton>
+                    @if (changes.Shown)
+                    {
+                        @changes.Version("proti")
+                        <CompareChanges View="@(this.shownOriginal is null ? null : this.compared)" IconsOnly OnStep="this.StepChange" />
+                    }
+                </div>
+            }
             @if (this.Notes is not null)
             {
                 <div class="ec-toolbar-notes">@this.Notes</div>
             }
             <ToolbarSearch @ref="this.search" Label="Hledat v textu" OnSearch="this.SearchEdit" OnEscape="this.FocusText" />
         </div>
+        @if (this.Changes is { Shown: true, Status: { } status })
+        {
+            @status
+        }
     }
     <div class="ec-preview-stage ec-text-editor-stage" inert="@this.Locked">
         <div @ref="this.host" class="ec-text-editor"></div>
@@ -61,6 +78,16 @@
 
     private bool dirty;
 
+    // The editor has opened and takes the changes to show.
+    private bool editorOpen;
+
+    private bool showingChanges;
+
+    // The text the editor shows its changes against; null while it shows none.
+    private string? shownOriginal;
+
+    private CompareView compared = new(Formatted: false, Formattable: false, Added: 0, Removed: 0, Changes: 0);
+
     /// <summary>
     /// The text as read, without its byte order mark.
     /// </summary>
@@ -78,6 +105,12 @@
 
     [Parameter]
     public RenderFragment? Notes { get; set; }
+
+    /// <summary>
+    /// The Změny on the editor's toolbar; null leaves them out. The read-only view has none.
+    /// </summary>
+    [Parameter]
+    public EditorChanges? Changes { get; set; }
 
     /// <summary>
     /// Shows the text without taking input, with the zoom and the search of a preview and no Zpět, Znovu or Ctrl+S. Fixed
@@ -135,6 +168,9 @@
     [Parameter]
     public EventCallback OnUnavailable { get; set; }
 
+    // The text the editor is to show its changes against; null for none.
+    private string? ChangesOriginal => this.Changes is { Shown: true, Original: var original } ? original : null;
+
     /// <summary>
     /// Whether the read-only view shows its text formatted.
     /// </summary>
@@ -181,6 +217,13 @@
     }
 
     [JSInvokable]
+    public void NotifyCompared(int added, int removed, int changes)
+    {
+        this.compared = new CompareView(Formatted: false, Formattable: false, Added: added, Removed: removed, Changes: changes);
+        this.StateHasChanged();
+    }
+
+    [JSInvokable]
     public async Task NotifySave()
     {
         await this.OnSave.InvokeAsync();
@@ -209,7 +252,11 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender)
+        {
+            await this.ShowChanges();
+
             return;
+        }
 
         var label = $"Obsah souboru {this.FileName}";
 
@@ -254,6 +301,12 @@
                 }
 
                 await this.Editors.OpenEditor(this.host, this.Text, this.Language, indentUnit, label, this.self);
+
+                if (!this.cancel.IsCancellationRequested)
+                {
+                    this.editorOpen = true;
+                    await this.ShowChanges();
+                }
             }
 
             // Closed while it opened.
@@ -267,6 +320,43 @@
             if (!this.cancel.IsCancellationRequested)
                 await this.OnUnavailable.InvokeAsync();
         }
+    }
+
+    // Brings the changes the editor shows in line with Changes, one call at a time.
+    private async Task ShowChanges()
+    {
+        if (!this.editorOpen || this.showingChanges)
+            return;
+
+        this.showingChanges = true;
+
+        try
+        {
+            while (!this.cancel.IsCancellationRequested && !string.Equals(this.ChangesOriginal, this.shownOriginal, StringComparison.Ordinal))
+            {
+                var original = this.ChangesOriginal;
+
+                this.compared = await this.Editors.ShowEditorChanges(this.host, original);
+                this.shownOriginal = original;
+                this.StateHasChanged();
+            }
+        }
+        catch (JSException exception)
+        {
+            this.Logger.LogWarning(exception, "Showing the changes in the text editor failed");
+
+            // The text stays editable without its changes; the next render does not try again.
+            this.shownOriginal = this.ChangesOriginal;
+        }
+        finally
+        {
+            this.showingChanges = false;
+        }
+    }
+
+    private async Task StepChange(bool previous)
+    {
+        await this.Editors.StepEditorChange(this.host, previous);
     }
 
     private async Task ToggleFormat()

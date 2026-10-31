@@ -211,7 +211,7 @@ await bundle(codePreview, join(lib, 'code-preview'), 'code-preview.min.js', { fo
 const textEditor = `
 import { Compartment, EditorState, RangeSet, RangeSetBuilder, StateEffect, StateField, Text } from '@codemirror/state';
 import { Decoration, EditorView, GutterMarker, WidgetType, drawSelection, gutter, gutterLineClass, gutterWidgetClass, highlightActiveLine, highlightActiveLineGutter, highlightSpecialChars, keymap, lineNumbers } from '@codemirror/view';
-import { Chunk, MergeView, diff, getChunks, presentableDiff, unifiedMergeView } from '@codemirror/merge';
+import { Chunk, MergeView, diff, getChunks, getOriginalDoc, goToNextChunk, goToPreviousChunk, presentableDiff, unifiedMergeView } from '@codemirror/merge';
 import { defaultKeymap, history, historyKeymap, indentLess, indentMore, insertNewlineKeepIndent, redo, redoDepth, selectAll, undo, undoDepth } from '@codemirror/commands';
 import { SearchQuery, findNext, findPrevious, openSearchPanel, search, setSearchQuery } from '@codemirror/search';
 import { HighlightStyle, bracketMatching, indentUnit, syntaxHighlighting } from '@codemirror/language';
@@ -326,10 +326,13 @@ const changedLines = StateField.define({
 
 // Opens an editor of the text in parent. language is json, xml, yaml, html, markdown or null for plain text; unit is
 // what Tab types and indents by. onChange(dirty, canUndo, canRedo) hears when any of the three changes; onFind runs on
-// Ctrl+F or Cmd+F; onMatches(current, total) hears the search's position and count while a query is set.
-export function createEditor(parent, text, language, unit, label, onChange, onFind, onMatches) {
+// Ctrl+F or Cmd+F; onMatches(current, total) hears the search's position and count while a query is set;
+// onCompared(added, removed, changes) hears the summary of the changes shown against another text as it changes.
+export function createEditor(parent, text, language, unit, label, onChange, onFind, onMatches, onCompared) {
     const highlighted = colours(text, language);
     let initial = null;
+    // The summary of the changes shown; null while none show.
+    let compared = null;
     let reported = [false, false, false];
     let query = null;
     // The starts of the query's matches in the text; null until counted.
@@ -393,7 +396,15 @@ export function createEditor(parent, text, language, unit, label, onChange, onFi
                 ]),
                 highlighted,
                 highlighted.length > 0 ? bracketMatching() : [],
+                changes.of([]),
                 EditorView.updateListener.of((update) => {
+                    if (compared !== null && getChunks(update.state)?.chunks !== getChunks(update.startState)?.chunks) {
+                        const summary = editorSummary(update.state);
+                        if (summary.added !== compared.added || summary.removed !== compared.removed || summary.changes !== compared.changes) {
+                            compared = summary;
+                            onCompared(summary.added, summary.removed, summary.changes);
+                        }
+                    }
                     if (update.docChanged) starts = null;
                     if (query && (update.docChanged || update.selectionSet)) report();
                     if (!update.docChanged) return;
@@ -436,8 +447,48 @@ export function createEditor(parent, text, language, unit, label, onChange, onFi
             findPrevious(view);
             report();
         },
+        // Shows the changes of the text against original in one column, the text staying editable, or with null hides
+        // them; answers { added, removed, changes }. Long runs of unchanged lines collapse.
+        showChanges(original) {
+            compared = null;
+            view.dispatch({ effects: changes.reconfigure([]) });
+
+            if (original === null) return { added: 0, removed: 0, changes: 0 };
+
+            const expand = (run) => view.dispatch({ effects: expandRun.of(run) });
+            view.dispatch({ effects: changes.reconfigure(editorChanges(original)) });
+            view.dispatch({ effects: collapsedRuns(view.state.doc, getChunks(view.state).chunks, false, expand) });
+            compared = editorSummary(view.state);
+            return compared;
+        },
+        // Moves the cursor to the next or, with previous, the previous change and wraps around.
+        stepChange(previous) {
+            const chunks = getChunks(view.state)?.chunks ?? [];
+            if (chunks.length === 0) return;
+            // A cursor inside the only change stays there; the change comes into view.
+            if (!(previous ? goToPreviousChunk : goToNextChunk)(view)) {
+                view.dispatch({ selection: { anchor: chunks[0].fromB }, effects: EditorView.scrollIntoView(chunks[0].fromB, { y: 'center' }) });
+            }
+        },
         destroy: () => view.destroy(),
     };
+}
+
+// The changes the editor shows against another text; none until shown.
+const changes = new Compartment();
+
+// The editor's text against original in one column, marked as a one-column compare marks it.
+function editorChanges(original) {
+    return [
+        unifiedMergeView({ original: Text.of(original.split(/\\r\\n?|\\n/)), mergeControls: false, gutter: false, diffConfig }),
+        runs,
+        compareLines,
+        gutterWidgetClass.of((view, widget) => (widget instanceof CollapsedRun ? null : removedLine)),
+    ];
+}
+
+function editorSummary(state) {
+    return chunkSummary(getOriginalDoc(state), state.doc, getChunks(state).chunks);
 }
 
 // The marks of the app's search in a read-only view: every match, and the match shown.
@@ -533,7 +584,6 @@ const collapsedLines = 5;
 
 const setRuns = StateEffect.define();
 const expandRun = StateEffect.define();
-const setChangedLines = StateEffect.define();
 
 // A collapsed run of unchanged lines; a click shows them in every view of the compare.
 class CollapsedRun extends WidgetType {
@@ -567,12 +617,20 @@ class CollapsedRun extends WidgetType {
     }
 }
 
+// The collapsed runs of a text; an edit that touches a run and a match the editor's search selects inside one show it.
 const runs = StateField.define({
     create: () => Decoration.none,
     update(value, transaction) {
+        if (transaction.docChanged) value = value.update({ filter: (from, to) => !transaction.changes.touchesRange(from, to) }).map(transaction.changes);
+
         for (const effect of transaction.effects) {
             if (effect.is(setRuns)) value = effect.value;
             if (effect.is(expandRun)) value = value.update({ filter: (from, to, decoration) => decoration.spec.run !== effect.value });
+        }
+
+        if (transaction.isUserEvent('select.search')) {
+            const { head } = transaction.state.selection.main;
+            value = value.update({ filter: (from, to) => head < from || head > to });
         }
 
         return value;
@@ -580,16 +638,11 @@ const runs = StateField.define({
     provide: (field) => EditorView.decorations.from(field),
 });
 
+// The changed lines' marks for the gutters and the lines wholly added or removed, in step with the chunks of the compare.
 const compareLines = StateField.define({
-    create: () => RangeSet.empty,
-    update(value, transaction) {
-        for (const effect of transaction.effects) {
-            if (effect.is(setChangedLines)) value = effect.value;
-        }
-
-        return value;
-    },
-    provide: (field) => gutterLineClass.from(field),
+    create: changedLineMarks,
+    update: (value, transaction) => (getChunks(transaction.state)?.chunks === getChunks(transaction.startState)?.chunks ? value : changedLineMarks(transaction.state)),
+    provide: (field) => [gutterLineClass.from(field, (value) => value.gutters), EditorView.decorations.from(field, (value) => value.lines)],
 });
 
 class LineClass extends GutterMarker {
@@ -610,11 +663,9 @@ function range(chunk, older) {
     return older ? [chunk.fromA, chunk.toA, chunk.endA] : [chunk.fromB, chunk.toB, chunk.endB];
 }
 
-// The runs of unchanged lines between the chunks that collapse, numbered in order on each side alike, the lines wholly
-// added or removed, and the changed lines' marks for the gutters.
-function compareMarks(doc, chunks, older, expand) {
+// The runs of unchanged lines between the chunks that collapse, numbered in order on each side alike.
+function collapsedRuns(doc, chunks, older, expand) {
     const collapsed = new RangeSetBuilder();
-    const changed = new RangeSetBuilder();
     let previous = 1;
 
     for (let index = 0; ; index++) {
@@ -630,20 +681,34 @@ function compareMarks(doc, chunks, older, expand) {
 
         if (!chunk) break;
 
+        previous = doc.lineAt(Math.min(doc.length, range(chunk, older)[1])).number;
+    }
+
+    return setRuns.of(collapsed.finish());
+}
+
+// The changed lines' marks for the gutters, and the lines of a chunk the other side has no text for.
+function changedLineMarks(state) {
+    const { chunks, side } = getChunks(state) ?? { chunks: [], side: 'b' };
+    const { doc } = state;
+    const older = side === 'a';
+    const gutters = new RangeSetBuilder();
+    const lines = new RangeSetBuilder();
+
+    for (const chunk of chunks) {
         const [from, to, end] = range(chunk, older);
         const [otherFrom, otherTo] = range(chunk, !older);
 
         if (to > from) {
             for (let line = doc.lineAt(from).number; line <= doc.lineAt(end).number; line++) {
-                if (otherTo === otherFrom) collapsed.add(doc.line(line).from, doc.line(line).from, wholeLine);
-                changed.add(doc.line(line).from, doc.line(line).from, older ? removedLine : addedLine);
+                const start = doc.line(line).from;
+                if (otherTo === otherFrom) lines.add(start, start, wholeLine);
+                gutters.add(start, start, older ? removedLine : addedLine);
             }
         }
-
-        previous = doc.lineAt(Math.min(doc.length, to)).number;
     }
 
-    return [setRuns.of(collapsed.finish()), setChangedLines.of(changed.finish())];
+    return { gutters: gutters.finish(), lines: lines.finish() };
 }
 
 // Counts the changed lines of newer against older as a compare shows them: { added, removed, changes }. A difference in
@@ -651,8 +716,13 @@ function compareMarks(doc, chunks, older, expand) {
 export function compareSummary(older, newer) {
     const a = Text.of(older.split(/\\r\\n?|\\n/));
     const b = Text.of(newer.split(/\\r\\n?|\\n/));
+
+    return chunkSummary(a, b, Chunk.build(a, b, diffConfig));
+}
+
+// The lines the chunks of b against a add and remove, and their count.
+function chunkSummary(a, b, chunks) {
     const lines = (doc, from, to, end) => (to > from ? doc.lineAt(end).number - doc.lineAt(from).number + 1 : 0);
-    const chunks = Chunk.build(a, b, diffConfig);
 
     return {
         added: chunks.reduce((sum, chunk) => sum + lines(b, chunk.fromB, chunk.toB, chunk.endB), 0),
@@ -696,7 +766,7 @@ export function createCompare(parent, scroller, older, newer, language, unified,
 
     for (const view of views) {
         const { chunks, side } = getChunks(view.state);
-        view.dispatch({ effects: compareMarks(view.state.doc, chunks, side === 'a', expand) });
+        view.dispatch({ effects: collapsedRuns(view.state.doc, chunks, side === 'a', expand) });
     }
 
     // The view that shows the newer text, where a change is gone to.

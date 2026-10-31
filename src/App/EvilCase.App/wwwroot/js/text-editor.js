@@ -17,8 +17,8 @@ export function loadLibrary() {
 }
 
 // Opens an editor of the text in host. Ctrl+S or Cmd+S anywhere in the dialog asks the owner to save. The owner hears
-// NotifyChanged(dirty, canUndo, canRedo), NotifyMatches(current, total) of its search, NotifyFind on Ctrl+F and
-// NotifySave.
+// NotifyChanged(dirty, canUndo, canRedo), NotifyMatches(current, total) of its search, NotifyFind on Ctrl+F, NotifySave
+// and NotifyCompared(added, removed, changes) of the changes it shows.
 export async function openEditor(host, text, language, indentUnit, label, owner) {
     const { createEditor } = await loadLibrary();
 
@@ -30,7 +30,8 @@ export async function openEditor(host, text, language, indentUnit, label, owner)
     const editor = createEditor(host, text, language, indentUnit, label,
         (dirty, canUndo, canRedo) => owner.invokeMethodAsync('NotifyChanged', dirty, canUndo, canRedo),
         () => owner.invokeMethodAsync('NotifyFind'),
-        (current, total) => owner.invokeMethodAsync('NotifyMatches', current, total));
+        (current, total) => owner.invokeMethodAsync('NotifyMatches', current, total),
+        (added, removed, changes) => owner.invokeMethodAsync('NotifyCompared', added, removed, changes));
     const stop = new AbortController();
     const { signal } = stop;
 
@@ -237,6 +238,16 @@ export function findInEditor(host, query, again, previous) {
     if (!again) editor.search(query);
     else if (previous) editor.findPrevious();
     else editor.findNext();
+}
+
+// Shows the changes of the edited text against original, or with null hides them; answers { added, removed, changes }.
+export function showEditorChanges(host, original) {
+    return editors.get(host)?.editor?.showChanges(original) ?? { added: 0, removed: 0, changes: 0 };
+}
+
+// Moves the cursor to the next or, with previous, the previous change shown and wraps around.
+export function stepEditorChange(host, previous) {
+    editors.get(host)?.editor?.stepChange(previous);
 }
 
 export function focusEditor(host) {

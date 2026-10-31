@@ -5,42 +5,59 @@
 
 @* The read-only compare of two Markdown texts formatted: side by side or in one column, below a toolbar with the layout,
    the modes, the steps between the changes, their summary in blocks and the search, above a legend of its marks.
-   Versions stands above the texts. *@
-<div class="@(this.Unified ? "ec-preview-view ec-text-compare-view ec-text-compare-view-unified" : "ec-preview-view ec-text-compare-view")">
-    <div class="ec-preview-toolbar ec-text-compare-toolbar" role="toolbar" aria-label="Ovládání porovnání">
-        <div class="ec-segmented ec-segmented-compact ec-text-compare-layout" role="group" aria-label="Rozložení">
-            <button type="button" class="ec-segment" aria-pressed="@Pressed(!this.Unified)" @onclick="() => this.UnifiedChanged.InvokeAsync(false)">Vedle sebe</button>
-            <button type="button" class="ec-segment" aria-pressed="@Pressed(this.Unified)" @onclick="() => this.UnifiedChanged.InvokeAsync(true)">V jednom sloupci</button>
-        </div>
-        <span class="ec-preview-toolbar-separator ec-text-compare-layout" aria-hidden="true"></span>
-        @this.Modes
-        <span class="ec-preview-toolbar-separator" aria-hidden="true"></span>
-        <div class="ec-text-compare-changes" role="group" aria-label="Změny">
-            <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ArrowUp" AriaLabel="Předchozí změna"
-                      Disabled="@(this.view.Changes == 0)" OnClick="() => this.Step(previous: true)"><span class="ec-preview-toolbar-label">Předchozí změna</span></EcButton>
-            <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ArrowDown" AriaLabel="Další změna"
-                      Disabled="@(this.view.Changes == 0)" OnClick="() => this.Step(previous: false)"><span class="ec-preview-toolbar-label">Další změna</span></EcButton>
-            @if (this.ready)
-            {
-                <span class="ec-text-compare-summary"><span class="ec-text-compare-summary-added">+@this.view.Added</span> <span class="ec-text-compare-summary-removed">−@this.view.Removed</span><span class="ec-text-compare-summary-unit">@(" " + BlocksWord(this.view.Removed))</span></span>
-            }
-        </div>
-        <ToolbarSearch @ref="this.search" Label="Hledat v dokumentu" Disabled="@(!this.ready)" Collapsible OnSearch="this.Search" />
-    </div>
-    <div class="ec-preview-stage ec-text-editor-stage ec-text-compare-stage">
-        <div class="ec-text-compare-card">
+   Versions stands above the texts. In the editor it shows in one column below a bar with the versions, the steps, the
+   summary and the legend, and the editor's toolbar searches it. *@
+@if (this.EditorSearch is not null)
+{
+    <div class="ec-preview-view ec-text-compare-view ec-text-compare-view-unified">
+        <div class="ec-editor-changes-bar" role="group" aria-label="Změny">
             @this.Versions
-            <div @ref="this.host" class="ec-markdown-compare"></div>
-            <div class="ec-markdown-compare-legend" role="note" aria-label="Legenda">
-                <span class="ec-markdown-compare-legend-item"><ins class="ec-markdown-compare-inserted">text</ins>vloženo</span>
-                <span class="ec-markdown-compare-legend-item"><del class="ec-markdown-compare-deleted">text</del>smazáno</span>
-                <span class="ec-markdown-compare-legend-item"><span class="ec-markdown-compare-format">text</span>změna formátu</span>
+            <div class="ec-text-compare-changes">
+                <CompareChanges View="@(this.ready ? this.view : null)" Blocks IconsOnly OnStep="this.Step" />
+            </div>
+            @Legend
+        </div>
+        <div class="ec-preview-stage ec-text-editor-stage ec-text-compare-stage">
+            <div class="ec-text-compare-card">
+                <div @ref="this.host" class="ec-markdown-compare"></div>
             </div>
         </div>
     </div>
-</div>
+}
+else
+{
+    <div class="@(this.Unified ? "ec-preview-view ec-text-compare-view ec-text-compare-view-unified" : "ec-preview-view ec-text-compare-view")">
+        <div class="ec-preview-toolbar ec-text-compare-toolbar" role="toolbar" aria-label="Ovládání porovnání">
+            <div class="ec-segmented ec-segmented-compact ec-text-compare-layout" role="group" aria-label="Rozložení">
+                <button type="button" class="ec-segment" aria-pressed="@Pressed(!this.Unified)" @onclick="() => this.UnifiedChanged.InvokeAsync(false)">Vedle sebe</button>
+                <button type="button" class="ec-segment" aria-pressed="@Pressed(this.Unified)" @onclick="() => this.UnifiedChanged.InvokeAsync(true)">V jednom sloupci</button>
+            </div>
+            <span class="ec-preview-toolbar-separator ec-text-compare-layout" aria-hidden="true"></span>
+            @this.Modes
+            <span class="ec-preview-toolbar-separator" aria-hidden="true"></span>
+            <div class="ec-text-compare-changes" role="group" aria-label="Změny">
+                <CompareChanges View="@(this.ready ? this.view : null)" Blocks OnStep="this.Step" />
+            </div>
+            <ToolbarSearch @ref="this.search" Label="Hledat v dokumentu" Disabled="@(!this.ready)" Collapsible OnSearch="this.Search" />
+        </div>
+        <div class="ec-preview-stage ec-text-editor-stage ec-text-compare-stage">
+            <div class="ec-text-compare-card">
+                @this.Versions
+                <div @ref="this.host" class="ec-markdown-compare"></div>
+                @Legend
+            </div>
+        </div>
+    </div>
+}
 
 @code {
+    private static readonly RenderFragment Legend =
+        @<div class="ec-markdown-compare-legend" role="note" aria-label="Legenda">
+            <span class="ec-markdown-compare-legend-item"><ins class="ec-markdown-compare-inserted">text</ins>vloženo</span>
+            <span class="ec-markdown-compare-legend-item"><del class="ec-markdown-compare-deleted">text</del>smazáno</span>
+            <span class="ec-markdown-compare-legend-item"><span class="ec-markdown-compare-format">text</span>změna formátu</span>
+        </div>;
+
     private readonly CancellationTokenSource cancel = new();
 
     private ElementReference host;
@@ -103,10 +120,19 @@
     [Parameter]
     public EventCallback OnUnavailable { get; set; }
 
+    /// <summary>
+    /// The search of the editor's toolbar, which searches the compare through <see cref="Search"/>; set, the compare
+    /// stands in the editor without a toolbar of its own. Fixed for the compare's life.
+    /// </summary>
+    [Parameter]
+    public ToolbarSearch? EditorSearch { get; set; }
+
+    private ToolbarSearch? Searching => this.EditorSearch ?? this.search;
+
     [JSInvokable]
     public void NotifyMatches(int current, int total)
     {
-        this.search?.MatchesChanged(current, total, pending: false);
+        this.Searching?.MatchesChanged(current, total, pending: false);
     }
 
     /// <summary>
@@ -115,8 +141,8 @@
     [JSInvokable]
     public async Task NotifyFind()
     {
-        if (this.search is not null)
-            await this.search.Focus();
+        if (this.Searching is { } searching)
+            await searching.Focus();
     }
 
     public async ValueTask DisposeAsync()
@@ -161,6 +187,10 @@
             (this.view, this.ready) = (shown, true);
             this.StateHasChanged();
 
+            // The editor's search carries its query over to the compare.
+            if (this.EditorSearch is { } search)
+                await search.Repeat();
+
             if (shown.Changes == 0)
                 await this.OnSame.InvokeAsync();
         }
@@ -178,7 +208,10 @@
         await this.Compares.StepCompareChange(this.host, previous);
     }
 
-    private async Task Search(PreviewSearch search)
+    /// <summary>
+    /// Highlights every match of the query in the texts shown and scrolls to the one the search names.
+    /// </summary>
+    public async Task Search(PreviewSearch search)
     {
         await this.Compares.FindInCompare(this.host, search.Query, search.Find);
     }
@@ -186,16 +219,5 @@
     private static string Pressed(bool value)
     {
         return value ? "true" : "false";
-    }
-
-    // 1 blok, 2 až 4 bloky, 0 a 5 a více bloků.
-    private static string BlocksWord(int count)
-    {
-        return count switch
-        {
-            1 => "blok",
-            >= 2 and <= 4 => "bloky",
-            _ => "bloků",
-        };
     }
 }
