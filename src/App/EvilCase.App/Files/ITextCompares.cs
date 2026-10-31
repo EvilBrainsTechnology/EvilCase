@@ -6,8 +6,8 @@ using Microsoft.JSInterop;
 namespace EvilBrains.EvilCase.App.Files;
 
 /// <summary>
-/// The read-only compares of two texts, run by the text editor's library, which the browser loads when the first one
-/// opens.
+/// The read-only compares of two texts, run by the text editor's library and for a formatted Markdown text by the
+/// Markdown library besides, which the browser loads when the first one opens.
 /// </summary>
 internal interface ITextCompares
 {
@@ -19,6 +19,14 @@ internal interface ITextCompares
     /// throws a <c>JSException</c>.
     /// </summary>
     public Task<CompareView> OpenCompare(ElementReference host, string older, string newer, CodeLanguage? language, bool format, IReadOnlyList<string> labels, DotNetObjectReference<TextCompare> owner);
+
+    /// <summary>
+    /// Opens the compare of the Markdown texts <paramref name="older"/> and <paramref name="newer"/> formatted in
+    /// <paramref name="host"/>; its changes count blocks. <paramref name="labels"/> names the older, the newer and the
+    /// one-column text; <paramref name="owner"/> hears of the search matches and of Ctrl+F. A library that does not load
+    /// throws a <c>JSException</c>.
+    /// </summary>
+    public Task<CompareView> OpenMarkdownCompare(ElementReference host, string older, string newer, IReadOnlyList<string> labels, DotNetObjectReference<MarkdownCompare> owner);
 
     /// <summary>
     /// Compares the formatted or the original texts; an open search runs again. Answers the changes of the texts shown.

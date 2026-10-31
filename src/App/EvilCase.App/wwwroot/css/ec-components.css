@@ -1927,6 +1927,18 @@ html.ec-scroll-locked {
     gap: var(--ec-space-3) var(--ec-space-4);
 }
 
+/* The search narrows before it takes a row of its own. */
+.ec-text-compare-toolbar > .ec-preview-toolbar-search {
+    flex: 1 0 auto;
+    justify-content: flex-end;
+}
+
+.ec-text-compare-toolbar .ec-preview-toolbar-search-box {
+    flex: 1 1 auto;
+    width: var(--ec-preview-toolbar-search-mobile);
+    max-width: var(--ec-preview-toolbar-search-width);
+}
+
 .ec-text-compare-changes {
     display: flex;
     align-items: center;
@@ -2390,6 +2402,146 @@ html.ec-scroll-locked {
 
 .ec-markdown-content .ec-markdown-hit-current {
     background: var(--ec-preview-hit-current);
+}
+
+/* The formatted Markdown compare: side by side two texts in columns whose facing blocks stand level, in one column the
+   newer with what the older had in its place; a legend under them names the marks. */
+.ec-markdown-compare {
+    position: relative;
+    z-index: 0;
+}
+
+.ec-markdown-compare-columns {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.ec-preview-markdown.ec-markdown-compare-text {
+    width: auto;
+    min-width: 0;
+    padding: var(--ec-compare-markdown-padding);
+    border-radius: 0;
+    box-shadow: none;
+    zoom: 1;
+}
+
+.ec-preview-markdown.ec-markdown-compare-text:focus-visible {
+    outline: none;
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-markdown-compare-text + .ec-markdown-compare-text {
+    border-left: 1px solid var(--ec-border);
+}
+
+.ec-markdown-compare-spacer {
+    display: block;
+}
+
+.ec-markdown-compare-inserted,
+.ec-markdown-compare-added,
+.ec-markdown-compare-added :is(th, td) {
+    border-radius: var(--ec-compare-word-radius);
+    background: var(--ec-compare-inserted-bg);
+    color: var(--ec-compare-inserted-text);
+    text-decoration: underline var(--ec-compare-line-width) var(--ec-compare-inserted-line);
+    text-underline-offset: var(--ec-compare-underline-offset);
+}
+
+.ec-markdown-compare-deleted,
+.ec-markdown-compare-removed,
+.ec-markdown-compare-removed :is(th, td) {
+    border-radius: var(--ec-compare-word-radius);
+    background: var(--ec-compare-deleted-bg);
+    color: var(--ec-compare-deleted-text);
+    text-decoration: line-through var(--ec-compare-line-width) var(--ec-compare-deleted-line);
+}
+
+.ec-markdown-compare-older .ec-markdown-compare-changed {
+    background: var(--ec-compare-cell-removed);
+}
+
+.ec-markdown-compare-newer .ec-markdown-compare-changed {
+    background: var(--ec-compare-cell-added);
+}
+
+.ec-markdown-compare-format {
+    border-radius: var(--ec-compare-word-radius);
+    background: var(--ec-compare-format-bg);
+    color: var(--ec-compare-format-text);
+    outline: var(--ec-compare-format-outline);
+    outline-offset: 1px;
+}
+
+/* The tooltip of a stretch in another format names the change. */
+.ec-markdown-compare-format[data-format] {
+    position: relative;
+}
+
+.ec-markdown-compare-format[data-format]:hover::after {
+    content: attr(data-format);
+    position: absolute;
+    bottom: calc(100% + var(--ec-space-2));
+    left: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    height: var(--ec-compare-tooltip-height);
+    padding: 0 var(--ec-space-4);
+    border-radius: var(--ec-radius-sm);
+    background: var(--ec-compare-tooltip-bg);
+    box-shadow: var(--ec-shadow-overlay);
+    color: var(--ec-on-accent);
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-xs);
+    font-style: normal;
+    font-weight: var(--ec-weight-medium);
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+/* A block names its changes of type and format on a label after its text; a long label wraps inside itself. */
+.ec-markdown-compare-chip {
+    display: inline-block;
+    box-sizing: border-box;
+    max-width: calc(100% - var(--ec-space-3));
+    margin-left: var(--ec-space-3);
+    padding: 0 var(--ec-space-3);
+    border-radius: calc(var(--ec-compare-chip-height) / 2);
+    background: var(--ec-compare-format-bg);
+    color: var(--ec-compare-format-text);
+    outline: var(--ec-compare-format-outline);
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-xs);
+    font-style: normal;
+    font-weight: var(--ec-weight-semibold);
+    line-height: var(--ec-compare-chip-height);
+    overflow-wrap: anywhere;
+    vertical-align: middle;
+    user-select: none;
+}
+
+.ec-markdown-compare-legend {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ec-space-3) var(--ec-space-6);
+    padding: var(--ec-space-3) var(--ec-space-5);
+    border-top: 1px solid var(--ec-border);
+    border-radius: 0 0 var(--ec-radius-lg) var(--ec-radius-lg);
+    background: var(--ec-surface-header);
+    color: var(--ec-text-soft);
+    font-size: var(--ec-text-sm);
+}
+
+.ec-markdown-compare-legend-item {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+}
+
+.ec-markdown-compare-legend-item > :first-child {
+    padding: 0 var(--ec-space-2);
 }
 
 .ec-preview-markdown.ec-markdown-editing:focus-within {
@@ -5385,6 +5537,20 @@ html.ec-scroll-locked {
 
     .ec-text-compare-state {
         padding: var(--ec-space-4);
+    }
+
+    .ec-preview-markdown.ec-markdown-compare-text {
+        padding: var(--ec-space-5);
+    }
+
+    .ec-text-compare-toolbar > .ec-preview-toolbar-search-collapsible {
+        flex: 1 1 100%;
+    }
+
+    .ec-text-compare-toolbar .ec-preview-toolbar-search-box {
+        flex: 1 1 0;
+        width: auto;
+        max-width: none;
     }
 }
 
