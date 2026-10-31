@@ -1,5 +1,7 @@
 // The Markdown view and editor of a file preview. Milkdown is loaded from ../lib the first time one opens; the text leaves
 // the browser only as what a save reads.
+import { findMatches, foldText } from './text-search.js';
+
 const views = new Map();
 let library = null;
 
@@ -37,12 +39,13 @@ function markdownOf(host) {
 }
 
 // Opens the text in host, read-only unless editable. While editable, Ctrl+S or Cmd+S anywhere in the dialog asks the owner
-// to save. The owner hears NotifyChanged(dirty, active, disabled) and NotifySave.
+// to save. The owner hears NotifyChanged(dirty, active, disabled), NotifyMatches(current, total) of its search, NotifyFind
+// on Ctrl+F and NotifySave.
 export async function openMarkdown(host, text, editable, label, owner) {
     closeMarkdown(host);
 
-    // Registered before the library loads, so a close while it loads is heard.
-    const entry = { markdown: null, stop: new AbortController() };
+    // Registered before the library loads, so a close or a query while it loads is heard.
+    const entry = { markdown: null, query: '', stop: new AbortController() };
     views.set(host, entry);
 
     let markdown;
@@ -56,7 +59,10 @@ export async function openMarkdown(host, text, editable, label, owner) {
         }
 
         markdown = await createMarkdown(host, text, editable, label,
-            (dirty, active, disabled) => owner.invokeMethodAsync('NotifyChanged', dirty, active, disabled));
+            (dirty, active, disabled) => owner.invokeMethodAsync('NotifyChanged', dirty, active, disabled),
+            () => owner.invokeMethodAsync('NotifyFind'),
+            (current, total) => owner.invokeMethodAsync('NotifyMatches', current, total),
+            (blockText, query) => findMatches(foldText(blockText), query));
     } catch (error) {
         if (views.get(host) === entry) views.delete(host);
         throw error;
@@ -78,6 +84,7 @@ export async function openMarkdown(host, text, editable, label, owner) {
     }, { signal: entry.stop.signal });
 
     if (editable) markdown.focus();
+    if (entry.query) markdown.find(entry.query, false, false);
 }
 
 export function readMarkdown(host) {
@@ -105,6 +112,19 @@ export function setMarkdownLink(host, href) {
     const markdown = markdownOf(host);
     markdown.setLink(href);
     requestAnimationFrame(() => markdown.focus());
+}
+
+// A new query selects its first match from the cursor on; again steps to the next or, with previous, the previous match.
+// A query that comes while the view opens is searched once it is open.
+export function findInMarkdown(host, query, again, previous) {
+    const entry = views.get(host);
+    if (!entry) return;
+    if (entry.markdown) entry.markdown.find(query, again, previous);
+    else entry.query = query;
+}
+
+export function focusMarkdown(host) {
+    views.get(host)?.markdown?.focus();
 }
 
 export function closeMarkdown(host) {

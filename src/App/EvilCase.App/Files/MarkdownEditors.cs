@@ -58,6 +58,20 @@ internal sealed class MarkdownEditors(IJSRuntime jsRuntime) : IMarkdownEditors, 
         await editors.InvokeVoidAsync("setMarkdownLink", host, href);
     }
 
+    public async Task FindInMarkdown(ElementReference host, string query, PreviewFind find)
+    {
+        var editors = await this.Module();
+
+        await editors.InvokeVoidAsync("findInMarkdown", host, query, find != PreviewFind.New, find == PreviewFind.Previous);
+    }
+
+    public async Task FocusMarkdown(ElementReference host)
+    {
+        var editors = await this.Module();
+
+        await editors.InvokeVoidAsync("focusMarkdown", host);
+    }
+
     public async Task CloseMarkdown(ElementReference host)
     {
         var editors = await this.Module();

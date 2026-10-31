@@ -5,7 +5,7 @@
 @inject ILogger<MarkdownView> Logger
 
 @* A Markdown file shown formatted or as its source and edited in the view shown; the formatted text turns editable in
-   place. Notes stand on the toolbar after its switches and buttons. *@
+   place. Notes stand on the toolbar after its switches and buttons, before the search. *@
 @if (this.Source)
 {
     <TextEditor @key="this.sourceKey" @ref="this.sourceEditor" Text="@this.start" Language="CodeLanguage.Markdown" ReadOnly="!this.Editing"
@@ -22,32 +22,35 @@ else
         @if (this.Editing)
         {
             <div class="ec-preview-toolbar ec-markdown-toolbar" role="toolbar" aria-label="Úpravy" inert="@this.Locked">
-                <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ArrowBackUp" AriaLabel="Zpět"
-                          Disabled="@(this.disabled.Contains("undo"))" OnClick="@(() => this.Run("undo"))" />
-                <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ArrowForwardUp" AriaLabel="Znovu"
-                          Disabled="@(this.disabled.Contains("redo"))" OnClick="@(() => this.Run("redo"))" />
-                <span class="ec-preview-toolbar-separator" aria-hidden="true"></span>
-                <MarkdownModeSwitch Editing Source="false" OnSwitch="this.Switch" />
-                @foreach (var group in Groups)
-                {
+                <div class="ec-markdown-toolbar-buttons">
+                    <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ArrowBackUp" AriaLabel="Zpět"
+                              Disabled="@(this.disabled.Contains("undo"))" OnClick="@(() => this.Run("undo"))" />
+                    <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ArrowForwardUp" AriaLabel="Znovu"
+                              Disabled="@(this.disabled.Contains("redo"))" OnClick="@(() => this.Run("redo"))" />
                     <span class="ec-preview-toolbar-separator" aria-hidden="true"></span>
-                    @foreach (var (command, label, icon, text) in group)
+                    <MarkdownModeSwitch Editing Source="false" OnSwitch="this.Switch" />
+                    @foreach (var group in Groups)
                     {
-                        <EcButton Variant="EcButtonVariant.Ghost" Size="EcButtonSize.Compact" Icon="@icon" AriaLabel="@label" title="@label"
-                                  Disabled="@(this.disabled.Contains(command))"
-                                  aria-pressed="@(command == "table" ? null : this.active.Contains(command) ? "true" : "false")"
-                                  OnClick="@(() => this.Run(command))">
-                            @if (text is not null)
-                            {
-                                <span class="ec-markdown-toolbar-text" aria-hidden="true">@text</span>
-                            }
-                        </EcButton>
+                        <span class="ec-preview-toolbar-separator" aria-hidden="true"></span>
+                        @foreach (var (command, label, icon, text) in group)
+                        {
+                            <EcButton Variant="EcButtonVariant.Ghost" Size="EcButtonSize.Compact" Icon="@icon" AriaLabel="@label" title="@label"
+                                      Disabled="@(this.disabled.Contains(command))"
+                                      aria-pressed="@(command == "table" ? null : this.active.Contains(command) ? "true" : "false")"
+                                      OnClick="@(() => this.Run(command))">
+                                @if (text is not null)
+                                {
+                                    <span class="ec-markdown-toolbar-text" aria-hidden="true">@text</span>
+                                }
+                            </EcButton>
+                        }
                     }
-                }
-                @if (this.Notes is not null)
-                {
-                    <div class="ec-toolbar-notes">@this.Notes</div>
-                }
+                    @if (this.Notes is not null)
+                    {
+                        <div class="ec-toolbar-notes">@this.Notes</div>
+                    }
+                </div>
+                <ToolbarSearch @ref="this.search" Label="Hledat v textu" OnSearch="this.SearchEdit" OnEscape="this.FocusText" />
             </div>
         }
         else
@@ -87,6 +90,8 @@ else
     private PreviewToolbar? wiredToolbar;
 
     private TextEditor? sourceEditor;
+
+    private ToolbarSearch? search;
 
     private DotNetObjectReference<MarkdownView>? self;
 
@@ -224,6 +229,26 @@ else
     public async Task NotifySave()
     {
         await this.OnSave.InvokeAsync();
+    }
+
+    [JSInvokable]
+    public void NotifyMatches(int current, int total)
+    {
+        // A report from a view that has since left the edit.
+        if (!this.Editing || this.Source)
+            return;
+
+        this.search?.MatchesChanged(current, total, pending: false);
+    }
+
+    /// <summary>
+    /// Ctrl+F or Cmd+F in the edited text.
+    /// </summary>
+    [JSInvokable]
+    public async Task NotifyFind()
+    {
+        if (this.search is not null)
+            await this.search.Focus();
     }
 
     public async ValueTask DisposeAsync()
@@ -423,8 +448,8 @@ else
         await this.OnDirtyChanged.InvokeAsync(changed);
     }
 
-    // The editor and the source view zoom and search on their own: the formatted text goes back to its true size and its
-    // search ends.
+    // The editor and the source view search on their own and the editor does not zoom: the formatted text goes back to its
+    // true size and its search ends.
     private async Task ReleaseView()
     {
         if (this.wiredToolbar is null)
@@ -467,5 +492,15 @@ else
     private async Task Search(PreviewSearch search)
     {
         await this.Previews.FindInView(this.stage, search.Query, search.Find);
+    }
+
+    private async Task SearchEdit(PreviewSearch search)
+    {
+        await this.Editors.FindInMarkdown(this.host, search.Query, search.Find);
+    }
+
+    private async Task FocusText()
+    {
+        await this.Editors.FocusMarkdown(this.host);
     }
 }

@@ -255,9 +255,10 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   Přepínač Formátovaně / Zdrojový kód zůstává na liště i během úprav. Přepnutí přenese text
   i s neuloženými změnami do druhého zobrazení a historii Zpět a Znovu začne znovu.
 - Lišta formátovaných úprav nese Zpět, Znovu, přepínač, Nadpis 1, 2 a 3, Tučně, Kurzíva,
-  Přeškrtnout, Odrážky, Číslovaný seznam, Seznam úkolů, Citace, Kód, Odkaz a Tabulka. Tlačítko
-  formátu, který platí v místě kurzoru, je zvýrazněné a druhý stisk formát zruší: nadpis vrátí na
-  odstavec, seznam a citaci zruší. Jiný seznam převede seznam na stisknutý druh. Tlačítko, které
+  Přeškrtnout, Odrážky, Číslovaný seznam, Seznam úkolů, Citace, Kód, Odkaz, Tabulka a na pravém
+  konci hledání Hledat v textu uspořádané jako v náhledu: pořadí výskytu z počtu, pole
+  a předchozí a další výskyt. Tlačítko formátu, který platí v místě kurzoru, je zvýrazněné
+  a druhý stisk formát zruší: nadpis vrátí na odstavec, seznam a citaci zruší. Jiný seznam převede seznam na stisknutý druh. Tlačítko, které
   v místě kurzoru nejde použít, je neaktivní. Kód udělá z označeného textu v jednom odstavci kód
   v řádku, jinak z odstavce blok kódu; v bloku kódu ho vrátí na odstavec. Tabulka vloží tabulku
   3 × 3 se záhlavím; v tabulce a v bloku kódu je neaktivní. Zaškrtávací políčko úkolu jde během
@@ -267,8 +268,11 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   nebo mailto:.“ Vložit odkaz propojí označený text, odkaz v místě kurzoru, nebo bez výběru vloží
   adresu samu jako odkaz; u existujícího odkazu okno nabídne i Odebrat odkaz. Enter odkaz vloží,
   Esc a Zrušit okno zavřou.
-- Formátované úpravy nemají hledání ani zvětšení; zvětšení náhledu se při Upravit vrátí na
-  100 %. Ctrl+B a Cmd+B je tučně, Ctrl+I a Cmd+I kurzíva, zpět a znovu jako v editoru textu,
+- Hledání ve formátovaných úpravách nerozlišuje velikost písmen ani diakritiku, zvýrazní všechny
+  výskyty a vybere další; pořadí je pořadí výskytu u kurzoru a výskyty sledují úpravy textu.
+  Enter přejde na další výskyt, Shift+Enter na předchozí, Esc hledání vymaže, vrátí kurzor do
+  textu a náhled nezavře. Ctrl+F nebo Cmd+F v textu přejde do hledání. Formátované úpravy nemají
+  zvětšení; zvětšení náhledu se při Upravit vrátí na 100 %. Ctrl+B a Cmd+B je tučně, Ctrl+I a Cmd+I kurzíva, zpět a znovu jako v editoru textu,
   Ctrl+S nebo Cmd+S uloží. Psaní značek Markdownu (# na začátku řádku, -, 1., >, ``` a dvojice
   ** nebo `) formát rovnou použije. Tab v seznamu odsadí položku a Shift+Tab ji vrátí, jinde Tab
   přesune fokus.

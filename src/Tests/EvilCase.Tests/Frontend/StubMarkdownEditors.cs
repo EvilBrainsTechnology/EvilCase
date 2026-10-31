@@ -81,6 +81,16 @@ internal sealed class StubMarkdownEditors : IMarkdownEditors
         return Task.CompletedTask;
     }
 
+    public Task FindInMarkdown(ElementReference host, string query, PreviewFind find)
+    {
+        return Task.CompletedTask;
+    }
+
+    public Task FocusMarkdown(ElementReference host)
+    {
+        return Task.CompletedTask;
+    }
+
     public Task CloseMarkdown(ElementReference host)
     {
         this.Closed++;
