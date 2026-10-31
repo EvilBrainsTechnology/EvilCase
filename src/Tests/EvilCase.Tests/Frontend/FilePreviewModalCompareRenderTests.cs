@@ -190,6 +190,41 @@ public class FilePreviewModalCompareRenderTests
         }
     }
 
+    [Test]
+    public async Task APickedVersionNoLongerListedFallsBackToThePairTheCompareOpenedWith()
+    {
+        await using var ctx = NewContext(out var compares, out _);
+
+        var file = File("a.txt", 4);
+        var component = Render(ctx, file, Texts("a\n", "b\n", "c\n", "d\n"), compareOnOpen: true);
+
+        await Pick(component, "Starší", "Verze 1");
+
+        IReadOnlyList<FileVersionItem> left = [Version(4, 2), Version(3, 2), Version(2, 2)];
+        component.Render(parameters => parameters
+            .Add(static modal => modal.Files, [file with { VersionCount = 3 }])
+            .Add(static modal => modal.LoadVersions, (_, _) => Task.FromResult(left)));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.Find(Header).TextContent, Does.Contain("Porovnání verze 3 s verzí 4"));
+            Assert.That(compares.Opened.Select(static opened => (opened.Older, opened.Newer)).Last(), Is.EqualTo(("c\n", "d\n")), "a deleted version gives way to the pair the compare opened with");
+        }
+    }
+
+    [Test]
+    public void AFileLeftWithOneVersionEndsTheCompare()
+    {
+        using var ctx = NewContext(out _, out _);
+
+        var file = File("a.txt", 2);
+        var component = Render(ctx, file, Texts("a\n", "b\n"), compareOnOpen: true);
+
+        component.Render(parameters => parameters.Add(static modal => modal.Files, [file with { VersionCount = 1 }]));
+
+        Assert.That(component.FindAll("button[aria-label='Upravit']"), Has.Count.EqualTo(1), "one version has nothing to compare");
+    }
+
     private static async Task<List<(string Title, bool Enabled)>> Options(IRenderedComponent<FilePreviewModal> component, string side)
     {
         await Picker(component, side).ClickAsync(new MouseEventArgs());
@@ -264,13 +299,7 @@ public class FilePreviewModalCompareRenderTests
     {
         IReadOnlyList<FileVersionItem> versions =
         [
-            .. Enumerable.Range(1, contents.Length).Reverse().Select(number => new FileVersionItem
-            {
-                Number = number,
-                SizeBytes = sizes?[number - 1] ?? contents[number - 1].Length,
-                Created = new DateTime(2025, 9, number, 10, 0, 0, DateTimeKind.Utc),
-                UploaderEmail = "jana@example.test",
-            }),
+            .. Enumerable.Range(1, contents.Length).Reverse().Select(number => Version(number, sizes?[number - 1] ?? contents[number - 1].Length)),
         ];
 
         return ctx.Render<FilePreviewModal>(parameters => parameters
@@ -291,6 +320,17 @@ public class FilePreviewModalCompareRenderTests
 
             return Task.FromResult<Stream>(new MemoryStream(contents[(number ?? item.Version) - 1]));
         }
+    }
+
+    private static FileVersionItem Version(int number, long size)
+    {
+        return new FileVersionItem
+        {
+            Number = number,
+            SizeBytes = size,
+            Created = new DateTime(2025, 9, number, 10, 0, 0, DateTimeKind.Utc),
+            UploaderEmail = "jana@example.test",
+        };
     }
 
     private static FileListItem File(string fileName, int versions)

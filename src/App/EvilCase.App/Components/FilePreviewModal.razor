@@ -645,7 +645,25 @@
 
     private FileVersionItem? ShownVersionItem => this.OlderVersion is { } number ? this.versions?.FirstOrDefault(version => version.Number == number) : null;
 
-    private (int Older, int Newer)? ComparedPair => this.comparePair ?? (this.compareStart is { } start && this.versions is { } list ? DefaultPair(list, start.Number) : null);
+    // A version chosen or opened for that is no longer listed gives way to the pair the compare opens with.
+    private (int Older, int Newer)? ComparedPair
+    {
+        get
+        {
+            if (this.compareStart is not { } start || this.versions is not { } list)
+                return null;
+
+            if (this.comparePair is { } picked && Listed(picked.Older) && Listed(picked.Newer))
+                return picked;
+
+            return Listed(start.Number) ? DefaultPair(list, start.Number) : list.Count > 0 ? DefaultPair(list, list[0].Number) : null;
+
+            bool Listed(int number)
+            {
+                return list.Any(version => version.Number == number);
+            }
+        }
+    }
 
     private DataMessageAttachment? ShownAttachment => this.trail.Count == 0 ? null : this.trail[^1].Message.Attachments[this.trail[^1].Index];
 
@@ -690,6 +708,10 @@
             return;
 
         await this.LoadVersionList(file);
+
+        // A file left with one version has nothing to compare.
+        if (this.compareStart is not null && file.VersionCount < 2)
+            this.CloseCompare();
 
         var number = this.OlderVersion ?? file.Version;
 
