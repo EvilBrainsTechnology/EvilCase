@@ -1,0 +1,82 @@
+@using EvilBrains.EvilCase.Api.Contract.Files
+
+@* One side of a compare: the version it shows and the list to choose another; a version the other side rules out is
+   offered disabled. *@
+<div class="ec-text-compare-version">
+    <span class="ec-text-compare-version-label">@this.Label</span>
+    <EcPopover @ref="this.popover" AriaLabel="@($"{this.Label} verze")" PanelClass="ec-preview-versions-panel">
+        <Trigger>
+            <span class="ec-preview-versions-trigger">
+                <span class="ec-visually-hidden">@this.Label verze: </span>
+                <span class="ec-text-compare-version-title">Verze @this.Selected.Number<span class="ec-text-compare-version-day"> · @Day(this.Selected.Created)</span></span>
+                @if (this.Selected.Number == this.CurrentNumber)
+                {
+                    <EcBadge Text="aktuální" Tone="EcBadgeTone.Current" />
+                }
+                <EcIcon Paths="@AppIcons.ChevronDown" />
+            </span>
+        </Trigger>
+        <ChildContent>
+            <ul class="ec-preview-versions-list">
+                @foreach (var version in this.Versions)
+                {
+                    var number = version.Number;
+
+                    <li>
+                        <button type="button" class="ec-preview-versions-option" aria-current="@(number == this.Selected.Number ? "true" : null)"
+                                disabled="@(!this.Allowed(number))" @onclick="() => this.Pick(number)">
+                            <span class="ec-preview-versions-option-title">Verze @number@(number == this.CurrentNumber ? " " : "")@if (number == this.CurrentNumber) { <EcBadge Text="aktuální" Tone="EcBadgeTone.Current" /> }</span>
+                            <span class="ec-preview-versions-option-meta">@MomentDisplay.Text(version.Created) · @version.UploaderEmail</span>
+                        </button>
+                    </li>
+                }
+            </ul>
+        </ChildContent>
+    </EcPopover>
+    <span class="ec-text-compare-version-meta">@FileSizeDisplay.Text(this.Selected.SizeBytes) <span class="ec-sep" aria-hidden="true">·</span> @this.Selected.UploaderEmail</span>
+</div>
+
+@code {
+    private EcPopover? popover;
+
+    /// <summary>
+    /// Starší or Novější.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required string Label { get; set; }
+
+    /// <summary>
+    /// The versions of the file, newest first.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required IReadOnlyList<FileVersionItem> Versions { get; set; }
+
+    [Parameter, EditorRequired]
+    public required FileVersionItem Selected { get; set; }
+
+    /// <summary>
+    /// The number of the file's current version.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required int CurrentNumber { get; set; }
+
+    /// <summary>
+    /// Whether a version can stand on this side.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required Func<int, bool> Allowed { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OnPick { get; set; }
+
+    private async Task Pick(int number)
+    {
+        await this.popover!.CloseToTrigger();
+        await this.OnPick.InvokeAsync(number);
+    }
+
+    private static string Day(DateTime created)
+    {
+        return DateDisplay.Text(DateOnly.FromDateTime(created.ToLocalTime()));
+    }
+}

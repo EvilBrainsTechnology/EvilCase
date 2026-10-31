@@ -47,6 +47,11 @@
                             <span class="ec-versions-meta">@MomentDisplay.Text(version.Created) <span class="ec-sep" aria-hidden="true">·</span> @version.UploaderEmail <span class="ec-sep" aria-hidden="true">·</span> @FileSizeDisplay.Text(version.SizeBytes)</span>
                         </button>
                         <div class="ec-versions-actions">
+                            @if (FileTypeDisplay.Compares(this.File.FileName) && number != this.versions[^1].Number)
+                            {
+                                <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Compare"
+                                          AriaLabel="@($"Porovnat s předchozí, verze {number}")" OnClick="() => this.OnCompare.InvokeAsync(number)"><span class="ec-versions-action-label">Porovnat s předchozí</span></EcButton>
+                            }
                             <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Download"
                                       AriaLabel="@($"Stáhnout verzi {number}")" OnClick="() => this.OnDownload.InvokeAsync(number)" />
                             @if (this.versions.Count > 1)
@@ -93,6 +98,12 @@
 
     [Parameter]
     public EventCallback<int> OnDownload { get; set; }
+
+    /// <summary>
+    /// Raised with a version to compare with the one before it.
+    /// </summary>
+    [Parameter]
+    public EventCallback<int> OnCompare { get; set; }
 
     [Parameter]
     public EventCallback OnDeleteFile { get; set; }

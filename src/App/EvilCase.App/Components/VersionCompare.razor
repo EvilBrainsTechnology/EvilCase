@@ -1,0 +1,263 @@
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Contract.Files
+@implements IDisposable
+@inject ILogger<VersionCompare> Logger
+
+@* The compare of two versions of a text, code or Markdown file, the older on the left. A side over 1 MB or not in UTF-8
+   says why it does not compare; versions equal but for their line breaks say only that they are equal. *@
+@if (this.Versions is null || this.Item(this.Older) is not { } older || this.Item(this.Newer) is not { } newer)
+{
+    <div class="ec-preview-stage ec-text-compare-stage">
+        <div class="ec-text-compare-state">
+            @if (this.VersionsFailed)
+            {
+                @Notice(warning: false, ["Verze se nepodařilo načíst. Zkuste to za chvíli znovu."],
+                    @<EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Refresh" OnClick="this.OnRetryVersions">Zkusit znovu</EcButton>)
+            }
+            else
+            {
+                <p class="ec-preview-message">Načítám…</p>
+            }
+        </div>
+    </div>
+}
+else if (this.Texts(older, newer) is ({ } olderText, { } newerText) && !this.unavailable && !SameText(olderText, newerText))
+{
+    var preview = FileTypeDisplay.Preview(this.File.FileName);
+    var language = preview switch
+    {
+        FilePreviewKind.Code => FileTypeDisplay.Language(this.File.FileName),
+        FilePreviewKind.Markdown => CodeLanguage.Markdown,
+        _ => (CodeLanguage?)null,
+    };
+
+    <TextCompare @key="(this.Older, this.Newer, this.round)" Older="@olderText" Newer="@newerText" Language="language" Formats="preview == FilePreviewKind.Code"
+                 Labels="@([$"Verze {this.Older} souboru {this.File.FileName}", $"Verze {this.Newer} souboru {this.File.FileName}", $"Rozdíly mezi verzí {this.Older} a verzí {this.Newer}"])"
+                 Unified="this.unified" UnifiedChanged="unified => this.unified = unified" Versions="this.Pickers(older, newer)"
+                 OnUnavailable="() => this.unavailable = true" />
+}
+else
+{
+    <div class="ec-preview-stage ec-text-editor-stage ec-text-compare-stage">
+        <div class="ec-text-compare-card ec-text-compare-card-narrow">
+            @this.Pickers(older, newer)
+            <div class="ec-text-compare-state">
+                @if (this.unavailable)
+                {
+                    @Notice(warning: false, ["Porovnání se nepodařilo spustit. Zkuste to za chvíli znovu."],
+                        @<EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Refresh" OnClick="this.RetryCompare">Zkusit znovu</EcButton>)
+                }
+                else if (this.Problems(older, newer) is { Count: > 0 } problems)
+                {
+                    @Notice(warning: true, problems)
+                }
+                else if (this.failed.Count > 0)
+                {
+                    @Notice(warning: false,
+                        [.. this.failed.Order().Select(number => $"Verzi {number} se nepodařilo načíst. Zkuste to za chvíli znovu.")],
+                        @<EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Refresh" OnClick="this.Load">Zkusit znovu</EcButton>)
+                }
+                else if (this.loading)
+                {
+                    <p class="ec-preview-message">Načítám…</p>
+                }
+                else
+                {
+                    <div class="ec-text-compare-notice ec-text-compare-notice-same">
+                        <span class="ec-text-compare-notice-icon" aria-hidden="true"><EcIcon Paths="@AppIcons.Equal" /></span>
+                        <div class="ec-text-compare-notice-text" role="status"><p>Verze jsou shodné</p></div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    // The texts read, by the version they belong to; null for a version that is not valid UTF-8. A number deleted and
+    // uploaded again is another version.
+    private readonly Dictionary<(int Number, DateTime Created), string?> texts = [];
+
+    // The versions whose last read failed.
+    private readonly HashSet<int> failed = [];
+
+    private CancellationTokenSource? loadToken;
+
+    private (int, int)? loadedPair;
+
+    private bool loading;
+
+    private bool unified;
+
+    // The compare's script did not start; a retry opens it anew.
+    private bool unavailable;
+
+    private int round;
+
+    [Parameter, EditorRequired]
+    public required FileListItem File { get; set; }
+
+    /// <summary>
+    /// The versions of the file, newest first; null until they load.
+    /// </summary>
+    [Parameter]
+    public IReadOnlyList<FileVersionItem>? Versions { get; set; }
+
+    /// <summary>
+    /// Whether the versions did not load.
+    /// </summary>
+    [Parameter]
+    public bool VersionsFailed { get; set; }
+
+    [Parameter]
+    public EventCallback OnRetryVersions { get; set; }
+
+    /// <summary>
+    /// The number of the version on the left, older than <see cref="Newer"/>.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required int Older { get; set; }
+
+    [Parameter, EditorRequired]
+    public required int Newer { get; set; }
+
+    /// <summary>
+    /// Raised with the versions chosen, the older first.
+    /// </summary>
+    [Parameter]
+    public EventCallback<(int Older, int Newer)> OnPick { get; set; }
+
+    [Parameter, EditorRequired]
+    public required Func<FileListItem, int?, CancellationToken, Task<Stream>> LoadContent { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (this.Versions is null || (this.Older, this.Newer) == this.loadedPair)
+            return;
+
+        this.loadedPair = (this.Older, this.Newer);
+
+        await this.Load();
+    }
+
+    public void Dispose()
+    {
+        this.loadToken?.Cancel();
+        this.loadToken?.Dispose();
+    }
+
+    private FileVersionItem? Item(int number)
+    {
+        return this.Versions?.FirstOrDefault(version => version.Number == number);
+    }
+
+    // Reads the sides not read yet; a side over the limit is never read.
+    private async Task Load()
+    {
+        this.loadToken?.Cancel();
+
+        var token = (this.loadToken = new CancellationTokenSource()).Token;
+        var pending = new[] { this.Older, this.Newer }
+            .Select(this.Item)
+            .OfType<FileVersionItem>()
+            .Where(version => version.SizeBytes <= FileTypeDisplay.MaxTextBytes && !this.texts.ContainsKey((version.Number, version.Created)))
+            .ToList();
+
+        this.failed.Clear();
+        this.loading = pending.Count > 0;
+
+        await Task.WhenAll(pending.Select(version => this.LoadSide(version, token)));
+
+        if (!token.IsCancellationRequested)
+            this.loading = false;
+    }
+
+    private async Task LoadSide(FileVersionItem version, CancellationToken token)
+    {
+        try
+        {
+            await using var content = await this.LoadContent(this.File, version.Number == this.File.Version ? null : version.Number, token);
+            using var bytes = new MemoryStream();
+
+            await content.CopyToAsync(bytes, token);
+
+            if (!token.IsCancellationRequested)
+                this.texts[(version.Number, version.Created)] = EditableText.ParseOrDefault(bytes.GetBuffer().AsSpan(0, (int)bytes.Length))?.Text;
+        }
+        catch (OperationCanceledException)
+        {
+            // Another pair took over.
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Loading version {Version} of file {FileId} for the compare failed", version.Number, this.File.FileId);
+
+            if (!token.IsCancellationRequested)
+                this.failed.Add(version.Number);
+        }
+    }
+
+    // The texts of both sides when both were read and are UTF-8.
+    private (string?, string?) Texts(FileVersionItem older, FileVersionItem newer)
+    {
+        return (this.texts.GetValueOrDefault((older.Number, older.Created)), this.texts.GetValueOrDefault((newer.Number, newer.Created)));
+    }
+
+    // Why each side, the newer first, does not compare.
+    private List<string> Problems(FileVersionItem older, FileVersionItem newer)
+    {
+        var problems = new List<string>();
+
+        foreach (var version in new[] { newer, older })
+        {
+            if (version.SizeBytes > FileTypeDisplay.MaxTextBytes)
+                problems.Add($"Verzi {version.Number} nelze porovnat: soubor je větší než {FileSizeDisplay.Text(FileTypeDisplay.MaxTextBytes)}");
+            else if (this.texts.TryGetValue((version.Number, version.Created), out var text) && text is null)
+                problems.Add($"Verzi {version.Number} nelze porovnat: soubor není v kódování UTF-8");
+        }
+
+        return problems;
+    }
+
+    private void RetryCompare()
+    {
+        this.unavailable = false;
+        this.round++;
+    }
+
+    private RenderFragment Pickers(FileVersionItem older, FileVersionItem newer)
+    {
+        return @<div class="ec-text-compare-versions" role="group" aria-label="Porovnávané verze">
+            <CompareVersionPicker Label="Starší" Versions="this.Versions!" Selected="older" CurrentNumber="this.File.Version"
+                                  Allowed="number => number < this.Newer" OnPick="number => this.OnPick.InvokeAsync((number, this.Newer))" />
+            <span class="ec-text-compare-versions-arrow" aria-hidden="true"><EcIcon Paths="@AppIcons.ArrowRight" /></span>
+            <CompareVersionPicker Label="Novější" Versions="this.Versions!" Selected="newer" CurrentNumber="this.File.Version"
+                                  Allowed="number => number > this.Older" OnPick="number => this.OnPick.InvokeAsync((this.Older, number))" />
+        </div>;
+    }
+
+    private static RenderFragment Notice(bool warning, IReadOnlyList<string> lines, RenderFragment? action = null)
+    {
+        return @<div class="ec-text-compare-notice @(warning ? "ec-text-compare-notice-warning" : "ec-text-compare-notice-danger")">
+            <span class="ec-text-compare-notice-icon" aria-hidden="true"><EcIcon Paths="@AppIcons.AlertTriangle" /></span>
+            <div class="ec-text-compare-notice-text" role="alert">
+                @foreach (var line in lines)
+                {
+                    <p>@line</p>
+                }
+            </div>
+            @action
+        </div>;
+    }
+
+    // A difference in line breaks alone does not count.
+    private static bool SameText(string older, string newer)
+    {
+        return string.Equals(Unify(older), Unify(newer), StringComparison.Ordinal);
+
+        static string Unify(string text)
+        {
+            return text.Replace("\r\n", "\n", StringComparison.Ordinal).Replace('\r', '\n');
+        }
+    }
+}

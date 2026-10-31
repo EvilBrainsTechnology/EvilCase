@@ -1839,6 +1839,317 @@ html.ec-scroll-locked {
     font-style: italic;
 }
 
+/* The compare of two versions: the stage scrolls both texts together. Side by side the older stands left, in one column
+   the removed lines stand above the added ones; the stylesheet shows one of the two layouts the script builds. */
+.ec-text-compare-card {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
+    border-radius: var(--ec-radius-lg);
+    background: var(--ec-surface);
+    box-shadow: var(--ec-shadow-raised);
+}
+
+.ec-text-compare-view-unified .ec-text-compare-card,
+.ec-text-compare-card-narrow {
+    flex: 0 1 var(--ec-compare-text-width);
+}
+
+/* The versions stand above the texts; their lists open over the gutters. */
+.ec-text-compare-versions {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ec-space-3) var(--ec-space-4);
+    padding: var(--ec-space-3) var(--ec-space-5);
+    border-bottom: 1px solid var(--ec-border);
+    border-radius: var(--ec-radius-lg) var(--ec-radius-lg) 0 0;
+    background: var(--ec-surface-header);
+    color: var(--ec-text-soft);
+    font-size: var(--ec-text-sm);
+}
+
+.ec-text-compare-version {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+    min-width: 0;
+}
+
+.ec-text-compare-version-label {
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-text-compare-version-title {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.ec-text-compare-version-meta {
+    display: none;
+    color: var(--ec-text-muted);
+    white-space: nowrap;
+}
+
+.ec-text-compare-versions-arrow {
+    display: flex;
+    color: var(--ec-text-muted);
+}
+
+/* Side by side each version heads its column. */
+.ec-text-compare-view:not(.ec-text-compare-view-unified) .ec-text-compare-versions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    padding: 0;
+}
+
+.ec-text-compare-view:not(.ec-text-compare-view-unified) .ec-text-compare-version {
+    padding: var(--ec-space-3) var(--ec-space-4) var(--ec-space-3) var(--ec-space-5);
+}
+
+.ec-text-compare-view:not(.ec-text-compare-view-unified) .ec-text-compare-versions-arrow {
+    display: none;
+}
+
+.ec-text-compare-view:not(.ec-text-compare-view-unified) .ec-text-compare-versions-arrow + .ec-text-compare-version {
+    border-left: 1px solid var(--ec-border);
+}
+
+.ec-text-compare-view:not(.ec-text-compare-view-unified) .ec-text-compare-version-meta {
+    display: inline;
+}
+
+.ec-text-compare-toolbar {
+    gap: var(--ec-space-3) var(--ec-space-4);
+}
+
+.ec-text-compare-changes {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-2);
+}
+
+.ec-text-compare-summary {
+    padding-left: var(--ec-space-1);
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-muted);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.ec-text-compare-summary-added {
+    font-weight: var(--ec-weight-semibold);
+    color: var(--ec-compare-added-sign);
+}
+
+.ec-text-compare-summary-removed {
+    font-weight: var(--ec-weight-semibold);
+    color: var(--ec-compare-removed-sign);
+}
+
+/* The texts form their own layer, below the versions' lists. */
+.ec-text-editor.ec-text-compare {
+    position: relative;
+    z-index: 0;
+    flex: 0 0 auto;
+    min-height: 0;
+}
+
+.ec-text-compare-unified,
+.ec-text-compare-view-unified .ec-text-compare-split {
+    display: none;
+}
+
+.ec-text-compare-view-unified .ec-text-compare-unified {
+    display: block;
+}
+
+.ec-text-compare .cm-editor {
+    border-radius: 0 0 var(--ec-radius-lg) var(--ec-radius-lg);
+    background: transparent;
+    box-shadow: none;
+}
+
+.ec-text-compare .cm-mergeView {
+    overflow: visible;
+}
+
+.ec-text-compare .cm-mergeViewEditor + .cm-mergeViewEditor {
+    border-left: 1px solid var(--ec-border);
+}
+
+/* Every line keeps a column before its text for the sign of its change. */
+.ec-text-compare .cm-editor .cm-line,
+.ec-text-compare .cm-editor .cm-deletedChunk .cm-deletedLine {
+    position: relative;
+    padding: 0 var(--ec-space-7) 0 calc(var(--ec-space-3) + var(--ec-compare-sign-width));
+}
+
+.ec-text-compare .cm-editor .cm-changedLine::before,
+.ec-text-compare .cm-editor .cm-deletedChunk .cm-deletedLine::before {
+    position: absolute;
+    left: var(--ec-space-1);
+    width: var(--ec-compare-sign-width);
+    font-weight: var(--ec-weight-semibold);
+    text-align: center;
+}
+
+.ec-text-compare .cm-editor.cm-merge-a .cm-changedLine,
+.ec-text-compare .cm-editor .cm-deletedChunk,
+.ec-text-compare .cm-editor .cm-gutterElement.ec-text-compare-removed {
+    background: var(--ec-compare-removed-bg);
+}
+
+.ec-text-compare .cm-editor.cm-merge-a .cm-changedLine::before,
+.ec-text-compare .cm-editor .cm-deletedChunk .cm-deletedLine::before {
+    content: "−";
+    color: var(--ec-compare-removed-sign);
+}
+
+.ec-text-compare .cm-editor.cm-merge-b .cm-changedLine,
+.ec-text-compare .cm-editor .cm-gutterElement.ec-text-compare-added {
+    background: var(--ec-compare-added-bg);
+}
+
+.ec-text-compare .cm-editor.cm-merge-b .cm-changedLine::before {
+    content: "+";
+    color: var(--ec-compare-added-sign);
+}
+
+.ec-text-compare .cm-editor .cm-deletedChunk {
+    padding-left: 0;
+}
+
+.ec-text-compare .cm-editor.cm-merge-a .cm-line .cm-changedText,
+.ec-text-compare .cm-editor .cm-deletedChunk .cm-deletedLine .cm-deletedText {
+    border-radius: var(--ec-compare-word-radius);
+    background: var(--ec-compare-removed-word);
+}
+
+.ec-text-compare .cm-editor.cm-merge-b .cm-line .cm-changedText {
+    border-radius: var(--ec-compare-word-radius);
+    background: var(--ec-compare-added-word);
+}
+
+/* A line wholly added or removed marks no word. */
+.ec-text-compare .cm-editor .cm-line.ec-text-compare-whole .cm-changedText,
+.ec-text-compare .cm-editor .cm-deletedChunk:not(:has(+ .cm-changedLine)) .cm-deletedLine .cm-deletedText {
+    background: none;
+}
+
+/* A match of the search shows over a changed word. */
+.ec-text-compare .cm-editor .cm-line .ec-text-editor-hit .cm-changedText {
+    background: var(--ec-preview-hit);
+}
+
+.ec-text-compare .cm-editor .cm-line .ec-text-editor-hit-current .cm-changedText {
+    background: var(--ec-preview-hit-current);
+}
+
+.ec-text-compare .cm-editor .cm-mergeSpacer,
+.ec-text-compare .cm-editor .cm-gutterElement.ec-text-compare-gap {
+    background: var(--ec-compare-gap);
+}
+
+.ec-text-compare .ec-text-compare-run {
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+    width: 100%;
+    height: var(--ec-compare-run-height);
+    padding: 0 0 0 var(--ec-space-6);
+    border: 0;
+    border-block: 1px solid var(--ec-compare-run-border);
+    background: var(--ec-compare-run-bg);
+    color: var(--ec-accent-text);
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-sm);
+    font-weight: var(--ec-weight-medium);
+    text-align: left;
+    cursor: pointer;
+}
+
+.ec-text-compare .ec-text-compare-run:hover {
+    background: var(--ec-compare-run-hover);
+}
+
+.ec-text-compare .ec-text-compare-run:focus-visible {
+    outline: none;
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-text-compare-state {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--ec-space-4);
+    padding: var(--ec-space-6);
+}
+
+.ec-text-compare-notice {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    align-self: stretch;
+    gap: var(--ec-space-4);
+    min-height: var(--ec-compare-notice-height);
+    padding: var(--ec-space-5);
+    border: 1px solid transparent;
+    border-radius: var(--ec-radius-lg);
+    background: var(--ec-preview-stage);
+    color: var(--ec-text);
+    text-align: center;
+}
+
+.ec-text-compare-notice-warning {
+    border-color: var(--ec-warning-border);
+    background: var(--ec-warning-bg);
+    color: var(--ec-warning-text);
+}
+
+.ec-text-compare-notice-danger {
+    border-color: var(--ec-danger-border);
+    background: var(--ec-danger-bg);
+    color: var(--ec-danger-text);
+}
+
+.ec-text-compare-notice-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--ec-compare-notice-icon);
+    height: var(--ec-compare-notice-icon);
+    border-radius: var(--ec-radius-pill);
+    background: var(--ec-surface);
+}
+
+.ec-text-compare-notice-same .ec-text-compare-notice-icon {
+    color: var(--ec-accent-text);
+}
+
+.ec-text-compare-notice-text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-2);
+}
+
+.ec-text-compare-state > .ec-preview-message {
+    align-self: stretch;
+    min-height: var(--ec-compare-notice-height);
+}
+
+.ec-text-compare-notice-text p {
+    margin: 0;
+    font-size: var(--ec-text-md);
+    font-weight: var(--ec-weight-semibold);
+    line-height: var(--ec-leading-body);
+}
+
 .ec-preview-message {
     display: flex;
     flex: 1 1 auto;
@@ -2771,6 +3082,18 @@ html.ec-scroll-locked {
 .ec-preview-versions-option:hover,
 .ec-preview-versions-manage:hover {
     background: var(--ec-surface-sunken);
+}
+
+/* A version the other side of a compare rules out. */
+.ec-preview-versions-option:disabled,
+.ec-preview-versions-option:disabled:hover {
+    background: transparent;
+    color: var(--ec-text-faint);
+    cursor: default;
+}
+
+.ec-preview-versions-option:disabled .ec-preview-versions-option-meta {
+    color: var(--ec-text-faint);
 }
 
 .ec-preview-versions-option[aria-current="true"] {
@@ -4822,6 +5145,10 @@ html.ec-scroll-locked {
         padding: 0;
     }
 
+    .ec-versions-action-label {
+        display: none;
+    }
+
     .ec-versions-delete-file .ec-button {
         justify-content: center;
     }
@@ -4998,6 +5325,66 @@ html.ec-scroll-locked {
 
     .ec-markdown-mode-short {
         display: inline;
+    }
+
+    /* A narrow screen always compares in one column, with the versions side by side above the text. */
+    .ec-text-compare-layout,
+    .ec-text-compare-summary-unit,
+    .ec-text-compare-view .ec-text-compare-split,
+    .ec-text-compare-versions-arrow,
+    .ec-text-compare-view:not(.ec-text-compare-view-unified) .ec-text-compare-version-meta,
+    .ec-text-compare-version-day,
+    .ec-text-compare-version .ec-preview-versions-trigger .ec-badge {
+        display: none;
+    }
+
+    .ec-text-compare-view .ec-text-compare-unified {
+        display: block;
+    }
+
+    .ec-text-compare-view .ec-text-compare-card {
+        flex: 1 1 auto;
+    }
+
+    .ec-text-compare-view:not(.ec-text-compare-view-unified) .ec-text-compare-versions,
+    .ec-text-compare-versions {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: var(--ec-space-3);
+        padding: var(--ec-space-3) var(--ec-space-4);
+    }
+
+    .ec-text-compare-view:not(.ec-text-compare-view-unified) .ec-text-compare-version,
+    .ec-text-compare-version {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--ec-space-1);
+        padding: 0;
+    }
+
+    .ec-text-compare-view:not(.ec-text-compare-view-unified) .ec-text-compare-versions-arrow + .ec-text-compare-version {
+        border-left: 0;
+    }
+
+    .ec-text-compare-version .ec-popover-anchor,
+    .ec-text-compare-version .ec-popover-trigger,
+    .ec-text-compare-version .ec-preview-versions-trigger {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .ec-text-compare-version .ec-preview-versions-trigger {
+        justify-content: space-between;
+        min-height: var(--ec-touch-min);
+    }
+
+    .ec-text-compare .cm-editor .cm-line,
+    .ec-text-compare .cm-editor .cm-deletedChunk .cm-deletedLine {
+        padding-right: var(--ec-space-4);
+    }
+
+    .ec-text-compare-state {
+        padding: var(--ec-space-4);
     }
 }
 

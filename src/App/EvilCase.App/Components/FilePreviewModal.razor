@@ -53,6 +53,21 @@
                     }
                 </div>
             }
+            else if (this.compareStart is not null)
+            {
+                var pair = this.ComparedPair;
+
+                <EcFileIcon FileName="@file.FileName" />
+                <div class="ec-preview-title">
+                    <h2 class="ec-preview-name" title="@file.FileName">@file.FileName</h2>
+                    <span class="ec-preview-meta">@(pair is { } shownPair ? $"Porovnání verze {shownPair.Older} s verzí {shownPair.Newer}" : "Porovnání verzí")</span>
+                </div>
+                <div class="ec-preview-actions">
+                    <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Compare" AriaLabel="Zavřít porovnání" aria-pressed="true" OnClick="this.CloseCompare"><span class="ec-preview-action-label">Zavřít porovnání</span></EcButton>
+                    <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Download" AriaLabel="@($"Stáhnout verzi {pair?.Newer ?? file.Version}")" OnClick="() => this.DownloadCompared(file)"><span class="ec-preview-action-label">Stáhnout</span></EcButton>
+                    @this.FileSteps()
+                </div>
+            }
             else if (this.editing is not null)
             {
                 <EcFileIcon FileName="@file.FileName" />
@@ -111,6 +126,10 @@
                             <span class="ec-preview-action-label">Verze<span class="ec-preview-versions-count">@file.VersionCount</span></span>
                         </button>
                     }
+                    @if (file.VersionCount > 1 && attachment is null && FileTypeDisplay.Compares(file.FileName))
+                    {
+                        <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Compare" AriaLabel="Porovnat" OnClick="() => this.StartCompare(file)"><span class="ec-preview-action-label">Porovnat</span></EcButton>
+                    }
                     <FileVersionPicker Text="Nová verze" Disabled="this.uploadingVersion" OnPicked="picked => this.UploadNewVersion(file, picked)" />
                     <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Pencil" AriaLabel="Přejmenovat" OnClick="this.StartRename"><span class="ec-preview-action-label">Přejmenovat</span></EcButton>
                     @if (this.signedContentName is not null)
@@ -124,17 +143,7 @@
                     {
                         <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Download" AriaLabel="Stáhnout" OnClick="() => this.DownloadStored(file)"><span class="ec-preview-action-label">Stáhnout</span></EcButton>
                     }
-                    @if (this.Files.Count > 1)
-                    {
-                        <span class="ec-preview-divider" aria-hidden="true"></span>
-                        <nav class="ec-preview-nav" aria-label="Soubory">
-                            <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.ChevronLeft" AriaLabel="Předchozí soubor"
-                                      OnClick="() => this.Step(-1)" />
-                            <span class="ec-preview-position">Soubor <strong>@(this.Position + 1)</strong> z @this.Files.Count</span>
-                            <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.ChevronRight" AriaLabel="Další soubor"
-                                      OnClick="() => this.Step(1)" />
-                        </nav>
-                    }
+                    @this.FileSteps()
                 </div>
             }
         </Heading>
@@ -146,7 +155,15 @@
                     <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Refresh" Disabled="@this.saving" OnClick="this.Save">Zkusit znovu</EcButton>
                 </div>
             }
-            @if (this.editing is { } edited && preview != FilePreviewKind.Markdown)
+            @if (this.compareStart is not null)
+            {
+                var pair = this.ComparedPair;
+
+                <VersionCompare @key="file.FileId" File="file" Versions="@(pair is null ? null : this.versions)" VersionsFailed="this.versionsFailed"
+                                OnRetryVersions="() => this.RetryVersions(file)" Older="@(pair?.Older ?? 0)" Newer="@(pair?.Newer ?? 0)"
+                                OnPick="picked => this.comparePair = picked" LoadContent="this.LoadContent" />
+            }
+            else if (this.editing is { } edited && preview != FilePreviewKind.Markdown)
             {
                 <TextEditor @ref="this.editor" Text="@edited.Text" FileName="@file.FileName" Locked="this.saving"
                             Language="@(preview == FilePreviewKind.Code ? FileTypeDisplay.Language(file.FileName) : (CodeLanguage?)null)"
@@ -496,6 +513,12 @@
     [Parameter]
     public bool EditOnOpen { get; set; }
 
+    /// <summary>
+    /// Opens the compare of the version shown with the one before it; read when the preview opens.
+    /// </summary>
+    [Parameter]
+    public bool CompareOnOpen { get; set; }
+
     [Parameter]
     public bool Open { get; set; }
 
@@ -513,7 +536,15 @@
 
     private IReadOnlyList<FileVersionItem>? versions;
 
+    private bool versionsFailed;
+
     private (Guid, int, int)? versionsKey;
+
+    // The file and the version the compare opened for; null while the preview does not compare.
+    private (Guid FileId, int Number)? compareStart;
+
+    // The versions chosen in the compare; until then the one it opened for and the one before it.
+    private (int Older, int Newer)? comparePair;
 
     private bool versionsOpen;
 
@@ -614,6 +645,8 @@
 
     private FileVersionItem? ShownVersionItem => this.OlderVersion is { } number ? this.versions?.FirstOrDefault(version => version.Number == number) : null;
 
+    private (int Older, int Newer)? ComparedPair => this.comparePair ?? (this.compareStart is { } start && this.versions is { } list ? DefaultPair(list, start.Number) : null);
+
     private DataMessageAttachment? ShownAttachment => this.trail.Count == 0 ? null : this.trail[^1].Message.Attachments[this.trail[^1].Index];
 
     // Only the current version of a stored text or code file, read whole and valid UTF-8, is edited.
@@ -646,6 +679,9 @@
     protected override void OnInitialized()
     {
         this.editOnLoad = this.EditOnOpen;
+
+        if (this.CompareOnOpen && this.Current is { } file)
+            this.compareStart = (file.FileId, this.Version ?? file.Version);
     }
 
     protected override async Task OnParametersSetAsync()
@@ -654,6 +690,24 @@
             return;
 
         await this.LoadVersionList(file);
+
+        // A compared version no longer listed gives way to the pair the compare opens with, from the current version when
+        // the one it opened for is gone; a file left with one version ends the compare.
+        if (this.compareStart is { } opened && opened.FileId == file.FileId)
+        {
+            if (file.VersionCount < 2)
+            {
+                this.CloseCompare();
+            }
+            else if (this.versions is { } list)
+            {
+                if (!Listed(list, opened.Number))
+                    this.compareStart = (file.FileId, file.Version);
+
+                if (this.comparePair is { } picked && !(Listed(list, picked.Older) && Listed(list, picked.Newer)))
+                    this.comparePair = null;
+            }
+        }
 
         var number = this.OlderVersion ?? file.Version;
 
@@ -665,6 +719,10 @@
             this.versionsOpen = false;
             this.versionFailure = null;
         }
+
+        // Another file ends the compare.
+        if (this.compareStart is { } start && start.FileId != file.FileId)
+            this.CloseCompare();
 
         this.renaming = false;
 
@@ -687,6 +745,7 @@
             return;
 
         this.versionsKey = key;
+        this.versionsFailed = false;
 
         try
         {
@@ -697,7 +756,15 @@
             this.Logger.LogWarning(exception, "Loading the versions of file {FileAssetId} failed", file.FileId);
 
             this.versions = null;
+            this.versionsFailed = true;
         }
+    }
+
+    private async Task RetryVersions(FileListItem file)
+    {
+        this.versionsKey = null;
+
+        await this.LoadVersionList(file);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -1175,6 +1242,63 @@
 
         if (this.versionFailure is null)
             await this.VersionChanged.InvokeAsync(null);
+    }
+
+    private void StartCompare(FileListItem file)
+    {
+        this.renaming = false;
+        this.versionsOpen = false;
+        this.versionFailure = null;
+        this.compareStart = (file.FileId, this.OlderVersion ?? file.Version);
+        this.comparePair = null;
+    }
+
+    private void CloseCompare()
+    {
+        this.compareStart = null;
+        this.comparePair = null;
+    }
+
+    // The newer version of the compare is saved under the file's name.
+    private async Task DownloadCompared(FileListItem file)
+    {
+        var number = this.ComparedPair?.Newer ?? file.Version;
+
+        if (number == file.Version)
+            await this.OnDownload.InvokeAsync(file);
+        else
+            await this.Downloader.DownloadFile(file.FileId, number, file.FileName, CancellationToken.None);
+    }
+
+    private static bool Listed(IReadOnlyList<FileVersionItem> versions, int number)
+    {
+        return versions.Any(version => version.Number == number);
+    }
+
+    // The version against the one before it; the oldest against the one after it.
+    private static (int Older, int Newer)? DefaultPair(IReadOnlyList<FileVersionItem> versions, int number)
+    {
+        if (versions.FirstOrDefault(version => version.Number < number) is { } previous)
+            return (previous.Number, number);
+
+        return versions.LastOrDefault(version => version.Number > number) is { } next ? (number, next.Number) : null;
+    }
+
+    private RenderFragment FileSteps()
+    {
+        return @<text>
+            @if (this.Files.Count > 1)
+            {
+                <span class="ec-preview-divider" aria-hidden="true"></span>
+                <nav class="ec-preview-nav" aria-label="Soubory">
+                    <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.ChevronLeft" AriaLabel="Předchozí soubor"
+                              OnClick="() => this.Step(-1)" />
+                    <span class="ec-preview-position">Soubor <strong>@(this.Position + 1)</strong> z @this.Files.Count</span>
+                    <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.ChevronRight" AriaLabel="Další soubor"
+                              OnClick="() => this.Step(1)" />
+                </nav>
+            }
+        </text>;
     }
 
     private async Task StartEdit()

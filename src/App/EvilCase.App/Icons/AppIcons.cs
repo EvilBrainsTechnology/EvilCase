@@ -1,6 +1,6 @@
 namespace EvilBrains.EvilCase.App.Icons;
 
-// The path data is copied from Tabler icons; the file type glyphs and the hand are drawn for the design.
+// The path data is copied from Tabler icons; the file type glyphs, the hand and the compare are drawn for the design.
 public static class AppIcons
 {
     public const string AlertTriangle = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
@@ -41,6 +41,21 @@ public static class AppIcons
         + "<path d='M5 12l14 0' />"
         + "<path d='M5 12l6 6' />"
         + "<path d='M5 12l6 -6' />";
+
+    public const string ArrowRight = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M5 12l14 0' />"
+        + "<path d='M13 18l6 -6' />"
+        + "<path d='M13 6l6 6' />";
+
+    public const string ArrowUp = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M12 5l0 14' />"
+        + "<path d='M18 11l-6 -6' />"
+        + "<path d='M6 11l6 -6' />";
+
+    public const string ArrowDown = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M12 5l0 14' />"
+        + "<path d='M18 13l-6 6' />"
+        + "<path d='M6 13l6 6' />";
 
     public const string ArrowDownLeft = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M17 7l-10 10' />"
@@ -94,6 +109,9 @@ public static class AppIcons
         + "<path d='M17 8l4 4l-4 4' />"
         + "<path d='M14 4l-4 16' />";
 
+    public const string Compare = "<rect x='3.5' y='4.5' width='7' height='15' rx='1.5' />"
+        + "<rect x='13.5' y='4.5' width='7' height='15' rx='1.5' />";
+
     public const string Copy = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M7 7m0 2.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667z' />"
         + "<path d='M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1' />";
@@ -120,6 +138,10 @@ public static class AppIcons
         + "<path d='M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1' />"
         + "<path d='M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.415 -8.415z' />"
         + "<path d='M16 5l3 3' />";
+
+    public const string Equal = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M5 10h14' />"
+        + "<path d='M5 14h14' />";
 
     public const string Eye = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0' />"
