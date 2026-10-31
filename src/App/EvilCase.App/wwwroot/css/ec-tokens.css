@@ -356,8 +356,8 @@
     --ec-compare-run-hover: #E3E8F7;
     --ec-compare-run-border: #DCE2F4;
     --ec-compare-word-radius: 2px;
-    --ec-compare-same-icon: 48px;
-    --ec-compare-same-height: 180px;
+    --ec-compare-notice-icon: 48px;
+    --ec-compare-notice-height: 180px;
     --ec-markdown-task-box: 16px;
     --ec-overlay-strong: rgba(20, 22, 27, 0.6);
     --ec-comment-avatar-compact: 30px;

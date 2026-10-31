@@ -88,7 +88,7 @@ public class FilePreviewModalCompareRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.Find(".ec-text-compare-same").TextContent, Does.Contain("Verze jsou shodné"));
+            Assert.That(component.Find(".ec-text-compare-notice-same").TextContent, Does.Contain("Verze jsou shodné"));
             Assert.That(compares.Opened, Is.Empty, "equal versions open no compare");
         }
     }
@@ -104,7 +104,7 @@ public class FilePreviewModalCompareRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.Find(".ec-warning").TextContent, Does.Contain("Verzi 1 nelze porovnat: soubor je větší než 1 MB"));
+            Assert.That(component.Find(".ec-text-compare-notice-warning").TextContent, Does.Contain("Verzi 1 nelze porovnat: soubor je větší než 1 MB"));
             Assert.That(read, Does.Not.Contain(1), "the compare never reads the side over the limit");
             Assert.That(compares.Opened, Is.Empty);
         }
@@ -120,7 +120,7 @@ public class FilePreviewModalCompareRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.Find(".ec-warning").TextContent, Does.Contain("Verzi 1 nelze porovnat: soubor není v kódování UTF-8"));
+            Assert.That(component.Find(".ec-text-compare-notice-warning").TextContent, Does.Contain("Verzi 1 nelze porovnat: soubor není v kódování UTF-8"));
             Assert.That(compares.Opened, Is.Empty);
         }
     }
@@ -135,7 +135,7 @@ public class FilePreviewModalCompareRenderTests
         var content = Texts("a\n", "b\n");
         var component = Render(ctx, file, content, compareOnOpen: true, onRead: Read);
 
-        Assert.That(component.Find(".ec-text-compare-state .ec-alert").TextContent, Does.Contain("Verzi 1 se nepodařilo načíst."));
+        Assert.That(component.Find(".ec-text-compare-notice-danger").TextContent, Does.Contain("Verzi 1 se nepodařilo načíst."));
 
         fails = false;
         await component

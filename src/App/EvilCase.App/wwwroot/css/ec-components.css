@@ -2090,34 +2090,64 @@ html.ec-scroll-locked {
     padding: var(--ec-space-6);
 }
 
-.ec-text-compare-same {
+.ec-text-compare-notice {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     align-self: stretch;
     gap: var(--ec-space-4);
-    min-height: var(--ec-compare-same-height);
+    min-height: var(--ec-compare-notice-height);
+    padding: var(--ec-space-5);
+    border: 1px solid transparent;
     border-radius: var(--ec-radius-lg);
     background: var(--ec-preview-stage);
+    color: var(--ec-text);
+    text-align: center;
 }
 
-.ec-text-compare-same-icon {
+.ec-text-compare-notice-warning {
+    border-color: var(--ec-warning-border);
+    background: var(--ec-warning-bg);
+    color: var(--ec-warning-text);
+}
+
+.ec-text-compare-notice-danger {
+    border-color: var(--ec-danger-border);
+    background: var(--ec-danger-bg);
+    color: var(--ec-danger-text);
+}
+
+.ec-text-compare-notice-icon {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: var(--ec-compare-same-icon);
-    height: var(--ec-compare-same-icon);
+    width: var(--ec-compare-notice-icon);
+    height: var(--ec-compare-notice-icon);
     border-radius: var(--ec-radius-pill);
     background: var(--ec-surface);
+}
+
+.ec-text-compare-notice-same .ec-text-compare-notice-icon {
     color: var(--ec-accent-text);
 }
 
-.ec-text-compare-same-text {
+.ec-text-compare-notice-text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-2);
+}
+
+.ec-text-compare-state > .ec-preview-message {
+    align-self: stretch;
+    min-height: var(--ec-compare-notice-height);
+}
+
+.ec-text-compare-notice-text p {
     margin: 0;
     font-size: var(--ec-text-md);
     font-weight: var(--ec-weight-semibold);
-    color: var(--ec-text);
+    line-height: var(--ec-leading-body);
 }
 
 .ec-preview-message {

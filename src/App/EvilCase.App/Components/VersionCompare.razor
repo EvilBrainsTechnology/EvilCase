@@ -11,8 +11,8 @@
         <div class="ec-text-compare-state">
             @if (this.VersionsFailed)
             {
-                <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />Verze se nepodařilo načíst. Zkuste to za chvíli znovu.</div>
-                <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Refresh" OnClick="this.OnRetryVersions">Zkusit znovu</EcButton>
+                @Notice(warning: false, ["Verze se nepodařilo načíst. Zkuste to za chvíli znovu."],
+                    @<EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Refresh" OnClick="this.OnRetryVersions">Zkusit znovu</EcButton>)
             }
             else
             {
@@ -44,23 +44,18 @@ else
             <div class="ec-text-compare-state">
                 @if (this.unavailable)
                 {
-                    <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />Porovnání se nepodařilo spustit. Zkuste to za chvíli znovu.</div>
-                    <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Refresh" OnClick="this.RetryCompare">Zkusit znovu</EcButton>
+                    @Notice(warning: false, ["Porovnání se nepodařilo spustit. Zkuste to za chvíli znovu."],
+                        @<EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Refresh" OnClick="this.RetryCompare">Zkusit znovu</EcButton>)
                 }
                 else if (this.Problems(older, newer) is { Count: > 0 } problems)
                 {
-                    @foreach (var problem in problems)
-                    {
-                        <div class="ec-warning" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@problem</div>
-                    }
+                    @Notice(warning: true, problems)
                 }
                 else if (this.failed.Count > 0)
                 {
-                    @foreach (var number in this.failed.Order())
-                    {
-                        <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />Verzi @number se nepodařilo načíst. Zkuste to za chvíli znovu.</div>
-                    }
-                    <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Refresh" OnClick="this.Load">Zkusit znovu</EcButton>
+                    @Notice(warning: false,
+                        [.. this.failed.Order().Select(number => $"Verzi {number} se nepodařilo načíst. Zkuste to za chvíli znovu.")],
+                        @<EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Refresh" OnClick="this.Load">Zkusit znovu</EcButton>)
                 }
                 else if (this.loading)
                 {
@@ -68,9 +63,9 @@ else
                 }
                 else
                 {
-                    <div class="ec-text-compare-same" role="status">
-                        <span class="ec-text-compare-same-icon" aria-hidden="true"><EcIcon Paths="@AppIcons.Equal" /></span>
-                        <p class="ec-text-compare-same-text">Verze jsou shodné</p>
+                    <div class="ec-text-compare-notice ec-text-compare-notice-same">
+                        <span class="ec-text-compare-notice-icon" aria-hidden="true"><EcIcon Paths="@AppIcons.Equal" /></span>
+                        <div class="ec-text-compare-notice-text" role="status"><p>Verze jsou shodné</p></div>
                     </div>
                 }
             </div>
@@ -238,6 +233,20 @@ else
             <span class="ec-text-compare-versions-arrow" aria-hidden="true"><EcIcon Paths="@AppIcons.ArrowRight" /></span>
             <CompareVersionPicker Label="Novější" Versions="this.Versions!" Selected="newer" CurrentNumber="this.File.Version"
                                   Allowed="number => number > this.Older" OnPick="number => this.OnPick.InvokeAsync((this.Older, number))" />
+        </div>;
+    }
+
+    private static RenderFragment Notice(bool warning, IReadOnlyList<string> lines, RenderFragment? action = null)
+    {
+        return @<div class="ec-text-compare-notice @(warning ? "ec-text-compare-notice-warning" : "ec-text-compare-notice-danger")">
+            <span class="ec-text-compare-notice-icon" aria-hidden="true"><EcIcon Paths="@AppIcons.AlertTriangle" /></span>
+            <div class="ec-text-compare-notice-text" role="alert">
+                @foreach (var line in lines)
+                {
+                    <p>@line</p>
+                }
+            </div>
+            @action
         </div>;
     }
 
