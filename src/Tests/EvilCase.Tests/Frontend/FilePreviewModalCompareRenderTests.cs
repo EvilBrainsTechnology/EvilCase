@@ -190,8 +190,10 @@ public class FilePreviewModalCompareRenderTests
         }
     }
 
-    [Test]
-    public async Task APickedVersionNoLongerListedFallsBackToThePairTheCompareOpenedWith()
+    // Deleting version 4 also deletes the version the compare opened for, the current one.
+    [TestCase(1, 3, 4, "c\n", "d\n")]
+    [TestCase(4, 2, 3, "b\n", "c\n")]
+    public async Task APickedVersionNoLongerListedFallsBackToThePairTheCompareOpensWith(int deleted, int older, int newer, string olderText, string newerText)
     {
         await using var ctx = NewContext(out var compares, out _);
 
@@ -200,15 +202,15 @@ public class FilePreviewModalCompareRenderTests
 
         await Pick(component, "Starší", "Verze 1");
 
-        IReadOnlyList<FileVersionItem> left = [Version(4, 2), Version(3, 2), Version(2, 2)];
+        IReadOnlyList<FileVersionItem> left = [.. Enumerable.Range(1, 4).Reverse().Where(number => number != deleted).Select(static number => Version(number, 2))];
         component.Render(parameters => parameters
-            .Add(static modal => modal.Files, [file with { VersionCount = 3 }])
+            .Add(static modal => modal.Files, [file with { Version = left[0].Number, VersionCount = 3 }])
             .Add(static modal => modal.LoadVersions, (_, _) => Task.FromResult(left)));
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.Find(Header).TextContent, Does.Contain("Porovnání verze 3 s verzí 4"));
-            Assert.That(compares.Opened.Select(static opened => (opened.Older, opened.Newer)).Last(), Is.EqualTo(("c\n", "d\n")), "a deleted version gives way to the pair the compare opened with");
+            Assert.That(component.Find(Header).TextContent, Does.Contain(string.Create(CultureInfo.InvariantCulture, $"Porovnání verze {older} s verzí {newer}")));
+            Assert.That(compares.Opened.Select(static opened => (opened.Older, opened.Newer)).Last(), Is.EqualTo((olderText, newerText)), "a deleted version gives way to the pair the compare opens with");
         }
     }
 
