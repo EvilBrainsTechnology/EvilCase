@@ -2048,9 +2048,9 @@ html.ec-scroll-locked {
 }
 
 /* The texts split the width as the versions above them do. */
-.ec-text-compare .cm-mergeViewEditor {
-    box-sizing: border-box;
-    flex-basis: 50%;
+.ec-text-compare .cm-mergeViewEditors {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 }
 
 .ec-text-compare .cm-mergeViewEditor + .cm-mergeViewEditor {
