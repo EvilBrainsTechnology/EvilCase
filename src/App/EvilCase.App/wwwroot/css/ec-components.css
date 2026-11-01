@@ -1960,6 +1960,7 @@ html.ec-scroll-locked {
 .ec-text-compare-view:not(.ec-text-compare-view-unified) .ec-text-compare-versions {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0;
     padding: 0;
 }
 
@@ -2044,6 +2045,12 @@ html.ec-scroll-locked {
 
 .ec-text-compare .cm-mergeView {
     overflow: visible;
+}
+
+/* The texts split the width as the versions above them do. */
+.ec-text-compare .cm-mergeViewEditors {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 }
 
 .ec-text-compare .cm-mergeViewEditor + .cm-mergeViewEditor {
