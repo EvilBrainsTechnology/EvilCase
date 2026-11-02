@@ -1,6 +1,7 @@
 // Previews of the formats the browser cannot show itself. Each library under ../lib is loaded the first time
 // a file of its type opens; the bytes are parsed here and never leave the browser.
-import { fold } from './text-search.js';
+import { loadStylesheet, stepZoom, wheelZoom } from './preview-shared.js';
+import { debouncedFind, fold } from './text-search.js';
 
 const maxPixels = 64 * 1024 * 1024;
 const maxBodyLength = 200000;
@@ -52,13 +53,11 @@ const documentUrls = new Map();
 // The previews laid out here rather than by PDF.js: a Markdown, e-mail or data message reflows at its zoom, a document
 // keeps its pages and scales them. Each reports its zoom and search matches to `view`, a .NET object reference, and a
 // document also the page in view.
-const zoomSteps = [0.5, 0.67, 0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4];
 const fitModes = ['page-width', 'page-fit'];
 const views = new Map();
 const highlights = globalThis.CSS?.highlights;
 const hitName = 'ec-preview-hit';
 const currentHitName = 'ec-preview-hit-current';
-const typingDelay = 250;
 const highlightRules = `::highlight(${hitName}) { background-color: var(--ec-preview-hit); }
 ::highlight(${currentHitName}) { background-color: var(--ec-preview-hit-current); }`;
 // Text in two of these never forms one match.
@@ -101,29 +100,11 @@ function openView(element, stage, content, root, view, page) {
     disposeView(element);
 
     const abort = new AbortController();
-    const state = { element, stage, content, root, view, page, abort, zoom: 1, fit: null, index: null, search: null, typing: null, sections: [], current: 0, pinned: null };
+    const state = { element, stage, content, root, view, page, abort, zoom: 1, fit: null, index: null, query: '', search: null, typing: null, sections: [], current: 0, pinned: null };
 
     views.set(element, state);
 
-    // Ctrl or Cmd with the wheel, and a pinch on a touchpad, zoom around the pointer.
-    stage.addEventListener('wheel', event => {
-        if (!event.ctrlKey && !event.metaKey) {
-            return;
-        }
-
-        event.preventDefault();
-
-        const fine = event.deltaMode === WheelEvent.DOM_DELTA_PIXEL && Math.abs(event.deltaY) < 50;
-        const factor = fine ? Math.exp(-event.deltaY / 100) : event.deltaY < 0 ? 1.1 : 1 / 1.1;
-        // A fit outside the steps' range is a bound of its own, so the wheel never zooms against its direction.
-        const current = state.zoom;
-        const zoom = Math.min(Math.max(current * factor, Math.min(zoomSteps[0], current)), Math.max(zoomSteps.at(-1), current));
-        const box = stage.getBoundingClientRect();
-
-        if (zoom !== current) {
-            setZoom(state, zoom, null, event.clientX - box.left, event.clientY - box.top);
-        }
-    }, { passive: false, signal: abort.signal });
+    wheelZoom(stage, abort.signal, () => state.zoom, (zoom, x, y) => setZoom(state, zoom, null, x, y));
 
     return state;
 }
@@ -487,14 +468,7 @@ export function zoomView(element, zoom) {
         return;
     }
 
-    const current = state.zoom;
-    const next = zoom === 'actual'
-        ? 1
-        : zoom === 'in'
-            ? zoomSteps.find(step => step > current + 0.005) ?? zoomSteps.at(-1)
-            : zoomSteps.findLast(step => step < current - 0.005) ?? zoomSteps[0];
-
-    setZoom(state, next, null);
+    setZoom(state, stepZoom(state.zoom, zoom), null);
 }
 
 // The folded text of the content, with the text node and offsets of each of its characters.
@@ -636,8 +610,7 @@ function firstInView(state) {
     return low < ranges.length ? low : 0;
 }
 
-// An empty query clears the highlights at once; a new query waits for the typing to pause, as in PDF.js. A match
-// ignores case and diacritics; the search wraps around.
+// A match ignores case and diacritics; the search wraps around.
 export function findInView(element, query, again, previous) {
     const state = views.get(element);
 
@@ -645,43 +618,45 @@ export function findInView(element, query, again, previous) {
         return;
     }
 
-    clearTimeout(state.typing);
+    debouncedFind(state, query, again, {
+        clear: () => clearSearch(state),
+        search: () => search(state),
+        step: () => {
+            const { ranges, current } = state.search;
 
-    if (query.length === 0) {
-        clearSearch(state);
-    } else if (again) {
-        search(state, query, true, previous);
-    } else {
-        state.typing = setTimeout(() => search(state, query, false, false), typingDelay);
-    }
+            if (ranges.length > 0) {
+                showMatch(state, (current + (previous ? ranges.length - 1 : 1)) % ranges.length);
+            }
+
+            reportMatches(state);
+        },
+    });
 }
 
-function search(state, query, again, previous) {
-    if (!again || state.search?.query !== query) {
-        if (!state.index || !state.index.textNodes.every(node => node.isConnected)) {
-            state.index = indexText(state.root);
-        }
-
-        const { index } = state;
-        const needle = fold(query);
-        const ranges = [];
-
-        for (let start = index.text.indexOf(needle); needle.length > 0 && start >= 0; start = index.text.indexOf(needle, start + needle.length)) {
-            ranges.push(rangeOf(index, start, start + needle.length));
-        }
-
-        clearSearch(state);
-        state.search = { query, ranges, current: 0, painted: false };
-
-        if (ranges.length > 0) {
-            showMatch(state, firstInView(state));
-        }
-    } else if (state.search.ranges.length > 0) {
-        const { ranges, current } = state.search;
-
-        showMatch(state, (current + (previous ? ranges.length - 1 : 1)) % ranges.length);
+function search(state) {
+    if (!state.index || !state.index.textNodes.every(node => node.isConnected)) {
+        state.index = indexText(state.root);
     }
 
+    const { index } = state;
+    const needle = fold(state.query);
+    const ranges = [];
+
+    for (let start = index.text.indexOf(needle); needle.length > 0 && start >= 0; start = index.text.indexOf(needle, start + needle.length)) {
+        ranges.push(rangeOf(index, start, start + needle.length));
+    }
+
+    clearSearch(state);
+    state.search = { ranges, current: 0, painted: false };
+
+    if (ranges.length > 0) {
+        showMatch(state, firstInView(state));
+    }
+
+    reportMatches(state);
+}
+
+function reportMatches(state) {
     const { ranges, current } = state.search;
 
     state.view.invokeMethodAsync('MatchesChanged', ranges.length > 0 ? current + 1 : 0, ranges.length, false).catch(() => {});
@@ -709,29 +684,6 @@ async function loadPdfjs() {
     }
 
     return pdfjs;
-}
-
-// The stylesheet goes before the app's own, so a rule of the app wins over one of the viewer.
-function loadStylesheet(href) {
-    if (!loading.has(href)) {
-        const promise = new Promise((resolve, reject) => {
-            const link = document.createElement('link');
-
-            link.rel = 'stylesheet';
-            link.href = href;
-            link.onload = () => resolve();
-            link.onerror = () => {
-                loading.delete(href);
-                link.remove();
-                reject(new Error(`The stylesheet ${href} did not load.`));
-            };
-            document.head.insertBefore(link, document.head.querySelector('link[rel="stylesheet"]'));
-        });
-
-        loading.set(href, promise);
-    }
-
-    return loading.get(href);
 }
 
 // The library module sets the global pdfjsLib the viewer module reads when it loads.
@@ -941,28 +893,10 @@ async function openPdf(host, source, view) {
     resize.observe(frame);
     signal.addEventListener('abort', () => resize.disconnect(), { once: true });
 
-    // Ctrl or Cmd with the wheel, and a pinch on a touchpad, zoom around the pointer.
-    host.addEventListener('wheel', event => {
-        if (!event.ctrlKey && !event.metaKey) {
-            return;
-        }
-
-        event.preventDefault();
-
-        const fine = event.deltaMode === WheelEvent.DOM_DELTA_PIXEL && Math.abs(event.deltaY) < 50;
-        const factor = fine ? Math.exp(-event.deltaY / 100) : event.deltaY < 0 ? 1.1 : 1 / 1.1;
-        // A fit outside the steps' range is a bound of its own, so the wheel never zooms against its direction.
-        const current = viewer.currentScale;
-        const scale = Math.min(Math.max(current * factor, Math.min(zoomSteps[0], current)), Math.max(zoomSteps.at(-1), current));
-        const box = host.getBoundingClientRect();
-
-        if (scale === current) {
-            return;
-        }
-
+    wheelZoom(host, signal, () => viewer.currentScale, (scale, x, y) => {
         pdf.opening = false;
-        viewer.updateScale({ scaleFactor: scale / current, origin: [event.clientX - box.left, event.clientY - box.top] });
-    }, { passive: false, signal });
+        viewer.updateScale({ scaleFactor: scale / viewer.currentScale, origin: [x, y] });
+    });
 
     return count;
 }
@@ -990,18 +924,7 @@ export function zoomPdf(host, zoom) {
         return;
     }
 
-    if (zoom === 'actual') {
-        pdf.viewer.currentScale = 1;
-
-        return;
-    }
-
-    const current = pdf.viewer.currentScale;
-    const scale = zoom === 'in'
-        ? zoomSteps.find(step => step > current + 0.005) ?? zoomSteps.at(-1)
-        : zoomSteps.findLast(step => step < current - 0.005) ?? zoomSteps[0];
-
-    pdf.viewer.currentScale = scale;
+    pdf.viewer.currentScale = stepZoom(pdf.viewer.currentScale, zoom);
 }
 
 export function goToPdfPage(host, page) {

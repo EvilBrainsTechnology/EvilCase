@@ -1,24 +1,10 @@
 // The Markdown view and editor of a file preview. Milkdown is loaded from ../lib the first time one opens; the text leaves
 // the browser only as what a save reads.
+import { loadStylesheet } from './preview-shared.js';
 import { findMatches, foldText } from './text-search.js';
 
 const views = new Map();
 let library = null;
-
-// The stylesheet goes before the app's own, so a rule of the app wins over one of the library.
-function loadStylesheet(href) {
-    return new Promise((resolve, reject) => {
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = href;
-        link.onload = () => resolve();
-        link.onerror = () => {
-            link.remove();
-            reject(new Error(`The stylesheet ${href} did not load.`));
-        };
-        document.head.insertBefore(link, document.head.querySelector('link[rel="stylesheet"]'));
-    });
-}
 
 export function loadLibrary() {
     library ??= Promise.all([
