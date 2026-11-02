@@ -5753,7 +5753,10 @@ html:has(.ec-gate) {
     padding-right: env(safe-area-inset-right);
 }
 
+/* The bar and its panels stand above the page's fields. */
 .ec-topbar {
+    position: relative;
+    z-index: 12;
     display: flex;
     align-items: center;
     gap: var(--ec-topbar-gap);
