@@ -1,6 +1,5 @@
 using EvilBrains.Collections;
 using EvilBrains.EvilCase.Api.Contract.Cases;
-using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Business.Labels;
 using EvilBrains.EvilCase.Business.Numbering;
@@ -65,7 +64,12 @@ internal sealed class CaseWriter(
 
             logger.LogInformation("Case {CaseId} was filed under {CaseNumber}", @case.Id, @case.CaseNumber);
 
-            return new CaseCreateResult { Outcome = CaseCreateOutcome.Created, Case = Describe(@case, labels) };
+            var item = await context.Cases
+                .WithId(@case.Id)
+                .AsListItems()
+                .SingleAsync(token);
+
+            return new CaseCreateResult { Outcome = CaseCreateOutcome.Created, Case = item };
         }
     }
 
@@ -145,20 +149,6 @@ internal sealed class CaseWriter(
         logger.LogInformation("Case {CaseId} was edited", caseId);
 
         return CaseUpdateOutcome.Updated;
-    }
-
-    private static CaseListItem Describe(Case @case, IReadOnlyList<LabelItem> labels)
-    {
-        return new()
-        {
-            CaseId = @case.Id,
-            CaseNumber = @case.CaseNumber,
-            Title = @case.Title,
-            Date = @case.Date,
-            Status = @case.Status,
-            Changed = @case.Updated ?? @case.Created,
-            Labels = labels,
-        };
     }
 
     /// <summary>
