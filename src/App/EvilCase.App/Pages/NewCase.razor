@@ -201,7 +201,7 @@
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
         {
-            this.error = "Nadřízený spis neexistuje.";
+            this.error = "Nadřízený spis, kontakt nebo štítek už neexistuje.";
         }
         catch (Exception exception) when (exception is ApiException or HttpRequestException)
         {
