@@ -169,7 +169,6 @@ public class ApiTokenAuthenticationTests
     [TestCase("POST", "/api/api-tokens")]
     [TestCase("DELETE", "/api/api-tokens/0199a1b2-0000-7000-8000-000000000000")]
     [TestCase("GET", "/api/auth/user-info")]
-    [TestCase("GET", "/api/auth/sessions")]
     [TestCase("POST", "/api/auth/logout-all")]
     [TestCase("POST", "/api/auth/logout")]
     public async Task ATokenCannotReachSignInOrTokenManagement(string method, string path)

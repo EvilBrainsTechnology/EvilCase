@@ -101,16 +101,6 @@ public class AuthController : ControllerBase
         return this.NoContent();
     }
 
-    [HttpGet("sessions")]
-    [Authorize]
-    public async Task<ActionResult<IReadOnlyList<SessionInfo>>> Sessions([FromServices] IAuthService authService, CancellationToken token)
-    {
-        var current = this.CurrentAuthSessionId();
-        var sessions = await authService.GetSessions(this.UserId(), token);
-
-        return this.Ok(sessions.Select(session => Describe(session, current)).ToList());
-    }
-
     [HttpGet("user-info")]
     [Authorize]
     public UserInfo UserInfo()
@@ -131,20 +121,6 @@ public class AuthController : ControllerBase
         };
     }
 
-    private static SessionInfo Describe(UserSession session, Guid? current)
-    {
-        return new()
-        {
-            AuthSessionId = session.AuthSessionId,
-            Created = session.Created,
-            Expires = session.Expires,
-            LastUsed = session.LastUsed,
-            IpAddress = session.IpAddress,
-            UserAgent = session.UserAgent,
-            IsCurrent = current == session.AuthSessionId,
-        };
-    }
-
     private Guid UserId()
     {
         return Guid.TryParse(this.User.FindFirstValue(AuthClaims.Subject), CultureInfo.InvariantCulture, out var userId)
@@ -155,11 +131,6 @@ public class AuthController : ControllerBase
     private UserRole Role()
     {
         return Enum.TryParse<UserRole>(this.User.FindFirstValue(AuthClaims.Role), out var role) ? role : UserRole.User;
-    }
-
-    private Guid? CurrentAuthSessionId()
-    {
-        return Guid.TryParseExact(this.User.FindFirstValue(AuthClaims.AuthSessionId), "N", out var authSessionId) ? authSessionId : null;
     }
 
     private ClientInfo DescribeClient()

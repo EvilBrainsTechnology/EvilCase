@@ -161,38 +161,6 @@ public class RefreshTokenTests
     }
 
     [Test]
-    public async Task TheSessionListHasOneEntryPerBrowserRatherThanPerRenewal()
-    {
-        var phone = await this.harness.SignIn();
-        await this.harness.SignIn();
-        await this.harness.Refresh(phone.RefreshToken);
-
-        var sessions = await this.harness.Service.GetSessions(this.harness.User.Id, CancellationToken.None);
-
-        Assert.That(sessions, Has.Exactly(2).Items);
-    }
-
-    // Rotation replaces the row, so the live token knows only its last renewal; sign-in comes from the chain's first row.
-    [Test]
-    public async Task ASessionIsDatedFromTheSignInAndFromItsLastRenewal()
-    {
-        var signedInAt = this.harness.Time.UtcNow;
-        var session = await this.harness.SignIn();
-
-        this.harness.Time.Advance(TimeSpan.FromDays(3));
-        var renewedAt = this.harness.Time.UtcNow;
-        await this.harness.Refresh(session.RefreshToken);
-
-        var listed = (await this.harness.Service.GetSessions(this.harness.User.Id, CancellationToken.None)).Single();
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(listed.Created, Is.EqualTo(signedInAt));
-            Assert.That(listed.LastUsed, Is.EqualTo(renewedAt));
-        }
-    }
-
-    [Test]
     public async Task ALockedOutAccountKeepsRenewingItsLiveSessionButCannotSignIn()
     {
         var session = await this.harness.SignIn();

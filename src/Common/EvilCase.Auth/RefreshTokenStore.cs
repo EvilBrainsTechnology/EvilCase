@@ -50,25 +50,4 @@ internal sealed class RefreshTokenStore(IDbSession dbSession) : IRefreshTokenSto
                 setters => setters.SetProperty(static token => token.RevokedAt, now),
                 token);
     }
-
-    // Rotation leaves one unrevoked row per chain, so this is one row per live session.
-    public async Task<IReadOnlyList<RefreshToken>> GetActive(Guid userId, DateTime now, CancellationToken token)
-    {
-        return await dbSession.Current.RefreshTokens
-            .Where(token => token.UserId == userId)
-            .Where(static token => token.RevokedAt == null)
-            .Where(token => token.Expires > now)
-            .Where(token => token.SessionExpires > now)
-            .OrderByDescending(static token => token.Created)
-            .ToListAsync(token);
-    }
-
-    public async Task<IReadOnlyDictionary<Guid, DateTime>> GetSessionStarts(Guid userId, CancellationToken token)
-    {
-        return await dbSession.Current.RefreshTokens
-            .Where(token => token.UserId == userId)
-            .GroupBy(static token => token.AuthSessionId)
-            .Select(static chain => new { AuthSessionId = chain.Key, Started = chain.Min(static token => token.Created) })
-            .ToDictionaryAsync(static chain => chain.AuthSessionId, static chain => chain.Started, token);
-    }
 }
