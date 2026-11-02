@@ -53,3 +53,24 @@ export function findMatches(folded, query) {
 
     return matches;
 }
+
+// An empty query clears the search at once; a new query searches once the typing pauses, or at once with again; again
+// with the query searched last steps to the next match. entry keeps that query and the wait for the typing.
+export function debouncedFind(entry, query, again, { clear, search, step }) {
+    clearTimeout(entry.typing);
+
+    if (query.length === 0) {
+        entry.query = '';
+        clear();
+    } else if (again && entry.query === query) {
+        step();
+    } else if (again) {
+        entry.query = query;
+        search();
+    } else {
+        entry.typing = setTimeout(() => {
+            entry.query = query;
+            search();
+        }, 250);
+    }
+}

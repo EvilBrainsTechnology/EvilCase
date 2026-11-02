@@ -1,10 +1,9 @@
 // The editor and the read-only view of a text file. CodeMirror is loaded from ../lib the first time either opens; the
 // text leaves the browser only as what a save reads.
-import { findMatches, foldText } from './text-search.js';
+import { stepZoom, wheelZoom } from './preview-shared.js';
+import { debouncedFind, findMatches, foldText } from './text-search.js';
 
 const editors = new Map();
-const zoomSteps = [0.5, 0.67, 0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4];
-const typingDelay = 250;
 let library = null;
 
 export function loadLibrary() {
@@ -91,17 +90,7 @@ export async function openViewer(host, text, language, format, label, view) {
     entry.viewer = createViewer(host, host.parentElement ?? host, entry.formatted ?? text, language, label,
         () => view.invokeMethodAsync('FocusSearch').catch(() => {}));
 
-    // Ctrl or Cmd with the wheel, and a pinch on a touchpad, zoom the text.
-    (host.parentElement ?? host).addEventListener('wheel', (event) => {
-        if (!event.ctrlKey && !event.metaKey) return;
-
-        event.preventDefault();
-
-        const fine = event.deltaMode === WheelEvent.DOM_DELTA_PIXEL && Math.abs(event.deltaY) < 50;
-        const factor = fine ? Math.exp(-event.deltaY / 100) : event.deltaY < 0 ? 1.1 : 1 / 1.1;
-
-        setZoom(host, entry, Math.min(Math.max(entry.zoom * factor, zoomSteps[0]), zoomSteps.at(-1)));
-    }, { passive: false, signal: stop.signal });
+    wheelZoom(host.parentElement ?? host, stop.signal, () => entry.zoom, (zoom) => setZoom(host, entry, zoom));
 
     return { formatted: entry.formatted !== null, invalid: answer.invalid === true };
 }
@@ -152,16 +141,7 @@ export function zoomViewer(host, zoom) {
 
     if (!entry?.viewer) return;
 
-    const current = entry.zoom;
-    const next = zoom === 'actual'
-        ? 1
-        : zoom === 'in'
-            ? zoomSteps.find((step) => step > current + 0.005) ?? zoomSteps.at(-1)
-            : zoom === 'out'
-                ? zoomSteps.findLast((step) => step < current - 0.005) ?? zoomSteps[0]
-                : current;
-
-    setZoom(host, entry, next);
+    setZoom(host, entry, stepZoom(entry.zoom, zoom));
 }
 
 // The text size follows the zoom; the line at the top of the view stays there.
@@ -176,33 +156,25 @@ function setZoom(host, entry, zoom) {
     entry.view.invokeMethodAsync('ZoomChanged', Math.round(zoom * 100), '').catch(() => {});
 }
 
-// An empty query clears the matches at once; a new query waits for the typing to pause. The search counts the matches
-// in all of the text and wraps around.
+// The search counts the matches in all of the text and wraps around.
 export function findInViewer(host, query, again, previous) {
     const entry = editors.get(host);
 
     if (!entry?.viewer) return;
 
-    clearTimeout(entry.typing);
+    debouncedFind(entry, query, again, {
+        clear: () => {
+            entry.matches = [];
+            entry.viewer.setMatches([]);
+        },
+        search: () => search(entry),
+        step: () => {
+            const count = entry.matches.length;
 
-    if (query.length === 0) {
-        entry.query = '';
-        entry.matches = [];
-        entry.viewer.setMatches([]);
-    } else if (again && entry.query === query) {
-        const count = entry.matches.length;
-
-        if (count > 0) show(entry, (entry.current + (previous ? count - 1 : 1)) % count);
-        else report(entry);
-    } else if (again) {
-        entry.query = query;
-        search(entry);
-    } else {
-        entry.typing = setTimeout(() => {
-            entry.query = query;
-            search(entry);
-        }, typingDelay);
-    }
+            if (count > 0) show(entry, (entry.current + (previous ? count - 1 : 1)) % count);
+            else report(entry);
+        },
+    });
 }
 
 // The first match of a new query is the first one not above the top of the view.

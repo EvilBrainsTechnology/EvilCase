@@ -2,11 +2,10 @@
 // formatted with the Markdown library besides. The texts never leave the browser.
 import { diffMarkdown } from './markdown-diff.js';
 import { loadLibrary as loadMarkdownLibrary } from './markdown-editor.js';
-import { findMatches, foldText } from './text-search.js';
+import { debouncedFind, findMatches, foldText } from './text-search.js';
 import { formatInWorker, loadLibrary } from './text-editor.js';
 
 const compares = new Map();
-const typingDelay = 250;
 const none = { formatted: false, formattable: false, added: 0, removed: 0, changes: 0 };
 
 // A compare stands in two children of host, side by side and in one column; the stylesheet shows one of them, and each
@@ -169,9 +168,8 @@ export function stepCompareChange(host, previous) {
     compare.showChange(entry.change);
 }
 
-// An empty query clears the matches at once; a new query waits for the typing to pause. The search counts the matches
-// in every text the layout shows, in their order down the compare, and wraps around. A layout still being built searches
-// the last query once it is built.
+// The search counts the matches in every text the layout shows, in their order down the compare, and wraps around. A
+// layout still being built searches the last query once it is built.
 export function findInCompare(host, query, again, previous) {
     const entry = compares.get(host);
 
@@ -179,28 +177,20 @@ export function findInCompare(host, query, again, previous) {
 
     const { compare } = entry.active;
 
-    clearTimeout(entry.typing);
+    debouncedFind(entry, query, again, {
+        clear: () => {
+            entry.matches = [];
+            compare?.setMatches(compare.matches(''));
+        },
+        search: () => search(entry),
+        step: () => {
+            const count = entry.matches.length;
 
-    if (query.length === 0) {
-        entry.query = '';
-        entry.matches = [];
-        compare?.setMatches(compare.matches(''));
-    } else if (again && entry.query === query) {
-        if (!compare) return;
-
-        const count = entry.matches.length;
-
-        if (count > 0) show(entry, (entry.current + (previous ? count - 1 : 1)) % count);
-        else report(entry);
-    } else if (again) {
-        entry.query = query;
-        search(entry);
-    } else {
-        entry.typing = setTimeout(() => {
-            entry.query = query;
-            search(entry);
-        }, typingDelay);
-    }
+            if (!compare) return;
+            if (count > 0) show(entry, (entry.current + (previous ? count - 1 : 1)) % count);
+            else report(entry);
+        },
+    });
 }
 
 function search(entry) {
