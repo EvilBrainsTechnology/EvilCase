@@ -6966,6 +6966,7 @@ html:has(.ec-gate) {
 
     .ec-table-row .ec-cell-stack {
         flex: 1 0 100%;
+        flex-wrap: nowrap;
     }
 
     /* Název dostane až dva řádky a štítky jdou pod něj, místo aby ho ořízly. */
@@ -7125,7 +7126,12 @@ html:has(.ec-gate) {
 .ec-recent-acts {
     --ec-list-col-date: var(--ec-recent-col-date);
     --ec-list-col-status: var(--ec-recent-col-direction);
-    --ec-list-col-contact: var(--ec-recent-col-contact);
+}
+
+@media (min-width: 992px) {
+    .ec-recent-acts {
+        --ec-list-col-contact: var(--ec-recent-col-contact);
+    }
 }
 
 @media (max-width: 991.98px) {
