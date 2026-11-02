@@ -156,11 +156,11 @@ internal sealed class CaseWriter(
     /// </summary>
     private async Task<bool> ParentAllowed(Guid caseId, Guid parentCaseId, CancellationToken token)
     {
-        var parents = await dbSession.Current.Cases
-            .Select(static @case => new { @case.Id, @case.ParentCaseId })
-            .ToDictionaryAsync(static link => link.Id, static link => link.ParentCaseId, token);
+        var context = dbSession.Current;
 
-        return parents.ContainsKey(parentCaseId) && !CaseHierarchy.WouldFormCycle(parents, caseId, parentCaseId);
+        return parentCaseId != caseId
+            && await context.Cases.Exists(parentCaseId, token)
+            && !await context.CaseAncestors(parentCaseId).AnyAsync(ancestor => ancestor.CaseId == caseId, token);
     }
 
     public async Task<DeleteOutcome> DeleteCase(Guid caseId, CancellationToken token)
