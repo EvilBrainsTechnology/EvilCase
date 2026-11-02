@@ -33,7 +33,10 @@
                 <LabelField AllowCreate="false" InputId="@($"{this.InputPrefix}-labels")" Selected="this.SelectedLabels" SelectedChanged="this.LabelsChanged" />
             </div>
         }
-        <button type="button" class="ec-filter-clear" @onclick="() => this.Cleared.InvokeAsync()">Zrušit filtry</button>
+        @if (this.ActiveCount > 0)
+        {
+            <button type="button" class="ec-filter-clear" @onclick="() => this.Cleared.InvokeAsync()">Zrušit filtry</button>
+        }
     </div>
 }
 

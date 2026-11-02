@@ -114,6 +114,33 @@ public class CaseListRenderTests
         });
     }
 
+    [Test]
+    public async Task ClearingTheFiltersIsOfferedOnlyWhileAFilterIsSet()
+    {
+        await using var ctx = new BunitContext();
+        Serve(ctx, out _);
+
+        var component = Render(ctx, [CaseColumn.Date], dates: true);
+
+        await component.WaitForElementAsync("a.ec-table-row");
+        await component.Find("button[aria-controls=\"cases-filters\"]").ClickAsync(new MouseEventArgs());
+
+        var unfiltered = component.FindAll(".ec-filter-clear").Count;
+
+        await component.Find("#cases-from").ChangeAsync(new ChangeEventArgs { Value = "2026-08-01" });
+
+        var filtered = component.FindAll(".ec-filter-clear").Count;
+
+        await component.Find(".ec-filter-clear").ClickAsync(new MouseEventArgs());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(unfiltered, Is.Zero, "a list without a filter has nothing to clear");
+            Assert.That(filtered, Is.EqualTo(1));
+            Assert.That(component.FindAll(".ec-filter-clear"), Is.Empty, "the cleared filters take the action with them");
+        }
+    }
+
     private static readonly CaseListItem Row = new()
     {
         CaseId = Guid.CreateVersion7(),
