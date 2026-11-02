@@ -10,7 +10,6 @@ using EvilBrains.EvilCase.App.Files;
 using EvilBrains.EvilCase.App.Pages;
 using EvilBrains.EvilCase.Domain.Cases;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.JSInterop;
 
 namespace EvilBrains.EvilCase.Tests.Frontend;
 
@@ -47,11 +46,7 @@ public class ActRenderTests
 
     private static void Serve(BunitContext ctx, Guid actId, ActDetail detail)
     {
-        // FilesCard's drop zone imports its own module on first render from a path carrying a
-        // version query string, which no SetupModule can name, and reads a property bUnit's
-        // runtime does not answer.
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-        ctx.Services.AddSingleton<IJSRuntime>(new PropertyReadingJSRuntime(ctx.JSInterop.JSRuntime));
 
         var actsClient = Substitute.For<IActsClient>();
         actsClient.GetAct(actId, Arg.Any<CancellationToken>()).Returns(Task.FromResult(detail));

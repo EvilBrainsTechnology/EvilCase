@@ -34,3 +34,39 @@ export async function downloadContent(fileName, contentStream) {
 export function pickFile(input) {
     input.click();
 }
+
+// The card is the drop zone (SDD-012): a drop or a paste hands its files to the card's first file
+// input, so a dropped and a picked file take one path. The listeners go with the card's element.
+export function attachDropZone(card) {
+    let leaving = -1;
+
+    const enter = event => {
+        event.preventDefault();
+        clearTimeout(leaving);
+        card.classList.add('hover');
+    };
+
+    card.addEventListener('dragenter', enter);
+    card.addEventListener('dragover', enter);
+    // Passing onto a child leaves the card first; the enter that follows keeps the hover.
+    card.addEventListener('dragleave', event => {
+        event.preventDefault();
+        leaving = setTimeout(() => card.classList.remove('hover'), 10);
+    });
+    card.addEventListener('drop', event => {
+        event.preventDefault();
+        clearTimeout(leaving);
+        card.classList.remove('hover');
+        upload(card, event.dataTransfer.files);
+    });
+    card.addEventListener('paste', event => upload(card, event.clipboardData.files));
+}
+
+function upload(card, files) {
+    if (files.length === 0)
+        return;
+
+    const input = card.querySelector('input[type=file]');
+    input.files = files;
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+}

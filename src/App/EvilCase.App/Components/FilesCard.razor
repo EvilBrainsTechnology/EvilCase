@@ -3,14 +3,12 @@
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Contract.Files
 @using Microsoft.JSInterop
-@using Toolbelt.Blazor.FileDropZone
 @inject IFileDownloader Downloader
 @inject IFilePicker Picker
 @inject ILogger<FilesCard> Logger
 
-@* The card is itself the drop zone (SDD-012): FileDropZone hands a card-wide drop to the input
-   the upload button opens, so a dropped and a picked file take one path. *@
-<FileDropZone class="@(this.Compact ? "ec-file-card ec-file-card-compact" : "ec-file-card")">
+@* The card is itself the drop zone (files.js). *@
+<div class="@(this.Compact ? "ec-file-card ec-file-card-compact" : "ec-file-card")" @ref="this.card">
     <EcCard Title="@this.Title">
         <Header>
             @if (!this.Compact && this.State.Loaded && this.State.ListFailure is null)
@@ -135,7 +133,7 @@
         <span class="ec-file-drop-title">Pusťte soubory a nahrají se @this.UploadTarget</span>
         <span class="ec-file-drop-limits">Nejvýše @FileBatchUploader.MaxBatchFiles souborů, každý do @FileSizeDisplay.Text(FileLimits.MaxUploadBytes)</span>
     </div>
-</FileDropZone>
+</div>
 
 @* Outside the drop zone, so a drop never goes to it. *@
 <div class="ec-visually-hidden"><InputFile @ref="this.versionInput" @key="this.versionRound" id="files-version-input" tabindex="-1" aria-label="Nová verze souboru" OnChange="this.OnVersionSelected" /></div>
@@ -257,6 +255,8 @@
 
     private FileListItem? deleting;
 
+    private ElementReference card;
+
     private InputFile? versionInput;
 
     private int versionRound;
@@ -286,6 +286,9 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (firstRender)
+            await this.Picker.AttachDropZone(this.card, CancellationToken.None);
+
         if (this.focusFileId is not { } fileId)
             return;
 

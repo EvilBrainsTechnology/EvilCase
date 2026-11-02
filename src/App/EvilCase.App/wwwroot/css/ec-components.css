@@ -1136,7 +1136,7 @@ html.ec-scroll-locked {
     accent-color: var(--ec-accent);
 }
 
-/* FileDropZone puts "hover" on its own div while a drag is over the card. */
+/* files.js puts "hover" on the card while a drag is over it. */
 .ec-file-card {
     position: relative;
 }

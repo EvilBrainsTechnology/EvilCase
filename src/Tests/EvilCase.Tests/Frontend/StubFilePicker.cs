@@ -14,4 +14,9 @@ internal sealed class StubFilePicker : IFilePicker
     {
         return Task.CompletedTask;
     }
+
+    public Task AttachDropZone(ElementReference card, CancellationToken token)
+    {
+        return Task.CompletedTask;
+    }
 }

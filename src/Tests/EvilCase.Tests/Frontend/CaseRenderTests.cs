@@ -14,7 +14,6 @@ using EvilBrains.EvilCase.Domain.Cases;
 using EvilBrains.EvilCase.Domain.Labels;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.JSInterop;
 
 namespace EvilBrains.EvilCase.Tests.Frontend;
 
@@ -196,7 +195,6 @@ public class CaseRenderTests
         CaseDetail detail)
     {
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-        ctx.Services.AddSingleton<IJSRuntime>(new PropertyReadingJSRuntime(ctx.JSInterop.JSRuntime));
 
         var casesClient = Substitute.For<ICasesClient>();
         casesClient.GetCase(caseId, Arg.Any<CancellationToken>()).Returns(Task.FromResult(detail));
