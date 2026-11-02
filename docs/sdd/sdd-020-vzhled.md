@@ -91,7 +91,8 @@ myší.
 
 Detail spisu i úkonu začíná kartou se jménem, stavem, popisem a řádkem údajů. Popis je hned pod
 názvem, ne v postranním sloupci; bez popisu jde pod název rovnou řádek údajů. Chybějící údaj je
-světlá pomlčka jako v seznamu. Obsah, který patří spisu, je v pravém sloupci, kromě karty
+světlá pomlčka jako v seznamu. Adresa začínající http:// nebo https:// je v popisu i v komentáři
+odkaz, který se otevře na nové kartě. Obsah, který patří spisu, je v pravém sloupci, kromě karty
 souborů, která se soubory leží v hlavním sloupci (SDD-012); obsah, který patří úkonu, je uvnitř
 úkonu. Soubory a komentáře proto existují dvakrát a název to vždycky říká: „Soubory spisu"
 a „Soubory úkonu".
