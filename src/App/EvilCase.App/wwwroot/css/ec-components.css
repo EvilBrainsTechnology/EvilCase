@@ -6990,6 +6990,12 @@ html:has(.ec-gate) {
         line-clamp: 2;
     }
 
+    .ec-table-cell-primary .ec-chips {
+        flex-wrap: wrap;
+        row-gap: var(--ec-space-1);
+        max-width: none;
+    }
+
     /* Prázdný údaj na mobilu řádek nenese. */
     .ec-table-row > .ec-table-cell:has(> .ec-cell-empty:only-child) {
         display: none;
@@ -7392,6 +7398,15 @@ html:has(.ec-gate) {
     outline: none;
     border-radius: var(--ec-radius-sm);
     box-shadow: var(--ec-focus-ring);
+}
+
+/* The labels beside a title leave it its minimum width and clip instead of overflowing. */
+.ec-chips {
+    display: flex;
+    gap: var(--ec-space-3);
+    min-width: 0;
+    max-width: calc(100% - var(--ec-cell-title-min));
+    overflow: hidden;
 }
 
 .ec-chip-sm {

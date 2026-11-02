@@ -236,6 +236,7 @@
     --ec-list-badge-height: 24px;
     --ec-list-badge-pad: 10px;
     --ec-cell-stack-gap: 2px;
+    --ec-cell-title-min: 8em;
 
     /* Kontakty (docs/design/kontakty.html, docs/design/detail-kontaktu.html) */
     --ec-monogram-sm: 30px;
