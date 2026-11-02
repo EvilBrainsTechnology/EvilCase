@@ -23,22 +23,6 @@ internal sealed class ActEditModel : IValidatableObject
         };
     }
 
-    /// <summary>
-    /// Assigns another instance's values onto this one, so a page can refresh its bound model
-    /// without replacing the instance its EditContext already tracks.
-    /// </summary>
-    public void CopyFrom(ActEditModel other)
-    {
-        this.ActNumber = other.ActNumber;
-        this.ExternalActNumber = other.ExternalActNumber;
-        this.Direction = other.Direction;
-        this.Date = other.Date;
-        this.Title = other.Title;
-        this.Description = other.Description;
-        this.Contact = other.Contact;
-        this.Labels = other.Labels;
-    }
-
     [Required(ErrorMessage = "Zadejte číslo jednací")]
     [StringLength(128, ErrorMessage = "Číslo jednací může mít nejvýše 128 znaků.")]
     public string ActNumber { get; set; } = "";
