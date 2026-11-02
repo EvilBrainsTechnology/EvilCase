@@ -118,9 +118,17 @@
     <ApiTokenCreatedModal Created="this.created" Open OpenChanged="this.CloseCreated" />
 }
 
-@if (this.revoking is not null)
+@if (this.revoking is { } revoked)
 {
-    <ApiTokenRevokeModal Token="this.revoking" Open OpenChanged="this.CloseRevoke" OnRevoked="this.TokenRevoked" />
+    <ConfirmModal Title="Zrušit token" ConfirmText="Zrušit token" CancelText="Ponechat"
+                  Action="token => this.ApiTokensClient.RevokeApiToken(revoked.ApiTokenId, token)"
+                  NotFoundText="Token už neexistuje." FailureText="Token se nepodařilo zrušit. Zkuste to za chvíli znovu."
+                  Open OpenChanged="this.CloseRevoke" OnDone="this.TokenRevoked">
+        <p class="ec-confirm-text">
+            Opravdu zrušit token <strong>@revoked.Name</strong>? Integrace, která ho používá, ztratí přístup hned.
+            Zrušení nejde vrátit.
+        </p>
+    </ConfirmModal>
 }
 
 @code {

@@ -204,9 +204,16 @@
     }
 </div>
 
-@if (this.deleting && this.Detail is not null)
+@if (this.deleting && this.Detail is { } act)
 {
-    <ActDeleteModal Act="this.Detail" Open OpenChanged="this.CloseDelete" OnDeleted="this.ActDeleted" />
+    <ConfirmModal Title="Smazat úkon" ConfirmText="Smazat úkon" Action="token => this.ActsClient.DeleteAct(act.ActId, token)"
+                  NotFoundText="Úkon už neexistuje." FailureText="Úkon se nepodařilo smazat. Zkuste to za chvíli znovu."
+                  Open OpenChanged="this.CloseDelete" OnDone="this.ActDeleted">
+        <p class="ec-confirm-text">
+            Opravdu smazat úkon <strong>@act.ActNumber</strong> – @act.Title? S úkonem zaniknou
+            i jeho komentáře a soubory. Akci nelze vrátit zpět.
+        </p>
+    </ConfirmModal>
 }
 
 @code {

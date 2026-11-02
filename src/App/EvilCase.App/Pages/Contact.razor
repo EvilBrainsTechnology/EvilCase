@@ -110,9 +110,15 @@
     <ContactFormModal Contact="this.contact" Open OpenChanged="this.CloseEdit" OnSaved="this.ContactSaved" />
 }
 
-@if (this.deleting && this.contact is not null)
+@if (this.deleting && this.contact is { } deleted)
 {
-    <ContactDeleteModal Contact="this.contact" Open OpenChanged="this.CloseDelete" OnDeleted="this.ContactDeleted" />
+    <ConfirmModal Title="Smazat kontakt" ConfirmText="Smazat kontakt" Action="token => this.ContactsClient.DeleteContact(deleted.ContactId, token)"
+                  NotFoundText="Kontakt už neexistuje." FailureText="Kontakt se nepodařilo smazat. Zkuste to za chvíli znovu."
+                  ErrorText="@(exception => exception.StatusCode == HttpStatusCode.Conflict ? "Kontakt nelze smazat: figuruje ve spisu nebo úkonu." : null)" Open OpenChanged="this.CloseDelete" OnDone="this.ContactDeleted">
+        <p class="ec-confirm-text">
+            Opravdu smazat kontakt <strong>@deleted.Name</strong>? Kontakt, který figuruje ve spisu nebo úkonu, smazat nejde. Akci nelze vrátit zpět.
+        </p>
+    </ConfirmModal>
 }
 
 @code {

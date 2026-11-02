@@ -160,8 +160,18 @@
 
 @if (this.deleting is { } file)
 {
-    <FileDeleteModal FileName="@file.FileName" VersionCount="file.VersionCount" Delete="token => this.DeleteFile(file, token)"
-                     Open OpenChanged="this.CloseDelete" OnDeleted="this.FileDeleted" />
+    <ConfirmModal Title="Smazat soubor" ConfirmText="Smazat soubor" Action="token => this.DeleteFile(file, token)"
+                  NotFoundText="Soubor už neexistuje." FailureText="Soubor se nepodařilo smazat. Zkuste to za chvíli znovu."
+                  Open OpenChanged="this.CloseDelete" OnDone="this.FileDeleted">
+        @if (file.VersionCount > 1)
+        {
+            <p class="ec-confirm-text">Opravdu smazat soubor <strong>@file.FileName</strong> se všemi @file.VersionCount verzemi? Akci nelze vrátit zpět.</p>
+        }
+        else
+        {
+            <p class="ec-confirm-text">Opravdu smazat soubor <strong>@file.FileName</strong>? Akci nelze vrátit zpět.</p>
+        }
+    </ConfirmModal>
 }
 
 @code {

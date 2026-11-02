@@ -106,8 +106,12 @@
 
 @if (this.deletingComment is { } comment)
 {
-    <CommentDeleteModal Body="@comment.Body" Delete="token => this.DeleteComment(comment.CommentId, token)"
-                        Open OpenChanged="this.CloseDelete" OnDeleted="this.CommentDeleted" />
+    <ConfirmModal Title="Smazat komentář" ConfirmText="Smazat komentář" Action="token => this.DeleteComment(comment.CommentId, token)"
+                  NotFoundText="Komentář už neexistuje." FailureText="Komentář se nepodařilo smazat. Zkuste to za chvíli znovu."
+                  ErrorText="@(exception => exception.StatusCode == HttpStatusCode.Forbidden ? "Komentář smí smazat jen jeho autor." : null)" Open OpenChanged="this.CloseDelete" OnDone="this.CommentDeleted">
+        <p class="ec-confirm-text">Opravdu smazat komentář? Akci nelze vrátit zpět.</p>
+        <blockquote class="ec-confirm-quote">@comment.Body</blockquote>
+    </ConfirmModal>
 }
 
 @code {

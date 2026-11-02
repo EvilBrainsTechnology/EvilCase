@@ -1,3 +1,4 @@
+@using System.Net
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Contract.Files
 @inject ILogger<FileVersionsModal> Logger
@@ -73,8 +74,11 @@
 
 @if (this.deleting is { } deletingNumber)
 {
-    <FileVersionDeleteModal FileName="@this.File.FileName" Number="deletingNumber" Delete="token => this.DeleteVersion(this.File, deletingNumber, token)"
-                            Open OpenChanged="this.CloseDelete" OnDeleted="this.VersionDeleted" />
+    <ConfirmModal Title="Smazat verzi" ConfirmText="Smazat verzi" Action="token => this.DeleteVersion(this.File, deletingNumber, token)"
+                  NotFoundText="Verze už neexistuje." FailureText="Verzi se nepodařilo smazat. Zkuste to za chvíli znovu."
+                  ErrorText="@(exception => exception.StatusCode == HttpStatusCode.Conflict ? "Jedinou verzi nejde smazat samostatně. Smažte celý soubor." : null)" Open OpenChanged="this.CloseDelete" OnDone="this.VersionDeleted">
+        <p class="ec-confirm-text">Opravdu smazat verzi @deletingNumber souboru <strong>@this.File.FileName</strong>? Ostatní verze zůstanou. Akci nelze vrátit zpět.</p>
+    </ConfirmModal>
 }
 
 @code {
