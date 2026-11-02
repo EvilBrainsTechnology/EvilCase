@@ -7,7 +7,7 @@
 <PageTitle>Přihlášení – EvilCase</PageTitle>
 
 <GateFrame>
-    <EditForm class="ec-login-form" Model="this.model" OnValidSubmit="this.SignIn">
+    <EditForm class="ec-login-form" Model="this.model" OnValidSubmit="this.SignIn" OnInvalidSubmit="() => this.error = null">
         <DataAnnotationsValidator />
         <InvalidFieldFocus />
 
