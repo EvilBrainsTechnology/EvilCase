@@ -37,7 +37,11 @@ public class CaseCreateTests : TenantFixture
 
         var reloaded = await this.Tenant.Context.Cases.SingleAsync(@case => @case.Id == result.Case!.CaseId);
 
-        Assert.That(reloaded.ParentCaseId, Is.EqualTo(parent.Id));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(reloaded.ParentCaseId, Is.EqualTo(parent.Id));
+            Assert.That(result.Case!.ParentCaseTitle, Is.EqualTo("Rodič"), "the created case answers like a row of the case list");
+        }
     }
 
     [Test]
