@@ -44,20 +44,9 @@ public static class Bootstrap
     // A RequestDelegate: a minimal-API handler would have to bind the unused {**path}.
     private static readonly RequestDelegate NotFound = static async context =>
     {
-        context.Response.StatusCode = StatusCodes.Status404NotFound;
-
-        var problemDetails = context.RequestServices.GetRequiredService<IProblemDetailsService>();
-
-        await problemDetails.TryWriteAsync(new()
-        {
-            HttpContext = context,
-            ProblemDetails =
-            {
-                Status = StatusCodes.Status404NotFound,
-                Title = "Not Found",
-                Detail = "No API endpoint matches the requested path.",
-            },
-        });
+        await Results
+            .Problem(detail: "No API endpoint matches the requested path.", statusCode: StatusCodes.Status404NotFound, title: "Not Found")
+            .ExecuteAsync(context);
     };
 
     public static IServiceCollection ConfigureServices(this IServiceCollection services)

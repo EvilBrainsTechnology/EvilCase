@@ -15,20 +15,9 @@ internal sealed class CrossSiteWriteMiddleware(RequestDelegate next)
     {
         if ((IsApiWrite(context.Request) || IsMcp(context.Request)) && !IsSameOrigin(context.Request))
         {
-            context.Response.StatusCode = StatusCodes.Status403Forbidden;
-
-            var problemDetails = context.RequestServices.GetRequiredService<IProblemDetailsService>();
-
-            await problemDetails.TryWriteAsync(new()
-            {
-                HttpContext = context,
-                ProblemDetails =
-                {
-                    Status = StatusCodes.Status403Forbidden,
-                    Title = "Forbidden",
-                    Detail = "Cross-site requests are not accepted.",
-                },
-            });
+            await Results
+                .Problem(detail: "Cross-site requests are not accepted.", statusCode: StatusCodes.Status403Forbidden, title: "Forbidden")
+                .ExecuteAsync(context);
 
             return;
         }
