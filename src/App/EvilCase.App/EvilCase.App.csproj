@@ -23,7 +23,7 @@
   <ItemGroup>
     <FrontendLibsInput Include="package.json;package-lock.json" />
     <FrontendLibsOutput Include="node_modules\.package-lock.json" />
-    <FrontendLibsBuildInput Include="package-lock.json;build-libs.mjs" />
+    <FrontendLibsBuildInput Include="package-lock.json;build-libs.mjs;lib-src\**\*.js" />
     <FrontendLibsBuildOutput Include="node_modules\.build-libs.stamp;wwwroot\lib\pdfjs\pdf.min.mjs;wwwroot\fonts\instrument-sans-latin.woff2" />
   </ItemGroup>
 
