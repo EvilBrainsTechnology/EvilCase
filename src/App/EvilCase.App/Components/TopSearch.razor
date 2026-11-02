@@ -205,7 +205,7 @@
                     <span class="ec-sr-hint"><kbd class="ec-sr-kbd">Enter</kbd>otevřít</span>
                     <span class="ec-sr-hint"><kbd class="ec-sr-kbd">Esc</kbd>zavřít</span>
                     <span class="ec-sr-grow"></span>
-                    <span>@SearchResultCountDisplay.Text(this.TotalCount(found))</span>
+                    <span>@Plural.Text(this.TotalCount(found), "výsledek", "výsledky", "výsledků")</span>
                 </div>
             }
         </div>

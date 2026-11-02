@@ -6,9 +6,12 @@ public static class MomentDisplay
 
     private const string TimeFormat = "H:mm";
 
-    public static string Text(DateTime moment)
+    /// <summary>
+    /// The moment in the browser's time zone; a dash for none.
+    /// </summary>
+    public static string Text(DateTime? moment)
     {
-        return moment.ToLocalTime().ToString(Format, CultureInfo.InvariantCulture);
+        return moment is { } value ? value.ToLocalTime().ToString(Format, CultureInfo.InvariantCulture) : "—";
     }
 
     /// <summary>

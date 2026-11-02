@@ -12,17 +12,30 @@ internal static class SearchText
         if (string.IsNullOrWhiteSpace(search))
             return true;
 
-        return Fold(text).Contains(Fold(search), StringComparison.Ordinal);
+        return Fold(text.Normalize()).Contains(Fold(search.Trim().Normalize()), StringComparison.Ordinal);
     }
 
-    private static string Fold(string value)
+    /// <summary>
+    /// One folded character per character, so an index in the folded text is one in the original.
+    /// </summary>
+    public static string Fold(string value)
     {
         var builder = new StringBuilder(value.Length);
 
-        foreach (var character in value.Trim().Normalize(NormalizationForm.FormD))
+        foreach (var character in value)
         {
-            if (CharUnicodeInfo.GetUnicodeCategory(character) != UnicodeCategory.NonSpacingMark)
-                builder.Append(char.ToLowerInvariant(character));
+            var folded = character;
+
+            foreach (var part in character.ToString().Normalize(NormalizationForm.FormD))
+            {
+                if (CharUnicodeInfo.GetUnicodeCategory(part) != UnicodeCategory.NonSpacingMark)
+                {
+                    folded = part;
+                    break;
+                }
+            }
+
+            builder.Append(char.ToLowerInvariant(folded));
         }
 
         return builder.ToString();

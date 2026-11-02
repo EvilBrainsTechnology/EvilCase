@@ -38,17 +38,8 @@
         return this.IconsOnly ? null : @<span class="ec-preview-toolbar-label">@name</span>;
     }
 
-    // 1 řádek, 2 až 4 řádky, 0 a 5 a více řádků; bloky alike.
     private string Unit(int count)
     {
-        return (count, this.Blocks) switch
-        {
-            (1, false) => "řádek",
-            (>= 2 and <= 4, false) => "řádky",
-            (_, false) => "řádků",
-            (1, true) => "blok",
-            (>= 2 and <= 4, true) => "bloky",
-            (_, true) => "bloků",
-        };
+        return this.Blocks ? Plural.Form(count, "blok", "bloky", "bloků") : Plural.Form(count, "řádek", "řádky", "řádků");
     }
 }

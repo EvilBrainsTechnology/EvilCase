@@ -5,7 +5,7 @@
     <ReflowPreview>
         <article class="ec-preview-email ec-preview-data-message" role="document" tabindex="0" aria-label="Obsah datové zprávy @this.FileName">
             <div class="ec-preview-data-message-head">
-                <h3 class="ec-preview-data-message-subject">@Or(message.Subject)</h3>
+                <h3 class="ec-preview-data-message-subject">@TextDisplay.OrDash(message.Subject)</h3>
                 <EcBadge Text="@(message.Kind == DataMessageKind.Message ? "Datová zpráva" : "Doručenka")" Tone="EcBadgeTone.Official" />
                 @if (this.FileId is { } fileId)
                 {
@@ -17,9 +17,9 @@
                 {
                     <dt>@label</dt>
                     <dd class="ec-preview-data-message-party">
-                        <span>@Or(party.Name)</span>
-                        <span class="ec-preview-data-message-box">ID schránky @Or(party.BoxId)</span>
-                        <span class="ec-preview-data-message-address">@Or(party.Address)</span>
+                        <span>@TextDisplay.OrDash(party.Name)</span>
+                        <span class="ec-preview-data-message-box">ID schránky @TextDisplay.OrDash(party.BoxId)</span>
+                        <span class="ec-preview-data-message-address">@TextDisplay.OrDash(party.Address)</span>
                     </dd>
                 }
                 @foreach (var (label, value) in new[]
@@ -35,11 +35,11 @@
                     }
                 }
                 <dt>ID zprávy</dt>
-                <dd>@Or(message.MessageId)</dd>
+                <dd>@TextDisplay.OrDash(message.MessageId)</dd>
                 <dt>Dodáno</dt>
-                <dd>@Moment(message.Delivered)</dd>
+                <dd>@MomentDisplay.Text(message.Delivered?.UtcDateTime)</dd>
                 <dt>Doručeno</dt>
-                <dd>@Moment(message.Accepted)</dd>
+                <dd>@MomentDisplay.Text(message.Accepted?.UtcDateTime)</dd>
             </dl>
             @if (message.Attachments.Count > 0)
             {
@@ -71,7 +71,7 @@
                         @foreach (var item in message.Events)
                         {
                             <li class="ec-preview-data-message-event">
-                                <span class="ec-preview-data-message-event-time">@Moment(item.Time)</span>
+                                <span class="ec-preview-data-message-event-time">@MomentDisplay.Text(item.Time?.UtcDateTime)</span>
                                 <span class="ec-preview-data-message-event-description">@item.Description</span>
                             </li>
                         }
@@ -131,15 +131,5 @@
         await using var content = new MemoryStream(attachment.Content, writable: false);
 
         await this.Downloader.DownloadContent(attachment.Name, content, CancellationToken.None);
-    }
-
-    private static string Moment(DateTimeOffset? moment)
-    {
-        return moment is { } value ? MomentDisplay.Text(value.UtcDateTime) : "—";
-    }
-
-    private static string Or(string text)
-    {
-        return text.Length == 0 ? "—" : text;
     }
 }

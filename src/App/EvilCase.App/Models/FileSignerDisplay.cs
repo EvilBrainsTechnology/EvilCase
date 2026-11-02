@@ -133,12 +133,7 @@ public static class FileSignerDisplay
     public static string Certificate(FileSigner signer)
     {
         return signer.CertificateIssuer is { } issuer
-            ? $"{issuer}, platný {Day(signer.CertificateValidFrom)} – {Day(signer.CertificateValidTo)}"
+            ? $"{issuer}, platný {DateDisplay.Day(signer.CertificateValidFrom)} – {DateDisplay.Day(signer.CertificateValidTo)}"
             : "—";
-    }
-
-    private static string Day(DateTime? moment)
-    {
-        return moment is { } value ? DateDisplay.Text(DateOnly.FromDateTime(value.ToLocalTime())) : "—";
     }
 }

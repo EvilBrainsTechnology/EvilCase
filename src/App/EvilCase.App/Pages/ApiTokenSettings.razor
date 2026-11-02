@@ -75,14 +75,14 @@
                                     }
                                     else
                                     {
-                                        <span>do @ApiTokenDisplay.DayText(item.Expires)</span>
+                                        <span>do @DateDisplay.Day(item.Expires)</span>
                                     }
                                 </span>
                                 <span>@(item.LastUsed is { } used ? $"Použit {MomentDisplay.Text(used)}" : "Nepoužit")</span>
                             </span>
                         </span>
                         <span class="ec-token-cell-wide"><span class="@ApiTokenDisplay.ScopeCss(item.Scope)">@ApiTokenDisplay.ScopeText(item.Scope)</span></span>
-                        <span class="ec-token-cell ec-token-cell-wide">@ApiTokenDisplay.DayText(item.Created)</span>
+                        <span class="ec-token-cell ec-token-cell-wide">@DateDisplay.Day(item.Created)</span>
                         <span class="ec-token-cell ec-token-cell-wide">
                             @if (expired)
                             {
@@ -90,7 +90,7 @@
                             }
                             else
                             {
-                                @ApiTokenDisplay.DayText(item.Expires)
+                                @DateDisplay.Day(item.Expires)
                             }
                         </span>
                         <span class="@(item.LastUsed is null ? "ec-token-cell ec-token-cell-wide ec-token-cell-unused" : "ec-token-cell ec-token-cell-wide")">@ApiTokenDisplay.LastUsedText(item.LastUsed)</span>

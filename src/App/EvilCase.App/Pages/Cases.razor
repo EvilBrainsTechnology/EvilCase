@@ -6,7 +6,7 @@
 
 <div class="ec-page">
     <EcPageHeader Title="Spisy">
-        <Status><span class="ec-page-note">@RecordCountDisplay.Text(this.total)</span></Status>
+        <Status><span class="ec-page-note">@Plural.Text(this.total, "záznam", "záznamy", "záznamů")</span></Status>
         <Actions>
             <EcButton Variant="EcButtonVariant.Primary" Icon="@AppIcons.Plus" Href="/cases/new">Nový spis</EcButton>
         </Actions>
