@@ -13,7 +13,7 @@ internal sealed class FileSignerReader(IDbSession dbSession, IFileBlobStore blob
         if (fileVersion is null)
             return null;
 
-        if (fileVersion.SizeBytes > FileLimits.MaxSignedFileBytes)
+        if (fileVersion.SizeBytes > FileLimits.MaxReadBytes)
             return new FileSignersResponse { Problem = FileSignersProblem.TooLarge, Signers = [] };
 
         await using var content = blobStore.ReadFileBlob(fileVersion.StoragePath);

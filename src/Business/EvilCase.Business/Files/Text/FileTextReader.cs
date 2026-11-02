@@ -18,7 +18,7 @@ internal sealed class FileTextReader(IDbSession dbSession, IFileBlobStore blobSt
         if (!FileTextExtraction.Reads(fileName))
             return new FileTextResult { Outcome = FileTextOutcome.UnsupportedFormat };
 
-        if (fileVersion.SizeBytes > FileLimits.MaxTextFileBytes)
+        if (fileVersion.SizeBytes > FileLimits.MaxReadBytes)
             return new FileTextResult { Outcome = FileTextOutcome.TooLarge };
 
         await using var content = blobStore.ReadFileBlob(fileVersion.StoragePath);

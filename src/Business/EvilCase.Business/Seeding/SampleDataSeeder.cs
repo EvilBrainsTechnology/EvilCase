@@ -162,7 +162,7 @@ internal sealed class SampleDataSeeder(
         SeedCounters counters,
         CancellationToken token)
     {
-        var actNumber = await actNumberIssuer.NextActNumber(@case, sampleAct.Date, token);
+        var actNumber = await actNumberIssuer.NextActNumber(@case.CaseNumber, sampleAct.Date, token);
 
         var counterparty = contactsByKey[sampleAct.CounterpartyKey];
 

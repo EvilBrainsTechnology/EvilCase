@@ -69,7 +69,7 @@ public class FileSignerReaderTests : TenantFixture
     public async Task AFileOverTheLimitIsTooLargeWithoutReadingItsBlob()
     {
         var @case = await this.Tenant.AddCase(Day);
-        var file = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf.p7m", sizeBytes: FileLimits.MaxSignedFileBytes + 1);
+        var file = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf.p7m", sizeBytes: FileLimits.MaxReadBytes + 1);
 
         var response = await this.Reader().ListFileSigners(file.Id, version: null, CancellationToken.None);
 

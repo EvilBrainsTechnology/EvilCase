@@ -180,7 +180,7 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
 
     private static async Task<FileRenameOutcome> RenameFile(IQueryable<FileAsset> ownerFiles, Guid fileId, string fileName, CancellationToken token)
     {
-        if (!await ownerFiles.WithId(fileId).AnyAsync(token))
+        if (!await ownerFiles.Exists(fileId, token))
             return FileRenameOutcome.NotFound;
 
         var taken = await ownerFiles

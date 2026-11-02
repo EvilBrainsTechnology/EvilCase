@@ -21,20 +21,10 @@ public static class FileLimits
     public const int MaxMediaTypeLength = 128;
 
     /// <summary>
-    /// The largest ZFO whose content is read: a standard message of 20 MB of attachments, in base64.
+    /// The largest file whose content the server reads: a ZFO (a standard message of 20 MB of attachments, in base64), a
+    /// signed file (p7m, p7s) and the file a detached signature is verified against, a file whose text is read.
     /// </summary>
-    public const long MaxDataMessageBytes = 30 * 1024 * 1024;
-
-    /// <summary>
-    /// The largest signed file (p7m, p7s) whose document and signers are read, and the largest file a detached signature is
-    /// verified against.
-    /// </summary>
-    public const long MaxSignedFileBytes = 30 * 1024 * 1024;
-
-    /// <summary>
-    /// The largest file whose text is read.
-    /// </summary>
-    public const long MaxTextFileBytes = 30 * 1024 * 1024;
+    public const long MaxReadBytes = 30 * 1024 * 1024;
 
     /// <summary>
     /// The characters one page of a file's text carries.

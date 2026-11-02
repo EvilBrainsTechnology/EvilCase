@@ -81,7 +81,7 @@ public class FilePreviewModalSignedRenderTests
         using var ctx = NewContext(out _, out _, out _, out _);
 
         var loads = 0;
-        var file = File("Velká.pdf.p7m", FileLimits.MaxSignedFileBytes + 1);
+        var file = File("Velká.pdf.p7m", FileLimits.MaxReadBytes + 1);
         var component = Render(
             ctx,
             [file],

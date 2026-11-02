@@ -56,7 +56,7 @@ internal sealed class FileSignatureReader(
 
     private async Task<FileSignatureResponse?> ReadAndVerify(string storagePath, long sizeBytes, CancellationToken token)
     {
-        if (sizeBytes > FileLimits.MaxDataMessageBytes)
+        if (sizeBytes > FileLimits.MaxReadBytes)
             return new FileSignatureResponse { State = FileSignatureState.Invalid, Problem = FileSignatureProblem.TooLarge };
 
         await using var content = blobStore.ReadFileBlob(storagePath);

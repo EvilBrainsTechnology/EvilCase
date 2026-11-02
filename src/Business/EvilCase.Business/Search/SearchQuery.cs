@@ -52,22 +52,6 @@ internal static class SearchQuery
             EF.Functions.ILike(DatabaseFunctions.Unaccent(comment.Body), DatabaseFunctions.Unaccent(pattern), LikeExtensions.LikeEscape));
     }
 
-    public static IQueryable<Case> InSearchOrder(this IQueryable<Case> cases)
-    {
-        return cases
-            .OrderByDescending(static @case => @case.Date)
-            .ThenByDescending(static @case => @case.Created)
-            .ThenByDescending(static @case => @case.Id);
-    }
-
-    public static IQueryable<Act> InSearchOrder(this IQueryable<Act> acts)
-    {
-        return acts
-            .OrderByDescending(static act => act.Date)
-            .ThenByDescending(static act => act.Created)
-            .ThenByDescending(static act => act.Id);
-    }
-
     /// <summary>
     /// The groups without a date of their own: the newest created first.
     /// </summary>

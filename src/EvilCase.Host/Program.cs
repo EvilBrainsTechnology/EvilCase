@@ -26,8 +26,7 @@ CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
 if (string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"), Environments.Development, StringComparison.OrdinalIgnoreCase))
     Env.Load(Path.Combine(AppContext.BaseDirectory, ".env"), LoadOptions.NoClobber().TraversePath());
 
-var builder = WebApplication
-    .CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(args);
 
 #pragma warning disable RCS0054 // Fix formatting of a call chain
 var loggerConfiguration = new LoggerConfiguration()

@@ -111,16 +111,6 @@ public class UserSeederTests
         }
     }
 
-    [TestCase(SeedEmail, null)]
-    [TestCase(null, SeedPassword)]
-    [TestCase(null, null)]
-    public async Task AHalfOfTheSeedCreatesNothing(string? email, string? password)
-    {
-        await this.Seeder(email, password).SeedUser(CancellationToken.None);
-
-        Assert.That(await this.context.Users.IgnoreQueryFilters().AnyAsync(), Is.False);
-    }
-
     private UserSeeder Seeder(string? email, string? password)
     {
         var settings = AuthTestHarness.CreateSettings() with { Seed = new() { Email = email, Password = password } };

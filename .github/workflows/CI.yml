@@ -90,8 +90,8 @@ jobs:
       - name: Generate SQL script
         run: dotnet r generate-sql-script -- --no-build
         working-directory: ./src
-      
-      # Generate SQL script
+
+      # Upload the SQL script
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:

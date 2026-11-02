@@ -46,7 +46,7 @@ public class AuthServiceTests
         var result = await this.harness.Service.Login(
             "  USER@EvilCase.TEST ",
             AuthTestHarness.Password,
-            ClientInfo.Unknown,
+            new(),
             CancellationToken.None);
 
         Assert.That(result.Status, Is.EqualTo(LoginStatus.Success));
@@ -58,7 +58,7 @@ public class AuthServiceTests
         var unknown = await this.harness.Service.Login(
             "nobody@evilcase.test",
             AuthTestHarness.Password,
-            ClientInfo.Unknown,
+            new(),
             CancellationToken.None);
 
         var wrong = await this.harness.Login(WrongPassword);

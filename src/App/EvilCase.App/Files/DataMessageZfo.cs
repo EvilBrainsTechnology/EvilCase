@@ -12,7 +12,7 @@ namespace EvilBrains.EvilCase.App.Files;
 /// </summary>
 internal static partial class DataMessageZfo
 {
-    public const long MaxBytes = FileLimits.MaxDataMessageBytes;
+    public const long MaxBytes = FileLimits.MaxReadBytes;
 
     // Deeper than any ISDS message; loading XML slows quadratically with its nesting.
     private const int MaxXmlDepth = 100;
