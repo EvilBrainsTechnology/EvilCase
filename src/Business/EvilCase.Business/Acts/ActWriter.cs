@@ -24,11 +24,12 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
         var context = dbSession.Current;
         var caseId = request.CaseId;
 
-        var @case = await context.Cases
+        var caseNumber = await context.Cases
             .WithId(caseId)
+            .Select(static @case => @case.CaseNumber)
             .SingleOrDefaultAsync(token);
 
-        if (@case is null)
+        if (caseNumber is null)
             return new ActCreateResult { Outcome = ActCreateOutcome.CaseNotFound };
 
         if (!await this.ContactKnown(request.ContactId, token))
@@ -39,7 +40,7 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
 
         for (var attempt = 1; ; attempt++)
         {
-            var actNumber = await numbers.NextActNumber(@case, request.Date, token);
+            var actNumber = await numbers.NextActNumber(caseNumber, request.Date, token);
             var act = BuildAct(request, actNumber);
 
             context.Acts.Add(act);
@@ -88,11 +89,8 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
     {
         var context = dbSession.Current;
 
-        var acts = context.Acts
-            .WithId(actId);
-
         // An act the tenant does not have is not found, whatever else the edit gets wrong.
-        if (!await acts.AnyAsync(token))
+        if (!await context.Acts.Exists(actId, token))
             return ActUpdateOutcome.NotFound;
 
         var edit = request with
@@ -121,16 +119,18 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
 
         await using var transaction = await dbSession.BeginTransaction(token);
 
-        var rows = await acts.ExecuteUpdateAsync(
-            setters => setters
-                .SetProperty(static act => act.ActNumber, edit.ActNumber)
-                .SetProperty(static act => act.ExternalActNumber, edit.ExternalActNumber)
-                .SetProperty(static act => act.Direction, edit.Direction)
-                .SetProperty(static act => act.Date, edit.Date)
-                .SetProperty(static act => act.Title, edit.Title)
-                .SetProperty(static act => act.Description, edit.Description)
-                .SetProperty(static act => act.ContactId, edit.ContactId),
-            token);
+        var rows = await context.Acts
+            .WithId(actId)
+            .ExecuteUpdateAsync(
+                setters => setters
+                    .SetProperty(static act => act.ActNumber, edit.ActNumber)
+                    .SetProperty(static act => act.ExternalActNumber, edit.ExternalActNumber)
+                    .SetProperty(static act => act.Direction, edit.Direction)
+                    .SetProperty(static act => act.Date, edit.Date)
+                    .SetProperty(static act => act.Title, edit.Title)
+                    .SetProperty(static act => act.Description, edit.Description)
+                    .SetProperty(static act => act.ContactId, edit.ContactId),
+                token);
 
         if (rows == 0)
             return ActUpdateOutcome.NotFound;

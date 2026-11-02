@@ -131,7 +131,7 @@ public class FileSignerVerifierTests : TenantFixture
     public async Task ASignedFileOverTheLimitIsNotRead()
     {
         var @case = await this.Tenant.AddCase(Day);
-        var pdf = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf", sizeBytes: FileLimits.MaxSignedFileBytes + 1);
+        var pdf = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf", sizeBytes: FileLimits.MaxReadBytes + 1);
         var signature = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf.p7s");
         this.Serve(pdf, Pdf);
         this.Serve(signature, this.Sign(Pdf, detached: true));
@@ -261,7 +261,7 @@ public class FileSignerVerifierTests : TenantFixture
     public async Task ASignatureOverTheLimitIsTooLargeWithoutReadingItsBlob()
     {
         var @case = await this.Tenant.AddCase(Day);
-        var signature = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf.p7m", sizeBytes: FileLimits.MaxSignedFileBytes + 1);
+        var signature = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf.p7m", sizeBytes: FileLimits.MaxReadBytes + 1);
 
         var response = await this.Verifier().VerifyFileSigners(signature.Id, version: null, CancellationToken.None);
 

@@ -130,7 +130,7 @@ public class FileSignatureReaderTests : TenantFixture
     public async Task AFileOverTheLimitIsTooLargeWithoutReadingItsBlob()
     {
         var @case = await this.Tenant.AddCase(Day);
-        var file = await this.Tenant.AddCaseFile(@case, "zprava.zfo", sizeBytes: FileLimits.MaxDataMessageBytes + 1);
+        var file = await this.Tenant.AddCaseFile(@case, "zprava.zfo", sizeBytes: FileLimits.MaxReadBytes + 1);
 
         var signature = await this.Reader(new StubSignatureRevocation(SignatureRevocationStatus.NotRevoked)).ReadFileSignature(file.Id, version: null, CancellationToken.None);
 

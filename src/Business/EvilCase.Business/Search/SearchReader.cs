@@ -1,3 +1,6 @@
+using EvilBrains.EvilCase.Api.Contract.Acts;
+using EvilBrains.EvilCase.Api.Contract.Cases;
+using EvilBrains.EvilCase.Api.Contract.Lists;
 using EvilBrains.EvilCase.Api.Contract.Search;
 using EvilBrains.EvilCase.Business.Acts;
 using EvilBrains.EvilCase.Business.Cases;
@@ -19,8 +22,10 @@ internal sealed class SearchReader(IDbSession dbSession) : ISearchReader
         // Sequential: one DbContext serves one query at a time.
         return new SearchResponse
         {
-            Cases = await ReadGroup(context.Cases.MatchingTerm(pattern).InSearchOrder(), static cases => cases.AsListItems(), token),
-            Acts = await ReadGroup(context.Acts.MatchingTerm(pattern).InSearchOrder(), static acts => acts.AsListItems(), token),
+            Cases = await ReadGroup(
+                context.Cases.MatchingTerm(pattern).InSortOrder(CaseSortKey.Date, ListSortDirection.Descending), static cases => cases.AsListItems(), token),
+            Acts = await ReadGroup(
+                context.Acts.MatchingTerm(pattern).InSortOrder(ActSortKey.Date, ListSortDirection.Descending), static acts => acts.AsListItems(), token),
             Contacts = await ReadGroup(context.Contacts.MatchingTerm(pattern).InSearchOrder(), static contacts => contacts.AsListItems(), token),
             Files = await ReadGroup(context.FileAssets.MatchingTerm(pattern).InSearchOrder(), static files => files.AsSearchItems(), token),
             Comments = await ReadGroup(context.Comments.MatchingTerm(pattern).InSearchOrder(), static comments => comments.AsSearchItems(), token),

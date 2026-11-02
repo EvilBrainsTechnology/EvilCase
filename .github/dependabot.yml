@@ -25,7 +25,7 @@ updates:
       analyzers:
         patterns:
           - "Roslynator.*"
-          - "StyleCop.Analyzers"
+          - "Meziantou.Analyzer"
 
   # .NET SDK version in src/global.json
   - package-ecosystem: "dotnet-sdk"

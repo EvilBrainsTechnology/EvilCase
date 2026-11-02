@@ -5,8 +5,6 @@ namespace EvilBrains.EvilCase.Auth;
 /// </summary>
 public sealed record ClientInfo
 {
-    public static readonly ClientInfo Unknown = new();
-
     public string? IpAddress { get; init; }
 
     public string? UserAgent { get; init; }

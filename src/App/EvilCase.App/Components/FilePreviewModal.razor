@@ -853,7 +853,7 @@
         var size = this.ShownVersionItem?.SizeBytes ?? file.SizeBytes;
 
         if ((preview == FilePreviewKind.DataMessage && size > DataMessageZfo.MaxBytes)
-            || (preview == FilePreviewKind.SignedDocument && size > FileLimits.MaxSignedFileBytes))
+            || (preview == FilePreviewKind.SignedDocument && size > FileLimits.MaxReadBytes))
         {
             this.loading = false;
             this.unsupported = true;

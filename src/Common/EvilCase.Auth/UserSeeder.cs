@@ -18,16 +18,13 @@ internal sealed class UserSeeder(
 
     public async Task SeedUser(CancellationToken token)
     {
-        var seed = options.Value.Seed;
-
-        if (seed?.Email is not { Length: > 0 } email || seed.Password is not { Length: > 0 } password)
-            return;
+        var seed = options.Value.Seed!;
 
         // Any user, not this e-mail: the seed must never reinstate a removed account.
         if (await userStore.Any(token))
             return;
 
-        var normalizedEmail = EmailNormalizer.Normalize(email);
+        var normalizedEmail = EmailNormalizer.Normalize(seed.Email!);
 
         var account = new Account { Name = normalizedEmail };
         var tenant = new Tenant { AccountId = account.Id, Name = normalizedEmail };
@@ -39,7 +36,7 @@ internal sealed class UserSeeder(
         var user = new User
         {
             Email = normalizedEmail,
-            PasswordHash = PasswordHasher.Hash(password),
+            PasswordHash = PasswordHasher.Hash(seed.Password!),
             Role = UserRole.Admin,
         };
 

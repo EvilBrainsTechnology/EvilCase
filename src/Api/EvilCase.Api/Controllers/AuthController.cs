@@ -205,7 +205,6 @@ public class AuthController : ControllerBase
             SameSite = SameSiteMode.Strict,
             Path = RefreshCookie.Path,
             Expires = expires,
-            IsEssential = true,
         };
     }
 }

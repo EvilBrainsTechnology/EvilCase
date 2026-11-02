@@ -86,14 +86,14 @@ internal sealed class AuthTestHarness
 
     public async Task<AuthSession> SignIn()
     {
-        var result = await this.Service.Login(Email, Password, ClientInfo.Unknown, CancellationToken.None);
+        var result = await this.Service.Login(Email, Password, new(), CancellationToken.None);
 
         return result.Session ?? throw new InvalidOperationException("The harness could not sign in");
     }
 
     public async Task<LoginResult> Login(string password)
     {
-        return await this.Service.Login(Email, password, ClientInfo.Unknown, CancellationToken.None);
+        return await this.Service.Login(Email, password, new(), CancellationToken.None);
     }
 
     public async Task<AuthSession?> Refresh(string refreshToken)
@@ -103,6 +103,6 @@ internal sealed class AuthTestHarness
 
     public async Task<RefreshResult> RefreshOutcome(string refreshToken)
     {
-        return await this.Service.Refresh(refreshToken, ClientInfo.Unknown, CancellationToken.None);
+        return await this.Service.Refresh(refreshToken, new(), CancellationToken.None);
     }
 }

@@ -93,7 +93,7 @@ internal sealed class CaseWriter(
         var context = dbSession.Current;
 
         // A case the tenant does not have is not found, whatever else the edit gets wrong (R-025).
-        if (!await context.Cases.WithId(caseId).AnyAsync(token))
+        if (!await context.Cases.Exists(caseId, token))
             return CaseUpdateOutcome.NotFound;
 
         var edit = request with

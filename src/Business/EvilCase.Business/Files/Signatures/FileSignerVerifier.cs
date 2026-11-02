@@ -31,7 +31,7 @@ internal sealed class FileSignerVerifier(
         if (fileVersion is null)
             return null;
 
-        if (fileVersion.SizeBytes > FileLimits.MaxSignedFileBytes)
+        if (fileVersion.SizeBytes > FileLimits.MaxReadBytes)
             return new FileSignersResponse { Problem = FileSignersProblem.TooLarge, Signers = [] };
 
         var file = fileVersion.FileAsset!;
@@ -105,7 +105,7 @@ internal sealed class FileSignerVerifier(
             return SignedFileSignature.Unverifiable(listed, signerProblem) with { SignedFileProblem = problem };
         }
 
-        if (signedVersion!.SizeBytes > FileLimits.MaxSignedFileBytes)
+        if (signedVersion!.SizeBytes > FileLimits.MaxReadBytes)
             return SignedFileSignature.Unverifiable(listed, FileSignerProblem.SignedFileTooLarge) with { SignedFile = signedFile };
 
         await using var signedContent = blobStore.ReadFileBlob(signedVersion.StoragePath);

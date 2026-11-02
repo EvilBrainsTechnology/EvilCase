@@ -1,3 +1,8 @@
+using EvilBrains.EvilCase.Api.Contract.Acts;
+using EvilBrains.EvilCase.Api.Contract.Cases;
+using EvilBrains.EvilCase.Api.Contract.Lists;
+using EvilBrains.EvilCase.Business.Acts;
+using EvilBrains.EvilCase.Business.Cases;
 using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
@@ -13,9 +18,7 @@ internal static class TenantExportQuery
     public static IQueryable<OutlinedCase> AsOutlinedCases(this IQueryable<Case> cases)
     {
         return cases
-            .OrderBy(static @case => @case.Date)
-            .ThenBy(static @case => @case.Created)
-            .ThenBy(static @case => @case.Id)
+            .InSortOrder(CaseSortKey.Date, ListSortDirection.Ascending)
             .Select(static @case => new OutlinedCase
             {
                 CaseId = @case.Id,
@@ -31,9 +34,7 @@ internal static class TenantExportQuery
     public static IQueryable<OutlinedAct> AsOutlinedActs(this IQueryable<Act> acts)
     {
         return acts
-            .OrderBy(static act => act.Date)
-            .ThenBy(static act => act.Created)
-            .ThenBy(static act => act.Id)
+            .InSortOrder(ActSortKey.Date, ListSortDirection.Ascending)
             .Select(static act => new OutlinedAct
             {
                 ActId = act.Id,

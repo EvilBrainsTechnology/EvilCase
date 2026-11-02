@@ -1,7 +1,6 @@
 using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.Business.Acts;
 using EvilBrains.EvilCase.Business.Numbering;
-using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Domain.Acts;
 using EvilBrains.EvilCase.Domain.Numbering;
 using EvilBrains.EvilCase.Tests.Data;
@@ -192,7 +191,7 @@ public class ActWriterTests : TenantFixture
     {
         private int issued;
 
-        public async Task<string> NextActNumber(Case @case, DateOnly date, CancellationToken token)
+        public async Task<string> NextActNumber(string caseNumber, DateOnly date, CancellationToken token)
         {
             return actNumbers[this.issued++];
         }
