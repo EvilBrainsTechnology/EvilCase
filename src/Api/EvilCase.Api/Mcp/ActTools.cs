@@ -31,7 +31,7 @@ internal static class ActTools
     [Description("Reads one act with its case, contact, labels and the timeline of its case.")]
     public static async Task<ActDetail> GetAct(IActReader acts, [Description("The act.")] Guid actId, CancellationToken token)
     {
-        return await acts.GetActDetail(actId, token) ?? throw McpProblem.Of(ActProblems.ActNotFound);
+        return await acts.GetActDetail(actId, token) ?? throw McpProblem.Of(ActProblems.NotFound);
     }
 
     [McpServerTool(Name = "create_act", Destructive = false, OpenWorld = false)]
@@ -48,8 +48,8 @@ internal static class ActTools
         {
             ActCreateOutcome.Created => result.Act!,
             ActCreateOutcome.CaseNotFound => throw McpProblem.Of(CaseProblems.UnknownCase, CaseProblems.UnknownCaseDetail),
-            ActCreateOutcome.ContactNotFound => throw McpProblem.Of(ContactProblems.UnknownContact, "The contact named in the request does not exist."),
-            ActCreateOutcome.LabelNotFound => throw McpProblem.Of(LabelProblems.UnknownLabel, "A label named in the request does not exist."),
+            ActCreateOutcome.ContactNotFound => throw McpProblem.Of(ContactProblems.UnknownContact, ContactProblems.UnknownContactDetail),
+            ActCreateOutcome.LabelNotFound => throw McpProblem.Of(LabelProblems.UnknownLabel, LabelProblems.UnknownLabelDetail),
             _ => throw new UnreachableException(),
         };
     }
@@ -69,12 +69,12 @@ internal static class ActTools
         return outcome switch
         {
             ActUpdateOutcome.Updated => "The act was updated.",
-            ActUpdateOutcome.NotFound => throw McpProblem.Of(ActProblems.ActNotFound),
-            ActUpdateOutcome.ContactNotFound => throw McpProblem.Of(ContactProblems.UnknownContact, "The contact named in the request does not exist."),
-            ActUpdateOutcome.ActNumberTaken => throw McpProblem.Of("Act number taken", "Another act already carries the number."),
+            ActUpdateOutcome.NotFound => throw McpProblem.Of(ActProblems.NotFound),
+            ActUpdateOutcome.ContactNotFound => throw McpProblem.Of(ContactProblems.UnknownContact, ContactProblems.UnknownContactDetail),
+            ActUpdateOutcome.ActNumberTaken => throw McpProblem.Of(ActProblems.NumberTaken, ActProblems.NumberTakenDetail),
             ActUpdateOutcome.InvalidActNumber => throw McpProblem.Of(
-                "One or more validation errors occurred.", "ActNumber: The act number must read <case-number>/yyyyMMdd-nnn."),
-            ActUpdateOutcome.LabelNotFound => throw McpProblem.Of(LabelProblems.UnknownLabel, "A label named in the request does not exist."),
+                McpProblem.ValidationTitle, $"{nameof(ActEditRequest.ActNumber)}: {ActProblems.InvalidNumberDetail}"),
+            ActUpdateOutcome.LabelNotFound => throw McpProblem.Of(LabelProblems.UnknownLabel, LabelProblems.UnknownLabelDetail),
             _ => throw new UnreachableException(),
         };
     }
@@ -88,7 +88,7 @@ internal static class ActTools
         return outcome switch
         {
             DeleteOutcome.Deleted => "The act was deleted.",
-            DeleteOutcome.NotFound => throw McpProblem.Of(ActProblems.ActNotFound),
+            DeleteOutcome.NotFound => throw McpProblem.Of(ActProblems.NotFound),
             _ => throw new UnreachableException(),
         };
     }
@@ -103,8 +103,8 @@ internal static class ActTools
         return outcome switch
         {
             LabelAssignmentOutcome.Assigned => "The labels of the act were set.",
-            LabelAssignmentOutcome.OwnerNotFound => throw McpProblem.Of(ActProblems.ActNotFound),
-            LabelAssignmentOutcome.LabelNotFound => throw McpProblem.Of(LabelProblems.UnknownLabel, "A label named in the request does not exist."),
+            LabelAssignmentOutcome.OwnerNotFound => throw McpProblem.Of(ActProblems.NotFound),
+            LabelAssignmentOutcome.LabelNotFound => throw McpProblem.Of(LabelProblems.UnknownLabel, LabelProblems.UnknownLabelDetail),
             _ => throw new UnreachableException(),
         };
     }

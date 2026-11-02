@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using EvilBrains.EvilCase.Api.Contract.Comments;
 using EvilBrains.EvilCase.Business.Comments;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,9 +13,9 @@ internal static class CommentWriteAnswer
         return outcome switch
         {
             CommentWriteOutcome.Written => controller.NoContent(),
-            CommentWriteOutcome.NotFound => controller.Problem(statusCode: StatusCodes.Status404NotFound, title: "Comment not found"),
+            CommentWriteOutcome.NotFound => controller.Problem(statusCode: StatusCodes.Status404NotFound, title: CommentProblems.NotFound),
             CommentWriteOutcome.NotAuthor => controller.Problem(
-                detail: "Only the author edits or deletes a comment.", statusCode: StatusCodes.Status403Forbidden, title: "Not the author"),
+                detail: CommentProblems.NotAuthorDetail, statusCode: StatusCodes.Status403Forbidden, title: CommentProblems.NotAuthor),
             _ => throw new UnreachableException(),
         };
     }

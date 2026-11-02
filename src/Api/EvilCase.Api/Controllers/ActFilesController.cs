@@ -22,7 +22,7 @@ public class ActFilesController : ControllerBase
         var items = await files.ListActFiles(actId, token);
 
         return items is null
-            ? this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.ActNotFound)
+            ? this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.NotFound)
             : this.Ok(new FileListResponse { Items = items });
     }
 

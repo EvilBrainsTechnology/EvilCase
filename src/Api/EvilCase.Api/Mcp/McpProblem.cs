@@ -8,6 +8,8 @@ namespace EvilBrains.EvilCase.Api.Mcp;
 /// </summary>
 internal static class McpProblem
 {
+    public const string ValidationTitle = "One or more validation errors occurred.";
+
     public static McpException Of(string title, string? detail = null)
     {
         return new McpException(detail is null ? title : $"{title}: {detail}");
@@ -25,6 +27,6 @@ internal static class McpProblem
 
         var errors = results.Select(static result => $"{string.Join(", ", result.MemberNames)}: {result.ErrorMessage}");
 
-        throw Of("One or more validation errors occurred.", string.Join(' ', errors));
+        throw Of(ValidationTitle, string.Join(' ', errors));
     }
 }

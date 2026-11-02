@@ -39,11 +39,11 @@ public class ActsController : ControllerBase
                 statusCode: StatusCodes.Status409Conflict,
                 title: CaseProblems.UnknownCase),
             ActCreateOutcome.ContactNotFound => this.Problem(
-                detail: "The contact named in the request does not exist.",
+                detail: ContactProblems.UnknownContactDetail,
                 statusCode: StatusCodes.Status409Conflict,
                 title: ContactProblems.UnknownContact),
             ActCreateOutcome.LabelNotFound => this.Problem(
-                detail: "A label named in the request does not exist.",
+                detail: LabelProblems.UnknownLabelDetail,
                 statusCode: StatusCodes.Status409Conflict,
                 title: LabelProblems.UnknownLabel),
             _ => throw new UnreachableException(),
@@ -58,7 +58,7 @@ public class ActsController : ControllerBase
         var act = await acts.GetActDetail(actId, token);
 
         return act is null
-            ? this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.ActNotFound)
+            ? this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.NotFound)
             : this.Ok(act);
     }
 
@@ -75,16 +75,16 @@ public class ActsController : ControllerBase
         return outcome switch
         {
             ActUpdateOutcome.Updated => this.NoContent(),
-            ActUpdateOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.ActNotFound),
+            ActUpdateOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.NotFound),
             ActUpdateOutcome.ContactNotFound => this.Problem(
-                detail: "The contact named in the request does not exist.",
+                detail: ContactProblems.UnknownContactDetail,
                 statusCode: StatusCodes.Status409Conflict,
                 title: ContactProblems.UnknownContact),
             ActUpdateOutcome.ActNumberTaken => this.Problem(
-                detail: "Another act already carries the number.", statusCode: StatusCodes.Status409Conflict, title: "Act number taken"),
+                detail: ActProblems.NumberTakenDetail, statusCode: StatusCodes.Status409Conflict, title: ActProblems.NumberTaken),
             ActUpdateOutcome.InvalidActNumber => this.InvalidActNumberProblem(),
             ActUpdateOutcome.LabelNotFound => this.Problem(
-                detail: "A label named in the request does not exist.",
+                detail: LabelProblems.UnknownLabelDetail,
                 statusCode: StatusCodes.Status409Conflict,
                 title: LabelProblems.UnknownLabel),
             _ => throw new UnreachableException(),
@@ -101,14 +101,14 @@ public class ActsController : ControllerBase
         return outcome switch
         {
             DeleteOutcome.Deleted => this.NoContent(),
-            DeleteOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.ActNotFound),
+            DeleteOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.NotFound),
             _ => throw new UnreachableException(),
         };
     }
 
     private ActionResult InvalidActNumberProblem()
     {
-        this.ModelState.AddModelError(nameof(ActEditRequest.ActNumber), "The act number must read <case-number>/yyyyMMdd-nnn.");
+        this.ModelState.AddModelError(nameof(ActEditRequest.ActNumber), ActProblems.InvalidNumberDetail);
 
         return this.ValidationProblem(statusCode: StatusCodes.Status400BadRequest);
     }

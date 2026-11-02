@@ -69,7 +69,7 @@ public class ContactsController : ControllerBase
             ContactDeleteOutcome.Deleted => this.NoContent(),
             ContactDeleteOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: ContactProblems.NotFound),
             ContactDeleteOutcome.Referenced => this.Problem(
-                detail: "The contact is named by a case or an act.", statusCode: StatusCodes.Status409Conflict, title: "Contact in use"),
+                detail: ContactProblems.InUseDetail, statusCode: StatusCodes.Status409Conflict, title: ContactProblems.InUse),
             _ => throw new UnreachableException(),
         };
     }

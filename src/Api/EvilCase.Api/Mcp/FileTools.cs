@@ -26,7 +26,7 @@ internal static class FileTools
     [Description("Lists the files of an act in upload order, each with its current version and the signature file that signs it.")]
     public static async Task<FileListResponse> ListActFiles(IFileReader files, [Description("The act.")] Guid actId, CancellationToken token)
     {
-        var items = await files.ListActFiles(actId, token) ?? throw McpProblem.Of(ActProblems.ActNotFound);
+        var items = await files.ListActFiles(actId, token) ?? throw McpProblem.Of(ActProblems.NotFound);
 
         return new FileListResponse { Items = items };
     }
@@ -139,7 +139,7 @@ internal static class FileTools
         var lastSegment = FileNameRules.LastSegment(fileName);
 
         if (FileNameRules.Violation(lastSegment) is { } violation)
-            throw McpProblem.Of("One or more validation errors occurred.", $"fileName: {violation}");
+            throw McpProblem.Of(McpProblem.ValidationTitle, $"fileName: {violation}");
 
         return lastSegment;
     }

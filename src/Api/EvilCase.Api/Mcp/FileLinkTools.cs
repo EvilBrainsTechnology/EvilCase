@@ -41,13 +41,13 @@ internal static class FileLinkTools
             ({ } id, null, null) => (FileLinkKind.CaseUpload, id),
             (null, { } id, null) => (FileLinkKind.ActUpload, id),
             (null, null, { } id) => (FileLinkKind.VersionUpload, id),
-            _ => throw McpProblem.Of("One or more validation errors occurred.", "Name exactly one of caseId, actId and fileId."),
+            _ => throw McpProblem.Of(McpProblem.ValidationTitle, "Name exactly one of caseId, actId and fileId."),
         };
 
         var lastSegment = FileNameRules.LastSegment(fileName);
 
         if (FileNameRules.Violation(lastSegment) is { } violation)
-            throw McpProblem.Of("One or more validation errors occurred.", $"fileName: {violation}");
+            throw McpProblem.Of(McpProblem.ValidationTitle, $"fileName: {violation}");
 
         var (link, expires) = await CreateFileLink(writer, httpContextAccessor.HttpContext!, kind, targetId, version: null, token);
         var url = $"{link}&{FileLinkRoute.FileNameParameter}={Uri.EscapeDataString(lastSegment)}";
@@ -99,7 +99,7 @@ internal static class FileLinkTools
             throw kind switch
             {
                 FileLinkKind.CaseUpload => McpProblem.Of(CaseProblems.NotFound),
-                FileLinkKind.ActUpload => McpProblem.Of(ActProblems.ActNotFound),
+                FileLinkKind.ActUpload => McpProblem.Of(ActProblems.NotFound),
                 FileLinkKind.VersionUpload => McpProblem.Of(FileProblems.NotFound),
                 FileLinkKind.Download => McpProblem.Of(version is null ? FileProblems.NotFound : FileProblems.VersionNotFound),
                 _ => throw new UnreachableException(),
